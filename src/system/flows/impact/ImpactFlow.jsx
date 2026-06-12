@@ -309,6 +309,367 @@ function bewerteProjekt(form) {
   };
 }
 
+// ── Progress Bar ──────────────────────────────────────────────
+function ProgressBar({ step, total }) {
+  return (
+    <div style={{ display:"flex", gap:4, flex:1 }}>
+      {Array.from({ length:total }).map((_,i) => (
+        <div key={i} style={{
+          flex:1, height:3, borderRadius:99,
+          background: i < step
+            ? `linear-gradient(90deg,${T.teal},${T.tealL})`
+            : i === step
+            ? `linear-gradient(90deg,${T.teal}88,${T.teal}33)`
+            : T.line,
+          transition:"background 0.35s ease",
+        }}/>
+      ))}
+    </div>
+  );
+}
+
+// ── Step-Wrapper ──────────────────────────────────────────────
+function StepWrap({ step, total, onBack, onClose, label, children }) {
+  return (
+    <div style={{ display:"flex", flexDirection:"column", height:"100%", overflow:"hidden" }}>
+      <div style={{
+        display:"flex", alignItems:"center", gap:12,
+        padding:"16px 20px 14px", flexShrink:0,
+        borderBottom:`1px solid ${T.line}`,
+      }}>
+        <button onClick={onBack} style={{
+          width:34, height:34, borderRadius:"50%",
+          background:"rgba(20,20,34,0.06)", border:"none",
+          cursor:"pointer", fontSize:18, color:T.ink2,
+          display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0,
+        }}>‹</button>
+        <div style={{ flex:1 }}>
+          <div style={{ fontSize:11, fontWeight:700, color:T.teal,
+            letterSpacing:"0.07em", textTransform:"uppercase", marginBottom:5 }}>
+            {label}
+          </div>
+          <ProgressBar step={step} total={total} />
+        </div>
+        <button onClick={onClose} style={{
+          width:34, height:34, borderRadius:"50%",
+          background:"rgba(20,20,34,0.06)", border:"none",
+          cursor:"pointer", fontSize:15, color:T.ink3,
+          display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0,
+        }}>✕</button>
+      </div>
+      <div style={{
+        flex:1, overflowY:"auto", padding:"28px 24px 24px",
+        WebkitOverflowScrolling:"touch", display:"flex", flexDirection:"column",
+      }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ── CTA Button ────────────────────────────────────────────────
+function NextBtn({ label="Weiter →", onClick, disabled, loading }) {
+  return (
+    <button className="hui-next" onClick={() => !disabled && !loading && onClick?.()}
+      style={{
+        width:"100%", height:56, borderRadius:18, border:"none",
+        background: disabled || loading ? "rgba(20,20,34,0.08)"
+          : `linear-gradient(135deg,${T.teal},${T.tealL})`,
+        color: disabled || loading ? T.ink4 : "#fff",
+        fontSize:16, fontWeight:800,
+        cursor: disabled || loading ? "default" : "pointer",
+        boxShadow: disabled || loading ? "none" : S.btn(T.teal),
+        transition:"all 0.2s ease",
+        display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+        opacity: disabled ? 0.55 : 1, marginTop:"auto", flexShrink:0,
+      }}>
+      {loading
+        ? <span style={{ width:22, height:22, border:`3px solid rgba(255,255,255,0.3)`,
+            borderTopColor:"#fff", borderRadius:"50%",
+            animation:"ifSpin 0.7s linear infinite", display:"inline-block" }}/>
+        : label}
+    </button>
+  );
+}
+
+// ═══ STEP 1–6 (unverändert) ═══════════════════════════════════
+function Step1({ form, update, onNext, onBack, onClose }) {
+  const ok = (form.name || "").trim().length >= 3;
+  return (
+    <StepWrap step={0} total={6} onBack={onBack} onClose={onClose} label="Schritt 1 von 6">
+      <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
+        <div style={{ fontSize:28, marginBottom:10 }}>🌱</div>
+        <h2 style={{ margin:"0 0 8px", fontSize:24, fontWeight:900, color:T.ink,
+          letterSpacing:"-0.025em", lineHeight:1.2 }}>Wie heißt dein Projekt?</h2>
+        <p style={{ margin:"0 0 28px", fontSize:14, color:T.ink2, lineHeight:1.65 }}>
+          Gib deinem Herzensprojekt einen Namen. Der Name ist das Erste, was die Community sieht.
+        </p>
+        <input className="hui-input" type="text"
+          placeholder="z. B. Gemüsegarten für die Nachbarschaft"
+          value={form.name || ""} onChange={e => update({ name: e.target.value })}
+          maxLength={80} autoFocus />
+        <div style={{ fontSize:11, color:T.ink3, textAlign:"right", marginTop:6, marginBottom:28 }}>
+          {(form.name||"").length} / 80</div>
+        <NextBtn label="Weiter →" onClick={onNext} disabled={!ok} />
+      </div>
+    </StepWrap>
+  );
+}
+
+function Step2({ form, update, onNext, onBack, onClose }) {
+  const ok = (form.satz || "").trim().length >= 15;
+  return (
+    <StepWrap step={1} total={6} onBack={onBack} onClose={onClose} label="Schritt 2 von 6">
+      <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
+        <div style={{ fontSize:28, marginBottom:10 }}>💬</div>
+        <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight:900, color:T.ink,
+          letterSpacing:"-0.022em", lineHeight:1.2 }}>Beschreibe dein Projekt in einem Satz.</h2>
+        <p style={{ margin:"0 0 28px", fontSize:14, color:T.ink2, lineHeight:1.65 }}>
+          Was ist die Kernidee? Klar und verständlich — als würdest du es einem Freund erklären.
+        </p>
+        <textarea className="hui-input hui-textarea"
+          placeholder="z. B. Wir legen einen kostenlosen Gemüsegarten für alle Bewohner unseres Viertels an."
+          value={form.satz || ""} onChange={e => update({ satz: e.target.value })}
+          maxLength={200} rows={4} />
+        <div style={{ fontSize:11, color:T.ink3, textAlign:"right", marginTop:6, marginBottom:28 }}>
+          {(form.satz||"").length} / 200</div>
+        <NextBtn label="Weiter →" onClick={onNext} disabled={!ok} />
+      </div>
+    </StepWrap>
+  );
+}
+
+function Step3({ form, update, onNext, onBack, onClose }) {
+  const ok = (form.problem || "").trim().length >= 20;
+  return (
+    <StepWrap step={2} total={6} onBack={onBack} onClose={onClose} label="Schritt 3 von 6">
+      <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
+        <div style={{ fontSize:28, marginBottom:10 }}>🎯</div>
+        <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight:900, color:T.ink,
+          letterSpacing:"-0.022em", lineHeight:1.2 }}>Welches Problem löst dein Projekt?</h2>
+        <p style={{ margin:"0 0 28px", fontSize:14, color:T.ink2, lineHeight:1.65 }}>
+          Was ist die eigentliche Herausforderung, die dein Projekt angeht?
+        </p>
+        <textarea className="hui-input hui-textarea"
+          placeholder="z. B. In unserem Viertel gibt es kaum Grünflächen. Kinder haben keinen Zugang zu Natur."
+          value={form.problem || ""} onChange={e => update({ problem: e.target.value })}
+          maxLength={400} rows={5} />
+        <div style={{ fontSize:11, color:T.ink3, textAlign:"right", marginTop:6, marginBottom:28 }}>
+          {(form.problem||"").length} / 400</div>
+        <NextBtn label="Weiter →" onClick={onNext} disabled={!ok} />
+      </div>
+    </StepWrap>
+  );
+}
+
+function Step4({ form, update, onNext, onBack, onClose }) {
+  const ok = !!form.kategorie;
+  return (
+    <StepWrap step={3} total={6} onBack={onBack} onClose={onClose} label="Schritt 4 von 6">
+      <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
+        <div style={{ fontSize:28, marginBottom:10 }}>🤝</div>
+        <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight:900, color:T.ink,
+          letterSpacing:"-0.022em", lineHeight:1.2 }}>Wer profitiert davon?</h2>
+        <p style={{ margin:"0 0 24px", fontSize:14, color:T.ink2, lineHeight:1.65 }}>
+          Wähle den Bereich, der am besten zu deinem Projekt passt.
+        </p>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:24 }}>
+          {KATEGORIEN.map(k => {
+            const sel = form.kategorie === k.id;
+            return (
+              <button key={k.id} className="hui-chip" onClick={() => update({ kategorie: k.id })}
+                style={{
+                  display:"flex", alignItems:"center", gap:10, padding:"13px 14px",
+                  background: sel ? `${T.teal}15` : T.surfaceHi,
+                  border: sel ? `2px solid ${T.teal}` : `2px solid ${T.line}`,
+                  borderRadius:16, cursor:"pointer",
+                  boxShadow: sel ? `0 0 0 3px ${T.teal}18` : S.card,
+                  transition:"all 0.15s ease",
+                }}>
+                <span style={{ fontSize:22 }}>{k.emoji}</span>
+                <span style={{ fontSize:14, fontWeight: sel ? 800 : 600,
+                  color: sel ? T.teal : T.ink, lineHeight:1.2 }}>{k.label}</span>
+              </button>
+            );
+          })}
+        </div>
+        <NextBtn label="Weiter →" onClick={onNext} disabled={!ok} />
+      </div>
+    </StepWrap>
+  );
+}
+
+function Step5({ form, update, onNext, onBack, onClose }) {
+  const ok = (form.umsetzung || "").trim().length >= 20;
+  return (
+    <StepWrap step={4} total={6} onBack={onBack} onClose={onClose} label="Schritt 5 von 6">
+      <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
+        <div style={{ fontSize:28, marginBottom:10 }}>🚀</div>
+        <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight:900, color:T.ink,
+          letterSpacing:"-0.022em", lineHeight:1.2 }}>Was wird konkret umgesetzt?</h2>
+        <p style={{ margin:"0 0 28px", fontSize:14, color:T.ink2, lineHeight:1.65 }}>
+          Was würde konkret mit der Förderung passieren? Je konkreter, desto besser.
+        </p>
+        <textarea className="hui-input hui-textarea"
+          placeholder="z. B. Wir kaufen Hochbeete, Erde und Saatgut. Wir organisieren monatliche Gartentage."
+          value={form.umsetzung || ""} onChange={e => update({ umsetzung: e.target.value })}
+          maxLength={500} rows={5} />
+        <div style={{ fontSize:11, color:T.ink3, textAlign:"right", marginTop:6, marginBottom:28 }}>
+          {(form.umsetzung||"").length} / 500</div>
+        <NextBtn label="Weiter →" onClick={onNext} disabled={!ok} />
+      </div>
+    </StepWrap>
+  );
+}
+
+function Step6({ form, update, onNext, onBack, onClose }) {
+  const raw = (form.foerder || "").replace(/\D/g,"");
+  const val = raw ? parseInt(raw, 10) : 0;
+  const ok  = val >= 100 && val <= 50000;
+  const fmtDisplay = (str) => {
+    const n = str.replace(/\D/g,"");
+    return n ? parseInt(n,10).toLocaleString("de-DE") : "";
+  };
+  return (
+    <StepWrap step={5} total={6} onBack={onBack} onClose={onClose} label="Schritt 6 von 6">
+      <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
+        <div style={{ fontSize:28, marginBottom:10 }}>💶</div>
+        <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight:900, color:T.ink,
+          letterSpacing:"-0.022em", lineHeight:1.2 }}>Welche Fördersumme wünschst du dir?</h2>
+        <p style={{ margin:"0 0 28px", fontSize:14, color:T.ink2, lineHeight:1.65 }}>
+          Wie viel Euro würde dein Projekt benötigen, um vollständig umgesetzt zu werden?
+        </p>
+        <div style={{ position:"relative", marginBottom:10 }}>
+          <span style={{ position:"absolute", left:18, top:"50%", transform:"translateY(-50%)",
+            fontSize:20, fontWeight:700, color:T.teal, pointerEvents:"none" }}>€</span>
+          <input className="hui-input" type="text" inputMode="numeric" placeholder="2.000"
+            value={fmtDisplay(form.foerder || "")}
+            onChange={e => update({ foerder: e.target.value.replace(/\D/g,"") })}
+            style={{ paddingLeft:38, fontSize:22, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }} />
+        </div>
+        {(form.foerder && !ok) && (
+          <div style={{ fontSize:12, color:T.coral, marginBottom:12 }}>
+            {val < 100 ? "Bitte mindestens €100 angeben." : "Maximal €50.000 pro Bewerbung möglich."}
+          </div>
+        )}
+        <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:28 }}>
+          {[500,1000,2000,5000,10000].map(v => (
+            <button key={v} className="hui-chip" onClick={() => update({ foerder: String(v) })}
+              style={{ padding:"7px 14px", borderRadius:99, border:"none",
+                background: val===v ? T.teal : `${T.teal}12`,
+                color: val===v ? "#fff" : T.teal, fontSize:13, fontWeight:700, cursor:"pointer" }}>
+              €{v.toLocaleString("de-DE")}</button>
+          ))}
+        </div>
+        <NextBtn label="KI-Prüfung starten →" onClick={onNext} disabled={!ok} />
+        <p style={{ margin:"10px 0 0", textAlign:"center", fontSize:11, color:T.ink3 }}>
+          ✓ Bewerbung kostenlos · ✓ Dauer ~2 Min. · ✓ Kein Projekt geht leer aus
+        </p>
+      </div>
+    </StepWrap>
+  );
+}
+
+// ═══ KI-PRÜFUNG — Ladescreen (erweitert: HUI-Fit-Score) ══════
+function AIPruefung({ form, onResult }) {
+  const [phase, setPhase] = useState(0);
+  const PHASEN = [
+    { icon:"🔍", text:"Wirkung analysieren …"        },
+    { icon:"🤝", text:"Gemeinwohl prüfen …"           },
+    { icon:"⚙️", text:"Umsetzbarkeit bewerten …"     },
+    { icon:"🛡️", text:"Vertrauenswürdigkeit prüfen …"},
+    { icon:"💚", text:"HUI-Fit-Score berechnen …"    },
+    { icon:"✨", text:"Ergebnis berechnen …"          },
+  ];
+  useEffect(() => {
+    let idx = 0;
+    const iv = setInterval(() => {
+      idx++;
+      setPhase(p => Math.min(p+1, PHASEN.length-1));
+      if (idx >= PHASEN.length) {
+        clearInterval(iv);
+        setTimeout(() => onResult(bewerteProjekt(form)), 500);
+      }
+    }, 560);
+    return () => clearInterval(iv);
+  }, []); // eslint-disable-line
+  const pct = Math.round((phase / (PHASEN.length - 1)) * 100);
+  return (
+    <div style={{ flex:1, display:"flex", flexDirection:"column",
+      alignItems:"center", justifyContent:"center", padding:"40px 28px",
+      animation:"ifFadeIn 0.3s ease both" }}>
+      <div style={{ width:84, height:84, borderRadius:"50%",
+        border:`3px solid ${T.teal}`,
+        display:"flex", alignItems:"center", justifyContent:"center",
+        fontSize:32, marginBottom:28,
+        boxShadow:`0 0 0 12px ${T.teal}12`,
+        animation:"ifGlow 2s ease-in-out infinite" }}>🧠</div>
+      <h3 style={{ margin:"0 0 6px", fontSize:20, fontWeight:900, color:T.ink,
+        letterSpacing:"-0.02em" }}>HUI-KI prüft dein Projekt</h3>
+      <p style={{ margin:"0 0 28px", fontSize:13, color:T.ink2 }}>Einen Moment bitte …</p>
+      <div style={{ width:"100%", maxWidth:280, height:5, borderRadius:99,
+        background:T.line, marginBottom:16, overflow:"hidden" }}>
+        <div style={{ height:"100%", borderRadius:99, width:`${pct}%`,
+          background:`linear-gradient(90deg,${T.teal},${T.tealL})`,
+          transition:"width 0.5s ease" }}/>
+      </div>
+      <div style={{ display:"flex", alignItems:"center", gap:8,
+        fontSize:14, color:T.teal, fontWeight:700, minHeight:28 }}>
+        <span>{PHASEN[phase].icon}</span>
+        <span>{PHASEN[phase].text}</span>
+      </div>
+      <div style={{ marginTop:32, display:"flex", flexDirection:"column",
+        gap:10, width:"100%", maxWidth:280 }}>
+        {["Wirkung","Gemeinwohl","Umsetzbarkeit","Vertrauenswürdigkeit","HUI-Fit-Score"].map((k,i) => (
+          <div key={i} style={{ display:"flex", alignItems:"center", gap:10,
+            opacity: phase > i ? 1 : 0.28, transition:"opacity 0.4s ease" }}>
+            <div style={{ width:20, height:20, borderRadius:"50%",
+              background: phase > i ? T.teal : T.line,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontSize:11, color:"#fff", fontWeight:800,
+              transition:"background 0.3s ease", flexShrink:0 }}>
+              {phase > i ? "✓" : i+1}</div>
+            <span style={{ fontSize:13, fontWeight: phase > i ? 700 : 400,
+              color: phase > i ? T.ink : T.ink3 }}>{k}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ═══ HUI-FIT-SCORE ANZEIGE ════════════════════════════════════
+function FitScoreBar({ score }) {
+  const color = score >= 80 ? T.teal : score >= 60 ? T.gold : T.coral;
+  const label = score >= 80 ? "Hervorragend" : score >= 60 ? "Gut geeignet" : "Zu gering";
+  return (
+    <div style={{ background:`${color}08`, border:`1px solid ${color}22`,
+      borderRadius:16, padding:"14px 16px", marginBottom:16 }}>
+      <div style={{ display:"flex", justifyContent:"space-between",
+        alignItems:"center", marginBottom:8 }}>
+        <span style={{ fontSize:12, fontWeight:700, color:T.ink }}>HUI-Fit-Score</span>
+        <div style={{ display:"flex", alignItems:"baseline", gap:4 }}>
+          <span style={{ fontSize:22, fontWeight:900, color }}>{score}</span>
+          <span style={{ fontSize:12, color:T.ink3 }}>/100</span>
+        </div>
+      </div>
+      <div style={{ height:6, borderRadius:99, background:T.line, overflow:"hidden", marginBottom:6 }}>
+        <div style={{
+          height:"100%", borderRadius:99,
+          background:`linear-gradient(90deg,${color}88,${color})`,
+          width:`${score}%`, transition:"width 1.2s cubic-bezier(0.22,1,0.36,1)",
+        }}/>
+      </div>
+      <div style={{ display:"flex", justifyContent:"space-between",
+        fontSize:11, color }}>
+        <span style={{ fontWeight:700 }}>{label}</span>
+        {score >= 80 && <span>→ Direkte Weiterleitung</span>}
+        {score >= 60 && score < 80 && <span>→ Manuelle Prüfung</span>}
+      </div>
+    </div>
+  );
+}
+
 // ═══ WIRKUNGSNETZWERK-ZUSTIMMUNG (Step 8) ════════════════════
 const WIRKUNGSNETZ_CHECKS = [
   "Ich bin damit einverstanden, dass mein Projekt bei einer Förderung als offizielles HUI-Impact-Projekt veröffentlicht wird.",
