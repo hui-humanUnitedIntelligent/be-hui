@@ -57,6 +57,7 @@ export default function BottomNav({
   authProfile = null,
   hasTalent   = false,
   msgCount    = 0,
+  creatorOpen = false,   // NAV.2A: true wenn Mein HUI Overlay offen ist
 }) {
   // orbActive: legacy — still controls hard hide for non-world-layer use cases
   // navDrift: world-layer drift — soft opacity + translateY (nav stays mounted)
@@ -225,7 +226,9 @@ export default function BottomNav({
               );
             }
 
-            const isActive = tab === item.key;
+            // NAV.2A: creator-Tab ist aktiv wenn tab==='creator' ODER das Overlay offen ist
+            const isActive = tab === item.key ||
+              (item.key === "creator" && creatorOpen);
             return (
               <NavItem
                 key={item.key}

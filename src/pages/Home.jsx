@@ -132,6 +132,7 @@ function HomeInner() {
     showInvitationFlow,     setShowInvitationFlow,
     activeStory,       setActiveStory,
     showCreatorDash,   setShowCreatorDash,
+    showCreatorDashboard,
   } = useHome();
 
   // ── Unread Message Count — live aus chatContext ────────
@@ -413,6 +414,7 @@ function HomeInner() {
       <BottomNav
         tab={tab}
         onTab={onTabPress}
+        creatorOpen={showCreatorDashboard}
         hasTalent={isTalent}
         orbActive={activeSurface === 'orb' || showMembership || showTalentFlow}
         navDrift={
