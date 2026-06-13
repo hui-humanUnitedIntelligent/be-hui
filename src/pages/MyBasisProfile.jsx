@@ -21,6 +21,7 @@ import { useAmbassador } from "../hooks/useAmbassador.js";
 import { useProfileData } from "../hooks/useProfileData.js";
 import HuiStudio              from "../components/studio/HuiStudio.jsx";
 import PublicProfilePreview   from "../components/profile/PublicProfilePreview.jsx";
+import MerkenSection          from "../components/profile/MerkenSection.jsx";
 // Sprint F.7D Phase 4: Kanonische Sections
 import { AboutSection }          from "../components/profile/sections/AboutSection.jsx";
 import { ProfileHeader as CanonicalProfileHeader } from "../components/profile/ProfileHeader.jsx";
@@ -380,6 +381,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [showGemeinschaft, setShowGemeinschaft] = useState(false);
   const [showAmbModal,    setShowAmbModal]    = useState(false);
   const [showPublicPreview, setShowPublicPreview] = useState(false);
+  const [showMerken,       setShowMerken]       = useState(false);
   const [showSettings,    setShowSettings]    = useState(false);
   const [showStudio,        setShowStudio]        = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -701,8 +703,23 @@ export default function MyBasisProfile({ onClose, profileId }) {
                 : "Gestalte dein Profil so, wie du bist."}
             </div>
           </div>
-          {/* Header-Buttons: Profil ansehen + Zahnrad */}
+          {/* Header-Buttons: Gemerkt + Profil ansehen + Zahnrad */}
           <div style={{ display:"flex", gap:6, alignItems:"center", flexShrink:0, marginTop:2 }}>
+            <button
+              className="mbp-press-light"
+              onClick={() => setShowMerken(true)}
+              style={{
+                height:34, borderRadius:17,
+                background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`,
+                display:"flex", alignItems:"center", justifyContent:"center",
+                gap:4, padding:"0 10px",
+                fontSize:13, fontWeight:600, color:T.inkFaint,
+                cursor:"pointer", touchAction:"manipulation", whiteSpace:"nowrap",
+              }}
+            >
+              <span style={{ fontSize:14 }}>📌</span>
+              <span>Gemerkt</span>
+            </button>
             <button
               className="mbp-press-light"
               onClick={() => setShowPublicPreview(true)}
@@ -889,6 +906,53 @@ export default function MyBasisProfile({ onClose, profileId }) {
             if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("hui:openBookings"));
           }}
         />
+      )}
+
+      {/* 📌 GEMERKTE INHALTE */}
+      {showMerken && (
+        <div style={{
+          position:"fixed", inset:0, zIndex:9990,
+          background:"#F9F7F4",
+          overflowY:"auto",
+          WebkitOverflowScrolling:"touch",
+        }}>
+          {/* Header */}
+          <div style={{
+            position:"sticky", top:0, zIndex:9995,
+            background:"rgba(249,247,244,0.95)",
+            borderBottom:"1px solid rgba(26,26,46,0.07)",
+            padding:"12px 16px",
+            display:"flex", alignItems:"center", justifyContent:"space-between",
+            backdropFilter:"blur(10px)",
+          }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <span style={{ fontSize:18 }}>📌</span>
+              <span style={{ fontSize:15, fontWeight:800, color:"#1A1A2E", letterSpacing:"-0.02em" }}>
+                Gemerkte Inhalte
+              </span>
+            </div>
+            <button
+              onClick={() => setShowMerken(false)}
+              style={{
+                padding:"6px 14px", borderRadius:20,
+                background:"rgba(26,26,46,0.08)", border:"1px solid rgba(26,26,46,0.10)",
+                fontSize:12, fontWeight:700, color:"rgba(26,26,46,0.55)",
+                cursor:"pointer", touchAction:"manipulation",
+              }}
+            >✕ Schließen</button>
+          </div>
+          {/* Content */}
+          <div style={{ padding:"16px" }}>
+            <MerkenSection
+              onOpenProfile={(id) => {
+                setShowMerken(false);
+                if (typeof window !== "undefined" && window.__HUI_OPEN_PROFILE__) {
+                  window.__HUI_OPEN_PROFILE__(id);
+                }
+              }}
+            />
+          </div>
+        </div>
       )}
 
       {/* 👁️ ÖFFENTLICHE PROFILANSICHT */}
