@@ -1073,7 +1073,7 @@ function SocialContextBarTalent({ followCounts, experiences, moments, loading })
 // Header: ProfileHeader (unified)
 // Sections: gemeinsame Sprint-C-Komponenten
 // ══════════════════════════════════════════════════════════════
-export default function TalentProfilePage({ profileId, onClose }) {
+export default function TalentProfilePage({ profileId, onClose, publicView = false }) {
   const { user, setProfile: setAuthProfile } = useAuth();
 
   // ── Sprint D: Datenlayer via useProfileData ─────────────────
@@ -1098,7 +1098,7 @@ export default function TalentProfilePage({ profileId, onClose }) {
   const [showStudio,        setShowStudio]        = useState(false);
   const kompassToggleRef = React.useRef(() => {});
 
-  const isOwner = !!user?.id && (profileId === user.id || (!profileId && !!user.id));
+  const isOwner = !publicView && (!!user?.id && (profileId === user.id || (!profileId && !!user.id)));
 
   // Mount-Animation
   useEffect(() => {

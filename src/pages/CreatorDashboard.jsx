@@ -4,6 +4,8 @@
 // ══════════════════════════════════════════════════════════════════════
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth }           from "../lib/AuthContext";
+import { supabase }          from "../lib/supabaseClient.js";
+import { useSavedPosts }     from "../lib/useReactions.jsx";
 import { getCreatorSummary, bookingService, supportService, salesService }
   from "../services/creatorEconomy.js";
 
@@ -28,6 +30,7 @@ const TABS = [
   { id:"sales",       label:"Verkäufe",       icon:"🎨" },
   { id:"supports",    label:"Unterstützung",  icon:"💫" },
   { id:"analytics",   label:"Einblicke",      icon:"📊" },
+  { id:"merken",      label:"Merken",          icon:"📌" },
 ];
 
 let _css = false;
@@ -279,7 +282,200 @@ function EmptyState({ icon, title, sub }) {
 // ════════════════════════════════════════════════════════════════════
 // MAIN DASHBOARD
 // ════════════════════════════════════════════════════════════════════
-export default function CreatorDashboard({ visible, onClose }) {
+
+// ── MerkenTab: Saved Posts Anzeige ───────────────────────────────────────────
+function MerkenTab({ onOpenProfile }) {
+  const { user } = useAuth();
+  const { toggleSave } = useSavedPosts();
+  const [items,   setItems]   = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    if (!user?.id) return;
+    supabase
+      .from("saved_posts")
+      .select("post_id, post_type, post_data, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(50)
+      .then(({ data }) => {
+        setItems(data || []);
+        setLoading(false);
+      });
+  }, [user?.id]);
+
+  const handleRemove = async (postId) => {
+    await toggleSave(postId);
+    setItems(prev => prev.filter(i => i.post_id !== postId));
+  };
+
+  const TYPE_LABEL = { work:"Werk", experience:"Erlebnis", post:"Beitrag", beitrag:"Beitrag" };
+
+  function getLabel(type) {
+    return TYPE_LABEL[type] || "Gespeicherter Inhalt";
+  }
+
+  function getCover(item) {
+    const d = item.post_data || {};
+    return d.cover_url || d.cover || d.src || d.image || d.avatar_url || null;
+  }
+  function getTitle(item) {
+    const d = item.post_data || {};
+    return d.title || d.caption || d.name || "Gespeicherter Inhalt";
+  }
+  function getCreator(item) {
+    const d = item.post_data || {};
+    return d.author_name || d.creator_name || d.display_name || d.username || null;
+  }
+  function formatDate(iso) {
+    if (!iso) return "";
+    const d = new Date(iso);
+    return d.toLocaleDateString("de-DE", { day:"numeric", month:"short", year:"numeric" });
+  }
+
+  if (loading) {
+    return (
+      <div style={{ padding:"48px 0", textAlign:"center", color:T.muted, fontSize:14 }}>
+        Lädt…
+      </div>
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <div style={{
+        padding:"52px 20px", textAlign:"center",
+        display:"flex", flexDirection:"column", alignItems:"center", gap:12,
+      }}>
+        <div style={{ fontSize:40 }}>📌</div>
+        <div style={{ fontSize:17, fontWeight:700, color:T.ink, letterSpacing:"-0.02em" }}>
+          Noch nichts gemerkt
+        </div>
+        <div style={{
+          fontSize:13, color:T.soft, maxWidth:260, lineHeight:1.6, fontWeight:400,
+        }}>
+          Speichere Werke, Erlebnisse oder Beiträge und finde sie hier jederzeit wieder.
+        </div>
+        <button
+          className="cd-tap"
+          onClick={() => onOpenProfile?.("discover")}
+          style={{
+            marginTop:8,
+            padding:"10px 20px", borderRadius:T.r,
+            background:`linear-gradient(135deg,${T.teal},${T.coral})`,
+            color:"#fff", fontSize:13, fontWeight:700,
+            border:"none", cursor:"pointer",
+          }}
+        >
+          Entdecken öffnen
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap:12, padding:"4px 0" }}>
+      {items.map((item, idx) => {
+        const cover   = getCover(item);
+        const title   = getTitle(item);
+        const creator = getCreator(item);
+        const label   = getLabel(item.post_type);
+        const date    = formatDate(item.created_at);
+
+        return (
+          <div
+            key={item.post_id}
+            className="cd-tap"
+            style={{
+              background:T.card,
+              borderRadius:T.r,
+              border:`1px solid ${T.border}`,
+              boxShadow:T.shadow,
+              display:"flex", gap:12, alignItems:"center",
+              padding:"12px 14px",
+              animation:`cd-rise .25s ease both`,
+              animationDelay:`${idx * 0.04}s`,
+            }}
+          >
+            {/* Cover */}
+            <div style={{
+              width:52, height:52, borderRadius:12, flexShrink:0,
+              background: cover ? "transparent" : `linear-gradient(135deg,${T.teal}22,${T.coral}18)`,
+              overflow:"hidden",
+              display:"flex", alignItems:"center", justifyContent:"center",
+            }}>
+              {cover
+                ? <img src={cover} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e => { e.target.style.display="none"; }} />
+                : <span style={{ fontSize:22 }}>
+                    {item.post_type === "experience" ? "📅" : item.post_type === "work" ? "🎨" : "🌿"}
+                  </span>
+              }
+            </div>
+
+            {/* Info */}
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ fontSize:13.5, fontWeight:700, color:T.ink, letterSpacing:"-0.01em",
+                overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                {title}
+              </div>
+              <div style={{ display:"flex", gap:6, alignItems:"center", marginTop:3 }}>
+                <span style={{
+                  fontSize:10.5, fontWeight:700, color:T.teal,
+                  background:`${T.teal}15`, borderRadius:6,
+                  padding:"1px 6px", letterSpacing:"0.02em",
+                }}>
+                  {label}
+                </span>
+                {creator && (
+                  <span style={{ fontSize:11, color:T.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                    {creator}
+                  </span>
+                )}
+              </div>
+              {date && (
+                <div style={{ fontSize:10.5, color:T.muted, marginTop:2 }}>{date}</div>
+              )}
+            </div>
+
+            {/* Aktionen */}
+            <div style={{ display:"flex", flexDirection:"column", gap:6, flexShrink:0 }}>
+              {/* Öffnen */}
+              {item.post_data?.user_id && (
+                <button
+                  className="cd-tap"
+                  onClick={() => onOpenProfile?.(item.post_data.user_id)}
+                  style={{
+                    padding:"5px 10px", borderRadius:10,
+                    background:`${T.teal}15`, border:`1px solid ${T.teal}30`,
+                    color:T.teal, fontSize:11, fontWeight:700, cursor:"pointer",
+                    whiteSpace:"nowrap",
+                  }}
+                >
+                  Öffnen
+                </button>
+              )}
+              {/* Entfernen */}
+              <button
+                className="cd-tap"
+                onClick={() => handleRemove(item.post_id)}
+                style={{
+                  padding:"5px 10px", borderRadius:10,
+                  background:"rgba(26,26,46,0.05)", border:`1px solid ${T.border}`,
+                  color:T.muted, fontSize:11, fontWeight:600, cursor:"pointer",
+                  whiteSpace:"nowrap",
+                }}
+              >
+                Entfernen
+              </button>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+export default function CreatorDashboard({ visible, onClose, onOpenProfile }) {
   injectCSS();
   const { user, profile, isTalent } = useAuth();
   const [tab,       setTab]       = useState("overview");
@@ -482,6 +678,11 @@ export default function CreatorDashboard({ visible, onClose }) {
             {/* ANALYTICS */}
             {tab==="analytics" && (
               <AnalyticsView analytics={summary?.analytics_7d}/>
+            )}
+
+            {/* MERKEN */}
+            {tab==="merken" && (
+              <MerkenTab onOpenProfile={onOpenProfile}/>
             )}
           </>
         )}

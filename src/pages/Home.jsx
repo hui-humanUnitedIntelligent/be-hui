@@ -614,6 +614,11 @@ function HomeInner() {
             <CreatorDashboard
               visible={showCreatorDash}
               onClose={() => setShowCreatorDash(false)}
+              onOpenProfile={(id) => {
+                setShowCreatorDash(false);
+                if (id === "discover") { handleTab("discover"); }
+                else if (id) { openProfileById(id); }
+              }}
             />
           </React.Suspense>
         )}

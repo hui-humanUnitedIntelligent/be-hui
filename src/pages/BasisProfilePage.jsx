@@ -340,7 +340,7 @@ function SocialContextBar({ loading, followCounts }) {
 // ══════════════════════════════════════════════════════════════════
 // ROOT
 // ══════════════════════════════════════════════════════════════════
-export default function BasisProfilePage({ profileId, onClose }) {
+export default function BasisProfilePage({ profileId, onClose, publicView = false }) {
   // Sprint F.5.2: eigener Loader → useProfileData (identisch zu TalentProfilePage)
   const { user, setProfile: setAuthProfile } = useAuth();
   const resolvedId = profileId || user?.id;
@@ -376,7 +376,7 @@ export default function BasisProfilePage({ profileId, onClose }) {
     reload();
   }, [reload, setAuthProfile]);
 
-  const isOwner = !!user?.id && (resolvedId === user.id);
+  const isOwner = !publicView && (!!user?.id && (resolvedId === user.id));
 
   useEffect(()=>{ const t=setTimeout(()=>setMounted(true),30); return()=>clearTimeout(t); },[]);
 

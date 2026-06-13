@@ -19,7 +19,8 @@ import AmbassadorModal from "../components/ambassador/AmbassadorModal.jsx";
 import SettingsModal  from "../components/settings/SettingsModal.jsx";
 import { useAmbassador } from "../hooks/useAmbassador.js";
 import { useProfileData } from "../hooks/useProfileData.js";
-import HuiStudio       from "../components/studio/HuiStudio.jsx";
+import HuiStudio              from "../components/studio/HuiStudio.jsx";
+import PublicProfilePreview   from "../components/profile/PublicProfilePreview.jsx";
 // Sprint F.7D Phase 4: Kanonische Sections
 import { AboutSection }          from "../components/profile/sections/AboutSection.jsx";
 import { ProfileHeader as CanonicalProfileHeader } from "../components/profile/ProfileHeader.jsx";
@@ -378,6 +379,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [localCover,  setLocalCover]  = useState(null);
   const [showGemeinschaft, setShowGemeinschaft] = useState(false);
   const [showAmbModal,    setShowAmbModal]    = useState(false);
+  const [showPublicPreview, setShowPublicPreview] = useState(false);
   const [showSettings,    setShowSettings]    = useState(false);
   const [showStudio,        setShowStudio]        = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -699,14 +701,31 @@ export default function MyBasisProfile({ onClose, profileId }) {
                 : "Gestalte dein Profil so, wie du bist."}
             </div>
           </div>
-          {/* Zahnrad */}
-          <button className="mbp-press-light" onClick={() => setShowStudio(true)} style={{
-            width:34, height:34, borderRadius:"50%",
-            background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`,
-            display:"flex", alignItems:"center", justifyContent:"center",
-            fontSize:16, cursor:"pointer", touchAction:"manipulation",
-            flexShrink:0, marginTop:2,
-          }}>⚙️</button>
+          {/* Header-Buttons: Profil ansehen + Zahnrad */}
+          <div style={{ display:"flex", gap:6, alignItems:"center", flexShrink:0, marginTop:2 }}>
+            <button
+              className="mbp-press-light"
+              onClick={() => setShowPublicPreview(true)}
+              style={{
+                height:34, borderRadius:17,
+                background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`,
+                display:"flex", alignItems:"center", justifyContent:"center",
+                gap:4, padding:"0 10px",
+                fontSize:13, fontWeight:600, color:T.inkFaint,
+                cursor:"pointer", touchAction:"manipulation", whiteSpace:"nowrap",
+              }}
+            >
+              <span style={{ fontSize:14 }}>👁️</span>
+              <span>Profil ansehen</span>
+            </button>
+            <button className="mbp-press-light" onClick={() => setShowStudio(true)} style={{
+              width:34, height:34, borderRadius:"50%",
+              background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontSize:16, cursor:"pointer", touchAction:"manipulation",
+              flexShrink:0,
+            }}>⚙️</button>
+          </div>
         </div>
         <Gap h={12}/>
 
@@ -869,6 +888,14 @@ export default function MyBasisProfile({ onClose, profileId }) {
             setShowSettings(false);
             if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("hui:openBookings"));
           }}
+        />
+      )}
+
+      {/* 👁️ ÖFFENTLICHE PROFILANSICHT */}
+      {showPublicPreview && profile?.id && (
+        <PublicProfilePreview
+          profileId={profile.id}
+          onClose={() => setShowPublicPreview(false)}
         />
       )}
 
