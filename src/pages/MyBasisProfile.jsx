@@ -703,45 +703,44 @@ export default function MyBasisProfile({ onClose, profileId }) {
                 : "Gestalte dein Profil so, wie du bist."}
             </div>
           </div>
-          {/* Header-Buttons: Gemerkt + Profil ansehen + Zahnrad */}
-          <div style={{ display:"flex", gap:6, alignItems:"center", flexShrink:0, marginTop:2 }}>
+          {/* Header-Buttons: Icon-Only — 📌 👁️ ⚙️ */}
+          <div style={{ display:"flex", gap:6, alignItems:"center", flexShrink:0 }}>
             <button
               className="mbp-press-light"
               onClick={() => setShowMerken(true)}
+              title="Gemerkt"
+              aria-label="Gemerkt"
               style={{
-                height:34, borderRadius:17,
+                width:34, height:34, borderRadius:"50%",
                 background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`,
                 display:"flex", alignItems:"center", justifyContent:"center",
-                gap:4, padding:"0 10px",
-                fontSize:13, fontWeight:600, color:T.inkFaint,
-                cursor:"pointer", touchAction:"manipulation", whiteSpace:"nowrap",
+                fontSize:16, cursor:"pointer", touchAction:"manipulation", flexShrink:0,
               }}
-            >
-              <span style={{ fontSize:14 }}>📌</span>
-              <span>Gemerkt</span>
-            </button>
+            >📌</button>
             <button
               className="mbp-press-light"
               onClick={() => setShowPublicPreview(true)}
+              title="Profil ansehen"
+              aria-label="Profil ansehen"
               style={{
-                height:34, borderRadius:17,
+                width:34, height:34, borderRadius:"50%",
                 background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`,
                 display:"flex", alignItems:"center", justifyContent:"center",
-                gap:4, padding:"0 10px",
-                fontSize:13, fontWeight:600, color:T.inkFaint,
-                cursor:"pointer", touchAction:"manipulation", whiteSpace:"nowrap",
+                fontSize:16, cursor:"pointer", touchAction:"manipulation", flexShrink:0,
               }}
-            >
-              <span style={{ fontSize:14 }}>👁️</span>
-              <span>Profil ansehen</span>
-            </button>
-            <button className="mbp-press-light" onClick={() => setShowStudio(true)} style={{
-              width:34, height:34, borderRadius:"50%",
-              background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`,
-              display:"flex", alignItems:"center", justifyContent:"center",
-              fontSize:16, cursor:"pointer", touchAction:"manipulation",
-              flexShrink:0,
-            }}>⚙️</button>
+            >👁️</button>
+            <button
+              className="mbp-press-light"
+              onClick={() => setShowStudio(true)}
+              title="Einstellungen"
+              aria-label="Einstellungen"
+              style={{
+                width:34, height:34, borderRadius:"50%",
+                background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`,
+                display:"flex", alignItems:"center", justifyContent:"center",
+                fontSize:16, cursor:"pointer", touchAction:"manipulation", flexShrink:0,
+              }}
+            >⚙️</button>
           </div>
         </div>
         <Gap h={12}/>
