@@ -17,20 +17,20 @@ function NavIcon({ k, active }) {
 
   if (k === "feed") return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" stroke={col} strokeWidth={sw}/>
+      <path d="M12 12 L10.5 6.5 L12 8.5 L13.5 6.5 Z" fill={active ? C.teal : col}/>
+      <path d="M12 12 L10.5 17.5 L12 15.5 L13.5 17.5 Z" fill={active ? C.coral : "rgba(80,80,80,0.28)"}/>
+      <circle cx="12" cy="12" r="1.5" fill={active ? "white" : "rgba(80,80,80,0.28)"} stroke={col} strokeWidth="0.8"/>
+    </svg>
+  );
+  if (k === "discover") return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M3.5 11 Q12 2.5 20.5 11" stroke={col} strokeWidth={sw} strokeLinecap="round"/>
       <path d="M5.5 11V20.5H10V15.5H14V20.5H18.5V11"
         stroke={col} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round"
         fill={active ? `${C.teal}18` : "none"}/>
       <path d="M12 18 C12 18 10.5 17 10.5 15.8 C10.5 15.1 11.3 14.7 12 15.3 C12.7 14.7 13.5 15.1 13.5 15.8 C13.5 17 12 18 12 18Z"
         fill={active ? C.coral : "rgba(80,80,80,0.20)"} stroke="none"/>
-    </svg>
-  );
-  if (k === "discover") return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="12" cy="12" r="9" stroke={col} strokeWidth={sw}/>
-      <path d="M12 12 L10.5 6.5 L12 8.5 L13.5 6.5 Z" fill={active ? C.teal : col}/>
-      <path d="M12 12 L10.5 17.5 L12 15.5 L13.5 17.5 Z" fill={active ? C.coral : "rgba(80,80,80,0.28)"}/>
-      <circle cx="12" cy="12" r="1.5" fill={active ? "white" : "rgba(80,80,80,0.28)"} stroke={col} strokeWidth="0.8"/>
     </svg>
   );
   if (k === "impact") return (

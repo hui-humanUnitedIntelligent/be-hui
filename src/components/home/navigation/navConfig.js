@@ -1,13 +1,15 @@
 // navigation/navConfig.js — HUI Navigation v2
-// TAB STRUCTURE: Home / Entdecken / HUI Orb / Impact / Mein HUI
-// "Mein HUI" — dein persönliches Zuhause in HUI (Profil, Werke, Buchungen, Einstellungen, …)
+// TAB STRUCTURE: Entdecken / Home / HUI Orb / Impact / Mein HUI
+// NAV.1A Audit: feed = globaler Community-Stream → Label "Entdecken"
+//               discover = strukturierter Sektions-Browse → Label "Home"
+// KEYS bleiben unverändert (Analytics, Deep Links, sessionStorage unberührt)
 
 import { createNavItem } from "../../../lib/factories/createNavItem.js";
 import { filterValidPages } from "../../../lib/factories/createTabPage.js";
 
 export const NAV_ITEMS = filterValidPages([
-  createNavItem({ key: "feed",      label: "Home"      }),
-  createNavItem({ key: "discover",  label: "Entdecken" }),
+  createNavItem({ key: "feed",      label: "Entdecken" }),
+  createNavItem({ key: "discover",  label: "Home"      }),
   createNavItem({ key: "orb",       label: "",  isOrb: true }),  // Create orb
   createNavItem({ key: "impact",    label: "Impact"    }),
   createNavItem({ key: "creator",   label: "Mein HUI"  }),       // Persönlicher Bereich (Profil, Werke, Buchungen, …)
