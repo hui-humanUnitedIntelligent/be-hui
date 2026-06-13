@@ -226,9 +226,10 @@ export default function BottomNav({
               );
             }
 
-            // NAV.2A: creator-Tab ist aktiv wenn tab==='creator' ODER das Overlay offen ist
-            const isActive = tab === item.key ||
-              (item.key === "creator" && creatorOpen);
+            // NAV.2A: wenn Mein HUI offen ist → NUR creator aktiv, alle anderen inaktiv
+            const isActive = creatorOpen
+              ? item.key === "creator"
+              : tab === item.key;
             return (
               <NavItem
                 key={item.key}
