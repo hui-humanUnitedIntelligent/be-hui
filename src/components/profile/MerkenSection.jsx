@@ -18,7 +18,7 @@ const T = {
   r:      14,
 };
 
-export default function MerkenSection({ onOpenProfile }) {
+export default function MerkenSection({ onOpenProfile, onOpenDiscover }) {
   const { user }          = useAuth();
   const { toggleSave }    = useSavedPosts();
   const [items,   setItems]   = React.useState([]);
@@ -71,9 +71,9 @@ export default function MerkenSection({ onOpenProfile }) {
         <div style={{ fontSize:13, color:T.soft, maxWidth:260, lineHeight:1.6 }}>
           Speichere Werke, Erlebnisse oder Beiträge und finde sie hier jederzeit wieder.
         </div>
-        {onOpenProfile && (
+        {onOpenDiscover && (
           <button
-            onClick={() => onOpenProfile("discover")}
+            onClick={() => onOpenDiscover()}
             style={{
               marginTop:8, padding:"10px 20px", borderRadius:T.r,
               background:`linear-gradient(135deg,${T.teal},${T.coral})`,
@@ -175,3 +175,4 @@ export default function MerkenSection({ onOpenProfile }) {
     </div>
   );
 }
+
