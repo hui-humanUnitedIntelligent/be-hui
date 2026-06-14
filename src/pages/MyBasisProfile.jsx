@@ -949,6 +949,10 @@ export default function MyBasisProfile({ onClose, profileId }) {
                   window.__HUI_OPEN_PROFILE__(id);
                 }
               }}
+              onOpenDiscover={() => {
+                setShowMerken(false);
+                switchTab("discover");
+              }}
             />
           </div>
         </div>
@@ -1756,3 +1760,4 @@ function GemeinschaftsKarte({ onJoin }) {
     </div>
   );
 }
+
