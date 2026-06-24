@@ -12,7 +12,7 @@ function formatPrice(val) {
   return n.toLocaleString("de-DE", { minimumFractionDigits:0 }) + " €";
 }
 
-export default function WorkContent({ item, onProfile, onReaction, onShare }) {
+export default function WorkContent({ item, onProfile, onReaction, onShare, onBuyWerk }) {
   if (!item) return null;
 
   const title    = item.title || item.text || "";
@@ -101,6 +101,23 @@ export default function WorkContent({ item, onProfile, onReaction, onShare }) {
               {t}
             </span>
           ))}
+        </div>
+      )}
+
+      {/* ── Kaufen-Button — COMMERCE-01 W-4 ─────────────────── */}
+      {priceStr && onBuyWerk && (
+        <div style={{ marginTop: 10 }}>
+          <button
+            onClick={(e) => { e.stopPropagation(); onBuyWerk(item); }}
+            style={{
+              background: "linear-gradient(135deg,#FF8A6B,#E8613A)",
+              color: "#fff", border: "none", borderRadius: 14,
+              padding: "7px 18px", fontSize: 12, fontWeight: 700,
+              cursor: "pointer", touchAction: "manipulation",
+            }}
+          >
+            {priceStr} · Kaufen
+          </button>
         </div>
       )}
     </BaseFeedCard>
