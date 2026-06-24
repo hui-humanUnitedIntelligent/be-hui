@@ -3,6 +3,7 @@
 // iOS Safari vererbt pointer-events von overflow:hidden auf position:fixed Kinder
 
 import React, { Suspense, useEffect, useRef, useCallback } from "react";
+import { useLocation } from "react-router-dom"; // COMMERCE-01
 import { useOrbWorld } from "../context/OrbWorldContext.jsx";
 import { useWorldSurface } from "../context/WorldSurfaceContext.jsx";
 import { cleanupOrbEnvironment } from "../lib/cleanup/cleanupOrbEnvironment.js";
@@ -27,6 +28,8 @@ import { StoryViewer }           from "../components/StoryBar.jsx";
 import ChatCenterOverlay          from "../components/chat-center/ChatCenterOverlay.jsx";
 import { useChatList }             from "../lib/chatContext.js";
 import ConnectionCreatePage      from "../components/connection-create/ConnectionCreatePage.jsx";
+import WerkKaufFlow           from "../components/commerce/WerkKaufFlow.jsx";         // COMMERCE-01
+import ExperienceBookingFlow  from "../components/commerce/ExperienceBookingFlow.jsx"; // COMMERCE-01
 // ── Tab-Pages: lazy → eigene Chunks, nur bei Bedarf geladen ────
 // PHASE 17.3: ImpactPage + DiscoverPage — direkte imports (Safari-safe, kein lazy)
 import DiscoverPage  from "./DiscoverPage.jsx";
@@ -139,7 +142,18 @@ function HomeInner() {
 
   // ── Unread Message Count — live aus chatContext ────────
   const { unreadTotal, markChatRead } = useChatList("home");
-  usePresence(currentUser?.id);  // Activity Tracking: App-Start, Foreground, Heartbeat
+  usePresence(currentUser?.id);
+
+  // COMMERCE-01: WorkDetailPage → /Home + state → WerkKaufFlow öffnen
+  const location = useLocation();
+  useEffect(() => {
+    const pending = location?.state?.pendingWerkKauf;
+    if (pending && setShowWerkCheckout) {
+      setShowWerkCheckout(pending);
+      // Router-State sofort leeren damit Reload nicht erneut öffnet
+      try { window.history.replaceState({}, document.title, window.location.pathname); } catch {}
+    }
+  }, [location?.state?.pendingWerkKauf]); // eslint-disable-line  // Activity Tracking: App-Start, Foreground, Heartbeat
 
 
   // ── Phase 4C: Talent Flow global registrieren ────────────────
@@ -329,10 +343,12 @@ function HomeInner() {
                     openProfileById(userId);
                   }}
                   onBook={(item) => {
-                    // Book → public profile via ID
-                    const p = (item?.type && item?.author) ? item.author : item;
-                    const id = p?.id || p?.user_id;
-                    if (id) openProfileById(id);
+                    // COMMERCE-01: Werk → WerkKaufFlow, Experience → ExperienceBookingFlow
+                    if (item?.type === "work") {
+                      setShowWerkCheckout(item);
+                    } else {
+                      setShowBookingFlow(item);
+                    }
                   }}
                   onShare={() => setShowTeilen(true)}
                   onEventPress={(ev) => {
@@ -456,6 +472,22 @@ function HomeInner() {
 
       {/* ── Overlay Layer ──────────────────────────────────────── */}
       <ProfileLauncher/>
+      {/* ── WerkKaufFlow — COMMERCE-01 ─────────────────────────── */}
+      {showWerkCheckout && (
+        <WerkKaufFlow
+          werk={showWerkCheckout}
+          onClose={() => setShowWerkCheckout(null)}
+        />
+      )}
+
+      {/* ── ExperienceBookingFlow — COMMERCE-01 ─────────────────── */}
+      {showBookingFlow && (
+        <ExperienceBookingFlow
+          experience={showBookingFlow}
+          onClose={() => setShowBookingFlow(null)}
+        />
+      )}
+
 
       {/* ── Connection Create ───────────────────────────────────── */}
       {showConnect && SAFE_MODE.connectFlow && (
