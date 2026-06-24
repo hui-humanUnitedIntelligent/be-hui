@@ -108,7 +108,7 @@ export default function FeedRouter({ item: rawItem, onProfile, onReaction, onBoo
     <CardErrorBoundary itemId={item.id} itemType={type} authorName={authorName} text={text}>
       <Suspense fallback={<CardSkeleton/>}>
         {type === "experience" ? <ExperienceContent {...shared} onBook={()=>onBook?.(rawItem)}/> :
-         type === "work"       ? <WorkContent {...shared} onDetail={()=>onDetail?.(rawItem)}/> :
+         type === "work"       ? <WorkContent {...shared} onDetail={()=>onDetail?.(rawItem)} onBuyWerk={onBook ? ()=>onBook(rawItem) : undefined}/> : /* COMMERCE-01 W-5 */
          type === "event"      ? <EventContent {...shared}/> :
                                  <MomentContent {...shared}/>}
       </Suspense>
