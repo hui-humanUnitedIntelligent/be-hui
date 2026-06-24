@@ -404,6 +404,23 @@ function SmartNotFound() {
   return <HUILoader />;
 }
 
+
+/* ── WorkDetailRouteWrapper: /work/:id → WorkDetailPage ─────────── */
+// onBuyWerk: navigiert zurück zu /Home mit Router-State.
+// Home.jsx liest location.state.pendingWerkKauf und öffnet WerkKaufFlow.
+// Keine globale Variable — React Router v6 state ist offizieller Mechanismus.
+function WorkDetailRouteWrapper() {
+  const navigate = useNavigate();
+  return (
+    <WorkDetailPage
+      onBuyWerk={(werk) => {
+        // COMMERCE-01: Router-State → Home.jsx öffnet WerkKaufFlow
+        navigate("/Home", { state: { pendingWerkKauf: werk } });
+      }}
+    />
+  );
+}
+
 /* ── Router Wrapper: /profile/:username → WirkerProfilePage ────────── */
 // onBook öffnet RequestSheet INNERHALB der WirkerProfilePage
 // Kein separates BookingFlow-Overlay mehr nötig
@@ -530,7 +547,7 @@ function AppRoutes() {
 
         {/* Work Detail — LAZY */}
         <Route path="/work/:id" element={
-          <ProtectedRoute><WorkDetailPage /></ProtectedRoute>
+          <ProtectedRoute><WorkDetailRouteWrapper /></ProtectedRoute>  {/* COMMERCE-01 */}
         }/>
 
         {/* /profile/:username → WirkerProfileRouteWrapper */}
