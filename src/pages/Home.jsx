@@ -133,6 +133,8 @@ function HomeInner() {
     activeStory,       setActiveStory,
     showCreatorDash,   setShowCreatorDash,
     showCreatorDashboard,
+    showWerkCheckout,  setShowWerkCheckout,  // COMMERCE-01 W-1
+    showBookingFlow,   setShowBookingFlow,   // COMMERCE-01 W-1
   } = useHome();
 
   // ── Unread Message Count — live aus chatContext ────────
