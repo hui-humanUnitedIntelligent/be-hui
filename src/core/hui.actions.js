@@ -146,6 +146,7 @@ export function buildActions(shell) {
     setShowMembership,
     setShowCreateFlow,
     setShowConnect,
+    setShowBookingFlow,      // COMMERCE-01
     setShowNotifs,
     setShowMap,
     setShowMatch,
@@ -166,6 +167,7 @@ export function buildActions(shell) {
     setShowChat?.(false);
     setShowPlusSheet?.(false);
     setShowConnect?.(false);
+    setShowBookingFlow?.(null);  // COMMERCE-01
     setShowNotifs?.(false);
     setShowMap?.(false);
     setShowMatch?.(false);
@@ -285,7 +287,8 @@ export function buildActions(shell) {
       // Flow-Log
       const bookSource = payload?.source || S.SYSTEM;
       logFlow(bookSource, S.BOOKING, safeCr ? { to: safeCr.display_name } : null);
-      setShowConnect?.(true);
+      // COMMERCE-01: ExperienceBookingFlow öffnen statt ConnectionCreatePage
+      setShowBookingFlow?.({ experience: safeExp, creator: safeCr });
     },
 
     [A.CREATE_EXPERIENCE]: (payload = {}) => {
