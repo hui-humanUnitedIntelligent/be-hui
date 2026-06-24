@@ -195,6 +195,7 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
   const [step,       setStep]       = useState(1);
   const [animDir,    setAnimDir]    = useState("in");
   const [publishing, setPublishing] = useState(false);
+  const [done,        setDone]        = useState(false);
   const scrollRef = useRef(null);
 
   const [formData, setFormData] = useState({
@@ -309,11 +310,8 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
       });
       setPublishing(false);
       if (published) {
-        setTimeout(() => {
-          // ── STEP 7: navigate / onClose ────────────────────────
-          console.log("[HUI CONNECTION] step 7 navigate home — onClose() wird aufgerufen");
-          onClose?.();
-        }, 100);
+        // ── STEP 7: Erfolgs-Screen anzeigen (Nutzer schließt selbst) ──
+        setDone(true);
       }
     }
   }, [step, publishing, formData, user?.id, onPublish, onClose]);
@@ -325,6 +323,55 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
     true;
 
   const meta = STEP_META[step];
+
+  /* ── Erfolgs-Screen ─────────────────────────────────────────────────── */
+  if (done) return (
+    <div style={{
+      position:"fixed", inset:0, zIndex:10100,
+      background:C.cream,
+      display:"flex", flexDirection:"column",
+      alignItems:"center", justifyContent:"center",
+      fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
+      animation:"page-in 0.26s cubic-bezier(0.22,1,0.36,1) both",
+      padding:"40px 32px",
+      textAlign:"center",
+    }}>
+      <style>{CSS}</style>
+      {/* Checkmark */}
+      <div style={{
+        width:72, height:72, borderRadius:"50%",
+        background:"linear-gradient(135deg,#16D7C5,#8B5CF6)",
+        display:"flex", alignItems:"center", justifyContent:"center",
+        fontSize:32, marginBottom:24,
+        boxShadow:"0 8px 28px rgba(139,92,246,0.28)",
+      }}>✓</div>
+      {/* Titel */}
+      <div style={{
+        fontSize:22, fontWeight:800, color:C.ink,
+        letterSpacing:-0.5, marginBottom:10,
+      }}>Verbindung veröffentlicht</div>
+      {/* Subtext */}
+      <div style={{
+        fontSize:14, color:C.muted, lineHeight:1.6,
+        maxWidth:260, marginBottom:36,
+      }}>
+        Deine Anfrage ist raus. Andere können sie jetzt entdecken und sich melden.
+      </div>
+      {/* Fertig-Button */}
+      <button
+        onClick={onClose}
+        style={{
+          padding:"14px 36px", borderRadius:16,
+          background:"linear-gradient(135deg,#16D7C5,#8B5CF6)",
+          color:"#fff", fontSize:15, fontWeight:700,
+          border:"none", cursor:"pointer",
+          touchAction:"manipulation",
+          WebkitTapHighlightColor:"transparent",
+          boxShadow:"0 6px 20px rgba(139,92,246,0.30)",
+        }}
+      >Fertig</button>
+    </div>
+  );
 
   return (
     <div style={{
