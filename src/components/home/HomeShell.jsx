@@ -169,6 +169,7 @@ export default function HomeShell({ children }) {
   const [showCreatorDash,        setShowCreatorDash]        = useState(false); // Phase 4D
   const [showWerkDetail,         setShowWerkDetail]        = useState(null);
   const [showWerkCheckout,       setShowWerkCheckout]      = useState(null);
+  const [showBookingFlow,        setShowBookingFlow]        = useState(null); // COMMERCE-01 E-3
   const [showWerkeKorb,          setShowWerkeKorb]         = useState(false);
   // ── Content / Commerce State ───────────────────────────────────
   const [createType,             setCreateType]            = useState(null);
@@ -313,6 +314,7 @@ export default function HomeShell({ children }) {
     showCreatorDash,        setShowCreatorDash,
     showWerkDetail,        setShowWerkDetail,
     showWerkCheckout,      setShowWerkCheckout,
+    showBookingFlow,       setShowBookingFlow,      // COMMERCE-01 E-3
     showWerkeKorb,         setShowWerkeKorb,
     createType,            setCreateType,
     activeStory,           setActiveStory,
@@ -338,6 +340,7 @@ export default function HomeShell({ children }) {
     showWerkPublisher, showExperienceCreator,
     showImpactFlow, showContentSelector, showInvitationFlow,
     showCreatorDash, showWerkDetail, showWerkCheckout, showWerkeKorb,
+    showBookingFlow,
     createType, activeStory, cart,
     openOwnProfile, flowStore,
   ]);
