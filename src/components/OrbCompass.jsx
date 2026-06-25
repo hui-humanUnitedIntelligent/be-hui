@@ -8,7 +8,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import HuiMomentSheet   from "./HuiMomentSheet.jsx";
 import GemeinschaftsFlow from "./GemeinschaftsFlow.jsx";
 
-const HUI_LOGO = "https://base44.app/api/apps/69e91ff9d24a19ce6f9abd25/files/mp/public/69e91ff9d24a19ce6f9abd25/e24f00405_hui_logo.png";
+const HUI_LOGO = "/hui-logo-app.png"; // Branding update — lokales Asset
+const _OLD_HUI_LOGO = "https://base44.app/api/apps/69e91ff9d24a19ce6f9abd25/files/mp/public/69e91ff9d24a19ce6f9abd25/e24f00405_hui_logo.png";
 
 const D = {
   ink:      "#1A3530",
@@ -732,7 +733,7 @@ function OrbLockedDialog({ onJoin, onClose }) {
           overflow: "hidden",
         }}>
           <img
-            src="https://base44.app/api/apps/69e91ff9d24a19ce6f9abd25/files/mp/public/69e91ff9d24a19ce6f9abd25/e24f00405_hui_logo.png"
+            src="/hui-logo-app.png"
             alt="HUI"
             style={{ width: 44, height: 44, objectFit: "contain" }}
             onError={e => { e.currentTarget.style.display = "none"; }}
