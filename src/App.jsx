@@ -523,7 +523,6 @@ function GlobalBlockGuard() {
 }
 
 
-// WelcomeController entfernt — AppEntryController übernimmt (Kapitel 1)
 
 function AppRoutes() {
   // ── Route-Validierung beim Render ──────────────────────────────────
