@@ -22,7 +22,13 @@ function relTime(ts){
 
 function extractAuthor(raw){
   const p=raw.profile||raw.creator||raw.author||raw.user||{};
-  const name=safeStr(p.display_name||p.full_name||p.name||p.username,"Human");
+  // Kapitel 2.5: Namens-Priorität — niemals "Human" wenn echter Name vorhanden
+  // 1. display_name  2. full_name  3. name  4. username  5. letzter Fallback
+  const _n1 = safeStr(p.display_name);
+  const _n2 = safeStr(p.full_name);
+  const _n3 = safeStr(p.name);
+  const _n4 = safeStr(p.username||p.handle);
+  const name = _n1||_n2||_n3||_n4||"Mitglied";
   // authorId: profile.id hat Priorität, rawItem.user_id als Fallback
   const authorId=safeStr(p.id||p.user_id||raw.user_id||raw.creator_id||raw.author_id);
   // avatar: profile.avatar_url hat Priorität, rawItem-Felder als Fallback
