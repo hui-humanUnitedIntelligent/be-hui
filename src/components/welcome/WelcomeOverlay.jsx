@@ -361,19 +361,4 @@ export default function WelcomeOverlay({ onDone }) {
   );
 }
 
-// ── Hook für Nutzung in App.jsx ─────────────────────────────────
-export function useWelcomeOverlay() {
-  const [show, setShow] = useState(false);
-
-  useEffect(() => {
-    // Kurzes Delay: Auth muss sicher geladen sein
-    const t = setTimeout(() => {
-      if (!hasSeenWelcome()) setShow(true);
-    }, 300);
-    return () => clearTimeout(t);
-  }, []);
-
-  function dismiss() { setShow(false); }
-
-  return { show, dismiss };
-}
+// useWelcomeOverlay entfernt — Logik liegt in AppEntryController (Kapitel 1)
