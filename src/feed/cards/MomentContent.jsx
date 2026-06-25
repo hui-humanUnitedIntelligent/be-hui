@@ -5,7 +5,13 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
   const text = item.text || item.title || "";
   return (
     <BaseFeedCard item={item} onProfile={onProfile} onReaction={onReaction} onShare={onShare}>
-      {text ? <p style={{margin:0,fontSize:15,lineHeight:1.6,color:"rgba(26,26,46,0.82)",fontWeight:400}}>{text}</p> : null}
+      {text ? (
+        <p style={{
+          margin:0, fontSize:16, lineHeight:1.65,
+          color:"rgba(20,20,34,0.80)", fontWeight:400,
+          letterSpacing:"-0.01em",
+        }}>{text}</p>
+      ) : null}
     </BaseFeedCard>
   );
 }
