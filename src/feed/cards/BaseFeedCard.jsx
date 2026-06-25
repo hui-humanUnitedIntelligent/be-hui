@@ -106,15 +106,71 @@ const CardAvatar = memo(function CardAvatar({ src, name, size = 38, isTalent = f
   );
 });
 
-// ── Begegnungszeile — automatisch aus Item-Typ ───────────────
+// ── Story Engine — Kapitel 2.4 ───────────────────────────────
+// Personalisierte Begegnungszeile aus vorhandenen Item-Daten.
+// Kein neues Feld. Kein API-Call. Nur Kombination aus:
+//   author.name · item.type · item.title · item.location · item._raw.date
 function getBegegnungsgrund(item) {
-  const type = item?.type || "moment";
-  if (type === "work")       return "Hat heute ein neues Werk veröffentlicht.";
-  if (type === "experience") return "Lädt diese Woche zu einem Erlebnis ein.";
-  if (type === "event")      return "Veranstaltet bald ein Event.";
+  const type   = item?.type || "moment";
+  const author = item?.author || {};
+  // Vorname: erster Teil des display_name
+  const first  = (author.name || "").split(" ")[0] || null;
+  const prefix = first || "Diese Person";
+
+  // WERK
+  if (type === "work") {
+    const title = item?.title || null;
+    const talent = author.talent || null;
+    if (title && first)
+      return `${first} möchte heute sein neues Werk „${title}" mit dir teilen.`;
+    if (talent && first)
+      return `${first} hat als ${talent} ein neues Werk veröffentlicht.`;
+    return `${prefix} hat heute ein neues Werk veröffentlicht.`;
+  }
+
+  // ERLEBNIS
+  if (type === "experience") {
+    const title = item?.title || null;
+    const loc   = item?.location || null;
+    const date  = item?._raw?.date || null;
+    // Datumsvariante
+    if (date) {
+      try {
+        const d = new Date(date);
+        const today = new Date(); today.setHours(0,0,0,0);
+        const diff = Math.round((d - today) / 86400000);
+        if (diff === 0 && first)
+          return `${first} lädt dich heute zu einem Erlebnis ein.`;
+        if (diff === 1 && first)
+          return `${first} lädt dich morgen zu einem Erlebnis ein.`;
+        if (diff > 1 && diff <= 7 && first)
+          return `${first} lädt dich diese Woche zu einem Erlebnis ein.`;
+      } catch { /* weiter */ }
+    }
+    if (title && loc && first)
+      return `${first} lädt Menschen ein: „${title}" in ${loc}.`;
+    if (title && first)
+      return `${first} lädt dich ein: „${title}".`;
+    return `${prefix} lädt diese Woche zu einem Erlebnis ein.`;
+  }
+
+  // EVENT
+  if (type === "event") {
+    const loc = item?.location || null;
+    if (loc && first)
+      return `${first} veranstaltet bald ein Event in ${loc}.`;
+    return `${prefix} veranstaltet bald ein Event.`;
+  }
+
+  // MOMENT — variiere nach Länge + Inhalt
   const text = item?.text || "";
-  if (text.length > 80)     return "Teilt einen besonderen Moment.";
-  return "Hat heute etwas geteilt.";
+  if (first && text.length > 120)
+    return `${first} nimmt dich heute mit in seinen Alltag.`;
+  if (first && text.length > 40)
+    return `${first} hat heute einen besonderen Moment festgehalten.`;
+  if (first)
+    return `${first} hat heute etwas mit dir geteilt.`;
+  return "Hat heute etwas Persönliches geteilt.";
 }
 
 // ── HumanHeader: Menschenkopf — Sprint 2.3 ────────────────────
@@ -128,6 +184,10 @@ export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
   const ver     = author.verified || false;
   const isT     = author.isTalent || false;
   const mType   = author.membershipType || "base";
+  const bio     = author.bio || null;
+  const rawSince= author.member_since || null;
+  // member_since: "YYYY" extrahieren für "Wirker seit 2024"
+  const memberSince = rawSince ? new Date(rawSince).getFullYear() : null;
   const presence= item?._presenceStatus || null;
   const grund   = getBegegnungsgrund(item);
   const [pressed, setPressed] = React.useState(false);
@@ -194,22 +254,34 @@ export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
               <span style={{ fontSize:10.5, color:"#22C55E", fontWeight:500 }}>● gerade online</span>
             )}
           </div>
-          {/* Talent-Satz */}
-          {talent && (
+          {/* Talent + Standort — kombinierte Zeile: "Kerzenmacherin aus München" */}
+          {(talent || loc) && (
             <div style={{
-              fontSize:12.5, color:"rgba(20,20,34,0.55)", fontWeight:500,
+              fontSize:12.5, color:"rgba(20,20,34,0.52)", fontWeight:500,
               overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-              marginBottom: loc || item?.createdAt ? 2 : 0,
-            }}>{talent}</div>
-          )}
-          {/* Standort + Zeit */}
-          {(loc || item?.createdAt) && (
-            <div style={{ display:"flex", alignItems:"center", gap:5, fontSize:11.5, color:"rgba(20,20,34,0.38)" }}>
-              {loc && <span>{loc}</span>}
-              {loc && item?.createdAt && <span>·</span>}
-              {item?.createdAt && <span>{item.createdAt}</span>}
+              marginBottom:2,
+            }}>
+              {talent && loc ? `${talent} aus ${loc}` : talent || loc}
             </div>
           )}
+          {/* Bio — erster Satz als kurze Persönlichkeitsbeschreibung */}
+          {bio && (
+            <div style={{
+              fontSize:11.5, color:"rgba(20,20,34,0.42)", fontWeight:400,
+              lineHeight:1.45,
+              overflow:"hidden", display:"-webkit-box",
+              WebkitLineClamp:2, WebkitBoxOrient:"vertical",
+              marginBottom:2,
+            }}>
+              {bio.split(/[.!?]/)[0].trim()}
+            </div>
+          )}
+          {/* Zeitstempel + Mitglied-seit */}
+          <div style={{ display:"flex", alignItems:"center", gap:5, fontSize:11, color:"rgba(20,20,34,0.30)", flexWrap:"wrap" }}>
+            {item?.createdAt && <span>{item.createdAt}</span>}
+            {item?.createdAt && memberSince && <span>·</span>}
+            {memberSince && <span>Wirker seit {memberSince}</span>}
+          </div>
         </div>
         <div style={{ width:24, flexShrink:0 }} />
       </div>
