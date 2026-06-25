@@ -2,12 +2,10 @@
 // Erscheint einmalig nach erster Anmeldung.
 // Persistenz via localStorage "hui_welcome_seen".
 // Kein Eingriff in Auth, Routing oder bestehende Komponenten.
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 const TEAL   = "#0DC4B5";
 const TEAL2  = "#09A89A";
-const CORAL  = "#F47355";
-const CREAM  = "#FAF7F2";
 const INK    = "#141422";
 const INK2   = "#3A3A55";
 
@@ -49,14 +47,7 @@ const FEATURES = [
 
 // ── Haupt-Komponente ─────────────────────────────────────────────
 export default function WelcomeOverlay({ onDone }) {
-  const [visible, setVisible] = useState(false);
   const [closing, setClosing] = useState(false);
-
-  // Einblenden nach kurzem Delay (sanfter Einstieg)
-  useEffect(() => {
-    const t = setTimeout(() => setVisible(true), 80);
-    return () => clearTimeout(t);
-  }, []);
 
   function handleDiscover() {
     setClosing(true);
@@ -361,4 +352,3 @@ export default function WelcomeOverlay({ onDone }) {
   );
 }
 
-// useWelcomeOverlay entfernt — Logik liegt in AppEntryController (Kapitel 1)
