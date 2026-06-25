@@ -106,71 +106,85 @@ const CardAvatar = memo(function CardAvatar({ src, name, size = 38, isTalent = f
   );
 });
 
-// ── Story Engine — Kapitel 2.4 ───────────────────────────────
-// Personalisierte Begegnungszeile aus vorhandenen Item-Daten.
-// Kein neues Feld. Kein API-Call. Nur Kombination aus:
-//   author.name · item.type · item.title · item.location · item._raw.date
+// ── Story Engine — Sprint 2.6 ────────────────────────────────
+// Begegnungsgrund: natürlich, kontextsensitiv, niemals generisch.
+// Quellen: type · author.talent · author.name · item.title ·
+//          item.location · item._raw.date · item._raw.category
+// Kein neues Feld. Kein API-Call.
 function getBegegnungsgrund(item) {
-  const type   = item?.type || "moment";
-  const author = item?.author || {};
-  // Vorname: erster Teil des display_name
-  const first  = (author.name || "").split(" ")[0] || null;
-  const prefix = first || "Dieses Mitglied";
+  const type    = item?.type || "moment";
+  const author  = item?.author || {};
+  const first   = (author.name || "").split(/\s/)[0].trim() || null;
+  const talent  = (author.talent || "").trim() || null;
+  const cat     = (item?._raw?.category || "").trim() || null;
+  const title   = (item?.title || "").trim() || null;
+  const loc     = (item?.location || "").trim() || null;
+  const text    = item?.text || "";
 
-  // WERK
+  // ── WERK ──────────────────────────────────────────────────
   if (type === "work") {
-    const title = item?.title || null;
-    const talent = author.talent || null;
-    if (title && first)
-      return `${first} möchte heute sein neues Werk „${title}" mit dir teilen.`;
+    // Talent + Kategorie → kontextuelle Aussage
+    if (talent && cat && first)
+      return `${first} wirkt im Bereich ${cat} und hat ein neues Werk erschaffen.`;
     if (talent && first)
-      return `${first} hat als ${talent} ein neues Werk veröffentlicht.`;
-    return `${prefix} hat heute ein neues Werk veröffentlicht.`;
+      return `${first} hat ein neues Werk als ${talent} erschaffen.`;
+    if (title && first)
+      return `${first} teilt heute: „${title}".`;
+    if (first)
+      return `${first} hat ein neues Werk veröffentlicht.`;
+    return "Hat ein neues Werk erschaffen.";
   }
 
-  // ERLEBNIS
+  // ── ERLEBNIS ──────────────────────────────────────────────
   if (type === "experience") {
-    const title = item?.title || null;
-    const loc   = item?.location || null;
-    const date  = item?._raw?.date || null;
-    // Datumsvariante
+    const date = item?._raw?.date || null;
+    let datePart = null;
     if (date) {
       try {
-        const d = new Date(date);
-        const today = new Date(); today.setHours(0,0,0,0);
-        const diff = Math.round((d - today) / 86400000);
-        if (diff === 0 && first)
-          return `${first} lädt dich heute zu einem Erlebnis ein.`;
-        if (diff === 1 && first)
-          return `${first} lädt dich morgen zu einem Erlebnis ein.`;
-        if (diff > 1 && diff <= 7 && first)
-          return `${first} lädt dich diese Woche zu einem Erlebnis ein.`;
-      } catch { /* weiter */ }
+        const d    = new Date(date);
+        const now  = new Date(); now.setHours(0,0,0,0);
+        const diff = Math.round((d - now) / 86400000);
+        if (diff === 0)      datePart = "heute";
+        else if (diff === 1) datePart = "morgen";
+        else if (diff > 1 && diff <= 7) datePart = "diese Woche";
+      } catch { /* ignore */ }
     }
-    if (title && loc && first)
-      return `${first} lädt Menschen ein: „${title}" in ${loc}.`;
-    if (title && first)
-      return `${first} lädt dich ein: „${title}".`;
-    return `${prefix} lädt diese Woche zu einem Erlebnis ein.`;
-  }
-
-  // EVENT
-  if (type === "event") {
-    const loc = item?.location || null;
+    if (talent && loc && datePart && first)
+      return `${first} lädt ${datePart} zu einem gemeinsamen Erlebnis in ${loc} ein.`;
+    if (loc && datePart && first)
+      return `${first} lädt ${datePart} nach ${loc} ein.`;
+    if (talent && first)
+      return `${first} lädt zu einem Erlebnis im Bereich ${talent} ein.`;
     if (loc && first)
-      return `${first} veranstaltet bald ein Event in ${loc}.`;
-    return `${prefix} veranstaltet bald ein Event.`;
+      return `${first} lädt zu einem gemeinsamen Erlebnis in ${loc} ein.`;
+    if (first)
+      return `${first} lädt zu einem gemeinsamen Erlebnis ein.`;
+    return "Lädt zu einem gemeinsamen Erlebnis ein.";
   }
 
-  // MOMENT — variiere nach Länge + Inhalt
-  const text = item?.text || "";
+  // ── EVENT ─────────────────────────────────────────────────
+  if (type === "event") {
+    if (talent && loc && first)
+      return `${first} engagiert sich als ${talent} und organisiert ein Event in ${loc}.`;
+    if (loc && first)
+      return `${first} organisiert ein Event in ${loc}.`;
+    if (talent && first)
+      return `${first} engagiert sich als ${talent}.`;
+    if (first)
+      return `${first} organisiert ein gemeinsames Event.`;
+    return "Organisiert ein gemeinsames Event.";
+  }
+
+  // ── MOMENT ────────────────────────────────────────────────
+  if (talent && first)
+    return `${first} wirkt als ${talent} und teilt einen persönlichen Moment.`;
   if (first && text.length > 120)
     return `${first} nimmt dich heute mit in seinen Alltag.`;
   if (first && text.length > 40)
-    return `${first} hat heute einen besonderen Moment festgehalten.`;
+    return `${first} teilt heute einen persönlichen Moment.`;
   if (first)
-    return `${first} hat heute etwas mit dir geteilt.`;
-  return "Hat heute etwas Persönliches geteilt.";
+    return `${first} hat heute etwas Persönliches geteilt.`;
+  return "Teilt heute einen persönlichen Moment.";
 }
 
 // ── HumanHeader: Menschenkopf — Sprint 2.3 ────────────────────
@@ -401,7 +415,12 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
     url = media;
   }
 
-  if (!url || err) return null;
+  // P3: Kein Bild → warmer Hintergrund-Block (kein leerer Raum)
+  if (!url || err) {
+    // Karten ohne Bild brauchen keinen Platzhalter-Block —
+    // der Inhalt (Titel + Text) trägt die Begegnung allein.
+    return null;
+  }
 
   const h = relaxed ? 340 : T.mediaH;
 
@@ -533,24 +552,56 @@ const ActionBtn = memo(function ActionBtn({
   );
 });
 
+// ── Resonanz-Zeile — Sprint 2.6 ──────────────────────────────
+// Menschlich formuliert. Keine Zähler-Dominanz.
+function getResonanzText(r) {
+  const inspire = r.inspireCount || 0;
+  const touch   = r.touchCount   || 0;
+  const total   = inspire + touch;
+  if (total === 0) return null;
+  if (total === 1) return "Ein Mensch hat darauf reagiert.";
+  if (total <= 3)  return `${total}\u00a0Menschen haben reagiert.`;
+  if (inspire > touch && inspire > 0)
+    return `${inspire}\u00a0Menschen wurden inspiriert.`;
+  if (touch > inspire && touch > 0)
+    return `${touch}\u00a0Menschen wurden berührt.`;
+  return `${total}\u00a0Menschen haben bereits resoniert.`;
+}
+
 // ── Actions bar ───────────────────────────────────────────────
 export const FeedActions = memo(function FeedActions({
   reactions, onReaction, onShare, extraActions
 }) {
   const r = reactions || {};
+  const resonanz = getResonanzText(r);
   return (
-    <div style={{
-      display: "flex", alignItems: "center",
-      padding: "10px " + (T.p - 4) + "px",
-      borderTop: "1px solid " + T.border,
-      marginTop: 14, gap: 2,
-    }}>
-      <ActionBtn icon="✦"  count={r.inspireCount||null} active={r.inspired} activeColor={T.teal}  onClick={() => onReaction?.("inspire")} />
-      <ActionBtn icon="🤍" count={r.touchCount||null}   active={r.touched}  activeColor={T.coral} onClick={() => onReaction?.("touch")}   />
-      <ActionBtn icon="⊕"  active={r.saved}             activeColor="#8B5CF6"                      onClick={() => onReaction?.("save")}    />
-      <div style={{ flex: 1 }} />
-      {extraActions || null}
-      <ActionBtn icon="↗" onClick={onShare} />
+    <div>
+      <div style={{
+        display: "flex", alignItems: "center",
+        padding: "10px " + (T.p - 4) + "px",
+        borderTop: "1px solid " + T.border,
+        marginTop: 14, gap: 2,
+      }}>
+        <ActionBtn icon="✦"  count={r.inspireCount||null} active={r.inspired} activeColor={T.teal}  onClick={() => onReaction?.("inspire")} />
+        <ActionBtn icon="🤍" count={r.touchCount||null}   active={r.touched}  activeColor={T.coral} onClick={() => onReaction?.("touch")}   />
+        <ActionBtn icon="⊕"  active={r.saved}             activeColor="#8B5CF6"                      onClick={() => onReaction?.("save")}    />
+        <div style={{ flex: 1 }} />
+        {extraActions || null}
+        <ActionBtn icon="↗" onClick={onShare} />
+      </div>
+      {/* Resonanz-Zeile — nur wenn Reaktionen vorhanden */}
+      {resonanz && (
+        <div style={{
+          padding: "0 " + T.p + "px 12px",
+          fontSize: 11.5,
+          color: "rgba(20,20,34,0.38)",
+          fontWeight: 400,
+          fontStyle: "italic",
+          letterSpacing: "0.01em",
+        }}>
+          {resonanz}
+        </div>
+      )}
     </div>
   );
 });
@@ -603,14 +654,13 @@ export default function BaseFeedCard({
       style={{
         background: T.bgCard,
         borderRadius: T.r,
-        marginBottom: 14,
+        marginBottom: 18,       // P2: mehr Atemraum zwischen Begegnungen
         marginLeft: 12,
         marginRight: 12,
-        boxShadow: T.shadow,
-        border: "1px solid " + T.border,
+        boxShadow: "0 2px 24px rgba(26,26,46,0.06)",  // weicher
+        border: "1px solid rgba(26,26,46,0.05)",       // dezenter
         overflow: "hidden",
-        // Soft entrance
-        animation: "huiFadeUp 0.3s ease both",
+        animation: "huiFadeUp 0.35s ease both",
         willChange: "transform, opacity",
       }}
     >
@@ -625,7 +675,7 @@ export default function BaseFeedCard({
           }}>{badge.label}</div>
         </div>
       )}
-      <div style={{ padding: "0 " + T.p + "px 0" }}>{children}</div>
+      <div style={{ padding: "0 " + T.p + "px 4px" }}>{children}</div>
       <FeedMedia
         media={item.media}
         alt={item.title || item.text}
