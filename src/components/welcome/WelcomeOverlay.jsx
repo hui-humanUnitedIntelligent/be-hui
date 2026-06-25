@@ -11,14 +11,7 @@ const CREAM  = "#FAF7F2";
 const INK    = "#141422";
 const INK2   = "#3A3A55";
 
-const LS_KEY = "hui_welcome_seen";
-
-function hasSeenWelcome() {
-  try { return localStorage.getItem(LS_KEY) === "true"; } catch { return false; }
-}
-function markWelcomeSeen() {
-  try { localStorage.setItem(LS_KEY, "true"); } catch {}
-}
+// Welcome-Persistenz: ausschließlich über src/lib/welcomePersistence.js
 
 // ── Feature-Zeilen ──────────────────────────────────────────────
 const FEATURES = [
