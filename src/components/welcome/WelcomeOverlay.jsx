@@ -3,7 +3,6 @@
 // Persistenz via localStorage "hui_welcome_seen".
 // Kein Eingriff in Auth, Routing oder bestehende Komponenten.
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom"; // Kapitel 1: Feed-Navigation nach Dismiss
 
 const TEAL   = "#0DC4B5";
 const TEAL2  = "#09A89A";
@@ -66,18 +65,10 @@ export default function WelcomeOverlay({ onDone }) {
     return () => clearTimeout(t);
   }, []);
 
-  const navigate = useNavigate();
-
   function handleDiscover() {
     setClosing(true);
-    markWelcomeSeen();
-    // sessionStorage leeren damit HomeShell nicht das Profil öffnet
-    try { sessionStorage.removeItem("hui_mein_hui_open"); } catch {}
-    setTimeout(() => {
-      onDone?.();
-      // Sicherstellung: Feed ist der erste Screen nach dem Welcome
-      navigate("/Home", { replace: true });
-    }, 420);
+    // AppEntryController übernimmt Storage + Navigation
+    setTimeout(() => { onDone?.(); }, 420);
   }
 
   return (
