@@ -1843,7 +1843,7 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
   useEffect(()=>{ searchQueryRef.current=searchQuery; },[searchQuery]);
 
   // Placeholder-Rotation (nur wenn geschlossen)
-  const PH = ["Was möchtest du heute bewirken?","Menschen finden…","Werke entdecken…","Projekte erkunden…"];
+  const PH = ["Menschen, Werke oder Erlebnisse entdecken …","Menschen finden…","Werke entdecken…","Projekte erkunden…"];
   const [phIdx,setPhIdx] = useState(0);
   const [phVis,setPhVis] = useState(true);
   useEffect(()=>{
