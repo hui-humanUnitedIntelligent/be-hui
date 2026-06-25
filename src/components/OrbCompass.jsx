@@ -9,7 +9,6 @@ import HuiMomentSheet   from "./HuiMomentSheet.jsx";
 import GemeinschaftsFlow from "./GemeinschaftsFlow.jsx";
 
 const HUI_LOGO = "/hui-logo-app.png"; // Branding update — lokales Asset
-const _OLD_HUI_LOGO = "https://base44.app/api/apps/69e91ff9d24a19ce6f9abd25/files/mp/public/69e91ff9d24a19ce6f9abd25/e24f00405_hui_logo.png";
 
 const D = {
   ink:      "#1A3530",
