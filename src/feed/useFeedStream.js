@@ -116,6 +116,11 @@ async function fetchFeedPage(userId = null, cursors = null) {
   const beitr = beitrRes.status === "fulfilled" ? (beitrRes.value?.data || []) : [];
   const invs  = invRes.status   === "fulfilled" ? (invRes.value?.data   || []) : [];
 
+  console.log("works.length", works.length);
+  console.log("experiences.length", exps.length);
+  console.log("beitraege.length", beitr.length);
+  console.log("invitations.length", invs.length);
+
   const beitrErr = beitrRes.status === "rejected"
     ? beitrRes.reason?.message
     : (beitrRes.value?.error?.message || null);
@@ -137,14 +142,18 @@ async function fetchFeedPage(userId = null, cursors = null) {
   // ── Step 2: Profile-Enrichment — optional, nie blockierend ─────────────
   const allRows = [...works, ...exps, ...beitr, ...invs];
   const userIds = [...new Set(allRows.map(r => r.user_id || r.creator_id).filter(Boolean))];
+  console.log("USER IDS", userIds);
   let profileMap = {};
 
   if (userIds.length > 0) {
     try {
-      const { data: profileRows } = await supabase
+      const { data: profileRows, error } = await supabase
         .from("profiles")
         .select("id,display_name,username,avatar_url,talent,bio,member_since,location_label,membership_type,membership_active,is_verified")
         .in("id", userIds);
+      console.log("PROFILE ERROR", error);
+      console.log("PROFILE ROWS", profileRows);
+      console.log("PROFILE COUNT", profileRows?.length);
       if (profileRows) {
         profileRows.forEach(p => { profileMap[p.id] = p; });
       }
@@ -153,20 +162,47 @@ async function fetchFeedPage(userId = null, cursors = null) {
       console.warn("[HUI_STREAM] Profile enrichment failed — continuing without");
     }
   }
+  console.log("PROFILE MAP KEYS", Object.keys(profileMap));
+  console.log("PROFILE MAP", profileMap);
 
   // ── Step 3: Normalisieren (mit injiziertem profile aus profileMap) ──────
   function injectProfile(row) {
     const uid = row.user_id || row.creator_id || null;
     const p   = (uid && profileMap[uid]) ? profileMap[uid] : null;
+    console.group("injectProfile");
+    console.log("ROW", row.id);
+    console.log("UID", uid);
+    console.log("FOUND PROFILE", profileMap[uid]);
+    console.log("ROW PROFILE", row.profile);
+    console.log("DISPLAY_NAME", p?.display_name);
+    console.log("USERNAME", p?.username);
+    console.log("OUTPUT PROFILE", p);
+    console.groupEnd();
     return { ...row, profile: p || { id: uid, display_name: "Human", avatar_url: null } };
   }
 
-  const normalizedBeitr = beitr.map(r => normalizeBeitragRow(injectProfile(r))).filter(Boolean);
+  const normalizedBeitr = beitr.map(r => {
+    const raw = injectProfile(r);
+    console.log("BEFORE normalizeMomentRow raw.profile", raw.profile);
+    return normalizeBeitragRow(raw);
+  }).filter(Boolean);
   const normalized = [
-    ...works.map(r => normalizeWorkRow(injectProfile(r))).filter(Boolean),
-    ...exps.map(r => normalizeExperienceRow(injectProfile(r))).filter(Boolean),
+    ...works.map(r => {
+      const raw = injectProfile(r);
+      console.log("BEFORE normalizeWorkRow raw.profile", raw.profile);
+      return normalizeWorkRow(raw);
+    }).filter(Boolean),
+    ...exps.map(r => {
+      const raw = injectProfile(r);
+      console.log("BEFORE normalizeExperienceRow raw.profile", raw.profile);
+      return normalizeExperienceRow(raw);
+    }).filter(Boolean),
     ...normalizedBeitr,
-    ...invs.map(r => normalizeInvitationRow(injectProfile(r))).filter(Boolean),
+    ...invs.map(r => {
+      const raw = injectProfile(r);
+      console.log("BEFORE normalizeInvitationRow raw.profile", raw.profile);
+      return normalizeInvitationRow(raw);
+    }).filter(Boolean),
   ];
 
 
@@ -375,7 +411,13 @@ export function useFeedStream() {
 
   // ── Soft Hydration: neue Items aus Realtime akkumulieren ──────────────────
   const _receiveLiveItem = useCallback((rawItem, normalizer) => {
+    console.group("_receiveLiveItem");
+    console.log("payload.new", rawItem);
+    console.log("REALTIME INJECT PROFILE BYPASS", "raw item passed directly to normalizer(rawItem); fetchFeedPage injectProfile is not called in realtime path");
     const normalized = normalizer(rawItem);
+    console.log("normalizer(raw)", normalized);
+    console.log("author", normalized?.author);
+    console.groupEnd();
     if (!normalized) return;
 
     // Existiert bereits? → update statt duplizieren
@@ -468,6 +510,7 @@ export function useFeedStream() {
         _receiveLiveItem(payload.new, normalizeWorkRow);
       })
       .subscribe((status) => {
+        console.log("REALTIME STATUS", status);
         if (status === "CHANNEL_ERROR") {
           console.warn("[HUI_STREAM] Realtime Channel Error — Feed läuft ohne Live-Updates weiter");
         }

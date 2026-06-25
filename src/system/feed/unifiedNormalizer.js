@@ -21,6 +21,13 @@ function relTime(ts){
 }
 
 function extractAuthor(raw){
+  console.group("extractAuthor");
+  console.log(raw);
+  console.log(raw.profile);
+  console.log(raw.creator);
+  console.log(raw.author);
+  console.log(raw.user);
+  console.groupEnd();
   const p=raw.profile||raw.creator||raw.author||raw.user||{};
   // Kapitel 2.5: Namens-Priorität — niemals "Human" wenn echter Name vorhanden
   // 1. display_name  2. full_name  3. name  4. username  5. letzter Fallback
@@ -33,7 +40,7 @@ function extractAuthor(raw){
   const authorId=safeStr(p.id||p.user_id||raw.user_id||raw.creator_id||raw.author_id);
   // avatar: profile.avatar_url hat Priorität, rawItem-Felder als Fallback
   const avatarUrl=safeUrl(p.avatar_url||p.avatar||p.img||raw.avatar_url||raw.src_thumb);
-  return{
+  const author={
     id:authorId,
     name, displayName:name,
     avatar:avatarUrl,
@@ -51,6 +58,8 @@ function extractAuthor(raw){
     membershipActive: !!(p.membership_active),
     isTalent: isProfileTalent(p), // Sprint F.4C: einzige Wahrheitsquelle
   };
+  console.log(author);
+  return author;
 }
 
 function extractMedia(raw){
