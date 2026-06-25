@@ -203,24 +203,38 @@ export default function FeedEventsSection({ onEventPress, onMoreEvents }) {
 
   return (
     <div style={{ paddingTop: 10, paddingBottom: 4, marginBottom: 4 }}>
-      {/* Header */}
+      {/* Header — Sprint 2.1 Upgrade */}
       <div style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        paddingLeft: 16, paddingRight: 16, marginBottom: 12,
+        paddingLeft: 16, paddingRight: 16, marginBottom: 10,
       }}>
-        <span style={{
-          fontSize: 12.5, fontWeight: 700, color: "rgba(26,53,48,0.60)",
-          letterSpacing: -0.1,
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          marginBottom: 2,
         }}>
-          Heute in deiner Nähe
-        </span>
-        <button onClick={onMoreEvents} style={{
-          background: "none", border: "none", cursor: "pointer",
-          fontSize: 12, fontWeight: 600, color: TEAL, padding: "2px 0",
-          touchAction: "manipulation",
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{ fontSize: 15, lineHeight: 1 }}>📍</span>
+            <span style={{
+              fontSize: 15, fontWeight: 700, color: "#141422",
+              letterSpacing: -0.3,
+            }}>
+              Heute in deiner Nähe
+            </span>
+          </div>
+          <button onClick={onMoreEvents} style={{
+            background: "none", border: "none", cursor: "pointer",
+            fontSize: 12, fontWeight: 600, color: TEAL, padding: "2px 0",
+            touchAction: "manipulation",
+            display: "flex", alignItems: "center", gap: 2,
+          }}>
+            Alle anzeigen <span style={{ fontSize: 11 }}>›</span>
+          </button>
+        </div>
+        <p style={{
+          margin: 0, padding: 0,
+          fontSize: 12.5, color: "rgba(20,20,34,0.46)", fontWeight: 400,
         }}>
-          Alle ›
-        </button>
+          Menschen treffen. Gemeinsam erleben.
+        </p>
       </div>
 
       {/* Horizontal carousel — fixed */}
