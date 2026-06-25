@@ -559,8 +559,9 @@ function AppRoutes() {
         }/>
 
         {/* Work Detail — LAZY */}
+        {/* COMMERCE-01 */}
         <Route path="/work/:id" element={
-          <ProtectedRoute><WorkDetailRouteWrapper /></ProtectedRoute>  {/* COMMERCE-01 */}
+          <ProtectedRoute><WorkDetailRouteWrapper /></ProtectedRoute>
         }/>
 
         {/* /profile/:username → WirkerProfileRouteWrapper */}
