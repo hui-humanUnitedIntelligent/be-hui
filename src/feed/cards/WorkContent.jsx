@@ -36,21 +36,6 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
       onShare={onShare}
       badge={badge}
     >
-      {/* ── "Neues Werk" Label ──────────────────────────────── */}
-      <div style={{
-        display:"flex", alignItems:"center", gap:6,
-        marginBottom:8,
-      }}>
-        <span style={{ fontSize:14 }}>🎨</span>
-        <span style={{
-          fontSize:11, fontWeight:700,
-          color:CORAL, letterSpacing:".04em",
-          textTransform:"uppercase",
-        }}>
-          Neues Werk veröffentlicht
-        </span>
-      </div>
-
       {/* ── Titel ────────────────────────────────────────────── */}
       {title ? (
         <div style={{
