@@ -128,8 +128,9 @@ export default function HomeShell({ children }) {
   // NEU: ID-basierter Profile-Open (radikale Vereinfachung)
   const [selectedProfileId,      setSelectedProfileId]     = useState(null);
   // ── Creator / Profile State ────────────────────────────────────
-  // showCreatorDashboard: beim Refresh wiederherstellen wenn es offen war.
-  // sessionStorage-Key "hui_mein_hui_open" wird beim Öffnen/Schließen sync gehalten.
+  // showCreatorDashboard: startet immer false (AppEntryController steuert den Einstieg).
+  // sessionStorage-Key "hui_mein_hui_open" wird beim Öffnen/Schließen sync gehalten
+  // (für zukünftige Nutzung, kein Auto-Restore beim Start mehr).
   // Kapitel 1 – Ankommen: HomeShell startet immer neutral.
   // Das Profil öffnet sich ausschließlich durch eine bewusste Nutzeraktion.
   // AppEntryController ist die einzige Einstiegs-Entscheidungsstelle.
