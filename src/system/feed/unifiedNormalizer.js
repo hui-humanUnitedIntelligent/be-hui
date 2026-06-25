@@ -35,6 +35,9 @@ function extractAuthor(raw){
     talent:safeStr(p.talent)||null,
     // Kapitel 2.3: Standort für HumanHeader
     location_label:safeStr(p.location_label||p.city||p.location)||null,
+    // Kapitel 2.4: Bio + Mitglied-seit für Story Engine
+    bio:safeStr(p.bio)||null,
+    member_since:safeStr(p.member_since)||null,
     verified:safeBool(p.verified||p.is_verified),
     // Phase 4C: Membership fields für Feed-Badges
     membershipType:   safeStr(p.membership_type||p.role)||"base",
