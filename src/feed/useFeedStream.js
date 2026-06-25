@@ -143,7 +143,7 @@ async function fetchFeedPage(userId = null, cursors = null) {
     try {
       const { data: profileRows } = await supabase
         .from("profiles")
-        .select("id,display_name,username,avatar_url,talent,location_label,membership_type,membership_active,is_verified")
+        .select("id,display_name,username,avatar_url,talent,bio,member_since,location_label,membership_type,membership_active,is_verified")
         .in("id", userIds);
       if (profileRows) {
         profileRows.forEach(p => { profileMap[p.id] = p; });
