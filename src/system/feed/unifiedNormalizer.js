@@ -107,7 +107,7 @@ export function toFeedItem(raw){
   }catch(err){
     console.warn("[HUI_NORM_ERR]",raw?.id,err?.message);
     return{id:String(raw.id),type:"moment",
-      author:{id:"",name:"Human",displayName:"Human",avatar:null},
+      author:{id:"",name:"Mitglied",displayName:"Mitglied",avatar:null},
       title:null,text:null,media:[],createdAt:"",_reactions:{},_raw:raw};
   }
 }
