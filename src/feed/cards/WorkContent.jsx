@@ -49,7 +49,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
         </div>
       ) : null}
 
-      {/* ── Beschreibung (Beweis der Persönlichkeit) ─────────── */}
+      {/* ── Beschreibung — Persönlichkeit zuerst ────────────── */}
       {desc && (
         <p style={{
           margin:"0 0 10px", fontSize:13.5, color:"rgba(26,26,46,0.68)",
@@ -57,34 +57,9 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
         }}>{desc}</p>
       )}
 
-      {/* ── Preis + Kategorie in einer Reihe ─────────────────── */}
-      <div style={{
-        display:"flex", alignItems:"center",
-        gap:10, flexWrap:"wrap", marginBottom: tags.length > 0 ? 8 : 0,
-      }}>
-        {priceStr && (
-          <div style={{
-            fontSize:18, fontWeight:900,
-            color:TEAL, letterSpacing:"-0.03em",
-          }}>
-            {priceStr}
-          </div>
-        )}
-        {category && (
-          <div style={{
-            fontSize:11, fontWeight:600,
-            color:INK3,
-            background:"rgba(26,26,46,0.06)",
-            borderRadius:99, padding:"3px 10px",
-          }}>
-            {category}
-          </div>
-        )}
-      </div>
-
       {/* ── Tags ─────────────────────────────────────────────── */}
       {tags.length > 0 && (
-        <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+        <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:10 }}>
           {tags.map((t, i) => (
             <span key={i} style={{
               padding:"3px 10px", borderRadius:20,
@@ -98,7 +73,35 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
         </div>
       )}
 
-      {/* ── Kaufen-Button — COMMERCE-01 W-4 ─────────────────── */}
+      {/* ── Preis + Kaufen — dezent, am Ende ─────────────────── */}
+      {(priceStr || category) && (
+        <div style={{
+          display:"flex", alignItems:"center", justifyContent:"space-between",
+          gap:10, flexWrap:"wrap",
+        }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            {category && (
+              <span style={{
+                fontSize:11, fontWeight:600, color:INK3,
+                background:"rgba(26,26,46,0.06)",
+                borderRadius:99, padding:"3px 10px",
+              }}>
+                {category}
+              </span>
+            )}
+          </div>
+          {priceStr && (
+            <div style={{
+              fontSize:16, fontWeight:900,
+              color:TEAL, letterSpacing:"-0.03em",
+            }}>
+              {priceStr}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Kaufen-Button ─────────────────────────────────────── */}
       {priceStr && onBuyWerk && (
         <div style={{ marginTop: 10 }}>
           <button
