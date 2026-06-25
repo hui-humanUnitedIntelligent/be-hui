@@ -115,7 +115,7 @@ function getBegegnungsgrund(item) {
   const author = item?.author || {};
   // Vorname: erster Teil des display_name
   const first  = (author.name || "").split(" ")[0] || null;
-  const prefix = first || "Diese Person";
+  const prefix = first || "Dieses Mitglied";
 
   // WERK
   if (type === "work") {
@@ -177,7 +177,8 @@ function getBegegnungsgrund(item) {
 // Alle Daten aus normalisierten author-Feldern — kein neues DB-Feld.
 export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
   const author  = item?.author || {};
-  const name    = author.name || author.displayName || "Human";
+  // Priorität: name (normalisiert) > displayName > letzter Fallback
+  const name    = (author.name || author.displayName || "").trim() || "Mitglied";
   const avatar  = author.avatar || author.avatar_url || null;
   const talent  = author.talent || null;
   const loc     = author.location_label || item?.location || null;
@@ -308,7 +309,7 @@ export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
 export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge, onProfile, presenceStatus }) {
   const _isTalent = author?.isTalent || false;
   const _mType    = author?.membershipType || "base";
-  const name   = (author && (author.name || author.displayName)) || "Human";
+  const name   = ((author && (author.name || author.displayName)) || "").trim() || "Mitglied";
   const uname  = (author && author.username) || null;
   // avatar: author.avatar (normalisiert) — bereits als URL oder null
   const avatar = author?.avatar || author?.avatar_url || null;
