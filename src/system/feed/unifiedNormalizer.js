@@ -33,6 +33,8 @@ function extractAuthor(raw){
     avatar:avatarUrl,
     username:safeStr(p.username||p.handle)||null,
     talent:safeStr(p.talent)||null,
+    // Kapitel 2.3: Standort für HumanHeader
+    location_label:safeStr(p.location_label||p.city||p.location)||null,
     verified:safeBool(p.verified||p.is_verified),
     // Phase 4C: Membership fields für Feed-Badges
     membershipType:   safeStr(p.membership_type||p.role)||"base",
