@@ -348,11 +348,17 @@ export default function LoginPage() {
   // Onboarding intent
   const [intent,     setIntent]     = useState('');
 
+  // Kapitel 1: navigate() aus dem Render-Body entfernt.
+  // Alle Navigationen nach Login/Onboarding laufen hier — niemals im Render.
   useEffect(() => {
     if (!loadingAuth && isAuthenticated) {
       navigate('/Home', { replace: true });
+      return;
     }
-  }, [isAuthenticated, loadingAuth, navigate]);
+    if (mode === 'onboarding') {
+      navigate('/Home', { replace: true });
+    }
+  }, [isAuthenticated, loadingAuth, mode, navigate]);
 
   // Fade-in bei Mode-Wechsel
   useEffect(() => {
@@ -604,10 +610,8 @@ export default function LoginPage() {
   // Es wird beim ersten Tippen auf den HUI-Button (Orb)
   // ausgelöst — für Basis-User als Freischaltungs-Journey.
   // ════════════════════════════════════════════════════
-  if (mode === 'onboarding') {
-    navigate('/Home', { replace: true });
-    return null;
-  }
+  // navigate() für onboarding läuft im useEffect oben — nicht hier im Render.
+  if (mode === 'onboarding') return null;
 
   // ════════════════════════════════════════════════════
   // LOGIN / REGISTER / MAGIC / FORGOT — gemeinsames Layout
