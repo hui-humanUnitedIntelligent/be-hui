@@ -650,7 +650,13 @@ function ProfileCompletionTrigger() {
 
     const needsSetup = !hasUsername && !hasDisplayName && !localCompleted;
 
-    if (needsSetup) {
+    // Kapitel 1 – Ankommen: WelcomeOverlay hat Vorrang.
+    // ProfileCompletionFlow darf erst erscheinen, nachdem der Nutzer
+    // das WelcomeOverlay gesehen und bestätigt hat.
+    let welcomeSeen = false;
+    try { welcomeSeen = localStorage.getItem("hui_welcome_seen") === "true"; } catch {}
+
+    if (needsSetup && welcomeSeen) {
       setShow(true);
     }
   }, [user?.id, profile, loadingAuth, loadingProfile]);
