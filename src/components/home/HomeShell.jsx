@@ -131,7 +131,13 @@ export default function HomeShell({ children }) {
   // showCreatorDashboard: beim Refresh wiederherstellen wenn es offen war.
   // sessionStorage-Key "hui_mein_hui_open" wird beim Öffnen/Schließen sync gehalten.
   const [showCreatorDashboard,   setShowCreatorDashboard]  = useState(() => {
-    try { return sessionStorage.getItem("hui_mein_hui_open") === "1"; } catch(_) { return false; }
+    // Kapitel 1 – Ankommen: Wenn WelcomeOverlay noch nicht gesehen wurde,
+    // darf das Profil beim Start NIE automatisch geöffnet werden.
+    try {
+      const welcomeSeen = localStorage.getItem("hui_welcome_seen") === "true";
+      if (!welcomeSeen) return false;
+      return sessionStorage.getItem("hui_mein_hui_open") === "1";
+    } catch(_) { return false; }
   });
   // ── Chat State ─────────────────────────────────────────────────
   const [showChat, _setShowChatRaw] = useState(false);
