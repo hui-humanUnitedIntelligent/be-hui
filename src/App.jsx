@@ -15,6 +15,7 @@ import { ToastContainer } from './lib/useToast.jsx'
 import ProfileCompletionFlow from './components/auth/ProfileCompletionFlow.jsx'
 import AuthCallback from './pages/AuthCallback'
 
+import WelcomeOverlay, { useWelcomeOverlay } from './components/welcome/WelcomeOverlay'; // Kapitel 1
 import { supabase } from './lib/supabaseClient'
 import { detectReferral } from './lib/referralTracking.js'
 
@@ -520,6 +521,18 @@ function GlobalBlockGuard() {
   return null;
 }
 
+
+// ── Kapitel 1 – Ankommen: WelcomeController ─────────────────────
+// Einmaliges Overlay nach erstem Login. Persistenz via localStorage.
+// Kein Eingriff in Auth, Routing oder bestehende Flows.
+function WelcomeController() {
+  const { user } = useAuth();
+  const { show, dismiss } = useWelcomeOverlay();
+  // Nur für eingeloggte Nutzer anzeigen
+  if (!user?.id || !show) return null;
+  return <WelcomeOverlay onDone={dismiss} />;
+}
+
 function AppRoutes() {
   // ── Route-Validierung beim Render ──────────────────────────────────
   // APP_ROUTES wurde durch createTabPage() normalisiert.
@@ -658,6 +671,7 @@ export default function App() {
       <AuthGateProvider>
         <GlobalBlockGuard />
         <ProfileCompletionTrigger/>
+        <WelcomeController />  {/* Kapitel 1 – Ankommen */}
         <AppStateProvider>
       <WorldSurfaceProvider>
             <OrbWorldProvider>
