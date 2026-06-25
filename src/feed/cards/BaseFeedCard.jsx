@@ -106,6 +106,132 @@ const CardAvatar = memo(function CardAvatar({ src, name, size = 38, isTalent = f
   );
 });
 
+// ── Begegnungszeile — automatisch aus Item-Typ ───────────────
+function getBegegnungsgrund(item) {
+  const type = item?.type || "moment";
+  if (type === "work")       return "Hat heute ein neues Werk veröffentlicht.";
+  if (type === "experience") return "Lädt diese Woche zu einem Erlebnis ein.";
+  if (type === "event")      return "Veranstaltet bald ein Event.";
+  const text = item?.text || "";
+  if (text.length > 80)     return "Teilt einen besonderen Moment.";
+  return "Hat heute etwas geteilt.";
+}
+
+// ── HumanHeader: Menschenkopf — Sprint 2.3 ────────────────────
+// Alle Daten aus normalisierten author-Feldern — kein neues DB-Feld.
+export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
+  const author  = item?.author || {};
+  const name    = author.name || author.displayName || "Human";
+  const avatar  = author.avatar || author.avatar_url || null;
+  const talent  = author.talent || null;
+  const loc     = author.location_label || item?.location || null;
+  const ver     = author.verified || false;
+  const isT     = author.isTalent || false;
+  const mType   = author.membershipType || "base";
+  const presence= item?._presenceStatus || null;
+  const grund   = getBegegnungsgrund(item);
+  const [pressed, setPressed] = React.useState(false);
+
+  const mbConfig = (() => {
+    if (isT || mType === "talent" || mType === "wirker")
+      return { label: "WIRKER",     bg: "rgba(13,196,181,0.12)", color: "#0DC4B5", border: "rgba(13,196,181,0.25)" };
+    if (mType === "ambassador")
+      return { label: "AMBASSADOR", bg: "rgba(244,115,85,0.12)", color: "#F47355", border: "rgba(244,115,85,0.25)" };
+    return null;
+  })();
+
+  return (
+    <div style={{ padding: "16px 16px 0" }}>
+      {/* Avatar + Identität */}
+      <div style={{ display:"flex", alignItems:"flex-start", gap:12, marginBottom:10 }}>
+        <button
+          onClick={onProfile}
+          onTouchStart={() => setPressed(true)}  onTouchEnd={() => setPressed(false)}
+          onMouseDown={() => setPressed(true)}   onMouseUp={() => setPressed(false)}
+          style={{
+            background:"none", border:"none", padding:0,
+            cursor: onProfile ? "pointer" : "default",
+            flexShrink:0, position:"relative",
+            opacity: pressed ? 0.75 : 1,
+            transition:"opacity 0.15s ease",
+            touchAction:"manipulation",
+            WebkitTapHighlightColor:"transparent",
+          }}
+        >
+          <CardAvatar src={avatar} name={name} size={48} isTalent={isT} />
+          {presence === "online" && (
+            <div style={{
+              position:"absolute", bottom:1, right:1,
+              width:10, height:10, borderRadius:"50%",
+              background:"#22C55E", border:"2px solid #FFFFFF",
+              boxShadow:"0 0 0 1px rgba(34,197,94,0.3)",
+            }} />
+          )}
+        </button>
+
+        <div style={{ flex:1, minWidth:0 }}>
+          {/* Name + Badges */}
+          <div style={{ display:"flex", alignItems:"center", gap:5, flexWrap:"wrap", marginBottom:2 }}>
+            <span
+              onClick={onProfile}
+              style={{
+                fontSize:15.5, fontWeight:800, color:"#141422",
+                letterSpacing:-0.4,
+                cursor: onProfile ? "pointer" : "default",
+                WebkitTapHighlightColor:"transparent",
+              }}
+            >{name}</span>
+            {ver && <span style={{ fontSize:12, color:"#0DC4B5", lineHeight:1 }}>✦</span>}
+            {mbConfig && (
+              <span style={{
+                fontSize:9.5, fontWeight:800, letterSpacing:0.5,
+                color:mbConfig.color, background:mbConfig.bg,
+                border:"1px solid "+mbConfig.border,
+                borderRadius:99, padding:"2px 7px",
+              }}>{mbConfig.label}</span>
+            )}
+            {presence === "online" && (
+              <span style={{ fontSize:10.5, color:"#22C55E", fontWeight:500 }}>● gerade online</span>
+            )}
+          </div>
+          {/* Talent-Satz */}
+          {talent && (
+            <div style={{
+              fontSize:12.5, color:"rgba(20,20,34,0.55)", fontWeight:500,
+              overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+              marginBottom: loc || item?.createdAt ? 2 : 0,
+            }}>{talent}</div>
+          )}
+          {/* Standort + Zeit */}
+          {(loc || item?.createdAt) && (
+            <div style={{ display:"flex", alignItems:"center", gap:5, fontSize:11.5, color:"rgba(20,20,34,0.38)" }}>
+              {loc && <span>{loc}</span>}
+              {loc && item?.createdAt && <span>·</span>}
+              {item?.createdAt && <span>{item.createdAt}</span>}
+            </div>
+          )}
+        </div>
+        <div style={{ width:24, flexShrink:0 }} />
+      </div>
+
+      {/* Begegnungsgrund */}
+      <div style={{
+        display:"flex", alignItems:"flex-start", gap:7,
+        padding:"8px 12px",
+        background:"linear-gradient(135deg,rgba(13,196,181,0.06),rgba(13,196,181,0.02))",
+        borderRadius:12, border:"1px solid rgba(13,196,181,0.09)",
+        marginBottom:14,
+      }}>
+        <span style={{ fontSize:12, flexShrink:0, color:"#0DC4B5", lineHeight:1.5 }}>✦</span>
+        <span style={{ fontSize:12.5, color:"rgba(20,20,34,0.60)", fontWeight:500, lineHeight:1.5 }}>
+          {grund}
+        </span>
+      </div>
+    </div>
+  );
+});
+
+
 // ── Header ────────────────────────────────────────────────────
 export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge, onProfile, presenceStatus }) {
   const _isTalent = author?.isTalent || false;
@@ -415,14 +541,18 @@ export default function BaseFeedCard({
         willChange: "transform, opacity",
       }}
     >
-      <FeedCardHeader
-        author={item.author}
-        time={item.createdAt}
-        badge={badge}
-        onProfile={onProfile}
-        presenceStatus={item._presenceStatus || null}
-      />
-      <div style={{ padding: "12px " + T.p + "px 0" }}>{children}</div>
+      {/* Kapitel 2.3: Menschen zuerst */}
+      <HumanHeader item={item} onProfile={onProfile} />
+      {badge && (
+        <div style={{ paddingLeft:16, paddingRight:16, marginBottom:6, display:"flex", justifyContent:"flex-end" }}>
+          <div style={{
+            padding:"3px 10px", borderRadius:20,
+            background:badge.bg||T.tealSoft, border:"1px solid "+(badge.border||T.tealLine),
+            fontSize:10, fontWeight:700, color:badge.color||T.teal, letterSpacing:0.3,
+          }}>{badge.label}</div>
+        </div>
+      )}
+      <div style={{ padding: "0 " + T.p + "px 0" }}>{children}</div>
       <FeedMedia
         media={item.media}
         alt={item.title || item.text}
