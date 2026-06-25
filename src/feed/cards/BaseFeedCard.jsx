@@ -179,6 +179,13 @@ export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
   const author  = item?.author || {};
   // Priorität: name (normalisiert) > displayName > letzter Fallback
   const name    = (author.name || author.displayName || "").trim() || "Mitglied";
+  console.group("HumanHeader");
+  console.log(item.id);
+  console.log(author);
+  console.log(author.name);
+  console.log(author.displayName);
+  console.log(name);
+  console.groupEnd();
   const avatar  = author.avatar || author.avatar_url || null;
   const talent  = author.talent || null;
   const loc     = author.location_label || item?.location || null;
