@@ -16,6 +16,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
   if (!item) return null;
 
   const title    = item.title || item.text || "";
+  const desc     = item._raw?.description || item._raw?.caption || null;
   const price    = item._raw?.price ?? item.price ?? null;
   const category = item._raw?.category || null;
   const tags     = Array.isArray(item.tags) ? item.tags.slice(0,3) : [];
@@ -47,6 +48,14 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
           {title}
         </div>
       ) : null}
+
+      {/* ── Beschreibung (Beweis der Persönlichkeit) ─────────── */}
+      {desc && (
+        <p style={{
+          margin:"0 0 10px", fontSize:13.5, color:"rgba(26,26,46,0.68)",
+          lineHeight:1.55, fontWeight:400,
+        }}>{desc}</p>
+      )}
 
       {/* ── Preis + Kategorie in einer Reihe ─────────────────── */}
       <div style={{
