@@ -2112,7 +2112,7 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
           value={query}
           onChange={e=>setQuery(e.target.value)}
           onFocus={open_}
-          placeholder=""
+          placeholder="Menschen, Werke oder Erlebnisse entdecken …"
         />
         {!query && !open && (
           <span style={{position:"absolute",left:0,pointerEvents:"none",fontSize:13.5,fontWeight:500,color:has?`${mc}80`:"rgba(130,130,130,0.55)",opacity:phVis?1:0,transform:phVis?"translateY(0)":"translateY(4px)",transition:"opacity .28s ease, transform .28s ease",whiteSpace:"nowrap",overflow:"hidden",maxWidth:"100%"}}>{PH[phIdx]}</span>
@@ -2191,7 +2191,7 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
             className="dc-input"
             value={query}
             onChange={e=>setQuery(e.target.value)}
-            placeholder="Was möchtest du heute bewirken?"
+            placeholder="Menschen, Werke oder Erlebnisse entdecken …"
             autoCapitalize="off"
             autoCorrect="off"
             style={{fontSize:15}}
