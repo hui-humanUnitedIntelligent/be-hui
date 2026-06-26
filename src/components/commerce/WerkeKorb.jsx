@@ -782,53 +782,44 @@ function ImpactZeile({ impactEur }) {
   if (!impactEur || impactEur <= 0) return null;
   const impactStr = impactEur.toFixed(2).replace(".", ",");
   return (
-    <div style={{ padding: "0 4px", marginBottom: 0 }}>
-      {/* Trennlinie */}
+    <div style={{
+      marginBottom:  0,
+      paddingTop:    14,
+      borderTop:     "1px solid rgba(20,20,34,0.05)",
+    }}>
+      {/* Zeile 1: Icon + Label + Betrag */}
       <div style={{
-        height:       1,
-        background:   "rgba(20,20,34,0.06)",
-        marginBottom: 18,
-      }} />
-
-      {/* Headline */}
-      <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:10 }}>
-        <svg width="13" height="13" viewBox="0 0 28 28" fill="none"
-             xmlns="http://www.w3.org/2000/svg" style={{ flexShrink:0, opacity:0.65 }}>
-          <path d="M14 4C14 4 6 8 6 16C6 20.4 9.6 24 14 24C18.4 24 22 20.4 22 16C22 8 14 4 14 4Z"
-            fill="rgba(107,174,143,0.15)" stroke="#6BAE8F" strokeWidth="1.8" strokeLinejoin="round"/>
-          <path d="M14 24V14" stroke="#6BAE8F" strokeWidth="1.6" strokeLinecap="round"/>
-        </svg>
-        <span style={{ fontSize:11, fontWeight:600, color:C.sage, letterSpacing:0, lineHeight:1.3 }}>
-          Gemeinsam Wirkung schaffen
+        display:       "flex",
+        alignItems:    "center",
+        justifyContent:"space-between",
+        gap:           8,
+        marginBottom:  6,
+      }}>
+        <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+          <svg width="12" height="12" viewBox="0 0 28 28" fill="none"
+               xmlns="http://www.w3.org/2000/svg" style={{ flexShrink:0, opacity:0.6 }}>
+            <path d="M14 4C14 4 6 8 6 16C6 20.4 9.6 24 14 24C18.4 24 22 20.4 22 16C22 8 14 4 14 4Z"
+              fill="rgba(107,174,143,0.15)" stroke="#6BAE8F" strokeWidth="1.8" strokeLinejoin="round"/>
+            <path d="M14 24V14" stroke="#6BAE8F" strokeWidth="1.6" strokeLinecap="round"/>
+          </svg>
+          <span style={{ fontSize:11, fontWeight:600, color:C.sage, letterSpacing:0 }}>
+            Impact-Beitrag
+          </span>
+        </div>
+        <span style={{
+          fontSize:   15,
+          fontWeight: 700,
+          color:      C.sage,
+          fontVariantNumeric: "tabular-nums",
+          letterSpacing: -0.3,
+        }}>
+          {impactStr} €
         </span>
       </div>
 
-      <div style={{ fontSize:12, color:C.muted, lineHeight:1.65, marginBottom:10 }}>
-        HUI investiert bei jeder Unterstützung einen Teil der eigenen Einnahmen in den HUI Impact Pool.
-      </div>
-
-      <div style={{ fontSize:12, color:C.muted, lineHeight:1.5, marginBottom:6 }}>
-        Bei dieser Unterstützung fließen
-      </div>
-
-      <div style={{
-        fontSize:   22,
-        fontWeight: 700,
-        color:      C.sage,
-        letterSpacing: -0.5,
-        lineHeight: 1.1,
-        fontVariantNumeric: "tabular-nums",
-        marginBottom: 8,
-      }}>
-        {impactStr} €
-      </div>
-
-      <div style={{ fontSize:12, color:C.muted, lineHeight:1.5, marginBottom:12 }}>
-        in gemeinsame Impact-Projekte.
-      </div>
-
-      <div style={{ fontSize:11, color:C.faint, fontStyle:"italic", lineHeight:1.5 }}>
-        Für dich entstehen dadurch keine zusätzlichen Kosten.
+      {/* Zeile 2: dezenter Hinweis */}
+      <div style={{ fontSize:11, color:C.faint, fontStyle:"italic", lineHeight:1.45 }}>
+        HUI reinvestiert einen Teil der Einnahmen — kein Aufschlag für dich.
       </div>
     </div>
   );
