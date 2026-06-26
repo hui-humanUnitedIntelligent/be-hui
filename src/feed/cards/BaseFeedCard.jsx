@@ -10,16 +10,18 @@ import { PresenceDot, fmtPresence } from "../../lib/usePresence.jsx";
 import { MembershipLabel } from "../../components/ui/TalentBadge.jsx";
 
 const T = {
-  bgCard: "#FFFFFF",
-  ink:    "#1A1A2E",
-  ink3:   "rgba(26,26,46,0.35)",
-  teal:   "#16D7C5",
-  tealSoft:"rgba(22,215,197,0.10)",
-  tealLine:"rgba(22,215,197,0.18)",
-  coral:  "#FF8A6B",
-  shadow: "0 2px 18px rgba(26,26,46,0.07)",
-  border: "rgba(26,26,46,0.06)",
-  r: 28, rMedia: 22, rAvatar: 13, p: 16, gap: 12, mediaH: 280,
+  bgCard:   "#FFFFFF",
+  ink:      "#1A1A2E",
+  ink2:     "rgba(26,26,46,0.55)",
+  ink3:     "rgba(26,26,46,0.38)",
+  teal:     "#0DC4B5",
+  tealSoft: "rgba(13,196,181,0.08)",
+  tealLine: "rgba(13,196,181,0.18)",
+  coral:    "#F47355",
+  orange:   "#F05A28",
+  shadow:   "0 2px 20px rgba(26,26,46,0.08)",
+  border:   "rgba(26,26,46,0.07)",
+  r: 16, rMedia: 14, rAvatar: 99, p: 16, gap: 12, mediaH: 220,
 };
 
 // ── CSS injection (once) ──────────────────────────────────────
@@ -187,133 +189,120 @@ function getBegegnungsgrund(item) {
   return "Teilt heute einen persönlichen Moment.";
 }
 
-// ── HumanHeader: Menschenkopf — Sprint 2.3 ────────────────────
-// Alle Daten aus normalisierten author-Feldern — kein neues DB-Feld.
+// ── HumanHeader v3.0 — exakt nach Mockup ─────────────────────
+// Zeile 1: Avatar (52px rund) · Name · Zeit rechts · ⋮
+// Zeile 2: Talent (farbig) · Pin-SVG · Ort
+// Zeile 3: " (groß, orange) + Story-Satz
 export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
-  const author  = item?.author || {};
-  // Priorität: name (normalisiert) > displayName > letzter Fallback
-  const name    = (author.name || author.displayName || "").trim() || "Mitglied";
-  const avatar  = author.avatar || author.avatar_url || null;
-  const talent  = author.talent || null;
-  const loc     = author.location_label || item?.location || null;
-  const ver     = author.verified || false;
-  const isT     = author.isTalent || false;
-  const mType   = author.membershipType || "base";
-  const bio     = author.bio || null;
-  const rawSince= author.member_since || null;
-  // member_since: "YYYY" extrahieren für "Wirker seit 2024"
-  const memberSince = rawSince ? new Date(rawSince).getFullYear() : null;
-  const presence= item?._presenceStatus || null;
-  const grund   = getBegegnungsgrund(item);
+  const author   = item?.author || {};
+  const name     = (author.name || author.displayName || "").trim() || "Mitglied";
+  const avatar   = author.avatar || author.avatar_url || null;
+  const talent   = author.talent || null;
+  const loc      = author.location_label || item?.location || null;
+  const isT      = author.isTalent || false;
+  const mType    = author.membershipType || "base";
+  const presence = item?._presenceStatus || null;
+  const timeStr  = item?.createdAt || null;
+  const grund    = getBegegnungsgrund(item);
   const [pressed, setPressed] = React.useState(false);
 
-  const mbConfig = (() => {
-    if (isT || mType === "talent" || mType === "wirker")
-      return { label: "WIRKER",     bg: "rgba(13,196,181,0.12)", color: "#0DC4B5", border: "rgba(13,196,181,0.25)" };
-    if (mType === "ambassador")
-      return { label: "AMBASSADOR", bg: "rgba(244,115,85,0.12)", color: "#F47355", border: "rgba(244,115,85,0.25)" };
-    return null;
-  })();
+  // Talent-Akzentfarbe: Wirker=Teal, Ambassador=Coral, Basis=gedämpft
+  const talentColor = (isT || mType === "talent" || mType === "wirker")
+    ? "#0DC4B5"
+    : (mType === "ambassador" ? "#F47355" : "rgba(26,26,46,0.52)");
 
   return (
-    <div style={{ padding: "16px 16px 0" }}>
-      {/* Avatar + Identität */}
-      <div style={{ display:"flex", alignItems:"flex-start", gap:12, marginBottom:10 }}>
+    <div style={{ padding: "14px 14px 0" }}>
+
+      {/* Zeile 1: Avatar · Name+Talent+Ort · Zeit · ⋮ */}
+      <div style={{ display:"flex", alignItems:"flex-start", gap:11 }}>
+
+        {/* Avatar 52px rund */}
         <button
           onClick={onProfile}
-          onTouchStart={() => setPressed(true)}  onTouchEnd={() => setPressed(false)}
-          onMouseDown={() => setPressed(true)}   onMouseUp={() => setPressed(false)}
+          onTouchStart={() => setPressed(true)} onTouchEnd={() => setPressed(false)}
+          onMouseDown={() => setPressed(true)}  onMouseUp={() => setPressed(false)}
           style={{
-            background:"none", border:"none", padding:0,
-            cursor: onProfile ? "pointer" : "default",
-            flexShrink:0, position:"relative",
-            opacity: pressed ? 0.75 : 1,
-            transition:"opacity 0.15s ease",
-            touchAction:"manipulation",
-            WebkitTapHighlightColor:"transparent",
+            background:"none", border:"none", padding:0, flexShrink:0,
+            position:"relative", opacity: pressed ? 0.75 : 1,
+            transition:"opacity 0.15s ease", touchAction:"manipulation",
+            WebkitTapHighlightColor:"transparent", cursor:"pointer",
           }}
         >
-          <CardAvatar src={avatar} name={name} size={48} isTalent={isT} />
+          <CardAvatar src={avatar} name={name} size={52} isTalent={isT} />
           {presence === "online" && (
             <div style={{
-              position:"absolute", bottom:1, right:1,
-              width:10, height:10, borderRadius:"50%",
-              background:"#22C55E", border:"2px solid #FFFFFF",
-              boxShadow:"0 0 0 1px rgba(34,197,94,0.3)",
+              position:"absolute", bottom:2, right:2,
+              width:11, height:11, borderRadius:"50%",
+              background:"#22C55E", border:"2.5px solid #FFFFFF",
             }} />
           )}
         </button>
 
+        {/* Name + Talent · Ort */}
         <div style={{ flex:1, minWidth:0 }}>
-          {/* Name + Badges */}
-          <div style={{ display:"flex", alignItems:"center", gap:5, flexWrap:"wrap", marginBottom:2 }}>
-            <span
-              onClick={onProfile}
-              style={{
-                fontSize:15.5, fontWeight:800, color:"#141422",
-                letterSpacing:-0.4,
-                cursor: onProfile ? "pointer" : "default",
-                WebkitTapHighlightColor:"transparent",
-              }}
-            >{name}</span>
-            {ver && <span style={{ fontSize:12, color:"#0DC4B5", lineHeight:1 }}>✦</span>}
-            {mbConfig && (
-              <span style={{
-                fontSize:9.5, fontWeight:800, letterSpacing:0.5,
-                color:mbConfig.color, background:mbConfig.bg,
-                border:"1px solid "+mbConfig.border,
-                borderRadius:99, padding:"2px 7px",
-              }}>{mbConfig.label}</span>
-            )}
-            {presence === "online" && (
-              <span style={{ fontSize:10.5, color:"#22C55E", fontWeight:500 }}>● gerade online</span>
-            )}
-          </div>
-          {/* Talent + Standort — kombinierte Zeile: "Kerzenmacherin aus München" */}
+          <span
+            onClick={onProfile}
+            style={{
+              display:"block", fontSize:16, fontWeight:800,
+              color:"#1A1A2E", letterSpacing:-0.3, lineHeight:1.25,
+              cursor:"pointer", WebkitTapHighlightColor:"transparent",
+            }}
+          >{name}</span>
+
+          {/* Talent · Pin-Icon · Ort */}
           {(talent || loc) && (
-            <div style={{
-              fontSize:12.5, color:"rgba(20,20,34,0.52)", fontWeight:500,
-              overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-              marginBottom:2,
-            }}>
-              {talent && loc ? `${talent} aus ${loc}` : talent || loc}
+            <div style={{ display:"flex", alignItems:"center", gap:4, marginTop:3 }}>
+              {talent && (
+                <span style={{ fontSize:13, fontWeight:600, color:talentColor, lineHeight:1, whiteSpace:"nowrap" }}>
+                  {talent}
+                </span>
+              )}
+              {talent && loc && (
+                <span style={{ fontSize:12, color:"rgba(26,26,46,0.28)" }}>·</span>
+              )}
+              {loc && (
+                <div style={{ display:"flex", alignItems:"center", gap:2 }}>
+                  <svg width="9" height="12" viewBox="0 0 9 12" fill="none" style={{ flexShrink:0, marginTop:1 }}>
+                    <path d="M4.5 0C2.294 0 .5 1.794.5 4C.5 7.09 4.5 12 4.5 12S8.5 7.09 8.5 4C8.5 1.794 6.706 0 4.5 0ZM4.5 5.5C3.67 5.5 3 4.83 3 4C3 3.17 3.67 2.5 4.5 2.5C5.33 2.5 6 3.17 6 4C6 4.83 5.33 5.5 4.5 5.5Z" fill="#F47355"/>
+                  </svg>
+                  <span style={{ fontSize:13, color:"rgba(26,26,46,0.55)", fontWeight:400 }}>{loc}</span>
+                </div>
+              )}
             </div>
           )}
-          {/* Bio — erster Satz als kurze Persönlichkeitsbeschreibung */}
-          {bio && (
-            <div style={{
-              fontSize:11.5, color:"rgba(20,20,34,0.42)", fontWeight:400,
-              lineHeight:1.45,
-              overflow:"hidden", display:"-webkit-box",
-              WebkitLineClamp:2, WebkitBoxOrient:"vertical",
-              marginBottom:2,
-            }}>
-              {bio.split(/[.!?]/)[0].trim()}
-            </div>
-          )}
-          {/* Zeitstempel + Mitglied-seit */}
-          <div style={{ display:"flex", alignItems:"center", gap:5, fontSize:11, color:"rgba(20,20,34,0.30)", flexWrap:"wrap" }}>
-            {item?.createdAt && <span>{item.createdAt}</span>}
-            {item?.createdAt && memberSince && <span>·</span>}
-            {memberSince && <span>Wirker seit {memberSince}</span>}
-          </div>
         </div>
-        <div style={{ width:24, flexShrink:0 }} />
+
+        {/* Zeit + ⋮ */}
+        <div style={{ display:"flex", alignItems:"center", gap:5, flexShrink:0, paddingTop:2 }}>
+          {timeStr && (
+            <span style={{ fontSize:12, color:"rgba(26,26,46,0.36)", fontWeight:400, whiteSpace:"nowrap" }}>
+              {timeStr}
+            </span>
+          )}
+          <button style={{
+            background:"none", border:"none", padding:"1px 4px",
+            cursor:"pointer", color:"rgba(26,26,46,0.38)", fontSize:20, lineHeight:1,
+            WebkitTapHighlightColor:"transparent",
+          }}>⋮</button>
+        </div>
       </div>
 
-      {/* Begegnungsgrund */}
-      <div style={{
-        display:"flex", alignItems:"flex-start", gap:7,
-        padding:"8px 12px",
-        background:"linear-gradient(135deg,rgba(13,196,181,0.06),rgba(13,196,181,0.02))",
-        borderRadius:12, border:"1px solid rgba(13,196,181,0.09)",
-        marginBottom:14,
-      }}>
-        <span style={{ fontSize:12, flexShrink:0, color:"#0DC4B5", lineHeight:1.5 }}>✦</span>
-        <span style={{ fontSize:12.5, color:"rgba(20,20,34,0.60)", fontWeight:500, lineHeight:1.5 }}>
-          {grund}
-        </span>
-      </div>
+      {/* Großes " + Story-Satz */}
+      {grund && (
+        <div style={{ display:"flex", alignItems:"flex-start", gap:7, marginTop:11, marginBottom:12 }}>
+          <span style={{
+            fontSize:30, fontWeight:900, color:"#F47355",
+            lineHeight:0.7, flexShrink:0, marginTop:5,
+            fontFamily:"Georgia,'Times New Roman',serif",
+            userSelect:"none",
+          }}>"</span>
+          <p style={{
+            margin:0, fontSize:15, fontWeight:500,
+            color:"#1A1A2E", lineHeight:1.45, letterSpacing:"-0.01em",
+          }}>{grund}</p>
+        </div>
+      )}
     </div>
   );
 });
@@ -651,13 +640,13 @@ export default function BaseFeedCard({
       style={{
         background: T.bgCard,
         borderRadius: T.r,
-        marginBottom: 18,       // P2: mehr Atemraum zwischen Begegnungen
+        marginBottom: 12,
         marginLeft: 12,
         marginRight: 12,
-        boxShadow: "0 2px 24px rgba(26,26,46,0.06)",  // weicher
-        border: "1px solid rgba(26,26,46,0.05)",       // dezenter
+        boxShadow: T.shadow,
+        border: "1px solid " + T.border,
         overflow: "hidden",
-        animation: "huiFadeUp 0.35s ease both",
+        animation: "huiFadeUp 0.3s ease both",
         willChange: "transform, opacity",
       }}
     >
