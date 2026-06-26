@@ -150,3 +150,73 @@ export function isFormValid(form, items) {
 export function clearCartAfterSuccess(setCart) {
   setCart([]);
 }
+
+// ── Quantity Logic (v3.1) ─────────────────────────────────────────
+/**
+ * Bestimmt ob ein Item einen Mengenwähler anzeigen soll.
+ *
+ * Regeln:
+ *   ✅ Mengenwähler: physical delivery, event, experience mit Plätzen
+ *   ❌ Kein Wähler:  digital/download, original (Einzelstück), impact, moment
+ *
+ * Entscheidung basiert auf vorhandenen DB-Feldern ohne Hardcoding.
+ */
+export function allowsQuantity(item) {
+  const raw = item._raw || {};
+  const type = item.type || "moment";
+
+  // Impact-Projekte und Momente → niemals
+  if (type === "impact" || type === "moment") return false;
+
+  // Explizites Flag wenn vorhanden
+  if (raw.allows_multiple === true)  return true;
+  if (raw.allows_multiple === false) return false;
+
+  // Original / Einzelstück → kein Mengenwähler
+  if (raw.is_original === true) return false;
+
+  // Inventar = 1 → Einzelstück-Behandlung
+  if (typeof raw.inventory === "number" && raw.inventory === 1) return false;
+
+  // Events → immer Mengenwähler (Tickets)
+  if (type === "event") return true;
+
+  // Erlebnisse → wenn Plätze-Feld vorhanden
+  if (type === "experience") {
+    return typeof raw.max_participants === "number" && raw.max_participants > 1;
+  }
+
+  // Werke → physische Lieferung oder explizit product/merch-Kategorie
+  if (type === "work") {
+    const delivery = (raw.delivery_type || raw.deliveryType || "").toLowerCase();
+    if (delivery === "physical" || delivery === "ship" || delivery === "shipping") return true;
+    const cat = (raw.category || raw.work_type || "").toLowerCase();
+    if (["product","merch","merchandise","print","book","cd","vinyl"].some(k => cat.includes(k))) return true;
+    return false;
+  }
+
+  return false;
+}
+
+/**
+ * Gibt einen kurzen Hinweis-Text zurück wenn das Item ein Einzelstück ist.
+ * null wenn kein Hinweis nötig.
+ */
+export function getOriginalHint(item) {
+  const raw = item._raw || {};
+  if (raw.is_original === true) return "Original \u00b7 Einzelst\u00fcck";
+  if (typeof raw.inventory === "number" && raw.inventory === 1) return "Original \u00b7 1 verf\u00fcgbar";
+  return null;
+}
+
+/**
+ * Berechnet die Gesamtsumme unter Berücksichtigung von item.quantity.
+ */
+export function calcTotalWithQty(items) {
+  return items.reduce((s, i) => {
+    const price = parseAmount(i._raw?.price ?? i.price);
+    const qty   = (typeof i.quantity === "number" && i.quantity > 0) ? i.quantity : 1;
+    return s + price * qty;
+  }, 0);
+}
+
