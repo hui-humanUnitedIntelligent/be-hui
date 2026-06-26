@@ -798,7 +798,7 @@ export default function UnifiedFeed({
         )}
 
         {/* Feed list — only when not first-load */}
-        {(!streamLoading || resolvedItems.length > 0) && (
+        {console.log("🟠 STEP 4 — UnifiedFeed FeedList onDetail:", !!onDetail) || (!streamLoading || resolvedItems.length > 0) && (
           <FeedList
             items={resolvedItems}
             onProfile={onProfile}
