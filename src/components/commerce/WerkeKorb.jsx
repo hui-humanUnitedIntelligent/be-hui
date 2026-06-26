@@ -709,39 +709,58 @@ function ImpactZeile({ impactEur }) {
   const impactStr = impactEur.toFixed(2).replace(".", ",");
   return (
     <div style={{
-      borderRadius: 14,
-      background:   C.sagePale,
-      border:       `1px solid rgba(107,174,143,0.18)`,
-      padding:      "16px 16px 14px",
-      marginBottom: 14,
-      textAlign:    "center",
+      borderRadius:         16,
+      background:           "rgba(238,247,242,0.82)",
+      backdropFilter:       "blur(12px) saturate(1.2)",
+      WebkitBackdropFilter: "blur(12px) saturate(1.2)",
+      border:               `1px solid rgba(107,174,143,0.22)`,
+      boxShadow:            "0 2px 16px rgba(107,174,143,0.10), inset 0 1px 0 rgba(255,255,255,0.60)",
+      padding:              "22px 20px 20px",
+      marginBottom:         0,
+      textAlign:            "center",
     }}>
-      <div style={{
-        display:"flex", alignItems:"center", justifyContent:"center",
-        gap:6, marginBottom:10,
-      }}>
-        <span style={{ fontSize:15 }}>🌱</span>
-        <span style={{ fontSize:13, fontWeight:700, color:C.sage, letterSpacing:0.1 }}>
-          Gemeinsam Wirkung schaffen
-        </span>
+      {/* SVG-Blatt */}
+      <div style={{ marginBottom:12 }}>
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none"
+             xmlns="http://www.w3.org/2000/svg" style={{ display:"inline-block" }}>
+          <path d="M14 4C14 4 6 8 6 16C6 20.4 9.6 24 14 24C18.4 24 22 20.4 22 16C22 8 14 4 14 4Z"
+            fill="rgba(107,174,143,0.18)" stroke="#6BAE8F" strokeWidth="1.5" strokeLinejoin="round"/>
+          <path d="M14 24V14" stroke="#6BAE8F" strokeWidth="1.4" strokeLinecap="round"/>
+          <path d="M14 18C14 18 10 15 9 12" stroke="#6BAE8F" strokeWidth="1.2"
+                strokeLinecap="round" opacity="0.6"/>
+        </svg>
       </div>
-      <div style={{ fontSize:12, color:C.muted, lineHeight:1.6, marginBottom:10 }}>
+
+      <div style={{ fontSize:13, fontWeight:700, color:C.sage, letterSpacing:0.15, marginBottom:8 }}>
+        Gemeinsam Wirkung schaffen
+      </div>
+
+      <div style={{ fontSize:12, color:C.muted, lineHeight:1.65, maxWidth:260, margin:"0 auto 18px" }}>
         HUI investiert bei jeder Unterstützung einen Teil der eigenen Einnahmen in den HUI Impact Pool.
       </div>
-      <div style={{ fontSize:13, color:C.inkMid, lineHeight:1.5, marginBottom:2 }}>
-        Bei dieser Unterstützung fließen
+
+      <div>
+        <div style={{ fontSize:12, color:C.muted, lineHeight:1.5, marginBottom:8 }}>
+          Bei dieser Unterstützung fließen
+        </div>
+        <div style={{
+          fontSize:28, fontWeight:800, color:C.teal,
+          letterSpacing:-0.8, lineHeight:1.1,
+          fontVariantNumeric:"tabular-nums",
+          marginBottom:8,
+        }}>
+          {impactStr} €
+        </div>
+        <div style={{ fontSize:12, color:C.muted, lineHeight:1.5 }}>
+          in gemeinsame Impact-Projekte.
+        </div>
       </div>
+
       <div style={{
-        fontSize:22, fontWeight:800, color:C.teal,
-        letterSpacing:-0.5, lineHeight:1.2, marginBottom:6,
-        fontVariantNumeric:"tabular-nums",
+        fontSize:11, color:C.faint, fontStyle:"italic",
+        marginTop:16, lineHeight:1.55,
+        paddingTop:14, borderTop:`1px solid rgba(107,174,143,0.14)`,
       }}>
-        {impactStr} €
-      </div>
-      <div style={{ fontSize:12, color:C.muted, lineHeight:1.5 }}>
-        in gemeinsame Impact-Projekte.
-      </div>
-      <div style={{ fontSize:11, color:C.faint, fontStyle:"italic", marginTop:8, lineHeight:1.5 }}>
         Für dich entstehen dadurch keine zusätzlichen Kosten.
       </div>
     </div>
@@ -965,7 +984,7 @@ export default function WerkeKorb({
         {/* Sticky Footer */}
         {iCount > 0 && phase !== "success" && (
           <div style={{
-            padding:    "14px 16px 0",
+            padding:    "20px 16px 0",
             borderTop:  `1px solid rgba(20,20,34,0.07)`,
             flexShrink: 0,
           }}>
@@ -973,7 +992,7 @@ export default function WerkeKorb({
             {total > 0 && (
               <div style={{
                 display:"flex", justifyContent:"space-between", alignItems:"baseline",
-                marginBottom:12, padding:"10px 14px",
+                marginBottom:18, padding:"12px 16px",
                 background:C.creamSoft, borderRadius:12,
                 border:`1px solid rgba(20,20,34,0.05)`,
               }}>
@@ -990,10 +1009,14 @@ export default function WerkeKorb({
                         {/* CTA */}
             <button
               onClick={handleUnterstuetzen}
+              onPointerDown={e => { if (phase !== "loading") e.currentTarget.style.transform = "scale(0.98)"; }}
+              onPointerUp={e   => { e.currentTarget.style.transform = "scale(1)"; }}
+              onPointerLeave={e => { e.currentTarget.style.transform = "scale(1)"; }}
               disabled={phase === "loading"}
               style={{
                 width:        "100%",
-                padding:      "17px 0",
+                marginTop:    18,
+                padding:      "18px 0",
                 borderRadius: 16,
                 border:       "none",
                 background:   phase === "loading"
@@ -1012,7 +1035,7 @@ export default function WerkeKorb({
                 WebkitTapHighlightColor: "transparent",
               }}
             >
-              {phase === "loading" ? "Einen Moment …" : "Jetzt unterstützen"}
+              {phase === "loading" ? "Einen Moment …" : "Unterstützen"}
             </button>
           </div>
         )}
