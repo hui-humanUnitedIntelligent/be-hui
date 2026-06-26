@@ -210,7 +210,7 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
         // Step 3: Profile laden
         const { data: profiles } = await supabase
           .from("profiles")
-          .select("id, display_name, avatar_url")
+          .select("id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views") // Identity Contract v1.0
           .in("id", mutualIds)
           .limit(10);
 
