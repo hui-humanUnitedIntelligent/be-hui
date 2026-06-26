@@ -276,84 +276,89 @@ function KorbKarte({ item, onRemove, idx, removing }) {
       onPointerUp={() => setPressed(false)}
       onPointerLeave={() => setPressed(false)}
     >
-      {/* Thumbnail */}
+      {/* ── v2.0: Werkbild groß → Titel dominant → Wirker ruhig → Typ+Preis ── */}
+
+      {/* Werkbild — 88×88, weicher Schatten */}
       <div style={{
-        width:          60,
-        height:         60,
-        borderRadius:   14,
-        overflow:       "hidden",
-        flexShrink:     0,
-        background:     meta.bg,
-        display:        "flex",
-        alignItems:     "center",
+        width:        88,
+        height:       88,
+        borderRadius: 18,
+        overflow:     "hidden",
+        flexShrink:   0,
+        background:   meta.bg,
+        display:      "flex",
+        alignItems:   "center",
         justifyContent: "center",
+        boxShadow:    "0 4px 14px rgba(20,20,34,0.10)",
       }}>
         {thumb
           ? <img src={thumb} alt="" loading="lazy"
               style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-          : <span style={{ fontSize: 24, opacity: 0.45, color: meta.accent }}>◈</span>
+          : <span style={{ fontSize: 32, opacity: 0.35, color: meta.accent }}>◈</span>
         }
       </div>
 
-      {/* Inhalt — Werk zuerst, Wirker dezent darunter */}
+      {/* Inhalt — Titel dominant, Wirker ruhig, Typ+Preis zuletzt */}
       <div style={{ flex: 1, minWidth: 0, paddingTop: 2 }}>
 
-        {/* Werktitel — größte Schrift der Karte */}
+        {/* Werktitel — stärkstes Element */}
         <div style={{
-          fontSize:     16,
-          fontWeight:   800,
-          color:        C.ink,
-          lineHeight:   1.25,
-          overflow:     "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace:   "nowrap",
-          letterSpacing: -0.3,
-          marginBottom: 5,
+          fontSize:      18,
+          fontWeight:    800,
+          color:         C.ink,
+          lineHeight:    1.2,
+          overflow:      "hidden",
+          textOverflow:  "ellipsis",
+          whiteSpace:    "nowrap",
+          letterSpacing: -0.4,
+          marginBottom:  5,
         }}>
           {title}
         </div>
 
-        {/* Wirker — dezent darunter */}
+        {/* Wirker — ruhig, dezent */}
         {authorName && (
           <div style={{
-            fontSize:    12,
-            fontWeight:  400,
-            color:       C.muted,
-            letterSpacing: 0.05,
-            marginBottom: 8,
+            fontSize:     13,
+            fontWeight:   400,
+            color:        C.muted,
+            letterSpacing: 0,
+            marginBottom: 10,
+            lineHeight:   1.3,
           }}>
             von {authorName}
           </div>
         )}
 
-        {/* Typ-Pill + Preis — unterste Zeile */}
-        <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+        {/* Typ-Pill + Preis — vereinfacht, keine Dominanz */}
+        <div style={{ display:"flex", alignItems:"center", gap:7, flexWrap:"wrap" }}>
           <span style={{
-            fontSize:      9,
-            fontWeight:    700,
+            fontSize:      10,
+            fontWeight:    600,
             color:         meta.accent,
-            letterSpacing: 0.6,
-            textTransform: "uppercase",
-            padding:       "2px 7px",
+            letterSpacing: 0.3,
+            padding:       "3px 9px",
             borderRadius:  99,
             background:    meta.bg,
-            border:        `1px solid ${meta.accent}20`,
+            border:        `1px solid ${meta.accent}22`,
+            lineHeight:    1.4,
           }}>
             {meta.label}
           </span>
           {price && (
             <span style={{
-              fontSize:   12,
-              fontWeight: 400,
-              color:      C.faint,
+              fontSize:   14,
+              fontWeight: 600,
+              color:      C.inkMid,
               fontVariantNumeric: "tabular-nums",
-              letterSpacing: 0.1,
+              letterSpacing: -0.2,
             }}>
               {price}
             </span>
           )}
         </div>
       </div>
+
       {/* Entfernen */}
       <button
         onPointerDown={e => e.stopPropagation()}
@@ -372,6 +377,7 @@ function KorbKarte({ item, onRemove, idx, removing }) {
           justifyContent: "center",
           cursor:      "pointer",
           flexShrink:  0,
+          alignSelf:   "flex-start",
           marginTop:   2,
           transition:  `color ${DUR.tap}ms ${EASE.out}`,
           outline:     "none",
