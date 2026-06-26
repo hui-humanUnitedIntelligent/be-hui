@@ -25,6 +25,7 @@
 // Jede Entdeckung soll natürlich in den nächsten Schritt führen.
 // ═══════════════════════════════════════════════════════════════
 
+import { ProfileService } from '../services/db';
 import { supabase } from '../supabaseClient';
 import { sentryCapture } from '../sentry.js';
 import { cachedQuery } from '../perfUtils.js';
@@ -103,10 +104,8 @@ export async function getResonancePath(fromType, fromId, userId = null) {
 
       if (!work) return { next: null, nextType: null };
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views') // Identity Contract v1.0
-        .eq('id', work.user_id).maybeSingle();
+      // ProfileService v1.0
+      const { data: profile } = await ProfileService.getById(work.user_id);
 
       return {
         nextType:  'profile',
