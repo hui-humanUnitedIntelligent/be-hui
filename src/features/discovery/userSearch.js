@@ -15,12 +15,8 @@ import { supabase } from "../../lib/supabaseClient";
 import { createProfileItem } from "../../lib/factories/createProfileItem.js";
 
 // ── Felder die wir brauchen (kein select *) ─────────────────────
-const SEARCH_FIELDS = [
-  "id", "display_name", "username", "avatar_url", "bio",
-  "talent", "focus_type", "location", "is_wirker",
-  "has_talent_profile", "impact_eur", "follower_count",
-  "is_available", "availability",
-].join(",");
+// Identity Contract v1.0: SEARCH_FIELDS → CANONICAL
+const SEARCH_FIELDS = "id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views";
 
 // ── Normalisierung ───────────────────────────────────────────────
 function normalizeResult(raw) {
