@@ -782,85 +782,52 @@ function ImpactZeile({ impactEur }) {
   if (!impactEur || impactEur <= 0) return null;
   const impactStr = impactEur.toFixed(2).replace(".", ",");
   return (
-    <div style={{
-      padding:      "0 4px",
-      marginBottom: 0,
-    }}>
-      {/* Trennlinie oben — luftig */}
+    <div style={{ padding: "0 4px", marginBottom: 0 }}>
+      {/* Trennlinie */}
       <div style={{
-        height:      1,
-        background:  "rgba(20,20,34,0.06)",
-        marginBottom: 28,
+        height:       1,
+        background:   "rgba(20,20,34,0.06)",
+        marginBottom: 18,
       }} />
 
-      {/* Blatt-Icon + Headline — ruhig, kein Block */}
-      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
-        <svg width="15" height="15" viewBox="0 0 28 28" fill="none"
-             xmlns="http://www.w3.org/2000/svg" style={{ flexShrink:0, opacity:0.7 }}>
+      {/* Headline */}
+      <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:10 }}>
+        <svg width="13" height="13" viewBox="0 0 28 28" fill="none"
+             xmlns="http://www.w3.org/2000/svg" style={{ flexShrink:0, opacity:0.65 }}>
           <path d="M14 4C14 4 6 8 6 16C6 20.4 9.6 24 14 24C18.4 24 22 20.4 22 16C22 8 14 4 14 4Z"
             fill="rgba(107,174,143,0.15)" stroke="#6BAE8F" strokeWidth="1.8" strokeLinejoin="round"/>
           <path d="M14 24V14" stroke="#6BAE8F" strokeWidth="1.6" strokeLinecap="round"/>
         </svg>
-        <span style={{
-          fontSize:    12,
-          fontWeight:  600,
-          color:       C.sage,
-          letterSpacing: 0,
-          lineHeight:  1.3,
-        }}>
+        <span style={{ fontSize:11, fontWeight:600, color:C.sage, letterSpacing:0, lineHeight:1.3 }}>
           Gemeinsam Wirkung schaffen
         </span>
       </div>
 
-      {/* Fließtext — magazinartig, kein Infobox-Look */}
-      <div style={{
-        fontSize:    13,
-        color:       C.muted,
-        lineHeight:  1.75,
-        marginBottom: 16,
-      }}>
-        HUI investiert bei jeder Unterstützung einen Teil der eigenen
-        Einnahmen in den HUI Impact Pool.
+      <div style={{ fontSize:12, color:C.muted, lineHeight:1.65, marginBottom:10 }}>
+        HUI investiert bei jeder Unterstützung einen Teil der eigenen Einnahmen in den HUI Impact Pool.
       </div>
 
-      <div style={{
-        fontSize:    13,
-        color:       C.muted,
-        lineHeight:  1.6,
-        marginBottom: 10,
-      }}>
+      <div style={{ fontSize:12, color:C.muted, lineHeight:1.5, marginBottom:6 }}>
         Bei dieser Unterstützung fließen
       </div>
 
-      {/* Impact-Betrag — hervorgehoben, aber nicht eingerahmt */}
       <div style={{
-        fontSize:   26,
+        fontSize:   22,
         fontWeight: 700,
         color:      C.sage,
-        letterSpacing: -0.6,
+        letterSpacing: -0.5,
         lineHeight: 1.1,
         fontVariantNumeric: "tabular-nums",
-        marginBottom: 14,
+        marginBottom: 8,
       }}>
         {impactStr} €
       </div>
 
-      <div style={{
-        fontSize:    13,
-        color:       C.muted,
-        lineHeight:  1.6,
-        marginBottom: 20,
-      }}>
+      <div style={{ fontSize:12, color:C.muted, lineHeight:1.5, marginBottom:12 }}>
         in gemeinsame Impact-Projekte.
       </div>
 
-      {/* Schlusssatz — dezent, kursiv, wie ein Postskriptum */}
-      <div style={{
-        fontSize:   11,
-        color:      C.faint,
-        fontStyle:  "italic",
-        lineHeight: 1.55,
-      }}>
+      <div style={{ fontSize:11, color:C.faint, fontStyle:"italic", lineHeight:1.5 }}>
         Für dich entstehen dadurch keine zusätzlichen Kosten.
       </div>
     </div>
@@ -1077,7 +1044,7 @@ export default function WerkeKorb({
               onClose={onClose}
             />
           ) : (
-            <div style={{ paddingBottom: 16 }}>
+            <div style={{ paddingBottom: 24 }}>
               {groups.map(group => (
                 <PersonGruppe
                   key={group.key}
@@ -1094,29 +1061,29 @@ export default function WerkeKorb({
         {/* Sticky Footer */}
         {iCount > 0 && phase !== "success" && (
           <div style={{
-            padding:    "28px 20px 0",
-            borderTop:  `1px solid rgba(20,20,34,0.07)`,
+            padding:    "16px 20px 0",
+            borderTop:  `1px solid rgba(20,20,34,0.05)`,
             flexShrink: 0,
           }}>
-            {/* Summe — v3.0: reine Typografie, keine Box */}
+            {/* Summe — v3.3: kompakt, nur Orientierung */}
             {total > 0 && (
-              <div style={{ padding: "0 4px", marginBottom: 28 }}>
+              <div style={{ padding: "0 4px", marginBottom: 16 }}>
                 <div style={{
-                  fontSize:     11,
+                  fontSize:     10,
                   fontWeight:   500,
                   color:        C.faint,
-                  letterSpacing: 0.5,
+                  letterSpacing: 0.6,
                   textTransform: "uppercase",
-                  marginBottom: 10,
+                  marginBottom: 5,
                 }}>
                   Deine Unterstützung
                 </div>
                 <div style={{
-                  fontSize:   36,
-                  fontWeight: 800,
-                  color:      C.ink,
-                  letterSpacing: -1,
-                  lineHeight: 1.0,
+                  fontSize:   24,
+                  fontWeight: 700,
+                  color:      C.inkMid,
+                  letterSpacing: -0.6,
+                  lineHeight: 1.1,
                   fontVariantNumeric: "tabular-nums",
                 }}>
                   {gesamt.toFixed(2).replace(".", ",")} €
@@ -1136,7 +1103,7 @@ export default function WerkeKorb({
               disabled={phase === "loading"}
               style={{
                 width:        "100%",
-                marginTop:    36,
+                marginTop:    24,
                 padding:      "18px 0",
                 borderRadius: 16,
                 border:       "none",
