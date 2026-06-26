@@ -1612,10 +1612,16 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
     if (typeof onView === "function") onView(person.id || person.user_id);
   }, [onView]);
 
-  // Werk-Karte: öffne Werk-Detailseite
+  // Werk-Karte: öffne Werk-Detailseite (nur bei echter DB-ID, nicht bei Seed-Daten)
   const handleWerkPress = useCallback((werk) => {
     const werkId = werk.id;
-    if (werkId) navigate(`/work/${werkId}`);
+    // UUID-Prüfung: echte Supabase-IDs sind UUIDs (8-4-4-4-12)
+    // Seed-IDs wie "w1","w2" sind keine UUIDs → kein Navigate
+    const isRealId = werkId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(werkId));
+    if (isRealId) {
+      navigate(`/work/${werkId}`);
+    }
+    // Seed-Karte: kein Navigate — kein "Werk nicht gefunden"
   }, [navigate]);
 
   // Moment-Karte: erst Profil des Erstellers (kein separater Moment-Detail-View)
