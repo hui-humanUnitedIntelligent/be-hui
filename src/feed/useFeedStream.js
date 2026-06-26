@@ -15,6 +15,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { ProfileService } from '../services/db';
 import { supabase }        from "../lib/supabaseClient.js";
 import { useAuth }         from "../lib/AuthContext.jsx";
 import { rhythmizeFeed }   from "./feedRhythmEngine.js";
@@ -158,10 +159,8 @@ async function fetchFeedPage(userId = null, cursors = null) {
 
   if (userIds.length > 0) {
     try {
-      const { data: profileRows } = await supabase
-        .from("profiles")
-        .select("id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views") // Identity Contract v1.0
-        .in("id", userIds);
+      // ProfileService v1.0
+      const { data: profileRows } = await ProfileService.getMany(userIds);
       // ── TRACE STEP 3: Supabase Profile Query Result ──────────
       console.group("🔍 STEP 3 - PROFILE QUERY");
       console.log("profileRows:", profileRows);
