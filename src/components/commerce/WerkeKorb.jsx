@@ -6,8 +6,9 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { EASE, DUR } from "../../design/hui.interaction.js";
 import {
   C, TYPE_META, haptic as haptic_,
-  calcTotal, calcImpact,
+  calcTotal, calcImpact, calcTotalWithQty,
   groupByPerson,
+  allowsQuantity, getOriginalHint,
 } from "./commerceUtils.js";
 function haptic(style = "light") {
   try {
@@ -243,7 +244,7 @@ export function WerkeKorbButton({ count, onOpen, glowing }) {
 // ══════════════════════════════════════════════════════════════════
 //  KARTE
 // ══════════════════════════════════════════════════════════════════
-function KorbKarte({ item, onRemove, idx, removing }) {
+function KorbKarte({ item, onRemove, idx, removing, onQtyChange }) {
   const meta       = TYPE_META[item.type] || TYPE_META.work;
   const price      = formatPrice(item._raw?.price ?? item.price);
   const thumb      = item._raw?.cover_url || item.cover_url || item.img || null;
@@ -251,6 +252,23 @@ function KorbKarte({ item, onRemove, idx, removing }) {
   const authorName = item.author?.name || null;
 
   const [pressed, setPressed] = useState(false);
+
+  const canQty     = allowsQuantity(item);
+  const origHint   = getOriginalHint(item);
+  const [qty, setQty] = useState(
+    (typeof item.quantity === "number" && item.quantity > 0) ? item.quantity : 1
+  );
+  // Qty-Änderung nach außen melden (parent kann item.quantity updaten)
+  const changeQty = useCallback((delta) => {
+    setQty(prev => {
+      const next = Math.max(1, prev + delta);
+      if (next !== prev) {
+        haptic("light");
+        onQtyChange?.(item, next);
+      }
+      return next;
+    });
+  }, [item, onQtyChange]);
 
   return (
     <div
@@ -348,19 +366,111 @@ function KorbKarte({ item, onRemove, idx, removing }) {
           </span>
         </div>
 
-        {/* Preis — unter Pill, linksbündig, beruhigt */}
-        {price && (
-          <div style={{
-            fontSize:   14,
-            fontWeight: 500,
-            color:      C.muted,
-            fontVariantNumeric: "tabular-nums",
-            letterSpacing: -0.1,
-            lineHeight:  1.3,
-          }}>
-            {price}
-          </div>
-        )}
+        {/* Preis + Mengenwähler — v3.1: kontextabhängig */}
+        <div style={{ marginTop: 4 }}>
+          {price && (
+            <div style={{
+              fontSize:   14,
+              fontWeight: 500,
+              color:      C.muted,
+              fontVariantNumeric: "tabular-nums",
+              letterSpacing: -0.1,
+              lineHeight:  1.3,
+              marginBottom: canQty ? 10 : 0,
+            }}>
+              {price}{qty > 1 ? ` × ${qty}` : ""}
+            </div>
+          )}
+
+          {/* Mengenwähler — nur bei geeigneten Items */}
+          {canQty && (
+            <div style={{
+              display:     "flex",
+              alignItems:  "center",
+              gap:         8,
+            }}>
+              <button
+                onPointerDown={e => e.stopPropagation()}
+                onClick={() => changeQty(-1)}
+                aria-label="Weniger"
+                style={{
+                  width:       32,
+                  height:      32,
+                  borderRadius:"50%",
+                  border:      `1px solid rgba(13,196,181,0.22)`,
+                  background:  "rgba(13,196,181,0.06)",
+                  color:       qty <= 1 ? C.faint : C.teal,
+                  fontSize:    17,
+                  fontWeight:  300,
+                  display:     "flex",
+                  alignItems:  "center",
+                  justifyContent:"center",
+                  cursor:      qty <= 1 ? "default" : "pointer",
+                  outline:     "none",
+                  padding:     0,
+                  flexShrink:  0,
+                  transition:  "color 150ms ease, background 150ms ease",
+                  WebkitTapHighlightColor: "transparent",
+                }}
+              >
+                −
+              </button>
+
+              <span style={{
+                fontSize:   15,
+                fontWeight: 600,
+                color:      C.ink,
+                minWidth:   20,
+                textAlign:  "center",
+                fontVariantNumeric: "tabular-nums",
+                letterSpacing: -0.2,
+              }}>
+                {qty}
+              </span>
+
+              <button
+                onPointerDown={e => e.stopPropagation()}
+                onClick={() => changeQty(+1)}
+                aria-label="Mehr"
+                style={{
+                  width:       32,
+                  height:      32,
+                  borderRadius:"50%",
+                  border:      `1px solid rgba(13,196,181,0.22)`,
+                  background:  "rgba(13,196,181,0.06)",
+                  color:       C.teal,
+                  fontSize:    17,
+                  fontWeight:  300,
+                  display:     "flex",
+                  alignItems:  "center",
+                  justifyContent:"center",
+                  cursor:      "pointer",
+                  outline:     "none",
+                  padding:     0,
+                  flexShrink:  0,
+                  transition:  "color 150ms ease, background 150ms ease",
+                  WebkitTapHighlightColor: "transparent",
+                }}
+              >
+                +
+              </button>
+            </div>
+          )}
+
+          {/* Original-Hinweis — nur bei Einzelstücken */}
+          {origHint && !canQty && (
+            <div style={{
+              fontSize:   11,
+              fontWeight: 500,
+              color:      C.sage,
+              letterSpacing: 0.2,
+              marginTop:  4,
+              lineHeight: 1.3,
+            }}>
+              {origHint}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Entfernen */}
@@ -398,7 +508,7 @@ function KorbKarte({ item, onRemove, idx, removing }) {
 // ══════════════════════════════════════════════════════════════════
 //  PERSONEN-GRUPPE
 // ══════════════════════════════════════════════════════════════════
-function PersonGruppe({ group, onRemove, removingId }) {
+function PersonGruppe({ group, onRemove, removingId, onQtyChange }) {
   return (
     <div style={{ marginBottom: 4 }}>
       {/* Personen-Linie */}
@@ -448,6 +558,7 @@ function PersonGruppe({ group, onRemove, removingId }) {
           onRemove={onRemove}
           idx={idx}
           removing={removingId === item.id}
+          onQtyChange={onQtyChange}
         />
       ))}
     </div>
@@ -771,11 +882,21 @@ export default function WerkeKorb({
   const [result,    setResult]    = useState(null);
   const [removingId, setRemovingId] = useState(null);
 
-  const groups = groupByPerson(items);
+  // v3.1: qty-Map — Mengen pro Item-ID (lokal in WerkeKorb)
+  const [qtyMap, setQtyMap] = useState({});
+  const enrichedItems = items.map(i => ({
+    ...i,
+    quantity: qtyMap[i.id] ?? 1,
+  }));
+  const handleQtyChange = useCallback((item, newQty) => {
+    setQtyMap(prev => ({ ...prev, [item.id]: newQty }));
+  }, []);
+
+  const groups = groupByPerson(enrichedItems);
   const iCount = items.length;
   const pCount = groups.length;
 
-  const total  = calcTotal(items);
+  const total  = calcTotalWithQty(enrichedItems);
   const impact = calcImpact(total);
   const gesamt = +total.toFixed(2); // Käufer zahlt nur den Werkpreis
 
@@ -963,6 +1084,7 @@ export default function WerkeKorb({
                   group={group}
                   onRemove={handleRemove}
                   removingId={removingId}
+                  onQtyChange={handleQtyChange}
                 />
               ))}
             </div>
