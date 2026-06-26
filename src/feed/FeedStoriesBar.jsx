@@ -75,7 +75,7 @@ export default function FeedStoriesBar(props) {
         const uid = row.user_id;
         if (!byUser.has(uid)) byUser.set(uid, {
           userId: uid,
-          name:   row.username || "Human",
+          name:   row.username || row.display_name || null,
           avatar: row.avatar_url || null,
           isLive: false,
           isYou:  uid === user?.id,
