@@ -123,6 +123,19 @@ export function toFeedItem(raw){
       console.log("raw.profile?.display_name:", raw.profile?.display_name);
       console.groupEnd();
     }
+    if (type === "work" && !window.__HUI_PROFILE_DIAGNOSIS_DONE__) {
+      window.__HUI_PROFILE_DIAGNOSIS_DONE__ = true;
+      console.group("PROFILE DIAGNOSIS");
+      console.log("raw.profile =", raw.profile);
+      console.log("Object.keys(raw.profile || {}) =", Object.keys(raw.profile || {}));
+      console.log("display_name =", raw.profile?.display_name);
+      console.log("full_name =", raw.profile?.full_name);
+      console.log("username =", raw.profile?.username);
+      console.log("avatar_url =", raw.profile?.avatar_url);
+      console.log("raw.user_id =", raw.user_id);
+      console.log("raw.creator_id =", raw.creator_id);
+      console.groupEnd();
+    }
     const author=extractAuthor(raw);
     const media =extractMedia(raw);
     const text  =safeStr(raw.caption||raw.description||raw.story||raw.text);
