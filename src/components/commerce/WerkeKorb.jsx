@@ -3,41 +3,12 @@
 // Designsprache: HUI Design System (hui.design.js + hui.interaction.js)
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { HUI } from "../../design/hui.design.js";
 import { EASE, DUR } from "../../design/hui.interaction.js";
-
-// ── Design Tokens (lokal gespiegelt für Performance) ─────────────
-const C = {
-  cream:       HUI?.COLOR?.cream       ?? "#FAF7F2",
-  creamSoft:   HUI?.COLOR?.creamSoft   ?? "#FDFBF8",
-  creamDeep:   HUI?.COLOR?.creamDeep   ?? "#EDE5D8",
-  teal:        HUI?.COLOR?.teal        ?? "#0DC4B5",
-  tealGlow:    HUI?.COLOR?.tealGlow    ?? "rgba(13,196,181,0.18)",
-  tealPale:    HUI?.COLOR?.tealPale    ?? "#E6FAF8",
-  coral:       HUI?.COLOR?.coral       ?? "#F47355",
-  coralGlow:   HUI?.COLOR?.coralGlow   ?? "rgba(244,115,85,0.18)",
-  ink:         HUI?.COLOR?.ink         ?? "#141422",
-  inkMid:      HUI?.COLOR?.inkMid      ?? "#2E2E45",
-  muted:       HUI?.COLOR?.muted       ?? "#8A8A9E",
-  faint:       HUI?.COLOR?.faint       ?? "#C0C0D0",
-  sage:        HUI?.COLOR?.sage        ?? "#6BAE8F",
-  sagePale:    HUI?.COLOR?.sagePale    ?? "#EEF7F2",
-  violet:      HUI?.COLOR?.violet      ?? "#7264D6",
-  violetPale:  HUI?.COLOR?.violetPale  ?? "#F0EEFF",
-  gold:        HUI?.COLOR?.gold        ?? "#D4952A",
-  goldPale:    HUI?.COLOR?.goldPale    ?? "#FDF6E3",
-};
-
-// ── Typ-Metadaten ────────────────────────────────────────────────
-const TYPE_META = {
-  work:       { label: "Werk",           accent: C.teal,   bg: C.tealPale   },
-  experience: { label: "Erlebnis",       accent: C.coral,  bg: C.coralGlow  },
-  event:      { label: "Event",          accent: C.violet, bg: C.violetPale },
-  impact:     { label: "Impact-Projekt", accent: C.sage,   bg: C.sagePale   },
-  moment:     { label: "Moment",         accent: C.gold,   bg: C.goldPale   },
-};
-
-// ── Haptik (iOS) ─────────────────────────────────────────────────
+import {
+  C, TYPE_META, haptic as haptic_,
+  formatPrice, parseAmount, calcTotal, calcImpact,
+  groupByPerson,
+} from "./commerceUtils.js";
 function haptic(style = "light") {
   try {
     if (window.navigator?.vibrate) {
@@ -66,21 +37,8 @@ function parseAmount(val) {
 }
 
 // ── Gruppen nach Person ──────────────────────────────────────────
-function groupByPerson(items) {
-  const map = new Map();
-  for (const item of items) {
-    const key    = item.author?.id || item.creatorId || "__unknown__";
-    const name   = item.author?.name || "Unbekannte Person";
-    const avatar = item.author?.avatar || null;
-    if (!map.has(key)) map.set(key, { key, name, avatar, items: [] });
-    map.get(key).items.push(item);
-  }
-  return Array.from(map.values());
-}
+// groupByPerson: aus commerceUtils importiert
 
-// ══════════════════════════════════════════════════════════════════
-//  SCHALEN-ILLUSTRATION (SVG — inline, keine externe Datei)
-// ══════════════════════════════════════════════════════════════════
 function SchalenIcon({ size = 28, opacity = 1, filled = false }) {
   return (
     <svg
@@ -788,9 +746,8 @@ export default function WerkeKorb({
   const iCount = items.length;
   const pCount = groups.length;
 
-  const total  = items.reduce((s, item) =>
-    s + parseAmount(item._raw?.price ?? item.price), 0);
-  const impact = +(total * 0.07).toFixed(2);
+  const total  = calcTotal(items);
+  const impact = calcImpact(total);
   const gesamt = +total.toFixed(2); // Käufer zahlt nur den Werkpreis
 
   // Entfernen mit Animation
