@@ -8,6 +8,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { isProfileTalent } from '../../lib/profileUtils.js';
 import { createPortal } from "react-dom";
 import { useHome } from "../home/HomeShell.jsx";
+import { ProfileService } from '../../services/db';
 import { supabase }    from "../../lib/supabaseClient.js";
 import { useAuth }     from "../../lib/AuthContext.jsx";
 import AmbassadorModal  from "../ambassador/AmbassadorModal.jsx";
@@ -822,10 +823,8 @@ function MyRecommendationsModal({ userId, onClose }) {
         // Profile → profiles
         const profileIds = rows.filter(r => r.item_type === "profile").map(r => r.item_id);
         if (profileIds.length) {
-          const { data: profs } = await supabase
-            .from("profiles")
-            .select("id, display_name, username, avatar_url")
-            .in("id", profileIds);
+          // ProfileService v1.0
+          const { data: profs } = await ProfileService.getMany(profileIds);
           (profs || []).forEach(p => { enriched[p.id] = { title: p.display_name || p.username || "Nutzer", subtitle: "@" + (p.username || ""), image: p.avatar_url, profileId: p.id, username: p.username }; });
         }
 
