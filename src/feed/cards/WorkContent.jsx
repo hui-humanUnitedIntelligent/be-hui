@@ -28,7 +28,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
   // Kaufen-Button hat eigenen onClick → stopPropagation dort
   // Action-Buttons (Like/Save/Share) haben eigenen onClick → stopPropagation dort
   const handleCardClick = onDetail
-    ? () => onDetail()
+    ? () => { console.log("🟢 STEP 2 — WorkContent handleCardClick, onDetail:", !!onDetail); onDetail(); }
     : undefined;
 
   return (
