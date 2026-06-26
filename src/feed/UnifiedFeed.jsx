@@ -764,17 +764,6 @@ export default function UnifiedFeed({
       />
 
       <SectionBoundary name="feedList">
-        {/* DEBUG STEP 4: onDetail verdrahtet? — temporär */}
-        <div style={{
-          position:"fixed", top:8, right:8, zIndex:99999,
-          padding:"4px 10px", borderRadius:20,
-          background: onDetail ? "#16D7C5" : "#EF4444",
-          color:"#fff", fontSize:11, fontWeight:700,
-          pointerEvents:"none",
-          boxShadow:"0 2px 8px rgba(0,0,0,0.2)",
-        }}>
-          S4 onDetail: {onDetail ? "✓" : "✗"}
-        </div>
         {/* Loading state — shimmer skeletons */}
         {streamLoading && resolvedItems.length === 0 && (
           <div>
