@@ -299,7 +299,8 @@ function MenschCard({ person, idx, openProfileById, engine }) {
   const [imgErr, setImgErr] = React.useState(false);
 
   const name    = person.display_name || person.username || "HUI Mitglied";
-  const sub     = person.talent || // Identity Contract v1.0: tagline entfernt person.talent || (person.bio ? person.bio.slice(0, 42) + "…" : null);
+  // Identity Contract v1.0: tagline entfernt
+  const sub     = person.talent || (person.bio ? person.bio.slice(0, 42) + "…" : null);
   const score   = person._score;
   const reasons = person._reasons || [];
   const dna     = (person.dna_tags || []).slice(0, 2);
