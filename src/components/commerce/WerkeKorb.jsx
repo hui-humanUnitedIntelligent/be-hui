@@ -672,40 +672,85 @@ function ImpactZeile({ impactEur }) {
   const impactStr = impactEur.toFixed(2).replace(".", ",");
   return (
     <div style={{
-      borderRadius: 12,
-      background:   "rgba(238,247,242,0.65)",
-      border:       `1px solid rgba(107,174,143,0.18)`,
-      boxShadow:    "none",
-      padding:      "12px 14px",
+      padding:      "0 4px",
       marginBottom: 0,
     }}>
-      {/* Kompakt: Icon + Label in einer Zeile */}
-      <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:7 }}>
-        <svg width="16" height="16" viewBox="0 0 28 28" fill="none"
-             xmlns="http://www.w3.org/2000/svg" style={{ flexShrink:0 }}>
+      {/* Trennlinie oben — luftig */}
+      <div style={{
+        height:      1,
+        background:  "rgba(20,20,34,0.06)",
+        marginBottom: 28,
+      }} />
+
+      {/* Blatt-Icon + Headline — ruhig, kein Block */}
+      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
+        <svg width="15" height="15" viewBox="0 0 28 28" fill="none"
+             xmlns="http://www.w3.org/2000/svg" style={{ flexShrink:0, opacity:0.7 }}>
           <path d="M14 4C14 4 6 8 6 16C6 20.4 9.6 24 14 24C18.4 24 22 20.4 22 16C22 8 14 4 14 4Z"
-            fill="rgba(107,174,143,0.18)" stroke="#6BAE8F" strokeWidth="1.8" strokeLinejoin="round"/>
+            fill="rgba(107,174,143,0.15)" stroke="#6BAE8F" strokeWidth="1.8" strokeLinejoin="round"/>
           <path d="M14 24V14" stroke="#6BAE8F" strokeWidth="1.6" strokeLinecap="round"/>
         </svg>
-        <span style={{ fontSize:11, fontWeight:700, color:C.sage, letterSpacing:0.1 }}>
+        <span style={{
+          fontSize:    12,
+          fontWeight:  600,
+          color:       C.sage,
+          letterSpacing: 0,
+          lineHeight:  1.3,
+        }}>
           Gemeinsam Wirkung schaffen
         </span>
       </div>
 
-      <div style={{ fontSize:11, color:C.muted, lineHeight:1.6, marginBottom:9 }}>
-        HUI investiert einen Teil der Einnahmen in den Impact Pool — bei dieser
-        Unterstützung fließen{" "}
-        <span style={{ fontWeight:700, color:C.teal, fontVariantNumeric:"tabular-nums" }}>
-          {impactStr} €
-        </span>{" "}
-        in gemeinsame Projekte.
+      {/* Fließtext — magazinartig, kein Infobox-Look */}
+      <div style={{
+        fontSize:    13,
+        color:       C.muted,
+        lineHeight:  1.75,
+        marginBottom: 16,
+      }}>
+        HUI investiert bei jeder Unterstützung einen Teil der eigenen
+        Einnahmen in den HUI Impact Pool.
       </div>
 
       <div style={{
-        fontSize:10, color:C.faint, fontStyle:"italic", lineHeight:1.45,
-        paddingTop:7, borderTop:`1px solid rgba(107,174,143,0.12)`,
+        fontSize:    13,
+        color:       C.muted,
+        lineHeight:  1.6,
+        marginBottom: 10,
       }}>
-        Für dich entstehen keine zusätzlichen Kosten.
+        Bei dieser Unterstützung fließen
+      </div>
+
+      {/* Impact-Betrag — hervorgehoben, aber nicht eingerahmt */}
+      <div style={{
+        fontSize:   26,
+        fontWeight: 700,
+        color:      C.sage,
+        letterSpacing: -0.6,
+        lineHeight: 1.1,
+        fontVariantNumeric: "tabular-nums",
+        marginBottom: 14,
+      }}>
+        {impactStr} €
+      </div>
+
+      <div style={{
+        fontSize:    13,
+        color:       C.muted,
+        lineHeight:  1.6,
+        marginBottom: 20,
+      }}>
+        in gemeinsame Impact-Projekte.
+      </div>
+
+      {/* Schlusssatz — dezent, kursiv, wie ein Postskriptum */}
+      <div style={{
+        fontSize:   11,
+        color:      C.faint,
+        fontStyle:  "italic",
+        lineHeight: 1.55,
+      }}>
+        Für dich entstehen dadurch keine zusätzlichen Kosten.
       </div>
     </div>
   );
@@ -927,35 +972,29 @@ export default function WerkeKorb({
         {/* Sticky Footer */}
         {iCount > 0 && phase !== "success" && (
           <div style={{
-            padding:    "24px 16px 0",
+            padding:    "28px 20px 0",
             borderTop:  `1px solid rgba(20,20,34,0.07)`,
             flexShrink: 0,
           }}>
-            {/* Gesamt — v2.1: luftig, menschlich, keine Tabellenoptik */}
+            {/* Summe — v3.0: reine Typografie, keine Box */}
             {total > 0 && (
-              <div style={{
-                padding:      "20px 20px 18px",
-                background:   C.creamSoft,
-                borderRadius: 16,
-                border:       `1px solid rgba(20,20,34,0.04)`,
-                marginBottom: 16,
-              }}>
+              <div style={{ padding: "0 4px", marginBottom: 28 }}>
                 <div style={{
-                  fontSize:     10,
-                  fontWeight:   600,
+                  fontSize:     11,
+                  fontWeight:   500,
                   color:        C.faint,
-                  letterSpacing: 0.6,
-                  textTransform:"uppercase",
+                  letterSpacing: 0.5,
+                  textTransform: "uppercase",
                   marginBottom: 10,
                 }}>
                   Deine Unterstützung
                 </div>
                 <div style={{
-                  fontSize:   28,
+                  fontSize:   36,
                   fontWeight: 800,
                   color:      C.ink,
-                  letterSpacing: -0.8,
-                  lineHeight: 1.1,
+                  letterSpacing: -1,
+                  lineHeight: 1.0,
                   fontVariantNumeric: "tabular-nums",
                 }}>
                   {gesamt.toFixed(2).replace(".", ",")} €
@@ -975,7 +1014,7 @@ export default function WerkeKorb({
               disabled={phase === "loading"}
               style={{
                 width:        "100%",
-                marginTop:    24,
+                marginTop:    36,
                 padding:      "18px 0",
                 borderRadius: 16,
                 border:       "none",
