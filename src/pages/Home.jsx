@@ -352,9 +352,11 @@ function HomeInner() {
                     }
                   }}
                   onDetail={(item) => {
+                    console.log("🔴 STEP 5 — Home onDetail", item?.type, item?.id, item);
                     // Werk-Detail aus Feed → /work/:id Route
                     if (item?.type === "work") {
                       const werkId = item?.id || item?._raw?.id;
+                      console.log("🔴 STEP 5 — navigate /work/" + werkId);
                       if (werkId) {
                             navigate(`/work/${werkId}`);
                       }
