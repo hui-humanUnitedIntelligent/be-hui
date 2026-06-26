@@ -3,6 +3,7 @@
 // - Kein Edit-Modus, keine Admin-Komponenten
 // - publicView=true erzwingt isOwner=false in TalentProfilePage/BasisProfilePage
 import React, { useState, useEffect } from "react";
+import { ProfileService } from '../../services/db';
 import { supabase } from "../../lib/supabaseClient.js";
 
 const TalentProfilePage = React.lazy(() => import("../../pages/TalentProfilePage.jsx"));
@@ -32,11 +33,7 @@ export default function PublicProfilePreview({ profileId, onClose }) {
 
   useEffect(() => {
     if (!profileId) return;
-    supabase
-      .from("profiles")
-      .select("id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views") // Identity Contract v1.0
-      .eq("id", profileId)
-      .single()
+    ProfileService.getById(profileId) // ProfileService v1.0
       .then(({ data }) => {
         // Identity Contract v1.0: is_talent entfernt — has_talent_profile ist kanonisch
         const isTalent = data?.has_talent_profile || data?.role === "talent" || data?.role === "wirker";
