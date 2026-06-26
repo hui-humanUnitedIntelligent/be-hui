@@ -65,7 +65,8 @@ const _queryCache = new Map();
 
 export async function safeQuery(fn) {
   try {
-    const result = await fn();
+    // fn kann callable (Funktion) oder direkt ein Promise/Thenable sein
+    const result = await (typeof fn === 'function' ? fn() : fn);
     return result;
   } catch (e) {
     console.warn("[HUI safeQuery] Fehler:", e?.message);
