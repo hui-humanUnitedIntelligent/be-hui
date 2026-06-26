@@ -143,16 +143,40 @@ function SchalenIcon({ size = 28, opacity = 1, filled = false }) {
 //  FLOATING BUTTON
 // ══════════════════════════════════════════════════════════════════
 export function WerkeKorbButton({ count, onOpen, glowing }) {
-  const [glow, setGlow] = useState(false);
+  const [glow,    setGlow]    = useState(false);
+  const [mounted, setMounted] = useState(count > 0); // nur rendern wenn nötig
+  const [visible, setVisible] = useState(count > 0); // CSS opacity/transform
   const prevCount = useRef(count);
+  const hideTimer = useRef(null);
 
-  // Glow beim Hinzufügen eines neuen Items
+  // Sichtbarkeits-Steuerung: einfahren / ausfahren
+  useEffect(() => {
+    if (count > 0) {
+      // Einfahren: sofort mounten, dann auf sichtbar wechseln (für CSS-Transition)
+      clearTimeout(hideTimer.current);
+      setMounted(true);
+      requestAnimationFrame(() => setVisible(true));
+    } else {
+      // Ausfahren: 2 s warten, dann ausblenden, dann unmounten
+      setVisible(false);
+      hideTimer.current = setTimeout(() => setMounted(false), 2200); // 2s + 200ms Transition
+    }
+    return () => clearTimeout(hideTimer.current);
+  }, [count > 0]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Glow + Toast beim Hinzufügen
   useEffect(() => {
     if (count > prevCount.current) {
       setGlow(true);
       haptic("light");
       const t = setTimeout(() => setGlow(false), 600);
       prevCount.current = count;
+      // Toast: "Zum Werkekorb hinzugefügt." — nur beim ERSTEN Item
+      if (prevCount.current === 1) {
+        import("../../lib/useToast.jsx").then(m => {
+          m?.toast?.success?.("Zum Werkekorb hinzugefügt.", { duration: 2500 });
+        }).catch(() => {});
+      }
       return () => clearTimeout(t);
     }
     prevCount.current = count;
@@ -165,6 +189,8 @@ export function WerkeKorbButton({ count, onOpen, glowing }) {
       return () => clearTimeout(t);
     }
   }, [glowing]);
+
+  if (!mounted) return null;
 
   return (
     <button
@@ -193,7 +219,16 @@ export function WerkeKorbButton({ count, onOpen, glowing }) {
         alignItems:   "center",
         justifyContent: "center",
         cursor:       "pointer",
-        transition:   `box-shadow ${DUR.mood}ms ${EASE.outGentle}, border-color ${DUR.mood}ms ${EASE.outGentle}, background ${DUR.mood}ms ${EASE.outGentle}`,
+        // Einfahren: von unten rechts + opacity 0 → sichtbar
+        opacity:      visible ? 1 : 0,
+        transform:    visible ? "translateY(0) scale(1)" : "translateY(14px) scale(0.88)",
+        transition:   [
+          `opacity 300ms ${EASE.outSoft}`,
+          `transform 300ms ${EASE.outSoft}`,
+          `box-shadow ${DUR.mood}ms ${EASE.outGentle}`,
+          `border-color ${DUR.mood}ms ${EASE.outGentle}`,
+          `background ${DUR.mood}ms ${EASE.outGentle}`,
+        ].join(", "),
         outline:      "none",
         padding:      0,
         userSelect:   "none",
