@@ -28,7 +28,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
   // Kaufen-Button hat eigenen onClick → stopPropagation dort
   // Action-Buttons (Like/Save/Share) haben eigenen onClick → stopPropagation dort
   const handleCardClick = onDetail
-    ? () => { import("../../lib/useToast.jsx").then(m => m.toast.info("STEP 2 ✓ WorkContent", {duration:1200})); onDetail(); }
+    ? () => onDetail()
     : undefined;
 
   return (
