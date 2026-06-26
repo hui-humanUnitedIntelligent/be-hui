@@ -15,6 +15,7 @@
 // ══════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useRef } from "react";
+import { ProfileService } from '../services/db';
 import { supabase } from "../lib/supabaseClient.js";
 
 // UUID v4 Pattern
@@ -61,11 +62,7 @@ export function useProfileId(rawId) {
     setLoading(true);
     setError(null);
 
-    supabase
-      .from("profiles")
-      .select("id")
-      .eq("username", rawId.trim())
-      .maybeSingle()
+    ProfileService.getByUsername(rawId.trim()) // ProfileService v1.0
       .then(({ data, error: dbErr }) => {
         if (cancelled) return;
         if (dbErr) {
