@@ -352,12 +352,21 @@ function HomeInner() {
                     }
                   }}
                   onDetail={(item) => {
-                    // Werk-Detail aus Feed → /work/:id Route
-                    // item ist normalisiertes FeedItem (hat .type und .id = works.id)
-                    const werkId = item?.id || item?._raw?.id;
-                    if (werkId) {
-                      navigate(`/work/${werkId}`);
-                    }
+                    // DEBUG: sichtbarer Beweis auf iPad
+                    const _id   = item?.id    ?? "NULL";
+                    const _type = item?.type  ?? "NULL";
+                    const _raw  = item?._raw?.id ?? "NULL";
+                    const _nav  = typeof navigate;
+                    import("../lib/useToast.jsx").then(m => {
+                      m.toast.info("HOME id:" + _id + " tp:" + _type, {duration:4000});
+                      const werkId = _id !== "NULL" ? _id : (_raw !== "NULL" ? _raw : null);
+                      if (werkId) {
+                        m.toast.info("NAVIGATE /work/" + werkId, {duration:4000});
+                        navigate(`/work/${werkId}`);
+                      } else {
+                        m.toast.error("KEIN ID — navigate blockiert", {duration:5000});
+                      }
+                    });
                   }}
                   onShare={() => setShowTeilen(true)}
                   onEventPress={(ev) => {
