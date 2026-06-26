@@ -141,7 +141,7 @@ export function useChatList(instanceId = "default") {
             // Versuch 1: profiles.id = auth.uid()
             const { data: prof1 } = await supabase
               .from("profiles")
-              .select("id, display_name, avatar_url, username, last_seen_at, availability")
+              .select("id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views") // Identity Contract v1.0
               .eq("id", otherId)
               .maybeSingle();
             if (prof1) {
@@ -150,7 +150,7 @@ export function useChatList(instanceId = "default") {
               // Versuch 2: profiles.user_id = otherId (alternative Schema-Variante)
               const { data: prof2 } = await supabase
                 .from("profiles")
-                .select("id, display_name, avatar_url, username, last_seen_at, availability")
+                .select("id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views") // Identity Contract v1.0
                 .eq("user_id", otherId)
                 .maybeSingle();
               otherProfile = prof2 ?? null;
