@@ -1,53 +1,167 @@
-// src/components/commerce/WerkeKorb.jsx — HUI Werkekorb v1.0
-// Persönlicher Sammelraum für Werke, Erlebnisse, Events und Impact-Projekte.
-// Kein Einkaufswagen. Keine Amazon-UX. Ruhiger, menschlicher Raum.
+// src/components/commerce/WerkeKorb.jsx — HUI Werkekorb v1.1
+// Persönlicher Sammelraum. Kein Warenkorb. Ruhiger menschlicher Raum.
+// Designsprache: HUI Design System (hui.design.js + hui.interaction.js)
 
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import { HUI } from "../../design/hui.design.js";
+import { EASE, DUR } from "../../design/hui.interaction.js";
 
-// ── Konstanten ───────────────────────────────────────────────────
-const CREAM  = "#FAF7F2";
-const TEAL   = "#0DC4B5";
-const CORAL  = "#F47355";
-const INK    = "#141422";
-
-const TYPE_META = {
-  work:        { label: "Werk",            icon: "◈", accent: TEAL  },
-  experience:  { label: "Erlebnis",        icon: "◉", accent: CORAL },
-  event:       { label: "Event",           icon: "◇", accent: "#8B6FD4" },
-  impact:      { label: "Impact-Projekt",  icon: "◎", accent: "#4CAF82" },
-  moment:      { label: "Moment",          icon: "◌", accent: "#C4A35A" },
+// ── Design Tokens (lokal gespiegelt für Performance) ─────────────
+const C = {
+  cream:       HUI?.COLOR?.cream       ?? "#FAF7F2",
+  creamSoft:   HUI?.COLOR?.creamSoft   ?? "#FDFBF8",
+  creamDeep:   HUI?.COLOR?.creamDeep   ?? "#EDE5D8",
+  teal:        HUI?.COLOR?.teal        ?? "#0DC4B5",
+  tealGlow:    HUI?.COLOR?.tealGlow    ?? "rgba(13,196,181,0.18)",
+  tealPale:    HUI?.COLOR?.tealPale    ?? "#E6FAF8",
+  coral:       HUI?.COLOR?.coral       ?? "#F47355",
+  coralGlow:   HUI?.COLOR?.coralGlow   ?? "rgba(244,115,85,0.18)",
+  ink:         HUI?.COLOR?.ink         ?? "#141422",
+  inkMid:      HUI?.COLOR?.inkMid      ?? "#2E2E45",
+  muted:       HUI?.COLOR?.muted       ?? "#8A8A9E",
+  faint:       HUI?.COLOR?.faint       ?? "#C0C0D0",
+  sage:        HUI?.COLOR?.sage        ?? "#6BAE8F",
+  sagePale:    HUI?.COLOR?.sagePale    ?? "#EEF7F2",
+  violet:      HUI?.COLOR?.violet      ?? "#7264D6",
+  violetPale:  HUI?.COLOR?.violetPale  ?? "#F0EEFF",
+  gold:        HUI?.COLOR?.gold        ?? "#D4952A",
+  goldPale:    HUI?.COLOR?.goldPale    ?? "#FDF6E3",
 };
 
-// ── Utilities ────────────────────────────────────────────────────
+// ── Typ-Metadaten ────────────────────────────────────────────────
+const TYPE_META = {
+  work:       { label: "Werk",           accent: C.teal,   bg: C.tealPale   },
+  experience: { label: "Erlebnis",       accent: C.coral,  bg: C.coralGlow  },
+  event:      { label: "Event",          accent: C.violet, bg: C.violetPale },
+  impact:     { label: "Impact-Projekt", accent: C.sage,   bg: C.sagePale   },
+  moment:     { label: "Moment",         accent: C.gold,   bg: C.goldPale   },
+};
+
+// ── Haptik (iOS) ─────────────────────────────────────────────────
+function haptic(style = "light") {
+  try {
+    if (window.navigator?.vibrate) {
+      const ms = style === "success" ? [10, 60, 10] : style === "medium" ? [12] : [6];
+      window.navigator.vibrate(ms);
+    }
+  } catch (_) {}
+}
+
+// ── Preisformatierung ────────────────────────────────────────────
 function formatPrice(val) {
-  if (!val && val !== 0) return null;
+  if (val == null) return null;
   const n = typeof val === "string"
     ? parseFloat(val.replace(/[^0-9.,]/g, "").replace(",", "."))
     : Number(val);
-  if (!n || isNaN(n)) return null;
-  return n.toFixed(2).replace(".", ",") + " €";
+  if (!n || isNaN(n) || n <= 0) return null;
+  return n.toFixed(2).replace(".", ",") + "\u202F€";
 }
 
+function parseAmount(val) {
+  if (val == null) return 0;
+  const n = typeof val === "string"
+    ? parseFloat(val.replace(/[^0-9.,]/g, "").replace(",", "."))
+    : Number(val);
+  return isNaN(n) ? 0 : n;
+}
+
+// ── Gruppen nach Person ──────────────────────────────────────────
 function groupByPerson(items) {
   const map = new Map();
   for (const item of items) {
-    const key   = item.author?.id || item.creatorId || "unbekannt";
-    const name  = item.author?.name || "Unbekannte Person";
-    const avatar= item.author?.avatar || null;
+    const key    = item.author?.id || item.creatorId || "__unknown__";
+    const name   = item.author?.name || "Unbekannte Person";
+    const avatar = item.author?.avatar || null;
     if (!map.has(key)) map.set(key, { key, name, avatar, items: [] });
     map.get(key).items.push(item);
   }
   return Array.from(map.values());
 }
 
-// ── Floating Bowl Button ─────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+//  SCHALEN-ILLUSTRATION (SVG — inline, keine externe Datei)
+// ══════════════════════════════════════════════════════════════════
+function SchalenIcon({ size = 28, opacity = 1, filled = false }) {
+  return (
+    <svg
+      width={size} height={size} viewBox="0 0 32 32"
+      fill="none" xmlns="http://www.w3.org/2000/svg"
+      style={{ opacity, display: "block", flexShrink: 0 }}
+    >
+      {/* Schatten unter der Schale */}
+      <ellipse cx="16" cy="27.5" rx="9" ry="2" fill="rgba(20,20,34,0.08)" />
+
+      {/* Schalen-Körper — organische Form */}
+      <path
+        d="M5.5 16 C5.5 22.351 10.201 26.5 16 26.5 C21.799 26.5 26.5 22.351 26.5 16"
+        stroke={filled ? C.teal : C.inkMid}
+        strokeWidth={filled ? "2" : "1.6"}
+        strokeLinecap="round"
+        fill={filled ? `${C.teal}18` : "none"}
+      />
+
+      {/* Schalen-Rand oben — leicht gewölbt */}
+      <path
+        d="M4 16 C4 15.448 4.448 15 5 15 L27 15 C27.552 15 28 15.448 28 16"
+        stroke={filled ? C.teal : C.inkMid}
+        strokeWidth={filled ? "2" : "1.6"}
+        strokeLinecap="round"
+        fill="none"
+      />
+
+      {/* Kleiner Standring */}
+      <path
+        d="M12 26.5 C13.2 27.3 14.5 27.5 16 27.5 C17.5 27.5 18.8 27.3 20 26.5"
+        stroke={filled ? C.teal : C.muted}
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        fill="none"
+      />
+
+      {/* Innere Wölbung — Tiefe simulieren */}
+      <path
+        d="M9 16 C9 20.5 12 23.5 16 23.5 C20 23.5 23 20.5 23 16"
+        stroke={filled ? `${C.teal}88` : `${C.faint}`}
+        strokeWidth="1"
+        strokeLinecap="round"
+        fill="none"
+      />
+
+      {/* Highlight-Reflexion */}
+      <path
+        d="M8 15.2 C8.5 14.8 10 14.5 11.5 14.8"
+        stroke="rgba(255,255,255,0.7)"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        fill="none"
+      />
+    </svg>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  FLOATING BUTTON
+// ══════════════════════════════════════════════════════════════════
 export function WerkeKorbButton({ count, onOpen, glowing }) {
-  const [pulse, setPulse] = useState(false);
+  const [glow, setGlow] = useState(false);
+  const prevCount = useRef(count);
+
+  // Glow beim Hinzufügen eines neuen Items
+  useEffect(() => {
+    if (count > prevCount.current) {
+      setGlow(true);
+      haptic("light");
+      const t = setTimeout(() => setGlow(false), 600);
+      prevCount.current = count;
+      return () => clearTimeout(t);
+    }
+    prevCount.current = count;
+  }, [count]);
 
   useEffect(() => {
     if (glowing) {
-      setPulse(true);
-      const t = setTimeout(() => setPulse(false), 800);
+      setGlow(true);
+      const t = setTimeout(() => setGlow(false), 600);
       return () => clearTimeout(t);
     }
   }, [glowing]);
@@ -57,161 +171,222 @@ export function WerkeKorbButton({ count, onOpen, glowing }) {
       onClick={onOpen}
       aria-label="Werkekorb öffnen"
       style={{
-        position:        "fixed",
-        bottom:          "calc(66px + max(14px, env(safe-area-inset-bottom, 14px)) + 20px)",
-        right:           18,
-        zIndex:          9500,
-        width:           52,
-        height:          52,
-        borderRadius:    "50%",
-        background:      "rgba(250,247,242,0.92)",
-        backdropFilter:  "blur(14px)",
-        WebkitBackdropFilter: "blur(14px)",
-        border:          "1.5px solid rgba(13,196,181,0.18)",
-        boxShadow:       pulse
-          ? "0 0 0 8px rgba(13,196,181,0.18), 0 4px 20px rgba(20,20,34,0.12)"
-          : "0 4px 20px rgba(20,20,34,0.10)",
-        display:         "flex",
-        alignItems:      "center",
-        justifyContent:  "center",
-        cursor:          "pointer",
-        transition:      "box-shadow 400ms ease, transform 200ms ease",
-        transform:       pulse ? "scale(1.08)" : "scale(1)",
-        userSelect:      "none",
+        position:     "fixed",
+        bottom:       `calc(66px + max(14px, env(safe-area-inset-bottom, 14px)) + 20px)`,
+        right:        16,
+        zIndex:       9500,
+        width:        50,
+        height:       50,
+        borderRadius: "50%",
+        background:   glow
+          ? "rgba(230,250,248,0.97)"
+          : "rgba(253,251,248,0.94)",
+        backdropFilter:       "blur(16px) saturate(1.4)",
+        WebkitBackdropFilter: "blur(16px) saturate(1.4)",
+        border:       glow
+          ? `1.5px solid rgba(13,196,181,0.45)`
+          : `1.5px solid rgba(20,20,34,0.09)`,
+        boxShadow:    glow
+          ? `0 0 0 6px rgba(13,196,181,0.10), 0 4px 20px rgba(13,196,181,0.16), 0 2px 8px rgba(20,20,34,0.08)`
+          : `0 4px 16px rgba(20,20,34,0.10), 0 1px 4px rgba(20,20,34,0.06)`,
+        display:      "flex",
+        alignItems:   "center",
+        justifyContent: "center",
+        cursor:       "pointer",
+        transition:   `box-shadow ${DUR.mood}ms ${EASE.outGentle}, border-color ${DUR.mood}ms ${EASE.outGentle}, background ${DUR.mood}ms ${EASE.outGentle}`,
+        outline:      "none",
+        padding:      0,
+        userSelect:   "none",
         WebkitTapHighlightColor: "transparent",
-        outline:         "none",
-        padding:         0,
       }}
     >
-      {/* Schale */}
-      <span style={{ fontSize: 26, lineHeight: 1, opacity: count > 0 ? 1 : 0.45 }}>
-        🏺
-      </span>
+      <SchalenIcon size={26} opacity={count > 0 ? 1 : 0.42} filled={count > 0} />
 
-      {/* Teal-Punkt wenn gefüllt */}
-      {count > 0 && (
+      {/* Kein Badge — nur Teal-Punkt bei 1 Item */}
+      {count === 1 && (
         <span style={{
-          position:   "absolute",
-          top:        7,
-          right:      7,
-          width:      count > 9 ? "auto" : 16,
-          height:     16,
-          minWidth:   16,
-          padding:    count > 9 ? "0 4px" : 0,
+          position:    "absolute",
+          top:         8,
+          right:       8,
+          width:       8,
+          height:      8,
+          borderRadius:"50%",
+          background:  C.teal,
+          boxShadow:   `0 0 0 2px rgba(253,251,248,0.9)`,
+          transition:  `opacity ${DUR.micro}ms ${EASE.out}`,
+        }} />
+      )}
+
+      {/* Badge ab 2 Items */}
+      {count >= 2 && (
+        <span style={{
+          position:    "absolute",
+          top:         6,
+          right:       6,
+          minWidth:    17,
+          height:      17,
+          padding:     "0 4px",
           borderRadius: 99,
-          background: TEAL,
-          color:      "#fff",
-          fontSize:   10,
-          fontWeight: 700,
-          display:    "flex",
-          alignItems: "center",
+          background:  C.teal,
+          color:       "#fff",
+          fontSize:    10,
+          fontWeight:  700,
+          display:     "flex",
+          alignItems:  "center",
           justifyContent: "center",
-          lineHeight: 1,
-          boxShadow:  "0 1px 4px rgba(13,196,181,0.35)",
+          lineHeight:  1,
+          boxShadow:   `0 1px 6px rgba(13,196,181,0.40), 0 0 0 2px rgba(253,251,248,0.9)`,
+          fontVariantNumeric: "tabular-nums",
+          letterSpacing: -0.3,
+          transition:  `opacity ${DUR.micro}ms ${EASE.out}`,
         }}>
-          {count > 0 ? count : ""}
+          {count > 9 ? "9+" : count}
         </span>
       )}
     </button>
   );
 }
 
-// ── Korb-Karte ───────────────────────────────────────────────────
-function KorbKarte({ item, onRemove, idx }) {
-  const meta    = TYPE_META[item.type] || TYPE_META.moment;
-  const price   = formatPrice(item._raw?.price ?? item.price);
-  const thumb   = item._raw?.cover_url || item.cover_url || item.img || null;
-  const title   = item.title || item._raw?.title || item.name || "Ohne Titel";
+// ══════════════════════════════════════════════════════════════════
+//  KARTE
+// ══════════════════════════════════════════════════════════════════
+function KorbKarte({ item, onRemove, idx, removing }) {
+  const meta   = TYPE_META[item.type] || TYPE_META.work;
+  const price  = formatPrice(item._raw?.price ?? item.price);
+  const thumb  = item._raw?.cover_url || item.cover_url || item.img || null;
+  const title  = item.title || item._raw?.title || item.name || "Ohne Titel";
+  const impact = price ? formatPrice(parseAmount(item._raw?.price ?? item.price) * 0.07) : null;
+
+  const [pressed, setPressed] = useState(false);
 
   return (
     <div
       style={{
-        display:       "flex",
-        gap:           12,
-        padding:       "14px 0",
-        borderBottom:  "1px solid rgba(20,20,34,0.07)",
-        animation:     `huiKorbSlideIn 320ms ${idx * 60}ms both cubic-bezier(0.22,1,0.36,1)`,
+        background:   C.creamSoft,
+        borderRadius: 16,
+        padding:      "14px 14px 14px 14px",
+        marginBottom: 10,
+        display:      "flex",
+        gap:          13,
+        alignItems:   "flex-start",
+        boxShadow:    "0 2px 12px rgba(20,20,34,0.06), 0 1px 3px rgba(20,20,34,0.04)",
+        border:       `1px solid rgba(20,20,34,0.05)`,
+        transform:    removing ? "translateX(-16px)" : pressed ? "scale(0.98)" : "scale(1)",
+        opacity:      removing ? 0 : 1,
+        transition:   removing
+          ? `transform ${DUR.normal}ms ${EASE.in}, opacity ${DUR.normal}ms ${EASE.in}`
+          : `transform ${DUR.tap}ms ${EASE.outSoft}`,
+        animation:    !removing ? `huiKorbFadeUp ${DUR.page}ms ${idx * 60}ms both ${EASE.outSoft}` : "none",
+        willChange:   "transform, opacity",
       }}
+      onPointerDown={() => setPressed(true)}
+      onPointerUp={() => setPressed(false)}
+      onPointerLeave={() => setPressed(false)}
     >
       {/* Thumbnail */}
       <div style={{
-        width:        52,
-        height:       52,
-        borderRadius: 12,
-        overflow:     "hidden",
-        flexShrink:   0,
-        background:   `linear-gradient(135deg, ${meta.accent}22, ${meta.accent}44)`,
-        display:      "flex",
-        alignItems:   "center",
+        width:          56,
+        height:         56,
+        borderRadius:   12,
+        overflow:       "hidden",
+        flexShrink:     0,
+        background:     `${meta.bg}`,
+        display:        "flex",
+        alignItems:     "center",
         justifyContent: "center",
       }}>
         {thumb
-          ? <img src={thumb} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-          : <span style={{ fontSize: 22, opacity: 0.7 }}>{meta.icon}</span>
+          ? <img
+              src={thumb}
+              alt=""
+              loading="lazy"
+              style={{ width:"100%", height:"100%", objectFit:"cover" }}
+            />
+          : <span style={{ fontSize: 22, opacity: 0.5, color: meta.accent }}>◈</span>
         }
       </div>
 
-      {/* Info */}
+      {/* Inhalt */}
       <div style={{ flex: 1, minWidth: 0 }}>
+        {/* Typ-Label */}
         <div style={{
-          display:    "flex",
-          alignItems: "center",
-          gap:        6,
-          marginBottom: 2,
+          display:     "inline-flex",
+          alignItems:  "center",
+          gap:         4,
+          marginBottom: 4,
+          padding:     "2px 7px",
+          borderRadius: 99,
+          background:  meta.bg,
+          border:      `1px solid ${meta.accent}28`,
         }}>
           <span style={{
-            fontSize:    10,
-            fontWeight:  700,
-            color:       meta.accent,
-            letterSpacing: 0.5,
+            fontSize:     10,
+            fontWeight:   700,
+            color:        meta.accent,
+            letterSpacing: 0.3,
             textTransform: "uppercase",
           }}>
             {meta.label}
           </span>
         </div>
+
+        {/* Titel */}
         <div style={{
-          fontSize:   14,
-          fontWeight: 600,
-          color:      INK,
-          lineHeight: 1.3,
-          overflow:   "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-          maxWidth:   "100%",
+          fontSize:    15,
+          fontWeight:  700,
+          color:       C.ink,
+          lineHeight:  1.3,
+          overflow:    "hidden",
+          textOverflow:"ellipsis",
+          whiteSpace:  "nowrap",
         }}>
           {title}
         </div>
+
+        {/* Preis + Impact */}
         {price && (
-          <div style={{
-            fontSize:   13,
-            color:      "#666",
-            marginTop:  2,
-            fontVariantNumeric: "tabular-nums",
-          }}>
-            {price}
+          <div style={{ marginTop: 5, display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{
+              fontSize: 14,
+              fontWeight: 700,
+              color:    C.ink,
+              fontVariantNumeric: "tabular-nums",
+            }}>
+              {price}
+            </span>
+            {impact && (
+              <span style={{
+                fontSize: 11,
+                color:    C.sage,
+                fontWeight: 500,
+              }}>
+                + {impact} Wirkung
+              </span>
+            )}
           </div>
         )}
       </div>
 
-      {/* Entfernen */}
+      {/* Entfernen-Button */}
       <button
-        onClick={() => onRemove(item)}
+        onPointerDown={e => { e.stopPropagation(); }}
+        onClick={() => { haptic("medium"); onRemove(item); }}
         aria-label="Entfernen"
         style={{
-          width:       32,
-          height:      32,
+          width:       30,
+          height:      30,
           borderRadius: "50%",
-          border:      "none",
-          background:  "rgba(20,20,34,0.05)",
-          color:       "#999",
-          fontSize:    16,
+          border:      `1px solid rgba(20,20,34,0.09)`,
+          background:  "rgba(20,20,34,0.04)",
+          color:       C.muted,
+          fontSize:    15,
           display:     "flex",
           alignItems:  "center",
           justifyContent: "center",
           cursor:      "pointer",
           flexShrink:  0,
-          alignSelf:   "center",
-          transition:  "background 200ms",
+          marginTop:   0,
+          transition:  `background ${DUR.tap}ms ${EASE.out}, color ${DUR.tap}ms ${EASE.out}`,
           outline:     "none",
           padding:     0,
           WebkitTapHighlightColor: "transparent",
@@ -223,28 +398,35 @@ function KorbKarte({ item, onRemove, idx }) {
   );
 }
 
-// ── Personen-Gruppe ───────────────────────────────────────────────
-function PersonGruppe({ group, onRemove }) {
+// ══════════════════════════════════════════════════════════════════
+//  PERSONEN-GRUPPE
+// ══════════════════════════════════════════════════════════════════
+function PersonGruppe({ group, onRemove, removingId }) {
   return (
-    <div style={{ marginBottom: 8 }}>
-      {/* Personen-Header */}
+    <div style={{ marginBottom: 4 }}>
+      {/* Personen-Linie */}
       <div style={{
         display:     "flex",
         alignItems:  "center",
-        gap:         10,
-        paddingTop:  16,
-        paddingBottom: 4,
+        gap:         9,
+        padding:     "14px 0 8px",
       }}>
         {group.avatar
-          ? <img src={group.avatar} alt="" style={{
-              width: 28, height: 28, borderRadius: "50%", objectFit: "cover",
-              flexShrink: 0,
-            }} />
+          ? <img
+              src={group.avatar}
+              alt=""
+              style={{
+                width: 26, height: 26, borderRadius: "50%",
+                objectFit: "cover", flexShrink: 0,
+                border: `1.5px solid ${C.tealPale}`,
+              }}
+            />
           : <div style={{
-              width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
-              background: "linear-gradient(135deg, #0DC4B522, #F4735522)",
+              width: 26, height: 26, borderRadius: "50%", flexShrink: 0,
+              background: `linear-gradient(135deg, ${C.tealPale}, ${C.creamDeep})`,
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 13, fontWeight: 700, color: TEAL,
+              fontSize: 12, fontWeight: 800, color: C.teal,
+              border: `1px solid ${C.tealGlow}`,
             }}>
               {group.name.charAt(0).toUpperCase()}
             </div>
@@ -252,90 +434,124 @@ function PersonGruppe({ group, onRemove }) {
         <span style={{
           fontSize:   13,
           fontWeight: 700,
-          color:      INK,
+          color:      C.ink,
           letterSpacing: -0.2,
+          flex: 1,
         }}>
           {group.name}
         </span>
         <span style={{
           fontSize:  11,
-          color:     "#aaa",
-          marginLeft: "auto",
+          color:     C.muted,
+          fontWeight: 500,
         }}>
           {group.items.length} {group.items.length === 1 ? "Auswahl" : "Auswahlen"}
         </span>
       </div>
 
-      {/* Karten */}
       {group.items.map((item, idx) => (
-        <KorbKarte key={item.id || idx} item={item} onRemove={onRemove} idx={idx} />
+        <KorbKarte
+          key={item.id || idx}
+          item={item}
+          onRemove={onRemove}
+          idx={idx}
+          removing={removingId === item.id}
+        />
       ))}
     </div>
   );
 }
 
-// ── Leerer Zustand ────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+//  LEERER ZUSTAND
+// ══════════════════════════════════════════════════════════════════
 function LeererKorb({ onDiscover, onClose }) {
   return (
     <div style={{
-      display:        "flex",
-      flexDirection:  "column",
-      alignItems:     "center",
-      justifyContent: "center",
-      padding:        "48px 32px",
-      textAlign:      "center",
-      gap:            16,
+      display:       "flex",
+      flexDirection: "column",
+      alignItems:    "center",
+      padding:       "52px 32px 36px",
+      textAlign:     "center",
+      gap:           0,
     }}>
-      <div style={{ fontSize: 64, opacity: 0.35, lineHeight: 1 }}>🏺</div>
-      <div>
+      {/* Illustration */}
+      <div style={{
+        marginBottom: 28,
+        position:     "relative",
+        width:        80,
+        height:       80,
+        display:      "flex",
+        alignItems:   "center",
+        justifyContent: "center",
+      }}>
+        {/* Halo */}
         <div style={{
-          fontSize:   18,
-          fontWeight: 700,
-          color:      INK,
-          marginBottom: 8,
-          letterSpacing: -0.4,
-          lineHeight: 1.3,
-        }}>
-          Dein Werkekorb ist noch<br/>ein leerer Raum.
-        </div>
-        <div style={{
-          fontSize:   14,
-          color:      "#888",
-          lineHeight: 1.6,
-          maxWidth:   260,
-          margin:     "0 auto",
-        }}>
-          Hier sammelst du Werke, Erlebnisse und Projekte von Menschen, die dich berühren.
-        </div>
+          position:    "absolute",
+          inset:       -12,
+          borderRadius:"50%",
+          background:  `radial-gradient(circle, ${C.tealPale} 0%, transparent 70%)`,
+          opacity:     0.8,
+        }} />
+        <SchalenIcon size={56} opacity={0.35} filled={false} />
       </div>
-      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center", marginTop: 8 }}>
-        <button onClick={onDiscover} style={{
-          padding:      "11px 22px",
-          borderRadius: 99,
-          border:       "none",
-          background:   `linear-gradient(135deg, ${TEAL}, #16D7C5)`,
-          color:        "#fff",
-          fontWeight:   700,
-          fontSize:     14,
-          cursor:       "pointer",
-          outline:      "none",
-          WebkitTapHighlightColor: "transparent",
-          boxShadow:    "0 4px 14px rgba(13,196,181,0.28)",
-        }}>
+
+      <div style={{
+        fontSize:    20,
+        fontWeight:  800,
+        color:       C.ink,
+        lineHeight:  1.3,
+        letterSpacing: -0.5,
+        marginBottom: 12,
+      }}>
+        Dein Werkekorb ist noch<br />ein leerer Raum.
+      </div>
+      <div style={{
+        fontSize:    14,
+        color:       C.muted,
+        lineHeight:  1.65,
+        maxWidth:    260,
+        marginBottom: 32,
+      }}>
+        Hier sammelst du Werke, Erlebnisse und Projekte von Menschen, die dich berühren.
+      </div>
+
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
+        <button
+          onClick={onDiscover}
+          style={{
+            padding:      "12px 24px",
+            borderRadius: 99,
+            border:       "none",
+            background:   `linear-gradient(135deg, ${C.teal} 0%, #16D7C5 100%)`,
+            color:        "#fff",
+            fontWeight:   700,
+            fontSize:     14,
+            letterSpacing:-.2,
+            cursor:       "pointer",
+            outline:      "none",
+            boxShadow:    `0 6px 20px rgba(13,196,181,0.30)`,
+            WebkitTapHighlightColor: "transparent",
+            transition:   `transform ${DUR.tap}ms ${EASE.outSoft}`,
+          }}
+        >
           Entdecken
         </button>
-        <button onClick={onClose} style={{
-          padding:      "11px 22px",
-          borderRadius: 99,
-          border:       "1.5px solid rgba(20,20,34,0.12)",
-          background:   "transparent",
-          color:        INK,
-          fontWeight:   600,
-          fontSize:     14,
-          cursor:       "pointer",
-          outline:      "none",
-          WebkitTapHighlightColor: "transparent",
-        }}>
+        <button
+          onClick={onClose}
+          style={{
+            padding:      "12px 24px",
+            borderRadius: 99,
+            border:       `1.5px solid rgba(20,20,34,0.12)`,
+            background:   "transparent",
+            color:        C.inkMid,
+            fontWeight:   600,
+            fontSize:     14,
+            cursor:       "pointer",
+            outline:      "none",
+            WebkitTapHighlightColor: "transparent",
+          }}
+        >
           Deinen Raum öffnen
         </button>
       </div>
@@ -343,81 +559,112 @@ function LeererKorb({ onDiscover, onClose }) {
   );
 }
 
-// ── Erfolgs-Screen ────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+//  ERFOLGS-SCREEN
+// ══════════════════════════════════════════════════════════════════
 function ErfolgsScreen({ result, onChat, onDiscover }) {
-  const { count, creators } = result;
   return (
     <div style={{
-      display:        "flex",
-      flexDirection:  "column",
-      alignItems:     "center",
-      textAlign:      "center",
-      padding:        "48px 24px 32px",
-      gap:            16,
+      display:       "flex",
+      flexDirection: "column",
+      alignItems:    "center",
+      textAlign:     "center",
+      padding:       "52px 28px 36px",
+      gap:           0,
+      animation:     `huiKorbFadeUp ${DUR.page}ms ${EASE.outSoft} both`,
     }}>
-      <div style={{ fontSize: 52, lineHeight: 1 }}>✦</div>
-      <div>
-        <div style={{
-          fontSize:   20,
-          fontWeight: 800,
-          color:      INK,
-          marginBottom: 10,
-          letterSpacing: -0.5,
-        }}>
-          Unterstützung angekommen.
-        </div>
-        <div style={{
-          fontSize:   14,
-          color:      "#666",
-          lineHeight: 1.6,
-          maxWidth:   280,
-          margin:     "0 auto",
-        }}>
-          Du hast heute{" "}
-          <strong>{count} {count === 1 ? "Auswahl" : "Auswahlen"}</strong>
-          {creators > 0 && (
-            <> von <strong>{creators} {creators === 1 ? "Person" : "Menschen"}</strong></>
-          )}{" "}unterstützt.
-        </div>
-      </div>
+      {/* Symbol */}
       <div style={{
-        fontSize:  12,
-        color:     "#bbb",
-        fontStyle: "italic",
-        maxWidth:  240,
+        width:        72,
+        height:       72,
+        borderRadius: "50%",
+        background:   `radial-gradient(circle, ${C.tealPale} 0%, ${C.cream} 80%)`,
+        display:      "flex",
+        alignItems:   "center",
+        justifyContent: "center",
+        marginBottom: 24,
+        boxShadow:    `0 0 0 12px rgba(13,196,181,0.06)`,
+        fontSize:     32,
       }}>
-        Die Verbindung zu Menschen entsteht niemals automatisch durch Unterstützung.
+        ✦
       </div>
-      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center", marginTop: 8 }}>
+
+      <div style={{
+        fontSize:    22,
+        fontWeight:  800,
+        color:       C.ink,
+        letterSpacing:-0.6,
+        lineHeight:  1.2,
+        marginBottom: 12,
+      }}>
+        Unterstützung angekommen.
+      </div>
+
+      <div style={{
+        fontSize:    14,
+        color:       C.muted,
+        lineHeight:  1.65,
+        maxWidth:    280,
+        marginBottom: 12,
+      }}>
+        Du hast heute{" "}
+        <strong style={{ color: C.inkMid }}>{result.count} {result.count === 1 ? "Auswahl" : "Auswahlen"}</strong>
+        {result.creators > 0 && (
+          <> von{" "}
+            <strong style={{ color: C.inkMid }}>
+              {result.creators} {result.creators === 1 ? "Person" : "Menschen"}
+            </strong>
+          </>
+        )}{" "}unterstützt.
+      </div>
+
+      <div style={{
+        fontSize:   12,
+        color:      C.faint,
+        fontStyle:  "italic",
+        maxWidth:   240,
+        lineHeight: 1.6,
+        marginBottom: 32,
+      }}>
+        Die Verbindung entsteht niemals automatisch. Sie bleibt immer deine Wahl.
+      </div>
+
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
         {onChat && (
-          <button onClick={onChat} style={{
-            padding:      "11px 22px",
-            borderRadius: 99,
-            border:       "none",
-            background:   `linear-gradient(135deg, ${TEAL}, #16D7C5)`,
-            color:        "#fff",
-            fontWeight:   700,
-            fontSize:     14,
-            cursor:       "pointer",
-            outline:      "none",
-            boxShadow:    "0 4px 14px rgba(13,196,181,0.28)",
-            WebkitTapHighlightColor: "transparent",
-          }}>
+          <button
+            onClick={() => { haptic("light"); onChat(); }}
+            style={{
+              padding:      "12px 24px",
+              borderRadius: 99,
+              border:       "none",
+              background:   `linear-gradient(135deg, ${C.teal}, #16D7C5)`,
+              color:        "#fff",
+              fontWeight:   700,
+              fontSize:     14,
+              cursor:       "pointer",
+              outline:      "none",
+              boxShadow:    `0 6px 20px rgba(13,196,181,0.28)`,
+              WebkitTapHighlightColor: "transparent",
+            }}
+          >
             Verbinden
           </button>
         )}
-        <button onClick={onDiscover} style={{
-          padding:      "11px 22px",
-          borderRadius: 99,
-          border:       "1.5px solid rgba(20,20,34,0.12)",
-          background:   "transparent",
-          color:        INK,
-          fontWeight:   600,
-          fontSize:     14,
-          cursor:       "pointer",
-          outline:      "none",
-          WebkitTapHighlightColor: "transparent",
-        }}>
+        <button
+          onClick={onDiscover}
+          style={{
+            padding:      "12px 24px",
+            borderRadius: 99,
+            border:       `1.5px solid rgba(20,20,34,0.12)`,
+            background:   "transparent",
+            color:        C.inkMid,
+            fontWeight:   600,
+            fontSize:     14,
+            cursor:       "pointer",
+            outline:      "none",
+            WebkitTapHighlightColor: "transparent",
+          }}
+        >
           Weiter entdecken
         </button>
       </div>
@@ -425,137 +672,188 @@ function ErfolgsScreen({ result, onChat, onDiscover }) {
   );
 }
 
-// ── Haupt-Komponente: WerkeKorb ──────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+//  IMPACT-ZEILE
+// ══════════════════════════════════════════════════════════════════
+function ImpactZeile({ impactEur }) {
+  if (!impactEur || impactEur <= 0) return null;
+  const impactStr = impactEur.toFixed(2).replace(".", ",");
+  return (
+    <div style={{
+      display:     "flex",
+      alignItems:  "flex-start",
+      gap:         10,
+      padding:     "12px 14px",
+      borderRadius: 12,
+      background:  C.sagePale,
+      border:      `1px solid rgba(107,174,143,0.20)`,
+      marginBottom: 14,
+    }}>
+      <span style={{ fontSize: 16, flexShrink: 0, marginTop: 1 }}>🌱</span>
+      <div>
+        <div style={{
+          fontSize:   12,
+          fontWeight: 700,
+          color:      C.sage,
+          letterSpacing: 0.2,
+          marginBottom: 2,
+        }}>
+          Dein Impact
+        </div>
+        <div style={{
+          fontSize:   13,
+          color:      C.inkMid,
+          lineHeight: 1.4,
+        }}>
+          {impactStr} € fließen in den HUI Impact Pool.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  HAUPT-KOMPONENTE
+// ══════════════════════════════════════════════════════════════════
 export default function WerkeKorb({
-  items = [],           // Array normalisierter FeedItems
+  items = [],
   onClose,
   onRemove,
-  onUnterstuetzen,      // async fn(items) → Promise
+  onUnterstuetzen,
   onDiscover,
-  onChat,               // optional: öffnet Chat mit erstem Creator
+  onChat,
 }) {
-  const [phase,  setPhase]  = useState("list");  // list | loading | success
-  const [result, setResult] = useState(null);
-  const sheetRef = useRef(null);
+  const [phase,     setPhase]     = useState("list");
+  const [result,    setResult]    = useState(null);
+  const [removingId, setRemovingId] = useState(null);
 
-  const groups   = groupByPerson(items);
-  const total    = items.reduce((s, item) => {
-    const raw = item._raw?.price ?? item.price ?? 0;
-    const n   = typeof raw === "string"
-      ? parseFloat(raw.replace(/[^0-9.,]/g, "").replace(",", "."))
-      : Number(raw);
-    return s + (isNaN(n) ? 0 : n);
-  }, 0);
-  const impact   = Math.max(0, +(total * 0.07).toFixed(2));
-  const gesamt   = +(total + impact).toFixed(2);
-  const pCount   = groups.length;
-  const iCount   = items.length;
+  const groups = groupByPerson(items);
+  const iCount = items.length;
+  const pCount = groups.length;
+
+  const total  = items.reduce((s, item) =>
+    s + parseAmount(item._raw?.price ?? item.price), 0);
+  const impact = +(total * 0.07).toFixed(2);
+  const gesamt = +(total + impact).toFixed(2);
+
+  // Entfernen mit Animation
+  const handleRemove = useCallback((item) => {
+    setRemovingId(item.id);
+    setTimeout(() => {
+      onRemove?.(item);
+      setRemovingId(null);
+    }, DUR.normal);
+  }, [onRemove]);
 
   async function handleUnterstuetzen() {
     if (!onUnterstuetzen || items.length === 0) return;
+    haptic("success");
     setPhase("loading");
     try {
       await onUnterstuetzen(items);
       setResult({ count: iCount, creators: pCount });
       setPhase("success");
     } catch (err) {
-      console.error("[WerkeKorb] Unterstützung fehlgeschlagen:", err);
+      console.error("[WerkeKorb] Fehler:", err);
       setPhase("list");
     }
   }
 
-  // Schließen bei Backdrop-Klick
+  // Backdrop-Tap → Schließen
   function handleBackdropClick(e) {
     if (e.target === e.currentTarget) onClose?.();
   }
 
   return (
     <>
+      {/* ── CSS-Keyframes ─────────────────────────────────────── */}
       <style>{`
-        @keyframes huiKorbSlideIn {
-          from { opacity:0; transform:translateY(10px); }
+        @keyframes huiKorbFadeUp {
+          from { opacity:0; transform:translateY(12px); }
           to   { opacity:1; transform:translateY(0); }
         }
-        @keyframes huiSheetUp {
-          from { transform:translateY(100%); opacity:0.6; }
-          to   { transform:translateY(0);    opacity:1; }
+        @keyframes huiSheetRise {
+          from { transform:translateY(100%); }
+          to   { transform:translateY(0); }
         }
-        @keyframes huiFadeIn {
+        @keyframes huiBackdropIn {
           from { opacity:0; }
           to   { opacity:1; }
         }
       `}</style>
 
-      {/* Backdrop */}
+      {/* ── Backdrop ──────────────────────────────────────────── */}
       <div
         onClick={handleBackdropClick}
         style={{
           position:   "fixed",
           inset:      0,
           zIndex:     9800,
-          background: "rgba(20,20,34,0.38)",
-          backdropFilter: "blur(3px)",
-          WebkitBackdropFilter: "blur(3px)",
-          animation:  "huiFadeIn 320ms ease",
+          background: "rgba(20,20,34,0.32)",
+          backdropFilter:       "blur(4px)",
+          WebkitBackdropFilter: "blur(4px)",
+          animation:  `huiBackdropIn ${DUR.page}ms ${EASE.outGentle} both`,
         }}
       />
 
-      {/* Bottom Sheet */}
+      {/* ── Bottom Sheet ──────────────────────────────────────── */}
       <div
-        ref={sheetRef}
         style={{
-          position:     "fixed",
-          left:         0,
-          right:        0,
-          bottom:       0,
-          zIndex:       9900,
-          background:   CREAM,
-          borderRadius: "24px 24px 0 0",
-          boxShadow:    "0 -8px 48px rgba(20,20,34,0.14)",
-          maxHeight:    "86vh",
-          display:      "flex",
-          flexDirection:"column",
-          animation:    "huiSheetUp 320ms cubic-bezier(0.22,1,0.36,1)",
-          paddingBottom:"max(20px, env(safe-area-inset-bottom, 20px))",
-          overflow:     "hidden",
+          position:      "fixed",
+          left:          0,
+          right:         0,
+          bottom:        0,
+          zIndex:        9900,
+          background:    C.cream,
+          borderRadius:  "22px 22px 0 0",
+          boxShadow:     "0 -12px 48px rgba(20,20,34,0.14), 0 -2px 8px rgba(20,20,34,0.06)",
+          maxHeight:     "88vh",
+          display:       "flex",
+          flexDirection: "column",
+          animation:     `huiSheetRise ${DUR.page}ms ${EASE.outSoft} both`,
+          paddingBottom: `max(20px, env(safe-area-inset-bottom, 20px))`,
+          overflow:      "hidden",
         }}
       >
         {/* Handle */}
         <div style={{
-          width:        40,
+          width:        36,
           height:       4,
           borderRadius: 99,
-          background:   "rgba(20,20,34,0.12)",
+          background:   "rgba(20,20,34,0.10)",
           margin:       "12px auto 0",
           flexShrink:   0,
         }} />
 
         {/* Header */}
         <div style={{
-          padding:        "16px 20px 0",
+          padding:        "16px 20px 12px",
           flexShrink:     0,
           display:        "flex",
           alignItems:     "flex-start",
           justifyContent: "space-between",
+          borderBottom:   `1px solid rgba(20,20,34,0.06)`,
         }}>
           <div>
             <div style={{
-              fontSize:    20,
+              fontSize:    21,
               fontWeight:  800,
-              color:       INK,
+              color:       C.ink,
               letterSpacing: -0.5,
               lineHeight:  1.2,
             }}>
               Dein Werkekorb
             </div>
-            {iCount > 0 && (
+            {iCount > 0 && phase !== "success" && (
               <div style={{
-                fontSize: 13,
-                color:    "#888",
+                fontSize:  13,
+                color:     C.muted,
                 marginTop: 3,
+                fontWeight: 500,
               }}>
                 {iCount} {iCount === 1 ? "Auswahl" : "Auswahlen"}
-                {pCount > 0 && ` · ${pCount} ${pCount === 1 ? "Mensch" : "Menschen"}`}
+                {pCount > 1 && ` · ${pCount} Menschen`}
+                {pCount === 1 && ` · 1 Mensch`}
               </div>
             )}
           </div>
@@ -563,16 +861,16 @@ export default function WerkeKorb({
             onClick={onClose}
             aria-label="Schließen"
             style={{
-              width:       36,
-              height:      36,
+              width:       34,
+              height:      34,
               borderRadius:"50%",
-              border:      "none",
-              background:  "rgba(20,20,34,0.06)",
-              color:       "#888",
-              fontSize:    18,
+              border:      `1px solid rgba(20,20,34,0.09)`,
+              background:  "rgba(20,20,34,0.05)",
+              color:       C.muted,
+              fontSize:    17,
               display:     "flex",
               alignItems:  "center",
-              justifyContent: "center",
+              justifyContent:"center",
               cursor:      "pointer",
               outline:     "none",
               padding:     0,
@@ -584,12 +882,14 @@ export default function WerkeKorb({
           </button>
         </div>
 
-        {/* Content — scrollbar */}
+        {/* Scroll-Bereich */}
         <div style={{
           flex:       1,
           overflowY:  "auto",
-          padding:    "0 20px",
+          padding:    "0 16px",
           WebkitOverflowScrolling: "touch",
+          // Scrollbar dezent auf iOS
+          scrollbarWidth: "none",
         }}>
           {phase === "success" && result ? (
             <ErfolgsScreen
@@ -597,62 +897,77 @@ export default function WerkeKorb({
               onChat={onChat}
               onDiscover={() => { onDiscover?.(); onClose?.(); }}
             />
-          ) : items.length === 0 ? (
+          ) : iCount === 0 ? (
             <LeererKorb
               onDiscover={() => { onDiscover?.(); onClose?.(); }}
               onClose={onClose}
             />
           ) : (
-            groups.map(group => (
-              <PersonGruppe
-                key={group.key}
-                group={group}
-                onRemove={onRemove}
-              />
-            ))
+            <div style={{ paddingBottom: 16 }}>
+              {groups.map(group => (
+                <PersonGruppe
+                  key={group.key}
+                  group={group}
+                  onRemove={handleRemove}
+                  removingId={removingId}
+                />
+              ))}
+            </div>
           )}
         </div>
 
-        {/* Sticky Footer — nur wenn Inhalt vorhanden und nicht Erfolg */}
-        {items.length > 0 && phase !== "success" && (
+        {/* Sticky Footer */}
+        {iCount > 0 && phase !== "success" && (
           <div style={{
-            padding:    "16px 20px 0",
-            borderTop:  "1px solid rgba(20,20,34,0.07)",
+            padding:    "14px 16px 0",
+            borderTop:  `1px solid rgba(20,20,34,0.07)`,
             flexShrink: 0,
           }}>
+            {/* Impact-Zeile */}
+            <ImpactZeile impactEur={impact} />
+
             {/* Summen */}
-            <div style={{ display:"flex", flexDirection:"column", gap: 6, marginBottom: 14 }}>
-              {total > 0 && (
-                <>
-                  <div style={{ display:"flex", justifyContent:"space-between", fontSize: 13, color: "#888" }}>
-                    <span>Zwischensumme</span>
-                    <span style={{ fontVariantNumeric:"tabular-nums" }}>
-                      {total.toFixed(2).replace(".", ",")} €
-                    </span>
-                  </div>
-                  <div style={{ display:"flex", justifyContent:"space-between", fontSize: 13, color: "#888" }}>
-                    <span>Impact-Beitrag <span style={{ fontSize:11, color: TEAL }}>+7 %</span></span>
-                    <span style={{ fontVariantNumeric:"tabular-nums", color: TEAL }}>
-                      +{impact.toFixed(2).replace(".", ",")} €
-                    </span>
-                  </div>
-                  <div style={{
-                    display:       "flex",
-                    justifyContent:"space-between",
-                    fontSize:      16,
-                    fontWeight:    700,
-                    color:         INK,
-                    paddingTop:    6,
-                    borderTop:     "1px solid rgba(20,20,34,0.07)",
-                  }}>
-                    <span>Gesamt</span>
-                    <span style={{ fontVariantNumeric:"tabular-nums" }}>
-                      {gesamt.toFixed(2).replace(".", ",")} €
-                    </span>
-                  </div>
-                </>
-              )}
-            </div>
+            {total > 0 && (
+              <div style={{
+                display:       "flex",
+                flexDirection: "column",
+                gap:           6,
+                marginBottom:  14,
+                padding:       "10px 14px",
+                background:    C.creamSoft,
+                borderRadius:  12,
+                border:        `1px solid rgba(20,20,34,0.05)`,
+              }}>
+                <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, color:C.muted }}>
+                  <span>Zwischensumme</span>
+                  <span style={{ fontVariantNumeric:"tabular-nums" }}>
+                    {total.toFixed(2).replace(".", ",")}\u202F€
+                  </span>
+                </div>
+                <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, color:C.sage }}>
+                  <span>🌱 Impact-Beitrag <span style={{ opacity:.7, fontSize:11 }}>+7 %</span></span>
+                  <span style={{ fontVariantNumeric:"tabular-nums" }}>
+                    + {impact.toFixed(2).replace(".", ",")}\u202F€
+                  </span>
+                </div>
+                <div style={{
+                  display:        "flex",
+                  justifyContent: "space-between",
+                  fontSize:       16,
+                  fontWeight:     800,
+                  color:          C.ink,
+                  paddingTop:     8,
+                  marginTop:      2,
+                  borderTop:      `1px solid rgba(20,20,34,0.07)`,
+                  letterSpacing:  -0.3,
+                }}>
+                  <span>Gesamt</span>
+                  <span style={{ fontVariantNumeric:"tabular-nums" }}>
+                    {gesamt.toFixed(2).replace(".", ",")}\u202F€
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* CTA */}
             <button
@@ -660,13 +975,13 @@ export default function WerkeKorb({
               disabled={phase === "loading"}
               style={{
                 width:        "100%",
-                padding:      "15px 0",
+                padding:      "16px 0",
                 borderRadius: 16,
                 border:       "none",
                 background:   phase === "loading"
-                  ? "rgba(20,20,34,0.08)"
-                  : `linear-gradient(135deg, ${TEAL} 0%, #16D7C5 60%, ${CORAL} 140%)`,
-                color:        phase === "loading" ? "#aaa" : "#fff",
+                  ? "rgba(20,20,34,0.07)"
+                  : `linear-gradient(135deg, ${C.teal} 0%, #18DDD0 50%, ${C.coral} 160%)`,
+                color:        phase === "loading" ? C.muted : "#fff",
                 fontWeight:   800,
                 fontSize:     16,
                 letterSpacing:-.3,
@@ -674,8 +989,8 @@ export default function WerkeKorb({
                 outline:      "none",
                 boxShadow:    phase === "loading"
                   ? "none"
-                  : "0 6px 24px rgba(13,196,181,0.32)",
-                transition:   "all 280ms ease",
+                  : `0 8px 28px rgba(13,196,181,0.30), 0 2px 8px rgba(13,196,181,0.18)`,
+                transition:   `all ${DUR.normal}ms ${EASE.out}`,
                 WebkitTapHighlightColor: "transparent",
               }}
             >
