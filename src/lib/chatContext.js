@@ -17,6 +17,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { feedback } from './feedback/index.js';
 import { assertAuthenticated, globalMutationGuard } from './security/index.js';
 import { validateMessage } from './validation/index.js';
+import { ProfileService } from '../services/db';
 import { supabase } from "./supabaseClient";
 import { logDebug } from "./debugCollector.js";
 import { notifyMessage } from "./notificationService";
@@ -138,23 +139,9 @@ export function useChatList(instanceId = "default") {
           const otherId = (c.participant_ids || []).find(id => id !== user.id);
           let otherProfile = null;
           if (otherId) {
-            // Versuch 1: profiles.id = auth.uid()
-            const { data: prof1 } = await supabase
-              .from("profiles")
-              .select("id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views") // Identity Contract v1.0
-              .eq("id", otherId)
-              .maybeSingle();
-            if (prof1) {
-              otherProfile = prof1;
-            } else {
-              // Versuch 2: profiles.user_id = otherId (alternative Schema-Variante)
-              const { data: prof2 } = await supabase
-                .from("profiles")
-                .select("id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views") // Identity Contract v1.0
-                .eq("user_id", otherId)
-                .maybeSingle();
-              otherProfile = prof2 ?? null;
-            }
+            // ProfileService v1.0: getById — Versuch 2 (user_id) ist Dead Code (profiles.id = auth.uid)
+            const { data: prof1 } = await ProfileService.getById(otherId);
+            otherProfile = prof1 ?? null;
           }
           return {
             ...c,
