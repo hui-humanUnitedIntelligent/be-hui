@@ -298,8 +298,8 @@ function KorbKarte({ item, onRemove, idx, removing }) {
         }
       </div>
 
-      {/* Inhalt — Titel dominant, Wirker ruhig, Typ+Preis zuletzt */}
-      <div style={{ flex: 1, minWidth: 0, paddingTop: 2 }}>
+      {/* Inhalt — v2.1: alles linksbündig, von oben nach unten */}
+      <div style={{ flex: 1, minWidth: 0 }}>
 
         {/* Werktitel — stärkstes Element */}
         <div style={{
@@ -311,28 +311,29 @@ function KorbKarte({ item, onRemove, idx, removing }) {
           textOverflow:  "ellipsis",
           whiteSpace:    "nowrap",
           letterSpacing: -0.4,
-          marginBottom:  5,
+          marginBottom:  6,
         }}>
           {title}
         </div>
 
-        {/* Wirker — ruhig, dezent */}
+        {/* Wirker — ruhig, dezent, mehr Luft nach unten */}
         {authorName && (
           <div style={{
             fontSize:     13,
             fontWeight:   400,
             color:        C.muted,
             letterSpacing: 0,
-            marginBottom: 10,
+            marginBottom: 12,
             lineHeight:   1.3,
           }}>
             von {authorName}
           </div>
         )}
 
-        {/* Typ-Pill + Preis — vereinfacht, keine Dominanz */}
-        <div style={{ display:"flex", alignItems:"center", gap:7, flexWrap:"wrap" }}>
+        {/* Typ-Pill — linksbündig, dezent */}
+        <div style={{ marginBottom: price ? 6 : 0 }}>
           <span style={{
+            display:       "inline-block",
             fontSize:      10,
             fontWeight:    600,
             color:         meta.accent,
@@ -345,18 +346,21 @@ function KorbKarte({ item, onRemove, idx, removing }) {
           }}>
             {meta.label}
           </span>
-          {price && (
-            <span style={{
-              fontSize:   14,
-              fontWeight: 600,
-              color:      C.inkMid,
-              fontVariantNumeric: "tabular-nums",
-              letterSpacing: -0.2,
-            }}>
-              {price}
-            </span>
-          )}
         </div>
+
+        {/* Preis — unter Pill, linksbündig, beruhigt */}
+        {price && (
+          <div style={{
+            fontSize:   14,
+            fontWeight: 500,
+            color:      C.muted,
+            fontVariantNumeric: "tabular-nums",
+            letterSpacing: -0.1,
+            lineHeight:  1.3,
+          }}>
+            {price}
+          </div>
+        )}
       </div>
 
       {/* Entfernen */}
@@ -436,12 +440,6 @@ function PersonGruppe({ group, onRemove, removingId }) {
           {group.name}
         </span>
         <span style={{
-          fontSize:  11,
-          color:     C.muted,
-          fontWeight: 500,
-        }}>
-          {group.items.length} {group.items.length === 1 ? "Auswahl" : "Auswahlen"}
-        </span>
       </div>
 
       {group.items.map((item, idx) => (
@@ -675,11 +673,11 @@ function ImpactZeile({ impactEur }) {
   const impactStr = impactEur.toFixed(2).replace(".", ",");
   return (
     <div style={{
-      borderRadius: 13,
-      background:   "rgba(238,247,242,0.80)",
+      borderRadius: 12,
+      background:   "rgba(238,247,242,0.65)",
       border:       `1px solid rgba(107,174,143,0.18)`,
-      boxShadow:    "0 1px 8px rgba(107,174,143,0.07)",
-      padding:      "13px 15px",
+      boxShadow:    "none",
+      padding:      "12px 14px",
       marginBottom: 0,
     }}>
       {/* Kompakt: Icon + Label in einer Zeile */}
@@ -934,36 +932,35 @@ export default function WerkeKorb({
             borderTop:  `1px solid rgba(20,20,34,0.07)`,
             flexShrink: 0,
           }}>
-            {/* Gesamt — ruhig, Betrag darf Charakter haben */}
+            {/* Gesamt — v2.1: luftig, menschlich, keine Tabellenoptik */}
             {total > 0 && (
               <div style={{
-                display:        "flex",
-                justifyContent: "space-between",
-                alignItems:     "center",
-                marginBottom:   20,
-                padding:        "16px 18px",
-                background:     C.creamSoft,
-                borderRadius:   14,
-                border:         `1px solid rgba(20,20,34,0.05)`,
+                padding:      "20px 20px 18px",
+                background:   C.creamSoft,
+                borderRadius: 16,
+                border:       `1px solid rgba(20,20,34,0.04)`,
+                marginBottom: 16,
               }}>
-                <div>
-                  <div style={{ fontSize:11, fontWeight:600, color:C.muted,
-                    letterSpacing:0.4, textTransform:"uppercase", marginBottom:3 }}>
-                    Deine Unterstützung
-                  </div>
-                  <div style={{ fontSize:11, color:C.faint }}>
-                    {iCount} {iCount === 1 ? "Auswahl" : "Auswahlen"}
-                  </div>
+                <div style={{
+                  fontSize:     10,
+                  fontWeight:   600,
+                  color:        C.faint,
+                  letterSpacing: 0.6,
+                  textTransform:"uppercase",
+                  marginBottom: 10,
+                }}>
+                  Deine Unterstützung
                 </div>
-                <span style={{
-                  fontSize:   22,
+                <div style={{
+                  fontSize:   28,
                   fontWeight: 800,
                   color:      C.ink,
-                  letterSpacing: -0.6,
+                  letterSpacing: -0.8,
+                  lineHeight: 1.1,
                   fontVariantNumeric: "tabular-nums",
                 }}>
                   {gesamt.toFixed(2).replace(".", ",")} €
-                </span>
+                </div>
               </div>
             )}
 
