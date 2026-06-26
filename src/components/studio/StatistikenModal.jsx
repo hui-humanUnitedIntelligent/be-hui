@@ -115,7 +115,7 @@ export default function StatistikenModal({ profile, onClose }) {
         supabase.from("payments").select("amount_eur,impact_eur").eq("payer_id", uid).in("state",["released","completed","paid"]),
         supabase.from("payments").select("payout_eur").eq("recipient_id", uid).in("state",["released","completed","paid"]),
         // Profil
-        supabase.from("profiles").select("profile_views,follower_count,trust_score,member_since,created_at,is_talent,is_ambassador").eq("id", uid).single(),
+        supabase.from("profiles").select("profile_views,followers_count,trust_score,member_since,created_at,has_talent_profile,is_ambassador").eq("id", uid).single(), // Identity Contract v1.0
         // Project-Support Betrag
         supabase.from("project_support").select("amount_eur").eq("user_id", uid),
       ]);
