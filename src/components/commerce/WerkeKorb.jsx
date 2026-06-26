@@ -439,7 +439,6 @@ function PersonGruppe({ group, onRemove, removingId }) {
         }}>
           {group.name}
         </span>
-        <span style={{
       </div>
 
       {group.items.map((item, idx) => (
