@@ -29,6 +29,7 @@ import ChatCenterOverlay          from "../components/chat-center/ChatCenterOver
 import { useChatList }             from "../lib/chatContext.js";
 import ConnectionCreatePage      from "../components/connection-create/ConnectionCreatePage.jsx";
 import WerkKaufFlow           from "../components/commerce/WerkKaufFlow.jsx";         // COMMERCE-01
+import WerkeKorb, { WerkeKorbButton } from "../components/commerce/WerkeKorb.jsx"; // KORB-01
 import ExperienceBookingFlow  from "../components/commerce/ExperienceBookingFlow.jsx"; // COMMERCE-01
 // ── Tab-Pages: lazy → eigene Chunks, nur bei Bedarf geladen ────
 // PHASE 17.3: ImpactPage + DiscoverPage — direkte imports (Safari-safe, kein lazy)
@@ -139,6 +140,8 @@ function HomeInner() {
     showCreatorDashboard,
     showWerkCheckout,  setShowWerkCheckout,  // COMMERCE-01 W-1
     showBookingFlow,   setShowBookingFlow,   // COMMERCE-01 W-1
+    showWerkeKorb,     setShowWerkeKorb,     // KORB-01
+    cart,              setCart,              // KORB-01
   } = useHome();
 
   // ── Unread Message Count — live aus chatContext ────────
@@ -344,36 +347,17 @@ function HomeInner() {
                     openProfileById(userId);
                   }}
                   onBook={(item) => {
-                    // COMMERCE-01: Werk → WerkKaufFlow, Experience → ExperienceBookingFlow
-                    if (item?.type === "work") {
-                      setShowWerkCheckout(item);
-                    } else {
-                      setShowBookingFlow(item);
-                    }
+                    // KORB-01: Werk/Experience → Werkekorb
+                    if (!item?.id) return;
+                    setCart(prev => {
+                      if (prev.some(x => x.id === item.id)) return prev;
+                      return [...prev, item];
+                    });
+                    setShowWerkeKorb(false); // kurzer Glow, kein Auto-Open
                   }}
                   onDetail={(item) => {
-                    // DIAGNOSE — sichtbar auf iPad, keine Logik
-                    import("../lib/useToast.jsx").then(m => {
-                      const typ  = typeof item;
-                      const id   = item?.id   ?? "—";
-                      const tp   = item?.type ?? "—";
-                      const keys = item ? Object.keys(item).join(",") : "—";
-                      m.toast.info(
-                        "HOME id:" + id + " type:" + tp + " typeof:" + typ,
-                        { duration: 6000 }
-                      );
-                      m.toast.info("keys:" + keys, { duration: 6000 });
-
-                      const werkId = item?.id || item?._raw?.id;
-                      if (!item || typ !== "object") {
-                        m.toast.error("NEIN — item ist " + typ, { duration: 6000 });
-                      } else if (!werkId) {
-                        m.toast.error("NEIN — id fehlt/leer", { duration: 6000 });
-                      } else {
-                        m.toast.info("JA — NAVIGATE /work/" + werkId, { duration: 6000 });
-                        navigate(`/work/${werkId}`);
-                      }
-                    });
+                    const werkId = item?.id || item?._raw?.id;
+                    if (werkId) navigate(`/work/${werkId}`);
                   }}
                   onShare={() => setShowTeilen(true)}
                   onEventPress={(ev) => {
@@ -454,6 +438,29 @@ function HomeInner() {
 
       </div>
       {/* ↑ overflow:hidden Container endet hier — BottomNav ist DRAUSSEN */}
+
+      {/* KORB-01: Floating Korb-Button — oberhalb TabBar */}
+      {SAFE_MODE.werkFlow && (
+        <WerkeKorbButton
+          count={cart.length}
+          onOpen={() => setShowWerkeKorb(true)}
+        />
+      )}
+
+      {/* KORB-01: Werkekorb Bottom Sheet */}
+      {showWerkeKorb && SAFE_MODE.werkFlow && (
+        <WerkeKorb
+          items={cart}
+          onClose={() => setShowWerkeKorb(false)}
+          onRemove={(item) => setCart(prev => prev.filter(x => x.id !== item.id))}
+          onUnterstuetzen={async (items) => {
+            // Später: Stripe / salesService pro Item
+            await new Promise(r => setTimeout(r, 900));
+          }}
+          onDiscover={() => { setShowWerkeKorb(false); handleTab("discover"); }}
+          onChat={null}
+        />
+      )}
 
       {/* ── BottomNav: AUSSERHALB des overflow:hidden Divs ─────────
           KRITISCH für iOS Safari: position:fixed Elements müssen
