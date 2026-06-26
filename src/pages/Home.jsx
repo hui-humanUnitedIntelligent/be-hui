@@ -30,6 +30,7 @@ import { useChatList }             from "../lib/chatContext.js";
 import ConnectionCreatePage      from "../components/connection-create/ConnectionCreatePage.jsx";
 import WerkKaufFlow           from "../components/commerce/WerkKaufFlow.jsx";         // COMMERCE-01
 import WerkeKorb, { WerkeKorbButton } from "../components/commerce/WerkeKorb.jsx"; // KORB-01
+import UnterstutzenFlow                from "../components/commerce/UnterstutzenFlow.jsx"; // KORB-02
 import ExperienceBookingFlow  from "../components/commerce/ExperienceBookingFlow.jsx"; // COMMERCE-01
 // ── Tab-Pages: lazy → eigene Chunks, nur bei Bedarf geladen ────
 // PHASE 17.3: ImpactPage + DiscoverPage — direkte imports (Safari-safe, kein lazy)
@@ -141,6 +142,7 @@ function HomeInner() {
     showWerkCheckout,  setShowWerkCheckout,  // COMMERCE-01 W-1
     showBookingFlow,   setShowBookingFlow,   // COMMERCE-01 W-1
     showWerkeKorb,     setShowWerkeKorb,     // KORB-01
+    showUnterstutzenFlow, setShowUnterstutzenFlow, // KORB-02
     cart,              setCart,              // KORB-01
   } = useHome();
 
@@ -454,11 +456,25 @@ function HomeInner() {
           onClose={() => setShowWerkeKorb(false)}
           onRemove={(item) => setCart(prev => prev.filter(x => x.id !== item.id))}
           onUnterstuetzen={async (items) => {
-            // Später: Stripe / salesService pro Item
-            await new Promise(r => setTimeout(r, 900));
+            // KORB-02: WerkeKorb schließen, UnterstutzenFlow öffnen
+            setShowWerkeKorb(false);
+            setTimeout(() => setShowUnterstutzenFlow(true), 240);
           }}
           onDiscover={() => { setShowWerkeKorb(false); handleTab("discover"); }}
           onChat={null}
+        />
+      )}
+
+      {/* KORB-02: UnterstutzenFlow */}
+      {showUnterstutzenFlow && SAFE_MODE.werkFlow && (
+        <UnterstutzenFlow
+          items={cart}
+          onClose={() => setShowUnterstutzenFlow(false)}
+          onUnterstuetzen={async (items, form, method) => {
+            // Stripe-ready: items, formData, paymentMethod
+            await new Promise(r => setTimeout(r, 1200));
+          }}
+          onDiscover={() => { setShowUnterstutzenFlow(false); setCart([]); handleTab("discover"); }}
         />
       )}
 
