@@ -46,9 +46,9 @@ export async function getLocalCommunity(locationLabel, { limit = 8, scale = 'cit
     const [profilesRes, expRes, commRes] = await Promise.all([
       // Lokale Talente
       supabase.from('profiles')
-        .select('id, display_name, avatar_url, talent, location, bio')
+        .select('id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views') // Identity Contract v1.0
         .eq('has_talent_profile', true)
-        .ilike('location', like)
+        .ilike('location_label', like) // Identity Contract v1.0
         .limit(limit),
 
       // Lokale Begegnungen
