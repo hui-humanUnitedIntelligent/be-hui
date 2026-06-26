@@ -676,7 +676,7 @@ export default function BaseFeedCard({
       {/* onCardClick nur für Work-Karten gesetzt (von WorkContent) */}
       {/* Avatar/Name (HumanHeader) und Actions haben eigene Handler → kein Konflikt */}
       <div
-        onClick={onCardClick ? () => { console.log("🔵 STEP 1 — BaseFeedCard CLICK, onCardClick:", !!onCardClick); onCardClick(); } : undefined}
+        onClick={onCardClick ? () => { import("../../lib/useToast.jsx").then(m => m.toast.info("STEP 1 ✓ BaseFeedCard", {duration:1200})); onCardClick(); } : undefined}
         style={onCardClick ? { cursor:"pointer", WebkitTapHighlightColor:"transparent" } : undefined}
       >
         <div style={{ padding: "0 " + T.p + "px 4px" }}>{children}</div>
