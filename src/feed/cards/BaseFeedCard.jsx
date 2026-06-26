@@ -415,12 +415,7 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
     url = media;
   }
 
-  // P3: Kein Bild → warmer Hintergrund-Block (kein leerer Raum)
-  if (!url || err) {
-    // Karten ohne Bild brauchen keinen Platzhalter-Block —
-    // der Inhalt (Titel + Text) trägt die Begegnung allein.
-    return null;
-  }
+  if (!url || err) return null;
 
   const h = relaxed ? 340 : T.mediaH;
 
@@ -552,20 +547,25 @@ const ActionBtn = memo(function ActionBtn({
   );
 });
 
-// ── Resonanz-Zeile — Sprint 2.6 ──────────────────────────────
-// Menschlich formuliert. Keine Zähler-Dominanz.
+// ── Resonanz-Zeile v3.0 — nach Mockup ────────────────────────
+// Format: "[Name] und [N] weitere wurden inspiriert."
 function getResonanzText(r) {
   const inspire = r.inspireCount || 0;
   const touch   = r.touchCount   || 0;
   const total   = inspire + touch;
   if (total === 0) return null;
-  if (total === 1) return "Ein Mensch hat darauf reagiert.";
-  if (total <= 3)  return `${total}\u00a0Menschen haben reagiert.`;
-  if (inspire > touch && inspire > 0)
-    return `${inspire}\u00a0Menschen wurden inspiriert.`;
-  if (touch > inspire && touch > 0)
-    return `${touch}\u00a0Menschen wurden berührt.`;
-  return `${total}\u00a0Menschen haben bereits resoniert.`;
+  const firstName = r.firstInspirer
+    ? (r.firstInspirer.split(" ")[0] || null)
+    : null;
+  if (firstName && total > 1)
+    return `${firstName} und ${total - 1} weitere wurden inspiriert.`;
+  if (firstName && total === 1)
+    return `${firstName} wurde inspiriert.`;
+  if (total === 1)
+    return "Ein Mensch hat darauf reagiert.";
+  if (inspire >= touch)
+    return `${total} Menschen wurden inspiriert.`;
+  return `${total} Menschen haben reagiert.`;
 }
 
 // ── Actions bar ───────────────────────────────────────────────
@@ -575,31 +575,28 @@ export const FeedActions = memo(function FeedActions({
   const r = reactions || {};
   const resonanz = getResonanzText(r);
   return (
-    <div>
+    <div style={{ borderTop: "1px solid " + T.border, marginTop: 12 }}>
+      {/* Reaktions-Buttons */}
       <div style={{
-        display: "flex", alignItems: "center",
-        padding: "10px " + (T.p - 4) + "px",
-        borderTop: "1px solid " + T.border,
-        marginTop: 14, gap: 2,
+        display:"flex", alignItems:"center",
+        padding:"8px " + (T.p - 4) + "px 6px",
+        gap:2,
       }}>
         <ActionBtn icon="✦"  count={r.inspireCount||null} active={r.inspired} activeColor={T.teal}  onClick={() => onReaction?.("inspire")} />
         <ActionBtn icon="🤍" count={r.touchCount||null}   active={r.touched}  activeColor={T.coral} onClick={() => onReaction?.("touch")}   />
-        <ActionBtn icon="⊕"  active={r.saved}             activeColor="#8B5CF6"                      onClick={() => onReaction?.("save")}    />
-        <div style={{ flex: 1 }} />
+        <div style={{ flex:1 }} />
         {extraActions || null}
-        <ActionBtn icon="↗" onClick={onShare} />
+        <ActionBtn icon="💬" onClick={onShare} />
+        <ActionBtn icon="🔖" active={r.saved} activeColor={T.coral} onClick={() => onReaction?.("save")} />
       </div>
-      {/* Resonanz-Zeile — nur wenn Reaktionen vorhanden */}
+      {/* Resonanz-Zeile — "Maja und 18 weitere wurden inspiriert." */}
       {resonanz && (
         <div style={{
-          padding: "0 " + T.p + "px 12px",
-          fontSize: 11.5,
-          color: "rgba(20,20,34,0.38)",
-          fontWeight: 400,
-          fontStyle: "italic",
-          letterSpacing: "0.01em",
+          padding:"0 " + T.p + "px 11px",
         }}>
-          {resonanz}
+          <span style={{ fontSize:12, color:"rgba(26,26,46,0.50)", fontWeight:400 }}>
+            {resonanz}
+          </span>
         </div>
       )}
     </div>
