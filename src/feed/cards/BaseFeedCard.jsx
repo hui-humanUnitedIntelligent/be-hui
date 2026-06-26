@@ -605,7 +605,7 @@ export const FeedActions = memo(function FeedActions({
 
 // ── Base Card ─────────────────────────────────────────────────
 export default function BaseFeedCard({
-  item, onProfile, onReaction, onShare, badge, children, extraActions
+  item, onProfile, onReaction, onShare, badge, children, extraActions, onCardClick
 }) {
   injectCardCSS();
 
@@ -672,13 +672,21 @@ export default function BaseFeedCard({
           }}>{badge.label}</div>
         </div>
       )}
-      <div style={{ padding: "0 " + T.p + "px 4px" }}>{children}</div>
-      <FeedMedia
-        media={item.media}
-        alt={item.title || item.text}
-        relaxed={!!(item._reactions?._relaxed)}
-        onDoubleTap={handleDoubleTap}
-      />
+      {/* Content + Media: klickbarer Bereich für Werk-Detail-Navigation */}
+      {/* onCardClick nur für Work-Karten gesetzt (von WorkContent) */}
+      {/* Avatar/Name (HumanHeader) und Actions haben eigene Handler → kein Konflikt */}
+      <div
+        onClick={onCardClick || undefined}
+        style={onCardClick ? { cursor:"pointer", WebkitTapHighlightColor:"transparent" } : undefined}
+      >
+        <div style={{ padding: "0 " + T.p + "px 4px" }}>{children}</div>
+        <FeedMedia
+          media={item.media}
+          alt={item.title || item.text}
+          relaxed={!!(item._reactions?._relaxed)}
+          onDoubleTap={onCardClick ? (e) => { /* double-tap → detail, kein like-trigger */ } : handleDoubleTap}
+        />
+      </div>
       <FeedActions
         reactions={localReactions}
         onReaction={handleReaction}
