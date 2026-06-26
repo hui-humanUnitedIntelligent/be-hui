@@ -1432,7 +1432,7 @@ export default function DiscoverPage({ onView, onMap }) {
         // People
         const { data: profiles } = await supabase
           .from("profiles")
-          .select("id,username,display_name,bio,avatar_url,location,impact_eur,dna_tags,skills")
+          .select("id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views") // Identity Contract v1.0
           .or("has_talent_profile.eq.true,is_member.eq.true,role.eq.talent,role.eq.wirker")
           .limit(12);
 
@@ -1441,11 +1441,11 @@ export default function DiscoverPage({ onView, onMap }) {
             id:           p.id,
             name:         safeStr(p.display_name || p.username) || null,
             bio:          safeStr(p.bio),
-            location:     safeStr(p.location),
+            location:     safeStr(p.location_label), // Identity Contract v1.0
             avatar:       safeStr(p.avatar_url),
             impact:       safeNum(p.impact_eur, 0),
-            last_seen_at: p.last_seen_at || null,
-            interests:    Array.isArray(p.dna_tags) ? p.dna_tags : (Array.isArray(p.skills) ? p.skills : []),
+            last_seen_at: null, // last_seen_at nicht im Identity Contract
+            interests:    [], // dna_tags/skills nicht im Identity Contract
           })));
         }
 
