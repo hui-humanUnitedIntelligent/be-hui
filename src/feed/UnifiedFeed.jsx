@@ -355,6 +355,7 @@ class ReactionErrorBoundary extends React.Component {
           item={item}
           onProfile={onProfile}
           onBook={onBook}
+          onDetail={onDetail}
           onShare={onShare}
         />
       );
@@ -363,7 +364,7 @@ class ReactionErrorBoundary extends React.Component {
   }
 }
 
-function ReactionCardInner({ item, onProfile, onBook, onShare, itemIndex, onDepth }) {
+function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemIndex, onDepth }) {
   // Guard: item must be valid before calling any hook
   const postId   = item?.id    || "";
   const postType = item?.type  || "post";
@@ -457,7 +458,7 @@ function ReactionCardInner({ item, onProfile, onBook, onShare, itemIndex, onDept
   );
 }
 
-function ReactionCard({ item, onProfile, onBook, onShare, itemIndex, onDepth }) {
+function ReactionCard({ item, onProfile, onBook, onDetail, onShare, itemIndex, onDepth }) {
   // Absolute guard — no item = no render, log it
   if (!item?.id) {
     console.warn("[REACTION_CARD] invalid item — skipping", item);
@@ -469,6 +470,7 @@ function ReactionCard({ item, onProfile, onBook, onShare, itemIndex, onDepth }) 
         item={item}
         onProfile={onProfile}
         onBook={onBook}
+        onDetail={onDetail}
         onShare={onShare}
         itemIndex={itemIndex}
         onDepth={onDepth}
@@ -477,7 +479,7 @@ function ReactionCard({ item, onProfile, onBook, onShare, itemIndex, onDepth }) 
   );
 }
 
-function FeedList({ items, onProfile, onReaction, onBook, onShare, loadMore, hasMore, loadingMore, onDiscover }) {
+function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loadMore, hasMore, loadingMore, onDiscover }) {
   // per-item reaction is handled in ReactionCard wrapper below
   const arr = useMemo(() => {
     if (!Array.isArray(items)) return [];
@@ -545,6 +547,7 @@ function FeedList({ items, onProfile, onReaction, onBook, onShare, loadMore, has
                 item={{ ...item, _reactions: { ...itemReactions, _relaxed: isRelaxed } }}
                 onProfile={onProfile}
                 onBook={onBook}
+                onDetail={onDetail}
                 onShare={() => onShare?.(item)}
                 itemIndex={idx}
                 onDepth={onDepth}
@@ -659,6 +662,7 @@ export default function UnifiedFeed({
   // Handlers
   onProfile    = null,
   onBook       = null,
+  onDetail     = null,
   onShare      = null,
   onEventPress = null,
   onMoreEvents = null,
@@ -799,6 +803,7 @@ export default function UnifiedFeed({
             items={resolvedItems}
             onProfile={onProfile}
             onBook={onBook}
+            onDetail={onDetail}
             onShare={onShare}
             loadMore={loadMore}
             hasMore={hasMore}
