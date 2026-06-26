@@ -3,7 +3,7 @@
 // iOS Safari vererbt pointer-events von overflow:hidden auf position:fixed Kinder
 
 import React, { Suspense, useEffect, useRef, useCallback } from "react";
-import { useLocation } from "react-router-dom"; // COMMERCE-01
+import { useLocation, useNavigate } from "react-router-dom"; // COMMERCE-01
 import { useOrbWorld } from "../context/OrbWorldContext.jsx";
 import { useWorldSurface } from "../context/WorldSurfaceContext.jsx";
 import { cleanupOrbEnvironment } from "../lib/cleanup/cleanupOrbEnvironment.js";
@@ -82,6 +82,7 @@ const GLOBAL_CSS = IX.CSS + `
 
 
 function HomeInner() {
+  const navigate = useNavigate();
   // Phase 16.6: Tab element refs for imperative Safari paint recovery
   const tabRefs = {
     feed:      React.useRef(null),
@@ -355,8 +356,7 @@ function HomeInner() {
                     if (item?.type === "work") {
                       const werkId = item?.id || item?._raw?.id;
                       if (werkId) {
-                        // useNavigate ist in Home verfügbar via HomeNavHelper
-                        window.__HUI_NAV_WORK__ && window.__HUI_NAV_WORK__(werkId);
+                            navigate(`/work/${werkId}`);
                       }
                     }
                   }}
