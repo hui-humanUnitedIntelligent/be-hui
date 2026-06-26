@@ -337,63 +337,65 @@ function KorbKarte({ item, onRemove, idx, removing }) {
         }
       </div>
 
-      {/* Inhalt — Mensch über Werk */}
-      <div style={{ flex: 1, minWidth: 0 }}>
+      {/* Inhalt — Werk zuerst, Wirker dezent darunter */}
+      <div style={{ flex: 1, minWidth: 0, paddingTop: 2 }}>
 
-        {/* Mensch zuerst */}
-        {authorName && (
-          <div style={{
-            fontSize:    12,
-            fontWeight:  600,
-            color:       C.teal,
-            letterSpacing: 0.1,
-            marginBottom: 3,
-          }}>
-            {authorName}
-          </div>
-        )}
-
-        {/* Werk-Titel */}
+        {/* Werktitel — größte Schrift der Karte */}
         <div style={{
-          fontSize:    15,
-          fontWeight:  700,
-          color:       C.ink,
-          lineHeight:  1.3,
-          overflow:    "hidden",
-          textOverflow:"ellipsis",
-          whiteSpace:  "nowrap",
+          fontSize:     16,
+          fontWeight:   800,
+          color:        C.ink,
+          lineHeight:   1.25,
+          overflow:     "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace:   "nowrap",
+          letterSpacing: -0.3,
           marginBottom: 5,
         }}>
           {title}
         </div>
 
-        {/* Typ + Preis — dezente Zeile */}
-        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+        {/* Wirker — dezent darunter */}
+        {authorName && (
+          <div style={{
+            fontSize:    12,
+            fontWeight:  400,
+            color:       C.muted,
+            letterSpacing: 0.05,
+            marginBottom: 8,
+          }}>
+            von {authorName}
+          </div>
+        )}
+
+        {/* Typ-Pill + Preis — unterste Zeile */}
+        <div style={{ display:"flex", alignItems:"center", gap:7 }}>
           <span style={{
-            fontSize:     10,
-            fontWeight:   600,
-            color:        meta.accent,
-            letterSpacing: 0.4,
+            fontSize:      9,
+            fontWeight:    700,
+            color:         meta.accent,
+            letterSpacing: 0.6,
             textTransform: "uppercase",
-            padding:      "1px 6px",
-            borderRadius: 99,
-            background:   meta.bg,
+            padding:       "2px 7px",
+            borderRadius:  99,
+            background:    meta.bg,
+            border:        `1px solid ${meta.accent}20`,
           }}>
             {meta.label}
           </span>
           {price && (
             <span style={{
-              fontSize:   13,
-              fontWeight: 500,
-              color:      C.muted,
+              fontSize:   12,
+              fontWeight: 400,
+              color:      C.faint,
               fontVariantNumeric: "tabular-nums",
+              letterSpacing: 0.1,
             }}>
               {price}
             </span>
           )}
         </div>
       </div>
-
       {/* Entfernen */}
       <button
         onPointerDown={e => e.stopPropagation()}
