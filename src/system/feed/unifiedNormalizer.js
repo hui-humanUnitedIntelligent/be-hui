@@ -21,6 +21,14 @@ function relTime(ts){
 }
 
 function extractAuthor(raw){
+  console.group("AUTHOR INPUT");
+  console.log("raw.profile", raw.profile);
+  console.log("keys", Object.keys(raw.profile || {}));
+  console.log("display_name", raw.profile?.display_name);
+  console.log("full_name", raw.profile?.full_name);
+  console.log("username", raw.profile?.username);
+  console.log("avatar_url", raw.profile?.avatar_url);
+  console.groupEnd();
   const p=raw.profile||raw.creator||raw.author||raw.user||{};
   // ── TRACE STEP 7 (nur erstes Work) ────────────────────
   if (!window.__HUI_STEP7_DONE__ && (raw.type === "work" || raw.title !== undefined)) {

@@ -158,10 +158,24 @@ async function fetchFeedPage(userId = null, cursors = null) {
 
   if (userIds.length > 0) {
     try {
-      const { data: profileRows } = await supabase
+      const { data: profileRows, error } = await supabase
         .from("profiles")
         .select("id,display_name,full_name,username,avatar_url,talent,bio,member_since,location_label,membership_type,membership_active,is_verified")
         .in("id", userIds);
+      console.group("PROFILE QUERY");
+      console.log("error", error);
+      console.log("rows", profileRows);
+      console.log("count", profileRows?.length);
+      if (profileRows?.length) {
+        console.table(profileRows.map(p => ({
+          id: p.id,
+          display_name: p.display_name,
+          full_name: p.full_name,
+          username: p.username,
+          avatar_url: p.avatar_url
+        })));
+      }
+      console.groupEnd();
       // ── TRACE STEP 3: Supabase Profile Query Result ──────────
       console.group("🔍 STEP 3 - PROFILE QUERY");
       console.log("profileRows:", profileRows);
@@ -208,6 +222,13 @@ async function fetchFeedPage(userId = null, cursors = null) {
       console.log("result.profile.display_name:", result.profile?.display_name);
       console.groupEnd();
     }
+    console.group("PROFILE TRACE");
+    console.log("row.id", row.id);
+    console.log("uid", uid);
+    console.log("profileMap has uid", Object.prototype.hasOwnProperty.call(profileMap, uid));
+    console.log("profileMap[uid]", profileMap[uid]);
+    console.log("fallback", !profileMap[uid]);
+    console.groupEnd();
     return result;
   }
 
