@@ -352,11 +352,13 @@ function HomeInner() {
                     }
                   }}
                   onDetail={(item) => {
-                    console.log("🔴 STEP 5 — Home onDetail", item?.type, item?.id, item);
+                    // DEBUG STEP 5 — sichtbarer Toast auf iPad
+                    import("../lib/useToast.jsx").then(m => {
+                      m.toast.info("STEP 5 ✓ Home → /work/" + (item?.id || "?"), {duration:2500});
+                    });
                     // Werk-Detail aus Feed → /work/:id Route
                     if (item?.type === "work") {
                       const werkId = item?.id || item?._raw?.id;
-                      console.log("🔴 STEP 5 — navigate /work/" + werkId);
                       if (werkId) {
                             navigate(`/work/${werkId}`);
                       }
