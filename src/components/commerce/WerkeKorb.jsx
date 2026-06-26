@@ -387,7 +387,8 @@ function KorbKarte({ item, onRemove, idx, removing, onQtyChange }) {
             <div style={{
               display:     "flex",
               alignItems:  "center",
-              gap:         8,
+              gap:         10,
+              marginTop:   2,
             }}>
               <button
                 onPointerDown={e => e.stopPropagation()}
@@ -417,13 +418,13 @@ function KorbKarte({ item, onRemove, idx, removing, onQtyChange }) {
               </button>
 
               <span style={{
-                fontSize:   15,
+                fontSize:   14,
                 fontWeight: 600,
-                color:      C.ink,
-                minWidth:   20,
+                color:      C.inkMid,
+                minWidth:   22,
                 textAlign:  "center",
                 fontVariantNumeric: "tabular-nums",
-                letterSpacing: -0.2,
+                letterSpacing: -0.1,
               }}>
                 {qty}
               </span>
@@ -807,11 +808,11 @@ function ImpactZeile({ impactEur }) {
           </span>
         </div>
         <span style={{
-          fontSize:   15,
-          fontWeight: 700,
+          fontSize:   14,
+          fontWeight: 600,
           color:      C.sage,
           fontVariantNumeric: "tabular-nums",
-          letterSpacing: -0.3,
+          letterSpacing: -0.2,
         }}>
           {impactStr} €
         </span>
