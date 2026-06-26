@@ -173,6 +173,7 @@ export default function HomeShell({ children }) {
   const [showWerkCheckout,       setShowWerkCheckout]      = useState(null);
   const [showBookingFlow,        setShowBookingFlow]        = useState(null); // COMMERCE-01 E-3
   const [showWerkeKorb,          setShowWerkeKorb]         = useState(false);
+  const [showUnterstutzenFlow,    setShowUnterstutzenFlow]  = useState(false);
   // ── Content / Commerce State ───────────────────────────────────
   const [createType,             setCreateType]            = useState(null);
   const [activeStory,            setActiveStory]           = useState(null);
@@ -318,6 +319,7 @@ export default function HomeShell({ children }) {
     showWerkCheckout,      setShowWerkCheckout,
     showBookingFlow,       setShowBookingFlow,      // COMMERCE-01 E-3
     showWerkeKorb,         setShowWerkeKorb,
+    showUnterstutzenFlow,  setShowUnterstutzenFlow,
     createType,            setCreateType,
     activeStory,           setActiveStory,
     cart,                  setCart,
