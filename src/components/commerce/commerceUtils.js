@@ -95,10 +95,10 @@ export function uniquePeople(items) {
 export function groupByPerson(items) {
   const map = new Map();
   for (const item of items) {
-    const id   = item.author?.id || item.user_id || item._raw?.user_id || "__unknown__";
-    const name = item.author?.name || "Unbekannt";
+    const id     = item.author?.id || item.user_id || item._raw?.user_id || "__unknown__";
+    const name   = item.author?.name || item.author?.displayName || "Unbekannter Wirker";
     const avatar = item.author?.avatar || null;
-    if (!map.has(id)) map.set(id, { id, name, avatar, items: [] });
+    if (!map.has(id)) map.set(id, { id, key: id, name, avatar, items: [] });
     map.get(id).items.push(item);
   }
   return [...map.values()];
