@@ -928,16 +928,34 @@ export default function WerkeKorb({
             borderTop:  `1px solid rgba(20,20,34,0.07)`,
             flexShrink: 0,
           }}>
-            {/* Gesamt — einzige Preiszeile */}
+            {/* Gesamt — ruhig, Betrag darf Charakter haben */}
             {total > 0 && (
               <div style={{
-                display:"flex", justifyContent:"space-between", alignItems:"baseline",
-                marginBottom:18, padding:"12px 16px",
-                background:C.creamSoft, borderRadius:12,
-                border:`1px solid rgba(20,20,34,0.05)`,
+                display:        "flex",
+                justifyContent: "space-between",
+                alignItems:     "center",
+                marginBottom:   20,
+                padding:        "16px 18px",
+                background:     C.creamSoft,
+                borderRadius:   14,
+                border:         `1px solid rgba(20,20,34,0.05)`,
               }}>
-                <span style={{ fontSize:14, fontWeight:600, color:C.muted, letterSpacing:0 }}>Deine Unterstützung</span>
-                <span style={{ fontSize:18, fontWeight:800, color:C.ink, letterSpacing:-0.4, fontVariantNumeric:"tabular-nums" }}>
+                <div>
+                  <div style={{ fontSize:11, fontWeight:600, color:C.muted,
+                    letterSpacing:0.4, textTransform:"uppercase", marginBottom:3 }}>
+                    Deine Unterstützung
+                  </div>
+                  <div style={{ fontSize:11, color:C.faint }}>
+                    {iCount} {iCount === 1 ? "Auswahl" : "Auswahlen"}
+                  </div>
+                </div>
+                <span style={{
+                  fontSize:   22,
+                  fontWeight: 800,
+                  color:      C.ink,
+                  letterSpacing: -0.6,
+                  fontVariantNumeric: "tabular-nums",
+                }}>
                   {gesamt.toFixed(2).replace(".", ",")} €
                 </span>
               </div>
