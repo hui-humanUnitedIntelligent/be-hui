@@ -452,6 +452,7 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
         onProfile={onProfile}
         onReaction={handleReaction}
         onBook={onBook}
+        onDetail={onDetail}
         onShare={onShare}
       />
     </div>
