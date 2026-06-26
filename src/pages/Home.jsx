@@ -31,6 +31,7 @@ import ConnectionCreatePage      from "../components/connection-create/Connectio
 import WerkKaufFlow           from "../components/commerce/WerkKaufFlow.jsx";         // COMMERCE-01
 import WerkeKorb, { WerkeKorbButton } from "../components/commerce/WerkeKorb.jsx"; // KORB-01
 import UnterstutzenFlow                from "../components/commerce/UnterstutzenFlow.jsx"; // KORB-02
+import { clearCartAfterSuccess }        from "../components/commerce/commerceUtils.js";    // KORB-02
 import ExperienceBookingFlow  from "../components/commerce/ExperienceBookingFlow.jsx"; // COMMERCE-01
 // ── Tab-Pages: lazy → eigene Chunks, nur bei Bedarf geladen ────
 // PHASE 17.3: ImpactPage + DiscoverPage — direkte imports (Safari-safe, kein lazy)
@@ -456,9 +457,11 @@ function HomeInner() {
           onClose={() => setShowWerkeKorb(false)}
           onRemove={(item) => setCart(prev => prev.filter(x => x.id !== item.id))}
           onUnterstuetzen={async (items) => {
-            // KORB-02: WerkeKorb schließen, UnterstutzenFlow öffnen
+            // KORB-02: WerkeKorb → UnterstutzenFlow (kein Magic-Timeout)
+            // WerkeKorb setzt phase="loading" → der Flow öffnet sich nach
+            // Abschluss des await. onUnterstuetzen resolved → WerkeKorb schließt sich.
+            setShowUnterstutzenFlow(true);
             setShowWerkeKorb(false);
-            setTimeout(() => setShowUnterstutzenFlow(true), 240);
           }}
           onDiscover={() => { setShowWerkeKorb(false); handleTab("discover"); }}
           onChat={null}
@@ -471,10 +474,12 @@ function HomeInner() {
           items={cart}
           onClose={() => setShowUnterstutzenFlow(false)}
           onUnterstuetzen={async (items, form, method) => {
-            // Stripe-ready: items, formData, paymentMethod
+            // STRIPE-READY: items[], form{vorname,nachname,email,...}, method="apple"|"google"|"card"
             await new Promise(r => setTimeout(r, 1200));
           }}
-          onDiscover={() => { setShowUnterstutzenFlow(false); setCart([]); handleTab("discover"); }}
+          onClearCart={() => clearCartAfterSuccess(setCart)}
+          onDiscover={() => { setShowUnterstutzenFlow(false); handleTab("discover"); }}
+          onResonanzCenter={() => setShowUnterstutzenFlow(false)}
         />
       )}
 
