@@ -776,7 +776,7 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
           username:        session.user.user_metadata?.username
                            || session.user.user_metadata?.display_name
                            || session.user.email?.split("@")[0]
-                           || "Human",
+                           || null,
           avatar_url:      session.user.user_metadata?.avatar_url || null,
           media_url,
           media_type:      form?.mediaType || "image",
