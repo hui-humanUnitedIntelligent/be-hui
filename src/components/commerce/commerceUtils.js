@@ -186,12 +186,32 @@ export function allowsQuantity(item) {
     return typeof raw.max_participants === "number" && raw.max_participants > 1;
   }
 
-  // Werke → physische Lieferung oder explizit product/merch-Kategorie
+  // Werke → Mengenwähler-Logik v1.0 (Fix: Fallback für fehlende delivery_type)
+  //
+  // Reihenfolge:
+  //   1. delivery_type === "digital" (oder "download") → NIEMALS Menge
+  //   2. delivery_type === "physical" / "ship" / "shipping" → IMMER Menge
+  //   3. delivery_type fehlt / null → FALLBACK: als physisch behandeln
+  //      (gilt bis WerkWizard alle Werke mit delivery_type speichert)
+  //   4. Kategorie-Hinweise (product/merch/print/…) → IMMER Menge
+  //
   if (type === "work") {
-    const delivery = (raw.delivery_type || raw.deliveryType || "").toLowerCase();
+    const delivery = (raw.delivery_type || raw.deliveryType || "").toLowerCase().trim();
+
+    // Explizit digital → kein Mengenwähler
+    if (delivery === "digital" || delivery === "download" || delivery === "pdf") return false;
+
+    // Explizit physisch → Mengenwähler
     if (delivery === "physical" || delivery === "ship" || delivery === "shipping") return true;
-    const cat = (raw.category || raw.work_type || "").toLowerCase();
-    if (["product","merch","merchandise","print","book","cd","vinyl"].some(k => cat.includes(k))) return true;
+
+    // Kategorie-Hinweis → Mengenwähler
+    const cat = (raw.category || raw.work_type || raw.format || "").toLowerCase();
+    if (["product","merch","merchandise","print","book","cd","vinyl","poster","sticker"].some(k => cat.includes(k))) return true;
+
+    // FALLBACK: delivery_type fehlt oder leer → als physisch behandeln
+    // TODO: Entfernen sobald WerkWizard delivery_type zuverlässig speichert
+    if (!delivery) return true;
+
     return false;
   }
 
