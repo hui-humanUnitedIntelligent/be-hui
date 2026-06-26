@@ -8,6 +8,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useHome } from "../HomeShell.jsx";
 import { useHuiActions, A } from "../../../core/hui.actions.js";
 import { S } from "../../../core/hui.sources.js";
+import { ProfileService } from '../../../services/db';
 import { supabase } from "../../../lib/supabaseClient.js";
 import { isProfileTalent } from "../../../lib/profileUtils.js";
 
@@ -164,14 +165,8 @@ function useProfileType(profileId) {
 
     (async () => {
       try {
-        const { data, error } = await supabase
-          .from("profiles")
-          // P2: is_talent als primärer Routing-Indikator
-          // Langfristig: isProfileTalent(data) aus src/lib/profileUtils.js verwenden
-          // Derzeit kein Import um den Routing-Pfad minimal zu halten
-          .select("id, membership_type, role, has_talent_profile") // Identity Contract v1.0: is_talent entfernt
-          .eq("id", profileId)
-          .single();
+        // ProfileService v1.0
+        const { data, error } = await ProfileService.getById(profileId);
 
         if (error) {
           console.error("[PROFILE ROUTER] DB-Fehler:", error.message);
