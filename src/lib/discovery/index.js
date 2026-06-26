@@ -105,7 +105,7 @@ export async function getResonancePath(fromType, fromId, userId = null) {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('id, display_name, username, avatar_url, talent, bio')
+        .select('id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views') // Identity Contract v1.0
         .eq('id', work.user_id).maybeSingle();
 
       return {
@@ -187,9 +187,9 @@ export async function getLocalResonance(locationLabel, { limit = 6 } = {}) {
     const [profilesRes, expRes] = await Promise.all([
       supabase
         .from('profiles')
-        .select('id, display_name, avatar_url, talent, location')
+        .select('id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views') // Identity Contract v1.0
         .eq('has_talent_profile', true)
-        .ilike('location', like)
+        .ilike('location_label', like) // Identity Contract v1.0
         .limit(limit),
       supabase
         .from('experiences')
