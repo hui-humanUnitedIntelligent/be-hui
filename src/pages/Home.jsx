@@ -352,16 +352,11 @@ function HomeInner() {
                     }
                   }}
                   onDetail={(item) => {
-                    // DEBUG STEP 5 — sichtbarer Toast auf iPad
-                    import("../lib/useToast.jsx").then(m => {
-                      m.toast.info("STEP 5 ✓ Home → /work/" + (item?.id || "?"), {duration:2500});
-                    });
                     // Werk-Detail aus Feed → /work/:id Route
-                    if (item?.type === "work") {
-                      const werkId = item?.id || item?._raw?.id;
-                      if (werkId) {
-                            navigate(`/work/${werkId}`);
-                      }
+                    // item ist normalisiertes FeedItem (hat .type und .id = works.id)
+                    const werkId = item?.id || item?._raw?.id;
+                    if (werkId) {
+                      navigate(`/work/${werkId}`);
                     }
                   }}
                   onShare={() => setShowTeilen(true)}
