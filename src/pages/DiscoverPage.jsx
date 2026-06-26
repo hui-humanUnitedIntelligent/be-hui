@@ -1615,7 +1615,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   // Werk-Karte: öffne Werk-Detailseite
   const handleWerkPress = useCallback((werk) => {
     const werkId = werk.id;
-    if (werkId) navigate(\`/work/\${werkId}\`);
+    if (werkId) navigate(`/work/${werkId}`);
   }, [navigate]);
 
   // Moment-Karte: erst Profil des Erstellers (kein separater Moment-Detail-View)
