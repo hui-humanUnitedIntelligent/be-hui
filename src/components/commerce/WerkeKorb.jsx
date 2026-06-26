@@ -275,7 +275,7 @@ function KorbKarte({ item, onRemove, idx, removing, onQtyChange }) {
       style={{
         background:   C.creamSoft,
         borderRadius: 18,
-        padding:      "16px 14px 16px 16px",
+        padding:      "20px 14px 20px 16px",
         marginBottom: 10,
         display:      "flex",
         gap:          14,
@@ -319,17 +319,17 @@ function KorbKarte({ item, onRemove, idx, removing, onQtyChange }) {
       {/* Inhalt — v2.1: alles linksbündig, von oben nach unten */}
       <div style={{ flex: 1, minWidth: 0 }}>
 
-        {/* Werktitel — stärkstes Element */}
+        {/* Werktitel — stärkstes Element, sauberes Ellipsis */}
         <div style={{
-          fontSize:      18,
+          fontSize:      17,
           fontWeight:    800,
           color:         C.ink,
-          lineHeight:    1.2,
+          lineHeight:    1.25,
           overflow:      "hidden",
           textOverflow:  "ellipsis",
           whiteSpace:    "nowrap",
-          letterSpacing: -0.4,
-          marginBottom:  6,
+          letterSpacing: -0.35,
+          marginBottom:  8,
         }}>
           {title}
         </div>
@@ -341,7 +341,7 @@ function KorbKarte({ item, onRemove, idx, removing, onQtyChange }) {
             fontWeight:   400,
             color:        C.muted,
             letterSpacing: 0,
-            marginBottom: 12,
+            marginBottom: 14,
             lineHeight:   1.3,
           }}>
             von {authorName}
@@ -804,7 +804,7 @@ function ImpactZeile({ impactEur }) {
             <path d="M14 24V14" stroke="#6BAE8F" strokeWidth="1.6" strokeLinecap="round"/>
           </svg>
           <span style={{ fontSize:11, fontWeight:600, color:C.sage, letterSpacing:0 }}>
-            Impact-Beitrag
+            🌱 Gemeinsam Wirkung schaffen
           </span>
         </div>
         <span style={{
