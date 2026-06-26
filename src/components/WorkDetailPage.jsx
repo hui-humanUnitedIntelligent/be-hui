@@ -404,40 +404,25 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
     setLoading(true);
     setError(null);
     try {
-      // 1. Work + Profile in einem Query
+      // Werk laden — nur Felder die tatsächlich in der DB existieren
+      // (works.user_id → auth.users, kein FK zu profiles → kein JOIN möglich)
       const { data: w, error: wErr } = await supabase
         .from("works")
-        .select(`
-          id, title, description, price, cover_url,
-          images, category, status, created_at, user_id,
-          profiles!works_user_id_fkey (
-            id, username, display_name, avatar_url, bio, is_wirker
-          )
-        `)
+        .select("id,title,description,cover_url,media_url,price,category,tags,status,approval_status,user_id,creator_id,likes_count,created_at,images,caption,location_text")
         .eq("id", id)
         .single();
 
-      if (wErr || !w) {
-        // Fallback: Work ohne JOIN laden, dann Profile separat
-        const { data: w2, error: w2Err } = await supabase
-          .from("works").select("id,title,description,cover_url,media_url,price,category,medium,status,user_id,likes_count,created_at,images,tags").eq("id", id).single();
-        if (w2Err || !w2) throw new Error("Werk nicht gefunden");
-        setWerk(w2);
-
-        if (w2.user_id) {
-          // ProfileService v1.0
-          const { data: prof } = await ProfileService.getById(w2.user_id);
-          setCreator(prof || null);
-        }
-        await loadRelated(w2.category, w2.user_id, id);
-        if (user?.id) await loadSocial(id, w2.user_id);
-        return;
-      }
-
+      if (wErr || !w) throw new Error("Werk nicht gefunden");
       setWerk(w);
-      setCreator(w.profiles || null);
-      await loadRelated(w.category, w.user_id, id);
-      if (user?.id) await loadSocial(id, w.user_id);
+
+      // Profil separat via ProfileService (kein JOIN wegen fehlendem FK zu profiles)
+      const creatorId = w.user_id || w.creator_id;
+      if (creatorId) {
+        const { data: prof } = await ProfileService.getById(creatorId);
+        setCreator(prof || null);
+      }
+      await loadRelated(w.category, creatorId, id);
+      if (user?.id) await loadSocial(id, creatorId);
 
     } catch (e) {
       console.error("[HUI] WorkDetail Fehler:", e);
