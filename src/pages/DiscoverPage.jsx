@@ -1614,11 +1614,21 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
 
   // Werk-Karte: öffne Werk-Detailseite (nur bei echter DB-ID, nicht bei Seed-Daten)
   const handleWerkPress = useCallback((werk) => {
-    const werkId = werk.id;
+    const item = werk;
+    console.group("WORK CLICK");
+    console.log("Komplettes Item:", item);
+    console.log("item.id:", item.id);
+    console.log("item.type:", item.type);
+    console.log("item.source:", item.source);
+    console.log("item.raw:", item.raw);
+    console.groupEnd();
+
+    const werkId = item.id;
     // UUID-Prüfung: echte Supabase-IDs sind UUIDs (8-4-4-4-12)
     // Seed-IDs wie "w1","w2" sind keine UUIDs → kein Navigate
     const isRealId = werkId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(werkId));
     if (isRealId) {
+      console.log("Navigate nach:", `/work/${item.id}`);
       navigate(`/work/${werkId}`);
     }
     // Seed-Karte: kein Navigate — kein "Werk nicht gefunden"

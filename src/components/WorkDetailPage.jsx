@@ -276,6 +276,9 @@ function IconBtn({ icon, label, active, color, onPress }) {
 export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }) {
   const navigate = useNavigate();
   const { id } = useParams();
+  console.group("WORK DETAIL");
+  console.log("Route-ID:", id);
+  console.groupEnd();
   const { user } = useAuth();
   const { toggleLikeWork, toggleSaveWork, toggleFollow } = useAppState();
 
@@ -405,6 +408,10 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
     setError(null);
     try {
       // 1. Work + Profile in einem Query
+      console.log("Query:");
+      console.log("Tabelle:", "works");
+      console.log("Feld:", "id");
+      console.log("Wert:", id);
       const { data: w, error: wErr } = await supabase
         .from("works")
         .select(`
@@ -416,12 +423,48 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
         `)
         .eq("id", id)
         .single();
+      console.log({
+        data: w,
+        error: wErr
+      });
 
       if (wErr || !w) {
         // Fallback: Work ohne JOIN laden, dann Profile separat
+        console.log("Query:");
+        console.log("Tabelle:", "works");
+        console.log("Feld:", "id");
+        console.log("Wert:", id);
         const { data: w2, error: w2Err } = await supabase
           .from("works").select("id,title,description,cover_url,media_url,price,category,medium,status,user_id,likes_count,created_at,images,tags").eq("id", id).single();
-        if (w2Err || !w2) throw new Error("Werk nicht gefunden");
+        console.log({
+          data: w2,
+          error: w2Err
+        });
+        if (w2Err || !w2) {
+          console.group("WORK EXISTENCE CHECK");
+          console.log("Tabelle:", "works");
+          console.log("Feld:", "id");
+          console.log("Wert:", id);
+          const { data: existenceData, error: existenceError } = await supabase
+            .from("works")
+            .select("id,status,approval_status,visibility,user_id")
+            .eq("id", id)
+            .maybeSingle();
+          console.log({
+            data: existenceData,
+            error: existenceError
+          });
+          const { count: existenceCount, error: existenceCountError } = await supabase
+            .from("works")
+            .select("id", { count:"exact", head:true })
+            .eq("id", id);
+          console.log({
+            data: { count: existenceCount },
+            error: existenceCountError
+          });
+          console.groupEnd();
+          throw new Error("Werk nicht gefunden");
+        }
         setWerk(w2);
 
         if (w2.user_id) {
