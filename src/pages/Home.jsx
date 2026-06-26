@@ -350,6 +350,16 @@ function HomeInner() {
                       setShowBookingFlow(item);
                     }
                   }}
+                  onDetail={(item) => {
+                    // Werk-Detail aus Feed → /work/:id Route
+                    if (item?.type === "work") {
+                      const werkId = item?.id || item?._raw?.id;
+                      if (werkId) {
+                        // useNavigate ist in Home verfügbar via HomeNavHelper
+                        window.__HUI_NAV_WORK__ && window.__HUI_NAV_WORK__(werkId);
+                      }
+                    }
+                  }}
                   onShare={() => setShowTeilen(true)}
                   onEventPress={(ev) => {
                     const creatorId = ev?.creator_id || ev?.author?.id || ev?.user_id;
@@ -381,7 +391,14 @@ function HomeInner() {
             <Suspense fallback={<div style={{padding:"40px 20px",textAlign:"center",opacity:0.6,fontSize:13,
   color:"rgba(20,20,34,0.40)",animation:"huiFadeIn 0.5s ease"}}>Entdecken öffnet sich…</div>}>
               <SafeRender flag="discoverFeed" label="DiscoverPage">
-                <DiscoverPage onView={(id) => { if(id) openProfileById(id); }} onMap={() => setShowMap(true)}/>
+                <DiscoverPage
+                    onView={(id) => { if(id) openProfileById(id); }}
+                    onMap={() => setShowMap(true)}
+                    onBook={(item) => {
+                      // Erlebnis aus DiscoverPage → ExperienceBookingFlow
+                      setShowBookingFlow(item);
+                    }}
+                  />
               </SafeRender>
             </Suspense>
           </div>
