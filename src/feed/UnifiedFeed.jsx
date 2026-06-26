@@ -707,36 +707,15 @@ export default function UnifiedFeed({
       }
       try {
         const n = toFeedItem(raw);
-        // Absolute fallback — id vorhanden → immer etwas zurückgeben
-        // KRITISCH: authorId muss aus dem raw-Row extrahiert werden (nie leerer String!)
-        if (!n) {
-          const _rawAuthorId = raw.user_id || raw.creator_id || raw.author_id || null;
-          return {
-            id:        String(raw.id),
-            type:      raw.type || "moment",
-            author:    { id: _rawAuthorId || "",
-                         name: raw.display_name || raw.name || "Human",
-                         displayName: raw.display_name || raw.name || "Human",
-                         avatar: raw.avatar_url || raw.avatar || null },
-            title:     raw.title || raw.caption?.slice(0, 60) || null,
-            text:      raw.caption || raw.description || raw.text || null,
-            media:     [],
-            createdAt: "",
-            _reactions: {},
-            _raw: raw,
-          };
-        }
+        // Sprint P0: paralleler "Human"-Pfad entfernt.
+        // toFeedItem() ist die einzige Normalisierungsquelle.
+        // Wenn toFeedItem null zurückgibt (z.B. raw ohne id), wird das Item gefiltert.
         return n;
       } catch (err) {
+        // Sprint P0: Error Boundary — kein "Human"-Fallback.
+        // Item mit Crash wird auf null gesetzt und vom Filter entfernt.
         console.warn("[UNIFIED_NORM_ERR]", raw?.id, err?.message);
-        const _catchAuthorId = raw?.user_id || raw?.creator_id || raw?.author_id || null;
-        return {
-          id:         String(raw.id),
-          type:       "moment",
-          author:     { id: _catchAuthorId || "", name: "Human", displayName: "Human", avatar: raw?.avatar_url || null },
-          title:      null, text: null, media: [], createdAt: "",
-          _reactions: {}, _raw: raw,
-        };
+        return null;
       }
     });
 
