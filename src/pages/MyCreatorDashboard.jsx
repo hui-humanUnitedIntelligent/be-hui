@@ -691,7 +691,7 @@ export default function MyCreatorDashboard({ onClose }) {
         const [profRes, worksRes, expsRes, recsRes, fcRes, paymentsRes] = await Promise.all([
           // Profil
           supabase.from("profiles")
-            .select("id,display_name,full_name,username,bio,avatar_url,talent,tagline,location,impact_eur,experiences_count,connections_count,membership_type,membership_active,membership_since,is_verified,verified,profile_complete,motivation,created_at")
+            .select("id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views") // Identity Contract v1.0 (Dead Code)
             .eq("id", authId).single(),
           // Werke
           supabase.from("works")
