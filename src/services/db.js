@@ -14,9 +14,21 @@ import { supabase } from '../lib/supabaseClient';
 import { safeQuery, cachedQuery, clearQueryCache, FIELDS, PAGE_SIZE, buildPage } from '../lib/perfUtils';
 
 // ─── FIELDS (vollständig, kein select *) ─────────────────────
+// ─── IDENTITY CONTRACT v1.0 ─────────────────────────────
+// Kanonischer Fieldset — einzige Quelle der Wahrheit.
+// Alle Module verwenden ausschließlich diesen String.
+// Änderungen nur nach Freigabe des Identity Contracts.
+// Entfernte Felder: tagline, full_name, is_verified, availability,
+//   follower_count, location, is_talent, header_img, skills, dna_tags
+// Hinzugefügt: location_label, member_since, profile_views
+export const IDENTITY_CONTRACT =
+  'id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views';
+
 const F = {
-  profile:      'id,display_name,username,avatar_url,header_img,bio,is_wirker,has_talent_profile,location,availability,skills,dna_tags,impact_eur,role,membership_type,membership_active,created_at',
-  profileMin:   'id,display_name,username,avatar_url,is_wirker,has_talent_profile,location',
+  // Identity Contract — einziges kanonisches Profil-Fieldset
+  profile:      IDENTITY_CONTRACT,
+  // profileMin: für Chat/Notifications (Avatar + Name) — bewusst minimal
+  profileMin:   'id,display_name,username,avatar_url',
   // DEPRECATED (Sprint F.4D.1): avatar_url + header_img in wirker_profiles
   // werden nie geschrieben — Wahrheitsquelle ist profiles.avatar_url / .header_img
   // TODO F.4E: avatar_url,header_img aus diesem String entfernen, wenn WirkerService migriert
@@ -72,6 +84,25 @@ export const ProfileService = {
       supabase.from('profiles')
         .upsert({ id, ...data, updated_at: new Date().toISOString() })
         .select(F.profile).single()
+    );
+  },
+
+  // Batch-Load für Feed (ersetzt lokale profileMaps)
+  async getMany(ids) {
+    if (!ids || ids.length === 0) return { data: [], error: null };
+    return cachedQuery(`profiles:batch:${[...ids].sort().join(',')}`,
+      () => safeQuery(
+        supabase.from('profiles').select(F.profile).in('id', ids)
+      ), 60_000
+    );
+  },
+
+  // Minimales Profil für Avatar + Name (Chat, Notifications)
+  async getMin(id) {
+    return cachedQuery(`profile:min:${id}`,
+      () => safeQuery(
+        supabase.from('profiles').select(F.profileMin).eq('id', id).single()
+      ), 120_000
     );
   },
 };
