@@ -13,70 +13,13 @@
 // ─────────────────────────────────────────────────────────────────
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { HUI } from "../../design/hui.design.js";
 import { EASE, DUR } from "../../design/hui.interaction.js";
-
-// ── Design Tokens ─────────────────────────────────────────────────
-const C = {
-  cream:       HUI?.COLOR?.cream       ?? "#FAF7F2",
-  creamSoft:   HUI?.COLOR?.creamSoft   ?? "#FDFBF8",
-  creamDeep:   HUI?.COLOR?.creamDeep   ?? "#EDE5D8",
-  teal:        HUI?.COLOR?.teal        ?? "#0DC4B5",
-  tealGlow:    HUI?.COLOR?.tealGlow    ?? "rgba(13,196,181,0.18)",
-  tealPale:    HUI?.COLOR?.tealPale    ?? "#E6FAF8",
-  coral:       HUI?.COLOR?.coral       ?? "#F47355",
-  coralGlow:   HUI?.COLOR?.coralGlow   ?? "rgba(244,115,85,0.18)",
-  ink:         HUI?.COLOR?.ink         ?? "#141422",
-  inkMid:      HUI?.COLOR?.inkMid      ?? "#2E2E45",
-  muted:       HUI?.COLOR?.muted       ?? "#8A8A9E",
-  faint:       HUI?.COLOR?.faint       ?? "#C0C0D0",
-  sage:        HUI?.COLOR?.sage        ?? "#6BAE8F",
-  sagePale:    HUI?.COLOR?.sagePale    ?? "#EEF7F2",
-  violet:      HUI?.COLOR?.violet      ?? "#7264D6",
-  violetPale:  HUI?.COLOR?.violetPale  ?? "#F0EEFF",
-  gold:        HUI?.COLOR?.gold        ?? "#D4952A",
-  goldPale:    HUI?.COLOR?.goldPale    ?? "#FDF6E3",
-};
-
-// ── Helpers ───────────────────────────────────────────────────────
-function formatPrice(val) {
-  if (!val && val !== 0) return null;
-  const n = parseFloat(String(val).replace(",", ".").replace(/[^0-9.]/g, ""));
-  if (isNaN(n) || n <= 0) return null;
-  return n.toFixed(2).replace(".", ",") + "\u202F€";
-}
-function parseAmount(val) {
-  if (!val && val !== 0) return 0;
-  const n = parseFloat(String(val).replace(",", ".").replace(/[^0-9.]/g, ""));
-  return isNaN(n) ? 0 : n;
-}
-function haptic(s = "light") {
-  try { window.navigator?.vibrate?.(s === "success" ? [10, 50, 10] : [8]); } catch {}
-  try { window.webkit?.messageHandlers?.haptic?.postMessage?.(s); } catch {}
-}
-function hasPhysical(items) {
-  return items.some(i => (i._raw?.delivery_type || i.delivery_type) === "physical");
-}
-function hasEvent(items) {
-  return items.some(i => i.type === "experience" || i.type === "event");
-}
-function uniquePeople(items) {
-  const seen = new Set();
-  return items.reduce((acc, i) => {
-    const id = i.author?.id || i.user_id || i._raw?.user_id;
-    if (id && !seen.has(id)) { seen.add(id); acc++; }
-    return acc;
-  }, 0) || items.length;
-}
-
-// ── TYPE_META ─────────────────────────────────────────────────────
-const TYPE_META = {
-  work:       { label: "Werk",      accent: C.teal,   bg: C.tealPale  },
-  experience: { label: "Erlebnis",  accent: C.coral,  bg: C.coralGlow },
-  event:      { label: "Event",     accent: C.violet, bg: C.violetPale},
-  impact:     { label: "Projekt",   accent: C.sage,   bg: C.sagePale  },
-  moment:     { label: "Moment",    accent: C.gold,   bg: C.goldPale  },
-};
+import {
+  C, TYPE_META,
+  haptic, formatPrice, parseAmount, calcTotal, calcImpact,
+  uniquePeople, hasPhysical, hasEventOrExperience,
+  isFormValid, EMPTY_FORM, clearCartAfterSuccess,
+} from "./commerceUtils.js";
 
 // ═══════════════════════════════════════════════════════════════════
 //  SHARED: Impact-Karte (identisch zum WerkeKorb)
@@ -459,10 +402,9 @@ function Schritt1({ items, total, impact, onWeiter }) {
 // ═══════════════════════════════════════════════════════════════════
 function Schritt2({ items, form, setForm, onWeiter }) {
   const needsShipping = hasPhysical(items);
-  const needsPhone    = hasEvent(items);
+  const needsPhone    = hasEventOrExperience(items);
 
-  const valid = form.vorname.trim() && form.nachname.trim() && form.email.trim() &&
-    form.email.includes("@");
+  const valid = isFormValid(form, items);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
@@ -763,20 +705,19 @@ export default function UnterstutzenFlow({
   onClose,
   onUnterstuetzen,
   onDiscover,
+  onClearCart,       // wird nach Erfolg gerufen — clearCartAfterSuccess(setCart)
+  onResonanzCenter,  // RESONANZ-01: Integrationspunkt, noch keine Logik
 }) {
   const [step,          setStep]          = useState(0);   // 0–3
-  const [form,          setForm]          = useState({
-    vorname: "", nachname: "", email: "", telefon: "",
-    strasse: "", plz: "", stadt: "",
-  });
+  const [form,          setForm]          = useState(EMPTY_FORM);
   const [paymentMethod, setPaymentMethod] = useState(null);
   const [loading,       setLoading]       = useState(false);
   const [visible,       setVisible]       = useState(false);
   const [slideDir,      setSlideDir]      = useState(1);   // 1=vorwärts, -1=zurück
   const [animating,     setAnimating]     = useState(false);
 
-  const total  = items.reduce((s, i) => s + parseAmount(i._raw?.price ?? i.price), 0);
-  const impact = +(total * 0.07).toFixed(2);
+  const total  = calcTotal(items);
+  const impact = calcImpact(total);
 
   // Einblend-Animation beim Öffnen
   useEffect(() => {
@@ -820,7 +761,11 @@ export default function UnterstutzenFlow({
       onAbschliessen={handleAbschliessen} loading={loading} />,
     <Schritt4 key="s4" items={items} impact={impact} total={total}
       onDiscover={() => { onClose?.(); onDiscover?.(); }}
-      onResonanz={() => onClose?.()} />,
+      onResonanz={() => {
+        // RESONANZ-01: Integrationspunkt für Resonanz Center
+        // Noch keine Logik — onResonanzCenter-Prop für Stripe-Sprint vorbereiten
+        onClose?.();
+      }} />,
   ];
 
   const isSuccess = step === 3;
