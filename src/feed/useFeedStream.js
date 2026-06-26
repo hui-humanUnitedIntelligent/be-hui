@@ -160,7 +160,7 @@ async function fetchFeedPage(userId = null, cursors = null) {
     try {
       const { data: profileRows } = await supabase
         .from("profiles")
-        .select("id,display_name,full_name,username,avatar_url,talent,bio,member_since,location_label,membership_type,membership_active,is_verified")
+        .select("id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views") // Identity Contract v1.0
         .in("id", userIds);
       // ── TRACE STEP 3: Supabase Profile Query Result ──────────
       console.group("🔍 STEP 3 - PROFILE QUERY");
