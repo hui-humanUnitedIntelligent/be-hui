@@ -169,7 +169,7 @@ function useProfileType(profileId) {
           // P2: is_talent als primärer Routing-Indikator
           // Langfristig: isProfileTalent(data) aus src/lib/profileUtils.js verwenden
           // Derzeit kein Import um den Routing-Pfad minimal zu halten
-          .select("id, is_talent, membership_type, role, has_talent_profile")
+          .select("id, membership_type, role, has_talent_profile") // Identity Contract v1.0: is_talent entfernt
           .eq("id", profileId)
           .single();
 
