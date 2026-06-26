@@ -715,33 +715,40 @@ function ImpactZeile({ impactEur }) {
   const impactStr = impactEur.toFixed(2).replace(".", ",");
   return (
     <div style={{
-      display:     "flex",
-      alignItems:  "flex-start",
-      gap:         10,
-      padding:     "12px 14px",
-      borderRadius: 12,
-      background:  C.sagePale,
-      border:      `1px solid rgba(107,174,143,0.20)`,
+      borderRadius: 14,
+      background:   C.sagePale,
+      border:       `1px solid rgba(107,174,143,0.18)`,
+      padding:      "16px 16px 14px",
       marginBottom: 14,
+      textAlign:    "center",
     }}>
-      <span style={{ fontSize: 16, flexShrink: 0, marginTop: 1 }}>🌱</span>
-      <div>
-        <div style={{
-          fontSize:   12,
-          fontWeight: 700,
-          color:      C.sage,
-          letterSpacing: 0.2,
-          marginBottom: 2,
-        }}>
-          Dein Impact
-        </div>
-        <div style={{
-          fontSize:   13,
-          color:      C.inkMid,
-          lineHeight: 1.4,
-        }}>
-          {impactStr} € fließen in den HUI Impact Pool.
-        </div>
+      <div style={{
+        display:"flex", alignItems:"center", justifyContent:"center",
+        gap:6, marginBottom:10,
+      }}>
+        <span style={{ fontSize:15 }}>🌱</span>
+        <span style={{ fontSize:13, fontWeight:700, color:C.sage, letterSpacing:0.1 }}>
+          Gemeinsam Wirkung schaffen
+        </span>
+      </div>
+      <div style={{ fontSize:12, color:C.muted, lineHeight:1.6, marginBottom:10 }}>
+        HUI investiert bei jeder Unterstützung einen Teil der eigenen Einnahmen in den HUI Impact Pool.
+      </div>
+      <div style={{ fontSize:13, color:C.inkMid, lineHeight:1.5, marginBottom:2 }}>
+        Bei dieser Unterstützung fließen
+      </div>
+      <div style={{
+        fontSize:22, fontWeight:800, color:C.teal,
+        letterSpacing:-0.5, lineHeight:1.2, marginBottom:6,
+        fontVariantNumeric:"tabular-nums",
+      }}>
+        {impactStr} €
+      </div>
+      <div style={{ fontSize:12, color:C.muted, lineHeight:1.5 }}>
+        in gemeinsame Impact-Projekte.
+      </div>
+      <div style={{ fontSize:11, color:C.faint, fontStyle:"italic", marginTop:8, lineHeight:1.5 }}>
+        Für dich entstehen dadurch keine zusätzlichen Kosten.
       </div>
     </div>
   );
@@ -769,7 +776,7 @@ export default function WerkeKorb({
   const total  = items.reduce((s, item) =>
     s + parseAmount(item._raw?.price ?? item.price), 0);
   const impact = +(total * 0.07).toFixed(2);
-  const gesamt = +(total + impact).toFixed(2);
+  const gesamt = +total.toFixed(2); // Käufer zahlt nur den Werkpreis
 
   // Entfernen mit Animation
   const handleRemove = useCallback((item) => {
