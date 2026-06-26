@@ -4,6 +4,7 @@
 
 import ReactDOM from 'react-dom';
 import React from "react";
+import { ProfileService } from '../services/db';
 import { supabase } from "../lib/supabaseClient";
 import { ImpactService, FeedService } from "../services/db.js";
 import { HUI } from "../design/hui.design.js";
@@ -295,7 +296,7 @@ function useImpactActivities() {
         const uIds = [...new Set(votes.map(v => v.user_id).filter(Boolean))];
         const pIds = [...new Set(votes.map(v => v.project_id).filter(Boolean))];
         const [uRes, pRes] = await Promise.allSettled([
-          uIds.length ? supabase.from("profiles").select("id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views").in("id", uIds) // Identity Contract v1.0
+          uIds.length ? ProfileService.getMany(uIds) // ProfileService v1.0
                       : Promise.resolve({ data:[] }),
           pIds.length ? supabase.from("impact_projects").select("id,name").in("id", pIds)
                       : Promise.resolve({ data:[] }),
