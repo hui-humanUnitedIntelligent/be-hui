@@ -965,53 +965,25 @@ export default function WerkeKorb({
             borderTop:  `1px solid rgba(20,20,34,0.07)`,
             flexShrink: 0,
           }}>
-            {/* Impact-Zeile */}
-            <ImpactZeile impactEur={impact} />
-
-            {/* Summen */}
+            {/* Gesamt — einzige Preiszeile */}
             {total > 0 && (
               <div style={{
-                display:       "flex",
-                flexDirection: "column",
-                gap:           6,
-                marginBottom:  14,
-                padding:       "10px 14px",
-                background:    C.creamSoft,
-                borderRadius:  12,
-                border:        `1px solid rgba(20,20,34,0.05)`,
+                display:"flex", justifyContent:"space-between", alignItems:"baseline",
+                marginBottom:12, padding:"10px 14px",
+                background:C.creamSoft, borderRadius:12,
+                border:`1px solid rgba(20,20,34,0.05)`,
               }}>
-                <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, color:C.muted }}>
-                  <span>Zwischensumme</span>
-                  <span style={{ fontVariantNumeric:"tabular-nums" }}>
-                    {total.toFixed(2).replace(".", ",")}\u202F€
-                  </span>
-                </div>
-                <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, color:C.sage }}>
-                  <span>🌱 Impact-Beitrag <span style={{ opacity:.7, fontSize:11 }}>+7 %</span></span>
-                  <span style={{ fontVariantNumeric:"tabular-nums" }}>
-                    + {impact.toFixed(2).replace(".", ",")}\u202F€
-                  </span>
-                </div>
-                <div style={{
-                  display:        "flex",
-                  justifyContent: "space-between",
-                  fontSize:       16,
-                  fontWeight:     800,
-                  color:          C.ink,
-                  paddingTop:     8,
-                  marginTop:      2,
-                  borderTop:      `1px solid rgba(20,20,34,0.07)`,
-                  letterSpacing:  -0.3,
-                }}>
-                  <span>Gesamt</span>
-                  <span style={{ fontVariantNumeric:"tabular-nums" }}>
-                    {gesamt.toFixed(2).replace(".", ",")}\u202F€
-                  </span>
-                </div>
+                <span style={{ fontSize:16, fontWeight:800, color:C.ink, letterSpacing:-0.3 }}>Gesamt</span>
+                <span style={{ fontSize:16, fontWeight:800, color:C.ink, letterSpacing:-0.3, fontVariantNumeric:"tabular-nums" }}>
+                  {gesamt.toFixed(2).replace(".", ",")} €
+                </span>
               </div>
             )}
 
-            {/* CTA */}
+            {/* Impact — Informationsbereich, kein Preisaufschlag */}
+            <ImpactZeile impactEur={impact} />
+
+                        {/* CTA */}
             <button
               onClick={handleUnterstuetzen}
               disabled={phase === "loading"}
