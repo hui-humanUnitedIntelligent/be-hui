@@ -135,8 +135,25 @@ async function fetchFeedPage(userId = null, cursors = null) {
   }
 
   // ── Step 2: Profile-Enrichment — optional, nie blockierend ─────────────
+  // ── TRACE STEP 1: erstes Work-Item ─────────────────────────
+  if (works && works.length > 0) {
+    const w0 = works[0];
+    console.group("🔍 STEP 1 - WORK[0]");
+    console.log("raw row:", w0);
+    console.log("id:", w0.id);
+    console.log("user_id:", w0.user_id);
+    console.log("creator_id:", w0.creator_id);
+    console.groupEnd();
+  }
+
   const allRows = [...works, ...exps, ...beitr, ...invs];
   const userIds = [...new Set(allRows.map(r => r.user_id || r.creator_id).filter(Boolean))];
+  // ── TRACE STEP 2: userIds ───────────────────────────────────
+  console.group("🔍 STEP 2 - USER IDS");
+  console.log("userIds:", userIds);
+  console.log("works[0].user_id in userIds:", works[0] ? userIds.includes(works[0].user_id) : "no works");
+  console.groupEnd();
+
   let profileMap = {};
 
   if (userIds.length > 0) {
@@ -145,22 +162,53 @@ async function fetchFeedPage(userId = null, cursors = null) {
         .from("profiles")
         .select("id,display_name,full_name,username,avatar_url,talent,bio,member_since,location_label,membership_type,membership_active,is_verified")
         .in("id", userIds);
+      // ── TRACE STEP 3: Supabase Profile Query Result ──────────
+      console.group("🔍 STEP 3 - PROFILE QUERY");
+      console.log("profileRows:", profileRows);
+      console.log("count:", profileRows?.length);
+      if (profileRows && profileRows.length > 0) {
+        console.log("profileRows[0] fields:", Object.keys(profileRows[0]));
+        console.log("avatar_url:", profileRows[0].avatar_url);
+        console.log("display_name:", profileRows[0].display_name);
+        console.log("full_name:", profileRows[0].full_name);
+      }
+      console.groupEnd();
+
       if (profileRows) {
         profileRows.forEach(p => { profileMap[p.id] = p; });
       }
     } catch (_) {
-      // Profile-Enrichment ist optional — Fehler ignorieren
       console.warn("[HUI_STREAM] Profile enrichment failed:", _?.message || _);
     }
+
+  // ── TRACE STEP 4: profileMap ──────────────────────────────
+  const _w0uid = works[0] ? (works[0].user_id || works[0].creator_id) : null;
+  console.group("🔍 STEP 4 - PROFILE MAP");
+  console.log("profileMap keys:", Object.keys(profileMap));
+  console.log("works[0] uid:", _w0uid);
+  console.log("profileMap[uid]:", _w0uid ? profileMap[_w0uid] : "no uid");
+  console.groupEnd();
   }
 
   // ── Step 3: Normalisieren (mit injiziertem profile aus profileMap) ──────
+  let _step5Done = false; // nur erstes Work tracen
   function injectProfile(row) {
     const uid = row.user_id || row.creator_id || null;
     const p   = (uid && profileMap[uid]) ? profileMap[uid] : null;
-    // Fix: Kein "Human"-Fallback — leeres Profil mit uid, Display
-    // erfolgt im Normalizer via display_name→full_name→username-Kette
-    return { ...row, profile: p || { id: uid } };
+    const result = { ...row, profile: p || { id: uid } };
+    // ── TRACE STEP 5 (nur erstes Work) ────────────────────
+    if (!_step5Done && row.title !== undefined) {
+      _step5Done = true;
+      console.group("🔍 STEP 5 - injectProfile (first work)");
+      console.log("uid:", uid);
+      console.log("profileMap[uid]:", profileMap[uid]);
+      console.log("row.id:", row.id, "row.title:", row.title);
+      console.log("result.profile:", result.profile);
+      console.log("result.profile.avatar_url:", result.profile?.avatar_url);
+      console.log("result.profile.display_name:", result.profile?.display_name);
+      console.groupEnd();
+    }
+    return result;
   }
 
   const normalizedBeitr = beitr.map(r => normalizeBeitragRow(injectProfile(r))).filter(Boolean);
