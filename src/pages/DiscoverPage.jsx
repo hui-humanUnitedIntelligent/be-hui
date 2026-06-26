@@ -1439,7 +1439,7 @@ export default function DiscoverPage({ onView, onMap }) {
         if (!cancelled && profiles?.length > 0) {
           setPeople(profiles.map(p => ({
             id:           p.id,
-            name:         safeStr(p.display_name || p.username, "Human"),
+            name:         safeStr(p.display_name || p.username) || null,
             bio:          safeStr(p.bio),
             location:     safeStr(p.location),
             avatar:       safeStr(p.avatar_url),
