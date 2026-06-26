@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { safeQuery } from "../lib/perfUtils";
+import { ProfileService } from '../services/db';
 import { supabase } from "../lib/supabaseClient";
 import { normalizeProfileInput } from '../lib/perfUtils';
 import { useAuth } from "../lib/AuthContext";
@@ -424,10 +425,8 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
         setWerk(w2);
 
         if (w2.user_id) {
-          const { data: prof } = await supabase
-            .from("profiles")
-            .select("id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views") // Identity Contract v1.0
-            .eq("id", w2.user_id).single();
+          // ProfileService v1.0
+          const { data: prof } = await ProfileService.getById(w2.user_id);
           setCreator(prof || null);
         }
         await loadRelated(w2.category, w2.user_id, id);
