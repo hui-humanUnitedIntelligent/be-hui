@@ -1,4 +1,5 @@
 import React, { useMemo, createContext, useState, useContext, useEffect, useCallback, useRef } from "react";
+import { ProfileService } from '../services/db';
 import { supabase } from "./supabaseClient";
 import { isProfileTalent } from './profileUtils.js';
 import { clearMemoryStore } from "./intelligence/persistence/interactionMemoryStore.js";
@@ -45,8 +46,9 @@ export function AuthProvider({ children }) {
     profileLoadingRef.current = true;
     setLoadingProfile(true);
     try {
+      // ProfileService v1.0: getById statt direktem Supabase-Zugriff
       const { data: prof, error } = await withTimeout(
-        supabase.from("profiles").select(PROFILE_FIELDS).eq("id", userId).single(), 8000
+        ProfileService.getById(userId), 8000
       );
 
       if (!prof && error?.code === "PGRST116") {
