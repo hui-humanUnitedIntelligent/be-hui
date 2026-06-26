@@ -676,7 +676,7 @@ function useForDich(currentUser) {
           badgeColor: "#9333EA",
           emoji:  "👤",
           title:  p.display_name || p.username || "HUI Mitglied",
-          desc:   p.talent || // Identity Contract v1.0: tagline entfernt p.talent || (p.bio ? p.bio.slice(0, 55) : p.location || ""),
+          desc:   p.talent ||  (p.bio ? p.bio.slice(0, 55) : p.location || ""),
           img:    p.avatar_url,
           round:  true,
           cta:    "Profil ansehen",
