@@ -10,10 +10,10 @@ const INK3   = "rgba(26,26,46,0.42)";
 function formatPrice(val) {
   const n = parseFloat(val);
   if (isNaN(n)) return null;
-  return n.toLocaleString("de-DE", { minimumFractionDigits:0 }) + " €";
+  return n.toLocaleString("de-DE", { minimumFractionDigits:0 }) + " \u20ac";
 }
 
-export default function WorkContent({ item, onProfile, onReaction, onShare, onBuyWerk }) {
+export default function WorkContent({ item, onProfile, onReaction, onShare, onBuyWerk, onDetail }) {
   if (!item) return null;
 
   const title    = item.title || item.text || "";
@@ -23,8 +23,22 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
   const tags     = Array.isArray(item.tags) ? item.tags.slice(0,3) : [];
   const priceStr = formatPrice(price);
 
+  // Karte antippen → WorkDetailPage (/work/:id)
+  // Avatar/Name haben eigenen onClick (onProfile) → stopPropagation dort
+  // Kaufen-Button hat eigenen onClick → stopPropagation dort
+  // Action-Buttons (Like/Save/Share) haben eigenen onClick → stopPropagation dort
+  const handleCardClick = onDetail
+    ? () => onDetail()
+    : undefined;
+
   return (
-    <BaseFeedCard item={item} onProfile={onProfile} onReaction={onReaction} onShare={onShare}>
+    <BaseFeedCard
+      item={item}
+      onProfile={onProfile}
+      onReaction={onReaction}
+      onShare={onShare}
+      onCardClick={handleCardClick}
+    >
 
       {/* Beschreibung (falls vorhanden, über dem Bild) */}
       {desc && (
@@ -33,7 +47,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
         </p>
       )}
 
-      {/* ── Badge · Titel · CTA — nach Mockup ─────────────── */}
+      {/* \u2500\u2500 Badge \u00b7 Titel \u00b7 CTA \u2014 nach Mockup \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 */}
       <div style={{
         display:"flex", alignItems:"center", justifyContent:"space-between",
         gap:10, flexWrap:"nowrap", marginBottom: category || priceStr ? 6 : 0,
@@ -73,11 +87,10 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
               whiteSpace:"nowrap",
             }}
           >
-            {/* Leaf-Icon als SVG */}
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M7 1C4 1 1.5 3.5 1.5 7C1.5 10.5 4 13 7 13C10 13 12.5 10.5 12.5 7C12.5 3.5 10 1 7 1ZM6 10L3.5 7.5L4.5 6.5L6 8L9.5 4.5L10.5 5.5L6 10Z" fill="white"/>
             </svg>
-            {priceStr ? `${priceStr} · Kaufen` : "Kaufen"}
+            {priceStr ? `${priceStr} \u00b7 Kaufen` : "Kaufen"}
           </button>
         )}
       </div>
@@ -86,7 +99,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
       {(category || priceStr) && !onBuyWerk && (
         <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:2 }}>
           {category && <span style={{ fontSize:12.5, fontWeight:600, color:CORAL }}>{category}</span>}
-          {category && priceStr && <span style={{ fontSize:12, color:INK3 }}>·</span>}
+          {category && priceStr && <span style={{ fontSize:12, color:INK3 }}>\u00b7</span>}
           {priceStr && <span style={{ fontSize:12.5, fontWeight:600, color:INK3 }}>{priceStr}</span>}
         </div>
       )}
@@ -94,7 +107,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
       {(category || priceStr) && onBuyWerk && (
         <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:2 }}>
           {category && <span style={{ fontSize:12.5, fontWeight:600, color:CORAL }}>{category}</span>}
-          {category && priceStr && <span style={{ fontSize:12, color:INK3 }}>·</span>}
+          {category && priceStr && <span style={{ fontSize:12, color:INK3 }}>\u00b7</span>}
           {priceStr && <span style={{ fontSize:12.5, color:INK3 }}>{priceStr}</span>}
         </div>
       )}
