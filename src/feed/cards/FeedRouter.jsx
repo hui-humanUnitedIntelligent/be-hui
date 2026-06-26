@@ -108,7 +108,7 @@ export default function FeedRouter({ item: rawItem, onProfile, onReaction, onBoo
     <CardErrorBoundary itemId={item.id} itemType={type} authorName={authorName} text={text}>
       <Suspense fallback={<CardSkeleton/>}>
         {type === "experience" ? <ExperienceContent {...shared} onBook={()=>onBook?.(rawItem)}/> :
-         type === "work"       ? <WorkContent {...shared} onDetail={()=>{ import("../../lib/useToast.jsx").then(m => { const _id = rawItem?.id ?? "?"; const _tp = rawItem?.type ?? "?"; const _fn = typeof onDetail; m.toast.info("3A id:" + _id + " tp:" + _tp + " fn:" + _fn, {duration:3000}); onDetail?.(rawItem); m.toast.info("3B onDetail() done", {duration:2000}); }); }} onBuyWerk={onBook ? ()=>onBook(rawItem) : undefined}/> : /* COMMERCE-01 W-5 */
+         type === "work"       ? <WorkContent {...shared} onDetail={()=>onDetail?.(item)} onBuyWerk={onBook ? ()=>onBook(rawItem) : undefined}/> : /* COMMERCE-01 W-5 */
          type === "event"      ? <EventContent {...shared}/> :
                                  <MomentContent {...shared}/>}
       </Suspense>
