@@ -510,48 +510,68 @@ function KorbKarte({ item, onRemove, idx, removing, onQtyChange }) {
 //  PERSONEN-GRUPPE
 // ══════════════════════════════════════════════════════════════════
 function PersonGruppe({ group, onRemove, removingId, onQtyChange }) {
+  const count = group.items.length;
+  const label = count === 1 ? "1 Werk ausgewählt" : `${count} Auswahlen`;
+
   return (
-    <div style={{ marginBottom: 4 }}>
-      {/* Personen-Linie */}
+    <div style={{ marginBottom: 8 }}>
+
+      {/* ── Personen-Header: Avatar + Name + Subtext ── */}
       <div style={{
         display:     "flex",
         alignItems:  "center",
-        gap:         9,
-        padding:     "14px 0 8px",
+        gap:         10,
+        padding:     "10px 4px 10px",
       }}>
+        {/* Avatar */}
         {group.avatar
-          ? <img
-              src={group.avatar}
-              alt=""
+          ? <img src={group.avatar} alt=""
               style={{
-                width: 32, height: 32, borderRadius: "50%",
+                width: 36, height: 36, borderRadius: "50%",
                 objectFit: "cover", flexShrink: 0,
                 border: `1.5px solid ${C.tealPale}`,
-                boxShadow: "0 1px 6px rgba(13,196,181,0.12)",
-              }}
-            />
+                boxShadow: "0 1px 8px rgba(13,196,181,0.14)",
+              }} />
           : <div style={{
-              width: 32, height: 32, borderRadius: "50%", flexShrink: 0,
+              width: 36, height: 36, borderRadius: "50%", flexShrink: 0,
               background: `linear-gradient(135deg, ${C.tealPale}, ${C.creamDeep})`,
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 13, fontWeight: 800, color: C.teal,
+              fontSize: 14, fontWeight: 800, color: C.teal,
               border: `1px solid ${C.tealGlow}`,
-              boxShadow: "0 1px 6px rgba(13,196,181,0.12)",
+              boxShadow: "0 1px 8px rgba(13,196,181,0.12)",
             }}>
               {group.name.charAt(0).toUpperCase()}
             </div>
         }
-        <span style={{
-          fontSize:   14,
-          fontWeight: 800,
-          color:      C.ink,
-          letterSpacing: -0.3,
-          flex: 1,
-        }}>
-          {group.name}
-        </span>
+
+        {/* Name + Subtext */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{
+            fontSize:      14,
+            fontWeight:    800,
+            color:         C.ink,
+            letterSpacing: -0.25,
+            lineHeight:    1.2,
+            whiteSpace:    "nowrap",
+            overflow:      "hidden",
+            textOverflow:  "ellipsis",
+          }}>
+            {group.name}
+          </div>
+          <div style={{
+            fontSize:     11,
+            fontWeight:   500,
+            color:        C.teal,
+            letterSpacing: 0,
+            lineHeight:   1.3,
+            marginTop:    2,
+          }}>
+            {label}
+          </div>
+        </div>
       </div>
 
+      {/* ── Karten ── */}
       {group.items.map((item, idx) => (
         <KorbKarte
           key={item.id || idx}
@@ -1086,7 +1106,7 @@ export default function WerkeKorb({
             {/* Impact — Informationsbereich, kein Preisaufschlag */}
             <ImpactZeile impactEur={impact} />
 
-                        {/* CTA */}
+            {/* CTA */}
             <button
               onClick={handleUnterstuetzen}
               onPointerDown={e => { if (phase !== "loading") e.currentTarget.style.transform = "scale(0.98)"; }}
@@ -1095,7 +1115,7 @@ export default function WerkeKorb({
               disabled={phase === "loading"}
               style={{
                 width:        "100%",
-                marginTop:    24,
+                marginTop:    16,
                 padding:      "18px 0",
                 borderRadius: 16,
                 border:       "none",
