@@ -5,6 +5,7 @@
 // KEINE Kategorie-Pills (HUI-Orb übernimmt Themennavigation)
 // ══════════════════════════════════════════════════════════════════
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useNavigate }   from "react-router-dom";
 import { supabase }      from "../lib/supabaseClient.js";
 import { formatPresence } from "../lib/usePresence.js";
 
@@ -1414,7 +1415,7 @@ function OrtCard({ ort, delay=0, onMap }) {
 // ════════════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ════════════════════════════════════════════════════════════════
-export default function DiscoverPage({ onView, onMap }) {
+export default function DiscoverPage({ onView, onMap, onBook }) {
   const [view, setView]         = useState("cards"); // "cards" | "list"
   const [loading, setLoading] = useState(true);
   const [people, setPeople]           = useState([]);
@@ -1602,6 +1603,7 @@ export default function DiscoverPage({ onView, onMap }) {
   const filteredPeople = people.length > 0 ? people : SEED_PEOPLE;
 
   const displayMomente    = momente.length > 0 ? momente : SEED_MOMENTE;
+  const navigate           = useNavigate();
   const displayWerke      = werke.length > 0 ? werke : SEED_WERKE;
   const displayErlebnisse = erlebnisse.length > 0 ? erlebnisse : SEED_ERLEBNISSE;
   const displayProjekte   = projekte.length > 0 ? projekte : SEED_PROJEKTE;
@@ -1610,29 +1612,33 @@ export default function DiscoverPage({ onView, onMap }) {
     if (typeof onView === "function") onView(person.id || person.user_id);
   }, [onView]);
 
-  // Werk-Karte: öffne Ersteller-Profil
+  // Werk-Karte: öffne Werk-Detailseite
   const handleWerkPress = useCallback((werk) => {
-    const profileId = werk.user_id;
-    if (profileId && typeof onView === "function") onView(profileId);
-  }, [onView]);
+    const werkId = werk.id;
+    if (werkId) navigate(\`/work/\${werkId}\`);
+  }, [navigate]);
 
-  // Moment-Karte: öffne Ersteller-Profil
+  // Moment-Karte: erst Profil des Erstellers (kein separater Moment-Detail-View)
   const handleMomentPress = useCallback((moment) => {
-    const profileId = moment.user_id;
+    const profileId = moment.user_id || moment.author?.id;
     if (profileId && typeof onView === "function") onView(profileId);
   }, [onView]);
 
-  // Erlebnis-Karte: öffne Ersteller-Profil
+  // Erlebnis-Karte: öffne ExperienceBookingFlow (Detail + Buchen)
   const handleErlebnisPress = useCallback((erlebnis) => {
-    const profileId = erlebnis.user_id;
-    if (profileId && typeof onView === "function") onView(profileId);
-  }, [onView]);
+    if (typeof onBook === "function") {
+      onBook(erlebnis);
+    } else {
+      // Fallback: Ersteller-Profil öffnen
+      const profileId = erlebnis.user_id;
+      if (profileId && typeof onView === "function") onView(profileId);
+    }
+  }, [onBook, onView]);
 
-  // Projekt-Karte: öffne Ersteller-Profil (falls vorhanden)
+  // Projekt-Karte: öffne Impact-Seite (/impact)
   const handleProjektPress = useCallback((projekt) => {
-    const profileId = projekt.user_id || projekt.creator_id;
-    if (profileId && typeof onView === "function") onView(profileId);
-  }, [onView]);
+    navigate("/impact");
+  }, [navigate]);
 
   // ActivityCard → Profil öffnen (act.user_id wenn vorhanden, sonst People-Sektion)
   const handleActivityPress = useCallback((act) => {
