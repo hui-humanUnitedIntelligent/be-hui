@@ -34,11 +34,12 @@ export default function PublicProfilePreview({ profileId, onClose }) {
     if (!profileId) return;
     supabase
       .from("profiles")
-      .select("is_talent, has_talent_profile, role")
+      .select("id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views") // Identity Contract v1.0
       .eq("id", profileId)
       .single()
       .then(({ data }) => {
-        const isTalent = data?.is_talent || data?.has_talent_profile || data?.role === "talent" || data?.role === "wirker";
+        // Identity Contract v1.0: is_talent entfernt — has_talent_profile ist kanonisch
+        const isTalent = data?.has_talent_profile || data?.role === "talent" || data?.role === "wirker";
         setProfileType(isTalent ? "talent" : "basis");
         setLoading(false);
       });
