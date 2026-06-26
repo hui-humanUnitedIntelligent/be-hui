@@ -15,6 +15,7 @@
 // ══════════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { ProfileService } from '../services/db';
 import { supabase } from "../lib/supabaseClient.js";
 
 // ── Felder ────────────────────────────────────────────────────────────
@@ -126,13 +127,8 @@ export function useProfileData(profileId) {
         fcRes,
       ] = await Promise.all([
 
-        // 1. profiles — Single Source of Truth
-        supabase
-          .from("profiles")
-          .select(PROFILE_SELECT)
-          .eq("id", profileId)
-          .single()
-          .then(r => r)
+        // 1. profiles — ProfileService v1.0
+        ProfileService.getById(profileId)
           .catch(() => ({ data: null, error: { message: "profiles load failed" } })),
 
         // 2. wirker_profiles — ergänzende Datenquelle
