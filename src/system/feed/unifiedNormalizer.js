@@ -22,17 +22,24 @@ function relTime(ts){
 
 function extractAuthor(raw){
   const p=raw.profile||raw.creator||raw.author||raw.user||{};
-  // Kapitel 2.5: Namens-Priorität — niemals "Human" wenn echter Name vorhanden
-  // 1. display_name  2. full_name  3. name  4. username  5. letzter Fallback
+  // Namens-Priorität (4-stufig):
+  // 1. profile.display_name  2. profile.full_name  3. profile.name/username
+  // 4. raw-Felder (beitraege etc. haben keinen profile-Join)
+  // 5. letzter Fallback — KEIN "Human"
   const _n1 = safeStr(p.display_name);
   const _n2 = safeStr(p.full_name);
   const _n3 = safeStr(p.name);
   const _n4 = safeStr(p.username||p.handle);
-  const name = _n1||_n2||_n3||_n4||"Mitglied";
+  // Stufe 5: raw-eigene Namensfelder (für beitraege ohne profile-Objekt)
+  const _n5 = safeStr(raw.display_name||raw.full_name||raw.username);
+  const name = _n1||_n2||_n3||_n4||_n5||"Mitglied";
   // authorId: profile.id hat Priorität, rawItem.user_id als Fallback
   const authorId=safeStr(p.id||p.user_id||raw.user_id||raw.creator_id||raw.author_id);
-  // avatar: profile.avatar_url hat Priorität, rawItem-Felder als Fallback
-  const avatarUrl=safeUrl(p.avatar_url||p.avatar||p.img||raw.avatar_url||raw.src_thumb);
+  // avatar: profile.avatar_url hat Priorität — alle Fallback-Quellen ausschöpfen
+  const avatarUrl=safeUrl(
+    p.avatar_url||p.avatar||p.img||
+    raw.avatar_url||raw.src_thumb||raw.cover_url
+  );
   return{
     id:authorId,
     name, displayName:name,
