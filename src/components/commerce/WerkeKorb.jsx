@@ -286,11 +286,11 @@ export function WerkeKorbButton({ count, onOpen, glowing }) {
 //  KARTE
 // ══════════════════════════════════════════════════════════════════
 function KorbKarte({ item, onRemove, idx, removing }) {
-  const meta   = TYPE_META[item.type] || TYPE_META.work;
-  const price  = formatPrice(item._raw?.price ?? item.price);
-  const thumb  = item._raw?.cover_url || item.cover_url || item.img || null;
-  const title  = item.title || item._raw?.title || item.name || "Ohne Titel";
-  const impact = price ? formatPrice(parseAmount(item._raw?.price ?? item.price) * 0.07) : null;
+  const meta       = TYPE_META[item.type] || TYPE_META.work;
+  const price      = formatPrice(item._raw?.price ?? item.price);
+  const thumb      = item._raw?.cover_url || item.cover_url || item.img || null;
+  const title      = item.title || item._raw?.title || item.name || "Ohne Titel";
+  const authorName = item.author?.name || null;
 
   const [pressed, setPressed] = useState(false);
 
@@ -298,15 +298,15 @@ function KorbKarte({ item, onRemove, idx, removing }) {
     <div
       style={{
         background:   C.creamSoft,
-        borderRadius: 16,
-        padding:      "14px 14px 14px 14px",
+        borderRadius: 18,
+        padding:      "16px 14px 16px 16px",
         marginBottom: 10,
         display:      "flex",
-        gap:          13,
+        gap:          14,
         alignItems:   "flex-start",
-        boxShadow:    "0 2px 12px rgba(20,20,34,0.06), 0 1px 3px rgba(20,20,34,0.04)",
-        border:       `1px solid rgba(20,20,34,0.05)`,
-        transform:    removing ? "translateX(-16px)" : pressed ? "scale(0.98)" : "scale(1)",
+        boxShadow:    "0 2px 16px rgba(20,20,34,0.05), 0 1px 3px rgba(20,20,34,0.03)",
+        border:       `1px solid rgba(20,20,34,0.04)`,
+        transform:    removing ? "translateX(-20px)" : pressed ? "scale(0.985)" : "scale(1)",
         opacity:      removing ? 0 : 1,
         transition:   removing
           ? `transform ${DUR.normal}ms ${EASE.in}, opacity ${DUR.normal}ms ${EASE.in}`
@@ -320,52 +320,40 @@ function KorbKarte({ item, onRemove, idx, removing }) {
     >
       {/* Thumbnail */}
       <div style={{
-        width:          56,
-        height:         56,
-        borderRadius:   12,
+        width:          60,
+        height:         60,
+        borderRadius:   14,
         overflow:       "hidden",
         flexShrink:     0,
-        background:     `${meta.bg}`,
+        background:     meta.bg,
         display:        "flex",
         alignItems:     "center",
         justifyContent: "center",
       }}>
         {thumb
-          ? <img
-              src={thumb}
-              alt=""
-              loading="lazy"
-              style={{ width:"100%", height:"100%", objectFit:"cover" }}
-            />
-          : <span style={{ fontSize: 22, opacity: 0.5, color: meta.accent }}>◈</span>
+          ? <img src={thumb} alt="" loading="lazy"
+              style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+          : <span style={{ fontSize: 24, opacity: 0.45, color: meta.accent }}>◈</span>
         }
       </div>
 
-      {/* Inhalt */}
+      {/* Inhalt — Mensch über Werk */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        {/* Typ-Label */}
-        <div style={{
-          display:     "inline-flex",
-          alignItems:  "center",
-          gap:         4,
-          marginBottom: 4,
-          padding:     "2px 7px",
-          borderRadius: 99,
-          background:  meta.bg,
-          border:      `1px solid ${meta.accent}28`,
-        }}>
-          <span style={{
-            fontSize:     10,
-            fontWeight:   700,
-            color:        meta.accent,
-            letterSpacing: 0.3,
-            textTransform: "uppercase",
-          }}>
-            {meta.label}
-          </span>
-        </div>
 
-        {/* Titel */}
+        {/* Mensch zuerst */}
+        {authorName && (
+          <div style={{
+            fontSize:    12,
+            fontWeight:  600,
+            color:       C.teal,
+            letterSpacing: 0.1,
+            marginBottom: 3,
+          }}>
+            {authorName}
+          </div>
+        )}
+
+        {/* Werk-Titel */}
         <div style={{
           fontSize:    15,
           fontWeight:  700,
@@ -374,54 +362,58 @@ function KorbKarte({ item, onRemove, idx, removing }) {
           overflow:    "hidden",
           textOverflow:"ellipsis",
           whiteSpace:  "nowrap",
+          marginBottom: 5,
         }}>
           {title}
         </div>
 
-        {/* Preis + Impact */}
-        {price && (
-          <div style={{ marginTop: 5, display: "flex", alignItems: "center", gap: 8 }}>
+        {/* Typ + Preis — dezente Zeile */}
+        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+          <span style={{
+            fontSize:     10,
+            fontWeight:   600,
+            color:        meta.accent,
+            letterSpacing: 0.4,
+            textTransform: "uppercase",
+            padding:      "1px 6px",
+            borderRadius: 99,
+            background:   meta.bg,
+          }}>
+            {meta.label}
+          </span>
+          {price && (
             <span style={{
-              fontSize: 14,
-              fontWeight: 700,
-              color:    C.ink,
+              fontSize:   13,
+              fontWeight: 500,
+              color:      C.muted,
               fontVariantNumeric: "tabular-nums",
             }}>
               {price}
             </span>
-            {impact && (
-              <span style={{
-                fontSize: 11,
-                color:    C.sage,
-                fontWeight: 500,
-              }}>
-                + {impact} Wirkung
-              </span>
-            )}
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
-      {/* Entfernen-Button */}
+      {/* Entfernen */}
       <button
-        onPointerDown={e => { e.stopPropagation(); }}
+        onPointerDown={e => e.stopPropagation()}
         onClick={() => { haptic("medium"); onRemove(item); }}
         aria-label="Entfernen"
         style={{
-          width:       30,
-          height:      30,
-          borderRadius: "50%",
-          border:      `1px solid rgba(20,20,34,0.09)`,
-          background:  "rgba(20,20,34,0.04)",
-          color:       C.muted,
+          width:       28,
+          height:      28,
+          borderRadius:"50%",
+          border:      `1px solid rgba(20,20,34,0.07)`,
+          background:  "transparent",
+          color:       C.faint,
           fontSize:    15,
           display:     "flex",
           alignItems:  "center",
           justifyContent: "center",
           cursor:      "pointer",
           flexShrink:  0,
-          marginTop:   0,
-          transition:  `background ${DUR.tap}ms ${EASE.out}, color ${DUR.tap}ms ${EASE.out}`,
+          marginTop:   2,
+          transition:  `color ${DUR.tap}ms ${EASE.out}`,
           outline:     "none",
           padding:     0,
           WebkitTapHighlightColor: "transparent",
@@ -451,26 +443,28 @@ function PersonGruppe({ group, onRemove, removingId }) {
               src={group.avatar}
               alt=""
               style={{
-                width: 26, height: 26, borderRadius: "50%",
+                width: 32, height: 32, borderRadius: "50%",
                 objectFit: "cover", flexShrink: 0,
                 border: `1.5px solid ${C.tealPale}`,
+                boxShadow: "0 1px 6px rgba(13,196,181,0.12)",
               }}
             />
           : <div style={{
-              width: 26, height: 26, borderRadius: "50%", flexShrink: 0,
+              width: 32, height: 32, borderRadius: "50%", flexShrink: 0,
               background: `linear-gradient(135deg, ${C.tealPale}, ${C.creamDeep})`,
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 12, fontWeight: 800, color: C.teal,
+              fontSize: 13, fontWeight: 800, color: C.teal,
               border: `1px solid ${C.tealGlow}`,
+              boxShadow: "0 1px 6px rgba(13,196,181,0.12)",
             }}>
               {group.name.charAt(0).toUpperCase()}
             </div>
         }
         <span style={{
-          fontSize:   13,
-          fontWeight: 700,
+          fontSize:   14,
+          fontWeight: 800,
           color:      C.ink,
-          letterSpacing: -0.2,
+          letterSpacing: -0.3,
           flex: 1,
         }}>
           {group.name}
@@ -887,15 +881,25 @@ export default function WerkeKorb({
               Dein Werkekorb
             </div>
             {iCount > 0 && phase !== "success" && (
-              <div style={{
-                fontSize:  13,
-                color:     C.muted,
-                marginTop: 3,
-                fontWeight: 500,
-              }}>
-                {iCount} {iCount === 1 ? "Auswahl" : "Auswahlen"}
-                {pCount > 1 && ` · ${pCount} Menschen`}
-                {pCount === 1 && ` · 1 Mensch`}
+              <div style={{ marginTop: 5 }}>
+                <div style={{
+                  fontSize:    13,
+                  color:       C.muted,
+                  fontWeight:  500,
+                  lineHeight:  1.5,
+                }}>
+                  {pCount === 1
+                    ? "Du unterstützt 1 Menschen"
+                    : `Du unterstützt ${pCount} Menschen`}
+                </div>
+                <div style={{
+                  fontSize:    11,
+                  color:       C.faint,
+                  marginTop:   2,
+                  fontWeight:  400,
+                }}>
+                  {iCount} {iCount === 1 ? "Auswahl" : "Auswahlen"}
+                </div>
               </div>
             )}
           </div>
@@ -973,8 +977,8 @@ export default function WerkeKorb({
                 background:C.creamSoft, borderRadius:12,
                 border:`1px solid rgba(20,20,34,0.05)`,
               }}>
-                <span style={{ fontSize:16, fontWeight:800, color:C.ink, letterSpacing:-0.3 }}>Gesamt</span>
-                <span style={{ fontSize:16, fontWeight:800, color:C.ink, letterSpacing:-0.3, fontVariantNumeric:"tabular-nums" }}>
+                <span style={{ fontSize:14, fontWeight:600, color:C.muted, letterSpacing:0 }}>Deine Unterstützung</span>
+                <span style={{ fontSize:18, fontWeight:800, color:C.ink, letterSpacing:-0.4, fontVariantNumeric:"tabular-nums" }}>
                   {gesamt.toFixed(2).replace(".", ",")} €
                 </span>
               </div>
@@ -989,7 +993,7 @@ export default function WerkeKorb({
               disabled={phase === "loading"}
               style={{
                 width:        "100%",
-                padding:      "16px 0",
+                padding:      "17px 0",
                 borderRadius: 16,
                 border:       "none",
                 background:   phase === "loading"
