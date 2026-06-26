@@ -17,13 +17,11 @@ export const CACHE_TTL = {
 // ─── Verifizierte Profile-Spalten ─────────────────────────────
 // Genau die Spalten die in Supabase profiles-Tabelle existieren.
 // NICHT ändern ohne DB-Prüfung!
-export const PROFILE_FIELDS =
-  'id,display_name,username,avatar_url,bio,' +
-  'is_talent,talent_since,is_ambassador,' +
-  'referred_by,referred_by_ambassador_id,' +
-  'blocked,profile_modules,skills,dna_tags,' +
-  'location,header_img,focus_type,' +
-  'created_at,updated_at';
+// Identity Contract v1.0: PROFILE_FIELDS zeigt jetzt auf IDENTITY_CONTRACT
+// Kein direktes Fieldset mehr — alle Consumer sollen auf ProfileService migrieren.
+// PROFILE_FIELDS bleibt als Re-Export für Module die noch nicht migriert sind.
+import { IDENTITY_CONTRACT } from '../services/db';
+export const PROFILE_FIELDS = IDENTITY_CONTRACT;
 
 // ─── Legacy-FIELDS (für alte Komponenten die FIELDS.profile benutzen) ──
 export const FIELDS = {
