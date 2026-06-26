@@ -240,7 +240,7 @@ function useMenschenMatch(currentUser) {
     Promise.all([
       // Alle Profile außer mein eigenes
       supabase.from("profiles")
-        .select("id,display_name,username,avatar_url,tagline,talent,bio,dna_tags,impact_eur,trust_score,is_available,location,follower_count")
+        .select("id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views") // Identity Contract v1.0
         .neq("id", uid || "00000000-0000-0000-0000-000000000000")
         .order("impact_eur", { ascending: false })
         .limit(20),
@@ -299,7 +299,7 @@ function MenschCard({ person, idx, openProfileById, engine }) {
   const [imgErr, setImgErr] = React.useState(false);
 
   const name    = person.display_name || person.username || "HUI Mitglied";
-  const sub     = person.tagline || person.talent || (person.bio ? person.bio.slice(0, 42) + "…" : null);
+  const sub     = person.talent || // Identity Contract v1.0: tagline entfernt person.talent || (person.bio ? person.bio.slice(0, 42) + "…" : null);
   const score   = person._score;
   const reasons = person._reasons || [];
   const dna     = (person.dna_tags || []).slice(0, 2);
@@ -630,7 +630,7 @@ function useForDich(currentUser) {
     Promise.all([
       // Menschen: nicht ich selbst, sortiert nach impact + follower
       supabase.from("profiles")
-        .select("id,display_name,username,avatar_url,bio,talent,tagline,impact_eur,follower_count,dna_tags,is_available,location")
+        .select("id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views") // Identity Contract v1.0
         .neq("id", uid || "00000000-0000-0000-0000-000000000000")
         .order("impact_eur", { ascending: false })
         .limit(nP + 2),
@@ -675,7 +675,7 @@ function useForDich(currentUser) {
           badgeColor: "#9333EA",
           emoji:  "👤",
           title:  p.display_name || p.username || "HUI Mitglied",
-          desc:   p.tagline || p.talent || (p.bio ? p.bio.slice(0, 55) : p.location || ""),
+          desc:   p.talent || // Identity Contract v1.0: tagline entfernt p.talent || (p.bio ? p.bio.slice(0, 55) : p.location || ""),
           img:    p.avatar_url,
           round:  true,
           cta:    "Profil ansehen",
