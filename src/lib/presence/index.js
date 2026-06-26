@@ -509,16 +509,7 @@ export function usePresence(userId) {
     try {
       const [profRes, worksRes, bookRes] = await Promise.all([
         supabase.from('profiles').select(`
-          id,
-          bio,
-          created_at,
-          display_name,
-          dna_tags,
-          focus_type,
-          is_available,
-          location_label,
-          talent,
-          updated_at
+          id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views
         `).eq('id', userId).single(),
         supabase.from('works').select('id, created_at, updated_at, mood, tags')
           .eq('user_id', userId).order('created_at', { ascending: false }).limit(20),
