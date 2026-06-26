@@ -190,7 +190,7 @@ export function useReferrals(ambassadorId, refCode) {
       queries.push(
         supabase
           .from("profiles")
-          .select("id, display_name, username, avatar_url, is_talent, created_at, email, first_transaction_at")
+          .select("id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views") // Identity Contract v1.0
           .eq("referred_by_ambassador_id", ambassadorId)
           .order("created_at", { ascending: false })
       );
@@ -200,7 +200,7 @@ export function useReferrals(ambassadorId, refCode) {
       queries.push(
         supabase
           .from("profiles")
-          .select("id, display_name, username, avatar_url, is_talent, created_at, email, first_transaction_at")
+          .select("id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views") // Identity Contract v1.0
           .eq("referred_by", refCode)
           .order("created_at", { ascending: false })
       );
