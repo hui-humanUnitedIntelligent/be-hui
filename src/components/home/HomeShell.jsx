@@ -344,7 +344,7 @@ export default function HomeShell({ children }) {
     showWerkPublisher, showExperienceCreator,
     showImpactFlow, showContentSelector, showInvitationFlow,
     showCreatorDash, showWerkDetail, showWerkCheckout, showWerkeKorb,
-    showBookingFlow,
+    showUnterstutzenFlow, showBookingFlow,
     createType, activeStory, cart,
     openOwnProfile, flowStore,
   ]);
