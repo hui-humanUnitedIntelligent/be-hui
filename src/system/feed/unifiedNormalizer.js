@@ -47,10 +47,12 @@ function extractAuthor(raw){
   const name = _n1||_n2||_n3||_n4||_n5||"Mitglied";
   // authorId: profile.id hat Priorität, rawItem.user_id als Fallback
   const authorId=safeStr(p.id||p.user_id||raw.user_id||raw.creator_id||raw.author_id);
-  // avatar: profile.avatar_url hat Priorität — alle Fallback-Quellen ausschöpfen
+  // avatar: ausschließlich aus Profildaten — niemals Werkbilder
+  // Sprint P0: raw.src_thumb + raw.cover_url entfernt (Werkbilder dürfen kein Profilbild sein)
+  // raw.avatar_url bleibt als Fallback für beitraege-Rows ohne profile-Objekt
   const avatarUrl=safeUrl(
     p.avatar_url||p.avatar||p.img||
-    raw.avatar_url||raw.src_thumb||raw.cover_url
+    raw.avatar_url
   );
   const _authorResult = {
     id:authorId,
