@@ -6,7 +6,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { EASE, DUR } from "../../design/hui.interaction.js";
 import {
   C, TYPE_META, haptic as haptic_,
-  formatPrice, parseAmount, calcTotal, calcImpact,
+  calcTotal, calcImpact,
   groupByPerson,
 } from "./commerceUtils.js";
 function haptic(style = "light") {
