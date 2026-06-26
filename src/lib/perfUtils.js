@@ -20,7 +20,10 @@ export const CACHE_TTL = {
 // Identity Contract v1.0: PROFILE_FIELDS zeigt jetzt auf IDENTITY_CONTRACT
 // Kein direktes Fieldset mehr — alle Consumer sollen auf ProfileService migrieren.
 // PROFILE_FIELDS bleibt als Re-Export für Module die noch nicht migriert sind.
-import { IDENTITY_CONTRACT } from '../services/db';
+// Identity Contract v1.0 — hier definiert um Zirkelimport mit db.js zu vermeiden
+// db.js importiert perfUtils → perfUtils darf NICHT db.js importieren
+export const IDENTITY_CONTRACT =
+  'id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views';
 export const PROFILE_FIELDS = IDENTITY_CONTRACT;
 
 // ─── Legacy-FIELDS (für alte Komponenten die FIELDS.profile benutzen) ──
