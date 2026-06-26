@@ -143,14 +143,14 @@ async function fetchFeedPage(userId = null, cursors = null) {
     try {
       const { data: profileRows } = await supabase
         .from("profiles")
-        .select("id,display_name,username,avatar_url,talent,bio,member_since,location_label,membership_type,membership_active,is_verified")
+        .select("id,display_name,full_name,username,avatar_url,talent,bio,member_since,location_label,membership_type,membership_active,is_verified")
         .in("id", userIds);
       if (profileRows) {
         profileRows.forEach(p => { profileMap[p.id] = p; });
       }
     } catch (_) {
       // Profile-Enrichment ist optional — Fehler ignorieren
-      console.warn("[HUI_STREAM] Profile enrichment failed — continuing without");
+      console.warn("[HUI_STREAM] Profile enrichment failed:", _?.message || _);
     }
   }
 
@@ -158,7 +158,9 @@ async function fetchFeedPage(userId = null, cursors = null) {
   function injectProfile(row) {
     const uid = row.user_id || row.creator_id || null;
     const p   = (uid && profileMap[uid]) ? profileMap[uid] : null;
-    return { ...row, profile: p || { id: uid, display_name: "Human", avatar_url: null } };
+    // Fix: Kein "Human"-Fallback — leeres Profil mit uid, Display
+    // erfolgt im Normalizer via display_name→full_name→username-Kette
+    return { ...row, profile: p || { id: uid } };
   }
 
   const normalizedBeitr = beitr.map(r => normalizeBeitragRow(injectProfile(r))).filter(Boolean);
