@@ -1,4 +1,9 @@
-// src/pages/MyCreatorDashboard.jsx — HUI Vertrauensprofil v3
+// src/pages/MyCreatorDashboard.jsx
+// ═══════════════════════════════════════════════════════════════════
+// LEGACY — SUPERSEDED BY COMMERCE 2.0 — REMOVE AFTER PHASE 5
+// Kanonisch: CreatorDashboard.jsx
+// ═══════════════════════════════════════════════════════════════════
+// HUI Vertrauensprofil v3
 // ═══════════════════════════════════════════════════════════════
 // "Mein HUI" — persönliches Zuhause innerhalb der Gemeinschaft
 // Kein Instagram. Kein LinkedIn. Kein Etsy.

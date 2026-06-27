@@ -1,5 +1,5 @@
 // supabase/functions/handle-payment-webhook/index.ts
-// deploy-trigger: 2026-06-27T2-runtime-stabilize
+// deploy-trigger: 2026-06-27T4-go-live-validation
 // ═══════════════════════════════════════════════════════════════════
 // HUI Commerce 2.0 — Stripe Webhook Handler (P0 Security Fix)
 // Änderungen:
@@ -30,14 +30,23 @@ serve(async (req) => {
     const stripeKey     = Deno.env.get('STRIPE_SECRET_KEY')
     const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET')
 
-    if (!stripeKey || !webhookSecret) {
-      console.warn('[WEBHOOK] Stripe nicht konfiguriert')
-      return new Response('ok', { headers: corsHeaders })
-    }
-
-    const stripe    = new Stripe(stripeKey, { apiVersion: '2024-06-20' })
     const body      = await req.text()
     const signature = req.headers.get('stripe-signature') ?? ''
+
+    if (!signature) {
+      return new Response(JSON.stringify({ error: 'Missing stripe-signature' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    if (!stripeKey || !webhookSecret) {
+      console.warn('[WEBHOOK] Stripe nicht konfiguriert')
+      return new Response(JSON.stringify({ error: 'Stripe nicht konfiguriert' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    const stripe = new Stripe(stripeKey, { apiVersion: '2024-06-20' })
 
     // ── Webhook Signature Verification ───────────────────────────
     let event: Stripe.Event
@@ -68,7 +77,7 @@ serve(async (req) => {
     const { error: registerErr } = await supabase.from('webhook_events').insert({
       stripe_event_id: event.id,
       event_type:      event.type,
-      payload_summary: { type: event.type, created: event.created },
+      payload: { type: event.type, created: event.created },
       status:          'processing',
     })
     if (registerErr && registerErr.code !== '23505') {
@@ -104,7 +113,7 @@ serve(async (req) => {
         await supabase.from('orders').update({ state: 'failed' }).eq('id', order.id)
         await supabase.from('webhook_events').update({
           status: 'failed',
-          payload_summary: { error: 'amount_mismatch', stripe: pi.amount, expected: expectedCents }
+          payload: { error: 'amount_mismatch', stripe: pi.amount, expected: expectedCents }
         }).eq('stripe_event_id', event.id)
         return new Response('ok', { headers: corsHeaders })
       }
@@ -129,7 +138,7 @@ serve(async (req) => {
 
       // ── Creator Notifications ─────────────────────────────────
       const creatorIds = [...new Set(
-        ((order as any).order_items || []).map((i: any) => i.creator_id).filter(Boolean)
+        ((order as any).order_items || []).map((i: any) => i.seller_id).filter(Boolean)
       )]
       for (const creatorId of creatorIds) {
         const { error: notifErr } = await supabase.from('notifications').insert({

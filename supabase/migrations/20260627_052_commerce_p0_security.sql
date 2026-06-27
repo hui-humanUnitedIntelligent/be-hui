@@ -1,4 +1,8 @@
 -- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════
+-- LEGACY — SUPERSEDED BY COMMERCE 2.0 — REMOVE AFTER PHASE 5
+-- Kanonische Migration: supabase/migrations/20260627_057_commerce_schema_final.sql
+-- ═══════════════════════════════════════════════════════════════════
 -- HUI Migration 052 — Commerce P0 Security + Schema Fixes
 -- Behebt: stripe_payment_intent UUID→TEXT, RLS-Lücken, Idempotency,
 --         increment_wallet_balance RPC, stripe_account_id, webhook_events

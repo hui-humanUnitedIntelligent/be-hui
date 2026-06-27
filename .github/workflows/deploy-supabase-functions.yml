@@ -42,6 +42,11 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: supabase functions deploy release-payout --project-ref gxztrhvhcxhmunhhkfjd
 
+      - name: Deploy distribute-impact-round
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase functions deploy distribute-impact-round --project-ref gxztrhvhcxhmunhhkfjd
+
       - name: Set Stripe Secrets
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
@@ -124,9 +129,15 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{}'
 
+          verify_function "distribute-impact-round" \
+            "$BASE_URL/distribute-impact-round" \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -d '{}'
+
           echo "────────────────────────────────────────"
           if [ "$FAIL" -ne 0 ]; then
             echo "❌ Deployment-Verifikation fehlgeschlagen (404 oder 503)"
             exit 1
           fi
-          echo "✅ Alle vier Commerce-Functions: Runtime aktiv (401/400)"
+          echo "✅ Alle fünf Commerce-Functions: Runtime aktiv (401/400)"

@@ -1,12 +1,8 @@
 // supabase/functions/check-order-status/index.ts
-// deploy-trigger: 2026-06-27T2-runtime-stabilize
+// deploy-trigger: 2026-06-27T3-commerce-2-canonical
 // ═══════════════════════════════════════════════════════════════════
-// HUI Commerce — Check Order Status (Redirect Handler)
-// ═══════════════════════════════════════════════════════════════════
-// Wird aufgerufen wenn Nutzer nach SEPA/3DS-Redirect zurückkommt.
-// Prüft Order-Status in DB und gibt aktuellen Zustand zurück.
-// Client-Secret oder PI-Status werden nicht direkt geprüft —
-// der Webhook ist die Authorität (payment_intent.succeeded).
+// HUI Commerce 2.0 — Check Order Status (Redirect Handler)
+// Kanonisch: customer_id, state, seller_id via buyer_order_status View
 // ═══════════════════════════════════════════════════════════════════
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
@@ -47,34 +43,35 @@ serve(async (req) => {
       })
     }
 
-    // Order laden (nur eigene)
+    // Order laden via buyer_order_status (kanonisch + Legacy-Aliase)
     const { data: order, error: orderErr } = await supabase
-      .from('orders')
+      .from('buyer_order_status')
       .select(`
-        id, status, total_eur, impact_eur,
-        payment_confirmed_at, created_at,
-        order_items(id, item_type, quantity, unit_price_eur, snapshot,
-                    fulfillment_status, creator_id)
+        id, customer_id, state, status, total_eur, impact_eur,
+        payment_confirmed_at, created_at, order_items
       `)
       .eq('id', orderId)
-      .eq('buyer_id', user.id)  // Sicherheit: nur eigene Orders
+      .eq('customer_id', user.id)
       .single()
 
     if (orderErr || !order) {
-      return new Response(JSON.stringify({ error: 'Order nicht gefunden', status: 'not_found' }), {
+      return new Response(JSON.stringify({ error: 'Order nicht gefunden', state: 'not_found' }), {
         status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
-    // Ergebnis
+    const orderState = order.state ?? order.status
+
+    // Ergebnis (state kanonisch; status als Legacy-Alias für Clients)
     return new Response(JSON.stringify({
-      orderId:           order.id,
-      status:            order.status,             // pending|paid|failed|aborted
-      isPaid:            order.status === 'paid',
-      totalEur:          order.total_eur,
-      impactEur:         order.impact_eur,
+      orderId:            order.id,
+      state:              orderState,
+      status:             orderState,           // Legacy-Alias — Phase 5 entfernen
+      isPaid:             orderState === 'paid',
+      totalEur:           order.total_eur,
+      impactEur:          order.impact_eur,
       paymentConfirmedAt: order.payment_confirmed_at,
-      itemCount:         (order as any).order_items?.length || 0,
+      itemCount:          Array.isArray(order.order_items) ? order.order_items.length : 0,
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }})
 
   } catch (e: any) {

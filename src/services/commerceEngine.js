@@ -1,7 +1,10 @@
 // src/services/commerceEngine.js
 // ═══════════════════════════════════════════════════════════════════
-// HUI Commerce Engine v1.0 — Sprint C1 Foundation
+// HUI Commerce Engine 2.0 — Kanonischer Commerce-Service
 // ═══════════════════════════════════════════════════════════════════
+//
+// Kanonische Felder: customer_id, state, commission_eur, seller_id
+// Legacy (nicht verwenden): buyer_id, status, creator_id, platform_fee_eur
 //
 // Verantwortlichkeiten:
 //   ✅ Orders erzeugen + lesen
@@ -172,11 +175,11 @@ export const orderService = {
     return sq(() => supabase
       .from("orders")
       .select(`
-        id, status, total_eur, created_at, payment_confirmed_at,
+        id, state, total_eur, created_at, payment_confirmed_at,
         contact_name, contact_email,
         order_items(
           id, item_type, quantity, unit_price_eur, line_total_eur,
-          fulfillment_status, payout_status, snapshot,
+          fulfillment_status, payout_status, snapshot, seller_id,
           shipments(id, carrier, tracking_number, tracking_url, shipped_at, delivered_at)
         )
       `)
@@ -190,12 +193,12 @@ export const orderService = {
     return sq(() => supabase
       .from("orders")
       .select(`
-        id, status, total_eur, subtotal_eur, shipping_eur, impact_eur,
+        id, state, total_eur, subtotal_eur, shipping_eur, impact_eur, commission_eur,
         created_at, payment_confirmed_at, shipping_address,
         contact_name, contact_email,
         order_items(
           id, item_type, quantity, unit_price_eur, line_total_eur,
-          fulfillment_status, payout_status, snapshot, created_at,
+          fulfillment_status, payout_status, snapshot, seller_id, created_at,
           shipments(id, carrier, tracking_number, tracking_url, shipped_at, delivered_at)
         )
       `)
@@ -205,22 +208,22 @@ export const orderService = {
   },
 
   // Order lokal vorbereiten (vor Stripe — nur für Übergabe an Edge Function)
-  buildOrderPayload(items, shippingStrategy, buyerId) {
+  buildOrderPayload(items, shippingStrategy, customerId) {
     const total     = calcTotalWithQty(items);
     const impact    = calcImpact(total);
-    const platFee   = +(total * 0.10).toFixed(2); // 10% Plattformgebühr
+    const commissionEur = +(total * 0.10).toFixed(2); // 10% Plattformgebühr (kanonisch: commission_eur)
 
-    // Gruppierung nach Creator für Order Items
-    const itemsByCreator = new Map();
+    // Gruppierung nach Seller für Order Items
+    const itemsBySeller = new Map();
     for (const item of items) {
-      const creatorId = item.author?.id || item._raw?.user_id || "__unknown__";
-      if (!itemsByCreator.has(creatorId)) itemsByCreator.set(creatorId, []);
-      itemsByCreator.get(creatorId).push(item);
+      const sellerId = item.author?.id || item._raw?.user_id || "__unknown__";
+      if (!itemsBySeller.has(sellerId)) itemsBySeller.set(sellerId, []);
+      itemsBySeller.get(sellerId).push(item);
     }
 
     const orderItems = [];
-    for (const [creatorId, creatorItems] of itemsByCreator) {
-      for (const item of creatorItems) {
+    for (const [sellerId, sellerItems] of itemsBySeller) {
+      for (const item of sellerItems) {
         const raw         = item._raw || {};
         const unitPrice   = parseAmount(item._raw?.price ?? item.price);
         const qty         = item.quantity || 1;
@@ -230,7 +233,7 @@ export const orderService = {
         const payoutEur   = +((unitPrice * qty) * 0.90).toFixed(2); // 90% an Creator
 
         orderItems.push({
-          creator_id:         creatorId,
+          seller_id:          sellerId,
           item_type:          item.type || "work",
           item_id:            item.id || null,
           snapshot:           buildItemSnapshot(item),
@@ -248,15 +251,15 @@ export const orderService = {
 
     return {
       order: {
-        buyer_id:         buyerId,
-        subtotal_eur:     total,
-        shipping_eur:     0,         // TODO: Versandkostenberechnung Sprint C2
-        discount_eur:     0,         // TODO: Gutscheine Sprint C4
-        total_eur:        total,
-        platform_fee_eur: platFee,
-        impact_eur:       impact,
-        status:           "pending",
-        currency:         "eur",
+        customer_id:    customerId,
+        subtotal_eur:   total,
+        shipping_eur:   0,
+        discount_eur:   0,
+        total_eur:      total,
+        commission_eur: commissionEur,
+        impact_eur:     impact,
+        state:          "pending",
+        currency:       "eur",
       },
       orderItems,
       stripe: {
@@ -264,9 +267,9 @@ export const orderService = {
         currency:                 "eur",
         shipping_address_collection: shippingStrategy.shippingAddressCollection,
         metadata: {
-          buyer_id:       buyerId,
+          customer_id:    customerId,
           item_count:     items.length.toString(),
-          creator_count:  itemsByCreator.size.toString(),
+          seller_count:   itemsBySeller.size.toString(),
           impact_eur:     impact.toFixed(2),
           source:         "hui_werkekorb_v1",
         },

@@ -1,3 +1,7 @@
+// ═══════════════════════════════════════════════════════════════════
+// LEGACY — SUPERSEDED BY COMMERCE 2.0 — REMOVE AFTER PHASE 5
+// Impact-Subsystem (nicht Commerce-Checkout). Kanonisch: distribute-impact-round
+// ═══════════════════════════════════════════════════════════════════
 // FILE: supabase/functions/cast-impact-vote/index.ts
 // Server-side vote casting — validates weight, prevents duplicates
 

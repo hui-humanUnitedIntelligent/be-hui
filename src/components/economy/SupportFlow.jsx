@@ -1,4 +1,9 @@
-// src/components/economy/SupportFlow.jsx — HUI Phase 4D
+// src/components/economy/SupportFlow.jsx
+// ═══════════════════════════════════════════════════════════════════
+// LEGACY — SUPERSEDED BY COMMERCE 2.0 — REMOVE AFTER PHASE 5
+// Kanonischer Checkout: WerkeKorb → UnterstuetzenFlow → StripePaymentStep
+// ═══════════════════════════════════════════════════════════════════
+// HUI Phase 4D
 // "Talent unterstützen" — keine Donation-Energie, eine menschliche Geste
 import React, { useState, useCallback, useEffect } from "react";
 import { useAuth } from "../../lib/AuthContext";
