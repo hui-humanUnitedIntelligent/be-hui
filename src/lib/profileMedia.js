@@ -13,6 +13,7 @@
 // ══════════════════════════════════════════════════════════════════════
 
 import { supabase } from "./supabaseClient.js";
+import { clearQueryCache } from "./perfUtils.js";
 
 // ── Fallback-Assets ──────────────────────────────────────────────────
 export const FB_COVER  = "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=1200&q=80";
@@ -78,9 +79,12 @@ export async function handleAvatarUpload({ event, profileId, onSuccess, setUploa
     }
     if (!uid) { console.warn("[profileMedia] Avatar upload: kein userId"); return; }
     const url = await uploadProfileImage(file, uid, "avatars");
-    await supabase.from("profiles")
+    const { error: dbErr } = await supabase.from("profiles")
       .update({ avatar_url: url, updated_at: new Date().toISOString() })
       .eq("id", uid);
+    if (dbErr) throw dbErr;
+    // Cache invalidieren — damit reload() frische Daten holt
+    clearQueryCache(`profile:${uid}`);
     onSuccess?.(url);
   } catch (err) {
     console.error("[profileMedia] Avatar upload error:", err?.message, err?.statusCode || err?.status, JSON.stringify(err));
@@ -108,9 +112,12 @@ export async function handleCoverUpload({ event, profileId, onSuccess, setUpload
     }
     if (!uid) { console.warn("[profileMedia] Cover upload: kein userId"); return; }
     const url = await uploadProfileImage(file, uid, "covers");
-    await supabase.from("profiles")
+    const { error: dbErr } = await supabase.from("profiles")
       .update({ header_img: url, updated_at: new Date().toISOString() })
       .eq("id", uid);
+    if (dbErr) throw dbErr;
+    // Cache invalidieren — damit reload() frische Daten holt
+    clearQueryCache(`profile:${uid}`);
     onSuccess?.(url);
   } catch (err) {
     console.error("[profileMedia] Cover upload error:", err?.message, err?.statusCode || err?.status, JSON.stringify(err));
