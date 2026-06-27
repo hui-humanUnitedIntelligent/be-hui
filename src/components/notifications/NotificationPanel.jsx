@@ -252,6 +252,36 @@ const modalContent = (
 );
 }
 
+
+// ── SupportModal — für support_ticket_reply ──────────────────────────────────
+function SupportModal({ n, onClose }) {
+  const d = (n.data && typeof n.data === "object") ? n.data : {};
+  const text = d.admin_reply || d.message || d.reason || n.body || "(Keine Nachricht)";
+  const ticketId = d.ticket_id || d.ticket_number || "";
+  const subject  = d.subject || n.title || "Support-Antwort";
+  const modalContent = (
+    <div onClick={onClose} style={{ position:"fixed", inset:0, zIndex:999999, background:"rgba(0,0,0,0.6)", display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
+      <div onClick={e => e.stopPropagation()} style={{ background:"#fff", borderRadius:18, padding:"24px 20px 20px", maxWidth:360, width:"100%", boxShadow:"0 12px 50px rgba(0,0,0,0.22)", maxHeight:"80vh", overflowY:"auto" }}>
+        <div style={{ textAlign:"center", marginBottom:16 }}>
+          <div style={{ fontSize:36, marginBottom:6 }}>🎧</div>
+          <div style={{ fontSize:16, fontWeight:800, color:"#1a1a18" }}>Support-Antwort</div>
+          {ticketId && <div style={{ fontSize:12, color:"#0EC4B8", fontWeight:600, marginTop:4 }}>{ticketId}</div>}
+        </div>
+        {subject && subject !== "Support-Antwort" && (
+          <div style={{ background:"#f5f4f1", borderRadius:10, padding:"10px 14px", marginBottom:12, fontSize:13, fontWeight:600, color:"#1a1a18" }}>{subject}</div>
+        )}
+        <div style={{ marginBottom:20 }}>
+          <div style={{ fontSize:11, fontWeight:700, color:"#0EC4B8", textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:8 }}>Nachricht vom Support</div>
+          <div style={{ background:"rgba(14,196,184,0.06)", border:"1px solid rgba(14,196,184,0.22)", borderRadius:10, padding:"12px 14px", fontSize:14, color:"#1a1a18", lineHeight:1.7, whiteSpace:"pre-wrap", wordBreak:"break-word" }}>{text}</div>
+        </div>
+        <button onClick={onClose} style={{ width:"100%", padding:"13px", borderRadius:99, background:"#0EC4B8", border:"none", color:"#fff", fontSize:14, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>Verstanden</button>
+      </div>
+    </div>
+  );
+  return typeof document !== "undefined" ? createPortal(modalContent, document.body) : null;
+}
+
+
 function NotifCard({ n, meta, onRead, onAction = () => {} }) {
 const [showModal,         setShowModal]         = useState(false);
 const [showApprovalModal, setShowApprovalModal] = useState(false);
