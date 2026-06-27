@@ -97,11 +97,12 @@ function ReplySheet({ ticketNumber, subject, adminReply, userId, userEmail, user
         is_read: false,
         read:    false,
       });
-      if (error) throw error;
+      if (error) { console.error("Supabase insert error:", error); throw new Error(error.message || JSON.stringify(error)); }
       setSent(true);
       setTimeout(() => { onSent(); onClose(); }, 1600);
-    } catch {
-      alert("Fehler beim Senden. Bitte erneut versuchen.");
+    } catch (err) {
+      console.error("ReplySheet send error:", err);
+      alert("Fehler beim Senden: " + (err?.message || String(err)));
     } finally {
       setSending(false);
     }
