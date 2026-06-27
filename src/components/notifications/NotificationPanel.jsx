@@ -545,10 +545,22 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
   const visible  = tab === "unread" ? unread : notifs;
 
   return (
+    <>
+    {/* Backdrop — Klick schließt Panel */}
+    <div
+      onClick={onClose}
+      style={{
+        position:"fixed", inset:0, zIndex:10000,
+        background:"rgba(0,0,0,0.35)",
+      }}
+    />
     <div style={{
-      position:"fixed", inset:0, zIndex:10000,
+      position:"fixed", top:0, right:0, bottom:0,
+      width:"min(420px, 100vw)",
+      zIndex:10001,
       display:"flex", flexDirection:"column",
       background:T.bg,
+      boxShadow:"-4px 0 32px rgba(0,0,0,0.18)",
     }}>
       {/* Header */}
       <div style={{
@@ -632,5 +644,6 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
         )}
       </div>
     </div>
+    </>
   );
 }
