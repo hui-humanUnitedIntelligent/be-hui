@@ -90,9 +90,9 @@ serve(async (req) => {
 
     const { data: existingOrder } = await supabase
       .from('orders')
-      .select('id, stripe_payment_intent, total_eur, status')
-      .eq('buyer_id', user.id)
-      .eq('status', 'pending')
+      .select('id, stripe_payment_intent, total_eur, state')
+      .eq('customer_id', user.id)
+      .eq('state', 'pending')
       .eq('cart_hash', cartHash)
       .order('created_at', { ascending: false })
       .limit(1)
@@ -113,7 +113,7 @@ serve(async (req) => {
         }
       } catch {}
       // PI nicht mehr nutzbar → alte Order auf aborted setzen, neu erstellen
-      await supabase.from('orders').update({ status: 'aborted' }).eq('id', existingOrder.id)
+      await supabase.from('orders').update({ state: 'aborted' }).eq('id', existingOrder.id)
     }
 
     // ── 4. Serverseitiger Preis-Lookup — EINZIGE Quelle für Preise ──
@@ -209,12 +209,12 @@ serve(async (req) => {
     const { data: dbOrder, error: orderErr } = await supabase
       .from('orders')
       .insert({
-        buyer_id:         user.id,
+        customer_id:      user.id,
         subtotal_eur:     serverTotal,
         total_eur:        serverTotal,
-        platform_fee_eur: +(serverTotal * PLATFORM_FEE_RATE).toFixed(2),
+        commission_eur:   +(serverTotal * PLATFORM_FEE_RATE).toFixed(2),
         impact_eur:       +(serverTotal * IMPACT_RATE).toFixed(2),
-        status:           'pending',
+        state:            'pending',
         currency:         'eur',
         cart_hash:        cartHash,  // für Idempotenz-Lookup
       })
@@ -232,8 +232,8 @@ serve(async (req) => {
     // ── 7. Order Items ────────────────────────────────────────────
     await supabase.from('order_items').insert(
       validatedItems.map(item => ({
-        order_id:           dbOrder.id,
-        creator_id:         item.creator_id,  // aus DB
+        order_id:    dbOrder.id,
+        seller_id:   item.creator_id,  // aus DB
         item_type:          item.item_type,
         item_id:            item.item_id,
         snapshot:           item.snapshot,
@@ -261,7 +261,7 @@ serve(async (req) => {
         receipt_email: user.email || undefined,
         metadata: {
           hui_order_id:   dbOrder.id,
-          buyer_id:       user.id,
+          customer_id:    user.id,
           item_count:     validatedItems.length.toString(),
           creator_count:  [...new Set(validatedItems.map(i => i.creator_id))].filter(Boolean).length.toString(),
           impact_eur:     (+(serverTotal * IMPACT_RATE).toFixed(2)).toFixed(2),
@@ -273,7 +273,7 @@ serve(async (req) => {
       // P1: Stripe-Fehler → Order cleanup (kein orphaned pending)
       console.error('[PI] Stripe Error:', stripeErr.message)
       await supabase.from('orders')
-        .update({ status: 'aborted' })
+        .update({ state: 'aborted' })
         .eq('id', dbOrder.id)
       await supabase.from('commerce_events').insert({
         event_type: 'payment_failed',
@@ -320,7 +320,7 @@ serve(async (req) => {
         Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
       )
       await supabase.from('orders')
-        .update({ status: 'aborted' })
+        .update({ state: 'aborted' })
         .eq('id', createdOrderId)
         .catch(() => {})
     }
