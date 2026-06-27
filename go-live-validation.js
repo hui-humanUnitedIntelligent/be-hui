@@ -223,36 +223,39 @@ async function phase4to6(piData, jwt) {
 
   if (!orderData?.isPaid && STRIPE_WEBHOOK_SECRET) {
     warn('Stripe Webhook nicht angekommen — signierter Fallback');
-    const piObject = {
-      ...confirmData,
-      metadata: { ...(confirmData.metadata || {}), hui_order_id: orderId },
-    };
-    const payload = JSON.stringify({
-      id: `evt_golive_${orderId}`,
-      object: 'event',
-      type: 'payment_intent.succeeded',
-      data: { object: piObject },
-      created: Math.floor(Date.now() / 1000),
-    });
-    const timestamp = Math.floor(Date.now() / 1000);
-    const signedPayload = `${timestamp}.${payload}`;
-    const signature = crypto.createHmac('sha256', STRIPE_WEBHOOK_SECRET).update(signedPayload, 'utf8').digest('hex');
-    const whRes = await fetch(`${SUPABASE_URL}/functions/v1/handle-payment-webhook`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'stripe-signature': `t=${timestamp},v1=${signature}`,
-      },
-      body: payload,
-    });
-    console.log(`   Webhook-Fallback HTTP ${whRes.status}`);
-    if (whRes.ok) {
-      await new Promise(r => setTimeout(r, 2000));
-      const orderRes = await fetch(
-        `${SUPABASE_URL}/functions/v1/check-order-status?order_id=${orderId}`,
-        { headers: { Authorization: `Bearer ${jwt}` } }
-      );
-      orderData = await orderRes.json();
+    const eventsRes = await fetch(
+      `https://api.stripe.com/v1/events?type=payment_intent.succeeded&limit=10`,
+      { headers: { Authorization: `Basic ${Buffer.from(STRIPE_SECRET + ':').toString('base64')}` } }
+    );
+    const eventsData = await eventsRes.json();
+    const stripeEvent = (eventsData.data || []).find(e => e.data?.object?.id === piId)
+      || (eventsData.data || [])[0];
+
+    if (!stripeEvent) {
+      fail('Kein payment_intent.succeeded Event in Stripe gefunden');
+    } else {
+      const payload = JSON.stringify(stripeEvent);
+      const timestamp = Math.floor(Date.now() / 1000);
+      const signedPayload = `${timestamp}.${payload}`;
+      const signature = crypto.createHmac('sha256', STRIPE_WEBHOOK_SECRET).update(signedPayload, 'utf8').digest('hex');
+      const whRes = await fetch(`${SUPABASE_URL}/functions/v1/handle-payment-webhook`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'stripe-signature': `t=${timestamp},v1=${signature}`,
+        },
+        body: payload,
+      });
+      const whBody = await whRes.text();
+      console.log(`   Webhook-Fallback HTTP ${whRes.status}: ${whBody}`);
+      if (whRes.ok) {
+        await new Promise(r => setTimeout(r, 2000));
+        const orderRes = await fetch(
+          `${SUPABASE_URL}/functions/v1/check-order-status?order_id=${orderId}`,
+          { headers: { Authorization: `Bearer ${jwt}` } }
+        );
+        orderData = await orderRes.json();
+      }
     }
   }
 
