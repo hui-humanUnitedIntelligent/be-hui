@@ -113,6 +113,25 @@ DO $$ BEGIN
   END IF;
 END $$;
 
+-- Legacy-Trigger auf order_items entfernen (referenzieren buyer_id o.ä.)
+DO $$
+DECLARE r RECORD;
+BEGIN
+  FOR r IN
+    SELECT t.tgname
+    FROM pg_trigger t
+    JOIN pg_class c ON c.oid = t.tgrelid
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    JOIN pg_proc p ON p.oid = t.tgfoid
+    WHERE n.nspname = 'public'
+      AND c.relname = 'order_items'
+      AND NOT t.tgisinternal
+      AND pg_get_functiondef(p.oid) ILIKE '%buyer_id%'
+  LOOP
+    EXECUTE format('DROP TRIGGER IF EXISTS %I ON public.order_items', r.tgname);
+  END LOOP;
+END $$;
+
 -- ─────────────────────────────────────────────────────────────────────────────
 -- 1. ENUM TYPEN — idempotent
 -- ─────────────────────────────────────────────────────────────────────────────
