@@ -156,12 +156,18 @@ ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS metadata              JSONB;
 DO $$ BEGIN
   ALTER TABLE public.orders
     ADD CONSTRAINT orders_stripe_pi_unique UNIQUE (stripe_payment_intent);
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+  WHEN duplicate_table THEN NULL;
+END $$;
 
 DO $$ BEGIN
   ALTER TABLE public.orders
     ADD CONSTRAINT orders_stripe_session_unique UNIQUE (stripe_session_id);
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+  WHEN duplicate_table THEN NULL;
+END $$;
 
 -- Indizes — ausschließlich auf echte orders-Spalten (state, customer_id)
 CREATE INDEX IF NOT EXISTS idx_orders_customer_id
