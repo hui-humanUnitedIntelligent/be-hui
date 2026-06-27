@@ -231,6 +231,7 @@ serve(async (req) => {
       validatedItems.map(item => ({
         order_id:    dbOrder.id,
         seller_id:   item.seller_id,
+        creator_id:  item.seller_id,
         item_type:          item.item_type,
         item_id:            item.item_id,
         ...(item.item_type === 'work' ? { work_id: item.item_id } : {}),
@@ -246,8 +247,9 @@ serve(async (req) => {
       }))
     )
     if (itemsErr) {
+      console.error('[PI] Order items insert failed:', itemsErr.message)
       await supabase.from('orders').update({ state: 'aborted' }).eq('id', dbOrder.id)
-      return new Response(JSON.stringify({ error: 'Order-Items fehlgeschlagen' }), {
+      return new Response(JSON.stringify({ error: 'Order-Items fehlgeschlagen', detail: itemsErr.message }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
