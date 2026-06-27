@@ -1,0 +1,49 @@
+name: Deploy Supabase Edge Functions
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Deploy create-payment-intent
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase functions deploy create-payment-intent --project-ref gxztrhvhcxhmunhhkfjd --no-verify-jwt
+
+      - name: Deploy handle-payment-webhook
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase functions deploy handle-payment-webhook --project-ref gxztrhvhcxhmunhhkfjd --no-verify-jwt
+
+      - name: Deploy check-order-status
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase functions deploy check-order-status --project-ref gxztrhvhcxhmunhhkfjd
+
+      - name: Deploy release-payout
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase functions deploy release-payout --project-ref gxztrhvhcxhmunhhkfjd
+
+      - name: Set Stripe Secrets
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase secrets set STRIPE_SECRET_KEY="${{ secrets.STRIPE_SECRET_KEY }}" --project-ref gxztrhvhcxhmunhhkfjd
+
+      - name: Verify Deployment
+        run: |
+          sleep 15
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            https://gxztrhvhcxhmunhhkfjd.supabase.co/functions/v1/create-payment-intent \
+            -H "Content-Type: application/json" -d '{}')
+          echo "HTTP $STATUS"
+          [ "$STATUS" != "404" ] && echo "PASS: deployed" || (echo "FAIL: still 404" && exit 1)
