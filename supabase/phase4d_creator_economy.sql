@@ -1,4 +1,7 @@
 -- ═══════════════════════════════════════════════════════════════════════
+-- LEGACY — SUPERSEDED BY COMMERCE 2.0 — REMOVE AFTER PHASE 5
+-- Wallet kanonisch in: hui_057_commerce_schema_final.sql (creator_wallets)
+-- ═══════════════════════════════════════════════════════════════════════
 -- HUI PHASE 4D — CREATOR ECONOMY SYSTEM
 -- Erstellt: 2026-05-26
 -- Tabellen: creator_wallets, creator_supports, experience_bookings
