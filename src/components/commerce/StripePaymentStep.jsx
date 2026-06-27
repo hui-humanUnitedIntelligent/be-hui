@@ -15,7 +15,9 @@ import { STRIPE_APPEARANCE, COMMERCE_CONFIG } from "../../services/commerceEngin
 import { C, haptic } from "../commerce/commerceUtils.js";
 
 // Stripe-Instanz — einmalig laden (außerhalb der Komponente)
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "");
+const _stripeKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY || "";
+console.log("[STRIPE] loadStripe key:", _stripeKey ? _stripeKey.slice(0,20)+"..." : "LEER/FEHLEND");
+const stripePromise = loadStripe(_stripeKey);
 
 // ─────────────────────────────────────────────────────────────────
 // Inner Form — innerhalb von <Elements> gemountet
@@ -25,6 +27,9 @@ function StripeForm({ total, impact, orderId, onSuccess, onError }) {
   const elements = useElements();
   const [processing, setProcessing] = useState(false);
   const [error,      setError     ] = useState(null);
+
+  // DEBUG — zeigt ob stripe geladen ist
+  console.log("[STRIPE] StripeForm mounted — stripe:", !!stripe, "elements:", !!elements);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -83,6 +88,9 @@ function StripeForm({ total, impact, orderId, onSuccess, onError }) {
               fields:           { billingDetails: { address: { country: "never" } } },
               wallets:          { applePay: "auto", googlePay: "auto" },
             }}
+            onReady={() => console.log("[STRIPE] PaymentElement onReady ✅")}
+            onLoadError={(e) => console.error("[STRIPE] PaymentElement onLoadError ❌", e)}
+            onChange={(e) => console.log("[STRIPE] PaymentElement onChange", e.complete, e.value?.type)}
           />
         </div>
 
@@ -189,6 +197,7 @@ export default function StripePaymentStep({
   onBack,
   hideHeader = false,  // C2.1: Header wird vom UnterstutzenFlow gesteuert
 }) {
+  console.log("[STRIPE] StripePaymentStep mounted — clientSecret:", clientSecret ? clientSecret.slice(0,20)+"..." : "NULL");
   // clientSecret fehlt noch (Edge Function liefert ihn)
   if (!clientSecret) {
     return (
