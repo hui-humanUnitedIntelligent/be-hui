@@ -86,7 +86,8 @@ export async function deleteRefLink(userId) {
 
 // ── KERN: Referral einem Nutzer zuweisen ──────────────────────
 // Setzt profiles.referred_by = ambassadorId (UUID)
-// Wird aufgerufen: nach Signup, nach Auto-Login, nach E-Mail-Bestätigung
+// Der DB-Trigger trg_ambassador_referral_count zählt dann automatisch +1
+// Wird aufgerufen: nach Signup, nach Login, nach E-Mail-Bestätigung
 export async function processReferralForUser(userId) {
   if (!userId) return false;
 
@@ -109,7 +110,7 @@ export async function processReferralForUser(userId) {
 
     if (!ambassadorId) return false;
 
-    // Prüfe ob Ambassador aktiv
+    // Prüfe ob Ambassador aktiv + Link aktiv
     const { data: ambProf } = await supabase
       .from('profiles')
       .select('is_ambassador, profile_modules')
@@ -119,7 +120,7 @@ export async function processReferralForUser(userId) {
     if (!ambProf?.is_ambassador) return false;
     if (ambProf.profile_modules?.ambassador?.link_active === false) return false;
 
-    // Bereits zugewiesen? → nicht überschreiben
+    // Bereits zugewiesen? → nicht überschreiben (einmaliges Referral pro User)
     const { data: existing } = await supabase
       .from('profiles')
       .select('referred_by')
@@ -128,25 +129,27 @@ export async function processReferralForUser(userId) {
 
     if (existing?.referred_by) {
       clearStoredReferral();
-      return true; // schon gesetzt
+      return true; // bereits gesetzt → Trigger hat schon gezählt
     }
 
-    // Setzen — Retry bis Profil via Trigger existiert
+    // Setzen — Retry bis Profil via Trigger existiert (neu registrierte User)
     let ok = false;
     for (let i = 0; i < 8; i++) {
-      await new Promise(r => setTimeout(r, 600));
-      const { data: upd } = await supabase
+      await new Promise(r => setTimeout(r, 500));
+      const { data: upd, error: upErr } = await supabase
         .from('profiles')
         .update({ referred_by: ambassadorId })
         .eq('id', userId)
         .select('id,referred_by')
         .maybeSingle();
       if (upd?.referred_by === ambassadorId) { ok = true; break; }
+      if (upErr) console.warn('[HUI Referral] Update-Fehler:', upErr.message);
     }
 
     if (ok) {
       clearStoredReferral();
-      console.log('[HUI Referral] ✅ referred_by gesetzt:', ambassadorId);
+      // DB-Trigger trg_ambassador_referral_count erhöht referral_count automatisch
+      console.log('[HUI Referral] ✅ referred_by gesetzt → Trigger zählt +1 für', ambassadorId);
     } else {
       console.warn('[HUI Referral] ❌ referred_by nach 8 Versuchen nicht gesetzt');
     }
