@@ -72,25 +72,32 @@ function ReplySheet({ ticketNumber, subject, adminReply, userId, userEmail, user
         } catch { /* optional */ }
       }
 
-      // Antwort via Edge Function senden (service_role für RLS-Bypass)
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
-      const SB_URL = import.meta.env.VITE_SUPABASE_URL;
-      const resp = await fetch(`${SB_URL}/functions/v1/ticket-reply`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          ticketNumber,
-          subject,
-          message: text.trim(),
+      // Direkt via Supabase insert (RLS WITH CHECK erlaubt user eigene Einträge)
+      const { error } = await supabase.from("notifications").insert({
+        user_id:  userId,
+        type:     "support_ticket",
+        title:    `[${ticketNumber}] RE: ${subject}`,
+        body:     text.trim().slice(0, 200),
+        data: {
+          ticket_number:    ticketNumber,
+          name:             userName ?? "",
+          email:            userEmail ?? "",
+          category:         "anfrage",
+          priority:         "normal",
+          subject:          `RE: ${subject}`,
+          message:          text.trim(),
+          status:           "open",
           attachments,
-        }),
+          admin_reply:      null,
+          replied_at:       null,
+          read_by_admin:    false,
+          is_followup:      true,
+          original_subject: subject,
+        },
+        is_read: false,
+        read:    false,
       });
-      const result = await resp.json();
-      if (!resp.ok) throw new Error(result.error || "Fehler beim Senden");
+      if (error) throw error;
       setSent(true);
       setTimeout(() => { onSent(); onClose(); }, 1600);
     } catch {
