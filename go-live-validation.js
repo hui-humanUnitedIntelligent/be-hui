@@ -48,8 +48,13 @@ function fail(msg, file, line) {
 }
 function warn(msg) { console.log(`  ⚠️  ${msg}`); }
 
-async function restProbe(table, key) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=id&limit=1`, {
+const VIEW_SELECT = {
+  commerce_price_authority: 'item_id',
+  buyer_order_status: 'id',
+};
+
+async function restProbe(table, key, selectCol = 'id') {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=${selectCol}&limit=1`, {
     headers: { apikey: key, Authorization: `Bearer ${key}` },
   });
   return res.status;
@@ -73,7 +78,7 @@ async function phase1() {
 
   let allViews = true;
   for (const v of VIEWS) {
-    const status = await restProbe(v, key);
+    const status = await restProbe(v, key, VIEW_SELECT[v] || 'id');
     if (status === 200 || status === 204) pass(`View ${v}`);
     else { fail(`View ${v} fehlt (HTTP ${status})`, 'hui_057_commerce_schema_final.sql'); allViews = false; }
   }

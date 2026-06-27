@@ -1,0 +1,67 @@
+name: Go-Live Validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'go-live-validation.js'
+      - '.github/workflows/go-live-validation.yml'
+
+concurrency:
+  group: go-live-validation
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Supabase CLI
+        run: |
+          curl -fsSL https://github.com/supabase/cli/releases/download/v2.108.0/supabase_linux_amd64.tar.gz | tar -xz -C /tmp
+          sudo mv /tmp/supabase /usr/local/bin/supabase
+
+      - name: Resolve API keys
+        id: keys
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+          supabase link --project-ref gxztrhvhcxhmunhhkfjd --yes
+          ANON=$(supabase projects api-keys --project-ref gxztrhvhcxhmunhhkfjd -o json | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(k["api_key"] for k in d if k.get("name")=="anon"))')
+          SERVICE=$(supabase projects api-keys --project-ref gxztrhvhcxhmunhhkfjd -o json | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(k["api_key"] for k in d if k.get("name")=="service_role"))')
+          echo "anon_key=$ANON" >> "$GITHUB_OUTPUT"
+          echo "service_key=$SERVICE" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve test work ID
+        id: testdata
+        env:
+          SERVICE_KEY: ${{ steps.keys.outputs.service_key }}
+        run: |
+          set -euo pipefail
+          WORK_ID=$(curl -sfS \
+            "https://gxztrhvhcxhmunhhkfjd.supabase.co/rest/v1/commerce_price_authority?select=item_id&item_type=eq.work&limit=1" \
+            -H "apikey: $SERVICE_KEY" \
+            -H "Authorization: Bearer $SERVICE_KEY" \
+            | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d[0]["item_id"] if d else "")')
+          echo "work_id=$WORK_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Install dependencies and build
+        run: npm ci
+
+      - name: Run go-live-validation.js
+        env:
+          SUPABASE_URL: https://gxztrhvhcxhmunhhkfjd.supabase.co
+          SUPABASE_ANON_KEY: ${{ steps.keys.outputs.anon_key }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ steps.keys.outputs.service_key }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASS: ${{ secrets.TEST_USER_PASS }}
+          TEST_WORK_ID: ${{ steps.testdata.outputs.work_id }}
+        run: node go-live-validation.js
