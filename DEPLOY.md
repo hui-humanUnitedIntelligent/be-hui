@@ -1,80 +1,89 @@
-# HUI Commerce — Deployment Checklist
+# HUI Commerce — Go-Live Checkliste
 
-## Infrastruktur-Status (Stand: 2026-06-27)
-
-| Komponente | Status | Aktion |
-|---|---|---|
-| Supabase Project | ✅ gxztrhvhcxhmunhhkfjd | aktiv |
-| orders Tabelle | ⚠️ Stub-Schema | Migration 054 ausführen |
-| order_items Tabelle | ⚠️ Stub-Schema | Migration 054 ausführen |
-| commerce_events | ❌ fehlt | Migration 054 ausführen |
-| webhook_events | ❌ fehlt | Migration 054 ausführen |
-| creator_wallets | ❌ fehlt | Migration 054 ausführen |
-| creator_payouts | ❌ fehlt | Migration 054 ausführen |
-| shipments | ❌ fehlt | Migration 054 ausführen |
-| commerce_price_authority View | ❌ fehlt | Migration 054 ausführen |
-| Edge Functions | ❌ nie deployed | Schritt 3 |
-| Stripe Webhook-Endpunkt | ❌ 0 konfiguriert | Schritt 4 |
-| VITE_STRIPE_PUBLIC_KEY in Vercel | ❓ unbekannt | Schritt 5 prüfen |
+**Supabase Projekt:** `gxztrhvhcxhmunhhkfjd`
+**URL:** `https://gxztrhvhcxhmunhhkfjd.supabase.co`
+**Dashboard:** https://supabase.com/dashboard/project/gxztrhvhcxhmunhhkfjd
 
 ---
 
-## Schritt 1 — Supabase SQL Editor
+## Infrastruktur-Status
+
+| Komponente | Status |
+|---|---|
+| Supabase REST API | ✅ erreichbar |
+| `orders` | ⚠️ Schema unvollständig → Schritt 1 |
+| `order_items` | ⚠️ Schema unvollständig → Schritt 1 |
+| `commerce_events` | ❌ fehlt → Schritt 1 |
+| `webhook_events` | ❌ fehlt → Schritt 1 |
+| `creator_wallets` | ❌ fehlt → Schritt 1 |
+| `creator_payouts` | ❌ fehlt → Schritt 1 |
+| `shipments` | ❌ fehlt → Schritt 1 |
+| `commerce_price_authority` | ❌ fehlt → Schritt 1 |
+| Edge Functions | ❌ nie deployed → Schritt 2 |
+| Stripe Webhook | ❌ 0 Endpunkte → Schritt 3 |
+| Vercel Env-Vars | ❓ prüfen → Schritt 4 |
+
+---
+
+## Schritt 1 — SQL ausführen (Supabase SQL Editor)
 
 Öffne: https://supabase.com/dashboard/project/gxztrhvhcxhmunhhkfjd/sql
 
-Führe der Reihe nach aus:
+Führe **in dieser Reihenfolge** aus:
 
-### 1a. Migration 051 (Commerce Foundation)
-→ Datei: `hui_051_commerce_foundation.sql`
+### 1a — Migration 051 (Commerce Foundation — Basis-Schema)
+Datei im Repo: `hui_051_commerce_foundation.sql`
+→ Erstellt `orders`, `order_items` mit vollständigem Commerce-Schema
 
-### 1b. Migration 052 (P0 Security)
-→ Datei: `hui_052_commerce_p0_security.sql`
+### 1b — Migration 052 (P0 Security)
+Datei im Repo: `hui_052_commerce_p0_security.sql`
+→ `commerce_price_authority` View, RLS-Policies, Wallet-Guard
 
-### 1c. Migration 053 (Cart Hash + Aborted Status)
-→ Datei: `hui_053_cart_hash_aborted.sql`
+### 1c — Migration 053 (Session Idempotenz)
+Datei im Repo: `hui_053_cart_hash_aborted.sql`
+→ `cart_hash` Spalte, `aborted` Status, `buyer_order_status` View
 
-### 1d. Migration 054 (Infrastructure Sync) ← KRITISCH
-→ Datei: `hui_054_infrastructure_sync.sql`
-→ Diese Migration ergänzt alle fehlenden Spalten und Tabellen
+### 1d — Migration 054 (Infrastructure Sync) ← WICHTIGSTE
+Datei im Repo: `hui_054_infrastructure_sync.sql`
+→ Ergänzt alle fehlenden Spalten + Tabellen (non-destructive)
 
-**Nach Ausführung prüfen:**
+**Prüfung nach SQL-Ausführung:**
 ```sql
+-- Alle 8 Zeilen müssen erscheinen:
 SELECT tablename FROM pg_tables
 WHERE schemaname = 'public'
   AND tablename IN (
-    'orders', 'order_items', 'commerce_events',
-    'webhook_events', 'creator_wallets', 'creator_payouts',
-    'shipments', 'impact_rounds'
+    'orders','order_items','commerce_events',
+    'webhook_events','creator_wallets','creator_payouts',
+    'shipments','impact_rounds'
   )
 ORDER BY tablename;
--- Erwartung: 8 Zeilen
 ```
 
 ```sql
-SELECT * FROM commerce_price_authority LIMIT 5;
--- Erwartung: Werke + Erlebnisse mit published/approved Status
+-- View muss Daten liefern:
+SELECT item_type, COUNT(*) FROM commerce_price_authority GROUP BY item_type;
+```
+
+```sql
+-- orders muss diese Spalten haben:
+SELECT buyer_id, status, stripe_payment_intent, cart_hash
+FROM orders LIMIT 0;
 ```
 
 ---
 
-## Schritt 2 — Supabase Access Token
+## Schritt 2 — Edge Functions deployen
 
-Erstelle unter: https://supabase.com/dashboard/account/tokens
+**Voraussetzung:** Node.js installiert, Repo geclont.
 
-→ "New Token" → Name: "HUI Commerce Deploy" → kopieren
-
-Dann in Terminal:
 ```bash
+# Supabase Access Token erstellen:
+# https://supabase.com/dashboard/account/tokens → "New Token"
+
 export SUPABASE_ACCESS_TOKEN=sbp_XXXXXXXXXXXXXXXXXX
-```
 
----
-
-## Schritt 3 — Edge Functions deployen
-
-```bash
-# Im Repo-Verzeichnis (be-hui)
+# Im Repo-Verzeichnis:
 npx supabase functions deploy create-payment-intent \
   --project-ref gxztrhvhcxhmunhhkfjd
 
@@ -88,98 +97,124 @@ npx supabase functions deploy release-payout \
   --project-ref gxztrhvhcxhmunhhkfjd
 ```
 
-### Edge Function Secrets setzen:
-
+### Secrets setzen (nur 2 manuelle):
 ```bash
-npx supabase secrets set STRIPE_SECRET_KEY=sk_test_51TlUr7... \
+# SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY sind AUTOMATISCH verfügbar
+
+npx supabase secrets set \
+  STRIPE_SECRET_KEY=sk_test_51TlUr7QygHtJtH5i... \
   --project-ref gxztrhvhcxhmunhhkfjd
 
-npx supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_... \
+# STRIPE_WEBHOOK_SECRET erst nach Schritt 3:
+npx supabase secrets set \
+  STRIPE_WEBHOOK_SECRET=whsec_... \
   --project-ref gxztrhvhcxhmunhhkfjd
+```
+
+**Prüfung:**
+```bash
+curl -s https://gxztrhvhcxhmunhhkfjd.supabase.co/functions/v1/create-payment-intent \
+  -H "Authorization: Bearer DEIN_JWT" \
+  -H "Content-Type: application/json" \
+  -d '{"orderItems":[{"item_id":"TEST","item_type":"work","quantity":1}]}'
+# Erwartung: {"error":"..."} oder {"clientSecret":"..."} — kein 404
 ```
 
 ---
 
-## Schritt 4 — Stripe Webhook konfigurieren
+## Schritt 3 — Stripe Webhook registrieren
 
 Öffne: https://dashboard.stripe.com/test/webhooks
 
-→ "Add endpoint"
+→ **"Add endpoint"**
 
-**Endpoint URL:**
-```
-https://gxztrhvhcxhmunhhkfjd.supabase.co/functions/v1/handle-payment-webhook
-```
+| Feld | Wert |
+|---|---|
+| Endpoint URL | `https://gxztrhvhcxhmunhhkfjd.supabase.co/functions/v1/handle-payment-webhook` |
+| Events | `payment_intent.succeeded`, `payment_intent.payment_failed`, `charge.dispute.created` |
 
-**Events auswählen:**
-- `payment_intent.succeeded`
-- `payment_intent.payment_failed`
-- `charge.dispute.created`
-
-→ Nach dem Speichern: **Webhook Signing Secret** kopieren
-→ Dann als Secret setzen (Schritt 3 → STRIPE_WEBHOOK_SECRET)
+→ Nach dem Speichern: **Signing Secret** kopieren (`whsec_...`)
+→ Dann Schritt 2 fortsetzen: `STRIPE_WEBHOOK_SECRET` setzen
 
 ---
 
-## Schritt 5 — Vercel Environment Variables
+## Schritt 4 — Vercel Environment Variables prüfen
 
-Öffne: https://vercel.com/dashboard → HUI Projekt → Settings → Environment Variables
+Öffne: https://vercel.com → HUI Projekt → Settings → Environment Variables
 
-Prüfen/setzen:
+**Pflicht-Vars:**
 ```
 VITE_SUPABASE_URL=https://gxztrhvhcxhmunhhkfjd.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd4enRyaHZoY3hobXVuaGhrZmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4ODI2NDIsImV4cCI6MjA5MzQ1ODY0Mn0.cq8E_NQkmeTZPIe0G0SSqEzzg6yJhyce5xpW2iwVIbk
-VITE_STRIPE_PUBLIC_KEY=pk_test_51TlUr7QygHtJtH5iXXXXXXXXXX
+VITE_STRIPE_PUBLIC_KEY=pk_test_51TlUr7QygHtJtH5i...
 ```
 
-⚠️ Auf Leerzeichen/Zeilenumbrüche achten — insbesondere bei VITE_SUPABASE_URL
+**Wichtig:** Keine Leerzeichen, keine Zeilenumbrüche am Ende der Werte.
 
-**Nach Änderung: Redeploy auslösen**
+Nach Änderung: **Redeploy** auslösen (Vercel Dashboard → Deployments → "Redeploy").
 
 ---
 
-## Schritt 6 — E2E-Test
+## Schritt 5 — E2E Test
 
 ```bash
-# create-payment-intent testen
-curl -s https://gxztrhvhcxhmunhhkfjd.supabase.co/functions/v1/create-payment-intent \
-  -H "Authorization: Bearer [USER_JWT_TOKEN]" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "orderItems": [
-      {"item_id": "[WORK_UUID]", "item_type": "work", "quantity": 1}
-    ]
-  }'
-# Erwartung: {"clientSecret": "pi_..._secret_...", "orderId": "..."}
+# .env.test erstellen (niemals committen):
+cat > .env.test << 'EOF'
+SUPABASE_URL=https://gxztrhvhcxhmunhhkfjd.supabase.co
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+STRIPE_SECRET_KEY=sk_test_51TlUr7...
+TEST_USER_EMAIL=dein-test@beispiel.de
+TEST_USER_PASS=dein-passwort
+TEST_WORK_ID=UUID-eines-published-werks-aus-der-DB
+EOF
+
+# Test ausführen:
+set -a && source .env.test && set +a
+node e2e-test.js
+```
+
+**Erwartete Ausgabe:**
+```
+1. Authentifizierung...
+   ✅ Eingeloggt als: test@beispiel.de
+2. Payment Intent erstellen...
+   ✅ Payment Intent erstellt: pi_...
+   ✅ Order ID: ...
+   ✅ clientSecret vorhanden: JA
+3. Stripe Testzahlung...
+   ✅ Stripe Status: succeeded
+4. Warte auf Webhook (5 Sekunden)...
+5. Order-Status prüfen...
+   ✅ Order = paid ✓
+══════════════════════════════════════════════
+ ✅ E2E TEST ERFOLGREICH
+══════════════════════════════════════════════
 ```
 
 ---
 
-## Schritt 7 — Validation
+## E2E-Flow: Was wann geprüft wird
 
-Nach erfolgreichem E2E-Test prüfen:
-```sql
--- Order in DB
-SELECT id, status, buyer_id, total_eur, stripe_payment_intent
-FROM orders ORDER BY created_at DESC LIMIT 5;
-
--- Commerce Events
-SELECT event_type, created_at FROM commerce_events
-ORDER BY created_at DESC LIMIT 10;
-
--- Nach Webhook (payment_intent.succeeded)
-SELECT id, status FROM orders WHERE status = 'paid' LIMIT 5;
-```
+| Schritt | Was passiert | Erfolgskriterium |
+|---|---|---|
+| Auth | Supabase JWT holen | `access_token` vorhanden |
+| PI erstellen | Edge Function aufrufen | HTTP 200, `clientSecret` |
+| Stripe Zahlung | `pm_card_visa` bestätigen | `status: succeeded` |
+| Webhook | Stripe → Supabase | Order → `paid` |
+| Notifications | Buyer + Creator | In `notifications` Tabelle |
+| Impact | 7% in `impact_rounds` | `pool_eur` erhöht |
+| Creator Order | In `order_items` | `fulfillment_status: new` |
 
 ---
 
-## Quick-Reference: Supabase Projekt
+## Fehlerdiagnose
 
-| Parameter | Wert |
-|---|---|
-| Project Ref | `gxztrhvhcxhmunhhkfjd` |
-| Supabase URL | `https://gxztrhvhcxhmunhhkfjd.supabase.co` |
-| Anon Key | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` (vollständig in `.agents/.env`) |
-| Dashboard | https://supabase.com/dashboard/project/gxztrhvhcxhmunhhkfjd |
-| SQL Editor | https://supabase.com/dashboard/project/gxztrhvhcxhmunhhkfjd/sql |
-| Edge Functions | https://supabase.com/dashboard/project/gxztrhvhcxhmunhhkfjd/functions |
+| Fehlschlag bei | Ursache | Lösung |
+|---|---|---|
+| `create-payment-intent: 404` | Edge Function nicht deployed | Schritt 2 wiederholen |
+| `create-payment-intent: 500` | `STRIPE_SECRET_KEY` fehlt | Secret setzen |
+| `create-payment-intent: 422` | Werk nicht published / kein Preis | Werk status prüfen |
+| `Stripe: succeeded` aber Order `pending` | Webhook nicht registriert | Schritt 3 |
+| `Stripe: succeeded` aber `failed` | `STRIPE_WEBHOOK_SECRET` falsch | Secret neu setzen |
+| `clientSecret` leer im Browser | `VITE_STRIPE_PUBLIC_KEY` fehlt | Vercel Env + Redeploy |
+| Stripe Element lädt nicht | `VITE_SUPABASE_URL` hat Leerzeichen | Vercel Env bereinigen |
