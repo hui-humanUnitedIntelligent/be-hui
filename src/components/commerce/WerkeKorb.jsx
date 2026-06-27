@@ -514,7 +514,7 @@ function PersonGruppe({ group, onRemove, removingId, onQtyChange }) {
   const label = count === 1 ? "1 Werk ausgewählt" : `${count} Auswahlen`;
 
   return (
-    <div style={{ marginBottom: 8 }}>
+    <div style={{ marginBottom: 14 }}>
 
       {/* ── Personen-Header: Avatar + Name + Subtext ── */}
       <div style={{
@@ -804,50 +804,45 @@ function ImpactZeile({ impactEur }) {
   const impactStr = impactEur.toFixed(2).replace(".", ",");
   return (
     <div style={{
-      marginTop:    16,
-      padding:      "16px 18px",
-      borderRadius: 16,
-      background:   "rgba(107,174,143,0.07)",
-      border:       "1px solid rgba(107,174,143,0.14)",
+      marginTop:  14,
+      paddingTop: 14,
+      borderTop:  "1px solid rgba(20,20,34,0.05)",
     }}>
+      {/* Hauptzeile: Icon + Text + Betrag */}
       <div style={{
-        fontSize:      13,
-        fontWeight:    700,
-        color:         C.sage,
-        marginBottom:  10,
-        lineHeight:    1.3,
+        display:        "flex",
+        alignItems:     "flex-start",
+        gap:            8,
+        marginBottom:   6,
       }}>
-        🌱 Gemeinsam Wirkung schaffen
+        <span style={{ fontSize:12, lineHeight:1.5, flexShrink:0 }}>🌱</span>
+        <div style={{ flex:1 }}>
+          <span style={{
+            fontSize:   12,
+            fontWeight: 600,
+            color:      C.sage,
+            lineHeight: 1.5,
+          }}>
+            Gemeinsam Wirkung schaffen — 
+          </span>
+          <span style={{
+            fontSize:   12,
+            color:      C.muted,
+            lineHeight: 1.5,
+          }}>
+            {impactStr} € investiert HUI aus den eigenen Einnahmen
+            in gemeinsame Impact-Projekte.
+          </span>
+        </div>
       </div>
+      {/* Zweite Zeile: Hinweis */}
       <div style={{
-        fontSize:   12,
-        color:      C.muted,
-        lineHeight: 1.6,
-        marginBottom: 12,
+        fontSize:   11,
+        color:      C.faint,
+        lineHeight: 1.5,
+        paddingLeft: 20,
       }}>
-        HUI investiert einen Teil der eigenen Einnahmen in den HUI Impact Pool.
-      </div>
-      <div style={{ textAlign: "center", marginBottom: 12 }}>
-        <div style={{ fontSize:11, color:C.faint, marginBottom:4, lineHeight:1.3 }}>
-          Bei dieser Unterstützung fließen
-        </div>
-        <div style={{
-          fontSize:   22,
-          fontWeight: 700,
-          color:      C.sage,
-          fontVariantNumeric: "tabular-nums",
-          letterSpacing: -0.5,
-          lineHeight: 1.1,
-        }}>
-          {impactStr} €
-        </div>
-        <div style={{ fontSize:11, color:C.faint, marginTop:4, lineHeight:1.3 }}>
-          in gemeinsame Impact-Projekte.
-        </div>
-      </div>
-      <div style={{ fontSize:11, color:C.faint, fontStyle:"italic",
-                    lineHeight:1.5, textAlign:"center" }}>
-        Für dich entstehen dadurch keine zusätzlichen Kosten.
+        Für dich entstehen keine zusätzlichen Kosten.
       </div>
     </div>
   );
@@ -866,7 +861,7 @@ function PreisBlock({ werke, versand, rabatt }) {
   // Vereinfacht: nur Gesamtbetrag
   if (!showVersand && !showRabatt) {
     return (
-      <div style={{ textAlign: "center", padding: "4px 0 10px" }}>
+      <div style={{ textAlign: "center", padding: "8px 0 12px" }}>
         <div style={{
           fontSize:      10,
           fontWeight:    600,
@@ -878,11 +873,11 @@ function PreisBlock({ werke, versand, rabatt }) {
           Deine Auswahl
         </div>
         <div style={{
-          fontSize:   28,
-          fontWeight: 700,
+          fontSize:   24,
+          fontWeight: 600,
           color:      C.inkMid,
-          letterSpacing: -0.8,
-          lineHeight: 1.1,
+          letterSpacing: -0.5,
+          lineHeight: 1.15,
           fontVariantNumeric: "tabular-nums",
         }}>
           {fmt(werke)}
@@ -1162,8 +1157,8 @@ export default function WerkeKorb({
         {iCount > 0 && phase !== "success" && (
           <div style={{
             flexShrink:    0,
-            borderTop:     `1px solid rgba(20,20,34,0.06)`,
-            padding:       "16px 20px",
+            borderTop:     `1px solid rgba(20,20,34,0.05)`,
+            padding:       "20px 20px",
             paddingBottom: `calc(max(20px, env(safe-area-inset-bottom, 20px)) + 64px)`,
             background:    C.cream,
           }}>
@@ -1188,22 +1183,22 @@ export default function WerkeKorb({
               disabled={phase === "loading"}
               style={{
                 width:        "100%",
-                marginTop:    20,
-                padding:      "18px 0",
-                borderRadius: 16,
+                marginTop:    24,
+                padding:      "14px 0",
+                borderRadius: 18,
                 border:       "none",
                 background:   phase === "loading"
                   ? "rgba(20,20,34,0.07)"
-                  : `linear-gradient(135deg, ${C.teal} 0%, #18DDD0 50%, ${C.coral} 160%)`,
+                  : `linear-gradient(135deg, ${C.teal} 0%, #14CEC2 100%)`,
                 color:        phase === "loading" ? C.muted : "#fff",
-                fontWeight:   800,
-                fontSize:     17,
-                letterSpacing: -0.3,
+                fontWeight:   700,
+                fontSize:     16,
+                letterSpacing: -0.2,
                 cursor:       phase === "loading" ? "default" : "pointer",
                 outline:      "none",
                 boxShadow:    phase === "loading"
                   ? "none"
-                  : `0 8px 28px rgba(13,196,181,0.30), 0 2px 8px rgba(13,196,181,0.18)`,
+                  : `0 4px 16px rgba(13,196,181,0.18)`,
                 transition:   `all ${DUR.normal}ms ${EASE.out}`,
                 WebkitTapHighlightColor: "transparent",
               }}
