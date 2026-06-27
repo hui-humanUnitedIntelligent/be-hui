@@ -51,6 +51,7 @@ jobs:
           if [ -n "${STRIPE_WEBHOOK_SECRET:-}" ]; then
             supabase secrets set STRIPE_WEBHOOK_SECRET="$STRIPE_WEBHOOK_SECRET" --project-ref gxztrhvhcxhmunhhkfjd
             echo "✅ STRIPE_WEBHOOK_SECRET aus GitHub Secret gesetzt"
+            sleep 10
             exit 0
           fi
 
@@ -61,7 +62,7 @@ jobs:
 
           ENDPOINTS=$(curl -sfS "https://api.stripe.com/v1/webhook_endpoints?limit=20" \
             -u "${STRIPE_SECRET_KEY}:")
-          EXISTING_ID=$(echo "$ENDPOINTS" | python3 -c "import json,sys,os; d=json.load(sys.stdin); url=os.environ['WEBHOOK_URL']; print(next((e['id'] for e in d.get('data',[]) if e.get('url')==url), ''))" WEBHOOK_URL="$WEBHOOK_URL")
+          EXISTING_ID=$(echo "$ENDPOINTS" | WEBHOOK_URL="$WEBHOOK_URL" python3 -c "import json,sys,os; d=json.load(sys.stdin); url=os.environ['WEBHOOK_URL']; print(next((e['id'] for e in d.get('data',[]) if e.get('url')==url), ''))")
 
           if [ -n "$EXISTING_ID" ]; then
             echo "⚠️  Stripe Webhook existiert ($EXISTING_ID), aber STRIPE_WEBHOOK_SECRET fehlt"
