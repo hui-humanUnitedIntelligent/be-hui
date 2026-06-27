@@ -1,4 +1,5 @@
 // supabase/functions/check-order-status/index.ts
+// deploy-trigger: 2026-06-27T2-runtime-stabilize
 // ═══════════════════════════════════════════════════════════════════
 // HUI Commerce — Check Order Status (Redirect Handler)
 // ═══════════════════════════════════════════════════════════════════

@@ -1,4 +1,5 @@
 // supabase/functions/handle-payment-webhook/index.ts
+// deploy-trigger: 2026-06-27T2-runtime-stabilize
 // ═══════════════════════════════════════════════════════════════════
 // HUI Commerce 2.0 — Stripe Webhook Handler (P0 Security Fix)
 // Änderungen:
@@ -64,12 +65,15 @@ serve(async (req) => {
     }
 
     // Event registrieren (vor Verarbeitung — verhindert Race Conditions)
-    await supabase.from('webhook_events').insert({
+    const { error: registerErr } = await supabase.from('webhook_events').insert({
       stripe_event_id: event.id,
       event_type:      event.type,
       payload_summary: { type: event.type, created: event.created },
       status:          'processing',
-    }).catch(() => {}) // Wenn bereits vorhanden (Race) → OK, ignorieren
+    })
+    if (registerErr && registerErr.code !== '23505') {
+      console.warn('[WEBHOOK] Event registration failed:', registerErr.message)
+    }
 
     console.log('[WEBHOOK] Verarbeite Event:', event.type, event.id)
 
@@ -115,26 +119,28 @@ serve(async (req) => {
       }).eq('id', order.id).eq('state', 'pending') // doppelter Guard
 
       // ── Commerce Event ────────────────────────────────────────
-      await supabase.from('commerce_events').insert({
+      const { error: confirmEventErr } = await supabase.from('commerce_events').insert({
         event_type: 'payment_confirmed',
         order_id:   order.id,
         actor_type: 'webhook',
         payload:    { stripe_pi: pi.id, amount: pi.amount, verified: true }
-      }).catch(() => {})
+      })
+      if (confirmEventErr) console.warn('[WEBHOOK] commerce_events insert failed:', confirmEventErr.message)
 
       // ── Creator Notifications ─────────────────────────────────
       const creatorIds = [...new Set(
         ((order as any).order_items || []).map((i: any) => i.creator_id).filter(Boolean)
       )]
       for (const creatorId of creatorIds) {
-        await supabase.from('notifications').insert({
+        const { error: notifErr } = await supabase.from('notifications').insert({
           user_id: creatorId,
           type:    'new_order',
           title:   'Neue Bestellung 🎉',
           body:    'Jemand hat dein Werk unterstützt.',
           data:    JSON.stringify({ order_id: order.id }),
           read:    false,
-        }).catch(e => console.warn('[NOTIF]', e.message))
+        })
+        if (notifErr) console.warn('[NOTIF]', notifErr.message)
       }
 
       // ── Impact Pool (nur einmalig via Idempotency) ────────────
@@ -151,24 +157,26 @@ serve(async (req) => {
             pool_eur: Number(currentRound.pool_eur) + impactEur
           }).eq('id', currentRound.id)
 
-          await supabase.from('commerce_events').insert({
+          const { error: impactEventErr } = await supabase.from('commerce_events').insert({
             event_type: 'impact_credited',
             order_id:   order.id,
             actor_type: 'system',
             payload:    { impact_eur: impactEur, round_id: currentRound.id, via_webhook: event.id }
-          }).catch(() => {})
+          })
+          if (impactEventErr) console.warn('[WEBHOOK] impact event insert failed:', impactEventErr.message)
         }
       }
 
       // Buyer-Bestätigung
-      await supabase.from('notifications').insert({
+      const { error: buyerNotifErr } = await supabase.from('notifications').insert({
         user_id: order.customer_id,
         type:    'order_confirmed',
         title:   'Unterstützung bestätigt ✓',
         body:    'Deine Zahlung war erfolgreich.',
         data:    JSON.stringify({ order_id: order.id }),
         read:    false,
-      }).catch(() => {})
+      })
+      if (buyerNotifErr) console.warn('[NOTIF]', buyerNotifErr.message)
     }
 
     else if (event.type === 'payment_intent.payment_failed') {
@@ -178,11 +186,12 @@ serve(async (req) => {
         .eq('stripe_payment_intent', pi.id)
         .eq('state', 'pending')  // Status-Guard
 
-      await supabase.from('commerce_events').insert({
+      const { error: failedEventErr } = await supabase.from('commerce_events').insert({
         event_type: 'payment_failed',
         actor_type: 'webhook',
         payload:    { stripe_pi: pi.id, reason: (pi as any).last_payment_error?.message }
-      }).catch(() => {})
+      })
+      if (failedEventErr) console.warn('[WEBHOOK] payment_failed event insert failed:', failedEventErr.message)
     }
 
     else if (event.type === 'charge.dispute.created') {

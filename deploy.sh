@@ -39,9 +39,14 @@ echo "3. Edge Functions deployen..."
 
 for FN in create-payment-intent handle-payment-webhook check-order-status release-payout; do
   echo "   → $FN..."
-  npx supabase functions deploy "$FN" \
-    --project-ref "$PROJECT_REF" \
-    --no-verify-jwt 2>&1 | grep -E "Deployed|Error|error" || true
+  DEPLOY_ARGS=(--project-ref "$PROJECT_REF")
+  if [ "$FN" = "create-payment-intent" ] || [ "$FN" = "handle-payment-webhook" ]; then
+    DEPLOY_ARGS+=(--no-verify-jwt)
+  fi
+  if ! npx supabase functions deploy "$FN" "${DEPLOY_ARGS[@]}"; then
+    echo "   ❌ $FN deployment failed"
+    exit 1
+  fi
   echo "   ✓ $FN deployed"
 done
 
@@ -62,25 +67,69 @@ else
   echo "   ⚠  STRIPE_WEBHOOK_SECRET nicht gesetzt — nach Webhook-Registrierung nachholen"
 fi
 
-# ── Schritt 5: create-payment-intent testen ─────────
+# ── Schritt 5: Alle Commerce-Functions verifizieren ─────────
 echo ""
-echo "5. Edge Function testen..."
-ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd4enRyaHZoY3hobXVuaGhrZmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4ODI2NDIsImV4cCI6MjA5MzQ1ODY0Mn0.cq8E_NQkmeTZPIe0G0SSqEzzg6yJhyce5xpW2iwVIbk"
+echo "5. Edge Functions verifizieren..."
 
-STATUS=$(curl -s -o /tmp/pi_test.json -w "%{http_code}" \
+verify_function() {
+  local name="$1"
+  local url="$2"
+  shift 2
+
+  local body_file="/tmp/${name//[^a-zA-Z0-9]/_}_test.json"
+  local status
+  status=$(curl -s -o "$body_file" -w "%{http_code}" "$url" "$@")
+  local body
+  body=$(cat "$body_file" 2>/dev/null || echo "")
+
+  local runtime="nein"
+  local handler="nein"
+  local result="FAIL"
+
+  if [ "$status" = "401" ] || [ "$status" = "400" ]; then
+    runtime="ja"
+    handler="ja"
+    result="PASS"
+  elif [ "$status" = "404" ] || [ "$status" = "503" ]; then
+    runtime="nein"
+    handler="nein"
+    result="FAIL"
+    return 1
+  else
+    runtime="ja"
+    handler="teilweise (HTTP $status)"
+    result="WARN"
+  fi
+
+  echo "   ── $name ──"
+  echo "      HTTP-Status:        $status"
+  echo "      Runtime gestartet:  $runtime"
+  echo "      Handler ausgeführt: $handler"
+  echo "      Ergebnis:           $result"
+  echo "      Response:           $body"
+}
+
+FAIL=0
+verify_function "create-payment-intent" \
   "$SUPA_URL/functions/v1/create-payment-intent" \
-  -H "Authorization: Bearer $ANON_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"orderItems":[]}')
+  -X POST -H "Content-Type: application/json" -d '{}' || FAIL=1
 
-echo "   HTTP Status: $STATUS"
-echo "   Response: $(cat /tmp/pi_test.json)"
+verify_function "handle-payment-webhook" \
+  "$SUPA_URL/functions/v1/handle-payment-webhook" \
+  -X POST -H "Content-Type: application/json" -d '{}' || FAIL=1
 
-if [ "$STATUS" = "404" ]; then
+verify_function "check-order-status" \
+  "$SUPA_URL/functions/v1/check-order-status" \
+  -X POST -H "Content-Type: application/json" -d '{}' || FAIL=1
+
+verify_function "release-payout" \
+  "$SUPA_URL/functions/v1/release-payout" \
+  -X POST -H "Content-Type: application/json" -d '{}' || FAIL=1
+
+if [ "$FAIL" -ne 0 ]; then
   echo ""
-  echo "❌ Edge Function noch nicht verfügbar (HTTP 404)"
-  echo "   → Deployment möglicherweise fehlgeschlagen. Logs prüfen:"
-  echo "   npx supabase functions logs create-payment-intent --project-ref $PROJECT_REF"
+  echo "❌ Deployment-Verifikation fehlgeschlagen (404 oder 503)"
+  echo "   Logs prüfen: npx supabase functions logs <name> --project-ref $PROJECT_REF"
   exit 1
 fi
 

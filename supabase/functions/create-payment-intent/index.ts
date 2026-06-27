@@ -1,5 +1,5 @@
 // supabase/functions/create-payment-intent/index.ts
-// deploy-trigger: 2026-06-27
+// deploy-trigger: 2026-06-27T2-runtime-stabilize
 // ═══════════════════════════════════════════════════════════════════
 // HUI Commerce 2.0 — Create Payment Intent (Production Final)
 // ═══════════════════════════════════════════════════════════════════
@@ -275,12 +275,13 @@ serve(async (req) => {
       await supabase.from('orders')
         .update({ state: 'aborted' })
         .eq('id', dbOrder.id)
-      await supabase.from('commerce_events').insert({
+      const { error: failEventErr } = await supabase.from('commerce_events').insert({
         event_type: 'payment_failed',
         order_id:   dbOrder.id,
         actor_type: 'system',
         payload:    { error: stripeErr.message, stage: 'pi_creation' }
-      }).catch(() => {})
+      })
+      if (failEventErr) console.warn('[PI] commerce_events insert failed:', failEventErr.message)
       return new Response(JSON.stringify({
         error: 'Stripe-Verbindung fehlgeschlagen. Bitte erneut versuchen.',
         code:  'STRIPE_ERROR',
@@ -293,7 +294,7 @@ serve(async (req) => {
       .eq('id', dbOrder.id)
 
     // Commerce Event
-    await supabase.from('commerce_events').insert({
+    const { error: orderEventErr } = await supabase.from('commerce_events').insert({
       event_type: 'order_created',
       order_id:   dbOrder.id,
       actor_id:   user.id,
@@ -304,7 +305,8 @@ serve(async (req) => {
         db_validated:  true,
         creator_count: [...new Set(validatedItems.map(i => i.creator_id))].length,
       }
-    }).catch(() => {})
+    })
+    if (orderEventErr) console.warn('[PI] commerce_events insert failed:', orderEventErr.message)
 
     return new Response(JSON.stringify({
       clientSecret: paymentIntent.client_secret,
@@ -319,10 +321,10 @@ serve(async (req) => {
         Deno.env.get('SUPABASE_URL')!,
         Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
       )
-      await supabase.from('orders')
+      const { error: cleanupErr } = await supabase.from('orders')
         .update({ state: 'aborted' })
         .eq('id', createdOrderId)
-        .catch(() => {})
+      if (cleanupErr) console.warn('[PI] Order cleanup failed:', cleanupErr.message)
     }
     console.error('[CREATE_PAYMENT_INTENT] Unhandled:', e?.message)
     return new Response(JSON.stringify({ error: e?.message || 'Unbekannter Fehler' }), {
