@@ -165,7 +165,7 @@ function DetailModal({ n, meta, onClose }) {
       </div>
     </div>
   );
-  return createPortal(modalContent, document.body);
+  return typeof document !== "undefined" ? createPortal(modalContent, document.body) : null;
 }
 
 // ── RejectionModal (behalten für Kompatibilität, nutzt jetzt DetailModal) ────
@@ -185,8 +185,10 @@ function NotifCard({ n, meta, onRead, onAction = () => {} }) {
 
   const isRejection    = n.type?.includes("rejected");
   const isApproval     = n.type?.includes("approved");
-  const hasLongBody    = n.body && n.body.length > 60;
-  const showDetailBtn  = isRejection || isApproval || hasLongBody || n.type === "broadcast" || n.type === "admin_broadcast" || n.type === "support_reply";
+  const d              = (n.data && typeof n.data === "object") ? n.data : {};
+  const fullText       = d.admin_reply || d.message || d.reason || n.body || "";
+  const hasLongBody    = fullText.length > 30;
+  const showDetailBtn  = true; // immer Detail-Button
 
   const handleCardClick = () => {
     if (!n.is_read) onRead?.(n.id);
@@ -208,13 +210,13 @@ function NotifCard({ n, meta, onRead, onAction = () => {} }) {
   const btnBorder = isRed ? "rgba(239,68,68,0.35)" : isGreen ? "rgba(22,163,74,0.35)" : "rgba(14,196,184,0.35)";
   const btnLabel  = isRed ? "📋 Grund lesen" : isGreen ? "💚 Details" : "Details lesen";
 
-  // Body-Preview (erste 60 Zeichen)
-  const bodyPreview = n.body ? (n.body.length > 60 ? n.body.slice(0, 60) + "…" : n.body) : null;
+  // Body-Preview aus fullText (data.admin_reply, data.message, n.body)
+  const bodyPreview = fullText ? (fullText.length > 80 ? fullText.slice(0, 80) + "…" : fullText) : null;
 
   return (
     <>
       {showDetail && (
-        <DetailModal n={n} meta={meta} onClose={() => setShowDetail(false)} />
+        <DetailModal n={{...n, body: fullText || n.body}} meta={meta} onClose={() => setShowDetail(false)} />
       )}
       <div
         onClick={handleCardClick}
