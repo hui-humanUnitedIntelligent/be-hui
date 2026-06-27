@@ -227,12 +227,13 @@ serve(async (req) => {
     createdOrderId = dbOrder.id  // für Cleanup
 
     // ── 7. Order Items ────────────────────────────────────────────
-    await supabase.from('order_items').insert(
+    const { error: itemsErr } = await supabase.from('order_items').insert(
       validatedItems.map(item => ({
         order_id:    dbOrder.id,
         seller_id:   item.seller_id,
         item_type:          item.item_type,
         item_id:            item.item_id,
+        ...(item.item_type === 'work' ? { work_id: item.item_id } : {}),
         snapshot:           item.snapshot,
         shipping_type:      item.shipping_type,
         quantity:           item.quantity,
@@ -244,6 +245,12 @@ serve(async (req) => {
         payout_status:      'held',
       }))
     )
+    if (itemsErr) {
+      await supabase.from('orders').update({ state: 'aborted' }).eq('id', dbOrder.id)
+      return new Response(JSON.stringify({ error: 'Order-Items fehlgeschlagen' }), {
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
 
     // ── 8. Stripe Payment Intent ──────────────────────────────────
     const stripe = new Stripe(stripeKey, { apiVersion: '2024-06-20' })

@@ -221,6 +221,7 @@ GRANT ALL ON public.orders TO service_role;
 -- ─────────────────────────────────────────────────────────────────────────────
 
 ALTER TABLE public.order_items ADD COLUMN IF NOT EXISTS seller_id          UUID REFERENCES auth.users(id) ON DELETE SET NULL;
+ALTER TABLE public.order_items ADD COLUMN IF NOT EXISTS item_id            UUID;
 ALTER TABLE public.order_items ADD COLUMN IF NOT EXISTS item_type          TEXT DEFAULT 'work';
 ALTER TABLE public.order_items ADD COLUMN IF NOT EXISTS snapshot           JSONB DEFAULT '{}';
 ALTER TABLE public.order_items ADD COLUMN IF NOT EXISTS shipping_type      TEXT DEFAULT 'none';
@@ -237,6 +238,18 @@ ALTER TABLE public.order_items ADD COLUMN IF NOT EXISTS payout_paid_at     TIMES
 ALTER TABLE public.order_items ADD COLUMN IF NOT EXISTS stripe_transfer_id TEXT;
 ALTER TABLE public.order_items ADD COLUMN IF NOT EXISTS created_at         TIMESTAMPTZ DEFAULT now();
 ALTER TABLE public.order_items ADD COLUMN IF NOT EXISTS updated_at         TIMESTAMPTZ DEFAULT now();
+
+-- work_id → item_id (Legacy-Produktionsschema)
+DO $$ BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'order_items' AND column_name = 'work_id'
+  ) THEN
+    UPDATE public.order_items
+      SET item_id = work_id
+      WHERE item_id IS NULL AND work_id IS NOT NULL;
+  END IF;
+END $$;
 
 -- unit_price_eur aus price_eur befüllen wenn leer (Datenkonsistenz)
 DO $$ BEGIN

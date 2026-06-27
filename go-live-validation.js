@@ -204,8 +204,8 @@ async function phase4to6(piData, jwt) {
   }
   pass('Stripe Testzahlung succeeded');
 
-  console.log('  Warte 6s auf Webhook...');
-  await new Promise(r => setTimeout(r, 6000));
+  console.log('  Warte 15s auf Webhook...');
+  await new Promise(r => setTimeout(r, 15000));
 
   const whStart = Date.now();
   const orderRes = await fetch(

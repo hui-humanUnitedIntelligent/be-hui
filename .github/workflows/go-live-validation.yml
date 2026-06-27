@@ -51,7 +51,8 @@ jobs:
           if [ -n "${STRIPE_WEBHOOK_SECRET:-}" ]; then
             supabase secrets set STRIPE_WEBHOOK_SECRET="$STRIPE_WEBHOOK_SECRET" --project-ref gxztrhvhcxhmunhhkfjd
             echo "✅ STRIPE_WEBHOOK_SECRET aus GitHub Secret gesetzt"
-            sleep 10
+            supabase functions deploy handle-payment-webhook --project-ref gxztrhvhcxhmunhhkfjd --no-verify-jwt
+            sleep 20
             exit 0
           fi
 
@@ -79,7 +80,8 @@ jobs:
           WHSEC=$(echo "$CREATE" | python3 -c 'import json,sys; print(json.load(sys.stdin)["secret"])')
           supabase secrets set STRIPE_WEBHOOK_SECRET="$WHSEC" --project-ref gxztrhvhcxhmunhhkfjd
           echo "✅ Stripe Webhook erstellt und STRIPE_WEBHOOK_SECRET gesetzt"
-          sleep 10
+          supabase functions deploy handle-payment-webhook --project-ref gxztrhvhcxhmunhhkfjd --no-verify-jwt
+          sleep 20
 
       - name: Resolve test work ID
         id: testdata
