@@ -155,23 +155,7 @@ function HomeInner() {
   // COMMERCE-01: WorkDetailPage → /Home + state → WerkKaufFlow öffnen
   const location = useLocation();
 
-  // P1: Stripe Redirect Handler (?hui_order=...&status=success)
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const huiOrder = params.get('hui_order');
-    const status   = params.get('status');
-    if (huiOrder && status === 'success') {
-      // Stripe hat zurückgeleitet nach SEPA/3DS
-      // Cart leeren + Erfolgs-UI zeigen
-      clearCartAfterSuccess(setCart);
-      clearCartPersist?.();
-      // URL säubern ohne History-Eintrag
-      window.history.replaceState({}, '', window.location.pathname);
-      // Optional: Danke-Overlay öffnen
-      // setShowUnterstutzenFlow(true); // TODO: mit orderId für Danke-Screen
-      console.log('[STRIPE] Return-URL: Order', huiOrder, 'Status:', status);
-    }
-  }, []);
+  // Stripe Redirect wird in UnterstutzenFlow behandelt (P1)
 
     useEffect(() => {
     const pending = location?.state?.pendingWerkKauf;
