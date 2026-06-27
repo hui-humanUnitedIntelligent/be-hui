@@ -310,142 +310,163 @@ function NotifCard({ n, onAction, idx }) {
   const cfg = getType(n);
   const [showDetail, setShowDetail] = React.useState(false);
   const hasContent = !!(n.body || n.message || n.title);
-  const handleClick = () => {
+
+  const handleClick = (e) => {
+    e.stopPropagation();
     if (hasContent) setShowDetail(true);
     else onAction(n);
   };
+
   return (
     <>
-      {showDetail && <NotifDetailModal n={n} cfg={cfg} onClose={() => setShowDetail(false)} />}
-    <div
-      className="nc-card nc-tap"
-      onClick={handleClick}
-      style={{
-        display:"flex", alignItems:"flex-start", gap:12,
-        padding:"13px 16px",
-        background: n.read ? "transparent" : C.card,
-        borderRadius:18,
-        borderLeft: n.type === "impact"
-          ? `3px solid ${C.teal}`
-          : "3px solid transparent",
-        boxShadow: n.read ? "none" : "0 2px 12px rgba(0,0,0,0.07)",
-        animation:`fadeUp 0.35s ${idx*0.04}s both`,
-        cursor:"pointer",
-      }}
-    >
-      {/* Avatar / Icon */}
-      <div style={{ position:"relative", flexShrink:0 }}>
-        {n.is_image && n.avatar ? (
-          <div style={{ width:50, height:50, borderRadius:14, overflow:"hidden",
-            boxShadow:"0 2px 8px rgba(0,0,0,0.12)" }}>
+      <div
+        className="nc-card nc-tap"
+        onClick={handleClick}
+        style={{
+          display:"flex", alignItems:"flex-start", gap:12,
+          padding:"13px 16px",
+          background: n.read ? "transparent" : C.card,
+          borderRadius:18,
+          borderLeft: n.type === "impact"
+            ? `3px solid ${C.teal}`
+            : "3px solid transparent",
+          boxShadow: n.read ? "none" : "0 2px 12px rgba(0,0,0,0.07)",
+          animation:`fadeUp 0.35s ${idx*0.04}s both`,
+          cursor:"pointer",
+          position:"relative",
+        }}
+      >
+        {/* Avatar / Icon */}
+        <div style={{ position:"relative", flexShrink:0 }}>
+          {n.is_image && n.avatar ? (
+            <div style={{ width:50, height:50, borderRadius:14, overflow:"hidden",
+              boxShadow:"0 2px 8px rgba(0,0,0,0.12)" }}>
+              <img src={n.avatar} alt="" loading="lazy"
+                style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+            </div>
+          ) : n.avatar ? (
             <img src={n.avatar} alt="" loading="lazy"
-              style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-          </div>
-        ) : n.avatar ? (
-          <img src={n.avatar} alt="" loading="lazy"
-            style={{ width:50, height:50, borderRadius:"50%", objectFit:"cover",
-              boxShadow:"0 2px 8px rgba(0,0,0,0.10)" }}/>
-        ) : (
+              style={{ width:50, height:50, borderRadius:"50%", objectFit:"cover",
+                boxShadow:"0 2px 8px rgba(0,0,0,0.10)" }}/>
+          ) : (
+            <div style={{
+              width:50, height:50, borderRadius:"50%",
+              background:`linear-gradient(135deg, ${cfg.bg} 0%, ${cfg.color}22 100%)`,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontSize:22, flexShrink:0,
+              border:`1.5px solid ${cfg.color}22`,
+            }}>
+              {n.icon_override || cfg.icon}
+            </div>
+          )}
+          {/* Type-Badge */}
           <div style={{
-            width:50, height:50, borderRadius:"50%",
-            background:`linear-gradient(135deg, ${cfg.bg} 0%, ${cfg.color}22 100%)`,
-            display:"flex", alignItems:"center", justifyContent:"center",
-            fontSize:22, flexShrink:0,
-            border:`1.5px solid ${cfg.color}22`,
-          }}>
-            {n.icon_override || cfg.icon}
-          </div>
-        )}
-        {/* Type-Badge */}
-        <div style={{
-          position:"absolute", bottom:-2, right:-2,
-          width:20, height:20, borderRadius:"50%",
-          background: cfg.bg,
-          border:"1.5px solid #fff",
-          display:"flex", alignItems:"center", justifyContent:"center",
-          fontSize:10,
-        }}>
-          {cfg.icon}
-        </div>
-        {/* Unread Dot */}
-        {!n.read && (
-          <div style={{
-            position:"absolute", top:-2, right:-2,
-            width:10, height:10, borderRadius:"50%",
-            background:C.teal,
-            border:"1.5px solid #fff",
-            animation:"glow 4.0s ease-in-out infinite",
-          }}/>
-        )}
-      </div>
-
-      {/* Content */}
-      <div style={{ flex:1, minWidth:0 }}>
-        <div style={{ display:"flex", alignItems:"flex-start",
-          justifyContent:"space-between", gap:6, marginBottom:3 }}>
-          <div style={{
-            fontSize:13.5, fontWeight: n.read ? 500 : 700,
-            color:C.ink, lineHeight:1.4, flex:1,
-          }}>
-            {n.message || n.body || n.title || ""}
-          </div>
-          <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end",
-            gap:4, flexShrink:0 }}>
-            <span style={{ fontSize:10.5, color:C.muted, whiteSpace:"nowrap" }}>
-              {timeFmt(n.created_at)}
-            </span>
-            {n.unread_count > 0 && (
-              <div style={{
-                minWidth:20, height:20, borderRadius:10,
-                background:C.teal, color:"#fff",
-                fontSize:10.5, fontWeight:700,
-                display:"flex", alignItems:"center", justifyContent:"center",
-                padding:"0 5px",
-              }}>
-                {n.unread_count}
-              </div>
-            )}
-            {n.type === "impact" && (
-              <span style={{ fontSize:14, color:C.teal }}>{"💚"}</span>
-            )}
-          </div>
-        </div>
-
-        {/* Sub-body */}
-        {n.body ? (
-          <div style={{ fontSize:11.5, color:C.teal, fontWeight:600, marginBottom:4 }}>
-            {n.body}
-          </div>
-        ) : null}
-
-        {/* Group Avatare (Community) */}
-        {n.group_avatars?.length > 0 && (
-          <div style={{ display:"flex", gap:2, marginBottom:4 }}>
-            {n.group_avatars.map((av, i) => (
-              <img key={i} src={av} alt=""
-                style={{ width:20, height:20, borderRadius:"50%", objectFit:"cover",
-                  border:"1.5px solid #fff", marginLeft: i > 0 ? -6 : 0 }}/>
-            ))}
-          </div>
-        )}
-
-        {/* CTA */}
-        {n.action_label && (
-          <span style={{
-            fontSize:11.5, fontWeight:700,
-            color: cfg.color,
+            position:"absolute", bottom:-2, right:-2,
+            width:20, height:20, borderRadius:"50%",
             background: cfg.bg,
-            borderRadius:50, padding:"3px 10px",
-            display:"inline-block", marginTop:2,
+            border:"1.5px solid #fff",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            fontSize:10,
           }}>
-            {n.action_label} {"\u2192"}
-          </span>
+            {cfg.icon}
+          </div>
+          {/* Unread Dot */}
+          {!n.read && (
+            <div style={{
+              position:"absolute", top:-2, right:-2,
+              width:10, height:10, borderRadius:"50%",
+              background:C.teal,
+              border:"1.5px solid #fff",
+              animation:"glow 4.0s ease-in-out infinite",
+            }}/>
+          )}
+        </div>
+
+        {/* Content */}
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ display:"flex", alignItems:"flex-start",
+            justifyContent:"space-between", gap:6, marginBottom:3 }}>
+            <div style={{
+              fontSize:13.5, fontWeight: n.read ? 500 : 700,
+              color:C.ink, lineHeight:1.4, flex:1,
+            }}>
+              {n.message || n.body || n.title || ""}
+            </div>
+            <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end",
+              gap:4, flexShrink:0 }}>
+              <span style={{ fontSize:10.5, color:C.muted, whiteSpace:"nowrap" }}>
+                {timeFmt(n.created_at)}
+              </span>
+              {n.unread_count > 0 && (
+                <div style={{
+                  minWidth:20, height:20, borderRadius:10,
+                  background:C.teal, color:"#fff",
+                  fontSize:10.5, fontWeight:700,
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  padding:"0 5px",
+                }}>
+                  {n.unread_count}
+                </div>
+              )}
+              {n.type === "impact" && (
+                <span style={{ fontSize:14, color:C.teal }}>{"💚"}</span>
+              )}
+            </div>
+          </div>
+
+          {/* Sub-body */}
+          {n.body ? (
+            <div style={{ fontSize:11.5, color:C.teal, fontWeight:600, marginBottom:4 }}>
+              {n.body}
+            </div>
+          ) : null}
+
+          {/* Group Avatare (Community) */}
+          {n.group_avatars?.length > 0 && (
+            <div style={{ display:"flex", gap:2, marginBottom:4 }}>
+              {n.group_avatars.map((av, i) => (
+                <img key={i} src={av} alt=""
+                  style={{ width:20, height:20, borderRadius:"50%", objectFit:"cover",
+                    border:"1.5px solid #fff", marginLeft: i > 0 ? -6 : 0 }}/>
+              ))}
+            </div>
+          )}
+
+          {/* CTA */}
+          {n.action_label && (
+            <span style={{
+              fontSize:11.5, fontWeight:700,
+              color: cfg.color,
+              background: cfg.bg,
+              borderRadius:50, padding:"3px 10px",
+              display:"inline-block", marginTop:2,
+            }}>
+              {n.action_label} {"→"}
+            </span>
+          )}
+        </div>
+
+        {/* Klick-Indikator */}
+        {hasContent && (
+          <div style={{
+            position:"absolute", right:14, top:"50%", transform:"translateY(-50%)",
+            fontSize:10, color:C.muted, opacity:0.5,
+          }}>›</div>
         )}
       </div>
-    </div>
+
+      {/* Detail Modal via Portal */}
+      {showDetail && (
+        <NotifDetailModal
+          n={n}
+          cfg={cfg}
+          onClose={() => setShowDetail(false)}
+        />
+      )}
     </>
   );
 }
+
 
 /* ══════════════════════════════════════════════════════════════
    EMPTY STATE
