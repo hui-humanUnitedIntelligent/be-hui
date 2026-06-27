@@ -1,5 +1,5 @@
 // supabase/functions/handle-payment-webhook/index.ts
-// deploy-trigger: 2026-06-27T4-go-live-validation
+// deploy-trigger: 2026-06-27T5-constructEventAsync-deno
 // ═══════════════════════════════════════════════════════════════════
 // HUI Commerce 2.0 — Stripe Webhook Handler (P0 Security Fix)
 // Änderungen:
@@ -11,12 +11,14 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import Stripe from 'https://esm.sh/stripe@14'
+import Stripe from 'https://esm.sh/stripe@14?target=denonext'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, stripe-signature',
 }
+
+const cryptoProvider = Stripe.createSubtleCryptoProvider()
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
@@ -48,10 +50,16 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: '2024-06-20' })
 
-    // ── Webhook Signature Verification ───────────────────────────
+    // ── Webhook Signature Verification (async — Deno Web Crypto) ─
     let event: Stripe.Event
     try {
-      event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
+      event = await stripe.webhooks.constructEventAsync(
+        body,
+        signature,
+        webhookSecret,
+        undefined,
+        cryptoProvider,
+      )
     } catch (err: any) {
       console.error('[WEBHOOK] Signature verification failed:', err.message)
       return new Response(JSON.stringify({ error: 'Invalid signature' }), {

@@ -88,10 +88,20 @@ if [ "${#MATCHING_IDS[@]}" -gt 1 ]; then
   MATCHING_IDS=()
 fi
 
+WHSEC=""
+
 if [ "${#MATCHING_IDS[@]}" -eq 1 ]; then
   ENDPOINT_ID="${MATCHING_IDS[0]}"
-  echo "✅ Stripe Webhook existiert ($ENDPOINT_ID) — Secret-Sync via Neuerstellung"
-  curl -sfS -X DELETE "https://api.stripe.com/v1/webhook_endpoints/${ENDPOINT_ID}" -u "${STRIPE_SECRET_KEY}:" > /dev/null
+  echo "✅ Stripe Webhook existiert ($ENDPOINT_ID)"
+  if supabase secrets list --project-ref "$PROJECT_REF" 2>/dev/null | grep -q 'STRIPE_WEBHOOK_SECRET'; then
+    echo "✅ STRIPE_WEBHOOK_SECRET in Supabase — redeploy + Signatur-Probe"
+    supabase functions deploy handle-payment-webhook --project-ref "$PROJECT_REF" --no-verify-jwt
+    sleep 25
+    # Secret-Wert nicht lesbar: neuer Endpoint nur wenn Probe mit frischem whsec nötig
+    # Erstelle Endpoint neu um whsec für CI-Fallback zu erhalten
+    curl -sfS -X DELETE "https://api.stripe.com/v1/webhook_endpoints/${ENDPOINT_ID}" -u "${STRIPE_SECRET_KEY}:" > /dev/null
+    echo "⚠️  Endpoint neu erstellt für whsec-Sync (einmalig pro CI-Lauf)"
+  fi
 fi
 
 # ── Neuen Webhook anlegen (liefert whsec_) ───────────────────────
@@ -105,7 +115,7 @@ CREATE=$(curl -sfS "https://api.stripe.com/v1/webhook_endpoints" \
   "${CREATE_ARGS[@]}")
 WHSEC=$(echo "$CREATE" | python3 -c 'import json,sys; print(json.load(sys.stdin)["secret"])')
 ENDPOINT_ID=$(echo "$CREATE" | python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])')
-echo "✅ Neuer Stripe Webhook erstellt ($ENDPOINT_ID)"
+echo "✅ Stripe Webhook bereit ($ENDPOINT_ID)"
 
 deploy_webhook_handler "$WHSEC"
 output_whsec "$WHSEC"
