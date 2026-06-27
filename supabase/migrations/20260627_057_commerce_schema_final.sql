@@ -204,6 +204,8 @@ DROP POLICY IF EXISTS "orders_insert_own"        ON public.orders;
 DROP POLICY IF EXISTS "orders_service_all"       ON public.orders;
 DROP POLICY IF EXISTS "orders_select_customer"   ON public.orders;
 DROP POLICY IF EXISTS "orders_insert_customer"   ON public.orders;
+DROP POLICY IF EXISTS "orders_update_customer"   ON public.orders;
+DROP POLICY IF EXISTS "orders_service_all"       ON public.orders;
 
 -- Neue Policies auf customer_id (kanonisch)
 CREATE POLICY "orders_select_customer" ON public.orders
