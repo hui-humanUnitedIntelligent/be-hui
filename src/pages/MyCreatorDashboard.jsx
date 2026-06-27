@@ -794,7 +794,8 @@ export default function MyCreatorDashboard({ onClose }) {
     { icon:"💰", label:"Einnahmen & Zahlungen",   cb:()=>actions[A.OPEN_EARNINGS]?.() },
     { icon:"🌍", label:"Impact Pool",             cb:()=>actions[A.OPEN_IMPACT]?.() },
     { icon:"🔒", label:"Privatsphäre",            cb:()=>actions[A.OPEN_PRIVACY]?.() },
-    { icon:"↪️", label:"Abmelden",               danger:true, cb:()=>actions[A.SIGN_OUT]?.() },
+    { icon:"🎧", label:"Support",                cb:()=>setShowSupport(true) },
+        { icon:"↪️", label:"Abmelden",               danger:true, cb:()=>actions[A.SIGN_OUT]?.() },
   ];
 
   if (!authId && !loading) {
@@ -939,6 +940,16 @@ export default function MyCreatorDashboard({ onClose }) {
             </div>
             <span style={{fontSize:18,color:T.muted}}>›</span>
           </Tap>
+        )}
+
+        {/* Support Modal */}
+        {showSupport && (
+          <SupportPage
+            onBack={() => setShowSupport(false)}
+            userId={authId}
+            userEmail={profile?.email}
+            userName={profile?.display_name || profile?.full_name}
+          />
         )}
 
         {/* HUI-Prinzip Footer */}
