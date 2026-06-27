@@ -154,7 +154,7 @@ export function ProfileHeader({
       <div style={{ background: T.bg, padding:"0 16px 20px" }}>
 
         {/* Row: Avatar + Name + Badge + Standort */}
-        <div style={{ display:"flex", alignItems:"flex-end", gap:14, marginTop:-44, marginBottom:14 }}>
+        <div style={{ display:"flex", alignItems:"flex-end", gap:14, marginTop:-36, marginBottom:14 }}>
 
           {/* Avatar */}
           <div style={{ position:"relative", flexShrink:0 }}>
