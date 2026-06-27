@@ -147,6 +147,11 @@ export function isFormValid(form, items) {
  * NICHT GELEERT: Beim Schließen ohne Abschluss — der Nutzer soll beim
  *               Wiedereinstieg seine Auswahl vorfinden.
  */
+/**
+ * clearCartAfterSuccess — löscht den Cart nach erfolgreicher Unterstützung.
+ * Ruft setCart([]) auf (React-State). Die Storage-Löschung erfolgt
+ * im clearCartPersist()-Aufruf in HomeShell (Phase-2-Hook-Point).
+ */
 export function clearCartAfterSuccess(setCart) {
   setCart([]);
 }
