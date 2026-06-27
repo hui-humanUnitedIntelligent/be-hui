@@ -336,6 +336,33 @@ function AmbassadorStudioSection({ profile }) {
     })();
   }, [uid]);
 
+  // ── Realtime: wenn ein neuer User über den Ref-Link kommt → sofort neu laden
+  useEffect(() => {
+    if (!uid || !isAmb) return;
+    const channel = supabase
+      .channel(`referral-watch-${uid}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'profiles',
+        filter: `referred_by=eq.${uid}`,
+      }, () => {
+        // Neuen Referral erkannt → Daten neu laden
+        supabase
+          .from("profiles")
+          .select("id,display_name,username,first_transaction_at,referred_by")
+          .eq("referred_by", uid)
+          .then(({ data }) => {
+            const users = data || [];
+            setAllUsers(users);
+            setActiveList(users.filter(u => u.first_transaction_at != null));
+            setSleepingList(users.filter(u => u.first_transaction_at == null));
+          });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [uid, isAmb]);
+
   async function copyLink() {
     const link = ambData?.ref_link || `https://be-hui.com/${profile?.username}`;
     try {
