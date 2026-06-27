@@ -286,7 +286,7 @@ function TicketDetail({ ticket, onBack }) {
       </div>
 
       {/* Content */}
-      <div style={{ flex:1, overflowY:"auto", padding:"16px 16px 120px",
+      <div style={{ flex:1, overflowY:"auto", padding:"16px 16px 160px",
         WebkitOverflowScrolling:"touch", display:"flex", flexDirection:"column", gap:12 }}>
 
         {/* Meta */}
@@ -366,11 +366,12 @@ function TicketDetail({ ticket, onBack }) {
       </div>
 
       {/* Sticky Antworten-Button */}
-      {d.status !== "closed" && (
+      {(d.status === "open" || d.status === "replied" || !d.status) && (
         <div style={{
-          position:"absolute", bottom:0, left:0, right:0,
-          padding:"12px 16px max(24px,env(safe-area-inset-bottom,24px))",
-          background:"linear-gradient(to top, white 70%, transparent)",
+          position:"fixed", bottom:0, left:0, right:0,
+          padding:"12px 16px max(96px,calc(80px + env(safe-area-inset-bottom,0px)))",
+          background:"linear-gradient(to top, white 80%, transparent)",
+          zIndex:15,
         }}>
           <button onClick={() => setShowReply(true)} style={{
             width:"100%", padding:"14px", borderRadius:13, border:"none",
