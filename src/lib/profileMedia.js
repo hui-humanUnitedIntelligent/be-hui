@@ -80,14 +80,14 @@ export async function handleAvatarUpload({ event, profileId, onSuccess, setUploa
     if (!uid) { console.warn("[profileMedia] Avatar upload: kein userId"); return; }
     const url = await uploadProfileImage(file, uid, "avatars");
     const { error: dbErr } = await supabase.from("profiles")
-      .update({ avatar_url: url, updated_at: new Date().toISOString() })
+      .update({ avatar_url: url })
       .eq("id", uid);
     if (dbErr) throw dbErr;
     // Cache invalidieren — damit reload() frische Daten holt
     clearQueryCache(`profile:${uid}`);
     onSuccess?.(url);
   } catch (err) {
-    console.error("[profileMedia] Avatar upload error:", err?.message, err?.statusCode || err?.status, JSON.stringify(err));
+    console.error("[HUI-AVATAR-ERROR]", err?.message, err?.statusCode, err?.status, JSON.stringify(err));
   } finally {
     setUploading(false);
     event.target.value = "";
@@ -113,7 +113,7 @@ export async function handleCoverUpload({ event, profileId, onSuccess, setUpload
     if (!uid) { console.warn("[profileMedia] Cover upload: kein userId"); return; }
     const url = await uploadProfileImage(file, uid, "covers");
     const { error: dbErr } = await supabase.from("profiles")
-      .update({ header_img: url, updated_at: new Date().toISOString() })
+      .update({ header_img: url })
       .eq("id", uid);
     if (dbErr) throw dbErr;
     // Cache invalidieren — damit reload() frische Daten holt
