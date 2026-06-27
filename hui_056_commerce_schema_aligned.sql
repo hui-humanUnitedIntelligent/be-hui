@@ -1,57 +1,54 @@
 -- ═══════════════════════════════════════════════════════════════════════════════
--- HUI Migration 056 — Commerce Schema-Aligned Production Final
+-- HUI Migration 056 — Commerce Schema Production Final (Schema-Safe)
 -- ═══════════════════════════════════════════════════════════════════════════════
 --
--- ECHTES DATENBANKSCHEMA (aus Codeanalyse src/ + archive_old/):
---
--- public.orders (EXISTS):
+-- ECHTES PRODUKTIONSSCHEMA public.orders:
 --   id, customer_id, state, total_eur, commission_eur, impact_eur,
 --   tracking_number, shipped_at, created_at, updated_at
---   (NICHT: buyer_id, status, platform_fee_eur — diese Namen existieren NICHT)
+--   (+notes, +status aus 026/027 — aber state ist kanonisch)
 --
--- public.order_items (EXISTS):
---   id, order_id, work_id, quantity, price_eur, created_at, seller_id
---   (NICHT: item_type, snapshot, unit_price_eur, creator_id — müssen ergänzt werden)
---
--- public.payments (EXISTS):
---   id, booking_id, payer_id, recipient_id, amount_eur, impact_amount,
---   status, stripe_session_id, currency, commission_eur, impact_eur,
---   payment_status, state, released_at, paid_at, item_name, item_type,
---   stripe_session_id, booking_id
---
--- public.shipments: carrier, tracking_number, order_item_id, order_id
--- public.creator_wallets: user_id, balance, pending_balance, total_earned,
---                         stripe_account_id, stripe_onboarding_*
--- public.notifications: id, user_id, type, title, body, read, data, created_at
---
--- EDGE FUNCTIONS verwenden:
---   orders:    customer_id (=buyer), state (=status), commission_eur (=platform_fee),
---              cart_hash, stripe_payment_intent, payment_confirmed_at,
---              shipping_address, contact_name, contact_email, total_eur, impact_eur
---   order_items: seller_id (=creator_id), work_id (=item_id), unit_price_eur,
---              shipping_eur, payout_eur, impact_eur, fulfillment_status,
---              payout_status, stripe_transfer_id, snapshot, item_type
---
--- STRATEGIE:
---   ✅ orders: NUR ADD COLUMN IF NOT EXISTS — KEINE neue CREATE TABLE
---   ✅ Alle neuen Felder als Alias-kompatible Ergänzungen
---   ✅ Views mit COALESCE für Feldname-Kompatibilität
---   ✅ Edge Functions via View isoliert — keine direkte Schema-Abhängigkeit
+-- DIESE MIGRATION:
+--   ✅ Entfernt fehlerhafte Relikte aus 051–054 (INDEX/CONSTRAINT auf status/buyer_id)
+--   ✅ Erweitert orders ausschließlich mit ADD COLUMN IF NOT EXISTS
+--   ✅ Alle Referenzen auf orders.state, orders.customer_id, orders.commission_eur
+--   ✅ Keine NOT NULL ohne DEFAULT auf bestehenden Tabellen
+--   ✅ Keine CREATE TABLE orders
+--   ✅ Vollständig idempotent — kann mehrfach laufen
 -- ═══════════════════════════════════════════════════════════════════════════════
 
 BEGIN;
 
 -- ─────────────────────────────────────────────────────────────────────────────
+-- 0. CLEANUP: Relikte aus Migration 051–054 entfernen
+--    Alle Indizes/Constraints/Policies die auf nicht-existente Spalten zeigen
+-- ─────────────────────────────────────────────────────────────────────────────
+
+-- Indizes auf orders.status und orders.buyer_id (aus 051/053/054 — schema-falsch)
+DROP INDEX IF EXISTS idx_orders_buyer;
+DROP INDEX IF EXISTS idx_orders_status;
+DROP INDEX IF EXISTS idx_orders_buyer_pending;
+DROP INDEX IF EXISTS idx_orders_cart_hash;         -- hatte status-Bedingung
+
+-- Constraint auf orders.status (aus 054 — falls angelegt)
+ALTER TABLE public.orders DROP CONSTRAINT IF EXISTS orders_status_check;
+
+-- Alte Policies mit buyer_id (aus 051/052/053/054 — schema-falsch)
+DROP POLICY IF EXISTS "orders_buyer_select"         ON public.orders;
+DROP POLICY IF EXISTS "orders_buyer_insert"         ON public.orders;
+DROP POLICY IF EXISTS "orders_buyer_select_aborted" ON public.orders;
+
+-- Alte Views mit buyer_id/status (aus 053/054 — schema-falsch)
+DROP VIEW IF EXISTS buyer_order_status;
+
+-- ─────────────────────────────────────────────────────────────────────────────
 -- 1. ENUM TYPEN — idempotent
 -- ─────────────────────────────────────────────────────────────────────────────
 
-DO $$ BEGIN CREATE TYPE commerce_item_type AS ENUM (
-  'work','experience','event','service','support','pickup'
-); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
-
-DO $$ BEGIN CREATE TYPE shipping_type_enum AS ENUM (
-  'physical','digital','experience','service','pickup','none'
-); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN
+  CREATE TYPE commerce_item_type AS ENUM (
+    'work','experience','event','service','support','pickup'
+  );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- 2. update_updated_at FUNKTION
@@ -62,13 +59,12 @@ RETURNS TRIGGER LANGUAGE plpgsql AS $$
 BEGIN NEW.updated_at = now(); RETURN NEW; END; $$;
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- 3. ORDERS — NUR ERWEITERN, niemals neu erstellen
---    Bestehend: id, customer_id, state, total_eur, commission_eur,
---               impact_eur, tracking_number, shipped_at, created_at, updated_at
---    Ergänzen:  alle für Commerce 2.0 / Edge Functions benötigten Felder
+-- 3. ORDERS — NUR ERWEITERN
+--    Kanonisches Schema: customer_id, state, commission_eur
+--    Neue Felder: stripe_payment_intent, cart_hash, shipping_address, etc.
 -- ─────────────────────────────────────────────────────────────────────────────
 
--- Fehlende Spalten ergänzen (100% idempotent)
+-- Neue Felder ergänzen (alle nullable oder mit DEFAULT — safe für bestehende Zeilen)
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS stripe_payment_intent TEXT;
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS stripe_session_id     TEXT;
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS stripe_customer_id    TEXT;
@@ -82,42 +78,65 @@ ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS currency              TEXT DE
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS cart_hash             TEXT;
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS payment_confirmed_at  TIMESTAMPTZ;
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS cancelled_at          TIMESTAMPTZ;
-ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS notes                 TEXT;
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS metadata              JSONB;
 
--- Unique-Constraints auf neuen Spalten (sicher)
+-- Unique Constraints (sicher — Exception bei Duplikat)
 DO $$ BEGIN
-  ALTER TABLE public.orders ADD CONSTRAINT orders_stripe_pi_unique UNIQUE (stripe_payment_intent);
+  ALTER TABLE public.orders
+    ADD CONSTRAINT orders_stripe_pi_unique UNIQUE (stripe_payment_intent);
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 DO $$ BEGIN
-  ALTER TABLE public.orders ADD CONSTRAINT orders_stripe_session_unique UNIQUE (stripe_session_id);
+  ALTER TABLE public.orders
+    ADD CONSTRAINT orders_stripe_session_unique UNIQUE (stripe_session_id);
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
--- Indizes
-CREATE INDEX IF NOT EXISTS idx_orders_customer_id   ON public.orders(customer_id);
-CREATE INDEX IF NOT EXISTS idx_orders_state         ON public.orders(state);
-CREATE INDEX IF NOT EXISTS idx_orders_stripe_pi     ON public.orders(stripe_payment_intent)
+-- Indizes — ausschließlich auf echte orders-Spalten (state, customer_id)
+CREATE INDEX IF NOT EXISTS idx_orders_customer_id
+  ON public.orders(customer_id);
+
+CREATE INDEX IF NOT EXISTS idx_orders_state
+  ON public.orders(state);
+
+CREATE INDEX IF NOT EXISTS idx_orders_stripe_pi
+  ON public.orders(stripe_payment_intent)
   WHERE stripe_payment_intent IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_orders_cart_hash     ON public.orders(cart_hash)
+
+CREATE INDEX IF NOT EXISTS idx_orders_cart_hash_v2
+  ON public.orders(customer_id, cart_hash)
   WHERE cart_hash IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_orders_cust_pending  ON public.orders(customer_id, state)
+
+-- Partial Index für Idempotenz-Lookup (state = 'pending')
+CREATE INDEX IF NOT EXISTS idx_orders_cust_pending
+  ON public.orders(customer_id, state)
   WHERE state = 'pending';
 
--- RLS sicherstellen (Policies nur wenn nicht vorhanden)
+-- Trigger für updated_at
+DROP TRIGGER IF EXISTS trg_orders_updated_at ON public.orders;
+CREATE TRIGGER trg_orders_updated_at
+  BEFORE UPDATE ON public.orders
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+
+-- RLS
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "orders_buyer_select"      ON public.orders;
+-- Alle alten Policies entfernen (bereits oben gedroppt)
 DROP POLICY IF EXISTS "orders_select_own"        ON public.orders;
 DROP POLICY IF EXISTS "orders_insert_own"        ON public.orders;
 DROP POLICY IF EXISTS "orders_service_all"       ON public.orders;
 DROP POLICY IF EXISTS "orders_select_customer"   ON public.orders;
 DROP POLICY IF EXISTS "orders_insert_customer"   ON public.orders;
 
+-- Neue Policies auf customer_id (kanonisch)
 CREATE POLICY "orders_select_customer" ON public.orders
   FOR SELECT TO authenticated USING (auth.uid() = customer_id);
+
 CREATE POLICY "orders_insert_customer" ON public.orders
   FOR INSERT TO authenticated WITH CHECK (auth.uid() = customer_id);
+
+CREATE POLICY "orders_update_customer" ON public.orders
+  FOR UPDATE TO authenticated USING (auth.uid() = customer_id);
+
 CREATE POLICY "orders_service_all" ON public.orders
   FOR ALL TO service_role USING (true) WITH CHECK (true);
 
@@ -127,7 +146,6 @@ GRANT ALL ON public.orders TO service_role;
 -- ─────────────────────────────────────────────────────────────────────────────
 -- 4. ORDER_ITEMS — Erweitern
 --    Bestehend: id, order_id, work_id, quantity, price_eur, seller_id, created_at
---    Ergänzen:  alle für Edge Functions benötigten Felder
 -- ─────────────────────────────────────────────────────────────────────────────
 
 ALTER TABLE public.order_items ADD COLUMN IF NOT EXISTS seller_id          UUID REFERENCES auth.users(id) ON DELETE SET NULL;
@@ -147,19 +165,17 @@ ALTER TABLE public.order_items ADD COLUMN IF NOT EXISTS payout_paid_at     TIMES
 ALTER TABLE public.order_items ADD COLUMN IF NOT EXISTS stripe_transfer_id TEXT;
 ALTER TABLE public.order_items ADD COLUMN IF NOT EXISTS updated_at         TIMESTAMPTZ DEFAULT now();
 
--- unit_price_eur aus price_eur befüllen wenn leer
+-- unit_price_eur aus price_eur befüllen wenn leer (Datenkonsistenz)
 UPDATE public.order_items
-SET unit_price_eur = price_eur
-WHERE unit_price_eur = 0 AND price_eur IS NOT NULL AND price_eur > 0;
+  SET unit_price_eur = price_eur
+  WHERE unit_price_eur = 0 AND price_eur IS NOT NULL AND price_eur > 0;
 
--- Trigger
 DROP TRIGGER IF EXISTS trg_order_items_updated_at ON public.order_items;
 CREATE TRIGGER trg_order_items_updated_at
   BEFORE UPDATE ON public.order_items
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
 
 CREATE INDEX IF NOT EXISTS idx_order_items_order    ON public.order_items(order_id);
-CREATE INDEX IF NOT EXISTS idx_order_items_work     ON public.order_items(work_id);
 CREATE INDEX IF NOT EXISTS idx_order_items_seller   ON public.order_items(seller_id);
 CREATE INDEX IF NOT EXISTS idx_order_items_fulfill  ON public.order_items(fulfillment_status);
 CREATE INDEX IF NOT EXISTS idx_order_items_payout   ON public.order_items(payout_status);
@@ -172,16 +188,18 @@ DROP POLICY IF EXISTS "order_items_creator_select" ON public.order_items;
 DROP POLICY IF EXISTS "order_items_seller_select"  ON public.order_items;
 DROP POLICY IF EXISTS "order_items_service_all"    ON public.order_items;
 
--- Käufer sieht alle Items seiner Order
 CREATE POLICY "order_items_buyer_select" ON public.order_items
   FOR SELECT USING (
-    EXISTS (SELECT 1 FROM public.orders
-            WHERE orders.id = order_items.order_id
-              AND orders.customer_id = auth.uid())
+    EXISTS (
+      SELECT 1 FROM public.orders
+      WHERE orders.id = order_items.order_id
+        AND orders.customer_id = auth.uid()   -- kanonisch: customer_id
+    )
   );
--- Seller/Creator sieht seine eigenen Items
+
 CREATE POLICY "order_items_seller_select" ON public.order_items
   FOR SELECT USING (seller_id = auth.uid());
+
 CREATE POLICY "order_items_service_all" ON public.order_items
   FOR ALL TO service_role USING (true) WITH CHECK (true);
 
@@ -219,8 +237,8 @@ ALTER TABLE public.shipments ADD COLUMN IF NOT EXISTS metadata           JSONB;
 
 DROP TRIGGER IF EXISTS trg_shipments_updated_at ON public.shipments;
 CREATE TRIGGER trg_shipments_updated_at
-  BEFORE UPDATE ON public.shipments FOR EACH ROW
-  EXECUTE FUNCTION public.update_updated_at();
+  BEFORE UPDATE ON public.shipments
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
 
 CREATE INDEX IF NOT EXISTS idx_shipments_order    ON public.shipments(order_id);
 CREATE INDEX IF NOT EXISTS idx_shipments_item     ON public.shipments(order_item_id);
@@ -230,15 +248,23 @@ ALTER TABLE public.shipments ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "shipments_creator_all"  ON public.shipments;
 DROP POLICY IF EXISTS "shipments_buyer_select" ON public.shipments;
 DROP POLICY IF EXISTS "shipments_service_all"  ON public.shipments;
-CREATE POLICY "shipments_creator_all"  ON public.shipments
-  FOR ALL USING (creator_id = auth.uid()) WITH CHECK (creator_id = auth.uid());
+
+CREATE POLICY "shipments_creator_all" ON public.shipments
+  FOR ALL USING (creator_id = auth.uid())
+  WITH CHECK (creator_id = auth.uid());
+
 CREATE POLICY "shipments_buyer_select" ON public.shipments
   FOR SELECT USING (
-    EXISTS (SELECT 1 FROM public.orders
-            WHERE orders.id = shipments.order_id AND orders.customer_id = auth.uid())
+    EXISTS (
+      SELECT 1 FROM public.orders
+      WHERE orders.id = shipments.order_id
+        AND orders.customer_id = auth.uid()   -- kanonisch: customer_id
+    )
   );
+
 CREATE POLICY "shipments_service_all" ON public.shipments
   FOR ALL TO service_role USING (true) WITH CHECK (true);
+
 GRANT SELECT, INSERT, UPDATE ON public.shipments TO authenticated;
 GRANT ALL ON public.shipments TO service_role;
 
@@ -269,24 +295,23 @@ ALTER TABLE public.creator_wallets ADD COLUMN IF NOT EXISTS stripe_onboarding_ur
 
 DROP TRIGGER IF EXISTS trg_creator_wallets_updated_at ON public.creator_wallets;
 CREATE TRIGGER trg_creator_wallets_updated_at
-  BEFORE UPDATE ON public.creator_wallets FOR EACH ROW
-  EXECUTE FUNCTION public.update_updated_at();
+  BEFORE UPDATE ON public.creator_wallets
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
 
 ALTER TABLE public.creator_wallets ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "wallets_owner_select" ON public.creator_wallets;
 DROP POLICY IF EXISTS "wallets_service_all"  ON public.creator_wallets;
+
 CREATE POLICY "wallets_owner_select" ON public.creator_wallets
   FOR SELECT USING (user_id = auth.uid());
 CREATE POLICY "wallets_service_all" ON public.creator_wallets
   FOR ALL TO service_role USING (true) WITH CHECK (true);
+
 GRANT SELECT ON public.creator_wallets TO authenticated;
 GRANT ALL ON public.creator_wallets TO service_role;
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- 7. CREATOR_PAYOUTS
---    release-payout schreibt: creator_id, order_item_ids (JSONB),
---    gross_eur, net_eur, platform_fee_eur, stripe_transfer_id,
---    status, initiated_at, paid_at
 -- ─────────────────────────────────────────────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS public.creator_payouts (
@@ -319,8 +344,8 @@ ALTER TABLE public.creator_payouts ADD COLUMN IF NOT EXISTS metadata         JSO
 
 DROP TRIGGER IF EXISTS trg_creator_payouts_updated_at ON public.creator_payouts;
 CREATE TRIGGER trg_creator_payouts_updated_at
-  BEFORE UPDATE ON public.creator_payouts FOR EACH ROW
-  EXECUTE FUNCTION public.update_updated_at();
+  BEFORE UPDATE ON public.creator_payouts
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
 
 CREATE INDEX IF NOT EXISTS idx_creator_payouts_creator ON public.creator_payouts(creator_id);
 CREATE INDEX IF NOT EXISTS idx_creator_payouts_status  ON public.creator_payouts(status);
@@ -328,10 +353,12 @@ CREATE INDEX IF NOT EXISTS idx_creator_payouts_status  ON public.creator_payouts
 ALTER TABLE public.creator_payouts ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "payouts_creator_select" ON public.creator_payouts;
 DROP POLICY IF EXISTS "payouts_service_all"    ON public.creator_payouts;
+
 CREATE POLICY "payouts_creator_select" ON public.creator_payouts
   FOR SELECT USING (creator_id = auth.uid());
 CREATE POLICY "payouts_service_all" ON public.creator_payouts
   FOR ALL TO service_role USING (true) WITH CHECK (true);
+
 GRANT SELECT ON public.creator_payouts TO authenticated;
 GRANT ALL ON public.creator_payouts TO service_role;
 
@@ -414,16 +441,18 @@ ALTER TABLE public.impact_rounds ADD COLUMN IF NOT EXISTS closed_at   TIMESTAMPT
 
 DROP TRIGGER IF EXISTS trg_impact_rounds_updated_at ON public.impact_rounds;
 CREATE TRIGGER trg_impact_rounds_updated_at
-  BEFORE UPDATE ON public.impact_rounds FOR EACH ROW
-  EXECUTE FUNCTION public.update_updated_at();
+  BEFORE UPDATE ON public.impact_rounds
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
 
 ALTER TABLE public.impact_rounds ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "impact_rounds_public_select" ON public.impact_rounds;
 DROP POLICY IF EXISTS "impact_rounds_service_all"   ON public.impact_rounds;
+
 CREATE POLICY "impact_rounds_public_select" ON public.impact_rounds
   FOR SELECT USING (true);
 CREATE POLICY "impact_rounds_service_all" ON public.impact_rounds
   FOR ALL TO service_role USING (true) WITH CHECK (true);
+
 GRANT SELECT ON public.impact_rounds TO authenticated, anon;
 GRANT ALL ON public.impact_rounds TO service_role;
 
@@ -451,40 +480,46 @@ CREATE INDEX IF NOT EXISTS idx_notif_read    ON public.notifications(read);
 CREATE INDEX IF NOT EXISTS idx_notif_created ON public.notifications(created_at DESC);
 
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies
-    WHERE schemaname='public' AND tablename='notifications'
-      AND policyname='notifications_owner') THEN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'notifications'
+      AND policyname = 'notifications_owner'
+  ) THEN
     CREATE POLICY "notifications_owner" ON public.notifications
-      FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+      FOR ALL USING (auth.uid() = user_id)
+      WITH CHECK (auth.uid() = user_id);
   END IF;
 END $$;
+
 DROP POLICY IF EXISTS "notifications_service_all" ON public.notifications;
 CREATE POLICY "notifications_service_all" ON public.notifications
   FOR ALL TO service_role USING (true) WITH CHECK (true);
+
 GRANT SELECT, UPDATE ON public.notifications TO authenticated;
 GRANT ALL ON public.notifications TO service_role;
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- 12. profiles: membership_type sicherstellen
+-- 12. profiles: membership_type sicherstellen (release-payout braucht es)
 -- ─────────────────────────────────────────────────────────────────────────────
 
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS membership_type TEXT DEFAULT 'free';
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- 13. VIEW: commerce_price_authority
---     Verwendet ECHTE Spalten: user_id/creator_id, price, cover_url
---     Gibt zurück: item_id, item_type, price_eur, creator_id, title, cover_url
---     (Edge Function: .select('item_id, item_type, price_eur, creator_id, title, cover_url'))
+--     Basiert auf echten Spalten: user_id/creator_id, price, cover_url
+--     Kein Bezug auf orders — eigenständige View auf works/experiences
 -- ─────────────────────────────────────────────────────────────────────────────
 
 CREATE OR REPLACE VIEW public.commerce_price_authority AS
   SELECT
-    'work'                            AS item_type,
-    w.id                              AS item_id,
-    COALESCE(w.creator_id, w.user_id) AS creator_id,
-    COALESCE(w.price, 0)              AS price_eur,
-    COALESCE(w.shipping_cost, 0)      AS shipping_eur,
+    'work'                              AS item_type,
+    w.id                                AS item_id,
+    COALESCE(w.creator_id, w.user_id)   AS creator_id,
+    COALESCE(w.price, 0)                AS price_eur,
+    COALESCE(w.shipping_cost, 0)        AS shipping_eur,
     w.title,
     w.cover_url,
     w.status
@@ -495,11 +530,11 @@ CREATE OR REPLACE VIEW public.commerce_price_authority AS
   UNION ALL
 
   SELECT
-    'experience'                      AS item_type,
-    e.id                              AS item_id,
-    e.user_id                         AS creator_id,
-    COALESCE(e.price, 0)              AS price_eur,
-    0                                 AS shipping_eur,
+    'experience'                        AS item_type,
+    e.id                                AS item_id,
+    e.user_id                           AS creator_id,
+    COALESCE(e.price, 0)                AS price_eur,
+    0                                   AS shipping_eur,
     e.title,
     e.cover_url,
     e.status
@@ -510,18 +545,21 @@ GRANT SELECT ON public.commerce_price_authority TO service_role, authenticated;
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- 14. VIEW: buyer_order_status
---     Verwendet echte Spalten: customer_id, state, commission_eur
---     Gibt Edge-Function-kompatible Felder zurück
+--     Verwendet AUSSCHLIESSLICH: customer_id, state, commission_eur (kanonisch)
+--     Gibt Edge-Function-kompatible Aliase zurück
 -- ─────────────────────────────────────────────────────────────────────────────
 
 CREATE OR REPLACE VIEW public.buyer_order_status AS
   SELECT
     o.id,
-    o.customer_id                              AS buyer_id,  -- Alias für EF-Kompatibilität
-    o.state                                    AS status,    -- Alias für EF-Kompatibilität
+    o.customer_id,
+    o.customer_id                             AS buyer_id,
+    o.state,
+    o.state                                   AS status,
     o.total_eur,
     o.impact_eur,
-    o.commission_eur                           AS platform_fee_eur,
+    o.commission_eur,
+    o.commission_eur                          AS platform_fee_eur,
     o.stripe_payment_intent,
     o.payment_confirmed_at,
     o.created_at,
@@ -536,7 +574,8 @@ CREATE OR REPLACE VIEW public.buyer_order_status AS
           'quantity',           oi.quantity,
           'unit_price_eur',     COALESCE(oi.unit_price_eur, oi.price_eur, 0),
           'fulfillment_status', COALESCE(oi.fulfillment_status, 'new'),
-          'creator_id',         COALESCE(oi.seller_id, null),
+          'seller_id',          oi.seller_id,
+          'creator_id',         oi.seller_id,
           'snapshot',           COALESCE(oi.snapshot, '{}')
         ) ORDER BY oi.created_at
       ) FILTER (WHERE oi.id IS NOT NULL),
@@ -544,9 +583,10 @@ CREATE OR REPLACE VIEW public.buyer_order_status AS
     ) AS order_items
   FROM public.orders o
   LEFT JOIN public.order_items oi ON oi.order_id = o.id
-  GROUP BY o.id, o.customer_id, o.state, o.total_eur, o.impact_eur,
-           o.commission_eur, o.stripe_payment_intent, o.payment_confirmed_at,
-           o.created_at, o.shipping_address, o.contact_name, o.contact_email;
+  GROUP BY
+    o.id, o.customer_id, o.state, o.total_eur, o.impact_eur,
+    o.commission_eur, o.stripe_payment_intent, o.payment_confirmed_at,
+    o.created_at, o.shipping_address, o.contact_name, o.contact_email;
 
 GRANT SELECT ON public.buyer_order_status TO authenticated, service_role;
 
@@ -567,6 +607,7 @@ BEGIN
     updated_at   = now();
 END;
 $$;
+
 REVOKE ALL ON FUNCTION public.increment_wallet_balance FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.increment_wallet_balance TO service_role;
 
@@ -580,34 +621,37 @@ NOTIFY pgrst, 'reload schema';
 COMMIT;
 
 -- ═══════════════════════════════════════════════════════════════════════════════
--- VERIFIKATION (nach COMMIT)
+-- VERIFIKATION (nach COMMIT ausführen)
 -- ═══════════════════════════════════════════════════════════════════════════════
 
 SELECT
-  obj_name, obj_type,
-  CASE WHEN exists_check THEN '✅ vorhanden' ELSE '❌ FEHLT' END AS status
+  obj_name,
+  obj_type,
+  CASE WHEN exists_check THEN '✅ vorhanden' ELSE '❌ FEHLT' END AS result
 FROM (VALUES
-  ('orders',                   'TABLE',  EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='orders')),
-  ('order_items',              'TABLE',  EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='order_items')),
-  ('shipments',                'TABLE',  EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='shipments')),
-  ('creator_wallets',          'TABLE',  EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='creator_wallets')),
-  ('creator_payouts',          'TABLE',  EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='creator_payouts')),
-  ('commerce_events',          'TABLE',  EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='commerce_events')),
-  ('webhook_events',           'TABLE',  EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='webhook_events')),
-  ('impact_rounds',            'TABLE',  EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='impact_rounds')),
-  ('notifications',            'TABLE',  EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='notifications')),
-  ('commerce_price_authority', 'VIEW',   EXISTS(SELECT 1 FROM pg_views  WHERE schemaname='public' AND viewname='commerce_price_authority')),
-  ('buyer_order_status',       'VIEW',   EXISTS(SELECT 1 FROM pg_views  WHERE schemaname='public' AND viewname='buyer_order_status')),
-  ('increment_wallet_balance', 'FUNC',   EXISTS(SELECT 1 FROM pg_proc   WHERE proname='increment_wallet_balance')),
-  ('update_updated_at',        'FUNC',   EXISTS(SELECT 1 FROM pg_proc   WHERE proname='update_updated_at')),
-  ('orders.customer_id',       'COLUMN', EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name='orders' AND column_name='customer_id')),
-  ('orders.state',             'COLUMN', EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name='orders' AND column_name='state')),
-  ('orders.commission_eur',    'COLUMN', EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name='orders' AND column_name='commission_eur')),
-  ('orders.stripe_payment_intent','COLUMN',EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name='orders' AND column_name='stripe_payment_intent')),
-  ('orders.cart_hash',         'COLUMN', EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name='orders' AND column_name='cart_hash')),
-  ('order_items.seller_id',    'COLUMN', EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name='order_items' AND column_name='seller_id')),
-  ('order_items.payout_status','COLUMN', EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name='order_items' AND column_name='payout_status')),
-  ('order_items.stripe_transfer_id','COLUMN',EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name='order_items' AND column_name='stripe_transfer_id'))
+  ('orders',                      'TABLE',  EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='orders')),
+  ('order_items',                 'TABLE',  EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='order_items')),
+  ('shipments',                   'TABLE',  EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='shipments')),
+  ('creator_wallets',             'TABLE',  EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='creator_wallets')),
+  ('creator_payouts',             'TABLE',  EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='creator_payouts')),
+  ('commerce_events',             'TABLE',  EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='commerce_events')),
+  ('webhook_events',              'TABLE',  EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='webhook_events')),
+  ('impact_rounds',               'TABLE',  EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='impact_rounds')),
+  ('notifications',               'TABLE',  EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='notifications')),
+  ('commerce_price_authority',    'VIEW',   EXISTS(SELECT 1 FROM pg_views  WHERE schemaname='public' AND viewname='commerce_price_authority')),
+  ('buyer_order_status',          'VIEW',   EXISTS(SELECT 1 FROM pg_views  WHERE schemaname='public' AND viewname='buyer_order_status')),
+  ('increment_wallet_balance',    'FUNC',   EXISTS(SELECT 1 FROM pg_proc   WHERE proname='increment_wallet_balance')),
+  ('update_updated_at',           'FUNC',   EXISTS(SELECT 1 FROM pg_proc   WHERE proname='update_updated_at')),
+  ('orders.customer_id',          'COL',    EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='orders' AND column_name='customer_id')),
+  ('orders.state',                'COL',    EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='orders' AND column_name='state')),
+  ('orders.commission_eur',       'COL',    EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='orders' AND column_name='commission_eur')),
+  ('orders.stripe_payment_intent','COL',    EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='orders' AND column_name='stripe_payment_intent')),
+  ('orders.cart_hash',            'COL',    EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='orders' AND column_name='cart_hash')),
+  ('orders.shipping_address',     'COL',    EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='orders' AND column_name='shipping_address')),
+  ('order_items.seller_id',       'COL',    EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='order_items' AND column_name='seller_id')),
+  ('order_items.payout_status',   'COL',    EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='order_items' AND column_name='payout_status')),
+  ('order_items.stripe_transfer_id','COL',  EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='order_items' AND column_name='stripe_transfer_id')),
+  ('order_items.snapshot',        'COL',    EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='order_items' AND column_name='snapshot'))
 ) AS t(obj_name, obj_type, exists_check)
 ORDER BY
   CASE obj_type WHEN 'TABLE' THEN 1 WHEN 'VIEW' THEN 2 WHEN 'FUNC' THEN 3 ELSE 4 END,
