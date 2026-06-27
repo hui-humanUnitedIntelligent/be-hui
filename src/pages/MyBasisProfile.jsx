@@ -598,20 +598,20 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
   // Sofortige lokale Anzeige + globaler AuthContext-Update nach Upload
   const handleAvatarChange = useCallback((url) => {
-    // Sofort lokalen State setzen (keine Verzögerung durch reload)
+    // Sofort lokalen State setzen — bleibt persistent bis Seitenwechsel
     setLocalAvatar(url);
     setAuthProfile(prev => prev ? { ...prev, avatar_url: url } : prev);
     // Cache wurde bereits in profileMedia.js invalidiert → reload holt frische DB-Daten
-    reload();
-  }, [setAuthProfile, reload]);
+    // KEIN reload() hier — localAvatar reicht für sofortige Anzeige
+    // reload() würde unnötig re-render triggern bevor DB geschrieben hat
+  }, [setAuthProfile]);
 
   const handleCoverChange = useCallback((url) => {
-    // Sofort lokalen State setzen (keine Verzögerung durch reload)
+    // Sofort lokalen State setzen — bleibt persistent bis Seitenwechsel
     setLocalCover(url);
     setAuthProfile(prev => prev ? { ...prev, header_img: url } : prev);
-    // Cache wurde bereits in profileMedia.js invalidiert → reload holt frische DB-Daten
-    reload();
-  }, [setAuthProfile, reload]);
+    // KEIN reload() — localCover reicht für sofortige Anzeige
+  }, [setAuthProfile]);
 
   // CSS sofort in <head> injizieren — Safari-safe, kein Blink beim Lazy-Load
   useEffect(() => {
