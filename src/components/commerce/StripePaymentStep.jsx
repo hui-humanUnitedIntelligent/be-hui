@@ -12,7 +12,7 @@ import {
   useElements,
 } from "@stripe/react-stripe-js";
 import { STRIPE_APPEARANCE, COMMERCE_CONFIG } from "../../services/commerceEngine.js";
-import { C, haptic } from "../commerce/commerceUtils.js";
+import { C, haptic, formatPrice } from "../commerce/commerceUtils.js";
 
 // Stripe-Instanz — einmalig laden (außerhalb der Komponente)
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "");
@@ -98,7 +98,7 @@ function StripeForm({ total, impact, orderId, onSuccess, onError }) {
           }}>
             <span style={{ fontSize: 13, color: C.muted }}>Unterstützung</span>
             <span style={{ fontSize: 13, color: C.inkMid, fontVariantNumeric: "tabular-nums" }}>
-              {total.toFixed(2).replace(".", ",")} €
+              {formatPrice(total)}
             </span>
           </div>
           {impact > 0 && (
@@ -108,7 +108,7 @@ function StripeForm({ total, impact, orderId, onSuccess, onError }) {
             }}>
               <span style={{ fontSize: 12, color: C.sage }}>🌱 Impact Pool</span>
               <span style={{ fontSize: 12, color: C.sage }}>
-                {impact.toFixed(2).replace(".", ",")} € (intern)
+                {formatPrice(impact)} (intern)
               </span>
             </div>
           )}
@@ -121,7 +121,7 @@ function StripeForm({ total, impact, orderId, onSuccess, onError }) {
               fontSize: 16, fontWeight: 800, color: C.ink,
               fontVariantNumeric: "tabular-nums", letterSpacing: -0.3,
             }}>
-              {total.toFixed(2).replace(".", ",")} €
+              {formatPrice(total)}
             </span>
           </div>
         </div>
