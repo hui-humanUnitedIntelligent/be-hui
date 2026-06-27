@@ -253,6 +253,31 @@ const modalContent = (
 }
 
 
+
+// ── BroadcastModal — für admin_broadcast / broadcast ─────────────────────────
+function BroadcastModal({ n, onClose }) {
+  const d = (n.data && typeof n.data === "object") ? n.data : {};
+  const text = d.message || d.body || n.body || "(Keine Nachricht)";
+  const title = d.title || n.title || "Nachricht vom Admin";
+  const modalContent = (
+    <div onClick={onClose} style={{ position:"fixed", inset:0, zIndex:999999, background:"rgba(0,0,0,0.6)", display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
+      <div onClick={e => e.stopPropagation()} style={{ background:"#fff", borderRadius:18, padding:"24px 20px 20px", maxWidth:360, width:"100%", boxShadow:"0 12px 50px rgba(0,0,0,0.22)", maxHeight:"80vh", overflowY:"auto" }}>
+        <div style={{ textAlign:"center", marginBottom:16 }}>
+          <div style={{ fontSize:36, marginBottom:6 }}>📢</div>
+          <div style={{ fontSize:16, fontWeight:800, color:"#1a1a18" }}>{title}</div>
+          <div style={{ fontSize:11, fontWeight:700, color:"#888", textTransform:"uppercase", letterSpacing:"0.5px", marginTop:4 }}>Nachricht vom Admin</div>
+        </div>
+        <div style={{ marginBottom:20 }}>
+          <div style={{ background:"rgba(14,196,184,0.06)", border:"1px solid rgba(14,196,184,0.22)", borderRadius:10, padding:"14px 16px", fontSize:14, color:"#1a1a18", lineHeight:1.7, whiteSpace:"pre-wrap", wordBreak:"break-word" }}>{text}</div>
+        </div>
+        <button onClick={onClose} style={{ width:"100%", padding:"13px", borderRadius:99, background:"#0EC4B8", border:"none", color:"#fff", fontSize:14, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>Verstanden</button>
+      </div>
+    </div>
+  );
+  return typeof document !== "undefined" ? createPortal(modalContent, document.body) : null;
+}
+
+
 // ── SupportModal — für support_ticket_reply ──────────────────────────────────
 function SupportModal({ n, onClose }) {
   const d = (n.data && typeof n.data === "object") ? n.data : {};
@@ -286,19 +311,22 @@ function NotifCard({ n, meta, onRead, onAction = () => {} }) {
 const [showModal,         setShowModal]         = useState(false);
 const [showApprovalModal, setShowApprovalModal] = useState(false);
 const [showSupportModal,  setShowSupportModal]  = useState(false);
+const [showBroadcastModal,setShowBroadcastModal] = useState(false);
 
 const isRejection = n.type === "work_rejected" || n.type === "content_rejected"
   || n.type === "experience_rejected" || n.type === "project_rejected"
   || n.type === "impact_project_rejected";
 
 const isImpactApproval = n.type === "impact_project_approved";
-const isSupport = n.type === "support_ticket_reply" || n.type === "support_ticket";
+const isSupport    = n.type === "support_ticket_reply" || n.type === "support_ticket";
+const isBroadcast  = n.type === "admin_broadcast" || n.type === "broadcast";
 
 const handleCardClick = () => {
   if (!n.is_read) onRead?.(n.id);
   if (isRejection)     { setShowModal(true);         return; }
   if (isImpactApproval){ setShowApprovalModal(true);  return; }
   if (isSupport)       { setShowSupportModal(true);   return; }
+  if (isBroadcast)     { setShowBroadcastModal(true);  return; }
   onAction(n);
 };
 
@@ -324,6 +352,9 @@ return (
     )}
     {showSupportModal && isSupport && (
       <SupportModal n={n} onClose={() => setShowSupportModal(false)} />
+    )}
+    {showBroadcastModal && isBroadcast && (
+      <BroadcastModal n={n} onClose={() => setShowBroadcastModal(false)} />
     )}
     <div
       onClick={handleCardClick}
@@ -403,6 +434,15 @@ return (
             </button>
           )}
 
+          {/* Broadcast-Button */}
+          {isBroadcast && (
+            <button
+              onClick={e => { e.stopPropagation(); if (!n.is_read) onRead?.(n.id); setShowBroadcastModal(true); }}
+              style={{ marginTop:8, padding:"5px 12px", borderRadius:99, border:"1.5px solid rgba(14,196,184,0.4)", background:"rgba(14,196,184,0.08)", color:"#0EC4B8", fontSize:11, fontWeight:700, cursor:"pointer", fontFamily:"inherit", display:"inline-flex", alignItems:"center", gap:5 }}
+            >
+              <span>📢</span> Nachricht lesen
+            </button>
+          )}
           {/* Support-Button */}
           {isSupport && (
             <button
