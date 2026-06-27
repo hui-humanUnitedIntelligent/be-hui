@@ -70,7 +70,7 @@ serve(async (req) => {
       .from('order_items')
       .select('id, payout_eur, payout_status, order_id')
       .in('id', order_item_ids)
-      .eq('creator_id', creator_id)
+      .eq('seller_id', creator_id)
       .eq('payout_status', 'held')
 
     if (!items?.length) {
