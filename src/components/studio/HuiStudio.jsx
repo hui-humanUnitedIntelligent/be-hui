@@ -281,7 +281,9 @@ function AmbassadorStudioSection({ profile }) {
   const [showEinladungen, setShowEinladungen] = useState(false);
   const [applyOpen,  setApplyOpen]  = useState(false);
 
-  const isAmb = profile?.is_ambassador === true;
+  // isAmb: primär aus eigenem Query (ambModule), Fallback auf profile-Prop
+  // — robuster als nur profile?.is_ambassador (kann beim ersten Load fehlen)
+  const [isAmb, setIsAmb] = useState(profile?.is_ambassador === true);
   const uid   = profile?.id;
 
   useEffect(() => {
@@ -292,12 +294,14 @@ function AmbassadorStudioSection({ profile }) {
         // 1. Ambassador-Daten aus profile_modules.ambassador
         const { data: selfProfile } = await supabase
           .from("profiles")
-          .select("profile_modules")
+          .select("is_ambassador,profile_modules")
           .eq("id", uid)
           .maybeSingle();
 
         const ambModule = selfProfile?.profile_modules?.ambassador || {};
         const refLink   = ambModule.ref_link || ambModule.referral_link || `https://be-hui.com/${profile?.username||""}`;
+        // isAmb direkt aus DB setzen — unabhängig vom gecachten profile-Prop
+        setIsAmb(selfProfile?.is_ambassador === true || ambModule.status === 'active');
 
         // 2. Geworbene Nutzer live aus profiles — Feld: referred_by (UUID des Ambassadors)
         const { data: referred } = await supabase
