@@ -240,7 +240,7 @@ function MessageBubble({ role, text, time, attachments }) {
         padding:"10px 14px",
       }}>
         <p style={{ margin:0, fontSize:13, color:C.ink, lineHeight:1.6,
-          whiteSpace:"pre-wrap" }}>{text}</p>
+          whiteSpace:"pre-wrap", wordBreak:"break-word", overflowWrap:"anywhere" }}>{text}</p>
         {/* Anhänge */}
         {attachments?.length > 0 && (
           <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginTop:8 }}>
