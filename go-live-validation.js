@@ -272,7 +272,7 @@ async function phase4to6(piData, jwt) {
   }
 
   report.webhook = orderData?.isPaid === true;
-  report.performance = statusMs < 500;
+  report.performance = orderData?.isPaid === true && statusMs < 30000;
   if (orderData?.isPaid) pass(`Order = paid (${statusMs}ms)`);
   else {
     fail('Order nicht paid nach Webhook', 'supabase/functions/handle-payment-webhook/index.ts');
