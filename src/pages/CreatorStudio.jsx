@@ -71,6 +71,7 @@ const TOOL_GROUPS = [
   {
     label: "Persönliches",
     tools: [
+      { key:"support",     icon:"🎧", label:"Support",          sub:"Hilfe & Kontakt",             accent:C.coral   },
       { key:"settings",    icon:"◦",  label:"Einstellungen",    sub:"Konto & Sichtbarkeit",       accent:C.muted   },
     ]
   },
@@ -131,6 +132,7 @@ export default function CreatorStudio() {
       orders:       () => <BestellungenPage       onBack={handleBack} />,
       impact:       () => <ImpactSubPage          onBack={handleBack} />,
       reputation:   () => <ReputationInsightsPage onBack={handleBack} />,
+      support:      () => <SupportPage onBack={handleBack} userId={user?.id} userEmail={profile?.email} userName={profile?.display_name || profile?.full_name} />,
       settings:     () => <KontoPage              onBack={handleBack}
                             onLogout={() => { supabase.auth.signOut(); navigate("/login"); }} />,
     };
