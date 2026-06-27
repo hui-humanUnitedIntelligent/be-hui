@@ -972,7 +972,7 @@ export default function WerkeKorb({
     haptic("success");
     setPhase("loading");
     try {
-      await onUnterstuetzen(items);
+      await onUnterstuetzen(enrichedItems); // P1: qty aus qtyMap korrekt übergeben
       setResult({ count: iCount, creators: pCount });
       setPhase("success");
     } catch (err) {
