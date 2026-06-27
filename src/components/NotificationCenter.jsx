@@ -244,233 +244,73 @@ function HeroImpactCard({ weeklyEur = 8950 }) {
 /* ══════════════════════════════════════════════════════════════
    NOTIFICATION CARD
 ══════════════════════════════════════════════════════════════ */
-function NotifDetailModal({ n, cfg, onClose }) {
-  const parseMeta = (raw) => {
-    if (!raw) return {};
-    if (typeof raw === "object") return raw;
-    try { return JSON.parse(raw); } catch { return {}; }
-  };
-  const md = parseMeta(n.metadata);
-  const isRejection = n.type?.includes("rejected");
-  const isApproval  = n.type?.includes("approved");
-  const accentColor = isRejection ? "#DC2626" : isApproval ? "#16a34a" : cfg.color || "#0EC4B8";
-  const accentBg    = isRejection ? "rgba(239,68,68,0.07)" : isApproval ? "rgba(22,163,74,0.07)" : (cfg.bg || "rgba(14,196,184,0.07)");
-  const extras = [];
-  if (md.rejection_reason || md.reason) extras.push({ label:"Grund", value: md.rejection_reason || md.reason });
-  if (md.entry_title || md.project_name || md.werk_title) extras.push({ label:"Betreff", value: md.entry_title || md.project_name || md.werk_title });
-  if (md.ticket_id) extras.push({ label:"Ticket", value: md.ticket_id });
-  if (md.sender_name) extras.push({ label:"Von", value: md.sender_name });
-  const fullText = n.body || n.message || n.title || "";
-  return typeof document !== "undefined" ? createPortal(
-    <div onClick={onClose} style={{
-      position:"fixed", inset:0, zIndex:999999,
-      background:"rgba(0,0,0,0.52)",
-      display:"flex", alignItems:"flex-end", justifyContent:"center",
-    }}>
-      <div onClick={e => e.stopPropagation()} style={{
-        background:"#fff", borderRadius:"22px 22px 0 0",
-        padding:"20px 20px 36px", width:"100%", maxWidth:520,
-        boxShadow:"0 -8px 40px rgba(0,0,0,0.18)",
-        maxHeight:"82vh", overflowY:"auto",
-      }}>
-        <div style={{ width:36, height:4, borderRadius:99, background:"#e0e0e0", margin:"0 auto 18px" }}/>
-        <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:16 }}>
-          <div style={{ width:42, height:42, borderRadius:"50%", background:accentBg, border:, display:"flex", alignItems:"center", justifyContent:"center", fontSize:20, flexShrink:0 }}>
-            {n.icon_override || cfg.icon}
-          </div>
-          <div>
-            <div style={{ fontSize:11, fontWeight:700, color:accentColor, textTransform:"uppercase", letterSpacing:"0.5px" }}>{cfg.label || "Benachrichtigung"}</div>
-            <div style={{ fontSize:15, fontWeight:800, color:"#1a1a18", lineHeight:1.3 }}>{n.title || n.message || cfg.label}</div>
-          </div>
-        </div>
-        {fullText && (
-          <div style={{ background:accentBg, border:, borderRadius:14, padding:"14px 16px", fontSize:14, color:"#1a1a18", lineHeight:1.75, marginBottom:14, whiteSpace:"pre-wrap", wordBreak:"break-word" }}>
-            {fullText}
-          </div>
-        )}
-        {extras.map(({ label, value }) => (
-          <div key={label} style={{ display:"flex", gap:8, padding:"8px 0", borderBottom:"1px solid rgba(26,26,24,0.07)" }}>
-            <span style={{ fontSize:12, fontWeight:700, color:"#aaa", minWidth:64 }}>{label}</span>
-            <span style={{ fontSize:13, color:"#1a1a18", lineHeight:1.5, flex:1 }}>{value}</span>
-          </div>
-        ))}
-        {n.created_at && (
-          <div style={{ fontSize:12, color:"#bbb", margin:"12px 0 18px" }}>
-            {new Date(n.created_at).toLocaleString("de-DE",{day:"numeric",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"})}
-          </div>
-        )}
-        <button onClick={onClose} style={{ width:"100%", padding:14, borderRadius:99, border:"none", background:accentColor, color:"#fff", fontSize:14, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>Schließen</button>
-      </div>
-    </div>
-  , document.body) : null;
-}
-
-
 function NotifCard({ n, onAction, idx }) {
   const cfg = getType(n);
-  const [showDetail, setShowDetail] = React.useState(false);
   const hasContent = !!(n.body || n.message || n.title);
-
-  const handleClick = (e) => {
-    e.stopPropagation();
-    if (hasContent) setShowDetail(true);
-    else onAction(n);
-  };
-
   return (
-    <>
-      <div
-        className="nc-card nc-tap"
-        onClick={handleClick}
-        style={{
-          display:"flex", alignItems:"flex-start", gap:12,
-          padding:"13px 16px",
-          background: n.read ? "transparent" : C.card,
-          borderRadius:18,
-          borderLeft: n.type === "impact"
-            ? `3px solid ${C.teal}`
-            : "3px solid transparent",
-          boxShadow: n.read ? "none" : "0 2px 12px rgba(0,0,0,0.07)",
-          animation:`fadeUp 0.35s ${idx*0.04}s both`,
-          cursor:"pointer",
-          position:"relative",
-        }}
-      >
-        {/* Avatar / Icon */}
-        <div style={{ position:"relative", flexShrink:0 }}>
-          {n.is_image && n.avatar ? (
-            <div style={{ width:50, height:50, borderRadius:14, overflow:"hidden",
-              boxShadow:"0 2px 8px rgba(0,0,0,0.12)" }}>
-              <img src={n.avatar} alt="" loading="lazy"
-                style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-            </div>
-          ) : n.avatar ? (
-            <img src={n.avatar} alt="" loading="lazy"
-              style={{ width:50, height:50, borderRadius:"50%", objectFit:"cover",
-                boxShadow:"0 2px 8px rgba(0,0,0,0.10)" }}/>
-          ) : (
-            <div style={{
-              width:50, height:50, borderRadius:"50%",
-              background:`linear-gradient(135deg, ${cfg.bg} 0%, ${cfg.color}22 100%)`,
-              display:"flex", alignItems:"center", justifyContent:"center",
-              fontSize:22, flexShrink:0,
-              border:`1.5px solid ${cfg.color}22`,
-            }}>
-              {n.icon_override || cfg.icon}
-            </div>
-          )}
-          {/* Type-Badge */}
+    <div
+      className="nc-card nc-tap"
+      onClick={() => onAction(n)}
+      style={{
+        display:"flex", alignItems:"flex-start", gap:12,
+        padding:"13px 16px",
+        background: n.read ? "transparent" : C.card,
+        borderRadius:18,
+        borderLeft: n.type === "impact"
+          ? `3px solid ${C.teal}`
+          : "3px solid transparent",
+        boxShadow: n.read ? "none" : "0 2px 12px rgba(0,0,0,0.07)",
+        animation:`fadeUp 0.35s ${idx*0.04}s both`,
+        cursor: hasContent ? "pointer" : "default",
+        position:"relative",
+      }}
+    >
+      <div style={{ position:"relative", flexShrink:0 }}>
+        {n.avatar ? (
+          <img src={n.avatar} alt="" loading="lazy"
+            style={{ width:50, height:50, borderRadius:"50%", objectFit:"cover" }}/>
+        ) : (
           <div style={{
-            position:"absolute", bottom:-2, right:-2,
-            width:20, height:20, borderRadius:"50%",
-            background: cfg.bg,
-            border:"1.5px solid #fff",
+            width:50, height:50, borderRadius:"50%",
+            background:`linear-gradient(135deg, ${cfg.bg} 0%, ${cfg.color}22 100%)`,
             display:"flex", alignItems:"center", justifyContent:"center",
-            fontSize:10,
+            fontSize:22, flexShrink:0,
+            border:`1.5px solid ${cfg.color}22`,
           }}>
-            {cfg.icon}
+            {n.icon_override || cfg.icon}
           </div>
-          {/* Unread Dot */}
-          {!n.read && (
-            <div style={{
-              position:"absolute", top:-2, right:-2,
-              width:10, height:10, borderRadius:"50%",
-              background:C.teal,
-              border:"1.5px solid #fff",
-              animation:"glow 4.0s ease-in-out infinite",
-            }}/>
-          )}
-        </div>
-
-        {/* Content */}
-        <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ display:"flex", alignItems:"flex-start",
-            justifyContent:"space-between", gap:6, marginBottom:3 }}>
-            <div style={{
-              fontSize:13.5, fontWeight: n.read ? 500 : 700,
-              color:C.ink, lineHeight:1.4, flex:1,
-            }}>
-              {n.message || n.body || n.title || ""}
-            </div>
-            <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end",
-              gap:4, flexShrink:0 }}>
-              <span style={{ fontSize:10.5, color:C.muted, whiteSpace:"nowrap" }}>
-                {timeFmt(n.created_at)}
-              </span>
-              {n.unread_count > 0 && (
-                <div style={{
-                  minWidth:20, height:20, borderRadius:10,
-                  background:C.teal, color:"#fff",
-                  fontSize:10.5, fontWeight:700,
-                  display:"flex", alignItems:"center", justifyContent:"center",
-                  padding:"0 5px",
-                }}>
-                  {n.unread_count}
-                </div>
-              )}
-              {n.type === "impact" && (
-                <span style={{ fontSize:14, color:C.teal }}>{"💚"}</span>
-              )}
-            </div>
-          </div>
-
-          {/* Sub-body */}
-          {n.body ? (
-            <div style={{ fontSize:11.5, color:C.teal, fontWeight:600, marginBottom:4 }}>
-              {n.body}
-            </div>
-          ) : null}
-
-          {/* Group Avatare (Community) */}
-          {n.group_avatars?.length > 0 && (
-            <div style={{ display:"flex", gap:2, marginBottom:4 }}>
-              {n.group_avatars.map((av, i) => (
-                <img key={i} src={av} alt=""
-                  style={{ width:20, height:20, borderRadius:"50%", objectFit:"cover",
-                    border:"1.5px solid #fff", marginLeft: i > 0 ? -6 : 0 }}/>
-              ))}
-            </div>
-          )}
-
-          {/* CTA */}
-          {n.action_label && (
-            <span style={{
-              fontSize:11.5, fontWeight:700,
-              color: cfg.color,
-              background: cfg.bg,
-              borderRadius:50, padding:"3px 10px",
-              display:"inline-block", marginTop:2,
-            }}>
-              {n.action_label} {"→"}
-            </span>
-          )}
-        </div>
-
-        {/* Klick-Indikator */}
-        {hasContent && (
+        )}
+        {!n.read && (
           <div style={{
-            position:"absolute", right:14, top:"50%", transform:"translateY(-50%)",
-            fontSize:10, color:C.muted, opacity:0.5,
-          }}>›</div>
+            position:"absolute", top:-2, right:-2,
+            width:10, height:10, borderRadius:"50%",
+            background:C.teal, border:"1.5px solid #fff",
+          }}/>
         )}
       </div>
-
-      {/* Detail Modal via Portal */}
-      {showDetail && (
-        <NotifDetailModal
-          n={n}
-          cfg={cfg}
-          onClose={() => setShowDetail(false)}
-        />
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ display:"flex", justifyContent:"space-between", gap:6, marginBottom:3 }}>
+          <div style={{ fontSize:13.5, fontWeight: n.read ? 500 : 700, color:C.ink, lineHeight:1.4, flex:1 }}>
+            {n.message || n.body || n.title || ""}
+          </div>
+          <span style={{ fontSize:10.5, color:C.muted, whiteSpace:"nowrap", flexShrink:0 }}>
+            {timeFmt(n.created_at)}
+          </span>
+        </div>
+        {n.body ? (
+          <div style={{ fontSize:11.5, color:C.teal, fontWeight:600, marginBottom:4 }}>
+            {n.body}
+          </div>
+        ) : null}
+      </div>
+      {hasContent && (
+        <div style={{ fontSize:14, color:C.muted, alignSelf:"center", marginLeft:4 }}>›</div>
       )}
-    </>
+    </div>
   );
 }
 
 
-/* ══════════════════════════════════════════════════════════════
-   EMPTY STATE
-══════════════════════════════════════════════════════════════ */
 function EmptyState({ onDiscover }) {
   const emptyActions = useHuiActions();
   function handleDiscover() {
@@ -976,6 +816,7 @@ export default function NotificationCenter({ onClose, onNavigate }) {
   } = useAppState() ?? {};
 
   const [activeFilter,  setActiveFilter]  = useState("Alle");
+  const [detailNotif,   setDetailNotif]   = useState(null);
   const [activeNotif,   setActiveNotif]   = useState(null);
   const [weeklyEur,     setWeeklyEur]     = useState(8950);
   const safeInnerWidth = typeof window !== "undefined" ? window.innerWidth : 390;
@@ -1072,7 +913,13 @@ export default function NotificationCenter({ onClose, onNavigate }) {
         <NotifFeed
           notifs={notifList}
           weeklyEur={weeklyEur}
-          onAction={handleAction}
+          onAction={(n) => {
+              const d = (n.data && typeof n.data === "object") ? n.data : {};
+              const fullText = d.message || d.admin_reply || d.reason || "";
+              const hasDetail = fullText.length > 0 || (n.title && n.title.length > 50) || n.type?.includes("support") || n.type?.includes("rejected") || n.type?.includes("approved") || n.type === "broadcast";
+              if (hasDetail) { if (!n.read) { supabase.from("notifications").update({ read:true }).eq("id", n.id).then(()=>{}); } setDetailNotif(n); }
+              else { handleAction(n); }
+            }}
           onFilterChange={setActiveFilter}
           activeFilter={activeFilter}
           activeId={activeNotif?.id}
@@ -1097,6 +944,85 @@ export default function NotificationCenter({ onClose, onNavigate }) {
           </div>
         ) : null
       )}
+
+      {/* ── Detail-Overlay ───────────────────────────────────── */}
+      {detailNotif && (() => {
+        const n   = detailNotif;
+        const cfg = getType(n);
+        const d   = (n.data && typeof n.data === "object") ? n.data : {};
+        const isRejection = n.type?.includes("rejected") || n.type?.includes("reject");
+        const isApproval  = n.type?.includes("approved") || n.type?.includes("approve");
+        const accentColor = isRejection ? "#DC2626" : isApproval ? C.teal : cfg.color || C.teal;
+        const fullText    = d.message || d.admin_reply || d.reason || d.body || n.body || "";
+        const titleText   = d.title || d.subject || n.title || n.message || cfg.label;
+        const subText     = isRejection ? "Ablehnungsgrund" : isApproval ? "Freigabe" : cfg.label?.toUpperCase();
+        return (
+          <div
+            onClick={() => setDetailNotif(null)}
+            style={{
+              position:"fixed", inset:0, zIndex:99999,
+              background:"rgba(0,0,0,0.5)",
+              display:"flex", alignItems:"center", justifyContent:"center",
+              padding:"20px",
+            }}
+          >
+            <div
+              onClick={e => e.stopPropagation()}
+              style={{
+                background:"#fff",
+                borderRadius:24,
+                padding:"32px 24px 24px",
+                maxWidth:400, width:"100%",
+                boxShadow:"0 20px 60px rgba(0,0,0,0.25)",
+                maxHeight:"80vh", overflowY:"auto",
+                textAlign:"center",
+              }}
+            >
+              <div style={{ fontSize:36, marginBottom:12 }}>{n.icon_override || cfg.icon}</div>
+              <div style={{ fontSize:18, fontWeight:800, color:"#1a1a1a", marginBottom:6, lineHeight:1.3 }}>
+                {titleText}
+              </div>
+              {subText && (
+                <div style={{ fontSize:11, fontWeight:700, letterSpacing:1, color:C.muted, marginBottom:16, textTransform:"uppercase" }}>
+                  {subText}
+                </div>
+              )}
+              {fullText ? (
+                <div style={{
+                  background: isRejection ? "#FEF2F2" : isApproval ? "rgba(22,215,197,0.08)" : "#F9F9F9",
+                  border: `1px solid ${isRejection ? "#FECACA" : isApproval ? "rgba(22,215,197,0.3)" : "#eee"}`,
+                  borderRadius:14, padding:"16px", marginBottom:20,
+                  fontSize:14, lineHeight:1.7, color:"#2a2a2a", textAlign:"left",
+                  wordBreak:"break-word",
+                }}>
+                  {fullText}
+                </div>
+              ) : (
+                <div style={{ color:C.muted, fontSize:13, marginBottom:20 }}>
+                  {n.body || n.message || "Keine weiteren Details."}
+                </div>
+              )}
+              {d.project_name && (
+                <div style={{ fontSize:12, color:C.muted, marginBottom:8 }}>
+                  Projekt: <strong>{d.project_name}</strong>
+                </div>
+              )}
+              <button
+                onClick={() => setDetailNotif(null)}
+                style={{
+                  width:"100%", padding:"14px",
+                  borderRadius:99, border:"none",
+                  background: accentColor,
+                  color:"#fff", fontSize:15, fontWeight:700,
+                  cursor:"pointer", fontFamily:"inherit",
+                }}
+              >
+                Verstanden
+              </button>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
