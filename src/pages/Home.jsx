@@ -145,6 +145,7 @@ function HomeInner() {
     showWerkeKorb,     setShowWerkeKorb,     // KORB-01
     showUnterstutzenFlow, setShowUnterstutzenFlow, // KORB-02
     cart,              setCart,              // KORB-01
+    clearCartPersist,                        // KORB-PERSIST
   } = useHome();
 
   // ── Unread Message Count — live aus chatContext ────────
@@ -477,7 +478,7 @@ function HomeInner() {
             // STRIPE-READY: items[], form{vorname,nachname,email,...}, method="apple"|"google"|"card"
             await new Promise(r => setTimeout(r, 1200));
           }}
-          onClearCart={() => clearCartAfterSuccess(setCart)}
+          onClearCart={() => { clearCartAfterSuccess(setCart); clearCartPersist?.(); }}
           onDiscover={() => { setShowUnterstutzenFlow(false); handleTab("discover"); }}
           onResonanzCenter={() => setShowUnterstutzenFlow(false)}
         />
