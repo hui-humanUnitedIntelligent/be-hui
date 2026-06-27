@@ -106,7 +106,12 @@ export function useNotifications() {
         .order("created_at", { ascending: false })
         .limit(80);
       if (data && Array.isArray(data)) {
-        setItems(data);
+        // Nutzer-Antworten auf Tickets NICHT im Resonanzzentrum anzeigen
+        const filtered = data.filter(n => {
+          const d = n.data ?? {};
+          return !(d.is_followup === true);
+        });
+        setItems(filtered);
         const wichtigTypes = Object.entries(TYPE_META)
           .filter(([,v]) => v.tab === "wichtig").map(([k]) => k);
         setUnread(data.filter(n => !n.read && wichtigTypes.includes(n.type)).length ||
