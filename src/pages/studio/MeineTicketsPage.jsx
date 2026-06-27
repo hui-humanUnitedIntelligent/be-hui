@@ -109,15 +109,15 @@ function ReplySheet({ ticket, onClose, onSent }) {
     <>
       {/* Backdrop */}
       <div onClick={onClose} style={{
-        position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", zIndex:20,
+        position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", zIndex:9998,
       }} />
 
       {/* Sheet */}
       <div style={{
-        position:"fixed", bottom:0, left:0, right:0, zIndex:21,
+        position:"fixed", bottom:0, left:0, right:0, zIndex:9999,
         background:"white",
         borderRadius:"20px 20px 0 0",
-        padding:"0 0 max(24px,env(safe-area-inset-bottom,24px))",
+        padding:"0 0 max(100px,calc(80px + env(safe-area-inset-bottom,0px)))",
         boxShadow:"0 -8px 40px rgba(0,0,0,0.18)",
         animation:"slideUp 0.28s cubic-bezier(.32,1,.5,1) both",
       }}>
