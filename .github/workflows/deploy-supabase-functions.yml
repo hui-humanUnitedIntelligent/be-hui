@@ -8,6 +8,10 @@ on:
       - 'supabase/functions/**'
       - '.github/workflows/deploy-supabase-functions.yml'
 
+concurrency:
+  group: deploy-supabase-functions
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -46,9 +50,83 @@ jobs:
 
       - name: Verify Deployment
         run: |
+          set -euo pipefail
+
+          BASE_URL="https://gxztrhvhcxhmunhhkfjd.supabase.co/functions/v1"
+          FAIL=0
+
+          # 401/400 = Runtime läuft, Handler erreicht
+          # 404/503 = Deployment- oder Boot-Fehler
+          verify_function() {
+            local name="$1"
+            local url="$2"
+            shift 2
+
+            sleep 3
+            local body_file="/tmp/${name//[^a-zA-Z0-9]/_}.json"
+            local status
+            status=$(curl -s -o "$body_file" -w "%{http_code}" "$url" "$@")
+            local body
+            body=$(cat "$body_file" 2>/dev/null || echo "")
+
+            local runtime_started="nein"
+            local handler_executed="nein"
+            local result="FAIL"
+
+            if [ "$status" = "401" ] || [ "$status" = "400" ]; then
+              runtime_started="ja"
+              handler_executed="ja"
+              result="PASS"
+            elif [ "$status" = "404" ] || [ "$status" = "503" ]; then
+              runtime_started="nein"
+              handler_executed="nein"
+              result="FAIL"
+              FAIL=1
+            else
+              runtime_started="ja"
+              handler_executed="teilweise (HTTP $status)"
+              result="WARN"
+            fi
+
+            echo "────────────────────────────────────────"
+            echo "Function:          $name"
+            echo "HTTP-Status:       $status"
+            echo "Runtime gestartet: $runtime_started"
+            echo "Handler ausgeführt: $handler_executed"
+            echo "Ergebnis:          $result"
+            echo "Response:          $body"
+          }
+
+          echo "Warte 15s auf Propagation..."
           sleep 15
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            https://gxztrhvhcxhmunhhkfjd.supabase.co/functions/v1/create-payment-intent \
-            -H "Content-Type: application/json" -d '{}')
-          echo "HTTP $STATUS"
-          [ "$STATUS" != "404" ] && echo "PASS: deployed" || (echo "FAIL: still 404" && exit 1)
+
+          verify_function "create-payment-intent" \
+            "$BASE_URL/create-payment-intent" \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -d '{}'
+
+          verify_function "handle-payment-webhook" \
+            "$BASE_URL/handle-payment-webhook" \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -d '{}'
+
+          verify_function "check-order-status" \
+            "$BASE_URL/check-order-status" \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -d '{}'
+
+          verify_function "release-payout" \
+            "$BASE_URL/release-payout" \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -d '{}'
+
+          echo "────────────────────────────────────────"
+          if [ "$FAIL" -ne 0 ]; then
+            echo "❌ Deployment-Verifikation fehlgeschlagen (404 oder 503)"
+            exit 1
+          fi
+          echo "✅ Alle vier Commerce-Functions: Runtime aktiv (401/400)"

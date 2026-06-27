@@ -1,4 +1,5 @@
 // supabase/functions/release-payout/index.ts
+// deploy-trigger: 2026-06-27T2-runtime-stabilize
 // ═══════════════════════════════════════════════════════════════════
 // HUI Commerce 2.0 — Creator Payout Release
 // Sprint C1: Foundation (Stripe Connect noch nicht aktiv)
@@ -143,10 +144,11 @@ serve(async (req) => {
       .single()
 
     // ── Creator Wallet aktualisieren ──────────────────────────────
-    await supabase.rpc('increment_wallet_balance', {
+    const { error: walletErr } = await supabase.rpc('increment_wallet_balance', {
       p_user_id: creator_id,
       p_amount:  totalPayout
-    }).catch(e => console.warn('[WALLET] RPC error:', e.message))
+    })
+    if (walletErr) console.warn('[WALLET] RPC error:', walletErr.message)
 
     // ── Commerce Events ───────────────────────────────────────────
     for (const item of items) {
@@ -162,14 +164,15 @@ serve(async (req) => {
     }
 
     // Creator informieren
-    await supabase.from('notifications').insert({
+    const { error: payoutNotifErr } = await supabase.from('notifications').insert({
       user_id: creator_id,
       type:    'payout_released',
       title:   'Auszahlung freigegeben ✓',
       body:    `${totalPayout.toFixed(2).replace(".", ",")} € wurden freigegeben.`,
       data:    JSON.stringify({ payout_id: payoutRecord?.id }),
       read:    false,
-    }).catch(() => {})
+    })
+    if (payoutNotifErr) console.warn('[NOTIF]', payoutNotifErr.message)
 
     return new Response(JSON.stringify({
       success:          true,
