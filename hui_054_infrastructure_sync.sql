@@ -262,7 +262,7 @@ GRANT EXECUTE ON FUNCTION increment_wallet_balance TO service_role;
 -- ─────────────────────────────────────────────────────────────────
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_tables WHERE tablename = 'impact_rounds' AND schemaname = 'public') THEN
-    CREATE TABLE impact_rounds (
+    CREATE TABLE IF NOT EXISTS impact_rounds (
       id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       month       TEXT NOT NULL,
       status      TEXT NOT NULL DEFAULT 'active',
