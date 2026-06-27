@@ -23,10 +23,12 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
   const tags     = Array.isArray(item.tags) ? item.tags.slice(0,3) : [];
   const priceStr = formatPrice(price);
 
+  // FIX: Kaufen-Button nur wenn for_sale explizit true oder nicht gesetzt (null/undefined)
+  // for_sale = false → Werk als "Verkauft" markiert → kein Kaufen-Button
+  const forSale  = item._raw?.for_sale;
+  const isBuyable = forSale !== false;
+
   // Karte antippen → WorkDetailPage (/work/:id)
-  // Avatar/Name haben eigenen onClick (onProfile) → stopPropagation dort
-  // Kaufen-Button hat eigenen onClick → stopPropagation dort
-  // Action-Buttons (Like/Save/Share) haben eigenen onClick → stopPropagation dort
   const handleCardClick = onDetail
     ? () => onDetail()
     : undefined;
@@ -47,7 +49,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
         </p>
       )}
 
-      {/* \u2500\u2500 Badge \u00b7 Titel \u00b7 CTA \u2014 nach Mockup \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 */}
+      {/* ── Badge · Titel · CTA ── */}
       <div style={{
         display:"flex", alignItems:"center", justifyContent:"space-between",
         gap:10, flexWrap:"nowrap", marginBottom: category || priceStr ? 6 : 0,
@@ -72,8 +74,9 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
             }}>{title}</span>
           ) : null}
         </div>
-        {/* Rechts: CTA-Button */}
-        {onBuyWerk && (
+
+        {/* Rechts: CTA-Button — nur wenn for_sale !== false */}
+        {onBuyWerk && isBuyable && (
           <button
             onClick={(e) => { e.stopPropagation(); onBuyWerk(item); }}
             style={{
@@ -93,10 +96,22 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
             {priceStr ? `${priceStr} \u00b7 Kaufen` : "Kaufen"}
           </button>
         )}
+
+        {/* Verkauft-Badge wenn for_sale=false und Preis vorhanden */}
+        {onBuyWerk && !isBuyable && priceStr && (
+          <span style={{
+            flexShrink:0,
+            fontSize:10.5, fontWeight:700, color:"rgba(26,26,46,0.35)",
+            background:"rgba(26,26,46,0.06)",
+            border:"1px solid rgba(26,26,46,0.12)",
+            borderRadius:99, padding:"5px 12px",
+            whiteSpace:"nowrap",
+          }}>Verkauft</span>
+        )}
       </div>
 
       {/* Kategorie + Preis (Metazeile) */}
-      {(category || priceStr) && !onBuyWerk && (
+      {(category || priceStr) && !(onBuyWerk && isBuyable) && (
         <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:2 }}>
           {category && <span style={{ fontSize:12.5, fontWeight:600, color:CORAL }}>{category}</span>}
           {category && priceStr && <span style={{ fontSize:12, color:INK3 }}>\u00b7</span>}
@@ -104,7 +119,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
         </div>
       )}
       {/* Metazeile wenn Button vorhanden */}
-      {(category || priceStr) && onBuyWerk && (
+      {(category || priceStr) && onBuyWerk && isBuyable && (
         <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:2 }}>
           {category && <span style={{ fontSize:12.5, fontWeight:600, color:CORAL }}>{category}</span>}
           {category && priceStr && <span style={{ fontSize:12, color:INK3 }}>\u00b7</span>}
