@@ -18,37 +18,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install Supabase CLI
+        run: |
+          curl -fsSL https://github.com/supabase/cli/releases/download/v2.108.0/supabase_linux_amd64.tar.gz | tar -xz -C /tmp
+          sudo mv /tmp/supabase /usr/local/bin/supabase
+          supabase --version
+
+      - name: Link Supabase project
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase link --project-ref gxztrhvhcxhmunhhkfjd --yes
+
       - name: Run hui_057_commerce_schema_final.sql
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
           set -euo pipefail
-          python3 <<'PY'
-          import json, pathlib, urllib.request, urllib.error, os
-
-          sql = pathlib.Path("hui_057_commerce_schema_final.sql").read_text()
           # Nur transaktionaler Block (ohne Post-COMMIT-Verifikation)
-          if "COMMIT;" in sql:
-              sql = sql.split("COMMIT;", 1)[0] + "COMMIT;"
-          payload = json.dumps({"query": sql}).encode()
-          req = urllib.request.Request(
-              "https://api.supabase.com/v1/projects/gxztrhvhcxhmunhhkfjd/database/query",
-              data=payload,
-              headers={
-                  "Authorization": f"Bearer {os.environ['SUPABASE_ACCESS_TOKEN']}",
-                  "Content-Type": "application/json",
-              },
-              method="POST",
-          )
-          try:
-              with urllib.request.urlopen(req) as resp:
-                  body = resp.read().decode()
-                  print(body or "OK")
-          except urllib.error.HTTPError as e:
-              err = e.read().decode()
-              print(f"HTTP {e.code}: {err}")
-              raise SystemExit(1)
-          PY
+          awk '/^COMMIT;/{print; exit} {print}' hui_057_commerce_schema_final.sql > /tmp/hui_057_tx.sql
+          supabase db query --linked -f /tmp/hui_057_tx.sql
 
       - name: Verify commerce objects
         env:
@@ -59,20 +47,8 @@ jobs:
           VIEWS="commerce_price_authority buyer_order_status"
           FAIL=0
 
-          query_db() {
-            local sql="$1"
-            local payload
-            payload=$(python3 -c 'import json,sys; print(json.dumps({"query": sys.stdin.read()}))' <<< "$sql")
-            curl -sfS -X POST \
-              "https://api.supabase.com/v1/projects/gxztrhvhcxhmunhhkfjd/database/query" \
-              -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
-              -H "Content-Type: application/json" \
-              -d "$payload"
-          }
-
           for t in $TABLES; do
-            result=$(query_db "SELECT COUNT(*)::int AS c FROM information_schema.tables WHERE table_schema='public' AND table_name='$t';")
-            count=$(echo "$result" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d[0]["c"] if isinstance(d,list) and d else 0)')
+            count=$(supabase db query --linked "SELECT COUNT(*)::text AS c FROM information_schema.tables WHERE table_schema='public' AND table_name='$t';" | tail -n 1 | tr -d ' |')
             if [ "$count" = "1" ]; then
               echo "✅ table $t"
             else
@@ -82,8 +58,7 @@ jobs:
           done
 
           for v in $VIEWS; do
-            result=$(query_db "SELECT COUNT(*)::int AS c FROM information_schema.views WHERE table_schema='public' AND table_name='$v';")
-            count=$(echo "$result" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d[0]["c"] if isinstance(d,list) and d else 0)')
+            count=$(supabase db query --linked "SELECT COUNT(*)::text AS c FROM information_schema.views WHERE table_schema='public' AND table_name='$v';" | tail -n 1 | tr -d ' |')
             if [ "$count" = "1" ]; then
               echo "✅ view $v"
             else
