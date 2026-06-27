@@ -416,6 +416,10 @@ export default function LoginPage() {
         setErr("Dein Konto wurde blockiert und wird von unserem Team geprüft.");
         return;
       }
+
+      // 3. Referral verarbeiten (falls Nutzer über Ambassador-Link kam)
+      // Fire-and-forget: blockiert Login nicht
+      processReferralForUser(signInData.user.id).catch(() => {});
     }
 
     setLoading(false);
