@@ -482,6 +482,7 @@ function HomeInner() {
             // Abschluss des await. onUnterstuetzen resolved → WerkeKorb schließt sich.
             setShowUnterstutzenFlow(true);
             setShowWerkeKorb(false);
+            // C2.1: PI-Erstellung startet automatisch im UnterstutzenFlow-useEffect
           }}
           onDiscover={() => { setShowWerkeKorb(false); handleTab("discover"); }}
           onChat={null}
