@@ -187,6 +187,7 @@ export default function StripePaymentStep({
   onSuccess,
   onError,
   onBack,
+  hideHeader = false,  // C2.1: Header wird vom UnterstutzenFlow gesteuert
 }) {
   // clientSecret fehlt noch (Edge Function liefert ihn)
   if (!clientSecret) {
@@ -217,26 +218,28 @@ export default function StripePaymentStep({
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
 
-      {/* Header */}
-      <div style={{ padding: "28px 24px 16px", flexShrink: 0 }}>
-        <button onClick={onBack} style={{
-          display: "flex", alignItems: "center", gap: 6,
-          background: "none", border: "none", cursor: "pointer",
-          color: C.muted, fontSize: 13, padding: 0, marginBottom: 16,
-          WebkitTapHighlightColor: "transparent",
-        }}>
-          ← Zurück
-        </button>
-        <div style={{
-          fontSize: 24, fontWeight: 800, color: C.ink,
-          letterSpacing: -0.5, lineHeight: 1.2, marginBottom: 6,
-        }}>
-          Zahlung
+      {/* Header — nur wenn nicht eingebettet */}
+      {!hideHeader && (
+        <div style={{ padding: "28px 24px 16px", flexShrink: 0 }}>
+          <button onClick={onBack} style={{
+            display: "flex", alignItems: "center", gap: 6,
+            background: "none", border: "none", cursor: "pointer",
+            color: C.muted, fontSize: 13, padding: 0, marginBottom: 16,
+            WebkitTapHighlightColor: "transparent",
+          }}>
+            ← Zurück
+          </button>
+          <div style={{
+            fontSize: 24, fontWeight: 800, color: C.ink,
+            letterSpacing: -0.5, lineHeight: 1.2, marginBottom: 6,
+          }}>
+            Zahlung
+          </div>
+          <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.6 }}>
+            Sichere Zahlung via Stripe
+          </div>
         </div>
-        <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.6 }}>
-          Sichere Zahlung via Stripe
-        </div>
-      </div>
+      )}
 
       {/* Stripe Elements Context */}
       <Elements stripe={stripePromise} options={options}>
