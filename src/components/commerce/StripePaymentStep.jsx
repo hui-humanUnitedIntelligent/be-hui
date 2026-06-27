@@ -16,8 +16,17 @@ import { C, haptic } from "../commerce/commerceUtils.js";
 
 // Stripe-Instanz — einmalig laden (außerhalb der Komponente)
 const _stripeKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY || "";
-console.log("[STRIPE] loadStripe key:", _stripeKey ? _stripeKey.slice(0,20)+"..." : "LEER/FEHLEND");
+console.log("[STRIPE ENV]", {
+  key: import.meta.env.VITE_STRIPE_PUBLIC_KEY,
+  prefix: import.meta.env.VITE_STRIPE_PUBLIC_KEY?.slice(0, 12),
+  length: import.meta.env.VITE_STRIPE_PUBLIC_KEY?.length,
+});
 const stripePromise = loadStripe(_stripeKey);
+stripePromise.then((result) => {
+  console.log("[STRIPE PROMISE]", {
+    exists: !!result,
+  });
+});
 
 // ─────────────────────────────────────────────────────────────────
 // Inner Form — innerhalb von <Elements> gemountet
@@ -28,8 +37,10 @@ function StripeForm({ total, impact, orderId, onSuccess, onError }) {
   const [processing, setProcessing] = useState(false);
   const [error,      setError     ] = useState(null);
 
-  // DEBUG — zeigt ob stripe geladen ist
-  console.log("[STRIPE] StripeForm mounted — stripe:", !!stripe, "elements:", !!elements);
+  console.log({
+    stripeExists: !!stripe,
+    elementsExists: !!elements,
+  });
 
   async function handleSubmit(e) {
     e.preventDefault();
