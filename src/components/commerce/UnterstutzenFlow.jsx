@@ -344,7 +344,7 @@ function TealPartikel() {
 // ═══════════════════════════════════════════════════════════════════
 //  SCHRITT 1 — Übersicht
 // ═══════════════════════════════════════════════════════════════════
-function Schritt1({ items, total, impact, onWeiter }) {
+function Schritt1({ items, total, impact, onWeiter, loading = false, error = null }) {
   const pCount = uniquePeople(items);
   const iCount = items.length;
 
@@ -395,7 +395,7 @@ function Schritt1({ items, total, impact, onWeiter }) {
 
       {/* Footer */}
       <div style={{ padding: "16px 24px", flexShrink: 0 }}>
-        <PrimaryButton label="Weiter" onClick={onWeiter} />
+        <PrimaryButton label={loading ? "Wird vorbereitet\u2026" : "Weiter"} onClick={onWeiter} loading={loading} disabled={loading} />
       </div>
     </div>
   );
