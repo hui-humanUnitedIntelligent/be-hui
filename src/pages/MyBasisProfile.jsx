@@ -598,16 +598,18 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
   // Sofortige lokale Anzeige + globaler AuthContext-Update nach Upload
   const handleAvatarChange = useCallback((url) => {
+    // Sofort lokalen State setzen (keine Verzögerung durch reload)
     setLocalAvatar(url);
-    // Sprint F.7D P2: setProfile entfernt → AuthContext + reload()
     setAuthProfile(prev => prev ? { ...prev, avatar_url: url } : prev);
+    // Cache wurde bereits in profileMedia.js invalidiert → reload holt frische DB-Daten
     reload();
   }, [setAuthProfile, reload]);
 
   const handleCoverChange = useCallback((url) => {
+    // Sofort lokalen State setzen (keine Verzögerung durch reload)
     setLocalCover(url);
-    // Sprint F.7D P2: setProfile entfernt → AuthContext + reload()
     setAuthProfile(prev => prev ? { ...prev, header_img: url } : prev);
+    // Cache wurde bereits in profileMedia.js invalidiert → reload holt frische DB-Daten
     reload();
   }, [setAuthProfile, reload]);
 
