@@ -20,6 +20,10 @@ import {
   uniquePeople, hasPhysical, hasEventOrExperience,
   isFormValid, EMPTY_FORM, clearCartAfterSuccess,
 } from "./commerceUtils.js";
+import StripePaymentStep from "./StripePaymentStep.jsx";
+import { resolveShippingStrategy, orderService } from "../../services/commerceEngine.js";
+import { useAuth } from "../../lib/AuthContext.jsx";
+import { supabase } from "../../lib/supabaseClient.js";
 
 // ═══════════════════════════════════════════════════════════════════
 //  SHARED: Impact-Karte (identisch zum WerkeKorb)
@@ -705,16 +709,24 @@ export default function UnterstutzenFlow({
   onClose,
   onUnterstuetzen,
   onDiscover,
-  onClearCart,       // wird nach Erfolg gerufen — clearCartAfterSuccess(setCart)
-  onResonanzCenter,  // RESONANZ-01: Integrationspunkt, noch keine Logik
+  onClearCart,
+  onResonanzCenter,
 }) {
-  const [step,          setStep]          = useState(0);   // 0–3
+  const { user } = useAuth();
+
+  const [step,          setStep]          = useState(0);   // 0=Übersicht 1=Stripe 2=Danke
   const [form,          setForm]          = useState(EMPTY_FORM);
   const [paymentMethod, setPaymentMethod] = useState(null);
   const [loading,       setLoading]       = useState(false);
   const [visible,       setVisible]       = useState(false);
-  const [slideDir,      setSlideDir]      = useState(1);   // 1=vorwärts, -1=zurück
+  const [slideDir,      setSlideDir]      = useState(1);
   const [animating,     setAnimating]     = useState(false);
+
+  // Stripe Commerce Engine
+  const [clientSecret,  setClientSecret]  = useState(null);
+  const [orderId,       setOrderId]       = useState(null);
+  const [stripeError,   setStripeError]   = useState(null);
+  const [piLoading,     setPiLoading]     = useState(false);
 
   const total  = calcTotal(items);
   const impact = calcImpact(total);
@@ -736,39 +748,64 @@ export default function UnterstutzenFlow({
     }, 220);
   }
 
-  async function handleAbschliessen() {
-    if (!paymentMethod || loading) return;
-    haptic("success");
-    setLoading(true);
+  // Schritt 0 → 1: Payment Intent erzeugen, dann Stripe öffnen
+  async function handleWeiterToStripe() {
+    if (piLoading) return;
+    haptic("light");
+    setPiLoading(true);
+    setStripeError(null);
     try {
-      await (onUnterstuetzen?.(items, form, paymentMethod)
-        ?? new Promise(r => setTimeout(r, 1200)));
-      goTo(3);
+      const shippingStrategy = resolveShippingStrategy(items);
+      const payload          = orderService.buildOrderPayload(items, shippingStrategy, user?.id);
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const res = await fetch(`${supabaseUrl}/functions/v1/create-payment-intent`, {
+        method: "POST",
+        headers: {
+          "Content-Type":  "application/json",
+          "Authorization": `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      const result = await res.json();
+      if (!res.ok || result.error) throw new Error(result.error || "Payment Intent fehlgeschlagen");
+      setClientSecret(result.clientSecret || null);
+      setOrderId(result.orderId || null);
+      goTo(1);
     } catch (e) {
-      console.error("[UnterstutzenFlow]", e);
+      console.error("[UnterstutzenFlow] PI Fehler:", e);
+      setStripeError(e?.message || "Verbindungsfehler. Bitte erneut versuchen.");
     } finally {
-      setLoading(false);
+      setPiLoading(false);
     }
+  }
+
+  async function handleStripeSuccess({ orderId: oid, paymentIntentId }) {
+    haptic("success");
+    try { await onUnterstuetzen?.(items, form, "stripe"); } catch {}
+    goTo(2);
+  }
+
+  function handleStripeError(err) {
+    setStripeError(err?.message || "Zahlung fehlgeschlagen.");
   }
 
   const STEPS = [
     <Schritt1 key="s1" items={items} total={total} impact={impact}
-      onWeiter={() => goTo(1)} />,
-    <Schritt2 key="s2" items={items} form={form} setForm={setForm}
-      onWeiter={() => goTo(2)} />,
-    <Schritt3 key="s3" total={total} impact={impact}
-      paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod}
-      onAbschliessen={handleAbschliessen} loading={loading} />,
+      onWeiter={handleWeiterToStripe} loading={piLoading} error={stripeError} />,
+    <StripePaymentStep key="stripe"
+      total={total} impact={impact}
+      clientSecret={clientSecret} orderId={orderId}
+      onSuccess={handleStripeSuccess}
+      onError={handleStripeError}
+      onBack={() => goTo(0, -1)} />,
     <Schritt4 key="s4" items={items} impact={impact} total={total}
-      onDiscover={() => { onClose?.(); onDiscover?.(); }}
-      onResonanz={() => {
-        // RESONANZ-01: Integrationspunkt für Resonanz Center
-        // Noch keine Logik — onResonanzCenter-Prop für Stripe-Sprint vorbereiten
-        onClose?.();
-      }} />,
+      onDiscover={() => { onClearCart?.(); onClose?.(); onDiscover?.(); }}
+      onResonanz={() => { onClearCart?.(); onClose?.(); onResonanzCenter?.(); }} />,
   ];
 
-  const isSuccess = step === 3;
+  const isSuccess = step === 2;
 
   return (
     <>
@@ -835,11 +872,11 @@ export default function UnterstutzenFlow({
             </button>
 
             {/* Progress */}
-            <ProgressDots step={step} total={3} />
+            <ProgressDots step={step} total={2} />
 
             {/* Schritt-Label */}
             <div style={{ fontSize: 12, color: C.faint, fontWeight: 500, minWidth: 36, textAlign: "right" }}>
-              {step + 1} / 3
+              {step + 1} / 2
             </div>
           </div>
         )}
