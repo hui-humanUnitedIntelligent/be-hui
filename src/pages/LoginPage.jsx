@@ -496,9 +496,29 @@ export default function LoginPage() {
 
     const combinedName = `${fullName.trim()} ${lastName.trim()}`;
 
-    // Ref-Link auflösen
-    const refResult = refLink.trim() ? await resolveRefLink(refLink.trim()) : null;
-    void refResult;
+    // ── Ref-Link auflösen (manuelles Feld ODER localStorage ODER URL) ──
+    // Prio 1: Manuell eingetippt im Formular
+    let ambassadorId = null;
+    if (refLink.trim()) {
+      const refResult = await resolveRefLink(refLink.trim());
+      if (refResult?.ambassadorId) {
+        ambassadorId = refResult.ambassadorId;
+        // Im localStorage speichern damit processReferralForUser es findet
+        const expiry = Date.now() + 7 * 24 * 60 * 60 * 1000;
+        try { localStorage.setItem('hui_referral_ambassador', JSON.stringify({
+          username: refResult.username, ambassadorId, expiry
+        })); } catch {}
+      }
+    }
+    // Prio 2: localStorage (gesetzt von RefRedirect wenn Nutzer über Link kam)
+    if (!ambassadorId) {
+      try {
+        const stored = JSON.parse(localStorage.getItem('hui_referral_ambassador') || 'null');
+        if (stored?.ambassadorId && Date.now() < stored.expiry) {
+          ambassadorId = stored.ambassadorId;
+        }
+      } catch {}
+    }
 
     const { error, data: signUpData } = await supabase.auth.signUp({
       email, password: pw,
@@ -516,18 +536,28 @@ export default function LoginPage() {
       return;
     }
 
-    // Profil sofort mit allen Pflichtfeldern befüllen
+    // Profil sofort mit allen Pflichtfeldern befüllen + referred_by direkt setzen
     if (signUpData?.user?.id) {
-      await supabase.from('profiles').upsert({
+      const profileData = {
         id:           signUpData.user.id,
         full_name:    combinedName,
         display_name: uname,
         username:     uname,
         email:        email,
         updated_at:   new Date().toISOString(),
-      }, { onConflict: 'id' });
+      };
+      // referred_by direkt beim Profil-Anlegen setzen (robuster als nachträgliches Update)
+      if (ambassadorId) profileData.referred_by = ambassadorId;
 
-      processReferralForUser(signUpData.user.id).catch(() => {});
+      await supabase.from('profiles').upsert(profileData, { onConflict: 'id' });
+
+      // processReferralForUser als Fallback (z.B. bei E-Mail-Bestätigung)
+      if (!ambassadorId) {
+        processReferralForUser(signUpData.user.id).catch(() => {});
+      } else {
+        // referred_by gesetzt → localStorage aufräumen
+        try { localStorage.removeItem('hui_referral_ambassador'); } catch {}
+      }
     }
 
     // Auto-login
