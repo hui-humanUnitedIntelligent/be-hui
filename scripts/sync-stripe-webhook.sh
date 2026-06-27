@@ -44,4 +44,4 @@ echo "✅ STRIPE_WEBHOOK_SECRET synchronisiert + handle-payment-webhook deployed
 if [ -n "${GITHUB_OUTPUT:-}" ]; then
   echo "whsec=$WHSEC" >> "$GITHUB_OUTPUT"
 fi
-sleep 20
+sleep 30

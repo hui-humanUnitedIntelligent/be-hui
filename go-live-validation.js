@@ -235,14 +235,17 @@ async function phase4to6(piData, jwt) {
       fail('Kein payment_intent.succeeded Event in Stripe gefunden');
     } else {
       const payload = JSON.stringify(stripeEvent);
-      const timestamp = Math.floor(Date.now() / 1000);
-      const signedPayload = `${timestamp}.${payload}`;
-      const signature = crypto.createHmac('sha256', STRIPE_WEBHOOK_SECRET).update(signedPayload, 'utf8').digest('hex');
+      const Stripe = (await import('stripe')).default;
+      const stripe = new Stripe(STRIPE_SECRET);
+      const sigHeader = stripe.webhooks.generateTestHeaderString({
+        payload,
+        secret: STRIPE_WEBHOOK_SECRET,
+      });
       const whRes = await fetch(`${SUPABASE_URL}/functions/v1/handle-payment-webhook`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'stripe-signature': `t=${timestamp},v1=${signature}`,
+          'stripe-signature': sigHeader,
         },
         body: payload,
       });
