@@ -261,7 +261,7 @@ function NotifDetailModal({ n, cfg, onClose }) {
   if (md.ticket_id) extras.push({ label:"Ticket", value: md.ticket_id });
   if (md.sender_name) extras.push({ label:"Von", value: md.sender_name });
   const fullText = n.body || n.message || n.title || "";
-  const modalContent = (
+  return typeof document !== "undefined" ? createPortal(
     <div onClick={onClose} style={{
       position:"fixed", inset:0, zIndex:999999,
       background:"rgba(0,0,0,0.52)",
@@ -302,9 +302,9 @@ function NotifDetailModal({ n, cfg, onClose }) {
         <button onClick={onClose} style={{ width:"100%", padding:14, borderRadius:99, border:"none", background:accentColor, color:"#fff", fontSize:14, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>Schließen</button>
       </div>
     </div>
-  );
-  return createPortal(modalContent, document.body);
+  , document.body) : null;
 }
+
 
 function NotifCard({ n, onAction, idx }) {
   const cfg = getType(n);
