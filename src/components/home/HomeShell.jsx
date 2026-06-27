@@ -15,6 +15,7 @@ import {
   useOwnPresence,
 } from "../../lib/sessionHooks";
 import { useTabStyles } from "../../lib/world/tabVisibilityController.js";
+import { useCartPersistence } from "../../hooks/useCartPersistence.js"; // KORB-PERSIST
 import HuiActionProvider from "../../core/HuiActionProvider.jsx";
 import { useWorldSurface } from "../../context/WorldSurfaceContext.jsx";
 import { SAFE_MODE } from "../../config/safeMode.js";
@@ -177,7 +178,8 @@ export default function HomeShell({ children }) {
   // ── Content / Commerce State ───────────────────────────────────
   const [createType,             setCreateType]            = useState(null);
   const [activeStory,            setActiveStory]           = useState(null);
-  const [cart,                   setCart]                  = useState([]);
+  // KORB-PERSIST: useCartPersistence ersetzt useState([]) — persistiert über Reloads
+  const { cart, setCart, clearCart: clearCartPersist } = useCartPersistence(user?.id);
 
   /* Keep-Alive */
   // Phase 16.4: Tab visibility via tabVisibilityController (single authority)
