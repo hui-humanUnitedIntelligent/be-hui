@@ -1,4 +1,8 @@
 -- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════
+-- LEGACY — SUPERSEDED BY COMMERCE 2.0 — REMOVE AFTER PHASE 5
+-- Kanonische Migration: hui_057_commerce_schema_final.sql
+-- ═══════════════════════════════════════════════════════════════════
 -- HUI Migration 054 — Commerce Infrastructure Sync
 -- Zweck: Fehlende Spalten und Tabellen ergänzen (non-destructive)
 -- Befund: orders/order_items existieren als Stubs, alle Commerce-2.0-
