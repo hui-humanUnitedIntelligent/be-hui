@@ -91,15 +91,31 @@ serve(async (req) => {
       const pi = event.data.object as Stripe.PaymentIntent
 
       // Order laden (nur pending — verhindert Doppel-Update)
-      const { data: order, error: orderErr } = await supabase
+      let order: { id: string; customer_id: string; total_eur: number; state: string } | null = null
+      let orderErr: { message?: string } | null = null
+
+      const orderByPi = await supabase
         .from('orders')
         .select('id, customer_id, total_eur, state')
         .eq('stripe_payment_intent', pi.id)
         .eq('state', 'pending')
         .single()
+      order = orderByPi.data
+      orderErr = orderByPi.error
+
+      if (!order && pi.metadata?.hui_order_id) {
+        const orderByMeta = await supabase
+          .from('orders')
+          .select('id, customer_id, total_eur, state')
+          .eq('id', pi.metadata.hui_order_id)
+          .eq('state', 'pending')
+          .single()
+        order = orderByMeta.data
+        orderErr = orderByMeta.error
+      }
 
       if (orderErr || !order) {
-        console.warn('[WEBHOOK] Order nicht gefunden oder nicht pending:', orderErr?.message, 'PI:', pi.id)
+        console.warn('[WEBHOOK] Order nicht gefunden oder nicht pending:', orderErr?.message, 'PI:', pi.id, 'meta:', pi.metadata?.hui_order_id)
         await supabase.from('webhook_events').update({ status: 'processed' })
           .eq('stripe_event_id', event.id)
         return new Response('ok', { headers: corsHeaders })

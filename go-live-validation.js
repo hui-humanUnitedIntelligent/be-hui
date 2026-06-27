@@ -221,7 +221,20 @@ async function phase4to6(piData, jwt) {
   report.webhook = orderData.isPaid === true;
   report.performance = statusMs < 500;
   if (orderData.isPaid) pass(`Order = paid (${statusMs}ms)`);
-  else fail('Order nicht paid nach Webhook', 'supabase/functions/handle-payment-webhook/index.ts');
+  else {
+    fail('Order nicht paid nach Webhook', 'supabase/functions/handle-payment-webhook/index.ts');
+    const hdrs = { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` };
+    const diag = await fetch(
+      `${SUPABASE_URL}/rest/v1/orders?id=eq.${orderId}&select=state,stripe_payment_intent`,
+      { headers: hdrs }
+    ).then(r => r.json());
+    console.log('   Diagnose Order:', JSON.stringify(diag));
+    const wh = await fetch(
+      `${SUPABASE_URL}/rest/v1/webhook_events?select=stripe_event_id,event_type,status&order=created_at.desc&limit=5`,
+      { headers: hdrs }
+    ).then(r => r.json());
+    console.log('   Diagnose webhook_events:', JSON.stringify(wh));
+  }
 
   // DB checks via service role
   const hdrs = { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` };
