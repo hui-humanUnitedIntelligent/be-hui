@@ -1135,7 +1135,10 @@ export default function WerkeKorb({
               onClose={onClose}
             />
           ) : (
-            <div style={{ paddingBottom: 24 }}>
+            <div style={{
+              paddingBottom: `calc(max(20px, env(safe-area-inset-bottom, 20px)) + 130px)`,
+            }}>
+              {/* Menschen & Werke — immer zuerst */}
               {groups.map(group => (
                 <PersonGruppe
                   key={group.key}
@@ -1145,36 +1148,45 @@ export default function WerkeKorb({
                   onQtyChange={handleQtyChange}
                 />
               ))}
+
+              {/* Preisübersicht + Impact — scrollt mit den Werken */}
+              {total > 0 && (
+                <div style={{
+                  marginTop:  4,
+                  paddingTop: 16,
+                  borderTop:  `1px solid rgba(20,20,34,0.05)`,
+                }}>
+                  <PreisBlock
+                    werke={gesamt}
+                    versand={versandEur}
+                    rabatt={rabattEur}
+                  />
+                </div>
+              )}
+
+              {/* Impact-Info */}
+              <ImpactZeile impactEur={impact} />
+
             </div>
           )}
         </div>
 
-        {/* ── Sticky Footer v4.0 ──────────────────────────────────────
-             Reihenfolge: Deine Auswahl → Impact → Unterstützen
-             Safe-Area: env(safe-area-inset-bottom) + TabBar (≈56px)
-             Niemals hinter der TabBar verschwinden.
+        {/* ── Sticky Button-Strip v4.2 ────────────────────────────────
+             Nur der Unterstützen-Button bleibt dauerhaft sichtbar.
+             PreisBlock + Impact scrollen mit den Werken.
+             Safe-Area + TabBar-Clearance hier verankert.
         ────────────────────────────────────────────────────────── */}
         {iCount > 0 && phase !== "success" && (
           <div style={{
             flexShrink:    0,
-            borderTop:     `1px solid rgba(20,20,34,0.05)`,
-            padding:       "20px 20px",
-            paddingBottom: `calc(max(20px, env(safe-area-inset-bottom, 20px)) + 64px)`,
-            background:    C.cream,
+            background:    `linear-gradient(to top, ${C.cream} 80%, transparent)`,
+            paddingTop:    12,
+            paddingLeft:   20,
+            paddingRight:  20,
+            paddingBottom: `calc(max(16px, env(safe-area-inset-bottom, 16px)) + 60px)`,
+            display:       "flex",
+            justifyContent:"center",
           }}>
-            {/* 1. Preisblock — DEINE AUSWAHL */}
-            {total > 0 && (
-              <PreisBlock
-                werke={gesamt}
-                versand={versandEur}
-                rabatt={rabattEur}
-              />
-            )}
-
-            {/* 2. Impact-Karte — emotional, warm, kein Aufschlag */}
-            <ImpactZeile impactEur={impact} />
-
-            {/* 3. Unterstützen-Button — immer sichtbar */}
             <button
               onClick={handleUnterstuetzen}
               onPointerDown={e => { if (phase !== "loading") e.currentTarget.style.transform = "scale(0.97)"; }}
@@ -1182,25 +1194,25 @@ export default function WerkeKorb({
               onPointerLeave={e => { e.currentTarget.style.transform = "scale(1)"; }}
               disabled={phase === "loading"}
               style={{
-                width:        "100%",
-                marginTop:    24,
-                padding:      "14px 0",
-                borderRadius: 18,
+                width:        "78%",
+                height:       "46px",
+                borderRadius: 16,
                 border:       "none",
                 background:   phase === "loading"
                   ? "rgba(20,20,34,0.07)"
                   : `linear-gradient(135deg, ${C.teal} 0%, #14CEC2 100%)`,
                 color:        phase === "loading" ? C.muted : "#fff",
                 fontWeight:   700,
-                fontSize:     16,
-                letterSpacing: -0.2,
+                fontSize:     15,
+                letterSpacing: -0.1,
                 cursor:       phase === "loading" ? "default" : "pointer",
                 outline:      "none",
                 boxShadow:    phase === "loading"
                   ? "none"
-                  : `0 4px 16px rgba(13,196,181,0.18)`,
+                  : `0 3px 12px rgba(13,196,181,0.15)`,
                 transition:   `all ${DUR.normal}ms ${EASE.out}`,
                 WebkitTapHighlightColor: "transparent",
+                flexShrink:   0,
               }}
             >
               {phase === "loading" ? "Einen Moment …" : "Unterstützen"}
