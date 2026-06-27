@@ -3,7 +3,7 @@ name: Go-Live Validation
 on:
   workflow_dispatch:
   workflow_run:
-    workflows: [Run Migration 057]
+    workflows: [Run Migration 057, Deploy Supabase Edge Functions]
     types: [completed]
     branches: [main]
 
