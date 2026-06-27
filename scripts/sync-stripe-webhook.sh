@@ -41,4 +41,7 @@ fi
 supabase secrets set STRIPE_WEBHOOK_SECRET="$WHSEC" --project-ref "$PROJECT_REF"
 supabase functions deploy handle-payment-webhook --project-ref "$PROJECT_REF" --no-verify-jwt
 echo "✅ STRIPE_WEBHOOK_SECRET synchronisiert + handle-payment-webhook deployed"
+if [ -n "${GITHUB_OUTPUT:-}" ]; then
+  echo "whsec=$WHSEC" >> "$GITHUB_OUTPUT"
+fi
 sleep 20

@@ -44,6 +44,7 @@ jobs:
           echo "service_key=$SERVICE" >> "$GITHUB_OUTPUT"
 
       - name: Ensure Stripe webhook + secret
+        id: stripe
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
@@ -102,6 +103,7 @@ jobs:
           SUPABASE_ANON_KEY: ${{ steps.keys.outputs.anon_key }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ steps.keys.outputs.service_key }}
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ steps.stripe.outputs.whsec }}
           TEST_USER_EMAIL: ${{ steps.testuser.outputs.email }}
           TEST_USER_PASS: ${{ steps.testuser.outputs.pass }}
           TEST_WORK_ID: ${{ steps.testdata.outputs.work_id }}
