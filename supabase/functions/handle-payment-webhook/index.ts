@@ -80,9 +80,9 @@ serve(async (req) => {
       // Order laden (nur pending — verhindert Doppel-Update)
       const { data: order } = await supabase
         .from('orders')
-        .select('id, buyer_id, total_eur, status, order_items(id, creator_id)')
+        .select('id, customer_id, total_eur, state, order_items(id, seller_id)')
         .eq('stripe_payment_intent', pi.id)
-        .eq('status', 'pending')   // ← Status-Guard
+        .eq('state', 'pending')   // ← Status-Guard
         .single()
 
       if (!order) {
@@ -97,7 +97,7 @@ serve(async (req) => {
       if (Math.abs(pi.amount - expectedCents) > 1) { // 1 Cent Toleranz
         console.error(`[WEBHOOK] Amount-Mismatch: stripe=${pi.amount} erwartet=${expectedCents} order=${order.id}`)
         // Order auf failed setzen — manuelle Prüfung notwendig
-        await supabase.from('orders').update({ status: 'failed' }).eq('id', order.id)
+        await supabase.from('orders').update({ state: 'failed' }).eq('id', order.id)
         await supabase.from('webhook_events').update({
           status: 'failed',
           payload_summary: { error: 'amount_mismatch', stripe: pi.amount, expected: expectedCents }
@@ -107,12 +107,12 @@ serve(async (req) => {
 
       // ── Order → paid ─────────────────────────────────────────
       await supabase.from('orders').update({
-        status:               'paid',
+        state:                'paid',
         payment_confirmed_at: new Date().toISOString(),
         shipping_address:     (pi as any).shipping?.address ?? null,
         contact_name:         (pi as any).shipping?.name ?? null,
         contact_email:        pi.receipt_email ?? null,
-      }).eq('id', order.id).eq('status', 'pending') // doppelter Guard
+      }).eq('id', order.id).eq('state', 'pending') // doppelter Guard
 
       // ── Commerce Event ────────────────────────────────────────
       await supabase.from('commerce_events').insert({
@@ -162,7 +162,7 @@ serve(async (req) => {
 
       // Buyer-Bestätigung
       await supabase.from('notifications').insert({
-        user_id: order.buyer_id,
+        user_id: order.customer_id,
         type:    'order_confirmed',
         title:   'Unterstützung bestätigt ✓',
         body:    'Deine Zahlung war erfolgreich.',
@@ -174,9 +174,9 @@ serve(async (req) => {
     else if (event.type === 'payment_intent.payment_failed') {
       const pi = event.data.object as Stripe.PaymentIntent
       await supabase.from('orders')
-        .update({ status: 'failed' })
+        .update({ state: 'failed' })
         .eq('stripe_payment_intent', pi.id)
-        .eq('status', 'pending')  // Status-Guard
+        .eq('state', 'pending')  // Status-Guard
 
       await supabase.from('commerce_events').insert({
         event_type: 'payment_failed',
