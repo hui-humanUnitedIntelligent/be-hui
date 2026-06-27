@@ -378,6 +378,7 @@ export default function LoginPage() {
     if (msg.includes('already registered'))         return 'Diese E-Mail ist bereits registriert.';
     if (msg.includes('Password should be'))         return 'Das Passwort muss mindestens 6 Zeichen haben.';
     if (msg.includes('rate limit'))                 return 'Zu viele Versuche — bitte kurz warten.';
+    if (msg.toLowerCase().includes('banned'))         return 'Dein Konto wird von einem Admin geprüft. Bei Fragen: support@be-hui.com';
     return msg || 'Ein Fehler ist aufgetreten.';
   }
 
