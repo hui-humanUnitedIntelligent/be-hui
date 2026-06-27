@@ -5,6 +5,7 @@
 // Props: { onClose, onNavigate } — rückwärtskompatibel.
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import { S } from "../core/hui.sources.js";
 import { supabase }    from "../lib/supabaseClient";
 import { useAppState } from "../lib/AppStateContext";
@@ -260,7 +261,7 @@ function NotifDetailModal({ n, cfg, onClose }) {
   if (md.ticket_id) extras.push({ label:"Ticket", value: md.ticket_id });
   if (md.sender_name) extras.push({ label:"Von", value: md.sender_name });
   const fullText = n.body || n.message || n.title || "";
-  return (
+  const modalContent = (
     <div onClick={onClose} style={{
       position:"fixed", inset:0, zIndex:999999,
       background:"rgba(0,0,0,0.52)",
@@ -302,6 +303,7 @@ function NotifDetailModal({ n, cfg, onClose }) {
       </div>
     </div>
   );
+  return createPortal(modalContent, document.body);
 }
 
 function NotifCard({ n, onAction, idx }) {
