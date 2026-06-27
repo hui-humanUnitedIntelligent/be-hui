@@ -235,6 +235,7 @@ ALTER TABLE public.order_items ADD COLUMN IF NOT EXISTS payout_status      TEXT 
 ALTER TABLE public.order_items ADD COLUMN IF NOT EXISTS payout_released_at TIMESTAMPTZ;
 ALTER TABLE public.order_items ADD COLUMN IF NOT EXISTS payout_paid_at     TIMESTAMPTZ;
 ALTER TABLE public.order_items ADD COLUMN IF NOT EXISTS stripe_transfer_id TEXT;
+ALTER TABLE public.order_items ADD COLUMN IF NOT EXISTS created_at         TIMESTAMPTZ DEFAULT now();
 ALTER TABLE public.order_items ADD COLUMN IF NOT EXISTS updated_at         TIMESTAMPTZ DEFAULT now();
 
 -- unit_price_eur aus price_eur befüllen wenn leer (Datenkonsistenz)
@@ -726,7 +727,7 @@ CREATE OR REPLACE VIEW public.buyer_order_status AS
           'seller_id',          oi.seller_id,
           'creator_id',         oi.seller_id,
           'snapshot',           COALESCE(oi.snapshot, '{}')
-        ) ORDER BY oi.created_at
+        ) ORDER BY oi.id
       ) FILTER (WHERE oi.id IS NOT NULL),
       '[]'::json
     ) AS order_items
