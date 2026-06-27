@@ -243,12 +243,81 @@ function HeroImpactCard({ weeklyEur = 8950 }) {
 /* ══════════════════════════════════════════════════════════════
    NOTIFICATION CARD
 ══════════════════════════════════════════════════════════════ */
+function NotifDetailModal({ n, cfg, onClose }) {
+  const parseMeta = (raw) => {
+    if (!raw) return {};
+    if (typeof raw === "object") return raw;
+    try { return JSON.parse(raw); } catch { return {}; }
+  };
+  const md = parseMeta(n.metadata);
+  const isRejection = n.type?.includes("rejected");
+  const isApproval  = n.type?.includes("approved");
+  const accentColor = isRejection ? "#DC2626" : isApproval ? "#16a34a" : cfg.color || "#0EC4B8";
+  const accentBg    = isRejection ? "rgba(239,68,68,0.07)" : isApproval ? "rgba(22,163,74,0.07)" : (cfg.bg || "rgba(14,196,184,0.07)");
+  const extras = [];
+  if (md.rejection_reason || md.reason) extras.push({ label:"Grund", value: md.rejection_reason || md.reason });
+  if (md.entry_title || md.project_name || md.werk_title) extras.push({ label:"Betreff", value: md.entry_title || md.project_name || md.werk_title });
+  if (md.ticket_id) extras.push({ label:"Ticket", value: md.ticket_id });
+  if (md.sender_name) extras.push({ label:"Von", value: md.sender_name });
+  const fullText = n.body || n.message || n.title || "";
+  return (
+    <div onClick={onClose} style={{
+      position:"fixed", inset:0, zIndex:999999,
+      background:"rgba(0,0,0,0.52)",
+      display:"flex", alignItems:"flex-end", justifyContent:"center",
+    }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background:"#fff", borderRadius:"22px 22px 0 0",
+        padding:"20px 20px 36px", width:"100%", maxWidth:520,
+        boxShadow:"0 -8px 40px rgba(0,0,0,0.18)",
+        maxHeight:"82vh", overflowY:"auto",
+      }}>
+        <div style={{ width:36, height:4, borderRadius:99, background:"#e0e0e0", margin:"0 auto 18px" }}/>
+        <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:16 }}>
+          <div style={{ width:42, height:42, borderRadius:"50%", background:accentBg, border:, display:"flex", alignItems:"center", justifyContent:"center", fontSize:20, flexShrink:0 }}>
+            {n.icon_override || cfg.icon}
+          </div>
+          <div>
+            <div style={{ fontSize:11, fontWeight:700, color:accentColor, textTransform:"uppercase", letterSpacing:"0.5px" }}>{cfg.label || "Benachrichtigung"}</div>
+            <div style={{ fontSize:15, fontWeight:800, color:"#1a1a18", lineHeight:1.3 }}>{n.title || n.message || cfg.label}</div>
+          </div>
+        </div>
+        {fullText && (
+          <div style={{ background:accentBg, border:, borderRadius:14, padding:"14px 16px", fontSize:14, color:"#1a1a18", lineHeight:1.75, marginBottom:14, whiteSpace:"pre-wrap", wordBreak:"break-word" }}>
+            {fullText}
+          </div>
+        )}
+        {extras.map(({ label, value }) => (
+          <div key={label} style={{ display:"flex", gap:8, padding:"8px 0", borderBottom:"1px solid rgba(26,26,24,0.07)" }}>
+            <span style={{ fontSize:12, fontWeight:700, color:"#aaa", minWidth:64 }}>{label}</span>
+            <span style={{ fontSize:13, color:"#1a1a18", lineHeight:1.5, flex:1 }}>{value}</span>
+          </div>
+        ))}
+        {n.created_at && (
+          <div style={{ fontSize:12, color:"#bbb", margin:"12px 0 18px" }}>
+            {new Date(n.created_at).toLocaleString("de-DE",{day:"numeric",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"})}
+          </div>
+        )}
+        <button onClick={onClose} style={{ width:"100%", padding:14, borderRadius:99, border:"none", background:accentColor, color:"#fff", fontSize:14, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>Schließen</button>
+      </div>
+    </div>
+  );
+}
+
 function NotifCard({ n, onAction, idx }) {
   const cfg = getType(n);
+  const [showDetail, setShowDetail] = React.useState(false);
+  const hasContent = !!(n.body || n.message || n.title);
+  const handleClick = () => {
+    if (hasContent) setShowDetail(true);
+    else onAction(n);
+  };
   return (
+    <>
+      {showDetail && <NotifDetailModal n={n} cfg={cfg} onClose={() => setShowDetail(false)} />}
     <div
       className="nc-card nc-tap"
-      onClick={() => onAction(n)}
+      onClick={handleClick}
       style={{
         display:"flex", alignItems:"flex-start", gap:12,
         padding:"13px 16px",
@@ -372,6 +441,7 @@ function NotifCard({ n, onAction, idx }) {
         )}
       </div>
     </div>
+    </>
   );
 }
 
