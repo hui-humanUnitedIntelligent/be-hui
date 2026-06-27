@@ -91,6 +91,8 @@ const TYPE = {
   inspiration:{ color:C.violet, bg:"#F5F0FF",    icon:"✨", label:"Inspiration" },
   admin:      { color:"#6366F1",bg:"#EEF2FF",    icon:"📢", label:"Ankündigung" },
   system:     { color:C.muted,  bg:C.cream,      icon:"ⓘ",  label:"System"     },
+  support_ticket:       { color:C.coral,  bg:'rgba(255,138,107,0.1)', icon:'🎧', label:'Support'     },
+  support_ticket_reply: { color:C.teal,   bg:'rgba(22,215,197,0.1)', icon:'✅', label:'Support'     },
 };
 
 function getType(n) {
@@ -943,7 +945,10 @@ export default function NotificationCenter({ onClose, onNavigate }) {
       });
       onClose?.();
     } else if (n.action_url) {
-      onNavigate?.(n.action_url); // generic fallback for unknown types
+      } else if (n.type === 'support_ticket' || n.type === 'support_ticket_reply') {
+        onNavigate?.('/studio?section=tickets');
+      } else {
+        onNavigate?.(n.action_url); // generic fallback for unknown types
     }
   }, [actions, loadNotifications, onNavigate, onClose]);
 
