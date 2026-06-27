@@ -294,9 +294,16 @@ serve(async (req) => {
     }
 
     // PI-ID in Order speichern
-    await supabase.from('orders')
+    const { error: piLinkErr } = await supabase.from('orders')
       .update({ stripe_payment_intent: paymentIntent.id })
       .eq('id', dbOrder.id)
+    if (piLinkErr) {
+      console.error('[PI] stripe_payment_intent update failed:', piLinkErr.message)
+      await supabase.from('orders').update({ state: 'aborted' }).eq('id', dbOrder.id)
+      return new Response(JSON.stringify({ error: 'Order-Verknüpfung fehlgeschlagen' }), {
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
 
     // Commerce Event
     const { error: orderEventErr } = await supabase.from('commerce_events').insert({

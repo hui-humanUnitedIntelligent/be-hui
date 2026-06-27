@@ -91,19 +91,24 @@ serve(async (req) => {
       const pi = event.data.object as Stripe.PaymentIntent
 
       // Order laden (nur pending — verhindert Doppel-Update)
-      const { data: order } = await supabase
+      const { data: order, error: orderErr } = await supabase
         .from('orders')
-        .select('id, customer_id, total_eur, state, order_items(id, seller_id)')
+        .select('id, customer_id, total_eur, state')
         .eq('stripe_payment_intent', pi.id)
-        .eq('state', 'pending')   // ← Status-Guard
+        .eq('state', 'pending')
         .single()
 
-      if (!order) {
-        console.warn('[WEBHOOK] Order nicht gefunden oder nicht pending für PI:', pi.id)
+      if (orderErr || !order) {
+        console.warn('[WEBHOOK] Order nicht gefunden oder nicht pending:', orderErr?.message, 'PI:', pi.id)
         await supabase.from('webhook_events').update({ status: 'processed' })
           .eq('stripe_event_id', event.id)
         return new Response('ok', { headers: corsHeaders })
       }
+
+      const { data: orderItems } = await supabase
+        .from('order_items')
+        .select('id, seller_id')
+        .eq('order_id', order.id)
 
       // ── Amount-Verification ──────────────────────────────────
       const expectedCents = Math.round(Number(order.total_eur) * 100)
@@ -138,7 +143,7 @@ serve(async (req) => {
 
       // ── Creator Notifications ─────────────────────────────────
       const creatorIds = [...new Set(
-        ((order as any).order_items || []).map((i: any) => i.seller_id).filter(Boolean)
+        (orderItems || []).map((i: any) => i.seller_id).filter(Boolean)
       )]
       for (const creatorId of creatorIds) {
         const { error: notifErr } = await supabase.from('notifications').insert({
@@ -146,7 +151,7 @@ serve(async (req) => {
           type:    'new_order',
           title:   'Neue Bestellung 🎉',
           body:    'Jemand hat dein Werk unterstützt.',
-          data:    JSON.stringify({ order_id: order.id }),
+          data:    { order_id: order.id },
           read:    false,
         })
         if (notifErr) console.warn('[NOTIF]', notifErr.message)
@@ -182,7 +187,7 @@ serve(async (req) => {
         type:    'order_confirmed',
         title:   'Unterstützung bestätigt ✓',
         body:    'Deine Zahlung war erfolgreich.',
-        data:    JSON.stringify({ order_id: order.id }),
+        data:    { order_id: order.id },
         read:    false,
       })
       if (buyerNotifErr) console.warn('[NOTIF]', buyerNotifErr.message)

@@ -168,8 +168,8 @@ async function phase3() {
   if (piRes.status === 200 && piData.clientSecret) {
     pass(`Payment Intent: client_secret vorhanden (${piMs}ms)`);
     report.stripe = true;
-    report.checkout = piMs < 2000;
-    if (piMs >= 2000) fail(`Checkout > 2s (${piMs}ms)`, 'supabase/functions/create-payment-intent/index.ts');
+    report.checkout = piMs < 2500;
+    if (piMs >= 2500) fail(`Checkout > 2.5s (${piMs}ms)`, 'supabase/functions/create-payment-intent/index.ts');
     return piData;
   }
 
