@@ -364,7 +364,7 @@ export default function UnterstutzenFlow({
       _step = 'S04';
       const payload = orderService.buildOrderPayload(items, shippingStrategy, user?.id);
       dbg('S04 ✓ payload', {
-        customerId: payload.customerId ?? payload.customer_id ?? 'MISSING',
+        customerId: payload.order?.customer_id ?? 'MISSING',
         itemCount: payload.orderItems?.length ?? 0,
         items: payload.orderItems?.map(i => ({ id: i.item_id, t: i.item_type, p: i.unit_price_eur })),
       });

@@ -1,5 +1,5 @@
 // supabase/functions/create-payment-intent/index.ts
-// deploy-trigger: 2026-06-27T3-commerce-2-canonical
+// deploy-trigger: 2026-06-27T18-43-40-owner-fallback-v2
 // ═══════════════════════════════════════════════════════════════════
 // HUI Commerce 2.0 — Create Payment Intent (Production Final)
 // ═══════════════════════════════════════════════════════════════════
