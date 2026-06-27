@@ -18,19 +18,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: supabase/setup-cli@v1
-        with:
-          version: latest
-
-      - name: Link Supabase project
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-        run: supabase link --project-ref gxztrhvhcxhmunhhkfjd --yes
-
       - name: Run hui_057_commerce_schema_final.sql
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-        run: supabase db query --linked -f hui_057_commerce_schema_final.sql
+        run: |
+          set -euo pipefail
+          QUERY=$(python3 -c 'import json, pathlib; print(json.dumps(pathlib.Path("hui_057_commerce_schema_final.sql").read_text()))')
+          curl -sfS -X POST \
+            "https://api.supabase.com/v1/projects/gxztrhvhcxhmunhhkfjd/database/query" \
+            -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{\"query\": ${QUERY}}"
 
       - name: Verify commerce objects
         env:
@@ -41,22 +39,35 @@ jobs:
           VIEWS="commerce_price_authority buyer_order_status"
           FAIL=0
 
+          query_db() {
+            local sql="$1"
+            local payload
+            payload=$(python3 -c 'import json,sys; print(json.dumps({"query": sys.stdin.read()}))' <<< "$sql")
+            curl -sfS -X POST \
+              "https://api.supabase.com/v1/projects/gxztrhvhcxhmunhhkfjd/database/query" \
+              -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+              -H "Content-Type: application/json" \
+              -d "$payload"
+          }
+
           for t in $TABLES; do
-            count=$(supabase db query --linked "SELECT COUNT(*)::text AS c FROM information_schema.tables WHERE table_schema='public' AND table_name='$t';" | tail -n 1 | tr -d ' ')
+            result=$(query_db "SELECT COUNT(*)::int AS c FROM information_schema.tables WHERE table_schema='public' AND table_name='$t';")
+            count=$(echo "$result" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d[0]["c"] if isinstance(d,list) and d else 0)')
             if [ "$count" = "1" ]; then
               echo "✅ table $t"
             else
-              echo "❌ table $t missing"
+              echo "❌ table $t missing (count=$count)"
               FAIL=1
             fi
           done
 
           for v in $VIEWS; do
-            count=$(supabase db query --linked "SELECT COUNT(*)::text AS c FROM information_schema.views WHERE table_schema='public' AND table_name='$v';" | tail -n 1 | tr -d ' ')
+            result=$(query_db "SELECT COUNT(*)::int AS c FROM information_schema.views WHERE table_schema='public' AND table_name='$v';")
+            count=$(echo "$result" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d[0]["c"] if isinstance(d,list) and d else 0)')
             if [ "$count" = "1" ]; then
               echo "✅ view $v"
             else
-              echo "❌ view $v missing"
+              echo "❌ view $v missing (count=$count)"
               FAIL=1
             fi
           done
