@@ -245,3 +245,58 @@ export function calcTotalWithQty(items) {
   }, 0);
 }
 
+
+
+// ═══════════════════════════════════════════════════════════════════
+// COMMERCE ENGINE v2.0 — Zusätze für Sprint C1
+// ═══════════════════════════════════════════════════════════════════
+
+/** Platform-Konstanten — Single Source of Truth */
+export const COMMERCE_RATES = {
+  PLATFORM_FEE:  0.10,   // 10% Plattformgebühr
+  IMPACT_RATE:   0.07,   // 7% Impact Pool (aus Plattformgebühr, kein Aufschlag)
+  CREATOR_SHARE: 0.90,   // 90% an Creator
+};
+
+/**
+ * Berechnet den Creator-Auszahlungsbetrag für ein Item.
+ * Plattformgebühr wird von HUI getragen — kein Abzug für den Käufer.
+ */
+export function calcCreatorPayout(unitPriceEur, qty = 1) {
+  return +((unitPriceEur * qty) * COMMERCE_RATES.CREATOR_SHARE).toFixed(2);
+}
+
+/**
+ * Berechnet Plattformgebühr für einen Betrag.
+ */
+export function calcPlatformFee(amountEur) {
+  return +(amountEur * COMMERCE_RATES.PLATFORM_FEE).toFixed(2);
+}
+
+/**
+ * Lesbarer Shipping-Typ für ein Cart-Item.
+ * Gibt denselben Typ-String zurück den die Commerce Engine erwartet.
+ */
+export function resolveItemShippingType(item) {
+  const type     = item.type || "work";
+  const raw      = item._raw || {};
+  const delivery = (raw.delivery_type || raw.deliveryType || "").toLowerCase().trim();
+
+  if (type === "experience" || type === "event") return "experience";
+  if (type === "service")                        return "service";
+  if (type === "support")                        return "none";
+
+  // Werk
+  if (delivery === "digital" || delivery === "download") return "digital";
+  if (delivery === "pickup")                             return "pickup";
+  if (delivery === "service")                            return "service";
+  return "physical"; // Default: physisch (bis WerkWizard delivery_type zuverlässig setzt)
+}
+
+/**
+ * Prüft ob der Cart physische Produkte enthält die eine Lieferadresse benötigen.
+ * Erweiterte Version von hasPhysical() — nutzt resolveItemShippingType.
+ */
+export function cartNeedsShippingAddress(items) {
+  return items.some(i => resolveItemShippingType(i) === "physical");
+}
