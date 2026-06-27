@@ -339,46 +339,116 @@ export default function UnterstutzenFlow({
   }, [user]);
 
   async function createPaymentIntent() {
-    dbg('▶ PI START', { items: items.length, uid: user?.id });
+    dbg('S00 PI START', { items: items.length, uid: user?.id });
     setPiLoading(true);
     setStripeError(null);
+    let _step = 'S00';
     try {
-      const shippingStrategy = resolveShippingStrategy(items);
-      const payload          = orderService.buildOrderPayload(items, shippingStrategy, user?.id);
-      const { data: { session } } = await supabase.auth.getSession();
-      const accessToken = session?.access_token;
-    dbg('→ session', { hasToken: !!accessToken, url: import.meta.env.VITE_SUPABASE_URL?.slice(8,40) });
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      dbg('→ orderItems', payload.orderItems?.map(i => ({ id: i.item_id, t: i.item_type, p: i.unit_price_eur })));
-      dbg('→ fetch URL', (supabaseUrl || 'MISSING') + '/functions/v1/create-payment-intent');
 
-      const res = await fetch(`${supabaseUrl}/functions/v1/create-payment-intent`, {
-        method: "POST",
-        headers: {
-          "Content-Type":  "application/json",
-          "Authorization": `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify(payload),
+      // S01 — Session laden
+      _step = 'S01';
+      const { data: { session } } = await supabase.auth.getSession();
+      dbg('S01 ✓ session', { exists: !!session });
+
+      // S02 — access_token
+      _step = 'S02';
+      const accessToken = session?.access_token ?? null;
+      dbg('S02 ✓ access_token', { present: !!accessToken, len: accessToken?.length ?? 0 });
+
+      // S03 — shippingStrategy
+      _step = 'S03';
+      const shippingStrategy = resolveShippingStrategy(items);
+      dbg('S03 ✓ shippingStrategy', { type: shippingStrategy?.type ?? 'none' });
+
+      // S04 — orderPayload bauen
+      _step = 'S04';
+      const payload = orderService.buildOrderPayload(items, shippingStrategy, user?.id);
+      dbg('S04 ✓ payload', {
+        customerId: payload.customerId ?? payload.customer_id ?? 'MISSING',
+        itemCount: payload.orderItems?.length ?? 0,
+        items: payload.orderItems?.map(i => ({ id: i.item_id, t: i.item_type, p: i.unit_price_eur })),
       });
 
-      dbg('← HTTP', res.status);
-      const result = await res.json();
-      dbg('← body keys', Object.keys(result));
+      // S05 — URL
+      _step = 'S05';
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const efUrl = `${supabaseUrl}/functions/v1/create-payment-intent`;
+      dbg('S05 ✓ URL', { url: efUrl, online: navigator.onLine, origin: window.location.origin });
 
+      // S06 — Headers
+      _step = 'S06';
+      const headers = {
+        'Content-Type':  'application/json',
+        'Authorization': `Bearer ${accessToken}`,
+      };
+      dbg('S06 ✓ Headers', { hasAuth: !!headers.Authorization, ct: headers['Content-Type'] });
+
+      // S07 — RequestBody
+      _step = 'S07';
+      const body = JSON.stringify(payload);
+      dbg('S07 ✓ RequestBody', { byteLen: body.length, preview: body.slice(0, 80) });
+
+      // S08 — fetch() aufrufen
+      _step = 'S08';
+      dbg('S08 … fetch() wird aufgerufen …', { url: efUrl });
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
+      let res;
+      try {
+        res = await fetch(efUrl, { method: 'POST', headers, body, signal: controller.signal });
+      } finally {
+        clearTimeout(timeout);
+      }
+      dbg('S08 ✓ fetch() abgeschlossen', { status: res.status, ok: res.ok });
+
+      // S09 — response.text() lesen
+      _step = 'S09';
+      const rawText = await res.text();
+      dbg('S09 ✓ response.text()', { len: rawText.length, preview: rawText.slice(0, 120) });
+
+      // S10 — JSON parsen
+      _step = 'S10';
+      let result;
+      try {
+        result = JSON.parse(rawText);
+      } catch (parseErr) {
+        throw new Error('JSON parse failed: ' + rawText.slice(0, 200));
+      }
+      dbg('S10 ✓ JSON parsed', { keys: Object.keys(result), hasError: !!result.error });
+
+      // S10b — HTTP-Fehler oder API-Fehler
       if (!res.ok || result.error) {
-        throw new Error(result.error || "Payment Intent fehlgeschlagen");
+        throw new Error('[HTTP ' + res.status + '] ' + (result.error || result.message || rawText.slice(0, 200)));
       }
-      if (result.code === "STRIPE_NOT_CONFIGURED") {
-        throw new Error("Stripe ist noch nicht aktiviert. Bitte den Administrator kontaktieren.");
+      if (result.code === 'STRIPE_NOT_CONFIGURED') {
+        throw new Error('Stripe nicht konfiguriert');
       }
 
-      dbg('✅ clientSecret OK', result.clientSecret?.slice(0,20));
+      // S11 — clientSecret vorhanden
+      _step = 'S11';
+      if (!result.clientSecret) throw new Error('clientSecret fehlt in Response: ' + rawText.slice(0, 200));
+      dbg('S11 ✓ clientSecret', result.clientSecret.slice(0, 25) + '...');
+
+      // S12 — State setzen → StripePaymentStep öffnet
+      _step = 'S12';
       setClientSecret(result.clientSecret);
-      setOrderId(result.orderId || null);
+      setOrderId(result.orderId ?? null);
+      dbg('S12 ✓ StripePaymentStep wird geöffnet', { orderId: result.orderId });
+
     } catch (e) {
-      dbg('❌ CATCH', (e?.name || 'Error') + ': ' + (e?.message || 'unknown'));
-      console.error("[UnterstutzenFlow] PI Fehler:", e);
-      setStripeError(e?.message || "Verbindungsfehler. Bitte erneut versuchen.");
+      const isAbort = e?.name === 'AbortError';
+      dbg('❌ FEHLER @ ' + _step, {
+        name: e?.name,
+        msg: e?.message,
+        aborted: isAbort,
+        online: navigator.onLine,
+      });
+      console.error('[UnterstutzenFlow] PI Fehler @ ' + _step + ':', e);
+      setStripeError(
+        isAbort
+          ? 'Zeitüberschreitung — bitte Verbindung prüfen.'
+          : (e?.message || 'Verbindungsfehler')
+      );
     } finally {
       setPiLoading(false);
     }
