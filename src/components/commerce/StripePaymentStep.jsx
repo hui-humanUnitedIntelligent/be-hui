@@ -17,7 +17,6 @@ import { C, haptic } from "../commerce/commerceUtils.js";
 // Stripe-Instanz — einmalig laden (außerhalb der Komponente)
 const _stripeKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY || "";
 console.log("[STRIPE ENV]", {
-  key: import.meta.env.VITE_STRIPE_PUBLIC_KEY,
   prefix: import.meta.env.VITE_STRIPE_PUBLIC_KEY?.slice(0, 12),
   length: import.meta.env.VITE_STRIPE_PUBLIC_KEY?.length,
 });
