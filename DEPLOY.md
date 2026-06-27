@@ -43,9 +43,9 @@ Datei im Repo: `hui_052_commerce_p0_security.sql`
 Datei im Repo: `hui_053_cart_hash_aborted.sql`
 → `cart_hash` Spalte, `aborted` Status, `buyer_order_status` View
 
-### 1d — Migration 054 (Infrastructure Sync) ← WICHTIGSTE
-Datei im Repo: `hui_054_infrastructure_sync.sql`
-→ Ergänzt alle fehlenden Spalten + Tabellen (non-destructive)
+### 1d — Migration 057 (Schema Final — KANONISCH) ← WICHTIGSTE
+Datei im Repo: `hui_057_commerce_schema_final.sql`
+→ Vollständige Commerce-2.0-Produktionsmigration (ersetzt 051–056)
 
 **Prüfung nach SQL-Ausführung:**
 ```sql

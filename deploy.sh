@@ -37,7 +37,15 @@ echo "✓ Stripe Key gesetzt"
 echo ""
 echo "3. Edge Functions deployen..."
 
-for FN in create-payment-intent handle-payment-webhook check-order-status release-payout; do
+COMMERCE_FUNCTIONS=(
+  create-payment-intent
+  handle-payment-webhook
+  check-order-status
+  release-payout
+  distribute-impact-round
+)
+
+for FN in "${COMMERCE_FUNCTIONS[@]}"; do
   echo "   → $FN..."
   DEPLOY_ARGS=(--project-ref "$PROJECT_REF")
   if [ "$FN" = "create-payment-intent" ] || [ "$FN" = "handle-payment-webhook" ]; then
@@ -48,6 +56,20 @@ for FN in create-payment-intent handle-payment-webhook check-order-status releas
     exit 1
   fi
   echo "   ✓ $FN deployed"
+
+  # Live-Test nach jeder Function (401/400 = PASS, 404/503 = STOP)
+  sleep 3
+  VERIFY_URL="$SUPA_URL/functions/v1/$FN"
+  if [ "$FN" = "check-order-status" ]; then
+    VERIFY_URL="$VERIFY_URL?order_id=00000000-0000-0000-0000-000000000000"
+  fi
+  STATUS=$(curl -s -o /tmp/fn_verify.json -w "%{http_code}" \
+    "$VERIFY_URL" -X POST -H "Content-Type: application/json" -d '{}')
+  echo "      Live-Test HTTP $STATUS"
+  if [ "$STATUS" = "404" ] || [ "$STATUS" = "503" ]; then
+    echo "   ❌ $FN liefert $STATUS — Deployment stoppen"
+    exit 1
+  fi
 done
 
 # ── Schritt 4: Secrets setzen ───────────────────────
@@ -126,6 +148,10 @@ verify_function "release-payout" \
   "$SUPA_URL/functions/v1/release-payout" \
   -X POST -H "Content-Type: application/json" -d '{}' || FAIL=1
 
+verify_function "distribute-impact-round" \
+  "$SUPA_URL/functions/v1/distribute-impact-round" \
+  -X POST -H "Content-Type: application/json" -d '{}' || FAIL=1
+
 if [ "$FAIL" -ne 0 ]; then
   echo ""
   echo "❌ Deployment-Verifikation fehlgeschlagen (404 oder 503)"
@@ -141,7 +167,7 @@ echo ""
 echo "Nächste Schritte:"
 echo "  1. SQL im Supabase SQL Editor ausführen:"
 echo "     → https://supabase.com/dashboard/project/$PROJECT_REF/sql"
-echo "     → Datei: hui_054_infrastructure_sync.sql"
+echo "     → Datei: hui_057_commerce_schema_final.sql"
 echo ""
 echo "  2. Stripe Webhook registrieren:"
 echo "     → https://dashboard.stripe.com/test/webhooks"

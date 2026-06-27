@@ -61,7 +61,7 @@ async function run() {
     console.error(`❌ create-payment-intent: HTTP ${piRes.status}`);
     console.error('   Response:', JSON.stringify(piData));
     console.error('\n   ERSTER FEHLGESCHLAGENER SCHRITT: create-payment-intent');
-    console.error('   Prüfen: Edge Function deployed? Secrets gesetzt? Migration 054 ausgeführt?');
+    console.error('   Prüfen: Edge Function deployed? Secrets gesetzt? Migration 057 ausgeführt?');
     process.exit(1);
   }
 

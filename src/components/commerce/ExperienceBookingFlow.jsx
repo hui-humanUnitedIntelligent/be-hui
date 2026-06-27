@@ -1,4 +1,8 @@
-// src/components/commerce/ExperienceBookingFlow.jsx — COMMERCE-01
+// src/components/commerce/ExperienceBookingFlow.jsx
+// ═══════════════════════════════════════════════════════════════════
+// LEGACY — SUPERSEDED BY COMMERCE 2.0 — REMOVE AFTER PHASE 5
+// Kanonischer Checkout: WerkeKorb → UnterstuetzenFlow → StripePaymentStep
+// ═══════════════════════════════════════════════════════════════════
 // Bottom-Sheet: Erlebnis buchen → bookingService.create() → Notification → Bestätigung
 // Keine neuen Systeme. Kein Stripe. booking_status = "pending" für Beta.
 import React, { useState } from "react";

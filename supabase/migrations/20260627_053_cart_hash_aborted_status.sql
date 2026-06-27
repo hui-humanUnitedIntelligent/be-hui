@@ -1,4 +1,8 @@
 -- ═══════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════
+-- LEGACY — SUPERSEDED BY COMMERCE 2.0 — REMOVE AFTER PHASE 5
+-- Kanonische Migration: supabase/migrations/20260627_057_commerce_schema_final.sql
+-- ═══════════════════════════════════════════════════════════════════
 -- HUI Migration 053 — Commerce Production Final
 -- cart_hash für Session-Idempotenz + aborted Order-Status
 -- ═══════════════════════════════════════════════════════════════════

@@ -1,4 +1,8 @@
-// src/components/commerce/WerkKaufFlow.jsx — COMMERCE-01
+// src/components/commerce/WerkKaufFlow.jsx
+// ═══════════════════════════════════════════════════════════════════
+// LEGACY — SUPERSEDED BY COMMERCE 2.0 — REMOVE AFTER PHASE 5
+// Kanonischer Checkout: WerkeKorb → UnterstuetzenFlow → StripePaymentStep
+// ═══════════════════════════════════════════════════════════════════
 // Bottom-Sheet: Werk kaufen → salesService.createSale() → Notification → Bestätigung
 // Keine neuen Systeme. Kein Stripe. payment_status bleibt "pending" für Beta.
 import React, { useState } from "react";

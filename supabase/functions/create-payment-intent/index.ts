@@ -1,5 +1,5 @@
 // supabase/functions/create-payment-intent/index.ts
-// deploy-trigger: 2026-06-27T2-runtime-stabilize
+// deploy-trigger: 2026-06-27T3-commerce-2-canonical
 // ═══════════════════════════════════════════════════════════════════
 // HUI Commerce 2.0 — Create Payment Intent (Production Final)
 // ═══════════════════════════════════════════════════════════════════
@@ -8,7 +8,7 @@
 //       Client-Wert für creator_id wird vollständig ignoriert
 //   P1: Order-Cleanup bei Stripe-Fehler (keine orphaned pending Orders)
 //   P1: Session-Idempotenz via Cart-Hash (eine offene Order pro Checkout)
-//   P0: price, payout, impact, platform_fee — alles server-berechnet
+//   P0: price, payout, impact, commission_eur — alles server-berechnet
 //   P0: qty >= 1, qty <= 99, nur positive Integers
 // ═══════════════════════════════════════════════════════════════════
 
@@ -156,36 +156,33 @@ serve(async (req) => {
       const lineTotal  = +(unitPrice * qty).toFixed(2)
       const payoutEur  = +(lineTotal * CREATOR_SHARE).toFixed(2)
       const impactEur  = +(lineTotal * IMPACT_RATE).toFixed(2)
-      const platFee    = +(lineTotal * PLATFORM_FEE_RATE).toFixed(2)
+      const commissionEur = +(lineTotal * PLATFORM_FEE_RATE).toFixed(2)
 
       serverTotal += lineTotal
 
       validatedItems.push({
-        // creator_id: NUR aus DB — client-Wert wird nicht verwendet
-        creator_id:     dbRow.creator_id,
+        seller_id:      dbRow.creator_id,  // commerce_price_authority.creator_id → order_items.seller_id
         item_type:      dbRow.item_type || clientItem.item_type,
         item_id:        clientItem.item_id,
         quantity:       qty,
         unit_price_eur: unitPrice,
-        shipping_eur:   0,       // Sprint C3
+        shipping_eur:   0,
         payout_eur:     payoutEur,
         impact_eur:     impactEur,
-        platform_fee_eur: platFee,
-        shipping_type:  'none',  // Sprint C3
-        // Snapshot: nur DB-Daten (kein client-Snapshot)
+        shipping_type:  'none',
         snapshot: {
-          item_id:           clientItem.item_id,
-          item_type:         dbRow.item_type,
-          title:             dbRow.title,
-          cover_url:         dbRow.cover_url,
-          creator_id:        dbRow.creator_id,  // aus DB
-          price_eur:         unitPrice,          // aus DB
-          quantity:          qty,
-          payout_eur:        payoutEur,          // server-berechnet
-          impact_eur:        impactEur,          // server-berechnet
-          platform_fee_eur:  platFee,            // server-berechnet
-          server_validated:  true,
-          validated_at:      new Date().toISOString(),
+          item_id:          clientItem.item_id,
+          item_type:        dbRow.item_type,
+          title:            dbRow.title,
+          cover_url:        dbRow.cover_url,
+          seller_id:        dbRow.creator_id,
+          price_eur:        unitPrice,
+          quantity:         qty,
+          payout_eur:       payoutEur,
+          impact_eur:       impactEur,
+          commission_eur:   commissionEur,
+          server_validated: true,
+          validated_at:     new Date().toISOString(),
         },
       })
     }
@@ -233,7 +230,7 @@ serve(async (req) => {
     await supabase.from('order_items').insert(
       validatedItems.map(item => ({
         order_id:    dbOrder.id,
-        seller_id:   item.creator_id,  // aus DB
+        seller_id:   item.seller_id,
         item_type:          item.item_type,
         item_id:            item.item_id,
         snapshot:           item.snapshot,
@@ -263,7 +260,7 @@ serve(async (req) => {
           hui_order_id:   dbOrder.id,
           customer_id:    user.id,
           item_count:     validatedItems.length.toString(),
-          creator_count:  [...new Set(validatedItems.map(i => i.creator_id))].filter(Boolean).length.toString(),
+          creator_count:  [...new Set(validatedItems.map(i => i.seller_id))].filter(Boolean).length.toString(),
           impact_eur:     (+(serverTotal * IMPACT_RATE).toFixed(2)).toFixed(2),
           cart_hash:      cartHash,
           source:         'hui_commerce_v2',
@@ -303,7 +300,7 @@ serve(async (req) => {
         amount_eur:    serverTotal,
         item_count:    validatedItems.length,
         db_validated:  true,
-        creator_count: [...new Set(validatedItems.map(i => i.creator_id))].length,
+        creator_count: [...new Set(validatedItems.map(i => i.seller_id))].length,
       }
     })
     if (orderEventErr) console.warn('[PI] commerce_events insert failed:', orderEventErr.message)

@@ -1,3 +1,8 @@
+// ═══════════════════════════════════════════════════════════════════
+// LEGACY — SUPERSEDED BY COMMERCE 2.0 — REMOVE AFTER PHASE 5
+// Kanonischer Payout: release-payout (orders/creator_payouts/creator_wallets)
+// Diese Function: bookings/escrow Flow (Pre-Commerce 2.0)
+// ═══════════════════════════════════════════════════════════════════
 // FILE: supabase/functions/release-escrow/index.ts
 // Server-side escrow release after recommendation
 // Critical: never run client-side
