@@ -61,28 +61,6 @@ function ImpactKarte({ impactEur }) {
           in den gemeinsamen Impact Pool.
         </div>
       </div>
-
-      {/* DEBUG OVERLAY — nur wenn debugLog.length > 0 */}
-      {debugLog.length > 0 && (
-        <div style={{
-          position: "fixed", bottom: 0, left: 0, right: 0,
-          background: "rgba(0,0,0,0.88)", color: "#00ff88",
-          fontFamily: "monospace", fontSize: 11, lineHeight: 1.4,
-          padding: "8px 10px", zIndex: 99999,
-          maxHeight: "40vh", overflowY: "auto",
-          borderTop: "2px solid #00ff88",
-        }}>
-          <div style={{ color: "#fff", fontWeight: 700, marginBottom: 4 }}>
-            🔍 HUI CHECKOUT DEBUG
-            <button
-              onClick={() => setDebugLog([])}
-              style={{ marginLeft: 10, background: "none", border: "1px solid #fff",
-                color: "#fff", borderRadius: 4, padding: "1px 6px", cursor: "pointer", fontSize: 10 }}
-            >×</button>
-          </div>
-          {debugLog.map((line, i) => <div key={i}>{line}</div>)}
-        </div>
-      )}
     </div>
   );
 }
@@ -288,14 +266,17 @@ export default function UnterstutzenFlow({
   const [orderId,      setOrderId]      = useState(null);
   const [stripeError,  setStripeError]  = useState(null);
   const [piLoading,    setPiLoading]    = useState(false);
-  const [debugLog,     setDebugLog]     = useState([]);  // DEBUG
+  const [debugLog,   setDebugLog]   = useState([]);  // CHECKOUT-DEBUG
 
   const dbg = (msg, data) => {
     const ts = new Date().toISOString().slice(11,23);
-    const entry = data !== undefined ? `[${ts}] ${msg}: ${JSON.stringify(data)}` : `[${ts}] ${msg}`;
-    console.log("[HUI-CHECKOUT]", entry);
+    const entry = data !== undefined
+      ? `[${ts}] ${msg}: ${typeof data === 'object' ? JSON.stringify(data) : data}`
+      : `[${ts}] ${msg}`;
+    console.log('[HUI-CHECKOUT]', entry);
     setDebugLog(prev => [...prev.slice(-20), entry]);
   };
+
 
   const total  = calcTotalWithQty(items);
   const impact = calcImpact(total);
@@ -351,14 +332,14 @@ export default function UnterstutzenFlow({
 
   // Payment Intent erstellen (direkt beim Öffnen des Flows)
   useEffect(() => {
-    const skip = clientSecret ? "clientSecret already set" : piLoading ? "piLoading" : !user ? "no user" : !items.length ? "items empty" : null;
-    if (skip) { dbg("⏭ createPaymentIntent SKIP", skip); return; }
-    dbg("🔄 createPaymentIntent TRIGGER", { items: items.length, userId: user?.id });
+    const _skip = clientSecret ? 'clientSecret set' : piLoading ? 'piLoading' : !user ? 'no user (uid='+String(user?.id)+')' : !items.length ? 'items empty' : null;
+    if (_skip) { dbg('⏭ PI SKIP', _skip); return; }
+    dbg('🔄 PI TRIGGER', { items: items.length, uid: user?.id });
     createPaymentIntent();
   }, [user]);
 
   async function createPaymentIntent() {
-    dbg("▶ createPaymentIntent START", { items: items.length, userId: user?.id, hasSession: null });
+    dbg('▶ PI START', { items: items.length, uid: user?.id });
     setPiLoading(true);
     setStripeError(null);
     try {
@@ -366,10 +347,8 @@ export default function UnterstutzenFlow({
       const payload          = orderService.buildOrderPayload(items, shippingStrategy, user?.id);
       const { data: { session } } = await supabase.auth.getSession();
       const accessToken = session?.access_token;
+    dbg('→ session', { hasToken: !!accessToken, url: import.meta.env.VITE_SUPABASE_URL?.slice(8,40) });
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-
-      dbg("→ session", { hasToken: !!accessToken, tokenLen: accessToken?.length, url: supabaseUrl });
-      dbg("→ payload.orderItems", payload.orderItems?.map(i => ({ id: i.item_id, type: i.item_type })));
 
       const res = await fetch(`${supabaseUrl}/functions/v1/create-payment-intent`, {
         method: "POST",
@@ -380,9 +359,9 @@ export default function UnterstutzenFlow({
         body: JSON.stringify(payload),
       });
 
-      dbg("← HTTP", res.status);
+      dbg('← HTTP', res.status);
       const result = await res.json();
-      dbg("← body", result);
+      dbg('← body keys', Object.keys(result));
 
       if (!res.ok || result.error) {
         throw new Error(result.error || "Payment Intent fehlgeschlagen");
@@ -391,11 +370,11 @@ export default function UnterstutzenFlow({
         throw new Error("Stripe ist noch nicht aktiviert. Bitte den Administrator kontaktieren.");
       }
 
-      dbg("✅ clientSecret", result.clientSecret?.slice(0,30) + "...");
+      dbg('✅ clientSecret OK', result.clientSecret?.slice(0,20));
       setClientSecret(result.clientSecret);
       setOrderId(result.orderId || null);
     } catch (e) {
-      dbg("❌ FEHLER", e?.message);
+      dbg('❌ CATCH', e?.message);
       console.error("[UnterstutzenFlow] PI Fehler:", e);
       setStripeError(e?.message || "Verbindungsfehler. Bitte erneut versuchen.");
     } finally {
@@ -563,6 +542,26 @@ export default function UnterstutzenFlow({
           </div>
         </div>
       </div>
+
+      {/* CHECKOUT DEBUG OVERLAY */}
+      {debugLog.length > 0 && (
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0,
+          background: 'rgba(0,0,0,0.9)', color: '#00ff88',
+          fontFamily: 'monospace', fontSize: 10, lineHeight: 1.5,
+          padding: '8px 10px', zIndex: 99999,
+          maxHeight: '45vh', overflowY: 'auto',
+          borderTop: '2px solid #00ff88',
+        }}>
+          <div style={{ color: '#fff', fontWeight: 700, marginBottom: 3 }}>
+            🔍 CHECKOUT DEBUG
+            <button onClick={() => setDebugLog([])}
+              style={{ marginLeft: 8, background: 'none', border: '1px solid #aaa',
+                color: '#aaa', borderRadius: 4, padding: '1px 5px', cursor: 'pointer' }}>×</button>
+          </div>
+          {debugLog.map((line, i) => <div key={i}>{line}</div>)}
+        </div>
+      )}
     </div>
   );
 }
