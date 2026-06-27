@@ -1,4 +1,9 @@
-// src/services/creatorEconomy.js — HUI Phase 4D
+// src/services/creatorEconomy.js
+// ═══════════════════════════════════════════════════════════════════
+// LEGACY — SUPERSEDED BY COMMERCE 2.0 — REMOVE AFTER PHASE 5
+// Kanonischer Commerce-Service: commerceEngine.js
+// ═══════════════════════════════════════════════════════════════════
+// HUI Phase 4D
 // Creator Economy Service — Wallet · Supports · Bookings · Sales · Analytics
 // ══════════════════════════════════════════════════════════════════════════
 // REGELN:

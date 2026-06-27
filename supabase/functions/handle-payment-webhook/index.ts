@@ -1,5 +1,5 @@
 // supabase/functions/handle-payment-webhook/index.ts
-// deploy-trigger: 2026-06-27T2-runtime-stabilize
+// deploy-trigger: 2026-06-27T3-commerce-2-canonical
 // ═══════════════════════════════════════════════════════════════════
 // HUI Commerce 2.0 — Stripe Webhook Handler (P0 Security Fix)
 // Änderungen:
@@ -129,7 +129,7 @@ serve(async (req) => {
 
       // ── Creator Notifications ─────────────────────────────────
       const creatorIds = [...new Set(
-        ((order as any).order_items || []).map((i: any) => i.creator_id).filter(Boolean)
+        ((order as any).order_items || []).map((i: any) => i.seller_id).filter(Boolean)
       )]
       for (const creatorId of creatorIds) {
         const { error: notifErr } = await supabase.from('notifications').insert({

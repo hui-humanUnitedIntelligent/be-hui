@@ -1,4 +1,8 @@
 -- ═══════════════════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- LEGACY — SUPERSEDED BY COMMERCE 2.0 — REMOVE AFTER PHASE 5
+-- Kanonische Migration: hui_057_commerce_schema_final.sql
+-- ═══════════════════════════════════════════════════════════════════════════════
 -- HUI Migration 055 — Commerce Complete (Production Safe)
 -- ═══════════════════════════════════════════════════════════════════════════════
 -- Zweck: Erstellt ALLE Commerce-Tabellen, Views, Funktionen und Policies

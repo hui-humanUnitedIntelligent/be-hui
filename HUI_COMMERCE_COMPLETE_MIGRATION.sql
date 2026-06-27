@@ -1,4 +1,7 @@
 -- ═══════════════════════════════════════════════════
+-- LEGACY — SUPERSEDED BY COMMERCE 2.0 — REMOVE AFTER PHASE 5
+-- Kanonische Migration: hui_057_commerce_schema_final.sql
+-- ═══════════════════════════════════════════════════
 -- HUI_051_COMMERCE_FOUNDATION.SQL
 -- ═══════════════════════════════════════════════════
 
