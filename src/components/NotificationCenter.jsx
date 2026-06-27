@@ -914,11 +914,8 @@ export default function NotificationCenter({ onClose, onNavigate }) {
           notifs={notifList}
           weeklyEur={weeklyEur}
           onAction={(n) => {
-              const d = (n.data && typeof n.data === "object") ? n.data : {};
-              const fullText = d.message || d.admin_reply || d.reason || "";
-              const hasDetail = fullText.length > 0 || (n.title && n.title.length > 50) || n.type?.includes("support") || n.type?.includes("rejected") || n.type?.includes("approved") || n.type === "broadcast";
-              if (hasDetail) { if (!n.read) { supabase.from("notifications").update({ read:true }).eq("id", n.id).then(()=>{}); } setDetailNotif(n); }
-              else { handleAction(n); }
+              if (!n.read) supabase.from("notifications").update({ read:true }).eq("id", n.id).then(()=>{});
+              setDetailNotif(n);
             }}
           onFilterChange={setActiveFilter}
           activeFilter={activeFilter}
