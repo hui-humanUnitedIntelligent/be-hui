@@ -119,6 +119,7 @@ serve(async (req) => {
     // ── 4. Serverseitiger Preis-Lookup — EINZIGE Quelle für Preise ──
     const itemIds = clientItems.filter((i: any) => i.item_id).map((i: any) => i.item_id)
 
+    // Primär: nur published Items (commerce_price_authority View)
     const { data: authorityRows, error: priceErr } = await supabase
       .from('commerce_price_authority')
       .select('item_id, item_type, price_eur, creator_id, title, cover_url')
@@ -131,10 +132,30 @@ serve(async (req) => {
       })
     }
 
+    // Fallback: Items die published-Filter nicht bestanden haben —
+    // Creator kann eigene nicht-published Werke kaufen (z.B. pending_review beim Testen)
+    const foundIds = new Set((authorityRows || []).map((r: any) => r.item_id))
+    const missingIds = itemIds.filter(id => !foundIds.has(id))
+    let fallbackRows: any[] = []
+    if (missingIds.length > 0) {
+      const { data: fb } = await supabase
+        .from('works')
+        .select('id as item_id, user_id as creator_id, price as price_eur, title, cover_url, status')
+        .in('id', missingIds)
+        .eq('user_id', user.id)   // NUR eigene Werke
+        .in('status', ['pending_review', 'draft', 'approved'])
+        .not('price', 'is', null)
+        .gt('price', 0)
+      if (fb?.length) {
+        fallbackRows = fb.map((r: any) => ({ ...r, item_type: 'work' }))
+        console.log('[PI] Fallback: Owner-Werke (nicht published):', fallbackRows.map((r:any) => r.item_id))
+      }
+    }
+    const allAuthorityRows = [...(authorityRows || []), ...fallbackRows]
+
     // Price Map: item_id → { price_eur, creator_id, title, cover_url }
-    // creator_id kommt AUSSCHLIESSLICH aus der DB — Client-Wert wird ignoriert
     const priceMap = new Map<string, any>()
-    for (const row of (authorityRows || [])) {
+    for (const row of allAuthorityRows) {
       priceMap.set(row.item_id, row)
     }
 
