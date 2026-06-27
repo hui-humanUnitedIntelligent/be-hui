@@ -325,6 +325,7 @@ export default function HomeShell({ children }) {
     createType,            setCreateType,
     activeStory,           setActiveStory,
     cart,                  setCart,
+    clearCartPersist,
     openOwnProfile,
     flowStore,
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -347,7 +348,7 @@ export default function HomeShell({ children }) {
     showImpactFlow, showContentSelector, showInvitationFlow,
     showCreatorDash, showWerkDetail, showWerkCheckout, showWerkeKorb,
     showUnterstutzenFlow, showBookingFlow,
-    createType, activeStory, cart,
+    createType, activeStory, cart, clearCartPersist,
     openOwnProfile, flowStore,
   ]);
 
