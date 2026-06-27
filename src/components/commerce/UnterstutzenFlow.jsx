@@ -349,6 +349,8 @@ export default function UnterstutzenFlow({
       const accessToken = session?.access_token;
     dbg('→ session', { hasToken: !!accessToken, url: import.meta.env.VITE_SUPABASE_URL?.slice(8,40) });
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      dbg('→ orderItems', payload.orderItems?.map(i => ({ id: i.item_id, t: i.item_type, p: i.unit_price_eur })));
+      dbg('→ fetch URL', (supabaseUrl || 'MISSING') + '/functions/v1/create-payment-intent');
 
       const res = await fetch(`${supabaseUrl}/functions/v1/create-payment-intent`, {
         method: "POST",
@@ -374,7 +376,7 @@ export default function UnterstutzenFlow({
       setClientSecret(result.clientSecret);
       setOrderId(result.orderId || null);
     } catch (e) {
-      dbg('❌ CATCH', e?.message);
+      dbg('❌ CATCH', (e?.name || 'Error') + ': ' + (e?.message || 'unknown'));
       console.error("[UnterstutzenFlow] PI Fehler:", e);
       setStripeError(e?.message || "Verbindungsfehler. Bitte erneut versuchen.");
     } finally {
@@ -559,7 +561,7 @@ export default function UnterstutzenFlow({
               style={{ marginLeft: 8, background: 'none', border: '1px solid #aaa',
                 color: '#aaa', borderRadius: 4, padding: '1px 5px', cursor: 'pointer' }}>×</button>
           </div>
-          {debugLog.map((line, i) => <div key={i}>{line}</div>)}
+          {[...debugLog].reverse().map((line, i) => <div key={i}>{line}</div>)}
         </div>
       )}
     </div>
