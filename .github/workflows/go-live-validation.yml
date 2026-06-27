@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - 'go-live-validation.js'
+      - 'scripts/sync-stripe-webhook.sh'
       - '.github/workflows/go-live-validation.yml'
   workflow_run:
     workflows: [Run Migration 057, Deploy Supabase Edge Functions]
@@ -42,6 +43,9 @@ jobs:
           SERVICE=$(supabase projects api-keys --project-ref gxztrhvhcxhmunhhkfjd -o json | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(k["api_key"] for k in d if k.get("name")=="service_role"))')
           echo "anon_key=$ANON" >> "$GITHUB_OUTPUT"
           echo "service_key=$SERVICE" >> "$GITHUB_OUTPUT"
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Ensure Stripe webhook + secret
         id: stripe
@@ -95,7 +99,7 @@ jobs:
           echo "✅ Ephemerer Test-User erstellt: $EMAIL"
 
       - name: Install dependencies and build
-        run: npm ci
+        run: npm run build
 
       - name: Run go-live-validation.js
         env:
@@ -103,7 +107,7 @@ jobs:
           SUPABASE_ANON_KEY: ${{ steps.keys.outputs.anon_key }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ steps.keys.outputs.service_key }}
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
-          STRIPE_WEBHOOK_SECRET: ${{ steps.stripe.outputs.whsec }}
+          STRIPE_WEBHOOK_SECRET: ${{ steps.stripe.outputs.whsec || secrets.STRIPE_WEBHOOK_SECRET }}
           TEST_USER_EMAIL: ${{ steps.testuser.outputs.email }}
           TEST_USER_PASS: ${{ steps.testuser.outputs.pass }}
           TEST_WORK_ID: ${{ steps.testdata.outputs.work_id }}
