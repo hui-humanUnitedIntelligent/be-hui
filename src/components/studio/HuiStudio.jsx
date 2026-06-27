@@ -18,6 +18,7 @@ import EinAusgabenModal    from "./EinAusgabenModal.jsx";
 import StatistikenModal      from "./StatistikenModal.jsx";
 import ProfilBearbeitenModal    from "./ProfilBearbeitenModal.jsx";
 import SicherheitPasswortModal  from "./SicherheitPasswortModal.jsx";
+import SupportPage             from "../../pages/studio/SupportPage.jsx";
 import SettingsModal    from "../settings/SettingsModal.jsx";
 
 // ── Design Tokens ─────────────────────────────────────────────────
@@ -1071,6 +1072,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
   const [showSicherheit,        setShowSicherheit]        = useState(false); // Sicherheit & Passwort
   const [showLogoutConfirm,     setShowLogoutConfirm]     = useState(false); // Abmelden Bestätigung
   const [showMitgliedschaftCS,  setShowMitgliedschaftCS]  = useState(false); // Mitgliedschaft Coming Soon
+  const [showSupport,          setShowSupport]          = useState(false);
   const [loggingOut,            setLoggingOut]            = useState(false);
 
   // Sprint F.4C: einzige Wahrheitsquelle
@@ -1202,6 +1204,8 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
           <StudioRow icon="👑" label="Mitgliedschaft"
             badge={isTalent ? "HUI-Talent" : "HUI-Mitglied"}
             onPress={() => setShowMitgliedschaftCS(true)} />
+          <StudioRow
+          <StudioRow icon="🎧" label="Support" onPress={() => setShowSupport(true)} />
           <StudioRow
             icon="🚪" label="Abmelden"
             labelColor="#DC2626"
@@ -1455,6 +1459,15 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
         </div>,
         document.body
       )}
+      {showSupport && (
+        <SupportPage
+          onBack={() => setShowSupport(false)}
+          userId={profile?.id}
+          userEmail={profile?.email}
+          userName={profile?.display_name || profile?.full_name}
+        />
+      )}
+
       {showSicherheit && (
         <SicherheitPasswortModal
           profile={profile}
