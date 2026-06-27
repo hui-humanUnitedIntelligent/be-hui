@@ -16,7 +16,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { EASE, DUR } from "../../design/hui.interaction.js";
 import {
   C, TYPE_META,
-  haptic, formatPrice, parseAmount, calcTotal, calcImpact,
+  haptic, formatPrice, parseAmount, calcTotal, calcTotalWithQty, calcImpact,
   uniquePeople, hasPhysical, hasEventOrExperience,
   isFormValid, EMPTY_FORM, clearCartAfterSuccess,
 } from "./commerceUtils.js";
@@ -728,7 +728,7 @@ export default function UnterstutzenFlow({
   const [stripeError,   setStripeError]   = useState(null);
   const [piLoading,     setPiLoading]     = useState(false);
 
-  const total  = calcTotal(items);
+  const total  = calcTotalWithQty(items); // P1: quantity-aware
   const impact = calcImpact(total);
 
   // Einblend-Animation beim Öffnen
