@@ -238,9 +238,16 @@ ALTER TABLE public.order_items ADD COLUMN IF NOT EXISTS stripe_transfer_id TEXT;
 ALTER TABLE public.order_items ADD COLUMN IF NOT EXISTS updated_at         TIMESTAMPTZ DEFAULT now();
 
 -- unit_price_eur aus price_eur befüllen wenn leer (Datenkonsistenz)
-UPDATE public.order_items
-  SET unit_price_eur = price_eur
-  WHERE unit_price_eur = 0 AND price_eur IS NOT NULL AND price_eur > 0;
+DO $$ BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'order_items' AND column_name = 'price_eur'
+  ) THEN
+    UPDATE public.order_items
+      SET unit_price_eur = price_eur
+      WHERE unit_price_eur = 0 AND price_eur IS NOT NULL AND price_eur > 0;
+  END IF;
+END $$;
 
 DROP TRIGGER IF EXISTS trg_order_items_updated_at ON public.order_items;
 CREATE TRIGGER trg_order_items_updated_at
@@ -714,7 +721,7 @@ CREATE OR REPLACE VIEW public.buyer_order_status AS
           'id',                 oi.id,
           'item_type',          COALESCE(oi.item_type, 'work'),
           'quantity',           oi.quantity,
-          'unit_price_eur',     COALESCE(oi.unit_price_eur, oi.price_eur, 0),
+          'unit_price_eur',     COALESCE(oi.unit_price_eur, 0),
           'fulfillment_status', COALESCE(oi.fulfillment_status, 'new'),
           'seller_id',          oi.seller_id,
           'creator_id',         oi.seller_id,
