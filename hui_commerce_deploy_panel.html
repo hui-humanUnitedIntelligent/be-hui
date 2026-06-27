@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HUI Commerce — Deployment Panel</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+          background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 32px 16px; }
+  .container { max-width: 800px; margin: 0 auto; }
+  h1 { font-size: 24px; font-weight: 700; color: #f8fafc; margin-bottom: 8px; }
+  .subtitle { color: #64748b; font-size: 14px; margin-bottom: 32px; }
+  .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px;
+            padding: 24px; margin-bottom: 16px; }
+  .step-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .step-num { width: 28px; height: 28px; border-radius: 50%; background: #3b82f6;
+               color: white; font-weight: 700; font-size: 13px;
+               display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-title { font-weight: 600; font-size: 16px; }
+  label { display: block; font-size: 13px; color: #94a3b8; margin-bottom: 6px; }
+  input { width: 100%; background: #0f172a; border: 1px solid #334155; border-radius: 8px;
+           padding: 10px 12px; color: #e2e8f0; font-size: 14px; font-family: monospace; }
+  input:focus { outline: none; border-color: #3b82f6; }
+  button { width: 100%; padding: 14px; border: none; border-radius: 10px;
+            font-size: 15px; font-weight: 700; cursor: pointer; transition: all .2s;
+            margin-top: 12px; }
+  .btn-primary { background: #3b82f6; color: white; }
+  .btn-primary:hover { background: #2563eb; }
+  .btn-primary:disabled { background: #1e3a5f; color: #475569; cursor: not-allowed; }
+  .btn-sql { background: #059669; color: white; }
+  .btn-sql:hover { background: #047857; }
+  .log { background: #0f172a; border: 1px solid #1e293b; border-radius: 8px;
+          padding: 12px; margin-top: 12px; font-family: monospace; font-size: 13px;
+          min-height: 60px; max-height: 300px; overflow-y: auto; display: none; }
+  .ok { color: #4ade80; }
+  .err { color: #f87171; }
+  .warn { color: #fbbf24; }
+  .info { color: #94a3b8; }
+  .status-badge { display: inline-flex; align-items: center; gap: 6px;
+                   padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;
+                   margin-top: 12px; }
+  .badge-ok { background: rgba(74,222,128,.15); color: #4ade80; border: 1px solid rgba(74,222,128,.3); }
+  .badge-err { background: rgba(248,113,113,.15); color: #f87171; border: 1px solid rgba(248,113,113,.3); }
+  .badge-warn { background: rgba(251,191,36,.15); color: #fbbf24; border: 1px solid rgba(251,191,36,.3); }
+  .copy-btn { background: #334155; color: #94a3b8; border: 1px solid #475569;
+               border-radius: 6px; padding: 4px 10px; font-size: 11px; cursor: pointer;
+               float: right; margin-top: -4px; }
+  .copy-btn:hover { color: #e2e8f0; }
+  pre { background: #0f172a; border: 1px solid #334155; border-radius: 8px;
+         padding: 12px; font-size: 12px; overflow-x: auto; margin-top: 8px;
+         white-space: pre-wrap; color: #94a3b8; }
+  .separator { border: none; border-top: 1px solid #334155; margin: 24px 0; }
+  .final-status { text-align: center; padding: 24px; border-radius: 12px;
+                   margin-top: 24px; display: none; }
+  .final-ok { background: rgba(74,222,128,.1); border: 2px solid #4ade80; }
+  .final-err { background: rgba(248,113,113,.1); border: 2px solid #f87171; }
+  .final-emoji { font-size: 48px; display: block; margin-bottom: 12px; }
+  .final-title { font-size: 20px; font-weight: 700; }
+  .final-sub { font-size: 14px; color: #94a3b8; margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🚀 HUI Commerce — Deployment Panel</h1>
+  <p class="subtitle">Project: <code>gxztrhvhcxhmunhhkfjd</code> · https://gxztrhvhcxhmunhhkfjd.supabase.co</p>
+
+  <!-- SCHRITT 1: SQL -->
+  <div class="card">
+    <div class="step-header">
+      <div class="step-num">1</div>
+      <div class="step-title">SQL-Migration ausführen</div>
+    </div>
+    <p style="font-size:14px;color:#94a3b8;margin-bottom:12px;">
+      Öffne den Supabase SQL Editor und führe das komplette Migration-SQL aus.
+    </p>
+    <a href="https://supabase.com/dashboard/project/gxztrhvhcxhmunhhkfjd/sql" target="_blank"
+       style="display:block;text-align:center;padding:12px;background:#1e3a5f;border:1px solid #3b82f6;
+              border-radius:8px;color:#60a5fa;text-decoration:none;font-weight:600;font-size:14px;margin-bottom:12px;">
+      📋 Supabase SQL Editor öffnen →
+    </a>
+    <label>Datei: <strong>HUI_COMMERCE_COMPLETE_MIGRATION.sql</strong> (im Repo)</label>
+    <hr class="separator">
+    <p style="font-size:13px;color:#64748b;">Nach Ausführung: Verifikations-Query am Ende prüfen → sollte 10 Zeilen ausgeben.</p>
+  </div>
+
+  <!-- SCHRITT 2: Access Token + Deploy -->
+  <div class="card">
+    <div class="step-header">
+      <div class="step-num">2</div>
+      <div class="step-title">Edge Functions deployen</div>
+    </div>
+    <p style="font-size:14px;color:#94a3b8;margin-bottom:16px;">
+      Supabase Access Token holen:
+      <a href="https://supabase.com/dashboard/account/tokens" target="_blank" style="color:#60a5fa;">
+        supabase.com/dashboard/account/tokens
+      </a> → "New Token"
+    </p>
+    
+    <label>Supabase Access Token (sbp_...)</label>
+    <input type="password" id="accessToken" placeholder="sbp_XXXXXXXXXXXXXXXXXX" autocomplete="off">
+    
+    <div style="margin-top:12px;">
+      <label>Stripe Secret Key (sk_test_...)</label>
+      <input type="password" id="stripeKey" placeholder="sk_test_51TlUr7..." autocomplete="off">
+    </div>
+
+    <button class="btn-primary" id="deployBtn" onclick="deployFunctions()">
+      🚀 Edge Functions deployen + Secrets setzen
+    </button>
+    <div class="log" id="deployLog"></div>
+    <div id="deployStatus"></div>
+  </div>
+
+  <!-- SCHRITT 3: Testen -->
+  <div class="card">
+    <div class="step-header">
+      <div class="step-num">3</div>
+      <div class="step-title">create-payment-intent testen</div>
+    </div>
+    <p style="font-size:14px;color:#94a3b8;margin-bottom:12px;">
+      Prüft ob die Edge Function erreichbar ist. Erwartet: kein HTTP 404 mehr.
+    </p>
+    <button class="btn-sql" onclick="testFunction()">
+      🧪 create-payment-intent testen
+    </button>
+    <div class="log" id="testLog"></div>
+    <div id="testStatus"></div>
+  </div>
+
+  <!-- SCHRITT 4: Stripe Webhook -->
+  <div class="card">
+    <div class="step-header">
+      <div class="step-num">4</div>
+      <div class="step-title">Stripe Webhook registrieren</div>
+    </div>
+    <p style="font-size:14px;color:#94a3b8;margin-bottom:12px;">
+      Einmalig im Stripe Dashboard konfigurieren.
+    </p>
+    <a href="https://dashboard.stripe.com/test/webhooks" target="_blank"
+       style="display:block;text-align:center;padding:12px;background:#1e2a1e;border:1px solid #16a34a;
+              border-radius:8px;color:#4ade80;text-decoration:none;font-weight:600;font-size:14px;margin-bottom:12px;">
+      💳 Stripe Webhooks öffnen →
+    </a>
+    <pre>Endpoint URL:
+https://gxztrhvhcxhmunhhkfjd.supabase.co/functions/v1/handle-payment-webhook
+
+Events:
+• payment_intent.succeeded
+• payment_intent.payment_failed
+• charge.dispute.created</pre>
+    <p style="font-size:13px;color:#64748b;margin-top:8px;">
+      → Nach dem Speichern: Webhook Signing Secret kopieren → unten eintragen
+    </p>
+    
+    <div style="margin-top:12px;">
+      <label>Webhook Secret (whsec_...)</label>
+      <input type="password" id="webhookSecret" placeholder="whsec_XXXXXXXXXXXXXXXX" autocomplete="off">
+    </div>
+    <button class="btn-primary" onclick="setWebhookSecret()">
+      🔑 Webhook Secret setzen
+    </button>
+    <div id="webhookStatus"></div>
+  </div>
+
+  <!-- Finaler Status -->
+  <div id="finalStatus" class="final-status">
+  </div>
+</div>
+
+<script>
+const SUPA_URL = "https://gxztrhvhcxhmunhhkfjd.supabase.co";
+const PROJECT_REF = "gxztrhvhcxhmunhhkfjd";
+const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd4enRyaHZoY3hobXVuaGhrZmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4ODI2NDIsImV4cCI6MjA5MzQ1ODY0Mn0.cq8E_NQkmeTZPIe0G0SSqEzzg6yJhyce5xpW2iwVIbk";
+const MGMT_BASE = "https://api.supabase.com/v1";
+
+function log(el, msg, type="info") {
+  const d = document.getElementById(el);
+  d.style.display = "block";
+  const span = document.createElement("span");
+  span.className = type;
+  span.textContent = msg + "\n";
+  d.appendChild(span);
+  d.scrollTop = d.scrollHeight;
+}
+
+function setStatus(el, ok, msg) {
+  const d = document.getElementById(el);
+  d.innerHTML = `<div class="status-badge ${ok ? 'badge-ok' : 'badge-err'}">
+    ${ok ? '✅' : '❌'} ${msg}
+  </div>`;
+}
+
+async function deployFunctions() {
+  const token = document.getElementById("accessToken").value.trim();
+  const stripeKey = document.getElementById("stripeKey").value.trim();
+  
+  if (!token || !token.startsWith("sbp_")) {
+    alert("Bitte Access Token eingeben (beginnt mit sbp_)");
+    return;
+  }
+  if (!stripeKey || !stripeKey.startsWith("sk_")) {
+    alert("Bitte Stripe Secret Key eingeben (beginnt mit sk_test_ oder sk_live_)");
+    return;
+  }
+
+  document.getElementById("deployBtn").disabled = true;
+  document.getElementById("deployLog").innerHTML = "";
+
+  const functions = [
+    "create-payment-intent",
+    "handle-payment-webhook", 
+    "check-order-status",
+    "release-payout"
+  ];
+
+  log("deployLog", "Starte Edge Function Deployment...", "info");
+  log("deployLog", "", "info");
+
+  // Supabase Management API: Functions deployen
+  // WICHTIG: Deno-Code aus dem Repo kommt via GitHub
+  // Wir nutzen die Supabase Management API Functions endpoint
+  
+  const GITHUB_TOKEN = ""; // Public repo — kein Token benötigt
+  const REPO = "hui-humanUnitedIntelligent/be-hui";
+  
+  let allOk = true;
+  
+  for (const fn of functions) {
+    log("deployLog", `→ ${fn}...`, "info");
+    
+    try {
+      // Source Code von GitHub holen
+      const ghRes = await fetch(
+        `https://api.github.com/repos/${REPO}/contents/supabase/functions/${fn}/index.ts`,
+        { headers: GITHUB_TOKEN ? { "Authorization": `token ${GITHUB_TOKEN}` } : {} }
+      );
+      
+      if (!ghRes.ok) {
+        log("deployLog", `  ❌ Source nicht gefunden: HTTP ${ghRes.status}`, "err");
+        allOk = false;
+        continue;
+      }
+      
+      const ghData = await ghRes.json();
+      const sourceCode = atob(ghData.content.replace(/\n/g, ""));
+      log("deployLog", `  ✓ Source geladen (${sourceCode.length} Zeichen)`, "ok");
+      
+      // Deploy via Supabase Management API
+      const deployRes = await fetch(
+        `${MGMT_BASE}/projects/${PROJECT_REF}/functions/${fn}`,
+        {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            name: fn,
+            slug: fn,
+            body: sourceCode,
+            verify_jwt: fn !== "handle-payment-webhook",
+            import_map: false
+          })
+        }
+      );
+      
+      // Falls Function existiert: PUT statt POST
+      if (deployRes.status === 409) {
+        const putRes = await fetch(
+          `${MGMT_BASE}/projects/${PROJECT_REF}/functions/${fn}`,
+          {
+            method: "PUT",
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              name: fn,
+              slug: fn,
+              body: sourceCode,
+              verify_jwt: fn !== "handle-payment-webhook",
+              import_map: false
+            })
+          }
+        );
+        const putData = await putRes.json();
+        if (putRes.ok) {
+          log("deployLog", `  ✅ ${fn} aktualisiert`, "ok");
+        } else {
+          log("deployLog", `  ❌ ${fn} Update fehler: ${JSON.stringify(putData)}`, "err");
+          allOk = false;
+        }
+      } else if (deployRes.ok) {
+        log("deployLog", `  ✅ ${fn} deployed`, "ok");
+      } else {
+        const errData = await deployRes.json();
+        log("deployLog", `  ❌ ${fn}: HTTP ${deployRes.status} — ${JSON.stringify(errData)}`, "err");
+        allOk = false;
+      }
+    } catch(e) {
+      log("deployLog", `  ❌ ${fn}: ${e.message}`, "err");
+      allOk = false;
+    }
+  }
+  
+  // STRIPE_SECRET_KEY als Secret setzen
+  if (allOk) {
+    log("deployLog", "", "info");
+    log("deployLog", "→ STRIPE_SECRET_KEY setzen...", "info");
+    
+    try {
+      const secRes = await fetch(
+        `${MGMT_BASE}/projects/${PROJECT_REF}/secrets`,
+        {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify([{ name: "STRIPE_SECRET_KEY", value: stripeKey }])
+        }
+      );
+      
+      if (secRes.ok) {
+        log("deployLog", "  ✅ STRIPE_SECRET_KEY gesetzt", "ok");
+      } else {
+        const secData = await secRes.json();
+        log("deployLog", `  ❌ Secret Fehler: ${JSON.stringify(secData)}`, "err");
+      }
+    } catch(e) {
+      log("deployLog", `  ❌ ${e.message}`, "err");
+    }
+  }
+  
+  document.getElementById("deployBtn").disabled = false;
+  setStatus("deployStatus", allOk, allOk ? "Deployment abgeschlossen" : "Deployment fehlgeschlagen");
+  
+  if (allOk) {
+    log("deployLog", "", "info");
+    log("deployLog", "⏳ Warte 5 Sekunden auf Aktivierung...", "warn");
+    await new Promise(r => setTimeout(r, 5000));
+    log("deployLog", "→ Jetzt testen...", "info");
+    await testFunction();
+  }
+}
+
+async function testFunction() {
+  document.getElementById("testLog").innerHTML = "";
+  log("testLog", "POST /functions/v1/create-payment-intent", "info");
+  log("testLog", `Host: ${SUPA_URL}`, "info");
+  log("testLog", "", "info");
+  
+  try {
+    const res = await fetch(`${SUPA_URL}/functions/v1/create-payment-intent`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${ANON_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ orderItems: [] })
+    });
+    
+    const body = await res.text();
+    
+    log("testLog", `HTTP Status: ${res.status}`, res.status === 404 ? "err" : "ok");
+    log("testLog", `Response: ${body.slice(0, 200)}`, "info");
+    
+    if (res.status === 404) {
+      setStatus("testStatus", false, "HTTP 404 — Function noch nicht deployed");
+      log("testLog", "", "info");
+      log("testLog", "❌ ERSTER BLOCKER: Edge Functions nicht erreichbar", "err");
+    } else {
+      setStatus("testStatus", true, `HTTP ${res.status} — Function erreichbar ✓`);
+      log("testLog", "✅ Kein 404 mehr — Edge Function deployed und erreichbar", "ok");
+      showFinalStatus(true);
+    }
+  } catch(e) {
+    log("testLog", `Fehler: ${e.message}`, "err");
+    setStatus("testStatus", false, "Netzwerk-Fehler");
+  }
+}
+
+async function setWebhookSecret() {
+  const token = document.getElementById("accessToken").value.trim();
+  const secret = document.getElementById("webhookSecret").value.trim();
+  
+  if (!secret || !secret.startsWith("whsec_")) {
+    alert("Bitte Webhook Secret eingeben (beginnt mit whsec_)");
+    return;
+  }
+  if (!token) {
+    alert("Bitte zuerst Access Token eingeben");
+    return;
+  }
+  
+  try {
+    const res = await fetch(
+      `${MGMT_BASE}/projects/${PROJECT_REF}/secrets`,
+      {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify([{ name: "STRIPE_WEBHOOK_SECRET", value: secret }])
+      }
+    );
+    
+    const data = await res.json();
+    document.getElementById("webhookStatus").innerHTML = res.ok
+      ? '<div class="status-badge badge-ok">✅ STRIPE_WEBHOOK_SECRET gesetzt</div>'
+      : `<div class="status-badge badge-err">❌ ${JSON.stringify(data)}</div>`;
+  } catch(e) {
+    document.getElementById("webhookStatus").innerHTML = 
+      `<div class="status-badge badge-err">❌ ${e.message}</div>`;
+  }
+}
+
+function showFinalStatus(ok) {
+  const d = document.getElementById("finalStatus");
+  d.style.display = "block";
+  d.className = `final-status ${ok ? 'final-ok' : 'final-err'}`;
+  d.innerHTML = ok
+    ? `<span class="final-emoji">🟢</span>
+       <div class="final-title">Commerce Backend einsatzbereit</div>
+       <div class="final-sub">Edge Functions deployed · Secrets gesetzt · Stripe-Zahlung möglich</div>
+       <div class="final-sub" style="margin-top:8px">Nächster Schritt: Stripe Webhook registrieren (Schritt 4)</div>`
+    : `<span class="final-emoji">🔴</span>
+       <div class="final-title">Noch nicht einsatzbereit</div>
+       <div class="final-sub">Erster Blocker: Edge Functions nicht deployed (HTTP 404)</div>`;
+}
+</script>
+</body>
+</html>
