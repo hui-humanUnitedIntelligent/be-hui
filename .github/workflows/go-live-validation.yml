@@ -39,6 +39,47 @@ jobs:
           echo "anon_key=$ANON" >> "$GITHUB_OUTPUT"
           echo "service_key=$SERVICE" >> "$GITHUB_OUTPUT"
 
+      - name: Ensure Stripe webhook + secret
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+        run: |
+          set -euo pipefail
+          WEBHOOK_URL="https://gxztrhvhcxhmunhhkfjd.supabase.co/functions/v1/handle-payment-webhook"
+
+          if [ -n "${STRIPE_WEBHOOK_SECRET:-}" ]; then
+            supabase secrets set STRIPE_WEBHOOK_SECRET="$STRIPE_WEBHOOK_SECRET" --project-ref gxztrhvhcxhmunhhkfjd
+            echo "✅ STRIPE_WEBHOOK_SECRET aus GitHub Secret gesetzt"
+            exit 0
+          fi
+
+          if supabase secrets list --project-ref gxztrhvhcxhmunhhkfjd | grep -q 'STRIPE_WEBHOOK_SECRET'; then
+            echo "✅ STRIPE_WEBHOOK_SECRET bereits in Supabase vorhanden"
+            exit 0
+          fi
+
+          ENDPOINTS=$(curl -sfS "https://api.stripe.com/v1/webhook_endpoints?limit=20" \
+            -u "${STRIPE_SECRET_KEY}:")
+          EXISTING_ID=$(echo "$ENDPOINTS" | python3 -c "import json,sys,os; d=json.load(sys.stdin); url=os.environ['WEBHOOK_URL']; print(next((e['id'] for e in d.get('data',[]) if e.get('url')==url), ''))" WEBHOOK_URL="$WEBHOOK_URL")
+
+          if [ -n "$EXISTING_ID" ]; then
+            echo "⚠️  Stripe Webhook existiert ($EXISTING_ID), aber STRIPE_WEBHOOK_SECRET fehlt"
+            echo "   Bitte whsec_... als GitHub Secret STRIPE_WEBHOOK_SECRET hinterlegen"
+            exit 1
+          fi
+
+          CREATE=$(curl -sfS "https://api.stripe.com/v1/webhook_endpoints" \
+            -u "${STRIPE_SECRET_KEY}:" \
+            -d "url=${WEBHOOK_URL}" \
+            -d "enabled_events[]=payment_intent.succeeded" \
+            -d "enabled_events[]=payment_intent.payment_failed" \
+            -d "enabled_events[]=charge.dispute.created")
+          WHSEC=$(echo "$CREATE" | python3 -c 'import json,sys; print(json.load(sys.stdin)["secret"])')
+          supabase secrets set STRIPE_WEBHOOK_SECRET="$WHSEC" --project-ref gxztrhvhcxhmunhhkfjd
+          echo "✅ Stripe Webhook erstellt und STRIPE_WEBHOOK_SECRET gesetzt"
+          sleep 10
+
       - name: Resolve test work ID
         id: testdata
         env:
@@ -50,7 +91,37 @@ jobs:
             -H "apikey: $SERVICE_KEY" \
             -H "Authorization: Bearer $SERVICE_KEY" \
             | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d[0]["item_id"] if d else "")')
+          if [ -z "$WORK_ID" ]; then
+            echo "❌ Kein published Werk in commerce_price_authority"
+            exit 1
+          fi
           echo "work_id=$WORK_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Bootstrap test user
+        id: testuser
+        env:
+          SERVICE_KEY: ${{ steps.keys.outputs.service_key }}
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASS: ${{ secrets.TEST_USER_PASS }}
+        run: |
+          set -euo pipefail
+          if [ -n "${TEST_USER_EMAIL:-}" ] && [ -n "${TEST_USER_PASS:-}" ]; then
+            echo "email=$TEST_USER_EMAIL" >> "$GITHUB_OUTPUT"
+            echo "pass=$TEST_USER_PASS" >> "$GITHUB_OUTPUT"
+            echo "✅ Test-User aus GitHub Secrets"
+            exit 0
+          fi
+
+          EMAIL="golive-ci-${GITHUB_RUN_ID}@hui-commerce.test"
+          PASS="GoLive${GITHUB_RUN_ID}Test!"
+          curl -sfS "https://gxztrhvhcxhmunhhkfjd.supabase.co/auth/v1/admin/users" \
+            -H "apikey: $SERVICE_KEY" \
+            -H "Authorization: Bearer $SERVICE_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{\"email\":\"$EMAIL\",\"password\":\"$PASS\",\"email_confirm\":true}" > /dev/null
+          echo "email=$EMAIL" >> "$GITHUB_OUTPUT"
+          echo "pass=$PASS" >> "$GITHUB_OUTPUT"
+          echo "✅ Ephemerer Test-User erstellt: $EMAIL"
 
       - name: Install dependencies and build
         run: npm ci
@@ -61,7 +132,7 @@ jobs:
           SUPABASE_ANON_KEY: ${{ steps.keys.outputs.anon_key }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ steps.keys.outputs.service_key }}
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
-          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
-          TEST_USER_PASS: ${{ secrets.TEST_USER_PASS }}
+          TEST_USER_EMAIL: ${{ steps.testuser.outputs.email }}
+          TEST_USER_PASS: ${{ steps.testuser.outputs.pass }}
           TEST_WORK_ID: ${{ steps.testdata.outputs.work_id }}
         run: node go-live-validation.js
