@@ -1,13 +1,14 @@
 // supabase/functions/create-payment-intent/index.ts
 // ═══════════════════════════════════════════════════════════════════
-// HUI Commerce 2.0 — Create Stripe Payment Intent (P0 Security Fix)
+// HUI Commerce 2.0 — Create Payment Intent (Production Final)
 // ═══════════════════════════════════════════════════════════════════
-// Änderungen gegenüber Sprint C1:
-//   ✅ Server-side Preis-Lookup aus DB (commerce_price_authority View)
-//   ✅ payout_eur server-side berechnet — nie Client-Wert
-//   ✅ Idempotency Key auf PI-Erstellung
-//   ✅ Qty-Validierung (positive Integer, kein Overflow)
-//   ✅ Demo-Mode: klarer Fehler statt clientSecret=null
+// Fixes (Production Sign-Off):
+//   P0: creator_id kommt ausschließlich aus DB (commerce_price_authority)
+//       Client-Wert für creator_id wird vollständig ignoriert
+//   P1: Order-Cleanup bei Stripe-Fehler (keine orphaned pending Orders)
+//   P1: Session-Idempotenz via Cart-Hash (eine offene Order pro Checkout)
+//   P0: price, payout, impact, platform_fee — alles server-berechnet
+//   P0: qty >= 1, qty <= 99, nur positive Integers
 // ═══════════════════════════════════════════════════════════════════
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
@@ -19,23 +20,36 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Serverseitige Konstanten — nie vom Client übernehmen
 const PLATFORM_FEE_RATE = 0.10
 const IMPACT_RATE       = 0.07
 const CREATOR_SHARE     = 0.90
 const MAX_QTY           = 99
+const MIN_AMOUNT_CENTS  = 50   // Stripe Minimum EUR
+
+// ── Cart-Hash für Idempotenz ──────────────────────────────────────
+// Deterministisch: gleicher Cart + gleicher User = gleicher Hash
+function buildCartHash(userId: string, items: any[]): string {
+  const sorted = [...items]
+    .sort((a, b) => (a.item_id || '').localeCompare(b.item_id || ''))
+    .map(i => `${i.item_id}:${Math.max(1, Math.min(MAX_QTY, Number(i.quantity) || 1))}`)
+    .join('|')
+  return `hui_cart_${userId}_${btoa(sorted).replace(/[^a-zA-Z0-9]/g, '').slice(0, 32)}`
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   const stripeKey = Deno.env.get('STRIPE_SECRET_KEY')
-
-  // Kein Stripe Key → klarer Fehler (kein Demo-Mode mit orphaned Orders)
   if (!stripeKey) {
     return new Response(JSON.stringify({
-      error: 'Stripe nicht konfiguriert — STRIPE_SECRET_KEY fehlt in Edge Function Secrets',
+      error: 'Stripe nicht konfiguriert',
       code:  'STRIPE_NOT_CONFIGURED',
     }), { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' }})
   }
+
+  // Order-ID für Cleanup im Fehlerfall
+  let createdOrderId: string | null = null
 
   try {
     const supabase = createClient(
@@ -54,93 +68,143 @@ serve(async (req) => {
       })
     }
 
-    // ── 2. Payload lesen ─────────────────────────────────────────
-    const { order: clientOrder, orderItems: clientItems } = await req.json()
+    // ── 2. Client-Payload — NUR item_id + quantity akzeptiert ────
+    const { orderItems: rawClientItems } = await req.json()
 
-    if (!clientOrder || !clientItems?.length) {
-      return new Response(JSON.stringify({ error: 'order und orderItems erforderlich' }), {
+    if (!rawClientItems?.length) {
+      return new Response(JSON.stringify({ error: 'orderItems erforderlich' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
-    // ── 3. Server-side Preis-Authorität (DB-Lookup) ──────────────
-    // Schritt A: alle item_ids sammeln die eine DB-Quelle haben
-    const lookupIds = clientItems
-      .filter((i: any) => i.item_id && i.item_type !== 'support')
-      .map((i: any) => i.item_id)
+    // Nur item_id und quantity vom Client übernehmen — alles andere ignorieren
+    const clientItems = rawClientItems.map((i: any) => ({
+      item_id:   (i.item_id || i.snapshot?.item_id || null) as string | null,
+      item_type: (i.item_type || 'work') as string,
+      quantity:  Math.max(1, Math.min(MAX_QTY, Math.round(Number(i.quantity) || 1))),
+    }))
 
-    let priceMap: Record<string, number> = {}
+    // ── 3. Session-Idempotenz: bestehende offene Order prüfen ────
+    const cartHash = buildCartHash(user.id, clientItems)
 
-    if (lookupIds.length > 0) {
-      const { data: authorityRows } = await supabase
-        .from('commerce_price_authority')
-        .select('item_id, price_eur')
-        .in('item_id', lookupIds)
+    const { data: existingOrder } = await supabase
+      .from('orders')
+      .select('id, stripe_payment_intent, total_eur, status')
+      .eq('buyer_id', user.id)
+      .eq('status', 'pending')
+      .eq('cart_hash', cartHash)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
 
-      for (const row of (authorityRows || [])) {
-        priceMap[row.item_id] = Number(row.price_eur) || 0
-      }
+    if (existingOrder?.stripe_payment_intent) {
+      // Bestehenden PI reaktivieren statt neuen erstellen
+      const stripe = new Stripe(stripeKey, { apiVersion: '2024-06-20' })
+      try {
+        const pi = await stripe.paymentIntents.retrieve(existingOrder.stripe_payment_intent)
+        if (pi.status === 'requires_payment_method' || pi.status === 'requires_confirmation') {
+          console.log('[PI] Bestehenden PI wiederverwendet:', pi.id)
+          return new Response(JSON.stringify({
+            clientSecret: pi.client_secret,
+            orderId:      existingOrder.id,
+            reused:       true,
+          }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }})
+        }
+      } catch {}
+      // PI nicht mehr nutzbar → alte Order auf aborted setzen, neu erstellen
+      await supabase.from('orders').update({ status: 'aborted' }).eq('id', existingOrder.id)
     }
 
-    // Schritt B: Betrag server-side aus DB-Preisen berechnen
+    // ── 4. Serverseitiger Preis-Lookup — EINZIGE Quelle für Preise ──
+    const itemIds = clientItems.filter((i: any) => i.item_id).map((i: any) => i.item_id)
+
+    const { data: authorityRows, error: priceErr } = await supabase
+      .from('commerce_price_authority')
+      .select('item_id, item_type, price_eur, creator_id, title, cover_url')
+      .in('item_id', itemIds)
+
+    if (priceErr) {
+      console.error('[PI] Price lookup error:', priceErr.message)
+      return new Response(JSON.stringify({ error: 'Preisvalidierung fehlgeschlagen' }), {
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Price Map: item_id → { price_eur, creator_id, title, cover_url }
+    // creator_id kommt AUSSCHLIESSLICH aus der DB — Client-Wert wird ignoriert
+    const priceMap = new Map<string, any>()
+    for (const row of (authorityRows || [])) {
+      priceMap.set(row.item_id, row)
+    }
+
+    // ── 5. Berechnung — alles server-side ────────────────────────
     let serverTotal = 0
     const validatedItems: any[] = []
 
-    for (const item of clientItems) {
-      const snap = item.snapshot || {}
+    for (const clientItem of clientItems) {
+      if (!clientItem.item_id) continue  // support/custom items überspringen
 
-      // Qty validieren
-      const rawQty = Number(item.quantity) || 1
-      const qty = Math.max(1, Math.min(MAX_QTY, Math.round(rawQty)))
-
-      // Preis: DB-Lookup bevorzugt, Snapshot als Fallback (für support/custom items)
-      const dbPrice     = item.item_id ? priceMap[item.item_id] : null
-      const snapPrice   = Number(snap.price_eur) || 0
-      const unitPrice   = dbPrice !== null && dbPrice !== undefined ? dbPrice : snapPrice
-
-      if (unitPrice <= 0 && item.item_type !== 'support') {
-        console.warn(`[PAYMENT] Item ${item.item_id} hat Preis 0 — möglicherweise nicht published`)
+      const dbRow = priceMap.get(clientItem.item_id)
+      if (!dbRow) {
+        console.warn(`[PI] Item ${clientItem.item_id} nicht in commerce_price_authority — nicht published?`)
+        continue  // Item nicht verfügbar → überspringen statt Fehler
       }
 
-      // Shipping: aktuell immer 0 (Sprint C3: serverseitige Berechnung)
-      const shippingEur = 0
-
-      const lineTotal  = +(unitPrice * qty + shippingEur).toFixed(2)
-      const payoutEur  = +(lineTotal * CREATOR_SHARE).toFixed(2)    // Server berechnet!
+      const qty        = clientItem.quantity
+      const unitPrice  = Number(dbRow.price_eur)
+      const lineTotal  = +(unitPrice * qty).toFixed(2)
+      const payoutEur  = +(lineTotal * CREATOR_SHARE).toFixed(2)
       const impactEur  = +(lineTotal * IMPACT_RATE).toFixed(2)
+      const platFee    = +(lineTotal * PLATFORM_FEE_RATE).toFixed(2)
 
       serverTotal += lineTotal
 
       validatedItems.push({
-        ...item,
+        // creator_id: NUR aus DB — client-Wert wird nicht verwendet
+        creator_id:     dbRow.creator_id,
+        item_type:      dbRow.item_type || clientItem.item_type,
+        item_id:        clientItem.item_id,
         quantity:       qty,
         unit_price_eur: unitPrice,
-        shipping_eur:   shippingEur,
-        payout_eur:     payoutEur,   // server-computed
-        impact_eur:     impactEur,   // server-computed
-        // Snapshot mit verifizierten Werten überschreiben
+        shipping_eur:   0,       // Sprint C3
+        payout_eur:     payoutEur,
+        impact_eur:     impactEur,
+        platform_fee_eur: platFee,
+        shipping_type:  'none',  // Sprint C3
+        // Snapshot: nur DB-Daten (kein client-Snapshot)
         snapshot: {
-          ...snap,
-          price_eur:   unitPrice,
-          quantity:    qty,
-          payout_eur:  payoutEur,
-          impact_eur:  impactEur,
-          server_validated: true,
-          validated_at:     new Date().toISOString(),
+          item_id:           clientItem.item_id,
+          item_type:         dbRow.item_type,
+          title:             dbRow.title,
+          cover_url:         dbRow.cover_url,
+          creator_id:        dbRow.creator_id,  // aus DB
+          price_eur:         unitPrice,          // aus DB
+          quantity:          qty,
+          payout_eur:        payoutEur,          // server-berechnet
+          impact_eur:        impactEur,          // server-berechnet
+          platform_fee_eur:  platFee,            // server-berechnet
+          server_validated:  true,
+          validated_at:      new Date().toISOString(),
         },
       })
     }
 
     serverTotal = Math.round(serverTotal * 100) / 100
-    const amountCents = Math.round(serverTotal * 100)
 
-    if (amountCents < 50) {
-      return new Response(JSON.stringify({ error: 'Mindestbetrag: 0.50 €' }), {
+    if (validatedItems.length === 0) {
+      return new Response(JSON.stringify({ error: 'Keine verfügbaren Items — möglicherweise nicht mehr published' }), {
+        status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    const amountCents = Math.round(serverTotal * 100)
+    if (amountCents < MIN_AMOUNT_CENTS) {
+      return new Response(JSON.stringify({ error: 'Mindestbetrag 0.50 €' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
-    // ── 4. Order in DB anlegen (pending) ─────────────────────────
+    // ── 6. Order anlegen ─────────────────────────────────────────
     const { data: dbOrder, error: orderErr } = await supabase
       .from('orders')
       .insert({
@@ -151,56 +215,76 @@ serve(async (req) => {
         impact_eur:       +(serverTotal * IMPACT_RATE).toFixed(2),
         status:           'pending',
         currency:         'eur',
+        cart_hash:        cartHash,  // für Idempotenz-Lookup
       })
       .select('id')
       .single()
 
     if (orderErr || !dbOrder) {
-      console.error('[ORDER] DB insert error:', orderErr?.message)
-      return new Response(JSON.stringify({ error: 'Order konnte nicht erstellt werden' }), {
+      return new Response(JSON.stringify({ error: 'Order-Erstellung fehlgeschlagen' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
-    // ── 5. Order Items mit server-validierten Werten anlegen ──────
-    const itemInserts = validatedItems.map((item: any) => ({
-      order_id:           dbOrder.id,
-      creator_id:         item.creator_id || null,
-      item_type:          item.item_type || 'work',
-      item_id:            item.item_id || null,
-      snapshot:           item.snapshot,
-      shipping_type:      item.shipping_type || 'none',
-      quantity:           item.quantity,
-      unit_price_eur:     item.unit_price_eur,
-      shipping_eur:       item.shipping_eur,
-      payout_eur:         item.payout_eur,   // server-berechnet
-      impact_eur:         item.impact_eur,   // server-berechnet
-      fulfillment_status: 'new',
-      payout_status:      'held',
-    }))
+    createdOrderId = dbOrder.id  // für Cleanup
 
-    await supabase.from('order_items').insert(itemInserts)
+    // ── 7. Order Items ────────────────────────────────────────────
+    await supabase.from('order_items').insert(
+      validatedItems.map(item => ({
+        order_id:           dbOrder.id,
+        creator_id:         item.creator_id,  // aus DB
+        item_type:          item.item_type,
+        item_id:            item.item_id,
+        snapshot:           item.snapshot,
+        shipping_type:      item.shipping_type,
+        quantity:           item.quantity,
+        unit_price_eur:     item.unit_price_eur,
+        shipping_eur:       item.shipping_eur,
+        payout_eur:         item.payout_eur,
+        impact_eur:         item.impact_eur,
+        fulfillment_status: 'new',
+        payout_status:      'held',
+      }))
+    )
 
-    // ── 6. Stripe Payment Intent (mit Idempotency Key) ────────────
+    // ── 8. Stripe Payment Intent ──────────────────────────────────
     const stripe = new Stripe(stripeKey, { apiVersion: '2024-06-20' })
-
-    // Idempotency Key = Order-ID (verhindert Doppel-PIs bei Netzwerkfehler)
     const idempotencyKey = `pi_hui_${dbOrder.id}`
 
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount:   amountCents,
-      currency: 'eur',
-      automatic_payment_methods: { enabled: true },
-      receipt_email: user.email || undefined,
-      metadata: {
-        hui_order_id:   dbOrder.id,
-        buyer_id:       user.id,
-        item_count:     validatedItems.length.toString(),
-        creator_count:  [...new Set(validatedItems.map((i: any) => i.creator_id))].filter(Boolean).length.toString(),
-        impact_eur:     (+(serverTotal * IMPACT_RATE).toFixed(2)).toFixed(2),
-        source:         'hui_commerce_v2',
-      },
-    }, { idempotencyKey })
+    let paymentIntent: Stripe.PaymentIntent
+    try {
+      paymentIntent = await stripe.paymentIntents.create({
+        amount:   amountCents,
+        currency: 'eur',
+        automatic_payment_methods: { enabled: true },
+        receipt_email: user.email || undefined,
+        metadata: {
+          hui_order_id:   dbOrder.id,
+          buyer_id:       user.id,
+          item_count:     validatedItems.length.toString(),
+          creator_count:  [...new Set(validatedItems.map(i => i.creator_id))].filter(Boolean).length.toString(),
+          impact_eur:     (+(serverTotal * IMPACT_RATE).toFixed(2)).toFixed(2),
+          cart_hash:      cartHash,
+          source:         'hui_commerce_v2',
+        },
+      }, { idempotencyKey })
+    } catch (stripeErr: any) {
+      // P1: Stripe-Fehler → Order cleanup (kein orphaned pending)
+      console.error('[PI] Stripe Error:', stripeErr.message)
+      await supabase.from('orders')
+        .update({ status: 'aborted' })
+        .eq('id', dbOrder.id)
+      await supabase.from('commerce_events').insert({
+        event_type: 'payment_failed',
+        order_id:   dbOrder.id,
+        actor_type: 'system',
+        payload:    { error: stripeErr.message, stage: 'pi_creation' }
+      }).catch(() => {})
+      return new Response(JSON.stringify({
+        error: 'Stripe-Verbindung fehlgeschlagen. Bitte erneut versuchen.',
+        code:  'STRIPE_ERROR',
+      }), { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' }})
+    }
 
     // PI-ID in Order speichern
     await supabase.from('orders')
@@ -213,17 +297,33 @@ serve(async (req) => {
       order_id:   dbOrder.id,
       actor_id:   user.id,
       actor_type: 'buyer',
-      payload:    { amount_eur: serverTotal, item_count: validatedItems.length, db_validated: true }
+      payload:    {
+        amount_eur:    serverTotal,
+        item_count:    validatedItems.length,
+        db_validated:  true,
+        creator_count: [...new Set(validatedItems.map(i => i.creator_id))].length,
+      }
     }).catch(() => {})
 
     return new Response(JSON.stringify({
       clientSecret: paymentIntent.client_secret,
       orderId:      dbOrder.id,
-      serverTotal,  // zur Anzeige im UI (trusted)
+      serverTotal,
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }})
 
   } catch (e: any) {
-    console.error('[CREATE_PAYMENT_INTENT]', e?.message)
+    // P1: unerwarteter Fehler → Order cleanup
+    if (createdOrderId) {
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      )
+      await supabase.from('orders')
+        .update({ status: 'aborted' })
+        .eq('id', createdOrderId)
+        .catch(() => {})
+    }
+    console.error('[CREATE_PAYMENT_INTENT] Unhandled:', e?.message)
     return new Response(JSON.stringify({ error: e?.message || 'Unbekannter Fehler' }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
