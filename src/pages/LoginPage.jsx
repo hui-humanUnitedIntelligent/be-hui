@@ -337,7 +337,10 @@ export default function LoginPage() {
   const [email,      setEmail]      = useState('');
   const [pw,         setPw]         = useState('');
   const [showPw,     setShowPw]     = useState(false);
-  const [fullName,   setFullName]   = useState('');
+  const [fullName,    setFullName]    = useState('');
+  const [lastName,    setLastName]    = useState('');
+  const [username,    setUsername]    = useState('');
+  const [usernameErr, setUsernameErr] = useState('');
   const [refLink,    setRefLink]    = useState('');
   const [refValid,   setRefValid]   = useState(null);
   const [loading,    setLoading]    = useState(false);
@@ -455,17 +458,52 @@ export default function LoginPage() {
   }
 
   async function handleRegister(e) {
-    e.preventDefault(); clearMessages();
-    if (!email || !pw) { setErr('Bitte E-Mail und Passwort eingeben.'); return; }
-    if (pw.length < 6) { setErr('Das Passwort muss mindestens 6 Zeichen haben.'); return; }
+    e.preventDefault(); clearMessages(); setUsernameErr('');
+
+    // ── Pflichtfeld-Validierung ──
+    if (!fullName.trim())   { setErr('Bitte gib deinen Vornamen ein.');    return; }
+    if (!lastName.trim())   { setErr('Bitte gib deinen Nachnamen ein.');   return; }
+    if (!username.trim())   { setErr('Bitte wähle einen Benutzernamen.');  return; }
+    if (!email)             { setErr('Bitte gib deine E-Mail ein.');       return; }
+    if (!pw)                { setErr('Bitte gib ein Passwort ein.');       return; }
+    if (pw.length < 6)      { setErr('Das Passwort muss mindestens 6 Zeichen haben.'); return; }
+
+    // Username-Format prüfen
+    const uname = username.trim().toLowerCase().replace(/\s+/g, '_');
+    if (!/^[a-z0-9_]{3,30}$/.test(uname)) {
+      setErr('Benutzername: 3-30 Zeichen, nur Buchstaben, Zahlen und _');
+      return;
+    }
+
     setLoading(true);
 
-    // Ref-Link auflösen (vor signUp, damit wir die ID haben)
+    // Username-Verfügbarkeit prüfen
+    const { data: existingUser } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('username', uname)
+      .maybeSingle();
+    if (existingUser) {
+      setErr('Dieser Benutzername ist bereits vergeben. Bitte wähle einen anderen.');
+      setLoading(false);
+      return;
+    }
+
+    const combinedName = `${fullName.trim()} ${lastName.trim()}`;
+
+    // Ref-Link auflösen
     const refResult = refLink.trim() ? await resolveRefLink(refLink.trim()) : null;
+    void refResult;
 
     const { error, data: signUpData } = await supabase.auth.signUp({
       email, password: pw,
-      options: { data: { full_name: fullName || '' } },
+      options: {
+        data: {
+          full_name:    combinedName,
+          display_name: uname,
+          username:     uname,
+        },
+      },
     });
     if (error) {
       setErr(translateError(error.message));
@@ -473,10 +511,17 @@ export default function LoginPage() {
       return;
     }
 
-    // Ref-Link Verarbeitung nach Auto-Login — processReferralForUser übernimmt alles
-    // (Retry-Logik + referred_by UUID + localStorage-Clearing in referralTracking.js)
+    // Profil sofort mit allen Pflichtfeldern befüllen
     if (signUpData?.user?.id) {
-      // Nicht awaiten — läuft im Hintergrund während Onboarding gezeigt wird
+      await supabase.from('profiles').upsert({
+        id:           signUpData.user.id,
+        full_name:    combinedName,
+        display_name: uname,
+        username:     uname,
+        email:        email,
+        updated_at:   new Date().toISOString(),
+      }, { onConflict: 'id' });
+
       processReferralForUser(signUpData.user.id).catch(() => {});
     }
 
@@ -716,14 +761,57 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {}
             {mode === 'register' && (
-              <GlassInput
-                id="fullname"
-                type="text"
-                value={fullName}
-                onChange={e => setFullName(e.target.value)}
-                placeholder="Dein Name (optional)"
-                autoComplete="name"
-              />
+              <>
+                {/* Vorname */}
+                <GlassInput
+                  id="firstname"
+                  type="text"
+                  value={fullName}
+                  onChange={e => setFullName(e.target.value)}
+                  placeholder="Vorname *"
+                  autoComplete="given-name"
+                  required
+                />
+                {/* Nachname */}
+                <GlassInput
+                  id="lastname"
+                  type="text"
+                  value={lastName}
+                  onChange={e => setLastName(e.target.value)}
+                  placeholder="Nachname *"
+                  autoComplete="family-name"
+                  required
+                />
+                {/* Benutzername */}
+                <GlassInput
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={e => {
+                    const v = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+                    setUsername(v);
+                    setUsernameErr('');
+                  }}
+                  placeholder="Benutzername * (z.B. max_muster)"
+                  autoComplete="username"
+                  required
+                  rightSlot={
+                    username.trim().length >= 3 ? (
+                      <span style={{
+                        fontSize: 11, fontWeight: 700,
+                        color: /^[a-z0-9_]{3,30}$/.test(username) ? '#0EC4B8' : 'rgba(255,138,107,0.9)',
+                      }}>
+                        {/^[a-z0-9_]{3,30}$/.test(username) ? '✓' : '✗'}
+                      </span>
+                    ) : null
+                  }
+                />
+                {usernameErr && (
+                  <div style={{ fontSize: 11, color: 'rgba(255,138,107,0.9)', marginTop: -6, paddingLeft: 4 }}>
+                    {usernameErr}
+                  </div>
+                )}
+              </>
             )}
 
             {}
