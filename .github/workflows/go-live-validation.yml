@@ -2,6 +2,11 @@ name: Go-Live Validation
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'go-live-validation.js'
+      - '.github/workflows/go-live-validation.yml'
   workflow_run:
     workflows: [Run Migration 057, Deploy Supabase Edge Functions]
     types: [completed]
