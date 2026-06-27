@@ -595,6 +595,12 @@ export default function LoginPage() {
     border: '1px solid rgba(255,255,255,0.10)',
     borderRadius: 28,
     boxShadow: '0 32px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04)',
+    // Register hat mehr Felder — scrollbar wenn nötig
+    ...(mode === 'register' ? {
+      maxHeight: '92dvh',
+      overflowY: 'auto',
+      overflowX: 'hidden',
+    } : {}),
   };
 
   const fadeStyle = {
@@ -820,7 +826,7 @@ export default function LoginPage() {
               type="email"
               value={email}
               onChange={e => { setEmail(e.target.value); clearMessages(); }}
-              placeholder="E-Mail-Adresse"
+              placeholder="E-Mail-Adresse *"
               autoComplete="email"
             />
 
@@ -831,7 +837,7 @@ export default function LoginPage() {
                 type={showPw ? 'text' : 'password'}
                 value={pw}
                 onChange={e => { setPw(e.target.value); clearMessages(); }}
-                placeholder="Passwort"
+                placeholder="Passwort *"
                 autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                 rightSlot={
                   <button type="button" onClick={() => setShowPw(v => !v)}
