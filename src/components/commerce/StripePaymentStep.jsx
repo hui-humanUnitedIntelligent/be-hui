@@ -71,13 +71,10 @@ function StripeForm({ total, impact, orderId, onSuccess, onError }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+    <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column" }}>
 
-      {/* Scroll-Bereich */}
-      <div style={{
-        flex: 1, overflowY: "auto", padding: "4px 24px 0",
-        WebkitOverflowScrolling: "touch",
-      }}>
+      {/* Inhalt — Parent-Sheet scrollt (kein verschachtelter Clip) */}
+      <div style={{ padding: "4px 24px 0" }}>
 
         {/* Stripe Payment Element */}
         <div style={{ marginBottom: 20 }}>
@@ -148,10 +145,10 @@ function StripeForm({ total, impact, orderId, onSuccess, onError }) {
         <div style={{ height: 24 }} />
       </div>
 
-      {/* Sticky Button */}
+      {/* Bezahlen-Button — scrollt mit, Clearance via Parent paddingBottom */}
       <div style={{
         padding: "16px 24px",
-        paddingBottom: `calc(16px + max(0px, env(safe-area-inset-bottom, 0px)))`,
+        paddingBottom: `calc(16px + env(safe-area-inset-bottom, 0px))`,
         flexShrink: 0,
       }}>
         <button
@@ -225,7 +222,7 @@ export default function StripePaymentStep({
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+    <div style={{ display: "flex", flexDirection: "column" }}>
 
       {/* Header — nur wenn nicht eingebettet */}
       {!hideHeader && (

@@ -479,7 +479,8 @@ export default function UnterstutzenFlow({
     <div style={{
       position:        "fixed",
       inset:           0,
-      zIndex:          9100,
+      // Über BottomNav (zIndex 10000) — Tabbar darf Payment nicht verdecken
+      zIndex:          10100,
       background:      "rgba(20,20,34,0.52)",
       backdropFilter:  "blur(6px)",
       WebkitBackdropFilter: "blur(6px)",
@@ -494,11 +495,14 @@ export default function UnterstutzenFlow({
         background:      C.cream,
         borderRadius:    "28px 28px 0 0",
         boxShadow:       "0 -8px 48px rgba(20,20,34,0.18)",
-        overflow:        "hidden",
         display:         "flex",
         flexDirection:   "column",
-        maxHeight:       "92dvh",
-        minHeight:       "60dvh",
+        maxHeight:       "calc(100vh - env(safe-area-inset-top, 0px) - 24px)",
+        overflowY:       "auto",
+        WebkitOverflowScrolling: "touch",
+        // TabBar (~66px) + Margin + Puffer — Bezahlen-Button bleibt erreichbar
+        paddingBottom:   `calc(120px + env(safe-area-inset-bottom, 0px))`,
+        boxSizing:       "border-box",
       }}>
         {/* Header */}
         {!isSuccess && (
@@ -534,13 +538,13 @@ export default function UnterstutzenFlow({
           </div>
         )}
 
-        {/* Content */}
-        <div style={{ flex: 1, overflow: "hidden", position: "relative" }}>
-          <div style={{ ...slideIn, height: "100%" }}>
+        {/* Content — scrollt mit dem Sheet (kein overflow:hidden-Clip) */}
+        <div style={{ flex: 1, minHeight: 0, position: "relative" }}>
+          <div style={{ ...slideIn }}>
 
             {/* Step 0: Stripe Payment */}
             {step === 0 && (
-              <div style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: "55dvh" }}>
+              <div style={{ display: "flex", flexDirection: "column" }}>
 
                 {/* Impact-Karte (kompakt, oberhalb Stripe) */}
                 <div style={{ padding: "16px 20px 0", flexShrink: 0 }}>
@@ -548,7 +552,7 @@ export default function UnterstutzenFlow({
                 </div>
 
                 {/* Stripe Payment Step */}
-                <div style={{ flex: 1, overflow: "hidden" }}>
+                <div style={{ flex: 1, minHeight: 0 }}>
                   {stripeError ? (
                     /* Fehler-Zustand */
                     <div style={{
