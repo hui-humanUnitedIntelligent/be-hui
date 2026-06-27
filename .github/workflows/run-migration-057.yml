@@ -1,0 +1,59 @@
+name: Run Migration 057
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: run-migration-057
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link Supabase project
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase link --project-ref gxztrhvhcxhmunhhkfjd --yes
+
+      - name: Run hui_057_commerce_schema_final.sql
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase db query --linked -f hui_057_commerce_schema_final.sql
+
+      - name: Verify commerce objects
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+          TABLES="orders order_items creator_wallets creator_payouts webhook_events commerce_events shipments impact_rounds notifications"
+          VIEWS="commerce_price_authority buyer_order_status"
+          FAIL=0
+
+          for t in $TABLES; do
+            count=$(supabase db query --linked "SELECT COUNT(*)::text AS c FROM information_schema.tables WHERE table_schema='public' AND table_name='$t';" | tail -n 1 | tr -d ' ')
+            if [ "$count" = "1" ]; then
+              echo "✅ table $t"
+            else
+              echo "❌ table $t missing"
+              FAIL=1
+            fi
+          done
+
+          for v in $VIEWS; do
+            count=$(supabase db query --linked "SELECT COUNT(*)::text AS c FROM information_schema.views WHERE table_schema='public' AND table_name='$v';" | tail -n 1 | tr -d ' ')
+            if [ "$count" = "1" ]; then
+              echo "✅ view $v"
+            else
+              echo "❌ view $v missing"
+              FAIL=1
+            fi
+          done
+
+          exit $FAIL
