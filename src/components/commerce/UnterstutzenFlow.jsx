@@ -289,6 +289,36 @@ export default function UnterstutzenFlow({
     return () => clearTimeout(t);
   }, []);
 
+  // P1: Stripe Redirect-Rückkehr prüfen (?hui_order=...&status=success)
+  useEffect(() => {
+    const params   = new URLSearchParams(window.location.search);
+    const huiOrder = params.get('hui_order');
+    const status   = params.get('status');
+    if (!huiOrder || !user) return;
+
+    // URL sauber halten
+    window.history.replaceState({}, '', window.location.pathname);
+
+    if (status === 'success') {
+      // Serverseitige Statusprüfung (kein Client-Trust)
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        fetch(`${supabaseUrl}/functions/v1/check-order-status?order_id=${huiOrder}`, {
+          headers: { 'Authorization': `Bearer ${session?.access_token}` }
+        })
+          .then(r => r.json())
+          .then(result => {
+            if (result.isPaid) {
+              setOrderId(huiOrder);
+              goTo(1); // → Danke Screen
+            }
+            // Nicht paid → normaler Flow (kein Auto-Danke ohne Bestätigung)
+          })
+          .catch(e => console.warn('[REDIRECT] Status-Check fehlgeschlagen:', e.message));
+      });
+    }
+  }, [user]);
+
   // Payment Intent erstellen (direkt beim Öffnen des Flows)
   useEffect(() => {
     if (clientSecret || piLoading || !user || !items.length) return;
