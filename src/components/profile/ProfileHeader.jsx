@@ -272,17 +272,6 @@ export function ProfileHeader({
             <Sk w="100%" h={13} r={5} style={{ marginBottom:5 }}/>
             <Sk w="72%"  h={13} r={5}/>
           </div>
-        ) : bio ? (
-          <p style={{
-            fontSize:13.5, lineHeight:1.65, color:T.inkSoft,
-            margin:"0 0 0", fontStyle:"italic",
-            display:"-webkit-box",
-            WebkitLineClamp:2,
-            WebkitBoxOrient:"vertical",
-            overflow:"hidden",
-          }}>
-            {bio}
-          </p>
         ) : null}
 
         {/* Follow-Counts */}
