@@ -347,7 +347,7 @@ export default function UnterstutzenFlow({
       const result = await res.json();
 
       if (!res.ok || result.error) {
-        throw new Error(result.error || "Payment Intent fehlgeschlagen");
+        throw new Error(result.error || result.message || `HTTP ${res.status}`);
       }
       if (result.code === "STRIPE_NOT_CONFIGURED") {
         throw new Error("Stripe ist noch nicht aktiviert. Bitte den Administrator kontaktieren.");
