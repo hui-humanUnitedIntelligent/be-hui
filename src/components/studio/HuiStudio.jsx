@@ -1465,6 +1465,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
         <MeineTicketsPage
           onBack={() => setShowMeineTickets(false)}
           userId={profile?.id}
+          profile={profile}
         />
       )}
 
