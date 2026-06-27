@@ -684,9 +684,12 @@ DECLARE
   v_works_creator   text := 'NULL::uuid';
   v_works_price     text := '0::numeric';
   v_works_shipping  text := '0::numeric';
-  v_works_for_sale  text := '';
+  v_works_status    text := '''published''::text';
+  v_works_where     text := 'TRUE';
   v_exp_creator     text := 'NULL::uuid';
   v_exp_price       text := '0::numeric';
+  v_exp_status      text := '''active''::text';
+  v_exp_where       text := 'TRUE';
   v_sql             text;
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'works') THEN
@@ -710,8 +713,13 @@ BEGIN
     v_works_shipping := 'COALESCE(w.shipping_cost, 0)';
   END IF;
 
+  IF public.hui_col_exists('works', 'status') THEN
+    v_works_status := 'w.status';
+    v_works_where := 'w.status IN (''published'', ''approved'')';
+  END IF;
+
   IF public.hui_col_exists('works', 'for_sale') THEN
-    v_works_for_sale := ' AND (w.for_sale IS NULL OR w.for_sale = true)';
+    v_works_where := v_works_where || ' AND (w.for_sale IS NULL OR w.for_sale = true)';
   END IF;
 
   v_sql := format($fmt$
@@ -724,10 +732,10 @@ BEGIN
         %s                              AS shipping_eur,
         w.title,
         w.cover_url,
-        w.status
+        %s                              AS status
       FROM public.works w
-      WHERE w.status IN ('published', 'approved')%s
-  $fmt$, v_works_creator, v_works_price, v_works_shipping, v_works_for_sale);
+      WHERE %s
+  $fmt$, v_works_creator, v_works_price, v_works_shipping, v_works_status, v_works_where);
 
   IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'experiences') THEN
     IF public.hui_col_exists('experiences', 'user_id') THEN
@@ -735,6 +743,11 @@ BEGIN
     END IF;
     IF public.hui_col_exists('experiences', 'price') THEN
       v_exp_price := 'COALESCE(e.price, 0)';
+    END IF;
+
+    IF public.hui_col_exists('experiences', 'status') THEN
+      v_exp_status := 'e.status';
+      v_exp_where := 'e.status IN (''published'', ''approved'', ''active'')';
     END IF;
 
     v_sql := v_sql || format($fmt$
@@ -747,10 +760,10 @@ BEGIN
         0::numeric                      AS shipping_eur,
         e.title,
         e.cover_url,
-        e.status
+        %s                              AS status
       FROM public.experiences e
-      WHERE e.status IN ('published', 'approved', 'active')
-    $fmt$, v_exp_creator, v_exp_price);
+      WHERE %s
+    $fmt$, v_exp_creator, v_exp_price, v_exp_status, v_exp_where);
   END IF;
 
   EXECUTE v_sql;
