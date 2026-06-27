@@ -1,5 +1,10 @@
 // src/hooks/useCartPersistence.js
-// HUI Werkekorb — persistente Speicherung (v1.0)
+// HUI Werkekorb — persistente Speicherung (v1.1)
+//
+// v1.1 Änderung: Dual-Persistenz-Strategie
+//   - setCart-Wrapper schreibt synchron (sofort beim Aufruf)
+//   - useEffect schreibt als Fallback bei jedem cart-Änderung
+//   → verhindert Datenverlust wenn cart außerhalb von setCart geändert wird
 //
 // Architektur:
 //   Layer 0 (aktiv):  localStorage  — synchron, kein Server nötig
@@ -10,23 +15,18 @@
 //   ✅ Wiederhergestellt: beim App-Start (vor erstem Render des Warenkorbs)
 //   ❌ Gelöscht NUR bei: erfolgreicher Unterstützung ODER bewusstem Leeren
 //   ❌ Ein Reload löscht niemals den Inhalt
-//
-// Phase-2-Vorbereitung:
-//   Der Hook ist so geschrieben, dass clearCart() und saveCart() später
-//   parallel eine Supabase-Funktion aufrufen können, ohne die API zu ändern.
 
 import { useState, useEffect, useCallback, useRef } from "react";
 
 const STORAGE_KEY_PREFIX = "hui_cart_v1:";
 
-/** Gibt den nutzer-spezifischen Key zurück (oder globalen Fallback). */
 function storageKey(userId) {
-  return userId ? `${STORAGE_KEY_PREFIX}${userId}` : `${STORAGE_KEY_PREFIX}anon`;
+  // Warte auf eine echte User-ID — niemals mit 'anon' schreiben wenn userId kommt
+  return userId ? `${STORAGE_KEY_PREFIX}${userId}` : null;
 }
 
-/** Liest den Cart sicher aus localStorage.
- *  Gibt [] zurück wenn nichts vorhanden oder JSON fehlerhaft. */
 function readFromStorage(key) {
+  if (!key) return [];
   try {
     const raw = localStorage.getItem(key);
     if (!raw) return [];
@@ -37,8 +37,8 @@ function readFromStorage(key) {
   }
 }
 
-/** Schreibt den Cart in localStorage. */
 function writeToStorage(key, items) {
+  if (!key) return; // kein Key = kein Schreiben
   try {
     if (!items || items.length === 0) {
       localStorage.removeItem(key);
@@ -46,21 +46,18 @@ function writeToStorage(key, items) {
       localStorage.setItem(key, JSON.stringify(items));
     }
   } catch (e) {
-    // QuotaExceededError u.ä. — kein crash
     console.warn("[HUI Cart] localStorage write failed:", e?.message);
   }
 }
 
-/** Löscht den Cart aus localStorage. */
 function deleteFromStorage(key) {
+  if (!key) return;
   try {
     localStorage.removeItem(key);
   } catch {}
 }
 
-// ── Phase-2-Stub: spätere Cloud-Sync-Funktionen ────────────────────
-// Diese Funktionen können implementiert werden ohne die Hook-API zu ändern.
-//
+// ── Phase-2-Stub ────────────────────────────────────────────────
 // async function syncToCloud(userId, items) { /* Supabase upsert */ }
 // async function loadFromCloud(userId) { /* Supabase select */ }
 // async function deleteFromCloud(userId) { /* Supabase delete */ }
@@ -68,39 +65,55 @@ function deleteFromStorage(key) {
 /**
  * useCartPersistence — Drop-in-Ersatz für useState([]) im Werkekorb
  *
- * @param {string|null} userId  — Auth-User-ID (kann null sein bei Gast)
+ * @param {string|null} userId  — Auth-User-ID
  * @returns {{ cart, setCart, clearCart }}
- *
- * setCart:   identisch zu React setState — akzeptiert Wert oder Funktion
- * clearCart: löscht Cart + Storage (nur nach Erfolg oder bewusstem Leeren)
  */
 export function useCartPersistence(userId) {
   const key = storageKey(userId);
+  const prevKeyRef = useRef(key);
 
-  // Initialer State direkt aus Storage — vor erstem Render
+  // Initialer State aus Storage (lazy initializer — läuft einmal beim Mount)
   const [cart, _setCart] = useState(() => readFromStorage(key));
 
-  // Key-Wechsel bei userId-Änderung (Login/Logout)
-  const prevKeyRef = useRef(key);
+  // ── Kritisch: userId-Wechsel (z.B. nach Login/Logout) ──────────
+  // Wenn user.id erst nach dem ersten Render verfügbar ist,
+  // laden wir den korrekten Cart nach.
   useEffect(() => {
     if (prevKeyRef.current !== key) {
       prevKeyRef.current = key;
-      _setCart(readFromStorage(key));
+      const restored = readFromStorage(key);
+      _setCart(restored);
     }
   }, [key]);
 
-  /** Wrapper um setState — persistiert automatisch nach jeder Änderung */
+  // ── Dual-Persistenz: Fallback useEffect ────────────────────────
+  // Schreibt bei JEDER cart-Änderung in Storage.
+  // Funktioniert auch wenn cart von außen geändert wurde.
+  // skip: wenn key null (userId noch nicht bekannt)
+  //       wenn cart leer und Storage leer (kein sinnloser Write)
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    // Ersten Render überspringen (Initialisierung aus Storage — kein Write nötig)
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    if (!key) return;
+    writeToStorage(key, cart);
+    // Phase-2-Hook-Point: syncToCloud(userId, cart)
+  }, [cart, key]);
+
+  /** Wrapper um setState — persistiert sofort (primärer Pfad) */
   const setCart = useCallback((updater) => {
     _setCart(prev => {
       const next = typeof updater === "function" ? updater(prev) : updater;
+      // Sofort schreiben — nicht auf useEffect warten
       writeToStorage(key, next);
-      // Phase-2-Hook-Point: syncToCloud(userId, next)
       return next;
     });
   }, [key]);
 
-  /** Bewusstes Leeren + Storage-Löschung.
-   *  Aufruf NUR nach Erfolg oder explizitem User-Action. */
+  /** Bewusstes Leeren — NUR nach Erfolg oder explizitem User-Action */
   const clearCart = useCallback(() => {
     deleteFromStorage(key);
     _setCart([]);
