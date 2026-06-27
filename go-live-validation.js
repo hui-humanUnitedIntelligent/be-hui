@@ -204,15 +204,18 @@ async function phase4to6(piData, jwt) {
   }
   pass('Stripe Testzahlung succeeded');
 
-  console.log('  Warte 15s auf Webhook...');
-  await new Promise(r => setTimeout(r, 15000));
-
+  console.log('  Warte auf Webhook (Polling bis 30s)...');
+  let orderData = null;
   const whStart = Date.now();
-  const orderRes = await fetch(
-    `${SUPABASE_URL}/functions/v1/check-order-status?order_id=${orderId}`,
-    { headers: { Authorization: `Bearer ${jwt}` } }
-  );
-  const orderData = await orderRes.json();
+  for (let i = 0; i < 10; i++) {
+    await new Promise(r => setTimeout(r, 3000));
+    const orderRes = await fetch(
+      `${SUPABASE_URL}/functions/v1/check-order-status?order_id=${orderId}`,
+      { headers: { Authorization: `Bearer ${jwt}` } }
+    );
+    orderData = await orderRes.json();
+    if (orderData.isPaid) break;
+  }
   const statusMs = Date.now() - whStart;
 
   report.webhook = orderData.isPaid === true;
