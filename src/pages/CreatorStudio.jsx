@@ -9,6 +9,7 @@ import { useCreatorBookings, BOOKING_STATUS } from "../lib/bookingContext";
 import { useAuth } from "../lib/AuthContext";
 import { supabase } from "../lib/supabaseClient";
 import { HUI } from "../design/hui.design.js";
+import SupportPage from "./studio/SupportPage.jsx";
 import {
   getAmbientGreeting, useCreatorJourney, getSoftStatus,
   AMBIENT_CSS, TRANSITIONS,
@@ -16,7 +17,6 @@ import {
 import {
   AnalyticsPage, EinnahmenPage, VerfuegbarkeitPage,
   ImpactSubPage, KontoPage, MeineInhaltePage,
-import SupportPage from "./studio/SupportPage.jsx";
   BestellungenPage, ReputationInsightsPage,
 } from "./studio/StudioSubPages";
 
