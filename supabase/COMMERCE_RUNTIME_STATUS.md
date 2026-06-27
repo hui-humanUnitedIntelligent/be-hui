@@ -1,6 +1,27 @@
 # Commerce Edge Functions — Runtime Status
 
-Stand: 2026-06-27 (vor Redeploy via `cursor/edge-functions-runtime-stabilize-7dda`)
+**Commerce 2.0 Architecture Freeze** — Stand: 2026-06-27
+
+---
+
+## Kanonische Edge Functions
+
+| Function | Zweck | Schema |
+|---|---|---|
+| `create-payment-intent` | Checkout-Einstieg, PI erstellen | `customer_id`, `state`, `commission_eur`, `seller_id` |
+| `handle-payment-webhook` | Stripe Webhook → `state=paid` | `customer_id`, `state`, `seller_id` |
+| `check-order-status` | Post-Redirect Status-Poll | `buyer_order_status` View (kanonisch + Aliase) |
+| `release-payout` | Creator-Auszahlung | `seller_id`, `creator_wallets`, `creator_payouts` |
+| `distribute-impact-round` | Monatliche Impact-Verteilung | `impact_rounds.status` |
+
+## Legacy Edge Functions (nicht Commerce-Checkout)
+
+| Function | Status |
+|---|---|
+| `release-escrow` | LEGACY — bookings/escrow Flow |
+| `cast-impact-vote` | LEGACY — Impact-Subsystem (manuell deployen) |
+
+---
 
 ## Verifikationskriterien
 
@@ -10,36 +31,22 @@ Stand: 2026-06-27 (vor Redeploy via `cursor/edge-functions-runtime-stabilize-7dd
 | **404** | Fehler — Function nicht deployed |
 | **503** | Fehler — Function bootet nicht (`LOAD_FUNCTION_ERROR`) |
 
-## Pre-Deploy Status (Baseline)
+---
 
-Alle vier Commerce-Functions liefern aktuell **503** mit `LOAD_FUNCTION_ERROR`:
+## Checkout-Flow (Runtime-Abhängigkeiten)
 
-| Function | HTTP-Status | Runtime gestartet | Handler ausgeführt |
-|---|---|---|---|
-| `create-payment-intent` | 503 | nein | nein |
-| `handle-payment-webhook` | 503 | nein | nein |
-| `check-order-status` | 503 | nein | nein |
-| `release-payout` | 503 | nein | nein |
+```
+UnterstuetzenFlow
+  → create-payment-intent  (benötigt: commerce_price_authority, orders, order_items)
+  → Stripe Payment Element
+  → handle-payment-webhook   (benötigt: webhook_events, impact_rounds, notifications)
+  → check-order-status       (benötigt: buyer_order_status View)
+  → release-payout           (benötigt: creator_wallets, increment_wallet_balance RPC)
+```
 
-Response-Body (alle): `{"code":"LOAD_FUNCTION_ERROR","message":"Failed to load edge function"}`
+**Voraussetzung:** Migration `057` muss ausgeführt sein.
 
-## Post-Deploy Erwartung
-
-Nach erfolgreichem Redeploy (deploy-trigger + `.catch()`-Fixes):
-
-| Function | Erwarteter HTTP-Status | Erwarteter Handler-Pfad |
-|---|---|---|
-| `create-payment-intent` | 401 | Auth-Check ohne Bearer-Token |
-| `handle-payment-webhook` | 400 | Stripe-Signatur-Validierung schlägt fehl |
-| `check-order-status` | 401 | Auth-Check ohne Bearer-Token |
-| `release-payout` | 401 | Auth-Check ohne Bearer-Token |
-
-## Änderungen in diesem Sprint
-
-1. Alle falschen `.catch()`-Aufrufe auf Supabase Query Builder entfernt (async/await + `{ error }`-Check)
-2. GitHub Workflow: `concurrency` verhindert parallele Deployments
-3. Deployment-Verifikation prüft alle 4 Functions einzeln (401/400 = PASS, 404/503 = FAIL)
-4. `deploy-trigger`-Kommentar in allen 4 Functions für erzwungenen Redeploy
+---
 
 ## Manuelle Verifikation
 
@@ -50,3 +57,23 @@ for fn in create-payment-intent handle-payment-webhook check-order-status releas
   curl -s -w "\nHTTP %{http_code}\n" "$BASE/$fn" -X POST -H "Content-Type: application/json" -d '{}'
 done
 ```
+
+Erwartung nach Deploy: **401** (Auth) oder **400** (Validation) — kein 503/404.
+
+---
+
+## Schema-Kompatibilität (057)
+
+| Function | Kanonische Felder | Legacy-Felder |
+|---|---|---|
+| `create-payment-intent` | ✅ customer_id, state, commission_eur, seller_id | — |
+| `handle-payment-webhook` | ✅ customer_id, state, seller_id | — |
+| `check-order-status` | ✅ via buyer_order_status | status-Alias in Response (temporär) |
+| `release-payout` | ✅ seller_id | creator_id nur als Request-Param-Name |
+| `distribute-impact-round` | ✅ impact_rounds | — |
+
+---
+
+## Deploy
+
+Siehe `DEPLOY.md` Schritt 2. GitHub Workflow deployt automatisch die 4 Commerce-Functions bei Push auf `main`.
