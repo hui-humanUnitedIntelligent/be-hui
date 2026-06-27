@@ -1136,7 +1136,8 @@ export default function WerkeKorb({
             />
           ) : (
             <div style={{
-              paddingBottom: `calc(max(20px, env(safe-area-inset-bottom, 20px)) + 130px)`,
+              // Button-Strip (78px) + TabBar (56px) + Puffer (28px) + safe-area
+              paddingBottom: `calc(162px + max(0px, env(safe-area-inset-bottom, 0px)))`,
             }}>
               {/* Menschen & Werke — immer zuerst */}
               {groups.map(group => (
@@ -1179,11 +1180,12 @@ export default function WerkeKorb({
         {iCount > 0 && phase !== "success" && (
           <div style={{
             flexShrink:    0,
-            background:    `linear-gradient(to top, ${C.cream} 80%, transparent)`,
-            paddingTop:    12,
+            background:    `linear-gradient(to top, ${C.cream} 85%, transparent)`,
+            paddingTop:    16,
             paddingLeft:   20,
             paddingRight:  20,
-            paddingBottom: `calc(max(16px, env(safe-area-inset-bottom, 16px)) + 60px)`,
+            // TabBar (56px) + visueller Puffer (28px) + safe-area
+            paddingBottom: `calc(84px + max(0px, env(safe-area-inset-bottom, 0px)))`,
             display:       "flex",
             justifyContent:"center",
           }}>
