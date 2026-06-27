@@ -647,26 +647,31 @@ CREATE TABLE IF NOT EXISTS public.notifications (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX IF NOT EXISTS idx_notif_user_id ON public.notifications(user_id);
-CREATE INDEX IF NOT EXISTS idx_notif_read    ON public.notifications(read);
-CREATE INDEX IF NOT EXISTS idx_notif_created ON public.notifications(created_at DESC);
+DO $$ BEGIN
+  IF public.hui_col_exists('notifications', 'user_id') THEN
+    CREATE INDEX IF NOT EXISTS idx_notif_user_id ON public.notifications(user_id);
+  END IF;
+  IF public.hui_col_exists('notifications', 'read') THEN
+    CREATE INDEX IF NOT EXISTS idx_notif_read ON public.notifications(read);
+  END IF;
+  IF public.hui_col_exists('notifications', 'created_at') THEN
+    CREATE INDEX IF NOT EXISTS idx_notif_created ON public.notifications(created_at DESC);
+  END IF;
+END $$;
 
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "notifications_owner"       ON public.notifications;
+DROP POLICY IF EXISTS "notifications_service_all"   ON public.notifications;
+
 DO $$ BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies
-    WHERE schemaname = 'public'
-      AND tablename = 'notifications'
-      AND policyname = 'notifications_owner'
-  ) AND public.hui_col_exists('notifications', 'user_id') THEN
+  IF public.hui_col_exists('notifications', 'user_id') THEN
     CREATE POLICY "notifications_owner" ON public.notifications
       FOR ALL USING (auth.uid() = user_id)
       WITH CHECK (auth.uid() = user_id);
   END IF;
 END $$;
 
-DROP POLICY IF EXISTS "notifications_service_all" ON public.notifications;
 CREATE POLICY "notifications_service_all" ON public.notifications
   FOR ALL TO service_role USING (true) WITH CHECK (true);
 
@@ -685,10 +690,14 @@ DECLARE
   v_works_price     text := '0::numeric';
   v_works_shipping  text := '0::numeric';
   v_works_status    text := '''published''::text';
+  v_works_title     text := ''''''::text';
+  v_works_cover     text := 'NULL::text';
   v_works_where     text := 'TRUE';
   v_exp_creator     text := 'NULL::uuid';
   v_exp_price       text := '0::numeric';
   v_exp_status      text := '''active''::text';
+  v_exp_title       text := ''''''::text';
+  v_exp_cover       text := 'NULL::text';
   v_exp_where       text := 'TRUE';
   v_sql             text;
 BEGIN
@@ -722,6 +731,14 @@ BEGIN
     v_works_where := v_works_where || ' AND (w.for_sale IS NULL OR w.for_sale = true)';
   END IF;
 
+  IF public.hui_col_exists('works', 'title') THEN
+    v_works_title := 'w.title';
+  END IF;
+
+  IF public.hui_col_exists('works', 'cover_url') THEN
+    v_works_cover := 'w.cover_url';
+  END IF;
+
   v_sql := format($fmt$
     CREATE OR REPLACE VIEW public.commerce_price_authority AS
       SELECT
@@ -730,12 +747,13 @@ BEGIN
         %s                              AS creator_id,
         %s                              AS price_eur,
         %s                              AS shipping_eur,
-        w.title,
-        w.cover_url,
+        %s                              AS title,
+        %s                              AS cover_url,
         %s                              AS status
       FROM public.works w
       WHERE %s
-  $fmt$, v_works_creator, v_works_price, v_works_shipping, v_works_status, v_works_where);
+  $fmt$, v_works_creator, v_works_price, v_works_shipping,
+       v_works_title, v_works_cover, v_works_status, v_works_where);
 
   IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'experiences') THEN
     IF public.hui_col_exists('experiences', 'user_id') THEN
@@ -750,6 +768,14 @@ BEGIN
       v_exp_where := 'e.status IN (''published'', ''approved'', ''active'')';
     END IF;
 
+    IF public.hui_col_exists('experiences', 'title') THEN
+      v_exp_title := 'e.title';
+    END IF;
+
+    IF public.hui_col_exists('experiences', 'cover_url') THEN
+      v_exp_cover := 'e.cover_url';
+    END IF;
+
     v_sql := v_sql || format($fmt$
       UNION ALL
       SELECT
@@ -758,16 +784,20 @@ BEGIN
         %s                              AS creator_id,
         %s                              AS price_eur,
         0::numeric                      AS shipping_eur,
-        e.title,
-        e.cover_url,
+        %s                              AS title,
+        %s                              AS cover_url,
         %s                              AS status
       FROM public.experiences e
       WHERE %s
-    $fmt$, v_exp_creator, v_exp_price, v_exp_status, v_exp_where);
+    $fmt$, v_exp_creator, v_exp_price, v_exp_title, v_exp_cover, v_exp_status, v_exp_where);
   END IF;
 
-  EXECUTE v_sql;
-  GRANT SELECT ON public.commerce_price_authority TO service_role, authenticated;
+  BEGIN
+    EXECUTE v_sql;
+    GRANT SELECT ON public.commerce_price_authority TO service_role, authenticated;
+  EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE 'commerce_price_authority: View-Erstellung fehlgeschlagen — %', SQLERRM;
+  END;
 END;
 $view$;
 
@@ -782,6 +812,10 @@ DECLARE
   v_fee_col      text := '0::numeric';
   v_impact_col   text := '0::numeric';
   v_price_expr   text := '0::numeric';
+  v_total_expr   text := '0::numeric';
+  v_created_expr text := 'NULL::timestamptz';
+  v_total_group  text := '';
+  v_created_group text := '';
   v_creator_col  text;
   v_has_item_type      boolean := public.hui_col_exists('order_items', 'item_type');
   v_has_fulfillment    boolean := public.hui_col_exists('order_items', 'fulfillment_status');
@@ -792,6 +826,11 @@ DECLARE
   v_extra_order_group  text := '';
   v_sql                text;
 BEGIN
+  IF NOT public.hui_col_exists('order_items', 'order_id') THEN
+    RAISE NOTICE 'buyer_order_status: order_items.order_id fehlt — View übersprungen';
+    RETURN;
+  END IF;
+
   IF public.hui_col_exists('orders', 'customer_id') THEN
     v_buyer_col := 'customer_id';
   ELSIF public.hui_col_exists('orders', 'buyer_id') THEN
@@ -818,6 +857,16 @@ BEGIN
 
   IF public.hui_col_exists('orders', 'impact_eur') THEN
     v_impact_col := 'o.impact_eur';
+  END IF;
+
+  IF public.hui_col_exists('orders', 'total_eur') THEN
+    v_total_expr  := 'o.total_eur';
+    v_total_group := ', o.total_eur';
+  END IF;
+
+  IF public.hui_col_exists('orders', 'created_at') THEN
+    v_created_expr  := 'o.created_at';
+    v_created_group := ', o.created_at';
   END IF;
 
   IF public.hui_col_exists('order_items', 'unit_price_eur')
@@ -866,12 +915,12 @@ BEGIN
         o.%1$I                              AS buyer_id,
         o.%2$I                              AS state,
         o.%2$I                              AS status,
-        o.total_eur,
+        %14$s                               AS total_eur,
         %13$s                               AS impact_eur,
         %3$s                                AS commission_eur,
         %3$s                                AS platform_fee_eur
         %4$s,
-        o.created_at,
+        %15$s                               AS created_at,
         COALESCE(
           json_agg(
             json_build_object(
@@ -890,8 +939,8 @@ BEGIN
       FROM public.orders o
       LEFT JOIN public.order_items oi ON oi.order_id = o.id
       GROUP BY
-        o.id, o.%1$I, o.%2$I, o.total_eur,
-        %13$s, %3$s, o.created_at%12$s
+        o.id, o.%1$I, o.%2$I%16$s,
+        %13$s, %3$s%12$s
   $fmt$,
     v_buyer_col,
     v_state_col,
@@ -905,11 +954,18 @@ BEGIN
     CASE WHEN v_has_snapshot    THEN 'COALESCE(oi.snapshot, ''{}''::jsonb)' ELSE '''{}''::jsonb' END,
     CASE WHEN v_has_oi_created  THEN 'ORDER BY oi.created_at' ELSE '' END,
     v_extra_order_group,
-    v_impact_col
+    v_impact_col,
+    v_total_expr,
+    v_created_expr,
+    v_total_group || v_created_group
   );
 
-  EXECUTE v_sql;
-  GRANT SELECT ON public.buyer_order_status TO authenticated, service_role;
+  BEGIN
+    EXECUTE v_sql;
+    GRANT SELECT ON public.buyer_order_status TO authenticated, service_role;
+  EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE 'buyer_order_status: View-Erstellung fehlgeschlagen — %', SQLERRM;
+  END;
 END;
 $view$;
 
@@ -921,16 +977,41 @@ CREATE OR REPLACE FUNCTION public.increment_wallet_balance(
   p_user_id UUID,
   p_amount  NUMERIC
 ) RETURNS VOID LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE
+  v_cols text := 'user_id, balance';
+  v_vals text;
+  v_upd  text;
 BEGIN
   IF NOT public.hui_col_exists('creator_wallets', 'user_id') THEN
     RAISE EXCEPTION 'creator_wallets.user_id fehlt';
   END IF;
-  INSERT INTO public.creator_wallets (user_id, balance, total_earned, pending_balance)
-  VALUES (p_user_id, p_amount, p_amount, 0)
-  ON CONFLICT (user_id) DO UPDATE SET
-    balance      = creator_wallets.balance + p_amount,
-    total_earned = creator_wallets.total_earned + p_amount,
-    updated_at   = now();
+  IF NOT public.hui_col_exists('creator_wallets', 'balance') THEN
+    RAISE NOTICE 'increment_wallet_balance: balance-Spalte fehlt — kein Update';
+    RETURN;
+  END IF;
+
+  v_vals := format('%L, %L', p_user_id, p_amount);
+  v_upd  := format('balance = creator_wallets.balance + %L', p_amount);
+
+  IF public.hui_col_exists('creator_wallets', 'total_earned') THEN
+    v_cols := v_cols || ', total_earned';
+    v_vals := v_vals || format(', %L', p_amount);
+    v_upd  := v_upd || format(', total_earned = creator_wallets.total_earned + %L', p_amount);
+  END IF;
+
+  IF public.hui_col_exists('creator_wallets', 'pending_balance') THEN
+    v_cols := v_cols || ', pending_balance';
+    v_vals := v_vals || ', 0';
+  END IF;
+
+  IF public.hui_col_exists('creator_wallets', 'updated_at') THEN
+    v_upd := v_upd || ', updated_at = now()';
+  END IF;
+
+  EXECUTE format(
+    'INSERT INTO public.creator_wallets (%s) VALUES (%s) ON CONFLICT (user_id) DO UPDATE SET %s',
+    v_cols, v_vals, v_upd
+  );
 END;
 $$;
 
@@ -947,15 +1028,135 @@ NOTIFY pgrst, 'reload schema';
 COMMIT;
 
 -- ═══════════════════════════════════════════════════════════════════════════════
--- VERIFIKATION (nach COMMIT)
+-- VERIFIKATION (nach COMMIT ausführen)
 -- ═══════════════════════════════════════════════════════════════════════════════
 
-SELECT table_name, column_name, data_type, is_nullable, column_default
+-- 1. Tabellen
+SELECT
+  obj_name,
+  obj_type,
+  CASE WHEN exists_check THEN '✅ vorhanden' ELSE '❌ FEHLT' END AS result
+FROM (VALUES
+  ('orders',           'TABLE', EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='orders')),
+  ('order_items',      'TABLE', EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='order_items')),
+  ('works',            'TABLE', EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='works')),
+  ('experiences',      'TABLE', EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='experiences')),
+  ('shipments',        'TABLE', EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='shipments')),
+  ('creator_wallets',  'TABLE', EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='creator_wallets')),
+  ('creator_payouts',  'TABLE', EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='creator_payouts')),
+  ('commerce_events',  'TABLE', EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='commerce_events')),
+  ('webhook_events',   'TABLE', EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='webhook_events')),
+  ('impact_rounds',    'TABLE', EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='impact_rounds')),
+  ('notifications',    'TABLE', EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='notifications'))
+) AS t(obj_name, obj_type, exists_check)
+ORDER BY obj_name;
+
+-- 2. Views
+SELECT
+  viewname AS obj_name,
+  'VIEW' AS obj_type,
+  '✅ vorhanden' AS result
+FROM pg_views
+WHERE schemaname = 'public'
+  AND viewname IN ('commerce_price_authority', 'buyer_order_status')
+ORDER BY viewname;
+
+-- 3. Trigger
+SELECT
+  tgname AS obj_name,
+  'TRIGGER' AS obj_type,
+  '✅ vorhanden' AS result
+FROM pg_trigger t
+JOIN pg_class c ON c.oid = t.tgrelid
+JOIN pg_namespace n ON n.oid = c.relnamespace
+WHERE n.nspname = 'public'
+  AND NOT t.tgisinternal
+  AND tgname IN (
+    'trg_orders_updated_at', 'trg_order_items_updated_at',
+    'trg_shipments_updated_at', 'trg_creator_wallets_updated_at',
+    'trg_creator_payouts_updated_at', 'trg_impact_rounds_updated_at'
+  )
+ORDER BY tgname;
+
+-- 4. Policies
+SELECT
+  tablename || '.' || policyname AS obj_name,
+  'POLICY' AS obj_type,
+  '✅ vorhanden' AS result
+FROM pg_policies
+WHERE schemaname = 'public'
+  AND tablename IN (
+    'orders', 'order_items', 'shipments', 'creator_wallets',
+    'creator_payouts', 'commerce_events', 'webhook_events',
+    'impact_rounds', 'notifications'
+  )
+ORDER BY tablename, policyname;
+
+-- 5. Funktionen
+SELECT
+  proname AS obj_name,
+  'FUNC' AS obj_type,
+  '✅ vorhanden' AS result
+FROM pg_proc p
+JOIN pg_namespace n ON n.oid = p.pronamespace
+WHERE n.nspname = 'public'
+  AND proname IN ('hui_col_exists', 'update_updated_at', 'increment_wallet_balance')
+ORDER BY proname;
+
+-- 6. Commerce-Spalten (orders + order_items)
+SELECT
+  table_name || '.' || column_name AS obj_name,
+  'COMMERCE_COL' AS obj_type,
+  '✅ vorhanden' AS result
 FROM information_schema.columns
 WHERE table_schema = 'public'
-  AND table_name IN (
-    'orders','order_items','works','experiences',
-    'creator_wallets','creator_payouts','shipments',
-    'commerce_events','webhook_events'
+  AND (
+    (table_name = 'orders' AND column_name IN (
+      'customer_id', 'state', 'commission_eur', 'total_eur', 'impact_eur',
+      'cart_hash', 'subtotal_eur', 'shipping_eur', 'discount_eur',
+      'shipping_address', 'contact_name', 'contact_email', 'metadata'
+    ))
+    OR (table_name = 'order_items' AND column_name IN (
+      'order_id', 'seller_id', 'creator_id', 'unit_price_eur', 'price_eur',
+      'item_type', 'item_id', 'snapshot', 'fulfillment_status',
+      'payout_status', 'payout_eur', 'impact_eur', 'shipping_eur'
+    ))
   )
-ORDER BY table_name, ordinal_position;
+ORDER BY table_name, column_name;
+
+-- 7. Stripe-Spalten
+SELECT
+  table_name || '.' || column_name AS obj_name,
+  'STRIPE_COL' AS obj_type,
+  '✅ vorhanden' AS result
+FROM information_schema.columns
+WHERE table_schema = 'public'
+  AND (
+    (table_name = 'orders' AND column_name IN (
+      'stripe_payment_intent', 'stripe_session_id', 'stripe_customer_id',
+      'payment_confirmed_at'
+    ))
+    OR (table_name = 'order_items' AND column_name = 'stripe_transfer_id')
+    OR (table_name = 'creator_wallets' AND column_name IN (
+      'stripe_account_id', 'stripe_onboarding_complete',
+      'stripe_charges_enabled', 'stripe_payouts_enabled', 'stripe_onboarding_url'
+    ))
+    OR (table_name = 'creator_payouts' AND column_name = 'stripe_transfer_id')
+    OR (table_name = 'webhook_events' AND column_name = 'stripe_event_id')
+  )
+ORDER BY table_name, column_name;
+
+-- 8. Wallet-Spalten
+SELECT
+  'creator_wallets.' || column_name AS obj_name,
+  'WALLET_COL' AS obj_type,
+  '✅ vorhanden' AS result
+FROM information_schema.columns
+WHERE table_schema = 'public'
+  AND table_name = 'creator_wallets'
+  AND column_name IN (
+    'user_id', 'balance', 'pending_balance', 'total_earned',
+    'stripe_account_id', 'stripe_onboarding_complete',
+    'stripe_charges_enabled', 'stripe_payouts_enabled'
+  )
+ORDER BY column_name;
