@@ -231,7 +231,6 @@ serve(async (req) => {
       validatedItems.map(item => ({
         order_id:    dbOrder.id,
         seller_id:   item.seller_id,
-        creator_id:  item.seller_id,
         item_type:          item.item_type,
         item_id:            item.item_id,
         ...(item.item_type === 'work' ? { work_id: item.item_id } : {}),
