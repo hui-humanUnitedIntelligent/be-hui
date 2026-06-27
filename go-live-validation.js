@@ -2,6 +2,7 @@
 // ═══════════════════════════════════════════════════════════════════
 // HUI Commerce 2.0 — Go-Live Validation (Phases 1–9)
 // Verwendung: node go-live-validation.js
+// CI: stripe devDependency für Webhook-Fallback
 // Optional: .env.test mit SUPABASE_*, STRIPE_*, TEST_* Variablen
 // ═══════════════════════════════════════════════════════════════════
 
