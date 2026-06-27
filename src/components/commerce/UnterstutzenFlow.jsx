@@ -19,7 +19,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { EASE, DUR } from "../../design/hui.interaction.js";
 import {
   C, TYPE_META,
-  haptic, calcTotalWithQty, calcImpact,
+  haptic, calcTotalWithQty, calcImpact, formatPrice,
   uniquePeople, clearCartAfterSuccess,
 } from "./commerceUtils.js";
 import StripePaymentStep from "./StripePaymentStep.jsx";
@@ -30,9 +30,16 @@ import { supabase } from "../../lib/supabaseClient.js";
 // ─────────────────────────────────────────────────────────────────
 // ImpactKarte — kompakt, oberhalb des Stripe Elements
 // ─────────────────────────────────────────────────────────────────
+const USER_PAYMENT_PREP_ERROR = "Die Zahlung konnte momentan nicht vorbereitet werden.";
+const USER_PAYMENT_START_ERROR = "Die Zahlung konnte derzeit nicht gestartet werden.";
+
+function extractApiError(result, res) {
+  return result?.error || result?.message || result?.msg || `HTTP ${res?.status || "?"}`;
+}
+
 function ImpactKarte({ impactEur }) {
   if (!impactEur || impactEur <= 0) return null;
-  const str = impactEur.toFixed(2).replace(".", ",");
+  const priceStr = formatPrice(impactEur);
   return (
     <div style={{
       borderRadius:         14,
@@ -57,7 +64,7 @@ function ImpactKarte({ impactEur }) {
         </div>
         <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.6 }}>
           Von deiner Unterstützung investiert HUI zusätzlich{" "}
-          <span style={{ fontWeight: 700, color: C.sage }}>{str}\u202F€</span>{" "}
+          <span style={{ fontWeight: 700, color: C.sage }}>{priceStr}</span>{" "}
           in den gemeinsamen Impact Pool.
         </div>
       </div>
@@ -291,43 +298,73 @@ export default function UnterstutzenFlow({
 
   // Payment Intent erstellen (direkt beim Öffnen des Flows)
   useEffect(() => {
-    if (clientSecret || piLoading || !user || !items.length) return;
+    if (clientSecret || piLoading || !items.length) return;
+    if (!user) {
+      console.error("[UnterstutzenFlow] PI Fehler (technisch): Kein authentifizierter User");
+      setStripeError(USER_PAYMENT_PREP_ERROR);
+      return;
+    }
     createPaymentIntent();
-  }, [user]);
+  }, [user, items.length]);
 
   async function createPaymentIntent() {
     setPiLoading(true);
     setStripeError(null);
     try {
+      if (!user?.id) {
+        throw new Error("Kein authentifizierter User");
+      }
+
       const shippingStrategy = resolveShippingStrategy(items);
-      const payload          = orderService.buildOrderPayload(items, shippingStrategy, user?.id);
+      const payload          = orderService.buildOrderPayload(items, shippingStrategy, user.id);
       const { data: { session } } = await supabase.auth.getSession();
       const accessToken = session?.access_token;
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const anonKey     = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      if (!supabaseUrl || !anonKey) {
+        throw new Error("Supabase nicht konfiguriert (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY)");
+      }
+      if (!accessToken) {
+        throw new Error("Kein gültiges Auth-Token");
+      }
 
       const res = await fetch(`${supabaseUrl}/functions/v1/create-payment-intent`, {
         method: "POST",
         headers: {
           "Content-Type":  "application/json",
           "Authorization": `Bearer ${accessToken}`,
+          "apikey":        anonKey,
         },
         body: JSON.stringify(payload),
       });
 
-      const result = await res.json();
-
-      if (!res.ok || result.error) {
-        throw new Error(result.error || "Payment Intent fehlgeschlagen");
+      let result = {};
+      try {
+        result = await res.json();
+      } catch {
+        throw new Error(`Ungültige API-Antwort (HTTP ${res.status})`);
       }
+
       if (result.code === "STRIPE_NOT_CONFIGURED") {
-        throw new Error("Stripe ist noch nicht aktiviert. Bitte den Administrator kontaktieren.");
+        throw new Error("STRIPE_NOT_CONFIGURED");
+      }
+      if (!res.ok || result.error) {
+        throw new Error(extractApiError(result, res));
+      }
+      if (!result.clientSecret) {
+        throw new Error("clientSecret fehlt in API-Antwort");
       }
 
       setClientSecret(result.clientSecret);
       setOrderId(result.orderId || null);
     } catch (e) {
-      console.error("[UnterstutzenFlow] PI Fehler:", e);
-      setStripeError(e?.message || "Verbindungsfehler. Bitte erneut versuchen.");
+      const technical = e?.message || String(e);
+      console.error("[UnterstutzenFlow] PI Fehler (technisch):", technical);
+      const userMessage = technical === "STRIPE_NOT_CONFIGURED"
+        ? USER_PAYMENT_START_ERROR
+        : USER_PAYMENT_PREP_ERROR;
+      setStripeError(userMessage);
     } finally {
       setPiLoading(false);
     }

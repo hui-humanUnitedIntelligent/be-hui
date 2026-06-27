@@ -165,7 +165,7 @@ serve(async (req) => {
     // ── 5. Order Items mit server-validierten Werten anlegen ──────
     const itemInserts = validatedItems.map((item: any) => ({
       order_id:           dbOrder.id,
-      creator_id:         item.creator_id || null,
+      creator_id:         (item.creator_id && item.creator_id !== '__unknown__') ? item.creator_id : null,
       item_type:          item.item_type || 'work',
       item_id:            item.item_id || null,
       snapshot:           item.snapshot,
