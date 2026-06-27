@@ -19,6 +19,7 @@ import StatistikenModal      from "./StatistikenModal.jsx";
 import ProfilBearbeitenModal    from "./ProfilBearbeitenModal.jsx";
 import SicherheitPasswortModal  from "./SicherheitPasswortModal.jsx";
 import SupportPage             from "../../pages/studio/SupportPage.jsx";
+import MeineTicketsPage        from "../../pages/studio/MeineTicketsPage.jsx";
 import SettingsModal    from "../settings/SettingsModal.jsx";
 
 // ── Design Tokens ─────────────────────────────────────────────────
@@ -1073,6 +1074,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
   const [showLogoutConfirm,     setShowLogoutConfirm]     = useState(false); // Abmelden Bestätigung
   const [showMitgliedschaftCS,  setShowMitgliedschaftCS]  = useState(false); // Mitgliedschaft Coming Soon
   const [showSupport,          setShowSupport]          = useState(false);
+  const [showMeineTickets,     setShowMeineTickets]     = useState(false);
   const [loggingOut,            setLoggingOut]            = useState(false);
 
   // Sprint F.4C: einzige Wahrheitsquelle
@@ -1205,6 +1207,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
             badge={isTalent ? "HUI-Talent" : "HUI-Mitglied"}
             onPress={() => setShowMitgliedschaftCS(true)} />
           <StudioRow icon="🎧" label="Support" onPress={() => setShowSupport(true)} />
+          <StudioRow icon="🎟" label="Meine Tickets" onPress={() => setShowMeineTickets(true)} />
           <StudioRow
             icon="🚪" label="Abmelden"
             labelColor="#DC2626"
@@ -1458,6 +1461,13 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
         </div>,
         document.body
       )}
+      {showMeineTickets && (
+        <MeineTicketsPage
+          onBack={() => setShowMeineTickets(false)}
+          userId={profile?.id}
+        />
+      )}
+
       {showSupport && (
         <SupportPage
           onBack={() => setShowSupport(false)}
