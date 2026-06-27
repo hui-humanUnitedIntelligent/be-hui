@@ -16,6 +16,7 @@ import {
 import {
   AnalyticsPage, EinnahmenPage, VerfuegbarkeitPage,
   ImpactSubPage, KontoPage, MeineInhaltePage,
+import SupportPage from "./studio/SupportPage.jsx";
   BestellungenPage, ReputationInsightsPage,
 } from "./studio/StudioSubPages";
 
