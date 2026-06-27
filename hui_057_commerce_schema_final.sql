@@ -3,6 +3,7 @@
 -- ═══════════════════════════════════════════════════════════════════════════════
 --
 -- ARCHITECTURE FREEZE — Commerce 2.0 Canonical Migration
+-- Go-Live Re-run: idempotent verification pass
 -- Ersetzt logisch: 051, 052, 053, 054, 055, 056
 -- 056 bleibt als Entwicklungsstand erhalten; 057 ist die Produktionsmigration.
 --
