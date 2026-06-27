@@ -82,7 +82,7 @@ async function fetchFeedPage(userId = null, cursors = null) {
   const [worksRes, expsRes, beitrRes, invRes] = await Promise.allSettled([
     filterWorks(
       supabase.from("works")
-        .select("id,title,cover_url,media_url,category,description,caption,tags,price,for_sale,delivery_type,status,approval_status,user_id,creator_id,created_at")
+        .select("id,title,cover_url,media_url,category,description,caption,tags,price,for_sale,status,approval_status,user_id,creator_id,created_at")
         .eq("status", "published")
         .eq("approval_status", "approved")
         .order("created_at", { ascending: false })
