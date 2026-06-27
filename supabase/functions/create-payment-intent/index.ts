@@ -1,4 +1,5 @@
 // supabase/functions/create-payment-intent/index.ts
+// deploy-trigger: 2026-06-27
 // ═══════════════════════════════════════════════════════════════════
 // HUI Commerce 2.0 — Create Payment Intent (Production Final)
 // ═══════════════════════════════════════════════════════════════════
