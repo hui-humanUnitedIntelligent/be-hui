@@ -40,33 +40,76 @@ function StripeForm({ total, impact, orderId, onSuccess, onError }) {
     setProcessing(true);
     setError(null);
 
-    const { error: stripeError, paymentIntent } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        // Return URL nur bei Redirect-Zahlungsarten (SEPA etc.)
-        return_url: `${window.location.origin}/?hui_order=${orderId}&status=success`,
-      },
-      redirect: "if_required", // kein Redirect bei Karte/Apple Pay/Google Pay
-    });
+    try {
+      // ── Schritt 1: elements.submit() — Stripe-Pflicht vor confirmPayment ──
+      // Validiert das Payment-Element und bereitet die Zahlungsdaten vor.
+      // Ohne diesen Aufruf kann confirmPayment() bei bestimmten Zahlungsarten
+      // mit "You must call elements.submit() before stripe.confirmPayment()" fehlschlagen.
+      const { error: submitError } = await elements.submit();
+      if (submitError) {
+        const msg = submitError.type === "card_error" || submitError.type === "validation_error"
+          ? submitError.message
+          : "Zahlungsdaten konnten nicht bestätigt werden. Bitte prüfen.";
+        setError(msg);
+        return; // finally setzt processing = false
+      }
 
-    if (stripeError) {
-      const msg = stripeError.type === "card_error" || stripeError.type === "validation_error"
-        ? stripeError.message
-        : "Zahlung fehlgeschlagen. Bitte erneut versuchen.";
-      setError(msg);
-      setProcessing(false);
-      onError?.(stripeError);
-      return;
-    }
+      // ── Schritt 2: confirmPayment ──────────────────────────────────────────
+      if (import.meta.env.DEV) console.time("confirmPayment");
 
-    if (paymentIntent?.status === "succeeded") {
-      haptic("success");
-      onSuccess?.({ orderId, paymentIntentId: paymentIntent.id });
-    } else if (paymentIntent?.status === "requires_action") {
-      // 3D Secure — Stripe übernimmt den Redirect
-      setProcessing(false);
-    } else {
+      const { error: stripeError, paymentIntent } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          // Return URL nur bei Redirect-Zahlungsarten (SEPA, Klarna etc.)
+          return_url: `${window.location.origin}/?hui_order=${orderId}&status=success`,
+        },
+        redirect: "if_required", // kein Redirect bei Karte/Apple Pay/Google Pay
+      });
+
+      if (import.meta.env.DEV) console.timeEnd("confirmPayment");
+
+      // ── Schritt 3: Stripe-Fehler (card_error, validation_error, etc.) ─────
+      if (stripeError) {
+        const msg = stripeError.type === "card_error" || stripeError.type === "validation_error"
+          ? stripeError.message
+          : "Zahlung fehlgeschlagen. Bitte erneut versuchen.";
+        setError(msg);
+        onError?.(stripeError);
+        return; // finally setzt processing = false
+      }
+
+      // ── Schritt 4: Ergebnis auswerten ─────────────────────────────────────
+      if (paymentIntent?.status === "succeeded") {
+        // processing bleibt true bis onSuccess() vollständig durchläuft
+        try {
+          haptic("success");
+          await onSuccess?.({ orderId, paymentIntentId: paymentIntent.id });
+        } catch (successErr) {
+          // onSuccess() hat eine Exception geworfen (z.B. goTo() während unmount)
+          // Kein Fehler für den User — Zahlung war erfolgreich
+          if (import.meta.env.DEV) console.error("[STRIPE] onSuccess exception (non-critical):", successErr);
+        }
+        // processing hier NICHT zurücksetzen — Danke-Screen übernimmt
+        return;
+      }
+
+      if (paymentIntent?.status === "requires_action") {
+        // 3D Secure — Stripe übernimmt den Redirect automatisch
+        // processing bleibt true während 3DS-Dialog aktiv ist
+        return;
+      }
+
+      // Unerwarteter Status
       setError("Unbekannter Zahlungsstatus. Bitte Support kontaktieren.");
+
+    } catch (e) {
+      // Netzwerkfehler, Stripe.js nicht geladen, unerwartete Exceptions
+      if (import.meta.env.DEV) console.error("[STRIPE] confirmPayment exception:", e);
+      setError(e?.message ?? "Unbekannter Fehler. Bitte erneut versuchen.");
+    } finally {
+      // finally läuft IMMER — auch bei return im succeeded-Pfad.
+      // Das ist korrekt: Danke-Screen wird via goTo(1) aufgebaut,
+      // processing muss nicht dauerhaft true bleiben.
       setProcessing(false);
     }
   }
