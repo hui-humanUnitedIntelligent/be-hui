@@ -1,0 +1,50 @@
+name: Fix Vercel Stripe Public Key
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - cursor/fix-stripe-public-key-e4ef
+
+concurrency:
+  group: fix-vercel-stripe-env
+  cancel-in-progress: true
+
+jobs:
+  fix-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fix Vercel env + redeploy + verify bundle
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          VITE_STRIPE_PUBLIC_KEY: ${{ secrets.VITE_STRIPE_PUBLIC_KEY }}
+        run: bash scripts/fix-vercel-stripe-env.sh
+
+      - name: E2E Checkout (API)
+        if: success()
+        env:
+          SUPABASE_URL: https://gxztrhvhcxhmunhhkfjd.supabase.co
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASS: ${{ secrets.TEST_USER_PASS }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SUPABASE_ANON_KEY:-}" ] || [ -z "${STRIPE_SECRET_KEY:-}" ]; then
+            echo "⚠️ E2E übersprungen — fehlende Secrets"
+            exit 0
+          fi
+
+          npm ci
+          WORK_ID=$(curl -sfS \
+            "${SUPABASE_URL}/rest/v1/commerce_price_authority?select=item_id&item_type=eq.work&limit=1" \
+            -H "apikey: ${SUPABASE_SERVICE_ROLE_KEY:-$SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY:-$SUPABASE_ANON_KEY}" \
+            | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d[0]["item_id"] if d else "")')
+          export TEST_WORK_ID="$WORK_ID"
+          node e2e-test.js
