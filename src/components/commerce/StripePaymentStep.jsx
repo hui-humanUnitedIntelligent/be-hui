@@ -22,6 +22,10 @@ function resolveStripeKey(publishableKey) {
     || "";
 }
 
+// Land wird im Payment Element ausgeblendet (fields.address.country: "never");
+// muss daher bei confirmPayment explizit übergeben werden (Stripe-Pflicht).
+const BILLING_COUNTRY = "AT";
+
 // ─────────────────────────────────────────────────────────────────
 // Inner Form — innerhalb von <Elements> gemountet
 // ─────────────────────────────────────────────────────────────────
@@ -62,6 +66,11 @@ function StripeForm({ total, impact, orderId, onSuccess, onError }) {
         confirmParams: {
           // Return URL nur bei Redirect-Zahlungsarten (SEPA, Klarna etc.)
           return_url: `${window.location.origin}/?hui_order=${orderId}&status=success`,
+          payment_method_data: {
+            billing_details: {
+              address: { country: BILLING_COUNTRY },
+            },
+          },
         },
         redirect: "if_required", // kein Redirect bei Karte/Apple Pay/Google Pay
       });
@@ -125,7 +134,7 @@ function StripeForm({ total, impact, orderId, onSuccess, onError }) {
           <PaymentElement
             options={{
               layout:           "tabs",
-              defaultValues:    { billingDetails: { address: { country: "AT" } } },
+              defaultValues:    { billingDetails: { address: { country: BILLING_COUNTRY } } },
               fields:           { billingDetails: { address: { country: "never" } } },
               wallets:          { applePay: "auto", googlePay: "auto" },
             }}
