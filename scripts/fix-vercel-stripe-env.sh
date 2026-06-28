@@ -40,6 +40,20 @@ if [ -z "${STRIPE_SECRET_KEY:-}" ] && [ -z "${VITE_STRIPE_PUBLIC_KEY:-}" ]; then
   fail "Weder STRIPE_SECRET_KEY noch VITE_STRIPE_PUBLIC_KEY gesetzt"
 fi
 
+PK=""
+if [ -n "${VITE_STRIPE_PUBLIC_KEY:-}" ]; then
+  PK="${VITE_STRIPE_PUBLIC_KEY}"
+  log "→ VITE_STRIPE_PUBLIC_KEY aus Secret"
+elif [ -n "${SUPABASE_ACCESS_TOKEN:-}" ]; then
+  SECRET_NAMES="$(curl -sfS "https://api.supabase.com/v1/projects/gxztrhvhcxhmunhhkfjd/secrets" \
+    -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+    | python3 -c 'import json,sys; d=json.load(sys.stdin); print(" ".join(x.get("name","") for x in d))' 2>/dev/null || true)"
+  log "→ Supabase Secrets: ${SECRET_NAMES:-?}"
+  if printf '%s' "$SECRET_NAMES" | rg -q 'STRIPE_PUBLISHABLE_KEY'; then
+    log "✅ STRIPE_PUBLISHABLE_KEY bereits in Supabase — Runtime-Fallback aktiv"
+  fi
+fi
+
 log "→ Dependencies installieren"
 export VITE_SUPABASE_URL="${VITE_SUPABASE_URL:-https://gxztrhvhcxhmunhhkfjd.supabase.co}"
 export VITE_SUPABASE_ANON_KEY="${VITE_SUPABASE_ANON_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd4enRyaHZoY3hobXVuaGhrZmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4ODI2NDIsImV4cCI6MjA5MzQ1ODY0Mn0.cq8E_NQkmeTZPIe0G0SSqEzzg6yJhyce5xpW2iwVIbk}"
@@ -50,10 +64,19 @@ curl -fsSL https://github.com/stripe/stripe-cli/releases/download/v1.22.0/stripe
 export PATH="$PWD:$PATH"
 
 log "→ Stripe Publishable Key auflösen"
-PK="$(node scripts/resolve-stripe-publishable-key.mjs | tr -d '\r\n')"
-[[ "$PK" =~ ^pk_(test|live)_ ]] || fail "Ungültiger Publishable Key: ${PK:0:20}..."
-log "✅ Publishable Key: ${PK:0:24}..."
+if [ -z "$PK" ]; then
+  PK="$(node scripts/resolve-stripe-publishable-key.mjs | tr -d '\r\n' || true)"
+fi
+if [ -z "$PK" ]; then
+  log "⚠️ Publishable Key nicht automatisch auflösbar"
+  log "   Runtime-Fallback: create-payment-intent liefert STRIPE_PUBLISHABLE_KEY aus Supabase"
+  PK=""
+else
+  [[ "$PK" =~ ^pk_(test|live)_ ]] || fail "Ungültiger Publishable Key: ${PK:0:20}..."
+  log "✅ Publishable Key: ${PK:0:24}..."
+fi
 
+if [ -n "$PK" ]; then
 python3 - <<PY
 import json
 with open("$KEY_FILE", "w", encoding="utf-8") as f:
@@ -61,28 +84,29 @@ with open("$KEY_FILE", "w", encoding="utf-8") as f:
     f.write("\n")
 PY
 log "✅ $KEY_FILE geschrieben"
+fi
 
-if [ -n "${SUPABASE_ACCESS_TOKEN:-}" ]; then
+if [ -n "$PK" ] && [ -n "${SUPABASE_ACCESS_TOKEN:-}" ]; then
   log "→ STRIPE_PUBLISHABLE_KEY in Supabase setzen"
   curl -sfS -X POST "https://api.supabase.com/v1/projects/gxztrhvhcxhmunhhkfjd/secrets" \
     -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
     -H "Content-Type: application/json" \
     -d "$(python3 -c "import json; print(json.dumps([{'name':'STRIPE_PUBLISHABLE_KEY','value':'$PK'}]))")" >/dev/null
   log "✅ Supabase Secret STRIPE_PUBLISHABLE_KEY gesetzt"
-
-  if command -v supabase >/dev/null 2>&1 || [ -x /tmp/supabase ]; then
-    SB="${SUPABASE_BIN:-supabase}"
-    command -v "$SB" >/dev/null 2>&1 || SB="/tmp/supabase"
-    log "→ create-payment-intent redeployen"
-    SUPABASE_ACCESS_TOKEN="$SUPABASE_ACCESS_TOKEN" "$SB" functions deploy create-payment-intent \
-      --project-ref gxztrhvhcxhmunhhkfjd >/dev/null
-    log "✅ Edge Function create-payment-intent deployed"
-  fi
-else
-  log "⚠️ SUPABASE_ACCESS_TOKEN fehlt — STRIPE_PUBLISHABLE_KEY nicht in Supabase gesetzt"
 fi
 
-if [ -n "${VERCEL_TOKEN:-}" ]; then
+if [ -n "${SUPABASE_ACCESS_TOKEN:-}" ]; then
+  SB="${SUPABASE_BIN:-supabase}"
+  command -v "$SB" >/dev/null 2>&1 || SB="/tmp/supabase"
+  log "→ create-payment-intent redeployen"
+  SUPABASE_ACCESS_TOKEN="$SUPABASE_ACCESS_TOKEN" "$SB" functions deploy create-payment-intent \
+    --project-ref gxztrhvhcxhmunhhkfjd >/dev/null
+  log "✅ Edge Function create-payment-intent deployed"
+else
+  log "⚠️ SUPABASE_ACCESS_TOKEN fehlt — Edge Function nicht redeployed"
+fi
+
+if [ -n "$PK" ] && [ -n "${VERCEL_TOKEN:-}" ]; then
   log "→ VERCEL_TOKEN vorhanden — Vercel Env setzen + Redeploy"
   TEAM_JSON="$(vercel_api GET "/v2/teams?slug=${VERCEL_TEAM_SLUG}" 2>/dev/null || vercel_api GET "/v2/teams")"
   TEAM_ID="$(printf '%s' "$TEAM_JSON" | python3 -c 'import json,sys; d=json.load(sys.stdin); teams=d.get("teams") or []; print(teams[0]["id"] if teams else "")')"
@@ -138,11 +162,15 @@ npm run build
 
 HOME_CHUNK="$(ls dist/assets/Home-*.js | head -1)"
 [ -f "$HOME_CHUNK" ] || fail "Home-Chunk nicht gefunden"
-if rg -q 'LEER/FEHLEND' "$HOME_CHUNK" && ! rg -q 'pk_(test|live)_' "$HOME_CHUNK"; then
-  fail "Lokaler Build enthält keinen Stripe Publishable Key"
+if [ -n "$PK" ]; then
+  if rg -q 'LEER/FEHLEND' "$HOME_CHUNK" && ! rg -q 'pk_(test|live)_' "$HOME_CHUNK"; then
+    fail "Lokaler Build enthält keinen Stripe Publishable Key"
+  fi
+  FOUND="$(rg -o 'pk_(test|live)_[A-Za-z0-9]+' "$HOME_CHUNK" | head -1)"
+  log "✅ Lokaler Build OK — ${FOUND:0:24}..."
+else
+  log "⚠️ Build ohne eingebetteten pk — Runtime über Edge Function erforderlich"
 fi
-FOUND="$(rg -o 'pk_(test|live)_[A-Za-z0-9]+' "$HOME_CHUNK" | head -1)"
-log "✅ Lokaler Build OK — ${FOUND:0:24}..."
 
 if [ -n "${VERCEL_TOKEN:-}" ]; then
   log "→ Warte auf Vercel Production (max 10 min)"

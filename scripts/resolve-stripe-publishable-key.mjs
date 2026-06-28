@@ -63,8 +63,29 @@ async function tryAccount() {
   throw new Error('Kein pk in /v1/account');
 }
 
+async function tryPaymentIntentScan() {
+  const res = await fetch('https://api.stripe.com/v1/payment_intents', {
+    method: 'POST',
+    headers: {
+      ...headers,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: new URLSearchParams({
+      amount: '100',
+      currency: 'eur',
+      'automatic_payment_methods[enabled]': 'true',
+    }),
+  });
+  const text = await res.text();
+  if (!res.ok) throw new Error(`PI HTTP ${res.status}: ${text.slice(0, 200)}`);
+  const pk = findPkDeep(text);
+  if (pk) return pk;
+  throw new Error('PI response ohne pk');
+}
+
 const attempts = [
   ['stripe cli', () => tryStripeCli()],
+  ['payment intent scan', tryPaymentIntentScan],
   ['account', tryAccount],
 ];
 
