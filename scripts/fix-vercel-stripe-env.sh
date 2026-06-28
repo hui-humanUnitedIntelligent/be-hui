@@ -62,6 +62,7 @@ npm ci
 log "→ Stripe CLI installieren"
 curl -fsSL https://github.com/stripe/stripe-cli/releases/download/v1.22.0/stripe_1.22.0_linux_x86_64.tar.gz | tar -xz stripe
 export PATH="$PWD:$PATH"
+export STRIPE_CLI_BIN="$PWD/stripe"
 
 log "→ Stripe Publishable Key auflösen"
 if [ -z "$PK" ]; then

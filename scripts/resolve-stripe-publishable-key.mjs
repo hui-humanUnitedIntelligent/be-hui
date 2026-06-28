@@ -42,9 +42,9 @@ function findPkDeep(value) {
 }
 
 function tryStripeCli() {
+  const cli = process.env.STRIPE_CLI_BIN || 'stripe';
   try {
-    const out = execSync('stripe config --list', {
-      env: { ...process.env, STRIPE_API_KEY: sk, STRIPE_SECRET_KEY: sk },
+    const out = execSync(`${cli} --api-key "${sk}" config --list`, {
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
     });
@@ -52,7 +52,9 @@ function tryStripeCli() {
     if (pk) return pk;
     throw new Error('stripe config --list ohne pk');
   } catch (err) {
-    throw new Error(err.stderr?.toString() || err.message || String(err));
+    const stderr = err.stderr?.toString?.() || '';
+    const stdout = err.stdout?.toString?.() || '';
+    throw new Error((stderr || stdout || err.message || String(err)).slice(0, 300));
   }
 }
 
@@ -64,6 +66,10 @@ async function tryAccount() {
 }
 
 async function tryPaymentIntentScan() {
+  const list = await getJson('/v1/payment_intents?limit=10');
+  const pkListed = findPkDeep(list);
+  if (pkListed) return pkListed;
+
   const res = await fetch('https://api.stripe.com/v1/payment_intents', {
     method: 'POST',
     headers: {
@@ -83,9 +89,44 @@ async function tryPaymentIntentScan() {
   throw new Error('PI response ohne pk');
 }
 
+async function tryWebhookScan() {
+  const data = await getJson('/v1/webhook_endpoints?limit=10');
+  const pk = findPkDeep(data);
+  if (pk) return pk;
+  throw new Error('webhooks ohne pk');
+}
+
+async function trySuffixDerivation() {
+  const candidate = sk.replace(/^sk_(test|live)_/, 'pk_$1_');
+  if (!/^pk_(test|live)_/.test(candidate)) {
+    throw new Error('suffix derivation format invalid');
+  }
+  const res = await fetch('https://api.stripe.com/v1/payment_methods', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${candidate}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: new URLSearchParams({
+      type: 'card',
+      'card[number]': '4242424242424242',
+      'card[exp_month]': '12',
+      'card[exp_year]': '34',
+      'card[cvc]': '123',
+    }),
+  });
+  const text = await res.text();
+  if (/invalid api key/i.test(text)) {
+    throw new Error('suffix derivation rejected by Stripe');
+  }
+  return candidate;
+}
+
 const attempts = [
   ['stripe cli', () => tryStripeCli()],
+  ['suffix derivation', trySuffixDerivation],
   ['payment intent scan', tryPaymentIntentScan],
+  ['webhook scan', tryWebhookScan],
   ['account', tryAccount],
 ];
 
