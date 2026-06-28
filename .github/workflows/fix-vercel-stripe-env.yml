@@ -5,6 +5,13 @@ on:
   push:
     branches:
       - cursor/fix-stripe-public-key-e4ef
+      - main
+    paths:
+      - 'scripts/fix-vercel-stripe-env.sh'
+      - 'scripts/resolve-stripe-publishable-key.mjs'
+      - 'src/config/stripe-publishable-key.json'
+      - 'src/components/commerce/StripePaymentStep.jsx'
+      - '.github/workflows/fix-vercel-stripe-env.yml'
 
 concurrency:
   group: fix-vercel-stripe-env
@@ -13,15 +20,36 @@ concurrency:
 jobs:
   fix-and-verify:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Fix Vercel env + redeploy + verify bundle
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Fix Stripe key + verify build
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
           VITE_STRIPE_PUBLIC_KEY: ${{ secrets.VITE_STRIPE_PUBLIC_KEY }}
         run: bash scripts/fix-vercel-stripe-env.sh
+
+      - name: Commit resolved publishable key
+        run: |
+          set -euo pipefail
+          if git diff --quiet src/config/stripe-publishable-key.json; then
+            echo "Keine Änderung an stripe-publishable-key.json"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add src/config/stripe-publishable-key.json
+          git commit -m "chore: inject Stripe publishable key for production build"
+          git push
 
       - name: E2E Checkout (API)
         if: success()
@@ -39,8 +67,6 @@ jobs:
             echo "⚠️ E2E übersprungen — fehlende Secrets"
             exit 0
           fi
-
-          npm ci
           WORK_ID=$(curl -sfS \
             "${SUPABASE_URL}/rest/v1/commerce_price_authority?select=item_id&item_type=eq.work&limit=1" \
             -H "apikey: ${SUPABASE_SERVICE_ROLE_KEY:-$SUPABASE_ANON_KEY}" \

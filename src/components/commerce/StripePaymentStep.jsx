@@ -13,9 +13,10 @@ import {
 } from "@stripe/react-stripe-js";
 import { STRIPE_APPEARANCE, COMMERCE_CONFIG } from "../../services/commerceEngine.js";
 import { C, haptic } from "../commerce/commerceUtils.js";
+import stripePublishableKey from "../../config/stripe-publishable-key.json";
 
 // Stripe-Instanz — einmalig laden (außerhalb der Komponente)
-const _stripeKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY || "";
+const _stripeKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY || stripePublishableKey.key || "";
 console.log("[STRIPE] loadStripe key:", _stripeKey ? _stripeKey.slice(0,20)+"..." : "LEER/FEHLEND");
 const stripePromise = loadStripe(_stripeKey);
 
