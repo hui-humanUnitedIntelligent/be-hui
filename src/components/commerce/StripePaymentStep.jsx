@@ -3,7 +3,7 @@
 // HUI Commerce 2.0 — Stripe Payment Element (Sprint C2: AKTIV)
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useCallback } from "react";
+import React, { useMemo } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
@@ -15,10 +15,12 @@ import { STRIPE_APPEARANCE, COMMERCE_CONFIG } from "../../services/commerceEngin
 import { C, haptic } from "../commerce/commerceUtils.js";
 import stripePublishableKey from "../../config/stripe-publishable-key.json";
 
-// Stripe-Instanz — einmalig laden (außerhalb der Komponente)
-const _stripeKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY || stripePublishableKey.key || "";
-console.log("[STRIPE] loadStripe key:", _stripeKey ? _stripeKey.slice(0,20)+"..." : "LEER/FEHLEND");
-const stripePromise = loadStripe(_stripeKey);
+function resolveStripeKey(publishableKey) {
+  return publishableKey
+    || import.meta.env.VITE_STRIPE_PUBLIC_KEY
+    || stripePublishableKey.key
+    || "";
+}
 
 // ─────────────────────────────────────────────────────────────────
 // Inner Form — innerhalb von <Elements> gemountet
@@ -189,13 +191,35 @@ export default function StripePaymentStep({
   total    = 0,
   impact   = 0,
   clientSecret,
+  publishableKey = null,
   orderId  = null,
   onSuccess,
   onError,
   onBack,
   hideHeader = false,  // C2.1: Header wird vom UnterstutzenFlow gesteuert
 }) {
+  const stripeKey = resolveStripeKey(publishableKey);
+  const stripePromise = useMemo(
+    () => (stripeKey ? loadStripe(stripeKey) : null),
+    [stripeKey],
+  );
+
   console.log("[STRIPE] StripePaymentStep mounted — clientSecret:", clientSecret ? clientSecret.slice(0,20)+"..." : "NULL");
+  console.log("[STRIPE] loadStripe key:", stripeKey ? stripeKey.slice(0,20)+"..." : "LEER/FEHLEND");
+
+  if (!stripePromise) {
+    return (
+      <div style={{
+        display: "flex", flexDirection: "column", height: "100%",
+        alignItems: "center", justifyContent: "center", padding: "40px 24px",
+      }}>
+        <div style={{ fontSize: 14, color: C.coral, textAlign: "center", lineHeight: 1.6 }}>
+          Stripe Publishable Key fehlt. Bitte VITE_STRIPE_PUBLIC_KEY in Vercel setzen.
+        </div>
+      </div>
+    );
+  }
+
   // clientSecret fehlt noch (Edge Function liefert ihn)
   if (!clientSecret) {
     return (

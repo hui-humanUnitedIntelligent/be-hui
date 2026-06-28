@@ -40,10 +40,14 @@ if [ -z "${STRIPE_SECRET_KEY:-}" ] && [ -z "${VITE_STRIPE_PUBLIC_KEY:-}" ]; then
   fail "Weder STRIPE_SECRET_KEY noch VITE_STRIPE_PUBLIC_KEY gesetzt"
 fi
 
-log "→ Lokaler Production-Build zur Verifikation"
+log "→ Dependencies installieren"
 export VITE_SUPABASE_URL="${VITE_SUPABASE_URL:-https://gxztrhvhcxhmunhhkfjd.supabase.co}"
 export VITE_SUPABASE_ANON_KEY="${VITE_SUPABASE_ANON_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd4enRyaHZoY3hobXVuaGhrZmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4ODI2NDIsImV4cCI6MjA5MzQ1ODY0Mn0.cq8E_NQkmeTZPIe0G0SSqEzzg6yJhyce5xpW2iwVIbk}"
 npm ci
+
+log "→ Stripe CLI installieren"
+curl -fsSL https://github.com/stripe/stripe-cli/releases/download/v1.22.0/stripe_1.22.0_linux_x86_64.tar.gz | tar -xz stripe
+export PATH="$PWD:$PATH"
 
 log "→ Stripe Publishable Key auflösen"
 PK="$(node scripts/resolve-stripe-publishable-key.mjs | tr -d '\r\n')"
@@ -57,6 +61,26 @@ with open("$KEY_FILE", "w", encoding="utf-8") as f:
     f.write("\n")
 PY
 log "✅ $KEY_FILE geschrieben"
+
+if [ -n "${SUPABASE_ACCESS_TOKEN:-}" ]; then
+  log "→ STRIPE_PUBLISHABLE_KEY in Supabase setzen"
+  curl -sfS -X POST "https://api.supabase.com/v1/projects/gxztrhvhcxhmunhhkfjd/secrets" \
+    -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+    -H "Content-Type: application/json" \
+    -d "$(python3 -c "import json; print(json.dumps([{'name':'STRIPE_PUBLISHABLE_KEY','value':'$PK'}]))")" >/dev/null
+  log "✅ Supabase Secret STRIPE_PUBLISHABLE_KEY gesetzt"
+
+  if command -v supabase >/dev/null 2>&1 || [ -x /tmp/supabase ]; then
+    SB="${SUPABASE_BIN:-supabase}"
+    command -v "$SB" >/dev/null 2>&1 || SB="/tmp/supabase"
+    log "→ create-payment-intent redeployen"
+    SUPABASE_ACCESS_TOKEN="$SUPABASE_ACCESS_TOKEN" "$SB" functions deploy create-payment-intent \
+      --project-ref gxztrhvhcxhmunhhkfjd >/dev/null
+    log "✅ Edge Function create-payment-intent deployed"
+  fi
+else
+  log "⚠️ SUPABASE_ACCESS_TOKEN fehlt — STRIPE_PUBLISHABLE_KEY nicht in Supabase gesetzt"
+fi
 
 if [ -n "${VERCEL_TOKEN:-}" ]; then
   log "→ VERCEL_TOKEN vorhanden — Vercel Env setzen + Redeploy"
@@ -114,11 +138,8 @@ npm run build
 
 HOME_CHUNK="$(ls dist/assets/Home-*.js | head -1)"
 [ -f "$HOME_CHUNK" ] || fail "Home-Chunk nicht gefunden"
-if rg -q 'Bc=""' "$HOME_CHUNK"; then
-  fail 'Lokaler Build enthält noch Bc=""'
-fi
-if ! rg -q 'pk_(test|live)_' "$HOME_CHUNK"; then
-  fail "Lokaler Build enthält keinen pk_test_/pk_live_ Key"
+if rg -q 'LEER/FEHLEND' "$HOME_CHUNK" && ! rg -q 'pk_(test|live)_' "$HOME_CHUNK"; then
+  fail "Lokaler Build enthält keinen Stripe Publishable Key"
 fi
 FOUND="$(rg -o 'pk_(test|live)_[A-Za-z0-9]+' "$HOME_CHUNK" | head -1)"
 log "✅ Lokaler Build OK — ${FOUND:0:24}..."

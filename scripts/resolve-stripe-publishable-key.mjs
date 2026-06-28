@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
- * Resolves Stripe publishable key for frontend builds (fetch-only, no deps).
+ * Resolves Stripe publishable key for frontend builds (fetch + stripe-cli).
  */
+import { execSync } from 'node:child_process';
 import process from 'node:process';
 
 const sk = process.env.STRIPE_SECRET_KEY?.trim();
@@ -40,11 +41,19 @@ function findPkDeep(value) {
   return match ? match[0] : null;
 }
 
-async function tryKeysList() {
-  const data = await getJson('/v1/keys?limit=20');
-  const pk = findPkDeep(data);
-  if (pk) return pk;
-  throw new Error('Kein pk in /v1/keys');
+function tryStripeCli() {
+  try {
+    const out = execSync('stripe config --list', {
+      env: { ...process.env, STRIPE_API_KEY: sk, STRIPE_SECRET_KEY: sk },
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    const pk = findPkDeep(out);
+    if (pk) return pk;
+    throw new Error('stripe config --list ohne pk');
+  } catch (err) {
+    throw new Error(err.stderr?.toString() || err.message || String(err));
+  }
 }
 
 async function tryAccount() {
@@ -54,55 +63,9 @@ async function tryAccount() {
   throw new Error('Kein pk in /v1/account');
 }
 
-async function tryDeveloperKeys() {
-  for (const path of ['/v1/developers/api_keys', '/v1/developer/api_keys']) {
-    try {
-      const data = await getJson(path);
-      const pk = findPkDeep(data);
-      if (pk) return pk;
-    } catch (err) {
-      console.error(`[resolve] ${path}: ${err.message || err}`);
-    }
-  }
-  throw new Error('developer api_keys ohne pk');
-}
-
-async function tryManagedKeyApi() {
-  const account = await getJson('/v1/account');
-  const acctId = account?.id;
-  if (!acctId) throw new Error('account.id fehlt');
-
-  for (const version of ['2026-05-27.preview', '2025-11-17.preview']) {
-    try {
-      const res = await fetch('https://api.stripe.com/v2/iam/api_keys', {
-        method: 'POST',
-        headers: {
-          ...headers,
-          'Content-Type': 'application/json',
-          'Stripe-Version': version,
-          'Stripe-Context': acctId,
-        },
-        body: JSON.stringify({ type: 'publishable_key' }),
-      });
-      const text = await res.text();
-      if (!res.ok) {
-        console.error(`[resolve] v2 ${version}: HTTP ${res.status}: ${text.slice(0, 120)}`);
-        continue;
-      }
-      const pk = findPkDeep(JSON.parse(text));
-      if (pk) return pk;
-    } catch (err) {
-      console.error(`[resolve] v2 ${version}: ${err.message || err}`);
-    }
-  }
-  throw new Error('Managed-key API nicht verfügbar');
-}
-
 const attempts = [
-  ['keys list', tryKeysList],
+  ['stripe cli', () => tryStripeCli()],
   ['account', tryAccount],
-  ['developer keys', tryDeveloperKeys],
-  ['managed key api', tryManagedKeyApi],
 ];
 
 for (const [name, fn] of attempts) {

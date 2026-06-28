@@ -345,6 +345,7 @@ serve(async (req) => {
       clientSecret: paymentIntent.client_secret,
       orderId:      dbOrder.id,
       serverTotal,
+      publishableKey: Deno.env.get('STRIPE_PUBLISHABLE_KEY') || null,
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }})
 
   } catch (e: any) {

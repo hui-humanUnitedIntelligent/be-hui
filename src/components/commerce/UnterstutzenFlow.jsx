@@ -263,6 +263,7 @@ export default function UnterstutzenFlow({
 
   // Stripe
   const [clientSecret, setClientSecret] = useState(null);
+  const [publishableKey, setPublishableKey] = useState(null);
   const [orderId,      setOrderId]      = useState(null);
   const [stripeError,  setStripeError]  = useState(null);
   const [piLoading,    setPiLoading]    = useState(false);
@@ -432,8 +433,9 @@ export default function UnterstutzenFlow({
       // S12 — State setzen → StripePaymentStep öffnet
       _step = 'S12';
       setClientSecret(result.clientSecret);
+      setPublishableKey(result.publishableKey ?? null);
       setOrderId(result.orderId ?? null);
-      dbg('S12 ✓ StripePaymentStep wird geöffnet', { orderId: result.orderId });
+      dbg('S12 ✓ StripePaymentStep wird geöffnet', { orderId: result.orderId, hasPk: !!result.publishableKey });
 
     } catch (e) {
       const isAbort = e?.name === 'AbortError';
@@ -594,6 +596,7 @@ export default function UnterstutzenFlow({
                       total={total}
                       impact={impact}
                       clientSecret={clientSecret}
+                      publishableKey={publishableKey}
                       orderId={orderId}
                       onSuccess={handleStripeSuccess}
                       onError={handleStripeError}
