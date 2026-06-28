@@ -51,7 +51,14 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
+          set -euo pipefail
           supabase secrets set STRIPE_SECRET_KEY="${{ secrets.STRIPE_SECRET_KEY }}" --project-ref gxztrhvhcxhmunhhkfjd
+          if [ -n "${{ secrets.VITE_STRIPE_PUBLIC_KEY }}" ]; then
+            supabase secrets set STRIPE_PUBLISHABLE_KEY="${{ secrets.VITE_STRIPE_PUBLIC_KEY }}" --project-ref gxztrhvhcxhmunhhkfjd
+            echo "✅ STRIPE_PUBLISHABLE_KEY gesetzt"
+          else
+            echo "⚠️ VITE_STRIPE_PUBLIC_KEY GitHub Secret fehlt — STRIPE_PUBLISHABLE_KEY nicht gesetzt"
+          fi
 
       - name: Verify Deployment
         run: |

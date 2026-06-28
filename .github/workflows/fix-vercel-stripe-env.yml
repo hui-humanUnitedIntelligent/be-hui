@@ -2,6 +2,11 @@ name: Fix Vercel Stripe Public Key
 
 on:
   workflow_dispatch:
+    inputs:
+      stripe_publishable_key:
+        description: 'pk_test_... oder pk_live_... (optional wenn GitHub Secret VITE_STRIPE_PUBLIC_KEY gesetzt)'
+        required: false
+        type: string
   push:
     branches:
       - cursor/fix-stripe-public-key-e4ef
@@ -12,20 +17,20 @@ on:
       - 'src/config/stripe-publishable-key.json'
       - 'src/components/commerce/StripePaymentStep.jsx'
       - '.github/workflows/fix-vercel-stripe-env.yml'
+      - '.github/workflows/deploy-supabase-functions.yml'
 
 concurrency:
   group: fix-vercel-stripe-env
   cancel-in-progress: true
 
+permissions:
+  contents: write
+
 jobs:
   fix-and-verify:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/setup-node@v4
         with:
@@ -35,7 +40,7 @@ jobs:
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
-          VITE_STRIPE_PUBLIC_KEY: ${{ secrets.VITE_STRIPE_PUBLIC_KEY }}
+          VITE_STRIPE_PUBLIC_KEY: ${{ inputs.stripe_publishable_key || secrets.VITE_STRIPE_PUBLIC_KEY }}
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
           curl -fsSL https://github.com/supabase/cli/releases/download/v2.108.0/supabase_linux_amd64.tar.gz | tar -xz -C /tmp
