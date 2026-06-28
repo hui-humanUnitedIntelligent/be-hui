@@ -40,6 +40,11 @@ if [ -z "${STRIPE_SECRET_KEY:-}" ] && [ -z "${VITE_STRIPE_PUBLIC_KEY:-}" ]; then
   fail "Weder STRIPE_SECRET_KEY noch VITE_STRIPE_PUBLIC_KEY gesetzt"
 fi
 
+log "→ Lokaler Production-Build zur Verifikation"
+export VITE_SUPABASE_URL="${VITE_SUPABASE_URL:-https://gxztrhvhcxhmunhhkfjd.supabase.co}"
+export VITE_SUPABASE_ANON_KEY="${VITE_SUPABASE_ANON_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd4enRyaHZoY3hobXVuaGhrZmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4ODI2NDIsImV4cCI6MjA5MzQ1ODY0Mn0.cq8E_NQkmeTZPIe0G0SSqEzzg6yJhyce5xpW2iwVIbk}"
+npm ci
+
 log "→ Stripe Publishable Key auflösen"
 PK="$(node scripts/resolve-stripe-publishable-key.mjs | tr -d '\r\n')"
 [[ "$PK" =~ ^pk_(test|live)_ ]] || fail "Ungültiger Publishable Key: ${PK:0:20}..."
@@ -105,9 +110,6 @@ else
 fi
 
 log "→ Lokaler Production-Build zur Verifikation"
-export VITE_SUPABASE_URL="${VITE_SUPABASE_URL:-https://gxztrhvhcxhmunhhkfjd.supabase.co}"
-export VITE_SUPABASE_ANON_KEY="${VITE_SUPABASE_ANON_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd4enRyaHZoY3hobXVuaGhrZmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4ODI2NDIsImV4cCI6MjA5MzQ1ODY0Mn0.cq8E_NQkmeTZPIe0G0SSqEzzg6yJhyce5xpW2iwVIbk}"
-npm ci
 npm run build
 
 HOME_CHUNK="$(ls dist/assets/Home-*.js | head -1)"
