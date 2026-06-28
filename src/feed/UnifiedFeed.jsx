@@ -462,7 +462,7 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
 function ReactionCard({ item, onProfile, onBook, onDetail, onShare, itemIndex, onDepth }) {
   // Absolute guard — no item = no render, log it
   if (!item?.id) {
-    console.warn("[REACTION_CARD] invalid item — skipping", item);
+    if (import.meta.env.DEV) console.warn("[REACTION_CARD] invalid item — skipping", item);
     return null;
   }
   return (
@@ -719,7 +719,7 @@ export default function UnifiedFeed({
       } catch (err) {
         // Sprint P0: Error Boundary — kein "Human"-Fallback.
         // Item mit Crash wird auf null gesetzt und vom Filter entfernt.
-        console.warn("[UNIFIED_NORM_ERR]", raw?.id, err?.message);
+        if (import.meta.env.DEV) console.warn("[UNIFIED_NORM_ERR]", raw?.id, err?.message);
         return null;
       }
     });
@@ -799,7 +799,7 @@ export default function UnifiedFeed({
         )}
 
         {/* Feed list — only when not first-load */}
-        {console.log("🟠 STEP 4 — UnifiedFeed FeedList onDetail:", !!onDetail) || (!streamLoading || resolvedItems.length > 0) && (
+        {(!streamLoading || resolvedItems.length > 0) && (
           <FeedList
             items={resolvedItems}
             onProfile={onProfile}

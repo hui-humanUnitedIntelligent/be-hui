@@ -267,16 +267,14 @@ export default function UnterstutzenFlow({
   const [orderId,      setOrderId]      = useState(null);
   const [stripeError,  setStripeError]  = useState(null);
   const [piLoading,    setPiLoading]    = useState(false);
-  const [debugLog,   setDebugLog]   = useState([]);  // CHECKOUT-DEBUG
 
-  const dbg = (msg, data) => {
-    const ts = new Date().toISOString().slice(11,23);
-    const entry = data !== undefined
-      ? `[${ts}] ${msg}: ${typeof data === 'object' ? JSON.stringify(data) : data}`
-      : `[${ts}] ${msg}`;
-    console.log('[HUI-CHECKOUT]', entry);
-    setDebugLog(prev => [...prev.slice(-20), entry]);
-  };
+  // eslint-disable-next-line no-unused-vars
+  const dbg = import.meta.env.DEV
+    ? (msg, data) => {
+        const ts = new Date().toISOString().slice(11,23);
+        console.log('[HUI-CHECKOUT]', `[${ts}] ${msg}`, data ?? '');
+      }
+    : () => {};
 
 
   const total  = calcTotalWithQty(items);
@@ -326,7 +324,7 @@ export default function UnterstutzenFlow({
             }
             // Nicht paid → normaler Flow (kein Auto-Danke ohne Bestätigung)
           })
-          .catch(e => console.warn('[REDIRECT] Status-Check fehlgeschlagen:', e.message));
+          .catch(() => {});
       });
     }
   }, [user]);
@@ -445,7 +443,7 @@ export default function UnterstutzenFlow({
         aborted: isAbort,
         online: navigator.onLine,
       });
-      console.error('[UnterstutzenFlow] PI Fehler @ ' + _step + ':', e);
+      if (import.meta.env.DEV) console.error('[UnterstutzenFlow] PI Fehler @ ' + _step + ':', e);
       setStripeError(
         isAbort
           ? 'Zeitüberschreitung — bitte Verbindung prüfen.'
@@ -621,26 +619,6 @@ export default function UnterstutzenFlow({
           </div>
         </div>
       </div>
-
-      {/* CHECKOUT DEBUG OVERLAY */}
-      {debugLog.length > 0 && (
-        <div style={{
-          position: 'fixed', bottom: 0, left: 0, right: 0,
-          background: 'rgba(0,0,0,0.9)', color: '#00ff88',
-          fontFamily: 'monospace', fontSize: 10, lineHeight: 1.5,
-          padding: '8px 10px', zIndex: 99999,
-          maxHeight: '45vh', overflowY: 'auto',
-          borderTop: '2px solid #00ff88',
-        }}>
-          <div style={{ color: '#fff', fontWeight: 700, marginBottom: 3 }}>
-            🔍 CHECKOUT DEBUG
-            <button onClick={() => setDebugLog([])}
-              style={{ marginLeft: 8, background: 'none', border: '1px solid #aaa',
-                color: '#aaa', borderRadius: 4, padding: '1px 5px', cursor: 'pointer' }}>×</button>
-          </div>
-          {[...debugLog].reverse().map((line, i) => <div key={i}>{line}</div>)}
-        </div>
-      )}
     </div>
   );
 }

@@ -31,8 +31,6 @@ function StripeForm({ total, impact, orderId, onSuccess, onError }) {
   const [processing, setProcessing] = useState(false);
   const [error,      setError     ] = useState(null);
 
-  // DEBUG — zeigt ob stripe geladen ist
-  console.log("[STRIPE] StripeForm mounted — stripe:", !!stripe, "elements:", !!elements);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -88,9 +86,7 @@ function StripeForm({ total, impact, orderId, onSuccess, onError }) {
               fields:           { billingDetails: { address: { country: "never" } } },
               wallets:          { applePay: "auto", googlePay: "auto" },
             }}
-            onReady={() => console.log("[STRIPE] PaymentElement onReady ✅")}
-            onLoadError={(e) => console.error("[STRIPE] PaymentElement onLoadError ❌", e)}
-            onChange={(e) => console.log("[STRIPE] PaymentElement onChange", e.complete, e.value?.type)}
+            onLoadError={(e) => { if (import.meta.env.DEV) console.error("[STRIPE] PaymentElement onLoadError", e); }}
           />
         </div>
 
@@ -204,8 +200,6 @@ export default function StripePaymentStep({
     [stripeKey],
   );
 
-  console.log("[STRIPE] StripePaymentStep mounted — clientSecret:", clientSecret ? clientSecret.slice(0,20)+"..." : "NULL");
-  console.log("[STRIPE] loadStripe key:", stripeKey ? stripeKey.slice(0,20)+"..." : "LEER/FEHLEND");
 
   if (!stripePromise) {
     return (

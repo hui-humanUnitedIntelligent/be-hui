@@ -109,7 +109,6 @@ function EventCard({ event, onPress, delay }) {
 export default function FeedEventsSection({ onEventPress, onMoreEvents }) {
   // Active system log
   React.useEffect(() => {
-    console.log("[ACTIVE_FEED_SYSTEM] FeedEventsSection mounted");
   }, []);
   const [events,  setEvents]  = useState([]);
   const [loading, setLoading] = useState(true);
@@ -190,7 +189,7 @@ export default function FeedEventsSection({ onEventPress, onMoreEvents }) {
 
       setEvents(rows);  // FEED.4B FIX-3 — leere DB → Section rendert nicht (Z.169)
     } catch (err) {
-      console.warn("[HUI_EVENTS_LOAD_ERR]", err?.message);
+      if (import.meta.env.DEV) console.warn("[HUI_EVENTS_LOAD_ERR]", err?.message);
       setEvents([]); // FEED.4B FIX-3 — DB-Fehler → Section rendert nicht
     } finally {
       setLoading(false);

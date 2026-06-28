@@ -198,13 +198,11 @@ export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
   // ── TRACE STEP 8 ──────────────────────────────────────
   if (!window.__HUI_STEP8_DONE__ && item?.type === "work") {
     window.__HUI_STEP8_DONE__ = true;
-    console.group("🔍 STEP 8 - HumanHeader (first work)");
-    console.log("item.author:", author);
-    console.log("author.name:", author.name);
-    console.log("author.displayName:", author.displayName);
-    console.log("author.avatar:", author.avatar);
-    console.log("author.avatar_url:", author.avatar_url);
-    console.groupEnd();
+    if (import.meta.env.DEV) {
+      console.group("🔍 STEP 8 - HumanHeader (first work)");
+      if (import.meta.env.DEV) { console.log("item.author:", author?.name, "| avatar:", author?.avatar ? "✅" : "❌"); }
+      console.groupEnd();
+    }
   }
   const name     = (author.name || author.displayName || "").trim() || "Mitglied";
   const avatar   = author.avatar || author.avatar_url || null;
