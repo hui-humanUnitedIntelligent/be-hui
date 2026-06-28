@@ -3,7 +3,7 @@
 // HUI Commerce 2.0 — Stripe Payment Element (Sprint C2: AKTIV)
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
