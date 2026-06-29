@@ -2210,7 +2210,7 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
       </div>
 
       {/* Scrollbarer Inhalt — dieselbe overlayContent() Funktion */}
-      <div className="dc-scroll" style={{flex:1,overflowY:"auto",paddingBottom:"max(80px,calc(64px + env(safe-area-inset-bottom,0px)))"}}>
+      <div className="dc-scroll" style={{flex:1,overflowY:"auto", WebkitOverflowScrolling:"touch",paddingBottom:"max(80px,calc(64px + env(safe-area-inset-bottom,0px)))"}}>
         {overlayContent()}
       </div>
     </div>,
@@ -2280,7 +2280,7 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
             boxShadow:T.shadow,
             overflow:"hidden",
             animation:"dc-in .20s cubic-bezier(.22,1,.36,1) both",
-            maxHeight:"84vh", overflowY:"auto",
+            maxHeight:"84vh", overflowY:"auto", WebkitOverflowScrolling:"touch",
           }}>
             {overlayContent()}
           </div>
