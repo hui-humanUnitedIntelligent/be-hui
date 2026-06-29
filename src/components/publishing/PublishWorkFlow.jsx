@@ -21,6 +21,19 @@ const CATS = [
   "Holz","Schmuck","Skulptur","Design","Performance","Schreiben","Film","Sonstiges"
 ];
 
+// HUI Core Engine v2.0: Signal beim Publish aufzeichnen
+// Ebene 1 (Handlung) — beeinflusst Orb nicht direkt
+// Wirkung entsteht erst durch Resonanz (Kauf/Buchung → resonanceHelpers)
+let _signalHelpers = null;
+async function getSignalHelpers() {
+  if (_signalHelpers) return _signalHelpers;
+  try {
+    const mod = await import("../../hooks/useCoreEngine.js");
+    _signalHelpers = mod.signalHelpers;
+    return _signalHelpers;
+  } catch { return null; }
+}
+
 export default function PublishWorkFlow({ onClose, onPublished }) {
   const { user } = useAuth();
   const [step,     setStep]     = useState(1);
@@ -88,8 +101,12 @@ export default function PublishWorkFlow({ onClose, onPublished }) {
 
       if (insErr) throw new Error(`Speichern fehlgeschlagen: ${insErr.message} (code: ${insErr.code})`);
 
-      console.log("[HUI_REALITY] work published \u2713", data?.id);
+      console.log("[HUI_REALITY] work published ✓", data?.id);
       onPublished?.({ id: data?.id, ...payload });
+      // HUI Core Engine: Wirkungssignal aufzeichnen (Ebene 1 — Handlung)
+      if (user?.id && data?.id) {
+        getSignalHelpers().then(sh => sh?.onWorkPublished?.(user.id, data.id)).catch(() => {});
+      }
       onClose?.();
     } catch(err) {
       console.error("[HUI_PUBLISH] Fehler:", err.message);
