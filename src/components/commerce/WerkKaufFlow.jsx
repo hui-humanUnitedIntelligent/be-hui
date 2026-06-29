@@ -9,6 +9,13 @@ import React, { useState } from "react";
 import { useAuth } from "../../lib/AuthContext";
 import { salesService } from "../../services/creatorEconomy";
 import { supabase } from "../../lib/supabaseClient";
+// HUI Core Engine v2.0: Resonanz aufzeichnen wenn Werk gekauft wird
+let _resonanceHelpers = null;
+async function getResonanceHelpers() {
+  if (_resonanceHelpers) return _resonanceHelpers;
+  try { const m = await import("../../hooks/useCoreEngine.js"); _resonanceHelpers = m.resonanceHelpers; return _resonanceHelpers; }
+  catch { return null; }
+}
 
 const CORAL = "#FF8A6B";
 const TEAL  = "#16D7C5";
@@ -64,6 +71,13 @@ export default function WerkKaufFlow({ werk, onClose }) {
     }).catch(() => {});
 
     setPhase("success");
+    // HUI Core Engine: Kauf-Resonanz aufzeichnen (Ebene 2 — Reaktion)
+    // Beeinflusst den Orb des Creators wenn genug Resonanz entsteht
+    if (user?.id && creatorId && werk?.id) {
+      getResonanceHelpers()
+        .then(rh => rh?.onWorkPurchased?.(user.id, creatorId, werk.id))
+        .catch(() => {});
+    }
   }
 
   // ── Overlay-Backdrop ────────────────────────────────────────────
