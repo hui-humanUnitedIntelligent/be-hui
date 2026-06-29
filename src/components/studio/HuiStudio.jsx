@@ -20,6 +20,7 @@ import ProfilBearbeitenModal    from "./ProfilBearbeitenModal.jsx";
 import SicherheitPasswortModal  from "./SicherheitPasswortModal.jsx";
 import SupportPage             from "../../pages/studio/SupportPage.jsx";
 import MeineTicketsPage        from "../../pages/studio/MeineTicketsPage.jsx";
+import MeineResonanz            from "../../pages/studio/MeineResonanz.jsx";
 import SettingsModal    from "../settings/SettingsModal.jsx";
 
 // ── Design Tokens ─────────────────────────────────────────────────
@@ -1221,6 +1222,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
 
         {/* ── 3. Einnahmen & Statistiken ────────────────────── */}
         <StudioSection label="Einnahmen & Statistiken">
+          <StudioRow icon="✨" label="Meine Resonanz" onPress={() => setShowResonanz(true)} />
           <StudioRow icon="💶" label="Ein-/Ausgaben Übersicht" onPress={() => setShowEinAusgaben(true)} />
           <StudioRow icon="📊" label="Statistiken"         onPress={() => setShowStatistiken(true)} last />
         </StudioSection>
@@ -1497,6 +1499,13 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
           onBack={() => setShowMeineTickets(false)}
           userId={profile?.id}
           profile={profile}
+        />
+      )}
+
+      {showResonanz && (
+        <MeineResonanz
+          onClose={() => setShowResonanz(false)}
+          onNavigate={(type, navId) => { setShowResonanz(false); }}
         />
       )}
 
