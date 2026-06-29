@@ -1,24 +1,36 @@
 // src/core/orbEngine.js
 // ═══════════════════════════════════════════════════════════════════════
-// HUI ORB ENGINE — Phase 2
+// HUI ORB ENGINE — v2.1
 // Liest ausschließlich die Core Engine. Erzeugt visuelle Orb-Parameter.
 //
-// PHILOSOPHIE:
-//   Der Orb zeigt KEINE Zahlen, Levels oder Scores.
-//   Er verändert sich langsam — organisch, über Wochen und Monate.
-//   Der Nutzer soll gelegentlich denken: "mein Blatt sieht heute anders aus."
+// PHILOSOPHIE (gemäß HUI_CONSTITUTION.md)
 //
-//   Die Veränderung folgt der HUI-Spirale:
-//   Verbinden → Unterstützen → Erschaffen → Wertschöpfen → Impact
+//   Der Orb ist von Anfang an vollständig.
+//   Nicht der Orb wächst — das Blatt erzählt mit der Zeit
+//   die Geschichte des Weges eines Menschen.
 //
-//   Das Orb-Symbol rechts neben der HUI-Sonne wächst individuell.
 //   Die Sonne ist bei allen Menschen identisch.
-//   Nur das Blatt entwickelt sich.
+//   Sie symbolisiert die gemeinsame Menschlichkeit,
+//   das Leben, die Gemeinschaft und das Licht das uns verbindet.
+//   Sie verändert sich nie.
+//
+//   Das Blatt erzählt den individuellen Weg.
+//   Nicht die Identität. Nicht den Wert. Nicht die Leistung.
+//   Nur den persönlichen Weg — langsam, organisch, über Monate und Jahre.
+//
+//   Das neutrale Blatt eines neuen Mitglieds bedeutet:
+//   "Dein Weg beginnt." — nicht: "Du hast noch nichts erreicht."
+//
+//   Der Orb zeigt keine Bewertung. Er erzählt eine Geschichte.
 //
 // VISUELLER ANSATZ:
 //   Orientierung am HUI-Logo: organisch, warm, natürlich.
 //   NICHT: Sci-Fi, Gaming, Kristalle, Neon, Galaxien.
-//   IMMER: Blatt-Metapher, natürliche Wachstumsprozesse.
+//   IMMER: Blatt-Metapher, natürliche Entfaltungsprozesse.
+//
+// CONSTITUTION:  HUI_CONSTITUTION.md
+// REGISTRY:      src/registry/HuiRegistry.js
+// INDEX:         docs/ARCHITECTURE_INDEX.md
 //
 // NUTZUNG:
 //   import { OrbEngine } from '../core/orbEngine.js';
@@ -104,34 +116,39 @@ const PILLAR_VISUAL = Object.freeze({
  * Der finale Blatt-Typ ist ein Mischung aus den dominanten Pfeilern.
  */
 const LEAF_ARCHETYPES = Object.freeze({
-  // Hauptblatt-Formen (als SVG viewBox "0 0 60 80")
-  seed: {
-    // Neues Mitglied — kleines, geschlossenes Blatt
+  // ─── Blatt-Entfaltungsstufen (SVG viewBox "0 0 60 80") ──────────────
+  //
+  // Diese Namen beschreiben einen Weg — keine Leistung, keinen Status.
+  // Der Orb ist von Anfang an vollständig.
+  // Das Blatt erzählt mit der Zeit die Geschichte dieses Weges.
+  //
+  origin: {
+    // Neues Mitglied — stilles, ruhiges Blatt. "Dein Weg beginnt."
     path: 'M30,75 C15,60 8,45 10,30 C12,15 25,8 30,5 C35,8 48,15 50,30 C52,45 45,60 30,75 Z',
-    name: 'seed',
+    name: 'origin',
   },
-  sprouting: {
-    // Erste Aktivität — entfaltendes Blatt
+  first_leaf: {
+    // Erste Resonanz — das Blatt zeigt sich der Welt
     path: 'M30,75 C14,58 6,42 9,27 C12,12 24,5 30,3 C36,5 50,13 51,28 C53,43 46,58 30,75 Z',
-    name: 'sprouting',
+    name: 'first_leaf',
   },
-  young: {
-    // Wachsend — asymmetrisch, lebendig
+  awakening: {
+    // Erwachend — das Blatt entfaltet sich, lebendig und offen
     path: 'M30,76 C13,57 5,39 8,24 C11,9 24,2 30,2 C37,3 51,11 52,27 C54,43 47,57 30,76 Z',
-    name: 'young',
+    name: 'awakening',
   },
-  mature: {
-    // Gereift — vollständiges, ausgewogenes Blatt
+  expression: {
+    // Ausdrucksvoll — das Blatt zeigt seine Form, gereift und ausgeglichen
     path: 'M30,77 C12,56 4,37 7,21 C10,5 24,0 30,0 C36,0 50,6 53,22 C56,38 48,56 30,77 Z',
-    name: 'mature',
+    name: 'expression',
   },
-  flourishing: {
-    // Blühend — lebendiges Blatt mit Details
+  unfolding: {
+    // Entfaltend — das Blatt in voller Lebendigkeit, reich an Geschichte
     path: 'M30,78 C10,55 3,35 6,18 C9,2 24,-2 30,-2 C36,-2 51,3 54,19 C57,36 50,55 30,78 Z',
-    name: 'flourishing',
+    name: 'unfolding',
   },
   rooted: {
-    // Verwurzelt — Impact-Fokus, tief und stabil
+    // Verwurzelt — tief geerdet, Impact-Fokus, Stille und Bestand
     path: 'M30,76 C13,57 5,40 7,24 C9,8 23,1 30,0 C37,1 51,9 53,25 C55,41 47,57 30,76 Z',
     name: 'rooted',
   },
@@ -181,13 +198,14 @@ function blendColors(pillarStrengths) {
  * Basiert auf orb_vitality + orb_depth (NICHT auf Punkten).
  */
 function selectLeafArchetype(vitality, depth, breadth) {
-  const growth = (vitality * 0.5) + (depth * 0.3) + (breadth * 0.2);
+  // "story" — der Weg des Menschen, keine Wachstumszahl
+  const story = (vitality * 0.5) + (depth * 0.3) + (breadth * 0.2);
 
-  if (growth < 0.08) return LEAF_ARCHETYPES.seed;
-  if (growth < 0.20) return LEAF_ARCHETYPES.sprouting;
-  if (growth < 0.38) return LEAF_ARCHETYPES.young;
-  if (growth < 0.58) return LEAF_ARCHETYPES.mature;
-  if (growth < 0.78) return LEAF_ARCHETYPES.flourishing;
+  if (story < 0.08) return LEAF_ARCHETYPES.origin;
+  if (story < 0.20) return LEAF_ARCHETYPES.first_leaf;
+  if (story < 0.38) return LEAF_ARCHETYPES.awakening;
+  if (story < 0.58) return LEAF_ARCHETYPES.expression;
+  if (story < 0.78) return LEAF_ARCHETYPES.unfolding;
   return LEAF_ARCHETYPES.rooted;
 }
 
@@ -360,13 +378,14 @@ export const OrbEngine = Object.freeze({
   },
 
   /**
-   * Standard-Parameter für neue Nutzer (noch keine Signale).
-   * Kleines, zartes Blatt — voller Potenzial.
+   * Standard-Parameter für neue Mitglieder (noch keine Spuren hinterlassen).
+   * Das neutrale Blatt des Ursprungs — ruhig, still, bereit.
+   * "Dein Weg beginnt." — kein Mangel, nur ein Beginn.
    */
   defaultParams() {
     return {
       leaf: {
-        archetype: 'seed',
+        archetype: 'origin',
         path:      LEAF_ARCHETYPES.seed.path,
         viewBox:   '0 0 60 80',
       },
