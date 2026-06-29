@@ -34,6 +34,7 @@ export default function HomeHeader({
       {/* ── Sticky Bar ─────────────────────────────────────── */}
       <div style={{
         position:"sticky", top:0, zIndex:60,
+        WebkitTransform:"translateZ(0)", transform:"translateZ(0)",
         background:"rgba(255,251,248,0.93)",
         backdropFilter:"blur(32px) saturate(1.7)",
         WebkitBackdropFilter:"blur(32px) saturate(1.7)",
