@@ -271,6 +271,13 @@ export const OrbEngine = Object.freeze({
     }
 
     const {
+      // Ebene 3: Resonanzbestätigte Stärken — primäre Orb-Eingabe
+      resonance_verbinden      = 0,
+      resonance_unterstuetzen  = 0,
+      resonance_erschaffen     = 0,
+      resonance_wertschoepfen  = 0,
+      resonance_impact         = 0,
+      // Ebene 1: Rohe Handlungs-Stärken — Fallback wenn noch keine Resonanz
       strength_verbinden      = 0,
       strength_unterstuetzen  = 0,
       strength_erschaffen     = 0,
@@ -283,18 +290,28 @@ export const OrbEngine = Object.freeze({
       orb_warmth              = 0,
     } = coreProfile;
 
-    // Pillar-Stärken normalisieren (0.0–1.0)
+    // Resonanz Engine: Wirkungsstärken für Orb-Farbberechnung.
+    // Primär: resonance_* (bestätigte Wirkung durch andere Menschen).
+    // Fallback: strength_* * 0.25 (Handlungen ohne Resonanz zählen dezent).
+    // So sieht das Blatt auch für neue Nutzer nicht völlig farblos aus.
+    const effectiveVerbinden     = resonance_verbinden     || strength_verbinden     * 0.25;
+    const effectiveUnterstuetzen = resonance_unterstuetzen || strength_unterstuetzen * 0.25;
+    const effectiveErschaffen    = resonance_erschaffen    || strength_erschaffen    * 0.25;
+    const effectiveWertschoepfen = resonance_wertschoepfen || strength_wertschoepfen * 0.25;
+    const effectiveImpact        = resonance_impact        || strength_impact        * 0.25;
+
+    // Normalisieren (0.0–1.0)
     const maxStrength = Math.max(
-      strength_verbinden, strength_unterstuetzen, strength_erschaffen,
-      strength_wertschoepfen, strength_impact, 1  // min 1 um Division durch 0 zu verhindern
+      effectiveVerbinden, effectiveUnterstuetzen, effectiveErschaffen,
+      effectiveWertschoepfen, effectiveImpact, 1
     );
 
     const normalizedStrengths = {
-      [PILLARS.VERBINDEN]:     strength_verbinden     / maxStrength,
-      [PILLARS.UNTERSTUETZEN]: strength_unterstuetzen / maxStrength,
-      [PILLARS.ERSCHAFFEN]:    strength_erschaffen    / maxStrength,
-      [PILLARS.WERTSCHOEPFEN]: strength_wertschoepfen / maxStrength,
-      [PILLARS.IMPACT]:        strength_impact        / maxStrength,
+      [PILLARS.VERBINDEN]:     effectiveVerbinden     / maxStrength,
+      [PILLARS.UNTERSTUETZEN]: effectiveUnterstuetzen / maxStrength,
+      [PILLARS.ERSCHAFFEN]:    effectiveErschaffen    / maxStrength,
+      [PILLARS.WERTSCHOEPFEN]: effectiveWertschoepfen / maxStrength,
+      [PILLARS.IMPACT]:        effectiveImpact        / maxStrength,
     };
 
     // Berechnungen
