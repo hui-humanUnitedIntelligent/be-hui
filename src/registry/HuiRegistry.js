@@ -1,6 +1,13 @@
 // src/registry/HuiRegistry.js
 // ═══════════════════════════════════════════════════════════════════════════
 // HUI REGISTRY — v1.0
+//
+// CONSTITUTION
+//   Diese Registry ist die operationale Umsetzung der HUI Constitution.
+//   Sie definiert die Sprache, Bedeutung und Semantik der Plattform.
+//
+//   Verfassung:   HUI_CONSTITUTION.md        (Goldene Regeln, Grundpfeiler)
+//   Index:        docs/ARCHITECTURE_INDEX.md  (alle Module)
 // Die zentrale semantische Grundlage der gesamten HUI-Plattform.
 //
 // PHILOSOPHIE
