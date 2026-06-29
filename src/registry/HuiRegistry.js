@@ -6,7 +6,7 @@
 //   Diese Registry ist die operationale Umsetzung der HUI Constitution.
 //   Sie definiert die Sprache, Bedeutung und Semantik der Plattform.
 //
-//   Verfassung:   HUI_CONSTITUTION.md        (Goldene Regeln, Grundpfeiler)
+//   Verfassung:   HUI_CONSTITUTION.md v1.1   (Goldene Regeln, Grundpfeiler, Orb-Philosophie)
 //   Index:        docs/ARCHITECTURE_INDEX.md  (alle Module)
 // Die zentrale semantische Grundlage der gesamten HUI-Plattform.
 //
@@ -133,7 +133,7 @@ const REGISTRY_DATA = Object.freeze({
     orb: Object.freeze({
       trait:        'verzweigtes Blatt',   // Verzweigung = Verbindung nach außen
       leafShape:    'branched',
-      animPattern:  'soft-expand',         // öffnet sich langsam nach außen
+      animPattern:  'gentle-unfold',         // öffnet sich langsam nach außen
       glowPulse:    'gentle',              // ruhig, einladend
       atmosphere:   'warm-open',           // lädt ein
       description:  'Ein Blatt das sich öffnet und andere einlädt.',
@@ -457,6 +457,13 @@ const REGISTRY_DATA = Object.freeze({
 
 // ─────────────────────────────────────────────────────────────────────────
 // § 3  ORB-TRAITS TABELLE
+//
+//      GRUNDSATZ (HUI_CONSTITUTION.md v1.1):
+//        "Die Sonne symbolisiert die gemeinsame Menschlichkeit.
+//         Das Blatt erzählt den individuellen Weg eines Menschen.
+//         Der Orb ist von Anfang an vollständig.
+//         Mit der Zeit erzählt das Blatt die Geschichte dieses Weges."
+//
 //      Für die Orb Engine: Leaf-Archetypen aus Registry lesen,
 //      nicht in OrbConfig hardcoden.
 //      Wird von selectLeafArchetype() in orbEngine.js genutzt.
