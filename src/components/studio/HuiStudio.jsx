@@ -220,7 +220,7 @@ function UserListModal({ title, users, onClose }) {
             color:T.inkFaint, touchAction:"manipulation",
           }}>✕</button>
         </div>
-        <div style={{ overflowY:"auto", flex:1 }}>
+        <div style={{ overflowY:"auto", WebkitOverflowScrolling:"touch", flex:1 }}>
           {users.length === 0 ? (
             <div style={{ padding:"28px 20px", textAlign:"center", color:T.inkFaint, fontSize:13 }}>
               Noch keine Einträge.
@@ -653,7 +653,7 @@ function EinladungenModal({ ambassadorId, username, onClose }) {
   return createPortal(
     <div style={{
       position:"fixed", inset:0, zIndex:10000,
-      background:"rgba(26,26,24,0.55)", backdropFilter:"blur(4px)",
+      background:"rgba(26,26,24,0.55)", backdropFilter:"blur(4px)", WebkitBackdropFilter:"blur(4px)",
       display:"flex", flexDirection:"column", justifyContent:"flex-end",
     }} onClick={e => e.target === e.currentTarget && onClose()}>
       <div style={{
@@ -684,7 +684,7 @@ function EinladungenModal({ ambassadorId, username, onClose }) {
         </div>
 
         {/* Liste */}
-        <div style={{ overflowY:"auto", flex:1, padding:"12px 16px" }}>
+        <div style={{ overflowY:"auto", WebkitOverflowScrolling:"touch", flex:1, padding:"12px 16px" }}>
           {loading ? (
             <div style={{ textAlign:"center", padding:"40px 0", color:"rgba(26,26,24,0.4)", fontSize:13 }}>
               Lade Einladungen…
@@ -907,7 +907,7 @@ function MyRecommendationsModal({ userId, onClose }) {
   return createPortal(
     <div style={{
       position:"fixed", inset:0, zIndex:9999,
-      background:"rgba(26,26,24,0.55)", backdropFilter:"blur(4px)",
+      background:"rgba(26,26,24,0.55)", backdropFilter:"blur(4px)", WebkitBackdropFilter:"blur(4px)",
       display:"flex", flexDirection:"column", justifyContent:"flex-end",
     }} onClick={e => e.target === e.currentTarget && onClose()}>
       <div style={{
@@ -958,7 +958,7 @@ function MyRecommendationsModal({ userId, onClose }) {
         )}
 
         {/* Liste */}
-        <div style={{ overflowY:"auto", flex:1, padding:"12px 16px" }}>
+        <div style={{ overflowY:"auto", WebkitOverflowScrolling:"touch", flex:1, padding:"12px 16px" }}>
           {loading ? (
             <div style={{ textAlign:"center", padding:"40px 0", color:"rgba(26,26,24,0.4)", fontSize:13 }}>
               Lade Empfehlungen…
@@ -1170,7 +1170,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
 
       {/* ── SCROLL-INHALT ─────────────────────────────────────── */}
       <div className="studio-scroll" style={{
-        flex:1, overflowY:"auto",
+        flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch",
         paddingBottom:"max(88px,calc(80px + env(safe-area-inset-bottom,0px)))",
       }}>
         <Gap h={20}/>
