@@ -1,6 +1,19 @@
-# HUI Codebase Structure — Phase 3D.1
+# HUI Codebase Structure — Phase 4 (Architecture v3.0)
 # Single Source of Truth Manifest
-# Updated: 2026-05-16
+# Updated: 2026-06-29
+
+## ⚑  Fundament
+
+> Alle Architektur- und Produktentscheidungen basieren auf der HUI Constitution.
+
+| Dokument | Rolle |
+|---|---|
+| [`HUI_CONSTITUTION.md`](HUI_CONSTITUTION.md) | **Die Verfassung** — Goldene Regeln, Grundpfeiler, Designprinzipien |
+| [`src/registry/HuiRegistry.js`](src/registry/HuiRegistry.js) | **Single Source of Meaning** — Sprache, Texte, Semantik |
+| [`src/core/coreEngine.js`](src/core/coreEngine.js) | **Single Source of Truth** — Wirkungsdaten |
+| [`docs/ARCHITECTURE_INDEX.md`](docs/ARCHITECTURE_INDEX.md) | **Architecture Index** — alle Module verlinkt |
+
+---
 
 ## ACTIVE SYSTEMS
 
