@@ -195,21 +195,55 @@ Der Orb ist kein Feature.
 
 Er ist das sichtbare Symbol menschlicher Wirkung.
 
-**Was der Orb ist:**
+### Der Grundsatz
+
+> *Die Sonne symbolisiert die gemeinsame Menschlichkeit.*  
+> *Das Blatt erzählt den individuellen Weg eines Menschen.*  
+> *Der Orb ist von Anfang an vollständig.*  
+> *Mit der Zeit erzählt das Blatt die Geschichte dieses Weges.*
+
+### Die Sonne
+
+Die Sonne verändert sich niemals. Sie ist bei jedem Menschen identisch.
+
+Sie symbolisiert:
+- Menschlichkeit — das, was uns alle verbindet
+- Leben und Gemeinschaft
+- Hoffnung und Licht
+- Das Gemeinsame aller Menschen
+
+Sie besitzt keine Individualisierung, keine Bewertung, keine Entwicklungsstufen.
+
+### Das Blatt
+
+Das Blatt erzählt den individuellen Weg.
+
+Nicht die Identität. Nicht den Wert. Nicht die Leistung. Nur den persönlichen Weg.
+
+Das Blatt eines neuen Mitglieds bedeutet: *"Dein Weg beginnt."*  
+Nicht: *"Du hast noch nichts erreicht."*
+
+Das Blatt verändert sich langsam. Organisch. Ruhig.  
+Über Monate und Jahre — nicht nach einzelnen Aktionen.
+
+### Was der Orb ist:
 - Ein stilles, organisches Symbol
-- Eine langsame Entwicklung über Zeit
+- Eine Geschichte die sich langsam entfaltet
 - Ein individueller Ausdruck — kein Vergleich
 - Ruhig, warm, minimalistisch
+- Von Anfang an vollständig
 
-**Was der Orb nicht ist:**
+### Was der Orb nicht ist:
 - Kein Belohnungsmechanismus
 - Kein Leistungsindikator
 - Kein Gamification-Element
+- Kein Wachstums- oder Fortschrittsanzeiger
 - Kein Vergleichssystem
 - Kein Echtzeit-Feedback nach jeder Aktion
 
-> Der Orb verändert sich langsam. Über Wochen, nicht über Minuten.  
-> Er hat keine Explosionen. Keine Level-Up-Animationen. Keine Belohnungseffekte.
+> Der Orb zeigt keine Bewertung. Er erzählt eine Geschichte.  
+> Er verändert sich über Monate, nicht über Minuten.  
+> Er hat keine Level-Up-Animationen. Keine Belohnungseffekte. Keine Explosionen.
 
 ---
 
@@ -302,6 +336,7 @@ Wenn **unklar**: Konservativ entscheiden.
 | Version | Datum | Beschreibung |
 |---|---|---|
 | 1.0 | 2026-06-29 | Initiale Ratifizierung |
+| 1.1 | 2026-06-29 | Orb-Philosophie präzisiert: Sonne/Blatt-Grundsatz, Weg statt Wachstum |
 
 ### Änderungsregeln
 
