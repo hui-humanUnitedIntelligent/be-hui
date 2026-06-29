@@ -22,6 +22,7 @@ import { useProfileData } from "../hooks/useProfileData.js";
 import HuiStudio              from "../components/studio/HuiStudio.jsx";
 import MeineResonanz           from "./studio/MeineResonanz.jsx";
 import PublicProfilePreview   from "../components/profile/PublicProfilePreview.jsx";
+import { OrbSignatur }        from "../components/profile/OrbSignatur.jsx";
 import MerkenSection          from "../components/profile/MerkenSection.jsx";
 // Sprint F.7D Phase 4: Kanonische Sections
 import { AboutSection }          from "../components/profile/sections/AboutSection.jsx";
@@ -763,6 +764,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
           onEditAvatar={handleAvatarChange}
           onEditCover={handleCoverChange}
         />
+        {(profile?.id ?? user?.id) && (
+          <OrbSignatur profileId={profile?.id ?? user?.id} />
+        )}
         <Gap h={28}/>
 
         {/* ── MEINE RESONANZ SCHNELLZUGRIFF ─────────────────────── */}
