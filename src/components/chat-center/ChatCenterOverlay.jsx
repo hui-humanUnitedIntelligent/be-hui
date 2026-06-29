@@ -112,7 +112,7 @@ function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose
       </div>
 
       {/* List */}
-      <div className="hui-scroll" style={{ flex: 1, overflowY: "auto" }}>
+      <div className="hui-scroll" style={{ flex: 1, overflowY:"auto", WebkitOverflowScrolling:"touch" }}>
 
         {/* ── Pending Recipient Banner ── */}
         {pendingRecipient?.id && onOpenPending && (
