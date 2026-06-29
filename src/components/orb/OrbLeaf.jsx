@@ -3,13 +3,18 @@
 // HUI ORB — Das persönliche Blatt
 // Phase 3: Integration in Tabbar · eigenes Profil · öffentliches Profil
 //
-// PHILOSOPHIE:
-//   Das Blatt wächst organisch — nie durch explizite Aktionen des Nutzers.
-//   Es verändert sich langsam, über Wochen und Monate.
-//   Keine Animationen bei Interaktion. Kein "Level Up".
+// PHILOSOPHIE (gemäß HUI_CONSTITUTION.md)
 //
-//   Das HUI-Logo: ☀️ (Sonne — identisch für alle) + 🍃 (Blatt — individuell)
-//   Nur das Blatt entwickelt sich.
+//   Der Orb ist von Anfang an vollständig.
+//   Das Blatt erzählt mit der Zeit die Geschichte des Weges eines Menschen.
+//   Es verändert sich langsam — organisch, über Monate und Jahre.
+//   Keine Animationen bei Interaktion. Kein "Level Up". Keine Belohnung.
+//
+//   ☀️  Die Sonne — identisch für alle Menschen.
+//       Sie symbolisiert die gemeinsame Menschlichkeit.
+//
+//   🍃  Das Blatt — individuell und persönlich.
+//       Es erzählt den Weg. Nicht den Wert.
 //
 // NUTZUNG:
 //   // In der Tabbar (klein, dezent)
