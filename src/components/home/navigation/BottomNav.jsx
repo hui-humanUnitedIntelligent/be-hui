@@ -15,17 +15,65 @@ import { IX } from "../../../design/hui.interaction.js";
 import { useHuiActions, A } from "../../../core/hui.actions.js";
 import { useCoreProfile } from "../../../hooks/useCoreEngine.js";
 import { dominantPillarLabels } from "../../../core/hui.pillars.js";
+import { BUILD_INFO } from "../../../lib/buildInfo.js";
 
 const HuiOrbLogo = React.lazy(() =>
   import("../../orb/OrbLeaf.jsx").then(m => ({ default: m.HuiOrbLogo }))
 );
 
+/** Sichtbarer Build-Nachweis — temporär für Production-Debug */
+function BuildTraceBadge() {
+  return (
+    <div
+      data-hui-build-trace=""
+      style={{
+        position: "fixed",
+        bottom: "max(82px, calc(env(safe-area-inset-bottom, 14px) + 68px))",
+        left: 6,
+        zIndex: 10001,
+        pointerEvents: "none",
+        fontSize: 9,
+        fontFamily: "monospace",
+        color: "rgba(20,20,34,0.45)",
+        background: "rgba(255,252,248,0.88)",
+        border: "1px solid rgba(13,196,181,0.22)",
+        borderRadius: 6,
+        padding: "2px 5px",
+        lineHeight: 1.3,
+        letterSpacing: "0.02em",
+      }}
+    >
+      {BUILD_INFO.gitShort} · b{BUILD_INFO.buildTs}
+    </div>
+  );
+}
+
 /** Orb-Tab: persönliches HuiOrbLogo wenn Pillar-Daten vorhanden, sonst Standard-Logo */
 function OrbTabIcon({ userId }) {
-  const { dominantPillars, isLoading } = useCoreProfile(userId);
+  const { coreProfile, dominantPillars, isLoading } = useCoreProfile(userId);
+  const pillarLabels = dominantPillarLabels(dominantPillars);
   const hasOrbData = !isLoading
     && userId
-    && dominantPillarLabels(dominantPillars).length > 0;
+    && pillarLabels.length > 0;
+
+  React.useEffect(() => {
+    const trace = {
+      component: "OrbTabIcon",
+      userId: userId ?? null,
+      isLoading,
+      coreProfile: coreProfile
+        ? { user_id: coreProfile.user_id, dominant_pillars: coreProfile.dominant_pillars }
+        : null,
+      dominantPillars,
+      pillarLabelCount: pillarLabels.length,
+      hasOrbData,
+      renderPath: hasOrbData ? "HuiOrbLogo" : "fallback:hui-logo-real.jpg",
+    };
+    console.log("[ORB TRACE] OrbTabIcon", trace);
+    if (typeof window !== "undefined") {
+      window.__HUI_ORB_TRACE__ = { ...(window.__HUI_ORB_TRACE__ ?? {}), orbTabIcon: trace };
+    }
+  }, [userId, isLoading, coreProfile, dominantPillars, pillarLabels.length, hasOrbData]);
 
   const innerStyle = {
     width: "100%", height: "100%",
@@ -121,6 +169,19 @@ export default function BottomNav({
   }, []);
 
   const isHidden = wizardOpen || ((orbActive && !navDrift) ?? false);
+
+  React.useEffect(() => {
+    console.log("[ORB TRACE] BottomNav render", {
+      tab,
+      userId: authProfile?.id ?? null,
+      hasTalent,
+      orbActive,
+      creatorOpen,
+      isHidden,
+      navDrift: !!navDrift,
+    });
+  }, [tab, authProfile?.id, hasTalent, orbActive, creatorOpen, isHidden, navDrift]);
+
   const actions  = useHuiActions();
 
   function handleTabPress(key) {
@@ -136,6 +197,7 @@ export default function BottomNav({
   return (
     <>
       <style>{CSS}</style>
+      <BuildTraceBadge />
 
       {/* Outer — pointerEvents:none damit Inhalte dahinter klickbar bleiben */}
       <div data-bnroot="" style={{

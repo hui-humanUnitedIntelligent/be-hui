@@ -1,12 +1,13 @@
-// Build: 2026-05-24T16:55:29Z
 // src/main.jsx
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import './index.css'
 import { initSentry, sentryCapture } from './lib/sentry'
+import { logBuildInfo } from './lib/buildInfo.js'
 
 initSentry();
+logBuildInfo();
 
 // ── DEV: Contract Inspector ──────────────────────────────────────
 // In DevTools: window.__HUI_CONTRACTS?.()
