@@ -34,6 +34,7 @@ import { LocationSection }       from "../components/profile/sections/LocationSe
 import { VisibilitySection }     from "../components/profile/sections/VisibilitySection.jsx";
 import WerkWizard      from "../components/works/WerkWizard.jsx";
 import ExperienceWizard from "../components/experiences/ExperienceWizard.jsx";
+import OrbSignatur from "../components/orb/OrbSignatur.jsx";
 
 // ── Design Tokens ────────────────────────────────────────────────
 const T = {
@@ -748,6 +749,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
           </div>
         </div>
         <Gap h={12}/>
+
+        {/* HUI Orb: individuelles Blatt + Grundpfeiler */}
+        {user?.id && <OrbSignatur profileId={user.id} variant="profile" size={48} />}
 
         {/* ── HEADER — Cover + Avatar + Name ───────────────── */}
         <CanonicalProfileHeader

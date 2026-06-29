@@ -330,7 +330,7 @@ function PillarDisplay({ labels, color }) {
  * @param {string} props.userId
  * @param {number} [props.size=32] — Gesamtgröße des Logos
  */
-export const HuiOrbLogo = memo(function HuiOrbLogo({ userId, size = 32 }) {
+export const HuiOrbLogo = memo(function HuiOrbLogo({ userId, size = 32, animate = false }) {
   const sunSize  = Math.round(size * 0.65);
   const leafSize = Math.round(size * 0.45);
 
@@ -338,6 +338,7 @@ export const HuiOrbLogo = memo(function HuiOrbLogo({ userId, size = 32 }) {
     <div style={{
       display: 'inline-flex',
       alignItems: 'center',
+      justifyContent: 'center',
       gap: Math.round(size * 0.08),
       flexShrink: 0,
     }}>
@@ -349,7 +350,7 @@ export const HuiOrbLogo = memo(function HuiOrbLogo({ userId, size = 32 }) {
         userId={userId}
         size={leafSize}
         variant="tab"
-        animate={true}
+        animate={animate}
       />
     </div>
   );

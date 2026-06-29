@@ -1,26 +1,6 @@
+import { pillarHint } from "../../core/hui.pillars.js";
 import { isProfileTalent } from "../../lib/profileUtils.js";
 // HUI Pillars: dezente Grundpfeiler-Zuordnung für Feed-Items
-// Lazy-Import um keine Circular Dependencies zu erzeugen
-let _pillars = null;
-async function getPillars() {
-  if (_pillars) return _pillars;
-  try {
-    _pillars = await import("../../core/hui.pillars.js");
-    return _pillars;
-  } catch { return null; }
-}
-
-// Synchrone Fallback-Zuordnung (kein async nötig — reine Lookup-Tabelle)
-const _PILLAR_SYNC = {
-  work:           { hint: '🍃 Unterstützt Erschaffen' },
-  experience:     { hint: '🍃 Unterstützt Erschaffen' },
-  invitation:     { hint: '🍃 Unterstützt Verbindung' },
-  moment:         { hint: null },  // Momente sind neutral — kein Hint
-  note:           { hint: null },
-  story:          { hint: null },
-  impact_project: { hint: '🍃 Unterstützt Impact' },
-  project:        { hint: '🍃 Unterstützt Erschaffen' },
-};
 // src/system/feed/unifiedNormalizer.js — HUI UNIFIED NORMALIZER (Phase 1)
 const safeStr=(v,fb)=>{if(v==null||v==="")return fb!==undefined?fb:"";return String(v).trim();};
 const safeNum=(v,fb)=>{const n=Number(v);return isNaN(n)?(fb!==undefined?fb:0):n;};
@@ -166,12 +146,12 @@ export function toFeedItem(raw){
       bookingMode:safeStr(raw.booking_mode||raw.bookingMode,"direct"),
       _reactions:raw._reactions||{},
       // HUI Core Engine: dezenter Grundpfeiler-Hint für Feed
-      // Wird aus core_content_signals geladen — Fallback auf Typ-Inference
-      // Nie dominant anzeigen — nur subtil
+      // Nur anzeigen wenn tatsächlich ein Pillar vorhanden — keine Platzhalter
       pillar:     raw.pillar||raw.primary_pillar||null,
-      pillar_hint: raw.pillar_hint                         // explizit gesetzt (aus DB)
-                ?? _PILLAR_SYNC[type]?.hint                // typ-basierte Inference
-                ?? null,
+      pillar_hint: raw.pillar_hint
+                ?? (raw.pillar || raw.primary_pillar
+                    ? pillarHint(raw.pillar || raw.primary_pillar)
+                    : null),
       _raw:raw,
     };
   }catch(err){
