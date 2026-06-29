@@ -267,7 +267,7 @@ function NotifCard({ n, onAction, idx }) {
     >
       <div style={{ position:"relative", flexShrink:0 }}>
         {n.avatar ? (
-          <img src={n.avatar} alt="" loading="lazy"
+          <img src={n.avatar} alt="" loading="eager"
             style={{ width:50, height:50, borderRadius:"50%", objectFit:"cover" }}/>
         ) : (
           <div style={{
@@ -437,7 +437,7 @@ function MiniChatDetail({ chat, messages, onBack, onSend, isWide }) {
       <div style={{
         margin:"12px 16px 8px",
         background:"rgba(255,255,255,0.80)",
-        backdropFilter:"blur(10px)",
+        backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)",
         borderRadius:16, overflow:"hidden",
         boxShadow:"0 2px 10px rgba(0,0,0,0.07)",
         display:"flex", alignItems:"stretch",
@@ -465,7 +465,7 @@ function MiniChatDetail({ chat, messages, onBack, onSend, isWide }) {
       </div>
 
       {/* ── Messages ────────────────────────────────────────────── */}
-      <div className="nc-scroll" style={{ flex:1, overflowY:"auto", padding:"4px 16px 8px" }}>
+      <div className="nc-scroll" style={{ flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch", padding:"4px 16px 8px" }}>
         <div style={{ textAlign:"center", padding:"8px 0 12px" }}>
           <span style={{ fontSize:11, color:C.muted, fontWeight:600,
             background:"rgba(0,0,0,0.05)", padding:"3px 10px", borderRadius:999 }}>
@@ -528,7 +528,7 @@ function MiniChatDetail({ chat, messages, onBack, onSend, isWide }) {
                     background:"rgba(255,255,255,0.92)",
                     color:C.ink, borderRadius:"16px 16px 16px 4px",
                     boxShadow:"0 2px 10px rgba(0,0,0,0.08)",
-                    backdropFilter:"blur(8px)",
+                    backdropFilter:"blur(8px)", WebkitBackdropFilter:"blur(8px)",
                   }),
                 }}>
                   {msg.text}
@@ -571,7 +571,7 @@ function MiniChatDetail({ chat, messages, onBack, onSend, isWide }) {
         }}>{"+"}</button>
         <div style={{
           flex:1, background:"rgba(255,255,255,0.80)",
-          backdropFilter:"blur(8px)",
+          backdropFilter:"blur(8px)", WebkitBackdropFilter:"blur(8px)",
           borderRadius:20, border:`1px solid ${C.border}`,
           display:"flex", alignItems:"center", padding:"0 12px", height:40,
         }}>
@@ -762,7 +762,7 @@ function NotifFeed({
       </div>
 
       {/* ── Notif-Liste ─────────────────────────────────────────── */}
-      <div className="nc-scroll" style={{ flex:1, overflowY:"auto", padding:"4px 0" }}>
+      <div className="nc-scroll" style={{ flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch", padding:"4px 0" }}>
         {filtered.length === 0 ? (
           <EmptyState onDiscover={onClose} />
         ) : (
@@ -971,7 +971,7 @@ export default function NotificationCenter({ onClose, onNavigate }) {
                 padding:"32px 24px 24px",
                 maxWidth:400, width:"100%",
                 boxShadow:"0 20px 60px rgba(0,0,0,0.25)",
-                maxHeight:"80vh", overflowY:"auto",
+                maxHeight:"80vh", overflowY:"auto", WebkitOverflowScrolling:"touch",
                 textAlign:"center",
               }}
             >
