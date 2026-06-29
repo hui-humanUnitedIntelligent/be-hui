@@ -191,7 +191,7 @@ class ErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) return (
-      <div style={{ minHeight:"100vh", display:"flex", flexDirection:"column",
+      <div style={{ minHeight:"100dvh", display:"flex", flexDirection:"column",
         alignItems:"center", justifyContent:"center", padding:32,
         background:"#F9F7F4", fontFamily:"-apple-system,sans-serif" }}>
         <div style={{ fontSize:48, marginBottom:16 }}>⚡️</div>
@@ -313,7 +313,7 @@ function HUILoader() {
   }, []);
 
   if (timedOut) return (
-    <div style={{ minHeight:"100vh", display:"flex", flexDirection:"column",
+    <div style={{ minHeight:"100dvh", display:"flex", flexDirection:"column",
       alignItems:"center", justifyContent:"center", padding:32,
       background:"linear-gradient(160deg,#0D1412 0%,#12100E 100%)",
       fontFamily:"Inter,-apple-system,sans-serif" }}>
@@ -344,7 +344,7 @@ function HUILoader() {
 
   return (
     <div style={{
-      minHeight:"100vh", display:"flex", flexDirection:"column",
+      minHeight:"100dvh", display:"flex", flexDirection:"column",
       alignItems:"center", justifyContent:"center",
       background:"linear-gradient(160deg,#0A1210 0%,#0E1612 55%,#0D0B09 100%)",
       fontFamily:"Inter,-apple-system,sans-serif",
