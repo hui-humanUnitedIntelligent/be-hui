@@ -5,7 +5,7 @@
  * Licht: rgba(255,251,248,0.94) + blur(36px) + saturate(1.8)
  * Safari-Fix: pointerEvents:none auf Outer, auto auf Pill
  */
-import React, { Suspense } from "react";
+import React from "react";
 import NavItem from "./NavItem.jsx";
 import { NAV_ITEMS } from "./navConfig.js";
 import { validateNavItem } from "../../../lib/factories/createNavItem.js";
@@ -13,49 +13,18 @@ import { SAFE_MODE } from "../../../config/safeMode.js";
 import { HUI } from "../../../design/hui.design.js";
 import { IX } from "../../../design/hui.interaction.js";
 import { useHuiActions, A } from "../../../core/hui.actions.js";
-import { useCoreProfile } from "../../../hooks/useCoreEngine.js";
-import { dominantPillarLabels } from "../../../core/hui.pillars.js";
+import { HuiOrbLogo } from "../../orb/OrbLeaf.jsx";
 
-const HuiOrbLogo = React.lazy(() =>
-  import("../../orb/OrbLeaf.jsx").then(m => ({ default: m.HuiOrbLogo }))
-);
-
-/** Orb-Tab: persönliches HuiOrbLogo wenn Pillar-Daten vorhanden, sonst Standard-Logo */
+/** Orb-Tab: HuiOrbLogo immer — Standard-Blatt ohne Core-Daten, individuelles Blatt danach */
 function OrbTabIcon({ userId }) {
-  const { dominantPillars, isLoading } = useCoreProfile(userId);
-  const hasOrbData = !isLoading
-    && userId
-    && dominantPillarLabels(dominantPillars).length > 0;
-
-  const innerStyle = {
-    width: "100%", height: "100%",
-    objectFit: "cover", display: "block",
-  };
-
-  if (hasOrbData) {
-    return (
-      <div style={{
-        width: "100%", height: "100%",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        background: "rgba(255,252,248,0.96)",
-      }}>
-        <Suspense fallback={
-          <img src="/hui-logo-real.jpg" alt="HUI" style={innerStyle}
-            onError={e => { e.target.src = "/hui-logo.jpg"; }} />
-        }>
-          <HuiOrbLogo userId={userId} size={34} animate={false} />
-        </Suspense>
-      </div>
-    );
-  }
-
   return (
-    <img
-      src="/hui-logo-real.jpg"
-      alt="HUI"
-      style={innerStyle}
-      onError={e => { e.target.src = "/hui-logo.jpg"; }}
-    />
+    <div style={{
+      width: "100%", height: "100%",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      background: "rgba(255,252,248,0.96)",
+    }}>
+      <HuiOrbLogo userId={userId} size={34} animate={false} />
+    </div>
   );
 }
 

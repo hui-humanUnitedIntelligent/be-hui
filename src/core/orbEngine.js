@@ -249,6 +249,41 @@ function computeDetails(vitality, depth, breadth, dominantPillars) {
   return details;
 }
 
+/**
+ * Prüft ob ein Core-Profil genug Daten für Orb-Individualisierung hat.
+ * Ohne Personalisierung wird der Standard-Orb (defaultParams) verwendet.
+ */
+function hasPersonalizationData(profile) {
+  if (!profile) return false;
+
+  const {
+    strength_verbinden      = 0,
+    strength_unterstuetzen  = 0,
+    strength_erschaffen     = 0,
+    strength_wertschoepfen  = 0,
+    strength_impact         = 0,
+    resonance_verbinden      = 0,
+    resonance_unterstuetzen  = 0,
+    resonance_erschaffen     = 0,
+    resonance_wertschoepfen  = 0,
+    resonance_impact         = 0,
+    dominant_pillars        = [],
+    orb_vitality            = 0,
+    orb_depth               = 0,
+    orb_breadth             = 0,
+  } = profile;
+
+  if (dominant_pillars.length > 0) return true;
+  if (orb_vitality > 0 || orb_depth > 0 || orb_breadth > 0) return true;
+
+  const totalStrength = strength_verbinden + strength_unterstuetzen + strength_erschaffen
+    + strength_wertschoepfen + strength_impact;
+  const totalResonance = resonance_verbinden + resonance_unterstuetzen + resonance_erschaffen
+    + resonance_wertschoepfen + resonance_impact;
+
+  return totalStrength > 0 || totalResonance > 0;
+}
+
 // ─────────────────────────────────────────────────────────────────────
 // PUBLIC API
 // ─────────────────────────────────────────────────────────────────────
@@ -265,8 +300,8 @@ export const OrbEngine = Object.freeze({
     // Core Engine Daten lesen
     const coreProfile = await CoreEngine.profiles.get(userId);
 
-    // Default für neue / leere Nutzer
-    if (!coreProfile) {
+    // Standard-Orb für neue / leere Nutzer — identisch auf allen Geräten
+    if (!hasPersonalizationData(coreProfile)) {
       return OrbEngine.defaultParams();
     }
 
@@ -401,10 +436,16 @@ export const OrbEngine = Object.freeze({
    * Kein DB-Aufruf.
    */
   fromCoreProfile(coreProfile) {
-    if (!coreProfile) return OrbEngine.defaultParams();
+    if (!hasPersonalizationData(coreProfile)) return OrbEngine.defaultParams();
     return OrbEngine.computeParams.__fromProfile?.(coreProfile)
         ?? OrbEngine.defaultParams();
   },
+
+  /**
+   * Ob ein Core-Profil genug Daten für Orb-Individualisierung hat.
+   * Nur für Personalisierung — nicht als Anzeige-Gate verwenden.
+   */
+  hasPersonalizationData,
 
   /**
    * Menschliche Beschreibung der dominanten Grundpfeiler.
