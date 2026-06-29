@@ -483,7 +483,7 @@ export default function WerkPublisher({ onClose, onSuccess }) {
         background:T.warm,borderRadius:"28px 28px 0 0",
         padding:"20px 20px 0",
         paddingBottom:"max(28px,calc(env(safe-area-inset-bottom,0px)+20px))",
-        maxHeight:"94vh",overflowY:"auto"}}
+        maxHeight:"94vh",overflowY:"auto", WebkitOverflowScrolling:"touch"}}
         className="wp-scroll">
 
         <div style={{width:36,height:4,borderRadius:2,background:"rgba(0,0,0,.1)",
