@@ -88,9 +88,11 @@ function ActionCard({ action, onSelect, delay }) {
 function PreviewStep({ mediaURL, isVideo, text, setText, onShare, onDiscard, uploading }) {
   return (
     <div style={{ animation:"hms-preview-in .30s ease both" }}>
-      <div style={{ width:"100%",borderRadius:20,overflow:"hidden",background:"#000",
+      <div style={{ width:"100%",borderRadius:20,background:"#000",
         maxHeight:280,marginBottom:16,boxShadow:"0 4px 24px rgba(0,0,0,0.14)",
-        display:"flex",alignItems:"center",justifyContent:"center" }}>
+        display:"flex",alignItems:"center",justifyContent:"center",
+        WebkitMaskImage:"-webkit-radial-gradient(white,black)",
+        overflow:"hidden" }}>
         {isVideo
           ? <video src={mediaURL} controls playsInline
               style={{ width:"100%",maxHeight:280,display:"block",objectFit:"contain" }}/>
