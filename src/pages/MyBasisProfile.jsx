@@ -13,6 +13,7 @@ import {
 } from "../lib/profileMedia.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
 import { useHome }   from "../components/home/HomeShell.jsx";
+import { useHuiActions, A } from "../core/hui.actions.js";
 import GemeinschaftsFlow from "../components/GemeinschaftsFlow.jsx";
 import NotificationPanel from "../components/notifications/NotificationPanel.jsx";
 import AmbassadorModal from "../components/ambassador/AmbassadorModal.jsx";
@@ -20,6 +21,8 @@ import SettingsModal  from "../components/settings/SettingsModal.jsx";
 import { useAmbassador } from "../hooks/useAmbassador.js";
 import { useProfileData } from "../hooks/useProfileData.js";
 import HuiStudio              from "../components/studio/HuiStudio.jsx";
+import MeinHuiNav               from "../components/profile/MeinHuiNav.jsx";
+import MeineResonanz            from "../pages/studio/MeineResonanz.jsx";
 import PublicProfilePreview   from "../components/profile/PublicProfilePreview.jsx";
 import MerkenSection          from "../components/profile/MerkenSection.jsx";
 // Sprint F.7D Phase 4: Kanonische Sections
@@ -385,6 +388,10 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [showSettings,    setShowSettings]    = useState(false);
   const [showStudio,        setShowStudio]        = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showResonanz,      setShowResonanz]      = useState(false);
+
+  const actions = useHuiActions();
+  const scrollRef = useRef(null);
 
   // ── Notification Action Routing ───────────────────────────────────────────
   const {
@@ -394,6 +401,44 @@ export default function MyBasisProfile({ onClose, profileId }) {
     setShowChat       = () => {},
     setShowWerkDetail = () => {},
   } = useHome?.() || {};
+
+  const handleMeinHuiNav = useCallback((key) => {
+    switch (key) {
+      case "profil":
+        setShowResonanz(false);
+        setShowMerken(false);
+        setShowPublicPreview(false);
+        setShowSettings(false);
+        scrollRef.current?.scrollTo?.({ top: 0, behavior: "smooth" });
+        break;
+      case "orb":
+        onClose?.();
+        actions[A.OPEN_ORB]?.();
+        break;
+      case "resonanz":
+        setShowResonanz(true);
+        break;
+      case "verbindungen":
+        onClose?.();
+        setShowChat(true);
+        break;
+      case "impact":
+        onClose?.();
+        actions[A.OPEN_IMPACT]?.();
+        break;
+      case "favoriten":
+        onClose?.();
+        actions[A.GO_FAVORITES]?.();
+        break;
+      case "punkte":
+        break;
+      case "einstellungen":
+        setShowSettings(true);
+        break;
+      default:
+        break;
+    }
+  }, [actions, onClose, setShowChat]);
 
   const handleNotifAction = (n) => {
     // 1. action_url hat Vorrang
@@ -686,7 +731,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
         </div>
       )}
 
-      <div className="mbp-scroll" style={{ flex:1, overflowY:"auto",
+      <div ref={scrollRef} className="mbp-scroll" style={{ flex:1, overflowY:"auto",
         paddingBottom:"max(80px,calc(64px + env(safe-area-inset-bottom,0px)))" }}>
 
         {/* ── SEITEN-TITEL ─────────────────────────────────────── */}
@@ -746,6 +791,12 @@ export default function MyBasisProfile({ onClose, profileId }) {
           </div>
         </div>
         <Gap h={12}/>
+
+        {/* ── MEIN HUI — Persönliche Navigation ───────────────── */}
+        <MeinHuiNav
+          activeKey={showResonanz ? "resonanz" : "profil"}
+          onNavigate={handleMeinHuiNav}
+        />
 
         {/* ── HEADER — Cover + Avatar + Name ───────────────── */}
         <CanonicalProfileHeader
@@ -965,6 +1016,14 @@ export default function MyBasisProfile({ onClose, profileId }) {
         <PublicProfilePreview
           profileId={profile.id}
           onClose={() => setShowPublicPreview(false)}
+        />
+      )}
+
+      {/* MEINE RESONANZ — Persönliche Timeline */}
+      {showResonanz && (
+        <MeineResonanz
+          onClose={() => setShowResonanz(false)}
+          onNavigate={() => setShowResonanz(false)}
         />
       )}
 
