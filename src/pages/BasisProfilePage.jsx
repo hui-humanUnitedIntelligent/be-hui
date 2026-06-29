@@ -29,6 +29,7 @@ import { VisibilitySection }      from "../components/profile/sections/Visibilit
 import { MomentsSection }         from "../components/profile/sections/MomentsSection.jsx";
 import { RecommendationsSection } from "../components/profile/sections/RecommendationsSection.jsx";
 import { ProfileHeader as CanonicalProfileHeader } from "../components/profile/ProfileHeader.jsx";
+import OrbSignatur from "../components/orb/OrbSignatur.jsx";
 
 // ── Tokens ───────────────────────────────────────────────────────
 const T = {
@@ -465,6 +466,9 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
       {/* Scrollable body */}
       <div className="bpp-scroll" style={{ flex:1, overflowY:"auto",
         paddingBottom:"max(40px,calc(28px + env(safe-area-inset-bottom,0px)))" }}>
+
+        {/* HUI Orb: individuelles Blatt + Grundpfeiler */}
+        {resolvedId && <OrbSignatur profileId={resolvedId} variant="public" size={48} />}
 
         {/* 1. Kanonischer ProfileHeader (Sprint F.9D) */}
         <CanonicalProfileHeader

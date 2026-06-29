@@ -14,6 +14,21 @@ import { HUI } from "../../../design/hui.design.js";
 import { IX } from "../../../design/hui.interaction.js";
 import { useHuiActions, A } from "../../../core/hui.actions.js";
 
+const OrbNavLogo = React.lazy(() =>
+  import("../../orb/OrbNavLogo.jsx").catch(() => ({ default: StaticHuiLogoFallback }))
+);
+
+function StaticHuiLogoFallback() {
+  return (
+    <img
+      src="/hui-logo-real.jpg"
+      alt="HUI"
+      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+      onError={e => { e.target.src = "/hui-logo.jpg"; }}
+    />
+  );
+}
+
 const CSS = `
   @keyframes bn-orb-pulse {
     0%,100% { box-shadow:
@@ -203,15 +218,9 @@ export default function BottomNav({
                     overflow: "hidden", flexShrink: 0,
                     position: "relative",
                   }}>
-                    <img
-                      src="/hui-logo-real.jpg"
-                      alt="HUI"
-                      style={{
-                        width: "100%", height: "100%",
-                        objectFit: "cover", display: "block",
-                      }}
-                      onError={e => { e.target.src = "/hui-logo.jpg"; }}
-                    />
+                    <React.Suspense fallback={<StaticHuiLogoFallback />}>
+                      <OrbNavLogo userId={authProfile?.id} />
+                    </React.Suspense>
                     {/* BasisUser overlay indicator: subtle teal shimmer */}
                     {!hasTalent && (
                       <div style={{

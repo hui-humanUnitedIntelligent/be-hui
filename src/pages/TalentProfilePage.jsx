@@ -31,6 +31,7 @@ import { AvailabilitySection }    from "../components/profile/sections/Availabil
 import { LocationSection }        from "../components/profile/sections/LocationSection.jsx";
 import { VisibilitySection }      from "../components/profile/sections/VisibilitySection.jsx";
 import { MomentsSection }         from "../components/profile/sections/MomentsSection.jsx";
+import OrbSignatur from "../components/orb/OrbSignatur.jsx";
 
 // ── Design Tokens (HUI-Standard, identisch zu BasisProfilePage) ─
 const T = {
@@ -1220,6 +1221,9 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
         flex:1, overflowY:"auto", touchAction:"pan-y",
         paddingBottom:"max(40px,calc(28px + env(safe-area-inset-bottom,0px)))",
       }}>
+
+        {/* HUI Orb: individuelles Blatt + Grundpfeiler */}
+        {profile?.id && <OrbSignatur profileId={profile.id} variant="public" size={48} />}
 
         {/* ── 1. ProfileHeader (Sprint B) ───────────────────── */}
         <ProfileHeader

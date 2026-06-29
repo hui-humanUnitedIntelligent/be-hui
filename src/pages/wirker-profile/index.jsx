@@ -20,6 +20,7 @@ import { useAuth } from "../../lib/AuthContext.jsx";
 
 import { ExperiencesSection } from "../../components/profile/sections/ExperiencesSection.jsx";
 import { MomentsSection } from "../../components/profile/sections/MomentsSection.jsx";
+import OrbSignatur from "../../components/orb/OrbSignatur.jsx";
 const C  = HUI.COLOR;
 const Sh = HUI.SHADOW;
 const R  = HUI.RADIUS;
@@ -910,6 +911,8 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profi
         *{box-sizing:border-box;-webkit-font-smoothing:antialiased}
         ::-webkit-scrollbar{display:none}
       `}</style>
+
+      {profile?.id && <OrbSignatur profileId={profile.id} variant="public" size={48} />}
 
       <VisitorHero   profile={profile} onClose={handleClose} onBook={handleBook} onChat={handleChat} onSupport={handleSupport} currentUserId={currentUserId}/>
       <StatsStrip    profile={profile} wirkerProfile={wirkerProfile} followerCount={followCounts?.followers ?? 0}/>
