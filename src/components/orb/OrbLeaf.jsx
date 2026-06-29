@@ -110,6 +110,22 @@ export const OrbLeaf = memo(function OrbLeaf({
   const { params, ready }   = useOrbParams(userId);
   const [entered, setEntered] = useState(false);
 
+  React.useEffect(() => {
+    if (variant !== 'tab') return;
+    const trace = {
+      component: "OrbLeaf",
+      userId: userId ?? null,
+      variant,
+      ready,
+      dominantPillars: params.dominantPillars,
+      leafArchetype: params.leaf?.archetype,
+    };
+    console.log("[ORB TRACE] OrbLeaf render", trace);
+    if (typeof window !== "undefined") {
+      window.__HUI_ORB_TRACE__ = { ...(window.__HUI_ORB_TRACE__ ?? {}), orbLeaf: trace };
+    }
+  }, [userId, variant, ready, params.dominantPillars, params.leaf?.archetype]);
+
   // Verzögerter Entry-State für sanften Erscheinungseffekt
   useEffect(() => {
     if (!ready) return;
@@ -333,6 +349,14 @@ function PillarDisplay({ labels, color }) {
 export const HuiOrbLogo = memo(function HuiOrbLogo({ userId, size = 32, animate = false }) {
   const sunSize  = Math.round(size * 0.65);
   const leafSize = Math.round(size * 0.45);
+
+  React.useEffect(() => {
+    const trace = { component: "HuiOrbLogo", userId: userId ?? null, size, animate };
+    console.log("[ORB TRACE] HuiOrbLogo render", trace);
+    if (typeof window !== "undefined") {
+      window.__HUI_ORB_TRACE__ = { ...(window.__HUI_ORB_TRACE__ ?? {}), huiOrbLogo: trace };
+    }
+  }, [userId, size, animate]);
 
   return (
     <div style={{
