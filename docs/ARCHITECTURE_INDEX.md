@@ -3,7 +3,7 @@
 > *Zentraler Querverweiskatalog der gesamten HUI-Architektur.*  
 > *Jedes Modul, jede Engine, jedes Dokument — an einem Ort verlinkt.*
 
-**Aktualisiert:** 2026-06-29
+**Aktualisiert:** 2026-06-29 (v2.1 — Orb-Philosophie)
 
 ---
 
@@ -53,12 +53,18 @@
 
 ## Orb
 
+> *"Die Sonne symbolisiert die gemeinsame Menschlichkeit. Das Blatt erzählt den individuellen Weg."*  
+> Vollständige Philosophie: [`docs/HUI_ORB.md`](HUI_ORB.md)
+
 | Datei | Zweck |
 |---|---|
+| [`docs/HUI_ORB.md`](HUI_ORB.md) | **Orb-Philosophie und Architektur** |
+| [`src/core/orbEngine.js`](../src/core/orbEngine.js) | Wirkungsdaten → visuelle Orb-Parameter |
 | [`src/system/orb/OrbConfig.js`](../src/system/orb/OrbConfig.js) | Orb-Konfiguration (liest aus Registry) |
 | [`src/system/orb/OrbSystem.jsx`](../src/system/orb/OrbSystem.jsx) | Orb-System Hauptkomponente |
 | [`src/system/orb/OrbCenter.jsx`](../src/system/orb/OrbCenter.jsx) | Orb-Zentrum |
-| [`src/components/orb/OrbLeaf.jsx`](../src/components/orb/OrbLeaf.jsx) | Individuelles Blatt (Profil) |
+| [`src/components/orb/OrbLeaf.jsx`](../src/components/orb/OrbLeaf.jsx) | Das individuelle Blatt (Profil) |
+| [`src/components/profile/OrbSignatur.jsx`](../src/components/profile/OrbSignatur.jsx) | Profil: Orb + Grundpfeiler |
 | [`src/hooks/useCoreEngine.js`](../src/hooks/useCoreEngine.js) | React-Hook: useOrbParams, useCoreProfile |
 
 ---
@@ -109,6 +115,7 @@
 | Dokument | Beschreibung |
 |---|---|
 | [`HUI_CONSTITUTION.md`](../HUI_CONSTITUTION.md) | **Die Verfassung** |
+| [`docs/HUI_ORB.md`](HUI_ORB.md) | **Orb-Philosophie** — Sonne, Blatt, Weg, Architektur |
 | [`CODEBASE.md`](../CODEBASE.md) | Codebase-Übersicht |
 | [`docs/HUI_ACTION_CONTRACTS.md`](HUI_ACTION_CONTRACTS.md) | Action Contract Map |
 | [`docs/HUI_ACTION_MAP.md`](HUI_ACTION_MAP.md) | Action Map |
