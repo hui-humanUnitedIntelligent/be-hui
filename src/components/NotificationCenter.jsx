@@ -195,12 +195,14 @@ function HeroImpactCard({ weeklyEur = 8950 }) {
   return (
     <div style={{
       margin:"0 0 0",
-      borderRadius:24, overflow:"hidden",
+      borderRadius:24,
       position:"relative", height:160,
       background:"linear-gradient(135deg,#1a4a45 0%,#2d6e5a 60%,#4a7a5a 100%)",
       boxShadow:"0 8px 32px rgba(0,0,0,0.12)",
       animation:"fadeUp 0.4s ease both",
       flexShrink:0,
+      overflow:"hidden",
+      WebkitMaskImage:"-webkit-radial-gradient(white,black)",
     }}>
       {/* Community-Bild rechts */}
       <img
