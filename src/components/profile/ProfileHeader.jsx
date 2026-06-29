@@ -139,7 +139,7 @@ export function ProfileHeader({
             style={{
               position:"absolute", top:12, left:12, zIndex:20,
               width:32, height:32, borderRadius:"50%",
-              background:"rgba(0,0,0,0.40)", backdropFilter:"blur(6px)",
+              background:"rgba(0,0,0,0.40)", backdropFilter:"blur(6px)", WebkitBackdropFilter:"blur(6px)",
               border:"none", cursor:"pointer", touchAction:"manipulation",
               display:"flex", alignItems:"center", justifyContent:"center", fontSize:14,
             }}
@@ -315,7 +315,7 @@ const DEMO_MEMBER = {
 
 export function ProfileHeaderDemo() {
   return (
-    <div style={{ background:"#F7F5F0", minHeight:"100vh" }}>
+    <div style={{ background:"#F7F5F0", minHeight:"100dvh" }}>
       <style>{`
         body { margin:0; }
         .ph-demo-label {
