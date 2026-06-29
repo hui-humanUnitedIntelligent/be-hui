@@ -153,6 +153,45 @@
     }
   </script>
   <!-- ════════════════════════════════════════════════════════ -->
+    <!-- ══ iOS Safari Global Fixes ════════════════════════════ -->
+    <style>
+      /* Fix: 100dvh für iOS (vermeidet Browser-Toolbar-Overlap) */
+      :root { --app-height: 100dvh; }
+
+      /* Fix: Input/Select iOS eigenes Styling entfernen */
+      input, textarea, select {
+        -webkit-appearance: none;
+        appearance: none;
+        border-radius: 0;
+      }
+
+      /* Fix: overflow:hidden + border-radius auf iOS korrekt clippen */
+      /* Note: WebkitMaskImage wird nur gezielt auf Karten-Container gesetzt */
+
+      /* Fix: position:fixed Elemente sicher im safe-area Bereich */
+      .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+      .safe-top    { padding-top:    env(safe-area-inset-top,    0px); }
+
+      /* Fix: Tap-Highlight entfernen */
+      * { -webkit-tap-highlight-color: transparent; }
+
+      /* Fix: Text-Size anpassen verhindert automatische Skalierung auf iOS */
+      body { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+      /* Fix: Smooth Scrolling auf iOS */
+      .hui-scroll { -webkit-overflow-scrolling: touch; }
+
+      /* Fix: Gap in Flexbox — Fallback für iOS <14.5 */
+      /* (wird durch Vite/PostCSS automatisch transpiliert) */
+
+      /* Fix: Images immer GPU-composited rendern */
+      img { -webkit-transform: translateZ(0); transform: translateZ(0); }
+
+      /* Fix: Verhindert weißen Flash beim Laden auf iOS */
+      html { background: #FDFAF5; }
+      body { background: #FDFAF5; margin: 0; }
+    </style>
+    <!-- ════════════════════════════════════════════════════════ -->
 </head>
   <body>
     <div id="root"></div>
