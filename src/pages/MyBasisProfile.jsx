@@ -22,6 +22,8 @@ import { useProfileData } from "../hooks/useProfileData.js";
 import HuiStudio              from "../components/studio/HuiStudio.jsx";
 import PublicProfilePreview   from "../components/profile/PublicProfilePreview.jsx";
 import MerkenSection          from "../components/profile/MerkenSection.jsx";
+import MeinHuiNav             from "../components/profile/MeinHuiNav.jsx";
+import MeineResonanz            from "./studio/MeineResonanz.jsx";
 // Sprint F.7D Phase 4: Kanonische Sections
 import { AboutSection }          from "../components/profile/sections/AboutSection.jsx";
 import { ProfileHeader as CanonicalProfileHeader } from "../components/profile/ProfileHeader.jsx";
@@ -384,6 +386,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [showMerken,       setShowMerken]       = useState(false);
   const [showSettings,    setShowSettings]    = useState(false);
   const [showStudio,        setShowStudio]        = useState(false);
+  const [showResonanz,      setShowResonanz]      = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
 
   // ── Notification Action Routing ───────────────────────────────────────────
@@ -733,7 +736,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
             >👁️</button>
             <button
               className="mbp-press-light"
-              onClick={() => setShowStudio(true)}
+              onClick={() => setShowSettings(true)}
               title="Einstellungen"
               aria-label="Einstellungen"
               style={{
@@ -828,7 +831,13 @@ export default function MyBasisProfile({ onClose, profileId }) {
               isOwner={true}
               onSave={handleVisibilitySave}
             />
-            <Gap h={40}/>
+            <Gap h={24}/>
+
+            <MeinHuiNav
+              onOpenResonanz={() => setShowResonanz(true)}
+              onOpenSettings={() => setShowSettings(true)}
+              onOpenStudio={() => setShowStudio(true)}
+            />
           </>
         ) : (
           <>
@@ -871,7 +880,13 @@ export default function MyBasisProfile({ onClose, profileId }) {
               ambState={ambState}
               onApply={() => setShowAmbModal(true)}
             />
-            <Gap h={40}/>
+            <Gap h={24}/>
+
+            <MeinHuiNav
+              onOpenResonanz={() => setShowResonanz(true)}
+              onOpenSettings={() => setShowSettings(true)}
+              onOpenStudio={() => setShowStudio(true)}
+            />
           </>
         )}
       </div>
@@ -979,6 +994,14 @@ export default function MyBasisProfile({ onClose, profileId }) {
             refreshProfile?.().catch(() => {});
             reload();
           }}
+        />
+      )}
+
+      {/* MEINE RESONANZ — nur unter Mein HUI, nicht im Studio */}
+      {showResonanz && (
+        <MeineResonanz
+          onClose={() => setShowResonanz(false)}
+          onNavigate={() => setShowResonanz(false)}
         />
       )}
 
