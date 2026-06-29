@@ -407,10 +407,12 @@ function useWeitereHerzensprojekte(activeProjectIds) {
 function useApprovedApplications() {
   const [apps, setApps]       = React.useState([]);
   const [loading, setLoading] = React.useState(true);
-  const poolMonth = new Date().toISOString().slice(0, 7);
+  // poolMonth stabil halten — kein Re-Render auf iOS
+  const poolMonthRef = React.useRef(new Date().toISOString().slice(0, 7));
 
   const loadApps = React.useCallback(async () => {
     try {
+      const currentPoolMonth = new Date().toISOString().slice(0, 7);
       const { data: rawApps } = await supabase
         .from("impact_applications")
         .select("id,project_name,short_desc,problem,vision,why_support,funding_goal,funding_use,cover_url,media_urls,status,created_at,contact_name,contact_email,user_id")
@@ -419,18 +421,18 @@ function useApprovedApplications() {
       if (!appList.length) return [];
       const appIds = appList.map(a => a.id);
       const { data: votes } = await supabase
-        .from("impact_votes").select("project_id").in("project_id", appIds).eq("pool_month", poolMonth);
+        .from("impact_votes").select("project_id").in("project_id", appIds).eq("pool_month", currentPoolMonth);
       const vc = {};
       (votes || []).forEach(v => { vc[v.project_id] = (vc[v.project_id] || 0) + 1; });
       return appList.map(a => ({ ...a, vote_count: vc[a.id] || 0 }))
         .sort((a, b) => b.vote_count - a.vote_count || new Date(b.created_at) - new Date(a.created_at));
     } catch (e) { console.warn("[APPROVED APPS]", e?.message); return []; }
-  }, [poolMonth]);
+  }, []);  // ← Keine poolMonth Dependency → kein Re-Render-Loop auf iOS
 
   React.useEffect(() => {
     let dead = false;
     loadApps().then(s => { if (!dead) { setApps(s); setLoading(false); } });
-    const sub = supabase.channel("imp_apps_rt")
+    const sub = supabase.channel("imp_apps_rt_" + Date.now())
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "impact_votes" },
         (payload) => {
           // Optimistic update: vote_count sofort hochzählen ohne reload
@@ -917,24 +919,53 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
   const approvedApps  = useApprovedApplications();
   const [detailApp, setDetailApp] = React.useState(null);
 
-  // ── Projekte laden ──
+  // ── Projekte laden — aus impact_applications (approved) ──
   React.useEffect(() => {
     let dead = false;
     (async () => {
       try {
+        // Lade approved Projekte aus impact_applications
         const { data, error } = await supabase
-          .from("impact_projects")
-          .select("id,name,category,description,icon,color,votes,goal_eur,awarded_eur,tags,status,img_url")
-          .in("status", ["nominated","active"])
-          .order("votes", { ascending:false })
+          .from("impact_applications")
+          .select("id,project_name,short_desc,cover_url,media_urls,funding_goal,status,created_at")
+          .eq("status", "approved")
+          .order("created_at", { ascending: false })
           .limit(3);
         if (dead) return;
         if (error) throw error;
-        const rows = (data || []).map(p => ({
-          ...p, img: p.img_url || null,
-        }));
-        setProjects(rows);
-      } catch {
+
+        // Vote-Counts für diesen Monat
+        const poolMonth = new Date().toISOString().slice(0, 7);
+        const appIds = (data || []).map(a => a.id);
+        let voteMap = {};
+        if (appIds.length > 0) {
+          const { data: voteData } = await supabase
+            .from("impact_votes")
+            .select("project_id")
+            .in("project_id", appIds)
+            .eq("pool_month", poolMonth);
+          (voteData || []).forEach(v => {
+            voteMap[v.project_id] = (voteMap[v.project_id] || 0) + 1;
+          });
+        }
+
+        // Normalisiere auf VotingCard-Format
+        const rows = (data || []).map(app => ({
+          id:          app.id,
+          name:        app.project_name,
+          category:    app.short_desc?.slice(0, 28) || "Herzensprojekt",
+          description: app.short_desc,
+          icon:        "💚",
+          color:       "#0DC4B5",
+          votes:       voteMap[app.id] || 0,
+          goal_eur:    app.funding_goal || 2000,
+          status:      app.status,
+          img:         app.cover_url || (app.media_urls && app.media_urls[0]) || null,
+        })).sort((a, b) => b.votes - a.votes);
+
+        if (!dead) setProjects(rows);
+      } catch (e) {
+        console.warn("[PROJECTS]", e?.message);
         if (!dead) setProjects([]);
       } finally {
         if (!dead) setLoadingProj(false);
