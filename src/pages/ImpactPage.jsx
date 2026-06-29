@@ -1065,8 +1065,16 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
         @keyframes ipSlideUp  { from{transform:translateY(100%)} to{transform:translateY(0)} }
         @keyframes ipFadeIn   { from{opacity:0} to{opacity:1} }
         @keyframes ipBreath  { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
-        .ip-p { cursor:pointer; -webkit-tap-highlight-color:transparent; }
-        .ip-p:active { opacity:0.78; transform:scale(0.972) !important; transition:all 0.11s !important; }
+        .ip-p { cursor:pointer; -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
+        .ip-p:active { opacity:0.78; -webkit-transform:scale(0.972) !important; transform:scale(0.972) !important; transition:all 0.11s !important; }
+        /* iOS Safari: overflow:hidden + border-radius fix */
+        [data-impact-page] * { -webkit-backface-visibility:hidden; }
+        [data-impact-page] img { -webkit-transform:translateZ(0); transform:translateZ(0); }
+        /* iOS: smooth scrolling */
+        [data-impact-page] { -webkit-overflow-scrolling:touch; }
+        /* Fix: animations auf iOS */
+        @-webkit-keyframes ipFade { from{opacity:0;-webkit-transform:translateY(14px)} to{opacity:1;-webkit-transform:none} }
+        @-webkit-keyframes ipSlideUp { from{-webkit-transform:translateY(100%)} to{-webkit-transform:translateY(0)} }
       `}</style>
 
       {/* ══ 1 ── GROSSER EMOTIONALER HERO ════════════════════════ */}
@@ -2000,7 +2008,7 @@ function BewilligteTop1Section({ app, loading, onOpen }) {
     </div>
   );
   return (
-    <div style={{ padding:"28px 20px 8px", maxWidth:600, margin:"0 auto" }}>
+    <div style={{ padding:"28px 20px 8px", maxWidth:600, width:"100%", margin:"0 auto", boxSizing:"border-box" }}>
       <div style={{ marginBottom:16 }}>
         <h2 style={{ margin:"0 0 4px", fontSize:20, fontWeight:900, color:"#141422" }}>💚 Bewilligte Herzensprojekte</h2>
         <p style={{ margin:0, fontSize:13, color:"#666" }}>Diese Projekte wurden vom HUI-Team geprüft und bewilligt — jetzt abstimmen!</p>
@@ -2095,11 +2103,13 @@ function ApprovedAppCardCompact({ app, rank, onOpen }) {
       </div>
       <div style={{ flex:1, minWidth:0 }}>
         <div style={{ fontSize:13, fontWeight:800, color:"#141422",
-          whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+          overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+          maxWidth:"100%" }}>
           💚 {app.project_name}
         </div>
         <div style={{ fontSize:11, color:"#888", marginTop:2,
-          whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+          overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+          maxWidth:"100%" }}>
           {app.short_desc}
         </div>
         <div style={{ display:"flex", alignItems:"center", gap:8, marginTop:4 }}>
