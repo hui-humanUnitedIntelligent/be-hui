@@ -386,7 +386,7 @@ export const OrbEngine = Object.freeze({
     return {
       leaf: {
         archetype: 'origin',
-        path:      LEAF_ARCHETYPES.seed.path,
+        path:      LEAF_ARCHETYPES.origin.path,
         viewBox:   '0 0 60 80',
       },
       color: {
