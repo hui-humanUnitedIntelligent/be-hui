@@ -1,4 +1,5 @@
 import { isProfileTalent } from "../../lib/profileUtils.js";
+import { OrbEngine } from "../../core/orbEngine.js";
 // HUI Pillars: dezente Grundpfeiler-Zuordnung für Feed-Items
 // Lazy-Import um keine Circular Dependencies zu erzeugen
 let _pillars = null;
@@ -9,18 +10,6 @@ async function getPillars() {
     return _pillars;
   } catch { return null; }
 }
-
-// Synchrone Fallback-Zuordnung (kein async nötig — reine Lookup-Tabelle)
-const _PILLAR_SYNC = {
-  work:           { hint: '🍃 Unterstützt Erschaffen' },
-  experience:     { hint: '🍃 Unterstützt Erschaffen' },
-  invitation:     { hint: '🍃 Unterstützt Verbindung' },
-  moment:         { hint: null },  // Momente sind neutral — kein Hint
-  note:           { hint: null },
-  story:          { hint: null },
-  impact_project: { hint: '🍃 Unterstützt Impact' },
-  project:        { hint: '🍃 Unterstützt Erschaffen' },
-};
 // src/system/feed/unifiedNormalizer.js — HUI UNIFIED NORMALIZER (Phase 1)
 const safeStr=(v,fb)=>{if(v==null||v==="")return fb!==undefined?fb:"";return String(v).trim();};
 const safeNum=(v,fb)=>{const n=Number(v);return isNaN(n)?(fb!==undefined?fb:0):n;};
@@ -151,6 +140,7 @@ export function toFeedItem(raw){
     const media =extractMedia(raw);
     const text  =safeStr(raw.caption||raw.description||raw.story||raw.text);
     const title =safeStr(raw.title||raw.expTitle||raw.name||(text&&text.slice(0,60)));
+    const pillar = raw.pillar || raw.primary_pillar || null;
     return{
       id:String(raw.id), type, author, title:title||null, text:text||null, media,
       createdAt:relTime(raw.created_at||raw.createdAt),
@@ -165,13 +155,9 @@ export function toFeedItem(raw){
       format:safeStr(raw.format)||null,
       bookingMode:safeStr(raw.booking_mode||raw.bookingMode,"direct"),
       _reactions:raw._reactions||{},
-      // HUI Core Engine: dezenter Grundpfeiler-Hint für Feed
-      // Wird aus core_content_signals geladen — Fallback auf Typ-Inference
-      // Nie dominant anzeigen — nur subtil
-      pillar:     raw.pillar||raw.primary_pillar||null,
-      pillar_hint: raw.pillar_hint                         // explizit gesetzt (aus DB)
-                ?? _PILLAR_SYNC[type]?.hint                // typ-basierte Inference
-                ?? null,
+      // HUI Core Engine: dezenter Grundpfeiler-Hint — nur bei echten Pillar-Daten
+      pillar,
+      pillar_hint: raw.pillar_hint ?? (pillar ? OrbEngine.feedHint(pillar) : null),
       _raw:raw,
     };
   }catch(err){

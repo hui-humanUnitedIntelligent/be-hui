@@ -31,6 +31,7 @@ import { AvailabilitySection }    from "../components/profile/sections/Availabil
 import { LocationSection }        from "../components/profile/sections/LocationSection.jsx";
 import { VisibilitySection }      from "../components/profile/sections/VisibilitySection.jsx";
 import { MomentsSection }         from "../components/profile/sections/MomentsSection.jsx";
+import { OrbSignatur }            from "../components/profile/OrbSignatur.jsx";
 
 // ── Design Tokens (HUI-Standard, identisch zu BasisProfilePage) ─
 const T = {
@@ -1231,6 +1232,8 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
           onEditAvatar={handleAvatarChange}
           onEditCover={handleCoverChange}
         />
+
+        {profileId && <OrbSignatur profileId={profileId} />}
 
         {/* ── 2. Action Buttons — nur Besucher ─────────────── */}
         {!isOwner && (
