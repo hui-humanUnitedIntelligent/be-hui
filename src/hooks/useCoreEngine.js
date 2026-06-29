@@ -20,6 +20,8 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { CoreEngine, SIGNAL_TYPES, PILLARS } from '../core/coreEngine.js';
+import { ResonanceEngine, REACTION_TYPES, SIGNAL_LAYERS, resonanceLabel }
+  from '../core/resonanceEngine.js';
 import { OrbEngine } from '../core/orbEngine.js';
 
 // ─────────────────────────────────────────────────────────────────────
@@ -200,12 +202,15 @@ export function useContentPillar(entityId, entityType) {
  */
 export const signalHelpers = Object.freeze({
 
-  /** Wird aufgerufen wenn ein Werk veröffentlicht wird. */
+  /** Wird aufgerufen wenn ein Werk veröffentlicht wird.
+   *  Ebene 1 (Handlung) — beeinflusst den Orb NICHT direkt.
+   *  Wirkung entsteht erst wenn jemand kauft (→ resonanceHelpers.onWorkPurchased). */
   async onWorkPublished(userId, workId) {
     await Promise.all([
       CoreEngine.signals.record({
         userId, signalType: SIGNAL_TYPES.WORK_PUBLISHED,
         entityId: workId, entityType: 'work',
+        // signal_layer: 'action' ist der Default — kein Orb-Einfluss
       }),
       CoreEngine.content.register({
         entityId: workId, entityType: 'work',
@@ -304,3 +309,176 @@ export const signalHelpers = Object.freeze({
     ]);
   },
 });
+
+// ─────────────────────────────────────────────────────────────────────
+// RESONANZ HELPERS
+// Convenience-Funktionen für Resonanz-Ereignisse.
+// Werden von anderen Services aufgerufen — nicht direkt in UI-Komponenten.
+// ─────────────────────────────────────────────────────────────────────
+
+/**
+ * Resonanz-Helfer für häufige Reaktions-Ereignisse.
+ * Diese sind Ebene 2 (Resonanz) und bestätigen je nach Typ direkt Wirkung (Ebene 3).
+ */
+export const resonanceHelpers = Object.freeze({
+
+  /** Werk wurde gekauft → Resonanz für Creator */
+  async onWorkPurchased(buyerId, creatorId, workId) {
+    return ResonanceEngine.onReaction({
+      reactorId:  buyerId,
+      actorId:    creatorId,
+      reactionType: REACTION_TYPES.WORK_PURCHASED,
+      entityId:   workId,
+      entityType: 'work',
+    });
+  },
+
+  /** Erlebnis wurde gebucht → Resonanz für Anbieter */
+  async onExperienceBooked(buyerId, providerId, experienceId) {
+    return ResonanceEngine.onReaction({
+      reactorId:  buyerId,
+      actorId:    providerId,
+      reactionType: REACTION_TYPES.EXPERIENCE_BOOKED,
+      entityId:   experienceId,
+      entityType: 'experience',
+    });
+  },
+
+  /** Buchung vollständig abgeschlossen → direkte Wirkung (Ebene 3) */
+  async onBookingConfirmed(clientId, providerId, bookingId) {
+    return ResonanceEngine.onReaction({
+      reactorId:  clientId,
+      actorId:    providerId,
+      reactionType: REACTION_TYPES.BOOKING_CONFIRMED,
+      entityId:   bookingId,
+      entityType: 'booking',
+    });
+    // BOOKING_CONFIRMED ist in DIRECT_IMPACT_REACTIONS → erzeugt sofort Ebene 3
+  },
+
+  /** Dienstleistung abgeschlossen + bestätigt → direkte Wirkung */
+  async onServiceCompleted(clientId, providerId, bookingId) {
+    return ResonanceEngine.onReaction({
+      reactorId:  clientId,
+      actorId:    providerId,
+      reactionType: REACTION_TYPES.SERVICE_COMPLETED,
+      entityId:   bookingId,
+      entityType: 'booking',
+    });
+  },
+
+  /** Verbindungsanfrage angenommen → Resonanz für Initiator */
+  async onConnectionAccepted(acceptorId, initiatorId) {
+    return ResonanceEngine.onReaction({
+      reactorId:  acceptorId,
+      actorId:    initiatorId,
+      reactionType: REACTION_TYPES.CONNECTION_ACCEPTED,
+    });
+  },
+
+  /** Hilfe wurde vom Empfänger bestätigt → Resonanz für Helfer */
+  async onHelpConfirmed(receiverId, helperId, entityId) {
+    return ResonanceEngine.onReaction({
+      reactorId:  receiverId,
+      actorId:    helperId,
+      reactionType: REACTION_TYPES.HELP_CONFIRMED,
+      entityId,
+      entityType: 'help',
+    });
+  },
+
+  /** Mentoring abgeschlossen → direkte Wirkung */
+  async onMentoringCompleted(menteeId, mentorId) {
+    return ResonanceEngine.onReaction({
+      reactorId:  menteeId,
+      actorId:    mentorId,
+      reactionType: REACTION_TYPES.MENTORING_COMPLETED,
+    });
+  },
+
+  /** Jemand tritt einem Impact-Projekt bei → Resonanz für Projektersteller */
+  async onProjectJoined(joinerId, creatorId, projectId) {
+    return ResonanceEngine.onReaction({
+      reactorId:  joinerId,
+      actorId:    creatorId,
+      reactionType: REACTION_TYPES.PROJECT_JOINED,
+      entityId:   projectId,
+      entityType: 'impact_project',
+    });
+  },
+
+  /** Zusammenarbeit hat aktiv begonnen → direkte Wirkung */
+  async onCollaborationActive(collaboratorId, initiatorId) {
+    return ResonanceEngine.onReaction({
+      reactorId:  collaboratorId,
+      actorId:    initiatorId,
+      reactionType: REACTION_TYPES.COLLABORATION_ACTIVE,
+    });
+  },
+
+  /** Impact breitet sich aus (z.B. Projekt erreicht Meilenstein) */
+  async onImpactRipple(triggeredById, projectCreatorId, projectId) {
+    return ResonanceEngine.onReaction({
+      reactorId:  triggeredById,
+      actorId:    projectCreatorId,
+      reactionType: REACTION_TYPES.IMPACT_RIPPLE,
+      entityId:   projectId,
+      entityType: 'impact_project',
+    });
+  },
+
+  /** Ambassador-Referral führt zu aktivem Nutzer → Resonanz */
+  async onAmbassadorActivation(newUserId, ambassadorId) {
+    return ResonanceEngine.onReaction({
+      reactorId:  newUserId,
+      actorId:    ambassadorId,
+      reactionType: REACTION_TYPES.CONNECTION_ACCEPTED,
+    });
+  },
+});
+
+// ─────────────────────────────────────────────────────────────────────
+// useResonanceProfile
+// Hook für Resonanz-Statistiken — für internes Profil und Team Dashboard.
+// ─────────────────────────────────────────────────────────────────────
+
+/**
+ * Resonanz-Statistiken für einen Nutzer.
+ * Enthält: Wirkungstiefe, Resonanz-Ketten, beschreibende Qualität.
+ * NICHT als Zahlen im UI anzeigen — nur für semantische Auswertung.
+ */
+export function useResonanceProfile(userId) {
+  const [stats,       setStats]   = useState(null);
+  const [description, setDesc]    = useState(null);
+  const [chains,      setChains]  = useState([]);
+  const [isLoading,   setLoading] = useState(false);
+
+  const load = useCallback(async () => {
+    if (!userId) return;
+    setLoading(true);
+    try {
+      const [s, c] = await Promise.all([
+        ResonanceEngine.stats(userId),
+        ResonanceEngine.chains.forUser(userId, { onlyConfirmed: false }),
+      ]);
+      if (s) {
+        setStats(s);
+        setDesc(ResonanceEngine.describeImpact(s));
+      }
+      setChains(c ?? []);
+    } catch (err) {
+      console.error('[useResonanceProfile]', err?.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  return { stats, description, chains, isLoading, refresh: load };
+}
+
+// Re-export für einfachen Import
+export { ResonanceEngine, REACTION_TYPES, SIGNAL_LAYERS, resonanceLabel };
