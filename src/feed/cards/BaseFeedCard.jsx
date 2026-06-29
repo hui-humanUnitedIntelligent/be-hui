@@ -47,6 +47,16 @@ const CARD_CSS = `
 }
 .hui-card-img { animation: huiFadeUp 0.28s ease both; }
 /* HUI: Kein Media-Zoom — ruhiger, hochwertiger Feed */
+/* HUI Pillar Hint — dezent, nie dominant */
+.hui-pillar-hint {
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(26,26,46,0.37);
+  letter-spacing: 0.02em;
+  padding: 2px 16px 8px;
+  user-select: none;
+  opacity: 0.85;
+}
 `;
 let _cardCSS = false;
 function injectCardCSS() {
@@ -661,6 +671,14 @@ export default function BaseFeedCard({
     >
       {/* Kapitel 2.3: Menschen zuerst */}
       <HumanHeader item={item} onProfile={onProfile} />
+
+      {/* HUI Pillar Hint — 🍃 dezent, nie dominant, nur wenn vorhanden */}
+      {item?.pillar_hint && (
+        <div className="hui-pillar-hint" aria-hidden="true">
+          {item.pillar_hint}
+        </div>
+      )}
+
       {badge && (
         <div style={{ paddingLeft:16, paddingRight:16, marginBottom:6, display:"flex", justifyContent:"flex-end" }}>
           <div style={{
