@@ -117,9 +117,9 @@ export function StoryBar({ onStoryClick }) {
                   <div style={{ width:'100%', height:'100%', borderRadius:'50%',
                     overflow:'hidden', border:'2.5px solid white', background: C.cream }}>
                     {cover?.avatar_url ? (
-                      <img loading="lazy" decoding="async" src={cover.avatar_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                      <img loading="eager" decoding="async" src={cover.avatar_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                     ) : cover?.media_url ? (
-                      <img loading="lazy" decoding="async" src={cover.media_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                      <img loading="eager" decoding="async" src={cover.media_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                     ) : (
                       <div style={{ width:'100%', height:'100%', background:`linear-gradient(135deg,${C.teal}22,${C.coral}22)`,
                         display:'flex', alignItems:'center', justifyContent:'center', fontSize:22 }}>✦</div>
@@ -708,7 +708,7 @@ export function HighlightsRow({ userId }) {
                 <div style={{ width:'100%', height:'100%', borderRadius:'50%',
                   overflow:'hidden', border:'2px solid white', background:'#eee' }}>
                   {h.media_url
-                    ? <img loading="lazy" decoding="async" src={h.media_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                    ? <img loading="eager" decoding="async" src={h.media_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                     : <div style={{ width:'100%', height:'100%', background:`linear-gradient(135deg,${C.gold}44,${C.coral}44)`,
                         display:'flex', alignItems:'center', justifyContent:'center', fontSize:20 }}>⭐</div>}
                 </div>
