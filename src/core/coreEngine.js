@@ -32,6 +32,16 @@
 //   CoreEngine.classify   — Helfer zur automatischen Klassifizierung
 //
 // ═══════════════════════════════════════════════════════════════════════
+//
+// CONSTITUTION
+//   Diese Engine ist Ausdruck der HUI Constitution.
+//   Grundpfeiler, Sprache und Semantik kommen aus der HUI Registry.
+//
+//   Verfassung:   HUI_CONSTITUTION.md
+//   Registry:     src/registry/HuiRegistry.js
+//   Index:        docs/ARCHITECTURE_INDEX.md
+//
+// ═══════════════════════════════════════════════════════════════════════
 
 import { supabase } from '../lib/supabaseClient.js';
 
