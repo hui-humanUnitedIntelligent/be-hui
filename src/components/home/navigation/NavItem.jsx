@@ -57,6 +57,9 @@ function NavIcon({ k, active }) {
         fill={active ? `${C.teal}14` : "none"}/>
     </svg>
   );
+  // NAV-001: 'profile' key ist nicht in navConfig.js — aktueller Tab-Key ist 'creator'.
+  // Dieses Icon ist ein Fallback für künftiges key-Rename 'creator' → 'profile'.
+  // Nicht entfernen (Breaking Change wenn key umbenannt wird).
   if (k === "profile") return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <circle cx="12" cy="9" r="4"

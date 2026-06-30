@@ -1,8 +1,22 @@
-// navigation/navConfig.js — HUI Navigation v2
+// navigation/navConfig.js — HUI Navigation v2 (NAV-001)
 // TAB STRUCTURE: Entdecken / Home / Mein HUI (Orb) / Impact / Profil
 // NAV.1A Audit: feed = globaler Community-Stream → Label "Entdecken"
 //               discover = strukturierter Sektions-Browse → Label "Home"
-// KEYS bleiben unverändert (Analytics, Deep Links, sessionStorage unberührt)
+//
+// NAVIGATION CONTRACTS (NAV-001):
+//   Tab-Keys sind unveränderlich (Analytics, sessionStorage, Deep Links).
+//   Label-Änderungen erfolgen ausschließlich hier.
+//   Tab-Logik liegt ausschließlich in HomeShell.handleTab().
+//
+// TAB-KEY → VERHALTEN:
+//   feed     → switchTab("feed")           — UnifiedFeed, schließt Overlays
+//   discover → switchTab("discover")       — DiscoverPage, schließt Overlays
+//   orb      → onOrbAction("create")       — OrbCompass Overlay, kein Tab-Switch
+//   impact   → _setTab("impact")           — ImpactPage, schließt Overlays NICHT
+//   creator  → openCreatorDashboard()      — ProfileLauncher Overlay, Tab=creator
+//
+// HINWEIS: "creator" ist der interne State-Key für den "Profil"-Tab.
+// HINWEIS: hui_mein_hui_open (sessionStorage) = Legacy-Key, zeigt creator-Overlay-State.
 
 import { createNavItem } from "../../../lib/factories/createNavItem.js";
 import { filterValidPages } from "../../../lib/factories/createTabPage.js";

@@ -251,18 +251,10 @@ function HomeInner() {
     return () => mgr.cleanup();
   }, []);
 
-  /* onTab: routed through Action Engine — handleTab still syncs HomeShell state */
+  /* onTabPress — delegiert vollständig an handleTab (NAV-001: konsolidiert)
+   * handleTab ist die einzige autoritative Tab-Routing-Instanz.
+   * Alle Routing-Entscheidungen (creator/profile/impact) liegen in HomeShell.handleTab. */
   function onTabPress(key) {
-    // Creator tab → opens Creator Dashboard overlay
-    if (key === "creator" || key === "profile") {
-      openOwnProfile();
-      return;
-    }
-    // Impact tab → direkter Tab-Switch zur ImpactPage
-    if (key === "impact") {
-      handleTab("impact");
-      return;
-    }
     handleTab(key);
   }
 

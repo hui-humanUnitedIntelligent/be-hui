@@ -230,19 +230,18 @@ export default function HomeShell({ children }) {
     _setTab(newTab);
   }, [_setTab, setShowCreatorDashboard]);
 
-  /* openOwnProfile → öffnet MyCreatorDashboard + markiert "creator"-Tab aktiv */
-  const openOwnProfile = useCallback(() => {
-    _setTab("creator");
-    setShowCreatorDashboard(true);
-    try { sessionStorage.setItem("hui_mein_hui_open", "1"); } catch(_) {}
-  }, [_setTab, setShowCreatorDashboard]);
-
-  /* openCreatorDashboard — direkter Alias */
+  /* openCreatorDashboard — kanonische Funktion zum Öffnen des Profilbereichs
+   * NAV-001: Konsolidiert openOwnProfile + openCreatorDashboard (identisch gewesen).
+   * sessionStorage-Key "hui_mein_hui_open" = historischer Naming-Drift (Tab-Key ist "creator").
+   * Key bleibt aus Kompatibilitätsgründen unverändert. */
   const openCreatorDashboard = useCallback(() => {
     _setTab("creator");
     setShowCreatorDashboard(true);
     try { sessionStorage.setItem("hui_mein_hui_open", "1"); } catch(_) {}
   }, [_setTab, setShowCreatorDashboard]);
+
+  /* openOwnProfile — Alias für openCreatorDashboard (NAV-001: konsolidiert) */
+  const openOwnProfile = openCreatorDashboard;
 
   // ── openProfileById — einziger stabiler Einstiegspunkt für alle Feed-Avatar-Klicks
   const openProfileById = React.useCallback((id) => {
@@ -259,26 +258,26 @@ export default function HomeShell({ children }) {
 
 
   /* handleTab — einziger onTab-Handler für BottomNav */
+  // NAV-001: handleTab ist die EINZIGE autoritative Routing-Entscheidungsinstanz
+  // für Tab-Navigation innerhalb der Home-Shell.
+  // Home.jsx onTabPress delegiert vollständig an handleTab.
   const handleTab = useCallback((key) => {
-    // Creator/"Mein HUI" tab → Overlay öffnen + tab-State auf "creator" setzen
-    // Ohne _setTab würde der vorherige Tab (z.B. "impact") aktiv bleiben
-    if (key === "creator") {
+    // "creator" und "profile" → beide öffnen den Profilbereich (creator-Tab aktiv).
+    // "profile" ist der UI-Label-Key; "creator" ist der interne State-Key.
+    if (key === "creator" || key === "profile") {
       _setTab("creator");        // ← Tab aktiv markieren (NavItem zeigt Türkis)
       openCreatorDashboard();    // ← Overlay öffnen
       return;
     }
-    // Impact Tab
+    // Impact: direkter _setTab ohne switchTab — bewusst, damit offen Overlays
+    // (z.B. Chat) beim Impact-Wechsel nicht geschlossen werden.
     if (key === "impact") {
       _setTab("impact");
       return;
     }
-    if (key === "profile") {
-      _setTab("creator");        // profile → creator-Tab aktiv
-      openOwnProfile();
-      return;
-    }
+    // feed, discover, favorites → switchTab (schließt alle Overlays + wechselt Tab)
     switchTab(key);
-  }, [_setTab, openOwnProfile, openCreatorDashboard, switchTab]);
+  }, [_setTab, openCreatorDashboard, switchTab]);
 
   /* Context Value — useMemo für Referenzstabilität */
   // Ohne useMemo: ctx ist bei JEDEM render ein neues Objekt →
