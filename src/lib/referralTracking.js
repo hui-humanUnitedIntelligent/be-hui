@@ -13,6 +13,10 @@ export function detectReferral() {
     const match = path.match(/^\/([a-zA-Z0-9._-]{3,50})$/);
     if (!match) return null;
     const username = match[1].toLowerCase();
+    // NAV-001B: Diese Exclusion-Liste ist eine von zwei parallelen Listen.
+    // Die konsolidierte Union-Liste liegt in src/routes/registry.js (EXCLUDED_REF_PATHS).
+    // MIGRATION (NAV-002): Durch import { EXCLUDED_REF_PATHS } from '../routes/registry.js'
+    //   und EXCLUDED_REF_PATHS.has(username) ersetzen.
     const EXCLUDED = ['home','login','studio','impact','admin','diagnose',
       'dashboard','profile','work','auth','ref','entdecken','buchung',
       'mein-hui','community','impressum','datenschutz','agb','cookies','copyright'];

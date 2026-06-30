@@ -9,7 +9,10 @@ import { supabase } from "../lib/supabaseClient.js";
 const STORAGE_AMB_KEY = "hui_referral_ambassador";
 
 // Bekannte App-Routen die NICHT als Ref-Link gelten
-const APP_ROUTES = new Set([
+// NAV-001B: Umbenennung von APP_ROUTES → KNOWN_APP_PATHS (Namenskonflikt mit App.jsx vermieden).
+// MIGRATION (NAV-002): Durch import { EXCLUDED_REF_PATHS } from '../routes/registry.js' ersetzen.
+// EXCLUDED_REF_PATHS in registry.js ist die konsolidierte Union beider Exclusion-Listen.
+const KNOWN_APP_PATHS = new Set([
   'home','login','studio','impact','admin','diagnose','dashboard',
   'profile','work','auth','ref','entdecken','buchung','mein-hui',
   'community','impressum','datenschutz','agb','copyright','cookies',
@@ -24,7 +27,7 @@ export default function RefRedirect() {
     if (!username) { navigate("/Home", { replace: true }); return; }
 
     // Wenn es eine bekannte App-Route ist → direkt weiterleiten ohne DB-Abfrage
-    if (APP_ROUTES.has(username.toLowerCase())) {
+    if (KNOWN_APP_PATHS.has(username.toLowerCase())) {
       navigate("/Home", { replace: true });
       return;
     }

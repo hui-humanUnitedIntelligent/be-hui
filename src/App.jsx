@@ -36,6 +36,16 @@ const WorkDetailPage    = lazy(() => import('./components/WorkDetailPage'))
 // ── Route Factory ──────────────────────────────────────────────────────────
 import { createTabPage, filterValidPages } from './lib/factories/createTabPage.js'
 
+// ── APP_ROUTES: ÜBERGANGSSTRUKTUR (NAV-001B) ─────────────────────────────────
+// APP_ROUTES ist die Tab-Registry der Home-Shell — KEIN vollständiges Route-Register.
+// Sie enthält nur die 8 Tab-orientierten Routen (Home, Impact, Work, Profil, etc.).
+// Auth-Routen, Redirects, Catch-Alls und Referral-Routen fehlen hier bewusst.
+//
+// MIGRATION (wenn NAV-003 freigegeben):
+//   APP_ROUTES wird durch src/routes/registry.js (ROUTE_REGISTRY) ersetzt.
+//   Bis dahin: APP_ROUTES bleibt bestehen und wird NICHT verändert.
+//   Quelle der Wahrheit für alle Routen: src/routes/registry.js
+//
 // Normalisierte, validierte Route-Definitionen
 // Alle Routen gehen durch createTabPage() — kein undefined-component möglich
 export const APP_ROUTES = filterValidPages([
