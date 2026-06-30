@@ -12,8 +12,14 @@
 | Dokument | Beschreibung |
 |---|---|
 | [`HUI_CONSTITUTION.md`](../HUI_CONSTITUTION.md) | **Die Verfassung.** Mission, Grundpfeiler, Goldene Regeln, Architekturprinzipien — unveränderlich |
+| [`docs/governance/ADI.md`](governance/ADI.md) | **Architecture Decision Index** — ADRs, RFCs, Domain Charters |
+| [`docs/governance/adr/ADR-0001_ADOPTION_OF_CORE_ARCHITECTURE.md`](governance/adr/ADR-0001_ADOPTION_OF_CORE_ARCHITECTURE.md) | **ADR-0001** — Core Architecture Adoption |
+| [`docs/governance/RFC-000A_ARCHITECTURE_GOVERNANCE.md`](governance/RFC-000A_ARCHITECTURE_GOVERNANCE.md) | **RFC-000A** — Architecture Governance |
+| [`docs/governance/RFC-000_DOMAIN_MODEL.md`](governance/RFC-000_DOMAIN_MODEL.md) | **RFC-000** — Domain Model |
+| [`docs/governance/CORE_DOMAIN_CHARTER.md`](governance/CORE_DOMAIN_CHARTER.md) | **CORE Domain Charter** |
+| [`docs/CORE-001_AUDIT_REPORT.md`](CORE-001_AUDIT_REPORT.md) | **CORE-001 Audit** — Domain Ownership Enforcement |
 | [`src/registry/HuiRegistry.js`](../src/registry/HuiRegistry.js) | **Single Source of Meaning.** Sprache, Texte, Farben, Orb-Traits für alle Module |
-| [`src/core/hui.pillars.js`](../src/core/hui.pillars.js) | Re-Export der Registry (Rückwärtskompatibilität) |
+| [`src/architecture/`](../src/architecture/) | **Architecture Enforcement** — Domains, Guards, Violations |
 
 ---
 

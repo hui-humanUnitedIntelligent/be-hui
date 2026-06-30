@@ -1,3 +1,6 @@
+// @domain IDENTITY
+// @owner lib/AuthContext.jsx
+// @responsibility Auth-State, Session, Profile-Upsert bei Login — Single Owner
 import React, { useMemo, createContext, useState, useContext, useEffect, useCallback, useRef } from "react";
 import { ProfileService } from '../services/db';
 import { supabase } from "./supabaseClient";

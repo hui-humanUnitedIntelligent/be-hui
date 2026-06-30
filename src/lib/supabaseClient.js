@@ -1,3 +1,10 @@
+// @domain CORE
+// @owner src/lib/supabaseClient.js
+// @responsibility Einzige Supabase-Client-Instanz — alle DB-Zugriffe über Domain Services
+// @dependencies ADR-0001, RFC-000A §3
+// REGEL: UI-Komponenten importieren supabase nur für READ-Ausnahmen.
+//        WRITES müssen über Domain Services / Context Owners laufen.
+//        Bekannte Verstöße: src/architecture/violations.js
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl     = import.meta.env.VITE_SUPABASE_URL;

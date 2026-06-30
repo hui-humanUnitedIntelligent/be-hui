@@ -1,4 +1,7 @@
 // WorkDetailPage.jsx — Premium Work Detail Experience
+// @domain CONTENT (consumer)
+// @violation V-001 TODO(ADR-0001): Direct DB writes — migrate to AppStateContext/ContentService
+// @violation V-072 TODO(ADR-0001): Action Engine bypass — use A.OPEN_PROFILE/A.OPEN_CHAT
 // Route: /work/:id
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
