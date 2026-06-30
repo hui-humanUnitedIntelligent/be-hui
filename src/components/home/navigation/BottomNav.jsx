@@ -179,8 +179,25 @@ export default function BottomNav({
                     e.currentTarget.style.transform = "scale(1) translateY(0)";
                     e.currentTarget.style.transition = "transform 200ms cubic-bezier(0.16,1,0.30,1)";
                   }}
+                aria-label={item.label}
                 >
-                  <HuiLogoIcon size={44} />
+                  <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:2 }}>
+                    <HuiLogoIcon size={36} />
+                    {item.label && (
+                      <span style={{
+                        fontSize:     9.5,
+                        fontWeight:   500,
+                        color:        "rgba(80,80,80,0.55)",
+                        letterSpacing:"0.01em",
+                        lineHeight:   1,
+                        pointerEvents:"none",
+                        userSelect:   "none",
+                        whiteSpace:   "nowrap",
+                      }}>
+                        {item.label}
+                      </span>
+                    )}
+                  </div>
                 </button>
               );
             }

@@ -1,5 +1,5 @@
 // navigation/navConfig.js — HUI Navigation v2
-// TAB STRUCTURE: Entdecken / Home / HUI Orb / Impact / Mein HUI
+// TAB STRUCTURE: Entdecken / Home / Mein HUI (Orb) / Impact / Profil
 // NAV.1A Audit: feed = globaler Community-Stream → Label "Entdecken"
 //               discover = strukturierter Sektions-Browse → Label "Home"
 // KEYS bleiben unverändert (Analytics, Deep Links, sessionStorage unberührt)
@@ -10,9 +10,9 @@ import { filterValidPages } from "../../../lib/factories/createTabPage.js";
 export const NAV_ITEMS = filterValidPages([
   createNavItem({ key: "feed",      label: "Entdecken" }),
   createNavItem({ key: "discover",  label: "Home"      }),
-  createNavItem({ key: "orb",       label: "",  isOrb: true }),  // Create orb
+  createNavItem({ key: "orb",       label: "Mein HUI",  isOrb: true }),  // Persönlicher HUI-Bereich
   createNavItem({ key: "impact",    label: "Impact"    }),
-  createNavItem({ key: "creator",   label: "Mein HUI"  }),       // Persönlicher Bereich (Profil, Werke, Buchungen, …)
+  createNavItem({ key: "creator",   label: "Profil"    }),       // Persönlicher Bereich (Profil, Werke, Buchungen, …)
 ]);
 
 // Tabs die im Keep-Alive Modus bleiben
