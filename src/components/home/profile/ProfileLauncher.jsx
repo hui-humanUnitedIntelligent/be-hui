@@ -130,7 +130,6 @@ function lazyWithRetry(importFn) {
 const BasisProfilePage   = lazyWithRetry(() => import("../../../pages/BasisProfilePage.jsx"));
 const TalentProfilePage  = lazyWithRetry(() => import("../../../pages/TalentProfilePage.jsx"));
 const MyBasisProfile     = lazyWithRetry(() => import("../../../pages/MyBasisProfile.jsx"));
-const MeinHUI            = lazyWithRetry(() => import("../../../pages/MeinHUI.jsx"));
 
 // ── Spinner Fallback ─────────────────────────────────────────────
 function Spinner() {
@@ -218,7 +217,6 @@ export default function ProfileLauncher() {
     selectedProfileId,    closeProfileById,
     showCreatorDashboard, setShowCreatorDashboard,
     authProfile,
-    userName,
   } = useHome();
 
   // ── DB-Routing für fremde öffentliche Profile ─────────────────
@@ -246,18 +244,12 @@ export default function ProfileLauncher() {
     );
   }
 
-  // ── EIGENES PROFIL — MeinHUI (persönlicher Wirkungsraum) + MyBasisProfile ──
-  // MeinHUI ist der neue persönliche Raum (Phase 1).
-  // MyBasisProfile bleibt als Profilseite erhalten.
+  // ── EIGENES PROFIL — IMMER MyBasisProfile (erweiterbar um Talent-Bereich)
+  // MyBasisProfile rendert den Talent-Bereich conditional wenn isTalent===true.
   if (showCreatorDashboard) {
     return (
       <ProfileErrorBoundary profileId="own" onClose={() => setShowCreatorDashboard(false)}>
-        <React.Suspense fallback={null}>
-          <MeinHUI
-            name={userName || authProfile?.display_name || null}
-            onClose={() => setShowCreatorDashboard(false)}
-          />
-        </React.Suspense>
+        <MyBasisProfile onClose={() => setShowCreatorDashboard(false)} />
       </ProfileErrorBoundary>
     );
   }
