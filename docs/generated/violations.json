@@ -341,11 +341,11 @@
     "table": "profiles"
   },
   {
-    "id": "CORE_BYPASS_pages/MyBasisProfile.jsx_L546",
+    "id": "CORE_BYPASS_pages/MyBasisProfile.jsx_L547",
     "type": "CORE_BYPASS",
     "severity": "CRITICAL",
     "file": "pages/MyBasisProfile.jsx",
-    "line": 546,
+    "line": 547,
     "domain": "PAGES",
     "message": "Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).",
     "detail": "const { error: saveErr } = await supabase.from(\"profiles\")",
@@ -407,55 +407,55 @@
     "table": "profiles"
   },
   {
-    "id": "CORE_BYPASS_services/db.js_L71",
+    "id": "CORE_BYPASS_services/db.js_L74",
     "type": "CORE_BYPASS",
     "severity": "CRITICAL",
     "file": "services/db.js",
-    "line": 71,
+    "line": 74,
     "domain": "SERVICES",
     "message": "Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).",
     "detail": "supabase.from('profiles')",
     "table": "profiles"
   },
   {
-    "id": "CORE_BYPASS_services/db.js_L84",
+    "id": "CORE_BYPASS_services/db.js_L87",
     "type": "CORE_BYPASS",
     "severity": "CRITICAL",
     "file": "services/db.js",
-    "line": 84,
+    "line": 87,
     "domain": "SERVICES",
     "message": "Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).",
     "detail": "supabase.from('profiles')",
     "table": "profiles"
   },
   {
-    "id": "CORE_BYPASS_services/db.js_L170",
+    "id": "CORE_BYPASS_services/db.js_L173",
     "type": "CORE_BYPASS",
     "severity": "CRITICAL",
     "file": "services/db.js",
-    "line": 170,
+    "line": 173,
     "domain": "SERVICES",
     "message": "Core Bypass: Direkter Write auf Core-Tabelle 'wirker_profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).",
     "detail": "supabase.from('wirker_profiles')",
     "table": "wirker_profiles"
   },
   {
-    "id": "CORE_BYPASS_services/db.js_L185",
+    "id": "CORE_BYPASS_services/db.js_L188",
     "type": "CORE_BYPASS",
     "severity": "CRITICAL",
     "file": "services/db.js",
-    "line": 185,
+    "line": 188,
     "domain": "SERVICES",
     "message": "Core Bypass: Direkter Write auf Core-Tabelle 'wirker_profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).",
     "detail": "supabase.from('wirker_profiles')",
     "table": "wirker_profiles"
   },
   {
-    "id": "CORE_BYPASS_services/db.js_L505",
+    "id": "CORE_BYPASS_services/db.js_L608",
     "type": "CORE_BYPASS",
     "severity": "CRITICAL",
     "file": "services/db.js",
-    "line": 505,
+    "line": 608,
     "domain": "SERVICES",
     "message": "Core Bypass: Direkter Write auf Core-Tabelle 'impact_votes'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).",
     "detail": "supabase.from('impact_votes').insert({",
@@ -1235,26 +1235,15 @@
     "table": "profiles"
   },
   {
-    "id": "DB_DIRECT_WRITE_pages/MyBasisProfile.jsx_L546",
+    "id": "DB_DIRECT_WRITE_pages/MyBasisProfile.jsx_L547",
     "type": "DB_DIRECT_WRITE",
     "severity": "HIGH",
     "file": "pages/MyBasisProfile.jsx",
-    "line": 546,
+    "line": 547,
     "domain": "PAGES",
     "message": "Direkter DB-Write (UPDATE) auf 'profiles' in PAGES-Schicht. Verwende Service-Layer.",
     "detail": "const { error: saveErr } = await supabase.from(\"profiles\")",
     "table": "profiles"
-  },
-  {
-    "id": "DB_DIRECT_WRITE_pages/MyBasisProfile.jsx_L1456",
-    "type": "DB_DIRECT_WRITE",
-    "severity": "HIGH",
-    "file": "pages/MyBasisProfile.jsx",
-    "line": 1456,
-    "domain": "PAGES",
-    "message": "Direkter DB-Write (UPDATE) auf 'works' in PAGES-Schicht. Verwende Service-Layer.",
-    "detail": "await supabase.from(\"works\").update({ status: \"deleted\", visibility: \"private\" }).eq(\"id\", w.id);",
-    "table": "works"
   },
   {
     "id": "DB_DIRECT_WRITE_pages/MyCreatorDashboard.jsx_L787",
@@ -1523,8 +1512,8 @@
     "file": "components/HuiCreateFlow.jsx",
     "line": null,
     "domain": "MULTI",
-    "message": "Duplicate Owner für Tabelle 'works': 9 Dateien schreiben diese Tabelle.",
-    "detail": "components/HuiCreateFlow.jsx, components/WerkPublisher.jsx, components/profile/sections/WorksSection.jsx, components/publishing/PublishWorkFlow.jsx, components/works/WerkWizard.jsx, pages/MyBasisProfile.jsx, services/content.js, services/db.js, system/flows/work/WorkFlow.jsx",
+    "message": "Duplicate Owner für Tabelle 'works': 8 Dateien schreiben diese Tabelle.",
+    "detail": "components/HuiCreateFlow.jsx, components/WerkPublisher.jsx, components/profile/sections/WorksSection.jsx, components/publishing/PublishWorkFlow.jsx, components/works/WerkWizard.jsx, services/content.js, services/db.js, system/flows/work/WorkFlow.jsx",
     "table": "works",
     "writers": [
       "components/HuiCreateFlow.jsx",
@@ -1532,7 +1521,6 @@
       "components/profile/sections/WorksSection.jsx",
       "components/publishing/PublishWorkFlow.jsx",
       "components/works/WerkWizard.jsx",
-      "pages/MyBasisProfile.jsx",
       "services/content.js",
       "services/db.js",
       "system/flows/work/WorkFlow.jsx"

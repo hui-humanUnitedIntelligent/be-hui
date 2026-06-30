@@ -2025,7 +2025,7 @@
   },
   {
     "path": "pages/MyBasisProfile.jsx",
-    "lines": 1810,
+    "lines": 1807,
     "hasDomain": false,
     "hasOwner": false,
     "domain": null,
@@ -2153,7 +2153,7 @@
   },
   {
     "path": "services/db.js",
-    "lines": 651,
+    "lines": 754,
     "hasDomain": false,
     "hasOwner": false,
     "domain": null,

@@ -3007,6 +3007,7 @@
     "path": "pages/MyBasisProfile.jsx",
     "imports": [
       "../lib/supabaseClient.js",
+      "../services/db.js",
       "../lib/profileMedia.js",
       "../lib/AuthContext.jsx",
       "../components/home/HomeShell.jsx",

@@ -97,11 +97,11 @@
   },
   "SERVICES": {
     "files": 75,
-    "lines": 20544,
+    "lines": 20647,
     "components": 13,
     "hooks": 47,
-    "dbReads": 119,
-    "dbWrites": 90,
+    "dbReads": 122,
+    "dbWrites": 91,
     "actionEngine": 0,
     "coreEngine": 0,
     "violations": 88,
@@ -109,14 +109,14 @@
   },
   "PAGES": {
     "files": 24,
-    "lines": 20149,
+    "lines": 20146,
     "components": 187,
     "hooks": 16,
     "dbReads": 73,
-    "dbWrites": 24,
+    "dbWrites": 23,
     "actionEngine": 3,
     "coreEngine": 0,
-    "violations": 147,
+    "violations": 146,
     "label": "Pages"
   },
   "REGISTRY": {
