@@ -85,19 +85,19 @@
   },
   "HOOKS": {
     "files": 6,
-    "lines": 1311,
+    "lines": 1280,
     "components": 0,
     "hooks": 12,
-    "dbReads": 11,
+    "dbReads": 8,
     "dbWrites": 2,
     "actionEngine": 0,
     "coreEngine": 1,
-    "violations": 19,
+    "violations": 16,
     "label": "Hooks"
   },
   "SERVICES": {
     "files": 75,
-    "lines": 20544,
+    "lines": 20576,
     "components": 13,
     "hooks": 47,
     "dbReads": 119,

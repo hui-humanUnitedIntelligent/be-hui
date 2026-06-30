@@ -1289,7 +1289,7 @@
   },
   {
     "path": "hooks/useProfileData.js",
-    "lines": 322,
+    "lines": 291,
     "hasDomain": false,
     "hasOwner": false,
     "domain": null,
@@ -2153,7 +2153,7 @@
   },
   {
     "path": "services/db.js",
-    "lines": 651,
+    "lines": 683,
     "hasDomain": false,
     "hasOwner": false,
     "domain": null,
