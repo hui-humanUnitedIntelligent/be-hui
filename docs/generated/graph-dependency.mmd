@@ -1,0 +1,123 @@
+graph TD
+%% HUI Architecture Knowledge Graph — ARCH-002
+
+  File__lib_supabaseClient_js["supabaseClient.js"]
+  File__lib_supabaseClient_index_js["lib/supabaseClient/index.js"]
+  File__design_hui_design_js["hui.design.js"]
+  File__lib_AuthContext_jsx["AuthContext.jsx"]
+  File__lib_AuthContext_index_js["lib/AuthContext/index.js"]
+  File__lib_sentry_js["sentry.js"]
+  File__services_db_index_js["services/db/index.js"]
+  File__design_hui_interaction_js["hui.interaction.js"]
+  File__core_hui_sources_js["hui.sources.js"]
+  File__architecture_knowledge_graph_types_js["types.js"]
+  File__core_hui_actions_js["hui.actions.js"]
+  File__lib_profileUtils_js["profileUtils.js"]
+  File__components_home_HomeShell_jsx["HomeShell.jsx"]
+  File__system_orb_OrbConfig_js["OrbConfig.js"]
+  File__architecture_knowledge_graph_utils_js["utils.js"]
+  File__architecture_scanner_domains_js["domains.js"]
+  File__lib_perfUtils_index_js["lib/perfUtils/index.js"]
+  File__lib_cleanup_cleanupOrbEnvironment_js["cleanupOrbEnvironment.js"]
+  File__lib_AppStateContext_index_js["lib/AppStateContext/index.js"]
+  File__lib_referralTracking_js["referralTracking.js"]
+  File__components_commerce_commerceUtils_js["commerceUtils.js"]
+  File__components_guidance_guidanceTokens_js["guidanceTokens.js"]
+  File__config_safeMode_js["safeMode.js"]
+  File__feed_cards_BaseFeedCard_jsx["BaseFeedCard.jsx"]
+  File__lib_intelligence_worldPolish_js["worldPolish.js"]
+  File__lib_factories_experienceContract_js["experienceContract.js"]
+  File__lib_usePresence_js["usePresence.js"]
+  File__components_settings_SettingsModal_jsx["SettingsModal.jsx"]
+  File__lib_errors_index_js["index.js"]
+  File__lib_security_index_js["index.js"]
+  File__hooks_useProfileData_js["useProfileData.js"]
+  File__components_profile_sections_MomentsSection_j["MomentsSection.jsx"]
+  File__system_flows_impact_ImpactTokens_jsx["ImpactTokens.jsx"]
+  File__lib_sentry_index_js["lib/sentry/index.js"]
+  File__context_WorldSurfaceContext_jsx["WorldSurfaceContext.jsx"]
+  File__context_OrbWorldContext_jsx["OrbWorldContext.jsx"]
+  File__components_guidance_GuidanceContext_jsx["GuidanceContext.jsx"]
+  File__lib_factories_createTabPage_js["createTabPage.js"]
+  File__lib_roles_index_js["index.js"]
+  File__hooks_useAmbassador_js["useAmbassador.js"]
+  File__App_jsx --> File__lib_sentry_index_js
+  File__App_jsx --> File__lib_ErrorBoundaries_index_js
+  File__App_jsx --> File__lib_AuthContext_index_js
+  File__App_jsx --> File__lib_AppStateContext_index_js
+  File__App_jsx --> File__context_WorldSurfaceContext_jsx
+  File__App_jsx --> File__context_OrbWorldContext_jsx
+  File__App_jsx --> File__components_guidance_GuidanceContext_jsx
+  File__App_jsx --> File__pages_LoginPage_index_js
+  File__App_jsx --> File__components_auth_AuthGate_jsx
+  File__App_jsx --> File__lib_useToast_jsx
+  File__App_jsx --> File__components_auth_ProfileCompletionFlow_jsx
+  File__App_jsx --> File__pages_AuthCallback_index_js
+  File__App_jsx --> File__components_entry_AppEntryController_jsx
+  File__App_jsx --> File__lib_supabaseClient_index_js
+  File__App_jsx --> File__lib_referralTracking_js
+  File__App_jsx --> File__pages_ImpactPage_index_js
+  File__App_jsx --> File__lib_factories_createTabPage_js
+  File__architecture_knowledge_graph_governanceParse --> File__architecture_knowledge_graph_utils_js
+  File__architecture_knowledge_graph_governanceParse --> File__architecture_knowledge_graph_types_js
+  File__architecture_knowledge_graph_graphAssembler_ --> File__architecture_scanner_domains_js
+  File__architecture_knowledge_graph_graphAssembler_ --> File__architecture_scanner_violationDetector_js
+  File__architecture_knowledge_graph_graphAssembler_ --> File__architecture_knowledge_graph_utils_js
+  File__architecture_knowledge_graph_graphAssembler_ --> File__architecture_knowledge_graph_types_js
+  File__architecture_knowledge_graph_graphAssembler_ --> File__architecture_knowledge_graph_governanceParse
+  File__architecture_knowledge_graph_graphAssembler_ --> File__architecture_knowledge_graph_platformScanner
+  File__architecture_knowledge_graph_impactSimulator --> File__architecture_knowledge_graph_utils_js
+  File__architecture_knowledge_graph_impactSimulator --> File__architecture_knowledge_graph_types_js
+  File__architecture_knowledge_graph_jsonExporter_js --> File__architecture_knowledge_graph_types_js
+  File__architecture_knowledge_graph_mermaidGenerato --> File__architecture_scanner_domains_js
+  File__architecture_knowledge_graph_mermaidGenerato --> File__architecture_knowledge_graph_utils_js
+  File__architecture_knowledge_graph_mermaidGenerato --> File__architecture_knowledge_graph_types_js
+  File__architecture_knowledge_graph_platformScanner --> File__architecture_knowledge_graph_utils_js
+  File__architecture_knowledge_graph_platformScanner --> File__architecture_knowledge_graph_types_js
+  File__architecture_knowledge_graph_queryEngine_js --> File__architecture_knowledge_graph_utils_js
+  File__architecture_knowledge_graph_queryEngine_js --> File__architecture_knowledge_graph_types_js
+  File__architecture_knowledge_graph_reportGenerator --> File__architecture_knowledge_graph_types_js
+  File__architecture_knowledge_graph_reportGenerator --> File__architecture_knowledge_graph_types_js
+  File__architecture_scanner_graphBuilder_js --> File__architecture_scanner_domains_js
+  File__architecture_scanner_metricsCalculator_js --> File__architecture_scanner_domains_js
+  File__architecture_scanner_reportGenerator_js --> File__architecture_scanner_domains_js
+  File__architecture_scanner_violationDetector_js --> File__architecture_scanner_domains_js
+  File__components_EmptyState_jsx --> File__lib_intelligence_worldPolish_js
+  File__components_ExperienceCreator_jsx --> File__lib_factories_experienceContract_js
+  File__components_ExperienceCreator_jsx --> File__lib_supabaseClient_index_js
+  File__components_ExperienceCreator_jsx --> File__lib_AuthContext_index_js
+  File__components_ExperienceCreator_jsx --> File__design_hui_design_js
+  File__components_GemeinschaftsFlow_jsx --> File__lib_AuthContext_jsx
+  File__components_HuiCreateFlow_jsx --> File__lib_sessionHooks_index_js
+  File__components_HuiCreateFlow_jsx --> File__lib_factories_experienceContract_js
+  File__components_HuiCreateFlow_jsx --> File__lib_supabaseClient_index_js
+  File__components_HuiCreateFlow_jsx --> File__lib_AuthContext_index_js
+  File__components_HuiCreateFlow_jsx --> File__design_hui_design_js
+  File__components_HuiCreateFlow_jsx --> File__lib_moodUtils_index_js
+  File__components_HuiMatchOverlay_jsx --> File__lib_supabaseClient_index_js
+  File__components_HuiMatchOverlay_jsx --> File__lib_perfUtils_index_js
+  File__components_HuiMatchOverlay_jsx --> File__design_hui_design_js
+  File__components_HuiMembershipFlow_jsx --> File__lib_cleanup_cleanupOrbEnvironment_js
+  File__components_HuiMembershipFlow_jsx --> File__lib_AuthContext_index_js
+  File__components_HuiMomentSheet_jsx --> File__lib_supabaseClient_js
+  File__components_HuiPlusSheet_jsx --> File__system_orb_OrbSystem_jsx
+  File__components_HuiPlusSheet_jsx --> File__lib_cleanup_cleanupOrbEnvironment_js
+  File__components_HuiPlusSheet_jsx --> File__lib_roles_index_js
+  File__components_LazyImage_jsx --> File__lib_perfUtils_index_js
+  File__components_LazyImage_jsx --> File__lib_sentry_index_js
+  File__components_NotificationCenter_jsx --> File__core_hui_sources_js
+  File__components_NotificationCenter_jsx --> File__lib_supabaseClient_index_js
+  File__components_NotificationCenter_jsx --> File__lib_AppStateContext_index_js
+  File__components_NotificationCenter_jsx --> File__design_hui_design_js
+  File__components_NotificationCenter_jsx --> File__core_hui_actions_js
+  File__components_OrbCompass_jsx --> File__components_HuiMomentSheet_jsx
+  File__components_OrbCompass_jsx --> File__components_GemeinschaftsFlow_jsx
+  File__components_StoryBar_jsx --> File__lib_supabaseClient_index_js
+  File__components_StoryBar_jsx --> File__lib_AuthContext_index_js
+  File__components_StoryBar_jsx --> File__design_hui_design_js
+  File__components_StoryComposer_jsx --> File__lib_supabaseClient_index_js
+  File__components_StoryComposer_jsx --> File__lib_AuthContext_index_js
+  File__components_StoryComposer_jsx --> File__design_hui_design_js
+  File__components_SupportSheet_jsx --> File__lib_supabaseClient_index_js
+  File__components_SupportSheet_jsx --> File__design_hui_design_js
+  File__components_TalentOnboarding_jsx --> File__lib_supabaseClient_index_js

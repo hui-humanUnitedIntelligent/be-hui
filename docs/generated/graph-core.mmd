@@ -1,0 +1,60 @@
+graph TD
+%% HUI Architecture Knowledge Graph — ARCH-002
+
+  Engine__HuiActionProvider_jsx["HuiActionProvider"]
+  Engine__HuiConnectionEngine_jsx["Connection Engine"]
+  Engine__HuiContextBridge_jsx["HuiContextBridge"]
+  Engine__coreEngine_js["Core Engine"]
+  File__architecture_knowledge_graph_graphAssembler_["graphAssembler.js"] --> Engine__coreEngine_js
+  File__architecture_knowledge_graph_platformScanner["platformScanner.js"] --> Engine__coreEngine_js
+  File__architecture_scanner_violationDetector_js["violationDetector.js"] --> Engine__coreEngine_js
+  File__components_orb_OrbLeaf_jsx["OrbLeaf.jsx"] --> Engine__coreEngine_js
+  Engine__hui_actions_js["Action Engine"]
+  Engine__hui_contracts_js["Contract Layer"]
+  Engine__hui_flow_js["Flow Engine"]
+  Engine__hui_flow_states_js["hui.flow.states"]
+  Engine__hui_navigator_jsx["hui.navigator"]
+  Engine__hui_pillars_js["hui.pillars"]
+  Engine__hui_safePayload_js["hui.safePayload"]
+  Engine__hui_semantics_js["hui.semantics"]
+  Engine__hui_sources_js["hui.sources"]
+  Engine__orbEngine_js["Orb Engine"]
+  Engine__resonanceEngine_js["Resonance Engine"]
+  Engine__feedRhythmEngine["Feed Rhythm Engine"]
+  File__architecture_knowledge_graph_platformScanner["platformScanner.js"] --> Engine__feedRhythmEngine
+  File__architecture_knowledge_graph_utils_js["utils.js"] --> Engine__feedRhythmEngine
+  File__feed_feedRhythmEngine_js["feedRhythmEngine.js"] --> Engine__feedRhythmEngine
+  File__feed_useFeedStream_js["useFeedStream.js"] --> Engine__feedRhythmEngine
+  Engine__coreEngine["coreEngine"]
+  File__architecture_knowledge_graph_graphAssembler_["graphAssembler.js"] --> Engine__coreEngine
+  File__architecture_knowledge_graph_platformScanner["platformScanner.js"] --> Engine__coreEngine
+  File__architecture_scanner_violationDetector_js["violationDetector.js"] --> Engine__coreEngine
+  File__core_coreEngine_js["coreEngine.js"] --> Engine__coreEngine
+  Engine__resonanceEngine["resonanceEngine"]
+  File__architecture_knowledge_graph_platformScanner["platformScanner.js"] --> Engine__resonanceEngine
+  File__architecture_scanner_violationDetector_js["violationDetector.js"] --> Engine__resonanceEngine
+  File__core_resonanceEngine_js["resonanceEngine.js"] --> Engine__resonanceEngine
+  File__hooks_useCoreEngine_js["useCoreEngine.js"] --> Engine__resonanceEngine
+  Engine__orbEngine["orbEngine"]
+  File__architecture_knowledge_graph_platformScanner["platformScanner.js"] --> Engine__orbEngine
+  File__architecture_scanner_violationDetector_js["violationDetector.js"] --> Engine__orbEngine
+  File__components_orb_OrbLeaf_jsx["OrbLeaf.jsx"] --> Engine__orbEngine
+  File__core_orbEngine_js["orbEngine.js"] --> Engine__orbEngine
+  Engine__HuiConnectionEngine["HuiConnectionEngine"]
+  File__architecture_knowledge_graph_platformScanner["platformScanner.js"] --> Engine__HuiConnectionEngine
+  File__architecture_knowledge_graph_utils_js["utils.js"] --> Engine__HuiConnectionEngine
+  File__components_home_HomeShell_jsx["HomeShell.jsx"] --> Engine__HuiConnectionEngine
+  File__components_home_header_SearchCommandCenter_j["SearchCommandCenter.jsx"] --> Engine__HuiConnectionEngine
+  Engine__intelligenceEngine["intelligenceEngine"]
+  File__architecture_knowledge_graph_utils_js["utils.js"] --> Engine__intelligenceEngine
+  File__components_CreatorPresence_jsx["CreatorPresence.jsx"] --> Engine__intelligenceEngine
+  File__components_EmptyState_jsx["EmptyState.jsx"] --> Engine__intelligenceEngine
+  File__components_home_HomeShell_jsx["HomeShell.jsx"] --> Engine__intelligenceEngine
+  Engine__worldEngine["worldEngine"]
+  File__architecture_knowledge_graph_utils_js["utils.js"] --> Engine__worldEngine
+  File__architecture_scanner_violationDetector_js["violationDetector.js"] --> Engine__worldEngine
+  File__components_home_HomeShell_jsx["HomeShell.jsx"] --> Engine__worldEngine
+  File__context_OrbWorldContext_jsx["OrbWorldContext.jsx"] --> Engine__worldEngine
+  Engine__useOrbParams["useOrbParams"]
+  File__components_orb_OrbLeaf_jsx["OrbLeaf.jsx"] --> Engine__useOrbParams
+  File__hooks_useCoreEngine_js["useCoreEngine.js"] --> Engine__useOrbParams

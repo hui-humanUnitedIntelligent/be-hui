@@ -1,0 +1,76 @@
+graph TD
+%% HUI Architecture Knowledge Graph — ARCH-002
+
+  ActionEngine["Action Engine"]
+  Action__OPEN_PROFILE["OPEN_PROFILE"]
+  ActionEngine --> Action__OPEN_PROFILE
+  File__components_NotificationCenter_jsx["NotificationCenter.jsx"] --> Action__OPEN_PROFILE
+  File__components_home_profile_ProfileLauncher_jsx["ProfileLauncher.jsx"] --> Action__OPEN_PROFILE
+  File__core_hui_actions_js["hui.actions.js"] --> Action__OPEN_PROFILE
+  Action__OPEN_OWN_PROFILE["OPEN_OWN_PROFILE"]
+  ActionEngine --> Action__OPEN_OWN_PROFILE
+  File__components_home_navigation_BottomNav_jsx["BottomNav.jsx"] --> Action__OPEN_OWN_PROFILE
+  File__components_home_profile_ProfileLauncher_jsx["ProfileLauncher.jsx"] --> Action__OPEN_OWN_PROFILE
+  File__core_hui_actions_js["hui.actions.js"] --> Action__OPEN_OWN_PROFILE
+  Action__CLOSE_PROFILE["CLOSE_PROFILE"]
+  ActionEngine --> Action__CLOSE_PROFILE
+  File__core_hui_actions_js["hui.actions.js"] --> Action__CLOSE_PROFILE
+  Action__OPEN_CHAT["OPEN_CHAT"]
+  ActionEngine --> Action__OPEN_CHAT
+  File__components_NotificationCenter_jsx["NotificationCenter.jsx"] --> Action__OPEN_CHAT
+  File__components_home_header_HomeHeader_jsx["HomeHeader.jsx"] --> Action__OPEN_CHAT
+  File__core_hui_actions_js["hui.actions.js"] --> Action__OPEN_CHAT
+  Action__CLOSE_CHAT["CLOSE_CHAT"]
+  ActionEngine --> Action__CLOSE_CHAT
+  File__core_hui_actions_js["hui.actions.js"] --> Action__CLOSE_CHAT
+  Action__SEND_MESSAGE["SEND_MESSAGE"]
+  ActionEngine --> Action__SEND_MESSAGE
+  File__core_hui_actions_js["hui.actions.js"] --> Action__SEND_MESSAGE
+  Action__OPEN_EXPERIENCE["OPEN_EXPERIENCE"]
+  ActionEngine --> Action__OPEN_EXPERIENCE
+  File__core_hui_actions_js["hui.actions.js"] --> Action__OPEN_EXPERIENCE
+  File__pages_FavoritesPage_jsx["FavoritesPage.jsx"] --> Action__OPEN_EXPERIENCE
+  Action__BOOK_EXPERIENCE["BOOK_EXPERIENCE"]
+  ActionEngine --> Action__BOOK_EXPERIENCE
+  File__core_hui_actions_js["hui.actions.js"] --> Action__BOOK_EXPERIENCE
+  File__core_hui_semantics_js["hui.semantics.js"] --> Action__BOOK_EXPERIENCE
+  File__pages_wirker_profile_index_jsx["index.jsx"] --> Action__BOOK_EXPERIENCE
+  Action__CREATE_EXPERIENCE["CREATE_EXPERIENCE"]
+  ActionEngine --> Action__CREATE_EXPERIENCE
+  File__core_hui_actions_js["hui.actions.js"] --> Action__CREATE_EXPERIENCE
+  File__pages_MyCreatorDashboard_jsx["MyCreatorDashboard.jsx"] --> Action__CREATE_EXPERIENCE
+  Action__OPEN_IMPACT["OPEN_IMPACT"]
+  ActionEngine --> Action__OPEN_IMPACT
+  File__core_hui_actions_js["hui.actions.js"] --> Action__OPEN_IMPACT
+  File__pages_MyCreatorDashboard_jsx["MyCreatorDashboard.jsx"] --> Action__OPEN_IMPACT
+  Action__SEND_RESONANCE["SEND_RESONANCE"]
+  ActionEngine --> Action__SEND_RESONANCE
+  File__core_hui_actions_js["hui.actions.js"] --> Action__SEND_RESONANCE
+  Action__FOLLOW_CREATOR["FOLLOW_CREATOR"]
+  ActionEngine --> Action__FOLLOW_CREATOR
+  File__core_hui_actions_js["hui.actions.js"] --> Action__FOLLOW_CREATOR
+  Action__SHARE_MOMENT["SHARE_MOMENT"]
+  ActionEngine --> Action__SHARE_MOMENT
+  File__core_hui_actions_js["hui.actions.js"] --> Action__SHARE_MOMENT
+  Action__OPEN_ORB["OPEN_ORB"]
+  ActionEngine --> Action__OPEN_ORB
+  File__components_home_navigation_BottomNav_jsx["BottomNav.jsx"] --> Action__OPEN_ORB
+  File__core_hui_actions_js["hui.actions.js"] --> Action__OPEN_ORB
+  Action__CLOSE_ORB["CLOSE_ORB"]
+  ActionEngine --> Action__CLOSE_ORB
+  File__core_hui_actions_js["hui.actions.js"] --> Action__CLOSE_ORB
+  Action__OPEN_BOOKING["OPEN_BOOKING"]
+  ActionEngine --> Action__OPEN_BOOKING
+  File__core_hui_actions_js["hui.actions.js"] --> Action__OPEN_BOOKING
+  Action__OPEN_CONNECT["OPEN_CONNECT"]
+  ActionEngine --> Action__OPEN_CONNECT
+  File__core_hui_actions_js["hui.actions.js"] --> Action__OPEN_CONNECT
+  Action__OPEN_NOTIFICATIONS["OPEN_NOTIFICATIONS"]
+  ActionEngine --> Action__OPEN_NOTIFICATIONS
+  File__core_hui_actions_js["hui.actions.js"] --> Action__OPEN_NOTIFICATIONS
+  Action__OPEN_MAP["OPEN_MAP"]
+  ActionEngine --> Action__OPEN_MAP
+  File__core_hui_actions_js["hui.actions.js"] --> Action__OPEN_MAP
+  Action__OPEN_MATCH["OPEN_MATCH"]
+  ActionEngine --> Action__OPEN_MATCH
+  File__core_hui_actions_js["hui.actions.js"] --> Action__OPEN_MATCH

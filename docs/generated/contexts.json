@@ -1,0 +1,249 @@
+{
+  "AuthContext": {
+    "file": "lib/AuthContext.jsx",
+    "consumers": [
+      "App.jsx",
+      "components/ExperienceCreator.jsx",
+      "components/GemeinschaftsFlow.jsx",
+      "components/HuiCreateFlow.jsx",
+      "components/HuiMembershipFlow.jsx",
+      "components/ProtectedRoute.jsx",
+      "components/StoryBar.jsx",
+      "components/StoryComposer.jsx",
+      "components/TalentOnboarding.jsx",
+      "components/WerkPublisher.jsx",
+      "components/WorkDetailPage.jsx",
+      "components/auth/AuthGate.jsx",
+      "components/auth/ProfileCompletionFlow.jsx",
+      "components/chat-center/ChatCenterOverlay.jsx",
+      "components/chat-center/ConversationRoom.jsx",
+      "components/commerce/ExperienceBookingFlow.jsx",
+      "components/commerce/UnterstutzenFlow.jsx",
+      "components/commerce/WerkKaufFlow.jsx",
+      "components/connection-create/ConnectionCreatePage.jsx",
+      "components/economy/SupportFlow.jsx",
+      "components/entry/AppEntryController.jsx",
+      "components/home/HomeShell.jsx",
+      "components/profile/MerkenSection.jsx",
+      "components/publishing/PublishExperienceFlow.jsx",
+      "components/publishing/PublishWorkFlow.jsx",
+      "components/settings/SettingsModal.jsx",
+      "components/studio/HuiStudio.jsx",
+      "components/studio/ProfilBearbeitenModal.jsx",
+      "components/teilen/TeilenFlow.jsx",
+      "content/invitation/InvitationFlow.jsx",
+      "content/invitation/useInvitationResponse.js",
+      "feed/FeedStoriesBar.jsx",
+      "feed/StoryCreator.jsx",
+      "feed/StoryViewer.jsx",
+      "feed/UnifiedFeed.jsx",
+      "feed/useFeedStream.js",
+      "lib/AppStateContext.jsx",
+      "lib/AuthContext.jsx",
+      "lib/bookingContext.js",
+      "lib/chatContext.js",
+      "lib/journeyContext.js",
+      "lib/resonance/index.js",
+      "lib/roles/index.js",
+      "lib/trustContext.js",
+      "lib/useNotifications.jsx",
+      "lib/useReactions.jsx",
+      "pages/BasisProfilePage.jsx",
+      "pages/CreatorDashboard.jsx",
+      "pages/CreatorStudio.jsx",
+      "pages/ImpactPage.jsx",
+      "pages/LoginPage.jsx",
+      "pages/MyBasisProfile.jsx",
+      "pages/MyCreatorDashboard.jsx",
+      "pages/PlatformDashboard.jsx",
+      "pages/ProfileDebugPage.jsx",
+      "pages/TalentProfilePage.jsx",
+      "pages/studio/MeineResonanz.jsx",
+      "pages/wirker-profile/index.jsx",
+      "system/flows/experience/ExperienceFlow.jsx",
+      "system/flows/impact/ImpactFlow.jsx",
+      "system/flows/work/WorkFlow.jsx"
+    ],
+    "consumerCount": 61
+  },
+  "AppStateContext": {
+    "file": "lib/AppStateContext.jsx",
+    "consumers": [
+      "App.jsx",
+      "components/NotificationCenter.jsx",
+      "components/WorkDetailPage.jsx",
+      "components/discovery/PeopleSearch.jsx",
+      "components/home/HomeShell.jsx",
+      "lib/AppStateContext.jsx",
+      "pages/CreatorStudio.jsx"
+    ],
+    "consumerCount": 7
+  },
+  "WorldSurfaceContext": {
+    "file": "context/WorldSurfaceContext.jsx",
+    "consumers": [
+      "App.jsx",
+      "components/home/HomeShell.jsx",
+      "pages/Home.jsx"
+    ],
+    "consumerCount": 3
+  },
+  "OrbWorldContext": {
+    "file": "context/OrbWorldContext.jsx",
+    "consumers": [
+      "App.jsx",
+      "components/home/HomeShell.jsx",
+      "pages/Home.jsx"
+    ],
+    "consumerCount": 3
+  },
+  "GuidanceContext": {
+    "file": "components/guidance/GuidanceContext.jsx",
+    "consumers": [
+      "App.jsx",
+      "components/guidance/GuidanceFooter.jsx",
+      "components/guidance/GuidanceLayer.jsx"
+    ],
+    "consumerCount": 3
+  },
+  "AuthGate": {
+    "file": "components/auth/AuthGate.jsx",
+    "consumers": [],
+    "consumerCount": 0
+  },
+  "AuthGateCtx": {
+    "consumers": [
+      "components/auth/AuthGate.jsx"
+    ],
+    "consumerCount": 1
+  },
+  "chatContext": {
+    "file": "lib/chatContext.js",
+    "consumers": [
+      "components/chat-center/ChatCenterOverlay.jsx",
+      "components/chat-center/ConversationRoom.jsx",
+      "pages/Home.jsx"
+    ],
+    "consumerCount": 3
+  },
+  "GuidanceCtx": {
+    "consumers": [
+      "components/guidance/GuidanceContext.jsx"
+    ],
+    "consumerCount": 1
+  },
+  "HomeShell": {
+    "file": "components/home/HomeShell.jsx",
+    "consumers": [],
+    "consumerCount": 0
+  },
+  "HuiActionProvider": {
+    "consumers": [
+      "components/home/HomeShell.jsx"
+    ],
+    "consumerCount": 1
+  },
+  "HuiContextBridge": {
+    "file": "core/HuiContextBridge.jsx",
+    "consumers": [
+      "components/home/HomeShell.jsx"
+    ],
+    "consumerCount": 1
+  },
+  "HomeCtx": {
+    "consumers": [
+      "components/home/HomeShell.jsx"
+    ],
+    "consumerCount": 1
+  },
+  "OrbWorldCtx": {
+    "consumers": [
+      "context/OrbWorldContext.jsx"
+    ],
+    "consumerCount": 1
+  },
+  "WorldSurfaceCtx": {
+    "consumers": [
+      "context/WorldSurfaceContext.jsx"
+    ],
+    "consumerCount": 1
+  },
+  "HuiConnectionEngine": {
+    "file": "core/HuiConnectionEngine.jsx",
+    "consumers": [],
+    "consumerCount": 0
+  },
+  "EngineCtx": {
+    "consumers": [
+      "core/HuiConnectionEngine.jsx"
+    ],
+    "consumerCount": 1
+  },
+  "BridgeCtx": {
+    "consumers": [
+      "core/HuiContextBridge.jsx"
+    ],
+    "consumerCount": 1
+  },
+  "hui.actions": {
+    "file": "core/hui.actions.js",
+    "consumers": [],
+    "consumerCount": 0
+  },
+  "ActionCtx": {
+    "consumers": [
+      "core/hui.actions.js"
+    ],
+    "consumerCount": 1
+  },
+  "hui.flow": {
+    "file": "core/hui.flow.js",
+    "consumers": [],
+    "consumerCount": 0
+  },
+  "FlowCtx": {
+    "consumers": [
+      "core/hui.flow.js"
+    ],
+    "consumerCount": 1
+  },
+  "hui.navigator": {
+    "file": "core/hui.navigator.jsx",
+    "consumers": [],
+    "consumerCount": 0
+  },
+  "NavigatorCtx": {
+    "consumers": [
+      "core/hui.navigator.jsx"
+    ],
+    "consumerCount": 1
+  },
+  "bookingContext": {
+    "file": "lib/bookingContext.js",
+    "consumers": [
+      "pages/CreatorStudio.jsx"
+    ],
+    "consumerCount": 1
+  },
+  "viewerContext": {
+    "file": "lib/intelligence/persistence/viewerContext.js",
+    "consumers": [
+      "lib/intelligence/persistence/useLivingMemory.js"
+    ],
+    "consumerCount": 1
+  },
+  "journeyContext": {
+    "file": "lib/journeyContext.js",
+    "consumers": [
+      "pages/CreatorStudio.jsx"
+    ],
+    "consumerCount": 1
+  },
+  "trustContext": {
+    "file": "lib/trustContext.js",
+    "consumers": [
+      "lib/presence/index.js"
+    ],
+    "consumerCount": 1
+  }
+}
