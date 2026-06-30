@@ -1,7 +1,7 @@
 # Policy Summary — ARCH-006
 
-**Generiert:** 2026-06-30T16:09:59.957Z
-**Scan-Dauer:** 334ms
+**Generiert:** 2026-06-30T16:18:31.265Z
+**Scan-Dauer:** 326ms
 
 ## Ergebnis
 

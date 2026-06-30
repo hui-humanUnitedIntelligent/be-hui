@@ -1,0 +1,28 @@
+{
+  "chain": [
+    "Constitution",
+    "Contracts",
+    "Policies",
+    "Rules",
+    "Scanner",
+    "Authority",
+    "Intelligence",
+    "CI"
+  ],
+  "breaks": [
+    {
+      "layer": "Contracts → Authority",
+      "issue": "Domain-Mismatch: Contracts=14 Business-Domains vs Authority=10 Layer-Domains",
+      "severity": "EXPECTED",
+      "detail": "Authority nutzt RFC-000 Layer-Domains (CORE, SERVICES), Contracts nutzen Business-Domains (KERNEL, IDENTITY)"
+    },
+    {
+      "layer": "Scanner → Intelligence",
+      "issue": "Intelligence validate.js nutzt parallel ARCHITECTURE_RULES statt nur Policies",
+      "severity": "MEDIUM"
+    }
+  ],
+  "consistent": false,
+  "expectedBreaks": 1,
+  "criticalBreaks": 1
+}

@@ -1,6 +1,6 @@
 # Policy Violations — ARCH-006
 
-**Generiert:** 2026-06-30T16:09:59.957Z
+**Generiert:** 2026-06-30T16:18:31.265Z
 **Gesamt:** 1090
 
 ## CRITICAL (811)
