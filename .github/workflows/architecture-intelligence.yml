@@ -1,0 +1,47 @@
+name: Architecture Intelligence
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'HUI_CONSTITUTION.md'
+      - 'docs/governance/**'
+      - 'src/architecture/**'
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'HUI_CONSTITUTION.md'
+      - 'docs/governance/**'
+      - 'src/architecture/**'
+  workflow_dispatch:
+
+concurrency:
+  group: architecture-intelligence-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  intelligence:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Run Architecture Intelligence Audit
+        run: npm run architecture:intelligence:audit
+
+      - name: Generate Intelligence Reports
+        if: always()
+        run: npm run architecture:intelligence:report
+
+      - name: Upload Intelligence Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: architecture-intelligence-reports
+          path: docs/generated/intelligence-*.md
+          if-no-files-found: ignore
