@@ -39,7 +39,7 @@
 | `components/SupportSheet.jsx` | 328 | UNKNOWN |
 | `components/TalentOnboarding.jsx` | 459 | UNKNOWN |
 | `components/WerkPublisher.jsx` | 515 | UNKNOWN |
-| `components/WorkDetailPage.jsx` | 817 | UNKNOWN |
+| `components/WorkDetailPage.jsx` | 777 | UNKNOWN |
 | `components/ambassador/AmbassadorModal.jsx` | 274 | UNKNOWN |
 | `components/ambassador/AmbassadorSection.jsx` | 472 | UNKNOWN |
 | `components/auth/AuthGate.jsx` | 400 | UNKNOWN |

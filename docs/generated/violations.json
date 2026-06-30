@@ -657,17 +657,6 @@
     "table": "works"
   },
   {
-    "id": "DB_DIRECT_WRITE_components/WorkDetailPage.jsx_L391",
-    "type": "DB_DIRECT_WRITE",
-    "severity": "HIGH",
-    "file": "components/WorkDetailPage.jsx",
-    "line": 391,
-    "domain": "COMPONENTS",
-    "message": "Direkter DB-Write (INSERT) auf 'comments' in COMPONENTS-Schicht. Verwende Service-Layer.",
-    "detail": "const { error } = await supabase.from(\"comments\")",
-    "table": "comments"
-  },
-  {
     "id": "DB_DIRECT_WRITE_components/auth/ProfileCompletionFlow.jsx_L89",
     "type": "DB_DIRECT_WRITE",
     "severity": "HIGH",
@@ -1926,92 +1915,48 @@
     "table": "stories"
   },
   {
-    "id": "DB_DIRECT_READ_components/WorkDetailPage.jsx_L304",
+    "id": "DB_DIRECT_READ_components/WorkDetailPage.jsx_L305",
     "type": "DB_DIRECT_READ",
     "severity": "MEDIUM",
     "file": "components/WorkDetailPage.jsx",
-    "line": 304,
+    "line": 305,
     "domain": "COMPONENTS",
     "message": "Direkter DB-Read auf 'work_likes' in COMPONENTS-Schicht. Erwäge Service-Layer.",
     "detail": "const { data: likeRow } = await supabase",
     "table": "work_likes"
   },
   {
-    "id": "DB_DIRECT_READ_components/WorkDetailPage.jsx_L310",
+    "id": "DB_DIRECT_READ_components/WorkDetailPage.jsx_L311",
     "type": "DB_DIRECT_READ",
     "severity": "MEDIUM",
     "file": "components/WorkDetailPage.jsx",
-    "line": 310,
+    "line": 311,
     "domain": "COMPONENTS",
     "message": "Direkter DB-Read auf 'work_likes' in COMPONENTS-Schicht. Erwäge Service-Layer.",
     "detail": "const { count: lc } = await supabase",
     "table": "work_likes"
   },
   {
-    "id": "DB_DIRECT_READ_components/WorkDetailPage.jsx_L316",
+    "id": "DB_DIRECT_READ_components/WorkDetailPage.jsx_L317",
     "type": "DB_DIRECT_READ",
     "severity": "MEDIUM",
     "file": "components/WorkDetailPage.jsx",
-    "line": 316,
+    "line": 317,
     "domain": "COMPONENTS",
     "message": "Direkter DB-Read auf 'work_saves' in COMPONENTS-Schicht. Erwäge Service-Layer.",
     "detail": "const { data: saveRow } = await supabase",
     "table": "work_saves"
   },
   {
-    "id": "DB_DIRECT_READ_components/WorkDetailPage.jsx_L323",
+    "id": "DB_DIRECT_READ_components/WorkDetailPage.jsx_L324",
     "type": "DB_DIRECT_READ",
     "severity": "MEDIUM",
     "file": "components/WorkDetailPage.jsx",
-    "line": 323,
+    "line": 324,
     "domain": "COMPONENTS",
     "message": "Direkter DB-Read auf 'follows' in COMPONENTS-Schicht. Erwäge Service-Layer.",
     "detail": "const { data: followRow } = await supabase",
     "table": "follows"
-  },
-  {
-    "id": "DB_DIRECT_READ_components/WorkDetailPage.jsx_L330",
-    "type": "DB_DIRECT_READ",
-    "severity": "MEDIUM",
-    "file": "components/WorkDetailPage.jsx",
-    "line": 330,
-    "domain": "COMPONENTS",
-    "message": "Direkter DB-Read auf 'comments' in COMPONENTS-Schicht. Erwäge Service-Layer.",
-    "detail": "const { data: cData } = await supabase",
-    "table": "comments"
-  },
-  {
-    "id": "DB_DIRECT_READ_components/WorkDetailPage.jsx_L409",
-    "type": "DB_DIRECT_READ",
-    "severity": "MEDIUM",
-    "file": "components/WorkDetailPage.jsx",
-    "line": 409,
-    "domain": "COMPONENTS",
-    "message": "Direkter DB-Read auf 'works' in COMPONENTS-Schicht. Erwäge Service-Layer.",
-    "detail": "const { data: w, error: wErr } = await supabase",
-    "table": "works"
-  },
-  {
-    "id": "DB_DIRECT_READ_components/WorkDetailPage.jsx_L439",
-    "type": "DB_DIRECT_READ",
-    "severity": "MEDIUM",
-    "file": "components/WorkDetailPage.jsx",
-    "line": 439,
-    "domain": "COMPONENTS",
-    "message": "Direkter DB-Read auf 'works' in COMPONENTS-Schicht. Erwäge Service-Layer.",
-    "detail": "supabase.from(\"works\")",
-    "table": "works"
-  },
-  {
-    "id": "DB_DIRECT_READ_components/WorkDetailPage.jsx_L445",
-    "type": "DB_DIRECT_READ",
-    "severity": "MEDIUM",
-    "file": "components/WorkDetailPage.jsx",
-    "line": 445,
-    "domain": "COMPONENTS",
-    "message": "Direkter DB-Read auf 'works' in COMPONENTS-Schicht. Erwäge Service-Layer.",
-    "detail": "supabase.from(\"works\")",
-    "table": "works"
   },
   {
     "id": "DB_DIRECT_READ_components/chat-center/ChatCenterOverlay.jsx_L184",

@@ -10,11 +10,11 @@
 | Severity | Anzahl |
 |---|---|
 | 🔴 CRITICAL | 42 |
-| 🟠 HIGH | 112 |
-| 🟡 MEDIUM | 185 |
+| 🟠 HIGH | 111 |
+| 🟡 MEDIUM | 181 |
 | 🔵 LOW | 23 |
 | ⚪ INFO | 267 |
-| **Gesamt** | **629** |
+| **Gesamt** | **624** |
 
 ## CORE_BYPASS (42)
 
@@ -370,7 +370,7 @@ setTimeout(() => { window.location.href = '/login' }, 1500)
 window.location.replace('/Home?v=' + v);
 ```
 
-## DB_DIRECT_WRITE (71)
+## DB_DIRECT_WRITE (70)
 
 ### 🟠 `components/HuiCreateFlow.jsx` L324
 **Direkter DB-Write (INSERT) auf 'stories' in COMPONENTS-Schicht. Verwende Service-Layer.**
@@ -475,13 +475,6 @@ const { data, error: err } = await supabase
 
 ```
 const { error: dbErr } = await supabase.from("works").insert({
-```
-
-### 🟠 `components/WorkDetailPage.jsx` L391
-**Direkter DB-Write (INSERT) auf 'comments' in COMPONENTS-Schicht. Verwende Service-Layer.**
-
-```
-const { error } = await supabase.from("comments")
 ```
 
 ### 🟠 `components/auth/ProfileCompletionFlow.jsx` L89
@@ -1104,7 +1097,7 @@ lib/useNotifications.jsx, pages/TalentProfilePage.jsx
 pages/TalentProfilePage.jsx, pages/wirker-profile/index.jsx
 ```
 
-## DB_DIRECT_READ (185)
+## DB_DIRECT_READ (181)
 
 ### 🟡 `components/HuiMatchOverlay.jsx` L355
 **Direkter DB-Read auf 'profiles' in COMPONENTS-Schicht. Erwäge Service-Layer.**
@@ -1190,60 +1183,32 @@ supabase.from('story_views').select('id', { count:'exact' })
 supabase.from('stories')
 ```
 
-### 🟡 `components/WorkDetailPage.jsx` L304
+### 🟡 `components/WorkDetailPage.jsx` L305
 **Direkter DB-Read auf 'work_likes' in COMPONENTS-Schicht. Erwäge Service-Layer.**
 
 ```
 const { data: likeRow } = await supabase
 ```
 
-### 🟡 `components/WorkDetailPage.jsx` L310
+### 🟡 `components/WorkDetailPage.jsx` L311
 **Direkter DB-Read auf 'work_likes' in COMPONENTS-Schicht. Erwäge Service-Layer.**
 
 ```
 const { count: lc } = await supabase
 ```
 
-### 🟡 `components/WorkDetailPage.jsx` L316
+### 🟡 `components/WorkDetailPage.jsx` L317
 **Direkter DB-Read auf 'work_saves' in COMPONENTS-Schicht. Erwäge Service-Layer.**
 
 ```
 const { data: saveRow } = await supabase
 ```
 
-### 🟡 `components/WorkDetailPage.jsx` L323
+### 🟡 `components/WorkDetailPage.jsx` L324
 **Direkter DB-Read auf 'follows' in COMPONENTS-Schicht. Erwäge Service-Layer.**
 
 ```
 const { data: followRow } = await supabase
-```
-
-### 🟡 `components/WorkDetailPage.jsx` L330
-**Direkter DB-Read auf 'comments' in COMPONENTS-Schicht. Erwäge Service-Layer.**
-
-```
-const { data: cData } = await supabase
-```
-
-### 🟡 `components/WorkDetailPage.jsx` L409
-**Direkter DB-Read auf 'works' in COMPONENTS-Schicht. Erwäge Service-Layer.**
-
-```
-const { data: w, error: wErr } = await supabase
-```
-
-### 🟡 `components/WorkDetailPage.jsx` L439
-**Direkter DB-Read auf 'works' in COMPONENTS-Schicht. Erwäge Service-Layer.**
-
-```
-supabase.from("works")
-```
-
-### 🟡 `components/WorkDetailPage.jsx` L445
-**Direkter DB-Read auf 'works' in COMPONENTS-Schicht. Erwäge Service-Layer.**
-
-```
-supabase.from("works")
 ```
 
 ### 🟡 `components/chat-center/ChatCenterOverlay.jsx` L184
