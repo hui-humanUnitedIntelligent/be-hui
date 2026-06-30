@@ -186,10 +186,10 @@ function HuiOrb({ size = 88, pulse = true }) {
         animation: pulse ? "hmf5-orb-breathe 3.5s ease-in-out infinite" : "none",
       }}>
         <img
-          src="/hui-logo-real.jpg"
+          src="/assets/brand/hui-logo-light.svg"
           alt="HUI"
           style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}
-          onError={e => { e.target.src="/hui-logo.jpg"; }}
+          onError={e => { e.target.src="/assets/brand/hui-logo-light.svg"; }}
         />
       </div>
     </div>
@@ -560,7 +560,7 @@ function LightOrb({ visible }) {
       }}>
         {/* Logo — visible through the pastel sphere */}
         <img
-          src="/hui-logo-real.jpg"
+          src="/assets/brand/hui-logo-light.svg"
           alt="HUI"
           style={{
             position:"absolute", inset:0,

@@ -276,7 +276,7 @@ export function HUIOrbHero() {
           height:       200,
         }}>
           <img
-            src="/hui-logo-app.png"
+            src="/assets/brand/hui-logo-light.svg"
             alt="HUI"
             style={{
               width:     "clamp(160px, 36vw, 210px)",

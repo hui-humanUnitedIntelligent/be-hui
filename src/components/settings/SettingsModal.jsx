@@ -5,6 +5,7 @@
 import { useState, useCallback } from "react";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { supabase } from "../../lib/supabaseClient.js";
+import { HUILogoWordmark } from '../brand/HUILogo.jsx';
 
 // ── Design Tokens ─────────────────────────────────────────────
 const T = {
@@ -387,6 +388,17 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
             <Section title="Account" icon="🚪">
               <NavItem icon="🚪" label="Abmelden" onClick={logout} danger last/>
             </Section>
+
+            {/* ── Brand Footer: Logo + Version ──────────────── */}
+            <div style={{
+              display: "flex", flexDirection: "column", alignItems: "center",
+              padding: "24px 0 12px", gap: 8,
+            }}>
+              <HUILogoWordmark height={40} />
+              <div style={{ fontSize: 11, color: "rgba(26,26,24,0.28)", letterSpacing: "0.05em" }}>
+                Version 1.0 · Beta
+              </div>
+            </div>
 
           </>)}
 

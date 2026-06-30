@@ -4,6 +4,7 @@ import { processReferralForUser } from '../lib/referralTracking.js';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../lib/AuthContext';
 import { HUI } from "../design/hui.design.js";
+import { HUILogoWordmark } from '../components/brand/HUILogo.jsx';
 
 // ── Design Tokens ───────────────────────────────────────────────
 const T = {
@@ -764,6 +765,11 @@ export default function LoginPage() {
         {}
         <div style={{ ...cardStyle, ...fadeStyle }}>
           {}
+          {/* ── HUI Logo (Markenanker, Constitution-konform) ──── */}
+          <div style={{ marginBottom: 20, display: 'flex', justifyContent: 'center' }}>
+            <HUILogoWordmark height={48} />
+          </div>
+
           <div style={{ marginBottom: 14 }}>
             <div style={{ fontWeight: 900, fontSize: 20, color: T.white, letterSpacing: -0.5,
               lineHeight: 1.2, marginBottom: 6, whiteSpace: 'pre-line' }}>

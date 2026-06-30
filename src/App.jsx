@@ -35,6 +35,7 @@ const WorkDetailPage    = lazy(() => import('./components/WorkDetailPage'))
 
 // ── Route Factory ──────────────────────────────────────────────────────────
 import { createTabPage, filterValidPages } from './lib/factories/createTabPage.js'
+import { HUILogoSplash } from './components/brand/HUILogo.jsx'
 
 // ── APP_ROUTES: ÜBERGANGSSTRUKTUR (NAV-001B) ─────────────────────────────────
 // APP_ROUTES ist die Tab-Registry der Home-Shell — KEIN vollständiges Route-Register.
@@ -268,52 +269,6 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-/* ── HUI Ambient Splash — kein Login-Flash, kein Spinner-Stress ──── */
-/* Inline SVG-Logo: keine externen Abhängigkeiten, immer verfügbar   */
-function HuiSplashLogo({ size = 80 }) {
-  return (
-    <div style={{ width:size, height:size,
-      animation:"hui-logo-breathe 3.5s ease-in-out infinite",
-      filter:"drop-shadow(0 0 16px rgba(22,215,197,0.55)) drop-shadow(0 4px 24px rgba(0,0,0,0.40))" }}>
-      <style>{`@keyframes hui-logo-breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}`}</style>
-      <svg width={size} height={size} viewBox="0 0 120 120" fill="none">
-        <defs>
-          <linearGradient id="hsl-bg" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#1ED8C8"/>
-            <stop offset="45%" stopColor="#22D4C4"/>
-            <stop offset="100%" stopColor="#FF7A5C"/>
-          </linearGradient>
-          <linearGradient id="hsl-sh" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="white" stopOpacity="0.28"/>
-            <stop offset="100%" stopColor="white" stopOpacity="0"/>
-          </linearGradient>
-          <radialGradient id="hsl-cr" cx="80%" cy="80%" r="50%">
-            <stop offset="0%" stopColor="#FF8A6B" stopOpacity="0.55"/>
-            <stop offset="100%" stopColor="#FF8A6B" stopOpacity="0"/>
-          </radialGradient>
-          <radialGradient id="hsl-tl" cx="20%" cy="20%" r="50%">
-            <stop offset="0%" stopColor="#22EDD8" stopOpacity="0.40"/>
-            <stop offset="100%" stopColor="#22EDD8" stopOpacity="0"/>
-          </radialGradient>
-        </defs>
-        <rect x="3" y="3" width="114" height="114" rx="30" fill="url(#hsl-bg)"/>
-        <rect x="3" y="3" width="114" height="114" rx="30" fill="url(#hsl-cr)"/>
-        <rect x="3" y="3" width="114" height="114" rx="30" fill="url(#hsl-tl)"/>
-        <rect x="3" y="3" width="114" height="62" rx="30" fill="url(#hsl-sh)"/>
-        <circle cx="60" cy="62" r="38" fill="white" fillOpacity="0.92"/>
-        <path d="M30 42 C28 50 28 62 28 62 C28 74 30 82 30 82" stroke="url(#hsl-bg)" strokeWidth="9" strokeLinecap="round" fill="none"/>
-        <path d="M50 42 C52 50 52 62 52 62 C52 74 50 82 50 82" stroke="url(#hsl-bg)" strokeWidth="9" strokeLinecap="round" fill="none"/>
-        <path d="M29 62 L51 62" stroke="url(#hsl-bg)" strokeWidth="8" strokeLinecap="round" fill="none"/>
-        <path d="M56 42 L56 68 C56 76 65 83 70 76 C74 69 72 42 72 42" stroke="url(#hsl-bg)" strokeWidth="9" strokeLinecap="round" fill="none"/>
-        <circle cx="82" cy="44" r="5.5" fill="url(#hsl-bg)"/>
-        <path d="M82 54 L82 82" stroke="url(#hsl-bg)" strokeWidth="9" strokeLinecap="round" fill="none"/>
-        <path d="M72 18 C85 14 100 20 108 32 C114 42 112 55 105 62" stroke="#22EDD8" strokeWidth="6" strokeLinecap="round" fill="none" strokeOpacity="0.75"/>
-        <path d="M48 104 C38 108 22 104 14 92 C8 82 10 68 17 60" stroke="#FF8A6B" strokeWidth="6" strokeLinecap="round" fill="none" strokeOpacity="0.75"/>
-        <rect x="3" y="3" width="114" height="114" rx="30" fill="none" stroke="white" strokeOpacity="0.15" strokeWidth="1.5"/>
-      </svg>
-    </div>
-  );
-}
 
 function HUILoader() {
   const [timedOut, setTimedOut] = React.useState(false);
@@ -327,7 +282,7 @@ function HUILoader() {
       alignItems:"center", justifyContent:"center", padding:32,
       background:"linear-gradient(160deg,#0D1412 0%,#12100E 100%)",
       fontFamily:"Inter,-apple-system,sans-serif" }}>
-      <HuiSplashLogo size={64}/>
+      <HUILogoSplash size={64} />
       <div style={{ fontWeight:800, fontSize:18, color:"rgba(255,255,255,0.90)",
         marginTop:20, marginBottom:8 }}>
         Verbindung dauert länger als erwartet
@@ -361,7 +316,7 @@ function HUILoader() {
     }}>
       <div style={{ display:"flex", flexDirection:"column", alignItems:"center",
         animation:"hui-splash-fade 0.6s ease both" }}>
-        <HuiSplashLogo size={84}/>
+        <HUILogoSplash size={84} />
         <div style={{ fontSize:12, color:"rgba(255,255,255,0.30)", fontWeight:600,
           marginTop:20, letterSpacing:"0.12em", textTransform:"uppercase" }}>
           Human United Intelligent

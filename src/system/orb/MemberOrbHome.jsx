@@ -226,7 +226,7 @@ function OrbLogoCenter({ size = 120 }) {
       justifyContent: "center",
     }}>
       <img
-        src="/hui-logo-app.png"
+        src="/assets/brand/hui-logo-light.svg"
         alt="HUI"
         width={size}
         height={size}

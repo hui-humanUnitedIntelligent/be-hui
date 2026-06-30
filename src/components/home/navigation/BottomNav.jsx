@@ -14,12 +14,13 @@ import { NAV_ITEMS } from "./navConfig.js";
 import { validateNavItem } from "../../../lib/factories/createNavItem.js";
 import { HUI } from "../../../design/hui.design.js";
 import { useHuiActions, A } from "../../../core/hui.actions.js";
+import { HUILogoSmall } from '../../brand/HUILogo.jsx';
 
 // ── Statisches HUI-Logo für den Tabbar-Button ──────────────────────────────
 function HuiLogoIcon({ size = 44 }) {
   return (
     <img
-      src="/hui-logo-app.png"
+      src="/assets/brand/hui-logo-light.svg"
       alt="HUI"
       width={size}
       height={size}

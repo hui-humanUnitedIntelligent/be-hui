@@ -3,6 +3,7 @@
 // Persistenz via localStorage "hui_welcome_seen".
 // Kein Eingriff in Auth, Routing oder bestehende Komponenten.
 import React, { useState } from "react";
+import { HUILogo } from '../brand/HUILogo.jsx';
 
 const TEAL   = "#0DC4B5";
 const TEAL2  = "#09A89A";
@@ -155,18 +156,9 @@ export default function WelcomeOverlay({ onDone }) {
           >
             {/* ── Logo + Headline ─────────────────────────────────── */}
             <div style={{ textAlign: "center", marginBottom: 24 }}>
-              <img
-                src="/hui-logo-app.png"
-                alt="HUI Logo"
-                draggable={false}
-                style={{
-                  height:       90,
-                  width:        "auto",
-                  objectFit:    "contain",
-                  display:      "block",
-                  margin:       "0 auto 16px",
-                  userSelect:   "none",
-                }}
+              <HUILogo
+                size={90}
+                style={{ margin: "0 auto 16px" }}
               />
               <h1 style={{
                 margin:       0,
