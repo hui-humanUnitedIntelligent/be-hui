@@ -7,7 +7,6 @@
 import { getDomainForPath, isImportAllowed } from '../scanner/domains.js';
 import { SEVERITY } from '../scanner/violationDetector.js';
 import { ARCHITECTURE_RULES, GOLDEN_RULES, getRuleForViolationType, getRulesForDomain } from '../governance/constitution.js';
-import { analyzeAdrCompliance } from '../governance/adrRegistry.js';
 import { analyzeRfcImpact } from '../governance/rfcRegistry.js';
 import { createStatement, SOURCE, CONFIDENCE } from './confidence.js';
 import { explainViolation } from './explain.js';
