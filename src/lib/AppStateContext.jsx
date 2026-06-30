@@ -15,6 +15,7 @@ import React, {
 } from "react";
 import { supabase }  from "./supabaseClient";
 import { useAuth }   from "./AuthContext";
+import { SocialService } from "../services/db";
 
 // ── Context ───────────────────────────────────────────────────────
 const AppStateContext = createContext(null);
@@ -81,12 +82,9 @@ export function AppStateProvider({ children }) {
 
   useEffect(() => {
     if (!user?.id) return;
-    supabase
-      .from("follows")
-      .select("followed_id")
-      .eq("follower_id", user.id)
+    SocialService.getFollowedIds(user.id)
       .then(({ data }) => {
-        if (data && Array.isArray(data)) setFollowedIds((data).filter(r=>r&&r.followed_id).map(r => r.followed_id));
+        if (data && Array.isArray(data)) setFollowedIds(data.filter(r => r && r.followed_id).map(r => r.followed_id));
       })
       .catch(() => {}); // silent
   }, [user?.id]);
@@ -100,16 +98,11 @@ export function AppStateProvider({ children }) {
     );
     try {
       if (isFollowing) {
-        await supabase.from("follows")
-          .delete()
-          .eq("follower_id", user.id)
-          .eq("followed_id", targetId);
+        await SocialService.unfollow(user.id, targetId);
         console.log("[HUI_REALITY] relationship synced ✓ (unfollow)", targetId.slice(0,8));
       } else {
-        await supabase.from("follows")
-          .insert({ follower_id: user.id, followed_id: targetId });
+        await SocialService.follow(user.id, targetId);
         console.log("[HUI_REALITY] relationship synced ✓ (follow)", targetId.slice(0,8));
-        // Notification an gefolgten User
         const { data: me } = await supabase
           .from("profiles").select("display_name").eq("id", user.id).single();
         // notifyFollow removed — function not defined

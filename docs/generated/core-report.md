@@ -71,8 +71,8 @@
 | `hooks/useAmbassador.js` | profiles | SELECT | 191 |
 | `hooks/useAmbassador.js` | profiles | SELECT | 201 |
 | `hooks/useProfileData.js` | wirker_profiles | SELECT | 135 |
-| `lib/AppStateContext.jsx` | profiles | SELECT | 113 |
-| `lib/AppStateContext.jsx` | profiles | SELECT | 173 |
+| `lib/AppStateContext.jsx` | profiles | SELECT | 106 |
+| `lib/AppStateContext.jsx` | profiles | SELECT | 166 |
 | `lib/AuthContext.jsx` | profiles | UPSERT | 57 |
 | `lib/AuthContext.jsx` | profiles | UPSERT | 256 |
 | `lib/AuthContext.jsx` | profiles | UNKNOWN | 266 |
@@ -139,4 +139,4 @@
 | `services/db.js` | impact_votes | SELECT | 469 |
 | `services/db.js` | impact_votes | SELECT | 488 |
 | `services/db.js` | impact_votes | INSERT | 505 |
-| `services/db.js` | profiles | SELECT | 630 |
+| `services/db.js` | profiles | SELECT | 677 |

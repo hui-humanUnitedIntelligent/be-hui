@@ -10,11 +10,11 @@
 | Severity | Anzahl |
 |---|---|
 | 🔴 CRITICAL | 42 |
-| 🟠 HIGH | 112 |
+| 🟠 HIGH | 110 |
 | 🟡 MEDIUM | 185 |
 | 🔵 LOW | 23 |
-| ⚪ INFO | 267 |
-| **Gesamt** | **629** |
+| ⚪ INFO | 266 |
+| **Gesamt** | **626** |
 
 ## CORE_BYPASS (42)
 
@@ -869,20 +869,13 @@ await supabase.from("profile_watchlist")
 await supabase.from("profile_watchlist")
 ```
 
-## LAYER_VIOLATION (16)
+## LAYER_VIOLATION (15)
 
 ### 🟠 `core/HuiActionProvider.jsx` L18
 **Layer Violation: CORE importiert aus COMPONENTS (layer-violation: CORE(0) → COMPONENTS(5)).**
 
 ```
 import from '../components/home/HomeShell.jsx'
-```
-
-### 🟠 `core/HuiConnectionEngine.jsx` L28
-**Layer Violation: CORE importiert aus SERVICES (layer-violation: CORE(0) → SERVICES(2)).**
-
-```
-import from '../lib/supabaseClient.js'
 ```
 
 ### 🟠 `core/coreEngine.js` L46
@@ -983,7 +976,7 @@ import from '../../design/hui.interaction.js'
 import from '../../config/safeMode.js'
 ```
 
-## DUPLICATE_OWNER (17)
+## DUPLICATE_OWNER (16)
 
 ### 🟠 `components/HuiCreateFlow.jsx`
 **Duplicate Owner für Tabelle 'stories': 5 Dateien schreiben diese Tabelle.**
@@ -1053,13 +1046,6 @@ components/studio/ImpactStimmenModal.jsx, pages/ImpactPage.jsx, services/db.js
 
 ```
 components/studio/ProfilBearbeitenModal.jsx, lib/AuthContext.jsx, services/db.js
-```
-
-### 🟠 `core/HuiConnectionEngine.jsx`
-**Duplicate Owner für Tabelle 'follows': 2 Dateien schreiben diese Tabelle.**
-
-```
-core/HuiConnectionEngine.jsx, lib/AppStateContext.jsx
 ```
 
 ### 🟠 `lib/bookingContext.js`
@@ -2564,7 +2550,7 @@ const { data } = await supabase
 #F9F7F4, #1A1A1A, #D97706
 ```
 
-## MISSING_HEADER (267)
+## MISSING_HEADER (266)
 
 ### ⚪ `App.jsx` L1
 **Fehlende Architektur-Header: @domain=false @owner=false**
@@ -3323,13 +3309,6 @@ Füge @domain und @owner als JSDoc-Tags im Datei-Header hinzu.
 ```
 
 ### ⚪ `context/WorldSurfaceContext.jsx` L1
-**Fehlende Architektur-Header: @domain=false @owner=false**
-
-```
-Füge @domain und @owner als JSDoc-Tags im Datei-Header hinzu.
-```
-
-### ⚪ `core/HuiConnectionEngine.jsx` L1
 **Fehlende Architektur-Header: @domain=false @owner=false**
 
 ```

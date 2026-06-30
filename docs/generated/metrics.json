@@ -1,16 +1,16 @@
 {
   "totalFiles": 297,
-  "totalLines": 104635,
+  "totalLines": 104651,
   "totalComponents": 676,
   "totalHooks": 109,
   "totalDomains": 12,
-  "dbReads": 327,
-  "dbWrites": 171,
-  "dbUpserts": 22,
+  "dbReads": 328,
+  "dbWrites": 168,
+  "dbUpserts": 20,
   "dbTables": 75,
   "dbDirectInUI": 69,
   "crossDomainWrites": 0,
-  "duplicateOwners": 17,
+  "duplicateOwners": 16,
   "actionEngineFiles": 11,
   "actionEngineTotal": 137,
   "actionEnginePct": 4,
@@ -18,15 +18,15 @@
   "coreEnginePct": 4,
   "registryFiles": 7,
   "registryPct": 2,
-  "filesWithOwnerHeader": 0,
+  "filesWithOwnerHeader": 1,
   "ownershipCoveragePct": 0,
   "architectureCoveragePct": 10,
-  "totalViolations": 629,
+  "totalViolations": 626,
   "criticalViolations": 42,
-  "highViolations": 112,
+  "highViolations": 110,
   "mediumViolations": 185,
   "lowViolations": 23,
-  "infoViolations": 267,
+  "infoViolations": 266,
   "byDomain": {
     "UNKNOWN": {
       "files": 2,
@@ -90,14 +90,14 @@
     },
     "CORE": {
       "files": 15,
-      "lines": 3778,
+      "lines": 3754,
       "components": 3,
       "hooks": 10,
       "dbReads": 12,
-      "dbWrites": 4,
+      "dbWrites": 1,
       "actionEngine": 3,
       "coreEngine": 3,
-      "violations": 17,
+      "violations": 15,
       "label": "Core"
     },
     "SYSTEM": {
@@ -126,10 +126,10 @@
     },
     "SERVICES": {
       "files": 75,
-      "lines": 20544,
+      "lines": 20584,
       "components": 13,
       "hooks": 47,
-      "dbReads": 119,
+      "dbReads": 120,
       "dbWrites": 90,
       "actionEngine": 0,
       "coreEngine": 0,
@@ -173,6 +173,6 @@
       "label": "Routes"
     }
   },
-  "generatedAt": "2026-06-30T13:36:53.835Z",
+  "generatedAt": "2026-06-30T14:37:41.335Z",
   "scanVersion": "ARCH-001"
 }

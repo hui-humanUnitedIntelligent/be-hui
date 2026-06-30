@@ -1,3 +1,5 @@
+// @domain CORE
+// @owner connection-engine
 // src/core/HuiConnectionEngine.jsx — HUI Phase 2.5
 // "A living emotional ecosystem where everything naturally flows together."
 // ══════════════════════════════════════════════════════════════════════
@@ -23,9 +25,8 @@
 
 import React, {
   createContext, useContext, useReducer, useCallback,
-  useEffect, useRef, useMemo,
+  useEffect, useMemo,
 } from "react";
-import { supabase } from "../lib/supabaseClient.js";
 
 // ── Types ──────────────────────────────────────────────────────────
 export const INTENT = {
@@ -241,7 +242,6 @@ export function useBookmark(entityId, type) {
 // ── Provider ───────────────────────────────────────────────────────
 export default function HuiConnectionEngine({ children }) {
   const [state, dispatch] = useReducer(engineReducer, INITIAL);
-  const userId = useRef(null); // set from auth
 
   // Hydrate connection state from localStorage (fast, optimistic)
   useEffect(() => {
@@ -294,45 +294,21 @@ export default function HuiConnectionEngine({ children }) {
 
   // ── Actions ─────────────────────────────────────────────────────
 
-  const connect = useCallback(async (targetId, profile) => {
+  // Persistence: SocialService (services/db.js) — engine owns intent + local state only
+  const connect = useCallback(async (targetId) => {
     const intentId = `connect_${targetId}_${Date.now()}`;
     dispatch({ type: "PENDING_INTENT", intentId, intent: INTENT.CONNECT, payload: { targetId } });
-    // Optimistic
     dispatch({ type: "SET_CONNECTION", userId: targetId, connectionState: CONNECTION_STATE.PENDING });
     dispatch({ type: "SET_FOLLOWED",   userId: targetId, followed: true });
-    try {
-      if (supabase && userId.current) {
-        await supabase.from("follows").upsert({
-          follower_id: userId.current,
-          following_id: targetId,
-        }, { onConflict: "follower_id,following_id" });
-      }
-    } catch (e) { console.warn("[CE] follow error:", e?.message); }
     dispatch({ type: "RESOLVE_INTENT", intentId });
   }, []);
 
-  const follow = useCallback(async (targetId) => {
+  const follow = useCallback((targetId) => {
     dispatch({ type: "SET_FOLLOWED", userId: targetId, followed: true });
-    try {
-      if (supabase && userId.current) {
-        await supabase.from("follows").upsert({
-          follower_id: userId.current,
-          following_id: targetId,
-        }, { onConflict: "follower_id,following_id" });
-      }
-    } catch (e) {}
   }, []);
 
-  const unfollow = useCallback(async (targetId) => {
+  const unfollow = useCallback((targetId) => {
     dispatch({ type: "SET_FOLLOWED", userId: targetId, followed: false });
-    try {
-      if (supabase && userId.current) {
-        await supabase.from("follows")
-          .delete()
-          .eq("follower_id", userId.current)
-          .eq("following_id", targetId);
-      }
-    } catch (e) {}
   }, []);
 
   const joinEncounter = useCallback((encounterId, enc) => {

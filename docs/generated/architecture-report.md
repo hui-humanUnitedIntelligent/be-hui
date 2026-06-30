@@ -10,21 +10,21 @@
 | Metrik | Wert |
 |---|---|
 | Dateien total | 297 |
-| Codezeilen total | 104,635 |
+| Codezeilen total | 104,651 |
 | Domains | 12 |
 | Komponenten | 676 |
 | Hooks | 109 |
-| DB Reads | 327 |
-| DB Writes | 171 |
+| DB Reads | 328 |
+| DB Writes | 168 |
 | DB Tabellen | 75 |
 | Direkte DB-Writes in UI | 69 |
-| Duplicate Owners | 17 |
-| Verstöße gesamt | **629** |
+| Duplicate Owners | 16 |
+| Verstöße gesamt | **626** |
 | CRITICAL | 🔴 42 |
-| HIGH | 🟠 112 |
+| HIGH | 🟠 110 |
 | MEDIUM | 🟡 185 |
 | LOW | 🔵 23 |
-| INFO | ⚪ 267 |
+| INFO | ⚪ 266 |
 
 ## Adoption
 
@@ -33,7 +33,7 @@
 | Action Engine | 11 | 4% |
 | Core Engine | 9 | 4% |
 | Registry | 7 | 2% |
-| Ownership Coverage | 0 | 0% |
+| Ownership Coverage | 1 | 0% |
 | Architecture Coverage | — | 10% |
 
 ## Domain-Übersicht
@@ -45,10 +45,10 @@
 | Components | 106 | 38535 | 333 | 10 | 97 | 42 | 266 |
 | Features | 10 | 2994 | 11 | 7 | 4 | 3 | 18 |
 | Context | 2 | 346 | 1 | 2 | 0 | 0 | 2 |
-| Core | 15 | 3778 | 3 | 10 | 12 | 4 | 17 |
+| Core | 15 | 3754 | 3 | 10 | 12 | 1 | 15 |
 | System | 47 | 12844 | 115 | 5 | 10 | 7 | 51 |
 | Hooks | 6 | 1311 | 0 | 12 | 11 | 2 | 19 |
-| Services | 75 | 20544 | 13 | 47 | 119 | 90 | 88 |
+| Services | 75 | 20584 | 13 | 47 | 120 | 90 | 88 |
 | Pages | 24 | 20149 | 187 | 16 | 73 | 24 | 147 |
 | Registry | 1 | 812 | 0 | 0 | 0 | 0 | 1 |
 | Routes | 1 | 752 | 0 | 0 | 0 | 0 | 1 |

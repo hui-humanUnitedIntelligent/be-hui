@@ -1008,17 +1008,6 @@
     "targetDomain": "COMPONENTS"
   },
   {
-    "id": "LAYER_VIOLATION_core/HuiConnectionEngine.jsx_../lib/supabaseClient.js",
-    "type": "LAYER_VIOLATION",
-    "severity": "HIGH",
-    "file": "core/HuiConnectionEngine.jsx",
-    "line": 28,
-    "domain": "CORE",
-    "message": "Layer Violation: CORE importiert aus SERVICES (layer-violation: CORE(0) → SERVICES(2)).",
-    "detail": "import from '../lib/supabaseClient.js'",
-    "targetDomain": "SERVICES"
-  },
-  {
     "id": "LAYER_VIOLATION_core/coreEngine.js_../lib/supabaseClient.js",
     "type": "LAYER_VIOLATION",
     "severity": "HIGH",
@@ -1686,21 +1675,6 @@
       "components/studio/ProfilBearbeitenModal.jsx",
       "lib/AuthContext.jsx",
       "services/db.js"
-    ]
-  },
-  {
-    "id": "DUPLICATE_OWNER_follows",
-    "type": "DUPLICATE_OWNER",
-    "severity": "HIGH",
-    "file": "core/HuiConnectionEngine.jsx",
-    "line": null,
-    "domain": "MULTI",
-    "message": "Duplicate Owner für Tabelle 'follows': 2 Dateien schreiben diese Tabelle.",
-    "detail": "core/HuiConnectionEngine.jsx, lib/AppStateContext.jsx",
-    "table": "follows",
-    "writers": [
-      "core/HuiConnectionEngine.jsx",
-      "lib/AppStateContext.jsx"
     ]
   },
   {
@@ -5145,16 +5119,6 @@
     "file": "context/WorldSurfaceContext.jsx",
     "line": 1,
     "domain": "CONTEXT",
-    "message": "Fehlende Architektur-Header: @domain=false @owner=false",
-    "detail": "Füge @domain und @owner als JSDoc-Tags im Datei-Header hinzu."
-  },
-  {
-    "id": "MISSING_HEADER_core/HuiConnectionEngine.jsx",
-    "type": "MISSING_HEADER",
-    "severity": "INFO",
-    "file": "core/HuiConnectionEngine.jsx",
-    "line": 1,
-    "domain": "CORE",
     "message": "Fehlende Architektur-Header: @domain=false @owner=false",
     "detail": "Füge @domain und @owner als JSDoc-Tags im Datei-Header hinzu."
   },
