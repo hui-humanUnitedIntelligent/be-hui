@@ -136,7 +136,7 @@
 | `services/db.js` | wirker_profiles | SELECT | 161 |
 | `services/db.js` | wirker_profiles | UPDATE | 170 |
 | `services/db.js` | wirker_profiles | INSERT | 185 |
-| `services/db.js` | impact_votes | SELECT | 469 |
-| `services/db.js` | impact_votes | SELECT | 488 |
-| `services/db.js` | impact_votes | INSERT | 505 |
-| `services/db.js` | profiles | SELECT | 630 |
+| `services/db.js` | impact_votes | SELECT | 495 |
+| `services/db.js` | impact_votes | SELECT | 514 |
+| `services/db.js` | impact_votes | INSERT | 531 |
+| `services/db.js` | profiles | SELECT | 656 |

@@ -262,6 +262,7 @@
     "path": "components/StoryBar.jsx",
     "imports": [
       "../lib/supabaseClient",
+      "../services/db",
       "../lib/AuthContext",
       "../design/hui.design.js"
     ],

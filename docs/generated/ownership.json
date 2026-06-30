@@ -185,7 +185,7 @@
   },
   {
     "path": "components/StoryBar.jsx",
-    "lines": 726,
+    "lines": 712,
     "hasDomain": false,
     "hasOwner": false,
     "domain": null,
@@ -2153,7 +2153,7 @@
   },
   {
     "path": "services/db.js",
-    "lines": 651,
+    "lines": 677,
     "hasDomain": false,
     "hasOwner": false,
     "domain": null,
