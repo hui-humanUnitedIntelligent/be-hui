@@ -74,7 +74,7 @@ export function OrbCenter({ size = 100, activeColor, onClick, worldState = null 
         zIndex:Z.center,
       }}>
         <img
-          src="/hui-logo.jpg"
+          src="/hui-logo-app.png"
           alt="HUI"
           loading="eager"
           style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}
