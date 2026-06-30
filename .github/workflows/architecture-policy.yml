@@ -1,0 +1,50 @@
+name: Architecture Policy (ARCH-006)
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'docs/governance/**'
+      - 'src/architecture/**'
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'docs/governance/**'
+      - 'src/architecture/**'
+
+jobs:
+  policy-audit:
+    name: Domain Policy Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Policy Audit
+        run: npm run architecture:policy:audit
+
+      - name: Generate Policy Reports
+        if: always()
+        run: npm run architecture:policy:report
+
+      - name: Upload Policy Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: architecture-policy-reports
+          path: |
+            docs/generated/policy-*.md
+            docs/generated/contract-*.md
+            docs/generated/cross-domain-report.md
+            docs/generated/policy.json
+            docs/generated/compiled-*.json
+            docs/generated/domain-health.json
+            docs/generated/policy-violations.json
