@@ -1,0 +1,2900 @@
+{
+  "meta": {
+    "authority": "ARCH-004",
+    "version": "1.0.0",
+    "builtAt": "2026-06-30T14:28:40.525Z",
+    "source": "document-derived"
+  },
+  "reports": {
+    "authority": {
+      "summary": "# HUI Architecture Authority Report\n\n**Authority:** ARCH-004 v1.0.0\n**Generated:** 2026-06-30T14:28:40.525Z\n**Source:** document-derived\n\n## Registry Summary\n\n| Registry | Count |\n|----------|-------|\n| Constitution | 1 |\n| ADRs | 2 |\n| RFCs | 2 |\n| Policies | 3 |\n| Rules | 29 |\n| Decisions | 2 |\n| Domains | 11 |\n| Capabilities | 12 |\n| Invariants | 7 |\n| Migrations | 8 |\n\n## Single Source of Truth\n\nARCH-004 ist die einzige verbindliche Instanz für:\n- Constitution-Status und Version\n- ADR/RFC/Policy-Registries\n- Regel-Lifecycle und Status\n- Governance Health\n- Authority Graph\n"
+    },
+    "governance": {
+      "adrs": [
+        {
+          "id": "ADR-001",
+          "path": "docs/governance/ADR-001-route-authority.md",
+          "title": "ADR-001 — Route Authority",
+          "status": "Accepted",
+          "date": "2026-06-29",
+          "owner": "HUI Release Engineering",
+          "release": "NAV-001B",
+          "content": "# ADR-001 — Route Authority\n\n**Status:** Accepted (Shadow Mode)  \n**Date:** 2026-06-29  \n**Owner:** HUI Release Engineering  \n**Release:** NAV-001B  \n\n## Context\n\nRoute definitions were scattered across `App.jsx`, `APP_ROUTES`, and individual page imports. This made it impossible to analyze user journeys, ownership, or route-level governance.\n\n## Decision\n\nCreate a central Route Registry (`src/routes/registry.js`) as the authoritative documentation of all URL routes.\n\n## Lifecycle\n\n| Phase | Release | Behavior |\n|-------|---------|----------|\n| 1 | NAV-001B | Shadow Registry — documentation only, no runtime effect |\n| 2 | NAV-002 | Parity validation against App.jsx |\n| 3 | NAV-003 | Router generates routes from registry |\n| 4 | NAV-004 | Registry is sole source, manual routes removed |\n\n## Consequences\n\n- Every route has exactly one owner (`OWNER.*`)\n- Every route has an auth level (`AUTH.*`)\n- Route-to-page mapping enables journey analysis\n- `validateParity()` detects drift between registry and router\n\n## Files Governed\n\n- `src/routes/registry.js`\n- All files in `src/pages/` referenced by route entries\n\n## References\n\n- [`src/routes/registry.js`](../../src/routes/registry.js)\n",
+          "metadata": {
+            "governedPaths": [
+              "src/routes/",
+              "src/pages/"
+            ],
+            "violationTypes": [
+              "DIRECT_ROUTING",
+              "ACTION_ENGINE_GAP"
+            ],
+            "influencedRules": [
+              "DIRECT_ROUTING",
+              "ACTION_ENGINE_GAP"
+            ],
+            "phases": [
+              {
+                "phase": 1,
+                "release": "NAV-001B",
+                "status": "Shadow Registry"
+              },
+              {
+                "phase": 2,
+                "release": "NAV-002",
+                "status": "Parity Validation"
+              },
+              {
+                "phase": 3,
+                "release": "NAV-003",
+                "status": "Migration"
+              },
+              {
+                "phase": 4,
+                "release": "NAV-004",
+                "status": "Sole Source"
+              }
+            ]
+          },
+          "governedPaths": [
+            "src/routes/",
+            "src/pages/"
+          ],
+          "violationTypes": [
+            "DIRECT_ROUTING",
+            "ACTION_ENGINE_GAP"
+          ],
+          "phases": [
+            {
+              "phase": 1,
+              "release": "NAV-001B",
+              "status": "Shadow Registry"
+            },
+            {
+              "phase": 2,
+              "release": "NAV-002",
+              "status": "Parity Validation"
+            },
+            {
+              "phase": 3,
+              "release": "NAV-003",
+              "status": "Migration"
+            },
+            {
+              "phase": 4,
+              "release": "NAV-004",
+              "status": "Sole Source"
+            }
+          ],
+          "binding": true
+        },
+        {
+          "id": "ADR-002",
+          "path": "docs/governance/ADR-002-architecture-scanner.md",
+          "title": "ADR-002 — Architecture Scanner",
+          "status": "Accepted",
+          "date": "2026-06-29",
+          "owner": "HUI Architecture",
+          "release": "ARCH-001 → ARCH-003",
+          "content": "# ADR-002 — Architecture Scanner\n\n**Status:** Accepted  \n**Date:** 2026-06-29  \n**Owner:** HUI Architecture  \n**Release:** ARCH-001 → ARCH-003  \n\n## Context\n\nArchitecture rules in the Constitution were not automatically enforceable. Manual code review could not scale.\n\n## Decision\n\nImplement a static analysis scanner under `src/architecture/` that:\n\n1. Scans all `src/` files without affecting runtime\n2. Detects violations against Constitution, RFC-000, and ADR-001\n3. Generates metrics, graphs, and compliance reports\n4. Provides Architecture Intelligence (ARCH-003) for explain, validate, simulate, and recommend\n\n## Violation Categories\n\n| Type | Severity | Rule |\n|------|----------|------|\n| CORE_BYPASS | CRITICAL | Core tables via Core Engine only |\n| DB_DIRECT_WRITE | HIGH | No DB writes in UI layers |\n| LAYER_VIOLATION | HIGH | RFC-000 import direction |\n| DUPLICATE_OWNER | HIGH | Single writer per table |\n| DIRECT_ROUTING | HIGH | Action Engine required |\n| REGISTRY_BYPASS | LOW | HuiRegistry for colors/labels |\n| MISSING_HEADER | INFO | @domain + @owner tags |\n\n## Consequences\n\n- Scanner runs in CI before merge\n- No runtime code changes from scanner\n- All recommendations are advisory until explicitly enforced\n\n## References\n\n- [`src/architecture/scanner/`](../../src/architecture/scanner/)\n- [`src/architecture/intelligence/`](../../src/architecture/intelligence/)\n",
+          "metadata": {
+            "governedPaths": [
+              "src/architecture/"
+            ],
+            "violationTypes": [
+              "CORE_BYPASS",
+              "DB_DIRECT_WRITE",
+              "LAYER_VIOLATION",
+              "DUPLICATE_OWNER",
+              "REGISTRY_BYPASS",
+              "MISSING_HEADER"
+            ],
+            "influencedRules": [
+              "CORE_BYPASS",
+              "DB_DIRECT_WRITE",
+              "DB_DIRECT_READ",
+              "LAYER_VIOLATION",
+              "DUPLICATE_OWNER",
+              "DIRECT_ROUTING",
+              "ACTION_ENGINE_GAP",
+              "REGISTRY_BYPASS",
+              "MISSING_HEADER"
+            ],
+            "phases": [
+              {
+                "phase": 1,
+                "release": "ARCH-001",
+                "status": "Scanner"
+              },
+              {
+                "phase": 2,
+                "release": "ARCH-002",
+                "status": "Knowledge Graph"
+              },
+              {
+                "phase": 3,
+                "release": "ARCH-003",
+                "status": "Intelligence"
+              },
+              {
+                "phase": 4,
+                "release": "ARCH-004",
+                "status": "Authority"
+              }
+            ]
+          },
+          "governedPaths": [
+            "src/architecture/"
+          ],
+          "violationTypes": [
+            "CORE_BYPASS",
+            "DB_DIRECT_WRITE",
+            "LAYER_VIOLATION",
+            "DUPLICATE_OWNER",
+            "REGISTRY_BYPASS",
+            "MISSING_HEADER"
+          ],
+          "phases": [
+            {
+              "phase": 1,
+              "release": "ARCH-001",
+              "status": "Scanner"
+            },
+            {
+              "phase": 2,
+              "release": "ARCH-002",
+              "status": "Knowledge Graph"
+            },
+            {
+              "phase": 3,
+              "release": "ARCH-003",
+              "status": "Intelligence"
+            },
+            {
+              "phase": 4,
+              "release": "ARCH-004",
+              "status": "Authority"
+            }
+          ],
+          "binding": true
+        }
+      ],
+      "rfcs": [
+        {
+          "id": "RFC-000",
+          "path": "docs/governance/RFC-000-layering.md",
+          "title": "RFC-000 — HUI Layering Model",
+          "status": "Accepted",
+          "date": "2026-06-29",
+          "owner": "HUI Architecture",
+          "content": "# RFC-000 — HUI Layering Model\n\n**Status:** Accepted  \n**Date:** 2026-06-29  \n**Owner:** HUI Architecture  \n\n## Summary\n\nDefines the unidirectional layer model for HUI source code. Imports may only flow downward through layers — never upward.\n\n## Layer Stack\n\n```\nREGISTRY (0) → CORE (0) → ROUTES (1) → SERVICES/SYSTEM (2) → HOOKS/CONTEXT (3) → FEATURES (4) → PAGES/COMPONENTS (5)\nARCHITECTURE (-1) — analysis only, no runtime imports\n```\n\n## Rules\n\n1. **No upward imports.** A lower layer must never import from a higher layer.\n2. **Domain boundaries.** Each file belongs to exactly one domain based on its path.\n3. **Service layer for DB.** UI layers (PAGES, COMPONENTS, FEATURES, HOOKS, CONTEXT) must not write directly to the database.\n4. **Core tables via Core Engine.** Tables `profiles`, `wirker_profiles`, `impact_pool`, `impact_votes`, `orb_states`, `resonance_signals`, `core_metrics` require Core Engine access.\n5. **Registry for meaning.** UI text, colors, and labels must come from HuiRegistry.\n\n## Enforcement\n\n- Scanner: `src/architecture/scanner/violationDetector.js` → `LAYER_VIOLATION`, `DB_DIRECT_WRITE`, `CORE_BYPASS`\n- Intelligence: `src/architecture/intelligence/validate.js`\n\n## References\n\n- [`HUI_CONSTITUTION.md`](../../HUI_CONSTITUTION.md) — Section IV\n- [`src/architecture/scanner/domains.js`](../../src/architecture/scanner/domains.js)\n",
+          "metadata": {
+            "rules": [
+              "layer-import-direction",
+              "service-layer-db",
+              "core-table-access",
+              "registry-for-meaning"
+            ],
+            "governedDomains": [
+              "CORE",
+              "REGISTRY",
+              "ROUTES",
+              "SERVICES",
+              "SYSTEM",
+              "HOOKS",
+              "CONTEXT",
+              "FEATURES",
+              "PAGES",
+              "COMPONENTS"
+            ],
+            "contracts": [
+              "import-direction",
+              "db-access-layer",
+              "core-table-ownership"
+            ]
+          },
+          "rules": [
+            "layer-import-direction",
+            "service-layer-db",
+            "core-table-access",
+            "registry-for-meaning"
+          ],
+          "governedDomains": [
+            "CORE",
+            "REGISTRY",
+            "ROUTES",
+            "SERVICES",
+            "SYSTEM",
+            "HOOKS",
+            "CONTEXT",
+            "FEATURES",
+            "PAGES",
+            "COMPONENTS"
+          ],
+          "contracts": [
+            "import-direction",
+            "db-access-layer",
+            "core-table-ownership"
+          ],
+          "binding": true,
+          "ratified": true
+        },
+        {
+          "id": "RFC-000A",
+          "path": "docs/governance/RFC-000A_ARCHITECTURE_GOVERNANCE.md",
+          "title": "RFC-000A — Architecture Governance v1.0",
+          "status": "Ratified",
+          "date": "",
+          "owner": "| **Status:** | **Constitution-Bezug:**",
+          "content": "# RFC-000A — Architecture Governance v1.0\n\n> **HUI Architecture Council — Engineering Architecture Review**  \n> **Status:** Draft → Review (Ratifizierung ausstehend)  \n> **Datum:** 2026-06-30  \n> **Typ:** Governance-Definition (keine Release Specification, keine Code-Änderung)\n\n---\n\n## Meta\n\n| Feld | Wert |\n|---|---|\n| RFC-ID | RFC-000A |\n| Titel | Architecture Governance v1.0 |\n| Autor | HUI Architecture Council |\n| Bezug | [`HUI_CONSTITUTION.md`](../../HUI_CONSTITUTION.md), [`docs/ARCHITECTURE_INDEX.md`](../ARCHITECTURE_INDEX.md) |\n| Geltungsbereich | Gesamte HUI-Plattform — alle Domänen, alle Teams, alle Releases |\n| Änderungsart | Organisatorisch / dokumentarisch |\n\n**Abgrenzung:** Dieses Dokument definiert *wie* Architekturentscheidungen getroffen, dokumentiert, freigegeben und verwaltet werden. Es trifft keine Produktentscheidungen und spezifiziert keine Implementierung.\n\n---\n\n# Abschlussbericht\n\n---\n\n## 1. Executive Summary\n\nHUI besitzt mit der [`HUI_CONSTITUTION.md`](../../HUI_CONSTITUTION.md) bereits ein starkes **Level-0-Fundament**: Mission, Grundpfeiler, Goldene Regeln und ein unveränderliches Schichtenmodell. Mit [`docs/ARCHITECTURE_INDEX.md`](../ARCHITECTURE_INDEX.md) und [`docs/SYSTEM_OWNERSHIP.md`](../SYSTEM_OWNERSHIP.md) existieren erste operative Strukturen.\n\nWas fehlt, ist ein **vollständiger, skalierbarer Governance-Rahmen**, der:\n\n1. **Dokumente** (was existiert),\n2. **Prozesse** (wie Entscheidungen entstehen) und\n3. **Status** (in welchem Zustand sich etwas befindet)\n\nsystematisch trennt — statt sie in einer linearen 11-Stufen-Hierarchie zu vermischen.\n\n### Kernergebnis\n\n| Empfehlung | Begründung |\n|---|---|\n| **Drei-Ebenen-Modell** statt Level 0–10 | Vermeidet Kategoriefehler (Dokument ≠ Prozess ≠ Status) |\n| **RFC vor ADR** | RFC = Vorschlag & Diskussion; ADR = bindende Entscheidung |\n| **Architecture Decision Index (ADI)** | Zentrales Register aller Entscheidungen mit Beziehungsgraph |\n| **Domain Charter als verbindlicher Vertrag** | Jede Domäne hat Mission, Owner, Datenbesitz, Schnittstellen |\n| **Gestufte Governance-Schwere** | Solo-Entwickler: leichtgewichtig; Enterprise: vollständig |\n| **LOCKED als terminaler Status** | Nicht als Hierarchie-Level, sondern als irreversibler Schutzzustand |\n\n### Zielbild\n\nEine Governance, die heute einem Einzelentwickler dient, morgen drei Teams koordiniert und in zehn Jahren externe Contributors sowie internationale Organisationen tragfähig begleitet — ohne die philosophische Integrität der HUI Constitution zu verwässern.\n\n---\n\n## 2. Governance Model\n\n### 2.1 Definition\n\n**Architecture Governance** ist das Gesamtsystem aus Prinzipien, Rollen, Dokumenten, Prozessen und Freigaben, das sicherstellt, dass jede technische Entscheidung:\n\n- der Constitution entspricht,\n- nachvollziehbar dokumentiert ist,\n- einer klaren Verantwortlichkeit zugeordnet ist,\n- vor Implementierung geprüft wurde,\n- und langfristig auffindbar bleibt.\n\n### 2.2 Governance-Prozess (End-to-End)\n\n```\n┌─────────────────────────────────────────────────────────────────────────────┐\n│                         ARCHITECTURE GOVERNANCE FLOW                         │\n└─────────────────────────────────────────────────────────────────────────────┘\n\n  CONSTITUTION ──► DOMAIN MODEL ──► DOMAIN CHARTER\n        │                                    │\n        │         (strukturelle Grundlage)   │\n        ▼                                    ▼\n      RFC ──────────► Review ──────────► Discussion\n        │                                    │\n        │         (Vorschlag & Debatte)      │\n        ▼                                    ▼\n      ADR ◄──────── Architecture Approval\n        │\n        │         (bindende Entscheidung)\n        ▼\n  RELEASE SPECIFICATION\n        │\n        │         (lieferbarer Scope)\n        ▼\n  ENGINEERING REVIEW ──► Implementation ──► QA\n        │                      │              │\n        │         (Umsetzung)    │              │\n        ▼                      ▼              ▼\n  Architecture Approved ◄─────────────────────┘\n        │\n        │         (Freigabe für Produktion)\n        ▼\n      LOCKED (optional, terminal)\n```\n\n### 2.3 Artefakte im Detail\n\n#### Constitution (Level 0)\n\n| Aspekt | Definition |\n|---|---|\n| **Zweck** | Unveränderliche Grundlage aller Entscheidungen |\n| **Inhalt** | Mission, Grundpfeiler, Goldene Regeln, Architekturprinzipien |\n| **Owner** | Product Architecture + Engineering Architecture (gemeinsam) |\n| **Änderung** | Explizite Ratifizierung; Versions-Bump; kein stiller PR |\n| **HUI-Referenz** | [`HUI_CONSTITUTION.md`](../../HUI_CONSTITUTION.md) — bereits ratifiziert |\n\n#### Domain Model (Level 1)\n\n| Aspekt | Definition |\n|---|---|\n| **Zweck** | Strukturelle Landkarte aller Plattform-Domänen und ihrer Beziehungen |\n| **Inhalt** | Domänenliste, Abhängigkeitsgraph, Bounded Contexts, Schnittstellen-Matrix |\n| **Owner** | Engineering Architecture |\n| **Änderung** | RFC → ADR bei strukturellen Verschiebungen |\n| **HUI-Referenz** | Teilweise in [`CODEBASE.md`](../../CODEBASE.md), [`docs/ARCHITECTURE_INDEX.md`](../ARCHITECTURE_INDEX.md) |\n\n#### Domain Charter (Level 2)\n\n| Aspekt | Definition |\n|---|---|\n| **Zweck** | Verbindlicher Vertrag pro Domäne |\n| **Inhalt** | Mission, Owner, Datenbesitz, APIs, Events, Abhängigkeiten, RFCs, ADRs |\n| **Owner** | Domänen-Owner (siehe Abschnitt 7) |\n| **Änderung** | RFC innerhalb der Domäne; ADR bei Ownership- oder Schnittstellenänderung |\n\n#### RFC — Request for Comments (Level 3)\n\n| Aspekt | Definition |\n|---|---|\n| **Zweck** | Strukturierter Vorschlag *vor* der Entscheidung |\n| **Inhalt** | Problem, Kontext, Optionen, Vor-/Nachteile, Auswirkungen, offene Fragen |\n| **Owner** | Autor (beliebige Rolle); Review durch Engineering Architecture |\n| **Lebensdauer** | Temporär — wird durch ADR ersetzt oder archiviert |\n| **Nummerierung** | `RFC-NNN` (z. B. RFC-000A = diese Governance-Definition) |\n\n#### ADR — Architecture Decision Record (Level 4)\n\n| Aspekt | Definition |\n|---|---|\n| **Zweck** | Bindende, dauerhafte Architekturentscheidung |\n| **Inhalt** | Kontext, Entscheidung, Begründung, Konsequenzen, Alternativen |\n| **Owner** | Architecture Council / Engineering Architecture |\n| **Lebensdauer** | Permanent (Status: Approved → Implemented → ggf. Deprecated/Superseded) |\n| **Nummerierung** | `ADR-NNN`; Verknüpfung zu RFC und ADI-Eintrag |\n\n#### Release Specification (Level 5)\n\n| Aspekt | Definition |\n|---|---|\n| **Zweck** | Konkreter, lieferbarer Scope für ein Release |\n| **Inhalt** | Features, ADR-Referenzen, Akzeptanzkriterien, Migrationspfad, Rollback |\n| **Owner** | Product Owner + Engineering Architecture |\n| **Abgrenzung** | Kein Architekturvorschlag — Umsetzung genehmigter ADRs |\n\n#### Engineering Review (Prozess, kein Level)\n\n| Aspekt | Definition |\n|---|---|\n| **Zweck** | Technische Prüfung vor und während der Implementierung |\n| **Inhalt** | Design-Review, Constitution-Check, Ownership-Check, Schnittstellen-Check |\n| **Owner** | Engineering Architecture |\n| **Trigger** | Vor Merge signifikanter PRs; vor Release Specification Freigabe |\n| **Output** | Review-Protokoll (kein eigenständiges Hierarchie-Level) |\n\n#### QA (Prozess, kein Level)\n\n| Aspekt | Definition |\n|---|---|\n| **Zweck** | Verifikation gegen Release Specification und ADR-Konsequenzen |\n| **Inhalt** | Testplan, Constitution-Compliance, Regression, Red-Team-Findings |\n| **Owner** | QA + Red Team (adversarial) |\n| **Output** | QA-Bericht; Freigabeempfehlung |\n\n#### Architecture Approval (Status-Gate)\n\n| Aspekt | Definition |\n|---|---|\n| **Zweck** | Formale Bestätigung: Entscheidung ist korrekt umgesetzt |\n| **Voraussetzung** | ADR Approved + Engineering Review bestanden + QA bestanden |\n| **Verantwortlich** | Engineering Architecture (technisch) + Product Architecture (produktphilosophisch bei Constitution-nahen Themen) |\n| **Ergebnis** | Statuswechsel im ADI: `Implemented` → `Architecture Approved` |\n\n#### LOCKED (terminaler Status)\n\n| Aspekt | Definition |\n|---|---|\n| **Zweck** | Irreversibler Schutz vor unbeabsichtigter Änderung |\n| **Anwendung** | Constitution, kritische ADRs, stabile Domain Charters, Kern-Engines |\n| **Änderung** | Nur durch neuen RFC + explizite Ratifizierung mit Begründung |\n| **HUI-Kandidaten** | Constitution, HuiRegistry-Semantik, Core Engine Datenmodell |\n\n### 2.4 Reihenfolge — Bewertung\n\n| Schritt | Korrekt? | Anmerkung |\n|---|---|---|\n| Constitution → Domain Model → Domain Charter | ✅ | Strukturelle Grundlage zuerst |\n| RFC → ADR | ✅ | Vorschlag vor Entscheidung |\n| ADR → Release Specification | ✅ | Entscheidung vor Lieferung |\n| Release Spec → Engineering Review → Implementation | ✅ | Prüfung vor Umsetzung |\n| Implementation → QA | ✅ | Verifikation nach Umsetzung |\n| QA → Architecture Approval | ✅ | Formale Freigabe am Ende |\n| Architecture Approval → LOCKED | ✅ | Schutz nach Stabilisierung |\n\n**Korrektur zur vorgeschlagenen Hierarchie:** Implementation (Level 7) und QA (Level 8) sind **Aktivitäten**, keine Dokumentebenen. Architecture Approved (Level 9) und LOCKED (Level 10) sind **Status**, keine Hierarchie-Level.\n\n### 2.5 Verantwortlichkeiten (RACI-Kurzform)\n\n| Phase | R | A | C | I |\n|---|---|---|---|---|\n| Constitution-Änderung | Product Arch | Architecture Council | Engineering Arch, PO | Alle Teams |\n| Domain Model | Engineering Arch | Architecture Council | Domain Owners | Alle Teams |\n| RFC erstellen | Autor | Autor | Engineering Arch | Betroffene Domänen |\n| ADR ratifizieren | Engineering Arch | Architecture Council | Domain Owners, QA | Alle Teams |\n| Release Spec | PO + Eng. Arch | PO | Implementation, QA | Stakeholder |\n| Engineering Review | Engineering Arch | Engineering Arch | Implementation | PO |\n| QA | QA + Red Team | QA Lead | Implementation | Engineering Arch |\n| Architecture Approval | Engineering Arch | Architecture Council | QA, Red Team | Alle Teams |\n| LOCKED | Engineering Arch | Architecture Council | — | Alle Teams |\n\n*R = Responsible, A = Accountable, C = Consulted, I = Informed*\n\n### 2.6 Übergänge und Freigaben\n\n```\nRFC:        Draft ──► Review ──► Discussion ──► Accepted/Rejected/Withdrawn\n                                              │\n                                              ▼ (bei Accepted)\nADR:        Draft ──► Review ──► Approved ──► Implemented ──► Architecture Approved\n                              │                    │                    │\n                              ▼                    ▼                    ▼\n                         Rejected            Deprecated          LOCKED\n                         Superseded          Superseded\n                         Archived            Archived\n```\n\n**Freigabe-Gates (Hard Stops):**\n\n| Gate | Blockiert | Freigeber |\n|---|---|---|\n| G1: RFC → ADR | ADR ohne akzeptierten RFC (Ausnahme: Emergency ADR) | Engineering Architecture |\n| G2: ADR → Release Spec | Release ohne Approved ADR | Product Owner + Engineering Architecture |\n| G3: Release → Implementation | Merge ohne Engineering Review (bei signifikanten Änderungen) | Engineering Architecture |\n| G4: Implementation → Deploy | Deploy ohne QA-Freigabe | QA Lead |\n| G5: Deploy → LOCKED | LOCKED ohne Architecture Approval + Stabilisierungszeit | Architecture Council |\n\n---\n\n## 3. Rollenmodell\n\n### 3.1 Übersicht\n\n```\n                    ┌─────────────────────────┐\n                    │   Architecture Council   │\n                    │  (Product + Engineering  │\n                    │      Architecture)       │\n                    └───────────┬─────────────┘\n                                │\n          ┌─────────────────────┼─────────────────────┐\n          ▼                     ▼                     ▼\n   Product Owner          Domain Owners          QA + Red Team\n          │                     │                     │\n          ▼                     ▼                     ▼\n   Release Spec           Domain Charter         Verification\n          │                     │\n          └──────────┬──────────┘\n                     ▼\n              Implementation\n```\n\n### 3.2 Product Architecture\n\n| Dimension | Definition |\n|---|---|\n| **Verantwortung** | Langfristige Produktvision; Constitution-Pflege; Grundpfeiler-Integrität; philosophische Kohärenz |\n| **Entscheidungsbefugnis** | Constitution-Änderungen; Produktprinzipien; Ablehnung von Features die der Mission widersprechen |\n| **Grenzen** | Keine Implementierungsdetails; keine Release-Planung; kein Override von technischen Sicherheits-ADRs |\n| **Zusammenarbeit** | Co-Lead mit Engineering Architecture im Council; konsultiert PO bei Release Specs; informiert Community bei Constitution-nahen Entscheidungen |\n\n### 3.3 Engineering Architecture\n\n| Dimension | Definition |\n|---|---|\n| **Verantwortung** | Technische Architektur; Domain Model; ADR-Ratifizierung; Engineering Review; ADI-Pflege; Schnittstellen-Governance |\n| **Entscheidungsbefugnis** | ADRs; Domain Model; technische Standards; LOCKED-Empfehlungen; Ablehnung architekturwidriger PRs |\n| **Grenzen** | Keine Produkt-Priorisierung; keine Constitution-Änderung allein; keine direkte Implementierung bei Review-Rolle |\n| **Zusammenarbeit** | Führt Engineering Reviews; berät Implementation; eskaliert an Council bei Constitution-Konflikten |\n\n### 3.4 Product Owner\n\n| Dimension | Definition |\n|---|---|\n| **Verantwortung** | Release-Planung; Priorisierung; Release Specifications; Akzeptanzkriterien; Stakeholder-Kommunikation |\n| **Entscheidungsbefugnis** | Release-Scope; Feature-Priorisierung innerhalb genehmigter ADRs; Verschiebung von Releases |\n| **Grenzen** | Keine Architekturentscheidungen; kein Override von ADRs; keine Constitution-Änderung |\n| **Zusammenarbeit** | Erstellt Release Specs mit Engineering Architecture; informiert QA über Akzeptanzkriterien |\n\n### 3.5 Implementation\n\n| Dimension | Definition |\n|---|---|\n| **Verantwortung** | Code-Umsetzung genehmigter ADRs; Einhaltung Domain Charter; Ownership-Regeln; technische Dokumentation im Code |\n| **Entscheidungsbefugnis** | Implementierungsdetails innerhalb ADR-Rahmen; Refactoring ohne Architekturänderung |\n| **Grenzen** | Keine neuen Schnittstellen ohne ADR; kein Datenbesitz-Transfer; keine Constitution-Ausnahmen |\n| **Zusammenarbeit** | Fordert RFCs bei Unsicherheit an; nimmt an Engineering Review teil; meldet Abweichungen sofort |\n\n### 3.6 QA\n\n| Dimension | Definition |\n|---|---|\n| **Verantwortung** | Testplanung; Verifikation gegen Release Spec; Constitution-Compliance-Tests; Regression |\n| **Entscheidungsbefugnis** | QA-Freigabe oder -Blockierung; Testabdeckungs-Anforderungen |\n| **Grenzen** | Keine Architekturentscheidungen; keine Produkt-Priorisierung; kein Deploy ohne Freigabe-Prozess |\n| **Zusammenarbeit** | Arbeitet mit Red Team bei adversarial Testing; dokumentiert Findings im QA-Bericht |\n\n### 3.7 Red Team\n\n| Dimension | Definition |\n|---|---|\n| **Verantwortung** | Adversariale Prüfung; Constitution-Stresstest; Missbrauchsszenarien; Gamification-Drift-Erkennung; Dark-Pattern-Audit |\n| **Entscheidungsbefugnis** | Veto-Empfehlung (nicht bindend allein); Eskalation an Council bei ethischen/philosophischen Verstößen |\n| **Grenzen** | Keine Implementierung; keine Produktentscheidungen; fokussiert auf Risiko, nicht auf Feature-Wünsche |\n| **Zusammenarbeit** | Unabhängig von Implementation; berichtet an QA und Architecture Council; besonders relevant für KI-, Feed- und Commerce-Domänen |\n\n### 3.8 Ergänzende Rollen (empfohlen)\n\n| Rolle | Wann einführen | Verantwortung |\n|---|---|---|\n| **Domain Owner** | Ab 2. Domäne mit aktiver Entwicklung | Pflege Domain Charter; erste Anlaufstelle für domänenspezifische RFCs |\n| **Architecture Council** | Ab 3+ Teams oder externen Contributors | Ratifizierung Constitution, ADRs, LOCKED; Konfliktlösung |\n| **Steward** | Bereits in HUI-Philosophie verankert | Community-Governance; kulturelle Transparenz (siehe [`GOVERNANCE_FOUNDATION_MAP.md`](../GOVERNANCE_FOUNDATION_MAP.md)) |\n| **Release Manager** | Ab regelmäßigem Release-Zyklus | Koordination Release Spec → QA → Deploy |\n\n---\n\n## 4. Dokumentenhierarchie\n\n### 4.1 Bewertung der vorgeschlagenen Hierarchie\n\n| Level | Vorschlag | Bewertung | Empfehlung |\n|---|---|---|---|\n| 0 | Constitution | ✅ Korrekt | Beibehalten |\n| 1 | Domain Model | ✅ Korrekt | Beibehalten |\n| 2 | Domain Charter | ✅ Korrekt | Beibehalten |\n| 3 | RFC | ✅ Korrekt | Beibehalten |\n| 4 | ADR | ✅ Korrekt | Beibehalten |\n| 5 | Release Specification | ✅ Korrekt | Beibehalten |\n| 6 | Engineering Review | ⚠️ Kategoriefehler | → **Prozess-Artefakt**, nicht Hierarchie-Level |\n| 7 | Implementation | ❌ Kategoriefehler | → **Aktivität**, dokumentiert via PR/Code + ADR-Referenz |\n| 8 | QA | ❌ Kategoriefehler | → **Prozess-Artefakt** (QA-Bericht) |\n| 9 | Architecture Approved | ❌ Kategoriefehler | → **Status** im Decision Lifecycle |\n| 10 | LOCKED | ❌ Kategoriefehler | → **Terminaler Status**, nicht Level |\n\n### 4.2 Empfohlene Drei-Ebenen-Struktur\n\n#### Ebene A — Dokumenthierarchie (Was)\n\n```\nLevel 0  Constitution          ← unveränderliche Grundlage\nLevel 1  Domain Model           ← strukturelle Landkarte\nLevel 2  Domain Charter         ← Vertrag pro Domäne\nLevel 3  RFC                    ← Vorschlag (temporär)\nLevel 4  ADR                    ← Entscheidung (dauerhaft)\nLevel 5  Release Specification  ← Lieferumfang (temporär)\n```\n\n#### Ebene B — Prozesskette (Wie)\n\n```\nEngineering Review → Implementation → QA → Architecture Approval\n```\n\nJeder Prozessschritt erzeugt ein **Artefakt** (Review-Protokoll, PR/Merge, QA-Bericht, Approval-Eintrag), aber kein neues Hierarchie-Level.\n\n#### Ebene C — Statusmodell (Zustand)\n\n```\nDraft → Review → Discussion → Approved → Implemented → Architecture Approved → LOCKED\n                                                                    ↓\n                                                          Deprecated / Superseded / Archived\n```\n\n### 4.3 Verbesserungen\n\n1. **Trennung von Was/Wie/Zustand** — verhindert Verwirrung in 10 Jahren\n2. **Prozess-Artefakte in `docs/governance/artifacts/`** — Review-Protokolle, QA-Berichte, Approval-Records\n3. **Code als Implementation-Nachweis** — PR verweist auf ADR-NNN; kein separates Level-7-Dokument\n4. **Verknüpfungsgraph** — jedes Dokument referenziert Parent (z. B. ADR-003 → RFC-007 → Domain Charter: Feed)\n\n### 4.4 Verzeichnisstruktur (empfohlen)\n\n```\ndocs/\n  governance/\n    RFC-000A_ARCHITECTURE_GOVERNANCE.md    ← dieses Dokument\n    ADI.md                                  ← Architecture Decision Index\n    domain-model/\n      HUI_DOMAIN_MODEL.md\n    charters/\n      CHARTER_FEED.md\n      CHARTER_ORB.md\n      CHARTER_CORE.md\n      ...\n    rfc/\n      RFC-NNN-slug.md\n    adr/\n      ADR-NNN-slug.md\n    releases/\n      RELEASE-vX.Y.Z.md\n    artifacts/\n      reviews/\n      qa/\n      approvals/\n```\n\n---\n\n## 5. Decision Lifecycle\n\n### 5.1 Standardisierter Entscheidungsprozess\n\n```\n┌────────┐    ┌────────┐    ┌────────────┐    ┌──────────┐    ┌─────────────┐\n│ Draft  │───►│ Review │───►│ Discussion │───►│ Approved │───►│ Implemented │\n└────────┘    └────────┘    └────────────┘    └──────────┘    └──────┬──────┘\n     │              │               │               │                 │\n     ▼              ▼               ▼               ▼                 ▼\n Withdrawn      Returned        Rejected      Superseded      Architecture\n to Draft       to Draft                        (durch neu)      Approved\n                                                                    │\n                                                                    ▼\n                                              ┌─────────────────────────────┐\n                                              │ Deprecated / Superseded /   │\n                                              │ Archived / LOCKED           │\n                                              └─────────────────────────────┘\n```\n\n### 5.2 Status-Definitionen\n\n| Status | Dauerhaft? | Bedeutung | Gilt für |\n|---|---|---|---|\n| **Draft** | ✅ | In Bearbeitung, nicht bindend | RFC, ADR, Release Spec |\n| **Review** | ✅ | Formale Prüfung läuft | RFC, ADR, Release Spec |\n| **Discussion** | ✅ | Offene Debatte, Feedback eingeladen | RFC |\n| **Approved** | ✅ | Bindende Entscheidung getroffen | ADR |\n| **Implemented** | ✅ | In Code/Infra umgesetzt | ADR |\n| **Architecture Approved** | ✅ | Umsetzung verifiziert und freigegeben | ADR, Domain Charter |\n| **LOCKED** | ✅ | Terminaler Schutz; Änderung nur via neuem RFC | Constitution, kritische ADRs |\n| **Deprecated** | ✅ | Noch vorhanden, aber nicht mehr empfohlen | ADR, Domain Charter |\n| **Superseded** | ✅ | Ersetzt durch neueren Eintrag (mit Referenz) | RFC, ADR |\n| **Archived** | ✅ | Historisch, nicht mehr aktiv | RFC, Release Spec |\n| **Rejected** | ✅ | Abgelehnt mit Begründung | RFC |\n| **Withdrawn** | ✅ | Vom Autor zurückgezogen | RFC |\n\n### 5.3 Nicht dauerhaft sinnvolle Status\n\n| Status | Empfehlung |\n|---|---|\n| In Progress | → Ersetzen durch `Draft` oder `Implemented` (je nach Phase) |\n| Pending | → Zu unspezifisch; durch `Review` oder `Discussion` ersetzen |\n| Done | → Ersetzen durch `Architecture Approved` oder `LOCKED` |\n| WIP | → Nur in PR-Titeln, nicht im ADI |\n\n### 5.4 Übergangsregeln\n\n| Von | Nach | Bedingung | Wer |\n|---|---|---|---|\n| Draft | Review | Dokument vollständig | Autor |\n| Review | Discussion | Keine Blocker | Reviewer (Eng. Arch.) |\n| Discussion | Approved (ADR) | Konsens oder Council-Entscheid | Architecture Council |\n| Approved | Implemented | Code merged, Release deployed | Implementation + Eng. Arch. |\n| Implemented | Architecture Approved | QA bestanden, Review bestanden | Architecture Council |\n| Architecture Approved | LOCKED | Stabilisierung (empfohlen: 2 Releases) | Architecture Council |\n| Approved | Deprecated | Bessere Alternative existiert | Eng. Arch. + Council |\n| * | Superseded | Neuer ADR ersetzt alten | Automatisch bei ADI-Update |\n| * | Archived | Keine aktive Referenz mehr | Eng. Arch. (jährliche Bereinigung) |\n\n---\n\n## 6. Architecture Decision Index (ADI)\n\n### 6.1 Zweck\n\nDas **Architecture Decision Index** ist das zentrale Register aller Architekturentscheidungen — die „Single Source of Truth für Entscheidungen\", analog zur Core Engine als Single Source of Truth für Wirkungsdaten.\n\n### 6.2 Struktur\n\n```yaml\n# ADI-Eintrag (konzeptionell)\nid: ADR-0042\ntitle: \"Feed Engine — Rhythmus statt Infinite Scroll\"\nstatus: Architecture Approved\ndomain: feed\nconstitution_check: passed\nrfc: RFC-0015\nsupersedes: ADR-0012\nsuperseded_by: null\nrelease: v2.4.0\nlocked: false\nowner: engineering-architecture\ndomain_owner: feed-team\ncreated: 2026-03-15\napproved: 2026-04-01\nimplemented: 2026-05-10\narchitecture_approved: 2026-05-20\ntags: [feed, ux, constitution-rule-6]\nrelated_adrs: [ADR-0008, ADR-0031]\nrelated_rfcs: [RFC-0015]\nrelated_releases: [RELEASE-v2.4.0]\nartifacts:\n  - docs/governance/adr/ADR-0042-feed-rhythm.md\n  - docs/governance/artifacts/reviews/ER-0042.md\n  - docs/governance/artifacts/qa/QA-v2.4.0-feed.md\n```\n\n### 6.3 Pflichtfelder\n\n| Feld | Pflicht | Beschreibung |\n|---|---|---|\n| `id` | ✅ | Eindeutige Kennung (ADR-NNN, RFC-NNN) |\n| `title` | ✅ | Menschenlesbarer Titel |\n| `status` | ✅ | Aktueller Lifecycle-Status |\n| `domain` | ✅ | Zugehörige Domäne |\n| `owner` | ✅ | Verantwortliche Rolle/Person |\n| `created` | ✅ | Erstellungsdatum |\n| `constitution_check` | ✅ (ADR) | passed / failed / waived (mit Begründung) |\n| `rfc` | ✅ (ADR) | Ursprungs-RFC |\n| `artifacts` | ✅ | Pfade zu allen zugehörigen Dokumenten |\n\n### 6.4 Beziehungen\n\n```\n                    ┌──────────────┐\n                    │     ADI      │\n                    │  (Register)  │\n                    └──────┬───────┘\n           ┌───────────────┼───────────────┐\n           ▼               ▼               ▼\n        RFC-NNN        ADR-NNN      RELEASE-vX.Y\n           │               │               │\n           └───────► ADR-NNN ◄──────────────┘\n                       │\n                       ▼\n              Domain Charter: DOMAIN\n                       │\n                       ▼\n                 Constitution\n```\n\n| Beziehung | Kardinalität | Regel |\n|---|---|---|\n| RFC → ADR | 1 : 0..1 | Jeder ADR hat genau einen RFC (Ausnahme: Emergency ADR) |\n| ADR → ADR | 1 : 0..n | `supersedes` / `superseded_by` für Evolution |\n| ADR → Release | n : m | Ein Release kann mehrere ADRs umsetzen |\n| ADR → Domain | n : 1 | Jeder ADR gehört zu einer Domäne |\n| Domain → Charter | 1 : 1 | Jede Domäne hat genau einen Charter |\n| Charter → Constitution | n : 1 | Alle Charters leiten von Constitution ab |\n\n### 6.5 Pflege\n\n| Aktivität | Frequenz | Verantwortlich |\n|---|---|---|\n| Neuer Eintrag bei RFC/ADR-Erstellung | Bei Bedarf | Autor |\n| Status-Update bei Übergängen | Bei jedem Gate | Owner |\n| Quartals-Review auf veraltete Einträge | Vierteljährlich | Engineering Architecture |\n| Jährliche Archivierung | Jährlich | Architecture Council |\n| Integritätscheck (verwaiste Referenzen) | Monatlich (automatisierbar) | CI/CD oder Steward |\n\n---\n\n## 7. Domain Governance\n\n### 7.1 Bewertung des Domain-Ansatzes\n\nDer Domain-Ansatz ist **fundamental richtig** für HUI. Die Plattform hat bereits de facto Domänen (Core, Feed, Orb, Commerce, Presence, Chat, Trust, Discovery), dokumentiert in [`ARCHITECTURE_INDEX.md`](../ARCHITECTURE_INDEX.md) und [`SYSTEM_OWNERSHIP.md`](../SYSTEM_OWNERSHIP.md).\n\nWas fehlt, ist die **explizite Charter-Formalierung** pro Domäne.\n\n### 7.2 Domain Charter — Pflichtbestandteile\n\n| Bestandteil | Beschreibung | HUI-Beispiel |\n|---|---|---|\n| **Mission** | Warum existiert diese Domäne? Welchen Grundpfeiler stärkt sie? | Feed: „Orientierung, nicht Sucht\" (Constitution Regel 6) |\n| **Owner** | Eindeutige Verantwortung (Person/Rolle) | `useFeedStream.js` → Feed Domain Owner |\n| **Verantwortlichkeit** | Was fällt in diese Domäne, was nicht? | Feed: Rhythmus, Karten, Normalisierung — nicht: Wirkungsberechnung |\n| **Datenbesitz** | Single Source of Truth (Schreib-Recht) | Siehe [`SYSTEM_OWNERSHIP.md`](../SYSTEM_OWNERSHIP.md) |\n| **Schnittstellen** | APIs, Hooks, Events nach außen | `useFeedStream()`, `feedRhythmEngine` |\n| **Events** | Domäneninterne und -übergreifende Events | `feed.item.resonated`, `feed.rhythm.pause` |\n| **Abhängigkeiten** | Upstream/Downstream-Domänen | Feed ← Core Engine, Registry; Feed → UI |\n| **RFCs** | Offene und abgeschlossene Vorschläge | RFC-0015 (Feed Rhythm) |\n| **ADRs** | Bindende Entscheidungen | ADR-0042 (kein Infinite Scroll) |\n| **Releases** | Umgesetzte Release Specs | RELEASE-v2.4.0 |\n\n### 7.3 Empfohlene HUI-Domänen (Initial)\n\n| Domäne | Mission (Kurz) | Datenbesitz | Constitution-Bezug |\n|---|---|---|---|\n| **Core** | Single Source of Truth für Wirkung | `coreEngine.js` | Regel 5, Schichtenmodell |\n| **Registry** | Single Source of Meaning | `HuiRegistry.js` | Regel 4 (Sprache), Schichtenmodell |\n| **Orb** | Symbol gelebter Wirkung | `orbEngine.js`, `orbLayer.js` | Regel 5, Abschnitt VI |\n| **Feed** | Orientierung, nicht Sucht | `useFeedStream.js` | Regel 6 |\n| **Resonance** | Tiefe Begegnung | `resonanceEngine.js` | Regel 3, 5 |\n| **Intelligence** | Assistive, nicht manipulative KI | `lib/intelligence/*` | Abschnitt VII |\n| **Commerce** | Sanfte Ökonomie | `commerceEngine.js` | Regel 4, Impact Pool |\n| **Presence** | Menschliche Anwesenheit | `sessionHooks.js` | Regel 1, 3 |\n| **Trust** | Reputation ohne Ranking | `trustContext.js` | Regel 8, keine Gamification |\n| **Auth** | Identität und Session | `AuthContext.jsx` | Regel 1 |\n| **Chat** | Verbindung ermöglichen | `chatContext.js` | Grundpfeiler 1 |\n| **Discovery** | Sinnvolle Begegnungen | `DiscoveryFeed.jsx` | Regel 3, 7 |\n\n### 7.4 Zusätzliche verpflichtende Bestandteile\n\n| Bestandteil | Begründung |\n|---|---|\n| **Constitution Mapping** | Jede Domäne muss explizit benennen, welche Goldenen Regeln sie berührt |\n| **Anti-Patterns** | Was diese Domäne *niemals* tun darf (z. B. Feed: kein Infinite Scroll) |\n| **Observability** | Metriken, Logs, Health Checks — ohne Engagement-Optimierung |\n| **Migration Policy** | Wie Schema-/API-Änderungen abwärtskompatibel bleiben |\n| **Red-Team Surface** | Bekannte Missbrauchsvektoren und Gegenmaßnahmen |\n| **LOCKED Scope** | Welche Teile der Domäne geschützt sind |\n\n### 7.5 Domain-Governance-Prozess\n\n```\nNeues Feature-Idee\n       │\n       ▼\n  Betroffene Domäne identifizieren\n       │\n       ▼\n  Domain Charter konsultieren ──► Verletzung? ──► RFC erstellen\n       │                                              │\n       ▼                                              ▼\n  Innerhalb Charter-Grenzen? ──► Ja ──► Implementation (mit ADR-Referenz)\n       │\n       ▼ Nein\n  RFC → ADR → Charter-Update → Implementation\n```\n\n---\n\n## 8. Risiken\n\n### 8.1 Organisatorische Risiken und Gegenmaßnahmen\n\n| Risiko | Beschreibung | Wahrscheinlichkeit | Impact | Gegenmaßnahme |\n|---|---|---|---|---|\n| **Entscheidungsstau** | Zu viele Gates verlangsamen Entwicklung | Hoch (kleine Teams) | Hoch | Gestufte Governance (siehe §9); Emergency-ADR-Pfad |\n| **Überdokumentation** | Mehr Dokumentation als Code | Mittel | Mittel | RFC/ADR nur bei signifikanten Entscheidungen; Templates mit Pflichtfeldern-Minimum |\n| **Fehlende Verantwortlichkeiten** | „Everyone's responsibility is no one's\" | Hoch (Wachstum) | Sehr hoch | Domain Owner Pflicht; RACI in Charter; ADI-Owner-Feld |\n| **Architekturdrift** | Code weicht von ADRs ab | Hoch (langfristig) | Sehr hoch | Quartals-Review; PR-Template mit ADR-Referenz; automatisierter Drift-Check |\n| **Wissensverlust** | Gründer/Architekten verlassen Team | Mittel | Sehr hoch | ADI als institutionalisiertes Gedächtnis; LOCKED-Dokumente; Pair-Ownership |\n| **Unklare Ownership** | Doppelte Schreib-Rechte (bereits in HUI) | Hoch (aktuell) | Hoch | Domain Charter + [`SYSTEM_OWNERSHIP.md`](../SYSTEM_OWNERSHIP.md) verbindlich machen |\n| **Inkonsistente Freigaben** | Manche PRs mit Review, manche ohne | Hoch | Hoch | Klare Signifikanz-Schwelle; Engineering Review Checkliste |\n| **Governance-Theater** | Dokumente existieren, werden aber ignoriert | Mittel | Sehr hoch | Council-Review; CI-Checks auf ADR-Referenz; Red Team |\n| **Constitution Erosion** | Schleichende Abweichung von Goldenen Regeln | Mittel | Katastrophal | Red Team; Constitution-Check in jedem ADI-Eintrag; LOCKED |\n| **Governance-Eliten** | Wenige entscheiden für alle | Mittel (Jahr 2–4) | Hoch | Rotierende Reviewer; öffentliche RFCs (HUI-Philosophie: Transparenz) |\n| **Externe Contributor Reibung** | Zu schwerer Einstieg | Hoch (Open Source) | Mittel | CONTRIBUTING.md mit Governance-Kurzform; Good-First-Issue ohne RFC |\n\n### 8.2 Frühwarnsignale\n\n| Signal | Bedeutung | Aktion |\n|---|---|---|\n| ADR ohne RFC | Governance-Umgehung | ADI-Audit; RFC nachträglich |\n| PR ohne Domain-Zuordnung | Ownership-Drift | PR blockieren bis Charter-Referenz |\n| Release ohne QA-Bericht | Qualitätslücke | Deploy-Gate verschärfen |\n| > 3 Monate keine ADI-Aktualisierung | Governance-Verfall | Council-Review einberufen |\n| Red Team nicht eingebunden bei KI/Feed | Philosophisches Risiko | Pflicht-Review aktivieren |\n\n---\n\n## 8. Risiken (Fortsetzung) — Notfallpfad\n\n### 8.3 Emergency ADR\n\nFür kritische Sicherheits- oder Stabilitätsprobleme:\n\n1. Emergency ADR mit Status `Approved` erstellen (RFC nachträglich innerhalb 5 Werktagen)\n2. Implementation sofort\n3. Retrospektive Engineering Review + QA innerhalb 10 Werktagen\n4. Council-Entscheidung: regulärer Pfad oder Governance-Anpassung\n\n---\n\n## 9. Skalierbarkeit\n\n### 9.1 Governance-Stufenmodell\n\n| Stufe | Teamgröße | Anwendbare Governance | Pflicht-Artefakte |\n|---|---|---|---|\n| **S0: Solo** | 1 Entwickler | Constitution + Entscheidungsregel | Constitution, Code-Kommentare bei Architekturwahl |\n| **S1: Klein** | 2–5 | + Domain Model + ADR bei Signifikanz | + ADI (minimal), Domain Charters (Kern-Domänen) |\n| **S2: Multi-Team** | 6–20 | + RFC-Prozess + Engineering Review | + RFC, Release Specs, QA-Berichte |\n| **S3: Organisation** | 21–100 | + Architecture Council + Red Team | + Vollständiges ADI, alle Charters, LOCKED |\n| **S4: Federation** | 100+ / international | + Domain Governance Boards + Stewardship | + Mehrsprachige Charters, rotierende Council-Mitglieder |\n\n### 9.2 Bewertung nach Szenario\n\n#### Einzelentwickler (S0)\n\n- **Geeignet:** Constitution als Kompass, Entscheidungsregel (5 Fragen), Architecture Index\n- **Nicht erforderlich:** RFC-Prozess, Council, formale QA\n- **Risiko ohne Governance:** Architekturdrift, Wissensverlust bei Skalierung\n- **Empfehlung:** ADR-Light (ein Absatz pro signifikanter Entscheidung in `docs/governance/adr/`)\n\n#### Kleine Teams (S1)\n\n- **Geeignet:** Domain Model, Kern-Domain Charters, ADI, Engineering Review (async)\n- **Risiko:** Informelle Absprachen ersetzen Dokumentation\n- **Empfehlung:** PR-Template mit Constitution-Checkliste (existiert in Constitution Anhang)\n\n#### Mehrere Teams (S2)\n\n- **Geeignet:** Vollständiger RFC → ADR → Release Spec Flow\n- **Risiko:** Schnittstellen-Konflikte zwischen Domänen\n- **Empfehlung:** Domain Owner als Pflichtrolle; monatlicher Architektur-Sync\n\n#### Externe Entwickler (S2+)\n\n- **Geeignet:** Öffentliche RFCs, klare CONTRIBUTING-Governance, Good-First-Issues ohne RFC\n- **Risiko:** Constitution-Verstöße durch Unkenntnis\n- **Empfehlung:** CONTRIBUTING.md mit 1-Seiten-Governance; automatischer Constitution-Check in CI\n\n#### Open-Source-Beiträge (S2+)\n\n- **Geeignet:** ADR-Referenz in PR; Domain Charter als CONTRIBUTING-Anhang\n- **Risiko:** Governance-Theater oder Governance-Ignoranz\n- **Empfehlung:** Bot-Kommentar bei fehlender ADR-Referenz; Maintainer als Domain Owner\n\n#### Internationale Organisation (S4)\n\n- **Geeignet:** Mehrsprachige Domain Charters; rotierende Council-Mitglieder; asynchrone RFC-Review (min. 7 Tage)\n- **Risiko:** Zeitzone-/Sprachbarrieren verzögern Entscheidungen\n- **Empfehlung:** RFC-Diskussionsfenster; Domain Governance Boards mit regionaler Vertretung\n\n#### Langfristige Wartung (alle Stufen)\n\n- **Geeignet:** ADI als institutionalisiertes Gedächtnis; LOCKED für stabile Kernentscheidungen\n- **Risiko:** Veraltete ADRs werden befolgt; neue Entwickler lesen nicht\n- **Empfehlung:** Jährlicher Governance-Health-Check; `Superseded`-Pflicht bei Änderungen; Onboarding-Modul „Architecture 101\"\n\n---\n\n## 10. Engineering-Empfehlung\n\n### 10.1 Sofortmaßnahmen (keine Code-Änderung)\n\n| # | Maßnahme | Aufwand | Impact |\n|---|---|---|---|\n| 1 | Ratifizierung RFC-000A durch Architecture Council | Gering | Governance-Grundlage |\n| 2 | ADI anlegen (`docs/governance/ADI.md`) mit Initial-Einträgen für Constitution + bestehende Architektur | Gering | Entscheidungssichtbarkeit |\n| 3 | Domain Model dokumentieren (`docs/governance/domain-model/HUI_DOMAIN_MODEL.md`) | Mittel | Strukturelle Klarheit |\n| 4 | Domain Charters für Kern-Domänen (Core, Registry, Orb, Feed) | Mittel | Ownership-Klarheit |\n| 5 | PR-Template um ADR-Referenz und Constitution-Check erweitern | Gering | Drift-Prävention |\n| 6 | `SYSTEM_OWNERSHIP.md` in Domain Charters überführen | Mittel | Konsolidierung |\n\n### 10.2 Mittelfristig\n\n| # | Maßnahme |\n|---|---|\n| 7 | Architecture Council formalisieren (auch bei 2–3 Personen) |\n| 8 | Red-Team-Review für Intelligence- und Feed-Domäne |\n| 9 | Quartals-ADI-Review als wiederkehrendes Ritual |\n| 10 | CI-Check: PR mit `architecture-significant` Label erfordert ADR-Referenz |\n\n### 10.3 Langfristig\n\n| # | Maßnahme |\n|---|---|\n| 11 | LOCKED-Status für Constitution, Registry-Semantik, Core Engine Datenmodell |\n| 12 | Domain Governance Boards bei Team-Wachstum > 20 |\n| 13 | Governance-Health-Metrik (nicht Engagement-Metrik!) — z. B. ADR-Abdeckung, Drift-Rate, Charter-Aktualität |\n| 14 | Stewardship-Integration (Community-Governance aus [`GOVERNANCE_FOUNDATION_MAP.md`](../GOVERNANCE_FOUNDATION_MAP.md)) |\n\n### 10.4 Was bewusst nicht empfohlen wird\n\n| Nicht tun | Begründung |\n|---|---|\n| 11-Level-Hierarchie beibehalten | Kategoriefehler; verwirrt langfristig |\n| RFC für jede Code-Änderung | Überdokumentation; Entscheidungsstau |\n| Governance vor Constitution | Constitution ist bereits ratifiziert und korrekt positioniert |\n| Produktentscheidungen in ADRs | ADR = Architektur; Produkt = PO + Product Architecture |\n| Engagement-Metriken für Governance-Health | Widerspricht Constitution Regel 2 |\n\n### 10.5 Erfolgskriterien\n\nDie Governance ist erfolgreich, wenn:\n\n1. **Jede signifikante Architekturentscheidung** im ADI auffindbar ist\n2. **Jede Domäne** einen aktuellen Charter mit klarem Owner hat\n3. **Kein PR** die Constitution verletzt, ohne dokumentierte Ausnahme\n4. **Neue Teammitglieder** in < 1 Tag die Governance verstehen (Onboarding)\n5. **In 10 Jahren** noch nachvollziehbar ist, *warum* eine Entscheidung getroffen wurde\n6. **Architekturdrift** quartalsweise erkannt und adressiert wird\n7. **Kleine Teams** die Governance nicht als Last, sondern als Kompass erleben\n\n---\n\n## Anhang A — Template-Referenzen\n\n### RFC-Template (Kurz)\n\n```markdown\n# RFC-NNN — Titel\n**Status:** Draft | **Domain:** | **Autor:** | **Datum:**\n\n## Problem\n## Kontext (Constitution-Bezug)\n## Vorgeschlagene Lösung\n## Alternativen\n## Auswirkungen (Domänen, Daten, Schnittstellen)\n## Offene Fragen\n```\n\n### ADR-Template (Kurz)\n\n```markdown\n# ADR-NNN — Titel\n**Status:** Draft | **RFC:** RFC-NNN | **Domain:** | **Datum:**\n\n## Kontext\n## Entscheidung\n## Begründung\n## Konsequenzen (positiv / negativ)\n## Constitution-Check\n## Alternativen (verworfen)\n```\n\n### Domain Charter-Template (Kurz)\n\n```markdown\n# Domain Charter — [Name]\n**Owner:** | **Status:** | **Constitution-Bezug:**\n\n## Mission\n## Verantwortlichkeit (In/Out of Scope)\n## Datenbesitz\n## Schnittstellen & Events\n## Abhängigkeiten\n## Anti-Patterns\n## ADRs | RFCs | Releases\n## LOCKED Scope\n```\n\n---\n\n## Anhang B — Bezug zu bestehenden HUI-Dokumenten\n\n| Bestehendes Dokument | Rolle in neuer Governance |\n|---|---|\n| [`HUI_CONSTITUTION.md`](../../HUI_CONSTITUTION.md) | Level 0 — ratifiziert, LOCKED-Kandidat |\n| [`docs/ARCHITECTURE_INDEX.md`](../ARCHITECTURE_INDEX.md) | Vorstufe Domain Model — zu überführen |\n| [`docs/SYSTEM_OWNERSHIP.md`](../SYSTEM_OWNERSHIP.md) | Vorstufe Datenbesitz in Domain Charters |\n| [`docs/GOVERNANCE_FOUNDATION_MAP.md`](../GOVERNANCE_FOUNDATION_MAP.md) | Stewardship-Ergänzung zur technischen Governance |\n| [`CODEBASE.md`](../../CODEBASE.md) | Operative Code-Landkarte — referenziert Domain Model |\n| Constitution Anhang (PR-Checkliste) | Vorstufe Engineering Review |\n\n---\n\n## Anhang C — Glossar\n\n| Begriff | Definition |\n|---|---|\n| **ADI** | Architecture Decision Index — zentrales Entscheidungsregister |\n| **ADR** | Architecture Decision Record — bindende Architekturentscheidung |\n| **Architecture Council** | Gremium aus Product + Engineering Architecture |\n| **Domain Charter** | Verbindlicher Vertrag einer Domäne |\n| **Domain Model** | Strukturelle Landkarte aller Domänen |\n| **Engineering Review** | Technische Prüfung vor/während Implementierung |\n| **LOCKED** | Terminaler Schutzstatus — Änderung nur via neuem RFC |\n| **RFC** | Request for Comments — strukturierter Vorschlag |\n| **Release Specification** | Konkreter Lieferumfang eines Releases |\n| **Stewardship** | Pflege-Orientierung statt Kontrolle (HUI-Philosophie) |\n\n---\n\n*RFC-000A definiert die Governance. Sie implementiert nichts.*  \n*Sie ist der Rahmen, in dem alle zukünftigen Architekturentscheidungen getroffen werden.*  \n*Grundlage aller Entscheidungen bleibt: [`HUI_CONSTITUTION.md`](../../HUI_CONSTITUTION.md)*\n\n---\n\n**Nächster Schritt:** Architecture Council Review → Discussion → Ratifizierung → ADR-0001 (Architecture Governance Adoption)\n",
+          "metadata": {
+            "rules": [
+              "governance-process",
+              "status-model",
+              "decision-index",
+              "domain-charter"
+            ],
+            "governedDomains": [
+              "*"
+            ],
+            "contracts": [
+              "governance-flow",
+              "architecture-approval"
+            ]
+          },
+          "rules": [
+            "governance-process",
+            "status-model",
+            "decision-index",
+            "domain-charter"
+          ],
+          "governedDomains": [
+            "*"
+          ],
+          "contracts": [
+            "governance-flow",
+            "architecture-approval"
+          ],
+          "binding": true,
+          "ratified": true
+        }
+      ]
+    },
+    "rules": [
+      {
+        "id": "GR-01",
+        "title": "Menschen sind keine Produkte.",
+        "description": "Jede Entscheidung, die Menschen als Ressource zur Gewinnmaximierung behandelt, widerspricht der HUI Constitution.",
+        "source": "HUI_CONSTITUTION.md",
+        "sourceType": "document",
+        "version": "1.0",
+        "status": "Ratified",
+        "authority": "CONSTITUTION",
+        "validSince": "2026-06-29",
+        "supersededBy": null,
+        "predecessor": null,
+        "successor": null,
+        "scope": "platform",
+        "affectedDomains": [
+          "*"
+        ],
+        "affectedCapabilities": [],
+        "affectedLayers": [],
+        "priority": 10,
+        "derived": false,
+        "inferred": false,
+        "metadata": {}
+      },
+      {
+        "id": "GR-02",
+        "title": "Wirkung ist wichtiger als Aufmerksamkeit.",
+        "description": "HUI optimiert nicht für Klicks, Sitzungsdauer oder Interaktionsrate.  \nHUI optimiert für echte menschliche Wirkung — messbar durch die Grundpfeiler, nicht durch Engagement-Metriken.",
+        "source": "HUI_CONSTITUTION.md",
+        "sourceType": "document",
+        "version": "1.0",
+        "status": "Ratified",
+        "authority": "CONSTITUTION",
+        "validSince": "2026-06-29",
+        "supersededBy": null,
+        "predecessor": null,
+        "successor": null,
+        "scope": "platform",
+        "affectedDomains": [
+          "*"
+        ],
+        "affectedCapabilities": [],
+        "affectedLayers": [],
+        "priority": 10,
+        "derived": false,
+        "inferred": false,
+        "metadata": {}
+      },
+      {
+        "id": "GR-03",
+        "title": "Verbinden ist wertvoller als Reichweite.",
+        "description": "Eine tiefe, bedeutsame Verbindung hat mehr Wert als tausend flüchtige.  \nReichweite wird in HUI niemals als Qualitätsmerkmal angezeigt oder bewertet.",
+        "source": "HUI_CONSTITUTION.md",
+        "sourceType": "document",
+        "version": "1.0",
+        "status": "Ratified",
+        "authority": "CONSTITUTION",
+        "validSince": "2026-06-29",
+        "supersededBy": null,
+        "predecessor": null,
+        "successor": null,
+        "scope": "platform",
+        "affectedDomains": [
+          "*"
+        ],
+        "affectedCapabilities": [],
+        "affectedLayers": [],
+        "priority": 10,
+        "derived": false,
+        "inferred": false,
+        "metadata": {}
+      },
+      {
+        "id": "GR-04",
+        "title": "Wertschöpfung und Gemeinwohl gehören zusammen.",
+        "description": "Wirtschaftlicher Erfolg auf HUI soll immer auch der Gemeinschaft zugutekommen.  \nDas HUI-Finanzmodell (Impact Pool) ist Ausdruck dieses Prinzips.",
+        "source": "HUI_CONSTITUTION.md",
+        "sourceType": "document",
+        "version": "1.0",
+        "status": "Ratified",
+        "authority": "CONSTITUTION",
+        "validSince": "2026-06-29",
+        "supersededBy": null,
+        "predecessor": null,
+        "successor": null,
+        "scope": "platform",
+        "affectedDomains": [
+          "*"
+        ],
+        "affectedCapabilities": [],
+        "affectedLayers": [],
+        "priority": 10,
+        "derived": false,
+        "inferred": false,
+        "metadata": {}
+      },
+      {
+        "id": "GR-05",
+        "title": "Der Orb zeigt keine Leistung. Er zeigt gelebte Wirkung.",
+        "description": "Der Orb ist nicht gamifiziert. Er bewertet niemanden. Er vergleicht niemanden.  \nEr entwickelt sich langsam, organisch und unaufgeregt — als stilles Symbol dessen, was jemand in der Welt bewirkt.",
+        "source": "HUI_CONSTITUTION.md",
+        "sourceType": "document",
+        "version": "1.0",
+        "status": "Ratified",
+        "authority": "CONSTITUTION",
+        "validSince": "2026-06-29",
+        "supersededBy": null,
+        "predecessor": null,
+        "successor": null,
+        "scope": "platform",
+        "affectedDomains": [
+          "*"
+        ],
+        "affectedCapabilities": [],
+        "affectedLayers": [],
+        "priority": 10,
+        "derived": false,
+        "inferred": false,
+        "metadata": {}
+      },
+      {
+        "id": "GR-06",
+        "title": "Der Feed dient Orientierung. Nicht Sucht.",
+        "description": "Der Feed von HUI ist keine Aufmerksamkeitsmaschine.  \nEr hat keinen Infinite Scroll ohne Pause. Keine algorithmische Outrage-Verstärkung.  \nEr soll Menschen helfen zu finden, was ihre Wirkung ergänzt.",
+        "source": "HUI_CONSTITUTION.md",
+        "sourceType": "document",
+        "version": "1.0",
+        "status": "Ratified",
+        "authority": "CONSTITUTION",
+        "validSince": "2026-06-29",
+        "supersededBy": null,
+        "predecessor": null,
+        "successor": null,
+        "scope": "platform",
+        "affectedDomains": [
+          "*"
+        ],
+        "affectedCapabilities": [],
+        "affectedLayers": [],
+        "priority": 10,
+        "derived": false,
+        "inferred": false,
+        "metadata": {}
+      },
+      {
+        "id": "GR-07",
+        "title": "Die KI ergänzt Menschen. Sie ersetzt sie nicht.",
+        "description": "KI-Systeme auf HUI empfehlen, verbinden und orientieren.  \nSie manipulieren nicht, schaffen keine Abhängigkeit und maximieren nicht die Verweildauer.  \nDie KI fragt nicht: *\"Was hält Nutzer möglichst lange in der App?\"*  \nSie fragt: *\"Welche Begegnung könnte für beide Menschen sinnvoll sein?\"*",
+        "source": "HUI_CONSTITUTION.md",
+        "sourceType": "document",
+        "version": "1.0",
+        "status": "Ratified",
+        "authority": "CONSTITUTION",
+        "validSince": "2026-06-29",
+        "supersededBy": null,
+        "predecessor": null,
+        "successor": null,
+        "scope": "platform",
+        "affectedDomains": [
+          "*"
+        ],
+        "affectedCapabilities": [],
+        "affectedLayers": [],
+        "priority": 10,
+        "derived": false,
+        "inferred": false,
+        "metadata": {}
+      },
+      {
+        "id": "GR-08",
+        "title": "Keine Gamification. Keine Belohnungssysteme.",
+        "description": "HUI implementiert kein System aus:\n- XP oder Erfahrungspunkten\n- Levels oder Rangstufen\n- Leaderboards oder Ranglisten\n- Achievements oder Badges\n- Streaks oder Login-Boni\n- Künstlichen Belohnungsschleifen\n\nWirkung braucht keine Belohnungsschleife. Sie ist Belohnung genug.",
+        "source": "HUI_CONSTITUTION.md",
+        "sourceType": "document",
+        "version": "1.0",
+        "status": "Ratified",
+        "authority": "CONSTITUTION",
+        "validSince": "2026-06-29",
+        "supersededBy": null,
+        "predecessor": null,
+        "successor": null,
+        "scope": "platform",
+        "affectedDomains": [
+          "*"
+        ],
+        "affectedCapabilities": [],
+        "affectedLayers": [],
+        "priority": 10,
+        "derived": false,
+        "inferred": false,
+        "metadata": {}
+      },
+      {
+        "id": "GR-09",
+        "title": "Jede neue Funktion muss mindestens einen Grundpfeiler stärken.",
+        "description": "Vor der Implementierung einer neuen Funktion gilt die **Entscheidungsregel** (Abschnitt V).  \nFunktionen, die keinen Grundpfeiler stärken, werden nicht gebaut.",
+        "source": "HUI_CONSTITUTION.md",
+        "sourceType": "document",
+        "version": "1.0",
+        "status": "Ratified",
+        "authority": "CONSTITUTION",
+        "validSince": "2026-06-29",
+        "supersededBy": null,
+        "predecessor": null,
+        "successor": null,
+        "scope": "platform",
+        "affectedDomains": [
+          "*"
+        ],
+        "affectedCapabilities": [],
+        "affectedLayers": [],
+        "priority": 10,
+        "derived": false,
+        "inferred": false,
+        "metadata": {}
+      },
+      {
+        "id": "GR-10",
+        "title": "Kurzfristiges Wachstum darf die Gemeinschaft nicht schädigen.",
+        "description": "Wenn eine Funktion kurzfristig Wachstumszahlen verbessert, aber langfristig die Gemeinschaftsqualität, das Vertrauen oder die menschliche Würde der Mitglieder schädigt, wird sie nicht umgesetzt.\n\n---",
+        "source": "HUI_CONSTITUTION.md",
+        "sourceType": "document",
+        "version": "1.0",
+        "status": "Ratified",
+        "authority": "CONSTITUTION",
+        "validSince": "2026-06-29",
+        "supersededBy": null,
+        "predecessor": null,
+        "successor": null,
+        "scope": "platform",
+        "affectedDomains": [
+          "*"
+        ],
+        "affectedCapabilities": [],
+        "affectedLayers": [],
+        "priority": 10,
+        "derived": false,
+        "inferred": false,
+        "metadata": {}
+      },
+      {
+        "id": "ARCH-PRINCIPLE-1",
+        "title": "Keine UI-Komponente besitzt eigene Wirkungslogik.",
+        "description": "Alle Wirkungsdaten kommen aus der Core Engine.",
+        "source": "HUI_CONSTITUTION.md",
+        "sourceType": "document",
+        "version": "1.0",
+        "status": "Ratified",
+        "authority": "CONSTITUTION",
+        "validSince": "2026-06-29",
+        "supersededBy": null,
+        "predecessor": null,
+        "successor": null,
+        "scope": "architecture",
+        "affectedDomains": [],
+        "affectedCapabilities": [],
+        "affectedLayers": [
+          "CORE",
+          "REGISTRY",
+          "SERVICES",
+          "COMPONENTS",
+          "PAGES"
+        ],
+        "priority": 10,
+        "derived": false,
+        "inferred": false,
+        "metadata": {}
+      },
+      {
+        "id": "ARCH-PRINCIPLE-2",
+        "title": "Keine Engine besitzt eigene Sprache.",
+        "description": "Alle Texte, Labels und Bezeichnungen kommen aus der Registry.",
+        "source": "HUI_CONSTITUTION.md",
+        "sourceType": "document",
+        "version": "1.0",
+        "status": "Ratified",
+        "authority": "CONSTITUTION",
+        "validSince": "2026-06-29",
+        "supersededBy": null,
+        "predecessor": null,
+        "successor": null,
+        "scope": "architecture",
+        "affectedDomains": [],
+        "affectedCapabilities": [],
+        "affectedLayers": [
+          "CORE",
+          "REGISTRY",
+          "SERVICES",
+          "COMPONENTS",
+          "PAGES"
+        ],
+        "priority": 10,
+        "derived": false,
+        "inferred": false,
+        "metadata": {}
+      },
+      {
+        "id": "ARCH-PRINCIPLE-3",
+        "title": "Die Registry ist die Single Source of Meaning.",
+        "description": "Kein Text wird doppelt definiert.",
+        "source": "HUI_CONSTITUTION.md",
+        "sourceType": "document",
+        "version": "1.0",
+        "status": "Ratified",
+        "authority": "CONSTITUTION",
+        "validSince": "2026-06-29",
+        "supersededBy": null,
+        "predecessor": null,
+        "successor": null,
+        "scope": "architecture",
+        "affectedDomains": [],
+        "affectedCapabilities": [],
+        "affectedLayers": [
+          "CORE",
+          "REGISTRY",
+          "SERVICES",
+          "COMPONENTS",
+          "PAGES"
+        ],
+        "priority": 10,
+        "derived": false,
+        "inferred": false,
+        "metadata": {}
+      },
+      {
+        "id": "ARCH-PRINCIPLE-4",
+        "title": "Die Core Engine ist die Single Source of Truth.",
+        "description": "Kein Modul pflegt eigene Wirkungsdaten.",
+        "source": "HUI_CONSTITUTION.md",
+        "sourceType": "document",
+        "version": "1.0",
+        "status": "Ratified",
+        "authority": "CONSTITUTION",
+        "validSince": "2026-06-29",
+        "supersededBy": null,
+        "predecessor": null,
+        "successor": null,
+        "scope": "architecture",
+        "affectedDomains": [],
+        "affectedCapabilities": [],
+        "affectedLayers": [
+          "CORE",
+          "REGISTRY",
+          "SERVICES",
+          "COMPONENTS",
+          "PAGES"
+        ],
+        "priority": 10,
+        "derived": false,
+        "inferred": false,
+        "metadata": {}
+      },
+      {
+        "id": "ARCH-PRINCIPLE-5",
+        "title": "Der Datenfluss ist unidirektional.",
+        "description": "Constitution → Registry → Engines → UI. Nie umgekehrt.",
+        "source": "HUI_CONSTITUTION.md",
+        "sourceType": "document",
+        "version": "1.0",
+        "status": "Ratified",
+        "authority": "CONSTITUTION",
+        "validSince": "2026-06-29",
+        "supersededBy": null,
+        "predecessor": null,
+        "successor": null,
+        "scope": "architecture",
+        "affectedDomains": [],
+        "affectedCapabilities": [],
+        "affectedLayers": [
+          "CORE",
+          "REGISTRY",
+          "SERVICES",
+          "COMPONENTS",
+          "PAGES"
+        ],
+        "priority": 10,
+        "derived": false,
+        "inferred": false,
+        "metadata": {}
+      },
+      {
+        "id": "CORE_BYPASS",
+        "title": "Core tables via Core Engine only",
+        "description": "Scanner enforcement: CORE_BYPASS (CRITICAL)",
+        "source": "docs/governance/ADR-002-architecture-scanner.md",
+        "sourceType": "document",
+        "version": "1.0",
+        "status": "Accepted",
+        "authority": "ADR-002",
+        "validSince": "2026-06-29",
+        "supersededBy": null,
+        "predecessor": null,
+        "successor": null,
+        "scope": "code",
+        "affectedDomains": [
+          "PAGES",
+          "COMPONENTS",
+          "FEATURES",
+          "HOOKS",
+          "CONTEXT",
+          "SERVICES",
+          "CORE"
+        ],
+        "affectedCapabilities": [],
+        "affectedLayers": [],
+        "priority": 50,
+        "derived": false,
+        "inferred": false,
+        "metadata": {
+          "severity": "CRITICAL",
+          "violationType": "CORE_BYPASS"
+        }
+      },
+      {
+        "id": "DB_DIRECT_WRITE",
+        "title": "No DB writes in UI layers",
+        "description": "Scanner enforcement: DB_DIRECT_WRITE (HIGH)",
+        "source": "docs/governance/ADR-002-architecture-scanner.md",
+        "sourceType": "document",
+        "version": "1.0",
+        "status": "Accepted",
+        "authority": "ADR-002",
+        "validSince": "2026-06-29",
+        "supersededBy": null,
+        "predecessor": null,
+        "successor": null,
+        "scope": "code",
+        "affectedDomains": [
+          "PAGES",
+          "COMPONENTS",
+          "FEATURES",
+          "HOOKS",
+          "CONTEXT",
+          "SERVICES",
+          "CORE"
+        ],
+        "affectedCapabilities": [],
+        "affectedLayers": [],
+        "priority": 50,
+        "derived": false,
+        "inferred": false,
+        "metadata": {
+          "severity": "HIGH",
+          "violationType": "DB_DIRECT_WRITE"
+        }
+      },
+      {
+        "id": "DB_DIRECT_READ",
+        "title": "No direct DB reads in UI layers",
+        "description": "Scanner enforcement: DB_DIRECT_READ (MEDIUM)",
+        "source": "docs/governance/ADR-002-architecture-scanner.md",
+        "sourceType": "document",
+        "version": "1.0",
+        "status": "Accepted",
+        "authority": "ADR-002",
+        "validSince": "2026-06-29",
+        "supersededBy": null,
+        "predecessor": null,
+        "successor": null,
+        "scope": "code",
+        "affectedDomains": [
+          "PAGES",
+          "COMPONENTS",
+          "FEATURES",
+          "HOOKS",
+          "CONTEXT",
+          "SERVICES",
+          "CORE"
+        ],
+        "affectedCapabilities": [],
+        "affectedLayers": [],
+        "priority": 50,
+        "derived": false,
+        "inferred": false,
+        "metadata": {
+          "severity": "MEDIUM",
+          "violationType": "DB_DIRECT_READ"
+        }
+      },
+      {
+        "id": "LAYER_VIOLATION",
+        "title": "RFC-000 import direction",
+        "description": "Scanner enforcement: LAYER_VIOLATION (HIGH)",
+        "source": "docs/governance/ADR-002-architecture-scanner.md",
+        "sourceType": "document",
+        "version": "1.0",
+        "status": "Accepted",
+        "authority": "ADR-002",
+        "validSince": "2026-06-29",
+        "supersededBy": null,
+        "predecessor": null,
+        "successor": null,
+        "scope": "code",
+        "affectedDomains": [
+          "PAGES",
+          "COMPONENTS",
+          "FEATURES",
+          "HOOKS",
+          "CONTEXT",
+          "SERVICES",
+          "CORE"
+        ],
+        "affectedCapabilities": [],
+        "affectedLayers": [],
+        "priority": 50,
+        "derived": false,
+        "inferred": false,
+        "metadata": {
+          "severity": "HIGH",
+          "violationType": "LAYER_VIOLATION"
+        }
+      },
+      {
+        "id": "DUPLICATE_OWNER",
+        "title": "Single writer per table",
+        "description": "Scanner enforcement: DUPLICATE_OWNER (HIGH)",
+        "source": "docs/governance/ADR-002-architecture-scanner.md",
+        "sourceType": "document",
+        "version": "1.0",
+        "status": "Accepted",
+        "authority": "ADR-002",
+        "validSince": "2026-06-29",
+        "supersededBy": null,
+        "predecessor": null,
+        "successor": null,
+        "scope": "code",
+        "affectedDomains": [
+          "PAGES",
+          "COMPONENTS",
+          "FEATURES",
+          "HOOKS",
+          "CONTEXT",
+          "SERVICES",
+          "CORE"
+        ],
+        "affectedCapabilities": [],
+        "affectedLayers": [],
+        "priority": 50,
+        "derived": false,
+        "inferred": false,
+        "metadata": {
+          "severity": "HIGH",
+          "violationType": "DUPLICATE_OWNER"
+        }
+      },
+      {
+        "id": "DIRECT_ROUTING",
+        "title": "Action Engine required for navigation",
+        "description": "Scanner enforcement: DIRECT_ROUTING (HIGH)",
+        "source": "docs/governance/ADR-002-architecture-scanner.md",
+        "sourceType": "document",
+        "version": "1.0",
+        "status": "Accepted",
+        "authority": "ADR-002",
+        "validSince": "2026-06-29",
+        "supersededBy": null,
+        "predecessor": null,
+        "successor": null,
+        "scope": "code",
+        "affectedDomains": [
+          "PAGES",
+          "COMPONENTS",
+          "FEATURES",
+          "HOOKS",
+          "CONTEXT",
+          "SERVICES",
+          "CORE"
+        ],
+        "affectedCapabilities": [],
+        "affectedLayers": [],
+        "priority": 50,
+        "derived": false,
+        "inferred": false,
+        "metadata": {
+          "severity": "HIGH",
+          "violationType": "DIRECT_ROUTING"
+        }
+      },
+      {
+        "id": "ACTION_ENGINE_GAP",
+        "title": "navigate() via Action Engine",
+        "description": "Scanner enforcement: ACTION_ENGINE_GAP (HIGH)",
+        "source": "docs/governance/ADR-002-architecture-scanner.md",
+        "sourceType": "document",
+        "version": "1.0",
+        "status": "Accepted",
+        "authority": "ADR-002",
+        "validSince": "2026-06-29",
+        "supersededBy": null,
+        "predecessor": null,
+        "successor": null,
+        "scope": "code",
+        "affectedDomains": [
+          "PAGES",
+          "COMPONENTS",
+          "FEATURES",
+          "HOOKS",
+          "CONTEXT",
+          "SERVICES",
+          "CORE"
+        ],
+        "affectedCapabilities": [],
+        "affectedLayers": [],
+        "priority": 50,
+        "derived": false,
+        "inferred": false,
+        "metadata": {
+          "severity": "HIGH",
+          "violationType": "ACTION_ENGINE_GAP"
+        }
+      },
+      {
+        "id": "REGISTRY_BYPASS",
+        "title": "HuiRegistry for colors/labels",
+        "description": "Scanner enforcement: REGISTRY_BYPASS (LOW)",
+        "source": "docs/governance/ADR-002-architecture-scanner.md",
+        "sourceType": "document",
+        "version": "1.0",
+        "status": "Accepted",
+        "authority": "ADR-002",
+        "validSince": "2026-06-29",
+        "supersededBy": null,
+        "predecessor": null,
+        "successor": null,
+        "scope": "code",
+        "affectedDomains": [
+          "PAGES",
+          "COMPONENTS",
+          "FEATURES",
+          "HOOKS",
+          "CONTEXT",
+          "SERVICES",
+          "CORE"
+        ],
+        "affectedCapabilities": [],
+        "affectedLayers": [],
+        "priority": 50,
+        "derived": false,
+        "inferred": false,
+        "metadata": {
+          "severity": "LOW",
+          "violationType": "REGISTRY_BYPASS"
+        }
+      },
+      {
+        "id": "MISSING_HEADER",
+        "title": "@domain + @owner tags required",
+        "description": "Scanner enforcement: MISSING_HEADER (INFO)",
+        "source": "docs/governance/ADR-002-architecture-scanner.md",
+        "sourceType": "document",
+        "version": "1.0",
+        "status": "Accepted",
+        "authority": "ADR-002",
+        "validSince": "2026-06-29",
+        "supersededBy": null,
+        "predecessor": null,
+        "successor": null,
+        "scope": "code",
+        "affectedDomains": [
+          "PAGES",
+          "COMPONENTS",
+          "FEATURES",
+          "HOOKS",
+          "CONTEXT",
+          "SERVICES",
+          "CORE"
+        ],
+        "affectedCapabilities": [],
+        "affectedLayers": [],
+        "priority": 50,
+        "derived": false,
+        "inferred": false,
+        "metadata": {
+          "severity": "INFO",
+          "violationType": "MISSING_HEADER"
+        }
+      },
+      {
+        "id": "POLICY-REALTIME-RT-1",
+        "title": ".on() IMMER vor .subscribe()",
+        "description": "",
+        "source": "docs/REALTIME_REGISTRY.md",
+        "sourceType": "document",
+        "version": "1.0",
+        "status": "Accepted",
+        "authority": "POLICY-REALTIME",
+        "validSince": null,
+        "supersededBy": null,
+        "predecessor": null,
+        "successor": null,
+        "scope": "code",
+        "affectedDomains": [],
+        "affectedCapabilities": [],
+        "affectedLayers": [],
+        "priority": 40,
+        "derived": true,
+        "inferred": false,
+        "metadata": {}
+      },
+      {
+        "id": "POLICY-REALTIME-RT-2",
+        "title": "Jeder Channel hat exakt einen Owner",
+        "description": "",
+        "source": "docs/REALTIME_REGISTRY.md",
+        "sourceType": "document",
+        "version": "1.0",
+        "status": "Accepted",
+        "authority": "POLICY-REALTIME",
+        "validSince": null,
+        "supersededBy": null,
+        "predecessor": null,
+        "successor": null,
+        "scope": "code",
+        "affectedDomains": [],
+        "affectedCapabilities": [],
+        "affectedLayers": [],
+        "priority": 40,
+        "derived": true,
+        "inferred": false,
+        "metadata": {}
+      },
+      {
+        "id": "POLICY-REALTIME-RT-3",
+        "title": "Cleanup verpflichtend",
+        "description": "",
+        "source": "docs/REALTIME_REGISTRY.md",
+        "sourceType": "document",
+        "version": "1.0",
+        "status": "Accepted",
+        "authority": "POLICY-REALTIME",
+        "validSince": null,
+        "supersededBy": null,
+        "predecessor": null,
+        "successor": null,
+        "scope": "code",
+        "affectedDomains": [],
+        "affectedCapabilities": [],
+        "affectedLayers": [],
+        "priority": 40,
+        "derived": true,
+        "inferred": false,
+        "metadata": {}
+      },
+      {
+        "id": "POLICY-REALTIME-RT-4",
+        "title": "StrictMode-safe",
+        "description": "",
+        "source": "docs/REALTIME_REGISTRY.md",
+        "sourceType": "document",
+        "version": "1.0",
+        "status": "Accepted",
+        "authority": "POLICY-REALTIME",
+        "validSince": null,
+        "supersededBy": null,
+        "predecessor": null,
+        "successor": null,
+        "scope": "code",
+        "affectedDomains": [],
+        "affectedCapabilities": [],
+        "affectedLayers": [],
+        "priority": 40,
+        "derived": true,
+        "inferred": false,
+        "metadata": {}
+      },
+      {
+        "id": "POLICY-REALTIME-RT-5",
+        "title": "Reconnect-safe",
+        "description": "",
+        "source": "docs/REALTIME_REGISTRY.md",
+        "sourceType": "document",
+        "version": "1.0",
+        "status": "Accepted",
+        "authority": "POLICY-REALTIME",
+        "validSince": null,
+        "supersededBy": null,
+        "predecessor": null,
+        "successor": null,
+        "scope": "code",
+        "affectedDomains": [],
+        "affectedCapabilities": [],
+        "affectedLayers": [],
+        "priority": 40,
+        "derived": true,
+        "inferred": false,
+        "metadata": {}
+      }
+    ],
+    "decisions": [
+      {
+        "id": "ADR-001",
+        "title": "ADR-001 — Route Authority",
+        "why": "Route definitions were scattered across `App.jsx`, `APP_ROUTES`, and individual page imports. This made it impossible to analyze user journeys, ownership, or route-level governance.",
+        "alternatives": [],
+        "acceptedRisks": [
+          "Every route has exactly one owner (`OWNER.*`)",
+          "Every route has an auth level (`AUTH.*`)",
+          "Route-to-page mapping enables journey analysis",
+          "`validateParity()` detects drift between registry and router"
+        ],
+        "influencedRules": [
+          "DIRECT_ROUTING",
+          "ACTION_ENGINE_GAP"
+        ],
+        "adr": "ADR-001",
+        "rfc": null,
+        "constitutionRules": [
+          "GR-09"
+        ],
+        "domains": [
+          "routes",
+          "pages"
+        ],
+        "impacts": [],
+        "status": "Accepted",
+        "version": "1.0",
+        "date": "2026-06-29",
+        "owner": "HUI Release Engineering",
+        "source": "docs/governance/ADR-001-route-authority.md",
+        "derived": false
+      },
+      {
+        "id": "ADR-002",
+        "title": "ADR-002 — Architecture Scanner",
+        "why": "Architecture rules in the Constitution were not automatically enforceable. Manual code review could not scale.",
+        "alternatives": [],
+        "acceptedRisks": [
+          "Scanner runs in CI before merge",
+          "No runtime code changes from scanner",
+          "All recommendations are advisory until explicitly enforced"
+        ],
+        "influencedRules": [
+          "CORE_BYPASS",
+          "DB_DIRECT_WRITE",
+          "DB_DIRECT_READ",
+          "LAYER_VIOLATION",
+          "DUPLICATE_OWNER",
+          "DIRECT_ROUTING",
+          "ACTION_ENGINE_GAP",
+          "REGISTRY_BYPASS",
+          "MISSING_HEADER"
+        ],
+        "adr": "ADR-002",
+        "rfc": null,
+        "constitutionRules": [
+          "GR-09"
+        ],
+        "domains": [
+          "architecture"
+        ],
+        "impacts": [
+          "Scans all `src/` files without affecting runtime",
+          "Detects violations against Constitution, RFC-000, and ADR-001",
+          "Generates metrics, graphs, and compliance reports",
+          "Provides Architecture Intelligence (ARCH-003) for explain, validate, simulate, and recommend"
+        ],
+        "status": "Accepted",
+        "version": "1.0",
+        "date": "2026-06-29",
+        "owner": "HUI Architecture",
+        "source": "docs/governance/ADR-002-architecture-scanner.md",
+        "derived": false
+      }
+    ],
+    "lifecycle": [
+      {
+        "id": "ADR-001-PHASE-1",
+        "adr": "ADR-001",
+        "phase": 1,
+        "release": "NAV-001B",
+        "status": "Shadow Registry",
+        "current": true
+      },
+      {
+        "id": "ADR-001-PHASE-2",
+        "adr": "ADR-001",
+        "phase": 2,
+        "release": "NAV-002",
+        "status": "Parity Validation",
+        "current": false
+      },
+      {
+        "id": "ADR-001-PHASE-3",
+        "adr": "ADR-001",
+        "phase": 3,
+        "release": "NAV-003",
+        "status": "Migration",
+        "current": false
+      },
+      {
+        "id": "ADR-001-PHASE-4",
+        "adr": "ADR-001",
+        "phase": 4,
+        "release": "NAV-004",
+        "status": "Sole Source",
+        "current": false
+      },
+      {
+        "id": "ADR-002-PHASE-1",
+        "adr": "ADR-002",
+        "phase": 1,
+        "release": "ARCH-001",
+        "status": "Scanner",
+        "current": false
+      },
+      {
+        "id": "ADR-002-PHASE-2",
+        "adr": "ADR-002",
+        "phase": 2,
+        "release": "ARCH-002",
+        "status": "Knowledge Graph",
+        "current": false
+      },
+      {
+        "id": "ADR-002-PHASE-3",
+        "adr": "ADR-002",
+        "phase": 3,
+        "release": "ARCH-003",
+        "status": "Intelligence",
+        "current": false
+      },
+      {
+        "id": "ADR-002-PHASE-4",
+        "adr": "ADR-002",
+        "phase": 4,
+        "release": "ARCH-004",
+        "status": "Authority",
+        "current": false
+      }
+    ],
+    "versions": [
+      {
+        "id": "CONSTITUTION",
+        "document": "HUI_CONSTITUTION.md",
+        "version": "1.0",
+        "status": "Ratified"
+      },
+      {
+        "id": "CONSTITUTION----",
+        "document": "HUI_CONSTITUTION.md",
+        "version": "---",
+        "status": "Superseded",
+        "date": "---",
+        "note": "---"
+      },
+      {
+        "id": "CONSTITUTION-1.1",
+        "document": "HUI_CONSTITUTION.md",
+        "version": "1.1",
+        "status": "Superseded",
+        "date": "2026-06-29",
+        "note": "Orb-Philosophie präzisiert: Sonne/Blatt-Grundsatz, Weg statt Wachstum"
+      },
+      {
+        "id": "ADR-001",
+        "document": "docs/governance/ADR-001-route-authority.md",
+        "version": "1.0",
+        "status": "Accepted",
+        "date": "2026-06-29"
+      },
+      {
+        "id": "ADR-002",
+        "document": "docs/governance/ADR-002-architecture-scanner.md",
+        "version": "1.0",
+        "status": "Accepted",
+        "date": "2026-06-29"
+      },
+      {
+        "id": "RFC-000",
+        "document": "docs/governance/RFC-000-layering.md",
+        "version": "1.0",
+        "status": "Accepted",
+        "date": "2026-06-29"
+      },
+      {
+        "id": "RFC-000A",
+        "document": "docs/governance/RFC-000A_ARCHITECTURE_GOVERNANCE.md",
+        "version": "1.0",
+        "status": "Ratified",
+        "date": ""
+      },
+      {
+        "id": "POLICY-QUERY-RULES",
+        "document": "QUERY_RULES.md",
+        "version": "1.0",
+        "status": "Accepted"
+      },
+      {
+        "id": "POLICY-REALTIME",
+        "document": "docs/REALTIME_REGISTRY.md",
+        "version": "1.0",
+        "status": "Accepted"
+      },
+      {
+        "id": "POLICY-OWNERSHIP",
+        "document": "docs/SYSTEM_OWNERSHIP.md",
+        "version": "1.0",
+        "status": "Accepted"
+      }
+    ],
+    "policies": [
+      {
+        "id": "POLICY-QUERY-RULES",
+        "path": "QUERY_RULES.md",
+        "title": "HUI Query Rules",
+        "status": "Accepted",
+        "content": "# HUI Query Rules — NEVER BREAK THESE\n\n## Rule 1: Pure async/await ONLY for Supabase queries\n\n```js\n// ✅ CORRECT\nconst { data, error } = await supabase\n  .from('works')\n  .select('id,title,price')\n  .eq('status', 'published')\n  .order('created_at', { ascending: false })\n  .limit(20);\n\n// ❌ WRONG — .then() mixed with query builder\nsupabase.from('works').select('*').then(r => r.data);\n\n// ❌ WRONG — query builder methods inside .then() callback\nsupabase.from('works').select('*').then(({ data }).limit(20) => {});\n\n// ❌ WRONG — nested .then() chains\nsupabase.from('a').select('*').then(({ data }) => {\n  supabase.from('b').select('*').then(({ data: d2 }) => { ... });\n});\n```\n\n## Rule 2: Parallel queries → Promise.all with await\n\n```js\n// ✅ CORRECT — pure async/await parallel\nconst [profileRes, worksRes] = await Promise.all([\n  supabase.from('profiles').select('id,display_name').eq('id', uid).single(),\n  supabase.from('works').select('id,title,price').eq('user_id', uid).limit(20),\n]);\nconst profile = profileRes.data;\nconst works   = worksRes.data || [];\n\n// ❌ WRONG — mixing await Promise.all with .then() inside\nconst [a, b] = await Promise.all([\n  supabase.from('profiles').select('*').then(r => r.data),  // ← forbidden\n  supabase.from('works').select('*').then(r => r.data),     // ← forbidden\n]);\n```\n\n## Rule 3: useEffect with async → use async IIFE\n\n```js\n// ✅ CORRECT\nuseEffect(() => {\n  if (!userId) return;\n  (async () => {\n    const { data } = await supabase.from('profiles').select('id,name').eq('id', userId).single();\n    setProfile(data);\n  })();\n}, [userId]);\n\n// ❌ WRONG — async directly on useEffect callback\nuseEffect(async () => {   // React ignores the returned Promise\n  const { data } = await supabase.from('profiles').select('*').eq('id', userId).single();\n}, [userId]);\n```\n\n## Rule 4: All queries go through /services/db.js\n\n```js\n// ✅ CORRECT — use service layer\nimport { ProfileService } from '../services/db';\nconst { data } = await ProfileService.getById(userId);\n\n// ❌ WRONG — direct supabase in component\nconst { data } = await supabase.from('profiles').select('*').eq('id', userId).single();\n```\n\n## Rule 5: No select(\"*\") — always explicit fields\n\n```js\n// ✅ CORRECT\n.select('id,title,price,category,status,created_at')\n\n// ❌ WRONG\n.select('*')\n```\n\n## Rule 6: Always add .limit() to list queries\n\n```js\n// ✅ CORRECT\n.select('id,title').order('created_at', {ascending:false}).limit(50)\n\n// ❌ WRONG — no limit = unbounded query\n.select('id,title').order('created_at', {ascending:false})\n```\n\n## Rule 7: Always handle errors\n\n```js\n// ✅ CORRECT\nconst { data, error } = await supabase.from('works').select('id,title').limit(20);\nif (error) { console.error('[HUI]', error.message); return; }\n\n// ❌ WRONG — silent failure\nconst { data } = await supabase.from('works').select('id,title');\n```\n",
+        "rules": []
+      },
+      {
+        "id": "POLICY-REALTIME",
+        "path": "docs/REALTIME_REGISTRY.md",
+        "title": "HUI Realtime Channel Registry",
+        "status": "Accepted",
+        "content": "# HUI — REALTIME CHANNEL REGISTRY\n**Phase 4A.4 — Single-Owner Architecture**\n\n---\n\n## Naming Convention\n\n```\n{scope}-{entity}:{userId|resourceId}\n```\n\nBeispiele:\n- `asc-notifs:{userId}` — AppStateContext, notifications\n- `bookings-client:{userId}` — AppStateContext, client bookings\n- `creator-bookings:{userId}` — bookingContext, creator view\n- `chat-list:{userId}` — chatContext, conversation list\n- `thread:{chatId}` — chatContext, message thread\n\n---\n\n## Channel Register\n\n| Channel Pattern | Owner File | Events | Cleanup | Consumers |\n|-----------------|-----------|--------|---------|-----------|\n| `asc-notifs:{userId}` | `lib/AppStateContext.jsx` | INSERT notifications | ✅ useEffect return | `useNotifCount()`, `NotificationCenter` |\n| `bookings-client:{userId}` | `lib/AppStateContext.jsx` | * bookings | ✅ useEffect return | `useAppState().bookings` |\n| `chats:{userId}` | `lib/AppStateContext.jsx` | INSERT messages | ✅ useEffect return | `useAppState().chats` |\n| `creator-bookings:{userId}` | `lib/bookingContext.js` | * bookings | ✅ useEffect return | `useCreatorBookings()` |\n| `chat-list:{userId}` | `lib/chatContext.js` | UPDATE/INSERT chats | ✅ useEffect return | `useChatList()` |\n| `thread:{chatId}` | `lib/chatContext.js` | INSERT/UPDATE messages | ✅ useEffect return | `useChatThread()` |\n| `convos:{userId}` | `hooks/useChat.js` | UPDATE conversations | ✅ useEffect return | `useConversations()` (legacy) |\n| `msgs:{conversationId}` | `hooks/useChat.js` | INSERT messages | ✅ useEffect return | `useMessages()` (legacy) |\n| `comments:{workId}` | `components/CommentSection.jsx` | INSERT comments | ✅ useEffect return | inline |\n| `works-feed` | `components/DiscoveryFeed.jsx` | INSERT works | ✅ useEffect return | feed list |\n| `chat-{chatId}` | `components/MeinHUI_SubPages.jsx` | INSERT messages | ✅ useEffect return | NachrichtenPage |\n\n---\n\n## Regeln (ZWINGEND)\n\n1. **.on() IMMER vor .subscribe()** — niemals danach\n2. **Jeder Channel hat exakt einen Owner** — kein Channel-Name darf doppelt subscribed werden\n3. **Cleanup verpflichtend** — `return () => supabase.removeChannel(channel)`\n4. **StrictMode-safe** — Cleanup muss idempotent sein\n5. **Reconnect-safe** — Channel-Ref via `useRef`, nie als Component-State\n\n---\n\n## Standard useEffect Template\n\n```js\nuseEffect(() => {\n  if (!user?.id) return;\n\n  const channel = supabase\n    .channel(`{scope}-{entity}:${user.id}`)\n    .on('postgres_changes', {\n      event: 'INSERT',\n      schema: 'public',\n      table: '{tableName}',\n      filter: `user_id=eq.${user.id}`,\n    }, (payload) => {\n      // Handler — nur setState, keine weiteren DB-Calls\n    });\n\n  channel.subscribe();\n\n  return () => {\n    supabase.removeChannel(channel);\n  };\n}, [user?.id]);\n```\n\n---\n\n## Verboten\n\n- ❌ `channel.on()` nach `channel.subscribe()`\n- ❌ Gleicher Channel-Name in zwei verschiedenen useEffects/Komponenten\n- ❌ Channel als React-State speichern (immer `useRef`)\n- ❌ Channel außerhalb von useEffect erstellen\n- ❌ Global-Singleton-Channels (window.channel = ...)\n\n---\n*Generiert: Phase 4A.4 — Stand 2026-05-17*\n",
+        "rules": [
+          {
+            "id": "RT-1",
+            "number": 1,
+            "title": ".on() IMMER vor .subscribe()"
+          },
+          {
+            "id": "RT-2",
+            "number": 2,
+            "title": "Jeder Channel hat exakt einen Owner"
+          },
+          {
+            "id": "RT-3",
+            "number": 3,
+            "title": "Cleanup verpflichtend"
+          },
+          {
+            "id": "RT-4",
+            "number": 4,
+            "title": "StrictMode-safe"
+          },
+          {
+            "id": "RT-5",
+            "number": 5,
+            "title": "Reconnect-safe"
+          }
+        ]
+      },
+      {
+        "id": "POLICY-OWNERSHIP",
+        "path": "docs/SYSTEM_OWNERSHIP.md",
+        "title": "HUI System Ownership Map",
+        "status": "Accepted",
+        "content": "# HUI — SYSTEM OWNERSHIP MAP\n**Phase 4A.1 — Audit Date: 2026-05-17**\n\n---\n\n## Ownership-Prinzip\n\nJedes Datensystem hat genau **einen Owner** (Single Source of Truth).\nOwner = die Datei die Supabase schreibt UND den lokalen State hält.\nConsumer = Dateien die nur lesen (via Props, Context, Hook-Return).\n\n---\n\n## System-Ownership-Tabelle\n\n| System | Single Owner | Darf schreiben | Darf lesen (Consumer) |\n|--------|--------------|----------------|----------------------|\n| **Auth / Session** | `lib/AuthContext.jsx` | ✅ AuthContext only | alle via `useAuth()` |\n| **Profile (eigenes)** | `lib/AppStateContext.jsx` → `services/db.js` | ✅ AppState + EditProfile.jsx (erlaubt) | alle via `useAppState()` |\n| **Profile (fremd)** | `components/WirkerProfilePage.jsx` | ✅ lokaler Fetch ok | props/inline |\n| **Notifications** | `lib/AppStateContext.jsx` | ✅ AppState only | `useNotifCount()`, `useAppState().notifications` |\n| **Chats (Liste)** | `lib/chatContext.js` → `useChatList()` | ✅ chatContext only | via `useChatList()` |\n| **Messages (Thread)** | `lib/chatContext.js` → `useChatThread()` | ✅ chatContext only | via `useChatThread()` |\n| **Bookings (Client)** | `lib/AppStateContext.jsx` | ✅ AppState only | via `useAppState()` |\n| **Bookings (Creator)** | `lib/bookingContext.js` → `useCreatorBookings()` | ✅ bookingContext only | via `useCreatorBookings()` |\n| **Works** | `lib/AppStateContext.jsx` → `services/db.js` | ✅ AppState + Create-Flows (akzeptiert) | via `useOwnWorks()` |\n| **Experiences** | `services/db.js` | ✅ Service Layer | via direktem Fetch in WirkerProfilePage |\n| **Stories** | `lib/sessionHooks.js` (storyRefreshKey) | ✅ Create-Flows direkt (akzeptiert) | via storyRefreshKey |\n| **Trust / Reputation** | `lib/trustContext.js` | ✅ trustContext only | via `useReputation()` |\n| **Follows** | `lib/AppStateContext.jsx` | ✅ AppState + WorkDetailPage (❗) | via `useFollowStatus()` |\n| **Work Interactions** | `lib/AppStateContext.jsx` | ✅ AppState + WorkDetailPage (❗) | via `useWorkInteraction()` |\n| **Presence** | `lib/sessionHooks.js` → `usePresence()` | ✅ sessionHooks only | via `usePresence()` |\n| **Realtime Channels** | Verteilt (siehe REALTIME_REGISTRY.md) | ✅ je Single-Owner | via Context |\n| **UI Overlays** | `lib/AppStateContext.jsx` → `useUIState()` | ✅ AppState | via `useUIState()` |\n| **Discovery Feed** | `components/DiscoveryFeed.jsx` | ❗ lokal (akzeptiert — paginated) | inline |\n| **Impact / Votes** | `pages/ImpactPage.jsx` | ❗ direkt (akzeptiert — standalone) | inline |\n| **Payments / Escrow** | `functions/createCheckout.ts` + `stripeWebhook.ts` | ✅ Backend-only | via HuiPaymentDB |\n\n---\n\n## Problembereiche (❗)\n\n### 1. KRITISCH — Direkte DB-Writes in UI-Komponenten (nicht durch Service-Layer)\n\n| Datei | Table | Typ |\n|-------|-------|-----|\n| `components/WorkDetailPage.jsx` | work_likes, work_saves, follows | INSERT/DELETE |\n| `components/WirkerProfileDashboard.jsx` | bookings (confirm/decline), works | UPDATE |\n| `components/MeinHUI_SubPages.jsx` | messages, availability_slots, impact_votes | INSERT/DELETE |\n| `components/StoryBar.jsx` | story_views, messages | UPSERT/INSERT |\n| `components/WirkerProfilePage.jsx` | chats (INSERT!) | INSERT |\n\n### 2. DOPPELTE STATE-OWNER\n\n| Daten | # Duplikat-States | Primärer Owner |\n|-------|-------------------|----------------|\n| bookings | 8 | `lib/bookingContext.js` |\n| works | 11 | `lib/AppStateContext.jsx` |\n| profile | 19 | `lib/AppStateContext.jsx` |\n| chats | 3 | `lib/chatContext.js` |\n| messages | 3 | `lib/chatContext.js` |\n\n### 3. LEGACY HOOKS (werden nicht mehr importiert)\n\n- `hooks/useBookings.v2.js` — UNUSED\n- `hooks/useProfile.js` — UNUSED  \n- `hooks/useProfile.v2.js` — UNUSED\n- `hooks/useFeed.js` — UNUSED\n- `hooks/useMatch.js` — UNUSED\n- `hooks/useImpactProjects.js` — UNUSED\n- `hooks/useFavorites.js` — UNUSED\n- `hooks/useTalentProfile.js` — UNUSED\n- `hooks/useWirker.js` — UNUSED\n- `hooks/useWorks.js` — UNUSED\n\n---\n\n## Akzeptierte Ausnahmen (by design)\n\n- **Create-Flows** (`HuiCreateFlow`, `UniversalPostFlow`, `WerkPublisher`, `ExperienceCreator`):  \n  Direkte DB-Writes akzeptiert — sie sind isolierte Transaktions-Flows ohne State-Sharing.\n- **DiagnosePage**: Admin-Tool — direkter Supabase-Zugriff by design.\n- **EditProfile**: Einzige legitime Profil-Schreib-Komponente neben AppStateContext.\n- **LoginPage**: Auth-Flows dürfen supabase.auth direkt aufrufen.\n\n---\n*Generiert: Phase 4A.1 — Alle Änderungen rein architektonisch, keine UI-Änderungen.*\n",
+        "rules": []
+      }
+    ],
+    "health": {
+      "computedAt": "2026-06-30T14:28:40.526Z",
+      "authority": "ARCH-004",
+      "dimensions": {
+        "constitutionHealth": {
+          "label": "Constitution Health",
+          "score": 100,
+          "factors": [
+            {
+              "factor": "Constitution vorhanden",
+              "value": true,
+              "impact": 0
+            },
+            {
+              "factor": "Goldene Regeln geladen",
+              "value": 10,
+              "expected": 10,
+              "impact": 0
+            },
+            {
+              "factor": "Grundpfeiler geladen",
+              "value": 5,
+              "expected": 5,
+              "impact": 0
+            }
+          ],
+          "dataSources": [
+            "HUI_CONSTITUTION.md"
+          ],
+          "derived": false
+        },
+        "governanceHealth": {
+          "label": "Governance Health",
+          "score": 100,
+          "factors": [
+            {
+              "factor": "ADRs registriert",
+              "value": 2,
+              "impact": 0
+            },
+            {
+              "factor": "RFCs registriert",
+              "value": 2,
+              "impact": 0
+            },
+            {
+              "factor": "Verbindliche ADRs",
+              "value": 2,
+              "total": 2,
+              "impact": 0
+            }
+          ],
+          "dataSources": [
+            "docs/governance/",
+            "ARCH-004 Authority"
+          ],
+          "derived": false
+        },
+        "layerHealth": {
+          "label": "Layer Health",
+          "score": 68,
+          "factors": [
+            {
+              "factor": "Layer Violations",
+              "value": 16,
+              "impact": -32
+            },
+            {
+              "factor": "Layer Violation Anteil",
+              "value": "2.5%",
+              "impact": 0
+            }
+          ],
+          "dataSources": [
+            "docs/generated/violations.json",
+            "RFC-000"
+          ],
+          "derived": true
+        },
+        "ownershipHealth": {
+          "label": "Ownership Health",
+          "score": 0,
+          "factors": [
+            {
+              "factor": "Ownership Header Coverage",
+              "value": "0%",
+              "impact": -100
+            },
+            {
+              "factor": "Duplicate Table Owners",
+              "value": 17,
+              "impact": -51
+            }
+          ],
+          "dataSources": [
+            "docs/generated/metrics.json",
+            "docs/SYSTEM_OWNERSHIP.md"
+          ],
+          "derived": true
+        },
+        "coreHealth": {
+          "label": "Core Health",
+          "score": 0,
+          "factors": [
+            {
+              "factor": "Core Engine Adoption",
+              "value": "4%",
+              "impact": -96
+            },
+            {
+              "factor": "Critical Violations (Core Bypass)",
+              "value": 42,
+              "impact": -84
+            }
+          ],
+          "dataSources": [
+            "docs/generated/metrics.json"
+          ],
+          "derived": true
+        },
+        "domainHealth": {
+          "label": "Domain Health",
+          "score": 90,
+          "factors": [
+            {
+              "factor": "Unklassifizierte Dateien",
+              "value": 2,
+              "impact": -10
+            },
+            {
+              "factor": "Registrierte Domains",
+              "value": 11,
+              "impact": 0
+            }
+          ],
+          "dataSources": [
+            "docs/generated/metrics.json",
+            "ARCH-004 domainRegistry"
+          ],
+          "derived": true
+        },
+        "capabilityHealth": {
+          "label": "Capability Health",
+          "score": 100,
+          "factors": [
+            {
+              "factor": "Capabilities registriert",
+              "value": 12,
+              "impact": 0
+            }
+          ],
+          "dataSources": [
+            "docs/SYSTEM_OWNERSHIP.md",
+            "ARCH-004 capabilityRegistry"
+          ],
+          "derived": false
+        },
+        "dependencyHealth": {
+          "label": "Dependency Health",
+          "score": 60,
+          "factors": [
+            {
+              "factor": "HIGH Violations",
+              "value": 112,
+              "impact": -40
+            },
+            {
+              "factor": "Cross-Domain Writes",
+              "value": 0,
+              "impact": 0
+            }
+          ],
+          "dataSources": [
+            "docs/generated/metrics.json",
+            "docs/generated/violations.json"
+          ],
+          "derived": true
+        },
+        "securityHealth": {
+          "label": "Security Health",
+          "score": 0,
+          "factors": [
+            {
+              "factor": "DB Direct Writes in UI",
+              "value": 71,
+              "impact": -71
+            },
+            {
+              "factor": "Core Bypass",
+              "value": 42,
+              "impact": -126
+            }
+          ],
+          "dataSources": [
+            "docs/generated/violations.json"
+          ],
+          "derived": true
+        },
+        "maintainabilityHealth": {
+          "label": "Maintainability Health",
+          "score": 50,
+          "factors": [
+            {
+              "factor": "Violation Density",
+              "value": "211.78/100 files",
+              "impact": -50
+            },
+            {
+              "factor": "Total Violations",
+              "value": 629,
+              "impact": 0
+            }
+          ],
+          "dataSources": [
+            "docs/generated/metrics.json"
+          ],
+          "derived": true
+        },
+        "documentationHealth": {
+          "label": "Documentation Health",
+          "score": 100,
+          "factors": [
+            {
+              "factor": "Governance-Dokumente",
+              "value": 8,
+              "impact": 0
+            }
+          ],
+          "dataSources": [
+            "docs/governance/",
+            "HUI_CONSTITUTION.md"
+          ],
+          "derived": false
+        }
+      },
+      "architectureHealth": {
+        "score": 61,
+        "label": "Architecture Health (aggregiert)",
+        "factors": [
+          {
+            "dimension": "constitutionHealth",
+            "score": 100,
+            "weight": 0.09090909090909091
+          },
+          {
+            "dimension": "governanceHealth",
+            "score": 100,
+            "weight": 0.09090909090909091
+          },
+          {
+            "dimension": "layerHealth",
+            "score": 68,
+            "weight": 0.09090909090909091
+          },
+          {
+            "dimension": "ownershipHealth",
+            "score": 0,
+            "weight": 0.09090909090909091
+          },
+          {
+            "dimension": "coreHealth",
+            "score": 0,
+            "weight": 0.09090909090909091
+          },
+          {
+            "dimension": "domainHealth",
+            "score": 90,
+            "weight": 0.09090909090909091
+          },
+          {
+            "dimension": "capabilityHealth",
+            "score": 100,
+            "weight": 0.09090909090909091
+          },
+          {
+            "dimension": "dependencyHealth",
+            "score": 60,
+            "weight": 0.09090909090909091
+          },
+          {
+            "dimension": "securityHealth",
+            "score": 0,
+            "weight": 0.09090909090909091
+          },
+          {
+            "dimension": "maintainabilityHealth",
+            "score": 50,
+            "weight": 0.09090909090909091
+          },
+          {
+            "dimension": "documentationHealth",
+            "score": 100,
+            "weight": 0.09090909090909091
+          }
+        ],
+        "dataSources": [
+          "ARCH-004 Authority",
+          "docs/generated/metrics.json",
+          "docs/generated/violations.json"
+        ],
+        "derived": true
+      }
+    },
+    "compliance": {
+      "authority": {
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "checkedAt": "2026-06-30T14:28:40.527Z"
+      },
+      "modules": {
+        "compliant": false,
+        "violations": [
+          {
+            "module": "src/architecture/scanner/domains.js",
+            "issue": "Definiert DOMAINS lokal statt Authority zu importieren",
+            "drift": [],
+            "recommendation": "Import aus src/architecture/authority — getAuthorityState().domainRegistry"
+          },
+          {
+            "module": "src/architecture/scanner/violationDetector.js",
+            "issue": "Definiert Scanner-Regeln lokal (ALLOWED_DIRECT_DB_PATHS, SEVERITY)",
+            "recommendation": "Regeln aus Authority ruleRegistry lesen"
+          }
+        ],
+        "consumingModules": [
+          {
+            "path": "src/architecture/scanner/domains.js",
+            "name": "ARCH-001 domains.js",
+            "type": "domain-registry"
+          },
+          {
+            "path": "src/architecture/scanner/violationDetector.js",
+            "name": "ARCH-001 violationDetector.js",
+            "type": "rule-definitions"
+          },
+          {
+            "path": "src/architecture/knowledge-graph/",
+            "name": "ARCH-002 Knowledge Graph",
+            "type": "governance-consumer",
+            "optional": true
+          },
+          {
+            "path": "src/architecture/semantic/",
+            "name": "ARCH-002.1 Semantic Layer",
+            "type": "governance-consumer",
+            "optional": true
+          },
+          {
+            "path": "src/architecture/intelligence/",
+            "name": "ARCH-003 Intelligence",
+            "type": "governance-consumer",
+            "optional": true
+          }
+        ],
+        "authority": "ARCH-004",
+        "note": "Module mit lokalen Regeldefinitionen müssen auf Authority migriert werden. Keine automatische Codeänderung."
+      }
+    },
+    "graph": {
+      "nodes": [
+        {
+          "id": "CONSTITUTION",
+          "type": "constitution",
+          "label": "HUI Constitution v1.0",
+          "status": "Ratified"
+        },
+        {
+          "id": "GR-01",
+          "type": "rule",
+          "label": "Menschen sind keine Produkte.",
+          "status": "Ratified",
+          "authority": "CONSTITUTION",
+          "derived": false
+        },
+        {
+          "id": "GR-02",
+          "type": "rule",
+          "label": "Wirkung ist wichtiger als Aufmerksamkeit.",
+          "status": "Ratified",
+          "authority": "CONSTITUTION",
+          "derived": false
+        },
+        {
+          "id": "GR-03",
+          "type": "rule",
+          "label": "Verbinden ist wertvoller als Reichweite.",
+          "status": "Ratified",
+          "authority": "CONSTITUTION",
+          "derived": false
+        },
+        {
+          "id": "GR-04",
+          "type": "rule",
+          "label": "Wertschöpfung und Gemeinwohl gehören zusammen.",
+          "status": "Ratified",
+          "authority": "CONSTITUTION",
+          "derived": false
+        },
+        {
+          "id": "GR-05",
+          "type": "rule",
+          "label": "Der Orb zeigt keine Leistung. Er zeigt gelebte Wirkung.",
+          "status": "Ratified",
+          "authority": "CONSTITUTION",
+          "derived": false
+        },
+        {
+          "id": "GR-06",
+          "type": "rule",
+          "label": "Der Feed dient Orientierung. Nicht Sucht.",
+          "status": "Ratified",
+          "authority": "CONSTITUTION",
+          "derived": false
+        },
+        {
+          "id": "GR-07",
+          "type": "rule",
+          "label": "Die KI ergänzt Menschen. Sie ersetzt sie nicht.",
+          "status": "Ratified",
+          "authority": "CONSTITUTION",
+          "derived": false
+        },
+        {
+          "id": "GR-08",
+          "type": "rule",
+          "label": "Keine Gamification. Keine Belohnungssysteme.",
+          "status": "Ratified",
+          "authority": "CONSTITUTION",
+          "derived": false
+        },
+        {
+          "id": "GR-09",
+          "type": "rule",
+          "label": "Jede neue Funktion muss mindestens einen Grundpfeiler stärken.",
+          "status": "Ratified",
+          "authority": "CONSTITUTION",
+          "derived": false
+        },
+        {
+          "id": "GR-10",
+          "type": "rule",
+          "label": "Kurzfristiges Wachstum darf die Gemeinschaft nicht schädigen.",
+          "status": "Ratified",
+          "authority": "CONSTITUTION",
+          "derived": false
+        },
+        {
+          "id": "ARCH-PRINCIPLE-1",
+          "type": "rule",
+          "label": "Keine UI-Komponente besitzt eigene Wirkungslogik.",
+          "status": "Ratified",
+          "authority": "CONSTITUTION",
+          "derived": false
+        },
+        {
+          "id": "ARCH-PRINCIPLE-2",
+          "type": "rule",
+          "label": "Keine Engine besitzt eigene Sprache.",
+          "status": "Ratified",
+          "authority": "CONSTITUTION",
+          "derived": false
+        },
+        {
+          "id": "ARCH-PRINCIPLE-3",
+          "type": "rule",
+          "label": "Die Registry ist die Single Source of Meaning.",
+          "status": "Ratified",
+          "authority": "CONSTITUTION",
+          "derived": false
+        },
+        {
+          "id": "ARCH-PRINCIPLE-4",
+          "type": "rule",
+          "label": "Die Core Engine ist die Single Source of Truth.",
+          "status": "Ratified",
+          "authority": "CONSTITUTION",
+          "derived": false
+        },
+        {
+          "id": "ARCH-PRINCIPLE-5",
+          "type": "rule",
+          "label": "Der Datenfluss ist unidirektional.",
+          "status": "Ratified",
+          "authority": "CONSTITUTION",
+          "derived": false
+        },
+        {
+          "id": "CORE_BYPASS",
+          "type": "rule",
+          "label": "Core tables via Core Engine only",
+          "status": "Accepted",
+          "authority": "ADR-002",
+          "derived": false
+        },
+        {
+          "id": "DB_DIRECT_WRITE",
+          "type": "rule",
+          "label": "No DB writes in UI layers",
+          "status": "Accepted",
+          "authority": "ADR-002",
+          "derived": false
+        },
+        {
+          "id": "DB_DIRECT_READ",
+          "type": "rule",
+          "label": "No direct DB reads in UI layers",
+          "status": "Accepted",
+          "authority": "ADR-002",
+          "derived": false
+        },
+        {
+          "id": "LAYER_VIOLATION",
+          "type": "rule",
+          "label": "RFC-000 import direction",
+          "status": "Accepted",
+          "authority": "ADR-002",
+          "derived": false
+        },
+        {
+          "id": "DUPLICATE_OWNER",
+          "type": "rule",
+          "label": "Single writer per table",
+          "status": "Accepted",
+          "authority": "ADR-002",
+          "derived": false
+        },
+        {
+          "id": "DIRECT_ROUTING",
+          "type": "rule",
+          "label": "Action Engine required for navigation",
+          "status": "Accepted",
+          "authority": "ADR-002",
+          "derived": false
+        },
+        {
+          "id": "ACTION_ENGINE_GAP",
+          "type": "rule",
+          "label": "navigate() via Action Engine",
+          "status": "Accepted",
+          "authority": "ADR-002",
+          "derived": false
+        },
+        {
+          "id": "REGISTRY_BYPASS",
+          "type": "rule",
+          "label": "HuiRegistry for colors/labels",
+          "status": "Accepted",
+          "authority": "ADR-002",
+          "derived": false
+        },
+        {
+          "id": "MISSING_HEADER",
+          "type": "rule",
+          "label": "@domain + @owner tags required",
+          "status": "Accepted",
+          "authority": "ADR-002",
+          "derived": false
+        },
+        {
+          "id": "POLICY-REALTIME-RT-1",
+          "type": "rule",
+          "label": ".on() IMMER vor .subscribe()",
+          "status": "Accepted",
+          "authority": "POLICY-REALTIME",
+          "derived": true
+        },
+        {
+          "id": "POLICY-REALTIME-RT-2",
+          "type": "rule",
+          "label": "Jeder Channel hat exakt einen Owner",
+          "status": "Accepted",
+          "authority": "POLICY-REALTIME",
+          "derived": true
+        },
+        {
+          "id": "POLICY-REALTIME-RT-3",
+          "type": "rule",
+          "label": "Cleanup verpflichtend",
+          "status": "Accepted",
+          "authority": "POLICY-REALTIME",
+          "derived": true
+        },
+        {
+          "id": "POLICY-REALTIME-RT-4",
+          "type": "rule",
+          "label": "StrictMode-safe",
+          "status": "Accepted",
+          "authority": "POLICY-REALTIME",
+          "derived": true
+        },
+        {
+          "id": "POLICY-REALTIME-RT-5",
+          "type": "rule",
+          "label": "Reconnect-safe",
+          "status": "Accepted",
+          "authority": "POLICY-REALTIME",
+          "derived": true
+        },
+        {
+          "id": "ADR-001",
+          "type": "adr",
+          "label": "ADR-001 — Route Authority",
+          "status": "Accepted"
+        },
+        {
+          "id": "ADR-002",
+          "type": "adr",
+          "label": "ADR-002 — Architecture Scanner",
+          "status": "Accepted"
+        },
+        {
+          "id": "RFC-000",
+          "type": "rfc",
+          "label": "RFC-000 — HUI Layering Model",
+          "status": "Accepted",
+          "ratified": true
+        },
+        {
+          "id": "RFC-000A",
+          "type": "rfc",
+          "label": "RFC-000A — Architecture Governance v1.0",
+          "status": "Ratified",
+          "ratified": true
+        },
+        {
+          "id": "POLICY-QUERY-RULES",
+          "type": "policy",
+          "label": "HUI Query Rules",
+          "status": "Accepted"
+        },
+        {
+          "id": "POLICY-REALTIME",
+          "type": "policy",
+          "label": "HUI Realtime Channel Registry",
+          "status": "Accepted"
+        },
+        {
+          "id": "POLICY-OWNERSHIP",
+          "type": "policy",
+          "label": "HUI System Ownership Map",
+          "status": "Accepted"
+        },
+        {
+          "id": "CORE",
+          "type": "domain",
+          "label": "Core",
+          "layer": 0
+        },
+        {
+          "id": "REGISTRY",
+          "type": "domain",
+          "label": "Registry",
+          "layer": 0
+        },
+        {
+          "id": "ROUTES",
+          "type": "domain",
+          "label": "Routes",
+          "layer": 1
+        },
+        {
+          "id": "SERVICES",
+          "type": "domain",
+          "label": "Services",
+          "layer": 2
+        },
+        {
+          "id": "SYSTEM",
+          "type": "domain",
+          "label": "System",
+          "layer": 2
+        },
+        {
+          "id": "HOOKS",
+          "type": "domain",
+          "label": "Hooks",
+          "layer": 3
+        },
+        {
+          "id": "CONTEXT",
+          "type": "domain",
+          "label": "Context",
+          "layer": 3
+        },
+        {
+          "id": "FEATURES",
+          "type": "domain",
+          "label": "Features",
+          "layer": 4
+        },
+        {
+          "id": "PAGES",
+          "type": "domain",
+          "label": "Pages",
+          "layer": 5
+        },
+        {
+          "id": "COMPONENTS",
+          "type": "domain",
+          "label": "Components",
+          "layer": 5
+        },
+        {
+          "id": "ARCHITECTURE",
+          "type": "domain",
+          "label": "Architecture",
+          "layer": -1
+        },
+        {
+          "id": "CAP-AUTH",
+          "type": "capability",
+          "label": "Auth / Session",
+          "owner": "lib/AuthContext.jsx"
+        },
+        {
+          "id": "CAP-PROFILE",
+          "type": "capability",
+          "label": "Profile",
+          "owner": "lib/AppStateContext.jsx"
+        },
+        {
+          "id": "CAP-NOTIF",
+          "type": "capability",
+          "label": "Notifications",
+          "owner": "lib/AppStateContext.jsx"
+        },
+        {
+          "id": "CAP-CHAT",
+          "type": "capability",
+          "label": "Chats",
+          "owner": "lib/chatContext.js"
+        },
+        {
+          "id": "CAP-MESSAGES",
+          "type": "capability",
+          "label": "Messages",
+          "owner": "lib/chatContext.js"
+        },
+        {
+          "id": "CAP-BOOKINGS",
+          "type": "capability",
+          "label": "Bookings",
+          "owner": "lib/bookingContext.js"
+        },
+        {
+          "id": "CAP-WORKS",
+          "type": "capability",
+          "label": "Works",
+          "owner": "lib/AppStateContext.jsx"
+        },
+        {
+          "id": "CAP-TRUST",
+          "type": "capability",
+          "label": "Trust / Reputation",
+          "owner": "lib/trustContext.js"
+        },
+        {
+          "id": "CAP-PRESENCE",
+          "type": "capability",
+          "label": "Presence",
+          "owner": "lib/sessionHooks.js"
+        },
+        {
+          "id": "CAP-PAYMENTS",
+          "type": "capability",
+          "label": "Payments / Escrow",
+          "owner": "functions/createCheckout.ts"
+        },
+        {
+          "id": "CAP-REALTIME",
+          "type": "capability",
+          "label": "Realtime Channels",
+          "owner": "docs/REALTIME_REGISTRY.md"
+        },
+        {
+          "id": "CAP-ROUTING",
+          "type": "capability",
+          "label": "Route Authority",
+          "owner": "src/routes/registry.js"
+        },
+        {
+          "id": "CODE",
+          "type": "code",
+          "label": "HUI Source Code",
+          "files": 297,
+          "derived": true
+        },
+        {
+          "id": "RUNTIME",
+          "type": "runtime",
+          "label": "HUI Runtime (read-only reference)",
+          "derived": true,
+          "inferred": true
+        }
+      ],
+      "edges": [
+        {
+          "from": "CONSTITUTION",
+          "to": "GR-01",
+          "type": "defines",
+          "label": "CONSTITUTION"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "GR-02",
+          "type": "defines",
+          "label": "CONSTITUTION"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "GR-03",
+          "type": "defines",
+          "label": "CONSTITUTION"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "GR-04",
+          "type": "defines",
+          "label": "CONSTITUTION"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "GR-05",
+          "type": "defines",
+          "label": "CONSTITUTION"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "GR-06",
+          "type": "defines",
+          "label": "CONSTITUTION"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "GR-07",
+          "type": "defines",
+          "label": "CONSTITUTION"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "GR-08",
+          "type": "defines",
+          "label": "CONSTITUTION"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "GR-09",
+          "type": "defines",
+          "label": "CONSTITUTION"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "GR-10",
+          "type": "defines",
+          "label": "CONSTITUTION"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "ARCH-PRINCIPLE-1",
+          "type": "defines",
+          "label": "CONSTITUTION"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "ARCH-PRINCIPLE-2",
+          "type": "defines",
+          "label": "CONSTITUTION"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "ARCH-PRINCIPLE-3",
+          "type": "defines",
+          "label": "CONSTITUTION"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "ARCH-PRINCIPLE-4",
+          "type": "defines",
+          "label": "CONSTITUTION"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "ARCH-PRINCIPLE-5",
+          "type": "defines",
+          "label": "CONSTITUTION"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "CORE_BYPASS",
+          "type": "defines",
+          "label": "ADR-002"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "DB_DIRECT_WRITE",
+          "type": "defines",
+          "label": "ADR-002"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "DB_DIRECT_READ",
+          "type": "defines",
+          "label": "ADR-002"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "LAYER_VIOLATION",
+          "type": "defines",
+          "label": "ADR-002"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "DUPLICATE_OWNER",
+          "type": "defines",
+          "label": "ADR-002"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "DIRECT_ROUTING",
+          "type": "defines",
+          "label": "ADR-002"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "ACTION_ENGINE_GAP",
+          "type": "defines",
+          "label": "ADR-002"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "REGISTRY_BYPASS",
+          "type": "defines",
+          "label": "ADR-002"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "MISSING_HEADER",
+          "type": "defines",
+          "label": "ADR-002"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "POLICY-REALTIME-RT-1",
+          "type": "defines",
+          "label": "POLICY-REALTIME"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "POLICY-REALTIME-RT-2",
+          "type": "defines",
+          "label": "POLICY-REALTIME"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "POLICY-REALTIME-RT-3",
+          "type": "defines",
+          "label": "POLICY-REALTIME"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "POLICY-REALTIME-RT-4",
+          "type": "defines",
+          "label": "POLICY-REALTIME"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "POLICY-REALTIME-RT-5",
+          "type": "defines",
+          "label": "POLICY-REALTIME"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "ADR-001",
+          "type": "governs",
+          "label": "decision"
+        },
+        {
+          "from": "ADR-001",
+          "to": "DIRECT_ROUTING",
+          "type": "enforces",
+          "label": "violation"
+        },
+        {
+          "from": "ADR-001",
+          "to": "ACTION_ENGINE_GAP",
+          "type": "enforces",
+          "label": "violation"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "ADR-002",
+          "type": "governs",
+          "label": "decision"
+        },
+        {
+          "from": "ADR-002",
+          "to": "CORE_BYPASS",
+          "type": "enforces",
+          "label": "violation"
+        },
+        {
+          "from": "ADR-002",
+          "to": "DB_DIRECT_WRITE",
+          "type": "enforces",
+          "label": "violation"
+        },
+        {
+          "from": "ADR-002",
+          "to": "LAYER_VIOLATION",
+          "type": "enforces",
+          "label": "violation"
+        },
+        {
+          "from": "ADR-002",
+          "to": "DUPLICATE_OWNER",
+          "type": "enforces",
+          "label": "violation"
+        },
+        {
+          "from": "ADR-002",
+          "to": "REGISTRY_BYPASS",
+          "type": "enforces",
+          "label": "violation"
+        },
+        {
+          "from": "ADR-002",
+          "to": "MISSING_HEADER",
+          "type": "enforces",
+          "label": "violation"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "RFC-000",
+          "type": "specifies",
+          "label": "rfc"
+        },
+        {
+          "from": "RFC-000",
+          "to": "CORE",
+          "type": "governs-domain",
+          "label": "layer"
+        },
+        {
+          "from": "RFC-000",
+          "to": "REGISTRY",
+          "type": "governs-domain",
+          "label": "layer"
+        },
+        {
+          "from": "RFC-000",
+          "to": "ROUTES",
+          "type": "governs-domain",
+          "label": "layer"
+        },
+        {
+          "from": "RFC-000",
+          "to": "SERVICES",
+          "type": "governs-domain",
+          "label": "layer"
+        },
+        {
+          "from": "RFC-000",
+          "to": "SYSTEM",
+          "type": "governs-domain",
+          "label": "layer"
+        },
+        {
+          "from": "RFC-000",
+          "to": "HOOKS",
+          "type": "governs-domain",
+          "label": "layer"
+        },
+        {
+          "from": "RFC-000",
+          "to": "CONTEXT",
+          "type": "governs-domain",
+          "label": "layer"
+        },
+        {
+          "from": "RFC-000",
+          "to": "FEATURES",
+          "type": "governs-domain",
+          "label": "layer"
+        },
+        {
+          "from": "RFC-000",
+          "to": "PAGES",
+          "type": "governs-domain",
+          "label": "layer"
+        },
+        {
+          "from": "RFC-000",
+          "to": "COMPONENTS",
+          "type": "governs-domain",
+          "label": "layer"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "RFC-000A",
+          "type": "specifies",
+          "label": "rfc"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "POLICY-QUERY-RULES",
+          "type": "policy",
+          "label": "operational"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "POLICY-REALTIME",
+          "type": "policy",
+          "label": "operational"
+        },
+        {
+          "from": "CONSTITUTION",
+          "to": "POLICY-OWNERSHIP",
+          "type": "policy",
+          "label": "operational"
+        },
+        {
+          "from": "RFC-000",
+          "to": "CORE",
+          "type": "layer-model",
+          "label": "layer 0"
+        },
+        {
+          "from": "RFC-000",
+          "to": "REGISTRY",
+          "type": "layer-model",
+          "label": "layer 0"
+        },
+        {
+          "from": "RFC-000",
+          "to": "ROUTES",
+          "type": "layer-model",
+          "label": "layer 1"
+        },
+        {
+          "from": "RFC-000",
+          "to": "SERVICES",
+          "type": "layer-model",
+          "label": "layer 2"
+        },
+        {
+          "from": "RFC-000",
+          "to": "SYSTEM",
+          "type": "layer-model",
+          "label": "layer 2"
+        },
+        {
+          "from": "RFC-000",
+          "to": "HOOKS",
+          "type": "layer-model",
+          "label": "layer 3"
+        },
+        {
+          "from": "RFC-000",
+          "to": "CONTEXT",
+          "type": "layer-model",
+          "label": "layer 3"
+        },
+        {
+          "from": "RFC-000",
+          "to": "FEATURES",
+          "type": "layer-model",
+          "label": "layer 4"
+        },
+        {
+          "from": "RFC-000",
+          "to": "PAGES",
+          "type": "layer-model",
+          "label": "layer 5"
+        },
+        {
+          "from": "RFC-000",
+          "to": "COMPONENTS",
+          "type": "layer-model",
+          "label": "layer 5"
+        },
+        {
+          "from": "RFC-000",
+          "to": "ARCHITECTURE",
+          "type": "layer-model",
+          "label": "layer -1"
+        },
+        {
+          "from": "POLICY-OWNERSHIP",
+          "to": "CAP-AUTH",
+          "type": "owns",
+          "label": "lib/AuthContext.jsx"
+        },
+        {
+          "from": "POLICY-OWNERSHIP",
+          "to": "CAP-PROFILE",
+          "type": "owns",
+          "label": "lib/AppStateContext.jsx"
+        },
+        {
+          "from": "POLICY-OWNERSHIP",
+          "to": "CAP-NOTIF",
+          "type": "owns",
+          "label": "lib/AppStateContext.jsx"
+        },
+        {
+          "from": "POLICY-OWNERSHIP",
+          "to": "CAP-CHAT",
+          "type": "owns",
+          "label": "lib/chatContext.js"
+        },
+        {
+          "from": "POLICY-OWNERSHIP",
+          "to": "CAP-MESSAGES",
+          "type": "owns",
+          "label": "lib/chatContext.js"
+        },
+        {
+          "from": "POLICY-OWNERSHIP",
+          "to": "CAP-BOOKINGS",
+          "type": "owns",
+          "label": "lib/bookingContext.js"
+        },
+        {
+          "from": "POLICY-OWNERSHIP",
+          "to": "CAP-WORKS",
+          "type": "owns",
+          "label": "lib/AppStateContext.jsx"
+        },
+        {
+          "from": "POLICY-OWNERSHIP",
+          "to": "CAP-TRUST",
+          "type": "owns",
+          "label": "lib/trustContext.js"
+        },
+        {
+          "from": "POLICY-OWNERSHIP",
+          "to": "CAP-PRESENCE",
+          "type": "owns",
+          "label": "lib/sessionHooks.js"
+        },
+        {
+          "from": "POLICY-OWNERSHIP",
+          "to": "CAP-PAYMENTS",
+          "type": "owns",
+          "label": "functions/createCheckout.ts"
+        },
+        {
+          "from": "POLICY-OWNERSHIP",
+          "to": "CAP-REALTIME",
+          "type": "owns",
+          "label": "docs/REALTIME_REGISTRY.md"
+        },
+        {
+          "from": "POLICY-OWNERSHIP",
+          "to": "CAP-ROUTING",
+          "type": "owns",
+          "label": "src/routes/registry.js"
+        },
+        {
+          "from": "CORE",
+          "to": "CODE",
+          "type": "contains",
+          "label": "paths",
+          "derived": true
+        },
+        {
+          "from": "REGISTRY",
+          "to": "CODE",
+          "type": "contains",
+          "label": "paths",
+          "derived": true
+        },
+        {
+          "from": "ROUTES",
+          "to": "CODE",
+          "type": "contains",
+          "label": "paths",
+          "derived": true
+        },
+        {
+          "from": "SERVICES",
+          "to": "CODE",
+          "type": "contains",
+          "label": "paths",
+          "derived": true
+        },
+        {
+          "from": "SYSTEM",
+          "to": "CODE",
+          "type": "contains",
+          "label": "paths",
+          "derived": true
+        },
+        {
+          "from": "HOOKS",
+          "to": "CODE",
+          "type": "contains",
+          "label": "paths",
+          "derived": true
+        },
+        {
+          "from": "CONTEXT",
+          "to": "CODE",
+          "type": "contains",
+          "label": "paths",
+          "derived": true
+        },
+        {
+          "from": "FEATURES",
+          "to": "CODE",
+          "type": "contains",
+          "label": "paths",
+          "derived": true
+        },
+        {
+          "from": "PAGES",
+          "to": "CODE",
+          "type": "contains",
+          "label": "paths",
+          "derived": true
+        },
+        {
+          "from": "COMPONENTS",
+          "to": "CODE",
+          "type": "contains",
+          "label": "paths",
+          "derived": true
+        },
+        {
+          "from": "ARCHITECTURE",
+          "to": "CODE",
+          "type": "contains",
+          "label": "paths",
+          "derived": true
+        },
+        {
+          "from": "CODE",
+          "to": "RUNTIME",
+          "type": "deploys",
+          "label": "build",
+          "derived": true
+        }
+      ],
+      "mermaid": "graph TD\n  CONSTITUTION_CONSTITUTION[\"HUI Constitution v1.0\"]\n  RULE_GR_01[\"Menschen sind keine Produkte.\"]\n  RULE_GR_02[\"Wirkung ist wichtiger als Aufmerksamkeit.\"]\n  RULE_GR_03[\"Verbinden ist wertvoller als Reichweite.\"]\n  RULE_GR_04[\"Wertschöpfung und Gemeinwohl gehören zusammen.\"]\n  RULE_GR_05[\"Der Orb zeigt keine Leistung. Er zeigt gelebte Wirkung.\"]\n  RULE_GR_06[\"Der Feed dient Orientierung. Nicht Sucht.\"]\n  RULE_GR_07[\"Die KI ergänzt Menschen. Sie ersetzt sie nicht.\"]\n  RULE_GR_08[\"Keine Gamification. Keine Belohnungssysteme.\"]\n  RULE_GR_09[\"Jede neue Funktion muss mindestens einen Grundpfeiler stärken.\"]\n  RULE_GR_10[\"Kurzfristiges Wachstum darf die Gemeinschaft nicht schädigen.\"]\n  RULE_ARCH_PRINCIPLE_1[\"Keine UI-Komponente besitzt eigene Wirkungslogik.\"]\n  RULE_ARCH_PRINCIPLE_2[\"Keine Engine besitzt eigene Sprache.\"]\n  RULE_ARCH_PRINCIPLE_3[\"Die Registry ist die Single Source of Meaning.\"]\n  RULE_ARCH_PRINCIPLE_4[\"Die Core Engine ist die Single Source of Truth.\"]\n  RULE_ARCH_PRINCIPLE_5[\"Der Datenfluss ist unidirektional.\"]\n  RULE_CORE_BYPASS[\"Core tables via Core Engine only\"]\n  RULE_DB_DIRECT_WRITE[\"No DB writes in UI layers\"]\n  RULE_DB_DIRECT_READ[\"No direct DB reads in UI layers\"]\n  RULE_LAYER_VIOLATION[\"RFC-000 import direction\"]\n  RULE_DUPLICATE_OWNER[\"Single writer per table\"]\n  RULE_DIRECT_ROUTING[\"Action Engine required for navigation\"]\n  RULE_ACTION_ENGINE_GAP[\"navigate() via Action Engine\"]\n  RULE_REGISTRY_BYPASS[\"HuiRegistry for colors/labels\"]\n  RULE_MISSING_HEADER[\"@domain + @owner tags required\"]\n  RULE_POLICY_REALTIME_RT_1[\".on() IMMER vor .subscribe()\"]\n  RULE_POLICY_REALTIME_RT_2[\"Jeder Channel hat exakt einen Owner\"]\n  RULE_POLICY_REALTIME_RT_3[\"Cleanup verpflichtend\"]\n  RULE_POLICY_REALTIME_RT_4[\"StrictMode-safe\"]\n  RULE_POLICY_REALTIME_RT_5[\"Reconnect-safe\"]\n  ADR_ADR_001[\"ADR-001 — Route Authority\"]\n  ADR_ADR_002[\"ADR-002 — Architecture Scanner\"]\n  RFC_RFC_000[\"RFC-000 — HUI Layering Model\"]\n  RFC_RFC_000A[\"RFC-000A — Architecture Governance v1.0\"]\n  POLICY_POLICY_QUERY_RULES[\"HUI Query Rules\"]\n  POLICY_POLICY_REALTIME[\"HUI Realtime Channel Registry\"]\n  POLICY_POLICY_OWNERSHIP[\"HUI System Ownership Map\"]\n  DOMAIN_CORE[\"Core\"]\n  DOMAIN_REGISTRY[\"Registry\"]\n  DOMAIN_ROUTES[\"Routes\"]\n  DOMAIN_SERVICES[\"Services\"]\n  DOMAIN_SYSTEM[\"System\"]\n  DOMAIN_HOOKS[\"Hooks\"]\n  DOMAIN_CONTEXT[\"Context\"]\n  DOMAIN_FEATURES[\"Features\"]\n  DOMAIN_PAGES[\"Pages\"]\n  DOMAIN_COMPONENTS[\"Components\"]\n  DOMAIN_ARCHITECTURE[\"Architecture\"]\n  CAP_CAP_AUTH[\"Auth / Session\"]\n  CAP_CAP_PROFILE[\"Profile\"]\n  CAP_CAP_NOTIF[\"Notifications\"]\n  CAP_CAP_CHAT[\"Chats\"]\n  CAP_CAP_MESSAGES[\"Messages\"]\n  CAP_CAP_BOOKINGS[\"Bookings\"]\n  CAP_CAP_WORKS[\"Works\"]\n  CAP_CAP_TRUST[\"Trust / Reputation\"]\n  CAP_CAP_PRESENCE[\"Presence\"]\n  CAP_CAP_PAYMENTS[\"Payments / Escrow\"]\n  CAP_CAP_REALTIME[\"Realtime Channels\"]\n  CAP_CAP_ROUTING[\"Route Authority\"]\n  CODE_CODE[\"HUI Source Code\"]\n  RUNTIME_RUNTIME[\"HUI Runtime (read-only reference)\"]\n  CONSTITUTION_CONSTITUTION -->|defines| RULE_GR_01\n  CONSTITUTION_CONSTITUTION -->|defines| RULE_GR_02\n  CONSTITUTION_CONSTITUTION -->|defines| RULE_GR_03\n  CONSTITUTION_CONSTITUTION -->|defines| RULE_GR_04\n  CONSTITUTION_CONSTITUTION -->|defines| RULE_GR_05\n  CONSTITUTION_CONSTITUTION -->|defines| RULE_GR_06\n  CONSTITUTION_CONSTITUTION -->|defines| RULE_GR_07\n  CONSTITUTION_CONSTITUTION -->|defines| RULE_GR_08\n  CONSTITUTION_CONSTITUTION -->|defines| RULE_GR_09\n  CONSTITUTION_CONSTITUTION -->|defines| RULE_GR_10\n  CONSTITUTION_CONSTITUTION -->|defines| RULE_ARCH_PRINCIPLE_1\n  CONSTITUTION_CONSTITUTION -->|defines| RULE_ARCH_PRINCIPLE_2\n  CONSTITUTION_CONSTITUTION -->|defines| RULE_ARCH_PRINCIPLE_3\n  CONSTITUTION_CONSTITUTION -->|defines| RULE_ARCH_PRINCIPLE_4\n  CONSTITUTION_CONSTITUTION -->|defines| RULE_ARCH_PRINCIPLE_5\n  CONSTITUTION_CONSTITUTION -->|defines| RULE_CORE_BYPASS\n  CONSTITUTION_CONSTITUTION -->|defines| RULE_DB_DIRECT_WRITE\n  CONSTITUTION_CONSTITUTION -->|defines| RULE_DB_DIRECT_READ\n  CONSTITUTION_CONSTITUTION -->|defines| RULE_LAYER_VIOLATION\n  CONSTITUTION_CONSTITUTION -->|defines| RULE_DUPLICATE_OWNER\n  CONSTITUTION_CONSTITUTION -->|defines| RULE_DIRECT_ROUTING\n  CONSTITUTION_CONSTITUTION -->|defines| RULE_ACTION_ENGINE_GAP\n  CONSTITUTION_CONSTITUTION -->|defines| RULE_REGISTRY_BYPASS\n  CONSTITUTION_CONSTITUTION -->|defines| RULE_MISSING_HEADER\n  CONSTITUTION_CONSTITUTION -->|defines| RULE_POLICY_REALTIME_RT_1\n  CONSTITUTION_CONSTITUTION -->|defines| RULE_POLICY_REALTIME_RT_2\n  CONSTITUTION_CONSTITUTION -->|defines| RULE_POLICY_REALTIME_RT_3\n  CONSTITUTION_CONSTITUTION -->|defines| RULE_POLICY_REALTIME_RT_4\n  CONSTITUTION_CONSTITUTION -->|defines| RULE_POLICY_REALTIME_RT_5\n  CONSTITUTION_CONSTITUTION -->|governs| ADR_ADR_001\n  ADR_ADR_001 -->|enforces| RULE_DIRECT_ROUTING\n  ADR_ADR_001 -->|enforces| RULE_ACTION_ENGINE_GAP\n  CONSTITUTION_CONSTITUTION -->|governs| ADR_ADR_002\n  ADR_ADR_002 -->|enforces| RULE_CORE_BYPASS\n  ADR_ADR_002 -->|enforces| RULE_DB_DIRECT_WRITE\n  ADR_ADR_002 -->|enforces| RULE_LAYER_VIOLATION\n  ADR_ADR_002 -->|enforces| RULE_DUPLICATE_OWNER\n  ADR_ADR_002 -->|enforces| RULE_REGISTRY_BYPASS\n  ADR_ADR_002 -->|enforces| RULE_MISSING_HEADER\n  CONSTITUTION_CONSTITUTION -->|specifies| RFC_RFC_000\n  RFC_RFC_000 -->|governs-domain| DOMAIN_CORE\n  RFC_RFC_000 -->|governs-domain| DOMAIN_REGISTRY\n  RFC_RFC_000 -->|governs-domain| DOMAIN_ROUTES\n  RFC_RFC_000 -->|governs-domain| DOMAIN_SERVICES\n  RFC_RFC_000 -->|governs-domain| DOMAIN_SYSTEM\n  RFC_RFC_000 -->|governs-domain| DOMAIN_HOOKS\n  RFC_RFC_000 -->|governs-domain| DOMAIN_CONTEXT\n  RFC_RFC_000 -->|governs-domain| DOMAIN_FEATURES\n  RFC_RFC_000 -->|governs-domain| DOMAIN_PAGES\n  RFC_RFC_000 -->|governs-domain| DOMAIN_COMPONENTS\n  CONSTITUTION_CONSTITUTION -->|specifies| RFC_RFC_000A\n  CONSTITUTION_CONSTITUTION -->|policy| POLICY_POLICY_QUERY_RULES\n  CONSTITUTION_CONSTITUTION -->|policy| POLICY_POLICY_REALTIME\n  CONSTITUTION_CONSTITUTION -->|policy| POLICY_POLICY_OWNERSHIP\n  RFC_RFC_000 -->|layer-model| DOMAIN_CORE\n  RFC_RFC_000 -->|layer-model| DOMAIN_REGISTRY\n  RFC_RFC_000 -->|layer-model| DOMAIN_ROUTES\n  RFC_RFC_000 -->|layer-model| DOMAIN_SERVICES\n  RFC_RFC_000 -->|layer-model| DOMAIN_SYSTEM\n  RFC_RFC_000 -->|layer-model| DOMAIN_HOOKS\n  RFC_RFC_000 -->|layer-model| DOMAIN_CONTEXT\n  RFC_RFC_000 -->|layer-model| DOMAIN_FEATURES\n  RFC_RFC_000 -->|layer-model| DOMAIN_PAGES\n  RFC_RFC_000 -->|layer-model| DOMAIN_COMPONENTS\n  RFC_RFC_000 -->|layer-model| DOMAIN_ARCHITECTURE\n  POLICY_POLICY_OWNERSHIP -->|owns| CAP_CAP_AUTH\n  POLICY_POLICY_OWNERSHIP -->|owns| CAP_CAP_PROFILE\n  POLICY_POLICY_OWNERSHIP -->|owns| CAP_CAP_NOTIF\n  POLICY_POLICY_OWNERSHIP -->|owns| CAP_CAP_CHAT\n  POLICY_POLICY_OWNERSHIP -->|owns| CAP_CAP_MESSAGES\n  POLICY_POLICY_OWNERSHIP -->|owns| CAP_CAP_BOOKINGS\n  POLICY_POLICY_OWNERSHIP -->|owns| CAP_CAP_WORKS\n  POLICY_POLICY_OWNERSHIP -->|owns| CAP_CAP_TRUST\n  POLICY_POLICY_OWNERSHIP -->|owns| CAP_CAP_PRESENCE\n  POLICY_POLICY_OWNERSHIP -->|owns| CAP_CAP_PAYMENTS\n  POLICY_POLICY_OWNERSHIP -->|owns| CAP_CAP_REALTIME\n  POLICY_POLICY_OWNERSHIP -->|owns| CAP_CAP_ROUTING\n  DOMAIN_CORE -->|contains| CODE_CODE\n  DOMAIN_REGISTRY -->|contains| CODE_CODE\n  DOMAIN_ROUTES -->|contains| CODE_CODE\n  DOMAIN_SERVICES -->|contains| CODE_CODE\n  DOMAIN_SYSTEM -->|contains| CODE_CODE\n  DOMAIN_HOOKS -->|contains| CODE_CODE\n  DOMAIN_CONTEXT -->|contains| CODE_CODE\n  DOMAIN_FEATURES -->|contains| CODE_CODE\n  DOMAIN_PAGES -->|contains| CODE_CODE\n  DOMAIN_COMPONENTS -->|contains| CODE_CODE\n  DOMAIN_ARCHITECTURE -->|contains| CODE_CODE\n  CODE_CODE -->|deploys| RUNTIME_RUNTIME",
+      "hierarchy": [
+        "CONSTITUTION",
+        "Rules",
+        "ADRs",
+        "RFCs",
+        "Policies",
+        "Domains",
+        "Capabilities",
+        "Code",
+        "Runtime"
+      ]
+    },
+    "capabilities": [
+      {
+        "id": "CAP-AUTH",
+        "name": "Auth / Session",
+        "owner": "lib/AuthContext.jsx"
+      },
+      {
+        "id": "CAP-PROFILE",
+        "name": "Profile",
+        "owner": "lib/AppStateContext.jsx"
+      },
+      {
+        "id": "CAP-NOTIF",
+        "name": "Notifications",
+        "owner": "lib/AppStateContext.jsx"
+      },
+      {
+        "id": "CAP-CHAT",
+        "name": "Chats",
+        "owner": "lib/chatContext.js"
+      },
+      {
+        "id": "CAP-MESSAGES",
+        "name": "Messages",
+        "owner": "lib/chatContext.js"
+      },
+      {
+        "id": "CAP-BOOKINGS",
+        "name": "Bookings",
+        "owner": "lib/bookingContext.js"
+      },
+      {
+        "id": "CAP-WORKS",
+        "name": "Works",
+        "owner": "lib/AppStateContext.jsx"
+      },
+      {
+        "id": "CAP-TRUST",
+        "name": "Trust / Reputation",
+        "owner": "lib/trustContext.js"
+      },
+      {
+        "id": "CAP-PRESENCE",
+        "name": "Presence",
+        "owner": "lib/sessionHooks.js"
+      },
+      {
+        "id": "CAP-PAYMENTS",
+        "name": "Payments / Escrow",
+        "owner": "functions/createCheckout.ts"
+      },
+      {
+        "id": "CAP-REALTIME",
+        "name": "Realtime Channels",
+        "owner": "docs/REALTIME_REGISTRY.md"
+      },
+      {
+        "id": "CAP-ROUTING",
+        "name": "Route Authority",
+        "owner": "src/routes/registry.js"
+      }
+    ],
+    "constitution": {
+      "id": "CONSTITUTION",
+      "version": "1.0",
+      "status": "Ratified",
+      "date": "2026-06-29",
+      "path": "HUI_CONSTITUTION.md",
+      "goldenRules": [
+        {
+          "id": "GR-01",
+          "number": 1,
+          "title": "Menschen sind keine Produkte.",
+          "content": "Jede Entscheidung, die Menschen als Ressource zur Gewinnmaximierung behandelt, widerspricht der HUI Constitution.",
+          "section": "III.1"
+        },
+        {
+          "id": "GR-02",
+          "number": 2,
+          "title": "Wirkung ist wichtiger als Aufmerksamkeit.",
+          "content": "HUI optimiert nicht für Klicks, Sitzungsdauer oder Interaktionsrate.  \nHUI optimiert für echte menschliche Wirkung — messbar durch die Grundpfeiler, nicht durch Engagement-Metriken.",
+          "section": "III.2"
+        },
+        {
+          "id": "GR-03",
+          "number": 3,
+          "title": "Verbinden ist wertvoller als Reichweite.",
+          "content": "Eine tiefe, bedeutsame Verbindung hat mehr Wert als tausend flüchtige.  \nReichweite wird in HUI niemals als Qualitätsmerkmal angezeigt oder bewertet.",
+          "section": "III.3"
+        },
+        {
+          "id": "GR-04",
+          "number": 4,
+          "title": "Wertschöpfung und Gemeinwohl gehören zusammen.",
+          "content": "Wirtschaftlicher Erfolg auf HUI soll immer auch der Gemeinschaft zugutekommen.  \nDas HUI-Finanzmodell (Impact Pool) ist Ausdruck dieses Prinzips.",
+          "section": "III.4"
+        },
+        {
+          "id": "GR-05",
+          "number": 5,
+          "title": "Der Orb zeigt keine Leistung. Er zeigt gelebte Wirkung.",
+          "content": "Der Orb ist nicht gamifiziert. Er bewertet niemanden. Er vergleicht niemanden.  \nEr entwickelt sich langsam, organisch und unaufgeregt — als stilles Symbol dessen, was jemand in der Welt bewirkt.",
+          "section": "III.5"
+        },
+        {
+          "id": "GR-06",
+          "number": 6,
+          "title": "Der Feed dient Orientierung. Nicht Sucht.",
+          "content": "Der Feed von HUI ist keine Aufmerksamkeitsmaschine.  \nEr hat keinen Infinite Scroll ohne Pause. Keine algorithmische Outrage-Verstärkung.  \nEr soll Menschen helfen zu finden, was ihre Wirkung ergänzt.",
+          "section": "III.6"
+        },
+        {
+          "id": "GR-07",
+          "number": 7,
+          "title": "Die KI ergänzt Menschen. Sie ersetzt sie nicht.",
+          "content": "KI-Systeme auf HUI empfehlen, verbinden und orientieren.  \nSie manipulieren nicht, schaffen keine Abhängigkeit und maximieren nicht die Verweildauer.  \nDie KI fragt nicht: *\"Was hält Nutzer möglichst lange in der App?\"*  \nSie fragt: *\"Welche Begegnung könnte für beide Menschen sinnvoll sein?\"*",
+          "section": "III.7"
+        },
+        {
+          "id": "GR-08",
+          "number": 8,
+          "title": "Keine Gamification. Keine Belohnungssysteme.",
+          "content": "HUI implementiert kein System aus:\n- XP oder Erfahrungspunkten\n- Levels oder Rangstufen\n- Leaderboards oder Ranglisten\n- Achievements oder Badges\n- Streaks oder Login-Boni\n- Künstlichen Belohnungsschleifen\n\nWirkung braucht keine Belohnungsschleife. Sie ist Belohnung genug.",
+          "section": "III.8"
+        },
+        {
+          "id": "GR-09",
+          "number": 9,
+          "title": "Jede neue Funktion muss mindestens einen Grundpfeiler stärken.",
+          "content": "Vor der Implementierung einer neuen Funktion gilt die **Entscheidungsregel** (Abschnitt V).  \nFunktionen, die keinen Grundpfeiler stärken, werden nicht gebaut.",
+          "section": "III.9"
+        },
+        {
+          "id": "GR-10",
+          "number": 10,
+          "title": "Kurzfristiges Wachstum darf die Gemeinschaft nicht schädigen.",
+          "content": "Wenn eine Funktion kurzfristig Wachstumszahlen verbessert, aber langfristig die Gemeinschaftsqualität, das Vertrauen oder die menschliche Würde der Mitglieder schädigt, wird sie nicht umgesetzt.\n\n---",
+          "section": "III.10"
+        }
+      ],
+      "pillars": [
+        {
+          "id": "PILLAR-1",
+          "number": 1,
+          "name": "Verbinden",
+          "meaning": "Menschen zusammenbringen und Beziehungen ermöglichen"
+        },
+        {
+          "id": "PILLAR-2",
+          "number": 2,
+          "name": "Unterstützen",
+          "meaning": "Anderen helfen zu wachsen und ihre Wirkung zu entfalten"
+        },
+        {
+          "id": "PILLAR-3",
+          "number": 3,
+          "name": "Erschaffen",
+          "meaning": "Neues entstehen lassen — Werke, Ideen, Erlebnisse"
+        },
+        {
+          "id": "PILLAR-4",
+          "number": 4,
+          "name": "Wertschöpfen",
+          "meaning": "Mehrwert für andere schaffen, der über den Moment hinausgeht"
+        },
+        {
+          "id": "PILLAR-5",
+          "number": 5,
+          "name": "Impact",
+          "meaning": "Positive Wirkung für Gemeinschaft und Welt"
+        }
+      ],
+      "architecturePrinciples": [
+        {
+          "id": "ARCH-PRINCIPLE-1",
+          "title": "Keine UI-Komponente besitzt eigene Wirkungslogik.",
+          "description": "Alle Wirkungsdaten kommen aus der Core Engine.",
+          "section": "IV — Unveränderliche Architekturregeln"
+        },
+        {
+          "id": "ARCH-PRINCIPLE-2",
+          "title": "Keine Engine besitzt eigene Sprache.",
+          "description": "Alle Texte, Labels und Bezeichnungen kommen aus der Registry.",
+          "section": "IV — Unveränderliche Architekturregeln"
+        },
+        {
+          "id": "ARCH-PRINCIPLE-3",
+          "title": "Die Registry ist die Single Source of Meaning.",
+          "description": "Kein Text wird doppelt definiert.",
+          "section": "IV — Unveränderliche Architekturregeln"
+        },
+        {
+          "id": "ARCH-PRINCIPLE-4",
+          "title": "Die Core Engine ist die Single Source of Truth.",
+          "description": "Kein Modul pflegt eigene Wirkungsdaten.",
+          "section": "IV — Unveränderliche Architekturregeln"
+        },
+        {
+          "id": "ARCH-PRINCIPLE-5",
+          "title": "Der Datenfluss ist unidirektional.",
+          "description": "Constitution → Registry → Engines → UI. Nie umgekehrt.",
+          "section": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "binding": true
+    }
+  }
+}

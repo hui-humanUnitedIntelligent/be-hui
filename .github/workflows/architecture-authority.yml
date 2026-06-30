@@ -1,0 +1,49 @@
+name: Architecture Authority (ARCH-004)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'HUI_CONSTITUTION.md'
+      - 'QUERY_RULES.md'
+      - 'docs/governance/**'
+      - 'docs/SYSTEM_OWNERSHIP.md'
+      - 'docs/REALTIME_REGISTRY.md'
+      - 'src/architecture/**'
+  pull_request:
+    paths:
+      - 'HUI_CONSTITUTION.md'
+      - 'QUERY_RULES.md'
+      - 'docs/governance/**'
+      - 'docs/SYSTEM_OWNERSHIP.md'
+      - 'docs/REALTIME_REGISTRY.md'
+      - 'src/architecture/**'
+  workflow_dispatch:
+
+jobs:
+  authority-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ARCH-001 scanner (generate metrics)
+        run: npm run architecture:audit
+
+      - name: Run ARCH-004 Authority CI checks
+        run: npm run architecture:authority:ci
+
+      - name: Upload authority artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: authority-reports
+          path: docs/generated/authority/
+          retention-days: 30
