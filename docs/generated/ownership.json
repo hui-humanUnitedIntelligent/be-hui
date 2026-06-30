@@ -1,0 +1,2378 @@
+[
+  {
+    "path": "App.jsx",
+    "lines": 702,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "architecture/scanner/cli.js",
+    "lines": 219,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "architecture/scanner/domains.js",
+    "lines": 171,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "architecture/scanner/fileScanner.js",
+    "lines": 348,
+    "hasDomain": true,
+    "hasOwner": true,
+    "domain": "/",
+    "owner": "/"
+  },
+  {
+    "path": "architecture/scanner/graphBuilder.js",
+    "lines": 292,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "architecture/scanner/index.js",
+    "lines": 31,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "architecture/scanner/metricsCalculator.js",
+    "lines": 191,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "architecture/scanner/reportGenerator.js",
+    "lines": 257,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "architecture/scanner/violationDetector.js",
+    "lines": 323,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/CreatorPresence.jsx",
+    "lines": 688,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/EmptyState.jsx",
+    "lines": 100,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/ErrorBoundary.jsx",
+    "lines": 165,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/ExperienceCreator.jsx",
+    "lines": 489,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/GemeinschaftsFlow.jsx",
+    "lines": 509,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/HuiCreateFlow.jsx",
+    "lines": 1778,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/HuiMatchOverlay.jsx",
+    "lines": 741,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/HuiMembershipFlow.jsx",
+    "lines": 1244,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/HuiMomentSheet.jsx",
+    "lines": 465,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/HuiPlusSheet.jsx",
+    "lines": 120,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/LazyImage.jsx",
+    "lines": 278,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/NotificationCenter.jsx",
+    "lines": 1027,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/OrbCompass.jsx",
+    "lines": 817,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/ProtectedRoute.jsx",
+    "lines": 97,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/StoryBar.jsx",
+    "lines": 726,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/StoryComposer.jsx",
+    "lines": 451,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/SupportSheet.jsx",
+    "lines": 328,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/TalentOnboarding.jsx",
+    "lines": 459,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/UserNotRegisteredError.jsx",
+    "lines": 25,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/WerkPublisher.jsx",
+    "lines": 515,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/WorkDetailPage.jsx",
+    "lines": 817,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/ambassador/AmbassadorModal.jsx",
+    "lines": 274,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/ambassador/AmbassadorSection.jsx",
+    "lines": 472,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/auth/AuthGate.jsx",
+    "lines": 400,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/auth/ProfileCompletionFlow.jsx",
+    "lines": 339,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/chat-center/ChatAtmosphere.jsx",
+    "lines": 65,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/chat-center/ChatCenterOverlay.jsx",
+    "lines": 400,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/chat-center/ChatHeader.jsx",
+    "lines": 176,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/chat-center/ChatInput.jsx",
+    "lines": 182,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/chat-center/ChatMessages.jsx",
+    "lines": 107,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/chat-center/ConversationCard.jsx",
+    "lines": 153,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/chat-center/ConversationList.jsx",
+    "lines": 213,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/chat-center/ConversationRoom.jsx",
+    "lines": 81,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/chat-center/MessageBubble.jsx",
+    "lines": 154,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/commerce/ExperienceBookingFlow.jsx",
+    "lines": 223,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/commerce/StripePaymentStep.jsx",
+    "lines": 334,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/commerce/UnterstutzenFlow.jsx",
+    "lines": 625,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/commerce/WerkKaufFlow.jsx",
+    "lines": 224,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/commerce/WerkeKorb.jsx",
+    "lines": 1228,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/commerce/commerceUtils.js",
+    "lines": 303,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/connection-create/ConnectionCreatePage.jsx",
+    "lines": 488,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/connection-create/ConnectionForm.jsx",
+    "lines": 240,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/connection-create/ConnectionPreviewCard.jsx",
+    "lines": 189,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/connection-create/ConnectionTypeSidebar.jsx",
+    "lines": 141,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/connection-create/Selectors.jsx",
+    "lines": 219,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/connection-create/StepOneTypeSelection.jsx",
+    "lines": 242,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/connection-create/StepProgressBar.jsx",
+    "lines": 82,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/connection-create/StepThreePreview.jsx",
+    "lines": 473,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/connection-create/StepTwoConnectionDetails.jsx",
+    "lines": 642,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/connection-create/Widgets.jsx",
+    "lines": 127,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/discovery/PeopleSearch.jsx",
+    "lines": 296,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/economy/SupportFlow.jsx",
+    "lines": 178,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/entry/AppEntryController.jsx",
+    "lines": 76,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/experiences/ExperienceWizard.jsx",
+    "lines": 1025,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/guidance/GuidanceContext.jsx",
+    "lines": 137,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/guidance/GuidanceFooter.jsx",
+    "lines": 189,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/guidance/GuidanceLayer.jsx",
+    "lines": 108,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/guidance/guidanceTokens.js",
+    "lines": 178,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/home/AmbientWorldBar.jsx",
+    "lines": 121,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/home/HomeShell.jsx",
+    "lines": 368,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/home/header/HomeHeader.jsx",
+    "lines": 90,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/home/header/MatchBar.jsx",
+    "lines": 112,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/home/header/MessageButton.jsx",
+    "lines": 74,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/home/header/MoodOrbButton.jsx",
+    "lines": 41,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/home/header/NotificationButton.jsx",
+    "lines": 59,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/home/header/SearchCommandCenter.jsx",
+    "lines": 2291,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/home/mood/MoodSelector.jsx",
+    "lines": 38,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/home/mood/MoodSheet.jsx",
+    "lines": 80,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/home/mood/moodConfig.js",
+    "lines": 41,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/home/navigation/BottomNav.jsx",
+    "lines": 225,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/home/navigation/NavItem.jsx",
+    "lines": 242,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/home/navigation/navConfig.js",
+    "lines": 40,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/home/profile/ProfileLauncher.jsx",
+    "lines": 260,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/notifications/NotificationPanel.jsx",
+    "lines": 423,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/orb/OrbLeaf.jsx",
+    "lines": 405,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/profile/MerkenSection.jsx",
+    "lines": 179,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/profile/OrbSignatur.jsx",
+    "lines": 79,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/profile/ProfileHeader.jsx",
+    "lines": 377,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/profile/PublicProfilePreview.jsx",
+    "lines": 96,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/profile/sections/AboutSection.jsx",
+    "lines": 128,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/profile/sections/AvailabilitySection.jsx",
+    "lines": 85,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/profile/sections/ExperiencesSection.jsx",
+    "lines": 153,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/profile/sections/LocationSection.jsx",
+    "lines": 113,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/profile/sections/MomentsSection.jsx",
+    "lines": 109,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/profile/sections/RecommendationsSection.jsx",
+    "lines": 140,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/profile/sections/TalentSection.jsx",
+    "lines": 188,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/profile/sections/VisibilitySection.jsx",
+    "lines": 145,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/profile/sections/WorksSection.jsx",
+    "lines": 226,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/profile/sections/index.js",
+    "lines": 12,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/publishing/PublishExperienceFlow.jsx",
+    "lines": 206,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/publishing/PublishWorkFlow.jsx",
+    "lines": 249,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/publishing/PublishingHub.jsx",
+    "lines": 89,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/settings/SettingsModal.jsx",
+    "lines": 468,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/shared/ConnectionFlowCard.jsx",
+    "lines": 78,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/studio/EinAusgabenModal.jsx",
+    "lines": 697,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/studio/HuiStudio.jsx",
+    "lines": 1671,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/studio/ImpactStimmenModal.jsx",
+    "lines": 708,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/studio/MeineProjekteModal.jsx",
+    "lines": 603,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/studio/ProfilBearbeitenModal.jsx",
+    "lines": 669,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/studio/SicherheitPasswortModal.jsx",
+    "lines": 395,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/studio/StatistikenModal.jsx",
+    "lines": 552,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/teilen/TeilenFlow.jsx",
+    "lines": 1101,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/ui/EmptyState.jsx",
+    "lines": 95,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/ui/TalentBadge.jsx",
+    "lines": 107,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/welcome/WelcomeOverlay.jsx",
+    "lines": 355,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "components/works/WerkWizard.jsx",
+    "lines": 730,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "config/SafeRender.jsx",
+    "lines": 187,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "config/safeMode.js",
+    "lines": 64,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "content/ContentTypeSelector.jsx",
+    "lines": 316,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "content/invitation/InvitationCard.jsx",
+    "lines": 308,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "content/invitation/InvitationFlow.jsx",
+    "lines": 498,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "content/invitation/useInvitationResponse.js",
+    "lines": 126,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "context/OrbWorldContext.jsx",
+    "lines": 143,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "context/WorldSurfaceContext.jsx",
+    "lines": 203,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "core/HuiActionProvider.jsx",
+    "lines": 35,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "core/HuiConnectionEngine.jsx",
+    "lines": 415,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "core/HuiContextBridge.jsx",
+    "lines": 102,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "core/coreEngine.js",
+    "lines": 617,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "core/hui.actions.js",
+    "lines": 448,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "core/hui.contracts.js",
+    "lines": 284,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "core/hui.flow.js",
+    "lines": 123,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "core/hui.flow.states.js",
+    "lines": 123,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "core/hui.navigator.jsx",
+    "lines": 170,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "core/hui.pillars.js",
+    "lines": 39,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "core/hui.safePayload.js",
+    "lines": 82,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "core/hui.semantics.js",
+    "lines": 280,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "core/hui.sources.js",
+    "lines": 117,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "core/orbEngine.js",
+    "lines": 472,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "core/resonanceEngine.js",
+    "lines": 471,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "design/hui.design.js",
+    "lines": 611,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "design/hui.hooks.js",
+    "lines": 123,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "design/hui.interaction.js",
+    "lines": 622,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "features/discovery/userSearch.js",
+    "lines": 139,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "feed/FeedEventsSection.jsx",
+    "lines": 261,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "feed/FeedScrollSentinel.jsx",
+    "lines": 108,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "feed/FeedSoftHydrationBadge.jsx",
+    "lines": 97,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "feed/FeedStoriesBar.jsx",
+    "lines": 284,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "feed/StoryCreator.jsx",
+    "lines": 358,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "feed/StoryReactionTray.jsx",
+    "lines": 133,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "feed/StoryViewer.jsx",
+    "lines": 456,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "feed/UnifiedFeed.jsx",
+    "lines": 823,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "feed/cards/BaseFeedCard.jsx",
+    "lines": 714,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "feed/cards/EventContent.jsx",
+    "lines": 71,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "feed/cards/ExperienceContent.jsx",
+    "lines": 103,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "feed/cards/FeedRouter.jsx",
+    "lines": 119,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "feed/cards/MomentContent.jsx",
+    "lines": 19,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "feed/cards/WorkContent.jsx",
+    "lines": 146,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "feed/feedRhythmEngine.js",
+    "lines": 323,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "feed/useFeedStream.js",
+    "lines": 586,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "hooks/useAmbassador.js",
+    "lines": 258,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "hooks/useCartPersistence.js",
+    "lines": 125,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "hooks/useCoreEngine.js",
+    "lines": 485,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "hooks/useProfileData.js",
+    "lines": 322,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "hooks/useProfileId.js",
+    "lines": 92,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "hooks/useTalentActivation.js",
+    "lines": 29,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/AppStateContext.jsx",
+    "lines": 212,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/AuthContext.jsx",
+    "lines": 459,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/BUILD_VERSION.js",
+    "lines": 4,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/ErrorBoundaries.jsx",
+    "lines": 205,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/ambassadorUtils.js",
+    "lines": 85,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/bookingContext.js",
+    "lines": 415,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/chatContext.js",
+    "lines": 657,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/cleanup/cleanupOrbEnvironment.js",
+    "lines": 104,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/community/index.js",
+    "lines": 280,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/community/local.js",
+    "lines": 139,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/creativeJourney/index.js",
+    "lines": 16,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/debugCollector.js",
+    "lines": 23,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/discovery/index.js",
+    "lines": 209,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/ds.js",
+    "lines": 332,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/errors/index.js",
+    "lines": 235,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/events/index.js",
+    "lines": 155,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/factories/createFeedItem.js",
+    "lines": 224,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/factories/createNavItem.js",
+    "lines": 65,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/factories/createProfileItem.js",
+    "lines": 123,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/factories/createTabPage.js",
+    "lines": 114,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/factories/experienceContract.js",
+    "lines": 405,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/feedback/index.js",
+    "lines": 6,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/guidance/focusSystem.js",
+    "lines": 137,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/guidance/readabilityEngine.js",
+    "lines": 143,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/guidance/visualPriority.js",
+    "lines": 192,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/intelligence/discoverWorld.js",
+    "lines": 1115,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/intelligence/emotionalIdentity.js",
+    "lines": 694,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/intelligence/index.js",
+    "lines": 128,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/intelligence/interactionStore.js",
+    "lines": 216,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/intelligence/persistence/interactionMemoryStore.js",
+    "lines": 243,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/intelligence/persistence/memoryTokens.js",
+    "lines": 219,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/intelligence/persistence/useLivingMemory.js",
+    "lines": 174,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/intelligence/persistence/viewerContext.js",
+    "lines": 252,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/intelligence/relationshipMemory.js",
+    "lines": 713,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/intelligence/resonanceSpaces.js",
+    "lines": 1064,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/intelligence/sharedAtmosphere.js",
+    "lines": 867,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/intelligence/worldContinuity.js",
+    "lines": 827,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/intelligence/worldPolish.js",
+    "lines": 512,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/journeyContext.js",
+    "lines": 330,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/moodUtils.js",
+    "lines": 186,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/notificationService.js",
+    "lines": 149,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/observability/index.js",
+    "lines": 10,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/perfUtils.js",
+    "lines": 118,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/points/index.js",
+    "lines": 153,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/presence/index.js",
+    "lines": 579,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/profileMedia.js",
+    "lines": 129,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/profileUtils.js",
+    "lines": 78,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/referralTracking.js",
+    "lines": 176,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/reliability/index.js",
+    "lines": 299,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/resonance/index.js",
+    "lines": 243,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/roles/index.js",
+    "lines": 296,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/safeQuery.js",
+    "lines": 43,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/security/index.js",
+    "lines": 243,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/sentry.js",
+    "lines": 126,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/sessionHooks.js",
+    "lines": 316,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/supabaseClient.js",
+    "lines": 141,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/trust/index.js",
+    "lines": 179,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/trustContext.js",
+    "lines": 277,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/useNotifications.jsx",
+    "lines": 987,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/usePresence.js",
+    "lines": 60,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/usePresence.jsx",
+    "lines": 177,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/useReactions.jsx",
+    "lines": 187,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/useToast.jsx",
+    "lines": 142,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/useUsernameCheck.jsx",
+    "lines": 132,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/utils.js",
+    "lines": 10,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/validation/index.js",
+    "lines": 256,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/welcomePersistence.js",
+    "lines": 41,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/world/orbLayer.js",
+    "lines": 158,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/world/safariPaintRecovery.js",
+    "lines": 163,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/world/tabVisibilityController.js",
+    "lines": 100,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "lib/world/worldSurfaceController.js",
+    "lines": 209,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "main.jsx",
+    "lines": 36,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "orb/ContentTypeSelector.jsx",
+    "lines": 217,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "orb/OrbAtmosphere.jsx",
+    "lines": 119,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "orb/OrbMotionSystem.js",
+    "lines": 171,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "orb/OrbPortal.jsx",
+    "lines": 775,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "pages/Admin.jsx",
+    "lines": 1170,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "pages/AuthCallback.jsx",
+    "lines": 100,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "pages/BasisProfilePage.jsx",
+    "lines": 643,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "pages/CreatorDashboard.jsx",
+    "lines": 497,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "pages/CreatorStudio.jsx",
+    "lines": 350,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "pages/DiagnosePage.jsx",
+    "lines": 274,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "pages/DiscoverPage.jsx",
+    "lines": 1758,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "pages/FavoritesPage.jsx",
+    "lines": 836,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "pages/Home.jsx",
+    "lines": 824,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "pages/ImpactPage.jsx",
+    "lines": 3038,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "pages/LiveMapPage.jsx",
+    "lines": 824,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "pages/LoginPage.jsx",
+    "lines": 981,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "pages/MeinHUI.jsx",
+    "lines": 747,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "pages/MyBasisProfile.jsx",
+    "lines": 1810,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "pages/MyCreatorDashboard.jsx",
+    "lines": 977,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "pages/PlatformDashboard.jsx",
+    "lines": 562,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "pages/ProfileDebugPage.jsx",
+    "lines": 460,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "pages/RefRedirect.jsx",
+    "lines": 75,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "pages/TalentProfilePage.jsx",
+    "lines": 1388,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "pages/studio/MeineResonanz.jsx",
+    "lines": 575,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "pages/studio/MeineTicketsPage.jsx",
+    "lines": 582,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "pages/studio/StudioSubPages.jsx",
+    "lines": 383,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "pages/studio/SupportPage.jsx",
+    "lines": 362,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "pages/wirker-profile/index.jsx",
+    "lines": 933,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "registry/HuiRegistry.js",
+    "lines": 812,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "routes/registry.js",
+    "lines": 752,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "services/commerceEngine.js",
+    "lines": 455,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "services/content.js",
+    "lines": 519,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "services/creatorEconomy.js",
+    "lines": 263,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "services/db.js",
+    "lines": 651,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "system/feed/unifiedNormalizer.js",
+    "lines": 180,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "system/flows/experience/ExperienceCreateStep.jsx",
+    "lines": 268,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "system/flows/experience/ExperienceDetailsStep.jsx",
+    "lines": 346,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "system/flows/experience/ExperienceFlow.jsx",
+    "lines": 254,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "system/flows/experience/ExperiencePublishStep.jsx",
+    "lines": 279,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "system/flows/experience/ExperienceTokens.js",
+    "lines": 39,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "system/flows/impact/ImpactFlow.jsx",
+    "lines": 1474,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "system/flows/impact/ImpactStep1Projekt.jsx",
+    "lines": 241,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "system/flows/impact/ImpactStep2Vision.jsx",
+    "lines": 150,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "system/flows/impact/ImpactStep3Kontakt.jsx",
+    "lines": 201,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "system/flows/impact/ImpactStep4Review.jsx",
+    "lines": 260,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "system/flows/impact/ImpactTokens.js",
+    "lines": 5,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "system/flows/impact/ImpactTokens.jsx",
+    "lines": 63,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "system/flows/work/WorkDetailsStep.jsx",
+    "lines": 291,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "system/flows/work/WorkFlow.jsx",
+    "lines": 323,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "system/flows/work/WorkMediaStep.jsx",
+    "lines": 266,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "system/flows/work/WorkPublishStep.jsx",
+    "lines": 251,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "system/flows/work/WorkTokens.js",
+    "lines": 20,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "system/orb/MemberOrbHome.jsx",
+    "lines": 585,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "system/orb/OrbAnimations.js",
+    "lines": 136,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "system/orb/OrbAtmosphere.jsx",
+    "lines": 153,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "system/orb/OrbCenter.jsx",
+    "lines": 108,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "system/orb/OrbConfig.js",
+    "lines": 187,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "system/orb/OrbHintCard.jsx",
+    "lines": 328,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "system/orb/OrbNode.jsx",
+    "lines": 126,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "system/orb/OrbState.js",
+    "lines": 107,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  },
+  {
+    "path": "system/orb/OrbSystem.jsx",
+    "lines": 320,
+    "hasDomain": false,
+    "hasOwner": false,
+    "domain": null,
+    "owner": null
+  }
+]

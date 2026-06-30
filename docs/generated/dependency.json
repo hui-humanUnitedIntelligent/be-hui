@@ -1,0 +1,3561 @@
+[
+  {
+    "path": "App.jsx",
+    "imports": [
+      "./lib/sentry",
+      "./lib/ErrorBoundaries",
+      "./lib/AuthContext",
+      "./lib/AppStateContext",
+      "./context/WorldSurfaceContext.jsx",
+      "./context/OrbWorldContext.jsx",
+      "./components/guidance/GuidanceContext.jsx",
+      "./pages/LoginPage",
+      "./components/auth/AuthGate.jsx",
+      "./lib/useToast.jsx",
+      "./components/auth/ProfileCompletionFlow.jsx",
+      "./pages/AuthCallback",
+      "./components/entry/AppEntryController.jsx",
+      "./lib/supabaseClient",
+      "./lib/referralTracking.js",
+      "./pages/ImpactPage",
+      "./lib/factories/createTabPage.js"
+    ],
+    "exports": [
+      "APP_ROUTES",
+      "App"
+    ]
+  },
+  {
+    "path": "architecture/scanner/cli.js",
+    "imports": [],
+    "exports": []
+  },
+  {
+    "path": "architecture/scanner/domains.js",
+    "imports": [],
+    "exports": [
+      "DOMAINS",
+      "LAYER_ORDER",
+      "getDomainForPath",
+      "isImportAllowed"
+    ]
+  },
+  {
+    "path": "architecture/scanner/fileScanner.js",
+    "imports": [],
+    "exports": [
+      "scanFile",
+      "collectFiles"
+    ]
+  },
+  {
+    "path": "architecture/scanner/graphBuilder.js",
+    "imports": [
+      "./domains.js"
+    ],
+    "exports": [
+      "buildDependencyGraph",
+      "buildDomainGraph",
+      "buildLayerGraph",
+      "buildServiceGraph",
+      "buildOwnershipGraph"
+    ]
+  },
+  {
+    "path": "architecture/scanner/index.js",
+    "imports": [],
+    "exports": [
+      "collectFiles, scanFile",
+      "detectViolations, SEVERITY",
+      "calculateMetrics",
+      "buildDependencyGraph,\n  buildDomainGraph,\n  buildLayerGraph,\n  buildServiceGraph,\n  buildOwnershipGraph,",
+      "generateArchitectureReport,\n  generateOwnershipReport,\n  generateViolationsReport,\n  generateActionEngineReport,\n  generateRegistryReport,\n  generateCoreReport,\n  generateDependencyGraphReport,",
+      "getDomainForPath, DOMAINS, isImportAllowed"
+    ]
+  },
+  {
+    "path": "architecture/scanner/metricsCalculator.js",
+    "imports": [
+      "./domains.js"
+    ],
+    "exports": [
+      "calculateMetrics"
+    ]
+  },
+  {
+    "path": "architecture/scanner/reportGenerator.js",
+    "imports": [
+      "./domains.js"
+    ],
+    "exports": [
+      "generateArchitectureReport",
+      "generateOwnershipReport",
+      "generateViolationsReport",
+      "generateActionEngineReport",
+      "generateRegistryReport",
+      "generateCoreReport",
+      "generateDependencyGraphReport"
+    ]
+  },
+  {
+    "path": "architecture/scanner/violationDetector.js",
+    "imports": [
+      "./domains.js"
+    ],
+    "exports": [
+      "SEVERITY",
+      "detectViolations"
+    ]
+  },
+  {
+    "path": "components/CreatorPresence.jsx",
+    "imports": [
+      "../lib/intelligence/emotionalIdentity.js"
+    ],
+    "exports": [
+      "PRESENCE_STATES",
+      "MICRO_MOMENTS",
+      "PresenceAvatar",
+      "PresenceLabel",
+      "CreatorPresenceHeader",
+      "MicroMoment",
+      "PresencePersonCard",
+      "derivePresenceState",
+      "deriveMicroMoment"
+    ]
+  },
+  {
+    "path": "components/EmptyState.jsx",
+    "imports": [
+      "../lib/intelligence/worldPolish.js"
+    ],
+    "exports": []
+  },
+  {
+    "path": "components/ErrorBoundary.jsx",
+    "imports": [],
+    "exports": [
+      "ErrorBoundary",
+      "withErrorBoundary"
+    ]
+  },
+  {
+    "path": "components/ExperienceCreator.jsx",
+    "imports": [
+      "../lib/factories/experienceContract.js",
+      "../lib/supabaseClient",
+      "../lib/AuthContext",
+      "../design/hui.design.js"
+    ],
+    "exports": [
+      "ExperienceCreator"
+    ]
+  },
+  {
+    "path": "components/GemeinschaftsFlow.jsx",
+    "imports": [
+      "../lib/AuthContext.jsx"
+    ],
+    "exports": [
+      "GemeinschaftsFlow"
+    ]
+  },
+  {
+    "path": "components/HuiCreateFlow.jsx",
+    "imports": [
+      "../lib/sessionHooks",
+      "../lib/factories/experienceContract.js",
+      "../lib/supabaseClient",
+      "../lib/AuthContext",
+      "../design/hui.design.js",
+      "../lib/moodUtils"
+    ],
+    "exports": [
+      "HuiCreateFlow"
+    ]
+  },
+  {
+    "path": "components/HuiMatchOverlay.jsx",
+    "imports": [
+      "../lib/supabaseClient",
+      "../lib/perfUtils",
+      "../design/hui.design.js"
+    ],
+    "exports": [
+      "HuiMatchOverlay"
+    ]
+  },
+  {
+    "path": "components/HuiMembershipFlow.jsx",
+    "imports": [
+      "../lib/cleanup/cleanupOrbEnvironment.js",
+      "../lib/AuthContext"
+    ],
+    "exports": [
+      "HuiMembershipFlow"
+    ]
+  },
+  {
+    "path": "components/HuiMomentSheet.jsx",
+    "imports": [
+      "../lib/supabaseClient.js"
+    ],
+    "exports": [
+      "HuiMomentSheet"
+    ]
+  },
+  {
+    "path": "components/HuiPlusSheet.jsx",
+    "imports": [
+      "../orb/OrbPortal.jsx",
+      "../system/orb/OrbSystem.jsx",
+      "../lib/cleanup/cleanupOrbEnvironment.js",
+      "../lib/roles/index.js"
+    ],
+    "exports": [
+      "HuiPlusSheet"
+    ]
+  },
+  {
+    "path": "components/LazyImage.jsx",
+    "imports": [
+      "../lib/perfUtils",
+      "../lib/sentry"
+    ],
+    "exports": [
+      "LazyImage",
+      "LazySection"
+    ]
+  },
+  {
+    "path": "components/NotificationCenter.jsx",
+    "imports": [
+      "../core/hui.sources.js",
+      "../lib/supabaseClient",
+      "../lib/AppStateContext",
+      "../design/hui.design.js",
+      "../core/hui.actions.js"
+    ],
+    "exports": [
+      "useNotifCount",
+      "NotificationCenter"
+    ]
+  },
+  {
+    "path": "components/OrbCompass.jsx",
+    "imports": [
+      "./HuiMomentSheet.jsx",
+      "./GemeinschaftsFlow.jsx"
+    ],
+    "exports": [
+      "OrbCompass"
+    ]
+  },
+  {
+    "path": "components/ProtectedRoute.jsx",
+    "imports": [],
+    "exports": [
+      "ProtectedRoute"
+    ]
+  },
+  {
+    "path": "components/StoryBar.jsx",
+    "imports": [
+      "../lib/supabaseClient",
+      "../lib/AuthContext",
+      "../design/hui.design.js"
+    ],
+    "exports": [
+      "StoryBar",
+      "StoryViewer",
+      "HighlightsRow"
+    ]
+  },
+  {
+    "path": "components/StoryComposer.jsx",
+    "imports": [
+      "../lib/supabaseClient",
+      "../lib/AuthContext",
+      "../design/hui.design.js"
+    ],
+    "exports": [
+      "StoryComposer"
+    ]
+  },
+  {
+    "path": "components/SupportSheet.jsx",
+    "imports": [
+      "../lib/supabaseClient",
+      "../design/hui.design.js"
+    ],
+    "exports": [
+      "SupportSheet"
+    ]
+  },
+  {
+    "path": "components/TalentOnboarding.jsx",
+    "imports": [
+      "../lib/supabaseClient",
+      "../lib/AuthContext",
+      "../design/hui.design.js"
+    ],
+    "exports": [
+      "TalentOnboarding"
+    ]
+  },
+  {
+    "path": "components/UserNotRegisteredError.jsx",
+    "imports": [],
+    "exports": [
+      "UserNotRegisteredError"
+    ]
+  },
+  {
+    "path": "components/WerkPublisher.jsx",
+    "imports": [
+      "../lib/supabaseClient",
+      "../lib/AuthContext",
+      "../design/hui.design.js"
+    ],
+    "exports": [
+      "WerkPublisher"
+    ]
+  },
+  {
+    "path": "components/WorkDetailPage.jsx",
+    "imports": [
+      "../lib/perfUtils",
+      "../services/db",
+      "../lib/supabaseClient",
+      "../lib/perfUtils",
+      "../lib/AuthContext",
+      "../lib/AppStateContext",
+      "../design/hui.design.js"
+    ],
+    "exports": [
+      "WorkDetailPage"
+    ]
+  },
+  {
+    "path": "components/ambassador/AmbassadorModal.jsx",
+    "imports": [
+      "../../hooks/useAmbassador.js"
+    ],
+    "exports": [
+      "AmbassadorModal"
+    ]
+  },
+  {
+    "path": "components/ambassador/AmbassadorSection.jsx",
+    "imports": [
+      "../../lib/ambassadorUtils.js",
+      "../../hooks/useAmbassador.js"
+    ],
+    "exports": [
+      "AmbassadorCTA",
+      "AmbassadorSection"
+    ]
+  },
+  {
+    "path": "components/auth/AuthGate.jsx",
+    "imports": [
+      "../../lib/AuthContext.jsx",
+      "../../lib/referralTracking.js"
+    ],
+    "exports": [
+      "AuthGateProvider",
+      "useAuthGate",
+      "AuthGate"
+    ]
+  },
+  {
+    "path": "components/auth/ProfileCompletionFlow.jsx",
+    "imports": [
+      "../../lib/supabaseClient.js",
+      "../../lib/AuthContext.jsx",
+      "../../lib/useUsernameCheck.jsx"
+    ],
+    "exports": [
+      "ProfileCompletionFlow"
+    ]
+  },
+  {
+    "path": "components/chat-center/ChatAtmosphere.jsx",
+    "imports": [],
+    "exports": [
+      "ChatAtmosphere"
+    ]
+  },
+  {
+    "path": "components/chat-center/ChatCenterOverlay.jsx",
+    "imports": [
+      "./ChatAtmosphere.jsx",
+      "./ConversationList.jsx",
+      "./ConversationRoom.jsx",
+      "../home/profile/ProfileLauncher.jsx",
+      "../../lib/AuthContext.jsx",
+      "../../lib/chatContext.js",
+      "../../services/db",
+      "../../lib/supabaseClient.js",
+      "../discovery/PeopleSearch.jsx",
+      "../../design/hui.design.js"
+    ],
+    "exports": [
+      "ChatCenterOverlay"
+    ]
+  },
+  {
+    "path": "components/chat-center/ChatHeader.jsx",
+    "imports": [
+      "../../design/hui.design.js",
+      "../../lib/usePresence.js"
+    ],
+    "exports": [
+      "ChatHeader"
+    ]
+  },
+  {
+    "path": "components/chat-center/ChatInput.jsx",
+    "imports": [
+      "../../design/hui.design.js"
+    ],
+    "exports": [
+      "ChatInput"
+    ]
+  },
+  {
+    "path": "components/chat-center/ChatMessages.jsx",
+    "imports": [
+      "./MessageBubble.jsx",
+      "../../design/hui.design.js"
+    ],
+    "exports": [
+      "ChatMessages"
+    ]
+  },
+  {
+    "path": "components/chat-center/ConversationCard.jsx",
+    "imports": [
+      "../../design/hui.design.js",
+      "../../lib/usePresence.js"
+    ],
+    "exports": [
+      "ConversationCard"
+    ]
+  },
+  {
+    "path": "components/chat-center/ConversationList.jsx",
+    "imports": [
+      "./ConversationCard.jsx",
+      "../../design/hui.design.js"
+    ],
+    "exports": [
+      "ConversationList"
+    ]
+  },
+  {
+    "path": "components/chat-center/ConversationRoom.jsx",
+    "imports": [
+      "./ChatHeader.jsx",
+      "./ChatMessages.jsx",
+      "./ChatInput.jsx",
+      "../../lib/chatContext.js",
+      "../../lib/AuthContext.jsx"
+    ],
+    "exports": [
+      "ConversationRoom"
+    ]
+  },
+  {
+    "path": "components/chat-center/MessageBubble.jsx",
+    "imports": [
+      "../../design/hui.design.js"
+    ],
+    "exports": [
+      "TypingBubble",
+      "MessageBubble"
+    ]
+  },
+  {
+    "path": "components/commerce/ExperienceBookingFlow.jsx",
+    "imports": [
+      "../../lib/AuthContext",
+      "../../services/creatorEconomy",
+      "../../lib/supabaseClient"
+    ],
+    "exports": [
+      "ExperienceBookingFlow"
+    ]
+  },
+  {
+    "path": "components/commerce/StripePaymentStep.jsx",
+    "imports": [
+      "../../services/commerceEngine.js",
+      "../commerce/commerceUtils.js",
+      "../../config/stripe-publishable-key.json"
+    ],
+    "exports": [
+      "StripePaymentStep"
+    ]
+  },
+  {
+    "path": "components/commerce/UnterstutzenFlow.jsx",
+    "imports": [
+      "../../design/hui.interaction.js",
+      "./commerceUtils.js",
+      "./StripePaymentStep.jsx",
+      "../../services/commerceEngine.js",
+      "../../lib/AuthContext.jsx",
+      "../../lib/supabaseClient.js"
+    ],
+    "exports": [
+      "UnterstutzenFlow"
+    ]
+  },
+  {
+    "path": "components/commerce/WerkKaufFlow.jsx",
+    "imports": [
+      "../../lib/AuthContext",
+      "../../services/creatorEconomy",
+      "../../lib/supabaseClient"
+    ],
+    "exports": [
+      "WerkKaufFlow"
+    ]
+  },
+  {
+    "path": "components/commerce/WerkeKorb.jsx",
+    "imports": [
+      "../../design/hui.interaction.js",
+      "./commerceUtils.js"
+    ],
+    "exports": [
+      "WerkeKorbButton",
+      "WerkeKorb"
+    ]
+  },
+  {
+    "path": "components/commerce/commerceUtils.js",
+    "imports": [
+      "../../design/hui.design.js"
+    ],
+    "exports": [
+      "C",
+      "TYPE_META",
+      "IMPACT_RATE",
+      "formatPrice",
+      "parseAmount",
+      "calcTotal",
+      "calcImpact",
+      "haptic",
+      "uniquePeople",
+      "groupByPerson",
+      "EMPTY_FORM",
+      "hasPhysical",
+      "hasEventOrExperience",
+      "isFormValid",
+      "clearCartAfterSuccess",
+      "allowsQuantity",
+      "getOriginalHint",
+      "calcTotalWithQty",
+      "COMMERCE_RATES",
+      "calcCreatorPayout",
+      "calcPlatformFee",
+      "resolveItemShippingType",
+      "cartNeedsShippingAddress"
+    ]
+  },
+  {
+    "path": "components/connection-create/ConnectionCreatePage.jsx",
+    "imports": [
+      "./StepProgressBar.jsx",
+      "./StepOneTypeSelection.jsx",
+      "./StepTwoConnectionDetails.jsx",
+      "./StepThreePreview.jsx",
+      "../../lib/AuthContext.jsx",
+      "../../lib/supabaseClient.js",
+      "../../design/hui.design.js"
+    ],
+    "exports": [
+      "ConnectionCreatePage"
+    ]
+  },
+  {
+    "path": "components/connection-create/ConnectionForm.jsx",
+    "imports": [
+      "./Selectors.jsx",
+      "./Widgets.jsx",
+      "../../design/hui.design.js"
+    ],
+    "exports": [
+      "ConnectionForm"
+    ]
+  },
+  {
+    "path": "components/connection-create/ConnectionPreviewCard.jsx",
+    "imports": [
+      "./ConnectionTypeSidebar.jsx",
+      "../../design/hui.design.js"
+    ],
+    "exports": [
+      "ConnectionPreviewCard"
+    ]
+  },
+  {
+    "path": "components/connection-create/ConnectionTypeSidebar.jsx",
+    "imports": [
+      "../../design/hui.design.js"
+    ],
+    "exports": [
+      "CONNECTION_TYPES",
+      "ConnectionTypeSidebar"
+    ]
+  },
+  {
+    "path": "components/connection-create/Selectors.jsx",
+    "imports": [
+      "../../design/hui.design.js"
+    ],
+    "exports": [
+      "MoodSelector",
+      "VisibilitySelector",
+      "CostSelector",
+      "OpennessPicker"
+    ]
+  },
+  {
+    "path": "components/connection-create/StepOneTypeSelection.jsx",
+    "imports": [
+      "./ConnectionTypeSidebar.jsx"
+    ],
+    "exports": [
+      "StepOneTypeSelection"
+    ]
+  },
+  {
+    "path": "components/connection-create/StepProgressBar.jsx",
+    "imports": [
+      "../../lib/factories/createTabPage.js",
+      "../../design/hui.design.js"
+    ],
+    "exports": [
+      "StepProgressBar"
+    ]
+  },
+  {
+    "path": "components/connection-create/StepThreePreview.jsx",
+    "imports": [
+      "./ConnectionTypeSidebar.jsx",
+      "../../design/hui.design.js"
+    ],
+    "exports": [
+      "StepThreePreview"
+    ]
+  },
+  {
+    "path": "components/connection-create/StepTwoConnectionDetails.jsx",
+    "imports": [
+      "../../design/hui.design.js"
+    ],
+    "exports": [
+      "StepTwoConnectionDetails"
+    ]
+  },
+  {
+    "path": "components/connection-create/Widgets.jsx",
+    "imports": [
+      "../../design/hui.design.js"
+    ],
+    "exports": [
+      "ParticipantStepper",
+      "LocationPicker",
+      "MediaAttachmentBar"
+    ]
+  },
+  {
+    "path": "components/discovery/PeopleSearch.jsx",
+    "imports": [
+      "../../design/hui.design.js",
+      "../../features/discovery/userSearch.js",
+      "../../lib/AppStateContext.jsx"
+    ],
+    "exports": [
+      "PeopleSearch"
+    ]
+  },
+  {
+    "path": "components/economy/SupportFlow.jsx",
+    "imports": [
+      "../../lib/AuthContext",
+      "../../services/creatorEconomy.js"
+    ],
+    "exports": [
+      "SupportFlow"
+    ]
+  },
+  {
+    "path": "components/entry/AppEntryController.jsx",
+    "imports": [
+      "../../lib/AuthContext.jsx",
+      "../welcome/WelcomeOverlay.jsx",
+      "../../lib/welcomePersistence.js"
+    ],
+    "exports": [
+      "AppEntryController"
+    ]
+  },
+  {
+    "path": "components/experiences/ExperienceWizard.jsx",
+    "imports": [
+      "../../lib/supabaseClient.js"
+    ],
+    "exports": [
+      "ExperienceWizard"
+    ]
+  },
+  {
+    "path": "components/guidance/GuidanceContext.jsx",
+    "imports": [
+      "./guidanceTokens.js",
+      "../../lib/cleanup/cleanupOrbEnvironment.js",
+      "../../lib/guidance/focusSystem.js",
+      "../../lib/guidance/readabilityEngine.js"
+    ],
+    "exports": [
+      "useGuidance",
+      "GuidanceProvider"
+    ]
+  },
+  {
+    "path": "components/guidance/GuidanceFooter.jsx",
+    "imports": [
+      "./GuidanceContext.jsx",
+      "../../lib/guidance/visualPriority.js",
+      "./guidanceTokens.js"
+    ],
+    "exports": [
+      "GuidanceFooter"
+    ]
+  },
+  {
+    "path": "components/guidance/GuidanceLayer.jsx",
+    "imports": [
+      "./GuidanceContext.jsx",
+      "../../lib/guidance/focusSystem.js",
+      "../../lib/guidance/visualPriority.js",
+      "./guidanceTokens.js"
+    ],
+    "exports": [
+      "GuidanceLayer"
+    ]
+  },
+  {
+    "path": "components/guidance/guidanceTokens.js",
+    "imports": [],
+    "exports": [
+      "G_COLOR",
+      "G_SHAPE",
+      "G_TYPE",
+      "G_MOTION",
+      "VISUAL_PRIORITY",
+      "FOCUS_MODES",
+      "FLOW_DEFAULT_MODE",
+      "ORB_GUIDANCE_REDUCED",
+      "ORB_GUIDANCE_NORMAL"
+    ]
+  },
+  {
+    "path": "components/home/AmbientWorldBar.jsx",
+    "imports": [],
+    "exports": [
+      "AmbientWorldBar"
+    ]
+  },
+  {
+    "path": "components/home/HomeShell.jsx",
+    "imports": [
+      "../../lib/AuthContext",
+      "../../lib/profileUtils.js",
+      "../../core/hui.navigator.jsx",
+      "../../lib/factories/createProfileItem.js",
+      "../../lib/AppStateContext",
+      "../../lib/sessionHooks",
+      "../../lib/world/tabVisibilityController.js",
+      "../../hooks/useCartPersistence.js",
+      "../../core/HuiActionProvider.jsx",
+      "../../context/WorldSurfaceContext.jsx",
+      "../../config/safeMode.js",
+      "../../lib/intelligence/worldContinuity.js",
+      "../../lib/intelligence/worldPolish.js",
+      "../../context/OrbWorldContext.jsx",
+      "../../lib/world/orbLayer.js",
+      "../../core/hui.flow.js",
+      "../../core/HuiConnectionEngine.jsx",
+      "../../core/HuiContextBridge.jsx"
+    ],
+    "exports": [
+      "useHome",
+      "HomeShell"
+    ]
+  },
+  {
+    "path": "components/home/header/HomeHeader.jsx",
+    "imports": [
+      "./SearchCommandCenter.jsx",
+      "./MoodOrbButton.jsx",
+      "./NotificationButton.jsx",
+      "./MessageButton.jsx",
+      "../mood/MoodSheet.jsx",
+      "../../../core/hui.actions.js",
+      "../../../core/hui.sources.js"
+    ],
+    "exports": [
+      "HomeHeader"
+    ]
+  },
+  {
+    "path": "components/home/header/MatchBar.jsx",
+    "imports": [
+      "../mood/moodConfig.js"
+    ],
+    "exports": [
+      "MatchBar"
+    ]
+  },
+  {
+    "path": "components/home/header/MessageButton.jsx",
+    "imports": [],
+    "exports": [
+      "MessageButton"
+    ]
+  },
+  {
+    "path": "components/home/header/MoodOrbButton.jsx",
+    "imports": [],
+    "exports": [
+      "MoodOrbButton"
+    ]
+  },
+  {
+    "path": "components/home/header/NotificationButton.jsx",
+    "imports": [
+      "../../../lib/useNotifications.jsx"
+    ],
+    "exports": [
+      "NotificationButton"
+    ]
+  },
+  {
+    "path": "components/home/header/SearchCommandCenter.jsx",
+    "imports": [
+      "../../../lib/supabaseClient.js",
+      "../../home/HomeShell.jsx",
+      "../../../core/HuiConnectionEngine.jsx"
+    ],
+    "exports": [
+      "SearchCommandCenter"
+    ]
+  },
+  {
+    "path": "components/home/mood/MoodSelector.jsx",
+    "imports": [
+      "./moodConfig.js"
+    ],
+    "exports": [
+      "MoodSelector"
+    ]
+  },
+  {
+    "path": "components/home/mood/MoodSheet.jsx",
+    "imports": [
+      "./MoodSelector.jsx"
+    ],
+    "exports": [
+      "MoodSheet"
+    ]
+  },
+  {
+    "path": "components/home/mood/moodConfig.js",
+    "imports": [],
+    "exports": [
+      "MOODS",
+      "MATCH_PLACEHOLDERS",
+      "MOOD_FEED_HINTS"
+    ]
+  },
+  {
+    "path": "components/home/navigation/BottomNav.jsx",
+    "imports": [
+      "./NavItem.jsx",
+      "./navConfig.js",
+      "../../../lib/factories/createNavItem.js",
+      "../../../design/hui.design.js",
+      "../../../core/hui.actions.js"
+    ],
+    "exports": [
+      "BottomNav"
+    ]
+  },
+  {
+    "path": "components/home/navigation/NavItem.jsx",
+    "imports": [
+      "../../../design/hui.design.js"
+    ],
+    "exports": [
+      "NavItem"
+    ]
+  },
+  {
+    "path": "components/home/navigation/navConfig.js",
+    "imports": [
+      "../../../lib/factories/createNavItem.js",
+      "../../../lib/factories/createTabPage.js"
+    ],
+    "exports": [
+      "NAV_ITEMS",
+      "KEEP_ALIVE_TABS",
+      "PAGE_TABS",
+      "OVERLAY_TABS"
+    ]
+  },
+  {
+    "path": "components/home/profile/ProfileLauncher.jsx",
+    "imports": [
+      "../HomeShell.jsx",
+      "../../../core/hui.actions.js",
+      "../../../core/hui.sources.js",
+      "../../../services/db",
+      "../../../lib/supabaseClient.js",
+      "../../../lib/profileUtils.js"
+    ],
+    "exports": [
+      "useProfileLauncher",
+      "ProfileLauncher"
+    ]
+  },
+  {
+    "path": "components/notifications/NotificationPanel.jsx",
+    "imports": [
+      "../../lib/supabaseClient.js"
+    ],
+    "exports": [
+      "NotificationPanel"
+    ]
+  },
+  {
+    "path": "components/orb/OrbLeaf.jsx",
+    "imports": [
+      "../../hooks/useCoreEngine.js",
+      "../../core/orbEngine.js"
+    ],
+    "exports": [
+      "OrbLeaf",
+      "HuiOrbLogo",
+      "HuiSun"
+    ]
+  },
+  {
+    "path": "components/profile/MerkenSection.jsx",
+    "imports": [
+      "../../lib/AuthContext.jsx",
+      "../../lib/useReactions.jsx",
+      "../../lib/supabaseClient.js"
+    ],
+    "exports": [
+      "MerkenSection"
+    ]
+  },
+  {
+    "path": "components/profile/OrbSignatur.jsx",
+    "imports": [
+      "../../core/hui.pillars.js",
+      "../../hooks/useCoreEngine.js"
+    ],
+    "exports": [
+      "OrbSignatur"
+    ]
+  },
+  {
+    "path": "components/profile/ProfileHeader.jsx",
+    "imports": [
+      "../../lib/profileMedia.js"
+    ],
+    "exports": [
+      "ProfileHeader",
+      "ProfileHeaderDemo"
+    ]
+  },
+  {
+    "path": "components/profile/PublicProfilePreview.jsx",
+    "imports": [
+      "../../services/db"
+    ],
+    "exports": [
+      "PublicProfilePreview"
+    ]
+  },
+  {
+    "path": "components/profile/sections/AboutSection.jsx",
+    "imports": [],
+    "exports": [
+      "AboutSection"
+    ]
+  },
+  {
+    "path": "components/profile/sections/AvailabilitySection.jsx",
+    "imports": [],
+    "exports": [
+      "AvailabilitySection"
+    ]
+  },
+  {
+    "path": "components/profile/sections/ExperiencesSection.jsx",
+    "imports": [],
+    "exports": [
+      "ExperiencesSection"
+    ]
+  },
+  {
+    "path": "components/profile/sections/LocationSection.jsx",
+    "imports": [],
+    "exports": [
+      "LocationSection"
+    ]
+  },
+  {
+    "path": "components/profile/sections/MomentsSection.jsx",
+    "imports": [],
+    "exports": [
+      "MomentsSection"
+    ]
+  },
+  {
+    "path": "components/profile/sections/RecommendationsSection.jsx",
+    "imports": [],
+    "exports": [
+      "RecommendationsSection"
+    ]
+  },
+  {
+    "path": "components/profile/sections/TalentSection.jsx",
+    "imports": [],
+    "exports": [
+      "TalentSection"
+    ]
+  },
+  {
+    "path": "components/profile/sections/VisibilitySection.jsx",
+    "imports": [],
+    "exports": [
+      "VisibilitySection"
+    ]
+  },
+  {
+    "path": "components/profile/sections/WorksSection.jsx",
+    "imports": [
+      "../../../lib/supabaseClient.js"
+    ],
+    "exports": [
+      "WorksSection"
+    ]
+  },
+  {
+    "path": "components/profile/sections/index.js",
+    "imports": [],
+    "exports": [
+      "AboutSection",
+      "TalentSection",
+      "WorksSection",
+      "ExperiencesSection",
+      "RecommendationsSection",
+      "AvailabilitySection",
+      "LocationSection",
+      "VisibilitySection",
+      "MomentsSection"
+    ]
+  },
+  {
+    "path": "components/publishing/PublishExperienceFlow.jsx",
+    "imports": [
+      "../../lib/factories/experienceContract.js",
+      "../../lib/supabaseClient",
+      "../../lib/AuthContext.jsx"
+    ],
+    "exports": [
+      "PublishExperienceFlow"
+    ]
+  },
+  {
+    "path": "components/publishing/PublishWorkFlow.jsx",
+    "imports": [
+      "../../lib/supabaseClient",
+      "../../lib/AuthContext.jsx"
+    ],
+    "exports": [
+      "PublishWorkFlow"
+    ]
+  },
+  {
+    "path": "components/publishing/PublishingHub.jsx",
+    "imports": [
+      "./PublishWorkFlow.jsx",
+      "./PublishExperienceFlow.jsx"
+    ],
+    "exports": [
+      "PublishingHub"
+    ]
+  },
+  {
+    "path": "components/settings/SettingsModal.jsx",
+    "imports": [
+      "../../lib/AuthContext.jsx",
+      "../../lib/supabaseClient.js"
+    ],
+    "exports": [
+      "SettingsModal"
+    ]
+  },
+  {
+    "path": "components/shared/ConnectionFlowCard.jsx",
+    "imports": [],
+    "exports": [
+      "ConnectionFlowCard",
+      "SharedValuesCard",
+      "EncounterSuggestionCard",
+      "SharedFollowersCard",
+      "ImpactBridgeCard"
+    ]
+  },
+  {
+    "path": "components/studio/EinAusgabenModal.jsx",
+    "imports": [
+      "../../lib/supabaseClient.js"
+    ],
+    "exports": [
+      "EinAusgabenModal"
+    ]
+  },
+  {
+    "path": "components/studio/HuiStudio.jsx",
+    "imports": [
+      "../../lib/profileUtils.js",
+      "../home/HomeShell.jsx",
+      "../../services/db",
+      "../../lib/supabaseClient.js",
+      "../../lib/AuthContext.jsx",
+      "../ambassador/AmbassadorModal.jsx",
+      "./ImpactStimmenModal.jsx",
+      "./MeineProjekteModal.jsx",
+      "./EinAusgabenModal.jsx",
+      "./StatistikenModal.jsx",
+      "./ProfilBearbeitenModal.jsx",
+      "./SicherheitPasswortModal.jsx",
+      "../../pages/studio/SupportPage.jsx",
+      "../../pages/studio/MeineTicketsPage.jsx",
+      "../settings/SettingsModal.jsx"
+    ],
+    "exports": [
+      "HuiStudio"
+    ]
+  },
+  {
+    "path": "components/studio/ImpactStimmenModal.jsx",
+    "imports": [
+      "../../lib/profileUtils.js",
+      "../../lib/supabaseClient.js"
+    ],
+    "exports": [
+      "ImpactStimmenModal"
+    ]
+  },
+  {
+    "path": "components/studio/MeineProjekteModal.jsx",
+    "imports": [
+      "../../lib/supabaseClient.js"
+    ],
+    "exports": [
+      "MeineProjekteModal"
+    ]
+  },
+  {
+    "path": "components/studio/ProfilBearbeitenModal.jsx",
+    "imports": [
+      "../../lib/supabaseClient.js",
+      "../../lib/profileUtils.js",
+      "../../lib/AuthContext.jsx"
+    ],
+    "exports": [
+      "ProfilBearbeitenModal"
+    ]
+  },
+  {
+    "path": "components/studio/SicherheitPasswortModal.jsx",
+    "imports": [
+      "../../lib/supabaseClient.js"
+    ],
+    "exports": [
+      "SicherheitPasswortModal"
+    ]
+  },
+  {
+    "path": "components/studio/StatistikenModal.jsx",
+    "imports": [
+      "../../lib/supabaseClient.js"
+    ],
+    "exports": [
+      "StatistikenModal"
+    ]
+  },
+  {
+    "path": "components/teilen/TeilenFlow.jsx",
+    "imports": [
+      "../../lib/AuthContext",
+      "../../lib/supabaseClient",
+      "../../design/hui.design.js"
+    ],
+    "exports": [
+      "TeilenFlow"
+    ]
+  },
+  {
+    "path": "components/ui/EmptyState.jsx",
+    "imports": [],
+    "exports": [
+      "EmptyState",
+      "ImageWithFallback"
+    ]
+  },
+  {
+    "path": "components/ui/TalentBadge.jsx",
+    "imports": [],
+    "exports": [
+      "TalentBadge",
+      "CreatorRing",
+      "MembershipLabel"
+    ]
+  },
+  {
+    "path": "components/welcome/WelcomeOverlay.jsx",
+    "imports": [],
+    "exports": [
+      "WelcomeOverlay"
+    ]
+  },
+  {
+    "path": "components/works/WerkWizard.jsx",
+    "imports": [
+      "../../lib/supabaseClient.js"
+    ],
+    "exports": [
+      "WerkWizard"
+    ]
+  },
+  {
+    "path": "config/SafeRender.jsx",
+    "imports": [
+      "./safeMode.js"
+    ],
+    "exports": [
+      "SafeRender",
+      "useSafeFlag"
+    ]
+  },
+  {
+    "path": "config/safeMode.js",
+    "imports": [],
+    "exports": [
+      "SAFE_MODE"
+    ]
+  },
+  {
+    "path": "content/ContentTypeSelector.jsx",
+    "imports": [
+      "../design/hui.design.js"
+    ],
+    "exports": [
+      "ContentTypeSelector"
+    ]
+  },
+  {
+    "path": "content/invitation/InvitationCard.jsx",
+    "imports": [
+      "../../design/hui.design.js",
+      "./useInvitationResponse.js"
+    ],
+    "exports": [
+      "InvitationCard"
+    ]
+  },
+  {
+    "path": "content/invitation/InvitationFlow.jsx",
+    "imports": [
+      "../../lib/supabaseClient.js",
+      "../../lib/AuthContext.jsx",
+      "../../design/hui.design.js"
+    ],
+    "exports": [
+      "InvitationFlow"
+    ]
+  },
+  {
+    "path": "content/invitation/useInvitationResponse.js",
+    "imports": [
+      "../../lib/supabaseClient.js",
+      "../../lib/AuthContext.jsx"
+    ],
+    "exports": [
+      "useInvitationResponse"
+    ]
+  },
+  {
+    "path": "context/OrbWorldContext.jsx",
+    "imports": [
+      "../lib/world/orbLayer.js",
+      "../lib/cleanup/cleanupOrbEnvironment.js"
+    ],
+    "exports": [
+      "useOrbWorld",
+      "OrbWorldProvider"
+    ]
+  },
+  {
+    "path": "context/WorldSurfaceContext.jsx",
+    "imports": [
+      "../lib/world/worldSurfaceController.js",
+      "../lib/cleanup/cleanupOrbEnvironment.js"
+    ],
+    "exports": [
+      "useWorldSurface",
+      "WorldSurfaceProvider"
+    ]
+  },
+  {
+    "path": "core/HuiActionProvider.jsx",
+    "imports": [
+      "./hui.actions.js",
+      "../components/home/HomeShell.jsx"
+    ],
+    "exports": [
+      "HuiActionProvider"
+    ]
+  },
+  {
+    "path": "core/HuiConnectionEngine.jsx",
+    "imports": [
+      "../lib/supabaseClient.js"
+    ],
+    "exports": [
+      "INTENT",
+      "CONNECTION_STATE",
+      "useConnectionEngine",
+      "useFollow",
+      "useEncounterJoin",
+      "useBookmark",
+      "HuiConnectionEngine"
+    ]
+  },
+  {
+    "path": "core/HuiContextBridge.jsx",
+    "imports": [],
+    "exports": [
+      "useContextBridge",
+      "HuiContextBridge"
+    ]
+  },
+  {
+    "path": "core/coreEngine.js",
+    "imports": [
+      "../lib/supabaseClient.js"
+    ],
+    "exports": [
+      "PILLARS",
+      "SIGNAL_CATEGORIES",
+      "SIGNAL_TYPES",
+      "SIGNAL_WEIGHTS",
+      "classify",
+      "CoreEngine"
+    ]
+  },
+  {
+    "path": "core/hui.actions.js",
+    "imports": [
+      "./hui.contracts.js",
+      "./hui.sources.js",
+      "./hui.flow.states.js",
+      "./hui.semantics.js"
+    ],
+    "exports": [
+      "A",
+      "ActionCtx",
+      "useHuiActions",
+      "buildActions"
+    ]
+  },
+  {
+    "path": "core/hui.contracts.js",
+    "imports": [
+      "./hui.sources.js"
+    ],
+    "exports": [
+      "SOURCE",
+      "validate",
+      "inspectContracts"
+    ]
+  },
+  {
+    "path": "core/hui.flow.js",
+    "imports": [
+      "./hui.sources.js"
+    ],
+    "exports": [
+      "FlowCtx",
+      "useHuiFlow",
+      "createFlowStore"
+    ]
+  },
+  {
+    "path": "core/hui.flow.states.js",
+    "imports": [],
+    "exports": [
+      "FLOW",
+      "FLOW_TIMING",
+      "ECHO",
+      "ACTION_ECHO",
+      "createFlowSignal",
+      "flowSignal"
+    ]
+  },
+  {
+    "path": "core/hui.navigator.jsx",
+    "imports": [],
+    "exports": [
+      "SCREENS",
+      "TAB_TO_SCREEN",
+      "SCREEN_TO_TAB",
+      "OVERLAY_SCREENS",
+      "NavigatorProvider",
+      "useNavigator",
+      "useScreen",
+      "useNavigateTo"
+    ]
+  },
+  {
+    "path": "core/hui.pillars.js",
+    "imports": [],
+    "exports": [
+      "// Kern-Exports (unverändert)\n  PILLARS,\n  PILLAR_LIST,\n\n  // Registry\n  HuiRegistry,\n  R,\n  LANG,\n  CONTENT_PILLARS,\n  ORB_TRAITS,\n\n  // Legacy-Kompatibilität (deprecated aber funktionsfähig)\n  PILLAR_UI,\n  HUI_LANGUAGE,\n  CONTENT_PILLAR_MAP,\n\n  // Helfer-Funktionen\n  pillarHint,\n  dominantPillarLabels,\n  inferPillarFromType,\n  projectNeedsLabel,"
+    ]
+  },
+  {
+    "path": "core/hui.safePayload.js",
+    "imports": [
+      "./hui.sources.js"
+    ],
+    "exports": [
+      "safePayload",
+      "safeActionType",
+      "safeCreator",
+      "safeOrbAction"
+    ]
+  },
+  {
+    "path": "core/hui.semantics.js",
+    "imports": [
+      "./hui.sources.js"
+    ],
+    "exports": [
+      "INTENT",
+      "normalizeRecipient",
+      "normalizeCreator",
+      "normalizeExperience",
+      "buildChatPayload",
+      "buildBookPayload",
+      "buildProfilePayload",
+      "checkSemantics"
+    ]
+  },
+  {
+    "path": "core/hui.sources.js",
+    "imports": [],
+    "exports": [
+      "S",
+      "SURFACE_DEPTH",
+      "RETURN_TO",
+      "SURFACE_LABEL",
+      "isValidSource"
+    ]
+  },
+  {
+    "path": "core/orbEngine.js",
+    "imports": [
+      "./coreEngine.js"
+    ],
+    "exports": [
+      "OrbEngine"
+    ]
+  },
+  {
+    "path": "core/resonanceEngine.js",
+    "imports": [
+      "../lib/supabaseClient.js",
+      "./coreEngine.js"
+    ],
+    "exports": [
+      "SIGNAL_LAYERS",
+      "REACTION_TYPES",
+      "resonanceLabel",
+      "ResonanceEngine"
+    ]
+  },
+  {
+    "path": "design/hui.design.js",
+    "imports": [
+      "./hui.interaction.js"
+    ],
+    "exports": [
+      "HUI",
+      "C",
+      "Sh",
+      "Sp",
+      "R",
+      "M",
+      "G",
+      "F"
+    ]
+  },
+  {
+    "path": "design/hui.hooks.js",
+    "imports": [
+      "./hui.interaction.js"
+    ],
+    "exports": [
+      "useTap",
+      "useCardInteraction",
+      "useScrollEntry",
+      "useOrbNode"
+    ]
+  },
+  {
+    "path": "design/hui.interaction.js",
+    "imports": [],
+    "exports": [
+      "EASE",
+      "DUR",
+      "TAP",
+      "CARD",
+      "PAGE",
+      "LOADING",
+      "AMBIENT",
+      "CSS",
+      "ORB",
+      "BTN",
+      "SCROLL",
+      "SURFACE",
+      "SKELETON",
+      "IX"
+    ]
+  },
+  {
+    "path": "features/discovery/userSearch.js",
+    "imports": [
+      "../../lib/supabaseClient",
+      "../../lib/factories/createProfileItem.js"
+    ],
+    "exports": [
+      "useUserSearch"
+    ]
+  },
+  {
+    "path": "feed/FeedEventsSection.jsx",
+    "imports": [
+      "../lib/supabaseClient.js"
+    ],
+    "exports": [
+      "FeedEventsSection"
+    ]
+  },
+  {
+    "path": "feed/FeedScrollSentinel.jsx",
+    "imports": [],
+    "exports": [
+      "FeedBottomSentinel",
+      "useFeedScrollProgress",
+      "FeedLoadMoreSpinner"
+    ]
+  },
+  {
+    "path": "feed/FeedSoftHydrationBadge.jsx",
+    "imports": [],
+    "exports": [
+      "FeedSoftHydrationBadge"
+    ]
+  },
+  {
+    "path": "feed/FeedStoriesBar.jsx",
+    "imports": [
+      "../lib/supabaseClient.js",
+      "../lib/AuthContext.jsx",
+      "./StoryViewer.jsx",
+      "./StoryCreator.jsx",
+      "../lib/usePresence.jsx"
+    ],
+    "exports": [
+      "FeedStoriesBar"
+    ]
+  },
+  {
+    "path": "feed/StoryCreator.jsx",
+    "imports": [
+      "../lib/supabaseClient.js",
+      "../lib/AuthContext.jsx"
+    ],
+    "exports": [
+      "StoryCreator"
+    ]
+  },
+  {
+    "path": "feed/StoryReactionTray.jsx",
+    "imports": [
+      "../lib/supabaseClient.js"
+    ],
+    "exports": [
+      "StoryReactionTray"
+    ]
+  },
+  {
+    "path": "feed/StoryViewer.jsx",
+    "imports": [
+      "../lib/supabaseClient.js",
+      "../lib/AuthContext.jsx",
+      "./StoryReactionTray.jsx"
+    ],
+    "exports": [
+      "StoryViewer"
+    ]
+  },
+  {
+    "path": "feed/UnifiedFeed.jsx",
+    "imports": [
+      "./cards/FeedRouter.jsx",
+      "./cards/BaseFeedCard.jsx",
+      "./useFeedStream.js",
+      "./FeedSoftHydrationBadge.jsx",
+      "../system/feed/unifiedNormalizer.js",
+      "./FeedEventsSection.jsx",
+      "./FeedScrollSentinel.jsx",
+      "../lib/useReactions.jsx",
+      "../lib/AuthContext.jsx",
+      "../services/creatorEconomy.js",
+      "../lib/events/index.js",
+      "../lib/useToast.jsx"
+    ],
+    "exports": [
+      "UnifiedFeed",
+      "FeedList"
+    ]
+  },
+  {
+    "path": "feed/cards/BaseFeedCard.jsx",
+    "imports": [
+      "../../lib/usePresence.jsx",
+      "../../components/ui/TalentBadge.jsx"
+    ],
+    "exports": [
+      "CardSkeleton",
+      "HumanHeader",
+      "FeedCardHeader",
+      "FeedMedia",
+      "FeedActions",
+      "BaseFeedCard"
+    ]
+  },
+  {
+    "path": "feed/cards/EventContent.jsx",
+    "imports": [
+      "./BaseFeedCard.jsx"
+    ],
+    "exports": [
+      "EventContent"
+    ]
+  },
+  {
+    "path": "feed/cards/ExperienceContent.jsx",
+    "imports": [
+      "./BaseFeedCard.jsx"
+    ],
+    "exports": [
+      "ExperienceContent"
+    ]
+  },
+  {
+    "path": "feed/cards/FeedRouter.jsx",
+    "imports": [
+      "../../system/feed/unifiedNormalizer.js"
+    ],
+    "exports": [
+      "FeedRouter",
+      "toFeedItem as resolveType"
+    ]
+  },
+  {
+    "path": "feed/cards/MomentContent.jsx",
+    "imports": [
+      "./BaseFeedCard.jsx"
+    ],
+    "exports": [
+      "MomentContent"
+    ]
+  },
+  {
+    "path": "feed/cards/WorkContent.jsx",
+    "imports": [
+      "./BaseFeedCard.jsx"
+    ],
+    "exports": [
+      "WorkContent"
+    ]
+  },
+  {
+    "path": "feed/feedRhythmEngine.js",
+    "imports": [],
+    "exports": [
+      "resolveContentType",
+      "rhythmizeFeed",
+      "getRhythmMargin",
+      "getEnergyLabel"
+    ]
+  },
+  {
+    "path": "feed/useFeedStream.js",
+    "imports": [
+      "../services/db",
+      "../lib/supabaseClient.js",
+      "../lib/AuthContext.jsx",
+      "./feedRhythmEngine.js",
+      "../system/feed/unifiedNormalizer.js"
+    ],
+    "exports": [
+      "saveFeedScrollPos",
+      "getFeedScrollPos",
+      "useFeedStream"
+    ]
+  },
+  {
+    "path": "hooks/useAmbassador.js",
+    "imports": [
+      "../lib/supabaseClient.js",
+      "../lib/ambassadorUtils.js",
+      "../lib/referralTracking.js"
+    ],
+    "exports": [
+      "useAmbassador",
+      "useAmbassadorApplication",
+      "useReferrals"
+    ]
+  },
+  {
+    "path": "hooks/useCartPersistence.js",
+    "imports": [],
+    "exports": [
+      "useCartPersistence"
+    ]
+  },
+  {
+    "path": "hooks/useCoreEngine.js",
+    "imports": [
+      "../core/coreEngine.js",
+      "../core/resonanceEngine.js",
+      "../core/orbEngine.js"
+    ],
+    "exports": [
+      "useCoreProfile",
+      "useCoreSignal",
+      "useOrbParams",
+      "useContentPillar",
+      "signalHelpers",
+      "resonanceHelpers",
+      "useResonanceProfile",
+      "ResonanceEngine, REACTION_TYPES, SIGNAL_LAYERS, resonanceLabel"
+    ]
+  },
+  {
+    "path": "hooks/useProfileData.js",
+    "imports": [
+      "../services/db",
+      "../lib/supabaseClient.js"
+    ],
+    "exports": [
+      "useProfileData",
+      "filterWorksForPublic",
+      "filterExperiencesForPublic"
+    ]
+  },
+  {
+    "path": "hooks/useProfileId.js",
+    "imports": [
+      "../services/db",
+      "../lib/supabaseClient.js"
+    ],
+    "exports": [
+      "isUuid",
+      "useProfileId"
+    ]
+  },
+  {
+    "path": "hooks/useTalentActivation.js",
+    "imports": [],
+    "exports": [
+      "useTalentActivation",
+      "requireTalent"
+    ]
+  },
+  {
+    "path": "lib/AppStateContext.jsx",
+    "imports": [
+      "./supabaseClient",
+      "./AuthContext"
+    ],
+    "exports": [
+      "AppStateProvider",
+      "useAppState",
+      "useDiscoverData",
+      "useResonanceState",
+      "useNotifCount",
+      "useFollowStatus"
+    ]
+  },
+  {
+    "path": "lib/AuthContext.jsx",
+    "imports": [
+      "../services/db",
+      "./supabaseClient",
+      "./profileUtils.js",
+      "./intelligence/persistence/interactionMemoryStore.js",
+      "./perfUtils"
+    ],
+    "exports": [
+      "AuthProvider",
+      "useAuth"
+    ]
+  },
+  {
+    "path": "lib/BUILD_VERSION.js",
+    "imports": [],
+    "exports": [
+      "BUILD_VERSION",
+      "BUILD_COMMIT"
+    ]
+  },
+  {
+    "path": "lib/ErrorBoundaries.jsx",
+    "imports": [
+      "./sentry.js",
+      "./errors/index.js"
+    ],
+    "exports": [
+      "GlobalAppBoundary",
+      "RouteBoundary",
+      "OverlayBoundary",
+      "withBoundary"
+    ]
+  },
+  {
+    "path": "lib/ambassadorUtils.js",
+    "imports": [],
+    "exports": [
+      "LEVEL_THRESHOLDS",
+      "AMBASSADOR_REWARD_RATES",
+      "IMPACT_POOL_RATE",
+      "LEVEL_CONFIG",
+      "calcLevel",
+      "calcReward",
+      "isActiveAmbassador",
+      "getAmbassadorStatus",
+      "hasPendingApplication",
+      "canApplyAsAmbassador",
+      "getAmbStats"
+    ]
+  },
+  {
+    "path": "lib/bookingContext.js",
+    "imports": [
+      "./security/index.js",
+      "./feedback/index.js",
+      "./validation/index.js",
+      "./supabaseClient",
+      "./AuthContext"
+    ],
+    "exports": [
+      "BOOKING_STATUS",
+      "REQ_TYPES",
+      "MOODS",
+      "getTrustSignals",
+      "useBookingActions",
+      "useCreatorBookings",
+      "useMyBookings",
+      "useAvailableSlots"
+    ]
+  },
+  {
+    "path": "lib/chatContext.js",
+    "imports": [
+      "./feedback/index.js",
+      "./security/index.js",
+      "./validation/index.js",
+      "../services/db",
+      "./supabaseClient",
+      "./debugCollector.js",
+      "./notificationService",
+      "./AuthContext"
+    ],
+    "exports": [
+      "CHAT_TYPES",
+      "MSG_TYPES",
+      "formatChatTime",
+      "formatMsgDate",
+      "useChatList",
+      "useChatThread",
+      "useChatContext"
+    ]
+  },
+  {
+    "path": "lib/cleanup/cleanupOrbEnvironment.js",
+    "imports": [],
+    "exports": [
+      "cleanupOrbEnvironment",
+      "setScrollLock"
+    ]
+  },
+  {
+    "path": "lib/community/index.js",
+    "imports": [
+      "../supabaseClient",
+      "../sentry.js",
+      "../events/index.js",
+      "../trust/index.js"
+    ],
+    "exports": [
+      "COMMUNITY_TYPES",
+      "WELCOME_TONES",
+      "getWelcomeMessage",
+      "GUARDIAN_ACTIONS",
+      "getResonanceQuality",
+      "RHYTHM_RULES",
+      "shouldSendCommunityNotif"
+    ]
+  },
+  {
+    "path": "lib/community/local.js",
+    "imports": [
+      "../supabaseClient",
+      "../sentry.js"
+    ],
+    "exports": [
+      "LOCAL_SCALES",
+      "formatLocalLabel",
+      "localResonanceHint"
+    ]
+  },
+  {
+    "path": "lib/creativeJourney/index.js",
+    "imports": [],
+    "exports": [
+      "detectJourneyPhase",
+      "computeJourneyDepth"
+    ]
+  },
+  {
+    "path": "lib/debugCollector.js",
+    "imports": [],
+    "exports": [
+      "logDebug"
+    ]
+  },
+  {
+    "path": "lib/discovery/index.js",
+    "imports": [
+      "../services/db",
+      "../supabaseClient",
+      "../sentry.js",
+      "../perfUtils.js"
+    ],
+    "exports": [
+      "DISCOVERY_SIGNALS"
+    ]
+  },
+  {
+    "path": "lib/ds.js",
+    "imports": [],
+    "exports": [
+      "color",
+      "radius",
+      "blur",
+      "shadow",
+      "space",
+      "type",
+      "motion",
+      "glass",
+      "btn",
+      "vignette",
+      "progressBar",
+      "DS"
+    ]
+  },
+  {
+    "path": "lib/errors/index.js",
+    "imports": [],
+    "exports": [
+      "SEVERITY",
+      "ERROR_CODES",
+      "AppError",
+      "AuthError",
+      "NetworkError",
+      "RealtimeError",
+      "BookingError",
+      "ChatError",
+      "ValidationError",
+      "PaymentError",
+      "PermissionError",
+      "ContentError",
+      "normalizeError",
+      "isRetryable"
+    ]
+  },
+  {
+    "path": "lib/events/index.js",
+    "imports": [
+      "../supabaseClient",
+      "../sentry.js"
+    ],
+    "exports": [
+      "PLATFORM_EVENTS"
+    ]
+  },
+  {
+    "path": "lib/factories/createFeedItem.js",
+    "imports": [],
+    "exports": [
+      "createFeedItem",
+      "filterValidFeedItems",
+      "createWorkItem",
+      "createExperienceItem",
+      "createImpactItem"
+    ]
+  },
+  {
+    "path": "lib/factories/createNavItem.js",
+    "imports": [],
+    "exports": [
+      "createNavItem",
+      "validateNavItem"
+    ]
+  },
+  {
+    "path": "lib/factories/createProfileItem.js",
+    "imports": [],
+    "exports": [
+      "createProfileItem",
+      "filterValidProfiles"
+    ]
+  },
+  {
+    "path": "lib/factories/createTabPage.js",
+    "imports": [],
+    "exports": [
+      "createTabPage",
+      "createTabItem",
+      "filterValidPages"
+    ]
+  },
+  {
+    "path": "lib/factories/experienceContract.js",
+    "imports": [],
+    "exports": [
+      "EXPERIENCE_ENUMS",
+      "normalizeImage",
+      "normalizeImages",
+      "normalizeExperiencePayload",
+      "validateExperiencePayload"
+    ]
+  },
+  {
+    "path": "lib/feedback/index.js",
+    "imports": [],
+    "exports": [
+      "feedback",
+      "FEEDBACK_MESSAGES"
+    ]
+  },
+  {
+    "path": "lib/guidance/focusSystem.js",
+    "imports": [
+      "../../components/guidance/guidanceTokens.js"
+    ],
+    "exports": [
+      "resolveFocusMode",
+      "resolveOrbGuidanceState",
+      "focusModeToCSS",
+      "focusModeTransitionMs"
+    ]
+  },
+  {
+    "path": "lib/guidance/readabilityEngine.js",
+    "imports": [],
+    "exports": [
+      "detectVisualNoise",
+      "computeReadabilityAdjustments",
+      "estimateLuminance",
+      "footerProtection"
+    ]
+  },
+  {
+    "path": "lib/guidance/visualPriority.js",
+    "imports": [
+      "../../components/guidance/guidanceTokens.js"
+    ],
+    "exports": [
+      "resolvePriorityMap",
+      "Z_GUIDANCE",
+      "layerOpacityCascade",
+      "ctaButtonStyle",
+      "guidanceFooterStyle"
+    ]
+  },
+  {
+    "path": "lib/intelligence/discoverWorld.js",
+    "imports": [],
+    "exports": [
+      "DISCOVER_DISTRICTS",
+      "buildDiscoverWorld",
+      "discoverDrift",
+      "selectDiscoverAmbient",
+      "selectPrimaryDistrict",
+      "selectWanderingPath",
+      "selectWorldWhisper",
+      "selectDistrictAccent",
+      "selectDiscoverBg",
+      "selectDiscoverMotionScale",
+      "selectRevealDelay",
+      "isEmptyWorld",
+      "debugWorldSummary",
+      "assignItemsToDistricts",
+      "mockDiscoverWorldFromFeed",
+      "pillToDistrict",
+      "getDistrictVisual"
+    ]
+  },
+  {
+    "path": "lib/intelligence/emotionalIdentity.js",
+    "imports": [],
+    "exports": [
+      "EMOTIONAL_ARCHETYPES",
+      "buildEmotionalIdentity",
+      "identityDrift",
+      "selectAnimationSpeed",
+      "selectMotionScale",
+      "selectAmbientGlow",
+      "selectGlassOpacity",
+      "selectAtmosphereLabel",
+      "isFallbackIdentity",
+      "debugIdentitySummary",
+      "attachEmotionalIdentity",
+      "quickIdentityFromProfile"
+    ]
+  },
+  {
+    "path": "lib/intelligence/index.js",
+    "imports": [],
+    "exports": [
+      "buildEmotionalIdentity, identityDrift, attachEmotionalIdentity, quickIdentityFromProfile,\n  selectAnimationSpeed, selectMotionScale, selectAmbientGlow, selectGlassOpacity,\n  selectAtmosphereLabel, isFallbackIdentity, debugIdentitySummary, EMOTIONAL_ARCHETYPES,",
+      "buildRelationshipMemory, relationshipDrift, decayedSignal,\n  attachRelationshipToFeedItem, relationshipOrderingBoost, mockInteractionsFromItem,\n  selectWarmthBoost, selectMotionCalm, selectCardDelay, selectGlowBoost,\n  selectRelationshipState, selectMicroMoment, isFallbackMemory, debugMemorySummary,\n  RELATIONSHIP_STATES, MEMORY_HALF_LIVES,",
+      "buildSharedAtmosphere, atmosphereDrift, applyAtmosphereToFeed,\n  mockActivityFromFeed, mockResonanceFromFeed,\n  selectSurfaceTint, selectAtmMotionScale, selectStaggerMultiplier,\n  selectGlowSoftening, selectWhisper, selectQuietSpaceTone,\n  isFallbackAtmosphere, debugAtmosphereSummary, COLLECTIVE_ATMOSPHERES,",
+      "buildResonanceSpaces, spaceFade, createSpaceTrace, spaceReEntryWarmth,\n  mockResonanceSpacesFromFeed, registerMockFactories,\n  selectDominantSpace, selectAmbient, selectSpaceWhisper, selectSpaceMotionScale,\n  selectFloatPeriod, selectPresenceSync, selectSpaceSurfaceTint, selectRingPulse,\n  isEmptySpaceResult, debugSpacesSummary, SPACE_ARCHETYPES,",
+      "buildDiscoverWorld, discoverDrift, assignItemsToDistricts,\n  mockDiscoverWorldFromFeed, pillToDistrict, getDistrictVisual,\n  selectDiscoverAmbient, selectPrimaryDistrict, selectWanderingPath,\n  selectWorldWhisper as selectDiscoverWhisper,\n  selectDistrictAccent, selectDiscoverBg, selectDiscoverMotionScale,\n  selectRevealDelay, isEmptyWorld, debugWorldSummary, DISCOVER_DISTRICTS,",
+      "// Orb\n  orbAtmosphereFromWorld,\n  // Profiles\n  profileAtmosphereFromWorld,\n  // Discover districts\n  districtTransitionTokens,\n  // Empty states\n  emptyStateFromWorld,\n  // Motion harmonization\n  harmonizedMotion,\n  // Settings screens\n  settingsAtmosphereFromWorld,\n  // Notification quietness\n  quietNotificationTokens,\n  // Tab transitions\n  carryOverEntryStyle,\n  // Global CSS\n  WORLD_CSS,",
+      "// Core engine\n  buildWorldContinuity, worldDrift, buildWorldFromLayers,\n  // Convenience\n  computeTransitionCarryOver, mockWorldFromAtmosphere,\n  // Selectors\n  selectTemperatureId, selectWorldBreath, selectSurface, selectCarryOver,\n  selectWorldWhisper, selectTraces,\n  selectSurfaceMotionScale, selectSurfaceGlowScale,\n  selectWarmthNudge, selectBreathPeriod,\n  isEmptyWorldState, debugWorldState,\n  // Data\n  WORLD_TEMPERATURES, WORLD_SURFACES,",
+      "recordInteraction,\n  readInteractions,\n  buildInteractionMap,\n  getKnownCreatorIds,\n  clearInteractionStore,",
+      "recordMemory,\n  recordDwell,\n  readCreatorMemory,\n  buildMemoryMap,\n  hydrateStore,\n  clearMemoryStore,\n  flushAllPending,",
+      "buildViewerContext,\n  buildAnonymousViewerContext,",
+      "resolveMemoryTokens,\n  applyMemoryToCardStyle,\n  memoryAdjustedDelay,",
+      "useLivingMemory,\n  useDwellTracker,"
+    ]
+  },
+  {
+    "path": "lib/intelligence/interactionStore.js",
+    "imports": [],
+    "exports": [
+      "recordInteraction",
+      "readInteractions",
+      "buildInteractionMap",
+      "getKnownCreatorIds",
+      "clearInteractionStore"
+    ]
+  },
+  {
+    "path": "lib/intelligence/persistence/interactionMemoryStore.js",
+    "imports": [],
+    "exports": [
+      "recordMemory",
+      "recordDwell",
+      "readCreatorMemory",
+      "buildMemoryMap",
+      "hydrateStore",
+      "clearMemoryStore",
+      "flushAllPending"
+    ]
+  },
+  {
+    "path": "lib/intelligence/persistence/memoryTokens.js",
+    "imports": [],
+    "exports": [
+      "resolveMemoryTokens",
+      "applyMemoryToCardStyle",
+      "memoryAdjustedDelay"
+    ]
+  },
+  {
+    "path": "lib/intelligence/persistence/useLivingMemory.js",
+    "imports": [
+      "./interactionMemoryStore.js",
+      "./viewerContext.js"
+    ],
+    "exports": [
+      "useLivingMemory",
+      "useDwellTracker"
+    ]
+  },
+  {
+    "path": "lib/intelligence/persistence/viewerContext.js",
+    "imports": [
+      "./interactionMemoryStore.js",
+      "../relationshipMemory.js"
+    ],
+    "exports": [
+      "buildViewerContext",
+      "buildAnonymousViewerContext"
+    ]
+  },
+  {
+    "path": "lib/intelligence/relationshipMemory.js",
+    "imports": [],
+    "exports": [
+      "RELATIONSHIP_STATES",
+      "MEMORY_HALF_LIVES",
+      "decayedSignal",
+      "buildRelationshipMemory",
+      "relationshipDrift",
+      "selectWarmthBoost",
+      "selectMotionCalm",
+      "selectCardDelay",
+      "selectGlowBoost",
+      "selectRelationshipState",
+      "selectMicroMoment",
+      "isFallbackMemory",
+      "debugMemorySummary",
+      "attachRelationshipToFeedItem",
+      "relationshipOrderingBoost",
+      "mockInteractionsFromItem"
+    ]
+  },
+  {
+    "path": "lib/intelligence/resonanceSpaces.js",
+    "imports": [],
+    "exports": [
+      "SPACE_ARCHETYPES",
+      "buildResonanceSpaces",
+      "spaceFade",
+      "selectDominantSpace",
+      "selectAmbient",
+      "selectSpaceWhisper",
+      "selectSpaceMotionScale",
+      "selectFloatPeriod",
+      "selectPresenceSync",
+      "selectSpaceSurfaceTint",
+      "selectRingPulse",
+      "isEmptySpaceResult",
+      "debugSpacesSummary",
+      "createSpaceTrace",
+      "spaceReEntryWarmth",
+      "mockResonanceSpacesFromFeed",
+      "registerMockFactories"
+    ]
+  },
+  {
+    "path": "lib/intelligence/sharedAtmosphere.js",
+    "imports": [],
+    "exports": [
+      "COLLECTIVE_ATMOSPHERES",
+      "buildSharedAtmosphere",
+      "atmosphereDrift",
+      "applyAtmosphereToFeed",
+      "selectSurfaceTint",
+      "selectAtmMotionScale",
+      "selectStaggerMultiplier",
+      "selectGlowSoftening",
+      "selectWhisper",
+      "selectQuietSpaceTone",
+      "debugAtmosphereSummary",
+      "isFallbackAtmosphere",
+      "mockActivityFromFeed",
+      "mockResonanceFromFeed"
+    ]
+  },
+  {
+    "path": "lib/intelligence/worldContinuity.js",
+    "imports": [],
+    "exports": [
+      "WORLD_TEMPERATURES",
+      "WORLD_SURFACES",
+      "computeTransitionCarryOver",
+      "buildWorldContinuity",
+      "worldDrift",
+      "selectTemperatureId",
+      "selectWorldBreath",
+      "selectSurface",
+      "selectCarryOver",
+      "selectWorldWhisper",
+      "selectTraces",
+      "selectSurfaceMotionScale",
+      "selectSurfaceGlowScale",
+      "selectWarmthNudge",
+      "selectBreathPeriod",
+      "isEmptyWorldState",
+      "debugWorldState",
+      "mockWorldFromAtmosphere",
+      "buildWorldFromLayers"
+    ]
+  },
+  {
+    "path": "lib/intelligence/worldPolish.js",
+    "imports": [],
+    "exports": [
+      "orbAtmosphereFromWorld",
+      "profileAtmosphereFromWorld",
+      "districtTransitionTokens",
+      "emptyStateFromWorld",
+      "harmonizedMotion",
+      "settingsAtmosphereFromWorld",
+      "quietNotificationTokens",
+      "carryOverEntryStyle",
+      "WORLD_CSS"
+    ]
+  },
+  {
+    "path": "lib/journeyContext.js",
+    "imports": [
+      "./supabaseClient",
+      "./AuthContext"
+    ],
+    "exports": [
+      "JOURNEY_STAGES",
+      "SOFT_STATUS",
+      "getAmbientGreeting",
+      "useCreatorJourney",
+      "useContextBreadcrumb",
+      "TRANSITIONS",
+      "AMBIENT_CSS",
+      "getSoftStatus",
+      "useReturnVisitor"
+    ]
+  },
+  {
+    "path": "lib/moodUtils.js",
+    "imports": [],
+    "exports": [
+      "MOOD_TAG_OPTIONS",
+      "ATMOSPHERE_TAG_OPTIONS",
+      "ENERGY_LEVELS",
+      "SOCIAL_ENERGY_OPTIONS",
+      "CREATOR_VIBE_OPTIONS",
+      "MOOD_TAG_BOOSTS",
+      "emotionalScore",
+      "getEnergyColor",
+      "getMoodTagColor"
+    ]
+  },
+  {
+    "path": "lib/notificationService.js",
+    "imports": [
+      "./supabaseClient"
+    ],
+    "exports": []
+  },
+  {
+    "path": "lib/observability/index.js",
+    "imports": [],
+    "exports": [
+      "getObservabilityReport",
+      "startFpsTracking",
+      "stopFpsTracking",
+      "realtimeHealthScore",
+      "errorSummary",
+      "costSummary",
+      "logObservabilitySnapshot"
+    ]
+  },
+  {
+    "path": "lib/perfUtils.js",
+    "imports": [],
+    "exports": [
+      "CACHE_TTL",
+      "IDENTITY_CONTRACT",
+      "PROFILE_FIELDS",
+      "FIELDS",
+      "normalizeProfile",
+      "PAGE_SIZE",
+      "clearQueryCache",
+      "buildPage",
+      "optimizeImg",
+      "normalizeProfileInput"
+    ]
+  },
+  {
+    "path": "lib/points/index.js",
+    "imports": [
+      "../supabaseClient",
+      "../sentry.js"
+    ],
+    "exports": [
+      "POINTS_SOURCES",
+      "POINTS_CATEGORIES"
+    ]
+  },
+  {
+    "path": "lib/presence/index.js",
+    "imports": [],
+    "exports": [
+      "resonanceSignature",
+      "creativeRhythm",
+      "atmosphericIdentity",
+      "collaborationStyle",
+      "creativeContinuity",
+      "expressionField",
+      "presenceProfile",
+      "usePresence"
+    ]
+  },
+  {
+    "path": "lib/profileMedia.js",
+    "imports": [
+      "./supabaseClient.js",
+      "./perfUtils.js"
+    ],
+    "exports": [
+      "FB_COVER",
+      "FB_AVATAR",
+      "sv",
+      "resolveDisplayName",
+      "resolveLocation"
+    ]
+  },
+  {
+    "path": "lib/profileUtils.js",
+    "imports": [],
+    "exports": [
+      "isProfileTalent",
+      "hasTalentProfile",
+      "isMembershipActive"
+    ]
+  },
+  {
+    "path": "lib/referralTracking.js",
+    "imports": [
+      "./supabaseClient.js"
+    ],
+    "exports": [
+      "detectReferral",
+      "getStoredReferral",
+      "clearStoredReferral"
+    ]
+  },
+  {
+    "path": "lib/reliability/index.js",
+    "imports": [
+      "../errors/index.js",
+      "../sentry.js"
+    ],
+    "exports": [
+      "withTimeout",
+      "createAbortableRequest",
+      "dedupeAsync",
+      "createAsyncQueue",
+      "createRealtimeGuard",
+      "useAsyncStatus",
+      "useNetworkStatus",
+      "withMountedGuard"
+    ]
+  },
+  {
+    "path": "lib/resonance/index.js",
+    "imports": [
+      "../supabaseClient",
+      "../security/index.js",
+      "../sentry.js",
+      "../AuthContext.jsx"
+    ],
+    "exports": [
+      "RESONANCE_TYPES",
+      "RESONANCE_TARGETS",
+      "useResonance"
+    ]
+  },
+  {
+    "path": "lib/roles/index.js",
+    "imports": [
+      "../supabaseClient",
+      "../sentry.js",
+      "../AuthContext.jsx"
+    ],
+    "exports": [
+      "ROLES",
+      "PERMISSIONS",
+      "ORB_NODE_PERMISSIONS",
+      "hasPermission",
+      "canUseOrbNode",
+      "isAtLeast",
+      "getUserRole",
+      "getWelcomeMessage",
+      "useUserRole",
+      "CONTENT_TYPES",
+      "canCreateContent",
+      "canPublish",
+      "canResonate",
+      "canSave",
+      "canDiscover",
+      "ROLE_LABELS",
+      "getRoleLabel"
+    ]
+  },
+  {
+    "path": "lib/safeQuery.js",
+    "imports": [],
+    "exports": []
+  },
+  {
+    "path": "lib/security/index.js",
+    "imports": [
+      "../errors/index.js",
+      "../sentry.js"
+    ],
+    "exports": [
+      "assertAuthenticated",
+      "assertOwner",
+      "assertCreator",
+      "assertParticipant",
+      "validateUUID",
+      "safeParseId",
+      "sanitizeInput",
+      "createMutationGuard",
+      "createPermissionGuard",
+      "globalMutationGuard"
+    ]
+  },
+  {
+    "path": "lib/sentry.js",
+    "imports": [],
+    "exports": [
+      "initSentry",
+      "sentryCapture",
+      "sentryMessage",
+      "Sentry"
+    ]
+  },
+  {
+    "path": "lib/sessionHooks.js",
+    "imports": [
+      "./supabaseClient"
+    ],
+    "exports": [
+      "useScrollMemory",
+      "useDraftPersist",
+      "usePresence",
+      "useOwnPresence",
+      "getPresenceLabel",
+      "useSoftFade",
+      "useTabKeepAlive",
+      "useSessionRestore"
+    ]
+  },
+  {
+    "path": "lib/supabaseClient.js",
+    "imports": [],
+    "exports": [
+      "supabase",
+      "HuiWirkerDB",
+      "HuiPaymentDB",
+      "HuiMessageDB",
+      "HuiImpactProjectDB"
+    ]
+  },
+  {
+    "path": "lib/trust/index.js",
+    "imports": [
+      "../supabaseClient",
+      "../sentry.js"
+    ],
+    "exports": [
+      "TRUST_SIGNALS",
+      "TRUST_LEVELS",
+      "getTrustLevel"
+    ]
+  },
+  {
+    "path": "lib/trustContext.js",
+    "imports": [
+      "./supabaseClient",
+      "./AuthContext"
+    ],
+    "exports": [
+      "REPUTATION_QUALITIES",
+      "COLLAB_MOODS",
+      "OUTCOME_QUALITIES",
+      "computeReputationSignals",
+      "useCreatorReputation",
+      "useMyTrustEvents",
+      "useRecommendationActions",
+      "useReputation"
+    ]
+  },
+  {
+    "path": "lib/useNotifications.jsx",
+    "imports": [
+      "./supabaseClient.js",
+      "./AuthContext.jsx"
+    ],
+    "exports": [
+      "useNotifications",
+      "ResonanzzentrumPanel",
+      "NotificationBadge",
+      "NotificationInbox"
+    ]
+  },
+  {
+    "path": "lib/usePresence.js",
+    "imports": [
+      "./supabaseClient.js"
+    ],
+    "exports": [
+      "formatPresence",
+      "usePresence"
+    ]
+  },
+  {
+    "path": "lib/usePresence.jsx",
+    "imports": [
+      "./supabaseClient.js"
+    ],
+    "exports": [
+      "usePresence",
+      "usePresenceMap",
+      "PresenceDot",
+      "fmtPresence"
+    ]
+  },
+  {
+    "path": "lib/useReactions.jsx",
+    "imports": [
+      "./supabaseClient.js",
+      "./AuthContext.jsx",
+      "./notificationService.js"
+    ],
+    "exports": [
+      "useSingleReaction",
+      "useSavedPosts"
+    ]
+  },
+  {
+    "path": "lib/useToast.jsx",
+    "imports": [],
+    "exports": [
+      "toast",
+      "ToastContainer"
+    ]
+  },
+  {
+    "path": "lib/useUsernameCheck.jsx",
+    "imports": [
+      "./supabaseClient.js"
+    ],
+    "exports": [
+      "validateUsername",
+      "useUsernameCheck",
+      "UsernameInput"
+    ]
+  },
+  {
+    "path": "lib/utils.js",
+    "imports": [],
+    "exports": [
+      "cn",
+      "isIframe"
+    ]
+  },
+  {
+    "path": "lib/validation/index.js",
+    "imports": [
+      "../errors/index.js",
+      "../security/index.js"
+    ],
+    "exports": [
+      "assertValid",
+      "validateMessage",
+      "validateBookingRequest",
+      "validateProfileUpdate",
+      "validateRecommendation",
+      "validateComment",
+      "validateWork",
+      "validateStoryUpload",
+      "validateExperience"
+    ]
+  },
+  {
+    "path": "lib/welcomePersistence.js",
+    "imports": [],
+    "exports": [
+      "hasSeenWelcome",
+      "markWelcomeSeen"
+    ]
+  },
+  {
+    "path": "lib/world/orbLayer.js",
+    "imports": [],
+    "exports": [
+      "ORB_STATE_CLOSED",
+      "buildOpenOrbState",
+      "buildCloseOrbState",
+      "orbBackdropTokens",
+      "orbNavDriftTokens",
+      "orbOverlayTokens",
+      "ORB_OPEN_SEQUENCE",
+      "ORB_CLOSE_SEQUENCE",
+      "ORB_OPEN_DURATION_MS",
+      "ORB_CLOSE_DURATION_MS",
+      "assertValidTab",
+      "validateOrbState"
+    ]
+  },
+  {
+    "path": "lib/world/safariPaintRecovery.js",
+    "imports": [],
+    "exports": [
+      "safeRepaint",
+      "stripGpuHints",
+      "forceTabRepaint",
+      "PaintRecoveryManager"
+    ]
+  },
+  {
+    "path": "lib/world/tabVisibilityController.js",
+    "imports": [
+      "../../design/hui.interaction.js"
+    ],
+    "exports": [
+      "getTabStyle",
+      "getTabVisualState",
+      "useTabStyles"
+    ]
+  },
+  {
+    "path": "lib/world/worldSurfaceController.js",
+    "imports": [],
+    "exports": [
+      "SURFACE_REGISTRY",
+      "buildWorldState",
+      "WORLD_STATE_CLOSED",
+      "snapshotWorldState",
+      "buildOpeningState",
+      "buildConfirmedState",
+      "buildClosedState",
+      "deriveWorldTokens",
+      "validateSurfaceId",
+      "getMountTimeout"
+    ]
+  },
+  {
+    "path": "main.jsx",
+    "imports": [
+      "./App",
+      "./lib/sentry"
+    ],
+    "exports": []
+  },
+  {
+    "path": "orb/ContentTypeSelector.jsx",
+    "imports": [
+      "./OrbMotionSystem.js"
+    ],
+    "exports": [
+      "ContentTypeSelector"
+    ]
+  },
+  {
+    "path": "orb/OrbAtmosphere.jsx",
+    "imports": [
+      "./OrbMotionSystem.js"
+    ],
+    "exports": [
+      "OrbAtmosphereLayer"
+    ]
+  },
+  {
+    "path": "orb/OrbMotionSystem.js",
+    "imports": [],
+    "exports": [
+      "MOTION",
+      "CONTENT_DNA",
+      "CONTENT_TYPE_ORDER",
+      "ORB_PORTAL_CSS"
+    ]
+  },
+  {
+    "path": "orb/OrbPortal.jsx",
+    "imports": [],
+    "exports": [
+      "OrbPortal"
+    ]
+  },
+  {
+    "path": "pages/Admin.jsx",
+    "imports": [
+      "../lib/supabaseClient"
+    ],
+    "exports": [
+      "Admin"
+    ]
+  },
+  {
+    "path": "pages/AuthCallback.jsx",
+    "imports": [
+      "../lib/supabaseClient",
+      "../lib/referralTracking.js"
+    ],
+    "exports": [
+      "AuthCallback"
+    ]
+  },
+  {
+    "path": "pages/BasisProfilePage.jsx",
+    "imports": [
+      "../hooks/useProfileData.js",
+      "../lib/AuthContext.jsx",
+      "../components/home/HomeShell.jsx",
+      "../components/settings/SettingsModal.jsx",
+      "../components/studio/HuiStudio.jsx",
+      "../lib/supabaseClient.js",
+      "../components/profile/sections/AboutSection.jsx",
+      "../components/profile/sections/LocationSection.jsx",
+      "../components/profile/sections/AvailabilitySection.jsx",
+      "../components/profile/sections/VisibilitySection.jsx",
+      "../components/profile/sections/MomentsSection.jsx",
+      "../components/profile/sections/RecommendationsSection.jsx",
+      "../components/profile/ProfileHeader.jsx",
+      "../components/profile/OrbSignatur.jsx"
+    ],
+    "exports": [
+      "BasisProfilePage"
+    ]
+  },
+  {
+    "path": "pages/CreatorDashboard.jsx",
+    "imports": [
+      "../lib/AuthContext",
+      "../lib/supabaseClient.js",
+      "../services/creatorEconomy.js"
+    ],
+    "exports": [
+      "CreatorDashboard"
+    ]
+  },
+  {
+    "path": "pages/CreatorStudio.jsx",
+    "imports": [
+      "../lib/AppStateContext",
+      "../lib/bookingContext",
+      "../lib/AuthContext",
+      "../lib/supabaseClient",
+      "../design/hui.design.js",
+      "./studio/SupportPage.jsx",
+      "../lib/journeyContext",
+      "./studio/StudioSubPages"
+    ],
+    "exports": [
+      "CreatorStudio"
+    ]
+  },
+  {
+    "path": "pages/DiagnosePage.jsx",
+    "imports": [
+      "../lib/supabaseClient"
+    ],
+    "exports": [
+      "DiagnosePage"
+    ]
+  },
+  {
+    "path": "pages/DiscoverPage.jsx",
+    "imports": [
+      "../lib/supabaseClient.js",
+      "../lib/usePresence.js"
+    ],
+    "exports": [
+      "DiscoverPage"
+    ]
+  },
+  {
+    "path": "pages/FavoritesPage.jsx",
+    "imports": [
+      "../design/hui.design.js",
+      "../core/hui.sources.js",
+      "../design/hui.interaction.js",
+      "../core/hui.actions.js",
+      "../lib/supabaseClient"
+    ],
+    "exports": [
+      "FavoritesPage"
+    ]
+  },
+  {
+    "path": "pages/Home.jsx",
+    "imports": [
+      "../context/OrbWorldContext.jsx",
+      "../context/WorldSurfaceContext.jsx",
+      "../lib/cleanup/cleanupOrbEnvironment.js",
+      "../lib/world/orbLayer.js",
+      "../config/safeMode.js",
+      "../config/SafeRender.jsx",
+      "../lib/debugCollector.js",
+      "../lib/world/safariPaintRecovery.js",
+      "../components/home/HomeShell.jsx",
+      "../core/hui.flow.js",
+      "../core/hui.safePayload.js",
+      "../components/home/header/HomeHeader.jsx",
+      "../components/home/navigation/BottomNav.jsx",
+      "../components/home/profile/ProfileLauncher.jsx",
+      "../feed/UnifiedFeed.jsx",
+      "../lib/usePresence.js",
+      "../components/StoryBar.jsx",
+      "../components/chat-center/ChatCenterOverlay.jsx",
+      "../lib/chatContext.js",
+      "../components/connection-create/ConnectionCreatePage.jsx",
+      "../components/commerce/WerkKaufFlow.jsx",
+      "../components/commerce/WerkeKorb.jsx",
+      "../components/commerce/UnterstutzenFlow.jsx",
+      "../components/commerce/commerceUtils.js",
+      "../components/commerce/ExperienceBookingFlow.jsx",
+      "./DiscoverPage.jsx",
+      "../components/home/AmbientWorldBar.jsx",
+      "./ImpactPage.jsx",
+      "./FavoritesPage.jsx",
+      "../components/OrbCompass.jsx",
+      "../design/hui.interaction.js",
+      "../content/ContentTypeSelector.jsx",
+      "../content/invitation/InvitationFlow.jsx"
+    ],
+    "exports": [
+      "Home"
+    ]
+  },
+  {
+    "path": "pages/ImpactPage.jsx",
+    "imports": [
+      "../services/db",
+      "../lib/supabaseClient",
+      "../services/db.js",
+      "../design/hui.design.js",
+      "../system/flows/impact/ImpactFlow.jsx",
+      "../lib/AuthContext",
+      "../lib/profileUtils.js"
+    ],
+    "exports": [
+      "ImpactPage"
+    ]
+  },
+  {
+    "path": "pages/LiveMapPage.jsx",
+    "imports": [
+      "../design/hui.design.js"
+    ],
+    "exports": [
+      "LiveMapPage"
+    ]
+  },
+  {
+    "path": "pages/LoginPage.jsx",
+    "imports": [
+      "../lib/referralTracking.js",
+      "../lib/supabaseClient",
+      "../lib/AuthContext",
+      "../design/hui.design.js"
+    ],
+    "exports": [
+      "LoginPage"
+    ]
+  },
+  {
+    "path": "pages/MeinHUI.jsx",
+    "imports": [],
+    "exports": [
+      "HUIWelcome",
+      "HUIOrbHero",
+      "HUIPillars",
+      "HUIJourney",
+      "HUIImpactMoments",
+      "MeinHUI"
+    ]
+  },
+  {
+    "path": "pages/MyBasisProfile.jsx",
+    "imports": [
+      "../lib/supabaseClient.js",
+      "../lib/profileMedia.js",
+      "../lib/AuthContext.jsx",
+      "../components/home/HomeShell.jsx",
+      "../components/GemeinschaftsFlow.jsx",
+      "../components/notifications/NotificationPanel.jsx",
+      "../components/ambassador/AmbassadorModal.jsx",
+      "../components/settings/SettingsModal.jsx",
+      "../hooks/useAmbassador.js",
+      "../hooks/useProfileData.js",
+      "../components/studio/HuiStudio.jsx",
+      "./studio/MeineResonanz.jsx",
+      "../components/profile/PublicProfilePreview.jsx",
+      "../components/profile/OrbSignatur.jsx",
+      "../components/profile/MerkenSection.jsx",
+      "../components/profile/sections/AboutSection.jsx",
+      "../components/profile/ProfileHeader.jsx",
+      "../components/profile/sections/TalentSection.jsx",
+      "../components/profile/sections/MomentsSection.jsx",
+      "../components/profile/sections/RecommendationsSection.jsx",
+      "../components/profile/sections/AvailabilitySection.jsx",
+      "../components/profile/sections/LocationSection.jsx",
+      "../components/profile/sections/VisibilitySection.jsx",
+      "../components/works/WerkWizard.jsx",
+      "../components/experiences/ExperienceWizard.jsx"
+    ],
+    "exports": [
+      "MyBasisProfile"
+    ]
+  },
+  {
+    "path": "pages/MyCreatorDashboard.jsx",
+    "imports": [
+      "../lib/AuthContext.jsx",
+      "../lib/supabaseClient.js",
+      "../core/hui.actions.js"
+    ],
+    "exports": [
+      "MyCreatorDashboard"
+    ]
+  },
+  {
+    "path": "pages/PlatformDashboard.jsx",
+    "imports": [],
+    "exports": [
+      "PlatformDashboard"
+    ]
+  },
+  {
+    "path": "pages/ProfileDebugPage.jsx",
+    "imports": [
+      "../lib/AuthContext",
+      "../hooks/useProfileData"
+    ],
+    "exports": [
+      "ProfileDebugPage"
+    ]
+  },
+  {
+    "path": "pages/RefRedirect.jsx",
+    "imports": [
+      "../lib/supabaseClient.js"
+    ],
+    "exports": [
+      "RefRedirect"
+    ]
+  },
+  {
+    "path": "pages/TalentProfilePage.jsx",
+    "imports": [
+      "../lib/supabaseClient.js",
+      "../lib/AuthContext.jsx",
+      "../lib/notificationService.js",
+      "../components/home/HomeShell.jsx",
+      "../components/settings/SettingsModal.jsx",
+      "../components/studio/HuiStudio.jsx",
+      "../hooks/useProfileData.js",
+      "../components/profile/ProfileHeader.jsx",
+      "../components/profile/sections/TalentSection.jsx",
+      "../components/profile/sections/WorksSection.jsx",
+      "../components/profile/sections/ExperiencesSection.jsx",
+      "../components/profile/sections/RecommendationsSection.jsx",
+      "../components/profile/sections/AvailabilitySection.jsx",
+      "../components/profile/sections/LocationSection.jsx",
+      "../components/profile/sections/VisibilitySection.jsx",
+      "../components/profile/sections/MomentsSection.jsx",
+      "../components/profile/OrbSignatur.jsx"
+    ],
+    "exports": [
+      "TalentProfilePage"
+    ]
+  },
+  {
+    "path": "pages/studio/MeineResonanz.jsx",
+    "imports": [
+      "../../lib/supabaseClient.js",
+      "../../lib/AuthContext.jsx"
+    ],
+    "exports": [
+      "MeineResonanz"
+    ]
+  },
+  {
+    "path": "pages/studio/MeineTicketsPage.jsx",
+    "imports": [
+      "../../lib/supabaseClient.js"
+    ],
+    "exports": [
+      "MeineTicketsPage"
+    ]
+  },
+  {
+    "path": "pages/studio/StudioSubPages.jsx",
+    "imports": [
+      "../../lib/supabaseClient.js"
+    ],
+    "exports": [
+      "MeineInhaltePage",
+      "AnalyticsPage",
+      "EinnahmenPage",
+      "VerfuegbarkeitPage",
+      "BestellungenPage",
+      "ImpactSubPage",
+      "ReputationInsightsPage",
+      "KontoPage"
+    ]
+  },
+  {
+    "path": "pages/studio/SupportPage.jsx",
+    "imports": [
+      "../../lib/supabaseClient.js"
+    ],
+    "exports": [
+      "SupportPage"
+    ]
+  },
+  {
+    "path": "pages/wirker-profile/index.jsx",
+    "imports": [
+      "../../core/hui.sources.js",
+      "../../design/hui.design.js",
+      "../../core/hui.actions.js",
+      "../../hooks/useProfileData.js",
+      "../../hooks/useProfileId.js",
+      "../../components/economy/SupportFlow.jsx",
+      "../../lib/supabaseClient.js",
+      "../../lib/AuthContext.jsx",
+      "../../components/profile/sections/ExperiencesSection.jsx",
+      "../../components/profile/sections/MomentsSection.jsx"
+    ],
+    "exports": [
+      "WirkerProfilePage"
+    ]
+  },
+  {
+    "path": "registry/HuiRegistry.js",
+    "imports": [],
+    "exports": [
+      "PILLARS",
+      "PILLAR_LIST",
+      "ORB_TRAITS",
+      "LANG",
+      "CONTENT_PILLARS",
+      "HuiRegistry",
+      "R",
+      "pillarHint",
+      "dominantPillarLabels",
+      "inferPillarFromType",
+      "projectNeedsLabel",
+      "PILLAR_UI",
+      "HUI_LANGUAGE",
+      "CONTENT_PILLAR_MAP"
+    ]
+  },
+  {
+    "path": "routes/registry.js",
+    "imports": [],
+    "exports": [
+      "AUTH",
+      "OWNER",
+      "WRAPPER",
+      "LOADING",
+      "ROUTE_TYPE",
+      "ROUTE_REGISTRY",
+      "EXCLUDED_REF_PATHS",
+      "PARITY_REPORT",
+      "getRoutesByOwner",
+      "getRouteById",
+      "getProtectedRoutes",
+      "getRoutesByFeatureFlag",
+      "validateParity"
+    ]
+  },
+  {
+    "path": "services/commerceEngine.js",
+    "imports": [
+      "../lib/supabaseClient.js",
+      "../components/commerce/commerceUtils.js"
+    ],
+    "exports": [
+      "SHIPPING_RULES",
+      "resolveShippingStrategy",
+      "buildItemSnapshot",
+      "orderService",
+      "fulfillmentService",
+      "commerceEventLog",
+      "STRIPE_APPEARANCE",
+      "COMMERCE_CONFIG"
+    ]
+  },
+  {
+    "path": "services/content.js",
+    "imports": [
+      "../lib/supabaseClient",
+      "../lib/sentry.js",
+      "../lib/perfUtils.js",
+      "../lib/resonance/index.js",
+      "../lib/roles/index.js"
+    ],
+    "exports": [
+      "feedService",
+      "worksService",
+      "resonanceService",
+      "storageService",
+      "discoverService"
+    ]
+  },
+  {
+    "path": "services/creatorEconomy.js",
+    "imports": [
+      "../lib/supabaseClient.js"
+    ],
+    "exports": [
+      "walletService",
+      "supportService",
+      "bookingService",
+      "salesService",
+      "analyticsService"
+    ]
+  },
+  {
+    "path": "services/db.js",
+    "imports": [
+      "../lib/supabaseClient",
+      "../lib/perfUtils"
+    ],
+    "exports": [
+      "IDENTITY_CONTRACT",
+      "ProfileService",
+      "MembershipService",
+      "TalentService",
+      "WorkService",
+      "ExperienceService",
+      "StoryService",
+      "BookingService",
+      "ChatService",
+      "ImpactService",
+      "FeedService",
+      "MatchService",
+      "RecommendationService",
+      "SearchService"
+    ]
+  },
+  {
+    "path": "system/feed/unifiedNormalizer.js",
+    "imports": [
+      "../../lib/profileUtils.js",
+      "../../core/orbEngine.js"
+    ],
+    "exports": [
+      "toFeedItem",
+      "toFeedItems",
+      "normalizeMomentRow",
+      "normalizeExperienceRow",
+      "normalizeWorkRow",
+      "normalizeEventRow"
+    ]
+  },
+  {
+    "path": "system/flows/experience/ExperienceCreateStep.jsx",
+    "imports": [
+      "./ExperienceTokens.js"
+    ],
+    "exports": [
+      "ExperienceCreateStep"
+    ]
+  },
+  {
+    "path": "system/flows/experience/ExperienceDetailsStep.jsx",
+    "imports": [
+      "./ExperienceTokens.js"
+    ],
+    "exports": [
+      "ExperienceDetailsStep"
+    ]
+  },
+  {
+    "path": "system/flows/experience/ExperienceFlow.jsx",
+    "imports": [
+      "./ExperienceCreateStep.jsx",
+      "./ExperienceDetailsStep.jsx",
+      "./ExperiencePublishStep.jsx",
+      "../../../lib/supabaseClient.js",
+      "../../../lib/AuthContext.jsx",
+      "../../../lib/factories/experienceContract.js"
+    ],
+    "exports": [
+      "ET",
+      "EInput",
+      "ESelect",
+      "ExpHeader",
+      "ExperienceFlow"
+    ]
+  },
+  {
+    "path": "system/flows/experience/ExperiencePublishStep.jsx",
+    "imports": [
+      "./ExperienceTokens.js"
+    ],
+    "exports": [
+      "ExperiencePublishStep"
+    ]
+  },
+  {
+    "path": "system/flows/experience/ExperienceTokens.js",
+    "imports": [],
+    "exports": [
+      "ET",
+      "EInput",
+      "ESelect"
+    ]
+  },
+  {
+    "path": "system/flows/impact/ImpactFlow.jsx",
+    "imports": [
+      "../../../lib/supabaseClient.js",
+      "../../../lib/AuthContext.jsx"
+    ],
+    "exports": [
+      "ImpactFlow"
+    ]
+  },
+  {
+    "path": "system/flows/impact/ImpactStep1Projekt.jsx",
+    "imports": [
+      "./ImpactTokens.jsx"
+    ],
+    "exports": [
+      "ImpactStep1Projekt"
+    ]
+  },
+  {
+    "path": "system/flows/impact/ImpactStep2Vision.jsx",
+    "imports": [
+      "./ImpactTokens.jsx"
+    ],
+    "exports": [
+      "ImpactStep2Vision"
+    ]
+  },
+  {
+    "path": "system/flows/impact/ImpactStep3Kontakt.jsx",
+    "imports": [
+      "./ImpactTokens.jsx"
+    ],
+    "exports": [
+      "ImpactStep3Kontakt"
+    ]
+  },
+  {
+    "path": "system/flows/impact/ImpactStep4Review.jsx",
+    "imports": [
+      "./ImpactTokens.jsx"
+    ],
+    "exports": [
+      "ImpactStep4Review"
+    ]
+  },
+  {
+    "path": "system/flows/impact/ImpactTokens.js",
+    "imports": [],
+    "exports": [
+      "IT, IInput, ITextarea, ImpactNextBtn"
+    ]
+  },
+  {
+    "path": "system/flows/impact/ImpactTokens.jsx",
+    "imports": [],
+    "exports": [
+      "IT",
+      "IInput",
+      "ITextarea",
+      "ImpactNextBtn"
+    ]
+  },
+  {
+    "path": "system/flows/work/WorkDetailsStep.jsx",
+    "imports": [
+      "./WorkTokens.js"
+    ],
+    "exports": [
+      "WorkDetailsStep"
+    ]
+  },
+  {
+    "path": "system/flows/work/WorkFlow.jsx",
+    "imports": [
+      "./WorkMediaStep.jsx",
+      "./WorkDetailsStep.jsx",
+      "./WorkPublishStep.jsx",
+      "../../../lib/supabaseClient.js",
+      "../../../lib/AuthContext.jsx"
+    ],
+    "exports": [
+      "WT",
+      "WorkHeader",
+      "WorkFlow"
+    ]
+  },
+  {
+    "path": "system/flows/work/WorkMediaStep.jsx",
+    "imports": [
+      "./WorkTokens.js"
+    ],
+    "exports": [
+      "WorkMediaStep"
+    ]
+  },
+  {
+    "path": "system/flows/work/WorkPublishStep.jsx",
+    "imports": [
+      "./WorkTokens.js"
+    ],
+    "exports": [
+      "WorkPublishStep"
+    ]
+  },
+  {
+    "path": "system/flows/work/WorkTokens.js",
+    "imports": [],
+    "exports": [
+      "WT"
+    ]
+  },
+  {
+    "path": "system/orb/MemberOrbHome.jsx",
+    "imports": [
+      "./OrbConfig.js"
+    ],
+    "exports": [
+      "MemberOrbHome"
+    ]
+  },
+  {
+    "path": "system/orb/OrbAnimations.js",
+    "imports": [
+      "../../design/hui.interaction.js"
+    ],
+    "exports": [
+      "ORB_CSS"
+    ]
+  },
+  {
+    "path": "system/orb/OrbAtmosphere.jsx",
+    "imports": [
+      "../../design/hui.interaction.js",
+      "./OrbConfig.js",
+      "../../config/safeMode.js",
+      "../../lib/intelligence/worldPolish.js"
+    ],
+    "exports": [
+      "OrbAtmosphereSafe as OrbAtmosphere",
+      "OrbParticlesSafe as OrbParticles"
+    ]
+  },
+  {
+    "path": "system/orb/OrbCenter.jsx",
+    "imports": [
+      "../../design/hui.interaction.js",
+      "./OrbConfig.js",
+      "../../lib/intelligence/worldPolish.js"
+    ],
+    "exports": [
+      "OrbCenter"
+    ]
+  },
+  {
+    "path": "system/orb/OrbConfig.js",
+    "imports": [
+      "../../design/hui.design.js"
+    ],
+    "exports": [
+      "Z",
+      "T",
+      "NODES",
+      "IMPACT_STEPS",
+      "NODE_SIZE",
+      "ORBIT_RATIO",
+      "ORB_MIN",
+      "ORB_MAX",
+      "TRANSITION_LOCK_MS",
+      "MOUNT_DELAY_MS"
+    ]
+  },
+  {
+    "path": "system/orb/OrbHintCard.jsx",
+    "imports": [
+      "./OrbConfig.js"
+    ],
+    "exports": [
+      "OrbHintBar",
+      "OrbDetailCard",
+      "OrbImpactDetail"
+    ]
+  },
+  {
+    "path": "system/orb/OrbNode.jsx",
+    "imports": [
+      "../../design/hui.interaction.js",
+      "./OrbConfig.js"
+    ],
+    "exports": [
+      "OrbNode"
+    ]
+  },
+  {
+    "path": "system/orb/OrbState.js",
+    "imports": [
+      "./OrbConfig.js"
+    ],
+    "exports": [
+      "useOrbState"
+    ]
+  },
+  {
+    "path": "system/orb/OrbSystem.jsx",
+    "imports": [
+      "./OrbAnimations.js",
+      "./OrbAtmosphere.jsx",
+      "./OrbCenter.jsx",
+      "./OrbNode.jsx",
+      "./OrbHintCard.jsx",
+      "./OrbState.js",
+      "../../lib/roles/index.js",
+      "./OrbConfig.js",
+      "../../config/safeMode.js",
+      "./MemberOrbHome.jsx"
+    ],
+    "exports": [
+      "OrbSystem"
+    ]
+  }
+]
