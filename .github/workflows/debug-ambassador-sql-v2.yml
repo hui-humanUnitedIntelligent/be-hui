@@ -1,0 +1,40 @@
+name: Debug Ambassador SQL v2
+
+on:
+  workflow_dispatch:
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        run: |
+          curl -fsSL https://github.com/supabase/cli/releases/download/v2.108.0/supabase_linux_amd64.tar.gz | tar -xz -C /tmp
+          sudo mv /tmp/supabase /usr/local/bin/supabase
+
+      - name: Link project
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase link --project-ref gxztrhvhcxhmunhhkfjd --yes
+
+      - name: Check existing RPCs BEFORE
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          for fn in rpc_validate_ambassador_name rpc_get_ambassador_ref_link rpc_ambassador_comment_work; do
+            supabase db query --linked "SELECT proname FROM pg_proc WHERE proname='${fn}';" -o json
+          done
+
+      - name: Run SQL (no awk)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db query --linked -f ambassador_rpcs_v2.sql 2>&1 || echo "EXIT: $?"
+
+      - name: Check RPCs AFTER
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db query --linked "SELECT proname FROM pg_proc WHERE proname LIKE 'rpc_%ambass%' OR proname LIKE 'rpc_get_ambassador%';" -o json
