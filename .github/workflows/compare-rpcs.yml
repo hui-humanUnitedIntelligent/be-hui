@@ -1,0 +1,42 @@
+name: Compare Working vs Broken RPCs
+
+on:
+  workflow_dispatch:
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install CLI
+        run: |
+          curl -fsSL https://github.com/supabase/cli/releases/download/v2.108.0/supabase_linux_amd64.tar.gz | tar -xz -C /tmp
+          sudo mv /tmp/supabase /usr/local/bin/supabase
+      - name: Link
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase link --project-ref gxztrhvhcxhmunhhkfjd --yes
+
+      - name: Compare all 4 functions detail
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db query --linked "
+            SELECT 
+              n.nspname as schema,
+              p.proname,
+              pg_get_function_identity_arguments(p.oid) as identity_args,
+              pg_get_function_result(p.oid) as return_type,
+              pg_get_userbyid(p.proowner) as owner,
+              p.prosecdef as security_definer,
+              p.proacl as acl,
+              p.proconfig as config
+            FROM pg_proc p
+            JOIN pg_namespace n ON p.pronamespace = n.oid
+            WHERE p.proname IN (
+              'rpc_get_ambassador_works',
+              'rpc_get_ambassador_referrals',
+              'rpc_get_all_ambassadors'
+            )
+            ORDER BY p.proname
+          ;" -o json
