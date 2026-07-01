@@ -1,0 +1,52 @@
+name: Debug Ambassador Fix 2
+
+on:
+  workflow_dispatch:
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        run: |
+          curl -fsSL https://github.com/supabase/cli/releases/download/v2.108.0/supabase_linux_amd64.tar.gz | tar -xz -C /tmp
+          sudo mv /tmp/supabase /usr/local/bin/supabase
+
+      - name: Link project
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase link --project-ref gxztrhvhcxhmunhhkfjd --yes
+
+      - name: Show notification_events columns
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db query --linked "SELECT column_name, data_type FROM information_schema.columns WHERE table_name='notification_events' ORDER BY ordinal_position;" -o json
+
+      - name: Show chats columns
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db query --linked "SELECT column_name, data_type FROM information_schema.columns WHERE table_name='chats' ORDER BY ordinal_position;" -o json
+
+      - name: Test comment_work error
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db query --linked "SELECT rpc_ambassador_comment_work('00000000-0000-0000-0000-000000000000'::uuid, '3a291a5c-9c4c-4537-9e87-b7b137d5ec01'::uuid, 'test');" 2>&1 || true
+
+      - name: Deploy fix SQL
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db query --linked -f ambassador_fix2.sql 2>&1 || true
+
+      - name: Final verify
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db query --linked "SELECT proname FROM pg_proc WHERE proname IN ('rpc_get_ambassador_referrals','rpc_ambassador_comment_work','rpc_ambassador_resonance') ORDER BY proname;" -o json
+          supabase db query --linked "SELECT rpc_validate_ambassador_name('milileo');" -o json
+          supabase db query --linked "SELECT rpc_get_ambassador_ref_link('3a291a5c-9c4c-4537-9e87-b7b137d5ec01'::uuid);" -o json
