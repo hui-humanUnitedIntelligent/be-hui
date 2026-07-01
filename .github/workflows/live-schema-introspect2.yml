@@ -1,0 +1,43 @@
+name: Live Schema Introspect 2
+
+on:
+  workflow_dispatch:
+
+jobs:
+  introspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Supabase CLI
+        run: |
+          curl -fsSL https://github.com/supabase/cli/releases/download/v2.108.0/supabase_linux_amd64.tar.gz | tar -xz -C /tmp
+          sudo mv /tmp/supabase /usr/local/bin/supabase
+      - name: Link
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase link --project-ref gxztrhvhcxhmunhhkfjd --yes
+      - name: rpc_update_impact_pool def
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db query --linked "SELECT pg_get_functiondef(oid) AS def FROM pg_proc WHERE proname='rpc_update_impact_pool';" -o json
+      - name: rpc_record_ambassador_commission def
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db query --linked "SELECT pg_get_functiondef(oid) AS def FROM pg_proc WHERE proname='rpc_record_ambassador_commission';" -o json
+      - name: stripe_refunds FK check
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db query --linked "SELECT conname, pg_get_constraintdef(oid) FROM pg_constraint WHERE conrelid = 'public.stripe_refunds'::regclass;" -o json
+      - name: rpc_record_refund + rpc_handle_refund def
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db query --linked "SELECT proname, pg_get_functiondef(oid) AS def FROM pg_proc WHERE proname IN ('rpc_record_refund','rpc_handle_refund');" -o json
+      - name: stripe_ambassador_commissions columns
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db query --linked "SELECT column_name, data_type FROM information_schema.columns WHERE table_schema='public' AND table_name='stripe_ambassador_commissions' ORDER BY ordinal_position;" -o json
