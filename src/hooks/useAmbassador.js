@@ -190,7 +190,7 @@ export function useReferrals(ambassadorId, refCode) {
       queries.push(
         supabase
           .from("profiles")
-          .select("id,display_name,username,avatar_url,email,created_at,first_transaction_at,role")
+          .select("id,display_name,username,avatar_url,email,phone,created_at,first_transaction_at,role")
           .eq("referred_by", ambassadorId)
           .order("created_at", { ascending: false })
       );
@@ -200,7 +200,7 @@ export function useReferrals(ambassadorId, refCode) {
       queries.push(
         supabase
           .from("profiles")
-          .select("id,display_name,username,avatar_url,email,created_at,first_transaction_at,role")
+          .select("id,display_name,username,avatar_url,email,phone,created_at,first_transaction_at,role")
           .eq("referred_by_ambassador_id", ambassadorId)
           .order("created_at", { ascending: false })
       );
@@ -210,7 +210,7 @@ export function useReferrals(ambassadorId, refCode) {
       queries.push(
         supabase
           .from("profiles")
-          .select("id,display_name,username,avatar_url,email,created_at,first_transaction_at,role")
+          .select("id,display_name,username,avatar_url,email,phone,created_at,first_transaction_at,role")
           .eq("referred_by", refCode)
           .order("created_at", { ascending: false })
       );
@@ -238,6 +238,7 @@ export function useReferrals(ambassadorId, refCode) {
         username:            p.username     || null,
         avatarUrl:           p.avatar_url   || null,
         email:               p.email        || null,
+        phone:               p.phone        || null,
         isActive:            !!p.first_transaction_at,
         firstTransactionAt:  p.first_transaction_at || null,
         joinedAt:            p.created_at   || null,
