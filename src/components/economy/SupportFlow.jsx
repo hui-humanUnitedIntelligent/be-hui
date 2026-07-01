@@ -50,7 +50,17 @@ function SuccessView({ creator, amount, onDone }) {
   );
 }
 
+// DEAKTIVIERT Phase 2.4 — nicht mehr produktiv erreichbar
+const LEGACY_COMMERCE_DISABLED = true;
+
 export default function SupportFlow({ creator, visible, onClose, sourceType="profile", sourceId=null }) {
+  if (LEGACY_COMMERCE_DISABLED) {
+    if (visible && import.meta.env?.DEV) {
+      console.warn("[LEGACY] SupportFlow deaktiviert — verwende CreatorSupportSheet → WerkeKorb");
+    }
+    if (visible) onClose?.();
+    return null;
+  }
   injectCSS();
   const { user } = useAuth();
   const [amount,  setAmount]  = useState(5);

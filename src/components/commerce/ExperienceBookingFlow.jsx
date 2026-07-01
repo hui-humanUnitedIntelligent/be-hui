@@ -12,7 +12,17 @@ import { supabase } from "../../lib/supabaseClient";
 
 const TEAL = "#16D7C5";
 
+// DEAKTIVIERT Phase 2.4 — nicht mehr produktiv erreichbar
+const LEGACY_COMMERCE_DISABLED = true;
+
 export default function ExperienceBookingFlow({ experience, onClose }) {
+  if (LEGACY_COMMERCE_DISABLED) {
+    if (import.meta.env?.DEV) {
+      console.warn("[LEGACY] ExperienceBookingFlow deaktiviert — verwende WerkeKorb → UnterstützenFlow");
+    }
+    onClose?.();
+    return null;
+  }
   const { user } = useAuth();
   const [message, setMessage] = useState("");
   const [phase,   setPhase]   = useState("form"); // form | loading | success | error
