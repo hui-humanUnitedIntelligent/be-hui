@@ -1,19 +1,21 @@
 /**
- * BottomNav v8 — HUI Design System
+ * BottomNav v10 — HUI Design System
+ * Senior-UI-Engineer Konstruktion
  *
- * Glassmorphism Nav + schwebender Mein-HUI Orb
+ * GEOMETRIE:
+ *   SVG-Path als Tabbar-Form mit organischer Einbuchtung in der Mitte.
+ *   Der Orb sitzt in einem eigenen fixed-Wrapper (data-orbroot) DARÜBER.
+ *   Luftspalt = 8px — permanent, nie geschlossen.
  *
- * ARCHITEKTUR:
- *   Zwei getrennte fixed-Elemente auf gleichem zIndex-Level:
- *   1. Tabbar (Glass Pill) — enthält 4 Tabs + Lücke für den Orb
- *   2. Orb-Wrapper — eigener fixed-Container, ZIndex +1, zentriert,
- *      sitzt mit Luftspalt ÜBER der Tabbar
+ * FIXES v10:
+ *   - barW initialisiert mit window.innerWidth - 2*MARGIN_H (kein Flash)
+ *   - backdrop-filter via separates div HINTER dem SVG
+ *   - SVG hat overflow:visible damit Schatten nicht geclipt werden
+ *   - kein contain:paint auf Ancestor des Orbs
  *
- *   Kein `contain:paint` auf dem Orb-Wrapper →
- *   kein Clipping des schwebenden Elements.
- *
- * v8: Organische Einbuchtung in der Tabbar-Mitte (SVG-Clip).
- *     Orb berührt die Einbuchtung NICHT — 6px Luftspalt.
+ * LAYER-STACK:
+ *   z=10000  Tabbar (SVG-Form + backdrop + Items)
+ *   z=10002  Orb (eigener fixed-Root)
  */
 import React from "react";
 import NavItem from "./NavItem.jsx";
@@ -21,30 +23,71 @@ import { NAV_ITEMS } from "./navConfig.js";
 import { validateNavItem } from "../../../lib/factories/createNavItem.js";
 import { useHuiActions, A } from "../../../core/hui.actions.js";
 
-// ── Konstanten ──────────────────────────────────────────────────────────────
-const TAB_H        = 66;   // Tabbar-Höhe px
-const SAFE_B       = 14;   // safe-area fallback px
-const ORB_SIZE     = 64;   // Orb-Durchmesser px
-const NOTCH_DEPTH  = 14;   // Einbuchtungstiefe px
-const GAP          = 8;    // Luftspalt Orb ↔ Einbuchtung px
+/* ── Geometrie ─────────────────────────────────────────────── */
+const TAB_H    = 66;
+const MARGIN_H = 12;
+const SAFE_B   = 14;
+const ORB_D    = 64;
+const ORB_R    = ORB_D / 2;
+const GAP      = 8;        // Luftspalt Orb-Unterkante ↔ Einbuchtungs-Spitze
+const NOTCH_R  = ORB_R + GAP + 6;  // Bogen-Radius: etwas größer als Orb → weicher
+const CORNER_R = 28;
 
-const CSS = `
-  /* Press-Feedback NUR am Container-Div — nie am Logo-Bild */
-  .hui-orb-btn:active .hui-orb-shell {
-    transform: scale(0.93) translateY(1px) !important;
-    transition: transform 100ms cubic-bezier(0.22,1,0.36,1) !important;
-  }
+/* ── SVG-Path generieren ───────────────────────────────────── */
+function buildPath(W, H) {
+  const R  = Math.min(CORNER_R, H / 2);
+  const cx = W / 2;
+  const bw = NOTCH_R * 1.1;   // Blend-Breite beidseitig
 
-  /* WerkWizard fullscreen: beide Nav-Elemente ausblenden */
-  body.hui-wizard-open [data-bnroot],
-  body.hui-wizard-open [data-orbroot] {
-    opacity: 0 !important;
-    transform: translateY(120%) !important;
-    pointer-events: none !important;
-    transition: opacity 0.28s ease, transform 0.28s cubic-bezier(0.22,1,0.36,1) !important;
-  }
-`;
+  // Notch-Tiefe: Einbuchtung reicht von Oberkante (y=0) bis y=NOTCH_R+GAP
+  const nd = NOTCH_R - GAP;   // wie tief geht die Einbuchtung (px)
 
+  return [
+    `M ${R} 0`,
+    `L ${cx - bw} 0`,
+    // Linke Einbuchtungs-Flanke: sanfte Bezier
+    `C ${cx - bw + NOTCH_R * 0.5} 0, ${cx - NOTCH_R * 0.4} ${nd}, ${cx} ${nd}`,
+    // Rechte Einbuchtungs-Flanke: symmetrisch
+    `C ${cx + NOTCH_R * 0.4} ${nd}, ${cx + bw - NOTCH_R * 0.5} 0, ${cx + bw} 0`,
+    `L ${W - R} 0`,
+    `Q ${W} 0 ${W} ${R}`,
+    `L ${W} ${H - R}`,
+    `Q ${W} ${H} ${W - R} ${H}`,
+    `L ${R} ${H}`,
+    `Q 0 ${H} 0 ${H - R}`,
+    `L 0 ${R}`,
+    `Q 0 0 ${R} 0`,
+    `Z`,
+  ].join(" ");
+}
+
+/* ── TabbarSVG ─────────────────────────────────────────────── */
+function TabbarSVG({ width, height }) {
+  if (!width || !height) return null;
+  const path = buildPath(width, height);
+  return (
+    <svg
+      aria-hidden="true"
+      style={{ position:"absolute", inset:0, width:"100%", height:"100%",
+               display:"block", overflow:"visible", pointerEvents:"none" }}
+      viewBox={`0 0 ${width} ${height}`}
+      preserveAspectRatio="none"
+    >
+      {/* Füllung */}
+      <path d={path} fill="rgba(253,251,248,0.96)" />
+      {/* Highlight-Linie oben (Glassgefühl) */}
+      <path d={path} fill="none"
+        stroke="rgba(255,255,255,0.82)" strokeWidth="1.4"
+        vectorEffect="non-scaling-stroke" />
+      {/* Äußerer Schatten-Rand */}
+      <path d={path} fill="none"
+        stroke="rgba(0,0,0,0.055)" strokeWidth="0.8"
+        vectorEffect="non-scaling-stroke" />
+    </svg>
+  );
+}
+
+/* ── BottomNav ─────────────────────────────────────────────── */
 export default function BottomNav({
   tab         = "feed",
   onTab,
@@ -57,7 +100,7 @@ export default function BottomNav({
   msgCount    = 0,
   creatorOpen = false,
 }) {
-  /* ── Wizard-Open Observer ── */
+  /* Wizard-Observer */
   const [wizardOpen, setWizardOpen] = React.useState(
     () => document.body.classList.contains("hui-wizard-open")
   );
@@ -65,27 +108,37 @@ export default function BottomNav({
     const obs = new MutationObserver(() =>
       setWizardOpen(document.body.classList.contains("hui-wizard-open"))
     );
-    obs.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    obs.observe(document.body, { attributes:true, attributeFilter:["class"] });
     return () => obs.disconnect();
   }, []);
 
-  const isHidden    = wizardOpen || ((orbActive && !navDrift) ?? false);
-  const actions     = useHuiActions();
-  const isOrbActive = !creatorOpen && (tab === "orb" || orbActive);
+  /* barW: sofort initialisiert mit window-Breite → kein Flash */
+  const barRef = React.useRef(null);
+  const [barW, setBarW] = React.useState(
+    () => (typeof window !== "undefined"
+      ? window.innerWidth - MARGIN_H * 2
+      : 360)
+  );
+  React.useEffect(() => {
+    if (!barRef.current) return;
+    const ro = new ResizeObserver(([e]) => setBarW(Math.round(e.contentRect.width)));
+    ro.observe(barRef.current);
+    return () => ro.disconnect();
+  }, []);
 
-  /* ── Shared transition für navDrift und hide/show ── */
-  const sharedStyle = {
-    opacity:   navDrift ? navDrift.opacity   : (isHidden ? 0 : 1),
-    transform: navDrift ? navDrift.transform : (isHidden ? "translateY(130%)" : "translateY(0)"),
+  const isHidden    = wizardOpen || ((orbActive && !navDrift) ?? false);
+  const isOrbActive = !creatorOpen && (tab === "orb" || orbActive);
+  const actions     = useHuiActions();
+
+  const sharedVis = {
+    opacity:    navDrift ? navDrift.opacity   : (isHidden ? 0 : 1),
+    transform:  navDrift ? navDrift.transform : (isHidden ? "translateY(130%)" : "translateY(0)"),
     transition: navDrift ? navDrift.transition
       : "opacity 0.38s cubic-bezier(0.22,1,0.36,1), transform 0.38s cubic-bezier(0.22,1,0.36,1)",
   };
 
   function handleTabPress(key) {
-    if (key === "creator") {
-      actions[A.OPEN_OWN_PROFILE]?.();
-      return;
-    }
+    if (key === "creator") { actions[A.OPEN_OWN_PROFILE]?.(); return; }
     actions[A.GO_TO_TAB]?.(key);
     if (typeof onTab === "function") onTab(key);
   }
@@ -96,20 +149,18 @@ export default function BottomNav({
     onOrbAction?.("create");
   }
 
-  /* ── Orb-Bottom: Unterkante des Orbs liegt auf Tabbar-Oberkante + GAP ── */
-  /* safe-area wird via CSS env() gehandelt — JS-Fallback = SAFE_B          */
-  const orbBottom = `calc(${TAB_H}px + max(${SAFE_B}px, env(safe-area-inset-bottom, ${SAFE_B}px)) + ${GAP}px)`;
-
-  /* ── NavItems ohne Orb ── */
   const navItems = (NAV_ITEMS || []).map(validateNavItem).filter(Boolean);
+
+  /* Orb-marginBottom: Unterkante des Orbs liegt GAP px über Tabbar-Oberkante */
+  const orbMB = `calc(max(${SAFE_B}px, env(safe-area-inset-bottom, ${SAFE_B}px)) + ${TAB_H}px + ${GAP}px)`;
 
   return (
     <>
-      <style>{CSS}</style>
-
-      {/* ════════════════════════════════════════════════════════════════════
-          ORB — eigener fixed Wrapper, kein contain:paint → kein Clipping
-          ════════════════════════════════════════════════════════════════════ */}
+      {/* ══════════════════════════════════════════════════
+          LAYER 3 — ORB
+          Eigener fixed-Root, kein contain, kein overflow:hidden auf Ancestor.
+          Orb wird NIEMALS geclipt.
+          ══════════════════════════════════════════════════ */}
       <div
         data-orbroot=""
         style={{
@@ -117,21 +168,20 @@ export default function BottomNav({
           bottom:        0,
           left:          "50%",
           transform:     "translateX(-50%)",
-          zIndex:        10002,       /* über der Tabbar */
-          pointerEvents: "none",      /* Wrapper selbst: durch-klickbar */
-          ...sharedStyle,
+          zIndex:        10002,
+          pointerEvents: "none",
+          willChange:    "opacity, transform",
+          ...sharedVis,
         }}
       >
         <button
-          className="hui-orb-btn"
           onClick={handleOrbPress}
           aria-label="Mein HUI"
           style={{
-            /* Abstand zur Bildschirm-Unterkante = Tabbar-Höhe + safe-area + GAP */
-            marginBottom:  orbBottom,
+            marginBottom:  orbMB,
             display:       "block",
-            width:         ORB_SIZE,
-            height:        ORB_SIZE,
+            width:         ORB_D,
+            height:        ORB_D,
             borderRadius:  "50%",
             border:        "none",
             padding:       0,
@@ -140,60 +190,63 @@ export default function BottomNav({
             pointerEvents: "auto",
             WebkitTapHighlightColor: "transparent",
             touchAction:   "manipulation",
-            /* Sanfte Elevation wenn aktiv — am Button-Wrapper (Constitution) */
             transition:    "transform 240ms cubic-bezier(0.34,1.56,0.64,1)",
             transform:     isOrbActive
-              ? "scale(1.07) translateY(-3px)"
-              : "scale(1)   translateY(0)",
+              ? "scale(1.04) translateY(-2px)"
+              : "scale(1) translateY(0)",
+          }}
+          onPointerDown={e => {
+            e.currentTarget.style.transform  = "scale(0.94) translateY(1px)";
+            e.currentTarget.style.transition = "transform 100ms cubic-bezier(0.22,1,0.36,1)";
+          }}
+          onPointerUp={e => {
+            e.currentTarget.style.transform  = isOrbActive
+              ? "scale(1.04) translateY(-2px)" : "scale(1) translateY(0)";
+            e.currentTarget.style.transition = "transform 220ms cubic-bezier(0.34,1.56,0.64,1)";
+          }}
+          onPointerLeave={e => {
+            e.currentTarget.style.transform  = isOrbActive
+              ? "scale(1.04) translateY(-2px)" : "scale(1) translateY(0)";
+            e.currentTarget.style.transition = "transform 220ms cubic-bezier(0.34,1.56,0.64,1)";
           }}
         >
-          {/*
-           * Orb Shell — Schatten liegt hier, NICHT am Logo-Bild
-           * Constitution: kein Hintergrund, kein Container, keine Umrandung
-           * Organischer Premium-Schatten: warm (Orange), kühl (Teal), neutral
-           */}
-          <div
-            className="hui-orb-shell"
-            style={{
-              width:          ORB_SIZE,
-              height:         ORB_SIZE,
-              borderRadius:   "50%",
-              display:        "flex",
-              alignItems:     "center",
-              justifyContent: "center",
-              background:     "transparent",
-              filter: [
-                `drop-shadow(0 6px 16px rgba(212,120,30,0.30))`,
-                `drop-shadow(0 2px 6px  rgba(0,0,0,0.14))`,
-                `drop-shadow(0 10px 30px rgba(13,196,150,0.14))`,
-              ].join(" "),
-              transition:     "transform 240ms cubic-bezier(0.34,1.56,0.64,1), filter 240ms ease",
-            }}
-          >
-            {/* Offizielles HUI-Logo — freistehend, transparent, unverändert */}
+          {/* Schatten-Shell — drop-shadow am Container, NICHT am Logo */}
+          <div style={{
+            width:          ORB_D,
+            height:         ORB_D,
+            borderRadius:   "50%",
+            background:     "transparent",
+            display:        "flex",
+            alignItems:     "center",
+            justifyContent: "center",
+            filter: [
+              "drop-shadow(0 6px 18px rgba(212,120,30,0.30))",
+              "drop-shadow(0 2px 6px rgba(0,0,0,0.14))",
+              "drop-shadow(0 12px 32px rgba(13,196,150,0.12))",
+            ].join(" "),
+          }}>
             <img
               src="/assets/brand/hui-logo.png"
-              alt="Mein HUI"
-              width={ORB_SIZE}
-              height={ORB_SIZE}
+              alt=""
+              width={ORB_D}
+              height={ORB_D}
               draggable={false}
               style={{
-                width:      ORB_SIZE,
-                height:     ORB_SIZE,
+                width:      ORB_D,
+                height:     ORB_D,
                 objectFit:  "contain",
                 display:    "block",
                 userSelect: "none",
-                /* CONSTITUTION: KEIN background, border, borderRadius,
-                   boxShadow, transform, filter direkt am Logo-Bild */
               }}
             />
           </div>
         </button>
       </div>
 
-      {/* ════════════════════════════════════════════════════════════════════
-          TABBAR — Glass Pill mit organischer Mitte-Einbuchtung
-          ════════════════════════════════════════════════════════════════════ */}
+      {/* ══════════════════════════════════════════════════
+          LAYER 1+2 — TABBAR
+          SVG-Hintergrund (organische Form) + Tab-Items
+          ══════════════════════════════════════════════════ */}
       <div
         data-bnroot=""
         style={{
@@ -203,138 +256,77 @@ export default function BottomNav({
           right:         0,
           zIndex:        10000,
           pointerEvents: "none",
-          ...sharedStyle,
+          willChange:    "opacity, transform",
+          ...sharedVis,
         }}
       >
-        {/* Einbuchtungs-Overlay — SVG-Maske über der Tabbar-Oberkante */}
-        {/* Erzeugt den organischen Bogen ohne die Tabbar zu clippen    */}
-        <NotchOverlay
-          tabH={TAB_H}
-          orbSize={ORB_SIZE}
-          depth={NOTCH_DEPTH}
-          safeB={SAFE_B}
-        />
-
-        {/* Glass Pill */}
         <div
+          ref={barRef}
           style={{
-            margin:               "0 12px",
-            marginBottom:         `max(${SAFE_B}px, env(safe-area-inset-bottom, ${SAFE_B}px))`,
-            background:           "rgba(253,251,248,0.94)",
+            position:     "relative",
+            margin:       `0 ${MARGIN_H}px`,
+            marginBottom: `max(${SAFE_B}px, env(safe-area-inset-bottom, ${SAFE_B}px))`,
+            height:       TAB_H,
+          }}
+        >
+          {/* Backdrop-blur: separates div, liegt unter dem SVG */}
+          <div style={{
+            position:             "absolute",
+            inset:                0,
+            borderRadius:         CORNER_R,
             backdropFilter:       "blur(36px) saturate(1.9)",
             WebkitBackdropFilter: "blur(36px) saturate(1.9)",
-            borderRadius:         28,
-            border:               "1px solid rgba(255,255,255,0.72)",
+            overflow:             "hidden",   /* nur hier: für backdrop-clip */
+            /* Schatten der Tabbar selbst */
             boxShadow: [
-              "0 1px 0 rgba(255,255,255,0.95) inset",
-              "0 -1px 0 rgba(0,0,0,0.03) inset",
-              "0 2px 6px rgba(0,0,0,0.04)",
-              "0 10px 40px rgba(0,0,0,0.10)",
+              "0 2px 8px rgba(0,0,0,0.05)",
+              "0 12px 40px rgba(0,0,0,0.10)",
               "0 1px 2px rgba(0,0,0,0.06)",
             ].join(", "),
+          }} />
+
+          {/* SVG: organische Einbuchtung + Glassfüllung */}
+          <TabbarSVG width={barW} height={TAB_H} />
+
+          {/* Tab-Items */}
+          <div style={{
+            position:       "absolute",
+            inset:          0,
             display:        "flex",
             alignItems:     "center",
             justifyContent: "space-between",
             padding:        "4px 10px",
-            height:         TAB_H,
             pointerEvents:  "auto",
             WebkitTapHighlightColor: "transparent",
             touchAction:    "manipulation",
-            position:       "relative",
-          }}
-        >
-          {navItems.map((item) => {
-            /* Orb-Position: transparenter Platzhalter in der Mitte */
-            if (item.isOrb === true) {
+          }}>
+            {navItems.map((item) => {
+              if (item.isOrb === true) {
+                return (
+                  <div
+                    key="orb-spacer"
+                    aria-hidden="true"
+                    style={{ width: ORB_D, flexShrink: 0, pointerEvents: "none" }}
+                  />
+                );
+              }
+              const isActive = creatorOpen
+                ? item.key === "creator"
+                : tab === item.key;
               return (
-                <div
-                  key="orb-spacer"
-                  aria-hidden="true"
-                  style={{
-                    width:      ORB_SIZE,
-                    flexShrink: 0,
-                    pointerEvents: "none",
-                  }}
+                <NavItem
+                  key={item.key}
+                  item={item}
+                  active={isActive}
+                  badge={item.key === "notifs" ? notifCount : item.key === "chat" ? msgCount : 0}
+                  onPress={() => handleTabPress(item.key)}
+                  authProfile={authProfile}
                 />
               );
-            }
-
-            const isActive = creatorOpen
-              ? item.key === "creator"
-              : tab === item.key;
-
-            return (
-              <NavItem
-                key={item.key}
-                item={item}
-                active={isActive}
-                badge={
-                  item.key === "notifs" ? notifCount
-                  : item.key === "chat"  ? msgCount
-                  : 0
-                }
-                onPress={() => handleTabPress(item.key)}
-                authProfile={authProfile}
-              />
-            );
-          })}
+            })}
+          </div>
         </div>
       </div>
     </>
-  );
-}
-
-/* ── Organische Einbuchtung über der Tabbar-Mitte ────────────────────────────
-   SVG-Bogen der den Orb "aufnimmt" ohne ihn zu berühren.
-   Liegt ÜBER dem Glass-Pill, erzeugt die weiche Aussparung.           */
-function NotchOverlay({ tabH, orbSize, depth, safeB }) {
-  const W      = 120;           // Breite der Einbuchtungszone px
-  const H      = depth + 4;     // Höhe des SVG-Streifens px
-  const cx     = W / 2;
-  const r      = orbSize / 2 + 6; // Einbuchtungs-Radius = Orb-Radius + Puffer
-
-  /* Sanfter Cosinus-Bogen via kubische Bezier */
-  const path = `
-    M 0,${H}
-    L ${cx - r - 18},${H}
-    C ${cx - r - 6},${H} ${cx - r},${H - depth} ${cx},${H - depth}
-    C ${cx + r},${H - depth} ${cx + r + 6},${H} ${cx + r + 18},${H}
-    L ${W},${H}
-    L ${W},0
-    L 0,0
-    Z
-  `;
-
-  return (
-    <div style={{
-      position:       "absolute",
-      top:            -(H - 1),          /* 1px overlap um Lücken zu vermeiden */
-      left:           "50%",
-      transform:      "translateX(-50%)",
-      width:          W,
-      height:         H,
-      pointerEvents:  "none",
-      zIndex:         1,
-    }}>
-      <svg
-        width={W}
-        height={H}
-        viewBox={`0 0 ${W} ${H}`}
-        preserveAspectRatio="none"
-        style={{ display: "block" }}
-      >
-        {/* Füllung: gleiche Farbe wie die Glass-Pill → nahtloser Übergang */}
-        <path d={path} fill="rgba(253,251,248,0.94)" />
-        {/* Subtile Randlinie oben für den organischen Bogen */}
-        <path
-          d={`M ${cx - r - 18},0
-              C ${cx - r - 6},0 ${cx - r},${depth} ${cx},${depth}
-              C ${cx + r},${depth} ${cx + r + 6},0 ${cx + r + 18},0`}
-          fill="none"
-          stroke="rgba(255,255,255,0.65)"
-          strokeWidth="1.2"
-        />
-      </svg>
-    </div>
   );
 }
