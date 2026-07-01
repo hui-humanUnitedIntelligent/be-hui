@@ -2,7 +2,9 @@
 // Alle Hooks + Logik identisch — nur Reihenfolge + Präsentation neu
 // ═══════════════════════════════════════════════════════════════════
 
+import { useStripeImpactPool } from '@/hooks/useStripeImpactPool';
 import ReactDOM from 'react-dom';
+import { useStripeImpactPool } from '@/hooks/useStripeImpactPool';
 import React from "react";
 import { ProfileService } from '../services/db';
 import { supabase } from "../lib/supabaseClient";
