@@ -185,22 +185,32 @@ export function useReferrals(ambassadorId, refCode) {
     setLoading(true);
 
     const queries = [];
-    // Primär: nach ambassador_id (UUID-basiert, zuverlässig)
+    // Primär: referred_by = ambassador_id (UUID) — das setzt die Registrierung
     if (ambassadorId) {
       queries.push(
         supabase
           .from("profiles")
-          .select("id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views") // Identity Contract v1.0
+          .select("id,display_name,username,avatar_url,email,created_at,first_transaction_at,role")
+          .eq("referred_by", ambassadorId)
+          .order("created_at", { ascending: false })
+      );
+    }
+    // Sekundär: referred_by_ambassador_id (UUID, falls das Feld existiert — Fallback)
+    if (ambassadorId) {
+      queries.push(
+        supabase
+          .from("profiles")
+          .select("id,display_name,username,avatar_url,email,created_at,first_transaction_at,role")
           .eq("referred_by_ambassador_id", ambassadorId)
           .order("created_at", { ascending: false })
       );
     }
-    // Sekundär: nach referred_by (string, Fallback für ältere Einträge)
-    if (refCode) {
+    // Tertiär: referred_by = refCode (string-basiert, Legacy)
+    if (refCode && refCode !== ambassadorId) {
       queries.push(
         supabase
           .from("profiles")
-          .select("id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views") // Identity Contract v1.0
+          .select("id,display_name,username,avatar_url,email,created_at,first_transaction_at,role")
           .eq("referred_by", refCode)
           .order("created_at", { ascending: false })
       );
@@ -228,10 +238,9 @@ export function useReferrals(ambassadorId, refCode) {
         username:            p.username     || null,
         avatarUrl:           p.avatar_url   || null,
         email:               p.email        || null,
-        // Aktiv = erste Transaktion vorhanden (gemäß Spezifikation)
         isActive:            !!p.first_transaction_at,
         firstTransactionAt:  p.first_transaction_at || null,
-        joinedAt:            p.created_at,
+        joinedAt:            p.created_at   || null,
       })));
       setLoading(false);
     }).catch(() => setLoading(false));
