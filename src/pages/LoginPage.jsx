@@ -451,25 +451,16 @@ export default function LoginPage() {
       'mein-hui','community','impressum','datenschutz','agb','cookies','copyright'];
     if (EXCLUDED.includes(username)) return null;
 
-    // Schritt 1: ambassador_ref_links (schnell, cache)
-    const { data: refData } = await supabase
-      .from('ambassador_ref_links')
-      .select('user_id, username')
-      .eq('username', username)
-      .maybeSingle();
-    if (refData?.user_id) return { ambassadorId: refData.user_id, username };
-
-    // Schritt 2: profiles direkt — role='ambassador' OR is_ambassador=true
-    // Single Source of Truth: profiles.username
-    const { data: prof } = await supabase
-      .from('profiles')
-      .select('id, username')
-      .eq('username', username)
-      .or('role.eq.ambassador,is_ambassador.eq.true')
-      .maybeSingle();
-    if (prof?.id) return { ambassadorId: prof.id, username };
-
-    // Silent fail — kein Ambassador mit diesem Namen
+    // WICHTIG: An dieser Stelle ist der Nutzer noch NICHT eingeloggt (anon-Key).
+    // profiles/ambassador_ref_links haben KEINE anon-SELECT-Policy (RLS) — ein
+    // direktes .from(...).select() liefert hier IMMER [] zurueck, egal ob der
+    // Ambassador existiert! Deshalb ausschliesslich ueber die SECURITY-DEFINER-RPC
+    // aufloesen, die bewusst fuer anon freigegeben ist (rpc_resolve_ref_link).
+    const { data, error } = await supabase.rpc('rpc_resolve_ref_link', { p_username: username });
+    if (error) { console.warn('[HUI Referral] rpc_resolve_ref_link Fehler:', error.message); return null; }
+    if (data?.found && data?.ambassador_id) {
+      return { ambassadorId: data.ambassador_id, username: data.username || username };
+    }
     return null;
   }
 
