@@ -898,7 +898,7 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profi
     <div style={{
       position:"fixed", inset:0, zIndex:_zIndex,
       overflowY:"auto", overflowX:"hidden",
-      background:C.cream,
+      background:"transparent",
       /* animation removed for Safari stability */
       fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',sans-serif",
       WebkitOverflowScrolling:"touch",

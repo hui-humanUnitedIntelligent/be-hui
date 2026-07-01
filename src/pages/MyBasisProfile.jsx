@@ -58,7 +58,7 @@ const T = {
 
 // ── CSS ──────────────────────────────────────────────────────────
 const CSS = `
-  .mbp-root { background:${T.bg}; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif; color:${T.ink}; }
+  .mbp-root { background:transparent; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif; color:${T.ink}; }
   .mbp-scroll { overflow-y:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
   .mbp-scroll::-webkit-scrollbar { display:none; }
   .mbp-hscroll { overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }

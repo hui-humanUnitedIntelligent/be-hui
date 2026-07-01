@@ -79,7 +79,7 @@ function Skel({ w="100%", h=16, r=8, mb=0 }) {
 
 function WorkDetailSkeleton() {
   return (
-    <div style={{ minHeight:"100vh", background:C.warm }}>
+    <div style={{ minHeight:"100vh", background:"transparent" }}>
       <style>{CSS}</style>
       {/* Hero skeleton */}
       <div style={{ width:"100%", height:"55vh",

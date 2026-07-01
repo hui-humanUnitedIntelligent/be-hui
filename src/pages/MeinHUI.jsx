@@ -652,7 +652,11 @@ export default function MeinHUI({
   //            blendet danach selbst aus (CLOSE_SCREEN_MS, delayed)
   const screenStyle = {
     position: "fixed", inset: 0,
-    background: T.cream,
+    // Kein eigener Fullscreen-Hintergrund mehr — lässt den App-Hintergrund
+    // (Home.jsx) durchscheinen statt ihn redundant neu zu übermalen.
+    // Nur einzelne Content-Blöcke (Header-Karten, Grundpfeiler etc.)
+    // behalten ihre eigene Card-Füllung.
+    background: "transparent",
     zIndex: 9000,
     overflowY: "auto", overflowX: "hidden",
     WebkitOverflowScrolling: "touch",
