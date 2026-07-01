@@ -653,7 +653,7 @@ function EinladungenModal({ ambassadorId, username, onClose }) {
 
   return createPortal(
     <div style={{
-      position:"fixed", inset:0, zIndex:10000,
+      position:"fixed", inset:0, zIndex:10750, // > Ambassador-Bereich-Modal (10700) — muss darüber liegen
       background:"rgba(26,26,24,0.55)", backdropFilter:"blur(4px)", WebkitBackdropFilter:"blur(4px)",
       display:"flex", flexDirection:"column", justifyContent:"flex-end",
     }} onClick={e => e.target === e.currentTarget && onClose()}>
