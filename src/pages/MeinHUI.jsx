@@ -1,14 +1,21 @@
-// src/pages/MeinHUI.jsx — HUI Wirkungsraum v3.0
+// src/pages/MeinHUI.jsx — HUI Wirkungsraum v4.0 (Cinematic Opening v2)
 // ═══════════════════════════════════════════════════════════════════
-// "Das ist meine Welt." — nicht "Das ist meine Übersicht."
+// "Der Nutzer erlebt eine Transformation, keinen Seitenwechsel."
 //
-// v3.0 — Emotion statt Dashboard
-//   • Orb atmet (0.98 → 1.02, extrem langsam)
-//   • Atmosphäre um Orb: Radialverläufe, Lichtkreise, Tiefe
-//   • Stat-Karten optisch mit Orb verbunden (gleiche Lichtsprache)
-//   • Pillars: Hover/Touch-Glow + sanftes Anheben
-//   • Journey: keine Statistik, echte Erinnerungen
-//   • Keine Gamification. Keine KPIs.
+// 5-Phasen-Choreografie (siehe Home.jsx für Phase 1+2, hier Phase 3+4+5):
+//   Phase 3 (0-260ms intern):   Orb-Kern wächst aus der Nav-Position,
+//                                Screen-Hintergrund blendet parallel ein
+//                                (Frosted-Glass-Crossfade mit dem Feed dahinter)
+//   Phase 4 (260ms+ intern):    Content erscheint gestaffelt —
+//                                Info-Karten → Titel → Pillars → Reise → Rest
+//                                Jeweils 60-100ms Abstand, Opacity + 10px Translate,
+//                                KEINE Scale-Effekte auf den Karten.
+//   Phase 5:                    Ruhe — Choreografie endet, nur Ambient-Leben
+//                                (Atmen, Partikel) läuft weiter.
+//
+// Schließen: exaktes Spiegelbild —
+//   Content fadet zuerst (200ms) → Orb schrumpft zurück (260ms, delay 200ms)
+//   → Parent (Home.jsx) lässt danach den Nav-Orb zurückkehren.
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useEffect, useRef, useState } from "react";
@@ -47,81 +54,72 @@ const T = {
 
 const FONT = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
 
+// easeInOutCubic — kein Bounce, kein Overshoot (Cinematic Opening v2 Prinzip)
+const EASE = "cubic-bezier(0.65,0,0.35,1)";
+
+// ── Choreografie-Zeitkonstanten (ms, relativ zum MeinHUI-Mount) ────
+const ORB_GROW_MS      = 260;  // Phase 3: Orb-Kern wächst
+const INFO_CARDS_DELAY = 260;  // Phase 4.2: Info-Karten
+const TITLE_DELAY      = 330;  // Phase 4.3: Titel/Begrüßung
+const PILLARS_DELAY    = 400;  // Phase 4.4: Grundpfeiler
+const JOURNEY_DELAY    = 470;  // Phase 4.5: Reise
+const MOMENTS_DELAY    = 540;  // Phase 4.6: Rest (Impact-Momente)
+
+// Schließ-Timing (muss zu Home.jsx closeMeinHuiCinematic passen: 460ms total)
+const CLOSE_CONTENT_MS = 200;  // Content fadet zuerst
+const CLOSE_ORB_MS     = 260;  // dann schrumpft der Orb (mit CLOSE_CONTENT_MS delay)
+
 // ─────────────────────────────────────────────────────────────────
-// KEYFRAMES — alle extrem ruhig, kein Hektik
+// KEYFRAMES — Ambient-Leben (Phase 5), läuft unabhängig von der Choreografie
 // ─────────────────────────────────────────────────────────────────
 const KEYFRAMES = `
-/* ── Orb: langsames Atmen — der Nutzer fühlt es, sieht es kaum ── */
 @keyframes mh-orb-breathe {
   0%, 100% { transform: scale(0.985); }
   50%       { transform: scale(1.015); }
 }
-/* ── Atmosphäre: äußerer Glow pulsiert sehr langsam ── */
 @keyframes mh-atm-outer {
   0%, 100% { opacity: 0.22; transform: translate(-50%,-50%) scale(1.00); }
   50%       { opacity: 0.38; transform: translate(-50%,-50%) scale(1.05); }
 }
-/* ── Atmosphäre: mittlerer Ring ── */
 @keyframes mh-atm-mid {
   0%, 100% { opacity: 0.30; transform: translate(-50%,-50%) scale(1.00); }
   50%       { opacity: 0.52; transform: translate(-50%,-50%) scale(1.08); }
 }
-/* ── Atmosphäre: Kern-Glow ── */
 @keyframes mh-atm-core {
   0%, 100% { opacity: 0.55; }
   50%       { opacity: 0.85; }
 }
-/* ── Resonanzwelle — expandierender Ring, extrem dezent ── */
 @keyframes mh-resonance {
   0%   { transform: translate(-50%,-50%) scale(0.85); opacity: 0.18; }
   100% { transform: translate(-50%,-50%) scale(1.40); opacity: 0; }
 }
-/* ── Partikel: sehr langsames Treiben ── */
 @keyframes mh-particle-a {
   0%, 100% { transform: translate(0,0) rotate(0deg); opacity: 0; }
   15%       { opacity: 0.55; }
   85%       { opacity: 0.35; }
   100%      { transform: translate(var(--px), var(--py)) rotate(var(--pr)); opacity: 0; }
 }
-/* ── Lichtbewegung im Orb (simuliert Lichtreflex) ── */
-@keyframes mh-orb-light {
-  0%   { transform: translate(-50%,-50%) rotate(0deg); }
-  100% { transform: translate(-50%,-50%) rotate(360deg); }
+/* ── Energie-Partikel: fließen einmalig vom Orb-Ursprung nach oben ── */
+@keyframes mh-stream-in {
+  0%   { opacity: 0;    transform: translateY(var(--sy, 120px)) scale(0.5); }
+  30%  { opacity: 0.55; }
+  75%  { opacity: 0.30; }
+  100% { opacity: 0;    transform: translateY(0) scale(1); }
 }
-/* ── Screen-Eingang ── */
-@keyframes mh-in {
-  from { opacity: 0; transform: scale(0.975); }
-  to   { opacity: 1; transform: scale(1); }
-}
-@keyframes mh-out {
-  from { opacity: 1; transform: scale(1); }
-  to   { opacity: 0; transform: scale(0.975); }
-}
-/* ── Orb-Hero: wächst aus der Nav nach oben ── */
-@keyframes mh-orb-hero-in {
-  0%   { opacity: 0; transform: translateY(48px) scale(0.55); }
-  60%  { opacity: 1; }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
-}
-/* ── Inhalte: erscheinen nach Orb ── */
-@keyframes mh-content-in {
-  from { opacity: 0; transform: translateY(18px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-/* ── FadeUp ── */
+/* ── Staggered Content (Phase 4): Opacity + 10px Translate, kein Scale ── */
 @keyframes mh-fadeup {
-  from { opacity: 0; transform: translateY(13px); }
+  from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 `;
 
 // ─────────────────────────────────────────────────────────────────
-// FadeUp — animation statt state (kein Layout-Shift)
+// FadeUp — Phase-4-Baustein: reine CSS-Animation, kein Scale
 // ─────────────────────────────────────────────────────────────────
 function FadeUp({ children, delay = 0, style = {} }) {
   return (
     <div style={{
-      animation: `mh-fadeup 0.75s cubic-bezier(0.16,1,0.3,1) ${delay}ms both`,
+      animation: `mh-fadeup 0.5s ${EASE} ${delay}ms both`,
       ...style,
     }}>
       {children}
@@ -130,9 +128,9 @@ function FadeUp({ children, delay = 0, style = {} }) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// 1. ProfileHeader
+// 1. ProfileHeader — "Titel" (Phase 4.3)
 // ─────────────────────────────────────────────────────────────────
-function ProfileHeader({ profile, onNotif, onSettings }) {
+function ProfileHeader({ profile, onNotif, onSettings, delay }) {
   const hour = new Date().getHours();
   const greeting =
     hour < 5  ? "Gute Nacht" :
@@ -142,7 +140,7 @@ function ProfileHeader({ profile, onNotif, onSettings }) {
   const name = profile?.display_name || profile?.username || null;
 
   return (
-    <FadeUp delay={40} style={{
+    <FadeUp delay={delay} style={{
       display: "flex", alignItems: "center",
       padding: "10px 20px 0", gap: 12,
     }}>
@@ -206,96 +204,148 @@ function ProfileHeader({ profile, onNotif, onSettings }) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// 2. OrbHero — lebendig, atmend, atmosphärisch
+// EnergyParticles — Phase 3 Flourish: fließen einmalig vom Orb-Ursprung
+// (optional lt. Vorgabe, sehr dezent, kein Funkeln/Magie)
 // ─────────────────────────────────────────────────────────────────
-const PARTICLES = [
+const STREAM = [
+  { sy: 128, sx: -8,  dur: 560, del: 0   },
+  { sy: 118, sx: 14,  dur: 520, del: 40  },
+  { sy: 138, sx: -22, dur: 600, del: 20  },
+  { sy: 110, sx: 6,   dur: 540, del: 90  },
+  { sy: 124, sx: 24,  dur: 580, del: 60  },
+  { sy: 132, sx: -14, dur: 500, del: 130 },
+  { sy: 116, sx: 2,   dur: 560, del: 110 },
+  { sy: 120, sx: -30, dur: 520, del: 150 },
+];
+
+function EnergyParticles() {
+  return (
+    <>
+      {STREAM.map((p, i) => (
+        <div key={i} style={{
+          position: "absolute", top: "62%", left: `calc(50% + ${p.sx}px)`,
+          width: 3.5, height: 3.5, borderRadius: "50%",
+          background: i % 2 === 0 ? T.gold : T.teal,
+          "--sy": `${p.sy}px`,
+          animation: `mh-stream-in ${p.dur}ms ${EASE} ${p.del}ms 1 both`,
+          pointerEvents: "none",
+        }} />
+      ))}
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 2. OrbHero — Kern (Phase 3) + Info-Karten (Phase 4.2)
+// ─────────────────────────────────────────────────────────────────
+const LEAVES = [
   { size: 5, col: T.sage,  "--px": "-28px", "--py": "-38px", "--pr": "-22deg", dur: "8.5s", del: "0s"   },
   { size: 4, col: T.teal,  "--px": "26px",  "--py": "-32px", "--pr": "18deg",  dur: "9.8s", del: "2.1s" },
   { size: 6, col: T.gold,  "--px": "-20px", "--py": "30px",  "--pr": "-12deg", dur: "7.9s", del: "1.3s" },
   { size: 3, col: T.sage,  "--px": "22px",  "--py": "26px",  "--pr": "15deg",  dur: "10.2s","del": "3.4s"},
 ];
 
-function OrbHero({ profile }) {
+function OrbHero({ profile, coreStyle, showParticles, infoDelay }) {
   return (
-    <div style={{
-      position: "relative", textAlign: "center", padding: "24px 0 16px",
-      // Orb-Hero: wächst aus Nav-Position nach oben (Kontinuität)
-      animation: "mh-orb-hero-in 0.65s cubic-bezier(0.16,1,0.3,1) 0.05s both",
-    }}>
+    <div style={{ position: "relative", textAlign: "center", padding: "24px 0 16px" }}>
 
-      {/* ─── Atmosphärische Hintergrundstrahlung ─── */}
-      {/* Äußerster Ring — sehr groß, sehr weich */}
-      <div style={{
-        position: "absolute", top: "50%", left: "50%",
-        width: 340, height: 340, marginTop: -170, marginLeft: -170,
-        borderRadius: "50%",
-        background: "radial-gradient(circle, rgba(255,190,70,0.07) 0%, rgba(13,196,181,0.05) 45%, transparent 72%)",
-        animation: "mh-atm-outer 9s ease-in-out infinite",
-        pointerEvents: "none",
-      }} />
+      {/* ═══ ORB-KERN — wächst in Phase 3 (0-260ms), schrumpft beim Schließen ═══ */}
+      <div style={coreStyle}>
 
-      {/* Mittlerer Glow — warm golden */}
-      <div style={{
-        position: "absolute", top: "50%", left: "50%",
-        width: 240, height: 240, marginTop: -120, marginLeft: -120,
-        borderRadius: "50%",
-        background: "radial-gradient(circle, rgba(255,205,80,0.16) 0%, rgba(244,115,85,0.10) 40%, rgba(13,196,181,0.04) 70%, transparent 100%)",
-        animation: "mh-atm-mid 7s ease-in-out 0.8s infinite",
-        pointerEvents: "none",
-      }} />
-
-      {/* Kern-Glow — weiß/golden, intensiv */}
-      <div style={{
-        position: "absolute", top: "50%", left: "50%",
-        width: 150, height: 150, marginTop: -75, marginLeft: -75,
-        borderRadius: "50%",
-        background: "radial-gradient(circle, rgba(255,255,255,0.92) 0%, rgba(255,215,90,0.30) 50%, transparent 100%)",
-        animation: "mh-atm-core 5s ease-in-out 0.3s infinite",
-        pointerEvents: "none",
-      }} />
-
-      {/* Resonanzwellen — 2 Ringe die expandieren (sehr dezent) */}
-      {[{ del: "0s" }, { del: "3.5s" }].map((w, i) => (
-        <div key={i} style={{
+        {/* Atmosphärische Hintergrundstrahlung */}
+        <div style={{
           position: "absolute", top: "50%", left: "50%",
-          width: 180, height: 180, marginTop: -90, marginLeft: -90,
+          width: 340, height: 340, marginTop: -170, marginLeft: -170,
           borderRadius: "50%",
-          border: "1px solid rgba(13,196,181,0.18)",
-          animation: `mh-resonance 7s ease-out ${w.del} infinite`,
+          background: "radial-gradient(circle, rgba(255,190,70,0.07) 0%, rgba(13,196,181,0.05) 45%, transparent 72%)",
+          animation: "mh-atm-outer 9s ease-in-out infinite",
           pointerEvents: "none",
         }} />
-      ))}
-
-      {/* Lichtkreis — fester Ring */}
-      <div style={{
-        position: "absolute", top: "50%", left: "50%",
-        width: 210, height: 210, marginTop: -105, marginLeft: -105,
-        borderRadius: "50%",
-        border: "1px solid rgba(212,149,42,0.12)",
-        pointerEvents: "none",
-      }} />
-
-      {/* Schwebende Partikel */}
-      {PARTICLES.map((p, i) => (
-        <div key={i} style={{
+        <div style={{
           position: "absolute", top: "50%", left: "50%",
-          marginTop: -p.size/2, marginLeft: -p.size/2,
-          width: p.size, height: p.size,
-          borderRadius: "50% 0 50% 0",
-          background: p.col, opacity: 0,
-          "--px": p["--px"], "--py": p["--py"], "--pr": p["--pr"],
-          animation: `mh-particle-a ${p.dur} ease-in-out ${p.del} infinite`,
+          width: 240, height: 240, marginTop: -120, marginLeft: -120,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(255,205,80,0.16) 0%, rgba(244,115,85,0.10) 40%, rgba(13,196,181,0.04) 70%, transparent 100%)",
+          animation: "mh-atm-mid 7s ease-in-out 0.8s infinite",
           pointerEvents: "none",
         }} />
-      ))}
+        <div style={{
+          position: "absolute", top: "50%", left: "50%",
+          width: 150, height: 150, marginTop: -75, marginLeft: -75,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(255,255,255,0.92) 0%, rgba(255,215,90,0.30) 50%, transparent 100%)",
+          animation: "mh-atm-core 5s ease-in-out 0.3s infinite",
+          pointerEvents: "none",
+        }} />
 
-      {/* ─── Stat-Karten LINKS — optisch mit Orb verbunden ─── */}
-      <FadeUp delay={240} style={{
+        {/* Resonanzwellen */}
+        {[{ del: "0s" }, { del: "3.5s" }].map((w, i) => (
+          <div key={i} style={{
+            position: "absolute", top: "50%", left: "50%",
+            width: 180, height: 180, marginTop: -90, marginLeft: -90,
+            borderRadius: "50%",
+            border: "1px solid rgba(13,196,181,0.18)",
+            animation: `mh-resonance 7s ease-out ${w.del} infinite`,
+            pointerEvents: "none",
+          }} />
+        ))}
+
+        <div style={{
+          position: "absolute", top: "50%", left: "50%",
+          width: 210, height: 210, marginTop: -105, marginLeft: -105,
+          borderRadius: "50%",
+          border: "1px solid rgba(212,149,42,0.12)",
+          pointerEvents: "none",
+        }} />
+
+        {/* Ambient-Blätter */}
+        {LEAVES.map((l, i) => (
+          <div key={i} style={{
+            position: "absolute", top: "50%", left: "50%",
+            marginTop: -l.size/2, marginLeft: -l.size/2,
+            width: l.size, height: l.size,
+            borderRadius: "50% 0 50% 0",
+            background: l.col, opacity: 0,
+            "--px": l["--px"], "--py": l["--py"], "--pr": l["--pr"],
+            animation: `mh-particle-a ${l.dur} ease-in-out ${l.del} infinite`,
+            pointerEvents: "none",
+          }} />
+        ))}
+
+        {/* Energie-Partikel — fließen einmalig beim Öffnen */}
+        {showParticles && <EnergyParticles />}
+
+        {/* Das HUI-Logo — UNVERÄNDERT, freistehend */}
+        <div style={{
+          position: "relative", zIndex: 3,
+          display: "inline-flex", alignItems: "center", justifyContent: "center",
+          width: 190, height: 190,
+        }}>
+          <div style={{
+            animation: "mh-orb-breathe 8s ease-in-out infinite",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <img
+              src="/assets/brand/hui-logo.png"
+              alt="HUI"
+              style={{
+                width: 168, height: 168,
+                objectFit: "contain", display: "block",
+                userSelect: "none", pointerEvents: "none",
+              }}
+              draggable={false}
+            />
+          </div>
+        </div>
+      </div>
+      {/* ═══ ENDE ORB-KERN ═══ */}
+
+      {/* ─── Info-Karten — Phase 4.2, erscheinen NACH dem Orb-Wachstum ─── */}
+      <FadeUp delay={infoDelay} style={{
         position: "absolute",
         left: 16, top: "50%", transform: "translateY(-50%)",
         zIndex: 2, maxWidth: 115, textAlign: "left",
       }}>
-        {/* Tagline */}
         <p style={{
           fontFamily: FONT, fontSize: 12.5, fontWeight: 400,
           lineHeight: 1.6, color: T.inkSoft, margin: "0 0 14px",
@@ -303,11 +353,9 @@ function OrbHero({ profile }) {
         }}>
           Dein Blatt wächst durch das, was du für andere bewirkst.
         </p>
-        {/* Herz */}
         <div style={{ color: T.coral, fontSize: 15, opacity: 0.75 }}>♡</div>
       </FadeUp>
 
-      {/* ─── Stat-Karten RECHTS — gleiche Lichtsprache wie Orb ─── */}
       <div style={{
         position: "absolute", right: 14, top: "50%",
         transform: "translateY(-50%)",
@@ -319,7 +367,7 @@ function OrbHero({ profile }) {
           { icon: "🔥", label: "Impact gesät", sub: "23 Impulse",    glow: "rgba(244,115,85,0.08)" },
           { icon: "👥", label: "Verbindungen", sub: "47 Menschen",    glow: T.tealSoft },
         ].map((s, i) => (
-          <FadeUp key={i} delay={280 + i * 90}>
+          <FadeUp key={i} delay={infoDelay + i * 45}>
             <div style={{
               display: "flex", alignItems: "center", gap: 6,
               background: "rgba(253,251,248,0.82)",
@@ -327,7 +375,6 @@ function OrbHero({ profile }) {
               WebkitBackdropFilter: "blur(10px)",
               borderRadius: 13,
               padding: "6px 10px",
-              // Gleiche Schatten-Sprache wie Orb-Glow
               boxShadow: `0 2px 10px ${s.glow}, 0 1px 3px rgba(0,0,0,0.05)`,
               border: "1px solid rgba(255,255,255,0.90)",
               minWidth: 0,
@@ -342,34 +389,8 @@ function OrbHero({ profile }) {
         ))}
       </div>
 
-      {/* ─── Das HUI-Logo — UNVERÄNDERT, freistehend ─── */}
-      {/* Animation NUR am äußeren Container — nie am Logo selbst */}
-      <div style={{
-        position: "relative", zIndex: 3,
-        display: "inline-flex", alignItems: "center", justifyContent: "center",
-        width: 190, height: 190,
-      }}>
-        {/* Atemcontainer — scale 0.985 → 1.015, 8s Zyklus */}
-        <div style={{
-          animation: "mh-orb-breathe 8s ease-in-out infinite",
-          display: "flex", alignItems: "center", justifyContent: "center",
-        }}>
-          <img
-            src="/assets/brand/hui-logo.png"
-            alt="HUI"
-            style={{
-              width: 168, height: 168,
-              objectFit: "contain", display: "block",
-              userSelect: "none", pointerEvents: "none",
-              // Kein Background, kein Container, kein Rahmen
-            }}
-            draggable={false}
-          />
-        </div>
-      </div>
-
-      {/* Tagline unter Orb */}
-      <FadeUp delay={320}>
+      {/* Tagline unter Orb — Teil der Info-Karten-Welle */}
+      <FadeUp delay={infoDelay}>
         <p style={{
           fontFamily: FONT, fontSize: 13, fontWeight: 400,
           color: T.inkSoft, margin: "2px 0 0", lineHeight: 1.5,
@@ -383,7 +404,7 @@ function OrbHero({ profile }) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// 3. Pillars — Grundpfeiler mit Glow-Touch-Reaktion
+// 3. Pillars — Phase 4.4
 // ─────────────────────────────────────────────────────────────────
 const PILLARS = [
   {
@@ -418,11 +439,11 @@ const PILLARS = [
   },
 ];
 
-function PillarCard({ pillar, index }) {
+function PillarCard({ pillar, index, baseDelay }) {
   const [active, setActive] = useState(false);
 
   return (
-    <FadeUp delay={460 + index * 45}>
+    <FadeUp delay={baseDelay + index * 30}>
       <div
         onPointerDown={() => setActive(true)}
         onPointerUp={() => setActive(false)}
@@ -430,15 +451,13 @@ function PillarCard({ pillar, index }) {
         style={{
           width: 126,
           flexShrink: 0,
-          background: active
-            ? T.creamCard
-            : pillar.bg,
+          background: active ? T.creamCard : pillar.bg,
           border: `1px solid ${active ? pillar.accent + "40" : pillar.border}`,
           borderRadius: 18,
           padding: "15px 13px 13px",
           cursor: "default",
           userSelect: "none",
-          // Sanftes Anheben + Glow beim Antippen
+          // Touch-Feedback (Interaktion, NICHT Teil der Entrance-Choreografie)
           transition: [
             "transform 0.22s cubic-bezier(0.16,1,0.3,1)",
             "box-shadow 0.22s cubic-bezier(0.16,1,0.3,1)",
@@ -451,22 +470,18 @@ function PillarCard({ pillar, index }) {
             : `0 1px 4px rgba(0,0,0,0.04)`,
         }}
       >
-        {/* Icon-Badge */}
         <div style={{
           width: 38, height: 38, borderRadius: "50%",
           background: active ? pillar.bg : T.white,
           display: "flex", alignItems: "center", justifyContent: "center",
           color: pillar.accent, marginBottom: 10,
-          boxShadow: active
-            ? `0 2px 10px ${pillar.glow}`
-            : "0 1px 4px rgba(0,0,0,0.06)",
+          boxShadow: active ? `0 2px 10px ${pillar.glow}` : "0 1px 4px rgba(0,0,0,0.06)",
           transition: "box-shadow 0.22s ease, background 0.18s ease",
           flexShrink: 0,
         }}>
           {pillar.icon}
         </div>
 
-        {/* Titel */}
         <div style={{
           fontFamily: FONT, fontSize: 13.5, fontWeight: 700,
           color: pillar.accent, marginBottom: 5, lineHeight: 1.2,
@@ -475,7 +490,6 @@ function PillarCard({ pillar, index }) {
           {pillar.label}
         </div>
 
-        {/* Text */}
         <div style={{
           fontFamily: FONT, fontSize: 11.5, fontWeight: 400,
           color: T.inkSoft, lineHeight: 1.5,
@@ -483,7 +497,6 @@ function PillarCard({ pillar, index }) {
           {pillar.text}
         </div>
 
-        {/* Akzent-Linie */}
         <div style={{
           height: 2, borderRadius: 2, marginTop: 11,
           background: pillar.accent,
@@ -496,10 +509,10 @@ function PillarCard({ pillar, index }) {
   );
 }
 
-function Pillars() {
+function Pillars({ delay }) {
   return (
     <div style={{ padding: "0 0 0 20px" }}>
-      <FadeUp delay={420}>
+      <FadeUp delay={delay}>
         <div style={{
           display: "flex", alignItems: "baseline", justifyContent: "space-between",
           paddingRight: 20, marginBottom: 14,
@@ -514,14 +527,14 @@ function Pillars() {
         paddingRight: 20, paddingBottom: 4,
         WebkitOverflowScrolling: "touch",
       }}>
-        {PILLARS.map((p, i) => <PillarCard key={p.label} pillar={p} index={i} />)}
+        {PILLARS.map((p, i) => <PillarCard key={p.label} pillar={p} index={i} baseDelay={delay + 30} />)}
       </div>
     </div>
   );
 }
 
 // ─────────────────────────────────────────────────────────────────
-// 4. Journey — echte Erinnerungen, keine Statistiken
+// 4. Journey — Phase 4.5, echte Erinnerungen, keine Statistiken
 // ─────────────────────────────────────────────────────────────────
 const JOURNEY = [
   { emoji: "🌱", label: "Heute",        text: "Kleine Impulse setzen Großes in Bewegung.",   color: T.teal   },
@@ -531,10 +544,10 @@ const JOURNEY = [
   { emoji: "🌳", label: "Seit Beginn",  text: "Dein Weg ist einzigartig und wertvoll.",       color: T.purple },
 ];
 
-function Journey() {
+function Journey({ delay }) {
   return (
     <div style={{ padding: "0 20px" }}>
-      <FadeUp delay={660}>
+      <FadeUp delay={delay}>
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14,
         }}>
@@ -557,9 +570,8 @@ function Journey() {
         WebkitOverflowScrolling: "touch",
       }}>
         {JOURNEY.map((j, i) => (
-          <FadeUp key={j.label} delay={700 + i * 55}>
+          <FadeUp key={j.label} delay={delay + 30 + i * 30}>
             <div style={{ width: 106, flexShrink: 0, textAlign: "center" }}>
-              {/* Kreis */}
               <div style={{
                 width: 68, height: 68, borderRadius: "50%", margin: "0 auto 9px",
                 background: `linear-gradient(135deg, ${j.color}28 0%, ${j.color}55 100%)`,
@@ -584,7 +596,7 @@ function Journey() {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// 5. ImpactMoments — horizontal, menschlich
+// 5. ImpactMoments — Phase 4.6 (Rest)
 // ─────────────────────────────────────────────────────────────────
 const MOMENTS = [
   { icon: "♡",  label: "Du hast Jana unterstützt",        time: "vor 2 Tagen",  color: T.coral,  bg: "rgba(244,115,85,0.07)",  border: "rgba(244,115,85,0.13)" },
@@ -593,10 +605,10 @@ const MOMENTS = [
   { icon: "🌍", label: "Dein Impact hat 8 Menschen erreicht", time: "vor 1 Woche", color: T.purple, bg: T.purpleSoft,           border: "rgba(123,94,167,0.13)"  },
 ];
 
-function ImpactMoments() {
+function ImpactMoments({ delay }) {
   return (
     <div style={{ padding: "0 20px" }}>
-      <FadeUp delay={880}>
+      <FadeUp delay={delay}>
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14,
         }}>
@@ -619,7 +631,7 @@ function ImpactMoments() {
         WebkitOverflowScrolling: "touch",
       }}>
         {MOMENTS.map((m, i) => (
-          <FadeUp key={i} delay={920 + i * 50}>
+          <FadeUp key={i} delay={delay + 30 + i * 30}>
             <div style={{
               width: 138, flexShrink: 0,
               background: m.bg, border: `1px solid ${m.border}`,
@@ -649,71 +661,113 @@ function ImpactMoments() {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// SHELL — MeinHUI
+// SHELL — MeinHUI (Cinematic Opening v2 Orchestrierung)
 // ─────────────────────────────────────────────────────────────────
 export default function MeinHUI({
   visible   = true,
+  closing   = false,   // von Home.jsx gesteuert: Content fadet, dann schrumpft Orb
   profile   = null,
   onClose,
   onNotif,
   onSettings,
 }) {
   const scrollRef = useRef(null);
-  const [isClosing, setIsClosing] = useState(false);
+  // "entered" via Double-RAF: erzwingt einen ersten Paint im Ausgangszustand,
+  // bevor die CSS-Transition zum Endzustand ausgelöst wird (kein Sprung).
+  const [entered, setEntered] = useState(false);
+  const [showParticles, setShowParticles] = useState(false);
 
   useEffect(() => {
-    if (visible && scrollRef.current) scrollRef.current.scrollTop = 0;
+    if (visible) {
+      setEntered(false);
+      setShowParticles(false);
+      if (scrollRef.current) scrollRef.current.scrollTop = 0;
+      // Double-RAF: erzwingt einen ersten Paint im Ausgangszustand,
+      // bevor die CSS-Transition zum Endzustand ausgelöst wird.
+      const raf1 = requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setEntered(true);
+          setShowParticles(true);
+        });
+      });
+      return () => cancelAnimationFrame(raf1);
+    } else {
+      setEntered(false);
+      setShowParticles(false);
+    }
   }, [visible]);
 
-  function handleClose() {
-    setIsClosing(true);
-    setTimeout(() => { setIsClosing(false); onClose?.(); }, 270);
-  }
-
   if (!visible) return null;
+
+  // ── Screen-Hintergrund: blendet parallel zum Orb-Wachstum ein (Phase 3) ──
+  // Frosted-Glass-Crossfade mit dem gedimmten Feed dahinter (siehe Home.jsx filter)
+  const screenStyle = {
+    position: "fixed", inset: 0,
+    background: T.cream,
+    zIndex: 9000,
+    overflowY: "auto", overflowX: "hidden",
+    WebkitOverflowScrolling: "touch",
+    overscrollBehavior: "contain",
+    opacity: closing ? 1 : (entered ? 1 : 0),
+    transition: `opacity ${ORB_GROW_MS}ms ${EASE}`,
+  };
+
+  // ── Orb-Kern: wächst aus Nav-Position (Phase 3) / schrumpft zurück (Closing) ──
+  const coreStyle = {
+    transformOrigin: "center",
+    transform: closing
+      ? "translateY(46px) scale(0.55)"
+      : entered ? "translateY(0) scale(1)" : "translateY(46px) scale(0.55)",
+    opacity: closing ? 0 : entered ? 1 : 0,
+    transition: closing
+      ? `transform ${CLOSE_ORB_MS}ms ${EASE} ${CLOSE_CONTENT_MS}ms, opacity ${CLOSE_ORB_MS}ms ${EASE} ${CLOSE_CONTENT_MS}ms`
+      : `transform ${ORB_GROW_MS}ms ${EASE}, opacity ${ORB_GROW_MS}ms ${EASE}`,
+  };
+
+  // ── Content-Gruppe (alles außer Orb-Kern): fadet als Erstes beim Schließen ──
+  const contentGroupStyle = closing
+    ? {
+        opacity: 0,
+        transform: "translateY(8px)",
+        transition: `opacity ${CLOSE_CONTENT_MS}ms ${EASE}, transform ${CLOSE_CONTENT_MS}ms ${EASE}`,
+      }
+    : {};
 
   return (
     <>
       <style>{KEYFRAMES}</style>
-      <div
-        ref={scrollRef}
-        style={{
-          position: "fixed", inset: 0,
-          background: T.cream,
-          zIndex: 9000,
-          overflowY: "auto", overflowX: "hidden",
-          WebkitOverflowScrolling: "touch",
-          overscrollBehavior: "contain",
-          // Screen: Hintergrund blendet sanft ein — Bewegung kommt vom Orb-Hero
-          animation: isClosing ? "mh-out 0.22s ease both" : "mh-in 0.28s ease both",
-        }}
-      >
+      <div ref={scrollRef} style={screenStyle}>
         <div style={{
           paddingTop: "max(14px, env(safe-area-inset-top, 14px))",
           paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 120px)",
+          ...contentGroupStyle,
         }}>
 
-          {/* 1 — Header */}
-          <ProfileHeader profile={profile} onNotif={onNotif} onSettings={onSettings} />
+          {/* Titel (Phase 4.3) */}
+          <ProfileHeader profile={profile} onNotif={onNotif} onSettings={onSettings} delay={TITLE_DELAY} />
 
-          {/* 2 — Orb-Hero */}
-          <OrbHero profile={profile} />
+          {/* Orb-Kern (Phase 3) + Info-Karten (Phase 4.2) */}
+          <OrbHero
+            profile={profile}
+            coreStyle={coreStyle}
+            showParticles={showParticles && !closing}
+            infoDelay={INFO_CARDS_DELAY}
+          />
 
-          {/* Trennlinie */}
           <div style={{ width: 28, height: 1, background: T.inkFaint, margin: "6px auto 26px", opacity: 0.35 }} />
 
-          {/* 3 — Grundpfeiler */}
-          <Pillars />
+          {/* Grundpfeiler (Phase 4.4) */}
+          <Pillars delay={PILLARS_DELAY} />
 
           <div style={{ height: 30 }} />
 
-          {/* 4 — Reise */}
-          <Journey />
+          {/* Reise (Phase 4.5) */}
+          <Journey delay={JOURNEY_DELAY} />
 
           <div style={{ height: 30 }} />
 
-          {/* 5 — Impact-Momente */}
-          <ImpactMoments />
+          {/* Rest (Phase 4.6) */}
+          <ImpactMoments delay={MOMENTS_DELAY} />
 
           <div style={{ height: 12 }} />
         </div>

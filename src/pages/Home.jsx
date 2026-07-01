@@ -107,8 +107,25 @@ function HomeInner() {
   // PaintRecoveryManager — tracks rAF handles, cleaned up on unmount
   const paintManager = React.useRef(new PaintRecoveryManager());
 
-  // ── Orb-Kontinuität: "idle" | "exiting" | "entering"
+  // ── Orb-Kontinuität — Cinematic Opening v2 (5 Phasen)
+  // "idle" | "tap" | "focus" | "exiting" | "hidden" | "entering"
   const [orbTransition, setOrbTransition] = useState("idle");
+  // Steuert MeinHUI's eigene Exit-Choreografie: Content fadet zuerst, dann schrumpft der Orb
+  const [meinHuiClosing, setMeinHuiClosing] = useState(false);
+
+  // ── Cinematic Closing — spiegelbildlich zur Öffnung ──────────────────
+  // 1. Content fadet aus (0-200ms)     — läuft in MeinHUI via `closing` Prop
+  // 2. Großer Orb schrumpft (200-460ms) — läuft in MeinHUI via `closing` Prop
+  // 3. Nav-Orb erscheint erst danach (460ms+) — wächst 94%→100%, opacity 0→1
+  const closeMeinHuiCinematic = useCallback(() => {
+    setMeinHuiClosing(true);
+    setTimeout(() => {
+      setShowPlusSheet(false);
+      setMeinHuiClosing(false);
+      setOrbTransition("entering");
+      setTimeout(() => setOrbTransition("idle"), 320);
+    }, 460);
+  }, []);
 
   const {
     tab,
@@ -327,7 +344,15 @@ function HomeInner() {
             // Phase 22: Atmosphärische Kontinuität beim Tab-Wechsel
             // Sanfte background-transition — gibt das Gefühl von
             // "Raum-Wechsel" statt "Screen-Wechsel"
-            transition:   "background-color 320ms cubic-bezier(0.16,1,0.30,1)",
+            // Cinematic Opening v2 — Phase 2/3: Hintergrund wird ruhiger,
+            // kontinuierlicher Frosted-Glass-Übergang, kein harter Cut
+            filter:
+              orbTransition === "focus"     ? "blur(1.5px) brightness(0.98)" :
+              orbTransition === "exiting"   ? "blur(5px) brightness(0.93)"   :
+              orbTransition === "hidden"    ? "blur(5px) brightness(0.93)"   :
+              orbTransition === "entering"  ? "blur(1.5px) brightness(0.98)" :
+              "blur(0px) brightness(1)",
+            transition:   "background-color 320ms cubic-bezier(0.16,1,0.30,1), filter 0.30s cubic-bezier(0.65,0,0.35,1)",
             ...worldTokens.feedContainerStyle,
           }}
         >
@@ -463,14 +488,21 @@ function HomeInner() {
             const canRenderOrbContent = SAFE_MODE.orb;
             if (!canRenderOrbContent) return;
 
-            // Orb-Kontinuität: Orb löst sich aus Tabbar (exiting)
-            // dann öffnet MeinHUI mit Orb der aus der Mitte wächst
-            setOrbTransition("exiting");
+            // ── Cinematic Opening v2 — 5-Phasen-Choreografie ──────────────
+            // Phase 1 (0-120ms):   TAP     — Orb reagiert (Scale 1.04, Glow heller)
+            // Phase 2 (120-260ms): FOKUS   — Hintergrund wird ruhiger, kein harter Cut
+            // Phase 3 (260-520ms): RAUM ENTSTEHT — MeinHUI öffnet, Nav-Orb löst sich auf
+            // Phase 4 (ab 520ms):  STAGGERED CONTENT — läuft intern in MeinHUI
+            setOrbTransition("tap");
+
+            setTimeout(() => setOrbTransition("focus"), 120);
+
             setTimeout(() => {
+              setOrbTransition("exiting");
               setShowPlusSheet(true);
-              // "entering" kurz nach dem Öffnen → Nav-Orb ist "weg" während MeinHUI offen
-              setOrbTransition("hidden");
-            }, 280);
+            }, 260);
+
+            setTimeout(() => setOrbTransition("hidden"), 520);
           }}
         />
 
@@ -624,26 +656,14 @@ function HomeInner() {
             />
           </SafeRender>
         )}
-        {/* MeinHUI — Persönlicher Wirkungsraum (Orb-Erfahrung v2.0) */}
+        {/* MeinHUI — Persönlicher Wirkungsraum (Orb-Erfahrung v2.0, Cinematic Closing) */}
         <MeinHUI
           visible={showPlusSheet}
+          closing={meinHuiClosing}
           profile={authProfile}
-          onClose={() => {
-            // Orb-Kontinuität: Inhalte verschwinden, dann Nav-Orb kehrt zurück
-            setShowPlusSheet(false);
-            setOrbTransition("entering");
-            setTimeout(() => setOrbTransition("idle"), 520);
-          }}
-          onNotif={() => {
-            setShowPlusSheet(false);
-            setOrbTransition("entering");
-            setTimeout(() => setOrbTransition("idle"), 520);
-          }}
-          onSettings={() => {
-            setShowPlusSheet(false);
-            setOrbTransition("entering");
-            setTimeout(() => setOrbTransition("idle"), 520);
-          }}
+          onClose={closeMeinHuiCinematic}
+          onNotif={closeMeinHuiCinematic}
+          onSettings={closeMeinHuiCinematic}
         />
         {showTalentFlow && SAFE_MODE.talentFlow && (
           <SafeRender flag="talentFlow" label="TalentOnboarding">
