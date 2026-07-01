@@ -1,0 +1,44 @@
+name: Ambassador FINAL Deploy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install CLI
+        run: |
+          curl -fsSL https://github.com/supabase/cli/releases/download/v2.108.0/supabase_linux_amd64.tar.gz | tar -xz -C /tmp
+          sudo mv /tmp/supabase /usr/local/bin/supabase
+
+      - name: Link
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase link --project-ref gxztrhvhcxhmunhhkfjd --yes
+
+      - name: Deploy final SQL
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          set -e
+          supabase db query --linked -f ambassador_deploy_final.sql
+          echo "✅ SQL deployed"
+
+      - name: Verify in DB
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          set -e
+          supabase db query --linked "SELECT proname FROM pg_proc WHERE proname IN ('rpc_get_ambassador_referrals','rpc_get_all_ambassadors') ORDER BY proname;" -o json
+          COUNT=$(supabase db query --linked "SELECT COUNT(*)::int FROM pg_proc WHERE proname IN ('rpc_get_ambassador_referrals','rpc_get_all_ambassadors');" -o json | python3 -c "import json,sys; print(json.load(sys.stdin)[0]['count'])")
+          echo "Functions in DB: $COUNT"
+          [ "$COUNT" = "2" ] && echo "✅ BEIDE DEPLOYT" || (echo "❌ FEHLER" && exit 1)
+
+      - name: Mozart referral verify
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db query --linked "SELECT username, referred_by FROM profiles WHERE username = 'mozart';" -o json
