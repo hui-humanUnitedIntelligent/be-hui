@@ -69,11 +69,16 @@ function GlassInput({ type = 'text', value, onChange, placeholder, autoComplete,
       )}
       <style>{`
         input::placeholder { color: rgba(255,255,255,0.38); }
-        input:-webkit-autofill {
-          -webkit-box-shadow: 0 0 0 100px rgba(22,215,197,0.08) inset !important;
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active {
+          -webkit-box-shadow: 0 0 0 100px #14161a inset !important;
+          box-shadow: 0 0 0 100px #14161a inset !important;
           -webkit-text-fill-color: #fff !important;
           caret-color: #16D7C5;
           border-radius: 16px;
+          transition: background-color 600000s ease-in-out 0s, color 600000s ease-in-out 0s;
         }
       `}</style>
     </div>
