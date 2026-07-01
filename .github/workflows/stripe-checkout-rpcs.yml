@@ -1,0 +1,29 @@
+name: Stripe Checkout RPCs Deploy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install CLI
+        run: |
+          curl -fsSL https://github.com/supabase/cli/releases/download/v2.108.0/supabase_linux_amd64.tar.gz | tar -xz -C /tmp
+          sudo mv /tmp/supabase /usr/local/bin/supabase
+      - name: Link
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase link --project-ref gxztrhvhcxhmunhhkfjd --yes
+      - name: Deploy RPCs
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase db query --linked -f stripe_checkout_rpcs.sql 2>&1
+      - name: Verify
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db query --linked "SELECT proname FROM pg_proc WHERE proname IN ('rpc_create_checkout_session','rpc_create_payment_intent','rpc_confirm_checkout') ORDER BY proname;" -o json
+          supabase db query --linked "SELECT column_name FROM information_schema.columns WHERE table_name='stripe_payments' AND column_name IN ('payment_type','ambassador_id','description','checkout_session_id');" -o json
+          supabase db query --linked "SELECT COUNT(*) FROM stripe_pending_checkouts;" -o json
