@@ -1,0 +1,34 @@
+name: Introspect Payment RPC Source
+
+on:
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Supabase CLI
+        run: |
+          curl -fsSL https://github.com/supabase/cli/releases/download/v2.108.0/supabase_linux_amd64.tar.gz | tar -xz -C /tmp
+          sudo mv /tmp/supabase /usr/local/bin/supabase
+      - name: Link
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase link --project-ref gxztrhvhcxhmunhhkfjd --yes
+      - name: RPC-Source dump
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db query --linked "SELECT proname, pg_get_functiondef(oid) as def FROM pg_proc WHERE proname IN ('rpc_create_payment_intent','rpc_create_checkout_session','rpc_record_payment') ORDER BY proname;" -o json > /tmp/rpc_dump.json
+          cat /tmp/rpc_dump.json
+      - name: Works/Talents/Projects Tabellen-Check
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db query --linked "SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_name IN ('works','impact_applications','talent_bookings','bookings') ORDER BY table_name;" -o json
+      - name: Employees/Profiles RLS-Check
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db query --linked "SELECT tablename, policyname, cmd FROM pg_policies WHERE schemaname='public' AND tablename LIKE 'stripe_%' ORDER BY tablename;" -o json
