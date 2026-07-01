@@ -1,352 +1,269 @@
 -- ════════════════════════════════════════════════════════════════
--- HUI Ambassador RPCs — ARCH-006.1 — Final
--- Datum: 2026-07-01
--- Single Source of Truth:
---   profiles.username → https://be-hui.com/<username>
---   profiles.referred_by = ambassador_uuid
---   profiles.role = 'ambassador' OR profiles.is_ambassador = true
--- Keine neue Tabelle. Bestehende: profiles, works,
---   impact_applications, messages, chats, notification_events,
---   ambassador_ref_links
+-- ADR-AMBASSADOR-SYSTEM RPCs v2 — 2026-07-01
+-- Ersetzt alle alten Ambassador RPCs
+-- ARCH-006.1 konform
 -- ════════════════════════════════════════════════════════════════
+-- ============================================================
+-- ADR-AMBASSADOR-SYSTEM RPCs v2
+-- ARCH-006.1 konform | 2026-07-01
+-- Bestehende Tabellen: profiles, comments, chats, notification_events
+-- comments-Schema: id, work_id, user_id, text, created_at
+-- ============================================================
 
--- ── 1. rpc_validate_ambassador_name(name) ───────────────────────
--- Validiert ob ein Username zu einem aktiven Ambassador gehört
--- Gibt ambassador_id zurück (UUID) oder NULL (silent fail)
-CREATE OR REPLACE FUNCTION rpc_validate_ambassador_name(p_name TEXT)
-RETURNS UUID
-LANGUAGE plpgsql
-SECURITY DEFINER
+-- ────────────────────────────────────────────────────────────
+-- P1.1 — rpc_validate_ambassador_name
+-- ────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION rpc_validate_ambassador_name(name text)
+RETURNS uuid
+LANGUAGE plpgsql SECURITY DEFINER
 AS $$
 DECLARE
-  v_id UUID;
+  v_id   uuid;
+  v_name text;
 BEGIN
-  -- Normalisierung: lowercase, trimmen
-  p_name := lower(trim(p_name));
-  IF p_name = '' THEN RETURN NULL; END IF;
+  v_name := lower(trim(name));
+  -- URL-Extraktion: be-hui.com/username → username
+  IF v_name LIKE '%be-hui.com/%' THEN
+    v_name := regexp_replace(v_name, '^.*be-hui\.com/([a-z0-9._-]+).*$', '\1');
+  END IF;
 
-  -- Schritt 1: ambassador_ref_links (schnell, cache)
-  SELECT user_id INTO v_id
-  FROM ambassador_ref_links
-  WHERE lower(username) = p_name
-  LIMIT 1;
-  IF v_id IS NOT NULL THEN RETURN v_id; END IF;
-
-  -- Schritt 2: profiles — role='ambassador' OR is_ambassador=true
   SELECT id INTO v_id
   FROM profiles
-  WHERE lower(username) = p_name
+  WHERE username = v_name
     AND (role = 'ambassador' OR is_ambassador = true)
   LIMIT 1;
 
-  RETURN v_id; -- NULL wenn nicht gefunden (silent fail)
+  RETURN v_id;
 END;
 $$;
 
--- ── 2. rpc_register_with_ambassador(user_id, ambassador_id) ─────
--- Setzt referred_by in profiles beim Registrieren
-CREATE OR REPLACE FUNCTION rpc_register_with_ambassador(
-  p_user_id       UUID,
-  p_ambassador_id UUID
-)
-RETURNS BOOLEAN
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-BEGIN
-  -- Nur setzen wenn Ambassador existiert und aktiv ist
-  IF NOT EXISTS (
-    SELECT 1 FROM profiles
-    WHERE id = p_ambassador_id
-      AND (role = 'ambassador' OR is_ambassador = true)
-  ) THEN
-    RETURN false; -- silent fail
-  END IF;
-
-  -- referred_by setzen (UUID des Ambassadors)
-  UPDATE profiles
-  SET referred_by = p_ambassador_id::text
-  WHERE id = p_user_id
-    AND referred_by IS NULL; -- nur wenn noch nicht gesetzt
-
-  RETURN true;
-END;
-$$;
-
--- ── 3. rpc_get_ambassador_ref_link(ambassador_id) ────────────────
--- Gibt den korrekten Reflink zurück (authoritative: profiles.username)
-CREATE OR REPLACE FUNCTION rpc_get_ambassador_ref_link(p_ambassador_id UUID)
-RETURNS TEXT
-LANGUAGE plpgsql
-SECURITY DEFINER
+-- ────────────────────────────────────────────────────────────
+-- P1.2 — rpc_get_ambassador_ref_link
+-- Autoritative Quelle: profiles.username
+-- ────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION rpc_get_ambassador_ref_link(ambassador_id uuid)
+RETURNS text
+LANGUAGE plpgsql SECURITY DEFINER
 AS $$
 DECLARE
-  v_username TEXT;
+  v_username text;
 BEGIN
-  SELECT username INTO v_username
-  FROM profiles
-  WHERE id = p_ambassador_id;
-
-  IF v_username IS NULL OR v_username = '' THEN
-    RETURN NULL;
-  END IF;
-
-  -- Einzige Quelle der Wahrheit
+  SELECT username INTO v_username FROM profiles WHERE id = ambassador_id;
+  IF v_username IS NULL THEN RETURN NULL; END IF;
   RETURN 'https://be-hui.com/' || v_username;
 END;
 $$;
 
--- ── 4. rpc_get_ambassadors() ─────────────────────────────────────
--- Alle Ambassadors: role='ambassador' OR is_ambassador=true
-CREATE OR REPLACE FUNCTION rpc_get_ambassadors()
+-- ────────────────────────────────────────────────────────────
+-- P1.3 — rpc_get_ambassador_referrals (mit phone)
+-- ────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION rpc_get_ambassador_referrals(p_ambassador_id uuid)
 RETURNS TABLE (
-  id            UUID,
-  display_name  TEXT,
-  username      TEXT,
-  avatar_url    TEXT,
-  email         TEXT,
-  role          TEXT,
-  is_ambassador BOOLEAN,
-  impact_eur    NUMERIC,
-  ref_link      TEXT,
-  created_at    TIMESTAMPTZ
+  id                   uuid,
+  display_name         text,
+  username             text,
+  avatar_url           text,
+  email                text,
+  phone                text,
+  role                 text,
+  created_at           timestamptz,
+  first_transaction_at timestamptz,
+  is_active            boolean
 )
-LANGUAGE sql
-SECURITY DEFINER
+LANGUAGE plpgsql SECURITY DEFINER
 AS $$
+BEGIN
+  RETURN QUERY
   SELECT
     p.id,
-    p.display_name,
+    COALESCE(p.display_name, p.username, p.email, '—'),
     p.username,
     p.avatar_url,
     p.email,
+    p.phone,
     p.role,
-    p.is_ambassador,
-    p.impact_eur,
-    -- Reflink IMMER aus username berechnen
-    CASE WHEN p.username IS NOT NULL AND p.username != ''
-      THEN 'https://be-hui.com/' || p.username
-      ELSE NULL
-    END AS ref_link,
-    p.created_at
-  FROM profiles p
-  WHERE p.role = 'ambassador'
-     OR p.is_ambassador = true
-  ORDER BY p.created_at DESC;
-$$;
-
--- ── 5. rpc_get_ambassador_referrals(ambassador_id) ───────────────
--- Alle Nutzer die über diesen Ambassador registriert wurden
--- Primärfeld: profiles.referred_by = ambassador_uuid
-CREATE OR REPLACE FUNCTION rpc_get_ambassador_referrals(p_ambassador_id UUID)
-RETURNS TABLE (
-  id                   UUID,
-  display_name         TEXT,
-  username             TEXT,
-  avatar_url           TEXT,
-  email                TEXT,
-  created_at           TIMESTAMPTZ,
-  first_transaction_at TIMESTAMPTZ,
-  is_active            BOOLEAN
-)
-LANGUAGE sql
-SECURITY DEFINER
-AS $$
-  SELECT
-    p.id,
-    p.display_name,
-    p.username,
-    p.avatar_url,
-    p.email,
     p.created_at,
     p.first_transaction_at,
-    (p.first_transaction_at IS NOT NULL) AS is_active
+    (p.first_transaction_at IS NOT NULL)
   FROM profiles p
-  WHERE p.referred_by = p_ambassador_id::text
-     OR p.referred_by_ambassador_id = p_ambassador_id -- Fallback
+  WHERE p.referred_by = p_ambassador_id
   ORDER BY p.created_at DESC;
+END;
 $$;
 
--- ── 6. rpc_get_ambassador_works(ambassador_id) ──────────────────
-CREATE OR REPLACE FUNCTION rpc_get_ambassador_works(p_ambassador_id UUID)
-RETURNS TABLE (
-  id               UUID,
-  title            TEXT,
-  status           TEXT,
-  approval_status  TEXT,
-  admin_comment    TEXT,
-  rejection_reason TEXT,
-  created_at       TIMESTAMPTZ,
-  user_id          UUID
+-- ────────────────────────────────────────────────────────────
+-- P2.1 — rpc_ambassador_comment_work
+-- comments-Schema: work_id, user_id, text
+-- ────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION rpc_ambassador_comment_work(
+  p_work_id       uuid,
+  p_ambassador_id uuid,
+  p_text          text
 )
-LANGUAGE sql
-SECURITY DEFINER
-AS $$
-  SELECT
-    w.id, w.title, w.status, w.approval_status,
-    w.admin_comment, w.rejection_reason, w.created_at, w.user_id
-  FROM works w
-  WHERE w.user_id = p_ambassador_id
-  ORDER BY w.created_at DESC
-  LIMIT 200;
-$$;
-
--- ── 7. rpc_get_ambassador_projects(ambassador_id) ───────────────
-CREATE OR REPLACE FUNCTION rpc_get_ambassador_projects(p_ambassador_id UUID)
-RETURNS TABLE (
-  id               UUID,
-  project_name     TEXT,
-  status           TEXT,
-  funding_goal     NUMERIC,
-  admin_comment    TEXT,
-  rejection_reason TEXT,
-  created_at       TIMESTAMPTZ,
-  user_id          UUID
-)
-LANGUAGE sql
-SECURITY DEFINER
-AS $$
-  SELECT
-    ia.id, ia.project_name, ia.status, ia.funding_goal,
-    ia.admin_comment, ia.rejection_reason, ia.created_at, ia.user_id
-  FROM impact_applications ia
-  WHERE ia.user_id = p_ambassador_id
-  ORDER BY ia.created_at DESC
-  LIMIT 200;
-$$;
-
--- ── 8. rpc_get_ambassador_messages(ambassador_id) ───────────────
-CREATE OR REPLACE FUNCTION rpc_get_ambassador_messages(p_ambassador_id UUID)
-RETURNS TABLE (
-  chat_id         UUID,
-  last_message    TEXT,
-  last_message_at TIMESTAMPTZ,
-  state           TEXT,
-  created_at      TIMESTAMPTZ,
-  participant_ids UUID[]
-)
-LANGUAGE sql
-SECURITY DEFINER
-AS $$
-  SELECT
-    c.id AS chat_id, c.last_message, c.last_message_at,
-    c.state, c.created_at, c.participant_ids
-  FROM chats c
-  WHERE c.participant_ids @> ARRAY[p_ambassador_id]
-  ORDER BY c.last_message_at DESC NULLS LAST
-  LIMIT 100;
-$$;
-
--- ── 9. rpc_ambassador_send_message ──────────────────────────────
-CREATE OR REPLACE FUNCTION rpc_ambassador_send_message(
-  p_ambassador_id UUID,
-  p_recipient_id  UUID,
-  p_text          TEXT
-)
-RETURNS JSON
-LANGUAGE plpgsql
-SECURITY DEFINER
+RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER
 AS $$
 DECLARE
-  v_chat_id UUID;
-  v_msg_id  UUID;
+  v_is_ambassador boolean;
+  v_comment_id    uuid;
 BEGIN
-  -- Existierenden 1:1 Chat suchen
+  SELECT (role = 'ambassador' OR is_ambassador = true)
+  INTO v_is_ambassador
+  FROM profiles WHERE id = p_ambassador_id;
+
+  IF NOT COALESCE(v_is_ambassador, false) THEN
+    RETURN jsonb_build_object('ok', false, 'error', 'not_ambassador');
+  END IF;
+  IF trim(p_text) = '' THEN
+    RETURN jsonb_build_object('ok', false, 'error', 'empty_text');
+  END IF;
+
+  INSERT INTO comments (work_id, user_id, text, created_at)
+  VALUES (p_work_id, p_ambassador_id, trim(p_text), now())
+  RETURNING id INTO v_comment_id;
+
+  RETURN jsonb_build_object('ok', true, 'comment_id', v_comment_id);
+EXCEPTION WHEN others THEN
+  RETURN jsonb_build_object('ok', false, 'error', SQLERRM);
+END;
+$$;
+
+-- ────────────────────────────────────────────────────────────
+-- P2.2 — rpc_ambassador_comment_project
+-- Projekte haben keine eigene comments-Tabelle → notification_events als Log
+-- ────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION rpc_ambassador_comment_project(
+  p_project_id    uuid,
+  p_ambassador_id uuid,
+  p_text          text
+)
+RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER
+AS $$
+DECLARE
+  v_is_ambassador boolean;
+BEGIN
+  SELECT (role = 'ambassador' OR is_ambassador = true)
+  INTO v_is_ambassador
+  FROM profiles WHERE id = p_ambassador_id;
+
+  IF NOT COALESCE(v_is_ambassador, false) THEN
+    RETURN jsonb_build_object('ok', false, 'error', 'not_ambassador');
+  END IF;
+  IF trim(p_text) = '' THEN
+    RETURN jsonb_build_object('ok', false, 'error', 'empty_text');
+  END IF;
+
+  INSERT INTO notification_events (user_id, event_type, table_name, record_id, metadata, created_at)
+  VALUES (
+    p_ambassador_id, 'ambassador_project_comment', 'impact_applications', p_project_id,
+    jsonb_build_object('text', trim(p_text), 'ambassador_id', p_ambassador_id),
+    now()
+  );
+
+  RETURN jsonb_build_object('ok', true);
+EXCEPTION WHEN others THEN
+  RETURN jsonb_build_object('ok', false, 'error', SQLERRM);
+END;
+$$;
+
+-- ────────────────────────────────────────────────────────────
+-- P2.3 — rpc_ambassador_send_message
+-- Nutzt bestehende chats-Tabelle
+-- ────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION rpc_ambassador_send_message(
+  p_user_id       uuid,
+  p_ambassador_id uuid,
+  p_text          text
+)
+RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER
+AS $$
+DECLARE
+  v_is_ambassador boolean;
+  v_chat_id       uuid;
+  v_participants  uuid[];
+BEGIN
+  SELECT (role = 'ambassador' OR is_ambassador = true)
+  INTO v_is_ambassador
+  FROM profiles WHERE id = p_ambassador_id;
+
+  IF NOT COALESCE(v_is_ambassador, false) THEN
+    RETURN jsonb_build_object('ok', false, 'error', 'not_ambassador');
+  END IF;
+  IF trim(p_text) = '' THEN
+    RETURN jsonb_build_object('ok', false, 'error', 'empty_text');
+  END IF;
+
+  v_participants := ARRAY[p_ambassador_id, p_user_id];
+
+  -- Bestehenden Chat finden
   SELECT id INTO v_chat_id
   FROM chats
-  WHERE participant_ids @> ARRAY[p_ambassador_id, p_recipient_id]
-    AND array_length(participant_ids, 1) = 2
+  WHERE participant_ids @> v_participants
+    AND participant_ids <@ v_participants
   LIMIT 1;
 
   IF v_chat_id IS NULL THEN
-    INSERT INTO chats (participant_ids, state, created_at)
-    VALUES (ARRAY[p_ambassador_id, p_recipient_id], 'active', NOW())
+    INSERT INTO chats (participant_ids, last_message, last_message_at, state, created_at)
+    VALUES (v_participants, trim(p_text), now(), 'active', now())
     RETURNING id INTO v_chat_id;
+  ELSE
+    UPDATE chats
+    SET last_message = trim(p_text), last_message_at = now()
+    WHERE id = v_chat_id;
   END IF;
 
-  INSERT INTO messages (chat_id, text, sender_id, message_type, is_read, created_at)
-  VALUES (v_chat_id, p_text, p_ambassador_id, 'text', false, NOW())
-  RETURNING id INTO v_msg_id;
-
-  UPDATE chats SET last_message = p_text, last_message_at = NOW() WHERE id = v_chat_id;
-
-  RETURN json_build_object('ok', true, 'chat_id', v_chat_id, 'message_id', v_msg_id);
+  RETURN jsonb_build_object('ok', true, 'chat_id', v_chat_id);
+EXCEPTION WHEN others THEN
+  RETURN jsonb_build_object('ok', false, 'error', SQLERRM);
 END;
 $$;
 
--- ── 10. rpc_ambassador_comment_work ─────────────────────────────
-CREATE OR REPLACE FUNCTION rpc_ambassador_comment_work(
-  p_work_id       UUID,
-  p_ambassador_id UUID,
-  p_text          TEXT
-)
-RETURNS JSON
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-BEGIN
-  INSERT INTO notification_events
-    (type, table_name, record_id, user_id, reason, created_at)
-  VALUES
-    ('ambassador_work_comment', 'works', p_work_id, p_ambassador_id, p_text, NOW());
-  RETURN json_build_object('ok', true);
-END;
-$$;
-
--- ── 11. rpc_ambassador_comment_project ──────────────────────────
-CREATE OR REPLACE FUNCTION rpc_ambassador_comment_project(
-  p_project_id    UUID,
-  p_ambassador_id UUID,
-  p_text          TEXT
-)
-RETURNS JSON
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-BEGIN
-  INSERT INTO notification_events
-    (type, table_name, record_id, user_id, reason, created_at)
-  VALUES
-    ('ambassador_project_comment', 'impact_applications', p_project_id, p_ambassador_id, p_text, NOW());
-  RETURN json_build_object('ok', true);
-END;
-$$;
-
--- ── 12. rpc_ambassador_resonance ────────────────────────────────
+-- ────────────────────────────────────────────────────────────
+-- P2.4 — rpc_ambassador_resonance
+-- Nutzt notification_events als Resonanz-Log (keine eigene Tabelle nötig)
+-- ────────────────────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION rpc_ambassador_resonance(
-  p_work_id       UUID,
-  p_ambassador_id UUID,
-  p_value         INTEGER DEFAULT 1
+  p_work_id       uuid,
+  p_ambassador_id uuid,
+  p_value         integer DEFAULT 1
 )
-RETURNS JSON
-LANGUAGE plpgsql
-SECURITY DEFINER
+RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER
 AS $$
+DECLARE
+  v_is_ambassador boolean;
 BEGIN
-  BEGIN
-    INSERT INTO resonance (work_id, user_id, value, created_at)
-    VALUES (p_work_id, p_ambassador_id, p_value, NOW())
-    ON CONFLICT (work_id, user_id) DO UPDATE SET value = p_value;
-  EXCEPTION WHEN undefined_table THEN
-    INSERT INTO notification_events
-      (type, table_name, record_id, user_id, reason, created_at)
-    VALUES
-      ('ambassador_resonance', 'works', p_work_id, p_ambassador_id, p_value::text, NOW());
-  END;
-  RETURN json_build_object('ok', true);
+  SELECT (role = 'ambassador' OR is_ambassador = true)
+  INTO v_is_ambassador
+  FROM profiles WHERE id = p_ambassador_id;
+
+  IF NOT COALESCE(v_is_ambassador, false) THEN
+    RETURN jsonb_build_object('ok', false, 'error', 'not_ambassador');
+  END IF;
+
+  INSERT INTO notification_events (user_id, event_type, table_name, record_id, metadata, created_at)
+  VALUES (
+    p_ambassador_id, 'ambassador_resonance', 'works', p_work_id,
+    jsonb_build_object('value', p_value, 'ambassador_id', p_ambassador_id),
+    now()
+  );
+
+  RETURN jsonb_build_object('ok', true);
+EXCEPTION WHEN others THEN
+  RETURN jsonb_build_object('ok', false, 'error', SQLERRM);
 END;
 $$;
 
--- ── Grants ───────────────────────────────────────────────────────
-GRANT EXECUTE ON FUNCTION rpc_validate_ambassador_name(TEXT) TO authenticated, anon;
-GRANT EXECUTE ON FUNCTION rpc_register_with_ambassador(UUID, UUID) TO authenticated;
-GRANT EXECUTE ON FUNCTION rpc_get_ambassador_ref_link(UUID) TO authenticated;
-GRANT EXECUTE ON FUNCTION rpc_get_ambassadors() TO authenticated;
-GRANT EXECUTE ON FUNCTION rpc_get_ambassador_referrals(UUID) TO authenticated;
-GRANT EXECUTE ON FUNCTION rpc_get_ambassador_works(UUID) TO authenticated;
-GRANT EXECUTE ON FUNCTION rpc_get_ambassador_projects(UUID) TO authenticated;
-GRANT EXECUTE ON FUNCTION rpc_get_ambassador_messages(UUID) TO authenticated;
-GRANT EXECUTE ON FUNCTION rpc_ambassador_send_message(UUID, UUID, TEXT) TO authenticated;
-GRANT EXECUTE ON FUNCTION rpc_ambassador_comment_work(UUID, UUID, TEXT) TO authenticated;
-GRANT EXECUTE ON FUNCTION rpc_ambassador_comment_project(UUID, UUID, TEXT) TO authenticated;
-GRANT EXECUTE ON FUNCTION rpc_ambassador_resonance(UUID, UUID, INTEGER) TO authenticated;
+-- ────────────────────────────────────────────────────────────
+-- Grants
+-- ────────────────────────────────────────────────────────────
+GRANT EXECUTE ON FUNCTION rpc_validate_ambassador_name(text)              TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION rpc_get_ambassador_ref_link(uuid)               TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION rpc_get_ambassador_referrals(uuid)              TO authenticated;
+GRANT EXECUTE ON FUNCTION rpc_ambassador_comment_work(uuid,uuid,text)     TO authenticated;
+GRANT EXECUTE ON FUNCTION rpc_ambassador_comment_project(uuid,uuid,text)  TO authenticated;
+GRANT EXECUTE ON FUNCTION rpc_ambassador_send_message(uuid,uuid,text)     TO authenticated;
+GRANT EXECUTE ON FUNCTION rpc_ambassador_resonance(uuid,uuid,integer)     TO authenticated;
+
