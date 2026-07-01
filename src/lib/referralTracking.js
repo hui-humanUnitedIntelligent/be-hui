@@ -136,18 +136,23 @@ export async function processReferralForUser(userId) {
       return true; // bereits gesetzt → Trigger hat schon gezählt
     }
 
-    // Setzen — Retry bis Profil via Trigger existiert (neu registrierte User)
+    // Setzen — ueber SECURITY-DEFINER-RPC (umgeht RLS komplett, idempotent).
+    // Retry bis Profil via on_auth_user_created-Trigger existiert (neu registrierte User).
     let ok = false;
     for (let i = 0; i < 8; i++) {
       await new Promise(r => setTimeout(r, 500));
-      const { data: upd, error: upErr } = await supabase
-        .from('profiles')
-        .update({ referred_by: ambassadorId })
-        .eq('id', userId)
-        .select('id,referred_by')
-        .maybeSingle();
-      if (upd?.referred_by === ambassadorId) { ok = true; break; }
-      if (upErr) console.warn('[HUI Referral] Update-Fehler:', upErr.message);
+      const { data: rpcRes, error: rpcErr } = await supabase.rpc('rpc_register_with_ambassador', {
+        p_user_id: userId,
+        p_ambassador_id: ambassadorId,
+      });
+      if (rpcRes?.ok === true) { ok = true; break; }
+      if (rpcRes?.error === 'already_referred_or_not_found') {
+        // Entweder schon referred (id existiert + referred_by gesetzt) ODER Profil noch nicht da → weiter retryen
+        // Pruefen ob es tatsaechlich schon korrekt gesetzt ist:
+        const { data: existingCheck } = await supabase.from('profiles').select('referred_by').eq('id', userId).maybeSingle();
+        if (existingCheck?.referred_by) { ok = true; break; }
+      }
+      if (rpcErr) console.warn('[HUI Referral] RPC-Fehler:', rpcErr.message);
     }
 
     if (ok) {
