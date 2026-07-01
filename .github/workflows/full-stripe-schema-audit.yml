@@ -1,0 +1,33 @@
+name: Full Stripe Schema Audit
+
+on:
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Supabase CLI
+        run: |
+          curl -fsSL https://github.com/supabase/cli/releases/download/v2.108.0/supabase_linux_amd64.tar.gz | tar -xz -C /tmp
+          sudo mv /tmp/supabase /usr/local/bin/supabase
+      - name: Link
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase link --project-ref gxztrhvhcxhmunhhkfjd --yes
+      - name: Alle stripe_* Tabellen — Spalten
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db query --linked "SELECT table_name, column_name, data_type, is_nullable FROM information_schema.columns WHERE table_schema='public' AND table_name LIKE 'stripe_%' ORDER BY table_name, ordinal_position;" -o json
+      - name: Alle stripe_* Tabellen — Constraints/FKs
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db query --linked "SELECT conrelid::regclass AS tbl, conname, pg_get_constraintdef(oid) FROM pg_constraint WHERE connamespace='public'::regnamespace AND conrelid::regclass::text LIKE 'stripe_%' ORDER BY tbl;" -o json
+      - name: Alle stripe_* Tabellen — Indizes
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db query --linked "SELECT tablename, indexname, indexdef FROM pg_indexes WHERE schemaname='public' AND tablename LIKE 'stripe_%' ORDER BY tablename;" -o json
