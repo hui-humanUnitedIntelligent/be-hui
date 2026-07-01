@@ -4,6 +4,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { EASE, DUR } from "../../design/hui.interaction.js";
+import { NAV_LAYOUT_HEIGHT_CSS } from "../home/navigation/navLayout.js";
 import {
   C, TYPE_META, haptic as haptic_,
   calcTotal, calcImpact, calcTotalWithQty,
@@ -157,7 +158,7 @@ export function WerkeKorbButton({ count, onOpen, glowing }) {
       aria-label="Werkekorb öffnen"
       style={{
         position:     "fixed",
-        bottom:       `calc(66px + max(14px, env(safe-area-inset-bottom, 14px)) + 20px)`,
+        bottom:       `calc(${NAV_LAYOUT_HEIGHT_CSS} + 20px)`,
         right:        16,
         zIndex:       9500,
         width:        50,

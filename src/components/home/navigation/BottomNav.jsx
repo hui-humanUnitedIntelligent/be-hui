@@ -1,54 +1,62 @@
 /**
- * BottomNav v10 — HUI Design System
- * Senior-UI-Engineer Konstruktion
+ * BottomNav v11 — Layout-based navigation (no overlay)
  *
  * GEOMETRIE:
  *   SVG-Path als Tabbar-Form mit organischer Einbuchtung in der Mitte.
- *   Der Orb sitzt in einem eigenen fixed-Wrapper (data-orbroot) DARÜBER.
- *   Luftspalt = 8px — permanent, nie geschlossen.
+ *   Der Orb sitzt in der Einbuchtung — Bestandteil des Layout-Footers.
+ *   Luftspalt = 7px — permanent, nie geschlossen.
  *
- * FIXES v10:
- *   - barW initialisiert mit window.innerWidth - 2*MARGIN_H (kein Flash)
- *   - backdrop-filter via separates div HINTER dem SVG
- *   - SVG hat overflow:visible damit Schatten nicht geclipt werden
- *   - kein contain:paint auf Ancestor des Orbs
- *
- * LAYER-STACK:
- *   z=10000  Tabbar (SVG-Form + backdrop + Items)
- *   z=10002  Orb (eigener fixed-Root)
+ * LAYOUT:
+ *   Footer reserviert eigenen Platz im Flex-Layout (flexShrink: 0).
+ *   Feed endet oberhalb — kein Scrollen hinter der Navigation.
  */
 import React from "react";
 import NavItem from "./NavItem.jsx";
 import { NAV_ITEMS } from "./navConfig.js";
 import { validateNavItem } from "../../../lib/factories/createNavItem.js";
 import { useHuiActions, A } from "../../../core/hui.actions.js";
+import {
+  NAV_TAB_H,
+  NAV_MARGIN_H,
+  NAV_SAFE_B,
+  NAV_ORB_D,
+  NAV_ORB_R,
+  NAV_GAP,
+  NAV_NOTCH_R,
+  NAV_CORNER_R,
+  NAV_SINK,
+  NAV_ORB_PROTRUSION,
+} from "./navLayout.js";
 
-/* ── Geometrie ─────────────────────────────────────────────── */
-const TAB_H    = 96;    // Referenz: Tabbar hoch genug für 2/3-Orb-Einbuchtung
-const MARGIN_H = 12;
-const SAFE_B   = 14;
-const ORB_D    = 102;   // Final LOCKED — HUI Living Design System v1.0
-const ORB_R    = ORB_D / 2;
-const GAP      = 7;        // Luftfuge Orb ↔ Einbuchtungs-Spitze (bewusstes Design-Element)
-const NOTCH_R  = ORB_R + GAP + 24; // Referenz: Einbuchtung nimmt 2/3 des Orbs auf
-const CORNER_R = 28;
-const SINK     = 24;   // Referenz: 1/3 Orb über Tabbar-OK, 2/3 in Einbuchtung
+/* Re-export layout constants for consumers */
+export {
+  NAV_LAYOUT_HEIGHT_CSS,
+  NAV_ORB_PROTRUSION,
+  NAV_TAB_H,
+} from "./navLayout.js";
+
+const TAB_H    = NAV_TAB_H;
+const MARGIN_H = NAV_MARGIN_H;
+const SAFE_B   = NAV_SAFE_B;
+const ORB_D    = NAV_ORB_D;
+const ORB_R    = NAV_ORB_R;
+const GAP      = NAV_GAP;
+const NOTCH_R  = NAV_NOTCH_R;
+const CORNER_R = NAV_CORNER_R;
+const SINK     = NAV_SINK;
 
 /* ── SVG-Path generieren ───────────────────────────────────── */
 function buildPath(W, H) {
   const R  = Math.min(CORNER_R, H / 2);
   const cx = W / 2;
-  const bw = NOTCH_R * 1.1;   // Blend-Breite beidseitig
+  const bw = NOTCH_R * 1.1;
 
-  // Notch-Tiefe: Einbuchtung reicht von Oberkante (y=0) bis y=NOTCH_R+GAP
-  const nd = NOTCH_R - GAP;   // wie tief geht die Einbuchtung (px)
+  const nd = NOTCH_R - GAP;
 
   return [
     `M ${R} 0`,
     `L ${cx - bw} 0`,
-    // Linke Einbuchtungs-Flanke: sanfte Bezier
     `C ${cx - bw + NOTCH_R * 0.62} 0, ${cx - NOTCH_R * 0.32} ${nd}, ${cx} ${nd}`,
-    // Rechte Einbuchtungs-Flanke: symmetrisch
     `C ${cx + NOTCH_R * 0.32} ${nd}, ${cx + bw - NOTCH_R * 0.62} 0, ${cx + bw} 0`,
     `L ${W - R} 0`,
     `Q ${W} 0 ${W} ${R}`,
@@ -74,13 +82,10 @@ function TabbarSVG({ width, height }) {
       viewBox={`0 0 ${width} ${height}`}
       preserveAspectRatio="none"
     >
-      {/* Füllung */}
       <path d={path} fill="rgba(253,251,248,0.96)" />
-      {/* Highlight-Linie oben (Glassgefühl) */}
       <path d={path} fill="none"
         stroke="rgba(255,255,255,0.82)" strokeWidth="1.4"
         vectorEffect="non-scaling-stroke" />
-      {/* Äußerer Schatten-Rand */}
       <path d={path} fill="none"
         stroke="rgba(0,0,0,0.055)" strokeWidth="0.8"
         vectorEffect="non-scaling-stroke" />
@@ -101,7 +106,6 @@ export default function BottomNav({
   msgCount    = 0,
   creatorOpen = false,
 }) {
-  /* Wizard-Observer */
   const [wizardOpen, setWizardOpen] = React.useState(
     () => document.body.classList.contains("hui-wizard-open")
   );
@@ -113,7 +117,6 @@ export default function BottomNav({
     return () => obs.disconnect();
   }, []);
 
-  /* barW: sofort initialisiert mit window-Breite → kein Flash */
   const barRef = React.useRef(null);
   const [barW, setBarW] = React.useState(
     () => (typeof window !== "undefined"
@@ -136,6 +139,7 @@ export default function BottomNav({
     transform:  navDrift ? navDrift.transform : (isHidden ? "translateY(130%)" : "translateY(0)"),
     transition: navDrift ? navDrift.transition
       : "opacity 0.38s cubic-bezier(0.22,1,0.36,1), transform 0.38s cubic-bezier(0.22,1,0.36,1)",
+    pointerEvents: navDrift?.pointerEvents ?? (isHidden ? "none" : "auto"),
   };
 
   function handleTabPress(key) {
@@ -152,39 +156,40 @@ export default function BottomNav({
 
   const navItems = (NAV_ITEMS || []).map(validateNavItem).filter(Boolean);
 
-  /* Orb-marginBottom: Unterkante des Orbs liegt GAP px über Tabbar-Oberkante */
-  // GEOMETRIE: Orb-Mitte liegt auf Tabbar-Oberkante.
-  // Orb-Unterkante = Tabbar-Oberkante - ORB_R (halber Orb ragt in Einbuchtung)
-  // + GAP = Luftfuge zwischen Orb-Unterkante und Einbuchtungs-Spitze
-  // marginBottom = distance from screen-bottom to orb-button-bottom
-  //   = safe-area + TAB_H (Tabbar-Oberkante) - ORB_R (halb eingetaucht) + GAP
-  const orbMB = `calc(max(${SAFE_B}px, env(safe-area-inset-bottom, ${SAFE_B}px)) + ${TAB_H}px - ${ORB_R}px + ${GAP}px - ${SINK}px)`;
+  const safeBottom = `max(${SAFE_B}px, env(safe-area-inset-bottom, ${SAFE_B}px))`;
+
+  /* Orb bottom offset within the layout footer (relative to footer bottom) */
+  const orbBottom = `calc(${safeBottom} + ${TAB_H}px - ${ORB_R}px + ${GAP}px - ${SINK}px)`;
 
   return (
-    <>
-      {/* ══════════════════════════════════════════════════
-          LAYER 3 — ORB
-          Eigener fixed-Root, kein contain, kein overflow:hidden auf Ancestor.
-          Orb wird NIEMALS geclipt.
-          ══════════════════════════════════════════════════ */}
+    <footer
+      data-bottom-nav-root=""
+      style={{
+        flexShrink:    0,
+        position:      "relative",
+        width:         "100%",
+        paddingTop:    NAV_ORB_PROTRUSION,
+        paddingBottom: safeBottom,
+        willChange:    "opacity, transform",
+        ...sharedVis,
+      }}
+    >
+      {/* ── ORB — absolut innerhalb des Layout-Footers ── */}
       <div
         data-orbroot=""
         style={{
-          position:      "fixed",
-          bottom:        0,
+          position:      "absolute",
+          bottom:        orbBottom,
           left:          "50%",
           transform:     "translateX(-50%)",
-          zIndex:        10002,
+          zIndex:        2,
           pointerEvents: "none",
-          willChange:    "opacity, transform",
-          ...sharedVis,
         }}
       >
         <button
           onClick={handleOrbPress}
           aria-label="Mein HUI"
           style={{
-            marginBottom:  orbMB,
             display:       "block",
             width:         ORB_D,
             height:        ORB_D,
@@ -216,7 +221,6 @@ export default function BottomNav({
             e.currentTarget.style.transition = "transform 220ms cubic-bezier(0.34,1.56,0.64,1)";
           }}
         >
-          {/* Schatten-Shell — drop-shadow am Container, NICHT am Logo */}
           <div style={{
             width:          ORB_D,
             height:         ORB_D,
@@ -226,7 +230,6 @@ export default function BottomNav({
             alignItems:     "center",
             justifyContent: "center",
             filter: [
-              /* Ambient Shadow: warm/weich, kein hartes Schwarz */
               "drop-shadow(0 4px 12px rgba(190,100,20,0.22))",
               "drop-shadow(0 8px 28px rgba(190,100,20,0.14))",
               "drop-shadow(0 18px 48px rgba(13,196,150,0.10))",
@@ -251,41 +254,29 @@ export default function BottomNav({
         </button>
       </div>
 
-      {/* ══════════════════════════════════════════════════
-          LAYER 1+2 — TABBAR
-          SVG-Hintergrund (organische Form) + Tab-Items
-          ══════════════════════════════════════════════════ */}
+      {/* ── TABBAR — im Layout-Flow ── */}
       <div
         data-bnroot=""
         style={{
-          position:      "fixed",
-          bottom:        0,
-          left:          0,
-          right:         0,
-          zIndex:        10000,
-          pointerEvents: "none",
-          willChange:    "opacity, transform",
-          ...sharedVis,
+          position:     "relative",
+          margin:       `0 ${MARGIN_H}px`,
+          height:       TAB_H,
         }}
       >
         <div
           ref={barRef}
           style={{
-            position:     "relative",
-            margin:       `0 ${MARGIN_H}px`,
-            marginBottom: `max(${SAFE_B}px, env(safe-area-inset-bottom, ${SAFE_B}px))`,
-            height:       TAB_H,
+            position: "relative",
+            height:   TAB_H,
           }}
         >
-          {/* Backdrop-blur: separates div, liegt unter dem SVG */}
           <div style={{
             position:             "absolute",
             inset:                0,
             borderRadius:         CORNER_R,
             backdropFilter:       "blur(36px) saturate(1.9)",
             WebkitBackdropFilter: "blur(36px) saturate(1.9)",
-            overflow:             "hidden",   /* nur hier: für backdrop-clip */
-            /* Schatten der Tabbar selbst */
+            overflow:             "hidden",
             boxShadow: [
               "0 2px 8px rgba(0,0,0,0.05)",
               "0 12px 40px rgba(0,0,0,0.10)",
@@ -293,10 +284,8 @@ export default function BottomNav({
             ].join(", "),
           }} />
 
-          {/* SVG: organische Einbuchtung + Glassfüllung */}
           <TabbarSVG width={barW} height={TAB_H} />
 
-          {/* Tab-Items */}
           <div style={{
             position:       "absolute",
             inset:          0,
@@ -335,6 +324,6 @@ export default function BottomNav({
           </div>
         </div>
       </div>
-    </>
+    </footer>
   );
 }

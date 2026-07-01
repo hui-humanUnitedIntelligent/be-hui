@@ -589,7 +589,6 @@ function ApprovedProjectDetail({ app, onClose, currentUser, onVoted = () => {} }
           flex:1, overflowY:"auto",
           overscrollBehavior:"contain",
           WebkitOverflowScrolling:"touch",
-          paddingBottom:"calc(88px + env(safe-area-inset-bottom, 0px))",
         }}>
         {/* Bild */}
         <div style={{ position:"relative", height:220, borderRadius:"24px 24px 0 0", overflow:"hidden" }}>
@@ -1084,7 +1083,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
 
   return (
     <div data-impact-page style={{ width:"100%", background:T.page,
-      fontFamily:T.ff, paddingBottom:"calc(88px + env(safe-area-inset-bottom, 0px))",
+      fontFamily:T.ff,
       overflowX:"hidden" }}>
       <style>{`
         @keyframes ipFade    { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
