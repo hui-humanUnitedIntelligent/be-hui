@@ -24,15 +24,15 @@ import { validateNavItem } from "../../../lib/factories/createNavItem.js";
 import { useHuiActions, A } from "../../../core/hui.actions.js";
 
 /* ── Geometrie ─────────────────────────────────────────────── */
-const TAB_H    = 72;    // mehr Höhe — Einbuchtung schneidet nicht in Items
+const TAB_H    = 96;    // Referenz: Tabbar hoch genug für 2/3-Orb-Einbuchtung
 const MARGIN_H = 12;
 const SAFE_B   = 14;
 const ORB_D    = 102;   // Final LOCKED — HUI Living Design System v1.0
 const ORB_R    = ORB_D / 2;
 const GAP      = 7;        // Luftfuge Orb ↔ Einbuchtungs-Spitze (bewusstes Design-Element)
-const NOTCH_R  = ORB_R + GAP + 5;  // Bogen-Radius: exakt proportioniert zum 88px Orb
+const NOTCH_R  = ORB_R + GAP + 24; // Referenz: Einbuchtung nimmt 2/3 des Orbs auf
 const CORNER_R = 28;
-const SINK     = 7;    // Orb-Mitte exakt auf Tabbar-Oberkante — sitzt IN der Fuge
+const SINK     = 24;   // Referenz: 1/3 Orb über Tabbar-OK, 2/3 in Einbuchtung
 
 /* ── SVG-Path generieren ───────────────────────────────────── */
 function buildPath(W, H) {

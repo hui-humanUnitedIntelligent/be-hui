@@ -324,7 +324,7 @@ function HomeInner() {
             // Orb-Oberkante liegt bei: safe-area + 123px vom Boden (TAB_H=72, ORB_D=102, SINK=7).
             // paddingBottom reserviert: Orb-Oberkante + 8px Luft = safe-area + 131px.
             // → Kein Content wird vom Orb oder der Tabbar verdeckt.
-            paddingBottom: "calc(max(14px, env(safe-area-inset-bottom, 14px)) + 131px)",
+            paddingBottom: "calc(max(14px, env(safe-area-inset-bottom, 14px)) + 138px)", // NAV: Orb-Oberkante 144px + 8px Luft
             // Phase 22: Atmosphärische Kontinuität beim Tab-Wechsel
             // Sanfte background-transition — gibt das Gefühl von
             // "Raum-Wechsel" statt "Screen-Wechsel"
