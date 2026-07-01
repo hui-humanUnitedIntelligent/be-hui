@@ -1,0 +1,32 @@
+[
+  {
+    "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+    "config": "{search_path=public}",
+    "identity_args": "",
+    "owner": "postgres",
+    "proname": "rpc_get_all_ambassadors",
+    "return_type": "TABLE(id uuid, username text, display_name text, email text, phone text, avatar_url text, ambassador_status text, referral_count bigint, ref_link text, created_at timestamp with time zone)",
+    "schema": "public",
+    "sec_def": true
+  },
+  {
+    "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+    "config": "{search_path=public}",
+    "identity_args": "ambassador_id uuid",
+    "owner": "postgres",
+    "proname": "rpc_get_ambassador_referrals",
+    "return_type": "TABLE(id uuid, display_name text, username text, avatar_url text, email text, phone text, role text, created_at timestamp with time zone, first_transaction_at timestamp with time zone, is_active boolean)",
+    "schema": "public",
+    "sec_def": true
+  },
+  {
+    "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+    "config": null,
+    "identity_args": "p_ambassador_id uuid",
+    "owner": "postgres",
+    "proname": "rpc_get_ambassador_works",
+    "return_type": "TABLE(id uuid, title text, description text, media_url text, status text, created_at timestamp with time zone)",
+    "schema": "public",
+    "sec_def": true
+  }
+]
