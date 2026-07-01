@@ -20,7 +20,8 @@
 // minimaler scale, dezenter blur, ease-in-out. Keine Motion-Libraries.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
+import { supabase } from "../lib/supabaseClient.js";
 
 // ─────────────────────────────────────────────────────────────────
 // DESIGN TOKENS
@@ -120,7 +121,7 @@ function FadeUp({ children, delay = 0, style = {} }) {
 // ─────────────────────────────────────────────────────────────────
 // 1. ProfileHeader — "Begrüßung" (Block 2)
 // ─────────────────────────────────────────────────────────────────
-function ProfileHeader({ profile, onNotif, onSettings, delay }) {
+function ProfileHeader({ profile, onNotif, onSettings, delay, hasUnread }) {
   const hour = new Date().getHours();
   const greeting =
     hour < 5  ? "Gute Nacht" :
@@ -174,7 +175,9 @@ function ProfileHeader({ profile, onNotif, onSettings, delay }) {
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
             <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
           </svg>
-          <div style={{ position: "absolute", top: 7, right: 7, width: 6, height: 6, borderRadius: "50%", background: T.coral, border: `1.5px solid ${T.creamCard}` }} />
+          {hasUnread && (
+            <div style={{ position: "absolute", top: 7, right: 7, width: 6, height: 6, borderRadius: "50%", background: T.coral, border: `1.5px solid ${T.creamCard}` }} />
+          )}
         </button>
         <button onClick={onSettings} style={{
           width: 36, height: 36, borderRadius: "50%",
@@ -204,7 +207,7 @@ const LEAVES = [
   { size: 3, col: T.sage,  "--px": "22px",  "--py": "26px",  "--pr": "15deg",  dur: "10.2s","del": "3.4s"},
 ];
 
-function OrbHero({ profile, coreDelay, infoDelay }) {
+function OrbHero({ profile, coreDelay, infoDelay, statsCards }) {
   return (
     <div style={{ position: "relative", textAlign: "center", padding: "24px 0 16px" }}>
 
@@ -311,38 +314,36 @@ function OrbHero({ profile, coreDelay, infoDelay }) {
         <div style={{ color: T.coral, fontSize: 15, opacity: 0.75 }}>♡</div>
       </FadeUp>
 
-      <div style={{
-        position: "absolute", right: 14, top: "50%",
-        transform: "translateY(-50%)",
-        display: "flex", flexDirection: "column", gap: 8,
-        zIndex: 2,
-      }}>
-        {[
-          { icon: "🌱", label: "Deine Reise", sub: "seit 134 Tagen", glow: T.sageSoft },
-          { icon: "🔥", label: "Impact gesät", sub: "23 Impulse",    glow: "rgba(244,115,85,0.08)" },
-          { icon: "👥", label: "Verbindungen", sub: "47 Menschen",    glow: T.tealSoft },
-        ].map((s, i) => (
-          <FadeUp key={i} delay={infoDelay}>
-            <div style={{
-              display: "flex", alignItems: "center", gap: 6,
-              background: "rgba(253,251,248,0.82)",
-              backdropFilter: "blur(10px)",
-              WebkitBackdropFilter: "blur(10px)",
-              borderRadius: 13,
-              padding: "6px 10px",
-              boxShadow: `0 2px 10px ${s.glow}, 0 1px 3px rgba(0,0,0,0.05)`,
-              border: "1px solid rgba(255,255,255,0.90)",
-              minWidth: 0,
-            }}>
-              <span style={{ fontSize: 13, lineHeight: 1 }}>{s.icon}</span>
-              <div>
-                <div style={{ fontFamily: FONT, fontSize: 10.5, fontWeight: 700, color: T.ink, lineHeight: 1.2 }}>{s.label}</div>
-                <div style={{ fontFamily: FONT, fontSize: 9.5, color: T.inkSoft, lineHeight: 1.2 }}>{s.sub}</div>
+      {statsCards.length > 0 && (
+        <div style={{
+          position: "absolute", right: 14, top: "50%",
+          transform: "translateY(-50%)",
+          display: "flex", flexDirection: "column", gap: 8,
+          zIndex: 2,
+        }}>
+          {statsCards.map((s, i) => (
+            <FadeUp key={s.label} delay={infoDelay}>
+              <div style={{
+                display: "flex", alignItems: "center", gap: 6,
+                background: "rgba(253,251,248,0.82)",
+                backdropFilter: "blur(10px)",
+                WebkitBackdropFilter: "blur(10px)",
+                borderRadius: 13,
+                padding: "6px 10px",
+                boxShadow: `0 2px 10px ${s.glow}, 0 1px 3px rgba(0,0,0,0.05)`,
+                border: "1px solid rgba(255,255,255,0.90)",
+                minWidth: 0,
+              }}>
+                <span style={{ fontSize: 13, lineHeight: 1 }}>{s.icon}</span>
+                <div>
+                  <div style={{ fontFamily: FONT, fontSize: 10.5, fontWeight: 700, color: T.ink, lineHeight: 1.2 }}>{s.label}</div>
+                  <div style={{ fontFamily: FONT, fontSize: 9.5, color: T.inkSoft, lineHeight: 1.2 }}>{s.sub}</div>
+                </div>
               </div>
-            </div>
-          </FadeUp>
-        ))}
-      </div>
+            </FadeUp>
+          ))}
+        </div>
+      )}
 
       {/* Tagline unter Orb — Teil des Info-Karten-Blocks */}
       <FadeUp delay={infoDelay}>
@@ -365,31 +366,31 @@ const PILLARS = [
   {
     icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
     label: "Verbinden",
-    text: "Du baust Brücken und schaffst echte Begegnungen.",
+    text: "Hier entstehen echte Begegnungen zwischen Menschen.",
     accent: T.teal, bg: T.tealPale, border: "rgba(13,196,181,0.16)", glow: "rgba(13,196,181,0.14)",
   },
   {
     icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>,
     label: "Unterstützen",
-    text: "Du stärkst andere und gibst Halt, wo er gebraucht wird.",
+    text: "Hier kann Unterstützung wirken — still und echt.",
     accent: T.sage, bg: T.sagePale, border: "rgba(92,168,122,0.18)", glow: "rgba(92,168,122,0.14)",
   },
   {
     icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>,
     label: "Erschaffen",
-    text: "Du bringst Ideen in die Welt und schaffst Neues.",
+    text: "Hier entstehen Werke, Ideen und Erlebnisse.",
     accent: T.coral, bg: "rgba(244,115,85,0.06)", border: "rgba(244,115,85,0.15)", glow: "rgba(244,115,85,0.12)",
   },
   {
     icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><circle cx="12" cy="8" r="4"/><path d="M12 2v2m0 8v2m4-6h2M2 8h2m12.95 4.95 1.41 1.41M4.64 4.64l1.41 1.41M19.36 4.64l-1.41 1.41M6.05 12.95l-1.41 1.41"/></svg>,
     label: "Wertschöpfen",
-    text: "Du schaffst echten Wert für Menschen und Projekte.",
+    text: "Hier schafft Wert etwas, das bleibt.",
     accent: T.gold, bg: T.goldPale, border: "rgba(212,149,42,0.18)", glow: "rgba(212,149,42,0.12)",
   },
   {
     icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
     label: "Impact",
-    text: "Du hinterlässt Spuren, die die Welt verbessern.",
+    text: "Hier wächst Wirkung für Gemeinschaft und Welt.",
     accent: T.purple, bg: T.purplePale, border: "rgba(123,94,167,0.16)", glow: "rgba(123,94,167,0.12)",
   },
 ];
@@ -489,17 +490,45 @@ function Pillars({ delay }) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// 4. Journey — Block 5 (Reise)
+// 4. Journey — nur echte Daten oder ehrlicher Empty State
 // ─────────────────────────────────────────────────────────────────
-const JOURNEY = [
-  { emoji: "🌱", label: "Heute",        text: "Kleine Impulse setzen Großes in Bewegung.",   color: T.teal   },
-  { emoji: "🤝", label: "Diese Woche",  text: "Du hast 3 neue Verbindungen gestärkt.",        color: T.sage   },
-  { emoji: "✨", label: "Diesen Monat", text: "Ein Projekt, das dir am Herzen liegt, wächst.", color: T.coral  },
-  { emoji: "🌅", label: "Dieses Jahr",  text: "Deine Wirkung erreicht immer mehr Menschen.",  color: T.gold   },
-  { emoji: "🌳", label: "Seit Beginn",  text: "Dein Weg ist einzigartig und wertvoll.",       color: T.purple },
-];
+function formatRelativeTime(iso) {
+  if (!iso) return "";
+  const diff = (Date.now() - new Date(iso)) / 1000;
+  if (diff < 86400) return "heute";
+  const days = Math.floor(diff / 86400);
+  if (days === 1) return "gestern";
+  if (days < 7) return `vor ${days} Tagen`;
+  if (days < 30) return `vor ${Math.floor(days / 7)} Woche${Math.floor(days / 7) > 1 ? "n" : ""}`;
+  return new Date(iso).toLocaleDateString("de-DE", { day: "numeric", month: "short" });
+}
 
-function Journey({ delay }) {
+function SectionEmpty({ icon, title, text, delay = 0 }) {
+  return (
+    <FadeUp delay={delay}>
+      <div style={{
+        margin: "0 20px",
+        padding: "28px 20px",
+        borderRadius: 18,
+        background: "rgba(253,251,248,0.75)",
+        border: `1px solid ${T.inkFaint}`,
+        textAlign: "center",
+      }}>
+        <div style={{ fontSize: 32, marginBottom: 12, opacity: 0.55 }}>{icon}</div>
+        <div style={{ fontFamily: FONT, fontSize: 14, fontWeight: 600, color: T.ink, marginBottom: 6, letterSpacing: "-0.01em" }}>
+          {title}
+        </div>
+        <div style={{ fontFamily: FONT, fontSize: 12.5, color: T.inkSoft, lineHeight: 1.55, maxWidth: 280, margin: "0 auto" }}>
+          {text}
+        </div>
+      </div>
+    </FadeUp>
+  );
+}
+
+function Journey({ delay, moments }) {
+  const hasMoments = moments?.length > 0;
+
   return (
     <div style={{ padding: "0 20px" }}>
       <FadeUp delay={delay}>
@@ -509,58 +538,68 @@ function Journey({ delay }) {
           <div style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: T.ink, letterSpacing: "-0.015em" }}>
             Deine Reise
           </div>
-          <button style={{
-            fontFamily: FONT, fontSize: 12.5, color: T.teal, fontWeight: 500,
-            background: "none", border: "none", cursor: "pointer", padding: 0,
-            display: "flex", alignItems: "center", gap: 3, opacity: 0.85,
-          }}>
-            Reise anzeigen <span style={{ fontSize: 11 }}>›</span>
-          </button>
         </div>
       </FadeUp>
 
-      <div style={{
-        display: "flex", gap: 11, overflowX: "auto",
-        scrollbarWidth: "none", paddingBottom: 4,
-        WebkitOverflowScrolling: "touch",
-      }}>
-        {JOURNEY.map((j, i) => (
-          <FadeUp key={j.label} delay={delay}>
-            <div style={{ width: 106, flexShrink: 0, textAlign: "center" }}>
-              <div style={{
-                width: 68, height: 68, borderRadius: "50%", margin: "0 auto 9px",
-                background: `linear-gradient(135deg, ${j.color}28 0%, ${j.color}55 100%)`,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                border: `1.5px solid ${j.color}38`,
-                boxShadow: `0 3px 12px ${j.color}22`,
-              }}>
-                <span style={{ fontSize: 24 }}>{j.emoji}</span>
+      {hasMoments ? (
+        <div style={{
+          display: "flex", gap: 11, overflowX: "auto",
+          scrollbarWidth: "none", paddingBottom: 4,
+          WebkitOverflowScrolling: "touch",
+        }}>
+          {moments.map((m) => (
+            <FadeUp key={m.id} delay={delay}>
+              <div style={{ width: 138, flexShrink: 0 }}>
+                <div style={{
+                  background: m.bg, border: `1px solid ${m.border}`,
+                  borderRadius: 16, padding: "13px 13px 11px",
+                }}>
+                  <div style={{
+                    width: 32, height: 32, borderRadius: "50%",
+                    background: T.white, display: "flex",
+                    alignItems: "center", justifyContent: "center",
+                    fontSize: 15, marginBottom: 9,
+                    boxShadow: "0 1px 4px rgba(0,0,0,0.07)",
+                  }}>
+                    {m.icon}
+                  </div>
+                  <div style={{ fontFamily: FONT, fontSize: 11.5, fontWeight: 600, color: m.color, lineHeight: 1.35, marginBottom: 4 }}>
+                    {m.label}
+                  </div>
+                  <div style={{ fontFamily: FONT, fontSize: 10.5, color: T.inkFaint }}>
+                    {m.time}
+                  </div>
+                </div>
               </div>
-              <div style={{ fontFamily: FONT, fontSize: 12, fontWeight: 700, color: T.ink, marginBottom: 4, lineHeight: 1.2 }}>
-                {j.label}
-              </div>
-              <div style={{ fontFamily: FONT, fontSize: 11, color: T.inkSoft, lineHeight: 1.45 }}>
-                {j.text}
-              </div>
-            </div>
-          </FadeUp>
-        ))}
-      </div>
+            </FadeUp>
+          ))}
+        </div>
+      ) : (
+        <SectionEmpty
+          icon="🌱"
+          title="Deine Reise beginnt"
+          text="Jeder Impuls, jede Begegnung und jede Unterstützung wird hier sichtbar — sobald du sie lebst."
+          delay={delay}
+        />
+      )}
     </div>
   );
 }
 
 // ─────────────────────────────────────────────────────────────────
-// 5. ImpactMoments — Block 6 (Rest)
+// 5. ImpactMoments — nur echte Aktivitäten oder Empty State
 // ─────────────────────────────────────────────────────────────────
-const MOMENTS = [
-  { icon: "♡",  label: "Du hast Jana unterstützt",        time: "vor 2 Tagen",  color: T.coral,  bg: "rgba(244,115,85,0.07)",  border: "rgba(244,115,85,0.13)" },
-  { icon: "👥", label: "Neue Verbindung mit Max",          time: "vor 5 Tagen",  color: T.teal,   bg: T.tealSoft,               border: "rgba(13,196,181,0.13)"  },
-  { icon: "✏️", label: "Du hast ein Werk veröffentlicht",  time: "vor 1 Woche",  color: T.sage,   bg: T.sageSoft,               border: "rgba(92,168,122,0.13)"  },
-  { icon: "🌍", label: "Dein Impact hat 8 Menschen erreicht", time: "vor 1 Woche", color: T.purple, bg: T.purpleSoft,           border: "rgba(123,94,167,0.13)"  },
-];
+const MOMENT_STYLES = {
+  support:  { icon: "♡",  color: T.coral,  bg: "rgba(244,115,85,0.07)",  border: "rgba(244,115,85,0.13)" },
+  connect:  { icon: "👥", color: T.teal,   bg: T.tealSoft,               border: "rgba(13,196,181,0.13)" },
+  create:   { icon: "✏️", color: T.sage,   bg: T.sageSoft,               border: "rgba(92,168,122,0.13)" },
+  impact:   { icon: "🌍", color: T.purple, bg: T.purpleSoft,             border: "rgba(123,94,167,0.13)" },
+  default:  { icon: "✨", color: T.gold,   bg: T.goldSoft,               border: "rgba(212,149,42,0.13)" },
+};
 
-function ImpactMoments({ delay }) {
+function ImpactMoments({ delay, moments }) {
+  const hasMoments = moments?.length > 0;
+
   return (
     <div style={{ padding: "0 20px" }}>
       <FadeUp delay={delay}>
@@ -570,47 +609,49 @@ function ImpactMoments({ delay }) {
           <div style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: T.ink, letterSpacing: "-0.015em" }}>
             Deine Impact-Momente
           </div>
-          <button style={{
-            fontFamily: FONT, fontSize: 12.5, color: T.teal, fontWeight: 500,
-            background: "none", border: "none", cursor: "pointer", padding: 0,
-            display: "flex", alignItems: "center", gap: 3, opacity: 0.85,
-          }}>
-            Mehr anzeigen <span style={{ fontSize: 11 }}>›</span>
-          </button>
         </div>
       </FadeUp>
 
-      <div style={{
-        display: "flex", gap: 9, overflowX: "auto",
-        scrollbarWidth: "none", paddingBottom: 4,
-        WebkitOverflowScrolling: "touch",
-      }}>
-        {MOMENTS.map((m, i) => (
-          <FadeUp key={i} delay={delay}>
-            <div style={{
-              width: 138, flexShrink: 0,
-              background: m.bg, border: `1px solid ${m.border}`,
-              borderRadius: 16, padding: "13px 13px 11px",
-            }}>
+      {hasMoments ? (
+        <div style={{
+          display: "flex", gap: 9, overflowX: "auto",
+          scrollbarWidth: "none", paddingBottom: 4,
+          WebkitOverflowScrolling: "touch",
+        }}>
+          {moments.map((m) => (
+            <FadeUp key={m.id} delay={delay}>
               <div style={{
-                width: 32, height: 32, borderRadius: "50%",
-                background: T.white, display: "flex",
-                alignItems: "center", justifyContent: "center",
-                fontSize: 15, marginBottom: 9,
-                boxShadow: "0 1px 4px rgba(0,0,0,0.07)",
+                width: 138, flexShrink: 0,
+                background: m.bg, border: `1px solid ${m.border}`,
+                borderRadius: 16, padding: "13px 13px 11px",
               }}>
-                {m.icon}
+                <div style={{
+                  width: 32, height: 32, borderRadius: "50%",
+                  background: T.white, display: "flex",
+                  alignItems: "center", justifyContent: "center",
+                  fontSize: 15, marginBottom: 9,
+                  boxShadow: "0 1px 4px rgba(0,0,0,0.07)",
+                }}>
+                  {m.icon}
+                </div>
+                <div style={{ fontFamily: FONT, fontSize: 11.5, fontWeight: 600, color: m.color, lineHeight: 1.35, marginBottom: 4 }}>
+                  {m.label}
+                </div>
+                <div style={{ fontFamily: FONT, fontSize: 10.5, color: T.inkFaint }}>
+                  {m.time}
+                </div>
               </div>
-              <div style={{ fontFamily: FONT, fontSize: 11.5, fontWeight: 600, color: m.color, lineHeight: 1.35, marginBottom: 4 }}>
-                {m.label}
-              </div>
-              <div style={{ fontFamily: FONT, fontSize: 10.5, color: T.inkFaint }}>
-                {m.time}
-              </div>
-            </div>
-          </FadeUp>
-        ))}
-      </div>
+            </FadeUp>
+          ))}
+        </div>
+      ) : (
+        <SectionEmpty
+          icon="✨"
+          title="Noch keine Momente"
+          text="Wenn du unterstützt, verbindest oder erschaffst, erscheinen deine Wirkungsmomente hier — ehrlich und in deinem Tempo."
+          delay={delay}
+        />
+      )}
     </div>
   );
 }
@@ -627,9 +668,122 @@ export default function MeinHUI({
   onSettings,
 }) {
   const scrollRef = useRef(null);
+  const [entered, setEntered] = useState(false);
+  const [hasUnread, setHasUnread] = useState(false);
+  const [impactMoments, setImpactMoments] = useState([]);
+
+  const statsCards = useMemo(() => {
+    if (!profile) return [];
+    const cards = [];
+    if (profile.member_since) {
+      const days = Math.max(0, Math.floor((Date.now() - new Date(profile.member_since)) / 86400000));
+      if (days > 0) {
+        cards.push({
+          icon: "🌱", label: "Deine Reise",
+          sub: `seit ${days} Tag${days === 1 ? "" : "en"}`,
+          glow: T.sageSoft,
+        });
+      }
+    }
+    const impactEur = Number(profile.impact_eur) || 0;
+    if (impactEur > 0) {
+      cards.push({
+        icon: "🌍", label: "Impact",
+        sub: `€${impactEur.toFixed(2)} beigetragen`,
+        glow: "rgba(123,94,167,0.10)",
+      });
+    }
+    const connections = Number(profile.followers_count) || 0;
+    if (connections > 0) {
+      cards.push({
+        icon: "👥", label: "Verbindungen",
+        sub: `${connections} Mensch${connections === 1 ? "" : "en"}`,
+        glow: T.tealSoft,
+      });
+    }
+    return cards;
+  }, [profile]);
+
+  useEffect(() => {
+    if (!visible || !profile?.id) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const userId = profile.id;
+        const [
+          { count: unreadCount },
+          { data: notifs },
+          { data: works },
+          { data: beitraege },
+        ] = await Promise.all([
+          supabase.from("notifications").select("*", { count: "exact", head: true })
+            .eq("user_id", userId).eq("read", false),
+          supabase.from("notifications").select("id, message, title, type, created_at")
+            .eq("user_id", userId).order("created_at", { ascending: false }).limit(6),
+          supabase.from("works").select("id, title, created_at")
+            .eq("user_id", userId).order("created_at", { ascending: false }).limit(3),
+          supabase.from("beitraege").select("id, caption, created_at")
+            .eq("user_id", userId).order("created_at", { ascending: false }).limit(3),
+        ]);
+
+        if (cancelled) return;
+        setHasUnread((unreadCount || 0) > 0);
+
+        const moments = [];
+        for (const n of notifs || []) {
+          const t = String(n.type || "").toLowerCase();
+          const style = t.includes("impact") || t.includes("wirkung") ? MOMENT_STYLES.impact
+            : t.includes("begegn") || t.includes("message") || t.includes("chat") ? MOMENT_STYLES.connect
+            : t.includes("support") || t.includes("buchung") ? MOMENT_STYLES.support
+            : MOMENT_STYLES.default;
+          moments.push({
+            id: `n-${n.id}`,
+            icon: style.icon,
+            label: n.message || n.title || "Neue Aktivität",
+            time: formatRelativeTime(n.created_at),
+            ...style,
+          });
+        }
+        for (const w of works || []) {
+          const style = MOMENT_STYLES.create;
+          moments.push({
+            id: `w-${w.id}`,
+            icon: style.icon,
+            label: w.title ? `Werk: ${w.title}` : "Werk veröffentlicht",
+            time: formatRelativeTime(w.created_at),
+            ...style,
+          });
+        }
+        for (const b of beitraege || []) {
+          const style = MOMENT_STYLES.create;
+          moments.push({
+            id: `b-${b.id}`,
+            icon: "🌱",
+            label: b.caption || "Ein Moment geteilt",
+            time: formatRelativeTime(b.created_at),
+            ...style,
+          });
+        }
+
+        moments.sort((a, b) => {
+          const parse = (t) => t === "heute" ? 0 : t === "gestern" ? 1 : 99;
+          return parse(a.time) - parse(b.time);
+        });
+        setImpactMoments(moments.slice(0, 4));
+      } catch {
+        if (!cancelled) {
+          setHasUnread(false);
+          setImpactMoments([]);
+        }
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [visible, profile?.id]);
+
   // Double-RAF: erzwingt einen ersten Paint im Ausgangszustand (opacity 0,
   // translateY 10px), bevor die CSS-Transition zum Endzustand ausgelöst wird.
-  const [entered, setEntered] = useState(false);
 
   useEffect(() => {
     if (visible) {
@@ -684,10 +838,10 @@ export default function MeinHUI({
         }}>
 
           {/* Block 2 — Begrüßung */}
-          <ProfileHeader profile={profile} onNotif={onNotif} onSettings={onSettings} delay={TITLE_DELAY} />
+          <ProfileHeader profile={profile} onNotif={onNotif} onSettings={onSettings} delay={TITLE_DELAY} hasUnread={hasUnread} />
 
           {/* Block 1 — Orb, Block 3 — Info-Karten */}
-          <OrbHero profile={profile} coreDelay={CORE_DELAY} infoDelay={INFO_DELAY} />
+          <OrbHero profile={profile} coreDelay={CORE_DELAY} infoDelay={INFO_DELAY} statsCards={statsCards} />
 
           <div style={{ width: 28, height: 1, background: T.inkFaint, margin: "6px auto 26px", opacity: 0.35 }} />
 
@@ -697,12 +851,12 @@ export default function MeinHUI({
           <div style={{ height: 30 }} />
 
           {/* Block 5 — Reise */}
-          <Journey delay={JOURNEY_DELAY} />
+          <Journey delay={JOURNEY_DELAY} moments={[]} />
 
           <div style={{ height: 30 }} />
 
           {/* Block 6 — Rest */}
-          <ImpactMoments delay={MOMENTS_DELAY} />
+          <ImpactMoments delay={MOMENTS_DELAY} moments={impactMoments} />
 
           <div style={{ height: 12 }} />
         </div>

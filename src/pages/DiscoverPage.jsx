@@ -4,7 +4,7 @@
 // Reihenfolge: Suche → Heute auf HUI → Menschen → Momente → Werke → Erlebnisse → Projekte → Orte
 // KEINE Kategorie-Pills (HUI-Orb übernimmt Themennavigation)
 // ══════════════════════════════════════════════════════════════════
-import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate }   from "react-router-dom";
 import { supabase }      from "../lib/supabaseClient.js";
 import { formatPresence } from "../lib/usePresence.js";
@@ -132,6 +132,24 @@ function ViewToggle({ view, onChange }) {
   );
 }
 
+// ── Section Empty State (Phase 2.1 — Authentizität) ───────────────
+function SectionEmpty({ icon, label, sub }) {
+  return (
+    <div style={{
+      margin: `0 ${T.px}px`,
+      padding: "32px 20px",
+      borderRadius: 18,
+      background: "rgba(255,255,255,0.65)",
+      border: `1px solid ${T.border}`,
+      textAlign: "center",
+    }}>
+      <div style={{ fontSize: 28, marginBottom: 10, opacity: 0.5 }}>{icon}</div>
+      <div style={{ fontSize: 14, fontWeight: 700, color: T.ink, marginBottom: 6, letterSpacing: "-0.02em" }}>{label}</div>
+      {sub && <div style={{ fontSize: 12.5, color: T.inkSoft, lineHeight: 1.55, maxWidth: 280, margin: "0 auto" }}>{sub}</div>}
+    </div>
+  );
+}
+
 // ── Skeleton ─────────────────────────────────────────────────────
 function Skel({ w="100%", h=14, r=10, mb=0 }) {
   return <div className="dp-skel" style={{ width:w, height:h, borderRadius:r, marginBottom:mb }} />;
@@ -191,16 +209,8 @@ function SearchBar({ view, onViewChange }) {
 }
 
 // ════════════════════════════════════════════════════════════════
-// 1b. LIVE ACTIVITY BAR — "Jetzt auf HUI"
+// 1b. LIVE ACTIVITY BAR — nur bei echten Aktivitäten (Phase 2.1)
 // ════════════════════════════════════════════════════════════════
-const LIVE_ACTIVITIES = [
-  { id:"a1", avatar:"https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=80&q=80", name:"Sarah",  action:"hat einen Gemeinschaftsgarten gestartet", type:"Moment",   typeColor:"#16A34A", typeEmoji:"🌱", ago:"vor 2 Min"  },
-  { id:"a2", avatar:"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&q=80", name:"Jonas",  action:"sucht Mitgründer für ein Musikprojekt",   type:"Projekt",  typeColor:"#D97706", typeEmoji:"🎵", ago:"vor 5 Min"  },
-  { id:"a3", avatar:"https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&q=80", name:"Anna",   action:"hat ein neues Werk veröffentlicht",        type:"Werk",     typeColor:"#9333EA", typeEmoji:"🎨", ago:"vor 8 Min"  },
-  { id:"a4", avatar:null,                                                                       name:"HUI",   action:"Heute finden 6 Erlebnisse statt",         type:"Erlebnis", typeColor:"#0EC4B8", typeEmoji:"📅", ago:"vor 12 Min" },
-  { id:"a5", avatar:"https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&q=80", name:"Max",   action:"hat einen Workshop angekündigt",           type:"Workshop", typeColor:"#E8573A", typeEmoji:"✨", ago:"vor 15 Min" },
-];
-
 function ActivityCard({ act, idx, onPress }) {
   const [imgErr, setImgErr] = useState(false);
   const av = (!imgErr && act.avatar) ? act.avatar : null;
@@ -253,7 +263,8 @@ function ActivityCard({ act, idx, onPress }) {
   );
 }
 
-function LiveActivityBar({ onPersonPress }) {
+function LiveActivityBar({ activities, onPersonPress }) {
+  if (!activities?.length) return null;
   return (
     <div style={{ padding:`4px 16px 14px`, marginBottom:0 }}>
       <div style={{
@@ -261,7 +272,6 @@ function LiveActivityBar({ onPersonPress }) {
         border:"1px solid rgba(14,196,184,0.12)",
         borderRadius:20, padding:"14px 0 14px 14px", overflow:"hidden",
       }}>
-        {/* Header */}
         <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12, paddingRight:14 }}>
           <div style={{ display:"flex", alignItems:"center", gap:6 }}>
             <div className="dp-live-dot" style={{ width:7,height:7,borderRadius:"50%",background:"#0EC4B8" }}/>
@@ -272,15 +282,9 @@ function LiveActivityBar({ onPersonPress }) {
             borderRadius:99, padding:"1px 7px",
             fontSize:9, fontWeight:700, color:"#0EC4B8", letterSpacing:".04em",
           }}>Live</div>
-          <div style={{ flex:1 }}/>
-          <span onClick={() => {
-            const el = document.querySelector("[data-dp-people]");
-            if (el) el.scrollIntoView({ behavior:"smooth" });
-          }} style={{ fontSize:11, color:"rgba(26,53,48,0.45)", fontWeight:500, paddingRight:14, cursor:"pointer" }}>Alles live →</span>
         </div>
-        {/* Horizontal scroll */}
         <div className="dp-hscroll" style={{ display:"flex", gap:8, paddingRight:14 }}>
-          {LIVE_ACTIVITIES.map((act, i) => <ActivityCard key={act.id} act={act} idx={i} onPress={onPersonPress}/>)}
+          {activities.map((act, i) => <ActivityCard key={act.id} act={act} idx={i} onPress={onPersonPress}/>)}
         </div>
       </div>
     </div>
@@ -298,7 +302,11 @@ const STAT_DEFS = [
   { key:"projekte",   emoji:"🌍", label:"neue Projekte",   color:"#D97706", bg:"rgba(217,119,6,0.09)"   },
 ];
 
-function TodayStats({ stats, onScrollTo }) {
+function TodayStats({ stats, onScrollTo, loading }) {
+  const values = STAT_DEFS.map((d) => stats?.[d.key] ?? 0);
+  const hasAny = values.some((v) => v > 0);
+  if (!loading && !hasAny) return null;
+
   return (
     <div className="dp-in" style={{ padding:`0 ${T.px}px 14px`, animationDelay:"40ms" }}>
       {/* Header */}
@@ -344,7 +352,7 @@ function TodayStats({ stats, onScrollTo }) {
                 fontSize:22, fontWeight:900, color:def.color,
                 letterSpacing:"-0.04em", lineHeight:1,
               }}>
-                {stats?.[def.key] ?? (8 + i*3)}
+                {stats?.[def.key] ?? 0}
               </span>
               <span style={{
                 fontSize:9.5, color:T.inkFaint, marginTop:4,
@@ -354,19 +362,6 @@ function TodayStats({ stats, onScrollTo }) {
               </span>
             </div>
           ))}
-          {/* Deine Aktivität */}
-          <div className="dp-stat-card" style={{
-            display:"flex", flexDirection:"column", alignItems:"center",
-            background:`linear-gradient(135deg,rgba(14,196,184,0.10),rgba(232,87,58,0.07))`,
-            borderRadius:14, padding:"12px 10px",
-            minWidth:82, boxShadow:T.cardShadow, flexShrink:0,
-            border:"1px solid rgba(14,196,184,0.18)",
-          }}>
-            <span style={{ fontSize:20, marginBottom:6 }}>✦</span>
-            <span style={{ fontSize:11, fontWeight:900, color:T.teal, letterSpacing:"-0.02em", lineHeight:1, textAlign:"center" }}>Deine</span>
-            <span style={{ fontSize:11, fontWeight:900, color:T.teal, letterSpacing:"-0.02em", lineHeight:1, textAlign:"center", marginBottom:4 }}>Aktivität</span>
-            <span style={{ fontSize:8.5, color:T.inkFaint, textAlign:"center", lineHeight:1.3, fontWeight:500 }}>diese Woche</span>
-          </div>
         </div>
 
         {/* Dekorative Illustration rechts */}
@@ -384,15 +379,6 @@ function TodayStats({ stats, onScrollTo }) {
 // ════════════════════════════════════════════════════════════════
 // 3. MENSCHEN ENTDECKEN
 // ════════════════════════════════════════════════════════════════
-const SEED_PEOPLE = [
-  { id:"p1", name:"Mia Waldmann",  bio:"Naturpädagogin & Waldcoach",       location:"München", avatar:"https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=200&q=80", impact:4200 },
-  { id:"p2", name:"Jonas Kreuz",   bio:"Musiker & Community Builder",      location:"Berlin",  avatar:"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80", impact:6800 },
-  { id:"p3", name:"Lena Stern",    bio:"Meditationslehrerin & Heilerin",   location:"Hamburg", avatar:"https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&q=80", impact:6100 },
-  { id:"p4", name:"Timo Berger",   bio:"Permakultur & Saatgut Hüter",      location:"Freiburg",avatar:"https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&q=80", impact:7200 },
-  { id:"p5", name:"Anna Kowalski", bio:"Künstlerin & Kreativraum Kuratorin",location:"Wien",   avatar:"https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&q=80", impact:6500 },
-  { id:"p6", name:"Felix Braun",   bio:"Tierheim-Aktivist & Hundefreund",  location:"Leipzig", avatar:"https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&q=80", impact:2800 },
-];
-
 // Interesse-Tags pro Person — deterministisch aus index
 const INTEREST_POOLS = ["Natur","Musik","Kunst","Gemeinschaft","Spiritualität","Nachhaltigkeit","Fotografie","Design","Bildung","Umwelt"];
 function personTags(person, max=2) {
@@ -545,7 +531,9 @@ function PeopleSection({ people, onPersonPress, loading, delay=0, view='cards', 
                   <Skel w="70%" h={10} r={6} />
                 </div>
               ))
-            : people.map((p, i) => (
+            : people.length === 0
+              ? <SectionEmpty icon="🤝" label="Noch keine Menschen sichtbar" sub="Sobald Talente und Mitglieder auf HUI aktiv sind, erscheinen sie hier — echt und lebendig." />
+              : people.map((p, i) => (
                 <PersonCard key={p.id} person={p} onPress={onPersonPress} delay={i*40+delay} />
               ))
           }
@@ -556,7 +544,9 @@ function PeopleSection({ people, onPersonPress, loading, delay=0, view='cards', 
             ? Array.from({length:4}).map((_,i) => (
                 <div key={i} className="dp-list-card"><Skel w={58} h={58} r={12} /><div style={{flex:1}}><Skel w="70%" h={13} r={6} mb={6}/><Skel w="50%" h={10} r={5}/></div></div>
               ))
-            : people.map((p, i) => (
+            : people.length === 0
+              ? <SectionEmpty icon="🤝" label="Noch keine Menschen sichtbar" sub="Sobald Talente und Mitglieder auf HUI aktiv sind, erscheinen sie hier — echt und lebendig." />
+              : people.map((p, i) => (
                 <div key={p.id} className="dp-list-card" onClick={() => onPersonPress?.(p)}>
                   {p.avatar
                     ? <img src={p.avatar} alt={p.name} className="dp-list-thumb" onError={e => e.target.style.display='none'}/>
@@ -582,15 +572,6 @@ function PeopleSection({ people, onPersonPress, loading, delay=0, view='cards', 
 // ════════════════════════════════════════════════════════════════
 // 4. MOMENTE AUS DEINER NÄHE
 // ════════════════════════════════════════════════════════════════
-const SEED_MOMENTE = [
-  { id:"m1", src:"https://images.unsplash.com/photo-1448375240586-882707db888b?w=280&q=75", caption:"Waldspaziergang & Waldbaden im Englischen Garten", name:"Mia W.", location:"München",     created_at: new Date(Date.now()-3600000*1).toISOString(),    type:"foto" },
-  { id:"m2", src:"https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=280&q=75", caption:"Stille Morgenrunde beim Café Lichtblick",          name:"Lena S.", location:"Hamburg",    created_at: new Date(Date.now()-3600000*2).toISOString(),    type:"foto" },
-  { id:"m3", src:"https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=280&q=75", caption:"Akustik Abend im Kiez — alle sind willkommen",     name:"Jonas K.", location:"Berlin",    created_at: new Date(Date.now()-3600000*3).toISOString(),    type:"foto" },
-  { id:"m4", src:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=280&q=75", caption:"Sonnenaufgang Meditation",                         name:"Lena S.", location:"Hamburg",    created_at: new Date(Date.now()-3600000*5).toISOString(),    type:"foto" },
-  { id:"m5", src:"https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=280&q=75", caption:"Tierheim Besuchstag – helfen macht glücklich",       name:"Felix B.", location:"Leipzig",    created_at: new Date(Date.now()-3600000*6).toISOString(),    type:"foto" },
-  { id:"m6", src:"https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=280&q=75", caption:"Kreativworkshop für Kinder",                      name:"Anne K.", location:"Wien",        created_at: new Date(Date.now()-3600000*8).toISOString(),    type:"foto" },
-];
-
 function MomentCard({ moment, delay=0, onPress }) {
   const [imgErr, setImgErr] = useState(false);
   const ago = timeAgo(moment.created_at);
@@ -666,12 +647,13 @@ function MomentCard({ moment, delay=0, onPress }) {
             </>
           )}
         </div>
-        {/* Engagement Row */}
-        <div className="dp-engage">
-          <span>❤️ {moment.likes ?? Math.floor(4 + (moment.id?.charCodeAt?.(moment.id.length-1)??7) % 30)}</span>
-          <span>💬 {moment.comments ?? Math.floor(1 + (moment.id?.charCodeAt?.(0)??3) % 12)}</span>
-          <span>🌱 {moment.wirkung ?? Math.floor(1 + (moment.id?.charCodeAt?.(1)??2) % 8)}</span>
-        </div>
+        {(moment.likes > 0 || moment.comments > 0 || moment.wirkung > 0) && (
+          <div className="dp-engage">
+            {moment.likes > 0 && <span>❤️ {moment.likes}</span>}
+            {moment.comments > 0 && <span>💬 {moment.comments}</span>}
+            {moment.wirkung > 0 && <span>🌱 {moment.wirkung}</span>}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -697,7 +679,9 @@ function MomenteSection({ momente, loading, delay=0, view='cards', onPress, onSe
                   <div style={{ padding:"10px 10px" }}><Skel w="80%" h={12} r={6} mb={6}/><Skel w="50%" h={10} r={6}/></div>
                 </div>
               ))
-            : momente.map((m, i) => <MomentCard key={m.id} moment={m} delay={i*35+delay} onPress={onPress} />)
+            : momente.length === 0
+              ? <SectionEmpty icon="🌱" label="Noch keine Momente" sub="Echte Geschichten aus der Community erscheinen hier, sobald jemand sie teilt." />
+              : momente.map((m, i) => <MomentCard key={m.id} moment={m} delay={i*35+delay} onPress={onPress} />)
           }
         </div>
       ) : (
@@ -732,15 +716,6 @@ function MomenteSection({ momente, loading, delay=0, view='cards', onPress, onSe
 // ════════════════════════════════════════════════════════════════
 // 5. WERKE ENTDECKEN
 // ════════════════════════════════════════════════════════════════
-const SEED_WERKE = [
-  { id:"w1", title:"Farben der Stille",   medium:"Malerei",   cover:"https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=280&q=75",   author:"Anna K.", likes:128 },
-  { id:"w2", title:"Seelenklang",          medium:"Musik",     cover:"https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=280&q=75",  author:"Jonas K.", likes:96  },
-  { id:"w3", title:"Küstenrauschen",       medium:"Fotografie",cover:"https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=280&q=75",  author:"Timo B.", likes:87  },
-  { id:"w4", title:"Freiheitsvogel",       medium:"Illustration",cover:"https://images.unsplash.com/photo-1567359781514-3b964e2b04d6?w=280&q=75",author:"Mia W.", likes:64  },
-  { id:"w5", title:"Verbunden",            medium:"Skulptur",  cover:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=280&q=75",     author:"Lena S.", likes:63  },
-  { id:"w6", title:"Kleiner Moment",       medium:"Text",      cover:null,                                                                          author:"Felix B.", likes:42  },
-];
-
 const MEDIUM_COLOR = {
   "Malerei":    { bg:"rgba(147,51,234,0.12)",  text:"#9333EA" },
   "Musik":      { bg:"rgba(14,196,184,0.12)",  text:T.teal    },
@@ -836,10 +811,12 @@ function WerkCard({ werk, delay=0, onPress }) {
           )}
         </div>
         {/* Likes + Views */}
-        <div className="dp-engage">
-          <span>❤️ {werk.likes ?? Math.floor(5 + (werk.id?.charCodeAt?.(werk.id.length-1)??9) % 40)}</span>
-          <span>👁 {werk.views ?? Math.floor(50 + (werk.id?.charCodeAt?.(0)??5) % 400)}</span>
-        </div>
+        {(werk.likes > 0 || werk.views > 0) && (
+          <div className="dp-engage">
+            {werk.likes > 0 && <span>❤️ {werk.likes}</span>}
+            {werk.views > 0 && <span>👁 {werk.views}</span>}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -865,7 +842,9 @@ function WerkeSection({ werke, loading, delay=0, view='cards', onPress, onSectio
                   <div style={{ padding:"9px 10px" }}><Skel w="75%" h={12} r={6} mb={6}/><Skel w="50%" h={10} r={5}/></div>
                 </div>
               ))
-            : werke.map((w, i) => <WerkCard key={w.id} werk={w} delay={i*35+delay} onPress={onPress} />)
+            : werke.length === 0
+              ? <SectionEmpty icon="🎨" label="Noch keine Werke" sub="Kreative Werke erscheinen hier, sobald Talente sie veröffentlichen." />
+              : werke.map((w, i) => <WerkCard key={w.id} werk={w} delay={i*35+delay} onPress={onPress} />)
           }
         </div>
       ) : (
@@ -919,15 +898,6 @@ function WerkeSection({ werke, loading, delay=0, view='cards', onPress, onSectio
 // ════════════════════════════════════════════════════════════════
 // 6. ERLEBNISSE FÜR DICH
 // ════════════════════════════════════════════════════════════════
-const SEED_ERLEBNISSE = [
-  { id:"e1", title:"Yoga im Park",              date:"30", month:"Mai",  dayLabel:"Heute",  time:"18:00", location:"München",  spots:12, cover:"https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=280&q=75" },
-  { id:"e2", title:"Urban Gardening Workshop",  date:"31", month:"Mai",  dayLabel:"Morgen", time:"10:00", location:"Hamburg",  spots:8,  cover:"https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=280&q=75" },
-  { id:"e3", title:"Gitarre für Anfänger",      date:"02", month:"Jun",  dayLabel:"Mo",     time:"19:00", location:"Berlin",   spots:6,  cover:"https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=280&q=75" },
-  { id:"e4", title:"Acryl Malen für Einsteiger",date:"04", month:"Jun",  dayLabel:"Mi",     time:"17:00", location:"Leipzig",  spots:7,  cover:"https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=280&q=75" },
-  { id:"e5", title:"Sonnenaufgang Wanderung",   date:"06", month:"Jun",  dayLabel:"Fr",     time:"05:00", location:"Freiburg", spots:10, cover:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=280&q=75" },
-  { id:"e6", title:"Tierheim Helfer Tag",       date:"07", month:"Jun",  dayLabel:"Sa",     time:"11:00", location:"Leipzig",  spots:9,  cover:"https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=280&q=75" },
-];
-
 function ErlebnisCard({ erlebnis, delay=0, onPress }) {
   const [imgErr, setImgErr] = useState(false);
   const cover = (!imgErr && erlebnis.cover) ? erlebnis.cover : null;
@@ -1073,7 +1043,9 @@ function ErlebnisseSection({ erlebnisse, loading, delay=0, view='cards', onPress
                   <div style={{ padding:"10px 10px" }}><Skel w="80%" h={12} r={6} mb={6}/><Skel w="55%" h={10} r={5}/></div>
                 </div>
               ))
-            : erlebnisse.map((e, i) => <ErlebnisCard key={e.id} erlebnis={e} delay={i*35+delay} onPress={onPress} />)
+            : erlebnisse.length === 0
+              ? <SectionEmpty icon="📅" label="Noch keine Erlebnisse" sub="Workshops, Retreats und Begegnungen erscheinen hier, sobald sie geplant sind." />
+              : erlebnisse.map((e, i) => <ErlebnisCard key={e.id} erlebnis={e} delay={i*35+delay} onPress={onPress} />)
           }
         </div>
       ) : (
@@ -1129,15 +1101,6 @@ function ErlebnisseSection({ erlebnisse, loading, delay=0, view='cards', onPress
 // ════════════════════════════════════════════════════════════════
 // 7. PROJEKTE & INITIATIVEN
 // ════════════════════════════════════════════════════════════════
-const SEED_PROJEKTE = [
-  { id:"pr1", title:"Stadtgarten Netz",    desc:"Gemeinschaftliche Gärten in 12 Städten",              members:47, cat:"Natur",     cover:"https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=280&q=75", catColor:{ bg:"rgba(22,163,74,0.12)", text:"#16A34A" } },
-  { id:"pr2", title:"Tierheim Netzwerk",   desc:"Moralische Unterstützung & Vermittlung",               members:133,cat:"Tiere",     cover:"https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=280&q=75", catColor:{ bg:"rgba(217,119,6,0.12)", text:"#D97706" } },
-  { id:"pr3", title:"Küsten Cleanup",      desc:"Kostenlose Aktionen für unsere Meere",                members:89, cat:"Umwelt",    cover:"https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=280&q=75", catColor:{ bg:"rgba(14,196,184,0.12)", text:T.teal    } },
-  { id:"pr4", title:"Musik für alle",      desc:"Kostenlose Konzerte in Parks",                        members:63, cat:"Kultur",    cover:"https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=280&q=75", catColor:{ bg:"rgba(99,102,241,0.12)", text:"#6366F1" } },
-  { id:"pr5", title:"Kunst für Kinder",    desc:"Kreativworkshops für Kinder & Jugendliche",            members:76, cat:"Bildung",   cover:"https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=280&q=75", catColor:{ bg:"rgba(232,87,58,0.12)", text:T.coral   } },
-  { id:"pr6", title:"Klima Zukunft",       desc:"Bildung & Aktionen für eine bessere Welt",            members:54, cat:"Klima",     cover:"https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=280&q=75", catColor:{ bg:"rgba(22,163,74,0.12)", text:"#16A34A" } },
-];
-
 function ProjektCard({ projekt, delay=0, onPress }) {
   const [imgErr, setImgErr] = useState(false);
   const cover = (!imgErr && projekt.cover) ? projekt.cover : null;
@@ -1201,9 +1164,8 @@ function ProjektCard({ projekt, delay=0, onPress }) {
 }
 
 function ProjekteSection({ projekte, loading, delay=0, view='cards', onPress, onSectionAction }) {
-  const allProjekte = projekte.length > 0 ? projekte : SEED_PROJEKTE;
-  const hero = allProjekte[0];
-  const rest = allProjekte.slice(1);
+  const hero = projekte[0];
+  const rest = projekte.slice(1);
   return (
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <div data-dp-projekte/>
@@ -1217,6 +1179,9 @@ function ProjekteSection({ projekte, loading, delay=0, view='cards', onPress, on
       {view === "cards" ? (
         <div style={{ paddingLeft:T.px, paddingRight:T.px }}>
           {/* ── Hero: Projekt der Woche ── */}
+          {!loading && !hero && (
+            <SectionEmpty icon="🌍" label="Noch keine Projekte" sub="Impact-Initiativen aus der Community erscheinen hier, sobald sie genehmigt sind." />
+          )}
           {!loading && hero && (
             <div className="dp-projekt-hero dp-in" onClick={() => onPress?.(hero)} style={{
               position:"relative", borderRadius:20, overflow:"hidden",
@@ -1313,50 +1278,19 @@ function ProjekteSection({ projekte, loading, delay=0, view='cards', onPress, on
 // ════════════════════════════════════════════════════════════════
 // 8. ORTE ENTDECKEN
 // ════════════════════════════════════════════════════════════════
-const SEED_ORTE = [
-  { id:"o1", name:"Waldlichtung",      city:"München",  dist:"0,3 km",  active:8,  nextEvent:null,           cover:"https://images.unsplash.com/photo-1448375240586-882707db888b?w=200&q=75"  },
-  { id:"o2", name:"Community Garten",  city:"Hamburg",  dist:"1,2 km",  active:12, nextEvent:null,           cover:"https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=200&q=75"  },
-  { id:"o3", name:"Atelier Raum",      city:"Berlin",   dist:"2,7 km",  active:9,  nextEvent:null,           cover:"https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=200&q=75"  },
-  { id:"o4", name:"Meditationsraum",   city:"Freiburg", dist:"3,1 km",  active:7,  nextEvent:"morgen",       cover:"https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=200&q=75"     },
-  { id:"o5", name:"Tierheim Treffpunkt",city:"Leipzig", dist:"4,0 km",  active:6,  nextEvent:"Heute 3 Begegnungen", cover:"https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=200&q=75"},
-  { id:"o6", name:"Kreativwerkstatt",  city:"Wien",     dist:"4,5 km",  active:9,  nextEvent:null,           cover:"https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=200&q=75"  },
-];
-
 function OrteSection({ onMap, delay=0, view='cards' }) {
   return (
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <SectionHead
         title="Orte entdecken"
         sub="Besondere HUI-Räume, Parks & Begegnungsorte."
-        action="Alle Orte"
-        onAction={onMap}
         delay={delay}
       />
-      {view === "cards" ? (
-        <div className="dp-hscroll" style={{ display:"flex", gap:8, paddingLeft:T.px, paddingRight:T.px, paddingBottom:4 }}>
-          {SEED_ORTE.map((ort, i) => <OrtCard key={ort.id} ort={ort} delay={i*30+delay} onMap={onMap} />)}
-        </div>
-      ) : (
-        <div className="dp-list-section dp-toggle-in">
-          {SEED_ORTE.map((ort) => (
-            <div key={ort.id} className="dp-list-card" onClick={onMap}>
-              <div className="dp-list-thumb-placeholder" style={{ position:"relative", overflow:"hidden" }}>
-                {ort.cover
-                  ? <img src={ort.cover} alt={ort.name} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} onError={e => e.target.style.display='none'}/>
-                  : <span>📍</span>
-                }
-              </div>
-              <div style={{ flex:1 }}>
-                <div style={{ fontSize:13.5, fontWeight:700, color:T.ink, marginBottom:2, letterSpacing:"-0.02em" }}>{ort.name}</div>
-                <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                  <span style={{ fontSize:11.5, color:T.inkFaint }}>📍 {ort.city}</span>
-                  {ort.dist !== "—" && <span style={{ fontSize:11, background:T.tealSoft, color:T.teal, borderRadius:99, padding:"1px 7px", fontWeight:600 }}>{ort.dist}</span>}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      <SectionEmpty
+        icon="📍"
+        label="Orte kommen bald"
+        sub="HUI-Räume und Begegnungsorte werden hier erscheinen, sobald sie in der Community entstehen."
+      />
     </div>
   );
 }
@@ -1424,6 +1358,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   const [erlebnisse, setErlebnisse]   = useState([]);
   const [projekte, setProjekte]       = useState([]);
   const [stats, setStats]             = useState(null);
+  const [liveActivities, setLiveActivities] = useState([]);
 
   // ── Daten laden ─────────────────────────────────────────────
   useEffect(() => {
@@ -1562,11 +1497,24 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         }
 
         // Projekte (aus HUI Impact)
-        const { data: imp } = await supabase
-          .from("impact_pool")
-          .select("id,month")
+        const { data: impApps } = await supabase
+          .from("impact_applications")
+          .select("id, title, description, cover_url, status, created_at")
+          .eq("status", "approved")
+          .order("created_at", { ascending: false })
           .limit(6);
-        // Falls keine Daten → SEED wird weiter unten verwendet
+
+        if (!cancelled && impApps?.length > 0) {
+          setProjekte(impApps.map(p => ({
+            id:      p.id,
+            title:   safeStr(p.title, "Impact-Projekt"),
+            desc:    safeStr(p.description),
+            cover:   safeStr(p.cover_url),
+            members: 0,
+          })));
+        } else if (!cancelled) {
+          setProjekte([]);
+        }
 
         // Stats berechnen
         const [
@@ -1580,12 +1528,20 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         ]);
 
         if (!cancelled) {
+          const { count: cBegegnungen } = await supabase
+            .from("connections")
+            .select("*", { count:"exact", head:true })
+            .gte("created_at", new Date(Date.now()-86400000*7).toISOString());
+          const { count: cProjekte } = await supabase
+            .from("impact_applications")
+            .select("*", { count:"exact", head:true })
+            .eq("status", "approved");
           setStats({
-            momente:     cMomente ?? 24,
-            begegnungen: 8,
-            werke:       cWerke ?? 5,
-            erlebnisse:  cExps ?? 12,
-            projekte:    3,
+            momente:     cMomente ?? 0,
+            begegnungen: cBegegnungen ?? 0,
+            werke:       cWerke ?? 0,
+            erlebnisse:  cExps ?? 0,
+            projekte:    cProjekte ?? 0,
           });
         }
 
@@ -1599,14 +1555,8 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
     return () => { cancelled = true; };
   }, []);
 
-  // ── People: DB oder Seed ─────────────────────────────────────
-  const filteredPeople = people.length > 0 ? people : SEED_PEOPLE;
-
-  const displayMomente    = momente.length > 0 ? momente : SEED_MOMENTE;
-  const navigate           = useNavigate();
-  const displayWerke      = werke.length > 0 ? werke : SEED_WERKE;
-  const displayErlebnisse = erlebnisse.length > 0 ? erlebnisse : SEED_ERLEBNISSE;
-  const displayProjekte   = projekte.length > 0 ? projekte : SEED_PROJEKTE;
+  // ── People: nur echte DB-Daten ─────────────────────────────────
+  const navigate = useNavigate();
 
   const handlePersonPress = useCallback((person) => {
     if (typeof onView === "function") onView(person.id || person.user_id);
@@ -1692,14 +1642,14 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
       <SearchBar view={view} onViewChange={setView} />
 
       {/* ── 1b. Live Activity Bar ── */}
-      <LiveActivityBar onPersonPress={handleActivityPress}/>
+      <LiveActivityBar activities={liveActivities} onPersonPress={handleActivityPress}/>
 
       {/* ── 2. Heute auf HUI ── */}
-      <TodayStats stats={stats} onScrollTo={handleScrollTo}/>
+      <TodayStats stats={stats} onScrollTo={handleScrollTo} loading={loading}/>
 
       {/* ── 3. Menschen entdecken ── */}
       <PeopleSection
-        people={filteredPeople}
+        people={people}
         onPersonPress={handlePersonPress}
         loading={loading && people.length === 0}
         delay={60}
@@ -1709,7 +1659,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
 
       {/* ── 4. Momente aus deiner Nähe ── */}
       <MomenteSection
-        momente={displayMomente}
+        momente={momente}
         loading={loading && momente.length === 0}
         delay={80}
         view={view}
@@ -1719,7 +1669,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
 
       {/* ── 5. Werke entdecken ── */}
       <WerkeSection
-        werke={displayWerke}
+        werke={werke}
         loading={loading && werke.length === 0}
         delay={100}
         view={view}
@@ -1729,7 +1679,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
 
       {/* ── 6. Erlebnisse für dich ── */}
       <ErlebnisseSection
-        erlebnisse={displayErlebnisse}
+        erlebnisse={erlebnisse}
         loading={loading && erlebnisse.length === 0}
         delay={120}
         view={view}
@@ -1739,7 +1689,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
 
       {/* ── 7. Projekte & Initiativen ── */}
       <ProjekteSection
-        projekte={displayProjekte}
+        projekte={projekte}
         loading={loading}
         delay={140}
         view={view}

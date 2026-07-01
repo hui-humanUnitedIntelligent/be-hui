@@ -5,9 +5,8 @@
 
 import { HUI } from "../design/hui.design.js";
 import { S } from "../core/hui.sources.js";
-import { IX } from "../design/hui.interaction.js";
 import { useHuiActions, A } from "../core/hui.actions.js";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
 
 /* ══════════════════════════════════════════════════════════════
@@ -76,45 +75,8 @@ const CSS = `
 `;
 
 /* ══════════════════════════════════════════════════════════════
-   MOCK DATA
+   EMPTY STATES (Phase 2.1 — keine Demo-Daten)
 ══════════════════════════════════════════════════════════════ */
-const MOCK_HERO = {
-  title:"Keramik Workshop",
-  subtitle:"Formen der Erde",
-  date:"24. Mai 2025",
-  location:"M\u00FCnchen",
-  img:"https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=800&q=80",
-  badge:"Zuletzt gespeichert",
-  avatars:[
-    "https://i.pravatar.cc/28?img=21",
-    "https://i.pravatar.cc/28?img=36",
-    "https://i.pravatar.cc/28?img=9",
-  ],
-  interested:12,
-};
-
-const MOCK_PEOPLE = [
-  { id:"p1", name:"Leon Brandt",  talent:"Musik & Klang",       img:"https://i.pravatar.cc/220?img=53", status:"Gerade im Atelier",  statusColor:"#22C55E" },
-  { id:"p2", name:"Mia Kern",     talent:"Keramik & Handwerk",  img:"https://i.pravatar.cc/220?img=47", status:"Nimmt sich Zeit",     statusColor:HUI.COLOR.goldLight },
-  { id:"p3", name:"Jonas Weber",  talent:"Fotografie & Film",   img:"https://i.pravatar.cc/220?img=52", status:"Unterwegs",           statusColor:HUI.COLOR.coral },
-  { id:"p4", name:"Hanna Vogt",   talent:"Yoga & Bewegung",     img:"https://i.pravatar.cc/220?img=11", status:"In der Natur",        statusColor:HUI.COLOR.teal },
-];
-
-const MOCK_WORKS = [
-  { id:"w1", title:"Abstraktes Wandbild",   creator:"Julia Brandt", price:"120", img:"https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?w=300&q=80", likes:34 },
-  { id:"w2", title:"Handgefertigte Schale", creator:"Mia Kern",     price:"85",  img:"https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=300&q=80", likes:21 },
-  { id:"w3", title:"Holzlampe Eiche",       creator:"Leon Brandt",  price:"150", img:"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&q=80", likes:18 },
-  { id:"w4", title:"Acryl Bild Meer",       creator:"Sara Voss",    price:"95",  img:"https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=300&q=80", likes:42 },
-  { id:"w5", title:"Keramik Vase",          creator:"Anna Feld",    price:"68",  img:"https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&q=80", likes:29 },
-];
-
-const MOCK_EXPERIENCES = [
-  { id:"e1", title:"Keramik Workshop",   sub:"Formen der Erde",         date:"24. Mai - M\u00FCnchen",     img:"https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=400&q=80", badge:"In 6 Tagen",    badgeColor:C.teal,  spots:"9 Pl\u00E4tze frei", spotsColor:C.teal,  avatars:["https://i.pravatar.cc/24?img=21","https://i.pravatar.cc/24?img=36","https://i.pravatar.cc/24?img=9"] },
-  { id:"e2", title:"Natur Retreat",      sub:"Waldbaden & Achtsamkeit", date:"31. Mai - 2. Juni - Schwarzwald", img:"https://images.unsplash.com/photo-1448375240586-882707db888b?w=400&q=80", badge:"In 2 Wochen",   badgeColor:C.teal,  spots:"Noch 5 Pl\u00E4tze", spotsColor:C.coral, avatars:["https://i.pravatar.cc/24?img=5","https://i.pravatar.cc/24?img=44","https://i.pravatar.cc/24?img=52"] },
-  { id:"e3", title:"Gitarren Workshop",  sub:"Klang & Rhythmus",        date:"7. Juni - Berlin",            img:"https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=400&q=80", badge:"In 3 Wochen",   badgeColor:C.teal,  spots:"7 Pl\u00E4tze frei", spotsColor:C.teal,  avatars:["https://i.pravatar.cc/24?img=11","https://i.pravatar.cc/24?img=32"] },
-  { id:"e4", title:"Kreatives Dinner",   sub:"Gemeinsam genie\u00DFen", date:"14. Juni - Hamburg",          img:"https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=80", badge:"Bald ausgebucht",badgeColor:C.coral, spots:"Nur noch 2 Pl\u00E4tze", spotsColor:C.coral, avatars:["https://i.pravatar.cc/24?img=47","https://i.pravatar.cc/24?img=53"] },
-];
-
 const PILLS = ["Alles","Menschen","Werke","Erlebnisse","Wirkung","Orte"];
 
 /* ══════════════════════════════════════════════════════════════
@@ -226,6 +188,7 @@ function HeroCard({ item, onDetails }) {
 ══════════════════════════════════════════════════════════════ */
 function CreatorSection({ people, onView }) {
   const secActions = useHuiActions();
+  if (!people.length) return null;
   return (
     <div>
       <SectionHeader title="Menschen" onAll={() => secActions[A.OPEN_COMMUNITY]?.({ filter:"people" })} />
@@ -310,6 +273,7 @@ function CreatorCard({ person, idx, onView }) {
 ══════════════════════════════════════════════════════════════ */
 function WorksGrid({ works, onView }) {
   const secActions = useHuiActions();
+  if (!works.length) return null;
   return (
     <div>
       <SectionHeader title="Werke" onAll={() => secActions[A.OPEN_WERK]?.({ view:"favoriten" })} />
@@ -388,6 +352,7 @@ function WorkCard({ work, idx, onView }) {
 ══════════════════════════════════════════════════════════════ */
 function ExperienceCards({ experiences, onView }) {
   const secActions = useHuiActions();
+  if (!experiences.length) return null;
   return (
     <div>
       <SectionHeader title="Erlebnisse" onAll={() => secActions[A.OPEN_EXPERIENCE]?.({ view:"favoriten" })} />
@@ -480,7 +445,8 @@ function ExperienceCard({ exp, idx, onView }) {
 /* ══════════════════════════════════════════════════════════════
    IMPACT FOOTER
 ══════════════════════════════════════════════════════════════ */
-function ImpactFooter({ impactEur = 2.25, projectCount = 3, onImpact }) {
+function ImpactFooter({ impactEur = 0, projectCount = 0, onImpact }) {
+  if (impactEur <= 0 && projectCount <= 0) return null;
   return (
     <div style={{
       margin:"24px 20px 0",
@@ -640,14 +606,13 @@ export default function FavoritesPage({ currentUser, onView, onImpact, onDiscove
   const [activeCategory, setActiveCategory] = useState("Alles");
   const [search,         setSearch]         = useState("");
   const [showSearch,     setShowSearch]     = useState(false);
-  const [impactEur,      setImpactEur]      = useState(2.25);
-  const [projectCount,   setProjectCount]   = useState(3);
+  const [impactEur,      setImpactEur]      = useState(0);
+  const [projectCount,   setProjectCount]   = useState(0);
 
-  // People/Works/Experiences: DB oder Mock
-  const [people,      setPeople]      = useState(MOCK_PEOPLE);
-  const [works,       setWorks]       = useState(MOCK_WORKS);
+  const [people,      setPeople]      = useState([]);
+  const [works,       setWorks]       = useState([]);
   const [experiences, setExperiences] = useState([]);
-  const [heroItem,    setHeroItem]    = useState(MOCK_HERO);
+  const [heroItem,    setHeroItem]    = useState(null);
   const [loading,     setLoading]     = useState(false);
 
   // ── Daten laden (DB-Favorites) ────────────────────────────────────
@@ -695,7 +660,7 @@ export default function FavoritesPage({ currentUser, onView, onImpact, onDiscove
           const total = payments.reduce((s,p) => s + (p.impact_eur||0), 0);
           if (total > 0) setImpactEur(total);
         }
-      } catch { /* silent — Mocks bleiben */ }
+      } catch { /* silent — leerer Zustand bleibt */ }
       finally { setLoading(false); }
     })();
   }, [currentUser?.id]);
@@ -704,8 +669,24 @@ export default function FavoritesPage({ currentUser, onView, onImpact, onDiscove
   const showPeople  = activeCategory === "Alles" || activeCategory === "Menschen";
   const showWorks   = activeCategory === "Alles" || activeCategory === "Werke";
   const showExps    = activeCategory === "Alles" || activeCategory === "Erlebnisse";
+  const isEmpty     = !loading && people.length === 0 && works.length === 0 && experiences.length === 0 && !heroItem;
 
   // ── Render ─────────────────────────────────────────────────────────
+  if (isEmpty) {
+    return (
+      <div style={{
+        minHeight:"100vh",
+        background:C.cream,
+        fontFamily:"-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif",
+        display:"flex", flexDirection:"column",
+      }}>
+        <style>{CSS}</style>
+        <EmptyState onDiscover={handleDiscover} />
+      </div>
+    );
+  }
+
+  // ── Render (mit Inhalten) ─────────────────────────────────────────
   return (
     <div style={{
       minHeight:"100vh",
@@ -779,9 +760,11 @@ export default function FavoritesPage({ currentUser, onView, onImpact, onDiscove
       </div>
 
       {/* ── HERO CARD ───────────────────────────────────────────── */}
-      <div style={{ padding:"16px 0 0", animation:"fadeUp 0.4s ease both" }}>
-        <HeroCard item={heroItem} onDetails={handleView} />
-      </div>
+      {heroItem && (
+        <div style={{ padding:"16px 0 0", animation:"fadeUp 0.4s ease both" }}>
+          <HeroCard item={heroItem} onDetails={handleView} />
+        </div>
+      )}
 
       {/* ── KATEGORIE PILLS ─────────────────────────────────────── */}
       <div className="fr-scroll" style={{

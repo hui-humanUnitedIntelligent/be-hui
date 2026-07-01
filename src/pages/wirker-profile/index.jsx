@@ -651,14 +651,6 @@ function WirkungSection({ profile, wirkerProfile, followerCount = 0 }) {
 // ═══════════════════════════════════════════════════════════════
 // 6. COMMUNITY / RESONANCE — "Menschen in Resonanz"
 // ═══════════════════════════════════════════════════════════════
-const SEED_COMMUNITY = [
-  {id:"c1",name:"Mara",   role:"Hat am Atelier Workshop teilgenommen", time:"Gerade aktiv", dot:"#22C55E",av:"https://i.pravatar.cc/40?img=1"},
-  {id:"c2",name:"Jonas",  role:"1:1 Mentoring gebucht",               time:"Vor 12 Min.",  dot:C.teal,   av:"https://i.pravatar.cc/40?img=3"},
-  {id:"c3",name:"Lea",    role:"Hat diesen Moment geliebt",           time:"Vor 1 Std.",   dot:C.coral,  av:"https://i.pravatar.cc/40?img=5"},
-  {id:"c4",name:"Timo",   role:"Im Natur Retreat dabei",              time:"Heute",        dot:"#8B5CF6",av:"https://i.pravatar.cc/40?img=8"},
-  {id:"c5",name:"Anna",   role:"Neuer Follower",                      time:"Heute",        dot:"#F59E0B",av:"https://i.pravatar.cc/40?img=12"},
-];
-
 function ResonanceRow({ m }) {
   const rowActions = useHuiActions();
   return (
@@ -694,7 +686,28 @@ function ResonanceRow({ m }) {
 function ResonanceCommunity({ community }) {
   const communityActions = useHuiActions();
   const { ref, style } = useEntry(80);
-  const members = safeArr(community).length ? safeArr(community) : SEED_COMMUNITY;
+  const members = safeArr(community);
+  if (!members.length) {
+    return (
+      <div ref={ref} style={{ ...style, width:"100%", background:C.cream, padding:"22px 18px 24px" }}>
+        <div style={{ fontSize:16, fontWeight:800, color:C.ink, letterSpacing:"-.025em", marginBottom:14 }}>
+          Menschen in Resonanz
+        </div>
+        <div style={{
+          background:"white", borderRadius:R.md, padding:"28px 20px",
+          boxShadow:Sh.xs, border:"1px solid rgba(0,0,0,.04)", textAlign:"center",
+        }}>
+          <div style={{ fontSize:28, marginBottom:10, opacity:0.5 }}>✨</div>
+          <div style={{ fontSize:14, fontWeight:600, color:C.ink, marginBottom:6 }}>
+            Noch keine Resonanz sichtbar
+          </div>
+          <div style={{ fontSize:12.5, color:C.muted, lineHeight:1.55, maxWidth:280, margin:"0 auto" }}>
+            Wenn Menschen mit diesem Profil in Verbindung treten, erscheinen sie hier — echt und lebendig.
+          </div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div ref={ref} style={{ ...style, width:"100%", background:C.cream, padding:"22px 18px 24px" }}>
       <div style={{
