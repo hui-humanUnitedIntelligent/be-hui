@@ -1,0 +1,49 @@
+name: Debug Ambassador SQL
+
+on:
+  workflow_dispatch:
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        run: |
+          curl -fsSL https://github.com/supabase/cli/releases/download/v2.108.0/supabase_linux_amd64.tar.gz | tar -xz -C /tmp
+          sudo mv /tmp/supabase /usr/local/bin/supabase
+          supabase --version
+
+      - name: Link Supabase project
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase link --project-ref gxztrhvhcxhmunhhkfjd --yes
+
+      - name: Test simple SQL
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          echo "SELECT 1 AS test;" > /tmp/simple.sql
+          supabase db query --linked -f /tmp/simple.sql && echo "✅ Simple SQL OK"
+
+      - name: Test BEGIN/COMMIT
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          printf 'BEGIN;\nSELECT 1 AS test;\nCOMMIT;\n' > /tmp/transaction.sql
+          supabase db query --linked -f /tmp/transaction.sql && echo "✅ Transaction OK"
+
+      - name: Show SQL file head
+        run: |
+          echo "=== ambassador_rpcs_v2.sql first 50 lines ==="
+          head -50 ambassador_rpcs_v2.sql
+
+      - name: Test ambassador SQL (verbose)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          awk '/^COMMIT;/{print; exit} {print}' ambassador_rpcs_v2.sql > /tmp/amb_tx.sql
+          echo "=== Executing $(wc -l < /tmp/amb_tx.sql) lines ==="
+          supabase db query --linked -f /tmp/amb_tx.sql 2>&1 || true
+          echo "Exit code: $?"
