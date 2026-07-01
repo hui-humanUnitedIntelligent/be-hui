@@ -511,15 +511,32 @@ export default function LoginPage() {
     // Prio 1: Manuell eingetippt im Formular
     let ambassadorId = null;
     if (refLink.trim()) {
-      const refResult = await resolveRefLink(refLink.trim());
+      // Sofort in localStorage sichern (Rohwert) — falls die Auflösung unten
+      // transient fehlschlägt, greift processReferralForUser/AuthCallback später
+      // trotzdem noch darauf zurück, statt die Eingabe stillschweigend zu verlieren.
+      const rawUsername = refLink.trim().toLowerCase();
+      try {
+        const expiry = Date.now() + 7 * 24 * 60 * 60 * 1000;
+        localStorage.setItem('hui_referral_ambassador', JSON.stringify({ username: rawUsername, expiry }));
+      } catch {}
+
+      // Bis zu 2 Versuche (Netzwerk-Hänger o.ä. abfedern)
+      let refResult = await resolveRefLink(refLink.trim());
+      if (!refResult?.ambassadorId) {
+        await new Promise(r => setTimeout(r, 400));
+        refResult = await resolveRefLink(refLink.trim());
+      }
       if (refResult?.ambassadorId) {
         ambassadorId = refResult.ambassadorId;
-        // Im localStorage speichern damit processReferralForUser es findet
+        // Vollständigen Eintrag (mit ambassadorId) speichern
         const expiry = Date.now() + 7 * 24 * 60 * 60 * 1000;
         try { localStorage.setItem('hui_referral_ambassador', JSON.stringify({
           username: refResult.username, ambassadorId, expiry
         })); } catch {}
       }
+      // Falls immer noch kein ambassadorId: der rohe Username bleibt in localStorage
+      // gespeichert (siehe oben) — processReferralForUser() löst ihn beim nächsten
+      // Login / nach E-Mail-Bestätigung erneut über ambassador_ref_links auf.
     }
     // Prio 2: localStorage (gesetzt von RefRedirect wenn Nutzer über Link kam)
     if (!ambassadorId) {
