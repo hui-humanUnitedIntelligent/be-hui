@@ -1,0 +1,447 @@
+{
+  "timestamp": "2026-06-27T09:38:12.854Z",
+  "environment": {
+    "supabaseConfigured": false,
+    "stripeConfigured": false,
+    "note": "Audit ran against in-memory mock executing production edge-function logic"
+  },
+  "summary": {
+    "pass": 44,
+    "partial": 9,
+    "fail": 0,
+    "skip": 14
+  },
+  "results": [
+    {
+      "testId": "T1",
+      "name": "create-payment-intent HTTP 200 + clientSecret",
+      "status": "pass",
+      "reason": "HTTP 200, clientSecret present, orderId=order-0001",
+      "details": {
+        "responseBody": {
+          "clientSecret": "pi_test_0001_secret",
+          "orderId": "order-0001",
+          "serverTotal": 25
+        }
+      }
+    },
+    {
+      "testId": "T1",
+      "name": "Server price authority overrides client",
+      "status": "pass",
+      "reason": "serverTotal=25€ (DB), not 1€ (client)"
+    },
+    {
+      "testId": "T1",
+      "name": "Webhook → Order paid",
+      "status": "pass",
+      "reason": "status=paid"
+    },
+    {
+      "testId": "T1",
+      "name": "Stripe Element / Kartenzahlung / Danke-Screen",
+      "status": "skip",
+      "reason": "Browser-E2E nicht ausführbar: keine VITE_SUPABASE_URL / VITE_STRIPE_PUBLIC_KEY in Laufzeitumgebung"
+    },
+    {
+      "testId": "T2",
+      "name": "Kreditkarte",
+      "status": "skip",
+      "reason": "Kein Stripe Test-Key — Browser-Zahlung nicht ausführbar"
+    },
+    {
+      "testId": "T2",
+      "name": "Apple Pay",
+      "status": "skip",
+      "reason": "Erfordert Safari + verifizierte Domain + Live-Deployment"
+    },
+    {
+      "testId": "T2",
+      "name": "Google Pay",
+      "status": "skip",
+      "reason": "Erfordert Chrome + verifizierte Domain + Live-Deployment"
+    },
+    {
+      "testId": "T2",
+      "name": "SEPA",
+      "status": "skip",
+      "reason": "Redirect-Flow (?hui_order=) nur teilweise implementiert (Home.jsx TODO)"
+    },
+    {
+      "testId": "T2",
+      "name": "Link",
+      "status": "skip",
+      "reason": "Abhängig von Stripe Dashboard-Konfiguration — nicht testbar ohne Keys"
+    },
+    {
+      "testId": "T3",
+      "name": "Event verarbeitet → Order paid",
+      "status": "pass",
+      "reason": "OK"
+    },
+    {
+      "testId": "T3",
+      "name": "Creator Notification",
+      "status": "pass",
+      "reason": "OK"
+    },
+    {
+      "testId": "T3",
+      "name": "Buyer Notification",
+      "status": "pass",
+      "reason": "OK"
+    },
+    {
+      "testId": "T3",
+      "name": "Impact berechnet (+1.75€)",
+      "status": "pass",
+      "reason": "OK"
+    },
+    {
+      "testId": "T3",
+      "name": "impact_credited Event",
+      "status": "pass",
+      "reason": "OK"
+    },
+    {
+      "testId": "T3",
+      "name": "Kein Fehler",
+      "status": "pass",
+      "reason": "OK"
+    },
+    {
+      "testId": "T3",
+      "name": "Wallet aktualisiert",
+      "status": "partial",
+      "reason": "Wallet wird erst bei release-payout aktualisiert, nicht beim Webhook (by design)"
+    },
+    {
+      "testId": "T4",
+      "name": "Zweites Event ignoriert (duplicate)",
+      "status": "pass",
+      "reason": "duplicate=true"
+    },
+    {
+      "testId": "T4",
+      "name": "Kein doppelter Impact",
+      "status": "pass",
+      "reason": "pool: 101.75 → 101.75"
+    },
+    {
+      "testId": "T4",
+      "name": "Keine zweite Notification",
+      "status": "pass",
+      "reason": "2 → 2"
+    },
+    {
+      "testId": "T4",
+      "name": "Kein zweiter Statuswechsel",
+      "status": "pass",
+      "reason": "status bleibt paid"
+    },
+    {
+      "testId": "T4",
+      "name": "Neues Event-ID aber Order nicht pending → kein Impact",
+      "status": "pass",
+      "reason": "Status-Guard greift"
+    },
+    {
+      "testId": "T5",
+      "name": "Preis ändern (unit_price_eur=0.01)",
+      "status": "pass",
+      "reason": "serverTotal=25€ (Authority)"
+    },
+    {
+      "testId": "T5",
+      "name": "Quantity ändern (qty=999)",
+      "status": "pass",
+      "reason": "serverTotal=2475€ (Authority)"
+    },
+    {
+      "testId": "T5",
+      "name": "Creator ändern",
+      "status": "pass",
+      "reason": "serverTotal=25€ (Authority)"
+    },
+    {
+      "testId": "T5",
+      "name": "Creator-ID Manipulation",
+      "status": "partial",
+      "reason": "Client creator_id=evil-creator wird akzeptiert — kein Server-Lookup gegen works.user_id",
+      "details": {
+        "risk": "Angreifer könnte falschen Creator zuordnen wenn item_id bekannt"
+      }
+    },
+    {
+      "testId": "T5",
+      "name": "Snapshot manipulieren (price_eur=1)",
+      "status": "pass",
+      "reason": "serverTotal=25€ (Authority)"
+    },
+    {
+      "testId": "T5",
+      "name": "Shipping ändern (shipping_eur=50)",
+      "status": "pass",
+      "reason": "serverTotal=25€ (Authority)"
+    },
+    {
+      "testId": "T6",
+      "name": "Deep Link ?hui_order= + status=success",
+      "status": "partial",
+      "reason": "Home.jsx leert Cart + säubert URL, aber Danke-Overlay TODO (setShowUnterstutzenFlow nicht aufgerufen)",
+      "details": {
+        "file": "src/pages/Home.jsx",
+        "line": 171
+      }
+    },
+    {
+      "testId": "T6",
+      "name": "Reload während Payment",
+      "status": "skip",
+      "reason": "Kein Browser-E2E — PI wird bei erneutem Öffnen neu erstellt (neue pending Order)"
+    },
+    {
+      "testId": "T6",
+      "name": "Browser schließen / Zurück",
+      "status": "skip",
+      "reason": "Kein Browser-E2E"
+    },
+    {
+      "testId": "T6",
+      "name": "Refresh nach erfolgreicher Zahlung",
+      "status": "partial",
+      "reason": "Kein Order-Status-Check bei ?hui_order= — nur Cart-Clear, kein paid-Verifikation"
+    },
+    {
+      "testId": "T7",
+      "name": "Creator sieht Order (order_items)",
+      "status": "pass",
+      "reason": "1 order_item(s), payout_eur=22.5"
+    },
+    {
+      "testId": "T7",
+      "name": "Betrag korrekt (22.50€ payout)",
+      "status": "pass",
+      "reason": "payout_eur=22.5"
+    },
+    {
+      "testId": "T7",
+      "name": "Status (fulfillment=new)",
+      "status": "pass",
+      "reason": "fulfillment=new"
+    },
+    {
+      "testId": "T7",
+      "name": "Creator Notification",
+      "status": "pass",
+      "reason": "new_order Notification erstellt"
+    },
+    {
+      "testId": "T7",
+      "name": "Creator Dashboard UI",
+      "status": "skip",
+      "reason": "Kein Live-Frontend — fulfillmentService.myItems() existiert in commerceEngine.js"
+    },
+    {
+      "testId": "T8",
+      "name": "Wallet bei Webhook",
+      "status": "partial",
+      "reason": "creator_wallets wird NICHT beim payment_intent.succeeded aktualisiert — erst release-payout",
+      "details": {
+        "file": "supabase/functions/handle-payment-webhook/index.ts"
+      }
+    },
+    {
+      "testId": "T8",
+      "name": "Platform Fee korrekt (10%)",
+      "status": "pass",
+      "reason": "Server berechnet platform_fee_eur = total * 0.10"
+    },
+    {
+      "testId": "T8",
+      "name": "Impact korrekt (7%)",
+      "status": "pass",
+      "reason": "impact_eur = total * 0.07, Impact Pool +1.75€ bei 25€ Order"
+    },
+    {
+      "testId": "T8",
+      "name": "Wallet nach release-payout",
+      "status": "skip",
+      "reason": "Admin-only Endpoint — kein Test-Admin-JWT verfügbar"
+    },
+    {
+      "testId": "T9",
+      "name": "PaymentIntent erzeugt",
+      "status": "pass",
+      "reason": "{\"amount\":5000,\"currency\":\"eur\",\"metadata\":{\"hui_order_id\":\"order-0001\",\"buyer_id\":\"buyer-uuid-001\",\"item_count\":\"1\",\"impact_eur\":\"3.50\",\"source\":\"hui_commerce_v2\"}}"
+    },
+    {
+      "testId": "T9",
+      "name": "Betrag korrekt (50€ = 5000 cents)",
+      "status": "pass",
+      "reason": "{\"amount\":5000,\"currency\":\"eur\",\"metadata\":{\"hui_order_id\":\"order-0001\",\"buyer_id\":\"buyer-uuid-001\",\"item_count\":\"1\",\"impact_eur\":\"3.50\",\"source\":\"hui_commerce_v2\"}}"
+    },
+    {
+      "testId": "T9",
+      "name": "Currency eur",
+      "status": "pass",
+      "reason": "{\"amount\":5000,\"currency\":\"eur\",\"metadata\":{\"hui_order_id\":\"order-0001\",\"buyer_id\":\"buyer-uuid-001\",\"item_count\":\"1\",\"impact_eur\":\"3.50\",\"source\":\"hui_commerce_v2\"}}"
+    },
+    {
+      "testId": "T9",
+      "name": "Metadata hui_order_id",
+      "status": "pass",
+      "reason": "{\"amount\":5000,\"currency\":\"eur\",\"metadata\":{\"hui_order_id\":\"order-0001\",\"buyer_id\":\"buyer-uuid-001\",\"item_count\":\"1\",\"impact_eur\":\"3.50\",\"source\":\"hui_commerce_v2\"}}"
+    },
+    {
+      "testId": "T9",
+      "name": "Metadata source",
+      "status": "pass",
+      "reason": "{\"amount\":5000,\"currency\":\"eur\",\"metadata\":{\"hui_order_id\":\"order-0001\",\"buyer_id\":\"buyer-uuid-001\",\"item_count\":\"1\",\"impact_eur\":\"3.50\",\"source\":\"hui_commerce_v2\"}}"
+    },
+    {
+      "testId": "T9",
+      "name": "Idempotency Key pi_hui_{orderId}",
+      "status": "pass",
+      "reason": "key=pi_hui_order-0001"
+    },
+    {
+      "testId": "T9",
+      "name": "Customer (Stripe Customer ID)",
+      "status": "partial",
+      "reason": "receipt_email gesetzt, kein stripe_customer_id / Customer-Objekt"
+    },
+    {
+      "testId": "T10",
+      "name": "orders",
+      "status": "pass",
+      "reason": "konsistent"
+    },
+    {
+      "testId": "T10",
+      "name": "order_items",
+      "status": "pass",
+      "reason": "konsistent"
+    },
+    {
+      "testId": "T10",
+      "name": "commerce_events",
+      "status": "pass",
+      "reason": "konsistent"
+    },
+    {
+      "testId": "T10",
+      "name": "creator_wallets",
+      "status": "pass",
+      "reason": "unverändert bis payout"
+    },
+    {
+      "testId": "T10",
+      "name": "creator_payouts",
+      "status": "pass",
+      "reason": "erst nach release-payout"
+    },
+    {
+      "testId": "T10",
+      "name": "impact_rounds",
+      "status": "pass",
+      "reason": "konsistent"
+    },
+    {
+      "testId": "T10",
+      "name": "notifications",
+      "status": "pass",
+      "reason": "konsistent"
+    },
+    {
+      "testId": "T10",
+      "name": "shipments",
+      "status": "pass",
+      "reason": "leer bis Fulfillment — erwartet"
+    },
+    {
+      "testId": "T11",
+      "name": "Ungültiger Token → 401",
+      "status": "pass",
+      "reason": "HTTP 401, message: Unauthorized"
+    },
+    {
+      "testId": "T11",
+      "name": "Leerer Payload → 400",
+      "status": "pass",
+      "reason": "order und orderItems erforderlich"
+    },
+    {
+      "testId": "T11",
+      "name": "Mindestbetrag 0.50€",
+      "status": "pass",
+      "reason": "HTTP 400: Mindestbetrag: 0.50 €"
+    },
+    {
+      "testId": "T11",
+      "name": "Stripe offline (STRIPE_NOT_CONFIGURED)",
+      "status": "pass",
+      "reason": "create-payment-intent/index.ts:503 + code STRIPE_NOT_CONFIGURED + verständliche DE-Meldung"
+    },
+    {
+      "testId": "T11",
+      "name": "Supabase offline",
+      "status": "skip",
+      "reason": "Kein Live-Endpoint — Edge Function gibt 500 bei DB-Fehler"
+    },
+    {
+      "testId": "T11",
+      "name": "Halbfertige Orders bei PI-Fehler",
+      "status": "partial",
+      "reason": "Order wird VOR Stripe-PI erstellt — bei Stripe-Fehler bleibt orphaned pending Order",
+      "details": {
+        "file": "supabase/functions/create-payment-intent/index.ts",
+        "line": 143,
+        "risk": "pending Orders ohne PI"
+      }
+    },
+    {
+      "testId": "T11",
+      "name": "Amount-Mismatch → Order failed",
+      "status": "pass",
+      "reason": "status=failed"
+    },
+    {
+      "testId": "T12",
+      "name": "Doppelte PaymentIntents bei erneutem Checkout",
+      "status": "partial",
+      "reason": "Jeder Checkout erstellt neue Order+PI (1→2) — Idempotency nur pro Order-ID, nicht pro Session",
+      "details": {
+        "risk": "Mehrfaches Öffnen des Flows = mehrere pending Orders"
+      }
+    },
+    {
+      "testId": "T12",
+      "name": "UnterstutzenFlow useEffect PI-Trigger",
+      "status": "partial",
+      "reason": "useEffect deps=[user] only — kein Guard gegen Doppel-Request bei Re-Mount",
+      "details": {
+        "file": "src/components/commerce/UnterstutzenFlow.jsx",
+        "line": 293
+      }
+    },
+    {
+      "testId": "T12",
+      "name": "Lange Ladezeiten / Memory Leaks",
+      "status": "skip",
+      "reason": "Kein Browser-Profiling ohne Live-App"
+    },
+    {
+      "testId": "T12",
+      "name": "Unnötige Re-Renders",
+      "status": "skip",
+      "reason": "Kein React Profiler ohne Live-App"
+    },
+    {
+      "testId": "LIVE",
+      "name": "Deployed Endpoints",
+      "status": "skip",
+      "reason": "Keine VITE_SUPABASE_URL konfiguriert — Live-Tests nicht möglich"
+    }
+  ]
+}
