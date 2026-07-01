@@ -8,6 +8,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
+import { navigateToShellTab } from "../../lib/navigation/navigateToShellTab.js";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 
 // ── Design Tokens (identisch zu HuiStudio) ────────────────────────
@@ -64,7 +66,8 @@ function projectStatus(proj) {
 }
 
 // ── Komponente ────────────────────────────────────────────────────
-export default function MeineProjekteModal({ profile, onClose, switchTab = null }) {
+export default function MeineProjekteModal({ profile, onClose, switchTab = null, handleTab = null }) {
+  const navigate = useNavigate();
   const [tab,          setTab]          = useState("unterstuetzt"); // "unterstuetzt" | "stimmen"
   const [supports,     setSupports]     = useState([]);  // project_support records
   const [votes,        setVotes]        = useState([]);  // impact_votes records
@@ -129,12 +132,7 @@ export default function MeineProjekteModal({ profile, onClose, switchTab = null 
   const goToProject = (projectId) => {
     onClose?.();
     document.body.style.overflow = "";
-    if (typeof switchTab === "function") {
-      switchTab("impact");
-    } else {
-      window.history.pushState({}, "", "/impact");
-      window.dispatchEvent(new PopStateEvent("popstate"));
-    }
+    navigateToShellTab("impact", { handleTab, switchTab, navigate });
     if (projectId) {
       setTimeout(() => {
         const el = document.getElementById(`project-${projectId}`);

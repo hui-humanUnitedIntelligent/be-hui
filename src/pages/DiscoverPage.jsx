@@ -1415,7 +1415,7 @@ function OrtCard({ ort, delay=0, onMap }) {
 // ════════════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ════════════════════════════════════════════════════════════════
-export default function DiscoverPage({ onView, onMap, onBook }) {
+export default function DiscoverPage({ onView, onMap, onBook, onImpact }) {
   const [view, setView]         = useState("cards"); // "cards" | "list"
   const [loading, setLoading] = useState(true);
   const [people, setPeople]           = useState([]);
@@ -1641,10 +1641,14 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
     }
   }, [onBook, onView]);
 
-  // Projekt-Karte: öffne Impact-Seite (/impact)
-  const handleProjektPress = useCallback((projekt) => {
+  // Projekt-Karte: Impact-Tab in HomeShell (NAV-1.4)
+  const handleProjektPress = useCallback(() => {
+    if (typeof onImpact === "function") {
+      onImpact();
+      return;
+    }
     navigate("/impact");
-  }, [navigate]);
+  }, [onImpact, navigate]);
 
   // ActivityCard → Profil öffnen (act.user_id wenn vorhanden, sonst People-Sektion)
   const handleActivityPress = useCallback((act) => {
