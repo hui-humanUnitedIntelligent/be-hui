@@ -32,7 +32,7 @@ const ORB_R    = ORB_D / 2;
 const GAP      = 7;        // Luftfuge Orb ↔ Einbuchtungs-Spitze (bewusstes Design-Element)
 const NOTCH_R  = ORB_R + GAP + 5;  // Bogen-Radius: exakt proportioniert zum 88px Orb
 const CORNER_R = 28;
-const SINK     = 5;    // Final: Orb-Mitte exakt auf Einbuchtungs-Mittelachse
+const SINK     = -11;  // Orb 32% eingetaucht — 33px von 102px Durchmesser
 
 /* ── SVG-Path generieren ───────────────────────────────────── */
 function buildPath(W, H) {
