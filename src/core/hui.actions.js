@@ -258,16 +258,20 @@ export function buildActions(shell) {
       if (!payload) return;
       logAction(A.OPEN_EXPERIENCE, payload);
       const { experience, creatorId } = payload;
-      // Open the creator profile and highlight the experience
+      const expId = experience?.id;
+      const isRealId = expId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(expId));
+      if (isRealId) {
+        window.history.pushState({}, "", `/experience/${expId}`);
+        window.dispatchEvent(new PopStateEvent("popstate"));
+        return;
+      }
       if (creatorId || experience?.creator_id) {
         actions[A.OPEN_PROFILE]({
           creatorId: creatorId ?? experience?.creator_id,
-          _highlightExp: experience?.id ?? null,
-          source: payload.source || S.SYSTEM,  // source durchreichen
-          intent: INTENT.EXPLORE,              // semantic intent
+          source: payload.source || S.SYSTEM,
+          intent: INTENT.EXPLORE,
         });
       } else {
-        // No creator context — open connect sheet
         actions[A.OPEN_CONNECT]({ intent: "experience", experience });
       }
     },

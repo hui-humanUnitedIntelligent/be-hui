@@ -1630,16 +1630,21 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
     if (profileId && typeof onView === "function") onView(profileId);
   }, [onView]);
 
-  // Erlebnis-Karte: öffne ExperienceBookingFlow (Detail + Buchen)
+  // Erlebnis-Karte: öffne einheitliche Content-Detailseite
   const handleErlebnisPress = useCallback((erlebnis) => {
+    const erlebnisId = erlebnis.id;
+    const isRealId = erlebnisId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(erlebnisId));
+    if (isRealId) {
+      navigate(`/experience/${erlebnisId}`);
+      return;
+    }
     if (typeof onBook === "function") {
       onBook(erlebnis);
     } else {
-      // Fallback: Ersteller-Profil öffnen
       const profileId = erlebnis.user_id;
       if (profileId && typeof onView === "function") onView(profileId);
     }
-  }, [onBook, onView]);
+  }, [navigate, onBook, onView]);
 
   // Projekt-Karte: öffne Impact-Seite (/impact)
   const handleProjektPress = useCallback((projekt) => {

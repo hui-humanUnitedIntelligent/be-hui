@@ -1918,8 +1918,8 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
     if(!item)return;
     switch(item.type){
       case "profile":    if(item.id)     openProfileById(item.id);      break;
-      case "work":       if(item.userId) openProfileById(item.userId);  break;
-      case "experience": if(item.userId) openProfileById(item.userId);  break;
+      case "work":       if(item.id)     { window.history.pushState({}, "", `/work/${item.id}`); window.dispatchEvent(new PopStateEvent("popstate")); } break;
+      case "experience": if(item.id)     { window.history.pushState({}, "", `/experience/${item.id}`); window.dispatchEvent(new PopStateEvent("popstate")); } break;
       case "moment":     switchTab?.("discover");                        break;
       default: break;
     }

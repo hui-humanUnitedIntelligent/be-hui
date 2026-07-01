@@ -1012,7 +1012,10 @@ function MyRecommendationsModal({ userId, onClose }) {
                       window.history.pushState({}, "", `/impact`);
                       window.dispatchEvent(new PopStateEvent("popstate"));
                     } else if (t === "experience") {
-                      alert("Erlebnis-Detailseite ist noch nicht verfügbar.");
+                      if (d.exists === false) { alert("Dieses Erlebnis existiert nicht mehr."); return; }
+                      onClose();
+                      window.history.pushState({}, "", `/experience/${rec.item_id}`);
+                      window.dispatchEvent(new PopStateEvent("popstate"));
                     } else if (t === "event") {
                       alert("Event-Detailseite ist noch nicht verfügbar.");
                     }

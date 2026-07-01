@@ -14,7 +14,7 @@ const STORAGE_AMB_KEY = "hui_referral_ambassador";
 // EXCLUDED_REF_PATHS in registry.js ist die konsolidierte Union beider Exclusion-Listen.
 const KNOWN_APP_PATHS = new Set([
   'home','login','studio','impact','admin','diagnose','dashboard',
-  'profile','work','auth','ref','entdecken','buchung','mein-hui',
+  'profile','work','experience','auth','ref','entdecken','buchung','mein-hui',
   'community','impressum','datenschutz','agb','copyright','cookies',
   'auth-callback','callback',
 ]);

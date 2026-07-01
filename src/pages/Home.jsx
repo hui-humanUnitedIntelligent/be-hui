@@ -177,14 +177,21 @@ function HomeInner() {
 
   // Stripe Redirect wird in UnterstutzenFlow behandelt (P1)
 
-    useEffect(() => {
+  useEffect(() => {
     const pending = location?.state?.pendingWerkKauf;
     if (pending && setShowWerkCheckout) {
       setShowWerkCheckout(pending);
-      // Router-State sofort leeren damit Reload nicht erneut öffnet
       try { window.history.replaceState({}, document.title, window.location.pathname); } catch {}
     }
-  }, [location?.state?.pendingWerkKauf]); // eslint-disable-line  // Activity Tracking: App-Start, Foreground, Heartbeat
+  }, [location?.state?.pendingWerkKauf, setShowWerkCheckout]);
+
+  useEffect(() => {
+    const pending = location?.state?.pendingExperienceBooking;
+    if (pending && setShowBookingFlow) {
+      setShowBookingFlow(pending);
+      try { window.history.replaceState({}, document.title, window.location.pathname); } catch {}
+    }
+  }, [location?.state?.pendingExperienceBooking, setShowBookingFlow]);
 
 
   // ── Phase 4C: Talent Flow global registrieren ────────────────
@@ -381,8 +388,11 @@ function HomeInner() {
                     setShowWerkeKorb(false); // kurzer Glow, kein Auto-Open
                   }}
                   onDetail={(item) => {
-                    const werkId = item?.id || item?._raw?.id;
-                    if (werkId) navigate(`/work/${werkId}`);
+                    const itemId = item?.id || item?._raw?.id;
+                    if (!itemId) return;
+                    const type = item?.type || item?._raw?.type;
+                    if (type === "experience") navigate(`/experience/${itemId}`);
+                    else navigate(`/work/${itemId}`);
                   }}
                   onShare={() => setShowTeilen(true)}
                   onEventPress={(ev) => {
