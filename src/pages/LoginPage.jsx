@@ -473,6 +473,27 @@ export default function LoginPage() {
     return null;
   }
 
+  // Sichert eine manuell im Reflink-Feld eingetippte Eingabe im localStorage,
+  // damit JEDER Signup-Weg (Email/PW, Google, Apple, Magic Link) sie spaeter
+  // ueber processReferralForUser()/AuthCallback zuverlaessig aufloesen kann —
+  // unabhaengig davon, ob die sofortige Aufloesung hier gerade gelingt.
+  async function persistManualRefLinkToStorage() {
+    if (!refLink.trim()) return;
+    const rawUsername = refLink.trim().toLowerCase();
+    const expiry = Date.now() + 7 * 24 * 60 * 60 * 1000;
+    try { localStorage.setItem('hui_referral_ambassador', JSON.stringify({ username: rawUsername, expiry })); } catch {}
+    let refResult = await resolveRefLink(refLink.trim());
+    if (!refResult?.ambassadorId) {
+      await new Promise(r => setTimeout(r, 400));
+      refResult = await resolveRefLink(refLink.trim());
+    }
+    if (refResult?.ambassadorId) {
+      try { localStorage.setItem('hui_referral_ambassador', JSON.stringify({
+        username: refResult.username, ambassadorId: refResult.ambassadorId, expiry
+      })); } catch {}
+    }
+  }
+
   async function handleRegister(e) {
     e.preventDefault(); clearMessages(); setUsernameErr('');
 
@@ -508,36 +529,13 @@ export default function LoginPage() {
     const combinedName = `${fullName.trim()} ${lastName.trim()}`;
 
     // ── Ref-Link auflösen (manuelles Feld ODER localStorage ODER URL) ──
-    // Prio 1: Manuell eingetippt im Formular
+    // Prio 1: Manuell eingetippt im Formular (Helper sichert + versucht sofort aufzuloesen)
+    await persistManualRefLinkToStorage();
     let ambassadorId = null;
-    if (refLink.trim()) {
-      // Sofort in localStorage sichern (Rohwert) — falls die Auflösung unten
-      // transient fehlschlägt, greift processReferralForUser/AuthCallback später
-      // trotzdem noch darauf zurück, statt die Eingabe stillschweigend zu verlieren.
-      const rawUsername = refLink.trim().toLowerCase();
-      try {
-        const expiry = Date.now() + 7 * 24 * 60 * 60 * 1000;
-        localStorage.setItem('hui_referral_ambassador', JSON.stringify({ username: rawUsername, expiry }));
-      } catch {}
-
-      // Bis zu 2 Versuche (Netzwerk-Hänger o.ä. abfedern)
-      let refResult = await resolveRefLink(refLink.trim());
-      if (!refResult?.ambassadorId) {
-        await new Promise(r => setTimeout(r, 400));
-        refResult = await resolveRefLink(refLink.trim());
-      }
-      if (refResult?.ambassadorId) {
-        ambassadorId = refResult.ambassadorId;
-        // Vollständigen Eintrag (mit ambassadorId) speichern
-        const expiry = Date.now() + 7 * 24 * 60 * 60 * 1000;
-        try { localStorage.setItem('hui_referral_ambassador', JSON.stringify({
-          username: refResult.username, ambassadorId, expiry
-        })); } catch {}
-      }
-      // Falls immer noch kein ambassadorId: der rohe Username bleibt in localStorage
-      // gespeichert (siehe oben) — processReferralForUser() löst ihn beim nächsten
-      // Login / nach E-Mail-Bestätigung erneut über ambassador_ref_links auf.
-    }
+    try {
+      const justStored = JSON.parse(localStorage.getItem('hui_referral_ambassador') || 'null');
+      if (justStored?.ambassadorId) ambassadorId = justStored.ambassadorId;
+    } catch {}
     // Prio 2: localStorage (gesetzt von RefRedirect wenn Nutzer über Link kam)
     if (!ambassadorId) {
       try {
@@ -602,6 +600,7 @@ export default function LoginPage() {
   async function handleMagicLink(e) {
     e.preventDefault(); clearMessages();
     if (!email) { setErr('Bitte gib deine E-Mail-Adresse ein.'); return; }
+    if (mode === 'register') await persistManualRefLinkToStorage();
     setLoading(true);
     const { error } = await supabase.auth.signInWithOtp({ email,
       options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
@@ -631,6 +630,7 @@ export default function LoginPage() {
 
   async function handleGoogle() {
     clearMessages();
+    if (mode === 'register') await persistManualRefLinkToStorage();
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: `${window.location.origin}/auth/callback` },
@@ -639,6 +639,7 @@ export default function LoginPage() {
 
   async function handleApple() {
     clearMessages();
+    if (mode === 'register') await persistManualRefLinkToStorage();
     await supabase.auth.signInWithOAuth({
       provider: 'apple',
       options: { redirectTo: `${window.location.origin}/auth/callback` },
