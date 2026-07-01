@@ -356,18 +356,33 @@ export default function HUIBottomNavigation({
                 ? item.key === "creator"
                 : tab === item.key;
               return (
-                <NavItem
+                // Gleich breiter Slot pro Tab — sorgt für echte Symmetrie zum
+                // Logo, unabhängig von unterschiedlich langen Labels (z.B.
+                // "Impact" vs. "Home"). Vorher: reines justify-content:
+                // space-between, bei dem breitere Labels den Tab optisch
+                // weiter nach außen schoben als schmalere.
+                <div
                   key={item.key}
-                  item={item}
-                  active={isActive}
-                  badge={
-                    item.key === "notifs" ? notifCount
-                      : item.key === "chat" ? msgCount
-                        : 0
-                  }
-                  onPress={() => handleTabPress(item.key)}
-                  authProfile={authProfile}
-                />
+                  style={{
+                    flex: 1,
+                    minWidth: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <NavItem
+                    item={item}
+                    active={isActive}
+                    badge={
+                      item.key === "notifs" ? notifCount
+                        : item.key === "chat" ? msgCount
+                          : 0
+                    }
+                    onPress={() => handleTabPress(item.key)}
+                    authProfile={authProfile}
+                  />
+                </div>
               );
             })}
           </div>

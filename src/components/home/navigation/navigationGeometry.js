@@ -7,14 +7,14 @@
  */
 
 export const NAV_GEOMETRY = Object.freeze({
-  TAB_H:    64,    // Referenz: flache, elegante Tabbar
+  TAB_H:    58,    // -6px — filigraner, weniger Fläche, mehr Feed sichtbar (vorher 64)
   MARGIN_H: 16,    // Referenz: mehr Seitenluft → Pill wirkt schwebend
   SAFE_B:   14,
   ORB_D:    102,   // LOCKED — HUI Living Design System v1.0 (Durchmesser unverändert)
   GAP:      6,     // Luftfuge Orb ↔ Einbuchtungs-Spitze (bewusstes Design-Element)
-  CORNER_R: 40,    // Referenz: stark gerundete Pill-Form
-  /** 50 % des Orbs sitzt in der Einbuchtung — reduziert den "leeren" Bereich
-   *  oberhalb der Tabbar (vorher 44 %), Logo sitzt wenige Pixel tiefer. */
+  CORNER_R: 40,    // wird via min(CORNER_R, H/2) ohnehin auf volle Pill-Rundung gekappt
+  /** 50 % des Orbs sitzt in der Einbuchtung — Orb-Position bleibt unverändert
+   *  (nur TAB_H schrumpft → weniger reservierte Fläche unterhalb des Orbs). */
   SINK_RATIO: 0.50,
 });
 
@@ -30,9 +30,9 @@ export const SINK    = Math.round(ORB_D * SINK_RATIO);   // 45px in Einbuchtung
 // freilegt (sonst liegt der untere Orb-Rand optisch auf massivem Weiß statt
 // in der Vertiefung). Breite bewusst großzügiger als die Tiefe → weicher,
 // organischer Bogen statt steiler V-Form.
-export const NOTCH_HALF_WIDTH = 80;  // halbe Breite der Notch-Öffnung
-export const NOTCH_DEPTH      = 36;  // Tiefe — deckt den Großteil des Orb-Einsinkens ab
-export const NOTCH_HANDLE_R   = 52;  // Bezier-Handle-Radius für den weichen Bogen
+export const NOTCH_HALF_WIDTH = 80;  // halbe Breite — UNVERÄNDERT (nicht breiter, wie gefordert)
+export const NOTCH_DEPTH      = 40;  // etwas tiefer (36→40) — Logo sitzt natürlicher in der Wölbung
+export const NOTCH_HANDLE_R   = 52;  // Bezier-Handle-Radius — unverändert, Kurve bleibt weich
 
 /** Visible orb height above the bar surface */
 export const ORB_OVERHANG = ORB_D - SINK;   // 57px
