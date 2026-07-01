@@ -103,13 +103,12 @@ export async function processReferralForUser(userId) {
     let ambassadorId = stored.ambassadorId || null;
 
     if (!ambassadorId && stored.username) {
-      const { data: refLink } = await supabase
-        .from('ambassador_ref_links')
-        .select('user_id')
-        .eq('username', stored.username.toLowerCase())
-        .maybeSingle();
-      if (!refLink?.user_id) return false;
-      ambassadorId = refLink.user_id;
+      // ambassador_ref_links hat KEINE RLS-Policy fuer irgendeine Rolle (auch nicht
+      // 'authenticated') -- ein direkter .from(...).select() liefert hier immer null!
+      // Ausschliesslich ueber die SECURITY-DEFINER-RPC aufloesen.
+      const { data: resolved } = await supabase.rpc('rpc_resolve_ref_link', { p_username: stored.username.toLowerCase() });
+      if (!resolved?.found || !resolved?.ambassador_id) return false;
+      ambassadorId = resolved.ambassador_id;
     }
 
     if (!ambassadorId) return false;
