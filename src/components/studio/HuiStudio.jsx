@@ -653,7 +653,7 @@ function EinladungenModal({ ambassadorId, username, onClose }) {
 
   return createPortal(
     <div style={{
-      position:"fixed", inset:0, zIndex:10750, // > Ambassador-Bereich-Modal (10700) — muss darüber liegen
+      position:"fixed", inset:0, zIndex:25000, // über allen bekannten Menü-/Notification-Layern (Studio 9600-10800, NotificationPanel 10000-19600, StoryReactionTray 23000) — unter Toast (29000)
       background:"rgba(26,26,24,0.55)", backdropFilter:"blur(4px)", WebkitBackdropFilter:"blur(4px)",
       display:"flex", flexDirection:"column", justifyContent:"flex-end",
     }} onClick={e => e.target === e.currentTarget && onClose()}>
