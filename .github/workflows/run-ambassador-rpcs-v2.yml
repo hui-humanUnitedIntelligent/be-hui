@@ -42,15 +42,9 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
           set -euo pipefail
-          RPCS="rpc_validate_ambassador_name rpc_get_ambassador_ref_link rpc_get_ambassador_referrals rpc_ambassador_comment_work rpc_ambassador_comment_project rpc_ambassador_send_message rpc_ambassador_resonance"
           FAIL=0
-          for fn in $RPCS; do
-            count=$(supabase db query --linked "SELECT COUNT(*)::int AS c FROM pg_proc WHERE proname='$fn';" -o json | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d[0]["c"] if d else 0)')
-            if [ "$count" = "1" ]; then
-              echo "✅ $fn"
-            else
-              echo "❌ $fn FEHLT (count=$count)"
-              FAIL=1
-            fi
+          for fn in rpc_validate_ambassador_name rpc_get_ambassador_ref_link rpc_get_ambassador_referrals rpc_ambassador_comment_work rpc_ambassador_comment_project rpc_ambassador_send_message rpc_ambassador_resonance; do
+            count=$(supabase db query --linked "SELECT COUNT(*)::int AS c FROM pg_proc WHERE proname='${fn}';" -o json | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d[0]["c"] if d else 0)')
+            if [ "$count" = "1" ]; then echo "OK $fn"; else echo "FAIL $fn"; FAIL=1; fi
           done
           exit $FAIL
