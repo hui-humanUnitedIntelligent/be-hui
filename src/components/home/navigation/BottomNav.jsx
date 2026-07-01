@@ -24,13 +24,13 @@ import { validateNavItem } from "../../../lib/factories/createNavItem.js";
 import { useHuiActions, A } from "../../../core/hui.actions.js";
 
 /* ── Geometrie ─────────────────────────────────────────────── */
-const TAB_H    = 66;
+const TAB_H    = 72;    // mehr Höhe — Einbuchtung schneidet nicht in Items
 const MARGIN_H = 12;
 const SAFE_B   = 14;
-const ORB_D    = 78;    // +22% — sofort erkennbarer Mittelpunkt
+const ORB_D    = 88;    // Mittelpunkt der Navigation — hochwertiger, klar dominant
 const ORB_R    = ORB_D / 2;
-const GAP      = 5;        // Luftspalt Orb-Unterkante ↔ Einbuchtungs-Spitze (tiefer gesetzt)
-const NOTCH_R  = ORB_R + GAP + 4;  // Bogen-Radius: folgt exakt dem Orb-Umriss
+const GAP      = 7;        // Luftfuge Orb ↔ Einbuchtungs-Spitze (bewusstes Design-Element)
+const NOTCH_R  = ORB_R + GAP + 5;  // Bogen-Radius: exakt proportioniert zum 88px Orb
 const CORNER_R = 28;
 
 /* ── SVG-Path generieren ───────────────────────────────────── */
@@ -152,7 +152,12 @@ export default function BottomNav({
   const navItems = (NAV_ITEMS || []).map(validateNavItem).filter(Boolean);
 
   /* Orb-marginBottom: Unterkante des Orbs liegt GAP px über Tabbar-Oberkante */
-  const orbMB = `calc(max(${SAFE_B}px, env(safe-area-inset-bottom, ${SAFE_B}px)) + ${TAB_H}px + ${GAP}px)`;
+  // GEOMETRIE: Orb-Mitte liegt auf Tabbar-Oberkante.
+  // Orb-Unterkante = Tabbar-Oberkante - ORB_R (halber Orb ragt in Einbuchtung)
+  // + GAP = Luftfuge zwischen Orb-Unterkante und Einbuchtungs-Spitze
+  // marginBottom = distance from screen-bottom to orb-button-bottom
+  //   = safe-area + TAB_H (Tabbar-Oberkante) - ORB_R (halb eingetaucht) + GAP
+  const orbMB = `calc(max(${SAFE_B}px, env(safe-area-inset-bottom, ${SAFE_B}px)) + ${TAB_H}px - ${ORB_R}px + ${GAP}px)`;
 
   return (
     <>
