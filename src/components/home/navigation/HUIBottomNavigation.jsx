@@ -69,10 +69,9 @@ function NavigationSVG({ width, height }) {
 }
 
 /* ── HUI Orb (part of navigation, not overlay) ─────────────── */
-/* orbPhase: "idle" | "tap" | "focus" — steuert Phase-1/2 der Cinematic-Öffnung */
-function NavigationOrb({ active, onPress, orbPhase = "idle" }) {
+/* Soft Transition: nur normales Press-Feedback — keine Zwischenphasen am Orb selbst */
+function NavigationOrb({ active, onPress }) {
   const [pressed, setPressed] = React.useState(false);
-  const isTap = orbPhase === "tap";
 
   return (
     <button
@@ -81,21 +80,21 @@ function NavigationOrb({ active, onPress, orbPhase = "idle" }) {
       aria-label="Mein HUI"
       onPointerDown={(e) => {
         e.currentTarget.style.transform = "scale(0.94) translateY(1px)";
-        e.currentTarget.style.transition = "transform 100ms cubic-bezier(0.22,1,0.36,1)";
+        e.currentTarget.style.transition = "transform 100ms ease-in-out";
         setPressed(true);
       }}
       onPointerUp={(e) => {
         e.currentTarget.style.transform = active
           ? "scale(1.04) translateY(-2px)"
           : "scale(1) translateY(0)";
-        e.currentTarget.style.transition = "transform 220ms cubic-bezier(0.34,1.56,0.64,1)";
+        e.currentTarget.style.transition = "transform 220ms ease-in-out";
         setPressed(false);
       }}
       onPointerLeave={(e) => {
         e.currentTarget.style.transform = active
           ? "scale(1.04) translateY(-2px)"
           : "scale(1) translateY(0)";
-        e.currentTarget.style.transition = "transform 220ms cubic-bezier(0.34,1.56,0.64,1)";
+        e.currentTarget.style.transition = "transform 220ms ease-in-out";
         setPressed(false);
       }}
       style={{
@@ -109,17 +108,12 @@ function NavigationOrb({ active, onPress, orbPhase = "idle" }) {
         background: "transparent",
         WebkitTapHighlightColor: "transparent",
         touchAction: "manipulation",
-        // Phase 1 (TAP, 0-120ms): sanfte Vergrößerung ~1.04 — sofortiges Feedback
-        transition: isTap
-          ? "transform 120ms cubic-bezier(0.4,0,0.2,1)"
-          : "transform 240ms cubic-bezier(0.34,1.56,0.64,1)",
+        transition: "transform 220ms ease-in-out",
         transform: pressed
           ? "scale(0.94) translateY(1px)"
-          : isTap
-            ? "scale(1.04) translateY(-1px)"
-            : active
-              ? "scale(1.04) translateY(-2px)"
-              : "scale(1) translateY(0)",
+          : active
+            ? "scale(1.04) translateY(-2px)"
+            : "scale(1) translateY(0)",
       }}
     >
       <div
@@ -131,21 +125,12 @@ function NavigationOrb({ active, onPress, orbPhase = "idle" }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          // Phase 1: Glow wird kurz heller — Lichtimpuls
-          transition: "filter 150ms cubic-bezier(0.4,0,0.2,1)",
-          filter: isTap
-            ? [
-                "drop-shadow(0 3px 12px rgba(190,100,20,0.30))",
-                "drop-shadow(0 8px 28px rgba(190,100,20,0.20))",
-                "drop-shadow(0 16px 46px rgba(13,196,150,0.16))",
-                "drop-shadow(0 1px 4px rgba(0,0,0,0.08))",
-              ].join(" ")
-            : [
-                "drop-shadow(0 3px 10px rgba(190,100,20,0.19))",
-                "drop-shadow(0 7px 24px rgba(190,100,20,0.12))",
-                "drop-shadow(0 14px 40px rgba(13,196,150,0.08))",
-                "drop-shadow(0 1px 3px rgba(0,0,0,0.07))",
-              ].join(" "),
+          filter: [
+            "drop-shadow(0 3px 10px rgba(190,100,20,0.19))",
+            "drop-shadow(0 7px 24px rgba(190,100,20,0.12))",
+            "drop-shadow(0 14px 40px rgba(13,196,150,0.08))",
+            "drop-shadow(0 1px 3px rgba(0,0,0,0.07))",
+          ].join(" "),
         }}
       >
         <img
@@ -263,40 +248,30 @@ export default function HUIBottomNavigation({
         }}
       >
         {/* ── Orb: top of nav container, centered ─────────── */}
-        {/* orbTransition — Cinematic Opening v2, 5-Phasen-Choreografie:
-             idle    → Normalzustand, tappable
-             tap     → Phase 1 (0-120ms): Orb reagiert, Scale 1.04, Glow heller
-             focus   → Phase 2 (120-260ms): Orb bleibt Fokus, keine Wrapper-Änderung
-             exiting → Phase 3 (260-520ms): löst sich auf — scale→94%, opacity→0, easeInOutCubic
-             hidden  → MeinHUI vollständig offen, Nav-Orb unsichtbar
-             entering→ Schließen: kehrt zurück — scale 94%→100%, opacity 0→1, easeInOutCubic */}
+        {/* Soft Transition — orbTransition-Zustände:
+             idle     → Normalzustand, tappable
+             exiting  → Öffnen: Nav-Orb blendet sanft aus (opacity→0, scale→94%)
+             hidden   → MeinHUI vollständig offen, Nav-Orb unsichtbar
+             entering → Schließen: Nav-Orb blendet sanft wieder ein (scale 94%→100%)
+             Nur opacity + minimaler scale, ease-in-out — keine Bounce/Overshoot-Kurven. */}
         <div
           data-hui-nav-orb=""
           style={{
             position: "absolute",
             top: 9,
             left: "50%",
-            transform: orbTransition === "exiting"
+            transform: (orbTransition === "exiting" || orbTransition === "hidden")
               ? "translateX(-50%) scale(0.94)"
-              : orbTransition === "entering"
-                ? "translateX(-50%) scale(1.0)"
-                : "translateX(-50%) scale(1)",
-            opacity: (orbTransition === "exiting" || orbTransition === "hidden") ? 0
-              : orbTransition === "entering" ? 1
-              : 1,
-            // easeInOutCubic — kein Bounce, kein Overshoot
-            transition: orbTransition === "exiting"
-              ? "opacity 0.26s cubic-bezier(0.65,0,0.35,1), transform 0.26s cubic-bezier(0.65,0,0.35,1)"
-              : orbTransition === "entering"
-                ? "opacity 0.30s cubic-bezier(0.65,0,0.35,1) 0.16s, transform 0.30s cubic-bezier(0.65,0,0.35,1) 0.16s"
-                : "opacity 0.15s ease, transform 0.15s ease",
+              : "translateX(-50%) scale(1)",
+            opacity: (orbTransition === "exiting" || orbTransition === "hidden") ? 0 : 1,
+            transition: "opacity 0.3s ease-in-out, transform 0.3s ease-in-out",
             width: ORB_D,
             height: ORB_D,
             zIndex: 3,
             pointerEvents: orbTransition !== "idle" ? "none" : "auto",
           }}
         >
-          <NavigationOrb active={isOrbActive} onPress={handleOrbPress} orbPhase={orbTransition} />
+          <NavigationOrb active={isOrbActive} onPress={handleOrbPress} />
         </div>
 
         {/* ── Tabbar: sits below orb overlap ──────────────── */}

@@ -1,21 +1,23 @@
-// src/pages/MeinHUI.jsx — HUI Wirkungsraum v4.0 (Cinematic Opening v2)
+// src/pages/MeinHUI.jsx — HUI Wirkungsraum v5.0 (Soft Transition)
 // ═══════════════════════════════════════════════════════════════════
-// "Der Nutzer erlebt eine Transformation, keinen Seitenwechsel."
+// ZIEL: Der Wirkungsraum öffnet sich ruhig, hochwertig, organisch.
+// NICHT: "klatsch – neue Seite". SONDERN: langsames, weiches Aufbauen.
 //
-// 5-Phasen-Choreografie (siehe Home.jsx für Phase 1+2, hier Phase 3+4+5):
-//   Phase 3 (0-260ms intern):   Orb-Kern wächst aus der Nav-Position,
-//                                Screen-Hintergrund blendet parallel ein
-//                                (Frosted-Glass-Crossfade mit dem Feed dahinter)
-//   Phase 4 (260ms+ intern):    Content erscheint gestaffelt —
-//                                Info-Karten → Titel → Pillars → Reise → Rest
-//                                Jeweils 60-100ms Abstand, Opacity + 10px Translate,
-//                                KEINE Scale-Effekte auf den Karten.
-//   Phase 5:                    Ruhe — Choreografie endet, nur Ambient-Leben
-//                                (Atmen, Partikel) läuft weiter.
+// ÖFFNEN:
+//   1. Der gesamte Raum blendet als EINE Einheit ein — opacity 0→100%,
+//      translateY 10px→0, ~300ms, ease-in-out. Kein Springen.
+//   2. Die Inhalte bauen sich NICHT gleichzeitig auf, sondern nacheinander:
+//      Orb → Begrüßung → Info-Karten → Grundpfeiler → Reise → Rest.
+//      Je 70ms Abstand. Nur Opacity + leichte Translation (10px).
+//      Keine Bounce-Animationen. Keine wilden Scale-Effekte.
 //
-// Schließen: exaktes Spiegelbild —
-//   Content fadet zuerst (200ms) → Orb schrumpft zurück (260ms, delay 200ms)
-//   → Parent (Home.jsx) lässt danach den Nav-Orb zurückkehren.
+// SCHLIESSEN — spiegelverkehrt:
+//   1. Inhalte verschwinden zuerst (180ms)
+//   2. Danach blendet der gesamte Raum weich aus (220ms, delayed)
+//   3. Erst danach kehrt der Nav-Orb zurück (siehe Home.jsx)
+//
+// Nur einfache Browser-Animationen: opacity, transform/translateY,
+// minimaler scale, dezenter blur, ease-in-out. Keine Motion-Libraries.
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useEffect, useRef, useState } from "react";
@@ -31,7 +33,6 @@ const T = {
   teal:       "#0DC4B5",
   tealSoft:   "rgba(13,196,181,0.10)",
   tealPale:   "#E6FAF8",
-  tealGlow:   "rgba(13,196,181,0.16)",
   coral:      "#F47355",
   coralSoft:  "rgba(244,115,85,0.09)",
   sage:       "#5CA87A",
@@ -40,7 +41,6 @@ const T = {
   gold:       "#D4952A",
   goldSoft:   "rgba(212,149,42,0.11)",
   goldPale:   "#FDF6E3",
-  goldWarm:   "rgba(255,200,80,0.18)",
   purple:     "#7B5EA7",
   purpleSoft: "rgba(123,94,167,0.10)",
   purplePale: "#F3EEF9",
@@ -48,29 +48,26 @@ const T = {
   inkMid:     "#2E2E45",
   inkSoft:    "rgba(20,20,34,0.48)",
   inkFaint:   "rgba(20,20,34,0.18)",
-  inkGhost:   "rgba(20,20,34,0.08)",
   white:      "#FFFFFF",
 };
 
 const FONT = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
+const EASE = "ease-in-out";
 
-// easeInOutCubic — kein Bounce, kein Overshoot (Cinematic Opening v2 Prinzip)
-const EASE = "cubic-bezier(0.65,0,0.35,1)";
+// ── Choreografie: 70ms Abstand pro Block, nur opacity + translateY ──
+const CORE_DELAY    = 0;    // 1. Orb
+const TITLE_DELAY   = 70;   // 2. Begrüßung
+const INFO_DELAY    = 140;  // 3. Info-Karten
+const PILLARS_DELAY = 210;  // 4. Grundpfeiler
+const JOURNEY_DELAY = 280;  // 5. Reise
+const MOMENTS_DELAY = 350;  // 6. Rest
 
-// ── Choreografie-Zeitkonstanten (ms, relativ zum MeinHUI-Mount) ────
-const ORB_GROW_MS      = 260;  // Phase 3: Orb-Kern wächst
-const INFO_CARDS_DELAY = 260;  // Phase 4.2: Info-Karten
-const TITLE_DELAY      = 330;  // Phase 4.3: Titel/Begrüßung
-const PILLARS_DELAY    = 400;  // Phase 4.4: Grundpfeiler
-const JOURNEY_DELAY    = 470;  // Phase 4.5: Reise
-const MOMENTS_DELAY    = 540;  // Phase 4.6: Rest (Impact-Momente)
-
-// Schließ-Timing (muss zu Home.jsx closeMeinHuiCinematic passen: 460ms total)
-const CLOSE_CONTENT_MS = 200;  // Content fadet zuerst
-const CLOSE_ORB_MS     = 260;  // dann schrumpft der Orb (mit CLOSE_CONTENT_MS delay)
+// Schließ-Timing (muss zu Home.jsx closeMeinHuiCinematic passen: 400ms total)
+const CLOSE_CONTENT_MS = 180; // Inhalte verschwinden zuerst
+const CLOSE_SCREEN_MS  = 220; // dann blendet der ganze Raum aus (delayed um CLOSE_CONTENT_MS)
 
 // ─────────────────────────────────────────────────────────────────
-// KEYFRAMES — Ambient-Leben (Phase 5), läuft unabhängig von der Choreografie
+// KEYFRAMES — nur Ambient-Leben (läuft unabhängig von der Öffnung/Schließung)
 // ─────────────────────────────────────────────────────────────────
 const KEYFRAMES = `
 @keyframes mh-orb-breathe {
@@ -99,14 +96,7 @@ const KEYFRAMES = `
   85%       { opacity: 0.35; }
   100%      { transform: translate(var(--px), var(--py)) rotate(var(--pr)); opacity: 0; }
 }
-/* ── Energie-Partikel: fließen einmalig vom Orb-Ursprung nach oben ── */
-@keyframes mh-stream-in {
-  0%   { opacity: 0;    transform: translateY(var(--sy, 120px)) scale(0.5); }
-  30%  { opacity: 0.55; }
-  75%  { opacity: 0.30; }
-  100% { opacity: 0;    transform: translateY(0) scale(1); }
-}
-/* ── Staggered Content (Phase 4): Opacity + 10px Translate, kein Scale ── */
+/* ── Staggered Content: nur Opacity + 10px Translation, kein Scale ── */
 @keyframes mh-fadeup {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -114,12 +104,12 @@ const KEYFRAMES = `
 `;
 
 // ─────────────────────────────────────────────────────────────────
-// FadeUp — Phase-4-Baustein: reine CSS-Animation, kein Scale
+// FadeUp — einfacher Baustein für den gestaffelten Content-Aufbau
 // ─────────────────────────────────────────────────────────────────
 function FadeUp({ children, delay = 0, style = {} }) {
   return (
     <div style={{
-      animation: `mh-fadeup 0.5s ${EASE} ${delay}ms both`,
+      animation: `mh-fadeup 0.42s ${EASE} ${delay}ms both`,
       ...style,
     }}>
       {children}
@@ -128,7 +118,7 @@ function FadeUp({ children, delay = 0, style = {} }) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// 1. ProfileHeader — "Titel" (Phase 4.3)
+// 1. ProfileHeader — "Begrüßung" (Block 2)
 // ─────────────────────────────────────────────────────────────────
 function ProfileHeader({ profile, onNotif, onSettings, delay }) {
   const hour = new Date().getHours();
@@ -204,39 +194,8 @@ function ProfileHeader({ profile, onNotif, onSettings, delay }) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// EnergyParticles — Phase 3 Flourish: fließen einmalig vom Orb-Ursprung
-// (optional lt. Vorgabe, sehr dezent, kein Funkeln/Magie)
-// ─────────────────────────────────────────────────────────────────
-const STREAM = [
-  { sy: 128, sx: -8,  dur: 560, del: 0   },
-  { sy: 118, sx: 14,  dur: 520, del: 40  },
-  { sy: 138, sx: -22, dur: 600, del: 20  },
-  { sy: 110, sx: 6,   dur: 540, del: 90  },
-  { sy: 124, sx: 24,  dur: 580, del: 60  },
-  { sy: 132, sx: -14, dur: 500, del: 130 },
-  { sy: 116, sx: 2,   dur: 560, del: 110 },
-  { sy: 120, sx: -30, dur: 520, del: 150 },
-];
-
-function EnergyParticles() {
-  return (
-    <>
-      {STREAM.map((p, i) => (
-        <div key={i} style={{
-          position: "absolute", top: "62%", left: `calc(50% + ${p.sx}px)`,
-          width: 3.5, height: 3.5, borderRadius: "50%",
-          background: i % 2 === 0 ? T.gold : T.teal,
-          "--sy": `${p.sy}px`,
-          animation: `mh-stream-in ${p.dur}ms ${EASE} ${p.del}ms 1 both`,
-          pointerEvents: "none",
-        }} />
-      ))}
-    </>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────
-// 2. OrbHero — Kern (Phase 3) + Info-Karten (Phase 4.2)
+// 2. OrbHero — Block 1 (Orb) + Block 3 (Info-Karten)
+// Reiner FadeUp-Block wie alle anderen — kein separater Wachstums-Trick.
 // ─────────────────────────────────────────────────────────────────
 const LEAVES = [
   { size: 5, col: T.sage,  "--px": "-28px", "--py": "-38px", "--pr": "-22deg", dur: "8.5s", del: "0s"   },
@@ -245,14 +204,14 @@ const LEAVES = [
   { size: 3, col: T.sage,  "--px": "22px",  "--py": "26px",  "--pr": "15deg",  dur: "10.2s","del": "3.4s"},
 ];
 
-function OrbHero({ profile, coreStyle, showParticles, infoDelay }) {
+function OrbHero({ profile, coreDelay, infoDelay }) {
   return (
     <div style={{ position: "relative", textAlign: "center", padding: "24px 0 16px" }}>
 
-      {/* ═══ ORB-KERN — wächst in Phase 3 (0-260ms), schrumpft beim Schließen ═══ */}
-      <div style={coreStyle}>
+      {/* Block 1 — Orb: einfaches Fade+Slide wie jeder andere Block */}
+      <FadeUp delay={coreDelay} style={{ position: "relative" }}>
 
-        {/* Atmosphärische Hintergrundstrahlung */}
+        {/* Atmosphärische Hintergrundstrahlung — reines Ambient-Leben */}
         <div style={{
           position: "absolute", top: "50%", left: "50%",
           width: 340, height: 340, marginTop: -170, marginLeft: -170,
@@ -312,9 +271,6 @@ function OrbHero({ profile, coreStyle, showParticles, infoDelay }) {
           }} />
         ))}
 
-        {/* Energie-Partikel — fließen einmalig beim Öffnen */}
-        {showParticles && <EnergyParticles />}
-
         {/* Das HUI-Logo — UNVERÄNDERT, freistehend */}
         <div style={{
           position: "relative", zIndex: 3,
@@ -337,10 +293,9 @@ function OrbHero({ profile, coreStyle, showParticles, infoDelay }) {
             />
           </div>
         </div>
-      </div>
-      {/* ═══ ENDE ORB-KERN ═══ */}
+      </FadeUp>
 
-      {/* ─── Info-Karten — Phase 4.2, erscheinen NACH dem Orb-Wachstum ─── */}
+      {/* Block 3 — Info-Karten: erscheinen NACH der Begrüßung */}
       <FadeUp delay={infoDelay} style={{
         position: "absolute",
         left: 16, top: "50%", transform: "translateY(-50%)",
@@ -367,7 +322,7 @@ function OrbHero({ profile, coreStyle, showParticles, infoDelay }) {
           { icon: "🔥", label: "Impact gesät", sub: "23 Impulse",    glow: "rgba(244,115,85,0.08)" },
           { icon: "👥", label: "Verbindungen", sub: "47 Menschen",    glow: T.tealSoft },
         ].map((s, i) => (
-          <FadeUp key={i} delay={infoDelay + i * 45}>
+          <FadeUp key={i} delay={infoDelay}>
             <div style={{
               display: "flex", alignItems: "center", gap: 6,
               background: "rgba(253,251,248,0.82)",
@@ -389,7 +344,7 @@ function OrbHero({ profile, coreStyle, showParticles, infoDelay }) {
         ))}
       </div>
 
-      {/* Tagline unter Orb — Teil der Info-Karten-Welle */}
+      {/* Tagline unter Orb — Teil des Info-Karten-Blocks */}
       <FadeUp delay={infoDelay}>
         <p style={{
           fontFamily: FONT, fontSize: 13, fontWeight: 400,
@@ -404,7 +359,7 @@ function OrbHero({ profile, coreStyle, showParticles, infoDelay }) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// 3. Pillars — Phase 4.4
+// 3. Pillars — Block 4 (Grundpfeiler)
 // ─────────────────────────────────────────────────────────────────
 const PILLARS = [
   {
@@ -443,7 +398,7 @@ function PillarCard({ pillar, index, baseDelay }) {
   const [active, setActive] = useState(false);
 
   return (
-    <FadeUp delay={baseDelay + index * 30}>
+    <FadeUp delay={baseDelay}>
       <div
         onPointerDown={() => setActive(true)}
         onPointerUp={() => setActive(false)}
@@ -457,10 +412,10 @@ function PillarCard({ pillar, index, baseDelay }) {
           padding: "15px 13px 13px",
           cursor: "default",
           userSelect: "none",
-          // Touch-Feedback (Interaktion, NICHT Teil der Entrance-Choreografie)
+          // Touch-Feedback (Interaktion, kein Teil des Entrance-Aufbaus)
           transition: [
-            "transform 0.22s cubic-bezier(0.16,1,0.3,1)",
-            "box-shadow 0.22s cubic-bezier(0.16,1,0.3,1)",
+            "transform 0.22s ease-in-out",
+            "box-shadow 0.22s ease-in-out",
             "background 0.18s ease",
             "border-color 0.18s ease",
           ].join(", "),
@@ -502,7 +457,7 @@ function PillarCard({ pillar, index, baseDelay }) {
           background: pillar.accent,
           width: active ? 32 : 20,
           opacity: active ? 0.7 : 0.4,
-          transition: "width 0.25s cubic-bezier(0.16,1,0.3,1), opacity 0.22s ease",
+          transition: "width 0.25s ease-in-out, opacity 0.22s ease",
         }} />
       </div>
     </FadeUp>
@@ -527,14 +482,14 @@ function Pillars({ delay }) {
         paddingRight: 20, paddingBottom: 4,
         WebkitOverflowScrolling: "touch",
       }}>
-        {PILLARS.map((p, i) => <PillarCard key={p.label} pillar={p} index={i} baseDelay={delay + 30} />)}
+        {PILLARS.map((p, i) => <PillarCard key={p.label} pillar={p} index={i} baseDelay={delay} />)}
       </div>
     </div>
   );
 }
 
 // ─────────────────────────────────────────────────────────────────
-// 4. Journey — Phase 4.5, echte Erinnerungen, keine Statistiken
+// 4. Journey — Block 5 (Reise)
 // ─────────────────────────────────────────────────────────────────
 const JOURNEY = [
   { emoji: "🌱", label: "Heute",        text: "Kleine Impulse setzen Großes in Bewegung.",   color: T.teal   },
@@ -570,7 +525,7 @@ function Journey({ delay }) {
         WebkitOverflowScrolling: "touch",
       }}>
         {JOURNEY.map((j, i) => (
-          <FadeUp key={j.label} delay={delay + 30 + i * 30}>
+          <FadeUp key={j.label} delay={delay}>
             <div style={{ width: 106, flexShrink: 0, textAlign: "center" }}>
               <div style={{
                 width: 68, height: 68, borderRadius: "50%", margin: "0 auto 9px",
@@ -596,7 +551,7 @@ function Journey({ delay }) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// 5. ImpactMoments — Phase 4.6 (Rest)
+// 5. ImpactMoments — Block 6 (Rest)
 // ─────────────────────────────────────────────────────────────────
 const MOMENTS = [
   { icon: "♡",  label: "Du hast Jana unterstützt",        time: "vor 2 Tagen",  color: T.coral,  bg: "rgba(244,115,85,0.07)",  border: "rgba(244,115,85,0.13)" },
@@ -631,7 +586,7 @@ function ImpactMoments({ delay }) {
         WebkitOverflowScrolling: "touch",
       }}>
         {MOMENTS.map((m, i) => (
-          <FadeUp key={i} delay={delay + 30 + i * 30}>
+          <FadeUp key={i} delay={delay}>
             <div style={{
               width: 138, flexShrink: 0,
               background: m.bg, border: `1px solid ${m.border}`,
@@ -661,46 +616,40 @@ function ImpactMoments({ delay }) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// SHELL — MeinHUI (Cinematic Opening v2 Orchestrierung)
+// SHELL — MeinHUI (Soft Transition Orchestrierung)
 // ─────────────────────────────────────────────────────────────────
 export default function MeinHUI({
   visible   = true,
-  closing   = false,   // von Home.jsx gesteuert: Content fadet, dann schrumpft Orb
+  closing   = false,   // von Home.jsx gesteuert: Content fadet, dann der ganze Raum
   profile   = null,
   onClose,
   onNotif,
   onSettings,
 }) {
   const scrollRef = useRef(null);
-  // "entered" via Double-RAF: erzwingt einen ersten Paint im Ausgangszustand,
-  // bevor die CSS-Transition zum Endzustand ausgelöst wird (kein Sprung).
+  // Double-RAF: erzwingt einen ersten Paint im Ausgangszustand (opacity 0,
+  // translateY 10px), bevor die CSS-Transition zum Endzustand ausgelöst wird.
   const [entered, setEntered] = useState(false);
-  const [showParticles, setShowParticles] = useState(false);
 
   useEffect(() => {
     if (visible) {
       setEntered(false);
-      setShowParticles(false);
       if (scrollRef.current) scrollRef.current.scrollTop = 0;
-      // Double-RAF: erzwingt einen ersten Paint im Ausgangszustand,
-      // bevor die CSS-Transition zum Endzustand ausgelöst wird.
       const raf1 = requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setEntered(true);
-          setShowParticles(true);
-        });
+        requestAnimationFrame(() => setEntered(true));
       });
       return () => cancelAnimationFrame(raf1);
     } else {
       setEntered(false);
-      setShowParticles(false);
     }
   }, [visible]);
 
   if (!visible) return null;
 
-  // ── Screen-Hintergrund: blendet parallel zum Orb-Wachstum ein (Phase 3) ──
-  // Frosted-Glass-Crossfade mit dem gedimmten Feed dahinter (siehe Home.jsx filter)
+  // ── Der gesamte Raum: EINE Einheit, weiches Fade + 10px Slide ──────────
+  // Öffnen:   opacity 0→1, translateY 10px→0, ~300ms
+  // Schließen: bleibt sichtbar bis Content weg ist (CLOSE_CONTENT_MS),
+  //            blendet danach selbst aus (CLOSE_SCREEN_MS, delayed)
   const screenStyle = {
     position: "fixed", inset: 0,
     background: T.cream,
@@ -708,23 +657,14 @@ export default function MeinHUI({
     overflowY: "auto", overflowX: "hidden",
     WebkitOverflowScrolling: "touch",
     overscrollBehavior: "contain",
-    opacity: closing ? 1 : (entered ? 1 : 0),
-    transition: `opacity ${ORB_GROW_MS}ms ${EASE}`,
-  };
-
-  // ── Orb-Kern: wächst aus Nav-Position (Phase 3) / schrumpft zurück (Closing) ──
-  const coreStyle = {
-    transformOrigin: "center",
-    transform: closing
-      ? "translateY(46px) scale(0.55)"
-      : entered ? "translateY(0) scale(1)" : "translateY(46px) scale(0.55)",
-    opacity: closing ? 0 : entered ? 1 : 0,
+    opacity: closing ? 0 : (entered ? 1 : 0),
+    transform: closing ? "translateY(10px)" : (entered ? "translateY(0)" : "translateY(10px)"),
     transition: closing
-      ? `transform ${CLOSE_ORB_MS}ms ${EASE} ${CLOSE_CONTENT_MS}ms, opacity ${CLOSE_ORB_MS}ms ${EASE} ${CLOSE_CONTENT_MS}ms`
-      : `transform ${ORB_GROW_MS}ms ${EASE}, opacity ${ORB_GROW_MS}ms ${EASE}`,
+      ? `opacity ${CLOSE_SCREEN_MS}ms ${EASE} ${CLOSE_CONTENT_MS}ms, transform ${CLOSE_SCREEN_MS}ms ${EASE} ${CLOSE_CONTENT_MS}ms`
+      : `opacity 300ms ${EASE}, transform 300ms ${EASE}`,
   };
 
-  // ── Content-Gruppe (alles außer Orb-Kern): fadet als Erstes beim Schließen ──
+  // ── Content-Gruppe: verschwindet ZUERST beim Schließen ─────────────────
   const contentGroupStyle = closing
     ? {
         opacity: 0,
@@ -743,30 +683,25 @@ export default function MeinHUI({
           ...contentGroupStyle,
         }}>
 
-          {/* Titel (Phase 4.3) */}
+          {/* Block 2 — Begrüßung */}
           <ProfileHeader profile={profile} onNotif={onNotif} onSettings={onSettings} delay={TITLE_DELAY} />
 
-          {/* Orb-Kern (Phase 3) + Info-Karten (Phase 4.2) */}
-          <OrbHero
-            profile={profile}
-            coreStyle={coreStyle}
-            showParticles={showParticles && !closing}
-            infoDelay={INFO_CARDS_DELAY}
-          />
+          {/* Block 1 — Orb, Block 3 — Info-Karten */}
+          <OrbHero profile={profile} coreDelay={CORE_DELAY} infoDelay={INFO_DELAY} />
 
           <div style={{ width: 28, height: 1, background: T.inkFaint, margin: "6px auto 26px", opacity: 0.35 }} />
 
-          {/* Grundpfeiler (Phase 4.4) */}
+          {/* Block 4 — Grundpfeiler */}
           <Pillars delay={PILLARS_DELAY} />
 
           <div style={{ height: 30 }} />
 
-          {/* Reise (Phase 4.5) */}
+          {/* Block 5 — Reise */}
           <Journey delay={JOURNEY_DELAY} />
 
           <div style={{ height: 30 }} />
 
-          {/* Rest (Phase 4.6) */}
+          {/* Block 6 — Rest */}
           <ImpactMoments delay={MOMENTS_DELAY} />
 
           <div style={{ height: 12 }} />
