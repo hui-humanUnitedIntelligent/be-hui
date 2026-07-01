@@ -299,7 +299,8 @@ function AmbassadorStudioSection({ profile }) {
           .maybeSingle();
 
         const ambModule = selfProfile?.profile_modules?.ambassador || {};
-        const refLink   = ambModule.ref_link || ambModule.referral_link || `https://be-hui.com/${profile?.username||""}`;
+        // Autoritative Quelle: profiles.username → https://be-hui.com/<username>
+        const refLink   = profile?.username ? `https://be-hui.com/${profile.username}` : (ambModule.ref_link || ambModule.referral_link || "");
         // isAmb direkt aus DB setzen — unabhängig vom gecachten profile-Prop
         setIsAmb(selfProfile?.is_ambassador === true || ambModule.status === 'active');
 
