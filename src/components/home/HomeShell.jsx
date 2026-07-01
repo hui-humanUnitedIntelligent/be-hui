@@ -171,8 +171,6 @@ export default function HomeShell({ children }) {
   const [showInvitationFlow,     setShowInvitationFlow]     = useState(false);
   const [showCreatorDash,        setShowCreatorDash]        = useState(false); // Phase 4D
   const [showWerkDetail,         setShowWerkDetail]        = useState(null);
-  const [showWerkCheckout,       setShowWerkCheckout]      = useState(null);
-  const [showBookingFlow,        setShowBookingFlow]        = useState(null); // COMMERCE-01 E-3
   const [showWerkeKorb,          setShowWerkeKorb]         = useState(false);
   const [showUnterstutzenFlow,    setShowUnterstutzenFlow]  = useState(false);
   // ── Content / Commerce State ───────────────────────────────────
@@ -203,7 +201,6 @@ export default function HomeShell({ children }) {
     setCarryOver({ from: tab, to: newTab, timestamp: Date.now() });
     setShowWirker(null);
     setShowWerkDetail(null);
-    setShowWerkCheckout(null);
     setShowWerkeKorb(false);
     setShowStoryComposer(false);
     setShowWerkPublisher(false);
@@ -317,8 +314,6 @@ export default function HomeShell({ children }) {
     showInvitationFlow,     setShowInvitationFlow,
     showCreatorDash,        setShowCreatorDash,
     showWerkDetail,        setShowWerkDetail,
-    showWerkCheckout,      setShowWerkCheckout,
-    showBookingFlow,       setShowBookingFlow,      // COMMERCE-01 E-3
     showWerkeKorb,         setShowWerkeKorb,
     showUnterstutzenFlow,  setShowUnterstutzenFlow,
     createType,            setCreateType,
@@ -345,8 +340,8 @@ export default function HomeShell({ children }) {
     showTeilen, showTalentFlow, showStoryComposer,
     showWerkPublisher, showExperienceCreator,
     showImpactFlow, showContentSelector, showInvitationFlow,
-    showCreatorDash, showWerkDetail, showWerkCheckout, showWerkeKorb,
-    showUnterstutzenFlow, showBookingFlow,
+    showCreatorDash, showWerkDetail, showWerkeKorb,
+    showUnterstutzenFlow,
     createType, activeStory, cart, clearCartPersist,
     openOwnProfile, flowStore,
   ]);

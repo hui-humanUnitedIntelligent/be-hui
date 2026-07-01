@@ -1,7 +1,7 @@
 import React, { useMemo, createContext, useState, useContext, useEffect, useCallback, useRef } from "react";
 import { ProfileService } from '../services/db';
 import { supabase } from "./supabaseClient";
-import { isProfileTalent } from './profileUtils.js';
+import { isProfileTalent, isProfileAdmin } from './profileUtils.js';
 import { clearMemoryStore } from "./intelligence/persistence/interactionMemoryStore.js";
 import { FIELDS, PROFILE_FIELDS } from "./perfUtils";
 
@@ -393,7 +393,8 @@ export function AuthProvider({ children }) {
 
   const isWirker         = profile?.is_talent === true; // is_talent ist die korrekte Spalte
   const hasTalentProfile = profile?.is_talent === true; // has_talent_profile nicht mehr
-  const membershipType   = "free"; // membership_type nicht in DB
+  const membershipType   = profile?.membership_type ?? "free";
+  const isAdmin          = isProfileAdmin(profile);
   const isMember         = profile?.is_member === true || membershipType === "member" ||
                            membershipType === "creator" || membershipType === "guide" || false;
   const profileModules   = profile?.profile_modules || {};
@@ -421,7 +422,7 @@ export function AuthProvider({ children }) {
   const ctxValue = useMemo(() => ({
     user, profile,
     authProfile: profile,          // Alias: HomeShell + alle Components nutzen authProfile
-    isAuthenticated, isWirker, hasTalentProfile, isMember, membershipType, profileModules,
+    isAuthenticated, isWirker, hasTalentProfile, isMember, membershipType, isAdmin, profileModules,
     loadingAuth,
     isLoadingAuth: loadingAuth,    // Alias für components/ProtectedRoute.jsx
     loadingProfile,

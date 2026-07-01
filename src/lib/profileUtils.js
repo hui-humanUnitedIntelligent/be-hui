@@ -75,3 +75,17 @@ export function isMembershipActive(profile) {
   if (profile.is_member === true) return true;
   return false;
 }
+
+/**
+ * isProfileAdmin — zentrale Admin-Erkennung für Route-Guards.
+ * Aligniert mit release-payout Edge Function (membership_type) und RLS (role).
+ *
+ * @param {object|null} profile
+ * @returns {boolean}
+ */
+export function isProfileAdmin(profile) {
+  if (!profile) return false;
+  if (profile.membership_type === "admin") return true;
+  const role = profile.role;
+  return role === "superadmin" || role === "admin" || role === "employee";
+}
