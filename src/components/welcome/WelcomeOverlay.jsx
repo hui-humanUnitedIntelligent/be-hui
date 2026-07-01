@@ -198,7 +198,6 @@ export default function WelcomeOverlay({ onDone }) {
                 Schön, dass du da bist.
               </p>
               <p style={{
-                margin:       0,
                 fontSize:     14,
                 color:        INK2,
                 lineHeight:   1.65,
