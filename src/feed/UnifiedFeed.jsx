@@ -531,7 +531,7 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
 
   if (arr.length === 0) return <EmptyFeed />;
   return (
-    <div style={{ paddingTop: 8, paddingBottom: 100 }}>
+    <div style={{ paddingTop: 8 }}>
       {arr.map((item, idx) => {
         const { isRelaxed, mb } = getCardRhythm(idx);
         const itemReactions = reactions[String(item.id)] || {};
