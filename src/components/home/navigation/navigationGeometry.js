@@ -44,9 +44,24 @@ export const NAV_BLOCK_HEIGHT = ORB_OVERHANG + TAB_H;   // 57 + 64 = 121px
 export const NAV_CLEARANCE_CSS =
   `calc(${NAV_BLOCK_HEIGHT}px + max(${NAV_GEOMETRY.SAFE_B}px, env(safe-area-inset-bottom, ${NAV_GEOMETRY.SAFE_B}px)))`;
 
-/** CSS value for nav container total height */
+/** CSS value for nav container total height (Orb-Überhang + Tabbar + Safe-Area) —
+ *  weiterhin exportiert für Konsumenten, die die VOLLE optische Nav-Zone
+ *  brauchen (z.B. WerkeKorb-Button-Clearance), aber NICHT mehr für die
+ *  eigene reservierte Layout-Box der Navigation verwendet (siehe unten). */
 export const NAV_CONTAINER_HEIGHT_CSS =
   `calc(${NAV_BLOCK_HEIGHT}px + max(${NAV_GEOMETRY.SAFE_B}px, env(safe-area-inset-bottom, ${NAV_GEOMETRY.SAFE_B}px)))`;
+
+/** CSS value for the nav's OWN reserved flex-layout height — bewusst OHNE
+ *  den Orb-Überhang. Der Überhang-Bereich war im Code zwar schon transparent,
+ *  hat aber als reservierte Layout-Fläche unnötig Platz vom Feed abgezogen und
+ *  wirkte durch die farbliche Nähe zum Feed-Hintergrund wie ein durchgehender
+ *  weißer Block. Tabbar-Höhe, Safe-Area, Notch und Orb-Geometrie bleiben dabei
+ *  alle unverändert — nur der reservierte Layout-Platz oberhalb der Tabbar
+ *  entfällt, der Orb schwebt stattdessen optisch unverändert über den (jetzt
+ *  wieder sichtbaren) Feed hinweg (siehe Orb-top-Kompensation in
+ *  HUIBottomNavigation.jsx). */
+export const NAV_RESERVED_HEIGHT_CSS =
+  `calc(${TAB_H}px + max(${NAV_GEOMETRY.SAFE_B}px, env(safe-area-inset-bottom, ${NAV_GEOMETRY.SAFE_B}px)))`;
 
 /** CSS value for safe-area bottom padding inside nav */
 export const NAV_SAFE_BOTTOM_CSS =

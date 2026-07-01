@@ -24,7 +24,7 @@ import {
   NAV_GEOMETRY,
   ORB_D,
   ORB_OVERHANG,
-  NAV_CONTAINER_HEIGHT_CSS,
+  NAV_RESERVED_HEIGHT_CSS,
   NAV_SAFE_BOTTOM_CSS,
   buildTabbarPath,
 } from "./navigationGeometry.js";
@@ -248,7 +248,12 @@ export default function HUIBottomNavigation({
         flexShrink: 0,
         position: "relative",
         width: "100%",
-        height: NAV_CONTAINER_HEIGHT_CSS,
+        // NUR Tabbar + Safe-Area reserviert -- der Orb-Ueberhang darueber wird
+        // NICHT mehr als Layout-Platz vom Feed abgezogen (siehe
+        // NAV_RESERVED_HEIGHT_CSS-Kommentar in navigationGeometry.js).
+        // Der Orb selbst bleibt optisch an exakt derselben Bildschirm-
+        // position (kompensiert ueber seinen "top"-Offset weiter unten).
+        height: NAV_RESERVED_HEIGHT_CSS,
         zIndex: 10000,
         willChange: "opacity, transform",
         ...sharedVis,
@@ -272,7 +277,12 @@ export default function HUIBottomNavigation({
           data-hui-nav-orb=""
           style={{
             position: "absolute",
-            top: 12,  // +3px — Logo sitzt minimal tiefer, harmoniert mit der tieferen Notch
+            // War: top:12 (relativ zur ALTEN, hoeheren Container-Box, die den
+            // Orb-Ueberhang mit reservierte). Die Container-Box ist jetzt um
+            // ORB_OVERHANG kuerzer (siehe NAV_RESERVED_HEIGHT_CSS) -- dieser
+            // negative Offset kompensiert das exakt, sodass der Orb
+            // pixelgenau an der GLEICHEN Bildschirmposition bleibt wie vorher.
+            top: 12 - ORB_OVERHANG,  // = -39, Logo-Position unveraendert
             left: "50%",
             transform: (orbTransition === "exiting" || orbTransition === "hidden")
               ? "translateX(-50%) scale(0.94)"
@@ -294,7 +304,13 @@ export default function HUIBottomNavigation({
           data-hui-nav-bar=""
           style={{
             position: "absolute",
-            top: ORB_OVERHANG,
+            // War: top:ORB_OVERHANG (Platz fuer den Orb-Ueberhang in der
+            // alten, hoeheren Box). Die Box ist jetzt exakt TAB_H+SafeBottom
+            // hoch -- die Tabbar startet daher bei 0 und landet damit an der
+            // IDENTISCHEN Bildschirmposition wie vorher (Beweis: Container-
+            // Unterkante = Bildschirm-Unterkante, unveraendert in beiden
+            // Varianten -- siehe Kommentar in navigationGeometry.js).
+            top: 0,
             left: MARGIN_H,
             right: MARGIN_H,
             height: TAB_H,
