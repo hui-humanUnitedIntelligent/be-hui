@@ -31,7 +31,8 @@ const DiagnosePage      = lazy(() => import('./pages/DiagnosePage'))
 const PlatformDashboard = lazy(() => import('./pages/PlatformDashboard'))
 const CreatorStudio     = lazy(() => import('./pages/CreatorStudio'))
 const WirkerProfilePage = lazy(() => import('./pages/wirker-profile/index.jsx'))
-const WorkDetailPage    = lazy(() => import('./components/WorkDetailPage'))
+const WorkDetailPage       = lazy(() => import('./components/WorkDetailPage'))
+const ContentDetailPage    = lazy(() => import('./components/content-detail/ContentDetailPage'))
 
 // ── Route Factory ──────────────────────────────────────────────────────────
 import { createTabPage, filterValidPages } from './lib/factories/createTabPage.js'
@@ -372,17 +373,27 @@ function SmartNotFound() {
 }
 
 
-/* ── WorkDetailRouteWrapper: /work/:id → WorkDetailPage ─────────── */
-// onBuyWerk: navigiert zurück zu /Home mit Router-State.
-// Home.jsx liest location.state.pendingWerkKauf und öffnet WerkKaufFlow.
-// Keine globale Variable — React Router v6 state ist offizieller Mechanismus.
+/* ── Content Detail Route Wrappers — unified detail surface ─────── */
+// Commerce flows unchanged: Router-State → Home.jsx opens existing overlays.
 function WorkDetailRouteWrapper() {
   const navigate = useNavigate();
   return (
-    <WorkDetailPage
+    <ContentDetailPage
+      contentType="work"
       onBuyWerk={(werk) => {
-        // COMMERCE-01: Router-State → Home.jsx öffnet WerkKaufFlow
         navigate("/Home", { state: { pendingWerkKauf: werk } });
+      }}
+    />
+  );
+}
+
+function ExperienceDetailRouteWrapper() {
+  const navigate = useNavigate();
+  return (
+    <ContentDetailPage
+      contentType="experience"
+      onBookExperience={(experience) => {
+        navigate("/Home", { state: { pendingExperienceBooking: experience } });
       }}
     />
   );
@@ -514,10 +525,12 @@ function AppRoutes() {
           <ProtectedRoute><Home /></ProtectedRoute>
         }/>
 
-        {/* Work Detail — LAZY */}
-        {/* COMMERCE-01 */}
+        {/* Content Detail — LAZY (unified surface) */}
         <Route path="/work/:id" element={
           <ProtectedRoute><WorkDetailRouteWrapper /></ProtectedRoute>
+        }/>
+        <Route path="/experience/:id" element={
+          <ProtectedRoute><ExperienceDetailRouteWrapper /></ProtectedRoute>
         }/>
 
         {/* /profile/:username → WirkerProfileRouteWrapper */}

@@ -221,8 +221,41 @@ export const ROUTE_REGISTRY = Object.freeze([
     featureFlags:  ["commerce"],
     notes: [
       "LAZY. Wrapped in WorkDetailRouteWrapper.",
+      "Rendert ContentDetailPage (contentType=work).",
       "onBuyWerk: navigate('/Home', { state: { pendingWerkKauf: werk } }).",
       "COMMERCE-01: Router-State-basierte Übergabe an Home.jsx WerkKaufFlow.",
+    ].join(" "),
+  },
+
+  // ── 05b: Experience Detail ────────────────────────────────────────────────
+  // Erlebnis-Detailseite — gleiche Oberfläche wie Werk-Detail (ContentDetailPage).
+  {
+    id:            "experience-detail",
+    path:          "/experience/:id",
+    name:          "Erlebnis Detail",
+    owner:         OWNER.COMMERCE,
+    authLevel:     AUTH.PROTECTED,
+    loading:       LOADING.LAZY,
+    routeType:     ROUTE_TYPE.PAGE,
+    wrapper:       WRAPPER.PROTECTED_ROUTE,
+    redirect:      null,
+    errorBoundary: true,
+    layout:        "detail",
+    meta: {
+      title:       "HUI – Erlebnis",
+      description: "Erlebnisdetail und Buchung",
+      noIndex:     false,
+    },
+    analytics: {
+      trackPageView: true,
+      eventName:     "page_experience_detail",
+    },
+    featureFlags:  ["commerce"],
+    notes: [
+      "LAZY. Wrapped in ExperienceDetailRouteWrapper.",
+      "Rendert ContentDetailPage (contentType=experience).",
+      "onBookExperience: navigate('/Home', { state: { pendingExperienceBooking: exp } }).",
+      "COMMERCE-01: Router-State-basierte Übergabe an Home.jsx ExperienceBookingFlow.",
     ].join(" "),
   },
 
@@ -610,6 +643,7 @@ export const EXCLUDED_REF_PATHS = Object.freeze(new Set([
   "dashboard",
   "profile",
   "work",
+  "experience",
   "auth",
   "ref",
   // ── Auth-Varianten ───────────────────────────────────────────
