@@ -36,28 +36,16 @@ export function useAmbassador(profile) {
   // Ref-Link: aus ambassador_ref_links laden wenn Ambassador
   const [refLink, setRefLink] = useState(null);
 
+  // Reflink direkt aus profiles.username — Single Source of Truth
   useEffect(() => {
     if (!isAmb || !profile?.id) { setRefLink(null); return; }
+    // Primär: RPC für autorisierten Link
     supabase
-      .from("ambassador_ref_links")
-      .select("ref_link, referral_code")
-      .eq("user_id", profile.id)
-      .maybeSingle()  // kein Fehler wenn kein Eintrag
-      .then(({ data, error }) => {
-        if (error || !data) {
-          // Kein Eintrag → aus Username berechnen
-          if (profile.username) {
-            const code = "AMB-" + profile.username.toUpperCase().slice(0, 5);
-            createRefLinkForAmbassador(profile.id, profile.username, code)
-              .then(link => setRefLink(link || `https://be-hui.com/${profile.username}`))
-              .catch(() => setRefLink(profile.username ? `https://be-hui.com/${profile.username}` : null));
-          }
-          return;
-        }
-        setRefLink(data.ref_link);
+      .rpc("rpc_get_ambassador_ref_link", { p_ambassador_id: profile.id })
+      .then(({ data }) => {
+        setRefLink(data || (profile.username ? `https://be-hui.com/${profile.username}` : null));
       })
       .catch(() => {
-        // Fallback: Username-basierter Link
         if (profile?.username) setRefLink(`https://be-hui.com/${profile.username}`);
       });
   }, [isAmb, profile?.id, profile?.username]);
@@ -170,97 +158,51 @@ export function useAmbassadorApplication() {
   return { submit, loading, error, success };
 }
 
+
 // ── Referral-Liste (für Ambassador-Dashboard) ─────────────────
-// Nutzer die über diesen Ambassador referriert wurden
-// Quellen: referred_by_ambassador_id (uuid) ODER referred_by (string refCode)
-// Aktiv = hat Profilbild ODER display_name ODER is_talent gesetzt
-// Schlafend = neu registriert, noch kein Profil ausgefüllt
+// Nutzt rpc_get_ambassador_referrals — Single Source of Truth
+// Liefert: id, display_name, username, avatar_url, email, phone, role, created_at, is_active
 export function useReferrals(ambassadorId, refCode) {
   const [referrals, setReferrals] = useState([]);
   const [loading,   setLoading]   = useState(false);
 
   useEffect(() => {
-    // Brauchen mindestens eine der beiden Quellen
-    if (!ambassadorId && !refCode) return;
+    if (!ambassadorId) return;
     setLoading(true);
 
-    const queries = [];
-    // Primär: referred_by = ambassador_id (UUID) — das setzt die Registrierung
-    if (ambassadorId) {
-      queries.push(
-        supabase
-          .from("profiles")
-          .select("id,display_name,username,avatar_url,email,phone,created_at,first_transaction_at,role")
-          .eq("referred_by", ambassadorId)
-          .order("created_at", { ascending: false })
-      );
-    }
-    // Sekundär: referred_by_ambassador_id (UUID, falls das Feld existiert — Fallback)
-    if (ambassadorId) {
-      queries.push(
-        supabase
-          .from("profiles")
-          .select("id,display_name,username,avatar_url,email,phone,created_at,first_transaction_at,role")
-          .eq("referred_by_ambassador_id", ambassadorId)
-          .order("created_at", { ascending: false })
-      );
-    }
-    // Tertiär: referred_by = refCode (string-basiert, Legacy)
-    if (refCode && refCode !== ambassadorId) {
-      queries.push(
-        supabase
-          .from("profiles")
-          .select("id,display_name,username,avatar_url,email,phone,created_at,first_transaction_at,role")
-          .eq("referred_by", refCode)
-          .order("created_at", { ascending: false })
-      );
-    }
-
-    Promise.all(queries).then(results => {
-      // Deduplizieren: beide Quellen zusammenführen, IDs nur einmal
-      const seen = new Set();
-      const all  = [];
-      for (const { data, error } of results) {
-        if (error || !data) continue;
-        for (const p of data) {
-          if (!seen.has(p.id)) {
-            seen.add(p.id);
-            all.push(p);
-          }
-        }
-      }
-      // Sortieren: neueste zuerst
-      all.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
-      setReferrals(all.map(p => ({
-        id:                  p.id,
-        displayName:         p.display_name || p.username || "Nutzer",
-        username:            p.username     || null,
-        avatarUrl:           p.avatar_url   || null,
-        email:               p.email        || null,
-        phone:               p.phone        || null,
-        isActive:            !!p.first_transaction_at,
-        firstTransactionAt:  p.first_transaction_at || null,
-        joinedAt:            p.created_at   || null,
-      })));
-      setLoading(false);
-    }).catch(() => setLoading(false));
-  }, [ambassadorId, refCode]);
+    supabase
+      .rpc("rpc_get_ambassador_referrals", { p_ambassador_id: ambassadorId })
+      .then(({ data, error }) => {
+        if (error || !data) { setLoading(false); return; }
+        setReferrals(data.map(p => ({
+          id:                 p.id,
+          displayName:        p.display_name || p.username || "Nutzer",
+          username:           p.username     || null,
+          avatarUrl:          p.avatar_url   || null,
+          email:              p.email        || null,
+          phone:              p.phone        || null,
+          isActive:           !!p.is_active,
+          firstTransactionAt: p.first_transaction_at || null,
+          joinedAt:           p.created_at   || null,
+        })));
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [ambassadorId]);
 
   return { referrals, loading };
 }
 
-// ── Ref-Link sicherstellen ────────────────────────────────────
-export async function ensureRefLink(userId, username, referralCode) {
+
+// ── Ref-Link — aus profiles.username (Single Source of Truth) ──
+// ambassador_ref_links NICHT mehr als primäre Quelle nutzen
+export async function ensureRefLink(userId, username) {
   if (!userId || !username) return null;
   try {
-    const { data } = await supabase
-      .from("ambassador_ref_links")
-      .select("ref_link")
-      .eq("user_id", userId)
-      .maybeSingle();
-    if (data?.ref_link) return data.ref_link;
-    return await createRefLinkForAmbassador(userId, username, referralCode);
+    const { data } = await supabase.rpc("rpc_get_ambassador_ref_link", {
+      p_ambassador_id: userId,
+    });
+    return data || `https://be-hui.com/${username}`;
   } catch {
     return `https://be-hui.com/${username}`;
   }
