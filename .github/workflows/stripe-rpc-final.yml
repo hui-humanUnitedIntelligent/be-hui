@@ -1,0 +1,27 @@
+name: Stripe RPC Final Fix
+
+on:
+  workflow_dispatch:
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Supabase CLI
+        run: |
+          curl -fsSL https://github.com/supabase/cli/releases/download/v2.108.0/supabase_linux_amd64.tar.gz | tar -xz -C /tmp
+          sudo mv /tmp/supabase /usr/local/bin/supabase
+      - name: Link project
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase link --project-ref gxztrhvhcxhmunhhkfjd --yes
+      - name: Apply final RPC fix
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase db query --linked -f stripe_rpc_final.sql 2>&1
+      - name: Verify — overload count must be 1 each
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db query --linked "SELECT proname, COUNT(*) FROM pg_proc p JOIN pg_namespace n ON p.pronamespace=n.oid WHERE n.nspname='public' AND proname IN ('rpc_record_payment','rpc_get_stripe_payments','rpc_get_stripe_overview') GROUP BY proname;" -o json
