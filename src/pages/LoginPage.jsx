@@ -562,7 +562,7 @@ export default function LoginPage() {
       return;
     }
 
-    // Profil sofort mit allen Pflichtfeldern befüllen + referred_by direkt setzen
+    // Profil sofort mit allen Pflichtfeldern befüllen
     if (signUpData?.user?.id) {
       const profileData = {
         id:           signUpData.user.id,
@@ -572,17 +572,32 @@ export default function LoginPage() {
         email:        email,
         updated_at:   new Date().toISOString(),
       };
-      // referred_by direkt beim Profil-Anlegen setzen (robuster als nachträgliches Update)
-      if (ambassadorId) profileData.referred_by = ambassadorId;
-
+      // referred_by NICHT mehr im rohen Upsert mitschicken — direkt nach Signup ist die
+      // Session evtl. noch nicht vollständig aktiv (RLS: auth.uid()=id), wodurch das Feld
+      // beim rohen .upsert() unbemerkt verworfen werden kann (Fehler wurde nie geprüft).
       await supabase.from('profiles').upsert(profileData, { onConflict: 'id' });
 
-      // processReferralForUser als Fallback (z.B. bei E-Mail-Bestätigung)
-      if (!ambassadorId) {
-        processReferralForUser(signUpData.user.id).catch(() => {});
+      // referred_by GARANTIERT über die SECURITY-DEFINER-RPC setzen (umgeht RLS komplett,
+      // idempotent per "WHERE referred_by IS NULL"). Das ist jetzt der einzige Schreibweg
+      // fuer referred_by beim Signup.
+      if (ambassadorId) {
+        try {
+          const { data: rpcRes, error: rpcErr } = await supabase.rpc('rpc_register_with_ambassador', {
+            p_user_id: signUpData.user.id,
+            p_ambassador_id: ambassadorId,
+          });
+          if (rpcErr || rpcRes?.ok === false) {
+            console.warn('[HUI Referral] rpc_register_with_ambassador fehlgeschlagen:', rpcErr?.message || rpcRes?.error);
+            // localStorage NICHT löschen → processReferralForUser holt es beim naechsten Login nach
+          } else {
+            try { localStorage.removeItem('hui_referral_ambassador'); } catch {}
+          }
+        } catch (e) {
+          console.warn('[HUI Referral] rpc_register_with_ambassador Exception:', e);
+        }
       } else {
-        // referred_by gesetzt → localStorage aufräumen
-        try { localStorage.removeItem('hui_referral_ambassador'); } catch {}
+        // Kein ambassadorId sofort aufgeloest → Fallback ueber localStorage/AuthCallback
+        processReferralForUser(signUpData.user.id).catch(() => {});
       }
     }
 
