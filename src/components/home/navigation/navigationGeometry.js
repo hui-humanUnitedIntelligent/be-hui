@@ -10,11 +10,12 @@ export const NAV_GEOMETRY = Object.freeze({
   TAB_H:    64,    // Referenz: flache, elegante Tabbar
   MARGIN_H: 16,    // Referenz: mehr Seitenluft → Pill wirkt schwebend
   SAFE_B:   14,
-  ORB_D:    102,   // LOCKED — HUI Living Design System v1.0
+  ORB_D:    102,   // LOCKED — HUI Living Design System v1.0 (Durchmesser unverändert)
   GAP:      6,     // Luftfuge Orb ↔ Einbuchtungs-Spitze (bewusstes Design-Element)
   CORNER_R: 40,    // Referenz: stark gerundete Pill-Form
-  /** 44 % of the orb sits inside the organic notch — 56 % visible above */
-  SINK_RATIO: 0.44,
+  /** 50 % des Orbs sitzt in der Einbuchtung — reduziert den "leeren" Bereich
+   *  oberhalb der Tabbar (vorher 44 %), Logo sitzt wenige Pixel tiefer. */
+  SINK_RATIO: 0.50,
 });
 
 const { TAB_H, GAP, CORNER_R, SINK_RATIO, ORB_D: _ORB_D } = NAV_GEOMETRY;
@@ -23,14 +24,15 @@ export const ORB_D   = NAV_GEOMETRY.ORB_D;
 export const ORB_R   = ORB_D / 2;
 export const SINK    = Math.round(ORB_D * SINK_RATIO);   // 45px in Einbuchtung
 
-// ── Notch-Kosmetik — bewusst ENTKOPPELT von der (gelockten) Orb-Geometrie ──
-// Die Notch ist reine Hintergrund-Deko der Tabbar, nicht die Positionierung
-// des Orbs selbst (die läuft separat über ORB_OVERHANG/top:9 im Component).
-// Vorher war die Notch über NOTCH_R an SINK gekoppelt → nd=51px (80% von
-// TAB_H) → wirkte wie ein tiefer Trichter. Jetzt: eigene, flache Werte.
-export const NOTCH_HALF_WIDTH = 72;  // halbe Breite der Notch-Öffnung
-export const NOTCH_DEPTH      = 22;  // Tiefe der Einbuchtung — deutlich flacher (vorher 51px)
-export const NOTCH_HANDLE_R   = 46;  // Bezier-Handle-Radius für den weichen Bogen
+// ── Notch-Kosmetik ──────────────────────────────────────────────────
+// Die Notch-Tiefe orientiert sich bewusst locker an SINK (wie tief der Orb
+// einsinkt), damit die Aussparung den unteren Orb-Bereich auch tatsächlich
+// freilegt (sonst liegt der untere Orb-Rand optisch auf massivem Weiß statt
+// in der Vertiefung). Breite bewusst großzügiger als die Tiefe → weicher,
+// organischer Bogen statt steiler V-Form.
+export const NOTCH_HALF_WIDTH = 80;  // halbe Breite der Notch-Öffnung
+export const NOTCH_DEPTH      = 36;  // Tiefe — deckt den Großteil des Orb-Einsinkens ab
+export const NOTCH_HANDLE_R   = 52;  // Bezier-Handle-Radius für den weichen Bogen
 
 /** Visible orb height above the bar surface */
 export const ORB_OVERHANG = ORB_D - SINK;   // 57px

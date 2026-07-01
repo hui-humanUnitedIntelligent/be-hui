@@ -262,7 +262,7 @@ export default function HUIBottomNavigation({
           data-hui-nav-orb=""
           style={{
             position: "absolute",
-            top: 9,
+            top: 12,  // +3px — Logo sitzt minimal tiefer, harmoniert mit der tieferen Notch
             left: "50%",
             transform: (orbTransition === "exiting" || orbTransition === "hidden")
               ? "translateX(-50%) scale(0.94)"
