@@ -1,7 +1,7 @@
 // src/pages/Home.jsx — HUI Home Orchestrator v9
 // Layout: Header → Feed (scroll) → HUIBottomNavigation (in-flow)
 
-import React, { Suspense, useEffect, useRef, useCallback } from "react";
+import React, { Suspense, useEffect, useRef, useCallback, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom"; // COMMERCE-01
 import { useOrbWorld } from "../context/OrbWorldContext.jsx";
 import { useWorldSurface } from "../context/WorldSurfaceContext.jsx";
@@ -106,6 +106,9 @@ function HomeInner() {
   }, []);
   // PaintRecoveryManager — tracks rAF handles, cleaned up on unmount
   const paintManager = React.useRef(new PaintRecoveryManager());
+
+  // ── Orb-Kontinuität: "idle" | "exiting" | "entering"
+  const [orbTransition, setOrbTransition] = useState("idle");
 
   const {
     tab,
@@ -443,6 +446,7 @@ function HomeInner() {
           creatorOpen={showCreatorDashboard}
           hasTalent={isTalent}
           orbActive={activeSurface === 'orb' || showMembership || showTalentFlow}
+          orbTransition={showPlusSheet ? "hidden" : orbTransition}
           navDrift={
             (showMembership || showTalentFlow)
               ? { opacity: 0, transform: "translateY(120%)",
@@ -457,14 +461,16 @@ function HomeInner() {
             if (key !== "create") return;
 
             const canRenderOrbContent = SAFE_MODE.orb;
-            const _mType = authProfile?.membership_type ?? "base";
-            const _mActive = authProfile?.membership_active ?? false;
+            if (!canRenderOrbContent) return;
 
-            if (!canRenderOrbContent) {
-              console.warn("[HUI ORB] canRenderOrbContent=false — orb disabled by SAFE_MODE");
-              return;
-            }
-            setShowPlusSheet(true);
+            // Orb-Kontinuität: Orb löst sich aus Tabbar (exiting)
+            // dann öffnet MeinHUI mit Orb der aus der Mitte wächst
+            setOrbTransition("exiting");
+            setTimeout(() => {
+              setShowPlusSheet(true);
+              // "entering" kurz nach dem Öffnen → Nav-Orb ist "weg" während MeinHUI offen
+              setOrbTransition("hidden");
+            }, 280);
           }}
         />
 
@@ -622,9 +628,22 @@ function HomeInner() {
         <MeinHUI
           visible={showPlusSheet}
           profile={authProfile}
-          onClose={() => setShowPlusSheet(false)}
-          onNotif={() => { setShowPlusSheet(false); }}
-          onSettings={() => { setShowPlusSheet(false); }}
+          onClose={() => {
+            // Orb-Kontinuität: Inhalte verschwinden, dann Nav-Orb kehrt zurück
+            setShowPlusSheet(false);
+            setOrbTransition("entering");
+            setTimeout(() => setOrbTransition("idle"), 520);
+          }}
+          onNotif={() => {
+            setShowPlusSheet(false);
+            setOrbTransition("entering");
+            setTimeout(() => setOrbTransition("idle"), 520);
+          }}
+          onSettings={() => {
+            setShowPlusSheet(false);
+            setOrbTransition("entering");
+            setTimeout(() => setOrbTransition("idle"), 520);
+          }}
         />
         {showTalentFlow && SAFE_MODE.talentFlow && (
           <SafeRender flag="talentFlow" label="TalentOnboarding">

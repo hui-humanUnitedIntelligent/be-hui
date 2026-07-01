@@ -163,6 +163,8 @@ export default function HUIBottomNavigation({
   hasTalent   = false,
   msgCount    = 0,
   creatorOpen = false,
+  // Orb-Kontinuität: "idle" | "exiting" | "entering"
+  orbTransition = "idle",
 }) {
   const [wizardOpen, setWizardOpen] = React.useState(
     () => document.body.classList.contains("hui-wizard-open")
@@ -245,17 +247,35 @@ export default function HUIBottomNavigation({
         }}
       >
         {/* ── Orb: top of nav container, centered ─────────── */}
+        {/* orbTransition steuert Kontinuität: exiting → schrumpft+verblasst, entering → wächst */}
         <div
           data-hui-nav-orb=""
           style={{
             position: "absolute",
-            top: 9,  // v1.0 FINAL: Orb 9px tiefer — vollständig in Einbuchtung, Luftfuge rundum
+            top: 9,
             left: "50%",
-            transform: "translateX(-50%)",
+            // ── Orb-Kontinuität: 4 Zustände ──────────────────────────────
+            // idle:    Normalzustand — sichtbar, tappable
+            // exiting: löst sich aus Tabbar → schrumpft + verblasst
+            // hidden:  während MeinHUI offen — unsichtbar aber im DOM
+            // entering: kehrt zurück → wächst + erscheint mit Glow
+            transform: orbTransition === "exiting"
+              ? "translateX(-50%) scale(0.86)"
+              : orbTransition === "entering"
+                ? "translateX(-50%) scale(1.0)"
+                : "translateX(-50%) scale(1)",
+            opacity: (orbTransition === "exiting" || orbTransition === "hidden") ? 0
+              : orbTransition === "entering" ? 1
+              : 1,
+            transition: orbTransition === "exiting"
+              ? "opacity 0.28s cubic-bezier(0.22,1,0.36,1), transform 0.28s cubic-bezier(0.22,1,0.36,1)"
+              : orbTransition === "entering"
+                ? "opacity 0.44s cubic-bezier(0.16,1,0.3,1) 0.18s, transform 0.48s cubic-bezier(0.34,1.4,0.64,1) 0.16s"
+                : "opacity 0.22s ease, transform 0.22s ease",
             width: ORB_D,
             height: ORB_D,
             zIndex: 3,
-            pointerEvents: "auto",
+            pointerEvents: orbTransition !== "idle" ? "none" : "auto",
           }}
         >
           <NavigationOrb active={isOrbActive} onPress={handleOrbPress} />

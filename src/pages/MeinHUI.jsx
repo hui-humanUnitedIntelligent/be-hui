@@ -97,6 +97,17 @@ const KEYFRAMES = `
   from { opacity: 1; transform: scale(1); }
   to   { opacity: 0; transform: scale(0.975); }
 }
+/* ── Orb-Hero: wächst aus der Nav nach oben ── */
+@keyframes mh-orb-hero-in {
+  0%   { opacity: 0; transform: translateY(48px) scale(0.55); }
+  60%  { opacity: 1; }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+/* ── Inhalte: erscheinen nach Orb ── */
+@keyframes mh-content-in {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 /* ── FadeUp ── */
 @keyframes mh-fadeup {
   from { opacity: 0; transform: translateY(13px); }
@@ -206,7 +217,11 @@ const PARTICLES = [
 
 function OrbHero({ profile }) {
   return (
-    <FadeUp delay={130} style={{ position: "relative", textAlign: "center", padding: "24px 0 16px" }}>
+    <div style={{
+      position: "relative", textAlign: "center", padding: "24px 0 16px",
+      // Orb-Hero: wächst aus Nav-Position nach oben (Kontinuität)
+      animation: "mh-orb-hero-in 0.65s cubic-bezier(0.16,1,0.3,1) 0.05s both",
+    }}>
 
       {/* ─── Atmosphärische Hintergrundstrahlung ─── */}
       {/* Äußerster Ring — sehr groß, sehr weich */}
@@ -363,7 +378,7 @@ function OrbHero({ profile }) {
           Mein Wirkungsraum
         </p>
       </FadeUp>
-    </FadeUp>
+    </div>
   );
 }
 
@@ -669,7 +684,8 @@ export default function MeinHUI({
           overflowY: "auto", overflowX: "hidden",
           WebkitOverflowScrolling: "touch",
           overscrollBehavior: "contain",
-          animation: isClosing ? "mh-out 0.27s ease both" : "mh-in 0.34s ease both",
+          // Screen: Hintergrund blendet sanft ein — Bewegung kommt vom Orb-Hero
+          animation: isClosing ? "mh-out 0.22s ease both" : "mh-in 0.28s ease both",
         }}
       >
         <div style={{
