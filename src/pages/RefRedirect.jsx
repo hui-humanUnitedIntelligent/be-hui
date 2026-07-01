@@ -16,7 +16,7 @@ const KNOWN_APP_PATHS = new Set([
   'home','login','studio','impact','admin','diagnose','dashboard',
   'profile','work','auth','ref','entdecken','buchung','mein-hui',
   'community','impressum','datenschutz','agb','copyright','cookies',
-  'auth-callback','callback',
+  'auth-callback','callback','resonanz',
 ]);
 
 export default function RefRedirect() {
