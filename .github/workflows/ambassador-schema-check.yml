@@ -1,0 +1,61 @@
+name: Ambassador Schema Check
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install CLI
+        run: |
+          curl -fsSL https://github.com/supabase/cli/releases/download/v2.108.0/supabase_linux_amd64.tar.gz | tar -xz -C /tmp
+          sudo mv /tmp/supabase /usr/local/bin/supabase
+
+      - name: Link
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase link --project-ref gxztrhvhcxhmunhhkfjd --yes
+
+      - name: Check schema + owner of ambassador functions
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db query --linked "
+            SELECT n.nspname as schema, p.proname, 
+                   pg_get_function_identity_arguments(p.oid) as args,
+                   pg_get_userbyid(p.proowner) as owner,
+                   p.prosecdef as security_definer
+            FROM pg_proc p
+            JOIN pg_namespace n ON p.pronamespace = n.oid
+            WHERE p.proname IN ('rpc_get_ambassador_referrals','rpc_get_all_ambassadors',
+                                'rpc_validate_ambassador_name','rpc_get_ambassador_ref_link')
+            ORDER BY p.proname
+          ;" -o json
+
+      - name: Check PostgREST config
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db query --linked "
+            SELECT current_setting('pgrst.db_schemas', true) as schemas,
+                   current_setting('pgrst.db_anon_role', true) as anon_role
+          ;" -o json
+
+      - name: Check ACL on functions
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db query --linked "
+            SELECT proname, proacl
+            FROM pg_proc
+            WHERE proname IN ('rpc_get_ambassador_referrals','rpc_get_all_ambassadors')
+          ;" -o json
+
+      - name: Deploy with explicit schema
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db query --linked -f ambassador_schema_fix.sql 2>&1
