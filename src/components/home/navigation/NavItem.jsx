@@ -2,6 +2,7 @@
 // Fixes: Props-Normalisierung (active|isActive), Capsule-BG, Scale-Keyframe
 import React from "react";
 import { HUI } from "../../../design/hui.design.js";
+import { NAV_ICON_SIZE } from "./navigationGeometry.js";
 
 const C = {
   teal:        HUI.COLOR.teal || "#3ED6CF",
@@ -14,9 +15,10 @@ const C = {
 function NavIcon({ k, active }) {
   const col = active ? C.teal : C.inactiveIcon;
   const sw  = active ? 1.9 : 1.5;
+  const sz  = NAV_ICON_SIZE;
 
   if (k === "feed") return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <svg width={sz} height={sz} viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <circle cx="12" cy="12" r="9" stroke={col} strokeWidth={sw}/>
       <path d="M12 12 L10.5 6.5 L12 8.5 L13.5 6.5 Z" fill={active ? C.teal : col}/>
       <path d="M12 12 L10.5 17.5 L12 15.5 L13.5 17.5 Z" fill={active ? C.coral : "rgba(80,80,80,0.28)"}/>
@@ -24,7 +26,7 @@ function NavIcon({ k, active }) {
     </svg>
   );
   if (k === "discover") return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <svg width={sz} height={sz} viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M3.5 11 Q12 2.5 20.5 11" stroke={col} strokeWidth={sw} strokeLinecap="round"/>
       <path d="M5.5 11V20.5H10V15.5H14V20.5H18.5V11"
         stroke={col} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round"
@@ -34,7 +36,7 @@ function NavIcon({ k, active }) {
     </svg>
   );
   if (k === "impact") return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <svg width={sz} height={sz} viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M12 19.5 C12 19.5 4 14 4 8.5 C4 6.0 6 4 8.5 4 C10 4 11.2 4.8 12 6 C12.8 4.8 14 4 15.5 4 C18 4 20 6.0 20 8.5 C20 14 12 19.5 12 19.5Z"
         fill={active ? `${C.teal}18` : "rgba(80,80,80,0.07)"}
         stroke={col} strokeWidth={sw} strokeLinejoin="round"/>
@@ -48,7 +50,7 @@ function NavIcon({ k, active }) {
     </svg>
   );
   if (k === "creator") return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <svg width={sz} height={sz} viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <circle cx="12" cy="8.5" r="4"
         fill={active ? `${C.teal}22` : "rgba(80,80,80,0.07)"} stroke={col} strokeWidth={sw}/>
       {active && <circle cx="12" cy="8.5" r="5.5" stroke={C.teal} strokeWidth="0.8" strokeDasharray="2 2" opacity="0.5"/>}
@@ -61,7 +63,7 @@ function NavIcon({ k, active }) {
   // Dieses Icon ist ein Fallback für künftiges key-Rename 'creator' → 'profile'.
   // Nicht entfernen (Breaking Change wenn key umbenannt wird).
   if (k === "profile") return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <svg width={sz} height={sz} viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <circle cx="12" cy="9" r="4"
         fill={active ? `${C.teal}22` : "rgba(80,80,80,0.07)"} stroke={col} strokeWidth={sw}/>
       {active && <circle cx="12" cy="9" r="5.5" stroke={C.teal} strokeWidth="0.8" strokeDasharray="2 2" opacity="0.5"/>}
