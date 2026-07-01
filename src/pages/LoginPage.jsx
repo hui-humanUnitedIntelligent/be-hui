@@ -903,23 +903,20 @@ export default function LoginPage() {
                   type="text"
                   value={refLink}
                   onChange={e => setRefLink(e.target.value)}
-                  placeholder="Einladungslink (optional)"
+                  placeholder="Benutzername (optional)"
                   autoComplete="off"
                   rightSlot={
                     refLink.trim() ? (
                       <span style={{
                         fontSize: 11, fontWeight: 700, letterSpacing: '0.04em',
-                        color: /^https?:\/\/(?:www\.)?be-hui\.com\/[a-z0-9_]+$/i.test(refLink.trim())
+                        color: /^[a-z0-9._-]{2,40}$/i.test(refLink.trim())
                           ? '#0EC4B8' : 'rgba(255,138,107,0.9)',
                       }}>
-                        {/^https?:\/\/(?:www\.)?be-hui\.com\/[a-z0-9_]+$/i.test(refLink.trim()) ? '✓' : '✗'}
+                        {/^[a-z0-9._-]{2,40}$/i.test(refLink.trim()) ? '✓' : '✗'}
                       </span>
                     ) : null
                   }
                 />
-                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.38)', marginTop: 6, paddingLeft: 4 }}>
-                  Format: https://be-hui.com/username
-                </div>
               </div>
             )}
 
