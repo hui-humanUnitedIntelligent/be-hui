@@ -12,9 +12,18 @@ export const NAV_GEOMETRY = Object.freeze({
   CORNER_R: 28,
   /** ~30 % of orb sits inside the organic notch */
   SINK_RATIO: 0.30,
+  /** Vertical nudge so the orb sits in the notch, not above it */
+  ORB_Y_OFFSET: 7,
+  /** Nav tab icon render size (px) */
+  NAV_ICON_SIZE: 23,
+  /** Notch depth scale — 0.9 = ~10 % flatter */
+  NOTCH_DEPTH_RATIO: 0.9,
 });
 
-const { TAB_H, GAP, CORNER_R, SINK_RATIO } = NAV_GEOMETRY;
+const { TAB_H, GAP, CORNER_R, SINK_RATIO, ORB_Y_OFFSET, NOTCH_DEPTH_RATIO } = NAV_GEOMETRY;
+
+export const NAV_ICON_SIZE = NAV_GEOMETRY.NAV_ICON_SIZE;
+export { ORB_Y_OFFSET };
 
 export const ORB_D   = NAV_GEOMETRY.ORB_D;
 export const ORB_R   = ORB_D / 2;
@@ -47,7 +56,7 @@ export function buildTabbarPath(W, H) {
   const R  = Math.min(CORNER_R, H / 2);
   const cx = W / 2;
   const bw = NOTCH_R * 1.1;
-  const nd = NOTCH_R - GAP;
+  const nd = Math.round((NOTCH_R - GAP) * NOTCH_DEPTH_RATIO);
 
   return [
     `M ${R} 0`,
