@@ -427,39 +427,44 @@ export default function LoginPage() {
     // success → useEffect navigates
   }
 
-  // Ref-Link validieren und Ambassador-ID ermitteln
-  async function resolveRefLink(link) {
-    if (!link) return null;
-    // Format: https://be-hui.com/username ODER be-hui.com/username ODER nur username
-    let usernameFromLink = null;
-    const urlMatch = link.match(/(?:https?:\/\/)?(?:www\.)?be-hui\.com\/([a-z0-9_]+)/i);
-    if (urlMatch) {
-      usernameFromLink = urlMatch[1].toLowerCase();
-    } else if (/^[a-z0-9_]{2,40}$/i.test(link.trim())) {
-      // Nur Username (z.B. "milileo")
-      usernameFromLink = link.trim().toLowerCase();
-    }
-    const match = usernameFromLink ? [null, usernameFromLink] : null;
-    if (!match) return null;
-    const username = match[1].toLowerCase();
-    if (['impressum','datenschutz','agb','cookies','copyright'].includes(username)) return null;
-    // Ambassador in Supabase suchen
-    const { data } = await supabase
+  // Ambassador-Namen validieren (rpc_validate_ambassador_name Logik)
+  // Erlaubt: NUR den Ambassador-Usernamen (z.B. "milileo")
+  // NICHT: Links, Codes, URLs
+  // Silent fail wenn kein Ambassador gefunden
+  async function resolveRefLink(input) {
+    if (!input?.trim()) return null;
+    // Normalisierung: extrahiere Username aus Link falls nötig
+    let username = input.trim().toLowerCase();
+    // Wenn jemand doch den Link eingibt: Username extrahieren
+    const urlMatch = username.match(/(?:https?:\/\/)?(?:www\.)?be-hui\.com\/([a-z0-9._-]+)/i);
+    if (urlMatch) username = urlMatch[1].toLowerCase();
+    // Format-Prüfung: nur gültige Usernames
+    if (!/^[a-z0-9._-]{2,40}$/.test(username)) return null;
+    // Ausschluss-Liste: keine Systemseiten
+    const EXCLUDED = ['home','login','studio','impact','admin','diagnose',
+      'dashboard','profile','work','auth','ref','entdecken','buchung',
+      'mein-hui','community','impressum','datenschutz','agb','cookies','copyright'];
+    if (EXCLUDED.includes(username)) return null;
+
+    // Schritt 1: ambassador_ref_links (schnell, cache)
+    const { data: refData } = await supabase
       .from('ambassador_ref_links')
-      .select('user_id')
+      .select('user_id, username')
       .eq('username', username)
-      .limit(1)
       .maybeSingle();
-    if (data?.user_id) return { ambassadorId: data.user_id, username };
-    // Fallback: profiles mit is_ambassador oder role=ambassador
+    if (refData?.user_id) return { ambassadorId: refData.user_id, username };
+
+    // Schritt 2: profiles direkt — role='ambassador' OR is_ambassador=true
+    // Single Source of Truth: profiles.username
     const { data: prof } = await supabase
       .from('profiles')
-      .select('id')
+      .select('id, username')
       .eq('username', username)
       .or('role.eq.ambassador,is_ambassador.eq.true')
-      .limit(1)
       .maybeSingle();
     if (prof?.id) return { ambassadorId: prof.id, username };
+
+    // Silent fail — kein Ambassador mit diesem Namen
     return null;
   }
 
