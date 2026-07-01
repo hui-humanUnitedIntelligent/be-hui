@@ -89,49 +89,87 @@ function StatBox({ icon, label, value, accent, onPlus }) {
 // ── Nutzer-Zeile ──────────────────────────────────────────────
 function UserRow({ u }) {
   const isActive = u.isActive;
+  const [open, setOpen] = React.useState(false);
+  const hasDetails = u.email || u.phone;
   return (
-    <div className="amb-ref-row">
-      <Avatar name={u.displayName} src={u.avatarUrl} />
-      <div style={{ flex:1, minWidth:0 }}>
-        {/* Name + Status-Badge */}
-        <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>
-          <span style={{ fontSize:13, fontWeight:700, color:T.ink,
-            overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth:160 }}>
-            {u.displayName}
-          </span>
-          <span style={{
-            fontSize:10, fontWeight:700, padding:"2px 6px", borderRadius:20,
-            background: isActive ? "rgba(14,196,184,0.12)" : "rgba(26,26,24,0.07)",
-            color:      isActive ? "#0EC4B8"               : T.inkSoft,
-          }}>
-            {isActive ? "⚡ aktiv" : "😴 schlafend"}
-          </span>
-        </div>
-        {/* @username */}
-        {u.username && (
-          <div style={{ fontSize:11, color:T.inkSoft, marginTop:1 }}>@{u.username}</div>
-        )}
-        {/* E-Mail */}
-        {u.email && (
-          <a href={`mailto:${u.email}`} style={{
-            fontSize:11, color:T.teal, textDecoration:"none",
-            display:"flex", alignItems:"center", gap:3, marginTop:2,
-          }}>
-            ✉️ {u.email}
-          </a>
-        )}
-        {/* Daten */}
-        <div style={{ display:"flex", gap:10, marginTop:3, flexWrap:"wrap" }}>
-          <span style={{ fontSize:10, color:T.inkFaint }}>
-            📅 Reg. {fmt(u.joinedAt) || "–"}
-          </span>
-          {u.firstTransactionAt && (
-            <span style={{ fontSize:10, color:"#0EC4B8" }}>
-              💳 Erste Zahlung {fmt(u.firstTransactionAt)}
+    <div>
+      <div
+        className="amb-ref-row"
+        onClick={() => hasDetails && setOpen(o => !o)}
+        style={{ cursor: hasDetails ? "pointer" : "default" }}
+      >
+        <Avatar name={u.displayName} src={u.avatarUrl} />
+        <div style={{ flex:1, minWidth:0 }}>
+          {/* Name + Status-Badge */}
+          <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>
+            <span style={{ fontSize:13, fontWeight:700, color:T.ink,
+              overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth:160 }}>
+              {u.displayName}
             </span>
-          )}
+            <span style={{
+              fontSize:10, fontWeight:700, padding:"2px 6px", borderRadius:20,
+              background: isActive ? "rgba(14,196,184,0.12)" : "rgba(26,26,24,0.07)",
+              color:      isActive ? "#0EC4B8"               : T.inkSoft,
+            }}>
+              {isActive ? "⚡ aktiv" : "😴 schlafend"}
+            </span>
+          </div>
+          {/* @username + Datum */}
+          <div style={{ display:"flex", gap:10, marginTop:2, flexWrap:"wrap", alignItems:"center" }}>
+            {u.username && (
+              <span style={{ fontSize:11, color:T.inkSoft }}>@{u.username}</span>
+            )}
+            <span style={{ fontSize:10, color:T.inkFaint }}>
+              📅 {fmt(u.joinedAt) || "–"}
+            </span>
+            {u.firstTransactionAt && (
+              <span style={{ fontSize:10, color:"#0EC4B8" }}>💳 Erste Zahlung {fmt(u.firstTransactionAt)}</span>
+            )}
+          </div>
         </div>
+        {/* Expand-Pfeil */}
+        {hasDetails && (
+          <div style={{
+            fontSize:12, color:T.inkSoft, transition:"transform .2s",
+            transform: open ? "rotate(180deg)" : "rotate(0deg)", flexShrink:0,
+          }}>▼</div>
+        )}
       </div>
+
+      {/* Aufklappbare Details */}
+      {open && hasDetails && (
+        <div style={{
+          margin:"0 0 6px 0", padding:"10px 16px", borderRadius:"0 0 12px 12px",
+          background:"rgba(14,196,184,0.06)", border:"1px solid rgba(14,196,184,0.15)",
+          borderTop:"none", display:"flex", flexDirection:"column", gap:6,
+        }}>
+          {u.email && (
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <span style={{ fontSize:11, color:T.inkFaint, width:60, flexShrink:0 }}>E-Mail</span>
+              <a href={`mailto:${u.email}`} style={{
+                fontSize:12, fontWeight:600, color:T.teal, textDecoration:"none",
+                overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+              }}>
+                {u.email}
+              </a>
+            </div>
+          )}
+          {u.phone && (
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <span style={{ fontSize:11, color:T.inkFaint, width:60, flexShrink:0 }}>Telefon</span>
+              <a href={`tel:${u.phone}`} style={{
+                fontSize:12, fontWeight:600, color:T.teal, textDecoration:"none",
+              }}>
+                {u.phone}
+              </a>
+            </div>
+          )}
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <span style={{ fontSize:11, color:T.inkFaint, width:60, flexShrink:0 }}>Nutzer-ID</span>
+            <span style={{ fontSize:10, color:T.inkSoft, fontFamily:"monospace" }}>{u.id}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
