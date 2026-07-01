@@ -6,6 +6,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient.js";
 import {
   FB_AVATAR,
@@ -19,7 +20,6 @@ import AmbassadorModal from "../components/ambassador/AmbassadorModal.jsx";
 import SettingsModal  from "../components/settings/SettingsModal.jsx";
 import { useAmbassador } from "../hooks/useAmbassador.js";
 import { useProfileData } from "../hooks/useProfileData.js";
-import HuiStudio              from "../components/studio/HuiStudio.jsx";
 import MeineResonanz           from "./studio/MeineResonanz.jsx";
 import PublicProfilePreview   from "../components/profile/PublicProfilePreview.jsx";
 import { OrbSignatur }        from "../components/profile/OrbSignatur.jsx";
@@ -362,6 +362,7 @@ function OffenFuerSection({ openFor, onChange }) {
 const MAX_BIO = 500;
 
 export default function MyBasisProfile({ onClose, profileId }) {
+  const navigate = useNavigate();
   // AuthContext: eigenen Profile-Cache nach Uploads aktualisieren
   const _auth = useAuth() || {};
   const user            = _auth.user   ?? null;          // Sprint F.7D: user für useProfileData
@@ -385,7 +386,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [showPublicPreview, setShowPublicPreview] = useState(false);
   const [showMerken,       setShowMerken]       = useState(false);
   const [showSettings,    setShowSettings]    = useState(false);
-  const [showStudio,        setShowStudio]        = useState(false);
   const [showResonanz,      setShowResonanz]      = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
 
@@ -736,9 +736,12 @@ export default function MyBasisProfile({ onClose, profileId }) {
             >👁️</button>
             <button
               className="mbp-press-light"
-              onClick={() => setShowStudio(true)}
-              title="Einstellungen"
-              aria-label="Einstellungen"
+              onClick={() => {
+                onClose?.();
+                navigate("/studio");
+              }}
+              title="Creator Studio"
+              aria-label="Creator Studio"
               style={{
                 width:34, height:34, borderRadius:"50%",
                 background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`,
@@ -999,20 +1002,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
         <PublicProfilePreview
           profileId={profile.id}
           onClose={() => setShowPublicPreview(false)}
-        />
-      )}
-
-      {/* HUI STUDIO MODAL */}
-      {showStudio && (
-        <HuiStudio
-          profile={profile}
-          onClose={() => setShowStudio(false)}
-          onProfileUpdate={(upd) => {
-            // Sprint F.7D P2: setProfile → reload()
-            setAuthProfile && setAuthProfile(p => ({ ...p, ...upd }));
-            refreshProfile?.().catch(() => {});
-            reload();
-          }}
         />
       )}
 

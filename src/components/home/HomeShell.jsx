@@ -39,6 +39,11 @@ export function useHome() {
   return ctx;
 }
 
+/** Optional variant for components used outside HomeShell (e.g. /studio route). */
+export function useHomeOptional() {
+  return useContext(HomeCtx);
+}
+
 /* ── HomeShell ────────────────────────────────────────────────── */
 export default function HomeShell({ children }) {
 
@@ -169,7 +174,6 @@ export default function HomeShell({ children }) {
   const [showImpactFlow,         setShowImpactFlow]         = useState(false);
   const [showContentSelector,    setShowContentSelector]    = useState(false);
   const [showInvitationFlow,     setShowInvitationFlow]     = useState(false);
-  const [showCreatorDash,        setShowCreatorDash]        = useState(false); // Phase 4D
   const [showWerkDetail,         setShowWerkDetail]        = useState(null);
   const [showWerkCheckout,       setShowWerkCheckout]      = useState(null);
   const [showBookingFlow,        setShowBookingFlow]        = useState(null); // COMMERCE-01 E-3
@@ -315,7 +319,6 @@ export default function HomeShell({ children }) {
     showImpactFlow,         setShowImpactFlow,
     showContentSelector,    setShowContentSelector,
     showInvitationFlow,     setShowInvitationFlow,
-    showCreatorDash,        setShowCreatorDash,
     showWerkDetail,        setShowWerkDetail,
     showWerkCheckout,      setShowWerkCheckout,
     showBookingFlow,       setShowBookingFlow,      // COMMERCE-01 E-3
@@ -345,7 +348,7 @@ export default function HomeShell({ children }) {
     showTeilen, showTalentFlow, showStoryComposer,
     showWerkPublisher, showExperienceCreator,
     showImpactFlow, showContentSelector, showInvitationFlow,
-    showCreatorDash, showWerkDetail, showWerkCheckout, showWerkeKorb,
+    showWerkDetail, showWerkCheckout, showWerkeKorb,
     showUnterstutzenFlow, showBookingFlow,
     createType, activeStory, cart, clearCartPersist,
     openOwnProfile, flowStore,

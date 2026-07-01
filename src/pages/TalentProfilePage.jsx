@@ -18,7 +18,6 @@ import { useAuth }  from "../lib/AuthContext.jsx";
 import { notifyWatcher } from "../lib/notificationService.js";
 import { useHome }       from "../components/home/HomeShell.jsx";
 import SettingsModal  from "../components/settings/SettingsModal.jsx";
-import HuiStudio      from "../components/studio/HuiStudio.jsx";
 // Sprint D: Datenlayer
 import { useProfileData } from "../hooks/useProfileData.js";
 // Sprint D: Unified Sections (Sprint C)
@@ -1096,7 +1095,6 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
   const [showKompassSheet,  setShowKompassSheet]  = useState(false);
   const [kompassWatchLocal, setKompassWatchLocal] = useState(null);
   const [showSettings,      setShowSettings]      = useState(false);
-  const [showStudio,        setShowStudio]        = useState(false);
   const kompassToggleRef = React.useRef(() => {});
 
   const isOwner = !publicView && (!!user?.id && (profileId === user.id || (!profileId && !!user.id)));
@@ -1374,12 +1372,6 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
             reload();
             setShowSettings(false);
           }}
-        />
-      )}
-      {isOwner && showStudio && (
-        <HuiStudio
-          profile={profile}
-          onClose={() => setShowStudio(false)}
         />
       )}
     </div>

@@ -56,7 +56,6 @@ import { IX } from "../design/hui.interaction.js";
 import ContentTypeSelector from "../content/ContentTypeSelector.jsx";
 import InvitationFlow from "../content/invitation/InvitationFlow.jsx";
 const HuiMembershipFlow   = React.lazy(() => import("../components/HuiMembershipFlow.jsx"));
-const CreatorDashboard    = React.lazy(() => import("./CreatorDashboard.jsx"));
 const HuiCreateFlow       = React.lazy(() => import("../components/HuiCreateFlow.jsx"));
 const TalentOnboarding    = React.lazy(() => import("../components/TalentOnboarding.jsx"));
 const StoryComposer       = React.lazy(() => import("../components/StoryComposer.jsx"));
@@ -158,7 +157,6 @@ function HomeInner() {
     showContentSelector,    setShowContentSelector,
     showInvitationFlow,     setShowInvitationFlow,
     activeStory,       setActiveStory,
-    showCreatorDash,   setShowCreatorDash,
     showCreatorDashboard,
     showWerkCheckout,  setShowWerkCheckout,  // COMMERCE-01 W-1
     showBookingFlow,   setShowBookingFlow,   // COMMERCE-01 W-1
@@ -188,17 +186,16 @@ function HomeInner() {
 
 
   // ── Phase 4C: Talent Flow global registrieren ────────────────
-  // Ermöglicht Guards aus beliebigen Komponenten: window.__HUI_OPEN_TALENT_FLOW?.()
   React.useEffect(() => {
     window.__HUI_OPEN_TALENT_FLOW    = () => setShowMembership(true);
-    window.__HUI_OPEN_CREATOR_DASH   = () => setShowCreatorDash(true);
+    window.__HUI_OPEN_CREATOR_DASH   = () => navigate("/studio");
     window.__HUI_OPEN_PROFILE__       = (id) => { if(id) openProfileById(id); };
     return () => {
       delete window.__HUI_OPEN_TALENT_FLOW;
       delete window.__HUI_OPEN_CREATOR_DASH;
       delete window.__HUI_OPEN_PROFILE__;
     };
-  }, [setShowMembership, setShowCreatorDash]);
+  }, [setShowMembership, navigate, openProfileById]);
 
   // ─────────────────────────────────────────────────────────────
 
@@ -706,20 +703,6 @@ function HomeInner() {
               }}
             />
           </SafeRender>
-        )}
-        {/* Phase 4D: Creator Dashboard */}
-        {showCreatorDash && (
-          <React.Suspense fallback={null}>
-            <CreatorDashboard
-              visible={showCreatorDash}
-              onClose={() => setShowCreatorDash(false)}
-              onOpenProfile={(id) => {
-                setShowCreatorDash(false);
-                if (id === "discover") { handleTab("discover"); }
-                else if (id) { openProfileById(id); }
-              }}
-            />
-          </React.Suspense>
         )}
         {showCreateFlow && SAFE_MODE.createFlow && (
           <SafeRender flag="createFlow" label="HuiCreateFlow">
