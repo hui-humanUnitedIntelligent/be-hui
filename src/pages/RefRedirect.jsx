@@ -35,30 +35,15 @@ export default function RefRedirect() {
     const run = async () => {
       try {
         const uname = username.toLowerCase();
-        let ambassadorId = null, referralCode = null;
+        let ambassadorId = null;
 
-        // Schritt 1: ambassador_ref_links (schneller Cache)
-        const { data } = await supabase
-          .from("ambassador_ref_links")
-          .select("user_id, username, referral_code")
-          .eq("username", uname)
-          .maybeSingle();
-        if (data?.user_id) {
-          ambassadorId = data.user_id;
-          referralCode = data.referral_code;
-        }
-
-        // Schritt 2 (Fallback): profiles direkt — Single Source of Truth
-        // (falls ambassador_ref_links veraltet/leer ist, z.B. Status erst kuerzlich bestaetigt)
-        if (!ambassadorId) {
-          const { data: prof } = await supabase
-            .from("profiles")
-            .select("id, username")
-            .eq("username", uname)
-            .or("role.eq.ambassador,is_ambassador.eq.true")
-            .eq("ambassador_status", "confirmed")
-            .maybeSingle();
-          if (prof?.id) ambassadorId = prof.id;
+        // WICHTIG: Hier ist der Besucher garantiert anonym (noch kein Login).
+        // profiles/ambassador_ref_links haben KEINE anon-SELECT-Policy (RLS) —
+        // direkte .from(...).select()-Aufrufe liefern hier IMMER leer zurueck.
+        // Deshalb ausschliesslich ueber die SECURITY-DEFINER-RPC aufloesen.
+        const { data } = await supabase.rpc("rpc_resolve_ref_link", { p_username: uname });
+        if (data?.found && data?.ambassador_id) {
+          ambassadorId = data.ambassador_id;
         }
 
         if (ambassadorId) {
@@ -67,7 +52,6 @@ export default function RefRedirect() {
           localStorage.setItem(STORAGE_AMB_KEY, JSON.stringify({
             username: uname,
             ambassadorId,
-            referralCode,
             expiry,
           }));
         }
