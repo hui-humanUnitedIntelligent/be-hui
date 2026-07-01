@@ -96,7 +96,7 @@ let _cssInjected = false;
 
 // ── NavItem ───────────────────────────────────────────────────
 export default function NavItem({ item, active, isActive, onPress, badge = 0 }) {
-  // Props-Normalisierung: BottomNav sendet "active", ältere Stellen "isActive"
+  // Props-Normalisierung: HUIBottomNavigation sendet "active", ältere Stellen "isActive"
   const isAct = !!(active ?? isActive);
 
   const [pressed,   setPressed]   = React.useState(false);
