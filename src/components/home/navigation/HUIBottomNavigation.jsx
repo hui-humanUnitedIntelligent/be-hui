@@ -28,7 +28,7 @@ import {
   buildTabbarPath,
 } from "./navigationGeometry.js";
 
-const { TAB_H, MARGIN_H, CORNER_R } = NAV_GEOMETRY;
+const { TAB_H, MARGIN_H, CORNER_R, ORB_Y_OFFSET } = NAV_GEOMETRY;
 
 /* ── SVG Tabbar Background ─────────────────────────────────── */
 function NavigationSVG({ width, height }) {
@@ -251,7 +251,7 @@ export default function HUIBottomNavigation({
             position: "absolute",
             top: 0,
             left: "50%",
-            transform: "translateX(-50%)",
+            transform: `translateX(-50%) translateY(${ORB_Y_OFFSET}px)`,
             width: ORB_D,
             height: ORB_D,
             zIndex: 3,
