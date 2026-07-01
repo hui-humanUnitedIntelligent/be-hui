@@ -23,6 +23,10 @@ import { NAV_ITEMS } from "./navConfig.js";
 import { validateNavItem } from "../../../lib/factories/createNavItem.js";
 import { useHuiActions, A } from "../../../core/hui.actions.js";
 
+/* ── DEBUG: extrem sichtbar — nur zur Build-/Render-Diagnose ─ */
+const DEBUG_NAV_ACTIVE = true;
+const DEBUG_NAV_HEIGHT = 200;
+
 /* ── Geometrie ─────────────────────────────────────────────── */
 const TAB_H    = 96;    // Referenz: Tabbar hoch genug für 2/3-Orb-Einbuchtung
 const MARGIN_H = 12;
@@ -160,6 +164,16 @@ export default function BottomNav({
   //   = safe-area + TAB_H (Tabbar-Oberkante) - ORB_R (halb eingetaucht) + GAP
   const orbMB = `calc(max(${SAFE_B}px, env(safe-area-inset-bottom, ${SAFE_B}px)) + ${TAB_H}px - ${ORB_R}px + ${GAP}px - ${SINK}px)`;
 
+  const tabBarH = DEBUG_NAV_ACTIVE ? DEBUG_NAV_HEIGHT : TAB_H;
+
+  React.useEffect(() => {
+    if (!DEBUG_NAV_ACTIVE) return;
+    console.warn(
+      "[HUI DEBUG NAV] BottomNav.jsx mounted",
+      { file: "src/components/home/navigation/BottomNav.jsx", branch: "cursor/bottom-nav-debug-ede7" }
+    );
+  }, []);
+
   return (
     <>
       {/* ══════════════════════════════════════════════════
@@ -257,6 +271,7 @@ export default function BottomNav({
           ══════════════════════════════════════════════════ */}
       <div
         data-bnroot=""
+        data-debug-nav={DEBUG_NAV_ACTIVE ? "active" : undefined}
         style={{
           position:      "fixed",
           bottom:        0,
@@ -274,19 +289,46 @@ export default function BottomNav({
             position:     "relative",
             margin:       `0 ${MARGIN_H}px`,
             marginBottom: `max(${SAFE_B}px, env(safe-area-inset-bottom, ${SAFE_B}px))`,
-            height:       TAB_H,
+            height:       tabBarH,
+            ...(DEBUG_NAV_ACTIVE ? {
+              background: "#ff0000",
+              border:     "6px solid #000",
+            } : {}),
           }}
         >
+          {DEBUG_NAV_ACTIVE && (
+            <div
+              data-debug-label=""
+              style={{
+                position:       "absolute",
+                top:            8,
+                left:           0,
+                right:          0,
+                textAlign:      "center",
+                fontSize:       22,
+                fontWeight:     900,
+                color:          "#fff",
+                letterSpacing:  "0.08em",
+                zIndex:         5,
+                pointerEvents:  "none",
+                textShadow:     "0 2px 4px rgba(0,0,0,0.8)",
+              }}
+            >
+              DEBUG ACTIVE
+            </div>
+          )}
+
           {/* Backdrop-blur: separates div, liegt unter dem SVG */}
           <div style={{
             position:             "absolute",
             inset:                0,
             borderRadius:         CORNER_R,
-            backdropFilter:       "blur(36px) saturate(1.9)",
-            WebkitBackdropFilter: "blur(36px) saturate(1.9)",
+            backdropFilter:       DEBUG_NAV_ACTIVE ? "none" : "blur(36px) saturate(1.9)",
+            WebkitBackdropFilter: DEBUG_NAV_ACTIVE ? "none" : "blur(36px) saturate(1.9)",
             overflow:             "hidden",   /* nur hier: für backdrop-clip */
+            background:           DEBUG_NAV_ACTIVE ? "rgba(255,0,0,0.98)" : undefined,
             /* Schatten der Tabbar selbst */
-            boxShadow: [
+            boxShadow: DEBUG_NAV_ACTIVE ? "none" : [
               "0 2px 8px rgba(0,0,0,0.05)",
               "0 12px 40px rgba(0,0,0,0.10)",
               "0 1px 2px rgba(0,0,0,0.06)",
@@ -294,7 +336,7 @@ export default function BottomNav({
           }} />
 
           {/* SVG: organische Einbuchtung + Glassfüllung */}
-          <TabbarSVG width={barW} height={TAB_H} />
+          {!DEBUG_NAV_ACTIVE && <TabbarSVG width={barW} height={tabBarH} />}
 
           {/* Tab-Items */}
           <div style={{
