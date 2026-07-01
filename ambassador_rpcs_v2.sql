@@ -1,3 +1,5 @@
+BEGIN;
+
 -- ============================================================
 -- ADR-AMBASSADOR-SYSTEM RPCs v2
 -- ARCH-006.1 konform | 2026-07-01
@@ -262,3 +264,6 @@ GRANT EXECUTE ON FUNCTION rpc_ambassador_comment_project(uuid,uuid,text)  TO aut
 GRANT EXECUTE ON FUNCTION rpc_ambassador_send_message(uuid,uuid,text)     TO authenticated;
 GRANT EXECUTE ON FUNCTION rpc_ambassador_resonance(uuid,uuid,integer)     TO authenticated;
 
+
+
+COMMIT;
