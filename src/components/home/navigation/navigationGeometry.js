@@ -12,6 +12,8 @@ export const NAV_GEOMETRY = Object.freeze({
   CORNER_R: 28,
   /** ~30 % of orb sits inside the organic notch */
   SINK_RATIO: 0.30,
+  /** Final pixel polish — visual orb offset only (does not affect layout metrics) */
+  ORB_Y_OFFSET: 8,
 });
 
 const { TAB_H, GAP, CORNER_R, SINK_RATIO } = NAV_GEOMETRY;
@@ -46,8 +48,8 @@ export const NAV_SAFE_BOTTOM_CSS =
 export function buildTabbarPath(W, H) {
   const R  = Math.min(CORNER_R, H / 2);
   const cx = W / 2;
-  const bw = NOTCH_R * 1.1;
-  const nd = NOTCH_R - GAP;
+  const bw = NOTCH_R * 1.23; // ~12 % wider opening for optical cradle
+  const nd = (NOTCH_R - GAP) * 0.90; // ~10 % shallower — embraces, not clamps
 
   return [
     `M ${R} 0`,
