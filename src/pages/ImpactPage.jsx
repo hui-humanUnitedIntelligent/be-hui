@@ -4,7 +4,6 @@
 
 import { useStripeImpactPool } from '@/hooks/useStripeImpactPool';
 import ReactDOM from 'react-dom';
-import { useStripeImpactPool } from '@/hooks/useStripeImpactPool';
 import React from "react";
 import { ProfileService } from '../services/db';
 import { supabase } from "../lib/supabaseClient";
