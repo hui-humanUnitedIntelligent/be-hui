@@ -1,0 +1,35 @@
+name: Stripe Refunds DB Deploy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        run: |
+          curl -fsSL https://github.com/supabase/cli/releases/download/v2.108.0/supabase_linux_amd64.tar.gz | tar -xz -C /tmp
+          sudo mv /tmp/supabase /usr/local/bin/supabase
+
+      - name: Link to Supabase project
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase link --project-ref gxztrhvhcxhmunhhkfjd --yes
+
+      - name: Deploy Refunds SQL (table + RPCs)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          set -e
+          supabase db query --linked -f stripe_refunds_migration.sql 2>&1
+          echo "✅ SQL deployed"
+
+      - name: Verify
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db query --linked "SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename='stripe_refunds';" -o json
+          supabase db query --linked "SELECT proname FROM pg_proc WHERE proname IN ('rpc_record_refund','rpc_handle_refund','rpc_record_payout') ORDER BY proname;" -o json
