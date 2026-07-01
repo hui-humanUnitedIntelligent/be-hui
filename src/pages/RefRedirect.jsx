@@ -34,20 +34,40 @@ export default function RefRedirect() {
 
     const run = async () => {
       try {
-        // Prüfe ob gültiger Ambassador-Link in der DB
-        const { data, error } = await supabase
+        const uname = username.toLowerCase();
+        let ambassadorId = null, referralCode = null;
+
+        // Schritt 1: ambassador_ref_links (schneller Cache)
+        const { data } = await supabase
           .from("ambassador_ref_links")
           .select("user_id, username, referral_code")
-          .eq("username", username.toLowerCase())
-          .single();
+          .eq("username", uname)
+          .maybeSingle();
+        if (data?.user_id) {
+          ambassadorId = data.user_id;
+          referralCode = data.referral_code;
+        }
 
-        if (data && !error) {
+        // Schritt 2 (Fallback): profiles direkt — Single Source of Truth
+        // (falls ambassador_ref_links veraltet/leer ist, z.B. Status erst kuerzlich bestaetigt)
+        if (!ambassadorId) {
+          const { data: prof } = await supabase
+            .from("profiles")
+            .select("id, username")
+            .eq("username", uname)
+            .or("role.eq.ambassador,is_ambassador.eq.true")
+            .eq("ambassador_status", "confirmed")
+            .maybeSingle();
+          if (prof?.id) ambassadorId = prof.id;
+        }
+
+        if (ambassadorId) {
           // Im localStorage speichern (7 Tage)
           const expiry = Date.now() + 7 * 24 * 60 * 60 * 1000;
           localStorage.setItem(STORAGE_AMB_KEY, JSON.stringify({
-            username:    data.username,
-            ambassadorId: data.user_id,
-            referralCode: data.referral_code,
+            username: uname,
+            ambassadorId,
+            referralCode,
             expiry,
           }));
         }
