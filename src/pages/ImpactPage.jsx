@@ -2289,7 +2289,7 @@ function ImpactTimeline({ transp }) {
           {transp.loading
             ? "Projektdaten werden geladen…"
             : steps.every(s => s.count === 0 || s.count === null)
-              ? "Der Impact Pool startet — die ersten Projekte kommen bald. 🌱"
+              ? "Der Impact Pool startet — neue Projekte erscheinen hier, sobald sie live gehen. 🌱"
               : "Der Impact Pool lebt und wächst — gemeinsam bewegen wir mehr. 💚"
           }
         </div>
