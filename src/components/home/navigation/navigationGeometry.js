@@ -4,22 +4,24 @@
  */
 
 export const NAV_GEOMETRY = Object.freeze({
-  TAB_H:    96,
+  TAB_H:    78,
   MARGIN_H: 12,
-  SAFE_B:   14,
+  SAFE_B:   11,
   ORB_D:    102,
-  GAP:      7,
-  CORNER_R: 28,
+  GAP:      6,
+  CORNER_R: 22,
   /** ~30 % of orb sits inside the organic notch */
   SINK_RATIO: 0.30,
+  /** Extra radius beyond orb for notch curve — lower = flatter Einbuchtung */
+  NOTCH_EXTRA: 12,
 });
 
-const { TAB_H, GAP, CORNER_R, SINK_RATIO } = NAV_GEOMETRY;
+const { TAB_H, GAP, CORNER_R, SINK_RATIO, NOTCH_EXTRA } = NAV_GEOMETRY;
 
 export const ORB_D   = NAV_GEOMETRY.ORB_D;
 export const ORB_R   = ORB_D / 2;
 export const SINK    = Math.round(ORB_D * SINK_RATIO);
-export const NOTCH_R = ORB_R + GAP + 24;
+export const NOTCH_R = ORB_R + GAP + NOTCH_EXTRA;
 
 /** Visible orb height above the bar surface */
 export const ORB_OVERHANG = ORB_D - SINK;
@@ -52,8 +54,8 @@ export function buildTabbarPath(W, H) {
   return [
     `M ${R} 0`,
     `L ${cx - bw} 0`,
-    `C ${cx - bw + NOTCH_R * 0.62} 0, ${cx - NOTCH_R * 0.32} ${nd}, ${cx} ${nd}`,
-    `C ${cx + NOTCH_R * 0.32} ${nd}, ${cx + bw - NOTCH_R * 0.62} 0, ${cx + bw} 0`,
+    `C ${cx - bw + NOTCH_R * 0.58} 0, ${cx - NOTCH_R * 0.22} ${nd}, ${cx} ${nd}`,
+    `C ${cx + NOTCH_R * 0.22} ${nd}, ${cx + bw - NOTCH_R * 0.58} 0, ${cx + bw} 0`,
     `L ${W - R} 0`,
     `Q ${W} 0 ${W} ${R}`,
     `L ${W} ${H - R}`,
