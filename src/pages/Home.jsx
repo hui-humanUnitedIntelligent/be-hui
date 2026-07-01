@@ -1,6 +1,5 @@
 // src/pages/Home.jsx — HUI Home Orchestrator v8
-// SAFARI-FIX: BottomNav außerhalb overflow:hidden Container
-// iOS Safari vererbt pointer-events von overflow:hidden auf position:fixed Kinder
+// Layout: BottomNav reserviert eigenen Platz im Flex-Layout (kein Overlay)
 
 import React, { Suspense, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom"; // COMMERCE-01
@@ -263,9 +262,7 @@ function HomeInner() {
       <style>{GLOBAL_CSS + SAFE_MOTION_CSS}</style>
 
 
-      {/* ── Haupt-Layout: KEIN overflow:hidden hier ────────────── */}
-      {/* overflow:hidden würde in iOS Safari pointer-events auf    */}
-      {/* position:fixed Kinder vererben → BottomNav tot           */}
+      {/* ── Haupt-Layout: Header | Scroll | BottomNav ─────────── */}
       <div style={{
         height:          "100dvh",         /* dvh: Safari 15.4+ */
         /* minHeight:-webkit-fill-available ENTFERNT:
@@ -280,7 +277,6 @@ function HomeInner() {
         width:           "100%",           /* kein overflow über Viewport */
         maxWidth:        "100%",
         overflowX:       "hidden",
-        /* overflow:hidden BEWUSST WEGGELASSEN — Safari pointer-events Fix */
       }}>
 
         {/* Header */}
@@ -307,27 +303,18 @@ function HomeInner() {
           aria-hidden="true"
         />
 
-        {/* Scroll-Bereich */}
+        {/* Scroll-Bereich — endet oberhalb der Bottom Navigation */}
         <div
           className="hui-scroll"
           ref={(el) => { mainScrollRef.current = el; scrollContainerRef.current = el; }}
           style={{
             flex:         1,
+            minHeight:    0,
             overflowY:    "auto",
             overflowX:    "hidden",
             position:     "relative",
-            // overscroll-behavior:contain = kein Bounce/Rubber-Band am Ende,
-            // Scrollen bleibt aber möglich (kein "none" → würde Scroll blockieren)
             overscrollBehavior: "contain",
             WebkitOverflowScrolling: "touch",
-            // NAV-LAYOUT: Feed endet OBERHALB der Bottom Navigation.
-            // Orb-Oberkante liegt bei: safe-area + 123px vom Boden (TAB_H=72, ORB_D=102, SINK=7).
-            // paddingBottom reserviert: Orb-Oberkante + 8px Luft = safe-area + 131px.
-            // → Kein Content wird vom Orb oder der Tabbar verdeckt.
-            paddingBottom: "calc(max(14px, env(safe-area-inset-bottom, 14px)) + 138px)", // NAV: Orb-Oberkante 144px + 8px Luft
-            // Phase 22: Atmosphärische Kontinuität beim Tab-Wechsel
-            // Sanfte background-transition — gibt das Gefühl von
-            // "Raum-Wechsel" statt "Screen-Wechsel"
             transition:   "background-color 320ms cubic-bezier(0.16,1,0.30,1)",
             ...worldTokens.feedContainerStyle,
           }}
@@ -440,8 +427,40 @@ function HomeInner() {
           </div>
         </div>
 
+        {/* BottomNav: Layout-Footer — reserviert eigenen Platz, kein Overlay */}
+        <BottomNav
+          tab={tab}
+          onTab={onTabPress}
+          creatorOpen={showCreatorDashboard}
+          hasTalent={isTalent}
+          orbActive={activeSurface === 'orb' || showMembership || showTalentFlow}
+          navDrift={
+            (showMembership || showTalentFlow)
+              ? { opacity: 0, transform: "translateY(120%)",
+                  transition: "opacity 0.52s cubic-bezier(0.22,1,0.36,1), transform 0.52s cubic-bezier(0.22,1,0.36,1)",
+                  pointerEvents: "none" }
+              : activeSurface ? worldTokens.navStyle : {}
+          }
+          authProfile={authProfile}
+          notifCount={liveNotifCount}
+          msgCount={unreadTotal}
+          onOrbAction={(key) => {
+            if (key !== "create") return;
+
+            const canRenderOrbContent = SAFE_MODE.orb;
+            const _mType = authProfile?.membership_type ?? "base";
+            const _mActive = authProfile?.membership_active ?? false;
+
+            if (!canRenderOrbContent) {
+              console.warn("[HUI ORB] canRenderOrbContent=false — orb disabled by SAFE_MODE");
+              return;
+            }
+
+            setShowPlusSheet(true);
+          }}
+        />
+
       </div>
-      {/* ↑ overflow:hidden Container endet hier — BottomNav ist DRAUSSEN */}
 
       {/* KORB-01: Floating Korb-Button — oberhalb TabBar */}
       {SAFE_MODE.werkFlow && (
@@ -484,53 +503,6 @@ function HomeInner() {
           onResonanzCenter={() => setShowUnterstutzenFlow(false)}
         />
       )}
-
-      {/* ── BottomNav: AUSSERHALB des overflow:hidden Divs ─────────
-          KRITISCH für iOS Safari: position:fixed Elements müssen
-          außerhalb von overflow:hidden Parents stehen damit
-          pointer-events korrekt funktionieren                      */}
-      {/* BottomNav: hidden during membership + all fullscreen flows
-          NEVER unmounted — just opacity:0 + translateY(120%) */}
-      <BottomNav
-        tab={tab}
-        onTab={onTabPress}
-        creatorOpen={showCreatorDashboard}
-        hasTalent={isTalent}
-        orbActive={activeSurface === 'orb' || showMembership || showTalentFlow}
-        navDrift={
-          (showMembership || showTalentFlow)
-            ? { opacity: 0, transform: "translateY(120%)",
-                transition: "opacity 0.52s cubic-bezier(0.22,1,0.36,1), transform 0.52s cubic-bezier(0.22,1,0.36,1)",
-                pointerEvents: "none" }
-            : activeSurface ? worldTokens.navStyle : {}  /* Phase 16.3: no orbNavDrift parallel */
-        }
-        authProfile={authProfile}
-        notifCount={liveNotifCount}
-        msgCount={unreadTotal}
-        onOrbAction={(key) => {
-          if (key !== "create") return;
-
-          // Phase 15.3: Safe Opening Pipeline
-          // RULE: overlay activation ONLY after content validation
-          // RULE: never openOrbWorld() before canRenderOrbContent check
-
-          const canRenderOrbContent = SAFE_MODE.orb;
-
-          // Phase 4C: Modus-Variablen (für bedingtes Rendering)
-          const _mType = authProfile?.membership_type ?? "base";
-          const _mActive = authProfile?.membership_active ?? false;
-
-          // Einheitlicher Orb: alle User öffnen den OrbCompass.
-          // Sichtbarkeits-Scope wird in OrbCompass via isTalent-Prop gesteuert:
-          //   isTalent=true  → visibility_scope='public'         (Feed, Entdecken, Community)
-          //   isTalent=false → visibility_scope='connections_only' (nur Verbindungen)
-          if (!canRenderOrbContent) {
-            console.warn("[HUI ORB] canRenderOrbContent=false — orb disabled by SAFE_MODE");
-            return;
-          }
-          setShowPlusSheet(true);
-        }}
-      />
 
       {/* ── Overlay Layer ──────────────────────────────────────── */}
       <ProfileLauncher/>

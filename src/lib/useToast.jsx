@@ -9,6 +9,7 @@
 // Mount <ToastContainer/> once in App.jsx.
 // ══════════════════════════════════════════════════════════════
 import React, { useState, useEffect, useCallback } from "react";
+import { NAV_LAYOUT_HEIGHT_CSS } from "../components/home/navigation/navLayout.js";
 
 const TEAL  = "#16D7C5";
 const CORAL = "#FF8A6B";
@@ -126,7 +127,7 @@ export function ToastContainer() {
   return (
     <div style={{
       position:"fixed",
-      bottom:`calc(env(safe-area-inset-bottom, 0px) + 84px)`,
+      bottom:`calc(${NAV_LAYOUT_HEIGHT_CSS} + 8px)`,
       left:"50%", transform:"translateX(-50%)",
       zIndex:29000,
       display:"flex", flexDirection:"column-reverse", gap:8,
