@@ -1,6 +1,7 @@
 // src/pages/studio/StudioSubPages.jsx
 // HUI Creator Studio — Sub-Page-Stubs
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 
 const C = {
@@ -61,6 +62,7 @@ const STATUS_CFG = {
 
 /* ── Werke & Inhalte ── */
 export function MeineInhaltePage({ onBack, userId }) {
+  const navigate = useNavigate();
   const [works,    setWorks]    = React.useState([]);
   const [exps,     setExps]     = React.useState([]);
   const [loading,  setLoading]  = React.useState(true);
@@ -184,11 +186,18 @@ export function MeineInhaltePage({ onBack, userId }) {
         const st         = STATUS_CFG[item.status] || STATUS_CFG.draft;
         const isRejected = item.status === "rejected";
         return (
-          <div key={item.id} style={{
+          <div
+            key={item.id}
+            onClick={() => {
+              if (item._type === "werk") navigate(`/work/${item.id}`);
+              else if (item._type === "experience") navigate(`/experience/${item.id}`);
+            }}
+            style={{
             background:"#fff", borderRadius:16,
             boxShadow:"0 2px 12px rgba(0,0,0,0.07)",
             border:"1px solid rgba(0,0,0,0.06)",
             marginBottom:12, overflow:"hidden",
+            cursor:"pointer",
           }}>
             <div style={{ display:"flex" }}>
               {/* Thumbnail */}
@@ -274,9 +283,12 @@ export function MeineInhaltePage({ onBack, userId }) {
                 {/* Erneut einreichen */}
                 {isRejected && (
                   <button
-                    onClick={() => setResubDlg({
-                      type:item._type, id:item.id, title:item.title,
-                    })}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setResubDlg({
+                        type:item._type, id:item.id, title:item.title,
+                      });
+                    }}
                     style={{
                       padding:"6px 14px", borderRadius:99, border:"none",
                       background:"#0EC4B8", color:"#fff",

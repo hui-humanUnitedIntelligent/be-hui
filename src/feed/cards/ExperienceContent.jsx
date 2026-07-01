@@ -5,14 +5,13 @@ const TEAL = "#0DC4B5";
 const INK  = "#1A1A2E";
 const INK3 = "rgba(26,26,46,0.42)";
 
-export default function ExperienceContent({ item, onProfile, onReaction, onShare, onBook }) {
+export default function ExperienceContent({ item, onProfile, onReaction, onShare, onBook, onDetail }) {
   if (!item) return null;
 
   const title       = item.title || item.text || "";
   const desc        = item._raw?.description || item._raw?.caption || null;
   const category    = item._raw?.category || null;
   const timeDisplay = item.timeStart ? item.timeStart.slice(0,5) + " Uhr" : (item.duration || null);
-  // Datumsformatierung: "24. Juni"
   let dateStr = null;
   if (item._raw?.date) {
     try {
@@ -26,8 +25,10 @@ export default function ExperienceContent({ item, onProfile, onReaction, onShare
     item.location,
   ].filter(Boolean);
 
+  const handleCardClick = onDetail ? () => onDetail() : undefined;
+
   return (
-    <BaseFeedCard item={item} onProfile={onProfile} onReaction={onReaction} onShare={onShare}>
+    <BaseFeedCard item={item} onProfile={onProfile} onReaction={onReaction} onShare={onShare} onCardClick={handleCardClick}>
 
       {/* Beschreibung */}
       {desc && (
@@ -62,7 +63,7 @@ export default function ExperienceContent({ item, onProfile, onReaction, onShare
         {/* Rechts: Teilnehmen-Button */}
         {onBook && (
           <button
-            onClick={() => onBook(item)}
+            onClick={(e) => { e.stopPropagation(); onBook(item); }}
             style={{
               flexShrink:0,
               display:"flex", alignItems:"center", gap:7,

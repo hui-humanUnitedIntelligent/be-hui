@@ -5,6 +5,7 @@
 import React, {
   useState, useEffect, useRef, useCallback,
 } from "react";
+import { useNavigate } from "react-router-dom";
 import { S } from "../../core/hui.sources.js";
 import { HUI } from "../../design/hui.design.js";
 // Sprint F.7B: createProfileItem nicht mehr für Root-Profil nötig
@@ -759,8 +760,9 @@ function FooterValues() {
 // ═══════════════════════════════════════════════════════════════
 // FLOATING BOOK CTA — sticky bottom
 // ═══════════════════════════════════════════════════════════════
-function FloatingBookCTA({ onBook, profileName }) {
+function FloatingBookCTA({ onBook, profileName, visible = true }) {
   const { pressed, bind } = usePress();
+  if (!visible) return null;
   return (
     <div style={{
       position:"fixed",
@@ -795,6 +797,7 @@ function FloatingBookCTA({ onBook, profileName }) {
 //      useProfileData(profileId) → eine Datenquelle für alle Profile
 // ────────────────────────────────────────────────────────────────────────────
 export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profileIdProp, onClose, onBook, onChat, _zIndex = 9500 }) {
+  const navigate = useNavigate();
   // Phase 4D: Support Flow State — MUSS VOR ALLEM ANDEREN STEHEN (Rules of Hooks)
   const [showSupport, setShowSupport] = React.useState(false);
 
@@ -837,12 +840,19 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profi
 
   // Route through Action Engine — falls back to prop callbacks for non-HomeShell contexts
   const handleBook = useCallback((exp) => {
-    if (actions[A.BOOK_EXPERIENCE]) {
-      actions[A.BOOK_EXPERIENCE]({ experience: exp, creator: profile, source: S.VISITOR_PROFILE });
-    } else {
-      onBook?.(profile, exp);
+    const targetExp = exp || experiences?.find(e =>
+      ["published", "active", "approved"].includes(e.status)
+    );
+    if (targetExp?.id) {
+      navigate(`/experience/${targetExp.id}`);
+      return;
     }
-  }, [actions, profile, onBook]);
+    if (actions[A.BOOK_EXPERIENCE]) {
+      actions[A.BOOK_EXPERIENCE]({ experience: targetExp, creator: profile, source: S.VISITOR_PROFILE });
+    } else {
+      onBook?.(profile, targetExp);
+    }
+  }, [actions, profile, onBook, experiences, navigate]);
 
   const handleChat = useCallback(() => {
     if (actions[A.OPEN_CHAT]) {
@@ -913,12 +923,23 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profi
 
       <VisitorHero   profile={profile} onClose={handleClose} onBook={handleBook} onChat={handleChat} onSupport={handleSupport} currentUserId={currentUserId}/>
       <StatsStrip    profile={profile} wirkerProfile={wirkerProfile} followerCount={followCounts?.followers ?? 0}/>
-      <ExperiencesSection experiences={experiences || []} isOwner={isOwner} loading={loading}/>
+      <ExperiencesSection
+        experiences={experiences || []}
+        isOwner={isOwner}
+        loading={loading}
+        onExperiencePress={(ex) => {
+          if (ex?.id) navigate(`/experience/${ex.id}`);
+        }}
+      />
       <WirkungSection  profile={profile} wirkerProfile={wirkerProfile} followerCount={followCounts?.followers ?? 0}/>
       <MomentsSection moments={moments || []} loading={loading} isOwner={isOwner}/>
       <ResonanceCommunity community={null}/>
       <FooterValues/>
-      <FloatingBookCTA onBook={handleBook} profileName={name}/>
+      <FloatingBookCTA
+        onBook={() => handleBook()}
+        profileName={name}
+        visible={(experiences || []).some(e => ["published","active","approved"].includes(e.status))}
+      />
       {/* Phase 4D: Support Flow */}
       <SupportFlow
         creator={profile}
