@@ -27,12 +27,12 @@ import { useHuiActions, A } from "../../../core/hui.actions.js";
 const TAB_H    = 72;    // mehr Höhe — Einbuchtung schneidet nicht in Items
 const MARGIN_H = 12;
 const SAFE_B   = 14;
-const ORB_D    = 95;    // LOCKED — HUI Living Design System v1.0
+const ORB_D    = 102;   // Final LOCKED — HUI Living Design System v1.0
 const ORB_R    = ORB_D / 2;
 const GAP      = 7;        // Luftfuge Orb ↔ Einbuchtungs-Spitze (bewusstes Design-Element)
 const NOTCH_R  = ORB_R + GAP + 5;  // Bogen-Radius: exakt proportioniert zum 88px Orb
 const CORNER_R = 28;
-const SINK     = 10;   // LOCKED — Orb 10px tiefer in Einbuchtung
+const SINK     = 5;    // Final: Orb-Mitte exakt auf Einbuchtungs-Mittelachse
 
 /* ── SVG-Path generieren ───────────────────────────────────── */
 function buildPath(W, H) {
@@ -47,9 +47,9 @@ function buildPath(W, H) {
     `M ${R} 0`,
     `L ${cx - bw} 0`,
     // Linke Einbuchtungs-Flanke: sanfte Bezier
-    `C ${cx - bw + NOTCH_R * 0.5} 0, ${cx - NOTCH_R * 0.4} ${nd}, ${cx} ${nd}`,
+    `C ${cx - bw + NOTCH_R * 0.62} 0, ${cx - NOTCH_R * 0.32} ${nd}, ${cx} ${nd}`,
     // Rechte Einbuchtungs-Flanke: symmetrisch
-    `C ${cx + NOTCH_R * 0.4} ${nd}, ${cx + bw - NOTCH_R * 0.5} 0, ${cx + bw} 0`,
+    `C ${cx + NOTCH_R * 0.32} ${nd}, ${cx + bw - NOTCH_R * 0.62} 0, ${cx + bw} 0`,
     `L ${W - R} 0`,
     `Q ${W} 0 ${W} ${R}`,
     `L ${W} ${H - R}`,
@@ -226,9 +226,11 @@ export default function BottomNav({
             alignItems:     "center",
             justifyContent: "center",
             filter: [
-              "drop-shadow(0 6px 18px rgba(212,120,30,0.30))",
-              "drop-shadow(0 2px 6px rgba(0,0,0,0.14))",
-              "drop-shadow(0 12px 32px rgba(13,196,150,0.12))",
+              /* Ambient Shadow: warm/weich, kein hartes Schwarz */
+              "drop-shadow(0 4px 12px rgba(190,100,20,0.22))",
+              "drop-shadow(0 8px 28px rgba(190,100,20,0.14))",
+              "drop-shadow(0 18px 48px rgba(13,196,150,0.10))",
+              "drop-shadow(0 2px 4px rgba(0,0,0,0.08))",
             ].join(" "),
           }}>
             <img
