@@ -127,7 +127,6 @@ export const space = {
   // Safe areas
   safeTop:    "max(20px, env(safe-area-inset-top, 20px))",
   safeBottom: "max(40px, env(safe-area-inset-bottom, 40px))",
-  safeBottomNav: "max(44px, env(safe-area-inset-bottom, 44px))",
 };
 
 // ─── Typography ───────────────────────────────────────────────────────────────
