@@ -23,10 +23,14 @@ export const ORB_D   = NAV_GEOMETRY.ORB_D;
 export const ORB_R   = ORB_D / 2;
 export const SINK    = Math.round(ORB_D * SINK_RATIO);   // 45px in Einbuchtung
 
-// NOTCH_R: Bogen-Radius der Einbuchtung
-// nd = NOTCH_R - GAP = Einbuchtungstiefe im SVG
-// nd muss >= SINK (Orb passt rein) und < TAB_H (kein Durchbruch)
-export const NOTCH_R = SINK + GAP + GAP;  // 45 + 6 + 6 = 57px → nd = 51px
+// ── Notch-Kosmetik — bewusst ENTKOPPELT von der (gelockten) Orb-Geometrie ──
+// Die Notch ist reine Hintergrund-Deko der Tabbar, nicht die Positionierung
+// des Orbs selbst (die läuft separat über ORB_OVERHANG/top:9 im Component).
+// Vorher war die Notch über NOTCH_R an SINK gekoppelt → nd=51px (80% von
+// TAB_H) → wirkte wie ein tiefer Trichter. Jetzt: eigene, flache Werte.
+export const NOTCH_HALF_WIDTH = 72;  // halbe Breite der Notch-Öffnung
+export const NOTCH_DEPTH      = 22;  // Tiefe der Einbuchtung — deutlich flacher (vorher 51px)
+export const NOTCH_HANDLE_R   = 46;  // Bezier-Handle-Radius für den weichen Bogen
 
 /** Visible orb height above the bar surface */
 export const ORB_OVERHANG = ORB_D - SINK;   // 57px
@@ -53,22 +57,20 @@ export const NAV_SAFE_BOTTOM_CSS =
 export function buildTabbarPath(W, H) {
   const R  = Math.min(CORNER_R, H / 2);
   const cx = W / 2;
-  // bw: halbe Breite der Einbuchtungs-Öffnung — breiter als NOTCH_R für organische Weichheit
-  const bw = NOTCH_R * 1.25;
-  // nd: Tiefe der Einbuchtung im SVG (y-Position des tiefsten Punktes)
-  const nd = NOTCH_R - GAP;   // 51px
+  const bw = NOTCH_HALF_WIDTH;   // halbe Breite der Öffnung
+  const nd = NOTCH_DEPTH;        // Tiefe — flach & organisch, kein Trichter
 
-  // Bezier-Tangenten: lange flache Einlaufkurve → weicher U-Bogen (kein V, kein Knick)
+  // Bezier-Tangenten: lange flache Einlaufkurve → weicher, harmonischer Bogen
   // t1 = Einlauf-Tangente (lang = flacher Einlauf)
   // t2 = Auslauf-Tangente (kurz = sanfter Abschluss am Tiefpunkt)
-  const t1 = 0.70;
-  const t2 = 0.28;
+  const t1 = 0.66;
+  const t2 = 0.30;
 
   return [
     `M ${R} 0`,
     `L ${cx - bw} 0`,
-    `C ${cx - bw + NOTCH_R * t1} 0, ${cx - NOTCH_R * t2} ${nd}, ${cx} ${nd}`,
-    `C ${cx + NOTCH_R * t2} ${nd}, ${cx + bw - NOTCH_R * t1} 0, ${cx + bw} 0`,
+    `C ${cx - bw + NOTCH_HANDLE_R * t1} 0, ${cx - NOTCH_HANDLE_R * t2} ${nd}, ${cx} ${nd}`,
+    `C ${cx + NOTCH_HANDLE_R * t2} ${nd}, ${cx + bw - NOTCH_HANDLE_R * t1} 0, ${cx + bw} 0`,
     `L ${W - R} 0`,
     `Q ${W} 0 ${W} ${R}`,
     `L ${W} ${H - R}`,

@@ -49,19 +49,19 @@ function NavigationSVG({ width, height }) {
       viewBox={`0 0 ${width} ${height}`}
       preserveAspectRatio="none"
     >
-      <path d={path} fill="rgba(253,251,248,0.96)" />
+      <path d={path} fill="rgba(253,251,248,0.78)" />
       <path
         d={path}
         fill="none"
-        stroke="rgba(255,255,255,0.82)"
-        strokeWidth="1.4"
+        stroke="rgba(255,255,255,0.75)"
+        strokeWidth="1.2"
         vectorEffect="non-scaling-stroke"
       />
       <path
         d={path}
         fill="none"
-        stroke="rgba(0,0,0,0.055)"
-        strokeWidth="0.8"
+        stroke="rgba(0,0,0,0.045)"
+        strokeWidth="0.7"
         vectorEffect="non-scaling-stroke"
       />
     </svg>
@@ -179,6 +179,10 @@ export default function HUIBottomNavigation({
     return () => obs.disconnect();
   }, []);
 
+  // Eindeutige clipPath-ID pro Instanz — verhindert Kollisionen, falls je
+  // zwei Nav-Instanzen gleichzeitig im DOM wären (z.B. während Transitions).
+  const clipId = `hui-tabbar-notch-clip-${React.useId()}`;
+
   const barRef = React.useRef(null);
   const [barW, setBarW] = React.useState(
     () => (typeof window !== "undefined" ? window.innerWidth - MARGIN_H * 2 : 360)
@@ -288,29 +292,38 @@ export default function HUIBottomNavigation({
             boxSizing: "content-box",
           }}
         >
-          {/* Backdrop blur layer — geclippt auf die exakte Notch-Geometrie.
-              Vorher: einfaches abgerundetes Rechteck (borderRadius: CORNER_R),
-              das den Blur/Schatten auch IN der Aussparung sichtbar hielt →
-              großer weißer/blurriger Block oberhalb der eigentlichen Tabbar.
-              Jetzt: identischer Pfad wie die SVG-Füllung → oberhalb/innerhalb
-              der Notch ist der Bereich vollständig transparent, der Feed
-              rückt sichtbar näher an die Navigation heran. */}
+          {/* Backdrop blur layer — geclippt auf die exakte Notch-Geometrie via
+              SVG-<clipPath> + url()-Referenz (statt CSS clip-path: path(),
+              das auf älteren Safari/iOS-Versionen nicht zuverlässig greift
+              und dann als UNGECLIPPTES Rechteck gerendert hätte — das war
+              vermutlich die Ursache für den weiterhin "massiven" Eindruck).
+              So bleibt Blur/Schatten garantiert auf die Pill+Notch-Form
+              begrenzt — nichts sichtbar oberhalb der eigentlichen Tabbar. */}
           {barW > 0 && (
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                clipPath: `path('${buildTabbarPath(barW, TAB_H)}')`,
-                WebkitClipPath: `path('${buildTabbarPath(barW, TAB_H)}')`,
-                backdropFilter: "blur(36px) saturate(1.9)",
-                WebkitBackdropFilter: "blur(36px) saturate(1.9)",
-                boxShadow: [
-                  "0 2px 8px rgba(0,0,0,0.05)",
-                  "0 12px 40px rgba(0,0,0,0.10)",
-                  "0 1px 2px rgba(0,0,0,0.06)",
-                ].join(", "),
-              }}
-            />
+            <>
+              <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true">
+                <defs>
+                  <clipPath id={clipId} clipPathUnits="userSpaceOnUse">
+                    <path d={buildTabbarPath(barW, TAB_H)} />
+                  </clipPath>
+                </defs>
+              </svg>
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  clipPath: `url(#${clipId})`,
+                  WebkitClipPath: `url(#${clipId})`,
+                  backdropFilter: "blur(30px) saturate(1.6)",
+                  WebkitBackdropFilter: "blur(30px) saturate(1.6)",
+                  boxShadow: [
+                    "0 1px 6px rgba(0,0,0,0.04)",
+                    "0 8px 28px rgba(0,0,0,0.07)",
+                    "0 1px 2px rgba(0,0,0,0.05)",
+                  ].join(", "),
+                }}
+              />
+            </>
           )}
 
           {/* SVG: organic notch is part of the geometry */}
