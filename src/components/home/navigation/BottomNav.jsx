@@ -27,11 +27,12 @@ import { useHuiActions, A } from "../../../core/hui.actions.js";
 const TAB_H    = 72;    // mehr Höhe — Einbuchtung schneidet nicht in Items
 const MARGIN_H = 12;
 const SAFE_B   = 14;
-const ORB_D    = 88;    // Mittelpunkt der Navigation — hochwertiger, klar dominant
+const ORB_D    = 95;    // LOCKED — HUI Living Design System v1.0
 const ORB_R    = ORB_D / 2;
 const GAP      = 7;        // Luftfuge Orb ↔ Einbuchtungs-Spitze (bewusstes Design-Element)
 const NOTCH_R  = ORB_R + GAP + 5;  // Bogen-Radius: exakt proportioniert zum 88px Orb
 const CORNER_R = 28;
+const SINK     = 10;   // LOCKED — Orb 10px tiefer in Einbuchtung
 
 /* ── SVG-Path generieren ───────────────────────────────────── */
 function buildPath(W, H) {
@@ -157,7 +158,7 @@ export default function BottomNav({
   // + GAP = Luftfuge zwischen Orb-Unterkante und Einbuchtungs-Spitze
   // marginBottom = distance from screen-bottom to orb-button-bottom
   //   = safe-area + TAB_H (Tabbar-Oberkante) - ORB_R (halb eingetaucht) + GAP
-  const orbMB = `calc(max(${SAFE_B}px, env(safe-area-inset-bottom, ${SAFE_B}px)) + ${TAB_H}px - ${ORB_R}px + ${GAP}px)`;
+  const orbMB = `calc(max(${SAFE_B}px, env(safe-area-inset-bottom, ${SAFE_B}px)) + ${TAB_H}px - ${ORB_R}px + ${GAP}px - ${SINK}px)`;
 
   return (
     <>
