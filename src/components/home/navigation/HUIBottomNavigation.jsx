@@ -16,6 +16,7 @@
  */
 import React from "react";
 import NavItem from "./NavItem.jsx";
+import { HUI } from "../../../design/hui.design.js";
 import { NAV_ITEMS } from "./navConfig.js";
 import { validateNavItem } from "../../../lib/factories/createNavItem.js";
 import { useHuiActions, A } from "../../../core/hui.actions.js";
@@ -30,7 +31,16 @@ import {
 
 const { TAB_H, MARGIN_H, CORNER_R } = NAV_GEOMETRY;
 
-/* ── SVG Tabbar Background ─────────────────────────────────── */
+/* ── SVG Tabbar Background ─────────────────────────────────────
+   Vollständig deckende Füllung (HUI-Design-System Off-White) — KEIN
+   Glassmorphism, KEIN Blur, KEIN Durchscheinen des Hintergrunds. Sieht
+   dadurch auf JEDEM Screen (Feed/Profil/etc.) identisch aus, da die
+   Füllung nicht mehr von dahinterliegendem Content beeinflusst wird.
+   Der weiche, schwebende Schatten kommt über CSS drop-shadow, der der
+   exakten Pill+Notch-Silhouette folgt (kein rechteckiger Clip-Umweg
+   mehr nötig — das war nur für den früheren Blur-Layer erforderlich). */
+const TABBAR_FILL = HUI.COLOR.creamSoft || "#FDFBF8";
+
 function NavigationSVG({ width, height }) {
   if (!width || !height) return null;
   const path = buildTabbarPath(width, height);
@@ -45,23 +55,27 @@ function NavigationSVG({ width, height }) {
         display: "block",
         overflow: "visible",
         pointerEvents: "none",
+        filter: [
+          "drop-shadow(0 1px 3px rgba(0,0,0,0.05))",
+          "drop-shadow(0 6px 20px rgba(0,0,0,0.08))",
+        ].join(" "),
       }}
       viewBox={`0 0 ${width} ${height}`}
       preserveAspectRatio="none"
     >
-      <path d={path} fill="rgba(253,251,248,0.78)" />
+      <path d={path} fill={TABBAR_FILL} />
       <path
         d={path}
         fill="none"
-        stroke="rgba(255,255,255,0.75)"
-        strokeWidth="1.2"
+        stroke="rgba(255,255,255,0.7)"
+        strokeWidth="1"
         vectorEffect="non-scaling-stroke"
       />
       <path
         d={path}
         fill="none"
-        stroke="rgba(0,0,0,0.045)"
-        strokeWidth="0.7"
+        stroke="rgba(0,0,0,0.04)"
+        strokeWidth="0.6"
         vectorEffect="non-scaling-stroke"
       />
     </svg>
@@ -179,10 +193,6 @@ export default function HUIBottomNavigation({
     return () => obs.disconnect();
   }, []);
 
-  // Eindeutige clipPath-ID pro Instanz — verhindert Kollisionen, falls je
-  // zwei Nav-Instanzen gleichzeitig im DOM wären (z.B. während Transitions).
-  const clipId = `hui-tabbar-notch-clip-${React.useId()}`;
-
   const barRef = React.useRef(null);
   const [barW, setBarW] = React.useState(
     () => (typeof window !== "undefined" ? window.innerWidth - MARGIN_H * 2 : 360)
@@ -292,41 +302,9 @@ export default function HUIBottomNavigation({
             boxSizing: "content-box",
           }}
         >
-          {/* Backdrop blur layer — geclippt auf die exakte Notch-Geometrie via
-              SVG-<clipPath> + url()-Referenz (statt CSS clip-path: path(),
-              das auf älteren Safari/iOS-Versionen nicht zuverlässig greift
-              und dann als UNGECLIPPTES Rechteck gerendert hätte — das war
-              vermutlich die Ursache für den weiterhin "massiven" Eindruck).
-              So bleibt Blur/Schatten garantiert auf die Pill+Notch-Form
-              begrenzt — nichts sichtbar oberhalb der eigentlichen Tabbar. */}
-          {barW > 0 && (
-            <>
-              <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true">
-                <defs>
-                  <clipPath id={clipId} clipPathUnits="userSpaceOnUse">
-                    <path d={buildTabbarPath(barW, TAB_H)} />
-                  </clipPath>
-                </defs>
-              </svg>
-              <div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  clipPath: `url(#${clipId})`,
-                  WebkitClipPath: `url(#${clipId})`,
-                  backdropFilter: "blur(30px) saturate(1.6)",
-                  WebkitBackdropFilter: "blur(30px) saturate(1.6)",
-                  boxShadow: [
-                    "0 1px 6px rgba(0,0,0,0.04)",
-                    "0 8px 28px rgba(0,0,0,0.07)",
-                    "0 1px 2px rgba(0,0,0,0.05)",
-                  ].join(", "),
-                }}
-              />
-            </>
-          )}
-
-          {/* SVG: organic notch is part of the geometry */}
+          {/* SVG: deckende Füllung + organische Notch + weicher drop-shadow
+              — die einzige Hintergrund-Ebene der Tabbar (kein separater
+              Blur/Glass-Layer mehr nötig, siehe NavigationSVG oben). */}
           <NavigationSVG width={barW} height={TAB_H} />
 
           {/* Navigation entries */}
