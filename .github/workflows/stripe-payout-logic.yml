@@ -1,0 +1,28 @@
+name: Stripe Payout Logic Deploy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install CLI
+        run: |
+          curl -fsSL https://github.com/supabase/cli/releases/download/v2.108.0/supabase_linux_amd64.tar.gz | tar -xz -C /tmp
+          sudo mv /tmp/supabase /usr/local/bin/supabase
+      - name: Link
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase link --project-ref gxztrhvhcxhmunhhkfjd --yes
+      - name: Deploy
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase db query --linked -f stripe_payout_logic.sql 2>&1
+      - name: Verify
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db query --linked "SELECT proname FROM pg_proc WHERE proname IN ('rpc_request_payout','rpc_get_payout_requests','rpc_mark_commissions_paid','rpc_fail_payout','rpc_get_ambassador_payout_summary') ORDER BY proname;" -o json
+          supabase db query --linked "SELECT column_name FROM information_schema.columns WHERE table_name='stripe_payouts' AND column_name IN ('ambassador_id','requested_at','processed_at','failed_reason');" -o json
