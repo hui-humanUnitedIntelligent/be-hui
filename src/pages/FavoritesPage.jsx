@@ -711,7 +711,6 @@ export default function FavoritesPage({ currentUser, onView, onImpact, onDiscove
       minHeight:"100vh",
       background:C.cream,
       fontFamily:"-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif",
-      paddingBottom:100,
     }}>
       <style>{CSS}</style>
 

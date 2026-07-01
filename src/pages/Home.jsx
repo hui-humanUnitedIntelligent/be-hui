@@ -21,6 +21,7 @@ import { useHuiFlow } from "../core/hui.flow.js";
 import { safeOrbAction } from "../core/hui.safePayload.js";
 import HomeHeader                from "../components/home/header/HomeHeader.jsx";
 import BottomNav                 from "../components/home/navigation/BottomNav.jsx";
+import { FEED_PADDING_BOTTOM }   from "../components/home/navigation/navGeometry.js";
 import ProfileLauncher           from "../components/home/profile/ProfileLauncher.jsx";
 import UnifiedFeed from "../feed/UnifiedFeed.jsx";
 import { usePresence }             from "../lib/usePresence.js";
@@ -320,11 +321,8 @@ function HomeInner() {
             // Scrollen bleibt aber möglich (kein "none" → würde Scroll blockieren)
             overscrollBehavior: "contain",
             WebkitOverflowScrolling: "touch",
-            // NAV-LAYOUT: Feed endet OBERHALB der Bottom Navigation.
-            // Orb-Oberkante liegt bei: safe-area + 123px vom Boden (TAB_H=72, ORB_D=102, SINK=7).
-            // paddingBottom reserviert: Orb-Oberkante + 8px Luft = safe-area + 131px.
-            // → Kein Content wird vom Orb oder der Tabbar verdeckt.
-            paddingBottom: "calc(max(14px, env(safe-area-inset-bottom, 14px)) + 138px)", // NAV: Orb-Oberkante 144px + 8px Luft
+            // NAV-LAYOUT: Feed endet oberhalb der Bottom Navigation (siehe navGeometry.js).
+            paddingBottom: FEED_PADDING_BOTTOM,
             // Phase 22: Atmosphärische Kontinuität beim Tab-Wechsel
             // Sanfte background-transition — gibt das Gefühl von
             // "Raum-Wechsel" statt "Screen-Wechsel"
