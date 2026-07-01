@@ -19,7 +19,7 @@
 
 export const SAFE_MODE = {
   // Shell & Navigation — NIEMALS ausschalten
-  bottomNav:     true,
+  huiBottomNavigation: true,
   homeShell:     true,
   hero:          true,
 

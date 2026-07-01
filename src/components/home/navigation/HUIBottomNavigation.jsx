@@ -22,10 +22,7 @@ import { useHuiActions, A } from "../../../core/hui.actions.js";
 import {
   NAV_GEOMETRY,
   ORB_D,
-  ORB_R,
-  SINK,
   ORB_OVERHANG,
-  NAV_BLOCK_HEIGHT,
   NAV_CONTAINER_HEIGHT_CSS,
   NAV_SAFE_BOTTOM_CSS,
   buildTabbarPath,
