@@ -249,7 +249,7 @@ export default function HUIBottomNavigation({
           data-hui-nav-orb=""
           style={{
             position: "absolute",
-            top: 7,  // Finetuning: Orb 7px tiefer → ~80% in Einbuchtung, ~20% sichtbar
+            top: 9,  // v1.0 FINAL: Orb 9px tiefer — vollständig in Einbuchtung, Luftfuge rundum
             left: "50%",
             transform: "translateX(-50%)",
             width: ORB_D,
@@ -303,7 +303,7 @@ export default function HUIBottomNavigation({
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              padding: "4px 10px",
+              padding: "2px 10px",  // v1.0 FINAL: 1px weniger oben/unten — leichter, eleganter
               WebkitTapHighlightColor: "transparent",
               touchAction: "manipulation",
             }}
