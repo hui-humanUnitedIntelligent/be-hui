@@ -125,10 +125,10 @@ function NavigationOrb({ active, onPress }) {
           alignItems: "center",
           justifyContent: "center",
           filter: [
-            "drop-shadow(0 4px 12px rgba(190,100,20,0.22))",
-            "drop-shadow(0 8px 28px rgba(190,100,20,0.14))",
-            "drop-shadow(0 18px 48px rgba(13,196,150,0.10))",
-            "drop-shadow(0 2px 4px rgba(0,0,0,0.08))",
+            "drop-shadow(0 3px 10px rgba(190,100,20,0.19))",
+            "drop-shadow(0 7px 24px rgba(190,100,20,0.12))",
+            "drop-shadow(0 14px 40px rgba(13,196,150,0.08))",
+            "drop-shadow(0 1px 3px rgba(0,0,0,0.07))",
           ].join(" "),
         }}
       >
@@ -249,7 +249,7 @@ export default function HUIBottomNavigation({
           data-hui-nav-orb=""
           style={{
             position: "absolute",
-            top: 0,
+            top: 7,  // Finetuning: Orb 7px tiefer → ~80% in Einbuchtung, ~20% sichtbar
             left: "50%",
             transform: "translateX(-50%)",
             width: ORB_D,
