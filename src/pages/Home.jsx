@@ -51,6 +51,7 @@ const HuiMatchOverlay     = React.lazy(() => import("../components/HuiMatchOverl
 // PHASE 18: HuiPlusSheet direkte import (Orb immer bereit)
 // OrbCompass replaces HuiPlusSheet — Begegnungs-Kompass
 import OrbCompass from "../components/OrbCompass.jsx";
+import MeinHUI    from "./MeinHUI.jsx";
 import { IX } from "../design/hui.interaction.js";
 import ContentTypeSelector from "../content/ContentTypeSelector.jsx";
 import InvitationFlow from "../content/invitation/InvitationFlow.jsx";
@@ -617,20 +618,13 @@ function HomeInner() {
             />
           </SafeRender>
         )}
-        {/* OrbCompass — Begegnungs-Kompass (replaces HuiPlusSheet) */}
-        <OrbCompass
+        {/* MeinHUI — Persönlicher Wirkungsraum (Orb-Erfahrung v2.0) */}
+        <MeinHUI
           visible={showPlusSheet}
-          isTalent={isTalent}
-          onClose={() => {
-            setShowPlusSheet(false);
-          }}
-          onWorldSelect={(worldId, worldLabel) => {
-            // Filter feed by selected world
-            setShowPlusSheet(false);
-            if (typeof setActiveMood === "function") {
-              setActiveMood(worldId);
-            }
-          }}
+          profile={authProfile}
+          onClose={() => setShowPlusSheet(false)}
+          onNotif={() => { setShowPlusSheet(false); }}
+          onSettings={() => { setShowPlusSheet(false); }}
         />
         {showTalentFlow && SAFE_MODE.talentFlow && (
           <SafeRender flag="talentFlow" label="TalentOnboarding">
