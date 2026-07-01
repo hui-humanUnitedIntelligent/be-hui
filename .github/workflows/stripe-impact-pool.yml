@@ -1,0 +1,30 @@
+name: Stripe Impact Pool Complete
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install CLI
+        run: |
+          curl -fsSL https://github.com/supabase/cli/releases/download/v2.108.0/supabase_linux_amd64.tar.gz | tar -xz -C /tmp
+          sudo mv /tmp/supabase /usr/local/bin/supabase
+      - name: Link
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase link --project-ref gxztrhvhcxhmunhhkfjd --yes
+      - name: Deploy
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db query --linked -f stripe_impact_pool_complete.sql 2>&1
+          echo "✅ Done"
+      - name: Verify
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db query --linked "SELECT proname FROM pg_proc WHERE proname IN ('rpc_get_impact_pool_current','rpc_get_impact_pool_history','rpc_get_impact_pool_events') ORDER BY proname;" -o json
+          supabase db query --linked "SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename='stripe_impact_pool_events';" -o json
