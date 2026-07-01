@@ -27,10 +27,10 @@ import { useHuiActions, A } from "../../../core/hui.actions.js";
 const TAB_H    = 66;
 const MARGIN_H = 12;
 const SAFE_B   = 14;
-const ORB_D    = 64;
+const ORB_D    = 78;    // +22% — sofort erkennbarer Mittelpunkt
 const ORB_R    = ORB_D / 2;
-const GAP      = 8;        // Luftspalt Orb-Unterkante ↔ Einbuchtungs-Spitze
-const NOTCH_R  = ORB_R + GAP + 6;  // Bogen-Radius: etwas größer als Orb → weicher
+const GAP      = 5;        // Luftspalt Orb-Unterkante ↔ Einbuchtungs-Spitze (tiefer gesetzt)
+const NOTCH_R  = ORB_R + GAP + 4;  // Bogen-Radius: folgt exakt dem Orb-Umriss
 const CORNER_R = 28;
 
 /* ── SVG-Path generieren ───────────────────────────────────── */
