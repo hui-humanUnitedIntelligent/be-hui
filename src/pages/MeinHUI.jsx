@@ -23,6 +23,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useEffect, useRef, useState } from "react";
+import { HUILogo } from '../components/brand/HUILogo.jsx';
 
 // ─────────────────────────────────────────────────────────────────
 // DESIGN TOKENS — direkt aus HUI-Farbsystem
@@ -275,18 +276,18 @@ export function HUIOrbHero() {
           width:        200,
           height:       200,
         }}>
-          <img
-            src="/assets/brand/hui-logo-light.svg"
-            alt="HUI"
-            style={{
-              width:     "clamp(160px, 36vw, 210px)",
-              height:    "auto",
-              display:   "block",
-              animation: "hui-logo-settle 1.1s cubic-bezier(0.16,1,0.30,1) both",
-              // Dezenter Drop-Shadow — warmes Licht
-              filter:    "drop-shadow(0 4px 28px rgba(13,196,181,0.18)) drop-shadow(0 2px 8px rgba(212,149,42,0.10))",
-            }}
-          />
+          {/* HUILogo freistehend — kein Hintergrund, keine Umrandung */}
+          {/* Animation-Wrapper am Container, nicht am Logo selbst (Constitution) */}
+          <div style={{
+            animation: "hui-logo-settle 1.1s cubic-bezier(0.16,1,0.30,1) both",
+            width:     "clamp(160px, 36vw, 210px)",
+          }}>
+            <HUILogo
+              size={undefined}
+              style={{ width: "100%", height: "auto" }}
+              alt="HUI"
+            />
+          </div>
         </div>
 
       </FadeIn>

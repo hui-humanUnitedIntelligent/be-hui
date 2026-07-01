@@ -14,28 +14,8 @@ import { NAV_ITEMS } from "./navConfig.js";
 import { validateNavItem } from "../../../lib/factories/createNavItem.js";
 import { HUI } from "../../../design/hui.design.js";
 import { useHuiActions, A } from "../../../core/hui.actions.js";
-import { HUILogoSmall } from '../../brand/HUILogo.jsx';
+import { HUILogoNav } from '../../brand/HUILogo.jsx';
 
-// ── Statisches HUI-Logo für den Tabbar-Button ──────────────────────────────
-function HuiLogoIcon({ size = 44 }) {
-  return (
-    <img
-      src="/assets/brand/hui-logo-light.svg"
-      alt="HUI"
-      width={size}
-      height={size}
-      style={{
-        width: size,
-        height: size,
-        objectFit: "contain",
-        display: "block",
-        flexShrink: 0,
-        // kein borderRadius — Logo behält seine natürliche Form
-      }}
-      draggable={false}
-    />
-  );
-}
 
 const CSS = `
   .bn-orb-btn:active {
@@ -153,13 +133,14 @@ export default function BottomNav({
                     onOrbAction?.("create");
                   }}
                   style={{
-                    width:        52,
-                    height:       52,
+                    width:        56,
+                    height:       56,
                     borderRadius: "50%",
                     border:       "none",
                     padding:      0,
                     cursor:       "pointer",
                     flexShrink:   0,
+                    marginTop:    -10,
                     background:   "transparent",
                     display:      "flex",
                     alignItems:   "center",
@@ -182,23 +163,8 @@ export default function BottomNav({
                   }}
                 aria-label={item.label}
                 >
-                  <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:2 }}>
-                    <HuiLogoIcon size={36} />
-                    {item.label && (
-                      <span style={{
-                        fontSize:     9.5,
-                        fontWeight:   500,
-                        color:        "rgba(80,80,80,0.55)",
-                        letterSpacing:"0.01em",
-                        lineHeight:   1,
-                        pointerEvents:"none",
-                        userSelect:   "none",
-                        whiteSpace:   "nowrap",
-                      }}>
-                        {item.label}
-                      </span>
-                    )}
-                  </div>
+                  {/* HUILogoNav: schwebend, eleganter Mittelpunkt, Constitution-konform */}
+                  <HUILogoNav size={46} active={tab === item.key} />
                 </button>
               );
             }

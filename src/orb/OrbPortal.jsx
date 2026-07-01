@@ -684,7 +684,7 @@ export function OrbPortal({
             justifyContent:"center",
           }}>
             <img
-              src="/assets/brand/hui-logo-light.svg"
+              src='/assets/brand/hui-logo.png'
               alt="HUI"
               style={{
                 width:        ORB_R * 1.42,

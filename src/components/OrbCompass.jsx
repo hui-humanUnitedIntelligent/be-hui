@@ -8,7 +8,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import HuiMomentSheet   from "./HuiMomentSheet.jsx";
 import GemeinschaftsFlow from "./GemeinschaftsFlow.jsx";
 
-const HUI_LOGO = "/assets/brand/hui-logo-light.svg"; // Branding update — lokales Asset
+const HUI_LOGO = '/assets/brand/hui-logo.png'; // Branding update — lokales Asset
 
 const D = {
   ink:      "#1A3530",
@@ -732,7 +732,7 @@ function OrbLockedDialog({ onJoin, onClose }) {
           overflow: "hidden",
         }}>
           <img
-            src="/assets/brand/hui-logo-light.svg"
+            src='/assets/brand/hui-logo.png'
             alt="HUI"
             style={{ width: 44, height: 44, objectFit: "contain" }}
             onError={e => { e.currentTarget.style.display = "none"; }}

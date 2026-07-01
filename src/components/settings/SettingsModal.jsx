@@ -394,7 +394,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
               display: "flex", flexDirection: "column", alignItems: "center",
               padding: "24px 0 12px", gap: 8,
             }}>
-              <HUILogoWordmark height={40} />
+              <HUILogoWordmark logoSize={36} />
               <div style={{ fontSize: 11, color: "rgba(26,26,24,0.28)", letterSpacing: "0.05em" }}>
                 Version 1.0 · Beta
               </div>

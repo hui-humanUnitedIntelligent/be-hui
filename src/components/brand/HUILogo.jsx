@@ -1,184 +1,168 @@
 // src/components/brand/HUILogo.jsx
 // ══════════════════════════════════════════════════════════════════════════════
-// HUI Logo — Zentrale Markenkomponente
+// HUI Logo — Einzige autoritative Markenkomponente
 // @domain    COMPONENTS
 // @owner     brand
-// @responsibility Einzige autoritative Logo-Quelle für die gesamte App.
 //
-// CONSTITUTION: Das Logo darf unter keinen Umständen verändert werden.
-//   - Keine Neuzeichnung, keine Vereinfachung
-//   - Keine Farbänderungen, keine Effekte, keine Schatten
-//   - Keine Rotation, keine Verzerrung, keine Animation des Logos selbst
-//   - Die SVG-Dateien unter /assets/brand/ sind die einzige gültige Version
+// CONSTITUTION:
+//   - Einzige Logo-Datei: /assets/brand/hui-logo.png (RGBA, transparenter Hintergrund)
+//   - Keine Hintergründe, keine Container, keine Umrandungen
+//   - Das Logo liegt freistehend auf der App-Oberfläche
+//   - Keine Rotation, kein Pulsieren, keine Morphing-Effekte auf dem Logo selbst
+//   - Animationen NUR am Container (sanfte Skalierung, Elevation, Transition)
 //
 // VERWENDUNG:
-//   <HUILogo />                  → Standard (48px, automatische Variante)
-//   <HUILogo size={32} />        → Kleine Größe (Header, Nav)
-//   <HUILogo size={80} />        → Große Größe (Splash, Onboarding)
-//   <HUILogo variant="dark" />   → Dunkler Hintergrund
-//   <HUILogoSmall />             → Header / Navigation (28px)
-//   <HUILogoWordmark />          → Mit Wortmarke "HUI Human United Intelligence"
-//
-// SCHUTZRAUM: Das Parent-Element muss genügend Padding/Margin gewährleisten.
-//   Empfehlung: min. 0.5 × logo-height auf allen Seiten.
+//   <HUILogo />                  → Standard (48px)
+//   <HUILogo size={32} />        → Klein (Header, Nav)
+//   <HUILogo size={80} />        → Groß (Splash, Onboarding)
+//   <HUILogoNav />               → Bottom Navigation (elegant, leicht größer)
+//   <HUILogoSplash />            → Splash Screen / Loader (80px)
 // ══════════════════════════════════════════════════════════════════════════════
 
 import React from 'react';
 
-// ── Asset-Pfade ────────────────────────────────────────────────────────────
-const LOGO_LIGHT    = '/assets/brand/hui-logo-light.svg';
-const LOGO_DARK     = '/assets/brand/hui-logo-dark.svg';
-const LOGO_WORDMARK = '/assets/brand/hui-logo-wordmark.svg';
+// ── Einzige offizielle Logo-Datei ─────────────────────────────────────────
+const LOGO = '/assets/brand/hui-logo.png';
 
-// ── Haupt-Komponente ──────────────────────────────────────────────────────
+// ── Basis-Komponente ──────────────────────────────────────────────────────
 
 /**
- * HUILogo — Logo-Symbol (Sonne + Blatt).
+ * HUILogo — Das offizielle HUI-Logo.
+ * Freistehend, transparenter Hintergrund, kein Container.
  *
- * @param {object} props
- * @param {number}  [props.size=48]         — Größe in px (width = height)
- * @param {'light'|'dark'|'auto'} [props.variant='auto'] — Farbvariante
- * @param {string}  [props.className]       — Optionale CSS-Klasse
- * @param {object}  [props.style]           — Optionale Inline-Styles (NUR für Position/Margin)
- * @param {string}  [props.alt='HUI']       — Alt-Text
+ * @param {number}  [size=48]     — Breite & Höhe in px
+ * @param {string}  [className]   — Optionale CSS-Klasse
+ * @param {object}  [style]       — Nur für Position/Margin (KEIN background, border, shadow)
+ * @param {string}  [alt='HUI']
  */
-export function HUILogo({
-  size     = 48,
-  variant  = 'auto',
-  className,
-  style,
-  alt      = 'HUI',
-}) {
-  const src = variant === 'dark'
-    ? LOGO_DARK
-    : LOGO_LIGHT;
-
+export function HUILogo({ size = 48, className, style, alt = 'HUI' }) {
   return (
     <img
-      src={src}
+      src={LOGO}
       alt={alt}
       width={size}
       height={size}
       draggable={false}
       className={className}
       style={{
-        width:       size,
-        height:      size,
-        objectFit:   'contain',
-        display:     'block',
-        flexShrink:  0,
-        userSelect:  'none',
-        // CONSTITUTION: Keine filter, transform, animation auf dem Logo selbst
+        width:      size,
+        height:     size,
+        objectFit:  'contain',
+        display:    'block',
+        flexShrink: 0,
+        userSelect: 'none',
+        // CONSTITUTION: kein background, border, borderRadius, boxShadow, filter, transform
         ...style,
       }}
     />
   );
 }
 
-// ── Preset: Header / Navigation (klein) ────────────────────────────────────
+// ── Bottom Navigation — eleganter Mittelpunkt der Tabbar ─────────────────
 
 /**
- * HUILogoSmall — Für Header, Tabbar, dezente Markenidentität.
- * Standard: 28px
- */
-export function HUILogoSmall({
-  size    = 28,
-  variant = 'auto',
-  style,
-  className,
-}) {
-  return (
-    <HUILogo
-      size={size}
-      variant={variant}
-      style={style}
-      className={className}
-      alt="HUI"
-    />
-  );
-}
-
-// ── Preset: Header Logo ──────────────────────────────────────────────────
-
-/**
- * HUILogoHeader — Dezenter Header-Bereich (36px).
- */
-export function HUILogoHeader({
-  size    = 36,
-  variant = 'auto',
-  style,
-  className,
-}) {
-  return (
-    <HUILogo
-      size={size}
-      variant={variant}
-      style={style}
-      className={className}
-      alt="HUI"
-    />
-  );
-}
-
-// ── Preset: Wordmark (Symbol + Schriftzug) ────────────────────────────────
-
-/**
- * HUILogoWordmark — Logo + "HUI / Human United Intelligence" Schriftzug.
- * Für Onboarding, Login, Einstellungen, Über HUI.
+ * HUILogoNav — Logo als zentraler "Mein HUI"-Button in der Bottom Navigation.
  *
- * @param {number}  [props.height=56] — Höhe des Wordmark-Bildes
- * @param {string}  [props.className]
- * @param {object}  [props.style]
+ * Etwas größer als die übrigen Tabs.
+ * Leicht über der Tabbar schwebend — organisch, nicht gamifiziert.
+ * Animationen NUR am Container (scale, translateY) — niemals am Logo.
+ *
+ * @param {boolean} [active=false] — Ob der Tab aktiv ist
+ * @param {number}  [size=46]      — Logo-Größe
+ * @param {object}  [style]        — Container-Style-Overrides
  */
-export function HUILogoWordmark({
-  height    = 56,
-  className,
-  style,
-}) {
+export function HUILogoNav({ active = false, size = 46, style }) {
   return (
-    <img
-      src={LOGO_WORDMARK}
-      alt="HUI – Human United Intelligence"
-      height={height}
-      draggable={false}
-      className={className}
+    <div
       style={{
-        height:      height,
-        width:       'auto',
-        objectFit:   'contain',
-        display:     'block',
-        flexShrink:  0,
-        userSelect:  'none',
+        display:        'flex',
+        alignItems:     'center',
+        justifyContent: 'center',
+        // Schwebt leicht über der Tabbar
+        marginTop:      -12,
+        padding:        0,
+        // Sanfte Skalierung bei aktivem Zustand (am Container, nicht am Logo)
+        transform:      active ? 'scale(1.08) translateY(-2px)' : 'scale(1) translateY(0)',
+        transition:     'transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+        willChange:     'transform',
         ...style,
       }}
-    />
+    >
+      <HUILogo size={size} alt="Mein HUI" />
+    </div>
   );
 }
 
-// ── Preset: Splash / Fullscreen ───────────────────────────────────────────
+// ── Splash Screen ─────────────────────────────────────────────────────────
 
 /**
- * HUILogoSplash — Für Splash Screen, Fullscreen-Loader.
- * Ruhig. Kein Effekt. Kein Breathe-Animation auf dem Logo.
- * Übergeordnete Komponente darf fade-in haben.
+ * HUILogoSplash — Für Splash Screen & Ladebildschirme.
+ * Kein Breathe, kein Pulsieren auf dem Logo.
+ * Übergeordneter Container darf fade-in haben.
  *
- * @param {number}  [props.size=80]
- * @param {string}  [props.variant='light']
+ * @param {number} [size=80]
+ * @param {object} [style]
  */
-export function HUILogoSplash({
-  size    = 80,
-  variant = 'light',
-  style,
-}) {
+export function HUILogoSplash({ size = 80, style }) {
+  return <HUILogo size={size} style={style} alt="HUI" />;
+}
+
+// ── Wordmark-Variante (Logo + Text nebeneinander) ─────────────────────────
+
+/**
+ * HUILogoWordmark — Logo + "HUI" Schriftzug.
+ * Für Login, Einstellungen, Onboarding.
+ *
+ * @param {number} [logoSize=44]  — Logo-Größe
+ * @param {object} [style]        — Container-Style
+ */
+export function HUILogoWordmark({ logoSize = 44, style }) {
   return (
-    <HUILogo
-      size={size}
-      variant={variant}
-      style={style}
-      alt="HUI"
-    />
+    <div
+      style={{
+        display:     'flex',
+        alignItems:  'center',
+        gap:         12,
+        ...style,
+      }}
+    >
+      <HUILogo size={logoSize} />
+      <div>
+        <div style={{
+          fontWeight:    800,
+          fontSize:      Math.round(logoSize * 0.52),
+          color:         '#1C4A3E',
+          letterSpacing: '-0.02em',
+          lineHeight:    1.1,
+        }}>
+          HUI
+        </div>
+        <div style={{
+          fontWeight:    400,
+          fontSize:      Math.round(logoSize * 0.26),
+          color:         '#1C4A3E',
+          opacity:       0.65,
+          letterSpacing: '0.02em',
+          lineHeight:    1.3,
+        }}>
+          Human United Intelligence
+        </div>
+      </div>
+    </div>
   );
 }
 
-// ── Default Export (für einfachen Import) ─────────────────────────────────
+// ── Small / Header ────────────────────────────────────────────────────────
+
+/** HUILogoSmall — Navigation, Header (28px) */
+export function HUILogoSmall({ size = 28, style, className }) {
+  return <HUILogo size={size} style={style} className={className} />;
+}
+
+/** HUILogoHeader — Header-Bereich (36px) */
+export function HUILogoHeader({ size = 36, style, className }) {
+  return <HUILogo size={size} style={style} className={className} />;
+}
+
+// ── Default ───────────────────────────────────────────────────────────────
 export default HUILogo;
