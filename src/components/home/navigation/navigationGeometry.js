@@ -24,6 +24,9 @@ export const NOTCH_R = ORB_R + GAP + 24;
 /** Visible orb height above the bar surface */
 export const ORB_OVERHANG = ORB_D - SINK;
 
+/** Orb-only vertical offset — ~75 % inside notch, ~25 % above tabbar */
+export const ORB_Y_OFFSET = ORB_OVERHANG - Math.round(ORB_D * 0.25);
+
 /** Total nav block height excluding safe-area (orb overhang + bar) */
 export const NAV_BLOCK_HEIGHT = ORB_OVERHANG + TAB_H;
 

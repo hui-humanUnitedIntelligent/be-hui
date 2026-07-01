@@ -25,6 +25,7 @@ import {
   ORB_OVERHANG,
   NAV_CONTAINER_HEIGHT_CSS,
   NAV_SAFE_BOTTOM_CSS,
+  ORB_Y_OFFSET,
   buildTabbarPath,
 } from "./navigationGeometry.js";
 
@@ -249,7 +250,7 @@ export default function HUIBottomNavigation({
           data-hui-nav-orb=""
           style={{
             position: "absolute",
-            top: 0,
+            top: ORB_Y_OFFSET,
             left: "50%",
             transform: "translateX(-50%)",
             width: ORB_D,
