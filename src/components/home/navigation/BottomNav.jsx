@@ -1,12 +1,13 @@
 /**
- * BottomNav v6 — HUI Design System
+ * BottomNav v7 — HUI Design System
  *
  * Glassmorphism Nav Pill — Apple-level
- * Licht: rgba(255,251,248,0.94) + blur(36px) + saturate(1.8)
- * Safari-Fix: pointerEvents:none auf Outer, auto auf Pill
+ * Licht: rgba(253,251,248,0.93) + blur(36px) + saturate(1.9)
  *
- * v6: Tabbar zeigt immer das offizielle statische HUI-Logo.
- *     Der Orb ist KEIN Tabbar-Icon. Er lebt im persönlichen HUI-Bereich.
+ * v7: Mein HUI-Orb schwebt mit Luftspalt über der Tabbar.
+ *     Der Orb berührt die Tabbar-Linie NICHT.
+ *     Weicher Schatten erzeugt Materialtiefe (organisch, premium, ruhig).
+ *     Vier übrige Tabs: dezenter, kleiner, zurückhaltend.
  */
 import React from "react";
 import NavItem from "./NavItem.jsx";
@@ -14,16 +15,15 @@ import { NAV_ITEMS } from "./navConfig.js";
 import { validateNavItem } from "../../../lib/factories/createNavItem.js";
 import { HUI } from "../../../design/hui.design.js";
 import { useHuiActions, A } from "../../../core/hui.actions.js";
-import { HUILogoNav } from '../../brand/HUILogo.jsx';
-
 
 const CSS = `
-  .bn-orb-btn:active {
-    transform: scale(0.930) translateY(0.5px) !important;
-    transition: transform 120ms cubic-bezier(0.22,1,0.36,1) !important;
+  /* Orb: sanfte Press-Reaktion — Constitution-konform (am Container, nicht am Logo) */
+  .bn-orb-btn:active .bn-orb-inner {
+    transform: scale(0.93) translateY(1px) !important;
+    transition: transform 110ms cubic-bezier(0.22,1,0.36,1) !important;
   }
 
-  /* ── WerkWizard fullscreen: BottomNav ausblenden ── */
+  /* WerkWizard fullscreen: BottomNav ausblenden */
   body.hui-wizard-open [data-bnroot] {
     opacity: 0 !important;
     transform: translateY(120%) !important;
@@ -58,6 +58,7 @@ export default function BottomNav({
 
   const isHidden = wizardOpen || ((orbActive && !navDrift) ?? false);
   const actions  = useHuiActions();
+  const isOrbActive = tab === "orb" || creatorOpen === false && orbActive;
 
   function handleTabPress(key) {
     if (key === "creator") {
@@ -73,28 +74,133 @@ export default function BottomNav({
       <style>{CSS}</style>
 
       <div data-bnroot="" style={{
-        position:   "fixed",
-        bottom:     0,
-        left:       0,
-        right:      0,
-        zIndex:     10000,
+        position:      "fixed",
+        bottom:        0,
+        left:          0,
+        right:         0,
+        zIndex:        10000,
         pointerEvents: "none",
-        contain:    "layout paint",
-        isolation:  "isolate",
-        opacity:    navDrift ? navDrift.opacity   : (isHidden ? 0 : 1),
-        transform:  navDrift ? navDrift.transform : (isHidden ? "translateY(130%)" : "translateY(0)"),
-        transition: navDrift ? navDrift.transition
+        contain:       "layout paint",
+        isolation:     "isolate",
+        opacity:       navDrift ? navDrift.opacity   : (isHidden ? 0 : 1),
+        transform:     navDrift ? navDrift.transform : (isHidden ? "translateY(130%)" : "translateY(0)"),
+        transition:    navDrift ? navDrift.transition
           : "opacity 0.38s cubic-bezier(0.22,1,0.36,1), transform 0.38s cubic-bezier(0.22,1,0.36,1)",
       }}>
-        {/* Glass Pill */}
+
+        {/* ── Orb: schwebt ÜBER der Tabbar, kein Kontakt ─────────────────── */}
+        {/* Position: absolut zentriert, bottom = Tabbar-Höhe + Luftspalt     */}
         <div style={{
-          margin:       "0 12px",
-          marginBottom: "max(14px, env(safe-area-inset-bottom, 14px))",
+          position:      "absolute",
+          bottom:        "calc(max(14px, env(safe-area-inset-bottom, 14px)) + 66px + 6px)",
+          left:          "50%",
+          transform:     "translateX(-50%)",
+          zIndex:        10001,
+          pointerEvents: "auto",
+        }}>
+          <button
+            className="bn-orb-btn"
+            onClick={() => {
+              if (!hasTalent) {
+                onOrbAction?.("create");
+                return;
+              }
+              actions[A.OPEN_ORB]?.();
+              onOrbAction?.("create");
+            }}
+            aria-label="Mein HUI"
+            style={{
+              width:           64,
+              height:          64,
+              borderRadius:    "50%",
+              border:          "none",
+              padding:         0,
+              cursor:          "pointer",
+              background:      "transparent",
+              display:         "flex",
+              alignItems:      "center",
+              justifyContent:  "center",
+              WebkitTapHighlightColor: "transparent",
+              touchAction:     "manipulation",
+              // Elevation-Transition am Button-Container (Constitution-konform)
+              transition:      "transform 220ms cubic-bezier(0.34,1.56,0.64,1)",
+              transform:       isOrbActive ? "scale(1.06) translateY(-2px)" : "scale(1) translateY(0)",
+              willChange:      "transform",
+            }}
+            onPointerDown={e => {
+              e.currentTarget.querySelector('.bn-orb-inner').style.transform =
+                "scale(0.93) translateY(1px)";
+              e.currentTarget.querySelector('.bn-orb-inner').style.transition =
+                "transform 110ms cubic-bezier(0.22,1,0.36,1)";
+            }}
+            onPointerUp={e => {
+              const inner = e.currentTarget.querySelector('.bn-orb-inner');
+              if (inner) {
+                inner.style.transform  = "scale(1) translateY(0)";
+                inner.style.transition = "transform 200ms cubic-bezier(0.16,1,0.30,1)";
+              }
+            }}
+            onPointerLeave={e => {
+              const inner = e.currentTarget.querySelector('.bn-orb-inner');
+              if (inner) {
+                inner.style.transform  = "scale(1) translateY(0)";
+                inner.style.transition = "transform 200ms cubic-bezier(0.16,1,0.30,1)";
+              }
+            }}
+          >
+            {/* ── Orb-Inner: Logo freistehend, kein Hintergrund ────────────
+                Constitution: kein weißer Kreis, kein Container, keine Umrandung.
+                Weicher Schatten am Inner-Container (nicht am Logo-Bild selbst).
+                Der Schatten erzeugt organische Materialtiefe.               */}
+            <div
+              className="bn-orb-inner"
+              style={{
+                width:      62,
+                height:     62,
+                borderRadius: "50%",
+                display:    "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "transparent",
+                // Organischer Premium-Schatten — warm, weich, mehrschichtig
+                filter: [
+                  "drop-shadow(0 4px 12px rgba(212,120,30,0.28))",
+                  "drop-shadow(0 1px 4px rgba(0,0,0,0.12))",
+                  "drop-shadow(0 8px 24px rgba(13,196,150,0.15))",
+                ].join(" "),
+                transition: "transform 220ms cubic-bezier(0.34,1.56,0.64,1), filter 220ms ease",
+              }}
+            >
+              {/* Das offizielle HUI-Logo — freistehend, transparent, unverändert */}
+              <img
+                src="/assets/brand/hui-logo.png"
+                alt="Mein HUI"
+                width={62}
+                height={62}
+                draggable={false}
+                style={{
+                  width:      62,
+                  height:     62,
+                  objectFit:  "contain",
+                  display:    "block",
+                  userSelect: "none",
+                  // CONSTITUTION: kein background, border, borderRadius, boxShadow, transform, filter
+                  // Der Schatten liegt am Container-Div, nicht am Logo-Bild
+                }}
+              />
+            </div>
+          </button>
+        </div>
+
+        {/* ── Glass Pill — Tabbar ──────────────────────────────────────────── */}
+        <div style={{
+          margin:               "0 12px",
+          marginBottom:         "max(14px, env(safe-area-inset-bottom, 14px))",
           background:           "rgba(253,251,248,0.93)",
           backdropFilter:       "blur(36px) saturate(1.9)",
           WebkitBackdropFilter: "blur(36px) saturate(1.9)",
-          borderRadius: 28,
-          border:     "1px solid rgba(255,255,255,0.72)",
+          borderRadius:         28,
+          border:               "1px solid rgba(255,255,255,0.72)",
           boxShadow: [
             "0 1px 0 rgba(255,255,255,0.95) inset",
             "0 -1px 0 rgba(0,0,0,0.03) inset",
@@ -115,57 +221,20 @@ export default function BottomNav({
         }}>
 
           {(NAV_ITEMS || []).map(validateNavItem).filter(Boolean).map((item) => {
-            const isOrb = item.isOrb === true;
-
-            if (isOrb) {
-              // ── HUI-Logo Button — öffnet persönlichen HUI-Bereich ──────────
+            if (item.isOrb === true) {
+              // Orb-Platzhalter in der Tabbar — transparente Lücke für den schwebenden Orb
               return (
-                <button
-                  key="hui-logo"
-                  className="bn-orb-btn"
-                  onClick={() => {
-                    // Öffnet den persönlichen HUI-Bereich (Orb-Erfahrung beginnt dort)
-                    if (!hasTalent) {
-                      onOrbAction?.("create");
-                      return;
-                    }
-                    actions[A.OPEN_ORB]?.();
-                    onOrbAction?.("create");
-                  }}
+                <div
+                  key="orb-spacer"
                   style={{
-                    width:        56,
-                    height:       56,
-                    borderRadius: "50%",
-                    border:       "none",
-                    padding:      0,
-                    cursor:       "pointer",
-                    flexShrink:   0,
-                    marginTop:    -10,
-                    background:   "transparent",
-                    display:      "flex",
-                    alignItems:   "center",
-                    justifyContent: "center",
-                    WebkitTapHighlightColor: "transparent",
-                    touchAction:  "manipulation",
-                    transition:   "transform 0.14s ease",
+                    width:      64,
+                    height:     66,
+                    flexShrink: 0,
+                    // Transparente Lücke — kein Hintergrund, keine Umrandung
+                    background: "transparent",
+                    pointerEvents: "none",
                   }}
-                  onPointerDown={e => {
-                    e.currentTarget.style.transform = "scale(0.94) translateY(1px)";
-                    e.currentTarget.style.transition = "transform 120ms cubic-bezier(0.22,1,0.36,1)";
-                  }}
-                  onPointerUp={e => {
-                    e.currentTarget.style.transform = "scale(1) translateY(0)";
-                    e.currentTarget.style.transition = "transform 200ms cubic-bezier(0.16,1,0.30,1)";
-                  }}
-                  onPointerLeave={e => {
-                    e.currentTarget.style.transform = "scale(1) translateY(0)";
-                    e.currentTarget.style.transition = "transform 200ms cubic-bezier(0.16,1,0.30,1)";
-                  }}
-                aria-label={item.label}
-                >
-                  {/* HUILogoNav: schwebend, eleganter Mittelpunkt, Constitution-konform */}
-                  <HUILogoNav size={46} active={tab === item.key} />
-                </button>
+                />
               );
             }
 

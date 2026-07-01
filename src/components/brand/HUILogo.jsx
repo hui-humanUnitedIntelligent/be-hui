@@ -71,6 +71,7 @@ export function HUILogo({ size = 48, className, style, alt = 'HUI' }) {
  * @param {number}  [size=46]      — Logo-Größe
  * @param {object}  [style]        — Container-Style-Overrides
  */
+/** @deprecated Orb nutzt jetzt direktes img in BottomNav v7 */
 export function HUILogoNav({ active = false, size = 46, style }) {
   return (
     <div
