@@ -288,22 +288,30 @@ export default function HUIBottomNavigation({
             boxSizing: "content-box",
           }}
         >
-          {/* Backdrop blur layer */}
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              borderRadius: CORNER_R,
-              backdropFilter: "blur(36px) saturate(1.9)",
-              WebkitBackdropFilter: "blur(36px) saturate(1.9)",
-              overflow: "hidden",
-              boxShadow: [
-                "0 2px 8px rgba(0,0,0,0.05)",
-                "0 12px 40px rgba(0,0,0,0.10)",
-                "0 1px 2px rgba(0,0,0,0.06)",
-              ].join(", "),
-            }}
-          />
+          {/* Backdrop blur layer — geclippt auf die exakte Notch-Geometrie.
+              Vorher: einfaches abgerundetes Rechteck (borderRadius: CORNER_R),
+              das den Blur/Schatten auch IN der Aussparung sichtbar hielt →
+              großer weißer/blurriger Block oberhalb der eigentlichen Tabbar.
+              Jetzt: identischer Pfad wie die SVG-Füllung → oberhalb/innerhalb
+              der Notch ist der Bereich vollständig transparent, der Feed
+              rückt sichtbar näher an die Navigation heran. */}
+          {barW > 0 && (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                clipPath: `path('${buildTabbarPath(barW, TAB_H)}')`,
+                WebkitClipPath: `path('${buildTabbarPath(barW, TAB_H)}')`,
+                backdropFilter: "blur(36px) saturate(1.9)",
+                WebkitBackdropFilter: "blur(36px) saturate(1.9)",
+                boxShadow: [
+                  "0 2px 8px rgba(0,0,0,0.05)",
+                  "0 12px 40px rgba(0,0,0,0.10)",
+                  "0 1px 2px rgba(0,0,0,0.06)",
+                ].join(", "),
+              }}
+            />
+          )}
 
           {/* SVG: organic notch is part of the geometry */}
           <NavigationSVG width={barW} height={TAB_H} />
