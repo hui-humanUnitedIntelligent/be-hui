@@ -35,7 +35,7 @@ import { OrbSignatur }            from "../components/profile/OrbSignatur.jsx";
 
 // ── Design Tokens (HUI-Standard, identisch zu BasisProfilePage) ─
 const T = {
-  bg:        "#F7F5F0",
+  bg:        "#F9F7F4",
   bgCard:    "#FFFFFF",
   bgSheet:   "rgba(252,251,248,0.98)",
   teal:      "#0EC4B8",
@@ -57,7 +57,7 @@ const T = {
 };
 
 const CSS = `
-  .tpp-root{background:${T.bg};font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif;color:${T.ink};}
+  .tpp-root{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif;color:${T.ink};}
   .tpp-scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
   .tpp-scroll::-webkit-scrollbar{display:none;}
   .tpp-hscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px;}
@@ -388,7 +388,9 @@ function SectionHead({ icon, title, subtitle, cta, onCta }) {
 // ══════════════════════════════════════════════════════════════
 function Header({ onBack, isOwner, onSettings }) {
   return (
-    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:`14px ${T.px}px 10px`,background:T.bg,position:"sticky",top:0,zIndex:10}}>
+    <div style={{ position:"sticky", top:0, zIndex:10, background:T.bg }}>
+      <div style={{ height:"env(safe-area-inset-top,0)" }}/>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:`8px ${T.px}px 10px`}}>
       <button className="tpp-press" onClick={onBack}
         style={{width:36,height:36,borderRadius:"50%",background:T.bgCard,border:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:17,cursor:"pointer",touchAction:"manipulation",boxShadow:T.card,color:T.ink}}>
         ‹
@@ -412,6 +414,7 @@ function Header({ onBack, isOwner, onSettings }) {
           ···
         </button>
       )}
+      </div>
     </div>
   );
 }
@@ -1204,23 +1207,14 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
   }, [user?.id, reload]);
 
   return (
-    <div className="tpp-root" style={{
-      position:"fixed", inset:0, zIndex:9500,
-      display:"flex", flexDirection:"column",
+    <div style={{
       opacity:mounted?1:0,
       transform:mounted?"none":"translateY(14px)",
       transition:"opacity .35s ease, transform .35s cubic-bezier(.22,1,.36,1)",
     }}>
       <style>{CSS}</style>
 
-      {/* ── Sticky Header (unverändert) ──────────────────────── */}
       <Header onBack={handleBack} isOwner={isOwner} onSettings={() => setShowSettings(true)}/>
-
-      {/* ── Scrollable Content ───────────────────────────────── */}
-      <div className="tpp-scroll" style={{
-        flex:1, overflowY:"auto", touchAction:"pan-y",
-        paddingBottom:"max(40px,calc(28px + env(safe-area-inset-bottom,0px)))",
-      }}>
 
         {/* ── 1. ProfileHeader (Sprint B) ───────────────────── */}
         <ProfileHeader
@@ -1353,7 +1347,6 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
           </>
         )}
         <Gap h={40}/>
-      </div>
 
       {/* ── Kompass Sheet ────────────────────────────────────── */}
       {showKompassSheet && (
