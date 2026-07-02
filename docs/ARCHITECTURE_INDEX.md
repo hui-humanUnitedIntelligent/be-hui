@@ -3,7 +3,17 @@
 > *Zentraler Querverweiskatalog der gesamten HUI-Architektur.*  
 > *Jedes Modul, jede Engine, jedes Dokument — an einem Ort verlinkt.*
 
-**Aktualisiert:** 2026-06-29 (v2.1 — Orb-Philosophie)
+**Aktualisiert:** 2026-06-30 (v2.2 — Core Architecture ADR)
+
+---
+
+## Governance
+
+| Dokument | Beschreibung |
+|---|---|
+| [`docs/governance/adr/ADR-0001_ADOPTION_OF_CORE_ARCHITECTURE.md`](governance/adr/ADR-0001_ADOPTION_OF_CORE_ARCHITECTURE.md) | **ADR-0001 — Adoption of the Core Architecture.** Erste ratifizierte Architekturentscheidung des Councils |
+| [`docs/governance/ADI.md`](governance/ADI.md) | **Architecture Decision Index.** Zentrales Register aller Architekturentscheidungen |
+| [`docs/governance/RFC-000A_ARCHITECTURE_GOVERNANCE.md`](governance/RFC-000A_ARCHITECTURE_GOVERNANCE.md) | **Architecture Governance v1.0.** RFC-000A — Governance-Prozess, Rollen, ADI, Domain Charters |
 
 ---
 
