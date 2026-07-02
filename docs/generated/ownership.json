@@ -2065,7 +2065,7 @@
   },
   {
     "path": "pages/TalentProfilePage.jsx",
-    "lines": 1388,
+    "lines": 1358,
     "hasDomain": false,
     "hasOwner": false,
     "domain": null,
@@ -2153,7 +2153,7 @@
   },
   {
     "path": "services/db.js",
-    "lines": 651,
+    "lines": 679,
     "hasDomain": false,
     "hasOwner": false,
     "domain": null,

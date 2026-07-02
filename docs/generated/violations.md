@@ -9,14 +9,14 @@
 
 | Severity | Anzahl |
 |---|---|
-| 🔴 CRITICAL | 42 |
-| 🟠 HIGH | 112 |
-| 🟡 MEDIUM | 185 |
+| 🔴 CRITICAL | 38 |
+| 🟠 HIGH | 104 |
+| 🟡 MEDIUM | 184 |
 | 🔵 LOW | 23 |
 | ⚪ INFO | 267 |
-| **Gesamt** | **629** |
+| **Gesamt** | **616** |
 
-## CORE_BYPASS (42)
+## CORE_BYPASS (38)
 
 ### 🔴 `components/TalentOnboarding.jsx` L386
 **Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).**
@@ -249,34 +249,6 @@ const { error: saveErr } = await supabase.from("profiles")
 await supabase.from("profiles")
 ```
 
-### 🔴 `pages/TalentProfilePage.jsx` L1161
-**Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).**
-
-```
-const { error } = await supabase.from("profiles")
-```
-
-### 🔴 `pages/TalentProfilePage.jsx` L1172
-**Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).**
-
-```
-const { error } = await supabase.from("profiles")
-```
-
-### 🔴 `pages/TalentProfilePage.jsx` L1187
-**Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).**
-
-```
-const { error } = await supabase.from("profiles")
-```
-
-### 🔴 `pages/TalentProfilePage.jsx` L1199
-**Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).**
-
-```
-const { error } = await supabase.from("profiles")
-```
-
 ### 🔴 `services/db.js` L71
 **Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).**
 
@@ -291,21 +263,21 @@ supabase.from('profiles')
 supabase.from('profiles')
 ```
 
-### 🔴 `services/db.js` L170
+### 🔴 `services/db.js` L198
 **Core Bypass: Direkter Write auf Core-Tabelle 'wirker_profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).**
 
 ```
 supabase.from('wirker_profiles')
 ```
 
-### 🔴 `services/db.js` L185
+### 🔴 `services/db.js` L213
 **Core Bypass: Direkter Write auf Core-Tabelle 'wirker_profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).**
 
 ```
 supabase.from('wirker_profiles')
 ```
 
-### 🔴 `services/db.js` L505
+### 🔴 `services/db.js` L533
 **Core Bypass: Direkter Write auf Core-Tabelle 'impact_votes'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).**
 
 ```
@@ -370,7 +342,7 @@ setTimeout(() => { window.location.href = '/login' }, 1500)
 window.location.replace('/Home?v=' + v);
 ```
 
-## DB_DIRECT_WRITE (71)
+## DB_DIRECT_WRITE (63)
 
 ### 🟠 `components/HuiCreateFlow.jsx` L324
 **Direkter DB-Write (INSERT) auf 'stories' in COMPONENTS-Schicht. Verwende Service-Layer.**
@@ -778,67 +750,11 @@ await supabase.from("works").update({ status: "deleted", visibility: "private" }
 await supabase.from("profiles")
 ```
 
-### 🟠 `pages/TalentProfilePage.jsx` L185
+### 🟠 `pages/TalentProfilePage.jsx` L181
 **Direkter DB-Write (INSERT) auf 'profile_relations' in PAGES-Schicht. Verwende Service-Layer.**
 
 ```
 const { error } = await supabase
-```
-
-### 🟠 `pages/TalentProfilePage.jsx` L519
-**Direkter DB-Write (INSERT) auf 'profile_watchlist' in PAGES-Schicht. Verwende Service-Layer.**
-
-```
-const { error } = await supabase
-```
-
-### 🟠 `pages/TalentProfilePage.jsx` L532
-**Direkter DB-Write (DELETE) auf 'profile_watchlist' in PAGES-Schicht. Verwende Service-Layer.**
-
-```
-const { error } = await supabase
-```
-
-### 🟠 `pages/TalentProfilePage.jsx` L877
-**Direkter DB-Write (INSERT) auf 'profile_watchlist' in PAGES-Schicht. Verwende Service-Layer.**
-
-```
-const { error } = await supabase
-```
-
-### 🟠 `pages/TalentProfilePage.jsx` L890
-**Direkter DB-Write (DELETE) auf 'profile_watchlist' in PAGES-Schicht. Verwende Service-Layer.**
-
-```
-const { error } = await supabase
-```
-
-### 🟠 `pages/TalentProfilePage.jsx` L1161
-**Direkter DB-Write (UPDATE) auf 'profiles' in PAGES-Schicht. Verwende Service-Layer.**
-
-```
-const { error } = await supabase.from("profiles")
-```
-
-### 🟠 `pages/TalentProfilePage.jsx` L1172
-**Direkter DB-Write (UPDATE) auf 'profiles' in PAGES-Schicht. Verwende Service-Layer.**
-
-```
-const { error } = await supabase.from("profiles")
-```
-
-### 🟠 `pages/TalentProfilePage.jsx` L1187
-**Direkter DB-Write (UPDATE) auf 'profiles' in PAGES-Schicht. Verwende Service-Layer.**
-
-```
-const { error } = await supabase.from("profiles")
-```
-
-### 🟠 `pages/TalentProfilePage.jsx` L1199
-**Direkter DB-Write (UPDATE) auf 'profiles' in PAGES-Schicht. Verwende Service-Layer.**
-
-```
-const { error } = await supabase.from("profiles")
 ```
 
 ### 🟠 `pages/studio/MeineTicketsPage.jsx` L76
@@ -1028,10 +944,10 @@ components/StoryBar.jsx, lib/bookingContext.js, lib/chatContext.js, services/db.
 ```
 
 ### 🟠 `components/TalentOnboarding.jsx`
-**Duplicate Owner für Tabelle 'profiles': 17 Dateien schreiben diese Tabelle.**
+**Duplicate Owner für Tabelle 'profiles': 16 Dateien schreiben diese Tabelle.**
 
 ```
-components/TalentOnboarding.jsx, components/auth/ProfileCompletionFlow.jsx, components/settings/SettingsModal.jsx, components/studio/ProfilBearbeitenModal.jsx, hooks/useAmbassador.js, lib/AuthContext.jsx, lib/profileMedia.js, lib/referralTracking.js, lib/roles/index.js, lib/sessionHooks.js, lib/usePresence.js, pages/BasisProfilePage.jsx, pages/LoginPage.jsx, pages/MyBasisProfile.jsx, pages/MyCreatorDashboard.jsx, pages/TalentProfilePage.jsx, services/db.js
+components/TalentOnboarding.jsx, components/auth/ProfileCompletionFlow.jsx, components/settings/SettingsModal.jsx, components/studio/ProfilBearbeitenModal.jsx, hooks/useAmbassador.js, lib/AuthContext.jsx, lib/profileMedia.js, lib/referralTracking.js, lib/roles/index.js, lib/sessionHooks.js, lib/usePresence.js, pages/BasisProfilePage.jsx, pages/LoginPage.jsx, pages/MyBasisProfile.jsx, pages/MyCreatorDashboard.jsx, services/db.js
 ```
 
 ### 🟠 `components/experiences/ExperienceWizard.jsx`
@@ -1097,14 +1013,14 @@ lib/trustContext.js, services/db.js
 lib/useNotifications.jsx, pages/TalentProfilePage.jsx
 ```
 
-### 🟠 `pages/TalentProfilePage.jsx`
+### 🟠 `pages/wirker-profile/index.jsx`
 **Duplicate Owner für Tabelle 'profile_watchlist': 2 Dateien schreiben diese Tabelle.**
 
 ```
-pages/TalentProfilePage.jsx, pages/wirker-profile/index.jsx
+pages/wirker-profile/index.jsx, services/db.js
 ```
 
-## DB_DIRECT_READ (185)
+## DB_DIRECT_READ (184)
 
 ### 🟡 `components/HuiMatchOverlay.jsx` L355
 **Direkter DB-Read auf 'profiles' in COMPONENTS-Schicht. Erwäge Service-Layer.**
@@ -2324,14 +2240,7 @@ supabase.from("payments")
 const { data, error } = await supabase
 ```
 
-### 🟡 `pages/TalentProfilePage.jsx` L113
-**Direkter DB-Read auf 'profile_watchlist' in PAGES-Schicht. Erwäge Service-Layer.**
-
-```
-supabase
-```
-
-### 🟡 `pages/TalentProfilePage.jsx` L119
+### 🟡 `pages/TalentProfilePage.jsx` L115
 **Direkter DB-Read auf 'profile_relations' in PAGES-Schicht. Erwäge Service-Layer.**
 
 ```

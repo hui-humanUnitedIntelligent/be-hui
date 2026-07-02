@@ -105,6 +105,34 @@ export const ProfileService = {
       ), 120_000
     );
   },
+
+  // Watchlist — "Im Blick behalten" (profile_watchlist)
+  async getWatchStatus(watcherId, profileId) {
+    return safeQuery(
+      supabase.from('profile_watchlist')
+        .select('id')
+        .eq('watcher_id', watcherId)
+        .eq('profile_id', profileId)
+        .maybeSingle()
+    );
+  },
+
+  async addToWatchlist(watcherId, profileId) {
+    return safeQuery(
+      supabase.from('profile_watchlist')
+        .insert({ watcher_id: watcherId, profile_id: profileId })
+        .select('id').single()
+    );
+  },
+
+  async removeFromWatchlist(watcherId, profileId) {
+    return safeQuery(
+      supabase.from('profile_watchlist')
+        .delete()
+        .eq('watcher_id', watcherId)
+        .eq('profile_id', profileId)
+    );
+  },
 };
 
 // ─── MEMBERSHIPS ─────────────────────────────────────────────

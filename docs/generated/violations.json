@@ -363,50 +363,6 @@
     "table": "profiles"
   },
   {
-    "id": "CORE_BYPASS_pages/TalentProfilePage.jsx_L1161",
-    "type": "CORE_BYPASS",
-    "severity": "CRITICAL",
-    "file": "pages/TalentProfilePage.jsx",
-    "line": 1161,
-    "domain": "PAGES",
-    "message": "Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).",
-    "detail": "const { error } = await supabase.from(\"profiles\")",
-    "table": "profiles"
-  },
-  {
-    "id": "CORE_BYPASS_pages/TalentProfilePage.jsx_L1172",
-    "type": "CORE_BYPASS",
-    "severity": "CRITICAL",
-    "file": "pages/TalentProfilePage.jsx",
-    "line": 1172,
-    "domain": "PAGES",
-    "message": "Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).",
-    "detail": "const { error } = await supabase.from(\"profiles\")",
-    "table": "profiles"
-  },
-  {
-    "id": "CORE_BYPASS_pages/TalentProfilePage.jsx_L1187",
-    "type": "CORE_BYPASS",
-    "severity": "CRITICAL",
-    "file": "pages/TalentProfilePage.jsx",
-    "line": 1187,
-    "domain": "PAGES",
-    "message": "Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).",
-    "detail": "const { error } = await supabase.from(\"profiles\")",
-    "table": "profiles"
-  },
-  {
-    "id": "CORE_BYPASS_pages/TalentProfilePage.jsx_L1199",
-    "type": "CORE_BYPASS",
-    "severity": "CRITICAL",
-    "file": "pages/TalentProfilePage.jsx",
-    "line": 1199,
-    "domain": "PAGES",
-    "message": "Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).",
-    "detail": "const { error } = await supabase.from(\"profiles\")",
-    "table": "profiles"
-  },
-  {
     "id": "CORE_BYPASS_services/db.js_L71",
     "type": "CORE_BYPASS",
     "severity": "CRITICAL",
@@ -429,33 +385,33 @@
     "table": "profiles"
   },
   {
-    "id": "CORE_BYPASS_services/db.js_L170",
+    "id": "CORE_BYPASS_services/db.js_L198",
     "type": "CORE_BYPASS",
     "severity": "CRITICAL",
     "file": "services/db.js",
-    "line": 170,
+    "line": 198,
     "domain": "SERVICES",
     "message": "Core Bypass: Direkter Write auf Core-Tabelle 'wirker_profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).",
     "detail": "supabase.from('wirker_profiles')",
     "table": "wirker_profiles"
   },
   {
-    "id": "CORE_BYPASS_services/db.js_L185",
+    "id": "CORE_BYPASS_services/db.js_L213",
     "type": "CORE_BYPASS",
     "severity": "CRITICAL",
     "file": "services/db.js",
-    "line": 185,
+    "line": 213,
     "domain": "SERVICES",
     "message": "Core Bypass: Direkter Write auf Core-Tabelle 'wirker_profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).",
     "detail": "supabase.from('wirker_profiles')",
     "table": "wirker_profiles"
   },
   {
-    "id": "CORE_BYPASS_services/db.js_L505",
+    "id": "CORE_BYPASS_services/db.js_L533",
     "type": "CORE_BYPASS",
     "severity": "CRITICAL",
     "file": "services/db.js",
-    "line": 505,
+    "line": 533,
     "domain": "SERVICES",
     "message": "Core Bypass: Direkter Write auf Core-Tabelle 'impact_votes'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).",
     "detail": "supabase.from('impact_votes').insert({",
@@ -1268,103 +1224,15 @@
     "table": "profiles"
   },
   {
-    "id": "DB_DIRECT_WRITE_pages/TalentProfilePage.jsx_L185",
+    "id": "DB_DIRECT_WRITE_pages/TalentProfilePage.jsx_L181",
     "type": "DB_DIRECT_WRITE",
     "severity": "HIGH",
     "file": "pages/TalentProfilePage.jsx",
-    "line": 185,
+    "line": 181,
     "domain": "PAGES",
     "message": "Direkter DB-Write (INSERT) auf 'profile_relations' in PAGES-Schicht. Verwende Service-Layer.",
     "detail": "const { error } = await supabase",
     "table": "profile_relations"
-  },
-  {
-    "id": "DB_DIRECT_WRITE_pages/TalentProfilePage.jsx_L519",
-    "type": "DB_DIRECT_WRITE",
-    "severity": "HIGH",
-    "file": "pages/TalentProfilePage.jsx",
-    "line": 519,
-    "domain": "PAGES",
-    "message": "Direkter DB-Write (INSERT) auf 'profile_watchlist' in PAGES-Schicht. Verwende Service-Layer.",
-    "detail": "const { error } = await supabase",
-    "table": "profile_watchlist"
-  },
-  {
-    "id": "DB_DIRECT_WRITE_pages/TalentProfilePage.jsx_L532",
-    "type": "DB_DIRECT_WRITE",
-    "severity": "HIGH",
-    "file": "pages/TalentProfilePage.jsx",
-    "line": 532,
-    "domain": "PAGES",
-    "message": "Direkter DB-Write (DELETE) auf 'profile_watchlist' in PAGES-Schicht. Verwende Service-Layer.",
-    "detail": "const { error } = await supabase",
-    "table": "profile_watchlist"
-  },
-  {
-    "id": "DB_DIRECT_WRITE_pages/TalentProfilePage.jsx_L877",
-    "type": "DB_DIRECT_WRITE",
-    "severity": "HIGH",
-    "file": "pages/TalentProfilePage.jsx",
-    "line": 877,
-    "domain": "PAGES",
-    "message": "Direkter DB-Write (INSERT) auf 'profile_watchlist' in PAGES-Schicht. Verwende Service-Layer.",
-    "detail": "const { error } = await supabase",
-    "table": "profile_watchlist"
-  },
-  {
-    "id": "DB_DIRECT_WRITE_pages/TalentProfilePage.jsx_L890",
-    "type": "DB_DIRECT_WRITE",
-    "severity": "HIGH",
-    "file": "pages/TalentProfilePage.jsx",
-    "line": 890,
-    "domain": "PAGES",
-    "message": "Direkter DB-Write (DELETE) auf 'profile_watchlist' in PAGES-Schicht. Verwende Service-Layer.",
-    "detail": "const { error } = await supabase",
-    "table": "profile_watchlist"
-  },
-  {
-    "id": "DB_DIRECT_WRITE_pages/TalentProfilePage.jsx_L1161",
-    "type": "DB_DIRECT_WRITE",
-    "severity": "HIGH",
-    "file": "pages/TalentProfilePage.jsx",
-    "line": 1161,
-    "domain": "PAGES",
-    "message": "Direkter DB-Write (UPDATE) auf 'profiles' in PAGES-Schicht. Verwende Service-Layer.",
-    "detail": "const { error } = await supabase.from(\"profiles\")",
-    "table": "profiles"
-  },
-  {
-    "id": "DB_DIRECT_WRITE_pages/TalentProfilePage.jsx_L1172",
-    "type": "DB_DIRECT_WRITE",
-    "severity": "HIGH",
-    "file": "pages/TalentProfilePage.jsx",
-    "line": 1172,
-    "domain": "PAGES",
-    "message": "Direkter DB-Write (UPDATE) auf 'profiles' in PAGES-Schicht. Verwende Service-Layer.",
-    "detail": "const { error } = await supabase.from(\"profiles\")",
-    "table": "profiles"
-  },
-  {
-    "id": "DB_DIRECT_WRITE_pages/TalentProfilePage.jsx_L1187",
-    "type": "DB_DIRECT_WRITE",
-    "severity": "HIGH",
-    "file": "pages/TalentProfilePage.jsx",
-    "line": 1187,
-    "domain": "PAGES",
-    "message": "Direkter DB-Write (UPDATE) auf 'profiles' in PAGES-Schicht. Verwende Service-Layer.",
-    "detail": "const { error } = await supabase.from(\"profiles\")",
-    "table": "profiles"
-  },
-  {
-    "id": "DB_DIRECT_WRITE_pages/TalentProfilePage.jsx_L1199",
-    "type": "DB_DIRECT_WRITE",
-    "severity": "HIGH",
-    "file": "pages/TalentProfilePage.jsx",
-    "line": 1199,
-    "domain": "PAGES",
-    "message": "Direkter DB-Write (UPDATE) auf 'profiles' in PAGES-Schicht. Verwende Service-Layer.",
-    "detail": "const { error } = await supabase.from(\"profiles\")",
-    "table": "profiles"
   },
   {
     "id": "DB_DIRECT_WRITE_pages/studio/MeineTicketsPage.jsx_L76",
@@ -1617,8 +1485,8 @@
     "file": "components/TalentOnboarding.jsx",
     "line": null,
     "domain": "MULTI",
-    "message": "Duplicate Owner für Tabelle 'profiles': 17 Dateien schreiben diese Tabelle.",
-    "detail": "components/TalentOnboarding.jsx, components/auth/ProfileCompletionFlow.jsx, components/settings/SettingsModal.jsx, components/studio/ProfilBearbeitenModal.jsx, hooks/useAmbassador.js, lib/AuthContext.jsx, lib/profileMedia.js, lib/referralTracking.js, lib/roles/index.js, lib/sessionHooks.js, lib/usePresence.js, pages/BasisProfilePage.jsx, pages/LoginPage.jsx, pages/MyBasisProfile.jsx, pages/MyCreatorDashboard.jsx, pages/TalentProfilePage.jsx, services/db.js",
+    "message": "Duplicate Owner für Tabelle 'profiles': 16 Dateien schreiben diese Tabelle.",
+    "detail": "components/TalentOnboarding.jsx, components/auth/ProfileCompletionFlow.jsx, components/settings/SettingsModal.jsx, components/studio/ProfilBearbeitenModal.jsx, hooks/useAmbassador.js, lib/AuthContext.jsx, lib/profileMedia.js, lib/referralTracking.js, lib/roles/index.js, lib/sessionHooks.js, lib/usePresence.js, pages/BasisProfilePage.jsx, pages/LoginPage.jsx, pages/MyBasisProfile.jsx, pages/MyCreatorDashboard.jsx, services/db.js",
     "table": "profiles",
     "writers": [
       "components/TalentOnboarding.jsx",
@@ -1636,7 +1504,6 @@
       "pages/LoginPage.jsx",
       "pages/MyBasisProfile.jsx",
       "pages/MyCreatorDashboard.jsx",
-      "pages/TalentProfilePage.jsx",
       "services/db.js"
     ]
   },
@@ -1782,15 +1649,15 @@
     "id": "DUPLICATE_OWNER_profile_watchlist",
     "type": "DUPLICATE_OWNER",
     "severity": "HIGH",
-    "file": "pages/TalentProfilePage.jsx",
+    "file": "pages/wirker-profile/index.jsx",
     "line": null,
     "domain": "MULTI",
     "message": "Duplicate Owner für Tabelle 'profile_watchlist': 2 Dateien schreiben diese Tabelle.",
-    "detail": "pages/TalentProfilePage.jsx, pages/wirker-profile/index.jsx",
+    "detail": "pages/wirker-profile/index.jsx, services/db.js",
     "table": "profile_watchlist",
     "writers": [
-      "pages/TalentProfilePage.jsx",
-      "pages/wirker-profile/index.jsx"
+      "pages/wirker-profile/index.jsx",
+      "services/db.js"
     ]
   },
   {
@@ -3708,22 +3575,11 @@
     "table": "ambassador_ref_links"
   },
   {
-    "id": "DB_DIRECT_READ_pages/TalentProfilePage.jsx_L113",
+    "id": "DB_DIRECT_READ_pages/TalentProfilePage.jsx_L115",
     "type": "DB_DIRECT_READ",
     "severity": "MEDIUM",
     "file": "pages/TalentProfilePage.jsx",
-    "line": 113,
-    "domain": "PAGES",
-    "message": "Direkter DB-Read auf 'profile_watchlist' in PAGES-Schicht. Erwäge Service-Layer.",
-    "detail": "supabase",
-    "table": "profile_watchlist"
-  },
-  {
-    "id": "DB_DIRECT_READ_pages/TalentProfilePage.jsx_L119",
-    "type": "DB_DIRECT_READ",
-    "severity": "MEDIUM",
-    "file": "pages/TalentProfilePage.jsx",
-    "line": 119,
+    "line": 115,
     "domain": "PAGES",
     "message": "Direkter DB-Read auf 'profile_relations' in PAGES-Schicht. Erwäge Service-Layer.",
     "detail": "supabase",
