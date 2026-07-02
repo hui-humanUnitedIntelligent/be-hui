@@ -13,7 +13,10 @@
     "architecture:audit": "node --experimental-vm-modules src/architecture/scanner/cli.js --mode=audit",
     "architecture:report": "node --experimental-vm-modules src/architecture/scanner/cli.js --mode=report",
     "architecture:graph": "node --experimental-vm-modules src/architecture/scanner/cli.js --mode=graph",
-    "architecture:all": "node --experimental-vm-modules src/architecture/scanner/cli.js --mode=all"
+    "architecture:all": "node --experimental-vm-modules src/architecture/scanner/cli.js --mode=all",
+    "architecture:intelligence": "node --experimental-vm-modules src/architecture/intelligence/cli.js --mode=all",
+    "architecture:intelligence:audit": "node --experimental-vm-modules src/architecture/intelligence/cli.js --mode=audit --fail-on-high",
+    "architecture:intelligence:report": "node --experimental-vm-modules src/architecture/intelligence/cli.js --mode=report"
   },
   "dependencies": {
     "@base44/sdk": "^0.8.32",

@@ -1,0 +1,3688 @@
+[
+  {
+    "id": "REC-CORE_BYPASS_components/TalentOnboarding.jsx_L386",
+    "violationId": "CORE_BYPASS_components/TalentOnboarding.jsx_L386",
+    "title": "Core Engine nutzen",
+    "file": "components/TalentOnboarding.jsx",
+    "line": 386,
+    "rationale": {
+      "statement": "components/TalentOnboarding.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Verschiebe DB-Write nach ContentService oder nutze coreEngine.js / useCoreEngine(). State über AppStateContext delegieren.",
+      "source": {
+        "type": "violation",
+        "path": "components/TalentOnboarding.jsx",
+        "line": 386
+      },
+      "sourceType": "explicit",
+      "confidence": "high",
+      "references": [
+        {
+          "type": "constitution",
+          "ref": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "isFactual": true
+    },
+    "steps": [
+      "DB-Write nach src/services/ oder src/core/ verschieben",
+      "Action über useHuiActions() dispatchen",
+      "State über AppStateContext oder useCoreEngine() delegieren"
+    ],
+    "affectedFiles": [
+      "components/TalentOnboarding.jsx",
+      "src/core/coreEngine.js",
+      "src/hooks/useCoreEngine.js",
+      "src/services/"
+    ],
+    "rule": {
+      "id": "NO_UI_IMPACT_LOGIC",
+      "title": "Keine UI-Komponente besitzt eigene Wirkungslogik"
+    },
+    "adrs": [],
+    "risk": {
+      "impactScore": 1,
+      "architectureRisk": 10,
+      "runtimeRisk": 9,
+      "migrationRisk": 1,
+      "constitutionRisk": 10,
+      "regressionRisk": 0,
+      "complexity": 0,
+      "confidence": {
+        "level": "high",
+        "sourceType": "explicit",
+        "reason": "Direkt aus Scan und Violation"
+      },
+      "overall": 6.5,
+      "summary": {
+        "statement": "Gesamtrisiko: 6.5/10 (Confidence: high)",
+        "source": {
+          "type": "risk-assessment"
+        },
+        "sourceType": "explicit",
+        "confidence": "high",
+        "references": [],
+        "isFactual": true
+      },
+      "factors": [
+        {
+          "factor": "violation-severity",
+          "value": "CRITICAL",
+          "weight": 10
+        },
+        {
+          "factor": "violation-type",
+          "value": "CORE_BYPASS"
+        }
+      ]
+    },
+    "trace": {
+      "recommendationId": "REC-CORE_BYPASS_components/TalentOnboarding.jsx_L386",
+      "factsUsed": [
+        {
+          "type": "violation",
+          "data": {
+            "id": "CORE_BYPASS_components/TalentOnboarding.jsx_L386",
+            "type": "CORE_BYPASS",
+            "severity": "CRITICAL",
+            "message": "Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js)."
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "file-scan",
+          "data": {
+            "lines": 459,
+            "domain": null,
+            "supabaseCalls": 1
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "tables",
+          "data": [
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 386
+            }
+          ],
+          "sourceType": "explicit"
+        }
+      ],
+      "analyzedFiles": [
+        {
+          "path": "components/TalentOnboarding.jsx",
+          "line": 386,
+          "reason": "Violation-Quelldatei"
+        }
+      ],
+      "appliedRules": [
+        {
+          "id": "NO_UI_IMPACT_LOGIC",
+          "title": "Keine UI-Komponente besitzt eigene Wirkungslogik",
+          "constitutionRef": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "sources": [
+        {
+          "type": "constitution",
+          "ref": "HUI_CONSTITUTION.md",
+          "section": "IV — Unveränderliche Architekturregeln"
+        },
+        {
+          "type": "scan",
+          "ref": "components/TalentOnboarding.jsx",
+          "line": 386
+        },
+        {
+          "type": "knowledge-graph",
+          "ref": "src/architecture/graph/knowledgeGraph.js"
+        }
+      ],
+      "conclusion": "components/TalentOnboarding.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Empfehlung: Core Engine nutzen. Betroffene Dateien: components/TalentOnboarding.jsx, src/core/coreEngine.js, src/hooks/useCoreEngine.js, src/services/. Risiko: 6.5/10.",
+      "generatedAt": "2026-06-30T14:13:01.228Z"
+    }
+  },
+  {
+    "id": "REC-CORE_BYPASS_components/auth/ProfileCompletionFlow.jsx_L89",
+    "violationId": "CORE_BYPASS_components/auth/ProfileCompletionFlow.jsx_L89",
+    "title": "Core Engine nutzen",
+    "file": "components/auth/ProfileCompletionFlow.jsx",
+    "line": 89,
+    "rationale": {
+      "statement": "components/auth/ProfileCompletionFlow.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Verschiebe DB-Write nach ContentService oder nutze coreEngine.js / useCoreEngine(). State über AppStateContext delegieren.",
+      "source": {
+        "type": "violation",
+        "path": "components/auth/ProfileCompletionFlow.jsx",
+        "line": 89
+      },
+      "sourceType": "explicit",
+      "confidence": "high",
+      "references": [
+        {
+          "type": "constitution",
+          "ref": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "isFactual": true
+    },
+    "steps": [
+      "DB-Write nach src/services/ oder src/core/ verschieben",
+      "Action über useHuiActions() dispatchen",
+      "State über AppStateContext oder useCoreEngine() delegieren"
+    ],
+    "affectedFiles": [
+      "components/auth/ProfileCompletionFlow.jsx",
+      "App.jsx",
+      "src/core/coreEngine.js",
+      "src/hooks/useCoreEngine.js",
+      "src/services/"
+    ],
+    "rule": {
+      "id": "NO_UI_IMPACT_LOGIC",
+      "title": "Keine UI-Komponente besitzt eigene Wirkungslogik"
+    },
+    "adrs": [],
+    "risk": {
+      "impactScore": 1,
+      "architectureRisk": 10,
+      "runtimeRisk": 9,
+      "migrationRisk": 1,
+      "constitutionRisk": 10,
+      "regressionRisk": 1,
+      "complexity": 0,
+      "confidence": {
+        "level": "high",
+        "sourceType": "explicit",
+        "reason": "Direkt aus Scan und Violation"
+      },
+      "overall": 6.6,
+      "summary": {
+        "statement": "Gesamtrisiko: 6.6/10 (Confidence: high)",
+        "source": {
+          "type": "risk-assessment"
+        },
+        "sourceType": "explicit",
+        "confidence": "high",
+        "references": [],
+        "isFactual": true
+      },
+      "factors": [
+        {
+          "factor": "violation-severity",
+          "value": "CRITICAL",
+          "weight": 10
+        },
+        {
+          "factor": "violation-type",
+          "value": "CORE_BYPASS"
+        }
+      ]
+    },
+    "trace": {
+      "recommendationId": "REC-CORE_BYPASS_components/auth/ProfileCompletionFlow.jsx_L89",
+      "factsUsed": [
+        {
+          "type": "violation",
+          "data": {
+            "id": "CORE_BYPASS_components/auth/ProfileCompletionFlow.jsx_L89",
+            "type": "CORE_BYPASS",
+            "severity": "CRITICAL",
+            "message": "Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js)."
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "file-scan",
+          "data": {
+            "lines": 339,
+            "domain": null,
+            "supabaseCalls": 3
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "dependents",
+          "data": {
+            "count": 1,
+            "files": [
+              "App.jsx"
+            ]
+          },
+          "sourceType": "derived"
+        },
+        {
+          "type": "tables",
+          "data": [
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 89
+            },
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 148
+            },
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 175
+            }
+          ],
+          "sourceType": "explicit"
+        }
+      ],
+      "analyzedFiles": [
+        {
+          "path": "components/auth/ProfileCompletionFlow.jsx",
+          "line": 89,
+          "reason": "Violation-Quelldatei"
+        },
+        {
+          "path": "App.jsx",
+          "reason": "Dependent"
+        }
+      ],
+      "appliedRules": [
+        {
+          "id": "NO_UI_IMPACT_LOGIC",
+          "title": "Keine UI-Komponente besitzt eigene Wirkungslogik",
+          "constitutionRef": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "sources": [
+        {
+          "type": "constitution",
+          "ref": "HUI_CONSTITUTION.md",
+          "section": "IV — Unveränderliche Architekturregeln"
+        },
+        {
+          "type": "scan",
+          "ref": "components/auth/ProfileCompletionFlow.jsx",
+          "line": 89
+        },
+        {
+          "type": "knowledge-graph",
+          "ref": "src/architecture/graph/knowledgeGraph.js"
+        }
+      ],
+      "conclusion": "components/auth/ProfileCompletionFlow.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Empfehlung: Core Engine nutzen. Betroffene Dateien: components/auth/ProfileCompletionFlow.jsx, App.jsx, src/core/coreEngine.js, src/hooks/useCoreEngine.js, src/services/. Risiko: 6.6/10.",
+      "generatedAt": "2026-06-30T14:13:01.228Z"
+    }
+  },
+  {
+    "id": "REC-CORE_BYPASS_components/auth/ProfileCompletionFlow.jsx_L148",
+    "violationId": "CORE_BYPASS_components/auth/ProfileCompletionFlow.jsx_L148",
+    "title": "Core Engine nutzen",
+    "file": "components/auth/ProfileCompletionFlow.jsx",
+    "line": 148,
+    "rationale": {
+      "statement": "components/auth/ProfileCompletionFlow.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Verschiebe DB-Write nach ContentService oder nutze coreEngine.js / useCoreEngine(). State über AppStateContext delegieren.",
+      "source": {
+        "type": "violation",
+        "path": "components/auth/ProfileCompletionFlow.jsx",
+        "line": 148
+      },
+      "sourceType": "explicit",
+      "confidence": "high",
+      "references": [
+        {
+          "type": "constitution",
+          "ref": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "isFactual": true
+    },
+    "steps": [
+      "DB-Write nach src/services/ oder src/core/ verschieben",
+      "Action über useHuiActions() dispatchen",
+      "State über AppStateContext oder useCoreEngine() delegieren"
+    ],
+    "affectedFiles": [
+      "components/auth/ProfileCompletionFlow.jsx",
+      "App.jsx",
+      "src/core/coreEngine.js",
+      "src/hooks/useCoreEngine.js",
+      "src/services/"
+    ],
+    "rule": {
+      "id": "NO_UI_IMPACT_LOGIC",
+      "title": "Keine UI-Komponente besitzt eigene Wirkungslogik"
+    },
+    "adrs": [],
+    "risk": {
+      "impactScore": 1,
+      "architectureRisk": 10,
+      "runtimeRisk": 9,
+      "migrationRisk": 1,
+      "constitutionRisk": 10,
+      "regressionRisk": 1,
+      "complexity": 0,
+      "confidence": {
+        "level": "high",
+        "sourceType": "explicit",
+        "reason": "Direkt aus Scan und Violation"
+      },
+      "overall": 6.6,
+      "summary": {
+        "statement": "Gesamtrisiko: 6.6/10 (Confidence: high)",
+        "source": {
+          "type": "risk-assessment"
+        },
+        "sourceType": "explicit",
+        "confidence": "high",
+        "references": [],
+        "isFactual": true
+      },
+      "factors": [
+        {
+          "factor": "violation-severity",
+          "value": "CRITICAL",
+          "weight": 10
+        },
+        {
+          "factor": "violation-type",
+          "value": "CORE_BYPASS"
+        }
+      ]
+    },
+    "trace": {
+      "recommendationId": "REC-CORE_BYPASS_components/auth/ProfileCompletionFlow.jsx_L148",
+      "factsUsed": [
+        {
+          "type": "violation",
+          "data": {
+            "id": "CORE_BYPASS_components/auth/ProfileCompletionFlow.jsx_L148",
+            "type": "CORE_BYPASS",
+            "severity": "CRITICAL",
+            "message": "Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js)."
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "file-scan",
+          "data": {
+            "lines": 339,
+            "domain": null,
+            "supabaseCalls": 3
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "dependents",
+          "data": {
+            "count": 1,
+            "files": [
+              "App.jsx"
+            ]
+          },
+          "sourceType": "derived"
+        },
+        {
+          "type": "tables",
+          "data": [
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 89
+            },
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 148
+            },
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 175
+            }
+          ],
+          "sourceType": "explicit"
+        }
+      ],
+      "analyzedFiles": [
+        {
+          "path": "components/auth/ProfileCompletionFlow.jsx",
+          "line": 148,
+          "reason": "Violation-Quelldatei"
+        },
+        {
+          "path": "App.jsx",
+          "reason": "Dependent"
+        }
+      ],
+      "appliedRules": [
+        {
+          "id": "NO_UI_IMPACT_LOGIC",
+          "title": "Keine UI-Komponente besitzt eigene Wirkungslogik",
+          "constitutionRef": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "sources": [
+        {
+          "type": "constitution",
+          "ref": "HUI_CONSTITUTION.md",
+          "section": "IV — Unveränderliche Architekturregeln"
+        },
+        {
+          "type": "scan",
+          "ref": "components/auth/ProfileCompletionFlow.jsx",
+          "line": 148
+        },
+        {
+          "type": "knowledge-graph",
+          "ref": "src/architecture/graph/knowledgeGraph.js"
+        }
+      ],
+      "conclusion": "components/auth/ProfileCompletionFlow.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Empfehlung: Core Engine nutzen. Betroffene Dateien: components/auth/ProfileCompletionFlow.jsx, App.jsx, src/core/coreEngine.js, src/hooks/useCoreEngine.js, src/services/. Risiko: 6.6/10.",
+      "generatedAt": "2026-06-30T14:13:01.228Z"
+    }
+  },
+  {
+    "id": "REC-CORE_BYPASS_components/auth/ProfileCompletionFlow.jsx_L175",
+    "violationId": "CORE_BYPASS_components/auth/ProfileCompletionFlow.jsx_L175",
+    "title": "Core Engine nutzen",
+    "file": "components/auth/ProfileCompletionFlow.jsx",
+    "line": 175,
+    "rationale": {
+      "statement": "components/auth/ProfileCompletionFlow.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Verschiebe DB-Write nach ContentService oder nutze coreEngine.js / useCoreEngine(). State über AppStateContext delegieren.",
+      "source": {
+        "type": "violation",
+        "path": "components/auth/ProfileCompletionFlow.jsx",
+        "line": 175
+      },
+      "sourceType": "explicit",
+      "confidence": "high",
+      "references": [
+        {
+          "type": "constitution",
+          "ref": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "isFactual": true
+    },
+    "steps": [
+      "DB-Write nach src/services/ oder src/core/ verschieben",
+      "Action über useHuiActions() dispatchen",
+      "State über AppStateContext oder useCoreEngine() delegieren"
+    ],
+    "affectedFiles": [
+      "components/auth/ProfileCompletionFlow.jsx",
+      "App.jsx",
+      "src/core/coreEngine.js",
+      "src/hooks/useCoreEngine.js",
+      "src/services/"
+    ],
+    "rule": {
+      "id": "NO_UI_IMPACT_LOGIC",
+      "title": "Keine UI-Komponente besitzt eigene Wirkungslogik"
+    },
+    "adrs": [],
+    "risk": {
+      "impactScore": 1,
+      "architectureRisk": 10,
+      "runtimeRisk": 9,
+      "migrationRisk": 1,
+      "constitutionRisk": 10,
+      "regressionRisk": 1,
+      "complexity": 0,
+      "confidence": {
+        "level": "high",
+        "sourceType": "explicit",
+        "reason": "Direkt aus Scan und Violation"
+      },
+      "overall": 6.6,
+      "summary": {
+        "statement": "Gesamtrisiko: 6.6/10 (Confidence: high)",
+        "source": {
+          "type": "risk-assessment"
+        },
+        "sourceType": "explicit",
+        "confidence": "high",
+        "references": [],
+        "isFactual": true
+      },
+      "factors": [
+        {
+          "factor": "violation-severity",
+          "value": "CRITICAL",
+          "weight": 10
+        },
+        {
+          "factor": "violation-type",
+          "value": "CORE_BYPASS"
+        }
+      ]
+    },
+    "trace": {
+      "recommendationId": "REC-CORE_BYPASS_components/auth/ProfileCompletionFlow.jsx_L175",
+      "factsUsed": [
+        {
+          "type": "violation",
+          "data": {
+            "id": "CORE_BYPASS_components/auth/ProfileCompletionFlow.jsx_L175",
+            "type": "CORE_BYPASS",
+            "severity": "CRITICAL",
+            "message": "Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js)."
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "file-scan",
+          "data": {
+            "lines": 339,
+            "domain": null,
+            "supabaseCalls": 3
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "dependents",
+          "data": {
+            "count": 1,
+            "files": [
+              "App.jsx"
+            ]
+          },
+          "sourceType": "derived"
+        },
+        {
+          "type": "tables",
+          "data": [
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 89
+            },
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 148
+            },
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 175
+            }
+          ],
+          "sourceType": "explicit"
+        }
+      ],
+      "analyzedFiles": [
+        {
+          "path": "components/auth/ProfileCompletionFlow.jsx",
+          "line": 175,
+          "reason": "Violation-Quelldatei"
+        },
+        {
+          "path": "App.jsx",
+          "reason": "Dependent"
+        }
+      ],
+      "appliedRules": [
+        {
+          "id": "NO_UI_IMPACT_LOGIC",
+          "title": "Keine UI-Komponente besitzt eigene Wirkungslogik",
+          "constitutionRef": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "sources": [
+        {
+          "type": "constitution",
+          "ref": "HUI_CONSTITUTION.md",
+          "section": "IV — Unveränderliche Architekturregeln"
+        },
+        {
+          "type": "scan",
+          "ref": "components/auth/ProfileCompletionFlow.jsx",
+          "line": 175
+        },
+        {
+          "type": "knowledge-graph",
+          "ref": "src/architecture/graph/knowledgeGraph.js"
+        }
+      ],
+      "conclusion": "components/auth/ProfileCompletionFlow.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Empfehlung: Core Engine nutzen. Betroffene Dateien: components/auth/ProfileCompletionFlow.jsx, App.jsx, src/core/coreEngine.js, src/hooks/useCoreEngine.js, src/services/. Risiko: 6.6/10.",
+      "generatedAt": "2026-06-30T14:13:01.228Z"
+    }
+  },
+  {
+    "id": "REC-CORE_BYPASS_components/settings/SettingsModal.jsx_L115",
+    "violationId": "CORE_BYPASS_components/settings/SettingsModal.jsx_L115",
+    "title": "Core Engine nutzen",
+    "file": "components/settings/SettingsModal.jsx",
+    "line": 115,
+    "rationale": {
+      "statement": "components/settings/SettingsModal.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Verschiebe DB-Write nach ContentService oder nutze coreEngine.js / useCoreEngine(). State über AppStateContext delegieren.",
+      "source": {
+        "type": "violation",
+        "path": "components/settings/SettingsModal.jsx",
+        "line": 115
+      },
+      "sourceType": "explicit",
+      "confidence": "high",
+      "references": [
+        {
+          "type": "constitution",
+          "ref": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "isFactual": true
+    },
+    "steps": [
+      "DB-Write nach src/services/ oder src/core/ verschieben",
+      "Action über useHuiActions() dispatchen",
+      "State über AppStateContext oder useCoreEngine() delegieren"
+    ],
+    "affectedFiles": [
+      "components/settings/SettingsModal.jsx",
+      "components/studio/HuiStudio.jsx",
+      "pages/BasisProfilePage.jsx",
+      "pages/MyBasisProfile.jsx",
+      "pages/TalentProfilePage.jsx",
+      "src/core/coreEngine.js",
+      "src/hooks/useCoreEngine.js",
+      "src/services/"
+    ],
+    "rule": {
+      "id": "NO_UI_IMPACT_LOGIC",
+      "title": "Keine UI-Komponente besitzt eigene Wirkungslogik"
+    },
+    "adrs": [],
+    "risk": {
+      "impactScore": 2,
+      "architectureRisk": 10,
+      "runtimeRisk": 9,
+      "migrationRisk": 1,
+      "constitutionRisk": 10,
+      "regressionRisk": 4,
+      "complexity": 0,
+      "confidence": {
+        "level": "high",
+        "sourceType": "explicit",
+        "reason": "Direkt aus Scan und Violation"
+      },
+      "overall": 7.1,
+      "summary": {
+        "statement": "Gesamtrisiko: 7.1/10 (Confidence: high)",
+        "source": {
+          "type": "risk-assessment"
+        },
+        "sourceType": "explicit",
+        "confidence": "high",
+        "references": [],
+        "isFactual": true
+      },
+      "factors": [
+        {
+          "factor": "violation-severity",
+          "value": "CRITICAL",
+          "weight": 10
+        },
+        {
+          "factor": "violation-type",
+          "value": "CORE_BYPASS"
+        }
+      ]
+    },
+    "trace": {
+      "recommendationId": "REC-CORE_BYPASS_components/settings/SettingsModal.jsx_L115",
+      "factsUsed": [
+        {
+          "type": "violation",
+          "data": {
+            "id": "CORE_BYPASS_components/settings/SettingsModal.jsx_L115",
+            "type": "CORE_BYPASS",
+            "severity": "CRITICAL",
+            "message": "Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js)."
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "file-scan",
+          "data": {
+            "lines": 468,
+            "domain": null,
+            "supabaseCalls": 4
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "dependents",
+          "data": {
+            "count": 4,
+            "files": [
+              "components/studio/HuiStudio.jsx",
+              "pages/BasisProfilePage.jsx",
+              "pages/MyBasisProfile.jsx",
+              "pages/TalentProfilePage.jsx"
+            ]
+          },
+          "sourceType": "derived"
+        },
+        {
+          "type": "tables",
+          "data": [
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 115
+            },
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 154
+            },
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 187
+            },
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 261
+            }
+          ],
+          "sourceType": "explicit"
+        }
+      ],
+      "analyzedFiles": [
+        {
+          "path": "components/settings/SettingsModal.jsx",
+          "line": 115,
+          "reason": "Violation-Quelldatei"
+        },
+        {
+          "path": "components/studio/HuiStudio.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "pages/BasisProfilePage.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "pages/MyBasisProfile.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "pages/TalentProfilePage.jsx",
+          "reason": "Dependent"
+        }
+      ],
+      "appliedRules": [
+        {
+          "id": "NO_UI_IMPACT_LOGIC",
+          "title": "Keine UI-Komponente besitzt eigene Wirkungslogik",
+          "constitutionRef": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "sources": [
+        {
+          "type": "constitution",
+          "ref": "HUI_CONSTITUTION.md",
+          "section": "IV — Unveränderliche Architekturregeln"
+        },
+        {
+          "type": "scan",
+          "ref": "components/settings/SettingsModal.jsx",
+          "line": 115
+        },
+        {
+          "type": "knowledge-graph",
+          "ref": "src/architecture/graph/knowledgeGraph.js"
+        }
+      ],
+      "conclusion": "components/settings/SettingsModal.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Empfehlung: Core Engine nutzen. Betroffene Dateien: components/settings/SettingsModal.jsx, components/studio/HuiStudio.jsx, pages/BasisProfilePage.jsx, pages/MyBasisProfile.jsx, pages/TalentProfilePage.jsx. Risiko: 7.1/10.",
+      "generatedAt": "2026-06-30T14:13:01.228Z"
+    }
+  },
+  {
+    "id": "REC-CORE_BYPASS_components/settings/SettingsModal.jsx_L154",
+    "violationId": "CORE_BYPASS_components/settings/SettingsModal.jsx_L154",
+    "title": "Core Engine nutzen",
+    "file": "components/settings/SettingsModal.jsx",
+    "line": 154,
+    "rationale": {
+      "statement": "components/settings/SettingsModal.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Verschiebe DB-Write nach ContentService oder nutze coreEngine.js / useCoreEngine(). State über AppStateContext delegieren.",
+      "source": {
+        "type": "violation",
+        "path": "components/settings/SettingsModal.jsx",
+        "line": 154
+      },
+      "sourceType": "explicit",
+      "confidence": "high",
+      "references": [
+        {
+          "type": "constitution",
+          "ref": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "isFactual": true
+    },
+    "steps": [
+      "DB-Write nach src/services/ oder src/core/ verschieben",
+      "Action über useHuiActions() dispatchen",
+      "State über AppStateContext oder useCoreEngine() delegieren"
+    ],
+    "affectedFiles": [
+      "components/settings/SettingsModal.jsx",
+      "components/studio/HuiStudio.jsx",
+      "pages/BasisProfilePage.jsx",
+      "pages/MyBasisProfile.jsx",
+      "pages/TalentProfilePage.jsx",
+      "src/core/coreEngine.js",
+      "src/hooks/useCoreEngine.js",
+      "src/services/"
+    ],
+    "rule": {
+      "id": "NO_UI_IMPACT_LOGIC",
+      "title": "Keine UI-Komponente besitzt eigene Wirkungslogik"
+    },
+    "adrs": [],
+    "risk": {
+      "impactScore": 2,
+      "architectureRisk": 10,
+      "runtimeRisk": 9,
+      "migrationRisk": 1,
+      "constitutionRisk": 10,
+      "regressionRisk": 4,
+      "complexity": 0,
+      "confidence": {
+        "level": "high",
+        "sourceType": "explicit",
+        "reason": "Direkt aus Scan und Violation"
+      },
+      "overall": 7.1,
+      "summary": {
+        "statement": "Gesamtrisiko: 7.1/10 (Confidence: high)",
+        "source": {
+          "type": "risk-assessment"
+        },
+        "sourceType": "explicit",
+        "confidence": "high",
+        "references": [],
+        "isFactual": true
+      },
+      "factors": [
+        {
+          "factor": "violation-severity",
+          "value": "CRITICAL",
+          "weight": 10
+        },
+        {
+          "factor": "violation-type",
+          "value": "CORE_BYPASS"
+        }
+      ]
+    },
+    "trace": {
+      "recommendationId": "REC-CORE_BYPASS_components/settings/SettingsModal.jsx_L154",
+      "factsUsed": [
+        {
+          "type": "violation",
+          "data": {
+            "id": "CORE_BYPASS_components/settings/SettingsModal.jsx_L154",
+            "type": "CORE_BYPASS",
+            "severity": "CRITICAL",
+            "message": "Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js)."
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "file-scan",
+          "data": {
+            "lines": 468,
+            "domain": null,
+            "supabaseCalls": 4
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "dependents",
+          "data": {
+            "count": 4,
+            "files": [
+              "components/studio/HuiStudio.jsx",
+              "pages/BasisProfilePage.jsx",
+              "pages/MyBasisProfile.jsx",
+              "pages/TalentProfilePage.jsx"
+            ]
+          },
+          "sourceType": "derived"
+        },
+        {
+          "type": "tables",
+          "data": [
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 115
+            },
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 154
+            },
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 187
+            },
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 261
+            }
+          ],
+          "sourceType": "explicit"
+        }
+      ],
+      "analyzedFiles": [
+        {
+          "path": "components/settings/SettingsModal.jsx",
+          "line": 154,
+          "reason": "Violation-Quelldatei"
+        },
+        {
+          "path": "components/studio/HuiStudio.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "pages/BasisProfilePage.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "pages/MyBasisProfile.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "pages/TalentProfilePage.jsx",
+          "reason": "Dependent"
+        }
+      ],
+      "appliedRules": [
+        {
+          "id": "NO_UI_IMPACT_LOGIC",
+          "title": "Keine UI-Komponente besitzt eigene Wirkungslogik",
+          "constitutionRef": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "sources": [
+        {
+          "type": "constitution",
+          "ref": "HUI_CONSTITUTION.md",
+          "section": "IV — Unveränderliche Architekturregeln"
+        },
+        {
+          "type": "scan",
+          "ref": "components/settings/SettingsModal.jsx",
+          "line": 154
+        },
+        {
+          "type": "knowledge-graph",
+          "ref": "src/architecture/graph/knowledgeGraph.js"
+        }
+      ],
+      "conclusion": "components/settings/SettingsModal.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Empfehlung: Core Engine nutzen. Betroffene Dateien: components/settings/SettingsModal.jsx, components/studio/HuiStudio.jsx, pages/BasisProfilePage.jsx, pages/MyBasisProfile.jsx, pages/TalentProfilePage.jsx. Risiko: 7.1/10.",
+      "generatedAt": "2026-06-30T14:13:01.228Z"
+    }
+  },
+  {
+    "id": "REC-CORE_BYPASS_components/settings/SettingsModal.jsx_L187",
+    "violationId": "CORE_BYPASS_components/settings/SettingsModal.jsx_L187",
+    "title": "Core Engine nutzen",
+    "file": "components/settings/SettingsModal.jsx",
+    "line": 187,
+    "rationale": {
+      "statement": "components/settings/SettingsModal.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Verschiebe DB-Write nach ContentService oder nutze coreEngine.js / useCoreEngine(). State über AppStateContext delegieren.",
+      "source": {
+        "type": "violation",
+        "path": "components/settings/SettingsModal.jsx",
+        "line": 187
+      },
+      "sourceType": "explicit",
+      "confidence": "high",
+      "references": [
+        {
+          "type": "constitution",
+          "ref": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "isFactual": true
+    },
+    "steps": [
+      "DB-Write nach src/services/ oder src/core/ verschieben",
+      "Action über useHuiActions() dispatchen",
+      "State über AppStateContext oder useCoreEngine() delegieren"
+    ],
+    "affectedFiles": [
+      "components/settings/SettingsModal.jsx",
+      "components/studio/HuiStudio.jsx",
+      "pages/BasisProfilePage.jsx",
+      "pages/MyBasisProfile.jsx",
+      "pages/TalentProfilePage.jsx",
+      "src/core/coreEngine.js",
+      "src/hooks/useCoreEngine.js",
+      "src/services/"
+    ],
+    "rule": {
+      "id": "NO_UI_IMPACT_LOGIC",
+      "title": "Keine UI-Komponente besitzt eigene Wirkungslogik"
+    },
+    "adrs": [],
+    "risk": {
+      "impactScore": 2,
+      "architectureRisk": 10,
+      "runtimeRisk": 9,
+      "migrationRisk": 1,
+      "constitutionRisk": 10,
+      "regressionRisk": 4,
+      "complexity": 0,
+      "confidence": {
+        "level": "high",
+        "sourceType": "explicit",
+        "reason": "Direkt aus Scan und Violation"
+      },
+      "overall": 7.1,
+      "summary": {
+        "statement": "Gesamtrisiko: 7.1/10 (Confidence: high)",
+        "source": {
+          "type": "risk-assessment"
+        },
+        "sourceType": "explicit",
+        "confidence": "high",
+        "references": [],
+        "isFactual": true
+      },
+      "factors": [
+        {
+          "factor": "violation-severity",
+          "value": "CRITICAL",
+          "weight": 10
+        },
+        {
+          "factor": "violation-type",
+          "value": "CORE_BYPASS"
+        }
+      ]
+    },
+    "trace": {
+      "recommendationId": "REC-CORE_BYPASS_components/settings/SettingsModal.jsx_L187",
+      "factsUsed": [
+        {
+          "type": "violation",
+          "data": {
+            "id": "CORE_BYPASS_components/settings/SettingsModal.jsx_L187",
+            "type": "CORE_BYPASS",
+            "severity": "CRITICAL",
+            "message": "Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js)."
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "file-scan",
+          "data": {
+            "lines": 468,
+            "domain": null,
+            "supabaseCalls": 4
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "dependents",
+          "data": {
+            "count": 4,
+            "files": [
+              "components/studio/HuiStudio.jsx",
+              "pages/BasisProfilePage.jsx",
+              "pages/MyBasisProfile.jsx",
+              "pages/TalentProfilePage.jsx"
+            ]
+          },
+          "sourceType": "derived"
+        },
+        {
+          "type": "tables",
+          "data": [
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 115
+            },
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 154
+            },
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 187
+            },
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 261
+            }
+          ],
+          "sourceType": "explicit"
+        }
+      ],
+      "analyzedFiles": [
+        {
+          "path": "components/settings/SettingsModal.jsx",
+          "line": 187,
+          "reason": "Violation-Quelldatei"
+        },
+        {
+          "path": "components/studio/HuiStudio.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "pages/BasisProfilePage.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "pages/MyBasisProfile.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "pages/TalentProfilePage.jsx",
+          "reason": "Dependent"
+        }
+      ],
+      "appliedRules": [
+        {
+          "id": "NO_UI_IMPACT_LOGIC",
+          "title": "Keine UI-Komponente besitzt eigene Wirkungslogik",
+          "constitutionRef": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "sources": [
+        {
+          "type": "constitution",
+          "ref": "HUI_CONSTITUTION.md",
+          "section": "IV — Unveränderliche Architekturregeln"
+        },
+        {
+          "type": "scan",
+          "ref": "components/settings/SettingsModal.jsx",
+          "line": 187
+        },
+        {
+          "type": "knowledge-graph",
+          "ref": "src/architecture/graph/knowledgeGraph.js"
+        }
+      ],
+      "conclusion": "components/settings/SettingsModal.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Empfehlung: Core Engine nutzen. Betroffene Dateien: components/settings/SettingsModal.jsx, components/studio/HuiStudio.jsx, pages/BasisProfilePage.jsx, pages/MyBasisProfile.jsx, pages/TalentProfilePage.jsx. Risiko: 7.1/10.",
+      "generatedAt": "2026-06-30T14:13:01.228Z"
+    }
+  },
+  {
+    "id": "REC-CORE_BYPASS_components/settings/SettingsModal.jsx_L261",
+    "violationId": "CORE_BYPASS_components/settings/SettingsModal.jsx_L261",
+    "title": "Core Engine nutzen",
+    "file": "components/settings/SettingsModal.jsx",
+    "line": 261,
+    "rationale": {
+      "statement": "components/settings/SettingsModal.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Verschiebe DB-Write nach ContentService oder nutze coreEngine.js / useCoreEngine(). State über AppStateContext delegieren.",
+      "source": {
+        "type": "violation",
+        "path": "components/settings/SettingsModal.jsx",
+        "line": 261
+      },
+      "sourceType": "explicit",
+      "confidence": "high",
+      "references": [
+        {
+          "type": "constitution",
+          "ref": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "isFactual": true
+    },
+    "steps": [
+      "DB-Write nach src/services/ oder src/core/ verschieben",
+      "Action über useHuiActions() dispatchen",
+      "State über AppStateContext oder useCoreEngine() delegieren"
+    ],
+    "affectedFiles": [
+      "components/settings/SettingsModal.jsx",
+      "components/studio/HuiStudio.jsx",
+      "pages/BasisProfilePage.jsx",
+      "pages/MyBasisProfile.jsx",
+      "pages/TalentProfilePage.jsx",
+      "src/core/coreEngine.js",
+      "src/hooks/useCoreEngine.js",
+      "src/services/"
+    ],
+    "rule": {
+      "id": "NO_UI_IMPACT_LOGIC",
+      "title": "Keine UI-Komponente besitzt eigene Wirkungslogik"
+    },
+    "adrs": [],
+    "risk": {
+      "impactScore": 2,
+      "architectureRisk": 10,
+      "runtimeRisk": 9,
+      "migrationRisk": 1,
+      "constitutionRisk": 10,
+      "regressionRisk": 4,
+      "complexity": 0,
+      "confidence": {
+        "level": "high",
+        "sourceType": "explicit",
+        "reason": "Direkt aus Scan und Violation"
+      },
+      "overall": 7.1,
+      "summary": {
+        "statement": "Gesamtrisiko: 7.1/10 (Confidence: high)",
+        "source": {
+          "type": "risk-assessment"
+        },
+        "sourceType": "explicit",
+        "confidence": "high",
+        "references": [],
+        "isFactual": true
+      },
+      "factors": [
+        {
+          "factor": "violation-severity",
+          "value": "CRITICAL",
+          "weight": 10
+        },
+        {
+          "factor": "violation-type",
+          "value": "CORE_BYPASS"
+        }
+      ]
+    },
+    "trace": {
+      "recommendationId": "REC-CORE_BYPASS_components/settings/SettingsModal.jsx_L261",
+      "factsUsed": [
+        {
+          "type": "violation",
+          "data": {
+            "id": "CORE_BYPASS_components/settings/SettingsModal.jsx_L261",
+            "type": "CORE_BYPASS",
+            "severity": "CRITICAL",
+            "message": "Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js)."
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "file-scan",
+          "data": {
+            "lines": 468,
+            "domain": null,
+            "supabaseCalls": 4
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "dependents",
+          "data": {
+            "count": 4,
+            "files": [
+              "components/studio/HuiStudio.jsx",
+              "pages/BasisProfilePage.jsx",
+              "pages/MyBasisProfile.jsx",
+              "pages/TalentProfilePage.jsx"
+            ]
+          },
+          "sourceType": "derived"
+        },
+        {
+          "type": "tables",
+          "data": [
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 115
+            },
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 154
+            },
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 187
+            },
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 261
+            }
+          ],
+          "sourceType": "explicit"
+        }
+      ],
+      "analyzedFiles": [
+        {
+          "path": "components/settings/SettingsModal.jsx",
+          "line": 261,
+          "reason": "Violation-Quelldatei"
+        },
+        {
+          "path": "components/studio/HuiStudio.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "pages/BasisProfilePage.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "pages/MyBasisProfile.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "pages/TalentProfilePage.jsx",
+          "reason": "Dependent"
+        }
+      ],
+      "appliedRules": [
+        {
+          "id": "NO_UI_IMPACT_LOGIC",
+          "title": "Keine UI-Komponente besitzt eigene Wirkungslogik",
+          "constitutionRef": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "sources": [
+        {
+          "type": "constitution",
+          "ref": "HUI_CONSTITUTION.md",
+          "section": "IV — Unveränderliche Architekturregeln"
+        },
+        {
+          "type": "scan",
+          "ref": "components/settings/SettingsModal.jsx",
+          "line": 261
+        },
+        {
+          "type": "knowledge-graph",
+          "ref": "src/architecture/graph/knowledgeGraph.js"
+        }
+      ],
+      "conclusion": "components/settings/SettingsModal.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Empfehlung: Core Engine nutzen. Betroffene Dateien: components/settings/SettingsModal.jsx, components/studio/HuiStudio.jsx, pages/BasisProfilePage.jsx, pages/MyBasisProfile.jsx, pages/TalentProfilePage.jsx. Risiko: 7.1/10.",
+      "generatedAt": "2026-06-30T14:13:01.228Z"
+    }
+  },
+  {
+    "id": "REC-CORE_BYPASS_components/studio/ImpactStimmenModal.jsx_L172",
+    "violationId": "CORE_BYPASS_components/studio/ImpactStimmenModal.jsx_L172",
+    "title": "Core Engine nutzen",
+    "file": "components/studio/ImpactStimmenModal.jsx",
+    "line": 172,
+    "rationale": {
+      "statement": "components/studio/ImpactStimmenModal.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Verschiebe DB-Write nach ContentService oder nutze coreEngine.js / useCoreEngine(). State über AppStateContext delegieren.",
+      "source": {
+        "type": "violation",
+        "path": "components/studio/ImpactStimmenModal.jsx",
+        "line": 172
+      },
+      "sourceType": "explicit",
+      "confidence": "high",
+      "references": [
+        {
+          "type": "constitution",
+          "ref": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "isFactual": true
+    },
+    "steps": [
+      "DB-Write nach src/services/ oder src/core/ verschieben",
+      "Action über useHuiActions() dispatchen",
+      "State über AppStateContext oder useCoreEngine() delegieren"
+    ],
+    "affectedFiles": [
+      "components/studio/ImpactStimmenModal.jsx",
+      "components/studio/HuiStudio.jsx",
+      "src/core/coreEngine.js",
+      "src/hooks/useCoreEngine.js",
+      "src/services/"
+    ],
+    "rule": {
+      "id": "NO_UI_IMPACT_LOGIC",
+      "title": "Keine UI-Komponente besitzt eigene Wirkungslogik"
+    },
+    "adrs": [],
+    "risk": {
+      "impactScore": 1,
+      "architectureRisk": 10,
+      "runtimeRisk": 9,
+      "migrationRisk": 1,
+      "constitutionRisk": 10,
+      "regressionRisk": 1,
+      "complexity": 0,
+      "confidence": {
+        "level": "high",
+        "sourceType": "explicit",
+        "reason": "Direkt aus Scan und Violation"
+      },
+      "overall": 6.6,
+      "summary": {
+        "statement": "Gesamtrisiko: 6.6/10 (Confidence: high)",
+        "source": {
+          "type": "risk-assessment"
+        },
+        "sourceType": "explicit",
+        "confidence": "high",
+        "references": [],
+        "isFactual": true
+      },
+      "factors": [
+        {
+          "factor": "violation-severity",
+          "value": "CRITICAL",
+          "weight": 10
+        },
+        {
+          "factor": "violation-type",
+          "value": "CORE_BYPASS"
+        }
+      ]
+    },
+    "trace": {
+      "recommendationId": "REC-CORE_BYPASS_components/studio/ImpactStimmenModal.jsx_L172",
+      "factsUsed": [
+        {
+          "type": "violation",
+          "data": {
+            "id": "CORE_BYPASS_components/studio/ImpactStimmenModal.jsx_L172",
+            "type": "CORE_BYPASS",
+            "severity": "CRITICAL",
+            "message": "Core Bypass: Direkter Write auf Core-Tabelle 'impact_votes'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js)."
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "file-scan",
+          "data": {
+            "lines": 708,
+            "domain": null,
+            "supabaseCalls": 3
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "dependents",
+          "data": {
+            "count": 1,
+            "files": [
+              "components/studio/HuiStudio.jsx"
+            ]
+          },
+          "sourceType": "derived"
+        },
+        {
+          "type": "tables",
+          "data": [
+            {
+              "table": "impact_applications",
+              "operation": "SELECT",
+              "line": 113
+            },
+            {
+              "table": "impact_votes",
+              "operation": "SELECT",
+              "line": 117
+            },
+            {
+              "table": "impact_votes",
+              "operation": "INSERT",
+              "line": 172
+            }
+          ],
+          "sourceType": "explicit"
+        }
+      ],
+      "analyzedFiles": [
+        {
+          "path": "components/studio/ImpactStimmenModal.jsx",
+          "line": 172,
+          "reason": "Violation-Quelldatei"
+        },
+        {
+          "path": "components/studio/HuiStudio.jsx",
+          "reason": "Dependent"
+        }
+      ],
+      "appliedRules": [
+        {
+          "id": "NO_UI_IMPACT_LOGIC",
+          "title": "Keine UI-Komponente besitzt eigene Wirkungslogik",
+          "constitutionRef": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "sources": [
+        {
+          "type": "constitution",
+          "ref": "HUI_CONSTITUTION.md",
+          "section": "IV — Unveränderliche Architekturregeln"
+        },
+        {
+          "type": "scan",
+          "ref": "components/studio/ImpactStimmenModal.jsx",
+          "line": 172
+        },
+        {
+          "type": "knowledge-graph",
+          "ref": "src/architecture/graph/knowledgeGraph.js"
+        }
+      ],
+      "conclusion": "components/studio/ImpactStimmenModal.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Empfehlung: Core Engine nutzen. Betroffene Dateien: components/studio/ImpactStimmenModal.jsx, components/studio/HuiStudio.jsx, src/core/coreEngine.js, src/hooks/useCoreEngine.js, src/services/. Risiko: 6.6/10.",
+      "generatedAt": "2026-06-30T14:13:01.229Z"
+    }
+  },
+  {
+    "id": "REC-CORE_BYPASS_components/studio/ProfilBearbeitenModal.jsx_L178",
+    "violationId": "CORE_BYPASS_components/studio/ProfilBearbeitenModal.jsx_L178",
+    "title": "Core Engine nutzen",
+    "file": "components/studio/ProfilBearbeitenModal.jsx",
+    "line": 178,
+    "rationale": {
+      "statement": "components/studio/ProfilBearbeitenModal.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Verschiebe DB-Write nach ContentService oder nutze coreEngine.js / useCoreEngine(). State über AppStateContext delegieren.",
+      "source": {
+        "type": "violation",
+        "path": "components/studio/ProfilBearbeitenModal.jsx",
+        "line": 178
+      },
+      "sourceType": "explicit",
+      "confidence": "high",
+      "references": [
+        {
+          "type": "constitution",
+          "ref": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "isFactual": true
+    },
+    "steps": [
+      "DB-Write nach src/services/ oder src/core/ verschieben",
+      "Action über useHuiActions() dispatchen",
+      "State über AppStateContext oder useCoreEngine() delegieren"
+    ],
+    "affectedFiles": [
+      "components/studio/ProfilBearbeitenModal.jsx",
+      "components/studio/HuiStudio.jsx",
+      "src/core/coreEngine.js",
+      "src/hooks/useCoreEngine.js",
+      "src/services/"
+    ],
+    "rule": {
+      "id": "NO_UI_IMPACT_LOGIC",
+      "title": "Keine UI-Komponente besitzt eigene Wirkungslogik"
+    },
+    "adrs": [],
+    "risk": {
+      "impactScore": 1,
+      "architectureRisk": 10,
+      "runtimeRisk": 9,
+      "migrationRisk": 1,
+      "constitutionRisk": 10,
+      "regressionRisk": 1,
+      "complexity": 0,
+      "confidence": {
+        "level": "high",
+        "sourceType": "explicit",
+        "reason": "Direkt aus Scan und Violation"
+      },
+      "overall": 6.6,
+      "summary": {
+        "statement": "Gesamtrisiko: 6.6/10 (Confidence: high)",
+        "source": {
+          "type": "risk-assessment"
+        },
+        "sourceType": "explicit",
+        "confidence": "high",
+        "references": [],
+        "isFactual": true
+      },
+      "factors": [
+        {
+          "factor": "violation-severity",
+          "value": "CRITICAL",
+          "weight": 10
+        },
+        {
+          "factor": "violation-type",
+          "value": "CORE_BYPASS"
+        }
+      ]
+    },
+    "trace": {
+      "recommendationId": "REC-CORE_BYPASS_components/studio/ProfilBearbeitenModal.jsx_L178",
+      "factsUsed": [
+        {
+          "type": "violation",
+          "data": {
+            "id": "CORE_BYPASS_components/studio/ProfilBearbeitenModal.jsx_L178",
+            "type": "CORE_BYPASS",
+            "severity": "CRITICAL",
+            "message": "Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js)."
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "file-scan",
+          "data": {
+            "lines": 669,
+            "domain": null,
+            "supabaseCalls": 5
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "dependents",
+          "data": {
+            "count": 1,
+            "files": [
+              "components/studio/HuiStudio.jsx"
+            ]
+          },
+          "sourceType": "derived"
+        },
+        {
+          "type": "tables",
+          "data": [
+            {
+              "table": "wirker_profiles",
+              "operation": "SELECT",
+              "line": 104
+            },
+            {
+              "table": "profiles",
+              "operation": "SELECT",
+              "line": 134
+            },
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 178
+            },
+            {
+              "table": "wirker_profiles",
+              "operation": "INSERT",
+              "line": 198
+            },
+            {
+              "table": "wirker_profiles",
+              "operation": "INSERT",
+              "line": 200
+            }
+          ],
+          "sourceType": "explicit"
+        }
+      ],
+      "analyzedFiles": [
+        {
+          "path": "components/studio/ProfilBearbeitenModal.jsx",
+          "line": 178,
+          "reason": "Violation-Quelldatei"
+        },
+        {
+          "path": "components/studio/HuiStudio.jsx",
+          "reason": "Dependent"
+        }
+      ],
+      "appliedRules": [
+        {
+          "id": "NO_UI_IMPACT_LOGIC",
+          "title": "Keine UI-Komponente besitzt eigene Wirkungslogik",
+          "constitutionRef": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "sources": [
+        {
+          "type": "constitution",
+          "ref": "HUI_CONSTITUTION.md",
+          "section": "IV — Unveränderliche Architekturregeln"
+        },
+        {
+          "type": "scan",
+          "ref": "components/studio/ProfilBearbeitenModal.jsx",
+          "line": 178
+        },
+        {
+          "type": "knowledge-graph",
+          "ref": "src/architecture/graph/knowledgeGraph.js"
+        }
+      ],
+      "conclusion": "components/studio/ProfilBearbeitenModal.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Empfehlung: Core Engine nutzen. Betroffene Dateien: components/studio/ProfilBearbeitenModal.jsx, components/studio/HuiStudio.jsx, src/core/coreEngine.js, src/hooks/useCoreEngine.js, src/services/. Risiko: 6.6/10.",
+      "generatedAt": "2026-06-30T14:13:01.229Z"
+    }
+  },
+  {
+    "id": "REC-CORE_BYPASS_components/studio/ProfilBearbeitenModal.jsx_L198",
+    "violationId": "CORE_BYPASS_components/studio/ProfilBearbeitenModal.jsx_L198",
+    "title": "Core Engine nutzen",
+    "file": "components/studio/ProfilBearbeitenModal.jsx",
+    "line": 198,
+    "rationale": {
+      "statement": "components/studio/ProfilBearbeitenModal.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Verschiebe DB-Write nach ContentService oder nutze coreEngine.js / useCoreEngine(). State über AppStateContext delegieren.",
+      "source": {
+        "type": "violation",
+        "path": "components/studio/ProfilBearbeitenModal.jsx",
+        "line": 198
+      },
+      "sourceType": "explicit",
+      "confidence": "high",
+      "references": [
+        {
+          "type": "constitution",
+          "ref": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "isFactual": true
+    },
+    "steps": [
+      "DB-Write nach src/services/ oder src/core/ verschieben",
+      "Action über useHuiActions() dispatchen",
+      "State über AppStateContext oder useCoreEngine() delegieren"
+    ],
+    "affectedFiles": [
+      "components/studio/ProfilBearbeitenModal.jsx",
+      "components/studio/HuiStudio.jsx",
+      "src/core/coreEngine.js",
+      "src/hooks/useCoreEngine.js",
+      "src/services/"
+    ],
+    "rule": {
+      "id": "NO_UI_IMPACT_LOGIC",
+      "title": "Keine UI-Komponente besitzt eigene Wirkungslogik"
+    },
+    "adrs": [],
+    "risk": {
+      "impactScore": 1,
+      "architectureRisk": 10,
+      "runtimeRisk": 9,
+      "migrationRisk": 1,
+      "constitutionRisk": 10,
+      "regressionRisk": 1,
+      "complexity": 0,
+      "confidence": {
+        "level": "high",
+        "sourceType": "explicit",
+        "reason": "Direkt aus Scan und Violation"
+      },
+      "overall": 6.6,
+      "summary": {
+        "statement": "Gesamtrisiko: 6.6/10 (Confidence: high)",
+        "source": {
+          "type": "risk-assessment"
+        },
+        "sourceType": "explicit",
+        "confidence": "high",
+        "references": [],
+        "isFactual": true
+      },
+      "factors": [
+        {
+          "factor": "violation-severity",
+          "value": "CRITICAL",
+          "weight": 10
+        },
+        {
+          "factor": "violation-type",
+          "value": "CORE_BYPASS"
+        }
+      ]
+    },
+    "trace": {
+      "recommendationId": "REC-CORE_BYPASS_components/studio/ProfilBearbeitenModal.jsx_L198",
+      "factsUsed": [
+        {
+          "type": "violation",
+          "data": {
+            "id": "CORE_BYPASS_components/studio/ProfilBearbeitenModal.jsx_L198",
+            "type": "CORE_BYPASS",
+            "severity": "CRITICAL",
+            "message": "Core Bypass: Direkter Write auf Core-Tabelle 'wirker_profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js)."
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "file-scan",
+          "data": {
+            "lines": 669,
+            "domain": null,
+            "supabaseCalls": 5
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "dependents",
+          "data": {
+            "count": 1,
+            "files": [
+              "components/studio/HuiStudio.jsx"
+            ]
+          },
+          "sourceType": "derived"
+        },
+        {
+          "type": "tables",
+          "data": [
+            {
+              "table": "wirker_profiles",
+              "operation": "SELECT",
+              "line": 104
+            },
+            {
+              "table": "profiles",
+              "operation": "SELECT",
+              "line": 134
+            },
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 178
+            },
+            {
+              "table": "wirker_profiles",
+              "operation": "INSERT",
+              "line": 198
+            },
+            {
+              "table": "wirker_profiles",
+              "operation": "INSERT",
+              "line": 200
+            }
+          ],
+          "sourceType": "explicit"
+        }
+      ],
+      "analyzedFiles": [
+        {
+          "path": "components/studio/ProfilBearbeitenModal.jsx",
+          "line": 198,
+          "reason": "Violation-Quelldatei"
+        },
+        {
+          "path": "components/studio/HuiStudio.jsx",
+          "reason": "Dependent"
+        }
+      ],
+      "appliedRules": [
+        {
+          "id": "NO_UI_IMPACT_LOGIC",
+          "title": "Keine UI-Komponente besitzt eigene Wirkungslogik",
+          "constitutionRef": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "sources": [
+        {
+          "type": "constitution",
+          "ref": "HUI_CONSTITUTION.md",
+          "section": "IV — Unveränderliche Architekturregeln"
+        },
+        {
+          "type": "scan",
+          "ref": "components/studio/ProfilBearbeitenModal.jsx",
+          "line": 198
+        },
+        {
+          "type": "knowledge-graph",
+          "ref": "src/architecture/graph/knowledgeGraph.js"
+        }
+      ],
+      "conclusion": "components/studio/ProfilBearbeitenModal.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Empfehlung: Core Engine nutzen. Betroffene Dateien: components/studio/ProfilBearbeitenModal.jsx, components/studio/HuiStudio.jsx, src/core/coreEngine.js, src/hooks/useCoreEngine.js, src/services/. Risiko: 6.6/10.",
+      "generatedAt": "2026-06-30T14:13:01.229Z"
+    }
+  },
+  {
+    "id": "REC-CORE_BYPASS_components/studio/ProfilBearbeitenModal.jsx_L200",
+    "violationId": "CORE_BYPASS_components/studio/ProfilBearbeitenModal.jsx_L200",
+    "title": "Core Engine nutzen",
+    "file": "components/studio/ProfilBearbeitenModal.jsx",
+    "line": 200,
+    "rationale": {
+      "statement": "components/studio/ProfilBearbeitenModal.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Verschiebe DB-Write nach ContentService oder nutze coreEngine.js / useCoreEngine(). State über AppStateContext delegieren.",
+      "source": {
+        "type": "violation",
+        "path": "components/studio/ProfilBearbeitenModal.jsx",
+        "line": 200
+      },
+      "sourceType": "explicit",
+      "confidence": "high",
+      "references": [
+        {
+          "type": "constitution",
+          "ref": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "isFactual": true
+    },
+    "steps": [
+      "DB-Write nach src/services/ oder src/core/ verschieben",
+      "Action über useHuiActions() dispatchen",
+      "State über AppStateContext oder useCoreEngine() delegieren"
+    ],
+    "affectedFiles": [
+      "components/studio/ProfilBearbeitenModal.jsx",
+      "components/studio/HuiStudio.jsx",
+      "src/core/coreEngine.js",
+      "src/hooks/useCoreEngine.js",
+      "src/services/"
+    ],
+    "rule": {
+      "id": "NO_UI_IMPACT_LOGIC",
+      "title": "Keine UI-Komponente besitzt eigene Wirkungslogik"
+    },
+    "adrs": [],
+    "risk": {
+      "impactScore": 1,
+      "architectureRisk": 10,
+      "runtimeRisk": 9,
+      "migrationRisk": 1,
+      "constitutionRisk": 10,
+      "regressionRisk": 1,
+      "complexity": 0,
+      "confidence": {
+        "level": "high",
+        "sourceType": "explicit",
+        "reason": "Direkt aus Scan und Violation"
+      },
+      "overall": 6.6,
+      "summary": {
+        "statement": "Gesamtrisiko: 6.6/10 (Confidence: high)",
+        "source": {
+          "type": "risk-assessment"
+        },
+        "sourceType": "explicit",
+        "confidence": "high",
+        "references": [],
+        "isFactual": true
+      },
+      "factors": [
+        {
+          "factor": "violation-severity",
+          "value": "CRITICAL",
+          "weight": 10
+        },
+        {
+          "factor": "violation-type",
+          "value": "CORE_BYPASS"
+        }
+      ]
+    },
+    "trace": {
+      "recommendationId": "REC-CORE_BYPASS_components/studio/ProfilBearbeitenModal.jsx_L200",
+      "factsUsed": [
+        {
+          "type": "violation",
+          "data": {
+            "id": "CORE_BYPASS_components/studio/ProfilBearbeitenModal.jsx_L200",
+            "type": "CORE_BYPASS",
+            "severity": "CRITICAL",
+            "message": "Core Bypass: Direkter Write auf Core-Tabelle 'wirker_profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js)."
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "file-scan",
+          "data": {
+            "lines": 669,
+            "domain": null,
+            "supabaseCalls": 5
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "dependents",
+          "data": {
+            "count": 1,
+            "files": [
+              "components/studio/HuiStudio.jsx"
+            ]
+          },
+          "sourceType": "derived"
+        },
+        {
+          "type": "tables",
+          "data": [
+            {
+              "table": "wirker_profiles",
+              "operation": "SELECT",
+              "line": 104
+            },
+            {
+              "table": "profiles",
+              "operation": "SELECT",
+              "line": 134
+            },
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 178
+            },
+            {
+              "table": "wirker_profiles",
+              "operation": "INSERT",
+              "line": 198
+            },
+            {
+              "table": "wirker_profiles",
+              "operation": "INSERT",
+              "line": 200
+            }
+          ],
+          "sourceType": "explicit"
+        }
+      ],
+      "analyzedFiles": [
+        {
+          "path": "components/studio/ProfilBearbeitenModal.jsx",
+          "line": 200,
+          "reason": "Violation-Quelldatei"
+        },
+        {
+          "path": "components/studio/HuiStudio.jsx",
+          "reason": "Dependent"
+        }
+      ],
+      "appliedRules": [
+        {
+          "id": "NO_UI_IMPACT_LOGIC",
+          "title": "Keine UI-Komponente besitzt eigene Wirkungslogik",
+          "constitutionRef": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "sources": [
+        {
+          "type": "constitution",
+          "ref": "HUI_CONSTITUTION.md",
+          "section": "IV — Unveränderliche Architekturregeln"
+        },
+        {
+          "type": "scan",
+          "ref": "components/studio/ProfilBearbeitenModal.jsx",
+          "line": 200
+        },
+        {
+          "type": "knowledge-graph",
+          "ref": "src/architecture/graph/knowledgeGraph.js"
+        }
+      ],
+      "conclusion": "components/studio/ProfilBearbeitenModal.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Empfehlung: Core Engine nutzen. Betroffene Dateien: components/studio/ProfilBearbeitenModal.jsx, components/studio/HuiStudio.jsx, src/core/coreEngine.js, src/hooks/useCoreEngine.js, src/services/. Risiko: 6.6/10.",
+      "generatedAt": "2026-06-30T14:13:01.229Z"
+    }
+  },
+  {
+    "id": "REC-CORE_BYPASS_hooks/useAmbassador.js_L154",
+    "violationId": "CORE_BYPASS_hooks/useAmbassador.js_L154",
+    "title": "Core Engine nutzen",
+    "file": "hooks/useAmbassador.js",
+    "line": 154,
+    "rationale": {
+      "statement": "hooks/useAmbassador.js verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Verschiebe DB-Write nach ContentService oder nutze coreEngine.js / useCoreEngine(). State über AppStateContext delegieren.",
+      "source": {
+        "type": "violation",
+        "path": "hooks/useAmbassador.js",
+        "line": 154
+      },
+      "sourceType": "explicit",
+      "confidence": "high",
+      "references": [
+        {
+          "type": "constitution",
+          "ref": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "isFactual": true
+    },
+    "steps": [
+      "DB-Write nach src/services/ oder src/core/ verschieben",
+      "Action über useHuiActions() dispatchen",
+      "State über AppStateContext oder useCoreEngine() delegieren"
+    ],
+    "affectedFiles": [
+      "hooks/useAmbassador.js",
+      "components/ambassador/AmbassadorModal.jsx",
+      "components/ambassador/AmbassadorSection.jsx",
+      "pages/MyBasisProfile.jsx",
+      "src/core/coreEngine.js",
+      "src/hooks/useCoreEngine.js",
+      "src/services/"
+    ],
+    "rule": {
+      "id": "NO_UI_IMPACT_LOGIC",
+      "title": "Keine UI-Komponente besitzt eigene Wirkungslogik"
+    },
+    "adrs": [],
+    "risk": {
+      "impactScore": 2,
+      "architectureRisk": 10,
+      "runtimeRisk": 9,
+      "migrationRisk": 1,
+      "constitutionRisk": 10,
+      "regressionRisk": 3,
+      "complexity": 0,
+      "confidence": {
+        "level": "high",
+        "sourceType": "explicit",
+        "reason": "Direkt aus Scan und Violation"
+      },
+      "overall": 6.9,
+      "summary": {
+        "statement": "Gesamtrisiko: 6.9/10 (Confidence: high)",
+        "source": {
+          "type": "risk-assessment"
+        },
+        "sourceType": "explicit",
+        "confidence": "high",
+        "references": [],
+        "isFactual": true
+      },
+      "factors": [
+        {
+          "factor": "violation-severity",
+          "value": "CRITICAL",
+          "weight": 10
+        },
+        {
+          "factor": "violation-type",
+          "value": "CORE_BYPASS"
+        }
+      ]
+    },
+    "trace": {
+      "recommendationId": "REC-CORE_BYPASS_hooks/useAmbassador.js_L154",
+      "factsUsed": [
+        {
+          "type": "violation",
+          "data": {
+            "id": "CORE_BYPASS_hooks/useAmbassador.js_L154",
+            "type": "CORE_BYPASS",
+            "severity": "CRITICAL",
+            "message": "Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js)."
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "file-scan",
+          "data": {
+            "lines": 258,
+            "domain": null,
+            "supabaseCalls": 7
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "dependents",
+          "data": {
+            "count": 3,
+            "files": [
+              "components/ambassador/AmbassadorModal.jsx",
+              "components/ambassador/AmbassadorSection.jsx",
+              "pages/MyBasisProfile.jsx"
+            ]
+          },
+          "sourceType": "derived"
+        },
+        {
+          "type": "tables",
+          "data": [
+            {
+              "table": "ambassador_ref_links",
+              "operation": "SELECT",
+              "line": 41
+            },
+            {
+              "table": "ambassadors_applications",
+              "operation": "INSERT",
+              "line": 127
+            },
+            {
+              "table": "profiles",
+              "operation": "SELECT",
+              "line": 146
+            },
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 154
+            },
+            {
+              "table": "profiles",
+              "operation": "SELECT",
+              "line": 191
+            },
+            {
+              "table": "profiles",
+              "operation": "SELECT",
+              "line": 201
+            },
+            {
+              "table": "ambassador_ref_links",
+              "operation": "SELECT",
+              "line": 247
+            }
+          ],
+          "sourceType": "explicit"
+        }
+      ],
+      "analyzedFiles": [
+        {
+          "path": "hooks/useAmbassador.js",
+          "line": 154,
+          "reason": "Violation-Quelldatei"
+        },
+        {
+          "path": "components/ambassador/AmbassadorModal.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "components/ambassador/AmbassadorSection.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "pages/MyBasisProfile.jsx",
+          "reason": "Dependent"
+        }
+      ],
+      "appliedRules": [
+        {
+          "id": "NO_UI_IMPACT_LOGIC",
+          "title": "Keine UI-Komponente besitzt eigene Wirkungslogik",
+          "constitutionRef": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "sources": [
+        {
+          "type": "constitution",
+          "ref": "HUI_CONSTITUTION.md",
+          "section": "IV — Unveränderliche Architekturregeln"
+        },
+        {
+          "type": "scan",
+          "ref": "hooks/useAmbassador.js",
+          "line": 154
+        },
+        {
+          "type": "knowledge-graph",
+          "ref": "src/architecture/graph/knowledgeGraph.js"
+        }
+      ],
+      "conclusion": "hooks/useAmbassador.js verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Empfehlung: Core Engine nutzen. Betroffene Dateien: hooks/useAmbassador.js, components/ambassador/AmbassadorModal.jsx, components/ambassador/AmbassadorSection.jsx, pages/MyBasisProfile.jsx, src/core/coreEngine.js. Risiko: 6.9/10.",
+      "generatedAt": "2026-06-30T14:13:01.229Z"
+    }
+  },
+  {
+    "id": "REC-CORE_BYPASS_lib/AuthContext.jsx_L57",
+    "violationId": "CORE_BYPASS_lib/AuthContext.jsx_L57",
+    "title": "Core Engine nutzen",
+    "file": "lib/AuthContext.jsx",
+    "line": 57,
+    "rationale": {
+      "statement": "lib/AuthContext.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Verschiebe DB-Write nach ContentService oder nutze coreEngine.js / useCoreEngine(). State über AppStateContext delegieren.",
+      "source": {
+        "type": "violation",
+        "path": "lib/AuthContext.jsx",
+        "line": 57
+      },
+      "sourceType": "explicit",
+      "confidence": "high",
+      "references": [
+        {
+          "type": "constitution",
+          "ref": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "isFactual": true
+    },
+    "steps": [
+      "DB-Write nach src/services/ oder src/core/ verschieben",
+      "Action über useHuiActions() dispatchen",
+      "State über AppStateContext oder useCoreEngine() delegieren"
+    ],
+    "affectedFiles": [
+      "lib/AuthContext.jsx",
+      "App.jsx",
+      "components/ExperienceCreator.jsx",
+      "components/GemeinschaftsFlow.jsx",
+      "components/HuiCreateFlow.jsx",
+      "components/HuiMembershipFlow.jsx",
+      "src/core/coreEngine.js",
+      "src/hooks/useCoreEngine.js",
+      "src/services/"
+    ],
+    "rule": {
+      "id": "NO_UI_IMPACT_LOGIC",
+      "title": "Keine UI-Komponente besitzt eigene Wirkungslogik"
+    },
+    "adrs": [],
+    "risk": {
+      "impactScore": 10,
+      "architectureRisk": 10,
+      "runtimeRisk": 9,
+      "migrationRisk": 1,
+      "constitutionRisk": 10,
+      "regressionRisk": 10,
+      "complexity": 0,
+      "confidence": {
+        "level": "high",
+        "sourceType": "explicit",
+        "reason": "Direkt aus Scan und Violation"
+      },
+      "overall": 8,
+      "summary": {
+        "statement": "Gesamtrisiko: 8/10 (Confidence: high)",
+        "source": {
+          "type": "risk-assessment"
+        },
+        "sourceType": "explicit",
+        "confidence": "high",
+        "references": [],
+        "isFactual": true
+      },
+      "factors": [
+        {
+          "factor": "violation-severity",
+          "value": "CRITICAL",
+          "weight": 10
+        },
+        {
+          "factor": "violation-type",
+          "value": "CORE_BYPASS"
+        }
+      ]
+    },
+    "trace": {
+      "recommendationId": "REC-CORE_BYPASS_lib/AuthContext.jsx_L57",
+      "factsUsed": [
+        {
+          "type": "violation",
+          "data": {
+            "id": "CORE_BYPASS_lib/AuthContext.jsx_L57",
+            "type": "CORE_BYPASS",
+            "severity": "CRITICAL",
+            "message": "Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js)."
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "file-scan",
+          "data": {
+            "lines": 459,
+            "domain": null,
+            "supabaseCalls": 5
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "dependents",
+          "data": {
+            "count": 58,
+            "files": [
+              "App.jsx",
+              "components/ExperienceCreator.jsx",
+              "components/GemeinschaftsFlow.jsx",
+              "components/HuiCreateFlow.jsx",
+              "components/HuiMembershipFlow.jsx",
+              "components/StoryBar.jsx",
+              "components/StoryComposer.jsx",
+              "components/TalentOnboarding.jsx",
+              "components/WerkPublisher.jsx",
+              "components/WorkDetailPage.jsx"
+            ]
+          },
+          "sourceType": "derived"
+        },
+        {
+          "type": "tables",
+          "data": [
+            {
+              "table": "profiles",
+              "operation": "UPSERT",
+              "line": 57
+            },
+            {
+              "table": "profiles",
+              "operation": "UPSERT",
+              "line": 256
+            },
+            {
+              "table": "profiles",
+              "operation": "UNKNOWN",
+              "line": 266
+            },
+            {
+              "table": "wirker_profiles",
+              "operation": "UPSERT",
+              "line": 273
+            },
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 380
+            }
+          ],
+          "sourceType": "explicit"
+        }
+      ],
+      "analyzedFiles": [
+        {
+          "path": "lib/AuthContext.jsx",
+          "line": 57,
+          "reason": "Violation-Quelldatei"
+        },
+        {
+          "path": "App.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "components/ExperienceCreator.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "components/GemeinschaftsFlow.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "components/HuiCreateFlow.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "components/HuiMembershipFlow.jsx",
+          "reason": "Dependent"
+        }
+      ],
+      "appliedRules": [
+        {
+          "id": "NO_UI_IMPACT_LOGIC",
+          "title": "Keine UI-Komponente besitzt eigene Wirkungslogik",
+          "constitutionRef": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "sources": [
+        {
+          "type": "constitution",
+          "ref": "HUI_CONSTITUTION.md",
+          "section": "IV — Unveränderliche Architekturregeln"
+        },
+        {
+          "type": "scan",
+          "ref": "lib/AuthContext.jsx",
+          "line": 57
+        },
+        {
+          "type": "knowledge-graph",
+          "ref": "src/architecture/graph/knowledgeGraph.js"
+        }
+      ],
+      "conclusion": "lib/AuthContext.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Empfehlung: Core Engine nutzen. Betroffene Dateien: lib/AuthContext.jsx, App.jsx, components/ExperienceCreator.jsx, components/GemeinschaftsFlow.jsx, components/HuiCreateFlow.jsx. Risiko: 8/10.",
+      "generatedAt": "2026-06-30T14:13:01.229Z"
+    }
+  },
+  {
+    "id": "REC-CORE_BYPASS_lib/AuthContext.jsx_L256",
+    "violationId": "CORE_BYPASS_lib/AuthContext.jsx_L256",
+    "title": "Core Engine nutzen",
+    "file": "lib/AuthContext.jsx",
+    "line": 256,
+    "rationale": {
+      "statement": "lib/AuthContext.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Verschiebe DB-Write nach ContentService oder nutze coreEngine.js / useCoreEngine(). State über AppStateContext delegieren.",
+      "source": {
+        "type": "violation",
+        "path": "lib/AuthContext.jsx",
+        "line": 256
+      },
+      "sourceType": "explicit",
+      "confidence": "high",
+      "references": [
+        {
+          "type": "constitution",
+          "ref": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "isFactual": true
+    },
+    "steps": [
+      "DB-Write nach src/services/ oder src/core/ verschieben",
+      "Action über useHuiActions() dispatchen",
+      "State über AppStateContext oder useCoreEngine() delegieren"
+    ],
+    "affectedFiles": [
+      "lib/AuthContext.jsx",
+      "App.jsx",
+      "components/ExperienceCreator.jsx",
+      "components/GemeinschaftsFlow.jsx",
+      "components/HuiCreateFlow.jsx",
+      "components/HuiMembershipFlow.jsx",
+      "src/core/coreEngine.js",
+      "src/hooks/useCoreEngine.js",
+      "src/services/"
+    ],
+    "rule": {
+      "id": "NO_UI_IMPACT_LOGIC",
+      "title": "Keine UI-Komponente besitzt eigene Wirkungslogik"
+    },
+    "adrs": [],
+    "risk": {
+      "impactScore": 10,
+      "architectureRisk": 10,
+      "runtimeRisk": 9,
+      "migrationRisk": 1,
+      "constitutionRisk": 10,
+      "regressionRisk": 10,
+      "complexity": 0,
+      "confidence": {
+        "level": "high",
+        "sourceType": "explicit",
+        "reason": "Direkt aus Scan und Violation"
+      },
+      "overall": 8,
+      "summary": {
+        "statement": "Gesamtrisiko: 8/10 (Confidence: high)",
+        "source": {
+          "type": "risk-assessment"
+        },
+        "sourceType": "explicit",
+        "confidence": "high",
+        "references": [],
+        "isFactual": true
+      },
+      "factors": [
+        {
+          "factor": "violation-severity",
+          "value": "CRITICAL",
+          "weight": 10
+        },
+        {
+          "factor": "violation-type",
+          "value": "CORE_BYPASS"
+        }
+      ]
+    },
+    "trace": {
+      "recommendationId": "REC-CORE_BYPASS_lib/AuthContext.jsx_L256",
+      "factsUsed": [
+        {
+          "type": "violation",
+          "data": {
+            "id": "CORE_BYPASS_lib/AuthContext.jsx_L256",
+            "type": "CORE_BYPASS",
+            "severity": "CRITICAL",
+            "message": "Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js)."
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "file-scan",
+          "data": {
+            "lines": 459,
+            "domain": null,
+            "supabaseCalls": 5
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "dependents",
+          "data": {
+            "count": 58,
+            "files": [
+              "App.jsx",
+              "components/ExperienceCreator.jsx",
+              "components/GemeinschaftsFlow.jsx",
+              "components/HuiCreateFlow.jsx",
+              "components/HuiMembershipFlow.jsx",
+              "components/StoryBar.jsx",
+              "components/StoryComposer.jsx",
+              "components/TalentOnboarding.jsx",
+              "components/WerkPublisher.jsx",
+              "components/WorkDetailPage.jsx"
+            ]
+          },
+          "sourceType": "derived"
+        },
+        {
+          "type": "tables",
+          "data": [
+            {
+              "table": "profiles",
+              "operation": "UPSERT",
+              "line": 57
+            },
+            {
+              "table": "profiles",
+              "operation": "UPSERT",
+              "line": 256
+            },
+            {
+              "table": "profiles",
+              "operation": "UNKNOWN",
+              "line": 266
+            },
+            {
+              "table": "wirker_profiles",
+              "operation": "UPSERT",
+              "line": 273
+            },
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 380
+            }
+          ],
+          "sourceType": "explicit"
+        }
+      ],
+      "analyzedFiles": [
+        {
+          "path": "lib/AuthContext.jsx",
+          "line": 256,
+          "reason": "Violation-Quelldatei"
+        },
+        {
+          "path": "App.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "components/ExperienceCreator.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "components/GemeinschaftsFlow.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "components/HuiCreateFlow.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "components/HuiMembershipFlow.jsx",
+          "reason": "Dependent"
+        }
+      ],
+      "appliedRules": [
+        {
+          "id": "NO_UI_IMPACT_LOGIC",
+          "title": "Keine UI-Komponente besitzt eigene Wirkungslogik",
+          "constitutionRef": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "sources": [
+        {
+          "type": "constitution",
+          "ref": "HUI_CONSTITUTION.md",
+          "section": "IV — Unveränderliche Architekturregeln"
+        },
+        {
+          "type": "scan",
+          "ref": "lib/AuthContext.jsx",
+          "line": 256
+        },
+        {
+          "type": "knowledge-graph",
+          "ref": "src/architecture/graph/knowledgeGraph.js"
+        }
+      ],
+      "conclusion": "lib/AuthContext.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Empfehlung: Core Engine nutzen. Betroffene Dateien: lib/AuthContext.jsx, App.jsx, components/ExperienceCreator.jsx, components/GemeinschaftsFlow.jsx, components/HuiCreateFlow.jsx. Risiko: 8/10.",
+      "generatedAt": "2026-06-30T14:13:01.229Z"
+    }
+  },
+  {
+    "id": "REC-CORE_BYPASS_lib/AuthContext.jsx_L266",
+    "violationId": "CORE_BYPASS_lib/AuthContext.jsx_L266",
+    "title": "Core Engine nutzen",
+    "file": "lib/AuthContext.jsx",
+    "line": 266,
+    "rationale": {
+      "statement": "lib/AuthContext.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Verschiebe DB-Write nach ContentService oder nutze coreEngine.js / useCoreEngine(). State über AppStateContext delegieren.",
+      "source": {
+        "type": "violation",
+        "path": "lib/AuthContext.jsx",
+        "line": 266
+      },
+      "sourceType": "explicit",
+      "confidence": "high",
+      "references": [
+        {
+          "type": "constitution",
+          "ref": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "isFactual": true
+    },
+    "steps": [
+      "DB-Write nach src/services/ oder src/core/ verschieben",
+      "Action über useHuiActions() dispatchen",
+      "State über AppStateContext oder useCoreEngine() delegieren"
+    ],
+    "affectedFiles": [
+      "lib/AuthContext.jsx",
+      "App.jsx",
+      "components/ExperienceCreator.jsx",
+      "components/GemeinschaftsFlow.jsx",
+      "components/HuiCreateFlow.jsx",
+      "components/HuiMembershipFlow.jsx",
+      "src/core/coreEngine.js",
+      "src/hooks/useCoreEngine.js",
+      "src/services/"
+    ],
+    "rule": {
+      "id": "NO_UI_IMPACT_LOGIC",
+      "title": "Keine UI-Komponente besitzt eigene Wirkungslogik"
+    },
+    "adrs": [],
+    "risk": {
+      "impactScore": 10,
+      "architectureRisk": 10,
+      "runtimeRisk": 9,
+      "migrationRisk": 1,
+      "constitutionRisk": 10,
+      "regressionRisk": 10,
+      "complexity": 0,
+      "confidence": {
+        "level": "high",
+        "sourceType": "explicit",
+        "reason": "Direkt aus Scan und Violation"
+      },
+      "overall": 8,
+      "summary": {
+        "statement": "Gesamtrisiko: 8/10 (Confidence: high)",
+        "source": {
+          "type": "risk-assessment"
+        },
+        "sourceType": "explicit",
+        "confidence": "high",
+        "references": [],
+        "isFactual": true
+      },
+      "factors": [
+        {
+          "factor": "violation-severity",
+          "value": "CRITICAL",
+          "weight": 10
+        },
+        {
+          "factor": "violation-type",
+          "value": "CORE_BYPASS"
+        }
+      ]
+    },
+    "trace": {
+      "recommendationId": "REC-CORE_BYPASS_lib/AuthContext.jsx_L266",
+      "factsUsed": [
+        {
+          "type": "violation",
+          "data": {
+            "id": "CORE_BYPASS_lib/AuthContext.jsx_L266",
+            "type": "CORE_BYPASS",
+            "severity": "CRITICAL",
+            "message": "Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js)."
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "file-scan",
+          "data": {
+            "lines": 459,
+            "domain": null,
+            "supabaseCalls": 5
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "dependents",
+          "data": {
+            "count": 58,
+            "files": [
+              "App.jsx",
+              "components/ExperienceCreator.jsx",
+              "components/GemeinschaftsFlow.jsx",
+              "components/HuiCreateFlow.jsx",
+              "components/HuiMembershipFlow.jsx",
+              "components/StoryBar.jsx",
+              "components/StoryComposer.jsx",
+              "components/TalentOnboarding.jsx",
+              "components/WerkPublisher.jsx",
+              "components/WorkDetailPage.jsx"
+            ]
+          },
+          "sourceType": "derived"
+        },
+        {
+          "type": "tables",
+          "data": [
+            {
+              "table": "profiles",
+              "operation": "UPSERT",
+              "line": 57
+            },
+            {
+              "table": "profiles",
+              "operation": "UPSERT",
+              "line": 256
+            },
+            {
+              "table": "profiles",
+              "operation": "UNKNOWN",
+              "line": 266
+            },
+            {
+              "table": "wirker_profiles",
+              "operation": "UPSERT",
+              "line": 273
+            },
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 380
+            }
+          ],
+          "sourceType": "explicit"
+        }
+      ],
+      "analyzedFiles": [
+        {
+          "path": "lib/AuthContext.jsx",
+          "line": 266,
+          "reason": "Violation-Quelldatei"
+        },
+        {
+          "path": "App.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "components/ExperienceCreator.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "components/GemeinschaftsFlow.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "components/HuiCreateFlow.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "components/HuiMembershipFlow.jsx",
+          "reason": "Dependent"
+        }
+      ],
+      "appliedRules": [
+        {
+          "id": "NO_UI_IMPACT_LOGIC",
+          "title": "Keine UI-Komponente besitzt eigene Wirkungslogik",
+          "constitutionRef": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "sources": [
+        {
+          "type": "constitution",
+          "ref": "HUI_CONSTITUTION.md",
+          "section": "IV — Unveränderliche Architekturregeln"
+        },
+        {
+          "type": "scan",
+          "ref": "lib/AuthContext.jsx",
+          "line": 266
+        },
+        {
+          "type": "knowledge-graph",
+          "ref": "src/architecture/graph/knowledgeGraph.js"
+        }
+      ],
+      "conclusion": "lib/AuthContext.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Empfehlung: Core Engine nutzen. Betroffene Dateien: lib/AuthContext.jsx, App.jsx, components/ExperienceCreator.jsx, components/GemeinschaftsFlow.jsx, components/HuiCreateFlow.jsx. Risiko: 8/10.",
+      "generatedAt": "2026-06-30T14:13:01.229Z"
+    }
+  },
+  {
+    "id": "REC-CORE_BYPASS_lib/AuthContext.jsx_L273",
+    "violationId": "CORE_BYPASS_lib/AuthContext.jsx_L273",
+    "title": "Core Engine nutzen",
+    "file": "lib/AuthContext.jsx",
+    "line": 273,
+    "rationale": {
+      "statement": "lib/AuthContext.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Verschiebe DB-Write nach ContentService oder nutze coreEngine.js / useCoreEngine(). State über AppStateContext delegieren.",
+      "source": {
+        "type": "violation",
+        "path": "lib/AuthContext.jsx",
+        "line": 273
+      },
+      "sourceType": "explicit",
+      "confidence": "high",
+      "references": [
+        {
+          "type": "constitution",
+          "ref": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "isFactual": true
+    },
+    "steps": [
+      "DB-Write nach src/services/ oder src/core/ verschieben",
+      "Action über useHuiActions() dispatchen",
+      "State über AppStateContext oder useCoreEngine() delegieren"
+    ],
+    "affectedFiles": [
+      "lib/AuthContext.jsx",
+      "App.jsx",
+      "components/ExperienceCreator.jsx",
+      "components/GemeinschaftsFlow.jsx",
+      "components/HuiCreateFlow.jsx",
+      "components/HuiMembershipFlow.jsx",
+      "src/core/coreEngine.js",
+      "src/hooks/useCoreEngine.js",
+      "src/services/"
+    ],
+    "rule": {
+      "id": "NO_UI_IMPACT_LOGIC",
+      "title": "Keine UI-Komponente besitzt eigene Wirkungslogik"
+    },
+    "adrs": [],
+    "risk": {
+      "impactScore": 10,
+      "architectureRisk": 10,
+      "runtimeRisk": 9,
+      "migrationRisk": 1,
+      "constitutionRisk": 10,
+      "regressionRisk": 10,
+      "complexity": 0,
+      "confidence": {
+        "level": "high",
+        "sourceType": "explicit",
+        "reason": "Direkt aus Scan und Violation"
+      },
+      "overall": 8,
+      "summary": {
+        "statement": "Gesamtrisiko: 8/10 (Confidence: high)",
+        "source": {
+          "type": "risk-assessment"
+        },
+        "sourceType": "explicit",
+        "confidence": "high",
+        "references": [],
+        "isFactual": true
+      },
+      "factors": [
+        {
+          "factor": "violation-severity",
+          "value": "CRITICAL",
+          "weight": 10
+        },
+        {
+          "factor": "violation-type",
+          "value": "CORE_BYPASS"
+        }
+      ]
+    },
+    "trace": {
+      "recommendationId": "REC-CORE_BYPASS_lib/AuthContext.jsx_L273",
+      "factsUsed": [
+        {
+          "type": "violation",
+          "data": {
+            "id": "CORE_BYPASS_lib/AuthContext.jsx_L273",
+            "type": "CORE_BYPASS",
+            "severity": "CRITICAL",
+            "message": "Core Bypass: Direkter Write auf Core-Tabelle 'wirker_profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js)."
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "file-scan",
+          "data": {
+            "lines": 459,
+            "domain": null,
+            "supabaseCalls": 5
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "dependents",
+          "data": {
+            "count": 58,
+            "files": [
+              "App.jsx",
+              "components/ExperienceCreator.jsx",
+              "components/GemeinschaftsFlow.jsx",
+              "components/HuiCreateFlow.jsx",
+              "components/HuiMembershipFlow.jsx",
+              "components/StoryBar.jsx",
+              "components/StoryComposer.jsx",
+              "components/TalentOnboarding.jsx",
+              "components/WerkPublisher.jsx",
+              "components/WorkDetailPage.jsx"
+            ]
+          },
+          "sourceType": "derived"
+        },
+        {
+          "type": "tables",
+          "data": [
+            {
+              "table": "profiles",
+              "operation": "UPSERT",
+              "line": 57
+            },
+            {
+              "table": "profiles",
+              "operation": "UPSERT",
+              "line": 256
+            },
+            {
+              "table": "profiles",
+              "operation": "UNKNOWN",
+              "line": 266
+            },
+            {
+              "table": "wirker_profiles",
+              "operation": "UPSERT",
+              "line": 273
+            },
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 380
+            }
+          ],
+          "sourceType": "explicit"
+        }
+      ],
+      "analyzedFiles": [
+        {
+          "path": "lib/AuthContext.jsx",
+          "line": 273,
+          "reason": "Violation-Quelldatei"
+        },
+        {
+          "path": "App.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "components/ExperienceCreator.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "components/GemeinschaftsFlow.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "components/HuiCreateFlow.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "components/HuiMembershipFlow.jsx",
+          "reason": "Dependent"
+        }
+      ],
+      "appliedRules": [
+        {
+          "id": "NO_UI_IMPACT_LOGIC",
+          "title": "Keine UI-Komponente besitzt eigene Wirkungslogik",
+          "constitutionRef": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "sources": [
+        {
+          "type": "constitution",
+          "ref": "HUI_CONSTITUTION.md",
+          "section": "IV — Unveränderliche Architekturregeln"
+        },
+        {
+          "type": "scan",
+          "ref": "lib/AuthContext.jsx",
+          "line": 273
+        },
+        {
+          "type": "knowledge-graph",
+          "ref": "src/architecture/graph/knowledgeGraph.js"
+        }
+      ],
+      "conclusion": "lib/AuthContext.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Empfehlung: Core Engine nutzen. Betroffene Dateien: lib/AuthContext.jsx, App.jsx, components/ExperienceCreator.jsx, components/GemeinschaftsFlow.jsx, components/HuiCreateFlow.jsx. Risiko: 8/10.",
+      "generatedAt": "2026-06-30T14:13:01.230Z"
+    }
+  },
+  {
+    "id": "REC-CORE_BYPASS_lib/AuthContext.jsx_L380",
+    "violationId": "CORE_BYPASS_lib/AuthContext.jsx_L380",
+    "title": "Core Engine nutzen",
+    "file": "lib/AuthContext.jsx",
+    "line": 380,
+    "rationale": {
+      "statement": "lib/AuthContext.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Verschiebe DB-Write nach ContentService oder nutze coreEngine.js / useCoreEngine(). State über AppStateContext delegieren.",
+      "source": {
+        "type": "violation",
+        "path": "lib/AuthContext.jsx",
+        "line": 380
+      },
+      "sourceType": "explicit",
+      "confidence": "high",
+      "references": [
+        {
+          "type": "constitution",
+          "ref": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "isFactual": true
+    },
+    "steps": [
+      "DB-Write nach src/services/ oder src/core/ verschieben",
+      "Action über useHuiActions() dispatchen",
+      "State über AppStateContext oder useCoreEngine() delegieren"
+    ],
+    "affectedFiles": [
+      "lib/AuthContext.jsx",
+      "App.jsx",
+      "components/ExperienceCreator.jsx",
+      "components/GemeinschaftsFlow.jsx",
+      "components/HuiCreateFlow.jsx",
+      "components/HuiMembershipFlow.jsx",
+      "src/core/coreEngine.js",
+      "src/hooks/useCoreEngine.js",
+      "src/services/"
+    ],
+    "rule": {
+      "id": "NO_UI_IMPACT_LOGIC",
+      "title": "Keine UI-Komponente besitzt eigene Wirkungslogik"
+    },
+    "adrs": [],
+    "risk": {
+      "impactScore": 10,
+      "architectureRisk": 10,
+      "runtimeRisk": 9,
+      "migrationRisk": 1,
+      "constitutionRisk": 10,
+      "regressionRisk": 10,
+      "complexity": 0,
+      "confidence": {
+        "level": "high",
+        "sourceType": "explicit",
+        "reason": "Direkt aus Scan und Violation"
+      },
+      "overall": 8,
+      "summary": {
+        "statement": "Gesamtrisiko: 8/10 (Confidence: high)",
+        "source": {
+          "type": "risk-assessment"
+        },
+        "sourceType": "explicit",
+        "confidence": "high",
+        "references": [],
+        "isFactual": true
+      },
+      "factors": [
+        {
+          "factor": "violation-severity",
+          "value": "CRITICAL",
+          "weight": 10
+        },
+        {
+          "factor": "violation-type",
+          "value": "CORE_BYPASS"
+        }
+      ]
+    },
+    "trace": {
+      "recommendationId": "REC-CORE_BYPASS_lib/AuthContext.jsx_L380",
+      "factsUsed": [
+        {
+          "type": "violation",
+          "data": {
+            "id": "CORE_BYPASS_lib/AuthContext.jsx_L380",
+            "type": "CORE_BYPASS",
+            "severity": "CRITICAL",
+            "message": "Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js)."
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "file-scan",
+          "data": {
+            "lines": 459,
+            "domain": null,
+            "supabaseCalls": 5
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "dependents",
+          "data": {
+            "count": 58,
+            "files": [
+              "App.jsx",
+              "components/ExperienceCreator.jsx",
+              "components/GemeinschaftsFlow.jsx",
+              "components/HuiCreateFlow.jsx",
+              "components/HuiMembershipFlow.jsx",
+              "components/StoryBar.jsx",
+              "components/StoryComposer.jsx",
+              "components/TalentOnboarding.jsx",
+              "components/WerkPublisher.jsx",
+              "components/WorkDetailPage.jsx"
+            ]
+          },
+          "sourceType": "derived"
+        },
+        {
+          "type": "tables",
+          "data": [
+            {
+              "table": "profiles",
+              "operation": "UPSERT",
+              "line": 57
+            },
+            {
+              "table": "profiles",
+              "operation": "UPSERT",
+              "line": 256
+            },
+            {
+              "table": "profiles",
+              "operation": "UNKNOWN",
+              "line": 266
+            },
+            {
+              "table": "wirker_profiles",
+              "operation": "UPSERT",
+              "line": 273
+            },
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 380
+            }
+          ],
+          "sourceType": "explicit"
+        }
+      ],
+      "analyzedFiles": [
+        {
+          "path": "lib/AuthContext.jsx",
+          "line": 380,
+          "reason": "Violation-Quelldatei"
+        },
+        {
+          "path": "App.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "components/ExperienceCreator.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "components/GemeinschaftsFlow.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "components/HuiCreateFlow.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "components/HuiMembershipFlow.jsx",
+          "reason": "Dependent"
+        }
+      ],
+      "appliedRules": [
+        {
+          "id": "NO_UI_IMPACT_LOGIC",
+          "title": "Keine UI-Komponente besitzt eigene Wirkungslogik",
+          "constitutionRef": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "sources": [
+        {
+          "type": "constitution",
+          "ref": "HUI_CONSTITUTION.md",
+          "section": "IV — Unveränderliche Architekturregeln"
+        },
+        {
+          "type": "scan",
+          "ref": "lib/AuthContext.jsx",
+          "line": 380
+        },
+        {
+          "type": "knowledge-graph",
+          "ref": "src/architecture/graph/knowledgeGraph.js"
+        }
+      ],
+      "conclusion": "lib/AuthContext.jsx verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Empfehlung: Core Engine nutzen. Betroffene Dateien: lib/AuthContext.jsx, App.jsx, components/ExperienceCreator.jsx, components/GemeinschaftsFlow.jsx, components/HuiCreateFlow.jsx. Risiko: 8/10.",
+      "generatedAt": "2026-06-30T14:13:01.230Z"
+    }
+  },
+  {
+    "id": "REC-CORE_BYPASS_lib/profileMedia.js_L82",
+    "violationId": "CORE_BYPASS_lib/profileMedia.js_L82",
+    "title": "Core Engine nutzen",
+    "file": "lib/profileMedia.js",
+    "line": 82,
+    "rationale": {
+      "statement": "lib/profileMedia.js verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Verschiebe DB-Write nach ContentService oder nutze coreEngine.js / useCoreEngine(). State über AppStateContext delegieren.",
+      "source": {
+        "type": "violation",
+        "path": "lib/profileMedia.js",
+        "line": 82
+      },
+      "sourceType": "explicit",
+      "confidence": "high",
+      "references": [
+        {
+          "type": "constitution",
+          "ref": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "isFactual": true
+    },
+    "steps": [
+      "DB-Write nach src/services/ oder src/core/ verschieben",
+      "Action über useHuiActions() dispatchen",
+      "State über AppStateContext oder useCoreEngine() delegieren"
+    ],
+    "affectedFiles": [
+      "lib/profileMedia.js",
+      "components/profile/ProfileHeader.jsx",
+      "pages/MyBasisProfile.jsx",
+      "src/core/coreEngine.js",
+      "src/hooks/useCoreEngine.js",
+      "src/services/"
+    ],
+    "rule": {
+      "id": "NO_UI_IMPACT_LOGIC",
+      "title": "Keine UI-Komponente besitzt eigene Wirkungslogik"
+    },
+    "adrs": [],
+    "risk": {
+      "impactScore": 2,
+      "architectureRisk": 10,
+      "runtimeRisk": 9,
+      "migrationRisk": 1,
+      "constitutionRisk": 10,
+      "regressionRisk": 2,
+      "complexity": 0,
+      "confidence": {
+        "level": "high",
+        "sourceType": "explicit",
+        "reason": "Direkt aus Scan und Violation"
+      },
+      "overall": 6.8,
+      "summary": {
+        "statement": "Gesamtrisiko: 6.8/10 (Confidence: high)",
+        "source": {
+          "type": "risk-assessment"
+        },
+        "sourceType": "explicit",
+        "confidence": "high",
+        "references": [],
+        "isFactual": true
+      },
+      "factors": [
+        {
+          "factor": "violation-severity",
+          "value": "CRITICAL",
+          "weight": 10
+        },
+        {
+          "factor": "violation-type",
+          "value": "CORE_BYPASS"
+        }
+      ]
+    },
+    "trace": {
+      "recommendationId": "REC-CORE_BYPASS_lib/profileMedia.js_L82",
+      "factsUsed": [
+        {
+          "type": "violation",
+          "data": {
+            "id": "CORE_BYPASS_lib/profileMedia.js_L82",
+            "type": "CORE_BYPASS",
+            "severity": "CRITICAL",
+            "message": "Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js)."
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "file-scan",
+          "data": {
+            "lines": 129,
+            "domain": null,
+            "supabaseCalls": 2
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "dependents",
+          "data": {
+            "count": 2,
+            "files": [
+              "components/profile/ProfileHeader.jsx",
+              "pages/MyBasisProfile.jsx"
+            ]
+          },
+          "sourceType": "derived"
+        },
+        {
+          "type": "tables",
+          "data": [
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 82
+            },
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 115
+            }
+          ],
+          "sourceType": "explicit"
+        }
+      ],
+      "analyzedFiles": [
+        {
+          "path": "lib/profileMedia.js",
+          "line": 82,
+          "reason": "Violation-Quelldatei"
+        },
+        {
+          "path": "components/profile/ProfileHeader.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "pages/MyBasisProfile.jsx",
+          "reason": "Dependent"
+        }
+      ],
+      "appliedRules": [
+        {
+          "id": "NO_UI_IMPACT_LOGIC",
+          "title": "Keine UI-Komponente besitzt eigene Wirkungslogik",
+          "constitutionRef": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "sources": [
+        {
+          "type": "constitution",
+          "ref": "HUI_CONSTITUTION.md",
+          "section": "IV — Unveränderliche Architekturregeln"
+        },
+        {
+          "type": "scan",
+          "ref": "lib/profileMedia.js",
+          "line": 82
+        },
+        {
+          "type": "knowledge-graph",
+          "ref": "src/architecture/graph/knowledgeGraph.js"
+        }
+      ],
+      "conclusion": "lib/profileMedia.js verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Empfehlung: Core Engine nutzen. Betroffene Dateien: lib/profileMedia.js, components/profile/ProfileHeader.jsx, pages/MyBasisProfile.jsx, src/core/coreEngine.js, src/hooks/useCoreEngine.js. Risiko: 6.8/10.",
+      "generatedAt": "2026-06-30T14:13:01.230Z"
+    }
+  },
+  {
+    "id": "REC-CORE_BYPASS_lib/profileMedia.js_L115",
+    "violationId": "CORE_BYPASS_lib/profileMedia.js_L115",
+    "title": "Core Engine nutzen",
+    "file": "lib/profileMedia.js",
+    "line": 115,
+    "rationale": {
+      "statement": "lib/profileMedia.js verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Verschiebe DB-Write nach ContentService oder nutze coreEngine.js / useCoreEngine(). State über AppStateContext delegieren.",
+      "source": {
+        "type": "violation",
+        "path": "lib/profileMedia.js",
+        "line": 115
+      },
+      "sourceType": "explicit",
+      "confidence": "high",
+      "references": [
+        {
+          "type": "constitution",
+          "ref": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "isFactual": true
+    },
+    "steps": [
+      "DB-Write nach src/services/ oder src/core/ verschieben",
+      "Action über useHuiActions() dispatchen",
+      "State über AppStateContext oder useCoreEngine() delegieren"
+    ],
+    "affectedFiles": [
+      "lib/profileMedia.js",
+      "components/profile/ProfileHeader.jsx",
+      "pages/MyBasisProfile.jsx",
+      "src/core/coreEngine.js",
+      "src/hooks/useCoreEngine.js",
+      "src/services/"
+    ],
+    "rule": {
+      "id": "NO_UI_IMPACT_LOGIC",
+      "title": "Keine UI-Komponente besitzt eigene Wirkungslogik"
+    },
+    "adrs": [],
+    "risk": {
+      "impactScore": 2,
+      "architectureRisk": 10,
+      "runtimeRisk": 9,
+      "migrationRisk": 1,
+      "constitutionRisk": 10,
+      "regressionRisk": 2,
+      "complexity": 0,
+      "confidence": {
+        "level": "high",
+        "sourceType": "explicit",
+        "reason": "Direkt aus Scan und Violation"
+      },
+      "overall": 6.8,
+      "summary": {
+        "statement": "Gesamtrisiko: 6.8/10 (Confidence: high)",
+        "source": {
+          "type": "risk-assessment"
+        },
+        "sourceType": "explicit",
+        "confidence": "high",
+        "references": [],
+        "isFactual": true
+      },
+      "factors": [
+        {
+          "factor": "violation-severity",
+          "value": "CRITICAL",
+          "weight": 10
+        },
+        {
+          "factor": "violation-type",
+          "value": "CORE_BYPASS"
+        }
+      ]
+    },
+    "trace": {
+      "recommendationId": "REC-CORE_BYPASS_lib/profileMedia.js_L115",
+      "factsUsed": [
+        {
+          "type": "violation",
+          "data": {
+            "id": "CORE_BYPASS_lib/profileMedia.js_L115",
+            "type": "CORE_BYPASS",
+            "severity": "CRITICAL",
+            "message": "Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js)."
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "file-scan",
+          "data": {
+            "lines": 129,
+            "domain": null,
+            "supabaseCalls": 2
+          },
+          "sourceType": "explicit"
+        },
+        {
+          "type": "dependents",
+          "data": {
+            "count": 2,
+            "files": [
+              "components/profile/ProfileHeader.jsx",
+              "pages/MyBasisProfile.jsx"
+            ]
+          },
+          "sourceType": "derived"
+        },
+        {
+          "type": "tables",
+          "data": [
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 82
+            },
+            {
+              "table": "profiles",
+              "operation": "UPDATE",
+              "line": 115
+            }
+          ],
+          "sourceType": "explicit"
+        }
+      ],
+      "analyzedFiles": [
+        {
+          "path": "lib/profileMedia.js",
+          "line": 115,
+          "reason": "Violation-Quelldatei"
+        },
+        {
+          "path": "components/profile/ProfileHeader.jsx",
+          "reason": "Dependent"
+        },
+        {
+          "path": "pages/MyBasisProfile.jsx",
+          "reason": "Dependent"
+        }
+      ],
+      "appliedRules": [
+        {
+          "id": "NO_UI_IMPACT_LOGIC",
+          "title": "Keine UI-Komponente besitzt eigene Wirkungslogik",
+          "constitutionRef": "IV — Unveränderliche Architekturregeln"
+        }
+      ],
+      "sources": [
+        {
+          "type": "constitution",
+          "ref": "HUI_CONSTITUTION.md",
+          "section": "IV — Unveränderliche Architekturregeln"
+        },
+        {
+          "type": "scan",
+          "ref": "lib/profileMedia.js",
+          "line": 115
+        },
+        {
+          "type": "knowledge-graph",
+          "ref": "src/architecture/graph/knowledgeGraph.js"
+        }
+      ],
+      "conclusion": "lib/profileMedia.js verletzt Keine UI-Komponente besitzt eigene Wirkungslogik. Empfehlung: Core Engine nutzen. Betroffene Dateien: lib/profileMedia.js, components/profile/ProfileHeader.jsx, pages/MyBasisProfile.jsx, src/core/coreEngine.js, src/hooks/useCoreEngine.js. Risiko: 6.8/10.",
+      "generatedAt": "2026-06-30T14:13:01.230Z"
+    }
+  }
+]

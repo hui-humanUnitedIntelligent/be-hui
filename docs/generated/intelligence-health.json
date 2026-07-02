@@ -1,0 +1,24 @@
+{
+  "score": 2,
+  "grade": "F",
+  "metrics": {
+    "violations": {
+      "total": 629,
+      "critical": 42,
+      "high": 112
+    },
+    "adoption": {
+      "actionEngine": 4,
+      "coreEngine": 5,
+      "registry": 3
+    },
+    "ownership": 0
+  },
+  "blockMerge": true,
+  "sources": [
+    {
+      "type": "scan",
+      "ref": "docs/generated/metrics.json"
+    }
+  ]
+}
