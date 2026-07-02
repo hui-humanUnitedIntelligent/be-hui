@@ -11,10 +11,10 @@
 |---|---|
 | 🔴 CRITICAL | 42 |
 | 🟠 HIGH | 112 |
-| 🟡 MEDIUM | 185 |
+| 🟡 MEDIUM | 182 |
 | 🔵 LOW | 23 |
 | ⚪ INFO | 267 |
-| **Gesamt** | **629** |
+| **Gesamt** | **626** |
 
 ## CORE_BYPASS (42)
 
@@ -277,35 +277,35 @@ const { error } = await supabase.from("profiles")
 const { error } = await supabase.from("profiles")
 ```
 
-### 🔴 `services/db.js` L71
+### 🔴 `services/db.js` L75
 **Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).**
 
 ```
 supabase.from('profiles')
 ```
 
-### 🔴 `services/db.js` L84
+### 🔴 `services/db.js` L88
 **Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).**
 
 ```
 supabase.from('profiles')
 ```
 
-### 🔴 `services/db.js` L170
+### 🔴 `services/db.js` L174
 **Core Bypass: Direkter Write auf Core-Tabelle 'wirker_profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).**
 
 ```
 supabase.from('wirker_profiles')
 ```
 
-### 🔴 `services/db.js` L185
+### 🔴 `services/db.js` L189
 **Core Bypass: Direkter Write auf Core-Tabelle 'wirker_profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).**
 
 ```
 supabase.from('wirker_profiles')
 ```
 
-### 🔴 `services/db.js` L505
+### 🔴 `services/db.js` L537
 **Core Bypass: Direkter Write auf Core-Tabelle 'impact_votes'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).**
 
 ```
@@ -1104,7 +1104,7 @@ lib/useNotifications.jsx, pages/TalentProfilePage.jsx
 pages/TalentProfilePage.jsx, pages/wirker-profile/index.jsx
 ```
 
-## DB_DIRECT_READ (185)
+## DB_DIRECT_READ (182)
 
 ### 🟡 `components/HuiMatchOverlay.jsx` L355
 **Direkter DB-Read auf 'profiles' in COMPONENTS-Schicht. Erwäge Service-Layer.**
@@ -1848,42 +1848,21 @@ supabase
 const { data } = await supabase
 ```
 
-### 🟡 `hooks/useProfileData.js` L135
+### 🟡 `hooks/useProfileData.js` L125
 **Direkter DB-Read auf 'wirker_profiles' in HOOKS-Schicht. Erwäge Service-Layer.**
 
 ```
 supabase
 ```
 
-### 🟡 `hooks/useProfileData.js` L144
-**Direkter DB-Read auf 'works' in HOOKS-Schicht. Erwäge Service-Layer.**
-
-```
-supabase
-```
-
-### 🟡 `hooks/useProfileData.js` L155
-**Direkter DB-Read auf 'experiences' in HOOKS-Schicht. Erwäge Service-Layer.**
-
-```
-supabase
-```
-
-### 🟡 `hooks/useProfileData.js` L166
-**Direkter DB-Read auf 'projects' in HOOKS-Schicht. Erwäge Service-Layer.**
-
-```
-supabase
-```
-
-### 🟡 `hooks/useProfileData.js` L177
+### 🟡 `hooks/useProfileData.js` L146
 **Direkter DB-Read auf 'recommendations' in HOOKS-Schicht. Erwäge Service-Layer.**
 
 ```
 supabase
 ```
 
-### 🟡 `hooks/useProfileData.js` L188
+### 🟡 `hooks/useProfileData.js` L157
 **Direkter DB-Read auf 'beitraege' in HOOKS-Schicht. Erwäge Service-Layer.**
 
 ```

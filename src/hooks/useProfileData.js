@@ -15,7 +15,7 @@
 // ══════════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { ProfileService } from '../services/db';
+import { ProfileService, WorkService } from '../services/db';
 import { supabase } from "../lib/supabaseClient.js";
 
 // ── Felder ────────────────────────────────────────────────────────────
@@ -29,16 +29,6 @@ const WIRKER_SELECT =
   // wirker_profiles.avatar_url/.header_img werden nie geschrieben → Legacy
   "id,user_id,slug,talent,categories,location_label," +
   "hourly_rate,is_verified,rating_avg,booking_count";
-
-// WORKS_SELECT — geprüfte Felder (Sprint E.11)
-// NICHT hinzufügen: medium (existiert nicht in der works-Tabelle)
-const WORKS_SELECT =
-  "id,user_id,title,cover_url,category,status," +
-  "approval_status,price,for_sale,visibility,created_at";
-
-const EXPERIENCES_SELECT =
-  "id,user_id,title,cover_url,category,date,status," +
-  "approval_status,visibility,format,location_text,price,duration,created_at";
 
 const RECOMMENDATIONS_SELECT =
   `id,from_user_id,to_user_id,text,result_images,is_public,created_at,
@@ -140,38 +130,17 @@ export function useProfileData(profileId) {
           .then(r => r)
           .catch(() => ({ data: null })),
 
-        // 3. works — kein Status-Filter (Creator sieht alles, Fremdprofil filtert selbst)
-        supabase
-          .from("works")
-          .select(WORKS_SELECT)
-          .eq("user_id", profileId)
-          .not("status", "eq", "deleted")
-          .order("created_at", { ascending: false })
-          .limit(30)
-          .then(r => r)
-          .catch(() => ({ data: [] })),
+        // 3. works — WorkService (ARCH-004)
+        WorkService.getWorksForProfile(profileId)
+          .catch(() => ({ data: [], error: null })),
 
-        // 4. experiences — kein Status-Filter (approval_status für Live-Badge erforderlich)
-        supabase
-          .from("experiences")
-          .select(EXPERIENCES_SELECT)
-          .eq("user_id", profileId)
-          .not("status", "eq", "deleted")
-          .order("created_at", { ascending: false })
-          .limit(30)
-          .then(r => r)
-          .catch(() => ({ data: [] })),
+        // 4. experiences — WorkService (ARCH-004)
+        WorkService.getExperiencesForProfile(profileId)
+          .catch(() => ({ data: [], error: null })),
 
-        // 4b. projects — approval_status für Live-Badge erforderlich
-        supabase
-          .from("projects")
-          .select(EXPERIENCES_SELECT)
-          .eq("user_id", profileId)
-          .not("status", "eq", "deleted")
-          .order("created_at", { ascending: false })
-          .limit(30)
-          .then(r => r)
-          .catch(() => ({ data: [] })),
+        // 4b. projects — WorkService (ARCH-004)
+        WorkService.getProjectsForProfile(profileId)
+          .catch(() => ({ data: [], error: null })),
 
         // 5. recommendations — FK: to_user_id (Sprint F.4B.2 — einzige Wahrheitsquelle)
         supabase

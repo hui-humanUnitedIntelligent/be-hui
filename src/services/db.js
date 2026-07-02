@@ -37,6 +37,10 @@ const F = {
   // Wenn WirkerService vollständig migriert, entfernen
   wirkerMin:    'id,user_id,slug,talent,location_label,avatar_url,is_verified',
   work:         'id,user_id,title,cover_url,media_url,price,category,medium,status,likes_count,location_text,created_at',
+  // Profile-Content — useProfileData / Profilseiten (Sprint E.11, ARCH-004)
+  workProfile:  'id,user_id,title,cover_url,category,status,approval_status,price,for_sale,visibility,created_at',
+  experienceProfile:
+                'id,user_id,title,cover_url,category,date,status,approval_status,visibility,format,location_text,price,duration,created_at',
   experience:   'id,user_id,title,cover_url,price,duration,spots_available,location_text,status,created_at',
   story:        'id,user_id,media_url,media_type,text_overlay,mood,location,expires_at,views_count,created_at',
   booking:      'id,user_id,wirker_id,work_id,experience_id,amount,platform_fee,impact_fee,status,payment_status,escrow_status,created_at',
@@ -190,7 +194,35 @@ export const TalentService = {
 };
 
 // ─── WORKS ───────────────────────────────────────────────────
+// Interner Helper: Profil-Content (works / experiences / projects)
+// Kein Status-Filter — Creator sieht alles außer deleted; Fremdprofil filtert selbst.
+function queryProfileContent(table, select, userId, limit = 30) {
+  return safeQuery(
+    supabase.from(table)
+      .select(select)
+      .eq('user_id', userId)
+      .not('status', 'eq', 'deleted')
+      .order('created_at', { ascending: false })
+      .limit(limit)
+  );
+}
+
 export const WorkService = {
+  /** Profilseiten: Werke eines Users (alle außer deleted, limit 30) */
+  async getWorksForProfile(userId, limit = 30) {
+    return queryProfileContent('works', F.workProfile, userId, limit);
+  },
+
+  /** Profilseiten: Erlebnisse eines Users (alle außer deleted, limit 30) */
+  async getExperiencesForProfile(userId, limit = 30) {
+    return queryProfileContent('experiences', F.experienceProfile, userId, limit);
+  },
+
+  /** Profilseiten: Projekte eines Users (alle außer deleted, limit 30) */
+  async getProjectsForProfile(userId, limit = 30) {
+    return queryProfileContent('projects', F.experienceProfile, userId, limit);
+  },
+
   async getByUser(userId, page = 0) {
     return safeQuery(buildPage(
       supabase.from('works').select(F.work)
