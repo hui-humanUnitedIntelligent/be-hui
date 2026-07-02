@@ -19,6 +19,7 @@ import AuthCallback from './pages/AuthCallback'
 import AppEntryController from './components/entry/AppEntryController.jsx'; // Kapitel 1
 import { supabase } from './lib/supabaseClient'
 import { detectReferral } from './lib/referralTracking.js'
+import { isProfileAdmin } from './lib/profileUtils.js'
 
 // ── LAZY: Alle anderen Routes ───────────────────────────────────
 // Erzeugen separate Chunks → schnellerer Initial-Load
@@ -30,6 +31,8 @@ const Admin             = lazy(() => import('./pages/Admin'))
 const DiagnosePage      = lazy(() => import('./pages/DiagnosePage'))
 const PlatformDashboard = lazy(() => import('./pages/PlatformDashboard'))
 const CreatorStudio     = lazy(() => import('./pages/CreatorStudio'))
+const CheckoutSuccess   = lazy(() => import('./pages/CheckoutSuccess'))
+const CheckoutCancel    = lazy(() => import('./pages/CheckoutCancel'))
 const WirkerProfilePage = lazy(() => import('./pages/wirker-profile/index.jsx'))
 const WorkDetailPage    = lazy(() => import('./components/WorkDetailPage'))
 
@@ -342,6 +345,21 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
+/* ── Admin Route — nur für Administratoren ───────────────────────── */
+function AdminRoute({ children }) {
+  const { isAuthenticated, loadingAuth, authChecked, profile } = useAuth();
+  if (loadingAuth || !authChecked) return <HUILoader />;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isProfileAdmin(profile)) return <Navigate to="/Home" replace />;
+  return children;
+}
+
+/* ── Dev Route — nur in Entwicklungsumgebung ─────────────────────── */
+function DevRoute({ children }) {
+  if (!import.meta.env.DEV) return <Navigate to="/Home" replace />;
+  return <ProtectedRoute>{children}</ProtectedRoute>;
+}
+
 
 /* ── SmartNotFound ─────────────────────────────────────────────────
  * Ersetzt den sofortigen <Navigate to="/Home"> Catch-All.
@@ -374,14 +392,13 @@ function SmartNotFound() {
 
 /* ── WorkDetailRouteWrapper: /work/:id → WorkDetailPage ─────────── */
 // onBuyWerk: navigiert zurück zu /Home mit Router-State.
-// Home.jsx liest location.state.pendingWerkKauf und öffnet WerkKaufFlow.
-// Keine globale Variable — React Router v6 state ist offizieller Mechanismus.
+// Home.jsx liest location.state.pendingWerkKauf und fügt zum Werkekorb hinzu.
 function WorkDetailRouteWrapper() {
   const navigate = useNavigate();
   return (
     <WorkDetailPage
       onBuyWerk={(werk) => {
-        // COMMERCE-01: Router-State → Home.jsx öffnet WerkKaufFlow
+        // Commerce 2.0: Router-State → Home.jsx fügt Werk zum Werkekorb hinzu
         navigate("/Home", { state: { pendingWerkKauf: werk } });
       }}
     />
@@ -538,17 +555,21 @@ function AppRoutes() {
         {/* Legacy redirect */}
         <Route path="/BookingFlow" element={<Navigate to="/Home" replace />}/>
 
+        {/* Checkout — Legacy Stripe Checkout Session Return URLs */}
+        <Route path="/checkout/success" element={<CheckoutSuccess />} />
+        <Route path="/checkout/cancel" element={<CheckoutCancel />} />
+
         {/* Admin — LAZY */}
         <Route path="/Admin" element={
-          <ProtectedRoute><Admin /></ProtectedRoute>
+          <AdminRoute><Admin /></AdminRoute>
         }/>
 
         {/* Diagnose — LAZY (nur Dev) */}
-        <Route path="/diagnose" element={<ProtectedRoute><DiagnosePage /></ProtectedRoute>} />
+        <Route path="/diagnose" element={<DevRoute><DiagnosePage /></DevRoute>} />
 
         {/* Platform Dashboard — intern, Admin-only */}
         <Route path="/dashboard" element={
-          <ProtectedRoute><PlatformDashboard /></ProtectedRoute>
+          <AdminRoute><PlatformDashboard /></AdminRoute>
         }/>
 
         {/* Creator Studio — LAZY */}
