@@ -13,7 +13,8 @@
 //   discover → switchTab("discover")       — DiscoverPage, schließt Overlays
 //   orb      → onOrbAction("create")       — OrbCompass Overlay, kein Tab-Switch
 //   impact   → _setTab("impact")           — ImpactPage, schließt Overlays NICHT
-//   creator  → openCreatorDashboard()      — ProfileLauncher Overlay, Tab=creator
+//   creator  → openCreatorDashboard()      — ProfileLauncher Overlay (Profil-Tab, nicht Studio)
+//   Studio   → /studio                     — offizielles Creator Studio (HuiStudio via Route)
 //
 // HINWEIS: "creator" ist der interne State-Key für den "Profil"-Tab.
 // HINWEIS: hui_mein_hui_open (sessionStorage) = Legacy-Key, zeigt creator-Overlay-State.

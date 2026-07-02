@@ -455,10 +455,9 @@ export const ROUTE_REGISTRY = Object.freeze([
     },
     featureFlags:  ["creator-studio"],
     notes: [
-      "LAZY. Derzeit nicht im primären Nutzerfluss (kein Nav-Link).",
-      "Erreichbar über direkte URL /studio oder /studio/:section.",
-      "ARCHITEKTUR-HINWEIS: CreatorStudio und HuiStudio haben inhaltliche Überschneidungen.",
-      "Entscheidung zu Freigeschaltet/Archiviert erfordert eigene Release-Spec.",
+      "LAZY. Offizielles Creator Studio (Phase 1.2).",
+      "Route /studio rendert HuiStudio — einziger kanonischer Einstieg.",
+      "Erreichbar über Profil-⚙️, BasisProfilePage, Deep-Links und /studio/:section.",
     ].join(" "),
   },
 

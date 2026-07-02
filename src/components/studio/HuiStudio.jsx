@@ -7,7 +7,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { isProfileTalent } from '../../lib/profileUtils.js';
 import { createPortal } from "react-dom";
-import { useHome } from "../home/HomeShell.jsx";
+import { useHomeOptional } from "../home/HomeShell.jsx";
 import { ProfileService } from '../../services/db';
 import { supabase }    from "../../lib/supabaseClient.js";
 import { useAuth }     from "../../lib/AuthContext.jsx";
@@ -20,6 +20,7 @@ import ProfilBearbeitenModal    from "./ProfilBearbeitenModal.jsx";
 import SicherheitPasswortModal  from "./SicherheitPasswortModal.jsx";
 import SupportPage             from "../../pages/studio/SupportPage.jsx";
 import MeineTicketsPage        from "../../pages/studio/MeineTicketsPage.jsx";
+import { MeineInhaltePage }    from "../../pages/studio/StudioSubPages.jsx";
 import SettingsModal    from "../settings/SettingsModal.jsx";
 
 // ── Design Tokens ─────────────────────────────────────────────────
@@ -1089,9 +1090,15 @@ function MyRecommendationsModal({ userId, onClose }) {
   );
 }
 
-export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
+export default function HuiStudio({
+  profile,
+  onClose,
+  onProfileUpdate,
+  initialSection = null,
+}) {
   const { signOut } = useAuth() || {};
-  const { switchTab } = useHome();
+  const homeCtx = useHomeOptional();
+  const switchTab = homeCtx?.switchTab ?? (() => {});
   const [mounted,      setMounted]      = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showAmbModal, setShowAmbModal] = useState(false);
@@ -1101,22 +1108,31 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
   const [showEinAusgaben,  setShowEinAusgaben]  = useState(false); // Ein-/Ausgaben Übersicht
   const [showStatistiken,     setShowStatistiken]     = useState(false); // Statistiken
   const [showProfilBearbeiten, setShowProfilBearbeiten]= useState(false); // Profil bearbeiten
-  const [showVerifCS,          setShowVerifCS]          = useState(false); // Verifizierung Coming Soon
   const [showSicherheit,        setShowSicherheit]        = useState(false); // Sicherheit & Passwort
   const [showLogoutConfirm,     setShowLogoutConfirm]     = useState(false); // Abmelden Bestätigung
-  const [showMitgliedschaftCS,  setShowMitgliedschaftCS]  = useState(false); // Mitgliedschaft Coming Soon
   const [showSupport,          setShowSupport]          = useState(false);
   const [showMeineTickets,     setShowMeineTickets]     = useState(false);
+  const [showMeineInhalte,     setShowMeineInhalte]     = useState(false);
   const [loggingOut,            setLoggingOut]            = useState(false);
 
   // Sprint F.4C: einzige Wahrheitsquelle
   const isTalent   = isProfileTalent(profile);
-  const isVerified = profile?.verified  === true;
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 20);
     return () => clearTimeout(t);
   }, []);
+
+  // Deep-Link: /studio/:section oder ?section=
+  useEffect(() => {
+    if (!initialSection) return;
+    const openers = {
+      support: () => setShowSupport(true),
+      tickets: () => setShowMeineTickets(true),
+      content: () => setShowMeineInhalte(true),
+    };
+    openers[initialSection]?.();
+  }, [initialSection]);
 
   const handleEditProfile = useCallback(() => {
     setShowProfilBearbeiten(true);
@@ -1195,6 +1211,12 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
           </div>
         </div>
 
+        {/* ── Deine kreative Arbeit ─────────────────────────── */}
+        <StudioSection label="Deine kreative Arbeit">
+          <StudioRow icon="🎨" label="Werke & Inhalte" onPress={() => setShowMeineInhalte(true)} last />
+        </StudioSection>
+        <Gap h={20}/>
+
         {/* ── 1. Community & Empfehlungen ───────────────────── */}
         <div style={{ padding:`0 ${T.px}px` }}>
           <div style={{ fontSize:13, fontWeight:700, color:T.ink, marginBottom:10, letterSpacing:"-0.01em" }}>
@@ -1232,12 +1254,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
         {/* ── 5. Account & Einstellungen ────────────────────── */}
         <StudioSection label="Account & Einstellungen">
           <StudioRow icon="👤" label="Profil bearbeiten"  onPress={handleEditProfile} />
-          <StudioRow icon="🛡️" label="Verifizierung"
-            badge={isVerified ? "✓ Aktiv" : undefined} onPress={() => setShowVerifCS(true)} />
           <StudioRow icon="🔒" label="Sicherheit & Passwort" onPress={() => setShowSicherheit(true)} />
-          <StudioRow icon="👑" label="Mitgliedschaft"
-            badge={isTalent ? "HUI-Talent" : "HUI-Mitglied"}
-            onPress={() => setShowMitgliedschaftCS(true)} />
           <StudioRow icon="🎧" label="Support" onPress={() => setShowSupport(true)} />
           <StudioRow icon="🎟" label="Meine Tickets" onPress={() => setShowMeineTickets(true)} />
           <StudioRow
@@ -1308,190 +1325,11 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
           onProfileUpdate={onProfileUpdate}
         />
       )}
-      {showVerifCS && createPortal(
-        <div
-          onClick={() => setShowVerifCS(false)}
-          style={{
-            position:"fixed", inset:0, zIndex:10600,
-            background:"rgba(26,26,24,0.55)",
-            display:"flex", alignItems:"flex-end", justifyContent:"center",
-            fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif",
-          }}
-        >
-          <div
-            onClick={e => e.stopPropagation()}
-            style={{
-              width:"100%", maxWidth:480,
-              background:"#F7F5F0", borderRadius:"24px 24px 0 0",
-              padding:"0 0 48px",
-              boxShadow:"0 -4px 32px rgba(26,26,24,0.20)",
-              overflow:"hidden",
-            }}
-          >
-            {/* Handle */}
-            <div style={{ display:"flex", justifyContent:"center", padding:"12px 0 0" }}>
-              <div style={{ width:36, height:4, borderRadius:99, background:"rgba(26,26,24,0.12)" }} />
-            </div>
-
-            {/* Baustellen-Grafik */}
-            <div style={{
-              margin:"24px 20px 0",
-              background:"linear-gradient(135deg,#1A1A18 0%,#2D2D2B 100%)",
-              borderRadius:20, padding:"36px 24px 32px",
-              textAlign:"center", position:"relative", overflow:"hidden",
-            }}>
-              {/* Hintergrund-Streifen (Baustelle) */}
-              <div style={{
-                position:"absolute", inset:0,
-                background:"repeating-linear-gradient(45deg,transparent,transparent 18px,rgba(245,158,11,0.07) 18px,rgba(245,158,11,0.07) 36px)",
-                borderRadius:20,
-              }} />
-
-              {/* Absperrband oben */}
-              <div style={{
-                position:"absolute", top:0, left:0, right:0, height:8,
-                background:"repeating-linear-gradient(90deg,#F59E0B 0px,#F59E0B 20px,#1A1A18 20px,#1A1A18 40px)",
-                borderRadius:"20px 20px 0 0",
-              }} />
-
-              {/* Icon */}
-              <div style={{
-                width:72, height:72, borderRadius:"50%", margin:"0 auto 16px",
-                background:"rgba(245,158,11,0.15)",
-                border:"2px solid rgba(245,158,11,0.35)",
-                display:"flex", alignItems:"center", justifyContent:"center",
-                fontSize:36, position:"relative",
-              }}>🚧</div>
-
-              {/* COMING SOON */}
-              <div style={{
-                fontSize:11, fontWeight:800, letterSpacing:"0.18em",
-                color:"#F59E0B", marginBottom:10, position:"relative",
-              }}>
-                COMING SOON
-              </div>
-
-              <div style={{
-                fontSize:22, fontWeight:800, color:"#FFFFFF",
-                letterSpacing:"-0.02em", marginBottom:8, position:"relative",
-              }}>
-                Verifizierung
-              </div>
-
-              <div style={{
-                fontSize:13, color:"rgba(255,255,255,0.55)", lineHeight:1.55,
-                maxWidth:260, margin:"0 auto", position:"relative",
-              }}>
-                Wir arbeiten daran, deinen Account sicher zu verifizieren. Dieses Feature wird bald verfügbar sein.
-              </div>
-
-              {/* Absperrband unten */}
-              <div style={{
-                position:"absolute", bottom:0, left:0, right:0, height:8,
-                background:"repeating-linear-gradient(90deg,#1A1A18 0px,#1A1A18 20px,#F59E0B 20px,#F59E0B 40px)",
-              }} />
-            </div>
-
-            {/* Schließen-Button */}
-            <div style={{ padding:"20px 20px 0" }}>
-              <button
-                onClick={() => setShowVerifCS(false)}
-                style={{
-                  width:"100%", padding:"13px",
-                  borderRadius:14, border:"none", cursor:"pointer",
-                  background:"rgba(26,26,24,0.08)",
-                  color:"rgba(26,26,24,0.55)",
-                  fontSize:14, fontWeight:700,
-                  fontFamily:"inherit",
-                  WebkitTapHighlightColor:"transparent",
-                }}
-              >
-                Schließen
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
-      {showMitgliedschaftCS && createPortal(
-        <div
-          onClick={() => setShowMitgliedschaftCS(false)}
-          style={{
-            position:"fixed", inset:0, zIndex:10600,
-            background:"rgba(26,26,24,0.55)",
-            display:"flex", alignItems:"flex-end", justifyContent:"center",
-            fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif",
-          }}
-        >
-          <div
-            onClick={e => e.stopPropagation()}
-            style={{
-              width:"100%", maxWidth:480,
-              background:"#F7F5F0", borderRadius:"24px 24px 0 0",
-              padding:"0 0 48px",
-              boxShadow:"0 -4px 32px rgba(26,26,24,0.20)",
-              overflow:"hidden",
-            }}
-          >
-            <div style={{ display:"flex", justifyContent:"center", padding:"12px 0 0" }}>
-              <div style={{ width:36, height:4, borderRadius:99, background:"rgba(26,26,24,0.12)" }} />
-            </div>
-            <div style={{
-              margin:"24px 20px 0",
-              background:"linear-gradient(135deg,#1A1A18 0%,#2D2D2B 100%)",
-              borderRadius:20, padding:"36px 24px 32px",
-              textAlign:"center", position:"relative", overflow:"hidden",
-            }}>
-              <div style={{
-                position:"absolute", inset:0,
-                background:"repeating-linear-gradient(45deg,transparent,transparent 18px,rgba(245,158,11,0.07) 18px,rgba(245,158,11,0.07) 36px)",
-                borderRadius:20,
-              }} />
-              <div style={{
-                position:"absolute", top:0, left:0, right:0, height:8,
-                background:"repeating-linear-gradient(90deg,#F59E0B 0px,#F59E0B 20px,#1A1A18 20px,#1A1A18 40px)",
-                borderRadius:"20px 20px 0 0",
-              }} />
-              <div style={{
-                width:72, height:72, borderRadius:"50%", margin:"0 auto 16px",
-                background:"rgba(245,158,11,0.15)",
-                border:"2px solid rgba(245,158,11,0.35)",
-                display:"flex", alignItems:"center", justifyContent:"center",
-                fontSize:36, position:"relative",
-              }}>🚧</div>
-              <div style={{
-                fontSize:11, fontWeight:800, letterSpacing:"0.18em",
-                color:"#F59E0B", marginBottom:10, position:"relative",
-              }}>COMING SOON</div>
-              <div style={{
-                fontSize:22, fontWeight:800, color:"#FFFFFF",
-                letterSpacing:"-0.02em", marginBottom:8, position:"relative",
-              }}>Mitgliedschaft</div>
-              <div style={{
-                fontSize:13, color:"rgba(255,255,255,0.55)", lineHeight:1.55,
-                maxWidth:260, margin:"0 auto", position:"relative",
-              }}>
-                Hier kannst du bald deine Mitgliedschaft verwalten und upgraden. Wir arbeiten mit Hochdruck daran.
-              </div>
-              <div style={{
-                position:"absolute", bottom:0, left:0, right:0, height:8,
-                background:"repeating-linear-gradient(90deg,#1A1A18 0px,#1A1A18 20px,#F59E0B 20px,#F59E0B 40px)",
-              }} />
-            </div>
-            <div style={{ padding:"20px 20px 0" }}>
-              <button
-                onClick={() => setShowMitgliedschaftCS(false)}
-                style={{
-                  width:"100%", padding:"13px", borderRadius:14, border:"none",
-                  cursor:"pointer", background:"rgba(26,26,24,0.08)",
-                  color:"rgba(26,26,24,0.55)", fontSize:14, fontWeight:700,
-                  fontFamily:"inherit", WebkitTapHighlightColor:"transparent",
-                }}
-              >Schließen</button>
-            </div>
-          </div>
-        </div>,
-        document.body
+      {showMeineInhalte && (
+        <MeineInhaltePage
+          onBack={() => setShowMeineInhalte(false)}
+          userId={profile?.id}
+        />
       )}
       {showMeineTickets && (
         <MeineTicketsPage

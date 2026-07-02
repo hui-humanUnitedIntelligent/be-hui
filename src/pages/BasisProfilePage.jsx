@@ -15,11 +15,11 @@
 // ════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useProfileData } from "../hooks/useProfileData.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
 import { useHome }   from "../components/home/HomeShell.jsx";
 import SettingsModal  from "../components/settings/SettingsModal.jsx";
-import HuiStudio      from "../components/studio/HuiStudio.jsx";
 import { supabase }   from "../lib/supabaseClient.js";
 // Sprint F.5.3: kanonische Sections
 import { AboutSection }           from "../components/profile/sections/AboutSection.jsx";
@@ -342,6 +342,7 @@ function SocialContextBar({ loading, followCounts }) {
 // ROOT
 // ══════════════════════════════════════════════════════════════════
 export default function BasisProfilePage({ profileId, onClose, publicView = false }) {
+  const navigate = useNavigate();
   // Sprint F.5.2: eigener Loader → useProfileData (identisch zu TalentProfilePage)
   const { user, setProfile: setAuthProfile } = useAuth();
   const resolvedId = profileId || user?.id;
@@ -358,7 +359,6 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
   // Owner-spezifische States
   const [mounted,      setMounted]      = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [showStudio,   setShowStudio]   = useState(false);
 
   // isOwner: true wenn das eigene Profil angesehen wird
 
@@ -590,7 +590,7 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
                 </button>
 
                 {/* HUI Studio */}
-                <button className="bpp-press" onClick={() => setShowStudio(true)} style={{
+                <button className="bpp-press" onClick={() => navigate("/studio")} style={{
                   flex:1, padding:"12px 10px", borderRadius:T.r16,
                   background:T.bgCard, border:`1.5px solid ${T.border}`,
                   cursor:"pointer", touchAction:"manipulation",
@@ -630,12 +630,6 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
             reload();           // Sprint F.5.2: reload statt lokales setProfile
             setShowSettings(false);
           }}
-        />
-      )}
-      {isOwner && showStudio && (
-        <HuiStudio
-          profile={profile}
-          onClose={() => setShowStudio(false)}
         />
       )}
     </div>
