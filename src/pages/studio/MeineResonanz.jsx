@@ -9,7 +9,6 @@
 import React from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useAuth }  from "../../lib/AuthContext.jsx";
-import { useNavigate } from "react-router-dom";
 
 // ── Design Tokens ─────────────────────────────────────────────────
 const T = {
@@ -415,29 +414,42 @@ function ResonanzEntry({ entry, animIndex, onTap }) {
 }
 
 // ── Leer-State ────────────────────────────────────────────────────
-function EmptyState({ filter }) {
+function TimelineEmptyState({ filter, title, body }) {
   const cfg = filter !== "all" ? TYPE_CONFIG[filter] : null;
+  const defaultTitle = filter === "all"
+    ? "Deine Geschichte beginnt hier"
+    : "Noch keine " + (cfg?.label || "Aktivitäten");
+  const defaultBody = filter === "all"
+    ? "Jede Buchung, jede Stimme, jedes erworbene Werk erscheint hier als Teil deiner persönlichen Resonanz."
+    : "Sobald du " + (cfg?.label?.toLowerCase() || "etwas") + " unterstützt oder erlebst, erscheint es hier.";
+
   return (
     <div style={{ textAlign:"center", padding:"72px 32px 48px" }}>
       <div style={{ fontSize:54, marginBottom:18 }}>{cfg?.icon || "✨"}</div>
       <div style={{ fontSize:18, fontWeight:700, color:T.ink, marginBottom:10, letterSpacing:"-0.02em" }}>
-        {filter==="all" ? "Deine Geschichte beginnt hier" : "Noch keine " + (cfg?.label||"Aktivitäten")}
+        {title || defaultTitle}
       </div>
       <div style={{ fontSize:14, color:T.inkSoft, lineHeight:"1.65", maxWidth:260, margin:"0 auto" }}>
-        {filter==="all"
-          ? "Jede Buchung, jede Stimme, jedes erworbene Werk erscheint hier als Teil deiner persönlichen Resonanz."
-          : "Sobald du " + (cfg?.label?.toLowerCase()||"etwas") + " unterstützt oder erlebst, erscheint es hier."}
+        {body || defaultBody}
       </div>
     </div>
   );
 }
 
 // ── Hauptkomponente ────────────────────────────────────────────────
-export default function MeineResonanz({ onClose, onNavigate }) {
+export default function MeineResonanz({
+  onClose,
+  onNavigate,
+  embedded = false,
+  allowedTypes = null,
+  defaultFilter = "all",
+  emptyTitle = null,
+  emptyBody = null,
+}) {
   const { user, profile } = useAuth();
   const [entries, setEntries] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
-  const [filter,  setFilter]  = React.useState("all");
+  const [filter,  setFilter]  = React.useState(defaultFilter);
 
   const uid = (user && user.id) || (profile && profile.id);
 
@@ -451,9 +463,21 @@ export default function MeineResonanz({ onClose, onNavigate }) {
     return () => { dead = true; };
   }, [uid]);
 
+  const scopedEntries = React.useMemo(
+    () => allowedTypes ? entries.filter(e => allowedTypes.includes(e.type)) : entries,
+    [entries, allowedTypes]
+  );
+
+  const visibleFilters = React.useMemo(
+    () => allowedTypes
+      ? FILTERS.filter(f => f.id === "all" || allowedTypes.includes(f.id))
+      : FILTERS,
+    [allowedTypes]
+  );
+
   const filtered = React.useMemo(
-    () => filter === "all" ? entries : entries.filter(e => e.type === filter),
-    [entries, filter]
+    () => filter === "all" ? scopedEntries : scopedEntries.filter(e => e.type === filter),
+    [scopedEntries, filter]
   );
 
   // Nach Monat gruppieren
@@ -480,15 +504,16 @@ export default function MeineResonanz({ onClose, onNavigate }) {
     else if (entry.type === "support")  onNavigate("support",  entry.navId);
   }
 
+  const rootStyle = embedded
+    ? { position:"relative", background:"transparent", display:"flex", flexDirection:"column", fontFamily:T.ff }
+    : { position:"fixed", inset:0, zIndex:12000, background:T.page, display:"flex", flexDirection:"column", fontFamily:T.ff, WebkitFontSmoothing:"antialiased" };
+
   return (
-    <div style={{
-      position:"fixed", inset:0, zIndex:12000,
-      background:T.page, display:"flex", flexDirection:"column",
-      fontFamily:T.ff, WebkitFontSmoothing:"antialiased",
-    }}>
+    <div style={rootStyle}>
       <style>{CSS}</style>
 
-      {/* ── Header ── */}
+      {/* ── Header (nur Standalone-Overlay) ── */}
+      {!embedded && (
       <div style={{
         position:"sticky", top:0, zIndex:10,
         background:"rgba(247,245,240,0.95)",
@@ -516,7 +541,7 @@ export default function MeineResonanz({ onClose, onNavigate }) {
 
         {/* Filter-Chips */}
         <div className="mr-chips" style={{ display:"flex", gap:8, padding:"0 " + T.px + "px 14px" }}>
-          {FILTERS.map(f => {
+          {visibleFilters.map(f => {
             const active = filter === f.id;
             return (
               <button key={f.id} className="mr-chip" onClick={() => setFilter(f.id)} style={{
@@ -535,24 +560,50 @@ export default function MeineResonanz({ onClose, onNavigate }) {
           })}
         </div>
       </div>
+      )}
+
+      {/* ── Embedded Filter-Chips ── */}
+      {embedded && visibleFilters.length > 1 && (
+        <div className="mr-chips" style={{ display:"flex", gap:8, padding:"12px " + T.px + "px 8px" }}>
+          {visibleFilters.map(f => {
+            const active = filter === f.id;
+            return (
+              <button key={f.id} className="mr-chip" onClick={() => setFilter(f.id)} style={{
+                display:"inline-flex", alignItems:"center", gap:5,
+                padding:"7px 13px", borderRadius:99,
+                background: active ? T.ink : T.card,
+                border: active ? "none" : "1px solid " + T.border,
+                color: active ? "#FFFFFF" : T.inkSoft,
+                fontSize:13, fontWeight: active ? 700 : 500,
+                whiteSpace:"nowrap", flexShrink:0,
+                boxShadow: active ? "0 2px 10px rgba(26,26,24,0.2)" : "none",
+              }}>
+                <span>{f.icon}</span><span>{f.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* ── Scroll Area ── */}
-      <div className="mr-scroll" style={{ flex:1 }}>
+      <div className="mr-scroll" style={{ flex: embedded ? "none" : 1 }}>
         <div style={{
           padding:"16px " + T.px + "px",
-          paddingBottom:"max(100px, calc(80px + env(safe-area-inset-bottom, 20px)))",
+          paddingBottom: embedded ? 24 : "max(100px, calc(80px + env(safe-area-inset-bottom, 20px)))",
         }}>
 
           {/* Summary */}
-          {!loading && filter==="all" && entries.length > 0 && (
-            <ResonanzSummary entries={entries} />
+          {!loading && filter==="all" && scopedEntries.length > 0 && (
+            <ResonanzSummary entries={scopedEntries} />
           )}
 
           {/* Loading Skeletons */}
           {loading && [0,1,2,3].map(i => <EntrySkeleton key={i} />)}
 
           {/* Empty */}
-          {!loading && filtered.length === 0 && <EmptyState filter={filter} />}
+          {!loading && filtered.length === 0 && (
+            <TimelineEmptyState filter={filter} title={emptyTitle} body={emptyBody} />
+          )}
 
           {/* Timeline */}
           {!loading && grouped.map(item =>

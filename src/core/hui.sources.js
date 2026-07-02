@@ -26,6 +26,7 @@ export const S = Object.freeze({
   HOME:             "home",          // Home-Feed (aktiver Tab)
   DISCOVER:         "discover",      // Entdecken-Seite
   FAVORITES:        "favorites",     // Dein Raum / Favoriten
+  RESONANCE:        "resonance",     // Meine Resonanz — persönliche Erlebniswelt
   IMPACT:           "impact",        // Impact-Seite
 
   // ── Overlay-Surfaces ───────────────────────────────────────────
@@ -57,6 +58,7 @@ export const SURFACE_DEPTH = Object.freeze({
   [S.HOME]:            0,
   [S.DISCOVER]:        0,
   [S.FAVORITES]:       0,
+  [S.RESONANCE]:       0,
   [S.IMPACT]:          0,
   [S.ORB]:             1,
   [S.NOTIFICATIONS]:   1,
@@ -87,6 +89,7 @@ export const RETURN_TO = Object.freeze({
   // Tab-Level kehrt immer zu Home zurück
   [S.DISCOVER]:        S.HOME,
   [S.FAVORITES]:       S.HOME,
+  [S.RESONANCE]:       S.HOME,
   [S.IMPACT]:          S.HOME,
 });
 
@@ -95,6 +98,7 @@ export const SURFACE_LABEL = Object.freeze({
   [S.HOME]:            "Home-Feed",
   [S.DISCOVER]:        "Entdecken",
   [S.FAVORITES]:       "Dein Raum",
+  [S.RESONANCE]:       "Meine Resonanz",
   [S.IMPACT]:          "Impact",
   [S.ORB]:             "HUI Orb",
   [S.NOTIFICATIONS]:   "Benachrichtigungen",

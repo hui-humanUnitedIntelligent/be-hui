@@ -30,6 +30,7 @@ const Admin             = lazy(() => import('./pages/Admin'))
 const DiagnosePage      = lazy(() => import('./pages/DiagnosePage'))
 const PlatformDashboard = lazy(() => import('./pages/PlatformDashboard'))
 const CreatorStudio     = lazy(() => import('./pages/CreatorStudio'))
+const MeineResonanzFoundation = lazy(() => import('./features/resonance/foundation/MeineResonanzFoundation.jsx'))
 const WirkerProfilePage = lazy(() => import('./pages/wirker-profile/index.jsx'))
 const WorkDetailPage    = lazy(() => import('./components/WorkDetailPage'))
 
@@ -557,6 +558,14 @@ function AppRoutes() {
         }/>
         <Route path="/studio/:section" element={
           <ProtectedRoute><CreatorStudio /></ProtectedRoute>
+        }/>
+
+        {/* Meine Resonanz — Offizieller Einstieg (Phase 1.6) */}
+        <Route path="/resonanz" element={
+          <ProtectedRoute><MeineResonanzFoundation /></ProtectedRoute>
+        }/>
+        <Route path="/resonanz/:section" element={
+          <ProtectedRoute><MeineResonanzFoundation /></ProtectedRoute>
         }/>
 
         {/* Ref-Link Weiterleitung */}

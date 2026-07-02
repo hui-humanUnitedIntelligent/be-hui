@@ -552,6 +552,63 @@ export const ROUTE_REGISTRY = Object.freeze([
     ].join(" "),
   },
 
+  // ── 18: Meine Resonanz (Foundation) ───────────────────────────────────────
+  // Offizieller Einstieg zur persönlichen Erlebniswelt (Phase 1.6).
+  {
+    id:            "resonanz",
+    path:          "/resonanz",
+    name:          "Meine Resonanz",
+    owner:         OWNER.FEED,
+    authLevel:     AUTH.PROTECTED,
+    loading:       LOADING.LAZY,
+    routeType:     ROUTE_TYPE.PAGE,
+    wrapper:       WRAPPER.PROTECTED_ROUTE,
+    redirect:      null,
+    errorBoundary: true,
+    layout:        "resonance",
+    meta: {
+      title:       "HUI – Meine Resonanz",
+      description: "Persönliche Erlebniswelt",
+      noIndex:     false,
+    },
+    analytics: {
+      trackPageView: true,
+      eventName:     "page_resonanz",
+    },
+    featureFlags:  ["resonance-foundation"],
+    notes: [
+      "LAZY. Offizieller Einstieg Phase 1.6.",
+      "Enthält Sektionen: Timeline, Dein Raum, Erlebt, Empfehlungen, Resonanzzentrum.",
+      "Kein Dashboard — persönlicher Erlebnisraum.",
+    ].join(" "),
+  },
+
+  // ── 19: Meine Resonanz (Section) ─────────────────────────────────────────
+  {
+    id:            "resonanz-section",
+    path:          "/resonanz/:section",
+    name:          "Meine Resonanz (Section)",
+    owner:         OWNER.FEED,
+    authLevel:     AUTH.PROTECTED,
+    loading:       LOADING.LAZY,
+    routeType:     ROUTE_TYPE.PAGE,
+    wrapper:       WRAPPER.PROTECTED_ROUTE,
+    redirect:      null,
+    errorBoundary: true,
+    layout:        "resonance",
+    meta: {
+      title:       "HUI – Meine Resonanz",
+      description: "Persönliche Erlebniswelt",
+      noIndex:     false,
+    },
+    analytics: {
+      trackPageView: true,
+      eventName:     "page_resonanz_section",
+    },
+    featureFlags:  ["resonance-foundation"],
+    notes: "Gleiche Komponente wie resonanz. :section steuert aktive Sektion.",
+  },
+
   // ── 17: Catch-All (404) ───────────────────────────────────────────────────
   // * → SmartNotFound: wartet auf Auth, dann /Home oder /login
   {
@@ -619,6 +676,7 @@ export const EXCLUDED_REF_PATHS = Object.freeze(new Set([
   "entdecken",
   "buchung",
   "mein-hui",
+  "resonanz",
   "community",
   // ── Rechtliche / statische Seiten ────────────────────────────
   "impressum",
