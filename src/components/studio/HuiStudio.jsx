@@ -7,6 +7,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { isProfileTalent } from '../../lib/profileUtils.js';
 import { createPortal } from "react-dom";
+import { navigateToShellTab } from "../../lib/navigation/navigateToShellTab.js";
 import { useHome } from "../home/HomeShell.jsx";
 import { ProfileService } from '../../services/db';
 import { supabase }    from "../../lib/supabaseClient.js";
@@ -830,7 +831,7 @@ const REC_LABELS = {
 const CAT_ORDER = ["profile", "project", "work", "experience", "event"];
 
 function MyRecommendationsModal({ userId, onClose }) {
-  const { openProfileById } = useHome();
+  const { openProfileById, handleTab } = useHome();
   const [recs,     setRecs]     = useState([]);
   const [details,  setDetails]  = useState({}); // item_id → enriched data
   const [loading,  setLoading]  = useState(true);
@@ -1008,9 +1009,7 @@ function MyRecommendationsModal({ userId, onClose }) {
                         window.dispatchEvent(new PopStateEvent("popstate"));
                       }
                     } else if (t === "project") {
-                      onClose();
-                      window.history.pushState({}, "", `/impact`);
-                      window.dispatchEvent(new PopStateEvent("popstate"));
+                      navigateToShellTab("impact", { handleTab, onBeforeNavigate: onClose });
                     } else if (t === "experience") {
                       alert("Erlebnis-Detailseite ist noch nicht verfügbar.");
                     } else if (t === "event") {
@@ -1091,7 +1090,7 @@ function MyRecommendationsModal({ userId, onClose }) {
 
 export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
   const { signOut } = useAuth() || {};
-  const { switchTab } = useHome();
+  const { switchTab, handleTab } = useHome();
   const [mounted,      setMounted]      = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showAmbModal, setShowAmbModal] = useState(false);
@@ -1280,6 +1279,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
           profile={profile}
           onClose={() => setShowImpact(false)}
           switchTab={switchTab}
+          handleTab={handleTab}
         />
       )}
       {showMeineProjekte && (
@@ -1287,6 +1287,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
           profile={profile}
           onClose={() => setShowMeineProjekte(false)}
           switchTab={switchTab}
+          handleTab={handleTab}
         />
       )}
       {showEinAusgaben && (

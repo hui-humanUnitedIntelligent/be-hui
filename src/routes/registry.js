@@ -283,9 +283,9 @@ export const ROUTE_REGISTRY = Object.freeze([
     ].join(" "),
   },
 
-  // ── 08: Impact ────────────────────────────────────────────────────────────
-  // Impact Hub — Impact-Projekte, Stimmen, Wirkung.
-  // ABWEICHUNG: ImpactPage ist EAGER (kein lazy), obwohl preload:false in APP_ROUTES.
+  // ── 08: Impact (Deep-Link → HomeShell) ───────────────────────────────────
+  // NAV-1.4: /impact leitet auf /Home + shellTab=impact um.
+  // ImpactPage rendert ausschließlich innerhalb der HomeShell.
   {
     id:            "impact",
     path:          "/impact",
@@ -293,10 +293,10 @@ export const ROUTE_REGISTRY = Object.freeze([
     owner:         OWNER.IMPACT,
     authLevel:     AUTH.PROTECTED,
     loading:       LOADING.EAGER,
-    routeType:     ROUTE_TYPE.PAGE,
+    routeType:     ROUTE_TYPE.REDIRECT,
     wrapper:       WRAPPER.PROTECTED_ROUTE,
-    redirect:      null,
-    errorBoundary: true,
+    redirect:      { dynamic: true, logic: "ImpactDeepLinkRedirect → /Home state.shellTab=impact" },
+    errorBoundary: false,
     layout:        "shell",
     meta: {
       title:       "HUI – Impact",
@@ -309,9 +309,9 @@ export const ROUTE_REGISTRY = Object.freeze([
     },
     featureFlags:  [],
     notes: [
-      "ABWEICHUNG: ImpactPage wird eager importiert (import statt lazy()).",
-      "APP_ROUTES hat preload:false — inkonsistent mit EAGER-Import.",
-      "Empfehlung: In NAV-002 auf lazy() umstellen (kein Nutzereinfluss).",
+      "NAV-1.4: Kein paralleles Impact-Mount mehr.",
+      "ImpactDeepLinkRedirect.jsx leitet /impact → /Home (shellTab=impact) um.",
+      "Hash-Fragmente (#project-*) werden als shellHash durchgereicht.",
     ].join(" "),
   },
 
@@ -651,9 +651,9 @@ export const PARITY_REPORT = Object.freeze({
   appRoutesDeviations: [
     {
       key:     "impact",
-      issue:   "ImpactPage ist EAGER (import) in App.jsx, aber preload:false in APP_ROUTES",
+      issue:   "NAV-1.4: /impact ist Deep-Link-Redirect, kein eigenständiges ImpactPage-Mount",
       risk:    "niedrig",
-      action:  "NAV-002: Auf lazy() umstellen oder preload:true setzen",
+      action:  "Erledigt in Phase 1.4",
     },
     {
       key:     "profile",

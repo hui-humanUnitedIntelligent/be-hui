@@ -3,7 +3,20 @@
 > *Zentraler Querverweiskatalog der gesamten HUI-Architektur.*  
 > *Jedes Modul, jede Engine, jedes Dokument — an einem Ort verlinkt.*
 
-**Aktualisiert:** 2026-06-29 (v2.1 — Orb-Philosophie)
+**Aktualisiert:** 2026-07-01 (v2.2 — NAV-1.4 Navigation Alignment)
+
+---
+
+## Navigation (NAV-1.4)
+
+| Dokument / Datei | Beschreibung |
+|---|---|
+| [`docs/RELEASE_PHASE_1_4_NAVIGATION.md`](RELEASE_PHASE_1_4_NAVIGATION.md) | **Phase 1.4** — Finale Tabbar, bereinigte Navigation, Deep-Links, technische Schulden |
+| [`src/components/home/navigation/navConfig.js`](../src/components/home/navigation/navConfig.js) | Tab-Labels und Keep-Alive-Konfiguration |
+| [`src/components/home/HomeShell.jsx`](../src/components/home/HomeShell.jsx) | `handleTab()` — autoritative Shell-Navigation |
+| [`src/routes/registry.js`](../src/routes/registry.js) | Shadow Route Registry (NAV-001B) |
+| [`src/lib/navigation/shellDeepLink.js`](../src/lib/navigation/shellDeepLink.js) | Shell-Tab Deep-Link State |
+| [`src/lib/navigation/navigateToShellTab.js`](../src/lib/navigation/navigateToShellTab.js) | Modal → Shell-Tab Navigation |
 
 ---
 
@@ -119,6 +132,7 @@
 | [`CODEBASE.md`](../CODEBASE.md) | Codebase-Übersicht |
 | [`docs/HUI_ACTION_CONTRACTS.md`](HUI_ACTION_CONTRACTS.md) | Action Contract Map |
 | [`docs/HUI_ACTION_MAP.md`](HUI_ACTION_MAP.md) | Action Map |
+| [`docs/RELEASE_PHASE_1_4_NAVIGATION.md`](RELEASE_PHASE_1_4_NAVIGATION.md) | Navigation Phase 1.4 |
 | [`docs/COMMUNITY_PHILOSOPHY.md`](COMMUNITY_PHILOSOPHY.md) | Community-Philosophie |
 | [`docs/RANKING_PHILOSOPHY.md`](RANKING_PHILOSOPHY.md) | Warum keine Rankings |
 | [`docs/GENTLE_ECONOMY_PHILOSOPHY.md`](GENTLE_ECONOMY_PHILOSOPHY.md) | Sanfte Ökonomie |
