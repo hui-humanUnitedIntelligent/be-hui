@@ -33,7 +33,14 @@ const MIN_AMOUNT_CENTS  = 50   // Stripe Minimum EUR
 function buildCartHash(userId: string, items: any[]): string {
   const sorted = [...items]
     .sort((a, b) => (a.item_id || '').localeCompare(b.item_id || ''))
-    .map(i => `${i.item_id}:${Math.max(1, Math.min(MAX_QTY, Number(i.quantity) || 1))}`)
+    .map(i => {
+      const qty = Math.max(1, Math.min(MAX_QTY, Number(i.quantity) || 1))
+      if (i.item_type === 'support') {
+        const price = Number(i.unit_price_eur) || 0
+        return `support:${i.item_id}:${price.toFixed(2)}`
+      }
+      return `${i.item_id}:${qty}`
+    })
     .join('|')
   return `hui_cart_${userId}_${btoa(sorted).replace(/[^a-zA-Z0-9]/g, '').slice(0, 32)}`
 }
@@ -78,11 +85,14 @@ serve(async (req) => {
       })
     }
 
-    // Nur item_id und quantity vom Client übernehmen — alles andere ignorieren
+    // Nur item_id und quantity vom Client übernehmen — Support: unit_price_eur aus Snapshot
     const clientItems = rawClientItems.map((i: any) => ({
-      item_id:   (i.item_id || i.snapshot?.item_id || null) as string | null,
-      item_type: (i.item_type || 'work') as string,
-      quantity:  Math.max(1, Math.min(MAX_QTY, Math.round(Number(i.quantity) || 1))),
+      item_id:        (i.item_type === 'support'
+        ? (i.item_id || i.snapshot?.creator_id || i.snapshot?.item_id)
+        : (i.item_id || i.snapshot?.item_id || null)) as string | null,
+      item_type:      (i.item_type || i.snapshot?.item_type || 'work') as string,
+      quantity:       Math.max(1, Math.min(MAX_QTY, Math.round(Number(i.quantity) || 1))),
+      unit_price_eur: i.unit_price_eur ?? i.snapshot?.price_eur ?? null,
     }))
 
     // ── 3. Session-Idempotenz: bestehende offene Order prüfen ────
@@ -164,7 +174,58 @@ serve(async (req) => {
     const validatedItems: any[] = []
 
     for (const clientItem of clientItems) {
-      if (!clientItem.item_id) continue  // support/custom items überspringen
+      // ── Support: Creator-ID + client-gewählter Betrag (validiert) ──
+      if (clientItem.item_type === 'support') {
+        const creatorId = clientItem.item_id
+        const unitPrice = Number(clientItem.unit_price_eur)
+        if (!creatorId || !unitPrice || unitPrice < 0.5) {
+          console.warn(`[PI] Support-Item ungültig: creator=${creatorId} price=${unitPrice}`)
+          continue
+        }
+        const { data: creatorRow } = await supabase
+          .from('profiles')
+          .select('id, display_name, avatar_url')
+          .eq('id', creatorId)
+          .single()
+        if (!creatorRow) {
+          console.warn(`[PI] Support-Creator ${creatorId} nicht gefunden`)
+          continue
+        }
+        const qty       = clientItem.quantity
+        const lineTotal = +(unitPrice * qty).toFixed(2)
+        const payoutEur = +(lineTotal * CREATOR_SHARE).toFixed(2)
+        const impactEur = +(lineTotal * IMPACT_RATE).toFixed(2)
+        const commissionEur = +(lineTotal * PLATFORM_FEE_RATE).toFixed(2)
+        serverTotal += lineTotal
+        validatedItems.push({
+          seller_id:      creatorRow.id,
+          item_type:      'support',
+          item_id:        creatorRow.id,
+          quantity:       qty,
+          unit_price_eur: unitPrice,
+          shipping_eur:   0,
+          payout_eur:     payoutEur,
+          impact_eur:     impactEur,
+          shipping_type:  'none',
+          snapshot: {
+            item_id:          creatorRow.id,
+            item_type:        'support',
+            title:            `Unterstützung für ${creatorRow.display_name || 'Talent'}`,
+            cover_url:        creatorRow.avatar_url,
+            seller_id:        creatorRow.id,
+            price_eur:        unitPrice,
+            quantity:         qty,
+            payout_eur:       payoutEur,
+            impact_eur:       impactEur,
+            commission_eur:   commissionEur,
+            server_validated: true,
+            validated_at:     new Date().toISOString(),
+          },
+        })
+        continue
+      }
+
+      if (!clientItem.item_id) continue  // unbekannte custom items überspringen
 
       const dbRow = priceMap.get(clientItem.item_id)
       if (!dbRow) {

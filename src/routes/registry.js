@@ -221,8 +221,8 @@ export const ROUTE_REGISTRY = Object.freeze([
     featureFlags:  ["commerce"],
     notes: [
       "LAZY. Wrapped in WorkDetailRouteWrapper.",
-      "onBuyWerk: navigate('/Home', { state: { pendingWerkKauf: werk } }).",
-      "COMMERCE-01: Router-State-basierte Übergabe an Home.jsx WerkKaufFlow.",
+      "onBuyWerk / onAddToKorb: navigate('/Home', { state: { pendingCartItem, openWerkeKorb } }).",
+      "COMMERCE 2.4: Router-State → Home.jsx → WerkeKorb (kein WerkKaufFlow).",
     ].join(" "),
   },
 
