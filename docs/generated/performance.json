@@ -1,0 +1,50 @@
+{
+  "timings": {
+    "contractLoadingMs": 6,
+    "policyCompilationMs": 1,
+    "ruleCompilationMs": 1,
+    "repositoryScanMs": 154,
+    "evaluationMs": 160,
+    "totalMs": 321,
+    "evaluationCachedMs": 108,
+    "deterministic": true
+  },
+  "perFile": {
+    "scanMs": 0.42,
+    "evalMs": 0.43
+  },
+  "perRule": 0.57,
+  "memory": {
+    "heapUsedMb": 23,
+    "heapTotalMb": 53,
+    "rssMb": 108
+  },
+  "caching": {
+    "deterministic": true,
+    "cachedEvalMs": 108,
+    "speedup": 32
+  },
+  "hotspots": [
+    {
+      "stage": "evaluation",
+      "ms": 160,
+      "pct": 50
+    },
+    {
+      "stage": "repositoryScan",
+      "ms": 154,
+      "pct": 48
+    },
+    {
+      "stage": "contractLoading",
+      "ms": 6,
+      "pct": 2
+    },
+    {
+      "stage": "ruleCompilation",
+      "ms": 1,
+      "pct": 0
+    }
+  ],
+  "acceptable": true
+}

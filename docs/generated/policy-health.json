@@ -1,0 +1,29 @@
+{
+  "generatedAt": "2026-06-30T16:18:31.265Z",
+  "contractCount": 14,
+  "policyCount": 182,
+  "ruleCount": 283,
+  "violationCount": 1090,
+  "criticalCount": 811,
+  "blockingCount": 879,
+  "blockMerge": true,
+  "compliancePct": 0,
+  "dimensions": [
+    "ownership",
+    "layer",
+    "events",
+    "realtime",
+    "services",
+    "contexts",
+    "hooks",
+    "imports",
+    "dependencies",
+    "documentation",
+    "constitution",
+    "rfc",
+    "adr",
+    "migration",
+    "policyCompliance",
+    "contractCompliance"
+  ]
+}
