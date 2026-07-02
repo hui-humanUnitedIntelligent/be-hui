@@ -1,10 +1,6 @@
 // src/lib/useReactions.jsx — Phase 4B
-// ══════════════════════════════════════════════════════════════
-// Unified reaction hook for feed items (like · inspire · save).
-// Optimistic UI + DB write + rollback on error.
-// Also writes to saved_posts when type = "save".
-// Fires notifications silently.
-// ══════════════════════════════════════════════════════════════
+// @domain SOCIAL
+// @violation V-050 TODO(ADR-0001): Hook contains DB business logic — migrate to SocialService
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase }   from "./supabaseClient.js";
 import { useAuth }    from "./AuthContext.jsx";

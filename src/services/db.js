@@ -1,7 +1,12 @@
 // src/services/db.js
 // ══════════════════════════════════════════════════════════════
 // HUI Core Database Service Layer
-// 
+// @domain CORE (Legacy Monolith — spans all domains)
+// @owner services/db.js
+// @responsibility Zentraler DB-Zugang — alle Domänen
+// @deprecated TODO(ADR-0001): Split into domain-specific services
+//   → src/architecture/domain-services/
+//
 // RÈGLES:
 //  • Kein direktes supabase.from() in React-Components
 //  • Alle Queries laufen durch diesen Service

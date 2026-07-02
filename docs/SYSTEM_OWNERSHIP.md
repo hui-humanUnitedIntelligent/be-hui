@@ -9,6 +9,9 @@ Jedes Datensystem hat genau **einen Owner** (Single Source of Truth).
 Owner = die Datei die Supabase schreibt UND den lokalen State hält.
 Consumer = Dateien die nur lesen (via Props, Context, Hook-Return).
 
+> **CORE-001 Update (2026-06-30):** Technische Durchsetzung via `src/architecture/`.
+> Vollständiger Audit: [`docs/CORE-001_AUDIT_REPORT.md`](CORE-001_AUDIT_REPORT.md)
+
 ---
 
 ## System-Ownership-Tabelle

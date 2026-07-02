@@ -1,7 +1,8 @@
 // src/core/coreEngine.js
-// ═══════════════════════════════════════════════════════════════════════
-// HUI CORE ENGINE — Phase 1
-// Single Source of Truth für alle Wirkungsdaten der Plattform.
+// @domain CORE
+// @owner core/coreEngine.js
+// @responsibility Single Source of Truth für Wirkungsdaten
+// @violation V-061 TODO(ADR-0001): DB persistence → CorePersistenceService
 //
 // PHILOSOPHIE:
 //   Die Core Engine erfasst Wirkungssignale — echte menschliche Handlungen.

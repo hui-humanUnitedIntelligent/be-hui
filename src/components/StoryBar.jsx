@@ -1,7 +1,7 @@
 // StoryBar.jsx + StoryViewer.jsx — HUI Premium v2
-// Phase 1: Progress bars, auto-advance, tap nav, hold-to-pause,
-//          reactions, quick reply, seen state, gradient rings
-// Phase 2: Highlights row on profile
+// @domain CONTENT
+// @violation V-002 TODO(ADR-0001): Direct story_views UPSERT + messages INSERT
+//   → StoryService.recordView() + ChatContext.sendMessage()
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';

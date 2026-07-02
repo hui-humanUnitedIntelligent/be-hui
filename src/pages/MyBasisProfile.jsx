@@ -1,4 +1,5 @@
-// src/pages/MyBasisProfile.jsx — HUI Mein Profil v1
+// @domain CONTENT
+// @violation V-004 TODO(ADR-0001): Direct works/experiences DELETE — migrate to WorkService — HUI Mein Profil v1
 // "Ich gestalte meine Präsenz."
 // ════════════════════════════════════════════════════════════════
 // Eigene Profil-Seite für Basis-User. Kein Creator-Dashboard.

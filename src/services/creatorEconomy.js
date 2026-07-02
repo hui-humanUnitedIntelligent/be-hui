@@ -1,5 +1,7 @@
-// src/services/creatorEconomy.js — HUI Phase 4D
-// Creator Economy Service — Wallet · Supports · Bookings · Sales · Analytics
+// src/services/creatorEconomy.js
+// @domain COMMERCE
+// @owner services/creatorEconomy.js
+// @responsibility Creator Wallets, Supports, Bookings, Sales, Analytics
 // ══════════════════════════════════════════════════════════════════════════
 // REGELN:
 //  · Kein direktes DB-Schema — nutzt Supabase-Client

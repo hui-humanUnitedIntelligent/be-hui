@@ -1,5 +1,7 @@
 // chatContext.js — HUI Chat Intelligence Layer v1.2
-// Schema-Fix 2026-06-01: Live-DB-Struktur verifiziert
+// @domain SOCIAL
+// @owner lib/chatContext.js
+// @responsibility Chat-Liste, Thread, Messages — Single Owner
 // TABLE chats:    id, booking_id, participant_ids, state("opened"),
 //                last_message_at, last_message, opened_at, closed_at,
 //                created_at, booking_title

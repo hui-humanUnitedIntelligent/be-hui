@@ -1,6 +1,7 @@
 // src/core/hui.actions.js — HUI ACTION ENGINE v1
-// ══════════════════════════════════════════════════════════════════
-// Das zentrale Nervensystem der HUI-Plattform.
+// @domain CORE
+// @owner core/hui.actions.js
+// @responsibility Zentrale Action-Dispatch-Schicht — alle Interaktionen über A.*
 //
 // REGEL: Kein Button darf direkt setState/navigate aufrufen.
 //        Alle Interaktionen laufen über HUI_ACTIONS.
