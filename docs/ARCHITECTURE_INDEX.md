@@ -115,6 +115,7 @@
 | Dokument | Beschreibung |
 |---|---|
 | [`HUI_CONSTITUTION.md`](../HUI_CONSTITUTION.md) | **Die Verfassung** |
+| [`docs/DOMAIN_ARCHITECTURE_BLUEPRINT_V1.md`](DOMAIN_ARCHITECTURE_BLUEPRINT_V1.md) | **Domain Architecture Blueprint v1** — ARCH-005 Zielarchitektur |
 | [`docs/HUI_ORB.md`](HUI_ORB.md) | **Orb-Philosophie** — Sonne, Blatt, Weg, Architektur |
 | [`CODEBASE.md`](../CODEBASE.md) | Codebase-Übersicht |
 | [`docs/HUI_ACTION_CONTRACTS.md`](HUI_ACTION_CONTRACTS.md) | Action Contract Map |
