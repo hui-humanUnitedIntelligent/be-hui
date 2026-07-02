@@ -256,9 +256,9 @@ function AnalyticsView({ analytics }) {
       <div style={{marginTop:20,padding:"16px",borderRadius:18,
         background:"rgba(22,215,197,0.07)",border:`1px solid rgba(22,215,197,0.15)`}}>
         <div style={{fontSize:12,color:T.teal,fontWeight:600,marginBottom:4}}>💡 Einblick</div>
-        <div style={{fontSize:13,color:T.soft,lineHeight:1.6}}>
-          Erweiterte Analytics kommen bald. Fokussiere dich jetzt auf echte Verbindungen —
-          das ist das Herz von HUI.
+        <div style={{ fontSize:13,color:T.soft,lineHeight:1.6}}>
+          Deine Verbindungen und Unterstützungen sind das Herz von HUI.
+          Konzentriere dich auf echte Begegnungen — die Zahlen wachsen von selbst.
         </div>
       </div>
     </div>

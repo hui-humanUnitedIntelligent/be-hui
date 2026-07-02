@@ -403,50 +403,6 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
           </>)}
 
 
-          {/* ══ VERIFIZIERUNG ══════════════════════════════════ */}
-          {view === "verification" && (<>
-            <Section title="Verifizierung" icon="✅">
-              <div style={{padding:"14px 16px"}}>
-                <div style={{fontSize:13,color:"#555",lineHeight:1.65}}>
-                  Die Identitäts-Verifizierung ist in Kürze verfügbar. Damit stärkst du das Vertrauen in deiner HUI-Gemeinschaft.
-                </div>
-                <div style={{
-                  marginTop:14, padding:"10px 14px", borderRadius:10,
-                  background:"rgba(14,196,184,0.07)", border:"1px solid rgba(14,196,184,0.2)",
-                  fontSize:12, color:"#0EC4B8", fontWeight:600,
-                }}>
-                  🔜 Bald verfügbar
-                </div>
-              </div>
-            </Section>
-          </>)}
-
-          {/* ══ MITGLIEDSCHAFT ════════════════════════════════ */}
-          {view === "membership" && (<>
-            <Section title="Mitgliedschaftsinformation" icon="🌿">
-              <div style={{padding:"14px 16px"}}>
-                <div style={{
-                  padding:"12px 14px", borderRadius:10,
-                  background:"rgba(14,196,184,0.07)", border:"1px solid rgba(14,196,184,0.15)",
-                  marginBottom:12,
-                }}>
-                  <div style={{fontSize:11,fontWeight:700,color:"#0EC4B8",marginBottom:4}}>Status</div>
-                  <div style={{fontSize:14,fontWeight:800,color:"#1A1A18"}}>
-                    {profile?.is_talent ? "✨ HUI-Talent" : "🌿 HUI-Mitglied"}
-                  </div>
-                  {profile?.talent_since && (
-                    <div style={{fontSize:11,color:"#888",marginTop:4}}>
-                      Talent seit: {new Date(profile.talent_since).toLocaleDateString("de-DE")}
-                    </div>
-                  )}
-                </div>
-                <div style={{fontSize:12,color:"#888",lineHeight:1.6}}>
-                  Deine Mitgliedschaft bei HUI ist kostenlos und basiert auf echter Gemeinschaft. Premium-Funktionen kommen bald.
-                </div>
-              </div>
-            </Section>
-          </>)}
-
           {/* ══ PERSÖNLICHE DATEN ══════════════════════════════ */}
           {view === "contact" && (<>
             <Section title="Name" icon="👤">
