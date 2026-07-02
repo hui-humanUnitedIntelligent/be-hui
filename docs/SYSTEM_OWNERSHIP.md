@@ -27,7 +27,7 @@ Consumer = Dateien die nur lesen (via Props, Context, Hook-Return).
 | **Experiences** | `services/db.js` | ✅ Service Layer | via direktem Fetch in WirkerProfilePage |
 | **Stories** | `lib/sessionHooks.js` (storyRefreshKey) | ✅ Create-Flows direkt (akzeptiert) | via storyRefreshKey |
 | **Trust / Reputation** | `lib/trustContext.js` | ✅ trustContext only | via `useReputation()` |
-| **Follows** | `lib/AppStateContext.jsx` | ✅ AppState + WorkDetailPage (❗) | via `useFollowStatus()` |
+| **Follows** | `services/db.js` → `SocialService` | ✅ SocialService only | `lib/AppStateContext.jsx` (State) via `useFollowStatus()` |
 | **Work Interactions** | `lib/AppStateContext.jsx` | ✅ AppState + WorkDetailPage (❗) | via `useWorkInteraction()` |
 | **Presence** | `lib/sessionHooks.js` → `usePresence()` | ✅ sessionHooks only | via `usePresence()` |
 | **Realtime Channels** | Verteilt (siehe REALTIME_REGISTRY.md) | ✅ je Single-Owner | via Context |

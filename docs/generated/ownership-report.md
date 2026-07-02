@@ -7,13 +7,14 @@
 
 ## Coverage: 0%
 
-0 von 274 relevanten Dateien haben @domain + @owner Header.
+1 von 274 relevanten Dateien haben @domain + @owner Header.
 
 ## Dateien MIT Header
 
 | Datei | Domain | Owner |
 |---|---|---|
 | `architecture/scanner/fileScanner.js` | / | / |
+| `core/HuiConnectionEngine.jsx` | CORE | connection-engine |
 
 ## Dateien OHNE Header (>50 Zeilen)
 
@@ -120,4 +121,4 @@
 | `components/ui/TalentBadge.jsx` | 107 | UNKNOWN |
 | `components/welcome/WelcomeOverlay.jsx` | 355 | UNKNOWN |
 
-*... und 167 weitere*
+*... und 166 weitere*
