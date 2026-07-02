@@ -12,6 +12,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
 import { supabase } from "../lib/supabaseClient.js";
 import { useAuth }  from "../lib/AuthContext.jsx";
@@ -735,7 +736,7 @@ function SchwerpunktStatsBlock({ profile, works, experiences, moments, loading, 
 // ══════════════════════════════════════════════════════════════
 // 6. NÄCHSTE ERLEBNISSE — nur wenn zukünftige Termine vorhanden
 // ══════════════════════════════════════════════════════════════
-function NaechsteErlebnisseSection({ experiences, loading }) {
+function NaechsteErlebnisseSection({ experiences, loading, onExperiencePress }) {
   const upcoming = useMemo(() => {
     const now = new Date();
     return experiences
@@ -781,7 +782,11 @@ function NaechsteErlebnisseSection({ experiences, loading }) {
           : upcoming.map((exp, i) => {
               const dt = fmtDate(exp.date);
               return (
-                <div key={exp.id || i} className="tpp-in tpp-press-light" style={{...dl(i),
+                <div
+                  key={exp.id || i}
+                  className="tpp-in tpp-press-light"
+                  onClick={() => onExperiencePress?.(exp)}
+                  style={{...dl(i),
                   background:T.bgCard, borderRadius:T.r16, padding:14,
                   boxShadow:T.card, display:"flex", gap:12, alignItems:"flex-start",
                   cursor:"pointer",
@@ -1075,6 +1080,7 @@ function SocialContextBarTalent({ followCounts, experiences, moments, loading })
 // Sections: gemeinsame Sprint-C-Komponenten
 // ══════════════════════════════════════════════════════════════
 export default function TalentProfilePage({ profileId, onClose, publicView = false }) {
+  const navigate = useNavigate();
   const { user, setProfile: setAuthProfile } = useAuth();
 
   // ── Sprint D: Datenlayer via useProfileData ─────────────────
@@ -1261,7 +1267,11 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
         <Gap h={28}/>
 
         {/* ── 5. Nächste Erlebnisse (unverändert) ──────────── */}
-        <NaechsteErlebnisseSection experiences={experiences} loading={loading}/>
+        <NaechsteErlebnisseSection
+          experiences={experiences}
+          loading={loading}
+          onExperiencePress={(ex) => { if (ex?.id) navigate(`/experience/${ex.id}`); }}
+        />
         <Gap h={28}/>
         {/* ── 7. Talente & Angebote → TalentSection ────────── */}
         <TalentSection
@@ -1288,6 +1298,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
           isOwner={isOwner}
           loading={loading}
           onShowAll={() => {}}
+          onExperiencePress={(ex) => { if (ex?.id) navigate(`/experience/${ex.id}`); }}
         />
         <Gap h={28}/>
 

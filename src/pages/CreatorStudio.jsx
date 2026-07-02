@@ -19,6 +19,7 @@ import {
   ImpactSubPage, KontoPage, MeineInhaltePage,
   BestellungenPage, ReputationInsightsPage,
 } from "./studio/StudioSubPages";
+import MeineResonanz from "./studio/MeineResonanz.jsx";
 
 const C = {
   teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, tealGlow:"rgba(22,215,197,0.18)",
@@ -103,6 +104,10 @@ export default function CreatorStudio() {
   }) : null;
 
   useEffect(() => {
+    if (section) setActiveTool(section);
+  }, [section]);
+
+  useEffect(() => {
     if (!user?.id) return;
     supabase.from("profiles")
       .select("id,display_name,avatar_url,username,focus_type,bio,collab_count,recommendations_count")
@@ -132,6 +137,17 @@ export default function CreatorStudio() {
       orders:       () => <BestellungenPage       onBack={handleBack} />,
       impact:       () => <ImpactSubPage          onBack={handleBack} />,
       reputation:   () => <ReputationInsightsPage onBack={handleBack} />,
+      resonanz:     () => (
+        <MeineResonanz
+          onClose={handleBack}
+          onNavigate={(type, navId) => {
+            handleBack();
+            if (type === "erlebnis" && navId) navigate(`/experience/${navId}`);
+            else if (type === "werk" && navId) navigate(`/work/${navId}`);
+            else if (type === "impact") navigate("/impact");
+          }}
+        />
+      ),
       support:      () => <SupportPage onBack={handleBack} userId={user?.id} userEmail={profile?.email} userName={profile?.display_name || profile?.full_name} />,
       settings:     () => <KontoPage              onBack={handleBack}
                             onLogout={() => { supabase.auth.signOut(); navigate("/login"); }} />,

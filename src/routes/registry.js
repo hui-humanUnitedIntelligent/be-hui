@@ -226,6 +226,35 @@ export const ROUTE_REGISTRY = Object.freeze([
     ].join(" "),
   },
 
+  {
+    id:            "experience-detail",
+    path:          "/experience/:id",
+    name:          "Erlebnis Detail",
+    owner:         OWNER.COMMERCE,
+    authLevel:     AUTH.PROTECTED,
+    loading:       LOADING.LAZY,
+    routeType:     ROUTE_TYPE.PAGE,
+    wrapper:       WRAPPER.PROTECTED_ROUTE,
+    redirect:      null,
+    errorBoundary: true,
+    layout:        "detail",
+    meta: {
+      title:       "HUI – Erlebnis",
+      description: "Erlebnisdetail und Buchung",
+      noIndex:     false,
+    },
+    analytics: {
+      trackPageView: true,
+      eventName:     "page_experience_detail",
+    },
+    featureFlags:  ["commerce"],
+    notes: [
+      "LAZY. Wrapped in ExperienceDetailRouteWrapper.",
+      "onBookExperience: navigate('/Home', { state: { pendingExperienceCart } }).",
+      "Phase 2.3: Kanonische Erlebnis-Detailseite.",
+    ].join(" "),
+  },
+
   // ── 06: Profil (öffentlich) ───────────────────────────────────────────────
   // Öffentliche Profilseite per Username.
   // Wrapped in WirkerProfileRouteWrapper.

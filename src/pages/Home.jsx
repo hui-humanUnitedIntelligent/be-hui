@@ -31,7 +31,6 @@ import WerkKaufFlow           from "../components/commerce/WerkKaufFlow.jsx";   
 import WerkeKorb, { WerkeKorbButton } from "../components/commerce/WerkeKorb.jsx"; // KORB-01
 import UnterstutzenFlow                from "../components/commerce/UnterstutzenFlow.jsx"; // KORB-02
 import { clearCartAfterSuccess }        from "../components/commerce/commerceUtils.js";    // KORB-02
-import ExperienceBookingFlow  from "../components/commerce/ExperienceBookingFlow.jsx"; // COMMERCE-01
 // ── Tab-Pages: lazy → eigene Chunks, nur bei Bedarf geladen ────
 // PHASE 17.3: ImpactPage + DiscoverPage — direkte imports (Safari-safe, kein lazy)
 import DiscoverPage  from "./DiscoverPage.jsx";
@@ -161,7 +160,6 @@ function HomeInner() {
     showCreatorDash,   setShowCreatorDash,
     showCreatorDashboard,
     showWerkCheckout,  setShowWerkCheckout,  // COMMERCE-01 W-1
-    showBookingFlow,   setShowBookingFlow,   // COMMERCE-01 W-1
     showWerkeKorb,     setShowWerkeKorb,     // KORB-01
     showUnterstutzenFlow, setShowUnterstutzenFlow, // KORB-02
     cart,              setCart,              // KORB-01
@@ -181,10 +179,18 @@ function HomeInner() {
     const pending = location?.state?.pendingWerkKauf;
     if (pending && setShowWerkCheckout) {
       setShowWerkCheckout(pending);
-      // Router-State sofort leeren damit Reload nicht erneut öffnet
       try { window.history.replaceState({}, document.title, window.location.pathname); } catch {}
     }
-  }, [location?.state?.pendingWerkKauf]); // eslint-disable-line  // Activity Tracking: App-Start, Foreground, Heartbeat
+    const pendingExp = location?.state?.pendingExperienceCart;
+    if (pendingExp && setCart) {
+      setCart(prev => {
+        if (prev.some(x => x.id === pendingExp.id)) return prev;
+        return [...prev, pendingExp];
+      });
+      setShowWerkeKorb?.(true);
+      try { window.history.replaceState({}, document.title, window.location.pathname); } catch {}
+    }
+  }, [location?.state?.pendingWerkKauf, location?.state?.pendingExperienceCart]); // eslint-disable-line
 
 
   // ── Phase 4C: Talent Flow global registrieren ────────────────
@@ -372,17 +378,18 @@ function HomeInner() {
                     openProfileById(userId);
                   }}
                   onBook={(item) => {
-                    // KORB-01: Werk/Experience → Werkekorb
-                    if (!item?.id) return;
-                    setCart(prev => {
-                      if (prev.some(x => x.id === item.id)) return prev;
-                      return [...prev, item];
-                    });
-                    setShowWerkeKorb(false); // kurzer Glow, kein Auto-Open
+                    const expId = item?.id || item?._raw?.id;
+                    if (expId) navigate(`/experience/${expId}`);
                   }}
                   onDetail={(item) => {
-                    const werkId = item?.id || item?._raw?.id;
-                    if (werkId) navigate(`/work/${werkId}`);
+                    const itemId = item?.id || item?._raw?.id;
+                    const itemType = item?.type || item?._raw?.type;
+                    if (!itemId) return;
+                    if (itemType === "experience") {
+                      navigate(`/experience/${itemId}`);
+                    } else {
+                      navigate(`/work/${itemId}`);
+                    }
                   }}
                   onShare={() => setShowTeilen(true)}
                   onEventPress={(ev) => {
@@ -418,10 +425,6 @@ function HomeInner() {
                 <DiscoverPage
                     onView={(id) => { if(id) openProfileById(id); }}
                     onMap={() => setShowMap(true)}
-                    onBook={(item) => {
-                      // Erlebnis aus DiscoverPage → ExperienceBookingFlow
-                      setShowBookingFlow(item);
-                    }}
                   />
               </SafeRender>
             </Suspense>
@@ -535,7 +538,10 @@ function HomeInner() {
           }}
           onClearCart={() => { clearCartAfterSuccess(setCart); clearCartPersist?.(); }}
           onDiscover={() => { setShowUnterstutzenFlow(false); handleTab("discover"); }}
-          onResonanzCenter={() => setShowUnterstutzenFlow(false)}
+          onResonanzCenter={() => {
+            setShowUnterstutzenFlow(false);
+            navigate("/studio/resonanz");
+          }}
         />
       )}
 
@@ -548,15 +554,6 @@ function HomeInner() {
           onClose={() => setShowWerkCheckout(null)}
         />
       )}
-
-      {/* ── ExperienceBookingFlow — COMMERCE-01 ─────────────────── */}
-      {showBookingFlow && (
-        <ExperienceBookingFlow
-          experience={showBookingFlow}
-          onClose={() => setShowBookingFlow(null)}
-        />
-      )}
-
 
       {/* ── Connection Create ───────────────────────────────────── */}
       {showConnect && SAFE_MODE.connectFlow && (

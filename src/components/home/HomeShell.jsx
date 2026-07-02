@@ -4,6 +4,7 @@
 import React, {
   useState, useCallback, useEffect, useMemo, useRef, createContext, useContext,
 } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth }        from "../../lib/AuthContext";
 import { isProfileTalent } from '../../lib/profileUtils.js';
 import { NavigatorProvider, SCREENS, useNavigateTo } from "../../core/hui.navigator.jsx";
@@ -41,6 +42,8 @@ export function useHome() {
 
 /* ── HomeShell ────────────────────────────────────────────────── */
 export default function HomeShell({ children }) {
+
+  const navigate = useNavigate();
 
   /* Auth */
   const {
@@ -327,6 +330,7 @@ export default function HomeShell({ children }) {
     clearCartPersist,
     openOwnProfile,
     flowStore,
+    navigate,
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [
     user, authProfile, isTalent, isBaseUser, canCreate, isMember,
@@ -348,7 +352,7 @@ export default function HomeShell({ children }) {
     showCreatorDash, showWerkDetail, showWerkCheckout, showWerkeKorb,
     showUnterstutzenFlow, showBookingFlow,
     createType, activeStory, cart, clearCartPersist,
-    openOwnProfile, flowStore,
+    openOwnProfile, flowStore, navigate,
   ]);
 
   return (
