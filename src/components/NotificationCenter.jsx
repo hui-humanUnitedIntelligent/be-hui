@@ -5,7 +5,6 @@
 // Props: { onClose, onNavigate } — rückwärtskompatibel.
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { createPortal } from "react-dom";
 import { S } from "../core/hui.sources.js";
 import { supabase }    from "../lib/supabaseClient";
 import { useAppState } from "../lib/AppStateContext";
@@ -110,57 +109,6 @@ function getType(n) {
 /* ══════════════════════════════════════════════════════════════
    HELPER
 ══════════════════════════════════════════════════════════════ */
-const MOCK_NOTIFS = [
-  { id:"n1", type:"begegnung", message:"Mia hat auf deine Anfrage geantwortet.",
-    body:"Keramik & Handwerk 🏺", created_at:new Date(Date.now()-25*60000).toISOString(),
-    read:false, avatar:"https://i.pravatar.cc/52?img=47", unread_count:2,
-    action_label:"Resonanz lesen", action_url:"/chat" },
-  { id:"n2", type:"buchung", message:"Deine Begegnung mit Mia beginnt morgen ✦",
-    body:"18:00 · Atelier Mia · Berlin", created_at:new Date(Date.now()-45*60000).toISOString(),
-    read:false, avatar:"https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=80&q=75",
-    action_label:"Begegnung ansehen", action_url:"/bookings", is_image:true },
-  { id:"n3", type:"impact", message:"Durch deine letzte Buchung wurden \u20ac2,25 dem Impact Pool hinzugef\u00fcgt.",
-    body:"", created_at:new Date(Date.now()-90*60000).toISOString(),
-    read:false, avatar:null, icon_override:"🌿" },
-  { id:"n4", type:"community", message:"127 Menschen unterst\u00fctzen jetzt das Projekt Musikr\u00e4ume f\u00fcr junge K\u00fcnstler.",
-    body:"", created_at:new Date(Date.now()-3*60*60000).toISOString(),
-    read:false, avatar:"https://i.pravatar.cc/52?img=53", group_avatars:["https://i.pravatar.cc/28?img=21","https://i.pravatar.cc/28?img=36","https://i.pravatar.cc/28?img=9"] },
-  { id:"n5", type:"begegnung", message:"Leon hat dein Werk in seinen Raum aufgenommen ❖",
-    body:"", created_at:new Date(Date.now()-60*60*24*1000).toISOString(),
-    read:true, avatar:"https://i.pravatar.cc/52?img=53", icon_override:"❤️" },
-  { id:"n6", type:"inspiration", message:"Ein neues Erlebnis k\u00f6nnte zu deinem kreativen Rhythmus passen.",
-    body:"", created_at:new Date(Date.now()-60*60*25*1000).toISOString(),
-    read:true, avatar:"https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=80&q=75", is_image:true,
-    action_label:"Entdecken", action_url:"/discover" },
-  { id:"n7", type:"begegnung", message:"Clara m\u00f6chte mit dir \u00fcber eine Zusammenarbeit sprechen.",
-    body:"", created_at:new Date(Date.now()-60*60*60*1000).toISOString(),
-    read:true, avatar:"https://i.pravatar.cc/52?img=5" },
-];
-
-const MOCK_CHAT = {
-  other_profile:{ display_name:"Mia Kern", avatar_url:"https://i.pravatar.cc/80?img=47",
-    talent:"Keramik & Handwerk", location:"Berlin" },
-  presence:"präsent", presenceLabel:"Gerade im Atelier",
-  booking_title:"Begegnung ❖ Formen der Erde",
-  category:"Keramik & Handwerk", categoryIcon:"\uD83C\uDFFA",
-};
-
-const MOCK_MESSAGES = [
-  { id:"m1", sender:"other", type:"text",
-    text:"Hey! Sch\u00f6n von dir zu h\u00f6ren \uD83D\uDE0A\nDanke f\u00fcr dein Interesse an meinem Workshop.",
-    created_at:new Date(Date.now()-55*60000).toISOString() },
-  { id:"m2", sender:"me", type:"text",
-    text:"Hallo Mia! Ich freue mich schon sehr darauf. Kannst du mir noch sagen, was ich mitbringen sollte?",
-    created_at:new Date(Date.now()-50*60000).toISOString() },
-  { id:"m3", sender:"other", type:"text",
-    text:"Gerne! Alles, was dich inspiriert \u2013 und wenn du ein Instrument hast, bring es mit. Ansonsten ist alles da im Atelier.",
-    created_at:new Date(Date.now()-46*60000).toISOString(), reaction:"\u2764\uFE0F", reactionCount:1 },
-  { id:"m4", sender:"me", type:"text",
-    text:"Perfekt, danke dir! \uD83C\uDF3F\uD83C\uDF4B",
-    created_at:new Date(Date.now()-40*60000).toISOString() },
-  { id:"m5", sender:"other", type:"voice", duration:"0:28",
-    created_at:new Date(Date.now()-36*60000).toISOString() },
-];
 
 const PILLS = ["Alle","Begegnungen","Begleitung","Wirkung","Inspiration"];
 
@@ -191,7 +139,8 @@ function groupByDay(notifs) {
 /* ══════════════════════════════════════════════════════════════
    HERO IMPACT CARD
 ══════════════════════════════════════════════════════════════ */
-function HeroImpactCard({ weeklyEur = 8950 }) {
+function HeroImpactCard({ weeklyEur = 0 }) {
+  if (!weeklyEur || weeklyEur <= 0) return null;
   return (
     <div style={{
       margin:"0 0 0",
@@ -368,7 +317,7 @@ function MiniChatDetail({ chat, messages, onBack, onSend, isWide }) {
   }, [messages]);
 
   const other = chat?.other_profile || {};
-  const msgList = messages?.length > 0 ? messages : MOCK_MESSAGES;
+  const msgList = messages || [];
 
   return (
     <div style={{
@@ -474,7 +423,13 @@ function MiniChatDetail({ chat, messages, onBack, onSend, isWide }) {
             Heute
           </span>
         </div>
-        {msgList.map((msg, i) => {
+        {msgList.length === 0 ? (
+          <div style={{ textAlign:"center", padding:"48px 24px", color:C.muted }}>
+            <div style={{ fontSize:32, marginBottom:12, opacity:0.45 }}>💬</div>
+            <div style={{ fontSize:14, fontWeight:600, color:C.ink, marginBottom:6 }}>Noch keine Nachrichten</div>
+            <div style={{ fontSize:12.5, lineHeight:1.55 }}>Sobald eine Begegnung beginnt, erscheint der Austausch hier.</div>
+          </div>
+        ) : msgList.map((msg, i) => {
           const isOwn = msg.sender === "me";
           if (msg.type === "voice") return (
             <div key={msg.id || i} style={{ display:"flex", alignItems:"flex-end", gap:8,
@@ -820,7 +775,7 @@ export default function NotificationCenter({ onClose, onNavigate }) {
   const [activeFilter,  setActiveFilter]  = useState("Alle");
   const [detailNotif,   setDetailNotif]   = useState(null);
   const [activeNotif,   setActiveNotif]   = useState(null);
-  const [weeklyEur,     setWeeklyEur]     = useState(8950);
+  const [weeklyEur,     setWeeklyEur]     = useState(0);
   const safeInnerWidth = typeof window !== "undefined" ? window.innerWidth : 390;
   const [isWide, setIsWide] = React.useState(safeInnerWidth >= 1200);
   React.useEffect(() => {
@@ -931,8 +886,8 @@ export default function NotificationCenter({ onClose, onNavigate }) {
       {(isWide || activeNotif) && (
         activeNotif ? (
           <MiniChatDetail
-            chat={MOCK_CHAT}
-            messages={MOCK_MESSAGES}
+            chat={activeNotif.chat || { other_profile: { display_name: activeNotif.sender_name || "Begegnung" } }}
+            messages={activeNotif.messages || []}
             onBack={() => setActiveNotif(null)}
             isWide={isWide}
           />
