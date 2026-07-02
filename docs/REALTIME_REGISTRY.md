@@ -33,6 +33,8 @@ Beispiele:
 | `comments:{workId}` | `components/CommentSection.jsx` | INSERT comments | ✅ useEffect return | inline |
 | `works-feed` | `components/DiscoveryFeed.jsx` | INSERT works | ✅ useEffect return | feed list |
 | `chat-{chatId}` | `components/MeinHUI_SubPages.jsx` | INSERT messages | ✅ useEffect return | NachrichtenPage |
+| `stripe_impact_pool_realtime` | `hooks/useStripeImpactPool.js` | * stripe_impact_pool, INSERT stripe_impact_pool_events | ✅ useEffect return | `useStripeImpactPool()` |
+| `payout_{ambassadorId}` | `hooks/useAmbassadorPayout.js` | * stripe_payouts, * stripe_ambassador_commissions | ✅ useEffect return | `useAmbassadorPayout()` |
 
 ---
 
@@ -83,3 +85,4 @@ useEffect(() => {
 
 ---
 *Generiert: Phase 4A.4 — Stand 2026-05-17*
+*Nachgetragen: Stripe-Impact-Pool + Ambassador-Payout Kanäle — Stand 2026-07-02 (ARCH-006.1 Sync-Audit)*
