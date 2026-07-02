@@ -33,7 +33,7 @@ import { OrbSignatur }                             from "../components/profile/O
 
 // ── Tokens ───────────────────────────────────────────────────────
 const T = {
-  bg:       "#F7F5F0",
+  bg:       "#F9F7F4",
   bgCard:   "#FFFFFF",
   bgSheet:  "rgba(252,251,248,0.98)",
   teal:     "#0EC4B8",
@@ -51,7 +51,7 @@ const T = {
 };
 
 const CSS = `
-  .bpp-root { background:${T.bg}; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif; color:${T.ink}; }
+  .bpp-root { font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif; color:${T.ink}; }
   .bpp-scroll { overflow-y:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
   .bpp-scroll::-webkit-scrollbar { display:none; }
   .bpp-hscroll { overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
@@ -131,10 +131,14 @@ function Sheet({ onClose, children }) {
 function NavBar({ onBack, isOwner = false, onSettings }) {
   return (
     <div style={{
-      display:"flex", alignItems:"center", justifyContent:"space-between",
-      padding:`14px ${T.px}px 10px`,
+      position:"sticky", top:0, zIndex:10,
       background:T.bg,
     }}>
+      <div style={{ height:"env(safe-area-inset-top,0)" }}/>
+      <div style={{
+        display:"flex", alignItems:"center", justifyContent:"space-between",
+        padding:`8px ${T.px}px 10px`,
+      }}>
       {/* Back */}
       <button className="bpp-press" onClick={onBack} style={{
         width:36, height:36, borderRadius:"50%",
@@ -173,6 +177,7 @@ function NavBar({ onBack, isOwner = false, onSettings }) {
           boxShadow:T.card, color:T.ink, letterSpacing:"1px",
         }}>···</button>
       )}
+      </div>
     </div>
   );
 }
@@ -434,21 +439,19 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
   }, [user?.id, reload]);
 
   return (
-    <div className="bpp-root" style={{
-      position:"fixed", inset:0, zIndex:9500,
-      display:"flex", flexDirection:"column",
+    <div style={{
+      position:"relative",
       opacity:mounted?1:0,
       transform:mounted?"none":"translateY(14px)",
       transition:"opacity .35s ease, transform .35s cubic-bezier(.22,1,.36,1)",
     }}>
       <style>{CSS}</style>
 
-      {/* Sticky header */}
       <NavBar onBack={handleBack} isOwner={isOwner} onSettings={() => setShowSettings(true)}/>
 
       {/* P3: Chat-Button — nur für Besucher (nicht für Owner selbst) */}
       {profile && !loading && !isOwner && (
-        <div style={{ position:"absolute", top:12, right:52, zIndex:10001 }}>
+        <div style={{ position:"absolute", top:"calc(env(safe-area-inset-top, 0px) + 8px)", right:52, zIndex:10001 }}>
           <button
             className="bpp-press"
             onClick={handleOpenChat}
@@ -462,10 +465,6 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
           ><span style={{fontSize:17}}>💬</span></button>
         </div>
       )}
-
-      {/* Scrollable body */}
-      <div className="bpp-scroll" style={{ flex:1, overflowY:"auto",
-        paddingBottom:"max(40px,calc(28px + env(safe-area-inset-bottom,0px)))" }}>
 
         {/* 1. Kanonischer ProfileHeader (Sprint F.9D) */}
         <CanonicalProfileHeader
@@ -618,8 +617,6 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
             </div>
           </div>
         )}
-
-      </div>
 
       {/* ── Modals (nur Owner) ─────────────────────────────────── */}
       {isOwner && showSettings && (
