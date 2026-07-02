@@ -10,11 +10,11 @@
 | Severity | Anzahl |
 |---|---|
 | 🔴 CRITICAL | 42 |
-| 🟠 HIGH | 112 |
+| 🟠 HIGH | 111 |
 | 🟡 MEDIUM | 185 |
 | 🔵 LOW | 23 |
 | ⚪ INFO | 267 |
-| **Gesamt** | **629** |
+| **Gesamt** | **628** |
 
 ## CORE_BYPASS (42)
 
@@ -235,7 +235,7 @@ const { error } = await supabase.from("impact_votes").insert({
 await supabase.from('profiles').upsert(profileData, { onConflict: 'id' });
 ```
 
-### 🔴 `pages/MyBasisProfile.jsx` L546
+### 🔴 `pages/MyBasisProfile.jsx` L547
 **Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).**
 
 ```
@@ -277,35 +277,35 @@ const { error } = await supabase.from("profiles")
 const { error } = await supabase.from("profiles")
 ```
 
-### 🔴 `services/db.js` L71
+### 🔴 `services/db.js` L74
 **Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).**
 
 ```
 supabase.from('profiles')
 ```
 
-### 🔴 `services/db.js` L84
+### 🔴 `services/db.js` L87
 **Core Bypass: Direkter Write auf Core-Tabelle 'profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).**
 
 ```
 supabase.from('profiles')
 ```
 
-### 🔴 `services/db.js` L170
+### 🔴 `services/db.js` L173
 **Core Bypass: Direkter Write auf Core-Tabelle 'wirker_profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).**
 
 ```
 supabase.from('wirker_profiles')
 ```
 
-### 🔴 `services/db.js` L185
+### 🔴 `services/db.js` L188
 **Core Bypass: Direkter Write auf Core-Tabelle 'wirker_profiles'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).**
 
 ```
 supabase.from('wirker_profiles')
 ```
 
-### 🔴 `services/db.js` L505
+### 🔴 `services/db.js` L608
 **Core Bypass: Direkter Write auf Core-Tabelle 'impact_votes'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).**
 
 ```
@@ -370,7 +370,7 @@ setTimeout(() => { window.location.href = '/login' }, 1500)
 window.location.replace('/Home?v=' + v);
 ```
 
-## DB_DIRECT_WRITE (71)
+## DB_DIRECT_WRITE (70)
 
 ### 🟠 `components/HuiCreateFlow.jsx` L324
 **Direkter DB-Write (INSERT) auf 'stories' in COMPONENTS-Schicht. Verwende Service-Layer.**
@@ -757,18 +757,11 @@ const { error } = await supabase.from("impact_votes").insert({
 await supabase.from('profiles').upsert(profileData, { onConflict: 'id' });
 ```
 
-### 🟠 `pages/MyBasisProfile.jsx` L546
+### 🟠 `pages/MyBasisProfile.jsx` L547
 **Direkter DB-Write (UPDATE) auf 'profiles' in PAGES-Schicht. Verwende Service-Layer.**
 
 ```
 const { error: saveErr } = await supabase.from("profiles")
-```
-
-### 🟠 `pages/MyBasisProfile.jsx` L1456
-**Direkter DB-Write (UPDATE) auf 'works' in PAGES-Schicht. Verwende Service-Layer.**
-
-```
-await supabase.from("works").update({ status: "deleted", visibility: "private" }).eq("id", w.id);
 ```
 
 ### 🟠 `pages/MyCreatorDashboard.jsx` L787
@@ -993,10 +986,10 @@ components/HuiCreateFlow.jsx, components/StoryComposer.jsx, components/teilen/Te
 ```
 
 ### 🟠 `components/HuiCreateFlow.jsx`
-**Duplicate Owner für Tabelle 'works': 9 Dateien schreiben diese Tabelle.**
+**Duplicate Owner für Tabelle 'works': 8 Dateien schreiben diese Tabelle.**
 
 ```
-components/HuiCreateFlow.jsx, components/WerkPublisher.jsx, components/profile/sections/WorksSection.jsx, components/publishing/PublishWorkFlow.jsx, components/works/WerkWizard.jsx, pages/MyBasisProfile.jsx, services/content.js, services/db.js, system/flows/work/WorkFlow.jsx
+components/HuiCreateFlow.jsx, components/WerkPublisher.jsx, components/profile/sections/WorksSection.jsx, components/publishing/PublishWorkFlow.jsx, components/works/WerkWizard.jsx, services/content.js, services/db.js, system/flows/work/WorkFlow.jsx
 ```
 
 ### 🟠 `components/HuiMomentSheet.jsx`

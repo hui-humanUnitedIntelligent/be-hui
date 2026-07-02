@@ -7,6 +7,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient.js";
+import { WorkService } from "../services/db.js";
 import {
   FB_AVATAR,
   handleAvatarUpload, handleCoverUpload,
@@ -471,12 +472,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
   };
   const [unreadCount,       setUnreadCount]       = useState(0);
   // ── Sprint F.7D: Einheitliche Datenpipeline via useProfileData ──────────
-  // Ersetzt: eigenen Profil-Loader useEffect (Zeilen ~962-1003)
-  // Beibehaltung: Realtime-Listener für works+experiences (Regel 1)
+  // ARCH-004: works + experiences → WorkService (Content-Domain Ownership Recovery)
   const {
     profile,
-    works:           hooksWorks,
-    experiences:     hooksExps,
     recommendations: hooksRecs,
     moments:         hooksMoments,
     loading:         hookLoading,
@@ -484,13 +482,40 @@ export default function MyBasisProfile({ onClose, profileId }) {
     followCounts,
   } = useProfileData(user?.id);
 
+  const [contentWorks,       setContentWorks]       = useState([]);
+  const [contentExperiences, setContentExperiences] = useState([]);
+  const [contentLoading,     setContentLoading]     = useState(false);
+
+  const reloadContent = useCallback(async () => {
+    const uid = user?.id;
+    if (!uid) return;
+    const { works: w, experiences: e, error } = await WorkService.loadOwnerContent(uid);
+    if (!error) {
+      setContentWorks(w);
+      setContentExperiences(e);
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    let cancelled = false;
+    setContentLoading(true);
+    WorkService.loadOwnerContent(user.id)
+      .then(({ works: w, experiences: e, error }) => {
+        if (cancelled || error) return;
+        setContentWorks(w);
+        setContentExperiences(e);
+      })
+      .finally(() => { if (!cancelled) setContentLoading(false); });
+    return () => { cancelled = true; };
+  }, [user?.id]);
+
   // F.9C HOTFIX: lokale Aliase erst NACH useProfileData — TDZ-Fix
-  // (hooksWorks/hooksExps/hooksRecs/profile sind jetzt deklariert)
   const ambState = useAmbassador(profile);
   const [localWorks,       setLocalWorks]       = useState(null);
   const [localExperiences, setLocalExperiences] = useState(null);
-  const works          = localWorks       ?? hooksWorks ?? [];
-  const experiences    = localExperiences ?? hooksExps  ?? [];
+  const works          = localWorks       ?? contentWorks       ?? [];
+  const experiences    = localExperiences ?? contentExperiences ?? [];
   const recommendations = hooksRecs ?? [];
   const [showWerkWizard, setShowWerkWizard] = useState(false);
   const [showExpWizard,  setShowExpWizard]  = useState(false);
@@ -504,35 +529,11 @@ export default function MyBasisProfile({ onClose, profileId }) {
   // skills → profile.skills direkt aus useProfileData
   // is_available → profile.is_available direkt aus useProfileData
 
-  // ── Sprint F.7D: Realtime-Listener (Regel 1: beibehalten, nutzt reload()) ──
-  // loadWorksAndExps() entfernt — useProfileData lädt works+experiences
-  // reload() triggert useProfileData neu → Realtime-Events bleiben wirksam
+  // ── ARCH-004: Realtime via WorkService (Regel 1: beibehalten) ─────────────
   useEffect(() => {
     if (!profile?.id) return;
-    let channel;
-
-    // Realtime: wenn Admin Status ändert → useProfileData neu laden
-    channel = supabase
-      .channel("mbp:works-exps:" + profile.id)
-      .on("postgres_changes", {
-        event: "UPDATE", schema: "public", table: "works",
-        filter: "user_id=eq." + profile.id,
-      }, () => reload())
-      .on("postgres_changes", {
-        event: "UPDATE", schema: "public", table: "experiences",
-        filter: "user_id=eq." + profile.id,
-      }, () => reload())
-      // Admin Hard-Delete → sofort neu laden
-      .on("postgres_changes", {
-        event: "DELETE", schema: "public", table: "experiences",
-      }, () => reload())
-      .on("postgres_changes", {
-        event: "DELETE", schema: "public", table: "projects",
-      }, () => reload())
-      .subscribe();
-
-    return () => { if (channel) supabase.removeChannel(channel); };
-  }, [profile?.id, reload]);
+    return WorkService.subscribeOwnerContent(profile.id, reloadContent);
+  }, [profile?.id, reloadContent]);
 
   // Auto-save on bio/interests/visibility change (debounced 1.2s)
   // ── Sprint F.7D Phase 3: Explizite Save-Handler (autoSave entfernt) ─────
@@ -632,8 +633,10 @@ export default function MyBasisProfile({ onClose, profileId }) {
   }, []);
 
 
+  const pageLoading = hookLoading || contentLoading;
+
   // Sofort sichtbarer Spinner während Profil lädt — kein weißer Screen
-  if (hookLoading) {
+  if (pageLoading) {
     return (
       <div style={{
         position:"fixed", inset:0, zIndex:9500,
@@ -765,7 +768,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           }}
           isOwner={true}
           isTalent={!!profile?.is_talent}
-          loading={hookLoading}
+          loading={pageLoading}
           followCounts={followCounts}
           onEditAvatar={handleAvatarChange}
           onEditCover={handleCoverChange}
@@ -827,7 +830,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
               userId={profile?.id}
               works={works}
               onWerkWizard={(w) => { setEditingWerk(w || null); setShowWerkWizard(true); }}
-              onDeleteWerk={(id) => { setLocalWorks(null); reload(); }}
+              onDeleteWerk={(id) => { setLocalWorks(null); reloadContent(); }}
             />
             <Gap h={24}/>
 
@@ -835,7 +838,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
             <ErlebnisseSection
               experiences={experiences}
               onErlebnisWizard={(exp) => { setEditingExp(exp || null); setShowExpWizard(true); }}
-              onDeleteErlebnis={(id) => { setLocalExperiences(null); reload(); }}
+              onDeleteErlebnis={(id) => { setLocalExperiences(null); reloadContent(); }}
             />
             <Gap h={24}/>
 
@@ -1064,7 +1067,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           onSaved={(werk) => {
             setShowWerkWizard(false); setEditingWerk(null);
             setLocalWorks(prev => {
-              const list = Array.isArray(prev) ? prev : (Array.isArray(hooksWorks) ? hooksWorks : []);
+              const list = Array.isArray(prev) ? prev : (Array.isArray(contentWorks) ? contentWorks : []);
               const idx = list.findIndex(w => w.id === werk.id);
               if (idx >= 0) { const n=[...list]; n[idx]=werk; return n; }
               return [werk, ...list];
@@ -1082,7 +1085,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           onSaved={(exp) => {
             setShowExpWizard(false); setEditingExp(null);
             setLocalExperiences(prev => {
-              const list = Array.isArray(prev) ? prev : (Array.isArray(hooksExps) ? hooksExps : []);
+              const list = Array.isArray(prev) ? prev : (Array.isArray(contentExperiences) ? contentExperiences : []);
               const idx = list.findIndex(e => e.id === exp.id);
               if (idx >= 0) { const n=[...list]; n[idx]=exp; return n; }
               return [exp, ...list];
@@ -1459,7 +1462,7 @@ function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
     setConfirmWork(null);
     if (!w?.id) return;
     try {
-      await supabase.from("works").update({ status: "deleted", visibility: "private" }).eq("id", w.id);
+      await WorkService.softDeleteOwnerWork(w.id);
       onDeleteWerk(w.id);
     } catch(e) { console.error("Werk löschen:", e); }
   };
@@ -1566,17 +1569,11 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
     setConfirmExp(null);
     if (!exp?.id) return;
     try {
-      const table = exp._source === "projects" ? "projects" : "experiences";
-      // Hard-Delete: Zeile vollständig aus DB entfernen
-      // → Realtime triggert Admin-Dashboard, Zeile verschwindet dort sofort
-      const { error } = await supabase.from(table).delete().eq("id", exp.id);
+      const { error } = await WorkService.deleteOwnerExperience(exp.id, exp._source);
       if (!error) {
         onDeleteErlebnis(exp.id);
       } else {
         console.error("Erlebnis löschen:", error);
-        // Fallback: soft-delete wenn Hard-Delete nicht erlaubt (RLS)
-        await supabase.from(table).update({ status: "deleted" }).eq("id", exp.id);
-        onDeleteErlebnis(exp.id);
       }
     } catch(e) { console.error("Erlebnis löschen:", e); }
   };
