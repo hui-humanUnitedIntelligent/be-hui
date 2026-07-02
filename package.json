@@ -13,6 +13,7 @@
     "architecture:audit": "node --experimental-vm-modules src/architecture/scanner/cli.js --mode=audit",
     "architecture:report": "node --experimental-vm-modules src/architecture/scanner/cli.js --mode=report",
     "architecture:graph": "node --experimental-vm-modules src/architecture/scanner/cli.js --mode=graph",
+    "architecture:semantic": "node --experimental-vm-modules src/architecture/scanner/cli.js --mode=semantic",
     "architecture:all": "node --experimental-vm-modules src/architecture/scanner/cli.js --mode=all"
   },
   "dependencies": {

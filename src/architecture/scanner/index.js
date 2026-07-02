@@ -28,3 +28,4 @@ export {
   generateDependencyGraphReport,
 } from './reportGenerator.js';
 export { getDomainForPath, DOMAINS, isImportAllowed } from './domains.js';
+export { runScan, SCAN_VERSION } from '../runScan.js';

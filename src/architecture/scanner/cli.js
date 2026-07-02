@@ -13,6 +13,7 @@
 //   --mode=audit    Nur Violations prüfen (kein Report schreiben)
 //   --mode=report   Reports + JSONs generieren
 //   --mode=graph    Nur Graphen generieren
+//   --mode=semantic Semantic Graph + Reports (ARCH-002.1)
 //   --mode=all      Alles generieren (Standard)
 //   --fail-on-high  Exit 1 bei HIGH+ Violations (für CI/CD)
 //   --quiet         Minimale Ausgabe
@@ -41,7 +42,7 @@ function err(...msg) { console.error(...msg); }
 async function main() {
   log('');
   log('╔════════════════════════════════════════════════════╗');
-  log('║   HUI Architecture Scanner — ARCH-001              ║');
+  log('║   HUI Architecture Scanner — ARCH-002.1            ║');
   log('╚════════════════════════════════════════════════════╝');
   log('');
   log(`Mode: ${MODE} | Fail-on-high: ${FAIL_ON_HIGH}`);
@@ -180,6 +181,36 @@ async function main() {
     }
   }
 
+  // ── Semantic graph (ARCH-002.1) ───────────────────────────────────────────
+  if (MODE === 'semantic' || MODE === 'all') {
+    const { runScan } = await import('../runScan.js');
+    const scan = await runScan(SRC_ROOT, { projectRoot: PROJECT_ROOT });
+
+    writeFileSync(join(DOCS_OUT, 'graph.json'), JSON.stringify(scan.graphJSON, null, 2), 'utf8');
+    log(`  → docs/generated/graph.json (${scan.graphJSON.nodeCount} nodes)`);
+
+    if (scan.semanticGraphReport) {
+      writeFileSync(join(DOCS_OUT, 'semantic-graph.md'), scan.semanticGraphReport, 'utf8');
+      log('  → docs/generated/semantic-graph.md');
+    }
+
+    if (scan.semanticReports) {
+      for (const [filename, content] of Object.entries(scan.semanticReports)) {
+        writeFileSync(join(DOCS_OUT, filename), content, 'utf8');
+        log(`  → docs/generated/${filename}`);
+      }
+    }
+
+    // Sample explain output for documentation
+    const samples = {
+      bookingContext: scan.whyDoesThisExist('lib/bookingContext.js'),
+      huiRegistry: scan.whyDoesThisExist('registry/HuiRegistry.js'),
+      discoveryProtection: scan.whatProtects('Discovery'),
+    };
+    writeFileSync(join(DOCS_OUT, 'explain-samples.json'), JSON.stringify(samples, null, 2), 'utf8');
+    log('  → docs/generated/explain-samples.json');
+  }
+
   // ── 7. Graphen generieren ─────────────────────────────────────────────────
   if (MODE === 'graph' || MODE === 'all') {
     const graphs = {
@@ -198,6 +229,13 @@ async function main() {
   // ── 8. Fertig ─────────────────────────────────────────────────────────────
   log('');
   log(`✅ Abgeschlossen. Output: docs/generated/`);
+
+  if (MODE === 'semantic') {
+    log('');
+    log('✅ Semantic scan abgeschlossen.');
+    process.exit(0);
+    return;
+  }
 
   // Exit-Code für CI/CD
   if (critical.length > 0) {
