@@ -1,0 +1,1700 @@
+[
+  {
+    "id": "KERNEL-RULE-OWNERSHIP",
+    "type": "OWNERSHIP_VIOLATION",
+    "domainId": "KERNEL",
+    "severity": "HIGH"
+  },
+  {
+    "id": "KERNEL-RULE-LAYER",
+    "type": "DOMAIN_LAYER",
+    "domainId": "KERNEL",
+    "severity": "HIGH"
+  },
+  {
+    "id": "KERNEL-RULE-SERVICE",
+    "type": "SERVICE_BYPASS",
+    "domainId": "KERNEL",
+    "severity": "HIGH"
+  },
+  {
+    "id": "KERNEL-RULE-CONTEXT",
+    "type": "DOMAIN_CONTEXT",
+    "domainId": "KERNEL",
+    "severity": "MEDIUM"
+  },
+  {
+    "id": "KERNEL-RULE-NEVER-WRITE-profiles",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "KERNEL",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "KERNEL-RULE-NEVER-WRITE-wirker_profiles",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "KERNEL",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "KERNEL-RULE-NEVER-WRITE-impact_votes",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "KERNEL",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "KERNEL-RULE-NEVER-WRITE-resonance_signals",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "KERNEL",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "KERNEL-RULE-NEVER-WRITE-orb_states",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "KERNEL",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "KERNEL-RULE-NEVER-WRITE-core_metrics",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "KERNEL",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "KERNEL-RULE-NEVER-WRITE-bookings",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "KERNEL",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "KERNEL-RULE-NEVER-WRITE-works",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "KERNEL",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "KERNEL-RULE-NEVER-WRITE-messages",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "KERNEL",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "KERNEL-RULE-NEVER-WRITE-notifications",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "KERNEL",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "KERNEL-RULE-EVENT-FORBIDDEN-resonance_sent",
+    "type": "EVENT_ABUSE",
+    "domainId": "KERNEL",
+    "severity": "HIGH"
+  },
+  {
+    "id": "KERNEL-RULE-EVENT-FORBIDDEN-orb_evolved",
+    "type": "EVENT_ABUSE",
+    "domainId": "KERNEL",
+    "severity": "HIGH"
+  },
+  {
+    "id": "KERNEL-RULE-EVENT-FORBIDDEN-booking_completed",
+    "type": "EVENT_ABUSE",
+    "domainId": "KERNEL",
+    "severity": "HIGH"
+  },
+  {
+    "id": "KERNEL-RULE-EVENT-FORBIDDEN-message_sent",
+    "type": "EVENT_ABUSE",
+    "domainId": "KERNEL",
+    "severity": "HIGH"
+  },
+  {
+    "id": "KERNEL-RULE-UI",
+    "type": "COMPONENT_BYPASS",
+    "domainId": "KERNEL",
+    "severity": "LOW"
+  },
+  {
+    "id": "KERNEL-SCAN-01",
+    "type": "CONTRACT_VIOLATION",
+    "domainId": "KERNEL",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "KERNEL-SCAN-02",
+    "type": "DOMAIN_LAYER",
+    "domainId": "KERNEL",
+    "severity": "HIGH"
+  },
+  {
+    "id": "KERNEL-SCAN-03",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "KERNEL",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "KERNEL-SCAN-04",
+    "type": "COMPONENT_BYPASS",
+    "domainId": "KERNEL",
+    "severity": "LOW"
+  },
+  {
+    "id": "KERNEL-SCAN-05",
+    "type": "PAGE_BYPASS",
+    "domainId": "KERNEL",
+    "severity": "HIGH"
+  },
+  {
+    "id": "KERNEL-RULE-MIGRATION",
+    "type": "CONTRACT_VIOLATION",
+    "domainId": "KERNEL",
+    "severity": "INFO"
+  },
+  {
+    "id": "IDENTITY-RULE-OWNERSHIP",
+    "type": "OWNERSHIP_VIOLATION",
+    "domainId": "IDENTITY",
+    "severity": "HIGH"
+  },
+  {
+    "id": "IDENTITY-RULE-IMPORT-MATRIX",
+    "type": "DOMAIN_IMPORT",
+    "domainId": "IDENTITY",
+    "severity": "HIGH"
+  },
+  {
+    "id": "IDENTITY-RULE-SERVICE",
+    "type": "SERVICE_BYPASS",
+    "domainId": "IDENTITY",
+    "severity": "HIGH"
+  },
+  {
+    "id": "IDENTITY-RULE-CONTEXT",
+    "type": "DOMAIN_CONTEXT",
+    "domainId": "IDENTITY",
+    "severity": "MEDIUM"
+  },
+  {
+    "id": "IDENTITY-RULE-TABLE-OWNER-profiles",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "IDENTITY",
+    "severity": "HIGH"
+  },
+  {
+    "id": "IDENTITY-RULE-TABLE-OWNER-wirker_profiles",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "IDENTITY",
+    "severity": "HIGH"
+  },
+  {
+    "id": "IDENTITY-RULE-TABLE-OWNER-memberships",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "IDENTITY",
+    "severity": "HIGH"
+  },
+  {
+    "id": "IDENTITY-RULE-TABLE-OWNER-profile_modules",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "IDENTITY",
+    "severity": "HIGH"
+  },
+  {
+    "id": "IDENTITY-RULE-TABLE-OWNER-profile_views",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "IDENTITY",
+    "severity": "HIGH"
+  },
+  {
+    "id": "IDENTITY-RULE-NEVER-WRITE-works",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "IDENTITY",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "IDENTITY-RULE-NEVER-WRITE-bookings",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "IDENTITY",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "IDENTITY-RULE-NEVER-WRITE-messages",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "IDENTITY",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "IDENTITY-RULE-NEVER-WRITE-impact_votes",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "IDENTITY",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "IDENTITY-RULE-NEVER-WRITE-follows",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "IDENTITY",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "IDENTITY-RULE-EVENT-FORBIDDEN-resonance_sent",
+    "type": "EVENT_ABUSE",
+    "domainId": "IDENTITY",
+    "severity": "HIGH"
+  },
+  {
+    "id": "IDENTITY-RULE-EVENT-FORBIDDEN-impact_vote_cast",
+    "type": "EVENT_ABUSE",
+    "domainId": "IDENTITY",
+    "severity": "HIGH"
+  },
+  {
+    "id": "IDENTITY-RULE-EVENT-FORBIDDEN-work_published",
+    "type": "EVENT_ABUSE",
+    "domainId": "IDENTITY",
+    "severity": "HIGH"
+  },
+  {
+    "id": "IDENTITY-RULE-HOOK",
+    "type": "HOOK_BYPASS",
+    "domainId": "IDENTITY",
+    "severity": "MEDIUM"
+  },
+  {
+    "id": "IDENTITY-RULE-CORE",
+    "type": "CORE_WRITE",
+    "domainId": "IDENTITY",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "IDENTITY-SCAN-01",
+    "type": "CORE_WRITE",
+    "domainId": "IDENTITY",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "IDENTITY-SCAN-02",
+    "type": "OWNERSHIP_VIOLATION",
+    "domainId": "IDENTITY",
+    "severity": "HIGH"
+  },
+  {
+    "id": "IDENTITY-SCAN-03",
+    "type": "WORLD_DB_WRITE",
+    "domainId": "IDENTITY",
+    "severity": "HIGH"
+  },
+  {
+    "id": "IDENTITY-SCAN-04",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "IDENTITY",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "IDENTITY-RULE-MIGRATION",
+    "type": "CONTRACT_VIOLATION",
+    "domainId": "IDENTITY",
+    "severity": "INFO"
+  },
+  {
+    "id": "CONNECTION-RULE-OWNERSHIP",
+    "type": "OWNERSHIP_VIOLATION",
+    "domainId": "CONNECTION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "CONNECTION-RULE-IMPORT-MATRIX",
+    "type": "DOMAIN_IMPORT",
+    "domainId": "CONNECTION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "CONNECTION-RULE-SERVICE",
+    "type": "SERVICE_BYPASS",
+    "domainId": "CONNECTION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "CONNECTION-RULE-CONTEXT",
+    "type": "DOMAIN_CONTEXT",
+    "domainId": "CONNECTION",
+    "severity": "MEDIUM"
+  },
+  {
+    "id": "CONNECTION-RULE-TABLE-OWNER-follows",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "CONNECTION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "CONNECTION-RULE-TABLE-OWNER-connections",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "CONNECTION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "CONNECTION-RULE-TABLE-OWNER-recommendations",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "CONNECTION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "CONNECTION-RULE-TABLE-OWNER-user_match_scores",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "CONNECTION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "CONNECTION-RULE-TABLE-OWNER-referrals",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "CONNECTION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "CONNECTION-RULE-NEVER-WRITE-profiles",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "CONNECTION",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "CONNECTION-RULE-NEVER-WRITE-messages",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "CONNECTION",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "CONNECTION-RULE-NEVER-WRITE-works",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "CONNECTION",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "CONNECTION-RULE-NEVER-WRITE-bookings",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "CONNECTION",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "CONNECTION-RULE-EVENT-FORBIDDEN-resonance_sent",
+    "type": "EVENT_ABUSE",
+    "domainId": "CONNECTION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "CONNECTION-RULE-EVENT-FORBIDDEN-impact_vote_cast",
+    "type": "EVENT_ABUSE",
+    "domainId": "CONNECTION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "CONNECTION-RULE-CORE",
+    "type": "CORE_WRITE",
+    "domainId": "CONNECTION",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "CONNECTION-SCAN-01",
+    "type": "WORLD_DB_WRITE",
+    "domainId": "CONNECTION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "CONNECTION-SCAN-02",
+    "type": "OWNERSHIP_VIOLATION",
+    "domainId": "CONNECTION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "CONNECTION-SCAN-03",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "CONNECTION",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "CONNECTION-RULE-MIGRATION",
+    "type": "CONTRACT_VIOLATION",
+    "domainId": "CONNECTION",
+    "severity": "INFO"
+  },
+  {
+    "id": "CREATION-RULE-OWNERSHIP",
+    "type": "OWNERSHIP_VIOLATION",
+    "domainId": "CREATION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "CREATION-RULE-IMPORT-MATRIX",
+    "type": "DOMAIN_IMPORT",
+    "domainId": "CREATION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "CREATION-RULE-REALTIME",
+    "type": "DOMAIN_REALTIME",
+    "domainId": "CREATION",
+    "severity": "MEDIUM"
+  },
+  {
+    "id": "CREATION-RULE-SERVICE",
+    "type": "SERVICE_BYPASS",
+    "domainId": "CREATION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "CREATION-RULE-CONTEXT",
+    "type": "DOMAIN_CONTEXT",
+    "domainId": "CREATION",
+    "severity": "MEDIUM"
+  },
+  {
+    "id": "CREATION-RULE-TABLE-OWNER-works",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "CREATION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "CREATION-RULE-TABLE-OWNER-experiences",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "CREATION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "CREATION-RULE-TABLE-OWNER-stories",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "CREATION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "CREATION-RULE-TABLE-OWNER-story_views",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "CREATION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "CREATION-RULE-TABLE-OWNER-feed_posts",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "CREATION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "CREATION-RULE-TABLE-OWNER-moments",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "CREATION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "CREATION-RULE-TABLE-OWNER-work_likes",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "CREATION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "CREATION-RULE-TABLE-OWNER-work_saves",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "CREATION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "CREATION-RULE-TABLE-OWNER-comments",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "CREATION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "CREATION-RULE-NEVER-WRITE-profiles",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "CREATION",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "CREATION-RULE-NEVER-WRITE-bookings",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "CREATION",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "CREATION-RULE-NEVER-WRITE-impact_votes",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "CREATION",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "CREATION-RULE-EVENT-FORBIDDEN-resonance_sent____WIRKUNG_",
+    "type": "EVENT_ABUSE",
+    "domainId": "CREATION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "CREATION-RULE-EVENT-FORBIDDEN-impact_vote_cast",
+    "type": "EVENT_ABUSE",
+    "domainId": "CREATION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "CREATION-RULE-CORE",
+    "type": "CORE_WRITE",
+    "domainId": "CREATION",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "CREATION-SCAN-01",
+    "type": "WORLD_DB_WRITE",
+    "domainId": "CREATION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "CREATION-SCAN-02",
+    "type": "OWNERSHIP_VIOLATION",
+    "domainId": "CREATION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "CREATION-SCAN-03",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "CREATION",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "CREATION-RULE-MIGRATION",
+    "type": "CONTRACT_VIOLATION",
+    "domainId": "CREATION",
+    "severity": "INFO"
+  },
+  {
+    "id": "COMMERCE-RULE-OWNERSHIP",
+    "type": "OWNERSHIP_VIOLATION",
+    "domainId": "COMMERCE",
+    "severity": "HIGH"
+  },
+  {
+    "id": "COMMERCE-RULE-IMPORT-MATRIX",
+    "type": "DOMAIN_IMPORT",
+    "domainId": "COMMERCE",
+    "severity": "HIGH"
+  },
+  {
+    "id": "COMMERCE-RULE-REALTIME",
+    "type": "DOMAIN_REALTIME",
+    "domainId": "COMMERCE",
+    "severity": "MEDIUM"
+  },
+  {
+    "id": "COMMERCE-RULE-SERVICE",
+    "type": "SERVICE_BYPASS",
+    "domainId": "COMMERCE",
+    "severity": "HIGH"
+  },
+  {
+    "id": "COMMERCE-RULE-CONTEXT",
+    "type": "DOMAIN_CONTEXT",
+    "domainId": "COMMERCE",
+    "severity": "MEDIUM"
+  },
+  {
+    "id": "COMMERCE-RULE-TABLE-OWNER-bookings",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "COMMERCE",
+    "severity": "HIGH"
+  },
+  {
+    "id": "COMMERCE-RULE-TABLE-OWNER-experience_bookings",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "COMMERCE",
+    "severity": "HIGH"
+  },
+  {
+    "id": "COMMERCE-RULE-TABLE-OWNER-orders",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "COMMERCE",
+    "severity": "HIGH"
+  },
+  {
+    "id": "COMMERCE-RULE-TABLE-OWNER-order_items",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "COMMERCE",
+    "severity": "HIGH"
+  },
+  {
+    "id": "COMMERCE-RULE-TABLE-OWNER-creator_wallets",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "COMMERCE",
+    "severity": "HIGH"
+  },
+  {
+    "id": "COMMERCE-RULE-TABLE-OWNER-creator_supports",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "COMMERCE",
+    "severity": "HIGH"
+  },
+  {
+    "id": "COMMERCE-RULE-TABLE-OWNER-commerce_events",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "COMMERCE",
+    "severity": "HIGH"
+  },
+  {
+    "id": "COMMERCE-RULE-TABLE-OWNER-availability_slots",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "COMMERCE",
+    "severity": "HIGH"
+  },
+  {
+    "id": "COMMERCE-RULE-NEVER-WRITE-profiles",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "COMMERCE",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "COMMERCE-RULE-NEVER-WRITE-impact_votes",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "COMMERCE",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "COMMERCE-RULE-NEVER-WRITE-messages",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "COMMERCE",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "COMMERCE-RULE-EVENT-FORBIDDEN-resonance_sent",
+    "type": "EVENT_ABUSE",
+    "domainId": "COMMERCE",
+    "severity": "HIGH"
+  },
+  {
+    "id": "COMMERCE-RULE-EVENT-FORBIDDEN-impact_vote_cast",
+    "type": "EVENT_ABUSE",
+    "domainId": "COMMERCE",
+    "severity": "HIGH"
+  },
+  {
+    "id": "COMMERCE-RULE-HOOK",
+    "type": "HOOK_BYPASS",
+    "domainId": "COMMERCE",
+    "severity": "MEDIUM"
+  },
+  {
+    "id": "COMMERCE-RULE-CORE",
+    "type": "CORE_WRITE",
+    "domainId": "COMMERCE",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "COMMERCE-SCAN-01",
+    "type": "OWNERSHIP_VIOLATION",
+    "domainId": "COMMERCE",
+    "severity": "HIGH"
+  },
+  {
+    "id": "COMMERCE-SCAN-02",
+    "type": "WORLD_DB_WRITE",
+    "domainId": "COMMERCE",
+    "severity": "HIGH"
+  },
+  {
+    "id": "COMMERCE-SCAN-03",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "COMMERCE",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "COMMERCE-RULE-MIGRATION",
+    "type": "CONTRACT_VIOLATION",
+    "domainId": "COMMERCE",
+    "severity": "INFO"
+  },
+  {
+    "id": "COMMUNICATION-RULE-OWNERSHIP",
+    "type": "OWNERSHIP_VIOLATION",
+    "domainId": "COMMUNICATION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "COMMUNICATION-RULE-IMPORT-MATRIX",
+    "type": "DOMAIN_IMPORT",
+    "domainId": "COMMUNICATION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "COMMUNICATION-RULE-REALTIME",
+    "type": "DOMAIN_REALTIME",
+    "domainId": "COMMUNICATION",
+    "severity": "MEDIUM"
+  },
+  {
+    "id": "COMMUNICATION-RULE-SERVICE",
+    "type": "SERVICE_BYPASS",
+    "domainId": "COMMUNICATION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "COMMUNICATION-RULE-CONTEXT",
+    "type": "DOMAIN_CONTEXT",
+    "domainId": "COMMUNICATION",
+    "severity": "MEDIUM"
+  },
+  {
+    "id": "COMMUNICATION-RULE-TABLE-OWNER-conversations",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "COMMUNICATION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "COMMUNICATION-RULE-TABLE-OWNER-messages",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "COMMUNICATION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "COMMUNICATION-RULE-TABLE-OWNER-chats",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "COMMUNICATION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "COMMUNICATION-RULE-TABLE-OWNER-notifications",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "COMMUNICATION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "COMMUNICATION-RULE-NEVER-WRITE-profiles",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "COMMUNICATION",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "COMMUNICATION-RULE-NEVER-WRITE-works",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "COMMUNICATION",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "COMMUNICATION-RULE-NEVER-WRITE-bookings",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "COMMUNICATION",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "COMMUNICATION-RULE-NEVER-WRITE-follows",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "COMMUNICATION",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "COMMUNICATION-RULE-EVENT-FORBIDDEN-resonance_sent",
+    "type": "EVENT_ABUSE",
+    "domainId": "COMMUNICATION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "COMMUNICATION-RULE-EVENT-FORBIDDEN-spam_ohne_SPAM_DETECTED",
+    "type": "EVENT_ABUSE",
+    "domainId": "COMMUNICATION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "COMMUNICATION-RULE-HOOK",
+    "type": "HOOK_BYPASS",
+    "domainId": "COMMUNICATION",
+    "severity": "MEDIUM"
+  },
+  {
+    "id": "COMMUNICATION-RULE-CORE",
+    "type": "CORE_WRITE",
+    "domainId": "COMMUNICATION",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "COMMUNICATION-SCAN-01",
+    "type": "DOMAIN_REALTIME",
+    "domainId": "COMMUNICATION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "COMMUNICATION-SCAN-02",
+    "type": "OWNERSHIP_VIOLATION",
+    "domainId": "COMMUNICATION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "COMMUNICATION-SCAN-03",
+    "type": "WORLD_DB_WRITE",
+    "domainId": "COMMUNICATION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "COMMUNICATION-SCAN-04",
+    "type": "SERVICE_BYPASS",
+    "domainId": "COMMUNICATION",
+    "severity": "HIGH"
+  },
+  {
+    "id": "COMMUNICATION-RULE-MIGRATION",
+    "type": "CONTRACT_VIOLATION",
+    "domainId": "COMMUNICATION",
+    "severity": "INFO"
+  },
+  {
+    "id": "DISCOVERY-RULE-OWNERSHIP",
+    "type": "OWNERSHIP_VIOLATION",
+    "domainId": "DISCOVERY",
+    "severity": "HIGH"
+  },
+  {
+    "id": "DISCOVERY-RULE-IMPORT-MATRIX",
+    "type": "DOMAIN_IMPORT",
+    "domainId": "DISCOVERY",
+    "severity": "HIGH"
+  },
+  {
+    "id": "DISCOVERY-RULE-REALTIME",
+    "type": "DOMAIN_REALTIME",
+    "domainId": "DISCOVERY",
+    "severity": "MEDIUM"
+  },
+  {
+    "id": "DISCOVERY-RULE-SERVICE",
+    "type": "SERVICE_BYPASS",
+    "domainId": "DISCOVERY",
+    "severity": "HIGH"
+  },
+  {
+    "id": "DISCOVERY-RULE-CONTEXT",
+    "type": "DOMAIN_CONTEXT",
+    "domainId": "DISCOVERY",
+    "severity": "MEDIUM"
+  },
+  {
+    "id": "DISCOVERY-RULE-TABLE-OWNER-feed_items",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "DISCOVERY",
+    "severity": "HIGH"
+  },
+  {
+    "id": "DISCOVERY-RULE-TABLE-OWNER-feed_posts",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "DISCOVERY",
+    "severity": "HIGH"
+  },
+  {
+    "id": "DISCOVERY-RULE-NEVER-WRITE-profiles",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "DISCOVERY",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "DISCOVERY-RULE-NEVER-WRITE-works",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "DISCOVERY",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "DISCOVERY-RULE-NEVER-WRITE-bookings",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "DISCOVERY",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "DISCOVERY-RULE-NEVER-WRITE-messages",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "DISCOVERY",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "DISCOVERY-RULE-NEVER-WRITE-impact_votes",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "DISCOVERY",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "DISCOVERY-RULE-EVENT-FORBIDDEN-resonance_sent",
+    "type": "EVENT_ABUSE",
+    "domainId": "DISCOVERY",
+    "severity": "HIGH"
+  },
+  {
+    "id": "DISCOVERY-RULE-EVENT-FORBIDDEN-engagement_maximized",
+    "type": "EVENT_ABUSE",
+    "domainId": "DISCOVERY",
+    "severity": "HIGH"
+  },
+  {
+    "id": "DISCOVERY-RULE-HOOK",
+    "type": "HOOK_BYPASS",
+    "domainId": "DISCOVERY",
+    "severity": "MEDIUM"
+  },
+  {
+    "id": "DISCOVERY-RULE-CORE",
+    "type": "CORE_WRITE",
+    "domainId": "DISCOVERY",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "DISCOVERY-SCAN-01",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "DISCOVERY",
+    "severity": "MEDIUM"
+  },
+  {
+    "id": "DISCOVERY-SCAN-02",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "DISCOVERY",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "DISCOVERY-SCAN-03",
+    "type": "EVENT_ABUSE",
+    "domainId": "DISCOVERY",
+    "severity": "HIGH"
+  },
+  {
+    "id": "DISCOVERY-RULE-MIGRATION",
+    "type": "CONTRACT_VIOLATION",
+    "domainId": "DISCOVERY",
+    "severity": "INFO"
+  },
+  {
+    "id": "IMPACT-RULE-OWNERSHIP",
+    "type": "OWNERSHIP_VIOLATION",
+    "domainId": "IMPACT",
+    "severity": "HIGH"
+  },
+  {
+    "id": "IMPACT-RULE-IMPORT-MATRIX",
+    "type": "DOMAIN_IMPORT",
+    "domainId": "IMPACT",
+    "severity": "HIGH"
+  },
+  {
+    "id": "IMPACT-RULE-SERVICE",
+    "type": "SERVICE_BYPASS",
+    "domainId": "IMPACT",
+    "severity": "HIGH"
+  },
+  {
+    "id": "IMPACT-RULE-TABLE-OWNER-impact_projects",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "IMPACT",
+    "severity": "HIGH"
+  },
+  {
+    "id": "IMPACT-RULE-TABLE-OWNER-impact_rounds",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "IMPACT",
+    "severity": "HIGH"
+  },
+  {
+    "id": "IMPACT-RULE-TABLE-OWNER-impact_votes",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "IMPACT",
+    "severity": "HIGH"
+  },
+  {
+    "id": "IMPACT-RULE-NEVER-WRITE-profiles",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "IMPACT",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "IMPACT-RULE-NEVER-WRITE-works",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "IMPACT",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "IMPACT-RULE-NEVER-WRITE-bookings",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "IMPACT",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "IMPACT-RULE-EVENT-FORBIDDEN-resonance_sent",
+    "type": "EVENT_ABUSE",
+    "domainId": "IMPACT",
+    "severity": "HIGH"
+  },
+  {
+    "id": "IMPACT-RULE-EVENT-FORBIDDEN-gamification__",
+    "type": "EVENT_ABUSE",
+    "domainId": "IMPACT",
+    "severity": "HIGH"
+  },
+  {
+    "id": "IMPACT-RULE-CORE",
+    "type": "CORE_WRITE",
+    "domainId": "IMPACT",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "IMPACT-SCAN-01",
+    "type": "CORE_WRITE",
+    "domainId": "IMPACT",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "IMPACT-SCAN-02",
+    "type": "WORLD_DB_WRITE",
+    "domainId": "IMPACT",
+    "severity": "HIGH"
+  },
+  {
+    "id": "IMPACT-SCAN-03",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "IMPACT",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "IMPACT-RULE-MIGRATION",
+    "type": "CONTRACT_VIOLATION",
+    "domainId": "IMPACT",
+    "severity": "INFO"
+  },
+  {
+    "id": "WIRKUNG-RULE-OWNERSHIP",
+    "type": "OWNERSHIP_VIOLATION",
+    "domainId": "WIRKUNG",
+    "severity": "HIGH"
+  },
+  {
+    "id": "WIRKUNG-RULE-IMPORT-FORBIDDEN-IDENTITY",
+    "type": "DOMAIN_IMPORT",
+    "domainId": "WIRKUNG",
+    "severity": "HIGH"
+  },
+  {
+    "id": "WIRKUNG-RULE-IMPORT-FORBIDDEN-CREATION",
+    "type": "DOMAIN_IMPORT",
+    "domainId": "WIRKUNG",
+    "severity": "HIGH"
+  },
+  {
+    "id": "WIRKUNG-RULE-IMPORT-MATRIX",
+    "type": "DOMAIN_IMPORT",
+    "domainId": "WIRKUNG",
+    "severity": "HIGH"
+  },
+  {
+    "id": "WIRKUNG-RULE-LAYER",
+    "type": "DOMAIN_LAYER",
+    "domainId": "WIRKUNG",
+    "severity": "HIGH"
+  },
+  {
+    "id": "WIRKUNG-RULE-SERVICE",
+    "type": "SERVICE_BYPASS",
+    "domainId": "WIRKUNG",
+    "severity": "HIGH"
+  },
+  {
+    "id": "WIRKUNG-RULE-TABLE-OWNER-resonance_signals",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "WIRKUNG",
+    "severity": "HIGH"
+  },
+  {
+    "id": "WIRKUNG-RULE-TABLE-OWNER-orb_states",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "WIRKUNG",
+    "severity": "HIGH"
+  },
+  {
+    "id": "WIRKUNG-RULE-TABLE-OWNER-core_metrics",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "WIRKUNG",
+    "severity": "HIGH"
+  },
+  {
+    "id": "WIRKUNG-RULE-NEVER-WRITE-works",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "WIRKUNG",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "WIRKUNG-RULE-NEVER-WRITE-bookings",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "WIRKUNG",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "WIRKUNG-RULE-NEVER-WRITE-messages",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "WIRKUNG",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "WIRKUNG-RULE-NEVER-WRITE-follows",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "WIRKUNG",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "WIRKUNG-RULE-EVENT-FORBIDDEN-gamification__",
+    "type": "EVENT_ABUSE",
+    "domainId": "WIRKUNG",
+    "severity": "HIGH"
+  },
+  {
+    "id": "WIRKUNG-RULE-EVENT-FORBIDDEN-realtime_orb_levelup",
+    "type": "EVENT_ABUSE",
+    "domainId": "WIRKUNG",
+    "severity": "HIGH"
+  },
+  {
+    "id": "WIRKUNG-RULE-HOOK",
+    "type": "HOOK_BYPASS",
+    "domainId": "WIRKUNG",
+    "severity": "MEDIUM"
+  },
+  {
+    "id": "WIRKUNG-RULE-UI",
+    "type": "COMPONENT_BYPASS",
+    "domainId": "WIRKUNG",
+    "severity": "LOW"
+  },
+  {
+    "id": "WIRKUNG-RULE-CORE",
+    "type": "CORE_WRITE",
+    "domainId": "WIRKUNG",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "WIRKUNG-SCAN-01",
+    "type": "CORE_WRITE",
+    "domainId": "WIRKUNG",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "WIRKUNG-SCAN-02",
+    "type": "COMPONENT_BYPASS",
+    "domainId": "WIRKUNG",
+    "severity": "LOW"
+  },
+  {
+    "id": "WIRKUNG-SCAN-03",
+    "type": "DOMAIN_REALTIME",
+    "domainId": "WIRKUNG",
+    "severity": "HIGH"
+  },
+  {
+    "id": "WIRKUNG-RULE-MIGRATION",
+    "type": "CONTRACT_VIOLATION",
+    "domainId": "WIRKUNG",
+    "severity": "INFO"
+  },
+  {
+    "id": "TRUST-RULE-OWNERSHIP",
+    "type": "OWNERSHIP_VIOLATION",
+    "domainId": "TRUST",
+    "severity": "HIGH"
+  },
+  {
+    "id": "TRUST-RULE-IMPORT-MATRIX",
+    "type": "DOMAIN_IMPORT",
+    "domainId": "TRUST",
+    "severity": "HIGH"
+  },
+  {
+    "id": "TRUST-RULE-SERVICE",
+    "type": "SERVICE_BYPASS",
+    "domainId": "TRUST",
+    "severity": "HIGH"
+  },
+  {
+    "id": "TRUST-RULE-CONTEXT",
+    "type": "DOMAIN_CONTEXT",
+    "domainId": "TRUST",
+    "severity": "MEDIUM"
+  },
+  {
+    "id": "TRUST-RULE-TABLE-OWNER-trust_scores",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "TRUST",
+    "severity": "HIGH"
+  },
+  {
+    "id": "TRUST-RULE-TABLE-OWNER-reputation_events",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "TRUST",
+    "severity": "HIGH"
+  },
+  {
+    "id": "TRUST-RULE-NEVER-WRITE-profiles",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "TRUST",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "TRUST-RULE-NEVER-WRITE-works",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "TRUST",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "TRUST-RULE-NEVER-WRITE-messages",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "TRUST",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "TRUST-RULE-EVENT-FORBIDDEN-gamification_badge",
+    "type": "EVENT_ABUSE",
+    "domainId": "TRUST",
+    "severity": "HIGH"
+  },
+  {
+    "id": "TRUST-RULE-EVENT-FORBIDDEN-leaderboard_update",
+    "type": "EVENT_ABUSE",
+    "domainId": "TRUST",
+    "severity": "HIGH"
+  },
+  {
+    "id": "TRUST-RULE-HOOK",
+    "type": "HOOK_BYPASS",
+    "domainId": "TRUST",
+    "severity": "MEDIUM"
+  },
+  {
+    "id": "TRUST-RULE-CORE",
+    "type": "CORE_WRITE",
+    "domainId": "TRUST",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "TRUST-SCAN-01",
+    "type": "EVENT_ABUSE",
+    "domainId": "TRUST",
+    "severity": "HIGH"
+  },
+  {
+    "id": "TRUST-SCAN-02",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "TRUST",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "TRUST-SCAN-03",
+    "type": "EVENT_ABUSE",
+    "domainId": "TRUST",
+    "severity": "HIGH"
+  },
+  {
+    "id": "TRUST-RULE-MIGRATION",
+    "type": "CONTRACT_VIOLATION",
+    "domainId": "TRUST",
+    "severity": "INFO"
+  },
+  {
+    "id": "PRESENCE-RULE-OWNERSHIP",
+    "type": "OWNERSHIP_VIOLATION",
+    "domainId": "PRESENCE",
+    "severity": "HIGH"
+  },
+  {
+    "id": "PRESENCE-RULE-IMPORT-MATRIX",
+    "type": "DOMAIN_IMPORT",
+    "domainId": "PRESENCE",
+    "severity": "HIGH"
+  },
+  {
+    "id": "PRESENCE-RULE-REALTIME",
+    "type": "DOMAIN_REALTIME",
+    "domainId": "PRESENCE",
+    "severity": "MEDIUM"
+  },
+  {
+    "id": "PRESENCE-RULE-SERVICE",
+    "type": "SERVICE_BYPASS",
+    "domainId": "PRESENCE",
+    "severity": "HIGH"
+  },
+  {
+    "id": "PRESENCE-RULE-CONTEXT",
+    "type": "DOMAIN_CONTEXT",
+    "domainId": "PRESENCE",
+    "severity": "MEDIUM"
+  },
+  {
+    "id": "PRESENCE-RULE-TABLE-OWNER-presence",
+    "type": "DOMAIN_TABLE_OWNER",
+    "domainId": "PRESENCE",
+    "severity": "HIGH"
+  },
+  {
+    "id": "PRESENCE-RULE-NEVER-WRITE-profiles",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "PRESENCE",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "PRESENCE-RULE-NEVER-WRITE-works",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "PRESENCE",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "PRESENCE-RULE-NEVER-WRITE-messages",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "PRESENCE",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "PRESENCE-RULE-EVENT-FORBIDDEN-gamification_streak",
+    "type": "EVENT_ABUSE",
+    "domainId": "PRESENCE",
+    "severity": "HIGH"
+  },
+  {
+    "id": "PRESENCE-RULE-EVENT-FORBIDDEN-online_leaderboard",
+    "type": "EVENT_ABUSE",
+    "domainId": "PRESENCE",
+    "severity": "HIGH"
+  },
+  {
+    "id": "PRESENCE-RULE-HOOK",
+    "type": "HOOK_BYPASS",
+    "domainId": "PRESENCE",
+    "severity": "MEDIUM"
+  },
+  {
+    "id": "PRESENCE-RULE-CORE",
+    "type": "CORE_WRITE",
+    "domainId": "PRESENCE",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "PRESENCE-SCAN-01",
+    "type": "DOMAIN_REALTIME",
+    "domainId": "PRESENCE",
+    "severity": "HIGH"
+  },
+  {
+    "id": "PRESENCE-SCAN-02",
+    "type": "EVENT_ABUSE",
+    "domainId": "PRESENCE",
+    "severity": "HIGH"
+  },
+  {
+    "id": "PRESENCE-SCAN-03",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "PRESENCE",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "PRESENCE-RULE-MIGRATION",
+    "type": "CONTRACT_VIOLATION",
+    "domainId": "PRESENCE",
+    "severity": "INFO"
+  },
+  {
+    "id": "INTELLIGENCE-RULE-OWNERSHIP",
+    "type": "OWNERSHIP_VIOLATION",
+    "domainId": "INTELLIGENCE",
+    "severity": "HIGH"
+  },
+  {
+    "id": "INTELLIGENCE-RULE-IMPORT-MATRIX",
+    "type": "DOMAIN_IMPORT",
+    "domainId": "INTELLIGENCE",
+    "severity": "HIGH"
+  },
+  {
+    "id": "INTELLIGENCE-RULE-LAYER",
+    "type": "DOMAIN_LAYER",
+    "domainId": "INTELLIGENCE",
+    "severity": "HIGH"
+  },
+  {
+    "id": "INTELLIGENCE-RULE-SERVICE",
+    "type": "SERVICE_BYPASS",
+    "domainId": "INTELLIGENCE",
+    "severity": "HIGH"
+  },
+  {
+    "id": "INTELLIGENCE-RULE-NEVER-WRITE-profiles",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "INTELLIGENCE",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "INTELLIGENCE-RULE-NEVER-WRITE-works",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "INTELLIGENCE",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "INTELLIGENCE-RULE-NEVER-WRITE-bookings",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "INTELLIGENCE",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "INTELLIGENCE-RULE-NEVER-WRITE-messages",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "INTELLIGENCE",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "INTELLIGENCE-RULE-NEVER-WRITE-impact_votes",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "INTELLIGENCE",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "INTELLIGENCE-RULE-NEVER-WRITE-resonance_signals",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "INTELLIGENCE",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "INTELLIGENCE-RULE-EVENT-FORBIDDEN-engagement_maximized",
+    "type": "EVENT_ABUSE",
+    "domainId": "INTELLIGENCE",
+    "severity": "HIGH"
+  },
+  {
+    "id": "INTELLIGENCE-RULE-EVENT-FORBIDDEN-filterbubble_amplify",
+    "type": "EVENT_ABUSE",
+    "domainId": "INTELLIGENCE",
+    "severity": "HIGH"
+  },
+  {
+    "id": "INTELLIGENCE-RULE-EVENT-FORBIDDEN-profit_recommendation",
+    "type": "EVENT_ABUSE",
+    "domainId": "INTELLIGENCE",
+    "severity": "HIGH"
+  },
+  {
+    "id": "INTELLIGENCE-RULE-HOOK",
+    "type": "HOOK_BYPASS",
+    "domainId": "INTELLIGENCE",
+    "severity": "MEDIUM"
+  },
+  {
+    "id": "INTELLIGENCE-RULE-UI",
+    "type": "COMPONENT_BYPASS",
+    "domainId": "INTELLIGENCE",
+    "severity": "LOW"
+  },
+  {
+    "id": "INTELLIGENCE-SCAN-01",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "INTELLIGENCE",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "INTELLIGENCE-SCAN-02",
+    "type": "EVENT_ABUSE",
+    "domainId": "INTELLIGENCE",
+    "severity": "HIGH"
+  },
+  {
+    "id": "INTELLIGENCE-SCAN-03",
+    "type": "COMPONENT_BYPASS",
+    "domainId": "INTELLIGENCE",
+    "severity": "LOW"
+  },
+  {
+    "id": "INTELLIGENCE-RULE-MIGRATION",
+    "type": "CONTRACT_VIOLATION",
+    "domainId": "INTELLIGENCE",
+    "severity": "INFO"
+  },
+  {
+    "id": "WORLD-RULE-OWNERSHIP",
+    "type": "OWNERSHIP_VIOLATION",
+    "domainId": "WORLD",
+    "severity": "HIGH"
+  },
+  {
+    "id": "WORLD-RULE-IMPORT-FORBIDDEN-CREATION",
+    "type": "DOMAIN_IMPORT",
+    "domainId": "WORLD",
+    "severity": "HIGH"
+  },
+  {
+    "id": "WORLD-RULE-IMPORT-FORBIDDEN-COMMERCE",
+    "type": "DOMAIN_IMPORT",
+    "domainId": "WORLD",
+    "severity": "HIGH"
+  },
+  {
+    "id": "WORLD-RULE-IMPORT-MATRIX",
+    "type": "DOMAIN_IMPORT",
+    "domainId": "WORLD",
+    "severity": "HIGH"
+  },
+  {
+    "id": "WORLD-RULE-LAYER",
+    "type": "DOMAIN_LAYER",
+    "domainId": "WORLD",
+    "severity": "HIGH"
+  },
+  {
+    "id": "WORLD-RULE-SERVICE",
+    "type": "SERVICE_BYPASS",
+    "domainId": "WORLD",
+    "severity": "HIGH"
+  },
+  {
+    "id": "WORLD-RULE-CONTEXT",
+    "type": "DOMAIN_CONTEXT",
+    "domainId": "WORLD",
+    "severity": "MEDIUM"
+  },
+  {
+    "id": "WORLD-RULE-NEVER-WRITE-*",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "WORLD",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "WORLD-RULE-EVENT-FORBIDDEN-resonance_sent",
+    "type": "EVENT_ABUSE",
+    "domainId": "WORLD",
+    "severity": "HIGH"
+  },
+  {
+    "id": "WORLD-RULE-EVENT-FORBIDDEN-profile_updated",
+    "type": "EVENT_ABUSE",
+    "domainId": "WORLD",
+    "severity": "HIGH"
+  },
+  {
+    "id": "WORLD-SCAN-01",
+    "type": "WORLD_DB_WRITE",
+    "domainId": "WORLD",
+    "severity": "HIGH"
+  },
+  {
+    "id": "WORLD-SCAN-02",
+    "type": "CORE_WRITE",
+    "domainId": "WORLD",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "WORLD-SCAN-03",
+    "type": "DOMAIN_LAYER",
+    "domainId": "WORLD",
+    "severity": "HIGH"
+  },
+  {
+    "id": "WORLD-RULE-MIGRATION",
+    "type": "CONTRACT_VIOLATION",
+    "domainId": "WORLD",
+    "severity": "INFO"
+  },
+  {
+    "id": "STUDIO-RULE-OWNERSHIP",
+    "type": "OWNERSHIP_VIOLATION",
+    "domainId": "STUDIO",
+    "severity": "HIGH"
+  },
+  {
+    "id": "STUDIO-RULE-IMPORT-MATRIX",
+    "type": "DOMAIN_IMPORT",
+    "domainId": "STUDIO",
+    "severity": "HIGH"
+  },
+  {
+    "id": "STUDIO-RULE-LAYER",
+    "type": "DOMAIN_LAYER",
+    "domainId": "STUDIO",
+    "severity": "HIGH"
+  },
+  {
+    "id": "STUDIO-RULE-SERVICE",
+    "type": "SERVICE_BYPASS",
+    "domainId": "STUDIO",
+    "severity": "HIGH"
+  },
+  {
+    "id": "STUDIO-RULE-NEVER-WRITE-profiles",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "STUDIO",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "STUDIO-RULE-NEVER-WRITE-wirker_profiles",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "STUDIO",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "STUDIO-RULE-NEVER-WRITE-impact_votes",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "STUDIO",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "STUDIO-RULE-NEVER-WRITE-works",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "STUDIO",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "STUDIO-RULE-NEVER-WRITE-bookings",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "STUDIO",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "STUDIO-RULE-NEVER-WRITE-messages",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "STUDIO",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "STUDIO-RULE-NEVER-WRITE-availability_slots",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "STUDIO",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "STUDIO-RULE-EVENT-FORBIDDEN-resonance_sent",
+    "type": "EVENT_ABUSE",
+    "domainId": "STUDIO",
+    "severity": "HIGH"
+  },
+  {
+    "id": "STUDIO-RULE-EVENT-FORBIDDEN-profile_updated",
+    "type": "EVENT_ABUSE",
+    "domainId": "STUDIO",
+    "severity": "HIGH"
+  },
+  {
+    "id": "STUDIO-RULE-EVENT-FORBIDDEN-booking_created",
+    "type": "EVENT_ABUSE",
+    "domainId": "STUDIO",
+    "severity": "HIGH"
+  },
+  {
+    "id": "STUDIO-RULE-EVENT-FORBIDDEN-impact_vote_cast",
+    "type": "EVENT_ABUSE",
+    "domainId": "STUDIO",
+    "severity": "HIGH"
+  },
+  {
+    "id": "STUDIO-SCAN-01",
+    "type": "CROSS_DOMAIN_WRITE",
+    "domainId": "STUDIO",
+    "severity": "CRITICAL"
+  },
+  {
+    "id": "STUDIO-SCAN-02",
+    "type": "WORLD_DB_WRITE",
+    "domainId": "STUDIO",
+    "severity": "HIGH"
+  },
+  {
+    "id": "STUDIO-SCAN-03",
+    "type": "STUDIO_AGGREGATOR",
+    "domainId": "STUDIO",
+    "severity": "MEDIUM"
+  },
+  {
+    "id": "STUDIO-RULE-MIGRATION",
+    "type": "CONTRACT_VIOLATION",
+    "domainId": "STUDIO",
+    "severity": "INFO"
+  }
+]

@@ -1,0 +1,912 @@
+[
+  {
+    "id": "KERNEL-POLICY-OWNERSHIP",
+    "type": "ownership",
+    "domainId": "KERNEL"
+  },
+  {
+    "id": "KERNEL-POLICY-IMPORT",
+    "type": "import",
+    "domainId": "KERNEL"
+  },
+  {
+    "id": "KERNEL-POLICY-REALTIME",
+    "type": "realtime",
+    "domainId": "KERNEL"
+  },
+  {
+    "id": "KERNEL-POLICY-LAYER",
+    "type": "layer",
+    "domainId": "KERNEL"
+  },
+  {
+    "id": "KERNEL-POLICY-SERVICE",
+    "type": "service",
+    "domainId": "KERNEL"
+  },
+  {
+    "id": "KERNEL-POLICY-CONTEXT",
+    "type": "context",
+    "domainId": "KERNEL"
+  },
+  {
+    "id": "KERNEL-POLICY-TABLE",
+    "type": "table",
+    "domainId": "KERNEL"
+  },
+  {
+    "id": "KERNEL-POLICY-EVENT",
+    "type": "event",
+    "domainId": "KERNEL"
+  },
+  {
+    "id": "KERNEL-POLICY-HOOK",
+    "type": "hook",
+    "domainId": "KERNEL"
+  },
+  {
+    "id": "KERNEL-POLICY-UI",
+    "type": "ui",
+    "domainId": "KERNEL"
+  },
+  {
+    "id": "KERNEL-POLICY-CORE",
+    "type": "core",
+    "domainId": "KERNEL"
+  },
+  {
+    "id": "KERNEL-POLICY-SCANNER",
+    "type": "scanner",
+    "domainId": "KERNEL"
+  },
+  {
+    "id": "KERNEL-POLICY-MIGRATION",
+    "type": "migration",
+    "domainId": "KERNEL"
+  },
+  {
+    "id": "IDENTITY-POLICY-OWNERSHIP",
+    "type": "ownership",
+    "domainId": "IDENTITY"
+  },
+  {
+    "id": "IDENTITY-POLICY-IMPORT",
+    "type": "import",
+    "domainId": "IDENTITY"
+  },
+  {
+    "id": "IDENTITY-POLICY-REALTIME",
+    "type": "realtime",
+    "domainId": "IDENTITY"
+  },
+  {
+    "id": "IDENTITY-POLICY-LAYER",
+    "type": "layer",
+    "domainId": "IDENTITY"
+  },
+  {
+    "id": "IDENTITY-POLICY-SERVICE",
+    "type": "service",
+    "domainId": "IDENTITY"
+  },
+  {
+    "id": "IDENTITY-POLICY-CONTEXT",
+    "type": "context",
+    "domainId": "IDENTITY"
+  },
+  {
+    "id": "IDENTITY-POLICY-TABLE",
+    "type": "table",
+    "domainId": "IDENTITY"
+  },
+  {
+    "id": "IDENTITY-POLICY-EVENT",
+    "type": "event",
+    "domainId": "IDENTITY"
+  },
+  {
+    "id": "IDENTITY-POLICY-HOOK",
+    "type": "hook",
+    "domainId": "IDENTITY"
+  },
+  {
+    "id": "IDENTITY-POLICY-UI",
+    "type": "ui",
+    "domainId": "IDENTITY"
+  },
+  {
+    "id": "IDENTITY-POLICY-CORE",
+    "type": "core",
+    "domainId": "IDENTITY"
+  },
+  {
+    "id": "IDENTITY-POLICY-SCANNER",
+    "type": "scanner",
+    "domainId": "IDENTITY"
+  },
+  {
+    "id": "IDENTITY-POLICY-MIGRATION",
+    "type": "migration",
+    "domainId": "IDENTITY"
+  },
+  {
+    "id": "CONNECTION-POLICY-OWNERSHIP",
+    "type": "ownership",
+    "domainId": "CONNECTION"
+  },
+  {
+    "id": "CONNECTION-POLICY-IMPORT",
+    "type": "import",
+    "domainId": "CONNECTION"
+  },
+  {
+    "id": "CONNECTION-POLICY-REALTIME",
+    "type": "realtime",
+    "domainId": "CONNECTION"
+  },
+  {
+    "id": "CONNECTION-POLICY-LAYER",
+    "type": "layer",
+    "domainId": "CONNECTION"
+  },
+  {
+    "id": "CONNECTION-POLICY-SERVICE",
+    "type": "service",
+    "domainId": "CONNECTION"
+  },
+  {
+    "id": "CONNECTION-POLICY-CONTEXT",
+    "type": "context",
+    "domainId": "CONNECTION"
+  },
+  {
+    "id": "CONNECTION-POLICY-TABLE",
+    "type": "table",
+    "domainId": "CONNECTION"
+  },
+  {
+    "id": "CONNECTION-POLICY-EVENT",
+    "type": "event",
+    "domainId": "CONNECTION"
+  },
+  {
+    "id": "CONNECTION-POLICY-HOOK",
+    "type": "hook",
+    "domainId": "CONNECTION"
+  },
+  {
+    "id": "CONNECTION-POLICY-UI",
+    "type": "ui",
+    "domainId": "CONNECTION"
+  },
+  {
+    "id": "CONNECTION-POLICY-CORE",
+    "type": "core",
+    "domainId": "CONNECTION"
+  },
+  {
+    "id": "CONNECTION-POLICY-SCANNER",
+    "type": "scanner",
+    "domainId": "CONNECTION"
+  },
+  {
+    "id": "CONNECTION-POLICY-MIGRATION",
+    "type": "migration",
+    "domainId": "CONNECTION"
+  },
+  {
+    "id": "CREATION-POLICY-OWNERSHIP",
+    "type": "ownership",
+    "domainId": "CREATION"
+  },
+  {
+    "id": "CREATION-POLICY-IMPORT",
+    "type": "import",
+    "domainId": "CREATION"
+  },
+  {
+    "id": "CREATION-POLICY-REALTIME",
+    "type": "realtime",
+    "domainId": "CREATION"
+  },
+  {
+    "id": "CREATION-POLICY-LAYER",
+    "type": "layer",
+    "domainId": "CREATION"
+  },
+  {
+    "id": "CREATION-POLICY-SERVICE",
+    "type": "service",
+    "domainId": "CREATION"
+  },
+  {
+    "id": "CREATION-POLICY-CONTEXT",
+    "type": "context",
+    "domainId": "CREATION"
+  },
+  {
+    "id": "CREATION-POLICY-TABLE",
+    "type": "table",
+    "domainId": "CREATION"
+  },
+  {
+    "id": "CREATION-POLICY-EVENT",
+    "type": "event",
+    "domainId": "CREATION"
+  },
+  {
+    "id": "CREATION-POLICY-HOOK",
+    "type": "hook",
+    "domainId": "CREATION"
+  },
+  {
+    "id": "CREATION-POLICY-UI",
+    "type": "ui",
+    "domainId": "CREATION"
+  },
+  {
+    "id": "CREATION-POLICY-CORE",
+    "type": "core",
+    "domainId": "CREATION"
+  },
+  {
+    "id": "CREATION-POLICY-SCANNER",
+    "type": "scanner",
+    "domainId": "CREATION"
+  },
+  {
+    "id": "CREATION-POLICY-MIGRATION",
+    "type": "migration",
+    "domainId": "CREATION"
+  },
+  {
+    "id": "COMMERCE-POLICY-OWNERSHIP",
+    "type": "ownership",
+    "domainId": "COMMERCE"
+  },
+  {
+    "id": "COMMERCE-POLICY-IMPORT",
+    "type": "import",
+    "domainId": "COMMERCE"
+  },
+  {
+    "id": "COMMERCE-POLICY-REALTIME",
+    "type": "realtime",
+    "domainId": "COMMERCE"
+  },
+  {
+    "id": "COMMERCE-POLICY-LAYER",
+    "type": "layer",
+    "domainId": "COMMERCE"
+  },
+  {
+    "id": "COMMERCE-POLICY-SERVICE",
+    "type": "service",
+    "domainId": "COMMERCE"
+  },
+  {
+    "id": "COMMERCE-POLICY-CONTEXT",
+    "type": "context",
+    "domainId": "COMMERCE"
+  },
+  {
+    "id": "COMMERCE-POLICY-TABLE",
+    "type": "table",
+    "domainId": "COMMERCE"
+  },
+  {
+    "id": "COMMERCE-POLICY-EVENT",
+    "type": "event",
+    "domainId": "COMMERCE"
+  },
+  {
+    "id": "COMMERCE-POLICY-HOOK",
+    "type": "hook",
+    "domainId": "COMMERCE"
+  },
+  {
+    "id": "COMMERCE-POLICY-UI",
+    "type": "ui",
+    "domainId": "COMMERCE"
+  },
+  {
+    "id": "COMMERCE-POLICY-CORE",
+    "type": "core",
+    "domainId": "COMMERCE"
+  },
+  {
+    "id": "COMMERCE-POLICY-SCANNER",
+    "type": "scanner",
+    "domainId": "COMMERCE"
+  },
+  {
+    "id": "COMMERCE-POLICY-MIGRATION",
+    "type": "migration",
+    "domainId": "COMMERCE"
+  },
+  {
+    "id": "COMMUNICATION-POLICY-OWNERSHIP",
+    "type": "ownership",
+    "domainId": "COMMUNICATION"
+  },
+  {
+    "id": "COMMUNICATION-POLICY-IMPORT",
+    "type": "import",
+    "domainId": "COMMUNICATION"
+  },
+  {
+    "id": "COMMUNICATION-POLICY-REALTIME",
+    "type": "realtime",
+    "domainId": "COMMUNICATION"
+  },
+  {
+    "id": "COMMUNICATION-POLICY-LAYER",
+    "type": "layer",
+    "domainId": "COMMUNICATION"
+  },
+  {
+    "id": "COMMUNICATION-POLICY-SERVICE",
+    "type": "service",
+    "domainId": "COMMUNICATION"
+  },
+  {
+    "id": "COMMUNICATION-POLICY-CONTEXT",
+    "type": "context",
+    "domainId": "COMMUNICATION"
+  },
+  {
+    "id": "COMMUNICATION-POLICY-TABLE",
+    "type": "table",
+    "domainId": "COMMUNICATION"
+  },
+  {
+    "id": "COMMUNICATION-POLICY-EVENT",
+    "type": "event",
+    "domainId": "COMMUNICATION"
+  },
+  {
+    "id": "COMMUNICATION-POLICY-HOOK",
+    "type": "hook",
+    "domainId": "COMMUNICATION"
+  },
+  {
+    "id": "COMMUNICATION-POLICY-UI",
+    "type": "ui",
+    "domainId": "COMMUNICATION"
+  },
+  {
+    "id": "COMMUNICATION-POLICY-CORE",
+    "type": "core",
+    "domainId": "COMMUNICATION"
+  },
+  {
+    "id": "COMMUNICATION-POLICY-SCANNER",
+    "type": "scanner",
+    "domainId": "COMMUNICATION"
+  },
+  {
+    "id": "COMMUNICATION-POLICY-MIGRATION",
+    "type": "migration",
+    "domainId": "COMMUNICATION"
+  },
+  {
+    "id": "DISCOVERY-POLICY-OWNERSHIP",
+    "type": "ownership",
+    "domainId": "DISCOVERY"
+  },
+  {
+    "id": "DISCOVERY-POLICY-IMPORT",
+    "type": "import",
+    "domainId": "DISCOVERY"
+  },
+  {
+    "id": "DISCOVERY-POLICY-REALTIME",
+    "type": "realtime",
+    "domainId": "DISCOVERY"
+  },
+  {
+    "id": "DISCOVERY-POLICY-LAYER",
+    "type": "layer",
+    "domainId": "DISCOVERY"
+  },
+  {
+    "id": "DISCOVERY-POLICY-SERVICE",
+    "type": "service",
+    "domainId": "DISCOVERY"
+  },
+  {
+    "id": "DISCOVERY-POLICY-CONTEXT",
+    "type": "context",
+    "domainId": "DISCOVERY"
+  },
+  {
+    "id": "DISCOVERY-POLICY-TABLE",
+    "type": "table",
+    "domainId": "DISCOVERY"
+  },
+  {
+    "id": "DISCOVERY-POLICY-EVENT",
+    "type": "event",
+    "domainId": "DISCOVERY"
+  },
+  {
+    "id": "DISCOVERY-POLICY-HOOK",
+    "type": "hook",
+    "domainId": "DISCOVERY"
+  },
+  {
+    "id": "DISCOVERY-POLICY-UI",
+    "type": "ui",
+    "domainId": "DISCOVERY"
+  },
+  {
+    "id": "DISCOVERY-POLICY-CORE",
+    "type": "core",
+    "domainId": "DISCOVERY"
+  },
+  {
+    "id": "DISCOVERY-POLICY-SCANNER",
+    "type": "scanner",
+    "domainId": "DISCOVERY"
+  },
+  {
+    "id": "DISCOVERY-POLICY-MIGRATION",
+    "type": "migration",
+    "domainId": "DISCOVERY"
+  },
+  {
+    "id": "IMPACT-POLICY-OWNERSHIP",
+    "type": "ownership",
+    "domainId": "IMPACT"
+  },
+  {
+    "id": "IMPACT-POLICY-IMPORT",
+    "type": "import",
+    "domainId": "IMPACT"
+  },
+  {
+    "id": "IMPACT-POLICY-REALTIME",
+    "type": "realtime",
+    "domainId": "IMPACT"
+  },
+  {
+    "id": "IMPACT-POLICY-LAYER",
+    "type": "layer",
+    "domainId": "IMPACT"
+  },
+  {
+    "id": "IMPACT-POLICY-SERVICE",
+    "type": "service",
+    "domainId": "IMPACT"
+  },
+  {
+    "id": "IMPACT-POLICY-CONTEXT",
+    "type": "context",
+    "domainId": "IMPACT"
+  },
+  {
+    "id": "IMPACT-POLICY-TABLE",
+    "type": "table",
+    "domainId": "IMPACT"
+  },
+  {
+    "id": "IMPACT-POLICY-EVENT",
+    "type": "event",
+    "domainId": "IMPACT"
+  },
+  {
+    "id": "IMPACT-POLICY-HOOK",
+    "type": "hook",
+    "domainId": "IMPACT"
+  },
+  {
+    "id": "IMPACT-POLICY-UI",
+    "type": "ui",
+    "domainId": "IMPACT"
+  },
+  {
+    "id": "IMPACT-POLICY-CORE",
+    "type": "core",
+    "domainId": "IMPACT"
+  },
+  {
+    "id": "IMPACT-POLICY-SCANNER",
+    "type": "scanner",
+    "domainId": "IMPACT"
+  },
+  {
+    "id": "IMPACT-POLICY-MIGRATION",
+    "type": "migration",
+    "domainId": "IMPACT"
+  },
+  {
+    "id": "WIRKUNG-POLICY-OWNERSHIP",
+    "type": "ownership",
+    "domainId": "WIRKUNG"
+  },
+  {
+    "id": "WIRKUNG-POLICY-IMPORT",
+    "type": "import",
+    "domainId": "WIRKUNG"
+  },
+  {
+    "id": "WIRKUNG-POLICY-REALTIME",
+    "type": "realtime",
+    "domainId": "WIRKUNG"
+  },
+  {
+    "id": "WIRKUNG-POLICY-LAYER",
+    "type": "layer",
+    "domainId": "WIRKUNG"
+  },
+  {
+    "id": "WIRKUNG-POLICY-SERVICE",
+    "type": "service",
+    "domainId": "WIRKUNG"
+  },
+  {
+    "id": "WIRKUNG-POLICY-CONTEXT",
+    "type": "context",
+    "domainId": "WIRKUNG"
+  },
+  {
+    "id": "WIRKUNG-POLICY-TABLE",
+    "type": "table",
+    "domainId": "WIRKUNG"
+  },
+  {
+    "id": "WIRKUNG-POLICY-EVENT",
+    "type": "event",
+    "domainId": "WIRKUNG"
+  },
+  {
+    "id": "WIRKUNG-POLICY-HOOK",
+    "type": "hook",
+    "domainId": "WIRKUNG"
+  },
+  {
+    "id": "WIRKUNG-POLICY-UI",
+    "type": "ui",
+    "domainId": "WIRKUNG"
+  },
+  {
+    "id": "WIRKUNG-POLICY-CORE",
+    "type": "core",
+    "domainId": "WIRKUNG"
+  },
+  {
+    "id": "WIRKUNG-POLICY-SCANNER",
+    "type": "scanner",
+    "domainId": "WIRKUNG"
+  },
+  {
+    "id": "WIRKUNG-POLICY-MIGRATION",
+    "type": "migration",
+    "domainId": "WIRKUNG"
+  },
+  {
+    "id": "TRUST-POLICY-OWNERSHIP",
+    "type": "ownership",
+    "domainId": "TRUST"
+  },
+  {
+    "id": "TRUST-POLICY-IMPORT",
+    "type": "import",
+    "domainId": "TRUST"
+  },
+  {
+    "id": "TRUST-POLICY-REALTIME",
+    "type": "realtime",
+    "domainId": "TRUST"
+  },
+  {
+    "id": "TRUST-POLICY-LAYER",
+    "type": "layer",
+    "domainId": "TRUST"
+  },
+  {
+    "id": "TRUST-POLICY-SERVICE",
+    "type": "service",
+    "domainId": "TRUST"
+  },
+  {
+    "id": "TRUST-POLICY-CONTEXT",
+    "type": "context",
+    "domainId": "TRUST"
+  },
+  {
+    "id": "TRUST-POLICY-TABLE",
+    "type": "table",
+    "domainId": "TRUST"
+  },
+  {
+    "id": "TRUST-POLICY-EVENT",
+    "type": "event",
+    "domainId": "TRUST"
+  },
+  {
+    "id": "TRUST-POLICY-HOOK",
+    "type": "hook",
+    "domainId": "TRUST"
+  },
+  {
+    "id": "TRUST-POLICY-UI",
+    "type": "ui",
+    "domainId": "TRUST"
+  },
+  {
+    "id": "TRUST-POLICY-CORE",
+    "type": "core",
+    "domainId": "TRUST"
+  },
+  {
+    "id": "TRUST-POLICY-SCANNER",
+    "type": "scanner",
+    "domainId": "TRUST"
+  },
+  {
+    "id": "TRUST-POLICY-MIGRATION",
+    "type": "migration",
+    "domainId": "TRUST"
+  },
+  {
+    "id": "PRESENCE-POLICY-OWNERSHIP",
+    "type": "ownership",
+    "domainId": "PRESENCE"
+  },
+  {
+    "id": "PRESENCE-POLICY-IMPORT",
+    "type": "import",
+    "domainId": "PRESENCE"
+  },
+  {
+    "id": "PRESENCE-POLICY-REALTIME",
+    "type": "realtime",
+    "domainId": "PRESENCE"
+  },
+  {
+    "id": "PRESENCE-POLICY-LAYER",
+    "type": "layer",
+    "domainId": "PRESENCE"
+  },
+  {
+    "id": "PRESENCE-POLICY-SERVICE",
+    "type": "service",
+    "domainId": "PRESENCE"
+  },
+  {
+    "id": "PRESENCE-POLICY-CONTEXT",
+    "type": "context",
+    "domainId": "PRESENCE"
+  },
+  {
+    "id": "PRESENCE-POLICY-TABLE",
+    "type": "table",
+    "domainId": "PRESENCE"
+  },
+  {
+    "id": "PRESENCE-POLICY-EVENT",
+    "type": "event",
+    "domainId": "PRESENCE"
+  },
+  {
+    "id": "PRESENCE-POLICY-HOOK",
+    "type": "hook",
+    "domainId": "PRESENCE"
+  },
+  {
+    "id": "PRESENCE-POLICY-UI",
+    "type": "ui",
+    "domainId": "PRESENCE"
+  },
+  {
+    "id": "PRESENCE-POLICY-CORE",
+    "type": "core",
+    "domainId": "PRESENCE"
+  },
+  {
+    "id": "PRESENCE-POLICY-SCANNER",
+    "type": "scanner",
+    "domainId": "PRESENCE"
+  },
+  {
+    "id": "PRESENCE-POLICY-MIGRATION",
+    "type": "migration",
+    "domainId": "PRESENCE"
+  },
+  {
+    "id": "INTELLIGENCE-POLICY-OWNERSHIP",
+    "type": "ownership",
+    "domainId": "INTELLIGENCE"
+  },
+  {
+    "id": "INTELLIGENCE-POLICY-IMPORT",
+    "type": "import",
+    "domainId": "INTELLIGENCE"
+  },
+  {
+    "id": "INTELLIGENCE-POLICY-REALTIME",
+    "type": "realtime",
+    "domainId": "INTELLIGENCE"
+  },
+  {
+    "id": "INTELLIGENCE-POLICY-LAYER",
+    "type": "layer",
+    "domainId": "INTELLIGENCE"
+  },
+  {
+    "id": "INTELLIGENCE-POLICY-SERVICE",
+    "type": "service",
+    "domainId": "INTELLIGENCE"
+  },
+  {
+    "id": "INTELLIGENCE-POLICY-CONTEXT",
+    "type": "context",
+    "domainId": "INTELLIGENCE"
+  },
+  {
+    "id": "INTELLIGENCE-POLICY-TABLE",
+    "type": "table",
+    "domainId": "INTELLIGENCE"
+  },
+  {
+    "id": "INTELLIGENCE-POLICY-EVENT",
+    "type": "event",
+    "domainId": "INTELLIGENCE"
+  },
+  {
+    "id": "INTELLIGENCE-POLICY-HOOK",
+    "type": "hook",
+    "domainId": "INTELLIGENCE"
+  },
+  {
+    "id": "INTELLIGENCE-POLICY-UI",
+    "type": "ui",
+    "domainId": "INTELLIGENCE"
+  },
+  {
+    "id": "INTELLIGENCE-POLICY-CORE",
+    "type": "core",
+    "domainId": "INTELLIGENCE"
+  },
+  {
+    "id": "INTELLIGENCE-POLICY-SCANNER",
+    "type": "scanner",
+    "domainId": "INTELLIGENCE"
+  },
+  {
+    "id": "INTELLIGENCE-POLICY-MIGRATION",
+    "type": "migration",
+    "domainId": "INTELLIGENCE"
+  },
+  {
+    "id": "WORLD-POLICY-OWNERSHIP",
+    "type": "ownership",
+    "domainId": "WORLD"
+  },
+  {
+    "id": "WORLD-POLICY-IMPORT",
+    "type": "import",
+    "domainId": "WORLD"
+  },
+  {
+    "id": "WORLD-POLICY-REALTIME",
+    "type": "realtime",
+    "domainId": "WORLD"
+  },
+  {
+    "id": "WORLD-POLICY-LAYER",
+    "type": "layer",
+    "domainId": "WORLD"
+  },
+  {
+    "id": "WORLD-POLICY-SERVICE",
+    "type": "service",
+    "domainId": "WORLD"
+  },
+  {
+    "id": "WORLD-POLICY-CONTEXT",
+    "type": "context",
+    "domainId": "WORLD"
+  },
+  {
+    "id": "WORLD-POLICY-TABLE",
+    "type": "table",
+    "domainId": "WORLD"
+  },
+  {
+    "id": "WORLD-POLICY-EVENT",
+    "type": "event",
+    "domainId": "WORLD"
+  },
+  {
+    "id": "WORLD-POLICY-HOOK",
+    "type": "hook",
+    "domainId": "WORLD"
+  },
+  {
+    "id": "WORLD-POLICY-UI",
+    "type": "ui",
+    "domainId": "WORLD"
+  },
+  {
+    "id": "WORLD-POLICY-CORE",
+    "type": "core",
+    "domainId": "WORLD"
+  },
+  {
+    "id": "WORLD-POLICY-SCANNER",
+    "type": "scanner",
+    "domainId": "WORLD"
+  },
+  {
+    "id": "WORLD-POLICY-MIGRATION",
+    "type": "migration",
+    "domainId": "WORLD"
+  },
+  {
+    "id": "STUDIO-POLICY-OWNERSHIP",
+    "type": "ownership",
+    "domainId": "STUDIO"
+  },
+  {
+    "id": "STUDIO-POLICY-IMPORT",
+    "type": "import",
+    "domainId": "STUDIO"
+  },
+  {
+    "id": "STUDIO-POLICY-REALTIME",
+    "type": "realtime",
+    "domainId": "STUDIO"
+  },
+  {
+    "id": "STUDIO-POLICY-LAYER",
+    "type": "layer",
+    "domainId": "STUDIO"
+  },
+  {
+    "id": "STUDIO-POLICY-SERVICE",
+    "type": "service",
+    "domainId": "STUDIO"
+  },
+  {
+    "id": "STUDIO-POLICY-CONTEXT",
+    "type": "context",
+    "domainId": "STUDIO"
+  },
+  {
+    "id": "STUDIO-POLICY-TABLE",
+    "type": "table",
+    "domainId": "STUDIO"
+  },
+  {
+    "id": "STUDIO-POLICY-EVENT",
+    "type": "event",
+    "domainId": "STUDIO"
+  },
+  {
+    "id": "STUDIO-POLICY-HOOK",
+    "type": "hook",
+    "domainId": "STUDIO"
+  },
+  {
+    "id": "STUDIO-POLICY-UI",
+    "type": "ui",
+    "domainId": "STUDIO"
+  },
+  {
+    "id": "STUDIO-POLICY-CORE",
+    "type": "core",
+    "domainId": "STUDIO"
+  },
+  {
+    "id": "STUDIO-POLICY-SCANNER",
+    "type": "scanner",
+    "domainId": "STUDIO"
+  },
+  {
+    "id": "STUDIO-POLICY-MIGRATION",
+    "type": "migration",
+    "domainId": "STUDIO"
+  }
+]
