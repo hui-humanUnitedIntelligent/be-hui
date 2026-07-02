@@ -46,7 +46,7 @@ const T = {
   goldGlow:  "rgba(212,149,42,0.16)",
   violet:    "#7264D6",
   violetGlow:"rgba(114,100,214,0.16)",
-  page:      "#F8F4EE",
+  page:      "#F9F7F4",
   surface:   "#FDFAF5",
   surfaceHi: "#FFFFFF",
   hero:      "#FBF1E0",

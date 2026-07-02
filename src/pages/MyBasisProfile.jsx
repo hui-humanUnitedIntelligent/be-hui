@@ -39,7 +39,7 @@ import ExperienceWizard from "../components/experiences/ExperienceWizard.jsx";
 
 // ── Design Tokens ────────────────────────────────────────────────
 const T = {
-  bg:       "#F7F5F0",
+  bg:       "#F9F7F4",
   bgCard:   "#FFFFFF",
   bgSheet:  "rgba(252,251,248,0.98)",
   teal:     "#0EC4B8",

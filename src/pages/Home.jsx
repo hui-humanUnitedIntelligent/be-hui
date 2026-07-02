@@ -62,7 +62,7 @@ const TalentOnboarding    = React.lazy(() => import("../components/TalentOnboard
 const StoryComposer       = React.lazy(() => import("../components/StoryComposer.jsx"));
 // ExperienceCreator: removed (ExperienceFlow used instead — dead import)
 
-const C = { cream: "#F9F6F2" };
+const C = { cream: "#F9F7F4" };
 
 const SAFE_MOTION_CSS = SAFE_MODE.motion ? '' : `
   /* SafeMode.motion=false: Alle Animationen deaktiviert */

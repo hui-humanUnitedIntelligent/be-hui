@@ -11,7 +11,7 @@ import { formatPresence } from "../lib/usePresence.js";
 
 // ── Design Tokens ────────────────────────────────────────────────
 const T = {
-  bg:       "#F8F7F4",
+  bg:       "#F9F7F4",
   white:    "#FFFFFF",
   teal:     "#0EC4B8",
   tealSoft: "rgba(14,196,184,0.10)",
