@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { safeQuery } from "../lib/perfUtils";
 import { ProfileService } from '../services/db';
+import { worksService, commentsService } from '../services/content';
 import { supabase } from "../lib/supabaseClient";
 import { normalizeProfileInput } from '../lib/perfUtils';
 import { useAuth } from "../lib/AuthContext";
@@ -326,18 +327,13 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
         setFollowing(!!followRow);
       }
 
-      // Comments
-      const { data: cData } = await supabase
-        .from("comments")
-        .select("id, text, created_at, user_id, profiles(display_name, avatar_url, username)")
-        .eq("work_id", werkId)
-        .order("created_at", { ascending: true })
-        .limit(50);
+      // Comments — via ContentService
+      const { data: cData } = await commentsService.getByWork(werkId);
       setComments(cData || []);
       setCommentCount((cData || []).length);
 
-      // Increment view count
-      await supabase.rpc("increment_work_views", { work_id: werkId }).catch(() => {});
+      // Increment view count — via ContentService
+      await worksService.incrementViews(werkId);
     } catch(e) {
       console.error("[WorkDetail] loadSocial:", e.message);
     }
@@ -388,8 +384,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
     setComments(c => [...c, optimistic]);
     setCommentCount(c => c + 1);
     setCommentInput("");
-    const { error } = await supabase.from("comments")
-      .insert({ work_id: id, user_id: user.id, text: txt });
+    const { error } = await commentsService.addComment({ workId: id, userId: user.id, text: txt });
     if (error) {
       console.error("[Comment] insert:", error.message);
       setComments(c => c.filter(x => x.id !== optimistic.id));
@@ -404,13 +399,8 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
     setLoading(true);
     setError(null);
     try {
-      // Werk laden — nur Felder die tatsächlich in der DB existieren
-      // (works.user_id → auth.users, kein FK zu profiles → kein JOIN möglich)
-      const { data: w, error: wErr } = await supabase
-        .from("works")
-        .select("id,title,description,cover_url,media_url,price,category,tags,status,approval_status,user_id,creator_id,likes_count,created_at,images,caption,location_text")
-        .eq("id", id)
-        .single();
+      // Werk laden — via ContentService (kein Profile-JOIN, siehe worksService.getWorkDetail)
+      const { data: w, error: wErr } = await worksService.getWorkDetail(id);
 
       if (wErr || !w) throw new Error("Werk nicht gefunden");
       setWerk(w);
@@ -421,7 +411,12 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
         const { data: prof } = await ProfileService.getById(creatorId);
         setCreator(prof || null);
       }
-      await loadRelated(w.category, creatorId, id);
+      const { works: relatedWorks } = await worksService.getRelatedWorks({
+        category: w.category,
+        userId: creatorId,
+        currentId: id,
+      });
+      setRelated(relatedWorks);
       if (user?.id) await loadSocial(id, creatorId);
 
     } catch (e) {
@@ -431,41 +426,6 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
       setLoading(false);
     }
   }, [id]);
-
-  async function loadRelated(category, userId, currentId) {
-    try {
-      // Gleiche Kategorie ODER gleicher Creator, exkl. aktuelles Werk
-      const queries = await Promise.allSettled([
-        supabase.from("works")
-          .select("id, title, price, cover_url, images, category")
-          .eq("status", "published")
-          .eq("category", category || "")
-          .neq("id", currentId)
-          .limit(6),
-        supabase.from("works")
-          .select("id, title, price, cover_url, images, category")
-          .eq("status", "published")
-          .eq("user_id", userId || "")
-          .neq("id", currentId)
-          .limit(4),
-      ]);
-
-      const catWorks  = queries[0].status === "fulfilled" ? (queries[0].value.data || []) : [];
-      const userWorks = queries[1].status === "fulfilled" ? (queries[1].value.data || []) : [];
-
-      // Merge + deduplizieren
-      const seen = new Set();
-      const merged = [...catWorks, ...userWorks].filter(w => {
-        if (seen.has(w.id)) return false;
-        seen.add(w.id);
-        return true;
-      }).slice(0, 8);
-
-      setRelated(merged);
-    } catch(e) {
-      console.warn("[HUI] Related works Fehler:", e.message);
-    }
-  }
 
   useEffect(() => { load(); }, [load]);
 

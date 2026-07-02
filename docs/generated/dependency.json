@@ -326,6 +326,7 @@
     "imports": [
       "../lib/perfUtils",
       "../services/db",
+      "../services/content",
       "../lib/supabaseClient",
       "../lib/perfUtils",
       "../lib/AuthContext",
@@ -3228,6 +3229,7 @@
     "exports": [
       "feedService",
       "worksService",
+      "commentsService",
       "resonanceService",
       "storageService",
       "discoverService"

@@ -18,7 +18,7 @@
 //   • Alle Fehler ruhig abgefangen — kein White Screen
 //
 // VERWENDUNG:
-//   import { feedService, worksService, resonanceService, storageService }
+//   import { feedService, worksService, commentsService, resonanceService, storageService }
 //     from '../services/content';
 // ═══════════════════════════════════════════════════════════════
 
@@ -292,6 +292,104 @@ export const worksService = {
 
   async saveDraft({ userId, workId }) {
     return worksService.updateWork({ userId, workId, updates: { status: 'draft' } });
+  },
+
+  // Werk für Detail-Seite laden (ohne Profile-JOIN — user_id hat keinen FK zu profiles)
+  async getWorkDetail(id) {
+    try {
+      const { data, error } = await supabase.from('works')
+        .select('id,title,description,cover_url,media_url,price,category,tags,status,approval_status,user_id,creator_id,likes_count,created_at,images,caption,location_text')
+        .eq('id', id)
+        .single();
+      if (error) throw error;
+      return { data };
+    } catch (err) {
+      sentryCapture(err, { context: 'worksService.getWorkDetail' });
+      return { data: null, error: err.message };
+    }
+  },
+
+  // Ähnliche Werke: gleiche Kategorie oder gleicher Creator
+  async getRelatedWorks({ category, userId, currentId, categoryLimit = 6, userLimit = 4, maxResults = 8 } = {}) {
+    try {
+      const queries = await Promise.allSettled([
+        supabase.from('works')
+          .select('id, title, price, cover_url, images, category')
+          .eq('status', 'published')
+          .eq('category', category || '')
+          .neq('id', currentId)
+          .limit(categoryLimit),
+        supabase.from('works')
+          .select('id, title, price, cover_url, images, category')
+          .eq('status', 'published')
+          .eq('user_id', userId || '')
+          .neq('id', currentId)
+          .limit(userLimit),
+      ]);
+
+      const catWorks  = queries[0].status === 'fulfilled' ? (queries[0].value.data || []) : [];
+      const userWorks = queries[1].status === 'fulfilled' ? (queries[1].value.data || []) : [];
+
+      const seen = new Set();
+      const merged = [...catWorks, ...userWorks].filter(w => {
+        if (seen.has(w.id)) return false;
+        seen.add(w.id);
+        return true;
+      }).slice(0, maxResults);
+
+      return { works: merged };
+    } catch (err) {
+      sentryCapture(err, { context: 'worksService.getRelatedWorks' });
+      return { works: [], error: err.message };
+    }
+  },
+
+  // View-Counter inkrementieren (fire-and-forget, kein UI-Block)
+  async incrementViews(workId) {
+    if (!workId) return { success: false };
+    try {
+      await supabase.rpc('increment_work_views', { work_id: workId }).catch(() => {});
+      return { success: true };
+    } catch (err) {
+      sentryCapture(err, { context: 'worksService.incrementViews' });
+      return { success: false, error: err.message };
+    }
+  },
+};
+
+// ─────────────────────────────────────────────────────────────
+// COMMENTS SERVICE — Kommentare zu Werken
+// ─────────────────────────────────────────────────────────────
+export const commentsService = {
+
+  async getByWork(workId, { limit = 50 } = {}) {
+    if (!workId) return { data: [] };
+    try {
+      const { data, error } = await supabase.from('comments')
+        .select('id, text, created_at, user_id, profiles(display_name, avatar_url, username)')
+        .eq('work_id', workId)
+        .order('created_at', { ascending: true })
+        .limit(limit);
+      if (error) throw error;
+      return { data: data || [] };
+    } catch (err) {
+      sentryCapture(err, { context: 'commentsService.getByWork' });
+      return { data: [], error: err.message };
+    }
+  },
+
+  async addComment({ workId, userId, text }) {
+    const trimmed = text?.trim();
+    if (!workId || !userId || !trimmed) return { error: 'Fehlende Daten' };
+    try {
+      const { error } = await supabase.from('comments')
+        .insert({ work_id: workId, user_id: userId, text: trimmed });
+      if (error) throw error;
+      return { success: true };
+    } catch (err) {
+      sentryCapture(err, { context: 'commentsService.addComment' });
+      return { error: err.message };
+    }
   },
 };
 

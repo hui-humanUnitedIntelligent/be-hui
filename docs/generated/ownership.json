@@ -233,7 +233,7 @@
   },
   {
     "path": "components/WorkDetailPage.jsx",
-    "lines": 817,
+    "lines": 777,
     "hasDomain": false,
     "hasOwner": false,
     "domain": null,
@@ -2137,7 +2137,7 @@
   },
   {
     "path": "services/content.js",
-    "lines": 519,
+    "lines": 617,
     "hasDomain": false,
     "hasOwner": false,
     "domain": null,
