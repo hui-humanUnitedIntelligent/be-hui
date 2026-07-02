@@ -7,6 +7,14 @@
 
 ---
 
+## Governance
+
+| Dokument | Beschreibung |
+|---|---|
+| [`docs/governance/RFC-000A_ARCHITECTURE_GOVERNANCE.md`](governance/RFC-000A_ARCHITECTURE_GOVERNANCE.md) | **Architecture Governance v1.0.** RFC-000A — Governance-Prozess, Rollen, ADI, Domain Charters |
+
+---
+
 ## Fundament
 
 | Dokument | Beschreibung |
