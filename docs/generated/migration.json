@@ -1,0 +1,1839 @@
+{
+  "tables": {
+    "media": {
+      "migrations": [
+        "supabase/migrations/007_media_stories_pipeline.sql",
+        "supabase/migrations/007_media_stories_pipeline.sql",
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/026_production_schema.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql",
+        "sql/migrations_safe/023_content_recovery.sql"
+      ],
+      "writers": []
+    },
+    "stories": {
+      "migrations": [
+        "supabase/migrations/007_media_stories_pipeline.sql",
+        "supabase/migrations/007_media_stories_pipeline.sql",
+        "sql/archive_old/009_story_system_fix.sql",
+        "sql/archive_old/010_clean_separation.sql",
+        "sql/archive_old/018_works_stories_ui_sync.sql",
+        "sql/archive_old/019_publish_pipeline_sync.sql",
+        "sql/archive_old/020_feed_publish_recovery.sql",
+        "sql/archive_old/021_system_recovery.sql",
+        "sql/archive_old/022_feed_recovery_FINAL.sql",
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/026_production_schema.sql",
+        "sql/archive_old/027_precision_repair.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql",
+        "sql/core/stories.sql",
+        "sql/migrations_safe/011_stories_rls_fix.sql",
+        "sql/migrations_safe/014_story_views_highlights.sql",
+        "sql/migrations_safe/023_content_recovery.sql",
+        "sql/migrations_safe/DIAGNOSE.sql"
+      ],
+      "writers": [
+        "components/HuiCreateFlow.jsx",
+        "components/StoryComposer.jsx",
+        "components/teilen/TeilenFlow.jsx",
+        "feed/StoryCreator.jsx",
+        "services/db.js"
+      ]
+    },
+    "story_views": {
+      "migrations": [
+        "supabase/migrations/007_media_stories_pipeline.sql",
+        "supabase/migrations/007_media_stories_pipeline.sql",
+        "sql/archive_old/009_story_system_fix.sql",
+        "sql/archive_old/010_clean_separation.sql",
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/026_production_schema.sql",
+        "sql/archive_old/027_precision_repair.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql",
+        "sql/migrations_safe/014_story_views_highlights.sql"
+      ],
+      "writers": [
+        "components/StoryBar.jsx",
+        "feed/StoryViewer.jsx",
+        "services/db.js"
+      ]
+    },
+    "feed_items": {
+      "migrations": [
+        "supabase/migrations/007_media_stories_pipeline.sql",
+        "supabase/migrations/007_media_stories_pipeline.sql",
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/026_production_schema.sql",
+        "sql/archive_old/027_precision_repair.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql"
+      ],
+      "writers": [
+        "services/db.js"
+      ]
+    },
+    "profiles": {
+      "migrations": [
+        "supabase/migrations/20260608_block_delete.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "supabase/migrations/phase1.sql",
+        "supabase/migrations/20260608_block_delete.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "supabase/migrations/phase1.sql",
+        "supabase/phase4c_membership.sql",
+        "supabase/phase4d_creator_economy.sql",
+        "sql/034_membership_type_fix.sql",
+        "sql/035_phase3_real_systems.sql",
+        "sql/037_auth_hardening.sql",
+        "sql/archive_old/009_story_system_fix.sql",
+        "sql/archive_old/010_clean_separation.sql",
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/026_production_schema.sql",
+        "sql/archive_old/027_precision_repair.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql",
+        "sql/archive_old/hui_schema_v7.sql",
+        "sql/archive_old/hui_schema_v8_production.sql",
+        "sql/core/profiles.sql",
+        "sql/fix_profiles_missing_columns.sql",
+        "sql/migrations_safe/008_talent_profile_system.sql",
+        "sql/migrations_safe/016_creator_tools.sql",
+        "sql/migrations_safe/028_booking_intelligence.sql",
+        "sql/migrations_safe/029_chat_intelligence.sql",
+        "sql/migrations_safe/030_trust_reputation.sql",
+        "sql/migrations_safe/032_follow_graph.sql",
+        "sql/migrations_safe/DIAGNOSE.sql"
+      ],
+      "writers": [
+        "components/TalentOnboarding.jsx",
+        "components/auth/ProfileCompletionFlow.jsx",
+        "components/settings/SettingsModal.jsx",
+        "components/studio/ProfilBearbeitenModal.jsx",
+        "hooks/useAmbassador.js",
+        "lib/AuthContext.jsx",
+        "lib/profileMedia.js",
+        "lib/referralTracking.js",
+        "lib/roles/index.js",
+        "lib/sessionHooks.js",
+        "lib/usePresence.js",
+        "pages/BasisProfilePage.jsx",
+        "pages/LoginPage.jsx",
+        "pages/MyBasisProfile.jsx",
+        "pages/MyCreatorDashboard.jsx",
+        "pages/TalentProfilePage.jsx",
+        "services/db.js"
+      ]
+    },
+    "works": {
+      "migrations": [
+        "supabase/migrations/20260609_works_approval_system.sql",
+        "supabase/migrations/20260611_previous_data_snapshot.sql",
+        "supabase/migrations/20260627_052_commerce_p0_security.sql",
+        "supabase/migrations/20260627_054_commerce_infrastructure_sync.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "supabase/migrations/20260609_works_approval_system.sql",
+        "supabase/migrations/20260611_previous_data_snapshot.sql",
+        "supabase/migrations/20260627_052_commerce_p0_security.sql",
+        "supabase/migrations/20260627_054_commerce_infrastructure_sync.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "supabase/phase4d_creator_economy.sql",
+        "sql/archive_old/010_clean_separation.sql",
+        "sql/archive_old/018_works_stories_ui_sync.sql",
+        "sql/archive_old/019_publish_pipeline_sync.sql",
+        "sql/archive_old/020_feed_publish_recovery.sql",
+        "sql/archive_old/021_system_recovery.sql",
+        "sql/archive_old/022_feed_recovery_FINAL.sql",
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/026_production_schema.sql",
+        "sql/archive_old/027_precision_repair.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql",
+        "sql/archive_old/hui_schema_v7.sql",
+        "sql/archive_old/hui_schema_v8_production.sql",
+        "sql/core/works.sql",
+        "sql/migrations_safe/016_creator_tools.sql",
+        "sql/migrations_safe/023_content_recovery.sql",
+        "sql/migrations_safe/025_safe_incremental.sql",
+        "sql/migrations_safe/DIAGNOSE.sql"
+      ],
+      "writers": [
+        "components/HuiCreateFlow.jsx",
+        "components/WerkPublisher.jsx",
+        "components/profile/sections/WorksSection.jsx",
+        "components/publishing/PublishWorkFlow.jsx",
+        "components/works/WerkWizard.jsx",
+        "pages/MyBasisProfile.jsx",
+        "services/content.js",
+        "services/db.js",
+        "system/flows/work/WorkFlow.jsx"
+      ]
+    },
+    "pg_policies": {
+      "migrations": [
+        "supabase/migrations/20260609_works_approval_system.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "supabase/migrations/20260609_works_approval_system.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "sql/archive_old/021_system_recovery.sql",
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/027_precision_repair.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql",
+        "sql/migrations_safe/011_stories_rls_fix.sql",
+        "sql/migrations_safe/DIAGNOSE.sql"
+      ],
+      "writers": []
+    },
+    "experiences": {
+      "migrations": [
+        "supabase/migrations/20260611_experiences_approval_system.sql",
+        "supabase/migrations/20260611_previous_data_snapshot.sql",
+        "supabase/migrations/20260627_052_commerce_p0_security.sql",
+        "supabase/migrations/20260627_054_commerce_infrastructure_sync.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "supabase/migrations/20260611_experiences_approval_system.sql",
+        "supabase/migrations/20260611_previous_data_snapshot.sql",
+        "supabase/migrations/20260627_052_commerce_p0_security.sql",
+        "supabase/migrations/20260627_054_commerce_infrastructure_sync.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "sql/035_phase3_real_systems.sql",
+        "sql/archive_old/017_experiences_ui_sync.sql",
+        "sql/archive_old/019_publish_pipeline_sync.sql",
+        "sql/archive_old/020_feed_publish_recovery.sql",
+        "sql/archive_old/021_system_recovery.sql",
+        "sql/archive_old/022_feed_recovery_FINAL.sql",
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/026_production_schema.sql",
+        "sql/archive_old/027_precision_repair.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql",
+        "sql/archive_old/hui_schema_v7.sql",
+        "sql/archive_old/hui_schema_v8_production.sql",
+        "sql/migrations_safe/023_content_recovery.sql",
+        "sql/migrations_safe/025_safe_incremental.sql",
+        "sql/migrations_safe/DIAGNOSE.sql"
+      ],
+      "writers": [
+        "components/experiences/ExperienceWizard.jsx",
+        "lib/factories/experienceContract.js",
+        "services/db.js"
+      ]
+    },
+    "projects": {
+      "migrations": [
+        "supabase/migrations/20260611_experiences_approval_system.sql",
+        "supabase/migrations/20260611_previous_data_snapshot.sql",
+        "supabase/migrations/20260611_experiences_approval_system.sql",
+        "supabase/migrations/20260611_previous_data_snapshot.sql"
+      ],
+      "writers": []
+    },
+    "information_schema": {
+      "migrations": [
+        "supabase/migrations/20260611_experiences_approval_system.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "supabase/migrations/20260611_experiences_approval_system.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "sql/035_phase3_real_systems.sql",
+        "sql/archive_old/010_clean_separation.sql",
+        "sql/archive_old/017_experiences_ui_sync.sql",
+        "sql/archive_old/018_works_stories_ui_sync.sql",
+        "sql/archive_old/019_publish_pipeline_sync.sql",
+        "sql/archive_old/020_feed_publish_recovery.sql",
+        "sql/archive_old/021_system_recovery.sql",
+        "sql/archive_old/022_feed_recovery_FINAL.sql",
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/026_production_schema.sql",
+        "sql/archive_old/027_precision_repair.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql",
+        "sql/migrations_safe/023_content_recovery.sql",
+        "sql/migrations_safe/025_safe_incremental.sql",
+        "sql/migrations_safe/031_rls_completion.sql",
+        "sql/migrations_safe/DIAGNOSE.sql"
+      ],
+      "writers": []
+    },
+    "orders": {
+      "migrations": [
+        "supabase/migrations/20260627_052_commerce_p0_security.sql",
+        "supabase/migrations/20260627_053_cart_hash_aborted_status.sql",
+        "supabase/migrations/20260627_054_commerce_infrastructure_sync.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "supabase/migrations/20260627_052_commerce_p0_security.sql",
+        "supabase/migrations/20260627_053_cart_hash_aborted_status.sql",
+        "supabase/migrations/20260627_054_commerce_infrastructure_sync.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "sql/archive_old/026_production_schema.sql",
+        "sql/archive_old/027_precision_repair.sql"
+      ],
+      "writers": []
+    },
+    "creator_wallets": {
+      "migrations": [
+        "supabase/migrations/20260627_052_commerce_p0_security.sql",
+        "supabase/migrations/20260627_054_commerce_infrastructure_sync.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "supabase/migrations/20260627_052_commerce_p0_security.sql",
+        "supabase/migrations/20260627_054_commerce_infrastructure_sync.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "supabase/phase4d_creator_economy.sql"
+      ],
+      "writers": [
+        "services/creatorEconomy.js"
+      ]
+    },
+    "webhook_events": {
+      "migrations": [
+        "supabase/migrations/20260627_052_commerce_p0_security.sql",
+        "supabase/migrations/20260627_054_commerce_infrastructure_sync.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "supabase/migrations/20260627_052_commerce_p0_security.sql",
+        "supabase/migrations/20260627_054_commerce_infrastructure_sync.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "sql/migrations_safe/031_rls_completion.sql"
+      ],
+      "writers": []
+    },
+    "old": {
+      "migrations": [
+        "supabase/migrations/20260627_052_commerce_p0_security.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "supabase/migrations/20260627_052_commerce_p0_security.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql"
+      ],
+      "writers": []
+    },
+    "order_items": {
+      "migrations": [
+        "supabase/migrations/20260627_053_cart_hash_aborted_status.sql",
+        "supabase/migrations/20260627_054_commerce_infrastructure_sync.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "supabase/migrations/20260627_053_cart_hash_aborted_status.sql",
+        "supabase/migrations/20260627_054_commerce_infrastructure_sync.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "sql/archive_old/026_production_schema.sql",
+        "sql/archive_old/027_precision_repair.sql"
+      ],
+      "writers": [
+        "services/commerceEngine.js"
+      ]
+    },
+    "commerce_events": {
+      "migrations": [
+        "supabase/migrations/20260627_054_commerce_infrastructure_sync.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "supabase/migrations/20260627_054_commerce_infrastructure_sync.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql"
+      ],
+      "writers": [
+        "services/commerceEngine.js"
+      ]
+    },
+    "creator_payouts": {
+      "migrations": [
+        "supabase/migrations/20260627_054_commerce_infrastructure_sync.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "supabase/migrations/20260627_054_commerce_infrastructure_sync.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql"
+      ],
+      "writers": []
+    },
+    "shipments": {
+      "migrations": [
+        "supabase/migrations/20260627_054_commerce_infrastructure_sync.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "supabase/migrations/20260627_054_commerce_infrastructure_sync.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql"
+      ],
+      "writers": [
+        "services/commerceEngine.js"
+      ]
+    },
+    "pg_tables": {
+      "migrations": [
+        "supabase/migrations/20260627_054_commerce_infrastructure_sync.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "supabase/migrations/20260627_054_commerce_infrastructure_sync.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "sql/migrations_safe/031_rls_completion.sql"
+      ],
+      "writers": []
+    },
+    "impact_rounds": {
+      "migrations": [
+        "supabase/migrations/20260627_054_commerce_infrastructure_sync.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "supabase/migrations/20260627_054_commerce_infrastructure_sync.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "sql/archive_old/hui_schema_v7.sql",
+        "sql/archive_old/hui_schema_v8_production.sql"
+      ],
+      "writers": []
+    },
+    "pg_trigger": {
+      "migrations": [
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql"
+      ],
+      "writers": []
+    },
+    "pg_class": {
+      "migrations": [
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "sql/migrations_safe/DIAGNOSE.sql"
+      ],
+      "writers": []
+    },
+    "pg_namespace": {
+      "migrations": [
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "sql/migrations_safe/DIAGNOSE.sql"
+      ],
+      "writers": []
+    },
+    "pg_proc": {
+      "migrations": [
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql"
+      ],
+      "writers": []
+    },
+    "notifications": {
+      "migrations": [
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "sql/038_feature_activation.sql",
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/026_production_schema.sql",
+        "sql/archive_old/027_precision_repair.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql",
+        "sql/core/notifications.sql"
+      ],
+      "writers": [
+        "components/NotificationCenter.jsx",
+        "components/commerce/ExperienceBookingFlow.jsx",
+        "components/commerce/WerkKaufFlow.jsx",
+        "components/notifications/NotificationPanel.jsx",
+        "lib/bookingContext.js",
+        "lib/notificationService.js",
+        "lib/useNotifications.jsx",
+        "pages/Admin.jsx",
+        "pages/studio/MeineTicketsPage.jsx",
+        "pages/studio/SupportPage.jsx",
+        "system/flows/impact/ImpactFlow.jsx"
+      ]
+    },
+    "pg_views": {
+      "migrations": [
+        "supabase/migrations/20260627_057_commerce_schema_final.sql",
+        "supabase/migrations/20260627_057_commerce_schema_final.sql"
+      ],
+      "writers": []
+    },
+    "favorites": {
+      "migrations": [
+        "supabase/migrations/phase1.sql",
+        "supabase/migrations/phase1.sql",
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/026_production_schema.sql",
+        "sql/archive_old/027_precision_repair.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql"
+      ],
+      "writers": []
+    },
+    "bookings": {
+      "migrations": [
+        "supabase/migrations/phase1.sql",
+        "supabase/migrations/phase1.sql",
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/026_production_schema.sql",
+        "sql/archive_old/027_precision_repair.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql",
+        "sql/archive_old/hui_schema_v7.sql",
+        "sql/archive_old/hui_schema_v8_production.sql",
+        "sql/core/bookings.sql",
+        "sql/migrations_safe/016_creator_tools.sql",
+        "sql/migrations_safe/028_booking_intelligence.sql"
+      ],
+      "writers": [
+        "lib/bookingContext.js",
+        "services/db.js"
+      ]
+    },
+    "updated_profile": {
+      "migrations": [
+        "supabase/phase4c_membership.sql"
+      ],
+      "writers": []
+    },
+    "creator_supports": {
+      "migrations": [
+        "supabase/phase4d_creator_economy.sql"
+      ],
+      "writers": [
+        "services/creatorEconomy.js"
+      ]
+    },
+    "experience_bookings": {
+      "migrations": [
+        "supabase/phase4d_creator_economy.sql"
+      ],
+      "writers": [
+        "services/creatorEconomy.js"
+      ]
+    },
+    "work_sales": {
+      "migrations": [
+        "supabase/phase4d_creator_economy.sql"
+      ],
+      "writers": [
+        "services/creatorEconomy.js"
+      ]
+    },
+    "creator_analytics": {
+      "migrations": [
+        "supabase/phase4d_creator_economy.sql"
+      ],
+      "writers": [
+        "services/creatorEconomy.js"
+      ]
+    },
+    "v_wallet": {
+      "migrations": [
+        "supabase/phase4d_creator_economy.sql"
+      ],
+      "writers": []
+    },
+    "v_supports": {
+      "migrations": [
+        "supabase/phase4d_creator_economy.sql"
+      ],
+      "writers": []
+    },
+    "v_bookings": {
+      "migrations": [
+        "supabase/phase4d_creator_economy.sql"
+      ],
+      "writers": []
+    },
+    "v_sales": {
+      "migrations": [
+        "supabase/phase4d_creator_economy.sql"
+      ],
+      "writers": []
+    },
+    "v_analytics": {
+      "migrations": [
+        "supabase/phase4d_creator_economy.sql"
+      ],
+      "writers": []
+    },
+    "v_support": {
+      "migrations": [
+        "supabase/phase4d_creator_economy.sql"
+      ],
+      "writers": []
+    },
+    "follows": {
+      "migrations": [
+        "sql/035_phase3_real_systems.sql",
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/026_production_schema.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql",
+        "sql/migrations_safe/032_follow_graph.sql"
+      ],
+      "writers": [
+        "core/HuiConnectionEngine.jsx",
+        "lib/AppStateContext.jsx"
+      ]
+    },
+    "chats": {
+      "migrations": [
+        "sql/035_phase3_real_systems.sql",
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/026_production_schema.sql",
+        "sql/archive_old/027_precision_repair.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql",
+        "sql/migrations_safe/029_chat_intelligence.sql"
+      ],
+      "writers": [
+        "lib/bookingContext.js",
+        "lib/chatContext.js"
+      ]
+    },
+    "user_presence": {
+      "migrations": [
+        "sql/036_presence_reactions.sql"
+      ],
+      "writers": [
+        "lib/usePresence.jsx"
+      ]
+    },
+    "story_reactions": {
+      "migrations": [
+        "sql/036_presence_reactions.sql"
+      ],
+      "writers": [
+        "feed/StoryReactionTray.jsx"
+      ]
+    },
+    "reserved_usernames": {
+      "migrations": [
+        "sql/037_auth_hardening.sql"
+      ],
+      "writers": []
+    },
+    "_p": {
+      "migrations": [
+        "sql/037_auth_hardening.sql"
+      ],
+      "writers": []
+    },
+    "post_reactions": {
+      "migrations": [
+        "sql/038_feature_activation.sql"
+      ],
+      "writers": [
+        "lib/useReactions.jsx"
+      ]
+    },
+    "saved_posts": {
+      "migrations": [
+        "sql/038_feature_activation.sql"
+      ],
+      "writers": [
+        "lib/useReactions.jsx"
+      ]
+    },
+    "now": {
+      "migrations": [
+        "sql/archive_old/009_story_system_fix.sql"
+      ],
+      "writers": []
+    },
+    "p": {
+      "migrations": [
+        "sql/archive_old/009_story_system_fix.sql",
+        "sql/archive_old/010_clean_separation.sql"
+      ],
+      "writers": []
+    },
+    "add": {
+      "migrations": [
+        "sql/archive_old/017_experiences_ui_sync.sql",
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql"
+      ],
+      "writers": []
+    },
+    "storage": {
+      "migrations": [
+        "sql/archive_old/021_system_recovery.sql",
+        "sql/archive_old/022_feed_recovery_FINAL.sql",
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql",
+        "sql/migrations_safe/012_stories_storage_bucket.sql",
+        "sql/migrations_safe/023_content_recovery.sql",
+        "sql/migrations_safe/029_chat_intelligence.sql",
+        "sql/migrations_safe/DIAGNOSE.sql"
+      ],
+      "writers": []
+    },
+    "works_count": {
+      "migrations": [
+        "sql/archive_old/022_feed_recovery_FINAL.sql"
+      ],
+      "writers": []
+    },
+    "first_user_id": {
+      "migrations": [
+        "sql/archive_old/022_feed_recovery_FINAL.sql"
+      ],
+      "writers": []
+    },
+    "auth": {
+      "migrations": [
+        "sql/archive_old/022_feed_recovery_FINAL.sql"
+      ],
+      "writers": []
+    },
+    "verwaltet": {
+      "migrations": [
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql"
+      ],
+      "writers": []
+    },
+    "allein": {
+      "migrations": [
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql"
+      ],
+      "writers": []
+    },
+    "followers_count": {
+      "migrations": [
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql"
+      ],
+      "writers": []
+    },
+    "wirker_profiles": {
+      "migrations": [
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/026_production_schema.sql",
+        "sql/archive_old/027_precision_repair.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql",
+        "sql/archive_old/hui_schema_v7.sql",
+        "sql/archive_old/hui_schema_v8_production.sql",
+        "sql/migrations_safe/DIAGNOSE.sql"
+      ],
+      "writers": [
+        "components/studio/ProfilBearbeitenModal.jsx",
+        "lib/AuthContext.jsx",
+        "services/db.js"
+      ]
+    },
+    "work_likes": {
+      "migrations": [
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/026_production_schema.sql",
+        "sql/archive_old/027_precision_repair.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql"
+      ],
+      "writers": []
+    },
+    "work_saves": {
+      "migrations": [
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/026_production_schema.sql",
+        "sql/archive_old/027_precision_repair.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql"
+      ],
+      "writers": []
+    },
+    "likes": {
+      "migrations": [
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql",
+        "sql/archive_old/hui_schema_v8_production.sql"
+      ],
+      "writers": []
+    },
+    "comments": {
+      "migrations": [
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/026_production_schema.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql"
+      ],
+      "writers": [
+        "components/WorkDetailPage.jsx"
+      ]
+    },
+    "recommendations": {
+      "migrations": [
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/026_production_schema.sql",
+        "sql/archive_old/027_precision_repair.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql",
+        "sql/archive_old/hui_schema_v8_production.sql",
+        "sql/migrations_safe/030_trust_reputation.sql"
+      ],
+      "writers": [
+        "lib/trustContext.js",
+        "services/db.js"
+      ]
+    },
+    "payments": {
+      "migrations": [
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/026_production_schema.sql",
+        "sql/archive_old/027_precision_repair.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql",
+        "sql/core/payments.sql"
+      ],
+      "writers": []
+    },
+    "payouts": {
+      "migrations": [
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql",
+        "sql/archive_old/hui_schema_v8_production.sql"
+      ],
+      "writers": []
+    },
+    "messages": {
+      "migrations": [
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/026_production_schema.sql",
+        "sql/archive_old/027_precision_repair.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql",
+        "sql/archive_old/hui_schema_v7.sql",
+        "sql/archive_old/hui_schema_v8_production.sql",
+        "sql/core/messages.sql",
+        "sql/migrations_safe/029_chat_intelligence.sql"
+      ],
+      "writers": [
+        "components/StoryBar.jsx",
+        "lib/bookingContext.js",
+        "lib/chatContext.js",
+        "services/db.js"
+      ]
+    },
+    "notification_settings": {
+      "migrations": [
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/026_production_schema.sql",
+        "sql/archive_old/027_precision_repair.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql",
+        "sql/archive_old/hui_schema_v8_production.sql"
+      ],
+      "writers": []
+    },
+    "privacy_settings": {
+      "migrations": [
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/026_production_schema.sql",
+        "sql/archive_old/027_precision_repair.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql",
+        "sql/archive_old/hui_schema_v8_production.sql"
+      ],
+      "writers": []
+    },
+    "impact_projects": {
+      "migrations": [
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/026_production_schema.sql",
+        "sql/archive_old/027_precision_repair.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql",
+        "sql/archive_old/hui_schema_v7.sql",
+        "sql/archive_old/hui_schema_v8_production.sql"
+      ],
+      "writers": [
+        "components/SupportSheet.jsx"
+      ]
+    },
+    "impact_votes": {
+      "migrations": [
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/026_production_schema.sql",
+        "sql/archive_old/027_precision_repair.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql",
+        "sql/archive_old/hui_schema_v7.sql",
+        "sql/archive_old/hui_schema_v8_production.sql"
+      ],
+      "writers": [
+        "components/studio/ImpactStimmenModal.jsx",
+        "pages/ImpactPage.jsx",
+        "services/db.js"
+      ]
+    },
+    "availability_slots": {
+      "migrations": [
+        "sql/archive_old/024_master_schema.sql",
+        "sql/archive_old/026_production_schema.sql",
+        "sql/archive_old/027_precision_repair.sql",
+        "sql/archive_old/HUI_024_FINAL_MIGRATION.sql",
+        "sql/archive_old/hui_schema_v8_production.sql",
+        "sql/migrations_safe/028_booking_intelligence.sql"
+      ],
+      "writers": []
+    },
+    "immer": {
+      "migrations": [
+        "sql/archive_old/026_production_schema.sql"
+      ],
+      "writers": []
+    },
+    "wirker": {
+      "migrations": [
+        "sql/archive_old/026_production_schema.sql",
+        "sql/archive_old/027_precision_repair.sql"
+      ],
+      "writers": []
+    },
+    "references": {
+      "migrations": [
+        "sql/archive_old/026_production_schema.sql"
+      ],
+      "writers": []
+    },
+    "beitraege": {
+      "migrations": [
+        "sql/archive_old/026_production_schema.sql"
+      ],
+      "writers": [
+        "components/HuiMomentSheet.jsx",
+        "components/teilen/TeilenFlow.jsx"
+      ]
+    },
+    "escrow": {
+      "migrations": [
+        "sql/archive_old/026_production_schema.sql"
+      ],
+      "writers": []
+    },
+    "uuid": {
+      "migrations": [
+        "sql/archive_old/026_production_schema.sql"
+      ],
+      "writers": []
+    },
+    "impact_pool": {
+      "migrations": [
+        "sql/archive_old/026_production_schema.sql",
+        "sql/archive_old/027_precision_repair.sql"
+      ],
+      "writers": []
+    },
+    "project_support": {
+      "migrations": [
+        "sql/archive_old/026_production_schema.sql",
+        "sql/archive_old/027_precision_repair.sql"
+      ],
+      "writers": [
+        "components/SupportSheet.jsx"
+      ]
+    },
+    "col_type": {
+      "migrations": [
+        "sql/archive_old/027_precision_repair.sql"
+      ],
+      "writers": []
+    },
+    "pg_indexes": {
+      "migrations": [
+        "sql/archive_old/027_precision_repair.sql"
+      ],
+      "writers": []
+    },
+    "memberships": {
+      "migrations": [
+        "sql/archive_old/hui_schema_v7.sql",
+        "sql/archive_old/hui_schema_v8_production.sql"
+      ],
+      "writers": [
+        "services/db.js"
+      ]
+    },
+    "conversations": {
+      "migrations": [
+        "sql/archive_old/hui_schema_v7.sql",
+        "sql/archive_old/hui_schema_v8_production.sql"
+      ],
+      "writers": [
+        "services/db.js"
+      ]
+    },
+    "user_match_scores": {
+      "migrations": [
+        "sql/archive_old/hui_schema_v7.sql",
+        "sql/archive_old/hui_schema_v8_production.sql"
+      ],
+      "writers": []
+    },
+    "membership": {
+      "migrations": [
+        "sql/archive_old/hui_schema_v8_production.sql"
+      ],
+      "writers": []
+    },
+    "v_weight": {
+      "migrations": [
+        "sql/archive_old/hui_schema_v8_production.sql"
+      ],
+      "writers": []
+    },
+    "v_used": {
+      "migrations": [
+        "sql/archive_old/hui_schema_v8_production.sql"
+      ],
+      "writers": []
+    },
+    "booking_events": {
+      "migrations": [
+        "sql/migrations_safe/028_booking_intelligence.sql"
+      ],
+      "writers": [
+        "lib/bookingContext.js"
+      ]
+    },
+    "v_chat": {
+      "migrations": [
+        "sql/migrations_safe/029_chat_intelligence.sql"
+      ],
+      "writers": []
+    },
+    "trust_events": {
+      "migrations": [
+        "sql/migrations_safe/030_trust_reputation.sql"
+      ],
+      "writers": []
+    },
+    "collaborations": {
+      "migrations": [
+        "sql/migrations_safe/030_trust_reputation.sql"
+      ],
+      "writers": []
+    },
+    "v_is_repeat": {
+      "migrations": [
+        "sql/migrations_safe/030_trust_reputation.sql"
+      ],
+      "writers": []
+    },
+    "haben": {
+      "migrations": [
+        "sql/migrations_safe/031_rls_completion.sql"
+      ],
+      "writers": []
+    },
+    "audit_logs": {
+      "migrations": [
+        "sql/migrations_safe/031_rls_completion.sql"
+      ],
+      "writers": []
+    },
+    "impact_transactions": {
+      "migrations": [
+        "sql/migrations_safe/031_rls_completion.sql"
+      ],
+      "writers": []
+    },
+    "reports": {
+      "migrations": [
+        "sql/migrations_safe/031_rls_completion.sql"
+      ],
+      "writers": []
+    },
+    "follow_graph_health": {
+      "migrations": [
+        "sql/migrations_safe/032_follow_graph.sql"
+      ],
+      "writers": []
+    },
+    "required": {
+      "migrations": [
+        "sql/migrations_safe/DIAGNOSE.sql"
+      ],
+      "writers": []
+    },
+    "connections": {
+      "migrations": [],
+      "writers": [
+        "components/connection-create/ConnectionCreatePage.jsx"
+      ]
+    },
+    "user_recommendations": {
+      "migrations": [],
+      "writers": []
+    },
+    "impact_applications": {
+      "migrations": [],
+      "writers": [
+        "system/flows/impact/ImpactFlow.jsx"
+      ]
+    },
+    "moments": {
+      "migrations": [],
+      "writers": []
+    },
+    "profile_relations": {
+      "migrations": [],
+      "writers": [
+        "lib/useNotifications.jsx",
+        "pages/TalentProfilePage.jsx"
+      ]
+    },
+    "invitations": {
+      "migrations": [],
+      "writers": [
+        "content/invitation/InvitationFlow.jsx"
+      ]
+    },
+    "invitation_responses": {
+      "migrations": [],
+      "writers": [
+        "content/invitation/useInvitationResponse.js"
+      ]
+    },
+    "core_signals": {
+      "migrations": [],
+      "writers": []
+    },
+    "core_profiles": {
+      "migrations": [],
+      "writers": []
+    },
+    "core_connections": {
+      "migrations": [],
+      "writers": []
+    },
+    "core_content_signals": {
+      "migrations": [],
+      "writers": [
+        "core/coreEngine.js"
+      ]
+    },
+    "core_resonance_chains": {
+      "migrations": [],
+      "writers": []
+    },
+    "core_resonance_stats": {
+      "migrations": [],
+      "writers": []
+    },
+    "ambassador_ref_links": {
+      "migrations": [],
+      "writers": [
+        "lib/referralTracking.js"
+      ]
+    },
+    "ambassadors_applications": {
+      "migrations": [],
+      "writers": [
+        "hooks/useAmbassador.js"
+      ]
+    },
+    "chat_participants": {
+      "migrations": [],
+      "writers": [
+        "lib/chatContext.js"
+      ]
+    },
+    "community_members": {
+      "migrations": [],
+      "writers": [
+        "lib/community/index.js"
+      ]
+    },
+    "guardian_actions": {
+      "migrations": [],
+      "writers": [
+        "lib/community/index.js"
+      ]
+    },
+    "communities": {
+      "migrations": [],
+      "writers": []
+    },
+    "platform_events": {
+      "migrations": [],
+      "writers": [
+        "lib/events/index.js",
+        "lib/resonance/index.js"
+      ]
+    },
+    "hui_points_ledger": {
+      "migrations": [],
+      "writers": [
+        "lib/points/index.js"
+      ]
+    },
+    "t": {
+      "migrations": [],
+      "writers": []
+    },
+    "resonances": {
+      "migrations": [],
+      "writers": [
+        "lib/resonance/index.js"
+      ]
+    },
+    "trust_signals": {
+      "migrations": [],
+      "writers": [
+        "lib/trust/index.js"
+      ]
+    },
+    "profile_watchlist": {
+      "migrations": [],
+      "writers": [
+        "pages/TalentProfilePage.jsx",
+        "pages/wirker-profile/index.jsx"
+      ]
+    },
+    "impact_monthly_results": {
+      "migrations": [],
+      "writers": [
+        "pages/ImpactPage.jsx"
+      ]
+    },
+    "hui_payments": {
+      "migrations": [],
+      "writers": []
+    },
+    "feed_posts": {
+      "migrations": [],
+      "writers": [
+        "services/content.js"
+      ]
+    },
+    "impact_score_failures": {
+      "migrations": [],
+      "writers": [
+        "system/flows/impact/ImpactFlow.jsx"
+      ]
+    }
+  },
+  "migrations": [
+    {
+      "name": "007_media_stories_pipeline.sql",
+      "path": "supabase/migrations/007_media_stories_pipeline.sql",
+      "tables": [
+        "media",
+        "stories",
+        "story_views",
+        "feed_items"
+      ]
+    },
+    {
+      "name": "20260608_block_delete.sql",
+      "path": "supabase/migrations/20260608_block_delete.sql",
+      "tables": [
+        "profiles"
+      ]
+    },
+    {
+      "name": "20260609_works_approval_system.sql",
+      "path": "supabase/migrations/20260609_works_approval_system.sql",
+      "tables": [
+        "works",
+        "pg_policies"
+      ]
+    },
+    {
+      "name": "20260611_experiences_approval_system.sql",
+      "path": "supabase/migrations/20260611_experiences_approval_system.sql",
+      "tables": [
+        "experiences",
+        "projects",
+        "information_schema"
+      ]
+    },
+    {
+      "name": "20260611_previous_data_snapshot.sql",
+      "path": "supabase/migrations/20260611_previous_data_snapshot.sql",
+      "tables": [
+        "works",
+        "experiences",
+        "projects"
+      ]
+    },
+    {
+      "name": "20260627_052_commerce_p0_security.sql",
+      "path": "supabase/migrations/20260627_052_commerce_p0_security.sql",
+      "tables": [
+        "orders",
+        "creator_wallets",
+        "webhook_events",
+        "old",
+        "works",
+        "experiences"
+      ]
+    },
+    {
+      "name": "20260627_053_cart_hash_aborted_status.sql",
+      "path": "supabase/migrations/20260627_053_cart_hash_aborted_status.sql",
+      "tables": [
+        "orders",
+        "order_items"
+      ]
+    },
+    {
+      "name": "20260627_054_commerce_infrastructure_sync.sql",
+      "path": "supabase/migrations/20260627_054_commerce_infrastructure_sync.sql",
+      "tables": [
+        "orders",
+        "order_items",
+        "commerce_events",
+        "webhook_events",
+        "creator_wallets",
+        "creator_payouts",
+        "shipments",
+        "works",
+        "experiences",
+        "pg_tables",
+        "impact_rounds"
+      ]
+    },
+    {
+      "name": "20260627_057_commerce_schema_final.sql",
+      "path": "supabase/migrations/20260627_057_commerce_schema_final.sql",
+      "tables": [
+        "orders",
+        "information_schema",
+        "pg_trigger",
+        "pg_class",
+        "pg_namespace",
+        "pg_proc",
+        "order_items",
+        "old",
+        "pg_tables",
+        "shipments",
+        "creator_wallets",
+        "creator_payouts",
+        "commerce_events",
+        "webhook_events",
+        "impact_rounds",
+        "notifications",
+        "pg_policies",
+        "profiles",
+        "works",
+        "experiences",
+        "pg_views"
+      ]
+    },
+    {
+      "name": "phase1.sql",
+      "path": "supabase/migrations/phase1.sql",
+      "tables": [
+        "favorites",
+        "bookings",
+        "profiles"
+      ]
+    },
+    {
+      "name": "phase4c_membership.sql",
+      "path": "supabase/phase4c_membership.sql",
+      "tables": [
+        "profiles",
+        "updated_profile"
+      ]
+    },
+    {
+      "name": "phase4d_creator_economy.sql",
+      "path": "supabase/phase4d_creator_economy.sql",
+      "tables": [
+        "creator_wallets",
+        "creator_supports",
+        "experience_bookings",
+        "works",
+        "work_sales",
+        "profiles",
+        "creator_analytics",
+        "v_wallet",
+        "v_supports",
+        "v_bookings",
+        "v_sales",
+        "v_analytics",
+        "v_support"
+      ]
+    },
+    {
+      "name": "034_membership_type_fix.sql",
+      "path": "sql/034_membership_type_fix.sql",
+      "tables": [
+        "profiles"
+      ]
+    },
+    {
+      "name": "035_phase3_real_systems.sql",
+      "path": "sql/035_phase3_real_systems.sql",
+      "tables": [
+        "information_schema",
+        "follows",
+        "profiles",
+        "experiences",
+        "chats"
+      ]
+    },
+    {
+      "name": "036_presence_reactions.sql",
+      "path": "sql/036_presence_reactions.sql",
+      "tables": [
+        "user_presence",
+        "story_reactions"
+      ]
+    },
+    {
+      "name": "037_auth_hardening.sql",
+      "path": "sql/037_auth_hardening.sql",
+      "tables": [
+        "profiles",
+        "reserved_usernames",
+        "_p"
+      ]
+    },
+    {
+      "name": "038_feature_activation.sql",
+      "path": "sql/038_feature_activation.sql",
+      "tables": [
+        "post_reactions",
+        "saved_posts",
+        "notifications"
+      ]
+    },
+    {
+      "name": "009_story_system_fix.sql",
+      "path": "sql/archive_old/009_story_system_fix.sql",
+      "tables": [
+        "stories",
+        "story_views",
+        "now",
+        "profiles",
+        "p"
+      ]
+    },
+    {
+      "name": "010_clean_separation.sql",
+      "path": "sql/archive_old/010_clean_separation.sql",
+      "tables": [
+        "information_schema",
+        "works",
+        "stories",
+        "story_views",
+        "profiles",
+        "p"
+      ]
+    },
+    {
+      "name": "017_experiences_ui_sync.sql",
+      "path": "sql/archive_old/017_experiences_ui_sync.sql",
+      "tables": [
+        "add",
+        "experiences",
+        "information_schema"
+      ]
+    },
+    {
+      "name": "018_works_stories_ui_sync.sql",
+      "path": "sql/archive_old/018_works_stories_ui_sync.sql",
+      "tables": [
+        "works",
+        "information_schema",
+        "stories"
+      ]
+    },
+    {
+      "name": "019_publish_pipeline_sync.sql",
+      "path": "sql/archive_old/019_publish_pipeline_sync.sql",
+      "tables": [
+        "experiences",
+        "information_schema",
+        "works",
+        "stories"
+      ]
+    },
+    {
+      "name": "020_feed_publish_recovery.sql",
+      "path": "sql/archive_old/020_feed_publish_recovery.sql",
+      "tables": [
+        "experiences",
+        "information_schema",
+        "works",
+        "stories"
+      ]
+    },
+    {
+      "name": "021_system_recovery.sql",
+      "path": "sql/archive_old/021_system_recovery.sql",
+      "tables": [
+        "works",
+        "information_schema",
+        "experiences",
+        "stories",
+        "storage",
+        "pg_policies"
+      ]
+    },
+    {
+      "name": "022_feed_recovery_FINAL.sql",
+      "path": "sql/archive_old/022_feed_recovery_FINAL.sql",
+      "tables": [
+        "works",
+        "information_schema",
+        "experiences",
+        "stories",
+        "storage",
+        "works_count",
+        "first_user_id",
+        "auth"
+      ]
+    },
+    {
+      "name": "024_master_schema.sql",
+      "path": "sql/archive_old/024_master_schema.sql",
+      "tables": [
+        "verwaltet",
+        "allein",
+        "add",
+        "information_schema",
+        "pg_policies",
+        "works",
+        "experiences",
+        "stories",
+        "profiles",
+        "followers_count",
+        "wirker_profiles",
+        "follows",
+        "work_likes",
+        "work_saves",
+        "likes",
+        "favorites",
+        "comments",
+        "story_views",
+        "recommendations",
+        "bookings",
+        "payments",
+        "payouts",
+        "chats",
+        "messages",
+        "notifications",
+        "notification_settings",
+        "privacy_settings",
+        "impact_projects",
+        "impact_votes",
+        "availability_slots",
+        "media",
+        "feed_items",
+        "storage"
+      ]
+    },
+    {
+      "name": "026_production_schema.sql",
+      "path": "sql/archive_old/026_production_schema.sql",
+      "tables": [
+        "immer",
+        "profiles",
+        "wirker_profiles",
+        "wirker",
+        "references",
+        "works",
+        "experiences",
+        "stories",
+        "beitraege",
+        "follows",
+        "work_likes",
+        "work_saves",
+        "comments",
+        "story_views",
+        "favorites",
+        "feed_items",
+        "bookings",
+        "payments",
+        "escrow",
+        "orders",
+        "order_items",
+        "availability_slots",
+        "chats",
+        "messages",
+        "uuid",
+        "notifications",
+        "impact_pool",
+        "impact_projects",
+        "impact_votes",
+        "project_support",
+        "recommendations",
+        "notification_settings",
+        "privacy_settings",
+        "media",
+        "information_schema"
+      ]
+    },
+    {
+      "name": "027_precision_repair.sql",
+      "path": "sql/archive_old/027_precision_repair.sql",
+      "tables": [
+        "col_type",
+        "information_schema",
+        "messages",
+        "chats",
+        "works",
+        "stories",
+        "profiles",
+        "wirker_profiles",
+        "impact_projects",
+        "impact_votes",
+        "story_views",
+        "work_likes",
+        "work_saves",
+        "payments",
+        "pg_indexes",
+        "orders",
+        "order_items",
+        "recommendations",
+        "notifications",
+        "notification_settings",
+        "privacy_settings",
+        "project_support",
+        "impact_pool",
+        "experiences",
+        "favorites",
+        "feed_items",
+        "availability_slots",
+        "bookings",
+        "wirker",
+        "pg_policies"
+      ]
+    },
+    {
+      "name": "HUI_024_FINAL_MIGRATION.sql",
+      "path": "sql/archive_old/HUI_024_FINAL_MIGRATION.sql",
+      "tables": [
+        "verwaltet",
+        "allein",
+        "add",
+        "information_schema",
+        "pg_policies",
+        "works",
+        "experiences",
+        "stories",
+        "profiles",
+        "followers_count",
+        "wirker_profiles",
+        "follows",
+        "work_likes",
+        "work_saves",
+        "likes",
+        "favorites",
+        "comments",
+        "story_views",
+        "recommendations",
+        "bookings",
+        "payments",
+        "payouts",
+        "chats",
+        "messages",
+        "notifications",
+        "notification_settings",
+        "privacy_settings",
+        "impact_projects",
+        "impact_votes",
+        "availability_slots",
+        "media",
+        "feed_items",
+        "storage"
+      ]
+    },
+    {
+      "name": "hui_schema_v7.sql",
+      "path": "sql/archive_old/hui_schema_v7.sql",
+      "tables": [
+        "memberships",
+        "impact_rounds",
+        "impact_votes",
+        "conversations",
+        "user_match_scores",
+        "profiles",
+        "impact_projects",
+        "bookings",
+        "messages",
+        "works",
+        "experiences",
+        "wirker_profiles"
+      ]
+    },
+    {
+      "name": "hui_schema_v8_production.sql",
+      "path": "sql/archive_old/hui_schema_v8_production.sql",
+      "tables": [
+        "memberships",
+        "impact_rounds",
+        "impact_votes",
+        "conversations",
+        "user_match_scores",
+        "availability_slots",
+        "privacy_settings",
+        "notification_settings",
+        "payouts",
+        "likes",
+        "recommendations",
+        "profiles",
+        "wirker_profiles",
+        "works",
+        "experiences",
+        "bookings",
+        "messages",
+        "impact_projects",
+        "membership",
+        "v_weight",
+        "v_used"
+      ]
+    },
+    {
+      "name": "bookings.sql",
+      "path": "sql/core/bookings.sql",
+      "tables": [
+        "bookings"
+      ]
+    },
+    {
+      "name": "messages.sql",
+      "path": "sql/core/messages.sql",
+      "tables": [
+        "messages"
+      ]
+    },
+    {
+      "name": "notifications.sql",
+      "path": "sql/core/notifications.sql",
+      "tables": [
+        "notifications"
+      ]
+    },
+    {
+      "name": "payments.sql",
+      "path": "sql/core/payments.sql",
+      "tables": [
+        "payments"
+      ]
+    },
+    {
+      "name": "profiles.sql",
+      "path": "sql/core/profiles.sql",
+      "tables": [
+        "profiles"
+      ]
+    },
+    {
+      "name": "stories.sql",
+      "path": "sql/core/stories.sql",
+      "tables": [
+        "stories"
+      ]
+    },
+    {
+      "name": "works.sql",
+      "path": "sql/core/works.sql",
+      "tables": [
+        "works"
+      ]
+    },
+    {
+      "name": "fix_profiles_missing_columns.sql",
+      "path": "sql/fix_profiles_missing_columns.sql",
+      "tables": [
+        "profiles"
+      ]
+    },
+    {
+      "name": "008_talent_profile_system.sql",
+      "path": "sql/migrations_safe/008_talent_profile_system.sql",
+      "tables": [
+        "profiles"
+      ]
+    },
+    {
+      "name": "011_stories_rls_fix.sql",
+      "path": "sql/migrations_safe/011_stories_rls_fix.sql",
+      "tables": [
+        "stories",
+        "pg_policies"
+      ]
+    },
+    {
+      "name": "012_stories_storage_bucket.sql",
+      "path": "sql/migrations_safe/012_stories_storage_bucket.sql",
+      "tables": [
+        "storage"
+      ]
+    },
+    {
+      "name": "014_story_views_highlights.sql",
+      "path": "sql/migrations_safe/014_story_views_highlights.sql",
+      "tables": [
+        "story_views",
+        "stories"
+      ]
+    },
+    {
+      "name": "016_creator_tools.sql",
+      "path": "sql/migrations_safe/016_creator_tools.sql",
+      "tables": [
+        "bookings",
+        "works",
+        "profiles"
+      ]
+    },
+    {
+      "name": "023_content_recovery.sql",
+      "path": "sql/migrations_safe/023_content_recovery.sql",
+      "tables": [
+        "storage",
+        "works",
+        "information_schema",
+        "experiences",
+        "media",
+        "stories"
+      ]
+    },
+    {
+      "name": "025_safe_incremental.sql",
+      "path": "sql/migrations_safe/025_safe_incremental.sql",
+      "tables": [
+        "works",
+        "experiences",
+        "information_schema"
+      ]
+    },
+    {
+      "name": "028_booking_intelligence.sql",
+      "path": "sql/migrations_safe/028_booking_intelligence.sql",
+      "tables": [
+        "bookings",
+        "profiles",
+        "booking_events",
+        "availability_slots"
+      ]
+    },
+    {
+      "name": "029_chat_intelligence.sql",
+      "path": "sql/migrations_safe/029_chat_intelligence.sql",
+      "tables": [
+        "chats",
+        "messages",
+        "v_chat",
+        "profiles",
+        "storage"
+      ]
+    },
+    {
+      "name": "030_trust_reputation.sql",
+      "path": "sql/migrations_safe/030_trust_reputation.sql",
+      "tables": [
+        "recommendations",
+        "trust_events",
+        "collaborations",
+        "profiles",
+        "v_is_repeat"
+      ]
+    },
+    {
+      "name": "031_rls_completion.sql",
+      "path": "sql/migrations_safe/031_rls_completion.sql",
+      "tables": [
+        "haben",
+        "information_schema",
+        "audit_logs",
+        "impact_transactions",
+        "reports",
+        "webhook_events",
+        "pg_tables"
+      ]
+    },
+    {
+      "name": "032_follow_graph.sql",
+      "path": "sql/migrations_safe/032_follow_graph.sql",
+      "tables": [
+        "follows",
+        "profiles",
+        "follow_graph_health"
+      ]
+    },
+    {
+      "name": "DIAGNOSE.sql",
+      "path": "sql/migrations_safe/DIAGNOSE.sql",
+      "tables": [
+        "information_schema",
+        "works",
+        "experiences",
+        "stories",
+        "profiles",
+        "wirker_profiles",
+        "required",
+        "pg_policies",
+        "pg_class",
+        "pg_namespace",
+        "storage"
+      ]
+    }
+  ]
+}

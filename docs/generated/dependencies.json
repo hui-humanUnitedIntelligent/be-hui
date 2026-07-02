@@ -1,0 +1,1769 @@
+{
+  "lib/sentry/index.js": {
+    "importedBy": [
+      "App.jsx",
+      "components/LazyImage.jsx",
+      "main.jsx"
+    ],
+    "count": 3
+  },
+  "lib/ErrorBoundaries/index.js": {
+    "importedBy": [
+      "App.jsx"
+    ],
+    "count": 1
+  },
+  "lib/AuthContext/index.js": {
+    "importedBy": [
+      "App.jsx",
+      "components/ExperienceCreator.jsx",
+      "components/HuiCreateFlow.jsx",
+      "components/HuiMembershipFlow.jsx",
+      "components/StoryBar.jsx",
+      "components/StoryComposer.jsx",
+      "components/TalentOnboarding.jsx",
+      "components/WerkPublisher.jsx",
+      "components/WorkDetailPage.jsx",
+      "components/commerce/ExperienceBookingFlow.jsx",
+      "components/commerce/WerkKaufFlow.jsx",
+      "components/economy/SupportFlow.jsx",
+      "components/home/HomeShell.jsx",
+      "components/teilen/TeilenFlow.jsx",
+      "lib/AppStateContext.jsx",
+      "lib/bookingContext.js",
+      "lib/chatContext.js",
+      "lib/journeyContext.js",
+      "lib/trustContext.js",
+      "pages/CreatorDashboard.jsx",
+      "pages/CreatorStudio.jsx",
+      "pages/ImpactPage.jsx",
+      "pages/LoginPage.jsx",
+      "pages/ProfileDebugPage.jsx"
+    ],
+    "count": 24
+  },
+  "lib/AppStateContext/index.js": {
+    "importedBy": [
+      "App.jsx",
+      "components/NotificationCenter.jsx",
+      "components/WorkDetailPage.jsx",
+      "components/home/HomeShell.jsx",
+      "pages/CreatorStudio.jsx"
+    ],
+    "count": 5
+  },
+  "context/WorldSurfaceContext.jsx": {
+    "importedBy": [
+      "App.jsx",
+      "components/home/HomeShell.jsx",
+      "pages/Home.jsx"
+    ],
+    "count": 3
+  },
+  "context/OrbWorldContext.jsx": {
+    "importedBy": [
+      "App.jsx",
+      "components/home/HomeShell.jsx",
+      "pages/Home.jsx"
+    ],
+    "count": 3
+  },
+  "components/guidance/GuidanceContext.jsx": {
+    "importedBy": [
+      "App.jsx",
+      "components/guidance/GuidanceFooter.jsx",
+      "components/guidance/GuidanceLayer.jsx"
+    ],
+    "count": 3
+  },
+  "pages/LoginPage/index.js": {
+    "importedBy": [
+      "App.jsx"
+    ],
+    "count": 1
+  },
+  "components/auth/AuthGate.jsx": {
+    "importedBy": [
+      "App.jsx"
+    ],
+    "count": 1
+  },
+  "lib/useToast.jsx": {
+    "importedBy": [
+      "App.jsx",
+      "feed/UnifiedFeed.jsx"
+    ],
+    "count": 2
+  },
+  "components/auth/ProfileCompletionFlow.jsx": {
+    "importedBy": [
+      "App.jsx"
+    ],
+    "count": 1
+  },
+  "pages/AuthCallback/index.js": {
+    "importedBy": [
+      "App.jsx"
+    ],
+    "count": 1
+  },
+  "components/entry/AppEntryController.jsx": {
+    "importedBy": [
+      "App.jsx"
+    ],
+    "count": 1
+  },
+  "lib/supabaseClient/index.js": {
+    "importedBy": [
+      "App.jsx",
+      "components/ExperienceCreator.jsx",
+      "components/HuiCreateFlow.jsx",
+      "components/HuiMatchOverlay.jsx",
+      "components/NotificationCenter.jsx",
+      "components/StoryBar.jsx",
+      "components/StoryComposer.jsx",
+      "components/SupportSheet.jsx",
+      "components/TalentOnboarding.jsx",
+      "components/WerkPublisher.jsx",
+      "components/WorkDetailPage.jsx",
+      "components/commerce/ExperienceBookingFlow.jsx",
+      "components/commerce/WerkKaufFlow.jsx",
+      "components/publishing/PublishExperienceFlow.jsx",
+      "components/publishing/PublishWorkFlow.jsx",
+      "components/teilen/TeilenFlow.jsx",
+      "features/discovery/userSearch.js",
+      "lib/AppStateContext.jsx",
+      "lib/AuthContext.jsx",
+      "lib/bookingContext.js",
+      "lib/chatContext.js",
+      "lib/community/index.js",
+      "lib/community/local.js",
+      "lib/discovery/index.js",
+      "lib/events/index.js",
+      "lib/journeyContext.js",
+      "lib/notificationService.js",
+      "lib/points/index.js",
+      "lib/resonance/index.js",
+      "lib/roles/index.js",
+      "lib/sessionHooks.js",
+      "lib/trust/index.js",
+      "lib/trustContext.js",
+      "pages/Admin.jsx",
+      "pages/AuthCallback.jsx",
+      "pages/CreatorStudio.jsx",
+      "pages/DiagnosePage.jsx",
+      "pages/FavoritesPage.jsx",
+      "pages/ImpactPage.jsx",
+      "pages/LoginPage.jsx",
+      "services/content.js",
+      "services/db.js"
+    ],
+    "count": 42
+  },
+  "lib/referralTracking.js": {
+    "importedBy": [
+      "App.jsx",
+      "components/auth/AuthGate.jsx",
+      "hooks/useAmbassador.js",
+      "pages/AuthCallback.jsx",
+      "pages/LoginPage.jsx"
+    ],
+    "count": 5
+  },
+  "pages/ImpactPage/index.js": {
+    "importedBy": [
+      "App.jsx"
+    ],
+    "count": 1
+  },
+  "lib/factories/createTabPage.js": {
+    "importedBy": [
+      "App.jsx",
+      "components/connection-create/StepProgressBar.jsx",
+      "components/home/navigation/navConfig.js"
+    ],
+    "count": 3
+  },
+  "architecture/scanner/fileScanner.js": {
+    "importedBy": [
+      "architecture/knowledge-graph/api.js"
+    ],
+    "count": 1
+  },
+  "architecture/knowledge-graph/graphAssembler.js": {
+    "importedBy": [
+      "architecture/knowledge-graph/api.js"
+    ],
+    "count": 1
+  },
+  "architecture/knowledge-graph/queryEngine.js": {
+    "importedBy": [
+      "architecture/knowledge-graph/api.js"
+    ],
+    "count": 1
+  },
+  "architecture/knowledge-graph/impactSimulator.js": {
+    "importedBy": [
+      "architecture/knowledge-graph/api.js"
+    ],
+    "count": 1
+  },
+  "architecture/knowledge-graph/utils.js": {
+    "importedBy": [
+      "architecture/knowledge-graph/governanceParser.js",
+      "architecture/knowledge-graph/graphAssembler.js",
+      "architecture/knowledge-graph/impactSimulator.js",
+      "architecture/knowledge-graph/mermaidGenerator.js",
+      "architecture/knowledge-graph/platformScanner.js",
+      "architecture/knowledge-graph/queryEngine.js"
+    ],
+    "count": 6
+  },
+  "architecture/knowledge-graph/types.js": {
+    "importedBy": [
+      "architecture/knowledge-graph/governanceParser.js",
+      "architecture/knowledge-graph/graphAssembler.js",
+      "architecture/knowledge-graph/impactSimulator.js",
+      "architecture/knowledge-graph/jsonExporter.js",
+      "architecture/knowledge-graph/mermaidGenerator.js",
+      "architecture/knowledge-graph/platformScanner.js",
+      "architecture/knowledge-graph/queryEngine.js",
+      "architecture/knowledge-graph/reportGenerator.js"
+    ],
+    "count": 8
+  },
+  "architecture/scanner/domains.js": {
+    "importedBy": [
+      "architecture/knowledge-graph/graphAssembler.js",
+      "architecture/knowledge-graph/mermaidGenerator.js",
+      "architecture/scanner/graphBuilder.js",
+      "architecture/scanner/metricsCalculator.js",
+      "architecture/scanner/reportGenerator.js",
+      "architecture/scanner/violationDetector.js"
+    ],
+    "count": 6
+  },
+  "architecture/scanner/violationDetector.js": {
+    "importedBy": [
+      "architecture/knowledge-graph/graphAssembler.js"
+    ],
+    "count": 1
+  },
+  "architecture/knowledge-graph/governanceParser.js": {
+    "importedBy": [
+      "architecture/knowledge-graph/graphAssembler.js"
+    ],
+    "count": 1
+  },
+  "architecture/knowledge-graph/platformScanner.js": {
+    "importedBy": [
+      "architecture/knowledge-graph/graphAssembler.js"
+    ],
+    "count": 1
+  },
+  "lib/intelligence/emotionalIdentity.js": {
+    "importedBy": [
+      "components/CreatorPresence.jsx"
+    ],
+    "count": 1
+  },
+  "lib/intelligence/worldPolish.js": {
+    "importedBy": [
+      "components/EmptyState.jsx",
+      "components/home/HomeShell.jsx",
+      "system/orb/OrbAtmosphere.jsx",
+      "system/orb/OrbCenter.jsx"
+    ],
+    "count": 4
+  },
+  "lib/factories/experienceContract.js": {
+    "importedBy": [
+      "components/ExperienceCreator.jsx",
+      "components/HuiCreateFlow.jsx",
+      "components/publishing/PublishExperienceFlow.jsx",
+      "system/flows/experience/ExperienceFlow.jsx"
+    ],
+    "count": 4
+  },
+  "design/hui.design.js": {
+    "importedBy": [
+      "components/ExperienceCreator.jsx",
+      "components/HuiCreateFlow.jsx",
+      "components/HuiMatchOverlay.jsx",
+      "components/NotificationCenter.jsx",
+      "components/StoryBar.jsx",
+      "components/StoryComposer.jsx",
+      "components/SupportSheet.jsx",
+      "components/TalentOnboarding.jsx",
+      "components/WerkPublisher.jsx",
+      "components/WorkDetailPage.jsx",
+      "components/chat-center/ChatCenterOverlay.jsx",
+      "components/chat-center/ChatHeader.jsx",
+      "components/chat-center/ChatInput.jsx",
+      "components/chat-center/ChatMessages.jsx",
+      "components/chat-center/ConversationCard.jsx",
+      "components/chat-center/ConversationList.jsx",
+      "components/chat-center/MessageBubble.jsx",
+      "components/commerce/commerceUtils.js",
+      "components/connection-create/ConnectionCreatePage.jsx",
+      "components/connection-create/ConnectionForm.jsx",
+      "components/connection-create/ConnectionPreviewCard.jsx",
+      "components/connection-create/ConnectionTypeSidebar.jsx",
+      "components/connection-create/Selectors.jsx",
+      "components/connection-create/StepProgressBar.jsx",
+      "components/connection-create/StepThreePreview.jsx",
+      "components/connection-create/StepTwoConnectionDetails.jsx",
+      "components/connection-create/Widgets.jsx",
+      "components/discovery/PeopleSearch.jsx",
+      "components/home/navigation/BottomNav.jsx",
+      "components/home/navigation/NavItem.jsx",
+      "components/teilen/TeilenFlow.jsx",
+      "content/ContentTypeSelector.jsx",
+      "content/invitation/InvitationCard.jsx",
+      "content/invitation/InvitationFlow.jsx",
+      "pages/CreatorStudio.jsx",
+      "pages/FavoritesPage.jsx",
+      "pages/ImpactPage.jsx",
+      "pages/LiveMapPage.jsx",
+      "pages/LoginPage.jsx",
+      "pages/wirker-profile/index.jsx",
+      "system/orb/OrbConfig.js"
+    ],
+    "count": 41
+  },
+  "lib/AuthContext.jsx": {
+    "importedBy": [
+      "components/GemeinschaftsFlow.jsx",
+      "components/auth/AuthGate.jsx",
+      "components/auth/ProfileCompletionFlow.jsx",
+      "components/chat-center/ChatCenterOverlay.jsx",
+      "components/chat-center/ConversationRoom.jsx",
+      "components/commerce/UnterstutzenFlow.jsx",
+      "components/connection-create/ConnectionCreatePage.jsx",
+      "components/entry/AppEntryController.jsx",
+      "components/profile/MerkenSection.jsx",
+      "components/publishing/PublishExperienceFlow.jsx",
+      "components/publishing/PublishWorkFlow.jsx",
+      "components/settings/SettingsModal.jsx",
+      "components/studio/HuiStudio.jsx",
+      "components/studio/ProfilBearbeitenModal.jsx",
+      "content/invitation/InvitationFlow.jsx",
+      "content/invitation/useInvitationResponse.js",
+      "feed/FeedStoriesBar.jsx",
+      "feed/StoryCreator.jsx",
+      "feed/StoryViewer.jsx",
+      "feed/UnifiedFeed.jsx",
+      "feed/useFeedStream.js",
+      "lib/resonance/index.js",
+      "lib/roles/index.js",
+      "lib/useNotifications.jsx",
+      "lib/useReactions.jsx",
+      "pages/BasisProfilePage.jsx",
+      "pages/MyBasisProfile.jsx",
+      "pages/MyCreatorDashboard.jsx",
+      "pages/TalentProfilePage.jsx",
+      "pages/studio/MeineResonanz.jsx",
+      "pages/wirker-profile/index.jsx",
+      "system/flows/experience/ExperienceFlow.jsx",
+      "system/flows/impact/ImpactFlow.jsx",
+      "system/flows/work/WorkFlow.jsx"
+    ],
+    "count": 34
+  },
+  "lib/sessionHooks/index.js": {
+    "importedBy": [
+      "components/HuiCreateFlow.jsx",
+      "components/home/HomeShell.jsx"
+    ],
+    "count": 2
+  },
+  "lib/moodUtils/index.js": {
+    "importedBy": [
+      "components/HuiCreateFlow.jsx"
+    ],
+    "count": 1
+  },
+  "lib/perfUtils/index.js": {
+    "importedBy": [
+      "components/HuiMatchOverlay.jsx",
+      "components/LazyImage.jsx",
+      "components/WorkDetailPage.jsx",
+      "lib/AuthContext.jsx",
+      "services/db.js"
+    ],
+    "count": 5
+  },
+  "lib/cleanup/cleanupOrbEnvironment.js": {
+    "importedBy": [
+      "components/HuiMembershipFlow.jsx",
+      "components/HuiPlusSheet.jsx",
+      "components/guidance/GuidanceContext.jsx",
+      "context/OrbWorldContext.jsx",
+      "context/WorldSurfaceContext.jsx",
+      "pages/Home.jsx"
+    ],
+    "count": 6
+  },
+  "lib/supabaseClient.js": {
+    "importedBy": [
+      "components/HuiMomentSheet.jsx",
+      "components/auth/ProfileCompletionFlow.jsx",
+      "components/chat-center/ChatCenterOverlay.jsx",
+      "components/commerce/UnterstutzenFlow.jsx",
+      "components/connection-create/ConnectionCreatePage.jsx",
+      "components/experiences/ExperienceWizard.jsx",
+      "components/home/header/SearchCommandCenter.jsx",
+      "components/home/profile/ProfileLauncher.jsx",
+      "components/notifications/NotificationPanel.jsx",
+      "components/profile/MerkenSection.jsx",
+      "components/profile/sections/WorksSection.jsx",
+      "components/settings/SettingsModal.jsx",
+      "components/studio/EinAusgabenModal.jsx",
+      "components/studio/HuiStudio.jsx",
+      "components/studio/ImpactStimmenModal.jsx",
+      "components/studio/MeineProjekteModal.jsx",
+      "components/studio/ProfilBearbeitenModal.jsx",
+      "components/studio/SicherheitPasswortModal.jsx",
+      "components/studio/StatistikenModal.jsx",
+      "components/works/WerkWizard.jsx",
+      "content/invitation/InvitationFlow.jsx",
+      "content/invitation/useInvitationResponse.js",
+      "core/HuiConnectionEngine.jsx",
+      "core/coreEngine.js",
+      "core/resonanceEngine.js",
+      "feed/FeedEventsSection.jsx",
+      "feed/FeedStoriesBar.jsx",
+      "feed/StoryCreator.jsx",
+      "feed/StoryReactionTray.jsx",
+      "feed/StoryViewer.jsx",
+      "feed/useFeedStream.js",
+      "hooks/useAmbassador.js",
+      "hooks/useProfileData.js",
+      "hooks/useProfileId.js",
+      "lib/profileMedia.js",
+      "lib/referralTracking.js",
+      "lib/useNotifications.jsx",
+      "lib/usePresence.js",
+      "lib/usePresence.jsx",
+      "lib/useReactions.jsx",
+      "lib/useUsernameCheck.jsx",
+      "pages/BasisProfilePage.jsx",
+      "pages/CreatorDashboard.jsx",
+      "pages/DiscoverPage.jsx",
+      "pages/MyBasisProfile.jsx",
+      "pages/MyCreatorDashboard.jsx",
+      "pages/RefRedirect.jsx",
+      "pages/TalentProfilePage.jsx",
+      "pages/studio/MeineResonanz.jsx",
+      "pages/studio/MeineTicketsPage.jsx",
+      "pages/studio/StudioSubPages.jsx",
+      "pages/studio/SupportPage.jsx",
+      "pages/wirker-profile/index.jsx",
+      "services/commerceEngine.js",
+      "services/creatorEconomy.js",
+      "system/flows/experience/ExperienceFlow.jsx",
+      "system/flows/impact/ImpactFlow.jsx",
+      "system/flows/work/WorkFlow.jsx"
+    ],
+    "count": 58
+  },
+  "orb/OrbPortal.jsx": {
+    "importedBy": [
+      "components/HuiPlusSheet.jsx"
+    ],
+    "count": 1
+  },
+  "system/orb/OrbSystem.jsx": {
+    "importedBy": [
+      "components/HuiPlusSheet.jsx"
+    ],
+    "count": 1
+  },
+  "lib/roles/index.js": {
+    "importedBy": [
+      "components/HuiPlusSheet.jsx",
+      "services/content.js",
+      "system/orb/OrbSystem.jsx"
+    ],
+    "count": 3
+  },
+  "core/hui.sources.js": {
+    "importedBy": [
+      "components/NotificationCenter.jsx",
+      "components/home/header/HomeHeader.jsx",
+      "components/home/profile/ProfileLauncher.jsx",
+      "core/hui.actions.js",
+      "core/hui.contracts.js",
+      "core/hui.flow.js",
+      "core/hui.safePayload.js",
+      "core/hui.semantics.js",
+      "pages/FavoritesPage.jsx",
+      "pages/wirker-profile/index.jsx"
+    ],
+    "count": 10
+  },
+  "core/hui.actions.js": {
+    "importedBy": [
+      "components/NotificationCenter.jsx",
+      "components/home/header/HomeHeader.jsx",
+      "components/home/navigation/BottomNav.jsx",
+      "components/home/profile/ProfileLauncher.jsx",
+      "core/HuiActionProvider.jsx",
+      "pages/FavoritesPage.jsx",
+      "pages/MyCreatorDashboard.jsx",
+      "pages/wirker-profile/index.jsx"
+    ],
+    "count": 8
+  },
+  "components/HuiMomentSheet.jsx": {
+    "importedBy": [
+      "components/OrbCompass.jsx"
+    ],
+    "count": 1
+  },
+  "components/GemeinschaftsFlow.jsx": {
+    "importedBy": [
+      "components/OrbCompass.jsx",
+      "pages/MyBasisProfile.jsx"
+    ],
+    "count": 2
+  },
+  "services/db/index.js": {
+    "importedBy": [
+      "components/WorkDetailPage.jsx",
+      "components/chat-center/ChatCenterOverlay.jsx",
+      "components/home/profile/ProfileLauncher.jsx",
+      "components/profile/PublicProfilePreview.jsx",
+      "components/studio/HuiStudio.jsx",
+      "feed/useFeedStream.js",
+      "hooks/useProfileData.js",
+      "hooks/useProfileId.js",
+      "lib/AuthContext.jsx",
+      "lib/chatContext.js",
+      "pages/ImpactPage.jsx"
+    ],
+    "count": 11
+  },
+  "hooks/useAmbassador.js": {
+    "importedBy": [
+      "components/ambassador/AmbassadorModal.jsx",
+      "components/ambassador/AmbassadorSection.jsx",
+      "pages/MyBasisProfile.jsx"
+    ],
+    "count": 3
+  },
+  "lib/ambassadorUtils.js": {
+    "importedBy": [
+      "components/ambassador/AmbassadorSection.jsx",
+      "hooks/useAmbassador.js"
+    ],
+    "count": 2
+  },
+  "lib/useUsernameCheck.jsx": {
+    "importedBy": [
+      "components/auth/ProfileCompletionFlow.jsx"
+    ],
+    "count": 1
+  },
+  "components/chat-center/ChatAtmosphere.jsx": {
+    "importedBy": [
+      "components/chat-center/ChatCenterOverlay.jsx"
+    ],
+    "count": 1
+  },
+  "components/chat-center/ConversationList.jsx": {
+    "importedBy": [
+      "components/chat-center/ChatCenterOverlay.jsx"
+    ],
+    "count": 1
+  },
+  "components/chat-center/ConversationRoom.jsx": {
+    "importedBy": [
+      "components/chat-center/ChatCenterOverlay.jsx"
+    ],
+    "count": 1
+  },
+  "components/home/profile/ProfileLauncher.jsx": {
+    "importedBy": [
+      "components/chat-center/ChatCenterOverlay.jsx",
+      "pages/Home.jsx"
+    ],
+    "count": 2
+  },
+  "lib/chatContext.js": {
+    "importedBy": [
+      "components/chat-center/ChatCenterOverlay.jsx",
+      "components/chat-center/ConversationRoom.jsx",
+      "pages/Home.jsx"
+    ],
+    "count": 3
+  },
+  "components/discovery/PeopleSearch.jsx": {
+    "importedBy": [
+      "components/chat-center/ChatCenterOverlay.jsx"
+    ],
+    "count": 1
+  },
+  "lib/usePresence.js": {
+    "importedBy": [
+      "components/chat-center/ChatHeader.jsx",
+      "components/chat-center/ConversationCard.jsx",
+      "pages/DiscoverPage.jsx",
+      "pages/Home.jsx"
+    ],
+    "count": 4
+  },
+  "components/chat-center/MessageBubble.jsx": {
+    "importedBy": [
+      "components/chat-center/ChatMessages.jsx"
+    ],
+    "count": 1
+  },
+  "components/chat-center/ConversationCard.jsx": {
+    "importedBy": [
+      "components/chat-center/ConversationList.jsx"
+    ],
+    "count": 1
+  },
+  "components/chat-center/ChatHeader.jsx": {
+    "importedBy": [
+      "components/chat-center/ConversationRoom.jsx"
+    ],
+    "count": 1
+  },
+  "components/chat-center/ChatMessages.jsx": {
+    "importedBy": [
+      "components/chat-center/ConversationRoom.jsx"
+    ],
+    "count": 1
+  },
+  "components/chat-center/ChatInput.jsx": {
+    "importedBy": [
+      "components/chat-center/ConversationRoom.jsx"
+    ],
+    "count": 1
+  },
+  "services/creatorEconomy/index.js": {
+    "importedBy": [
+      "components/commerce/ExperienceBookingFlow.jsx",
+      "components/commerce/WerkKaufFlow.jsx"
+    ],
+    "count": 2
+  },
+  "services/commerceEngine.js": {
+    "importedBy": [
+      "components/commerce/StripePaymentStep.jsx",
+      "components/commerce/UnterstutzenFlow.jsx"
+    ],
+    "count": 2
+  },
+  "components/commerce/commerceUtils.js": {
+    "importedBy": [
+      "components/commerce/StripePaymentStep.jsx",
+      "components/commerce/UnterstutzenFlow.jsx",
+      "components/commerce/WerkeKorb.jsx",
+      "pages/Home.jsx",
+      "services/commerceEngine.js"
+    ],
+    "count": 5
+  },
+  "config/stripe-publishable-key.json/index.js": {
+    "importedBy": [
+      "components/commerce/StripePaymentStep.jsx"
+    ],
+    "count": 1
+  },
+  "design/hui.interaction.js": {
+    "importedBy": [
+      "components/commerce/UnterstutzenFlow.jsx",
+      "components/commerce/WerkeKorb.jsx",
+      "design/hui.design.js",
+      "design/hui.hooks.js",
+      "lib/world/tabVisibilityController.js",
+      "pages/FavoritesPage.jsx",
+      "pages/Home.jsx",
+      "system/orb/OrbAnimations.js",
+      "system/orb/OrbAtmosphere.jsx",
+      "system/orb/OrbCenter.jsx",
+      "system/orb/OrbNode.jsx"
+    ],
+    "count": 11
+  },
+  "components/commerce/StripePaymentStep.jsx": {
+    "importedBy": [
+      "components/commerce/UnterstutzenFlow.jsx"
+    ],
+    "count": 1
+  },
+  "components/connection-create/StepProgressBar.jsx": {
+    "importedBy": [
+      "components/connection-create/ConnectionCreatePage.jsx"
+    ],
+    "count": 1
+  },
+  "components/connection-create/StepOneTypeSelection.jsx": {
+    "importedBy": [
+      "components/connection-create/ConnectionCreatePage.jsx"
+    ],
+    "count": 1
+  },
+  "components/connection-create/StepTwoConnectionDetails.jsx": {
+    "importedBy": [
+      "components/connection-create/ConnectionCreatePage.jsx"
+    ],
+    "count": 1
+  },
+  "components/connection-create/StepThreePreview.jsx": {
+    "importedBy": [
+      "components/connection-create/ConnectionCreatePage.jsx"
+    ],
+    "count": 1
+  },
+  "components/connection-create/Selectors.jsx": {
+    "importedBy": [
+      "components/connection-create/ConnectionForm.jsx"
+    ],
+    "count": 1
+  },
+  "components/connection-create/Widgets.jsx": {
+    "importedBy": [
+      "components/connection-create/ConnectionForm.jsx"
+    ],
+    "count": 1
+  },
+  "components/connection-create/ConnectionTypeSidebar.jsx": {
+    "importedBy": [
+      "components/connection-create/ConnectionPreviewCard.jsx",
+      "components/connection-create/StepOneTypeSelection.jsx",
+      "components/connection-create/StepThreePreview.jsx"
+    ],
+    "count": 3
+  },
+  "features/discovery/userSearch.js": {
+    "importedBy": [
+      "components/discovery/PeopleSearch.jsx"
+    ],
+    "count": 1
+  },
+  "lib/AppStateContext.jsx": {
+    "importedBy": [
+      "components/discovery/PeopleSearch.jsx"
+    ],
+    "count": 1
+  },
+  "services/creatorEconomy.js": {
+    "importedBy": [
+      "components/economy/SupportFlow.jsx",
+      "feed/UnifiedFeed.jsx",
+      "pages/CreatorDashboard.jsx"
+    ],
+    "count": 3
+  },
+  "components/welcome/WelcomeOverlay.jsx": {
+    "importedBy": [
+      "components/entry/AppEntryController.jsx"
+    ],
+    "count": 1
+  },
+  "lib/welcomePersistence.js": {
+    "importedBy": [
+      "components/entry/AppEntryController.jsx"
+    ],
+    "count": 1
+  },
+  "components/guidance/guidanceTokens.js": {
+    "importedBy": [
+      "components/guidance/GuidanceContext.jsx",
+      "components/guidance/GuidanceFooter.jsx",
+      "components/guidance/GuidanceLayer.jsx",
+      "lib/guidance/focusSystem.js",
+      "lib/guidance/visualPriority.js"
+    ],
+    "count": 5
+  },
+  "lib/guidance/focusSystem.js": {
+    "importedBy": [
+      "components/guidance/GuidanceContext.jsx",
+      "components/guidance/GuidanceLayer.jsx"
+    ],
+    "count": 2
+  },
+  "lib/guidance/readabilityEngine.js": {
+    "importedBy": [
+      "components/guidance/GuidanceContext.jsx"
+    ],
+    "count": 1
+  },
+  "lib/guidance/visualPriority.js": {
+    "importedBy": [
+      "components/guidance/GuidanceFooter.jsx",
+      "components/guidance/GuidanceLayer.jsx"
+    ],
+    "count": 2
+  },
+  "lib/profileUtils.js": {
+    "importedBy": [
+      "components/home/HomeShell.jsx",
+      "components/home/profile/ProfileLauncher.jsx",
+      "components/studio/HuiStudio.jsx",
+      "components/studio/ImpactStimmenModal.jsx",
+      "components/studio/ProfilBearbeitenModal.jsx",
+      "lib/AuthContext.jsx",
+      "pages/ImpactPage.jsx",
+      "system/feed/unifiedNormalizer.js"
+    ],
+    "count": 8
+  },
+  "core/hui.navigator.jsx": {
+    "importedBy": [
+      "components/home/HomeShell.jsx"
+    ],
+    "count": 1
+  },
+  "lib/factories/createProfileItem.js": {
+    "importedBy": [
+      "components/home/HomeShell.jsx",
+      "features/discovery/userSearch.js"
+    ],
+    "count": 2
+  },
+  "lib/world/tabVisibilityController.js": {
+    "importedBy": [
+      "components/home/HomeShell.jsx"
+    ],
+    "count": 1
+  },
+  "hooks/useCartPersistence.js": {
+    "importedBy": [
+      "components/home/HomeShell.jsx"
+    ],
+    "count": 1
+  },
+  "core/HuiActionProvider.jsx": {
+    "importedBy": [
+      "components/home/HomeShell.jsx"
+    ],
+    "count": 1
+  },
+  "config/safeMode.js": {
+    "importedBy": [
+      "components/home/HomeShell.jsx",
+      "config/SafeRender.jsx",
+      "pages/Home.jsx",
+      "system/orb/OrbAtmosphere.jsx",
+      "system/orb/OrbSystem.jsx"
+    ],
+    "count": 5
+  },
+  "lib/intelligence/worldContinuity.js": {
+    "importedBy": [
+      "components/home/HomeShell.jsx"
+    ],
+    "count": 1
+  },
+  "lib/world/orbLayer.js": {
+    "importedBy": [
+      "components/home/HomeShell.jsx",
+      "context/OrbWorldContext.jsx",
+      "pages/Home.jsx"
+    ],
+    "count": 3
+  },
+  "core/hui.flow.js": {
+    "importedBy": [
+      "components/home/HomeShell.jsx",
+      "pages/Home.jsx"
+    ],
+    "count": 2
+  },
+  "core/HuiConnectionEngine.jsx": {
+    "importedBy": [
+      "components/home/HomeShell.jsx",
+      "components/home/header/SearchCommandCenter.jsx"
+    ],
+    "count": 2
+  },
+  "core/HuiContextBridge.jsx": {
+    "importedBy": [
+      "components/home/HomeShell.jsx"
+    ],
+    "count": 1
+  },
+  "components/home/header/SearchCommandCenter.jsx": {
+    "importedBy": [
+      "components/home/header/HomeHeader.jsx"
+    ],
+    "count": 1
+  },
+  "components/home/header/MoodOrbButton.jsx": {
+    "importedBy": [
+      "components/home/header/HomeHeader.jsx"
+    ],
+    "count": 1
+  },
+  "components/home/header/NotificationButton.jsx": {
+    "importedBy": [
+      "components/home/header/HomeHeader.jsx"
+    ],
+    "count": 1
+  },
+  "components/home/header/MessageButton.jsx": {
+    "importedBy": [
+      "components/home/header/HomeHeader.jsx"
+    ],
+    "count": 1
+  },
+  "components/home/mood/MoodSheet.jsx": {
+    "importedBy": [
+      "components/home/header/HomeHeader.jsx"
+    ],
+    "count": 1
+  },
+  "components/home/mood/moodConfig.js": {
+    "importedBy": [
+      "components/home/header/MatchBar.jsx",
+      "components/home/mood/MoodSelector.jsx"
+    ],
+    "count": 2
+  },
+  "lib/useNotifications.jsx": {
+    "importedBy": [
+      "components/home/header/NotificationButton.jsx"
+    ],
+    "count": 1
+  },
+  "components/home/HomeShell.jsx": {
+    "importedBy": [
+      "components/home/header/SearchCommandCenter.jsx",
+      "components/home/profile/ProfileLauncher.jsx",
+      "components/studio/HuiStudio.jsx",
+      "core/HuiActionProvider.jsx",
+      "pages/BasisProfilePage.jsx",
+      "pages/Home.jsx",
+      "pages/MyBasisProfile.jsx",
+      "pages/TalentProfilePage.jsx"
+    ],
+    "count": 8
+  },
+  "components/home/mood/MoodSelector.jsx": {
+    "importedBy": [
+      "components/home/mood/MoodSheet.jsx"
+    ],
+    "count": 1
+  },
+  "components/home/navigation/NavItem.jsx": {
+    "importedBy": [
+      "components/home/navigation/BottomNav.jsx"
+    ],
+    "count": 1
+  },
+  "components/home/navigation/navConfig.js": {
+    "importedBy": [
+      "components/home/navigation/BottomNav.jsx"
+    ],
+    "count": 1
+  },
+  "lib/factories/createNavItem.js": {
+    "importedBy": [
+      "components/home/navigation/BottomNav.jsx",
+      "components/home/navigation/navConfig.js"
+    ],
+    "count": 2
+  },
+  "hooks/useCoreEngine.js": {
+    "importedBy": [
+      "components/orb/OrbLeaf.jsx",
+      "components/profile/OrbSignatur.jsx"
+    ],
+    "count": 2
+  },
+  "core/orbEngine.js": {
+    "importedBy": [
+      "components/orb/OrbLeaf.jsx",
+      "hooks/useCoreEngine.js",
+      "system/feed/unifiedNormalizer.js"
+    ],
+    "count": 3
+  },
+  "lib/useReactions.jsx": {
+    "importedBy": [
+      "components/profile/MerkenSection.jsx",
+      "feed/UnifiedFeed.jsx"
+    ],
+    "count": 2
+  },
+  "core/hui.pillars.js": {
+    "importedBy": [
+      "components/profile/OrbSignatur.jsx"
+    ],
+    "count": 1
+  },
+  "lib/profileMedia.js": {
+    "importedBy": [
+      "components/profile/ProfileHeader.jsx",
+      "pages/MyBasisProfile.jsx"
+    ],
+    "count": 2
+  },
+  "components/publishing/PublishWorkFlow.jsx": {
+    "importedBy": [
+      "components/publishing/PublishingHub.jsx"
+    ],
+    "count": 1
+  },
+  "components/publishing/PublishExperienceFlow.jsx": {
+    "importedBy": [
+      "components/publishing/PublishingHub.jsx"
+    ],
+    "count": 1
+  },
+  "components/ambassador/AmbassadorModal.jsx": {
+    "importedBy": [
+      "components/studio/HuiStudio.jsx",
+      "pages/MyBasisProfile.jsx"
+    ],
+    "count": 2
+  },
+  "components/studio/ImpactStimmenModal.jsx": {
+    "importedBy": [
+      "components/studio/HuiStudio.jsx"
+    ],
+    "count": 1
+  },
+  "components/studio/MeineProjekteModal.jsx": {
+    "importedBy": [
+      "components/studio/HuiStudio.jsx"
+    ],
+    "count": 1
+  },
+  "components/studio/EinAusgabenModal.jsx": {
+    "importedBy": [
+      "components/studio/HuiStudio.jsx"
+    ],
+    "count": 1
+  },
+  "components/studio/StatistikenModal.jsx": {
+    "importedBy": [
+      "components/studio/HuiStudio.jsx"
+    ],
+    "count": 1
+  },
+  "components/studio/ProfilBearbeitenModal.jsx": {
+    "importedBy": [
+      "components/studio/HuiStudio.jsx"
+    ],
+    "count": 1
+  },
+  "components/studio/SicherheitPasswortModal.jsx": {
+    "importedBy": [
+      "components/studio/HuiStudio.jsx"
+    ],
+    "count": 1
+  },
+  "pages/studio/SupportPage.jsx": {
+    "importedBy": [
+      "components/studio/HuiStudio.jsx",
+      "pages/CreatorStudio.jsx"
+    ],
+    "count": 2
+  },
+  "pages/studio/MeineTicketsPage.jsx": {
+    "importedBy": [
+      "components/studio/HuiStudio.jsx"
+    ],
+    "count": 1
+  },
+  "components/settings/SettingsModal.jsx": {
+    "importedBy": [
+      "components/studio/HuiStudio.jsx",
+      "pages/BasisProfilePage.jsx",
+      "pages/MyBasisProfile.jsx",
+      "pages/TalentProfilePage.jsx"
+    ],
+    "count": 4
+  },
+  "content/invitation/useInvitationResponse.js": {
+    "importedBy": [
+      "content/invitation/InvitationCard.jsx"
+    ],
+    "count": 1
+  },
+  "lib/world/worldSurfaceController.js": {
+    "importedBy": [
+      "context/WorldSurfaceContext.jsx"
+    ],
+    "count": 1
+  },
+  "core/hui.contracts.js": {
+    "importedBy": [
+      "core/hui.actions.js"
+    ],
+    "count": 1
+  },
+  "core/hui.flow.states.js": {
+    "importedBy": [
+      "core/hui.actions.js"
+    ],
+    "count": 1
+  },
+  "core/hui.semantics.js": {
+    "importedBy": [
+      "core/hui.actions.js"
+    ],
+    "count": 1
+  },
+  "core/coreEngine.js": {
+    "importedBy": [
+      "core/orbEngine.js",
+      "core/resonanceEngine.js",
+      "hooks/useCoreEngine.js"
+    ],
+    "count": 3
+  },
+  "feed/StoryViewer.jsx": {
+    "importedBy": [
+      "feed/FeedStoriesBar.jsx"
+    ],
+    "count": 1
+  },
+  "feed/StoryCreator.jsx": {
+    "importedBy": [
+      "feed/FeedStoriesBar.jsx"
+    ],
+    "count": 1
+  },
+  "lib/usePresence.jsx": {
+    "importedBy": [
+      "feed/FeedStoriesBar.jsx",
+      "feed/cards/BaseFeedCard.jsx"
+    ],
+    "count": 2
+  },
+  "feed/StoryReactionTray.jsx": {
+    "importedBy": [
+      "feed/StoryViewer.jsx"
+    ],
+    "count": 1
+  },
+  "feed/cards/FeedRouter.jsx": {
+    "importedBy": [
+      "feed/UnifiedFeed.jsx"
+    ],
+    "count": 1
+  },
+  "feed/cards/BaseFeedCard.jsx": {
+    "importedBy": [
+      "feed/UnifiedFeed.jsx",
+      "feed/cards/EventContent.jsx",
+      "feed/cards/ExperienceContent.jsx",
+      "feed/cards/MomentContent.jsx",
+      "feed/cards/WorkContent.jsx"
+    ],
+    "count": 5
+  },
+  "feed/useFeedStream.js": {
+    "importedBy": [
+      "feed/UnifiedFeed.jsx"
+    ],
+    "count": 1
+  },
+  "feed/FeedSoftHydrationBadge.jsx": {
+    "importedBy": [
+      "feed/UnifiedFeed.jsx"
+    ],
+    "count": 1
+  },
+  "system/feed/unifiedNormalizer.js": {
+    "importedBy": [
+      "feed/UnifiedFeed.jsx",
+      "feed/cards/FeedRouter.jsx",
+      "feed/useFeedStream.js"
+    ],
+    "count": 3
+  },
+  "feed/FeedEventsSection.jsx": {
+    "importedBy": [
+      "feed/UnifiedFeed.jsx"
+    ],
+    "count": 1
+  },
+  "feed/FeedScrollSentinel.jsx": {
+    "importedBy": [
+      "feed/UnifiedFeed.jsx"
+    ],
+    "count": 1
+  },
+  "lib/events/index.js": {
+    "importedBy": [
+      "feed/UnifiedFeed.jsx",
+      "lib/community/index.js"
+    ],
+    "count": 2
+  },
+  "components/ui/TalentBadge.jsx": {
+    "importedBy": [
+      "feed/cards/BaseFeedCard.jsx"
+    ],
+    "count": 1
+  },
+  "feed/feedRhythmEngine.js": {
+    "importedBy": [
+      "feed/useFeedStream.js"
+    ],
+    "count": 1
+  },
+  "core/resonanceEngine.js": {
+    "importedBy": [
+      "hooks/useCoreEngine.js"
+    ],
+    "count": 1
+  },
+  "lib/intelligence/persistence/interactionMemoryStore.js": {
+    "importedBy": [
+      "lib/AuthContext.jsx",
+      "lib/intelligence/persistence/useLivingMemory.js",
+      "lib/intelligence/persistence/viewerContext.js"
+    ],
+    "count": 3
+  },
+  "lib/sentry.js": {
+    "importedBy": [
+      "lib/ErrorBoundaries.jsx",
+      "lib/community/index.js",
+      "lib/community/local.js",
+      "lib/discovery/index.js",
+      "lib/events/index.js",
+      "lib/points/index.js",
+      "lib/reliability/index.js",
+      "lib/resonance/index.js",
+      "lib/roles/index.js",
+      "lib/security/index.js",
+      "lib/trust/index.js",
+      "services/content.js"
+    ],
+    "count": 12
+  },
+  "lib/errors/index.js": {
+    "importedBy": [
+      "lib/ErrorBoundaries.jsx",
+      "lib/reliability/index.js",
+      "lib/security/index.js",
+      "lib/validation/index.js"
+    ],
+    "count": 4
+  },
+  "lib/security/index.js": {
+    "importedBy": [
+      "lib/bookingContext.js",
+      "lib/chatContext.js",
+      "lib/resonance/index.js",
+      "lib/validation/index.js"
+    ],
+    "count": 4
+  },
+  "lib/feedback/index.js": {
+    "importedBy": [
+      "lib/bookingContext.js",
+      "lib/chatContext.js"
+    ],
+    "count": 2
+  },
+  "lib/validation/index.js": {
+    "importedBy": [
+      "lib/bookingContext.js",
+      "lib/chatContext.js"
+    ],
+    "count": 2
+  },
+  "lib/debugCollector.js": {
+    "importedBy": [
+      "lib/chatContext.js",
+      "pages/Home.jsx"
+    ],
+    "count": 2
+  },
+  "lib/notificationService/index.js": {
+    "importedBy": [
+      "lib/chatContext.js"
+    ],
+    "count": 1
+  },
+  "lib/trust/index.js": {
+    "importedBy": [
+      "lib/community/index.js"
+    ],
+    "count": 1
+  },
+  "lib/services/db/index.js": {
+    "importedBy": [
+      "lib/discovery/index.js"
+    ],
+    "count": 1
+  },
+  "lib/perfUtils.js": {
+    "importedBy": [
+      "lib/discovery/index.js",
+      "lib/profileMedia.js",
+      "services/content.js"
+    ],
+    "count": 3
+  },
+  "lib/intelligence/persistence/viewerContext.js": {
+    "importedBy": [
+      "lib/intelligence/persistence/useLivingMemory.js"
+    ],
+    "count": 1
+  },
+  "lib/intelligence/relationshipMemory.js": {
+    "importedBy": [
+      "lib/intelligence/persistence/viewerContext.js"
+    ],
+    "count": 1
+  },
+  "lib/notificationService.js": {
+    "importedBy": [
+      "lib/useReactions.jsx",
+      "pages/TalentProfilePage.jsx"
+    ],
+    "count": 2
+  },
+  "App/index.js": {
+    "importedBy": [
+      "main.jsx"
+    ],
+    "count": 1
+  },
+  "orb/OrbMotionSystem.js": {
+    "importedBy": [
+      "orb/ContentTypeSelector.jsx",
+      "orb/OrbAtmosphere.jsx"
+    ],
+    "count": 2
+  },
+  "hooks/useProfileData.js": {
+    "importedBy": [
+      "pages/BasisProfilePage.jsx",
+      "pages/MyBasisProfile.jsx",
+      "pages/TalentProfilePage.jsx",
+      "pages/wirker-profile/index.jsx"
+    ],
+    "count": 4
+  },
+  "components/studio/HuiStudio.jsx": {
+    "importedBy": [
+      "pages/BasisProfilePage.jsx",
+      "pages/MyBasisProfile.jsx",
+      "pages/TalentProfilePage.jsx"
+    ],
+    "count": 3
+  },
+  "components/profile/sections/AboutSection.jsx": {
+    "importedBy": [
+      "pages/BasisProfilePage.jsx",
+      "pages/MyBasisProfile.jsx"
+    ],
+    "count": 2
+  },
+  "components/profile/sections/LocationSection.jsx": {
+    "importedBy": [
+      "pages/BasisProfilePage.jsx",
+      "pages/MyBasisProfile.jsx",
+      "pages/TalentProfilePage.jsx"
+    ],
+    "count": 3
+  },
+  "components/profile/sections/AvailabilitySection.jsx": {
+    "importedBy": [
+      "pages/BasisProfilePage.jsx",
+      "pages/MyBasisProfile.jsx",
+      "pages/TalentProfilePage.jsx"
+    ],
+    "count": 3
+  },
+  "components/profile/sections/VisibilitySection.jsx": {
+    "importedBy": [
+      "pages/BasisProfilePage.jsx",
+      "pages/MyBasisProfile.jsx",
+      "pages/TalentProfilePage.jsx"
+    ],
+    "count": 3
+  },
+  "components/profile/sections/MomentsSection.jsx": {
+    "importedBy": [
+      "pages/BasisProfilePage.jsx",
+      "pages/MyBasisProfile.jsx",
+      "pages/TalentProfilePage.jsx",
+      "pages/wirker-profile/index.jsx"
+    ],
+    "count": 4
+  },
+  "components/profile/sections/RecommendationsSection.jsx": {
+    "importedBy": [
+      "pages/BasisProfilePage.jsx",
+      "pages/MyBasisProfile.jsx",
+      "pages/TalentProfilePage.jsx"
+    ],
+    "count": 3
+  },
+  "components/profile/ProfileHeader.jsx": {
+    "importedBy": [
+      "pages/BasisProfilePage.jsx",
+      "pages/MyBasisProfile.jsx",
+      "pages/TalentProfilePage.jsx"
+    ],
+    "count": 3
+  },
+  "components/profile/OrbSignatur.jsx": {
+    "importedBy": [
+      "pages/BasisProfilePage.jsx",
+      "pages/MyBasisProfile.jsx",
+      "pages/TalentProfilePage.jsx"
+    ],
+    "count": 3
+  },
+  "lib/bookingContext/index.js": {
+    "importedBy": [
+      "pages/CreatorStudio.jsx"
+    ],
+    "count": 1
+  },
+  "lib/journeyContext/index.js": {
+    "importedBy": [
+      "pages/CreatorStudio.jsx"
+    ],
+    "count": 1
+  },
+  "pages/studio/StudioSubPages/index.js": {
+    "importedBy": [
+      "pages/CreatorStudio.jsx"
+    ],
+    "count": 1
+  },
+  "config/SafeRender.jsx": {
+    "importedBy": [
+      "pages/Home.jsx"
+    ],
+    "count": 1
+  },
+  "lib/world/safariPaintRecovery.js": {
+    "importedBy": [
+      "pages/Home.jsx"
+    ],
+    "count": 1
+  },
+  "core/hui.safePayload.js": {
+    "importedBy": [
+      "pages/Home.jsx"
+    ],
+    "count": 1
+  },
+  "components/home/header/HomeHeader.jsx": {
+    "importedBy": [
+      "pages/Home.jsx"
+    ],
+    "count": 1
+  },
+  "components/home/navigation/BottomNav.jsx": {
+    "importedBy": [
+      "pages/Home.jsx"
+    ],
+    "count": 1
+  },
+  "feed/UnifiedFeed.jsx": {
+    "importedBy": [
+      "pages/Home.jsx"
+    ],
+    "count": 1
+  },
+  "components/StoryBar.jsx": {
+    "importedBy": [
+      "pages/Home.jsx"
+    ],
+    "count": 1
+  },
+  "components/chat-center/ChatCenterOverlay.jsx": {
+    "importedBy": [
+      "pages/Home.jsx"
+    ],
+    "count": 1
+  },
+  "components/connection-create/ConnectionCreatePage.jsx": {
+    "importedBy": [
+      "pages/Home.jsx"
+    ],
+    "count": 1
+  },
+  "components/commerce/WerkKaufFlow.jsx": {
+    "importedBy": [
+      "pages/Home.jsx"
+    ],
+    "count": 1
+  },
+  "components/commerce/WerkeKorb.jsx": {
+    "importedBy": [
+      "pages/Home.jsx"
+    ],
+    "count": 1
+  },
+  "components/commerce/UnterstutzenFlow.jsx": {
+    "importedBy": [
+      "pages/Home.jsx"
+    ],
+    "count": 1
+  },
+  "components/commerce/ExperienceBookingFlow.jsx": {
+    "importedBy": [
+      "pages/Home.jsx"
+    ],
+    "count": 1
+  },
+  "pages/DiscoverPage.jsx": {
+    "importedBy": [
+      "pages/Home.jsx"
+    ],
+    "count": 1
+  },
+  "components/home/AmbientWorldBar.jsx": {
+    "importedBy": [
+      "pages/Home.jsx"
+    ],
+    "count": 1
+  },
+  "pages/ImpactPage.jsx": {
+    "importedBy": [
+      "pages/Home.jsx"
+    ],
+    "count": 1
+  },
+  "pages/FavoritesPage.jsx": {
+    "importedBy": [
+      "pages/Home.jsx"
+    ],
+    "count": 1
+  },
+  "components/OrbCompass.jsx": {
+    "importedBy": [
+      "pages/Home.jsx"
+    ],
+    "count": 1
+  },
+  "content/ContentTypeSelector.jsx": {
+    "importedBy": [
+      "pages/Home.jsx"
+    ],
+    "count": 1
+  },
+  "content/invitation/InvitationFlow.jsx": {
+    "importedBy": [
+      "pages/Home.jsx"
+    ],
+    "count": 1
+  },
+  "services/db.js": {
+    "importedBy": [
+      "pages/ImpactPage.jsx"
+    ],
+    "count": 1
+  },
+  "system/flows/impact/ImpactFlow.jsx": {
+    "importedBy": [
+      "pages/ImpactPage.jsx"
+    ],
+    "count": 1
+  },
+  "components/notifications/NotificationPanel.jsx": {
+    "importedBy": [
+      "pages/MyBasisProfile.jsx"
+    ],
+    "count": 1
+  },
+  "pages/studio/MeineResonanz.jsx": {
+    "importedBy": [
+      "pages/MyBasisProfile.jsx"
+    ],
+    "count": 1
+  },
+  "components/profile/PublicProfilePreview.jsx": {
+    "importedBy": [
+      "pages/MyBasisProfile.jsx"
+    ],
+    "count": 1
+  },
+  "components/profile/MerkenSection.jsx": {
+    "importedBy": [
+      "pages/MyBasisProfile.jsx"
+    ],
+    "count": 1
+  },
+  "components/profile/sections/TalentSection.jsx": {
+    "importedBy": [
+      "pages/MyBasisProfile.jsx",
+      "pages/TalentProfilePage.jsx"
+    ],
+    "count": 2
+  },
+  "components/works/WerkWizard.jsx": {
+    "importedBy": [
+      "pages/MyBasisProfile.jsx"
+    ],
+    "count": 1
+  },
+  "components/experiences/ExperienceWizard.jsx": {
+    "importedBy": [
+      "pages/MyBasisProfile.jsx"
+    ],
+    "count": 1
+  },
+  "hooks/useProfileData/index.js": {
+    "importedBy": [
+      "pages/ProfileDebugPage.jsx"
+    ],
+    "count": 1
+  },
+  "components/profile/sections/WorksSection.jsx": {
+    "importedBy": [
+      "pages/TalentProfilePage.jsx"
+    ],
+    "count": 1
+  },
+  "components/profile/sections/ExperiencesSection.jsx": {
+    "importedBy": [
+      "pages/TalentProfilePage.jsx",
+      "pages/wirker-profile/index.jsx"
+    ],
+    "count": 2
+  },
+  "hooks/useProfileId.js": {
+    "importedBy": [
+      "pages/wirker-profile/index.jsx"
+    ],
+    "count": 1
+  },
+  "components/economy/SupportFlow.jsx": {
+    "importedBy": [
+      "pages/wirker-profile/index.jsx"
+    ],
+    "count": 1
+  },
+  "lib/resonance/index.js": {
+    "importedBy": [
+      "services/content.js"
+    ],
+    "count": 1
+  },
+  "system/flows/experience/ExperienceTokens.js": {
+    "importedBy": [
+      "system/flows/experience/ExperienceCreateStep.jsx",
+      "system/flows/experience/ExperienceDetailsStep.jsx",
+      "system/flows/experience/ExperiencePublishStep.jsx"
+    ],
+    "count": 3
+  },
+  "system/flows/experience/ExperienceCreateStep.jsx": {
+    "importedBy": [
+      "system/flows/experience/ExperienceFlow.jsx"
+    ],
+    "count": 1
+  },
+  "system/flows/experience/ExperienceDetailsStep.jsx": {
+    "importedBy": [
+      "system/flows/experience/ExperienceFlow.jsx"
+    ],
+    "count": 1
+  },
+  "system/flows/experience/ExperiencePublishStep.jsx": {
+    "importedBy": [
+      "system/flows/experience/ExperienceFlow.jsx"
+    ],
+    "count": 1
+  },
+  "system/flows/impact/ImpactTokens.jsx": {
+    "importedBy": [
+      "system/flows/impact/ImpactStep1Projekt.jsx",
+      "system/flows/impact/ImpactStep2Vision.jsx",
+      "system/flows/impact/ImpactStep3Kontakt.jsx",
+      "system/flows/impact/ImpactStep4Review.jsx"
+    ],
+    "count": 4
+  },
+  "system/flows/work/WorkTokens.js": {
+    "importedBy": [
+      "system/flows/work/WorkDetailsStep.jsx",
+      "system/flows/work/WorkMediaStep.jsx",
+      "system/flows/work/WorkPublishStep.jsx"
+    ],
+    "count": 3
+  },
+  "system/flows/work/WorkMediaStep.jsx": {
+    "importedBy": [
+      "system/flows/work/WorkFlow.jsx"
+    ],
+    "count": 1
+  },
+  "system/flows/work/WorkDetailsStep.jsx": {
+    "importedBy": [
+      "system/flows/work/WorkFlow.jsx"
+    ],
+    "count": 1
+  },
+  "system/flows/work/WorkPublishStep.jsx": {
+    "importedBy": [
+      "system/flows/work/WorkFlow.jsx"
+    ],
+    "count": 1
+  },
+  "system/orb/OrbConfig.js": {
+    "importedBy": [
+      "system/orb/MemberOrbHome.jsx",
+      "system/orb/OrbAtmosphere.jsx",
+      "system/orb/OrbCenter.jsx",
+      "system/orb/OrbHintCard.jsx",
+      "system/orb/OrbNode.jsx",
+      "system/orb/OrbState.js",
+      "system/orb/OrbSystem.jsx"
+    ],
+    "count": 7
+  },
+  "system/orb/OrbAnimations.js": {
+    "importedBy": [
+      "system/orb/OrbSystem.jsx"
+    ],
+    "count": 1
+  },
+  "system/orb/OrbAtmosphere.jsx": {
+    "importedBy": [
+      "system/orb/OrbSystem.jsx"
+    ],
+    "count": 1
+  },
+  "system/orb/OrbCenter.jsx": {
+    "importedBy": [
+      "system/orb/OrbSystem.jsx"
+    ],
+    "count": 1
+  },
+  "system/orb/OrbNode.jsx": {
+    "importedBy": [
+      "system/orb/OrbSystem.jsx"
+    ],
+    "count": 1
+  },
+  "system/orb/OrbHintCard.jsx": {
+    "importedBy": [
+      "system/orb/OrbSystem.jsx"
+    ],
+    "count": 1
+  },
+  "system/orb/OrbState.js": {
+    "importedBy": [
+      "system/orb/OrbSystem.jsx"
+    ],
+    "count": 1
+  },
+  "system/orb/MemberOrbHome.jsx": {
+    "importedBy": [
+      "system/orb/OrbSystem.jsx"
+    ],
+    "count": 1
+  }
+}

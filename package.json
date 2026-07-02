@@ -12,8 +12,13 @@
     "preview": "vite preview",
     "architecture:audit": "node --experimental-vm-modules src/architecture/scanner/cli.js --mode=audit",
     "architecture:report": "node --experimental-vm-modules src/architecture/scanner/cli.js --mode=report",
-    "architecture:graph": "node --experimental-vm-modules src/architecture/scanner/cli.js --mode=graph",
-    "architecture:all": "node --experimental-vm-modules src/architecture/scanner/cli.js --mode=all"
+    "architecture:graph": "node --experimental-vm-modules src/architecture/knowledge-graph/cli.js --mode=all",
+    "architecture:scan:graph": "node --experimental-vm-modules src/architecture/scanner/cli.js --mode=graph",
+    "architecture:all": "node --experimental-vm-modules src/architecture/scanner/cli.js --mode=all",
+    "architecture:kg": "node --experimental-vm-modules src/architecture/knowledge-graph/cli.js --mode=all",
+    "architecture:kg:json": "node --experimental-vm-modules src/architecture/knowledge-graph/cli.js --mode=json",
+    "architecture:kg:report": "node --experimental-vm-modules src/architecture/knowledge-graph/cli.js --mode=report",
+    "architecture:kg:query": "node --experimental-vm-modules src/architecture/knowledge-graph/cli.js --mode=query"
   },
   "dependencies": {
     "@base44/sdk": "^0.8.32",

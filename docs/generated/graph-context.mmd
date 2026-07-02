@@ -1,0 +1,47 @@
+graph LR
+%% HUI Architecture Knowledge Graph — ARCH-002
+
+  Context__AuthContext["AuthContext"]
+  File__App_jsx["App.jsx"] --> Context__AuthContext
+  File__components_ExperienceCreator_jsx["ExperienceCreator.jsx"] --> Context__AuthContext
+  File__components_GemeinschaftsFlow_jsx["GemeinschaftsFlow.jsx"] --> Context__AuthContext
+  File__components_HuiCreateFlow_jsx["HuiCreateFlow.jsx"] --> Context__AuthContext
+  File__components_HuiMembershipFlow_jsx["HuiMembershipFlow.jsx"] --> Context__AuthContext
+  Context__AppStateContext["AppStateContext"]
+  File__App_jsx["App.jsx"] --> Context__AppStateContext
+  File__components_NotificationCenter_jsx["NotificationCenter.jsx"] --> Context__AppStateContext
+  File__components_WorkDetailPage_jsx["WorkDetailPage.jsx"] --> Context__AppStateContext
+  File__components_discovery_PeopleSearch_jsx["PeopleSearch.jsx"] --> Context__AppStateContext
+  File__components_home_HomeShell_jsx["HomeShell.jsx"] --> Context__AppStateContext
+  Context__WorldSurfaceContext["WorldSurfaceContext"]
+  File__App_jsx["App.jsx"] --> Context__WorldSurfaceContext
+  File__components_home_HomeShell_jsx["HomeShell.jsx"] --> Context__WorldSurfaceContext
+  File__pages_Home_jsx["Home.jsx"] --> Context__WorldSurfaceContext
+  Context__OrbWorldContext["OrbWorldContext"]
+  File__App_jsx["App.jsx"] --> Context__OrbWorldContext
+  File__components_home_HomeShell_jsx["HomeShell.jsx"] --> Context__OrbWorldContext
+  File__pages_Home_jsx["Home.jsx"] --> Context__OrbWorldContext
+  Context__GuidanceContext["GuidanceContext"]
+  File__App_jsx["App.jsx"] --> Context__GuidanceContext
+  File__components_guidance_GuidanceFooter_jsx["GuidanceFooter.jsx"] --> Context__GuidanceContext
+  File__components_guidance_GuidanceLayer_jsx["GuidanceLayer.jsx"] --> Context__GuidanceContext
+  Context__AuthGate["AuthGate"]
+  Context__AuthGateCtx["AuthGateCtx"]
+  File__components_auth_AuthGate_jsx["AuthGate.jsx"] --> Context__AuthGateCtx
+  Context__chatContext["chatContext"]
+  File__components_chat_center_ChatCenterOverlay_jsx["ChatCenterOverlay.jsx"] --> Context__chatContext
+  File__components_chat_center_ConversationRoom_jsx["ConversationRoom.jsx"] --> Context__chatContext
+  File__pages_Home_jsx["Home.jsx"] --> Context__chatContext
+  Context__GuidanceCtx["GuidanceCtx"]
+  File__components_guidance_GuidanceContext_jsx["GuidanceContext.jsx"] --> Context__GuidanceCtx
+  Context__HomeShell["HomeShell"]
+  Context__HuiActionProvider["HuiActionProvider"]
+  File__components_home_HomeShell_jsx["HomeShell.jsx"] --> Context__HuiActionProvider
+  Context__HuiContextBridge["HuiContextBridge"]
+  File__components_home_HomeShell_jsx["HomeShell.jsx"] --> Context__HuiContextBridge
+  Context__HomeCtx["HomeCtx"]
+  File__components_home_HomeShell_jsx["HomeShell.jsx"] --> Context__HomeCtx
+  Context__OrbWorldCtx["OrbWorldCtx"]
+  File__context_OrbWorldContext_jsx["OrbWorldContext.jsx"] --> Context__OrbWorldCtx
+  Context__WorldSurfaceCtx["WorldSurfaceCtx"]
+  File__context_WorldSurfaceContext_jsx["WorldSurfaceContext.jsx"] --> Context__WorldSurfaceCtx
