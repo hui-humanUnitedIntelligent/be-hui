@@ -11,10 +11,10 @@
 |---|---|
 | 🔴 CRITICAL | 42 |
 | 🟠 HIGH | 112 |
-| 🟡 MEDIUM | 185 |
+| 🟡 MEDIUM | 183 |
 | 🔵 LOW | 23 |
 | ⚪ INFO | 267 |
-| **Gesamt** | **629** |
+| **Gesamt** | **627** |
 
 ## CORE_BYPASS (42)
 
@@ -305,7 +305,7 @@ supabase.from('wirker_profiles')
 supabase.from('wirker_profiles')
 ```
 
-### 🔴 `services/db.js` L505
+### 🔴 `services/db.js` L531
 **Core Bypass: Direkter Write auf Core-Tabelle 'impact_votes'. Nutze Core Engine (coreEngine.js / resonanceEngine.js / orbEngine.js).**
 
 ```
@@ -428,14 +428,14 @@ await supabase.from("notifications").update({ read:true }).eq("read", false);
 if (!n.read) supabase.from("notifications").update({ read:true }).eq("id", n.id).then(()=>{});
 ```
 
-### 🟠 `components/StoryBar.jsx` L186
+### 🟠 `components/StoryBar.jsx` L172
 **Direkter DB-Write (UPSERT) auf 'story_views' in COMPONENTS-Schicht. Verwende Service-Layer.**
 
 ```
 supabase.from('story_views').upsert({ story_id: current.id, viewer_id: user.id },
 ```
 
-### 🟠 `components/StoryBar.jsx` L258
+### 🟠 `components/StoryBar.jsx` L244
 **Direkter DB-Write (INSERT) auf 'messages' in COMPONENTS-Schicht. Verwende Service-Layer.**
 
 ```
@@ -1104,7 +1104,7 @@ lib/useNotifications.jsx, pages/TalentProfilePage.jsx
 pages/TalentProfilePage.jsx, pages/wirker-profile/index.jsx
 ```
 
-## DB_DIRECT_READ (185)
+## DB_DIRECT_READ (183)
 
 ### 🟡 `components/HuiMatchOverlay.jsx` L355
 **Direkter DB-Read auf 'profiles' in COMPONENTS-Schicht. Erwäge Service-Layer.**
@@ -1162,28 +1162,14 @@ const { data } = await supabase
 supabase
 ```
 
-### 🟡 `components/StoryBar.jsx` L51
-**Direkter DB-Read auf 'stories' in COMPONENTS-Schicht. Erwäge Service-Layer.**
-
-```
-const { data, error } = await supabase
-```
-
-### 🟡 `components/StoryBar.jsx` L68
-**Direkter DB-Read auf 'story_views' in COMPONENTS-Schicht. Erwäge Service-Layer.**
-
-```
-const { data: views } = await supabase
-```
-
-### 🟡 `components/StoryBar.jsx` L188
+### 🟡 `components/StoryBar.jsx` L174
 **Direkter DB-Read auf 'story_views' in COMPONENTS-Schicht. Erwäge Service-Layer.**
 
 ```
 supabase.from('story_views').select('id', { count:'exact' })
 ```
 
-### 🟡 `components/StoryBar.jsx` L677
+### 🟡 `components/StoryBar.jsx` L663
 **Direkter DB-Read auf 'stories' in COMPONENTS-Schicht. Erwäge Service-Layer.**
 
 ```

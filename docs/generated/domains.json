@@ -25,14 +25,14 @@
   },
   "COMPONENTS": {
     "files": 106,
-    "lines": 38535,
+    "lines": 38521,
     "components": 333,
     "hooks": 10,
-    "dbReads": 97,
+    "dbReads": 95,
     "dbWrites": 42,
     "actionEngine": 4,
     "coreEngine": 2,
-    "violations": 266,
+    "violations": 264,
     "label": "Components"
   },
   "FEATURES": {
@@ -97,10 +97,10 @@
   },
   "SERVICES": {
     "files": 75,
-    "lines": 20544,
+    "lines": 20570,
     "components": 13,
     "hooks": 47,
-    "dbReads": 119,
+    "dbReads": 121,
     "dbWrites": 90,
     "actionEngine": 0,
     "coreEngine": 0,

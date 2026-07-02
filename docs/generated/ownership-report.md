@@ -34,7 +34,7 @@
 | `components/NotificationCenter.jsx` | 1027 | UNKNOWN |
 | `components/OrbCompass.jsx` | 817 | UNKNOWN |
 | `components/ProtectedRoute.jsx` | 97 | UNKNOWN |
-| `components/StoryBar.jsx` | 726 | UNKNOWN |
+| `components/StoryBar.jsx` | 712 | UNKNOWN |
 | `components/StoryComposer.jsx` | 451 | UNKNOWN |
 | `components/SupportSheet.jsx` | 328 | UNKNOWN |
 | `components/TalentOnboarding.jsx` | 459 | UNKNOWN |

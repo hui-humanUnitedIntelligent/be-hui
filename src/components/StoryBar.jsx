@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { StoryService } from '../services/db';
 import { useAuth } from '../lib/AuthContext';
 import { HUI } from "../design/hui.design.js";
 
@@ -45,19 +46,7 @@ export function StoryBar({ onStoryClick }) {
   useEffect(() => { loadStories(); }, [user?.id]);
 
   async function loadStories() {
-    const now = new Date().toISOString();
-    // FIX: stories-Tabelle hat kein 'status'-Feld → war silent fail (0 Ergebnisse)
-    // FIX: username/avatar_url nicht in stories → via profile join laden
-    const { data, error } = await supabase
-      .from('stories')
-      .select(`
-        id, user_id, media_url, media_type, caption, text_overlay,
-        is_highlight, created_at, expires_at,
-        profile:user_id(display_name, avatar_url)
-      `)
-      .or(`expires_at.is.null,expires_at.gt.${now}`)
-      .order('created_at', { ascending: false })
-      .limit(50);
+    const { data, error } = await StoryService.getBarFeed();
     console.info('[StoryBar] Query result:', { count: data?.length, error: error?.message });
 
     if (error) { console.warn('[StoryBar] load error:', error.message); return; }
@@ -65,10 +54,7 @@ export function StoryBar({ onStoryClick }) {
 
     // Load viewed story IDs for current user
     if (user?.id) {
-      const { data: views } = await supabase
-        .from('story_views')
-        .select('story_id')
-        .eq('viewer_id', user.id);
+      const { data: views } = await StoryService.getViewedStoryIds(user.id);
       if (views && Array.isArray(views)) setViewedIds(new Set(views.filter(v=>v&&v.story_id).map(v => v.story_id)));
     }
 
