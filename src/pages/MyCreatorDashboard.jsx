@@ -718,6 +718,10 @@ export default function MyCreatorDashboard({ onClose }) {
           // Verbindungen (gegenseitige Follows)
           supabase.rpc("get_follow_counts", { target_id: authId }),
           // Impact-Zahlungen
+          // Legacy-Hinweis: Diese Stelle liest aus der alten Tabelle 'payments'.
+          // Die Tabelle wurde nie befuellt und hat kein SSOT-Mapping (SYS-LegacyMark-024).
+          // UI zeigt korrekt leer/0 an. Kein Ersatz vorhanden.
+
           supabase.from("payments")
             .select("impact_eur,created_at")
             .eq("user_id", authId).limit(200),
