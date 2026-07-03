@@ -42,6 +42,16 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: supabase functions deploy release-payout --project-ref gxztrhvhcxhmunhhkfjd
 
+      - name: Deploy ambassador-stripe-connect
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase functions deploy ambassador-stripe-connect --project-ref gxztrhvhcxhmunhhkfjd --no-verify-jwt
+
+      - name: Deploy ambassador-payout-execute
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase functions deploy ambassador-payout-execute --project-ref gxztrhvhcxhmunhhkfjd
+
       - name: Deploy distribute-impact-round
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
