@@ -11,7 +11,10 @@ import {
   FB_AVATAR,
   handleAvatarUpload, handleCoverUpload,
 } from "../lib/profileMedia.js";
-import { NAV_RESERVED_HEIGHT_CSS } from "../components/home/navigation/navigationGeometry.js";
+import {
+  SHELL_LAYOUT,
+  SHELL_PAGE_TITLE_PAD,
+} from "../components/home/shellLayout.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
 import { useHome }   from "../components/home/HomeShell.jsx";
 import GemeinschaftsFlow from "../components/GemeinschaftsFlow.jsx";
@@ -50,7 +53,7 @@ const T = {
   inkFaint: "rgba(26,26,24,0.28)",
   border:   "rgba(26,26,24,0.08)",
   borderMid:"rgba(26,26,24,0.14)",
-  px:       20,
+  px:       SHELL_LAYOUT.CONTENT_PX,
   r12:12, r16:16, r20:20, r24:24, r99:99,
   card:     "0 1px 8px rgba(26,26,24,0.07), 0 1px 2px rgba(26,26,24,0.04)",
   glowTeal: "0 4px 18px rgba(14,196,184,0.26)",
@@ -59,9 +62,7 @@ const T = {
 
 // ── CSS ──────────────────────────────────────────────────────────
 const CSS = `
-  .mbp-root { background:#F9F7F4; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif; color:${T.ink}; }
-  .mbp-scroll { overflow-y:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
-  .mbp-scroll::-webkit-scrollbar { display:none; }
+  .mbp-root { background:${SHELL_LAYOUT.BG}; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif; color:${T.ink}; }
   .mbp-hscroll { overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
   .mbp-hscroll::-webkit-scrollbar { display:none; }
 
@@ -635,10 +636,10 @@ export default function MyBasisProfile({ onClose, profileId }) {
   // Sofort sichtbarer Spinner während Profil lädt — kein weißer Screen
   if (hookLoading) {
     return (
-      <div style={{
-        position:"fixed", inset:0, zIndex:9500,
-        background:T.bg,
+      <div className="mbp-root" style={{
+        width:"100%", background:SHELL_LAYOUT.BG,
         display:"flex", alignItems:"center", justifyContent:"center",
+        padding:"48px 16px",
       }}>
         <div style={{
           width:36, height:36, borderRadius:"50%",
@@ -653,8 +654,11 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
   return (
     <div className="mbp-root" style={{
-      position:"fixed", inset:0, zIndex:9500,
-      display:"flex", flexDirection:"column",
+      width:"100%",
+      background:SHELL_LAYOUT.BG,
+      fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif",
+      color:T.ink,
+      overscrollBehavior:"none",
     }}>
 
       
@@ -690,21 +694,12 @@ export default function MyBasisProfile({ onClose, profileId }) {
         </div>
       )}
 
-      <div className="mbp-scroll" style={{ flex:1, overflowY:"auto",
-        // War: hartkodierte Naeherung ("max(80px, 64px+safeBottom)"), leicht
-        // abweichend von der ECHTEN Nav-Reservierung. Jetzt: dieselbe geteilte
-        // Konstante wie Feed/Discover/Impact (NAV_RESERVED_HEIGHT_CSS) -- der
-        // untere weisse Freiraum oberhalb der Bottom Navigation ist dadurch
-        // pixelgenau identisch zu den anderen Hauptseiten.
-        paddingBottom: NAV_RESERVED_HEIGHT_CSS }}>
-
-        {/* ── SEITEN-TITEL ─────────────────────────────────────── */}
-        <div style={{
-          padding:`max(52px,calc(48px + env(safe-area-inset-top,0px))) ${T.px}px 0`,
-          display:"flex", justifyContent:"space-between", alignItems:"flex-start",
-        }}>
+      <div style={{
+        padding: SHELL_PAGE_TITLE_PAD,
+        display:"flex", justifyContent:"space-between", alignItems:"flex-start",
+      }}>
           <div>
-            <div style={{ fontSize:24, fontWeight:900, color:T.ink, letterSpacing:"-0.04em",
+            <div style={{ fontSize:22, fontWeight:900, color:T.ink, letterSpacing:"-0.04em",
               lineHeight:1.15 }}>
               {profile?.is_talent ? "Mein Talent-Profil ✨" : "Mein Profil 🌿"}
             </div>
@@ -754,7 +749,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
             >⚙️</button>
           </div>
         </div>
-        <Gap h={12}/>
 
         {/* ── HEADER — Cover + Avatar + Name ───────────────── */}
         <CanonicalProfileHeader
@@ -914,7 +908,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
             <Gap h={40}/>
           </>
         )}
-      </div>
 
       {/* GEMEINSCHAFT FLOW MODAL */}
       {showGemeinschaft && (
@@ -1126,7 +1119,7 @@ function AmbassadorProfilSection({ profile, ambState, onApply }) {
   // Nicht-Ambassador: CTA anzeigen
   if (!isAmb) {
     return (
-      <div style={{ padding:"0 20px" }}>
+      <div style={{ padding:`0 ${T.px}px` }}>
         <div style={{
           background:T2.bgCard, borderRadius:T2.r16,
           border:`1px solid ${T2.border}`, padding:"18px",
@@ -1174,7 +1167,7 @@ function AmbassadorProfilSection({ profile, ambState, onApply }) {
 
   // Aktiver Ambassador: Dashboard
   return (
-    <div style={{ padding:"0 20px" }}>
+    <div style={{ padding:`0 ${T.px}px` }}>
       {/* Status-Badge */}
       <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
         <SectionRow title="Ambassador" />
@@ -1251,7 +1244,7 @@ function TalentErweiterung({ profile, onProfileUpdate }) {
 
 
   return (
-    <div style={{ padding: "0 20px" }}>
+    <div style={{ padding: `0 ${T.px}px` }}>
       {/* Header */}
       <div style={{
         background: "linear-gradient(135deg, #0EC4B8 0%, #00A8A0 100%)",
@@ -1753,7 +1746,7 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
 // ══════════════════════════════════════════════════════════════
 function GemeinschaftsKarte({ onJoin }) {
   return (
-    <div style={{ padding:`0 20px` }}>
+    <div style={{ padding:`0 ${T.px}px` }}>
       <div style={{
         background:"linear-gradient(140deg,#F0FDFB 0%,#E8FAF8 60%,#F5FCF5 100%)",
         border:"1.5px solid rgba(14,196,184,0.20)",

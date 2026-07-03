@@ -1,7 +1,7 @@
 // src/components/home/profile/ProfileLauncher.jsx v8 — DB-basiertes Routing
 // ROUTING:
 //   selectedProfileId → DB-Query → role/has_talent_profile → TalentProfilePage | BasisProfilePage
-//   showCreatorDashboard → MyBasisProfile (eigenes Profil — Talent-UI via isTalent)
+//   Eigenes Profil → creator-Tab in AppShell (MyBasisProfile), nicht mehr als Overlay
 // ROUTING-ENTSCHEIDUNG: aus Datenbank, NICHT aus flow.state (war immer undefined)
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -129,7 +129,6 @@ function lazyWithRetry(importFn) {
 // ── Lazy Page Imports ────────────────────────────────────────────
 const BasisProfilePage   = lazyWithRetry(() => import("../../../pages/BasisProfilePage.jsx"));
 const TalentProfilePage  = lazyWithRetry(() => import("../../../pages/TalentProfilePage.jsx"));
-const MyBasisProfile     = lazyWithRetry(() => import("../../../pages/MyBasisProfile.jsx"));
 
 // ── Spinner Fallback ─────────────────────────────────────────────
 function Spinner() {
@@ -215,7 +214,6 @@ export function useProfileLauncher() {
 export default function ProfileLauncher() {
   const {
     selectedProfileId,    closeProfileById,
-    showCreatorDashboard, setShowCreatorDashboard,
     authProfile,
   } = useHome();
 
@@ -244,16 +242,6 @@ export default function ProfileLauncher() {
     );
   }
 
-  // ── EIGENES PROFIL — IMMER MyBasisProfile (erweiterbar um Talent-Bereich)
-  // MyBasisProfile rendert den Talent-Bereich conditional wenn isTalent===true.
-  if (showCreatorDashboard) {
-    return (
-      <ProfileErrorBoundary profileId="own" onClose={() => setShowCreatorDashboard(false)}>
-        <MyBasisProfile onClose={() => setShowCreatorDashboard(false)} />
-      </ProfileErrorBoundary>
-    );
-  }
-
-  // Nichts zu zeigen
+  // Nichts zu zeigen — eigenes Profil rendert im creator-Tab (AppShell)
   return null;
 }
