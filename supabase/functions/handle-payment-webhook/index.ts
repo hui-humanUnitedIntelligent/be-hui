@@ -181,8 +181,31 @@ serve(async (req) => {
         if (notifErr) console.warn('[NOTIF]', notifErr.message)
       }
 
-      // ── Impact Pool (nur einmalig via Idempotency) ────────────
-      const impactEur = Math.round(Number(order.total_eur) * 0.07 * 100) / 100
+      // ── COM-MIGRATION-015.3: 15%-Gebuehrenmodell + Ambassador-Provision ──
+      // rpc_process_order_fees ist die alleinige, deterministische Quelle fuer:
+      //   Gebuehr 15% -> Impact 15%/Unternehmen 85% -> Ambassador-Provision (5/10/15/20% je Level,
+      //   nur falls referred_by + < 365 Tage seit Registrierung) -> 40/30/20/10-Verteilung des Rests.
+      // Idempotent (prueft stripe_impact_pool.order_id), schreibt impact_rounds NICHT mehr direkt --
+      // stripe_impact_pool/stripe_ambassador_commissions sind ab jetzt die Single Source of Truth.
+      const { data: feeResult, error: feeErr } = await supabase.rpc('rpc_process_order_fees', {
+        p_order_id: order.id
+      })
+      if (feeErr) {
+        console.error('[WEBHOOK] rpc_process_order_fees failed:', feeErr.message)
+      } else {
+        const { error: feeEventErr } = await supabase.from('commerce_events').insert({
+          event_type: 'impact_credited',
+          order_id:   order.id,
+          actor_type: 'system',
+          payload:    { ...feeResult, via_webhook: event.id }
+        })
+        if (feeEventErr) console.warn('[WEBHOOK] fee event insert failed:', feeEventErr.message)
+      }
+
+      // impact_rounds bleibt fuer die bestehende ImpactPage/Voting-UI bestehen, wird additiv
+      // aus dem neuen Impact-Anteil gespeist (2.25% statt vormals 7%), damit Abstimmungs-UI
+      // ohne separate Migration weiterlaeuft.
+      const impactEur = feeResult?.ok ? Number(feeResult.impact_eur) : 0
       if (impactEur > 0) {
         const { data: currentRound } = await supabase
           .from('impact_rounds')
@@ -194,14 +217,6 @@ serve(async (req) => {
           await supabase.from('impact_rounds').update({
             pool_eur: Number(currentRound.pool_eur) + impactEur
           }).eq('id', currentRound.id)
-
-          const { error: impactEventErr } = await supabase.from('commerce_events').insert({
-            event_type: 'impact_credited',
-            order_id:   order.id,
-            actor_type: 'system',
-            payload:    { impact_eur: impactEur, round_id: currentRound.id, via_webhook: event.id }
-          })
-          if (impactEventErr) console.warn('[WEBHOOK] impact event insert failed:', impactEventErr.message)
         }
       }
 
