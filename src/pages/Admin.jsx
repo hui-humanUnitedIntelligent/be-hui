@@ -991,6 +991,10 @@ export default function Admin() {
         supabase.from("wirker")
           .select("id,name,full_name,talent,location,img,verified,bookings,impact_eur,created_at")
           .order("created_at",{ascending:false}).limit(100),
+        // Legacy-Hinweis: Diese Stelle liest aus der alten Tabelle 'payments'.
+        // Die Tabelle wurde nie befuellt und hat kein SSOT-Mapping (SYS-LegacyMark-024).
+        // UI zeigt korrekt leer/0 an. Kein Ersatz vorhanden.
+
         supabase.from("payments")
           .select("id,user_id,wirker_name,amount_eur,impact_eur,status,payment_status,created_at")
           .order("created_at",{ascending:false}).limit(200),
