@@ -124,28 +124,30 @@ function levelEmoji(lvl) {
 
 // ── Ambassador-Bereich Sektion ────────────────────────────────────
 // ── Level-Berechnung (live) ──────────────────────────────────────
+// COM-MIGRATION-015.3: Level-Namen + Provisionsraten neu (Starter/Bronze/Silber/Gold, 5/10/15/20%).
+// Schwellen unveraendert uebernommen (ANNAHME -- mit Michael abzugleichen, war bereits vor 015.3 offen).
 function calcLevel(referredCount) {
   const n = referredCount || 0;
-  if (n >= 201) return "Platin";
-  if (n >= 51)  return "Gold";
-  if (n >= 11)  return "Silber";
-  return "Bronze";
+  if (n >= 201) return "Gold";
+  if (n >= 51)  return "Silber";
+  if (n >= 11)  return "Bronze";
+  return "Starter";
 }
 function provisionRate(lvl) {
   const l = (lvl||"").toLowerCase();
-  if (l === "platin") return 0.04;
-  if (l === "gold")   return 0.03;
-  if (l === "silber") return 0.02;
-  return 0.01;
+  if (l === "gold")   return 0.20;
+  if (l === "silber") return 0.15;
+  if (l === "bronze") return 0.10;
+  return 0.05;
 }
 
 // ── Level-Info-Popup ──────────────────────────────────────────────
 function LevelInfoPopup({ onClose }) {
   const levels = [
-    { emoji:"🥉", name:"Bronze", rate:"1%",  from:"0–10 Geworbene"   },
-    { emoji:"🥈", name:"Silber", rate:"2%",  from:"ab 11 Geworbenen" },
-    { emoji:"🥇", name:"Gold",   rate:"3%",  from:"ab 51 Geworbenen" },
-    { emoji:"🏆", name:"Platin", rate:"4%",  from:"ab 201 Geworbenen"},
+    { emoji:"🌱", name:"Starter", rate:"5%",  from:"0–10 Geworbene"   },
+    { emoji:"🥉", name:"Bronze",  rate:"10%", from:"ab 11 Geworbenen" },
+    { emoji:"🥈", name:"Silber",  rate:"15%", from:"ab 51 Geworbenen" },
+    { emoji:"🥇", name:"Gold",    rate:"20%", from:"ab 201 Geworbenen"},
   ];
   return (
     <div style={{
@@ -167,7 +169,7 @@ function LevelInfoPopup({ onClose }) {
           }}>✕</button>
         </div>
         <div style={{ fontSize:12, color:T.inkSoft, marginBottom:16, lineHeight:1.6 }}>
-          Die Provision wird <strong>einmalig</strong> bei der ersten Transaktion eines geworbenen Nutzers berechnet.
+          Die Provision gilt <strong>365 Tage</strong> ab Registrierung des geworbenen Nutzers und wird bei <strong>jeder</strong> Transaktion in diesem Zeitraum berechnet.
         </div>
         {levels.map(({ emoji, name, rate, from }) => {
           const lc = levelColor(name);
@@ -308,7 +310,7 @@ function AmbassadorStudioSection({ profile }) {
         // 2. Geworbene Nutzer live aus profiles — Feld: referred_by (UUID des Ambassadors)
         const { data: referred } = await supabase
           .from("profiles")
-          .select("id,display_name,username,first_transaction_at,referred_by")
+          .select("id,display_name,username,first_transaction_at,referred_by,created_at")
           .eq("referred_by", uid);
 
         const users = referred || [];
@@ -316,6 +318,13 @@ function AmbassadorStudioSection({ profile }) {
         // Aktiv = first_transaction_at gesetzt, Schlafend = NULL
         const activeUsers   = users.filter(u => u.first_transaction_at != null);
         const sleepingUsers = users.filter(u => u.first_transaction_at == null);
+
+        // COM-MIGRATION-015.3: Provision gilt 365 Tage ab Registrierung des geworbenen Nutzers
+        const inWindow = users.filter(u => {
+          if (!u.created_at) return false;
+          const days = (Date.now() - new Date(u.created_at).getTime()) / 86400000;
+          return days <= 365;
+        });
 
         // 3. Level live aus Anzahl geworbener Nutzer
         const computedLevel = calcLevel(users.length);
@@ -333,6 +342,8 @@ function AmbassadorStudioSection({ profile }) {
         setAmbData({
           level:    computedLevel,
           ref_link: refLink,
+          in_window_count: inWindow.length,
+          total_referred:  users.length,
         });
         setAllUsers(users);
         setEarnings(liveEarnings);
@@ -520,11 +531,15 @@ function AmbassadorStudioSection({ profile }) {
           </div>
         </div>
         <div style={{ marginLeft:"auto", fontSize:11, color:T.inkFaint, textAlign:"right" }}>
-          {/* BUGFIX AMB-PAYOUT-009b: provisionRate(level) war eine erfundene, tier-basierte 1-4%-Anzeige,
-              die nie zur echten Backend-Logik passte. Reale Provision ist fix 5% je Erstkauf (siehe
-              rpc_record_ambassador_commission / Stripe-Webhook-Verteilung, dokumentierte Architektur). */}
-          <div>5% Provision</div>
-          <div style={{ marginTop:2 }}>pro Erstkauf</div>
+          {/* COM-MIGRATION-015.3: Provision ist jetzt wieder levelabhaengig (5/10/15/20%),
+              berechnet aus dem Unternehmensanteil (85% der 15%-Gebuehr), siehe rpc_process_order_fees. */}
+          <div>{(provisionRate(level)*100).toFixed(0)}% Provision</div>
+          <div style={{ marginTop:2 }}>pro Transaktion, 365 Tage</div>
+          {ambData?.total_referred > 0 && (
+            <div style={{ marginTop:4, color: T.teal, fontWeight:600 }}>
+              {ambData.in_window_count}/{ambData.total_referred} noch aktiv
+            </div>
+          )}
         </div>
       </div>
 
