@@ -106,6 +106,9 @@ export default function EinAusgabenModal({ profile, onClose }) {
 
       // 1. payments als Käufer (payer_id)
       const { data: pOut } = await supabase
+        // Legacy-Hinweis: Diese Stelle liest aus der alten Tabelle 'payments'.
+        // Die Tabelle wurde nie befuellt und hat kein SSOT-Mapping (SYS-LegacyMark-024).
+        // UI zeigt korrekt leer/0 an. Kein Ersatz vorhanden.
         .from("payments")
         .select("id,created_at,paid_at,item_name,item_type,amount_eur,impact_eur,status,payment_status,state,wirker_name,wirker_id,stripe_session_id")
         .eq("payer_id", uid)
@@ -189,6 +192,9 @@ export default function EinAusgabenModal({ profile, onClose }) {
 
       // 1. payments als Empfänger (recipient_id)
       const { data: pIn } = await supabase
+        // Legacy-Hinweis: Diese Stelle liest aus der alten Tabelle 'payments'.
+        // Die Tabelle wurde nie befuellt und hat kein SSOT-Mapping (SYS-LegacyMark-024).
+        // UI zeigt korrekt leer/0 an. Kein Ersatz vorhanden.
         .from("payments")
         .select("id,created_at,paid_at,released_at,item_name,item_type,payout_eur,amount_eur,commission_eur,impact_eur,status,payment_status,state,stripe_session_id,booking_id")
         .eq("recipient_id", uid)
