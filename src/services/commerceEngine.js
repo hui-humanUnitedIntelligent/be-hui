@@ -152,7 +152,7 @@ export function buildItemSnapshot(item) {
     shipping_cost:    raw.shipping_cost || 0,
 
     // Impact
-    impact_rate:      0.07,
+    impact_rate:      0.0225, // COM-MIGRATION-015.3: 2.25% statt 7%
 
     // Varianten (vorbereitet)
     variant:          raw.selected_variant || null,
@@ -229,8 +229,8 @@ export const orderService = {
         const qty         = item.quantity || 1;
         const shipping    = raw.shipping_cost || 0;
         const typeRules   = shippingStrategy.itemStrategies?.get(item.id);
-        const itemImpact  = +((unitPrice * qty) * 0.07).toFixed(2);
-        const payoutEur   = +((unitPrice * qty) * 0.90).toFixed(2); // 90% an Creator
+        const itemImpact  = +((unitPrice * qty) * 0.0225).toFixed(2); // COM-MIGRATION-015.3
+        const payoutEur   = +((unitPrice * qty) * 0.85).toFixed(2); // COM-MIGRATION-015.3: 85% an Creator (vorher 90%)
 
         orderItems.push({
           seller_id:          sellerId,
@@ -445,9 +445,9 @@ export const STRIPE_APPEARANCE = {
 // ═══════════════════════════════════════════════════════════════════
 
 export const COMMERCE_CONFIG = {
-  PLATFORM_FEE_RATE:   0.10,   // 10% HUI Plattformgebühr
-  IMPACT_RATE:         0.07,   // 7%  Impact Pool (aus Plattformgebühr)
-  CREATOR_PAYOUT_RATE: 0.90,   // 90% an Creator
+  PLATFORM_FEE_RATE:   0.15,   // COM-MIGRATION-015.3: 15% HUI Plattformgebühr (vorher 10%)
+  IMPACT_RATE:         0.0225, // COM-MIGRATION-015.3: 2.25% Impact Pool = 15% der Gebühr (vorher 7%)
+  CREATOR_PAYOUT_RATE: 0.85,   // COM-MIGRATION-015.3: 85% an Creator (vorher 90%)
   CURRENCY:            "eur",
   PAYOUT_DELAY_DAYS:   14,     // Auszahlungsfrist nach Lieferung
   SUPPORTED_COUNTRIES: ["DE", "AT", "CH", "FR", "NL", "BE", "PL", "IT", "ES"],
