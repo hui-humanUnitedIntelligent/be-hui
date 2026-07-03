@@ -837,6 +837,10 @@ export default function NotificationCenter({ onClose, onNavigate }) {
       try {
         const weekAgo = new Date(Date.now() - 7*24*60*60*1000).toISOString();
         const { data } = await supabase
+          // Legacy-Hinweis: Diese Stelle liest aus der alten Tabelle 'payments'.
+          // Die Tabelle wurde nie befuellt und hat kein SSOT-Mapping (SYS-LegacyMark-024).
+          // UI zeigt korrekt leer/0 an. Kein Ersatz vorhanden.
+
           .from("payments").select("impact_eur").gte("created_at", weekAgo);
         const total = (data||[]).reduce((s,r) => s+(r.impact_eur||0), 0);
         if (total > 0) setWeeklyEur(total);
