@@ -29,13 +29,13 @@ export function useAmbassadorPayout(ambassadorId) {
     }
   }, [ambassadorId]);
 
-  // Auszahlungsanfrage stellen
-  const requestPayout = useCallback(async () => {
+  // Auszahlungsanfrage stellen (AMB-PAYOUT-016: amountEur optional -- weggelassen = kompletter verfuegbarer Betrag)
+  const requestPayout = useCallback(async (amountEur = null) => {
     if (!ambassadorId) return { ok: false, error: 'no_ambassador_id' };
     setRequesting(true);
     try {
       const { data, error: e } = await supabase
-        .rpc('rpc_request_payout', { p_ambassador_id: ambassadorId });
+        .rpc('rpc_request_payout', { p_ambassador_id: ambassadorId, p_amount_eur: amountEur });
       if (e) throw e;
       await refresh();
       return data;
