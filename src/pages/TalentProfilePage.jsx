@@ -17,6 +17,7 @@ import { supabase } from "../lib/supabaseClient.js";
 import { useAuth }  from "../lib/AuthContext.jsx";
 import { notifyWatcher } from "../lib/notificationService.js";
 import { useHome }       from "../components/home/HomeShell.jsx";
+import { NAV_CLEARANCE_CSS } from "../components/home/navigation/navigationGeometry.js";
 import SettingsModal  from "../components/settings/SettingsModal.jsx";
 import HuiStudio      from "../components/studio/HuiStudio.jsx";
 // Sprint D: Datenlayer
@@ -1219,7 +1220,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
       {/* ── Scrollable Content ───────────────────────────────── */}
       <div className="tpp-scroll" style={{
         flex:1, overflowY:"auto", touchAction:"pan-y",
-        paddingBottom:"max(40px,calc(28px + env(safe-area-inset-bottom,0px)))",
+        paddingBottom: NAV_CLEARANCE_CSS,
       }}>
 
         {/* ── 1. ProfileHeader (Sprint B) ───────────────────── */}

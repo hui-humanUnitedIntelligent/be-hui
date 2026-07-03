@@ -18,6 +18,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useProfileData } from "../hooks/useProfileData.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
 import { useHome }   from "../components/home/HomeShell.jsx";
+import { NAV_CLEARANCE_CSS } from "../components/home/navigation/navigationGeometry.js";
 import SettingsModal  from "../components/settings/SettingsModal.jsx";
 import HuiStudio      from "../components/studio/HuiStudio.jsx";
 import { supabase }   from "../lib/supabaseClient.js";
@@ -465,7 +466,7 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
 
       {/* Scrollable body */}
       <div className="bpp-scroll" style={{ flex:1, overflowY:"auto",
-        paddingBottom:"max(40px,calc(28px + env(safe-area-inset-bottom,0px)))" }}>
+        paddingBottom: NAV_CLEARANCE_CSS }}>
 
         {/* 1. Kanonischer ProfileHeader (Sprint F.9D) */}
         <CanonicalProfileHeader
