@@ -127,6 +127,10 @@ async function loadTimeline(userId) {
   // 2. Payments (Direkt-Unterstützung — ohne Buchungen)
   try {
     const { data: payments } = await supabase
+      // Legacy-Hinweis: Diese Stelle liest aus der alten Tabelle 'payments'.
+      // Die Tabelle wurde nie befuellt und hat kein SSOT-Mapping (SYS-LegacyMark-024).
+      // UI zeigt korrekt leer/0 an. Kein Ersatz vorhanden.
+
       .from("payments")
       .select("id, item_name, item_type, amount_eur, status, state, created_at, booking_id")
       .eq("payer_id", userId)
