@@ -13,7 +13,9 @@
     "architecture:audit": "node --experimental-vm-modules src/architecture/scanner/cli.js --mode=audit",
     "architecture:report": "node --experimental-vm-modules src/architecture/scanner/cli.js --mode=report",
     "architecture:graph": "node --experimental-vm-modules src/architecture/scanner/cli.js --mode=graph",
-    "architecture:all": "node --experimental-vm-modules src/architecture/scanner/cli.js --mode=all"
+    "architecture:all": "node --experimental-vm-modules src/architecture/scanner/cli.js --mode=all",
+    "release-guardian": "node src/guardian/cli.js",
+    "release-guardian:report": "node src/guardian/cli.js --format=md"
   },
   "dependencies": {
     "@base44/sdk": "^0.8.32",

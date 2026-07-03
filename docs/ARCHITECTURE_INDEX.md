@@ -110,6 +110,28 @@
 
 ---
 
+## Release Guardian (GUARD-001)
+
+> *Letzte Instanz vor jedem Merge und jedem Release.*  
+> *Kein Feature gilt als VERIFIZIERT, solange der Guardian den Status nicht bestätigt.*
+
+| Datei | Zweck |
+|---|---|
+| [`src/guardian/index.js`](../src/guardian/index.js) | Orchestrator — führt alle Checks aus |
+| [`src/guardian/cli.js`](../src/guardian/cli.js) | CLI-Einstiegspunkt |
+| [`src/guardian/context.js`](../src/guardian/context.js) | Git-/CI-Kontext sammeln |
+| [`src/guardian/report.js`](../src/guardian/report.js) | Strukturierter Report (Text, Markdown, JSON) |
+| [`src/guardian/checks/`](../src/guardian/checks/) | Prüfmodule: Git, Build, Deployment, Repository, Runtime |
+| [`.github/workflows/release-guardian.yml`](../.github/workflows/release-guardian.yml) | CI-Workflow für Pull Requests |
+
+**npm scripts:**
+- `npm run release-guardian` — Guardian ausführen, Text-Report
+- `npm run release-guardian:report` — Markdown-Report nach `docs/generated/`
+
+**Grundlage:** [`HUI_CONSTITUTION.md`](../HUI_CONSTITUTION.md)
+
+---
+
 ## Dokumentation
 
 | Dokument | Beschreibung |
