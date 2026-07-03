@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { LEVEL_CONFIG } from "../../lib/ambassadorUtils.js";
 import { useReferrals } from "../../hooks/useAmbassador.js";
+import AmbassadorPayoutPanel from "./AmbassadorPayoutPanel.jsx";
 
 const T = {
   teal:    "#0EC4B8",
@@ -501,6 +502,11 @@ export default function AmbassadorSection({ ambassadorData, userId }) {
                 </button>
               )}
             </div>
+          </div>
+
+          {/* Auszahlung (AMB-PAYOUT-009) -- nur fuer bestaetigte Ambassadors relevant */}
+          <div style={{ marginTop: 14, paddingTop: 14, borderTop: "1px solid rgba(26,26,24,0.08)" }}>
+            <AmbassadorPayoutPanel ambassadorId={userId} />
           </div>
         </div>
       </div>
