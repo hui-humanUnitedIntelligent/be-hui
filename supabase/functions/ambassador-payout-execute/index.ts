@@ -34,11 +34,14 @@ serve(async (req) => {
     const bearerToken = authHeader?.replace('Bearer ', '') ?? ''
     let adminUserId: string
 
-    // AMB-PAYOUT-016: konsolidiert -- das Admin-Dashboard (hui-admin-dashboard, Cookie-Auth,
-    // kein Supabase-User-JWT verfuegbar) ruft diese Funktion jetzt statt einer eigenen, doppelten
-    // Stripe-Transfer-Implementierung direkt auf. Service-Role-Key + explizites admin_id im Body
-    // = vertrauenswuerdiger Server-zu-Server-Call, weil das Dashboard den Admin bereits selbst
-    // per eigener Cookie-Session verifiziert hat (guardEmployee/getAuthUser), bevor es hierher ruft.
+    // AMB-PAYOUT-016: alternativer Auth-Pfad fuer Server-zu-Server-Aufrufe (z.B. vom
+    // Admin-Dashboard) vorbereitet, AKTUELL ABER NICHT GENUTZT: hui-admin-dashboard ruft diese
+    // Funktion bewusst noch NICHT auf (siehe api/stripe/route.ts-Kommentar) -- ein Live-Test zeigte,
+    // dass Supabase Edge Functions inzwischen den neuen sb_secret_-Schluessel als
+    // SUPABASE_SERVICE_ROLE_KEY injizieren, waehrend nicht verifizierbar war, ob Vercel fuer das
+    // Admin-Repo exakt denselben Wert unter demselben Namen haelt. Dieser Pfad bleibt hier
+    // funktionsfaehig verfuegbar, sobald Michael das bestaetigt oder ein dediziertes Shared Secret
+    // einrichtet -- bis dahin nutzt das Dashboard seine eigene, bewiesen funktionierende Stripe-Route.
     if (bearerToken === Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')) {
       const body = await req.json().catch(() => ({}))
       if (!body.admin_id) {
