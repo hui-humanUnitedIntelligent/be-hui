@@ -1561,12 +1561,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
           if (!cancelled) setErlebnisse([]);
         }
 
-        // Projekte (aus HUI Impact)
-        const { data: imp } = await supabase
-          .from("impact_pool")
-          .select("id,month")
-          .limit(6);
-        // Falls keine Daten → SEED wird weiter unten verwendet
+        // SYS-REFACTOR-023: totes impact_pool-Query entfernt (Ergebnis 'imp' wurde nie gelesen, keine Verhaltensaenderung)
 
         // Stats berechnen
         const [
