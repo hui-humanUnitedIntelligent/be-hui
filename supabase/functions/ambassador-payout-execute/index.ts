@@ -31,24 +31,48 @@ serve(async (req) => {
 
   try {
     const authHeader = req.headers.get('Authorization')
-    const { data: { user }, error: authErr } = await supabase.auth.getUser(
-      authHeader?.replace('Bearer ', '') ?? ''
-    )
-    if (authErr || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
-    }
+    const bearerToken = authHeader?.replace('Bearer ', '') ?? ''
+    let adminUserId: string
 
-    const { data: adminProfile } = await supabase
-      .from('profiles').select('role').eq('id', user.id).single()
-    if (!adminProfile || !['superadmin', 'admin', 'employee'].includes(adminProfile.role)) {
-      return new Response(JSON.stringify({ error: 'admin_only' }), {
-        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
+    // AMB-PAYOUT-016: konsolidiert -- das Admin-Dashboard (hui-admin-dashboard, Cookie-Auth,
+    // kein Supabase-User-JWT verfuegbar) ruft diese Funktion jetzt statt einer eigenen, doppelten
+    // Stripe-Transfer-Implementierung direkt auf. Service-Role-Key + explizites admin_id im Body
+    // = vertrauenswuerdiger Server-zu-Server-Call, weil das Dashboard den Admin bereits selbst
+    // per eigener Cookie-Session verifiziert hat (guardEmployee/getAuthUser), bevor es hierher ruft.
+    if (bearerToken === Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')) {
+      const body = await req.json().catch(() => ({}))
+      if (!body.admin_id) {
+        return new Response(JSON.stringify({ error: 'admin_id_required_for_service_role_call' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
+      const { data: adminProfile } = await supabase
+        .from('profiles').select('role').eq('id', body.admin_id).single()
+      if (!adminProfile || !['superadmin', 'admin', 'employee'].includes(adminProfile.role)) {
+        return new Response(JSON.stringify({ error: 'admin_only' }), {
+          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
+      adminUserId = body.admin_id
+      // Body wurde bereits konsumiert -- weiter unten direkt nutzen
+      var payout_id = body.payout_id
+    } else {
+      const { data: { user }, error: authErr } = await supabase.auth.getUser(bearerToken)
+      if (authErr || !user) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
+      const { data: adminProfile } = await supabase
+        .from('profiles').select('role').eq('id', user.id).single()
+      if (!adminProfile || !['superadmin', 'admin', 'employee'].includes(adminProfile.role)) {
+        return new Response(JSON.stringify({ error: 'admin_only' }), {
+          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
+      adminUserId = user.id
+      var payout_id = (await req.json()).payout_id
     }
-
-    const { payout_id } = await req.json()
     if (!payout_id) {
       return new Response(JSON.stringify({ error: 'payout_id_required' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -71,6 +95,20 @@ serve(async (req) => {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
+
+    // AMB-PAYOUT-016: Metadaten fuer Stripe-Transfer -- Anzahl + Zeitraum der zugeordneten Provisionen
+    const { data: linkedCommissions } = await supabase
+      .from('stripe_ambassador_commissions')
+      .select('created_at')
+      .eq('payout_id', payout_id)
+      .order('created_at', { ascending: true })
+
+    const commissionCount = linkedCommissions?.length ?? 0
+    const periodStart = linkedCommissions?.[0]?.created_at ?? null
+    const periodEnd   = linkedCommissions?.[commissionCount - 1]?.created_at ?? null
+    const commissionPeriod = periodStart && periodEnd
+      ? `${periodStart.slice(0, 10)} bis ${periodEnd.slice(0, 10)}`
+      : 'unbekannt'
 
     const { data: ambProfile } = await supabase
       .from('profiles').select('stripe_account_id, stripe_connect_status')
@@ -95,7 +133,10 @@ serve(async (req) => {
         amount: payout.amount, // bereits in Cent gespeichert
         currency: payout.currency || 'eur',
         destination: ambProfile.stripe_account_id,
-        metadata: { payout_id, ambassador_id: payout.ambassador_id, source: 'hui_ambassador_payout' },
+        metadata: {
+          payout_id, ambassador_id: payout.ambassador_id, source: 'hui_ambassador_payout',
+          total_commissions: String(commissionCount), commission_period: commissionPeriod,
+        },
       })
 
       await supabase.from('stripe_payouts').update({
@@ -105,6 +146,13 @@ serve(async (req) => {
       }).eq('id', payout_id)
 
       await supabase.rpc('rpc_mark_commissions_paid', { p_payout_id: payout_id })
+
+      // edb_events-Mapping: notification_events (siehe rpc_request_payout, AMB-PAYOUT-016)
+      await supabase.from('notification_events').insert({
+        table_name: 'stripe_payouts', record_id: payout_id, action: 'payout_paid',
+        old_status: 'approved', new_status: 'paid', admin_id: adminUserId,
+        reason: `Stripe-Transfer ${transfer.id}, ${commissionCount} Provisionen, ${commissionPeriod}`,
+      })
 
       // Ambassador Connect-Status auf 'connected' festigen (falls noch nicht geschehen)
       if (ambProfile.stripe_connect_status !== 'connected') {
@@ -121,6 +169,11 @@ serve(async (req) => {
       await supabase.rpc('rpc_fail_payout', {
         p_payout_id: payout_id,
         p_reason: stripeErr?.message?.slice(0, 500) || 'stripe_transfer_failed',
+      })
+      await supabase.from('notification_events').insert({
+        table_name: 'stripe_payouts', record_id: payout_id, action: 'payout_error',
+        old_status: 'approved', new_status: 'failed', admin_id: adminUserId,
+        reason: stripeErr?.message?.slice(0, 500) || 'stripe_transfer_failed',
       })
       return new Response(JSON.stringify({ ok: false, error: stripeErr?.message }), {
         status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
