@@ -9,6 +9,7 @@
 | Dokument | Rolle |
 |---|---|
 | [`HUI_CONSTITUTION.md`](HUI_CONSTITUTION.md) | **Die Verfassung** — Goldene Regeln, Grundpfeiler, Designprinzipien |
+| [`HUI_ENGINEERING_CONSTITUTION.md`](HUI_ENGINEERING_CONSTITUTION.md) | **Engineering-Standard** — Truth over Assumption, Definition von Done, Release Guardian |
 | [`src/registry/HuiRegistry.js`](src/registry/HuiRegistry.js) | **Single Source of Meaning** — Sprache, Texte, Semantik |
 | [`src/core/coreEngine.js`](src/core/coreEngine.js) | **Single Source of Truth** — Wirkungsdaten |
 | [`docs/ARCHITECTURE_INDEX.md`](docs/ARCHITECTURE_INDEX.md) | **Architecture Index** — alle Module verlinkt |

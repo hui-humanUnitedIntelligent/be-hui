@@ -12,6 +12,7 @@
 | Dokument | Beschreibung |
 |---|---|
 | [`HUI_CONSTITUTION.md`](../HUI_CONSTITUTION.md) | **Die Verfassung.** Mission, Grundpfeiler, Goldene Regeln, Architekturprinzipien — unveränderlich |
+| [`HUI_ENGINEERING_CONSTITUTION.md`](../HUI_ENGINEERING_CONSTITUTION.md) | **Engineering-Standard.** Truth over Assumption, Definition von Done, Release Guardian — verbindlich für alle Entwicklung |
 | [`src/registry/HuiRegistry.js`](../src/registry/HuiRegistry.js) | **Single Source of Meaning.** Sprache, Texte, Farben, Orb-Traits für alle Module |
 | [`src/core/hui.pillars.js`](../src/core/hui.pillars.js) | Re-Export der Registry (Rückwärtskompatibilität) |
 
@@ -115,6 +116,7 @@
 | Dokument | Beschreibung |
 |---|---|
 | [`HUI_CONSTITUTION.md`](../HUI_CONSTITUTION.md) | **Die Verfassung** |
+| [`HUI_ENGINEERING_CONSTITUTION.md`](../HUI_ENGINEERING_CONSTITUTION.md) | **Engineering-Standard** — Verifikation vor Abschluss |
 | [`docs/HUI_ORB.md`](HUI_ORB.md) | **Orb-Philosophie** — Sonne, Blatt, Weg, Architektur |
 | [`CODEBASE.md`](../CODEBASE.md) | Codebase-Übersicht |
 | [`docs/HUI_ACTION_CONTRACTS.md`](HUI_ACTION_CONTRACTS.md) | Action Contract Map |
