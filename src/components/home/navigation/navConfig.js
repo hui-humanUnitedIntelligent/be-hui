@@ -13,7 +13,7 @@
 //   discover → switchTab("discover")       — DiscoverPage, schließt Overlays
 //   orb      → onOrbAction("create")       — OrbCompass Overlay, kein Tab-Switch
 //   impact   → _setTab("impact")           — ImpactPage, schließt Overlays NICHT
-//   creator  → openCreatorDashboard()      — ProfileLauncher Overlay, Tab=creator
+//   creator  → switchTab("creator")        — MyBasisProfile im Home-Scroll, Tab=creator
 //
 // HINWEIS: "creator" ist der interne State-Key für den "Profil"-Tab.
 // HINWEIS: hui_mein_hui_open (sessionStorage) = Legacy-Key, zeigt creator-Overlay-State.
@@ -30,10 +30,10 @@ export const NAV_ITEMS = filterValidPages([
 ]);
 
 // Tabs die im Keep-Alive Modus bleiben
-export const KEEP_ALIVE_TABS = ["feed", "discover", "impact"];
+export const KEEP_ALIVE_TABS = ["feed", "discover", "impact", "creator"];
 
 // Tabs die echte Seiten sind
-export const PAGE_TABS = ["feed", "discover", "impact"];
+export const PAGE_TABS = ["feed", "discover", "impact", "creator"];
 
 // Overlay-Tabs (öffnen eigene Systeme, kein Tab-Switch)
-export const OVERLAY_TABS = ["creator"];
+export const OVERLAY_TABS = [];

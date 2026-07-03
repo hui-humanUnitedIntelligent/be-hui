@@ -11,7 +11,6 @@ import {
   FB_AVATAR,
   handleAvatarUpload, handleCoverUpload,
 } from "../lib/profileMedia.js";
-import { NAV_RESERVED_HEIGHT_CSS } from "../components/home/navigation/navigationGeometry.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
 import { useHome }   from "../components/home/HomeShell.jsx";
 import GemeinschaftsFlow from "../components/GemeinschaftsFlow.jsx";
@@ -50,7 +49,7 @@ const T = {
   inkFaint: "rgba(26,26,24,0.28)",
   border:   "rgba(26,26,24,0.08)",
   borderMid:"rgba(26,26,24,0.14)",
-  px:       20,
+  px:       16,
   r12:12, r16:16, r20:20, r24:24, r99:99,
   card:     "0 1px 8px rgba(26,26,24,0.07), 0 1px 2px rgba(26,26,24,0.04)",
   glowTeal: "0 4px 18px rgba(14,196,184,0.26)",
@@ -60,8 +59,7 @@ const T = {
 // ── CSS ──────────────────────────────────────────────────────────
 const CSS = `
   .mbp-root { background:#F9F7F4; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif; color:${T.ink}; }
-  .mbp-scroll { overflow-y:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
-  .mbp-scroll::-webkit-scrollbar { display:none; }
+  .mbp-scroll { /* Scroll übernimmt Home.jsx mainScrollRef */ }
   .mbp-hscroll { overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
   .mbp-hscroll::-webkit-scrollbar { display:none; }
 
@@ -632,13 +630,13 @@ export default function MyBasisProfile({ onClose, profileId }) {
   }, []);
 
 
-  // Sofort sichtbarer Spinner während Profil lädt — kein weißer Screen
+  // Inline-Ladezustand — gleicher Rhythmus wie Discover/Impact im Home-Scroll
   if (hookLoading) {
     return (
       <div style={{
-        position:"fixed", inset:0, zIndex:9500,
-        background:T.bg,
-        display:"flex", alignItems:"center", justifyContent:"center",
+        width:"100%", background:T.bg,
+        padding:"40px 20px", display:"flex",
+        alignItems:"center", justifyContent:"center",
       }}>
         <div style={{
           width:36, height:36, borderRadius:"50%",
@@ -653,8 +651,10 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
   return (
     <div className="mbp-root" style={{
-      position:"fixed", inset:0, zIndex:9500,
-      display:"flex", flexDirection:"column",
+      width:"100%", background:T.bg,
+      fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif",
+      color:T.ink,
+      overscrollBehavior:"none",
     }}>
 
       
@@ -690,25 +690,22 @@ export default function MyBasisProfile({ onClose, profileId }) {
         </div>
       )}
 
-      <div className="mbp-scroll" style={{ flex:1, overflowY:"auto",
-        // War: hartkodierte Naeherung ("max(80px, 64px+safeBottom)"), leicht
-        // abweichend von der ECHTEN Nav-Reservierung. Jetzt: dieselbe geteilte
-        // Konstante wie Feed/Discover/Impact (NAV_RESERVED_HEIGHT_CSS) -- der
-        // untere weisse Freiraum oberhalb der Bottom Navigation ist dadurch
-        // pixelgenau identisch zu den anderen Hauptseiten.
-        paddingBottom: NAV_RESERVED_HEIGHT_CSS }}>
+      <div className="mbp-scroll">
 
-        {/* ── SEITEN-TITEL ─────────────────────────────────────── */}
-        <div style={{
-          padding:`max(52px,calc(48px + env(safe-area-inset-top,0px))) ${T.px}px 0`,
+        {/* ── SEITEN-TITEL — gleicher Einstieg wie Discover/Impact ── */}
+        <div className="mbp-in" style={{
+          padding:`12px ${T.px}px 8px`,
+          background:T.bg,
           display:"flex", justifyContent:"space-between", alignItems:"flex-start",
         }}>
           <div>
-            <div style={{ fontSize:24, fontWeight:900, color:T.ink, letterSpacing:"-0.04em",
-              lineHeight:1.15 }}>
-              {profile?.is_talent ? "Mein Talent-Profil ✨" : "Mein Profil 🌿"}
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <span style={{ fontSize:22, fontWeight:900, color:T.ink, letterSpacing:"-0.04em" }}>
+                {profile?.is_talent ? "Mein Talent-Profil" : "Mein Profil"}
+              </span>
+              <span style={{ fontSize:18 }}>{profile?.is_talent ? "✨" : "🌿"}</span>
             </div>
-            <div style={{ fontSize:12, color:T.inkFaint, marginTop:2, fontWeight:400 }}>
+            <div style={{ fontSize:12.5, color:T.inkFaint, marginTop:2, fontWeight:400 }}>
               {profile?.is_talent
                 ? "Gestalte dein Talent-Profil, wie es dich und dein Wirken zeigt."
                 : "Gestalte dein Profil so, wie du bist."}
@@ -754,7 +751,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
             >⚙️</button>
           </div>
         </div>
-        <Gap h={12}/>
 
         {/* ── HEADER — Cover + Avatar + Name ───────────────── */}
         <CanonicalProfileHeader
@@ -773,7 +769,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
         {(profile?.id ?? user?.id) && (
           <OrbSignatur profileId={profile?.id ?? user?.id} />
         )}
-        <Gap h={28}/>
+        <Gap h={24}/>
 
         {/* ── MEINE RESONANZ SCHNELLZUGRIFF ─────────────────────── */}
         <div style={{ padding:`0 ${T.px}px` }}>
@@ -801,7 +797,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
             <span style={{ color:T.inkFaint, fontSize:17 }}>›</span>
           </button>
         </div>
-        <Gap h={20}/>
+        <Gap h={24}/>
 
         {/* ══ TALENT-PROFIL-LAYOUT (is_talent === true) ══════════ */}
         {profile?.is_talent ? (
@@ -868,7 +864,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
               isOwner={true}
               onSave={handleVisibilitySave}
             />
-            <Gap h={40}/>
+            <Gap h={24}/>
           </>
         ) : (
           <>
@@ -903,7 +899,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
               isOwner={true}
               onSave={handleVisibilitySave}
             />
-            <Gap h={28}/>
+            <Gap h={24}/>
 
             {/* B6. Ambassador-Banner */}
             <AmbassadorBanner
@@ -911,7 +907,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
               ambState={ambState}
               onApply={() => setShowAmbModal(true)}
             />
-            <Gap h={40}/>
           </>
         )}
       </div>

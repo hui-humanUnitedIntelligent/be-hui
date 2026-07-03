@@ -37,6 +37,7 @@ import ExperienceBookingFlow  from "../components/commerce/ExperienceBookingFlow
 import DiscoverPage  from "./DiscoverPage.jsx";
 import AmbientWorldBar from "../components/home/AmbientWorldBar.jsx";
 import ImpactPage    from "./ImpactPage.jsx";
+import MyBasisProfile from "./MyBasisProfile.jsx";
 // PHASE 18: FavoritesPage direkte import (Safari-safe)
 import FavoritesPage from "./FavoritesPage.jsx";
 // ── Orb-Flows: lazy → nur bei Tap auf Orb-Node geladen ─────────
@@ -92,6 +93,7 @@ function HomeInner() {
     discover:  React.useRef(null),
     impact:    React.useRef(null),
     favorites: React.useRef(null),
+    creator:   React.useRef(null),
   };
   const scrollContainerRef = React.useRef(null);
 
@@ -132,7 +134,7 @@ function HomeInner() {
     handleTab,
     openOwnProfile,
     mainScrollRef,
-    keepFeed, keepDiscover,           keepImpact, keepFavorites,
+    keepFeed, keepDiscover, keepImpact, keepFavorites, keepCreator,
     activeMood,    setActiveMood,
     liveNotifCount,
     isTalent, isBaseUser, canCreate,
@@ -434,6 +436,12 @@ function HomeInner() {
                 <ImpactPage currentUser={currentUser}/>
               </SafeRender>
             </Suspense>
+          </div>
+
+          <div ref={tabRefs.creator} style={keepCreator}>
+            <SafeRender flag="creatorProfile" label="MyBasisProfile">
+              <MyBasisProfile />
+            </SafeRender>
           </div>
 
           <div ref={tabRefs.favorites} style={keepFavorites}>
