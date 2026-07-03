@@ -2,7 +2,7 @@
 // HUI — Ambassador Auszahlungs-Panel (für Studio & Profil)
 // ARCH-006.1: Alle Daten via RPC, kein Shadow State
 // AMB-PAYOUT-009: Genehmigt/Abgelehnt-Status + Stripe-Connect-Onboarding ergänzt
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAmbassadorPayout } from '../../hooks/useAmbassadorPayout';
 
 function eur(val) { return `€${((val ?? 0)).toFixed(2)}`; }
@@ -39,9 +39,18 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [result,      setResult]      = useState(null);
+  const [amountInput, setAmountInput] = useState('');
+
+  // AMB-PAYOUT-016: Betrag vorbelegen mit dem vollen verfuegbaren Betrag, sobald geladen
+  useEffect(() => {
+    if (availableEur > 0 && !amountInput) setAmountInput(availableEur.toFixed(2));
+  }, [availableEur]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const amountNum = parseFloat(amountInput.replace(',', '.')) || 0;
+  const amountValid = amountNum > 0 && amountNum <= availableEur && amountNum >= minimumEur;
 
   const handleRequest = async () => {
-    const res = await requestPayout();
+    const res = await requestPayout(amountNum);
     setResult(res);
     setConfirmOpen(false);
   };
@@ -102,17 +111,44 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
         <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 8 }}>Auszahlung anfordern</div>
         {canRequest ? (
           <>
+            {/* AMB-PAYOUT-016: freier Betrag, max. = auszahlbarer Betrag */}
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 12, color: '#aaa' }}>Betrag:</span>
+              <div style={{ position: 'relative' }}>
+                <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#888', fontSize: 13 }}>€</span>
+                <input
+                  type="number" step="0.01" min={minimumEur} max={availableEur}
+                  value={amountInput}
+                  onChange={e => setAmountInput(e.target.value)}
+                  style={{
+                    padding: '7px 10px 7px 22px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)',
+                    background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: 13, width: 110,
+                  }}
+                />
+              </div>
+              <button onClick={() => setAmountInput(availableEur.toFixed(2))} style={{
+                padding: '6px 10px', borderRadius: 6, background: 'transparent',
+                border: '1px solid rgba(255,255,255,0.15)', color: '#aaa', fontSize: 11, cursor: 'pointer',
+              }}>Max ({fmtAvailable})</button>
+            </div>
+            {!amountValid && amountInput && (
+              <div style={{ fontSize: 11, color: '#ff8787', marginBottom: 8 }}>
+                {amountNum > availableEur
+                  ? `Maximal ${fmtAvailable} verfügbar`
+                  : `Mindestbetrag €${minimumEur}`}
+              </div>
+            )}
             {!confirmOpen ? (
-              <button onClick={() => setConfirmOpen(true)} style={{
+              <button onClick={() => setConfirmOpen(true)} disabled={!amountValid} style={{
                 padding: '8px 18px', borderRadius: 8,
-                background: '#51cf66', border: 'none', color: '#000',
-                fontWeight: 700, fontSize: 13, cursor: 'pointer',
+                background: amountValid ? '#51cf66' : '#3a3a3a', border: 'none', color: amountValid ? '#000' : '#777',
+                fontWeight: 700, fontSize: 13, cursor: amountValid ? 'pointer' : 'not-allowed',
               }}>
-                {fmtAvailable} auszahlen →
+                {eur(amountNum)} auszahlen →
               </button>
             ) : (
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: 12, color: '#ccc' }}>Sicher? {fmtAvailable} werden beantragt.</span>
+                <span style={{ fontSize: 12, color: '#ccc' }}>Sicher? {eur(amountNum)} werden beantragt.</span>
                 <button onClick={handleRequest} disabled={requesting} style={{
                   padding: '6px 14px', borderRadius: 6, background: '#51cf66',
                   border: 'none', color: '#000', fontWeight: 700, fontSize: 12, cursor: 'pointer',
