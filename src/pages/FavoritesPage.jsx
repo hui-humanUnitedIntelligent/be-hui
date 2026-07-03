@@ -688,6 +688,10 @@ export default function FavoritesPage({ currentUser, onView, onImpact, onDiscove
         }
 
         const { data: payments } = await supabase
+          // Legacy-Hinweis: Diese Stelle liest aus der alten Tabelle 'payments'.
+          // Die Tabelle wurde nie befuellt und hat kein SSOT-Mapping (SYS-LegacyMark-024).
+          // UI zeigt korrekt leer/0 an. Kein Ersatz vorhanden.
+
           .from("payments")
           .select("impact_eur")
           .eq("user_id", currentUser.id);
