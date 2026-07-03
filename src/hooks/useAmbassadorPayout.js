@@ -1,5 +1,5 @@
 // src/hooks/useAmbassadorPayout.js
-// HUI — Ambassador Auszahlungs-Status (ARCH-006.1)
+// HUI — Ambassador Auszahlungs-Status (ARCH-006.1 / AMB-PAYOUT-009)
 // Keine lokale Berechnung. Single Source of Truth: Supabase via RPC.
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
@@ -9,13 +9,16 @@ export function useAmbassadorPayout(ambassadorId) {
   const [loading, setLoading]   = useState(true);
   const [error,   setError]     = useState(null);
   const [requesting, setRequesting] = useState(false);
+  const [connecting, setConnecting] = useState(false);
 
   const refresh = useCallback(async () => {
     if (!ambassadorId) return;
     setLoading(true);
     try {
+      // AMB-PAYOUT-009: erweiterte RPC (Lifetime-Verdienst, Referrals, Stripe-Connect-Status).
+      // Ersetzt rpc_get_ambassador_payout_summary additiv -- gleiche Basisfelder, mehr Daten.
       const { data, error: e } = await supabase
-        .rpc('rpc_get_ambassador_payout_summary', { p_ambassador_id: ambassadorId });
+        .rpc('rpc_get_ambassador_full_stats', { p_ambassador_id: ambassadorId });
       if (e) throw e;
       setSummary(data);
     } catch (err) {
@@ -43,9 +46,34 @@ export function useAmbassadorPayout(ambassadorId) {
     }
   }, [ambassadorId, refresh]);
 
+  // Stripe-Connect-Onboarding starten (Express-Account + Hosted Onboarding Link)
+  const startStripeConnect = useCallback(async () => {
+    if (!ambassadorId) return { ok: false, error: 'no_ambassador_id' };
+    setConnecting(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ambassador-stripe-connect`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ ambassador_id: ambassadorId }),
+        }
+      );
+      const data = await res.json();
+      if (data?.url) window.location.href = data.url;
+      return data;
+    } catch (err) {
+      return { ok: false, error: err?.message ?? 'Fehler' };
+    } finally {
+      setConnecting(false);
+    }
+  }, [ambassadorId]);
+
   useEffect(() => {
     refresh();
-    // Realtime: Auszahlungsstatus-Updates
+    // Realtime: Auszahlungsstatus-Updates (Publication + RLS seit AMB-PAYOUT-009 aktiv)
     if (!ambassadorId) return;
     const sub = supabase
       .channel(`payout_${ambassadorId}`)
@@ -68,16 +96,28 @@ export function useAmbassadorPayout(ambassadorId) {
     loading,
     error,
     requesting,
+    connecting,
     refresh,
     requestPayout,
-    // Bequeme Getter
+    startStripeConnect,
+    // Bequeme Getter (kompatibel zur bisherigen Panel-Komponente)
     availableEur:  summary?.available_eur  ?? 0,
     requestedEur:  summary?.requested_eur  ?? 0,
-    paidEur:       summary?.paid_eur       ?? 0,
+    paidEur:       summary?.paid_eur ?? summary?.paid_out_eur ?? 0,
     minimumEur:    summary?.minimum_eur    ?? 20,
     canRequest:    summary?.can_request    ?? false,
-    payouts:       summary?.payouts        ?? [],
+    payouts:       summary?.payout_history ?? summary?.payouts ?? [],
     fmtAvailable:  fmt(summary?.available_eur),
-    fmtPaid:       fmt(summary?.paid_eur),
+    fmtPaid:       fmt(summary?.paid_eur ?? summary?.paid_out_eur),
+    // Neue Felder (AMB-PAYOUT-009)
+    lifetimeEarningsEur: summary?.lifetime_earnings_eur ?? 0,
+    referralCount:       summary?.referral_count ?? 0,
+    activeReferrals:     summary?.active_referrals ?? 0,
+    isDormant:           summary?.is_dormant ?? false,
+    referralRevenueEur:  summary?.referral_revenue_eur ?? 0,
+    tier:                summary?.tier ?? 'bronze',
+    ambassadorStatus:    summary?.ambassador_status ?? null,
+    stripeConnectStatus: summary?.stripe_connect_status ?? 'not_connected',
+    isStripeConnected:   summary?.stripe_connect_status === 'connected',
   };
 }
