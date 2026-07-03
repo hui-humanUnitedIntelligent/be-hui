@@ -6,6 +6,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { isProfileTalent } from '../../lib/profileUtils.js';
+import AmbassadorPayoutPanel from "../ambassador/AmbassadorPayoutPanel.jsx";
 import { createPortal } from "react-dom";
 import { useHome } from "../home/HomeShell.jsx";
 import { ProfileService } from '../../services/db';
@@ -319,15 +320,22 @@ function AmbassadorStudioSection({ profile }) {
         // 3. Level live aus Anzahl geworbener Nutzer
         const computedLevel = calcLevel(users.length);
 
-        // 4. Earnings aus profile_modules (revenue_generated)
-        const earnedFromModule = Number(ambModule.revenue_generated || 0);
+        // 4. BUGFIX AMB-PAYOUT-009b: Earnings LIVE aus stripe_ambassador_commissions (SSOT),
+        //    NICHT aus profile_modules.ambassador.revenue_generated (stale JSON, wird nie synchronisiert).
+        let liveEarnings = 0;
+        try {
+          const { data: fullStats } = await supabase.rpc("rpc_get_ambassador_full_stats", { p_ambassador_id: uid });
+          liveEarnings = Number(fullStats?.lifetime_earnings_eur) || 0;
+        } catch (e) {
+          console.warn("rpc_get_ambassador_full_stats fehlgeschlagen, Fallback 0:", e);
+        }
 
         setAmbData({
           level:    computedLevel,
           ref_link: refLink,
         });
         setAllUsers(users);
-        setEarnings(earnedFromModule);
+        setEarnings(liveEarnings);
         setActiveList(activeUsers);
         setSleepingList(sleepingUsers);
       } catch(e) {
@@ -512,9 +520,17 @@ function AmbassadorStudioSection({ profile }) {
           </div>
         </div>
         <div style={{ marginLeft:"auto", fontSize:11, color:T.inkFaint, textAlign:"right" }}>
-          <div>{provisionRate(level)*100}% Provision</div>
+          {/* BUGFIX AMB-PAYOUT-009b: provisionRate(level) war eine erfundene, tier-basierte 1-4%-Anzeige,
+              die nie zur echten Backend-Logik passte. Reale Provision ist fix 5% je Erstkauf (siehe
+              rpc_record_ambassador_commission / Stripe-Webhook-Verteilung, dokumentierte Architektur). */}
+          <div>5% Provision</div>
           <div style={{ marginTop:2 }}>pro Erstkauf</div>
         </div>
+      </div>
+
+      {/* Auszahlung (AMB-PAYOUT-009) */}
+      <div style={{ margin:"0 14px 16px" }}>
+        <AmbassadorPayoutPanel ambassadorId={uid} />
       </div>
 
       {/* Einladungslink */}
