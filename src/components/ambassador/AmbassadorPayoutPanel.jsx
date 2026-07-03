@@ -1,6 +1,7 @@
 // src/components/ambassador/AmbassadorPayoutPanel.jsx
 // HUI — Ambassador Auszahlungs-Panel (für Studio & Profil)
 // ARCH-006.1: Alle Daten via RPC, kein Shadow State
+// AMB-PAYOUT-009: Genehmigt/Abgelehnt-Status + Stripe-Connect-Onboarding ergänzt
 import React, { useState } from 'react';
 import { useAmbassadorPayout } from '../../hooks/useAmbassadorPayout';
 
@@ -12,9 +13,20 @@ function fmtDate(iso) {
 
 const STATUS_COLORS = {
   requested: '#ffd43b',
+  approved:  '#74c0fc',
   pending:   '#74c0fc',
   paid:      '#51cf66',
+  rejected:  '#ff8787',
   failed:    '#ff6b6b',
+};
+
+const STATUS_LABELS = {
+  requested: 'Offen',
+  approved:  'Genehmigt',
+  pending:   'Offen',
+  paid:      'Ausgezahlt',
+  rejected:  'Abgelehnt',
+  failed:    'Fehlgeschlagen',
 };
 
 export default function AmbassadorPayoutPanel({ ambassadorId }) {
@@ -22,6 +34,7 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
     availableEur, requestedEur, paidEur, minimumEur,
     canRequest, payouts, loading, requesting,
     requestPayout, fmtAvailable, fmtPaid,
+    isStripeConnected, stripeConnectStatus, connecting, startStripeConnect,
   } = useAmbassadorPayout(ambassadorId);
 
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -41,6 +54,28 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+      {/* Stripe-Connect-Hinweis: ohne verbundenes Konto kann keine echte Auszahlung erfolgen */}
+      {!isStripeConnected && (
+        <div style={{
+          background: 'rgba(255,212,59,0.08)', border: '1px solid rgba(255,212,59,0.35)',
+          borderRadius: 12, padding: '12px 14px', display: 'flex',
+          alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap',
+        }}>
+          <div style={{ fontSize: 12, color: '#e0a800', lineHeight: 1.4 }}>
+            💳 {stripeConnectStatus === 'onboarding'
+              ? 'Stripe-Konto wird noch eingerichtet — bitte Onboarding abschließen.'
+              : 'Verbinde ein Stripe-Konto, um Auszahlungen erhalten zu können.'}
+          </div>
+          <button onClick={startStripeConnect} disabled={connecting} style={{
+            padding: '7px 14px', borderRadius: 8, background: '#ffd43b',
+            border: 'none', color: '#000', fontWeight: 700, fontSize: 12, cursor: 'pointer',
+            whiteSpace: 'nowrap',
+          }}>
+            {connecting ? '…' : stripeConnectStatus === 'onboarding' ? 'Fortsetzen' : 'Stripe verbinden'}
+          </button>
+        </div>
+      )}
 
       {/* KPI-Kacheln */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
@@ -123,6 +158,7 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {payouts.slice(0, 5).map(p => {
               const sc = STATUS_COLORS[p.status] || '#888';
+              const label = STATUS_LABELS[p.status] || p.status;
               return (
                 <div key={p.id} style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -136,12 +172,13 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
                     <div style={{ fontSize: 10, color: '#666', marginTop: 2 }}>
                       {fmtDate(p.requested_at)}
                       {p.failed_reason && ` · ${p.failed_reason}`}
+                      {p.rejected_reason && ` · ${p.rejected_reason}`}
                     </div>
                   </div>
                   <span style={{
                     fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 20,
                     background: `${sc}22`, color: sc, border: `1px solid ${sc}44`,
-                  }}>{p.status}</span>
+                  }}>{label}</span>
                 </div>
               );
             })}
