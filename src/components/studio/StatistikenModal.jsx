@@ -112,7 +112,9 @@ export default function StatistikenModal({ profile, onClose }) {
         supabase.from("connections").select("*", { count:"exact", head:true }).eq("user_id", uid),
         supabase.from("profile_relations").select("*", { count:"exact", head:true }).eq("requester_id", uid),
         // Zahlungen
+        // Legacy-Hinweis: Diese Stelle liest aus der alten Tabelle 'payments'. Nie befuellt, kein SSOT-Mapping (SYS-LegacyMark-024). UI zeigt korrekt leer/0 an.
         supabase.from("payments").select("amount_eur,impact_eur").eq("payer_id", uid).in("state",["released","completed","paid"]),
+        // Legacy-Hinweis: Diese Stelle liest aus der alten Tabelle 'payments'. Nie befuellt, kein SSOT-Mapping (SYS-LegacyMark-024). UI zeigt korrekt leer/0 an.
         supabase.from("payments").select("payout_eur").eq("recipient_id", uid).in("state",["released","completed","paid"]),
         // Profil
         supabase.from("profiles").select("profile_views,followers_count,trust_score,member_since,created_at,has_talent_profile,is_ambassador").eq("id", uid).single(), // Identity Contract v1.0
