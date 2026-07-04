@@ -34,12 +34,18 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
     availableEur, requestedEur, paidEur, minimumEur,
     canRequest, payouts, loading, requesting,
     requestPayout, fmtAvailable, fmtPaid,
-    isStripeConnected, stripeConnectStatus, connecting, startStripeConnect,
+    hasBankDetails, bankIbanLast4, savingBank, saveBankDetails,
   } = useAmbassadorPayout(ambassadorId);
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [result,      setResult]      = useState(null);
   const [amountInput, setAmountInput] = useState('');
+  // AMB-BANK-PAYOUT-001: Bankdaten-Formular statt Stripe-Connect
+  const [bankFormOpen, setBankFormOpen] = useState(false);
+  const [ibanInput,    setIbanInput]    = useState('');
+  const [holderInput,  setHolderInput]  = useState('');
+  const [bicInput,     setBicInput]     = useState('');
+  const [bankResult,   setBankResult]   = useState(null);
 
   // AMB-PAYOUT-016: Betrag vorbelegen mit dem vollen verfuegbaren Betrag, sobald geladen
   useEffect(() => {
@@ -55,12 +61,11 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
     setConfirmOpen(false);
   };
 
-  // FIX (2026-07-04): startStripeConnect scheiterte bei Fehlern (z.B. Backend-Bug 403
-  // not_an_ambassador) bisher komplett stumm -- kein Redirect, aber auch keine Fehlermeldung.
-  // Jetzt wird ein Fehlschlag ueber dieselbe result-Anzeige wie bei Auszahlungsanfragen sichtbar.
-  const handleStripeConnect = async () => {
-    const res = await startStripeConnect();
-    if (!res?.url) setResult({ ok: false, error: res?.error || 'Verbindung fehlgeschlagen' });
+  // AMB-BANK-PAYOUT-001: Bankdaten speichern statt Stripe-Connect-Onboarding
+  const handleSaveBank = async () => {
+    const res = await saveBankDetails(ibanInput, holderInput, bicInput || null);
+    setBankResult(res);
+    if (res?.ok) { setBankFormOpen(false); setIbanInput(''); setHolderInput(''); setBicInput(''); }
   };
 
   if (loading) return (
@@ -72,27 +77,65 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-      {/* Stripe-Connect-Hinweis: ohne verbundenes Konto kann keine echte Auszahlung erfolgen */}
-      {!isStripeConnected && (
-        <div style={{
-          background: 'rgba(255,212,59,0.08)', border: '1px solid rgba(255,212,59,0.35)',
-          borderRadius: 12, padding: '12px 14px', display: 'flex',
-          alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap',
-        }}>
-          <div style={{ fontSize: 12, color: '#e0a800', lineHeight: 1.4 }}>
-            💳 {stripeConnectStatus === 'onboarding'
-              ? 'Stripe-Konto wird noch eingerichtet — bitte Onboarding abschließen.'
-              : 'Verbinde ein Stripe-Konto, um Auszahlungen erhalten zu können.'}
+      {/* AMB-BANK-PAYOUT-001: Bankverbindung statt Stripe-Connect-Onboarding */}
+      <div style={{
+        background: hasBankDetails ? 'rgba(81,207,102,0.06)' : 'rgba(255,212,59,0.08)',
+        border: `1px solid ${hasBankDetails ? 'rgba(81,207,102,0.3)' : 'rgba(255,212,59,0.35)'}`,
+        borderRadius: 12, padding: '12px 14px',
+      }}>
+        {!bankFormOpen ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+            <div style={{ fontSize: 12, color: hasBankDetails ? '#51cf66' : '#e0a800', lineHeight: 1.4 }}>
+              {hasBankDetails
+                ? `🏦 Bankverbindung hinterlegt: IBAN endet auf •••• ${bankIbanLast4 || '????'}`
+                : '🏦 Bitte hinterlege deine Bankverbindung, um Auszahlungen erhalten zu können.'}
+            </div>
+            <button onClick={() => setBankFormOpen(true)} style={{
+              padding: '7px 14px', borderRadius: 8,
+              background: hasBankDetails ? 'transparent' : '#ffd43b',
+              border: hasBankDetails ? '1px solid rgba(255,255,255,0.2)' : 'none',
+              color: hasBankDetails ? '#ccc' : '#000', fontWeight: 700, fontSize: 12, cursor: 'pointer',
+              whiteSpace: 'nowrap',
+            }}>
+              {hasBankDetails ? 'Ändern' : 'Bankdaten hinterlegen'}
+            </button>
           </div>
-          <button onClick={handleStripeConnect} disabled={connecting} style={{
-            padding: '7px 14px', borderRadius: 8, background: '#ffd43b',
-            border: 'none', color: '#000', fontWeight: 700, fontSize: 12, cursor: 'pointer',
-            whiteSpace: 'nowrap',
-          }}>
-            {connecting ? '…' : stripeConnectStatus === 'onboarding' ? 'Fortsetzen' : 'Stripe verbinden'}
-          </button>
-        </div>
-      )}
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#e0a800' }}>Bankverbindung {hasBankDetails ? 'ändern' : 'hinterlegen'}</div>
+            <input value={holderInput} onChange={e => setHolderInput(e.target.value)} placeholder="Kontoinhaber (Vor- und Nachname)"
+              style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: 13 }} />
+            <input value={ibanInput} onChange={e => setIbanInput(e.target.value.toUpperCase())} placeholder="IBAN (z.B. DE89 3704 0044 0532 0130 00)"
+              style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: 13, fontFamily: 'monospace', letterSpacing: '0.5px' }} />
+            <input value={bicInput} onChange={e => setBicInput(e.target.value.toUpperCase())} placeholder="BIC (optional)"
+              style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: 13 }} />
+            <div style={{ fontSize: 11, color: '#888', lineHeight: 1.4 }}>
+              🔒 Deine Bankdaten werden verschlüsselt gespeichert und sind nur für die Auszahlungs-Genehmigung sichtbar.
+            </div>
+            {bankResult && !bankResult.ok && (
+              <div style={{ fontSize: 11, color: '#ff8787' }}>
+                ❌ {bankResult.error === 'invalid_iban' ? 'Bitte eine gültige IBAN eingeben.'
+                  : bankResult.error === 'holder_required' ? 'Bitte einen Kontoinhaber angeben.'
+                  : bankResult.error}
+              </div>
+            )}
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={handleSaveBank} disabled={savingBank || !ibanInput || !holderInput} style={{
+                padding: '7px 16px', borderRadius: 8,
+                background: (savingBank || !ibanInput || !holderInput) ? '#3a3a3a' : '#51cf66',
+                border: 'none', color: (savingBank || !ibanInput || !holderInput) ? '#777' : '#000',
+                fontWeight: 700, fontSize: 12, cursor: 'pointer',
+              }}>
+                {savingBank ? '…' : 'Speichern'}
+              </button>
+              <button onClick={() => setBankFormOpen(false)} style={{
+                padding: '7px 16px', borderRadius: 8, background: 'transparent',
+                border: '1px solid #555', color: '#999', fontSize: 12, cursor: 'pointer',
+              }}>Abbrechen</button>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* KPI-Kacheln */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
@@ -117,7 +160,11 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
         borderRadius: 12, padding: '14px 16px',
       }}>
         <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 8 }}>Auszahlung anfordern</div>
-        {canRequest ? (
+        {!hasBankDetails ? (
+          <div style={{ fontSize: 12, color: '#888' }}>
+            Bitte zuerst oben deine Bankverbindung hinterlegen.
+          </div>
+        ) : canRequest ? (
           <>
             {/* AMB-PAYOUT-016: freier Betrag, max. = auszahlbarer Betrag */}
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10, flexWrap: 'wrap' }}>
@@ -180,6 +227,12 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
           </div>
         )}
 
+        {hasBankDetails && canRequest && !result && (
+          <div style={{ fontSize: 11, color: '#888', marginTop: 8 }}>
+            ℹ️ Nach Genehmigung wird der Betrag innerhalb von 3 Werktagen auf dein Konto überwiesen.
+          </div>
+        )}
+
         {result && (
           <div style={{
             marginTop: 10, padding: '8px 12px', borderRadius: 8,
@@ -188,11 +241,11 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
             fontSize: 12, color: result.ok ? '#51cf66' : '#ff6b6b',
           }}>
             {result.ok
-              ? (result.url ? '↗️ Weiterleitung zu Stripe…' : `✅ ${eur(result.amount_eur)} beantragt (${result.commissions} Provisionen)`)
+              ? `✅ ${eur(result.amount_eur)} beantragt (${result.commissions} Provisionen) — wird innerhalb von 3 Werktagen bearbeitet.`
               : `❌ ${
                   result.error === 'below_minimum' ? `Mindestbetrag nicht erreicht (${eur(result.total_eur)} < €${minimumEur})`
                   : result.error === 'not_an_ambassador' ? 'Dein Ambassador-Status ist noch nicht bestätigt.'
-                  : result.error === 'stripe_not_configured' ? 'Stripe ist serverseitig noch nicht eingerichtet.'
+                  : result.error === 'bank_details_required' ? 'Bitte zuerst deine Bankverbindung hinterlegen.'
                   : result.error
                 }`}
           </div>
