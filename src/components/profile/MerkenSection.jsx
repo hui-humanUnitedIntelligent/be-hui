@@ -1,5 +1,5 @@
 // MerkenSection — Gespeicherte Inhalte im Mein-HUI-Profil
-// MERKEN.1B: verschoben aus CreatorDashboard (dead) → MyBasisProfile (produktiv)
+// MERKEN.1B: Gemerkte Inhalte → Studio (Produktmigration)
 // Keine neue Logik — wiederverwendet: useSavedPosts, saved_posts Tabelle
 import React from "react";
 import { useAuth }       from "../../lib/AuthContext.jsx";

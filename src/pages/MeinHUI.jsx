@@ -20,7 +20,18 @@
 // minimaler scale, dezenter blur, ease-in-out. Keine Motion-Libraries.
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, Suspense } from "react";
+import { useWirkungsraumData } from "../hooks/useWirkungsraumData.js";
+import { OrbSignatur } from "../components/profile/OrbSignatur.jsx";
+import {
+  MeinWirkenBlock,
+  MotivationBlock,
+  VertrauenBlock,
+  ChronikBlock,
+  ResonanzShortcut,
+} from "../components/orb/WirkungsraumSections.jsx";
+
+const MeineResonanz = React.lazy(() => import("./studio/MeineResonanz.jsx"));
 
 // ─────────────────────────────────────────────────────────────────
 // DESIGN TOKENS
@@ -204,7 +215,21 @@ const LEAVES = [
   { size: 3, col: T.sage,  "--px": "22px",  "--py": "26px",  "--pr": "15deg",  dur: "10.2s","del": "3.4s"},
 ];
 
-function OrbHero({ profile, coreDelay, infoDelay }) {
+function OrbHero({ profile, wirkenData, loading, coreDelay, infoDelay }) {
+  const days = wirkenData?.days;
+  const journeySub = days != null
+    ? `seit ${days} ${days === 1 ? "Tag" : "Tagen"}`
+    : "beginnt heute";
+  const impactSub = wirkenData?.impact_eur > 0
+    ? `€ ${Math.round(wirkenData.impact_eur)} gesät`
+    : `${wirkenData?.works ?? 0} Impulse`;
+  const connSub = `${wirkenData?.connections ?? 0} Menschen`;
+
+  const sideCards = [
+    { icon: "🌱", label: "Deine Reise", sub: loading ? "…" : journeySub, glow: T.sageSoft },
+    { icon: "🔥", label: "Impact gesät", sub: loading ? "…" : impactSub, glow: "rgba(244,115,85,0.08)" },
+    { icon: "👥", label: "Verbindungen", sub: loading ? "…" : connSub, glow: T.tealSoft },
+  ];
   return (
     <div style={{ position: "relative", textAlign: "center", padding: "24px 0 16px" }}>
 
@@ -317,11 +342,7 @@ function OrbHero({ profile, coreDelay, infoDelay }) {
         display: "flex", flexDirection: "column", gap: 8,
         zIndex: 2,
       }}>
-        {[
-          { icon: "🌱", label: "Deine Reise", sub: "seit 134 Tagen", glow: T.sageSoft },
-          { icon: "🔥", label: "Impact gesät", sub: "23 Impulse",    glow: "rgba(244,115,85,0.08)" },
-          { icon: "👥", label: "Verbindungen", sub: "47 Menschen",    glow: T.tealSoft },
-        ].map((s, i) => (
+        {sideCards.map((s, i) => (
           <FadeUp key={i} delay={infoDelay}>
             <div style={{
               display: "flex", alignItems: "center", gap: 6,
@@ -491,15 +512,28 @@ function Pillars({ delay }) {
 // ─────────────────────────────────────────────────────────────────
 // 4. Journey — Block 5 (Reise)
 // ─────────────────────────────────────────────────────────────────
-const JOURNEY = [
-  { emoji: "🌱", label: "Heute",        text: "Kleine Impulse setzen Großes in Bewegung.",   color: T.teal   },
-  { emoji: "🤝", label: "Diese Woche",  text: "Du hast 3 neue Verbindungen gestärkt.",        color: T.sage   },
-  { emoji: "✨", label: "Diesen Monat", text: "Ein Projekt, das dir am Herzen liegt, wächst.", color: T.coral  },
-  { emoji: "🌅", label: "Dieses Jahr",  text: "Deine Wirkung erreicht immer mehr Menschen.",  color: T.gold   },
-  { emoji: "🌳", label: "Seit Beginn",  text: "Dein Weg ist einzigartig und wertvoll.",       color: T.purple },
+const JOURNEY_FALLBACK = [
+  { emoji: "🌱", label: "Heute", text: "Kleine Impulse setzen Großes in Bewegung.", color: T.teal },
+  { emoji: "🌳", label: "Seit Beginn", text: "Dein Weg ist einzigartig und wertvoll.", color: T.purple },
 ];
 
-function Journey({ delay }) {
+function Journey({ delay, chronik, loading }) {
+  const recent = (chronik || []).slice(0, 4).map((ev, i) => ({
+    emoji: ev.icon,
+    label: i === 0 ? "Zuletzt" : fmtShort(ev.date),
+    text: ev.label,
+    color: [T.teal, T.sage, T.coral, T.gold][i % 4],
+  }));
+  const items = loading
+    ? JOURNEY_FALLBACK
+    : (recent.length >= 2 ? recent : JOURNEY_FALLBACK);
+
+  function fmtShort(ts) {
+    if (!ts) return "…";
+    try {
+      return new Date(ts).toLocaleDateString("de-DE", { day: "numeric", month: "short" });
+    } catch { return "…"; }
+  }
   return (
     <div style={{ padding: "0 20px" }}>
       <FadeUp delay={delay}>
@@ -524,7 +558,7 @@ function Journey({ delay }) {
         scrollbarWidth: "none", paddingBottom: 4,
         WebkitOverflowScrolling: "touch",
       }}>
-        {JOURNEY.map((j, i) => (
+        {items.map((j, i) => (
           <FadeUp key={j.label} delay={delay}>
             <div style={{ width: 106, flexShrink: 0, textAlign: "center" }}>
               <div style={{
@@ -553,14 +587,29 @@ function Journey({ delay }) {
 // ─────────────────────────────────────────────────────────────────
 // 5. ImpactMoments — Block 6 (Rest)
 // ─────────────────────────────────────────────────────────────────
-const MOMENTS = [
-  { icon: "♡",  label: "Du hast Jana unterstützt",        time: "vor 2 Tagen",  color: T.coral,  bg: "rgba(244,115,85,0.07)",  border: "rgba(244,115,85,0.13)" },
-  { icon: "👥", label: "Neue Verbindung mit Max",          time: "vor 5 Tagen",  color: T.teal,   bg: T.tealSoft,               border: "rgba(13,196,181,0.13)"  },
-  { icon: "✏️", label: "Du hast ein Werk veröffentlicht",  time: "vor 1 Woche",  color: T.sage,   bg: T.sageSoft,               border: "rgba(92,168,122,0.13)"  },
-  { icon: "🌍", label: "Dein Impact hat 8 Menschen erreicht", time: "vor 1 Woche", color: T.purple, bg: T.purpleSoft,           border: "rgba(123,94,167,0.13)"  },
-];
+function ImpactMoments({ delay, chronik, loading }) {
+  const COLORS = [T.coral, T.teal, T.sage, T.purple];
+  const moments = loading
+    ? []
+    : (chronik || []).slice(0, 4).map((ev, i) => ({
+        icon: ev.icon,
+        label: ev.label,
+        time: fmtMomentDate(ev.date),
+        color: COLORS[i % COLORS.length],
+        bg: `${COLORS[i % COLORS.length]}12`,
+        border: `${COLORS[i % COLORS.length]}22`,
+      }));
 
-function ImpactMoments({ delay }) {
+  function fmtMomentDate(ts) {
+    if (!ts) return "";
+    const days = Math.floor((Date.now() - new Date(ts).getTime()) / 86400000);
+    if (days === 0) return "heute";
+    if (days === 1) return "gestern";
+    if (days < 7) return `vor ${days} Tagen`;
+    if (days < 30) return `vor ${Math.floor(days / 7)} Wochen`;
+    return new Date(ts).toLocaleDateString("de-DE", { month: "short", year: "numeric" });
+  }
+
   return (
     <div style={{ padding: "0 20px" }}>
       <FadeUp delay={delay}>
@@ -568,49 +617,54 @@ function ImpactMoments({ delay }) {
           display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14,
         }}>
           <div style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: T.ink, letterSpacing: "-0.015em" }}>
-            Deine Impact-Momente
+            Deine Wirkungsmomente
           </div>
-          <button style={{
-            fontFamily: FONT, fontSize: 12.5, color: T.teal, fontWeight: 500,
-            background: "none", border: "none", cursor: "pointer", padding: 0,
-            display: "flex", alignItems: "center", gap: 3, opacity: 0.85,
-          }}>
-            Mehr anzeigen <span style={{ fontSize: 11 }}>›</span>
-          </button>
         </div>
       </FadeUp>
 
-      <div style={{
-        display: "flex", gap: 9, overflowX: "auto",
-        scrollbarWidth: "none", paddingBottom: 4,
-        WebkitOverflowScrolling: "touch",
-      }}>
-        {MOMENTS.map((m, i) => (
-          <FadeUp key={i} delay={delay}>
-            <div style={{
-              width: 138, flexShrink: 0,
-              background: m.bg, border: `1px solid ${m.border}`,
-              borderRadius: 16, padding: "13px 13px 11px",
-            }}>
+      {moments.length === 0 ? (
+        <FadeUp delay={delay}>
+          <div style={{
+            padding: "20px 16px", borderRadius: 16,
+            background: T.creamCard, border: `1px solid ${T.inkFaint}`,
+            fontFamily: FONT, fontSize: 13, color: T.inkSoft, textAlign: "center", lineHeight: 1.5,
+          }}>
+            {loading ? "Lädt…" : "Deine Wirkungsmomente entstehen, wenn du wirfst, verbindest und unterstützt."}
+          </div>
+        </FadeUp>
+      ) : (
+        <div style={{
+          display: "flex", gap: 9, overflowX: "auto",
+          scrollbarWidth: "none", paddingBottom: 4,
+          WebkitOverflowScrolling: "touch",
+        }}>
+          {moments.map((m, i) => (
+            <FadeUp key={i} delay={delay}>
               <div style={{
-                width: 32, height: 32, borderRadius: "50%",
-                background: T.white, display: "flex",
-                alignItems: "center", justifyContent: "center",
-                fontSize: 15, marginBottom: 9,
-                boxShadow: "0 1px 4px rgba(0,0,0,0.07)",
+                width: 138, flexShrink: 0,
+                background: m.bg, border: `1px solid ${m.border}`,
+                borderRadius: 16, padding: "13px 13px 11px",
               }}>
-                {m.icon}
+                <div style={{
+                  width: 32, height: 32, borderRadius: "50%",
+                  background: T.white, display: "flex",
+                  alignItems: "center", justifyContent: "center",
+                  fontSize: 15, marginBottom: 9,
+                  boxShadow: "0 1px 4px rgba(0,0,0,0.07)",
+                }}>
+                  {m.icon}
+                </div>
+                <div style={{ fontFamily: FONT, fontSize: 11.5, fontWeight: 600, color: m.color, lineHeight: 1.35, marginBottom: 4 }}>
+                  {m.label}
+                </div>
+                <div style={{ fontFamily: FONT, fontSize: 10.5, color: T.inkFaint }}>
+                  {m.time}
+                </div>
               </div>
-              <div style={{ fontFamily: FONT, fontSize: 11.5, fontWeight: 600, color: m.color, lineHeight: 1.35, marginBottom: 4 }}>
-                {m.label}
-              </div>
-              <div style={{ fontFamily: FONT, fontSize: 10.5, color: T.inkFaint }}>
-                {m.time}
-              </div>
-            </div>
-          </FadeUp>
-        ))}
-      </div>
+            </FadeUp>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -627,9 +681,19 @@ export default function MeinHUI({
   onSettings,
 }) {
   const scrollRef = useRef(null);
-  // Double-RAF: erzwingt einen ersten Paint im Ausgangszustand (opacity 0,
-  // translateY 10px), bevor die CSS-Transition zum Endzustand ausgelöst wird.
   const [entered, setEntered] = useState(false);
+  const [showResonanz, setShowResonanz] = useState(false);
+
+  const {
+    loading,
+    wirkenData,
+    chronik,
+    motivation,
+    motivSaving,
+    trustStatus,
+    saveMotivation,
+    profileId,
+  } = useWirkungsraumData();
 
   useEffect(() => {
     if (visible) {
@@ -691,26 +755,65 @@ export default function MeinHUI({
           <ProfileHeader profile={profile} onNotif={onNotif} onSettings={onSettings} delay={TITLE_DELAY} />
 
           {/* Block 1 — Orb, Block 3 — Info-Karten */}
-          <OrbHero profile={profile} coreDelay={CORE_DELAY} infoDelay={INFO_DELAY} />
+          <OrbHero
+            profile={profile}
+            wirkenData={wirkenData}
+            loading={loading}
+            coreDelay={CORE_DELAY}
+            infoDelay={INFO_DELAY}
+          />
+
+          {profileId && (
+            <div style={{ padding: "0 20px 16px" }}>
+              <OrbSignatur profileId={profileId} />
+            </div>
+          )}
 
           <div style={{ width: 28, height: 1, background: T.inkFaint, margin: "6px auto 26px", opacity: 0.35 }} />
 
           {/* Block 4 — Grundpfeiler */}
           <Pillars delay={PILLARS_DELAY} />
 
-          <div style={{ height: 30 }} />
+          <div style={{ padding: "0 20px", display: "flex", flexDirection: "column", gap: 14, marginTop: 8 }}>
+            <MeinWirkenBlock data={wirkenData} loading={loading} />
+            <MotivationBlock
+              motivation={motivation}
+              loading={loading}
+              saving={motivSaving}
+              onSave={saveMotivation}
+            />
+            <VertrauenBlock
+              trustStatus={trustStatus}
+              recs={wirkenData?.recs ?? 0}
+              exps={wirkenData?.exps ?? 0}
+              loading={loading}
+            />
+            <ResonanzShortcut onOpen={() => setShowResonanz(true)} />
+          </div>
+
+          <div style={{ height: 24 }} />
 
           {/* Block 5 — Reise */}
-          <Journey delay={JOURNEY_DELAY} />
+          <Journey delay={JOURNEY_DELAY} chronik={chronik} loading={loading} />
 
-          <div style={{ height: 30 }} />
+          <div style={{ padding: "0 20px", marginTop: 20 }}>
+            <ChronikBlock events={chronik} loading={loading} />
+          </div>
 
-          {/* Block 6 — Rest */}
-          <ImpactMoments delay={MOMENTS_DELAY} />
+          <div style={{ height: 24 }} />
+
+          {/* Block 6 — Wirkungsmomente */}
+          <ImpactMoments delay={MOMENTS_DELAY} chronik={chronik} loading={loading} />
 
           <div style={{ height: 12 }} />
         </div>
       </div>
+
+      {showResonanz && (
+        <Suspense fallback={null}>
+          <MeineResonanz onClose={() => setShowResonanz(false)} />
+        </Suspense>
+      )}
     </>
   );
 }

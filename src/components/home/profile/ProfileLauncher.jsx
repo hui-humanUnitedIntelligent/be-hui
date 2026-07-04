@@ -1,15 +1,13 @@
-// src/components/home/profile/ProfileLauncher.jsx v8 — DB-basiertes Routing
+// src/components/home/profile/ProfileLauncher.jsx v9 — Fremdprofile-Overlay
 // ROUTING:
 //   selectedProfileId → DB-Query → role/has_talent_profile → TalentProfilePage | BasisProfilePage
-//   showCreatorDashboard → MyBasisProfile (eigenes Profil — Talent-UI via isTalent)
-// ROUTING-ENTSCHEIDUNG: aus Datenbank, NICHT aus flow.state (war immer undefined)
+// Eigenes Profil läuft als AppShell-Tab (ProfilePage) — nicht mehr über ProfileLauncher.
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useHome } from "../HomeShell.jsx";
 import { useHuiActions, A } from "../../../core/hui.actions.js";
 import { S } from "../../../core/hui.sources.js";
 import { ProfileService } from '../../../services/db';
-import { supabase } from "../../../lib/supabaseClient.js";
 import { isProfileTalent } from "../../../lib/profileUtils.js";
 
 // ── Inline ErrorBoundary ─────────────────────────────────────────
@@ -46,7 +44,6 @@ class ProfileErrorBoundary extends React.Component {
     if (this.state.hasError) {
       const isChunk = this.state.error?.message?.includes("Failed to fetch dynamically imported module")
         || this.state.error?.message?.includes("Importing a module script failed");
-      // Bei ChunkLoadError: automatisch neu laden (einmalig)
       if (isChunk && !sessionStorage.getItem("chunk_boundary_reloaded")) {
         sessionStorage.setItem("chunk_boundary_reloaded", "1");
         setTimeout(() => window.location.reload(), 100);
@@ -105,7 +102,6 @@ class ProfileErrorBoundary extends React.Component {
   }
 }
 
-// ── Chunk-Retry: bei ChunkLoadError einmalig Hard-Reload ────────────────────
 function lazyWithRetry(importFn) {
   return React.lazy(() =>
     importFn().catch((err) => {
@@ -118,7 +114,7 @@ function lazyWithRetry(importFn) {
         if (!sessionStorage.getItem(reloadKey)) {
           sessionStorage.setItem(reloadKey, "1");
           window.location.reload();
-          return new Promise(() => {}); // Reload läuft — Promise hängen lassen
+          return new Promise(() => {});
         }
       }
       throw err;
@@ -126,12 +122,9 @@ function lazyWithRetry(importFn) {
   );
 }
 
-// ── Lazy Page Imports ────────────────────────────────────────────
 const BasisProfilePage   = lazyWithRetry(() => import("../../../pages/BasisProfilePage.jsx"));
 const TalentProfilePage  = lazyWithRetry(() => import("../../../pages/TalentProfilePage.jsx"));
-const MyBasisProfile     = lazyWithRetry(() => import("../../../pages/MyBasisProfile.jsx"));
 
-// ── Spinner Fallback ─────────────────────────────────────────────
 function Spinner() {
   return (
     <div style={{
@@ -151,8 +144,6 @@ function Spinner() {
   );
 }
 
-// ── useProfileType — lädt role/has_talent_profile aus DB ─────────
-// Gibt zurück: { resolved: bool, isTalent: bool }
 function useProfileType(profileId) {
   const [state, setState] = useState({ resolved: false, isTalent: false, role: null });
 
@@ -165,7 +156,6 @@ function useProfileType(profileId) {
 
     (async () => {
       try {
-        // ProfileService v1.0
         const { data, error } = await ProfileService.getById(profileId);
 
         if (error) {
@@ -174,9 +164,7 @@ function useProfileType(profileId) {
           return;
         }
 
-        // Sprint F.4C: isProfileTalent() ist die einzige Wahrheitsquelle
         const isTalent = isProfileTalent(data);
-
         setState({ resolved: true, isTalent, role: data?.role ?? null });
 
       } catch (e) {
@@ -189,7 +177,6 @@ function useProfileType(profileId) {
   return state;
 }
 
-// ── Hook: imperativer Zugriff (Public API unverändert) ───────────
 export function useProfileLauncher() {
   const actions = useHuiActions();
 
@@ -209,51 +196,41 @@ export function useProfileLauncher() {
   return { openProfile, openOwnProfile, openCreatorProfile };
 }
 
-/* ════════════════════════════════════════════════════════════
-   ProfileLauncher — einziger Render-Punkt für alle Profile
-   ════════════════════════════════════════════════════════════ */
 export default function ProfileLauncher() {
   const {
-    selectedProfileId,    closeProfileById,
-    showCreatorDashboard, setShowCreatorDashboard,
-    authProfile,
+    selectedProfileId,
+    closeProfileById,
   } = useHome();
 
-  // ── DB-Routing für fremde öffentliche Profile ─────────────────
-  const { resolved, isTalent, role } = useProfileType(selectedProfileId);
-
-  // ── ÖFFENTLICHES PROFIL (fremder User) ───────────────────────
-  if (selectedProfileId) {
-
-    // Solange DB-Query läuft → Spinner zeigen, NICHT schon rendern
-    if (!resolved) {
-      return <Spinner />;
-    }
-
-    const ProfileComponent = isTalent ? TalentProfilePage : BasisProfilePage;
-
-    return (
-      <ProfileErrorBoundary profileId={selectedProfileId} onClose={closeProfileById}>
-        <React.Suspense fallback={<Spinner />}>
-          <ProfileComponent
-            profileId={selectedProfileId}
-            onClose={closeProfileById}
-          />
-        </React.Suspense>
-      </ProfileErrorBoundary>
-    );
+  if (!selectedProfileId) {
+    return null;
   }
 
-  // ── EIGENES PROFIL — IMMER MyBasisProfile (erweiterbar um Talent-Bereich)
-  // MyBasisProfile rendert den Talent-Bereich conditional wenn isTalent===true.
-  if (showCreatorDashboard) {
-    return (
-      <ProfileErrorBoundary profileId="own" onClose={() => setShowCreatorDashboard(false)}>
-        <MyBasisProfile onClose={() => setShowCreatorDashboard(false)} />
-      </ProfileErrorBoundary>
-    );
+  return (
+    <ForeignProfileOverlay
+      profileId={selectedProfileId}
+      onClose={closeProfileById}
+    />
+  );
+}
+
+function ForeignProfileOverlay({ profileId, onClose }) {
+  const { resolved, isTalent } = useProfileType(profileId);
+
+  if (!resolved) {
+    return <Spinner />;
   }
 
-  // Nichts zu zeigen
-  return null;
+  const ProfileComponent = isTalent ? TalentProfilePage : BasisProfilePage;
+
+  return (
+    <ProfileErrorBoundary profileId={profileId} onClose={onClose}>
+      <React.Suspense fallback={<Spinner />}>
+        <ProfileComponent
+          profileId={profileId}
+          onClose={onClose}
+        />
+      </React.Suspense>
+    </ProfileErrorBoundary>
+  );
 }
