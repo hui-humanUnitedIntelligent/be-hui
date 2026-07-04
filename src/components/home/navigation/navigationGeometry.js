@@ -44,6 +44,9 @@ export const NAV_BLOCK_HEIGHT = ORB_OVERHANG + TAB_H;   // 57 + 64 = 121px
 export const NAV_CLEARANCE_CSS =
   `calc(${NAV_BLOCK_HEIGHT}px + max(${NAV_GEOMETRY.SAFE_B}px, env(safe-area-inset-bottom, ${NAV_GEOMETRY.SAFE_B}px)))`;
 
+/** AppShell BottomSurface height — identical on all main tabs (see BottomSurface.jsx) */
+export const BOTTOM_SURFACE_HEIGHT_CSS = NAV_CLEARANCE_CSS;
+
 /** CSS value for nav container total height (Orb-Überhang + Tabbar + Safe-Area) —
  *  weiterhin exportiert für Konsumenten, die die VOLLE optische Nav-Zone
  *  brauchen (z.B. WerkeKorb-Button-Clearance), aber NICHT mehr für die

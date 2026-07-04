@@ -11,7 +11,7 @@ import {
   FB_AVATAR,
   handleAvatarUpload, handleCoverUpload,
 } from "../lib/profileMedia.js";
-import { NAV_RESERVED_HEIGHT_CSS } from "../components/home/navigation/navigationGeometry.js";
+import { NAV_CLEARANCE_CSS } from "../components/home/navigation/navigationGeometry.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
 import { useHome }   from "../components/home/HomeShell.jsx";
 import GemeinschaftsFlow from "../components/GemeinschaftsFlow.jsx";
@@ -691,12 +691,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
       )}
 
       <div className="mbp-scroll" style={{ flex:1, overflowY:"auto",
-        // War: hartkodierte Naeherung ("max(80px, 64px+safeBottom)"), leicht
-        // abweichend von der ECHTEN Nav-Reservierung. Jetzt: dieselbe geteilte
-        // Konstante wie Feed/Discover/Impact (NAV_RESERVED_HEIGHT_CSS) -- der
-        // untere weisse Freiraum oberhalb der Bottom Navigation ist dadurch
-        // pixelgenau identisch zu den anderen Hauptseiten.
-        paddingBottom: NAV_RESERVED_HEIGHT_CSS }}>
+        // AppShell BottomSurface + Tabbar reservieren NAV_CLEARANCE_CSS —
+        // dieselbe Konstante wie in BottomSurface.jsx, kein Seiten-Sonderfall.
+        paddingBottom: NAV_CLEARANCE_CSS }}>
 
         {/* ── SEITEN-TITEL ─────────────────────────────────────── */}
         <div style={{
