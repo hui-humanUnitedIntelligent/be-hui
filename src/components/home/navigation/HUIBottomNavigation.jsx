@@ -240,8 +240,8 @@ export default function HUIBottomNavigation({
       data-hui-bottom-navigation=""
       aria-label="Hauptnavigation"
       style={{
-        flexShrink: 0,
         position: "relative",
+        flexShrink: 0,
         width: "100%",
         // NUR Tabbar + Safe-Area reserviert -- der Orb-Ueberhang darueber wird
         // NICHT mehr als Layout-Platz vom Feed abgezogen (siehe
@@ -249,7 +249,7 @@ export default function HUIBottomNavigation({
         // Der Orb selbst bleibt optisch an exakt derselben Bildschirm-
         // position (kompensiert ueber seinen "top"-Offset weiter unten).
         height: NAV_RESERVED_HEIGHT_CSS,
-        zIndex: 10000,
+        zIndex: 1,
         willChange: "opacity, transform",
         ...sharedVis,
       }}
