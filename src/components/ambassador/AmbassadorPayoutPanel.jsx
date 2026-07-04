@@ -1,9 +1,30 @@
 // src/components/ambassador/AmbassadorPayoutPanel.jsx
 // HUI — Ambassador Auszahlungs-Panel (für Studio & Profil)
 // ARCH-006.1: Alle Daten via RPC, kein Shadow State
-// AMB-PAYOUT-009: Genehmigt/Abgelehnt-Status + Stripe-Connect-Onboarding ergänzt
+// AMB-PAYOUT-009: Genehmigt/Abgelehnt-Status ergänzt
+// AMB-BANK-PAYOUT-001: Bankdaten statt Stripe-Connect
+// FIX (2026-07-04): Komponente war komplett im Dark-Theme gestylt (weißer Text, dunkle
+// rgba-Ränder), wird aber im hellen Studio-Modal (T.bg #F7F5F0, T.ink #1A1A18) angezeigt --
+// Text/Eingabefelder waren dadurch praktisch unsichtbar. Komplett auf Light-Theme umgestellt,
+// passend zu den Farbwerten aus HuiStudio.jsx (T-Objekt).
 import React, { useState, useEffect } from 'react';
 import { useAmbassadorPayout } from '../../hooks/useAmbassadorPayout';
+
+// Gleiche Palette wie T-Objekt in HuiStudio.jsx (lokal dupliziert, kein Import-Kopplungsrisiko)
+const ink       = '#1A1A18';
+const inkSoft   = 'rgba(26,26,24,0.62)';
+const inkFaint  = 'rgba(26,26,24,0.38)';
+const border    = 'rgba(26,26,24,0.10)';
+const bgCard    = '#FFFFFF';
+const teal      = '#0EC4B8';
+const green     = '#2E9E5B';
+const greenBg   = 'rgba(46,158,91,0.08)';
+const greenBd   = 'rgba(46,158,91,0.30)';
+const amber     = '#B9740A';
+const amberBg   = 'rgba(185,116,10,0.08)';
+const amberBd   = 'rgba(185,116,10,0.30)';
+const red       = '#C0392B';
+const redBg     = 'rgba(192,57,43,0.08)';
 
 function eur(val) { return `€${((val ?? 0)).toFixed(2)}`; }
 function fmtDate(iso) {
@@ -12,12 +33,12 @@ function fmtDate(iso) {
 }
 
 const STATUS_COLORS = {
-  requested: '#ffd43b',
-  approved:  '#74c0fc',
-  pending:   '#74c0fc',
-  paid:      '#51cf66',
-  rejected:  '#ff8787',
-  failed:    '#ff6b6b',
+  requested: amber,
+  approved:  teal,
+  pending:   teal,
+  paid:      green,
+  rejected:  red,
+  failed:    red,
 };
 
 const STATUS_LABELS = {
@@ -27,6 +48,11 @@ const STATUS_LABELS = {
   paid:      'Ausgezahlt',
   rejected:  'Abgelehnt',
   failed:    'Fehlgeschlagen',
+};
+
+const inputStyle = {
+  padding: '9px 12px', borderRadius: 8, border: `1px solid ${border}`,
+  background: bgCard, color: ink, fontSize: 13, outline: 'none',
 };
 
 export default function AmbassadorPayoutPanel({ ambassadorId }) {
@@ -69,7 +95,7 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
   };
 
   if (loading) return (
-    <div style={{ padding: 24, textAlign: 'center', color: '#888', fontSize: 13 }}>
+    <div style={{ padding: 24, textAlign: 'center', color: inkFaint, fontSize: 13 }}>
       Lade Auszahlungs-Daten…
     </div>
   );
@@ -79,22 +105,22 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
 
       {/* AMB-BANK-PAYOUT-001: Bankverbindung statt Stripe-Connect-Onboarding */}
       <div style={{
-        background: hasBankDetails ? 'rgba(81,207,102,0.06)' : 'rgba(255,212,59,0.08)',
-        border: `1px solid ${hasBankDetails ? 'rgba(81,207,102,0.3)' : 'rgba(255,212,59,0.35)'}`,
+        background: hasBankDetails ? greenBg : amberBg,
+        border: `1px solid ${hasBankDetails ? greenBd : amberBd}`,
         borderRadius: 12, padding: '12px 14px',
       }}>
         {!bankFormOpen ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
-            <div style={{ fontSize: 12, color: hasBankDetails ? '#51cf66' : '#e0a800', lineHeight: 1.4 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: hasBankDetails ? green : amber, lineHeight: 1.4 }}>
               {hasBankDetails
                 ? `🏦 Bankverbindung hinterlegt: IBAN endet auf •••• ${bankIbanLast4 || '????'}`
                 : '🏦 Bitte hinterlege deine Bankverbindung, um Auszahlungen erhalten zu können.'}
             </div>
             <button onClick={() => setBankFormOpen(true)} style={{
               padding: '7px 14px', borderRadius: 8,
-              background: hasBankDetails ? 'transparent' : '#ffd43b',
-              border: hasBankDetails ? '1px solid rgba(255,255,255,0.2)' : 'none',
-              color: hasBankDetails ? '#ccc' : '#000', fontWeight: 700, fontSize: 12, cursor: 'pointer',
+              background: hasBankDetails ? 'transparent' : amber,
+              border: hasBankDetails ? `1px solid ${border}` : 'none',
+              color: hasBankDetails ? ink : '#fff', fontWeight: 700, fontSize: 12, cursor: 'pointer',
               whiteSpace: 'nowrap',
             }}>
               {hasBankDetails ? 'Ändern' : 'Bankdaten hinterlegen'}
@@ -102,18 +128,18 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#e0a800' }}>Bankverbindung {hasBankDetails ? 'ändern' : 'hinterlegen'}</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: amber }}>Bankverbindung {hasBankDetails ? 'ändern' : 'hinterlegen'}</div>
             <input value={holderInput} onChange={e => setHolderInput(e.target.value)} placeholder="Kontoinhaber (Vor- und Nachname)"
-              style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: 13 }} />
+              style={inputStyle} />
             <input value={ibanInput} onChange={e => setIbanInput(e.target.value.toUpperCase())} placeholder="IBAN (z.B. DE89 3704 0044 0532 0130 00)"
-              style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: 13, fontFamily: 'monospace', letterSpacing: '0.5px' }} />
+              style={{ ...inputStyle, fontFamily: 'monospace', letterSpacing: '0.5px' }} />
             <input value={bicInput} onChange={e => setBicInput(e.target.value.toUpperCase())} placeholder="BIC (optional)"
-              style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: 13 }} />
-            <div style={{ fontSize: 11, color: '#888', lineHeight: 1.4 }}>
+              style={inputStyle} />
+            <div style={{ fontSize: 11, color: inkFaint, lineHeight: 1.4 }}>
               🔒 Deine Bankdaten werden verschlüsselt gespeichert und sind nur für die Auszahlungs-Genehmigung sichtbar.
             </div>
             {bankResult && !bankResult.ok && (
-              <div style={{ fontSize: 11, color: '#ff8787' }}>
+              <div style={{ fontSize: 11, color: red, fontWeight: 600 }}>
                 ❌ {bankResult.error === 'invalid_iban' ? 'Bitte eine gültige IBAN eingeben.'
                   : bankResult.error === 'holder_required' ? 'Bitte einen Kontoinhaber angeben.'
                   : bankResult.error}
@@ -121,16 +147,16 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
             )}
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={handleSaveBank} disabled={savingBank || !ibanInput || !holderInput} style={{
-                padding: '7px 16px', borderRadius: 8,
-                background: (savingBank || !ibanInput || !holderInput) ? '#3a3a3a' : '#51cf66',
-                border: 'none', color: (savingBank || !ibanInput || !holderInput) ? '#777' : '#000',
-                fontWeight: 700, fontSize: 12, cursor: 'pointer',
+                padding: '8px 18px', borderRadius: 8,
+                background: (savingBank || !ibanInput || !holderInput) ? 'rgba(26,26,24,0.12)' : green,
+                border: 'none', color: (savingBank || !ibanInput || !holderInput) ? inkFaint : '#fff',
+                fontWeight: 700, fontSize: 12, cursor: (savingBank || !ibanInput || !holderInput) ? 'not-allowed' : 'pointer',
               }}>
                 {savingBank ? '…' : 'Speichern'}
               </button>
               <button onClick={() => setBankFormOpen(false)} style={{
-                padding: '7px 16px', borderRadius: 8, background: 'transparent',
-                border: '1px solid #555', color: '#999', fontSize: 12, cursor: 'pointer',
+                padding: '8px 18px', borderRadius: 8, background: 'transparent',
+                border: `1px solid ${border}`, color: inkSoft, fontSize: 12, fontWeight: 600, cursor: 'pointer',
               }}>Abbrechen</button>
             </div>
           </div>
@@ -140,15 +166,15 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
       {/* KPI-Kacheln */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
         {[
-          { label: '💰 Verfügbar',     val: fmtAvailable, color: '#51cf66' },
-          { label: '⏳ Angefordert',   val: eur(requestedEur), color: '#ffd43b' },
-          { label: '✅ Ausgezahlt',    val: fmtPaid,       color: '#74c0fc' },
+          { label: '💰 Verfügbar',     val: fmtAvailable,      color: green },
+          { label: '⏳ Angefordert',   val: eur(requestedEur), color: amber },
+          { label: '✅ Ausgezahlt',    val: fmtPaid,           color: teal },
         ].map(k => (
           <div key={k.label} style={{
-            background: 'rgba(255,255,255,0.05)', border: `1px solid ${k.color}33`,
+            background: bgCard, border: `1px solid ${border}`,
             borderRadius: 12, padding: '12px 14px',
           }}>
-            <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>{k.label}</div>
+            <div style={{ fontSize: 11, color: inkFaint, fontWeight: 600, marginBottom: 4 }}>{k.label}</div>
             <div style={{ fontSize: 20, fontWeight: 800, color: k.color }}>{k.val}</div>
           </div>
         ))}
@@ -156,38 +182,35 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
 
       {/* Auszahlung anfordern */}
       <div style={{
-        background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+        background: bgCard, border: `1px solid ${border}`,
         borderRadius: 12, padding: '14px 16px',
       }}>
-        <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 8 }}>Auszahlung anfordern</div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: ink, marginBottom: 8 }}>Auszahlung anfordern</div>
         {!hasBankDetails ? (
-          <div style={{ fontSize: 12, color: '#888' }}>
+          <div style={{ fontSize: 12, color: inkFaint }}>
             Bitte zuerst oben deine Bankverbindung hinterlegen.
           </div>
         ) : canRequest ? (
           <>
             {/* AMB-PAYOUT-016: freier Betrag, max. = auszahlbarer Betrag */}
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 12, color: '#aaa' }}>Betrag:</span>
+              <span style={{ fontSize: 12, color: inkSoft }}>Betrag:</span>
               <div style={{ position: 'relative' }}>
-                <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#888', fontSize: 13 }}>€</span>
+                <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: inkFaint, fontSize: 13 }}>€</span>
                 <input
                   type="number" step="0.01" min={minimumEur} max={availableEur}
                   value={amountInput}
                   onChange={e => setAmountInput(e.target.value)}
-                  style={{
-                    padding: '7px 10px 7px 22px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)',
-                    background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: 13, width: 110,
-                  }}
+                  style={{ ...inputStyle, padding: '7px 10px 7px 22px', width: 110 }}
                 />
               </div>
               <button onClick={() => setAmountInput(availableEur.toFixed(2))} style={{
                 padding: '6px 10px', borderRadius: 6, background: 'transparent',
-                border: '1px solid rgba(255,255,255,0.15)', color: '#aaa', fontSize: 11, cursor: 'pointer',
+                border: `1px solid ${border}`, color: inkSoft, fontSize: 11, fontWeight: 600, cursor: 'pointer',
               }}>Max ({fmtAvailable})</button>
             </div>
             {!amountValid && amountInput && (
-              <div style={{ fontSize: 11, color: '#ff8787', marginBottom: 8 }}>
+              <div style={{ fontSize: 11, color: red, fontWeight: 600, marginBottom: 8 }}>
                 {amountNum > availableEur
                   ? `Maximal ${fmtAvailable} verfügbar`
                   : `Mindestbetrag €${minimumEur}`}
@@ -195,30 +218,31 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
             )}
             {!confirmOpen ? (
               <button onClick={() => setConfirmOpen(true)} disabled={!amountValid} style={{
-                padding: '8px 18px', borderRadius: 8,
-                background: amountValid ? '#51cf66' : '#3a3a3a', border: 'none', color: amountValid ? '#000' : '#777',
+                padding: '9px 20px', borderRadius: 8,
+                background: amountValid ? green : 'rgba(26,26,24,0.10)',
+                border: 'none', color: amountValid ? '#fff' : inkFaint,
                 fontWeight: 700, fontSize: 13, cursor: amountValid ? 'pointer' : 'not-allowed',
               }}>
                 {eur(amountNum)} auszahlen →
               </button>
             ) : (
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: 12, color: '#ccc' }}>Sicher? {eur(amountNum)} werden beantragt.</span>
+                <span style={{ fontSize: 12, color: inkSoft }}>Sicher? {eur(amountNum)} werden beantragt.</span>
                 <button onClick={handleRequest} disabled={requesting} style={{
-                  padding: '6px 14px', borderRadius: 6, background: '#51cf66',
-                  border: 'none', color: '#000', fontWeight: 700, fontSize: 12, cursor: 'pointer',
+                  padding: '7px 16px', borderRadius: 8, background: green,
+                  border: 'none', color: '#fff', fontWeight: 700, fontSize: 12, cursor: 'pointer',
                 }}>
                   {requesting ? '…' : 'Ja, anfordern'}
                 </button>
                 <button onClick={() => setConfirmOpen(false)} style={{
-                  padding: '6px 14px', borderRadius: 6, background: 'transparent',
-                  border: '1px solid #555', color: '#999', fontSize: 12, cursor: 'pointer',
+                  padding: '7px 16px', borderRadius: 8, background: 'transparent',
+                  border: `1px solid ${border}`, color: inkSoft, fontSize: 12, fontWeight: 600, cursor: 'pointer',
                 }}>Abbrechen</button>
               </div>
             )}
           </>
         ) : (
-          <div style={{ fontSize: 12, color: '#888' }}>
+          <div style={{ fontSize: 12, color: inkFaint }}>
             {availableEur < minimumEur
               ? `Mindestbetrag: €${minimumEur} (aktuell ${eur(availableEur)})`
               : requestedEur > 0
@@ -228,7 +252,7 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
         )}
 
         {hasBankDetails && canRequest && !result && (
-          <div style={{ fontSize: 11, color: '#888', marginTop: 8 }}>
+          <div style={{ fontSize: 11, color: inkFaint, marginTop: 8 }}>
             ℹ️ Nach Genehmigung wird der Betrag innerhalb von 3 Werktagen auf dein Konto überwiesen.
           </div>
         )}
@@ -236,9 +260,9 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
         {result && (
           <div style={{
             marginTop: 10, padding: '8px 12px', borderRadius: 8,
-            background: result.ok ? '#51cf6622' : '#ff6b6b22',
-            border: `1px solid ${result.ok ? '#51cf66' : '#ff6b6b'}44`,
-            fontSize: 12, color: result.ok ? '#51cf66' : '#ff6b6b',
+            background: result.ok ? greenBg : redBg,
+            border: `1px solid ${result.ok ? greenBd : 'rgba(192,57,43,0.30)'}`,
+            fontSize: 12, fontWeight: 600, color: result.ok ? green : red,
           }}>
             {result.ok
               ? `✅ ${eur(result.amount_eur)} beantragt (${result.commissions} Provisionen) — wird innerhalb von 3 Werktagen bearbeitet.`
@@ -255,31 +279,24 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
       {/* Letzte Auszahlungen */}
       {payouts.length > 0 && (
         <div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase',
+          <div style={{ fontSize: 11, fontWeight: 700, color: inkFaint, textTransform: 'uppercase',
             letterSpacing: '0.07em', marginBottom: 10 }}>Letzte Auszahlungen</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {payouts.slice(0, 5).map(p => {
-              const sc = STATUS_COLORS[p.status] || '#888';
+              const sc = STATUS_COLORS[p.status] || inkFaint;
               const label = STATUS_LABELS[p.status] || p.status;
               return (
                 <div key={p.id} style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  padding: '10px 14px', borderRadius: 10,
-                  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
+                  background: bgCard, border: `1px solid ${border}`, borderRadius: 10, padding: '10px 12px',
                 }}>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: sc }}>
-                      {eur(p.amount_eur)}
-                    </div>
-                    <div style={{ fontSize: 10, color: '#666', marginTop: 2 }}>
-                      {fmtDate(p.requested_at)}
-                      {p.failed_reason && ` · ${p.failed_reason}`}
-                      {p.rejected_reason && ` · ${p.rejected_reason}`}
-                    </div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: ink }}>{eur(p.amount_eur)}</div>
+                    <div style={{ fontSize: 10, color: inkFaint }}>{fmtDate(p.requested_at)}</div>
                   </div>
                   <span style={{
                     fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 20,
-                    background: `${sc}22`, color: sc, border: `1px solid ${sc}44`,
+                    background: `${sc}1A`, color: sc,
                   }}>{label}</span>
                 </div>
               );
