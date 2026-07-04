@@ -254,7 +254,7 @@ export default function HUIBottomNavigation({
         // Der Orb selbst bleibt optisch an exakt derselben Bildschirm-
         // position (kompensiert ueber seinen "top"-Offset weiter unten).
         height: NAV_RESERVED_HEIGHT_CSS,
-        zIndex: 10000,
+        zIndex: 1,
         willChange: "opacity, transform",
         ...sharedVis,
       }}
