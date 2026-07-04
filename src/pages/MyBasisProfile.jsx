@@ -1,9 +1,4 @@
-// src/pages/MyBasisProfile.jsx — HUI Mein Profil v1
-// "Ich gestalte meine Präsenz."
-// ════════════════════════════════════════════════════════════════
-// Eigene Profil-Seite für Basis-User. Kein Creator-Dashboard.
-// Alles inline-editierbar. Ruhig. Emotional. Human.
-// ════════════════════════════════════════════════════════════════
+// src/pages/MyBasisProfile.jsx — HUI Profil (Identität & öffentliche Präsenz)
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient.js";
@@ -13,25 +8,15 @@ import {
 } from "../lib/profileMedia.js";
 import { NAV_RESERVED_HEIGHT_CSS } from "../components/home/navigation/navigationGeometry.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
-import { useHome }   from "../components/home/HomeShell.jsx";
 import GemeinschaftsFlow from "../components/GemeinschaftsFlow.jsx";
-import NotificationPanel from "../components/notifications/NotificationPanel.jsx";
-import AmbassadorModal from "../components/ambassador/AmbassadorModal.jsx";
-import SettingsModal  from "../components/settings/SettingsModal.jsx";
-import { useAmbassador } from "../hooks/useAmbassador.js";
 import { useProfileData } from "../hooks/useProfileData.js";
-import HuiStudio              from "../components/studio/HuiStudio.jsx";
-import MeineResonanz           from "./studio/MeineResonanz.jsx";
 import PublicProfilePreview   from "../components/profile/PublicProfilePreview.jsx";
-import { OrbSignatur }        from "../components/profile/OrbSignatur.jsx";
-import MerkenSection          from "../components/profile/MerkenSection.jsx";
 // Sprint F.7D Phase 4: Kanonische Sections
 import { AboutSection }          from "../components/profile/sections/AboutSection.jsx";
 import { ProfileHeader as CanonicalProfileHeader } from "../components/profile/ProfileHeader.jsx";
 import { TalentSection }         from "../components/profile/sections/TalentSection.jsx";
 import { MomentsSection }        from "../components/profile/sections/MomentsSection.jsx";
 import { RecommendationsSection } from "../components/profile/sections/RecommendationsSection.jsx";
-import { AvailabilitySection }   from "../components/profile/sections/AvailabilitySection.jsx";
 import { LocationSection }       from "../components/profile/sections/LocationSection.jsx";
 import { VisibilitySection }     from "../components/profile/sections/VisibilitySection.jsx";
 import WerkWizard      from "../components/works/WerkWizard.jsx";
@@ -362,7 +347,7 @@ function OffenFuerSection({ openFor, onChange }) {
 // ══════════════════════════════════════════════════════════════
 const MAX_BIO = 500;
 
-export default function MyBasisProfile({ onClose, profileId }) {
+export default function MyBasisProfile({ onClose, profileId, asAppShellTab = false }) {
   // AuthContext: eigenen Profile-Cache nach Uploads aktualisieren
   const _auth = useAuth() || {};
   const user            = _auth.user   ?? null;          // Sprint F.7D: user für useProfileData
@@ -382,94 +367,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [localAvatar, setLocalAvatar] = useState(null);
   const [localCover,  setLocalCover]  = useState(null);
   const [showGemeinschaft, setShowGemeinschaft] = useState(false);
-  const [showAmbModal,    setShowAmbModal]    = useState(false);
   const [showPublicPreview, setShowPublicPreview] = useState(false);
-  const [showMerken,       setShowMerken]       = useState(false);
-  const [showSettings,    setShowSettings]    = useState(false);
-  const [showStudio,        setShowStudio]        = useState(false);
-  const [showResonanz,      setShowResonanz]      = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
-
-  // ── Notification Action Routing ───────────────────────────────────────────
-  const {
-    openProfileById   = () => {},
-    switchTab         = () => {},
-    setChatRecipient  = () => {},
-    setShowChat       = () => {},
-    setShowWerkDetail = () => {},
-  } = useHome?.() || {};
-
-  const handleNotifAction = (n) => {
-    // 1. action_url hat Vorrang
-    if (n.action_url) {
-      setShowNotifications(false);
-      // Intern-Routing via Typ trotzdem ausführen für nahtlose UX
-    }
-    const meta = n.metadata || {};
-    const targetId = meta.target_id || meta.actor_id || n.actor_id || null;
-    const werkId   = meta.werk_id   || null;
-
-    setShowNotifications(false); // Panel schließen
-
-    switch (n.type) {
-      // ── Profil öffnen ───────────────────────────────────────────────────
-      case "follow":
-      case "follow_request":
-      case "new_follower":
-        if (targetId) openProfileById(targetId);
-        break;
-
-      // ── Chat öffnen ─────────────────────────────────────────────────────
-      case "begegnung":
-      case "buchung":
-      case "booking":
-      case "message":
-      case "new_message":
-        if (targetId) { setChatRecipient(targetId); setShowChat(true); }
-        break;
-
-      // ── Tab-Navigation ──────────────────────────────────────────────────
-      case "impact":
-      case "project_update":
-      case "impact_update":
-        switchTab("impact");
-        break;
-
-      case "community":
-      case "community_update":
-        switchTab("discover");
-        break;
-
-      case "inspiration":
-      case "discover":
-        switchTab("discover");
-        break;
-
-      // ── Werk-Detail öffnen ──────────────────────────────────────────────
-      case "work_approved":
-        if (werkId) setShowWerkDetail(werkId);
-        break;
-
-      // ── Werk abgelehnt: Modal wird in NotifCard selbst geöffnet ─────────
-      case "work_rejected":
-      case "content_rejected":
-        // Handled by NotifCard → RejectionModal (kein weiteres Routing nötig)
-        break;
-
-      // ── Admin / System: Detailansicht ───────────────────────────────────
-      case "admin":
-      case "admin_broadcast":
-      case "system":
-      case "info":
-        // Kein spezifisches Routing — Panel bleibt offen für Lesbarkeit
-        break;
-
-      default:
-        // Unbekannter Typ — nichts tun, Panel wurde bereits geschlossen
-        break;
-    }
-  };
-  const [unreadCount,       setUnreadCount]       = useState(0);
   // ── Sprint F.7D: Einheitliche Datenpipeline via useProfileData ──────────
   // Ersetzt: eigenen Profil-Loader useEffect (Zeilen ~962-1003)
   // Beibehaltung: Realtime-Listener für works+experiences (Regel 1)
@@ -485,8 +383,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
   } = useProfileData(user?.id);
 
   // F.9C HOTFIX: lokale Aliase erst NACH useProfileData — TDZ-Fix
-  // (hooksWorks/hooksExps/hooksRecs/profile sind jetzt deklariert)
-  const ambState = useAmbassador(profile);
   const [localWorks,       setLocalWorks]       = useState(null);
   const [localExperiences, setLocalExperiences] = useState(null);
   const works          = localWorks       ?? hooksWorks ?? [];
@@ -632,30 +528,55 @@ export default function MyBasisProfile({ onClose, profileId }) {
   }, []);
 
 
+  const loadingSpinner = (
+    <div style={{
+      ...(asAppShellTab ? { padding:"48px 20px" } : {
+        position:"fixed", inset:0, zIndex:9500, background:T.bg,
+      }),
+      display:"flex", alignItems:"center", justifyContent:"center",
+    }}>
+      <div style={{
+        width:36, height:36, borderRadius:"50%",
+        border:"3px solid rgba(14,196,184,0.15)",
+        borderTop:"3px solid #0EC4B8",
+        animation:"spin .8s linear infinite",
+      }}/>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
+  );
+
   // Sofort sichtbarer Spinner während Profil lädt — kein weißer Screen
   if (hookLoading) {
-    return (
-      <div style={{
-        position:"fixed", inset:0, zIndex:9500,
-        background:T.bg,
-        display:"flex", alignItems:"center", justifyContent:"center",
-      }}>
-        <div style={{
-          width:36, height:36, borderRadius:"50%",
-          border:"3px solid rgba(14,196,184,0.15)",
-          borderTop:"3px solid #0EC4B8",
-          animation:"spin .8s linear infinite",
-        }}/>
-        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-      </div>
-    );
+    return loadingSpinner;
   }
 
+  const rootStyle = asAppShellTab
+    ? {
+        width:"100%",
+        background:T.bg,
+        fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif",
+        color:T.ink,
+        overscrollBehavior:"none",
+      }
+    : {
+        position:"fixed", inset:0, zIndex:9500,
+        display:"flex", flexDirection:"column",
+      };
+
+  const scrollStyle = asAppShellTab
+    ? {}
+    : {
+        flex:1,
+        overflowY:"auto",
+        paddingBottom: NAV_RESERVED_HEIGHT_CSS,
+      };
+
+  const titlePadding = asAppShellTab
+    ? `0 ${T.px}px 0`
+    : `max(52px,calc(48px + env(safe-area-inset-top,0px))) ${T.px}px 0`;
+
   return (
-    <div className="mbp-root" style={{
-      position:"fixed", inset:0, zIndex:9500,
-      display:"flex", flexDirection:"column",
-    }}>
+    <div className="mbp-root" style={rootStyle}>
 
       
 {/* styles via head-inject — siehe useEffect */}
@@ -690,17 +611,11 @@ export default function MyBasisProfile({ onClose, profileId }) {
         </div>
       )}
 
-      <div className="mbp-scroll" style={{ flex:1, overflowY:"auto",
-        // War: hartkodierte Naeherung ("max(80px, 64px+safeBottom)"), leicht
-        // abweichend von der ECHTEN Nav-Reservierung. Jetzt: dieselbe geteilte
-        // Konstante wie Feed/Discover/Impact (NAV_RESERVED_HEIGHT_CSS) -- der
-        // untere weisse Freiraum oberhalb der Bottom Navigation ist dadurch
-        // pixelgenau identisch zu den anderen Hauptseiten.
-        paddingBottom: NAV_RESERVED_HEIGHT_CSS }}>
+      <div className={asAppShellTab ? undefined : "mbp-scroll"} style={scrollStyle}>
 
         {/* ── SEITEN-TITEL ─────────────────────────────────────── */}
         <div style={{
-          padding:`max(52px,calc(48px + env(safe-area-inset-top,0px))) ${T.px}px 0`,
+          padding: titlePadding,
           display:"flex", justifyContent:"space-between", alignItems:"flex-start",
         }}>
           <div>
@@ -714,20 +629,8 @@ export default function MyBasisProfile({ onClose, profileId }) {
                 : "Gestalte dein Profil so, wie du bist."}
             </div>
           </div>
-          {/* Header-Buttons: Icon-Only — 📌 👁️ ⚙️ */}
+          {/* Header: öffentliche Vorschau */}
           <div style={{ display:"flex", gap:6, alignItems:"center", flexShrink:0 }}>
-            <button
-              className="mbp-press-light"
-              onClick={() => setShowMerken(true)}
-              title="Gemerkt"
-              aria-label="Gemerkt"
-              style={{
-                width:34, height:34, borderRadius:"50%",
-                background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`,
-                display:"flex", alignItems:"center", justifyContent:"center",
-                fontSize:16, cursor:"pointer", touchAction:"manipulation", flexShrink:0,
-              }}
-            >📌</button>
             <button
               className="mbp-press-light"
               onClick={() => setShowPublicPreview(true)}
@@ -740,18 +643,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
                 fontSize:16, cursor:"pointer", touchAction:"manipulation", flexShrink:0,
               }}
             >👁️</button>
-            <button
-              className="mbp-press-light"
-              onClick={() => setShowStudio(true)}
-              title="Einstellungen"
-              aria-label="Einstellungen"
-              style={{
-                width:34, height:34, borderRadius:"50%",
-                background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`,
-                display:"flex", alignItems:"center", justifyContent:"center",
-                fontSize:16, cursor:"pointer", touchAction:"manipulation", flexShrink:0,
-              }}
-            >⚙️</button>
           </div>
         </div>
         <Gap h={12}/>
@@ -770,38 +661,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           onEditAvatar={handleAvatarChange}
           onEditCover={handleCoverChange}
         />
-        {(profile?.id ?? user?.id) && (
-          <OrbSignatur profileId={profile?.id ?? user?.id} />
-        )}
         <Gap h={28}/>
-
-        {/* ── MEINE RESONANZ SCHNELLZUGRIFF ─────────────────────── */}
-        <div style={{ padding:`0 ${T.px}px` }}>
-          <button
-            onClick={() => setShowResonanz(true)}
-            style={{
-              width:"100%", display:"flex", alignItems:"center", gap:14,
-              padding:"15px 18px", background:T.bgCard, border:`1px solid ${T.border}`,
-              borderRadius:T.r16, cursor:"pointer", fontFamily:"inherit",
-              textAlign:"left", boxShadow:"0 1px 6px rgba(26,26,24,0.07)",
-              WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
-            }}
-          >
-            <span style={{
-              width:36, height:36, borderRadius:10, flexShrink:0,
-              background:"rgba(232,93,117,0.09)",
-              display:"flex", alignItems:"center", justifyContent:"center", fontSize:18,
-            }}>❤️</span>
-            <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ fontSize:14, fontWeight:700, color:T.ink }}>Meine Resonanz</div>
-              <div style={{ fontSize:12, color:T.inkSoft, marginTop:1 }}>
-                Alles, was du unterstützt, erlebt und bewegt hast.
-              </div>
-            </div>
-            <span style={{ color:T.inkFaint, fontSize:17 }}>›</span>
-          </button>
-        </div>
-        <Gap h={20}/>
 
         {/* ══ TALENT-PROFIL-LAYOUT (is_talent === true) ══════════ */}
         {profile?.is_talent ? (
@@ -846,15 +706,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
             />
             <Gap h={24}/>
 
-            {/* T6a. Verfügbarkeit — kanonisch: AvailabilitySection */}
-            <AvailabilitySection
-              profile={profile}
-              isOwner={true}
-              onSave={handleAvailabilitySave}
-            />
-            <Gap h={16}/>
-
-            {/* T6b. Standort — kanonisch: LocationSection */}
+            {/* T6. Standort — kanonisch: LocationSection */}
             <LocationSection
               profile={profile}
               isOwner={true}
@@ -903,14 +755,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
               isOwner={true}
               onSave={handleVisibilitySave}
             />
-            <Gap h={28}/>
-
-            {/* B6. Ambassador-Banner */}
-            <AmbassadorBanner
-              profile={profile}
-              ambState={ambState}
-              onApply={() => setShowAmbModal(true)}
-            />
             <Gap h={40}/>
           </>
         )}
@@ -929,77 +773,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
         />
       )}
 
-      {/* SETTINGS MODAL */}
-      {showSettings && (
-        <SettingsModal
-          profile={profile}
-          onClose={() => setShowSettings(false)}
-          onProfileUpdate={(updated) => {
-            refreshProfile?.().catch(() => {});
-          }}
-          onEditProfile={() => {
-            setShowSettings(false);
-            // Öffne Profil-Editor falls vorhanden
-            if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("hui:openEditor"));
-          }}
-          onOpenBookings={() => {
-            setShowSettings(false);
-            if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("hui:openBookings"));
-          }}
-        />
-      )}
-
-      {/* 📌 GEMERKTE INHALTE */}
-      {showMerken && (
-        <div style={{
-          position:"fixed", inset:0, zIndex:9990,
-          background:"#F9F7F4",
-          overflowY:"auto",
-          WebkitOverflowScrolling:"touch",
-        }}>
-          {/* Header */}
-          <div style={{
-            position:"sticky", top:0, zIndex:9995,
-            background:"rgba(249,247,244,0.95)",
-            borderBottom:"1px solid rgba(26,26,46,0.07)",
-            padding:"12px 16px",
-            display:"flex", alignItems:"center", justifyContent:"space-between",
-            backdropFilter:"blur(10px)",
-          }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <span style={{ fontSize:18 }}>📌</span>
-              <span style={{ fontSize:15, fontWeight:800, color:"#1A1A2E", letterSpacing:"-0.02em" }}>
-                Gemerkte Inhalte
-              </span>
-            </div>
-            <button
-              onClick={() => setShowMerken(false)}
-              style={{
-                padding:"6px 14px", borderRadius:20,
-                background:"rgba(26,26,46,0.08)", border:"1px solid rgba(26,26,46,0.10)",
-                fontSize:12, fontWeight:700, color:"rgba(26,26,46,0.55)",
-                cursor:"pointer", touchAction:"manipulation",
-              }}
-            >✕ Schließen</button>
-          </div>
-          {/* Content */}
-          <div style={{ padding:"16px" }}>
-            <MerkenSection
-              onOpenProfile={(id) => {
-                setShowMerken(false);
-                if (typeof window !== "undefined" && window.__HUI_OPEN_PROFILE__) {
-                  window.__HUI_OPEN_PROFILE__(id);
-                }
-              }}
-              onOpenDiscover={() => {
-                setShowMerken(false);
-                switchTab("discover");
-              }}
-            />
-          </div>
-        </div>
-      )}
-
       {/* 👁️ ÖFFENTLICHE PROFILANSICHT */}
       {showPublicPreview && profile?.id && (
         <PublicProfilePreview
@@ -1007,53 +780,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
           onClose={() => setShowPublicPreview(false)}
         />
       )}
-
-      {/* HUI STUDIO MODAL */}
-      {showStudio && (
-        <HuiStudio
-          profile={profile}
-          onClose={() => setShowStudio(false)}
-          onProfileUpdate={(upd) => {
-            // Sprint F.7D P2: setProfile → reload()
-            setAuthProfile && setAuthProfile(p => ({ ...p, ...upd }));
-            refreshProfile?.().catch(() => {});
-            reload();
-          }}
-        />
-      )}
-
-      {/* ❤️ MEINE RESONANZ */}
-      {showResonanz && (
-        <MeineResonanz
-          onClose={() => setShowResonanz(false)}
-          onNavigate={(type, navId) => {
-            setShowResonanz(false);
-          }}
-        />
-      )}
-
-      {/* AMBASSADOR BEWERBUNGS-MODAL */}
-      {showAmbModal && profile?.id && (
-        <AmbassadorModal
-          userId={profile.id}
-          onClose={() => setShowAmbModal(false)}
-          onSuccess={() => {
-            setShowAmbModal(false);
-            refreshProfile?.().catch(() => {});
-          }}
-        />
-      )}
-
-      {/* NOTIFICATION PANEL */}
-      {showNotifications && profile?.id && (
-        <NotificationPanel
-          userId={profile.id}
-          onClose={() => setShowNotifications(false)}
-          onUnreadChange={setUnreadCount}
-          onAction={handleNotifAction}
-        />
-      )}
-
 
       {/* WERK WIZARD */}
       {showWerkWizard && profile?.id && (
@@ -1095,151 +821,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
 }
 
 
-
-// ══════════════════════════════════════════════════════════════
-// AMBASSADOR-PROFIL-SEKTION
-// Zeigt Status, Einladungslink, Empfehlungen
-// ══════════════════════════════════════════════════════════════
-function AmbassadorProfilSection({ profile, ambState, onApply }) {
-  const T2 = {
-    teal:"#0EC4B8", tealSoft:"rgba(14,196,184,0.08)",
-    tealMid:"rgba(14,196,184,0.2)", ink:"#1A1A18",
-    inkSoft:"#555552", inkFaint:"#888885",
-    bgCard:"#FFFFFF", border:"rgba(26,26,24,0.09)",
-    r16:"12px", r12:"10px", r99:"99px", card:"0 1px 4px rgba(0,0,0,0.06)",
-  };
-
-  const isAmb      = profile?.is_ambassador === true;
-  const status     = ambState?.applicationStatus;
-  const hasPending = status === 'offen' || status === 'pending';
-  const isRejected = status === 'abgelehnt' || status === 'rejected';
-  const ref_link   = profile?.profile_modules?.ambassador?.referral_link || null;
-  const ref_code   = profile?.profile_modules?.ambassador?.referral_code || null;
-  const refCount   = profile?.profile_modules?.ambassador?.referral_count || 0;
-
-  function copyLink() {
-    if (ref_link) {
-      navigator.clipboard.writeText(ref_link).catch(() => {});
-    }
-  }
-
-  // Nicht-Ambassador: CTA anzeigen
-  if (!isAmb) {
-    return (
-      <div style={{ padding:"0 20px" }}>
-        <div style={{
-          background:T2.bgCard, borderRadius:T2.r16,
-          border:`1px solid ${T2.border}`, padding:"18px",
-          boxShadow:T2.card,
-        }}>
-          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
-            <span style={{fontSize:18}}>🌟</span>
-            <span style={{fontSize:14, fontWeight:800, color:T2.ink}}>Ambassador werden</span>
-          </div>
-          <div style={{fontSize:13, color:T2.inkSoft, lineHeight:1.6, marginBottom:14}}>
-            Als Ambassador empfiehlst du HUI weiter und verdienst mit jedem aktiven Mitglied, das du eingeladen hast.
-          </div>
-          {hasPending && (
-            <div style={{
-              background:"rgba(255,193,7,0.1)", borderRadius:T2.r12,
-              border:"1px solid rgba(255,193,7,0.3)", padding:"10px 14px",
-              fontSize:12, color:"#B8860B", fontWeight:600, marginBottom:10,
-            }}>
-              ⏳ Deine Bewerbung wird geprüft
-            </div>
-          )}
-          {isRejected && (
-            <div style={{
-              background:"rgba(255,99,71,0.08)", borderRadius:T2.r12,
-              border:"1px solid rgba(255,99,71,0.2)", padding:"10px 14px",
-              fontSize:12, color:"#cc4433", fontWeight:600, marginBottom:10,
-            }}>
-              ❌ Bewerbung abgelehnt
-            </div>
-          )}
-          {!hasPending && !isRejected && (
-            <button onClick={onApply} style={{
-              padding:"10px 20px", borderRadius:T2.r99,
-              background:T2.teal, border:"none", color:"white",
-              fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"inherit",
-              touchAction:"manipulation",
-            }}>
-              Jetzt bewerben
-            </button>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  // Aktiver Ambassador: Dashboard
-  return (
-    <div style={{ padding:"0 20px" }}>
-      {/* Status-Badge */}
-      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
-        <SectionRow title="Ambassador" />
-        <div style={{
-          display:"inline-flex", alignItems:"center", gap:5,
-          background:"rgba(14,196,184,0.08)", borderRadius:T2.r99,
-          border:`1px solid ${T2.tealMid}`, padding:"3px 10px",
-          fontSize:11, fontWeight:700, color:T2.teal,
-        }}>
-          ✅ Aktiv
-        </div>
-      </div>
-
-      {/* Stats */}
-      <div style={{
-        display:"grid", gridTemplateColumns:"1fr 1fr",
-        gap:10, marginBottom:14,
-      }}>
-        {[
-          { emoji:"👥", label:"Eingeladene", value: refCount },
-          { emoji:"🥉", label:"Level", value: refCount >= 201 ? "Platin" : refCount >= 51 ? "Gold" : refCount >= 11 ? "Silber" : "Bronze" },
-        ].map(({ emoji, label, value }) => (
-          <div key={label} style={{
-            background:T2.bgCard, borderRadius:T2.r12,
-            border:`1px solid ${T2.border}`, padding:"12px",
-            textAlign:"center", boxShadow:T2.card,
-          }}>
-            <div style={{fontSize:20, marginBottom:4}}>{emoji}</div>
-            <div style={{fontSize:18, fontWeight:800, color:T2.teal}}>{value}</div>
-            <div style={{fontSize:11, color:T2.inkFaint}}>{label}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Einladungslink */}
-      {ref_link && (
-        <div style={{
-          background:T2.tealSoft, borderRadius:T2.r12,
-          border:`1px solid ${T2.tealMid}`, padding:"12px 14px",
-          marginBottom:10,
-        }}>
-          <div style={{fontSize:11, fontWeight:700, color:T2.teal, marginBottom:4}}>
-            🔗 Dein Einladungslink
-          </div>
-          <div style={{
-            fontSize:12, color:T2.inkSoft, fontFamily:"monospace",
-            wordBreak:"break-all", marginBottom:8,
-          }}>
-            {ref_link}
-          </div>
-          <button onClick={copyLink} style={{
-            padding:"6px 14px", borderRadius:T2.r99,
-            background:T2.teal, border:"none", color:"white",
-            fontSize:11, fontWeight:700, cursor:"pointer", fontFamily:"inherit",
-            touchAction:"manipulation",
-          }}>
-            Link kopieren
-          </button>
-        </div>
-      )}
-
-
-    </div>
-  );
-}
 
 // ══════════════════════════════════════════════════════════════
 // TALENT-ERWEITERUNG
@@ -1314,80 +895,6 @@ function TalentErweiterung({ profile, onProfileUpdate }) {
   );
 }
 
-
-// ══════════════════════════════════════════════════════════════
-// AMBASSADOR BANNER — Screenshot-genau unten im Profil
-// Kompakter Banner mit Bild + Text + Button
-// ══════════════════════════════════════════════════════════════
-function AmbassadorBanner({ profile, ambState, onApply }) {
-  const isAmb     = profile?.is_ambassador === true;
-  const isPending = ambState?.isPending || ambState?.applicationStatus === "offen"
-                    || ambState?.applicationStatus === "pending";
-  if (isAmb) return null; // Aktive Ambassadors brauchen keinen CTA
-
-  return (
-    <div style={{ padding:`0 ${T.px}px` }}>
-      <div style={{
-        background:T.bgCard,
-        borderRadius:T.r20,
-        border:`1px solid ${T.border}`,
-        boxShadow:T.card,
-        padding:"16px 18px",
-        display:"flex", alignItems:"center", gap:14,
-      }}>
-        {/* Münz-Icon */}
-        <div style={{
-          width:44, height:44, borderRadius:T.r12, flexShrink:0,
-          background:"linear-gradient(135deg,rgba(255,193,7,0.15),rgba(255,193,7,0.08))",
-          border:"1.5px solid rgba(255,193,7,0.25)",
-          display:"flex", alignItems:"center", justifyContent:"center",
-          fontSize:22,
-        }}>
-          🏅
-        </div>
-
-        {/* Text */}
-        <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ fontSize:14, fontWeight:800, color:T.ink, marginBottom:2 }}>
-            Ambassador werden
-          </div>
-          <div style={{ fontSize:12, color:T.inkSoft, lineHeight:1.45 }}>
-            Teile HUI mit anderen und unterstütze das Wachstum der Gemeinschaft.
-          </div>
-          {isPending && (
-            <div style={{
-              marginTop:6, fontSize:11.5, fontWeight:600,
-              color:"#B8860B",
-            }}>
-              ⏳ Bewerbung wird geprüft
-            </div>
-          )}
-        </div>
-
-        {/* Button */}
-        {!isPending && (
-          <button
-            onClick={onApply}
-            className="mbp-press"
-            style={{
-              flexShrink:0,
-              padding:"10px 16px", borderRadius:T.r99,
-              background:`linear-gradient(135deg,${T.teal},#0DBBAF)`,
-              border:"none", color:"white",
-              fontSize:12.5, fontWeight:700,
-              cursor:"pointer", touchAction:"manipulation",
-              fontFamily:"inherit",
-              whiteSpace:"nowrap",
-              boxShadow:T.glowTeal,
-            }}
-          >
-            Jetzt anmelden ›
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
 
 // ══════════════════════════════════════════════════════════════
 // TALENT-PROFIL SEKTIONEN (is_talent === true)

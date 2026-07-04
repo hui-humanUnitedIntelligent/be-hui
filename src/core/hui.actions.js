@@ -108,6 +108,7 @@ export const A = {
   GO_DISCOVER:          "GO_DISCOVER",
   GO_IMPACT:            "GO_IMPACT",
   GO_FAVORITES:         "GO_FAVORITES",
+  GO_PROFILE:           "GO_PROFILE",
 };
 
 // ─── Action Context ────────────────────────────────────────────────
@@ -441,6 +442,7 @@ export function buildActions(shell) {
     [A.GO_DISCOVER]:  () => { logAction(A.GO_DISCOVER);  switchTab?.("discover");  },
     [A.GO_IMPACT]:    () => { logAction(A.GO_IMPACT);    switchTab?.("impact");    },
     [A.GO_FAVORITES]: () => { logAction(A.GO_FAVORITES); switchTab?.("favorites"); },
+    [A.GO_PROFILE]:   () => { logAction(A.GO_PROFILE);   switchTab?.("creator");   },
   };
 
   return actions;
