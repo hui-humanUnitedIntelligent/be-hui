@@ -11,7 +11,6 @@ import {
   FB_AVATAR,
   handleAvatarUpload, handleCoverUpload,
 } from "../lib/profileMedia.js";
-import { NAV_RESERVED_HEIGHT_CSS } from "../components/home/navigation/navigationGeometry.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
 import { useHome }   from "../components/home/HomeShell.jsx";
 import GemeinschaftsFlow from "../components/GemeinschaftsFlow.jsx";
@@ -59,7 +58,7 @@ const T = {
 
 // ── CSS ──────────────────────────────────────────────────────────
 const CSS = `
-  .mbp-root { background:#F9F7F4; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif; color:${T.ink}; }
+  .mbp-root { font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif; color:${T.ink}; }
   .mbp-scroll { overflow-y:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
   .mbp-scroll::-webkit-scrollbar { display:none; }
   .mbp-hscroll { overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
@@ -632,13 +631,12 @@ export default function MyBasisProfile({ onClose, profileId }) {
   }, []);
 
 
-  // Sofort sichtbarer Spinner während Profil lädt — kein weißer Screen
+  // Spinner — Shell kommt von AppShell.Overlay (ProfileLauncher)
   if (hookLoading) {
     return (
       <div style={{
-        position:"fixed", inset:0, zIndex:9500,
-        background:T.bg,
         display:"flex", alignItems:"center", justifyContent:"center",
+        minHeight:"50vh",
       }}>
         <div style={{
           width:36, height:36, borderRadius:"50%",
@@ -652,13 +650,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
   }
 
   return (
-    <div className="mbp-root" style={{
-      position:"fixed", inset:0, zIndex:9500,
-      display:"flex", flexDirection:"column",
-    }}>
-
-      
-{/* styles via head-inject — siehe useEffect */}
+    <>
 
       {/* Save-Error-Toast */}
       {saveErrMsg ? (
@@ -690,17 +682,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
         </div>
       )}
 
-      <div className="mbp-scroll" style={{ flex:1, overflowY:"auto",
-        // War: hartkodierte Naeherung ("max(80px, 64px+safeBottom)"), leicht
-        // abweichend von der ECHTEN Nav-Reservierung. Jetzt: dieselbe geteilte
-        // Konstante wie Feed/Discover/Impact (NAV_RESERVED_HEIGHT_CSS) -- der
-        // untere weisse Freiraum oberhalb der Bottom Navigation ist dadurch
-        // pixelgenau identisch zu den anderen Hauptseiten.
-        paddingBottom: NAV_RESERVED_HEIGHT_CSS }}>
-
-        {/* ── SEITEN-TITEL ─────────────────────────────────────── */}
+        {/* ── SEITEN-TITEL — Safe-Area oben via AppShell.Overlay ── */}
         <div style={{
-          padding:`max(52px,calc(48px + env(safe-area-inset-top,0px))) ${T.px}px 0`,
+          padding:`0 ${T.px}px 0`,
           display:"flex", justifyContent:"space-between", alignItems:"flex-start",
         }}>
           <div>
@@ -914,9 +898,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
             <Gap h={40}/>
           </>
         )}
-      </div>
-
-      {/* GEMEINSCHAFT FLOW MODAL */}
       {showGemeinschaft && (
         <GemeinschaftsFlow
           onClose={() => setShowGemeinschaft(false)}
@@ -1090,7 +1071,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           }}
         />
       )}
-    </div>
+    </>
   );
 }
 

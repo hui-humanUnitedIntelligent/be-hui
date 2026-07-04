@@ -21,6 +21,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useEffect, useRef, useState } from "react";
+import AppShell from "../components/home/shell/AppShell.jsx";
 
 // ─────────────────────────────────────────────────────────────────
 // DESIGN TOKENS
@@ -646,71 +647,38 @@ export default function MeinHUI({
 
   if (!visible) return null;
 
-  // ── Der gesamte Raum: EINE Einheit, weiches Fade + 10px Slide ──────────
-  // Öffnen:   opacity 0→1, translateY 10px→0, ~300ms
-  // Schließen: bleibt sichtbar bis Content weg ist (CLOSE_CONTENT_MS),
-  //            blendet danach selbst aus (CLOSE_SCREEN_MS, delayed)
-  const screenStyle = {
-    position: "fixed", inset: 0,
-    // Kein eigener Fullscreen-Hintergrund mehr — lässt den App-Hintergrund
-    // (Home.jsx) durchscheinen statt ihn redundant neu zu übermalen.
-    // Nur einzelne Content-Blöcke (Header-Karten, Grundpfeiler etc.)
-    // behalten ihre eigene Card-Füllung.
-    background: "transparent",
-    zIndex: 9000,
-    overflowY: "auto", overflowX: "hidden",
-    WebkitOverflowScrolling: "touch",
-    overscrollBehavior: "contain",
-    opacity: closing ? 0 : (entered ? 1 : 0),
-    transform: closing ? "translateY(10px)" : (entered ? "translateY(0)" : "translateY(10px)"),
-    transition: closing
-      ? `opacity ${CLOSE_SCREEN_MS}ms ${EASE} ${CLOSE_CONTENT_MS}ms, transform ${CLOSE_SCREEN_MS}ms ${EASE} ${CLOSE_CONTENT_MS}ms`
-      : `opacity 300ms ${EASE}, transform 300ms ${EASE}`,
-  };
-
-  // ── Content-Gruppe: verschwindet ZUERST beim Schließen ─────────────────
+  // Content-Gruppe: verschwindet ZUERST beim Schließen
   const contentGroupStyle = closing
     ? {
         opacity: 0,
         transform: "translateY(8px)",
         transition: `opacity ${CLOSE_CONTENT_MS}ms ${EASE}, transform ${CLOSE_CONTENT_MS}ms ${EASE}`,
       }
-    : {};
+    : undefined;
 
   return (
     <>
       <style>{KEYFRAMES}</style>
-      <div ref={scrollRef} style={screenStyle}>
-        <div style={{
-          paddingTop: "max(14px, env(safe-area-inset-top, 14px))",
-          paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 120px)",
-          ...contentGroupStyle,
-        }}>
-
-          {/* Block 2 — Begrüßung */}
-          <ProfileHeader profile={profile} onNotif={onNotif} onSettings={onSettings} delay={TITLE_DELAY} />
-
-          {/* Block 1 — Orb, Block 3 — Info-Karten */}
-          <OrbHero profile={profile} coreDelay={CORE_DELAY} infoDelay={INFO_DELAY} />
-
-          <div style={{ width: 28, height: 1, background: T.inkFaint, margin: "6px auto 26px", opacity: 0.35 }} />
-
-          {/* Block 4 — Grundpfeiler */}
-          <Pillars delay={PILLARS_DELAY} />
-
-          <div style={{ height: 30 }} />
-
-          {/* Block 5 — Reise */}
-          <Journey delay={JOURNEY_DELAY} />
-
-          <div style={{ height: 30 }} />
-
-          {/* Block 6 — Rest */}
-          <ImpactMoments delay={MOMENTS_DELAY} />
-
-          <div style={{ height: 12 }} />
-        </div>
-      </div>
+      <AppShell.Overlay
+        visible
+        zIndex={9000}
+        scrollRef={scrollRef}
+        cinematic
+        closing={closing}
+        entered={entered}
+        background="transparent"
+        contentGroupStyle={contentGroupStyle}
+      >
+        <ProfileHeader profile={profile} onNotif={onNotif} onSettings={onSettings} delay={TITLE_DELAY} />
+        <OrbHero profile={profile} coreDelay={CORE_DELAY} infoDelay={INFO_DELAY} />
+        <div style={{ width: 28, height: 1, background: T.inkFaint, margin: "6px auto 26px", opacity: 0.35 }} />
+        <Pillars delay={PILLARS_DELAY} />
+        <div style={{ height: 30 }} />
+        <Journey delay={JOURNEY_DELAY} />
+        <div style={{ height: 30 }} />
+        <ImpactMoments delay={MOMENTS_DELAY} />
+        <div style={{ height: 12 }} />
+      </AppShell.Overlay>
     </>
   );
 }
