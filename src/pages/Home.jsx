@@ -18,6 +18,7 @@ import { PaintRecoveryManager } from "../lib/world/safariPaintRecovery.js";
 import HomeShell, { useHome }   from "../components/home/HomeShell.jsx";
 import { useHuiFlow } from "../core/hui.flow.js";
 import { safeOrbAction } from "../core/hui.safePayload.js";
+import AppShell                  from "../components/home/shell/AppShell.jsx";
 import HomeHeader                from "../components/home/header/HomeHeader.jsx";
 import HUIBottomNavigation       from "../components/home/navigation/HUIBottomNavigation.jsx";
 import ProfileLauncher           from "../components/home/profile/ProfileLauncher.jsx";
@@ -52,7 +53,6 @@ const HuiMatchOverlay     = React.lazy(() => import("../components/HuiMatchOverl
 // OrbCompass replaces HuiPlusSheet — Begegnungs-Kompass
 import OrbCompass from "../components/OrbCompass.jsx";
 import MeinHUI    from "./MeinHUI.jsx";
-import { IX } from "../design/hui.interaction.js";
 import ContentTypeSelector from "../content/ContentTypeSelector.jsx";
 import InvitationFlow from "../content/invitation/InvitationFlow.jsx";
 const HuiMembershipFlow   = React.lazy(() => import("../components/HuiMembershipFlow.jsx"));
@@ -61,28 +61,6 @@ const HuiCreateFlow       = React.lazy(() => import("../components/HuiCreateFlow
 const TalentOnboarding    = React.lazy(() => import("../components/TalentOnboarding.jsx"));
 const StoryComposer       = React.lazy(() => import("../components/StoryComposer.jsx"));
 // ExperienceCreator: removed (ExperienceFlow used instead — dead import)
-
-const C = { cream: "#F9F7F4" };
-
-const SAFE_MOTION_CSS = SAFE_MODE.motion ? '' : `
-  /* SafeMode.motion=false: Alle Animationen deaktiviert */
-  *, *::before, *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-  }
-`;
-
-const GLOBAL_CSS = IX.CSS + `
-  * { box-sizing: border-box; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-  html, body { margin: 0; padding: 0; background: #F9F7F4; }
-  #root { width: 100%; max-width: 100%; overflow-x: hidden; background: #F9F7F4; }
-  /* Phase 22: Keine Text-Select beim Tap */
-  button, [role="button"] { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-`;
-
-/* ══════════════════════════════════════════════════════════════ */
-
 
 function HomeInner() {
   const navigate = useNavigate();
@@ -280,80 +258,40 @@ function HomeInner() {
 
   return (
     <>
-      <style>{GLOBAL_CSS + SAFE_MOTION_CSS}</style>
+      <AppShell.GlobalStyles />
 
+      <AppShell>
+        <AppShell.Header>
+          <HomeHeader
+            activeMood={activeMood}
+            onMoodSelect={setActiveMood}
+            notifCount={liveNotifCount}
+            msgCount={unreadTotal}
+            currentUser={currentUser}
+            onNotif={() => {
+              setShowNotifs(true);
+            }}
+          />
+        </AppShell.Header>
 
-      {/* ── Haupt-Layout: Header → Feed → HUIBottomNavigation ─── */}
-      <div style={{
-        height:          "100dvh",         /* dvh: Safari 15.4+ */
-        /* minHeight:-webkit-fill-available ENTFERNT:
-           Kollidiert mit height:100dvh auf iPad Safari.
-           -webkit-fill-available = Layout-Viewport (~1070px),
-           100dvh = Visual-Viewport (~940px).
-           min() gewinnt → Container zu groß → Safari-Scaling. */
-        display:         "flex",
-        flexDirection:   "column",
-        background:      C.cream,
-        position:        "relative",
-        width:           "100%",           /* kein overflow über Viewport */
-        maxWidth:        "100%",
-        overflowX:       "hidden",
-        /* overflow:hidden BEWUSST WEGGELASSEN — Safari pointer-events Fix */
-      }}>
-
-        {/* Header */}
-        <HomeHeader
-          activeMood={activeMood}
-          onMoodSelect={setActiveMood}
-          notifCount={liveNotifCount}
-          msgCount={unreadTotal}
-          currentUser={currentUser}
-          onNotif={() => {
-            setShowNotifs(true);
-          }}
-        />
-
-        {/* Phase 16.4: Surface Dim Overlay — position:fixed, above tab content,
-             below surface overlays. Dims entire viewport when surface is active.
-             NEVER blocks pointer events on tab content. */}
-        <div
+        <AppShell.DimOverlay
           style={{
             ...worldTokens.dimStyle,
-            // Override zIndex to sit between tab content and overlays
             zIndex: 8985,
           }}
-          aria-hidden="true"
         />
 
-        {/* Scroll-Bereich */}
-        <div
-          className="hui-scroll"
-          ref={(el) => { mainScrollRef.current = el; scrollContainerRef.current = el; }}
+        <AppShell.Content
+          scrollRef={(el) => { mainScrollRef.current = el; scrollContainerRef.current = el; }}
           style={{
-            flex:         1,
-            overflowY:    "auto",
-            overflowX:    "hidden",
-            position:     "relative",
-            // overscroll-behavior:contain = kein Bounce/Rubber-Band am Ende,
-            // Scrollen bleibt aber möglich (kein "none" → würde Scroll blockieren)
-            overscrollBehavior: "contain",
-            WebkitOverflowScrolling: "touch",
-            // NAV-LAYOUT: Feed endet oberhalb der HUIBottomNavigation.
-            // Die Navigation reserviert ihren Platz als flex-shrink:0 Geschwister.
-            // Kein paddingBottom nötig — kein Content läuft hinter die Navigation.
-            // Phase 22: Atmosphärische Kontinuität beim Tab-Wechsel
-            // Sanfte background-transition — gibt das Gefühl von
-            // "Raum-Wechsel" statt "Screen-Wechsel"
-            // Soft Transition — Hintergrund wird innerhalb von ~300ms leicht
-            // weicher (Opacity/Blur), kein harter Wechsel.
             filter: (orbTransition === "exiting" || orbTransition === "hidden")
               ? "blur(3px) brightness(0.96)"
               : "blur(0px) brightness(1)",
-            transition:   "background-color 320ms cubic-bezier(0.16,1,0.30,1), filter 0.3s ease-in-out",
+            transition: "background-color 320ms cubic-bezier(0.16,1,0.30,1), filter 0.3s ease-in-out",
             ...worldTokens.feedContainerStyle,
           }}
         >
-          <div ref={tabRefs.feed} style={keepFeed}>
+          <AppShell.TabPanel ref={tabRefs.feed} style={keepFeed}>
             <AmbientWorldBar />
             {SAFE_MODE.homeFeed ? (
               <SafeRender flag="homeFeed" label="Feed">
@@ -407,11 +345,9 @@ function HomeInner() {
                   letterSpacing:"-0.005em", animation:"huiFadeIn 0.6s ease" }}>Atmet…</div>
               </div>
             )}
-          </div>
+          </AppShell.TabPanel>
 
-          {/* Phase 17.1 FIX: tabVisibilityController liefert jetzt position:absolute
-               für inaktive Tabs → kein Flow-Space-Problem mehr */}
-          <div ref={tabRefs.discover} style={keepDiscover}>
+          <AppShell.TabPanel ref={tabRefs.discover} style={keepDiscover}>
             <Suspense fallback={<div style={{padding:"40px 20px",textAlign:"center",opacity:0.6,fontSize:13,
   color:"rgba(20,20,34,0.40)",animation:"huiFadeIn 0.5s ease"}}>Entdecken öffnet sich…</div>}>
               <SafeRender flag="discoverFeed" label="DiscoverPage">
@@ -425,18 +361,18 @@ function HomeInner() {
                   />
               </SafeRender>
             </Suspense>
-          </div>
+          </AppShell.TabPanel>
 
-          <div ref={tabRefs.impact} style={keepImpact}>
+          <AppShell.TabPanel ref={tabRefs.impact} style={keepImpact}>
             <Suspense fallback={<div style={{padding:"40px 20px",textAlign:"center",opacity:0.6,fontSize:13,
   color:"rgba(20,20,34,0.40)",animation:"huiFadeIn 0.5s ease"}}>Impact-Raum öffnet sich…</div>}>
               <SafeRender flag="impactPage" label="ImpactPage">
                 <ImpactPage currentUser={currentUser}/>
               </SafeRender>
             </Suspense>
-          </div>
+          </AppShell.TabPanel>
 
-          <div ref={tabRefs.favorites} style={keepFavorites}>
+          <AppShell.TabPanel ref={tabRefs.favorites} style={keepFavorites}>
             <Suspense fallback={<div style={{
           position:'fixed',inset:0,display:'flex',
           alignItems:'center',justifyContent:'center',
@@ -458,11 +394,11 @@ function HomeInner() {
                 onDiscover={() => handleTab("discover")}
               />
             </Suspense>
-          </div>
-        </div>
+          </AppShell.TabPanel>
+        </AppShell.Content>
 
-        {/* ── HUIBottomNavigation: in-flow, reserviert eigenen Platz ── */}
-        <HUIBottomNavigation
+        <AppShell.BottomNav>
+          <HUIBottomNavigation
           tab={tab}
           onTab={onTabPress}
           creatorOpen={showCreatorDashboard}
@@ -493,9 +429,9 @@ function HomeInner() {
             setShowPlusSheet(true);
             setTimeout(() => setOrbTransition("hidden"), 300);
           }}
-        />
-
-      </div>
+          />
+        </AppShell.BottomNav>
+      </AppShell>
 
       {/* KORB-01: Floating Korb-Button — oberhalb TabBar */}
       {SAFE_MODE.werkFlow && (

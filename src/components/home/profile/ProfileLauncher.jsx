@@ -11,6 +11,7 @@ import { S } from "../../../core/hui.sources.js";
 import { ProfileService } from '../../../services/db';
 import { supabase } from "../../../lib/supabaseClient.js";
 import { isProfileTalent } from "../../../lib/profileUtils.js";
+import AppShell from "../shell/AppShell.jsx";
 
 // ── Inline ErrorBoundary ─────────────────────────────────────────
 class ProfileErrorBoundary extends React.Component {
@@ -131,14 +132,13 @@ const BasisProfilePage   = lazyWithRetry(() => import("../../../pages/BasisProfi
 const TalentProfilePage  = lazyWithRetry(() => import("../../../pages/TalentProfilePage.jsx"));
 const MyBasisProfile     = lazyWithRetry(() => import("../../../pages/MyBasisProfile.jsx"));
 
-// ── Spinner Fallback ─────────────────────────────────────────────
+// ── Spinner Fallback — zentriert in AppShell.Overlay ─────────────
 function Spinner() {
   return (
     <div style={{
-      position:"fixed", inset:0, zIndex:9500,
-      background:"#F7F5F0",
       display:"flex", flexDirection:"column",
-      alignItems:"center", justifyContent:"center", gap:16,
+      alignItems:"center", justifyContent:"center",
+      minHeight:"50vh", gap:16,
     }}>
       <div style={{
         width:40, height:40, borderRadius:"50%",
@@ -227,19 +227,25 @@ export default function ProfileLauncher() {
 
     // Solange DB-Query läuft → Spinner zeigen, NICHT schon rendern
     if (!resolved) {
-      return <Spinner />;
+      return (
+        <AppShell.Overlay visible zIndex={9500} overlayVariant="profile">
+          <Spinner />
+        </AppShell.Overlay>
+      );
     }
 
     const ProfileComponent = isTalent ? TalentProfilePage : BasisProfilePage;
 
     return (
       <ProfileErrorBoundary profileId={selectedProfileId} onClose={closeProfileById}>
-        <React.Suspense fallback={<Spinner />}>
-          <ProfileComponent
-            profileId={selectedProfileId}
-            onClose={closeProfileById}
-          />
-        </React.Suspense>
+        <AppShell.Overlay visible zIndex={9500} overlayVariant="profile">
+          <React.Suspense fallback={<Spinner />}>
+            <ProfileComponent
+              profileId={selectedProfileId}
+              onClose={closeProfileById}
+            />
+          </React.Suspense>
+        </AppShell.Overlay>
       </ProfileErrorBoundary>
     );
   }
@@ -249,7 +255,9 @@ export default function ProfileLauncher() {
   if (showCreatorDashboard) {
     return (
       <ProfileErrorBoundary profileId="own" onClose={() => setShowCreatorDashboard(false)}>
-        <MyBasisProfile onClose={() => setShowCreatorDashboard(false)} />
+        <AppShell.Overlay visible zIndex={9500} overlayVariant="profile" contentClassName="mbp-root mbp-scroll">
+          <MyBasisProfile onClose={() => setShowCreatorDashboard(false)} />
+        </AppShell.Overlay>
       </ProfileErrorBoundary>
     );
   }
