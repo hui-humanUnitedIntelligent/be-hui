@@ -46,7 +46,7 @@ serve(async (req) => {
 
     const { data: profile, error: profErr } = await supabase
       .from('profiles')
-      .select('id, email, stripe_account_id, role, ambassador_status')
+      .select('id, email, stripe_account_id, is_ambassador, ambassador_status')
       .eq('id', ambassador_id)
       .single()
 
@@ -55,7 +55,11 @@ serve(async (req) => {
         status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
-    if (profile.role !== 'ambassador' || profile.ambassador_status !== 'confirmed') {
+    // FIX (2026-07-04, gleicher Bug wie rpc_request_payout/AMB-PAYOUT-016): kanonisches Kriterium
+    // im gesamten System ist is_ambassador=true, NICHT role='ambassador' -- Ambassadors koennen
+    // gleichzeitig superadmin/admin/talent sein (z.B. Michael). Alter role-Check liess das
+    // Onboarding fuer solche Accounts immer mit 403 scheitern, ohne dass die UI das anzeigte.
+    if (!profile.is_ambassador || profile.ambassador_status !== 'confirmed') {
       return new Response(JSON.stringify({ error: 'not_an_ambassador' }), {
         status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })

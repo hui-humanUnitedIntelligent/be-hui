@@ -55,6 +55,14 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
     setConfirmOpen(false);
   };
 
+  // FIX (2026-07-04): startStripeConnect scheiterte bei Fehlern (z.B. Backend-Bug 403
+  // not_an_ambassador) bisher komplett stumm -- kein Redirect, aber auch keine Fehlermeldung.
+  // Jetzt wird ein Fehlschlag ueber dieselbe result-Anzeige wie bei Auszahlungsanfragen sichtbar.
+  const handleStripeConnect = async () => {
+    const res = await startStripeConnect();
+    if (!res?.url) setResult({ ok: false, error: res?.error || 'Verbindung fehlgeschlagen' });
+  };
+
   if (loading) return (
     <div style={{ padding: 24, textAlign: 'center', color: '#888', fontSize: 13 }}>
       Lade Auszahlungs-Daten…
@@ -76,7 +84,7 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
               ? 'Stripe-Konto wird noch eingerichtet — bitte Onboarding abschließen.'
               : 'Verbinde ein Stripe-Konto, um Auszahlungen erhalten zu können.'}
           </div>
-          <button onClick={startStripeConnect} disabled={connecting} style={{
+          <button onClick={handleStripeConnect} disabled={connecting} style={{
             padding: '7px 14px', borderRadius: 8, background: '#ffd43b',
             border: 'none', color: '#000', fontWeight: 700, fontSize: 12, cursor: 'pointer',
             whiteSpace: 'nowrap',
@@ -180,8 +188,13 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
             fontSize: 12, color: result.ok ? '#51cf66' : '#ff6b6b',
           }}>
             {result.ok
-              ? `✅ ${eur(result.amount_eur)} beantragt (${result.commissions} Provisionen)`
-              : `❌ ${result.error === 'below_minimum' ? `Mindestbetrag nicht erreicht (${eur(result.total_eur)} < €${minimumEur})` : result.error}`}
+              ? (result.url ? '↗️ Weiterleitung zu Stripe…' : `✅ ${eur(result.amount_eur)} beantragt (${result.commissions} Provisionen)`)
+              : `❌ ${
+                  result.error === 'below_minimum' ? `Mindestbetrag nicht erreicht (${eur(result.total_eur)} < €${minimumEur})`
+                  : result.error === 'not_an_ambassador' ? 'Dein Ambassador-Status ist noch nicht bestätigt.'
+                  : result.error === 'stripe_not_configured' ? 'Stripe ist serverseitig noch nicht eingerichtet.'
+                  : result.error
+                }`}
           </div>
         )}
       </div>
