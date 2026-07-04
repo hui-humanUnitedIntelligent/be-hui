@@ -177,7 +177,6 @@ export default function HUIBottomNavigation({
   authProfile = null,
   hasTalent   = false,
   msgCount    = 0,
-  creatorOpen = false,
   // Orb-Kontinuität: "idle" | "exiting" | "entering"
   orbTransition = "idle",
 }) {
@@ -206,7 +205,7 @@ export default function HUIBottomNavigation({
   }, []);
 
   const isHidden    = wizardOpen || ((orbActive && !navDrift) ?? false);
-  const isOrbActive = !creatorOpen && (tab === "orb" || orbActive);
+  const isOrbActive = tab === "orb" || orbActive;
   const actions     = useHuiActions();
 
   const sharedVis = {
@@ -221,10 +220,6 @@ export default function HUIBottomNavigation({
   };
 
   function handleTabPress(key) {
-    if (key === "creator") {
-      actions[A.OPEN_OWN_PROFILE]?.();
-      return;
-    }
     actions[A.GO_TO_TAB]?.(key);
     if (typeof onTab === "function") onTab(key);
   }
@@ -346,9 +341,7 @@ export default function HUIBottomNavigation({
                   />
                 );
               }
-              const isActive = creatorOpen
-                ? item.key === "creator"
-                : tab === item.key;
+              const isActive = tab === item.key;
               return (
                 // Gleich breiter Slot pro Tab — sorgt für echte Symmetrie zum
                 // Logo, unabhängig von unterschiedlich langen Labels (z.B.
