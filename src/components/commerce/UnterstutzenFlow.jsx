@@ -57,7 +57,7 @@ function ImpactKarte({ impactEur }) {
         </div>
         <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.6 }}>
           Von deiner Unterstützung investiert HUI zusätzlich{" "}
-          <span style={{ fontWeight: 700, color: C.sage }}>{str}\u202F€</span>{" "}
+          <span style={{ fontWeight: 700, color: C.sage }}>{str}{"\u202F"}€</span>{" "}
           in den gemeinsamen Impact Pool.
         </div>
       </div>
