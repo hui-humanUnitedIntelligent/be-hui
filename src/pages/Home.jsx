@@ -1,5 +1,5 @@
 // src/pages/Home.jsx — HUI Home Orchestrator v9
-// Layout: Header → Feed (scroll) → HUIBottomNavigation (in-flow)
+// Layout: Header → Feed (scroll) → BottomSurface + HUIBottomNavigation (AppShell chrome)
 
 import React, { Suspense, useEffect, useRef, useCallback, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom"; // COMMERCE-01
@@ -20,6 +20,8 @@ import { useHuiFlow } from "../core/hui.flow.js";
 import { safeOrbAction } from "../core/hui.safePayload.js";
 import HomeHeader                from "../components/home/header/HomeHeader.jsx";
 import HUIBottomNavigation       from "../components/home/navigation/HUIBottomNavigation.jsx";
+import BottomSurface             from "../components/home/navigation/BottomSurface.jsx";
+import { NAV_RESERVED_HEIGHT_CSS } from "../components/home/navigation/navigationGeometry.js";
 import ProfileLauncher           from "../components/home/profile/ProfileLauncher.jsx";
 import UnifiedFeed from "../feed/UnifiedFeed.jsx";
 import { usePresence }             from "../lib/usePresence.js";
@@ -37,6 +39,7 @@ import ExperienceBookingFlow  from "../components/commerce/ExperienceBookingFlow
 import DiscoverPage  from "./DiscoverPage.jsx";
 import AmbientWorldBar from "../components/home/AmbientWorldBar.jsx";
 import ImpactPage    from "./ImpactPage.jsx";
+import ProfilePage   from "./ProfilePage.jsx";
 // PHASE 18: FavoritesPage direkte import (Safari-safe)
 import FavoritesPage from "./FavoritesPage.jsx";
 // ── Orb-Flows: lazy → nur bei Tap auf Orb-Node geladen ─────────
@@ -56,7 +59,6 @@ import { IX } from "../design/hui.interaction.js";
 import ContentTypeSelector from "../content/ContentTypeSelector.jsx";
 import InvitationFlow from "../content/invitation/InvitationFlow.jsx";
 const HuiMembershipFlow   = React.lazy(() => import("../components/HuiMembershipFlow.jsx"));
-const CreatorDashboard    = React.lazy(() => import("./CreatorDashboard.jsx"));
 const HuiCreateFlow       = React.lazy(() => import("../components/HuiCreateFlow.jsx"));
 const TalentOnboarding    = React.lazy(() => import("../components/TalentOnboarding.jsx"));
 const StoryComposer       = React.lazy(() => import("../components/StoryComposer.jsx"));
@@ -91,6 +93,7 @@ function HomeInner() {
     feed:      React.useRef(null),
     discover:  React.useRef(null),
     impact:    React.useRef(null),
+    creator:   React.useRef(null),
     favorites: React.useRef(null),
   };
   const scrollContainerRef = React.useRef(null);
@@ -132,7 +135,7 @@ function HomeInner() {
     handleTab,
     openOwnProfile,
     mainScrollRef,
-    keepFeed, keepDiscover,           keepImpact, keepFavorites,
+    keepFeed, keepDiscover, keepImpact, keepCreator, keepFavorites,
     activeMood,    setActiveMood,
     liveNotifCount,
     isTalent, isBaseUser, canCreate,
@@ -158,8 +161,6 @@ function HomeInner() {
     showContentSelector,    setShowContentSelector,
     showInvitationFlow,     setShowInvitationFlow,
     activeStory,       setActiveStory,
-    showCreatorDash,   setShowCreatorDash,
-    showCreatorDashboard,
     showWerkCheckout,  setShowWerkCheckout,  // COMMERCE-01 W-1
     showBookingFlow,   setShowBookingFlow,   // COMMERCE-01 W-1
     showWerkeKorb,     setShowWerkeKorb,     // KORB-01
@@ -191,7 +192,7 @@ function HomeInner() {
   // Ermöglicht Guards aus beliebigen Komponenten: window.__HUI_OPEN_TALENT_FLOW?.()
   React.useEffect(() => {
     window.__HUI_OPEN_TALENT_FLOW    = () => setShowMembership(true);
-    window.__HUI_OPEN_CREATOR_DASH   = () => setShowCreatorDash(true);
+    window.__HUI_OPEN_CREATOR_DASH   = () => navigate("/studio");
     window.__HUI_OPEN_PROFILE__       = (id) => { if(id) openProfileById(id); };
     return () => {
       delete window.__HUI_OPEN_TALENT_FLOW;
@@ -436,6 +437,12 @@ function HomeInner() {
             </Suspense>
           </div>
 
+          <div ref={tabRefs.creator} style={keepCreator}>
+            <SafeRender flag="profilePage" label="ProfilePage">
+              <ProfilePage />
+            </SafeRender>
+          </div>
+
           <div ref={tabRefs.favorites} style={keepFavorites}>
             <Suspense fallback={<div style={{
           position:'fixed',inset:0,display:'flex',
@@ -461,39 +468,53 @@ function HomeInner() {
           </div>
         </div>
 
-        {/* ── HUIBottomNavigation: in-flow, reserviert eigenen Platz ── */}
-        <HUIBottomNavigation
-          tab={tab}
-          onTab={onTabPress}
-          creatorOpen={showCreatorDashboard}
-          hasTalent={isTalent}
-          orbActive={activeSurface === 'orb' || showMembership || showTalentFlow}
-          orbTransition={showPlusSheet ? "hidden" : orbTransition}
-          navDrift={
-            (showMembership || showTalentFlow)
-              ? { opacity: 0, transform: "translateY(120%)",
-                  transition: "opacity 0.52s cubic-bezier(0.22,1,0.36,1), transform 0.52s cubic-bezier(0.22,1,0.36,1)",
-                  pointerEvents: "none" }
-              : activeSurface ? worldTokens.navStyle : {}
-          }
-          authProfile={authProfile}
-          notifCount={liveNotifCount}
-          msgCount={unreadTotal}
-          onOrbAction={(key) => {
-            if (key !== "create") return;
+        {/* ── Profil-Overlay: innerhalb der Shell, UNTER dem Bottom-Chrome ──
+             z-index 9500 < Bottom-Chrome 10000 → BottomSurface bleibt sichtbar */}
+        <ProfileLauncher/>
 
-            const canRenderOrbContent = SAFE_MODE.orb;
-            if (!canRenderOrbContent) return;
-
-            // ── Soft Transition — Wirkungsraum öffnet ruhig ───────────────
-            // Nav-Orb blendet sanft aus, während MeinHUI als Ganzes
-            // weich einblendet (opacity + 10px translateY, ~300ms).
-            // Der gestaffelte Content-Aufbau läuft intern in MeinHUI.
-            setOrbTransition("exiting");
-            setShowPlusSheet(true);
-            setTimeout(() => setOrbTransition("hidden"), 300);
+        {/* ── AppShell Bottom Chrome: Surface + Tabbar, einmalig für alle Tabs ── */}
+        <div
+          data-hui-bottom-chrome=""
+          style={{
+            position:   "relative",
+            flexShrink: 0,
+            height:     NAV_RESERVED_HEIGHT_CSS,
+            zIndex:     10000,
           }}
-        />
+        >
+          <BottomSurface/>
+          <HUIBottomNavigation
+            tab={tab}
+            onTab={onTabPress}
+            hasTalent={isTalent}
+            orbActive={activeSurface === 'orb' || showMembership || showTalentFlow}
+            orbTransition={showPlusSheet ? "hidden" : orbTransition}
+            navDrift={
+              (showMembership || showTalentFlow)
+                ? { opacity: 0, transform: "translateY(120%)",
+                    transition: "opacity 0.52s cubic-bezier(0.22,1,0.36,1), transform 0.52s cubic-bezier(0.22,1,0.36,1)",
+                    pointerEvents: "none" }
+                : activeSurface ? worldTokens.navStyle : {}
+            }
+            authProfile={authProfile}
+            notifCount={liveNotifCount}
+            msgCount={unreadTotal}
+            onOrbAction={(key) => {
+              if (key !== "create") return;
+
+              const canRenderOrbContent = SAFE_MODE.orb;
+              if (!canRenderOrbContent) return;
+
+              // ── Soft Transition — Wirkungsraum öffnet ruhig ───────────────
+              // Nav-Orb blendet sanft aus, während MeinHUI als Ganzes
+              // weich einblendet (opacity + 10px translateY, ~300ms).
+              // Der gestaffelte Content-Aufbau läuft intern in MeinHUI.
+              setOrbTransition("exiting");
+              setShowPlusSheet(true);
+              setTimeout(() => setOrbTransition("hidden"), 300);
+            }}
+          />
+        </div>
 
       </div>
 
@@ -540,7 +561,6 @@ function HomeInner() {
       )}
 
       {/* ── Overlay Layer ──────────────────────────────────────── */}
-      <ProfileLauncher/>
       {/* ── WerkKaufFlow — COMMERCE-01 ─────────────────────────── */}
       {showWerkCheckout && (
         <WerkKaufFlow
@@ -651,8 +671,14 @@ function HomeInner() {
           closing={meinHuiClosing}
           profile={authProfile}
           onClose={closeMeinHuiCinematic}
-          onNotif={closeMeinHuiCinematic}
-          onSettings={closeMeinHuiCinematic}
+          onNotif={() => {
+            closeMeinHuiCinematic();
+            setTimeout(() => setShowNotifs(true), 350);
+          }}
+          onSettings={() => {
+            closeMeinHuiCinematic();
+            setTimeout(() => navigate("/studio"), 350);
+          }}
         />
         {showTalentFlow && SAFE_MODE.talentFlow && (
           <SafeRender flag="talentFlow" label="TalentOnboarding">
@@ -706,20 +732,6 @@ function HomeInner() {
               }}
             />
           </SafeRender>
-        )}
-        {/* Phase 4D: Creator Dashboard */}
-        {showCreatorDash && (
-          <React.Suspense fallback={null}>
-            <CreatorDashboard
-              visible={showCreatorDash}
-              onClose={() => setShowCreatorDash(false)}
-              onOpenProfile={(id) => {
-                setShowCreatorDash(false);
-                if (id === "discover") { handleTab("discover"); }
-                else if (id) { openProfileById(id); }
-              }}
-            />
-          </React.Suspense>
         )}
         {showCreateFlow && SAFE_MODE.createFlow && (
           <SafeRender flag="createFlow" label="HuiCreateFlow">
