@@ -35,6 +35,8 @@ import { AvailabilitySection }   from "../components/profile/sections/Availabili
 import { LocationSection }       from "../components/profile/sections/LocationSection.jsx";
 import { VisibilitySection }     from "../components/profile/sections/VisibilitySection.jsx";
 import WerkWizard      from "../components/works/WerkWizard.jsx";
+import TalentAngebotWizard from "../components/talents/TalentAngebotWizard.jsx";
+import { useTalents, deleteTalent } from "../hooks/useTalents.js";
 import ExperienceWizard from "../components/experiences/ExperienceWizard.jsx";
 
 // ── Design Tokens ────────────────────────────────────────────────
@@ -496,6 +498,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [showExpWizard,  setShowExpWizard]  = useState(false);
   const [editingWerk,   setEditingWerk]   = useState(null);
   const [editingExp,    setEditingExp]    = useState(null);
+  const [showTalentWizard, setShowTalentWizard] = useState(false);
+  const [editingTalent,    setEditingTalent]    = useState(null);
+  const { talents, reload: reloadTalents } = useTalents(profile?.id);
 
 
   // Sprint F.7D: Profil-Loader entfernt — useProfileData(user?.id) übernimmt
@@ -822,6 +827,14 @@ export default function MyBasisProfile({ onClose, profileId }) {
             />
             <Gap h={24}/>
 
+            {/* T2b. Talent-Angebote — neues Modul, additiv neben TalentSection (Tags bleiben unveraendert) */}
+            <TalentAngeboteSection
+              talents={talents}
+              onTalentWizard={(t) => { setEditingTalent(t || null); setShowTalentWizard(true); }}
+              onDeleteTalent={() => reloadTalents()}
+            />
+            <Gap h={24}/>
+
             {/* T3. Meine Werke — MeineWerkeSection bleibt (Owner-only, kein Public-Duplikat) */}
             <MeineWerkeSection
               userId={profile?.id}
@@ -1070,6 +1083,16 @@ export default function MyBasisProfile({ onClose, profileId }) {
               return [werk, ...list];
             });
           }}
+        />
+      )}
+
+      {/* TALENT-ANGEBOT WIZARD */}
+      {showTalentWizard && profile?.id && (
+        <TalentAngebotWizard
+          userId={profile.id}
+          existingTalent={editingTalent}
+          onClose={() => { setShowTalentWizard(false); setEditingTalent(null); }}
+          onSaved={() => { setShowTalentWizard(false); setEditingTalent(null); reloadTalents(); }}
         />
       )}
 
@@ -1443,6 +1466,150 @@ function DeleteWerkConfirm({ werk, onConfirm, onCancel }) {
         </button>
       </div>
     </div>
+  );
+}
+
+function DeleteTalentConfirm({ talent, onConfirm, onCancel }) {
+  return (
+    <div style={{
+      position:"fixed", inset:0, zIndex:9999,
+      background:"rgba(0,0,0,0.55)", display:"flex",
+      alignItems:"center", justifyContent:"center", padding:"24px",
+    }} onClick={onCancel}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background:"#fff", borderRadius:16, padding:"24px 20px 20px",
+        maxWidth:320, width:"100%", boxShadow:"0 8px 40px rgba(0,0,0,0.18)",
+      }}>
+        <div style={{ fontSize:36, textAlign:"center", marginBottom:8 }}>🗑️</div>
+        <div style={{ fontSize:16, fontWeight:700, textAlign:"center", marginBottom:6, color:"#1a1a18" }}>
+          Talent-Angebot unwiderruflich löschen?
+        </div>
+        <div style={{ fontSize:13, color:"#666", textAlign:"center", lineHeight:1.5, marginBottom:20 }}>
+          <strong>„{talent.title || 'Dieses Angebot'}"</strong> wird dauerhaft gelöscht und kann nicht wiederhergestellt werden.
+        </div>
+        <button onClick={onConfirm} style={{
+          width:"100%", padding:"12px", borderRadius:99,
+          background:"#ff3b3b", border:"none", color:"#fff",
+          fontSize:14, fontWeight:700, cursor:"pointer",
+          fontFamily:"inherit", marginBottom:8,
+        }}>
+          Ja, endgültig löschen
+        </button>
+        <button onClick={onCancel} style={{
+          width:"100%", padding:"12px", borderRadius:99,
+          background:"#f0f0ee", border:"none", color:"#444",
+          fontSize:14, fontWeight:600, cursor:"pointer",
+          fontFamily:"inherit",
+        }}>
+          Abbrechen
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTalent = () => {} }) {
+  const [confirmTalent, setConfirmTalent] = React.useState(null);
+
+  const handleDeleteClick = (e, t) => {
+    e.stopPropagation();
+    setConfirmTalent(t);
+  };
+
+  const handleConfirmDelete = async () => {
+    const t = confirmTalent;
+    setConfirmTalent(null);
+    if (!t?.id) return;
+    try {
+      await deleteTalent(t.id);
+      onDeleteTalent(t.id);
+    } catch(e) { console.error("Talent-Angebot löschen:", e); }
+  };
+
+  return (
+    <>
+    {confirmTalent && (
+      <DeleteTalentConfirm
+        talent={confirmTalent}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setConfirmTalent(null)}
+      />
+    )}
+    <div style={{ padding:`0 ${T.px}px` }}>
+      <SectionRow title="Talent-Angebote" sub="Deine buchbaren Leistungen & Dienstleistungen"/>
+      {talents.length > 0 && (
+        <div style={{ display:"flex", gap:10, overflowX:"auto",
+          WebkitOverflowScrolling:"touch", scrollbarWidth:"none",
+          paddingBottom:4, marginBottom:10 }}>
+          {talents.map((t, i) => {
+            const isApproved = t.status === "approved";
+            const isPending  = t.status === "pending";
+            const badgeBg    = isApproved ? "rgba(14,196,184,0.92)" : isPending ? "rgba(234,179,8,0.92)" : "rgba(255,80,80,0.92)";
+            const badgeText  = isApproved ? "✅ Live" : isPending ? "⏳ Prüfung" : "❌ Abgelehnt";
+            const cover = Array.isArray(t.images) && t.images[0]?.url;
+            return (
+              <div key={t.id || i}
+                onClick={() => onTalentWizard?.(t)}
+                style={{
+                  flexShrink:0, width:110, height:110,
+                  borderRadius:12, overflow:"hidden",
+                  background:"#e8e4de", position:"relative", cursor:"pointer",
+                  boxShadow: isApproved ? "0 0 0 2px #0EC4B8" : isPending ? "0 0 0 2px #D4A800" : "0 0 0 2px #ff5050",
+                }}>
+                {cover
+                  ? <img src={cover} alt={t.title||""}
+                      style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+                  : <div style={{ width:"100%", height:"100%", display:"flex",
+                      alignItems:"center", justifyContent:"center", fontSize:24 }}>💼</div>
+                }
+                <button
+                  onClick={(e) => handleDeleteClick(e, t)}
+                  style={{
+                    position:"absolute", top:4, right:4,
+                    width:20, height:20, borderRadius:"50%",
+                    background:"rgba(0,0,0,0.65)", border:"none",
+                    color:"#fff", fontSize:11, fontWeight:700,
+                    cursor:"pointer", display:"flex",
+                    alignItems:"center", justifyContent:"center",
+                    lineHeight:1, padding:0, zIndex:2,
+                  }}
+                >✕</button>
+                <div style={{
+                  position:"absolute", bottom:0, left:0, right:0,
+                  background: badgeBg, backdropFilter:"blur(4px)",
+                  fontSize:9, fontWeight:700, color:"#fff",
+                  padding:"3px 5px", textAlign:"center", letterSpacing:"0.3px",
+                }}>
+                  {badgeText}
+                </div>
+                {t.title && (
+                  <div style={{
+                    position:"absolute", top:0, left:0, right:0,
+                    background:"rgba(0,0,0,0.45)", fontSize:9, color:"#fff",
+                    padding:"3px 22px 3px 5px", whiteSpace:"nowrap",
+                    overflow:"hidden", textOverflow:"ellipsis",
+                  }}>
+                    {t.title}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+      <button className="mbp-press-light" onClick={() => onTalentWizard?.()} style={{
+        display:"flex", alignItems:"center", gap:8,
+        padding:"10px 16px", borderRadius:12,
+        background:T.bgCard, border:`1.5px dashed ${T.borderMid}`,
+        fontSize:13, fontWeight:600, color:T.inkSoft,
+        cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
+        width:"100%",
+      }}>
+        <span style={{fontSize:16}}>+</span>
+        Talent-Angebot hinzufügen
+      </button>
+    </div>
+    </>
   );
 }
 
