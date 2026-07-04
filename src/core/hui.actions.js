@@ -133,7 +133,6 @@ export function buildActions(shell) {
   const {
     // Profile
     setShowWirker,
-    openOwnProfile,
     // Flow Memory (Phase 2)
     flowStore,
     // Chat
@@ -206,7 +205,7 @@ export function buildActions(shell) {
 
     [A.OPEN_OWN_PROFILE]: (payload = {}) => {
       logAction(A.OPEN_OWN_PROFILE, payload);
-      openOwnProfile?.();
+      switchTab?.("creator");
     },
 
     [A.CLOSE_PROFILE]: () => {

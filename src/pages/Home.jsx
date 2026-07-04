@@ -39,6 +39,7 @@ import AmbientWorldBar from "../components/home/AmbientWorldBar.jsx";
 import ImpactPage    from "./ImpactPage.jsx";
 // PHASE 18: FavoritesPage direkte import (Safari-safe)
 import FavoritesPage from "./FavoritesPage.jsx";
+import MyBasisProfile  from "./MyBasisProfile.jsx";
 // ── Orb-Flows: lazy → nur bei Tap auf Orb-Node geladen ─────────
 const TeilenFlow     = React.lazy(() => import("../components/teilen/TeilenFlow.jsx"));
 const WorkFlow       = React.lazy(() => import("../system/flows/work/WorkFlow.jsx"));
@@ -92,6 +93,7 @@ function HomeInner() {
     discover:  React.useRef(null),
     impact:    React.useRef(null),
     favorites: React.useRef(null),
+    creator:   React.useRef(null),
   };
   const scrollContainerRef = React.useRef(null);
 
@@ -130,9 +132,8 @@ function HomeInner() {
   const {
     tab,
     handleTab,
-    openOwnProfile,
     mainScrollRef,
-    keepFeed, keepDiscover,           keepImpact, keepFavorites,
+    keepFeed, keepDiscover, keepImpact, keepFavorites, keepCreator,
     activeMood,    setActiveMood,
     liveNotifCount,
     isTalent, isBaseUser, canCreate,
@@ -159,7 +160,6 @@ function HomeInner() {
     showInvitationFlow,     setShowInvitationFlow,
     activeStory,       setActiveStory,
     showCreatorDash,   setShowCreatorDash,
-    showCreatorDashboard,
     showWerkCheckout,  setShowWerkCheckout,  // COMMERCE-01 W-1
     showBookingFlow,   setShowBookingFlow,   // COMMERCE-01 W-1
     showWerkeKorb,     setShowWerkeKorb,     // KORB-01
@@ -459,13 +459,17 @@ function HomeInner() {
               />
             </Suspense>
           </div>
+          <div ref={tabRefs.creator} style={keepCreator}>
+            <SafeRender flag="ownProfile" label="MyBasisProfile">
+              <MyBasisProfile />
+            </SafeRender>
+          </div>
         </div>
 
         {/* ── HUIBottomNavigation: in-flow, reserviert eigenen Platz ── */}
         <HUIBottomNavigation
           tab={tab}
           onTab={onTabPress}
-          creatorOpen={showCreatorDashboard}
           hasTalent={isTalent}
           orbActive={activeSurface === 'orb' || showMembership || showTalentFlow}
           orbTransition={showPlusSheet ? "hidden" : orbTransition}

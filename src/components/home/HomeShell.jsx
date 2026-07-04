@@ -128,14 +128,6 @@ export default function HomeShell({ children }) {
   const [showWirker,             setShowWirker]            = useState(null);
   // NEU: ID-basierter Profile-Open (radikale Vereinfachung)
   const [selectedProfileId,      setSelectedProfileId]     = useState(null);
-  // ── Creator / Profile State ────────────────────────────────────
-  // showCreatorDashboard: startet immer false (AppEntryController steuert den Einstieg).
-  // sessionStorage-Key "hui_mein_hui_open" wird beim Öffnen/Schließen sync gehalten
-  // (für zukünftige Nutzung, kein Auto-Restore beim Start mehr).
-  // Kapitel 1 – Ankommen: HomeShell startet immer neutral.
-  // Das Profil öffnet sich ausschließlich durch eine bewusste Nutzeraktion.
-  // AppEntryController ist die einzige Einstiegs-Entscheidungsstelle.
-  const [showCreatorDashboard,   setShowCreatorDashboard]  = useState(false);
   // ── Chat State ─────────────────────────────────────────────────
   const [showChat, _setShowChatRaw] = useState(false);
   const _showChatRef = React.useRef(false);
@@ -185,13 +177,14 @@ export default function HomeShell({ children }) {
   // Phase 16.4: Tab visibility via tabVisibilityController (single authority)
   // activeSurface from WorldSurface — no local opacity state
   const { activeSurface } = useWorldSurface();
-  const { tabFeed, tabDiscover, tabImpact, tabFavorites } =
+  const { tabFeed, tabDiscover, tabImpact, tabFavorites, tabCreator } =
     useTabStyles(tab, activeSurface);
   // Legacy aliases for backward compat during transition
   const keepFeed      = tabFeed;
   const keepDiscover  = tabDiscover;
   const keepImpact    = tabImpact;
   const keepFavorites = tabFavorites;
+  const keepCreator   = tabCreator;
 
   /* switchTab — schließt alle Overlays + wechselt Tab */
   const switchTab = useCallback((newTab) => {
@@ -222,28 +215,15 @@ export default function HomeShell({ children }) {
     }
     setShowPlusSheet(false);
     setCreateType(null);
-    setShowCreatorDashboard(false);
-    try { sessionStorage.removeItem("hui_mein_hui_open"); } catch(_) {}
     // showChat bleibt offen bei Tab-Wechsel (Chat ist Tab-unabhängiges Overlay)
     setShowConnect(false);
     setShowTalentFlow(false);
     _setTab(newTab);
-  }, [_setTab, setShowCreatorDashboard]);
-
-  /* openCreatorDashboard — kanonische Funktion zum Öffnen des Profilbereichs
-   * NAV-001: Konsolidiert openOwnProfile + openCreatorDashboard (identisch gewesen).
-   * sessionStorage-Key "hui_mein_hui_open" = historischer Naming-Drift (Tab-Key ist "creator").
-   * Key bleibt aus Kompatibilitätsgründen unverändert. */
-  const openCreatorDashboard = useCallback(() => {
-    _setTab("creator");
-    setShowCreatorDashboard(true);
-    try { sessionStorage.setItem("hui_mein_hui_open", "1"); } catch(_) {}
-  }, [_setTab, setShowCreatorDashboard]);
-
-  /* openOwnProfile — Alias für openCreatorDashboard (NAV-001: konsolidiert) */
-  const openOwnProfile = openCreatorDashboard;
-
-  // ── openProfileById — einziger stabiler Einstiegspunkt für alle Feed-Avatar-Klicks
+  }, [_setTab]);
+  /* openOwnProfile — wechselt zum Profil-Tab (Keep-Alive, kein Overlay) */
+  const openOwnProfile = useCallback(() => {
+    switchTab("creator");
+  }, [switchTab]);
   const openProfileById = React.useCallback((id) => {
     if (!id || typeof id !== "string" || id.trim() === "") {
       return;
@@ -262,22 +242,16 @@ export default function HomeShell({ children }) {
   // für Tab-Navigation innerhalb der Home-Shell.
   // Home.jsx onTabPress delegiert vollständig an handleTab.
   const handleTab = useCallback((key) => {
-    // "creator" und "profile" → beide öffnen den Profilbereich (creator-Tab aktiv).
-    // "profile" ist der UI-Label-Key; "creator" ist der interne State-Key.
-    if (key === "creator" || key === "profile") {
-      _setTab("creator");        // ← Tab aktiv markieren (NavItem zeigt Türkis)
-      openCreatorDashboard();    // ← Overlay öffnen
-      return;
-    }
+    const tabKey = key === "profile" ? "creator" : key;
     // Impact: direkter _setTab ohne switchTab — bewusst, damit offen Overlays
     // (z.B. Chat) beim Impact-Wechsel nicht geschlossen werden.
-    if (key === "impact") {
+    if (tabKey === "impact") {
       _setTab("impact");
       return;
     }
-    // feed, discover, favorites → switchTab (schließt alle Overlays + wechselt Tab)
-    switchTab(key);
-  }, [_setTab, openCreatorDashboard, switchTab]);
+    // feed, discover, favorites, creator → switchTab (schließt Overlays + wechselt Tab)
+    switchTab(tabKey);
+  }, [_setTab, switchTab]);
 
   /* Context Value — useMemo für Referenzstabilität */
   // Ohne useMemo: ctx ist bei JEDEM render ein neues Objekt →
@@ -286,8 +260,8 @@ export default function HomeShell({ children }) {
     user, authProfile, isTalent, isBaseUser, canCreate, isMember,
     currentUser, userName,
     tab, switchTab, handleTab, mainScrollRef,
-    keepFeed, keepDiscover, keepImpact, keepFavorites,
-    tabFeed,  tabDiscover,  tabImpact,  tabFavorites,
+    keepFeed, keepDiscover, keepImpact, keepFavorites, keepCreator,
+    tabFeed,  tabDiscover,  tabImpact,  tabFavorites,  tabCreator,
     activeSurface,
     prevTab, carryOver,
     isOrbOpen, openOrbWorld, closeOrbWorld, orbState,
@@ -295,8 +269,6 @@ export default function HomeShell({ children }) {
     liveNotifCount,
     showWirker,            setShowWirker,
     selectedProfileId,     setSelectedProfileId,
-    showCreatorDashboard,  setShowCreatorDashboard,
-    openCreatorDashboard,
     openProfileById,       closeProfileById,
     showChat,              setShowChat,
     chatRecipient,         setChatRecipient,
@@ -331,13 +303,12 @@ export default function HomeShell({ children }) {
   }), [
     user, authProfile, isTalent, isBaseUser, canCreate, isMember,
     currentUser, userName, tab, switchTab, handleTab,
-    keepFeed, keepDiscover, keepImpact, keepFavorites,
-    tabFeed, tabDiscover, tabImpact, tabFavorites,
+    keepFeed, keepDiscover, keepImpact, keepFavorites, keepCreator,
+    tabFeed, tabDiscover, tabImpact, tabFavorites, tabCreator,
     activeSurface, prevTab, carryOver,
     isOrbOpen, openOrbWorld, closeOrbWorld, orbState,
     activeMood, liveNotifCount,
     showWirker, selectedProfileId,
-    showCreatorDashboard, openCreatorDashboard,
     openProfileById, closeProfileById,
     showChat, chatRecipient,
     showNotifs, showMap, showMatch, showMembership,

@@ -60,8 +60,6 @@ const T = {
 // ── CSS ──────────────────────────────────────────────────────────
 const CSS = `
   .mbp-root { background:#F9F7F4; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif; color:${T.ink}; }
-  .mbp-scroll { overflow-y:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
-  .mbp-scroll::-webkit-scrollbar { display:none; }
   .mbp-hscroll { overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
   .mbp-hscroll::-webkit-scrollbar { display:none; }
 
@@ -636,8 +634,8 @@ export default function MyBasisProfile({ onClose, profileId }) {
   if (hookLoading) {
     return (
       <div style={{
-        position:"fixed", inset:0, zIndex:9500,
         background:T.bg,
+        minHeight:"60vh",
         display:"flex", alignItems:"center", justifyContent:"center",
       }}>
         <div style={{
@@ -653,8 +651,8 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
   return (
     <div className="mbp-root" style={{
-      position:"fixed", inset:0, zIndex:9500,
-      display:"flex", flexDirection:"column",
+      minHeight:"100%",
+      paddingBottom: NAV_RESERVED_HEIGHT_CSS,
     }}>
 
       
@@ -689,14 +687,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
           {saveOk ? "✓ Gespeichert" : "Speichert…"}
         </div>
       )}
-
-      <div className="mbp-scroll" style={{ flex:1, overflowY:"auto",
-        // War: hartkodierte Naeherung ("max(80px, 64px+safeBottom)"), leicht
-        // abweichend von der ECHTEN Nav-Reservierung. Jetzt: dieselbe geteilte
-        // Konstante wie Feed/Discover/Impact (NAV_RESERVED_HEIGHT_CSS) -- der
-        // untere weisse Freiraum oberhalb der Bottom Navigation ist dadurch
-        // pixelgenau identisch zu den anderen Hauptseiten.
-        paddingBottom: NAV_RESERVED_HEIGHT_CSS }}>
 
         {/* ── SEITEN-TITEL ─────────────────────────────────────── */}
         <div style={{
@@ -914,7 +904,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
             <Gap h={40}/>
           </>
         )}
-      </div>
 
       {/* GEMEINSCHAFT FLOW MODAL */}
       {showGemeinschaft && (
