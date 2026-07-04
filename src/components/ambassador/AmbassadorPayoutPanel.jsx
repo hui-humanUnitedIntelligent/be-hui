@@ -71,6 +71,7 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
   const [ibanInput,    setIbanInput]    = useState('');
   const [holderInput,  setHolderInput]  = useState('');
   const [bicInput,     setBicInput]     = useState('');
+  const [bankNameInput, setBankNameInput] = useState('');
   const [bankResult,   setBankResult]   = useState(null);
 
   // AMB-PAYOUT-016: Betrag vorbelegen mit dem vollen verfuegbaren Betrag, sobald geladen
@@ -89,9 +90,9 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
 
   // AMB-BANK-PAYOUT-001: Bankdaten speichern statt Stripe-Connect-Onboarding
   const handleSaveBank = async () => {
-    const res = await saveBankDetails(ibanInput, holderInput, bicInput || null);
+    const res = await saveBankDetails(ibanInput, holderInput, bicInput || null, bankNameInput || null);
     setBankResult(res);
-    if (res?.ok) { setBankFormOpen(false); setIbanInput(''); setHolderInput(''); setBicInput(''); }
+    if (res?.ok) { setBankFormOpen(false); setIbanInput(''); setHolderInput(''); setBicInput(''); setBankNameInput(''); }
   };
 
   if (loading) return (
@@ -134,6 +135,8 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
             <input value={ibanInput} onChange={e => setIbanInput(e.target.value.toUpperCase())} placeholder="IBAN (z.B. DE89 3704 0044 0532 0130 00)"
               style={{ ...inputStyle, fontFamily: 'monospace', letterSpacing: '0.5px' }} />
             <input value={bicInput} onChange={e => setBicInput(e.target.value.toUpperCase())} placeholder="BIC (optional)"
+              style={inputStyle} />
+            <input value={bankNameInput} onChange={e => setBankNameInput(e.target.value)} placeholder="Name und Anschrift der Bank (optional)"
               style={inputStyle} />
             <div style={{ fontSize: 11, color: inkFaint, lineHeight: 1.4 }}>
               🔒 Deine Bankdaten werden verschlüsselt gespeichert und sind nur für die Auszahlungs-Genehmigung sichtbar.

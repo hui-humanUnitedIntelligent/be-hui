@@ -62,12 +62,12 @@ export function useAmbassadorPayout(ambassadorId) {
   }, [ambassadorId]);
 
   // AMB-BANK-PAYOUT-001: Bankdaten speichern (verschlüsselt serverseitig via pgcrypto+Vault)
-  const saveBankDetails = useCallback(async (iban, holder, bic = null) => {
+  const saveBankDetails = useCallback(async (iban, holder, bic = null, bankName = null) => {
     if (!ambassadorId) return { ok: false, error: 'no_ambassador_id' };
     setSavingBank(true);
     try {
       const { data, error: e } = await supabase
-        .rpc('rpc_save_ambassador_bank_details', { p_ambassador_id: ambassadorId, p_iban: iban, p_holder: holder, p_bic: bic });
+        .rpc('rpc_save_ambassador_bank_details', { p_ambassador_id: ambassadorId, p_iban: iban, p_holder: holder, p_bic: bic, p_bank_name: bankName });
       if (e) throw e;
       if (data?.ok) await loadBankStatus();
       return data;
