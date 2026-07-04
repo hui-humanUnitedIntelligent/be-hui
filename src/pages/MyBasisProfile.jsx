@@ -362,7 +362,7 @@ function OffenFuerSection({ openFor, onChange }) {
 // ══════════════════════════════════════════════════════════════
 const MAX_BIO = 500;
 
-export default function MyBasisProfile({ onClose, profileId }) {
+export default function MyBasisProfile({ onClose, profileId, asAppShellTab = false }) {
   // AuthContext: eigenen Profile-Cache nach Uploads aktualisieren
   const _auth = useAuth() || {};
   const user            = _auth.user   ?? null;          // Sprint F.7D: user für useProfileData
@@ -632,30 +632,55 @@ export default function MyBasisProfile({ onClose, profileId }) {
   }, []);
 
 
+  const loadingSpinner = (
+    <div style={{
+      ...(asAppShellTab ? { padding:"48px 20px" } : {
+        position:"fixed", inset:0, zIndex:9500, background:T.bg,
+      }),
+      display:"flex", alignItems:"center", justifyContent:"center",
+    }}>
+      <div style={{
+        width:36, height:36, borderRadius:"50%",
+        border:"3px solid rgba(14,196,184,0.15)",
+        borderTop:"3px solid #0EC4B8",
+        animation:"spin .8s linear infinite",
+      }}/>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
+  );
+
   // Sofort sichtbarer Spinner während Profil lädt — kein weißer Screen
   if (hookLoading) {
-    return (
-      <div style={{
-        position:"fixed", inset:0, zIndex:9500,
-        background:T.bg,
-        display:"flex", alignItems:"center", justifyContent:"center",
-      }}>
-        <div style={{
-          width:36, height:36, borderRadius:"50%",
-          border:"3px solid rgba(14,196,184,0.15)",
-          borderTop:"3px solid #0EC4B8",
-          animation:"spin .8s linear infinite",
-        }}/>
-        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-      </div>
-    );
+    return loadingSpinner;
   }
 
+  const rootStyle = asAppShellTab
+    ? {
+        width:"100%",
+        background:T.bg,
+        fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif",
+        color:T.ink,
+        overscrollBehavior:"none",
+      }
+    : {
+        position:"fixed", inset:0, zIndex:9500,
+        display:"flex", flexDirection:"column",
+      };
+
+  const scrollStyle = asAppShellTab
+    ? {}
+    : {
+        flex:1,
+        overflowY:"auto",
+        paddingBottom: NAV_RESERVED_HEIGHT_CSS,
+      };
+
+  const titlePadding = asAppShellTab
+    ? `0 ${T.px}px 0`
+    : `max(52px,calc(48px + env(safe-area-inset-top,0px))) ${T.px}px 0`;
+
   return (
-    <div className="mbp-root" style={{
-      position:"fixed", inset:0, zIndex:9500,
-      display:"flex", flexDirection:"column",
-    }}>
+    <div className="mbp-root" style={rootStyle}>
 
       
 {/* styles via head-inject — siehe useEffect */}
@@ -690,17 +715,11 @@ export default function MyBasisProfile({ onClose, profileId }) {
         </div>
       )}
 
-      <div className="mbp-scroll" style={{ flex:1, overflowY:"auto",
-        // War: hartkodierte Naeherung ("max(80px, 64px+safeBottom)"), leicht
-        // abweichend von der ECHTEN Nav-Reservierung. Jetzt: dieselbe geteilte
-        // Konstante wie Feed/Discover/Impact (NAV_RESERVED_HEIGHT_CSS) -- der
-        // untere weisse Freiraum oberhalb der Bottom Navigation ist dadurch
-        // pixelgenau identisch zu den anderen Hauptseiten.
-        paddingBottom: NAV_RESERVED_HEIGHT_CSS }}>
+      <div className={asAppShellTab ? undefined : "mbp-scroll"} style={scrollStyle}>
 
         {/* ── SEITEN-TITEL ─────────────────────────────────────── */}
         <div style={{
-          padding:`max(52px,calc(48px + env(safe-area-inset-top,0px))) ${T.px}px 0`,
+          padding: titlePadding,
           display:"flex", justifyContent:"space-between", alignItems:"flex-start",
         }}>
           <div>
