@@ -22,6 +22,7 @@ import SicherheitPasswortModal  from "./SicherheitPasswortModal.jsx";
 import SupportPage             from "../../pages/studio/SupportPage.jsx";
 import MeineTicketsPage        from "../../pages/studio/MeineTicketsPage.jsx";
 import SettingsModal    from "../settings/SettingsModal.jsx";
+import MerkenSection    from "../profile/MerkenSection.jsx";
 
 // ── Design Tokens ─────────────────────────────────────────────────
 const T = {
@@ -1138,6 +1139,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
   const [showMitgliedschaftCS,  setShowMitgliedschaftCS]  = useState(false); // Mitgliedschaft Coming Soon
   const [showSupport,          setShowSupport]          = useState(false);
   const [showMeineTickets,     setShowMeineTickets]     = useState(false);
+  const [showMerken,           setShowMerken]           = useState(false);
   const [loggingOut,            setLoggingOut]            = useState(false);
 
   // Sprint F.4C: einzige Wahrheitsquelle
@@ -1262,6 +1264,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
 
         {/* ── 5. Account & Einstellungen ────────────────────── */}
         <StudioSection label="Account & Einstellungen">
+          <StudioRow icon="📌" label="Gemerkte Inhalte" onPress={() => setShowMerken(true)} />
           <StudioRow icon="👤" label="Profil bearbeiten"  onPress={handleEditProfile} />
           <StudioRow icon="🛡️" label="Verifizierung"
             badge={isVerified ? "✓ Aktiv" : undefined} onPress={() => setShowVerifCS(true)} />
@@ -1530,6 +1533,31 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
           userId={profile?.id}
           profile={profile}
         />
+      )}
+
+      {showMerken && (
+        <div style={{
+          position:"fixed", inset:0, zIndex:10600, background:"#F9F7F4",
+          overflowY:"auto", WebkitOverflowScrolling:"touch",
+        }}>
+          <div style={{
+            position:"sticky", top:0, zIndex:10605,
+            background:"rgba(249,247,244,0.95)", borderBottom:`1px solid ${T.border}`,
+            padding:"12px 20px", display:"flex", alignItems:"center", justifyContent:"space-between",
+          }}>
+            <span style={{ fontSize:15, fontWeight:800, color:T.ink }}>📌 Gemerkte Inhalte</span>
+            <button onClick={() => setShowMerken(false)} style={{
+              padding:"6px 14px", borderRadius:20, border:`1px solid ${T.border}`,
+              background:T.bgCard, fontSize:12, fontWeight:700, cursor:"pointer",
+            }}>Schließen</button>
+          </div>
+          <div style={{ padding:16 }}>
+            <MerkenSection
+              onOpenProfile={() => setShowMerken(false)}
+              onOpenDiscover={() => setShowMerken(false)}
+            />
+          </div>
+        </div>
       )}
 
       {showSupport && (

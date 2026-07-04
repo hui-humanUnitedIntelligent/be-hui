@@ -37,6 +37,7 @@ import ExperienceBookingFlow  from "../components/commerce/ExperienceBookingFlow
 import DiscoverPage  from "./DiscoverPage.jsx";
 import AmbientWorldBar from "../components/home/AmbientWorldBar.jsx";
 import ImpactPage    from "./ImpactPage.jsx";
+import ProfilePage   from "./ProfilePage.jsx";
 // PHASE 18: FavoritesPage direkte import (Safari-safe)
 import FavoritesPage from "./FavoritesPage.jsx";
 // ── Orb-Flows: lazy → nur bei Tap auf Orb-Node geladen ─────────
@@ -56,7 +57,6 @@ import { IX } from "../design/hui.interaction.js";
 import ContentTypeSelector from "../content/ContentTypeSelector.jsx";
 import InvitationFlow from "../content/invitation/InvitationFlow.jsx";
 const HuiMembershipFlow   = React.lazy(() => import("../components/HuiMembershipFlow.jsx"));
-const CreatorDashboard    = React.lazy(() => import("./CreatorDashboard.jsx"));
 const HuiCreateFlow       = React.lazy(() => import("../components/HuiCreateFlow.jsx"));
 const TalentOnboarding    = React.lazy(() => import("../components/TalentOnboarding.jsx"));
 const StoryComposer       = React.lazy(() => import("../components/StoryComposer.jsx"));
@@ -91,6 +91,7 @@ function HomeInner() {
     feed:      React.useRef(null),
     discover:  React.useRef(null),
     impact:    React.useRef(null),
+    creator:   React.useRef(null),
     favorites: React.useRef(null),
   };
   const scrollContainerRef = React.useRef(null);
@@ -132,7 +133,7 @@ function HomeInner() {
     handleTab,
     openOwnProfile,
     mainScrollRef,
-    keepFeed, keepDiscover,           keepImpact, keepFavorites,
+    keepFeed, keepDiscover, keepImpact, keepCreator, keepFavorites,
     activeMood,    setActiveMood,
     liveNotifCount,
     isTalent, isBaseUser, canCreate,
@@ -158,8 +159,6 @@ function HomeInner() {
     showContentSelector,    setShowContentSelector,
     showInvitationFlow,     setShowInvitationFlow,
     activeStory,       setActiveStory,
-    showCreatorDash,   setShowCreatorDash,
-    showCreatorDashboard,
     showWerkCheckout,  setShowWerkCheckout,  // COMMERCE-01 W-1
     showBookingFlow,   setShowBookingFlow,   // COMMERCE-01 W-1
     showWerkeKorb,     setShowWerkeKorb,     // KORB-01
@@ -191,7 +190,7 @@ function HomeInner() {
   // Ermöglicht Guards aus beliebigen Komponenten: window.__HUI_OPEN_TALENT_FLOW?.()
   React.useEffect(() => {
     window.__HUI_OPEN_TALENT_FLOW    = () => setShowMembership(true);
-    window.__HUI_OPEN_CREATOR_DASH   = () => setShowCreatorDash(true);
+    window.__HUI_OPEN_CREATOR_DASH   = () => navigate("/studio");
     window.__HUI_OPEN_PROFILE__       = (id) => { if(id) openProfileById(id); };
     return () => {
       delete window.__HUI_OPEN_TALENT_FLOW;
@@ -436,6 +435,12 @@ function HomeInner() {
             </Suspense>
           </div>
 
+          <div ref={tabRefs.creator} style={keepCreator}>
+            <SafeRender flag="profilePage" label="ProfilePage">
+              <ProfilePage />
+            </SafeRender>
+          </div>
+
           <div ref={tabRefs.favorites} style={keepFavorites}>
             <Suspense fallback={<div style={{
           position:'fixed',inset:0,display:'flex',
@@ -465,7 +470,6 @@ function HomeInner() {
         <HUIBottomNavigation
           tab={tab}
           onTab={onTabPress}
-          creatorOpen={showCreatorDashboard}
           hasTalent={isTalent}
           orbActive={activeSurface === 'orb' || showMembership || showTalentFlow}
           orbTransition={showPlusSheet ? "hidden" : orbTransition}
@@ -651,8 +655,14 @@ function HomeInner() {
           closing={meinHuiClosing}
           profile={authProfile}
           onClose={closeMeinHuiCinematic}
-          onNotif={closeMeinHuiCinematic}
-          onSettings={closeMeinHuiCinematic}
+          onNotif={() => {
+            closeMeinHuiCinematic();
+            setTimeout(() => setShowNotifs(true), 350);
+          }}
+          onSettings={() => {
+            closeMeinHuiCinematic();
+            setTimeout(() => navigate("/studio"), 350);
+          }}
         />
         {showTalentFlow && SAFE_MODE.talentFlow && (
           <SafeRender flag="talentFlow" label="TalentOnboarding">
@@ -706,20 +716,6 @@ function HomeInner() {
               }}
             />
           </SafeRender>
-        )}
-        {/* Phase 4D: Creator Dashboard */}
-        {showCreatorDash && (
-          <React.Suspense fallback={null}>
-            <CreatorDashboard
-              visible={showCreatorDash}
-              onClose={() => setShowCreatorDash(false)}
-              onOpenProfile={(id) => {
-                setShowCreatorDash(false);
-                if (id === "discover") { handleTab("discover"); }
-                else if (id) { openProfileById(id); }
-              }}
-            />
-          </React.Suspense>
         )}
         {showCreateFlow && SAFE_MODE.createFlow && (
           <SafeRender flag="createFlow" label="HuiCreateFlow">

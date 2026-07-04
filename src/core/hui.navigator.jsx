@@ -7,7 +7,7 @@
 //   discover         → Entdecken
 //   community        → Messages / Community Hub
 //   impact           → Impact Hub
-//   creator-dashboard → Creator's personal HQ (tab 5)
+//   creator-dashboard → Profil-AppShell-Tab (interner Key: creator)
 //   public-profile   → Social identity view (params: { profileId })
 //   story-viewer     → Story playback (params: { storyId, authorId })
 //   create-flow      → Create new content (params: { type? })

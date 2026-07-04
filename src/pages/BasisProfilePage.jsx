@@ -18,7 +18,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useProfileData } from "../hooks/useProfileData.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
 import { useHome }   from "../components/home/HomeShell.jsx";
-import SettingsModal  from "../components/settings/SettingsModal.jsx";
 import HuiStudio      from "../components/studio/HuiStudio.jsx";
 import { supabase }   from "../lib/supabaseClient.js";
 // Sprint F.5.3: kanonische Sections
@@ -344,6 +343,7 @@ function SocialContextBar({ loading, followCounts }) {
 export default function BasisProfilePage({ profileId, onClose, publicView = false }) {
   // Sprint F.5.2: eigener Loader → useProfileData (identisch zu TalentProfilePage)
   const { user, setProfile: setAuthProfile } = useAuth();
+  const { openOwnProfile } = useHome();
   const resolvedId = profileId || user?.id;
 
   const {
@@ -357,7 +357,6 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
 
   // Owner-spezifische States
   const [mounted,      setMounted]      = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
   const [showStudio,   setShowStudio]   = useState(false);
 
   // isOwner: true wenn das eigene Profil angesehen wird
@@ -444,7 +443,7 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
       <style>{CSS}</style>
 
       {/* Sticky header */}
-      <NavBar onBack={handleBack} isOwner={isOwner} onSettings={() => setShowSettings(true)}/>
+      <NavBar onBack={handleBack} isOwner={isOwner} onSettings={() => setShowStudio(true)}/>
 
       {/* P3: Chat-Button — nur für Besucher (nicht für Owner selbst) */}
       {profile && !loading && !isOwner && (
@@ -546,74 +545,51 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
         <SocialContextBar loading={loading} followCounts={followCounts}/>
         <Gap h={24}/>
 
-        {/* 8. "Mein HUI" — nur für Owner sichtbar */}
+        {/* 8. Owner-Verwaltung — Profil & Studio (kein "Mein HUI"-Relikt) */}
         {isOwner && (
           <div style={{ padding:`0 ${T.px}px`, marginBottom:32 }}>
-            {/* Divider */}
             <div style={{ height:1, background:T.border, marginBottom:24 }}/>
-
-            {/* CTA-Karte */}
             <div style={{
-              background:T.bgCard,
-              borderRadius:T.r20,
-              border:`1px solid ${T.border}`,
-              boxShadow:T.card,
-              padding:"20px",
-              display:"flex", flexDirection:"column", gap:14,
+              background:T.bgCard, borderRadius:T.r20, border:`1px solid ${T.border}`,
+              boxShadow:T.card, padding:"20px", display:"flex", flexDirection:"column", gap:14,
             }}>
-              {/* Titel */}
               <div style={{ display:"flex", alignItems:"center", gap:10 }}>
                 <span style={{ fontSize:22 }}>🌿</span>
                 <div>
                   <div style={{ fontSize:15, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>
-                    Mein HUI
+                    Dein Profil verwalten
                   </div>
                   <div style={{ fontSize:11.5, color:T.inkFaint, marginTop:1 }}>
-                    Verwalte dein Profil und deine Einstellungen
+                    Bearbeite deine Präsenz oder öffne dein Studio
                   </div>
                 </div>
               </div>
-
-              {/* Buttons-Reihe */}
               <div style={{ display:"flex", gap:10 }}>
-                {/* Profil bearbeiten → SettingsModal */}
-                <button className="bpp-press" onClick={() => setShowSettings(true)} style={{
+                <button className="bpp-press" onClick={() => {
+                  onClose?.();
+                  openOwnProfile?.();
+                }} style={{
                   flex:1, padding:"12px 10px", borderRadius:T.r16,
                   background:`linear-gradient(135deg,#0EC4B8,#0DBBAF)`,
-                  border:"none", cursor:"pointer", touchAction:"manipulation",
-                  fontFamily:"inherit",
+                  border:"none", cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
                   display:"flex", flexDirection:"column", alignItems:"center", gap:4,
                   boxShadow:"0 4px 14px rgba(14,196,184,0.25)",
                 }}>
-                  <span style={{ fontSize:20 }}>⚙️</span>
-                  <span style={{ fontSize:11.5, fontWeight:700, color:"white" }}>Einstellungen</span>
+                  <span style={{ fontSize:20 }}>👤</span>
+                  <span style={{ fontSize:11.5, fontWeight:700, color:"white" }}>Profil</span>
                 </button>
-
-                {/* HUI Studio */}
-                <button className="bpp-press" onClick={() => setShowStudio(true)} style={{
+                <button className="bpp-press" onClick={() => {
+                  onClose?.();
+                  window.location.href = "/studio";
+                }} style={{
                   flex:1, padding:"12px 10px", borderRadius:T.r16,
                   background:T.bgCard, border:`1.5px solid ${T.border}`,
-                  cursor:"pointer", touchAction:"manipulation",
-                  fontFamily:"inherit",
-                  display:"flex", flexDirection:"column", alignItems:"center", gap:4,
-                  boxShadow:T.card,
+                  cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
+                  display:"flex", flexDirection:"column", alignItems:"center", gap:4, boxShadow:T.card,
                 }}>
                   <span style={{ fontSize:20 }}>🎛️</span>
-                  <span style={{ fontSize:11.5, fontWeight:700, color:T.ink }}>HUI Studio</span>
+                  <span style={{ fontSize:11.5, fontWeight:700, color:T.ink }}>Studio</span>
                 </button>
-              </div>
-
-              {/* Hinweis */}
-              <div style={{
-                display:"flex", alignItems:"center", gap:8,
-                padding:"10px 14px", borderRadius:T.r12,
-                background:"rgba(14,196,184,0.06)",
-                border:`1px solid rgba(14,196,184,0.15)`,
-              }}>
-                <span style={{ fontSize:14 }}>🔒</span>
-                <span style={{ fontSize:11.5, color:T.inkSoft, lineHeight:1.45 }}>
-                  So sieht dein Profil für andere aus. Bearbeite es über Einstellungen.
-                </span>
               </div>
             </div>
           </div>
@@ -622,16 +598,6 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
       </div>
 
       {/* ── Modals (nur Owner) ─────────────────────────────────── */}
-      {isOwner && showSettings && (
-        <SettingsModal
-          profile={profile}
-          onClose={() => setShowSettings(false)}
-          onSave={(updated) => {
-            reload();           // Sprint F.5.2: reload statt lokales setProfile
-            setShowSettings(false);
-          }}
-        />
-      )}
       {isOwner && showStudio && (
         <HuiStudio
           profile={profile}

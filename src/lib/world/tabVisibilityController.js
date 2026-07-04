@@ -26,7 +26,7 @@ const TAB_TRANSITION = `opacity ${IX.DUR.page}ms ${IX.EASE.cinematic}, transform
 // This is the standard keep-alive tab pattern (same as browser tab bars,
 // React Native TabView, etc.)
 //
-// @param {string}      tabId         — "feed"|"discover"|"impact"|"favorites"
+// @param {string}      tabId         — "feed"|"discover"|"impact"|"favorites"|"creator"
 // @param {string}      activeTab     — current active tab
 // @param {string|null} activeSurface — null = no surface open
 export function getTabStyle(tabId, activeTab, activeSurface) {
@@ -87,7 +87,7 @@ export function getTabVisualState(tabId, activeTab, activeSurface) {
 // React hook — returns all 4 tab styles. Pure derivation, no state/effects.
 //
 // Usage:
-//   const { tabFeed, tabDiscover, tabImpact, tabFavorites } =
+//   const { tabFeed, tabDiscover, tabImpact, tabFavorites, tabCreator } =
 //     useTabStyles(tab, activeSurface);
 export function useTabStyles(activeTab, activeSurface) {
   return {
@@ -95,5 +95,6 @@ export function useTabStyles(activeTab, activeSurface) {
     tabDiscover:  getTabStyle("discover",  activeTab, activeSurface),
     tabImpact:    getTabStyle("impact",    activeTab, activeSurface),
     tabFavorites: getTabStyle("favorites", activeTab, activeSurface),
+    tabCreator:   getTabStyle("creator",   activeTab, activeSurface),
   };
 }
