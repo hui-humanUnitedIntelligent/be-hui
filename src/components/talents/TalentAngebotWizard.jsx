@@ -26,6 +26,14 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
   const wasRejected = existingTalent?.status === "rejected";
   const isApproved = existingTalent?.status === "approved";
 
+  // BottomNav (Orb + Footer, zIndex 9999) ausblenden solange dieser Wizard offen ist —
+  // gleiches Muster wie WerkWizard.jsx/ExperienceWizard.jsx, sonst liegt der Footer über
+  // dem Speichern-Button (Bug gemeldet 2026-07-04).
+  React.useLayoutEffect(() => {
+    document.body.classList.add("hui-wizard-open");
+    return () => document.body.classList.remove("hui-wizard-open");
+  }, []);
+
   async function handleUpload(e) {
     const files = Array.from(e.target.files || []);
     if (!userId || !files.length) return;
