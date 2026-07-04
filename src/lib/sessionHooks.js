@@ -281,20 +281,16 @@ export function useTabKeepAlive(isActive) {
 // useSessionRestore
 //
 // Tab-Restore via sessionStorage: Tab bleibt nach Refresh erhalten.
-// WICHTIG: Nur Tab-State (feed/discover/impact/favorites) — KEINE
-// Overlays (Creator-Dashboard etc.) werden wiederhergestellt.
-//
-// "creator"-Tab wird NICHT wiederhergestellt — das Creator-Dashboard
-// ist ein Overlay das immer geschlossen startet.
+// WICHTIG: Nur Tab-State (feed/discover/impact/favorites/creator) — KEINE
+// Overlays (fremde Profile etc.) werden wiederhergestellt.
 // ────────────────────────────────────────────────────────────────
-const RESTORABLE_TABS = new Set(["feed", "discover", "impact", "favorites"]);
+const RESTORABLE_TABS = new Set(["feed", "discover", "impact", "favorites", "creator"]);
 
 export function useSessionRestore(defaultTab = "feed") {
   const [tab, setTabState] = useState(defaultTab);
   const restoredRef = useRef(false);
 
   // Tab aus sessionStorage laden — erst nach Auth-Check.
-  // "creator"-Tab wird nie wiederhergestellt (Overlay-Tab).
   const restoreTab = useCallback(() => {
     if (restoredRef.current) return;
     restoredRef.current = true;

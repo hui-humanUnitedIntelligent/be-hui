@@ -129,13 +129,8 @@ export default function HomeShell({ children }) {
   // NEU: ID-basierter Profile-Open (radikale Vereinfachung)
   const [selectedProfileId,      setSelectedProfileId]     = useState(null);
   // ── Creator / Profile State ────────────────────────────────────
-  // showCreatorDashboard: startet immer false (AppEntryController steuert den Einstieg).
-  // sessionStorage-Key "hui_mein_hui_open" wird beim Öffnen/Schließen sync gehalten
-  // (für zukünftige Nutzung, kein Auto-Restore beim Start mehr).
-  // Kapitel 1 – Ankommen: HomeShell startet immer neutral.
-  // Das Profil öffnet sich ausschließlich durch eine bewusste Nutzeraktion.
-  // AppEntryController ist die einzige Einstiegs-Entscheidungsstelle.
-  const [showCreatorDashboard,   setShowCreatorDashboard]  = useState(false);
+  // Profil ist ein regulärer Keep-Alive-Tab im Home-Scroll (wie Feed/Discover/Impact).
+  // Kein separates Overlay mehr — tab === "creator" ist die einzige Wahrheitsquelle.
   // ── Chat State ─────────────────────────────────────────────────
   const [showChat, _setShowChatRaw] = useState(false);
   const _showChatRef = React.useRef(false);
@@ -185,22 +180,18 @@ export default function HomeShell({ children }) {
   // Phase 16.4: Tab visibility via tabVisibilityController (single authority)
   // activeSurface from WorldSurface — no local opacity state
   const { activeSurface } = useWorldSurface();
-  const { tabFeed, tabDiscover, tabImpact, tabFavorites } =
+  const { tabFeed, tabDiscover, tabImpact, tabFavorites, tabCreator } =
     useTabStyles(tab, activeSurface);
   // Legacy aliases for backward compat during transition
   const keepFeed      = tabFeed;
   const keepDiscover  = tabDiscover;
   const keepImpact    = tabImpact;
   const keepFavorites = tabFavorites;
+  const keepCreator   = tabCreator;
+  const showCreatorDashboard = tab === "creator";
 
-  /* switchTab — schließt alle Overlays + wechselt Tab */
-  const switchTab = useCallback((newTab) => {
-    // GUARD: Orb is a world-layer, never a tab destination
-    if (!assertValidTab(newTab)) return;
-    // Erste relevante Stack-Zeile (überspringt Error + switchTab selbst)
-    // World continuity: track tab transition for atmospheric carry-over
-    setPrevTab(tab);
-    setCarryOver({ from: tab, to: newTab, timestamp: Date.now() });
+  /* closeHomeOverlays — schließt alle transienten Overlays, behält Tab bei */
+  const closeHomeOverlays = useCallback(() => {
     setShowWirker(null);
     setShowWerkDetail(null);
     setShowWerkCheckout(null);
@@ -213,6 +204,7 @@ export default function HomeShell({ children }) {
     setShowInvitationFlow(false);
     setShowMatch(false);
     setShowMap(false);
+    setSelectedProfileId(null);
     setChatRecipient?.(null);
     setShowNotifs(false);
     setShowMembership(false);
@@ -222,23 +214,33 @@ export default function HomeShell({ children }) {
     }
     setShowPlusSheet(false);
     setCreateType(null);
-    setShowCreatorDashboard(false);
-    try { sessionStorage.removeItem("hui_mein_hui_open"); } catch(_) {}
-    // showChat bleibt offen bei Tab-Wechsel (Chat ist Tab-unabhängiges Overlay)
     setShowConnect(false);
     setShowTalentFlow(false);
+    try { sessionStorage.removeItem("hui_mein_hui_open"); } catch(_) {}
+  }, []);
+
+  /* switchTab — schließt alle Overlays + wechselt Tab */
+  const switchTab = useCallback((newTab) => {
+    // GUARD: Orb is a world-layer, never a tab destination
+    if (!assertValidTab(newTab)) return;
+    // Erste relevante Stack-Zeile (überspringt Error + switchTab selbst)
+    // World continuity: track tab transition for atmospheric carry-over
+    setPrevTab(tab);
+    setCarryOver({ from: tab, to: newTab, timestamp: Date.now() });
+    closeHomeOverlays();
+    // showChat bleibt offen bei Tab-Wechsel (Chat ist Tab-unabhängiges Overlay)
     _setTab(newTab);
-  }, [_setTab, setShowCreatorDashboard]);
+  }, [_setTab, tab, closeHomeOverlays]);
 
   /* openCreatorDashboard — kanonische Funktion zum Öffnen des Profilbereichs
    * NAV-001: Konsolidiert openOwnProfile + openCreatorDashboard (identisch gewesen).
    * sessionStorage-Key "hui_mein_hui_open" = historischer Naming-Drift (Tab-Key ist "creator").
    * Key bleibt aus Kompatibilitätsgründen unverändert. */
   const openCreatorDashboard = useCallback(() => {
+    closeHomeOverlays();
     _setTab("creator");
-    setShowCreatorDashboard(true);
     try { sessionStorage.setItem("hui_mein_hui_open", "1"); } catch(_) {}
-  }, [_setTab, setShowCreatorDashboard]);
+  }, [_setTab, closeHomeOverlays]);
 
   /* openOwnProfile — Alias für openCreatorDashboard (NAV-001: konsolidiert) */
   const openOwnProfile = openCreatorDashboard;
@@ -262,11 +264,9 @@ export default function HomeShell({ children }) {
   // für Tab-Navigation innerhalb der Home-Shell.
   // Home.jsx onTabPress delegiert vollständig an handleTab.
   const handleTab = useCallback((key) => {
-    // "creator" und "profile" → beide öffnen den Profilbereich (creator-Tab aktiv).
-    // "profile" ist der UI-Label-Key; "creator" ist der interne State-Key.
+    // "creator" und "profile" → regulärer Tab-Wechsel (Keep-Alive im Home-Scroll).
     if (key === "creator" || key === "profile") {
-      _setTab("creator");        // ← Tab aktiv markieren (NavItem zeigt Türkis)
-      openCreatorDashboard();    // ← Overlay öffnen
+      openCreatorDashboard();
       return;
     }
     // Impact: direkter _setTab ohne switchTab — bewusst, damit offen Overlays
@@ -286,8 +286,8 @@ export default function HomeShell({ children }) {
     user, authProfile, isTalent, isBaseUser, canCreate, isMember,
     currentUser, userName,
     tab, switchTab, handleTab, mainScrollRef,
-    keepFeed, keepDiscover, keepImpact, keepFavorites,
-    tabFeed,  tabDiscover,  tabImpact,  tabFavorites,
+    keepFeed, keepDiscover, keepImpact, keepFavorites, keepCreator,
+    tabFeed,  tabDiscover,  tabImpact,  tabFavorites,  tabCreator,
     activeSurface,
     prevTab, carryOver,
     isOrbOpen, openOrbWorld, closeOrbWorld, orbState,
@@ -295,7 +295,7 @@ export default function HomeShell({ children }) {
     liveNotifCount,
     showWirker,            setShowWirker,
     selectedProfileId,     setSelectedProfileId,
-    showCreatorDashboard,  setShowCreatorDashboard,
+    showCreatorDashboard,
     openCreatorDashboard,
     openProfileById,       closeProfileById,
     showChat,              setShowChat,
@@ -331,8 +331,8 @@ export default function HomeShell({ children }) {
   }), [
     user, authProfile, isTalent, isBaseUser, canCreate, isMember,
     currentUser, userName, tab, switchTab, handleTab,
-    keepFeed, keepDiscover, keepImpact, keepFavorites,
-    tabFeed, tabDiscover, tabImpact, tabFavorites,
+    keepFeed, keepDiscover, keepImpact, keepFavorites, keepCreator,
+    tabFeed, tabDiscover, tabImpact, tabFavorites, tabCreator,
     activeSurface, prevTab, carryOver,
     isOrbOpen, openOrbWorld, closeOrbWorld, orbState,
     activeMood, liveNotifCount,

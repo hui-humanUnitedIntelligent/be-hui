@@ -27,6 +27,7 @@ export const SAFE_MODE = {
   homeFeed:      true,
   discoverFeed:  true,
   impactPage:    true,
+  creatorProfile:true,
   onboarding:    true,
 
   // Cinematic Layer — isoliert deaktivierbar
