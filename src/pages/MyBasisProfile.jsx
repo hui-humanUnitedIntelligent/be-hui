@@ -1624,7 +1624,7 @@ function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTalent = 
       )}
       <button className="mbp-press-light" onClick={() => onTalentWizard?.()} style={{
         display:"flex", alignItems:"center", gap:8,
-        padding:"10px 16px", borderRadius:12,
+        padding:"10px 16px", borderRadius:T.r12,
         background:T.bgCard, border:`1.5px dashed ${T.borderMid}`,
         fontSize:13, fontWeight:600, color:T.inkSoft,
         cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
@@ -1666,7 +1666,7 @@ function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
       />
     )}
     <div style={{ padding:`0 ${T.px}px` }}>
-      <SectionRow title="Meine Werke"/>
+      <SectionRow title="Meine Werke" sub="Deine veröffentlichten Kreationen."/>
       {works.length > 0 && (
         <div style={{ display:"flex", gap:10, overflowX:"auto",
           WebkitOverflowScrolling:"touch", scrollbarWidth:"none",
@@ -1822,7 +1822,7 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
         sub="Momente, die mein Wirken zeigen."/>
 
       <div style={{ display:"flex", gap:10, overflowX:"auto",
-        WebkitOverflowScrolling:"touch", scrollbarWidth:"none", paddingBottom:4 }}>
+        WebkitOverflowScrolling:"touch", scrollbarWidth:"none", paddingBottom:4, marginBottom:10 }}>
         {experiences.map((exp, i) => {
           // ── Badge-System identisch zu Meine Werke ──────────────
           const isApproved = exp.approval_status === "approved" || exp.status === "published";
