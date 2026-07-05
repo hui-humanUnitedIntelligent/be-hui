@@ -98,25 +98,23 @@ export function ExchangeIcon({ size = 24, className, style }) {
           <stop offset="100%" stopColor="#F2793F" />
         </linearGradient>
       </defs>
-      {/* Premium-Finetuning 2026-07-05 (Lars): Koepfe vergroessert
-          (r 1.85->2.25) und Koerper-Schwuenge verbreitert/Kerbe abgeflacht --
-          gemessen per Pixel-Fuellgrad-Analyse von 31.8%->37.0% (+16.4%,
-          im geforderten 15-20%-Fenster). Silhouette/Bedeutung (zwei
-          Figuren, Herz als Negativraum) bewusst unveraendert, nur
-          kraeftiger/geschlossener.
+      {/* Premium-Finetuning Runde 3 (2026-07-05, Lars Punkt 5 "Austauschen
+          minimal kraeftiger", +5-8%): Koepfe r 2.25->2.35, Koerper minimal
+          weiter verbreitert -- gemessen 37.0%->39.3% (+6.2%, im geforderten
+          Fenster). Silhouette bewusst unveraendert.
           Linke Figur: Kopf + fließender Körper, dessen innere Kontur die
           linke Herzhälfte bildet */}
-      <circle cx="6.7" cy="5.2" r="2.25" fill={`url(#${left})`} />
+      <circle cx="6.65" cy="5.15" r="2.35" fill={`url(#${left})`} />
       <path
-        d="M6.7 8.0C3.1 9.0 0.7 12.6 1.5 19.6C4.2 21.2 9.6 20.7 12.6 17.5
-           C10.5 15.1 7.3 12.9 8.6 9.4C8.0 8.9 7.3 8.4 6.7 8.0Z"
+        d="M6.65 8.1C2.9 9.1 0.4 12.8 1.3 19.9C4.1 21.5 9.7 21.0 12.8 17.6
+           C10.6 15.1 7.2 12.8 8.6 9.2C7.9 8.7 7.3 8.4 6.65 8.1Z"
         fill={`url(#${left})`}
       />
       {/* Rechte Figur: gespiegelt, teilt sich den Herz-Fußpunkt mit links */}
-      <circle cx="17.3" cy="5.2" r="2.25" fill={`url(#${right})`} />
+      <circle cx="17.35" cy="5.15" r="2.35" fill={`url(#${right})`} />
       <path
-        d="M17.3 8.0C20.9 9.0 23.3 12.6 22.5 19.6C19.8 21.2 14.4 20.7 11.4 17.5
-           C13.5 15.1 16.7 12.9 15.4 9.4C16.0 8.9 16.7 8.4 17.3 8.0Z"
+        d="M17.35 8.1C21.1 9.1 23.6 12.8 22.7 19.9C19.9 21.5 14.3 21.0 11.2 17.6
+           C13.4 15.1 16.8 12.8 15.4 9.2C16.1 8.7 16.7 8.4 17.35 8.1Z"
         fill={`url(#${right})`}
       />
     </svg>
@@ -199,24 +197,21 @@ export function RecommendIcon({ size = 24, className, style }) {
           <stop offset="100%" stopColor="#F2793F" />
         </linearGradient>
       </defs>
-      {/* Premium-Finetuning 2026-07-05 (Lars) — v3: DEUTLICH verdickt, war
-          das schwaechste der vier Icons (2.4% Pixel-Fuellgrad vs. 28-32%
-          bei Austauschen/Merken). Kein neues Icon, gleiche Grundform
-          (Schwung + Pfeilspitze mit konkaver Kerbe) -- aber Schwung ist
-          jetzt eine satte, kraeftige Flaeche statt einer duennen Linie,
-          Pfeilspitze deutlich groesser. Gemessen: 2.4%->14.3% Fuellgrad,
-          damit auf aehnlichem Niveau wie das offizielle Resonanz-Icon
-          (15.1%) -- gleiche optische Masse wie die anderen drei erreicht. */}
+      {/* Premium-Finetuning Runde 3 (2026-07-05, Lars Punkt 4 "Weitergeben
+          leicht verstaerken", nur minimal): 14.3%->15.5% Fuellgrad (+8.4%,
+          "minimal nacharbeiten"), damit knapp ueber dem offiziellen
+          Resonanz-Icon (15.1%) -- gleiche Wertigkeit erreicht, keine neue
+          Form, gleiche Grundform (Schwung + Pfeilspitze mit konkaver Kerbe). */}
       <path
-        d="M1.6 21.0C7.8 19.8 13.8 13.6 17.3 7.0L20.6 9.2
-           C16.3 16.5 9.4 21.5 3.0 22.9C2.5 22.3 2.0 21.6 1.6 21.0Z"
+        d="M1.4 21.3C7.9 20.0 14.1 13.5 17.7 6.6L21.2 8.9
+           C16.7 16.6 9.5 21.8 2.9 23.2C2.4 22.6 1.9 21.9 1.4 21.3Z"
         fill={`url(#${grad})`}
       />
       {/* Pfeilspitze mit konkaver Kerbe (klassische "Weitergeben"-Spitze,
           wie im Referenzbild) — Rueckkante wird zur Pfeilspitze hin
           hineingezogen statt gerade zu verlaufen. */}
       <path
-        d="M15.4 6.4L22.6 1.3L15.9 11.6Q20.3 7.9 15.4 6.4Z"
+        d="M15.7 6.0L23.0 0.7L16.2 11.4Q20.9 7.5 15.7 6.0Z"
         fill={`url(#${grad})`}
       />
     </svg>

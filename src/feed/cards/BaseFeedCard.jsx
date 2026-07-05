@@ -525,8 +525,10 @@ const ActionBtn = memo(function ActionBtn({
   // Effekte (Bookmark-Pulse 1.3 mit Ueberschwing-Keyframe, Resonanz-Glow-
   // Filter, Default-Shrink auf 0.88) -- Lars: "keine Bounce-Effekte, keine
   // Pop-Animation, keine Spielerei".
-  const PRESS_MS = 160;
-  const PRESS_SCALE = 1.04;
+  // Runde 3 (Lars Punkt 7): Scale 1.03 (statt 1.04), 150ms (statt 160ms) --
+  // noch dezenter, exakt nach Vorgabe.
+  const PRESS_MS = 150;
+  const PRESS_SCALE = 1.03;
 
   function handleClick() {
     if (disabled) return;
@@ -551,11 +553,12 @@ const ActionBtn = memo(function ActionBtn({
       style={{
         position: "relative",
         background: "none", border: "none",
-        // Fine-Tuning 2026-07-05 (Lars): Padding auf 9/10px erhoeht, damit die
-        // Klickflaeche bei 27px-Icon zuverlaessig >= 44x44px erreicht
-        // (27 + 2*9 = 45 Hoehe, 27 + 2*10 = 47 Breite bei Icon-only-Buttons),
-        // ohne dass das Icon selbst groesser wirkt als noetig.
-        padding: "9px 10px",
+        // Premium-Finetuning Runde 3 2026-07-05 (Lars Punkt 2 "Action-Leiste
+        // flacher"): vertikales Padding 9px->5px reduziert (das sichtbare
+        // Icon ist jetzt 31px, minHeight:44 bleibt als garantierter
+        // Touch-Floor bestehen -- der Button wird also visuell flacher,
+        // die tatsaechliche Tap-Flaeche bleibt >=44x44px unangetastet).
+        padding: "5px 11px",
         cursor: disabled ? "default" : "pointer",
         display: "flex", alignItems: "center", gap: 6,
         borderRadius: 12,
@@ -588,9 +591,9 @@ const ActionBtn = memo(function ActionBtn({
         transform: "translateY(4px)",
         transition: "opacity 0.18s ease",
       }}>
-        {/* Fine-Tuning 2026-07-05 (Lars): 22px -> 27px fuer bessere Erkennbarkeit
-            auf iPhone/iPad, innerhalb des geforderten 26-28px-Fensters. */}
-        {Icon ? <Icon size={27} /> : null}
+        {/* Premium-Finetuning Runde 3 2026-07-05 (Lars): 27px -> 31px, im
+            geforderten 30-32px-Fenster fuer "noch etwas praesenter". */}
+        {Icon ? <Icon size={31} /> : null}
       </span>
       {(count != null || label) && (
         <span style={{
@@ -632,8 +635,19 @@ export const FeedActions = memo(function FeedActions({
 }) {
   const r = reactions || {};
   const resonanz = getResonanzText(r);
+  // Premium-Finetuning Runde 3 2026-07-05 (Lars Punkt 3, "mit der Karte
+  // verschmelzen"): marginTop 12->4, Border-Deckkraft 0.07->0.045
+  // ("nur sehr dezent"), explizites background:T.bgCard (identisch zur
+  // Karte) + untere Eckenrundung wie die Karte (T.r, die Karte selbst
+  // hat bereits overflow:hidden, hier zusaetzlich defensiv gesetzt).
   return (
-    <div style={{ borderTop: "1px solid " + T.border, marginTop: 12 }}>
+    <div style={{
+      borderTop: "1px solid rgba(26,26,46,0.045)",
+      marginTop: 4,
+      background: T.bgCard,
+      borderBottomLeftRadius: T.r,
+      borderBottomRightRadius: T.r,
+    }}>
       {/* Reaktions-Buttons — Fine-Tuning 2026-07-05 (Lars): von "2 links /
           2 rechts via flex-Spacer" auf eine optisch exakt mittig
           ausgerichtete 4er-Gruppe umgestellt (Apple-Premium-Anmutung,
@@ -645,7 +659,10 @@ export const FeedActions = memo(function FeedActions({
           bleibt als optionaler Slot am Ende der zentrierten Gruppe erhalten. */}
       <div style={{
         display:"flex", alignItems:"center", justifyContent:"center",
-        padding:"8px " + (T.p - 4) + "px 6px",
+        // Runde 3 (Lars Punkt 2, "flacher"): Row-Padding 8/6px -> 3/3px --
+        // zusammen mit dem verkleinerten Button-Padding ca. 18% weniger
+        // Gesamthoehe ggue. Runde 2, trotz groesserer 31px-Icons.
+        padding:"3px " + (T.p - 4) + "px 3px",
         gap:10,
       }}>
         {/* HUI Interaction Language v1.0 (2026-07-05) — Mapping auf bestehende
