@@ -45,6 +45,7 @@ export function ExperiencesSection({
   loading     = false,
   onAddExperience = null,
   onShowAll       = null,
+  onExperiencePress = null,
 }) {
   const visible = isOwner
     ? experiences
@@ -109,7 +110,12 @@ export function ExperiencesSection({
       ) : (
         <div className="es-hscroll" style={{ display:"flex", gap:10, padding:`0 ${T.px}px 4px` }}>
           {visible.slice(0,6).map((ex,i) => (
-            <div key={ex.id||i} className="es-press" style={{ flexShrink:0, width:110 }}>
+            <div
+              key={ex.id||i}
+              className="es-press"
+              onClick={() => onExperiencePress?.(ex)}
+              style={{ flexShrink:0, width:110, cursor: onExperiencePress ? "pointer" : "default" }}
+            >
               <div style={{ width:110, height:100, borderRadius:T.r16, overflow:"hidden",
                 background:"linear-gradient(135deg,#2C3B2D,#8B7355)", marginBottom:6 }}>
                 {ex.cover_url

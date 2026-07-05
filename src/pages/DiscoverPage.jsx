@@ -8,6 +8,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { useNavigate }   from "react-router-dom";
 import { supabase }      from "../lib/supabaseClient.js";
 import { formatPresence } from "../lib/usePresence.js";
+import { isExperienceUuid } from "../lib/experienceDetailUtils.js";
 
 // ── Design Tokens ────────────────────────────────────────────────
 const T = {
@@ -919,14 +920,6 @@ function WerkeSection({ werke, loading, delay=0, view='cards', onPress, onSectio
 // ════════════════════════════════════════════════════════════════
 // 6. ERLEBNISSE FÜR DICH
 // ════════════════════════════════════════════════════════════════
-const SEED_ERLEBNISSE = [
-  { id:"e1", title:"Yoga im Park",              date:"30", month:"Mai",  dayLabel:"Heute",  time:"18:00", location:"München",  spots:12, cover:"https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=280&q=75" },
-  { id:"e2", title:"Urban Gardening Workshop",  date:"31", month:"Mai",  dayLabel:"Morgen", time:"10:00", location:"Hamburg",  spots:8,  cover:"https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=280&q=75" },
-  { id:"e3", title:"Gitarre für Anfänger",      date:"02", month:"Jun",  dayLabel:"Mo",     time:"19:00", location:"Berlin",   spots:6,  cover:"https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=280&q=75" },
-  { id:"e4", title:"Acryl Malen für Einsteiger",date:"04", month:"Jun",  dayLabel:"Mi",     time:"17:00", location:"Leipzig",  spots:7,  cover:"https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=280&q=75" },
-  { id:"e5", title:"Sonnenaufgang Wanderung",   date:"06", month:"Jun",  dayLabel:"Fr",     time:"05:00", location:"Freiburg", spots:10, cover:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=280&q=75" },
-  { id:"e6", title:"Tierheim Helfer Tag",       date:"07", month:"Jun",  dayLabel:"Sa",     time:"11:00", location:"Leipzig",  spots:9,  cover:"https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=280&q=75" },
-];
 
 function ErlebnisCard({ erlebnis, delay=0, onPress }) {
   const [imgErr, setImgErr] = useState(false);
@@ -940,14 +933,6 @@ function ErlebnisCard({ erlebnis, delay=0, onPress }) {
   };
   const statusDot   = STATUS_DOT[erlebnis.statusLabel] || T.inkFaint;
   const statusColor = erlebnis.statusColor || T.inkFaint;
-
-  console.log("[DISCOVER EXPERIENCE CARD]", {
-    id:     erlebnis.id,
-    title:  erlebnis.title,
-    status: erlebnis.statusLabel,
-    cover:  !!erlebnis.cover,
-    type:   erlebnis.typeLabel,
-  });
 
   return (
     <div className="dp-press dp-in dp-card-hover" onClick={() => onPress?.(erlebnis)} style={{
@@ -1054,17 +1039,33 @@ function ErlebnisCard({ erlebnis, delay=0, onPress }) {
 }
 
 function ErlebnisseSection({ erlebnisse, loading, delay=0, view='cards', onPress, onSectionAction }) {
+  const isEmpty = !loading && erlebnisse.length === 0;
+
   return (
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <div data-dp-erlebnisse/>
       <SectionHead
         title="Erlebnisse für dich"
         sub="Workshops, Treffen, Kurse & besondere Momente."
-        action="Alle Erlebnisse"
+        action={isEmpty ? null : "Alle Erlebnisse"}
         onAction={onSectionAction}
         delay={delay}
       />
-      {view === "cards" ? (
+      {isEmpty ? (
+        <div style={{
+          margin:`0 ${T.px}px`, padding:"28px 20px", borderRadius:18,
+          background:T.white, border:`1px solid ${T.border}`,
+          textAlign:"center", boxShadow:T.cardShadow,
+        }}>
+          <div style={{ fontSize:32, marginBottom:10, opacity:0.4 }}>🎟</div>
+          <div style={{ fontSize:14, fontWeight:700, color:T.ink, marginBottom:6 }}>
+            Noch keine Erlebnisse
+          </div>
+          <div style={{ fontSize:12.5, color:T.inkFaint, lineHeight:1.5 }}>
+            Sobald Creators Erlebnisse veröffentlichen, erscheinen sie hier.
+          </div>
+        </div>
+      ) : view === "cards" ? (
         <div className="dp-hscroll" style={{ display:"flex", gap:10, paddingLeft:T.px, paddingRight:T.px, paddingBottom:4 }}>
           {loading
             ? Array.from({length:4}).map((_,i) => (
@@ -1087,7 +1088,7 @@ function ErlebnisseSection({ erlebnisse, loading, delay=0, view='cards', onPress
                   "Aktiv":"#16A34A", "Geplant":"#D97706",
                 }[e.statusLabel] || "rgba(26,26,46,0.30)";
                 return (
-                  <div key={e.id} className="dp-list-card">
+                  <div key={e.id} className="dp-list-card dp-press" onClick={() => onPress?.(e)} style={{ cursor:"pointer" }}>
                     <div className="dp-list-thumb-placeholder" style={{ background: e.cover ? "#1A1A18" : T.tealSoft, position:"relative", overflow:"hidden" }}>
                       {e.cover
                         ? <img src={e.cover} alt={e.title} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} onError={ev => ev.currentTarget.style.display="none"}/>
@@ -1415,7 +1416,7 @@ function OrtCard({ ort, delay=0, onMap }) {
 // ════════════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ════════════════════════════════════════════════════════════════
-export default function DiscoverPage({ onView, onMap, onBook }) {
+export default function DiscoverPage({ onView, onMap }) {
   const [view, setView]         = useState("cards"); // "cards" | "list"
   const [loading, setLoading] = useState(true);
   const [people, setPeople]           = useState([]);
@@ -1510,7 +1511,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         // Erlebnisse — korrigierte Feldnamen: location_text, max_participants
         const { data: exps, error: expsErr } = await supabase
           .from("experiences")
-          .select("id,title,cover_url,date,duration,location_text,max_participants,status,approval_status,category,experience_type,created_at")
+          .select("id,title,cover_url,date,duration,location_text,participant_limit,status,approval_status,category,experience_type,user_id,price,created_at")
           .eq("status", "published")
           .eq("approval_status", "approved")
           .order("created_at", { ascending:false })
@@ -1551,7 +1552,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
               dayLabel:    dateStr || "",
               time:        safeStr(e.duration),
               location:    safeStr(e.location_text),
-              spots:       safeNum(e.max_participants, 0),
+              spots:       safeNum(e.participant_limit, 0),
               statusLabel,
               statusColor,
               typeLabel,
@@ -1600,7 +1601,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   const displayMomente    = momente.length > 0 ? momente : SEED_MOMENTE;
   const navigate           = useNavigate();
   const displayWerke      = werke.length > 0 ? werke : SEED_WERKE;
-  const displayErlebnisse = erlebnisse.length > 0 ? erlebnisse : SEED_ERLEBNISSE;
+  const displayErlebnisse = erlebnisse;
   const displayProjekte   = projekte.length > 0 ? projekte : SEED_PROJEKTE;
 
   const handlePersonPress = useCallback((person) => {
@@ -1625,16 +1626,13 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
     if (profileId && typeof onView === "function") onView(profileId);
   }, [onView]);
 
-  // Erlebnis-Karte: öffne ExperienceBookingFlow (Detail + Buchen)
+  // Erlebnis-Karte → offizielle Detailseite
   const handleErlebnisPress = useCallback((erlebnis) => {
-    if (typeof onBook === "function") {
-      onBook(erlebnis);
-    } else {
-      // Fallback: Ersteller-Profil öffnen
-      const profileId = erlebnis.user_id;
-      if (profileId && typeof onView === "function") onView(profileId);
+    const expId = erlebnis?.id;
+    if (expId && isExperienceUuid(expId)) {
+      navigate(`/experience/${expId}`);
     }
-  }, [onBook, onView]);
+  }, [navigate]);
 
   // Projekt-Karte: öffne Impact-Seite (/impact)
   const handleProjektPress = useCallback((projekt) => {

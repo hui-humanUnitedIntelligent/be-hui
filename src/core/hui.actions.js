@@ -22,6 +22,7 @@ import {
   checkSemantics,
   INTENT,
 } from "./hui.semantics.js";
+import { buildExperienceCartItem, isExperienceUuid } from "../lib/experienceDetailUtils.js";
 
 // ─── Action log (dev mode) ─────────────────────────────────────────
 const isDev = import.meta.env?.DEV ?? false;
@@ -156,6 +157,11 @@ export function buildActions(shell) {
     // Tabs
     switchTab,
     handleTab,
+    // Router + Commerce 2.0
+    navigate,
+    setCart,
+    setShowWerkeKorb,
+    setShowUnterstutzenFlow,
     // Orb
     openOrbWorld,
     closeOrbWorld,
@@ -258,16 +264,22 @@ export function buildActions(shell) {
       if (!payload) return;
       logAction(A.OPEN_EXPERIENCE, payload);
       const { experience, creatorId } = payload;
-      // Open the creator profile and highlight the experience
-      if (creatorId || experience?.creator_id) {
+      const expId = experience?.id ?? payload.experienceId ?? null;
+
+      // Kanonische Detailseite — alle Karten führen hierher
+      if (expId && isExperienceUuid(expId) && navigate) {
+        navigate(`/experience/${expId}`);
+        return;
+      }
+
+      // Fallback ohne ID: Creator-Profil
+      if (creatorId || experience?.creator_id || experience?.user_id) {
         actions[A.OPEN_PROFILE]({
-          creatorId: creatorId ?? experience?.creator_id,
-          _highlightExp: experience?.id ?? null,
-          source: payload.source || S.SYSTEM,  // source durchreichen
-          intent: INTENT.EXPLORE,              // semantic intent
+          creatorId: creatorId ?? experience?.creator_id ?? experience?.user_id,
+          source: payload.source || S.SYSTEM,
+          intent: INTENT.EXPLORE,
         });
       } else {
-        // No creator context — open connect sheet
         actions[A.OPEN_CONNECT]({ intent: "experience", experience });
       }
     },
@@ -277,18 +289,25 @@ export function buildActions(shell) {
       if (!payload) return;
       logAction(A.BOOK_EXPERIENCE, payload);
       const { experience, creator } = payload;
-      // Semantic: normalizeCreator → sicheres Recipient-Objekt für Booking-Chat
       const safeExp  = normalizeExperience(experience);
       const safeCr   = creator ? normalizeCreator(creator) : null;
-      // Semantic guard (DEV)
       checkSemantics("BOOK_EXPERIENCE", { experience: safeExp, creator: safeCr, source: payload?.source || S.SYSTEM });
-      // Set recipient so Connect-Sheet weiß wer gebucht wird
-      if (safeCr) setChatRecipient?.(safeCr);
-      // Flow-Log
-      const bookSource = payload?.source || S.SYSTEM;
-      logFlow(bookSource, S.BOOKING, safeCr ? { to: safeCr.display_name } : null);
-      // COMMERCE-01: ExperienceBookingFlow öffnen statt ConnectionCreatePage
-      setShowBookingFlow?.({ experience: safeExp, creator: safeCr });
+
+      const expId = safeExp?.id;
+      if (expId && isExperienceUuid(expId) && navigate) {
+        // Detailseite → Commerce 2.0 (einheitlicher Pfad)
+        navigate(`/experience/${expId}`);
+        return;
+      }
+
+      const cartItem = buildExperienceCartItem(safeExp._raw || safeExp, safeCr);
+      if (cartItem && setCart) {
+        setCart(prev => {
+          if (prev.some(x => x.id === cartItem.id)) return prev;
+          return [...prev, cartItem];
+        });
+        setShowWerkeKorb?.(true);
+      }
     },
 
     [A.CREATE_EXPERIENCE]: (payload = {}) => {

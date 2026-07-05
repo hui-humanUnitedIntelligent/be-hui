@@ -6,6 +6,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient.js";
 import {
   FB_AVATAR,
@@ -365,6 +366,7 @@ function OffenFuerSection({ openFor, onChange }) {
 const MAX_BIO = 500;
 
 export default function MyBasisProfile({ onClose, profileId }) {
+  const navigate = useNavigate();
   // AuthContext: eigenen Profile-Cache nach Uploads aktualisieren
   const _auth = useAuth() || {};
   const user            = _auth.user   ?? null;          // Sprint F.7D: user für useProfileData
@@ -847,7 +849,10 @@ export default function MyBasisProfile({ onClose, profileId }) {
             {/* T4. Erlebnisse — ErlebnisseSection bleibt (Owner-only) */}
             <ErlebnisseSection
               experiences={experiences}
-              onErlebnisWizard={(exp) => { setEditingExp(exp || null); setShowExpWizard(true); }}
+              onErlebnisWizard={(exp) => {
+                if (exp?.id) navigate(`/experience/${exp.id}`);
+                else { setEditingExp(null); setShowExpWizard(true); }
+              }}
               onDeleteErlebnis={(id) => { setLocalExperiences(null); reload(); }}
             />
             <Gap h={24}/>
@@ -1048,6 +1053,8 @@ export default function MyBasisProfile({ onClose, profileId }) {
           onClose={() => setShowResonanz(false)}
           onNavigate={(type, navId) => {
             setShowResonanz(false);
+            if (type === "erlebnis" && navId) navigate(`/experience/${navId}`);
+            else if (type === "werk" && navId) navigate(`/work/${navId}`);
           }}
         />
       )}

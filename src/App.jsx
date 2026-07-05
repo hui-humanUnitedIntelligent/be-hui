@@ -31,7 +31,8 @@ const DiagnosePage      = lazy(() => import('./pages/DiagnosePage'))
 const PlatformDashboard = lazy(() => import('./pages/PlatformDashboard'))
 const CreatorStudio     = lazy(() => import('./pages/CreatorStudio'))
 const WirkerProfilePage = lazy(() => import('./pages/wirker-profile/index.jsx'))
-const WorkDetailPage    = lazy(() => import('./components/WorkDetailPage'))
+const WorkDetailPage       = lazy(() => import('./components/WorkDetailPage'))
+const ExperienceDetailPage = lazy(() => import('./components/ExperienceDetailPage'))
 
 // ── Route Factory ──────────────────────────────────────────────────────────
 import { createTabPage, filterValidPages } from './lib/factories/createTabPage.js'
@@ -52,7 +53,8 @@ import { HUILogoSplash } from './components/brand/HUILogo.jsx'
 export const APP_ROUTES = filterValidPages([
   createTabPage({ key:'home',      route:'/Home',           component:Home,              title:'HUI',         protectedRoute:true,  preload:true  }),
   createTabPage({ key:'impact',    route:'/impact',         component:ImpactPage,        title:'Impact',      protectedRoute:true,  preload:false }),
-  createTabPage({ key:'work',      route:'/work/:id',       component:WorkDetailPage,    title:'Werk',        protectedRoute:true,  preload:false }),
+  createTabPage({ key:'work',       route:'/work/:id',          component:WorkDetailPage,       title:'Werk',     protectedRoute:true,  preload:false }),
+  createTabPage({ key:'experience', route:'/experience/:id',    component:ExperienceDetailPage, title:'Erlebnis', protectedRoute:true,  preload:false }),
   createTabPage({ key:'profile',   route:'/profile/:username', component:WirkerProfilePage, title:'Profil',  protectedRoute:true,  preload:false }),
   createTabPage({ key:'admin',     route:'/Admin',          component:Admin,             title:'Admin',       protectedRoute:true,  preload:false }),
   createTabPage({ key:'diagnose',  route:'/diagnose',       component:DiagnosePage,      title:'Diagnose',    protectedRoute:true,  preload:false }),
@@ -388,6 +390,18 @@ function WorkDetailRouteWrapper() {
   );
 }
 
+/* ── ExperienceDetailRouteWrapper: /experience/:id → ExperienceDetailPage ── */
+function ExperienceDetailRouteWrapper() {
+  const navigate = useNavigate();
+  return (
+    <ExperienceDetailPage
+      onBookExperience={(cartItem) => {
+        navigate("/Home", { state: { pendingExperienceCart: cartItem } });
+      }}
+    />
+  );
+}
+
 /* ── Router Wrapper: /profile/:username → WirkerProfilePage ────────── */
 // onBook öffnet RequestSheet INNERHALB der WirkerProfilePage
 // Kein separates BookingFlow-Overlay mehr nötig
@@ -518,6 +532,11 @@ function AppRoutes() {
         {/* COMMERCE-01 */}
         <Route path="/work/:id" element={
           <ProtectedRoute><WorkDetailRouteWrapper /></ProtectedRoute>
+        }/>
+
+        {/* Experience Detail — LAZY */}
+        <Route path="/experience/:id" element={
+          <ProtectedRoute><ExperienceDetailRouteWrapper /></ProtectedRoute>
         }/>
 
         {/* /profile/:username → WirkerProfileRouteWrapper */}

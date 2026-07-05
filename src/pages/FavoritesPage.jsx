@@ -388,6 +388,16 @@ function WorkCard({ work, idx, onView }) {
 ══════════════════════════════════════════════════════════════ */
 function ExperienceCards({ experiences, onView }) {
   const secActions = useHuiActions();
+  if (!experiences.length) {
+    return (
+      <div style={{ margin:"0 20px", padding:"24px 20px", borderRadius:20,
+        background:C.card, border:`1px solid ${C.borderL}`, textAlign:"center" }}>
+        <div style={{ fontSize:28, marginBottom:8, opacity:0.4 }}>🎟</div>
+        <div style={{ fontSize:13.5, fontWeight:700, color:C.ink, marginBottom:4 }}>Noch keine Erlebnisse</div>
+        <div style={{ fontSize:12, color:C.muted }}>Entdecke Erlebnisse in deiner Nähe.</div>
+      </div>
+    );
+  }
   return (
     <div>
       <SectionHeader title="Erlebnisse" onAll={() => secActions[A.OPEN_EXPERIENCE]?.({ view:"favoriten" })} />
@@ -405,6 +415,7 @@ function ExperienceCards({ experiences, onView }) {
 
 function ExperienceCard({ exp, idx, onView }) {
   const [resonated, setResonated] = useState(false);
+  const imgSrc = exp.img || exp.cover || exp.cover_url;
   return (
     <div
       className="fr-card fr-tap"
@@ -419,9 +430,15 @@ function ExperienceCard({ exp, idx, onView }) {
       }}
     >
       {/* Bild */}
-      <div style={{ position:"relative", height:138 }}>
-        <img src={exp.img} alt={exp.title} loading="lazy"
-          style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+      <div style={{ position:"relative", height:138, background:"linear-gradient(145deg,#E6FAF8,#FFF5F0)" }}>
+        {imgSrc ? (
+          <img src={imgSrc} alt={exp.title} loading="lazy"
+            style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+        ) : (
+          <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:36, opacity:0.35 }}>
+            🎟
+          </div>
+        )}
         {/* Badge */}
         <div style={{
           position:"absolute", top:8, left:8,
@@ -454,24 +471,14 @@ function ExperienceCard({ exp, idx, onView }) {
           {exp.title}
         </div>
         <div style={{ fontSize:11, color:C.muted, marginBottom:5 }}>{exp.sub}</div>
-        <div style={{ fontSize:11, color:C.muted, marginBottom:8 }}>{exp.date}</div>
-        {/* Avatare + Spots */}
-        <div style={{ display:"flex", alignItems:"center",
-          justifyContent:"space-between" }}>
-          <div style={{ display:"flex" }}>
-            {exp.avatars.map((av, k) => (
-              <img key={k} src={av} alt=""
-                style={{ width:18, height:18, borderRadius:"50%", objectFit:"cover",
-                  border:"1.5px solid #fff", marginLeft: k>0 ? -5 : 0 }}/>
-            ))}
-          </div>
-          <span style={{
-            fontSize:10.5, fontWeight:700,
-            color: exp.spotsColor || C.teal,
-          }}>
-            {exp.spots}
-          </span>
+        <div style={{ fontSize:11, color:C.muted, marginBottom:8 }}>
+          {exp.date || "Termin folgt"}
         </div>
+        {exp.spots ? (
+          <div style={{ fontSize:10.5, fontWeight:700, color: exp.spotsColor || C.teal }}>
+            {exp.spots}
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -662,29 +669,34 @@ export default function FavoritesPage({ currentUser, onView, onImpact, onDiscove
           .from("experiences")
           .select(`
             id, title, cover_url, category, description, price,
-            date_start, location_label, max_participants, status, creator_id,
-            profile:profiles!experiences_creator_id_fkey(
-              id, display_name, avatar_url, talent
-            )
+            date, location_text, participant_limit, status, user_id,
+            approval_status, pricing_type
           `)
-          .eq("status", "open")
-          .order("date_start", { ascending: true })
+          .eq("status", "published")
+          .order("date", { ascending: true, nullsFirst: false })
           .limit(20);
 
         if (userExps && userExps.length > 0) {
           setExperiences(userExps.map(e => ({
             id:          e.id,
+            type:        "experience",
             title:       e.title,
-            creator:     e.profile?.display_name || "Creator",
+            creator:     "Creator",
             category:    e.category || "Erlebnis",
-            location:    e.location_label || "",
-            date:        e.date_start ? new Date(e.date_start).toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"}) : null,
+            location:    e.location_text || "",
+            date:        e.date ? new Date(e.date).toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"}) : null,
             price:       e.price,
+            img:         e.cover_url,
             cover:       e.cover_url,
+            badge:       e.category || "Erlebnis",
+            badgeColor:  "#0EC4B8",
+            sub:         e.location_text || "",
+            spots:       e.participant_limit ? `${e.participant_limit} Plätze` : "",
+            spotsColor:  "#0EC4B8",
+            avatars:     [],
             status:      e.status,
             _raw:        e,
           })));
-          console.log("[HUI_REALITY] experience hydrated ✓", userExps.length);
         }
 
         const { data: payments } = await supabase
