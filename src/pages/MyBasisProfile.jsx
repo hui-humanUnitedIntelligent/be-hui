@@ -929,25 +929,12 @@ export default function MyBasisProfile({ onClose, profileId }) {
         )}
       </div>
 
-      {/* PROFIL-NAV-BACKDROP (2026-07-05, korrigiert): Garantiert denselben
-          Cream-Ruhebereich hinter der Tabbar wie Home/Discover/Impact —
-          UNABHAENGIG von Content-Laenge/Scroll-Position. WICHTIG: Hoehe ist
-          bewusst NAV_RESERVED_HEIGHT_CSS (nur Tabbar + SafeArea), NICHT
-          NAV_CONTAINER_HEIGHT_CSS (die auch den Orb-Ueberhang miteinschliesst)
-          — sonst deckt der Backdrop faelschlich auch die Ueberhang-Zone ab
-          und schneidet Content oben zu frueh ab (Bug vom ersten Versuch).
-          Der Block soll exakt am oberen Rand der Tabbar enden, genau wie im
-          Feed, wo Content ganz normal hinter/um den Orb herum sichtbar
-          bleibt. Sitzt zwischen mbp-scroll-Content (darunter) und der
-          BottomNav (zIndex 10000, darueber). pointerEvents:none, Orb/Tabs
-          bleiben normal klickbar. */}
-      <div style={{
-        position:"fixed", left:0, right:0, bottom:0,
-        height:NAV_RESERVED_HEIGHT_CSS,
-        background:"#F9F7F4",
-        zIndex:9600, /* <BottomNav(10000), >mbp-scroll-Content */
-        pointerEvents:"none",
-      }} aria-hidden="true"/>
+      {/* PROFIL-NAV-BACKDROP entfernt (2026-07-05): Die Einzel-Loesung hier
+          wurde durch einen zentralen Fix in der einzigen geteilten
+          HUIBottomNavigation-Komponente ersetzt (siehe dort "NAV-BACKDROP"),
+          der jetzt automatisch auf ALLEN vier Tabs (Entdecken/Home/Impact/
+          Profil) gleichzeitig greift -- keine Duplikat-Loesung pro Seite
+          mehr noetig. */}
 
       {/* GEMEINSCHAFT FLOW MODAL */}
       {showGemeinschaft && (
