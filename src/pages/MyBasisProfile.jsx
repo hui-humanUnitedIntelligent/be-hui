@@ -6,6 +6,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "../lib/supabaseClient.js";
 import {
   FB_AVATAR,
@@ -37,6 +38,7 @@ import { VisibilitySection }     from "../components/profile/sections/Visibility
 import WerkWizard      from "../components/works/WerkWizard.jsx";
 import TalentAngebotWizard from "../components/talents/TalentAngebotWizard.jsx";
 import { useTalents, deleteTalent } from "../hooks/useTalents.js";
+import { useTalentBookings } from "../hooks/useTalentBookings.js";
 import { useMySales } from "../hooks/useMySales.js";
 import ExperienceWizard from "../components/experiences/ExperienceWizard.jsx";
 
@@ -502,6 +504,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [showTalentWizard, setShowTalentWizard] = useState(false);
   const [editingTalent,    setEditingTalent]    = useState(null);
   const { talents, reload: reloadTalents } = useTalents(profile?.id);
+  const { asCustomer: myBookings, asSeller: bookingRequests, cancelBooking } = useTalentBookings(profile?.id);
   const { sales, totalEarned } = useMySales(profile?.id);
 
 
@@ -841,6 +844,15 @@ export default function MyBasisProfile({ onClose, profileId }) {
               talents={talents}
               onTalentWizard={(t) => { setEditingTalent(t || null); setShowTalentWizard(true); }}
               onDeleteTalent={() => reloadTalents()}
+            />
+            <Gap h={20}/>
+
+            {/* T2c. Meine Buchungen — neues Modul, additiv (TALENT-BOOKING-PAYMENT-001, 2026-07-05).
+                Zeigt sowohl selbst gebuchte Termine als auch Anfragen fuer eigene Angebote. */}
+            <MeineBuchungenSection
+              myBookings={myBookings}
+              bookingRequests={bookingRequests}
+              onCancel={cancelBooking}
             />
             <Gap h={20}/>
 
@@ -1825,6 +1837,174 @@ function MeineVerkaeufeSection({ sales = [], totalEarned = 0 }) {
           fontSize:12.5, color:T.inkFaint, textAlign:"center",
         }}>
           Noch keine Verkäufe — sobald jemand eines deiner Werke kauft, erscheint es hier.
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MeineBuchungenSection({ myBookings = [], bookingRequests = [], onCancel = async () => ({ok:false}) }) {
+  const [confirmBooking, setConfirmBooking] = React.useState(null); // { id, title, forSeller }
+  const [cancelling, setCancelling] = React.useState(false);
+  const [cancelErr, setCancelErr] = React.useState("");
+
+  function fmtDate(d) {
+    if (!d) return "";
+    try { return new Date(d + "T00:00:00").toLocaleDateString("de-DE", { day:"2-digit", month:"short", year:"numeric" }); }
+    catch { return d; }
+  }
+
+  function statusBadge(status) {
+    const map = {
+      confirmed:       { label:"Bestätigt",        bg:T.tealSoft, color:T.teal },
+      pending_payment: { label:"Zahlung offen",     bg:"rgba(217,119,6,0.10)", color:"#D97706" },
+      cancelled:       { label:"Storniert",         bg:"rgba(26,26,24,0.06)", color:T.inkFaint },
+      completed:       { label:"Abgeschlossen",     bg:"rgba(26,26,24,0.06)", color:T.inkSoft },
+    };
+    const s = map[status] || { label:status, bg:"rgba(26,26,24,0.06)", color:T.inkFaint };
+    return (
+      <span style={{
+        fontSize:10.5, fontWeight:700, color:s.color, background:s.bg,
+        padding:"3px 8px", borderRadius:T.r99, whiteSpace:"nowrap",
+      }}>
+        {s.label}
+      </span>
+    );
+  }
+
+  async function handleConfirmCancel() {
+    if (!confirmBooking) return;
+    setCancelling(true);
+    setCancelErr("");
+    const res = await onCancel(confirmBooking.id);
+    setCancelling(false);
+    if (res?.ok) {
+      setConfirmBooking(null);
+    } else {
+      setCancelErr(res?.error || "Stornieren fehlgeschlagen.");
+    }
+  }
+
+  function BookingRow({ b, forSeller }) {
+    const cover = Array.isArray(b.talents?.images) && b.talents.images[0]?.url ? b.talents.images[0].url : null;
+    const title = b.talents?.title || "Talent-Angebot";
+    const canCancel = b.status === "confirmed" || b.status === "pending_payment";
+    return (
+      <div style={{
+        display:"flex", alignItems:"center", gap:10,
+        padding:"8px 10px", borderRadius:T.r12,
+        background:T.bgCard, border:`1px solid ${T.border}`,
+      }}>
+        <div style={{
+          width:38, height:38, borderRadius:9, overflow:"hidden",
+          flexShrink:0, background:"#e8e4de",
+        }}>
+          {cover
+            ? <img src={cover} alt={title} style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+            : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16 }}>✨</div>
+          }
+        </div>
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ fontSize:13, fontWeight:700, color:T.ink, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+            {title}
+          </div>
+          <div style={{ fontSize:11, color:T.inkFaint, marginTop:1 }}>
+            {fmtDate(b.selected_date)}{b.selected_time_slot ? ` · ${b.selected_time_slot.start}–${b.selected_time_slot.end}` : ""}
+            {" · "}{forSeller ? `Kunde: ${b.other_name}` : `bei ${b.other_name}`}
+          </div>
+        </div>
+        <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:4, flexShrink:0 }}>
+          {statusBadge(b.status)}
+          <div style={{ fontSize:12, fontWeight:800, color:T.ink }}>
+            {Number(b.amount_eur || 0).toFixed(2)}€
+          </div>
+        </div>
+        {canCancel && (
+          <button
+            onClick={() => setConfirmBooking({ id:b.id, title })}
+            className="mbp-press-light"
+            style={{
+              marginLeft:4, flexShrink:0, background:"transparent", border:"none",
+              color:"#E83A3A", fontSize:11, fontWeight:700, cursor:"pointer",
+              padding:"6px 4px", touchAction:"manipulation",
+            }}
+          >
+            Stornieren
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  if (myBookings.length === 0 && bookingRequests.length === 0) return null;
+
+  return (
+    <div style={{ padding:`0 ${T.px}px` }}>
+      {confirmBooking && createPortal(
+        <div
+          onClick={(e) => { if (e.target === e.currentTarget && !cancelling) setConfirmBooking(null); }}
+          style={{
+            position:"fixed", inset:0, zIndex:10500, /* >BottomNav(10000) — Pflichtregel footer-navbar-zindex.md */
+            background:"rgba(0,0,0,0.55)", display:"flex",
+            alignItems:"center", justifyContent:"center", padding:"24px",
+          }}
+        >
+          <div style={{
+            background:"#fff", borderRadius:16, padding:"24px 20px 20px",
+            maxWidth:320, width:"100%", boxShadow:"0 8px 40px rgba(0,0,0,0.18)",
+          }}>
+            <div style={{ fontSize:36, textAlign:"center", marginBottom:8 }}>⚠️</div>
+            <div style={{ fontSize:16, fontWeight:700, textAlign:"center", marginBottom:6, color:"#1a1a18" }}>
+              Buchung stornieren?
+            </div>
+            <div style={{ fontSize:13, color:"#666", textAlign:"center", lineHeight:1.5, marginBottom:16 }}>
+              <strong>„{confirmBooking.title}"</strong> wird storniert. Bereits bezahlte Beträge werden nicht automatisch erstattet — bitte bei Bedarf den Anbieter kontaktieren.
+            </div>
+            {cancelErr && (
+              <div style={{ fontSize:12, color:"#E83A3A", textAlign:"center", marginBottom:12 }}>{cancelErr}</div>
+            )}
+            <button onClick={handleConfirmCancel} disabled={cancelling} style={{
+              width:"100%", padding:"12px", borderRadius:99,
+              background: cancelling ? "rgba(232,58,58,0.5)" : "#E83A3A", border:"none", color:"#fff",
+              fontSize:14, fontWeight:700, cursor: cancelling ? "not-allowed" : "pointer",
+              fontFamily:"inherit", marginBottom:8,
+            }}>
+              {cancelling ? "Wird storniert…" : "Ja, stornieren"}
+            </button>
+            <button onClick={() => setConfirmBooking(null)} disabled={cancelling} style={{
+              width:"100%", padding:"12px", borderRadius:99,
+              background:"#f0f0ee", border:"none", color:"#444",
+              fontSize:14, fontWeight:600, cursor:"pointer",
+              fontFamily:"inherit",
+            }}>
+              Zurück
+            </button>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {myBookings.length > 0 && (
+        <div style={{ marginBottom: bookingRequests.length > 0 ? 18 : 0 }}>
+          <div style={{ padding:"0 0 10px" }}>
+            <div style={{ fontSize:15, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>Meine Buchungen</div>
+            <div style={{ fontSize:11, color:T.inkFaint, marginTop:2, fontWeight:400 }}>Termine, die du gebucht hast</div>
+          </div>
+          <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+            {myBookings.slice(0, 8).map(b => <BookingRow key={b.id} b={b} forSeller={false} />)}
+          </div>
+        </div>
+      )}
+
+      {bookingRequests.length > 0 && (
+        <div>
+          <div style={{ padding:"0 0 10px" }}>
+            <div style={{ fontSize:15, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>Anfragen für meine Angebote</div>
+            <div style={{ fontSize:11, color:T.inkFaint, marginTop:2, fontWeight:400 }}>Buchungen anderer für deine Talent-Angebote</div>
+          </div>
+          <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+            {bookingRequests.slice(0, 8).map(b => <BookingRow key={b.id} b={b} forSeller={true} />)}
+          </div>
         </div>
       )}
     </div>
