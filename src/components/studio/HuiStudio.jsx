@@ -201,7 +201,7 @@ function LevelInfoPopup({ onClose }) {
 function UserListModal({ title, users, onClose }) {
   return (
     <div style={{
-      position:"fixed", inset:0, zIndex:9900,
+      position:"fixed", inset:0, zIndex:10500, /* >BottomNav(10000) */
       background:"rgba(0,0,0,0.45)", display:"flex",
       alignItems:"flex-end", justifyContent:"center",
     }} onClick={onClose}>

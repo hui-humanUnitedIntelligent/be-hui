@@ -111,10 +111,10 @@ function ReplySheet({ ticketNumber, subject, adminReply, userId, userEmail, user
   return (
     <>
       <div onClick={onClose} style={{
-        position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", zIndex:9998,
+        position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", zIndex:10490, /* >BottomNav(10000) */
       }} />
       <div style={{
-        position:"fixed", bottom:0, left:0, right:0, zIndex:9999,
+        position:"fixed", bottom:0, left:0, right:0, zIndex:10500, /* >BottomNav(10000) */
         background:"white", borderRadius:"20px 20px 0 0",
         boxShadow:"0 -8px 40px rgba(0,0,0,0.18)",
         paddingBottom:"max(100px,calc(80px + env(safe-area-inset-bottom,0px)))",

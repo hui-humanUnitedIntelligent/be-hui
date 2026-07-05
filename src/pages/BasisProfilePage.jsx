@@ -109,7 +109,7 @@ function Skeleton({ w, h, r=8, style={} }) {
 function Sheet({ onClose, children }) {
   return (
     <div onClick={onClose} style={{
-      position:"fixed", inset:0, zIndex:9900,
+      position:"fixed", inset:0, zIndex:10500, /* >BottomNav(10000) */
       background:"rgba(26,26,24,0.4)", display:"flex", alignItems:"flex-end",
     }}>
       <div className="bpp-sheet" onClick={e=>e.stopPropagation()} style={{

@@ -135,7 +135,7 @@ export function MeineInhaltePage({ onBack, userId }) {
       {/* Einreich-Dialog */}
       {resubDlg && (
         <div style={{
-          position:"fixed", inset:0, zIndex:9900,
+          position:"fixed", inset:0, zIndex:10500, /* >BottomNav(10000) */
           background:"rgba(0,0,0,0.55)", backdropFilter:"blur(4px)",
           display:"flex", alignItems:"center", justifyContent:"center", padding:20,
         }}>

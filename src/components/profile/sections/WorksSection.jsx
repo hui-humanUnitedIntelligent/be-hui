@@ -24,7 +24,7 @@ function Sk({ w, h, r=8 }) {
 
 function DeleteConfirm({ werk, onConfirm, onCancel }) {
   return (
-    <div onClick={onCancel} style={{ position:"fixed", inset:0, zIndex:9999,
+    <div onClick={onCancel} style={{ position:"fixed", inset:0, zIndex:10500, /* >BottomNav(10000) */
       background:"rgba(0,0,0,0.55)", display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
       <div onClick={e=>e.stopPropagation()} style={{ background:"#fff", borderRadius:16,
         padding:"24px 20px 20px", maxWidth:320, width:"100%", boxShadow:"0 8px 40px rgba(0,0,0,0.18)" }}>
