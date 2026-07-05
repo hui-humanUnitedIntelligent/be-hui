@@ -534,7 +534,10 @@ const ActionBtn = memo(function ActionBtn({
   const col = active ? (activeColor || T.teal) : T.ink3;
   // v2.0 Zustände — Form bleibt IMMER identisch, nur Opacity/Scale ändern sich:
   // disabled < default < hover < active. Pressed = kurzer Scale-Spring (bestehend).
-  const iconOpacity = disabled ? 0.28 : active ? 1 : hover ? 0.8 : 0.55;
+  // Fine-Tuning 2026-07-05 (Lars): optische Gewichtung +~15% angehoben
+  // (Default 0.55->0.64, Hover 0.8->0.85) -- reine Opacity-Anpassung, KEINE
+  // Formaenderung der Icons selbst (Charta: Symbolformen bleiben identisch).
+  const iconOpacity = disabled ? 0.28 : active ? 1 : hover ? 0.85 : 0.64;
   // Resonanz-Tap: sanfter Scale (~1.08, NICHT der starke 0.88/1.3-Spring der
   // anderen Icons) + weicher Glow in HUI-Farben (Teal/Orange), kein Bounce.
   const pressScale = isBookmark ? 1.3 : isResonanz ? 1.08 : 0.88;
@@ -546,11 +549,16 @@ const ActionBtn = memo(function ActionBtn({
       onMouseLeave={() => setHover(false)}
       style={{
         background: "none", border: "none",
-        padding: "7px 11px",
+        // Fine-Tuning 2026-07-05 (Lars): Padding auf 9/10px erhoeht, damit die
+        // Klickflaeche bei 27px-Icon zuverlaessig >= 44x44px erreicht
+        // (27 + 2*9 = 45 Hoehe, 27 + 2*10 = 47 Breite bei Icon-only-Buttons),
+        // ohne dass das Icon selbst groesser wirkt als noetig.
+        padding: "9px 10px",
         cursor: disabled ? "default" : "pointer",
-        display: "flex", alignItems: "center", gap: 5,
+        display: "flex", alignItems: "center", gap: 6,
         borderRadius: 12,
         touchAction: "manipulation",
+        minWidth: 44, minHeight: 44, justifyContent: "center",
         // Spring scale
         transform: scale
           ? `scale(${pressScale})`
@@ -572,7 +580,9 @@ const ActionBtn = memo(function ActionBtn({
           : "none",
         transition: "opacity 0.18s ease, filter 0.16s ease",
       }}>
-        {Icon ? <Icon size={22} /> : null}
+        {/* Fine-Tuning 2026-07-05 (Lars): 22px -> 27px fuer bessere Erkennbarkeit
+            auf iPhone/iPad, innerhalb des geforderten 26-28px-Fensters. */}
+        {Icon ? <Icon size={27} /> : null}
       </span>
       {(count != null || label) && (
         <span style={{
@@ -616,11 +626,19 @@ export const FeedActions = memo(function FeedActions({
   const resonanz = getResonanzText(r);
   return (
     <div style={{ borderTop: "1px solid " + T.border, marginTop: 12 }}>
-      {/* Reaktions-Buttons */}
+      {/* Reaktions-Buttons — Fine-Tuning 2026-07-05 (Lars): von "2 links /
+          2 rechts via flex-Spacer" auf eine optisch exakt mittig
+          ausgerichtete 4er-Gruppe umgestellt (Apple-Premium-Anmutung,
+          ruhiger). gap von 2->10px erhoeht fuer mehr Luft zwischen den
+          Icons; kombiniert mit der breiteren Klickflaeche (44x44) ergibt
+          das einen deutlich grosszuegigeren, aber immer noch dezenten
+          Gesamtabstand. Reihenfolge unveraendert: Resonanz, Austauschen,
+          Weitergeben, Merken. extraActions (aktuell nirgends befuellt)
+          bleibt als optionaler Slot am Ende der zentrierten Gruppe erhalten. */}
       <div style={{
-        display:"flex", alignItems:"center",
+        display:"flex", alignItems:"center", justifyContent:"center",
         padding:"8px " + (T.p - 4) + "px 6px",
-        gap:2,
+        gap:10,
       }}>
         {/* HUI Interaction Language v1.0 (2026-07-05) — Mapping auf bestehende
             Reaction-Handler (kein Datenmodell-Wechsel, reines Re-Skin):
@@ -631,10 +649,9 @@ export const FeedActions = memo(function FeedActions({
               save    → Merken */}
         <ActionBtn Icon={ResonanceIcon}    count={r.inspireCount||null} active={r.inspired} activeColor={T.teal}  variant="resonanz" onClick={() => onReaction?.("inspire")} />
         <ActionBtn Icon={ExchangeIcon}     count={r.touchCount||null}   active={r.touched}  activeColor={T.teal}  onClick={() => onReaction?.("touch")}   />
-        <div style={{ flex:1 }} />
-        {extraActions || null}
         <ActionBtn Icon={RecommendIcon}    onClick={onShare} />
         <ActionBtn Icon={BookmarkKeepIcon} active={r.saved} activeColor={T.coral} variant="merken" onClick={() => onReaction?.("save")} />
+        {extraActions || null}
       </div>
       {/* Resonanz-Zeile — "Maja und 18 weitere wurden inspiriert." */}
       {resonanz && (
