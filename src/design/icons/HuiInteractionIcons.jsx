@@ -70,13 +70,15 @@ export function ResonanceIcon({ size = 24, className, style }) {
   );
 }
 
-/* ── 2. Austauschen ── Zwei Menschen + Funke der Begegnung ───────────────
-   v3 (Symbolik-Korrektur): zwei eindeutig als Personen lesbare Silhouetten
-   (Kopf + Schulter/Körper), einander zugewandt, mit einem kleinen warmen
-   Funken im Zwischenraum, der den Moment des Austauschs markiert. Zeigt
-   sofort "zwei Menschen im Kontakt" — bewusst kein Herz (kein Herz-
-   Einschnitt oben in der Mitte) und keine klassische Sprechblase (keine
-   Bubble-Kontur, kein Schwänzchen). */
+/* ── 2. Austauschen ── Zwei Figuren formen gemeinsam ein Herz ────────────
+   v4 (Lars-Vorlage, 2026-07-05): Formensprache 1:1 aus der bereitgestellten
+   Referenz übernommen, technisch für 20-24px optimiert (flach, ohne die
+   3D-Glanz-Hervorhebungen der Vorlage). Zwei fließende, einander
+   zugewandte Figuren (Kopf + geschwungener Körper) — der Zwischenraum
+   zwischen ihnen ergibt sich rein aus ihrer eigenen Silhouette zu einem
+   Herzen (kein aufgesetztes Herz-Element, keine zusätzliche Kontur).
+   Farben ausschließlich HUI-Türkis (links) und HUI-Korallen-Orange
+   (rechts), dezenter Verlauf wie in der Vorlage — keine neuen Farben. */
 export function ExchangeIcon({ size = 24, className, style }) {
   const id = React.useId();
   const left = `hui-exc-left-${id}`;
@@ -87,44 +89,44 @@ export function ExchangeIcon({ size = 24, className, style }) {
       className={className} style={style} aria-hidden="true"
     >
       <defs>
-        <linearGradient id={left} x1="3" y1="7" x2="10" y2="20" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#0E8C82" />
-          <stop offset="100%" stopColor="#1BB5A5" />
+        <linearGradient id={left} x1="3" y1="7" x2="12" y2="19" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#2FDCC9" />
+          <stop offset="100%" stopColor="#0E8C82" />
         </linearGradient>
-        <linearGradient id={right} x1="14" y1="7" x2="21" y2="20" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#17B9AC" />
-          <stop offset="100%" stopColor="#57DDC9" />
+        <linearGradient id={right} x1="21" y1="7" x2="12" y2="19" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#FFB37A" />
+          <stop offset="100%" stopColor="#F2793F" />
         </linearGradient>
       </defs>
-      {/* Linke Person: Kopf + Körper, dem Zentrum zugewandt */}
-      <circle cx="6.4" cy="7" r="2.1" fill={`url(#${left})`} />
+      {/* Linke Figur: Kopf + fließender Körper, dessen innere Kontur die
+          linke Herzhälfte bildet */}
+      <circle cx="6.8" cy="5.2" r="1.85" fill={`url(#${left})`} />
       <path
-        d="M3.6 19C3.6 14.3 4.9 10.4 6.4 10.4C7.9 10.4 9.2 14.3 9.2 19
-           C9.2 19.9 8.5 20.4 7.5 20.4H5.3C4.3 20.4 3.6 19.9 3.6 19Z"
+        d="M6.8 7.5C3.8 8.3 1.6 11.8 2.2 19C4.5 20.5 9 20 12 17.3
+           C10.5 15.5 8.3 14 9.3 10.6C8.6 9.2 7.6 8.2 6.8 7.5Z"
         fill={`url(#${left})`}
       />
-      {/* Rechte Person: gespiegelt */}
-      <circle cx="17.6" cy="7" r="2.1" fill={`url(#${right})`} />
+      {/* Rechte Figur: gespiegelt, teilt sich den Herz-Fußpunkt mit links */}
+      <circle cx="17.2" cy="5.2" r="1.85" fill={`url(#${right})`} />
       <path
-        d="M20.4 19C20.4 14.3 19.1 10.4 17.6 10.4C16.1 10.4 14.8 14.3 14.8 19
-           C14.8 19.9 15.5 20.4 16.5 20.4H18.7C19.7 20.4 20.4 19.9 20.4 19Z"
+        d="M17.2 7.5C20.2 8.3 22.4 11.8 21.8 19C19.5 20.5 15 20 12 17.3
+           C13.5 15.5 15.7 14 14.7 10.6C15.4 9.2 16.4 8.2 17.2 7.5Z"
         fill={`url(#${right})`}
-      />
-      {/* Funke der Begegnung — markiert den Moment des Austauschs */}
-      <path
-        d="M12 11.6L12.9 13.7L15 14.6L12.9 15.5L12 17.6L11.1 15.5L9 14.6L11.1 13.7Z"
-        fill="#F0A93C"
       />
     </svg>
   );
 }
 
-/* ── 3. Merken ── Lesezeichen, ruhiger & voller als v1 ───────────────────
-   Notch weicher/flacher (kein spitzes "V"), Ribbon leicht breiter für
-   mehr visuelle Präsenz, Licht-Punkt beibehalten. */
+/* ── 3. Merken ── Lesezeichen, Farben nach Lars-Vorlage (2026-07-05) ────
+   v2 (Recolor): Silhouette unveraendert (bereits identisch zur Vorlage —
+   abgerundetes Rechteck oben, weiche V-Kerbe unten). Einziger Eingriff:
+   Farbverlauf von Teal-Navy auf das geforderte HUI-Tuerkis→Korallen-Orange
+   umgestellt, plus weicherer goldener Lichtpunkt mit sanftem Glow-Halo
+   (kein 3D-Glanz, keine Textur — reine Opacity-Ueberlagerung). */
 export function BookmarkKeepIcon({ size = 24, className, style }) {
   const id = React.useId();
   const ribbon = `hui-mrk-ribbon-${id}`;
+  const halo = `hui-mrk-halo-${id}`;
   const dot = `hui-mrk-dot-${id}`;
   return (
     <svg
@@ -132,13 +134,17 @@ export function BookmarkKeepIcon({ size = 24, className, style }) {
       className={className} style={style} aria-hidden="true"
     >
       <defs>
-        <linearGradient id={ribbon} x1="7" y1="2.6" x2="17.4" y2="21.4" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#1D6A6E" />
-          <stop offset="100%" stopColor="#103A4A" />
+        <linearGradient id={ribbon} x1="6" y1="20" x2="18" y2="3.5" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#14C9B6" />
+          <stop offset="100%" stopColor="#F2793F" />
         </linearGradient>
+        <radialGradient id={halo} cx="50%" cy="42%" r="60%">
+          <stop offset="0%" stopColor="#FFDD8C" stopOpacity="0.55" />
+          <stop offset="100%" stopColor="#FFDD8C" stopOpacity="0" />
+        </radialGradient>
         <radialGradient id={dot} cx="50%" cy="32%" r="68%">
-          <stop offset="0%" stopColor="#FFC875" />
-          <stop offset="100%" stopColor="#F0803F" />
+          <stop offset="0%" stopColor="#FFDD8C" />
+          <stop offset="100%" stopColor="#F0A93C" />
         </radialGradient>
       </defs>
       <path
@@ -148,7 +154,9 @@ export function BookmarkKeepIcon({ size = 24, className, style }) {
            C8.1 21.36 7.3 20.98 7.3 20.3V4.2Z"
         fill={`url(#${ribbon})`} strokeLinejoin="round"
       />
-      <circle cx="12" cy="8.9" r="2.05" fill={`url(#${dot})`} />
+      {/* Weicher Glow-Halo hinter dem Punkt — Licht "strahlt" dezent aus */}
+      <circle cx="12" cy="9.5" r="4.4" fill={`url(#${halo})`} />
+      <circle cx="12" cy="9.5" r="2.05" fill={`url(#${dot})`} />
     </svg>
   );
 }
