@@ -885,7 +885,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
 
   const isRejectedUpdate = existingExp?.approval_status === "rejected" || existingExp?.status === "rejected";
 
-  return (
+  return createPortal(
     <div style={{
       position: "fixed", inset: 0,
       zIndex: 10500,
