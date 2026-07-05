@@ -7,6 +7,7 @@
 import React, { useState, useRef } from "react";
 import { createTalent, updateTalent, uploadTalentImage, TALENT_KATEGORIEN } from "../../hooks/useTalents.js";
 import { createPortal } from "react-dom";
+import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 
 const C = {
   teal: "#0EC4B8", ink: "#1A1A18", inkMid: "rgba(26,26,24,0.55)",
@@ -28,12 +29,11 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
   const isApproved = existingTalent?.status === "approved";
 
   // BottomNav (Orb + Footer, zIndex 9999) ausblenden solange dieser Wizard offen ist —
-  // gleiches Muster wie WerkWizard.jsx/ExperienceWizard.jsx, sonst liegt der Footer über
-  // dem Speichern-Button (Bug gemeldet 2026-07-04).
-  React.useLayoutEffect(() => {
-    document.body.classList.add("hui-wizard-open");
-    return () => document.body.classList.remove("hui-wizard-open");
-  }, []);
+  // Referenzgezählter Lock (siehe wizardBodyLock.js) statt eigener
+  // classList.add/remove — verhindert Race Conditions mit WerkWizard/
+  // ExperienceWizard, falls jemals überlappend offen (Bug gemeldet 2026-07-04,
+  // Root-Cause-Nachanalyse 2026-07-05: geteilte Body-Klasse ohne Koordination).
+  useWizardBodyLock();
 
   async function handleUpload(e) {
     const files = Array.from(e.target.files || []);

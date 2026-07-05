@@ -4,6 +4,7 @@
 import React, { useState, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
+import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 
 // ── Design-Tokens ─────────────────────────────────────────────
 const C = {
@@ -772,15 +773,17 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
     }
   }, [step, form]);
 
-  // ── body-scroll sperren ────────────────────────────────────
+  // ── BottomNav (zIndex:9999) ausblenden solange Wizard offen ──
+  // Referenzgezählter Lock (siehe wizardBodyLock.js) statt eigener
+  // classList.add/remove — verhindert Race Conditions mit anderen
+  // gleichzeitig offenen Wizards (Werk/Erlebnis/Talent-Angebot).
+  useWizardBodyLock();
+
+  // ── body-scroll sperren (rein lokal, kein geteilter Zustand) ──
   React.useLayoutEffect(() => {
-    document.body.classList.add("hui-wizard-open");
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    return () => {
-      document.body.classList.remove("hui-wizard-open");
-      document.body.style.overflow = prev;
-    };
+    return () => { document.body.style.overflow = prev; };
   }, []);
 
   // ── Speichern ─────────────────────────────────────────────

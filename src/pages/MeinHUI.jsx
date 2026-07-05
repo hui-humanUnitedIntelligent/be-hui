@@ -652,11 +652,16 @@ export default function MeinHUI({
   //            blendet danach selbst aus (CLOSE_SCREEN_MS, delayed)
   const screenStyle = {
     position: "fixed", inset: 0,
-    // Kein eigener Fullscreen-Hintergrund mehr — lässt den App-Hintergrund
-    // (Home.jsx) durchscheinen statt ihn redundant neu zu übermalen.
-    // Nur einzelne Content-Blöcke (Header-Karten, Grundpfeiler etc.)
-    // behalten ihre eigene Card-Füllung.
-    background: "transparent",
+    // 2026-07-05: Vollstaendig deckender Eigenraum-Hintergrund (T.cream,
+    // identisch zur App-weiten Hauptfarbe #FAF7F2 auf Home/Profil/Impact/
+    // Discover). Vorher stand hier "transparent" -- dadurch schien die
+    // komplette Home-Seite durch den Wirkungsraum hindurch, was explizit
+    // NICHT gewuenscht ist: Mein HUI soll sich wie ein eigener, ruhiger Raum
+    // anfuehlen, nicht wie ein durchsichtiges Overlay ueber Home. Blur bleibt
+    // ausschliesslich auf einzelnen Content-Karten (z.B. ProfileHeader-Badges,
+    // Info-Kacheln) als rein dekoratives Element erhalten -- NICHT hier auf
+    // dem Root, wo er als Hintergrund-Ersatz missverstanden werden koennte.
+    background: T.cream,
     zIndex: 9000,
     overflowY: "auto", overflowX: "hidden",
     WebkitOverflowScrolling: "touch",

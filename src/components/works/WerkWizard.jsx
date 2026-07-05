@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
+import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 
 const C = {
   teal:"#0EC4B8", tealD:"#0DBBAF", cream:"#F8F7F4",
@@ -557,16 +558,17 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
     }
   }
 
-  // ── body class: blendet BottomNav (zIndex:9999) aus ─────────
-  // useLayoutEffect: synchron vor paint → kein Flash der BottomNav
+  // ── BottomNav (zIndex:9999) ausblenden solange Wizard offen ──
+  // Referenzgezählter Lock (siehe wizardBodyLock.js) statt eigener
+  // classList.add/remove — verhindert Race Conditions mit anderen
+  // gleichzeitig offenen Wizards (Werk/Erlebnis/Talent-Angebot).
+  useWizardBodyLock();
+
+  // ── body-scroll sperren (rein lokal, kein geteilter Zustand) ──
   React.useLayoutEffect(() => {
-    document.body.classList.add("hui-wizard-open");
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    return () => {
-      document.body.classList.remove("hui-wizard-open");
-      document.body.style.overflow = prev;
-    };
+    return () => { document.body.style.overflow = prev; };
   }, []);
 
   // ── Weiter-Button Validierung pro Schritt ─────────────────

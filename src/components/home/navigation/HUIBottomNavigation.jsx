@@ -269,6 +269,27 @@ export default function HUIBottomNavigation({
           height: "100%",
         }}
       >
+        {/* NAV-BACKDROP (2026-07-05): Garantiert auf ALLEN vier Tabs
+            (Entdecken/Home/Impact/Profil) denselben soliden Cream-Ruhebereich
+            hinter der Tabbar-Pille -- unabhaengig davon, was auf der
+            jeweiligen Seite dahinter liegt (z.B. Profil hat eine eigene,
+            hoehere Overlay-Root-Ebene ohne eigenen Cream-Fallback). Vorher
+            verliess sich das rein zufaellig auf den jeweiligen Seiten-
+            hintergrund; jetzt ist es EIN zentraler Fix in der einzigen
+            geteilten Nav-Komponente statt vier Einzel-Fixes pro Seite.
+            Deckt exakt die volle Nav-Box (NAV_RESERVED_HEIGHT_CSS, ohne
+            Orb-Ueberhang) ab, liegt hinter SVG-Pille/Orb (zIndex 0). */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: TABBAR_FILL,
+            zIndex: 0,
+            pointerEvents: "none",
+          }}
+        />
+
         {/* ── Orb: top of nav container, centered ─────────── */}
         {/* Soft Transition — orbTransition-Zustände:
              idle     → Normalzustand, tappable
