@@ -513,32 +513,40 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
 // inaktiv wird nicht mehr ueber Farbwechsel, sondern ueber Opacity + Scale
 // ausgedrueckt (Referenzgrafik gibt keine Toggle-Farbvariante vor).
 const ActionBtn = memo(function ActionBtn({
-  Icon, label, count, active, onClick, activeColor, variant
+  Icon, label, count, active, onClick, activeColor, variant, disabled
 }) {
   const [scale, setScale] = useState(false);
+  const [hover, setHover] = useState(false);
   const isBookmark = variant === "merken";
 
   function handleClick() {
+    if (disabled) return;
     setScale(true);
     setTimeout(() => setScale(false), 400);
     onClick?.();
   }
 
   const col = active ? (activeColor || T.teal) : T.ink3;
+  // v2.0 Zustände — Form bleibt IMMER identisch, nur Opacity/Scale ändern sich:
+  // disabled < default < hover < active. Pressed = kurzer Scale-Spring (bestehend).
+  const iconOpacity = disabled ? 0.28 : active ? 1 : hover ? 0.8 : 0.55;
   return (
     <button
       onClick={handleClick}
+      disabled={disabled}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
       style={{
         background: "none", border: "none",
         padding: "7px 11px",
-        cursor: "pointer",
+        cursor: disabled ? "default" : "pointer",
         display: "flex", alignItems: "center", gap: 5,
         borderRadius: 12,
         touchAction: "manipulation",
         // Spring scale
         transform: scale
           ? (isBookmark ? "scale(1.3)" : "scale(0.88)")
-          : "scale(1)",
+          : (hover && !disabled ? "scale(1.06)" : "scale(1)"),
         transition: scale
           ? "transform 0.08s cubic-bezier(.22,1,.36,1)"
           : "transform 0.22s cubic-bezier(.22,1,.36,1)",
@@ -548,10 +556,10 @@ const ActionBtn = memo(function ActionBtn({
     >
       <span style={{
         display: "flex", alignItems: "center", justifyContent: "center",
-        opacity: active ? 1 : 0.55,
+        opacity: iconOpacity,
         transition: "opacity 0.18s ease",
       }}>
-        {Icon ? <Icon size={20} /> : null}
+        {Icon ? <Icon size={22} /> : null}
       </span>
       {(count != null || label) && (
         <span style={{

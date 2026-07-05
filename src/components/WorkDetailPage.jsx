@@ -250,21 +250,27 @@ function RelatedCard({ werk, onClick }) {
 }
 
 /* ── Icon Buttons ───────────────────────────────────────────────────── */
-function IconBtn({ Icon, label, active, color, onPress }) {
+function IconBtn({ Icon, label, active, color, onPress, disabled }) {
   const [pressed, setPressed] = useState(false);
+  const [hover, setHover] = useState(false);
   const handleTap = () => {
+    if (disabled) return;
     setPressed(true);
     setTimeout(() => setPressed(false), 300);
     onPress?.();
   };
+  // v2.0 Zustände — Icon-Form bleibt immer identisch, nur Opacity/Scale ändern sich.
+  const iconOpacity = disabled ? 0.28 : active ? 1 : hover ? 0.8 : 0.55;
   return (
-    <button onClick={handleTap}
+    <button onClick={handleTap} disabled={disabled}
+      onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
       style={{ display:"flex", flexDirection:"column", alignItems:"center",
-        gap:4, background:"none", border:"none", cursor:"pointer",
+        gap:4, background:"none", border:"none",
+        cursor: disabled ? "default" : "pointer",
         padding:"8px 12px", borderRadius:12,
-        transform: pressed ? "scale(1.25)" : "scale(1)",
+        transform: pressed ? "scale(1.25)" : (hover && !disabled ? "scale(1.06)" : "scale(1)"),
         transition:"transform 0.2s cubic-bezier(0.34,1.56,0.64,1)" }}>
-      <span style={{ display:"flex", opacity: active ? 1 : 0.55, transition:"opacity 0.18s ease" }}>
+      <span style={{ display:"flex", opacity: iconOpacity, transition:"opacity 0.18s ease" }}>
         {Icon ? <Icon size={24} /> : null}
       </span>
       <span style={{ fontSize:10, fontWeight:600,
