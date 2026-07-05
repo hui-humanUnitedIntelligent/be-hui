@@ -819,13 +819,20 @@ export default function MyBasisProfile({ onClose, profileId }) {
             />
             <Gap h={24}/>
 
-            {/* T2. Talente — kanonisch: TalentSection */}
+            {/* T2. Talente (TalentSection, Skill-Tag-Pillen "Meine Talente & Angebote")
+                — auf Nutzerwunsch (2026-07-05) im eigenen Dashboard ausgeblendet, wird
+                nicht benoetigt. Bewusst NICHT geloescht (nur auskommentiert) fuer den
+                Fall einer spaeteren Reaktivierung/Verschmelzung mit TalentAngeboteSection
+                (siehe Memory #528 "vertagt"). Bleibt auf TalentProfilePage.jsx bestehen,
+                dort nicht Teil dieser Anfrage. */}
+            {/*
             <TalentSection
               profile={profile}
               isOwner={true}
               onChange={handleSkillsSave}
             />
             <Gap h={24}/>
+            */}
 
             {/* T2b. Talent-Angebote — neues Modul, additiv neben TalentSection (Tags bleiben unveraendert) */}
             <TalentAngeboteSection
