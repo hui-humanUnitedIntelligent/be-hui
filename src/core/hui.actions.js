@@ -108,6 +108,7 @@ export const A = {
   GO_DISCOVER:          "GO_DISCOVER",
   GO_IMPACT:            "GO_IMPACT",
   GO_FAVORITES:         "GO_FAVORITES",
+  OPEN_MEINE_RESONANZ:  "OPEN_MEINE_RESONANZ",
 };
 
 // ─── Action Context ────────────────────────────────────────────────
@@ -136,6 +137,8 @@ export function buildActions(shell) {
     openOwnProfile,
     // Flow Memory (Phase 2)
     flowStore,
+    // Navigation
+    navigate,
     // Chat
     setShowChat,
     setChatRecipient,
@@ -441,6 +444,17 @@ export function buildActions(shell) {
     [A.GO_DISCOVER]:  () => { logAction(A.GO_DISCOVER);  switchTab?.("discover");  },
     [A.GO_IMPACT]:    () => { logAction(A.GO_IMPACT);    switchTab?.("impact");    },
     [A.GO_FAVORITES]: () => { logAction(A.GO_FAVORITES); switchTab?.("favorites"); },
+
+    [A.OPEN_MEINE_RESONANZ]: (payload = {}) => {
+      logAction(A.OPEN_MEINE_RESONANZ, payload);
+      const section = payload?.section;
+      logFlow(payload?.source || S.SYSTEM, S.RESONANCE);
+      if (navigate) {
+        navigate(section ? `/resonanz/${section}` : "/resonanz");
+      } else if (typeof window !== "undefined") {
+        window.location.href = section ? `/resonanz/${section}` : "/resonanz";
+      }
+    },
   };
 
   return actions;

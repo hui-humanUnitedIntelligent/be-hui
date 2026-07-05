@@ -14,17 +14,17 @@
 // ══════════════════════════════════════════════════════════════════
 
 import React, { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { ActionCtx, buildActions } from "./hui.actions.js";
 import { useHome } from "../components/home/HomeShell.jsx";
 
 export default function HuiActionProvider({ children }) {
   const shell = useHome();
+  const navigate = useNavigate();
 
-  // Rebuild actions only when shell reference changes
-  // shell is the full HomeCtx value — stable reference from useMemo in HomeShell
   const actions = useMemo(() => {
-    return buildActions(shell);
-  }, [shell]);
+    return buildActions({ ...shell, navigate });
+  }, [shell, navigate]);
 
   return (
     <ActionCtx.Provider value={actions}>

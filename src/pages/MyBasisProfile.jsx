@@ -6,6 +6,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient.js";
 import {
   FB_AVATAR,
@@ -21,7 +22,6 @@ import SettingsModal  from "../components/settings/SettingsModal.jsx";
 import { useAmbassador } from "../hooks/useAmbassador.js";
 import { useProfileData } from "../hooks/useProfileData.js";
 import HuiStudio              from "../components/studio/HuiStudio.jsx";
-import MeineResonanz           from "./studio/MeineResonanz.jsx";
 import PublicProfilePreview   from "../components/profile/PublicProfilePreview.jsx";
 import { OrbSignatur }        from "../components/profile/OrbSignatur.jsx";
 import MerkenSection          from "../components/profile/MerkenSection.jsx";
@@ -389,8 +389,8 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [showMerken,       setShowMerken]       = useState(false);
   const [showSettings,    setShowSettings]    = useState(false);
   const [showStudio,        setShowStudio]        = useState(false);
-  const [showResonanz,      setShowResonanz]      = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const navigate = useNavigate();
 
   // ── Notification Action Routing ───────────────────────────────────────────
   const {
@@ -780,10 +780,10 @@ export default function MyBasisProfile({ onClose, profileId }) {
         )}
         <Gap h={28}/>
 
-        {/* ── MEINE RESONANZ SCHNELLZUGRIFF ─────────────────────── */}
+        {/* ── MEINE RESONANZ — Offizieller Einstieg ─────────────── */}
         <div style={{ padding:`0 ${T.px}px` }}>
           <button
-            onClick={() => setShowResonanz(true)}
+            onClick={() => navigate("/resonanz")}
             style={{
               width:"100%", display:"flex", alignItems:"center", gap:14,
               padding:"15px 18px", background:T.bgCard, border:`1px solid ${T.border}`,
@@ -1038,16 +1038,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
             setAuthProfile && setAuthProfile(p => ({ ...p, ...upd }));
             refreshProfile?.().catch(() => {});
             reload();
-          }}
-        />
-      )}
-
-      {/* ❤️ MEINE RESONANZ */}
-      {showResonanz && (
-        <MeineResonanz
-          onClose={() => setShowResonanz(false)}
-          onNavigate={(type, navId) => {
-            setShowResonanz(false);
           }}
         />
       )}
