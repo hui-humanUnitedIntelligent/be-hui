@@ -138,7 +138,7 @@ export default function CreatorStudio() {
     };
     const SubPage = subPageMap[activeTool];
     if (SubPage) return (
-      <div style={{ position:"fixed", inset:0, zIndex:300, background:C.cream,
+      <div style={{ position:"fixed", inset:0, zIndex:10500, background:C.cream,
         overflowY:"auto", fontFamily:"-apple-system,'SF Pro Display',system-ui,sans-serif",
         animation:`studioCardIn ${TRANSITIONS.normal} ${TRANSITIONS.overlay} both` }}>
         <style>{CSS}</style>
@@ -150,7 +150,7 @@ export default function CreatorStudio() {
   const firstName = profile?.display_name?.split(" ")[0] || "Creator";
 
   return (
-    <div style={{ position:"fixed", inset:0, zIndex:300, background:C.cream,
+    <div style={{ position:"fixed", inset:0, zIndex:10500, background:C.cream,
       overflowY:"auto", WebkitOverflowScrolling:"touch",
       fontFamily:"-apple-system,'SF Pro Display',system-ui,sans-serif" }}>
       <style>{CSS}</style>

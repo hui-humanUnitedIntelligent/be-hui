@@ -1389,7 +1389,7 @@ export default function ImpactFlow({ onClose }) {
 
   return (
     <div style={{
-      position:"fixed", inset:0, zIndex:9500,
+      position:"fixed", inset:0, zIndex:10500,
       background:"rgba(14,14,24,0.52)",
       backdropFilter:"blur(8px)", WebkitBackdropFilter:"blur(8px)",
       display:"flex", alignItems:"center", justifyContent:"center",

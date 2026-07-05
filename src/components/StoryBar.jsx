@@ -304,7 +304,7 @@ export function StoryViewer({ data: initData, onClose, onViewProfile }) {
     <div
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
-      style={{ position:'fixed', inset:0, zIndex:510   /* Z.story */, background:'#000',
+      style={{ position:'fixed', inset:0, zIndex:10500   /* Z.story */, background:'#000',
         animation:'huiIn .22s ease-out', fontFamily:'-apple-system,BlinkMacSystemFont,sans-serif' }}>
 
       {/* ── BG MEDIA mit Ken-Burns ─────────────────────────────── */}

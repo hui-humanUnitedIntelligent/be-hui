@@ -78,7 +78,7 @@ export default function SupportFlow({ creator, visible, onClose, sourceType="pro
   if (!visible) return null;
 
   return (
-    <div style={{position:"fixed",inset:0,zIndex:9600,
+    <div style={{position:"fixed",inset:0,zIndex:10500,
       background:"rgba(6,10,20,0.65)",
       backdropFilter:"blur(18px)",WebkitBackdropFilter:"blur(18px)",
       display:"flex",alignItems:"flex-end",justifyContent:"center"}}

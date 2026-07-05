@@ -316,7 +316,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
 
       {/* Overlay */}
       <div onClick={doClose} style={{
-        position:"fixed",inset:0,zIndex:9300,
+        position:"fixed",inset:0,zIndex:10490,
         background:"rgba(15,30,26,0.30)",
         backdropFilter:"blur(4px)",WebkitBackdropFilter:"blur(4px)",
         animation:isClosing?"hms-overlay-out .28s ease both":"hms-overlay-in .22s ease both",
@@ -324,7 +324,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
 
       {/* Sheet */}
       <div onClick={e => e.stopPropagation()} style={{
-        position:"fixed",bottom:0,left:0,right:0,zIndex:9301,
+        position:"fixed",bottom:0,left:0,right:0,zIndex:10500,
         background:D.sheet,borderRadius:"28px 28px 0 0",
         padding:`0 0 max(32px,calc(24px + env(safe-area-inset-bottom,0px)))`,
         boxShadow:"0 -8px 48px rgba(15,30,26,0.18),0 -2px 12px rgba(15,30,26,0.08)",

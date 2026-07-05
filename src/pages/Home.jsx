@@ -440,7 +440,7 @@ function HomeInner() {
             <Suspense fallback={<div style={{
           position:'fixed',inset:0,display:'flex',
           alignItems:'center',justifyContent:'center',
-          background:'rgba(249,247,244,0.85)',zIndex:8000,
+          background:'rgba(249,247,244,0.85)',zIndex:10500,
           backdropFilter:'blur(6px)'
         }}>
           <div style={{
@@ -616,7 +616,7 @@ function HomeInner() {
       <Suspense fallback={<div style={{
           position:'fixed',inset:0,display:'flex',
           alignItems:'center',justifyContent:'center',
-          background:'rgba(249,247,244,0.85)',zIndex:8000,
+          background:'rgba(249,247,244,0.85)',zIndex:10500,
           backdropFilter:'blur(6px)'
         }}>
           <div style={{

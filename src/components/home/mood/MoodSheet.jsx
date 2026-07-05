@@ -25,7 +25,7 @@ export default function MoodSheet({ activeMood, onSelect, onClose }) {
     <div
       onClick={close}
       style={{
-        position:"fixed", inset:0, zIndex:500,
+        position:"fixed", inset:0, zIndex:10500,
         background: vis ? "rgba(0,0,0,0.16)" : "rgba(0,0,0,0)",
         backdropFilter: vis ? "blur(6px)" : "none",
         WebkitBackdropFilter: vis ? "blur(6px)" : "none",

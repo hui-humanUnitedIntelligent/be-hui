@@ -438,7 +438,7 @@ export default function ExperienceCreator({ onClose, onSuccess }) {
   }
 
   if (done) return (
-    <div style={{position:"fixed",inset:0,zIndex:600,
+    <div style={{position:"fixed",inset:0,zIndex:10500,
       background:`linear-gradient(135deg,${T.gold},${T.coral})`,
       display:"flex",alignItems:"center",justifyContent:"center",
       animation:"ecIn .3s both"}}>
@@ -454,7 +454,7 @@ export default function ExperienceCreator({ onClose, onSuccess }) {
   );
 
   return (
-    <div style={{position:"fixed",inset:0,zIndex:600,
+    <div style={{position:"fixed",inset:0,zIndex:10500,
       background:"rgba(8,8,8,.55)",backdropFilter:"blur(10px)",
       WebkitBackdropFilter:"blur(10px)",
       display:"flex",alignItems:"flex-end",animation:"ecIn .2s both"}}>

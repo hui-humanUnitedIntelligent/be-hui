@@ -316,7 +316,7 @@ export default function CreatorDashboard({ visible, onClose, onOpenProfile }) {
 
   return (
     <div style={{
-      position:"fixed",inset:0,zIndex:9500,
+      position:"fixed",inset:0,zIndex:10500,
       background:T.bg,
       fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif",
       WebkitFontSmoothing:"antialiased",

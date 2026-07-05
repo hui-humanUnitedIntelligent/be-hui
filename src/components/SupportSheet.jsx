@@ -98,12 +98,12 @@ export default function SupportSheet({ project, currentUser, onClose, onSuccess 
 
       {/* Backdrop */}
       <div onClick={onClose}
-        style={{ position:"fixed", inset:0, zIndex:1000,
+        style={{ position:"fixed", inset:0, zIndex:10490,
           background:"rgba(0,0,0,0.45)", backdropFilter:"blur(4px)",
           animation:"fadeIn .25s ease" }}/>
 
       {/* Sheet */}
-      <div style={{ position:"fixed", bottom:0, left:0, right:0, zIndex:1001,
+      <div style={{ position:"fixed", bottom:0, left:0, right:0, zIndex:10500,
         background:C.card, borderRadius:"28px 28px 0 0",
         padding:"0 0 max(32px,env(safe-area-inset-bottom,32px))",
         boxShadow:"0 -8px 48px rgba(0,0,0,0.18)",

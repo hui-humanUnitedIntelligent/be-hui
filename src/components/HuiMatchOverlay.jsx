@@ -451,7 +451,7 @@ export default function HuiMatchOverlay({ onClose, onView, onMoodSelect }) {
       <style>{CSS}</style>
 
       {/* ── BACKDROP ── */}
-      <div style={{ position:"fixed", inset:0, zIndex:600,
+      <div style={{ position:"fixed", inset:0, zIndex:10500,
         background:"rgba(8,8,8,0.65)",
         backdropFilter:"blur(24px)", WebkitBackdropFilter:"blur(24px)" }}
         onClick={e => e.target === e.currentTarget && onClose()}>

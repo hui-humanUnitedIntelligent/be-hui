@@ -168,7 +168,7 @@ export default function ExperienceFlow({ onClose }) {
   /* ── Success Screen ────────────────────────────────────────── */
   if (done) return (
     <div style={{
-      position:"fixed", inset:0, zIndex:9200,
+      position:"fixed", inset:0, zIndex:10500,
       background:`linear-gradient(135deg, ${ET.teal} 0%, ${ET.violet} 100%)`,
       display:"flex", alignItems:"center", justifyContent:"center",
       flexDirection:"column", gap:16,
@@ -194,7 +194,7 @@ export default function ExperienceFlow({ onClose }) {
   const isTablet = window.innerWidth >= 1200; // Desktop: zentriertes Sheet
   return (
     <div style={{
-      position:"fixed", inset:0, zIndex:9200,
+      position:"fixed", inset:0, zIndex:10500,
       background:"rgba(26,26,46,0.22)",
       backdropFilter:"blur(8px)", WebkitBackdropFilter:"blur(8px)",
       display:"flex", alignItems: isTablet ? "center" : "flex-end",
