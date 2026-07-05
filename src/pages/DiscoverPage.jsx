@@ -8,6 +8,8 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { useNavigate }   from "react-router-dom";
 import { supabase }      from "../lib/supabaseClient.js";
 import { formatPresence } from "../lib/usePresence.js";
+import { useAuthGate }    from "../components/auth/AuthGate.jsx";
+import TalentAnfrageFlow  from "../components/talents/TalentAnfrageFlow.jsx";
 
 // ── Design Tokens ────────────────────────────────────────────────
 const T = {
@@ -730,6 +732,173 @@ function MomenteSection({ momente, loading, delay=0, view='cards', onPress, onSe
 }
 
 // ════════════════════════════════════════════════════════════════
+// 4b. TALENTE ENTDECKEN (TALENT-DISCOVERY-001, 2026-07-05)
+// Zeigt freigegebene Dienstleistungen aus der "talents"-Tabelle
+// (TALENT-OFFERS-001/TALENT-SERVICES-001). Gleiches Karten-Layout wie
+// "Werke entdecken" (WerkCard/WerkeSection), bewusst als eigene, additive
+// Komponente — kein Umbau der bestehenden Werke-Sektion.
+// ════════════════════════════════════════════════════════════════
+const SEED_TALENTE = [
+  { id:"t1", title:"Gitarrenunterricht für Anfänger", category:"Musik & Klang", cover:"https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=280&q=75", author:"Jonas K.", price_per_hour:35, currency:"EUR", location_type:"online" },
+  { id:"t2", title:"Personal Yoga Coaching",           category:"Fitness & Bewegung", cover:"https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=280&q=75", author:"Lena S.", price_per_session:60, currency:"EUR", location_type:"vor_ort" },
+];
+
+const TALENT_LOCATION_LABEL = { online:"Online", vor_ort:"Vor Ort", hybrid:"Online & Vor Ort" };
+
+function TalentCard({ talent, delay=0, onPress }) {
+  const [imgErr, setImgErr] = useState(false);
+  const cover  = (!imgErr && talent.cover) ? talent.cover : null;
+  const medCol = MEDIUM_COLOR[talent.category] || { bg:T.tealSoft, text:T.teal };
+  const priceStr = talent.price_per_hour != null
+    ? parseFloat(talent.price_per_hour).toLocaleString("de-DE", { minimumFractionDigits:0 }) + " €/Std"
+    : talent.price_per_session != null
+      ? parseFloat(talent.price_per_session).toLocaleString("de-DE", { minimumFractionDigits:0 }) + " €/Termin"
+      : null;
+  const locationLabel = TALENT_LOCATION_LABEL[talent.location_type] || null;
+
+  return (
+    <div className="dp-press dp-in dp-card-hover" onClick={() => onPress?.(talent)} style={{
+      width:165, flexShrink:0,
+      borderRadius:16, overflow:"hidden",
+      background:T.white, boxShadow:T.cardShadow,
+      border:`1px solid ${T.border}`,
+      animationDelay:`${delay}ms`,
+      touchAction:"manipulation",
+      WebkitTapHighlightColor:"transparent",
+    }}>
+      {/* Cover */}
+      <div style={{ width:"100%", height:120, position:"relative", overflow:"hidden", background:cover ? "#1A1A18" : medCol.bg }}>
+        {cover ? (
+          <img src={cover} alt={talent.title} onError={() => setImgErr(true)}
+            style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
+        ) : (
+          <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:6 }}>
+            <span style={{ fontSize:32, opacity:0.4 }}>✨</span>
+          </div>
+        )}
+        {/* Kategorie-Badge oben links */}
+        {talent.category && (
+          <div style={{
+            position:"absolute", top:8, left:8,
+            background: cover ? "rgba(0,0,0,0.54)" : medCol.bg,
+            backdropFilter: cover ? "blur(6px)" : "none",
+            borderRadius:99, padding:"2px 9px",
+            fontSize:9, fontWeight:700,
+            color: cover ? "rgba(255,255,255,0.92)" : medCol.text,
+            letterSpacing:".03em",
+          }}>
+            {talent.category}
+          </div>
+        )}
+      </div>
+
+      {/* Info */}
+      <div style={{ padding:"10px 11px 12px" }}>
+        {/* Titel */}
+        <div style={{
+          fontSize:13, fontWeight:700, color:T.ink,
+          marginBottom:3, letterSpacing:"-0.02em", lineHeight:1.25,
+          overflow:"hidden", display:"-webkit-box",
+          WebkitLineClamp:2, WebkitBoxOrient:"vertical",
+        }}>
+          {talent.title}
+        </div>
+
+        {/* Anbieter */}
+        <div style={{ fontSize:10.5, color:T.inkFaint, fontWeight:400, marginBottom:6 }}>
+          von {talent.author}
+        </div>
+
+        {/* Standort/Ort */}
+        {locationLabel && (
+          <div style={{
+            fontSize:10, color:T.inkFaint, marginBottom:6,
+            display:"flex", alignItems:"center", gap:3,
+          }}>
+            <span style={{ fontSize:9 }}>📍</span>
+            <span style={{ overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{locationLabel}</span>
+          </div>
+        )}
+
+        {/* Preis */}
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:2 }}>
+          {priceStr ? (
+            <div style={{ fontSize:14, fontWeight:800, color:T.teal, letterSpacing:"-0.02em" }}>
+              {priceStr}
+            </div>
+          ) : (
+            <div style={{ fontSize:10.5, color:T.inkFaint, fontStyle:"italic" }}>Preis auf Anfrage</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TalenteSection({ talente, loading, delay=0, view='cards', onPress, onSectionAction }) {
+  return (
+    <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
+      <div data-dp-talente/>
+      <SectionHead
+        title="Talente entdecken"
+        sub="Dienstleistungen & Angebote von HUI Talenten."
+        action="Alle Talente"
+        onAction={onSectionAction}
+        delay={delay}
+      />
+      {view === "cards" ? (
+        <div className="dp-hscroll" style={{ display:"flex", gap:10, paddingLeft:T.px, paddingRight:T.px, paddingBottom:4 }}>
+          {loading
+            ? Array.from({length:4}).map((_,i) => (
+                <div key={i} style={{ width:165, flexShrink:0, borderRadius:16, overflow:"hidden", background:T.white, boxShadow:T.cardShadow }}>
+                  <Skel w="100%" h={120} r={0} mb={0}/>
+                  <div style={{ padding:"10px 11px" }}><Skel w="80%" h={12} r={6} mb={6}/><Skel w="50%" h={10} r={6}/></div>
+                </div>
+              ))
+            : talente.map((t, i) => <TalentCard key={t.id} talent={t} delay={i*35+delay} onPress={onPress} />)
+          }
+        </div>
+      ) : (
+        <div className="dp-list-section dp-toggle-in">
+          {loading
+            ? Array.from({length:4}).map((_,i) => (
+                <div key={i} className="dp-list-card"><Skel w={58} h={58} r={12}/><div style={{flex:1}}><Skel w="75%" h={12} r={6} mb={6}/><Skel w="45%" h={10} r={5}/></div></div>
+              ))
+            : talente.map((t) => {
+                const medCol = MEDIUM_COLOR[t.category] || { bg:T.tealSoft, text:T.teal };
+                const priceStr = t.price_per_hour != null
+                  ? parseFloat(t.price_per_hour).toLocaleString("de-DE", { minimumFractionDigits:0 }) + " €/Std"
+                  : t.price_per_session != null
+                    ? parseFloat(t.price_per_session).toLocaleString("de-DE", { minimumFractionDigits:0 }) + " €/Termin"
+                    : null;
+                return (
+                  <div key={t.id} className="dp-list-card" onClick={() => onPress?.(t)}>
+                    {t.cover
+                      ? <img src={t.cover} alt={t.title} className="dp-list-thumb" onError={e => e.target.style.display='none'} style={{ objectFit:"cover" }}/>
+                      : <div className="dp-list-thumb-placeholder">✨</div>
+                    }
+                    <div style={{ flex:1, overflow:"hidden" }}>
+                      <div style={{ fontSize:13, fontWeight:600, color:T.ink, marginBottom:4, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{t.title}</div>
+                      <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
+                        {t.category && (
+                          <span style={{ fontSize:10.5, background:medCol.bg, color:medCol.text, borderRadius:99, padding:"2px 8px", fontWeight:600 }}>{t.category}</span>
+                        )}
+                        {priceStr && (
+                          <span style={{ fontSize:12, fontWeight:800, color:T.teal }}>{priceStr}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+          }
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════
 // 5. WERKE ENTDECKEN
 // ════════════════════════════════════════════════════════════════
 const SEED_WERKE = [
@@ -1421,9 +1590,12 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   const [people, setPeople]           = useState([]);
   const [momente, setMomente]         = useState([]);
   const [werke, setWerke]             = useState([]);
+  const [talente, setTalente]         = useState([]);
   const [erlebnisse, setErlebnisse]   = useState([]);
   const [projekte, setProjekte]       = useState([]);
   const [stats, setStats]             = useState(null);
+  const [talentInquiry, setTalentInquiry] = useState(null); // ausgewaehltes Talent fuer Anfrage-Modal
+  const { requireAuth } = useAuthGate();
 
   // ── Daten laden ─────────────────────────────────────────────
   useEffect(() => {
@@ -1505,6 +1677,47 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         } else if (!wsErr) {
           // Keine Werke in DB → setWerke([]) → displayWerke fällt auf SEED zurück
           if (!cancelled) setWerke([]);
+        }
+
+        // Talente — freigegebene Dienstleistungsangebote (TALENT-OFFERS-001/TALENT-SERVICES-001)
+        // Oeffentlich sichtbar nur status='approved' (RLS deckt das zusaetzlich ab)
+        const { data: tal, error: talErr } = await supabase
+          .from("talents")
+          .select("id,title,category,images,price_per_hour,price_per_session,currency,location_type,user_id,created_at")
+          .eq("status", "approved")
+          .order("created_at", { ascending:false })
+          .limit(8);
+
+        if (talErr) {
+        }
+
+        if (!cancelled && tal?.length > 0) {
+          // Anbieternamen nachladen (kein FK-Embed, eigene Anfrage — gleiches Muster wie "People")
+          const providerIds = [...new Set(tal.map(t => t.user_id).filter(Boolean))];
+          let providerMap = {};
+          if (providerIds.length > 0) {
+            const { data: provs } = await supabase
+              .from("profiles")
+              .select("id,display_name,username")
+              .in("id", providerIds);
+            providerMap = Object.fromEntries((provs || []).map(p => [p.id, safeStr(p.display_name || p.username, "HUI Talent")]));
+          }
+          if (!cancelled) {
+            setTalente(tal.map(t => ({
+              id:                 t.id,
+              user_id:            t.user_id,
+              title:              safeStr(t.title, "Talent-Angebot"),
+              cover:              (Array.isArray(t.images) && t.images[0]?.url) ? safeStr(t.images[0].url) : null,
+              category:           safeStr(t.category),
+              price_per_hour:     t.price_per_hour != null ? safeNum(t.price_per_hour, 0) : null,
+              price_per_session:  t.price_per_session != null ? safeNum(t.price_per_session, 0) : null,
+              currency:           safeStr(t.currency, "EUR"),
+              location_type:      safeStr(t.location_type),
+              author:             providerMap[t.user_id] || "HUI Talent",
+            })));
+          }
+        } else if (!talErr) {
+          if (!cancelled) setTalente([]);
         }
 
         // Erlebnisse — korrigierte Feldnamen: location_text, max_participants
@@ -1600,6 +1813,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   const displayMomente    = momente.length > 0 ? momente : SEED_MOMENTE;
   const navigate           = useNavigate();
   const displayWerke      = werke.length > 0 ? werke : SEED_WERKE;
+  const displayTalente    = talente.length > 0 ? talente : SEED_TALENTE;
   const displayErlebnisse = erlebnisse.length > 0 ? erlebnisse : SEED_ERLEBNISSE;
   const displayProjekte   = projekte.length > 0 ? projekte : SEED_PROJEKTE;
 
@@ -1618,6 +1832,16 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
     }
     // Seed-Karte: kein Navigate — kein "Werk nicht gefunden"
   }, [navigate]);
+
+  // Talent-Karte: Anmeldung/Registrierung erzwingen (useAuthGate), danach Anfrage-Modal öffnen.
+  // Seed-Karten (keine echte UUID) öffnen nach Login bewusst kein Modal (kein echter Anbieter dahinter).
+  const handleTalentPress = useCallback((talent) => {
+    const talentId = talent.id;
+    const isRealId = talentId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(talentId));
+    requireAuth("ein Talent zu kontaktieren", () => {
+      if (isRealId) setTalentInquiry(talent);
+    });
+  }, [requireAuth]);
 
   // Moment-Karte: erst Profil des Erstellers (kein separater Moment-Detail-View)
   const handleMomentPress = useCallback((moment) => {
@@ -1712,6 +1936,16 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         onSectionAction={makeScrollHandler("[data-dp-momente]")}
       />
 
+      {/* ── 4b. Talente entdecken ── */}
+      <TalenteSection
+        talente={displayTalente}
+        loading={loading && talente.length === 0}
+        delay={90}
+        view={view}
+        onPress={handleTalentPress}
+        onSectionAction={makeScrollHandler("[data-dp-talente]")}
+      />
+
       {/* ── 5. Werke entdecken ── */}
       <WerkeSection
         werke={displayWerke}
@@ -1744,6 +1978,11 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
 
       {/* ── 8. Orte entdecken ── */}
       <OrteSection onMap={onMap} delay={160} view={view} />
+
+      {/* Talent-Anfrage-Modal (Portal, siehe .agents/rules/footer-navbar-zindex.md) */}
+      {talentInquiry && (
+        <TalentAnfrageFlow talent={talentInquiry} onClose={() => setTalentInquiry(null)} />
+      )}
     </div>
   );
 }
