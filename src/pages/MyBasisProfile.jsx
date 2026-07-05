@@ -11,7 +11,7 @@ import {
   FB_AVATAR,
   handleAvatarUpload, handleCoverUpload,
 } from "../lib/profileMedia.js";
-import { NAV_RESERVED_HEIGHT_CSS } from "../components/home/navigation/navigationGeometry.js";
+import { NAV_RESERVED_HEIGHT_CSS, NAV_CONTAINER_HEIGHT_CSS } from "../components/home/navigation/navigationGeometry.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
 import { useHome }   from "../components/home/HomeShell.jsx";
 import GemeinschaftsFlow from "../components/GemeinschaftsFlow.jsx";
@@ -928,6 +928,25 @@ export default function MyBasisProfile({ onClose, profileId }) {
           </>
         )}
       </div>
+
+      {/* PROFIL-NAV-BACKDROP (2026-07-05): Garantiert denselben durchgehenden
+          Cream-Ruhebereich hinter Orb/Tabbar wie Home/Discover/Impact — und
+          zwar UNABHAENGIG von Content-Laenge oder Scroll-Position (nicht nur
+          als zufaellige Luecke am Ende der Liste). Sitzt zwischen dem
+          scrollenden Content (mbp-scroll, darunter) und der eigentlichen
+          BottomNav (HUIBottomNavigation, zIndex 10000, darueber) — deckt
+          exakt die reservierte Nav-Zone (Orb-Ueberhang + Tabbar + SafeArea)
+          mit derselben Cream-Farbe wie der App-Hintergrund ab, damit
+          darunterliegender Content nie sichtbar dagegen "stoesst".
+          pointerEvents:none, damit Orb/Tabs (zIndex 10000, oben) weiterhin
+          normal klickbar bleiben. */}
+      <div style={{
+        position:"fixed", left:0, right:0, bottom:0,
+        height:NAV_CONTAINER_HEIGHT_CSS,
+        background:"#F9F7F4",
+        zIndex:9600, /* <BottomNav(10000), >mbp-scroll-Content */
+        pointerEvents:"none",
+      }} aria-hidden="true"/>
 
       {/* GEMEINSCHAFT FLOW MODAL */}
       {showGemeinschaft && (
