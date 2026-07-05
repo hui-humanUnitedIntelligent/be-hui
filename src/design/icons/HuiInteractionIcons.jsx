@@ -1,30 +1,55 @@
 /**
- * HUI Interaction Language v1.0
+ * HUI Interaction Language v3.0 — Symbolik vor Formfeinschliff (2026-07-05)
  * ──────────────────────────────────────────────────────────────────────────
  * Single Source of Truth für die vier universellen HUI-Interaktionen.
- * 1:1 aus der von Lars freigegebenen Referenzgrafik übernommen
- * (2026-07-05) — keine eigene Interpretation, keine Farb-/Proportions-
- * änderungen.
  *
  *   🌱 Resonanz    — "Das hat etwas in mir bewegt."     → Wertschätzung zeigen.
  *   🤝 Austauschen — "Ich möchte darüber sprechen."     → Verbindung schaffen.
  *   🔖 Merken      — "Ich komme später darauf zurück."  → Wissen bewahren.
  *   🔄 Empfehlen   — "Das könnte auch anderen guttun."  → Gutes weitergeben.
  *
+ * v3 korrigiert einen Symbolik-Fehler aus v2: dort waren "Austauschen"
+ * (abstrakte Pinwheel-Blobs) und "Empfehlen" (Rundbogen-Pfeil) zwar formal
+ * sauber, aber NICHT sofort ohne Text verständlich — Austauschen wirkte wie
+ * eine beliebige abstrakte Form statt "Begegnung zwischen Menschen", und
+ * Empfehlen las sich wie "Aktualisieren/Sync" statt "etwas Wertvolles
+ * weitergeben". v3 zeichnet beide Icons anhand der Symbolik neu, nach dem
+ * Vergleich mehrerer Varianten direkt im Feed-Mockup:
+ *
+ *   - Austauschen: zwei klar erkennbare Personen-Silhouetten (Kopf +
+ *     Schulter), einander zugewandt, mit einem kleinen Funken dazwischen —
+ *     zeigt explizit "zwei Menschen im Kontakt", nicht nur eine abstrakte
+ *     Form. Bewusst kein Herz (kein Herz-Einschnitt oben), keine klassische
+ *     Sprechblase (keine Bubble-Kontur/kein Schwänzchen).
+ *   - Empfehlen: offene Schale mit einem darüber schwebenden Glanz-Samen —
+ *     knüpft an HUIs bestehende Schalen-/Gefäß-Metapher an (WerkeKorb:
+ *     "handgefertigte Schale" als Sinnbild fürs Geben) und liest sich
+ *     eindeutig als "ich biete dir etwas Kostbares an". Keine Kreisform,
+ *     kein Pfeil-im-Kreis → keine Verwechslungsgefahr mit Reload/Sync.
+ *   - Resonanz und Merken bleiben unverändert aus v2 (Symbolik dort bereits
+ *     eindeutig: Spross = Wachstum/Bewegtsein, Lesezeichen = Aufbewahren).
+ *
  * Diese vier Komponenten sind die EINZIGE erlaubte Icon-Quelle für alle
  * Interaktions-Oberflächen (Feed, Werke, Erlebnisse, Beiträge, Detailseiten,
  * Mein HUI, Sammlungen, Empfehlungen, Suchergebnisse, Listen, Karten,
  * Benachrichtigungen). Keine zweite Icon-Sprache, keine lokalen Kopien.
  *
- * Jede Komponente:
- *   - reine SVG-Ausgabe (kein PNG/Canvas/Sprite)
- *   - Props: size (px, Default 24), className, style
- *   - eigene, kollisionsfreie Gradient-IDs via React.useId()
- *   - dünne, weiche Linien + sanfte Gradient-Füllungen, keine harten Ecken
+ * API (unverändert seit v1 — reiner visueller Pass, keine Call-Site-
+ * Änderungen nötig): ResonanceIcon / ExchangeIcon / BookmarkKeepIcon /
+ * RecommendIcon, jeweils Props { size = 24, className, style }.
+ *
+ * Zustände (Default/Hover/Pressed/Active/Disabled) werden bewusst NICHT in
+ * der Icon-Geometrie selbst codiert (Form bleibt immer identisch), sondern
+ * ausschließlich über die aufrufenden Button-Komponenten (ActionBtn in
+ * BaseFeedCard.jsx, IconBtn in WorkDetailPage.jsx) via Opacity/Scale/
+ * Disabled-Handling gesteuert.
  */
 import React from "react";
 
-/* ── 1. Resonanz ── Sprössling mit schwebendem Licht-Punkt ─────────────── */
+/* ── 1. Resonanz ── Spross mit schwebendem Licht-Punkt ──────────────────
+   Bewusst kräftiger als v1: dickerer Stamm, größere/vollere Blattflächen,
+   größerer Licht-Punkt — damit die Silhouette bei 20px sofort als
+   "wachsende Pflanze" lesbar bleibt, nicht als dünnes Strichmännchen. */
 export function ResonanceIcon({ size = 24, className, style }) {
   const id = React.useId();
   const leaf = `hui-res-leaf-${id}`;
@@ -35,57 +60,84 @@ export function ResonanceIcon({ size = 24, className, style }) {
       className={className} style={style} aria-hidden="true"
     >
       <defs>
-        <linearGradient id={leaf} x1="4" y1="20" x2="20" y2="8" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#2FB39B" />
-          <stop offset="100%" stopColor="#0DC4B5" />
+        <linearGradient id={leaf} x1="4" y1="21" x2="20" y2="7" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#279E8C" />
+          <stop offset="100%" stopColor="#14C7B6" />
         </linearGradient>
-        <radialGradient id={dot} cx="50%" cy="35%" r="65%">
-          <stop offset="0%" stopColor="#FFD873" />
+        <radialGradient id={dot} cx="50%" cy="32%" r="68%">
+          <stop offset="0%" stopColor="#FFDD8C" />
           <stop offset="100%" stopColor="#F0A93C" />
         </radialGradient>
       </defs>
-      <path d="M12 21V12.5" stroke={`url(#${leaf})`} strokeWidth="1.6" strokeLinecap="round" />
+      {/* Stamm — bewusst dicker (2.2px) als v1, runde Kappen */}
+      <path d="M12 21.2V11.8" stroke={`url(#${leaf})`} strokeWidth="2.2" strokeLinecap="round" />
+      {/* Zwei volle, symmetrische Blattflächen — größer als v1 */}
       <path
-        d="M12 13.5C12 13.5 6.2 12.6 6.2 7.6C6.2 7.6 12 8 12 13.5Z"
-        fill={`url(#${leaf})`} opacity="0.92"
+        d="M12 12.6C12 12.6 5.3 12.1 5.3 6.1C5.3 6.1 12 6.1 12 12.6Z"
+        fill={`url(#${leaf})`} opacity="0.94"
       />
       <path
-        d="M12 13.5C12 13.5 17.8 12.6 17.8 7.6C17.8 7.6 12 8 12 13.5Z"
+        d="M12 12.6C12 12.6 18.7 12.1 18.7 6.1C18.7 6.1 12 6.1 12 12.6Z"
         fill={`url(#${leaf})`}
       />
-      <circle cx="12" cy="4.6" r="1.9" fill={`url(#${dot})`} />
+      {/* Größerer Licht-Punkt für mehr Präsenz bei kleiner Größe */}
+      <circle cx="12" cy="3.9" r="2.15" fill={`url(#${dot})`} />
     </svg>
   );
 }
 
-/* ── 2. Austauschen ── Zwei Köpfe, die gemeinsam ein Herz formen ─────────── */
+/* ── 2. Austauschen ── Zwei Menschen + Funke der Begegnung ───────────────
+   v3 (Symbolik-Korrektur): zwei eindeutig als Personen lesbare Silhouetten
+   (Kopf + Schulter/Körper), einander zugewandt, mit einem kleinen warmen
+   Funken im Zwischenraum, der den Moment des Austauschs markiert. Zeigt
+   sofort "zwei Menschen im Kontakt" — bewusst kein Herz (kein Herz-
+   Einschnitt oben in der Mitte) und keine klassische Sprechblase (keine
+   Bubble-Kontur, kein Schwänzchen). */
 export function ExchangeIcon({ size = 24, className, style }) {
   const id = React.useId();
-  const grad = `hui-exc-grad-${id}`;
+  const left = `hui-exc-left-${id}`;
+  const right = `hui-exc-right-${id}`;
   return (
     <svg
       width={size} height={size} viewBox="0 0 24 24" fill="none"
       className={className} style={style} aria-hidden="true"
     >
       <defs>
-        <linearGradient id={grad} x1="3" y1="6" x2="21" y2="17" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#159E92" />
-          <stop offset="100%" stopColor="#0DC4B5" />
+        <linearGradient id={left} x1="3" y1="7" x2="10" y2="20" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#0E8C82" />
+          <stop offset="100%" stopColor="#1BB5A5" />
+        </linearGradient>
+        <linearGradient id={right} x1="14" y1="7" x2="21" y2="20" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#17B9AC" />
+          <stop offset="100%" stopColor="#57DDC9" />
         </linearGradient>
       </defs>
-      <circle cx="8.4" cy="6.4" r="2.15" fill={`url(#${grad})`} />
-      <circle cx="15.6" cy="6.4" r="2.15" fill={`url(#${grad})`} />
+      {/* Linke Person: Kopf + Körper, dem Zentrum zugewandt */}
+      <circle cx="6.4" cy="7" r="2.1" fill={`url(#${left})`} />
       <path
-        d="M12 20.2C12 20.2 4.6 15.9 4.6 11.05C4.6 8.85 6.35 7.35 8.3 7.35
-           C9.85 7.35 11.1 8.25 12 9.6C12.9 8.25 14.15 7.35 15.7 7.35
-           C17.65 7.35 19.4 8.85 19.4 11.05C19.4 15.9 12 20.2 12 20.2Z"
-        fill="none" stroke={`url(#${grad})`} strokeWidth="1.7" strokeLinejoin="round" strokeLinecap="round"
+        d="M3.6 19C3.6 14.3 4.9 10.4 6.4 10.4C7.9 10.4 9.2 14.3 9.2 19
+           C9.2 19.9 8.5 20.4 7.5 20.4H5.3C4.3 20.4 3.6 19.9 3.6 19Z"
+        fill={`url(#${left})`}
+      />
+      {/* Rechte Person: gespiegelt */}
+      <circle cx="17.6" cy="7" r="2.1" fill={`url(#${right})`} />
+      <path
+        d="M20.4 19C20.4 14.3 19.1 10.4 17.6 10.4C16.1 10.4 14.8 14.3 14.8 19
+           C14.8 19.9 15.5 20.4 16.5 20.4H18.7C19.7 20.4 20.4 19.9 20.4 19Z"
+        fill={`url(#${right})`}
+      />
+      {/* Funke der Begegnung — markiert den Moment des Austauschs */}
+      <path
+        d="M12 11.6L12.9 13.7L15 14.6L12.9 15.5L12 17.6L11.1 15.5L9 14.6L11.1 13.7Z"
+        fill="#F0A93C"
       />
     </svg>
   );
 }
 
-/* ── 3. Merken ── Lesezeichen mit warmem Licht-Punkt ─────────────────────── */
+/* ── 3. Merken ── Lesezeichen, ruhiger & voller als v1 ───────────────────
+   Notch weicher/flacher (kein spitzes "V"), Ribbon leicht breiter für
+   mehr visuelle Präsenz, Licht-Punkt beibehalten. */
 export function BookmarkKeepIcon({ size = 24, className, style }) {
   const id = React.useId();
   const ribbon = `hui-mrk-ribbon-${id}`;
@@ -96,77 +148,70 @@ export function BookmarkKeepIcon({ size = 24, className, style }) {
       className={className} style={style} aria-hidden="true"
     >
       <defs>
-        <linearGradient id={ribbon} x1="7" y1="3" x2="17" y2="21" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#1E6F72" />
-          <stop offset="100%" stopColor="#123B4D" />
+        <linearGradient id={ribbon} x1="7" y1="2.6" x2="17.4" y2="21.4" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#1D6A6E" />
+          <stop offset="100%" stopColor="#103A4A" />
         </linearGradient>
-        <radialGradient id={dot} cx="50%" cy="35%" r="65%">
-          <stop offset="0%" stopColor="#FFC069" />
-          <stop offset="100%" stopColor="#F2793F" />
+        <radialGradient id={dot} cx="50%" cy="32%" r="68%">
+          <stop offset="0%" stopColor="#FFC875" />
+          <stop offset="100%" stopColor="#F0803F" />
         </radialGradient>
       </defs>
       <path
-        d="M7.6 4.4C7.6 3.63 8.23 3 9 3H15C15.77 3 16.4 3.63 16.4 4.4V20.1
-           C16.4 20.72 15.68 21.06 15.2 20.68L12.28 18.36
-           C12.12 18.23 11.88 18.23 11.72 18.36L8.8 20.68
-           C8.32 21.06 7.6 20.72 7.6 20.1V4.4Z"
+        d="M7.3 4.2C7.3 3.32 8.02 2.6 8.9 2.6H15.1C15.98 2.6 16.7 3.32 16.7 4.2V20.3
+           C16.7 20.98 15.9 21.36 15.36 20.94L12.32 18.55
+           C12.13 18.4 11.87 18.4 11.68 18.55L8.64 20.94
+           C8.1 21.36 7.3 20.98 7.3 20.3V4.2Z"
         fill={`url(#${ribbon})`} strokeLinejoin="round"
       />
-      <circle cx="12" cy="9.4" r="2" fill={`url(#${dot})`} />
+      <circle cx="12" cy="8.9" r="2.05" fill={`url(#${dot})`} />
     </svg>
   );
 }
 
-/* ── 4. Empfehlen ── Drei weiche Pfeile im Kreislauf ─────────────────────── */
+/* ── 4. Empfehlen ── Offene Schale mit schwebendem Glanz-Samen ───────────
+   v3 (Symbolik-Korrektur): v2's Rundbogen-Pfeil las sich wie "Aktualisieren
+   /Sync/Laden" — genau das Gegenteil der gewünschten Bedeutung. v3 knüpft
+   stattdessen an HUIs bereits etablierte Schalen-/Gefäß-Metapher an
+   (WerkeKorb: "handgefertigte Schale" als Sinnbild fürs Geben): eine
+   offene Schale, darüber ein leuchtender Samen, der angeboten wird —
+   liest sich sofort als "ich biete dir etwas Kostbares an, das auch dir
+   guttun könnte". Keine Kreisform, kein Pfeil-im-Kreis. */
 export function RecommendIcon({ size = 24, className, style }) {
   const id = React.useId();
-  const a = `hui-rec-a-${id}`;
-  const b = `hui-rec-b-${id}`;
-  const c = `hui-rec-c-${id}`;
+  const bowl = `hui-rec-bowl-${id}`;
+  const seed = `hui-rec-seed-${id}`;
   return (
     <svg
       width={size} height={size} viewBox="0 0 24 24" fill="none"
       className={className} style={style} aria-hidden="true"
     >
       <defs>
-        <linearGradient id={a} x1="4" y1="16" x2="12" y2="6" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#2FB39B" />
-          <stop offset="100%" stopColor="#0DC4B5" />
+        <linearGradient id={bowl} x1="4" y1="12" x2="20" y2="19" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#14B8AA" />
+          <stop offset="100%" stopColor="#0E8C82" />
         </linearGradient>
-        <linearGradient id={b} x1="20" y1="16" x2="12" y2="6" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#F2793F" />
-          <stop offset="100%" stopColor="#F4A65B" />
-        </linearGradient>
-        <linearGradient id={c} x1="6" y1="19" x2="18" y2="19" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#F4A65B" />
-          <stop offset="100%" stopColor="#FFC978" />
-        </linearGradient>
+        <radialGradient id={seed} cx="50%" cy="32%" r="68%">
+          <stop offset="0%" stopColor="#FFDD8C" />
+          <stop offset="100%" stopColor="#F0A93C" />
+        </radialGradient>
       </defs>
+      {/* Offene Schale — Sinnbild des Anbietens/Gebens */}
       <path
-        d="M8.9 6.4C10.9 5.2 13.4 5.15 15.45 6.35"
-        stroke={`url(#${a})`} strokeWidth="1.9" strokeLinecap="round" fill="none"
+        d="M3.6 12.3C3.6 12.3 4.7 19.4 12 19.4C19.3 19.4 20.4 12.3 20.4 12.3
+           C20.4 16.2 16.8 21 12 21C7.2 21 3.6 16.2 3.6 12.3Z"
+        fill={`url(#${bowl})`}
       />
-      <path d="M14.6 4.9L15.8 6.6L13.85 7.15Z" fill={`url(#${a})`} />
-
-      <path
-        d="M16.9 8.1C18.05 10.05 18.05 12.5 16.85 14.5"
-        stroke={`url(#${b})`} strokeWidth="1.9" strokeLinecap="round" fill="none"
-      />
-      <path d="M18.55 8.9L17.35 7.15L16.15 9.05Z" fill={`url(#${b})`} />
-
-      <path
-        d="M15.05 16.55C13 17.75 10.5 17.75 8.5 16.5"
-        stroke={`url(#${c})`} strokeWidth="1.9" strokeLinecap="round" fill="none"
-      />
-      <path d="M9.35 18.1L8.15 16.4L10.15 15.9Z" fill={`url(#${c})`} />
+      {/* Schwebender Glanz-Samen — das Kostbare, das weitergegeben wird */}
+      <circle cx="12" cy="7.6" r="2.3" fill={`url(#${seed})`} />
     </svg>
   );
 }
 
-/* ── Größenvarianten (technische Vorgabe: 20 / 24 / 28 / 32 px) ─────────── */
-export const HUI_ICON_SIZES = { sm: 20, md: 24, lg: 28, xl: 32 };
+/* ── Größenvarianten (technische Vorgabe: 20 / 22 / 24 / 28 / 32 px) ────── */
+export const HUI_ICON_SIZES = { sm: 20, base: 22, md: 24, lg: 28, xl: 32 };
 
-/* ── Interaktions-Copy (verbindlich, aus Referenzgrafik) ─────────────────── */
+/* ── Interaktions-Copy (verbindlich) ─────────────────────────────────────── */
 export const HUI_INTERACTIONS = {
   resonanz: {
     label: "Resonanz",
