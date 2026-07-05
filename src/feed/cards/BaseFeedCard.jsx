@@ -518,11 +518,16 @@ const ActionBtn = memo(function ActionBtn({
   const [scale, setScale] = useState(false);
   const [hover, setHover] = useState(false);
   const isBookmark = variant === "merken";
+  const isResonanz = variant === "resonanz";
+  // Resonanz-Tap-Dauer bewusst kurz (150ms, im geforderten 120-180ms-Fenster) —
+  // deutlich kuerzer als der bestehende Bookmark-Pulse (400ms), damit sich
+  // Resonanz "leicht/lebendig" statt "zeremoniell" anfuehlt.
+  const pressMs = isResonanz ? 150 : 400;
 
   function handleClick() {
     if (disabled) return;
     setScale(true);
-    setTimeout(() => setScale(false), 400);
+    setTimeout(() => setScale(false), pressMs);
     onClick?.();
   }
 
@@ -530,6 +535,9 @@ const ActionBtn = memo(function ActionBtn({
   // v2.0 Zustände — Form bleibt IMMER identisch, nur Opacity/Scale ändern sich:
   // disabled < default < hover < active. Pressed = kurzer Scale-Spring (bestehend).
   const iconOpacity = disabled ? 0.28 : active ? 1 : hover ? 0.8 : 0.55;
+  // Resonanz-Tap: sanfter Scale (~1.08, NICHT der starke 0.88/1.3-Spring der
+  // anderen Icons) + weicher Glow in HUI-Farben (Teal/Orange), kein Bounce.
+  const pressScale = isBookmark ? 1.3 : isResonanz ? 1.08 : 0.88;
   return (
     <button
       onClick={handleClick}
@@ -545,10 +553,10 @@ const ActionBtn = memo(function ActionBtn({
         touchAction: "manipulation",
         // Spring scale
         transform: scale
-          ? (isBookmark ? "scale(1.3)" : "scale(0.88)")
+          ? `scale(${pressScale})`
           : (hover && !disabled ? "scale(1.06)" : "scale(1)"),
         transition: scale
-          ? "transform 0.08s cubic-bezier(.22,1,.36,1)"
+          ? `transform ${isResonanz ? "0.16s" : "0.08s"} cubic-bezier(.22,1,.36,1)`
           : "transform 0.22s cubic-bezier(.22,1,.36,1)",
         willChange: "transform",
         animation: (scale && isBookmark) ? "huiBookmarkPulse 0.4s ease" : "none",
@@ -557,7 +565,12 @@ const ActionBtn = memo(function ActionBtn({
       <span style={{
         display: "flex", alignItems: "center", justifyContent: "center",
         opacity: iconOpacity,
-        transition: "opacity 0.18s ease",
+        borderRadius: "50%",
+        // Weicher Glow beim Antippen — nur Resonanz, HUI-Teal/Orange, kein harter Ring
+        filter: (scale && isResonanz)
+          ? "drop-shadow(0 0 6px rgba(20,199,182,0.55)) drop-shadow(0 0 2px rgba(240,169,60,0.5))"
+          : "none",
+        transition: "opacity 0.18s ease, filter 0.16s ease",
       }}>
         {Icon ? <Icon size={22} /> : null}
       </span>
@@ -615,7 +628,7 @@ export const FeedActions = memo(function FeedActions({
               onShare → Empfehlen  (onShare oeffnet bereits den Teilen-Flow,
                                     semantisch = "an andere weitergeben")
               save    → Merken */}
-        <ActionBtn Icon={ResonanceIcon}    count={r.inspireCount||null} active={r.inspired} activeColor={T.teal}  onClick={() => onReaction?.("inspire")} />
+        <ActionBtn Icon={ResonanceIcon}    count={r.inspireCount||null} active={r.inspired} activeColor={T.teal}  variant="resonanz" onClick={() => onReaction?.("inspire")} />
         <ActionBtn Icon={ExchangeIcon}     count={r.touchCount||null}   active={r.touched}  activeColor={T.teal}  onClick={() => onReaction?.("touch")}   />
         <div style={{ flex:1 }} />
         {extraActions || null}

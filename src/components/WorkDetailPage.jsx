@@ -250,13 +250,19 @@ function RelatedCard({ werk, onClick }) {
 }
 
 /* ── Icon Buttons ───────────────────────────────────────────────────── */
-function IconBtn({ Icon, label, active, color, onPress, disabled }) {
+function IconBtn({ Icon, label, active, color, onPress, disabled, variant }) {
   const [pressed, setPressed] = useState(false);
   const [hover, setHover] = useState(false);
+  const isResonanz = variant === "resonanz";
+  // Resonanz-Tap: kurz (150ms, im 120-180ms-Fenster) + sanfter Scale (~1.08)
+  // + weicher Glow — bewusst anders als der staerkere 1.25x-Spring der
+  // anderen drei Icons (analog zur Feed-Actionbar in BaseFeedCard.jsx).
+  const pressMs = isResonanz ? 150 : 300;
+  const pressScale = isResonanz ? 1.08 : 1.25;
   const handleTap = () => {
     if (disabled) return;
     setPressed(true);
-    setTimeout(() => setPressed(false), 300);
+    setTimeout(() => setPressed(false), pressMs);
     onPress?.();
   };
   // v2.0 Zustände — Icon-Form bleibt immer identisch, nur Opacity/Scale ändern sich.
@@ -268,9 +274,15 @@ function IconBtn({ Icon, label, active, color, onPress, disabled }) {
         gap:4, background:"none", border:"none",
         cursor: disabled ? "default" : "pointer",
         padding:"8px 12px", borderRadius:12,
-        transform: pressed ? "scale(1.25)" : (hover && !disabled ? "scale(1.06)" : "scale(1)"),
-        transition:"transform 0.2s cubic-bezier(0.34,1.56,0.64,1)" }}>
-      <span style={{ display:"flex", opacity: iconOpacity, transition:"opacity 0.18s ease" }}>
+        transform: pressed ? `scale(${pressScale})` : (hover && !disabled ? "scale(1.06)" : "scale(1)"),
+        transition: pressed && isResonanz
+          ? "transform 0.16s cubic-bezier(.22,1,.36,1)"
+          : "transform 0.2s cubic-bezier(0.34,1.56,0.64,1)" }}>
+      <span style={{ display:"flex", opacity: iconOpacity, borderRadius:"50%",
+        filter: (pressed && isResonanz)
+          ? "drop-shadow(0 0 6px rgba(20,199,182,0.55)) drop-shadow(0 0 2px rgba(240,169,60,0.5))"
+          : "none",
+        transition:"opacity 0.18s ease, filter 0.16s ease" }}>
         {Icon ? <Icon size={24} /> : null}
       </span>
       <span style={{ fontSize:10, fontWeight:600,
@@ -643,6 +655,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
             label={resonanceCount > 0 ? String(resonanceCount) : "Resonanz"}
             active={resonated}
             color={C.coral}
+            variant="resonanz"
             onPress={handleLike}
           />
           <IconBtn

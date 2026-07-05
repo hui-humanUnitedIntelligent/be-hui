@@ -45,44 +45,28 @@
  * Disabled-Handling gesteuert.
  */
 import React from "react";
+import resonanzIconAsset from "../../assets/icons/resonanz-icon.png";
 
-/* ── 1. Resonanz ── Spross mit schwebendem Licht-Punkt ──────────────────
-   Bewusst kräftiger als v1: dickerer Stamm, größere/vollere Blattflächen,
-   größerer Licht-Punkt — damit die Silhouette bei 20px sofort als
-   "wachsende Pflanze" lesbar bleibt, nicht als dünnes Strichmännchen. */
+/* ── 1. Resonanz ── Offizieller HUI-Vektor (Lars, 2026-07-05) ────────────
+   WICHTIG: Dies ist ab sofort das offizielle Resonanz-Icon, 1:1 aus dem von
+   Lars bereitgestellten Vektor übernommen — NICHT neu gezeichnet, NICHT
+   stilisiert, KEINE anderen Farben/Rundungen. Es ersetzt vollständig das
+   frühere Like-/Herz-System sowie die zuvor selbst gezeichnete SVG-Version
+   (Spross+Stamm+Punkt). Einziger Eingriff: leeres transparentes Randmaß
+   der PNG wurde weggeschnitten (kein Pixel der Grafik selbst verändert),
+   damit die optische Größe zu den übrigen drei HUI-Icons passt. */
 export function ResonanceIcon({ size = 24, className, style }) {
-  const id = React.useId();
-  const leaf = `hui-res-leaf-${id}`;
-  const dot = `hui-res-dot-${id}`;
   return (
-    <svg
-      width={size} height={size} viewBox="0 0 24 24" fill="none"
-      className={className} style={style} aria-hidden="true"
-    >
-      <defs>
-        <linearGradient id={leaf} x1="4" y1="21" x2="20" y2="7" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#279E8C" />
-          <stop offset="100%" stopColor="#14C7B6" />
-        </linearGradient>
-        <radialGradient id={dot} cx="50%" cy="32%" r="68%">
-          <stop offset="0%" stopColor="#FFDD8C" />
-          <stop offset="100%" stopColor="#F0A93C" />
-        </radialGradient>
-      </defs>
-      {/* Stamm — bewusst dicker (2.2px) als v1, runde Kappen */}
-      <path d="M12 21.2V11.8" stroke={`url(#${leaf})`} strokeWidth="2.2" strokeLinecap="round" />
-      {/* Zwei volle, symmetrische Blattflächen — größer als v1 */}
-      <path
-        d="M12 12.6C12 12.6 5.3 12.1 5.3 6.1C5.3 6.1 12 6.1 12 12.6Z"
-        fill={`url(#${leaf})`} opacity="0.94"
-      />
-      <path
-        d="M12 12.6C12 12.6 18.7 12.1 18.7 6.1C18.7 6.1 12 6.1 12 12.6Z"
-        fill={`url(#${leaf})`}
-      />
-      {/* Größerer Licht-Punkt für mehr Präsenz bei kleiner Größe */}
-      <circle cx="12" cy="3.9" r="2.15" fill={`url(#${dot})`} />
-    </svg>
+    <img
+      src={resonanzIconAsset}
+      alt=""
+      width={size}
+      height={size}
+      className={className}
+      style={{ display: "block", objectFit: "contain", ...style }}
+      aria-hidden="true"
+      draggable={false}
+    />
   );
 }
 
