@@ -10,6 +10,7 @@ import { supabase }      from "../lib/supabaseClient.js";
 import { formatPresence } from "../lib/usePresence.js";
 import { useAuthGate }    from "../components/auth/AuthGate.jsx";
 import TalentAnfrageFlow  from "../components/talents/TalentAnfrageFlow.jsx";
+import TalentBookingFlow  from "../components/talents/TalentBookingFlow.jsx";
 
 // ── Design Tokens ────────────────────────────────────────────────
 const T = {
@@ -1594,7 +1595,8 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   const [erlebnisse, setErlebnisse]   = useState([]);
   const [projekte, setProjekte]       = useState([]);
   const [stats, setStats]             = useState(null);
-  const [talentInquiry, setTalentInquiry] = useState(null); // ausgewaehltes Talent fuer Anfrage-Modal
+  const [talentInquiry, setTalentInquiry] = useState(null);
+  const [talentBooking, setTalentBooking] = useState(null); // ausgewaehltes Talent fuer Anfrage-Modal
   const { requireAuth } = useAuthGate();
 
   // ── Daten laden ─────────────────────────────────────────────
@@ -1683,7 +1685,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         // Oeffentlich sichtbar nur status='approved' (RLS deckt das zusaetzlich ab)
         const { data: tal, error: talErr } = await supabase
           .from("talents")
-          .select("id,title,category,images,price_per_hour,price_per_session,currency,location_type,user_id,created_at")
+          .select("id,title,description,category,images,price_per_hour,price_per_session,currency,location_type,location_address,location_notes,map_link,user_id,created_at,available_dates,available_time_slots,recurring,duration_minutes,max_participants,min_participants,booking_type,booking_window_start,booking_window_end")
           .eq("status", "approved")
           .order("created_at", { ascending:false })
           .limit(8);
@@ -1704,16 +1706,30 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
           }
           if (!cancelled) {
             setTalente(tal.map(t => ({
-              id:                 t.id,
-              user_id:            t.user_id,
-              title:              safeStr(t.title, "Talent-Angebot"),
-              cover:              (Array.isArray(t.images) && t.images[0]?.url) ? safeStr(t.images[0].url) : null,
-              category:           safeStr(t.category),
-              price_per_hour:     t.price_per_hour != null ? safeNum(t.price_per_hour, 0) : null,
-              price_per_session:  t.price_per_session != null ? safeNum(t.price_per_session, 0) : null,
-              currency:           safeStr(t.currency, "EUR"),
-              location_type:      safeStr(t.location_type),
-              author:             providerMap[t.user_id] || "HUI Talent",
+              id:                    t.id,
+              user_id:               t.user_id,
+              title:                 safeStr(t.title, "Talent-Angebot"),
+              description:           safeStr(t.description),
+              cover:                 (Array.isArray(t.images) && t.images[0]?.url) ? safeStr(t.images[0].url) : null,
+              category:              safeStr(t.category),
+              price_per_hour:        t.price_per_hour != null ? safeNum(t.price_per_hour, 0) : null,
+              price_per_session:     t.price_per_session != null ? safeNum(t.price_per_session, 0) : null,
+              currency:              safeStr(t.currency, "EUR"),
+              location_type:         safeStr(t.location_type),
+              location_address:      safeStr(t.location_address),
+              location_notes:        safeStr(t.location_notes),
+              map_link:              safeStr(t.map_link),
+              author:                providerMap[t.user_id] || "HUI Talent",
+              // Buchungsdaten (TALENT-SERVICES-001) — fuer TalentBookingFlow
+              available_dates:       Array.isArray(t.available_dates) ? t.available_dates : [],
+              available_time_slots:  Array.isArray(t.available_time_slots) ? t.available_time_slots : [],
+              recurring:             safeStr(t.recurring),
+              duration_minutes:      t.duration_minutes != null ? safeNum(t.duration_minutes, 0) : null,
+              max_participants:      t.max_participants != null ? safeNum(t.max_participants, 1) : 1,
+              min_participants:      t.min_participants != null ? safeNum(t.min_participants, 1) : 1,
+              booking_type:          safeStr(t.booking_type, "einzel"),
+              booking_window_start:  safeStr(t.booking_window_start),
+              booking_window_end:    safeStr(t.booking_window_end),
             })));
           }
         } else if (!talErr) {
@@ -1838,8 +1854,13 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   const handleTalentPress = useCallback((talent) => {
     const talentId = talent.id;
     const isRealId = talentId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(talentId));
-    requireAuth("ein Talent zu kontaktieren", () => {
-      if (isRealId) setTalentInquiry(talent);
+    // Hat das Angebot einen Preis (TALENT-SERVICES-001)? -> echte Buchung+Zahlung.
+    // Sonst (kein Preis hinterlegt) -> Fallback auf die einfache Anfrage-Maske.
+    const hasPrice = talent.price_per_hour != null || talent.price_per_session != null;
+    requireAuth(hasPrice ? "ein Talent zu buchen" : "ein Talent zu kontaktieren", () => {
+      if (!isRealId) return;
+      if (hasPrice) setTalentBooking(talent);
+      else setTalentInquiry(talent);
     });
   }, [requireAuth]);
 
@@ -1982,6 +2003,9 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
       {/* Talent-Anfrage-Modal (Portal, siehe .agents/rules/footer-navbar-zindex.md) */}
       {talentInquiry && (
         <TalentAnfrageFlow talent={talentInquiry} onClose={() => setTalentInquiry(null)} />
+      )}
+      {talentBooking && (
+        <TalentBookingFlow talent={talentBooking} onClose={() => setTalentBooking(null)} />
       )}
     </div>
   );

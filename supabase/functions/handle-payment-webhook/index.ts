@@ -123,6 +123,52 @@ serve(async (req) => {
       }
 
       if (orderErr || !order) {
+        // ── Talent-Buchung? (Phase 3, additiv, eigener Zahlungspfad neben Orders) ──
+        const { data: tBooking } = await supabase
+          .from('talent_bookings')
+          .select('id, customer_id, seller_id, amount_eur, status')
+          .eq('stripe_payment_intent', pi.id)
+          .eq('status', 'pending_payment')
+          .single()
+
+        if (tBooking) {
+          const expectedBookingCents = Math.round(Number(tBooking.amount_eur) * 100)
+          if (Math.abs(pi.amount - expectedBookingCents) > 1) {
+            console.error(`[WEBHOOK] Talent-Booking Amount-Mismatch: stripe=${pi.amount} erwartet=${expectedBookingCents} booking=${tBooking.id}`)
+            await supabase.from('talent_bookings').update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
+              .eq('id', tBooking.id).eq('status', 'pending_payment')
+            await supabase.from('webhook_events').update({ status: 'failed' }).eq('stripe_event_id', event.id)
+            return new Response('ok', { headers: corsHeaders })
+          }
+
+          await supabase.from('talent_bookings').update({
+            status: 'confirmed', confirmed_at: new Date().toISOString(),
+          }).eq('id', tBooking.id).eq('status', 'pending_payment') // Guard gegen Doppel-Verarbeitung
+
+          const { data: feeResult, error: feeErr } = await supabase.rpc('rpc_process_talent_booking_fees', {
+            p_booking_id: tBooking.id
+          })
+          if (feeErr) console.error('[WEBHOOK] rpc_process_talent_booking_fees failed:', feeErr.message)
+
+          await supabase.from('notifications').insert([
+            {
+              user_id: tBooking.seller_id, type: 'talent_booking_paid',
+              title: 'Neue Buchung 🎉', body: 'Jemand hat dein Talent-Angebot gebucht und bezahlt.',
+              data: { booking_id: tBooking.id }, read: false,
+            },
+            {
+              user_id: tBooking.customer_id, type: 'talent_booking_confirmed',
+              title: 'Buchung bestätigt ✓', body: 'Deine Zahlung war erfolgreich, der Termin ist reserviert.',
+              data: { booking_id: tBooking.id }, read: false,
+            },
+          ])
+
+          await supabase.from('webhook_events').update({ status: 'processed' }).eq('stripe_event_id', event.id)
+          return new Response(JSON.stringify({ received: true, talent_booking: true }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          })
+        }
+
         console.warn('[WEBHOOK] Order nicht gefunden oder nicht pending:', orderErr?.message, 'PI:', pi.id, 'meta:', pi.metadata?.hui_order_id)
         await supabase.from('webhook_events').update({ status: 'processed' })
           .eq('stripe_event_id', event.id)
@@ -238,6 +284,13 @@ serve(async (req) => {
         .update({ state: 'failed' })
         .eq('stripe_payment_intent', pi.id)
         .eq('state', 'pending')  // Status-Guard
+
+      // Talent-Buchung: bei fehlgeschlagener Zahlung Platz sofort wieder freigeben
+      // (Kapazitaet zaehlt live nur pending_payment/confirmed -> cancelled gibt Platz frei)
+      await supabase.from('talent_bookings')
+        .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
+        .eq('stripe_payment_intent', pi.id)
+        .eq('status', 'pending_payment')
 
       const { error: failedEventErr } = await supabase.from('commerce_events').insert({
         event_type: 'payment_failed',
