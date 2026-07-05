@@ -435,7 +435,7 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
 
   return (
     <div className="bpp-root" style={{
-      position:"fixed", inset:0, zIndex:10500,
+      position:"fixed", inset:0, zIndex:9500, /* <BottomNav(10000) — Basis-Root der Seite, siehe PROFIL-NAV-FIX 2026-07-05 */
       display:"flex", flexDirection:"column",
       opacity:mounted?1:0,
       transform:mounted?"none":"translateY(14px)",

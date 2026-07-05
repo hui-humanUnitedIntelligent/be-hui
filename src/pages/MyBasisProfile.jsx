@@ -641,7 +641,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
   if (hookLoading) {
     return (
       <div style={{
-        position:"fixed", inset:0, zIndex:10500,
+        position:"fixed", inset:0, zIndex:9500, /* <BottomNav(10000) — Basis-Root der Seite, siehe PROFIL-NAV-FIX 2026-07-05 */
         background:T.bg,
         display:"flex", alignItems:"center", justifyContent:"center",
       }}>
@@ -658,7 +658,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
   return (
     <div className="mbp-root" style={{
-      position:"fixed", inset:0, zIndex:10500,
+      position:"fixed", inset:0, zIndex:9500, /* <BottomNav(10000) — Basis-Root der Seite, siehe PROFIL-NAV-FIX 2026-07-05 */
       display:"flex", flexDirection:"column",
     }}>
 
