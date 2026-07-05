@@ -32,6 +32,11 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: supabase functions deploy handle-payment-webhook --project-ref gxztrhvhcxhmunhhkfjd --no-verify-jwt
 
+      - name: Deploy create-talent-booking-payment
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase functions deploy create-talent-booking-payment --project-ref gxztrhvhcxhmunhhkfjd --no-verify-jwt
+
       - name: Deploy check-order-status
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
@@ -130,6 +135,12 @@ jobs:
 
           verify_function "handle-payment-webhook" \
             "$BASE_URL/handle-payment-webhook" \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -d '{}'
+
+          verify_function "create-talent-booking-payment" \
+            "$BASE_URL/create-talent-booking-payment" \
             -X POST \
             -H "Content-Type: application/json" \
             -d '{}'
