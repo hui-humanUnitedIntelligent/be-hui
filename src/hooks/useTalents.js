@@ -4,6 +4,16 @@
 // Analog zu useWorks-Mustern in diesem Repo: Laden + Realtime + CRUD-Helper.
 // NICHT zu verwechseln mit useTalentActivation.js (Werde-Talent-Onboarding)
 // oder TalentSection.jsx (Skill-Tags) — komplett getrennte, additive Funktion.
+//
+// ERWEITERUNG 2026-07-05 (MASTER-PROMPT "Talente mit Dienstleistungen"):
+// Additiv um vollstaendige Dienstleistungslogik erweitert (Preis, Ort, Zeiten,
+// Kapazitaet/Buchbarkeit). Bestehende Felder (title/description/category/images/
+// status-Workflow) unveraendert. be-hui hat keinen eigenen Backend-Server —
+// alle Reads/Writes laufen (wie bei Werken/Erlebnissen) direkt ueber
+// supabase-js mit RLS-Durchsetzung. Die im Master-Prompt geforderten Hooks
+// useTalentServices()/useCreateTalentService()/useUpdateTalentService() sind
+// hier als benannte Aliase auf die bestehende, jetzt erweiterte Logik
+// abgebildet — kein Duplikat, gleiche Funktion, gleiche RLS-Pfade.
 // ══════════════════════════════════════════════════════════════════════
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient.js";
@@ -52,8 +62,31 @@ export function useTalents(userId) {
   return { talents, loading, error, reload: load };
 }
 
+/** Alias — vom Master-Prompt geforderter Hook-Name. Identische Implementierung wie useTalents(). */
+export const useTalentServices = useTalents;
+
+/**
+ * Whitelist der Dienstleistungsfelder (Punkt 1–4 des Master-Prompts), damit
+ * create/update nur bekannte Spalten schreiben — verhindert versehentliches
+ * Durchreichen unbekannter Keys an supabase-js.
+ */
+function pickServiceFields(src = {}) {
+  const out = {};
+  const keys = [
+    "price_per_hour", "price_per_session", "currency",
+    "location_type", "location_address", "location_notes", "map_link",
+    "available_dates", "available_time_slots", "recurring", "duration_minutes",
+    "max_participants", "min_participants", "booking_type",
+    "booking_window_start", "booking_window_end",
+  ];
+  for (const k of keys) {
+    if (src[k] !== undefined) out[k] = src[k];
+  }
+  return out;
+}
+
 /** Erstellt ein neues Talent-Angebot (status startet immer als 'pending'). */
-export async function createTalent({ userId, title, description, category, images }) {
+export async function createTalent({ userId, title, description, category, images, ...service }) {
   if (!userId || !title || !category) {
     return { data: null, error: new Error("userId, title und category sind erforderlich") };
   }
@@ -64,8 +97,12 @@ export async function createTalent({ userId, title, description, category, image
     category,
     images: images || [],
     status: "pending",
+    ...pickServiceFields(service),
   }).select().single();
 }
+
+/** Alias — vom Master-Prompt geforderter Name. Identische Implementierung wie createTalent(). */
+export const createTalentService = createTalent;
 
 /**
  * Aktualisiert ein bestehendes Talent-Angebot (RLS erlaubt das nur solange
@@ -73,9 +110,9 @@ export async function createTalent({ userId, title, description, category, image
  * wird der Status automatisch wieder auf 'pending' gesetzt (Resubmission),
  * die rejection_reason wird geleert.
  */
-export async function updateTalent(id, { title, description, category, images, previousStatus }) {
+export async function updateTalent(id, { title, description, category, images, previousStatus, ...service }) {
   if (!id) return { data: null, error: new Error("id fehlt") };
-  const payload = {};
+  const payload = { ...pickServiceFields(service) };
   if (title       !== undefined) payload.title       = title;
   if (description  !== undefined) payload.description = description;
   if (category    !== undefined) payload.category    = category;
@@ -86,6 +123,9 @@ export async function updateTalent(id, { title, description, category, images, p
   }
   return supabase.from("talents").update(payload).eq("id", id).select().single();
 }
+
+/** Alias — vom Master-Prompt geforderter Name. Identische Implementierung wie updateTalent(). */
+export const updateTalentService = updateTalent;
 
 /** Loescht ein eigenes Talent-Angebot endgueltig (RLS: nur eigene Eintraege). */
 export async function deleteTalent(id) {
@@ -108,4 +148,22 @@ export const TALENT_KATEGORIEN = [
   "Programmierung", "Design", "Bildung", "Theater", "Coaching", "Naturführung",
   "Kochen", "Film", "Schreiben", "Töpfern", "Workshops", "Kunstberatung",
   "Auftragskunst", "Weitere Angebote",
+];
+
+// ── Dienstleistungs-Konstanten (Master-Prompt Punkte 2–4) ──────────────
+export const TALENT_LOCATION_TYPES = [
+  { value: "online",  label: "Online" },
+  { value: "vor_ort", label: "Vor Ort" },
+  { value: "hybrid",  label: "Hybrid" },
+];
+
+export const TALENT_RECURRING_OPTIONS = [
+  { value: "",        label: "Einmalig" },
+  { value: "weekly",  label: "Wöchentlich" },
+  { value: "monthly", label: "Monatlich" },
+];
+
+export const TALENT_BOOKING_TYPES = [
+  { value: "einzel", label: "Einzelbuchung" },
+  { value: "gruppe", label: "Gruppenbuchung" },
 ];

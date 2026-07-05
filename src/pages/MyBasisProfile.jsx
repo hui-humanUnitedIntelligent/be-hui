@@ -1599,6 +1599,17 @@ function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTalent = 
                     {t.title}
                   </div>
                 )}
+                {/* Preis-Hinweis (Master-Prompt 2026-07-05) — nur eine kompakte Zeile,
+                    Sichtbarkeit fuer Dritte ohnehin ueber RLS (approved-only) geregelt */}
+                {(t.price_per_hour || t.price_per_session) && (
+                  <div style={{
+                    position:"absolute", bottom:18, left:0, right:0,
+                    background:"rgba(0,0,0,0.35)", fontSize:8.5, color:"#fff",
+                    padding:"2px 5px", textAlign:"center", fontWeight:600,
+                  }}>
+                    {t.price_per_hour ? `${t.price_per_hour}€/Std` : `${t.price_per_session}€/Termin`}
+                  </div>
+                )}
               </div>
             );
           })}
