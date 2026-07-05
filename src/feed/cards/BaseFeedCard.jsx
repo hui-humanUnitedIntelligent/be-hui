@@ -8,6 +8,12 @@
 import React, { useState, useRef, useCallback, memo } from "react";
 import { PresenceDot, fmtPresence } from "../../lib/usePresence.jsx";
 import { MembershipLabel } from "../../components/ui/TalentBadge.jsx";
+// HUI Interaction Language v1.0 (2026-07-05) — Single Source of Truth fuer
+// die vier universellen Interaktionen (Resonanz/Austauschen/Merken/Empfehlen).
+// Ersetzt die bisherigen Emoji-Icons (✦/🤍/💬/🔖) plattformweit.
+import {
+  ResonanceIcon, ExchangeIcon, BookmarkKeepIcon, RecommendIcon,
+} from "../../design/icons/HuiInteractionIcons.jsx";
 
 const T = {
   bgCard:   "#FFFFFF",
@@ -500,11 +506,17 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
 });
 
 // ── Action Button ─────────────────────────────────────────────
+// HUI Interaction Language v1.0: "Icon" ist eine der vier zentralen SVG-
+// Komponenten aus design/icons/HuiInteractionIcons.jsx (ResonanceIcon,
+// ExchangeIcon, BookmarkKeepIcon, RecommendIcon). Die Icons behalten ihre
+// eigene, aus der Referenz uebernommene Gradient-Farbe IMMER -- aktiv/
+// inaktiv wird nicht mehr ueber Farbwechsel, sondern ueber Opacity + Scale
+// ausgedrueckt (Referenzgrafik gibt keine Toggle-Farbvariante vor).
 const ActionBtn = memo(function ActionBtn({
-  icon, label, count, active, onClick, activeColor, animKey
+  Icon, label, count, active, onClick, activeColor, variant
 }) {
   const [scale, setScale] = useState(false);
-  const isBookmark = icon === "⊕" || icon === "🔖";
+  const isBookmark = variant === "merken";
 
   function handleClick() {
     setScale(true);
@@ -535,12 +547,11 @@ const ActionBtn = memo(function ActionBtn({
       }}
     >
       <span style={{
-        fontSize: 17, lineHeight: 1, color: col,
-        display: "block",
-        // Filled heart for active touch
-        filter: active && icon === "🤍" ? "none" : undefined,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        opacity: active ? 1 : 0.55,
+        transition: "opacity 0.18s ease",
       }}>
-        {active && icon === "🤍" ? "❤️" : icon}
+        {Icon ? <Icon size={20} /> : null}
       </span>
       {(count != null || label) && (
         <span style={{
@@ -590,12 +601,18 @@ export const FeedActions = memo(function FeedActions({
         padding:"8px " + (T.p - 4) + "px 6px",
         gap:2,
       }}>
-        <ActionBtn icon="✦"  count={r.inspireCount||null} active={r.inspired} activeColor={T.teal}  onClick={() => onReaction?.("inspire")} />
-        <ActionBtn icon="🤍" count={r.touchCount||null}   active={r.touched}  activeColor={T.coral} onClick={() => onReaction?.("touch")}   />
+        {/* HUI Interaction Language v1.0 (2026-07-05) — Mapping auf bestehende
+            Reaction-Handler (kein Datenmodell-Wechsel, reines Re-Skin):
+              inspire → Resonanz   | touch → Austauschen
+              onShare → Empfehlen  (onShare oeffnet bereits den Teilen-Flow,
+                                    semantisch = "an andere weitergeben")
+              save    → Merken */}
+        <ActionBtn Icon={ResonanceIcon}    count={r.inspireCount||null} active={r.inspired} activeColor={T.teal}  onClick={() => onReaction?.("inspire")} />
+        <ActionBtn Icon={ExchangeIcon}     count={r.touchCount||null}   active={r.touched}  activeColor={T.teal}  onClick={() => onReaction?.("touch")}   />
         <div style={{ flex:1 }} />
         {extraActions || null}
-        <ActionBtn icon="💬" onClick={onShare} />
-        <ActionBtn icon="🔖" active={r.saved} activeColor={T.coral} onClick={() => onReaction?.("save")} />
+        <ActionBtn Icon={RecommendIcon}    onClick={onShare} />
+        <ActionBtn Icon={BookmarkKeepIcon} active={r.saved} activeColor={T.coral} variant="merken" onClick={() => onReaction?.("save")} />
       </div>
       {/* Resonanz-Zeile — "Maja und 18 weitere wurden inspiriert." */}
       {resonanz && (
