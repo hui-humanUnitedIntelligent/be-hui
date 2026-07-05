@@ -625,8 +625,9 @@ export const FeedActions = memo(function FeedActions({
         {/* HUI Interaction Language v1.0 (2026-07-05) — Mapping auf bestehende
             Reaction-Handler (kein Datenmodell-Wechsel, reines Re-Skin):
               inspire → Resonanz   | touch → Austauschen
-              onShare → Empfehlen  (onShare oeffnet bereits den Teilen-Flow,
-                                    semantisch = "an andere weitergeben")
+              onShare → Weitergeben (2026-07-05: ehem. "Empfehlen", Schale+Samen
+                                    → Schwung-Pfeil nach Lars-Vorlage; onShare
+                                    oeffnet bereits den Teilen-Flow)
               save    → Merken */}
         <ActionBtn Icon={ResonanceIcon}    count={r.inspireCount||null} active={r.inspired} activeColor={T.teal}  variant="resonanz" onClick={() => onReaction?.("inspire")} />
         <ActionBtn Icon={ExchangeIcon}     count={r.touchCount||null}   active={r.touched}  activeColor={T.teal}  onClick={() => onReaction?.("touch")}   />

@@ -648,8 +648,10 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
           boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
           {/* HUI Interaction Language v1.0 (2026-07-05) — Mapping:
               Resonanz bleibt Like-Reaktion | Kommentar → Austauschen
-              (oeffnet bereits den Diskussions-Thread) | Teilen → Empfehlen
-              (Weitergabe an andere) | Merken bleibt Bookmark. */}
+              (oeffnet bereits den Diskussions-Thread) | Teilen → Weitergeben
+              (2026-07-05: Schale+Samen → Schwung-Pfeil, Lars-Vorlage;
+              "das moechte ich an andere weitergeben") | Merken bleibt
+              Bookmark. */}
           <IconBtn
             Icon={ResonanceIcon}
             label={resonanceCount > 0 ? String(resonanceCount) : "Resonanz"}
@@ -667,7 +669,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
           />
           <IconBtn
             Icon={RecommendIcon}
-            label={shareOk ? "Kopiert!" : "Empfehlen"}
+            label={shareOk ? "Kopiert!" : "Weitergeben"}
             active={shareOk}
             color={C.teal}
             onPress={handleShare}

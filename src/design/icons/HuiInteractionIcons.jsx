@@ -161,41 +161,49 @@ export function BookmarkKeepIcon({ size = 24, className, style }) {
   );
 }
 
-/* ── 4. Empfehlen ── Offene Schale mit schwebendem Glanz-Samen ───────────
-   v3 (Symbolik-Korrektur): v2's Rundbogen-Pfeil las sich wie "Aktualisieren
-   /Sync/Laden" — genau das Gegenteil der gewünschten Bedeutung. v3 knüpft
-   stattdessen an HUIs bereits etablierte Schalen-/Gefäß-Metapher an
-   (WerkeKorb: "handgefertigte Schale" als Sinnbild fürs Geben): eine
-   offene Schale, darüber ein leuchtender Samen, der angeboten wird —
-   liest sich sofort als "ich biete dir etwas Kostbares an, das auch dir
-   guttun könnte". Keine Kreisform, kein Pfeil-im-Kreis. */
+/* ── 4. Weitergeben (ehem. "Empfehlen") ── Schwung-Pfeil nach Lars-Vorlage
+   (2026-07-05) ─────────────────────────────────────────────────────────
+   v4: Ersetzt die Schale+Samen-Metapher komplett durch die von Lars
+   vorgegebene Formensprache — ein schlanker, dynamischer Schwung, der aus
+   einer duennen Spur (Tuerkis) hochzieht und in eine Pfeilspitze mit
+   konkaver Kerbe (Korallen-Orange) muendet. Bewusst NICHT Social-Media/
+   Teilen/Export, sondern "das moechte ich an andere weitergeben" —
+   Bewegung nach vorne/oben statt Kreis oder Behaelter. Flach umgesetzt
+   (kein Glanzstreifen, keine 3D-Schattierung der Referenz), Farbverlauf
+   direkt Tuerkis→Korallen-Orange wie bei Austauschen/Merken. Funktions-
+   /Exportname RecommendIcon bewusst unveraendert gelassen (nur interne
+   Grafik + Copy geaendert) — keine Call-Site-Aenderungen in BaseFeedCard/
+   WorkDetailPage noetig. */
 export function RecommendIcon({ size = 24, className, style }) {
   const id = React.useId();
-  const bowl = `hui-rec-bowl-${id}`;
-  const seed = `hui-rec-seed-${id}`;
+  const grad = `hui-fwd-grad-${id}`;
   return (
     <svg
       width={size} height={size} viewBox="0 0 24 24" fill="none"
       className={className} style={style} aria-hidden="true"
     >
       <defs>
-        <linearGradient id={bowl} x1="4" y1="12" x2="20" y2="19" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#14B8AA" />
-          <stop offset="100%" stopColor="#0E8C82" />
+        <linearGradient id={grad} x1="2" y1="20" x2="21" y2="3" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#14C9B6" />
+          <stop offset="100%" stopColor="#F2793F" />
         </linearGradient>
-        <radialGradient id={seed} cx="50%" cy="32%" r="68%">
-          <stop offset="0%" stopColor="#FFDD8C" />
-          <stop offset="100%" stopColor="#F0A93C" />
-        </radialGradient>
       </defs>
-      {/* Offene Schale — Sinnbild des Anbietens/Gebens */}
+      {/* Schwung — duenne Spur (Tuerkis), die sich zur Pfeilspitze hin
+          verdickt. Zwei geschwungene Kanten (oben/unten) zwischen der
+          duennen Spitze unten links und dem Anschluss an die Pfeilspitze
+          oben rechts, dadurch eine leicht auslaufende, organische Taille. */}
       <path
-        d="M3.6 12.3C3.6 12.3 4.7 19.4 12 19.4C19.3 19.4 20.4 12.3 20.4 12.3
-           C20.4 16.2 16.8 21 12 21C7.2 21 3.6 16.2 3.6 12.3Z"
-        fill={`url(#${bowl})`}
+        d="M2.3 19.6C7 18.3 11.5 13.5 14 7.6L13.6 10.6
+           C10.5 14.8 6.3 18 2.3 19.6Z"
+        fill={`url(#${grad})`}
       />
-      {/* Schwebender Glanz-Samen — das Kostbare, das weitergegeben wird */}
-      <circle cx="12" cy="7.6" r="2.3" fill={`url(#${seed})`} />
+      {/* Pfeilspitze mit konkaver Kerbe (klassische "Weitergeben"-Spitze,
+          wie im Referenzbild) — Rueckkante wird zur Pfeilspitze hin
+          hineingezogen statt gerade zu verlaufen. */}
+      <path
+        d="M14 7.6L21.4 2.7L13.6 10.6Q17.5 7.9 14 7.6Z"
+        fill={`url(#${grad})`}
+      />
     </svg>
   );
 }
@@ -223,10 +231,10 @@ export const HUI_INTERACTIONS = {
     sub: "Wissen bewahren.",
     Icon: BookmarkKeepIcon,
   },
-  empfehlen: {
-    label: "Empfehlen",
-    text: "Das könnte auch anderen guttun.",
-    sub: "Gutes weitergeben.",
+  weitergeben: {
+    label: "Weitergeben",
+    text: "Das möchte ich an andere weitergeben.",
+    sub: "Inspiration teilen, Wirkung erzeugen.",
     Icon: RecommendIcon,
   },
 };
