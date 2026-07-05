@@ -6,6 +6,7 @@
 // Daten: profile.skills_final (aus useProfileData) oder profile.skills
 // ══════════════════════════════════════════════════════════════════════
 import React, { useState } from "react";
+import { createPortal } from "react-dom";
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", ink:"#1A1A18",
@@ -134,7 +135,7 @@ export function TalentSection({ profile, isOwner = false, loading = false, onCha
       </div>
 
       {/* Sheet-Editor */}
-      {showSheet && (
+      {showSheet && createPortal(
         <div onClick={() => setShowSheet(false)} style={{
           position:"fixed", inset:0, zIndex:10500, /* >BottomNav(10000) */
           background:"rgba(26,26,24,0.45)", display:"flex", alignItems:"flex-end",
@@ -179,7 +180,8 @@ export function TalentSection({ profile, isOwner = false, loading = false, onCha
               cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
             }}>Fertig</button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

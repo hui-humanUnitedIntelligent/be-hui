@@ -1,5 +1,6 @@
 // src/components/ambassador/AmbassadorModal.jsx
 import React, { useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useAmbassadorApplication } from "../../hooks/useAmbassador.js";
 
 const T = {
@@ -105,7 +106,7 @@ export default function AmbassadorModal({ userId, onClose, onSuccess }) {
     }
   };
 
-  return (
+  return createPortal(
     <>
       <style>{CSS}</style>
       <div className="amb-overlay" onClick={onClose}>
@@ -268,6 +269,7 @@ export default function AmbassadorModal({ userId, onClose, onSuccess }) {
 
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 }

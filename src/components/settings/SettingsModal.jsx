@@ -3,6 +3,7 @@
 // Enthält: Profil bearbeiten | Buchungen | Privatsphäre | Abmelden
 // + Name | E-Mail | Telefon | Passwort ändern
 import { useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { supabase } from "../../lib/supabaseClient.js";
 import { HUILogoWordmark } from '../brand/HUILogo.jsx';
@@ -332,7 +333,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
     privacy:  "🕵️ Privatsphäre",
   };
 
-  return (
+  return createPortal(
     <div style={overlay} onClick={e=>{ if(e.target===e.currentTarget) onClose?.(); }}>
       <div style={sheet}>
 
@@ -474,6 +475,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
 
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

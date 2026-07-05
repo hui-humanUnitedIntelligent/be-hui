@@ -6,6 +6,7 @@
 // ══════════════════════════════════════════════════════════════════════
 import React, { useState, useRef } from "react";
 import { createTalent, updateTalent, uploadTalentImage, TALENT_KATEGORIEN } from "../../hooks/useTalents.js";
+import { createPortal } from "react-dom";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 
 const C = {
@@ -74,7 +75,7 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
     onClose?.();
   }
 
-  return (
+  return createPortal(
     <div onClick={onClose} style={{
       // zIndex 10500 wie WerkWizard/ExperienceWizard — ueberschreibt BottomNav (10000) + ProfileLauncher (9500).
       // ROOT CAUSE des Footer-Overlap-Bugs (2026-07-04/05): war vorher 9900 (< BottomNav 10000),
@@ -197,6 +198,7 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
           </button>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

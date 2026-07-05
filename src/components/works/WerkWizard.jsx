@@ -1,6 +1,7 @@
 // src/components/works/WerkWizard.jsx
 // HUI – Werk-Editor als 6-Schritte-Wizard
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 
@@ -585,7 +586,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
 
   const isLast = step === TOTAL;
 
-  return (
+  return createPortal(
     /* Fullscreen — zIndex 10500 überschreibt BottomNav (9999) + ProfileLauncher (9500) */
     <div style={{
       position:"fixed", inset:0,
@@ -727,5 +728,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
         </div>
       )}
     </div>
+  ,
+    document.body
   );
 }

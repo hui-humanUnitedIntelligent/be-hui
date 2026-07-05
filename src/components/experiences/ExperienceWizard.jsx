@@ -2,6 +2,7 @@
 // HUI – Erlebnis-Editor: 4-Schritte-Wizard (v2)
 // Schritt 1: Basis | 2: Wann & Wo | 3: Teilnahme | 4: Veröffentlichen
 import React, { useState, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 
@@ -884,7 +885,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
 
   const isRejectedUpdate = existingExp?.approval_status === "rejected" || existingExp?.status === "rejected";
 
-  return (
+  return createPortal(
     <div style={{
       position: "fixed", inset: 0,
       zIndex: 10500,
@@ -1023,5 +1024,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
         )}
       </div>
     </div>
+  ,
+    document.body
   );
 }
