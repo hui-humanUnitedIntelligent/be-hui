@@ -18,7 +18,7 @@ function BlockedScreen() {
       position: 'fixed', inset: 0,
       background: 'rgba(10,10,10,0.97)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      zIndex: 9999, padding: '24px',
+      zIndex: 10500, padding: '24px', /* >BottomNav(10000) */
     }}>
       <div style={{
         maxWidth: 420, width: '100%', textAlign: 'center',

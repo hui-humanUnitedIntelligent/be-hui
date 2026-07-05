@@ -2251,7 +2251,7 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
       {/* Desktop Backdrop */}
       {!mobile && open && (
         <div onClick={close_} style={{
-          position:"fixed", inset:0, zIndex:299,
+          position:"fixed", inset:0, zIndex:10500,
           background:"rgba(26,53,48,0.15)",
           backdropFilter:"blur(4px)", WebkitBackdropFilter:"blur(4px)",
           animation:"dc-in .15s ease both",

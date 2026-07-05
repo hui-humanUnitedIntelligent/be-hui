@@ -1115,7 +1115,7 @@ function CloseBtn({ onClose }) {
     <button className="hmf5-tap" onClick={onClose} style={{
       position:"fixed",
       top:"max(18px, env(safe-area-inset-top, 18px))",
-      right:18, zIndex:9900,
+      right:18, zIndex:10600, /* >BottomNav(10000) */
       width:36, height:36, borderRadius:"50%",
       background:"rgba(0,0,0,0.40)",
       backdropFilter:"blur(14px)", WebkitBackdropFilter:"blur(14px)",
@@ -1198,7 +1198,7 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
 
   return (
     <div style={{
-      position:"fixed", inset:0, zIndex:9800,
+      position:"fixed", inset:0, zIndex:10500, /* >BottomNav(10000) */
       background:T.bg,
       fontFamily:"-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif",
       WebkitFontSmoothing:"antialiased",
@@ -1225,7 +1225,7 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
       {/* Loading overlay */}
       {loading && (
         <div style={{
-          position:"fixed", inset:0, zIndex:9850,
+          position:"fixed", inset:0, zIndex:10550, /* >BottomNav(10000) */
           background:"rgba(6,10,20,0.75)",
           backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)",
           display:"flex", alignItems:"center", justifyContent:"center",

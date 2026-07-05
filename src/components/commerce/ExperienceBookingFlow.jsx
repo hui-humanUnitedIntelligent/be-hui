@@ -80,7 +80,7 @@ export default function ExperienceBookingFlow({ experience, onClose }) {
     <div
       onClick={(e) => { if (e.target === e.currentTarget) onClose?.(); }}
       style={{
-        position: "fixed", inset: 0, zIndex: 9999,
+        position: "fixed", inset: 0, zIndex: 10500, /* >BottomNav(10000) — Footer-Overlap-Fix 2026-07-05 */
         background: "rgba(0,0,0,0.45)",
         display: "flex", alignItems: "flex-end", justifyContent: "center",
       }}

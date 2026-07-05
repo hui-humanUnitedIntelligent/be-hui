@@ -1011,7 +1011,7 @@ export default function WerkeKorb({
         style={{
           position:   "fixed",
           inset:      0,
-          zIndex:     9800,
+          zIndex:     10490, /* >BottomNav(10000) — Footer-Overlap-Fix 2026-07-05 */
           background: "rgba(20,20,34,0.32)",
           backdropFilter:       "blur(4px)",
           WebkitBackdropFilter: "blur(4px)",
@@ -1026,7 +1026,7 @@ export default function WerkeKorb({
           left:          0,
           right:         0,
           bottom:        0,
-          zIndex:        9900,
+          zIndex:        10500, /* >BottomNav(10000) — Footer-Overlap-Fix 2026-07-05 */
           background:    C.cream,
           borderRadius:  "22px 22px 0 0",
           boxShadow:     "0 -12px 48px rgba(20,20,34,0.14), 0 -2px 8px rgba(20,20,34,0.06)",

@@ -563,13 +563,13 @@ function ApprovedProjectDetail({ app, onClose, currentUser, onVoted = () => {} }
     <>
       {/* Backdrop */}
       <div onClick={onClose} style={{
-        position:"fixed", inset:0, zIndex:9998,
+        position:"fixed", inset:0, zIndex:10490, /* >BottomNav(10000) */
         background:"rgba(0,0,0,0.55)", backdropFilter:"blur(6px)",
         animation:"ipFadeIn 0.22s ease both",
       }} />
       {/* Bottom-Sheet: top=15px → minimale Luft oben, Navbar-sicher */}
       <div onClick={e => e.stopPropagation()} style={{
-        position:"fixed", left:0, right:0, top:15, bottom:0, zIndex:9999,
+        position:"fixed", left:0, right:0, top:15, bottom:0, zIndex:10500, /* >BottomNav(10000) */
         background:"#FDFAF5",
         borderRadius:"24px 24px 0 0",
         boxShadow:"0 -12px 60px rgba(0,0,0,0.22)",
@@ -2883,7 +2883,7 @@ function InfoSheet({ modal, onClose }) {
       aria-modal="true"
       aria-label={c.title}
       style={{
-        position:"fixed", inset:0, zIndex:9999,
+        position:"fixed", inset:0, zIndex:10500, /* >BottomNav(10000) */
         background:"rgba(14,14,24,0.52)",
         backdropFilter:"blur(8px)",
         WebkitBackdropFilter:"blur(8px)",

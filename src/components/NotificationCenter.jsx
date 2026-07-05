@@ -906,7 +906,7 @@ export default function NotificationCenter({ onClose, onNavigate }) {
   // ── Render ─────────────────────────────────────────────────────────
   return (
     <div style={{
-      position:"fixed", inset:0, zIndex:400,
+      position:"fixed", inset:0, zIndex:10500,
       display:"flex", flexDirection:"row",
       fontFamily:"-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif",
       overflow:"hidden",

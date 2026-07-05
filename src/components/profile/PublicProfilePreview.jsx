@@ -13,7 +13,7 @@ const BasisProfilePage  = React.lazy(() => import("../../pages/BasisProfilePage.
 function Spinner() {
   return (
     <div style={{
-      position:"fixed", inset:0, zIndex:9999,
+      position:"fixed", inset:0, zIndex:10600, /* >BottomNav(10000) */
       display:"flex", alignItems:"center", justifyContent:"center",
       background:"rgba(249,247,244,0.96)",
     }}>
@@ -48,14 +48,14 @@ export default function PublicProfilePreview({ profileId, onClose }) {
 
   return (
     <div style={{
-      position:"fixed", inset:0, zIndex:9990,
+      position:"fixed", inset:0, zIndex:10500, /* >BottomNav(10000) */
       background:"#F9F7F4",
       overflowY:"auto",
       WebkitOverflowScrolling:"touch",
     }}>
       {/* Info-Banner */}
       <div style={{
-        position:"sticky", top:0, zIndex:9995,
+        position:"sticky", top:0, zIndex:10510, /* >BottomNav(10000) */
         background:"linear-gradient(135deg,rgba(22,215,197,0.12),rgba(255,138,107,0.08))",
         borderBottom:"1px solid rgba(22,215,197,0.15)",
         padding:"10px 16px",

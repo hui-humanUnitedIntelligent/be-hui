@@ -1663,7 +1663,7 @@ export default function HuiCreateFlow({ onClose, onSuccess, initialType = null }
 
   return (
     <div style={{
-      position:"fixed", inset:0, zIndex:300,
+      position:"fixed", inset:0, zIndex:10500,
       background:C.cream,
       display:"flex", flexDirection:"column",
       paddingTop:"max(0px, env(safe-area-inset-top, 0px))",

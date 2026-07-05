@@ -405,7 +405,7 @@ export default function TalentOnboarding({ onClose, onActivate }) {
 
   return (
     <div style={{
-      position:"fixed", inset:0, zIndex:500,
+      position:"fixed", inset:0, zIndex:10500,
       background:"rgba(8,8,8,.52)",
       backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)",
       display:"flex", alignItems:"flex-end",

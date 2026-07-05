@@ -218,7 +218,7 @@ function DetailSheet({pin,onClose,onBooking}){
   const ac=isW?C.teal:isWk?C.coral:isE?C.violet:C.green;
   const pct=isI?Math.round((pin.raised/pin.goal)*100):0;
   return(
-    <div style={{position:"fixed",inset:0,zIndex:700,
+    <div style={{position:"fixed",inset:0,zIndex:10500,
       background:"rgba(6,6,6,0.50)",
       backdropFilter:"blur(22px)",WebkitBackdropFilter:"blur(22px)",
       animation:"fadeIn .2s ease"}}
@@ -348,7 +348,7 @@ function FilterSheet({filter,setFilter,radiusStage,setRadiusStage,
     radius,setRadius,availability,setAvailability,onClose}){
   const cur=STAGE_DEFS[radiusStage];
   return(
-    <div style={{position:"fixed",inset:0,zIndex:600,
+    <div style={{position:"fixed",inset:0,zIndex:10500,
       background:"rgba(6,6,6,0.42)",
       backdropFilter:"blur(18px)",WebkitBackdropFilter:"blur(18px)",
       animation:"fadeIn .18s ease"}}

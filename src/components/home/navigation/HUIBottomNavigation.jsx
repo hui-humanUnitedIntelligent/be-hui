@@ -254,6 +254,9 @@ export default function HUIBottomNavigation({
         // Der Orb selbst bleibt optisch an exakt derselben Bildschirm-
         // position (kompensiert ueber seinen "top"-Offset weiter unten).
         height: NAV_RESERVED_HEIGHT_CSS,
+        // ⚠️ PFLICHTREGEL: JEDES fixed-position Modal/Sheet/Overlay in dieser App MUSS
+        // zIndex >= 10500 haben, sonst wird es von dieser Bar überdeckt (siehe
+        // .agents/rules/footer-navbar-zindex.md — Bugfund 2026-07-04/05, 16 betroffene Stellen gefixt).
         zIndex: 10000,
         willChange: "opacity, transform",
         ...sharedVis,

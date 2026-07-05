@@ -809,7 +809,7 @@ export default function MyCreatorDashboard({ onClose }) {
 
   if (!authId && !loading) {
     return (
-      <div style={{ position:"fixed",inset:0,zIndex:9500,background:T.pageBg,
+      <div style={{ position:"fixed",inset:0,zIndex:10500,background:T.pageBg,
         display:"flex",alignItems:"center",justifyContent:"center",
         fontFamily:"-apple-system,sans-serif" }}>
         <p style={{ color:T.soft,fontSize:15 }}>Nicht angemeldet</p>
@@ -819,7 +819,7 @@ export default function MyCreatorDashboard({ onClose }) {
 
   return (
     <div className="mcd-scroll" style={{
-      position:"fixed", inset:0, zIndex:9500,
+      position:"fixed", inset:0, zIndex:10500,
       background:T.pageBg,
       fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',sans-serif",
       paddingBottom:"max(100px, calc(88px + env(safe-area-inset-bottom,0px)))",

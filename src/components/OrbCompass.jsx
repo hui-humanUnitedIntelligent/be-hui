@@ -273,7 +273,7 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
     <>
     <div
       style={{
-        position: "fixed", inset: 0, zIndex: 9200,
+        position: "fixed", inset: 0, zIndex: 10500,
         backdropFilter: "blur(30px) saturate(1.35) brightness(0.84)",
         WebkitBackdropFilter: "blur(30px) saturate(1.35) brightness(0.84)",
         // Slightly richer mint overlay — more premium depth

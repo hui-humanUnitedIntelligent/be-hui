@@ -454,7 +454,7 @@ export default function WerkPublisher({ onClose, onSuccess }) {
   }
 
   if (done) return (
-    <div style={{position:"fixed",inset:0,zIndex:600,
+    <div style={{position:"fixed",inset:0,zIndex:10500,
       background:`linear-gradient(135deg,${T.coral},${T.gold})`,
       display:"flex",alignItems:"center",justifyContent:"center",
       animation:"wpIn .3s both"}}>
@@ -474,7 +474,7 @@ export default function WerkPublisher({ onClose, onSuccess }) {
   );
 
   return (
-    <div style={{position:"fixed",inset:0,zIndex:600,
+    <div style={{position:"fixed",inset:0,zIndex:10500,
       background:"rgba(8,8,8,.55)",backdropFilter:"blur(10px)",
       WebkitBackdropFilter:"blur(10px)",
       display:"flex",alignItems:"flex-end",animation:"wpIn .2s both"}}>

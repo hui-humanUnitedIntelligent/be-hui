@@ -52,7 +52,7 @@ class ProfileErrorBoundary extends React.Component {
         setTimeout(() => window.location.reload(), 100);
         return (
           <div style={{
-            position:"fixed", inset:0, zIndex:9500, background:"#F7F5F0",
+            position:"fixed", inset:0, zIndex:10500, background:"#F7F5F0",
             display:"flex", flexDirection:"column", alignItems:"center",
             justifyContent:"center", gap:12, padding:24,
           }}>
@@ -65,7 +65,7 @@ class ProfileErrorBoundary extends React.Component {
       }
       return (
         <div style={{
-          position:"fixed", inset:0, zIndex:9500,
+          position:"fixed", inset:0, zIndex:10500,
           background:"#0A1A1A",
           display:"flex", flexDirection:"column",
           alignItems:"center", justifyContent:"center", gap:12,
@@ -135,7 +135,7 @@ const MyBasisProfile     = lazyWithRetry(() => import("../../../pages/MyBasisPro
 function Spinner() {
   return (
     <div style={{
-      position:"fixed", inset:0, zIndex:9500,
+      position:"fixed", inset:0, zIndex:10500,
       background:"#F7F5F0",
       display:"flex", flexDirection:"column",
       alignItems:"center", justifyContent:"center", gap:16,

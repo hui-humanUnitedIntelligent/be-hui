@@ -194,7 +194,7 @@ export default function StoryComposer({ onClose, onSuccess }) {
 
   // Success screen
   if (done) return (
-    <div style={{position:"fixed",inset:0,zIndex:600,
+    <div style={{position:"fixed",inset:0,zIndex:10500,
       background:"linear-gradient(135deg,#16D7C5,#FF8A6B)",
       display:"flex",alignItems:"center",justifyContent:"center",
       animation:"scIn .3s both"}}>
@@ -212,7 +212,7 @@ export default function StoryComposer({ onClose, onSuccess }) {
   );
 
   return (
-    <div style={{position:"fixed",inset:0,zIndex:600,background:T.ink,
+    <div style={{position:"fixed",inset:0,zIndex:10500,background:T.ink,
       display:"flex",flexDirection:"column",animation:"scIn .2s both",
       fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif"}}>
       <style>{CSS}</style>

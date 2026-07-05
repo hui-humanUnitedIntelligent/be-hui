@@ -76,7 +76,10 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
 
   return (
     <div onClick={onClose} style={{
-      position: "fixed", inset: 0, zIndex: 9900, background: "rgba(0,0,0,0.55)",
+      // zIndex 10500 wie WerkWizard/ExperienceWizard — ueberschreibt BottomNav (10000) + ProfileLauncher (9500).
+      // ROOT CAUSE des Footer-Overlap-Bugs (2026-07-04/05): war vorher 9900 (< BottomNav 10000),
+      // daher lag der Footer IMMER ueber dem Modal, unabhaengig von der hui-wizard-open-Klasse.
+      position: "fixed", inset: 0, zIndex: 10500, background: "rgba(0,0,0,0.55)",
       display: "flex", alignItems: "flex-end", justifyContent: "center",
     }}>
       <div onClick={e => e.stopPropagation()} style={{

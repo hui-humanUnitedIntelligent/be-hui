@@ -1205,7 +1205,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
 
   return (
     <div className="tpp-root" style={{
-      position:"fixed", inset:0, zIndex:9500,
+      position:"fixed", inset:0, zIndex:10500,
       display:"flex", flexDirection:"column",
       opacity:mounted?1:0,
       transform:mounted?"none":"translateY(14px)",

@@ -641,7 +641,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
   if (hookLoading) {
     return (
       <div style={{
-        position:"fixed", inset:0, zIndex:9500,
+        position:"fixed", inset:0, zIndex:10500,
         background:T.bg,
         display:"flex", alignItems:"center", justifyContent:"center",
       }}>
@@ -658,7 +658,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
   return (
     <div className="mbp-root" style={{
-      position:"fixed", inset:0, zIndex:9500,
+      position:"fixed", inset:0, zIndex:10500,
       display:"flex", flexDirection:"column",
     }}>
 
@@ -965,14 +965,14 @@ export default function MyBasisProfile({ onClose, profileId }) {
       {/* 📌 GEMERKTE INHALTE */}
       {showMerken && (
         <div style={{
-          position:"fixed", inset:0, zIndex:9990,
+          position:"fixed", inset:0, zIndex:10500, /* >BottomNav(10000) */
           background:"#F9F7F4",
           overflowY:"auto",
           WebkitOverflowScrolling:"touch",
         }}>
           {/* Header */}
           <div style={{
-            position:"sticky", top:0, zIndex:9995,
+            position:"sticky", top:0, zIndex:10510, /* >BottomNav(10000) */
             background:"rgba(249,247,244,0.95)",
             borderBottom:"1px solid rgba(26,26,46,0.07)",
             padding:"12px 16px",
@@ -1433,7 +1433,7 @@ const TALENT_KATEGORIEN = [
 function DeleteWerkConfirm({ werk, onConfirm, onCancel }) {
   return (
     <div style={{
-      position:"fixed", inset:0, zIndex:9999,
+      position:"fixed", inset:0, zIndex:10500, /* >BottomNav(10000) */
       background:"rgba(0,0,0,0.55)", display:"flex",
       alignItems:"center", justifyContent:"center", padding:"24px",
     }} onClick={onCancel}>
@@ -1472,7 +1472,7 @@ function DeleteWerkConfirm({ werk, onConfirm, onCancel }) {
 function DeleteTalentConfirm({ talent, onConfirm, onCancel }) {
   return (
     <div style={{
-      position:"fixed", inset:0, zIndex:9999,
+      position:"fixed", inset:0, zIndex:10500, /* >BottomNav(10000) */
       background:"rgba(0,0,0,0.55)", display:"flex",
       alignItems:"center", justifyContent:"center", padding:"24px",
     }} onClick={onCancel}>
@@ -1758,7 +1758,7 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
     <>
     {confirmExp && (
       <div style={{
-        position:"fixed", inset:0, zIndex:9999,
+        position:"fixed", inset:0, zIndex:10500, /* >BottomNav(10000) */
         background:"rgba(0,0,0,0.55)", display:"flex",
         alignItems:"center", justifyContent:"center", padding:"24px",
       }} onClick={() => setConfirmExp(null)}>

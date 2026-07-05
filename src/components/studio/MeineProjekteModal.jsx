@@ -147,7 +147,7 @@ export default function MeineProjekteModal({ profile, onClose, switchTab = null 
   const modal = (
     <div
       style={{
-        position: "fixed", inset: 0, zIndex: 9999,
+        position: "fixed", inset: 0, zIndex: 10500,
         background: "rgba(26,26,24,0.52)",
         display: "flex", alignItems: "flex-end",
       }}

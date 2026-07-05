@@ -422,7 +422,7 @@ export default function InvitationFlow({ onClose, visible = true }) {
       <div
         onClick={onClose}
         style={{
-          position:"fixed", inset:0, zIndex:9200,
+          position:"fixed", inset:0, zIndex:10490,
           background:"rgba(15,15,25,0.55)",
           backdropFilter:"blur(12px)",
           WebkitBackdropFilter:"blur(12px)",
@@ -436,7 +436,7 @@ export default function InvitationFlow({ onClose, visible = true }) {
         bottom:       0,
         left:         0,
         right:        0,
-        zIndex:       9201,
+        zIndex:       10500,
         background:   V.bg,
         borderRadius: "28px 28px 0 0",
         padding:      "0 0 env(safe-area-inset-bottom,24px)",

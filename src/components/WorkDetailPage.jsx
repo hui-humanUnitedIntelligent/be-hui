@@ -789,7 +789,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
         padding:"12px 20px", paddingBottom:"max(12px,env(safe-area-inset-bottom,12px))",
         background:"rgba(249,247,244,0.96)", backdropFilter:"blur(16px)",
         borderTop:`1px solid ${C.border}`,
-        display:"flex", gap:10, zIndex:150 }}>
+        display:"flex", gap:10, zIndex:10500 }}>
         <button
           onClick={() => onAddToKorb ? onAddToKorb({...werk, img: images[0], price: priceStr}) : null}
           className="wd-tap"

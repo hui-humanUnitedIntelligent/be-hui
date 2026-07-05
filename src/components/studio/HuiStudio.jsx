@@ -151,7 +151,7 @@ function LevelInfoPopup({ onClose }) {
   ];
   return (
     <div style={{
-      position:"fixed", inset:0, zIndex:9999,
+      position:"fixed", inset:0, zIndex:10500,
       background:"rgba(0,0,0,0.45)",
       display:"flex", alignItems:"center", justifyContent:"center",
       padding:"0 24px",
@@ -201,7 +201,7 @@ function LevelInfoPopup({ onClose }) {
 function UserListModal({ title, users, onClose }) {
   return (
     <div style={{
-      position:"fixed", inset:0, zIndex:9900,
+      position:"fixed", inset:0, zIndex:10500, /* >BottomNav(10000) */
       background:"rgba(0,0,0,0.45)", display:"flex",
       alignItems:"flex-end", justifyContent:"center",
     }} onClick={onClose}>
@@ -938,7 +938,7 @@ function MyRecommendationsModal({ userId, onClose }) {
 
   return createPortal(
     <div style={{
-      position:"fixed", inset:0, zIndex:9999,
+      position:"fixed", inset:0, zIndex:10500,
       background:"rgba(26,26,24,0.55)", backdropFilter:"blur(4px)", WebkitBackdropFilter:"blur(4px)",
       display:"flex", flexDirection:"column", justifyContent:"flex-end",
     }} onClick={e => e.target === e.currentTarget && onClose()}>
@@ -1167,7 +1167,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
 
   return createPortal(
     <div style={{
-      position:"fixed", inset:0, zIndex:9600,
+      position:"fixed", inset:0, zIndex:10500,
       display:"flex", flexDirection:"column",
       background:T.bg,
       fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif",
