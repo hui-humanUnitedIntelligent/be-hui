@@ -9,6 +9,11 @@ import { normalizeProfileInput } from '../lib/perfUtils';
 import { useAuth } from "../lib/AuthContext";
 import { useAppState } from "../lib/AppStateContext";
 import { HUI } from "../design/hui.design.js";
+// HUI Interaction Language v1.0 (2026-07-05) — Single Source of Truth,
+// dieselben Komponenten wie im Feed (BaseFeedCard.jsx).
+import {
+  ResonanceIcon, ExchangeIcon, BookmarkKeepIcon, RecommendIcon,
+} from "../design/icons/HuiInteractionIcons.jsx";
 
 /* ── Design Tokens ─────────────────────────────────────────────────── */
 const C = {
@@ -245,7 +250,7 @@ function RelatedCard({ werk, onClick }) {
 }
 
 /* ── Icon Buttons ───────────────────────────────────────────────────── */
-function IconBtn({ icon, label, active, color, onPress }) {
+function IconBtn({ Icon, label, active, color, onPress }) {
   const [pressed, setPressed] = useState(false);
   const handleTap = () => {
     setPressed(true);
@@ -259,8 +264,8 @@ function IconBtn({ icon, label, active, color, onPress }) {
         padding:"8px 12px", borderRadius:12,
         transform: pressed ? "scale(1.25)" : "scale(1)",
         transition:"transform 0.2s cubic-bezier(0.34,1.56,0.64,1)" }}>
-      <span style={{ fontSize:22, filter: active ? "none" : "grayscale(0.3)" }}>
-        {icon}
+      <span style={{ display:"flex", opacity: active ? 1 : 0.55, transition:"opacity 0.18s ease" }}>
+        {Icon ? <Icon size={24} /> : null}
       </span>
       <span style={{ fontSize:10, fontWeight:600,
         color: active ? (color||C.coral) : C.muted }}>
@@ -623,30 +628,34 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
           background:C.card, borderRadius:18, border:`1px solid ${C.border}`,
           display:"flex", justifyContent:"space-around",
           boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
+          {/* HUI Interaction Language v1.0 (2026-07-05) — Mapping:
+              Resonanz bleibt Like-Reaktion | Kommentar → Austauschen
+              (oeffnet bereits den Diskussions-Thread) | Teilen → Empfehlen
+              (Weitergabe an andere) | Merken bleibt Bookmark. */}
           <IconBtn
-            icon={resonated ? "✦" : "✦"}
+            Icon={ResonanceIcon}
             label={resonanceCount > 0 ? String(resonanceCount) : "Resonanz"}
             active={resonated}
             color={C.coral}
             onPress={handleLike}
           />
           <IconBtn
-            icon="💬"
-            label={commentCount > 0 ? String(commentCount) : "Kommentar"}
+            Icon={ExchangeIcon}
+            label={commentCount > 0 ? String(commentCount) : "Austauschen"}
             active={showComments}
             color={C.teal}
             onPress={() => setShowComments(s => !s)}
           />
           <IconBtn
-            icon={shareOk ? "✅" : "↗️"}
-            label={shareOk ? "Kopiert!" : "Teilen"}
+            Icon={RecommendIcon}
+            label={shareOk ? "Kopiert!" : "Empfehlen"}
             active={shareOk}
             color={C.teal}
             onPress={handleShare}
           />
           <IconBtn
-            icon={saved ? "🔖" : "📌"}
-            label={saved ? "Gespeichert" : "Merken"}
+            Icon={BookmarkKeepIcon}
+            label={saved ? "Gemerkt" : "Merken"}
             active={saved}
             color={C.gold}
             onPress={handleSave}
