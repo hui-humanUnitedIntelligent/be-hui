@@ -2,6 +2,7 @@
 // HUI – Erlebnis-Editor: 4-Schritte-Wizard (v2)
 // Schritt 1: Basis | 2: Wann & Wo | 3: Teilnahme | 4: Veröffentlichen
 import React, { useState, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 
 // ── Design-Tokens ─────────────────────────────────────────────
@@ -1020,5 +1021,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
         )}
       </div>
     </div>
+  ,
+    document.body
   );
 }

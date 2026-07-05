@@ -4,6 +4,7 @@
 // - publicView=true erzwingt isOwner=false in TalentProfilePage/BasisProfilePage
 //
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { ProfileService } from '../../services/db';
 
 // Lazy imports — kein Blocking
@@ -11,7 +12,7 @@ const TalentProfilePage = React.lazy(() => import("../../pages/TalentProfilePage
 const BasisProfilePage  = React.lazy(() => import("../../pages/BasisProfilePage.jsx"));
 
 function Spinner() {
-  return (
+  return createPortal(
     <div style={{
       position:"fixed", inset:0, zIndex:10600, /* >BottomNav(10000) */
       display:"flex", alignItems:"center", justifyContent:"center",
@@ -24,7 +25,8 @@ function Spinner() {
         animation:"spin 0.7s linear infinite",
       }}/>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -46,7 +48,7 @@ export default function PublicProfilePreview({ profileId, onClose }) {
 
   const ProfileComponent = profileType === "talent" ? TalentProfilePage : BasisProfilePage;
 
-  return (
+  return createPortal(
     <div style={{
       position:"fixed", inset:0, zIndex:10500, /* >BottomNav(10000) */
       background:"#F9F7F4",
@@ -90,6 +92,7 @@ export default function PublicProfilePreview({ profileId, onClose }) {
           publicView={true}
         />
       </React.Suspense>
-    </div>
+    </div>,
+    document.body
   );
 }

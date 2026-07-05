@@ -7,6 +7,7 @@
 // ══════════════════════════════════════════════════════════════════════
 import React, { useState } from "react";
 import { supabase } from "../../../lib/supabaseClient.js";
+import { createPortal } from "react-dom";
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", ink:"#1A1A18",
@@ -23,7 +24,7 @@ function Sk({ w, h, r=8 }) {
 }
 
 function DeleteConfirm({ werk, onConfirm, onCancel }) {
-  return (
+  return createPortal(
     <div onClick={onCancel} style={{ position:"fixed", inset:0, zIndex:10500, /* >BottomNav(10000) */
       background:"rgba(0,0,0,0.55)", display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
       <div onClick={e=>e.stopPropagation()} style={{ background:"#fff", borderRadius:16,
@@ -44,7 +45,8 @@ function DeleteConfirm({ werk, onConfirm, onCancel }) {
           background:"#f0f0ee", border:"none", color:"#444", fontSize:14, fontWeight:600,
           cursor:"pointer", fontFamily:"inherit" }}>Abbrechen</button>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
