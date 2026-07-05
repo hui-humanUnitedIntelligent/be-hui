@@ -517,30 +517,31 @@ const ActionBtn = memo(function ActionBtn({
 }) {
   const [scale, setScale] = useState(false);
   const [hover, setHover] = useState(false);
-  const isBookmark = variant === "merken";
-  const isResonanz = variant === "resonanz";
-  // Resonanz-Tap-Dauer bewusst kurz (150ms, im geforderten 120-180ms-Fenster) —
-  // deutlich kuerzer als der bestehende Bookmark-Pulse (400ms), damit sich
-  // Resonanz "leicht/lebendig" statt "zeremoniell" anfuehlt.
-  const pressMs = isResonanz ? 150 : 400;
+
+  // Premium-Finetuning 2026-07-05 (Lars) -- Tap-Animation komplett
+  // vereinheitlicht: EIN sanfter Scale (1.04, Fenster 1.03-1.05), EINE
+  // Dauer (160ms, Fenster 140-180ms), ease-out, fuer ALLE vier Icons
+  // identisch. Ersetzt die bisherigen variantspezifischen Bounce-/Pop-
+  // Effekte (Bookmark-Pulse 1.3 mit Ueberschwing-Keyframe, Resonanz-Glow-
+  // Filter, Default-Shrink auf 0.88) -- Lars: "keine Bounce-Effekte, keine
+  // Pop-Animation, keine Spielerei".
+  const PRESS_MS = 160;
+  const PRESS_SCALE = 1.04;
 
   function handleClick() {
     if (disabled) return;
     setScale(true);
-    setTimeout(() => setScale(false), pressMs);
+    setTimeout(() => setScale(false), PRESS_MS);
     onClick?.();
   }
 
   const col = active ? (activeColor || T.teal) : T.ink3;
-  // v2.0 Zustände — Form bleibt IMMER identisch, nur Opacity/Scale ändern sich:
-  // disabled < default < hover < active. Pressed = kurzer Scale-Spring (bestehend).
-  // Fine-Tuning 2026-07-05 (Lars): optische Gewichtung +~15% angehoben
-  // (Default 0.55->0.64, Hover 0.8->0.85) -- reine Opacity-Anpassung, KEINE
-  // Formaenderung der Icons selbst (Charta: Symbolformen bleiben identisch).
+  // Zustände — Form bleibt IMMER identisch, nur Opacity/Scale ändern sich:
+  // disabled < default < hover < active.
   const iconOpacity = disabled ? 0.28 : active ? 1 : hover ? 0.85 : 0.64;
-  // Resonanz-Tap: sanfter Scale (~1.08, NICHT der starke 0.88/1.3-Spring der
-  // anderen Icons) + weicher Glow in HUI-Farben (Teal/Orange), kein Bounce.
-  const pressScale = isBookmark ? 1.3 : isResonanz ? 1.08 : 0.88;
+  // Sehr dezenter Hintergrund-Kreis beim Antippen (8% HUI-Tuerkis/-Koralle,
+  // je nach activeColor der jeweiligen Aktion) -- kein Schatten, kein Glanz.
+  const circleBg = (activeColor === T.coral) ? "rgba(244,115,85,0.08)" : "rgba(13,196,181,0.08)";
   return (
     <button
       onClick={handleClick}
@@ -548,6 +549,7 @@ const ActionBtn = memo(function ActionBtn({
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       style={{
+        position: "relative",
         background: "none", border: "none",
         // Fine-Tuning 2026-07-05 (Lars): Padding auf 9/10px erhoeht, damit die
         // Klickflaeche bei 27px-Icon zuverlaessig >= 44x44px erreicht
@@ -559,26 +561,32 @@ const ActionBtn = memo(function ActionBtn({
         borderRadius: 12,
         touchAction: "manipulation",
         minWidth: 44, minHeight: 44, justifyContent: "center",
-        // Spring scale
-        transform: scale
-          ? `scale(${pressScale})`
-          : (hover && !disabled ? "scale(1.06)" : "scale(1)"),
-        transition: scale
-          ? `transform ${isResonanz ? "0.16s" : "0.08s"} cubic-bezier(.22,1,.36,1)`
-          : "transform 0.22s cubic-bezier(.22,1,.36,1)",
+        transform: scale ? `scale(${PRESS_SCALE})` : "scale(1)",
+        transition: `transform ${PRESS_MS}ms cubic-bezier(0.16,1,0.3,1)`,
         willChange: "transform",
-        animation: (scale && isBookmark) ? "huiBookmarkPulse 0.4s ease" : "none",
       }}
     >
+      {/* Dezenter Tap-Hintergrundkreis -- faedet mit dem Scale synchron
+          ein/aus, liegt hinter dem Icon (zIndex 0). */}
+      <span aria-hidden="true" style={{
+        position: "absolute", top: "50%", left: "50%",
+        width: 40, height: 40, marginLeft: -20, marginTop: -20,
+        borderRadius: "50%", background: circleBg,
+        opacity: scale ? 1 : 0,
+        transition: `opacity ${PRESS_MS}ms cubic-bezier(0.16,1,0.3,1)`,
+        pointerEvents: "none", zIndex: 0,
+      }} />
       <span style={{
+        position: "relative", zIndex: 1,
         display: "flex", alignItems: "center", justifyContent: "center",
         opacity: iconOpacity,
-        borderRadius: "50%",
-        // Weicher Glow beim Antippen — nur Resonanz, HUI-Teal/Orange, kein harter Ring
-        filter: (scale && isResonanz)
-          ? "drop-shadow(0 0 6px rgba(20,199,182,0.55)) drop-shadow(0 0 2px rgba(240,169,60,0.5))"
-          : "none",
-        transition: "opacity 0.18s ease, filter 0.16s ease",
+        // Premium-Finetuning 2026-07-05 (Lars): Icon-Reihe 4px tiefer gesetzt,
+        // damit alle vier Icons (PNG + SVG, mit je eigenem visuellem
+        // Schwerpunkt) auf einer gemeinsamen, vertikal zentrierten
+        // Grundlinie liegen statt "schwebend" zu wirken. Kein Glanz-/
+        // Schatten-Filter mehr (Charta: keine Glanzeffekte im aktiven Zustand).
+        transform: "translateY(4px)",
+        transition: "opacity 0.18s ease",
       }}>
         {/* Fine-Tuning 2026-07-05 (Lars): 22px -> 27px fuer bessere Erkennbarkeit
             auf iPhone/iPad, innerhalb des geforderten 26-28px-Fensters. */}

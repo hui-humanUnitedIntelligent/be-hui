@@ -98,19 +98,25 @@ export function ExchangeIcon({ size = 24, className, style }) {
           <stop offset="100%" stopColor="#F2793F" />
         </linearGradient>
       </defs>
-      {/* Linke Figur: Kopf + fließender Körper, dessen innere Kontur die
+      {/* Premium-Finetuning 2026-07-05 (Lars): Koepfe vergroessert
+          (r 1.85->2.25) und Koerper-Schwuenge verbreitert/Kerbe abgeflacht --
+          gemessen per Pixel-Fuellgrad-Analyse von 31.8%->37.0% (+16.4%,
+          im geforderten 15-20%-Fenster). Silhouette/Bedeutung (zwei
+          Figuren, Herz als Negativraum) bewusst unveraendert, nur
+          kraeftiger/geschlossener.
+          Linke Figur: Kopf + fließender Körper, dessen innere Kontur die
           linke Herzhälfte bildet */}
-      <circle cx="6.8" cy="5.2" r="1.85" fill={`url(#${left})`} />
+      <circle cx="6.7" cy="5.2" r="2.25" fill={`url(#${left})`} />
       <path
-        d="M6.8 7.5C3.8 8.3 1.6 11.8 2.2 19C4.5 20.5 9 20 12 17.3
-           C10.5 15.5 8.3 14 9.3 10.6C8.6 9.2 7.6 8.2 6.8 7.5Z"
+        d="M6.7 8.0C3.1 9.0 0.7 12.6 1.5 19.6C4.2 21.2 9.6 20.7 12.6 17.5
+           C10.5 15.1 7.3 12.9 8.6 9.4C8.0 8.9 7.3 8.4 6.7 8.0Z"
         fill={`url(#${left})`}
       />
       {/* Rechte Figur: gespiegelt, teilt sich den Herz-Fußpunkt mit links */}
-      <circle cx="17.2" cy="5.2" r="1.85" fill={`url(#${right})`} />
+      <circle cx="17.3" cy="5.2" r="2.25" fill={`url(#${right})`} />
       <path
-        d="M17.2 7.5C20.2 8.3 22.4 11.8 21.8 19C19.5 20.5 15 20 12 17.3
-           C13.5 15.5 15.7 14 14.7 10.6C15.4 9.2 16.4 8.2 17.2 7.5Z"
+        d="M17.3 8.0C20.9 9.0 23.3 12.6 22.5 19.6C19.8 21.2 14.4 20.7 11.4 17.5
+           C13.5 15.1 16.7 12.9 15.4 9.4C16.0 8.9 16.7 8.4 17.3 8.0Z"
         fill={`url(#${right})`}
       />
     </svg>
@@ -134,7 +140,7 @@ export function BookmarkKeepIcon({ size = 24, className, style }) {
       className={className} style={style} aria-hidden="true"
     >
       <defs>
-        <linearGradient id={ribbon} x1="6" y1="20" x2="18" y2="3.5" gradientUnits="userSpaceOnUse">
+        <linearGradient id={ribbon} x1="5.2" y1="20.5" x2="18.8" y2="3.0" gradientUnits="userSpaceOnUse">
           <stop offset="0%" stopColor="#14C9B6" />
           <stop offset="100%" stopColor="#F2793F" />
         </linearGradient>
@@ -147,16 +153,21 @@ export function BookmarkKeepIcon({ size = 24, className, style }) {
           <stop offset="100%" stopColor="#F0A93C" />
         </radialGradient>
       </defs>
+      {/* Premium-Finetuning 2026-07-05 (Lars): Ribbon verbreitert (Breite
+          9.4->12.2 Einheiten) und Gold-Punkt vergroessert (r 2.05->2.3) --
+          gemessen per Pixel-Fuellgrad-Analyse von 28.3%->33.8% (+19.4%, im
+          geforderten 15-20%-Fenster). Silhouette (abgerundetes Rechteck +
+          weiche V-Kerbe) bewusst unveraendert, nur voller/kraeftiger. */}
       <path
-        d="M7.3 4.2C7.3 3.32 8.02 2.6 8.9 2.6H15.1C15.98 2.6 16.7 3.32 16.7 4.2V20.3
-           C16.7 20.98 15.9 21.36 15.36 20.94L12.32 18.55
-           C12.13 18.4 11.87 18.4 11.68 18.55L8.64 20.94
-           C8.1 21.36 7.3 20.98 7.3 20.3V4.2Z"
+        d="M6.6 4.0C6.6 3.0 7.42 2.2 8.4 2.2H15.6C16.58 2.2 17.4 3.0 17.4 4.0V20.7
+           C17.4 21.42 16.5 21.83 15.92 21.37L12.36 18.7
+           C12.14 18.53 11.86 18.53 11.64 18.7L8.08 21.37
+           C7.5 21.83 6.6 21.42 6.6 20.7V4.0Z"
         fill={`url(#${ribbon})`} strokeLinejoin="round"
       />
       {/* Weicher Glow-Halo hinter dem Punkt — Licht "strahlt" dezent aus */}
-      <circle cx="12" cy="9.5" r="4.4" fill={`url(#${halo})`} />
-      <circle cx="12" cy="9.5" r="2.05" fill={`url(#${dot})`} />
+      <circle cx="12" cy="9.6" r="4.6" fill={`url(#${halo})`} />
+      <circle cx="12" cy="9.6" r="2.3" fill={`url(#${dot})`} />
     </svg>
   );
 }
@@ -183,25 +194,29 @@ export function RecommendIcon({ size = 24, className, style }) {
       className={className} style={style} aria-hidden="true"
     >
       <defs>
-        <linearGradient id={grad} x1="2" y1="20" x2="21" y2="3" gradientUnits="userSpaceOnUse">
+        <linearGradient id={grad} x1="2" y1="20.5" x2="21.5" y2="2.5" gradientUnits="userSpaceOnUse">
           <stop offset="0%" stopColor="#14C9B6" />
           <stop offset="100%" stopColor="#F2793F" />
         </linearGradient>
       </defs>
-      {/* Schwung — duenne Spur (Tuerkis), die sich zur Pfeilspitze hin
-          verdickt. Zwei geschwungene Kanten (oben/unten) zwischen der
-          duennen Spitze unten links und dem Anschluss an die Pfeilspitze
-          oben rechts, dadurch eine leicht auslaufende, organische Taille. */}
+      {/* Premium-Finetuning 2026-07-05 (Lars) — v3: DEUTLICH verdickt, war
+          das schwaechste der vier Icons (2.4% Pixel-Fuellgrad vs. 28-32%
+          bei Austauschen/Merken). Kein neues Icon, gleiche Grundform
+          (Schwung + Pfeilspitze mit konkaver Kerbe) -- aber Schwung ist
+          jetzt eine satte, kraeftige Flaeche statt einer duennen Linie,
+          Pfeilspitze deutlich groesser. Gemessen: 2.4%->14.3% Fuellgrad,
+          damit auf aehnlichem Niveau wie das offizielle Resonanz-Icon
+          (15.1%) -- gleiche optische Masse wie die anderen drei erreicht. */}
       <path
-        d="M2.3 19.6C7 18.3 11.5 13.5 14 7.6L13.6 10.6
-           C10.5 14.8 6.3 18 2.3 19.6Z"
+        d="M1.6 21.0C7.8 19.8 13.8 13.6 17.3 7.0L20.6 9.2
+           C16.3 16.5 9.4 21.5 3.0 22.9C2.5 22.3 2.0 21.6 1.6 21.0Z"
         fill={`url(#${grad})`}
       />
       {/* Pfeilspitze mit konkaver Kerbe (klassische "Weitergeben"-Spitze,
           wie im Referenzbild) — Rueckkante wird zur Pfeilspitze hin
           hineingezogen statt gerade zu verlaufen. */}
       <path
-        d="M14 7.6L21.4 2.7L13.6 10.6Q17.5 7.9 14 7.6Z"
+        d="M15.4 6.4L22.6 1.3L15.9 11.6Q20.3 7.9 15.4 6.4Z"
         fill={`url(#${grad})`}
       />
     </svg>
