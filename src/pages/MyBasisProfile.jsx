@@ -37,6 +37,7 @@ import { VisibilitySection }     from "../components/profile/sections/Visibility
 import WerkWizard      from "../components/works/WerkWizard.jsx";
 import TalentAngebotWizard from "../components/talents/TalentAngebotWizard.jsx";
 import { useTalents, deleteTalent } from "../hooks/useTalents.js";
+import { useMySales } from "../hooks/useMySales.js";
 import ExperienceWizard from "../components/experiences/ExperienceWizard.jsx";
 
 // ── Design Tokens ────────────────────────────────────────────────
@@ -501,6 +502,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [showTalentWizard, setShowTalentWizard] = useState(false);
   const [editingTalent,    setEditingTalent]    = useState(null);
   const { talents, reload: reloadTalents } = useTalents(profile?.id);
+  const { sales, totalEarned } = useMySales(profile?.id);
 
 
   // Sprint F.7D: Profil-Loader entfernt — useProfileData(user?.id) übernimmt
@@ -840,7 +842,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
               onTalentWizard={(t) => { setEditingTalent(t || null); setShowTalentWizard(true); }}
               onDeleteTalent={() => reloadTalents()}
             />
-            <Gap h={24}/>
+            <Gap h={20}/>
 
             {/* T3. Meine Werke — MeineWerkeSection bleibt (Owner-only, kein Public-Duplikat) */}
             <MeineWerkeSection
@@ -849,7 +851,12 @@ export default function MyBasisProfile({ onClose, profileId }) {
               onWerkWizard={(w) => { setEditingWerk(w || null); setShowWerkWizard(true); }}
               onDeleteWerk={(id) => { setLocalWorks(null); reload(); }}
             />
-            <Gap h={24}/>
+            <Gap h={20}/>
+
+            {/* T3b. Meine Verkäufe — neues Modul, additiv (Master-Prompt 2026-07-05).
+                Liest Commerce-2.0-SSOT (orders/order_items), keine neue Tabelle. */}
+            <MeineVerkaeufeSection sales={sales} totalEarned={totalEarned}/>
+            <Gap h={20}/>
 
             {/* T4. Erlebnisse — ErlebnisseSection bleibt (Owner-only) */}
             <ErlebnisseSection
@@ -857,7 +864,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
               onErlebnisWizard={(exp) => { setEditingExp(exp || null); setShowExpWizard(true); }}
               onDeleteErlebnis={(id) => { setLocalExperiences(null); reload(); }}
             />
-            <Gap h={24}/>
+            <Gap h={20}/>
 
             {/* T5. Kundenstimmen — kanonisch: RecommendationsSection */}
             <RecommendationsSection
@@ -1552,9 +1559,9 @@ function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTalent = 
     <div style={{ padding:`0 ${T.px}px` }}>
       <SectionRow title="Talent-Angebote" sub="Deine buchbaren Leistungen & Dienstleistungen"/>
       {talents.length > 0 && (
-        <div style={{ display:"flex", gap:10, overflowX:"auto",
+        <div style={{ display:"flex", gap:8, overflowX:"auto",
           WebkitOverflowScrolling:"touch", scrollbarWidth:"none",
-          paddingBottom:4, marginBottom:10 }}>
+          paddingBottom:4, marginBottom:8 }}>
           {talents.map((t, i) => {
             const isApproved = t.status === "approved";
             const isPending  = t.status === "pending";
@@ -1565,7 +1572,7 @@ function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTalent = 
               <div key={t.id || i}
                 onClick={() => onTalentWizard?.(t)}
                 style={{
-                  flexShrink:0, width:110, height:110,
+                  flexShrink:0, width:88, height:88,
                   borderRadius:12, overflow:"hidden",
                   background:"#e8e4de", position:"relative", cursor:"pointer",
                   boxShadow: isApproved ? "0 0 0 2px #0EC4B8" : isPending ? "0 0 0 2px #D4A800" : "0 0 0 2px #ff5050",
@@ -1624,13 +1631,17 @@ function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTalent = 
       )}
       <button className="mbp-press-light" onClick={() => onTalentWizard?.()} style={{
         display:"flex", alignItems:"center", gap:8,
-        padding:"10px 16px", borderRadius:T.r12,
-        background:T.bgCard, border:`1.5px dashed ${T.borderMid}`,
-        fontSize:13, fontWeight:600, color:T.inkSoft,
+        padding:"8px 14px", borderRadius:T.r12,
+        background:T.tealSoft, border:`1px solid ${T.tealMid}`,
+        fontSize:12.5, fontWeight:700, color:T.teal,
         cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
         width:"100%",
       }}>
-        <span style={{fontSize:16}}>+</span>
+        <span style={{
+          width:18, height:18, borderRadius:"50%", flexShrink:0,
+          background:T.teal, color:"#fff", fontSize:13, fontWeight:800,
+          display:"flex", alignItems:"center", justifyContent:"center", lineHeight:1,
+        }}>+</span>
         Talent-Angebot hinzufügen
       </button>
     </div>
@@ -1668,9 +1679,9 @@ function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
     <div style={{ padding:`0 ${T.px}px` }}>
       <SectionRow title="Meine Werke" sub="Deine veröffentlichten Kreationen."/>
       {works.length > 0 && (
-        <div style={{ display:"flex", gap:10, overflowX:"auto",
+        <div style={{ display:"flex", gap:8, overflowX:"auto",
           WebkitOverflowScrolling:"touch", scrollbarWidth:"none",
-          paddingBottom:4, marginBottom:10 }}>
+          paddingBottom:4, marginBottom:8 }}>
           {works.map((w, i) => {
             const isApproved = w.approval_status === "approved";
             const isPending  = w.approval_status === "pending" || w.status === "pending_review";
@@ -1680,7 +1691,7 @@ function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
               <div key={w.id || i}
                 onClick={() => onWerkWizard?.(w)}
                 style={{
-                  flexShrink:0, width:110, height:110,
+                  flexShrink:0, width:88, height:88,
                   borderRadius:T.r12, overflow:"hidden",
                   background:"#e8e4de", position:"relative", cursor:"pointer",
                   boxShadow: isApproved ? "0 0 0 2px #0EC4B8" : isPending ? "0 0 0 2px #D4A800" : "0 0 0 2px #ff5050",
@@ -1731,17 +1742,92 @@ function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
       )}
       <button className="mbp-press-light" onClick={() => onWerkWizard?.()} style={{
         display:"flex", alignItems:"center", gap:8,
-        padding:"10px 16px", borderRadius:T.r12,
-        background:T.bgCard, border:`1.5px dashed ${T.borderMid}`,
-        fontSize:13, fontWeight:600, color:T.inkSoft,
+        padding:"8px 14px", borderRadius:T.r12,
+        background:T.tealSoft, border:`1px solid ${T.tealMid}`,
+        fontSize:12.5, fontWeight:700, color:T.teal,
         cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
         width:"100%",
       }}>
-        <span style={{fontSize:16}}>+</span>
+        <span style={{
+          width:18, height:18, borderRadius:"50%", flexShrink:0,
+          background:T.teal, color:"#fff", fontSize:13, fontWeight:800,
+          display:"flex", alignItems:"center", justifyContent:"center", lineHeight:1,
+        }}>+</span>
         Werk hinzufügen
       </button>
     </div>
     </>
+  );
+}
+
+function MeineVerkaeufeSection({ sales = [], totalEarned = 0 }) {
+  function fmtDate(iso) {
+    if (!iso) return "";
+    const dt = new Date(iso);
+    return dt.toLocaleDateString("de-DE", { day:"2-digit", month:"short" });
+  }
+  return (
+    <div style={{ padding:`0 ${T.px}px` }}>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:`0 0 10px` }}>
+        <div>
+          <div style={{ fontSize:15, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>Meine Verkäufe</div>
+          <div style={{ fontSize:11, color:T.inkFaint, marginTop:2, fontWeight:400 }}>Abgeschlossene Käufe deiner Werke</div>
+        </div>
+        {totalEarned > 0 && (
+          <div style={{
+            fontSize:12, fontWeight:800, color:T.teal,
+            background:T.tealSoft, padding:"4px 10px", borderRadius:T.r99,
+            whiteSpace:"nowrap",
+          }}>
+            {totalEarned.toFixed(2)}€
+          </div>
+        )}
+      </div>
+      {sales.length > 0 ? (
+        <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+          {sales.slice(0, 8).map((s) => {
+            const cover = s.snapshot?.cover_url;
+            const title = s.snapshot?.title || "Werk";
+            return (
+              <div key={s.id} style={{
+                display:"flex", alignItems:"center", gap:10,
+                padding:"8px 10px", borderRadius:T.r12,
+                background:T.bgCard, border:`1px solid ${T.border}`,
+              }}>
+                <div style={{
+                  width:38, height:38, borderRadius:9, overflow:"hidden",
+                  flexShrink:0, background:"#e8e4de",
+                }}>
+                  {cover
+                    ? <img src={cover} alt={title} style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+                    : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16 }}>🛍️</div>
+                  }
+                </div>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ fontSize:13, fontWeight:700, color:T.ink, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+                    {title}
+                  </div>
+                  <div style={{ fontSize:11, color:T.inkFaint, marginTop:1 }}>
+                    {fmtDate(s.orders?.created_at || s.created_at)}
+                  </div>
+                </div>
+                <div style={{ fontSize:13, fontWeight:800, color:T.teal, flexShrink:0 }}>
+                  +{Number(s.payout_eur || 0).toFixed(2)}€
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div style={{
+          padding:"14px 16px", borderRadius:T.r12,
+          background:T.bgCard, border:`1px solid ${T.border}`,
+          fontSize:12.5, color:T.inkFaint, textAlign:"center",
+        }}>
+          Noch keine Verkäufe — sobald jemand eines deiner Werke kauft, erscheint es hier.
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -1821,8 +1907,8 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
       <SectionRow title="Erlebnisse & Projekte"
         sub="Momente, die mein Wirken zeigen."/>
 
-      <div style={{ display:"flex", gap:10, overflowX:"auto",
-        WebkitOverflowScrolling:"touch", scrollbarWidth:"none", paddingBottom:4, marginBottom:10 }}>
+      <div style={{ display:"flex", gap:8, overflowX:"auto",
+        WebkitOverflowScrolling:"touch", scrollbarWidth:"none", paddingBottom:4, marginBottom:8 }}>
         {experiences.map((exp, i) => {
           // ── Badge-System identisch zu Meine Werke ──────────────
           const isApproved = exp.approval_status === "approved" || exp.status === "published";
@@ -1847,7 +1933,7 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
             <div key={exp.id || i}
               onClick={() => onErlebnisWizard?.(exp)}
               style={{
-                flexShrink:0, width:110, height:110,
+                flexShrink:0, width:88, height:88,
                 borderRadius:T.r12, overflow:"hidden",
                 background:"#e8e4de", position:"relative", cursor:"pointer",
                 boxShadow: `0 0 0 2px ${borderCol}`,
@@ -1923,13 +2009,17 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
     <div style={{ padding:`0 ${T.px}px` }}>
       <button className="mbp-press-light" onClick={() => onErlebnisWizard?.()} style={{
         display:"flex", alignItems:"center", gap:8,
-        padding:"10px 16px", borderRadius:T.r12,
-        background:T.bgCard, border:`1.5px dashed ${T.borderMid}`,
-        fontSize:13, fontWeight:600, color:T.inkSoft,
+        padding:"8px 14px", borderRadius:T.r12,
+        background:T.tealSoft, border:`1px solid ${T.tealMid}`,
+        fontSize:12.5, fontWeight:700, color:T.teal,
         cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
         width:"100%",
       }}>
-        <span style={{fontSize:16}}>+</span>
+        <span style={{
+          width:18, height:18, borderRadius:"50%", flexShrink:0,
+          background:T.teal, color:"#fff", fontSize:13, fontWeight:800,
+          display:"flex", alignItems:"center", justifyContent:"center", lineHeight:1,
+        }}>+</span>
         Erlebnis &amp; Projekte hinzufügen
       </button>
     </div>
