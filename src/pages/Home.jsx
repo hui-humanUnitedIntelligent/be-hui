@@ -346,9 +346,18 @@ function HomeInner() {
             // "Raum-Wechsel" statt "Screen-Wechsel"
             // Soft Transition — Hintergrund wird innerhalb von ~300ms leicht
             // weicher (Opacity/Blur), kein harter Wechsel.
+            // ROOT-CAUSE-FIX (2026-07-05): "blur(0px) brightness(1)" ist visuell ein
+            // No-Op, aber CSS behandelt JEDEN filter-Wert != "none" als aktiv —
+            // das erzeugt permanent einen eigenen Stacking-Context auf diesem
+            // Scroll-Container. Dadurch wurde JEDER Modal-zIndex darin (auch 10500+)
+            // in diesem lokalen Context eingesperrt und konnte den Footer/Orb
+            // (zIndex:10000, Sibling AUSSERHALB dieses Containers) nie überragen —
+            // unabhängig vom gesetzten zIndex-Wert. Fix: im Ruhezustand "none" statt
+            // "blur(0px) brightness(1)" — keine Stacking-Context-Falle mehr, der
+            // eigentliche Blur-Effekt beim orbTransition bleibt unverändert erhalten.
             filter: (orbTransition === "exiting" || orbTransition === "hidden")
               ? "blur(3px) brightness(0.96)"
-              : "blur(0px) brightness(1)",
+              : "none",
             transition:   "background-color 320ms cubic-bezier(0.16,1,0.30,1), filter 0.3s ease-in-out",
             ...worldTokens.feedContainerStyle,
           }}
