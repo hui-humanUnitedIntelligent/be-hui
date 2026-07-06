@@ -790,33 +790,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
         )}
         <Gap h={28}/>
 
-        {/* ── MEINE RESONANZ SCHNELLZUGRIFF ─────────────────────── */}
-        <div style={{ padding:`0 ${T.px}px` }}>
-          <button
-            onClick={() => setShowResonanz(true)}
-            style={{
-              width:"100%", display:"flex", alignItems:"center", gap:14,
-              padding:"15px 18px", background:T.bgCard, border:`1px solid ${T.border}`,
-              borderRadius:T.r16, cursor:"pointer", fontFamily:"inherit",
-              textAlign:"left", boxShadow:"0 1px 6px rgba(26,26,24,0.07)",
-              WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
-            }}
-          >
-            <span style={{
-              width:36, height:36, borderRadius:10, flexShrink:0,
-              background:"rgba(232,93,117,0.09)",
-              display:"flex", alignItems:"center", justifyContent:"center", fontSize:18,
-            }}>❤️</span>
-            <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ fontSize:14, fontWeight:700, color:T.ink }}>Meine Resonanz</div>
-              <div style={{ fontSize:12, color:T.inkSoft, marginTop:1 }}>
-                Alles, was du unterstützt, erlebt und bewegt hast.
-              </div>
-            </div>
-            <span style={{ color:T.inkFaint, fontSize:17 }}>›</span>
-          </button>
-        </div>
-        <Gap h={20}/>
+        {/* Meine Resonanz — verschoben in "Mein Bereich"-Menü, 2026-07-06 */}
 
         {/* ══ TALENT-PROFIL-LAYOUT (is_talent === true) ══════════ */}
         {profile?.is_talent ? (
@@ -860,6 +834,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
               onDeleteWerk={(id) => { setLocalWorks(null); reload(); }}
               onErlebnisWizard={(exp) => { setEditingExp(exp || null); setShowExpWizard(true); }}
               onDeleteErlebnis={(id) => { setLocalExperiences(null); reload(); }}
+              onOpenResonanz={() => setShowResonanz(true)}
               onProfileUpdate={(upd) => {
                 setAuthProfile && setAuthProfile(p => ({ ...p, ...upd }));
                 refreshProfile?.().catch(() => {});
@@ -924,6 +899,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
               onDeleteWerk={(id) => { setLocalWorks(null); reload(); }}
               onErlebnisWizard={(exp) => { setEditingExp(exp || null); setShowExpWizard(true); }}
               onDeleteErlebnis={(id) => { setLocalExperiences(null); reload(); }}
+              onOpenResonanz={() => setShowResonanz(true)}
               onProfileUpdate={(upd) => {
                 setAuthProfile && setAuthProfile(p => ({ ...p, ...upd }));
                 refreshProfile?.().catch(() => {});
@@ -1682,6 +1658,7 @@ function MeinBereichMenu({
   onTalentWizard, onDeleteTalent,
   onWerkWizard, onDeleteWerk,
   onErlebnisWizard, onDeleteErlebnis,
+  onOpenResonanz = () => {},
   onProfileUpdate = () => {},
 }) {
   const { switchTab } = useHome();
@@ -1721,6 +1698,7 @@ function MeinBereichMenu({
           display:"grid", gridTemplateColumns:"repeat(4, 1fr)",
           rowGap:18, columnGap:4,
         }}>
+          <MeinBereichTile icon="❤️" label="Meine Resonanz" onPress={onOpenResonanz} />
           {isTalent && (
             <MeinBereichTile icon="🧑‍🎨" label="Talent-Angebote" onPress={() => setActiveDrawer("talente")} />
           )}
