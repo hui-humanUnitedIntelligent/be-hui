@@ -356,7 +356,6 @@ export default function SearchCommandCenter({ activeMood, currentUser, onSearchS
   const panelAnimating = panelPhase === "entering" || panelPhase === "leaving";
   const discoveryPanel = (panelPhase !== "hidden") ? (
     <div style={{
-      marginTop: 12,
       background:T.bg,
       backdropFilter:"blur(20px) saturate(1.4)", WebkitBackdropFilter:"blur(20px) saturate(1.4)",
       border:"1px solid rgba(26,53,48,0.045)",
@@ -468,13 +467,30 @@ export default function SearchCommandCenter({ activeMood, currentUser, onSearchS
         }
       `}</style>
 
-      {/* WRAPPER — Suchleiste bleibt IMMER an Position/Groesse/Hoehe unveraendert
-          (Vorgabe Lars). Das Discovery/Filter-Panel schwebt mit eigenem Abstand
-          darunter -- kein Overlay, kein Portal, kein Fixed-Positioning, kein
-          glued Border (Visual Polish Pass). */}
-      <div ref={wrapRef} style={{ position:"relative", flex:1, zIndex:300 }}>
-        {searchBar}
-        {discoveryPanel}
+      {/* WRAPPER — display:contents: gibt Bar und Panel als ZWEI separate
+          Flex-Items an die Eltern-Row (HomeHeader) weiter, statt sie in
+          einer gemeinsamen flex:1-Spalte neben den Icon-Buttons einzusperren
+          (ROOT-CAUSE-FIX "Discovery-Panel rechts offen", 2026-07-06).
+          wrapRef bleibt fuer die Click-Outside-Erkennung gueltig -- .contains()
+          arbeitet auf dem DOM-Baum, display:contents aendert nur das Rendering,
+          nicht die DOM-Struktur. */}
+      <div ref={wrapRef} style={{ display:"contents" }}>
+        {/* Bar-Slot -- order:0, flex:1 wie bisher, teilt sich die erste Zeile
+            mit den Icon-Buttons (order:1 in HomeHeader.jsx). */}
+        <div style={{ position:"relative", flex:1, minWidth:0, order:0, zIndex:300 }}>
+          {searchBar}
+        </div>
+
+        {/* Panel-Slot -- order:99 + flexBasis:100% zwingt per CSS-Flex-Wrap
+            einen Zeilenumbruch NACH Bar+Icons: das Panel bekommt dadurch
+            die VOLLE Breite der Eltern-Row, nie nur die schmalere Bar-Spalte.
+            Nur gemountet, waehrend panelPhase != "hidden" (Ein-/Ausblend-
+            Animation, siehe oben). */}
+        {panelPhase !== "hidden" && (
+          <div style={{ flexBasis:"100%", width:"100%", order:99, zIndex:299, marginTop:12 }}>
+            {discoveryPanel}
+          </div>
+        )}
       </div>
     </>
   );

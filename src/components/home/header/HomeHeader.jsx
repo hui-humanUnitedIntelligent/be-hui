@@ -56,25 +56,31 @@ export default function HomeHeader({
         <div style={{ height:"env(safe-area-inset-top,0)" }}/>
 
         <div style={{
-          // Visual Polish Pass (2026-07-06): alignItems:"flex-start" statt
-          // "center" -- SUCHFELD-PANEL wird jetzt beliebig hoch (Discovery-
-          // Panel waechst darunter). Mit "center" wuerden die Icon-Buttons
-          // gegen die GESAMTE Spaltenhoehe (Bar+Panel) zentriert und nach
-          // unten wegrutschen. "flex-start" haelt sie an der Bar-Oberkante --
-          // der kleine marginTop im Icon-Wrapper gleicht die 6px Differenz
-          // zur Bar-Hoehe (44px) optisch aus, wirkt weiterhin bar-zentriert.
-          display:"flex", alignItems:"flex-start",
+          // ROOT-CAUSE-FIX (2026-07-06, Lars -- "Discovery-Panel rechts offen"):
+          // SearchCommandCenter sass bisher als EIN flex:1-Kind neben den
+          // Icon-Buttons (~135px breit) -- Bar UND Discovery-Panel waren
+          // dadurch beide auf die schmalere Restbreite begrenzt, der Panel-
+          // Hintergrund endete ~135px vor dem echten rechten Rand (sah
+          // abgeschnitten/offen aus). Fix: flexWrap aktiviert, das Panel
+          // (SearchCommandCenter liefert Bar + Panel jetzt als zwei separate
+          // Flex-Items via display:contents) erhaelt flexBasis:100% -- CSS
+          // erzwingt dadurch automatisch einen Zeilenumbruch NACH Bar+Icons,
+          // das Panel bekommt exakt die volle Zeilenbreite. Keine Magic-
+          // Number-Berechnung, reines Flex-Verhalten.
+          display:"flex", flexWrap:"wrap", alignItems:"flex-start",
           padding:"8px 12px", gap:8,
           touchAction:"manipulation",
         }}>
-          {/* Command Center — nimmt flex:1 ein */}
+          {/* Command Center -- liefert Bar (order:0, flex:1) und Discovery-
+              Panel (order:99, flexBasis:100%) als flache Flex-Geschwister
+              dieser Row (display:contents-Wrapper, siehe SearchCommandCenter.jsx) */}
           <SearchCommandCenter
             activeMood={activeMood}
             currentUser={currentUser}
             onSearchStateChange={onSearchStateChange}
           />
 
-          <div style={{ display:"flex", alignItems:"center", gap:8, marginTop:3, flexShrink:0 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8, marginTop:3, flexShrink:0, order:1 }}>
             <MoodOrbButton
               activeMood={activeMood}
               isOpen={showMood}
