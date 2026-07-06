@@ -119,11 +119,14 @@ function RadiusIndicator({ radius }) {
 
   return (
     <div key={label} style={{
-      padding: "5px 6px 0 18px",
+      padding: "0 0 0 18px",
       fontSize: 11.5,
       fontWeight: 500,
       letterSpacing: "-0.01em",
       color: "rgba(26,53,48,0.40)",
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
       animation: "hui-search-fade-in .22s cubic-bezier(.22,1,.36,1) both",
     }}>
       {label}
@@ -413,7 +416,18 @@ function AllCategoriesSheet({ sheetRef, phase, query, onQueryChange, onSelect, o
 // Eine echte Personensuche im Feed wuerde eine neue Kartenart erfordern
 // (Architektur-Entscheidung, kein reiner Bugfix). Bis dahin zeigt ein Tap auf
 // "Menschen" einen kurzen Hinweis statt einen leeren/kaputten Feed-Zustand.
-export default function SearchCommandCenter({ activeMood, currentUser, onSearchStateChange }) {
+export default function SearchCommandCenter({
+  activeMood, currentUser, onSearchStateChange,
+  // Quick-Action-Gruppe (2026-07-06, UX-Ticket "rechts ausrichten"): die drei
+  // Header-Buttons (Mood/Netzwerk, Benachrichtigungen, Nachrichten) werden von
+  // HomeHeader.jsx als fertiges JSX-Buendel durchgereicht -- Design/Verhalten
+  // der Buttons selbst bleibt zu 100% unangetastet (weiterhin einzeln in
+  // MoodOrbButton/NotificationButton/MessageButton definiert). Hier wird nur
+  // die POSITION festgelegt: gemeinsame Zeile mit der Radius-Anzeige, rechts
+  // ausgerichtet, damit beide Elemente auf einer horizontalen Linie sitzen
+  // statt auf getrennten, versetzten Zeilen.
+  quickActions = null,
+}) {
   const [open,       setOpen]       = useState(false);   // Suche fokussiert/aktiv
   const [query,      setQuery]      = useState("");
   const [typeFilter, setTypeFilter] = useState(null);    // null | "work" | "experience"
@@ -800,12 +814,34 @@ export default function SearchCommandCenter({ activeMood, currentUser, onSearchS
           {searchBar}
         </div>
 
-        {/* Radius-Anzeige-Slot -- order:1 + flexBasis:100% erzwingt den
-            Zeilenumbruch DIREKT unter der Bar, unabhaengig vom Panel/vom
-            "open"-Zustand (Vorgabe: "der aktuell aktive Radius soll
-            dauerhaft sichtbar sein", nicht nur waehrend die Suche offen ist). */}
-        <div style={{ flexBasis:"100%", width:"100%", order:1, zIndex:298 }}>
-          <RadiusIndicator radius={radius} />
+        {/* Radius + Quick-Action-Gruppe -- GEMEINSAME Zeile (2026-07-06,
+            UX-Ticket "Quick-Action-Buttons rechts ausrichten"). order:1 +
+            flexBasis:100% erzwingt den Zeilenumbruch DIREKT unter der Bar,
+            unabhaengig vom Panel/vom "open"-Zustand (Radius soll dauerhaft
+            sichtbar sein, nicht nur waehrend die Suche offen ist).
+            justifyContent:space-between haelt Radius links / Buttons rechts
+            auf einer gemeinsamen horizontalen Linie, alignItems:center
+            sorgt fuer perfekte vertikale Ausrichtung zwischen Radius-Text
+            (11.5px Zeilenhoehe) und den 36-38px runden Buttons.
+            Fade-In beim Laden: hui-search-fade-in (bereits definierte
+            Keyframe, opacity 0->1 + translateY 5px->0 -- exakt die
+            gewuenschten 4-6px, kein neuer/doppelter Keyframe). Spielt nur
+            einmal beim ersten Mount ab (Zeile ist immer im DOM, kein
+            Re-Mount bei Radius-Wechsel -- nur RadiusIndicator selbst
+            re-mounted gezielt ueber key={label}, s.o.). */}
+        <div style={{
+          flexBasis:"100%", width:"100%", order:1, zIndex:298, marginTop:9,
+          display:"flex", alignItems:"center", justifyContent:"space-between", gap:14,
+          animation:"hui-search-fade-in .26s cubic-bezier(.22,1,.36,1) both",
+        }}>
+          <div style={{ minWidth:0, flex:"1 1 auto", overflow:"hidden" }}>
+            <RadiusIndicator radius={radius} />
+          </div>
+          {quickActions && (
+            <div style={{ display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
+              {quickActions}
+            </div>
+          )}
         </div>
 
         {/* Panel-Slot -- order:99 + flexBasis:100% zwingt per CSS-Flex-Wrap

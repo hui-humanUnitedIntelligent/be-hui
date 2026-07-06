@@ -71,26 +71,33 @@ export default function HomeHeader({
           padding:"8px 12px", gap:8,
           touchAction:"manipulation",
         }}>
-          {/* Command Center -- liefert Bar (order:0, flex:1) und Discovery-
-              Panel (order:99, flexBasis:100%) als flache Flex-Geschwister
-              dieser Row (display:contents-Wrapper, siehe SearchCommandCenter.jsx) */}
+          {/* Command Center -- liefert Bar (order:0, flex:1) und darunter EINE
+              gemeinsame Zeile mit Radius-Anzeige links + Quick-Action-Gruppe
+              rechts (order:1, flexBasis:100%), sowie das Discovery-Panel
+              (order:99, flexBasis:100%) -- alles als flache Flex-Geschwister
+              dieser Row (display:contents-Wrapper, siehe SearchCommandCenter.jsx).
+              UX-Ticket 2026-07-06 "Quick-Action-Buttons rechts ausrichten":
+              die drei Buttons sind jetzt ein durchgereichtes JSX-Buendel
+              (quickActions-Prop) statt eines eigenen Geschwister-Flex-Items --
+              Design/Verhalten der Buttons selbst unveraendert, nur die
+              Positionierung liegt jetzt zentral bei SearchCommandCenter,
+              gemeinsam mit der Radius-Zeile. */}
           <SearchCommandCenter
             activeMood={activeMood}
             currentUser={currentUser}
             onSearchStateChange={onSearchStateChange}
+            quickActions={
+              <>
+                <MoodOrbButton
+                  activeMood={activeMood}
+                  isOpen={showMood}
+                  onToggle={() => setShowMood(p => !p)}
+                />
+                <NotificationButton count={notifCount} onPress={onNotif}/>
+                <MessageButton count={msgCount} onPress={handleChat}/>
+              </>
+            }
           />
-
-          <div style={{ display:"flex", alignItems:"center", gap:8, marginTop:3, flexShrink:0, order:1 }}>
-            <MoodOrbButton
-              activeMood={activeMood}
-              isOpen={showMood}
-              onToggle={() => setShowMood(p => !p)}
-            />
-
-            <NotificationButton count={notifCount} onPress={onNotif}/>
-
-            <MessageButton count={msgCount} onPress={handleChat}/>
-          </div>
         </div>
 
         {has && (
