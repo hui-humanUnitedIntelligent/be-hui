@@ -124,7 +124,7 @@
 | `pages/TalentProfilePage.jsx` | profiles | UPDATE | 1187 |
 | `pages/TalentProfilePage.jsx` | profiles | UPDATE | 1199 |
 | `pages/studio/MeineResonanz.jsx` | impact_votes | SELECT | 179 |
-| `services/content.js` | profiles | SELECT | 455 |
+| `services/content.js` | profiles | SELECT | 553 |
 | `services/db.js` | profiles | SELECT | 57 |
 | `services/db.js` | profiles | SELECT | 64 |
 | `services/db.js` | profiles | UPDATE | 71 |
