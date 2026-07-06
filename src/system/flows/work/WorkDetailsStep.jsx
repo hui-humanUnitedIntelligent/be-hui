@@ -3,12 +3,14 @@
 
 import React from "react";
 import { WT } from "./WorkTokens.js";
+// Kategorien-Architektur vereinheitlicht (2026-07-06, Lars) -- zentrale
+// Single Source of Truth statt hartcodierter lokaler Liste. Liefert exakt
+// dieselben 15 Werte in derselben Reihenfolge wie zuvor (siehe
+// src/lib/categories.js, FLOW_ORDER.work) -- keine sichtbare Aenderung fuer
+// Nutzer, kein Datenformat-Wechsel fuer works.category.
+import { getFlowCategoryOptions } from "../../../lib/categories.js";
 
-const CATEGORIES = [
-  "Fotografie","Digitale Kunst","Illustration","Design","Malerei",
-  "Skulptur","Keramik","Schmuck","Textil","Mode","Musik","Video",
-  "Architektur","Handwerk","Sonstiges",
-];
+const CATEGORIES = getFlowCategoryOptions("work");
 const FORMATS   = ["JPG, PNG","PDF","MP3, WAV","PSD, AI","Figma","ZIP","Sonstiges"];
 const SHIP_TIMES = ["1–2 Werktage","3–5 Werktage","5–10 Werktage","2–3 Wochen","Auf Anfrage"];
 const CONDITIONS = ["Neu","Wie neu","Gut","Akzeptabel"];

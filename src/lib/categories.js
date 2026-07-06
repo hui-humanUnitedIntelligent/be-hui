@@ -1,123 +1,309 @@
 // src/lib/categories.js
 // ─────────────────────────────────────────────────────────────────────────
-// HUI KATEGORIEN — Single Source of Truth (2026-07-06, Lars)
+// HUI KATEGORIEN — Single Source of Truth für die gesamte HUI-Domäne
 // ─────────────────────────────────────────────────────────────────────────
-// ARCHITEKTUR-ENTSCHEIDUNG (Governance-Pflichtanalyse vor Implementierung):
+// v2.0 (2026-07-06, Lars) — ARCHITEKTUR-VEREINHEITLICHUNG
 //
-// BESTAND vor diesem Sprint: 3 verschiedene, hartcodierte und inkonsistente
-// Kategorie-Listen im Code:
-//   1. THEMES in SearchCommandCenter.jsx (5 Einträge)
-//   2. CATEGORIES in WorkDetailsStep.jsx (15 Einträge, Werk-spezifisch)
-//   3. CATEGORIES in ExperienceCreateStep.jsx (15 Einträge, Erlebnis-spezifisch)
-// Keine DB-Tabelle für Kategorien -- works.category / experiences.category
-// sind freie Text-Spalten (Legacy), keine Foreign-Keys, kein Enum.
+// AUFTRAG: "NICHT einfach bestehende Kategorien ersetzen, sondern eine
+// saubere Migration VORBEREITEN. Bestehende Daten bleiben vollständig
+// kompatibel. Granulare Unterkategorien bleiben erhalten und werden als
+// Child-Kategorien modelliert. Keine doppelten Kategorienlisten mehr im
+// Projekt. Keine Hardcodes. Keine Datenverluste." Eine eigentliche
+// DB-Datenmigration ist explizit NICHT Teil dieses Schritts.
 //
-// ENTSCHEIDUNG: Diese Datei ist ab jetzt die EINZIGE Quelle für die
-// kanonische, uebergreifende HUI-Themenwelt (Discovery/Suche). Sie ersetzt
-// THEMES in SearchCommandCenter.jsx vollstaendig. Die Werk-/Erlebnis-
-// spezifischen CATEGORIES-Listen in den Create-Flows (WorkDetailsStep,
-// ExperienceCreateStep) bleiben bewusst UNVERAENDERT -- sie bilden granulare
-// Medium-Typen ab ("Illustration","Keramik","Yoga",...), die auf die freie
-// works.category/experiences.category-Spalte schreiben. Eine Vereinheitlichung
-// dieser Schreib-Taxonomie mit der hier definierten breiteren Themenwelt ist
-// eine grössere Datenmigrations-Entscheidung (Architektur-Charta Prinzip 5)
-// und nicht Teil dieses Sprints -- wird hier nur vorbereitet, nicht erzwungen.
+// BESTANDSANALYSE (Governance-Pflicht vor Implementierung):
+// Vor diesem Schritt gab es 2 verbleibende hartcodierte, granulare
+// Kategorie-Listen (die uebergreifende 50er-Discovery-Liste "THEMES" wurde
+// bereits im vorherigen Sprint durch v1 dieser Datei ersetzt):
+//   1. CATEGORIES in src/system/flows/work/WorkDetailsStep.jsx (15 Werte,
+//      Medium/Technik-fokussiert: "Fotografie","Digitale Kunst",...)
+//   2. CATEGORIES in src/system/flows/experience/ExperienceCreateStep.jsx
+//      (15 Werte, Themen-fokussiert: "Coaching","Meditation","Yoga",...)
+// Beide schreiben als reiner Freitext in works.category / experiences.category
+// (kein Enum, kein FK). ALLE 28 einzigartigen Werte aus beiden Listen wurden
+// 1:1 gegen die bestehende 50er-Themenwelt gemappt (siehe RESOLUTION MAP
+// unten) -- jeder bestehende DB-Wert hat jetzt einen exakten, eindeutigen
+// Platz im Baum. Kein einziger Wert wurde umbenannt oder entfernt.
 //
-// DATENFLUSS (Governance-Pflichtformat):
-//   Quelle:       diese statische Konstante (CATEGORIES)
-//   Verarbeitung: getCategoryBySlug/searchCategories (reine Client-Funktionen)
-//   Speicherung:  keine eigene DB-Tabelle -- Kategorie-Auswahl wird beim
-//                 Suchen in Keyword-Terme uebersetzt und gegen die
-//                 bestehenden Spalten title/description/category (works,
-//                 experiences) per ILIKE gematcht (siehe useFeedStream.js)
-//   Notification: keine
-//   Anzeige:      SearchCommandCenter.jsx (Schnellauswahl-Zeile + "Alle
-//                 Kategorien"-Bottom-Sheet)
-//   Statistik:    keine (vorbereitet ueber optionale Felder, siehe unten)
-//   Admin:        keine eigene Verwaltung noetig (statische Liste im Code)
+// DATENMODELL:
+//   CATEGORIES = Parent-Ebene (bisher: die 50 Discovery-Themen). Jeder
+//   Parent kann optional:
+//     - legacyValues:  Freitext-Werte, die DIREKT diesem Parent entsprechen
+//                       (z.B. "Fotografie" -> Parent "fotografie")
+//     - appliesTo:      in welchen Kontexten dieser Parent als eigene Option
+//                       auswaehlbar ist -- "search" (Discovery/Suche, immer),
+//                       zusaetzlich "work" und/oder "experience" (Create-Flows)
+//     - children:       granulare Unterkategorien (z.B. "Illustration",
+//                       "Yoga") -- gleiche Feldstruktur wie Parents, aber
+//                       ohne eigene Children (aktuell max. 2 Ebenen tief,
+//                       aus gutem Grund: die UI braucht heute nicht mehr;
+//                       das Datenmodell selbst erzwingt keine Tiefen-Grenze).
 //
-// ZUKUNFTSSICHERHEIT: jedes Kategorie-Objekt hat feste Kernfelder
-// (id, name, icon, color, slug, keywords) und ist bewusst so gehalten, dass
-// spaeter zusaetzliche, rein additive Felder ergaenzt werden koennen, ohne
-// bestehende Konsumenten zu brechen -- z.B.:
-//   parentId          -> Unterkategorien (aktuell immer null = Top-Level)
-//   aiRecommended      -> KI-Empfehlungen (aktuell nicht gesetzt)
-//   popular             -> "Beliebte Kategorien" (aktuell nicht gesetzt)
-//   region              -> regionale Kategorien (aktuell nicht gesetzt)
-// Diese Felder werden HEUTE nicht benutzt/gerendert -- sie existieren nur
-// als vorbereitete, optionale Erweiterungspunkte (kein Scope-Creep).
+// KOMPATIBILITAETS-BRUECKE (kein Datenverlust, keine Migration heute):
+//   resolveLegacyCategory(value) findet zu JEDEM bestehenden Freitext-Wert
+//   in works.category/experiences.category (unabhaengig vom Flow) den
+//   passenden Knoten im neuen Baum. Diese Funktion ist die Grundlage fuer
+//   einen SPAETEREN, separaten Migrations-/Backfill-Schritt (z.B. um allen
+//   Werken/Erlebnissen zusaetzlich ein normalisiertes category_slug-Feld zu
+//   geben) -- schreibt selbst NICHTS in die DB, ist rein lesend.
+//
+//   getFlowCategoryOptions(flowKey) liefert fuer "work"/"experience" exakt
+//   die gleiche Wertemenge (gleiche Strings, gleiche Reihenfolge) wie die
+//   bisherigen hartcodierten CATEGORIES-Arrays -- die Create-Flows binden
+//   sich jetzt AUSSCHLIESSLICH hieran, ohne dass sich am gespeicherten Wert
+//   oder an der sichtbaren Auswahl irgendetwas aendert (reine Architektur-
+//   Vereinheitlichung, kein UX-Wechsel).
+//
+// ZUKUNFTSSICHERHEIT — vorbereitete, HEUTE UNGENUTZTE Erweiterungspunkte
+// (rein additiv, kein Scope-Creep, keine Breaking Changes):
+//   parentId (Children referenzieren dies implizit ueber die Baumposition)
+//   synonyms:     []    -> Synonyme fuer Suche/KI
+//   aiTags:       []    -> KI-generierte Zusatz-Tags
+//   i18n:         null  -> Mehrsprachigkeit, z.B. { en:"Creativity", ... }
+//   region:       null  -> regionale Kategorien/Sichtbarkeit
+//   personalized: null  -> personalisierte Kategorie-Gewichtung pro Nutzer
+//   rank:         null  -> Ranking/Relevanz-Score
+//   embedding:    null  -> Vektor fuer semantische Suche
+// Diese Felder werden von KEINER aktuellen Komponente gelesen -- sie legen
+// nur den Vertrag fest, damit spaetere Features (Suche/Feed/Marketplace/
+// Buchungen/Impact/KI) ohne Strukturbruch andocken koennen.
 
+// ── PARENT-KATEGORIEN (Discovery-Themenwelt, 50 Eintraege) ───────────────
 export const CATEGORIES = [
-  { id:"nachhaltigkeit",   name:"Nachhaltigkeit",           icon:"🌱", color:"#16A34A", slug:"nachhaltigkeit",   keywords:["nachhaltig","natur","umwelt","klima","oekologisch"] },
-  { id:"kreativitaet",     name:"Kreativität",              icon:"🎨", color:"#9333EA", slug:"kreativitaet",     keywords:["kreativ","kunst","design","gestaltung"] },
-  { id:"musik",            name:"Musik",                    icon:"🎵", color:"#0EA5E9", slug:"musik",            keywords:["musik","musiker","band","konzert","song","instrument"] },
-  { id:"gemeinschaft",     name:"Gemeinschaft",             icon:"🤝", color:"#0EC4B8", slug:"gemeinschaft",     keywords:["gemeinschaft","community","nachbarschaft","treffen"] },
-  { id:"bildung",          name:"Bildung",                  icon:"📚", color:"#D97706", slug:"bildung",          keywords:["bildung","lernen","kurs","workshop","schule"] },
-  { id:"technologie",      name:"Technologie",              icon:"💻", color:"#6366F1", slug:"technologie",      keywords:["technologie","tech","software","programmieren","code"] },
-  { id:"business",         name:"Business",                 icon:"💼", color:"#475569", slug:"business",         keywords:["business","unternehmen","startup","gruendung"] },
-  { id:"gesundheit",       name:"Gesundheit",               icon:"❤️", color:"#E11D48", slug:"gesundheit",       keywords:["gesundheit","wellness","fitness","ernaehrung"] },
-  { id:"achtsamkeit",      name:"Achtsamkeit",              icon:"🧘", color:"#0EC4B8", slug:"achtsamkeit",      keywords:["achtsamkeit","meditation","mindfulness","ruhe"] },
-  { id:"kochen",           name:"Kochen",                   icon:"🍳", color:"#EA580C", slug:"kochen",           keywords:["kochen","kueche","rezept","backen"] },
-  { id:"garten",           name:"Garten",                    icon:"🌿", color:"#16A34A", slug:"garten",           keywords:["garten","pflanzen","gaertnern","balkon"] },
-  { id:"wohnen",           name:"Wohnen",                    icon:"🏡", color:"#D97706", slug:"wohnen",           keywords:["wohnen","einrichtung","zuhause","interior"] },
-  { id:"kunst",            name:"Kunst",                     icon:"🎭", color:"#9333EA", slug:"kunst",            keywords:["kunst","malerei","skulptur","galerie"] },
-  { id:"fotografie",       name:"Fotografie",                icon:"📷", color:"#0EA5E9", slug:"fotografie",       keywords:["fotografie","foto","kamera","shooting"] },
-  { id:"film",             name:"Film",                      icon:"🎬", color:"#6366F1", slug:"film",             keywords:["film","video","kino","regie"] },
-  { id:"gaming",           name:"Gaming",                    icon:"🎮", color:"#6366F1", slug:"gaming",           keywords:["gaming","games","zocken","esport"] },
-  { id:"literatur",        name:"Literatur",                 icon:"📖", color:"#D97706", slug:"literatur",        keywords:["literatur","buch","lesen","roman"] },
-  { id:"schreiben",        name:"Schreiben",                 icon:"✍️", color:"#D97706", slug:"schreiben",        keywords:["schreiben","text","autor","bloggen"] },
-  { id:"sprache",          name:"Sprache",                   icon:"🎤", color:"#0EA5E9", slug:"sprache",          keywords:["sprache","sprechen","rhetorik","vortrag"] },
-  { id:"reisen",           name:"Reisen",                    icon:"🌍", color:"#EA580C", slug:"reisen",           keywords:["reisen","urlaub","reise","abenteuer"] },
-  { id:"outdoor",          name:"Outdoor",                   icon:"🏕️", color:"#16A34A", slug:"outdoor",          keywords:["outdoor","wandern","camping","natur"] },
-  { id:"sport",            name:"Sport",                     icon:"🚴", color:"#E11D48", slug:"sport",            keywords:["sport","fitness","training","bewegung"] },
-  { id:"tiere",            name:"Tiere",                     icon:"🐶", color:"#16A34A", slug:"tiere",            keywords:["tiere","hund","katze","tierschutz"] },
-  { id:"familie",          name:"Familie",                   icon:"👨‍👩‍👧", color:"#DB2777", slug:"familie",          keywords:["familie","eltern","erziehung"] },
-  { id:"kinder",           name:"Kinder",                    icon:"👶", color:"#DB2777", slug:"kinder",           keywords:["kinder","baby","kita","spielen"] },
-  { id:"senioren",         name:"Senioren",                   icon:"👵", color:"#475569", slug:"senioren",         keywords:["senioren","alter","pflege"] },
-  { id:"ehrenamt",         name:"Ehrenamt",                   icon:"🍀", color:"#0EC4B8", slug:"ehrenamt",         keywords:["ehrenamt","freiwillig","engagement","sozial"] },
-  { id:"events",           name:"Events",                     icon:"🎉", color:"#E11D48", slug:"events",           keywords:["events","veranstaltung","party","feier"] },
-  { id:"freizeit",         name:"Freizeit",                   icon:"🎪", color:"#EA580C", slug:"freizeit",         keywords:["freizeit","hobby","spass"] },
-  { id:"handmade",         name:"Handmade",                   icon:"🛍️", color:"#DB2777", slug:"handmade",         keywords:["handmade","selbstgemacht","unikat"] },
-  { id:"diy",              name:"DIY",                        icon:"🧵", color:"#EA580C", slug:"diy",              keywords:["diy","selbermachen","basteln"] },
-  { id:"handwerk",         name:"Handwerk",                   icon:"🪚", color:"#D97706", slug:"handwerk",         keywords:["handwerk","werkstatt","holz","metall"] },
-  { id:"reparatur",        name:"Reparatur",                  icon:"🔧", color:"#475569", slug:"reparatur",        keywords:["reparatur","reparieren","fixen"] },
-  { id:"mobilitaet",       name:"Mobilität",                  icon:"🚗", color:"#0EA5E9", slug:"mobilitaet",       keywords:["mobilitaet","auto","fahrrad","verkehr"] },
-  { id:"beauty",           name:"Beauty",                     icon:"💄", color:"#DB2777", slug:"beauty",           keywords:["beauty","kosmetik","pflege"] },
-  { id:"mode",             name:"Mode",                       icon:"👗", color:"#DB2777", slug:"mode",             keywords:["mode","fashion","stil","kleidung"] },
-  { id:"schmuck",          name:"Schmuck",                    icon:"💎", color:"#DB2777", slug:"schmuck",          keywords:["schmuck","ringe","ketten"] },
-  { id:"geschenke",        name:"Geschenke",                  icon:"🎁", color:"#E11D48", slug:"geschenke",        keywords:["geschenke","geschenkidee","praesent"] },
-  { id:"dienstleistungen", name:"Dienstleistungen",           icon:"📦", color:"#475569", slug:"dienstleistungen", keywords:["dienstleistung","service"] },
-  { id:"finanzen",         name:"Finanzen",                   icon:"📈", color:"#475569", slug:"finanzen",         keywords:["finanzen","geld","investieren","budget"] },
-  { id:"recht",            name:"Recht",                      icon:"⚖️", color:"#475569", slug:"recht",            keywords:["recht","jura","vertrag","beratung"] },
-  { id:"immobilien",       name:"Immobilien",                 icon:"🏠", color:"#D97706", slug:"immobilien",       keywords:["immobilien","wohnung","haus","miete"] },
-  { id:"innovation",       name:"Innovation",                 icon:"💡", color:"#6366F1", slug:"innovation",       keywords:["innovation","idee","zukunft"] },
-  { id:"ki",               name:"KI",                          icon:"🤖", color:"#6366F1", slug:"ki",               keywords:["ki","ai","kuenstliche intelligenz","machine learning"] },
-  { id:"digitales",        name:"Digitales",                  icon:"🌐", color:"#6366F1", slug:"digitales",        keywords:["digital","internet","online"] },
-  { id:"coaching",         name:"Coaching",                   icon:"🧑‍🏫", color:"#0EC4B8", slug:"coaching",        keywords:["coaching","mentoring","beratung"] },
-  { id:"lernen",           name:"Lernen",                     icon:"🎓", color:"#D97706", slug:"lernen",           keywords:["lernen","studium","nachhilfe"] },
-  { id:"medizin",          name:"Medizin",                    icon:"🩺", color:"#E11D48", slug:"medizin",          keywords:["medizin","arzt","gesundheit","therapie"] },
-  { id:"spiritualitaet",   name:"Spiritualität",              icon:"🙏", color:"#9333EA", slug:"spiritualitaet",   keywords:["spiritualitaet","glaube","seele"] },
-  { id:"persoenlichkeitsentwicklung", name:"Persönlichkeitsentwicklung", icon:"🌞", color:"#0EC4B8", slug:"persoenlichkeitsentwicklung", keywords:["persoenlichkeitsentwicklung","selbstentwicklung","wachstum"] },
+  cat("nachhaltigkeit",   "Nachhaltigkeit",           "🌱", "#16A34A", ["nachhaltig","natur","umwelt","klima","oekologisch"]),
+  cat("kreativitaet",     "Kreativität",              "🎨", "#9333EA", ["kreativ","kunst","design","gestaltung"], {
+    legacyValues:["Kreativität"], appliesTo:["search","experience"],
+    children:[
+      child("illustration",   "Illustration",   ["Illustration"],   ["work"]),
+      child("design",         "Design",         ["Design"],         ["work","experience","profile"]),
+    ],
+  }),
+  cat("musik",            "Musik",                    "🎵", "#0EA5E9", ["musik","musiker","band","konzert","song","instrument"], {
+    legacyValues:["Musik"], appliesTo:["search","work","experience","profile"],
+  }),
+  cat("gemeinschaft",     "Gemeinschaft",             "🤝", "#0EC4B8", ["gemeinschaft","community","nachbarschaft","treffen"]),
+  cat("bildung",          "Bildung",                  "📚", "#D97706", ["bildung","lernen","kurs","workshop","schule"], {
+    legacyValues:["Bildung"], appliesTo:["search","profile"],
+  }),
+  cat("technologie",      "Technologie",              "💻", "#6366F1", ["technologie","tech","software","programmieren","code"], {
+    legacyValues:["Technologie"], appliesTo:["search","experience","profile"],
+  }),
+  cat("business",         "Business",                 "💼", "#475569", ["business","unternehmen","startup","gruendung"]),
+  cat("gesundheit",       "Gesundheit",               "❤️", "#E11D48", ["gesundheit","wellness","fitness","ernaehrung"], {
+    legacyValues:["Wellness"], appliesTo:["search","profile"],
+  }),
+  cat("achtsamkeit",      "Achtsamkeit",              "🧘", "#0EC4B8", ["achtsamkeit","meditation","mindfulness","ruhe"], {
+    children:[
+      child("meditation", "Meditation", ["Meditation"], ["experience"]),
+      child("yoga",       "Yoga",       ["Yoga"],       ["experience"]),
+    ],
+  }),
+  cat("kochen",           "Kochen",                   "🍳", "#EA580C", ["kochen","kueche","rezept","backen"], {
+    legacyValues:["Gastronomie"], appliesTo:["search","profile"],
+    children:[ child("ernaehrung", "Ernährung", ["Ernährung"], ["experience"]) ],
+  }),
+  cat("garten",           "Garten",                   "🌿", "#16A34A", ["garten","pflanzen","gaertnern","balkon"]),
+  cat("wohnen",           "Wohnen",                   "🏡", "#D97706", ["wohnen","einrichtung","zuhause","interior"], {
+    children:[ child("architektur", "Architektur", ["Architektur"], ["work"]) ],
+  }),
+  cat("kunst",            "Kunst",                    "🎭", "#9333EA", ["kunst","malerei","skulptur","galerie"], {
+    legacyValues:["Kunst"], appliesTo:["search","experience","profile"],
+    children:[
+      child("digitale-kunst", "Digitale Kunst", ["Digitale Kunst"], ["work"]),
+      child("malerei",        "Malerei",        ["Malerei"],        ["work"]),
+      child("skulptur",       "Skulptur",       ["Skulptur"],       ["work"]),
+      child("tanz",           "Tanz",           ["Tanz"],           ["experience"]),
+    ],
+  }),
+  cat("fotografie",       "Fotografie",               "📷", "#0EA5E9", ["fotografie","foto","kamera","shooting"], {
+    legacyValues:["Fotografie"], appliesTo:["search","work","experience","profile"],
+  }),
+  cat("film",             "Film",                     "🎬", "#6366F1", ["film","video","kino","regie"], {
+    children:[ child("video", "Video", ["Video"], ["work","profile"]) ],
+  }),
+  cat("gaming",           "Gaming",                   "🎮", "#6366F1", ["gaming","games","zocken","esport"]),
+  cat("literatur",        "Literatur",                "📖", "#D97706", ["literatur","buch","lesen","roman"]),
+  cat("schreiben",        "Schreiben",                "✍️", "#D97706", ["schreiben","text","autor","bloggen"], {
+    legacyValues:["Text"], appliesTo:["search","profile"],
+  }),
+  cat("sprache",          "Sprache",                  "🎤", "#0EA5E9", ["sprache","sprechen","rhetorik","vortrag"], {
+    legacyValues:["Sprachen"], appliesTo:["search","experience"],
+  }),
+  cat("reisen",           "Reisen",                   "🌍", "#EA580C", ["reisen","urlaub","reise","abenteuer"]),
+  cat("outdoor",          "Outdoor",                  "🏕️", "#16A34A", ["outdoor","wandern","camping","natur"]),
+  cat("sport",            "Sport",                    "🚴", "#E11D48", ["sport","fitness","training","bewegung"], {
+    legacyValues:["Sport"], appliesTo:["search","experience","profile"],
+  }),
+  cat("tiere",            "Tiere",                    "🐶", "#16A34A", ["tiere","hund","katze","tierschutz"]),
+  cat("familie",          "Familie",                  "👨‍👩‍👧", "#DB2777", ["familie","eltern","erziehung"]),
+  cat("kinder",           "Kinder",                   "👶", "#DB2777", ["kinder","baby","kita","spielen"]),
+  cat("senioren",         "Senioren",                 "👵", "#475569", ["senioren","alter","pflege"]),
+  cat("ehrenamt",         "Ehrenamt",                 "🍀", "#0EC4B8", ["ehrenamt","freiwillig","engagement","sozial"]),
+  cat("events",           "Events",                   "🎉", "#E11D48", ["events","veranstaltung","party","feier"], {
+    legacyValues:["Events"], appliesTo:["search","profile"],
+  }),
+  cat("freizeit",         "Freizeit",                 "🎪", "#EA580C", ["freizeit","hobby","spass"]),
+  cat("handmade",         "Handmade",                 "🛍️", "#DB2777", ["handmade","selbstgemacht","unikat"]),
+  cat("diy",              "DIY",                      "🧵", "#EA580C", ["diy","selbermachen","basteln"]),
+  cat("handwerk",         "Handwerk",                 "🪚", "#D97706", ["handwerk","werkstatt","holz","metall"], {
+    legacyValues:["Handwerk"], appliesTo:["search","work","profile"],
+    children:[
+      child("keramik", "Keramik", ["Keramik"], ["work"]),
+      child("textil",  "Textil",  ["Textil"],  ["work"]),
+    ],
+  }),
+  cat("reparatur",        "Reparatur",                "🔧", "#475569", ["reparatur","reparieren","fixen"]),
+  cat("mobilitaet",       "Mobilität",                "🚗", "#0EA5E9", ["mobilitaet","auto","fahrrad","verkehr"]),
+  cat("beauty",           "Beauty",                   "💄", "#DB2777", ["beauty","kosmetik","pflege"]),
+  cat("mode",             "Mode",                     "👗", "#DB2777", ["mode","fashion","stil","kleidung"], {
+    legacyValues:["Mode"], appliesTo:["search","work","profile"],
+  }),
+  cat("schmuck",          "Schmuck",                  "💎", "#DB2777", ["schmuck","ringe","ketten"], {
+    legacyValues:["Schmuck"], appliesTo:["search","work"],
+  }),
+  cat("geschenke",        "Geschenke",                "🎁", "#E11D48", ["geschenke","geschenkidee","praesent"]),
+  cat("dienstleistungen", "Dienstleistungen",         "📦", "#475569", ["dienstleistung","service"]),
+  cat("finanzen",         "Finanzen",                 "📈", "#475569", ["finanzen","geld","investieren","budget"]),
+  cat("recht",            "Recht",                    "⚖️", "#475569", ["recht","jura","vertrag","beratung"]),
+  cat("immobilien",       "Immobilien",               "🏠", "#D97706", ["immobilien","wohnung","haus","miete"]),
+  cat("innovation",       "Innovation",               "💡", "#6366F1", ["innovation","idee","zukunft"]),
+  cat("ki",               "KI",                       "🤖", "#6366F1", ["ki","ai","kuenstliche intelligenz","machine learning"]),
+  cat("digitales",        "Digitales",                "🌐", "#6366F1", ["digital","internet","online"]),
+  cat("coaching",         "Coaching",                 "🧑‍🏫", "#0EC4B8", ["coaching","mentoring","beratung"], {
+    legacyValues:["Coaching"], appliesTo:["search","experience","profile"],
+  }),
+  cat("lernen",           "Lernen",                   "🎓", "#D97706", ["lernen","studium","nachhilfe"]),
+  cat("medizin",          "Medizin",                  "🩺", "#E11D48", ["medizin","arzt","gesundheit","therapie"]),
+  cat("spiritualitaet",   "Spiritualität",            "🙏", "#9333EA", ["spiritualitaet","glaube","seele"]),
+  cat("persoenlichkeitsentwicklung", "Persönlichkeitsentwicklung", "🌞", "#0EC4B8", ["persoenlichkeitsentwicklung","selbstentwicklung","wachstum"], {
+    legacyValues:["Persönlichkeit"], appliesTo:["search","experience"],
+  }),
+  // Fallback-Bucket -- KEIN Discovery-Thema (hidden:true, taucht nicht im
+  // "Alle Kategorien"-Grid auf), existiert ausschliesslich, damit der
+  // Legacy-Wert "Sonstiges" (aus beiden Create-Flows) einen verlustfreien
+  // Platz im Baum hat.
+  cat("sonstiges",        "Sonstiges",                "🗂️", "#475569", [], {
+    legacyValues:["Sonstiges"], appliesTo:["work","experience","profile"], hidden:true,
+  }),
 ];
 
-// Schnellauswahl-Zeile (horizontal scrollbar, direkt im Discovery-Panel
-// sichtbar) -- bewusst kurz gehalten (5 Eintraege), Rest via "Alle Kategorien".
+// ── Konstruktor-Helfer (halten die Liste oben lesbar, keine Wiederholung
+//    der Erweiterungsfelder in jeder Zeile) ───────────────────────────────
+function baseExtensions() {
+  return { synonyms:[], aiTags:[], i18n:null, region:null, personalized:null, rank:null, embedding:null };
+}
+function cat(id, name, icon, color, keywords, extra = {}) {
+  return {
+    id, name, icon, color, slug:id, keywords,
+    legacyValues: extra.legacyValues || [],
+    appliesTo: extra.appliesTo || ["search"],
+    hidden: !!extra.hidden,
+    children: (extra.children || []).map(c => ({ ...c, parentId:id })),
+    ...baseExtensions(),
+  };
+}
+function child(id, name, legacyValues, appliesTo, keywords = []) {
+  return {
+    id, name, icon:null, color:null, slug:id, keywords,
+    legacyValues: legacyValues || [], appliesTo: appliesTo || [], hidden:false,
+    children: [],
+    ...baseExtensions(),
+  };
+}
+
+// ── Schnellauswahl-Zeile (Discovery-Panel, horizontal scrollbar) ─────────
 export const FEATURED_SLUGS = ["nachhaltigkeit","kreativitaet","musik","gemeinschaft","bildung"];
 export const FEATURED_CATEGORIES = FEATURED_SLUGS
   .map(s => CATEGORIES.find(c => c.slug === s))
   .filter(Boolean);
 
+// ── Baum-Zugriffshelfer ───────────────────────────────────────────────────
 export function getCategoryBySlug(slug) {
   return CATEGORIES.find(c => c.slug === slug) || null;
 }
 
-// Client-seitige Filterung der Kategorie-LISTE selbst (nicht der Feed-
-// Ergebnisse) -- fuer das Suchfeld im "Alle Kategorien"-Bottom-Sheet.
-export function searchCategories(query) {
+// Alle Knoten (Parents + Children) als flache Liste, jeweils mit Referenz
+// auf den Parent-Slug (bei Parents == eigener Slug). Interner Baustein fuer
+// die Funktionen unten -- kann spaeter auch direkt fuer Admin-Tools o.ae.
+// wiederverwendet werden.
+function flattenNodes() {
+  const out = [];
+  for (const p of CATEGORIES) {
+    out.push({ node: p, parentSlug: p.slug, isChild: false });
+    for (const c of p.children) {
+      out.push({ node: c, parentSlug: p.slug, isChild: true });
+    }
+  }
+  return out;
+}
+
+// Client-seitige Filterung der Parent-LISTE (fuer das "Alle Kategorien"-
+// Bottom-Sheet) -- matcht jetzt zusaetzlich gegen Children/Legacy-Werte,
+// damit z.B. die Suche nach "Yoga" den Parent "Achtsamkeit" findet (mehr
+// Recall, ohne dass die UI selbst Unterkategorien anzeigen muss).
+export function searchCategories(query, { includeHidden = false } = {}) {
   const q = (query || "").trim().toLowerCase();
-  if (!q) return CATEGORIES;
-  return CATEGORIES.filter(c =>
-    c.name.toLowerCase().includes(q) ||
-    c.keywords.some(k => k.toLowerCase().includes(q))
-  );
+  const base = includeHidden ? CATEGORIES : CATEGORIES.filter(c => !c.hidden);
+  if (!q) return base;
+  return base.filter(c => {
+    if (c.name.toLowerCase().includes(q)) return true;
+    if (c.keywords.some(k => k.toLowerCase().includes(q))) return true;
+    if (c.legacyValues.some(v => v.toLowerCase().includes(q))) return true;
+    return c.children.some(ch =>
+      ch.name.toLowerCase().includes(q) ||
+      ch.legacyValues.some(v => v.toLowerCase().includes(q))
+    );
+  });
+}
+
+// KOMPATIBILITAETS-BRUECKE: findet zu einem bestehenden Freitext-Wert aus
+// works.category/experiences.category (unabhaengig vom Flow) den passenden
+// Knoten im neuen Baum. Rein lesend -- schreibt nichts, veraendert keine
+// Daten. Grundlage fuer einen spaeteren, separaten Migrations-/Backfill-Schritt.
+export function resolveLegacyCategory(value) {
+  const v = (value || "").trim().toLowerCase();
+  if (!v) return null;
+  for (const { node, parentSlug, isChild } of flattenNodes()) {
+    if (node.legacyValues.some(lv => lv.toLowerCase() === v)) {
+      return { parentSlug, childId: isChild ? node.id : null, node };
+    }
+  }
+  return null;
+}
+
+// Reihenfolge der Legacy-Optionen pro Flow -- 1:1 identisch zur Reihenfolge
+// der frueheren hartcodierten CATEGORIES-Arrays in WorkDetailsStep.jsx bzw.
+// ExperienceCreateStep.jsx, damit sich an der sichtbaren Auswahl fuer die
+// Nutzer *nichts* aendert (reine Architektur-Vereinheitlichung, kein UX-Wechsel).
+const FLOW_ORDER = {
+  profile: ["musik","kunst","design","fotografie","video","schreiben","bildung","sport","gesundheit","kochen","events","coaching","handwerk","technologie","mode","sonstiges"],
+  work: ["fotografie","digitale-kunst","illustration","design","malerei","skulptur","keramik","schmuck","textil","mode","musik","video","architektur","handwerk","sonstiges"],
+  experience: ["coaching","musik","fotografie","meditation","yoga","design","sprache","sport","kunst","technologie","tanz","ernaehrung","persoenlichkeitsentwicklung","kreativitaet","sonstiges"],
+};
+
+// Liefert fuer einen Create-Flow ("work" | "experience") die exakte Menge an
+// auswaehlbaren Freitext-Werten (Strings) -- Drop-in-Ersatz fuer die
+// bisherigen hartcodierten CATEGORIES-Konstanten in den Create-Flow-Dateien.
+// Jeder zurueckgegebene String ist exakt der Wert, der wie bisher in
+// works.category/experiences.category geschrieben wird.
+export function getFlowCategoryOptions(flowKey) {
+  const values = [];
+  for (const { node, parentSlug } of flattenNodes()) {
+    if (!node.appliesTo.includes(flowKey)) continue;
+    const label = node.legacyValues[0] || node.name;
+    if (!values.includes(label)) values.push(label);
+  }
+  const order = FLOW_ORDER[flowKey] || [];
+  const idFor = (label) => {
+    const hit = flattenNodes().find(({node}) => (node.legacyValues[0]||node.name) === label);
+    return hit ? hit.node.id : label;
+  };
+  return values.sort((a, b) => {
+    const ia = order.indexOf(idFor(a));
+    const ib = order.indexOf(idFor(b));
+    if (ia === -1 && ib === -1) return a.localeCompare(b);
+    if (ia === -1) return 1;
+    if (ib === -1) return -1;
+    return ia - ib;
+  });
 }

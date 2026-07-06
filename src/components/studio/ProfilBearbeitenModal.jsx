@@ -11,6 +11,7 @@
 // ═══════════════════════════════════════════════════════════
 
 import { useState, useEffect, useCallback } from "react";
+import { getFlowCategoryOptions } from "../../lib/categories.js";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { isProfileTalent } from "../../lib/profileUtils.js";
@@ -46,8 +47,12 @@ const TABS = [
 
 // Fixe Optionen
 const FOCUS_TYPES  = ["Kreativ","Sozial","Technisch","Bildung","Bewegung","Handel","Gastro","Beratung","Sonstiges"];
-const CATEGORIES   = ["Musik","Kunst","Design","Fotografie","Video","Text","Bildung","Sport","Wellness",
-                       "Gastronomie","Events","Coaching","Handwerk","Technologie","Mode","Sonstiges"];
+// Kategorien-Architektur vereinheitlicht (2026-07-06, Lars) -- zentrale
+// Single Source of Truth statt hartcodierter lokaler Liste. Liefert exakt
+// dieselben 16 Werte in derselben Reihenfolge wie zuvor (siehe
+// src/lib/categories.js, FLOW_ORDER.profile) -- keine sichtbare Aenderung
+// fuer Nutzer, kein Datenformat-Wechsel fuer wirker_profiles.categories.
+const CATEGORIES   = getFlowCategoryOptions("profile");
 const SKILLS_OPTS  = ["Gitarre","Klavier","Gesang","Fotografie","Videoschnitt","Grafikdesign","Illustration",
                        "Webdesign","Programmierung","Coaching","Yoga","Meditation","Kochen","Backen",
                        "Schreiben","Übersetzen","Social Media","Marketing","Beratung","Sonstiges"];

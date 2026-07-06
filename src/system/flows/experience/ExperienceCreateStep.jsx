@@ -3,6 +3,12 @@
 
 import React, { useRef, useCallback } from "react";
 import { ET, EInput } from "./ExperienceTokens.js";
+// Kategorien-Architektur vereinheitlicht (2026-07-06, Lars) -- zentrale
+// Single Source of Truth statt hartcodierter lokaler Liste. Liefert exakt
+// dieselben 15 Werte in derselben Reihenfolge wie zuvor (siehe
+// src/lib/categories.js, FLOW_ORDER.experience) -- keine sichtbare Aenderung
+// fuer Nutzer, kein Datenformat-Wechsel fuer experiences.category.
+import { getFlowCategoryOptions } from "../../../lib/categories.js";
 
 const EXAMPLES = [
   "Gitarrenunterricht für Anfänger",
@@ -11,11 +17,7 @@ const EXAMPLES = [
   "3D Design Mentoring",
 ];
 
-const CATEGORIES = [
-  "Coaching","Musik","Fotografie","Meditation","Yoga","Design",
-  "Sprachen","Sport","Kunst","Technologie","Tanz","Ernährung",
-  "Persönlichkeit","Kreativität","Sonstiges",
-];
+const CATEGORIES = getFlowCategoryOptions("experience");
 
 /* ── Medien Upload Button ─────────────────────────────────────── */
 function MediaBtn({ icon, label, color, bg, onClick }) {
