@@ -1,5 +1,9 @@
 // header/HomeHeader.jsx — HUI Command Center Header
-// MatchBar ersetzt durch SearchCommandCenter (intelligente Plattform-Suche)
+// SearchCommandCenter ist die EINZIGE Suchleiste im gesamten Home-Bereich
+// (Single Source of Truth). Das fruehere MatchBar.jsx wurde bereits vor
+// dieser Umstellung ersetzt und war zuletzt komplett unreferenziert (0
+// Importe) -- am 2026-07-06 endgueltig aus dem Repo entfernt (Debug-Runde
+// 'zwei Suchleisten', Lars).
 
 import React from "react";
 import SearchCommandCenter from "./SearchCommandCenter.jsx";

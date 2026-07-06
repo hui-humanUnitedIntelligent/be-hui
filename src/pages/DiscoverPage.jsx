@@ -171,7 +171,13 @@ function SectionHead({ title, sub, action, onAction, delay=0 }) {
 // ════════════════════════════════════════════════════════════════
 // 1. TITELBEREICH (Suchleiste entfernt — globale Suche im Header)
 // ════════════════════════════════════════════════════════════════
-function SearchBar({ view, onViewChange }) {
+// Titelzeile 'Entdecken' + View-Toggle -- KEIN Suchfeld, keine Suchfunktion.
+// Bewusst umbenannt von 'SearchBar' -> 'DiscoverTitleBar' (2026-07-06, Lars-
+// Debug 'zwei Suchleisten'): der alte Name kollidierte namentlich mit der
+// echten, globalen Suchleiste (SearchCommandCenter in HomeHeader) und
+// sorgte fuer Verwechslung, welche Komponente tatsaechlich die Suche ist.
+// Rein kosmetische Umbenennung -- Optik/Funktion 1:1 unveraendert.
+function DiscoverTitleBar({ view, onViewChange }) {
   return (
     <div style={{
       padding:`12px ${T.px}px 8px`,
@@ -1929,7 +1935,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
       <style>{CSS}</style>
 
       {/* ── 1. Titelbereich ── */}
-      <SearchBar view={view} onViewChange={setView} />
+      <DiscoverTitleBar view={view} onViewChange={setView} />
 
       {/* ── 1b. Live Activity Bar ── */}
       <LiveActivityBar onPersonPress={handleActivityPress}/>
