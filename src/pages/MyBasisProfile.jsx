@@ -39,6 +39,15 @@ import WerkWizard      from "../components/works/WerkWizard.jsx";
 import TalentAngebotWizard from "../components/talents/TalentAngebotWizard.jsx";
 import { useTalents, deleteTalent } from "../hooks/useTalents.js";
 import ExperienceWizard from "../components/experiences/ExperienceWizard.jsx";
+import AmbassadorStudioSection from "../components/ambassador/AmbassadorStudioSection.jsx";
+import MyRecommendationsModal   from "../components/studio/MyRecommendationsModal.jsx";
+import ImpactStimmenModal       from "../components/studio/ImpactStimmenModal.jsx";
+import MeineProjekteModal       from "../components/studio/MeineProjekteModal.jsx";
+import EinAusgabenModal         from "../components/studio/EinAusgabenModal.jsx";
+import MeineVerkaeufeModal      from "../components/studio/MeineVerkaeufeModal.jsx";
+import MeineBuchungenModal      from "../components/studio/MeineBuchungenModal.jsx";
+import StatistikenModal         from "../components/studio/StatistikenModal.jsx";
+import ProfilBearbeitenModal    from "../components/studio/ProfilBearbeitenModal.jsx";
 
 // ── Design Tokens ────────────────────────────────────────────────
 const T = {
@@ -835,34 +844,27 @@ export default function MyBasisProfile({ onClose, profileId }) {
             <Gap h={24}/>
             */}
 
-            {/* T2b. Talent-Angebote — neues Modul, additiv neben TalentSection (Tags bleiben unveraendert) */}
-            <TalentAngeboteSection
+            {/* T2b-T4 + Ambassador/Empfehlungen/Impact/Finanzen — PROFIL-DRAWER-REDESIGN-003
+                (2026-07-06): zusammengefasst in die "Mein Bereich"-Menü-Karte
+                (MeinBereichMenu). Jede Kachel oeffnet die jeweilige Section/Modal
+                als Bottom-Sheet-Drawer statt permanent inline zu rendern. */}
+            <MeinBereichMenu
+              profile={profile}
+              isTalent={true}
               talents={talents}
+              works={works}
+              experiences={experiences}
               onTalentWizard={(t) => { setEditingTalent(t || null); setShowTalentWizard(true); }}
               onDeleteTalent={() => reloadTalents()}
-            />
-            <Gap h={20}/>
-
-            {/* T2c. Meine Buchungen — verschoben in den Studio-Bereich (Einnahmen & Statistiken), 2026-07-06.
-                Siehe src/components/studio/MeineBuchungenModal.jsx */}
-
-            {/* T3. Meine Werke — MeineWerkeSection bleibt (Owner-only, kein Public-Duplikat) */}
-            <MeineWerkeSection
-              userId={profile?.id}
-              works={works}
               onWerkWizard={(w) => { setEditingWerk(w || null); setShowWerkWizard(true); }}
               onDeleteWerk={(id) => { setLocalWorks(null); reload(); }}
-            />
-            <Gap h={20}/>
-
-            {/* T3b. Meine Verkäufe — verschoben in den Studio-Bereich (Einnahmen & Statistiken), 2026-07-06.
-                Siehe src/components/studio/MeineVerkaeufeModal.jsx */}
-
-            {/* T4. Erlebnisse — ErlebnisseSection bleibt (Owner-only) */}
-            <ErlebnisseSection
-              experiences={experiences}
               onErlebnisWizard={(exp) => { setEditingExp(exp || null); setShowExpWizard(true); }}
               onDeleteErlebnis={(id) => { setLocalExperiences(null); reload(); }}
+              onProfileUpdate={(upd) => {
+                setAuthProfile && setAuthProfile(p => ({ ...p, ...upd }));
+                refreshProfile?.().catch(() => {});
+                reload();
+              }}
             />
             <Gap h={20}/>
 
@@ -907,6 +909,28 @@ export default function MyBasisProfile({ onClose, profileId }) {
               onSave={(bio) => handleBioSave(bio)}
             />
             <Gap h={24}/>
+
+            {/* B1b. Mein Bereich — PROFIL-DRAWER-REDESIGN-003 (2026-07-06):
+                Basis-Profil zeigt nur die universellen Kacheln (kein Talent-Bereich). */}
+            <MeinBereichMenu
+              profile={profile}
+              isTalent={false}
+              talents={talents}
+              works={works}
+              experiences={experiences}
+              onTalentWizard={(t) => { setEditingTalent(t || null); setShowTalentWizard(true); }}
+              onDeleteTalent={() => reloadTalents()}
+              onWerkWizard={(w) => { setEditingWerk(w || null); setShowWerkWizard(true); }}
+              onDeleteWerk={(id) => { setLocalWorks(null); reload(); }}
+              onErlebnisWizard={(exp) => { setEditingExp(exp || null); setShowExpWizard(true); }}
+              onDeleteErlebnis={(id) => { setLocalExperiences(null); reload(); }}
+              onProfileUpdate={(upd) => {
+                setAuthProfile && setAuthProfile(p => ({ ...p, ...upd }));
+                refreshProfile?.().catch(() => {});
+                reload();
+              }}
+            />
+            <Gap h={20}/>
 
             {/* B2. Interessen & Werte — InteressenSection bleibt (Basis-spezifisch) */}
             <InteressenSection interests={interests} onChange={handleInterestsChange}/>
@@ -1528,6 +1552,299 @@ function DeleteTalentConfirm({ talent, onConfirm, onCancel }) {
     </div>
   );
 }
+
+// ════════════════════════════════════════════════════════════════
+// MEIN BEREICH — Drawer-Menü (PROFIL-DRAWER-REDESIGN-003, 2026-07-06)
+// ────────────────────────────────────────────────────────────────
+// Ersetzt die bisherigen, permanent sichtbaren Inline-Listen
+// (Talent-Angebote/Meine Werke/Erlebnisse) sowie die aus dem Studio
+// umgezogenen Bereiche (Ambassador/Empfehlungen/Impact/Finanzen) durch
+// eine kompakte Menü-Karte mit Icon-Grid — jedes Feld oeffnet die
+// jeweilige bestehende Section/Modal als Bottom-Sheet-Drawer. Kein
+// Feature neu gebaut, nur die Praesentation vereinheitlicht (Charta:
+// Wiederverwendung vor Neuerstellung, Evolution statt Rewrite).
+// ════════════════════════════════════════════════════════════════
+
+function MeinBereichDrawer({ title, icon, onClose, children, footer = true }) {
+  return createPortal(
+    <div
+      onClick={onClose}
+      style={{
+        position:"fixed", inset:0, zIndex:10500,
+        background:"rgba(26,26,24,0.55)",
+        display:"flex", alignItems:"flex-end", justifyContent:"center",
+        fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif",
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          width:"100%", maxWidth:480,
+          background:"#F7F5F0", borderRadius:"24px 24px 0 0",
+          maxHeight:"90vh", display:"flex", flexDirection:"column",
+          boxShadow:"0 -4px 32px rgba(26,26,24,0.20)",
+        }}
+      >
+        {/* Handle */}
+        <div style={{ display:"flex", justifyContent:"center", padding:"12px 0 4px", flexShrink:0 }}>
+          <div style={{ width:36, height:4, borderRadius:99, background:"rgba(26,26,24,0.12)" }} />
+        </div>
+        {/* Header */}
+        <div style={{
+          display:"flex", alignItems:"center", justifyContent:"space-between",
+          padding:"8px 20px 14px", flexShrink:0,
+          borderBottom:"1px solid rgba(26,26,24,0.08)",
+        }}>
+          <div style={{ fontSize:17, fontWeight:800, color:"#1A1A18", letterSpacing:"-0.02em" }}>
+            {icon} {title}
+          </div>
+          <button onClick={onClose} style={{
+            background:"rgba(26,26,24,0.07)", border:"none", cursor:"pointer",
+            borderRadius:"50%", width:32, height:32,
+            display:"flex", alignItems:"center", justifyContent:"center",
+            fontSize:16, color:"rgba(26,26,24,0.52)",
+          }}>✕</button>
+        </div>
+        {/* Inhalt scrollbar */}
+        <div style={{
+          flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch",
+          scrollbarWidth:"none", padding: footer ? undefined : "0 0 24px",
+        }}>
+          {children}
+        </div>
+        {/* Footer */}
+        {footer && (
+          <div style={{ padding:"12px 20px 36px", borderTop:"1px solid rgba(26,26,24,0.08)", flexShrink:0 }}>
+            <button onClick={onClose} style={{
+              width:"100%", padding:"13px", borderRadius:14, border:"none",
+              cursor:"pointer", background:"rgba(26,26,24,0.08)",
+              color:"rgba(26,26,24,0.52)", fontSize:14, fontWeight:700,
+              fontFamily:"inherit", WebkitTapHighlightColor:"transparent",
+            }}>Schließen</button>
+          </div>
+        )}
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+function MeinBereichChooserRow({ icon, label, desc, onPress }) {
+  return (
+    <button onClick={onPress} className="mbp-press-light" style={{
+      width:"100%", display:"flex", alignItems:"center", gap:14,
+      padding:"15px 20px", background:"none", border:"none", cursor:"pointer",
+      fontFamily:"inherit", textAlign:"left", borderBottom:"1px solid rgba(26,26,24,0.06)",
+      WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
+    }}>
+      <span style={{
+        width:38, height:38, borderRadius:11, flexShrink:0,
+        background:"rgba(14,196,184,0.10)",
+        display:"flex", alignItems:"center", justifyContent:"center", fontSize:18,
+      }}>{icon}</span>
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ fontSize:14, fontWeight:700, color:"#1A1A18" }}>{label}</div>
+        {desc && <div style={{ fontSize:12, color:"rgba(26,26,24,0.5)", marginTop:1 }}>{desc}</div>}
+      </div>
+      <span style={{ color:"rgba(26,26,24,0.32)", fontSize:17 }}>›</span>
+    </button>
+  );
+}
+
+function MeinBereichTile({ icon, label, onPress }) {
+  return (
+    <button
+      onClick={onPress}
+      className="mbp-press-light"
+      style={{
+        display:"flex", flexDirection:"column", alignItems:"center", gap:8,
+        background:"none", border:"none", cursor:"pointer", fontFamily:"inherit",
+        padding:"4px 2px", WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
+      }}
+    >
+      <span style={{
+        width:52, height:52, borderRadius:"50%",
+        background:"rgba(14,196,184,0.10)", border:"1px solid rgba(14,196,184,0.22)",
+        display:"flex", alignItems:"center", justifyContent:"center", fontSize:22,
+        flexShrink:0,
+      }}>{icon}</span>
+      <span style={{
+        fontSize:11.5, fontWeight:600, color:"rgba(26,26,24,0.75)",
+        textAlign:"center", lineHeight:1.25, maxWidth:76,
+      }}>{label}</span>
+    </button>
+  );
+}
+
+function MeinBereichMenu({
+  profile, isTalent,
+  talents, works, experiences,
+  onTalentWizard, onDeleteTalent,
+  onWerkWizard, onDeleteWerk,
+  onErlebnisWizard, onDeleteErlebnis,
+  onProfileUpdate = () => {},
+}) {
+  const { switchTab } = useHome();
+  const [activeDrawer, setActiveDrawer] = useState(null); // talente|werke|erlebnisse|ambassador|empfehlungen|impact|finanzen
+  const [impactDetail, setImpactDetail] = useState(null); // stimmen|projekte
+  const [financeDetail, setFinanceDetail] = useState(null); // ein_aus|verkaeufe|buchungen|statistiken
+  const [showProfilEdit, setShowProfilEdit] = useState(false);
+
+  const close = () => setActiveDrawer(null);
+
+  return (
+    <div style={{ padding:`0 ${T.px}px` }}>
+      <div style={{
+        background:T.bgCard, borderRadius:T.r20,
+        border:`1px solid ${T.border}`, boxShadow:T.card,
+        padding:"18px 18px 20px",
+      }}>
+        <div style={{ fontSize:15, fontWeight:800, color:T.ink, marginBottom:14, letterSpacing:"-0.01em" }}>
+          Mein Bereich
+        </div>
+
+        <button
+          onClick={() => setShowProfilEdit(true)}
+          className="mbp-press-light"
+          style={{
+            width:"100%", padding:"13px", borderRadius:T.r99,
+            background:T.tealSoft, border:`1px solid ${T.tealMid}`,
+            color:T.teal, fontSize:14, fontWeight:800, cursor:"pointer",
+            fontFamily:"inherit", marginBottom:18,
+            WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
+          }}
+        >
+          Profil bearbeiten
+        </button>
+
+        <div style={{
+          display:"grid", gridTemplateColumns:"repeat(4, 1fr)",
+          rowGap:18, columnGap:4,
+        }}>
+          {isTalent && (
+            <MeinBereichTile icon="🧑‍🎨" label="Talent-Angebote" onPress={() => setActiveDrawer("talente")} />
+          )}
+          {isTalent && (
+            <MeinBereichTile icon="🎨" label="Meine Werke" onPress={() => setActiveDrawer("werke")} />
+          )}
+          {isTalent && (
+            <MeinBereichTile icon="🌟" label="Erlebnisse & Projekte" onPress={() => setActiveDrawer("erlebnisse")} />
+          )}
+          <MeinBereichTile icon="👥" label="Ambassador-Bereich" onPress={() => setActiveDrawer("ambassador")} />
+          <MeinBereichTile icon="⭐" label="Meine Empfehlungen" onPress={() => setActiveDrawer("empfehlungen")} />
+          <MeinBereichTile icon="🗳️" label="Impact & Stimmen" onPress={() => setActiveDrawer("impact")} />
+          <MeinBereichTile icon="💶" label="Finanzabteilung" onPress={() => setActiveDrawer("finanzen")} />
+        </div>
+      </div>
+
+      {/* ── Talent-Angebote ─────────────────────────────────── */}
+      {activeDrawer === "talente" && (
+        <MeinBereichDrawer title="Talent-Angebote" icon="🧑‍🎨" onClose={close} footer={false}>
+          <TalentAngeboteSection
+            talents={talents}
+            onTalentWizard={onTalentWizard}
+            onDeleteTalent={onDeleteTalent}
+          />
+        </MeinBereichDrawer>
+      )}
+
+      {/* ── Meine Werke ──────────────────────────────────────── */}
+      {activeDrawer === "werke" && (
+        <MeinBereichDrawer title="Meine Werke" icon="🎨" onClose={close} footer={false}>
+          <MeineWerkeSection
+            works={works}
+            onWerkWizard={onWerkWizard}
+            onDeleteWerk={onDeleteWerk}
+          />
+        </MeinBereichDrawer>
+      )}
+
+      {/* ── Erlebnisse & Projekte ────────────────────────────── */}
+      {activeDrawer === "erlebnisse" && (
+        <MeinBereichDrawer title="Erlebnisse & Projekte" icon="🌟" onClose={close} footer={false}>
+          <ErlebnisseSection
+            experiences={experiences}
+            onErlebnisWizard={onErlebnisWizard}
+            onDeleteErlebnis={onDeleteErlebnis}
+          />
+        </MeinBereichDrawer>
+      )}
+
+      {/* ── Ambassador-Bereich ───────────────────────────────── */}
+      {activeDrawer === "ambassador" && (
+        <MeinBereichDrawer title="Ambassador-Bereich" icon="👥" onClose={close} footer={false}>
+          <AmbassadorStudioSection profile={profile} />
+        </MeinBereichDrawer>
+      )}
+
+      {/* ── Meine Empfehlungen (bereits eigenstaendiger Drawer) ─ */}
+      {activeDrawer === "empfehlungen" && (
+        <MyRecommendationsModal userId={profile?.id} onClose={close} />
+      )}
+
+      {/* ── Impact & Stimmen (Chooser + Detail-Drawer) ──────── */}
+      {activeDrawer === "impact" && !impactDetail && (
+        <MeinBereichDrawer title="Impact & Stimmen" icon="🗳️" onClose={close} footer={false}>
+          <MeinBereichChooserRow
+            icon="🗳️" label="Impact-Stimmen"
+            desc={isTalent ? "2 Stimmen / Monat" : "1 Stimme / Monat"}
+            onPress={() => setImpactDetail("stimmen")}
+          />
+          <MeinBereichChooserRow
+            icon="❤️" label="Meine unterstützten Projekte"
+            onPress={() => setImpactDetail("projekte")}
+          />
+        </MeinBereichDrawer>
+      )}
+      {activeDrawer === "impact" && impactDetail === "stimmen" && (
+        <ImpactStimmenModal
+          profile={profile}
+          onClose={() => setImpactDetail(null)}
+          switchTab={switchTab}
+        />
+      )}
+      {activeDrawer === "impact" && impactDetail === "projekte" && (
+        <MeineProjekteModal
+          profile={profile}
+          onClose={() => setImpactDetail(null)}
+          switchTab={switchTab}
+        />
+      )}
+
+      {/* ── Finanzabteilung (Chooser + Detail-Drawer) ───────── */}
+      {activeDrawer === "finanzen" && !financeDetail && (
+        <MeinBereichDrawer title="Finanzabteilung" icon="💶" onClose={close} footer={false}>
+          <MeinBereichChooserRow icon="💶" label="Ein-/Ausgaben Übersicht" onPress={() => setFinanceDetail("ein_aus")} />
+          <MeinBereichChooserRow icon="🛍️" label="Meine Verkäufe" onPress={() => setFinanceDetail("verkaeufe")} />
+          <MeinBereichChooserRow icon="📅" label="Meine Buchungen" onPress={() => setFinanceDetail("buchungen")} />
+          <MeinBereichChooserRow icon="📊" label="Statistiken" onPress={() => setFinanceDetail("statistiken")} />
+        </MeinBereichDrawer>
+      )}
+      {activeDrawer === "finanzen" && financeDetail === "ein_aus" && (
+        <EinAusgabenModal profile={profile} onClose={() => setFinanceDetail(null)} />
+      )}
+      {activeDrawer === "finanzen" && financeDetail === "verkaeufe" && (
+        <MeineVerkaeufeModal profile={profile} onClose={() => setFinanceDetail(null)} />
+      )}
+      {activeDrawer === "finanzen" && financeDetail === "buchungen" && (
+        <MeineBuchungenModal profile={profile} onClose={() => setFinanceDetail(null)} />
+      )}
+      {activeDrawer === "finanzen" && financeDetail === "statistiken" && (
+        <StatistikenModal profile={profile} onClose={() => setFinanceDetail(null)} />
+      )}
+
+      {/* ── Profil bearbeiten ───────────────────────────────── */}
+      {showProfilEdit && (
+        <ProfilBearbeitenModal
+          profile={profile}
+          onClose={() => setShowProfilEdit(false)}
+          onProfileUpdate={onProfileUpdate}
+        />
+      )}
+    </div>
+  );
+}
+
 
 function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTalent = () => {} }) {
   const [confirmTalent, setConfirmTalent] = React.useState(null);
