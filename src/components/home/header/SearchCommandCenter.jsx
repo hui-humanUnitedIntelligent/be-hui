@@ -2109,11 +2109,15 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
         <path d="M20 20L16.5 16.5" stroke={T.teal} strokeWidth="2" strokeLinecap="round"/>
       </svg>
       <div style={{flex:1,position:"relative",height:40,display:"flex",alignItems:"center"}}>
+        {/* Kein natives HTML-placeholder-Attribut hier -- der animierte
+            Platzhalter-Span direkt darunter uebernimmt die Anzeige vollstaendig.
+            BUG-FIX (2026-07-06, Lars-Screenshot): natives placeholder + Custom-Span
+            lagen exakt uebereinander -> sichtbarer Geister-/Doppeltext-Effekt,
+            solange das Feld leer war. */}
         <input ref={inputRef} className="dc-input"
           value={query}
           onChange={e=>setQuery(e.target.value)}
           onFocus={open_}
-          placeholder="Menschen, Werke oder Erlebnisse entdecken …"
         />
         {!query && !open && (
           <span style={{position:"absolute",left:0,pointerEvents:"none",fontSize:13.5,fontWeight:500,color:has?`${mc}80`:"rgba(130,130,130,0.55)",opacity:phVis?1:0,transform:phVis?"translateY(0)":"translateY(4px)",transition:"opacity .28s ease, transform .28s ease",whiteSpace:"nowrap",overflow:"hidden",maxWidth:"100%"}}>{PH[phIdx]}</span>
