@@ -322,29 +322,34 @@ async function fetchSearchResults(query, typeFilter = null, categoryFilter = nul
 
   const wantWorks = !typeFilter || typeFilter === "work";
   const wantExps  = !typeFilter || typeFilter === "experience";
-  // Beitraege/Invitations haben kein "category"-Feld im Sinne der neuen
-  // Themenwelt und keine Koordinaten -- bei aktivem Kategorie- ODER
-  // Radius-Filter werden sie bewusst ausgeblendet (kein falsch-positives/
-  // fehlendes Matching), bei reiner Freitextsuche bleiben sie wie bisher
-  // Teil der Ergebnisse.
-  const wantOther = !typeFilter && !hasCategory && !hasRadius && !!q;
+  // Veranstaltungen (invitations) haben seit Migration 068 eigene lat/lng
+  // (geokodet beim Erstellen in InvitationFlow.jsx) -- zaehlen bei Radius
+  // GENAUSO mit wie Werke/Erlebnisse. Beitraege (Moments) bleiben ohne
+  // Standortkonzept -- bei aktivem Kategorie- ODER Radius-Filter bewusst
+  // ausgeblendet (kein falsch-positives/fehlendes Matching), bei reiner
+  // Freitextsuche weiterhin Teil der Ergebnisse.
+  const wantInvitations = !typeFilter && !hasCategory && !!(q || hasRadius);
+  const wantBeitraege   = !typeFilter && !hasCategory && !hasRadius && !!q;
 
   const workCatExpr = buildCategoryOrExpr(categoryFilter, ["title","description","category"]);
   const expCatExpr  = buildCategoryOrExpr(categoryFilter, ["title","description","category","location_text"]);
 
   // Radius-RPCs VOR den eigentlichen Queries abfragen, damit ihre ids als
   // zusaetzlicher .in()-Filter angehaengt werden koennen.
-  let workDistanceMap = null, expDistanceMap = null;
+  let workDistanceMap = null, expDistanceMap = null, invDistanceMap = null;
   if (hasRadius) {
-    const [wRes, eRes] = await Promise.allSettled([
-      wantWorks ? supabase.rpc("nearby_works", { p_lat: geo.lat, p_lng: geo.lng, p_radius_km: radiusKm, p_limit: 60 }) : Promise.resolve({ data: [] }),
-      wantExps  ? supabase.rpc("nearby_experiences", { p_lat: geo.lat, p_lng: geo.lng, p_radius_km: radiusKm, p_limit: 60 }) : Promise.resolve({ data: [] }),
+    const [wRes, eRes, iRes] = await Promise.allSettled([
+      wantWorks       ? supabase.rpc("nearby_works",       { p_lat: geo.lat, p_lng: geo.lng, p_radius_km: radiusKm, p_limit: 60 }) : Promise.resolve({ data: [] }),
+      wantExps        ? supabase.rpc("nearby_experiences", { p_lat: geo.lat, p_lng: geo.lng, p_radius_km: radiusKm, p_limit: 60 }) : Promise.resolve({ data: [] }),
+      wantInvitations ? supabase.rpc("nearby_invitations", { p_lat: geo.lat, p_lng: geo.lng, p_radius_km: radiusKm, p_limit: 30 }) : Promise.resolve({ data: [] }),
     ]);
     workDistanceMap = new Map((wRes.status === "fulfilled" ? (wRes.value?.data || []) : []).map(r => [r.id, r.distance_km]));
     expDistanceMap  = new Map((eRes.status === "fulfilled" ? (eRes.value?.data || []) : []).map(r => [r.id, r.distance_km]));
+    invDistanceMap  = new Map((iRes.status === "fulfilled" ? (iRes.value?.data || []) : []).map(r => [r.id, r.distance_km]));
     // Keine Treffer im Radius -> Query fuer diesen Typ gar nicht erst absetzen.
-    if (wantWorks && workDistanceMap.size === 0) workDistanceMap.__empty = true;
-    if (wantExps  && expDistanceMap.size  === 0) expDistanceMap.__empty  = true;
+    if (wantWorks       && workDistanceMap.size === 0) workDistanceMap.__empty = true;
+    if (wantExps        && expDistanceMap.size  === 0) expDistanceMap.__empty  = true;
+    if (wantInvitations && invDistanceMap.size  === 0) invDistanceMap.__empty  = true;
   }
 
   const tasks = [];
@@ -370,32 +375,36 @@ async function fetchSearchResults(query, typeFilter = null, categoryFilter = nul
         return sel.order("created_at", { ascending: false }).limit(hasRadius ? 60 : 20);
       })()
     : Promise.resolve({ data: [] }));
-  tasks.push(wantOther
+  tasks.push(wantBeitraege
     ? supabase.from("beitraege")
         .select("id,user_id,src,type,caption,created_at")
         .ilike("caption", `%${q}%`)
         .order("created_at", { ascending: false }).limit(15)
     : Promise.resolve({ data: [] }));
-  tasks.push(wantOther
-    ? supabase.from("invitations")
-        .select("id,user_id,text,title,vibe,mood,energy,location,city,time_label,starts_at,expires_at,visibility,status,max_participants,content_type,created_at")
-        .eq("status", "active").eq("visibility", "public")
-        .gt("expires_at", new Date().toISOString())
-        .ilike("title", `%${q}%`)
-        .order("created_at", { ascending: false }).limit(10)
+  tasks.push((wantInvitations && !(hasRadius && invDistanceMap?.__empty))
+    ? (() => {
+        let sel = supabase.from("invitations")
+          .select("id,user_id,text,title,vibe,mood,energy,location,city,time_label,starts_at,expires_at,visibility,status,max_participants,content_type,created_at")
+          .eq("status", "active").eq("visibility", "public")
+          .gt("expires_at", new Date().toISOString());
+        if (q) sel = sel.ilike("title", `%${q}%`);
+        if (hasRadius) sel = sel.in("id", [...invDistanceMap.keys()]);
+        return sel.order("created_at", { ascending: false }).limit(hasRadius ? 30 : 10);
+      })()
     : Promise.resolve({ data: [] }));
 
   const [worksRes, expsRes, beitrRes, invRes] = await Promise.allSettled(tasks);
   let works = worksRes.status === "fulfilled" ? (worksRes.value?.data || []) : [];
   let exps  = expsRes.status  === "fulfilled" ? (expsRes.value?.data  || []) : [];
   const beitr = beitrRes.status === "fulfilled" ? (beitrRes.value?.data || []) : [];
-  const invs  = invRes.status   === "fulfilled" ? (invRes.value?.data   || []) : [];
+  let invs  = invRes.status   === "fulfilled" ? (invRes.value?.data   || []) : [];
 
   // Distanz auf jede Zeile mitfuehren (fuer spaeteres "X km entfernt"-Label,
   // additiv als distance_km auf dem Roh-Objekt -- ueberlebt in item._raw).
   if (hasRadius) {
     works = works.map(w => ({ ...w, distance_km: workDistanceMap.get(w.id) ?? null }));
     exps  = exps.map(e  => ({ ...e, distance_km: expDistanceMap.get(e.id)  ?? null }));
+    invs  = invs.map(i  => ({ ...i, distance_km: invDistanceMap.get(i.id)  ?? null }));
   }
 
   // Profil-Enrichment -- exakt dasselbe Muster wie fetchFeedPage() (ProfileService.getMany)

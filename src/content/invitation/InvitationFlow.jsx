@@ -13,6 +13,7 @@ import React, { useState, useCallback, useRef } from "react";
 import { supabase }  from "../../lib/supabaseClient.js";
 import { useAuth }   from "../../lib/AuthContext.jsx";
 import { HUI }       from "../../design/hui.design.js";
+import { searchPlaces } from "../../lib/geocoding.js"; // Umkreissuche 2026-07-06 (068) -- wiederverwendet STANDORT-036
 
 /* ── Tokens ─────────────────────────────────────────────────── */
 const V = {
@@ -376,6 +377,19 @@ export default function InvitationFlow({ onClose, visible = true }) {
     setPublishing(true);
     setError(null);
     try {
+      // Umkreissuche (2026-07-06, 068): location-Freitext geocodieren, damit
+      // die Veranstaltung in nearby_invitations() auftaucht. Rein additiv,
+      // nie blockierend -- schlaegt die Geokodierung fehl, wird ohne
+      // Koordinate gespeichert (Verhalten wie vorher).
+      let invLat = null, invLng = null;
+      const locQuery = data.location?.trim();
+      if (locQuery) {
+        try {
+          const hits = await searchPlaces(locQuery);
+          if (hits?.[0]) { invLat = hits[0].lat; invLng = hits[0].lng; }
+        } catch (_) { /* Geocoding optional */ }
+      }
+
       const row = {
         user_id:          user.id,
         text:             data.text?.trim() || "",
@@ -384,6 +398,8 @@ export default function InvitationFlow({ onClose, visible = true }) {
         mood:             data.vibe || null,
         location:         data.location?.trim() || null,
         city:             data.location?.trim()?.split(",").pop()?.trim() || null,
+        lat:              invLat,
+        lng:              invLng,
         time_label:       data.time_label?.trim() || null,
         max_participants: data.max_participants || null,
         status:           "active",

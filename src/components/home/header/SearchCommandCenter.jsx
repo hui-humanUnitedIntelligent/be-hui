@@ -102,12 +102,24 @@ function RadiusRow({ radius }) {
   const [manualOpen,  setManualOpen]  = useState(false);
   const [manualQuery, setManualQuery] = useState("");
 
-  const handlePickRadius = async (stage) => {
-    if (stage !== "world" && !radius.geo) {
-      const g = await radius.requestBrowserLocation();
-      if (!g) { setManualOpen(true); return; }
-    }
+  // BUGFIX (2026-07-06, Lars-Ticket "Radius-Buttons ohne Funktion"): der
+  // Button darf NIE auf die Geo-Antwort warten, bevor er aktiv wird und die
+  // Suche neu laedt -- vorher blockierte hier ein await auf
+  // requestBrowserLocation() (bis zu 8s Timeout) bzw. wurde bei Ablehnung/
+  // Sperre (z.B. iPad/eingebetteter Webview ohne Geolocation-Erlaubnis) NIE
+  // aufgeloest, wodurch setRadiusKm() gar nicht erreicht wurde -- fuer den
+  // Nutzer sah der Tap dann komplett wirkungslos aus.
+  // Neu: setRadiusKm() feuert SOFORT + synchron (macht den Button sofort aktiv
+  // und stoesst ueber den State sofort einen Re-Fetch der Ergebnisse an, siehe
+  // useFeedStream-Effekt auf radiusKm/geo). Die Standortermittlung laeuft
+  // NUR noch nebenlaeufig im Hintergrund hinterher und verfeinert die bereits
+  // sichtbaren Ergebnisse, sobald Koordinaten da sind (progressive
+  // Verbesserung statt Blockierung).
+  const handlePickRadius = (stage) => {
     radius.setRadiusKm(stage);
+    if (stage !== "world" && !radius.geo) {
+      radius.requestBrowserLocation().then(g => { if (!g) setManualOpen(true); });
+    }
   };
 
   const handleLocationChipTap = async () => {
@@ -148,7 +160,7 @@ function RadiusRow({ radius }) {
               fontSize:11.5,fontWeight:600,letterSpacing:"-0.01em",
               color: active ? "#fff" : "rgba(26,53,48,0.62)",
               boxShadow: active ? "0 3px 10px rgba(14,196,184,0.26)" : "none",
-              transition:"background .16s ease,border-color .16s ease,color .16s ease,box-shadow .16s ease",
+              transition:"background .2s ease,border-color .2s ease,color .2s ease,box-shadow .2s ease",
               whiteSpace:"nowrap",
               WebkitTapHighlightColor:"transparent",
             }}>
@@ -684,7 +696,7 @@ export default function SearchCommandCenter({ activeMood, currentUser, onSearchS
                   fontSize:11.5,fontWeight:600,letterSpacing:"-0.01em",
                   color: activeF ? "#fff" : "rgba(26,53,48,0.62)",
                   boxShadow: activeF ? "0 3px 10px rgba(14,196,184,0.26)" : "none",
-                  transition:"background .16s ease,border-color .16s ease,color .16s ease,box-shadow .16s ease",
+                  transition:"background .2s ease,border-color .2s ease,color .2s ease,box-shadow .2s ease",
                   WebkitTapHighlightColor:"transparent",
                 }}>
                   <span style={{fontSize:12,opacity:activeF?1:.75}}>{f.emoji}</span>{f.label}
