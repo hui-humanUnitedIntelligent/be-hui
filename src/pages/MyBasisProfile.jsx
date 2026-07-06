@@ -1847,6 +1847,9 @@ function MeineBuchungenSection({ myBookings = [], bookingRequests = [], onCancel
   const [confirmBooking, setConfirmBooking] = React.useState(null); // { id, title, forSeller }
   const [cancelling, setCancelling] = React.useState(false);
   const [cancelErr, setCancelErr] = React.useState("");
+  // TALENT-BOOKING-REFUND-004 (2026-07-06): zeigt kurz an, ob die automatische
+  // Stripe-Rückerstattung nach dem Stornieren erfolgreich war.
+  const [lastCancelResult, setLastCancelResult] = React.useState(null);
 
   function fmtDate(d) {
     if (!d) return "";
@@ -1880,6 +1883,8 @@ function MeineBuchungenSection({ myBookings = [], bookingRequests = [], onCancel
     setCancelling(false);
     if (res?.ok) {
       setConfirmBooking(null);
+      setLastCancelResult(res);
+      setTimeout(() => setLastCancelResult(null), 7000);
     } else {
       setCancelErr(res?.error || "Stornieren fehlgeschlagen.");
     }
@@ -1936,7 +1941,7 @@ function MeineBuchungenSection({ myBookings = [], bookingRequests = [], onCancel
     );
   }
 
-  if (myBookings.length === 0 && bookingRequests.length === 0) return null;
+  if (myBookings.length === 0 && bookingRequests.length === 0 && !lastCancelResult) return null;
 
   return (
     <div style={{ padding:`0 ${T.px}px` }}>
@@ -1958,7 +1963,7 @@ function MeineBuchungenSection({ myBookings = [], bookingRequests = [], onCancel
               Buchung stornieren?
             </div>
             <div style={{ fontSize:13, color:"#666", textAlign:"center", lineHeight:1.5, marginBottom:16 }}>
-              <strong>„{confirmBooking.title}"</strong> wird storniert. Bereits bezahlte Beträge werden nicht automatisch erstattet — bitte bei Bedarf den Anbieter kontaktieren.
+              <strong>„{confirmBooking.title}"</strong> wird storniert. Bereits bezahlte Beträge werden automatisch zurückerstattet.
             </div>
             {cancelErr && (
               <div style={{ fontSize:12, color:"#E83A3A", textAlign:"center", marginBottom:12 }}>{cancelErr}</div>
@@ -1982,6 +1987,23 @@ function MeineBuchungenSection({ myBookings = [], bookingRequests = [], onCancel
           </div>
         </div>,
         document.body
+      )}
+
+      {lastCancelResult && (
+        <div style={{
+          padding:"10px 14px", borderRadius:T.r12, marginBottom:14,
+          background: lastCancelResult.refundApplicable && lastCancelResult.refundOk === false
+            ? "rgba(232,58,58,0.10)" : T.tealSoft,
+          color: lastCancelResult.refundApplicable && lastCancelResult.refundOk === false
+            ? "#E83A3A" : T.teal,
+          fontSize:12.5, fontWeight:600, lineHeight:1.4,
+        }}>
+          {lastCancelResult.refundApplicable
+            ? (lastCancelResult.refundOk
+                ? "Storniert — dein Geld wird automatisch zurückerstattet."
+                : `Storniert, aber die automatische Rückerstattung ist fehlgeschlagen (${lastCancelResult.refundError || "unbekannter Fehler"}). Bitte Support kontaktieren.`)
+            : "Storniert."}
+        </div>
       )}
 
       {myBookings.length > 0 && (

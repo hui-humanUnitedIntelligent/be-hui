@@ -79,12 +79,30 @@ export function useTalentBookings(userId) {
     return () => { supabase.removeChannel(channel); };
   }, [userId, load]);
 
+  // TALENT-BOOKING-REFUND-004 (2026-07-06): Stornieren läuft jetzt über die
+  // Edge Function cancel-talent-booking statt direkt über die RPC — sie
+  // storniert (via derselben rpc_cancel_talent_booking) UND löst bei bereits
+  // bezahlten Buchungen automatisch einen Stripe-Refund aus. Die bestehende
+  // charge.refunded-Webhook-Buchhaltung übernimmt den Rest automatisch.
   const cancelBooking = useCallback(async (bookingId) => {
-    const { data, error: err } = await supabase.rpc("rpc_cancel_talent_booking", { p_booking_id: bookingId });
-    if (err) return { ok: false, error: err.message };
-    if (data?.ok === false) return { ok: false, error: data.error };
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return { ok: false, error: "Bitte melde dich an." };
+
+    const { data, error: err } = await supabase.functions.invoke("cancel-talent-booking", {
+      body: { booking_id: bookingId },
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    });
+
+    if (err) return { ok: false, error: err.message || "Stornierung fehlgeschlagen" };
+    if (data?.error) return { ok: false, error: data.error };
+
     await load();
-    return { ok: true };
+    return {
+      ok: true,
+      refundApplicable: !!data?.refund_applicable,
+      refundOk: data?.refund_ok ?? null,
+      refundError: data?.refund_error ?? null,
+    };
   }, [load]);
 
   return { asCustomer, asSeller, loading, error, reload: load, cancelBooking };
