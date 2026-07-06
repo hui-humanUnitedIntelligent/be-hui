@@ -1058,7 +1058,6 @@ export default function Admin() {
           {key:"dashboard",label:"Dashboard"},
           {key:"content",  label:"Freigaben", badge:pending},
           {key:"feed",     label:"Feed Analytics"},
-          {key:"erl_proj", label:"Erlebnisse & Projekte"},
           {key:"wirker",   label:"Wirker"},
           {key:"payments", label:"Payments"},
           {key:"projekte", label:"Projekte"},
@@ -1114,7 +1113,6 @@ export default function Admin() {
 
       }
       {tab==="feed" && <FeedAnalyticsTab />}
-      {tab==="erl_proj" && <ErlebnisseProjekteTab />}
 
       {tab==="wirker" && (
         <div style={card}>

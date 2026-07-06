@@ -49,33 +49,26 @@ const CSS = `
   }
 `;
 
-// Tool-Definitionen — Gruppen statt flache Liste
+// Tool-Definitionen — nur vollständig funktionierende Bereiche anzeigen
 const TOOL_GROUPS = [
   {
     label: "Deine kreative Arbeit",
     tools: [
-      { key:"content",      icon:"🎨", label:"Werke & Inhalte",  sub:"Was du erschaffen hast",     accent:C.teal    },
-      { key:"availability", icon:"🗓", label:"Verfügbarkeit",    sub:"Wann du kreativ arbeitest",   accent:C.coral   },
-      { key:"orders",       icon:"🤝", label:"Zusammenarbeit",   sub:"Anfragen & laufende Projekte",accent:C.violet  },
-    ]
-  },
-  {
-    label: "Deine Wirkung",
-    tools: [
-      { key:"analytics",   icon:"✦",  label:"Reichweite",       sub:"Wer folgt dir und warum",    accent:C.teal    },
-      { key:"earnings",    icon:"◎",  label:"Einnahmen",        sub:"Dein kreatives Einkommen",   accent:C.green   },
-      { key:"reputation",  icon:"⭐", label:"Vertrauen",        sub:"Zusammenarbeit & Feedback",  accent:C.gold    },
-      { key:"impact",      icon:"🌱", label:"Impact",           sub:"Dein Beitrag zur Community", accent:C.green   },
-    ]
+      { key:"content", icon:"🎨", label:"Werke & Inhalte", sub:"Was du erschaffen hast", accent:C.teal },
+    ],
   },
   {
     label: "Persönliches",
     tools: [
-      { key:"support",     icon:"🎧", label:"Support",          sub:"Hilfe & Kontakt",             accent:C.coral   },
-      { key:"settings",    icon:"◦",  label:"Einstellungen",    sub:"Konto & Sichtbarkeit",       accent:C.muted   },
-    ]
+      { key:"support", icon:"🎧", label:"Support", sub:"Hilfe & Kontakt", accent:C.coral },
+    ],
   },
 ];
+
+// Versteckt bis produktionsreif (Phase 2.3)
+const HIDDEN_STUDIO_TOOLS = new Set([
+  "analytics", "earnings", "availability", "orders", "impact", "reputation", "settings",
+]);
 
 // Flache Liste für SubPage-Lookup
 const ALL_TOOLS = TOOL_GROUPS.flatMap(g => g.tools);
@@ -94,6 +87,13 @@ export default function CreatorStudio() {
 
   const [profile,    setProfile]    = useState(null);
   const [activeTool, setActiveTool] = useState(section || null);
+
+  useEffect(() => {
+    if (section && HIDDEN_STUDIO_TOOLS.has(section)) {
+      setActiveTool(null);
+      navigate("/studio", { replace: true });
+    }
+  }, [section, navigate]);
 
   // Ambient Greeting
   const greetingData = profile ? getAmbientGreeting(profile.display_name, {
@@ -211,34 +211,18 @@ export default function CreatorStudio() {
           </div>
         </div>
 
-        {/* Aktive Situation — nur wenn relevant */}
-        {(pendingCount > 0 || activeCount > 0) && (
+        {/* Aktive Situation — nur wenn relevant und navigierbar */}
+        {activeCount > 0 && (
           <div style={{ display:"flex", gap:8 }}>
-            {pendingCount > 0 && (
-              <div style={{ display:"flex", alignItems:"center", gap:6,
-                padding:"8px 14px", borderRadius:50,
-                background:"rgba(245,166,35,0.15)",
-                border:"1px solid rgba(245,166,35,0.30)",
-                animation:"studioPendingPulse 3s ease-in-out infinite",
-                cursor:"pointer" }}
-                onClick={() => openTool("orders")}>
-                <span style={{ fontSize:12 }}>📋</span>
-                <span style={{ fontSize:12, fontWeight:700, color:"rgba(245,166,35,0.90)" }}>
-                  {pendingCount} offene Anfrage{pendingCount > 1 ? "n" : ""}
-                </span>
-              </div>
-            )}
-            {activeCount > 0 && (
-              <div style={{ display:"flex", alignItems:"center", gap:6,
-                padding:"8px 14px", borderRadius:50,
-                background:"rgba(22,215,197,0.12)",
-                border:"1px solid rgba(22,215,197,0.25)" }}>
-                <span style={{ fontSize:12 }}>🤝</span>
-                <span style={{ fontSize:12, fontWeight:700, color:"rgba(22,215,197,0.85)" }}>
-                  {activeCount} aktiv{activeCount > 1 ? "e Projekte" : "s Projekt"}
-                </span>
-              </div>
-            )}
+            <div style={{ display:"flex", alignItems:"center", gap:6,
+              padding:"8px 14px", borderRadius:50,
+              background:"rgba(22,215,197,0.12)",
+              border:"1px solid rgba(22,215,197,0.25)" }}>
+              <span style={{ fontSize:12 }}>🤝</span>
+              <span style={{ fontSize:12, fontWeight:700, color:"rgba(22,215,197,0.85)" }}>
+                {activeCount} aktiv{activeCount > 1 ? "e Projekte" : "s Projekt"}
+              </span>
+            </div>
           </div>
         )}
       </div>
@@ -281,10 +265,6 @@ export default function CreatorStudio() {
             </div>
             <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
               {group.tools.map((tool, ti) => {
-                // Badge-Logik
-                const badge = tool.key === "orders" && pendingCount > 0 ? pendingCount : null;
-                const isActive = tool.key === "orders" && activeCount > 0;
-
                 return (
                   <button key={tool.key}
                     className="hui-tap hui-card-hover"
@@ -296,9 +276,6 @@ export default function CreatorStudio() {
                       display:"flex", alignItems:"center", gap:12,
                       boxShadow:"0 1px 8px rgba(0,0,0,0.03)",
                       animation:`studioFadeUp ${TRANSITIONS.normal} ${0.1 + gi*0.06 + ti*0.04}s ${TRANSITIONS.overlay} both`,
-                      position:"relative",
-                      // Aktives Projekt: linker Accent
-                      ...(isActive ? { borderLeft:`3px solid ${tool.accent}` } : {}),
                     }}>
                     {/* Icon */}
                     <div style={{ width:38, height:38, borderRadius:12,
@@ -319,18 +296,8 @@ export default function CreatorStudio() {
                       </div>
                     </div>
 
-                    {/* Badge */}
-                    {badge ? (
-                      <div style={{ minWidth:22, height:22, borderRadius:11,
-                        background:`linear-gradient(135deg,${C.coral},#FF5F5F)`,
-                        display:"flex", alignItems:"center", justifyContent:"center",
-                        fontSize:11, fontWeight:800, color:"white",
-                        padding:"0 5px" }}>
-                        {badge}
-                      </div>
-                    ) : (
-                      <div style={{ fontSize:13, color:C.muted2 }}>›</div>
-                    )}
+                    {/* Pfeil */}
+                    <div style={{ fontSize:13, color:C.muted2 }}>›</div>
                   </button>
                 );
               })}

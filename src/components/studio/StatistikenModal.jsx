@@ -7,6 +7,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
+import { toast } from "../../lib/useToast.jsx";
 
 // ── Design Tokens ──────────────────────────────────────────────────
 const T = {
@@ -327,7 +328,7 @@ export default function StatistikenModal({ profile, onClose }) {
       doc.save(`HUI-Statistik-${name}-${new Date().getFullYear()}.pdf`);
     } catch(e) {
       console.warn("[PDF] Export Fehler:", e);
-      alert("PDF-Export fehlgeschlagen. Bitte versuche es erneut.");
+      toast.error("PDF-Export fehlgeschlagen. Bitte versuche es erneut.");
     } finally {
       setExporting(false);
     }

@@ -2,6 +2,7 @@
 // Support-Tickets als E-Mail-Thread-Verlauf
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
+import { toast } from "../../lib/useToast.jsx";
 
 const C = {
   teal:   "#16D7C5",
@@ -102,7 +103,7 @@ function ReplySheet({ ticketNumber, subject, adminReply, userId, userEmail, user
       setTimeout(() => { onSent(); onClose(); }, 1600);
     } catch (err) {
       console.error("ReplySheet send error:", err);
-      alert("Fehler beim Senden: " + (err?.message || String(err)));
+      toast.error("Fehler beim Senden: " + (err?.message || String(err)));
     } finally {
       setSending(false);
     }
