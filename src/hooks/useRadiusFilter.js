@@ -18,9 +18,9 @@
 // nicht"). Neu hinzugekommen: setGeo (fuer DiscoverPage, um eine konkret
 // angeklickte Autocomplete-Vorschlagszeile direkt zu setzen).
 // ══════════════════════════════════════════════════════════════════════
-import { useRadiusContext, RADIUS_STAGES, DEFAULT_RADIUS_KM, radiusLabel } from "../context/RadiusContext.jsx";
+import { useRadiusContext, RADIUS_OPTIONS, DEFAULT_RADIUS_KM, radiusLabel } from "../context/RadiusContext.jsx";
 
-export { RADIUS_STAGES, DEFAULT_RADIUS_KM, radiusLabel };
+export { RADIUS_OPTIONS, DEFAULT_RADIUS_KM, radiusLabel };
 
 export function useRadiusFilter() {
   return useRadiusContext();

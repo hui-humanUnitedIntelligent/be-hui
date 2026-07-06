@@ -877,18 +877,20 @@ function TalenteSection({
               <button onClick={onClearLoc} style={{ background:"none", border:"none", cursor:"pointer",
                 color:T.inkFaint, fontSize:14, lineHeight:1, padding:"0 2px" }}>×</button>
             </div>
-            {/* Umkreissuche-Vereinheitlichung 2026-07-06: dieselben 9 Stufen
-                (inkl. "Weltweit") wie die globale Suche -- derselbe Zustand
-                (radiusKm/onRadiusChange kommen 1:1 aus dem globalen Context,
-                keine eigene Werteliste mehr). */}
+            {/* Umkreissuche-Vereinheitlichung (2026-07-06): keine eigene
+                Werteliste mehr -- radiusStages kommt ausschliesslich aus
+                RADIUS_OPTIONS (src/context/RadiusContext.jsx), radiusKm/
+                onRadiusChange sind derselbe globale Zustand wie in der
+                Hauptsuche. radiusLabel() ist dieselbe Formatierungsfunktion
+                wie in SearchCommandCenter -- kein zweiter "Weltweit"-String. */}
             <div style={{ display:"flex", gap:5, overflowX:"auto", WebkitOverflowScrolling:"touch", scrollbarWidth:"none" }}>
-              {(radiusStages || [10,25,50,100]).map(stage => (
+              {radiusStages.map(stage => (
                 <button key={String(stage)} onClick={() => onRadiusChange(stage)}
                   style={{ flexShrink:0, padding:"5px 10px", borderRadius:99, fontSize:10.5, fontWeight:700,
                     cursor:"pointer", border: radiusKm===stage ? "none" : `1px solid ${T.border}`,
                     background: radiusKm===stage ? T.ink : "none",
                     color: radiusKm===stage ? "#fff" : T.inkFaint, whiteSpace:"nowrap" }}>
-                  {stage === "world" ? "Weltweit 🌍" : `${stage} km`}
+                  {radiusLabel(stage)}
                 </button>
               ))}
             </div>

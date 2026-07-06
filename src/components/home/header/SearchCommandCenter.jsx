@@ -98,6 +98,40 @@ function SectionLabel({ children, color, action, onAction }) {
 // automatisch -- bei Ablehnung/Fehler erscheint sanft ein PLZ/Ort-Feld
 // als Fallback (Vorgabe: "freundlich anfragen", manuelle Ortsauswahl).
 // ─────────────────────────────────────────────────────────────
+// PERSISTENTE RADIUS-ANZEIGE (2026-07-06, UX-Ticket "Radius ueberall sichtbar")
+//
+// Direkt unter der Suchleiste, IMMER sichtbar (auch wenn die Suche
+// geschlossen ist -- nicht nur im aufgeklappten Discovery-Panel). Dezent,
+// keine Box/kein Banner -- nur ein leiser Text-Hinweis, der genauso wirkt
+// wie ein natuerlicher Zustandssatz ("das ist gerade dein Radius"), keine
+// Statusmeldung.
+//
+// Aktualisiert sich automatisch: der Text kommt 1:1 aus radius.radiusKm/
+// radius.geo (globaler Context) -- kein eigener State. Der key={label} auf
+// dem Wrapper laesst React das Element bei jeder Aenderung neu mounten,
+// wodurch die hui-search-fade-in-Animation automatisch erneut abspielt
+// ("aktive Stufe weich animieren", ohne Flackern -- der Text selbst bleibt
+// stabil sichtbar, nur ein sanftes Fade beim Wechsel).
+function RadiusIndicator({ radius }) {
+  const label = radius.isWorldwide
+    ? "🌍 Weltweit"
+    : `📍 ${radius.geo?.label || "In deiner Nähe"} · ${radiusLabel(radius.radiusKm)}`;
+
+  return (
+    <div key={label} style={{
+      padding: "5px 6px 0 18px",
+      fontSize: 11.5,
+      fontWeight: 500,
+      letterSpacing: "-0.01em",
+      color: "rgba(26,53,48,0.40)",
+      animation: "hui-search-fade-in .22s cubic-bezier(.22,1,.36,1) both",
+    }}>
+      {label}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
 function RadiusRow({ radius }) {
   const [manualOpen,  setManualOpen]  = useState(false);
   const [manualQuery, setManualQuery] = useState("");
@@ -764,6 +798,14 @@ export default function SearchCommandCenter({ activeMood, currentUser, onSearchS
             mit den Icon-Buttons (order:1 in HomeHeader.jsx). */}
         <div style={{ position:"relative", flex:1, minWidth:0, order:0, zIndex:300 }}>
           {searchBar}
+        </div>
+
+        {/* Radius-Anzeige-Slot -- order:1 + flexBasis:100% erzwingt den
+            Zeilenumbruch DIREKT unter der Bar, unabhaengig vom Panel/vom
+            "open"-Zustand (Vorgabe: "der aktuell aktive Radius soll
+            dauerhaft sichtbar sein", nicht nur waehrend die Suche offen ist). */}
+        <div style={{ flexBasis:"100%", width:"100%", order:1, zIndex:298 }}>
+          <RadiusIndicator radius={radius} />
         </div>
 
         {/* Panel-Slot -- order:99 + flexBasis:100% zwingt per CSS-Flex-Wrap

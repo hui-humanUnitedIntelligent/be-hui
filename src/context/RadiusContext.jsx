@@ -25,7 +25,14 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
 import { searchPlaces, distanceKm } from "../lib/geocoding.js";
 
-export const RADIUS_STAGES = [1, 5, 10, 25, 50, 100, 250, 500, "world"];
+// ── ZENTRALE RADIUS-KONFIGURATION (2026-07-06, UX-Vereinfachung) ──────────
+// Einzige Quelle fuer die verfuegbaren Radius-Stufen im gesamten Projekt.
+// Vorher: 1km/5km waren als Stufen enthalten -- fachlich kaum sinnvoll
+// unterscheidbar von "10km" und wurden auf Wunsch entfernt. ALLE Konsumenten
+// (SearchCommandCenter, DiscoverPage/TalenteSection) lesen ausschliesslich
+// radius.stages aus dem Context -- der Wert kommt zu 100% von hier, es gibt
+// keine zweite/hartcodierte Werteliste mehr im Projekt.
+export const RADIUS_OPTIONS = [10, 25, 50, 100, 250, 500, "world"];
 export const DEFAULT_RADIUS_KM = 25;
 
 export function radiusLabel(stage) {
@@ -41,7 +48,7 @@ function loadStoredRadius() {
     if (raw == null) return DEFAULT_RADIUS_KM;
     if (raw === "world") return "world";
     const n = Number(raw);
-    return RADIUS_STAGES.includes(n) ? n : DEFAULT_RADIUS_KM;
+    return RADIUS_OPTIONS.includes(n) ? n : DEFAULT_RADIUS_KM;
   } catch { return DEFAULT_RADIUS_KM; }
 }
 
@@ -106,7 +113,7 @@ export function RadiusProvider({ children }) {
   const clearLocation = useCallback(() => setGeo(null), [setGeo]);
 
   const value = {
-    radiusKm, setRadiusKm, stages: RADIUS_STAGES, defaultRadiusKm: DEFAULT_RADIUS_KM,
+    radiusKm, setRadiusKm, stages: RADIUS_OPTIONS, defaultRadiusKm: DEFAULT_RADIUS_KM,
     geo, setGeo, status, requestBrowserLocation, setManualPlace, clearLocation,
     isWorldwide: radiusKm === "world",
     distanceKm,

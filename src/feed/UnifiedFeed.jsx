@@ -853,19 +853,29 @@ export default function UnifiedFeed({
           </div>
         )}
 
-        {/* Feed list — only when not first-load */}
+        {/* Feed list — only when not first-load.
+            Sanftes Fade waehrend eines Refetches (Radius-/Kategorie-/
+            Suchwechsel, 2026-07-06): die ALTEN Items bleiben im DOM (kein
+            Unmount, kein Skeleton, kein Flackern) und dimmen nur kurz ab,
+            bis die neuen Items da sind -- dann Wechsel + Fade zurueck auf
+            volle Deckkraft. Kein Layout-Sprung, keine Ladeunterbrechung. */}
         {(!streamLoading || resolvedItems.length > 0) && (
-          <FeedList
-            items={resolvedItems}
-            onProfile={onProfile}
-            onBook={onBook}
-            onDetail={onDetail}
-            onShare={onShare}
-            loadMore={loadMore}
-            hasMore={hasMore}
-            loadingMore={loadingMore}
-            onDiscover={onDiscover}
-          />
+          <div style={{
+            opacity: streamLoading ? 0.45 : 1,
+            transition: "opacity .25s ease",
+          }}>
+            <FeedList
+              items={resolvedItems}
+              onProfile={onProfile}
+              onBook={onBook}
+              onDetail={onDetail}
+              onShare={onShare}
+              loadMore={loadMore}
+              hasMore={hasMore}
+              loadingMore={loadingMore}
+              onDiscover={onDiscover}
+            />
+          </div>
         )}
       </SectionBoundary>
 
