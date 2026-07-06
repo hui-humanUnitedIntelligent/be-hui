@@ -2021,72 +2021,80 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
           </div>
 
         ) : (
-          /* ══ DEFAULT OVERLAY ══ */
-          <>
-            <GreetingWithHints currentUser={currentUser} onCategoryClick={handleCategoryClick}/>
-            <ForDichAusgewaehlt currentUser={currentUser} openProfileById={openProfileById} onDiscover={handleDiscover} onClose={close_}/>
-            <MenschenDuKennenSolltest currentUser={currentUser} openProfileById={openProfileById} engine={engine} onDiscover={handleDiscover}/>
+          /* ══ DEFAULT OVERLAY -- radikal reduziert (2026-07-06, Lars) ══
+             "Die Suche ist ein Werkzeug zum Finden, kein zweites Home."
+             Entfernt (keine dieser Aufrufe hilft unmittelbar beim Suchen):
+             GreetingWithHints (Begruessung + DB-Zaehler-Dashboard),
+             ForDichAusgewaehlt + MenschenDuKennenSolltest + PersonalRec
+             (Empfehlungs-/Profilkarten), StoryCards ("Heute auf HUI"),
+             LiveActivity (Live-Feed-Ticker), QuickActions (grosse CTA-
+             Kacheln zum Erstellen). Uebrig: Kategorien-Chips, Filter-Chips,
+             Zuletzt gesucht -- kompakt, ohne Bilder/Cover, ohne DB-Fetches.
+             Mobile/Desktop nutzen jetzt dasselbe schlanke Layout (kein
+             3-Spalten-Grid mehr noetig, da deutlich weniger Inhalt).
+             Die Komponenten-Funktionen selbst wurden NICHT geloescht
+             (siehe Kommentar am Dateianfang unten) -- bewusste Trennung
+             von Content-Reduktion und Code-Cleanup, um das Risiko dieser
+             Aenderung klein zu halten. */
+          <div style={{padding:"16px 16px 18px"}}>
 
-            <div style={{padding:"14px 16px 12px",borderBottom:"1px solid rgba(14,196,184,0.08)"}}>
-              <StoryCards/>
+            {/* Kategorien -- kompakte Themen-Chips (reuse THEMES + handleTheme, keine neue Logik) */}
+            <div style={{marginBottom:18}}>
+              <SectionLabel>Kategorien</SectionLabel>
+              <div style={{display:"flex",flexWrap:"wrap",gap:7,marginTop:8}}>
+                {THEMES.map(t=>(
+                  <button key={t.key} onClick={()=>handleTheme(t.label)} style={{
+                    display:"flex",alignItems:"center",gap:5,
+                    background:`${t.color}0F`,border:`1px solid ${t.color}30`,
+                    borderRadius:99,padding:"6px 12px",cursor:"pointer",
+                    fontSize:12.5,fontWeight:600,color:t.color,
+                    WebkitTapHighlightColor:"transparent",
+                  }}>
+                    <span style={{fontSize:13}}>{t.emoji}</span>{t.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {mobile ? (
-              /* ── Mobile Layout: vertikal ── */
-              <div style={{padding:"14px 16px"}}>
-                <PersonalRec currentUser={currentUser} openProfileById={openProfileById}/>
-                <div style={{marginTop:18}}><ThemeCards onThemeClick={handleTheme}/></div>
-                {history.length>0 && (
-                  <div style={{marginTop:18}}>
-                    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
-                      <SectionLabel>Zuletzt gesucht</SectionLabel>
-                      <button onClick={()=>{setHistory([]);localStorage.removeItem("hui_search_history");}} style={{background:"none",border:"none",cursor:"pointer",fontSize:10,color:T.inkF,padding:0}}>Löschen</button>
-                    </div>
-                    <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
-                      {history.slice(0,6).map((h,i)=>(
-                        <button key={i} onClick={()=>handleHistory(h)} style={{display:"flex",alignItems:"center",gap:4,background:"rgba(26,53,48,0.05)",border:"1px solid rgba(26,53,48,0.09)",borderRadius:99,padding:"4px 11px",fontSize:11.5,fontWeight:500,color:T.inkS,cursor:"pointer",WebkitTapHighlightColor:"transparent"}}>
-                          <span style={{fontSize:9.5,opacity:.42}}>🕐</span>{h}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+            {/* Filter -- kompakte Chips nach Ergebnistyp (reuse handleCategoryClick, keine neue Logik) */}
+            <div style={{marginBottom: history.length>0 ? 18 : 0}}>
+              <SectionLabel>Filter</SectionLabel>
+              <div style={{display:"flex",flexWrap:"wrap",gap:7,marginTop:8}}>
+                {[
+                  {label:"Menschen",   emoji:"👥", color:"#0EC4B8"},
+                  {label:"Werke",      emoji:"🎨", color:"#9333EA"},
+                  {label:"Erlebnisse", emoji:"📅", color:"#0EA5E9"},
+                ].map(f=>(
+                  <button key={f.label} onClick={()=>handleCategoryClick(f.label)} style={{
+                    display:"flex",alignItems:"center",gap:5,
+                    background:"rgba(26,53,48,0.045)",border:"1px solid rgba(26,53,48,0.09)",
+                    borderRadius:99,padding:"6px 12px",cursor:"pointer",
+                    fontSize:12.5,fontWeight:600,color:T.ink,
+                    WebkitTapHighlightColor:"transparent",
+                  }}>
+                    <span style={{fontSize:13}}>{f.emoji}</span>{f.label}
+                  </button>
+                ))}
               </div>
-            ) : (
-              /* ── Desktop Layout: 3-Spalten ── */
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:0}}>
-                <div style={{padding:"14px 14px",borderRight:"1px solid rgba(14,196,184,0.08)"}}>
-                  <PersonalRec currentUser={currentUser} openProfileById={openProfileById}/>
+            </div>
+
+            {/* Zuletzt gesucht -- unveraendert aus dem alten Code uebernommen */}
+            {history.length>0 && (
+              <div>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                  <SectionLabel>Zuletzt gesucht</SectionLabel>
+                  <button onClick={()=>{setHistory([]);localStorage.removeItem("hui_search_history");}} style={{background:"none",border:"none",cursor:"pointer",fontSize:10,color:T.inkF,padding:0}}>Löschen</button>
                 </div>
-                <div style={{padding:"14px 14px",borderRight:"1px solid rgba(14,196,184,0.08)"}}>
-                  <ThemeCards onThemeClick={handleTheme}/>
-                </div>
-                <div style={{padding:"14px 14px"}}>
-                  <LiveActivity/>
-                  {history.length>0 && (
-                    <div style={{marginTop:14}}>
-                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                        <SectionLabel>Zuletzt gesucht</SectionLabel>
-                        <button onClick={()=>{setHistory([]);localStorage.removeItem("hui_search_history");}} style={{background:"none",border:"none",cursor:"pointer",fontSize:10,color:T.inkF,padding:"0 0 10px 0"}}>Löschen</button>
-                      </div>
-                      <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
-                        {history.slice(0,5).map((h,i)=>(
-                          <button key={i} onClick={()=>handleHistory(h)} style={{display:"flex",alignItems:"center",gap:4,background:"rgba(26,53,48,0.05)",border:"1px solid rgba(26,53,48,0.09)",borderRadius:99,padding:"4px 11px",fontSize:11.5,fontWeight:500,color:T.inkS,cursor:"pointer",WebkitTapHighlightColor:"transparent"}}
-                            onMouseEnter={e=>e.currentTarget.style.background="rgba(14,196,184,0.09)"}
-                            onMouseLeave={e=>e.currentTarget.style.background="rgba(26,53,48,0.05)"}
-                          ><span style={{fontSize:9.5,opacity:.42}}>🕐</span>{h}</button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                <div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:8}}>
+                  {history.slice(0,6).map((h,i)=>(
+                    <button key={i} onClick={()=>handleHistory(h)} style={{display:"flex",alignItems:"center",gap:4,background:"rgba(26,53,48,0.05)",border:"1px solid rgba(26,53,48,0.09)",borderRadius:99,padding:"4px 11px",fontSize:11.5,fontWeight:500,color:T.inkS,cursor:"pointer",WebkitTapHighlightColor:"transparent"}}>
+                      <span style={{fontSize:9.5,opacity:.42}}>🕐</span>{h}
+                    </button>
+                  ))}
                 </div>
               </div>
             )}
-
-            <div style={{borderTop:"1px solid rgba(14,196,184,0.08)",padding:"14px 16px 16px"}}>
-              <QuickActions onAction={handleAction}/>
-            </div>
-          </>
+          </div>
         )}
       </>
     );
