@@ -37,7 +37,10 @@ const F = {
   // Wenn WirkerService vollständig migriert, entfernen
   wirkerMin:    'id,user_id,slug,talent,location_label,avatar_url,is_verified',
   work:         'id,user_id,title,cover_url,media_url,price,category,medium,status,likes_count,location_text,created_at',
+  // ARCH-004: Owner-Profilansicht — alle Status inkl. approval_status (mirrors useProfileData)
+  workOwner:    'id,user_id,title,cover_url,category,status,approval_status,price,for_sale,visibility,created_at',
   experience:   'id,user_id,title,cover_url,price,duration,spots_available,location_text,status,created_at',
+  experienceOwner: 'id,user_id,title,cover_url,category,date,status,approval_status,visibility,format,location_text,price,duration,created_at',
   story:        'id,user_id,media_url,media_type,text_overlay,mood,location,expires_at,views_count,created_at',
   booking:      'id,user_id,wirker_id,work_id,experience_id,amount,platform_fee,impact_fee,status,payment_status,escrow_status,created_at',
   message:      'id,conversation_id,sender_id,text,created_at,read,type',
@@ -229,6 +232,106 @@ export const WorkService = {
 
   async delete(id) {
     return safeQuery(supabase.from('works').update({ status: 'archived' }).eq('id', id));
+  },
+
+  // ── ARCH-004 Phase 1: Owner-Profil Content (MyBasisProfile) ───────────────
+
+  /** Creator sieht alle eigenen Werke außer deleted */
+  async getOwnerWorks(userId, { limit = 30 } = {}) {
+    if (!userId) return { data: [], error: null };
+    return safeQuery(
+      supabase.from('works')
+        .select(F.workOwner)
+        .eq('user_id', userId)
+        .not('status', 'eq', 'deleted')
+        .order('created_at', { ascending: false })
+        .limit(limit)
+    );
+  },
+
+  /** Experiences + Projects merged mit _source-Tag (Owner-Ansicht) */
+  async getOwnerExperiences(userId, { limit = 30 } = {}) {
+    if (!userId) return { data: [], error: null };
+    const [expsRes, projsRes] = await Promise.all([
+      safeQuery(
+        supabase.from('experiences')
+          .select(F.experienceOwner)
+          .eq('user_id', userId)
+          .not('status', 'eq', 'deleted')
+          .order('created_at', { ascending: false })
+          .limit(limit)
+      ),
+      safeQuery(
+        supabase.from('projects')
+          .select(F.experienceOwner)
+          .eq('user_id', userId)
+          .not('status', 'eq', 'deleted')
+          .order('created_at', { ascending: false })
+          .limit(limit)
+      ),
+    ]);
+    const expsTagged  = (expsRes.data  || []).map(e => ({ ...e, _source: 'experiences' }));
+    const projsTagged = (projsRes.data || []).map(p => ({ ...p, _source: 'projects' }));
+    const merged = [...expsTagged, ...projsTagged]
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    return { data: merged, error: expsRes.error || projsRes.error || null };
+  },
+
+  /** Paralleler Load für Owner-Profil */
+  async loadOwnerContent(userId) {
+    const [worksRes, expsRes] = await Promise.all([
+      WorkService.getOwnerWorks(userId),
+      WorkService.getOwnerExperiences(userId),
+    ]);
+    return {
+      works: worksRes.data || [],
+      experiences: expsRes.data || [],
+      error: worksRes.error || expsRes.error || null,
+    };
+  },
+
+  /** Soft-Delete Werk (Owner-Aktion aus Profil) */
+  async softDeleteOwnerWork(id) {
+    return safeQuery(
+      supabase.from('works')
+        .update({ status: 'deleted', visibility: 'private', updated_at: new Date().toISOString() })
+        .eq('id', id)
+    );
+  },
+
+  /** Hard-Delete Erlebnis/Projekt mit Soft-Delete-Fallback (RLS) */
+  async deleteOwnerExperience(id, source = 'experiences') {
+    const table = source === 'projects' ? 'projects' : 'experiences';
+    const { error } = await safeQuery(supabase.from(table).delete().eq('id', id));
+    if (!error) return { error: null };
+    return safeQuery(
+      supabase.from(table)
+        .update({ status: 'deleted', updated_at: new Date().toISOString() })
+        .eq('id', id)
+    );
+  },
+
+  /** Realtime: works + experiences + projects Änderungen für Owner-Profil */
+  subscribeOwnerContent(userId, onChange) {
+    if (!userId || typeof onChange !== 'function') return () => {};
+    const channel = supabase
+      .channel('mbp:works-exps:' + userId)
+      .on('postgres_changes', {
+        event: 'UPDATE', schema: 'public', table: 'works',
+        filter: 'user_id=eq.' + userId,
+      }, () => onChange())
+      .on('postgres_changes', {
+        event: 'UPDATE', schema: 'public', table: 'experiences',
+        filter: 'user_id=eq.' + userId,
+      }, () => onChange())
+      .on('postgres_changes', {
+        event: 'DELETE', schema: 'public', table: 'experiences',
+      }, () => onChange())
+      .on('postgres_changes', {
+        event: 'DELETE', schema: 'public', table: 'projects',
+      }, () => onChange())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   },
 };
 
