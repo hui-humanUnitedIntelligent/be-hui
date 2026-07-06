@@ -17,6 +17,7 @@ import ImpactStimmenModal  from "./ImpactStimmenModal.jsx";
 import MeineProjekteModal  from "./MeineProjekteModal.jsx";
 import EinAusgabenModal    from "./EinAusgabenModal.jsx";
 import StatistikenModal      from "./StatistikenModal.jsx";
+import MeineVerkaeufeModal   from "./MeineVerkaeufeModal.jsx";
 import ProfilBearbeitenModal    from "./ProfilBearbeitenModal.jsx";
 import SicherheitPasswortModal  from "./SicherheitPasswortModal.jsx";
 import SupportPage             from "../../pages/studio/SupportPage.jsx";
@@ -1130,6 +1131,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
   const [showImpact,  setShowImpact]  = useState(false); // Impact-Stimmen Modal
   const [showMeineProjekte, setShowMeineProjekte] = useState(false); // Meine unterstützten Projekte
   const [showEinAusgaben,  setShowEinAusgaben]  = useState(false); // Ein-/Ausgaben Übersicht
+  const [showMeineVerkaeufe, setShowMeineVerkaeufe] = useState(false); // Meine Verkäufe (verschoben aus Profil, 2026-07-06)
   const [showStatistiken,     setShowStatistiken]     = useState(false); // Statistiken
   const [showProfilBearbeiten, setShowProfilBearbeiten]= useState(false); // Profil bearbeiten
   const [showVerifCS,          setShowVerifCS]          = useState(false); // Verifizierung Coming Soon
@@ -1254,6 +1256,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
         {/* ── 3. Einnahmen & Statistiken ────────────────────── */}
         <StudioSection label="Einnahmen & Statistiken">
           <StudioRow icon="💶" label="Ein-/Ausgaben Übersicht" onPress={() => setShowEinAusgaben(true)} />
+          <StudioRow icon="🛍️" label="Meine Verkäufe" onPress={() => setShowMeineVerkaeufe(true)} />
           <StudioRow icon="📊" label="Statistiken"         onPress={() => setShowStatistiken(true)} last />
         </StudioSection>
         <Gap h={20}/>
@@ -1324,6 +1327,12 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
         <EinAusgabenModal
           profile={profile}
           onClose={() => setShowEinAusgaben(false)}
+        />
+      )}
+      {showMeineVerkaeufe && (
+        <MeineVerkaeufeModal
+          profile={profile}
+          onClose={() => setShowMeineVerkaeufe(false)}
         />
       )}
       {showStatistiken && (
