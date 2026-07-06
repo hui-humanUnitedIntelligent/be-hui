@@ -1130,6 +1130,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
   const [showImpact,  setShowImpact]  = useState(false); // Impact-Stimmen Modal
   const [showMeineProjekte, setShowMeineProjekte] = useState(false); // Meine unterstützten Projekte
   const [showEinAusgaben,  setShowEinAusgaben]  = useState(false); // Ein-/Ausgaben Übersicht
+  const [showResonanz,        setShowResonanz]        = useState(false); // Meine Resonanz
   const [showStatistiken,     setShowStatistiken]     = useState(false); // Statistiken
   const [showProfilBearbeiten, setShowProfilBearbeiten]= useState(false); // Profil bearbeiten
   const [showVerifCS,          setShowVerifCS]          = useState(false); // Verifizierung Coming Soon
