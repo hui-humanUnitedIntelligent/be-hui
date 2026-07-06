@@ -45,16 +45,25 @@ export default function HomeHeader({
         background:"rgba(255,251,248,0.93)",
         backdropFilter:"blur(32px) saturate(1.7)",
         WebkitBackdropFilter:"blur(32px) saturate(1.7)",
+        // Visual Polish Pass Punkt 7: keine harte Kante mehr zwischen Header
+        // und Feed -- extrem feiner Divider statt sichtbarer Linie.
         borderBottom: has
-          ? `1px solid ${mc}28`
-          : "1px solid rgba(0,0,0,0.045)",
+          ? `1px solid ${mc}1C`
+          : "1px solid rgba(26,53,48,0.028)",
         transition:"border-color 0.35s ease",
         touchAction:"manipulation",
       }}>
         <div style={{ height:"env(safe-area-inset-top,0)" }}/>
 
         <div style={{
-          display:"flex", alignItems:"center",
+          // Visual Polish Pass (2026-07-06): alignItems:"flex-start" statt
+          // "center" -- SUCHFELD-PANEL wird jetzt beliebig hoch (Discovery-
+          // Panel waechst darunter). Mit "center" wuerden die Icon-Buttons
+          // gegen die GESAMTE Spaltenhoehe (Bar+Panel) zentriert und nach
+          // unten wegrutschen. "flex-start" haelt sie an der Bar-Oberkante --
+          // der kleine marginTop im Icon-Wrapper gleicht die 6px Differenz
+          // zur Bar-Hoehe (44px) optisch aus, wirkt weiterhin bar-zentriert.
+          display:"flex", alignItems:"flex-start",
           padding:"8px 12px", gap:8,
           touchAction:"manipulation",
         }}>
@@ -65,15 +74,17 @@ export default function HomeHeader({
             onSearchStateChange={onSearchStateChange}
           />
 
-          <MoodOrbButton
-            activeMood={activeMood}
-            isOpen={showMood}
-            onToggle={() => setShowMood(p => !p)}
-          />
+          <div style={{ display:"flex", alignItems:"center", gap:8, marginTop:3, flexShrink:0 }}>
+            <MoodOrbButton
+              activeMood={activeMood}
+              isOpen={showMood}
+              onToggle={() => setShowMood(p => !p)}
+            />
 
-          <NotificationButton count={notifCount} onPress={onNotif}/>
+            <NotificationButton count={notifCount} onPress={onNotif}/>
 
-          <MessageButton count={msgCount} onPress={handleChat}/>
+            <MessageButton count={msgCount} onPress={handleChat}/>
+          </div>
         </div>
 
         {has && (

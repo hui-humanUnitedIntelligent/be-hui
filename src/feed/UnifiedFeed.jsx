@@ -280,7 +280,7 @@ const FEED_CSS = `
 /* Search Experience 2.0 (2026-07-06, Lars) -- weicher Uebergang
    zwischen Normal-/Such-Zustand des Feeds, kein harter Layoutwechsel. */
 @keyframes hui-search-fade-in {
-  from { opacity: 0; transform: translateY(4px); }
+  from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 `;
@@ -769,7 +769,7 @@ export default function UnifiedFeed({
 
       {/* ── FEED WELCOME HEADER — Kapitel 2 Sprint 2.1 — ausgeblendet waehrend Suche aktiv ── */}
       {!hideDashboard && (
-        <div style={{ animation: "hui-search-fade-in .2s ease both" }}>
+        <div style={{ animation: "hui-search-fade-in .18s cubic-bezier(.22,1,.36,1) both" }}>
           <FeedWelcomeHeader currentUser={currentUser} />
         </div>
       )}
@@ -794,7 +794,7 @@ export default function UnifiedFeed({
 
       {/* ── MAIN FEED — vertical timeline, stable, always renders (auch mit gefilterten Suchergebnissen) ── */}
       {!pureDiscovery && (
-      <div key={searchActive ? "search" : "normal"} style={{ animation: "hui-search-fade-in .2s ease both" }}>
+      <div key={searchActive ? "search" : "normal"} style={{ animation: "hui-search-fade-in .22s cubic-bezier(.22,1,.36,1) both" }}>
 
       {/* FEED.3B FIX-1 — Soft Hydration Badge */}
       <FeedSoftHydrationBadge
