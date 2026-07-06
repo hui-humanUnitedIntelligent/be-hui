@@ -1,14 +1,20 @@
 import { IX } from "../../design/hui.interaction.js";
 
-// src/lib/world/tabVisibilityController.js — Phase 16.4
+// src/lib/world/tabVisibilityController.js — Phase 16.4 + Search Experience 2.0
 // SINGLE SOURCE OF TRUTH for tab visibility.
 //
 // RULES:
-//   1. Tab visibility derived ONLY from (activeTab, activeSurface).
+//   1. Tab visibility derived ONLY from (activeTab, activeSurface, searchActive).
 //   2. When activeSurface === null → activeTab is ALWAYS fully visible.
 //   3. No hidden refs, no cached visibility, no stale opacity.
 //   4. Surface dims content via dimStyle overlay (fixed, sibling to scroll container).
 //      Individual tab divs only control whether THIS tab is the active one.
+//   5. Search Experience 2.0 (2026-07-06, Lars): waehrend die globale Suche
+//      aktiv ist (searchActive=true), wird der "feed"-Tab unabhaengig vom
+//      tatsaechlichen activeTab erzwungen sichtbar -- Suchergebnisse sind
+//      tab-uebergreifend (dieselbe UnifiedFeed-Instanz zeigt sie, egal ob der
+//      Nutzer zuvor auf Home/Entdecken/Impact/Favoriten war). Das ist eine
+//      Erweiterung DIESER einen Wahrheitsquelle, keine zweite Visibility-Logik.
 
 // ─── Timing ────────────────────────────────────────────────────────────────
 // Phase 22: HUI Interaction Language
@@ -29,8 +35,11 @@ const TAB_TRANSITION = `opacity ${IX.DUR.page}ms ${IX.EASE.cinematic}, transform
 // @param {string}      tabId         — "feed"|"discover"|"impact"|"favorites"
 // @param {string}      activeTab     — current active tab
 // @param {string|null} activeSurface — null = no surface open
-export function getTabStyle(tabId, activeTab, activeSurface) {
-  const isActive = tabId === activeTab;
+// @param {boolean}     searchActive  — true while the global search is engaged;
+//                                      forces "feed" to be the visually active tab
+export function getTabStyle(tabId, activeTab, activeSurface, searchActive = false) {
+  const effectiveActiveTab = searchActive ? "feed" : activeTab;
+  const isActive = tabId === effectiveActiveTab;
 
   // Inactive tab: pulled OUT of document flow via position:absolute.
   // Still mounted (keep-alive), but takes NO height → active tab is always at top.
@@ -66,8 +75,9 @@ export function getTabStyle(tabId, activeTab, activeSurface) {
 
 // ─── getTabVisualState ─────────────────────────────────────────────────────
 // Full descriptor for debugging.
-export function getTabVisualState(tabId, activeTab, activeSurface) {
-  const isActive   = tabId === activeTab;
+export function getTabVisualState(tabId, activeTab, activeSurface, searchActive = false) {
+  const effectiveActiveTab = searchActive ? "feed" : activeTab;
+  const isActive   = tabId === effectiveActiveTab;
   const surfActive = activeSurface !== null;
   return {
     tabId,
@@ -80,6 +90,7 @@ export function getTabVisualState(tabId, activeTab, activeSurface) {
     zIndex:        isActive ? "auto" : 0,
     activeSurface: activeSurface ?? "none",
     activeTab,
+    searchActive,
   };
 }
 
@@ -88,12 +99,12 @@ export function getTabVisualState(tabId, activeTab, activeSurface) {
 //
 // Usage:
 //   const { tabFeed, tabDiscover, tabImpact, tabFavorites } =
-//     useTabStyles(tab, activeSurface);
-export function useTabStyles(activeTab, activeSurface) {
+//     useTabStyles(tab, activeSurface, searchActive);
+export function useTabStyles(activeTab, activeSurface, searchActive = false) {
   return {
-    tabFeed:      getTabStyle("feed",      activeTab, activeSurface),
-    tabDiscover:  getTabStyle("discover",  activeTab, activeSurface),
-    tabImpact:    getTabStyle("impact",    activeTab, activeSurface),
-    tabFavorites: getTabStyle("favorites", activeTab, activeSurface),
+    tabFeed:      getTabStyle("feed",      activeTab, activeSurface, searchActive),
+    tabDiscover:  getTabStyle("discover",  activeTab, activeSurface, searchActive),
+    tabImpact:    getTabStyle("impact",    activeTab, activeSurface, searchActive),
+    tabFavorites: getTabStyle("favorites", activeTab, activeSurface, searchActive),
   };
 }

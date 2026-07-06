@@ -185,8 +185,19 @@ export default function HomeShell({ children }) {
   // Phase 16.4: Tab visibility via tabVisibilityController (single authority)
   // activeSurface from WorldSurface — no local opacity state
   const { activeSurface } = useWorldSurface();
+
+  // Search Experience 2.0 (2026-07-06, Lars) -- Suchstatus lebt hier, in der
+  // EINEN Single-Source-of-Truth-Instanz fuer Home-States (siehe Datei-Kommentar),
+  // nicht lokal in Home.jsx. HomeHeader (SearchCommandCenter) schreibt hinein,
+  // UnifiedFeed liest von hier -- unabhaengig davon, welcher Tab (Home/Entdecken/
+  // Impact/Favoriten) gerade aktiv ist. Solange die Suche aktiv ist, wird der
+  // Feed-Tab ueber tabVisibilityController erzwungen sichtbar (siehe searchActive
+  // Parameter unten) -- Suchergebnisse sind tab-uebergreifend, keine zweite
+  // Such-/Ergebnis-Implementierung pro Tab.
+  const [searchState, setSearchState] = useState({ query:"", typeFilter:null, active:false });
+
   const { tabFeed, tabDiscover, tabImpact, tabFavorites } =
-    useTabStyles(tab, activeSurface);
+    useTabStyles(tab, activeSurface, searchState.active);
   // Legacy aliases for backward compat during transition
   const keepFeed      = tabFeed;
   const keepDiscover  = tabDiscover;
@@ -288,6 +299,7 @@ export default function HomeShell({ children }) {
     tab, switchTab, handleTab, mainScrollRef,
     keepFeed, keepDiscover, keepImpact, keepFavorites,
     tabFeed,  tabDiscover,  tabImpact,  tabFavorites,
+    searchState, setSearchState,
     activeSurface,
     prevTab, carryOver,
     isOrbOpen, openOrbWorld, closeOrbWorld, orbState,
@@ -333,6 +345,7 @@ export default function HomeShell({ children }) {
     currentUser, userName, tab, switchTab, handleTab,
     keepFeed, keepDiscover, keepImpact, keepFavorites,
     tabFeed, tabDiscover, tabImpact, tabFavorites,
+    searchState, setSearchState,
     activeSurface, prevTab, carryOver,
     isOrbOpen, openOrbWorld, closeOrbWorld, orbState,
     activeMood, liveNotifCount,

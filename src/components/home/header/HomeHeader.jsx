@@ -22,6 +22,9 @@ export default function HomeHeader({
   onNotif,
   onChat,
   currentUser,
+  // Search Experience 2.0 (2026-07-06, Lars) -- Suchstatus wird durchgereicht
+  // an den Elternkontext (Home.jsx), der ihn an UnifiedFeed weitergibt.
+  onSearchStateChange,
 }) {
   const [showMood, setShowMood] = React.useState(false);
   const actions = useHuiActions();
@@ -59,6 +62,7 @@ export default function HomeHeader({
           <SearchCommandCenter
             activeMood={activeMood}
             currentUser={currentUser}
+            onSearchStateChange={onSearchStateChange}
           />
 
           <MoodOrbButton

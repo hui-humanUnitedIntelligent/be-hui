@@ -283,8 +283,118 @@ async function fetchFeedPage(userId = null, cursors = null) {
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
-export function useFeedStream() {
+// ─── SEARCH-MODE FETCH — Search Experience 2.0 (2026-07-06, Lars) ───────────
+// Eigenstaendige Fetch-Funktion fuer den Live-Search-Zustand des Feeds.
+// BEWUSST getrennt von fetchFeedPage() gehalten (keine Cursor-Logik, kein
+// Realtime, kein Prefetch) -- reduziert das Risiko, die bestehende,
+// battle-getestete Pagination/Realtime-Pipeline durch Vermischung zu
+// destabilisieren (Debug-Protokoll: ein gezielter, isolierter Fix).
+// Wiederverwendung statt Neuerstellung: nutzt exakt dieselben Tabellen,
+// Spalten-Sets und Normalizer wie fetchFeedPage() -- keine neue Datenquelle,
+// keine neue Kartenart. typeFilter: null (alle Typen) | "work" | "experience".
+async function fetchSearchResults(query, typeFilter = null) {
+  const q = (query || "").trim();
+  if (!q) return [];
+
+  const wantWorks = !typeFilter || typeFilter === "work";
+  const wantExps  = !typeFilter || typeFilter === "experience";
+  const wantOther = !typeFilter; // Beitraege + Invitations nur bei unspezifischer Suche
+
+  const tasks = [];
+  tasks.push(wantWorks
+    ? supabase.from("works")
+        .select("id,title,cover_url,media_url,category,description,caption,tags,price,for_sale,status,approval_status,user_id,creator_id,created_at")
+        .eq("status", "published").eq("approval_status", "approved")
+        .or(`title.ilike.%${q}%,description.ilike.%${q}%,category.ilike.%${q}%`)
+        .order("created_at", { ascending: false }).limit(20)
+    : Promise.resolve({ data: [] }));
+  tasks.push(wantExps
+    ? supabase.from("experiences")
+        .select("id,title,cover_url,media_url,category,description,price,duration,format,location_text,date,time_start,time_end,is_live,booking_mode,pricing_type,experience_type,participant_limit,max_participants,mood,mood_tags,social_energy,status,approval_status,visibility,user_id,created_at")
+        .eq("status", "published").eq("approval_status", "approved")
+        .or(`title.ilike.%${q}%,description.ilike.%${q}%,location_text.ilike.%${q}%`)
+        .order("created_at", { ascending: false }).limit(20)
+    : Promise.resolve({ data: [] }));
+  tasks.push(wantOther
+    ? supabase.from("beitraege")
+        .select("id,user_id,src,type,caption,created_at")
+        .ilike("caption", `%${q}%`)
+        .order("created_at", { ascending: false }).limit(15)
+    : Promise.resolve({ data: [] }));
+  tasks.push(wantOther
+    ? supabase.from("invitations")
+        .select("id,user_id,text,title,vibe,mood,energy,location,city,time_label,starts_at,expires_at,visibility,status,max_participants,content_type,created_at")
+        .eq("status", "active").eq("visibility", "public")
+        .gt("expires_at", new Date().toISOString())
+        .ilike("title", `%${q}%`)
+        .order("created_at", { ascending: false }).limit(10)
+    : Promise.resolve({ data: [] }));
+
+  const [worksRes, expsRes, beitrRes, invRes] = await Promise.allSettled(tasks);
+  const works = worksRes.status === "fulfilled" ? (worksRes.value?.data || []) : [];
+  const exps  = expsRes.status  === "fulfilled" ? (expsRes.value?.data  || []) : [];
+  const beitr = beitrRes.status === "fulfilled" ? (beitrRes.value?.data || []) : [];
+  const invs  = invRes.status   === "fulfilled" ? (invRes.value?.data   || []) : [];
+
+  // Profil-Enrichment -- exakt dasselbe Muster wie fetchFeedPage() (ProfileService.getMany)
+  const allRows = [...works, ...exps, ...beitr, ...invs];
+  const userIds = [...new Set(allRows.map(r => r.user_id || r.creator_id).filter(Boolean))];
+  let profileMap = {};
+  if (userIds.length > 0) {
+    try {
+      const { data: profileRows } = await ProfileService.getMany(userIds);
+      if (profileRows) profileRows.forEach(p => { profileMap[p.id] = p; });
+    } catch (_) { /* Profil-Enrichment optional, nie blockierend */ }
+  }
+  function injectProfile(row) {
+    const uid = row.user_id || row.creator_id || null;
+    const p   = (uid && profileMap[uid]) ? profileMap[uid] : null;
+    return { ...row, profile: p || { id: uid } };
+  }
+
+  const normalized = [
+    ...works.map(r => normalizeWorkRow(injectProfile(r))).filter(Boolean),
+    ...exps.map(r => normalizeExperienceRow(injectProfile(r))).filter(Boolean),
+    ...beitr.map(r => normalizeBeitragRow(injectProfile(r))).filter(Boolean),
+    ...invs.map(r => normalizeInvitationRow(injectProfile(r))).filter(Boolean),
+  ];
+
+  // Relevanz-Sortierung: Titel-Treffer vor Beschreibungs-Treffer, dann neueste zuerst
+  const qLower = q.toLowerCase();
+  normalized.sort((a, b) => {
+    const aTitle = (a.title || "").toLowerCase().includes(qLower) ? 1 : 0;
+    const bTitle = (b.title || "").toLowerCase().includes(qLower) ? 1 : 0;
+    if (aTitle !== bTitle) return bTitle - aTitle;
+    return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+  });
+
+  return normalized;
+}
+
+export function useFeedStream({ searchQuery = "", typeFilter = null } = {}) {
   const { user } = useAuth();
+
+  // ── SEARCH-MODE STATE — Search Experience 2.0 ─────────────────────────────
+  // Laeuft komplett PARALLEL zur normalen Pagination/Realtime-Pipeline unten
+  // (die immer weiterlaeuft, unveraendert) -- nur die RETURN-Werte am Ende
+  // des Hooks entscheiden, ob normale Items oder Suchergebnisse exportiert
+  // werden. Kein Eingriff in cursorRef/prefetch/realtime.
+  const [searchItems,   setSearchItems]   = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const searchAliveRef = useRef({ v: false });
+  const isSearching = !!(searchQuery || "").trim();
+
+  useEffect(() => {
+    if (!isSearching) { setSearchItems([]); setSearchLoading(false); return; }
+    searchAliveRef.current.v = false;
+    const alive = { v: true };
+    searchAliveRef.current = alive;
+    setSearchLoading(true);
+    fetchSearchResults(searchQuery, typeFilter)
+      .then(results => { if (alive.v) { setSearchItems(results); setSearchLoading(false); } })
+      .catch(() => { if (alive.v) setSearchLoading(false); });
+    return () => { alive.v = false; };
+  }, [searchQuery, typeFilter]); // eslint-disable-line
 
   // ── State ──────────────────────────────────────────────────────────────────
   const [items,          setItems]          = useState([]);
@@ -563,13 +673,17 @@ export function useFeedStream() {
   }, [initialLoad]);
 
   return {
-    // Items
-    items:          rhythmicItems,   // Rhythmisiert, fertig zum Rendern
-    rawItems:       items,           // Unverarbeitet (für Debug)
-    loading,
-    loadingMore,
-    hasMore,
+    // Items -- im Suchmodus (isSearching) werden die normalen Feed-Items
+    // durch die Suchergebnisse ersetzt; Pagination/Realtime laufen im
+    // Hintergrund unveraendert weiter und uebernehmen sofort wieder, wenn
+    // die Suche verlassen wird (searchQuery wird leer).
+    items:          isSearching ? searchItems : rhythmicItems,
+    rawItems:       items,           // Unverarbeitet (für Debug) -- immer der normale Stream
+    loading:        isSearching ? searchLoading : loading,
+    loadingMore:    isSearching ? false : loadingMore,
+    hasMore:        isSearching ? false : hasMore,   // Suchergebnisse v1: keine Pagination
     error,
+    isSearching,
 
     // Pagination
     loadMore,

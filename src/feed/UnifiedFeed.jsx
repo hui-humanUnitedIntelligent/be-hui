@@ -276,6 +276,13 @@ const FEED_CSS = `
   animation: huiFeedCardIn 0.32s ease both;
   -webkit-tap-highlight-color: transparent;
 }
+
+/* Search Experience 2.0 (2026-07-06, Lars) -- weicher Uebergang
+   zwischen Normal-/Such-Zustand des Feeds, kein harter Layoutwechsel. */
+@keyframes hui-search-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 `;
 
 let _feedCSSInjected = false;
@@ -673,6 +680,14 @@ export default function UnifiedFeed({
   onDiscover   = null,
   // User context
   currentUser  = null,
+  // Search Experience 2.0 (2026-07-06, Lars) -- Suche als Feed-Zustand statt
+  // eigene Seite/Overlay. Wenn searchActive: Dashboard-Elemente (Begruessung,
+  // Heute-auf-HUI, Events) werden ausgeblendet; bei nicht-leerer searchQuery
+  // zeigt der Feed direkt die (im useFeedStream-Hook) gefilterten Ergebnisse
+  // -- dieselben Karten/Komponenten wie im Normalzustand, keine Suchkarten.
+  searchActive = false,
+  searchQuery  = "",
+  typeFilter   = null,
 }) {
   useEffect(() => {
     injectFeedCSS();
@@ -688,7 +703,8 @@ export default function UnifiedFeed({
     loadingMore,
     pendingCount,
     flushPendingItems,
-  } = useFeedStream();
+    isSearching,
+  } = useFeedStream({ searchQuery, typeFilter });
 
   // ── Bind refresh fn to parent (defensive) ──────────────────────────
   React.useEffect(() => {
@@ -733,6 +749,16 @@ export default function UnifiedFeed({
 
   // Sections are directly imported — no lazy load needed
 
+  // Search Experience 2.0: waehrend die Suche aktiv ist (Bar fokussiert),
+  // sind Dashboard-Elemente (Begruessung/Heute-auf-HUI/Events) ausgeblendet --
+  // sie sind kein Suchergebnis und wuerden wieder wie "ein zweites Home" wirken.
+  const hideDashboard = searchActive;
+  // Reine Discovery-Phase (Bar aktiv, aber noch kein Suchtext): die Kategorien-/
+  // Filter-/Verlaufs-Chips werden vom Header (SearchExperience) gerendert --
+  // der Feed-Bereich selbst bleibt hier bewusst leer (keine Karten, kein
+  // Dashboard), bis der Nutzer zu tippen beginnt.
+  const pureDiscovery = searchActive && !isSearching;
+
   return (
     <div style={{
       width: "100%",
@@ -741,13 +767,17 @@ export default function UnifiedFeed({
       minHeight: "100vh",
     }}>
 
-      {/* ── FEED WELCOME HEADER — Kapitel 2 Sprint 2.1 ── */}
-      <FeedWelcomeHeader currentUser={currentUser} />
+      {/* ── FEED WELCOME HEADER — Kapitel 2 Sprint 2.1 — ausgeblendet waehrend Suche aktiv ── */}
+      {!hideDashboard && (
+        <div style={{ animation: "hui-search-fade-in .2s ease both" }}>
+          <FeedWelcomeHeader currentUser={currentUser} />
+        </div>
+      )}
 
       {/* Stories entfernt — HUI-Momente sind die Stories */}
 
-      {/* ── EVENTS — below stories ── */}
-      {showEvents && (
+      {/* ── EVENTS — below stories — ausgeblendet waehrend Suche aktiv ── */}
+      {showEvents && !hideDashboard && (
         <SectionBoundary name="events">
           <FeedEventsSection
             onEventPress={onEventPress}
@@ -756,7 +786,15 @@ export default function UnifiedFeed({
         </SectionBoundary>
       )}
 
-      {/* ── MAIN FEED — vertical timeline, stable, always renders ── */}
+      {/* Reine Discovery-Phase: Feed-Bereich bewusst leer -- Kategorien/Filter/
+          Verlauf werden vom Header (SearchExperience) darueber angezeigt. */}
+      {pureDiscovery && (
+        <div style={{ minHeight:"40vh" }} aria-hidden="true"/>
+      )}
+
+      {/* ── MAIN FEED — vertical timeline, stable, always renders (auch mit gefilterten Suchergebnissen) ── */}
+      {!pureDiscovery && (
+      <div key={searchActive ? "search" : "normal"} style={{ animation: "hui-search-fade-in .2s ease both" }}>
 
       {/* FEED.3B FIX-1 — Soft Hydration Badge */}
       <FeedSoftHydrationBadge
@@ -798,6 +836,16 @@ export default function UnifiedFeed({
           </div>
         )}
 
+        {/* Keine Ergebnisse -- Suchmodus, kompakter Hinweis statt leerer Flaeche */}
+        {isSearching && !streamLoading && resolvedItems.length === 0 && (
+          <div style={{ padding:"48px 24px", textAlign:"center" }}>
+            <div style={{ fontSize:26, marginBottom:8 }}>🔍</div>
+            <div style={{ fontSize:13.5, color:"rgba(26,53,48,0.55)", fontWeight:500 }}>
+              Keine Ergebnisse für „{searchQuery}"
+            </div>
+          </div>
+        )}
+
         {/* Feed list — only when not first-load */}
         {(!streamLoading || resolvedItems.length > 0) && (
           <FeedList
@@ -813,6 +861,9 @@ export default function UnifiedFeed({
           />
         )}
       </SectionBoundary>
+
+      </div>
+      )}
 
     </div>
   );

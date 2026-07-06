@@ -133,6 +133,7 @@ function HomeInner() {
     openOwnProfile,
     mainScrollRef,
     keepFeed, keepDiscover,           keepImpact, keepFavorites,
+    searchState,   setSearchState,
     activeMood,    setActiveMood,
     liveNotifCount,
     isTalent, isBaseUser, canCreate,
@@ -311,6 +312,7 @@ function HomeInner() {
           onNotif={() => {
             setShowNotifs(true);
           }}
+          onSearchStateChange={setSearchState}
         />
 
         {/* Phase 16.4: Surface Dim Overlay — position:fixed, above tab content,
@@ -370,6 +372,9 @@ function HomeInner() {
                   onRefreshBind={fn => { feedRefreshRef.current = fn; }}
                   showEvents={true}
                   currentUser={currentUser}
+                  searchActive={searchState.active}
+                  searchQuery={searchState.query}
+                  typeFilter={searchState.typeFilter}
                   onProfile={(userId) => {
                     if (!userId) {
                       return;
