@@ -19,6 +19,7 @@ import { supabase }              from "../../../lib/supabaseClient.js";
 import { toast }                 from "../../../lib/useToast.jsx";
 import { FEATURED_CATEGORIES, searchCategories } from "../../../lib/categories.js";
 import { NAV_RESERVED_HEIGHT_CSS } from "../navigation/navigationGeometry.js";
+import { useRadiusFilter, radiusLabel } from "../../../hooks/useRadiusFilter.js";
 
 // ─────────────────────────────────────────────────────────────
 // DESIGN TOKENS
@@ -81,6 +82,99 @@ function SectionLabel({ children, color, action, onAction }) {
           background:"none", border:"none", cursor:"pointer",
           fontSize: 10.5, color: T.inkF, fontWeight: 600, padding: 0,
         }}>{action}</button>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// UMKREISSUCHE (2026-07-06, Lars) — RadiusRow
+// Horizontal scrollbare Pill-Reihe: Standort-Chip + 9 Radius-Stufen
+// (1/5/10/25/50/100/250/500 km + Weltweit). Gleiche Optik wie die
+// Kategorien-/Filter-Pills (dc-tag), damit sich der Umkreisregler wie
+// ein natuerlicher Teil der bestehenden Suchoberflaeche anfuehlt und
+// NICHT wie ein separates Feature (Vorgabe Lars, Punkt "Integration").
+// Standortabfrage wird IMMER erst bei explizitem Tap ausgeloest, nie
+// automatisch -- bei Ablehnung/Fehler erscheint sanft ein PLZ/Ort-Feld
+// als Fallback (Vorgabe: "freundlich anfragen", manuelle Ortsauswahl).
+// ─────────────────────────────────────────────────────────────
+function RadiusRow({ radius }) {
+  const [manualOpen,  setManualOpen]  = useState(false);
+  const [manualQuery, setManualQuery] = useState("");
+
+  const handlePickRadius = async (stage) => {
+    if (stage !== "world" && !radius.geo) {
+      const g = await radius.requestBrowserLocation();
+      if (!g) { setManualOpen(true); return; }
+    }
+    radius.setRadiusKm(stage);
+  };
+
+  const handleLocationChipTap = async () => {
+    if (radius.geo) { radius.clearLocation(); return; }
+    const g = await radius.requestBrowserLocation();
+    if (!g) setManualOpen(true);
+  };
+
+  const submitManual = async () => {
+    if (!manualQuery.trim()) return;
+    const g = await radius.setManualPlace(manualQuery.trim());
+    if (g) { setManualOpen(false); setManualQuery(""); }
+  };
+
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <div style={{display:"flex",gap:7,overflowX:"auto",paddingBottom:2,WebkitOverflowScrolling:"touch",scrollbarWidth:"none"}} className="dc-scroll">
+        <button className="dc-tag" onClick={handleLocationChipTap} style={{
+          display:"flex",alignItems:"center",gap:5,flexShrink:0,
+          background: radius.geo ? T.tealM : "rgba(26,53,48,0.035)",
+          border:`1px solid ${radius.geo ? "rgba(14,196,184,0.30)" : "rgba(26,53,48,0.07)"}`,
+          borderRadius:99,padding:"7px 13px",cursor:"pointer",
+          fontSize:12,fontWeight:600,letterSpacing:"-0.01em",
+          color: radius.geo ? T.teal : T.inkF, whiteSpace:"nowrap",
+          WebkitTapHighlightColor:"transparent",
+        }}>
+          <span style={{fontSize:12}}>📍</span>
+          {radius.status === "requesting" ? "Suche…" : (radius.geo ? radius.geo.label : "Standort")}
+        </button>
+        {radius.stages.map(stage => {
+          const active = radius.radiusKm === stage;
+          return (
+            <button key={String(stage)} className="dc-tag" onClick={()=>handlePickRadius(stage)} style={{
+              flexShrink:0,
+              background: active ? T.teal : "rgba(26,53,48,0.035)",
+              border:`1px solid ${active ? T.teal : "rgba(26,53,48,0.07)"}`,
+              borderRadius:99,padding:"7px 13px",cursor:"pointer",
+              fontSize:11.5,fontWeight:600,letterSpacing:"-0.01em",
+              color: active ? "#fff" : "rgba(26,53,48,0.62)",
+              boxShadow: active ? "0 3px 10px rgba(14,196,184,0.26)" : "none",
+              transition:"background .16s ease,border-color .16s ease,color .16s ease,box-shadow .16s ease",
+              whiteSpace:"nowrap",
+              WebkitTapHighlightColor:"transparent",
+            }}>
+              {radiusLabel(stage)}
+            </button>
+          );
+        })}
+      </div>
+      {manualOpen && (
+        <div style={{display:"flex",gap:6,marginTop:8,animation:"hui-search-fade-in .18s ease both"}}>
+          <input
+            value={manualQuery}
+            onChange={e=>setManualQuery(e.target.value)}
+            onKeyDown={e=>{ if (e.key==="Enter") submitManual(); }}
+            placeholder="PLZ oder Ort eingeben…"
+            style={{
+              flex:1, minWidth:0, border:"1px solid rgba(26,53,48,0.09)", borderRadius:99,
+              padding:"7px 13px", fontSize:12, outline:"none", background:"rgba(26,53,48,0.02)",
+              color:T.ink,
+            }}
+          />
+          <button className="dc-tag" onClick={submitManual} style={{
+            flexShrink:0, background:T.teal, color:"#fff", border:"none", borderRadius:99,
+            padding:"7px 15px", fontSize:12, fontWeight:600, cursor:"pointer",
+          }}>OK</button>
+        </div>
       )}
     </div>
   );
@@ -278,6 +372,7 @@ export default function SearchCommandCenter({ activeMood, currentUser, onSearchS
   const [query,      setQuery]      = useState("");
   const [typeFilter, setTypeFilter] = useState(null);    // null | "work" | "experience"
   const [showKi,     setShowKi]     = useState(false);
+  const radius = useRadiusFilter(); // Umkreissuche 2026-07-06 -- geteilter Radius-Zustand
 
   // "Alle Kategorien"-Feature (2026-07-06): ausgewaehlte Kategorie (Objekt aus
   // src/lib/categories.js) + Bottom-Sheet-Sichtbarkeit + eigenes Suchfeld
@@ -314,8 +409,11 @@ export default function SearchCommandCenter({ activeMood, currentUser, onSearchS
   // Suchstatus nach oben melden (Home.jsx -> UnifiedFeed). Der Feed entscheidet
   // selbst, welche Inhalte er anzeigt (Query/Filter sind nur Parameter).
   useEffect(() => {
-    onSearchStateChange?.({ query: debouncedQuery, typeFilter, category: activeCategory, active: open });
-  }, [debouncedQuery, typeFilter, activeCategory, open]); // eslint-disable-line
+    onSearchStateChange?.({
+      query: debouncedQuery, typeFilter, category: activeCategory, active: open,
+      radiusKm: radius.radiusKm, geo: radius.geo, isWorldwide: radius.isWorldwide,
+    });
+  }, [debouncedQuery, typeFilter, activeCategory, open, radius.radiusKm, radius.geo, radius.isWorldwide]); // eslint-disable-line
 
   // Verlauf speichern, sobald ein Suchbegriff kurz stabil war (kein Spam pro Tastendruck)
   useEffect(() => {
@@ -565,6 +663,11 @@ export default function SearchCommandCenter({ activeMood, currentUser, onSearchS
           </div>
         </div>
       )}
+
+      {/* Umkreissuche -- immer erreichbar solange das Panel offen ist, nicht
+          nur in der reinen Discovery-Ansicht (Vorgabe: "jederzeit schnell
+          erreichbar", gilt fuer Kategorien UND Filter UND freie Suche). */}
+      <RadiusRow radius={radius} />
 
       {/* Filter -- fast monochrom, nur der aktive Filter erhaelt die HUI-Farbe (Punkt 5) */}
       {showFilters && (

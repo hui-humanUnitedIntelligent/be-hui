@@ -307,41 +307,67 @@ function buildCategoryOrExpr(categoryFilter, cols) {
   return terms.flatMap(t => cols.map(c => `${c}.ilike.%${t}%`)).join(",");
 }
 
-async function fetchSearchResults(query, typeFilter = null, categoryFilter = null) {
+// Umkreissuche (2026-07-06, Lars): radiusKm/geo optional. "world"/null/kein
+// geo => Radius-RPCs werden NICHT aufgerufen, bestehendes Verhalten bleibt
+// 1:1 erhalten. Ist ein konkreter Radius + Standort gesetzt, werden zuerst
+// die nearby_*-RPCs (Migration 20260706_067) abgefragt -- die zurueckgegebenen
+// ids grenzen die bestehenden works/experiences-Queries per .in() zusaetzlich
+// ein (UND-Verknuepfung mit Text-/Kategorie-Filter), die Distanz wird pro
+// Zeile mitgefuehrt und die Ergebnisse werden nach Distanz sortiert.
+async function fetchSearchResults(query, typeFilter = null, categoryFilter = null, radiusKm = null, geo = null) {
   const q = (query || "").trim();
   const hasCategory = !!categoryFilter;
-  if (!q && !hasCategory) return [];
+  const hasRadius = !!(geo && radiusKm && radiusKm !== "world");
+  if (!q && !hasCategory && !hasRadius) return [];
 
   const wantWorks = !typeFilter || typeFilter === "work";
   const wantExps  = !typeFilter || typeFilter === "experience";
   // Beitraege/Invitations haben kein "category"-Feld im Sinne der neuen
-  // Themenwelt -- bei aktivem Kategorie-Filter werden sie bewusst
-  // ausgeblendet (kein falsch-positives/fehlendes Matching), bei reiner
-  // Freitextsuche bleiben sie wie bisher Teil der Ergebnisse.
-  const wantOther = !typeFilter && !hasCategory;
+  // Themenwelt und keine Koordinaten -- bei aktivem Kategorie- ODER
+  // Radius-Filter werden sie bewusst ausgeblendet (kein falsch-positives/
+  // fehlendes Matching), bei reiner Freitextsuche bleiben sie wie bisher
+  // Teil der Ergebnisse.
+  const wantOther = !typeFilter && !hasCategory && !hasRadius && !!q;
 
   const workCatExpr = buildCategoryOrExpr(categoryFilter, ["title","description","category"]);
   const expCatExpr  = buildCategoryOrExpr(categoryFilter, ["title","description","category","location_text"]);
 
+  // Radius-RPCs VOR den eigentlichen Queries abfragen, damit ihre ids als
+  // zusaetzlicher .in()-Filter angehaengt werden koennen.
+  let workDistanceMap = null, expDistanceMap = null;
+  if (hasRadius) {
+    const [wRes, eRes] = await Promise.allSettled([
+      wantWorks ? supabase.rpc("nearby_works", { p_lat: geo.lat, p_lng: geo.lng, p_radius_km: radiusKm, p_limit: 60 }) : Promise.resolve({ data: [] }),
+      wantExps  ? supabase.rpc("nearby_experiences", { p_lat: geo.lat, p_lng: geo.lng, p_radius_km: radiusKm, p_limit: 60 }) : Promise.resolve({ data: [] }),
+    ]);
+    workDistanceMap = new Map((wRes.status === "fulfilled" ? (wRes.value?.data || []) : []).map(r => [r.id, r.distance_km]));
+    expDistanceMap  = new Map((eRes.status === "fulfilled" ? (eRes.value?.data || []) : []).map(r => [r.id, r.distance_km]));
+    // Keine Treffer im Radius -> Query fuer diesen Typ gar nicht erst absetzen.
+    if (wantWorks && workDistanceMap.size === 0) workDistanceMap.__empty = true;
+    if (wantExps  && expDistanceMap.size  === 0) expDistanceMap.__empty  = true;
+  }
+
   const tasks = [];
-  tasks.push(wantWorks
+  tasks.push((wantWorks && !(hasRadius && workDistanceMap?.__empty))
     ? (() => {
         let sel = supabase.from("works")
           .select("id,title,cover_url,media_url,category,description,caption,tags,price,for_sale,status,approval_status,user_id,creator_id,created_at")
           .eq("status", "published").eq("approval_status", "approved");
         if (q) sel = sel.or(`title.ilike.%${q}%,description.ilike.%${q}%,category.ilike.%${q}%`);
         if (workCatExpr) sel = sel.or(workCatExpr);
-        return sel.order("created_at", { ascending: false }).limit(20);
+        if (hasRadius) sel = sel.in("id", [...workDistanceMap.keys()]);
+        return sel.order("created_at", { ascending: false }).limit(hasRadius ? 60 : 20);
       })()
     : Promise.resolve({ data: [] }));
-  tasks.push(wantExps
+  tasks.push((wantExps && !(hasRadius && expDistanceMap?.__empty))
     ? (() => {
         let sel = supabase.from("experiences")
           .select("id,title,cover_url,media_url,category,description,price,duration,format,location_text,date,time_start,time_end,is_live,booking_mode,pricing_type,experience_type,participant_limit,max_participants,mood,mood_tags,social_energy,status,approval_status,visibility,user_id,created_at")
           .eq("status", "published").eq("approval_status", "approved");
         if (q) sel = sel.or(`title.ilike.%${q}%,description.ilike.%${q}%,location_text.ilike.%${q}%`);
         if (expCatExpr) sel = sel.or(expCatExpr);
-        return sel.order("created_at", { ascending: false }).limit(20);
+        if (hasRadius) sel = sel.in("id", [...expDistanceMap.keys()]);
+        return sel.order("created_at", { ascending: false }).limit(hasRadius ? 60 : 20);
       })()
     : Promise.resolve({ data: [] }));
   tasks.push(wantOther
@@ -360,10 +386,17 @@ async function fetchSearchResults(query, typeFilter = null, categoryFilter = nul
     : Promise.resolve({ data: [] }));
 
   const [worksRes, expsRes, beitrRes, invRes] = await Promise.allSettled(tasks);
-  const works = worksRes.status === "fulfilled" ? (worksRes.value?.data || []) : [];
-  const exps  = expsRes.status  === "fulfilled" ? (expsRes.value?.data  || []) : [];
+  let works = worksRes.status === "fulfilled" ? (worksRes.value?.data || []) : [];
+  let exps  = expsRes.status  === "fulfilled" ? (expsRes.value?.data  || []) : [];
   const beitr = beitrRes.status === "fulfilled" ? (beitrRes.value?.data || []) : [];
   const invs  = invRes.status   === "fulfilled" ? (invRes.value?.data   || []) : [];
+
+  // Distanz auf jede Zeile mitfuehren (fuer spaeteres "X km entfernt"-Label,
+  // additiv als distance_km auf dem Roh-Objekt -- ueberlebt in item._raw).
+  if (hasRadius) {
+    works = works.map(w => ({ ...w, distance_km: workDistanceMap.get(w.id) ?? null }));
+    exps  = exps.map(e  => ({ ...e, distance_km: expDistanceMap.get(e.id)  ?? null }));
+  }
 
   // Profil-Enrichment -- exakt dasselbe Muster wie fetchFeedPage() (ProfileService.getMany)
   const allRows = [...works, ...exps, ...beitr, ...invs];
@@ -388,19 +421,31 @@ async function fetchSearchResults(query, typeFilter = null, categoryFilter = nul
     ...invs.map(r => normalizeInvitationRow(injectProfile(r))).filter(Boolean),
   ];
 
-  // Relevanz-Sortierung: Titel-Treffer vor Beschreibungs-Treffer, dann neueste zuerst
-  const qLower = q.toLowerCase();
-  normalized.sort((a, b) => {
-    const aTitle = (a.title || "").toLowerCase().includes(qLower) ? 1 : 0;
-    const bTitle = (b.title || "").toLowerCase().includes(qLower) ? 1 : 0;
-    if (aTitle !== bTitle) return bTitle - aTitle;
-    return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
-  });
+  if (hasRadius) {
+    // Umkreissuche aktiv: Distanz gewinnt vor Textrelevanz (Vorgabe Lars --
+    // "Ergebnisse standardmaessig nach Entfernung sortieren").
+    normalized.sort((a, b) => {
+      const da = a._raw?.distance_km, db = b._raw?.distance_km;
+      if (da == null && db == null) return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+      if (da == null) return 1;
+      if (db == null) return -1;
+      return da - db;
+    });
+  } else {
+    // Relevanz-Sortierung: Titel-Treffer vor Beschreibungs-Treffer, dann neueste zuerst
+    const qLower = q.toLowerCase();
+    normalized.sort((a, b) => {
+      const aTitle = (a.title || "").toLowerCase().includes(qLower) ? 1 : 0;
+      const bTitle = (b.title || "").toLowerCase().includes(qLower) ? 1 : 0;
+      if (aTitle !== bTitle) return bTitle - aTitle;
+      return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+    });
+  }
 
   return normalized;
 }
 
-export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFilter = null } = {}) {
+export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFilter = null, radiusKm = null, geo = null } = {}) {
   const { user } = useAuth();
 
   // ── SEARCH-MODE STATE — Search Experience 2.0 ─────────────────────────────
@@ -413,10 +458,16 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
   // src/lib/categories.js ({name, keywords,...}) ODER null. Zaehlt genauso
   // wie ein Freitext-Query als "isSearching" -- eine ausgewaehlte Kategorie
   // ohne eingegebenen Suchtext soll den Feed sofort filtern (Vorgabe Lars).
+  //
+  // radiusKm/geo (Umkreissuche, 2026-07-06): ein konkret gewaehlter Radius
+  // (nicht "world"/null) MIT bekanntem Standort zaehlt ebenfalls als
+  // "isSearching" -- Nutzer soll direkt nach Standortwahl Ergebnisse in der
+  // Naehe sehen, auch ohne eingetippten Suchtext.
   const [searchItems,   setSearchItems]   = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const searchAliveRef = useRef({ v: false });
-  const isSearching = !!(searchQuery || "").trim() || !!categoryFilter;
+  const hasRadius = !!(geo && radiusKm && radiusKm !== "world");
+  const isSearching = !!(searchQuery || "").trim() || !!categoryFilter || hasRadius;
 
   useEffect(() => {
     if (!isSearching) { setSearchItems([]); setSearchLoading(false); return; }
@@ -424,12 +475,12 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
     const alive = { v: true };
     searchAliveRef.current = alive;
     setSearchLoading(true);
-    fetchSearchResults(searchQuery, typeFilter, categoryFilter)
+    fetchSearchResults(searchQuery, typeFilter, categoryFilter, radiusKm, geo)
       .then(results => { if (alive.v) { setSearchItems(results); setSearchLoading(false); } })
       .catch(() => { if (alive.v) setSearchLoading(false); });
     return () => { alive.v = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery, typeFilter, categoryFilter?.slug]);
+  }, [searchQuery, typeFilter, categoryFilter?.slug, radiusKm, geo?.lat, geo?.lng]);
 
   // ── State ──────────────────────────────────────────────────────────────────
   const [items,          setItems]          = useState([]);

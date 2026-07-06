@@ -376,6 +376,8 @@ function HomeInner() {
                   searchQuery={searchState.query}
                   typeFilter={searchState.typeFilter}
                   categoryFilter={searchState.category}
+                  radiusKm={searchState.radiusKm}
+                  geo={searchState.geo}
                   onProfile={(userId) => {
                     if (!userId) {
                       return;

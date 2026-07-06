@@ -691,6 +691,10 @@ export default function UnifiedFeed({
   // "Alle Kategorien"-Feature (2026-07-06): Objekt aus src/lib/categories.js
   // oder null. Wird 1:1 an useFeedStream durchgereicht.
   categoryFilter = null,
+  // Umkreissuche (2026-07-06): radiusKm (Zahl oder "world") + geo ({lat,lng})
+  // aus SearchCommandCenter/useRadiusFilter. Wird 1:1 an useFeedStream durchgereicht.
+  radiusKm       = null,
+  geo            = null,
 }) {
   useEffect(() => {
     injectFeedCSS();
@@ -707,7 +711,7 @@ export default function UnifiedFeed({
     pendingCount,
     flushPendingItems,
     isSearching,
-  } = useFeedStream({ searchQuery, typeFilter, categoryFilter });
+  } = useFeedStream({ searchQuery, typeFilter, categoryFilter, radiusKm, geo });
 
   // ── Bind refresh fn to parent (defensive) ──────────────────────────
   React.useEffect(() => {

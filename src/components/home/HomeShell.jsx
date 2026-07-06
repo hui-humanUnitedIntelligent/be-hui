@@ -196,7 +196,7 @@ export default function HomeShell({ children }) {
   // Such-/Ergebnis-Implementierung pro Tab.
   // "category" (2026-07-06): Objekt aus src/lib/categories.js oder null --
   // Auswahl aus dem "Alle Kategorien"-Bottom-Sheet in SearchCommandCenter.
-  const [searchState, setSearchState] = useState({ query:"", typeFilter:null, category:null, active:false });
+  const [searchState, setSearchState] = useState({ query:"", typeFilter:null, category:null, active:false, radiusKm:null, geo:null });
 
   const { tabFeed, tabDiscover, tabImpact, tabFavorites } =
     useTabStyles(tab, activeSurface, searchState.active);

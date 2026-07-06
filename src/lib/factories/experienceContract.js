@@ -20,6 +20,8 @@
 
 // ── Erlaubte Enum-Werte ───────────────────────────────────────────────
 
+import { searchPlaces } from "../geocoding.js"; // Umkreissuche 2026-07-06 -- wiederverwendet STANDORT-036
+
 export const EXPERIENCE_ENUMS = {
   booking_mode:    ["direct", "request"],
   visibility:      ["public", "members", "private"],
@@ -362,6 +364,19 @@ export async function publishExperience(supabase, rawForm, userId, uploadedUrls 
   } catch(e) {
     console.error("[HUI_CONTRACT] normalize failed:", e.message);
     return { data: null, error: { message: e.message } };
+  }
+
+  // 1.5 Umkreissuche (2026-07-06, Lars): location_text geocodieren, ausser
+  // bei "online"-Erlebnissen (die haben bewusst keine Koordinate -- werden
+  // in der Umkreissuche immer als "ueberall verfuegbar" behandelt, nie
+  // stillschweigend ausgeblendet). Nutzt dieselbe Nominatim-Funktion, die
+  // STANDORT-036 bereits fuer Profil-/Talent-Standorte einsetzt -- kein
+  // zweites Geocoding-Modul. Rein additiv, nie blockierend fuer den Publish.
+  if (payload.format !== "online" && payload.location_text) {
+    try {
+      const hits = await searchPlaces(payload.location_text);
+      if (hits?.[0]) { payload.lat = hits[0].lat; payload.lng = hits[0].lng; }
+    } catch (_) { /* Geocoding optional */ }
   }
 
   // 2. Validieren

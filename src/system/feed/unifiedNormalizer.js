@@ -146,6 +146,10 @@ export function toFeedItem(raw){
       createdAt:relTime(raw.created_at||raw.createdAt),
       location:safeStr(raw.location)||null,
       price:raw.price!=null?safeNum(raw.price):null,
+      // Umkreissuche (2026-07-06): additiv, nur gesetzt wenn eine nearby_*-RPC
+      // aufgerufen wurde (siehe useFeedStream.fetchSearchResults). null in
+      // allen anderen Faellen -- keine Verhaltensaenderung fuer bestehende Karten.
+      distanceKm:raw.distance_km!=null?safeNum(raw.distance_km):null,
       tags:Array.isArray(raw.tags)?raw.tags.filter(Boolean):[],
       isLive:safeBool(raw.isLive||raw.is_live),
       timeStart:safeStr(raw.time_start||raw.timeStart)||null,

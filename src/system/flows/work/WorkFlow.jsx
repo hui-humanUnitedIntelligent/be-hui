@@ -154,13 +154,28 @@ export default function WorkFlow({ onClose }) {
         imageUrls.push(publicUrl);
         if (i === 0) coverUrl = publicUrl;
       }
+      // Umkreissuche (2026-07-06, Lars): Werke haben kein eigenes Adressfeld --
+      // wir uebernehmen den Primaer-Standort des Erstellers aus profile_locations
+      // (bestehende Tabelle aus STANDORT-036), damit "Werke in meiner Naehe"
+      // in der globalen Suche funktioniert. Rein additiv, nie blockierend --
+      // fehlt ein Standort, bleibt lat/lng einfach null (Werk erscheint dann
+      // nur ausserhalb der Umkreissuche, nicht ausserhalb der normalen Suche).
+      let creatorLat = null, creatorLng = null;
+      try {
+        const { data: primaryLoc } = await supabase.from("profile_locations")
+          .select("lat,lng").eq("profile_id", user.id).eq("is_primary", true)
+          .limit(1).maybeSingle();
+        if (primaryLoc) { creatorLat = primaryLoc.lat; creatorLng = primaryLoc.lng; }
+      } catch (_) { /* Umkreissuche optional, Werk-Speichern darf nie daran scheitern */ }
+
       // 2. DB Insert
       // FIX: works-Tabelle nutzt 'creator_id' nicht 'user_id'
       // FIX: visibility muss explizit 'public' sein wenn nicht gesetzt
       // ── Schema-korrekter Insert (works-Tabelle) ──────────────────
       // Bekannte Spalten: user_id, creator_id, title, description, category,
       //   cover_url, media_url, media_type, caption, price, for_sale,
-      //   location_text, tags, mood_tags, atmosphere_tags, visibility, status
+      //   location_text, tags, mood_tags, atmosphere_tags, visibility, status,
+      //   lat, lng (Umkreissuche, Migration 20260706_067)
       // NICHT in Schema: sale_mode, shipping_*, file_format, size, materials,
       //   condition, images (JSONB-Spalte existiert aber images[] nicht)
       const workPayload = {
@@ -179,6 +194,7 @@ export default function WorkFlow({ onClose }) {
         status:      "pending_review",
         last_submitted_at: new Date().toISOString(),
         is_update: false,
+        lat: creatorLat, lng: creatorLng,
       };
       console.info("[HUI_PUBLISH] works payload:", {
         user_id:    workPayload.user_id,
