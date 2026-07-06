@@ -1,0 +1,36 @@
+-- 20260706_063_drop_stale_focus_type_check.sql
+-- ══════════════════════════════════════════════════════════════════════
+-- FIX: profiles.focus_type CHECK-Constraint blockierte JEDES Profil-Speichern
+-- ══════════════════════════════════════════════════════════════════════
+-- Root Cause (verifiziert, kein Raten):
+-- Der bestehende CHECK-Constraint erlaubte nur focus_type IN
+-- ('works','experiences','hybrid') — vermutlich einst für ein "Content-Fokus"
+-- Feature gedacht. Es gibt aktuell KEINEN Code-Pfad im Repo, der diese 3 Werte
+-- schreibt oder liest (grep-verifiziert).
+--
+-- Stattdessen schreiben 3 unterschiedliche, aktiv genutzte Live-Features
+-- konkurrierend in dieselbe Spalte, alle mit anderen Werte-Domänen:
+--   1. VisibilitySection/TalentProfilePage/BasisProfilePage/MyBasisProfile
+--      → "Sichtbarkeit": 'public' | 'connections' | 'private'
+--   2. ProfilBearbeitenModal.jsx (Basis-Profil "Fokus"-Pills)
+--      → 'Kreativ'|'Sozial'|'Technisch'|'Bildung'|'Bewegung'|'Handel'|
+--         'Gastro'|'Beratung'|'Sonstiges'
+--
+-- Jeder Speichervorgang, der einen dieser Werte enthält (was praktisch immer
+-- der Fall ist, sobald ein Nutzer schon einmal die Sichtbarkeit geändert hat),
+-- verletzte den Constraint — auch wenn nur ein völlig anderes Feld (z.B. E-Mail)
+-- geändert wurde. Live reproduziert vom Nutzer (Screenshot: Speichern-Fehler
+-- "profiles_focus_type_check" beim Editieren der Kontakt-E-Mail).
+--
+-- Fix: Constraint entfernt (rein additiv — keine Datenänderung, keine
+-- Spalten-/Typ-Änderung, keine RPC-Signatur betroffen). Per Rollback-Test
+-- (DO-Block + RAISE EXCEPTION, kein permanenter Effekt) vorab verifiziert.
+--
+-- Bewusst NICHT gemacht (kein Raten): Die architektonische Doppel-/
+-- Dreifachnutzung derselben Spalte für 2 konkurrierende Domänen (Sichtbarkeit
+-- vs. Fokus-Kategorie) bleibt bestehen und wird hier NICHT aufgelöst — das
+-- wäre eine Produktentscheidung (z.B. eigene Spalte für Sichtbarkeit), die
+-- explizite Freigabe braucht. Nur der blockierende DB-Fehler wird behoben.
+-- ══════════════════════════════════════════════════════════════════════
+
+ALTER TABLE profiles DROP CONSTRAINT IF EXISTS profiles_focus_type_check;
