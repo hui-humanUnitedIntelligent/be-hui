@@ -12,6 +12,7 @@ import { useAuthGate }    from "../components/auth/AuthGate.jsx";
 import TalentAnfrageFlow  from "../components/talents/TalentAnfrageFlow.jsx";
 import TalentBookingFlow  from "../components/talents/TalentBookingFlow.jsx";
 import { searchPlaces, distanceKm } from "../lib/geocoding.js";
+import { useRadiusFilter, radiusLabel } from "../hooks/useRadiusFilter.js"; // Umkreissuche-Vereinheitlichung 2026-07-06 -- globaler Radius statt eigenem State
 
 // ── Design Tokens ────────────────────────────────────────────────
 const T = {
@@ -849,7 +850,7 @@ function TalentCard({ talent, delay=0, onPress }) {
 function TalenteSection({
   talente, loading, delay=0, view='cards', onPress, onSectionAction,
   locQuery, onLocQueryChange, locSuggest, locSearching, locActive,
-  onPickLoc, onClearLoc, radiusKm, onRadiusChange, hiddenNoCoordsCount=0,
+  onPickLoc, onClearLoc, radiusKm, radiusStages, onRadiusChange, hiddenNoCoordsCount=0,
 }) {
   return (
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
@@ -876,14 +877,18 @@ function TalenteSection({
               <button onClick={onClearLoc} style={{ background:"none", border:"none", cursor:"pointer",
                 color:T.inkFaint, fontSize:14, lineHeight:1, padding:"0 2px" }}>×</button>
             </div>
-            <div style={{ display:"flex", gap:5 }}>
-              {[10,25,50,100].map(km => (
-                <button key={km} onClick={() => onRadiusChange(km)}
-                  style={{ padding:"5px 10px", borderRadius:99, fontSize:10.5, fontWeight:700,
-                    cursor:"pointer", border: radiusKm===km ? "none" : `1px solid ${T.border}`,
-                    background: radiusKm===km ? T.ink : "none",
-                    color: radiusKm===km ? "#fff" : T.inkFaint }}>
-                  {km} km
+            {/* Umkreissuche-Vereinheitlichung 2026-07-06: dieselben 9 Stufen
+                (inkl. "Weltweit") wie die globale Suche -- derselbe Zustand
+                (radiusKm/onRadiusChange kommen 1:1 aus dem globalen Context,
+                keine eigene Werteliste mehr). */}
+            <div style={{ display:"flex", gap:5, overflowX:"auto", WebkitOverflowScrolling:"touch", scrollbarWidth:"none" }}>
+              {(radiusStages || [10,25,50,100]).map(stage => (
+                <button key={String(stage)} onClick={() => onRadiusChange(stage)}
+                  style={{ flexShrink:0, padding:"5px 10px", borderRadius:99, fontSize:10.5, fontWeight:700,
+                    cursor:"pointer", border: radiusKm===stage ? "none" : `1px solid ${T.border}`,
+                    background: radiusKm===stage ? T.ink : "none",
+                    color: radiusKm===stage ? "#fff" : T.inkFaint, whiteSpace:"nowrap" }}>
+                  {stage === "world" ? "Weltweit 🌍" : `${stage} km`}
                 </button>
               ))}
             </div>
@@ -1664,12 +1669,20 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   const [werke, setWerke]             = useState([]);
   const [talente, setTalente]         = useState([]);
 
-  // ── Talent-Umkreissuche (Standort-Feature 2026-07-06) ──
+  // ── Talent-Umkreissuche -- VEREINHEITLICHT (2026-07-06) ──
+  // Frueher: eigener lokaler Radius-State (talentRadiusKm, Default 50km,
+  // 4 feste Stufen) + eigene Standort-Auswahl (talentLocActive), komplett
+  // unabhaengig von der globalen Suche. Jetzt: derselbe useRadiusFilter()-
+  // Hook wie SearchCommandCenter -- radius.geo/radius.radiusKm sind exakt
+  // derselbe Zustand, Aenderungen an einer Stelle wirken ueberall sofort.
+  // Die Autocomplete-Vorschlagsliste (Tippen -> Nominatim-Vorschlaege ->
+  // konkrete Zeile anklicken) ist reine UI-Mechanik und bleibt lokal --
+  // beim Anklicken wird die gewaehlte Zeile per radius.setGeo() direkt in
+  // den globalen Zustand geschrieben (kein zweites Geocoding).
+  const radius = useRadiusFilter();
   const [talentLocQuery, setTalentLocQuery]     = useState("");
   const [talentLocSuggest, setTalentLocSuggest] = useState([]);
   const [talentLocSearching, setTalentLocSearching] = useState(false);
-  const [talentLocActive, setTalentLocActive]   = useState(null); // {label,lat,lng} | null
-  const [talentRadiusKm, setTalentRadiusKm]     = useState(50);
   const talentLocDebounce = useRef(null);
 
   useEffect(() => {
@@ -1685,12 +1698,12 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   }, [talentLocQuery]);
 
   function handlePickTalentLoc(place) {
-    setTalentLocActive(place);
+    radius.setGeo(place);
     setTalentLocQuery("");
     setTalentLocSuggest([]);
   }
   function handleClearTalentLoc() {
-    setTalentLocActive(null);
+    radius.clearLocation();
     setTalentLocQuery("");
     setTalentLocSuggest([]);
   }
@@ -1935,18 +1948,20 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   const displayWerke      = werke.length > 0 ? werke : SEED_WERKE;
   const baseDisplayTalente = talente.length > 0 ? talente : SEED_TALENTE;
 
-  // Umkreisfilter: nur aktiv wenn Nutzer einen Standort ausgewaehlt hat.
+  // Umkreisfilter: nur aktiv wenn Nutzer einen Standort ausgewaehlt hat UND
+  // der globale Radius nicht "Weltweit" ist (radius.isWorldwide => kein
+  // Distanzfilter, wie bei Werken/Erlebnissen/Veranstaltungen).
   // Online-Angebote bleiben immer sichtbar (kein Standort-Bezug).
   // Angebote ohne Koordinaten (nicht geocodebar) werden ausgeblendet, aber
   // gezaehlt, damit es nicht "grundlos" weniger Ergebnisse gibt.
   let hiddenNoCoordsCount = 0;
-  const displayTalente = !talentLocActive
+  const displayTalente = (!radius.geo || radius.isWorldwide)
     ? baseDisplayTalente
     : baseDisplayTalente
         .map(t => {
           if (t.location_type === "online") return { ...t, distanceKm: null };
           if (Number.isFinite(t.lat) && Number.isFinite(t.lng)) {
-            const d = distanceKm(talentLocActive.lat, talentLocActive.lng, t.lat, t.lng);
+            const d = distanceKm(radius.geo.lat, radius.geo.lng, t.lat, t.lng);
             return { ...t, distanceKm: d };
           }
           return { ...t, distanceKm: undefined }; // ohne Koordinaten
@@ -1954,7 +1969,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         .filter(t => {
           if (t.location_type === "online") return true;
           if (t.distanceKm === undefined) { hiddenNoCoordsCount++; return false; }
-          return t.distanceKm <= talentRadiusKm;
+          return t.distanceKm <= radius.radiusKm;
         })
         .sort((a, b) => {
           if (a.distanceKm == null) return 1;
@@ -2100,11 +2115,12 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         onLocQueryChange={setTalentLocQuery}
         locSuggest={talentLocSuggest}
         locSearching={talentLocSearching}
-        locActive={talentLocActive}
+        locActive={radius.geo}
         onPickLoc={handlePickTalentLoc}
         onClearLoc={handleClearTalentLoc}
-        radiusKm={talentRadiusKm}
-        onRadiusChange={setTalentRadiusKm}
+        radiusKm={radius.radiusKm}
+        radiusStages={radius.stages}
+        onRadiusChange={radius.setRadiusKm}
         hiddenNoCoordsCount={hiddenNoCoordsCount}
       />
 

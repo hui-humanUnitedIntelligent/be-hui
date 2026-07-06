@@ -7,6 +7,7 @@ import { AppStateProvider } from './lib/AppStateContext'
 import { WorldSurfaceProvider } from './context/WorldSurfaceContext.jsx'
 import { OrbWorldProvider } from './context/OrbWorldContext.jsx'
 import { GuidanceProvider } from './components/guidance/GuidanceContext.jsx'
+import { RadiusProvider } from './context/RadiusContext.jsx' // Umkreissuche 2026-07-06 -- globaler Radius-Zustand (Single Source of Truth)
 
 // ── EAGER: Auth-kritische Seiten (immer sofort gebraucht) ───────
 import LoginPage    from './pages/LoginPage'
@@ -639,11 +640,13 @@ export default function App() {
         <AppStateProvider>
       <WorldSurfaceProvider>
             <OrbWorldProvider>
+      <RadiusProvider>
       <GuidanceProvider>
           <ErrorBoundary>
             <AppRoutes />
           </ErrorBoundary>
           </GuidanceProvider>
+      </RadiusProvider>
       </OrbWorldProvider>
           </WorldSurfaceProvider>
       </AppStateProvider>
