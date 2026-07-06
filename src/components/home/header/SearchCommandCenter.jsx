@@ -1844,7 +1844,8 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
   useEffect(()=>{ searchQueryRef.current=searchQuery; },[searchQuery]);
 
   // Placeholder-Rotation (nur wenn geschlossen)
-  const PH = ["Menschen, Werke oder Erlebnisse entdecken …","Menschen finden…","Werke entdecken…","Projekte erkunden…"];
+  // Placeholder gekuerzt (Premium-Finetuning 2026-07-06, Lars): sofort erfassbar auf Mobile.
+  const PH = ["Menschen, Werke oder Erlebnisse","Menschen finden","Werke entdecken","Projekte erkunden"];
   const [phIdx,setPhIdx] = useState(0);
   const [phVis,setPhVis] = useState(true);
   useEffect(()=>{
@@ -2094,21 +2095,21 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
   // ── SEARCH-BAR (identisch Desktop + Mobile) ────────────────
   const searchBar = (
     <div onClick={open_} style={{
-      display:"flex", alignItems:"center", gap:9, height:40,
-      background: has ? `linear-gradient(135deg,${mc}12,rgba(255,251,248,0.96))` : "rgba(255,255,255,0.92)",
+      display:"flex", alignItems:"center", gap:8, height:33,
+      background: has ? `linear-gradient(135deg,${mc}10,rgba(255,251,248,0.96))` : "rgba(255,255,255,0.90)",
       backdropFilter:"blur(14px)", WebkitBackdropFilter:"blur(14px)",
-      borderRadius: open ? "14px 14px 0 0" : 999,
-      border:`1.5px solid ${open ? T.teal : has ? mc+"42" : "rgba(22,215,197,0.25)"}`,
-      borderBottom: open ? "1.5px solid rgba(14,196,184,0.09)" : undefined,
-      boxShadow: open ? "none" : "0 0 0 2px rgba(14,196,184,0.08),0 3px 14px rgba(0,0,0,0.05)",
-      padding:"0 10px 0 13px", cursor:"text",
+      borderRadius: open ? "13px 13px 0 0" : 999,
+      border:`1px solid ${open ? T.teal : has ? mc+"38" : "rgba(22,215,197,0.20)"}`,
+      borderBottom: open ? "1px solid rgba(14,196,184,0.08)" : undefined,
+      boxShadow: open ? "none" : "0 1px 8px rgba(0,0,0,0.04)",
+      padding:"0 9px 0 12px", cursor:"text",
       transition:"border-radius .18s ease, border-color .18s, box-shadow .18s",
     }}>
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{flexShrink:0,opacity:open?.7:.38}}>
-        <circle cx="11" cy="11" r="7" stroke={T.teal} strokeWidth="2"/>
-        <path d="M20 20L16.5 16.5" stroke={T.teal} strokeWidth="2" strokeLinecap="round"/>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{flexShrink:0,opacity:open?.65:.34}}>
+        <circle cx="11" cy="11" r="7" stroke={T.teal} strokeWidth="1.8"/>
+        <path d="M20 20L16.5 16.5" stroke={T.teal} strokeWidth="1.8" strokeLinecap="round"/>
       </svg>
-      <div style={{flex:1,position:"relative",height:40,display:"flex",alignItems:"center"}}>
+      <div style={{flex:1,position:"relative",height:33,display:"flex",alignItems:"center"}}>
         {/* Kein natives HTML-placeholder-Attribut hier -- der animierte
             Platzhalter-Span direkt darunter uebernimmt die Anzeige vollstaendig.
             BUG-FIX (2026-07-06, Lars-Screenshot): natives placeholder + Custom-Span
@@ -2120,27 +2121,29 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
           onFocus={open_}
         />
         {!query && !open && (
-          <span style={{position:"absolute",left:0,pointerEvents:"none",fontSize:13.5,fontWeight:500,color:has?`${mc}80`:"rgba(130,130,130,0.55)",opacity:phVis?1:0,transform:phVis?"translateY(0)":"translateY(4px)",transition:"opacity .28s ease, transform .28s ease",whiteSpace:"nowrap",overflow:"hidden",maxWidth:"100%"}}>{PH[phIdx]}</span>
+          <span style={{position:"absolute",left:0,pointerEvents:"none",fontSize:13,fontWeight:500,color:has?`${mc}80`:"rgba(130,130,130,0.55)",opacity:phVis?1:0,transform:phVis?"translateY(0)":"translateY(4px)",transition:"opacity .28s ease, transform .28s ease",whiteSpace:"nowrap",overflow:"hidden",maxWidth:"100%"}}>{PH[phIdx]}</span>
         )}
         {open && !query && (
-          <span style={{position:"absolute",left:0,pointerEvents:"none",fontSize:13.5,fontWeight:400,color:"rgba(26,53,48,0.24)",whiteSpace:"nowrap"}}>Was möchtest du heute bewirken?</span>
+          <span style={{position:"absolute",left:0,pointerEvents:"none",fontSize:13,fontWeight:400,color:"rgba(26,53,48,0.24)",whiteSpace:"nowrap"}}>Was möchtest du bewirken?</span>
         )}
       </div>
       {query && (
-        <button onClick={e=>{e.stopPropagation();setQuery("");setSearchQuery("");inputRef.current?.focus();}} style={{flexShrink:0,width:18,height:18,borderRadius:"50%",background:"rgba(0,0,0,0.11)",border:"none",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:10,color:"rgba(60,60,60,0.65)",fontWeight:700}}>✕</button>
+        <button onClick={e=>{e.stopPropagation();setQuery("");setSearchQuery("");inputRef.current?.focus();}} style={{flexShrink:0,width:16,height:16,borderRadius:"50%",background:"rgba(0,0,0,0.09)",border:"none",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:9,color:"rgba(60,60,60,0.60)",fontWeight:700}}>✕</button>
       )}
       <div ref={kiRef} style={{position:"relative",flexShrink:0}}>
-        <button onClick={e=>{e.stopPropagation();open_();setShowKi(p=>!p);}} style={{display:"flex",alignItems:"center",gap:3,background:showKi?T.teal:"rgba(14,196,184,0.11)",border:`1px solid ${showKi?T.teal:"rgba(14,196,184,0.20)"}`,borderRadius:99,padding:"4px 10px",cursor:"pointer",transition:"all .14s ease",WebkitTapHighlightColor:"transparent"}}>
-          <span style={{fontSize:10}}>✨</span>
-          <span style={{fontSize:10,fontWeight:700,color:showKi?"white":T.teal}}>KI</span>
+        {/* KI-Button zurueckgenommen (Premium-Finetuning 2026-07-06): kein Border mehr,
+            dezenterer Hintergrund, ~15% kleiner -- Suche soll optisch fuehren, nicht die KI. */}
+        <button onClick={e=>{e.stopPropagation();open_();setShowKi(p=>!p);}} style={{display:"flex",alignItems:"center",gap:2,background:showKi?T.teal:"rgba(14,196,184,0.08)",border:"none",borderRadius:99,padding:"3px 8px",cursor:"pointer",transition:"all .14s ease",WebkitTapHighlightColor:"transparent"}}>
+          <span style={{fontSize:8.5}}>✨</span>
+          <span style={{fontSize:8.5,fontWeight:700,color:showKi?"white":`${T.teal}CC`}}>KI</span>
         </button>
         {showKi && <KiPanel onSelect={handleKiSelect} onClose={()=>setShowKi(false)}/>}
       </div>
-      <div style={{flexShrink:0,padding:"0 2px",opacity:.30,cursor:"pointer"}} onClick={e=>e.stopPropagation()}>
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-          <rect x="9" y="2" width="6" height="11" rx="3" stroke={T.ink} strokeWidth="2"/>
-          <path d="M5 10a7 7 0 0014 0" stroke={T.ink} strokeWidth="2" strokeLinecap="round"/>
-          <line x1="12" y1="21" x2="12" y2="17" stroke={T.ink} strokeWidth="2" strokeLinecap="round"/>
+      <div style={{flexShrink:0,padding:"0 1px",opacity:.26,cursor:"pointer"}} onClick={e=>e.stopPropagation()}>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+          <rect x="9" y="2" width="6" height="11" rx="3" stroke={T.ink} strokeWidth="1.8"/>
+          <path d="M5 10a7 7 0 0014 0" stroke={T.ink} strokeWidth="1.8" strokeLinecap="round"/>
+          <line x1="12" y1="21" x2="12" y2="17" stroke={T.ink} strokeWidth="1.8" strokeLinecap="round"/>
         </svg>
       </div>
     </div>
@@ -2175,39 +2178,40 @@ export default function SearchCommandCenter({ activeMood, currentUser }) {
       }}>
         {/* ← Zurück */}
         <button onClick={close_} style={{
-          flexShrink:0, width:38, height:38, borderRadius:"50%",
-          background:"rgba(26,53,48,0.07)", border:"none", cursor:"pointer",
+          flexShrink:0, width:34, height:34, borderRadius:"50%",
+          background:"rgba(26,53,48,0.06)", border:"none", cursor:"pointer",
           display:"flex", alignItems:"center", justifyContent:"center",
           WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
         }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="#1A3530" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+            <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="#1A3530" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
 
-        {/* Suchfeld (volle Breite) */}
-        <div style={{flex:1,display:"flex",alignItems:"center",gap:8,height:42,background:"#fff",borderRadius:14,border:"1.5px solid rgba(14,196,184,0.40)",boxShadow:"0 0 0 3px rgba(14,196,184,0.07)",padding:"0 10px"}}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{flexShrink:0,opacity:.5}}>
-            <circle cx="11" cy="11" r="7" stroke={T.teal} strokeWidth="2"/>
-            <path d="M20 20L16.5 16.5" stroke={T.teal} strokeWidth="2" strokeLinecap="round"/>
+        {/* Suchfeld (volle Breite) -- Premium-Finetuning 2026-07-06: ~15-20% flacher,
+            leichterer Rahmen/Schatten, kein Placeholder-Ueberhang mehr. */}
+        <div style={{flex:1,display:"flex",alignItems:"center",gap:7,height:36,background:"#fff",borderRadius:12,border:"1px solid rgba(14,196,184,0.32)",boxShadow:"0 0 0 2px rgba(14,196,184,0.05)",padding:"0 9px"}}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{flexShrink:0,opacity:.45}}>
+            <circle cx="11" cy="11" r="7" stroke={T.teal} strokeWidth="1.8"/>
+            <path d="M20 20L16.5 16.5" stroke={T.teal} strokeWidth="1.8" strokeLinecap="round"/>
           </svg>
           <input
             ref={inputRef}
             className="dc-input"
             value={query}
             onChange={e=>setQuery(e.target.value)}
-            placeholder="Menschen, Werke oder Erlebnisse entdecken …"
+            placeholder="Menschen, Werke oder Erlebnisse"
             autoCapitalize="off"
             autoCorrect="off"
-            style={{fontSize:15}}
+            style={{fontSize:14.5}}
           />
           {query && (
-            <button onClick={()=>{setQuery("");setSearchQuery("");setTimeout(()=>inputRef.current?.focus(),30);}} style={{flexShrink:0,width:18,height:18,borderRadius:"50%",background:"rgba(0,0,0,0.10)",border:"none",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:10,color:"rgba(60,60,60,0.65)",fontWeight:700,WebkitTapHighlightColor:"transparent"}}>✕</button>
+            <button onClick={()=>{setQuery("");setSearchQuery("");setTimeout(()=>inputRef.current?.focus(),30);}} style={{flexShrink:0,width:16,height:16,borderRadius:"50%",background:"rgba(0,0,0,0.09)",border:"none",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:9,color:"rgba(60,60,60,0.60)",fontWeight:700,WebkitTapHighlightColor:"transparent"}}>✕</button>
           )}
-          {/* KI-Button */}
-          <button onClick={e=>{e.stopPropagation();setShowKi(p=>!p);}} style={{display:"flex",alignItems:"center",gap:3,background:showKi?T.teal:"rgba(14,196,184,0.11)",border:`1px solid ${showKi?T.teal:"rgba(14,196,184,0.20)"}`,borderRadius:99,padding:"4px 9px",cursor:"pointer",WebkitTapHighlightColor:"transparent",flexShrink:0}}>
-            <span style={{fontSize:10}}>✨</span>
-            <span style={{fontSize:10,fontWeight:700,color:showKi?"white":T.teal}}>KI</span>
+          {/* KI-Button -- zurueckgenommen, dezenter, kein Border */}
+          <button onClick={e=>{e.stopPropagation();setShowKi(p=>!p);}} style={{display:"flex",alignItems:"center",gap:2,background:showKi?T.teal:"rgba(14,196,184,0.08)",border:"none",borderRadius:99,padding:"3px 7px",cursor:"pointer",WebkitTapHighlightColor:"transparent",flexShrink:0}}>
+            <span style={{fontSize:8.5}}>✨</span>
+            <span style={{fontSize:8.5,fontWeight:700,color:showKi?"white":`${T.teal}CC`}}>KI</span>
           </button>
           {showKi && <KiPanel onSelect={handleKiSelect} onClose={()=>setShowKi(false)}/>}
         </div>
