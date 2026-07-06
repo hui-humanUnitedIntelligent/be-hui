@@ -18,6 +18,7 @@ import { createPortal }          from "react-dom";
 import { supabase }              from "../../../lib/supabaseClient.js";
 import { toast }                 from "../../../lib/useToast.jsx";
 import { FEATURED_CATEGORIES, searchCategories } from "../../../lib/categories.js";
+import { NAV_RESERVED_HEIGHT_CSS } from "../navigation/navigationGeometry.js";
 
 // ─────────────────────────────────────────────────────────────
 // DESIGN TOKENS
@@ -152,11 +153,10 @@ function AllCategoriesSheet({ sheetRef, phase, query, onQueryChange, onSelect, o
       {/* Sheet */}
       <div style={{
         position:"fixed", left:0, right:0, bottom:0, zIndex:9991,
-        maxHeight:"78vh", display:"flex", flexDirection:"column",
+        maxHeight:"90vh", display:"flex", flexDirection:"column",
         background:T.bg, backdropFilter:"blur(24px) saturate(1.4)", WebkitBackdropFilter:"blur(24px) saturate(1.4)",
         borderRadius:"24px 24px 0 0",
         boxShadow:"0 -12px 40px rgba(26,53,48,0.16)",
-        paddingBottom:"env(safe-area-inset-bottom,0)",
         transform: visible ? "translateY(0)" : "translateY(100%)",
         opacity: visible ? 1 : 0,
         transition: phase === "leaving"
@@ -169,7 +169,7 @@ function AllCategoriesSheet({ sheetRef, phase, query, onQueryChange, onSelect, o
         </div>
 
         {/* Header + eigenes Suchfeld -- "Suche innerhalb der Kategorien" */}
-        <div style={{ padding:"6px 20px 14px" }}>
+        <div style={{ padding:"6px 20px 14px", flexShrink:0 }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
             <div style={{ fontSize:16.5, fontWeight:700, color:T.ink, letterSpacing:"-0.01em" }}>Alle Kategorien</div>
             <button className="dc-tag" onClick={onClose} style={{
@@ -208,7 +208,15 @@ function AllCategoriesSheet({ sheetRef, phase, query, onQueryChange, onSelect, o
         </div>
 
         {/* Grid -- dezent, modern, leicht (Vorgabe Lars) */}
-        <div style={{ overflowY:"auto", padding:"0 16px 24px", WebkitOverflowScrolling:"touch" }}>
+        {/* Bottom-Padding = Safe-Area-Inset + HUI-Tabbar-Hoehe (beide aus der
+            geteilten navigationGeometry-Quelle, KEIN fester Pixelwert) + 28px
+            Zusatzluft -- die Tabbar liegt mit zIndex 10000 ueber diesem Sheet
+            (zIndex 9991); ohne dieses Padding wuerde die letzte Kategorien-
+            Reihe hinter der Tabbar verschwinden. Siehe Bugreport Lars 2026-07-06. */}
+        <div style={{
+          flex:"1 1 auto", minHeight:0, overflowY:"auto", WebkitOverflowScrolling:"touch",
+          padding:`0 16px calc(${NAV_RESERVED_HEIGHT_CSS} + 28px)`,
+        }}>
           {results.length === 0 ? (
             <div style={{ padding:"32px 8px", textAlign:"center", fontSize:13, color:T.inkF }}>
               Keine Kategorien für „{query}"
