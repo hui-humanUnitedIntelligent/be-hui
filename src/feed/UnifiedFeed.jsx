@@ -685,9 +685,12 @@ export default function UnifiedFeed({
   // Heute-auf-HUI, Events) werden ausgeblendet; bei nicht-leerer searchQuery
   // zeigt der Feed direkt die (im useFeedStream-Hook) gefilterten Ergebnisse
   // -- dieselben Karten/Komponenten wie im Normalzustand, keine Suchkarten.
-  searchActive = false,
-  searchQuery  = "",
-  typeFilter   = null,
+  searchActive   = false,
+  searchQuery    = "",
+  typeFilter     = null,
+  // "Alle Kategorien"-Feature (2026-07-06): Objekt aus src/lib/categories.js
+  // oder null. Wird 1:1 an useFeedStream durchgereicht.
+  categoryFilter = null,
 }) {
   useEffect(() => {
     injectFeedCSS();
@@ -704,7 +707,7 @@ export default function UnifiedFeed({
     pendingCount,
     flushPendingItems,
     isSearching,
-  } = useFeedStream({ searchQuery, typeFilter });
+  } = useFeedStream({ searchQuery, typeFilter, categoryFilter });
 
   // ── Bind refresh fn to parent (defensive) ──────────────────────────
   React.useEffect(() => {
@@ -841,7 +844,7 @@ export default function UnifiedFeed({
           <div style={{ padding:"48px 24px", textAlign:"center" }}>
             <div style={{ fontSize:26, marginBottom:8 }}>🔍</div>
             <div style={{ fontSize:13.5, color:"rgba(26,53,48,0.55)", fontWeight:500 }}>
-              Keine Ergebnisse für „{searchQuery}"
+              Keine Ergebnisse für „{searchQuery || categoryFilter?.name || ""}"
             </div>
           </div>
         )}

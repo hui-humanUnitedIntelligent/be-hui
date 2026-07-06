@@ -194,7 +194,9 @@ export default function HomeShell({ children }) {
   // Feed-Tab ueber tabVisibilityController erzwungen sichtbar (siehe searchActive
   // Parameter unten) -- Suchergebnisse sind tab-uebergreifend, keine zweite
   // Such-/Ergebnis-Implementierung pro Tab.
-  const [searchState, setSearchState] = useState({ query:"", typeFilter:null, active:false });
+  // "category" (2026-07-06): Objekt aus src/lib/categories.js oder null --
+  // Auswahl aus dem "Alle Kategorien"-Bottom-Sheet in SearchCommandCenter.
+  const [searchState, setSearchState] = useState({ query:"", typeFilter:null, category:null, active:false });
 
   const { tabFeed, tabDiscover, tabImpact, tabFavorites } =
     useTabStyles(tab, activeSurface, searchState.active);

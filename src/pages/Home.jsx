@@ -375,6 +375,7 @@ function HomeInner() {
                   searchActive={searchState.active}
                   searchQuery={searchState.query}
                   typeFilter={searchState.typeFilter}
+                  categoryFilter={searchState.category}
                   onProfile={(userId) => {
                     if (!userId) {
                       return;

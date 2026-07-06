@@ -5,11 +5,19 @@
 // Visual Polish Pass (2026-07-06, Lars) — "Apple/Notion/Linear-Niveau":
 // reines Styling-Update, KEINE neue Komponente, KEINE neue Logik. Ziel:
 // mehr Weissraum, weichere Bar, monochrome Filter, ruhige Animationen.
-// Siehe Kommentar am Anfang der Hauptkomponente fuer Architektur-Details.
+//
+// "Alle Kategorien"-Feature (2026-07-06, Lars): vollstaendige Kategorien-
+// Ansicht als Bottom-Sheet (kein neue Seite/Route). Kategorien-Datenquelle
+// ist jetzt zentral in src/lib/categories.js (Single Source of Truth) --
+// siehe Kommentar dort fuer die Governance-Pflichtanalyse (Bestand vor
+// diesem Sprint: 3 verschiedene, inkonsistente hartcodierte Kategorie-Listen).
+// Siehe Kommentar am Anfang der Hauptkomponente fuer weitere Architektur-Details.
 
 import React, { useState, useEffect, useRef } from "react";
+import { createPortal }          from "react-dom";
 import { supabase }              from "../../../lib/supabaseClient.js";
 import { toast }                 from "../../../lib/useToast.jsx";
+import { FEATURED_CATEGORIES, searchCategories } from "../../../lib/categories.js";
 
 // ─────────────────────────────────────────────────────────────
 // DESIGN TOKENS
@@ -33,24 +41,6 @@ const T = {
 // ─────────────────────────────────────────────────────────────
 // KONSTANTEN
 // ─────────────────────────────────────────────────────────────
-const THEMES = [
-  { key:"nachhalt",     label:"Nachhaltigkeit", emoji:"🌱", color:"#16A34A",
-    coverBg:"linear-gradient(135deg,#166534,#15803d)",
-    kw:["nachhaltig","natur","umwelt","garten","grün","klima"] },
-  { key:"kreativ",      label:"Kreativität",    emoji:"🎨", color:"#9333EA",
-    coverBg:"linear-gradient(135deg,#581c87,#7e22ce)",
-    kw:["kunst","kreativ","design","foto","illustration","maler"] },
-  { key:"musik",        label:"Musik",          emoji:"🎵", color:"#0EA5E9",
-    coverBg:"linear-gradient(135deg,#0c4a6e,#0369a1)",
-    kw:["musik","musiker","band","konzert","session","lied"] },
-  { key:"gemeinschaft", label:"Gemeinschaft",   emoji:"🤝", color:T.teal,
-    coverBg:"linear-gradient(135deg,#134e4a,#0f766e)",
-    kw:["gemeinschaft","treffen","community","lokal","nachbarschaft"] },
-  { key:"bildung",      label:"Bildung",        emoji:"📚", color:"#D97706",
-    coverBg:"linear-gradient(135deg,#78350f,#b45309)",
-    kw:["bildung","workshop","lernen","kurs","schule","coaching"] },
-];
-
 const KI_SUGGESTIONS = [
   { text:"Ich suche kreative Menschen",        emoji:"👥" },
   { text:"Projekte in meiner Nähe",            emoji:"📍" },
@@ -95,8 +85,6 @@ function SectionLabel({ children, color, action, onAction }) {
   );
 }
 
-
-
 // ─────────────────────────────────────────────────────────────
 // KI PANEL
 // ─────────────────────────────────────────────────────────────
@@ -140,6 +128,114 @@ function KiPanel({ onSelect, onClose }) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// ALLE-KATEGORIEN BOTTOM SHEET
+// ─────────────────────────────────────────────────────────────
+// Rendert per createPortal auf document.body -- ist ein reines Auswahl-UI
+// (wie ein Picker/Dropdown), kein Ergebnis-Feed. Widerspricht NICHT der
+// "kein Overlay/Portal mehr"-Architekturentscheidung von Search Experience
+// 2.0 -- diese bezog sich ausschliesslich auf die SUCHERGEBNISSE (Feed),
+// die weiterhin inline im normalen Feed erscheinen, nie in einem Overlay.
+function AllCategoriesSheet({ sheetRef, phase, query, onQueryChange, onSelect, onClose }) {
+  const results = searchCategories(query);
+  const visible = phase === "visible";
+
+  return createPortal(
+    <div ref={sheetRef}>
+      {/* Backdrop */}
+      <div onClick={onClose} style={{
+        position:"fixed", inset:0, zIndex:9990,
+        background:"rgba(20,38,34,0.30)",
+        opacity: visible ? 1 : 0,
+        transition: phase === "leaving" ? "opacity .18s ease" : "opacity .22s ease",
+      }}/>
+
+      {/* Sheet */}
+      <div style={{
+        position:"fixed", left:0, right:0, bottom:0, zIndex:9991,
+        maxHeight:"78vh", display:"flex", flexDirection:"column",
+        background:T.bg, backdropFilter:"blur(24px) saturate(1.4)", WebkitBackdropFilter:"blur(24px) saturate(1.4)",
+        borderRadius:"24px 24px 0 0",
+        boxShadow:"0 -12px 40px rgba(26,53,48,0.16)",
+        paddingBottom:"env(safe-area-inset-bottom,0)",
+        transform: visible ? "translateY(0)" : "translateY(100%)",
+        opacity: visible ? 1 : 0,
+        transition: phase === "leaving"
+          ? "transform .18s cubic-bezier(.22,1,.36,1), opacity .18s ease"
+          : "transform .22s cubic-bezier(.22,1,.36,1), opacity .22s ease",
+      }}>
+        {/* Griff */}
+        <div style={{ display:"flex", justifyContent:"center", padding:"10px 0 4px" }}>
+          <div style={{ width:36, height:4, borderRadius:99, background:"rgba(26,53,48,0.14)" }}/>
+        </div>
+
+        {/* Header + eigenes Suchfeld -- "Suche innerhalb der Kategorien" */}
+        <div style={{ padding:"6px 20px 14px" }}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
+            <div style={{ fontSize:16.5, fontWeight:700, color:T.ink, letterSpacing:"-0.01em" }}>Alle Kategorien</div>
+            <button className="dc-tag" onClick={onClose} style={{
+              width:28, height:28, borderRadius:"50%", background:"rgba(26,53,48,0.06)",
+              border:"none", display:"flex", alignItems:"center", justifyContent:"center",
+              cursor:"pointer", fontSize:12, color:T.inkS, fontWeight:700,
+            }}>✕</button>
+          </div>
+          <div style={{
+            display:"flex", alignItems:"center", gap:8, height:38,
+            background:"rgba(26,53,48,0.045)", borderRadius:14,
+            padding:"0 12px",
+          }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{flexShrink:0,opacity:.4}}>
+              <circle cx="11" cy="11" r="7" stroke={T.teal} strokeWidth="1.7"/>
+              <path d="M20 20L16.5 16.5" stroke={T.teal} strokeWidth="1.7" strokeLinecap="round"/>
+            </svg>
+            <input
+              autoFocus={false}
+              value={query}
+              onChange={e=>onQueryChange(e.target.value)}
+              placeholder="Kategorien durchsuchen…"
+              style={{
+                flex:1, outline:"none", border:"none", background:"none",
+                fontSize:13.5, fontWeight:500, letterSpacing:"-0.01em", color:T.ink,
+              }}
+            />
+            {query && (
+              <button className="dc-tag" onClick={()=>onQueryChange("")} style={{
+                width:16, height:16, borderRadius:"50%", background:"rgba(26,53,48,0.10)",
+                border:"none", display:"flex", alignItems:"center", justifyContent:"center",
+                cursor:"pointer", fontSize:8, color:"rgba(26,53,48,0.55)", fontWeight:700, flexShrink:0,
+              }}>✕</button>
+            )}
+          </div>
+        </div>
+
+        {/* Grid -- dezent, modern, leicht (Vorgabe Lars) */}
+        <div style={{ overflowY:"auto", padding:"0 16px 24px", WebkitOverflowScrolling:"touch" }}>
+          {results.length === 0 ? (
+            <div style={{ padding:"32px 8px", textAlign:"center", fontSize:13, color:T.inkF }}>
+              Keine Kategorien für „{query}"
+            </div>
+          ) : (
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:10 }}>
+              {results.map(cat => (
+                <button key={cat.id} className="dc-tag" onClick={()=>onSelect(cat)} style={{
+                  display:"flex", flexDirection:"column", alignItems:"center", gap:6,
+                  padding:"16px 6px 13px", borderRadius:16,
+                  background:`${cat.color}0A`, border:`1px solid ${cat.color}22`,
+                  cursor:"pointer", WebkitTapHighlightColor:"transparent",
+                }}>
+                  <span style={{ fontSize:22 }}>{cat.icon}</span>
+                  <span style={{ fontSize:11, fontWeight:600, letterSpacing:"-0.01em", color:cat.color, textAlign:"center", lineHeight:1.25 }}>{cat.name}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
 // HAUPTKOMPONENTE — Search Experience 2.0 (2026-07-06, Lars)
 // ─────────────────────────────────────────────────────────────
 // ARCHITEKTUR-WECHSEL: Kein Portal, kein Fullscreen-Overlay, keine eigene
@@ -149,18 +245,19 @@ function KiPanel({ onSelect, onClose }) {
 //   - open=false                   -> normaler Feed (Dashboard, Discover etc.)
 //   - open=true,  query leer       -> Discovery: Kategorien + Filter + Verlauf,
 //                                     als frei schwebendes Panel unter der Bar
-//                                     (kein Overlay, kein Portal, aber auch kein
-//                                     glued/hard-bordered Anschluss an die Bar --
-//                                     Visual Polish Pass) -- Feed-Bereich bleibt leer
 //   - open=true,  query nicht leer -> Kategorien+Verlauf blenden aus, Filter
 //                                     bleiben sichtbar; der bestehende Feed
 //                                     (UnifiedFeed/useFeedStream) zeigt live
-//                                     gefilterte Ergebnisse -- dieselben Karten
-//                                     wie im Normalzustand, keine Suchkarten.
+//                                     gefilterte Ergebnisse.
+//   - activeCategory gesetzt       -> wie query nicht leer: Feed filtert live
+//                                     nach Kategorie-Keywords (siehe
+//                                     useFeedStream.js), unabhaengig vom
+//                                     freien Suchtext -- beides kann kombiniert
+//                                     werden (Kategorie UND Freitext gleichzeitig).
 // Diese Komponente besitzt selbst KEINE Ergebnisdaten mehr -- sie meldet nur
-// {query, typeFilter, active} per onSearchStateChange nach oben (Home.jsx),
-// welches es an UnifiedFeed durchreicht. Single Source of Truth ist der Feed
-// (useFeedStream), nicht die Suchleiste.
+// {query, typeFilter, category, active} per onSearchStateChange nach oben
+// (Home.jsx), welches es an UnifiedFeed durchreicht. Single Source of Truth
+// ist der Feed (useFeedStream), nicht die Suchleiste.
 //
 // EINGESCHRAENKTE FUNKTION -- BEWUSST TRANSPARENT: Der Filter "Menschen" kann
 // aktuell KEINE Feed-Items filtern, weil das Feed-Kartensystem (FeedRouter)
@@ -173,6 +270,16 @@ export default function SearchCommandCenter({ activeMood, currentUser, onSearchS
   const [query,      setQuery]      = useState("");
   const [typeFilter, setTypeFilter] = useState(null);    // null | "work" | "experience"
   const [showKi,     setShowKi]     = useState(false);
+
+  // "Alle Kategorien"-Feature (2026-07-06): ausgewaehlte Kategorie (Objekt aus
+  // src/lib/categories.js) + Bottom-Sheet-Sichtbarkeit + eigenes Suchfeld
+  // innerhalb des Sheets (rein clientseitige Filterung der Kategorie-Liste).
+  const [activeCategory,     setActiveCategory]     = useState(null);
+  const [showAllCategories,  setShowAllCategories]   = useState(false);
+  const [categorySheetQuery, setCategorySheetQuery]  = useState("");
+  const [sheetPhase,         setSheetPhase]          = useState("hidden"); // hidden|entering|visible|leaving
+  const sheetTimerRef = useRef(null);
+  const sheetRef       = useRef(null);
 
   // Visual Polish Pass -- Panel-Phase fuer weiches Ein-/Ausblenden statt
   // hartem Mount/Unmount-Sprung (Vorgabe Punkt 8: 180ms Fade beim Verschwinden,
@@ -199,8 +306,8 @@ export default function SearchCommandCenter({ activeMood, currentUser, onSearchS
   // Suchstatus nach oben melden (Home.jsx -> UnifiedFeed). Der Feed entscheidet
   // selbst, welche Inhalte er anzeigt (Query/Filter sind nur Parameter).
   useEffect(() => {
-    onSearchStateChange?.({ query: debouncedQuery, typeFilter, active: open });
-  }, [debouncedQuery, typeFilter, open]); // eslint-disable-line
+    onSearchStateChange?.({ query: debouncedQuery, typeFilter, category: activeCategory, active: open });
+  }, [debouncedQuery, typeFilter, activeCategory, open]); // eslint-disable-line
 
   // Verlauf speichern, sobald ein Suchbegriff kurz stabil war (kein Spam pro Tastendruck)
   useEffect(() => {
@@ -224,6 +331,29 @@ export default function SearchCommandCenter({ activeMood, currentUser, onSearchS
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
+  // Sheet-Phase steuern -- gleiches 220ms/180ms-Timing wie das Discovery-
+  // Panel (Vorgabe Lars: "Öffnen ca. 220ms, Schließen ca. 180ms").
+  useEffect(() => {
+    clearTimeout(sheetTimerRef.current);
+    if (showAllCategories) {
+      setSheetPhase("entering");
+      // Doppel-rAF: erst mit der Off-Screen-Position mounten, dann im
+      // naechsten Frame auf die On-Screen-Position wechseln -- nur so
+      // greift der CSS-transform-transition-Uebergang zuverlaessig
+      // (sonst wuerde der Browser den ersten und einzigen Zustand direkt
+      // ohne Animation rendern).
+      const raf1 = requestAnimationFrame(() => {
+        requestAnimationFrame(() => setSheetPhase("visible"));
+      });
+      return () => cancelAnimationFrame(raf1);
+    } else if (sheetPhase !== "hidden") {
+      setSheetPhase("leaving");
+      sheetTimerRef.current = setTimeout(() => setSheetPhase("hidden"), 180);
+    }
+    return () => clearTimeout(sheetTimerRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showAllCategories]);
+
   // Placeholder-Rotation (nur wenn nicht aktiv)
   const PH = ["Menschen, Werke oder Erlebnisse","Menschen finden","Werke entdecken","Projekte erkunden"];
   const [phIdx,setPhIdx] = useState(0);
@@ -238,10 +368,14 @@ export default function SearchCommandCenter({ activeMood, currentUser, onSearchS
   },[open]);
 
   // Click-Outside beendet den aktiven Suchzustand (kein Portal mehr zu schliessen --
-  // einfach open=false, Feed faellt automatisch auf den Normalzustand zurueck)
+  // einfach open=false, Feed faellt automatisch auf den Normalzustand zurueck).
+  // sheetRef ist ausgenommen -- ein Klick INNERHALB des Kategorien-Sheets
+  // (inkl. Backdrop) soll NICHT automatisch die gesamte Suche schliessen,
+  // nur das Sheet selbst (eigene onClick-Handler dort).
   useEffect(()=>{
     if(!open)return;
     function h(e){
+      if(sheetRef.current?.contains(e.target)) return;
       if(!wrapRef.current?.contains(e.target)&&!kiRef.current?.contains(e.target)) close_();
     }
     document.addEventListener("mousedown",h);
@@ -249,16 +383,17 @@ export default function SearchCommandCenter({ activeMood, currentUser, onSearchS
     return()=>{ document.removeEventListener("mousedown",h); document.removeEventListener("touchstart",h); };
   },[open]);
 
-  // Escape beendet den aktiven Suchzustand
+  // Escape beendet zuerst das Sheet, dann die KI-Vorschlaege, dann die Suche
   useEffect(()=>{
     function h(e){
       if(e.key!=="Escape")return;
+      if(showAllCategories){setShowAllCategories(false);return;}
       if(showKi){setShowKi(false);return;}
       close_();
     }
     document.addEventListener("keydown",h);
     return()=>document.removeEventListener("keydown",h);
-  },[showKi]);
+  },[showKi,showAllCategories]);
 
   const mc  = activeMood?.color || "#0EC4B8";
   const has = !!activeMood;
@@ -270,16 +405,17 @@ export default function SearchCommandCenter({ activeMood, currentUser, onSearchS
   function close_(){
     setOpen(false);
     setShowKi(false);
+    setShowAllCategories(false);
     inputRef.current?.blur();
-    // Bewusst: Suchtext bleibt erhalten -- erneutes Antippen der Bar zeigt
-    // sofort wieder dieselben gefilterten Ergebnisse (kein Datenverlust).
+    // Bewusst: Suchtext + aktive Kategorie bleiben erhalten -- erneutes
+    // Antippen der Bar zeigt sofort wieder dieselben gefilterten Ergebnisse
+    // (kein Datenverlust).
   }
   function clearQuery(){
     setQuery("");
     inputRef.current?.focus();
   }
   function saveHistory(q){ if(!q.trim())return; const n=[q,...history.filter(h=>h!==q)].slice(0,8); setHistory(n); try{localStorage.setItem("hui_search_history",JSON.stringify(n));}catch{} }
-  function handleTheme(label){ setQuery(label); inputRef.current?.focus(); }
   function handleHistory(q){ setQuery(q); inputRef.current?.focus(); }
   function handleKiSelect(text){ setQuery(text); setShowKi(false); inputRef.current?.focus(); }
   function toggleFilter(f){
@@ -290,8 +426,17 @@ export default function SearchCommandCenter({ activeMood, currentUser, onSearchS
     }
     setTypeFilter(prev => prev===f ? null : f);
   }
+  // Kategorie-Auswahl (Schnellauswahl-Zeile UND "Alle Kategorien"-Grid nutzen
+  // denselben Handler -- ein Auswahlverhalten, keine Doppellogik). Vorgabe
+  // Lars: "Bottom Sheet schliesst sich weich. Kategorie erscheint oben als
+  // aktiver Filter. Feed filtert sofort live. Kein zusaetzlicher Button."
+  function selectCategory(cat){
+    setActiveCategory(prev => prev?.id===cat.id ? null : cat);
+    setShowAllCategories(false);
+  }
+  function clearCategory(){ setActiveCategory(null); }
 
-  const showCategoriesAndHistory = open && !query.trim();
+  const showCategoriesAndHistory = open && !query.trim() && !activeCategory;
   const showFilters              = open; // Filter bleiben sichtbar, auch waehrend Live-Search
 
   // ── SEARCH-BAR — Visual Polish Pass: mehr Hoehe, weichere Rundung, kein
@@ -370,22 +515,39 @@ export default function SearchCommandCenter({ activeMood, currentUser, onSearchS
             : "opacity .22s cubic-bezier(.22,1,.36,1), transform .22s cubic-bezier(.22,1,.36,1)")
         : "none",
     }}>
+      {/* Aktive Kategorie -- ersetzt die Kategorien-Schnellauswahl, solange
+          eine Kategorie gewaehlt ist (Vorgabe: "erscheint oben als aktiver
+          Filter"). Feed filtert sofort live ueber onSearchStateChange. */}
+      {activeCategory && (
+        <div style={{marginBottom:16, animation:"hui-search-fade-in .22s cubic-bezier(.22,1,.36,1) both"}}>
+          <div style={{display:"inline-flex",alignItems:"center",gap:7,background:activeCategory.color,borderRadius:99,padding:"7px 8px 7px 14px",boxShadow:`0 4px 14px ${activeCategory.color}40`}}>
+            <span style={{fontSize:13}}>{activeCategory.icon}</span>
+            <span style={{fontSize:12.5,fontWeight:600,color:"#fff",letterSpacing:"-0.01em"}}>{activeCategory.name}</span>
+            <button className="dc-tag" onClick={clearCategory} style={{
+              width:18,height:18,borderRadius:"50%",background:"rgba(255,255,255,0.28)",
+              border:"none",display:"flex",alignItems:"center",justifyContent:"center",
+              cursor:"pointer",fontSize:8.5,color:"#fff",fontWeight:700,marginLeft:2,
+            }}>✕</button>
+          </div>
+        </div>
+      )}
+
       {/* Kategorien -- horizontal scrollbar, eine Zeile, nur in reiner Discovery */}
       {showCategoriesAndHistory && (
         <div style={{marginBottom:20, animation:"hui-search-fade-in .22s cubic-bezier(.22,1,.36,1) both"}}>
           <div style={{display:"flex",gap:7,overflowX:"auto",paddingBottom:2,WebkitOverflowScrolling:"touch",scrollbarWidth:"none"}} className="dc-scroll">
-            {THEMES.map(t=>(
-              <button key={t.key} className="dc-tag" onClick={()=>handleTheme(t.label)} style={{
+            {FEATURED_CATEGORIES.map(cat=>(
+              <button key={cat.id} className="dc-tag" onClick={()=>selectCategory(cat)} style={{
                 display:"flex",alignItems:"center",gap:5,flexShrink:0,
-                background:`${t.color}0A`,border:`1px solid ${t.color}22`,
+                background:`${cat.color}0A`,border:`1px solid ${cat.color}22`,
                 borderRadius:99,padding:"7px 14px",cursor:"pointer",
-                fontSize:12,fontWeight:600,letterSpacing:"-0.01em",color:t.color,whiteSpace:"nowrap",
+                fontSize:12,fontWeight:600,letterSpacing:"-0.01em",color:cat.color,whiteSpace:"nowrap",
                 WebkitTapHighlightColor:"transparent",
               }}>
-                <span style={{fontSize:12.5}}>{t.emoji}</span>{t.label}
+                <span style={{fontSize:12.5}}>{cat.icon}</span>{cat.name}
               </button>
             ))}
-            <button className="dc-tag" onClick={clearQuery} style={{
+            <button className="dc-tag" onClick={()=>setShowAllCategories(true)} style={{
               display:"flex",alignItems:"center",gap:4,flexShrink:0,
               background:"rgba(26,53,48,0.035)",border:"1px solid rgba(26,53,48,0.07)",
               borderRadius:99,padding:"7px 14px",cursor:"pointer",
@@ -492,6 +654,19 @@ export default function SearchCommandCenter({ activeMood, currentUser, onSearchS
           </div>
         )}
       </div>
+
+      {/* "Alle Kategorien"-Bottom-Sheet -- eigener Portal, siehe Kommentar
+          an der Komponente oben. */}
+      {sheetPhase !== "hidden" && (
+        <AllCategoriesSheet
+          sheetRef={sheetRef}
+          phase={sheetPhase}
+          query={categorySheetQuery}
+          onQueryChange={setCategorySheetQuery}
+          onSelect={selectCategory}
+          onClose={()=>setShowAllCategories(false)}
+        />
+      )}
     </>
   );
 }

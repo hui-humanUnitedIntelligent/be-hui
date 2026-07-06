@@ -292,28 +292,57 @@ async function fetchFeedPage(userId = null, cursors = null) {
 // Wiederverwendung statt Neuerstellung: nutzt exakt dieselben Tabellen,
 // Spalten-Sets und Normalizer wie fetchFeedPage() -- keine neue Datenquelle,
 // keine neue Kartenart. typeFilter: null (alle Typen) | "work" | "experience".
-async function fetchSearchResults(query, typeFilter = null) {
+// categoryFilter: optionales Objekt aus src/lib/categories.js
+// ({name, keywords, ...}) -- Kategorie-Auswahl aus dem "Alle Kategorien"-
+// Bottom-Sheet. Wird als ZUSAETZLICHE, AND-verknuepfte OR-Bedingung an die
+// bestehende Textsuche angehaengt (zwei .or()-Aufrufe auf demselben Supabase-
+// Query werden von PostgREST als UND zwischen den beiden OR-Gruppen
+// ausgewertet) -- dadurch funktioniert "Kategorie + Freitext gleichzeitig"
+// (z.B. Kategorie 'Musik' + Tippen von 'Konzert') genauso wie 'nur Kategorie'
+// (leerer Freitext, nur categoryFilter gesetzt).
+function buildCategoryOrExpr(categoryFilter, cols) {
+  if (!categoryFilter) return null;
+  const terms = [categoryFilter.name, ...(categoryFilter.keywords || [])].filter(Boolean);
+  if (terms.length === 0) return null;
+  return terms.flatMap(t => cols.map(c => `${c}.ilike.%${t}%`)).join(",");
+}
+
+async function fetchSearchResults(query, typeFilter = null, categoryFilter = null) {
   const q = (query || "").trim();
-  if (!q) return [];
+  const hasCategory = !!categoryFilter;
+  if (!q && !hasCategory) return [];
 
   const wantWorks = !typeFilter || typeFilter === "work";
   const wantExps  = !typeFilter || typeFilter === "experience";
-  const wantOther = !typeFilter; // Beitraege + Invitations nur bei unspezifischer Suche
+  // Beitraege/Invitations haben kein "category"-Feld im Sinne der neuen
+  // Themenwelt -- bei aktivem Kategorie-Filter werden sie bewusst
+  // ausgeblendet (kein falsch-positives/fehlendes Matching), bei reiner
+  // Freitextsuche bleiben sie wie bisher Teil der Ergebnisse.
+  const wantOther = !typeFilter && !hasCategory;
+
+  const workCatExpr = buildCategoryOrExpr(categoryFilter, ["title","description","category"]);
+  const expCatExpr  = buildCategoryOrExpr(categoryFilter, ["title","description","category","location_text"]);
 
   const tasks = [];
   tasks.push(wantWorks
-    ? supabase.from("works")
-        .select("id,title,cover_url,media_url,category,description,caption,tags,price,for_sale,status,approval_status,user_id,creator_id,created_at")
-        .eq("status", "published").eq("approval_status", "approved")
-        .or(`title.ilike.%${q}%,description.ilike.%${q}%,category.ilike.%${q}%`)
-        .order("created_at", { ascending: false }).limit(20)
+    ? (() => {
+        let sel = supabase.from("works")
+          .select("id,title,cover_url,media_url,category,description,caption,tags,price,for_sale,status,approval_status,user_id,creator_id,created_at")
+          .eq("status", "published").eq("approval_status", "approved");
+        if (q) sel = sel.or(`title.ilike.%${q}%,description.ilike.%${q}%,category.ilike.%${q}%`);
+        if (workCatExpr) sel = sel.or(workCatExpr);
+        return sel.order("created_at", { ascending: false }).limit(20);
+      })()
     : Promise.resolve({ data: [] }));
   tasks.push(wantExps
-    ? supabase.from("experiences")
-        .select("id,title,cover_url,media_url,category,description,price,duration,format,location_text,date,time_start,time_end,is_live,booking_mode,pricing_type,experience_type,participant_limit,max_participants,mood,mood_tags,social_energy,status,approval_status,visibility,user_id,created_at")
-        .eq("status", "published").eq("approval_status", "approved")
-        .or(`title.ilike.%${q}%,description.ilike.%${q}%,location_text.ilike.%${q}%`)
-        .order("created_at", { ascending: false }).limit(20)
+    ? (() => {
+        let sel = supabase.from("experiences")
+          .select("id,title,cover_url,media_url,category,description,price,duration,format,location_text,date,time_start,time_end,is_live,booking_mode,pricing_type,experience_type,participant_limit,max_participants,mood,mood_tags,social_energy,status,approval_status,visibility,user_id,created_at")
+          .eq("status", "published").eq("approval_status", "approved");
+        if (q) sel = sel.or(`title.ilike.%${q}%,description.ilike.%${q}%,location_text.ilike.%${q}%`);
+        if (expCatExpr) sel = sel.or(expCatExpr);
+        return sel.order("created_at", { ascending: false }).limit(20);
+      })()
     : Promise.resolve({ data: [] }));
   tasks.push(wantOther
     ? supabase.from("beitraege")
@@ -371,7 +400,7 @@ async function fetchSearchResults(query, typeFilter = null) {
   return normalized;
 }
 
-export function useFeedStream({ searchQuery = "", typeFilter = null } = {}) {
+export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFilter = null } = {}) {
   const { user } = useAuth();
 
   // ── SEARCH-MODE STATE — Search Experience 2.0 ─────────────────────────────
@@ -379,10 +408,15 @@ export function useFeedStream({ searchQuery = "", typeFilter = null } = {}) {
   // (die immer weiterlaeuft, unveraendert) -- nur die RETURN-Werte am Ende
   // des Hooks entscheiden, ob normale Items oder Suchergebnisse exportiert
   // werden. Kein Eingriff in cursorRef/prefetch/realtime.
+  //
+  // categoryFilter (2026-07-06, "Alle Kategorien"-Feature): ein Objekt aus
+  // src/lib/categories.js ({name, keywords,...}) ODER null. Zaehlt genauso
+  // wie ein Freitext-Query als "isSearching" -- eine ausgewaehlte Kategorie
+  // ohne eingegebenen Suchtext soll den Feed sofort filtern (Vorgabe Lars).
   const [searchItems,   setSearchItems]   = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const searchAliveRef = useRef({ v: false });
-  const isSearching = !!(searchQuery || "").trim();
+  const isSearching = !!(searchQuery || "").trim() || !!categoryFilter;
 
   useEffect(() => {
     if (!isSearching) { setSearchItems([]); setSearchLoading(false); return; }
@@ -390,11 +424,12 @@ export function useFeedStream({ searchQuery = "", typeFilter = null } = {}) {
     const alive = { v: true };
     searchAliveRef.current = alive;
     setSearchLoading(true);
-    fetchSearchResults(searchQuery, typeFilter)
+    fetchSearchResults(searchQuery, typeFilter, categoryFilter)
       .then(results => { if (alive.v) { setSearchItems(results); setSearchLoading(false); } })
       .catch(() => { if (alive.v) setSearchLoading(false); });
     return () => { alive.v = false; };
-  }, [searchQuery, typeFilter]); // eslint-disable-line
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, typeFilter, categoryFilter?.slug]);
 
   // ── State ──────────────────────────────────────────────────────────────────
   const [items,          setItems]          = useState([]);
