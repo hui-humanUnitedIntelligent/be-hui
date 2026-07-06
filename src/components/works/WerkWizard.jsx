@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
+import { searchPlaces } from "../../lib/geocoding.js";
 
 const C = {
   teal:"#0EC4B8", tealD:"#0DBBAF", cream:"#F8F7F4",
@@ -449,6 +450,20 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
     setSaving(true);
     const cover_url=form.images?.[0]?.url||null;
 
+    // Geokoordinaten fuer Abholort ermitteln (Standort-Feature 2026-07-06,
+    // fuer Umkreissuche auf Discover-Seite, siehe geocoding.js).
+    // Nur wenn sich der Ort seit dem letzten Speichern geaendert hat oder
+    // noch keine Koordinaten vorhanden sind.
+    let geoLat = existingWork?.lat ?? null, geoLng = existingWork?.lng ?? null;
+    const abholortTrimmed = (form.abholort || "").trim();
+    if (abholortTrimmed && abholortTrimmed !== (existingWork?.location_text || "").trim()) {
+      const hits = await searchPlaces(abholortTrimmed);
+      geoLat = hits[0]?.lat ?? null;
+      geoLng = hits[0]?.lng ?? null;
+    } else if (!abholortTrimmed) {
+      geoLat = null; geoLng = null;
+    }
+
     // ── DIFF-SNAPSHOT: Beim Update eines approved Werks, alten Stand speichern ──
     // Wird in admin_comment als "__snapshot__:{...}" gespeichert (nur lesend vom Admin genutzt)
     let snapshotPayload = {};
@@ -510,6 +525,8 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
       ].filter(Boolean).join(", ") || null,
       shipping_time: form.versandTime  || null,
       location_text: form.abholort     || null,
+      lat:          geoLat,
+      lng:          geoLng,
       visibility:   form.sichtbarkeit  || "public",
       status,
       // Beim Einreichen: nie direkt veröffentlichen

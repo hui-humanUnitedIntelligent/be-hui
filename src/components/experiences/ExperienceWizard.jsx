@@ -5,6 +5,7 @@ import React, { useState, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
+import { searchPlaces } from "../../lib/geocoding.js";
 
 // ── Design-Tokens ─────────────────────────────────────────────
 const C = {
@@ -826,6 +827,19 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
       typeof img === "object" ? img : { url: img }
     );
 
+    // Geokoordinaten ermitteln (Standort-Feature 2026-07-06, fuer Umkreissuche
+    // auf Discover-Seite). Nicht bei Online-Erlebnissen, nicht wenn sich der
+    // Ort seit dem letzten Speichern nicht geaendert hat.
+    let geoLat = existingExp?.lat ?? null, geoLng = existingExp?.lng ?? null;
+    const locTrimmed = (form.location_text || "").trim();
+    if (form.format === "online" || !locTrimmed) {
+      geoLat = null; geoLng = null;
+    } else if (locTrimmed !== (existingExp?.location_text || "").trim()) {
+      const hits = await searchPlaces(locTrimmed);
+      geoLat = hits[0]?.lat ?? null;
+      geoLng = hits[0]?.lng ?? null;
+    }
+
     const payload = {
       user_id:               userId,
       title:                 form.title               || "",
@@ -839,6 +853,8 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
       time_start:            form.time_start          || null,
       time_end:              form.time_end            || null,
       location_text:         form.location_text       || null,
+      lat:                   geoLat,
+      lng:                   geoLng,
       format:                form.format              || null,
       price:                 form.price ? parseFloat(form.price) : null,
       currency:              form.currency            || "EUR",

@@ -1058,7 +1058,7 @@ function WerkCard({ werk, delay=0, onPress }) {
         </div>
 
         {/* Standort falls vorhanden */}
-        {werk.location && (
+        {(werk.location || Number.isFinite(werk.distanceKm)) && (
           <div style={{
             fontSize:10, color:T.inkFaint, marginBottom:6,
             display:"flex", alignItems:"center", gap:3,
@@ -1066,7 +1066,10 @@ function WerkCard({ werk, delay=0, onPress }) {
             <span style={{ fontSize:9 }}>📍</span>
             <span style={{
               overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis",
-            }}>{werk.location}</span>
+            }}>
+              {werk.location}{werk.location && Number.isFinite(werk.distanceKm) ? " · " : ""}
+              {Number.isFinite(werk.distanceKm) ? `${werk.distanceKm.toFixed(0)} km entfernt` : ""}
+            </span>
           </div>
         )}
 
@@ -1091,7 +1094,82 @@ function WerkCard({ werk, delay=0, onPress }) {
   );
 }
 
-function WerkeSection({ werke, loading, delay=0, view='cards', onPress, onSectionAction }) {
+/**
+ * Umkreissuche-Zeile fuer Werke/Erlebnisse -- identisches UI-Muster wie in
+ * TalenteSection (siehe dort), nutzt aber denselben globalen radius-Zustand
+ * (radiusKm/radiusStages/onRadiusChange kommen 1:1 aus useRadiusFilter()).
+ * Bewusst als eigene kleine Komponente statt TalenteSection zu refactorn --
+ * geringeres Konfliktrisiko mit der parallel laufenden Radius-Vereinheit-
+ * lichungs-Session, gleiches Verhalten.
+ */
+function LocationRadiusRow({
+  locQuery, onLocQueryChange, locSuggest, locSearching, locActive,
+  onPickLoc, onClearLoc, radiusKm, radiusStages, onRadiusChange, hiddenNoCoordsCount=0,
+}) {
+  return (
+    <div style={{ padding:`0 ${T.px}px`, marginBottom:10 }}>
+      {locActive ? (
+        <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:6, padding:"6px 10px",
+            borderRadius:99, background:T.tealSoft || "rgba(14,196,184,0.1)", border:`1px solid ${T.border}` }}>
+            <span style={{ fontSize:12 }}>📍</span>
+            <span style={{ fontSize:11.5, fontWeight:600, color:T.ink,
+              maxWidth:180, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>
+              {locActive.label}
+            </span>
+            <button onClick={onClearLoc} style={{ background:"none", border:"none", cursor:"pointer",
+              color:T.inkFaint, fontSize:14, lineHeight:1, padding:"0 2px" }}>×</button>
+          </div>
+          <div style={{ display:"flex", gap:5, overflowX:"auto", WebkitOverflowScrolling:"touch", scrollbarWidth:"none" }}>
+            {(radiusStages || [10,25,50,100]).map(stage => (
+              <button key={String(stage)} onClick={() => onRadiusChange(stage)}
+                style={{ flexShrink:0, padding:"5px 10px", borderRadius:99, fontSize:10.5, fontWeight:700,
+                  cursor:"pointer", border: radiusKm===stage ? "none" : `1px solid ${T.border}`,
+                  background: radiusKm===stage ? T.ink : "none",
+                  color: radiusKm===stage ? "#fff" : T.inkFaint, whiteSpace:"nowrap" }}>
+                {stage === "world" ? "Weltweit 🌍" : `${stage} km`}
+              </button>
+            ))}
+          </div>
+          {hiddenNoCoordsCount > 0 && (
+            <span style={{ fontSize:10, color:T.inkFaint }}>
+              {hiddenNoCoordsCount} Eintrag{hiddenNoCoordsCount>1?"e":""} ohne Standortangabe ausgeblendet
+            </span>
+          )}
+        </div>
+      ) : (
+        <div style={{ position:"relative", maxWidth:320 }}>
+          <input value={locQuery} onChange={e => onLocQueryChange(e.target.value)}
+            placeholder="Standort eingeben, z.B. Paphos CY"
+            style={{ width:"100%", padding:"8px 12px", borderRadius:99,
+              border:`1px solid ${T.border}`, outline:"none", fontSize:12,
+              color:T.ink, fontFamily:"inherit", boxSizing:"border-box", background:T.white }}/>
+          {(locSearching || locSuggest.length > 0) && locQuery.trim().length >= 2 && (
+            <div style={{ position:"absolute", top:"calc(100% + 4px)", left:0, right:0, zIndex:5,
+              borderRadius:12, border:`1px solid ${T.border}`, background:T.white,
+              boxShadow:T.cardShadow, overflow:"hidden" }}>
+              {locSearching && <div style={{ padding:"8px 10px", fontSize:11, color:T.inkFaint }}>Suche…</div>}
+              {!locSearching && locSuggest.map((s,i) => (
+                <button key={i} onClick={() => onPickLoc(s)}
+                  style={{ display:"block", width:"100%", textAlign:"left", padding:"8px 10px",
+                    background:"none", border:"none", borderTop: i>0 ? `1px solid ${T.border}` : "none",
+                    fontSize:11.5, color:T.ink, cursor:"pointer", fontFamily:"inherit" }}>
+                  📍 {s.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function WerkeSection({
+  werke, loading, delay=0, view='cards', onPress, onSectionAction,
+  locQuery, onLocQueryChange, locSuggest, locSearching, locActive,
+  onPickLoc, onClearLoc, radiusKm, radiusStages, onRadiusChange, hiddenNoCoordsCount=0,
+}) {
   return (
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <div data-dp-werke/>
@@ -1101,6 +1179,13 @@ function WerkeSection({ werke, loading, delay=0, view='cards', onPress, onSectio
         action="Alle Werke"
         onAction={onSectionAction}
         delay={delay}
+      />
+      <LocationRadiusRow
+        locQuery={locQuery} onLocQueryChange={onLocQueryChange}
+        locSuggest={locSuggest} locSearching={locSearching} locActive={locActive}
+        onPickLoc={onPickLoc} onClearLoc={onClearLoc}
+        radiusKm={radiusKm} radiusStages={radiusStages} onRadiusChange={onRadiusChange}
+        hiddenNoCoordsCount={hiddenNoCoordsCount}
       />
       {view === "cards" ? (
         <div className="dp-hscroll" style={{ display:"flex", gap:10, paddingLeft:T.px, paddingRight:T.px, paddingBottom:4 }}>
@@ -1263,14 +1348,15 @@ function ErlebnisCard({ erlebnis, delay=0, onPress }) {
         </div>
 
         {/* Standort */}
-        {erlebnis.location && (
+        {(erlebnis.location || Number.isFinite(erlebnis.distanceKm)) && (
           <div style={{ display:"flex", alignItems:"center", gap:4, marginBottom:4 }}>
             <span style={{ fontSize:9.5, color:T.inkFaint }}>📍</span>
             <span style={{
               fontSize:10.5, color:T.inkFaint, fontWeight:500,
               overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis",
             }}>
-              {erlebnis.location}
+              {erlebnis.location}{erlebnis.location && Number.isFinite(erlebnis.distanceKm) ? " · " : ""}
+              {Number.isFinite(erlebnis.distanceKm) ? `${erlebnis.distanceKm.toFixed(0)} km entfernt` : ""}
             </span>
           </div>
         )}
@@ -1299,7 +1385,11 @@ function ErlebnisCard({ erlebnis, delay=0, onPress }) {
   );
 }
 
-function ErlebnisseSection({ erlebnisse, loading, delay=0, view='cards', onPress, onSectionAction }) {
+function ErlebnisseSection({
+  erlebnisse, loading, delay=0, view='cards', onPress, onSectionAction,
+  locQuery, onLocQueryChange, locSuggest, locSearching, locActive,
+  onPickLoc, onClearLoc, radiusKm, radiusStages, onRadiusChange, hiddenNoCoordsCount=0,
+}) {
   return (
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <div data-dp-erlebnisse/>
@@ -1309,6 +1399,13 @@ function ErlebnisseSection({ erlebnisse, loading, delay=0, view='cards', onPress
         action="Alle Erlebnisse"
         onAction={onSectionAction}
         delay={delay}
+      />
+      <LocationRadiusRow
+        locQuery={locQuery} onLocQueryChange={onLocQueryChange}
+        locSuggest={locSuggest} locSearching={locSearching} locActive={locActive}
+        onPickLoc={onPickLoc} onClearLoc={onClearLoc}
+        radiusKm={radiusKm} radiusStages={radiusStages} onRadiusChange={onRadiusChange}
+        hiddenNoCoordsCount={hiddenNoCoordsCount}
       />
       {view === "cards" ? (
         <div className="dp-hscroll" style={{ display:"flex", gap:10, paddingLeft:T.px, paddingRight:T.px, paddingBottom:4 }}>
@@ -1661,6 +1758,36 @@ function OrtCard({ ort, delay=0, onMap }) {
 // ════════════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ════════════════════════════════════════════════════════════════
+/**
+ * Gemeinsamer Umkreisfilter fuer Werke/Erlebnisse -- gleiche Logik wie der
+ * bestehende Talente-Filter (siehe displayTalente unten), aber als kleine
+ * Hilfsfunktion statt ein drittes Mal ausgeschrieben. isOnlineFn entscheidet,
+ * ob ein Eintrag standortunabhaengig ist (bleibt dann immer sichtbar).
+ */
+function filterByRadius(items, radius, isOnlineFn) {
+  if (!radius.geo || radius.isWorldwide) return { list: items, hidden: 0 };
+  let hidden = 0;
+  const list = items
+    .map(item => {
+      if (isOnlineFn(item)) return { ...item, distanceKm: null };
+      if (Number.isFinite(item.lat) && Number.isFinite(item.lng)) {
+        return { ...item, distanceKm: distanceKm(radius.geo.lat, radius.geo.lng, item.lat, item.lng) };
+      }
+      return { ...item, distanceKm: undefined };
+    })
+    .filter(item => {
+      if (isOnlineFn(item)) return true;
+      if (item.distanceKm === undefined) { hidden++; return false; }
+      return item.distanceKm <= radius.radiusKm;
+    })
+    .sort((a, b) => {
+      if (a.distanceKm == null) return 1;
+      if (b.distanceKm == null) return -1;
+      return a.distanceKm - b.distanceKm;
+    });
+  return { list, hidden };
+}
+
 export default function DiscoverPage({ onView, onMap, onBook }) {
   const [view, setView]         = useState("cards"); // "cards" | "list"
   const [loading, setLoading] = useState(true);
@@ -1707,6 +1834,67 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
     setTalentLocQuery("");
     setTalentLocSuggest([]);
   }
+
+  // ── Werke/Erlebnisse-Umkreissuche -- gleicher globaler radius-Zustand ──
+  // (Erweiterung 2026-07-06: Radius-Vereinheitlichung war bisher nur fuer
+  // Talente verdrahtet, siehe Commit 071a8dab. Werke/Erlebnisse nutzen
+  // denselben Autocomplete-lokal/Ergebnis-global-Mechanismus.)
+  const [werkLocQuery, setWerkLocQuery]     = useState("");
+  const [werkLocSuggest, setWerkLocSuggest] = useState([]);
+  const [werkLocSearching, setWerkLocSearching] = useState(false);
+  const werkLocDebounce = useRef(null);
+
+  useEffect(() => {
+    clearTimeout(werkLocDebounce.current);
+    if (werkLocQuery.trim().length < 2) { setWerkLocSuggest([]); return; }
+    setWerkLocSearching(true);
+    werkLocDebounce.current = setTimeout(async () => {
+      const res = await searchPlaces(werkLocQuery);
+      setWerkLocSuggest(res);
+      setWerkLocSearching(false);
+    }, 450);
+    return () => clearTimeout(werkLocDebounce.current);
+  }, [werkLocQuery]);
+
+  function handlePickWerkLoc(place) {
+    radius.setGeo(place);
+    setWerkLocQuery("");
+    setWerkLocSuggest([]);
+  }
+  function handleClearWerkLoc() {
+    radius.clearLocation();
+    setWerkLocQuery("");
+    setWerkLocSuggest([]);
+  }
+
+  const [erlebnisLocQuery, setErlebnisLocQuery]     = useState("");
+  const [erlebnisLocSuggest, setErlebnisLocSuggest] = useState([]);
+  const [erlebnisLocSearching, setErlebnisLocSearching] = useState(false);
+  const erlebnisLocDebounce = useRef(null);
+
+  useEffect(() => {
+    clearTimeout(erlebnisLocDebounce.current);
+    if (erlebnisLocQuery.trim().length < 2) { setErlebnisLocSuggest([]); return; }
+    setErlebnisLocSearching(true);
+    erlebnisLocDebounce.current = setTimeout(async () => {
+      const res = await searchPlaces(erlebnisLocQuery);
+      setErlebnisLocSuggest(res);
+      setErlebnisLocSearching(false);
+    }, 450);
+    return () => clearTimeout(erlebnisLocDebounce.current);
+  }, [erlebnisLocQuery]);
+
+  function handlePickErlebnisLoc(place) {
+    radius.setGeo(place);
+    setErlebnisLocQuery("");
+    setErlebnisLocSuggest([]);
+  }
+  function handleClearErlebnisLoc() {
+    radius.clearLocation();
+    setErlebnisLocQuery("");
+    setErlebnisLocSuggest([]);
+  }
+
   const [erlebnisse, setErlebnisse]   = useState([]);
   const [projekte, setProjekte]       = useState([]);
   const [stats, setStats]             = useState(null);
@@ -1763,7 +1951,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         // Felder: id, title, cover_url, category, file_format, tags, status, visibility, user_id, created_at
         const { data: ws, error: wsErr } = await supabase
           .from("works")
-          .select("id,title,cover_url,category,file_format,tags,status,approval_status,visibility,price,location_text,user_id,created_at")
+          .select("id,title,cover_url,category,file_format,tags,status,approval_status,visibility,price,location_text,lat,lng,user_id,created_at")
           .eq("status", "published")
           .eq("approval_status", "approved")
           .eq("visibility", "public")
@@ -1789,6 +1977,8 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
             medium:   FILE_FORMAT_LABEL[w.file_format] || safeStr(w.category, "Werk"),
             price:    w.price != null ? safeNum(w.price, 0) : null,
             location: safeStr(w.location_text),
+            lat:      Number.isFinite(w.lat) ? w.lat : null,
+            lng:      Number.isFinite(w.lng) ? w.lng : null,
             author:   "HUI Talent",
           })));
         } else if (!wsErr) {
@@ -1856,7 +2046,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         // Erlebnisse — korrigierte Feldnamen: location_text, max_participants
         const { data: exps, error: expsErr } = await supabase
           .from("experiences")
-          .select("id,title,cover_url,date,duration,location_text,max_participants,status,approval_status,category,experience_type,created_at")
+          .select("id,title,cover_url,date,duration,location_text,max_participants,status,approval_status,category,experience_type,format,lat,lng,user_id,created_at")
           .eq("status", "published")
           .eq("approval_status", "approved")
           .order("created_at", { ascending:false })
@@ -1901,6 +2091,9 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
               statusLabel,
               statusColor,
               typeLabel,
+              format:      safeStr(e.format),
+              lat:         Number.isFinite(e.lat) ? e.lat : null,
+              lng:         Number.isFinite(e.lng) ? e.lng : null,
             };
           }));
         } else if (!expsErr) {
@@ -1945,8 +2138,9 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
 
   const displayMomente    = momente.length > 0 ? momente : SEED_MOMENTE;
   const navigate           = useNavigate();
-  const displayWerke      = werke.length > 0 ? werke : SEED_WERKE;
-  const baseDisplayTalente = talente.length > 0 ? talente : SEED_TALENTE;
+  const baseDisplayWerke      = werke.length > 0 ? werke : SEED_WERKE;
+  const baseDisplayTalente    = talente.length > 0 ? talente : SEED_TALENTE;
+  const baseDisplayErlebnisse = erlebnisse.length > 0 ? erlebnisse : SEED_ERLEBNISSE;
 
   // Umkreisfilter: nur aktiv wenn Nutzer einen Standort ausgewaehlt hat UND
   // der globale Radius nicht "Weltweit" ist (radius.isWorldwide => kein
@@ -1976,7 +2170,11 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
           if (b.distanceKm == null) return -1;
           return a.distanceKm - b.distanceKm;
         });
-  const displayErlebnisse = erlebnisse.length > 0 ? erlebnisse : SEED_ERLEBNISSE;
+  const { list: displayWerke, hidden: werkHiddenCount } =
+    filterByRadius(baseDisplayWerke, radius, () => false);
+  const { list: displayErlebnisse, hidden: erlebnisHiddenCount } =
+    filterByRadius(baseDisplayErlebnisse, radius, e => e.format === "online");
+
   const displayProjekte   = projekte.length > 0 ? projekte : SEED_PROJEKTE;
 
   const handlePersonPress = useCallback((person) => {
@@ -2132,6 +2330,17 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         view={view}
         onPress={handleWerkPress}
         onSectionAction={makeScrollHandler("[data-dp-werke]")}
+        locQuery={werkLocQuery}
+        onLocQueryChange={setWerkLocQuery}
+        locSuggest={werkLocSuggest}
+        locSearching={werkLocSearching}
+        locActive={radius.geo}
+        onPickLoc={handlePickWerkLoc}
+        onClearLoc={handleClearWerkLoc}
+        radiusKm={radius.radiusKm}
+        radiusStages={radius.stages}
+        onRadiusChange={radius.setRadiusKm}
+        hiddenNoCoordsCount={werkHiddenCount}
       />
 
       {/* ── 6. Erlebnisse für dich ── */}
@@ -2142,6 +2351,17 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         view={view}
         onPress={handleErlebnisPress}
         onSectionAction={makeScrollHandler("[data-dp-erlebnisse]")}
+        locQuery={erlebnisLocQuery}
+        onLocQueryChange={setErlebnisLocQuery}
+        locSuggest={erlebnisLocSuggest}
+        locSearching={erlebnisLocSearching}
+        locActive={radius.geo}
+        onPickLoc={handlePickErlebnisLoc}
+        onClearLoc={handleClearErlebnisLoc}
+        radiusKm={radius.radiusKm}
+        radiusStages={radius.stages}
+        onRadiusChange={radius.setRadiusKm}
+        hiddenNoCoordsCount={erlebnisHiddenCount}
       />
 
       {/* ── 7. Projekte & Initiativen ── */}
