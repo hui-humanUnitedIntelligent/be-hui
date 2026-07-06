@@ -11,6 +11,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { isProfileTalent } from '../../lib/profileUtils.js';
 import { createPortal } from "react-dom";
+import { navigateToShellTab } from "../../lib/navigation/navigateToShellTab.js";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 
 // ── Design Tokens (identisch mit HuiStudio) ────────────────────────────────
@@ -88,7 +90,8 @@ function VoteButton({ index, used, loading, onClick }) {
 }
 
 // ── Haupt-Modal ─────────────────────────────────────────────────────────────
-export default function ImpactStimmenModal({ profile, onClose, switchTab = null }) {
+export default function ImpactStimmenModal({ profile, onClose, switchTab = null, handleTab = null }) {
+  const navigate = useNavigate();
   // Sprint F.4C: einzige Wahrheitsquelle
   const isTalent  = isProfileTalent(profile);
   const maxVotes  = isTalent ? 2 : 1;
@@ -192,25 +195,13 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
     }
   };
 
-  // Hilfsfunktion: navigiert zum Impact-Tab sauber via switchTab (HomeShell) oder Fallback
+  // Hilfsfunktion: navigiert zum Impact-Tab via HomeShell (NAV-1.4)
   const _navigateToImpact = (projectId = null) => {
-    // 1. Overlay cleanup: overflow:hidden freigeben
     document.body.style.overflow = "";
     document.documentElement.style.overflow = "";
-
-    // 2. Modal schließen
     onClose?.();
-
-    // 3. Tab wechseln — bevorzugt via switchTab (HomeShell), sonst via popstate
-    if (typeof switchTab === "function") {
-      switchTab("impact");
-    } else {
-      const hash = projectId ? `#project-${projectId}` : "";
-      window.history.pushState({}, "", `/impact${hash}`);
-      window.dispatchEvent(new PopStateEvent("popstate"));
-    }
-
-    // 4. Scroll zum Projekt nach kurzer Verzögerung (Tab-Mount abwarten)
+    const hash = projectId ? `project-${projectId}` : "";
+    navigateToShellTab("impact", { handleTab, switchTab, navigate, hash });
     if (projectId) {
       setTimeout(() => {
         document.body.style.overflow = "";

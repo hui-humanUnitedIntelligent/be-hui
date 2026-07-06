@@ -52,7 +52,7 @@ const HuiMatchOverlay     = React.lazy(() => import("../components/HuiMatchOverl
 // OrbCompass replaces HuiPlusSheet — Begegnungs-Kompass
 import OrbCompass from "../components/OrbCompass.jsx";
 import MeinHUI    from "./MeinHUI.jsx";
-import { IX } from "../design/hui.interaction.js";
+import { applyShellHash, SHELL_HASH_STATE, SHELL_TAB_STATE } from "../lib/navigation/shellDeepLink.js";
 import ContentTypeSelector from "../content/ContentTypeSelector.jsx";
 import InvitationFlow from "../content/invitation/InvitationFlow.jsx";
 const HuiMembershipFlow   = React.lazy(() => import("../components/HuiMembershipFlow.jsx"));
@@ -142,7 +142,6 @@ function HomeInner() {
     openProfileById,
     showChat,          setShowChat,
     chatRecipient,     setChatRecipient,   // Phase 23: direkter Chat-Einstieg
-    showNotifs,        setShowNotifs,
     showMap,           setShowMap,
     showMatch,         setShowMatch,
     showMembership,    setShowMembership,
@@ -160,6 +159,7 @@ function HomeInner() {
     activeStory,       setActiveStory,
     showCreatorDash,   setShowCreatorDash,
     showCreatorDashboard,
+    openCreatorDashboard,
     showWerkCheckout,  setShowWerkCheckout,  // COMMERCE-01 W-1
     showBookingFlow,   setShowBookingFlow,   // COMMERCE-01 W-1
     showWerkeKorb,     setShowWerkeKorb,     // KORB-01
@@ -186,19 +186,29 @@ function HomeInner() {
     }
   }, [location?.state?.pendingWerkKauf]); // eslint-disable-line  // Activity Tracking: App-Start, Foreground, Heartbeat
 
+  // NAV-1.4: Deep-Links (/impact etc.) → HomeShell-Tab
+  useEffect(() => {
+    const shellTab = location?.state?.[SHELL_TAB_STATE];
+    if (!shellTab) return;
+    handleTab(shellTab);
+    const shellHash = location?.state?.[SHELL_HASH_STATE];
+    if (shellHash) applyShellHash(shellHash);
+    navigate("/Home", { replace: true, state: {} });
+  }, [location?.state, handleTab, navigate]);
+
 
   // ── Phase 4C: Talent Flow global registrieren ────────────────
   // Ermöglicht Guards aus beliebigen Komponenten: window.__HUI_OPEN_TALENT_FLOW?.()
   React.useEffect(() => {
     window.__HUI_OPEN_TALENT_FLOW    = () => setShowMembership(true);
-    window.__HUI_OPEN_CREATOR_DASH   = () => setShowCreatorDash(true);
+    window.__HUI_OPEN_CREATOR_DASH   = () => openCreatorDashboard?.();
     window.__HUI_OPEN_PROFILE__       = (id) => { if(id) openProfileById(id); };
     return () => {
       delete window.__HUI_OPEN_TALENT_FLOW;
       delete window.__HUI_OPEN_CREATOR_DASH;
       delete window.__HUI_OPEN_PROFILE__;
     };
-  }, [setShowMembership, setShowCreatorDash]);
+  }, [setShowMembership, openCreatorDashboard, openProfileById]);
 
   // ─────────────────────────────────────────────────────────────
 
@@ -308,9 +318,6 @@ function HomeInner() {
           notifCount={liveNotifCount}
           msgCount={unreadTotal}
           currentUser={currentUser}
-          onNotif={() => {
-            setShowNotifs(true);
-          }}
         />
 
         {/* Phase 16.4: Surface Dim Overlay — position:fixed, above tab content,
@@ -431,6 +438,7 @@ function HomeInner() {
                       // Erlebnis aus DiscoverPage → ExperienceBookingFlow
                       setShowBookingFlow(item);
                     }}
+                    onImpact={() => handleTab("impact")}
                   />
               </SafeRender>
             </Suspense>

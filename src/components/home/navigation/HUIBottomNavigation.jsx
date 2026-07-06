@@ -225,8 +225,12 @@ export default function HUIBottomNavigation({
       actions[A.OPEN_OWN_PROFILE]?.();
       return;
     }
+    // NAV-1.4: handleTab (onTab) ist autoritativ — kein doppelter GO_TO_TAB-Aufruf
+    if (typeof onTab === "function") {
+      onTab(key);
+      return;
+    }
     actions[A.GO_TO_TAB]?.(key);
-    if (typeof onTab === "function") onTab(key);
   }
 
   function handleOrbPress() {

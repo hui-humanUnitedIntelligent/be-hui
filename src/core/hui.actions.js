@@ -299,7 +299,7 @@ export function buildActions(shell) {
     // ── IMPACT ────────────────────────────────────────────────────
     [A.OPEN_IMPACT]: (payload = {}) => {
       logAction(A.OPEN_IMPACT, payload);
-      switchTab?.("impact");
+      handleTab?.("impact");
     },
 
     [A.SEND_RESONANCE]: (rawPayload) => {
@@ -405,7 +405,8 @@ export function buildActions(shell) {
 
     [A.OPEN_COMMUNITY]: (payload = {}) => {
       logAction(A.OPEN_COMMUNITY, payload);
-      switchTab?.("community");
+      // NAV-1.4: Kein "community"-Tab — Community-Inhalt lebt unter Entdecken (feed)
+      handleTab?.("feed");
     },
 
     // ── CREATOR TOOLS ─────────────────────────────────────────────
@@ -439,7 +440,7 @@ export function buildActions(shell) {
 
     [A.GO_HOME]:      () => { logAction(A.GO_HOME);      switchTab?.("feed");      },
     [A.GO_DISCOVER]:  () => { logAction(A.GO_DISCOVER);  switchTab?.("discover");  },
-    [A.GO_IMPACT]:    () => { logAction(A.GO_IMPACT);    switchTab?.("impact");    },
+    [A.GO_IMPACT]:    () => { logAction(A.GO_IMPACT);    handleTab?.("impact");    },
     [A.GO_FAVORITES]: () => { logAction(A.GO_FAVORITES); switchTab?.("favorites"); },
   };
 

@@ -25,7 +25,7 @@ import { detectReferral } from './lib/referralTracking.js'
 // WirkerProfilePage (~140KB) und CreatorStudio laden nur bei Bedarf
 const Home              = lazy(() => import('./pages/Home'))
 const RefRedirect       = lazy(() => import('./pages/RefRedirect'))
-import ImpactPage from './pages/ImpactPage'
+import ImpactDeepLinkRedirect from './components/navigation/ImpactDeepLinkRedirect.jsx'
 const Admin             = lazy(() => import('./pages/Admin'))
 const DiagnosePage      = lazy(() => import('./pages/DiagnosePage'))
 const PlatformDashboard = lazy(() => import('./pages/PlatformDashboard'))
@@ -51,7 +51,7 @@ import { HUILogoSplash } from './components/brand/HUILogo.jsx'
 // Alle Routen gehen durch createTabPage() — kein undefined-component möglich
 export const APP_ROUTES = filterValidPages([
   createTabPage({ key:'home',      route:'/Home',           component:Home,              title:'HUI',         protectedRoute:true,  preload:true  }),
-  createTabPage({ key:'impact',    route:'/impact',         component:ImpactPage,        title:'Impact',      protectedRoute:true,  preload:false }),
+  createTabPage({ key:'impact',    route:'/impact',         component:ImpactDeepLinkRedirect, title:'Impact', protectedRoute:true, preload:false }),
   createTabPage({ key:'work',      route:'/work/:id',       component:WorkDetailPage,    title:'Werk',        protectedRoute:true,  preload:false }),
   createTabPage({ key:'profile',   route:'/profile/:username', component:WirkerProfilePage, title:'Profil',  protectedRoute:true,  preload:false }),
   createTabPage({ key:'admin',     route:'/Admin',          component:Admin,             title:'Admin',       protectedRoute:true,  preload:false }),
@@ -530,9 +530,9 @@ function AppRoutes() {
           <ProtectedRoute><OwnProfileRedirect /></ProtectedRoute>
         }/>
 
-        {/* Impact — LAZY */}
+        {/* Impact — Deep-Link → HomeShell Tab (NAV-1.4) */}
         <Route path="/impact" element={
-          <ProtectedRoute><ImpactPage /></ProtectedRoute>
+          <ProtectedRoute><ImpactDeepLinkRedirect /></ProtectedRoute>
         }/>
 
         {/* Legacy redirect */}
