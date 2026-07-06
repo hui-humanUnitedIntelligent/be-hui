@@ -74,7 +74,7 @@ function pickServiceFields(src = {}) {
   const out = {};
   const keys = [
     "price_per_hour", "price_per_session", "currency",
-    "location_type", "location_address", "location_notes", "map_link",
+    "location_type", "location_address", "location_notes", "map_link", "lat", "lng",
     "available_dates", "available_time_slots", "recurring", "duration_minutes",
     "max_participants", "min_participants", "booking_type",
     "booking_window_start", "booking_window_end",

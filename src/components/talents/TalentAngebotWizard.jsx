@@ -18,6 +18,7 @@ import {
   createTalent, updateTalent, uploadTalentImage, TALENT_KATEGORIEN,
   TALENT_LOCATION_TYPES, TALENT_RECURRING_OPTIONS, TALENT_BOOKING_TYPES,
 } from "../../hooks/useTalents.js";
+import { searchPlaces } from "../../lib/geocoding.js";
 
 const C = {
   teal: "#0EC4B8", tealD: "#0DBBAF", ink: "#1A1A18", inkMid: "rgba(26,26,24,0.55)",
@@ -201,11 +202,22 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
     }
     setSaving(true); setError(null);
 
+    // Geokoordinaten ermitteln, falls Vor-Ort/Hybrid-Angebot mit Adresse
+    // (fuer Umkreissuche auf der Discover-Seite, siehe geocoding.js)
+    let geoLat = null, geoLng = null;
+    const addrTrimmed = locationAddress.trim();
+    if (locationType !== "online" && addrTrimmed) {
+      const hits = await searchPlaces(addrTrimmed);
+      if (hits[0]) { geoLat = hits[0].lat; geoLng = hits[0].lng; }
+    }
+
     const servicePayload = {
       price_per_hour: num(pricePerHour),
       price_per_session: num(pricePerSession),
       location_type: locationType || null,
-      location_address: locationAddress.trim() || null,
+      location_address: addrTrimmed || null,
+      lat: geoLat,
+      lng: geoLng,
       location_notes: locationNotes.trim() || null,
       map_link: mapLink.trim() || null,
       available_dates: availableDates,

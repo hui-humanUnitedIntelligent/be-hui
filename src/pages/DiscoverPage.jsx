@@ -11,6 +11,7 @@ import { formatPresence } from "../lib/usePresence.js";
 import { useAuthGate }    from "../components/auth/AuthGate.jsx";
 import TalentAnfrageFlow  from "../components/talents/TalentAnfrageFlow.jsx";
 import TalentBookingFlow  from "../components/talents/TalentBookingFlow.jsx";
+import { searchPlaces, distanceKm } from "../lib/geocoding.js";
 
 // ── Design Tokens ────────────────────────────────────────────────
 const T = {
@@ -817,13 +818,16 @@ function TalentCard({ talent, delay=0, onPress }) {
         </div>
 
         {/* Standort/Ort */}
-        {locationLabel && (
+        {(locationLabel || Number.isFinite(talent.distanceKm)) && (
           <div style={{
             fontSize:10, color:T.inkFaint, marginBottom:6,
             display:"flex", alignItems:"center", gap:3,
           }}>
             <span style={{ fontSize:9 }}>📍</span>
-            <span style={{ overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{locationLabel}</span>
+            <span style={{ overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>
+              {locationLabel}{locationLabel && Number.isFinite(talent.distanceKm) ? " · " : ""}
+              {Number.isFinite(talent.distanceKm) ? `${talent.distanceKm.toFixed(0)} km entfernt` : ""}
+            </span>
           </div>
         )}
 
@@ -842,7 +846,11 @@ function TalentCard({ talent, delay=0, onPress }) {
   );
 }
 
-function TalenteSection({ talente, loading, delay=0, view='cards', onPress, onSectionAction }) {
+function TalenteSection({
+  talente, loading, delay=0, view='cards', onPress, onSectionAction,
+  locQuery, onLocQueryChange, locSuggest, locSearching, locActive,
+  onPickLoc, onClearLoc, radiusKm, onRadiusChange, hiddenNoCoordsCount=0,
+}) {
   return (
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <div data-dp-talente/>
@@ -853,6 +861,63 @@ function TalenteSection({ talente, loading, delay=0, view='cards', onPress, onSe
         onAction={onSectionAction}
         delay={delay}
       />
+
+      {/* ── Umkreissuche ── */}
+      <div style={{ padding:`0 ${T.px}px`, marginBottom:10 }}>
+        {locActive ? (
+          <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:6, padding:"6px 10px",
+              borderRadius:99, background:T.tealSoft || "rgba(14,196,184,0.1)", border:`1px solid ${T.border}` }}>
+              <span style={{ fontSize:12 }}>📍</span>
+              <span style={{ fontSize:11.5, fontWeight:600, color:T.ink,
+                maxWidth:180, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>
+                {locActive.label}
+              </span>
+              <button onClick={onClearLoc} style={{ background:"none", border:"none", cursor:"pointer",
+                color:T.inkFaint, fontSize:14, lineHeight:1, padding:"0 2px" }}>×</button>
+            </div>
+            <div style={{ display:"flex", gap:5 }}>
+              {[10,25,50,100].map(km => (
+                <button key={km} onClick={() => onRadiusChange(km)}
+                  style={{ padding:"5px 10px", borderRadius:99, fontSize:10.5, fontWeight:700,
+                    cursor:"pointer", border: radiusKm===km ? "none" : `1px solid ${T.border}`,
+                    background: radiusKm===km ? T.ink : "none",
+                    color: radiusKm===km ? "#fff" : T.inkFaint }}>
+                  {km} km
+                </button>
+              ))}
+            </div>
+            {hiddenNoCoordsCount > 0 && (
+              <span style={{ fontSize:10, color:T.inkFaint }}>
+                {hiddenNoCoordsCount} Angebot{hiddenNoCoordsCount>1?"e":""} ohne Standortangabe ausgeblendet
+              </span>
+            )}
+          </div>
+        ) : (
+          <div style={{ position:"relative", maxWidth:320 }}>
+            <input value={locQuery} onChange={e => onLocQueryChange(e.target.value)}
+              placeholder="Standort eingeben, z.B. Paphos CY"
+              style={{ width:"100%", padding:"8px 12px", borderRadius:99,
+                border:`1px solid ${T.border}`, outline:"none", fontSize:12,
+                color:T.ink, fontFamily:"inherit", boxSizing:"border-box", background:T.white }}/>
+            {(locSearching || locSuggest.length > 0) && locQuery.trim().length >= 2 && (
+              <div style={{ position:"absolute", top:"calc(100% + 4px)", left:0, right:0, zIndex:5,
+                borderRadius:12, border:`1px solid ${T.border}`, background:T.white,
+                boxShadow:T.cardShadow, overflow:"hidden" }}>
+                {locSearching && <div style={{ padding:"8px 10px", fontSize:11, color:T.inkFaint }}>Suche…</div>}
+                {!locSearching && locSuggest.map((s,i) => (
+                  <button key={i} onClick={() => onPickLoc(s)}
+                    style={{ display:"block", width:"100%", textAlign:"left", padding:"8px 10px",
+                      background:"none", border:"none", borderTop: i>0 ? `1px solid ${T.border}` : "none",
+                      fontSize:11.5, color:T.ink, cursor:"pointer", fontFamily:"inherit" }}>
+                    📍 {s.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
       {view === "cards" ? (
         <div className="dp-hscroll" style={{ display:"flex", gap:10, paddingLeft:T.px, paddingRight:T.px, paddingBottom:4 }}>
           {loading
@@ -1598,6 +1663,37 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   const [momente, setMomente]         = useState([]);
   const [werke, setWerke]             = useState([]);
   const [talente, setTalente]         = useState([]);
+
+  // ── Talent-Umkreissuche (Standort-Feature 2026-07-06) ──
+  const [talentLocQuery, setTalentLocQuery]     = useState("");
+  const [talentLocSuggest, setTalentLocSuggest] = useState([]);
+  const [talentLocSearching, setTalentLocSearching] = useState(false);
+  const [talentLocActive, setTalentLocActive]   = useState(null); // {label,lat,lng} | null
+  const [talentRadiusKm, setTalentRadiusKm]     = useState(50);
+  const talentLocDebounce = useRef(null);
+
+  useEffect(() => {
+    clearTimeout(talentLocDebounce.current);
+    if (talentLocQuery.trim().length < 2) { setTalentLocSuggest([]); return; }
+    setTalentLocSearching(true);
+    talentLocDebounce.current = setTimeout(async () => {
+      const res = await searchPlaces(talentLocQuery);
+      setTalentLocSuggest(res);
+      setTalentLocSearching(false);
+    }, 450);
+    return () => clearTimeout(talentLocDebounce.current);
+  }, [talentLocQuery]);
+
+  function handlePickTalentLoc(place) {
+    setTalentLocActive(place);
+    setTalentLocQuery("");
+    setTalentLocSuggest([]);
+  }
+  function handleClearTalentLoc() {
+    setTalentLocActive(null);
+    setTalentLocQuery("");
+    setTalentLocSuggest([]);
+  }
   const [erlebnisse, setErlebnisse]   = useState([]);
   const [projekte, setProjekte]       = useState([]);
   const [stats, setStats]             = useState(null);
@@ -1691,7 +1787,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         // Oeffentlich sichtbar nur status='approved' (RLS deckt das zusaetzlich ab)
         const { data: tal, error: talErr } = await supabase
           .from("talents")
-          .select("id,title,description,category,images,price_per_hour,price_per_session,currency,location_type,location_address,location_notes,map_link,user_id,created_at,available_dates,available_time_slots,recurring,duration_minutes,max_participants,min_participants,booking_type,booking_window_start,booking_window_end")
+          .select("id,title,description,category,images,price_per_hour,price_per_session,currency,location_type,location_address,location_notes,map_link,lat,lng,user_id,created_at,available_dates,available_time_slots,recurring,duration_minutes,max_participants,min_participants,booking_type,booking_window_start,booking_window_end")
           .eq("status", "approved")
           .order("created_at", { ascending:false })
           .limit(8);
@@ -1725,6 +1821,8 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
               location_address:      safeStr(t.location_address),
               location_notes:        safeStr(t.location_notes),
               map_link:              safeStr(t.map_link),
+              lat:                   Number.isFinite(t.lat) ? t.lat : null,
+              lng:                   Number.isFinite(t.lng) ? t.lng : null,
               author:                providerMap[t.user_id] || "HUI Talent",
               // Buchungsdaten (TALENT-SERVICES-001) — fuer TalentBookingFlow
               available_dates:       Array.isArray(t.available_dates) ? t.available_dates : [],
@@ -1835,7 +1933,34 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   const displayMomente    = momente.length > 0 ? momente : SEED_MOMENTE;
   const navigate           = useNavigate();
   const displayWerke      = werke.length > 0 ? werke : SEED_WERKE;
-  const displayTalente    = talente.length > 0 ? talente : SEED_TALENTE;
+  const baseDisplayTalente = talente.length > 0 ? talente : SEED_TALENTE;
+
+  // Umkreisfilter: nur aktiv wenn Nutzer einen Standort ausgewaehlt hat.
+  // Online-Angebote bleiben immer sichtbar (kein Standort-Bezug).
+  // Angebote ohne Koordinaten (nicht geocodebar) werden ausgeblendet, aber
+  // gezaehlt, damit es nicht "grundlos" weniger Ergebnisse gibt.
+  let hiddenNoCoordsCount = 0;
+  const displayTalente = !talentLocActive
+    ? baseDisplayTalente
+    : baseDisplayTalente
+        .map(t => {
+          if (t.location_type === "online") return { ...t, distanceKm: null };
+          if (Number.isFinite(t.lat) && Number.isFinite(t.lng)) {
+            const d = distanceKm(talentLocActive.lat, talentLocActive.lng, t.lat, t.lng);
+            return { ...t, distanceKm: d };
+          }
+          return { ...t, distanceKm: undefined }; // ohne Koordinaten
+        })
+        .filter(t => {
+          if (t.location_type === "online") return true;
+          if (t.distanceKm === undefined) { hiddenNoCoordsCount++; return false; }
+          return t.distanceKm <= talentRadiusKm;
+        })
+        .sort((a, b) => {
+          if (a.distanceKm == null) return 1;
+          if (b.distanceKm == null) return -1;
+          return a.distanceKm - b.distanceKm;
+        });
   const displayErlebnisse = erlebnisse.length > 0 ? erlebnisse : SEED_ERLEBNISSE;
   const displayProjekte   = projekte.length > 0 ? projekte : SEED_PROJEKTE;
 
@@ -1971,6 +2096,16 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         view={view}
         onPress={handleTalentPress}
         onSectionAction={makeScrollHandler("[data-dp-talente]")}
+        locQuery={talentLocQuery}
+        onLocQueryChange={setTalentLocQuery}
+        locSuggest={talentLocSuggest}
+        locSearching={talentLocSearching}
+        locActive={talentLocActive}
+        onPickLoc={handlePickTalentLoc}
+        onClearLoc={handleClearTalentLoc}
+        radiusKm={talentRadiusKm}
+        onRadiusChange={setTalentRadiusKm}
+        hiddenNoCoordsCount={hiddenNoCoordsCount}
       />
 
       {/* ── 5. Werke entdecken ── */}
