@@ -18,6 +18,7 @@ import MeineProjekteModal  from "./MeineProjekteModal.jsx";
 import EinAusgabenModal    from "./EinAusgabenModal.jsx";
 import StatistikenModal      from "./StatistikenModal.jsx";
 import MeineVerkaeufeModal   from "./MeineVerkaeufeModal.jsx";
+import MeineBuchungenModal   from "./MeineBuchungenModal.jsx";
 import ProfilBearbeitenModal    from "./ProfilBearbeitenModal.jsx";
 import SicherheitPasswortModal  from "./SicherheitPasswortModal.jsx";
 import SupportPage             from "../../pages/studio/SupportPage.jsx";
@@ -1132,6 +1133,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
   const [showMeineProjekte, setShowMeineProjekte] = useState(false); // Meine unterstützten Projekte
   const [showEinAusgaben,  setShowEinAusgaben]  = useState(false); // Ein-/Ausgaben Übersicht
   const [showMeineVerkaeufe, setShowMeineVerkaeufe] = useState(false); // Meine Verkäufe (verschoben aus Profil, 2026-07-06)
+  const [showMeineBuchungen, setShowMeineBuchungen] = useState(false); // Meine Buchungen (verschoben aus Profil, 2026-07-06)
   const [showStatistiken,     setShowStatistiken]     = useState(false); // Statistiken
   const [showProfilBearbeiten, setShowProfilBearbeiten]= useState(false); // Profil bearbeiten
   const [showVerifCS,          setShowVerifCS]          = useState(false); // Verifizierung Coming Soon
@@ -1257,6 +1259,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
         <StudioSection label="Einnahmen & Statistiken">
           <StudioRow icon="💶" label="Ein-/Ausgaben Übersicht" onPress={() => setShowEinAusgaben(true)} />
           <StudioRow icon="🛍️" label="Meine Verkäufe" onPress={() => setShowMeineVerkaeufe(true)} />
+          <StudioRow icon="📅" label="Meine Buchungen" onPress={() => setShowMeineBuchungen(true)} />
           <StudioRow icon="📊" label="Statistiken"         onPress={() => setShowStatistiken(true)} last />
         </StudioSection>
         <Gap h={20}/>
@@ -1333,6 +1336,12 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
         <MeineVerkaeufeModal
           profile={profile}
           onClose={() => setShowMeineVerkaeufe(false)}
+        />
+      )}
+      {showMeineBuchungen && (
+        <MeineBuchungenModal
+          profile={profile}
+          onClose={() => setShowMeineBuchungen(false)}
         />
       )}
       {showStatistiken && (
