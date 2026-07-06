@@ -1,5 +1,7 @@
 // bookingContext.js — HUI Booking Intelligence Layer v1.0
-// Phase 3A: Zentrales Booking-System
+// @domain COMMERCE
+// @owner lib/bookingContext.js
+// @responsibility Creator Bookings — Confirm/Decline/Complete — Single Owner
 //
 // STATUS FLOW:
 // draft → requested → pending_response → accepted/declined

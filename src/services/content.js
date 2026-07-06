@@ -1,4 +1,7 @@
 // src/services/content.js
+// @domain CONTENT
+// @owner services/content.js
+// @responsibility Feed-Posts, Works CRUD, Media Upload, Resonances
 // ═══════════════════════════════════════════════════════════════
 // HUI CONTENT SERVICE — Phase 2
 //

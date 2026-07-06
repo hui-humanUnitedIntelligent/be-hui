@@ -1,5 +1,8 @@
 // src/lib/AppStateContext.jsx — Phase 1 Restore
-// Stabiler Basis-State ohne gefaehrliche Import-Chains.
+// @domain IDENTITY (primary) + SOCIAL (follows, notifications)
+// @owner lib/AppStateContext.jsx
+// @responsibility Globaler App-State: Profile, Follows, Notifications, Works
+// @violation V-080 TODO(ADR-0001): Duplicate owner für bookings/works/profile
 //
 // IMPORT-SICHERHEIT (Phase 1):
 //   ✅ supabase — direkt, stabil

@@ -1,4 +1,7 @@
 // src/services/commerceEngine.js
+// @domain COMMERCE
+// @owner services/commerceEngine.js
+// @responsibility Commerce Events, Checkout, Order Status, Escrow
 // ═══════════════════════════════════════════════════════════════════
 // HUI Commerce Engine 2.0 — Kanonischer Commerce-Service
 // ═══════════════════════════════════════════════════════════════════

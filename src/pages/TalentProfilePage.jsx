@@ -1,15 +1,7 @@
 // src/pages/TalentProfilePage.jsx — HUI Öffentliches Wirkerprofil v2
-// "Hier wirkt ein Mensch aktiv in der Gemeinschaft."
-// ════════════════════════════════════════════════════════════════
-// Architektur:
-//   1. Header (Nav: Zurück, Öffentliches Profil, Teilen)
-//   3. ActionButtons (Verbinden, Nachricht)
-//   4. SchwerpunktKarte (auto-ermittelt aus works/experiences/interests)
-//   5. QuickStats (Verbindungen, Begegnungen, Momente, Projekte, Menschen)
-//   7. NaechsteErlebnisse (nur wenn zukünftige Termine vorhanden)
-//   9. Momente (beitraege)
-//  10. AbschlussBar (Verbinden, Nachricht, Einladung)
-// ════════════════════════════════════════════════════════════════
+// @domain IDENTITY
+// @violation V-003 TODO(ADR-0001): Direct profile UPDATEs + watchers INSERT/DELETE
+//   → ProfileService + AppStateContext delegation
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";

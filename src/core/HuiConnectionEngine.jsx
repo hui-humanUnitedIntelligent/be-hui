@@ -1,5 +1,6 @@
 // src/core/HuiConnectionEngine.jsx — HUI Phase 2.5
-// "A living emotional ecosystem where everything naturally flows together."
+// @domain CORE
+// @violation V-060 TODO(ADR-0001): CORE writes to follows (SOCIAL) — migrate to SocialService
 // ══════════════════════════════════════════════════════════════════════
 //
 // THE CONNECTION ENGINE transforms isolated screens into one living world.
