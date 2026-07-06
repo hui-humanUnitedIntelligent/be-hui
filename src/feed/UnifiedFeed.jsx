@@ -283,6 +283,11 @@ const FEED_CSS = `
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* Wirker-/Projekte-Suchtreffer (2026-07-06) -- horizontale Scroll-Reihe
+   ohne sichtbare Scrollbar, gleiches Muster wie dp-hscroll in DiscoverPage.jsx. */
+.hui-search-hscroll { -webkit-overflow-scrolling: touch; scrollbar-width: none; overscroll-behavior-x: contain; }
+.hui-search-hscroll::-webkit-scrollbar { display: none; }
 `;
 
 let _feedCSSInjected = false;
@@ -661,6 +666,128 @@ const LazyCard = React.memo(function LazyCard({ raw, ...handlers }) {
   );
 });
 
+/* ── Wirker-/Projekte-Suchtreffer (2026-07-06) ────────────────────
+   "Home reagiert auf die globale Suche": fetchSearchResults() (useFeedStream)
+   liefert neben den gewohnten Content-Items (Werk/Erlebnis/Beitrag/Event)
+   jetzt zusaetzlich Wirker- und Impact-Projekt-Treffer. BaseFeedCard bleibt
+   bewusst UNVERAENDERT (Architektur-Charta: keine Rewrites an stabilen,
+   fein abgestimmten Komponenten) -- Menschen/Projekte sind keine "Beitraege
+   eines Autors" und passen konzeptionell nicht in dessen Karten-Layout.
+   Stattdessen: eigene, kompakte Ergebnis-Reihe, gleiche Tokens (TEAL/CORAL/
+   Ink) wie der Rest von UnifiedFeed -- kein neues Design erfunden. */
+const SXR = {
+  teal:  "#0DC4B5",
+  coral: "#F47355",
+  ink:   "rgba(26,53,48,0.82)",
+  ink2:  "rgba(26,53,48,0.50)",
+  ink3:  "rgba(26,53,48,0.34)",
+  border:"rgba(26,53,48,0.08)",
+};
+
+function SearchPersonRow({ person, onPress }) {
+  const [imgErr, setImgErr] = useState(false);
+  const av = (!imgErr && person.avatar_url) ? person.avatar_url : null;
+  const name = person.display_name || person.full_name || person.username || "Mitglied";
+  return (
+    <div
+      onClick={() => onPress?.(person.id)}
+      style={{
+        display:"flex", alignItems:"center", gap:10, flexShrink:0,
+        width:120, padding:"10px 8px", borderRadius:16,
+        background:"#fff", border:`1px solid ${SXR.border}`,
+        flexDirection:"column", textAlign:"center",
+        touchAction:"manipulation", WebkitTapHighlightColor:"transparent",
+      }}
+    >
+      <div style={{
+        width:52, height:52, borderRadius:"50%", overflow:"hidden",
+        background:"rgba(13,196,181,0.10)", border:`1.5px solid rgba(13,196,181,0.25)`,
+        display:"flex", alignItems:"center", justifyContent:"center",
+        fontSize:19, fontWeight:700, color:SXR.teal,
+      }}>
+        {av
+          ? <img src={av} alt={name} onError={() => setImgErr(true)}
+              style={{ width:"100%", height:"100%", objectFit:"cover" }} loading="lazy"/>
+          : (name[0] || "H").toUpperCase()}
+      </div>
+      <div style={{ fontSize:12, fontWeight:700, color:SXR.ink, lineHeight:1.25,
+        overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>
+        {name}
+      </div>
+      {person.talent && (
+        <div style={{ fontSize:10.5, color:SXR.teal, fontWeight:600,
+          overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis", maxWidth:"100%" }}>
+          {person.talent}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SearchProjectRow({ project, onPress }) {
+  return (
+    <div
+      onClick={() => onPress?.(project)}
+      style={{
+        display:"flex", alignItems:"center", gap:10, flexShrink:0,
+        width:150, padding:"12px 12px", borderRadius:16,
+        background:"#fff", border:`1px solid ${SXR.border}`,
+        touchAction:"manipulation", WebkitTapHighlightColor:"transparent",
+      }}
+    >
+      <div style={{
+        width:36, height:36, borderRadius:12, flexShrink:0,
+        background: project.color ? `${project.color}1A` : "rgba(244,115,85,0.10)",
+        display:"flex", alignItems:"center", justifyContent:"center", fontSize:17,
+      }}>
+        {project.icon || "🌱"}
+      </div>
+      <div style={{ minWidth:0 }}>
+        <div style={{ fontSize:12, fontWeight:700, color:SXR.ink, lineHeight:1.25,
+          overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>
+          {project.name}
+        </div>
+        {project.category && (
+          <div style={{ fontSize:10.5, color:SXR.ink3, fontWeight:500,
+            overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>
+            {project.category}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SearchExtraResultsSection({ people, projects, onProfile, onProjectPress }) {
+  if ((!people || people.length === 0) && (!projects || projects.length === 0)) return null;
+  return (
+    <div style={{ animation: "hui-search-fade-in .2s cubic-bezier(.22,1,.36,1) both", marginBottom: 4 }}>
+      {people && people.length > 0 && (
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize:11.5, fontWeight:700, color:SXR.ink2, letterSpacing:"0.02em",
+            textTransform:"uppercase", padding:"4px 16px 8px" }}>
+            Menschen
+          </div>
+          <div className="hui-search-hscroll" style={{ display:"flex", gap:8, padding:"0 16px 2px", overflowX:"auto" }}>
+            {people.map(p => <SearchPersonRow key={p.id} person={p} onPress={onProfile} />)}
+          </div>
+        </div>
+      )}
+      {projects && projects.length > 0 && (
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize:11.5, fontWeight:700, color:SXR.ink2, letterSpacing:"0.02em",
+            textTransform:"uppercase", padding:"4px 16px 8px" }}>
+            Impact-Projekte
+          </div>
+          <div className="hui-search-hscroll" style={{ display:"flex", gap:8, padding:"0 16px 2px", overflowX:"auto" }}>
+            {projects.map(p => <SearchProjectRow key={p.id} project={p} onPress={onProjectPress} />)}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ── Main UnifiedFeed ─────────────────────────────────────────── */
 export default function UnifiedFeed({
   // Items prop (optional — wenn nicht übergeben, eigener useFeedStream)
@@ -674,6 +801,10 @@ export default function UnifiedFeed({
   onShare      = null,
   onEventPress = null,
   onMoreEvents = null,
+  // Wirker-/Projekte-Suchtreffer (2026-07-06): Klick auf einen Projekt-Treffer
+  // in der Suche -- optional, faellt bei Nichtangabe auf No-Op zurueck statt
+  // zu crashen.
+  onProjectPress = null,
   // Refresh binding — parent can register for feed refresh fn
   onRefreshBind = null,
   // Navigation
@@ -711,6 +842,8 @@ export default function UnifiedFeed({
     pendingCount,
     flushPendingItems,
     isSearching,
+    searchPeople,
+    searchProjects,
   } = useFeedStream({ searchQuery, typeFilter, categoryFilter, radiusKm, geo });
 
   // ── Bind refresh fn to parent (defensive) ──────────────────────────
@@ -809,6 +942,19 @@ export default function UnifiedFeed({
         onFlush={flushPendingItems}
       />
 
+      {/* Wirker-/Projekte-Treffer -- nur im Suchmodus, oberhalb der
+          Content-Ergebnisse (Menschen sind meist das primaere Suchziel). */}
+      {isSearching && (
+        <SectionBoundary name="searchExtraResults">
+          <SearchExtraResultsSection
+            people={searchPeople}
+            projects={searchProjects}
+            onProfile={onProfile}
+            onProjectPress={onProjectPress}
+          />
+        </SectionBoundary>
+      )}
+
       <SectionBoundary name="feedList">
         {/* Loading state — shimmer skeletons */}
         {streamLoading && resolvedItems.length === 0 && (
@@ -843,8 +989,11 @@ export default function UnifiedFeed({
           </div>
         )}
 
-        {/* Keine Ergebnisse -- Suchmodus, kompakter Hinweis statt leerer Flaeche */}
-        {isSearching && !streamLoading && resolvedItems.length === 0 && (
+        {/* Keine Ergebnisse -- Suchmodus, kompakter Hinweis statt leerer Flaeche.
+            Zaehlt Wirker-/Projekte-Treffer mit -- sonst wuerde "keine Ergebnisse"
+            angezeigt, obwohl oben bereits Menschen/Projekte gefunden wurden. */}
+        {isSearching && !streamLoading && resolvedItems.length === 0
+          && searchPeople.length === 0 && searchProjects.length === 0 && (
           <div style={{ padding:"48px 24px", textAlign:"center" }}>
             <div style={{ fontSize:26, marginBottom:8 }}>🔍</div>
             <div style={{ fontSize:13.5, color:"rgba(26,53,48,0.55)", fontWeight:500 }}>

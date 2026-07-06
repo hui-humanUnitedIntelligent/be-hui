@@ -15,7 +15,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { ProfileService } from '../services/db';
+import { ProfileService, IDENTITY_CONTRACT } from '../services/db';
 import { supabase }        from "../lib/supabaseClient.js";
 import { useAuth }         from "../lib/AuthContext.jsx";
 import { rhythmizeFeed }   from "./feedRhythmEngine.js";
@@ -314,11 +314,44 @@ function buildCategoryOrExpr(categoryFilter, cols) {
 // ids grenzen die bestehenden works/experiences-Queries per .in() zusaetzlich
 // ein (UND-Verknuepfung mit Text-/Kategorie-Filter), die Distanz wird pro
 // Zeile mitgefuehrt und die Ergebnisse werden nach Distanz sortiert.
+// HUI-weite Erweiterung "Home reagiert auf die globale Suche" (2026-07-06):
+// fetchSearchResults() bleibt die EINZIGE Sucharchitektur im Projekt (Vorgabe
+// Lars: "keine zweite Suchimplementierung"). Statt einer separaten Such-
+// funktion fuer Menschen/Projekte werden Wirker (profiles) und Impact-
+// Projekte (impact_projects) hier als zusaetzliche, parallele Queries
+// angehaengt und im selben Rueckgabe-Objekt mitgeliefert -- Feed UND Home
+// lesen aus genau derselben Quelle (useFeedStream -> isSearching-Zweig).
+// Empfehlungen (Kundenstimmen) werden bewusst NICHT als eigener Ergebnis-Typ
+// gesucht -- eine Empfehlung ist immer an eine Person gebunden, ein Treffer
+// im Empfehlungstext waere ohne eigene Kartendarstellung wenig aussagekräftig.
+// Stattdessen deckt die Wirker-Suche (Name/Talent/Ort) den relevanten Fall ab
+// ("ich suche jemanden") vollstaendig ab -- keine zusaetzliche Baustelle ohne
+// echten Mehrwert (Feature-Freeze-Prinzip).
 async function fetchSearchResults(query, typeFilter = null, categoryFilter = null, radiusKm = null, geo = null) {
   const q = (query || "").trim();
   const hasCategory = !!categoryFilter;
   const hasRadius = !!(geo && radiusKm && radiusKm !== "world");
-  if (!q && !hasCategory && !hasRadius) return [];
+  if (!q && !hasCategory && !hasRadius) return { items: [], people: [], projects: [] };
+
+  // Wirker + Projekte NUR bei getipptem Freitext (Vorgabe: "sobald der Nutzer
+  // beginnt zu tippen") -- reine Kategorie-/Radius-Browsing-Modi haben dafuer
+  // bereits eigene, etablierte UI (DiscoverPage-Umkreissuche), hier keine
+  // zweite Variante davon aufbauen.
+  const wantPeopleProjects = !!q;
+  const peopleProjectsPromise = wantPeopleProjects
+    ? Promise.allSettled([
+        supabase.from("profiles")
+          .select(IDENTITY_CONTRACT)
+          .eq("has_talent_profile", true)
+          .or(`display_name.ilike.%${q}%,talent.ilike.%${q}%,location_label.ilike.%${q}%`)
+          .limit(12),
+        supabase.from("impact_projects")
+          .select("id,name,category,icon,color,img_url,status,tags,awarded_eur")
+          .in("status", ["approved","nominated","active","funded","finished"])
+          .or(`name.ilike.%${q}%,category.ilike.%${q}%`)
+          .limit(8),
+      ])
+    : Promise.resolve(null);
 
   const wantWorks = !typeFilter || typeFilter === "work";
   const wantExps  = !typeFilter || typeFilter === "experience";
@@ -451,7 +484,18 @@ async function fetchSearchResults(query, typeFilter = null, categoryFilter = nul
     });
   }
 
-  return normalized;
+  // Zusatz-Ergebnisse (Wirker/Projekte) parallel abwarten -- lief bereits
+  // gleichzeitig mit den obigen Content-Queries (kein sequentielles Warten).
+  let people = [], projects = [];
+  if (wantPeopleProjects) {
+    const ppRes = await peopleProjectsPromise;
+    const profilesRes = ppRes?.[0];
+    const projectsRes = ppRes?.[1];
+    people   = (profilesRes?.status === "fulfilled" ? (profilesRes.value?.data || []) : []);
+    projects = (projectsRes?.status === "fulfilled" ? (projectsRes.value?.data || []) : []);
+  }
+
+  return { items: normalized, people, projects };
 }
 
 export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFilter = null, radiusKm = null, geo = null } = {}) {
@@ -472,20 +516,36 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
   // (nicht "world"/null) MIT bekanntem Standort zaehlt ebenfalls als
   // "isSearching" -- Nutzer soll direkt nach Standortwahl Ergebnisse in der
   // Naehe sehen, auch ohne eingetippten Suchtext.
-  const [searchItems,   setSearchItems]   = useState([]);
-  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchItems,    setSearchItems]    = useState([]);
+  // Wirker/Projekte (2026-07-06, "Home reagiert auf globale Suche") --
+  // separat von searchItems gehalten, da sie in UnifiedFeed als eigene,
+  // kompakte Ergebnis-Reihen dargestellt werden (kein Feed-Card-Layout),
+  // aber aus derselben fetchSearchResults()-Antwort stammen -- keine
+  // zweite Datenquelle/Sucharchitektur.
+  const [searchPeople,   setSearchPeople]   = useState([]);
+  const [searchProjects, setSearchProjects] = useState([]);
+  const [searchLoading,  setSearchLoading]  = useState(false);
   const searchAliveRef = useRef({ v: false });
   const hasRadius = !!(geo && radiusKm && radiusKm !== "world");
   const isSearching = !!(searchQuery || "").trim() || !!categoryFilter || hasRadius;
 
   useEffect(() => {
-    if (!isSearching) { setSearchItems([]); setSearchLoading(false); return; }
+    if (!isSearching) {
+      setSearchItems([]); setSearchPeople([]); setSearchProjects([]); setSearchLoading(false);
+      return;
+    }
     searchAliveRef.current.v = false;
     const alive = { v: true };
     searchAliveRef.current = alive;
     setSearchLoading(true);
     fetchSearchResults(searchQuery, typeFilter, categoryFilter, radiusKm, geo)
-      .then(results => { if (alive.v) { setSearchItems(results); setSearchLoading(false); } })
+      .then(({ items, people, projects }) => {
+        if (!alive.v) return;
+        setSearchItems(items);
+        setSearchPeople(people);
+        setSearchProjects(projects);
+        setSearchLoading(false);
+      })
       .catch(() => { if (alive.v) setSearchLoading(false); });
     return () => { alive.v = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -779,6 +839,12 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
     hasMore:        isSearching ? false : hasMore,   // Suchergebnisse v1: keine Pagination
     error,
     isSearching,
+
+    // Wirker/Projekte-Treffer (2026-07-06) -- nur im Suchmodus befuellt,
+    // sonst immer leere Arrays (kein Leck alter Ergebnisse beim Verlassen
+    // der Suche).
+    searchPeople:   isSearching ? searchPeople   : [],
+    searchProjects: isSearching ? searchProjects : [],
 
     // Pagination
     loadMore,

@@ -408,6 +408,12 @@ function HomeInner() {
                   }}
                   onMoreEvents={() => handleTab("discover")}
                   onDiscover={() => handleTab("discover")}
+                  // Suchtreffer "Impact-Projekte" (2026-07-06): springt zum
+                  // Impact-Tab. Kein Deep-Link auf einzelnes Projekt noetig --
+                  // ImpactPage zeigt Projekte ohnehin gruppiert/gerankt, ein
+                  // Scroll-Ziel je Projekt waere eine zweite Navigation-Baustelle
+                  // ohne echten Mehrwert fuer diesen Anwendungsfall.
+                  onProjectPress={() => handleTab("impact")}
                 />
               </SafeRender>
             ) : (
