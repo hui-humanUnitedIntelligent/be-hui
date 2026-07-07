@@ -284,10 +284,15 @@ const FEED_CSS = `
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Wirker-/Projekte-Suchtreffer (2026-07-06) -- horizontale Scroll-Reihe
-   ohne sichtbare Scrollbar, gleiches Muster wie dp-hscroll in DiscoverPage.jsx. */
-.hui-search-hscroll { -webkit-overflow-scrolling: touch; scrollbar-width: none; overscroll-behavior-x: contain; }
-.hui-search-hscroll::-webkit-scrollbar { display: none; }
+/* Suchtreffer-Zeilen (2026-07-07) -- EINE Touch-/Hover-Definition fuer
+   alle sechs Suchtypen (SearchResultRow), statt je Typ eigenes Verhalten.
+   Erste Zeile je Gruppe verliert den oberen Trennstrich (die Gruppen-
+   Card selbst hat schon einen sauberen oberen Abschluss via Radius). */
+.hui-search-row:active { background: rgba(26,53,48,0.035); }
+.hui-search-group > .hui-search-row:first-child { border-top: none; }
+@media (hover:hover) {
+  .hui-search-row:hover { background: rgba(26,53,48,0.02); }
+}
 `;
 
 let _feedCSSInjected = false;
@@ -684,73 +689,83 @@ const SXR = {
   border:"rgba(26,53,48,0.08)",
 };
 
-function SearchPersonRow({ person, onPress }) {
-  const [imgErr, setImgErr] = useState(false);
-  const av = (!imgErr && person.avatar_url) ? person.avatar_url : null;
-  const name = person.display_name || person.full_name || person.username || "Mitglied";
+// Suchbegriff dezent hervorheben (2026-07-07, "intelligente Treffer") --
+// EINE Komponente fuer alle sechs Suchtypen, respektiert das bestehende
+// Farbsystem (Teal, bereits die Suchakzentfarbe in SXR) statt eine neue
+// "Textmarker"-Farbe zu erfinden. Hebt nur den ERSTEN Treffer hervor (reicht
+// fuer die Wiedererkennung, wirkt ruhiger als jedes Vorkommen zu markieren).
+function HighlightText({ text, query }) {
+  const str = text == null ? "" : String(text);
+  const q = (query || "").trim();
+  if (!q || !str) return <>{str}</>;
+  const idx = str.toLowerCase().indexOf(q.toLowerCase());
+  if (idx === -1) return <>{str}</>;
   return (
-    <div
-      onClick={() => onPress?.(person.id)}
-      style={{
-        display:"flex", alignItems:"center", gap:10, flexShrink:0,
-        width:120, padding:"10px 8px", borderRadius:16,
-        background:"#fff", border:`1px solid ${SXR.border}`,
-        flexDirection:"column", textAlign:"center",
-        touchAction:"manipulation", WebkitTapHighlightColor:"transparent",
-      }}
-    >
-      <div style={{
-        width:52, height:52, borderRadius:"50%", overflow:"hidden",
-        background:"rgba(13,196,181,0.10)", border:`1.5px solid rgba(13,196,181,0.25)`,
-        display:"flex", alignItems:"center", justifyContent:"center",
-        fontSize:19, fontWeight:700, color:SXR.teal,
+    <>
+      {str.slice(0, idx)}
+      <span style={{
+        background: "rgba(13,196,181,0.16)", color: SXR.teal,
+        borderRadius: 4, padding: "0 2px", fontWeight: 800,
       }}>
-        {av
-          ? <img src={av} alt={name} onError={() => setImgErr(true)}
-              style={{ width:"100%", height:"100%", objectFit:"cover" }} loading="lazy"/>
-          : (name[0] || "H").toUpperCase()}
-      </div>
-      <div style={{ fontSize:12, fontWeight:700, color:SXR.ink, lineHeight:1.25,
-        overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>
-        {name}
-      </div>
-      {person.talent && (
-        <div style={{ fontSize:10.5, color:SXR.teal, fontWeight:600,
-          overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis", maxWidth:"100%" }}>
-          {person.talent}
-        </div>
-      )}
-    </div>
+        {str.slice(idx, idx + q.length)}
+      </span>
+      {str.slice(idx + q.length)}
+    </>
   );
 }
 
-function SearchProjectRow({ project, onPress }) {
+// EINE gemeinsame Trefferzeile fuer alle sechs Suchtypen (2026-07-07,
+// "einheitliches Sucherlebnis"). Vorher: SearchPersonRow/SearchProjectRow
+// (kompakte Karten in Horizontal-Scrollern) fuer Wirker/Projekte, dazu die
+// volle ReactionCard/FeedRouter-Feedkarte (Bild+Reaktionsleiste+Autorzeile)
+// fuer Werke/Erlebnisse/Veranstaltungen/Beitraege -- zwei komplett
+// unterschiedliche Optiken UND zwei Layout-Richtungen (horizontal vs.
+// vertikal) nebeneinander, was den "wirkt wie einzelne Bereiche"-Eindruck
+// erzeugt hat. Jetzt: EINE Zeilen-Komponente, EINE Layout-Richtung
+// (vertikal, wie eine durchgehende Trefferliste), parametrisiert nur ueber
+// shape (circle=Person, square=alles andere) und optionalem Bild/Icon-
+// Fallback. Reaktionen (Resonanz/Austauschen/Merken/Weitergeben) bleiben
+// bewusst der Detailseite/dem normalen Feed vorbehalten -- eine Suchzeile
+// dient dem schnellen Finden, nicht dem Interagieren; Antippen fuehrt
+// weiterhin zur jeweils bestehenden Zielaktion (Profil/Projekt/Werk/
+// Buchung/Event/Profil-des-Autors), keine neuen Navigationsziele erfunden.
+function SearchResultRow({ shape = "square", image, fallbackIcon, tint, title, subtitle, query, onPress }) {
+  const [imgErr, setImgErr] = useState(false);
+  const showImg = image && !imgErr;
   return (
     <div
-      onClick={() => onPress?.(project)}
+      onClick={onPress}
+      className="hui-search-row"
       style={{
-        display:"flex", alignItems:"center", gap:10, flexShrink:0,
-        width:150, padding:"12px 12px", borderRadius:16,
-        background:"#fff", border:`1px solid ${SXR.border}`,
+        display:"flex", alignItems:"center", gap:12,
+        padding:"10px 16px", background:"#fff",
+        borderTop:`1px solid ${SXR.border}`,
         touchAction:"manipulation", WebkitTapHighlightColor:"transparent",
+        cursor: onPress ? "pointer" : "default",
       }}
     >
       <div style={{
-        width:36, height:36, borderRadius:12, flexShrink:0,
-        background: project.color ? `${project.color}1A` : "rgba(244,115,85,0.10)",
-        display:"flex", alignItems:"center", justifyContent:"center", fontSize:17,
+        width:44, height:44, borderRadius: shape === "circle" ? "50%" : 12,
+        overflow:"hidden", flexShrink:0,
+        background: showImg ? "transparent" : (tint || "rgba(13,196,181,0.10)"),
+        border: shape === "circle" ? "1.5px solid rgba(13,196,181,0.25)" : `1px solid ${SXR.border}`,
+        display:"flex", alignItems:"center", justifyContent:"center",
+        fontSize: shape === "circle" ? 17 : 18, fontWeight:700, color:SXR.teal,
       }}>
-        {project.icon || "🌱"}
+        {showImg
+          ? <img src={image} alt="" onError={() => setImgErr(true)}
+              style={{ width:"100%", height:"100%", objectFit:"cover" }} loading="lazy"/>
+          : (fallbackIcon || (title?.[0] || "H").toUpperCase())}
       </div>
-      <div style={{ minWidth:0 }}>
-        <div style={{ fontSize:12, fontWeight:700, color:SXR.ink, lineHeight:1.25,
+      <div style={{ minWidth:0, flex:1 }}>
+        <div style={{ fontSize:13.5, fontWeight:700, color:SXR.ink, lineHeight:1.3,
           overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>
-          {project.name}
+          <HighlightText text={title} query={query} />
         </div>
-        {project.category && (
-          <div style={{ fontSize:10.5, color:SXR.ink3, fontWeight:500,
+        {subtitle && (
+          <div style={{ fontSize:11.5, color:SXR.ink2, fontWeight:500, marginTop:1,
             overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>
-            {project.category}
+            <HighlightText text={subtitle} query={query} />
           </div>
         )}
       </div>
@@ -770,64 +785,118 @@ function SearchGroupHeader({ icon, label }) {
   );
 }
 
-/* ── Gruppierte, einheitliche Suchergebnisse (2026-07-06, "eine einzige
-   intelligente HUI-Suche") ────────────────────────────────────────────
+// Eine Gruppen-"Card" -- rundet die ganze Gruppe als EIN visuelles Objekt
+// ab (Radius+Schatten), die einzelnen SearchResultRow-Zeilen darin trennen
+// sich nur durch einen 1px-Strich (siehe .hui-search-group CSS). Dieselbe
+// Huelle fuer alle sechs Gruppen -- der einzige Unterschied ist der Inhalt.
+function SearchGroupCard({ icon, label, children }) {
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <SearchGroupHeader icon={icon} label={label} />
+      <div className="hui-search-group" style={{
+        borderRadius: 18, overflow: "hidden", background: "#fff",
+        border: `1px solid ${SXR.border}`,
+        boxShadow: "0 1px 6px rgba(26,53,48,0.05)",
+      }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/* ── Gruppierte, einheitliche Suchergebnisse (2026-07-07, "ein einziges
+   zusammenhaengendes Sucherlebnis") ───────────────────────────────────
    Feste Reihenfolge Wirker → Projekte → Werke → Erlebnisse →
    Veranstaltungen → Beitraege (Lars-Vorgabe). Jede Gruppe ist bereits vom
    Hook relevanzsortiert (useFeedStream.fetchSearchResults) -- hier wird nur
-   noch gerendert, keine zweite Sortierung/Sucharchitektur. Nur Gruppen mit
-   Treffern erscheinen. Werke/Erlebnisse/Veranstaltungen/Beitraege nutzen
-   dieselbe ReactionCard/FeedRouter-Darstellung wie der normale Feed (keine
-   zweite Karten-Optik); Wirker/Projekte bekommen die kompakten Zeilen von
-   vorher (keine "Beitraege eines Autors", passen nicht in dieselbe Karte). */
-function GroupedSearchResults({ people, projects, groups, onProfile, onBook, onDetail, onShare, onProjectPress }) {
+   noch gerendert, keine zweite Sortierung/Sucharchitektur.
+   ALLE SECHS Typen nutzen jetzt dieselbe SearchResultRow (siehe oben) statt
+   vorher zwei verschiedener Optiken (kompakte Karten im Horizontal-Scroller
+   fuer Wirker/Projekte vs. volle ReactionCard/FeedRouter-Feedkarte fuer
+   Werke/Erlebnisse/Veranstaltungen/Beitraege) -- EIN Renderer, EINE
+   Layout-Richtung (vertikale Liste), EIN Antipp-Verhalten (siehe unten),
+   keine Sonderbehandlung mehr pro Typ ausser der Datenzuordnung selbst.
+   Antippen fuehrt zu genau denselben Zielen wie im normalen Feed/Header
+   (kein neues Navigationsziel erfunden): Werk→onDetail (bestehende
+   /work/:id-Route), Erlebnis→onBook (bestehender Buchungs-Einstieg),
+   Veranstaltung→onEventPress (bestehender Handler der Events-Reihe),
+   Beitrag→onProfile des Autors (es gibt aktuell keine eigene Beitrags-
+   Detailseite -- "wer hat das gepostet" ist der sinnvollste Fallback). */
+function GroupedSearchResults({
+  people, projects, groups, query,
+  onProfile, onBook, onDetail, onShare, onProjectPress, onEventPress,
+}) {
   const { works = [], experiences = [], events = [], moments = [] } = groups || {};
   const hasAny = people.length || projects.length || works.length || experiences.length || events.length || moments.length;
   if (!hasAny) return null;
 
-  let runningIndex = 0;
-  const contentGroup = (icon, label, items) => {
-    if (!items || items.length === 0) return null;
-    return (
-      <div style={{ marginBottom: 14 }}>
-        <SearchGroupHeader icon={icon} label={label} />
-        {items.map(item => (
-          <ReactionCard
-            key={item.id}
-            item={item}
-            onProfile={onProfile}
-            onBook={onBook}
-            onDetail={onDetail}
-            onShare={onShare}
-            itemIndex={runningIndex++}
-          />
-        ))}
-      </div>
-    );
-  };
+  const TEAL_TINT = "rgba(13,196,181,0.10)";
+  const firstMediaUrl = (item) => item.media?.find(m => m.type === "image")?.url || item.media?.[0]?.url || null;
 
   return (
     <div style={{ animation: "hui-search-fade-in .2s cubic-bezier(.22,1,.36,1) both", marginBottom: 4 }}>
       {people.length > 0 && (
-        <div style={{ marginBottom: 14 }}>
-          <SearchGroupHeader icon="👤" label="Wirker" />
-          <div className="hui-search-hscroll" style={{ display:"flex", gap:8, padding:"0 16px 2px", overflowX:"auto" }}>
-            {people.map(p => <SearchPersonRow key={p.id} person={p} onPress={onProfile} />)}
-          </div>
-        </div>
+        <SearchGroupCard icon="👤" label="Wirker">
+          {people.map(p => {
+            const name = p.display_name || p.full_name || p.username || "Mitglied";
+            return (
+              <SearchResultRow key={p.id} shape="circle" image={p.avatar_url}
+                title={name} subtitle={p.talent || p.location_label} query={query}
+                onPress={() => onProfile?.(p.id)} />
+            );
+          })}
+        </SearchGroupCard>
       )}
       {projects.length > 0 && (
-        <div style={{ marginBottom: 14 }}>
-          <SearchGroupHeader icon="🌱" label="Projekte" />
-          <div className="hui-search-hscroll" style={{ display:"flex", gap:8, padding:"0 16px 2px", overflowX:"auto" }}>
-            {projects.map(p => <SearchProjectRow key={p.id} project={p} onPress={onProjectPress} />)}
-          </div>
-        </div>
+        <SearchGroupCard icon="🌱" label="Projekte">
+          {projects.map(p => (
+            <SearchResultRow key={p.id} shape="square" fallbackIcon={p.icon || "🌱"}
+              tint={p.color ? `${p.color}1A` : `${SXR.coral}1A`}
+              title={p.name} subtitle={p.category} query={query}
+              onPress={() => onProjectPress?.(p)} />
+          ))}
+        </SearchGroupCard>
       )}
-      {contentGroup("🛠", "Werke", works)}
-      {contentGroup("✨", "Erlebnisse", experiences)}
-      {contentGroup("📅", "Veranstaltungen", events)}
-      {contentGroup("📰", "Beiträge", moments)}
+      {works.length > 0 && (
+        <SearchGroupCard icon="🛠" label="Werke">
+          {works.map(it => (
+            <SearchResultRow key={it.id} shape="square" fallbackIcon="🛠" tint={TEAL_TINT}
+              image={firstMediaUrl(it)}
+              title={it.title} subtitle={[it.author?.name, it._raw?.category].filter(Boolean).join(" · ")}
+              query={query} onPress={() => onDetail?.(it)} />
+          ))}
+        </SearchGroupCard>
+      )}
+      {experiences.length > 0 && (
+        <SearchGroupCard icon="✨" label="Erlebnisse">
+          {experiences.map(it => (
+            <SearchResultRow key={it.id} shape="square" fallbackIcon="✨" tint={TEAL_TINT}
+              image={firstMediaUrl(it)}
+              title={it.title} subtitle={[it.author?.name, it._raw?.location_text].filter(Boolean).join(" · ")}
+              query={query} onPress={() => onBook?.(it)} />
+          ))}
+        </SearchGroupCard>
+      )}
+      {events.length > 0 && (
+        <SearchGroupCard icon="📅" label="Veranstaltungen">
+          {events.map(it => (
+            <SearchResultRow key={it.id} shape="square" fallbackIcon="📅" tint={TEAL_TINT}
+              image={firstMediaUrl(it)}
+              title={it.title} subtitle={[it.author?.name, it.location].filter(Boolean).join(" · ")}
+              query={query} onPress={() => onEventPress?.(it)} />
+          ))}
+        </SearchGroupCard>
+      )}
+      {moments.length > 0 && (
+        <SearchGroupCard icon="📰" label="Beiträge">
+          {moments.map(it => (
+            <SearchResultRow key={it.id} shape="square" fallbackIcon="📰" tint={TEAL_TINT}
+              image={firstMediaUrl(it)}
+              title={it.title} subtitle={it.author?.name}
+              query={query} onPress={() => onProfile?.(it.author?.id)} />
+          ))}
+        </SearchGroupCard>
+      )}
     </div>
   );
 }
@@ -1057,11 +1126,13 @@ export default function UnifiedFeed({
                   people={searchPeople}
                   projects={searchProjects}
                   groups={searchGroups}
+                  query={searchQuery}
                   onProfile={onProfile}
                   onBook={onBook}
                   onDetail={onDetail}
                   onShare={onShare}
                   onProjectPress={onProjectPress}
+                  onEventPress={onEventPress}
                 />
               </SectionBoundary>
             ) : (
