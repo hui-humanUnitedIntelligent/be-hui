@@ -16,6 +16,7 @@ import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { isProfileTalent } from "../../lib/profileUtils.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
+import { RADIUS_OPTIONS, DEFAULT_RADIUS_KM, radiusLabel } from "../../context/RadiusContext.jsx";
 
 // ── Design Tokens ──────────────────────────────────────────────────
 const T = {
@@ -118,7 +119,11 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
         setTalentCats(data.categories   || []);
         setTalentSkills(data.skills     || []);
         setTalentLocation(data.location_label || "");
-        setTalentRadius(data.radius_km  || "");
+        setTalentRadius(
+          data.radius_km === -1 ? "world"
+          : RADIUS_OPTIONS.includes(data.radius_km) ? data.radius_km
+          : DEFAULT_RADIUS_KM
+        );
         setTalentRate(data.hourly_rate  || "");
         setTalentAvail(data.is_available ?? true);
       }
@@ -194,7 +199,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
           categories:     talentCats,
           skills:         talentSkills,
           location_label: talentLocation.trim(),
-          radius_km:      talentRadius ? parseInt(talentRadius, 10) : null,
+          radius_km:      talentRadius === "world" ? -1 : (parseInt(talentRadius, 10) || DEFAULT_RADIUS_KM),
           hourly_rate:    talentRate ? parseFloat(talentRate) : null,
           is_available:   talentAvail,
           updated_at:     new Date().toISOString(),
@@ -457,9 +462,27 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
                   placeholder="Stadt oder Region" icon="📍" maxLength={80} />
               </FieldGroup>
 
-              <FieldGroup label="Aktionsradius (km)">
-                <Input value={talentRadius} onChange={setTalentRadius}
-                  placeholder="z.B. 50" type="number" icon="🗺️" />
+              <FieldGroup label="Mein Angebotsradius">
+                <div style={{ fontSize:12.5, color:T.inkSoft, marginBottom:8, lineHeight:1.4 }}>
+                  Lege fest, in welchem Umkreis dein Talent für andere Nutzer sichtbar sein soll.
+                  Nur Nutzer innerhalb dieses Umkreises können dein Talent finden.
+                </div>
+                <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+                  {RADIUS_OPTIONS.map(stage => (
+                    <button key={stage} type="button"
+                      onClick={() => setTalentRadius(stage)}
+                      style={{
+                        padding:"7px 13px", borderRadius:T.r99, fontSize:13, fontWeight:600,
+                        cursor:"pointer",
+                        border: talentRadius === stage ? "none" : `1px solid ${T.border}`,
+                        background: talentRadius === stage ? T.teal : "none",
+                        color: talentRadius === stage ? "#fff" : T.inkSoft,
+                        whiteSpace:"nowrap",
+                      }}>
+                      {radiusLabel(stage)}
+                    </button>
+                  ))}
+                </div>
               </FieldGroup>
 
               <FieldGroup label="Stundensatz (€)">

@@ -331,6 +331,12 @@ async function fetchSearchResults(query, typeFilter = null, categoryFilter = nul
   const q = (query || "").trim();
   const hasCategory = !!categoryFilter;
   const hasRadius = !!(geo && radiusKm && radiusKm !== "world");
+  // hasGeo (2026-07-07, Wirker-Angebotsradius-Ticket): unabhaengig von hasRadius,
+  // weil Bedingung 1 (Suchender liegt im ANGEBOTSRADIUS DES WIRKERS) auch bei
+  // "Weltweit"-Suchradius weiterhin geprueft werden muss -- nur wenn der
+  // Suchende ueberhaupt einen Standort gesetzt hat, kann diese Distanz ermittelt
+  // werden.
+  const hasGeo = !!geo;
   if (!q && !hasCategory && !hasRadius) return { items: [], people: [], projects: [] };
 
   // Wirker + Projekte NUR bei getipptem Freitext (Vorgabe: "sobald der Nutzer
@@ -351,6 +357,41 @@ async function fetchSearchResults(query, typeFilter = null, categoryFilter = nul
           .or(`name.ilike.%${q}%,category.ilike.%${q}%`)
           .limit(8),
       ])
+    : Promise.resolve(null);
+
+  // ── Wirker-Angebotsradius (2026-07-07) ──────────────────────────────
+  // Bidirektionale Umkreispruefung fuer Wirker: ein Wirker wird nur gezeigt,
+  // wenn (1) der Suchende innerhalb des Angebotsradius des Wirkers UND
+  // (2) der Wirker innerhalb des Suchradius des Suchenden liegt. Beide
+  // Distanzen sind dieselbe Zahl (Distanz Suchender<->Wirker), nur mit
+  // zwei unterschiedlichen Schwellenwerten -- deshalb reicht EIN Distanz-Wert
+  // pro Wirker, den wir ueber die bereits vorhandene nearby_wirker()-RPC
+  // (Migration 067, nutzt profile_locations -- KEINE neue Geo-Infrastruktur)
+  // holen und serverseitig bereits auf Bedingung 2 (Suchradius) einschraenken.
+  // Bedingung 1 (Angebotsradius des Wirkers, wirker_profiles.radius_km)
+  // pruefen wir danach client-seitig mit demselben Distanzwert.
+  // WORLDWIDE_KM: wenn der Suchende "Weltweit" gewaehlt hat oder gar keinen
+  // Radius aktiv hat, muss Bedingung 2 immer erfuellt sein -- die RPC kennt
+  // aber kein "kein Limit" (BETWEEN mit NULL waere immer falsch), deshalb ein
+  // Radius, der garantiert jeden Punkt der Erde abdeckt (Erdumfang/2 ≈ 20015km).
+  const WORLDWIDE_KM = 20000;
+  const wirkerGeoPromise = (wantPeopleProjects && hasGeo)
+    ? (async () => {
+        const { data: rows } = await supabase.rpc("nearby_wirker", {
+          p_lat: geo.lat, p_lng: geo.lng,
+          p_radius_km: hasRadius ? radiusKm : WORLDWIDE_KM,
+          p_limit: 200,
+        });
+        const distMap = new Map((rows || []).map(r => [r.id, r.distance_km]));
+        if (distMap.size === 0) return { distMap, radiusMap: new Map() };
+        // Eigener Angebotsradius je Wirker -- dieselbe Spalte, die auch
+        // ProfilBearbeitenModal.jsx unter "Mein Angebotsradius" schreibt.
+        const { data: wp } = await supabase.from("wirker_profiles")
+          .select("user_id,radius_km")
+          .in("user_id", [...distMap.keys()]);
+        const radiusMap = new Map((wp || []).map(r => [r.user_id, r.radius_km]));
+        return { distMap, radiusMap };
+      })()
     : Promise.resolve(null);
 
   const wantWorks = !typeFilter || typeFilter === "work";
@@ -535,11 +576,34 @@ async function fetchSearchResults(query, typeFilter = null, categoryFilter = nul
     const projectsRes = ppRes?.[1];
     people   = (profilesRes?.status === "fulfilled" ? (profilesRes.value?.data || []) : []);
     projects = (projectsRes?.status === "fulfilled" ? (projectsRes.value?.data || []) : []);
+
+    // Bidirektionale Radiuspruefung anwenden (siehe wirkerGeoPromise oben).
+    // Ohne Standort des Suchenden (hasGeo=false) bleibt die bisherige
+    // Text-only-Auswahl unveraendert -- exakt dasselbe Fallback-Verhalten
+    // wie bei Werken/Erlebnissen ohne Standort.
+    if (hasGeo) {
+      const wirkerGeo = await wirkerGeoPromise;
+      const distMap   = wirkerGeo?.distMap   || new Map();
+      const radiusMap = wirkerGeo?.radiusMap || new Map();
+      people = people
+        .filter(p => {
+          const d = distMap.get(p.id);
+          if (d == null) return false; // ausserhalb Suchradius oder kein Standort erfasst
+          const ownRadius = radiusMap.get(p.id);
+          // -1 = Weltweit-Angebotsradius, null/unbekannt = kein Wert gesetzt -> nicht einschraenken
+          if (ownRadius == null || ownRadius === -1) return true;
+          return d <= ownRadius;
+        })
+        .map(p => ({ ...p, distanceKm: distMap.get(p.id) ?? null }));
+    }
   }
   sortByRelevance(people, {
     primary:   (p) => p.display_name,
     secondary: (p) => [p.talent, p.location_label].filter(Boolean).join(" "),
-    distance:  () => null, // Wirker haben in dieser Suche kein Distanz-Feld (siehe Entscheidung unten)
+    // Seit 2026-07-07 echte Distanz vorhanden, wenn der Suchende einen Standort
+    // gesetzt hat (siehe wirkerGeoPromise) -- Tie-Break greift wie bei allen
+    // anderen Typen nur bei aktivem Radius (hasRadius), sonst Aktualitaet.
+    distance:  (p) => p.distanceKm ?? null,
     createdAt: (p) => p.member_since,
   });
   sortByRelevance(projects, {
