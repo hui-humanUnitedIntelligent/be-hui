@@ -758,32 +758,76 @@ function SearchProjectRow({ project, onPress }) {
   );
 }
 
-function SearchExtraResultsSection({ people, projects, onProfile, onProjectPress }) {
-  if ((!people || people.length === 0) && (!projects || projects.length === 0)) return null;
+// Dezente Gruppen-Ueberschrift -- EINE Stildefinition fuer alle sechs
+// Suchergebnis-Gruppen (Lars-Vorgabe: "kleine, dezente Ueberschrift").
+function SearchGroupHeader({ icon, label }) {
+  return (
+    <div style={{ fontSize:11.5, fontWeight:700, color:SXR.ink2, letterSpacing:"0.02em",
+      textTransform:"uppercase", padding:"4px 16px 8px", display:"flex", alignItems:"center", gap:6 }}>
+      <span style={{ fontSize:13, textTransform:"none" }}>{icon}</span>
+      {label}
+    </div>
+  );
+}
+
+/* ── Gruppierte, einheitliche Suchergebnisse (2026-07-06, "eine einzige
+   intelligente HUI-Suche") ────────────────────────────────────────────
+   Feste Reihenfolge Wirker → Projekte → Werke → Erlebnisse →
+   Veranstaltungen → Beitraege (Lars-Vorgabe). Jede Gruppe ist bereits vom
+   Hook relevanzsortiert (useFeedStream.fetchSearchResults) -- hier wird nur
+   noch gerendert, keine zweite Sortierung/Sucharchitektur. Nur Gruppen mit
+   Treffern erscheinen. Werke/Erlebnisse/Veranstaltungen/Beitraege nutzen
+   dieselbe ReactionCard/FeedRouter-Darstellung wie der normale Feed (keine
+   zweite Karten-Optik); Wirker/Projekte bekommen die kompakten Zeilen von
+   vorher (keine "Beitraege eines Autors", passen nicht in dieselbe Karte). */
+function GroupedSearchResults({ people, projects, groups, onProfile, onBook, onDetail, onShare, onProjectPress }) {
+  const { works = [], experiences = [], events = [], moments = [] } = groups || {};
+  const hasAny = people.length || projects.length || works.length || experiences.length || events.length || moments.length;
+  if (!hasAny) return null;
+
+  let runningIndex = 0;
+  const contentGroup = (icon, label, items) => {
+    if (!items || items.length === 0) return null;
+    return (
+      <div style={{ marginBottom: 14 }}>
+        <SearchGroupHeader icon={icon} label={label} />
+        {items.map(item => (
+          <ReactionCard
+            key={item.id}
+            item={item}
+            onProfile={onProfile}
+            onBook={onBook}
+            onDetail={onDetail}
+            onShare={onShare}
+            itemIndex={runningIndex++}
+          />
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div style={{ animation: "hui-search-fade-in .2s cubic-bezier(.22,1,.36,1) both", marginBottom: 4 }}>
-      {people && people.length > 0 && (
+      {people.length > 0 && (
         <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize:11.5, fontWeight:700, color:SXR.ink2, letterSpacing:"0.02em",
-            textTransform:"uppercase", padding:"4px 16px 8px" }}>
-            Menschen
-          </div>
+          <SearchGroupHeader icon="👤" label="Wirker" />
           <div className="hui-search-hscroll" style={{ display:"flex", gap:8, padding:"0 16px 2px", overflowX:"auto" }}>
             {people.map(p => <SearchPersonRow key={p.id} person={p} onPress={onProfile} />)}
           </div>
         </div>
       )}
-      {projects && projects.length > 0 && (
+      {projects.length > 0 && (
         <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize:11.5, fontWeight:700, color:SXR.ink2, letterSpacing:"0.02em",
-            textTransform:"uppercase", padding:"4px 16px 8px" }}>
-            Impact-Projekte
-          </div>
+          <SearchGroupHeader icon="🌱" label="Projekte" />
           <div className="hui-search-hscroll" style={{ display:"flex", gap:8, padding:"0 16px 2px", overflowX:"auto" }}>
             {projects.map(p => <SearchProjectRow key={p.id} project={p} onPress={onProjectPress} />)}
           </div>
         </div>
       )}
+      {contentGroup("🛠", "Werke", works)}
+      {contentGroup("✨", "Erlebnisse", experiences)}
+      {contentGroup("📅", "Veranstaltungen", events)}
+      {contentGroup("📰", "Beiträge", moments)}
     </div>
   );
 }
@@ -844,6 +888,7 @@ export default function UnifiedFeed({
     isSearching,
     searchPeople,
     searchProjects,
+    searchGroups,
   } = useFeedStream({ searchQuery, typeFilter, categoryFilter, radiusKm, geo });
 
   // ── Bind refresh fn to parent (defensive) ──────────────────────────
@@ -942,19 +987,6 @@ export default function UnifiedFeed({
         onFlush={flushPendingItems}
       />
 
-      {/* Wirker-/Projekte-Treffer -- nur im Suchmodus, oberhalb der
-          Content-Ergebnisse (Menschen sind meist das primaere Suchziel). */}
-      {isSearching && (
-        <SectionBoundary name="searchExtraResults">
-          <SearchExtraResultsSection
-            people={searchPeople}
-            projects={searchProjects}
-            onProfile={onProfile}
-            onProjectPress={onProjectPress}
-          />
-        </SectionBoundary>
-      )}
-
       <SectionBoundary name="feedList">
         {/* Loading state — shimmer skeletons */}
         {streamLoading && resolvedItems.length === 0 && (
@@ -1013,17 +1045,38 @@ export default function UnifiedFeed({
             opacity: streamLoading ? 0.45 : 1,
             transition: "opacity .25s ease",
           }}>
-            <FeedList
-              items={resolvedItems}
-              onProfile={onProfile}
-              onBook={onBook}
-              onDetail={onDetail}
-              onShare={onShare}
-              loadMore={loadMore}
-              hasMore={hasMore}
-              loadingMore={loadingMore}
-              onDiscover={onDiscover}
-            />
+            {/* Suchmodus: EINE einheitliche, nach Typ gruppierte Ergebnis-
+                Darstellung (Wirker→Projekte→Werke→Erlebnisse→Veranstaltungen→
+                Beitraege) statt der normalen chronologischen Feed-Liste.
+                Ausserhalb der Suche unveraendert: normale FeedList. Beide
+                haengen im selben Fade-Wrapper -- "keine Ladeunterbrechung"
+                gilt fuer beide Zustaende identisch. */}
+            {isSearching ? (
+              <SectionBoundary name="groupedSearchResults">
+                <GroupedSearchResults
+                  people={searchPeople}
+                  projects={searchProjects}
+                  groups={searchGroups}
+                  onProfile={onProfile}
+                  onBook={onBook}
+                  onDetail={onDetail}
+                  onShare={onShare}
+                  onProjectPress={onProjectPress}
+                />
+              </SectionBoundary>
+            ) : (
+              <FeedList
+                items={resolvedItems}
+                onProfile={onProfile}
+                onBook={onBook}
+                onDetail={onDetail}
+                onShare={onShare}
+                loadMore={loadMore}
+                hasMore={hasMore}
+                loadingMore={loadingMore}
+                onDiscover={onDiscover}
+              />
+            )}
           </div>
         )}
       </SectionBoundary>

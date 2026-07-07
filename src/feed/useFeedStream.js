@@ -456,33 +456,75 @@ async function fetchSearchResults(query, typeFilter = null, categoryFilter = nul
     return { ...row, profile: p || { id: uid } };
   }
 
-  const normalized = [
-    ...works.map(r => normalizeWorkRow(injectProfile(r))).filter(Boolean),
-    ...exps.map(r => normalizeExperienceRow(injectProfile(r))).filter(Boolean),
-    ...beitr.map(r => normalizeBeitragRow(injectProfile(r))).filter(Boolean),
-    ...invs.map(r => normalizeInvitationRow(injectProfile(r))).filter(Boolean),
-  ];
+  const normalizedWorks       = works.map(r => normalizeWorkRow(injectProfile(r))).filter(Boolean);
+  const normalizedExperiences = exps.map(r => normalizeExperienceRow(injectProfile(r))).filter(Boolean);
+  const normalizedMoments     = beitr.map(r => normalizeBeitragRow(injectProfile(r))).filter(Boolean);
+  const normalizedEvents      = invs.map(r => normalizeInvitationRow(injectProfile(r))).filter(Boolean);
 
-  if (hasRadius) {
-    // Umkreissuche aktiv: Distanz gewinnt vor Textrelevanz (Vorgabe Lars --
-    // "Ergebnisse standardmaessig nach Entfernung sortieren").
-    normalized.sort((a, b) => {
-      const da = a._raw?.distance_km, db = b._raw?.distance_km;
-      if (da == null && db == null) return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
-      if (da == null) return 1;
-      if (db == null) return -1;
-      return da - db;
-    });
-  } else {
-    // Relevanz-Sortierung: Titel-Treffer vor Beschreibungs-Treffer, dann neueste zuerst
-    const qLower = q.toLowerCase();
-    normalized.sort((a, b) => {
-      const aTitle = (a.title || "").toLowerCase().includes(qLower) ? 1 : 0;
-      const bTitle = (b.title || "").toLowerCase().includes(qLower) ? 1 : 0;
-      if (aTitle !== bTitle) return bTitle - aTitle;
-      return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
-    });
+  // ── Einheitliche Relevanz-Sortierung (2026-07-06, "eine intelligente
+  // Suche") -- EINE Bewertungsfunktion fuer ALLE sechs Ergebnisgruppen
+  // (Wirker/Projekte/Werke/Erlebnisse/Veranstaltungen/Beitraege). Stufen:
+  // 0=exakter Treffer im Haupttext, 1=beginnt mit, 2=Wortanfang-Treffer,
+  // 3=enthaelt (Haupttext) -- 4-7 dieselbe Abstufung im Nebentext (Kategorie/
+  // Beschreibung/Ort). 9=kein Text-Treffer (reine Kategorie-/Radius-Anzeige,
+  // z.B. wenn ueberhaupt kein Suchbegriff getippt wurde). Innerhalb einer
+  // Stufe entscheidet bei aktiver Umkreissuche die Entfernung, sonst die
+  // Aktualitaet (echter ISO-Timestamp aus _raw.created_at -- nicht der
+  // bereits in einen Anzeigetext wie "vor 3 Std" umgewandelte createdAt-
+  // Anzeigewert, der sich nicht als Datum vergleichen laesst).
+  const qLower = q.toLowerCase();
+  const escapeRx = (s) => (s || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  function matchTier(primary, secondary) {
+    if (!qLower) return 9;
+    const p = (primary || "").toLowerCase();
+    const s = (secondary || "").toLowerCase();
+    if (p === qLower) return 0;
+    if (p && p.startsWith(qLower)) return 1;
+    if (p && new RegExp(`\\b${escapeRx(qLower)}`).test(p)) return 2;
+    if (p.includes(qLower)) return 3;
+    if (s === qLower) return 4;
+    if (s && s.startsWith(qLower)) return 5;
+    if (s && new RegExp(`\\b${escapeRx(qLower)}`).test(s)) return 6;
+    if (s.includes(qLower)) return 7;
+    return 9;
   }
+  function sortByRelevance(rows, getters) {
+    rows.sort((a, b) => {
+      const ta = matchTier(getters.primary(a), getters.secondary(a));
+      const tb = matchTier(getters.primary(b), getters.secondary(b));
+      if (ta !== tb) return ta - tb;
+      if (hasRadius) {
+        const da = getters.distance(a), db = getters.distance(b);
+        if (da != null || db != null) {
+          if (da == null) return 1;
+          if (db == null) return -1;
+          if (da !== db) return da - db;
+        }
+      }
+      return new Date(getters.createdAt(b) || 0) - new Date(getters.createdAt(a) || 0);
+    });
+    return rows;
+  }
+
+  // Content-Items: title ist bereits die normalisierte Haupttext-Quelle
+  // (Titel bzw. bei Beitraegen die Caption, siehe toFeedItem()); Sekundaertext
+  // deckt Kategorie/Beschreibung/Ort ab, je nachdem was der Typ mitbringt.
+  const contentGetters = {
+    primary:   (it) => it.title,
+    secondary: (it) => [it.text, it._raw?.category, it._raw?.location_text, it._raw?.location, it._raw?.city]
+                          .filter(Boolean).join(" "),
+    distance:  (it) => it.distanceKm,
+    createdAt: (it) => it._raw?.created_at,
+  };
+  sortByRelevance(normalizedWorks,       contentGetters);
+  sortByRelevance(normalizedExperiences, contentGetters);
+  sortByRelevance(normalizedEvents,      contentGetters);
+  sortByRelevance(normalizedMoments,     contentGetters);
+
+  // Flache Liste NUR fuer Lade-/Leer-Zustandspruefungen in UnifiedFeed
+  // (Skeleton/"keine Ergebnisse") -- fuer die eigentliche Darstellung werden
+  // die sechs Gruppen einzeln konsumiert (siehe Rueckgabe unten).
+  const normalized = [...normalizedWorks, ...normalizedExperiences, ...normalizedEvents, ...normalizedMoments];
 
   // Zusatz-Ergebnisse (Wirker/Projekte) parallel abwarten -- lief bereits
   // gleichzeitig mit den obigen Content-Queries (kein sequentielles Warten).
@@ -494,8 +536,26 @@ async function fetchSearchResults(query, typeFilter = null, categoryFilter = nul
     people   = (profilesRes?.status === "fulfilled" ? (profilesRes.value?.data || []) : []);
     projects = (projectsRes?.status === "fulfilled" ? (projectsRes.value?.data || []) : []);
   }
+  sortByRelevance(people, {
+    primary:   (p) => p.display_name,
+    secondary: (p) => [p.talent, p.location_label].filter(Boolean).join(" "),
+    distance:  () => null, // Wirker haben in dieser Suche kein Distanz-Feld (siehe Entscheidung unten)
+    createdAt: (p) => p.member_since,
+  });
+  sortByRelevance(projects, {
+    primary:   (p) => p.name,
+    secondary: (p) => p.category,
+    distance:  () => null,
+    createdAt: (p) => p.distributed_at,
+  });
 
-  return { items: normalized, people, projects };
+  return {
+    items: normalized, people, projects,
+    // Gruppierte Ergebnisse in der vom Nutzer geforderten Reihenfolge
+    // (Wirker/Projekte kommen separat als people/projects oben mit).
+    works: normalizedWorks, experiences: normalizedExperiences,
+    events: normalizedEvents, moments: normalizedMoments,
+  };
 }
 
 export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFilter = null, radiusKm = null, geo = null } = {}) {
@@ -524,6 +584,11 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
   // zweite Datenquelle/Sucharchitektur.
   const [searchPeople,   setSearchPeople]   = useState([]);
   const [searchProjects, setSearchProjects] = useState([]);
+  // Gruppierte Content-Ergebnisse (2026-07-06, "eine einzige intelligente
+  // Suche"): dieselben Objekte wie in searchItems, nur schon nach Typ
+  // aufgeteilt UND je Gruppe relevanzsortiert -- direkt aus derselben
+  // fetchSearchResults()-Antwort, keine zweite Berechnung/Quelle.
+  const [searchGroups,   setSearchGroups]   = useState({ works: [], experiences: [], events: [], moments: [] });
   const [searchLoading,  setSearchLoading]  = useState(false);
   const searchAliveRef = useRef({ v: false });
   const hasRadius = !!(geo && radiusKm && radiusKm !== "world");
@@ -531,7 +596,9 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
 
   useEffect(() => {
     if (!isSearching) {
-      setSearchItems([]); setSearchPeople([]); setSearchProjects([]); setSearchLoading(false);
+      setSearchItems([]); setSearchPeople([]); setSearchProjects([]);
+      setSearchGroups({ works: [], experiences: [], events: [], moments: [] });
+      setSearchLoading(false);
       return;
     }
     searchAliveRef.current.v = false;
@@ -539,11 +606,12 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
     searchAliveRef.current = alive;
     setSearchLoading(true);
     fetchSearchResults(searchQuery, typeFilter, categoryFilter, radiusKm, geo)
-      .then(({ items, people, projects }) => {
+      .then(({ items, people, projects, works, experiences, events, moments }) => {
         if (!alive.v) return;
         setSearchItems(items);
         setSearchPeople(people);
         setSearchProjects(projects);
+        setSearchGroups({ works, experiences, events, moments });
         setSearchLoading(false);
       })
       .catch(() => { if (alive.v) setSearchLoading(false); });
@@ -845,6 +913,10 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
     // der Suche).
     searchPeople:   isSearching ? searchPeople   : [],
     searchProjects: isSearching ? searchProjects : [],
+    // Gruppierte, relevanzsortierte Content-Ergebnisse (Werke/Erlebnisse/
+    // Veranstaltungen/Beitraege) -- fuer die 6-Gruppen-Darstellung in
+    // UnifiedFeed. Nur im Suchmodus befuellt.
+    searchGroups:   isSearching ? searchGroups   : { works: [], experiences: [], events: [], moments: [] },
 
     // Pagination
     loadMore,
