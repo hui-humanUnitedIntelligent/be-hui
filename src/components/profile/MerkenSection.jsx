@@ -5,6 +5,7 @@ import React from "react";
 import { useAuth }       from "../../lib/AuthContext.jsx";
 import { useSavedPosts } from "../../lib/useReactions.jsx";
 import { supabase }      from "../../lib/supabaseClient.js";
+import { HUIBookmarkIcon } from "../../design/icons/HuiInteractionIcons.jsx";
 
 const T = {
   teal:   "#16D7C5",
@@ -64,7 +65,7 @@ export default function MerkenSection({ onOpenProfile, onOpenDiscover }) {
         padding:"40px 20px", textAlign:"center",
         display:"flex", flexDirection:"column", alignItems:"center", gap:12,
       }}>
-        <div style={{ fontSize:36 }}>📌</div>
+        <div style={{ display:"flex", color:T.muted }}><HUIBookmarkIcon size={36} /></div>
         <div style={{ fontSize:16, fontWeight:700, color:T.ink, letterSpacing:"-0.02em" }}>
           Noch nichts gemerkt
         </div>

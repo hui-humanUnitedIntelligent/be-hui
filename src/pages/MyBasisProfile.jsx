@@ -48,6 +48,7 @@ import MeineVerkaeufeModal      from "../components/studio/MeineVerkaeufeModal.j
 import MeineBuchungenModal      from "../components/studio/MeineBuchungenModal.jsx";
 import StatistikenModal         from "../components/studio/StatistikenModal.jsx";
 import ProfilBearbeitenModal    from "../components/studio/ProfilBearbeitenModal.jsx";
+import { HUIBookmarkIcon }      from "../design/icons/HuiInteractionIcons.jsx";
 
 // ── Design Tokens ────────────────────────────────────────────────
 const T = {
@@ -729,7 +730,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
                 : "Gestalte dein Profil so, wie du bist."}
             </div>
           </div>
-          {/* Header-Buttons: Icon-Only — 📌 👁️ ⚙️ */}
+          {/* Header-Buttons: Icon-Only — HUIBookmarkIcon (Merken) 👁️ ⚙️ */}
           <div style={{ display:"flex", gap:6, alignItems:"center", flexShrink:0 }}>
             <button
               className="mbp-press-light"
@@ -740,9 +741,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
                 width:34, height:34, borderRadius:"50%",
                 background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`,
                 display:"flex", alignItems:"center", justifyContent:"center",
-                fontSize:16, cursor:"pointer", touchAction:"manipulation", flexShrink:0,
+                color:T.ink, cursor:"pointer", touchAction:"manipulation", flexShrink:0,
               }}
-            >📌</button>
+            ><HUIBookmarkIcon size={18} /></button>
             <button
               className="mbp-press-light"
               onClick={() => setShowPublicPreview(true)}
@@ -983,7 +984,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
         />
       )}
 
-      {/* 📌 GEMERKTE INHALTE */}
+      {/* GEMERKTE INHALTE — Icon: HUIBookmarkIcon (offizielles, einzige Merken-Icon appweit) */}
       {showMerken && (
         <div style={{
           position:"fixed", inset:0, zIndex:10500, /* >BottomNav(10000) */
@@ -1001,7 +1002,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
             backdropFilter:"blur(10px)",
           }}>
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <span style={{ fontSize:18 }}>📌</span>
+              <span style={{ display:"flex", color:"#1A1A2E" }}><HUIBookmarkIcon size={18} /></span>
               <span style={{ fontSize:15, fontWeight:800, color:"#1A1A2E", letterSpacing:"-0.02em" }}>
                 Gemerkte Inhalte
               </span>

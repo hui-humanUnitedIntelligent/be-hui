@@ -12,7 +12,7 @@ import { HUI } from "../design/hui.design.js";
 // HUI Interaction Language v1.0 (2026-07-05) — Single Source of Truth,
 // dieselben Komponenten wie im Feed (BaseFeedCard.jsx).
 import {
-  HUIHeartIcon, ExchangeIcon, BookmarkKeepIcon, RecommendIcon,
+  HUIHeartIcon, ExchangeIcon, HUIBookmarkIcon, RecommendIcon,
 } from "../design/icons/HuiInteractionIcons.jsx";
 import { useSingleReaction } from "../lib/useReactions.jsx";
 import { haptic } from "./commerce/commerceUtils.js";
@@ -698,7 +698,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
             onPress={() => { haptic("light"); handleShare(); }}
           />
           <IconBtn
-            Icon={BookmarkKeepIcon}
+            Icon={HUIBookmarkIcon}
             label={saved ? "Gemerkt" : "Merken"}
             active={saved}
             color={C.gold}

@@ -7,7 +7,7 @@
  *
  *   ❤️ Resonanz    — "Das hat etwas in mir bewegt."        → HUIHeartIcon (Referenz)
  *   💬 Austauschen — "Ich trete mit dir in den Austausch." → ExchangeIcon
- *   🔖 Merken      — "Ich komme später darauf zurück."     → BookmarkKeepIcon
+ *   🔖 Merken      — "Ich komme später darauf zurück."     → HUIBookmarkIcon
  *   ➤ Weitergeben  — "Ich gebe diese Inspiration weiter."  → RecommendIcon
  *
  * Diese vier Komponenten sind die EINZIGE erlaubte Icon-Quelle für alle
@@ -16,7 +16,7 @@
  * Benachrichtigungen). Keine zweite Icon-Sprache, keine lokalen Kopien.
  *
  * API (rein visueller Pass, keine Call-Site-Änderungen nötig):
- * HUIHeartIcon / ExchangeIcon / BookmarkKeepIcon / RecommendIcon,
+ * HUIHeartIcon / ExchangeIcon / HUIBookmarkIcon / RecommendIcon,
  * jeweils Props { size = 24, active = false, className, style }.
  * `active` steuert ausschließlich die eingebaute Aktivierungs-Animation
  * (transform/opacity, ~300ms, GPU) — Farbe/Opacity je Zustand bleiben
@@ -246,7 +246,7 @@ export function ExchangeIcon({ size = 24, active = false, className, style }) {
 /* ── 3. Merken ── Lesezeichen/Tag mit weich geschwungener Kerbe ────────
    "Bruder des HUIHeart": gleiche Strichstaerken-Logik, gleiche organische
    Kurvenfuehrung (Bezier statt spitzem V) fuer die untere Kerbe. */
-export function BookmarkKeepIcon({ size = 24, active = false, className, style }) {
+export function HUIBookmarkIcon({ size = 24, active = false, className, style }) {
   injectIconFamilyCSS();
   const stroke = pickIconStroke(size);
   const pulse = useActivationPulse(active);
@@ -317,7 +317,7 @@ export const HUI_INTERACTIONS = {
     label: "Merken",
     text: "Ich komme später darauf zurück.",
     sub: "Wissen bewahren.",
-    Icon: BookmarkKeepIcon,
+    Icon: HUIBookmarkIcon,
   },
   weitergeben: {
     label: "Weitergeben",
@@ -331,7 +331,7 @@ export default {
   HUIHeartIcon,
   ResonanceIcon,
   ExchangeIcon,
-  BookmarkKeepIcon,
+  HUIBookmarkIcon,
   RecommendIcon,
   HUI_ICON_SIZES,
   HUI_INTERACTIONS,
