@@ -174,12 +174,18 @@ function SectionHead({ title, sub, action, onAction, delay=0 }) {
 // ════════════════════════════════════════════════════════════════
 // 1. TITELBEREICH (Suchleiste entfernt — globale Suche im Header)
 // ════════════════════════════════════════════════════════════════
-// Titelzeile 'Entdecken' + View-Toggle -- KEIN Suchfeld, keine Suchfunktion.
-// Bewusst umbenannt von 'SearchBar' -> 'DiscoverTitleBar' (2026-07-06, Lars-
-// Debug 'zwei Suchleisten'): der alte Name kollidierte namentlich mit der
-// echten, globalen Suchleiste (SearchCommandCenter in HomeHeader) und
-// sorgte fuer Verwechslung, welche Komponente tatsaechlich die Suche ist.
-// Rein kosmetische Umbenennung -- Optik/Funktion 1:1 unveraendert.
+// HOME.1 (2026-07-08, Lars): diese Komponente rendert unter dem Nav-Tab
+// key="discover", der in navConfig.js explizit mit Label "Home" beschriftet
+// ist (NAV.1A-Entscheidung: feed→"Entdecken", discover→"Home"). Der Titel
+// zeigte bisher noch "Entdecken" + Discovery-Marketing-Subline -- eine
+// Altlast aus der Zeit vor der Home/Discover-Aufteilung. Jetzt korrekt auf
+// den persoenlichen "Zuhause"-Charakter des Home-Bereichs umgestellt.
+// Der Nav-Tab mit Label "Entdecken" (key="feed", UnifiedFeed) bleibt
+// unveraendert der Ort zum Entdecken neuer Menschen/Werke/Erlebnisse/
+// Projekte -- hier wird NUR der Home-Titel angepasst, kein Funktions-/
+// Layout-Eingriff. KEIN Bezug auf Tageszeiten (kein "Guten Morgen").
+// Komponentenname 'DiscoverTitleBar' bewusst technisch beibehalten (reines
+// Implementierungsdetail, keine sichtbare Aenderung durch Umbenennung noetig).
 function DiscoverTitleBar({ view, onViewChange }) {
   return (
     <div style={{
@@ -189,14 +195,13 @@ function DiscoverTitleBar({ view, onViewChange }) {
       {/* Title Row */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          <span style={{ fontSize:22, fontWeight:900, color:T.ink, letterSpacing:"-0.04em" }}>Entdecken</span>
-          <span style={{ fontSize:18 }}>🌿</span>
+          <span style={{ fontSize:22, fontWeight:900, color:T.ink, letterSpacing:"-0.04em" }}>Dein Zuhause auf HUI</span>
         </div>
         {/* View Toggle — oben rechts */}
         <ViewToggle view={view} onChange={onViewChange} />
       </div>
       <div style={{ fontSize:12.5, color:T.inkFaint, marginTop:2, fontWeight:400 }}>
-        Menschen, Werke, Erlebnisse & Orte, die HUI lebendig machen.
+        Der Ort, an dem deine Ideen, Begegnungen und Wirkung zusammenkommen.
       </div>
     </div>
   );
