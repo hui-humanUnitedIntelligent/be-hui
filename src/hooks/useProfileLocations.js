@@ -34,17 +34,42 @@ export function useProfileLocations(profileId) {
     load();
     if (!profileId) return () => { mounted.current = false; };
 
-    const channel = supabase
-      .channel(`profile_locations_${profileId}`)
-      .on("postgres_changes", {
-        event: "*", schema: "public", table: "profile_locations",
-        filter: `profile_id=eq.${profileId}`,
-      }, () => { load(); })
-      .subscribe();
+    // Root-Cause-Fix (2026-07-08): supabase.channel(topic) liefert laut
+    // SDK (RealtimeClient.channel()) bei identischem Topic-Namen den
+    // BEREITS EXISTIERENDEN Channel zurueck, auch wenn der schon
+    // subscribed ist -- removeChannel() ist async und wird im Cleanup nie
+    // ge-awaited, daher kann bei schnellem Unmount+Remount (z.B. Tab
+    // wechseln und sofort zurueck) der alte Channel noch existieren, wenn
+    // dieser Effect erneut laeuft. Fix: existierenden Channel fuer diesen
+    // Topic wiederverwenden statt erneut .on()+.subscribe() aufzurufen
+    // (das war exakt der Grund fuer "cannot add postgres_changes
+    // callbacks ... after subscribe()"). Kein neuer Channel-Typ, keine
+    // neue Architektur -- nur die vom SDK selbst dokumentierte
+    // Wiederverwendung tatsaechlich korrekt genutzt.
+    const topic = `profile_locations_${profileId}`;
+    const realtimeTopic = `realtime:${topic}`;
+    const existing = supabase.getChannels().find(c => c.topic === realtimeTopic);
+
+    let channel = existing;
+    let createdHere = false;
+    if (!existing) {
+      channel = supabase
+        .channel(topic)
+        .on("postgres_changes", {
+          event: "*", schema: "public", table: "profile_locations",
+          filter: `profile_id=eq.${profileId}`,
+        }, () => { load(); })
+        .subscribe();
+      createdHere = true;
+    }
 
     return () => {
       mounted.current = false;
-      supabase.removeChannel(channel);
+      // Nur abbauen, wenn DIESER Effect-Durchlauf den Channel selbst
+      // erzeugt hat -- sonst wuerde ein schneller Remount den noch
+      // gueltigen Channel eines anderen (aelteren) Laufs kappen, bevor
+      // dessen eigenes Cleanup greift.
+      if (createdHere) supabase.removeChannel(channel);
     };
   }, [profileId, load]);
 
