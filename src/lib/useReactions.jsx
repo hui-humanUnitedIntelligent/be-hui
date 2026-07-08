@@ -14,7 +14,7 @@ import { createNotification } from "./notificationService.js";
 // postId: uuid of the post/work/experience
 // postType: "post"|"work"|"experience"|"invitation"
 // authorId: who created the post (for notifications)
-export function useSingleReaction(postId, postType = "post", authorId = null) {
+export function useSingleReaction(postId, postType = "post", authorId = null, postSnapshot = null) {
   const { user } = useAuth();
   const [counts,   setCounts]   = useState({ like:0, inspire:0, save:0, total:0 });
   const [myTypes,  setMyTypes]  = useState(new Set()); // which types current user has set
@@ -112,10 +112,13 @@ export function useSingleReaction(postId, postType = "post", authorId = null) {
         await supabase.from("post_reactions")
           .upsert({ post_id: postId, post_type: postType, user_id: user.id, type },
             { ignoreDuplicates: true });
-        // Save snapshot to saved_posts
+        // Save snapshot to saved_posts -- MERKEN.2A (2026-07-08): postSnapshot
+        // enthaelt die echten Anzeige-Daten (Cover/Titel/Ersteller), damit
+        // MerkenSection.jsx sie tatsaechlich zeigen kann. Vorher wurde hier
+        // immer {} geschrieben -- Gemerktes war dadurch nie befuellbar.
         if (type === "save") {
           await supabase.from("saved_posts").upsert(
-            { user_id: user.id, post_id: postId, post_type: postType, post_data: {} },
+            { user_id: user.id, post_id: postId, post_type: postType, post_data: postSnapshot || {} },
             { ignoreDuplicates: true }
           );
         }
@@ -148,7 +151,7 @@ export function useSingleReaction(postId, postType = "post", authorId = null) {
     } finally {
       if (mounted.current) setLoading(false);
     }
-  }, [user?.id, postId, postType, authorId, myTypes, loading]);
+  }, [user?.id, postId, postType, authorId, postSnapshot, myTypes, loading]);
 
   return { counts, myTypes, toggle, isLoggedIn: !!user?.id };
 }

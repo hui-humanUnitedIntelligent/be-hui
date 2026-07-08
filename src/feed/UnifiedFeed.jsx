@@ -435,11 +435,23 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
     return () => obs.disconnect();
   }, [visible]);
 
+  // MERKEN.2A (2026-07-08): Snapshot der echten Anzeige-Daten fuer
+  // saved_posts.post_data -- ohne das zeigt "Gemerkte Inhalte" nur
+  // Platzhalter statt Titel/Bild/Ersteller. useMemo haelt die Objekt-
+  // Referenz stabil (sonst Re-Trigger von useSingleReaction bei jedem Render).
+  const postSnapshot = useMemo(() => ({
+    cover_url:   Array.isArray(item?.media) ? (item.media[0] || null) : (item?.media || null),
+    title:       item?.title || item?.text || null,
+    author_name: item?.author?.name || item?.author?.displayName || null,
+    user_id:     item?.author?.id || null,
+  }), [item?.media, item?.title, item?.text, item?.author?.name, item?.author?.displayName, item?.author?.id]);
+
   // Hook-Gating: kein RPC / kein SELECT solange nicht sichtbar
   const { toggle, myTypes } = useSingleReaction(
     visible ? postId : null,
     postType,
-    authorId
+    authorId,
+    postSnapshot
   );
 
   const handleReaction = useCallback((type) => {

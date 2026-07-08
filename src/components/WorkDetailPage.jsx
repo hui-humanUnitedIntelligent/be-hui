@@ -1,6 +1,6 @@
 // WorkDetailPage.jsx — Premium Work Detail Experience
 // Route: /work/:id
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { safeQuery } from "../lib/perfUtils";
 import { ProfileService } from '../services/db';
@@ -344,8 +344,19 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
   // existierenden toggleLikeWork/toggleSaveWork-Aufrufen (echter Bug --
   // beide Funktionen gab es in AppStateContext nie, Resonanz auf der
   // Werk-Detailseite schrieb daher nie in die DB).
+  // MERKEN.2A (2026-07-08): Snapshot der echten Werk-Daten fuer
+  // saved_posts.post_data -- identischer Mechanismus wie im Feed
+  // (UnifiedFeed.jsx), damit "Gemerkte Inhalte" auch von hier aus
+  // gespeicherte Werke mit Titel/Bild/Ersteller zeigt.
+  const postSnapshot = useMemo(() => ({
+    cover_url:   werk?.cover_url || null,
+    title:       werk?.title || null,
+    author_name: creator?.display_name || creator?.username || null,
+    user_id:     creator?.id || null,
+  }), [werk?.cover_url, werk?.title, creator?.display_name, creator?.username, creator?.id]);
+
   const { counts: reactionCounts, myTypes: reactionTypes, toggle: toggleReaction } =
-    useSingleReaction(id, "work", creator?.id);
+    useSingleReaction(id, "work", creator?.id, postSnapshot);
   const resonated      = reactionTypes.has("inspire");
   const resonanceCount = reactionCounts.inspire || 0;
   const saved          = reactionTypes.has("save");
