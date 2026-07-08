@@ -56,9 +56,16 @@ function release() {
  * nicht "übersprungen" werden, ohne dass die Komponente selbst weiterhin
  * gemountet bleibt.
  */
-export function useWizardBodyLock() {
+/**
+ * @param {boolean} [active=true] — Lock nur setzen, solange active true ist.
+ *   Fuer dauerhaft gemountete Wrapper (z.B. PostFullscreenView in
+ *   ContentPreviewProvider) active an den sichtbaren Zustand koppeln
+ *   (z.B. !!mountedItem), sonst bleibt hui-wizard-open permanent auf body.
+ */
+export function useWizardBodyLock(active = true) {
   useLayoutEffect(() => {
+    if (!active) return;
     acquire();
     return () => release();
-  }, []);
+  }, [active]);
 }
