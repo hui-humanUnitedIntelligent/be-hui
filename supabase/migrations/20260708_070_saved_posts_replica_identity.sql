@@ -1,0 +1,14 @@
+-- 070_saved_posts_replica_identity.sql
+-- MERKLISTE.1 Nachtrag (2026-07-08): saved_posts DELETE-Realtime-Events
+-- enthalten ohne REPLICA IDENTITY FULL nur die Primary-Key-Spalte (id) im
+-- "old"-Record. MerkenSection.jsx abonniert DELETE aber gefiltert nach
+-- user_id (filter: user_id=eq.<id>) -- dieser Filter greift serverseitig
+-- gegen das old-Record und matcht daher NIE, solange user_id dort fehlt.
+-- Bewiesen durch Live-Test: ungefilterter DELETE-Listener bekam
+-- old={"id":"..."} ohne user_id: gefilterter Listener bekam nichts.
+--
+-- Fix: REPLICA IDENTITY FULL sorgt dafuer, dass Postgres bei UPDATE/DELETE
+-- alle Spalten (inkl. user_id, post_id) im old-Record mitschickt, damit
+-- der bestehende Filter im Code tatsaechlich matcht. Keine Code-Aenderung
+-- noetig -- reines DB-Setting.
+ALTER TABLE public.saved_posts REPLICA IDENTITY FULL;
