@@ -305,98 +305,16 @@ function LiveActivityBar({ onPersonPress }) {
 }
 
 // ════════════════════════════════════════════════════════════════
-// 2. HEUTE AUF HUI
+// HOME.2 (2026-07-08, Lars): Der komplette "Heute auf HUI entdecken"-
+// Statistik-Kachel-Bereich (TodayStats/STAT_DEFS: neue Momente/Begegnungen/
+// Werke/aktive Erlebnisse/neue Projekte/"Deine Aktivität") wurde ersatzlos
+// entfernt. Home soll ein ruhiger, inspirierender persoenlicher Startpunkt
+// sein, kein Statistik-Cockpit. Die dazugehoerige Datenabfrage (3 Supabase
+// Count-Queries fuer Momente/Werke/Erlebnisse, siehe frueher weiter unten
+// im Loading-Effect) wurde mitentfernt, da sie ausschliesslich fuer diese
+// Kacheln existierte -- keine anderen Verbraucher (Performance-Pflicht:
+// keine toten Queries).
 // ════════════════════════════════════════════════════════════════
-const STAT_DEFS = [
-  { key:"momente",    emoji:"🌱", label:"neue Momente",    color:"#16A34A", bg:"rgba(22,163,74,0.09)"   },
-  { key:"begegnungen",emoji:"🤝", label:"neue Begegnungen",color:T.teal,    bg:T.tealSoft               },
-  { key:"werke",      emoji:"🎨", label:"neue Werke",      color:"#9333EA", bg:"rgba(147,51,234,0.09)"  },
-  { key:"erlebnisse", emoji:"📅", label:"aktive Erlebnisse",color:T.coral,  bg:T.coralSoft              },
-  { key:"projekte",   emoji:"🌍", label:"neue Projekte",   color:"#D97706", bg:"rgba(217,119,6,0.09)"   },
-];
-
-function TodayStats({ stats, onScrollTo }) {
-  return (
-    <div className="dp-in" style={{ padding:`0 ${T.px}px 14px`, animationDelay:"40ms" }}>
-      {/* Header */}
-      <div style={{
-        background:`linear-gradient(135deg, rgba(14,196,184,0.06) 0%, rgba(232,87,58,0.04) 100%)`,
-        border:`1px solid rgba(14,196,184,0.12)`,
-        borderRadius:20,
-        padding:"16px 16px 14px",
-        position:"relative", overflow:"hidden",
-      }}>
-        {/* Live badge */}
-        <div style={{
-          display:"flex", alignItems:"center", gap:6, marginBottom:14,
-        }}>
-          <span style={{ fontSize:14, fontWeight:800, color:T.ink, letterSpacing:"-0.03em" }}>
-            Heute auf HUI entdecken
-          </span>
-          <div style={{
-            display:"flex", alignItems:"center", gap:5,
-            background:"rgba(14,196,184,0.12)", border:"1px solid rgba(14,196,184,0.20)",
-            borderRadius:99, padding:"2px 8px",
-          }}>
-            <div className="dp-live-dot" style={{
-              width:6, height:6, borderRadius:"50%", background:T.teal,
-            }}/>
-            <span style={{ fontSize:10, fontWeight:700, color:T.teal, letterSpacing:".04em" }}>Live</span>
-          </div>
-        </div>
-
-        {/* Stats row */}
-        <div style={{ display:"flex", gap:10, overflowX:"auto" }} className="dp-hscroll">
-          {STAT_DEFS.map((def, i) => (
-            <div key={def.key} className="dp-stat-card dp-press" onClick={() => onScrollTo?.(def.key)} style={{
-              display:"flex", flexDirection:"column", alignItems:"center",
-              background:T.white, borderRadius:14, padding:"12px 10px",
-              minWidth:72, boxShadow:T.cardShadow, flexShrink:0,
-              border:`1px solid ${T.border}`,
-              cursor:"pointer", touchAction:"manipulation",
-              animationDelay:`${i*30}ms`,
-            }}>
-              <span style={{ fontSize:20, marginBottom:6 }}>{def.emoji}</span>
-              <span style={{
-                fontSize:22, fontWeight:900, color:def.color,
-                letterSpacing:"-0.04em", lineHeight:1,
-              }}>
-                {stats?.[def.key] ?? (8 + i*3)}
-              </span>
-              <span style={{
-                fontSize:9.5, color:T.inkFaint, marginTop:4,
-                textAlign:"center", lineHeight:1.3, fontWeight:500,
-              }}>
-                {def.label}
-              </span>
-            </div>
-          ))}
-          {/* Deine Aktivität */}
-          <div className="dp-stat-card" style={{
-            display:"flex", flexDirection:"column", alignItems:"center",
-            background:`linear-gradient(135deg,rgba(14,196,184,0.10),rgba(232,87,58,0.07))`,
-            borderRadius:14, padding:"12px 10px",
-            minWidth:82, boxShadow:T.cardShadow, flexShrink:0,
-            border:"1px solid rgba(14,196,184,0.18)",
-          }}>
-            <span style={{ fontSize:20, marginBottom:6 }}>✦</span>
-            <span style={{ fontSize:11, fontWeight:900, color:T.teal, letterSpacing:"-0.02em", lineHeight:1, textAlign:"center" }}>Deine</span>
-            <span style={{ fontSize:11, fontWeight:900, color:T.teal, letterSpacing:"-0.02em", lineHeight:1, textAlign:"center", marginBottom:4 }}>Aktivität</span>
-            <span style={{ fontSize:8.5, color:T.inkFaint, textAlign:"center", lineHeight:1.3, fontWeight:500 }}>diese Woche</span>
-          </div>
-        </div>
-
-        {/* Dekorative Illustration rechts */}
-        <div style={{
-          position:"absolute", right:12, bottom:8, opacity:0.18,
-          fontSize:36, userSelect:"none", pointerEvents:"none",
-        }}>
-          🌅
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ════════════════════════════════════════════════════════════════
 // 3. MENSCHEN ENTDECKEN
@@ -1905,7 +1823,6 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
 
   const [erlebnisse, setErlebnisse]   = useState([]);
   const [projekte, setProjekte]       = useState([]);
-  const [stats, setStats]             = useState(null);
   const [talentInquiry, setTalentInquiry] = useState(null);
   const [talentBooking, setTalentBooking] = useState(null); // ausgewaehltes Talent fuer Anfrage-Modal
   const { requireAuth } = useAuthGate();
@@ -2110,27 +2027,6 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
 
         // SYS-REFACTOR-023: totes impact_pool-Query entfernt (Ergebnis 'imp' wurde nie gelesen, keine Verhaltensaenderung)
 
-        // Stats berechnen
-        const [
-          { count: cMomente },
-          { count: cWerke },
-          { count: cExps },
-        ] = await Promise.all([
-          supabase.from("beitraege").select("*", { count:"exact", head:true }).gte("created_at", new Date(Date.now()-86400000*7).toISOString()),
-          supabase.from("works").select("*", { count:"exact", head:true }).gte("created_at", new Date(Date.now()-86400000*7).toISOString()),
-          supabase.from("experiences").select("*", { count:"exact", head:true }),
-        ]);
-
-        if (!cancelled) {
-          setStats({
-            momente:     cMomente ?? 24,
-            begegnungen: 8,
-            werke:       cWerke ?? 5,
-            erlebnisse:  cExps ?? 12,
-            projekte:    3,
-          });
-        }
-
       } catch (e) {
         console.warn("[DiscoverPage] load error:", e?.message);
       } finally {
@@ -2248,22 +2144,6 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
     }
   }, [onView]);
 
-  // TodayStats Stat-Karte → scroll zu jeweiliger Section
-  const handleScrollTo = useCallback((key) => {
-    const selectorMap = {
-      momente:     "[data-dp-momente]",
-      begegnungen: "[data-dp-people]",
-      werke:       "[data-dp-werke]",
-      erlebnisse:  "[data-dp-erlebnisse]",
-      projekte:    "[data-dp-projekte]",
-    };
-    const sel = selectorMap[key];
-    if (sel) {
-      const el = document.querySelector(sel);
-      if (el) el.scrollIntoView({ behavior:"smooth", block:"start" });
-    }
-  }, []);
-
   // SectionHead "Alle ansehen →" → scroll zum nächsten Marker
   const makeScrollHandler = useCallback((selector) => () => {
     const el = document.querySelector(selector);
@@ -2285,9 +2165,6 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
 
       {/* ── 1b. Live Activity Bar ── */}
       <LiveActivityBar onPersonPress={handleActivityPress}/>
-
-      {/* ── 2. Heute auf HUI ── */}
-      <TodayStats stats={stats} onScrollTo={handleScrollTo}/>
 
       {/* ── 3. Menschen entdecken ── */}
       <PeopleSection
