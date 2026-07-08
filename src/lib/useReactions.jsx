@@ -158,19 +158,14 @@ export function useSingleReaction(postId, postType = "post", authorId = null, po
 
 // ── useSavedPosts ─────────────────────────────────────────────
 // Returns saved post ids + toggle save function
+// Zweck: liefert appweit die live-aktuellen gespeicherten Post-IDs + Count.
+// Warum diese Loesung: einzige Realtime-Quelle fuer saved_posts pro Nutzer,
+// damit Badge/Profil/Feed nie auseinanderlaufen (siehe Kommentare unten).
 export function useSavedPosts() {
   const { user } = useAuth();
   const [savedIds, setSavedIds] = useState(new Set());
-  const [loading,  setLoading]  = useState(false);
-  // MERKEN.3-DELETE-FIX (2026-07-08): saved_posts.id (Primary Key) -> post_id.
-  // Grund: Supabase liefert bei DELETE-Events auf Tabellen mit RLS im
-  // "old"-Record NUR die Primary-Key-Spalte(n) -- dokumentiertes Verhalten,
-  // keine Migration kann das umgehen (bestaetigt: REPLICA IDENTITY FULL
-  // aendert das alte UPDATE-alte-Zeile-Verhalten, aber nicht DELETE bei
-  // aktivem RLS). Also muss id->post_id lokal nachgehalten werden, um beim
-  // DELETE-Event (alt = {id}) das passende post_id aufzuloesen. Kein neuer
-  // Channel, kein neuer Filter, keine zweite Datenquelle -- derselbe
-  // bestehende Channel bekommt nur eine korrekte Zuordnungstabelle.
+  // Zweck: id (PK) -> post_id Zuordnung.
+  // Warum: DELETE liefert bei RLS im old-Record nur die PK, kein post_id.
   const idMapRef = useRef(new Map());
 
   useEffect(() => {
@@ -186,11 +181,8 @@ export function useSavedPosts() {
       });
   }, [user?.id]);
 
-  // MERKEN.3 (2026-07-08) -- Live-Zaehler-Badge (Profil-Header etc.):
-  // Realtime auf saved_posts (bestehende Tabelle, kein neuer Channel-Zweck
-  // als das was hier schon stand), damit savedIds.size appweit sofort
-  // aktuell ist, auch wenn das Merken auf einer anderen Seite/Komponente
-  // passiert (z.B. Feed -> Profil-Badge).
+  // Zweck: savedIds appweit live halten (Badge, Feed, Detailseite).
+  // Warum: einzige Realtime-Subscription auf saved_posts fuer den Count.
   useEffect(() => {
     if (!user?.id) return;
     const channel = supabase
@@ -206,8 +198,7 @@ export function useSavedPosts() {
       .on("postgres_changes",
         { event: "DELETE", schema: "public", table: "saved_posts", filter: `user_id=eq.${user.id}` },
         (payload) => {
-          // old enthaelt bei RLS+DELETE nur { id } -- Aufloesung ueber idMapRef.
-          const rowId = payload.old?.id;
+          const rowId = payload.old?.id; // nur { id } bei RLS+DELETE
           if (!rowId) return;
           const postId = idMapRef.current.get(rowId);
           if (!postId) return;

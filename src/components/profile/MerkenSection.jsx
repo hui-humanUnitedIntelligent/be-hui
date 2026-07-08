@@ -1,25 +1,12 @@
 // MerkenSection — Gespeicherte Inhalte im Mein-HUI-Profil
 // MERKEN.1B: verschoben aus CreatorDashboard (dead) → MyBasisProfile (produktiv)
 // MERKLISTE.1 (2026-07-08): Filter-Tabs + Realtime-Sync + typgerechte
-// Detailseiten-Navigation. Weiterhin keine neue Tabelle/Logik --
-// wiederverwendet saved_posts (siehe hui_060_...sql).
+// Detailseiten-Navigation. Wiederverwendet saved_posts (siehe hui_060_...sql).
 //
 // MERKEN.3-FIX (2026-07-08): ruft useSavedPosts() bewusst NICHT mehr auf.
-// Grund: useSavedPosts() oeffnet seit MERKEN.3 selbst einen Realtime-Channel
-// (`saved_posts_count:<uid>`) fuer den Profil-Badge. Wenn MerkenSection
-// (hier) UND MyBasisProfile.jsx (Badge) gleichzeitig gemountet sind, riefen
-// beide useSavedPosts() auf -- gleicher Nutzer, gleicher Topic-Name.
-// supabase.channel(topic) gibt bei bereits existierendem Topic denselben,
-// schon subscribten Channel zurueck (siehe RealtimeClient.channel() Quelle),
-// die zweite Hook-Instanz versuchte dann .on('postgres_changes', ...) auf
-// einem bereits subscribten Channel zu registrieren -> harter Crash
-// "cannot add `postgres_changes` callbacks ... after `subscribe()`".
-// Fix an der Ursache: nur noch EINE Stelle (MyBasisProfile.jsx) instanziiert
-// useSavedPosts(). MerkenSection entfernt Eintraege ueber eine eigene,
-// direkte Mutation (kein Toggle noetig -- hier wird nie hinzugefuegt,
-// nur entfernt) und behaelt seinen unabhaengigen `saved_posts:<uid>`-Channel
-// fuer die Item-Liste (anderer Topic-Name, andere Funktion: volle
-// Snapshot-Objekte statt nur IDs/Count -- keine Kollision, keine Dopplung).
+// Warum: der Hook oeffnet einen eigenen Channel (Badge in MyBasisProfile.jsx);
+// zwei gleichzeitige Instanzen kollidierten auf demselben Topic-Namen und
+// crashten. Entfernen laeuft hier ueber eine eigene direkte Mutation.
 import React from "react";
 import { useAuth }       from "../../lib/AuthContext.jsx";
 import { supabase }      from "../../lib/supabaseClient.js";
@@ -80,17 +67,8 @@ export default function MerkenSection({ onOpenProfile, onOpenDiscover, onOpenCon
 
   React.useEffect(() => { fetchItems(); }, [fetchItems]);
 
-  // MERKLISTE.1 — Realtime: sobald irgendwo (Feed, Detailseite, hier selbst)
-  // gemerkt/entfernt wird, aktualisiert sich diese Liste ohne manuellen
-  // Reload. Setzt voraus, dass saved_posts in der supabase_realtime
-  // Publication ist (Migration 069) -- ohne Migration bleibt es beim
-  // bisherigen Verhalten (Liste laedt beim Oeffnen frisch).
-  // MERKEN.3-DELETE-FIX (2026-07-08): Supabase liefert bei DELETE auf
-  // RLS-Tabellen im old-Record nur die Primary-Key-Spalte (id) --
-  // dokumentiertes Verhalten, keine Migration umgeht das. Items tragen
-  // daher jetzt "id" mit (siehe select oben), Abgleich beim Entfernen
-  // erfolgt ueber i.id statt i.post_id. Gleicher Channel, gleicher Filter,
-  // keine neue Datenquelle -- nur korrektes Feld zum Abgleich.
+  // Zweck: Liste live halten, egal wo gemerkt/entfernt wird (Feed, Detail, hier).
+  // Warum i.id statt i.post_id: DELETE liefert bei RLS nur die PK im old-Record.
   React.useEffect(() => {
     if (!user?.id) return;
     const channel = supabase
@@ -113,13 +91,11 @@ export default function MerkenSection({ onOpenProfile, onOpenDiscover, onOpenCon
     return () => { supabase.removeChannel(channel); };
   }, [user?.id]);
 
+  // Zweck: Eintrag entfernen. Warum direkte Mutation statt toggleSave:
+  // hier wird nie hinzugefuegt, siehe Datei-Kopf.
   const handleRemove = async (postId) => {
     if (!user?.id) return;
-    // Optimistic zuerst (fuehlt sich sofort an), DB-Write danach.
-    // Direkte Mutation statt useSavedPosts().toggleSave -- hier wird nie
-    // hinzugefuegt, nur entfernt, und der Hook wuerde eine zweite,
-    // kollidierende Realtime-Subscription oeffnen (siehe Datei-Kopf).
-    setItems(prev => prev.filter(i => i.post_id !== postId));
+    setItems(prev => prev.filter(i => i.post_id !== postId)); // optimistic zuerst
     try {
       await supabase.from("saved_posts").delete()
         .eq("user_id", user.id).eq("post_id", postId);

@@ -402,8 +402,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [showAmbModal,    setShowAmbModal]    = useState(false);
   const [showPublicPreview, setShowPublicPreview] = useState(false);
   const [showMerken,       setShowMerken]       = useState(false);
-  // MERKEN.3 (2026-07-08): Live-Zaehler fuer den Merken-Badge im Header --
-  // wiederverwendet useSavedPosts (bereits die Datenquelle von MerkenSection),
+  // MERKEN.3 (2026-07-08): Live-Zaehler fuer den Merken-Badge im Header.
+  // Einzige Stelle im Baum, die useSavedPosts() aufruft (siehe
+  // MerkenSection.jsx-Kommentar) -- count kommt direkt aus saved_posts,
   // keine zweite Berechnung/Query.
   const { count: savedCount } = useSavedPosts();
   const [showSettings,    setShowSettings]    = useState(false);
