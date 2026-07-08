@@ -78,9 +78,15 @@ function useMoreFromAuthor(authorId, excludeId) {
   return more;
 }
 
+// Nur waehrend ein Post tatsaechlich offen ist (item gesetzt) — nicht fuer die
+// gesamte Lebensdauer von PostFullscreenView, die immer im Provider gemountet bleibt.
+function PostFullscreenBodyLock() {
+  useWizardBodyLock();
+  return null;
+}
+
 export default function PostFullscreenView({ item, onClose, onOpenPost }) {
   const { isSaved, toggleSave } = useSavedPostsContext();
-  useWizardBodyLock(); // blendet Bottom-Navigation aus, solange gemountet
 
   // ── Enter/Exit-Animation: eigener "mountedItem"-State entkoppelt vom
   //    Provider-State, damit beim Schliessen (item -> null) erst die
@@ -99,7 +105,10 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
       setVisible(false);
       closeTimerRef.current = setTimeout(() => setMountedItem(null), ANIM_MS);
     }
-    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      if (closeTimerRef.current) { clearTimeout(closeTimerRef.current); closeTimerRef.current = null; }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [item]);
 
@@ -185,9 +194,14 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
   const translate = visible ? Math.max(0, dragY) : (typeof window !== "undefined" ? window.innerHeight : 800);
 
   return (
+    <>
+    {item && <PostFullscreenBodyLock />}
     <div style={{
       position:"fixed", inset:0, zIndex:15000, background:T.sheet,
       opacity: visible ? 1 : 0,
+      // Exit-Animation: Overlay bleibt kurz im DOM, darf Tabbar (z10000) aber
+      // nicht mehr abfangen — opacity:0 allein deaktiviert Hit-Testing nicht.
+      pointerEvents: (item || visible) ? "auto" : "none",
       transition: dragRef.current.dragging ? "none" : `transform ${ANIM_MS}ms cubic-bezier(.4,0,.2,1), opacity ${ANIM_MS}ms ease`,
       transform: `translateY(${translate}px)`,
       display:"flex", flexDirection:"column",
@@ -311,5 +325,6 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
         </div>
       </div>
     </div>
+    </>
   );
 }
