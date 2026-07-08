@@ -25,6 +25,7 @@ import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { getStripe } from "../../lib/stripe.js";
 import { Elements } from "@stripe/react-stripe-js";
 import StripePaymentStep from "../commerce/StripePaymentStep.jsx";
+import AvailabilityCalendar from "./AvailabilityCalendar.jsx";
 
 const TEAL  = "#16D7C5";
 const CORAL = "#FF8A6B";
@@ -61,6 +62,16 @@ export default function TalentBookingFlow({ talent, onClose }) {
   const [bookingId,       setBookingId]       = useState(null);
   const [amountEur,       setAmountEur]       = useState(0);
 
+  // STANDORT-KALENDER-037: echte Monatsverfuegbarkeit (statt nur Einzeldatum-
+  // Abfrage) fuer die Kalenderansicht + Zeitfenster-Anzeige.
+  const [monthAvail, setMonthAvail] = useState({}); // { "YYYY-MM-DD": {has_slots, slots:[...], is_full, remaining} }
+  const loadMonthAvailability = useCallback((isoMonth) => {
+    if (!talent?.id) return;
+    supabase.rpc("rpc_get_talent_month_availability", { p_talent_id: talent.id, p_month: isoMonth })
+      .then(({ data }) => { if (data?.ok) setMonthAvail(prev => ({ ...prev, ...data.dates })); })
+      .catch(() => {});
+  }, [talent?.id]);
+
   if (!talent) return null;
 
   const isGruppe   = talent.booking_type === "gruppe";
@@ -68,6 +79,14 @@ export default function TalentBookingFlow({ talent, onClose }) {
   const hasSlots    = Array.isArray(talent.available_time_slots) && talent.available_time_slots.length > 0;
   const minDate     = talent.booking_window_start || todayIso();
   const maxDate     = talent.booking_window_end || addDaysIso(90);
+
+  // Termine, die laut Live-Verfuegbarkeit komplett ausgebucht sind (fuer Kalender-Grauung)
+  const fullDates = useMemo(
+    () => Object.keys(monthAvail).filter(d => monthAvail[d]?.is_full),
+    [monthAvail]
+  );
+  // Verfuegbarkeit der aktuell gewaehlten Zeitfenster am gewaehlten Datum (falls Slots konfiguriert)
+  const slotAvailability = selectedDate ? monthAvail[selectedDate]?.slots : null;
 
   const priceStr = talent.price_per_hour != null
     ? `${fmtEur(talent.price_per_hour)}/Std`
@@ -100,11 +119,21 @@ export default function TalentBookingFlow({ talent, onClose }) {
   const remaining = availability?.unlimited ? Infinity : (availability?.remaining ?? null);
   const isFull     = availability?.is_full === true;
 
+  // Zusaetzliche, praezisere Sperre aus der Monats-Kalenderansicht: wenn Slots
+  // konfiguriert sind, gilt der gewaehlte Slot selbst als gebucht/voll (auch
+  // fuer Einzelbuchungen, wo die alte "isGruppe"-Pruefung oben nichts sperrte).
+  const selectedSlotFull = hasSlots && selectedSlot
+    ? slotAvailability?.find(s => s.start === selectedSlot.start && s.end === selectedSlot.end)?.is_full === true
+    : false;
+  const selectedDateFullNoSlots = !hasSlots && selectedDate ? (monthAvail[selectedDate]?.is_full === true) : false;
+
   const canSubmit = !!selectedDate
     && (!hasSlots || !!selectedSlot)
     && participants >= (talent.min_participants || 1)
     && (!isGruppe || remaining === null || remaining === Infinity || participants <= remaining)
-    && !isFull;
+    && !isFull
+    && !selectedSlotFull
+    && !selectedDateFullNoSlots;
 
   const handleBuchen = useCallback(async () => {
     if (!user?.id) return setErrMsg("Bitte melde dich an.");
@@ -272,22 +301,24 @@ export default function TalentBookingFlow({ talent, onClose }) {
               </div>
             )}
 
-            {/* ── Datum ── */}
+            {/* ── Termin (echte Kalenderansicht mit Live-Verfuegbarkeit) ── */}
             <div style={{ marginBottom: 18 }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1A2E", marginBottom: 8 }}>Termin</div>
               {hasDates ? (
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                  {talent.available_dates.map(d => (
-                    <button key={d} type="button" onClick={() => setSelectedDate(d)} style={{
-                      padding: "8px 14px", borderRadius: 10,
-                      border: `1.5px solid ${selectedDate === d ? TEAL : "rgba(26,26,46,0.12)"}`,
-                      background: selectedDate === d ? "rgba(22,215,197,0.1)" : "#fff",
-                      color: selectedDate === d ? TEAL : "rgba(26,26,46,0.7)",
-                      fontSize: 13, fontWeight: 600, cursor: "pointer", touchAction: "manipulation",
-                    }}>
-                      {fmtDate(d)}
-                    </button>
-                  ))}
+                <div style={{
+                  background: "#fff", border: "1.5px solid rgba(26,26,46,0.10)", borderRadius: 14,
+                  padding: "14px 12px",
+                }}>
+                  <AvailabilityCalendar
+                    mode="book"
+                    availableDates={talent.available_dates}
+                    selectedDate={selectedDate}
+                    onSelectDate={(d) => { setSelectedDate(d); setSelectedSlot(null); }}
+                    fullDates={fullDates}
+                    onMonthChange={loadMonthAvailability}
+                    minDate={minDate}
+                    maxDate={maxDate}
+                  />
                 </div>
               ) : (
                 <input
@@ -305,22 +336,25 @@ export default function TalentBookingFlow({ talent, onClose }) {
               )}
             </div>
 
-            {/* ── Zeitfenster ── */}
-            {hasSlots && (
+            {/* ── Zeitfenster (mit Live-Belegung pro Slot) ── */}
+            {hasSlots && selectedDate && (
               <div style={{ marginBottom: 18 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1A2E", marginBottom: 8 }}>Uhrzeit</div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                   {talent.available_time_slots.map((s, i) => {
                     const active = selectedSlot && selectedSlot.start === s.start && selectedSlot.end === s.end;
+                    const slotInfo = slotAvailability?.find(x => x.start === s.start && x.end === s.end);
+                    const full = slotInfo?.is_full === true;
                     return (
-                      <button key={i} type="button" onClick={() => setSelectedSlot(s)} style={{
+                      <button key={i} type="button" onClick={() => !full && setSelectedSlot(s)} disabled={full} style={{
                         padding: "8px 14px", borderRadius: 10,
-                        border: `1.5px solid ${active ? TEAL : "rgba(26,26,46,0.12)"}`,
-                        background: active ? "rgba(22,215,197,0.1)" : "#fff",
-                        color: active ? TEAL : "rgba(26,26,46,0.7)",
-                        fontSize: 13, fontWeight: 600, cursor: "pointer", touchAction: "manipulation",
+                        border: `1.5px solid ${full ? "rgba(232,58,58,0.2)" : active ? TEAL : "rgba(26,26,46,0.12)"}`,
+                        background: full ? "rgba(232,58,58,0.05)" : active ? "rgba(22,215,197,0.1)" : "#fff",
+                        color: full ? "rgba(232,58,58,0.55)" : active ? TEAL : "rgba(26,26,46,0.7)",
+                        fontSize: 13, fontWeight: 600, cursor: full ? "default" : "pointer", touchAction: "manipulation",
+                        textDecoration: full ? "line-through" : "none",
                       }}>
-                        {s.start}–{s.end}
+                        {s.start}–{s.end}{full ? " · belegt" : ""}
                       </button>
                     );
                   })}

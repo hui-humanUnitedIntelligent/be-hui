@@ -19,6 +19,7 @@ import {
   TALENT_LOCATION_TYPES, TALENT_RECURRING_OPTIONS, TALENT_BOOKING_TYPES,
 } from "../../hooks/useTalents.js";
 import { searchPlaces } from "../../lib/geocoding.js";
+import AvailabilityCalendar from "./AvailabilityCalendar.jsx";
 
 const C = {
   teal: "#0EC4B8", tealD: "#0DBBAF", ink: "#1A1A18", inkMid: "rgba(26,26,24,0.55)",
@@ -181,6 +182,11 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
     setDateDraft("");
   }
   function removeDate(d) { setAvailableDates(availableDates.filter(x => x !== d)); }
+  // Kalender-Klick (AvailabilityCalendar mode="edit"): Termin an/aus.
+  function toggleDate(iso) {
+    if (availableDates.includes(iso)) removeDate(iso);
+    else setAvailableDates([...availableDates, iso].sort());
+  }
 
   function addSlot() {
     if (!slotStart || !slotEnd) return;
@@ -339,14 +345,17 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
         {/* ── SCHRITT 4: Datum & Zeiten ─────────────────────────── */}
         {step === 4 && (
           <>
-            <Lbl text="Verfügbare Termine (optional)"/>
-            <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-              <input type="date" value={dateDraft} onChange={e => setDateDraft(e.target.value)} disabled={locked}
-                style={{ ...INP, flex: 1, background: locked ? "#f5f5f3" : "#fff" }}/>
-              <button type="button" onClick={addDate} disabled={locked || !dateDraft} style={{
-                padding: "0 18px", borderRadius: 12, border: "none", background: C.teal, color: "#fff",
-                fontWeight: 700, cursor: locked ? "default" : "pointer",
-              }}>+</button>
+            <Lbl text="Verfügbare Termine (optional)" hint="Im Kalender antippen, um Termine hinzuzufügen oder zu entfernen."/>
+            <div style={{
+              background: "#fff", border: `1.5px solid ${C.border}`, borderRadius: 14,
+              padding: "14px 12px", marginBottom: 12,
+            }}>
+              <AvailabilityCalendar
+                mode="edit"
+                selectedDates={availableDates}
+                onToggleDate={toggleDate}
+                disabled={locked}
+              />
             </div>
             {availableDates.length > 0 && (
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
