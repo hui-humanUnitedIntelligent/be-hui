@@ -80,7 +80,6 @@ function useMoreFromAuthor(authorId, excludeId) {
 
 export default function PostFullscreenView({ item, onClose, onOpenPost }) {
   const { isSaved, toggleSave } = useSavedPostsContext();
-  useWizardBodyLock(); // blendet Bottom-Navigation aus, solange gemountet
 
   // ── Enter/Exit-Animation: eigener "mountedItem"-State entkoppelt vom
   //    Provider-State, damit beim Schliessen (item -> null) erst die
@@ -102,6 +101,13 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [item]);
+
+  // Body-Lock NUR solange ein Post tatsaechlich angezeigt wird — NICHT
+  // bedingungslos beim Komponenten-Mount. PostFullscreenView bleibt als
+  // Kind von ContentPreviewProvider dauerhaft gemountet (fuer Exit-Animation);
+  // useWizardBodyLock() ohne active-Flag setzte hui-wizard-open permanent
+  // auf body → HUIBottomNavigation pointerEvents:"none" fuer alle Tabs.
+  useWizardBodyLock(!!mountedItem);
 
   // Body-Scroll sperren solange offen (identisches, simples Muster wie
   // in ContentPreviewSheet.jsx -- bewusst kein Wizard-Stack-Coupling).
@@ -188,6 +194,7 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
     <div style={{
       position:"fixed", inset:0, zIndex:15000, background:T.sheet,
       opacity: visible ? 1 : 0,
+      pointerEvents: visible ? "auto" : "none",
       transition: dragRef.current.dragging ? "none" : `transform ${ANIM_MS}ms cubic-bezier(.4,0,.2,1), opacity ${ANIM_MS}ms ease`,
       transform: `translateY(${translate}px)`,
       display:"flex", flexDirection:"column",
