@@ -13,16 +13,19 @@ import { supabase }      from "../../lib/supabaseClient.js";
 import { HUIBookmarkIcon } from "../../design/icons/HuiInteractionIcons.jsx";
 import { toast }         from "../../lib/useToast.jsx";
 
+// Identische Werte wie BaseFeedCard.jsx (Feed-Karten) -- Lars-Vorgabe:
+// "dieselbe Formsprache wie alle anderen HUI Cards".
 const T = {
-  teal:   "#16D7C5",
-  coral:  "#FF8A6B",
+  teal:   "#0DC4B5",
+  coral:  "#F47355",
   ink:    "#1A1A2E",
   muted:  "rgba(26,26,46,0.40)",
   soft:   "rgba(26,26,46,0.55)",
   card:   "#FFFFFF",
-  border: "rgba(26,26,46,0.08)",
-  shadow: "0 2px 8px rgba(26,26,46,0.06)",
-  r:      14,
+  border: "rgba(26,26,46,0.07)",
+  shadow: "0 2px 20px rgba(26,26,46,0.08)",
+  r:      16,
+  rThumb: 16,
 };
 
 // content_type -> Anzeige. wirker/project bewusst schon vorbereitet
@@ -192,91 +195,113 @@ export default function MerkenSection({ onOpenProfile, onOpenDiscover, onOpenCon
         </div>
       )}
 
-      {filtered.map((item) => {
-        const cover   = getCover(item);
-        const title   = getTitle(item);
-        const creator = getCreator(item);
-        const label   = getLabel(item.post_type);
-        const date    = formatDate(item.saved_at);
+      {filtered.map((item) => (
+        <MerkenCard
+          key={item.post_id}
+          item={item}
+          cover={getCover(item)}
+          title={getTitle(item)}
+          creator={getCreator(item)}
+          label={getLabel(item.post_type)}
+          date={formatDate(item.saved_at)}
+          onOpen={() => handleOpen(item)}
+          onRemove={() => handleRemove(item.post_id)}
+        />
+      ))}
+    </div>
+  );
+}
 
-        return (
-          <div
-            key={item.post_id}
-            style={{
-              background: T.card,
-              borderRadius: T.r,
-              border: `1px solid ${T.border}`,
-              boxShadow: T.shadow,
-              display:"flex", gap:12, alignItems:"center",
-              padding:"12px 14px",
-            }}
-          >
-            {/* Cover — Tap oeffnet die jeweilige Detailseite (kein Kopie-Screen) */}
-            <div
-              onClick={() => handleOpen(item)}
-              style={{
-                width:50, height:50, borderRadius:12, flexShrink:0,
-                background: cover ? "transparent" : `linear-gradient(135deg,${T.teal}22,${T.coral}18)`,
-                overflow:"hidden", cursor:"pointer",
-                display:"flex", alignItems:"center", justifyContent:"center",
-              }}>
-              {cover
-                ? <img src={cover} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}
-                    onError={e => { e.target.style.display="none"; }} />
-                : <span style={{ fontSize:20 }}>{TYPE_ICON[item.post_type] || "🌿"}</span>
-              }
-            </div>
+// ── MerkenCard — "kleine Inspirationskarte" ──────────────────────────
+// Visuelles Upgrade (2026-07-08): von reiner Textzeile zu einer echten
+// Vorschau-Karte mit Thumbnail (88x88, radius 16, cover), Titel, Typ,
+// Autor, Datum sowie Oeffnen + aktivem HUIBookmarkIcon unten rechts.
+// Ganze Karte klickbar (nicht nur der Button) -- oeffnet den Original-
+// inhalt. Formsprache identisch zu BaseFeedCard.jsx (r:16, gleicher
+// Schatten, gleiche Teal/Coral-Werte) statt eigener Tabellen-/Listenoptik.
+function MerkenCard({ item, cover, title, creator, label, date, onOpen, onRemove }) {
+  const [imgErr, setImgErr] = React.useState(false);
+  const showImg = cover && !imgErr;
 
-            {/* Info */}
-            <div style={{ flex:1, minWidth:0, cursor:"pointer" }} onClick={() => handleOpen(item)}>
-              <div style={{
-                fontSize:13, fontWeight:700, color:T.ink,
+  return (
+    <div
+      onClick={onOpen}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onOpen(); }}
+      style={{
+        background: T.card,
+        borderRadius: T.r,
+        border: `1px solid ${T.border}`,
+        boxShadow: T.shadow,
+        display:"flex", gap:14,
+        padding:14,
+        cursor:"pointer", touchAction:"manipulation",
+        WebkitTapHighlightColor:"transparent",
+      }}
+    >
+      {/* Vorschaubild — 88x88, radius 16, cover. Kein Bild -> hochwertiger
+          HUI-Platzhalter (weicher Verlauf + Typ-Icon statt Graufeld). */}
+      <div style={{
+        width:88, height:88, borderRadius:T.rThumb, flexShrink:0,
+        overflow:"hidden",
+        background: showImg ? "transparent" : `linear-gradient(135deg, ${T.teal}22, ${T.coral}18)`,
+        display:"flex", alignItems:"center", justifyContent:"center",
+      }}>
+        {showImg
+          ? <img src={cover} alt="" onError={() => setImgErr(true)}
+              style={{ width:"100%", height:"100%", objectFit:"cover" }} loading="lazy" />
+          : <span style={{ fontSize:32, opacity:0.85 }}>{TYPE_ICON[item.post_type] || "🌿"}</span>
+        }
+      </div>
+
+      {/* Rechte Spalte: Titel/Typ/Autor/Datum oben, Aktionen unten rechts */}
+      <div style={{ flex:1, minWidth:0, display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
+        <div>
+          <div style={{
+            fontSize:15, fontWeight:700, color:T.ink, lineHeight:1.32,
+            display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical",
+            overflow:"hidden",
+          }}>{title}</div>
+          <div style={{ display:"flex", gap:6, alignItems:"center", marginTop:6, flexWrap:"wrap" }}>
+            <span style={{
+              fontSize:10.5, fontWeight:700, color:T.teal,
+              background:`${T.teal}15`, borderRadius:6, padding:"2px 7px",
+            }}>{label}</span>
+            {creator && (
+              <span style={{
+                fontSize:12, color:T.soft, fontWeight:500,
                 overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-              }}>{title}</div>
-              <div style={{ display:"flex", gap:6, alignItems:"center", marginTop:3 }}>
-                <span style={{
-                  fontSize:10.5, fontWeight:700, color:T.teal,
-                  background:`${T.teal}15`, borderRadius:6, padding:"1px 6px",
-                }}>{label}</span>
-                {creator && (
-                  <span style={{
-                    fontSize:11, color:T.muted,
-                    overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-                  }}>{creator}</span>
-                )}
-              </div>
-              {date && <div style={{ fontSize:10.5, color:T.muted, marginTop:2 }}>{date}</div>}
-            </div>
-
-            {/* Aktionen */}
-            <div style={{ display:"flex", flexDirection:"column", gap:6, flexShrink:0 }}>
-              <button
-                onClick={() => handleOpen(item)}
-                style={{
-                  padding:"5px 10px", borderRadius:10,
-                  background:`${T.teal}15`, border:`1px solid ${T.teal}30`,
-                  color:T.teal, fontSize:11, fontWeight:700, cursor:"pointer",
-                  whiteSpace:"nowrap", touchAction:"manipulation",
-                }}
-              >Öffnen</button>
-              {/* Bookmark-Icon statt Text-Button -- konsistent mit Feed/
-                  Suche/Detailseite: hier ist alles per Definition bereits
-                  gemerkt, active=true, Tap entfernt (Merken-Icon appweit
-                  einheitlich). */}
-              <button
-                onClick={() => handleRemove(item.post_id)}
-                aria-label="Aus Merkliste entfernen"
-                style={{
-                  padding:"6px 10px", borderRadius:10, display:"flex",
-                  alignItems:"center", justifyContent:"center",
-                  background:"rgba(255,138,107,0.10)", border:"1px solid rgba(255,138,107,0.20)",
-                  color:T.coral, cursor:"pointer", touchAction:"manipulation",
-                }}
-              ><HUIBookmarkIcon size={17} active /></button>
-            </div>
+              }}>{creator}</span>
+            )}
           </div>
-        );
-      })}
+          {date && <div style={{ fontSize:11, color:T.muted, marginTop:4 }}>{date}</div>}
+        </div>
+
+        {/* Unten rechts: Oeffnen + aktives HUIBookmarkIcon. stopPropagation,
+            damit ein Klick hier nicht zusaetzlich die Karten-onClick ausloest. */}
+        <div style={{ display:"flex", justifyContent:"flex-end", alignItems:"center", gap:8, marginTop:10 }}>
+          <button
+            onClick={(e) => { e.stopPropagation(); onOpen(); }}
+            style={{
+              padding:"6px 14px", borderRadius:10,
+              background:`${T.teal}15`, border:`1px solid ${T.teal}30`,
+              color:T.teal, fontSize:12, fontWeight:700, cursor:"pointer",
+              whiteSpace:"nowrap", touchAction:"manipulation",
+            }}
+          >Öffnen</button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onRemove(); }}
+            aria-label="Aus Merkliste entfernen"
+            style={{
+              padding:"6px 10px", borderRadius:10, display:"flex",
+              alignItems:"center", justifyContent:"center",
+              background:"rgba(244,115,85,0.10)", border:"1px solid rgba(244,115,85,0.20)",
+              color:T.coral, cursor:"pointer", touchAction:"manipulation",
+            }}
+          ><HUIBookmarkIcon size={19} active /></button>
+        </div>
+      </div>
     </div>
   );
 }
