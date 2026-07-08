@@ -60,7 +60,9 @@ const CreatorDashboard    = React.lazy(() => import("./CreatorDashboard.jsx"));
 const HuiCreateFlow       = React.lazy(() => import("../components/HuiCreateFlow.jsx"));
 const TalentOnboarding    = React.lazy(() => import("../components/TalentOnboarding.jsx"));
 const StoryComposer       = React.lazy(() => import("../components/StoryComposer.jsx"));
-// ExperienceCreator: removed (ExperienceFlow used instead — dead import)
+// ExperienceCreator.jsx / WerkPublisher.jsx: Datei komplett entfernt (2026-07-08
+// Dead-Code-Audit) -- showExperienceCreator/showWerkPublisher sind Legacy-benannte
+// State-Flags, rendern aber schon seit laengerem ExperienceFlow/WorkFlow (s.u.).
 
 const C = { cream: "#F9F7F4" };
 
