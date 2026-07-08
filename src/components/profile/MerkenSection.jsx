@@ -3,6 +3,13 @@
 // MERKLISTE.1 (2026-07-08): Filter-Tabs + Realtime-Sync + typgerechte
 // Detailseiten-Navigation. Wiederverwendet saved_posts (siehe hui_060_...sql).
 //
+// MERKLISTE.2 (2026-07-08): Vorschaubild kommt NICHT mehr aus dem
+// post_data-Snapshot (das war eine Kopie), sondern wird live ueber die
+// bestehende post_id aus der Originaltabelle geladen (works/experiences/
+// beitraege/projects/impact_projects), gebatcht pro Typ (kein N+1).
+// Nutzt dieselben Normalizer (normalizeWorkRow etc.) wie der Feed, damit
+// die Darstellung 1:1 identisch ist -- kein eigenes Cover-Mapping erfunden.
+//
 // MERKEN.3-FIX (2026-07-08): ruft useSavedPosts() bewusst NICHT mehr auf.
 // Warum: der Hook oeffnet einen eigenen Channel (Badge in MyBasisProfile.jsx);
 // zwei gleichzeitige Instanzen kollidierten auf demselben Topic-Namen und
@@ -12,6 +19,8 @@ import { useAuth }       from "../../lib/AuthContext.jsx";
 import { supabase }      from "../../lib/supabaseClient.js";
 import { HUIBookmarkIcon } from "../../design/icons/HuiInteractionIcons.jsx";
 import { toast }         from "../../lib/useToast.jsx";
+import { normalizeWorkRow, normalizeExperienceRow, normalizeMomentRow }
+                          from "../../system/feed/unifiedNormalizer.js";
 
 // Identische Werte wie BaseFeedCard.jsx (Feed-Karten) -- Lars-Vorgabe:
 // "dieselbe Formsprache wie alle anderen HUI Cards".
@@ -94,6 +103,74 @@ export default function MerkenSection({ onOpenProfile, onOpenDiscover, onOpenCon
     return () => { supabase.removeChannel(channel); };
   }, [user?.id]);
 
+  // MERKLISTE.2: Live-Vorschaubilder ueber post_id, gebatcht pro Typ (kein
+  // N+1 -- eine .in()-Query je Content-Tabelle, egal wie viele Items).
+  // Stabiler Key statt Array-Referenz als Dependency (bekannte Lehre:
+  // sonst Refetch-Loop bei jedem Re-Render).
+  const itemsKey = items.map(i => `${i.post_id}:${i.post_type}`).join(",");
+  const [originalCovers, setOriginalCovers] = React.useState(new Map());
+
+  React.useEffect(() => {
+    if (items.length === 0) { setOriginalCovers(new Map()); return; }
+    let cancelled = false;
+
+    const ids = { work: [], experience: [], beitrag: [], project: [] };
+    for (const it of items) {
+      if (it.post_type === "work") ids.work.push(it.post_id);
+      else if (it.post_type === "experience" || it.post_type === "event") ids.experience.push(it.post_id);
+      else if (it.post_type === "post" || it.post_type === "beitrag") ids.beitrag.push(it.post_id);
+      else if (it.post_type === "project") ids.project.push(it.post_id);
+    }
+
+    (async () => {
+      const map = new Map();
+
+      if (ids.work.length) {
+        // Bestaetigte Spalten (siehe useFeedStream.js-Query): cover_url,
+        // media_url -- KEIN src/image_url auf works (Live-Check ergab
+        // 42703 "column does not exist", nicht blind uebernehmen).
+        const { data, error } = await supabase.from("works")
+          .select("id,cover_url,media_url").in("id", ids.work);
+        if (error) console.warn("[Merkliste] Cover-Load works:", error.message);
+        (data || []).forEach(row => {
+          const url = normalizeWorkRow(row)?.media?.[0]?.url;
+          if (url) map.set(row.id, url);
+        });
+      }
+      if (ids.experience.length) {
+        const { data, error } = await supabase.from("experiences")
+          .select("id,cover_url,media_url").in("id", ids.experience);
+        if (error) console.warn("[Merkliste] Cover-Load experiences:", error.message);
+        (data || []).forEach(row => {
+          const url = normalizeExperienceRow(row)?.media?.[0]?.url;
+          if (url) map.set(row.id, url);
+        });
+      }
+      if (ids.beitrag.length) {
+        const { data, error } = await supabase.from("beitraege")
+          .select("id,src").in("id", ids.beitrag);
+        if (error) console.warn("[Merkliste] Cover-Load beitraege:", error.message);
+        (data || []).forEach(row => {
+          const url = normalizeMomentRow(row)?.media?.[0]?.url;
+          if (url) map.set(row.id, url);
+        });
+      }
+      // "Projekt": Live-Check ergab, dass weder eine Tabelle 'projects'
+      // existiert (PGRST205 -- useProfileData.js referenziert sie zwar,
+      // ist aber selbst bereits ein bestehender toter Pfad, catch-
+      // abgefangen, ausserhalb dieses Auftrags) noch besitzt
+      // 'impact_projects' aktuell irgendeine Bildspalte (nur icon+color,
+      // 42703 auf alle getesteten Bildspalten-Namen). Fuer 'project' gibt
+      // es also aktuell KEIN Originalbild in der DB -- bewusst keine
+      // Query hierfuer, korrekter Fallback aufs Typ-Icon (erfuellt Regel
+      // 4: "nur wenn Originalinhalt kein Bild besitzt").
+
+      if (!cancelled) setOriginalCovers(map);
+    })();
+
+    return () => { cancelled = true; };
+  }, [itemsKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Zweck: Eintrag entfernen. Warum direkte Mutation statt toggleSave:
   // hier wird nie hinzugefuegt, siehe Datei-Kopf.
   const handleRemove = async (postId) => {
@@ -115,7 +192,8 @@ export default function MerkenSection({ onOpenProfile, onOpenDiscover, onOpenCon
   };
 
   const getLabel   = (type) => TYPE_LABEL[type] || "Inhalt";
-  const getCover   = (item) => { const d = item.post_data || {}; return d.cover_url || d.cover || d.src || d.image || d.avatar_url || null; };
+  // MERKLISTE.2: kein getCover(post_data) mehr -- Bild kommt live aus
+  // originalCovers (siehe Effect oben), NIE aus der gespeicherten Kopie.
   const getTitle   = (item) => { const d = item.post_data || {}; return d.title || d.caption || d.name || "Gespeicherter Inhalt"; };
   const getCreator = (item) => { const d = item.post_data || {}; return d.author_name || d.creator_name || d.display_name || d.username || null; };
   const formatDate = (iso)  => { if (!iso) return ""; const d = new Date(iso); return d.toLocaleDateString("de-DE", { day:"numeric", month:"short", year:"numeric" }); };
@@ -199,7 +277,7 @@ export default function MerkenSection({ onOpenProfile, onOpenDiscover, onOpenCon
         <MerkenCard
           key={item.post_id}
           item={item}
-          cover={getCover(item)}
+          cover={originalCovers.get(item.post_id) || null}
           title={getTitle(item)}
           creator={getCreator(item)}
           label={getLabel(item.post_type)}
