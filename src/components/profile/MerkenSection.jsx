@@ -68,7 +68,7 @@ export default function MerkenSection({ onOpenProfile, onOpenDiscover, onOpenCon
     if (!user?.id) return;
     return supabase
       .from("saved_posts")
-      .select("post_id, post_type, post_data, saved_at")
+      .select("id, post_id, post_type, post_data, saved_at")
       .eq("user_id", user.id)
       .order("saved_at", { ascending: false })
       .limit(50)
@@ -85,6 +85,12 @@ export default function MerkenSection({ onOpenProfile, onOpenDiscover, onOpenCon
   // Reload. Setzt voraus, dass saved_posts in der supabase_realtime
   // Publication ist (Migration 069) -- ohne Migration bleibt es beim
   // bisherigen Verhalten (Liste laedt beim Oeffnen frisch).
+  // MERKEN.3-DELETE-FIX (2026-07-08): Supabase liefert bei DELETE auf
+  // RLS-Tabellen im old-Record nur die Primary-Key-Spalte (id) --
+  // dokumentiertes Verhalten, keine Migration umgeht das. Items tragen
+  // daher jetzt "id" mit (siehe select oben), Abgleich beim Entfernen
+  // erfolgt ueber i.id statt i.post_id. Gleicher Channel, gleicher Filter,
+  // keine neue Datenquelle -- nur korrektes Feld zum Abgleich.
   React.useEffect(() => {
     if (!user?.id) return;
     const channel = supabase
@@ -94,14 +100,14 @@ export default function MerkenSection({ onOpenProfile, onOpenDiscover, onOpenCon
         (payload) => {
           const row = payload.new;
           if (!row) return;
-          setItems(prev => prev.some(i => i.post_id === row.post_id) ? prev : [row, ...prev]);
+          setItems(prev => prev.some(i => i.id === row.id) ? prev : [row, ...prev]);
         })
       .on("postgres_changes",
         { event: "DELETE", schema: "public", table: "saved_posts", filter: `user_id=eq.${user.id}` },
         (payload) => {
-          const row = payload.old;
-          if (!row) return;
-          setItems(prev => prev.filter(i => i.post_id !== row.post_id));
+          const rowId = payload.old?.id;
+          if (!rowId) return;
+          setItems(prev => prev.filter(i => i.id !== rowId));
         })
       .subscribe();
     return () => { supabase.removeChannel(channel); };

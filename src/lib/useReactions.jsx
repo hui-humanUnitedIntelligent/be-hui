@@ -162,23 +162,35 @@ export function useSavedPosts() {
   const { user } = useAuth();
   const [savedIds, setSavedIds] = useState(new Set());
   const [loading,  setLoading]  = useState(false);
+  // MERKEN.3-DELETE-FIX (2026-07-08): saved_posts.id (Primary Key) -> post_id.
+  // Grund: Supabase liefert bei DELETE-Events auf Tabellen mit RLS im
+  // "old"-Record NUR die Primary-Key-Spalte(n) -- dokumentiertes Verhalten,
+  // keine Migration kann das umgehen (bestaetigt: REPLICA IDENTITY FULL
+  // aendert das alte UPDATE-alte-Zeile-Verhalten, aber nicht DELETE bei
+  // aktivem RLS). Also muss id->post_id lokal nachgehalten werden, um beim
+  // DELETE-Event (alt = {id}) das passende post_id aufzuloesen. Kein neuer
+  // Channel, kein neuer Filter, keine zweite Datenquelle -- derselbe
+  // bestehende Channel bekommt nur eine korrekte Zuordnungstabelle.
+  const idMapRef = useRef(new Map());
 
   useEffect(() => {
-    if (!user?.id) { setSavedIds(new Set()); return; }
+    if (!user?.id) { setSavedIds(new Set()); idMapRef.current = new Map(); return; }
     supabase.from("saved_posts")
-      .select("post_id")
+      .select("id, post_id")
       .eq("user_id", user.id)
       .then(({ data }) => {
-        if (data) setSavedIds(new Set(data.map(r => r.post_id)));
+        if (data) {
+          setSavedIds(new Set(data.map(r => r.post_id)));
+          idMapRef.current = new Map(data.map(r => [r.id, r.post_id]));
+        }
       });
   }, [user?.id]);
 
   // MERKEN.3 (2026-07-08) -- Live-Zaehler-Badge (Profil-Header etc.):
-  // Realtime auf saved_posts, damit savedIds.size appweit sofort aktuell
-  // ist, auch wenn das Merken auf einer anderen Seite/Komponente passiert
-  // (z.B. Feed -> Profil-Badge). Erfordert REPLICA IDENTITY FULL auf
-  // saved_posts (Migration 070), sonst fehlt user_id im DELETE-old-Record
-  // und der Filter greift nicht.
+  // Realtime auf saved_posts (bestehende Tabelle, kein neuer Channel-Zweck
+  // als das was hier schon stand), damit savedIds.size appweit sofort
+  // aktuell ist, auch wenn das Merken auf einer anderen Seite/Komponente
+  // passiert (z.B. Feed -> Profil-Badge).
   useEffect(() => {
     if (!user?.id) return;
     const channel = supabase
@@ -186,15 +198,20 @@ export function useSavedPosts() {
       .on("postgres_changes",
         { event: "INSERT", schema: "public", table: "saved_posts", filter: `user_id=eq.${user.id}` },
         (payload) => {
-          const postId = payload.new?.post_id;
-          if (!postId) return;
-          setSavedIds(prev => (prev.has(postId) ? prev : new Set(prev).add(postId)));
+          const row = payload.new;
+          if (!row?.post_id) return;
+          idMapRef.current.set(row.id, row.post_id);
+          setSavedIds(prev => (prev.has(row.post_id) ? prev : new Set(prev).add(row.post_id)));
         })
       .on("postgres_changes",
         { event: "DELETE", schema: "public", table: "saved_posts", filter: `user_id=eq.${user.id}` },
         (payload) => {
-          const postId = payload.old?.post_id;
+          // old enthaelt bei RLS+DELETE nur { id } -- Aufloesung ueber idMapRef.
+          const rowId = payload.old?.id;
+          if (!rowId) return;
+          const postId = idMapRef.current.get(rowId);
           if (!postId) return;
+          idMapRef.current.delete(rowId);
           setSavedIds(prev => {
             if (!prev.has(postId)) return prev;
             const next = new Set(prev);
