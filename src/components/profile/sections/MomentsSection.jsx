@@ -5,6 +5,8 @@
 // Visitor: Read-only Grid. Empty-State statt null.
 // ══════════════════════════════════════════════════════════════════════
 import React from "react";
+import { useContentPreview } from "../../../context/ContentPreviewContext.jsx"; // OPEN.2 2026-07-08
+import { normalizePostForPreview } from "../../../lib/previewNormalizers.js";
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", ink:"#1A1A18",
@@ -26,6 +28,7 @@ export function MomentsSection({
   loading    = false,
   onAddMoment = null,
 }) {
+  const { open: openPreview } = useContentPreview();
   if (loading) {
     return (
       <div style={{ padding:`0 ${T.px}px` }}>
@@ -76,9 +79,11 @@ export function MomentsSection({
       ) : (
         <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:4 }}>
           {moments.slice(0,9).map((m,i) => (
-            <div key={m.id||i} className="ms-press" style={{
+            <div key={m.id||i} className="ms-press"
+              onClick={() => { const item = normalizePostForPreview(m, "moment"); if (item) openPreview(item); }}
+              style={{
               aspectRatio:"1", borderRadius:T.r12, overflow:"hidden",
-              background:"#e8e4de", position:"relative",
+              background:"#e8e4de", position:"relative", cursor:"pointer",
             }}>
               {m.src || m.media_url
                 ? <img src={m.src||m.media_url} alt=""

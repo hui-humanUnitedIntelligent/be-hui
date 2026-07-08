@@ -16,7 +16,7 @@ import { useRadiusFilter, radiusLabel } from "../hooks/useRadiusFilter.js"; // U
 import { HUIHeartIcon, HUIChatIcon } from "../design/icons/HuiInteractionIcons.jsx"; // ICON-SSOT 2026-07-08 -- ersetzt lokale Emoji-Badges (❤️/💬)
 import HuiLiveTicker from "../components/shared/HuiLiveTicker.jsx"; // LIVETICKER.1 2026-07-08 -- ersetzt LiveActivityBar (war Fake-Daten)
 import { useContentPreview } from "../context/ContentPreviewContext.jsx"; // OPEN.1 2026-07-08 -- geteilte Vorschau statt totem Tap / falschem Sprung
-import { normalizePostForPreview, normalizeProjectForPreview } from "../lib/previewNormalizers.js";
+import { normalizePostForPreview, normalizeProjectForPreview, normalizeWirkerForPreview } from "../lib/previewNormalizers.js";
 
 // ── Design Tokens ────────────────────────────────────────────────
 const T = {
@@ -2001,9 +2001,24 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
 
   const displayProjekte   = projekte.length > 0 ? projekte : SEED_PROJEKTE;
 
+  // Person/Wirker-Karte (OPEN.4 2026-07-08): sprang bisher IMMER direkt aufs
+  // Profil ohne jede Vorschau -- echte Luecke, da "alle Wirker" explizit zur
+  // einheitlichen Vorschau gehoeren. Jetzt: Vorschau zuerst, "Vollstaendige
+  // Ansicht" darin fuehrt zum Profil (bei echter UUID + Username), sonst
+  // (Seed-Karten) bleibt nur die Vorschau ohne Profil-Sprung.
   const handlePersonPress = useCallback((person) => {
+    const isRealId = person?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(person.id));
+    const item = normalizeWirkerForPreview(person);
+    if (item) {
+      openPreview({
+        ...item,
+        canOpenFull: isRealId && !!person.username,
+        fullPath: (isRealId && person.username) ? `/${person.username}` : null,
+      });
+      return;
+    }
     if (typeof onView === "function") onView(person.id || person.user_id);
-  }, [onView]);
+  }, [openPreview, onView]);
 
   // Werk-Karte: öffne Werk-Detailseite (nur bei echter DB-ID, nicht bei Seed-Daten)
   const handleWerkPress = useCallback((werk) => {
@@ -2046,14 +2061,27 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
 
   // Erlebnis-Karte: öffne ExperienceBookingFlow (Detail + Buchen)
   const handleErlebnisPress = useCallback((erlebnis) => {
+    const isRealId = erlebnis?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(erlebnis.id));
+    if (isRealId) {
+      // Discover laedt Erlebnisse in einer eigenen Anzeige-Form (cover statt
+      // cover_url, date/month statt echtem Datumsfeld) -- kleine Adapter-
+      // Zuordnung auf die Rohfeldnamen, die toFeedItem() erwartet, statt
+      // erneut eine eigene Normalisierung zu bauen.
+      const item = normalizePostForPreview({
+        id: erlebnis.id, user_id: erlebnis.user_id, title: erlebnis.title,
+        cover_url: erlebnis.cover, location_label: erlebnis.location,
+        created_at: erlebnis.created_at || null,
+      }, "experience");
+      if (item) { openPreview(item); return; }
+    }
+    // Seed-Karte (keine echte DB-Zeile): kein Normalizer moeglich, altes Verhalten als Fallback
     if (typeof onBook === "function") {
       onBook(erlebnis);
     } else {
-      // Fallback: Ersteller-Profil öffnen
       const profileId = erlebnis.user_id;
       if (profileId && typeof onView === "function") onView(profileId);
     }
-  }, [onBook, onView]);
+  }, [onBook, onView, openPreview]);
 
   // Projekt-Karte (OPEN.1, 2026-07-08): zeigte bisher IMMER nur die
   // allgemeine Impact-Seite, unabhaengig davon welches Projekt angetippt

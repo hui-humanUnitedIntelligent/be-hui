@@ -51,6 +51,25 @@ const LOADERS = {
     const row = await one(supabase.from("connections").select("*").eq("id", id));
     return row ? normalizeConnectionForPreview(row) : null;
   },
+  // OPEN.2 2026-07-08 -- Event/Moment/Post/Beitrag kommen alle aus derselben
+  // "beitraege"-Tabelle (siehe useFeedStream.js), unterschieden nur durch
+  // row.type -- toFeedItem() in normalizePostForPreview loest das bereits auf.
+  event: async (id) => {
+    const row = await one(supabase.from("beitraege").select("*").eq("id", id));
+    return row ? normalizePostForPreview(row, "event") : null;
+  },
+  moment: async (id) => {
+    const row = await one(supabase.from("beitraege").select("*").eq("id", id));
+    return row ? normalizePostForPreview(row, "moment") : null;
+  },
+  post: async (id) => {
+    const row = await one(supabase.from("beitraege").select("*").eq("id", id));
+    return row ? normalizePostForPreview(row, "moment") : null;
+  },
+  beitrag: async (id) => {
+    const row = await one(supabase.from("beitraege").select("*").eq("id", id));
+    return row ? normalizePostForPreview(row, "moment") : null;
+  },
 };
 
 export async function loadPreviewByRef(type, id) {

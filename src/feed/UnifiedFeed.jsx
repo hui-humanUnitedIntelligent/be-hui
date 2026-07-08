@@ -22,6 +22,8 @@ import { useAuth }             from "../lib/AuthContext.jsx";
 import { analyticsService }    from "../services/creatorEconomy.js";
 import { emit }                from "../lib/events/index.js";
 import { toast }               from "../lib/useToast.jsx";
+import { useContentPreview } from "../context/ContentPreviewContext.jsx"; // OPEN.2 2026-07-08
+import { normalizePostForPreview, normalizeProjectForPreview, normalizeWirkerForPreview } from "../lib/previewNormalizers.js";
 import { HUIBookmarkIcon }     from "../design/icons/HuiInteractionIcons.jsx";
 
 
@@ -461,6 +463,7 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
   // Detailseite, Profil und Gemerkte Inhalte zeigen so garantiert denselben
   // Zustand, optimistisch und live.
   const { isSaved, toggleSave } = useSavedPostsContext();
+  const { open: openPreview } = useContentPreview(); // OPEN.2 2026-07-08 -- Suche nutzt jetzt dieselbe Vorschau wie Feed/Discover/Profil
   const saved = isSaved(postId);
 
   const handleReaction = useCallback((type) => {
@@ -484,7 +487,7 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
     ...item,
     _reactions: {
       ...(item._reactions || {}),
-      touched:  myTypes?.has?.("like")    ?? false,
+      touched:  myTypes?.has?.("touch")   ?? false,
       inspired: myTypes?.has?.("inspire") ?? false,
       saved,
     },
@@ -906,7 +909,11 @@ function GroupedSearchResults({
             return (
               <SearchResultRow key={p.id} shape="circle" image={p.avatar_url}
                 title={name} subtitle={p.talent || p.location_label} query={query}
-                onPress={() => onProfile?.(p.id)} />
+                onPress={() => {
+                  const item = normalizeWirkerForPreview({ ...p, name });
+                  if (item) openPreview({ ...item, canOpenFull: !!p.username, fullPath: p.username ? `/${p.username}` : null });
+                  else onProfile?.(p.id);
+                }} />
             );
           })}
         </SearchGroupCard>
@@ -917,7 +924,10 @@ function GroupedSearchResults({
             <SearchResultRow key={p.id} shape="square" fallbackIcon={p.icon || "🌱"}
               tint={p.color ? `${p.color}1A` : `${SXR.coral}1A`}
               title={p.name} subtitle={p.category} query={query}
-              onPress={() => onProjectPress?.(p)} />
+              onPress={() => {
+                const item = normalizeProjectForPreview(p);
+                if (item) openPreview(item); else onProjectPress?.(p);
+              }} />
           ))}
         </SearchGroupCard>
       )}
@@ -927,7 +937,11 @@ function GroupedSearchResults({
             <SearchResultRow key={it.id} shape="square" fallbackIcon="🛠" tint={TEAL_TINT}
               image={firstMediaUrl(it)}
               title={it.title} subtitle={[it.author?.name, it._raw?.category].filter(Boolean).join(" · ")}
-              query={query} onPress={() => onDetail?.(it)} {...bookmarkProps(it, "work")} />
+              query={query} onPress={() => {
+                const item = normalizePostForPreview(it._raw || it, "work");
+                if (item) openPreview({ ...item, canOpenFull:true, fullPath:`/work/${it.id}` });
+                else onDetail?.(it);
+              }} {...bookmarkProps(it, "work")} />
           ))}
         </SearchGroupCard>
       )}
@@ -937,7 +951,10 @@ function GroupedSearchResults({
             <SearchResultRow key={it.id} shape="square" fallbackIcon="✨" tint={TEAL_TINT}
               image={firstMediaUrl(it)}
               title={it.title} subtitle={[it.author?.name, it._raw?.location_text].filter(Boolean).join(" · ")}
-              query={query} onPress={() => onBook?.(it)} {...bookmarkProps(it, "experience")} />
+              query={query} onPress={() => {
+                const item = normalizePostForPreview(it._raw || it, "experience");
+                if (item) openPreview(item); else onBook?.(it);
+              }} {...bookmarkProps(it, "experience")} />
           ))}
         </SearchGroupCard>
       )}
@@ -947,7 +964,10 @@ function GroupedSearchResults({
             <SearchResultRow key={it.id} shape="square" fallbackIcon="📅" tint={TEAL_TINT}
               image={firstMediaUrl(it)}
               title={it.title} subtitle={[it.author?.name, it.location].filter(Boolean).join(" · ")}
-              query={query} onPress={() => onEventPress?.(it)} {...bookmarkProps(it, "event")} />
+              query={query} onPress={() => {
+                const item = normalizePostForPreview(it._raw || it, "event");
+                if (item) openPreview(item); else onEventPress?.(it);
+              }} {...bookmarkProps(it, "event")} />
           ))}
         </SearchGroupCard>
       )}
@@ -957,7 +977,10 @@ function GroupedSearchResults({
             <SearchResultRow key={it.id} shape="square" fallbackIcon="📰" tint={TEAL_TINT}
               image={firstMediaUrl(it)}
               title={it.title} subtitle={it.author?.name}
-              query={query} onPress={() => onProfile?.(it.author?.id)} {...bookmarkProps(it, "post")} />
+              query={query} onPress={() => {
+                const item = normalizePostForPreview(it._raw || it, "moment");
+                if (item) openPreview(item); else onProfile?.(it.author?.id);
+              }} {...bookmarkProps(it, "post")} />
           ))}
         </SearchGroupCard>
       )}

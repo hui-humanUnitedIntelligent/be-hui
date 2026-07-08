@@ -6,6 +6,8 @@
 // Filter: Visitor sieht nur published/active/approved.
 // ══════════════════════════════════════════════════════════════════════
 import React from "react";
+import { useContentPreview } from "../../../context/ContentPreviewContext.jsx"; // OPEN.2 2026-07-08
+import { normalizePostForPreview } from "../../../lib/previewNormalizers.js";
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", ink:"#1A1A18",
@@ -46,6 +48,7 @@ export function ExperiencesSection({
   onAddExperience = null,
   onShowAll       = null,
 }) {
+  const { open: openPreview } = useContentPreview();
   const visible = isOwner
     ? experiences
     : experiences.filter(e => ["published","active","approved"].includes(e.status));
@@ -109,7 +112,9 @@ export function ExperiencesSection({
       ) : (
         <div className="es-hscroll" style={{ display:"flex", gap:10, padding:`0 ${T.px}px 4px` }}>
           {visible.slice(0,6).map((ex,i) => (
-            <div key={ex.id||i} className="es-press" style={{ flexShrink:0, width:110 }}>
+            <div key={ex.id||i} className="es-press"
+              onClick={() => { const item = normalizePostForPreview(ex, "experience"); if (item) openPreview(item); }}
+              style={{ flexShrink:0, width:110, cursor:"pointer" }}>
               <div style={{ width:110, height:100, borderRadius:T.r16, overflow:"hidden",
                 background:"linear-gradient(135deg,#2C3B2D,#8B7355)", marginBottom:6 }}>
                 {ex.cover_url

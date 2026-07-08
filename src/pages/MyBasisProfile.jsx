@@ -1055,23 +1055,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
                 setShowMerken(false);
                 switchTab("discover");
               }}
-              onOpenContent={(item) => {
-                setShowMerken(false);
-                // MERKLISTE.1: Werk hat eine echte Detailseite (/work/:id) --
-                // dort landet der Nutzer direkt, KEINE Kopie. Erlebnis/
-                // Veranstaltung/Beitrag haben appweit noch keine eigene
-                // Detailseite (bestehende Konvention: Feed-Erlebnis -> Werkekorb,
-                // Feed-Veranstaltung/Beitrag -> Autor-Profil, siehe Home.jsx
-                // onBook/onEventPress) -- gleiche Konvention hier statt einer
-                // neuen Kopie-Seite zu erfinden.
-                if (item.post_type === "work") {
-                  navigate(`/work/${item.post_id}`);
-                  return;
-                }
-                if (item.post_data?.user_id && typeof window !== "undefined" && window.__HUI_OPEN_PROFILE__) {
-                  window.__HUI_OPEN_PROFILE__(item.post_data.user_id);
-                }
-              }}
             />
           </div>
         </div>

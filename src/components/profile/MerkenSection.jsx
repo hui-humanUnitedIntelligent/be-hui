@@ -19,6 +19,7 @@ import { useAuth }       from "../../lib/AuthContext.jsx";
 import { supabase }      from "../../lib/supabaseClient.js";
 import { HUIBookmarkIcon } from "../../design/icons/HuiInteractionIcons.jsx";
 import { toast }         from "../../lib/useToast.jsx";
+import { useContentPreview } from "../../context/ContentPreviewContext.jsx"; // OPEN.2 2026-07-08 -- Merkliste oeffnet jetzt dieselbe Vorschau wie ueberall sonst, keine Direktnavigation mehr
 import { normalizeWorkRow, normalizeExperienceRow, normalizeMomentRow }
                           from "../../system/feed/unifiedNormalizer.js";
 
@@ -57,8 +58,9 @@ const FILTERS = [
   { key: "project",    label: "Projekte",   types: ["project"] },
 ];
 
-export default function MerkenSection({ onOpenProfile, onOpenDiscover, onOpenContent }) {
+export default function MerkenSection({ onOpenProfile, onOpenDiscover }) {
   const { user }          = useAuth();
+  const { openRef }       = useContentPreview();
   const [items,    setItems]    = React.useState([]);
   const [loading,  setLoading]  = React.useState(true);
   const [activeFilter, setActiveFilter] = React.useState("all");
@@ -197,8 +199,15 @@ export default function MerkenSection({ onOpenProfile, onOpenDiscover, onOpenCon
   };
 
   const handleOpen = (item) => {
-    if (onOpenContent) { onOpenContent(item); return; }
-    // Fallback (falls Parent noch nicht aktualisiert ist): Autor-Profil
+    // OPEN.2 2026-07-08: keine Direktnavigation/Kopie mehr -- die Merkliste
+    // oeffnet ab jetzt dieselbe ContentPreviewSheet wie Feed/Discover/Suche/
+    // Profil. openRef laedt die aktuellen Live-Daten per (type,id), da hier
+    // nur der post_data-Snapshot im Speicher liegt (siehe contentPreviewLoaders.js).
+    if (item.post_id && item.post_type) {
+      openRef({ type: item.post_type, id: item.post_id });
+      return;
+    }
+    // Fallback (z.B. unbekannter/fehlender Typ): Autor-Profil
     if (item.post_data?.user_id) onOpenProfile?.(item.post_data.user_id);
   };
 

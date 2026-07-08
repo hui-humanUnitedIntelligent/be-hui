@@ -4,11 +4,11 @@
 // REGEL: Kein direkter Supabase in UI-Unterokomponenten. Queries top-level.
 
 import { HUI } from "../design/hui.design.js";
-import { S } from "../core/hui.sources.js";
-import { IX } from "../design/hui.interaction.js";
 import { useHuiActions, A } from "../core/hui.actions.js";
 import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
+import { useContentPreview } from "../context/ContentPreviewContext.jsx"; // OPEN.3 2026-07-08 -- ContentPreviewSheet-Anbindung
+import { normalizePostForPreview, normalizeWirkerForPreview } from "../lib/previewNormalizers.js";
 
 /* ══════════════════════════════════════════════════════════════
    DESIGN TOKENS
@@ -614,18 +614,51 @@ function EmptyState({ onDiscover }) {
 ══════════════════════════════════════════════════════════════ */
 export default function FavoritesPage({ currentUser, onView, onImpact, onDiscover }) {
   const actions = useHuiActions();
+  const { open: openPreview } = useContentPreview();
 
+  // OPEN.3 2026-07-08 -- Bestandsanalyse-Fund: handleView sprang bisher IMMER
+  // aufs Autor-Profil (via onView aus Home.jsx), zusaetzlich loeste
+  // actions[A.OPEN_EXPERIENCE] parallel eine ZWEITE Profil-Navigation aus
+  // (globale Action-Semantik "Erlebnis oeffnen" = "Profil mit Highlight" --
+  // bewusst unveraendert gelassen, siehe hui.actions.js, das ist ausserhalb
+  // dieses Scopes). Beides ersetzt durch die appweite ContentPreviewSheet:
+  // erster Tap = Vorschau, "Vollstaendige Ansicht" darin fuer den Rest.
   const handleView = React.useCallback((item) => {
     const t = item?.type || "work_upload";
     if (t === "profile" || t === "talent" || item?.talent) {
-      actions[A.OPEN_PROFILE]?.({ creatorId: item?.id || item?.user_id, creator: item, source: S.FAVORITES });
+      const preview = normalizeWirkerForPreview({
+        id: item?.id || item?.user_id, name: item?.name, full_name: item?.full_name,
+        img: item?.img, bio: item?.bio, talent: item?.talent, location: item?.location,
+        user_id: item?.user_id || item?.id, created_at: item?.created_at,
+      });
+      if (preview) { openPreview(preview); return; }
     } else if (t === "experience" || t === "erlebnis") {
-      actions[A.OPEN_EXPERIENCE]?.({ experience: item, source: S.FAVORITES });
+      // Echte Erlebnisse tragen _raw (echte DB-Zeile aus experiences), MOCK_EXPERIENCES nicht.
+      const preview = item?._raw
+        ? normalizePostForPreview(item._raw, "experience")
+        : normalizePostForPreview({
+            id: item?.id, title: item?.title, description: item?.sub || null,
+            cover_url: item?.img, location_label: item?.date || null, created_at: item?._raw?.created_at,
+          }, "experience");
+      if (preview) { openPreview(preview); return; }
     } else {
-      actions[A.OPEN_WERK]?.({ werk: item });
+      // Werke: MOCK_WORKS hat keine echte DB-Zeile -- best-effort Vorschau
+      // ohne "Vollstaendige Ansicht" (kein echter Datensatz zum Verlinken).
+      const preview = item?._raw
+        ? normalizePostForPreview(item._raw, "work")
+        : (item?.id ? {
+            id: String(item.id), type: "work",
+            author: item.creator ? { id: null, name: item.creator, avatar: null } : null,
+            title: item.title || "Werk", text: null,
+            media: item.img ? [{ type:"image", url:item.img }] : [],
+            createdAt: null, location: null,
+            canOpenFull: false, fullPath: null, _raw: item,
+          } : null);
+      if (preview) { openPreview(preview); return; }
     }
+    // Fallback falls kein Normalizer griff (z.B. unerwarteter Shape)
     onView?.(item);
-  }, [actions, onView]);
+  }, [openPreview, onView]);
 
   const handleImpact = React.useCallback(() => {
     actions[A.GO_IMPACT]?.();

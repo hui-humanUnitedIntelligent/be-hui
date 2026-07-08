@@ -170,7 +170,7 @@ export default function ContentPreviewSheet({ item, loading, onClose }) {
 
   const reactions = {
     inspired: myTypes?.has?.("inspire") ?? false,
-    touched:  myTypes?.has?.("like")    ?? false, // bestehende App-Konvention (siehe UnifiedFeed.jsx)
+    touched:  myTypes?.has?.("touch")   ?? false,
     saved,
     inspireCount: counts?.inspire || null,
     touchCount:   counts?.like    || null,
@@ -184,7 +184,7 @@ export default function ContentPreviewSheet({ item, loading, onClose }) {
       className="cps-overlay"
       onClick={onClose}
       style={{
-        position:"fixed", inset:0, zIndex:9200, background:T.overlay,
+        position:"fixed", inset:0, zIndex:15000, background:T.overlay, // OPEN.2 2026-07-08: ueber allen In-Page-Drawern (max 10800), unter System-Gates (Auth 19000, Onboarding 17-18k, Toast 19500+)
         display:"flex", alignItems:"flex-end", justifyContent:"center",
       }}
     >

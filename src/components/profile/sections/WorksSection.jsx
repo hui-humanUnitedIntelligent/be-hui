@@ -8,6 +8,8 @@
 import React, { useState } from "react";
 import { supabase } from "../../../lib/supabaseClient.js";
 import { createPortal } from "react-dom";
+import { useContentPreview } from "../../../context/ContentPreviewContext.jsx"; // OPEN.2 2026-07-08
+import { normalizePostForPreview } from "../../../lib/previewNormalizers.js";
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", ink:"#1A1A18",
@@ -60,6 +62,7 @@ export function WorksSection({
   onShowAll  = null,   // () => void
 }) {
   const [confirmWork, setConfirmWork] = useState(null);
+  const { open: openPreview } = useContentPreview();
   // Visitor: nur freigegebene Werke
   const visible = isOwner
     ? works
@@ -158,8 +161,10 @@ export function WorksSection({
                 : "📝 Entwurf";
 
               return (
-                <div key={w.id || i} className="ws-press" style={{
-                  flexShrink:0, width:100, position:"relative", cursor: isOwner ? "pointer" : "default",
+                <div key={w.id || i} className="ws-press"
+                  onClick={() => { const item = normalizePostForPreview(w, "work"); if (item) openPreview(item); }}
+                  style={{
+                  flexShrink:0, width:100, position:"relative", cursor:"pointer",
                 }}>
                   <div style={{ width:100, height:100, borderRadius:T.r16, overflow:"hidden",
                     background:"linear-gradient(135deg,#2C3B2D,#4A6741)", boxShadow:T.card }}>
