@@ -375,7 +375,7 @@ function HomeInner() {
                   searchActive={searchState.active}
                   searchQuery={searchState.query}
                   typeFilter={searchState.typeFilter}
-                  categoryFilter={searchState.category}
+                  categoryFilters={searchState.categories}
                   radiusKm={searchState.radiusKm}
                   geo={searchState.geo}
                   onProfile={(userId) => {

@@ -932,9 +932,10 @@ export default function UnifiedFeed({
   searchActive   = false,
   searchQuery    = "",
   typeFilter     = null,
-  // "Alle Kategorien"-Feature (2026-07-06): Objekt aus src/lib/categories.js
-  // oder null. Wird 1:1 an useFeedStream durchgereicht.
-  categoryFilter = null,
+  // "Alle Kategorien"-Feature (2026-07-06); Mehrfachauswahl (2026-07-07):
+  // Array von Kategorie-Objekten aus src/lib/categories.js oder null/leer.
+  // Wird 1:1 an useFeedStream durchgereicht.
+  categoryFilters = null,
   // Umkreissuche (2026-07-06): radiusKm (Zahl oder "world") + geo ({lat,lng})
   // aus SearchCommandCenter/useRadiusFilter. Wird 1:1 an useFeedStream durchgereicht.
   radiusKm       = null,
@@ -958,7 +959,7 @@ export default function UnifiedFeed({
     searchPeople,
     searchProjects,
     searchGroups,
-  } = useFeedStream({ searchQuery, typeFilter, categoryFilter, radiusKm, geo });
+  } = useFeedStream({ searchQuery, typeFilter, categoryFilters, radiusKm, geo });
 
   // ── Bind refresh fn to parent (defensive) ──────────────────────────
   React.useEffect(() => {
@@ -1098,7 +1099,7 @@ export default function UnifiedFeed({
           <div style={{ padding:"48px 24px", textAlign:"center" }}>
             <div style={{ fontSize:26, marginBottom:8 }}>🔍</div>
             <div style={{ fontSize:13.5, color:"rgba(26,53,48,0.55)", fontWeight:500 }}>
-              Keine Ergebnisse für „{searchQuery || categoryFilter?.name || ""}"
+              Keine Ergebnisse für „{searchQuery || categoryFilters?.map(c => c.name).join(", ") || ""}"
             </div>
           </div>
         )}

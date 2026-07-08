@@ -292,6 +292,7 @@ async function fetchFeedPage(userId = null, cursors = null) {
 // Wiederverwendung statt Neuerstellung: nutzt exakt dieselben Tabellen,
 // Spalten-Sets und Normalizer wie fetchFeedPage() -- keine neue Datenquelle,
 // keine neue Kartenart. typeFilter: null (alle Typen) | "work" | "experience".
+import { getProfileCategoryLabels } from "../lib/categories.js";
 // categoryFilter: optionales Objekt aus src/lib/categories.js
 // ({name, keywords, ...}) -- Kategorie-Auswahl aus dem "Alle Kategorien"-
 // Bottom-Sheet. Wird als ZUSAETZLICHE, AND-verknuepfte OR-Bedingung an die
@@ -300,9 +301,15 @@ async function fetchFeedPage(userId = null, cursors = null) {
 // ausgewertet) -- dadurch funktioniert "Kategorie + Freitext gleichzeitig"
 // (z.B. Kategorie 'Musik' + Tippen von 'Konzert') genauso wie 'nur Kategorie'
 // (leerer Freitext, nur categoryFilter gesetzt).
-function buildCategoryOrExpr(categoryFilter, cols) {
-  if (!categoryFilter) return null;
-  const terms = [categoryFilter.name, ...(categoryFilter.keywords || [])].filter(Boolean);
+// categoryFilters: Array von Kategorie-Objekten aus src/lib/categories.js
+// (Mehrfachauswahl, 2026-07-07 "Kategorie-Chips global") -- mehrere
+// gleichzeitig ausgewaehlte Kategorien werden als EIN gemeinsamer OR-Block
+// behandelt (Treffer in IRGENDEINER der ausgewaehlten Kategorien reicht,
+// "Alle drei Kategorien werden beruecksichtigt").
+function buildCategoryOrExpr(categoryFilters, cols) {
+  const cats = Array.isArray(categoryFilters) ? categoryFilters.filter(Boolean) : [];
+  if (cats.length === 0) return null;
+  const terms = [...new Set(cats.flatMap(cat => [cat.name, ...(cat.keywords || [])]))].filter(Boolean);
   if (terms.length === 0) return null;
   return terms.flatMap(t => cols.map(c => `${c}.ilike.%${t}%`)).join(",");
 }
@@ -327,9 +334,12 @@ function buildCategoryOrExpr(categoryFilter, cols) {
 // Stattdessen deckt die Wirker-Suche (Name/Talent/Ort) den relevanten Fall ab
 // ("ich suche jemanden") vollstaendig ab -- keine zusaetzliche Baustelle ohne
 // echten Mehrwert (Feature-Freeze-Prinzip).
-async function fetchSearchResults(query, typeFilter = null, categoryFilter = null, radiusKm = null, geo = null) {
+async function fetchSearchResults(query, typeFilter = null, categoryFilters = null, radiusKm = null, geo = null) {
   const q = (query || "").trim();
-  const hasCategory = !!categoryFilter;
+  // Mehrfachauswahl (2026-07-07): categoryFilters ist ein Array. Defensive
+  // Normalisierung, falls irgendein Aufrufer noch ein einzelnes Objekt uebergibt.
+  const cats = Array.isArray(categoryFilters) ? categoryFilters.filter(Boolean) : (categoryFilters ? [categoryFilters] : []);
+  const hasCategory = cats.length > 0;
   const hasRadius = !!(geo && radiusKm && radiusKm !== "world");
   // hasGeo (2026-07-07, Wirker-Angebotsradius-Ticket): unabhaengig von hasRadius,
   // weil Bedingung 1 (Suchender liegt im ANGEBOTSRADIUS DES WIRKERS) auch bei
@@ -339,24 +349,52 @@ async function fetchSearchResults(query, typeFilter = null, categoryFilter = nul
   const hasGeo = !!geo;
   if (!q && !hasCategory && !hasRadius) return { items: [], people: [], projects: [] };
 
-  // Wirker + Projekte NUR bei getipptem Freitext (Vorgabe: "sobald der Nutzer
-  // beginnt zu tippen") -- reine Kategorie-/Radius-Browsing-Modi haben dafuer
-  // bereits eigene, etablierte UI (DiscoverPage-Umkreissuche), hier keine
-  // zweite Variante davon aufbauen.
-  const wantPeopleProjects = !!q;
+  // Wirker + Projekte bei getipptem Freitext ODER aktiver Kategorie-Auswahl
+  // (2026-07-07 erweitert -- Vorgabe: "Kategorie-Chips wirken gleichzeitig
+  // auf alle Inhaltstypen", Ticket-Beispiel zeigt Kategorie+Radius OHNE
+  // getippten Text). Reines Radius-Browsing OHNE Text/Kategorie triggert
+  // weiterhin NICHT diesen Zweig -- dafuer existiert bereits eine eigene,
+  // etablierte UI (DiscoverPage-Umkreissuche).
+  const wantPeopleProjects = !!q || hasCategory;
+
+  // Kategorie -> Wirker (2026-07-07): wirker_profiles.categories ist ein
+  // TEXT[]-Feld (strukturierte Auswahl aus ProfilBearbeitenModal.jsx), KEIN
+  // Freitext -- deshalb kein ILIKE wie bei Werken/Erlebnissen, sondern ein
+  // .overlaps()-Abgleich gegen die aus dem Kategorie-Baum abgeleiteten
+  // profile-Labels (getProfileCategoryLabels(), siehe categories.js).
+  // Ergebnis: eine Menge erlaubter user_ids, die als .in()-Filter an die
+  // eigentliche profiles-Query angehaengt wird (identisches Muster wie die
+  // Radius-.in()-Filter bei Werken/Erlebnissen/Veranstaltungen).
+  const wirkerCategoryPromise = (wantPeopleProjects && hasCategory)
+    ? (async () => {
+        const labels = [...new Set(cats.flatMap(cat => getProfileCategoryLabels(cat)))];
+        if (labels.length === 0) return new Set(); // Kategorie(n) ohne profile-Label -> keine Wirker-Treffer
+        const { data: wp } = await supabase.from("wirker_profiles")
+          .select("user_id")
+          .overlaps("categories", labels);
+        return new Set((wp || []).map(r => r.user_id));
+      })()
+    : Promise.resolve(null); // null = keine Kategorie-Einschraenkung aktiv
+
+  const projCatExpr = buildCategoryOrExpr(cats, ["name", "category"]);
+
   const peopleProjectsPromise = wantPeopleProjects
-    ? Promise.allSettled([
-        supabase.from("profiles")
+    ? (async () => {
+        const wirkerCategoryIds = await wirkerCategoryPromise;
+        let profilesSel = supabase.from("profiles")
           .select(IDENTITY_CONTRACT)
-          .eq("has_talent_profile", true)
-          .or(`display_name.ilike.%${q}%,talent.ilike.%${q}%,location_label.ilike.%${q}%`)
-          .limit(12),
-        supabase.from("impact_projects")
+          .eq("has_talent_profile", true);
+        if (q) profilesSel = profilesSel.or(`display_name.ilike.%${q}%,talent.ilike.%${q}%,location_label.ilike.%${q}%`);
+        if (wirkerCategoryIds) profilesSel = profilesSel.in("id", [...wirkerCategoryIds]);
+
+        let projectsSel = supabase.from("impact_projects")
           .select("id,name,category,icon,color,img_url,status,tags,awarded_eur")
-          .in("status", ["approved","nominated","active","funded","finished"])
-          .or(`name.ilike.%${q}%,category.ilike.%${q}%`)
-          .limit(8),
-      ])
+          .in("status", ["approved","nominated","active","funded","finished"]);
+        if (q) projectsSel = projectsSel.or(`name.ilike.%${q}%,category.ilike.%${q}%`);
+        if (projCatExpr) projectsSel = projectsSel.or(projCatExpr);
+
+        return Promise.allSettled([profilesSel.limit(12), projectsSel.limit(8)]);
+      })()
     : Promise.resolve(null);
 
   // ── Wirker-Angebotsradius (2026-07-07) ──────────────────────────────
@@ -402,11 +440,19 @@ async function fetchSearchResults(query, typeFilter = null, categoryFilter = nul
   // Standortkonzept -- bei aktivem Kategorie- ODER Radius-Filter bewusst
   // ausgeblendet (kein falsch-positives/fehlendes Matching), bei reiner
   // Freitextsuche weiterhin Teil der Ergebnisse.
-  const wantInvitations = !typeFilter && !hasCategory && !!(q || hasRadius);
-  const wantBeitraege   = !typeFilter && !hasCategory && !hasRadius && !!q;
+  // Kategorie ist jetzt (2026-07-07) ein gleichwertiger Ausloeser wie Text/
+  // Radius fuer Veranstaltungen UND Beitraege -- vorher wurden beide bei
+  // aktiver Kategorie bewusst ausgeblendet ("Sonderbehandlung"), das war
+  // exakt die Einschraenkung, die dieses Ticket aufheben soll. Beitraege
+  // bleiben weiterhin ohne eigenes Standortkonzept -- hasRadius alleine
+  // triggert sie nicht (unveraendert), Text/Kategorie hingegen schon.
+  const wantInvitations = !typeFilter && !!(q || hasRadius || hasCategory);
+  const wantBeitraege   = !typeFilter && !!(q || hasCategory);
 
-  const workCatExpr = buildCategoryOrExpr(categoryFilter, ["title","description","category"]);
-  const expCatExpr  = buildCategoryOrExpr(categoryFilter, ["title","description","category","location_text"]);
+  const workCatExpr = buildCategoryOrExpr(cats, ["title","description","category"]);
+  const expCatExpr  = buildCategoryOrExpr(cats, ["title","description","category","location_text"]);
+  const invCatExpr  = buildCategoryOrExpr(cats, ["title","text","location","city"]);
+  const beitrCatExpr= buildCategoryOrExpr(cats, ["caption"]);
 
   // Radius-RPCs VOR den eigentlichen Queries abfragen, damit ihre ids als
   // zusaetzlicher .in()-Filter angehaengt werden koennen.
@@ -432,9 +478,12 @@ async function fetchSearchResults(query, typeFilter = null, categoryFilter = nul
         let sel = supabase.from("works")
           .select("id,title,cover_url,media_url,category,description,caption,tags,price,for_sale,status,approval_status,user_id,creator_id,created_at")
           .eq("status", "published").eq("approval_status", "approved");
+        // Reihenfolge der Filterpipeline (Vorgabe 2026-07-07): 1. Suchbegriff,
+        // 2. Radius, 4. Kategorie(n) -- Bedingung 3 (Angebotsradius) betrifft
+        // ausschliesslich Wirker, siehe wirkerGeoPromise weiter unten.
         if (q) sel = sel.or(`title.ilike.%${q}%,description.ilike.%${q}%,category.ilike.%${q}%`);
-        if (workCatExpr) sel = sel.or(workCatExpr);
         if (hasRadius) sel = sel.in("id", [...workDistanceMap.keys()]);
+        if (workCatExpr) sel = sel.or(workCatExpr);
         return sel.order("created_at", { ascending: false }).limit(hasRadius ? 60 : 20);
       })()
     : Promise.resolve({ data: [] }));
@@ -444,16 +493,23 @@ async function fetchSearchResults(query, typeFilter = null, categoryFilter = nul
           .select("id,title,cover_url,media_url,category,description,price,duration,format,location_text,date,time_start,time_end,is_live,booking_mode,pricing_type,experience_type,participant_limit,max_participants,mood,mood_tags,social_energy,status,approval_status,visibility,user_id,created_at")
           .eq("status", "published").eq("approval_status", "approved");
         if (q) sel = sel.or(`title.ilike.%${q}%,description.ilike.%${q}%,location_text.ilike.%${q}%`);
-        if (expCatExpr) sel = sel.or(expCatExpr);
         if (hasRadius) sel = sel.in("id", [...expDistanceMap.keys()]);
+        if (expCatExpr) sel = sel.or(expCatExpr);
         return sel.order("created_at", { ascending: false }).limit(hasRadius ? 60 : 20);
       })()
     : Promise.resolve({ data: [] }));
   tasks.push(wantBeitraege
-    ? supabase.from("beitraege")
-        .select("id,user_id,src,type,caption,created_at")
-        .ilike("caption", `%${q}%`)
-        .order("created_at", { ascending: false }).limit(15)
+    ? (() => {
+        let sel = supabase.from("beitraege")
+          .select("id,user_id,src,type,caption,created_at");
+        // Beitraege haben kein eigenes category-Feld -- Kategorie matcht
+        // hier gegen die Caption (Freitext), exakt wie die uebrigen Typen
+        // per ILIKE gegen ihre jeweiligen Textspalten matchen ("sofern
+        // Kategorien vorhanden" -- Vorgabe, keine Kategorie-Spalte erfinden).
+        if (q) sel = sel.ilike("caption", `%${q}%`);
+        if (beitrCatExpr) sel = sel.or(beitrCatExpr);
+        return sel.order("created_at", { ascending: false }).limit(15);
+      })()
     : Promise.resolve({ data: [] }));
   tasks.push((wantInvitations && !(hasRadius && invDistanceMap?.__empty))
     ? (() => {
@@ -463,6 +519,7 @@ async function fetchSearchResults(query, typeFilter = null, categoryFilter = nul
           .gt("expires_at", new Date().toISOString());
         if (q) sel = sel.ilike("title", `%${q}%`);
         if (hasRadius) sel = sel.in("id", [...invDistanceMap.keys()]);
+        if (invCatExpr) sel = sel.or(invCatExpr);
         return sel.order("created_at", { ascending: false }).limit(hasRadius ? 30 : 10);
       })()
     : Promise.resolve({ data: [] }));
@@ -622,7 +679,7 @@ async function fetchSearchResults(query, typeFilter = null, categoryFilter = nul
   };
 }
 
-export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFilter = null, radiusKm = null, geo = null } = {}) {
+export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFilters = null, radiusKm = null, geo = null } = {}) {
   const { user } = useAuth();
 
   // ── SEARCH-MODE STATE — Search Experience 2.0 ─────────────────────────────
@@ -631,10 +688,12 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
   // des Hooks entscheiden, ob normale Items oder Suchergebnisse exportiert
   // werden. Kein Eingriff in cursorRef/prefetch/realtime.
   //
-  // categoryFilter (2026-07-06, "Alle Kategorien"-Feature): ein Objekt aus
-  // src/lib/categories.js ({name, keywords,...}) ODER null. Zaehlt genauso
-  // wie ein Freitext-Query als "isSearching" -- eine ausgewaehlte Kategorie
-  // ohne eingegebenen Suchtext soll den Feed sofort filtern (Vorgabe Lars).
+  // categoryFilters (2026-07-06, "Alle Kategorien"-Feature; 2026-07-07 auf
+  // Mehrfachauswahl erweitert): ein Array von Kategorie-Objekten aus
+  // src/lib/categories.js ({name, keywords,...}) ODER null/leer. Zaehlt
+  // genauso wie ein Freitext-Query als "isSearching" -- eine ausgewaehlte
+  // Kategorie ohne eingegebenen Suchtext soll den Feed sofort filtern
+  // (Vorgabe Lars).
   //
   // radiusKm/geo (Umkreissuche, 2026-07-06): ein konkret gewaehlter Radius
   // (nicht "world"/null) MIT bekanntem Standort zaehlt ebenfalls als
@@ -656,7 +715,9 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
   const [searchLoading,  setSearchLoading]  = useState(false);
   const searchAliveRef = useRef({ v: false });
   const hasRadius = !!(geo && radiusKm && radiusKm !== "world");
-  const isSearching = !!(searchQuery || "").trim() || !!categoryFilter || hasRadius;
+  const isSearching = !!(searchQuery || "").trim() || !!categoryFilters?.length || hasRadius;
+
+  const categoryKey = (categoryFilters || []).map(c => c?.id).filter(Boolean).sort().join(",");
 
   useEffect(() => {
     if (!isSearching) {
@@ -669,7 +730,7 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
     const alive = { v: true };
     searchAliveRef.current = alive;
     setSearchLoading(true);
-    fetchSearchResults(searchQuery, typeFilter, categoryFilter, radiusKm, geo)
+    fetchSearchResults(searchQuery, typeFilter, categoryFilters, radiusKm, geo)
       .then(({ items, people, projects, works, experiences, events, moments }) => {
         if (!alive.v) return;
         setSearchItems(items);
@@ -680,8 +741,11 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
       })
       .catch(() => { if (alive.v) setSearchLoading(false); });
     return () => { alive.v = false; };
+    // categoryKey statt der rohen categoryFilters-Arrayreferenz -- ein Array
+    // aus einer Mehrfachauswahl bekommt bei jedem Render eine neue Referenz,
+    // ein stabiler String verhindert unnoetige Refetches (2026-07-07).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery, typeFilter, categoryFilter?.slug, radiusKm, geo?.lat, geo?.lng]);
+  }, [searchQuery, typeFilter, categoryKey, radiusKm, geo?.lat, geo?.lng]);
 
   // ── State ──────────────────────────────────────────────────────────────────
   const [items,          setItems]          = useState([]);

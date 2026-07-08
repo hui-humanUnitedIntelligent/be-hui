@@ -237,6 +237,30 @@ function flattenNodes() {
   return out;
 }
 
+// Kategorie-Chips -> Wirker-Kategorien (2026-07-07, "Kategorie-Chips global"):
+// wirker_profiles.categories ist ein TEXT[]-Feld, dessen Werte exakt den
+// Labels von getFlowCategoryOptions("profile") entsprechen (das ist die
+// Werteliste, die ProfilBearbeitenModal.jsx im Talent-Tab als Auswahl
+// anbietet). Ein in der Suche ausgewaehlter Kategorie-Chip ist immer ein
+// PARENT-Knoten (FEATURED_CATEGORIES/"Alle Kategorien"-Grid zeigen nur
+// Parents) -- diese Funktion liefert alle dazu passenden profile-Labels
+// (der Parent selbst, falls er "profile" in appliesTo hat, PLUS jedes Child
+// mit appliesTo "profile"), damit die Suche per .overlaps() exakt gegen die
+// echten, bereits gespeicherten Werte matchen kann -- keine zweite/neue
+// Kategorienliste, reine Ableitung aus dem bestehenden Baum.
+export function getProfileCategoryLabels(catNode) {
+  if (!catNode) return [];
+  const out = [];
+  const consider = (node) => {
+    if (!node?.appliesTo?.includes("profile")) return;
+    const label = node.legacyValues?.[0] || node.name;
+    if (label && !out.includes(label)) out.push(label);
+  };
+  consider(catNode);
+  (catNode.children || []).forEach(consider);
+  return out;
+}
+
 // Client-seitige Filterung der Parent-LISTE (fuer das "Alle Kategorien"-
 // Bottom-Sheet) -- matcht jetzt zusaetzlich gegen Children/Legacy-Werte,
 // damit z.B. die Suche nach "Yoga" den Parent "Achtsamkeit" findet (mehr

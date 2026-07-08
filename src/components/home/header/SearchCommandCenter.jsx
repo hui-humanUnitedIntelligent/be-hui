@@ -279,7 +279,7 @@ function KiPanel({ onSelect, onClose }) {
 // "kein Overlay/Portal mehr"-Architekturentscheidung von Search Experience
 // 2.0 -- diese bezog sich ausschliesslich auf die SUCHERGEBNISSE (Feed),
 // die weiterhin inline im normalen Feed erscheinen, nie in einem Overlay.
-function AllCategoriesSheet({ sheetRef, phase, query, onQueryChange, onSelect, onClose }) {
+function AllCategoriesSheet({ sheetRef, phase, query, onQueryChange, onSelect, onClose, activeIds = [] }) {
   const results = searchCategories(query);
   const visible = phase === "visible";
 
@@ -366,17 +366,23 @@ function AllCategoriesSheet({ sheetRef, phase, query, onQueryChange, onSelect, o
             </div>
           ) : (
             <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:10 }}>
-              {results.map(cat => (
-                <button key={cat.id} className="dc-tag" onClick={()=>onSelect(cat)} style={{
-                  display:"flex", flexDirection:"column", alignItems:"center", gap:6,
-                  padding:"16px 6px 13px", borderRadius:16,
-                  background:`${cat.color}0A`, border:`1px solid ${cat.color}22`,
-                  cursor:"pointer", WebkitTapHighlightColor:"transparent",
-                }}>
-                  <span style={{ fontSize:22 }}>{cat.icon}</span>
-                  <span style={{ fontSize:11, fontWeight:600, letterSpacing:"-0.01em", color:cat.color, textAlign:"center", lineHeight:1.25 }}>{cat.name}</span>
-                </button>
-              ))}
+              {results.map(cat => {
+                const isActive = activeIds.includes(cat.id);
+                return (
+                  <button key={cat.id} className="dc-tag" onClick={()=>onSelect(cat)} style={{
+                    display:"flex", flexDirection:"column", alignItems:"center", gap:6,
+                    padding:"16px 6px 13px", borderRadius:16,
+                    background: isActive ? "#0EC4B8" : `${cat.color}0A`,
+                    border: isActive ? "1px solid #0EC4B8" : `1px solid ${cat.color}22`,
+                    cursor:"pointer", WebkitTapHighlightColor:"transparent",
+                    transition:"background .18s ease, border-color .18s ease, transform .18s ease",
+                    transform: isActive ? "scale(1.03)" : "scale(1)",
+                  }}>
+                    <span style={{ fontSize:22 }}>{isActive ? "✓" : cat.icon}</span>
+                    <span style={{ fontSize:11, fontWeight:600, letterSpacing:"-0.01em", color: isActive ? "#fff" : cat.color, textAlign:"center", lineHeight:1.25 }}>{cat.name}</span>
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
@@ -400,11 +406,15 @@ function AllCategoriesSheet({ sheetRef, phase, query, onQueryChange, onSelect, o
 //                                     bleiben sichtbar; der bestehende Feed
 //                                     (UnifiedFeed/useFeedStream) zeigt live
 //                                     gefilterte Ergebnisse.
-//   - activeCategory gesetzt       -> wie query nicht leer: Feed filtert live
+//   - activeCategories nicht leer   -> wie query nicht leer: Feed filtert live
 //                                     nach Kategorie-Keywords (siehe
 //                                     useFeedStream.js), unabhaengig vom
 //                                     freien Suchtext -- beides kann kombiniert
-//                                     werden (Kategorie UND Freitext gleichzeitig).
+//                                     werden (Kategorie(n) UND Freitext
+//                                     gleichzeitig). Mehrfachauswahl seit
+//                                     2026-07-07 -- mehrere Kategorien wirken
+//                                     als OR untereinander, UND-verknuepft
+//                                     mit Freitext/Radius.
 // Diese Komponente besitzt selbst KEINE Ergebnisdaten mehr -- sie meldet nur
 // {query, typeFilter, category, active} per onSearchStateChange nach oben
 // (Home.jsx), welches es an UnifiedFeed durchreicht. Single Source of Truth
@@ -437,7 +447,9 @@ export default function SearchCommandCenter({
   // "Alle Kategorien"-Feature (2026-07-06): ausgewaehlte Kategorie (Objekt aus
   // src/lib/categories.js) + Bottom-Sheet-Sichtbarkeit + eigenes Suchfeld
   // innerhalb des Sheets (rein clientseitige Filterung der Kategorie-Liste).
-  const [activeCategory,     setActiveCategory]     = useState(null);
+  // Mehrfachauswahl (2026-07-07, Ticket "Kategorie-Chips global"): mehrere
+  // Kategorien gleichzeitig aktiv statt nur einer.
+  const [activeCategories,   setActiveCategories]  = useState([]);
   const [showAllCategories,  setShowAllCategories]   = useState(false);
   const [categorySheetQuery, setCategorySheetQuery]  = useState("");
   const [sheetPhase,         setSheetPhase]          = useState("hidden"); // hidden|entering|visible|leaving
@@ -470,10 +482,12 @@ export default function SearchCommandCenter({
   // selbst, welche Inhalte er anzeigt (Query/Filter sind nur Parameter).
   useEffect(() => {
     onSearchStateChange?.({
-      query: debouncedQuery, typeFilter, category: activeCategory, active: open,
+      query: debouncedQuery, typeFilter, categories: activeCategories, active: open,
       radiusKm: radius.radiusKm, geo: radius.geo, isWorldwide: radius.isWorldwide,
     });
-  }, [debouncedQuery, typeFilter, activeCategory, open, radius.radiusKm, radius.geo, radius.isWorldwide]); // eslint-disable-line
+    // categoryKey statt Array-Referenz -- verhindert unnoetige Re-Emits bei jedem Render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedQuery, typeFilter, activeCategories.map(c=>c.id).join(","), open, radius.radiusKm, radius.geo, radius.isWorldwide]);
 
   // Verlauf speichern, sobald ein Suchbegriff kurz stabil war (kein Spam pro Tastendruck)
   useEffect(() => {
@@ -593,16 +607,30 @@ export default function SearchCommandCenter({
     setTypeFilter(prev => prev===f ? null : f);
   }
   // Kategorie-Auswahl (Schnellauswahl-Zeile UND "Alle Kategorien"-Grid nutzen
-  // denselben Handler -- ein Auswahlverhalten, keine Doppellogik). Vorgabe
-  // Lars: "Bottom Sheet schliesst sich weich. Kategorie erscheint oben als
-  // aktiver Filter. Feed filtert sofort live. Kein zusaetzlicher Button."
-  function selectCategory(cat){
-    setActiveCategory(prev => prev?.id===cat.id ? null : cat);
-    setShowAllCategories(false);
+  // denselben Handler -- ein Auswahlverhalten, keine Doppellogik). Mehrfach-
+  // auswahl (2026-07-07, Ticket "Kategorie-Chips global"): ein Tap schaltet
+  // die Kategorie in `activeCategories` an/aus (Toggle), statt sie als
+  // einzige aktive Kategorie zu ersetzen. Das Sheet schliesst sich beim
+  // Auswaehlen NICHT mehr automatisch -- bei Mehrfachauswahl soll man mehrere
+  // Kategorien hintereinander antippen koennen, ohne das Sheet neu zu oeffnen
+  // (Schliessen weiterhin ueber den expliziten ✕-Button im Sheet-Header).
+  function toggleCategory(cat){
+    setActiveCategories(prev =>
+      prev.some(c => c.id === cat.id) ? prev.filter(c => c.id !== cat.id) : [...prev, cat]
+    );
   }
-  function clearCategory(){ setActiveCategory(null); }
+  function removeCategory(id){
+    setActiveCategories(prev => prev.filter(c => c.id !== id));
+  }
 
-  const showCategoriesAndHistory = open && !query.trim() && !activeCategory;
+  const activeCategoryIds = activeCategories.map(c => c.id);
+  // Schnellauswahl-Zeile bleibt sichtbar, solange KEIN Freitext getippt wird --
+  // unabhaengig davon, ob bereits Kategorien aktiv sind (Vorgabe: "mehrere
+  // Kategorien sollen gleichzeitig auswaehlbar sein", die Zeile darf beim
+  // ersten Tap also nicht verschwinden). Aktive Chips heben sich direkt in
+  // derselben Zeile per Tuerkis-Highlighting ab (siehe unten) -- keine
+  // separate zweite Leiste noetig.
+  const showCategoriesAndHistory = open && !query.trim() && activeCategories.length === 0;
   const showFilters              = open; // Filter bleiben sichtbar, auch waehrend Live-Search
 
   // ── SEARCH-BAR — Visual Polish Pass: mehr Hoehe, weichere Rundung, kein
@@ -681,19 +709,34 @@ export default function SearchCommandCenter({
             : "opacity .22s cubic-bezier(.22,1,.36,1), transform .22s cubic-bezier(.22,1,.36,1)")
         : "none",
     }}>
-      {/* Aktive Kategorie -- ersetzt die Kategorien-Schnellauswahl, solange
-          eine Kategorie gewaehlt ist (Vorgabe: "erscheint oben als aktiver
-          Filter"). Feed filtert sofort live ueber onSearchStateChange. */}
-      {activeCategory && (
+      {/* Aktive Kategorien -- ersetzt die Kategorien-Schnellauswahl, solange
+          mindestens eine Kategorie gewaehlt ist. Mehrfachauswahl (2026-07-07):
+          jede aktive Kategorie ein eigener Tuerkis-Chip mit eigenem ✕; ein
+          "+ Kategorie"-Chip oeffnet das volle Sheet, um weitere hinzuzufuegen.
+          Feed filtert sofort live ueber onSearchStateChange. Bleibt sichtbar
+          auch waehrend getipptem Freitext -- Kategorie(n) + Text sollen sich
+          kombinieren lassen. */}
+      {activeCategories.length > 0 && (
         <div style={{marginBottom:16, animation:"hui-search-fade-in .22s cubic-bezier(.22,1,.36,1) both"}}>
-          <div style={{display:"inline-flex",alignItems:"center",gap:7,background:activeCategory.color,borderRadius:99,padding:"7px 8px 7px 14px",boxShadow:`0 4px 14px ${activeCategory.color}40`}}>
-            <span style={{fontSize:13}}>{activeCategory.icon}</span>
-            <span style={{fontSize:12.5,fontWeight:600,color:"#fff",letterSpacing:"-0.01em"}}>{activeCategory.name}</span>
-            <button className="dc-tag" onClick={clearCategory} style={{
-              width:18,height:18,borderRadius:"50%",background:"rgba(255,255,255,0.28)",
-              border:"none",display:"flex",alignItems:"center",justifyContent:"center",
-              cursor:"pointer",fontSize:8.5,color:"#fff",fontWeight:700,marginLeft:2,
-            }}>✕</button>
+          <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
+            {activeCategories.map(cat => (
+              <div key={cat.id} style={{display:"inline-flex",alignItems:"center",gap:7,background:"#0EC4B8",borderRadius:99,padding:"7px 8px 7px 14px",boxShadow:"0 4px 14px rgba(14,196,184,0.28)"}}>
+                <span style={{fontSize:13}}>{cat.icon}</span>
+                <span style={{fontSize:12.5,fontWeight:600,color:"#fff",letterSpacing:"-0.01em"}}>{cat.name}</span>
+                <button className="dc-tag" onClick={()=>removeCategory(cat.id)} style={{
+                  width:18,height:18,borderRadius:"50%",background:"rgba(255,255,255,0.28)",
+                  border:"none",display:"flex",alignItems:"center",justifyContent:"center",
+                  cursor:"pointer",fontSize:8.5,color:"#fff",fontWeight:700,marginLeft:2,
+                }}>✕</button>
+              </div>
+            ))}
+            <button className="dc-tag" onClick={()=>setShowAllCategories(true)} style={{
+              display:"flex",alignItems:"center",gap:4,flexShrink:0,
+              background:"rgba(26,53,48,0.035)",border:"1px solid rgba(26,53,48,0.07)",
+              borderRadius:99,padding:"7px 14px",cursor:"pointer",
+              fontSize:12,fontWeight:600,letterSpacing:"-0.01em",color:T.inkF,whiteSpace:"nowrap",
+              WebkitTapHighlightColor:"transparent",
+            }}>+ Kategorie</button>
           </div>
         </div>
       )}
@@ -703,7 +746,7 @@ export default function SearchCommandCenter({
         <div style={{marginBottom:20, animation:"hui-search-fade-in .22s cubic-bezier(.22,1,.36,1) both"}}>
           <div style={{display:"flex",gap:7,overflowX:"auto",paddingBottom:2,WebkitOverflowScrolling:"touch",scrollbarWidth:"none"}} className="dc-scroll">
             {FEATURED_CATEGORIES.map(cat=>(
-              <button key={cat.id} className="dc-tag" onClick={()=>selectCategory(cat)} style={{
+              <button key={cat.id} className="dc-tag" onClick={()=>toggleCategory(cat)} style={{
                 display:"flex",alignItems:"center",gap:5,flexShrink:0,
                 background:`${cat.color}0A`,border:`1px solid ${cat.color}22`,
                 borderRadius:99,padding:"7px 14px",cursor:"pointer",
@@ -864,8 +907,9 @@ export default function SearchCommandCenter({
           phase={sheetPhase}
           query={categorySheetQuery}
           onQueryChange={setCategorySheetQuery}
-          onSelect={selectCategory}
+          onSelect={toggleCategory}
           onClose={()=>setShowAllCategories(false)}
+          activeIds={activeCategoryIds}
         />
       )}
     </>
