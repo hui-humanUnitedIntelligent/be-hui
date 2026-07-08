@@ -513,12 +513,21 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
 // eigene, aus der Referenz uebernommene Gradient-Farbe IMMER -- aktiv/
 // inaktiv wird nicht mehr ueber Farbwechsel, sondern ueber Opacity + Scale
 // ausgedrueckt (Referenzgrafik gibt keine Toggle-Farbvariante vor).
-const RESONANZ_ARIA = { on: "Resonanz entfernen", off: "Resonanz geben" };
+// ARIA-Label je Interaktion (Toggle-Paar wo zutreffend) -- deckt alle 4
+// Icons der HUI Interaction Icon Library v1.0 ab, nicht nur Resonanz.
+const ACTION_ARIA = {
+  resonanz:    { on: "Resonanz entfernen",   off: "Resonanz geben" },
+  austauschen: { on: "Austausch beenden",    off: "Austauschen" },
+  merken:      { on: "Aus Merkliste entfernen", off: "Merken" },
+  weitergeben: { off: "Weitergeben" }, // kein Toggle -- einmalige Aktion
+};
 const ActionBtn = memo(function ActionBtn({
-  Icon, label, count, active, onClick, activeColor, variant, disabled
+  Icon, label, count, active, onClick, activeColor, variant, disabled, loading
 }) {
   const isResonanz = variant === "resonanz";
-  const ariaLabel = isResonanz ? (active ? RESONANZ_ARIA.on : RESONANZ_ARIA.off) : (label || undefined);
+  const ariaSpec = ACTION_ARIA[variant];
+  const ariaLabel = ariaSpec ? (active && ariaSpec.on ? ariaSpec.on : ariaSpec.off) : (label || undefined);
+  const isToggle = !!(ariaSpec && ariaSpec.on);
   const [scale, setScale] = useState(false);
   const [hover, setHover] = useState(false);
 
@@ -535,7 +544,7 @@ const ActionBtn = memo(function ActionBtn({
   const PRESS_SCALE = 1.03;
 
   function handleClick() {
-    if (disabled) return;
+    if (disabled || loading) return;
     setScale(true);
     setTimeout(() => setScale(false), PRESS_MS);
     onClick?.();
@@ -553,7 +562,8 @@ const ActionBtn = memo(function ActionBtn({
       onClick={handleClick}
       disabled={disabled}
       aria-label={ariaLabel}
-      aria-pressed={isResonanz ? !!active : undefined}
+      aria-pressed={isToggle ? !!active : undefined}
+      aria-busy={!!loading}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       style={{
@@ -569,7 +579,7 @@ const ActionBtn = memo(function ActionBtn({
         display: "flex", alignItems: "center", gap: 6,
         borderRadius: 12,
         touchAction: "manipulation",
-        minWidth: isResonanz ? 48 : 44, minHeight: isResonanz ? 48 : 44, justifyContent: "center",
+        minWidth: 48, minHeight: 48, justifyContent: "center", // alle 4 Icons: 48x48 Touchflaeche (A11y-Vorgabe)
         transform: scale ? `scale(${PRESS_SCALE})` : "scale(1)",
         transition: `transform ${PRESS_MS}ms cubic-bezier(0.16,1,0.3,1)`,
         willChange: "transform",
@@ -588,7 +598,7 @@ const ActionBtn = memo(function ActionBtn({
       <span style={{
         position: "relative", zIndex: 1,
         display: "flex", alignItems: "center", justifyContent: "center",
-        opacity: iconOpacity, color: col,
+        opacity: loading ? 0.5 : iconOpacity, color: col,
         // Premium-Finetuning 2026-07-05 (Lars): Icon-Reihe 4px tiefer gesetzt,
         // damit alle vier Icons (PNG + SVG, mit je eigenem visuellem
         // Schwerpunkt) auf einer gemeinsamen, vertikal zentrierten
@@ -599,7 +609,14 @@ const ActionBtn = memo(function ActionBtn({
       }}>
         {/* Premium-Finetuning Runde 3 2026-07-05 (Lars): 27px -> 31px, im
             geforderten 30-32px-Fenster fuer "noch etwas praesenter". */}
-        {Icon ? (isResonanz ? <Icon size={31} active={!!active} /> : <Icon size={31} />) : null}
+        {Icon ? <Icon size={31} active={!!active} /> : null}
+        {loading && (
+          <span aria-hidden="true" style={{
+            position: "absolute", inset: 0, borderRadius: "50%",
+            border: `2px solid ${col}`, borderTopColor: "transparent",
+            animation: "hui-icon-spin 700ms linear infinite",
+          }} />
+        )}
       </span>
       {(count != null || label) && (
         <span style={{
@@ -678,10 +695,10 @@ export const FeedActions = memo(function FeedActions({
                                     → Schwung-Pfeil nach Lars-Vorlage; onShare
                                     oeffnet bereits den Teilen-Flow)
               save    → Merken */}
-        <ActionBtn Icon={HUIHeartIcon}    count={r.inspireCount||null} active={r.inspired} activeColor={T.teal}  variant="resonanz" onClick={() => { haptic(r.inspired ? "selection" : "light"); onReaction?.("inspire"); }} />
-        <ActionBtn Icon={ExchangeIcon}     count={r.touchCount||null}   active={r.touched}  activeColor={T.teal}  onClick={() => onReaction?.("touch")}   />
-        <ActionBtn Icon={RecommendIcon}    onClick={onShare} />
-        <ActionBtn Icon={BookmarkKeepIcon} active={r.saved} activeColor={T.coral} variant="merken" onClick={() => onReaction?.("save")} />
+        <ActionBtn Icon={HUIHeartIcon}    count={r.inspireCount||null} active={r.inspired} activeColor={T.teal}  variant="resonanz"    onClick={() => { haptic(r.inspired ? "selection" : "light"); onReaction?.("inspire"); }} />
+        <ActionBtn Icon={ExchangeIcon}     count={r.touchCount||null}   active={r.touched}  activeColor={T.teal}  variant="austauschen" onClick={() => { haptic(r.touched ? "selection" : "light"); onReaction?.("touch"); }} />
+        <ActionBtn Icon={RecommendIcon}    activeColor={T.teal}  variant="weitergeben" onClick={() => { haptic("light"); onShare?.(); }} />
+        <ActionBtn Icon={BookmarkKeepIcon} active={r.saved} activeColor={T.coral} variant="merken"      onClick={() => { haptic(r.saved ? "selection" : "light"); onReaction?.("save"); }} />
         {extraActions || null}
       </div>
       {/* Resonanz-Zeile — "Maja und 18 weitere wurden inspiriert." */}

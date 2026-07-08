@@ -252,42 +252,61 @@ function RelatedCard({ werk, onClick }) {
 }
 
 /* ── Icon Buttons ───────────────────────────────────────────────────── */
-const RESONANZ_ARIA_DETAIL = { on: "Resonanz entfernen", off: "Resonanz geben" };
-function IconBtn({ Icon, label, active, color, onPress, disabled, variant }) {
+// ARIA-Label je Interaktion -- deckt alle 4 Icons der HUI Interaction Icon
+// Library v1.0 ab (nicht nur Resonanz), analog ACTION_ARIA in BaseFeedCard.jsx.
+const DETAIL_ARIA = {
+  resonanz:    { on: "Resonanz entfernen",   off: "Resonanz geben" },
+  austauschen: { on: "Kommentare schliessen", off: "Austauschen" },
+  merken:      { on: "Aus Merkliste entfernen", off: "Merken" },
+  weitergeben: { off: "Weitergeben" }, // kein Toggle -- einmalige Aktion
+};
+function IconBtn({ Icon, label, active, color, onPress, disabled, loading, variant }) {
   const [pressed, setPressed] = useState(false);
   const [hover, setHover] = useState(false);
   const isResonanz = variant === "resonanz";
+  const ariaSpec = DETAIL_ARIA[variant];
+  const isToggle = !!(ariaSpec && ariaSpec.on);
   // Genereller Tap-Feedback (alle 4 Icons) -- die Resonanz-spezifische
   // Aktivierungs-Animation (Puls + Lichtring) sitzt seit 2026-07-08 im
   // HUIHeartIcon selbst (active-Prop), nicht mehr hier als filter-Glow
-  // (filter widerspricht der Vorgabe "nur transform/opacity").
+  // (filter widerspricht der Vorgabe "nur transform/opacity"). Alle 4 Icons
+  // haben inzwischen ihre eigene, aber gleichwertige Aktivierungs-Animation
+  // eingebaut (siehe HuiInteractionIcons.jsx).
   const pressMs = isResonanz ? 150 : 300;
   const pressScale = isResonanz ? 1.08 : 1.25;
   const handleTap = () => {
-    if (disabled) return;
+    if (disabled || loading) return;
     setPressed(true);
     setTimeout(() => setPressed(false), pressMs);
     onPress?.();
   };
-  const ariaLabel = isResonanz ? (active ? RESONANZ_ARIA_DETAIL.on : RESONANZ_ARIA_DETAIL.off) : (label || undefined);
+  const ariaLabel = ariaSpec ? (active && ariaSpec.on ? ariaSpec.on : ariaSpec.off) : (label || undefined);
   // v2.0 Zustände — Icon-Form bleibt immer identisch, nur Opacity/Scale ändern sich.
-  const iconOpacity = disabled ? 0.28 : active ? 1 : hover ? 0.8 : 0.55;
+  const iconOpacity = disabled ? 0.28 : loading ? 0.5 : active ? 1 : hover ? 0.8 : 0.55;
   return (
     <button onClick={handleTap} disabled={disabled}
-      aria-label={ariaLabel} aria-pressed={isResonanz ? !!active : undefined}
+      aria-label={ariaLabel} aria-pressed={isToggle ? !!active : undefined}
+      aria-busy={!!loading}
       onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
       style={{ display:"flex", flexDirection:"column", alignItems:"center",
         gap:4, background:"none", border:"none",
         cursor: disabled ? "default" : "pointer",
         padding:"8px 12px", borderRadius:12,
-        minWidth: isResonanz ? 48 : undefined, minHeight: isResonanz ? 48 : undefined,
+        minWidth: 48, minHeight: 48, // alle 4 Icons: 48x48 Touchflaeche (A11y-Vorgabe)
         transform: pressed ? `scale(${pressScale})` : (hover && !disabled ? "scale(1.06)" : "scale(1)"),
         transition: pressed && isResonanz
           ? "transform 0.16s cubic-bezier(.22,1,.36,1)"
           : "transform 0.2s cubic-bezier(0.34,1.56,0.64,1)" }}>
-      <span style={{ display:"flex", opacity: iconOpacity, borderRadius:"50%", color: color || C.coral,
+      <span style={{ position:"relative", display:"flex", opacity: iconOpacity, borderRadius:"50%", color: color || C.coral,
         transition:"opacity 0.18s ease" }}>
-        {Icon ? (isResonanz ? <Icon size={24} active={!!active} /> : <Icon size={24} />) : null}
+        {Icon ? <Icon size={24} active={!!active} /> : null}
+        {loading && (
+          <span aria-hidden="true" style={{
+            position:"absolute", inset:-2, borderRadius:"50%",
+            border:`2px solid ${color || C.coral}`, borderTopColor:"transparent",
+            animation:"hui-icon-spin 700ms linear infinite",
+          }} />
+        )}
       </span>
       <span style={{ fontSize:10, fontWeight:600,
         color: active ? (color||C.coral) : C.muted }}>
@@ -656,20 +675,23 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
             label={commentCount > 0 ? String(commentCount) : "Austauschen"}
             active={showComments}
             color={C.teal}
-            onPress={() => setShowComments(s => !s)}
+            variant="austauschen"
+            onPress={() => { haptic("light"); setShowComments(s => !s); }}
           />
           <IconBtn
             Icon={RecommendIcon}
             label={shareOk ? "Kopiert!" : "Weitergeben"}
             active={shareOk}
             color={C.teal}
-            onPress={handleShare}
+            variant="weitergeben"
+            onPress={() => { haptic("light"); handleShare(); }}
           />
           <IconBtn
             Icon={BookmarkKeepIcon}
             label={saved ? "Gemerkt" : "Merken"}
             active={saved}
             color={C.gold}
+            variant="merken"
             onPress={handleSave}
           />
         </div>

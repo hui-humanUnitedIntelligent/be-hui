@@ -1,48 +1,26 @@
 /**
- * HUI Interaction Language v3.0 — Symbolik vor Formfeinschliff (2026-07-05)
+ * HUI Interaction Icon Library v1.0 (2026-07-08) — "Eine Designer-Hand"
  * ──────────────────────────────────────────────────────────────────────────
- * Single Source of Truth für die vier universellen HUI-Interaktionen.
+ * Single Source of Truth für alle vier universellen HUI-Interaktionen.
+ * Ersetzt v3.0 vollständig (siehe Block weiter unten für die neue DNA
+ * und Icon-Symbolik im Detail).
  *
- *   🌱 Resonanz    — "Das hat etwas in mir bewegt."     → Wertschätzung zeigen.
- *   🤝 Austauschen — "Ich möchte darüber sprechen."     → Verbindung schaffen.
- *   🔖 Merken      — "Ich komme später darauf zurück."  → Wissen bewahren.
- *   🔄 Empfehlen   — "Das könnte auch anderen guttun."  → Gutes weitergeben.
- *
- * v3 korrigiert einen Symbolik-Fehler aus v2: dort waren "Austauschen"
- * (abstrakte Pinwheel-Blobs) und "Empfehlen" (Rundbogen-Pfeil) zwar formal
- * sauber, aber NICHT sofort ohne Text verständlich — Austauschen wirkte wie
- * eine beliebige abstrakte Form statt "Begegnung zwischen Menschen", und
- * Empfehlen las sich wie "Aktualisieren/Sync" statt "etwas Wertvolles
- * weitergeben". v3 zeichnet beide Icons anhand der Symbolik neu, nach dem
- * Vergleich mehrerer Varianten direkt im Feed-Mockup:
- *
- *   - Austauschen: zwei klar erkennbare Personen-Silhouetten (Kopf +
- *     Schulter), einander zugewandt, mit einem kleinen Funken dazwischen —
- *     zeigt explizit "zwei Menschen im Kontakt", nicht nur eine abstrakte
- *     Form. Bewusst kein Herz (kein Herz-Einschnitt oben), keine klassische
- *     Sprechblase (keine Bubble-Kontur/kein Schwänzchen).
- *   - Empfehlen: offene Schale mit einem darüber schwebenden Glanz-Samen —
- *     knüpft an HUIs bestehende Schalen-/Gefäß-Metapher an (WerkeKorb:
- *     "handgefertigte Schale" als Sinnbild fürs Geben) und liest sich
- *     eindeutig als "ich biete dir etwas Kostbares an". Keine Kreisform,
- *     kein Pfeil-im-Kreis → keine Verwechslungsgefahr mit Reload/Sync.
- *   - Resonanz und Merken bleiben unverändert aus v2 (Symbolik dort bereits
- *     eindeutig: Spross = Wachstum/Bewegtsein, Lesezeichen = Aufbewahren).
+ *   ❤️ Resonanz    — "Das hat etwas in mir bewegt."        → HUIHeartIcon (Referenz)
+ *   💬 Austauschen — "Ich trete mit dir in den Austausch." → ExchangeIcon
+ *   🔖 Merken      — "Ich komme später darauf zurück."     → BookmarkKeepIcon
+ *   ➤ Weitergeben  — "Ich gebe diese Inspiration weiter."  → RecommendIcon
  *
  * Diese vier Komponenten sind die EINZIGE erlaubte Icon-Quelle für alle
  * Interaktions-Oberflächen (Feed, Werke, Erlebnisse, Beiträge, Detailseiten,
  * Mein HUI, Sammlungen, Empfehlungen, Suchergebnisse, Listen, Karten,
  * Benachrichtigungen). Keine zweite Icon-Sprache, keine lokalen Kopien.
  *
- * API (unverändert seit v1 — reiner visueller Pass, keine Call-Site-
- * Änderungen nötig): ResonanceIcon / ExchangeIcon / BookmarkKeepIcon /
- * RecommendIcon, jeweils Props { size = 24, className, style }.
- *
- * Zustände (Default/Hover/Pressed/Active/Disabled) werden bewusst NICHT in
- * der Icon-Geometrie selbst codiert (Form bleibt immer identisch), sondern
- * ausschließlich über die aufrufenden Button-Komponenten (ActionBtn in
- * BaseFeedCard.jsx, IconBtn in WorkDetailPage.jsx) via Opacity/Scale/
- * Disabled-Handling gesteuert.
+ * API (rein visueller Pass, keine Call-Site-Änderungen nötig):
+ * HUIHeartIcon / ExchangeIcon / BookmarkKeepIcon / RecommendIcon,
+ * jeweils Props { size = 24, active = false, className, style }.
+ * `active` steuert ausschließlich die eingebaute Aktivierungs-Animation
+ * (transform/opacity, ~300ms, GPU) — Farbe/Opacity je Zustand bleiben
+ * Aufgabe der aufrufenden Button-Komponente über CSS `color` (currentColor).
  */
 import React, { useState, useEffect, useRef } from "react";
 
@@ -150,150 +128,170 @@ export function HUIHeartIcon({ size = 24, active = false, className, style }) {
 // nicht bricht. Neue Call-Sites verwenden HUIHeartIcon direkt.
 export const ResonanceIcon = HUIHeartIcon;
 
-/* ── 2. Austauschen ── Zwei Figuren formen gemeinsam ein Herz ────────────
-   v4 (Lars-Vorlage, 2026-07-05): Formensprache 1:1 aus der bereitgestellten
-   Referenz übernommen, technisch für 20-24px optimiert (flach, ohne die
-   3D-Glanz-Hervorhebungen der Vorlage). Zwei fließende, einander
-   zugewandte Figuren (Kopf + geschwungener Körper) — der Zwischenraum
-   zwischen ihnen ergibt sich rein aus ihrer eigenen Silhouette zu einem
-   Herzen (kein aufgesetztes Herz-Element, keine zusätzliche Kontur).
-   Farben ausschließlich HUI-Türkis (links) und HUI-Korallen-Orange
-   (rechts), dezenter Verlauf wie in der Vorlage — keine neuen Farben. */
-export function ExchangeIcon({ size = 24, className, style }) {
-  const id = React.useId();
-  const left = `hui-exc-left-${id}`;
-  const right = `hui-exc-right-${id}`;
+/* ══════════════════════════════════════════════════════════════════════
+ * HUI Interaction Icon Library v1.0 (2026-07-08) — EINE Designer-Hand
+ * ──────────────────────────────────────────────────────────────────────
+ * Ersetzt v3.0 (Zwei-Personen-Silhouetten, Blitz, Gradient-Lesezeichen)
+ * vollstaendig. Ab sofort teilen sich ALLE VIER Icons dieselbe DNA:
+ *
+ *   - Reines Outline-Stroke-SVG, KEIN Fill, KEIN Gradient mehr
+ *   - currentColor (Farbe kommt ausschliesslich vom umschliessenden
+ *     Element -- Design Tokens, siehe ActionBtn/IconBtn "color"-Prop)
+ *   - Round Line Cap + Round Line Join
+ *   - Strichstaerke pro Groessen-Bucket identisch fuer alle 4 Icons
+ *     (ICON_STROKE_BY_SIZE, exakt dieselbe Tabelle wie beim HUIHeart-
+ *     Master) -- das ist der zentrale Hebel fuer "Optical Sizing":
+ *     kleine Groessen bekommen dickere Striche (bessere Lesbarkeit auf
+ *     16-20px), grosse Groessen duennere, feinere Striche.
+ *   - Referenz-Icon ist das HUIHeart (unveraendert) -- alle drei
+ *     folgenden Icons sind an dessen Bounding-Box (~17x16 im 24x24-Raster)
+ *     und Rundungs-Charakter angelehnt.
+ *
+ * Symbolik (verbindlich):
+ *   Resonanz    -- HUIHeart, unveraendert, Referenz-Icon.
+ *   Austauschen -- EINE einzelne, weiche Sprechblase (Stadium-Form,
+ *     keine Ecken, kleiner Schweif) -- "Ich trete mit dir in den
+ *     Austausch." Bewusst KEINE zwei Personen, keine Avatare, keine
+ *     Punkte/Ellipsen (waere zu nah an Material/Messenger-Ikonografie).
+ *   Weitergeben -- ein organischer Schwung-Pfeil (keine harte Gerade,
+ *     leichte Kurve) mit offenem Chevron-Pfeilkopf -- "Ich gebe diese
+ *     Inspiration weiter." Bewusst kein Blitz, kein Papierflieger, kein
+ *     Upload-Tray-Symbol.
+ *   Merken -- Lesezeichen/Tag-Silhouette mit weich geschwungener Kerbe
+ *     (Bezier-Kurven statt spitzem V) -- "der Bruder des HUIHeart".
+ *
+ * Animationen (alle: nur transform/opacity, ~300ms, ease-out, GPU):
+ *   Resonanz    -- Puls + auslaufender Lichtring (bereits vorhanden)
+ *   Austauschen -- Sprechblase "oeffnet" sich minimal (scaleX/Y-Bounce)
+ *   Weitergeben -- leichte Vorwaerts-Bewegung (translate laengs der
+ *     Pfeilrichtung, mit sanftem Rueckfedern)
+ *   Merken -- weiches "Einrasten" (Skalierung ueberschwingt leicht nach
+ *     unten dann zurueck, wie ein Clip der einrastet)
+ * ══════════════════════════════════════════════════════════════════════ */
+
+// Gemeinsame Strichstaerken-Tabelle -- IDENTISCH fuer alle 4 Icons, exakt
+// dieselben Bucket-Grenzen wie beim HUIHeart-Master (siehe HEART_VARIANTS).
+// Das ist die zentrale "gleiche Linienfuehrung ueber alle Groessen"-Regel.
+const ICON_STROKE_BY_SIZE = [
+  { max: 17, stroke: 2.4  },
+  { max: 21, stroke: 2.25 },
+  { max: 26, stroke: 2.1  },
+  { max: 36, stroke: 2.0  },
+  { max: 56, stroke: 2.0  },
+  { max: Infinity, stroke: 1.9 },
+];
+function pickIconStroke(size) {
+  for (const v of ICON_STROKE_BY_SIZE) if (size <= v.max) return v.stroke;
+  return ICON_STROKE_BY_SIZE[ICON_STROKE_BY_SIZE.length - 1].stroke;
+}
+
+let _iconCSSInjected = false;
+function injectIconFamilyCSS() {
+  if (_iconCSSInjected || typeof document === "undefined") return;
+  _iconCSSInjected = true;
+  const s = document.createElement("style");
+  s.textContent = `
+@keyframes hui-chat-open-in   { 0%{transform:scale(1,1);} 45%{transform:scale(1.08,0.92);} 100%{transform:scale(1,1);} }
+@keyframes hui-chat-open-out  { 0%{transform:scale(1,1);} 50%{transform:scale(0.95,1.03);} 100%{transform:scale(1,1);} }
+@keyframes hui-share-forward-in  { 0%{transform:translate(0,0);} 40%{transform:translate(2px,-2px);} 100%{transform:translate(0,0);} }
+@keyframes hui-share-forward-out { 0%{transform:translate(0,0);} 50%{transform:translate(-1px,1px);} 100%{transform:translate(0,0);} }
+@keyframes hui-bookmark-snap-in  { 0%{transform:scale(1);} 40%{transform:scale(0.9);} 70%{transform:scale(1.06);} 100%{transform:scale(1);} }
+@keyframes hui-bookmark-snap-out { 0%{transform:scale(1);} 50%{transform:scale(0.94);} 100%{transform:scale(1);} }
+@keyframes hui-icon-spin { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
+  `;
+  document.head.appendChild(s);
+}
+
+// Gemeinsamer Aktivierungs-Puls-Hook -- steuert nur WELCHE Animation
+// (in/out) gerade laeuft, jedes Icon bringt seinen eigenen Keyframe-Namen mit.
+function useActivationPulse(active) {
+  const prevActive = useRef(active);
+  const [pulse, setPulse] = useState(null);
+  useEffect(() => {
+    if (prevActive.current !== active) {
+      const dir = active ? "in" : "out";
+      setPulse(dir);
+      prevActive.current = active;
+      const t = setTimeout(() => setPulse(null), dir === "in" ? 320 : 280);
+      return () => clearTimeout(t);
+    }
+  }, [active]);
+  return pulse;
+}
+
+/* ── 2. Austauschen ── Einzelne weiche Sprechblase (Stadium + Schweif) ── */
+export function ExchangeIcon({ size = 24, active = false, className, style }) {
+  injectIconFamilyCSS();
+  const stroke = pickIconStroke(size);
+  const pulse = useActivationPulse(active);
   return (
     <svg
       width={size} height={size} viewBox="0 0 24 24" fill="none"
-      className={className} style={style} aria-hidden="true"
+      stroke="currentColor" strokeWidth={stroke}
+      strokeLinecap="round" strokeLinejoin="round"
+      className={className} aria-hidden="true"
+      style={{
+        transformOrigin: "12px 11px",
+        animation:
+          pulse === "in"  ? "hui-chat-open-in 320ms ease-out"  :
+          pulse === "out" ? "hui-chat-open-out 280ms ease-out" : "none",
+        ...style,
+      }}
     >
-      <defs>
-        <linearGradient id={left} x1="3" y1="7" x2="12" y2="19" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#2FDCC9" />
-          <stop offset="100%" stopColor="#0E8C82" />
-        </linearGradient>
-        <linearGradient id={right} x1="21" y1="7" x2="12" y2="19" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#FFB37A" />
-          <stop offset="100%" stopColor="#F2793F" />
-        </linearGradient>
-      </defs>
-      {/* Premium-Finetuning Runde 3 (2026-07-05, Lars Punkt 5 "Austauschen
-          minimal kraeftiger", +5-8%): Koepfe r 2.25->2.35, Koerper minimal
-          weiter verbreitert -- gemessen 37.0%->39.3% (+6.2%, im geforderten
-          Fenster). Silhouette bewusst unveraendert.
-          Linke Figur: Kopf + fließender Körper, dessen innere Kontur die
-          linke Herzhälfte bildet */}
-      <circle cx="6.65" cy="5.15" r="2.35" fill={`url(#${left})`} />
-      <path
-        d="M6.65 8.1C2.9 9.1 0.4 12.8 1.3 19.9C4.1 21.5 9.7 21.0 12.8 17.6
-           C10.6 15.1 7.2 12.8 8.6 9.2C7.9 8.7 7.3 8.4 6.65 8.1Z"
-        fill={`url(#${left})`}
-      />
-      {/* Rechte Figur: gespiegelt, teilt sich den Herz-Fußpunkt mit links */}
-      <circle cx="17.35" cy="5.15" r="2.35" fill={`url(#${right})`} />
-      <path
-        d="M17.35 8.1C21.1 9.1 23.6 12.8 22.7 19.9C19.9 21.5 14.3 21.0 11.2 17.6
-           C13.4 15.1 16.8 12.8 15.4 9.2C16.1 8.7 16.7 8.4 17.35 8.1Z"
-        fill={`url(#${right})`}
-      />
+      <path d="M8.5,4.5 L13.5,4.5 A5.5,5.5 0 0 1 13.5,15.5 L11.3,15.5 L9.4,19.5 L9,15.5 L8.5,15.5 A5.5,5.5 0 0 1 8.5,4.5 Z" />
     </svg>
   );
 }
 
-/* ── 3. Merken ── Lesezeichen, Farben nach Lars-Vorlage (2026-07-05) ────
-   v2 (Recolor): Silhouette unveraendert (bereits identisch zur Vorlage —
-   abgerundetes Rechteck oben, weiche V-Kerbe unten). Einziger Eingriff:
-   Farbverlauf von Teal-Navy auf das geforderte HUI-Tuerkis→Korallen-Orange
-   umgestellt, plus weicherer goldener Lichtpunkt mit sanftem Glow-Halo
-   (kein 3D-Glanz, keine Textur — reine Opacity-Ueberlagerung). */
-export function BookmarkKeepIcon({ size = 24, className, style }) {
-  const id = React.useId();
-  const ribbon = `hui-mrk-ribbon-${id}`;
-  const halo = `hui-mrk-halo-${id}`;
-  const dot = `hui-mrk-dot-${id}`;
+/* ── 3. Merken ── Lesezeichen/Tag mit weich geschwungener Kerbe ────────
+   "Bruder des HUIHeart": gleiche Strichstaerken-Logik, gleiche organische
+   Kurvenfuehrung (Bezier statt spitzem V) fuer die untere Kerbe. */
+export function BookmarkKeepIcon({ size = 24, active = false, className, style }) {
+  injectIconFamilyCSS();
+  const stroke = pickIconStroke(size);
+  const pulse = useActivationPulse(active);
   return (
     <svg
       width={size} height={size} viewBox="0 0 24 24" fill="none"
-      className={className} style={style} aria-hidden="true"
+      stroke="currentColor" strokeWidth={stroke}
+      strokeLinecap="round" strokeLinejoin="round"
+      className={className} aria-hidden="true"
+      style={{
+        transformOrigin: "12px 12px",
+        animation:
+          pulse === "in"  ? "hui-bookmark-snap-in 340ms ease-out"  :
+          pulse === "out" ? "hui-bookmark-snap-out 280ms ease-out" : "none",
+        ...style,
+      }}
     >
-      <defs>
-        <linearGradient id={ribbon} x1="5.2" y1="20.5" x2="18.8" y2="3.0" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#14C9B6" />
-          <stop offset="100%" stopColor="#F2793F" />
-        </linearGradient>
-        <radialGradient id={halo} cx="50%" cy="42%" r="60%">
-          <stop offset="0%" stopColor="#FFDD8C" stopOpacity="0.55" />
-          <stop offset="100%" stopColor="#FFDD8C" stopOpacity="0" />
-        </radialGradient>
-        <radialGradient id={dot} cx="50%" cy="32%" r="68%">
-          <stop offset="0%" stopColor="#FFDD8C" />
-          <stop offset="100%" stopColor="#F0A93C" />
-        </radialGradient>
-      </defs>
-      {/* Premium-Finetuning 2026-07-05 (Lars): Ribbon verbreitert (Breite
-          9.4->12.2 Einheiten) und Gold-Punkt vergroessert (r 2.05->2.3) --
-          gemessen per Pixel-Fuellgrad-Analyse von 28.3%->33.8% (+19.4%, im
-          geforderten 15-20%-Fenster). Silhouette (abgerundetes Rechteck +
-          weiche V-Kerbe) bewusst unveraendert, nur voller/kraeftiger. */}
-      <path
-        d="M6.6 4.0C6.6 3.0 7.42 2.2 8.4 2.2H15.6C16.58 2.2 17.4 3.0 17.4 4.0V20.7
-           C17.4 21.42 16.5 21.83 15.92 21.37L12.36 18.7
-           C12.14 18.53 11.86 18.53 11.64 18.7L8.08 21.37
-           C7.5 21.83 6.6 21.42 6.6 20.7V4.0Z"
-        fill={`url(#${ribbon})`} strokeLinejoin="round"
-      />
-      {/* Weicher Glow-Halo hinter dem Punkt — Licht "strahlt" dezent aus */}
-      <circle cx="12" cy="9.6" r="4.6" fill={`url(#${halo})`} />
-      <circle cx="12" cy="9.6" r="2.3" fill={`url(#${dot})`} />
+      <path d="M8.8,4 L15.2,4 A1.8,1.8 0 0 1 17,5.8 L17,17.8 C17,18.6 16.6,18.9 16.1,18.4 L12,14.6 L7.9,18.4 C7.4,18.9 7,18.6 7,17.8 L7,5.8 A1.8,1.8 0 0 1 8.8,4 Z" />
     </svg>
   );
 }
 
-/* ── 4. Weitergeben (ehem. "Empfehlen") ── Schwung-Pfeil nach Lars-Vorlage
-   (2026-07-05) ─────────────────────────────────────────────────────────
-   v4: Ersetzt die Schale+Samen-Metapher komplett durch die von Lars
-   vorgegebene Formensprache — ein schlanker, dynamischer Schwung, der aus
-   einer duennen Spur (Tuerkis) hochzieht und in eine Pfeilspitze mit
-   konkaver Kerbe (Korallen-Orange) muendet. Bewusst NICHT Social-Media/
-   Teilen/Export, sondern "das moechte ich an andere weitergeben" —
-   Bewegung nach vorne/oben statt Kreis oder Behaelter. Flach umgesetzt
-   (kein Glanzstreifen, keine 3D-Schattierung der Referenz), Farbverlauf
-   direkt Tuerkis→Korallen-Orange wie bei Austauschen/Merken. Funktions-
-   /Exportname RecommendIcon bewusst unveraendert gelassen (nur interne
-   Grafik + Copy geaendert) — keine Call-Site-Aenderungen in BaseFeedCard/
-   WorkDetailPage noetig. */
-export function RecommendIcon({ size = 24, className, style }) {
-  const id = React.useId();
-  const grad = `hui-fwd-grad-${id}`;
+/* ── 4. Weitergeben ── organischer Schwung-Pfeil + offener Chevron ─────
+   "Ich gebe diese Inspiration weiter." Bewusst kein Blitz/Papierflieger/
+   Upload-Tray -- ein universell lesbarer Vorwaerts-Pfeil mit weichem,
+   leicht geschwungenem Schaft statt einer harten Geraden. */
+export function RecommendIcon({ size = 24, active = false, className, style }) {
+  injectIconFamilyCSS();
+  const stroke = pickIconStroke(size);
+  const pulse = useActivationPulse(active);
   return (
     <svg
       width={size} height={size} viewBox="0 0 24 24" fill="none"
-      className={className} style={style} aria-hidden="true"
+      stroke="currentColor" strokeWidth={stroke}
+      strokeLinecap="round" strokeLinejoin="round"
+      className={className} aria-hidden="true"
+      style={{
+        animation:
+          pulse === "in"  ? "hui-share-forward-in 320ms ease-out"  :
+          pulse === "out" ? "hui-share-forward-out 280ms ease-out" : "none",
+        ...style,
+      }}
     >
-      <defs>
-        <linearGradient id={grad} x1="2" y1="20.5" x2="21.5" y2="2.5" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#14C9B6" />
-          <stop offset="100%" stopColor="#F2793F" />
-        </linearGradient>
-      </defs>
-      {/* Premium-Finetuning Runde 3 (2026-07-05, Lars Punkt 4 "Weitergeben
-          leicht verstaerken", nur minimal): 14.3%->15.5% Fuellgrad (+8.4%,
-          "minimal nacharbeiten"), damit knapp ueber dem offiziellen
-          Resonanz-Icon (15.1%) -- gleiche Wertigkeit erreicht, keine neue
-          Form, gleiche Grundform (Schwung + Pfeilspitze mit konkaver Kerbe). */}
-      <path
-        d="M1.4 21.3C7.9 20.0 14.1 13.5 17.7 6.6L21.2 8.9
-           C16.7 16.6 9.5 21.8 2.9 23.2C2.4 22.6 1.9 21.9 1.4 21.3Z"
-        fill={`url(#${grad})`}
-      />
-      {/* Pfeilspitze mit konkaver Kerbe (klassische "Weitergeben"-Spitze,
-          wie im Referenzbild) — Rueckkante wird zur Pfeilspitze hin
-          hineingezogen statt gerade zu verlaufen. */}
-      <path
-        d="M15.7 6.0L23.0 0.7L16.2 11.4Q20.9 7.5 15.7 6.0Z"
-        fill={`url(#${grad})`}
-      />
+      <path d="M5.5,18.5 C7.5,15.5 10,12.8 13,10.8 S15.7,8.6 17,7.5" />
+      <path d="M12.8,6.8 L17,7.5 L16,12.2" />
     </svg>
   );
 }
