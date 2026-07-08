@@ -1,5 +1,6 @@
 import React from "react";
 import BaseFeedCard from "./BaseFeedCard.jsx";
+import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
 
 const TEAL = "#0DC4B5";
 const INK  = "#1A1A2E";
@@ -7,6 +8,7 @@ const INK3 = "rgba(26,26,46,0.42)";
 
 export default function ExperienceContent({ item, onProfile, onReaction, onShare, onBook }) {
   if (!item) return null;
+  const { open } = useContentPreview(); // OPEN.1 2026-07-08 -- Karte oeffnet jetzt Vorschau statt nichts zu tun
 
   const title       = item.title || item.text || "";
   const desc        = item._raw?.description || item._raw?.caption || null;
@@ -27,7 +29,8 @@ export default function ExperienceContent({ item, onProfile, onReaction, onShare
   ].filter(Boolean);
 
   return (
-    <BaseFeedCard item={item} onProfile={onProfile} onReaction={onReaction} onShare={onShare}>
+    <BaseFeedCard item={item} onProfile={onProfile} onReaction={onReaction} onShare={onShare}
+      onCardClick={() => open(item)}>
 
       {/* Beschreibung */}
       {desc && (
@@ -62,7 +65,7 @@ export default function ExperienceContent({ item, onProfile, onReaction, onShare
         {/* Rechts: Teilnehmen-Button */}
         {onBook && (
           <button
-            onClick={() => onBook(item)}
+            onClick={(e) => { e.stopPropagation(); onBook(item); }}
             style={{
               flexShrink:0,
               display:"flex", alignItems:"center", gap:7,

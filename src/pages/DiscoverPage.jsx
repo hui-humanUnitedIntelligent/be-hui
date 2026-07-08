@@ -14,6 +14,9 @@ import TalentBookingFlow  from "../components/talents/TalentBookingFlow.jsx";
 import { searchPlaces, distanceKm } from "../lib/geocoding.js";
 import { useRadiusFilter, radiusLabel } from "../hooks/useRadiusFilter.js"; // Umkreissuche-Vereinheitlichung 2026-07-06 -- globaler Radius statt eigenem State
 import { HUIHeartIcon, HUIChatIcon } from "../design/icons/HuiInteractionIcons.jsx"; // ICON-SSOT 2026-07-08 -- ersetzt lokale Emoji-Badges (❤️/💬)
+import HuiLiveTicker from "../components/shared/HuiLiveTicker.jsx"; // LIVETICKER.1 2026-07-08 -- ersetzt LiveActivityBar (war Fake-Daten)
+import { useContentPreview } from "../context/ContentPreviewContext.jsx"; // OPEN.1 2026-07-08 -- geteilte Vorschau statt totem Tap / falschem Sprung
+import { normalizePostForPreview, normalizeProjectForPreview } from "../lib/previewNormalizers.js";
 
 // ── Design Tokens ────────────────────────────────────────────────
 const T = {
@@ -208,101 +211,17 @@ function DiscoverTitleBar({ view, onViewChange }) {
 }
 
 // ════════════════════════════════════════════════════════════════
-// 1b. LIVE ACTIVITY BAR — "Jetzt auf HUI"
+// 1b. LIVETICKER — "Jetzt auf HUI"
 // ════════════════════════════════════════════════════════════════
-const LIVE_ACTIVITIES = [
-  { id:"a1", avatar:"https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=80&q=80", name:"Sarah",  action:"hat einen Gemeinschaftsgarten gestartet", type:"Moment",   typeColor:"#16A34A", typeEmoji:"🌱", ago:"vor 2 Min"  },
-  { id:"a2", avatar:"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&q=80", name:"Jonas",  action:"sucht Mitgründer für ein Musikprojekt",   type:"Projekt",  typeColor:"#D97706", typeEmoji:"🎵", ago:"vor 5 Min"  },
-  { id:"a3", avatar:"https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&q=80", name:"Anna",   action:"hat ein neues Werk veröffentlicht",        type:"Werk",     typeColor:"#9333EA", typeEmoji:"🎨", ago:"vor 8 Min"  },
-  { id:"a4", avatar:null,                                                                       name:"HUI",   action:"Heute finden 6 Erlebnisse statt",         type:"Erlebnis", typeColor:"#0EC4B8", typeEmoji:"📅", ago:"vor 12 Min" },
-  { id:"a5", avatar:"https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&q=80", name:"Max",   action:"hat einen Workshop angekündigt",           type:"Workshop", typeColor:"#E8573A", typeEmoji:"✨", ago:"vor 15 Min" },
-];
-
-function ActivityCard({ act, idx, onPress }) {
-  const [imgErr, setImgErr] = useState(false);
-  const av = (!imgErr && act.avatar) ? act.avatar : null;
-  return (
-    <div className="dp-activity-card dp-press" onClick={() => onPress?.(act)} style={{
-      width:155, flexShrink:0,
-      background:"rgba(255,255,255,0.88)",
-      backdropFilter:"blur(12px)",
-      borderRadius:16,
-      border:"1px solid rgba(255,255,255,0.70)",
-      boxShadow:"0 2px 12px rgba(26,53,48,0.07)",
-      padding:"11px 11px 10px",
-      animationDelay:`${idx*60}ms`,
-      touchAction:"manipulation",
-      WebkitTapHighlightColor:"transparent",
-      display:"flex", flexDirection:"column", gap:8,
-    }}>
-      {/* Top: avatar + name + time */}
-      <div style={{ display:"flex", alignItems:"center", gap:7 }}>
-        <div style={{
-          width:28, height:28, borderRadius:"50%", flexShrink:0, overflow:"hidden",
-          background:av ? "transparent" : "rgba(14,196,184,0.15)",
-          display:"flex", alignItems:"center", justifyContent:"center",
-          border:"1.5px solid rgba(14,196,184,0.20)",
-        }}>
-          {av ? <img src={av} alt={act.name} onError={() => setImgErr(true)} style={{ width:"100%",height:"100%",objectFit:"cover" }}/> : <span style={{fontSize:12}}>👤</span>}
-        </div>
-        <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ fontSize:11, fontWeight:700, color:"#1A3530", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{act.name}</div>
-          <div style={{ fontSize:9.5, color:"rgba(26,53,48,0.40)", fontWeight:500 }}>{act.ago}</div>
-        </div>
-      </div>
-      {/* Action text */}
-      <div style={{
-        fontSize:11, color:"rgba(26,53,48,0.72)", lineHeight:1.4, fontWeight:400,
-        overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical",
-      }}>{act.action}</div>
-      {/* Type badge */}
-      <div style={{
-        alignSelf:"flex-start",
-        background:`${act.typeColor}18`,
-        color:act.typeColor,
-        borderRadius:99, padding:"2px 8px",
-        fontSize:9, fontWeight:700, letterSpacing:".03em",
-        display:"flex", alignItems:"center", gap:3,
-      }}>
-        <span>{act.typeEmoji}</span>{act.type}
-      </div>
-    </div>
-  );
-}
-
-function LiveActivityBar({ onPersonPress }) {
-  return (
-    <div style={{ padding:`4px 16px 14px`, marginBottom:0 }}>
-      <div style={{
-        background:"linear-gradient(135deg,rgba(14,196,184,0.05) 0%,rgba(232,87,58,0.03) 100%)",
-        border:"1px solid rgba(14,196,184,0.12)",
-        borderRadius:20, padding:"14px 0 14px 14px", overflow:"hidden",
-      }}>
-        {/* Header */}
-        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12, paddingRight:14 }}>
-          <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-            <div className="dp-live-dot" style={{ width:7,height:7,borderRadius:"50%",background:"#0EC4B8" }}/>
-            <span style={{ fontSize:14, fontWeight:800, color:"#1A3530", letterSpacing:"-0.03em" }}>Jetzt auf HUI</span>
-          </div>
-          <div style={{
-            background:"rgba(14,196,184,0.12)", border:"1px solid rgba(14,196,184,0.22)",
-            borderRadius:99, padding:"1px 7px",
-            fontSize:9, fontWeight:700, color:"#0EC4B8", letterSpacing:".04em",
-          }}>Live</div>
-          <div style={{ flex:1 }}/>
-          <span onClick={() => {
-            const el = document.querySelector("[data-dp-people]");
-            if (el) el.scrollIntoView({ behavior:"smooth" });
-          }} style={{ fontSize:11, color:"rgba(26,53,48,0.45)", fontWeight:500, paddingRight:14, cursor:"pointer" }}>Alles live →</span>
-        </div>
-        {/* Horizontal scroll */}
-        <div className="dp-hscroll" style={{ display:"flex", gap:8, paddingRight:14 }}>
-          {LIVE_ACTIVITIES.map((act, i) => <ActivityCard key={act.id} act={act} idx={i} onPress={onPersonPress}/>)}
-        </div>
-      </div>
-    </div>
-  );
-}
+// LIVETICKER.1 (2026-07-08, Lars): Die alte, komplett hartcodierte
+// LiveActivityBar/ActivityCard-Karte (Fake-Namen, Unsplash-Bilder,
+// erfundene "vor X Min"-Zeitstempel) wurde ersatzlos entfernt und durch
+// die appweit geteilte <HuiLiveTicker/>-Komponente ersetzt (siehe
+// src/components/shared/HuiLiveTicker.jsx + useLiveTicker-Hook). Zeigt
+// jetzt ausschliesslich echte, live aus der DB geladene Ereignisse.
+// Dieselbe Komponente ist auch im Entdecken-Tab (Home.jsx) eingehaengt --
+// EIN Liveticker, eine Datenquelle, zwei Anzeigeorte (siehe
+// LiveTickerContext.jsx fuer die geteilte Instanz).
 
 // ════════════════════════════════════════════════════════════════
 // HOME.2 (2026-07-08, Lars): Der komplette "Heute auf HUI entdecken"-
@@ -2042,6 +1961,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
 
   const displayMomente    = momente.length > 0 ? momente : SEED_MOMENTE;
   const navigate           = useNavigate();
+  const { open: openPreview } = useContentPreview(); // OPEN.1 2026-07-08
   const baseDisplayWerke      = werke.length > 0 ? werke : SEED_WERKE;
   const baseDisplayTalente    = talente.length > 0 ? talente : SEED_TALENTE;
   const baseDisplayErlebnisse = erlebnisse.length > 0 ? erlebnisse : SEED_ERLEBNISSE;
@@ -2092,10 +2012,13 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
     // Seed-IDs wie "w1","w2" sind keine UUIDs → kein Navigate
     const isRealId = werkId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(werkId));
     if (isRealId) {
-      navigate(`/work/${werkId}`);
+      // OPEN.1 (2026-07-08): erst Vorschau (einheitlich mit Feed), von dort
+      // aus "Vollstaendige Ansicht oeffnen" -> /work/:id (keine Funktion verloren)
+      const item = normalizePostForPreview(werk, "work");
+      if (item) openPreview({ ...item, canOpenFull:true, fullPath:`/work/${werkId}` });
     }
     // Seed-Karte: kein Navigate — kein "Werk nicht gefunden"
-  }, [navigate]);
+  }, [openPreview]);
 
   // Talent-Karte: Anmeldung/Registrierung erzwingen (useAuthGate), danach Anfrage-Modal öffnen.
   // Seed-Karten (keine echte UUID) öffnen nach Login bewusst kein Modal (kein echter Anbieter dahinter).
@@ -2112,11 +2035,14 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
     });
   }, [requireAuth]);
 
-  // Moment-Karte: erst Profil des Erstellers (kein separater Moment-Detail-View)
+  // Moment-Karte (OPEN.1, 2026-07-08): oeffnet jetzt die geteilte Vorschau
+  // des Moments selbst statt direkt zum Profil zu springen -- der bisherige
+  // Weg (Profil des Erstellers) ist ohne eigenen Moment-Detail-View durch
+  // die Vorschau ersetzt, die Titelbild/Text/Datum des Moments zeigt.
   const handleMomentPress = useCallback((moment) => {
-    const profileId = moment.user_id || moment.author?.id;
-    if (profileId && typeof onView === "function") onView(profileId);
-  }, [onView]);
+    const item = normalizePostForPreview({ ...moment, title: moment.caption }, "moment");
+    if (item) openPreview(item);
+  }, [openPreview]);
 
   // Erlebnis-Karte: öffne ExperienceBookingFlow (Detail + Buchen)
   const handleErlebnisPress = useCallback((erlebnis) => {
@@ -2129,20 +2055,18 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
     }
   }, [onBook, onView]);
 
-  // Projekt-Karte: öffne Impact-Seite (/impact)
+  // Projekt-Karte (OPEN.1, 2026-07-08): zeigte bisher IMMER nur die
+  // allgemeine Impact-Seite, unabhaengig davon welches Projekt angetippt
+  // wurde. Jetzt: Vorschau des konkreten Projekts (Name/Beschreibung/Bild);
+  // "Vollstaendige Ansicht" fuehrt weiterhin zur Impact-Seite (keine eigene
+  // Projekt-Detailroute vorhanden).
   const handleProjektPress = useCallback((projekt) => {
-    navigate("/impact");
-  }, [navigate]);
-
-  // ActivityCard → Profil öffnen (act.user_id wenn vorhanden, sonst People-Sektion)
-  const handleActivityPress = useCallback((act) => {
-    if (act?.user_id && typeof onView === "function") {
-      onView(act.user_id);
-    } else {
-      const el = document.querySelector("[data-dp-people]");
-      if (el) el.scrollIntoView({ behavior:"smooth" });
-    }
-  }, [onView]);
+    const item = normalizeProjectForPreview({
+      id: projekt.id, name: projekt.title, description: projekt.desc,
+      img_url: projekt.cover, category: projekt.cat, created_at: null,
+    });
+    if (item) openPreview(item);
+  }, [openPreview]);
 
   // SectionHead "Alle ansehen →" → scroll zum nächsten Marker
   const makeScrollHandler = useCallback((selector) => () => {
@@ -2164,7 +2088,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
       <DiscoverTitleBar view={view} onViewChange={setView} />
 
       {/* ── 1b. Live Activity Bar ── */}
-      <LiveActivityBar onPersonPress={handleActivityPress}/>
+      <HuiLiveTicker/>
 
       {/* ── 3. Menschen entdecken ── */}
       <PeopleSection

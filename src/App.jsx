@@ -9,6 +9,8 @@ import { OrbWorldProvider } from './context/OrbWorldContext.jsx'
 import { GuidanceProvider } from './components/guidance/GuidanceContext.jsx'
 import { RadiusProvider } from './context/RadiusContext.jsx' // Umkreissuche 2026-07-06 -- globaler Radius-Zustand (Single Source of Truth)
 import { SavedPostsProvider } from './context/SavedPostsContext.jsx' // Merken 2026-07-08 -- globaler saved_posts-Zustand (Single Source of Truth)
+import { LiveTickerProvider } from './context/LiveTickerContext.jsx' // LIVETICKER.1 2026-07-08 -- eine geteilte Datenquelle statt Doppel-Polling in Home+Entdecken-Tab
+import { ContentPreviewProvider } from './context/ContentPreviewContext.jsx' // OPEN.1 2026-07-08 -- eine geteilte Vorschau fuer jede Karte app-weit
 
 // ── EAGER: Auth-kritische Seiten (immer sofort gebraucht) ───────
 import LoginPage    from './pages/LoginPage'
@@ -643,11 +645,15 @@ export default function App() {
             <OrbWorldProvider>
       <RadiusProvider>
       <SavedPostsProvider>
+      <LiveTickerProvider>
+      <ContentPreviewProvider>
       <GuidanceProvider>
           <ErrorBoundary>
             <AppRoutes />
           </ErrorBoundary>
           </GuidanceProvider>
+      </ContentPreviewProvider>
+      </LiveTickerProvider>
       </SavedPostsProvider>
       </RadiusProvider>
       </OrbWorldProvider>

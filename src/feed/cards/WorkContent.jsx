@@ -1,5 +1,6 @@
 import React from "react";
 import BaseFeedCard from "./BaseFeedCard.jsx";
+import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
 
 const CORAL  = "#F47355";
 const ORANGE = "#F05A28";
@@ -28,10 +29,15 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
   const forSale  = item._raw?.for_sale;
   const isBuyable = forSale !== false;
 
-  // Karte antippen → WorkDetailPage (/work/:id)
-  const handleCardClick = onDetail
-    ? () => onDetail()
-    : undefined;
+  // OPEN.1 (2026-07-08): Karte antippen -> geteilte Vorschau (einheitlich
+  // mit allen anderen Feed-Typen). Von dort aus fuehrt "Vollstaendige
+  // Ansicht oeffnen" weiterhin zu /work/:id -- keine Funktion verloren.
+  const { open } = useContentPreview();
+  const handleCardClick = () => open({
+    ...item,
+    canOpenFull: true,
+    fullPath: `/work/${item.id}`,
+  });
 
   return (
     <BaseFeedCard

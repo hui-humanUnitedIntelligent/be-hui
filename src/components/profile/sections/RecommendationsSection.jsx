@@ -5,6 +5,8 @@
 // Visitor: Sterne-Rating + work_title. Empty-State statt null.
 // ══════════════════════════════════════════════════════════════════════
 import React from "react";
+import { useContentPreview } from "../../../context/ContentPreviewContext.jsx"; // OPEN.1 2026-07-08
+import { normalizeRecommendationForPreview } from "../../../lib/previewNormalizers.js";
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", ink:"#1A1A18",
@@ -36,6 +38,7 @@ export function RecommendationsSection({
   onAddRec        = null,
   onShowAll       = null,
 }) {
+  const { open: openPreview } = useContentPreview(); // OPEN.1 2026-07-08 -- Karten waren zuvor komplett tot (kein onClick)
   if (loading) {
     return (
       <div>
@@ -99,7 +102,9 @@ export function RecommendationsSection({
             const authorName   = rec.from_profile?.display_name || "Mitglied";
             const authorAvatar = rec.from_profile?.avatar_url   || null;
             return (
-            <div key={rec.id||i} style={{ flexShrink:0, width:210,
+            <div key={rec.id||i}
+              onClick={() => { const item = normalizeRecommendationForPreview(rec); if (item) openPreview(item); }}
+              style={{ flexShrink:0, width:210, cursor:"pointer",
               background:T.bgCard, borderRadius:T.r16,
               border:`1px solid ${T.border}`, padding:"14px 16px", boxShadow:T.card }}>
               <div style={{ fontSize:22, color:T.teal, marginBottom:6 }}>❝</div>
