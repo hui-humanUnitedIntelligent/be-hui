@@ -50,6 +50,8 @@ import MeineBuchungenModal      from "../components/studio/MeineBuchungenModal.j
 import StatistikenModal         from "../components/studio/StatistikenModal.jsx";
 import ProfilBearbeitenModal    from "../components/studio/ProfilBearbeitenModal.jsx";
 import { HUIBookmarkIcon }      from "../design/icons/HuiInteractionIcons.jsx";
+import { NotificationBadge }    from "../lib/useNotifications.jsx";
+import { useSavedPosts }        from "../lib/useReactions.jsx";
 
 // ── Design Tokens ────────────────────────────────────────────────
 const T = {
@@ -400,6 +402,10 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [showAmbModal,    setShowAmbModal]    = useState(false);
   const [showPublicPreview, setShowPublicPreview] = useState(false);
   const [showMerken,       setShowMerken]       = useState(false);
+  // MERKEN.3 (2026-07-08): Live-Zaehler fuer den Merken-Badge im Header --
+  // wiederverwendet useSavedPosts (bereits die Datenquelle von MerkenSection),
+  // keine zweite Berechnung/Query.
+  const { count: savedCount } = useSavedPosts();
   const [showSettings,    setShowSettings]    = useState(false);
   const [showStudio,        setShowStudio]        = useState(false);
   const [showResonanz,      setShowResonanz]      = useState(false);
@@ -738,14 +744,18 @@ export default function MyBasisProfile({ onClose, profileId }) {
               className="mbp-press-light"
               onClick={() => setShowMerken(true)}
               title="Gemerkt"
-              aria-label="Gemerkt"
+              aria-label={savedCount > 0 ? `Gemerkt, ${savedCount} gespeicherte Inhalte` : "Gemerkt"}
               style={{
                 width:34, height:34, borderRadius:"50%",
                 background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`,
                 display:"flex", alignItems:"center", justifyContent:"center",
                 color:T.ink, cursor:"pointer", touchAction:"manipulation", flexShrink:0,
+                position:"relative",
               }}
-            ><HUIBookmarkIcon size={18} /></button>
+            >
+              <HUIBookmarkIcon size={18} />
+              <NotificationBadge count={savedCount} />
+            </button>
             <button
               className="mbp-press-light"
               onClick={() => setShowPublicPreview(true)}

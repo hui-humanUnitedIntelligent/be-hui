@@ -173,6 +173,39 @@ export function useSavedPosts() {
       });
   }, [user?.id]);
 
+  // MERKEN.3 (2026-07-08) -- Live-Zaehler-Badge (Profil-Header etc.):
+  // Realtime auf saved_posts, damit savedIds.size appweit sofort aktuell
+  // ist, auch wenn das Merken auf einer anderen Seite/Komponente passiert
+  // (z.B. Feed -> Profil-Badge). Erfordert REPLICA IDENTITY FULL auf
+  // saved_posts (Migration 070), sonst fehlt user_id im DELETE-old-Record
+  // und der Filter greift nicht.
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel(`saved_posts_count:${user.id}`)
+      .on("postgres_changes",
+        { event: "INSERT", schema: "public", table: "saved_posts", filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          const postId = payload.new?.post_id;
+          if (!postId) return;
+          setSavedIds(prev => (prev.has(postId) ? prev : new Set(prev).add(postId)));
+        })
+      .on("postgres_changes",
+        { event: "DELETE", schema: "public", table: "saved_posts", filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          const postId = payload.old?.post_id;
+          if (!postId) return;
+          setSavedIds(prev => {
+            if (!prev.has(postId)) return prev;
+            const next = new Set(prev);
+            next.delete(postId);
+            return next;
+          });
+        })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user?.id]);
+
   const toggleSave = useCallback(async (postId, postType = "post", snapshot = {}) => {
     if (!user?.id) return;
     const isSaved = savedIds.has(postId);
@@ -210,5 +243,5 @@ export function useSavedPosts() {
     }
   }, [user?.id, savedIds]);
 
-  return { savedIds, toggleSave, isSaved: (id) => savedIds.has(id) };
+  return { savedIds, toggleSave, isSaved: (id) => savedIds.has(id), count: savedIds.size };
 }
