@@ -33,7 +33,9 @@ Beispiele:
 | `comments:{workId}` | `components/CommentSection.jsx` | INSERT comments | ✅ useEffect return | inline |
 | `works-feed` | `components/DiscoveryFeed.jsx` | INSERT works | ✅ useEffect return | feed list |
 | `chat-{chatId}` | `components/MeinHUI_SubPages.jsx` | INSERT messages | ✅ useEffect return | NachrichtenPage |
-| `stripe_impact_pool_realtime` | `hooks/useStripeImpactPool.js` | * stripe_impact_pool, INSERT stripe_impact_pool_events | ✅ useEffect return | `useStripeImpactPool()` |
+| `stripe_impact_pool_realtime` | `hooks/useStripeImpactPool.js` | * stripe_impact_pool, INSERT stripe_impact_pool_events | ✅ useEffect return | `useStripeImpactPool()`, `useLiveTicker()` |
+| `votes_rt_main` | `lib/realtime/votesRealtimeBus.js` | INSERT impact_votes | ✅ refcount + unsubscribe | `ImpactPage`, `useLiveTicker()` |
+| `hui_liveticker_rt` | `lib/realtime/livetickerRealtimeBus.js` | INSERT/UPDATE works, experiences, invitations, talents, impact_applications | ✅ refcount + unsubscribe | `useLiveTicker()` → `LiveTickerBar` |
 | `payout_{ambassadorId}` | `hooks/useAmbassadorPayout.js` | * stripe_payouts, * stripe_ambassador_commissions | ✅ useEffect return | `useAmbassadorPayout()` |
 
 ---

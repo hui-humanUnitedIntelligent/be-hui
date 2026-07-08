@@ -2,8 +2,9 @@
 // Alle Hooks + Logik identisch — nur Reihenfolge + Präsentation neu
 // ═══════════════════════════════════════════════════════════════════
 
-import { useStripeImpactPool } from '@/hooks/useStripeImpactPool';
 import ReactDOM from 'react-dom';
+import LiveTickerBar from '../components/liveticker/LiveTickerBar.jsx';
+import { subscribeVotesRealtime } from '../lib/realtime/votesRealtimeBus.js';
 import React from "react";
 import { ProfileService } from '../services/db';
 import { supabase } from "../lib/supabaseClient";
@@ -280,45 +281,6 @@ function useWeitereProjects() {
     return () => { dead = true; };
   }, []);
   return projects;
-}
-
-function useImpactActivities() {
-  const [acts, setActs] = React.useState([]);
-  React.useEffect(() => {
-    let dead = false;
-    const load = async () => {
-      try {
-        const { data:votes } = await supabase
-          .from("impact_votes")
-          .select("id,created_at,user_id,project_id")
-          .order("created_at", { ascending:false })
-          .limit(8);
-        if (dead || !votes?.length) return;
-        const uIds = [...new Set(votes.map(v => v.user_id).filter(Boolean))];
-        const pIds = [...new Set(votes.map(v => v.project_id).filter(Boolean))];
-        const [uRes, pRes] = await Promise.allSettled([
-          uIds.length ? ProfileService.getMany(uIds) // ProfileService v1.0
-                      : Promise.resolve({ data:[] }),
-          pIds.length ? supabase.from("impact_projects").select("id,name").in("id", pIds)
-                      : Promise.resolve({ data:[] }),
-        ]);
-        if (dead) return;
-        const uMap = Object.fromEntries((uRes.value?.data || []).map(u => [u.id, u]));
-        const pMap = Object.fromEntries((pRes.value?.data || []).map(p => [p.id, p]));
-        setActs(votes.map(v => ({
-          id:     v.id,
-          user:   uMap[v.user_id]?.display_name || "Jemand",
-          avatar: uMap[v.user_id]?.avatar_url || null,
-          proj:   pMap[v.project_id]?.name || "ein Projekt",
-          ago:    relTime(v.created_at),
-        })));
-      } catch { /* silent */ }
-    };
-    load();
-    const iv = setInterval(load, 30_000);
-    return () => { dead = true; clearInterval(iv); };
-  }, []);
-  return acts;
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -927,7 +889,6 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
   const transp     = useTransparenz();
   const payoutData = useLastPayout();
   const finanziert = useWeitereProjects();
-  const activities = useImpactActivities();
   const activeIds     = projects.map(p => p.id);
   const weitereHP     = useWeitereHerzensprojekte(activeIds);
   const approvedApps  = useApprovedApplications();
@@ -1010,37 +971,20 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
     return () => { dead = true; };
   }, [currentUser?.id]);
 
-  // ── Realtime: impact_votes → Stimmen sofort aktualisieren ──
+  // ── Realtime: impact_votes → Stimmen sofort aktualisieren (votes_rt_main Bus) ──
   React.useEffect(() => {
     if (!currentUser?.id) return;
-    const month = new Date().toISOString().slice(0,7);
-    // Realtime-Dedupe-Schutz (2026-07-08, systemweit, siehe useProfileLocations.js):
-    // existierenden Channel fuer diesen Topic wiederverwenden statt erneut zu
-    // subscriben -- verhindert "cannot add postgres_changes callbacks ... after
-    // subscribe()" bei gleichzeitigen Mounts fuer denselben Topic.
-    const topic = "votes_rt_main";
-    const existing = supabase.getChannels().find(c => c.topic === `realtime:${topic}`);
-    let sub = existing;
-    let createdHere = false;
-    if (!existing) {
-      sub = supabase.channel(topic)
-        .on("postgres_changes", { event: "INSERT", schema: "public", table: "impact_votes" },
-          (payload) => {
-            const v = payload.new;
-            if (!v) return;
-            // Eigene Stimme → userVotes aktualisieren
-            if (v.voter_id === currentUser.id && v.pool_month === month) {
-              setUserVotes(prev => [...prev, v]);
-            }
-            // Projektstimmen in Echtzeit hochzählen
-            setProjects(prev => prev.map(p =>
-              p.id === v.project_id ? { ...p, votes: (p.votes || 0) + 1 } : p
-            ));
-          })
-        .subscribe();
-      createdHere = true;
-    }
-    return () => { if (createdHere) supabase.removeChannel(sub); };
+    const month = new Date().toISOString().slice(0, 7);
+    return subscribeVotesRealtime((payload) => {
+      const v = payload.new;
+      if (!v) return;
+      if (v.voter_id === currentUser.id && v.pool_month === month) {
+        setUserVotes((prev) => [...prev, v]);
+      }
+      setProjects((prev) => prev.map((p) =>
+        p.id === v.project_id ? { ...p, votes: (p.votes || 0) + 1 } : p
+      ));
+    });
   }, [currentUser?.id]);
 
   // ── Persönliche Wirkung des Nutzers ──
@@ -1203,8 +1147,8 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
       {/* ══ 7 ── SO FUNKTIONIERT DER IMPACT POOL ════════════════ */}
       <MechanikErklaeung onInfo={() => setInfoModal("cycle")} />
 
-      {/* ══ 8 ── LIVE-TICKER (wenn Aktivitäten) ════════════════ */}
-      {activities.length > 0 && <LiveTicker activities={activities} />}
+      {/* ══ 8 ── LIVE-TICKER (zentrale Quelle: useLiveTicker) ══ */}
+      <LiveTickerBar variant="compact" title="Live-Aktivitäten im Impact Pool" />
 
       {/* ══ LETZTE AUSZAHLUNG ════════════════════════════════════ */}
       {payoutData.payout && (
@@ -1308,22 +1252,9 @@ function BigHero({ stats, pool }) {
         </div>
       </div>
 
-      {/* LIVE-Ticker unten */}
-      <div style={{
-        position:"relative", zIndex:2,
-        display:"flex", alignItems:"center", gap:8,
-        padding:"10px 22px",
-        background:"rgba(13,196,181,0.08)",
-        borderTop:`1px solid ${T.teal}20`,
-      }}>
-        <div style={{ display:"flex", alignItems:"center", gap:5, flexShrink:0 }}>
-          <div style={{ width:6, height:6, borderRadius:"50%", background:T.teal,
-            animation:"ipPulse 1.4s ease-in-out infinite" }}/>
-          <span style={{ fontSize:10, fontWeight:800, color:T.teal, letterSpacing:"0.1em" }}>LIVE</span>
-        </div>
-        <span style={{ fontSize:12, color:T.ink2 }}>
-          Der Impact Pool wächst gerade durch neue Buchungen
-        </span>
+      {/* LIVE-Ticker unten — zentrale Quelle: useLiveTicker */}
+      <div style={{ position:"relative", zIndex:2 }}>
+        <LiveTickerBar variant="hero-strip" />
       </div>
     </div>
   );
@@ -2534,52 +2465,7 @@ function HerzensprojektEmotional({ onPropose }) {
 }
 
 // ════════════════════════════════════════════════════════════════
-// 7. LIVE-TICKER (kompakt)
-// ════════════════════════════════════════════════════════════════
-function LiveTicker({ activities }) {
-  return (
-    <div style={{ padding:"16px 16px 0" }}>
-      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
-        <div style={{ width:7, height:7, borderRadius:"50%", background:T.teal,
-          animation:"ipPulse 1.4s ease-in-out infinite" }}/>
-        <h3 style={{ margin:0, fontSize:14, fontWeight:800, color:T.ink,
-          letterSpacing:"-0.01em" }}>Live-Aktivitäten im Impact Pool</h3>
-      </div>
-
-      <div style={{ background:T.surfaceHi, borderRadius:20,
-        boxShadow:S.card, border:`1px solid ${T.line}`, overflow:"hidden" }}>
-        {activities.slice(0,5).map((act, i) => (
-          <div key={act.id} style={{
-            display:"flex", alignItems:"center", gap:10,
-            padding:"11px 16px",
-            borderBottom: i < Math.min(activities.length,5)-1 ? `1px solid ${T.line}` : "none",
-            animation:"ipFade 0.28s ease both", animationDelay:`${i*0.04}s`,
-          }}>
-            <div style={{ width:28, height:28, borderRadius:"50%", flexShrink:0,
-              overflow:"hidden", background:`${T.teal}12`,
-              border:`1px solid ${T.teal}20`,
-              display:"flex", alignItems:"center", justifyContent:"center", fontSize:12 }}>
-              {act.avatar
-                ? <img src={act.avatar} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>
-                : "👤"
-              }
-            </div>
-            <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ fontSize:12, color:T.ink, lineHeight:1.4,
-                overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                <b>{act.user}</b> hat <b>{act.proj}</b> mit 1 Stimme unterstützt
-              </div>
-            </div>
-            <div style={{ fontSize:10, color:T.muted, flexShrink:0 }}>{act.ago}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ════════════════════════════════════════════════════════════════
-// 8. MECHANIK ERKLÄREN (weiter unten, klar + ruhig)
+// 7. MECHANIK ERKLÄREN (weiter unten, klar + ruhig)
 // ════════════════════════════════════════════════════════════════
 function MechanikErklaeung({ onInfo }) {
   return (
