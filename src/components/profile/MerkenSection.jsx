@@ -1,11 +1,14 @@
 // MerkenSection — Gespeicherte Inhalte im Mein-HUI-Profil
 // MERKEN.1B: verschoben aus CreatorDashboard (dead) → MyBasisProfile (produktiv)
-// Keine neue Logik — wiederverwendet: useSavedPosts, saved_posts Tabelle
+// MERKLISTE.1 (2026-07-08): Filter-Tabs + Realtime-Sync + typgerechte
+// Detailseiten-Navigation. Weiterhin keine neue Tabelle/Logik --
+// wiederverwendet saved_posts + useSavedPosts (siehe hui_060_...sql).
 import React from "react";
 import { useAuth }       from "../../lib/AuthContext.jsx";
 import { useSavedPosts } from "../../lib/useReactions.jsx";
 import { supabase }      from "../../lib/supabaseClient.js";
 import { HUIBookmarkIcon } from "../../design/icons/HuiInteractionIcons.jsx";
+import { toast }         from "../../lib/useToast.jsx";
 
 const T = {
   teal:   "#16D7C5",
@@ -19,19 +22,40 @@ const T = {
   r:      14,
 };
 
-export default function MerkenSection({ onOpenProfile, onOpenDiscover }) {
+// content_type -> Anzeige. wirker/project bewusst schon vorbereitet
+// (Auftrag: "optional vorbereiten"), auch wenn noch keine UI diese Typen
+// aktiv speichert -- MerkenSection muss sie nur sauber darstellen koennen.
+const TYPE_LABEL = {
+  work: "Werk", experience: "Erlebnis", post: "Beitrag", beitrag: "Beitrag",
+  event: "Veranstaltung", wirker: "Wirker", project: "Projekt",
+};
+const TYPE_ICON = {
+  work: "🎨", experience: "📅", event: "📅", wirker: "👤", project: "🌱",
+};
+
+// Filter-Tabs (Auftrag: Alle / Beiträge / Werke / Erlebnisse / Projekte)
+const FILTERS = [
+  { key: "all",        label: "Alle",       types: null },
+  { key: "post",       label: "Beiträge",   types: ["post", "beitrag"] },
+  { key: "work",       label: "Werke",      types: ["work"] },
+  { key: "experience", label: "Erlebnisse", types: ["experience", "event"] },
+  { key: "project",    label: "Projekte",   types: ["project"] },
+];
+
+export default function MerkenSection({ onOpenProfile, onOpenDiscover, onOpenContent }) {
   const { user }          = useAuth();
   const { toggleSave }    = useSavedPosts();
-  const [items,   setItems]   = React.useState([]);
-  const [loading, setLoading] = React.useState(true);
+  const [items,    setItems]    = React.useState([]);
+  const [loading,  setLoading]  = React.useState(true);
+  const [activeFilter, setActiveFilter] = React.useState("all");
 
-  React.useEffect(() => {
+  const fetchItems = React.useCallback(() => {
     if (!user?.id) return;
-    supabase
+    return supabase
       .from("saved_posts")
-      .select("post_id, post_type, post_data, created_at")
+      .select("post_id, post_type, post_data, saved_at")
       .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
+      .order("saved_at", { ascending: false })
       .limit(50)
       .then(({ data }) => {
         setItems(data || []);
@@ -39,17 +63,63 @@ export default function MerkenSection({ onOpenProfile, onOpenDiscover }) {
       });
   }, [user?.id]);
 
+  React.useEffect(() => { fetchItems(); }, [fetchItems]);
+
+  // MERKLISTE.1 — Realtime: sobald irgendwo (Feed, Detailseite, hier selbst)
+  // gemerkt/entfernt wird, aktualisiert sich diese Liste ohne manuellen
+  // Reload. Setzt voraus, dass saved_posts in der supabase_realtime
+  // Publication ist (Migration 069) -- ohne Migration bleibt es beim
+  // bisherigen Verhalten (Liste laedt beim Oeffnen frisch).
+  React.useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel(`saved_posts:${user.id}`)
+      .on("postgres_changes",
+        { event: "INSERT", schema: "public", table: "saved_posts", filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          const row = payload.new;
+          if (!row) return;
+          setItems(prev => prev.some(i => i.post_id === row.post_id) ? prev : [row, ...prev]);
+        })
+      .on("postgres_changes",
+        { event: "DELETE", schema: "public", table: "saved_posts", filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          const row = payload.old;
+          if (!row) return;
+          setItems(prev => prev.filter(i => i.post_id !== row.post_id));
+        })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user?.id]);
+
   const handleRemove = async (postId) => {
-    await toggleSave(postId);
+    // Optimistic zuerst (fuehlt sich sofort an), DB-Write danach
     setItems(prev => prev.filter(i => i.post_id !== postId));
+    await toggleSave(postId);
+    toast.info("Aus Merkliste entfernt", { duration: 1800 });
   };
 
-  const TYPE_LABEL = { work: "Werk", experience: "Erlebnis", post: "Beitrag", beitrag: "Beitrag" };
+  const handleOpen = (item) => {
+    if (onOpenContent) { onOpenContent(item); return; }
+    // Fallback (falls Parent noch nicht aktualisiert ist): Autor-Profil
+    if (item.post_data?.user_id) onOpenProfile?.(item.post_data.user_id);
+  };
+
   const getLabel   = (type) => TYPE_LABEL[type] || "Inhalt";
   const getCover   = (item) => { const d = item.post_data || {}; return d.cover_url || d.cover || d.src || d.image || d.avatar_url || null; };
   const getTitle   = (item) => { const d = item.post_data || {}; return d.title || d.caption || d.name || "Gespeicherter Inhalt"; };
   const getCreator = (item) => { const d = item.post_data || {}; return d.author_name || d.creator_name || d.display_name || d.username || null; };
   const formatDate = (iso)  => { if (!iso) return ""; const d = new Date(iso); return d.toLocaleDateString("de-DE", { day:"numeric", month:"short", year:"numeric" }); };
+
+  const filtered = React.useMemo(() => {
+    const f = FILTERS.find(f => f.key === activeFilter);
+    if (!f || !f.types) return items;
+    return items.filter(i => f.types.includes(i.post_type));
+  }, [items, activeFilter]);
+
+  // Filter-Tabs nur zeigen, wenn ueberhaupt gespeicherte Inhalte existieren
+  // (Auftrag: Empty-State bleibt unveraendert, bis der erste Inhalt da ist)
+  const showFilters = items.length > 0;
 
   if (loading) {
     return (
@@ -91,12 +161,37 @@ export default function MerkenSection({ onOpenProfile, onOpenDiscover }) {
 
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-      {items.map((item, idx) => {
+      {showFilters && (
+        <div style={{
+          display:"flex", gap:6, overflowX:"auto", paddingBottom:2,
+          WebkitOverflowScrolling:"touch", scrollbarWidth:"none",
+        }}>
+          {FILTERS.map(f => {
+            const active = activeFilter === f.key;
+            return (
+              <button
+                key={f.key}
+                onClick={() => setActiveFilter(f.key)}
+                style={{
+                  flexShrink:0, padding:"6px 14px", borderRadius:20,
+                  background: active ? T.teal : "rgba(26,26,46,0.05)",
+                  border: `1px solid ${active ? T.teal : T.border}`,
+                  color: active ? "#fff" : T.soft,
+                  fontSize:12.5, fontWeight:700, cursor:"pointer",
+                  touchAction:"manipulation", whiteSpace:"nowrap",
+                }}
+              >{f.label}</button>
+            );
+          })}
+        </div>
+      )}
+
+      {filtered.map((item) => {
         const cover   = getCover(item);
         const title   = getTitle(item);
         const creator = getCreator(item);
         const label   = getLabel(item.post_type);
-        const date    = formatDate(item.created_at);
+        const date    = formatDate(item.saved_at);
 
         return (
           <div
@@ -110,24 +205,24 @@ export default function MerkenSection({ onOpenProfile, onOpenDiscover }) {
               padding:"12px 14px",
             }}
           >
-            {/* Cover */}
-            <div style={{
-              width:50, height:50, borderRadius:12, flexShrink:0,
-              background: cover ? "transparent" : `linear-gradient(135deg,${T.teal}22,${T.coral}18)`,
-              overflow:"hidden",
-              display:"flex", alignItems:"center", justifyContent:"center",
-            }}>
+            {/* Cover — Tap oeffnet die jeweilige Detailseite (kein Kopie-Screen) */}
+            <div
+              onClick={() => handleOpen(item)}
+              style={{
+                width:50, height:50, borderRadius:12, flexShrink:0,
+                background: cover ? "transparent" : `linear-gradient(135deg,${T.teal}22,${T.coral}18)`,
+                overflow:"hidden", cursor:"pointer",
+                display:"flex", alignItems:"center", justifyContent:"center",
+              }}>
               {cover
                 ? <img src={cover} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}
                     onError={e => { e.target.style.display="none"; }} />
-                : <span style={{ fontSize:20 }}>
-                    {item.post_type === "experience" ? "📅" : item.post_type === "work" ? "🎨" : "🌿"}
-                  </span>
+                : <span style={{ fontSize:20 }}>{TYPE_ICON[item.post_type] || "🌿"}</span>
               }
             </div>
 
             {/* Info */}
-            <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ flex:1, minWidth:0, cursor:"pointer" }} onClick={() => handleOpen(item)}>
               <div style={{
                 fontSize:13, fontWeight:700, color:T.ink,
                 overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
@@ -149,17 +244,15 @@ export default function MerkenSection({ onOpenProfile, onOpenDiscover }) {
 
             {/* Aktionen */}
             <div style={{ display:"flex", flexDirection:"column", gap:6, flexShrink:0 }}>
-              {item.post_data?.user_id && (
-                <button
-                  onClick={() => onOpenProfile?.(item.post_data.user_id)}
-                  style={{
-                    padding:"5px 10px", borderRadius:10,
-                    background:`${T.teal}15`, border:`1px solid ${T.teal}30`,
-                    color:T.teal, fontSize:11, fontWeight:700, cursor:"pointer",
-                    whiteSpace:"nowrap", touchAction:"manipulation",
-                  }}
-                >Öffnen</button>
-              )}
+              <button
+                onClick={() => handleOpen(item)}
+                style={{
+                  padding:"5px 10px", borderRadius:10,
+                  background:`${T.teal}15`, border:`1px solid ${T.teal}30`,
+                  color:T.teal, fontSize:11, fontWeight:700, cursor:"pointer",
+                  whiteSpace:"nowrap", touchAction:"manipulation",
+                }}
+              >Öffnen</button>
               <button
                 onClick={() => handleRemove(item.post_id)}
                 style={{
@@ -176,4 +269,3 @@ export default function MerkenSection({ onOpenProfile, onOpenDiscover }) {
     </div>
   );
 }
-

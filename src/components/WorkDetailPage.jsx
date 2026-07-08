@@ -16,6 +16,7 @@ import {
 } from "../design/icons/HuiInteractionIcons.jsx";
 import { useSingleReaction } from "../lib/useReactions.jsx";
 import { haptic } from "./commerce/commerceUtils.js";
+import { toast } from "../lib/useToast.jsx";
 
 /* ── Design Tokens ─────────────────────────────────────────────────── */
 const C = {
@@ -406,6 +407,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
     if (!user?.id) return;
     haptic(saved ? "selection" : "light");
     toggleReaction("save");
+    toast.info(saved ? "Aus Merkliste entfernt" : "Gespeichert", { duration: 1800 });
   }, [user?.id, saved, toggleReaction]);
 
   /* ── Toggle Follow — via AppStateContext (Single Owner) ─────────── */

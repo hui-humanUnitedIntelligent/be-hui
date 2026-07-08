@@ -457,8 +457,8 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
   const handleReaction = useCallback((type) => {
     if (!toggle) return;
     toggle(type);
-    const labels       = { like:"Gefällt dir ✦", inspire:"Inspiriert dich ✨", save:"Gespeichert 🔖" };
-    const removeLabels = { like:"Gefällt dir nicht mehr", inspire:"Inspiration entfernt", save:"Entfernt" };
+    const labels       = { like:"Gefällt dir ✦", inspire:"Inspiriert dich ✨", save:"Gespeichert" };
+    const removeLabels = { like:"Gefällt dir nicht mehr", inspire:"Inspiration entfernt", save:"Aus Merkliste entfernt" };
     const wasActive    = myTypes?.has?.(type);
     toast.info(wasActive ? (removeLabels[type] || type) : (labels[type] || type), { duration: 1800 });
   }, [toggle, myTypes]);
