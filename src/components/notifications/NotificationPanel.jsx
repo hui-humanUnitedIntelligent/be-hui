@@ -99,6 +99,9 @@ const META = {
   meldung_aufgehoben:     { emoji:"✅", label:"Meldung aufgehoben"     },
   new_follower:           { emoji:"👤", label:"Neuer Follower"         },
   new_booking:            { emoji:"📅", label:"Neue Buchung"           },
+  // MERKEN.6 (2026-07-08): zusammengefasste Merken-Digests (taeglich/
+  // woechentlich), NIE eine Notification pro einzelnem Speichervorgang.
+  save_digest:            { emoji:"🔖", label:"Gemerkt-Zusammenfassung" },
   default:                { emoji:"🔔", label:"Benachrichtigung"       },
 };
 

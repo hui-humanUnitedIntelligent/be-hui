@@ -86,6 +86,7 @@ export default function StatistikenModal({ profile, onClose }) {
         { data: paymentsIn  },
         { data: profileData },
         { data: projSupportAmt},
+        { data: saveStats },
       ] = await Promise.all([
         // Community
         supabase.from("follows").select("*", { count:"exact", head:true }).eq("follower_id", uid),
@@ -120,6 +121,10 @@ export default function StatistikenModal({ profile, onClose }) {
         supabase.from("profiles").select("profile_views,followers_count,trust_score,member_since,created_at,has_talent_profile,is_ambassador").eq("id", uid).single(), // Identity Contract v1.0
         // Project-Support Betrag
         supabase.from("project_support").select("amount_eur").eq("user_id", uid),
+        // MERKEN.6 (2026-07-08): Gesamt-Merken-Kennzahl ueber ALLE eigenen
+        // Inhalte (works/experiences/beitraege/invitations), kein Legacy-
+        // Zaehler -- siehe Migration 072 / creator_save_stats().
+        supabase.rpc("creator_save_stats", { p_user_id: uid }),
       ]);
 
       const totalAusgaben  = (paymentsOut||[]).reduce((s,r) => s+(r.amount_eur||0), 0);
@@ -134,8 +139,15 @@ export default function StatistikenModal({ profile, onClose }) {
         .eq("user_id", uid);
       const totalWorkLikes   = (ownWorksStats||[]).reduce((s,w) => s+(w.likes_count||0), 0);
       const totalWorkViews   = (ownWorksStats||[]).reduce((s,w) => s+(w.views_count||0), 0);
-      const totalWorkSaves   = (ownWorksStats||[]).reduce((s,w) => s+(w.saves_count||0), 0);
       const totalWorkComments= (ownWorksStats||[]).reduce((s,w) => s+(w.comments_count||0), 0);
+      // MERKEN.6: totalGemerkt ersetzt das vorherige totalWorkSaves (aus dem
+      // nie befuellten works.saves_count) durch die echte, appweite Zahl
+      // aus post_reactions (type=save) ueber ALLE Inhaltstypen des Creators.
+      const totalGemerkt      = saveStats?.total      || 0;
+      const totalGemerktWork  = saveStats?.work        || 0;
+      const totalGemerktExp   = saveStats?.experience   || 0;
+      const totalGemerktPost  = saveStats?.post         || 0;
+      const totalGemerktEvent = saveStats?.event         || 0;
 
       setStats({
         // Profil
@@ -161,8 +173,12 @@ export default function StatistikenModal({ profile, onClose }) {
         beitraegeCount: beitraegeCount || 0,
         totalWorkLikes,
         totalWorkViews,
-        totalWorkSaves,
         totalWorkComments,
+        totalGemerkt,
+        totalGemerktWork,
+        totalGemerktExp,
+        totalGemerktPost,
+        totalGemerktEvent,
         // Handel
         bookingsBuyer:  bookingsAsBuyer   || 0,
         bookingsSeller: bookingsAsSeller  || 0,
@@ -279,7 +295,7 @@ export default function StatistikenModal({ profile, onClose }) {
         { label:"Beiträge",           val: fmtNum(stats.beitraegeCount), color:"#0EC4B8" },
         { label:"Werk-Aufrufe",       val: fmtNum(stats.totalWorkViews), color:"#7C3AED" },
         { label:"Werk-Likes erhalten",val: fmtNum(stats.totalWorkLikes), color:"#FF6B6B" },
-        { label:"Werk-Saves erhalten",val: fmtNum(stats.totalWorkSaves), color:"#FF6B6B" },
+        { label:"Gemerkt",            val: fmtNum(stats.totalGemerkt),   color:"#FF6B6B" },
       ]);
 
       // ── 3. HANDEL & BUCHUNGEN ───────────────────────────────────
@@ -432,7 +448,7 @@ export default function StatistikenModal({ profile, onClose }) {
                   { icon:"📝", label:"Beiträge",           val: fmtNum(stats.beitraegeCount), col:T.teal   },
                   { icon:"👀", label:"Werk-Aufrufe",       val: fmtNum(stats.totalWorkViews), col:T.violet },
                   { icon:"❤️", label:"Likes erhalten",     val: fmtNum(stats.totalWorkLikes), col:T.coral  },
-                  { icon:"🔖", label:"Saves erhalten",     val: fmtNum(stats.totalWorkSaves), col:T.coral  },
+                  { icon:"🔖", label:"Gemerkt",            val: fmtNum(stats.totalGemerkt),   col:T.coral  },
                 ]} />
               </StatSection>
 

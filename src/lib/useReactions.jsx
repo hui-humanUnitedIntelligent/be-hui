@@ -122,14 +122,18 @@ export function useSingleReaction(postId, postType = "post", authorId = null, po
             { ignoreDuplicates: true }
           );
         }
-        // Fire notification silently
-        if (authorId && authorId !== user.id) {
+        // Fire notification silently -- NICHT fuer 'save': Lars-Vorgabe
+        // (MERKEN.6, 2026-07-08) "keine einzelne Benachrichtigung pro
+        // Speichervorgang, stattdessen sinnvolle Zusammenfassungen".
+        // Merken-Digests laufen separat als taeglicher/woechentlicher
+        // Batch-Job (siehe save_digest_batch()-RPC + Superagent-Automation),
+        // NICHT pro einzelnem Toggle hier.
+        if (authorId && authorId !== user.id && type !== "save") {
           createNotification({
             recipientId: authorId,
             senderId:    user.id,
-            type:        type === "save" ? "save" : type === "inspire" ? "resonanz" : "like",
-            title:       type === "save"    ? "Jemand hat deinen Beitrag gespeichert" :
-                         type === "inspire" ? "Jemand lässt sich von dir inspirieren" :
+            type:        type === "inspire" ? "resonanz" : "like",
+            title:       type === "inspire" ? "Jemand lässt sich von dir inspirieren" :
                                               "Jemandem gefällt dein Beitrag",
             entityId:   postId,
             entityType: postType,
