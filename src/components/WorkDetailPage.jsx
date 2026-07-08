@@ -12,8 +12,10 @@ import { HUI } from "../design/hui.design.js";
 // HUI Interaction Language v1.0 (2026-07-05) — Single Source of Truth,
 // dieselben Komponenten wie im Feed (BaseFeedCard.jsx).
 import {
-  ResonanceIcon, ExchangeIcon, BookmarkKeepIcon, RecommendIcon,
+  HUIHeartIcon, ExchangeIcon, BookmarkKeepIcon, RecommendIcon,
 } from "../design/icons/HuiInteractionIcons.jsx";
+import { useSingleReaction } from "../lib/useReactions.jsx";
+import { haptic } from "./commerce/commerceUtils.js";
 
 /* ── Design Tokens ─────────────────────────────────────────────────── */
 const C = {
@@ -250,13 +252,15 @@ function RelatedCard({ werk, onClick }) {
 }
 
 /* ── Icon Buttons ───────────────────────────────────────────────────── */
+const RESONANZ_ARIA_DETAIL = { on: "Resonanz entfernen", off: "Resonanz geben" };
 function IconBtn({ Icon, label, active, color, onPress, disabled, variant }) {
   const [pressed, setPressed] = useState(false);
   const [hover, setHover] = useState(false);
   const isResonanz = variant === "resonanz";
-  // Resonanz-Tap: kurz (150ms, im 120-180ms-Fenster) + sanfter Scale (~1.08)
-  // + weicher Glow — bewusst anders als der staerkere 1.25x-Spring der
-  // anderen drei Icons (analog zur Feed-Actionbar in BaseFeedCard.jsx).
+  // Genereller Tap-Feedback (alle 4 Icons) -- die Resonanz-spezifische
+  // Aktivierungs-Animation (Puls + Lichtring) sitzt seit 2026-07-08 im
+  // HUIHeartIcon selbst (active-Prop), nicht mehr hier als filter-Glow
+  // (filter widerspricht der Vorgabe "nur transform/opacity").
   const pressMs = isResonanz ? 150 : 300;
   const pressScale = isResonanz ? 1.08 : 1.25;
   const handleTap = () => {
@@ -265,25 +269,25 @@ function IconBtn({ Icon, label, active, color, onPress, disabled, variant }) {
     setTimeout(() => setPressed(false), pressMs);
     onPress?.();
   };
+  const ariaLabel = isResonanz ? (active ? RESONANZ_ARIA_DETAIL.on : RESONANZ_ARIA_DETAIL.off) : (label || undefined);
   // v2.0 Zustände — Icon-Form bleibt immer identisch, nur Opacity/Scale ändern sich.
   const iconOpacity = disabled ? 0.28 : active ? 1 : hover ? 0.8 : 0.55;
   return (
     <button onClick={handleTap} disabled={disabled}
+      aria-label={ariaLabel} aria-pressed={isResonanz ? !!active : undefined}
       onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
       style={{ display:"flex", flexDirection:"column", alignItems:"center",
         gap:4, background:"none", border:"none",
         cursor: disabled ? "default" : "pointer",
         padding:"8px 12px", borderRadius:12,
+        minWidth: isResonanz ? 48 : undefined, minHeight: isResonanz ? 48 : undefined,
         transform: pressed ? `scale(${pressScale})` : (hover && !disabled ? "scale(1.06)" : "scale(1)"),
         transition: pressed && isResonanz
           ? "transform 0.16s cubic-bezier(.22,1,.36,1)"
           : "transform 0.2s cubic-bezier(0.34,1.56,0.64,1)" }}>
-      <span style={{ display:"flex", opacity: iconOpacity, borderRadius:"50%",
-        filter: (pressed && isResonanz)
-          ? "drop-shadow(0 0 6px rgba(20,199,182,0.55)) drop-shadow(0 0 2px rgba(240,169,60,0.5))"
-          : "none",
-        transition:"opacity 0.18s ease, filter 0.16s ease" }}>
-        {Icon ? <Icon size={24} /> : null}
+      <span style={{ display:"flex", opacity: iconOpacity, borderRadius:"50%", color: color || C.coral,
+        transition:"opacity 0.18s ease" }}>
+        {Icon ? (isResonanz ? <Icon size={24} active={!!active} /> : <Icon size={24} />) : null}
       </span>
       <span style={{ fontSize:10, fontWeight:600,
         color: active ? (color||C.coral) : C.muted }}>
@@ -300,16 +304,13 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
   const navigate = useNavigate();
   const { id } = useParams();
   const { user } = useAuth();
-  const { toggleLikeWork, toggleSaveWork, toggleFollow } = useAppState();
+  const { toggleFollow } = useAppState();
 
   const [werk,    setWerk]    = useState(null);
   const [creator, setCreator] = useState(null);
   const [related, setRelated] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState(null);
-  const [resonated,     setResonated]     = useState(false);
-  const [resonanceCount, setResonanceCount] = useState(0);
-  const [saved,     setSaved]     = useState(false);
   const [shareOk,   setShareOk]   = useState(false);
   const [following, setFollowing] = useState(false);
   const [comments,  setComments]  = useState([]);
@@ -318,28 +319,25 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
   const [showComments, setShowComments] = useState(false);
   const [submittingComment, setSubmittingComment] = useState(false);
 
+  // Resonanz/Merken -- EIN zentraler Mechanismus, identisch zum Feed
+  // (post_reactions/reaction_counts, siehe BaseFeedCard.jsx). Ersetzt die
+  // fruehere work_likes/work_saves-Direktanbindung samt den nicht
+  // existierenden toggleLikeWork/toggleSaveWork-Aufrufen (echter Bug --
+  // beide Funktionen gab es in AppStateContext nie, Resonanz auf der
+  // Werk-Detailseite schrieb daher nie in die DB).
+  const { counts: reactionCounts, myTypes: reactionTypes, toggle: toggleReaction } =
+    useSingleReaction(id, "work", creator?.id);
+  const resonated      = reactionTypes.has("inspire");
+  const resonanceCount = reactionCounts.inspire || 0;
+  const saved          = reactionTypes.has("save");
+
 
   /* ── Load Social State ──────────────────────────────────────────── */
   const loadSocial = useCallback(async (werkId, creatorId) => {
     if (!user?.id || !werkId) return;
     try {
-      // Liked?
-      const { data: likeRow } = await supabase
-        .from("work_likes").select("id")
-        .eq("work_id", werkId).eq("user_id", user.id).maybeSingle();
-      setResonated(!!likeRow);
-
-      // Like count
-      const { count: lc } = await supabase
-        .from("work_likes").select("id", { count:"exact" })
-        .eq("work_id", werkId);
-      setResonanceCount(lc || 0);
-
-      // Saved?
-      const { data: saveRow } = await supabase
-        .from("work_saves").select("id")
-        .eq("work_id", werkId).eq("user_id", user.id).maybeSingle();
-      setSaved(!!saveRow);
+      // Resonanz/Merken werden bereits von useSingleReaction geladen
+      // (post_reactions) -- hier nur noch Follow-Status + Kommentare.
 
       // Following creator?
       if (creatorId) {
@@ -366,26 +364,19 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
     }
   }, [user?.id]);
 
-  /* ── Toggle Like — via AppStateContext (Single Owner) ───────────── */
-  const handleLike = useCallback(async () => {
+  /* ── Toggle Resonanz — ueber post_reactions (useSingleReaction) ──── */
+  const handleLike = useCallback(() => {
     if (!user?.id) return;
-    const newResonated = !resonated;
-    // Optimistic local UI
-    setResonated(newResonated);
-    setResonanceCount(c => newResonated ? c + 1 : Math.max(0, c - 1));
-    // DB-Sync via AppStateContext — kein direktes supabase.from() hier
-    await toggleLikeWork(id);
-  }, [user?.id, id, resonated, toggleLikeWork]);
+    haptic(resonated ? "selection" : "light");
+    toggleReaction("inspire");
+  }, [user?.id, resonated, toggleReaction]);
 
-  /* ── Toggle Save — via AppStateContext (Single Owner) ───────────── */
-  const handleSave = useCallback(async () => {
+  /* ── Toggle Merken — ueber post_reactions (useSingleReaction) ─────── */
+  const handleSave = useCallback(() => {
     if (!user?.id) return;
-    const newSaved = !saved;
-    // Optimistic local UI
-    setSaved(newSaved);
-    // DB-Sync via AppStateContext — kein direktes supabase.from() hier
-    await toggleSaveWork(id);
-  }, [user?.id, id, saved, toggleSaveWork]);
+    haptic(saved ? "selection" : "light");
+    toggleReaction("save");
+  }, [user?.id, saved, toggleReaction]);
 
   /* ── Toggle Follow — via AppStateContext (Single Owner) ─────────── */
   const handleFollow = useCallback(async () => {
@@ -653,7 +644,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
               "das moechte ich an andere weitergeben") | Merken bleibt
               Bookmark. */}
           <IconBtn
-            Icon={ResonanceIcon}
+            Icon={HUIHeartIcon}
             label={resonanceCount > 0 ? String(resonanceCount) : "Resonanz"}
             active={resonated}
             color={C.coral}

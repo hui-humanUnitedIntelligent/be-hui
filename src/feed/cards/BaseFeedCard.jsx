@@ -12,8 +12,9 @@ import { MembershipLabel } from "../../components/ui/TalentBadge.jsx";
 // die vier universellen Interaktionen (Resonanz/Austauschen/Merken/Empfehlen).
 // Ersetzt die bisherigen Emoji-Icons (✦/🤍/💬/🔖) plattformweit.
 import {
-  ResonanceIcon, ExchangeIcon, BookmarkKeepIcon, RecommendIcon,
+  HUIHeartIcon, ExchangeIcon, BookmarkKeepIcon, RecommendIcon,
 } from "../../design/icons/HuiInteractionIcons.jsx";
+import { haptic } from "../../components/commerce/commerceUtils.js";
 
 const T = {
   bgCard:   "#FFFFFF",
@@ -512,9 +513,12 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
 // eigene, aus der Referenz uebernommene Gradient-Farbe IMMER -- aktiv/
 // inaktiv wird nicht mehr ueber Farbwechsel, sondern ueber Opacity + Scale
 // ausgedrueckt (Referenzgrafik gibt keine Toggle-Farbvariante vor).
+const RESONANZ_ARIA = { on: "Resonanz entfernen", off: "Resonanz geben" };
 const ActionBtn = memo(function ActionBtn({
   Icon, label, count, active, onClick, activeColor, variant, disabled
 }) {
+  const isResonanz = variant === "resonanz";
+  const ariaLabel = isResonanz ? (active ? RESONANZ_ARIA.on : RESONANZ_ARIA.off) : (label || undefined);
   const [scale, setScale] = useState(false);
   const [hover, setHover] = useState(false);
 
@@ -548,6 +552,8 @@ const ActionBtn = memo(function ActionBtn({
     <button
       onClick={handleClick}
       disabled={disabled}
+      aria-label={ariaLabel}
+      aria-pressed={isResonanz ? !!active : undefined}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       style={{
@@ -563,7 +569,7 @@ const ActionBtn = memo(function ActionBtn({
         display: "flex", alignItems: "center", gap: 6,
         borderRadius: 12,
         touchAction: "manipulation",
-        minWidth: 44, minHeight: 44, justifyContent: "center",
+        minWidth: isResonanz ? 48 : 44, minHeight: isResonanz ? 48 : 44, justifyContent: "center",
         transform: scale ? `scale(${PRESS_SCALE})` : "scale(1)",
         transition: `transform ${PRESS_MS}ms cubic-bezier(0.16,1,0.3,1)`,
         willChange: "transform",
@@ -582,7 +588,7 @@ const ActionBtn = memo(function ActionBtn({
       <span style={{
         position: "relative", zIndex: 1,
         display: "flex", alignItems: "center", justifyContent: "center",
-        opacity: iconOpacity,
+        opacity: iconOpacity, color: col,
         // Premium-Finetuning 2026-07-05 (Lars): Icon-Reihe 4px tiefer gesetzt,
         // damit alle vier Icons (PNG + SVG, mit je eigenem visuellem
         // Schwerpunkt) auf einer gemeinsamen, vertikal zentrierten
@@ -593,7 +599,7 @@ const ActionBtn = memo(function ActionBtn({
       }}>
         {/* Premium-Finetuning Runde 3 2026-07-05 (Lars): 27px -> 31px, im
             geforderten 30-32px-Fenster fuer "noch etwas praesenter". */}
-        {Icon ? <Icon size={31} /> : null}
+        {Icon ? (isResonanz ? <Icon size={31} active={!!active} /> : <Icon size={31} />) : null}
       </span>
       {(count != null || label) && (
         <span style={{
@@ -672,7 +678,7 @@ export const FeedActions = memo(function FeedActions({
                                     → Schwung-Pfeil nach Lars-Vorlage; onShare
                                     oeffnet bereits den Teilen-Flow)
               save    → Merken */}
-        <ActionBtn Icon={ResonanceIcon}    count={r.inspireCount||null} active={r.inspired} activeColor={T.teal}  variant="resonanz" onClick={() => onReaction?.("inspire")} />
+        <ActionBtn Icon={HUIHeartIcon}    count={r.inspireCount||null} active={r.inspired} activeColor={T.teal}  variant="resonanz" onClick={() => { haptic(r.inspired ? "selection" : "light"); onReaction?.("inspire"); }} />
         <ActionBtn Icon={ExchangeIcon}     count={r.touchCount||null}   active={r.touched}  activeColor={T.teal}  onClick={() => onReaction?.("touch")}   />
         <ActionBtn Icon={RecommendIcon}    onClick={onShare} />
         <ActionBtn Icon={BookmarkKeepIcon} active={r.saved} activeColor={T.coral} variant="merken" onClick={() => onReaction?.("save")} />

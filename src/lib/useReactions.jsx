@@ -50,6 +50,31 @@ export function useSingleReaction(postId, postType = "post", authorId = null) {
     return () => { cancelled = true; };
   }, [postId, user?.id]);
 
+  // ── Realtime — andere Clients sehen neue/entfernte Reaktionen live,
+  //    ohne Reload. Eigene Aenderungen kommen bereits optimistisch rein
+  //    und werden hier ignoriert (sonst Doppelzaehlung durch das Echo). ──
+  useEffect(() => {
+    if (!postId) return;
+    const channel = supabase
+      .channel(`post_reactions:${postId}`)
+      .on("postgres_changes",
+        { event: "INSERT", schema: "public", table: "post_reactions", filter: `post_id=eq.${postId}` },
+        (payload) => {
+          const row = payload.new;
+          if (!row || row.user_id === user?.id) return; // eigene Aenderung schon optimistisch drin
+          setCounts(prev => ({ ...prev, [row.type]: (prev[row.type] || 0) + 1, total: (prev.total || 0) + 1 }));
+        })
+      .on("postgres_changes",
+        { event: "DELETE", schema: "public", table: "post_reactions", filter: `post_id=eq.${postId}` },
+        (payload) => {
+          const row = payload.old;
+          if (!row || row.user_id === user?.id) return;
+          setCounts(prev => ({ ...prev, [row.type]: Math.max(0, (prev[row.type] || 0) - 1), total: Math.max(0, (prev.total || 0) - 1) }));
+        })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [postId, user?.id]);
+
   const toggle = useCallback(async (type) => {
     if (!user?.id || !postId) return;
     if (loading) return;
