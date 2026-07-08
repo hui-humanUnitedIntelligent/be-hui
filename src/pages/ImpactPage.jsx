@@ -432,22 +432,35 @@ function useApprovedApplications() {
 
   React.useEffect(() => {
     let dead = false;
+    let createdHere = false;
     loadApps().then(s => { if (!dead) { setApps(s); setLoading(false); } });
-    const sub = supabase.channel("imp_apps_rt_" + Date.now())
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "impact_votes" },
-        (payload) => {
-          // Optimistic update: vote_count sofort hochzählen ohne reload
-          const pid = payload.new?.project_id;
-          if (pid) {
-            setApps(prev => prev.map(a =>
-              a.id === pid ? { ...a, vote_count: (a.vote_count || 0) + 1 } : a
-            ));
-          }
-        })
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "impact_applications" },
-        () => loadApps().then(s => { if (!dead) setApps(s); }))
-      .subscribe();
-    return () => { dead = true; supabase.removeChannel(sub); };
+    // Realtime-Dedupe-Schutz (2026-07-08, systemweit, siehe useProfileLocations.js):
+    // existierenden Channel fuer diesen Topic wiederverwenden statt erneut zu
+    // subscriben -- verhindert "cannot add postgres_changes callbacks ... after
+    // subscribe()" bei gleichzeitigen Mounts fuer denselben Topic.
+    // Hinweis: Topic ist bereits durch Date.now() pro Mount eindeutig (kein
+    // Kollisionsrisiko), der Schutz wird hier trotzdem konsistent mitgefuehrt.
+    const topic = "imp_apps_rt_" + Date.now();
+    const existing = supabase.getChannels().find(c => c.topic === `realtime:${topic}`);
+    let sub = existing;
+    if (!existing) {
+      sub = supabase.channel(topic)
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "impact_votes" },
+          (payload) => {
+            // Optimistic update: vote_count sofort hochzählen ohne reload
+            const pid = payload.new?.project_id;
+            if (pid) {
+              setApps(prev => prev.map(a =>
+                a.id === pid ? { ...a, vote_count: (a.vote_count || 0) + 1 } : a
+              ));
+            }
+          })
+        .on("postgres_changes", { event: "UPDATE", schema: "public", table: "impact_applications" },
+          () => loadApps().then(s => { if (!dead) setApps(s); }))
+        .subscribe();
+      createdHere = true;
+    }
+    return () => { dead = true; if (createdHere) supabase.removeChannel(sub); };
   }, [loadApps]);
 
   const top1    = apps[0]    || null;
@@ -1001,22 +1014,33 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
   React.useEffect(() => {
     if (!currentUser?.id) return;
     const month = new Date().toISOString().slice(0,7);
-    const sub = supabase.channel("votes_rt_main")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "impact_votes" },
-        (payload) => {
-          const v = payload.new;
-          if (!v) return;
-          // Eigene Stimme → userVotes aktualisieren
-          if (v.voter_id === currentUser.id && v.pool_month === month) {
-            setUserVotes(prev => [...prev, v]);
-          }
-          // Projektstimmen in Echtzeit hochzählen
-          setProjects(prev => prev.map(p =>
-            p.id === v.project_id ? { ...p, votes: (p.votes || 0) + 1 } : p
-          ));
-        })
-      .subscribe();
-    return () => { supabase.removeChannel(sub); };
+    // Realtime-Dedupe-Schutz (2026-07-08, systemweit, siehe useProfileLocations.js):
+    // existierenden Channel fuer diesen Topic wiederverwenden statt erneut zu
+    // subscriben -- verhindert "cannot add postgres_changes callbacks ... after
+    // subscribe()" bei gleichzeitigen Mounts fuer denselben Topic.
+    const topic = "votes_rt_main";
+    const existing = supabase.getChannels().find(c => c.topic === `realtime:${topic}`);
+    let sub = existing;
+    let createdHere = false;
+    if (!existing) {
+      sub = supabase.channel(topic)
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "impact_votes" },
+          (payload) => {
+            const v = payload.new;
+            if (!v) return;
+            // Eigene Stimme → userVotes aktualisieren
+            if (v.voter_id === currentUser.id && v.pool_month === month) {
+              setUserVotes(prev => [...prev, v]);
+            }
+            // Projektstimmen in Echtzeit hochzählen
+            setProjects(prev => prev.map(p =>
+              p.id === v.project_id ? { ...p, votes: (p.votes || 0) + 1 } : p
+            ));
+          })
+        .subscribe();
+      createdHere = true;
+    }
+    return () => { if (createdHere) supabase.removeChannel(sub); };
   }, [currentUser?.id]);
 
   // ── Persönliche Wirkung des Nutzers ──

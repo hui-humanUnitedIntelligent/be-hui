@@ -110,18 +110,29 @@ export function useAmbassadorPayout(ambassadorId) {
     loadBankStatus();
     // Realtime: Auszahlungsstatus-Updates (Publication + RLS seit AMB-PAYOUT-009 aktiv)
     if (!ambassadorId) return;
-    const sub = supabase
-      .channel(`payout_${ambassadorId}`)
-      .on('postgres_changes', {
-        event: '*', schema: 'public', table: 'stripe_payouts',
-        filter: `ambassador_id=eq.${ambassadorId}`,
-      }, () => refresh())
-      .on('postgres_changes', {
-        event: '*', schema: 'public', table: 'stripe_ambassador_commissions',
-        filter: `ambassador_id=eq.${ambassadorId}`,
-      }, () => refresh())
-      .subscribe();
-    return () => { supabase.removeChannel(sub); };
+    // Realtime-Dedupe-Schutz (2026-07-08, systemweit, siehe useProfileLocations.js):
+    // existierenden Channel fuer diesen Topic wiederverwenden statt erneut zu
+    // subscriben -- verhindert "cannot add postgres_changes callbacks ... after
+    // subscribe()" bei gleichzeitigen Mounts fuer denselben Topic.
+    const topic = `payout_${ambassadorId}`;
+    const existing = supabase.getChannels().find(c => c.topic === `realtime:${topic}`);
+    let sub = existing;
+    let createdHere = false;
+    if (!existing) {
+      sub = supabase
+        .channel(topic)
+        .on('postgres_changes', {
+          event: '*', schema: 'public', table: 'stripe_payouts',
+          filter: `ambassador_id=eq.${ambassadorId}`,
+        }, () => refresh())
+        .on('postgres_changes', {
+          event: '*', schema: 'public', table: 'stripe_ambassador_commissions',
+          filter: `ambassador_id=eq.${ambassadorId}`,
+        }, () => refresh())
+        .subscribe();
+      createdHere = true;
+    }
+    return () => { if (createdHere) supabase.removeChannel(sub); };
   }, [ambassadorId, refresh, loadBankStatus]);
 
   const fmt = (val) => `€${((val ?? 0)).toFixed(2)}`;

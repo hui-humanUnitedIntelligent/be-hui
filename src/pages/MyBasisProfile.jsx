@@ -535,28 +535,40 @@ export default function MyBasisProfile({ onClose, profileId }) {
   useEffect(() => {
     if (!profile?.id) return;
     let channel;
+    let createdHere = false;
 
-    // Realtime: wenn Admin Status ändert → useProfileData neu laden
-    channel = supabase
-      .channel("mbp:works-exps:" + profile.id)
-      .on("postgres_changes", {
-        event: "UPDATE", schema: "public", table: "works",
-        filter: "user_id=eq." + profile.id,
-      }, () => reload())
-      .on("postgres_changes", {
-        event: "UPDATE", schema: "public", table: "experiences",
-        filter: "user_id=eq." + profile.id,
-      }, () => reload())
-      // Admin Hard-Delete → sofort neu laden
-      .on("postgres_changes", {
-        event: "DELETE", schema: "public", table: "experiences",
-      }, () => reload())
-      .on("postgres_changes", {
-        event: "DELETE", schema: "public", table: "projects",
-      }, () => reload())
-      .subscribe();
+    // Realtime-Dedupe-Schutz (2026-07-08, systemweit, siehe useProfileLocations.js):
+    // existierenden Channel fuer diesen Topic wiederverwenden statt erneut zu
+    // subscriben -- verhindert "cannot add postgres_changes callbacks ... after
+    // subscribe()" bei gleichzeitigen Mounts fuer denselben Topic.
+    const topic = "mbp:works-exps:" + profile.id;
+    const existing = supabase.getChannels().find(c => c.topic === `realtime:${topic}`);
+    if (existing) {
+      channel = existing;
+    } else {
+      // Realtime: wenn Admin Status ändert → useProfileData neu laden
+      channel = supabase
+        .channel(topic)
+        .on("postgres_changes", {
+          event: "UPDATE", schema: "public", table: "works",
+          filter: "user_id=eq." + profile.id,
+        }, () => reload())
+        .on("postgres_changes", {
+          event: "UPDATE", schema: "public", table: "experiences",
+          filter: "user_id=eq." + profile.id,
+        }, () => reload())
+        // Admin Hard-Delete → sofort neu laden
+        .on("postgres_changes", {
+          event: "DELETE", schema: "public", table: "experiences",
+        }, () => reload())
+        .on("postgres_changes", {
+          event: "DELETE", schema: "public", table: "projects",
+        }, () => reload())
+        .subscribe();
+      createdHere = true;
+    }
 
-    return () => { if (channel) supabase.removeChannel(channel); };
+    return () => { if (createdHere && channel) supabase.removeChannel(channel); };
   }, [profile?.id, reload]);
 
   // Auto-save on bio/interests/visibility change (debounced 1.2s)

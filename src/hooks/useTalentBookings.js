@@ -65,18 +65,29 @@ export function useTalentBookings(userId) {
 
   useEffect(() => {
     if (!userId) return;
-    const channel = supabase
-      .channel("talent_bookings:user:" + userId)
-      .on("postgres_changes", {
-        event: "*", schema: "public", table: "talent_bookings",
-        filter: "customer_id=eq." + userId,
-      }, () => load())
-      .on("postgres_changes", {
-        event: "*", schema: "public", table: "talent_bookings",
-        filter: "seller_id=eq." + userId,
-      }, () => load())
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    // Realtime-Dedupe-Schutz (2026-07-08, systemweit, siehe useProfileLocations.js):
+    // existierenden Channel fuer diesen Topic wiederverwenden statt erneut zu
+    // subscriben -- verhindert "cannot add postgres_changes callbacks ... after
+    // subscribe()" bei gleichzeitigen Mounts fuer denselben Topic.
+    const topic = "talent_bookings:user:" + userId;
+    const existing = supabase.getChannels().find(c => c.topic === `realtime:${topic}`);
+    let channel = existing;
+    let createdHere = false;
+    if (!existing) {
+      channel = supabase
+        .channel(topic)
+        .on("postgres_changes", {
+          event: "*", schema: "public", table: "talent_bookings",
+          filter: "customer_id=eq." + userId,
+        }, () => load())
+        .on("postgres_changes", {
+          event: "*", schema: "public", table: "talent_bookings",
+          filter: "seller_id=eq." + userId,
+        }, () => load())
+        .subscribe();
+      createdHere = true;
+    }
+    return () => { if (createdHere) supabase.removeChannel(channel); };
   }, [userId, load]);
 
   // TALENT-BOOKING-REFUND-004 (2026-07-06): Stornieren läuft jetzt über die

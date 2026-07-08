@@ -283,28 +283,39 @@ function AmbassadorStudioSection({ profile }) {
   // ── Realtime: wenn ein neuer User über den Ref-Link kommt → sofort neu laden
   useEffect(() => {
     if (!uid || !isAmb) return;
-    const channel = supabase
-      .channel(`referral-watch-${uid}`)
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'profiles',
-        filter: `referred_by=eq.${uid}`,
-      }, () => {
-        // Neuen Referral erkannt → Daten neu laden
-        supabase
-          .from("profiles")
-          .select("id,display_name,username,first_transaction_at,referred_by")
-          .eq("referred_by", uid)
-          .then(({ data }) => {
-            const users = data || [];
-            setAllUsers(users);
-            setActiveList(users.filter(u => u.first_transaction_at != null));
-            setSleepingList(users.filter(u => u.first_transaction_at == null));
-          });
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    // Realtime-Dedupe-Schutz (2026-07-08, systemweit, siehe useProfileLocations.js):
+    // existierenden Channel fuer diesen Topic wiederverwenden statt erneut zu
+    // subscriben -- verhindert "cannot add postgres_changes callbacks ... after
+    // subscribe()" bei gleichzeitigen Mounts fuer denselben Topic.
+    const topic = `referral-watch-${uid}`;
+    const existing = supabase.getChannels().find(c => c.topic === `realtime:${topic}`);
+    let channel = existing;
+    let createdHere = false;
+    if (!existing) {
+      channel = supabase
+        .channel(topic)
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `referred_by=eq.${uid}`,
+        }, () => {
+          // Neuen Referral erkannt → Daten neu laden
+          supabase
+            .from("profiles")
+            .select("id,display_name,username,first_transaction_at,referred_by")
+            .eq("referred_by", uid)
+            .then(({ data }) => {
+              const users = data || [];
+              setAllUsers(users);
+              setActiveList(users.filter(u => u.first_transaction_at != null));
+              setSleepingList(users.filter(u => u.first_transaction_at == null));
+            });
+        })
+        .subscribe();
+      createdHere = true;
+    }
+    return () => { if (createdHere) supabase.removeChannel(channel); };
   }, [uid, isAmb]);
 
   async function copyLink() {

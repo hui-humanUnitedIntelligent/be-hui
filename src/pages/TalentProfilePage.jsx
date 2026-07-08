@@ -1111,18 +1111,29 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
   // DELETE bewusst ausgelassen (Skalierungsrisiko, kein primärer UX-Flow).
   useEffect(() => {
     if (!profileId) return;
-    const ch = supabase
-      .channel("ttp:works-exps:" + profileId)
-      .on("postgres_changes", {
-        event: "UPDATE", schema: "public", table: "works",
-        filter: "user_id=eq." + profileId,
-      }, () => reload())
-      .on("postgres_changes", {
-        event: "UPDATE", schema: "public", table: "experiences",
-        filter: "user_id=eq." + profileId,
-      }, () => reload())
-      .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    // Realtime-Dedupe-Schutz (2026-07-08, systemweit, siehe useProfileLocations.js):
+    // existierenden Channel fuer diesen Topic wiederverwenden statt erneut zu
+    // subscriben -- verhindert "cannot add postgres_changes callbacks ... after
+    // subscribe()" bei gleichzeitigen Mounts fuer denselben Topic.
+    const topic = "ttp:works-exps:" + profileId;
+    const existing = supabase.getChannels().find(c => c.topic === `realtime:${topic}`);
+    let ch = existing;
+    let createdHere = false;
+    if (!existing) {
+      ch = supabase
+        .channel(topic)
+        .on("postgres_changes", {
+          event: "UPDATE", schema: "public", table: "works",
+          filter: "user_id=eq." + profileId,
+        }, () => reload())
+        .on("postgres_changes", {
+          event: "UPDATE", schema: "public", table: "experiences",
+          filter: "user_id=eq." + profileId,
+        }, () => reload())
+        .subscribe();
+      createdHere = true;
+    }
+    return () => { if (createdHere) supabase.removeChannel(ch); };
   }, [profileId, reload]);
 
   const handleBack = useCallback(() => { onClose?.(); }, [onClose]);

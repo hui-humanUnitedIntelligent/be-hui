@@ -117,24 +117,38 @@ export function usePresenceMap(userIds = []) {
 
     // Realtime subscription
     let sub;
+    let createdHere = false;
     try {
-      sub = supabase
-        .channel("presence_map_" + userIds[0])
-        .on("postgres_changes", {
-          event: "*",
-          schema: "public",
-          table: "user_presence",
-          filter: `user_id=in.(${userIds.join(",")})`,
-        }, (payload) => {
-          const r = payload.new;
-          if (r?.user_id) {
-            setMap(prev => ({ ...prev, [r.user_id]: r }));
-          }
-        })
-        .subscribe();
+    // Realtime-Dedupe-Schutz (2026-07-08, systemweit, siehe useProfileLocations.js):
+    // existierenden Channel fuer diesen Topic wiederverwenden statt erneut zu
+    // subscriben -- verhindert "cannot add postgres_changes callbacks ... after
+    // subscribe()" bei gleichzeitigen Mounts fuer denselben Topic.
+      // Cleanup vereinheitlicht auf removeChannel() (war zuvor sub.unsubscribe(),
+      // das entfernt den Channel nicht aus der globalen Registry).
+      const topic = "presence_map_" + userIds[0];
+      const existing = supabase.getChannels().find(c => c.topic === `realtime:${topic}`);
+      if (existing) {
+        sub = existing;
+      } else {
+        sub = supabase
+          .channel(topic)
+          .on("postgres_changes", {
+            event: "*",
+            schema: "public",
+            table: "user_presence",
+            filter: `user_id=in.(${userIds.join(",")})`,
+          }, (payload) => {
+            const r = payload.new;
+            if (r?.user_id) {
+              setMap(prev => ({ ...prev, [r.user_id]: r }));
+            }
+          })
+          .subscribe();
+        createdHere = true;
+      }
     } catch { /* silent — realtime optional */ }
 
-    return () => { try { sub?.unsubscribe(); } catch {} };
+    return () => { try { if (createdHere && sub) supabase.removeChannel(sub); } catch {} };
   }, [userIds.join(",")]); // eslint-disable-line
 
   return map;

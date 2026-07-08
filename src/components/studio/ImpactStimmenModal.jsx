@@ -144,18 +144,29 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
   // Realtime: impact_votes → Studio sofort aktualisieren
   useEffect(() => {
     if (!profile?.id) return;
-    const sub = supabase.channel("studio_votes_rt")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "impact_votes" },
-        (payload) => {
-          const v = payload.new;
-          if (!v) return;
-          // Eigene neue Stimme → myVotes aktualisieren
-          if (v.voter_id === profile.id && v.pool_month === monthKey) {
-            setMyVotes(prev => [...prev, v]);
-          }
-        })
-      .subscribe();
-    return () => { supabase.removeChannel(sub); };
+    // Realtime-Dedupe-Schutz (2026-07-08, systemweit, siehe useProfileLocations.js):
+    // existierenden Channel fuer diesen Topic wiederverwenden statt erneut zu
+    // subscriben -- verhindert "cannot add postgres_changes callbacks ... after
+    // subscribe()" bei gleichzeitigen Mounts fuer denselben Topic.
+    const topic = "studio_votes_rt";
+    const existing = supabase.getChannels().find(c => c.topic === `realtime:${topic}`);
+    let sub = existing;
+    let createdHere = false;
+    if (!existing) {
+      sub = supabase.channel(topic)
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "impact_votes" },
+          (payload) => {
+            const v = payload.new;
+            if (!v) return;
+            // Eigene neue Stimme → myVotes aktualisieren
+            if (v.voter_id === profile.id && v.pool_month === monthKey) {
+              setMyVotes(prev => [...prev, v]);
+            }
+          })
+        .subscribe();
+      createdHere = true;
+    }
+    return () => { if (createdHere) supabase.removeChannel(sub); };
   }, [profile?.id, monthKey]);
 
   // Stimme abgeben

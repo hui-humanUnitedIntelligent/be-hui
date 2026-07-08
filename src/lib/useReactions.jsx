@@ -55,24 +55,35 @@ export function useSingleReaction(postId, postType = "post", authorId = null, po
   //    und werden hier ignoriert (sonst Doppelzaehlung durch das Echo). ──
   useEffect(() => {
     if (!postId) return;
-    const channel = supabase
-      .channel(`post_reactions:${postId}`)
-      .on("postgres_changes",
-        { event: "INSERT", schema: "public", table: "post_reactions", filter: `post_id=eq.${postId}` },
-        (payload) => {
-          const row = payload.new;
-          if (!row || row.user_id === user?.id) return; // eigene Aenderung schon optimistisch drin
-          setCounts(prev => ({ ...prev, [row.type]: (prev[row.type] || 0) + 1, total: (prev.total || 0) + 1 }));
-        })
-      .on("postgres_changes",
-        { event: "DELETE", schema: "public", table: "post_reactions", filter: `post_id=eq.${postId}` },
-        (payload) => {
-          const row = payload.old;
-          if (!row || row.user_id === user?.id) return;
-          setCounts(prev => ({ ...prev, [row.type]: Math.max(0, (prev[row.type] || 0) - 1), total: Math.max(0, (prev.total || 0) - 1) }));
-        })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    // Realtime-Dedupe-Schutz (2026-07-08, systemweit, siehe useProfileLocations.js):
+    // existierenden Channel fuer diesen Topic wiederverwenden statt erneut zu
+    // subscriben -- verhindert "cannot add postgres_changes callbacks ... after
+    // subscribe()" bei gleichzeitigen Mounts fuer denselben Topic.
+    const topic = `post_reactions:${postId}`;
+    const existing = supabase.getChannels().find(c => c.topic === `realtime:${topic}`);
+    let channel = existing;
+    let createdHere = false;
+    if (!existing) {
+      channel = supabase
+        .channel(topic)
+        .on("postgres_changes",
+          { event: "INSERT", schema: "public", table: "post_reactions", filter: `post_id=eq.${postId}` },
+          (payload) => {
+            const row = payload.new;
+            if (!row || row.user_id === user?.id) return; // eigene Aenderung schon optimistisch drin
+            setCounts(prev => ({ ...prev, [row.type]: (prev[row.type] || 0) + 1, total: (prev.total || 0) + 1 }));
+          })
+        .on("postgres_changes",
+          { event: "DELETE", schema: "public", table: "post_reactions", filter: `post_id=eq.${postId}` },
+          (payload) => {
+            const row = payload.old;
+            if (!row || row.user_id === user?.id) return;
+            setCounts(prev => ({ ...prev, [row.type]: Math.max(0, (prev[row.type] || 0) - 1), total: Math.max(0, (prev.total || 0) - 1) }));
+          })
+        .subscribe();
+      createdHere = true;
+    }
+    return () => { if (createdHere) supabase.removeChannel(channel); };
   }, [postId, user?.id]);
 
   const toggle = useCallback(async (type) => {
@@ -189,33 +200,44 @@ export function useSavedPosts() {
   // Warum: einzige Realtime-Subscription auf saved_posts fuer den Count.
   useEffect(() => {
     if (!user?.id) return;
-    const channel = supabase
-      .channel(`saved_posts_count:${user.id}`)
-      .on("postgres_changes",
-        { event: "INSERT", schema: "public", table: "saved_posts", filter: `user_id=eq.${user.id}` },
-        (payload) => {
-          const row = payload.new;
-          if (!row?.post_id) return;
-          idMapRef.current.set(row.id, row.post_id);
-          setSavedIds(prev => (prev.has(row.post_id) ? prev : new Set(prev).add(row.post_id)));
-        })
-      .on("postgres_changes",
-        { event: "DELETE", schema: "public", table: "saved_posts", filter: `user_id=eq.${user.id}` },
-        (payload) => {
-          const rowId = payload.old?.id; // nur { id } bei RLS+DELETE
-          if (!rowId) return;
-          const postId = idMapRef.current.get(rowId);
-          if (!postId) return;
-          idMapRef.current.delete(rowId);
-          setSavedIds(prev => {
-            if (!prev.has(postId)) return prev;
-            const next = new Set(prev);
-            next.delete(postId);
-            return next;
-          });
-        })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    // Realtime-Dedupe-Schutz (2026-07-08, systemweit, siehe useProfileLocations.js):
+    // existierenden Channel fuer diesen Topic wiederverwenden statt erneut zu
+    // subscriben -- verhindert "cannot add postgres_changes callbacks ... after
+    // subscribe()" bei gleichzeitigen Mounts fuer denselben Topic.
+    const topic = `saved_posts_count:${user.id}`;
+    const existing = supabase.getChannels().find(c => c.topic === `realtime:${topic}`);
+    let channel = existing;
+    let createdHere = false;
+    if (!existing) {
+      channel = supabase
+        .channel(topic)
+        .on("postgres_changes",
+          { event: "INSERT", schema: "public", table: "saved_posts", filter: `user_id=eq.${user.id}` },
+          (payload) => {
+            const row = payload.new;
+            if (!row?.post_id) return;
+            idMapRef.current.set(row.id, row.post_id);
+            setSavedIds(prev => (prev.has(row.post_id) ? prev : new Set(prev).add(row.post_id)));
+          })
+        .on("postgres_changes",
+          { event: "DELETE", schema: "public", table: "saved_posts", filter: `user_id=eq.${user.id}` },
+          (payload) => {
+            const rowId = payload.old?.id; // nur { id } bei RLS+DELETE
+            if (!rowId) return;
+            const postId = idMapRef.current.get(rowId);
+            if (!postId) return;
+            idMapRef.current.delete(rowId);
+            setSavedIds(prev => {
+              if (!prev.has(postId)) return prev;
+              const next = new Set(prev);
+              next.delete(postId);
+              return next;
+            });
+          })
+        .subscribe();
+      createdHere = true;
+    }
+    return () => { if (createdHere) supabase.removeChannel(channel); };
   }, [user?.id]);
 
   const toggleSave = useCallback(async (postId, postType = "post", snapshot = {}) => {

@@ -49,14 +49,25 @@ export function useTalents(userId) {
 
   useEffect(() => {
     if (!userId) return;
-    const channel = supabase
-      .channel("talents:" + userId)
-      .on("postgres_changes", {
-        event: "*", schema: "public", table: "talents",
-        filter: "user_id=eq." + userId,
-      }, () => load())
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    // Realtime-Dedupe-Schutz (2026-07-08, systemweit, siehe useProfileLocations.js):
+    // existierenden Channel fuer diesen Topic wiederverwenden statt erneut zu
+    // subscriben -- verhindert "cannot add postgres_changes callbacks ... after
+    // subscribe()" bei gleichzeitigen Mounts fuer denselben Topic.
+    const topic = "talents:" + userId;
+    const existing = supabase.getChannels().find(c => c.topic === `realtime:${topic}`);
+    let channel = existing;
+    let createdHere = false;
+    if (!existing) {
+      channel = supabase
+        .channel(topic)
+        .on("postgres_changes", {
+          event: "*", schema: "public", table: "talents",
+          filter: "user_id=eq." + userId,
+        }, () => load())
+        .subscribe();
+      createdHere = true;
+    }
+    return () => { if (createdHere) supabase.removeChannel(channel); };
   }, [userId, load]);
 
   return { talents, loading, error, reload: load };

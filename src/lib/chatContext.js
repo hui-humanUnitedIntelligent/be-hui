@@ -208,32 +208,45 @@ export function useChatList(instanceId = "default") {
   useEffect(() => {
     if (!user?.id) return;
     const channelName = `chat-list:${user.id}:${instanceId}`;
-    realtimeRef.current = supabase
-      .channel(channelName)
-      .on("postgres_changes", {
-        event: "UPDATE", schema: "public", table: "chats",
-      }, () => load())
-      .on("postgres_changes", {
-        event: "INSERT", schema: "public", table: "chats",
-      }, () => load())
-      .on("postgres_changes", {
-        // Neue Nachricht → unread_count neu berechnen
-        event: "INSERT", schema: "public", table: "messages",
-      }, (payload) => {
-        const msg = payload.new;
-        if (!msg?.chat_id || msg.sender_id === user.id) return; // eigene Nachricht ignorieren
-        // Optimistic: unread für diesen Chat +1
-        setChats(prev => prev.map(ch =>
-          ch.id === msg.chat_id
-            ? { ...ch, unread: (ch.unread || 0) + 1 }
-            : ch
-        ).sort((a, b) => {
-          if (b.unread !== a.unread) return b.unread - a.unread;
-          return new Date(b.last_message_at || 0) - new Date(a.last_message_at || 0);
-        }));
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(realtimeRef.current); };
+    // Realtime-Dedupe-Schutz (2026-07-08, systemweit, siehe useProfileLocations.js):
+    // existierenden Channel fuer diesen Topic wiederverwenden statt erneut zu
+    // subscriben -- verhindert "cannot add postgres_changes callbacks ... after
+    // subscribe()" bei gleichzeitigen Mounts fuer denselben Topic.
+    // Hinweis: instanceId (z.B. "home"/"cco") macht den Topic je Aufrufer
+    // bereits eindeutig -- der Schutz wird trotzdem konsistent mitgefuehrt.
+    const existing = supabase.getChannels().find(c => c.topic === `realtime:${channelName}`);
+    let createdHere = false;
+    if (existing) {
+      realtimeRef.current = existing;
+    } else {
+      realtimeRef.current = supabase
+        .channel(channelName)
+        .on("postgres_changes", {
+          event: "UPDATE", schema: "public", table: "chats",
+        }, () => load())
+        .on("postgres_changes", {
+          event: "INSERT", schema: "public", table: "chats",
+        }, () => load())
+        .on("postgres_changes", {
+          // Neue Nachricht → unread_count neu berechnen
+          event: "INSERT", schema: "public", table: "messages",
+        }, (payload) => {
+          const msg = payload.new;
+          if (!msg?.chat_id || msg.sender_id === user.id) return; // eigene Nachricht ignorieren
+          // Optimistic: unread für diesen Chat +1
+          setChats(prev => prev.map(ch =>
+            ch.id === msg.chat_id
+              ? { ...ch, unread: (ch.unread || 0) + 1 }
+              : ch
+          ).sort((a, b) => {
+            if (b.unread !== a.unread) return b.unread - a.unread;
+            return new Date(b.last_message_at || 0) - new Date(a.last_message_at || 0);
+          }));
+        })
+        .subscribe();
+      createdHere = true;
+    }
+    return () => { if (createdHere) supabase.removeChannel(realtimeRef.current); };
   }, [user?.id, load]);
 
   // unreadTotal für Badge im Tab
@@ -309,40 +322,51 @@ export function useChatThread(chatId) {
   useEffect(() => {
     if (!chatId) return;
 
-    const channel = supabase
-      .channel(`thread:${chatId}`)
-      .on("postgres_changes", {
-        event: "INSERT", schema: "public", table: "messages",
-        filter: `chat_id=eq.${chatId}`,
-      }, (payload) => {
-        setMessages(prev => {
-          const exists = prev.find(m => m.id === payload.new.id);
-          if (exists) return prev;
-          const withoutOptimistic = prev.filter(m =>
-            !(m._optimistic && m.text === payload.new.text && m.sender_id === payload.new.sender_id)
-          );
-          const next = [...withoutOptimistic, payload.new];
-          return next;
+    // Realtime-Dedupe-Schutz (2026-07-08, systemweit, siehe useProfileLocations.js):
+    // existierenden Channel fuer diesen Topic wiederverwenden statt erneut zu
+    // subscriben -- verhindert "cannot add postgres_changes callbacks ... after
+    // subscribe()" bei gleichzeitigen Mounts fuer denselben Topic.
+    const topic = `thread:${chatId}`;
+    const existing = supabase.getChannels().find(c => c.topic === `realtime:${topic}`);
+    let createdHere = false;
+    let channel = existing;
+    if (!existing) {
+      channel = supabase
+        .channel(topic)
+        .on("postgres_changes", {
+          event: "INSERT", schema: "public", table: "messages",
+          filter: `chat_id=eq.${chatId}`,
+        }, (payload) => {
+          setMessages(prev => {
+            const exists = prev.find(m => m.id === payload.new.id);
+            if (exists) return prev;
+            const withoutOptimistic = prev.filter(m =>
+              !(m._optimistic && m.text === payload.new.text && m.sender_id === payload.new.sender_id)
+            );
+            const next = [...withoutOptimistic, payload.new];
+            return next;
+          });
+        })
+        .on("postgres_changes", {
+          event: "UPDATE", schema: "public", table: "messages",
+          filter: `chat_id=eq.${chatId}`,
+        }, (payload) => {
+          setMessages(prev => (prev||[]).map(m =>
+            m.id === payload.new.id ? { ...m, ...payload.new } : m
+          ));
+        })
+        .subscribe((status, err) => {
+          if (status === "SUBSCRIBED") {
+          } else {
+          }
         });
-      })
-      .on("postgres_changes", {
-        event: "UPDATE", schema: "public", table: "messages",
-        filter: `chat_id=eq.${chatId}`,
-      }, (payload) => {
-        setMessages(prev => (prev||[]).map(m =>
-          m.id === payload.new.id ? { ...m, ...payload.new } : m
-        ));
-      })
-      .subscribe((status, err) => {
-        if (status === "SUBSCRIBED") {
-        } else {
-        }
-      });
+      createdHere = true;
+    }
 
     realtimeRef.current = channel;
 
     return () => {
-      supabase.removeChannel(channel);
+      if (createdHere) supabase.removeChannel(channel);
     };
   }, [chatId]);
 

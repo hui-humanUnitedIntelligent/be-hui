@@ -331,14 +331,26 @@ export function useCreatorBookings() {
   // Realtime
   useEffect(() => {
     if (!user?.id) return;
-    realtimeRef.current = supabase
-      .channel(`creator-bookings:${user.id}`)
-      .on("postgres_changes", {
-        event: "*", schema: "public", table: "bookings",
-        filter: `creator_id=eq.${user.id}`,
-      }, () => load())
-      .subscribe();
-    return () => { supabase.removeChannel(realtimeRef.current); };
+    // Realtime-Dedupe-Schutz (2026-07-08, systemweit, siehe useProfileLocations.js):
+    // existierenden Channel fuer diesen Topic wiederverwenden statt erneut zu
+    // subscriben -- verhindert "cannot add postgres_changes callbacks ... after
+    // subscribe()" bei gleichzeitigen Mounts fuer denselben Topic.
+    const topic = `creator-bookings:${user.id}`;
+    const existing = supabase.getChannels().find(c => c.topic === `realtime:${topic}`);
+    let createdHere = false;
+    if (existing) {
+      realtimeRef.current = existing;
+    } else {
+      realtimeRef.current = supabase
+        .channel(topic)
+        .on("postgres_changes", {
+          event: "*", schema: "public", table: "bookings",
+          filter: `creator_id=eq.${user.id}`,
+        }, () => load())
+        .subscribe();
+      createdHere = true;
+    }
+    return () => { if (createdHere) supabase.removeChannel(realtimeRef.current); };
   }, [user?.id, load]);
 
   // Grouped by status

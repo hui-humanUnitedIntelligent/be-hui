@@ -83,24 +83,35 @@ export default function MerkenSection({ onOpenProfile, onOpenDiscover, onOpenCon
   // Warum i.id statt i.post_id: DELETE liefert bei RLS nur die PK im old-Record.
   React.useEffect(() => {
     if (!user?.id) return;
-    const channel = supabase
-      .channel(`saved_posts:${user.id}`)
-      .on("postgres_changes",
-        { event: "INSERT", schema: "public", table: "saved_posts", filter: `user_id=eq.${user.id}` },
-        (payload) => {
-          const row = payload.new;
-          if (!row) return;
-          setItems(prev => prev.some(i => i.id === row.id) ? prev : [row, ...prev]);
-        })
-      .on("postgres_changes",
-        { event: "DELETE", schema: "public", table: "saved_posts", filter: `user_id=eq.${user.id}` },
-        (payload) => {
-          const rowId = payload.old?.id;
-          if (!rowId) return;
-          setItems(prev => prev.filter(i => i.id !== rowId));
-        })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    // Realtime-Dedupe-Schutz (2026-07-08, systemweit, siehe useProfileLocations.js):
+    // existierenden Channel fuer diesen Topic wiederverwenden statt erneut zu
+    // subscriben -- verhindert "cannot add postgres_changes callbacks ... after
+    // subscribe()" bei gleichzeitigen Mounts fuer denselben Topic.
+    const topic = `saved_posts:${user.id}`;
+    const existing = supabase.getChannels().find(c => c.topic === `realtime:${topic}`);
+    let channel = existing;
+    let createdHere = false;
+    if (!existing) {
+      channel = supabase
+        .channel(topic)
+        .on("postgres_changes",
+          { event: "INSERT", schema: "public", table: "saved_posts", filter: `user_id=eq.${user.id}` },
+          (payload) => {
+            const row = payload.new;
+            if (!row) return;
+            setItems(prev => prev.some(i => i.id === row.id) ? prev : [row, ...prev]);
+          })
+        .on("postgres_changes",
+          { event: "DELETE", schema: "public", table: "saved_posts", filter: `user_id=eq.${user.id}` },
+          (payload) => {
+            const rowId = payload.old?.id;
+            if (!rowId) return;
+            setItems(prev => prev.filter(i => i.id !== rowId));
+          })
+        .subscribe();
+      createdHere = true;
+    }
+    return () => { if (createdHere) supabase.removeChannel(channel); };
   }, [user?.id]);
 
   // MERKLISTE.2: Live-Vorschaubilder ueber post_id, gebatcht pro Typ (kein

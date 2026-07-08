@@ -935,66 +935,80 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
   useEffect(() => {
     if (!user?.id) return;
 
-    // Cleanup vorheriger Channel
+    // Cleanup vorheriger Channel (eigene Instanz, bestehendes Verhalten)
     if (realtimeRef.current) {
       supabase.removeChannel(realtimeRef.current);
       realtimeRef.current = null;
     }
 
-    realtimeRef.current = supabase
-      .channel("hui_feed_realtime_v4f")
-      .on("postgres_changes", {
-        event: "INSERT",
-        schema: "public",
-        table: "beitraege",         // echte Tabelle — Realtime via Migration 040
-      }, (payload) => {
-        if (!mountedRef.current) return;
-        _receiveLiveItem(payload.new, normalizeBeitragRow);
-      })
-      .on("postgres_changes", {
-        event: "INSERT",
-        schema: "public",
-        table: "invitations",
-        filter: "visibility=eq.public",
-      }, (payload) => {
-        if (!mountedRef.current) return;
-        const inv = payload.new;
-        // Nur aktive, nicht abgelaufene
-        if (inv.status !== "active") return;
-        if (inv.expires_at && new Date(inv.expires_at) < new Date()) return;
-        _receiveLiveItem(inv, normalizeInvitationRow);
-      })
-      .on("postgres_changes", {
-        event: "INSERT",
-        schema: "public",
-        table: "experiences",
-        filter: "status=eq.published",
-      }, (payload) => {
-        if (!mountedRef.current) return;
-        // FEED.3B FIX-3 — approval_status Guard (Query: status=published AND approval_status=approved)
-        if (payload.new?.approval_status !== "approved") return;
-        _receiveLiveItem(payload.new, normalizeExperienceRow);
-      })
-      // FEED.3B FIX-2 — works INSERT (vorher fehlend, RT-1)
-      .on("postgres_changes", {
-        event: "INSERT",
-        schema: "public",
-        table: "works",
-        filter: "status=eq.published",
-      }, (payload) => {
-        if (!mountedRef.current) return;
-        // JS-Guard: approval_status analog zur Feed-Query prüfen
-        if (payload.new?.approval_status !== "approved") return;
-        _receiveLiveItem(payload.new, normalizeWorkRow);
-      })
-      .subscribe((status) => {
-        if (status === "CHANNEL_ERROR") {
-          if (import.meta.env.DEV) { console.warn("[HUI_STREAM] Realtime Channel Error — Feed läuft ohne Live-Updates weiter"); }
-        }
-      });
+    // Realtime-Dedupe-Schutz (2026-07-08, systemweit, siehe useProfileLocations.js):
+    // zusaetzlich zum bestehenden Ref-basierten Cleanup (oben) wird geprueft,
+    // ob global bereits ein Channel mit diesem Topic existiert (z.B. durch
+    // eine zweite, gleichzeitig gemountete Feed-Instanz) -- falls ja, wird er
+    // wiederverwendet statt erneut subscribed.
+    const feedTopic = "hui_feed_realtime_v4f";
+    const existingFeedChannel = supabase.getChannels().find(c => c.topic === `realtime:${feedTopic}`);
+    let feedCreatedHere = false;
+
+    if (existingFeedChannel) {
+      realtimeRef.current = existingFeedChannel;
+    } else {
+      feedCreatedHere = true;
+      realtimeRef.current = supabase
+        .channel(feedTopic)
+        .on("postgres_changes", {
+          event: "INSERT",
+          schema: "public",
+          table: "beitraege",         // echte Tabelle — Realtime via Migration 040
+        }, (payload) => {
+          if (!mountedRef.current) return;
+          _receiveLiveItem(payload.new, normalizeBeitragRow);
+        })
+        .on("postgres_changes", {
+          event: "INSERT",
+          schema: "public",
+          table: "invitations",
+          filter: "visibility=eq.public",
+        }, (payload) => {
+          if (!mountedRef.current) return;
+          const inv = payload.new;
+          // Nur aktive, nicht abgelaufene
+          if (inv.status !== "active") return;
+          if (inv.expires_at && new Date(inv.expires_at) < new Date()) return;
+          _receiveLiveItem(inv, normalizeInvitationRow);
+        })
+        .on("postgres_changes", {
+          event: "INSERT",
+          schema: "public",
+          table: "experiences",
+          filter: "status=eq.published",
+        }, (payload) => {
+          if (!mountedRef.current) return;
+          // FEED.3B FIX-3 — approval_status Guard (Query: status=published AND approval_status=approved)
+          if (payload.new?.approval_status !== "approved") return;
+          _receiveLiveItem(payload.new, normalizeExperienceRow);
+        })
+        // FEED.3B FIX-2 — works INSERT (vorher fehlend, RT-1)
+        .on("postgres_changes", {
+          event: "INSERT",
+          schema: "public",
+          table: "works",
+          filter: "status=eq.published",
+        }, (payload) => {
+          if (!mountedRef.current) return;
+          // JS-Guard: approval_status analog zur Feed-Query prüfen
+          if (payload.new?.approval_status !== "approved") return;
+          _receiveLiveItem(payload.new, normalizeWorkRow);
+        })
+        .subscribe((status) => {
+          if (status === "CHANNEL_ERROR") {
+            if (import.meta.env.DEV) { console.warn("[HUI_STREAM] Realtime Channel Error — Feed läuft ohne Live-Updates weiter"); }
+          }
+        });
+    }
 
     return () => {
-      if (realtimeRef.current) {
+      if (feedCreatedHere && realtimeRef.current) {
         supabase.removeChannel(realtimeRef.current);
         realtimeRef.current = null;
       }

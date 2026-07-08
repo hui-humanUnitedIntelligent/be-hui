@@ -126,16 +126,27 @@ export function useNotifications() {
   useEffect(() => {
     if (!user?.id) { setItems([]); setUnread(0); return; }
     load();
-    const ch = supabase.channel(`notif:${user.id}`)
-      .on("postgres_changes", {
-        event: "INSERT", schema: "public",
-        table: "notifications", filter: `user_id=eq.${user.id}`,
-      }, (payload) => {
-        setItems(prev => [payload.new, ...prev]);
-        setUnread(prev => prev + 1);
-      }).subscribe();
+    // Realtime-Dedupe-Schutz (2026-07-08, systemweit, siehe useProfileLocations.js):
+    // existierenden Channel fuer diesen Topic wiederverwenden statt erneut zu
+    // subscriben -- verhindert "cannot add postgres_changes callbacks ... after
+    // subscribe()" bei gleichzeitigen Mounts fuer denselben Topic.
+    const topic = `notif:${user.id}`;
+    const existing = supabase.getChannels().find(c => c.topic === `realtime:${topic}`);
+    let ch = existing;
+    let createdHere = false;
+    if (!existing) {
+      ch = supabase.channel(topic)
+        .on("postgres_changes", {
+          event: "INSERT", schema: "public",
+          table: "notifications", filter: `user_id=eq.${user.id}`,
+        }, (payload) => {
+          setItems(prev => [payload.new, ...prev]);
+          setUnread(prev => prev + 1);
+        }).subscribe();
+      createdHere = true;
+    }
     subRef.current = ch;
-    return () => { supabase.removeChannel(ch); };
+    return () => { if (createdHere) supabase.removeChannel(ch); };
   }, [user?.id, load]);
 
   const markRead = useCallback(async (id) => {

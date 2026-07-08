@@ -36,21 +36,32 @@ export function useStripeImpactPool() {
     refresh();
 
     // Realtime: Pool-Updates live
-    const sub = supabase
-      .channel('stripe_impact_pool_realtime')
-      .on('postgres_changes', {
-        event:  '*',
-        schema: 'public',
-        table:  'stripe_impact_pool',
-      }, () => refresh())
-      .on('postgres_changes', {
-        event:  'INSERT',
-        schema: 'public',
-        table:  'stripe_impact_pool_events',
-      }, () => refresh())
-      .subscribe();
+    // Realtime-Dedupe-Schutz (2026-07-08, systemweit, siehe useProfileLocations.js):
+    // existierenden Channel fuer diesen Topic wiederverwenden statt erneut zu
+    // subscriben -- verhindert "cannot add postgres_changes callbacks ... after
+    // subscribe()" bei gleichzeitigen Mounts fuer denselben Topic.
+    const topic = 'stripe_impact_pool_realtime';
+    const existing = supabase.getChannels().find(c => c.topic === `realtime:${topic}`);
+    let sub = existing;
+    let createdHere = false;
+    if (!existing) {
+      sub = supabase
+        .channel(topic)
+        .on('postgres_changes', {
+          event:  '*',
+          schema: 'public',
+          table:  'stripe_impact_pool',
+        }, () => refresh())
+        .on('postgres_changes', {
+          event:  'INSERT',
+          schema: 'public',
+          table:  'stripe_impact_pool_events',
+        }, () => refresh())
+        .subscribe();
+      createdHere = true;
+    }
 
-    return () => { supabase.removeChannel(sub); };
+    return () => { if (createdHere) supabase.removeChannel(sub); };
   }, [refresh]);
 
   const fmt = (val) => `€${((val ?? 0)).toFixed(2)}`;
