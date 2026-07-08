@@ -12,7 +12,7 @@ import { MembershipLabel } from "../../components/ui/TalentBadge.jsx";
 // die vier universellen Interaktionen (Resonanz/Austauschen/Merken/Empfehlen).
 // Ersetzt die bisherigen Emoji-Icons (✦/🤍/💬/🔖) plattformweit.
 import {
-  HUIHeartIcon, ExchangeIcon, HUIBookmarkIcon, RecommendIcon,
+  HUIHeartIcon, HUIChatIcon, HUIBookmarkIcon, HUIShareIcon,
 } from "../../design/icons/HuiInteractionIcons.jsx";
 import { haptic } from "../../components/commerce/commerceUtils.js";
 
@@ -509,7 +509,7 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
 // ── Action Button ─────────────────────────────────────────────
 // HUI Interaction Language v1.0: "Icon" ist eine der vier zentralen SVG-
 // Komponenten aus design/icons/HuiInteractionIcons.jsx (ResonanceIcon,
-// ExchangeIcon, HUIBookmarkIcon, RecommendIcon). Die Icons behalten ihre
+// HUIChatIcon, HUIBookmarkIcon, HUIShareIcon). Die Icons behalten ihre
 // eigene, aus der Referenz uebernommene Gradient-Farbe IMMER -- aktiv/
 // inaktiv wird nicht mehr ueber Farbwechsel, sondern ueber Opacity + Scale
 // ausgedrueckt (Referenzgrafik gibt keine Toggle-Farbvariante vor).
@@ -696,8 +696,8 @@ export const FeedActions = memo(function FeedActions({
                                     oeffnet bereits den Teilen-Flow)
               save    → Merken */}
         <ActionBtn Icon={HUIHeartIcon}    count={r.inspireCount||null} active={r.inspired} activeColor={T.teal}  variant="resonanz"    onClick={() => { haptic(r.inspired ? "selection" : "light"); onReaction?.("inspire"); }} />
-        <ActionBtn Icon={ExchangeIcon}     count={r.touchCount||null}   active={r.touched}  activeColor={T.teal}  variant="austauschen" onClick={() => { haptic(r.touched ? "selection" : "light"); onReaction?.("touch"); }} />
-        <ActionBtn Icon={RecommendIcon}    activeColor={T.teal}  variant="weitergeben" onClick={() => { haptic("light"); onShare?.(); }} />
+        <ActionBtn Icon={HUIChatIcon}     count={r.touchCount||null}   active={r.touched}  activeColor={T.teal}  variant="austauschen" onClick={() => { haptic(r.touched ? "selection" : "light"); onReaction?.("touch"); }} />
+        <ActionBtn Icon={HUIShareIcon}    activeColor={T.teal}  variant="weitergeben" onClick={() => { haptic("light"); onShare?.(); }} />
         <ActionBtn Icon={HUIBookmarkIcon} active={r.saved} activeColor={T.coral} variant="merken"      onClick={() => { haptic(r.saved ? "selection" : "light"); onReaction?.("save"); }} />
         {extraActions || null}
       </div>

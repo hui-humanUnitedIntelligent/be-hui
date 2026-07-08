@@ -12,7 +12,7 @@ import { HUI } from "../design/hui.design.js";
 // HUI Interaction Language v1.0 (2026-07-05) — Single Source of Truth,
 // dieselben Komponenten wie im Feed (BaseFeedCard.jsx).
 import {
-  HUIHeartIcon, ExchangeIcon, HUIBookmarkIcon, RecommendIcon,
+  HUIHeartIcon, HUIChatIcon, HUIBookmarkIcon, HUIShareIcon,
 } from "../design/icons/HuiInteractionIcons.jsx";
 import { useSingleReaction } from "../lib/useReactions.jsx";
 import { useSavedPostsContext } from "../context/SavedPostsContext.jsx";
@@ -688,7 +688,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
             onPress={handleLike}
           />
           <IconBtn
-            Icon={ExchangeIcon}
+            Icon={HUIChatIcon}
             label={commentCount > 0 ? String(commentCount) : "Austauschen"}
             active={showComments}
             color={C.teal}
@@ -696,7 +696,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
             onPress={() => { haptic("light"); setShowComments(s => !s); }}
           />
           <IconBtn
-            Icon={RecommendIcon}
+            Icon={HUIShareIcon}
             label={shareOk ? "Kopiert!" : "Weitergeben"}
             active={shareOk}
             color={C.teal}

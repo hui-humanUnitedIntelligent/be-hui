@@ -1,26 +1,28 @@
 /**
- * HUI Interaction Icon Library v1.0 (2026-07-08) — "Eine Designer-Hand"
+ * HUI Interaction Icon Library v2.1 (2026-07-08) — Single Source of Truth
  * ──────────────────────────────────────────────────────────────────────────
- * Single Source of Truth für alle vier universellen HUI-Interaktionen.
- * Ersetzt v3.0 vollständig (siehe Block weiter unten für die neue DNA
- * und Icon-Symbolik im Detail).
+ * Kanonische Namensgebung (Lars, 2026-07-08): ab sofort NUR noch diese vier
+ * Exporte für alle Interaktions-Oberflächen im gesamten Projekt verwenden.
+ * Keine zweite Icon-Sprache, keine Emojis, keine lokalen Kopien/SVGs.
  *
- *   ❤️ Resonanz    — "Das hat etwas in mir bewegt."        → HUIHeartIcon (Referenz)
- *   💬 Austauschen — "Ich trete mit dir in den Austausch." → ExchangeIcon
+ *   ❤️ Resonanz    — "Das hat etwas in mir bewegt."        → HUIHeartIcon
+ *   💬 Austauschen — "Ich trete mit dir in den Austausch." → HUIChatIcon
  *   🔖 Merken      — "Ich komme später darauf zurück."     → HUIBookmarkIcon
- *   ➤ Weitergeben  — "Ich gebe diese Inspiration weiter."  → RecommendIcon
+ *   ➤ Weitergeben  — "Ich gebe diese Inspiration weiter."  → HUIShareIcon
  *
- * Diese vier Komponenten sind die EINZIGE erlaubte Icon-Quelle für alle
- * Interaktions-Oberflächen (Feed, Werke, Erlebnisse, Beiträge, Detailseiten,
- * Mein HUI, Sammlungen, Empfehlungen, Suchergebnisse, Listen, Karten,
- * Benachrichtigungen). Keine zweite Icon-Sprache, keine lokalen Kopien.
+ * Betrifft: Feed, Home (Momente aus deiner Nähe), Werk-/Erlebnis-/Projekt-
+ * Karten, Detailseiten, Gemerkte Inhalte, Profil, öffentliche Profile,
+ * Suchergebnisse und jede weitere Karte mit Interaktionsleiste.
  *
- * API (rein visueller Pass, keine Call-Site-Änderungen nötig):
- * HUIHeartIcon / ExchangeIcon / HUIBookmarkIcon / RecommendIcon,
- * jeweils Props { size = 24, active = false, className, style }.
+ * API (identisch für alle vier): { size = 24, active = false, className, style }.
  * `active` steuert ausschließlich die eingebaute Aktivierungs-Animation
  * (transform/opacity, ~300ms, GPU) — Farbe/Opacity je Zustand bleiben
  * Aufgabe der aufrufenden Button-Komponente über CSS `color` (currentColor).
+ *
+ * Historie: v1.0 hieß Austauschen/Weitergeben intern "ExchangeIcon"/
+ * "RecommendIcon" — am 2026-07-08 auf die verbindlichen Namen HUIChatIcon/
+ * HUIShareIcon umbenannt (reiner Namens-Rename, keine Verhaltens-/Geometrie-
+ * Änderung). Alle Call-Sites im Projekt wurden mit umbenannt.
  */
 import React, { useState, useEffect, useRef } from "react";
 
@@ -219,8 +221,8 @@ function useActivationPulse(active) {
   return pulse;
 }
 
-/* ── 2. Austauschen ── Einzelne weiche Sprechblase (Stadium + Schweif) ── */
-export function ExchangeIcon({ size = 24, active = false, className, style }) {
+/* ── 2. Austauschen ── HUIChatIcon: Einzelne weiche Sprechblase (Stadium + Schweif) ── */
+export function HUIChatIcon({ size = 24, active = false, className, style }) {
   injectIconFamilyCSS();
   const stroke = pickIconStroke(size);
   const pulse = useActivationPulse(active);
@@ -269,11 +271,11 @@ export function HUIBookmarkIcon({ size = 24, active = false, className, style })
   );
 }
 
-/* ── 4. Weitergeben ── organischer Schwung-Pfeil + offener Chevron ─────
+/* ── 4. Weitergeben ── HUIShareIcon: organischer Schwung-Pfeil + offener Chevron ─────
    "Ich gebe diese Inspiration weiter." Bewusst kein Blitz/Papierflieger/
    Upload-Tray -- ein universell lesbarer Vorwaerts-Pfeil mit weichem,
    leicht geschwungenem Schaft statt einer harten Geraden. */
-export function RecommendIcon({ size = 24, active = false, className, style }) {
+export function HUIShareIcon({ size = 24, active = false, className, style }) {
   injectIconFamilyCSS();
   const stroke = pickIconStroke(size);
   const pulse = useActivationPulse(active);
@@ -311,7 +313,7 @@ export const HUI_INTERACTIONS = {
     label: "Austauschen",
     text: "Ich möchte darüber sprechen.",
     sub: "Verbindung schaffen.",
-    Icon: ExchangeIcon,
+    Icon: HUIChatIcon,
   },
   merken: {
     label: "Merken",
@@ -323,16 +325,16 @@ export const HUI_INTERACTIONS = {
     label: "Weitergeben",
     text: "Das möchte ich an andere weitergeben.",
     sub: "Inspiration teilen, Wirkung erzeugen.",
-    Icon: RecommendIcon,
+    Icon: HUIShareIcon,
   },
 };
 
 export default {
   HUIHeartIcon,
   ResonanceIcon,
-  ExchangeIcon,
+  HUIChatIcon,
   HUIBookmarkIcon,
-  RecommendIcon,
+  HUIShareIcon,
   HUI_ICON_SIZES,
   HUI_INTERACTIONS,
 };

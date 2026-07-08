@@ -13,6 +13,7 @@ import TalentAnfrageFlow  from "../components/talents/TalentAnfrageFlow.jsx";
 import TalentBookingFlow  from "../components/talents/TalentBookingFlow.jsx";
 import { searchPlaces, distanceKm } from "../lib/geocoding.js";
 import { useRadiusFilter, radiusLabel } from "../hooks/useRadiusFilter.js"; // Umkreissuche-Vereinheitlichung 2026-07-06 -- globaler Radius statt eigenem State
+import { HUIHeartIcon, HUIChatIcon } from "../design/icons/HuiInteractionIcons.jsx"; // ICON-SSOT 2026-07-08 -- ersetzt lokale Emoji-Badges (❤️/💬)
 
 // ── Design Tokens ────────────────────────────────────────────────
 const T = {
@@ -679,8 +680,8 @@ function MomentCard({ moment, delay=0, onPress }) {
         </div>
         {/* Engagement Row */}
         <div className="dp-engage">
-          <span>❤️ {moment.likes ?? Math.floor(4 + (moment.id?.charCodeAt?.(moment.id.length-1)??7) % 30)}</span>
-          <span>💬 {moment.comments ?? Math.floor(1 + (moment.id?.charCodeAt?.(0)??3) % 12)}</span>
+          <span><HUIHeartIcon size={12} /> {moment.likes ?? Math.floor(4 + (moment.id?.charCodeAt?.(moment.id.length-1)??7) % 30)}</span>
+          <span><HUIChatIcon size={12} /> {moment.comments ?? Math.floor(1 + (moment.id?.charCodeAt?.(0)??3) % 12)}</span>
           <span>🌱 {moment.wirkung ?? Math.floor(1 + (moment.id?.charCodeAt?.(1)??2) % 8)}</span>
         </div>
       </div>
@@ -1088,7 +1089,7 @@ function WerkCard({ werk, delay=0, onPress }) {
         </div>
         {/* Likes + Views */}
         <div className="dp-engage">
-          <span>❤️ {werk.likes ?? Math.floor(5 + (werk.id?.charCodeAt?.(werk.id.length-1)??9) % 40)}</span>
+          <span><HUIHeartIcon size={12} /> {werk.likes ?? Math.floor(5 + (werk.id?.charCodeAt?.(werk.id.length-1)??9) % 40)}</span>
           <span>👁 {werk.views ?? Math.floor(50 + (werk.id?.charCodeAt?.(0)??5) % 400)}</span>
         </div>
       </div>
