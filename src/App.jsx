@@ -8,6 +8,7 @@ import { WorldSurfaceProvider } from './context/WorldSurfaceContext.jsx'
 import { OrbWorldProvider } from './context/OrbWorldContext.jsx'
 import { GuidanceProvider } from './components/guidance/GuidanceContext.jsx'
 import { RadiusProvider } from './context/RadiusContext.jsx' // Umkreissuche 2026-07-06 -- globaler Radius-Zustand (Single Source of Truth)
+import { SavedPostsProvider } from './context/SavedPostsContext.jsx' // Merken 2026-07-08 -- globaler saved_posts-Zustand (Single Source of Truth)
 
 // ── EAGER: Auth-kritische Seiten (immer sofort gebraucht) ───────
 import LoginPage    from './pages/LoginPage'
@@ -641,11 +642,13 @@ export default function App() {
       <WorldSurfaceProvider>
             <OrbWorldProvider>
       <RadiusProvider>
+      <SavedPostsProvider>
       <GuidanceProvider>
           <ErrorBoundary>
             <AppRoutes />
           </ErrorBoundary>
           </GuidanceProvider>
+      </SavedPostsProvider>
       </RadiusProvider>
       </OrbWorldProvider>
           </WorldSurfaceProvider>

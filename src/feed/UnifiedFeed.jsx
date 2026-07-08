@@ -17,10 +17,12 @@ import { toFeedItem }          from "../system/feed/unifiedNormalizer.js";
 import FeedEventsSection       from "./FeedEventsSection.jsx";
 import { FeedBottomSentinel, FeedLoadMoreSpinner } from "./FeedScrollSentinel.jsx";
 import { useSingleReaction }   from "../lib/useReactions.jsx";
+import { useSavedPostsContext } from "../context/SavedPostsContext.jsx";
 import { useAuth }             from "../lib/AuthContext.jsx";
 import { analyticsService }    from "../services/creatorEconomy.js";
 import { emit }                from "../lib/events/index.js";
 import { toast }               from "../lib/useToast.jsx";
+import { HUIBookmarkIcon }     from "../design/icons/HuiInteractionIcons.jsx";
 
 
 /* ═══════════════════════════════════════════════════════════════
@@ -453,15 +455,29 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
     authorId,
     postSnapshot
   );
+  // Zweck: "gemerkt"-Status appweit einheitlich aus saved_posts lesen
+  // (nicht aus post_reactions). Warum: EIN geteilter Context-Zustand
+  // (siehe SavedPostsContext.jsx) statt lokal pro Karte -- Feed, Suche,
+  // Detailseite, Profil und Gemerkte Inhalte zeigen so garantiert denselben
+  // Zustand, optimistisch und live.
+  const { isSaved, toggleSave } = useSavedPostsContext();
+  const saved = isSaved(postId);
 
   const handleReaction = useCallback((type) => {
+    if (type === "save") {
+      // Merken laeuft ausschliesslich ueber den geteilten Context-Toggle --
+      // schreibt saved_posts + post_reactions, optimistisch appweit sichtbar.
+      toggleSave(postId, postType, postSnapshot);
+      toast.info(saved ? "Aus Merkliste entfernt" : "Gespeichert", { duration: 1800 });
+      return;
+    }
     if (!toggle) return;
     toggle(type);
-    const labels       = { like:"Gefällt dir ✦", inspire:"Inspiriert dich ✨", save:"Gespeichert" };
-    const removeLabels = { like:"Gefällt dir nicht mehr", inspire:"Inspiration entfernt", save:"Aus Merkliste entfernt" };
+    const labels       = { like:"Gefällt dir ✦", inspire:"Inspiriert dich ✨" };
+    const removeLabels = { like:"Gefällt dir nicht mehr", inspire:"Inspiration entfernt" };
     const wasActive    = myTypes?.has?.(type);
     toast.info(wasActive ? (removeLabels[type] || type) : (labels[type] || type), { duration: 1800 });
-  }, [toggle, myTypes]);
+  }, [toggle, myTypes, toggleSave, postId, postType, postSnapshot, saved]);
 
   // Merge live reaction state into item
   const enriched = {
@@ -470,7 +486,7 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
       ...(item._reactions || {}),
       touched:  myTypes?.has?.("like")    ?? false,
       inspired: myTypes?.has?.("inspire") ?? false,
-      saved:    myTypes?.has?.("save")    ?? false,
+      saved,
     },
   };
 
@@ -741,7 +757,7 @@ function HighlightText({ text, query }) {
 // dient dem schnellen Finden, nicht dem Interagieren; Antippen fuehrt
 // weiterhin zur jeweils bestehenden Zielaktion (Profil/Projekt/Werk/
 // Buchung/Event/Profil-des-Autors), keine neuen Navigationsziele erfunden.
-function SearchResultRow({ shape = "square", image, fallbackIcon, tint, title, subtitle, query, onPress }) {
+function SearchResultRow({ shape = "square", image, fallbackIcon, tint, title, subtitle, query, onPress, saved, onToggleSave }) {
   const [imgErr, setImgErr] = useState(false);
   const showImg = image && !imgErr;
   return (
@@ -781,6 +797,23 @@ function SearchResultRow({ shape = "square", image, fallbackIcon, tint, title, s
           </div>
         )}
       </div>
+      {/* Merken-Icon nur fuer bookmarkbare Typen (Werke/Erlebnisse/
+          Veranstaltungen/Beitraege) -- Wirker/Projekte bewusst ohne
+          (bestehende Entscheidung, siehe MerkenSection-Kommentare). */}
+      {onToggleSave && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onToggleSave(); }}
+          aria-label={saved ? "Aus Merkliste entfernen" : "Merken"}
+          style={{
+            flexShrink:0, width:36, height:36, display:"flex",
+            alignItems:"center", justifyContent:"center",
+            background:"transparent", border:"none", cursor:"pointer",
+            color: saved ? SXR.coral : SXR.ink2, touchAction:"manipulation",
+          }}
+        >
+          <HUIBookmarkIcon size={19} active={saved} />
+        </button>
+      )}
     </div>
   );
 }
@@ -842,6 +875,25 @@ function GroupedSearchResults({
   const hasAny = people.length || projects.length || works.length || experiences.length || events.length || moments.length;
   if (!hasAny) return null;
 
+  // Zweck: dieselbe saved_posts-Quelle wie Feed/Detail/Profil fuer die
+  // Merken-Icons in der Suche -- kein zweiter Zustand, kein Re-Fetch.
+  const { isSaved, toggleSave } = useSavedPostsContext();
+  const bookmarkProps = (item, postType) => {
+    const alreadySaved = isSaved(item.id);
+    return {
+      saved: alreadySaved,
+      onToggleSave: () => {
+        toggleSave(item.id, postType, {
+          cover_url:   Array.isArray(item.media) ? (item.media[0] || null) : (item.media || item.media?.[0]?.url || null),
+          title:       item.title || null,
+          author_name: item.author?.name || null,
+          user_id:     item.author?.id || null,
+        });
+        toast.info(alreadySaved ? "Aus Merkliste entfernt" : "Gespeichert", { duration: 1800 });
+      },
+    };
+  };
+
   const TEAL_TINT = "rgba(13,196,181,0.10)";
   const firstMediaUrl = (item) => item.media?.find(m => m.type === "image")?.url || item.media?.[0]?.url || null;
 
@@ -875,7 +927,7 @@ function GroupedSearchResults({
             <SearchResultRow key={it.id} shape="square" fallbackIcon="🛠" tint={TEAL_TINT}
               image={firstMediaUrl(it)}
               title={it.title} subtitle={[it.author?.name, it._raw?.category].filter(Boolean).join(" · ")}
-              query={query} onPress={() => onDetail?.(it)} />
+              query={query} onPress={() => onDetail?.(it)} {...bookmarkProps(it, "work")} />
           ))}
         </SearchGroupCard>
       )}
@@ -885,7 +937,7 @@ function GroupedSearchResults({
             <SearchResultRow key={it.id} shape="square" fallbackIcon="✨" tint={TEAL_TINT}
               image={firstMediaUrl(it)}
               title={it.title} subtitle={[it.author?.name, it._raw?.location_text].filter(Boolean).join(" · ")}
-              query={query} onPress={() => onBook?.(it)} />
+              query={query} onPress={() => onBook?.(it)} {...bookmarkProps(it, "experience")} />
           ))}
         </SearchGroupCard>
       )}
@@ -895,7 +947,7 @@ function GroupedSearchResults({
             <SearchResultRow key={it.id} shape="square" fallbackIcon="📅" tint={TEAL_TINT}
               image={firstMediaUrl(it)}
               title={it.title} subtitle={[it.author?.name, it.location].filter(Boolean).join(" · ")}
-              query={query} onPress={() => onEventPress?.(it)} />
+              query={query} onPress={() => onEventPress?.(it)} {...bookmarkProps(it, "event")} />
           ))}
         </SearchGroupCard>
       )}
@@ -905,7 +957,7 @@ function GroupedSearchResults({
             <SearchResultRow key={it.id} shape="square" fallbackIcon="📰" tint={TEAL_TINT}
               image={firstMediaUrl(it)}
               title={it.title} subtitle={it.author?.name}
-              query={query} onPress={() => onProfile?.(it.author?.id)} />
+              query={query} onPress={() => onProfile?.(it.author?.id)} {...bookmarkProps(it, "post")} />
           ))}
         </SearchGroupCard>
       )}

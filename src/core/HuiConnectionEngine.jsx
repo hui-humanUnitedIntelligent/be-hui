@@ -363,6 +363,11 @@ export default function HuiConnectionEngine({ children }) {
   const isFollowed   = useCallback((id) => !!state.followed[id],          [state.followed]);
   const isConnected  = useCallback((id) => state.connections[id] === CONNECTION_STATE.CONNECTED || state.connections[id] === CONNECTION_STATE.PENDING, [state.connections]);
   const hasJoined    = useCallback((id) => !!state.joinedEncounters[id],  [state.joinedEncounters]);
+  // LEGACY-KANDIDAT (2026-07-08): useBookmark/isBookmarked/state.bookmarks
+  // sind appweit ungenutzt (0 Aufrufe ausserhalb dieser Datei) -- abgeloest
+  // durch saved_posts + useSavedPosts (useReactions.jsx). Bewusst nicht
+  // entfernt/angefasst, um HuiConnectionEngine nicht anzufassen. Kandidat
+  // fuer einen spaeteren, eigenen Refactoring-Block.
   const isBookmarked = useCallback((id) => !!state.bookmarks[id],         [state.bookmarks]);
   const getContext   = useCallback((id) => state.contextCache[id] || null,[state.contextCache]);
   const getFlowContext = useCallback(() => state.currentFlow,              [state.currentFlow]);

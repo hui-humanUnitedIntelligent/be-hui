@@ -259,15 +259,20 @@ export default function MerkenSection({ onOpenProfile, onOpenDiscover, onOpenCon
                   whiteSpace:"nowrap", touchAction:"manipulation",
                 }}
               >Öffnen</button>
+              {/* Bookmark-Icon statt Text-Button -- konsistent mit Feed/
+                  Suche/Detailseite: hier ist alles per Definition bereits
+                  gemerkt, active=true, Tap entfernt (Merken-Icon appweit
+                  einheitlich). */}
               <button
                 onClick={() => handleRemove(item.post_id)}
+                aria-label="Aus Merkliste entfernen"
                 style={{
-                  padding:"5px 10px", borderRadius:10,
-                  background:"rgba(239,68,68,0.08)", border:"1px solid rgba(239,68,68,0.15)",
-                  color:"#EF4444", fontSize:11, fontWeight:700, cursor:"pointer",
-                  whiteSpace:"nowrap", touchAction:"manipulation",
+                  padding:"6px 10px", borderRadius:10, display:"flex",
+                  alignItems:"center", justifyContent:"center",
+                  background:"rgba(255,138,107,0.10)", border:"1px solid rgba(255,138,107,0.20)",
+                  color:T.coral, cursor:"pointer", touchAction:"manipulation",
                 }}
-              >Entfernen</button>
+              ><HUIBookmarkIcon size={17} active /></button>
             </div>
           </div>
         );

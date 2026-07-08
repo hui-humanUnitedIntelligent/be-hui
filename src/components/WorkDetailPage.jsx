@@ -15,6 +15,7 @@ import {
   HUIHeartIcon, ExchangeIcon, HUIBookmarkIcon, RecommendIcon,
 } from "../design/icons/HuiInteractionIcons.jsx";
 import { useSingleReaction } from "../lib/useReactions.jsx";
+import { useSavedPostsContext } from "../context/SavedPostsContext.jsx";
 import { haptic } from "./commerce/commerceUtils.js";
 import { toast } from "../lib/useToast.jsx";
 
@@ -360,7 +361,10 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
     useSingleReaction(id, "work", creator?.id, postSnapshot);
   const resonated      = reactionTypes.has("inspire");
   const resonanceCount = reactionCounts.inspire || 0;
-  const saved          = reactionTypes.has("save");
+  // Zweck: "gemerkt" appweit einheitlich aus saved_posts (Context) lesen,
+  // nicht aus post_reactions -- gleicher Zustand wie Feed/Suche/Profil.
+  const { isSaved, toggleSave } = useSavedPostsContext();
+  const saved = isSaved(id);
 
 
   /* ── Load Social State ──────────────────────────────────────────── */
@@ -402,13 +406,13 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
     toggleReaction("inspire");
   }, [user?.id, resonated, toggleReaction]);
 
-  /* ── Toggle Merken — ueber post_reactions (useSingleReaction) ─────── */
+  /* ── Toggle Merken — ueber den geteilten SavedPosts-Context ───────── */
   const handleSave = useCallback(() => {
     if (!user?.id) return;
     haptic(saved ? "selection" : "light");
-    toggleReaction("save");
+    toggleSave(id, "work", postSnapshot);
     toast.info(saved ? "Aus Merkliste entfernt" : "Gespeichert", { duration: 1800 });
-  }, [user?.id, saved, toggleReaction]);
+  }, [user?.id, saved, toggleSave, id, postSnapshot]);
 
   /* ── Toggle Follow — via AppStateContext (Single Owner) ─────────── */
   const handleFollow = useCallback(async () => {

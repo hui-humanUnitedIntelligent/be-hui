@@ -51,7 +51,7 @@ import StatistikenModal         from "../components/studio/StatistikenModal.jsx"
 import ProfilBearbeitenModal    from "../components/studio/ProfilBearbeitenModal.jsx";
 import { HUIBookmarkIcon }      from "../design/icons/HuiInteractionIcons.jsx";
 import { NotificationBadge }    from "../lib/useNotifications.jsx";
-import { useSavedPosts }        from "../lib/useReactions.jsx";
+import { useSavedPostsContext }  from "../context/SavedPostsContext.jsx";
 
 // ── Design Tokens ────────────────────────────────────────────────
 const T = {
@@ -406,7 +406,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
   // Einzige Stelle im Baum, die useSavedPosts() aufruft (siehe
   // MerkenSection.jsx-Kommentar) -- count kommt direkt aus saved_posts,
   // keine zweite Berechnung/Query.
-  const { count: savedCount } = useSavedPosts();
+  const { count: savedCount } = useSavedPostsContext();
   const [showSettings,    setShowSettings]    = useState(false);
   const [showStudio,        setShowStudio]        = useState(false);
   const [showResonanz,      setShowResonanz]      = useState(false);
