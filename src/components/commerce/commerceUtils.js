@@ -300,3 +300,55 @@ export function resolveItemShippingType(item) {
 export function cartNeedsShippingAddress(items) {
   return items.some(i => resolveItemShippingType(i) === "physical");
 }
+
+/**
+ * Normalisiert Werk-, Erlebnis- oder Feed-Items in das Commerce-2.0-Cart-Format.
+ */
+export function normalizeToCartItem(source, type = null) {
+  if (!source) return null;
+
+  // BOOK_EXPERIENCE-Payload: { experience, creator }
+  if (source.experience && !source.id) {
+    const exp = source.experience;
+    const creator = source.creator;
+    const raw = exp._raw || exp;
+    return {
+      id: exp.id || raw.id,
+      type: "experience",
+      title: exp.title || exp.name || raw.title,
+      price: exp.price ?? raw.price,
+      img: exp.img || exp.cover_url || raw.cover_url || raw.image_url,
+      author: creator ? {
+        id: creator.id || creator.user_id,
+        name: creator.display_name || creator.name,
+        avatar: creator.avatar_url || creator.avatar,
+      } : undefined,
+      user_id: exp.user_id || creator?.id || creator?.user_id,
+      _raw: raw,
+    };
+  }
+
+  const item = source;
+  const inferredType = type || item.type || (item.max_participants != null ? "experience" : "work");
+  return {
+    ...item,
+    type: inferredType,
+    _raw: item._raw || item,
+  };
+}
+
+/**
+ * Fügt ein Item idempotent zum Commerce-2.0-Werkekorb hinzu.
+ * @returns {boolean} true wenn hinzugefügt, false wenn ungültig oder bereits vorhanden
+ */
+export function addToCommerceCart(setCart, source, type = null) {
+  const item = normalizeToCartItem(source, type);
+  if (!item?.id) return false;
+  let added = false;
+  setCart(prev => {
+    if (prev.some(x => x.id === item.id)) return prev;
+    added = true;
+    return [...prev, item];
+  });
+  return added;
+}

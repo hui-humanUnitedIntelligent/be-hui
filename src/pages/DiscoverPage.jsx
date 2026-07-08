@@ -2118,7 +2118,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
     if (profileId && typeof onView === "function") onView(profileId);
   }, [onView]);
 
-  // Erlebnis-Karte: öffne ExperienceBookingFlow (Detail + Buchen)
+  // Erlebnis-Karte: Commerce 2.0 — Erlebnis zum Werkekorb (via onBook)
   const handleErlebnisPress = useCallback((erlebnis) => {
     if (typeof onBook === "function") {
       onBook(erlebnis);

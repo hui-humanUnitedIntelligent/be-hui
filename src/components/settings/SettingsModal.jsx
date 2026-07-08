@@ -142,8 +142,8 @@ function NameBlock({ profile, onProfileUpdate }) {
 
 // ── Block: E-Mail ─────────────────────────────────────────────
 function EmailBlock({ profile, onProfileUpdate }) {
-  // email direkt aus Supabase Auth holen
-  const [email, setEmail] = useState(authCtxProfile?.email || profile?.email || "");
+  const { user } = useAuth() || {};
+  const [email, setEmail] = useState(user?.email || profile?.email || "");
   const [saving, setSaving] = useState(false);
   const [saved,  setSaved]  = useState(false);
   const [error,  setError]  = useState(null);
