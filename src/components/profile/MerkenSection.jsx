@@ -2,10 +2,26 @@
 // MERKEN.1B: verschoben aus CreatorDashboard (dead) → MyBasisProfile (produktiv)
 // MERKLISTE.1 (2026-07-08): Filter-Tabs + Realtime-Sync + typgerechte
 // Detailseiten-Navigation. Weiterhin keine neue Tabelle/Logik --
-// wiederverwendet saved_posts + useSavedPosts (siehe hui_060_...sql).
+// wiederverwendet saved_posts (siehe hui_060_...sql).
+//
+// MERKEN.3-FIX (2026-07-08): ruft useSavedPosts() bewusst NICHT mehr auf.
+// Grund: useSavedPosts() oeffnet seit MERKEN.3 selbst einen Realtime-Channel
+// (`saved_posts_count:<uid>`) fuer den Profil-Badge. Wenn MerkenSection
+// (hier) UND MyBasisProfile.jsx (Badge) gleichzeitig gemountet sind, riefen
+// beide useSavedPosts() auf -- gleicher Nutzer, gleicher Topic-Name.
+// supabase.channel(topic) gibt bei bereits existierendem Topic denselben,
+// schon subscribten Channel zurueck (siehe RealtimeClient.channel() Quelle),
+// die zweite Hook-Instanz versuchte dann .on('postgres_changes', ...) auf
+// einem bereits subscribten Channel zu registrieren -> harter Crash
+// "cannot add `postgres_changes` callbacks ... after `subscribe()`".
+// Fix an der Ursache: nur noch EINE Stelle (MyBasisProfile.jsx) instanziiert
+// useSavedPosts(). MerkenSection entfernt Eintraege ueber eine eigene,
+// direkte Mutation (kein Toggle noetig -- hier wird nie hinzugefuegt,
+// nur entfernt) und behaelt seinen unabhaengigen `saved_posts:<uid>`-Channel
+// fuer die Item-Liste (anderer Topic-Name, andere Funktion: volle
+// Snapshot-Objekte statt nur IDs/Count -- keine Kollision, keine Dopplung).
 import React from "react";
 import { useAuth }       from "../../lib/AuthContext.jsx";
-import { useSavedPosts } from "../../lib/useReactions.jsx";
 import { supabase }      from "../../lib/supabaseClient.js";
 import { HUIBookmarkIcon } from "../../design/icons/HuiInteractionIcons.jsx";
 import { toast }         from "../../lib/useToast.jsx";
@@ -44,7 +60,6 @@ const FILTERS = [
 
 export default function MerkenSection({ onOpenProfile, onOpenDiscover, onOpenContent }) {
   const { user }          = useAuth();
-  const { toggleSave }    = useSavedPosts();
   const [items,    setItems]    = React.useState([]);
   const [loading,  setLoading]  = React.useState(true);
   const [activeFilter, setActiveFilter] = React.useState("all");
@@ -93,9 +108,18 @@ export default function MerkenSection({ onOpenProfile, onOpenDiscover, onOpenCon
   }, [user?.id]);
 
   const handleRemove = async (postId) => {
-    // Optimistic zuerst (fuehlt sich sofort an), DB-Write danach
+    if (!user?.id) return;
+    // Optimistic zuerst (fuehlt sich sofort an), DB-Write danach.
+    // Direkte Mutation statt useSavedPosts().toggleSave -- hier wird nie
+    // hinzugefuegt, nur entfernt, und der Hook wuerde eine zweite,
+    // kollidierende Realtime-Subscription oeffnen (siehe Datei-Kopf).
     setItems(prev => prev.filter(i => i.post_id !== postId));
-    await toggleSave(postId);
+    try {
+      await supabase.from("saved_posts").delete()
+        .eq("user_id", user.id).eq("post_id", postId);
+      await supabase.from("post_reactions").delete()
+        .eq("user_id", user.id).eq("post_id", postId).eq("type", "save");
+    } catch { /* Realtime/Reload gleicht ab, falls das je fehlschlaegt */ }
     toast.info("Aus Merkliste entfernt", { duration: 1800 });
   };
 
