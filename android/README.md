@@ -2,7 +2,7 @@
 
 Dieser Ordner enthält die native Android-Hülle (Capacitor/`BridgeActivity`),
 die den be-hui Web-Build (`dist/`) als APK verpackt. Import 2026-07-09 vom
-lokalen Capacitor-Projekt des Nutzers (Michael), als RAR-Datei übergeben.
+lokalen Capacitor-Projekt des Nutzers (Michael), vollständig übernommen.
 
 ## Bekannter Fix: Android-System-Navigationsleiste überlappte die App-Navbar
 
@@ -30,18 +30,10 @@ npm run build          # erzeugt dist/
 npx cap sync android    # kopiert dist/ nach android/app/src/main/assets/public/
 ```
 
-## Unvollständig übernommen — noch offen (RAR-Kompressionsfehler beim Import)
+## Status
 
-Beim Entpacken der übergebenen RAR-Datei kamen folgende Dateien beschädigt
-(0 Bytes) an und wurden NICHT übernommen, um keine kaputten/leeren Dateien
-zu committen (Charta: keine Annahmen/erfundenen Inhalte). Fehlen noch,
-bevor dieser Ordner allein buildfähig ist:
-
-- `app/build.gradle` (Module-Level Gradle-Konfiguration — **kritisch**,
-  ohne diese Datei kann das Projekt nicht gebaut werden)
-- `app/src/main/res/values/strings.xml`
-- `app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.png`
-- `capacitor-cordova-android-plugins/cordova.variables.gradle`
-
-Bitte diese 4 Dateien einzeln nachreichen (z.B. als Textinhalt oder in
-einem ZIP statt RAR — zuverlässigere Kompatibilität beim Entpacken).
+Vollständig übernommen (2026-07-09). Die 4 Dateien, die beim ersten RAR-Export
+beschädigt (0 Byte) ankamen (`app/build.gradle`, `strings.xml`,
+`ic_launcher_foreground.png` xhdpi, `cordova.variables.gradle`), wurden
+einzeln nachgereicht und ergänzt — Inhalte gegen den ursprünglich gemeldeten
+Zustand geprüft (u.a. Icon-Dateigröße/Auflösung identisch zum Original).
