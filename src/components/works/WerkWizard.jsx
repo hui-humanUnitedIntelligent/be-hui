@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { searchPlaces, geocodeWithFallback } from "../../lib/geocoding.js";
+import LocationAutocompleteInput from "../shared/LocationAutocompleteInput.jsx";
 
 const C = {
   teal:"#0EC4B8", tealD:"#0DBBAF", cream:"#F8F7F4",
@@ -326,7 +327,7 @@ function S4({ data, onChange, onNext }) {
 }
 
 // Screen 5 – Versand & Abholung
-function S5({ data, onChange, onNext }) {
+function S5({ data, onChange, onNext, onPickLocation }) {
   const NAT=["DHL Standard","DHL Express","Hermes","DPD","Selbst verpackt"];
   const INT=["DHL International","FedEx","UPS","Auf Anfrage"];
   return (
@@ -353,7 +354,16 @@ function S5({ data, onChange, onNext }) {
       <Toggle label="Abholung möglich" value={!!data.abholung} onChange={v=>onChange({abholung:v})}/>
       {data.abholung&&(
         <div style={{ background:"rgba(14,196,184,0.04)", border:"1.5px solid rgba(14,196,184,0.15)", borderRadius:14, padding:"14px 14px 6px", marginBottom:12 }}>
-          <FI label="Standort für Abholung" value={data.abholort||""} onChange={v=>onChange({abholort:v})} placeholder="z. B. Freiburg im Breisgau, Deutschland"/>
+          <div style={{ marginBottom:14 }}>
+            <Lbl text="Standort für Abholung"/>
+            <LocationAutocompleteInput
+              value={data.abholort||""}
+              onChange={v=>onChange({abholort:v})}
+              onPick={onPickLocation}
+              placeholder="z. B. Freiburg im Breisgau, Deutschland"
+              style={INP}
+            />
+          </div>
         </div>
       )}
       {!data.versand&&!data.abholung&&(
@@ -410,6 +420,11 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
   const [step,setSt]=useState(1);
   const [saving,setSaving]=useState(false);
   const [saveError,setSaveError]=useState(null);
+  // Praezise Koordinaten aus einem angetippten Autocomplete-Vorschlag (Standort
+  // fuer Abholung) -- siehe LocationAutocompleteInput.jsx. Wird beim Speichern
+  // direkt uebernommen statt erneut zu geocodieren. Zurueckgesetzt sobald der
+  // Ort danach manuell weiter bearbeitet wird.
+  const [pickedGeo,setPickedGeo]=useState(null);
   const [form,setForm]=useState(()=>{
     if (existingWork) {
       let imgs=[];
@@ -456,7 +471,11 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
     // noch keine Koordinaten vorhanden sind.
     let geoLat = existingWork?.lat ?? null, geoLng = existingWork?.lng ?? null;
     const abholortTrimmed = (form.abholort || "").trim();
-    if (abholortTrimmed && abholortTrimmed !== (existingWork?.location_text || "").trim()) {
+    if (pickedGeo) {
+      // Ort wurde per Autocomplete-Vorschlag ausgewaehlt und seither nicht
+      // manuell veraendert -- exakte Koordinaten direkt uebernehmen.
+      geoLat = pickedGeo.lat; geoLng = pickedGeo.lng;
+    } else if (abholortTrimmed && abholortTrimmed !== (existingWork?.location_text || "").trim()) {
       const geo = await geocodeWithFallback(abholortTrimmed);
       geoLat = geo?.lat ?? null;
       geoLng = geo?.lng ?? null;
@@ -637,7 +656,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
         {step===2&&<S2 data={form} onChange={patch} onNext={null}/>}
         {step===3&&<S3 data={form} onChange={patch} onNext={null}/>}
         {step===4&&<S4 data={form} onChange={patch} onNext={null}/>}
-        {step===5&&<S5 data={form} onChange={patch} onNext={null}/>}
+        {step===5&&<S5 data={form} onChange={patch} onNext={null} onPickLocation={place=>{ patch({abholort:place.label}); setPickedGeo({lat:place.lat,lng:place.lng}); }}/>}
         {step===6&&<S6 data={form} onChange={patch}
           onSave={()=>save("pending_review")}
           onDraft={()=>save("draft")}

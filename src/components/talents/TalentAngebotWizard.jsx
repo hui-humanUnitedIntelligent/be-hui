@@ -20,6 +20,7 @@ import {
 } from "../../hooks/useTalents.js";
 import { searchPlaces, geocodeWithFallback } from "../../lib/geocoding.js";
 import AvailabilityCalendar from "./AvailabilityCalendar.jsx";
+import LocationAutocompleteInput from "../shared/LocationAutocompleteInput.jsx";
 
 const C = {
   teal: "#0EC4B8", tealD: "#0DBBAF", ink: "#1A1A18", inkMid: "rgba(26,26,24,0.55)",
@@ -130,6 +131,16 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
   // 3) Ort
   const [locationType, setLocationType] = useState(existingTalent?.location_type || "");
   const [locationAddress, setLocationAddress] = useState(existingTalent?.location_address || "");
+  // Praezise Koordinaten aus einem angetippten Autocomplete-Vorschlag (Ort-Suche,
+  // siehe LocationAutocompleteInput.jsx) -- wird beim Speichern direkt uebernommen
+  // statt erneut zu geocodieren. Wird zurueckgesetzt, sobald die Adresse danach
+  // manuell weiter bearbeitet wird (dann greift beim Speichern wieder der
+  // bestehende geocodeWithFallback()-Sicherheitsnetz).
+  const [pickedGeo, setPickedGeo] = useState(
+    (existingTalent?.lat != null && existingTalent?.lng != null)
+      ? { lat: existingTalent.lat, lng: existingTalent.lng }
+      : null
+  );
   const [locationNotes, setLocationNotes] = useState(existingTalent?.location_notes || "");
   const [mapLink, setMapLink] = useState(existingTalent?.map_link || "");
 
@@ -213,8 +224,15 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
     let geoLat = null, geoLng = null;
     const addrTrimmed = locationAddress.trim();
     if (locationType !== "online" && addrTrimmed) {
-      const geo = await geocodeWithFallback(addrTrimmed);
-      if (geo) { geoLat = geo.lat; geoLng = geo.lng; }
+      if (pickedGeo) {
+        // Adresse wurde per Autocomplete-Vorschlag ausgewaehlt und seither
+        // nicht manuell veraendert -- exakte Koordinaten direkt uebernehmen,
+        // kein erneuter Nominatim-Aufruf noetig.
+        geoLat = pickedGeo.lat; geoLng = pickedGeo.lng;
+      } else {
+        const geo = await geocodeWithFallback(addrTrimmed);
+        if (geo) { geoLat = geo.lat; geoLng = geo.lng; }
+      }
     }
 
     const servicePayload = {
@@ -325,9 +343,15 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
 
             {locationType !== "online" && (
               <>
-                <Lbl text="Adresse / Ort"/>
-                <input value={locationAddress} onChange={e => setLocationAddress(e.target.value)} disabled={locked}
-                  placeholder="Straße, Ort" style={{ ...INP, marginBottom: 14, background: locked ? "#f5f5f3" : "#fff" }}/>
+                <Lbl text="Adresse / Ort" hint="Tippen fuer Vorschlaege, z.B. Ortsname oder PLZ."/>
+                <LocationAutocompleteInput
+                  value={locationAddress}
+                  onChange={v => { setLocationAddress(v); setPickedGeo(null); }}
+                  onPick={place => { setLocationAddress(place.label); setPickedGeo({ lat: place.lat, lng: place.lng }); }}
+                  disabled={locked}
+                  placeholder="Straße, Ort"
+                  style={{ ...INP, marginBottom: 14, background: locked ? "#f5f5f3" : "#fff" }}
+                />
 
                 <Lbl text="Karten-Link (optional)"/>
                 <input value={mapLink} onChange={e => setMapLink(e.target.value)} disabled={locked}

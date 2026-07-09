@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { searchPlaces, geocodeWithFallback } from "../../lib/geocoding.js";
+import LocationAutocompleteInput from "../shared/LocationAutocompleteInput.jsx";
 
 // ── Design-Tokens ─────────────────────────────────────────────
 const C = {
@@ -441,7 +442,7 @@ function S1({ data, onChange, userId }) {
 // SCHRITT 2 — WANN & WO
 // Datum · Beginn · Ende · Ort · Vor Ort / Online
 // ══════════════════════════════════════════════════════════════
-function S2({ data, onChange }) {
+function S2({ data, onChange, onPickLocation }) {
   return (
     <div>
       <div style={{ fontSize: 22, fontWeight: 800, color: C.ink, marginBottom: 4 }}>Wann & Wo</div>
@@ -491,15 +492,14 @@ function S2({ data, onChange }) {
       </div>
 
       {/* Ort */}
-      <Field label="Ort" req>
+      <Field label="Ort" req hint="Tippen fuer Vorschlaege, z.B. Ortsname oder PLZ.">
         <div style={{ position: "relative" }}>
-          <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", fontSize: 16, color: C.inkFade, pointerEvents: "none" }}>📍</span>
-          <input
-            type="text"
+          <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", fontSize: 16, color: C.inkFade, pointerEvents: "none", zIndex: 1 }}>📍</span>
+          <LocationAutocompleteInput
             value={data.location_text || ""}
-            onChange={e => onChange({ location_text: e.target.value })}
+            onChange={v => onChange({ location_text: v })}
+            onPick={onPickLocation}
             placeholder="KunstRaum HUI, Wien"
-            maxLength={120}
             style={{ ...INP_BASE, paddingLeft: 46 }}
           />
         </div>
@@ -723,6 +723,10 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
   const [step, setSt]             = useState(1);
   const [saving, setSaving]       = useState(false);
   const [saveError, setSaveError] = useState(null);
+  // Praezise Koordinaten aus einem angetippten Autocomplete-Vorschlag (Ort),
+  // siehe LocationAutocompleteInput.jsx -- direkt uebernommen statt erneut
+  // zu geocodieren. Zurueckgesetzt sobald der Ort danach manuell bearbeitet wird.
+  const [pickedGeo, setPickedGeo] = useState(null);
 
   const [form, setForm] = useState(() => {
     if (existingExp) {
@@ -834,6 +838,10 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
     const locTrimmed = (form.location_text || "").trim();
     if (form.format === "online" || !locTrimmed) {
       geoLat = null; geoLng = null;
+    } else if (pickedGeo) {
+      // Ort wurde per Autocomplete-Vorschlag ausgewaehlt und seither nicht
+      // manuell veraendert -- exakte Koordinaten direkt uebernehmen.
+      geoLat = pickedGeo.lat; geoLng = pickedGeo.lng;
     } else if (locTrimmed !== (existingExp?.location_text || "").trim()) {
       const geo = await geocodeWithFallback(locTrimmed);
       geoLat = geo?.lat ?? null;
@@ -942,7 +950,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
         padding: "24px 20px 0",
       }}>
         {step === 1 && <S1 data={form} onChange={patch} userId={userId}/>}
-        {step === 2 && <S2 data={form} onChange={patch}/>}
+        {step === 2 && <S2 data={form} onChange={patch} onPickLocation={place => { patch({ location_text: place.label }); setPickedGeo({ lat: place.lat, lng: place.lng }); }}/>}
         {step === 3 && <S3 data={form} onChange={patch}/>}
         {step === 4 && <S4 data={form} onChange={patch} saving={saving}/>}
         <div style={{ height: 120 }}/>
