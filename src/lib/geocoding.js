@@ -62,7 +62,10 @@ export function distanceKm(lat1, lng1, lat2, lng2) {
  * Reihenfolge der Versuche (stoppt beim ersten Treffer):
  *  1. Adresse wie eingegeben
  *  2. ohne Hausnummer am Anfang/Ende ("Pera Geitonias 9" -> "Pera Geitonias")
- *  3. bei Komma-Adressen: vorderste (spezifischste) Segmente schrittweise
+ *  3. PLZ-Anker: alles ab der ersten 4-6-stelligen Zahl im Text, auch ohne
+ *     Komma davor ("Pera Geitonias 9 8552 Choulou, Paphos, CY" ->
+ *     "8552 Choulou, Paphos, CY" bzw. nur "8552 Choulou")
+ *  4. bei Komma-Adressen: vorderste (spezifischste) Segmente schrittweise
  *     weglassen ("Musterstr. 5, 12345 Musterstadt" -> "12345 Musterstadt")
  *
  * Bewusst OHNE Rueckfall auf ein einzelnes generisches Wort -- das kann
@@ -88,6 +91,21 @@ export async function geocodeWithFallback(address) {
   if (noTrailingNum && noTrailingNum !== original) candidates.push(noTrailingNum);
   if (noLeadingNum && noLeadingNum !== original) candidates.push(noLeadingNum);
 
+  // Postleitzahl-Anker: manche Adressen haben keine Kommas zwischen
+  // Strassenname und PLZ/Ort (z.B. "Musterweg 9 12345 Musterstadt, Land").
+  // Findet die erste eigenstaendige 4-6-stellige Zahl (typische PLZ-Laenge
+  // in den meisten Laendern, u.a. Zypern=4-stellig) und nutzt alles ab dort
+  // als Kandidat -- deutlich zuverlaessiger als der Strassenname, da PLZ+Ort
+  // fast immer in OpenStreetMap indexiert sind, auch wenn der genaue
+  // Strassenname/Nachbarschaftsname fehlt.
+  const postalMatch = original.match(/\b\d{4,6}\b.*$/);
+  if (postalMatch) {
+    const fromPostal = postalMatch[0].trim();
+    if (fromPostal && fromPostal !== original) candidates.push(fromPostal);
+    const commaIdx = fromPostal.indexOf(",");
+    if (commaIdx > 0) candidates.push(fromPostal.slice(0, commaIdx).trim());
+  }
+
   const parts = original.split(",").map(p => p.trim()).filter(Boolean);
   for (let i = 1; i < parts.length; i++) {
     candidates.push(parts.slice(i).join(", "));
@@ -107,7 +125,7 @@ export async function geocodeWithFallback(address) {
     if (!c || seen.has(key)) return false;
     seen.add(key);
     return true;
-  }).slice(0, 5); // Fair-Use/Latenz begrenzen -- max. 5 Versuche pro Speichern
+  }).slice(0, 6); // Fair-Use/Latenz begrenzen -- max. 6 Versuche pro Speichern
 
   for (let i = 0; i < uniqueCandidates.length; i++) {
     if (i > 0) await new Promise(r => setTimeout(r, 1000)); // Nominatim Fair-Use: max 1 req/s
