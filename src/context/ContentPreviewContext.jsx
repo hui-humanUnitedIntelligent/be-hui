@@ -34,13 +34,18 @@ export function ContentPreviewProvider({ children }) {
     setItem(normalizedItem);
   }, []);
 
-  // openRef: nur {type,id} bekannt (Liveticker) -- laedt schlank nach.
+  // openRef: nur {type,id} bekannt (Liveticker, Notification-Routing,
+  // DEEPLINK.1 2026-07-09 Tiefen-Links /beitrag,/projekt,/erlebnis,
+  // /veranstaltung) -- laedt schlank nach. Gibt seit DEEPLINK.1 zusaetzlich
+  // true/false zurueck (gefunden/nicht gefunden) -- additiv, bestehende
+  // Aufrufer (die den Rueckgabewert ignorieren) sind unveraendert.
   const openRef = useCallback(async ({ type, id }) => {
-    if (!type || !id) return;
+    if (!type || !id) return false;
     setLoading(true);
     const loaded = await loadPreviewByRef(type, id);
     setLoading(false);
-    if (loaded) setItem(loaded);
+    if (loaded) { setItem(loaded); return true; }
+    return false;
   }, []);
 
   const close = useCallback(() => setItem(null), []);

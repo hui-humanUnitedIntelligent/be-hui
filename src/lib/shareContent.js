@@ -16,16 +16,21 @@
 // nutzen jetzt ausschliesslich diese eine Funktion.
 //
 // Oeffentliche URL pro Typ (niemals interne IDs/Session-Daten):
-//   - work   → /work/:id            (einzige echte Detailroute der App)
+//   - work   → /werke/:slug (falls Slug vorhanden) sonst /work/:id
 //   - wirker → /profile/:username   (falls Username bekannt)
-//   - alles andere (experience/moment/event/project/recommendation/
-//     connection) → es gibt appweit noch KEINE eigene Detailseite fuer
-//     diese Typen (etablierte, bereits an mehreren Stellen dokumentierte
-//     Baseline, siehe OPEN.1/MERKLISTE.1). Fallback: oeffentliches Profil
-//     des Autors -- dieselbe Konvention, die die Merkliste bereits fuer
-//     "Original oeffnen" nutzt. Ist kein Autor/Username bekannt: Fallback
-//     auf die oeffentliche HUI-Startseite (/Home) -- niemals eine kaputte
-//     oder interne URL.
+//   - moment (Beitrag)   → /beitrag/:id
+//   - project (Projekt)  → /projekt/:id
+//   - experience (Erlebnis) → /erlebnis/:id
+//   - event (Veranstaltung) → /veranstaltung/:id
+//   - recommendation/connection → appweit weiterhin KEINE eigene
+//     Detailseite (aussserhalb des DEEPLINK.1-Auftrags) -- Fallback:
+//     oeffentliches Autor-Profil, sonst /Home.
+//
+// DEEPLINK.1 (2026-07-09): /beitrag,/projekt,/erlebnis,/veranstaltung
+// werden serverseitig NICHT durch 4 neue Detailseiten geloest, sondern
+// oeffnen die bereits bestehende, geteilte Preview/Fullscreen-Infra-
+// struktur (ContentPreviewContext.openRef) ueber DeepLinkOpener in
+// App.jsx -- keine Dopplung von Lade-/Render-Logik.
 //
 // Architektur-Vorbereitung fuer spaeter (kein Umbau noetig):
 //   shareContent(item, { channel }) -- `channel` ist optional und heute
@@ -44,14 +49,26 @@ const TYPE_LABEL = {
 
 function publicUrlForItem(item) {
   const origin = (typeof window !== "undefined" && window.location?.origin) || "";
-  if (item.type === "work" && item.id) return `${origin}/work/${item.id}`;
+
+  if (item.type === "work" && item.id) {
+    const slug = item.slug || item._raw?.slug;
+    return slug ? `${origin}/werke/${slug}` : `${origin}/work/${item.id}`;
+  }
 
   if (item.type === "wirker") {
     const username = item.username || item.author?.username || item._raw?.username;
     if (username) return `${origin}/profile/${username}`;
   }
 
-  // Kein eigener Detail-Link fuer diesen Typ (siehe Kommentar am Dateikopf) --
+  // DEEPLINK.1: generalisierte Beitraege/Projekte/Erlebnisse/Veranstaltungen
+  // bekommen jetzt eine eigene, teilbare URL (geoeffnet ueber die bestehende
+  // Preview-Infrastruktur, siehe DeepLinkOpener in App.jsx).
+  if (item.type === "moment" && item.id)     return `${origin}/beitrag/${item.id}`;
+  if (item.type === "project" && item.id)    return `${origin}/projekt/${item.id}`;
+  if (item.type === "experience" && item.id) return `${origin}/erlebnis/${item.id}`;
+  if (item.type === "event" && item.id)      return `${origin}/veranstaltung/${item.id}`;
+
+  // Kein eigener Detail-Link fuer diesen Typ (recommendation/connection) --
   // Fallback: oeffentliches Autor-Profil, sonst generischer Home-Link.
   const authorUsername = item.author?.username;
   if (authorUsername) return `${origin}/profile/${authorUsername}`;

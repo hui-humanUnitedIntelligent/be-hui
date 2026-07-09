@@ -36,7 +36,8 @@ const F = {
   // DEPRECATED (Sprint F.4D.1): avatar_url in wirkerMin — nur noch für Legacy-Ansichten
   // Wenn WirkerService vollständig migriert, entfernen
   wirkerMin:    'id,user_id,slug,talent,location_label,avatar_url,is_verified',
-  work:         'id,user_id,title,cover_url,media_url,price,category,medium,status,likes_count,location_text,created_at',
+  // DEEPLINK.1 (2026-07-09): +slug fuer /werke/:slug (Migration 074)
+  work:         'id,user_id,title,cover_url,media_url,price,category,medium,status,likes_count,location_text,created_at,slug',
   experience:   'id,user_id,title,cover_url,price,duration,spots_available,location_text,status,created_at',
   story:        'id,user_id,media_url,media_type,text_overlay,mood,location,expires_at,views_count,created_at',
   booking:      'id,user_id,wirker_id,work_id,experience_id,amount,platform_fee,impact_fee,status,payment_status,escrow_status,created_at',
@@ -203,6 +204,15 @@ export const WorkService = {
   async getById(id) {
     return cachedQuery(`work:${id}`,
       () => safeQuery(supabase.from('works').select(F.work).eq('id', id).single()),
+      30_000
+    );
+  },
+
+  // DEEPLINK.1: /werke/:slug -- Slug wird per Trigger beim Anlegen/Aendern
+  // eines Werks automatisch vergeben (Migration 074), hier nur Lookup.
+  async getBySlug(slug) {
+    return cachedQuery(`work:slug:${slug}`,
+      () => safeQuery(supabase.from('works').select(F.work).eq('slug', slug).eq('status', 'published').single()),
       30_000
     );
   },

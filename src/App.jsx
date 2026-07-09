@@ -1,7 +1,7 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react'
 import { sentryCapture, Sentry } from './lib/sentry'
 import { RouteBoundary, OverlayBoundary } from './lib/ErrorBoundaries'
-import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './lib/AuthContext'
 import { AppStateProvider } from './lib/AppStateContext'
 import { WorldSurfaceProvider } from './context/WorldSurfaceContext.jsx'
@@ -11,6 +11,9 @@ import { RadiusProvider } from './context/RadiusContext.jsx' // Umkreissuche 202
 import { SavedPostsProvider } from './context/SavedPostsContext.jsx' // Merken 2026-07-08 -- globaler saved_posts-Zustand (Single Source of Truth)
 import { LiveTickerProvider } from './context/LiveTickerContext.jsx' // LIVETICKER.1 2026-07-08 -- eine geteilte Datenquelle statt Doppel-Polling in Home+Entdecken-Tab
 import { ContentPreviewProvider } from './context/ContentPreviewContext.jsx' // OPEN.1 2026-07-08 -- eine geteilte Vorschau fuer jede Karte app-weit
+import { useContentPreview } from './context/ContentPreviewContext.jsx' // DEEPLINK.1 2026-07-09
+import { WorkService } from './services/db.js'
+import { HUI } from './design/hui.design.js'
 
 // ── EAGER: Auth-kritische Seiten (immer sofort gebraucht) ───────
 import LoginPage    from './pages/LoginPage'
@@ -340,10 +343,95 @@ function HUILoader() {
 /* ── Protected Route ───────────────────────────────────────────────── */
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loadingAuth, authChecked } = useAuth();
+  const location = useLocation();
   // Kein Redirect bevor Auth vollständig geprüft — verhindert Login-Flash
   if (loadingAuth || !authChecked) return <HUILoader />;
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  // DEEPLINK.1 (2026-07-09): Ziel-Route im Navigate-State merken, damit
+  // LoginPage nach erfolgreichem Login automatisch dorthin zurueckfuehrt
+  // statt immer starr auf /Home zu landen (Definition-of-Done: "kein
+  // Informationsverlust" bei Login-Zwischenstopp fuer geteilte Links).
+  if (!isAuthenticated) return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
   return children;
+}
+
+// ── DEEPLINK.1 (2026-07-09): Freundlicher Fallback fuer geloeschte/nicht
+// mehr verfuegbare Inhalte hinter einem Deep Link -- niemals eine weisse
+// Seite oder ein Fehlerbild, siehe Debug-Protokoll/Definition-of-Done. ──
+function ContentUnavailablePage() {
+  const navigate = useNavigate();
+  return (
+    <div style={{ minHeight:"100dvh", display:"flex", flexDirection:"column",
+      alignItems:"center", justifyContent:"center", padding:32,
+      background:HUI.COLOR.cream, fontFamily:"inherit", textAlign:"center" }}>
+      <div style={{ fontSize:42, marginBottom:14 }}>🌱</div>
+      <div style={{ fontWeight:800, fontSize:18, color:HUI.COLOR.ink, marginBottom:8 }}>
+        Inhalt nicht mehr verfügbar
+      </div>
+      <div style={{ fontSize:13.5, color:HUI.COLOR.ink+"99", maxWidth:280, lineHeight:1.6, marginBottom:26 }}>
+        Dieser Beitrag wurde entfernt oder existiert nicht (mehr).
+      </div>
+      <button onClick={() => navigate("/Home", { replace:true })}
+        style={{ padding:"12px 26px", borderRadius:14, border:"none",
+          background:HUI.COLOR.teal, color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer" }}>
+        Zurück zu HUI
+      </button>
+    </div>
+  );
+}
+
+// ── DEEPLINK.1: /beitrag/:id, /projekt/:id, /erlebnis/:id, /veranstaltung/:id
+// oeffnen KEINE eigenen neuen Detailseiten -- sie rendern die App (Home)
+// und triggern beim Mount die bereits bestehende, geteilte Preview/
+// Fullscreen-Infrastruktur (ContentPreviewContext.openRef), die appweit
+// schon fuer Feed/Liveticker/Notifications genutzt wird (OPEN.1/
+// FULLSCREEN.1). Kommentare/Herz-Reaktion/Teilen funktionieren dadurch
+// automatisch identisch zur Inline-Vorschau -- keine Dopplung. ──
+function DeepLinkOpener({ type }) {
+  const { id } = useParams();
+  const { openRef } = useContentPreview();
+  const [state, setState] = useState("loading"); // loading | notfound | done
+
+  useEffect(() => {
+    let cancelled = false;
+    setState("loading");
+    (async () => {
+      const found = await openRef({ type, id });
+      if (!cancelled) setState(found ? "done" : "notfound");
+    })();
+    return () => { cancelled = true; };
+  }, [type, id, openRef]);
+
+  if (state === "notfound") return <ContentUnavailablePage />;
+  // "loading"/"done": Home bleibt als Hintergrund sichtbar, das eigentliche
+  // Overlay (Sheet/Fullscreen) wird global von ContentPreviewProvider gerendert.
+  return <Home />;
+}
+
+// ── DEEPLINK.1: /werke/:slug -- loest den Slug zur Werk-ID auf und leitet
+// auf die bestehende, unveraenderte /work/:id-Route weiter (kein Umbau von
+// WorkDetailPage noetig -- Evolution statt Rewrite). ──
+function WorkBySlugOpener() {
+  const { slug } = useParams();
+  const [workId, setWorkId] = useState(undefined); // undefined=lädt, null=nicht gefunden
+
+  useEffect(() => {
+    let cancelled = false;
+    setWorkId(undefined);
+    WorkService.getBySlug(slug).then(({ data }) => {
+      if (!cancelled) setWorkId(data?.id || null);
+    });
+    return () => { cancelled = true; };
+  }, [slug]);
+
+  if (workId === undefined) return <HUILoader />;
+  if (workId === null) return <ContentUnavailablePage />;
+  return <Navigate to={`/work/${workId}`} replace />;
+}
+
+// ── DEEPLINK.1: /wirker/:username -- reiner Alias, keine eigene Logik. ──
+function WirkerAliasRedirect() {
+  const { username } = useParams();
+  return <Navigate to={`/profile/${username}`} replace />;
 }
 
 
@@ -532,6 +620,32 @@ function AppRoutes() {
         {/* /profile/me shortcut */}
         <Route path="/profile/me" element={
           <ProtectedRoute><OwnProfileRedirect /></ProtectedRoute>
+        }/>
+
+        {/* DEEPLINK.1 (2026-07-09) — /wirker/:username ist ein reiner
+            Alias auf die bestehende, kanonische /profile/:username-Route
+            (kein Duplikat der Wirker-Profil-Logik). */}
+        <Route path="/wirker/:username" element={<WirkerAliasRedirect />} />
+
+        {/* DEEPLINK.1 — Werke ueber sprechenden Slug statt roher ID */}
+        <Route path="/werke/:slug" element={
+          <ProtectedRoute><WorkBySlugOpener /></ProtectedRoute>
+        }/>
+
+        {/* DEEPLINK.1 — Beitrag/Projekt/Erlebnis/Veranstaltung: oeffnen
+            ueber die bestehende, geteilte Preview/Fullscreen-Infra statt
+            eigener neuer Detailseiten (siehe DeepLinkOpener oben). */}
+        <Route path="/beitrag/:id" element={
+          <ProtectedRoute><DeepLinkOpener type="moment" /></ProtectedRoute>
+        }/>
+        <Route path="/projekt/:id" element={
+          <ProtectedRoute><DeepLinkOpener type="project" /></ProtectedRoute>
+        }/>
+        <Route path="/erlebnis/:id" element={
+          <ProtectedRoute><DeepLinkOpener type="experience" /></ProtectedRoute>
+        }/>
+        <Route path="/veranstaltung/:id" element={
+          <ProtectedRoute><DeepLinkOpener type="event" /></ProtectedRoute>
         }/>
 
         {/* Impact — LAZY */}

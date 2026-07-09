@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { processReferralForUser } from '../lib/referralTracking.js';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../lib/AuthContext';
@@ -313,6 +313,7 @@ function SuccessMessage({ msg }) {
 // ═══════════════════════════════════════════════════════════════════
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation(); // DEEPLINK.1 (2026-07-09) — Rueckweg nach Login
 
   // Ref-Link aus URL-Param (?ref=username) ODER localStorage vorausfüllen
   useEffect(() => {
@@ -361,13 +362,19 @@ export default function LoginPage() {
   // Alle Navigationen nach Login/Onboarding laufen hier — niemals im Render.
   useEffect(() => {
     if (!loadingAuth && isAuthenticated) {
-      navigate('/Home', { replace: true });
+      // DEEPLINK.1: ProtectedRoute hinterlaesst state.from (z.B. /beitrag/123),
+      // wenn ein nicht eingeloggter Nutzer einem geteilten Link folgte.
+      // Nur relative, interne Pfade zulassen (kein Open-Redirect).
+      const from = location.state?.from;
+      const target = (typeof from === 'string' && from.startsWith('/') && !from.startsWith('//'))
+        ? from : '/Home';
+      navigate(target, { replace: true });
       return;
     }
     if (mode === 'onboarding') {
       navigate('/Home', { replace: true });
     }
-  }, [isAuthenticated, loadingAuth, mode, navigate]);
+  }, [isAuthenticated, loadingAuth, mode, navigate, location.state]);
 
   // Fade-in bei Mode-Wechsel
   useEffect(() => {
