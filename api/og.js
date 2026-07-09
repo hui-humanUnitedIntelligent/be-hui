@@ -1,17 +1,17 @@
-// api/og.cjs — HUI Social Preview (OpenGraph Fix 2026-07-09)
+// api/og.js — HUI Social Preview (OpenGraph Fix 2026-07-09)
 // Bot-Crawler erhalten HTML mit dynamischen OG/Twitter-Meta-Tags.
 // Browser werden per vercel.json nicht umgeschrieben → SPA Deep-Links.
 
-const {
+import {
   APP_ORIGIN,
   isBot,
   resolveContent,
   buildHtml,
   contentToOgPayload,
   fallbackPayload,
-} = require("./og-shared.cjs");
+} from "./_og-shared.js";
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   const ua = req.headers["user-agent"] || "";
 
   if (!isBot(ua)) {
@@ -59,4 +59,4 @@ module.exports = async function handler(req, res) {
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.status(200).send(buildHtml(fallbackPayload(origin), origin));
   }
-};
+}

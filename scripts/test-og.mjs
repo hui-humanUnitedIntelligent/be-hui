@@ -1,11 +1,8 @@
 #!/usr/bin/env node
 // scripts/test-og.mjs — lokaler Smoke-Test für OpenGraph-Endpunkte
-import { createRequire } from "module";
-
-const require = createRequire(import.meta.url);
-const ogHandler = require("../api/og.cjs");
-const ogImageHandler = require("../api/og-image.cjs");
-const { resolveContent, contentToOgPayload } = require("../api/og-shared.cjs");
+import ogHandler from "../api/og.js";
+import ogImageHandler from "../api/og-image.js";
+import { resolveContent, contentToOgPayload } from "../api/_og-shared.js";
 
 const BOT_UA = "facebookexternalhit/1.1";
 const BROWSER_UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36";
@@ -25,7 +22,7 @@ function mockRes() {
 
 async function testOgHtml(type, id) {
   const req = {
-    url: `/api/og.cjs?path=/${type}/${id}`,
+    url: `/api/og?path=/${type}/${id}`,
     headers: { "user-agent": BOT_UA },
   };
   const res = mockRes();
@@ -57,7 +54,7 @@ async function testOgImage(type, id) {
 }
 
 async function testBrowserRedirect() {
-  const req = { url: "/api/og.cjs?path=/beitrag/test", headers: { "user-agent": BROWSER_UA } };
+  const req = { url: "/api/og?path=/beitrag/test", headers: { "user-agent": BROWSER_UA } };
   const res = mockRes();
   await ogHandler(req, res);
   return { status: res.statusCode, location: res.headers.location };

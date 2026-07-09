@@ -1,5 +1,5 @@
-// api/og-shared.cjs — HUI OpenGraph Shared Logic (2026-07-09)
-// Gemeinsame Datenauflösung für api/og.cjs (HTML-Meta) und api/og-image.cjs (Bildauslieferung).
+// api/_og-shared.js — HUI OpenGraph Shared Logic (2026-07-09)
+// Gemeinsame Datenauflösung für api/og.js (HTML-Meta) und api/og-image.js (Bildauslieferung).
 // Bots laden nur die benötigten Felder — kein select("*").
 
 const SUPABASE_URL     = process.env.VITE_SUPABASE_URL  || process.env.SUPABASE_URL;
@@ -345,7 +345,7 @@ function fallbackPayload(origin = APP_ORIGIN) {
   };
 }
 
-module.exports = {
+export {
   APP_ORIGIN,
   BOT_PATTERNS,
   VERCEL_BOT_REGEX,

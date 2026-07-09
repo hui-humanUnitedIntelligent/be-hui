@@ -1,13 +1,16 @@
-// api/og-image.cjs — HUI OpenGraph Image Proxy (2026-07-09)
+// api/og-image.js — HUI OpenGraph Image Proxy (2026-07-09)
 // Liefert öffentlich erreichbare, HTTPS-absolut URLs für Social-Crawler.
 // Alle Bilder werden auf 1200×630 normalisiert (WhatsApp/Telegram/Discord-konform).
 
-const fs   = require("fs");
-const path = require("path");
-const {
+import fs from "node:fs";
+import path from "node:path";
+import { createRequire } from "node:module";
+import {
   resolveSourceImage,
   APP_ORIGIN,
-} = require("./og-shared.cjs");
+} from "./_og-shared.js";
+
+const require = createRequire(import.meta.url);
 
 const OG_WIDTH  = 1200;
 const OG_HEIGHT = 630;
@@ -90,7 +93,7 @@ function parsePath(reqUrl) {
   return segments;
 }
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   try {
     const segments = parsePath(req.url || "");
 
@@ -127,4 +130,4 @@ module.exports = async function handler(req, res) {
       res.status(500).setHeader("Content-Type", "text/plain").end("OG image error");
     }
   }
-};
+}
