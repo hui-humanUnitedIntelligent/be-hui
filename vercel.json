@@ -4,14 +4,14 @@
   "rewrites": [
     { "source": "/assets/(.*)", "destination": "/assets/$1" },
 
-    { "source": "/beitrag/:id",       "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(facebookexternalhit|twitterbot|slackbot|telegrambot|discordbot|linkedinbot|whatsapp|applebot|googlebot|bingbot|pinterest|vkshare|ia_archiver).*" }], "destination": "/api/og.cjs?path=/beitrag/:id" },
-    { "source": "/projekt/:id",       "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(facebookexternalhit|twitterbot|slackbot|telegrambot|discordbot|linkedinbot|whatsapp|applebot|googlebot|bingbot|pinterest|vkshare|ia_archiver).*" }], "destination": "/api/og.cjs?path=/projekt/:id" },
-    { "source": "/erlebnis/:id",      "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(facebookexternalhit|twitterbot|slackbot|telegrambot|discordbot|linkedinbot|whatsapp|applebot|googlebot|bingbot|pinterest|vkshare|ia_archiver).*" }], "destination": "/api/og.cjs?path=/erlebnis/:id" },
-    { "source": "/veranstaltung/:id", "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(facebookexternalhit|twitterbot|slackbot|telegrambot|discordbot|linkedinbot|whatsapp|applebot|googlebot|bingbot|pinterest|vkshare|ia_archiver).*" }], "destination": "/api/og.cjs?path=/veranstaltung/:id" },
-    { "source": "/werke/:slug",       "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(facebookexternalhit|twitterbot|slackbot|telegrambot|discordbot|linkedinbot|whatsapp|applebot|googlebot|bingbot|pinterest|vkshare|ia_archiver).*" }], "destination": "/api/og.cjs?path=/werke/:slug" },
-    { "source": "/wirker/:username",  "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(facebookexternalhit|twitterbot|slackbot|telegrambot|discordbot|linkedinbot|whatsapp|applebot|googlebot|bingbot|pinterest|vkshare|ia_archiver).*" }], "destination": "/api/og.cjs?path=/wirker/:username" },
-    { "source": "/profile/:username", "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(facebookexternalhit|twitterbot|slackbot|telegrambot|discordbot|linkedinbot|whatsapp|applebot|googlebot|bingbot|pinterest|vkshare|ia_archiver).*" }], "destination": "/api/og.cjs?path=/wirker/:username" },
-    { "source": "/work/:id",          "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(facebookexternalhit|twitterbot|slackbot|telegrambot|discordbot|linkedinbot|whatsapp|applebot|googlebot|bingbot|pinterest|vkshare|ia_archiver).*" }], "destination": "/api/og.cjs?path=/work/:id" },
+    { "source": "/beitrag/:id",       "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(facebookexternalhit|twitterbot|slackbot|telegrambot|discordbot|linkedinbot|whatsapp|imessage|applebot|googlebot|bingbot|pinterest|vkshare|ia_archiver|xing-contenttabreceiver).*" }], "destination": "/api/og.cjs?path=/beitrag/:id" },
+    { "source": "/projekt/:id",       "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(facebookexternalhit|twitterbot|slackbot|telegrambot|discordbot|linkedinbot|whatsapp|imessage|applebot|googlebot|bingbot|pinterest|vkshare|ia_archiver|xing-contenttabreceiver).*" }], "destination": "/api/og.cjs?path=/projekt/:id" },
+    { "source": "/erlebnis/:id",      "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(facebookexternalhit|twitterbot|slackbot|telegrambot|discordbot|linkedinbot|whatsapp|imessage|applebot|googlebot|bingbot|pinterest|vkshare|ia_archiver|xing-contenttabreceiver).*" }], "destination": "/api/og.cjs?path=/erlebnis/:id" },
+    { "source": "/veranstaltung/:id", "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(facebookexternalhit|twitterbot|slackbot|telegrambot|discordbot|linkedinbot|whatsapp|imessage|applebot|googlebot|bingbot|pinterest|vkshare|ia_archiver|xing-contenttabreceiver).*" }], "destination": "/api/og.cjs?path=/veranstaltung/:id" },
+    { "source": "/werke/:slug",       "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(facebookexternalhit|twitterbot|slackbot|telegrambot|discordbot|linkedinbot|whatsapp|imessage|applebot|googlebot|bingbot|pinterest|vkshare|ia_archiver|xing-contenttabreceiver).*" }], "destination": "/api/og.cjs?path=/werke/:slug" },
+    { "source": "/wirker/:username",  "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(facebookexternalhit|twitterbot|slackbot|telegrambot|discordbot|linkedinbot|whatsapp|imessage|applebot|googlebot|bingbot|pinterest|vkshare|ia_archiver|xing-contenttabreceiver).*" }], "destination": "/api/og.cjs?path=/wirker/:username" },
+    { "source": "/profile/:username", "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(facebookexternalhit|twitterbot|slackbot|telegrambot|discordbot|linkedinbot|whatsapp|imessage|applebot|googlebot|bingbot|pinterest|vkshare|ia_archiver|xing-contenttabreceiver).*" }], "destination": "/api/og.cjs?path=/wirker/:username" },
+    { "source": "/work/:id",          "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(facebookexternalhit|twitterbot|slackbot|telegrambot|discordbot|linkedinbot|whatsapp|imessage|applebot|googlebot|bingbot|pinterest|vkshare|ia_archiver|xing-contenttabreceiver).*" }], "destination": "/api/og.cjs?path=/work/:id" },
 
     { "source": "/assets/(.*)", "destination": "/assets/$1" },
     { "source": "/(.*)",        "destination": "/index.html" }
@@ -19,6 +19,10 @@
   "functions": {
     "api/og.cjs": {
       "maxDuration": 10
+    },
+    "api/og-image.cjs": {
+      "maxDuration": 15,
+      "memory": 1024
     }
   }
 }
