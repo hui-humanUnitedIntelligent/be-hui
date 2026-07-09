@@ -19,6 +19,10 @@
   "functions": {
     "api/og.cjs": {
       "maxDuration": 10
+    },
+    "api/og-image.cjs": {
+      "maxDuration": 10,
+      "memory": 1024
     }
   }
 }
