@@ -5,7 +5,7 @@ import React, { useState, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
-import { searchPlaces } from "../../lib/geocoding.js";
+import { searchPlaces, geocodeWithFallback } from "../../lib/geocoding.js";
 
 // ── Design-Tokens ─────────────────────────────────────────────
 const C = {
@@ -835,9 +835,9 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
     if (form.format === "online" || !locTrimmed) {
       geoLat = null; geoLng = null;
     } else if (locTrimmed !== (existingExp?.location_text || "").trim()) {
-      const hits = await searchPlaces(locTrimmed);
-      geoLat = hits[0]?.lat ?? null;
-      geoLng = hits[0]?.lng ?? null;
+      const geo = await geocodeWithFallback(locTrimmed);
+      geoLat = geo?.lat ?? null;
+      geoLng = geo?.lng ?? null;
     }
 
     const payload = {

@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
-import { searchPlaces } from "../../lib/geocoding.js";
+import { searchPlaces, geocodeWithFallback } from "../../lib/geocoding.js";
 
 const C = {
   teal:"#0EC4B8", tealD:"#0DBBAF", cream:"#F8F7F4",
@@ -457,9 +457,9 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
     let geoLat = existingWork?.lat ?? null, geoLng = existingWork?.lng ?? null;
     const abholortTrimmed = (form.abholort || "").trim();
     if (abholortTrimmed && abholortTrimmed !== (existingWork?.location_text || "").trim()) {
-      const hits = await searchPlaces(abholortTrimmed);
-      geoLat = hits[0]?.lat ?? null;
-      geoLng = hits[0]?.lng ?? null;
+      const geo = await geocodeWithFallback(abholortTrimmed);
+      geoLat = geo?.lat ?? null;
+      geoLng = geo?.lng ?? null;
     } else if (!abholortTrimmed) {
       geoLat = null; geoLng = null;
     }

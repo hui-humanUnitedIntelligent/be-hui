@@ -51,3 +51,70 @@ export function distanceKm(lat1, lng1, lat2, lng2) {
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
+
+/**
+ * Geocodiert eine Adresse mit stufenweisem Rueckfall auf einen groesseren/
+ * allgemeineren Ausschnitt, falls die exakte Adresse bei Nominatim keinen
+ * Treffer liefert (z.B. kleine Doerfer/Strassen ohne Hausnummern-Eintrag in
+ * OpenStreetMap). Ziel: lieber ein ungefaehrer Marker auf Dorf-/Stadtebene
+ * als gar keine Koordinate.
+ *
+ * Reihenfolge der Versuche (stoppt beim ersten Treffer):
+ *  1. Adresse wie eingegeben
+ *  2. ohne Hausnummer am Anfang/Ende ("Pera Geitonias 9" -> "Pera Geitonias")
+ *  3. bei Komma-Adressen: vorderste (spezifischste) Segmente schrittweise
+ *     weglassen ("Musterstr. 5, 12345 Musterstadt" -> "12345 Musterstadt")
+ *
+ * Bewusst OHNE Rueckfall auf ein einzelnes generisches Wort -- das kann
+ * zufaellig einen voellig unzusammenhaengenden Ort weltweit treffen (siehe
+ * Kommentar weiter unten). Frei erfundene Adressen (z.B. "Dingsangstrasse 1")
+ * sowie sehr kleine, in OpenStreetMap nicht indexierte Ortsteile (z.B.
+ * manche zypriotischen Nachbarschaften) liefern deshalb weiterhin bewusst
+ * KEIN Ergebnis -- lieber gar kein Marker als ein falscher.
+ *
+ * @param {string} address
+ * @returns {Promise<{lat:number, lng:number, label:string, precise:boolean}|null>}
+ *   precise=true nur beim allerersten (exakten) Versuch, sonst false
+ *   (Aufrufer kann das ignorieren oder z.B. fuer eine "ungefaehr"-Anzeige nutzen).
+ */
+export async function geocodeWithFallback(address) {
+  const original = (address || "").trim();
+  if (!original) return null;
+
+  const noTrailingNum = original.replace(/\s*\d+\s*[a-zA-Z]?\s*$/, "").trim();
+  const noLeadingNum  = original.replace(/^\s*\d+\s*[a-zA-Z]?\s*/, "").trim();
+
+  const candidates = [original];
+  if (noTrailingNum && noTrailingNum !== original) candidates.push(noTrailingNum);
+  if (noLeadingNum && noLeadingNum !== original) candidates.push(noLeadingNum);
+
+  const parts = original.split(",").map(p => p.trim()).filter(Boolean);
+  for (let i = 1; i < parts.length; i++) {
+    candidates.push(parts.slice(i).join(", "));
+  }
+
+  // ACHTUNG: bewusst KEIN Rueckfall auf ein einzelnes generisches Wort
+  // (z.B. nur "Geitonias") -- getestet und verworfen: ein einzelnes Wort
+  // kann zufaellig auf einen komplett unzusammenhaengenden Ort irgendwo auf
+  // der Welt treffen (Beispiel: "Geitonias" allein matchte ein Gebaeude in
+  // Bruessel statt der gemeinten Ortschaft auf Zypern). Ein falscher Marker
+  // ist schlimmer als gar keiner -- deshalb nur noch mehrwortige, spezifische
+  // Rueckfall-Stufen (Hausnummer entfernt, Komma-Segmente).
+
+  const seen = new Set();
+  const uniqueCandidates = candidates.filter(c => {
+    const key = c.toLowerCase();
+    if (!c || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).slice(0, 5); // Fair-Use/Latenz begrenzen -- max. 5 Versuche pro Speichern
+
+  for (let i = 0; i < uniqueCandidates.length; i++) {
+    if (i > 0) await new Promise(r => setTimeout(r, 1000)); // Nominatim Fair-Use: max 1 req/s
+    const hits = await searchPlaces(uniqueCandidates[i]);
+    if (hits[0]) {
+      return { ...hits[0], precise: i === 0 };
+    }
+  }
+  return null;
+}

@@ -18,7 +18,7 @@ import {
   createTalent, updateTalent, uploadTalentImage, TALENT_KATEGORIEN,
   TALENT_LOCATION_TYPES, TALENT_RECURRING_OPTIONS, TALENT_BOOKING_TYPES,
 } from "../../hooks/useTalents.js";
-import { searchPlaces } from "../../lib/geocoding.js";
+import { searchPlaces, geocodeWithFallback } from "../../lib/geocoding.js";
 import AvailabilityCalendar from "./AvailabilityCalendar.jsx";
 
 const C = {
@@ -213,8 +213,8 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
     let geoLat = null, geoLng = null;
     const addrTrimmed = locationAddress.trim();
     if (locationType !== "online" && addrTrimmed) {
-      const hits = await searchPlaces(addrTrimmed);
-      if (hits[0]) { geoLat = hits[0].lat; geoLng = hits[0].lng; }
+      const geo = await geocodeWithFallback(addrTrimmed);
+      if (geo) { geoLat = geo.lat; geoLng = geo.lng; }
     }
 
     const servicePayload = {

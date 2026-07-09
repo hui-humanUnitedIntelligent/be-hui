@@ -20,7 +20,7 @@
 
 // ── Erlaubte Enum-Werte ───────────────────────────────────────────────
 
-import { searchPlaces } from "../geocoding.js"; // Umkreissuche 2026-07-06 -- wiederverwendet STANDORT-036
+import { searchPlaces, geocodeWithFallback } from "../geocoding.js"; // Umkreissuche 2026-07-06 -- wiederverwendet STANDORT-036
 
 export const EXPERIENCE_ENUMS = {
   booking_mode:    ["direct", "request"],
@@ -374,8 +374,8 @@ export async function publishExperience(supabase, rawForm, userId, uploadedUrls 
   // zweites Geocoding-Modul. Rein additiv, nie blockierend fuer den Publish.
   if (payload.format !== "online" && payload.location_text) {
     try {
-      const hits = await searchPlaces(payload.location_text);
-      if (hits?.[0]) { payload.lat = hits[0].lat; payload.lng = hits[0].lng; }
+      const geo = await geocodeWithFallback(payload.location_text);
+      if (geo) { payload.lat = geo.lat; payload.lng = geo.lng; }
     } catch (_) { /* Geocoding optional */ }
   }
 
