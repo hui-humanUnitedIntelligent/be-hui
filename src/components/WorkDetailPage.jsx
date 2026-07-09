@@ -19,6 +19,8 @@ import { useSavedPostsContext } from "../context/SavedPostsContext.jsx";
 import { haptic } from "./commerce/commerceUtils.js";
 import { toast } from "../lib/useToast.jsx";
 import { shareContent } from "../lib/shareContent.js";
+import { countComments } from "../lib/commentsService.js";
+import CommentsSheet from "./shared/CommentsSheet.jsx";
 
 /* ── Design Tokens ─────────────────────────────────────────────────── */
 const C = {
@@ -335,11 +337,15 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
   const [error,   setError]   = useState(null);
   const [shareOk,   setShareOk]   = useState(false);
   const [following, setFollowing] = useState(false);
-  const [comments,  setComments]  = useState([]);
-  const [commentInput, setCommentInput] = useState("");
+  // KOMMENTAR.1 (2026-07-09): comments/commentInput/submittingComment
+  // entfernt -- die alte "comments"-Tabelle (work_id) wurde durch Migration
+  // 073 zu "post_comments" (post_id+post_type) weiterentwickelt, die alte
+  // Inline-Query hier haette nach der Migration ins Leere gegriffen.
+  // CommentsSheet (bereits appweit in ContentPreviewSheet/PostFullscreenView
+  // genutzt) ersetzt die Inline-Kommentarliste 1:1 -- showComments bleibt
+  // als Auf/Zu-Flag fuer denselben "Austauschen"-Button erhalten.
   const [commentCount, setCommentCount] = useState(0);
   const [showComments, setShowComments] = useState(false);
-  const [submittingComment, setSubmittingComment] = useState(false);
 
   // Resonanz/Merken -- EIN zentraler Mechanismus, identisch zum Feed
   // (post_reactions/reaction_counts, siehe BaseFeedCard.jsx). Ersetzt die
@@ -383,15 +389,11 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
         setFollowing(!!followRow);
       }
 
-      // Comments
-      const { data: cData } = await supabase
-        .from("comments")
-        .select("id, text, created_at, user_id, profiles(display_name, avatar_url, username)")
-        .eq("work_id", werkId)
-        .order("created_at", { ascending: true })
-        .limit(50);
-      setComments(cData || []);
-      setCommentCount((cData || []).length);
+      // KOMMENTAR.1: Kommentarzaehler ueber die generalisierte post_comments-
+      // Tabelle (RPC, kein Volltransfer) -- die eigentliche Liste rendert
+      // CommentsSheet bei Bedarf selbst.
+      const n = await countComments(werkId, "work");
+      setCommentCount(n);
 
       // Increment view count
       await supabase.rpc("increment_work_views", { work_id: werkId }).catch(() => {});
@@ -424,30 +426,6 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
     // DB-Sync via AppStateContext.toggleFollow — kein direktes supabase.from() hier
     await toggleFollow(creator.id);
   }, [user?.id, creator?.id, following, toggleFollow]);
-
-  /* ── Submit Comment ──────────────────────────────────────────────── */
-  const handleComment = useCallback(async () => {
-    const txt = commentInput.trim();
-    if (!txt || !user?.id) return;
-    setSubmittingComment(true);
-    const optimistic = {
-      id: "opt_" + Date.now(),
-      text: txt, work_id: id, user_id: user.id,
-      created_at: new Date().toISOString(),
-      profiles: { display_name: user.user_metadata?.full_name || "Du", avatar_url: null, username: "" }
-    };
-    setComments(c => [...c, optimistic]);
-    setCommentCount(c => c + 1);
-    setCommentInput("");
-    const { error } = await supabase.from("comments")
-      .insert({ work_id: id, user_id: user.id, text: txt });
-    if (error) {
-      console.error("[Comment] insert:", error.message);
-      setComments(c => c.filter(x => x.id !== optimistic.id));
-      setCommentCount(c => c - 1);
-    }
-    setSubmittingComment(false);
-  }, [commentInput, user?.id, id]);
 
   /* ── Load ──────────────────────────────────────────────────────── */
   const load = useCallback(async () => {
@@ -712,65 +690,13 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
           />
         </div>
 
-        {/* ── Comments Section ── */}
-        {showComments && (
-          <div style={{ margin:"12px 20px 0", background:C.card,
-            borderRadius:18, border:`1px solid ${C.border}`,
-            overflow:"hidden" }}>
-            {/* Input */}
-            <div style={{ display:"flex", gap:8, padding:"12px 14px",
-              borderBottom:`1px solid ${C.border}` }}>
-              <input
-                value={commentInput}
-                onChange={e => setCommentInput(e.target.value)}
-                onKeyDown={e => e.key==="Enter" && handleComment()}
-                placeholder="Dein Kommentar..."
-                style={{ flex:1, border:`1px solid ${C.border}`, borderRadius:50,
-                  padding:"9px 14px", fontSize:13, color:HUI.COLOR.ink,
-                  fontFamily:"inherit", outline:"none", background:HUI.COLOR.cream }}
-              />
-              <button onClick={handleComment} disabled={!commentInput.trim() || submittingComment}
-                style={{ padding:"9px 16px", background:`linear-gradient(135deg,#16D7C5,#11C5B7)`,
-                  border:"none", borderRadius:50, fontSize:13, fontWeight:700,
-                  color:"white", cursor:"pointer", opacity: !commentInput.trim() ? 0.4 : 1 }}>
-                →
-              </button>
-            </div>
-            {/* Comment list */}
-            <div style={{ maxHeight:280, overflowY:"auto" }}>
-              {comments.length === 0 ? (
-                <div style={{ padding:"24px", textAlign:"center",
-                  fontSize:13, color:"#888" }}>
-                  Noch kein Kommentar. Sei der Erste.
-                </div>
-              ) : (comments || []).filter(c => c && (c.id || c.user_id)).map(c => (
-                <div key={c.id} style={{ display:"flex", gap:10, padding:"10px 14px",
-                  borderBottom:`1px solid ${C.border}` }}>
-                  <div style={{ width:32, height:32, borderRadius:"50%", flexShrink:0,
-                    background:"linear-gradient(135deg,#16D7C544,#FF8A6B44)",
-                    overflow:"hidden", display:"flex", alignItems:"center",
-                    justifyContent:"center", fontWeight:700, fontSize:13, color:HUI.COLOR.teal }}>
-                    {c.profiles?.avatar_url
-                      ? <img src={c.profiles.avatar_url} alt=""
-                          style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-                      : (c.profiles?.display_name?.[0] || "?")}
-                  </div>
-                  <div style={{ flex:1 }}>
-                    <div style={{ display:"flex", gap:6, alignItems:"baseline", marginBottom:2 }}>
-                      <span style={{ fontWeight:700, fontSize:12, color:HUI.COLOR.ink }}>
-                        {c.profiles?.display_name || "Nutzer"}
-                      </span>
-                      <span style={{ fontSize:10, color:"#BBB" }}>
-                        {new Date(c.created_at).toLocaleDateString("de-DE",{day:"numeric",month:"short"})}
-                      </span>
-                    </div>
-                    <div style={{ fontSize:13, color:HUI.COLOR.ink2, lineHeight:1.5 }}>{c.text}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* ── Kommentare (KOMMENTAR.1) — dieselbe CommentsSheet-Komponente wie
+              ContentPreviewSheet/PostFullscreenView, ueber post_comments
+              (post_id=id, post_type="work") statt der alten work_id-Tabelle. */}
+        <CommentsSheet
+          open={showComments} onClose={() => setShowComments(false)}
+          postId={id} postType="work" postAuthorId={creator?.id}
+        />
 
         {/* ── Description ── */}
         {werk.description && (

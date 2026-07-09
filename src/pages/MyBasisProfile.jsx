@@ -52,6 +52,7 @@ import ProfilBearbeitenModal    from "../components/studio/ProfilBearbeitenModal
 import { HUIBookmarkIcon }      from "../design/icons/HuiInteractionIcons.jsx";
 import { NotificationBadge }    from "../lib/useNotifications.jsx";
 import { useSavedPostsContext }  from "../context/SavedPostsContext.jsx";
+import { useContentPreview } from "../context/ContentPreviewContext.jsx";
 
 // ── Design Tokens ────────────────────────────────────────────────
 const T = {
@@ -420,6 +421,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
     setShowChat       = () => {},
     setShowWerkDetail = () => {},
   } = useHome?.() || {};
+  const { openRef } = useContentPreview();
 
   const handleNotifAction = (n) => {
     // 1. action_url hat Vorrang
@@ -471,6 +473,15 @@ export default function MyBasisProfile({ onClose, profileId }) {
       case "work_approved":
         if (werkId) setShowWerkDetail(werkId);
         break;
+
+      // ── Kommentar/Antwort: oeffnet den kommentierten Beitrag in der
+      //    bestehenden Preview/Fullscreen-Infrastruktur (KOMMENTAR.1) ───────
+      case "comment":
+      case "comment_reply": {
+        const cmMeta = n.metadata || {};
+        if (cmMeta.post_id && cmMeta.post_type) openRef({ type: cmMeta.post_type, id: cmMeta.post_id });
+        break;
+      }
 
       // ── Werk abgelehnt: Modal wird in NotifCard selbst geöffnet ─────────
       case "work_rejected":

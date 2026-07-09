@@ -102,6 +102,9 @@ const META = {
   // MERKEN.6 (2026-07-08): zusammengefasste Merken-Digests (taeglich/
   // woechentlich), NIE eine Notification pro einzelnem Speichervorgang.
   save_digest:            { emoji:"🔖", label:"Gemerkt-Zusammenfassung" },
+  // KOMMENTAR.1 (2026-07-09): Kommentar/Antwort auf eigenen Beitrag.
+  comment:                { emoji:"💬", label:"Neuer Kommentar"        },
+  comment_reply:          { emoji:"💬", label:"Antwort auf deinen Kommentar" },
   default:                { emoji:"🔔", label:"Benachrichtigung"       },
 };
 

@@ -97,6 +97,132 @@ function StatusBadge({ status }) {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// KommentarMeldungenTab (KOMMENTAR.1, 2026-07-09) — Melde-Queue fuer
+// post_comments/comment_reports (Migration 073). Bestandsanalyse:
+// es gab bisher appweit KEIN Report-/Moderationssystem fuer Inhalte
+// (siehe Migrationskommentar), daher echte Neuentwicklung, keine
+// Dopplung eines bestehenden Admin-Bereichs.
+// ─────────────────────────────────────────────────────────────────
+function KommentarMeldungenTab({ onCountChange }) {
+  const [rows,    setRows]    = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [busyId,  setBusyId]  = useState(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const { data: reports, error } = await supabase
+      .from("comment_reports")
+      .select("id,comment_id,reporter_id,reason,status,created_at")
+      .eq("status", "open")
+      .order("created_at", { ascending: false })
+      .limit(100);
+
+    if (error || !reports) { setRows([]); setLoading(false); onCountChange?.(0); return; }
+
+    const commentIds  = [...new Set(reports.map(r => r.comment_id))];
+    const reporterIds = [...new Set(reports.map(r => r.reporter_id))];
+
+    const { data: cmts } = commentIds.length
+      ? await supabase.from("post_comments").select("id,text,user_id,post_id,post_type,deleted_at").in("id", commentIds)
+      : { data: [] };
+    const authorIds = [...new Set((cmts || []).map(c => c.user_id))];
+    const profileIds = [...new Set([...reporterIds, ...authorIds])];
+
+    const { data: profiles } = profileIds.length
+      ? await supabase.from("profiles").select("id,display_name,username").in("id", profileIds)
+      : { data: [] };
+
+    const cmtMap  = new Map((cmts || []).map(c => [c.id, c]));
+    const profMap = new Map((profiles || []).map(p => [p.id, p]));
+
+    const merged = reports.map(r => {
+      const cmt = cmtMap.get(r.comment_id);
+      return {
+        ...r,
+        comment: cmt || null,
+        commentAuthor: cmt ? profMap.get(cmt.user_id) : null,
+        reporter: profMap.get(r.reporter_id),
+      };
+    });
+
+    setRows(merged);
+    onCountChange?.(merged.length);
+    setLoading(false);
+  }, [onCountChange]);
+
+  useEffect(() => { load(); }, [load]);
+
+  async function handleDeleteComment(row) {
+    setBusyId(row.id);
+    // Soft-Delete (identisches Muster wie commentsService.deleteComment) --
+    // kein Hard-DELETE, damit Realtime-Konsumenten (payload.old nur id bei
+    // DELETE, siehe MERKEN.3-Lehre) sauber ueber UPDATE informiert werden.
+    await supabase.from("post_comments").update({ deleted_at: new Date().toISOString(), text: "" }).eq("id", row.comment_id);
+    await supabase.from("comment_reports").update({ status: "reviewed", reviewed_at: new Date().toISOString() }).eq("id", row.id);
+    setRows(prev => { const next = prev.filter(r => r.id !== row.id); onCountChange?.(next.length); return next; });
+    setBusyId(null);
+  }
+
+  async function handleDismiss(row) {
+    setBusyId(row.id);
+    await supabase.from("comment_reports").update({ status: "dismissed", reviewed_at: new Date().toISOString() }).eq("id", row.id);
+    setRows(prev => { const next = prev.filter(r => r.id !== row.id); onCountChange?.(next.length); return next; });
+    setBusyId(null);
+  }
+
+  const card = { background:C.card, border:`1px solid ${C.border}`, borderRadius:16, padding:18 };
+
+  if (loading) return <div style={card}>Lade Meldungen…</div>;
+
+  return (
+    <div style={card}>
+      <div style={{ fontWeight:700, marginBottom:14 }}>🚩 Gemeldete Kommentare ({rows.length})</div>
+      {rows.length === 0 ? (
+        <div style={{ color:C.sub, fontSize:13 }}>Keine offenen Meldungen.</div>
+      ) : rows.map(row => (
+        <div key={row.id} style={{
+          padding:"14px 0", borderBottom:`1px solid ${C.border}`,
+          display:"flex", flexDirection:"column", gap:8,
+        }}>
+          <div style={{ fontSize:12, color:C.sub }}>
+            Gemeldet von <b style={{ color:C.text }}>{row.reporter?.display_name || "Unbekannt"}</b>
+            {" · "}Grund: <span style={{ color:C.coral, fontWeight:600 }}>{row.reason}</span>
+            {" · "}{new Date(row.created_at).toLocaleDateString("de-DE", { day:"numeric", month:"short", year:"numeric" })}
+          </div>
+          <div style={{
+            background:C.card2, borderRadius:10, padding:"10px 12px",
+            fontSize:13.5, color:C.text, lineHeight:1.5,
+          }}>
+            {row.comment?.deleted_at
+              ? <span style={{ color:C.sub, fontStyle:"italic" }}>(Kommentar bereits geloescht)</span>
+              : (row.comment?.text || <span style={{ color:C.sub, fontStyle:"italic" }}>(Kommentar nicht mehr auffindbar)</span>)}
+          </div>
+          <div style={{ fontSize:11.5, color:C.muted }}>
+            von {row.commentAuthor?.display_name || "Unbekannt"} · {row.comment?.post_type || "?"} #{row.comment?.post_id?.slice(0,8) || "?"}
+          </div>
+          <div style={{ display:"flex", gap:8 }}>
+            <button disabled={busyId===row.id || row.comment?.deleted_at} onClick={() => handleDeleteComment(row)} style={{
+              padding:"7px 14px", borderRadius:20, border:"none", cursor:"pointer",
+              background:C.red, color:"#fff", fontWeight:600, fontSize:12.5,
+              opacity: (busyId===row.id || row.comment?.deleted_at) ? 0.5 : 1,
+            }}>
+              Kommentar löschen
+            </button>
+            <button disabled={busyId===row.id} onClick={() => handleDismiss(row)} style={{
+              padding:"7px 14px", borderRadius:20, border:`1px solid ${C.border}`, cursor:"pointer",
+              background:"transparent", color:C.sub, fontWeight:600, fontSize:12.5,
+              opacity: busyId===row.id ? 0.5 : 1,
+            }}>
+              Meldung abweisen
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
 // FreigabenTab — Ausstehend / Freigegeben / Abgelehnt
 // ─────────────────────────────────────────────────────────────────
 function FreigabenTab({ onPendingChange }) {
@@ -980,6 +1106,7 @@ export default function Admin() {
   const [payments, setPayments] = useState([]);
   const [projects, setProjects] = useState([]);
   const [pending,  setPending]  = useState(0);
+  const [commentReports, setCommentReports] = useState(0); // KOMMENTAR.1
   const [loading,  setLoading]  = useState(true);
   const [tab,      setTab]      = useState("dashboard");
 
@@ -987,7 +1114,7 @@ export default function Admin() {
     async function load() {
       setLoading(true);
       const [wirkerRes, paymentsRes, projectsRes,
-             wPend, ePend, pPend] = await Promise.all([
+             wPend, ePend, pPend, cReportsPend] = await Promise.all([
         supabase.from("wirker")
           .select("id,name,full_name,talent,location,img,verified,bookings,impact_eur,created_at")
           .order("created_at",{ascending:false}).limit(100),
@@ -1007,11 +1134,18 @@ export default function Admin() {
           .select("id",{count:"exact",head:true}).eq("status","pending_review"),
         supabase.from("impact_applications")
           .select("id",{count:"exact",head:true}).eq("status","pending"),
+        // KOMMENTAR.1: offene Kommentar-Meldungen fuer den Tab-Badge.
+        // .catch() -- Migration 073 evtl. noch nicht ausgefuehrt, Dashboard
+        // darf dadurch nicht abstuerzen (Tabelle existiert dann noch nicht).
+        supabase.from("comment_reports")
+          .select("id",{count:"exact",head:true}).eq("status","open")
+          .then(r => r, () => ({ count:0 })).catch(() => ({ count:0 })),
       ]);
       setWirker(wirkerRes.data     || []);
       setPayments(paymentsRes.data || []);
       setProjects(projectsRes.data || []);
       setPending((wPend.count||0)+(ePend.count||0)+(pPend.count||0));
+      setCommentReports(cReportsPend?.count || 0);
       setLoading(false);
     }
     load();
@@ -1057,6 +1191,7 @@ export default function Admin() {
         {[
           {key:"dashboard",label:"Dashboard"},
           {key:"content",  label:"Freigaben", badge:pending},
+          {key:"kommentare", label:"Kommentar-Meldungen", badge:commentReports},
           {key:"feed",     label:"Feed Analytics"},
           {key:"erl_proj", label:"Erlebnisse & Projekte"},
           {key:"wirker",   label:"Wirker"},
@@ -1113,6 +1248,7 @@ export default function Admin() {
       {tab==="content"  && <FreigabenTab onPendingChange={setPending}/>
 
       }
+      {tab==="kommentare" && <KommentarMeldungenTab onCountChange={setCommentReports} />}
       {tab==="feed" && <FeedAnalyticsTab />}
       {tab==="erl_proj" && <ErlebnisseProjekteTab />}
 

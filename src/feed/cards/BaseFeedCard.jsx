@@ -520,8 +520,10 @@ const ACTION_ARIA = {
   austauschen: { on: "Austausch beenden",    off: "Austauschen" },
   merken:      { on: "Aus Merkliste entfernen", off: "Merken" },
   weitergeben: { off: "Weitergeben" }, // kein Toggle -- einmalige Aktion
+  // KOMMENTAR.1 (2026-07-09): oeffnet die Kommentarfunktion, kein Toggle
+  kommentieren: { off: "Kommentare öffnen" },
 };
-const ActionBtn = memo(function ActionBtn({
+export const ActionBtn = memo(function ActionBtn({
   Icon, label, count, active, onClick, activeColor, variant, disabled, loading
 }) {
   const isResonanz = variant === "resonanz";

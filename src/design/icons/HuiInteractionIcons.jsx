@@ -245,6 +245,39 @@ export function HUIChatIcon({ size = 24, active = false, className, style }) {
   );
 }
 
+/* ── 2b. Kommentieren ── HUICommentIcon: Sprechblase mit 3 Punkten ─────
+   Eigenstaendiges 5. Icon der HUI Interaction Icon Library (KOMMENTAR.1,
+   2026-07-09) -- oeffnet die Kommentarfunktion. Bewusst NICHT dasselbe
+   Icon wie HUIChatIcon (Austauschen): visuell verwandt (gleiche
+   Sprechblasen-Familie, gleiche Strichstaerken-Logik), aber durch die
+   3 Punkte eindeutig unterscheidbar -- Austauschen und Kommentieren sind
+   zwei unterschiedliche Bedeutungen und duerfen nie dasselbe Icon teilen. */
+export function HUICommentIcon({ size = 24, active = false, className, style }) {
+  injectIconFamilyCSS();
+  const stroke = pickIconStroke(size);
+  const pulse = useActivationPulse(active);
+  return (
+    <svg
+      width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth={stroke}
+      strokeLinecap="round" strokeLinejoin="round"
+      className={className} aria-hidden="true"
+      style={{
+        transformOrigin: "12px 11px",
+        animation:
+          pulse === "in"  ? "hui-chat-open-in 320ms ease-out"  :
+          pulse === "out" ? "hui-chat-open-out 280ms ease-out" : "none",
+        ...style,
+      }}
+    >
+      <path d="M8.5,4.5 L13.5,4.5 A5.5,5.5 0 0 1 13.5,15.5 L11.3,15.5 L9.4,19.5 L9,15.5 L8.5,15.5 A5.5,5.5 0 0 1 8.5,4.5 Z" />
+      <circle cx="9.6" cy="10" r="0.55" fill="currentColor" stroke="none" />
+      <circle cx="11" cy="10" r="0.55" fill="currentColor" stroke="none" />
+      <circle cx="12.4" cy="10" r="0.55" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 /* ── 3. Merken ── Lesezeichen/Tag mit weich geschwungener Kerbe ────────
    "Bruder des HUIHeart": gleiche Strichstaerken-Logik, gleiche organische
    Kurvenfuehrung (Bezier statt spitzem V) fuer die untere Kerbe. */

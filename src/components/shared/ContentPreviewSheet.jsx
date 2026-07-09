@@ -8,16 +8,15 @@
 //   - useSingleReaction / useSavedPostsContext  (Resonanz/Merken-Logik)
 //   - FeedActions (aus BaseFeedCard.jsx)        (identische Action-Bar
 //                                                 wie im Feed)
-//   - comments-Tabelle + Query/Insert-Pattern    (1:1 aus WorkDetailPage
-//                                                 uebernommen -- nur
-//                                                 fuer type="work", da
-//                                                 die Tabelle bislang
-//                                                 ausschliesslich ueber
-//                                                 work_id verknuepft ist;
-//                                                 andere Typen brauchen
-//                                                 dafuer erst eine DB-
-//                                                 Migration, siehe
-//                                                 Datenmigration-Regel)
+//   - CommentsSheet (KOMMENTAR.1, 2026-07-09) -- EIN Kommentar-Bottom-
+//                                                 Sheet fuer ALLE Typen,
+//                                                 nutzt die generische
+//                                                 post_comments-Tabelle
+//                                                 (post_id+post_type,
+//                                                 Migration 073). Ersetzt
+//                                                 die vorherige, auf
+//                                                 type="work" begrenzte
+//                                                 Inline-Implementierung.
 // ══════════════════════════════════════════════════════════════════
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -25,9 +24,12 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { useSingleReaction } from "../../lib/useReactions.jsx";
 import { useSavedPostsContext } from "../../context/SavedPostsContext.jsx";
-import { FeedActions } from "../../feed/cards/BaseFeedCard.jsx";
+import { FeedActions, ActionBtn } from "../../feed/cards/BaseFeedCard.jsx";
 import { toast } from "../../lib/useToast.jsx";
 import { shareContent } from "../../lib/shareContent.js";
+import { HUICommentIcon } from "../../design/icons/HuiInteractionIcons.jsx";
+import { countComments } from "../../lib/commentsService.js";
+import CommentsSheet from "./CommentsSheet.jsx";
 
 const T = {
   ink: "#1A1A2E", inkSoft: "rgba(26,26,46,0.60)", inkFaint: "rgba(26,26,46,0.38)",
@@ -50,76 +52,6 @@ const CSS = `
     border:none; background:none; font-family:inherit; transition:opacity .14s, transform .14s; }
   .cps-btn:active { opacity:.6; transform:scale(0.96); }
 `;
-
-function Comments({ workId }) {
-  const { user } = useAuth();
-  const [comments, setComments] = useState([]);
-  const [input, setInput]       = useState("");
-  const [busy, setBusy]         = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    supabase.from("comments")
-      .select("id,text,created_at,user_id,profiles(display_name,avatar_url)")
-      .eq("work_id", workId)
-      .order("created_at", { ascending:true }).limit(50)
-      .then(({ data }) => { if (!cancelled) setComments(data || []); });
-    return () => { cancelled = true; };
-  }, [workId]);
-
-  const submit = useCallback(async () => {
-    const txt = input.trim();
-    if (!txt || !user?.id || busy) return;
-    setBusy(true);
-    const optimistic = {
-      id: "opt_" + Date.now(), text: txt, user_id: user.id, created_at: new Date().toISOString(),
-      profiles: { display_name: user.user_metadata?.full_name || "Du", avatar_url: null },
-    };
-    setComments(c => [...c, optimistic]);
-    setInput("");
-    const { error } = await supabase.from("comments").insert({ work_id: workId, user_id: user.id, text: txt });
-    if (error) setComments(c => c.filter(x => x.id !== optimistic.id));
-    setBusy(false);
-  }, [input, user, busy, workId]);
-
-  return (
-    <div style={{ marginTop:18 }}>
-      <div style={{ fontSize:13, fontWeight:700, color:T.ink, marginBottom:10 }}>
-        Kommentare {comments.length > 0 ? `(${comments.length})` : ""}
-      </div>
-      {comments.length === 0 && (
-        <div style={{ fontSize:12.5, color:T.inkFaint, marginBottom:10 }}>Noch keine Kommentare.</div>
-      )}
-      {comments.map(c => (
-        <div key={c.id} style={{ display:"flex", gap:8, marginBottom:10 }}>
-          <div style={{ width:26, height:26, borderRadius:"50%", flexShrink:0, overflow:"hidden",
-            background:"rgba(13,196,181,0.14)" }}>
-            {c.profiles?.avatar_url && <img src={c.profiles.avatar_url} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>}
-          </div>
-          <div style={{ flex:1, minWidth:0 }}>
-            <div style={{ fontSize:12, fontWeight:700, color:T.ink }}>{c.profiles?.display_name || "Mitglied"}</div>
-            <div style={{ fontSize:13, color:T.inkSoft, lineHeight:1.5 }}>{c.text}</div>
-          </div>
-        </div>
-      ))}
-      {user?.id && (
-        <div style={{ display:"flex", gap:8, marginTop:8 }}>
-          <input
-            value={input} onChange={e => setInput(e.target.value)}
-            placeholder="Kommentar schreiben…"
-            onKeyDown={e => { if (e.key === "Enter") submit(); }}
-            style={{ flex:1, border:`1px solid ${T.border}`, borderRadius:99, padding:"9px 14px",
-              fontSize:13, outline:"none", background:"#fff" }}
-          />
-          <button className="cps-btn" onClick={submit} disabled={busy || !input.trim()} style={{
-            background: T.teal, color:"#fff", borderRadius:99, padding:"9px 16px",
-            fontSize:13, fontWeight:700, opacity: (busy || !input.trim()) ? 0.5 : 1,
-          }}>Senden</button>
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function ContentPreviewSheet({ item, loading, onClose }) {
   const navigate = useNavigate();
@@ -148,6 +80,17 @@ export default function ContentPreviewSheet({ item, loading, onClose }) {
   // SHARE.1 (2026-07-09): zentrale, appweit einheitliche Share-Funktion
   // (native OS-Share, Zwischenablage-Fallback, oeffentliche URL pro Typ).
   const handleShare = useCallback(() => { shareContent(item); }, [item]);
+
+  // KOMMENTAR.1 (2026-07-09): Kommentarzaehler + Sheet -- fuer ALLE Typen,
+  // nicht mehr nur type="work" (siehe post_comments-Generalisierung).
+  const [commentCount, setCommentCount] = useState(0);
+  const [showComments, setShowComments] = useState(false);
+  useEffect(() => {
+    if (!postId) return;
+    let cancelled = false;
+    countComments(postId, postType).then(n => { if (!cancelled) setCommentCount(n); });
+    return () => { cancelled = true; };
+  }, [postId, postType]);
 
   // Body-Scroll sperren solange offen (Konvention aus wizardBodyLock.js
   // wird hier bewusst nicht importiert, um keine Kopplung an den
@@ -268,8 +211,15 @@ export default function ContentPreviewSheet({ item, loading, onClose }) {
               )}
             </div>
 
-            {/* Action-Bar — identisch zum Feed (Resonanz/Austauschen/Weitergeben/Merken) */}
-            <FeedActions reactions={reactions} onReaction={handleReaction} onShare={handleShare} />
+            {/* Action-Bar — identisch zum Feed (Resonanz/Austauschen/Weitergeben/
+                Merken) + 5. Aktion "Kommentieren" (extraActions-Slot, KOMMENTAR.1) */}
+            <FeedActions
+              reactions={reactions} onReaction={handleReaction} onShare={handleShare}
+              extraActions={
+                <ActionBtn Icon={HUICommentIcon} count={commentCount || null} variant="kommentieren"
+                  activeColor={T.teal} onClick={() => setShowComments(true)} />
+              }
+            />
 
             <div style={{ padding:"0 18px" }}>
               {/* Vollstaendige Detailseite, falls vorhanden */}
@@ -281,15 +231,17 @@ export default function ContentPreviewSheet({ item, loading, onClose }) {
                   Vollständige Ansicht öffnen
                 </button>
               )}
-
-              {/* Kommentare — aktuell nur fuer Werke (comments-Tabelle ist
-                  ausschliesslich ueber work_id verknuepft; andere Typen
-                  brauchen dafuer erst eine DB-Migration) */}
-              {item.type === "work" && <Comments workId={item.id} />}
             </div>
           </div>
         )}
       </div>
+
+      {/* KOMMENTAR.1: EIN Kommentar-Sheet fuer ALLE Typen (post_comments,
+          generisch ueber post_id+post_type, Migration 073). */}
+      <CommentsSheet
+        open={showComments} onClose={() => setShowComments(false)}
+        postId={postId} postType={postType} postAuthorId={authorId}
+      />
     </div>
   );
 }

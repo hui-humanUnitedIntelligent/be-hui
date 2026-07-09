@@ -32,18 +32,22 @@
 //     ist -- aktuell nie der Fall. Fuer eine echte Umsetzung braucht es
 //     zuerst eine Migration (mit Lars abzustimmen), das ist NICHT Teil
 //     dieses Auftrags.
-//   - Kommentare: "comments"-Tabelle ist ausschliesslich ueber work_id
-//     verknuepft (bestaetigt in mehreren SQL-Dateien). Fuer Beitraege daher
-//     ehrlicher Platzhalter statt einer kaputten/vorgetaeuschten Funktion.
+//   - Kommentare (KOMMENTAR.1, 2026-07-09): frueher ein ehrlicher
+//     Platzhalter, da "comments" nur ueber work_id verknuepft war. Jetzt
+//     ueber die generalisierte post_comments-Tabelle (Migration 073) echt
+//     angebunden -- dieselbe CommentsSheet-Komponente wie ContentPreviewSheet.
 // ══════════════════════════════════════════════════════════════════
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useSingleReaction } from "../../lib/useReactions.jsx";
 import { useSavedPostsContext } from "../../context/SavedPostsContext.jsx";
-import { FeedActions } from "../../feed/cards/BaseFeedCard.jsx";
+import { FeedActions, ActionBtn } from "../../feed/cards/BaseFeedCard.jsx";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { toast } from "../../lib/useToast.jsx";
 import { shareContent } from "../../lib/shareContent.js";
+import { HUICommentIcon } from "../../design/icons/HuiInteractionIcons.jsx";
+import { countComments } from "../../lib/commentsService.js";
+import CommentsSheet from "./CommentsSheet.jsx";
 
 const T = {
   ink: "#1A1A2E", inkSoft: "rgba(26,26,46,0.60)", inkFaint: "rgba(26,26,46,0.38)",
@@ -143,6 +147,16 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
 
   // SHARE.1 (2026-07-09): zentrale, appweit einheitliche Share-Funktion.
   const handleShare = useCallback(() => { shareContent(mountedItem); }, [mountedItem]);
+
+  // KOMMENTAR.1 (2026-07-09): Kommentarzaehler + Sheet.
+  const [commentCount, setCommentCount] = useState(0);
+  const [showComments, setShowComments] = useState(false);
+  useEffect(() => {
+    if (!postId) return;
+    let cancelled = false;
+    countComments(postId, postType).then(n => { if (!cancelled) setCommentCount(n); });
+    return () => { cancelled = true; };
+  }, [postId, postType]);
 
   const handleOpenProfile = useCallback(() => {
     if (authorId && typeof window.__HUI_OPEN_PROFILE__ === "function") {
@@ -270,20 +284,17 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
           )}
         </div>
 
-        {/* 5) Interaktionsleiste — identisch zum Feed */}
-        <FeedActions reactions={reactions} onReaction={handleReaction} onShare={handleShare} />
+        {/* 5) Interaktionsleiste — identisch zum Feed + 5. Aktion
+            "Kommentieren" (extraActions-Slot, KOMMENTAR.1) */}
+        <FeedActions
+          reactions={reactions} onReaction={handleReaction} onShare={handleShare}
+          extraActions={
+            <ActionBtn Icon={HUICommentIcon} count={commentCount || null} variant="kommentieren"
+              activeColor={T.teal} onClick={() => setShowComments(true)} />
+          }
+        />
 
         <div style={{ padding:"0 18px 24px" }}>
-          {/* 6) Kommentare — fuer Beitraege aktuell ohne DB-Anbindung
-              (comments-Tabelle kennt nur work_id). Ehrlicher Platzhalter
-              statt vorgetaeuschter Funktion. */}
-          <div style={{ marginTop:6 }}>
-            <div style={{ fontSize:13, fontWeight:700, color:T.ink, marginBottom:8 }}>Kommentare</div>
-            <div style={{ fontSize:12.5, color:T.inkFaint }}>
-              Kommentare für Beiträge folgen in Kürze.
-            </div>
-          </div>
-
           {/* 7) Weitere Beitraege dieses Wirkers */}
           {moreFromAuthor.length > 0 && (
             <div style={{ marginTop:22 }}>
@@ -312,6 +323,14 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
           </button>
         </div>
       </div>
+
+      {/* KOMMENTAR.1: ausserhalb des touch-gesteuerten Scroll-Containers
+          gerendert (eigener onTouchStart/Move/End waere sonst betroffen).
+          Eigener, hoeherer z-Index als das Fullscreen-Grundgeruest (15000). */}
+      <CommentsSheet
+        open={showComments} onClose={() => setShowComments(false)}
+        postId={postId} postType={postType} postAuthorId={authorId}
+      />
     </div>
   );
 }
