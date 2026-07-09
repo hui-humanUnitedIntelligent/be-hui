@@ -597,6 +597,60 @@ const SEED_TALENTE = [
 
 const TALENT_LOCATION_LABEL = { online:"Online", vor_ort:"Vor Ort", hybrid:"Online & Vor Ort" };
 
+// ── Gemeinsame Card-Bausteine (Werk/Erlebnis/Talent) ──────────────
+// SUCHKARTEN-VEREINHEITLICHUNG 2026-07-09: TalentCard/WerkCard/ErlebnisCard
+// nutzten fast identische, aber leicht abweichende Werte (Eckenradius,
+// Titel-/Standort-Abstaende). Auf gemeinsame Bausteine gezogen, damit alle
+// drei Discover-Karten wie eine Familie wirken -- Inhalte pro Typ bleiben
+// bewusst unterschiedlich (Preis/Status/Datum sind echte Domaenen-Unterschiede,
+// keine Inkonsistenz).
+const CARD_RADIUS = 16;
+
+function CardBadge({ pos="left", bg, color, cover, children }) {
+  return (
+    <div style={{
+      position:"absolute", top:8, [pos]:8,
+      background: cover ? "rgba(0,0,0,0.54)" : bg,
+      backdropFilter: cover ? "blur(6px)" : "none",
+      borderRadius:99, padding:"2px 9px",
+      fontSize:9, fontWeight:700,
+      color: cover ? "rgba(255,255,255,0.92)" : color,
+      letterSpacing:".03em",
+    }}>
+      {children}
+    </div>
+  );
+}
+
+function CardTitle({ children }) {
+  return (
+    <div style={{
+      fontSize:13, fontWeight:700, color:T.ink,
+      marginBottom:3, letterSpacing:"-0.02em", lineHeight:1.25,
+      overflow:"hidden", display:"-webkit-box",
+      WebkitLineClamp:2, WebkitBoxOrient:"vertical",
+    }}>
+      {children}
+    </div>
+  );
+}
+
+function CardLocationRow({ location, distanceKm }) {
+  if (!location && !Number.isFinite(distanceKm)) return null;
+  return (
+    <div style={{
+      fontSize:10, color:T.inkFaint, marginBottom:6,
+      display:"flex", alignItems:"center", gap:3,
+    }}>
+      <span style={{ fontSize:9 }}>📍</span>
+      <span style={{ overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>
+        {location}{location && Number.isFinite(distanceKm) ? " · " : ""}
+        {Number.isFinite(distanceKm) ? `${distanceKm.toFixed(0)} km entfernt` : ""}
+      </span>
+    </div>
+  );
+}
+
 function TalentCard({ talent, delay=0, onPress }) {
   const [imgErr, setImgErr] = useState(false);
   const cover  = (!imgErr && talent.cover) ? talent.cover : null;
@@ -611,7 +665,7 @@ function TalentCard({ talent, delay=0, onPress }) {
   return (
     <div className="dp-press dp-in dp-card-hover" onClick={() => onPress?.(talent)} style={{
       width:165, flexShrink:0,
-      borderRadius:16, overflow:"hidden",
+      borderRadius:CARD_RADIUS, overflow:"hidden",
       background:T.white, boxShadow:T.cardShadow,
       border:`1px solid ${T.border}`,
       animationDelay:`${delay}ms`,
@@ -630,31 +684,16 @@ function TalentCard({ talent, delay=0, onPress }) {
         )}
         {/* Kategorie-Badge oben links */}
         {talent.category && (
-          <div style={{
-            position:"absolute", top:8, left:8,
-            background: cover ? "rgba(0,0,0,0.54)" : medCol.bg,
-            backdropFilter: cover ? "blur(6px)" : "none",
-            borderRadius:99, padding:"2px 9px",
-            fontSize:9, fontWeight:700,
-            color: cover ? "rgba(255,255,255,0.92)" : medCol.text,
-            letterSpacing:".03em",
-          }}>
+          <CardBadge pos="left" bg={medCol.bg} color={medCol.text} cover={cover}>
             {talent.category}
-          </div>
+          </CardBadge>
         )}
       </div>
 
       {/* Info */}
       <div style={{ padding:"10px 11px 12px" }}>
         {/* Titel */}
-        <div style={{
-          fontSize:13, fontWeight:700, color:T.ink,
-          marginBottom:3, letterSpacing:"-0.02em", lineHeight:1.25,
-          overflow:"hidden", display:"-webkit-box",
-          WebkitLineClamp:2, WebkitBoxOrient:"vertical",
-        }}>
-          {talent.title}
-        </div>
+        <CardTitle>{talent.title}</CardTitle>
 
         {/* Anbieter */}
         <div style={{ fontSize:10.5, color:T.inkFaint, fontWeight:400, marginBottom:6 }}>
@@ -662,18 +701,7 @@ function TalentCard({ talent, delay=0, onPress }) {
         </div>
 
         {/* Standort/Ort */}
-        {(locationLabel || Number.isFinite(talent.distanceKm)) && (
-          <div style={{
-            fontSize:10, color:T.inkFaint, marginBottom:6,
-            display:"flex", alignItems:"center", gap:3,
-          }}>
-            <span style={{ fontSize:9 }}>📍</span>
-            <span style={{ overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>
-              {locationLabel}{locationLabel && Number.isFinite(talent.distanceKm) ? " · " : ""}
-              {Number.isFinite(talent.distanceKm) ? `${talent.distanceKm.toFixed(0)} km entfernt` : ""}
-            </span>
-          </div>
-        )}
+        <CardLocationRow location={locationLabel} distanceKm={talent.distanceKm}/>
 
         {/* Preis */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:2 }}>
@@ -852,7 +880,7 @@ function WerkCard({ werk, delay=0, onPress }) {
   return (
     <div className="dp-press dp-in dp-card-hover" onClick={() => onPress?.(werk)} style={{
       width:165, flexShrink:0,
-      borderRadius:16, overflow:"hidden",
+      borderRadius:CARD_RADIUS, overflow:"hidden",
       background:T.white, boxShadow:T.cardShadow,
       border:`1px solid ${T.border}`,
       animationDelay:`${delay}ms`,
@@ -871,31 +899,16 @@ function WerkCard({ werk, delay=0, onPress }) {
         )}
         {/* Kategorie-Badge oben links */}
         {werk.medium && (
-          <div style={{
-            position:"absolute", top:8, left:8,
-            background: cover ? "rgba(0,0,0,0.54)" : medCol.bg,
-            backdropFilter: cover ? "blur(6px)" : "none",
-            borderRadius:99, padding:"2px 9px",
-            fontSize:9, fontWeight:700,
-            color: cover ? "rgba(255,255,255,0.92)" : medCol.text,
-            letterSpacing:".03em",
-          }}>
+          <CardBadge pos="left" bg={medCol.bg} color={medCol.text} cover={cover}>
             {werk.medium}
-          </div>
+          </CardBadge>
         )}
       </div>
 
       {/* Info */}
       <div style={{ padding:"10px 11px 12px" }}>
         {/* Titel */}
-        <div style={{
-          fontSize:13, fontWeight:700, color:T.ink,
-          marginBottom:3, letterSpacing:"-0.02em", lineHeight:1.25,
-          overflow:"hidden", display:"-webkit-box",
-          WebkitLineClamp:2, WebkitBoxOrient:"vertical",
-        }}>
-          {werk.title}
-        </div>
+        <CardTitle>{werk.title}</CardTitle>
 
         {/* Autor */}
         <div style={{ fontSize:10.5, color:T.inkFaint, fontWeight:400, marginBottom:6 }}>
@@ -903,20 +916,7 @@ function WerkCard({ werk, delay=0, onPress }) {
         </div>
 
         {/* Standort falls vorhanden */}
-        {(werk.location || Number.isFinite(werk.distanceKm)) && (
-          <div style={{
-            fontSize:10, color:T.inkFaint, marginBottom:6,
-            display:"flex", alignItems:"center", gap:3,
-          }}>
-            <span style={{ fontSize:9 }}>📍</span>
-            <span style={{
-              overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis",
-            }}>
-              {werk.location}{werk.location && Number.isFinite(werk.distanceKm) ? " · " : ""}
-              {Number.isFinite(werk.distanceKm) ? `${werk.distanceKm.toFixed(0)} km entfernt` : ""}
-            </span>
-          </div>
-        )}
+        <CardLocationRow location={werk.location} distanceKm={werk.distanceKm}/>
 
         {/* Preis — prominente Teal-Farbe */}
         {/* Price row */}
@@ -1117,18 +1117,10 @@ function ErlebnisCard({ erlebnis, delay=0, onPress }) {
   const statusDot   = STATUS_DOT[erlebnis.statusLabel] || T.inkFaint;
   const statusColor = erlebnis.statusColor || T.inkFaint;
 
-  console.log("[DISCOVER EXPERIENCE CARD]", {
-    id:     erlebnis.id,
-    title:  erlebnis.title,
-    status: erlebnis.statusLabel,
-    cover:  !!erlebnis.cover,
-    type:   erlebnis.typeLabel,
-  });
-
   return (
     <div className="dp-press dp-in dp-card-hover" onClick={() => onPress?.(erlebnis)} style={{
       width:165, flexShrink:0,
-      borderRadius:18, overflow:"hidden",
+      borderRadius:CARD_RADIUS, overflow:"hidden",
       background:T.white, boxShadow:T.cardShadow,
       border:`1px solid ${T.border}`,
       animationDelay:`${delay}ms`,
@@ -1166,45 +1158,19 @@ function ErlebnisCard({ erlebnis, delay=0, onPress }) {
 
         {/* Typ-Badge oben rechts */}
         {erlebnis.typeLabel && (
-          <div style={{
-            position:"absolute", top:8, right:8,
-            background: cover ? "rgba(0,0,0,0.50)" : "rgba(14,196,184,0.15)",
-            backdropFilter: cover ? "blur(6px)" : "none",
-            borderRadius:99, padding:"2px 8px",
-            fontSize:9, fontWeight:700,
-            color: cover ? "rgba(255,255,255,0.92)" : T.teal,
-            letterSpacing:".03em",
-          }}>
+          <CardBadge pos="right" bg="rgba(14,196,184,0.15)" color={T.teal} cover={cover}>
             {erlebnis.typeLabel}
-          </div>
+          </CardBadge>
         )}
       </div>
 
       {/* Info */}
       <div style={{ padding:"10px 11px 12px" }}>
         {/* Titel */}
-        <div style={{
-          fontSize:13, fontWeight:700, color:T.ink, marginBottom:5,
-          letterSpacing:"-0.02em", lineHeight:1.3,
-          overflow:"hidden", display:"-webkit-box",
-          WebkitLineClamp:2, WebkitBoxOrient:"vertical",
-        }}>
-          {erlebnis.title}
-        </div>
+        <CardTitle>{erlebnis.title}</CardTitle>
 
         {/* Standort */}
-        {(erlebnis.location || Number.isFinite(erlebnis.distanceKm)) && (
-          <div style={{ display:"flex", alignItems:"center", gap:4, marginBottom:4 }}>
-            <span style={{ fontSize:9.5, color:T.inkFaint }}>📍</span>
-            <span style={{
-              fontSize:10.5, color:T.inkFaint, fontWeight:500,
-              overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis",
-            }}>
-              {erlebnis.location}{erlebnis.location && Number.isFinite(erlebnis.distanceKm) ? " · " : ""}
-              {Number.isFinite(erlebnis.distanceKm) ? `${erlebnis.distanceKm.toFixed(0)} km entfernt` : ""}
-            </span>
-          </div>
-        )}
+        <CardLocationRow location={erlebnis.location} distanceKm={erlebnis.distanceKm}/>
 
         {/* Dauer falls vorhanden */}
         {erlebnis.time && (
@@ -1256,7 +1222,7 @@ function ErlebnisseSection({
         <div className="dp-hscroll" style={{ display:"flex", gap:10, paddingLeft:T.px, paddingRight:T.px, paddingBottom:4 }}>
           {loading
             ? Array.from({length:4}).map((_,i) => (
-                <div key={i} style={{ width:155, flexShrink:0, borderRadius:18, overflow:"hidden", background:T.white, boxShadow:T.cardShadow }}>
+                <div key={i} style={{ width:155, flexShrink:0, borderRadius:CARD_RADIUS, overflow:"hidden", background:T.white, boxShadow:T.cardShadow }}>
                   <Skel w="100%" h={105} r={0} mb={0}/>
                   <div style={{ padding:"10px 10px" }}><Skel w="80%" h={12} r={6} mb={6}/><Skel w="55%" h={10} r={5}/></div>
                 </div>
