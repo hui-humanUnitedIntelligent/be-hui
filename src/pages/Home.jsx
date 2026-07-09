@@ -22,6 +22,7 @@ import HomeHeader                from "../components/home/header/HomeHeader.jsx"
 import HUIBottomNavigation       from "../components/home/navigation/HUIBottomNavigation.jsx";
 import ProfileLauncher           from "../components/home/profile/ProfileLauncher.jsx";
 import UnifiedFeed from "../feed/UnifiedFeed.jsx";
+import { shareContent } from "../lib/shareContent.js"; // SHARE.1 2026-07-09
 import { usePresence }             from "../lib/usePresence.js";
 import { StoryViewer }           from "../components/StoryBar.jsx";
 import ChatCenterOverlay          from "../components/chat-center/ChatCenterOverlay.jsx";
@@ -403,7 +404,11 @@ function HomeInner() {
                     const werkId = item?.id || item?._raw?.id;
                     if (werkId) navigate(`/work/${werkId}`);
                   }}
-                  onShare={() => setShowTeilen(true)}
+                  // SHARE.1 (2026-07-09) BUGFIX: onShare oeffnete faelschlich den
+                  // "Neuen Beitrag erstellen"-Flow (setShowTeilen) und ignorierte
+                  // das angetippte item komplett -- "Weitergeben" auf einer Feed-
+                  // Karte teilte nie den echten Inhalt. Jetzt: zentrale shareContent().
+                  onShare={(item) => shareContent(item)}
                   onEventPress={(ev) => {
                     const creatorId = ev?.creator_id || ev?.author?.id || ev?.user_id;
                     if (creatorId) openProfileById(creatorId);

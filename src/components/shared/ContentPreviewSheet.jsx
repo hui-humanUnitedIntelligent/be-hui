@@ -27,6 +27,7 @@ import { useSingleReaction } from "../../lib/useReactions.jsx";
 import { useSavedPostsContext } from "../../context/SavedPostsContext.jsx";
 import { FeedActions } from "../../feed/cards/BaseFeedCard.jsx";
 import { toast } from "../../lib/useToast.jsx";
+import { shareContent } from "../../lib/shareContent.js";
 
 const T = {
   ink: "#1A1A2E", inkSoft: "rgba(26,26,46,0.60)", inkFaint: "rgba(26,26,46,0.38)",
@@ -144,17 +145,9 @@ export default function ContentPreviewSheet({ item, loading, onClose }) {
     toggle(type);
   }, [postId, postType, snapshot, toggle, toggleSave, saved]);
 
-  const handleShare = useCallback(async () => {
-    const url = item?.fullPath ? `${window.location.origin}${item.fullPath}` : window.location.href;
-    if (navigator.share) {
-      navigator.share({ title: item?.title || "HUI", text: item?.text || "", url }).catch(() => {});
-    } else {
-      try {
-        await navigator.clipboard.writeText(url);
-        toast.info("Link kopiert", { duration:1800 });
-      } catch { /* silent */ }
-    }
-  }, [item]);
+  // SHARE.1 (2026-07-09): zentrale, appweit einheitliche Share-Funktion
+  // (native OS-Share, Zwischenablage-Fallback, oeffentliche URL pro Typ).
+  const handleShare = useCallback(() => { shareContent(item); }, [item]);
 
   // Body-Scroll sperren solange offen (Konvention aus wizardBodyLock.js
   // wird hier bewusst nicht importiert, um keine Kopplung an den
@@ -170,7 +163,7 @@ export default function ContentPreviewSheet({ item, loading, onClose }) {
 
   const reactions = {
     inspired: myTypes?.has?.("inspire") ?? false,
-    touched:  myTypes?.has?.("touch")   ?? false,
+    touched:  myTypes?.has?.("like")    ?? false, // bestehende App-Konvention (siehe UnifiedFeed.jsx)
     saved,
     inspireCount: counts?.inspire || null,
     touchCount:   counts?.like    || null,
@@ -184,7 +177,7 @@ export default function ContentPreviewSheet({ item, loading, onClose }) {
       className="cps-overlay"
       onClick={onClose}
       style={{
-        position:"fixed", inset:0, zIndex:15000, background:T.overlay, // OPEN.2 2026-07-08: ueber allen In-Page-Drawern (max 10800), unter System-Gates (Auth 19000, Onboarding 17-18k, Toast 19500+)
+        position:"fixed", inset:0, zIndex:9200, background:T.overlay,
         display:"flex", alignItems:"flex-end", justifyContent:"center",
       }}
     >

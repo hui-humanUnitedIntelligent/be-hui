@@ -43,6 +43,7 @@ import { useSavedPostsContext } from "../../context/SavedPostsContext.jsx";
 import { FeedActions } from "../../feed/cards/BaseFeedCard.jsx";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { toast } from "../../lib/useToast.jsx";
+import { shareContent } from "../../lib/shareContent.js";
 
 const T = {
   ink: "#1A1A2E", inkSoft: "rgba(26,26,46,0.60)", inkFaint: "rgba(26,26,46,0.38)",
@@ -140,14 +141,8 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
     toggle(type);
   }, [postId, postType, snapshot, toggle, toggleSave, saved]);
 
-  const handleShare = useCallback(async () => {
-    const url = window.location.href;
-    if (navigator.share) {
-      navigator.share({ title: mountedItem?.title || "HUI", text: mountedItem?.text || "", url }).catch(() => {});
-    } else {
-      try { await navigator.clipboard.writeText(url); toast.info("Link kopiert", { duration:1800 }); } catch { /* silent */ }
-    }
-  }, [mountedItem]);
+  // SHARE.1 (2026-07-09): zentrale, appweit einheitliche Share-Funktion.
+  const handleShare = useCallback(() => { shareContent(mountedItem); }, [mountedItem]);
 
   const handleOpenProfile = useCallback(() => {
     if (authorId && typeof window.__HUI_OPEN_PROFILE__ === "function") {

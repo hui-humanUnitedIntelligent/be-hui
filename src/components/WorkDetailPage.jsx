@@ -18,6 +18,7 @@ import { useSingleReaction } from "../lib/useReactions.jsx";
 import { useSavedPostsContext } from "../context/SavedPostsContext.jsx";
 import { haptic } from "./commerce/commerceUtils.js";
 import { toast } from "../lib/useToast.jsx";
+import { shareContent } from "../lib/shareContent.js";
 
 /* ── Design Tokens ─────────────────────────────────────────────────── */
 const C = {
@@ -520,14 +521,12 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
   useEffect(() => { load(); }, [load]);
 
   /* ── Share ─────────────────────────────────────────────────────── */
+  // SHARE.1 (2026-07-09): zentrale, appweit einheitliche Share-Funktion.
   const handleShare = () => {
-    const url = window.location.href;
-    const title = werk?.title || "Werk auf HUI";
-    if (navigator.share) {
-      navigator.share({ title, url }).catch(() => {});
-    } else {
-      navigator.clipboard?.writeText(url).catch(() => {});
-    }
+    shareContent({
+      id: werk?.id, type: "work", title: werk?.title,
+      text: werk?.description, media: werk?.cover_url ? [{ url: werk.cover_url }] : [],
+    });
     setShareOk(true);
     setTimeout(() => setShareOk(false), 2000);
   };
