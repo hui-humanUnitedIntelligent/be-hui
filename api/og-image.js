@@ -22,14 +22,23 @@ const DEFAULT_IMAGE_CANDIDATES = [
 ];
 
 let sharpModule = null;
+let sharpLoadAttempted = false;
+
 function getSharp() {
-  if (sharpModule !== undefined) return sharpModule;
+  if (sharpLoadAttempted) return sharpModule;
+  sharpLoadAttempted = true;
   try {
     sharpModule = require("sharp");
   } catch {
     sharpModule = null;
   }
   return sharpModule;
+}
+
+function detectImageContentType(buffer) {
+  if (buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF) return "image/jpeg";
+  if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47) return "image/png";
+  return "application/octet-stream";
 }
 
 function readDefaultBuffer() {
@@ -44,12 +53,13 @@ function readDefaultBuffer() {
 async function processToOgSize(inputBuffer) {
   const sharp = getSharp();
   if (sharp) {
-    return sharp(inputBuffer)
+    const buffer = await sharp(inputBuffer)
       .resize(OG_WIDTH, OG_HEIGHT, { fit: "cover", position: "centre" })
       .jpeg({ quality: 85, mozjpeg: true })
       .toBuffer();
+    return { buffer, contentType: "image/jpeg" };
   }
-  return inputBuffer;
+  return { buffer: inputBuffer, contentType: detectImageContentType(inputBuffer) };
 }
 
 async function fetchImageBuffer(url) {
@@ -66,8 +76,8 @@ async function fetchImageBuffer(url) {
   return buf;
 }
 
-function setImageHeaders(res, maxAge = 86400) {
-  res.setHeader("Content-Type", "image/jpeg");
+function setImageHeaders(res, contentType, maxAge = 86400) {
+  res.setHeader("Content-Type", contentType);
   res.setHeader("Cache-Control", `public, max-age=${maxAge}, s-maxage=${maxAge}, stale-while-revalidate=604800`);
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("X-Content-Type-Options", "nosniff");
@@ -79,9 +89,9 @@ async function serveDefault(res) {
     res.status(404).setHeader("Content-Type", "text/plain").end("Default OG image not found");
     return;
   }
-  const processed = await processToOgSize(raw);
-  setImageHeaders(res, 604800);
-  res.status(200).send(processed);
+  const { buffer, contentType } = await processToOgSize(raw);
+  setImageHeaders(res, contentType, 604800);
+  res.status(200).send(buffer);
 }
 
 function parsePath(reqUrl) {
@@ -118,9 +128,9 @@ export default async function handler(req, res) {
     }
 
     const raw = await fetchImageBuffer(sourceUrl);
-    const processed = await processToOgSize(raw);
-    setImageHeaders(res);
-    res.status(200).send(processed);
+    const { buffer, contentType } = await processToOgSize(raw);
+    setImageHeaders(res, contentType);
+    res.status(200).send(buffer);
 
   } catch (err) {
     console.error("[HUI OG-IMAGE]", err?.message, APP_ORIGIN);
