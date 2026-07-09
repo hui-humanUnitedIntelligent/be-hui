@@ -31,3 +31,9 @@ dist-ssr
 .vite
 stripe
 supabase/.temp/
+
+# Capacitor Android Wrapper (siehe android/README.md)
+android/**/build/
+android/.gradle/
+android/local.properties
+android/app/src/main/assets/public/   # generierter Web-Snapshot, wird per `npx cap sync android` aus dist/ erzeugt
