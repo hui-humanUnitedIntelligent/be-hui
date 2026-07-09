@@ -42,6 +42,12 @@ function escapeXml(str) {
     .replace(/'/g, "&apos;");
 }
 
+function truncateSingleLine(text, maxChars = 36) {
+  const s = String(text || "").trim().replace(/\s+/g, " ");
+  if (!s) return "";
+  return s.length > maxChars ? s.slice(0, maxChars - 1) + "…" : s;
+}
+
 function wrapLines(text, maxChars, maxLines = 2) {
   const words = String(text || "").trim().split(/\s+/).filter(Boolean);
   if (!words.length) return [];
@@ -174,7 +180,8 @@ function buildOverlaySvg(card) {
   }
 
   if (card.cardType === "wirker" && card.location) {
-    metaSvg += `<text x="72" y="${descStartY}" font-family="Inter, sans-serif" font-size="22" font-weight="500" fill="rgba(255,255,255,0.88)">${escapeXml(card.location)}</text>\n`;
+    const locationY = descStartY + descLines.length * 30 + 12;
+    metaSvg += `<text x="72" y="${locationY}" font-family="Inter, sans-serif" font-size="22" font-weight="500" fill="rgba(255,255,255,0.88)">${escapeXml(card.location)}</text>\n`;
   }
 
   if (card.subtitle && card.cardType === "werk") {
@@ -186,7 +193,8 @@ function buildOverlaySvg(card) {
   }
 
   if (card.authorName && card.cardType === "beitrag") {
-    metaSvg += `<text x="148" y="572" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="${COLOR.white}">${escapeXml(card.authorName)}</text>\n`;
+    const authorLabel = truncateSingleLine(card.authorName, 36);
+    metaSvg += `<text x="148" y="572" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="${COLOR.white}">${escapeXml(authorLabel)}</text>\n`;
   }
 
   const resonanceSvg = card.cardType === "wirker"

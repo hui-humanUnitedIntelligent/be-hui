@@ -169,11 +169,8 @@ async function resolveWirker(id) {
   if (!row) return null;
 
   const title = clamp(row.display_name || row.username, TITLE_MAX) || "HUI Wirker";
-  const description = [
-    row.talent,
-    row.location_label,
-    clamp(row.bio, 80),
-  ].filter(Boolean).join(" · ") || "Wirker bei HUI — Human United Intelligent.";
+  const description = clamp(row.bio, DESC_MAX)
+    || (row.talent ? `${row.talent} bei HUI.` : "Wirker bei HUI — Human United Intelligent.");
 
   const meta = metaFromRow(row, [
     "wirker", row.username, title, description, row.avatar_url,

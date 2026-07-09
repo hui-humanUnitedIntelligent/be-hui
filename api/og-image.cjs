@@ -74,6 +74,7 @@ module.exports = async function handler(req, res) {
 
     const imageBuffer = await renderCard(card);
     setCacheHeaders(res, card, startMs);
+    res.setHeader("Content-Length", String(imageBuffer.length));
     res.status(200).send(imageBuffer);
   } catch (err) {
     console.error("[HUI OG Image]", err?.message);
@@ -82,6 +83,7 @@ module.exports = async function handler(req, res) {
       const imageBuffer = await renderCard(card);
       res.setHeader("Content-Type", "image/jpeg");
       res.setHeader("Cache-Control", "public, max-age=300");
+      res.setHeader("Content-Length", String(imageBuffer.length));
       res.status(200).send(imageBuffer);
     } catch {
       res.status(500).end();

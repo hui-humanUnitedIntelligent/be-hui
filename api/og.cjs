@@ -15,18 +15,7 @@ const {
   buildMetaFromCard,
 } = require("./og-resolve.cjs");
 
-const BOT_PATTERNS = [
-  "facebookexternalhit", "twitterbot", "slackbot", "telegrambot",
-  "discordbot", "linkedinbot", "whatsapp", "imessage", "applebot",
-  "googlebot", "bingbot", "ia_archiver", "pinterest", "vkshare",
-  "xing-contenttabreceiver", "signal", "curl", "python-requests", "wget",
-];
-
-function isBot(ua) {
-  if (!ua) return false;
-  const lower = ua.toLowerCase();
-  return BOT_PATTERNS.some(p => lower.includes(p));
-}
+const { isBot } = require("./og-bots.cjs");
 
 function escape(str) {
   if (!str) return "";
