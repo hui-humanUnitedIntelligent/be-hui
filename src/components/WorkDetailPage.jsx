@@ -546,10 +546,22 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
   const avatarUrl   = creator?.avatar_url || null;
 
   /* ── Render ────────────────────────────────────────────────────── */
+  // Body-Scroll sicherstellen: wizardBodyLock o.ä. könnte overflow:hidden gesetzt haben
+  useEffect(() => {
+    // WorkDetailPage läuft als eigene Route — body muss scrollbar sein
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "";
+    document.body.classList.remove("hui-wizard-open");
+    return () => {
+      // Beim Verlassen nichts zurücksetzen (nächste Route kümmert sich selbst)
+    };
+  }, []);
+
   return (
     <div style={{ minHeight:"100vh", background:C.warm,
       fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
-      maxWidth:680, margin:"0 auto" }}>
+      maxWidth:680, margin:"0 auto",
+      paddingBottom:"calc(90px + env(safe-area-inset-bottom, 0px))" }}>
       <style>{CSS}</style>
 
       {/* ── Back Button (floating) ── */}
