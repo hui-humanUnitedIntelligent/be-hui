@@ -371,7 +371,7 @@ function useWeitereHerzensprojekte(activeProjectIds) {
       try {
         const { data: rows } = await supabase
           .from("impact_applications")
-          .select("id,project_name,short_desc,cover_url,media_urls,funding_goal,current_amount_eur,status,created_at")
+          .select("id,project_name,short_desc,cover_url,media_urls,funding_goal,status,created_at")
           .eq("status", "approved")
           .order("created_at", { ascending: false })
           .limit(20);
@@ -417,7 +417,7 @@ function useApprovedApplications() {
       const currentPoolMonth = new Date().toISOString().slice(0, 7);
       const { data: rawApps } = await supabase
         .from("impact_applications")
-        .select("id,project_name,short_desc,problem,vision,why_support,funding_goal,current_amount_eur,funding_use,cover_url,media_urls,status,created_at,contact_name,contact_email,user_id")
+        .select("id,project_name,short_desc,problem,vision,why_support,funding_goal,funding_use,cover_url,media_urls,status,created_at,contact_name,contact_email,user_id")
         .eq("status", "approved").order("created_at", { ascending: false }).limit(50);
       const appList = rawApps || [];
       if (!appList.length) return [];
@@ -514,12 +514,6 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
   const [updatesLoading, setUpdatesLoading] = React.useState(true);
   const [showUpdateSheet, setShowUpdateSheet] = React.useState(false);
 
-  // ── Finanzierungs-Daten (frisch aus DB) ────────────────────
-  const [fundedEur,  setFundedEur]  = React.useState(safeNum(rawApp.current_amount_eur) || 0);
-  const [goalFromDb, setGoalFromDb] = React.useState(safeNum(rawApp.funding_goal) || safeNum(rawApp.goal_eur) || 0);
-  const [milestones, setMilestones] = React.useState([]);
-  const fundPct = goalFromDb > 0 ? Math.min(100, Math.round(fundedEur / goalFromDb * 100)) : 0;
-
   const img = app.cover_url
     || (app.media_urls && app.media_urls[0])
     || "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=90";
@@ -577,33 +571,6 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
         if (!dead) setUpdates(updData || []);
       } catch { /* silent */ }
       if (!dead) setUpdatesLoading(false);
-    })();
-    return () => { dead = true; };
-  }, [app.id]);
-
-  // ── Finanzierungs-Daten + Meilensteine frisch laden ──────────
-  React.useEffect(() => {
-    let dead = false;
-    (async () => {
-      try {
-        // 1. Aktuelles current_amount_eur + funding_goal aus DB
-        const { data: fundData } = await supabase
-          .from("impact_applications")
-          .select("current_amount_eur, funding_goal")
-          .eq("id", app.id)
-          .single();
-        if (!dead && fundData) {
-          setFundedEur(safeNum(fundData.current_amount_eur) || 0);
-          setGoalFromDb(safeNum(fundData.funding_goal) || 0);
-        }
-        // 2. Meilensteine laden
-        const { data: msData } = await supabase
-          .from("impact_milestones")
-          .select("*")
-          .eq("project_id", app.id)
-          .order("sort_order");
-        if (!dead) setMilestones(msData || []);
-      } catch { /* silent */ }
     })();
     return () => { dead = true; };
   }, [app.id]);
@@ -752,23 +719,6 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
             </div>
           </div>
 
-          {/* Finanzierungsbalken */}
-          <div style={{ background:'rgba(13,196,181,0.06)', borderRadius:16, padding:'16px', marginBottom:16 }}>
-            <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, color:'#666', marginBottom:6 }}>
-              <span>Finanzierungsfortschritt</span>
-              <span style={{ fontWeight:700, color:'#0DC4B5' }}>{fundPct}%</span>
-            </div>
-            <div style={{ height:8, borderRadius:99, background:'rgba(0,0,0,0.08)', overflow:'hidden', marginBottom:8 }}>
-              <div style={{ height:'100%', borderRadius:99, width:`${fundPct}%`,
-                background:'linear-gradient(90deg,#0DC4B5,#09A89D)', transition:'width 1.2s ease' }}/>
-            </div>
-            <div style={{ fontSize:13, fontWeight:700, color:'#1A1A1A' }}>
-              €{fundedEur.toLocaleString('de-DE')} von €{goalFromDb.toLocaleString('de-DE')} finanziert
-            </div>
-          </div>
-          {/* Stimmen-Counter — NUR Counter, kein Balken */}
-          <div style={{ fontSize:13, color:'#888', marginBottom:16 }}>🗳️ {voteCount} Stimmen bisher</div>
-
           {/* Zusatzmaterial */}
           {app.media_urls && app.media_urls.length > 0 && (
             <div style={{ marginBottom:16 }}>
@@ -801,50 +751,6 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
               </div>
             </div>
           )}
-
-          {/* Meilensteine */}
-          {milestones.length > 0 && (
-            <div style={{ marginBottom:20 }}>
-              <div style={{ fontSize:13, fontWeight:800, color:'#1A1A1A', marginBottom:12 }}>🏁 Meilensteine</div>
-              {milestones.map((m,i) => (
-                <div key={m.id} style={{ display:'flex', gap:10, marginBottom:10, alignItems:'flex-start' }}>
-                  <div style={{ width:24, height:24, borderRadius:'50%', background:'#0DC4B5', color:'white',
-                    display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:800, flexShrink:0 }}>
-                    {i+1}
-                  </div>
-                  <div>
-                    <div style={{ fontSize:13, fontWeight:700, color:'#1A1A1A' }}>{m.title}</div>
-                    {m.description && <div style={{ fontSize:12, color:'#666', marginTop:2, lineHeight:1.5 }}>{m.description}</div>}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Projekt-Updates */}
-          {updates.length > 0 && (
-            <div style={{ marginBottom:20 }}>
-              <div style={{ fontSize:13, fontWeight:800, color:'#1A1A1A', marginBottom:12 }}>📢 Projekt-Updates</div>
-              {updates.map(u => (
-                <div key={u.id} style={{ background:'#F0FAF8', borderRadius:12, padding:'12px 14px', marginBottom:10, border:'1px solid rgba(13,196,181,0.15)' }}>
-                  <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
-                    <span style={{ fontSize:11, fontWeight:800, color:'#0DC4B5', background:'rgba(13,196,181,0.1)', padding:'2px 8px', borderRadius:99 }}>{u.update_type}</span>
-                    <span style={{ fontSize:11, color:'#999' }}>{new Date(u.created_at).toLocaleDateString('de-DE')}</span>
-                  </div>
-                  <div style={{ fontSize:13, fontWeight:700, marginBottom:4 }}>{u.title}</div>
-                  {u.content && <div style={{ fontSize:12, color:'#555', lineHeight:1.5 }}>{u.content}</div>}
-                  {u.media_urls && u.media_urls.length > 0 && (
-                    <div style={{ display:'flex', gap:6, marginTop:8, flexWrap:'wrap' }}>
-                      {u.media_urls.map((url,j) => (
-                        <img key={j} src={url} alt="" style={{ width:60, height:60, objectFit:'cover', borderRadius:8 }} />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-
 
           {/* ── Stimmen-System ── */}
           <div style={{ marginTop: 8 }}>
@@ -1217,7 +1123,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
         // Lade approved Projekte aus impact_applications
         const { data, error } = await supabase
           .from("impact_applications")
-          .select("id,project_name,short_desc,cover_url,media_urls,funding_goal,current_amount_eur,status,created_at")
+          .select("id,project_name,short_desc,cover_url,media_urls,funding_goal,status,created_at")
           .eq("status", "approved")
           .order("created_at", { ascending: false })
           .limit(3);
@@ -1249,7 +1155,6 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
           color:       "#0DC4B5",
           votes:       voteMap[app.id] || 0,
           goal_eur:    app.funding_goal || 2000,
-          current_amount_eur: app.current_amount_eur || 0,
           status:      app.status,
           img:         app.cover_url || (app.media_urls && app.media_urls[0]) || null,
         })).sort((a, b) => b.votes - a.votes);
@@ -1906,9 +1811,8 @@ function VotingSection({ projects, userVotes, daysLeft, totalVotes, onVote, load
 
 function VotingCard({ project:p, rank, voted, totalVotes, onVote, onOpen }) {
   const accent = p.color || T.teal;
-  const fundedEur = safeNum(p.current_amount_eur) || 0;
-  const goalEur   = safeNum(p.goal_eur) || safeNum(p.funding_goal) || 2000;
-  const fundPct   = goalEur > 0 ? Math.min(100, Math.round(fundedEur / goalEur * 100)) : 0;
+  const pct    = totalVotes > 0 ? Math.round(safeNum(p.votes) / totalVotes * 100) : 0;
+  const goalEur = safeNum(p.goal_eur) || 2000;
   const [imgErr, setImgErr] = React.useState(false);
   const RANK_C = [T.teal, T.coral, T.violet];
   const rc = RANK_C[rank] || T.teal;
@@ -1965,18 +1869,18 @@ function VotingCard({ project:p, rank, voted, totalVotes, onVote, onOpen }) {
           </p>
         )}
 
-        {/* Finanzierung + Stimmen */}
+        {/* Stimmen + Ziel */}
         <div style={{ display:"flex", justifyContent:"space-between",
           fontSize:12, color:T.muted, marginBottom:8 }}>
-          <span>€{fundedEur.toLocaleString('de-DE')} von €{goalEur.toLocaleString('de-DE')} finanziert</span>
           <span><b style={{ color:T.ink }}>{p.votes||0}</b> Stimmen</span>
+          <span>Ziel: <b style={{ color:T.ink }}>{fmtEur(goalEur)}</b></span>
         </div>
 
-        {/* Finanzierungsbalken */}
+        {/* Fortschrittsbalken */}
         <div style={{ height:5, borderRadius:99, background:"rgba(0,0,0,0.07)",
           overflow:"hidden", marginBottom:14 }}>
           <div style={{ height:"100%", borderRadius:99,
-            width:`${fundPct}%`, minWidth:fundPct>0?6:0,
+            width:`${pct}%`, minWidth:pct>0?6:0,
             background:`linear-gradient(90deg,${accent},${accent}BB)`,
             transition:"width 1.4s cubic-bezier(0.22,1,0.36,1)" }}/>
         </div>
@@ -2005,18 +1909,20 @@ function VotingCard({ project:p, rank, voted, totalVotes, onVote, onOpen }) {
         }}>
           {[
             {
-              top: `${p.votes||0} Stimmen`,
+              top: `${p.votes || 0} Menschen`,
+              bot: "möchten helfen",
+              accent,
+            },
+            {
+              top: `${pct} % der Stimmen`,
               bot: "für dieses Projekt",
               accent,
             },
             {
-              top: `€${fundedEur.toLocaleString('de-DE')}`,
-              bot: "bereits finanziert",
-              accent,
-            },
-            {
-              top: `Noch €${Math.max(0,goalEur-fundedEur).toLocaleString('de-DE')}`,
-              bot: "bis Ziel",
+              top: goalEur > 0 && pct > 0
+                ? `Noch ${fmtEur(Math.max(0, goalEur - Math.round(pct / 100 * goalEur)))}`
+                : `Ziel: ${fmtEur(goalEur)}`,
+              bot: "bis Finanzierung",
               accent,
             },
           ].map((stat, si) => (
