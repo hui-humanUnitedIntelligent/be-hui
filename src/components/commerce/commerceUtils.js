@@ -35,9 +35,8 @@ export const TYPE_META = {
   event:      { label: "Event",          accent: C.violet, bg: C.violetPale },
   impact:     { label: "Impact-Projekt", accent: C.sage,   bg: C.sagePale   },
   moment:     { label: "Moment",         accent: C.gold,   bg: C.goldPale   },
+  support:    { label: "Unterstützung",  accent: C.violet, bg: C.violetPale },
 };
-
-// ── Impact-Konstante ──────────────────────────────────────────────
 // HUI investiert 7 % der eigenen Einnahmen — kein Aufschlag für Käufer
 export const IMPACT_RATE = 0.0225; // COM-MIGRATION-015.3: vorher 0.07
 
@@ -243,6 +242,105 @@ export function calcTotalWithQty(items) {
     const qty   = (typeof i.quantity === "number" && i.quantity > 0) ? i.quantity : 1;
     return s + price * qty;
   }, 0);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// COMMERCE 2.0 — Cart Entry (Phase 2.4 Unification)
+// Single Source of Truth für alle Commerce-Einstiegspunkte.
+// ═══════════════════════════════════════════════════════════════════
+
+const COMMERCE_TYPE_MAP = {
+  werk: "work", work: "work", work_upload: "work",
+  erlebnis: "experience", experience: "experience", event: "event",
+  support: "support",
+};
+
+/** Normalisiert einen Roh-Eintrag auf das Commerce-2.0-Cart-Format. */
+export function normalizeCommerceCartItem(raw, forcedType = null) {
+  if (!raw || typeof raw !== "object") return null;
+
+  const expObj  = raw.experience || raw;
+  const crObj   = raw.creator || raw.author || expObj?.author || expObj?.creator || null;
+
+  let type = forcedType || expObj?.type || raw?.type || "work";
+  type = COMMERCE_TYPE_MAP[String(type).toLowerCase()] || type;
+
+  const id = type === "support"
+    ? `support-${crObj?.id || raw?.id || raw?._raw?.creator_id}`
+    : (expObj?.id || raw?.id || raw?._raw?.id);
+  if (!id) return null;
+
+  const author = crObj ? {
+    id:          crObj.id || crObj.user_id,
+    name:        crObj.display_name || crObj.name || crObj.displayName || "Wirker",
+    displayName: crObj.display_name || crObj.name || crObj.displayName,
+    avatar:      crObj.avatar_url || crObj.avatar || crObj.img || null,
+  } : (raw.author || null);
+
+  const price = parseAmount(
+    raw.price ?? expObj?.price ?? expObj?._raw?.price ?? raw?._raw?.price
+  );
+
+  const title = type === "support"
+    ? (raw.title || `Unterstützung für ${author?.name || "Talent"}`)
+    : (expObj?.title || raw?.title || raw?.name || expObj?._raw?.title || "Werk");
+
+  return {
+    id,
+    type,
+    title,
+    price: price > 0 ? price : null,
+    author,
+    mediaUrl: raw.mediaUrl || raw.img || expObj?.cover_url || raw?.cover_url || null,
+    _raw: {
+      ...(raw._raw || expObj?._raw || {}),
+      ...(type === "support" ? {
+        creator_id:      author?.id,
+        item_type:       "support",
+        support_message: raw.supportMessage || raw._raw?.support_message || "",
+      } : {}),
+      price: price > 0 ? price : (raw._raw?.price ?? expObj?._raw?.price ?? null),
+      user_id: author?.id || raw._raw?.user_id || expObj?._raw?.user_id,
+    },
+  };
+}
+
+/** Eindeutiger Cart-Schlüssel (Support: pro Creator). */
+export function cartItemKey(item) {
+  if (!item) return "";
+  if (item.type === "support") {
+    const cid = item.author?.id || item._raw?.creator_id;
+    return cid ? `support-${cid}` : item.id;
+  }
+  return item.id;
+}
+
+/** Fügt ein Item zum Cart hinzu — dedupliziert nach cartItemKey. */
+export function addItemToCart(prev, rawItem, forcedType = null) {
+  const item = normalizeCommerceCartItem(rawItem, forcedType);
+  if (!item?.id) return prev;
+  const key = cartItemKey(item);
+  const without = prev.filter(x => cartItemKey(x) !== key);
+  return [...without, item];
+}
+
+/** Erzeugt ein Support-Cart-Item für Creator-Unterstützung. */
+export function buildSupportCartItem(creator, amountEur, message = "") {
+  const creatorId = creator?.id || creator?.user_id;
+  if (!creatorId || !amountEur || amountEur < 1) return null;
+  return normalizeCommerceCartItem({
+    type:           "support",
+    title:          `Unterstützung für ${creator?.display_name || creator?.name || "Talent"}`,
+    price:          amountEur,
+    supportMessage: message,
+    author: {
+      id:           creatorId,
+      name:         creator?.display_name || creator?.name || "Talent",
+      display_name: creator?.display_name || creator?.name,
+      avatar:       creator?.avatar_url || creator?.img || null,
+    },
+    _raw: { creator_id: creatorId, item_type: "support", support_message: message },
+  }, "support");
 }
 
 

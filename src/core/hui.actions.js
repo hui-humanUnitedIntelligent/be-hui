@@ -22,6 +22,7 @@ import {
   checkSemantics,
   INTENT,
 } from "./hui.semantics.js";
+import { addItemToCart, normalizeCommerceCartItem } from "../components/commerce/commerceUtils.js";
 
 // ─── Action log (dev mode) ─────────────────────────────────────────
 const isDev = import.meta.env?.DEV ?? false;
@@ -73,6 +74,11 @@ export const A = {
   OPEN_EXPERIENCE:      "OPEN_EXPERIENCE",
   BOOK_EXPERIENCE:      "BOOK_EXPERIENCE",
   CREATE_EXPERIENCE:    "CREATE_EXPERIENCE",
+
+  // Commerce 2.0 (Phase 2.4)
+  ADD_TO_CART:          "ADD_TO_CART",
+  OPEN_WERK:            "OPEN_WERK",
+  SUPPORT_CREATOR:      "SUPPORT_CREATOR",
 
   // Impact
   OPEN_IMPACT:          "OPEN_IMPACT",
@@ -146,7 +152,11 @@ export function buildActions(shell) {
     setShowMembership,
     setShowCreateFlow,
     setShowConnect,
-    setShowBookingFlow,      // COMMERCE-01
+    setShowBookingFlow,      // LEGACY — deaktiviert Phase 2.4
+    setCart,                 // COMMERCE 2.0
+    setShowWerkeKorb,        // COMMERCE 2.0
+    setShowSupportSheet,     // COMMERCE 2.0
+    setSupportSheetCreator,  // COMMERCE 2.0
     setShowNotifs,
     setShowMap,
     setShowMatch,
@@ -167,7 +177,8 @@ export function buildActions(shell) {
     setShowChat?.(false);
     setShowPlusSheet?.(false);
     setShowConnect?.(false);
-    setShowBookingFlow?.(null);  // COMMERCE-01
+    setShowBookingFlow?.(null);  // LEGACY
+    setShowSupportSheet?.(false);
     setShowNotifs?.(false);
     setShowMap?.(false);
     setShowMatch?.(false);
@@ -277,18 +288,42 @@ export function buildActions(shell) {
       if (!payload) return;
       logAction(A.BOOK_EXPERIENCE, payload);
       const { experience, creator } = payload;
-      // Semantic: normalizeCreator → sicheres Recipient-Objekt für Booking-Chat
       const safeExp  = normalizeExperience(experience);
       const safeCr   = creator ? normalizeCreator(creator) : null;
-      // Semantic guard (DEV)
       checkSemantics("BOOK_EXPERIENCE", { experience: safeExp, creator: safeCr, source: payload?.source || S.SYSTEM });
-      // Set recipient so Connect-Sheet weiß wer gebucht wird
       if (safeCr) setChatRecipient?.(safeCr);
-      // Flow-Log
       const bookSource = payload?.source || S.SYSTEM;
       logFlow(bookSource, S.BOOKING, safeCr ? { to: safeCr.display_name } : null);
-      // COMMERCE-01: ExperienceBookingFlow öffnen statt ConnectionCreatePage
-      setShowBookingFlow?.({ experience: safeExp, creator: safeCr });
+      // COMMERCE 2.0: Erlebnis in WerkeKorb → UnterstützenFlow
+      const cartItem = normalizeCommerceCartItem({ experience: safeExp, creator: safeCr, type: "experience" });
+      if (cartItem && setCart) {
+        setCart(prev => addItemToCart(prev, cartItem));
+        setShowWerkeKorb?.(true);
+      }
+    },
+
+    // ── COMMERCE 2.0 (Phase 2.4) ─────────────────────────────────
+    [A.ADD_TO_CART]: (rawPayload = {}) => {
+      logAction(A.ADD_TO_CART, rawPayload);
+      const { item, openKorb = false } = rawPayload;
+      if (!item || !setCart) return;
+      setCart(prev => addItemToCart(prev, item));
+      if (openKorb) setShowWerkeKorb?.(true);
+    },
+
+    [A.OPEN_WERK]: (rawPayload = {}) => {
+      logAction(A.OPEN_WERK, rawPayload);
+      const werkId = rawPayload?.werk?.id || rawPayload?.id || rawPayload?.werkId;
+      const nav = typeof window !== "undefined" ? window.__HUI_ROUTER_NAVIGATE__ : null;
+      if (werkId && nav) nav(`/work/${werkId}`);
+    },
+
+    [A.SUPPORT_CREATOR]: (rawPayload = {}) => {
+      logAction(A.SUPPORT_CREATOR, rawPayload);
+      const creator = rawPayload?.creator;
+      if (!creator) return;
+      setSupportSheetCreator?.(creator);
+      setShowSupportSheet?.(true);
     },
 
     [A.CREATE_EXPERIENCE]: (payload = {}) => {

@@ -171,10 +171,12 @@ export default function HomeShell({ children }) {
   const [showInvitationFlow,     setShowInvitationFlow]     = useState(false);
   const [showCreatorDash,        setShowCreatorDash]        = useState(false); // Phase 4D
   const [showWerkDetail,         setShowWerkDetail]        = useState(null);
-  const [showWerkCheckout,       setShowWerkCheckout]      = useState(null);
-  const [showBookingFlow,        setShowBookingFlow]        = useState(null); // COMMERCE-01 E-3
+  const [showWerkCheckout,       setShowWerkCheckout]      = useState(null); // LEGACY — Phase 2.4
+  const [showBookingFlow,        setShowBookingFlow]        = useState(null); // LEGACY — Phase 2.4
   const [showWerkeKorb,          setShowWerkeKorb]         = useState(false);
   const [showUnterstutzenFlow,    setShowUnterstutzenFlow]  = useState(false);
+  const [showSupportSheet,       setShowSupportSheet]      = useState(false); // COMMERCE 2.4
+  const [supportSheetCreator,    setSupportSheetCreator]    = useState(null); // COMMERCE 2.4
   // ── Content / Commerce State ───────────────────────────────────
   const [createType,             setCreateType]            = useState(null);
   const [activeStory,            setActiveStory]           = useState(null);
@@ -332,9 +334,11 @@ export default function HomeShell({ children }) {
     showCreatorDash,        setShowCreatorDash,
     showWerkDetail,        setShowWerkDetail,
     showWerkCheckout,      setShowWerkCheckout,
-    showBookingFlow,       setShowBookingFlow,      // COMMERCE-01 E-3
+    showBookingFlow,       setShowBookingFlow,      // LEGACY — Phase 2.4
     showWerkeKorb,         setShowWerkeKorb,
     showUnterstutzenFlow,  setShowUnterstutzenFlow,
+    showSupportSheet,      setShowSupportSheet,     // COMMERCE 2.4
+    supportSheetCreator,   setSupportSheetCreator,  // COMMERCE 2.4
     createType,            setCreateType,
     activeStory,           setActiveStory,
     cart,                  setCart,
@@ -361,7 +365,7 @@ export default function HomeShell({ children }) {
     showWerkPublisher, showExperienceCreator,
     showImpactFlow, showContentSelector, showInvitationFlow,
     showCreatorDash, showWerkDetail, showWerkCheckout, showWerkeKorb,
-    showUnterstutzenFlow, showBookingFlow,
+    showUnterstutzenFlow, showBookingFlow, showSupportSheet, supportSheetCreator,
     createType, activeStory, cart, clearCartPersist,
     openOwnProfile, flowStore,
   ]);

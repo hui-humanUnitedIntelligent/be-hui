@@ -93,6 +93,22 @@ const CONTRACTS = {
     optional:    ["source"],
     description: "Oeffnet den Erlebnis-Creator",
   },
+  ADD_TO_CART: {
+    required:    ["item"],
+    optional:    ["openKorb", "source"],
+    description: "Fuegt Item zum WerkeKorb hinzu (Commerce 2.0)",
+  },
+  OPEN_WERK: {
+    required:    [],
+    requiredOr:  [["werk", "id", "werkId"]],
+    optional:    ["source"],
+    description: "Oeffnet Werk-Detail (/work/:id)",
+  },
+  SUPPORT_CREATOR: {
+    required:    ["creator"],
+    optional:    ["source"],
+    description: "Oeffnet Creator-Unterstuetzung (Commerce 2.0)",
+  },
   OPEN_IMPACT: {
     required:    [],
     optional:    ["source"],

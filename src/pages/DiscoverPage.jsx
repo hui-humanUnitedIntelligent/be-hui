@@ -2025,7 +2025,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
     if (item) openPreview(item);
   }, [openPreview]);
 
-  // Erlebnis-Karte: öffne ExperienceBookingFlow (Detail + Buchen)
+  // Erlebnis-Karte: Commerce 2.4 → WerkeKorb (via onBook in Home.jsx)
   const handleErlebnisPress = useCallback((erlebnis) => {
     const isRealId = erlebnis?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(erlebnis.id));
     if (isRealId) {

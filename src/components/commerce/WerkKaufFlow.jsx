@@ -20,7 +20,17 @@ async function getResonanceHelpers() {
 const CORAL = "#FF8A6B";
 const TEAL  = "#16D7C5";
 
+// DEAKTIVIERT Phase 2.4 — nicht mehr produktiv erreichbar
+const LEGACY_COMMERCE_DISABLED = true;
+
 export default function WerkKaufFlow({ werk, onClose }) {
+  if (LEGACY_COMMERCE_DISABLED) {
+    if (import.meta.env?.DEV) {
+      console.warn("[LEGACY] WerkKaufFlow deaktiviert — verwende WerkeKorb → UnterstützenFlow");
+    }
+    onClose?.();
+    return null;
+  }
   const { user } = useAuth();
   const [phase,   setPhase]   = useState("confirm"); // confirm | loading | success | error
   const [errMsg,  setErrMsg]  = useState("");

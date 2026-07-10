@@ -5,6 +5,7 @@
 import React, {
   useState, useEffect, useRef, useCallback,
 } from "react";
+import { useNavigate } from "react-router-dom";
 import { S } from "../../core/hui.sources.js";
 import { HUI } from "../../design/hui.design.js";
 // Sprint F.7B: createProfileItem nicht mehr für Root-Profil nötig
@@ -14,7 +15,7 @@ import { useHuiActions, A } from "../../core/hui.actions.js";
 // Sprint F.7B: useWirkerProfile → useProfileData + useProfileId (F.8A: Hook gelöscht)
 import { useProfileData } from "../../hooks/useProfileData.js";
 import { useProfileId } from "../../hooks/useProfileId.js";
-import SupportFlow from "../../components/economy/SupportFlow.jsx";
+import CreatorSupportSheet from "../../components/commerce/CreatorSupportSheet.jsx";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
 
@@ -795,7 +796,7 @@ function FloatingBookCTA({ onBook, profileName }) {
 //      useProfileData(profileId) → eine Datenquelle für alle Profile
 // ────────────────────────────────────────────────────────────────────────────
 export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profileIdProp, onClose, onBook, onChat, _zIndex = 9500 }) {
-  // Phase 4D: Support Flow State — MUSS VOR ALLEM ANDEREN STEHEN (Rules of Hooks)
+  const navigate = useNavigate();
   const [showSupport, setShowSupport] = React.useState(false);
 
   // ── SCHRITT 1: rawId bestimmen ────────────────────────────────
@@ -837,12 +838,14 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profi
 
   // Route through Action Engine — falls back to prop callbacks for non-HomeShell contexts
   const handleBook = useCallback((exp) => {
+    const experience = exp || experiences?.[0];
+    if (!experience) return;
     if (actions[A.BOOK_EXPERIENCE]) {
-      actions[A.BOOK_EXPERIENCE]({ experience: exp, creator: profile, source: S.VISITOR_PROFILE });
+      actions[A.BOOK_EXPERIENCE]({ experience, creator: profile, source: S.VISITOR_PROFILE });
     } else {
-      onBook?.(profile, exp);
+      onBook?.(profile, experience);
     }
-  }, [actions, profile, onBook]);
+  }, [actions, profile, onBook, experiences]);
 
   const handleChat = useCallback(() => {
     if (actions[A.OPEN_CHAT]) {
@@ -862,10 +865,19 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profi
     }
   }, [actions, profile, onChat]);
 
-  // Phase 4D: Support Handler
+  // COMMERCE 2.4: Support → WerkeKorb (kein Legacy SupportFlow)
   const handleSupport = React.useCallback(() => {
+    if (actions[A.SUPPORT_CREATOR]) {
+      actions[A.SUPPORT_CREATOR]({ creator: profile, source: S.VISITOR_PROFILE });
+      return;
+    }
     setShowSupport(true);
-  }, []);
+  }, [actions, profile]);
+
+  const handleSupportAddToCart = React.useCallback((item) => {
+    navigate("/Home", { state: { pendingCartItem: item, openWerkeKorb: true } });
+    setShowSupport(false);
+  }, [navigate]);
 
   // Guard: kein rawId oder profileId-Fehler → "Profil nicht gefunden"
   if (!rawId || (!loading && !profile?.id && idError)) {
@@ -919,13 +931,12 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profi
       <ResonanceCommunity community={null}/>
       <FooterValues/>
       <FloatingBookCTA onBook={handleBook} profileName={name}/>
-      {/* Phase 4D: Support Flow */}
-      <SupportFlow
+      {/* COMMERCE 2.4: Fallback Support-Sheet für Standalone-Route (/profile/:username) */}
+      <CreatorSupportSheet
         creator={profile}
         visible={showSupport}
         onClose={() => setShowSupport(false)}
-        sourceType="profile"
-        sourceId={profile?.id||null}
+        onAddToCart={handleSupportAddToCart}
       />
     </div>
   );

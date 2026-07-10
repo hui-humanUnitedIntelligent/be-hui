@@ -28,11 +28,10 @@ import { StoryViewer }           from "../components/StoryBar.jsx";
 import ChatCenterOverlay          from "../components/chat-center/ChatCenterOverlay.jsx";
 import { useChatList }             from "../lib/chatContext.js";
 import ConnectionCreatePage      from "../components/connection-create/ConnectionCreatePage.jsx";
-import WerkKaufFlow           from "../components/commerce/WerkKaufFlow.jsx";         // COMMERCE-01
 import WerkeKorb, { WerkeKorbButton } from "../components/commerce/WerkeKorb.jsx"; // KORB-01
 import UnterstutzenFlow                from "../components/commerce/UnterstutzenFlow.jsx"; // KORB-02
-import { clearCartAfterSuccess }        from "../components/commerce/commerceUtils.js";    // KORB-02
-import ExperienceBookingFlow  from "../components/commerce/ExperienceBookingFlow.jsx"; // COMMERCE-01
+import CreatorSupportSheet             from "../components/commerce/CreatorSupportSheet.jsx"; // COMMERCE 2.4
+import { clearCartAfterSuccess, addItemToCart } from "../components/commerce/commerceUtils.js";    // KORB-02
 // ── Tab-Pages: lazy → eigene Chunks, nur bei Bedarf geladen ────
 // PHASE 17.3: ImpactPage + DiscoverPage — direkte imports (Safari-safe, kein lazy)
 import DiscoverPage  from "./DiscoverPage.jsx";
@@ -164,10 +163,10 @@ function HomeInner() {
     activeStory,       setActiveStory,
     showCreatorDash,   setShowCreatorDash,
     showCreatorDashboard,
-    showWerkCheckout,  setShowWerkCheckout,  // COMMERCE-01 W-1
-    showBookingFlow,   setShowBookingFlow,   // COMMERCE-01 W-1
     showWerkeKorb,     setShowWerkeKorb,     // KORB-01
     showUnterstutzenFlow, setShowUnterstutzenFlow, // KORB-02
+    showSupportSheet,  setShowSupportSheet,  // COMMERCE 2.4
+    supportSheetCreator, setSupportSheetCreator,
     cart,              setCart,              // KORB-01
     clearCartPersist,                        // KORB-PERSIST
   } = useHome();
@@ -176,19 +175,25 @@ function HomeInner() {
   const { unreadTotal, markChatRead } = useChatList("home");
   usePresence(currentUser?.id);
 
-  // COMMERCE-01: WorkDetailPage → /Home + state → WerkKaufFlow öffnen
+  // Router-Navigate für Action Engine (OPEN_WERK Deep Links)
+  React.useEffect(() => {
+    window.__HUI_ROUTER_NAVIGATE__ = navigate;
+    return () => { delete window.__HUI_ROUTER_NAVIGATE__; };
+  }, [navigate]);
+
+  // COMMERCE 2.4: Deep-Link / Router-State → WerkeKorb (kein Legacy-Flow)
   const location = useLocation();
 
-  // Stripe Redirect wird in UnterstutzenFlow behandelt (P1)
+  useEffect(() => {
+    const state = location?.state;
+    const pending = state?.pendingCartItem || state?.pendingWerkKauf; // Legacy-Alias
+    if (!pending || !setCart) return;
 
-    useEffect(() => {
-    const pending = location?.state?.pendingWerkKauf;
-    if (pending && setShowWerkCheckout) {
-      setShowWerkCheckout(pending);
-      // Router-State sofort leeren damit Reload nicht erneut öffnet
-      try { window.history.replaceState({}, document.title, window.location.pathname); } catch {}
-    }
-  }, [location?.state?.pendingWerkKauf]); // eslint-disable-line  // Activity Tracking: App-Start, Foreground, Heartbeat
+    setCart(prev => addItemToCart(prev, pending));
+    if (state?.openWerkeKorb) setShowWerkeKorb(true);
+
+    try { window.history.replaceState({}, document.title, window.location.pathname); } catch {}
+  }, [location?.state?.pendingCartItem, location?.state?.pendingWerkKauf, location?.state?.openWerkeKorb]); // eslint-disable-line
 
 
   // ── Phase 4C: Talent Flow global registrieren ────────────────
@@ -392,13 +397,10 @@ function HomeInner() {
                     openProfileById(userId);
                   }}
                   onBook={(item) => {
-                    // KORB-01: Werk/Experience → Werkekorb
+                    // COMMERCE 2.4: Werk/Erlebnis → WerkeKorb
                     if (!item?.id) return;
-                    setCart(prev => {
-                      if (prev.some(x => x.id === item.id)) return prev;
-                      return [...prev, item];
-                    });
-                    setShowWerkeKorb(false); // kurzer Glow, kein Auto-Open
+                    setCart(prev => addItemToCart(prev, item));
+                    setShowWerkeKorb(false);
                   }}
                   onDetail={(item) => {
                     const werkId = item?.id || item?._raw?.id;
@@ -449,8 +451,10 @@ function HomeInner() {
                     onView={(id) => { if(id) openProfileById(id); }}
                     onMap={() => setShowMap(true)}
                     onBook={(item) => {
-                      // Erlebnis aus DiscoverPage → ExperienceBookingFlow
-                      setShowBookingFlow(item);
+                      // COMMERCE 2.4: Erlebnis → WerkeKorb (kein ExperienceBookingFlow)
+                      if (!item) return;
+                      setCart(prev => addItemToCart(prev, item));
+                      setShowWerkeKorb(true);
                     }}
                   />
               </SafeRender>
@@ -559,33 +563,27 @@ function HomeInner() {
         <UnterstutzenFlow
           items={cart}
           onClose={() => setShowUnterstutzenFlow(false)}
-          onUnterstuetzen={async (items, form, method) => {
-            // P1: Mock-Timeout entfernt — Stripe übernimmt Payment
-            // UnterstutzenFlow ruft create-payment-intent direkt auf
-          }}
+          onUnterstuetzen={async () => {}}
           onClearCart={() => { clearCartAfterSuccess(setCart); clearCartPersist?.(); }}
           onDiscover={() => { setShowUnterstutzenFlow(false); handleTab("discover"); }}
           onResonanzCenter={() => setShowUnterstutzenFlow(false)}
         />
       )}
 
-      {/* ── Overlay Layer ──────────────────────────────────────── */}
-      <ProfileLauncher/>
-      {/* ── WerkKaufFlow — COMMERCE-01 ─────────────────────────── */}
-      {showWerkCheckout && (
-        <WerkKaufFlow
-          werk={showWerkCheckout}
-          onClose={() => setShowWerkCheckout(null)}
+      {/* COMMERCE 2.4: Creator-Unterstützung → WerkeKorb */}
+      {showSupportSheet && supportSheetCreator && (
+        <CreatorSupportSheet
+          creator={supportSheetCreator}
+          visible={showSupportSheet}
+          onClose={() => { setShowSupportSheet(false); setSupportSheetCreator(null); }}
+          onAddToCart={(item) => setCart(prev => addItemToCart(prev, item))}
+          onOpenKorb={() => setShowWerkeKorb(true)}
         />
       )}
 
-      {/* ── ExperienceBookingFlow — COMMERCE-01 ─────────────────── */}
-      {showBookingFlow && (
-        <ExperienceBookingFlow
-          experience={showBookingFlow}
-          onClose={() => setShowBookingFlow(null)}
-        />
-      )}
+      {/* ── Overlay Layer ──────────────────────────────────────── */}
+      <ProfileLauncher/>
+      {/* LEGACY WerkKaufFlow + ExperienceBookingFlow — Phase 2.4 deaktiviert */}
 
 
       {/* ── Connection Create ───────────────────────────────────── */}

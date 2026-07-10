@@ -128,10 +128,12 @@ export function resolveShippingStrategy(items) {
  */
 export function buildItemSnapshot(item) {
   const raw = item._raw || {};
+  const itemType = item.type || "work";
+  const creatorId = item.author?.id || raw.user_id || raw.creator_id || null;
   return {
     // Identifikation
-    item_id:          item.id || raw.id,
-    item_type:        item.type || "work",
+    item_id:          itemType === "support" ? creatorId : (item.id || raw.id),
+    item_type:        itemType,
 
     // Inhalt (Kaufzeitpunkt)
     title:            item.title || raw.title || "",
@@ -235,7 +237,9 @@ export const orderService = {
         orderItems.push({
           seller_id:          sellerId,
           item_type:          item.type || "work",
-          item_id:            item.id || null,
+          item_id:            item.type === "support"
+            ? (item.author?.id || item._raw?.creator_id || null)
+            : (item.id || null),
           snapshot:           buildItemSnapshot(item),
           shipping_type:      typeRules?.shippingType || "physical",
           quantity:           qty,
