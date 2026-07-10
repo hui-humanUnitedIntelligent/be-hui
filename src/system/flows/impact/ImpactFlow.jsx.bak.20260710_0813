@@ -334,7 +334,7 @@ function NextBtn({ label="Weiter →", onClick, disabled, loading }) {
 function Step1({ form, update, onNext, onBack, onClose }) {
   const ok = (form.name || "").trim().length >= 3;
   return (
-    <StepWrap step={0} total={7} onBack={onBack} onClose={onClose} label="Schritt 1 von 7">
+    <StepWrap step={0} total={6} onBack={onBack} onClose={onClose} label="Schritt 1 von 6">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{ fontSize:28, marginBottom:10 }}>🌱</div>
         <h2 style={{ margin:"0 0 8px", fontSize:24, fontWeight:900, color:T.ink,
@@ -357,7 +357,7 @@ function Step1({ form, update, onNext, onBack, onClose }) {
 function Step2({ form, update, onNext, onBack, onClose }) {
   const ok = (form.satz || "").trim().length >= 15;
   return (
-    <StepWrap step={1} total={7} onBack={onBack} onClose={onClose} label="Schritt 2 von 7">
+    <StepWrap step={1} total={6} onBack={onBack} onClose={onClose} label="Schritt 2 von 6">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{ fontSize:28, marginBottom:10 }}>💬</div>
         <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight:900, color:T.ink,
@@ -380,7 +380,7 @@ function Step2({ form, update, onNext, onBack, onClose }) {
 function Step3({ form, update, onNext, onBack, onClose }) {
   const ok = (form.problem || "").trim().length >= 20;
   return (
-    <StepWrap step={2} total={7} onBack={onBack} onClose={onClose} label="Schritt 3 von 7">
+    <StepWrap step={2} total={6} onBack={onBack} onClose={onClose} label="Schritt 3 von 6">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{ fontSize:28, marginBottom:10 }}>🎯</div>
         <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight:900, color:T.ink,
@@ -403,7 +403,7 @@ function Step3({ form, update, onNext, onBack, onClose }) {
 function Step4({ form, update, onNext, onBack, onClose }) {
   const ok = !!form.kategorie;
   return (
-    <StepWrap step={3} total={7} onBack={onBack} onClose={onClose} label="Schritt 4 von 7">
+    <StepWrap step={3} total={6} onBack={onBack} onClose={onClose} label="Schritt 4 von 6">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{ fontSize:28, marginBottom:10 }}>🤝</div>
         <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight:900, color:T.ink,
@@ -440,7 +440,7 @@ function Step4({ form, update, onNext, onBack, onClose }) {
 function Step5({ form, update, onNext, onBack, onClose }) {
   const ok = (form.umsetzung || "").trim().length >= 20;
   return (
-    <StepWrap step={4} total={7} onBack={onBack} onClose={onClose} label="Schritt 5 von 7">
+    <StepWrap step={4} total={6} onBack={onBack} onClose={onClose} label="Schritt 5 von 6">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{ fontSize:28, marginBottom:10 }}>🚀</div>
         <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight:900, color:T.ink,
@@ -460,224 +460,6 @@ function Step5({ form, update, onNext, onBack, onClose }) {
   );
 }
 
-// ═══ STEP 5b — MEILENSTEINE (zwischen "Was wird umgesetzt" und "Fördersumme") ═══
-function Step5b({ milestones, setMilestones, onNext, onBack, onClose, userId }) {
-  const [uploadingIdx, setUploadingIdx] = useState(null);
-  const fileRefs = React.useRef({});
-
-  const addMilestone = () => {
-    if (milestones.length >= 5) return;
-    setMilestones(prev => [...prev, { title: "", description: "", planned_date: "", media_urls: [] }]);
-  };
-  const removeMilestone = (i) => {
-    if (milestones.length <= 1) return;
-    setMilestones(prev => prev.filter((_, idx) => idx !== i));
-  };
-  const updateMilestone = (i, patch) => {
-    setMilestones(prev => prev.map((m, idx) => idx === i ? { ...m, ...patch } : m));
-  };
-
-  // ── Medien-Upload pro Meilenstein (max 2 Dateien) ───────────
-  const uploadMedia = async (i, files) => {
-    if (!files?.length) return;
-    const m = milestones[i];
-    const currentUrls = m.media_urls || [];
-    if (currentUrls.length >= 2) return;
-    setUploadingIdx(i);
-    const urls = [...currentUrls];
-    for (const file of Array.from(files)) {
-      if (urls.length >= 2) break;
-      try {
-        const ext  = file.name.split(".").pop();
-        const path = `milestones/${userId || "anon"}/${Date.now()}_${i}_${file.name.replace(/[^a-zA-Z0-9._-]/g,"_")}`;
-        const { error } = await supabase.storage
-          .from("media")
-          .upload(path, file, { upsert: true, contentType: file.type });
-        if (!error) {
-          const { data: urlData } = supabase.storage
-            .from("media")
-            .getPublicUrl(path);
-          urls.push({ url: urlData.publicUrl, name: file.name, type: file.type });
-        }
-      } catch { /* einzelne Datei skippen */ }
-    }
-    updateMilestone(i, { media_urls: urls });
-    setUploadingIdx(null);
-  };
-
-  const removeMedia = (i, mi) => {
-    updateMilestone(i, { media_urls: (milestones[i].media_urls || []).filter((_, idx) => idx !== mi) });
-  };
-
-  const getFileIcon = (type = "") => {
-    if (type.startsWith("image/")) return "🖼️";
-    if (type.startsWith("video/")) return "🎬";
-    return "📎";
-  };
-
-  // Mindestens 1 Meilenstein mit ausgefülltem Titel required
-  const validCount = milestones.filter(m => (m.title || "").trim().length > 0).length;
-  const ok = validCount >= 1;
-
-  return (
-    <StepWrap step={5} total={7} onBack={onBack} onClose={onClose} label="Schritt 6 von 7">
-      <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
-        <div style={{ fontSize:28, marginBottom:10 }}>🏁</div>
-        <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight:900, color:T.ink,
-          letterSpacing:"-0.022em", lineHeight:1.2 }}>Meilensteine definieren</h2>
-        <p style={{ margin:"0 0 20px", fontSize:14, color:T.ink2, lineHeight:1.65 }}>
-          Welche konkreten Etappen planst du? Lege mindestens einen Meilenstein an (maximal 5).
-        </p>
-
-        <div style={{ display:"flex", flexDirection:"column", gap:12, marginBottom:20, overflowY:"auto", maxHeight:380 }}>
-          {milestones.map((m, i) => (
-            <div key={i} style={{
-              background:"rgba(13,196,181,0.06)", borderRadius:14, padding:14,
-              border:"1px solid rgba(13,196,181,0.18)"
-            }}>
-              {/* Zeile 1: Nummer + Titel + Löschen */}
-              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
-                <div style={{ width:22, height:22, borderRadius:"50%",
-                  background:T.teal, color:"white", display:"flex",
-                  alignItems:"center", justifyContent:"center",
-                  fontSize:11, fontWeight:800, flexShrink:0 }}>{i + 1}</div>
-                <input
-                  className="hui-input"
-                  placeholder={`Meilenstein ${i + 1} — Titel (Pflichtfeld)`}
-                  value={m.title}
-                  onChange={e => updateMilestone(i, { title: e.target.value })}
-                  maxLength={80}
-                  style={{ flex:1, fontSize:13, padding:"8px 12px", margin:0 }}
-                />
-                {milestones.length > 1 && (
-                  <button onClick={() => removeMilestone(i)}
-                    style={{ width:24, height:24, borderRadius:"50%", border:"none",
-                      background:"rgba(231,76,60,0.12)", color:"#e74c3c",
-                      fontSize:14, cursor:"pointer", flexShrink:0, display:"flex",
-                      alignItems:"center", justifyContent:"center" }}>✕</button>
-                )}
-              </div>
-
-              {/* Zeile 2: Beschreibung (optional) */}
-              <textarea
-                className="hui-input hui-textarea"
-                placeholder="Beschreibung (optional)"
-                value={m.description}
-                onChange={e => updateMilestone(i, { description: e.target.value })}
-                rows={2}
-                maxLength={500}
-                style={{ fontSize:12, padding:"8px 12px", margin:"0 0 8px", resize:"none" }}
-              />
-              <div style={{ fontSize:10, color:T.ink3, textAlign:"right", marginBottom:8 }}>
-                {(m.description||"").length} / 500</div>
-
-              {/* Zeile 3: Geplante Umsetzung (Monatsauswahl) */}
-              <div style={{ marginBottom:10 }}>
-                <div style={{ fontSize:11, fontWeight:700, color:T.teal,
-                  letterSpacing:"0.06em", textTransform:"uppercase", marginBottom:4 }}>
-                  Geplante Umsetzung
-                </div>
-                <input
-                  className="hui-input"
-                  type="month"
-                  value={m.planned_date || ""}
-                  onChange={e => updateMilestone(i, { planned_date: e.target.value })}
-                  style={{ fontSize:13, padding:"8px 12px", margin:0 }}
-                />
-              </div>
-
-              {/* Zeile 4: Bild/Video Upload (optional, max 2) */}
-              <div>
-                <div style={{ fontSize:11, fontWeight:700, color:T.ink3,
-                  letterSpacing:"0.06em", textTransform:"uppercase", marginBottom:4 }}>
-                  Bild / Video <span style={{ color:T.ink4, fontWeight:400 }}>(optional, max. 2)</span>
-                </div>
-
-                {/* Schon hochgeladene Medien */}
-                {(m.media_urls || []).length > 0 && (
-                  <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:8 }}>
-                    {m.media_urls.map((att, mi) => (
-                      <div key={mi} style={{
-                        position:"relative", width:56, height:56, borderRadius:10,
-                        overflow:"hidden", border:"1px solid rgba(13,196,181,0.20)",
-                      }}>
-                        {att.type?.startsWith("image/") ? (
-                          <img src={att.url} alt={att.name}
-                            style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-                        ) : (
-                          <div style={{
-                            width:"100%", height:"100%", background:"rgba(114,100,214,0.10)",
-                            display:"flex", alignItems:"center", justifyContent:"center", fontSize:20,
-                          }}>{getFileIcon(att.type)}</div>
-                        )}
-                        <button onClick={() => removeMedia(i, mi)} style={{
-                          position:"absolute", top:2, right:2,
-                          width:18, height:18, borderRadius:"50%",
-                          background:"rgba(0,0,0,0.55)", border:"none", color:"#fff",
-                          fontSize:10, cursor:"pointer", display:"flex",
-                          alignItems:"center", justifyContent:"center", padding:0,
-                        }}>✕</button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Upload-Button (nur anzeigen wenn < 2 Dateien) */}
-                {(m.media_urls || []).length < 2 && (
-                  <>
-                    <button
-                      onClick={() => !uploadingIdx && uploadingIdx !== 0 && fileRefs.current[i]?.click()}
-                      disabled={uploadingIdx === i}
-                      style={{
-                        width:"100%", padding:"8px", borderRadius:10,
-                        border:"1.5px dashed rgba(114,100,214,0.40)",
-                        background:"rgba(114,100,214,0.04)",
-                        cursor: uploadingIdx === i ? "default" : "pointer",
-                        color:T.violet, fontSize:12, fontWeight:700, fontFamily:"inherit",
-                        display:"flex", alignItems:"center", justifyContent:"center", gap:6,
-                      }}
-                    >
-                      {uploadingIdx === i ? "⏳ Lädt hoch…" : "📎 Bild/Video hinzufügen"}
-                    </button>
-                    <input
-                      ref={el => { fileRefs.current[i] = el; }}
-                      type="file"
-                      accept="image/*,video/*"
-                      style={{ display:"none" }}
-                      onChange={e => { uploadMedia(i, e.target.files); e.target.value = ""; }}
-                    />
-                  </>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {milestones.length < 5 && (
-          <button onClick={addMilestone}
-            style={{ width:"100%", padding:"10px", borderRadius:12,
-              border:"1.5px dashed rgba(13,196,181,0.5)",
-              background:"transparent", color:T.teal,
-              fontSize:13, fontWeight:700, cursor:"pointer", marginBottom:16,
-              fontFamily:"inherit" }}>
-            + Meilenstein hinzufügen
-          </button>
-        )}
-
-        {!ok && (
-          <div style={{ fontSize:12, color:T.coral, textAlign:"center",
-            marginBottom:10, padding:"8px 12px",
-            background:"rgba(244,113,79,0.06)", borderRadius:10 }}>
-            Bitte mindestens einen Meilenstein mit Titel anlegen.
-          </div>
-        )}
-
-        <NextBtn label="Weiter →" onClick={onNext} disabled={!ok} />
-      </div>
-    </StepWrap>
-  );
-}
-
 function Step6({ form, update, onNext, onBack, onClose }) {
   const raw = (form.foerder || "").replace(/\D/g,"");
   const val = raw ? parseInt(raw, 10) : 0;
@@ -687,7 +469,7 @@ function Step6({ form, update, onNext, onBack, onClose }) {
     return n ? parseInt(n,10).toLocaleString("de-DE") : "";
   };
   return (
-    <StepWrap step={6} total={7} onBack={onBack} onClose={onClose} label="Schritt 7 von 7">
+    <StepWrap step={5} total={6} onBack={onBack} onClose={onClose} label="Schritt 6 von 6">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{ fontSize:28, marginBottom:10 }}>💶</div>
         <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight:900, color:T.ink,
@@ -1522,7 +1304,6 @@ export default function ImpactFlow({ onClose }) {
   const [form, setForm] = useState({
     name:"", satz:"", problem:"", kategorie:"", umsetzung:"", foerder:"",
   });
-  const [milestones, setMilestones] = useState([{ title: '', description: '', planned_date: '', media_urls: [] }]);
   const [kontakt, setKontakt] = useState({
     standort:"", email:"", name:"", telefon:"",
   });
@@ -1534,10 +1315,10 @@ export default function ImpactFlow({ onClose }) {
   const goNext = useCallback(() => setStep(s => s+1), []);
   const goBack = useCallback(() => {
     if (step === 0) onClose?.();
-    else if (step === 7 || step === 8) setStep(6);  // KI/Ergebnis → Fördersumme
-    else if (step === 9) setStep(8);   // PersönlicheAngaben → zurück zu Ergebnis
-    else if (step === 10) setStep(9);  // Netzwerk → zurück zu PersönlicheAngaben
-    else if (step === 11) setStep(10); // Medien → zurück zu Netzwerk
+    else if (step === 6 || step === 7) setStep(5);
+    else if (step === 9) setStep(7);
+    else if (step === 10) setStep(9);   // Medien → zurück zu Persönliche Angaben
+    else if (step === 8) setStep(10);  // Wirkungsnetz → zurück zu Medien
     else setStep(s => s-1);
   }, [step, onClose]);
 
@@ -1592,38 +1373,12 @@ export default function ImpactFlow({ onClose }) {
         // Kein throw — Einreichung war erfolgreich, Notification-Fehler ist nicht kritisch
       }
 
-      // ── Meilensteine speichern ──────────────────────────────────
-      // Hole die neu angelegte impact_application ID
-      const { data: newApps } = await supabase
-        .from("impact_applications")
-        .select("id")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(1);
-      if (newApps && newApps.length > 0) {
-        const newProjectId = newApps[0].id;
-        const validMilestones = milestones.filter(m => m.title.trim());
-        if (validMilestones.length > 0) {
-          await supabase.from("impact_milestones").insert(
-            validMilestones.map((m, i) => ({
-              project_id: newProjectId,
-              title: m.title.trim(),
-              description: m.description?.trim() || null,
-              planned_date: m.planned_date || null,
-              media_urls: m.media_urls || [],
-              sort_order: i,
-              status: "planned",
-            }))
-          );
-        }
-      }
-
       setDone(true);
     } catch(e) {
       setError(e.message || "Fehler beim Absenden");
       setSaving(false);
     }
-  }, [user, form, aiRes, kontakt, coverUrl, attachments, milestones]);
+  }, [user, form, aiRes, kontakt, coverUrl, attachments]);
 
   // ── Escape ────────────────────────────────────────────────────
   useEffect(() => {
@@ -1657,18 +1412,17 @@ export default function ImpactFlow({ onClose }) {
         {!done && step === 2 && <Step3 form={form} update={update} onNext={goNext} onBack={goBack} onClose={onClose} />}
         {!done && step === 3 && <Step4 form={form} update={update} onNext={goNext} onBack={goBack} onClose={onClose} />}
         {!done && step === 4 && <Step5 form={form} update={update} onNext={goNext} onBack={goBack} onClose={onClose} />}
-        {!done && step === 5 && <Step5b milestones={milestones} setMilestones={setMilestones} onNext={goNext} onBack={goBack} onClose={onClose} userId={user?.id} />}
-        {!done && step === 6 && <Step6 form={form} update={update} onNext={goNext} onBack={goBack} onClose={onClose} />}
+        {!done && step === 5 && <Step6 form={form} update={update} onNext={goNext} onBack={goBack} onClose={onClose} />}
 
-        {!done && step === 7 && (
-          <AIPruefung form={form} onResult={res => { setAiRes(res); setStep(8); }} />
+        {!done && step === 6 && (
+          <AIPruefung form={form} onResult={res => { setAiRes(res); setStep(7); }} />
         )}
 
-        {!done && step === 8 && aiRes?.geeignet && (
+        {!done && step === 7 && aiRes?.geeignet && (
           <ErgebnisGeeignet form={form} aiRes={aiRes}
-            onNetworkConfirm={() => setStep(10)} onClose={onClose} />
+            onNetworkConfirm={() => setStep(9)} onClose={onClose} />
         )}
-        {!done && step === 8 && aiRes && !aiRes.geeignet && (
+        {!done && step === 7 && aiRes && !aiRes.geeignet && (
           <ErgebnisNichtGeeignet form={form} aiRes={aiRes} user={user} onClose={onClose}
             onRetry={() => { setStep(0); setAiRes(null); }} />
         )}
@@ -1677,25 +1431,25 @@ export default function ImpactFlow({ onClose }) {
           <PersoenlicheAngaben
             kontakt={kontakt}
             setKontakt={setKontakt}
-            onWeiter={() => setStep(11)}
+            onWeiter={() => setStep(10)}
             onClose={onClose}
           />
         )}
 
         {/* Step 10 — Medien & Dateien */}
-        {!done && step === 11 && (
+        {!done && step === 10 && (
           <MedienUploadStep
             coverUrl={coverUrl}
             setCoverUrl={setCoverUrl}
             attachments={attachments}
             setAttachments={setAttachments}
-            onWeiter={() => setStep(9)}
+            onWeiter={() => setStep(8)}
             onClose={onClose}
             userId={user?.id}
           />
         )}
 
-        {!done && step === 10 && (
+        {!done && step === 8 && (
           <WirkungsnetzScreen
             checks={netChecks}
             onToggle={toggleCheck}
@@ -1705,7 +1459,7 @@ export default function ImpactFlow({ onClose }) {
         )}
 
         {/* Error-Banner (bei Supabase-Fehler im Netzwerk-Screen) */}
-        {error && (step === 9 || step === 9 || step === 10) && (
+        {error && (step === 8 || step === 9 || step === 10) && (
           <div style={{
             position:"absolute", bottom:80, left:16, right:16,
             background:`${T.coral}15`, border:`1px solid ${T.coral}30`,

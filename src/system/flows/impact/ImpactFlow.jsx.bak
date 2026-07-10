@@ -460,14 +460,11 @@ function Step5({ form, update, onNext, onBack, onClose }) {
   );
 }
 
-// ═══ STEP 5b — MEILENSTEINE (zwischen "Was wird umgesetzt" und "Fördersumme") ═══
-function Step5b({ milestones, setMilestones, onNext, onBack, onClose, userId }) {
-  const [uploadingIdx, setUploadingIdx] = useState(null);
-  const fileRefs = React.useRef({});
-
+// ═══ STEP 5b — MEILENSTEINE (NEU: zwischen "Was wird umgesetzt" und "Fördersumme") ═══
+function Step5b({ milestones, setMilestones, onNext, onBack, onClose }) {
   const addMilestone = () => {
-    if (milestones.length >= 5) return;
-    setMilestones(prev => [...prev, { title: "", description: "", planned_date: "", media_urls: [] }]);
+    if (milestones.length >= 8) return;
+    setMilestones(prev => [...prev, { title: "", description: "" }]);
   };
   const removeMilestone = (i) => {
     if (milestones.length <= 1) return;
@@ -476,48 +473,7 @@ function Step5b({ milestones, setMilestones, onNext, onBack, onClose, userId }) 
   const updateMilestone = (i, patch) => {
     setMilestones(prev => prev.map((m, idx) => idx === i ? { ...m, ...patch } : m));
   };
-
-  // ── Medien-Upload pro Meilenstein (max 2 Dateien) ───────────
-  const uploadMedia = async (i, files) => {
-    if (!files?.length) return;
-    const m = milestones[i];
-    const currentUrls = m.media_urls || [];
-    if (currentUrls.length >= 2) return;
-    setUploadingIdx(i);
-    const urls = [...currentUrls];
-    for (const file of Array.from(files)) {
-      if (urls.length >= 2) break;
-      try {
-        const ext  = file.name.split(".").pop();
-        const path = `milestones/${userId || "anon"}/${Date.now()}_${i}_${file.name.replace(/[^a-zA-Z0-9._-]/g,"_")}`;
-        const { error } = await supabase.storage
-          .from("media")
-          .upload(path, file, { upsert: true, contentType: file.type });
-        if (!error) {
-          const { data: urlData } = supabase.storage
-            .from("media")
-            .getPublicUrl(path);
-          urls.push({ url: urlData.publicUrl, name: file.name, type: file.type });
-        }
-      } catch { /* einzelne Datei skippen */ }
-    }
-    updateMilestone(i, { media_urls: urls });
-    setUploadingIdx(null);
-  };
-
-  const removeMedia = (i, mi) => {
-    updateMilestone(i, { media_urls: (milestones[i].media_urls || []).filter((_, idx) => idx !== mi) });
-  };
-
-  const getFileIcon = (type = "") => {
-    if (type.startsWith("image/")) return "🖼️";
-    if (type.startsWith("video/")) return "🎬";
-    return "📎";
-  };
-
-  // Mindestens 1 Meilenstein mit ausgefülltem Titel required
-  const validCount = milestones.filter(m => (m.title || "").trim().length > 0).length;
-  const ok = validCount >= 1;
+  const hasAny = milestones.some(m => m.title.trim().length > 0);
 
   return (
     <StepWrap step={5} total={7} onBack={onBack} onClose={onClose} label="Schritt 6 von 7">
@@ -526,16 +482,15 @@ function Step5b({ milestones, setMilestones, onNext, onBack, onClose, userId }) 
         <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight:900, color:T.ink,
           letterSpacing:"-0.022em", lineHeight:1.2 }}>Meilensteine definieren</h2>
         <p style={{ margin:"0 0 20px", fontSize:14, color:T.ink2, lineHeight:1.65 }}>
-          Welche konkreten Etappen planst du? Lege mindestens einen Meilenstein an (maximal 5).
+          Welche konkreten Etappen planst du? (Optional — du kannst auch überspringen.)
         </p>
 
-        <div style={{ display:"flex", flexDirection:"column", gap:12, marginBottom:20, overflowY:"auto", maxHeight:380 }}>
+        <div style={{ display:"flex", flexDirection:"column", gap:12, marginBottom:20, overflowY:"auto", maxHeight:320 }}>
           {milestones.map((m, i) => (
             <div key={i} style={{
               background:"rgba(13,196,181,0.06)", borderRadius:14, padding:14,
               border:"1px solid rgba(13,196,181,0.18)"
             }}>
-              {/* Zeile 1: Nummer + Titel + Löschen */}
               <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
                 <div style={{ width:22, height:22, borderRadius:"50%",
                   background:T.teal, color:"white", display:"flex",
@@ -543,7 +498,7 @@ function Step5b({ milestones, setMilestones, onNext, onBack, onClose, userId }) 
                   fontSize:11, fontWeight:800, flexShrink:0 }}>{i + 1}</div>
                 <input
                   className="hui-input"
-                  placeholder={`Meilenstein ${i + 1} — Titel (Pflichtfeld)`}
+                  placeholder={`Meilenstein ${i + 1} (z.B. Zaun gebaut)`}
                   value={m.title}
                   onChange={e => updateMilestone(i, { title: e.target.value })}
                   maxLength={80}
@@ -557,103 +512,20 @@ function Step5b({ milestones, setMilestones, onNext, onBack, onClose, userId }) 
                       alignItems:"center", justifyContent:"center" }}>✕</button>
                 )}
               </div>
-
-              {/* Zeile 2: Beschreibung (optional) */}
               <textarea
                 className="hui-input hui-textarea"
                 placeholder="Beschreibung (optional)"
                 value={m.description}
                 onChange={e => updateMilestone(i, { description: e.target.value })}
                 rows={2}
-                maxLength={500}
-                style={{ fontSize:12, padding:"8px 12px", margin:"0 0 8px", resize:"none" }}
+                maxLength={200}
+                style={{ fontSize:12, padding:"8px 12px", margin:0, resize:"none" }}
               />
-              <div style={{ fontSize:10, color:T.ink3, textAlign:"right", marginBottom:8 }}>
-                {(m.description||"").length} / 500</div>
-
-              {/* Zeile 3: Geplante Umsetzung (Monatsauswahl) */}
-              <div style={{ marginBottom:10 }}>
-                <div style={{ fontSize:11, fontWeight:700, color:T.teal,
-                  letterSpacing:"0.06em", textTransform:"uppercase", marginBottom:4 }}>
-                  Geplante Umsetzung
-                </div>
-                <input
-                  className="hui-input"
-                  type="month"
-                  value={m.planned_date || ""}
-                  onChange={e => updateMilestone(i, { planned_date: e.target.value })}
-                  style={{ fontSize:13, padding:"8px 12px", margin:0 }}
-                />
-              </div>
-
-              {/* Zeile 4: Bild/Video Upload (optional, max 2) */}
-              <div>
-                <div style={{ fontSize:11, fontWeight:700, color:T.ink3,
-                  letterSpacing:"0.06em", textTransform:"uppercase", marginBottom:4 }}>
-                  Bild / Video <span style={{ color:T.ink4, fontWeight:400 }}>(optional, max. 2)</span>
-                </div>
-
-                {/* Schon hochgeladene Medien */}
-                {(m.media_urls || []).length > 0 && (
-                  <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:8 }}>
-                    {m.media_urls.map((att, mi) => (
-                      <div key={mi} style={{
-                        position:"relative", width:56, height:56, borderRadius:10,
-                        overflow:"hidden", border:"1px solid rgba(13,196,181,0.20)",
-                      }}>
-                        {att.type?.startsWith("image/") ? (
-                          <img src={att.url} alt={att.name}
-                            style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-                        ) : (
-                          <div style={{
-                            width:"100%", height:"100%", background:"rgba(114,100,214,0.10)",
-                            display:"flex", alignItems:"center", justifyContent:"center", fontSize:20,
-                          }}>{getFileIcon(att.type)}</div>
-                        )}
-                        <button onClick={() => removeMedia(i, mi)} style={{
-                          position:"absolute", top:2, right:2,
-                          width:18, height:18, borderRadius:"50%",
-                          background:"rgba(0,0,0,0.55)", border:"none", color:"#fff",
-                          fontSize:10, cursor:"pointer", display:"flex",
-                          alignItems:"center", justifyContent:"center", padding:0,
-                        }}>✕</button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Upload-Button (nur anzeigen wenn < 2 Dateien) */}
-                {(m.media_urls || []).length < 2 && (
-                  <>
-                    <button
-                      onClick={() => !uploadingIdx && uploadingIdx !== 0 && fileRefs.current[i]?.click()}
-                      disabled={uploadingIdx === i}
-                      style={{
-                        width:"100%", padding:"8px", borderRadius:10,
-                        border:"1.5px dashed rgba(114,100,214,0.40)",
-                        background:"rgba(114,100,214,0.04)",
-                        cursor: uploadingIdx === i ? "default" : "pointer",
-                        color:T.violet, fontSize:12, fontWeight:700, fontFamily:"inherit",
-                        display:"flex", alignItems:"center", justifyContent:"center", gap:6,
-                      }}
-                    >
-                      {uploadingIdx === i ? "⏳ Lädt hoch…" : "📎 Bild/Video hinzufügen"}
-                    </button>
-                    <input
-                      ref={el => { fileRefs.current[i] = el; }}
-                      type="file"
-                      accept="image/*,video/*"
-                      style={{ display:"none" }}
-                      onChange={e => { uploadMedia(i, e.target.files); e.target.value = ""; }}
-                    />
-                  </>
-                )}
-              </div>
             </div>
           ))}
         </div>
 
-        {milestones.length < 5 && (
+        {milestones.length < 8 && (
           <button onClick={addMilestone}
             style={{ width:"100%", padding:"10px", borderRadius:12,
               border:"1.5px dashed rgba(13,196,181,0.5)",
@@ -664,15 +536,13 @@ function Step5b({ milestones, setMilestones, onNext, onBack, onClose, userId }) 
           </button>
         )}
 
-        {!ok && (
-          <div style={{ fontSize:12, color:T.coral, textAlign:"center",
-            marginBottom:10, padding:"8px 12px",
-            background:"rgba(244,113,79,0.06)", borderRadius:10 }}>
-            Bitte mindestens einen Meilenstein mit Titel anlegen.
-          </div>
-        )}
-
-        <NextBtn label="Weiter →" onClick={onNext} disabled={!ok} />
+        <NextBtn label="Weiter →" onClick={onNext} />
+        <button onClick={onNext}
+          style={{ background:"none", border:"none", color:T.ink3,
+            fontSize:12, cursor:"pointer", marginTop:8, textDecoration:"underline",
+            fontFamily:"inherit" }}>
+          Schritt überspringen
+        </button>
       </div>
     </StepWrap>
   );
@@ -1522,7 +1392,7 @@ export default function ImpactFlow({ onClose }) {
   const [form, setForm] = useState({
     name:"", satz:"", problem:"", kategorie:"", umsetzung:"", foerder:"",
   });
-  const [milestones, setMilestones] = useState([{ title: '', description: '', planned_date: '', media_urls: [] }]);
+  const [milestones, setMilestones] = useState([{ title: "", description: "" }]);
   const [kontakt, setKontakt] = useState({
     standort:"", email:"", name:"", telefon:"",
   });
@@ -1609,10 +1479,7 @@ export default function ImpactFlow({ onClose }) {
               project_id: newProjectId,
               title: m.title.trim(),
               description: m.description?.trim() || null,
-              planned_date: m.planned_date || null,
-              media_urls: m.media_urls || [],
               sort_order: i,
-              status: "planned",
             }))
           );
         }
@@ -1623,7 +1490,7 @@ export default function ImpactFlow({ onClose }) {
       setError(e.message || "Fehler beim Absenden");
       setSaving(false);
     }
-  }, [user, form, aiRes, kontakt, coverUrl, attachments, milestones]);
+  }, [user, form, aiRes, kontakt, coverUrl, attachments]);
 
   // ── Escape ────────────────────────────────────────────────────
   useEffect(() => {
@@ -1657,7 +1524,7 @@ export default function ImpactFlow({ onClose }) {
         {!done && step === 2 && <Step3 form={form} update={update} onNext={goNext} onBack={goBack} onClose={onClose} />}
         {!done && step === 3 && <Step4 form={form} update={update} onNext={goNext} onBack={goBack} onClose={onClose} />}
         {!done && step === 4 && <Step5 form={form} update={update} onNext={goNext} onBack={goBack} onClose={onClose} />}
-        {!done && step === 5 && <Step5b milestones={milestones} setMilestones={setMilestones} onNext={goNext} onBack={goBack} onClose={onClose} userId={user?.id} />}
+        {!done && step === 5 && <Step5b milestones={milestones} setMilestones={setMilestones} onNext={goNext} onBack={goBack} onClose={onClose} />}
         {!done && step === 6 && <Step6 form={form} update={update} onNext={goNext} onBack={goBack} onClose={onClose} />}
 
         {!done && step === 7 && (

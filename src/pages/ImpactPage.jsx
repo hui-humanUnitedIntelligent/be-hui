@@ -518,6 +518,8 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
   const [fundedEur,  setFundedEur]  = React.useState(safeNum(rawApp.current_amount_eur) || 0);
   const [goalFromDb, setGoalFromDb] = React.useState(safeNum(rawApp.funding_goal) || safeNum(rawApp.goal_eur) || 0);
   const [milestones, setMilestones] = React.useState([]);
+  const [milestonesLoading, setMilestonesLoading] = React.useState(false);
+  const [detailMilestone, setDetailMilestone] = React.useState(null);
   const fundPct = goalFromDb > 0 ? Math.min(100, Math.round(fundedEur / goalFromDb * 100)) : 0;
 
   const img = app.cover_url
@@ -596,13 +598,14 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
           setFundedEur(safeNum(fundData.current_amount_eur) || 0);
           setGoalFromDb(safeNum(fundData.funding_goal) || 0);
         }
-        // 2. Meilensteine laden
+        // 2. Meilensteine laden (mit Updates)
+        setMilestonesLoading(true);
         const { data: msData } = await supabase
           .from("impact_milestones")
-          .select("*")
+          .select("*, impact_milestone_updates(*)")
           .eq("project_id", app.id)
           .order("sort_order");
-        if (!dead) setMilestones(msData || []);
+        if (!dead) { setMilestones(msData || []); setMilestonesLoading(false); }
       } catch { /* silent */ }
     })();
     return () => { dead = true; };
@@ -802,24 +805,17 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
             </div>
           )}
 
-          {/* Meilensteine */}
-          {milestones.length > 0 && (
-            <div style={{ marginBottom:20 }}>
-              <div style={{ fontSize:13, fontWeight:800, color:'#1A1A1A', marginBottom:12 }}>🏁 Meilensteine</div>
-              {milestones.map((m,i) => (
-                <div key={m.id} style={{ display:'flex', gap:10, marginBottom:10, alignItems:'flex-start' }}>
-                  <div style={{ width:24, height:24, borderRadius:'50%', background:'#0DC4B5', color:'white',
-                    display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:800, flexShrink:0 }}>
-                    {i+1}
-                  </div>
-                  <div>
-                    <div style={{ fontSize:13, fontWeight:700, color:'#1A1A1A' }}>{m.title}</div>
-                    {m.description && <div style={{ fontSize:12, color:'#666', marginTop:2, lineHeight:1.5 }}>{m.description}</div>}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          {/* ── Meilensteine ── */}
+          <div style={{ marginTop: 20, marginBottom: 20 }}>
+            <div style={{ fontSize: 15, fontWeight: 800, color: '#141422', marginBottom: 12 }}>🏁 Meilensteine</div>
+            {milestonesLoading ? (
+              <div style={{ color: '#888', fontSize: 13 }}>Laden...</div>
+            ) : milestones.length === 0 ? (
+              <div style={{ color: '#888', fontSize: 13 }}>Noch keine Meilensteine definiert.</div>
+            ) : (
+              milestones.map((m, idx) => <MilestoneCard key={m.id} milestone={m} index={idx} onViewProgress={() => setDetailMilestone(m)} />)
+            )}
+          </div>
 
 
 
@@ -1280,7 +1276,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
         remainVotes={remainVotes}
         isMem={isMem}
         userVotes={userVotes}
-        projects={projects}
+        projects={[...projects, ...(approvedApps.apps || []).filter(a => !projects.find(p => p.id === a.id)).map(a => ({ ...a, name: a.name || a.project_name }))]}
       />
 
       {/* ══ 4b ── IMPACT TIMELINE "Impact auf einen Blick" ═══════ */}
@@ -1932,8 +1928,12 @@ function VotePersonal({ usedVotes, maxVotes, remainVotes, isMem, userVotes, proj
                   {isUsed ? "🩷" : ""}
                 </div>
                 <div style={{ fontSize:12, color: isUsed ? T.ink : T.muted }}>
-                  {proj ? (
-                    <><b>{proj.name}</b><div style={{ fontSize:10,color:T.muted }}>Stimme vergeben</div></>
+                  {isUsed ? (
+                    proj ? (
+                      <><b>{proj.name}</b><div style={{ fontSize:10,color:T.muted }}>Stimme vergeben</div></>
+                    ) : (
+                      <><b style={{ color:T.ink }}>Stimme vergeben</b><div style={{ fontSize:10,color:T.muted }}>Projekt geladen…</div></>
+                    )
                   ) : (
                     <span style={{ color:T.muted }}>Noch verfügbar</span>
                   )}
