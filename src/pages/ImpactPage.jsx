@@ -151,11 +151,11 @@ function usePoolBudgets() {
         const round = rRes.status === "fulfilled" ? rRes.value.data : null;
         const fees  = bRes.status === "fulfilled" ? (bRes.value.data || []) : [];
         const provSum = fees.reduce((a,b) => a + safeNum(b.platform_fee), 0);
-        const pool  = safeNum(round?.pool_eur) || Math.round(provSum * 0.06  // 6% vom Bruttoumsatz (Balanced Growth));
+        const pool  = safeNum(round?.pool_eur) || Math.round(provSum * 0.06);  // 6% vom Bruttoumsatz (Balanced Growth)
         setS({
           pool,
-          community:  Math.round(pool * 0.70  // 70% -> Projekte),
-          wirkung:    Math.round(pool * 0.30  // 30% -> Flex-Pool),
+          community:  Math.round(pool * 0.70),  // 70% -> Projekte
+          wirkung:    Math.round(pool * 0.30),  // 30% -> Flex-Pool
           innovation: Math.round(pool * 0.20),
           kuration:   Math.round(pool * 0.10),
           votingEnds: round?.voting_ends_at || null,
@@ -247,7 +247,7 @@ function useLastPayout() {
           payout: {
             month: round.month,
             poolEur: round.pool_eur,
-            winnerAmount: Math.round(safeNum(round.pool_eur) * 0.70  // 70% -> Rank 1 Projekte),
+            winnerAmount: Math.round(safeNum(round.pool_eur) * 0.70),  // 70% -> Rank 1 Projekte
             project: wp || null,
           },
           others: (others || []),

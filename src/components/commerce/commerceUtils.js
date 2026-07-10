@@ -42,7 +42,7 @@ export const TYPE_META = {
 
 // ── Impact-Konstante ──────────────────────────────────────────────
 // HUI investiert 7 % der eigenen Einnahmen — kein Aufschlag für Käufer
-export const IMPACT_RATE = 0.06  // 30% von 20% HUI-Anteil; // COM-MIGRATION-015.3: vorher 0.07
+export const IMPACT_RATE = 0.06; // 30% von 20% HUI-Anteil (Balanced Growth, vorher 0.0225)
 
 // ── Preis-Utilities ───────────────────────────────────────────────
 /**
@@ -256,9 +256,9 @@ export function calcTotalWithQty(items) {
 
 /** Platform-Konstanten — Single Source of Truth */
 export const COMMERCE_RATES = {
-  PLATFORM_FEE:  0.20,   // 10% Plattformgebühr
-  IMPACT_RATE:   0.06  // 30% von 20% HUI-Anteil, // COM-MIGRATION-015.3: 2.25% Impact Pool (vorher 7%)
-  CREATOR_SHARE: 0.80,   // COM-MIGRATION-015.3: 85% an Creator (vorher 90%)
+  PLATFORM_FEE:  0.20,   // 20% HUI-Anteil (Balanced Growth)
+  IMPACT_RATE:   0.06,   // 30% von 20% HUI-Anteil (Balanced Growth, vorher 0.0225)
+  CREATOR_SHARE: 0.80,   // 80% an Talent/Creator (Balanced Growth, vorher 85%)
 };
 
 /**
