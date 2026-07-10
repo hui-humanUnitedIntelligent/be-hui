@@ -116,22 +116,32 @@ function ImageGallery({ images, title }) {
   const startX = useRef(null);
   const trackRef = useRef(null);
 
-  const prev = () => setIdx(i => Math.max(0, i - 1));
-  const next = () => setIdx(i => Math.min(images.length - 1, i + 1));
+  const prev = useCallback(() => setIdx(i => Math.max(0, i - 1)), []);
+  const next = useCallback(() => setIdx(i => Math.min(images.length - 1, i + 1)), [images.length]);
 
-  const onTouchStart = e => { startX.current = e.touches[0].clientX; };
-  const onTouchEnd = e => {
-    if (startX.current === null) return;
-    const diff = startX.current - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 40) { diff > 0 ? next() : prev(); }
-    startX.current = null;
-  };
+  // Passive touch listeners → iOS scrollt ungehindert durch (nicht blockiert)
+  useEffect(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    const onStart = e => { startX.current = e.touches[0].clientX; };
+    const onEnd   = e => {
+      if (startX.current === null) return;
+      const diff = startX.current - e.changedTouches[0].clientX;
+      if (Math.abs(diff) > 40) { diff > 0 ? next() : prev(); }
+      startX.current = null;
+    };
+    el.addEventListener("touchstart", onStart, { passive: true });
+    el.addEventListener("touchend",   onEnd,   { passive: true });
+    return () => {
+      el.removeEventListener("touchstart", onStart);
+      el.removeEventListener("touchend",   onEnd);
+    };
+  }, [next, prev]);
 
   const img = images[idx];
 
   return (
     <div className="wd-swipe" ref={trackRef}
-      onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}
       style={{ position:"relative", width:"100%",
         height:"clamp(280px, 42vh, 480px)", overflow:"hidden",
         background:"#111" }}>
@@ -553,7 +563,8 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
 
 
   return (
-    <div style={{ minHeight:"100vh", background:C.warm,
+    <div style={{
+      minHeight:"100dvh", background:C.warm,
       fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
       maxWidth:680, margin:"0 auto",
       paddingBottom:"calc(90px + env(safe-area-inset-bottom, 0px))" }}>
