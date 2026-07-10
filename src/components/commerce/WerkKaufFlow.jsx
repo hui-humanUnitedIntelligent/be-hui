@@ -29,7 +29,7 @@ export default function WerkKaufFlow({ werk, onClose }) {
 
   // Normalisiere Werk-Daten aus verschiedenen Feed-Shapes
   const workId    = werk.id || werk._raw?.id;
-  const creatorId = werk.author?.id || werk._raw?.user_id || werk._raw?.creator_id || werk.creator_id;
+  const creatorId = werk.author?.id || werk._raw?.user_id || werk._raw?.creator_id || werk.creator_id || werk.user_id;
   const title     = werk.title || werk._raw?.title || werk.name || "Werk";
   const coverUrl  = werk.author?.avatar || werk._raw?.cover_url || werk.cover_url || werk.img;
   const rawPrice  = werk._raw?.price ?? werk.price ?? null;
@@ -39,10 +39,10 @@ export default function WerkKaufFlow({ werk, onClose }) {
   const priceStr  = amount > 0 ? `${amount.toFixed(2).replace(".", ",")} €` : null;
 
   async function handleKauf() {
-    if (!user?.id)    return setErrMsg("Nicht eingeloggt.");
-    if (!workId)      return setErrMsg("Werk-ID fehlt.");
-    if (!creatorId)   return setErrMsg("Creator-ID fehlt.");
-    if (user.id === creatorId) return setErrMsg("Du kannst dein eigenes Werk nicht kaufen.");
+    if (!user?.id)    { setErrMsg("Nicht eingeloggt."); setPhase("error"); return; }
+    if (!workId)      { setErrMsg("Werk-ID fehlt."); setPhase("error"); return; }
+    if (!creatorId)   { setErrMsg("Creator-ID fehlt."); setPhase("error"); return; }
+    if (user.id === creatorId) { setErrMsg("Du kannst dein eigenes Werk nicht kaufen."); setPhase("error"); return; }
 
     setPhase("loading");
     setErrMsg("");
