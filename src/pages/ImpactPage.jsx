@@ -358,48 +358,91 @@ class ImpactErrorBoundary extends React.Component {
 // ════════════════════════════════════════════════════════════════
 
 // ════════════════════════════════════════════════════════════════
-// HOOK: useWeitereHerzensprojekte — lädt aus impact_applications (Platz 2-N approved)
+// HOOK: useAllApprovedByVotes — Single Source of Truth
+// Lädt ALLE approved Projekte + vote_count dieses Monats
+// Sortierung: vote_count DESC, dann created_at ASC (ältere bevorzugt bei Gleichstand)
+// Top 3 = VotingCards, Rest = Weitere Herzensprojekte
 // ════════════════════════════════════════════════════════════════
-function useWeitereHerzensprojekte(activeProjectIds) {
-  const [data,    setData]    = React.useState([]);
-  const [loading, setLoading] = React.useState(true);
-  const idsKey = (activeProjectIds || []).slice().sort().join(",");
+function useAllApprovedByVotes() {
+  const [allProjects, setAllProjects] = React.useState([]);
+  const [loading, setLoading]         = React.useState(true);
+
+  const load = React.useCallback(async () => {
+    try {
+      const poolMonth = new Date().toISOString().slice(0, 7);
+      // 1. Alle approved Projekte
+      const { data: rows } = await supabase
+        .from("impact_applications")
+        .select("id,project_name,short_desc,cover_url,media_urls,funding_goal,current_amount_eur,status,is_completed,created_at")
+        .eq("status", "approved")
+        .order("created_at", { ascending: true }) // Ältere bevorzugt bei Stimmengleichstand
+        .limit(50);
+      if (!rows?.length) return [];
+      // Abgeschlossene Projekte herausfiltern (is_completed oder Ziel vollständig erreicht)
+      const activeRows = rows.filter(a =>
+        !a.is_completed &&
+        safeNum(a.current_amount_eur) < safeNum(a.funding_goal)
+      );
+
+      // 2. Vote-Counts für diesen Monat für ALLE Projekte
+      const appIds = activeRows.map(a => a.id);
+      const { data: voteData } = await supabase
+        .from("impact_votes")
+        .select("project_id")
+        .in("project_id", appIds)
+        .eq("pool_month", poolMonth);
+      const voteMap = {};
+      (voteData || []).forEach(v => {
+        voteMap[v.project_id] = (voteMap[v.project_id] || 0) + 1;
+      });
+
+      // 3. Normalisieren + sortieren: Votes DESC, dann created_at ASC
+      return activeRows.map(app => ({
+        id:                 app.id,
+        name:               app.project_name,
+        category:           app.short_desc?.slice(0, 28) || "Herzensprojekt",
+        description:        app.short_desc,
+        icon:               "💚",
+        color:              "#0DC4B5",
+        votes:              voteMap[app.id] || 0,
+        vote_count:         voteMap[app.id] || 0,
+        goal_eur:           app.funding_goal || 2000,
+        current_amount_eur: app.current_amount_eur || 0,
+        status:             app.status,
+        is_completed:       app.is_completed || false,
+        img:                app.cover_url || (app.media_urls && app.media_urls[0]) || null,
+        img_url:            app.cover_url || (app.media_urls && app.media_urls[0]) || null,
+        created_at:         app.created_at,
+      })).sort((a, b) =>
+        b.votes - a.votes ||                                    // 1. Votes DESC
+        new Date(a.created_at) - new Date(b.created_at)        // 2. Ältere zuerst (Stabilität)
+      );
+    } catch(e) { console.warn("[ALL APPROVED VOTES]", e?.message); return []; }
+  }, []);
 
   React.useEffect(() => {
     let dead = false;
-    (async () => {
-      try {
-        const { data: rows } = await supabase
-          .from("impact_applications")
-          .select("id,project_name,short_desc,cover_url,media_urls,funding_goal,current_amount_eur,status,created_at")
-          .eq("status", "approved")
-          .order("created_at", { ascending: false })
-          .limit(20);
-        if (dead) return;
-        const activeSet = new Set(activeProjectIds || []);
-        // Normalisiere auf einheitliches Format für HerzensKarte
-        const normalized = (rows || [])
-          .filter(p => !activeSet.has(p.id))
-          .map(p => ({
-            id:          p.id,
-            name:        p.project_name,
-            category:    p.short_desc?.slice(0, 20) || "Herzensprojekt",
-            description: p.short_desc,
-            icon:        "💚",
-            color:       "#0DC4B5",
-            status:      "approved",
-            goal_eur:    p.funding_goal || 0,
-            img_url:     p.cover_url || (p.media_urls && p.media_urls[0]) || null,
-          }))
-          .slice(0, 10);
-        setData(normalized);
-      } catch(e) { console.warn("[WEITERE HP]", e?.message); }
-      if (!dead) setLoading(false);
-    })();
-    return () => { dead = true; };
-  }, [idsKey]);
+    load().then(rows => {
+      if (!dead) { setAllProjects(rows); setLoading(false); }
+    });
+    // Realtime: bei neuen Votes sofort neu sortieren
+    const topic = "imp_all_rt_" + Date.now();
+    const sub = supabase.channel(topic)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "impact_votes" }, () => {
+        load().then(rows => { if (!dead) setAllProjects(rows); });
+      })
+      .subscribe();
+    return () => { dead = true; supabase.removeChannel(sub); };
+  }, [load]);
 
-  return { data, loading };
+  const top3   = allProjects.slice(0, 3);
+  const others = allProjects.slice(3);
+  return { allProjects, top3, others, loading };
+}
+
+// Legacy-Kompatibilität: wird nicht mehr benutzt, aber falls noch referenziert
+function useWeitereHerzensprojekte(_ignored) {
+  return { data: [], loading: false };
 }
 
 
@@ -417,9 +460,11 @@ function useApprovedApplications() {
       const currentPoolMonth = new Date().toISOString().slice(0, 7);
       const { data: rawApps } = await supabase
         .from("impact_applications")
-        .select("id,project_name,short_desc,problem,vision,why_support,funding_goal,current_amount_eur,funding_use,cover_url,media_urls,status,created_at,contact_name,contact_email,user_id")
+        .select("id,project_name,short_desc,problem,vision,why_support,funding_goal,current_amount_eur,funding_use,cover_url,media_urls,status,is_completed,created_at,contact_name,contact_email,user_id")
         .eq("status", "approved").order("created_at", { ascending: false }).limit(50);
-      const appList = rawApps || [];
+      const appList = (rawApps || []).filter(a =>
+        !a.is_completed && safeNum(a.current_amount_eur) < safeNum(a.funding_goal)
+      );
       if (!appList.length) return [];
       const appIds = appList.map(a => a.id);
       const { data: votes } = await supabase
@@ -1252,66 +1297,17 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
   const payoutData = useLastPayout();
   const finanziert = useWeitereProjects();
   const activities = useImpactActivities();
-  const activeIds     = projects.map(p => p.id);
-  const weitereHP     = useWeitereHerzensprojekte(activeIds);
-  const approvedApps  = useApprovedApplications();
+  const rankedProjs   = useAllApprovedByVotes();          // ← SSOT für alle Rankings
+  const approvedApps  = useApprovedApplications();        // für VotePersonal projMap
   const [detailApp, setDetailApp] = React.useState(null);
 
-  // ── Projekte laden — aus impact_applications (approved) ──
+  // ── Projekte: werden jetzt von useAllApprovedByVotes gehandelt ──
+  // Top 3 nach Stimmen → projects State (für Kompatibilität mit bestehendem Code)
   React.useEffect(() => {
-    let dead = false;
-    (async () => {
-      try {
-        // Lade approved Projekte aus impact_applications
-        const { data, error } = await supabase
-          .from("impact_applications")
-          .select("id,project_name,short_desc,cover_url,media_urls,funding_goal,current_amount_eur,status,created_at")
-          .eq("status", "approved")
-          .order("created_at", { ascending: false })
-          .limit(3);
-        if (dead) return;
-        if (error) throw error;
-
-        // Vote-Counts für diesen Monat
-        const poolMonth = new Date().toISOString().slice(0, 7);
-        const appIds = (data || []).map(a => a.id);
-        let voteMap = {};
-        if (appIds.length > 0) {
-          const { data: voteData } = await supabase
-            .from("impact_votes")
-            .select("project_id")
-            .in("project_id", appIds)
-            .eq("pool_month", poolMonth);
-          (voteData || []).forEach(v => {
-            voteMap[v.project_id] = (voteMap[v.project_id] || 0) + 1;
-          });
-        }
-
-        // Normalisiere auf VotingCard-Format
-        const rows = (data || []).map(app => ({
-          id:          app.id,
-          name:        app.project_name,
-          category:    app.short_desc?.slice(0, 28) || "Herzensprojekt",
-          description: app.short_desc,
-          icon:        "💚",
-          color:       "#0DC4B5",
-          votes:       voteMap[app.id] || 0,
-          goal_eur:    app.funding_goal || 2000,
-          current_amount_eur: app.current_amount_eur || 0,
-          status:      app.status,
-          img:         app.cover_url || (app.media_urls && app.media_urls[0]) || null,
-        })).sort((a, b) => b.votes - a.votes);
-
-        if (!dead) setProjects(rows);
-      } catch (e) {
-        console.warn("[PROJECTS]", e?.message);
-        if (!dead) setProjects([]);
-      } finally {
-        if (!dead) setLoadingProj(false);
-      }
-    })();
-    return () => { dead = true; };
-  }, []);
+    if (rankedProjs.loading) return;
+    setProjects(rankedProjs.top3);
+    setLoadingProj(false);
+  }, [rankedProjs.top3, rankedProjs.loading]);
 
   // ── ActiveRound + UserVotes (live aus impact_votes) ──
   React.useEffect(() => {
@@ -1358,6 +1354,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
               setUserVotes(prev => [...prev, v]);
             }
             // Projektstimmen in Echtzeit hochzählen
+            // Optimistic vote-count — rankedProjs Realtime übernimmt echte Neu-Sortierung
             setProjects(prev => prev.map(p =>
               p.id === v.project_id ? { ...p, votes: (p.votes || 0) + 1 } : p
             ));
@@ -1514,8 +1511,8 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
       <WeitereHerzensSection
         apps={approvedApps.weitere}
         loadingApps={approvedApps.loading}
-        seedData={weitereHP.data}
-        seedLoading={weitereHP.loading}
+        seedData={rankedProjs.others}
+        seedLoading={rankedProjs.loading}
         onOpen={setDetailApp}
         allApps={approvedApps.apps}
       />
@@ -2246,18 +2243,35 @@ function HerzensKarte({ p, idx }) {
               {p.description}
             </div>
           )}
-          <div style={{ display:"flex", alignItems:"center",
-            justifyContent:"space-between", gap:6 }}>
-            {p.category && (
-              <span style={{ fontSize:9, color:T.muted, fontWeight:700,
-                letterSpacing:"0.04em", textTransform:"uppercase" }}>{p.category}</span>
-            )}
-            {goalEur > 0 && (
-              <span style={{ fontSize:10, color:accent, fontWeight:800 }}>
-                Ziel: {fmtEur(goalEur)}
-              </span>
-            )}
+          {/* Stimmen-Counter */}
+          <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:5 }}>
+            <span style={{ fontSize:10, color:T.muted }}>
+              🗳 {safeNum(p.vote_count || p.votes)} {safeNum(p.vote_count || p.votes) === 1 ? "Stimme" : "Stimmen"}
+            </span>
           </div>
+          {/* Finanzierungsbalken */}
+          {goalEur > 0 && (() => {
+            const curr = safeNum(p.current_amount_eur) || 0;
+            const pct  = Math.min(100, goalEur > 0 ? (curr / goalEur) * 100 : 0);
+            return (
+              <div>
+                <div style={{ display:"flex", justifyContent:"space-between",
+                  alignItems:"center", marginBottom:3 }}>
+                  <span style={{ fontSize:9.5, color:T.ink2, fontWeight:600 }}>
+                    {fmtEur(curr)} von {fmtEur(goalEur)} finanziert
+                  </span>
+                  <span style={{ fontSize:9, color:accent, fontWeight:800 }}>
+                    {Math.round(pct)}%
+                  </span>
+                </div>
+                <div style={{ height:4, background:`${accent}18`, borderRadius:99, overflow:"hidden" }}>
+                  <div style={{ height:"100%", width:`${pct}%`,
+                    background:`linear-gradient(90deg,${accent},${accent}cc)`,
+                    borderRadius:99, transition:"width 0.6s ease" }} />
+                </div>
+              </div>
+            );
+          })()}
         </div>
       </div>
     </div>
@@ -2294,7 +2308,7 @@ function WeitereHerzensprojekte({ data, loading }) {
             ? "Wird geladen…"
             : isSeed
               ? "Beispielprojekte — so sehen eingereichte Herzensprojekte aus."
-              : `${rawList.length} Projekt${rawList.length !== 1 ? "e" : ""} — eingereicht, geprüft oder in Umsetzung.`
+              : `${rawList.length} Projekt${rawList.length !== 1 ? "e" : ""} — sortiert nach Community-Stimmen`
           }
         </p>
       </div>
