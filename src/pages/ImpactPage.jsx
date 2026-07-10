@@ -487,7 +487,22 @@ function useMonthlyVoteRanking(approvedApps) {
 }
 
 // ── Detailseite für bewilligte Anträge ──────────────────────────
-function ApprovedProjectDetail({ app, onClose, currentUser, onVoted = () => {} }) {
+function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = () => {} }) {
+  // Normalisierung: Akzeptiert sowohl impact_applications-Format als auch VotingCard-Format
+  const app = React.useMemo(() => ({
+    id:           rawApp.id,
+    project_name: rawApp.project_name || rawApp.name || "",
+    short_desc:   rawApp.short_desc   || rawApp.description || "",
+    long_desc:    rawApp.long_desc    || rawApp.description || "",
+    cover_url:    rawApp.cover_url    || rawApp.img          || null,
+    media_urls:   rawApp.media_urls   || (rawApp.img ? [rawApp.img] : []),
+    funding_goal: rawApp.funding_goal || rawApp.goal_eur     || 0,
+    applicant_name: rawApp.applicant_name || "",
+    applicant_type: rawApp.applicant_type || "",
+    impact_category: rawApp.impact_category || rawApp.category || "",
+    application_date: rawApp.application_date || rawApp.created_at || null,
+  }), [rawApp]);
+
   const [voted,        setVoted]        = React.useState(false);
   const [voteCount,    setVoteCount]    = React.useState(0);
   const [userVotesLeft, setUserVotesLeft] = React.useState(null); // null = lädt noch
@@ -1158,6 +1173,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
         daysLeft={daysLeft}
         totalVotes={totalVotes}
         onVote={castVote}
+        onOpen={setDetailApp}
         loading={loadingProj && approvedApps.loading}
         onInfoClick={() => setInfoModal("leeraus")}
       />
@@ -1571,7 +1587,7 @@ function PoolCard({ pool, stats, userImpact }) {
 // ════════════════════════════════════════════════════════════════
 // 3. AKTUELLE ABSTIMMUNG — das Herzstück
 // ════════════════════════════════════════════════════════════════
-function VotingSection({ projects, userVotes, daysLeft, totalVotes, onVote, loading, onInfoClick }) {
+function VotingSection({ projects, userVotes, daysLeft, totalVotes, onVote, loading, onInfoClick, onOpen }) {
   return (
     <div style={{ marginTop:24 }}>
       {/* Header */}
@@ -1618,7 +1634,7 @@ function VotingSection({ projects, userVotes, daysLeft, totalVotes, onVote, load
           {projects.map((p, i) => (
             <VotingCard key={p.id} project={p} rank={i}
               voted={userVotes.some(v => v.project_id === p.id)}
-              totalVotes={totalVotes} onVote={onVote} />
+              totalVotes={totalVotes} onVote={onVote} onOpen={onOpen} />
           ))}
         </div>
       )}
@@ -1626,7 +1642,7 @@ function VotingSection({ projects, userVotes, daysLeft, totalVotes, onVote, load
   );
 }
 
-function VotingCard({ project:p, rank, voted, totalVotes, onVote }) {
+function VotingCard({ project:p, rank, voted, totalVotes, onVote, onOpen }) {
   const accent = p.color || T.teal;
   const pct    = totalVotes > 0 ? Math.round(safeNum(p.votes) / totalVotes * 100) : 0;
   const goalEur = safeNum(p.goal_eur) || 2000;
@@ -1638,11 +1654,14 @@ function VotingCard({ project:p, rank, voted, totalVotes, onVote }) {
   const AVTS = ["https://i.pravatar.cc/28?img=1","https://i.pravatar.cc/28?img=5","https://i.pravatar.cc/28?img=12"];
 
   return (
-    <div id={`project-${p.id}`} style={{
-      background:T.surfaceHi, borderRadius:24, overflow:"hidden",
-      boxShadow:S.card, border:`1px solid ${T.line}`,
-      animation:"ipFade 0.38s ease both", animationDelay:`${rank*0.08}s`,
-    }}>
+    <div id={`project-${p.id}`}
+      onClick={() => onOpen && onOpen(p)}
+      style={{
+        background:T.surfaceHi, borderRadius:24, overflow:"hidden",
+        boxShadow:S.card, border:`1px solid ${T.line}`,
+        animation:"ipFade 0.38s ease both", animationDelay:`${rank*0.08}s`,
+        cursor: onOpen ? "pointer" : "default",
+      }}>
       {/* Bild — gross */}
       <div style={{ position:"relative", height:180, overflow:"hidden",
         background:`${accent}12` }}>
@@ -1752,7 +1771,7 @@ function VotingCard({ project:p, rank, voted, totalVotes, onVote }) {
         </div>
 
         {/* Vote Button — groß + premium */}
-        <button onClick={() => !voted && onVote(p.id)} className="ip-p"
+        <button onClick={(e) => { e.stopPropagation(); !voted && onVote(p.id); }} className="ip-p"
           disabled={voted} style={{
             width:"100%", borderRadius:18, padding:"14px 0",
             cursor: voted ? "default" : "pointer",
