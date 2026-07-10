@@ -1,4 +1,5 @@
 // api/og.js — HUI Social Preview (DEEPLINK.1 / SHARE.2 2026-07-09)
+// Vercel deployt nur api/*.{js,mjs,ts,tsx} — nicht .cjs (api/package.json: commonjs).
 // ══════════════════════════════════════════════════════════════════
 // Vercel Serverless Function: abgefangen NUR für bekannte Social-
 // Crawler-Bot-User-Agents (Rewrite in vercel.json, Browser landen
@@ -26,7 +27,7 @@ const APP_ORIGIN       = process.env.VITE_APP_ORIGIN    || "https://be-hui.app";
 // Bekannte Social-Crawler-Bot-User-Agents (für Logging/Sicherheit)
 const BOT_PATTERNS = [
   "facebookexternalhit", "twitterbot", "slackbot", "telegrambot",
-  "discordbot", "linkedinbot", "whatsapp", "imessage", "applebot",
+  "discordbot", "linkedinbot", "whatsapp", "imessage", "signal", "applebot",
   "googlebot", "bingbot", "ia_archiver", "pinterest", "vkshare",
   "xing-contenttabreceiver", "curl", "python-requests", "wget",
 ];
