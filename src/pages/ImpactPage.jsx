@@ -3194,7 +3194,7 @@ function InfoSheet({ modal, onClose }) {
         <>
           <p style={{ color:T.ink2, lineHeight:1.75, fontSize:14, margin:"0 0 12px" }}>
             Jede Buchung auf HUI erzeugt eine Provision.{" "}
-            <b>15% davon</b> fließen direkt in den Impact Pool — automatisch, jeden Monat.
+            <b>6% des Umsatzes</b> fließen direkt in den Impact Pool — automatisch, jeden Monat.
           </p>
           <p style={{ color:T.ink2, lineHeight:1.75, fontSize:14, margin:"0 0 12px" }}>
             Das HUI-Team prüft Bewerbungen, nominiert drei Projekte und die Community stimmt ab.

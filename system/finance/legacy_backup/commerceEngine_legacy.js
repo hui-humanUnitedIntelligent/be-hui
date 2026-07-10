@@ -230,7 +230,7 @@ export const orderService = {
         const shipping    = raw.shipping_cost || 0;
         const typeRules   = shippingStrategy.itemStrategies?.get(item.id);
         const itemImpact  = +((unitPrice * qty) * 0.0225).toFixed(2); // COM-MIGRATION-015.3
-        const payoutEur   = +((unitPrice * qty) * 0.80).toFixed(2); // Balanced Growth v1: 80% an Talent/Creator
+        const payoutEur   = +((unitPrice * qty) * 0.85).toFixed(2); // COM-MIGRATION-015.3: 85% an Creator (vorher 90%)
 
         orderItems.push({
           seller_id:          sellerId,
@@ -447,7 +447,7 @@ export const STRIPE_APPEARANCE = {
 export const COMMERCE_CONFIG = {
   PLATFORM_FEE_RATE:   0.15,   // COM-MIGRATION-015.3: 15% HUI Plattformgebühr (vorher 10%)
   IMPACT_RATE:         0.0225, // COM-MIGRATION-015.3: 2.25% Impact Pool = 15% der Gebühr (vorher 7%)
-  CREATOR_PAYOUT_RATE: 0.80,   // Balanced Growth v1: 80% an Talent/Creator
+  CREATOR_PAYOUT_RATE: 0.85,   // COM-MIGRATION-015.3: 85% an Creator (vorher 90%)
   CURRENCY:            "eur",
   PAYOUT_DELAY_DAYS:   14,     // Auszahlungsfrist nach Lieferung
   SUPPORTED_COUNTRIES: ["DE", "AT", "CH", "FR", "NL", "BE", "PL", "IT", "ES"],
