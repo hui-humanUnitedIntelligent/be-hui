@@ -111,7 +111,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
       // Single Source of Truth: impact_applications (approved) + impact_votes
       const [projRes, votesRes] = await Promise.all([
         supabase.from("impact_applications")
-          .select("id,project_name,short_desc,cover_url,media_urls,funding_goal,status,created_at")
+          .select("id,project_name,short_desc,cover_url,media_urls,funding_goal,current_amount_eur,rank,status,created_at")
           .eq("status", "approved")
           .order("created_at", { ascending: false }),
         supabase.from("impact_votes")
@@ -121,14 +121,17 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
       ]);
       // Normalisiere auf einheitliches Format
       const normalized = (projRes.data || []).map(a => ({
-        id:          a.id,
-        name:        a.project_name,
-        description: a.short_desc,
-        icon:        "💚",
-        color:       "#0DC4B5",
-        status:      "approved",
-        votes:       0, // wird live aus impact_votes gezählt
-        img_url:     a.cover_url || (a.media_urls && a.media_urls[0]) || null,
+        id:               a.id,
+        name:             a.project_name,
+        description:      a.short_desc,
+        icon:             "💚",
+        color:            "#0DC4B5",
+        status:           "approved",
+        votes:            0, // wird live aus impact_votes gezählt
+        img_url:          a.cover_url || (a.media_urls && a.media_urls[0]) || null,
+        current_amount_eur: parseFloat(a.current_amount_eur) || 0,
+        funding_goal:     parseFloat(a.funding_goal) || 0,
+        rank:             a.rank || 99,
       }));
       setProjects(normalized);
       setMyVotes(votesRes.data || []);
@@ -541,6 +544,32 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
                   🔗 {detailProj.website.replace(/^https?:\/\//, "").replace(/\/$/, "")}
                 </a>
               )}
+
+              {/* Finanzierungsbalken */}
+              {(() => {
+                const funded = detailProj.current_amount_eur || 0;
+                const goal   = detailProj.funding_goal || 0;
+                const pct    = goal > 0 ? Math.min(100, Math.round(funded / goal * 100)) : 0;
+                return goal > 0 ? (
+                  <div style={{ background: "rgba(13,196,181,0.06)", borderRadius: T.r12,
+                    border: `1px solid rgba(13,196,181,0.18)`, padding: "14px 16px", marginBottom: 14 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between",
+                      fontSize: 12, color: T.inkSoft, marginBottom: 6 }}>
+                      <span>Finanzierungsfortschritt</span>
+                      <span style={{ fontWeight: 800, color: T.teal }}>{pct}%</span>
+                    </div>
+                    <div style={{ height: 8, borderRadius: 99, background: "rgba(0,0,0,0.08)",
+                      overflow: "hidden", marginBottom: 8 }}>
+                      <div style={{ height: "100%", borderRadius: 99, width: `${pct}%`,
+                        background: `linear-gradient(90deg, ${T.teal}, ${T.tealDeep})`,
+                        transition: "width 1.2s ease", minWidth: pct > 0 ? 6 : 0 }} />
+                    </div>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: T.ink }}>
+                      €{funded.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} von €{goal.toLocaleString("de-DE")} finanziert
+                    </div>
+                  </div>
+                ) : null;
+              })()}
 
               {/* Stats */}
               <div style={{
