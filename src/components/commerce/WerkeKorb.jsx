@@ -832,8 +832,7 @@ function ImpactZeile({ impactEur, huiEur }) {
             color:      C.muted,
             lineHeight: 1.5,
           }}>
-            {impactStr} € investiert HUI aus den eigenen Einnahmen
-            in gemeinsame Impact-Projekte.
+            HUI investiert {huiStr} € (20 %) aus den eigenen Einnahmen — davon {impactStr} € direkt in Impact-Projekte.
           </span>
         </div>
       </div>
