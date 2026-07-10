@@ -56,6 +56,7 @@ import MeinHUI    from "./MeinHUI.jsx";
 import { IX } from "../design/hui.interaction.js";
 import ContentTypeSelector from "../content/ContentTypeSelector.jsx";
 import InvitationFlow from "../content/invitation/InvitationFlow.jsx";
+import { useContentPreview } from "../context/ContentPreviewContext.jsx";
 const HuiMembershipFlow   = React.lazy(() => import("../components/HuiMembershipFlow.jsx"));
 const CreatorDashboard    = React.lazy(() => import("./CreatorDashboard.jsx"));
 const HuiCreateFlow       = React.lazy(() => import("../components/HuiCreateFlow.jsx"));
@@ -171,6 +172,8 @@ function HomeInner() {
     cart,              setCart,              // KORB-01
     clearCartPersist,                        // KORB-PERSIST
   } = useHome();
+
+  const { close: closeContentPreview } = useContentPreview();
 
   // ── Unread Message Count — live aus chatContext ────────
   const { unreadTotal, markChatRead } = useChatList("home");
@@ -558,7 +561,7 @@ function HomeInner() {
       {showUnterstutzenFlow && SAFE_MODE.werkFlow && (
         <UnterstutzenFlow
           items={cart}
-          onClose={() => setShowUnterstutzenFlow(false)}
+          onClose={() => { setShowUnterstutzenFlow(false); closeContentPreview(); }}
           onUnterstuetzen={async (items, form, method) => {
             // P1: Mock-Timeout entfernt — Stripe übernimmt Payment
             // UnterstutzenFlow ruft create-payment-intent direkt auf
