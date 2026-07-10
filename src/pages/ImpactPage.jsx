@@ -10,6 +10,7 @@ import { supabase } from "../lib/supabaseClient";
 import { ImpactService, FeedService } from "../services/db.js";
 import { HUI } from "../design/hui.design.js";
 import ImpactFlow from "../system/flows/impact/ImpactFlow.jsx";
+import ImpactProjektUpdateSheet from "../components/studio/ImpactProjektUpdateSheet.jsx";
 import { useAuth } from "../lib/AuthContext";
 import { isProfileTalent } from "../lib/profileUtils.js";
 
@@ -509,6 +510,9 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
   const [loading,      setLoading]      = React.useState(false);
   const [checking,     setChecking]     = React.useState(true);
   const [voteError,    setVoteError]    = React.useState(null);
+  const [updates,      setUpdates]      = React.useState([]);
+  const [updatesLoading, setUpdatesLoading] = React.useState(true);
+  const [showUpdateSheet, setShowUpdateSheet] = React.useState(false);
 
   const img = app.cover_url
     || (app.media_urls && app.media_urls[0])
@@ -553,6 +557,23 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
     })();
     return () => { dead = true; };
   }, [app.id, currentUser?.id]);
+
+  // ── Projekt-Updates laden ────────────────────────────────────
+  React.useEffect(() => {
+    let dead = false;
+    (async () => {
+      try {
+        const { data: updData } = await supabase
+          .from("impact_project_updates")
+          .select("id,title,content,update_type,media_urls,created_at,author_id")
+          .eq("project_id", app.id)
+          .order("created_at", { ascending: false });
+        if (!dead) setUpdates(updData || []);
+      } catch { /* silent */ }
+      if (!dead) setUpdatesLoading(false);
+    })();
+    return () => { dead = true; };
+  }, [app.id]);
 
   const handleVote = async () => {
     if (!currentUser?.id || voted || loading) return;
@@ -846,9 +867,155 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
               </div>
             )}
           </div>
+
+          {/* ── Projekt-Updates ──────────────────────────────────── */}
+          <div style={{ marginTop: 24 }}>
+            <div style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              marginBottom: 14,
+            }}>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#141422" }}>
+                📢 Projekt-Updates
+              </div>
+              {currentUser?.id && (
+                <button
+                  onClick={() => setShowUpdateSheet(true)}
+                  style={{
+                    padding: "6px 14px", borderRadius: 99,
+                    background: "rgba(13,196,181,0.10)",
+                    border: "1px solid rgba(13,196,181,0.25)",
+                    color: "#0DC4B5", fontSize: 12, fontWeight: 700,
+                    cursor: "pointer", fontFamily: "inherit",
+                  }}
+                >
+                  + Update
+                </button>
+              )}
+            </div>
+
+            {updatesLoading ? (
+              <div style={{ textAlign: "center", padding: "24px 0", color: "#888", fontSize: 13 }}>
+                Updates werden geladen...
+              </div>
+            ) : updates.length === 0 ? (
+              <div style={{
+                textAlign: "center", padding: "24px 16px",
+                background: "rgba(0,0,0,0.03)", borderRadius: 14,
+              }}>
+                <div style={{ fontSize: 28, marginBottom: 8 }}>📭</div>
+                <div style={{ fontSize: 13, color: "#666" }}>Noch keine Updates vorhanden</div>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {updates.map((upd, idx) => {
+                  const typeInfo = (() => {
+                    switch (upd.update_type) {
+                      case "Meilenstein": return { icon: "🏆", color: "#F59E0B", bg: "rgba(245,158,11,0.10)" };
+                      case "Fortschritt": return { icon: "📈", color: "#0DC4B5", bg: "rgba(13,196,181,0.10)" };
+                      case "Geplant":     return { icon: "📅", color: "#10B981", bg: "rgba(16,185,129,0.10)" };
+                      default:             return { icon: "📢", color: "#7264D6", bg: "rgba(114,100,214,0.10)" };
+                    }
+                  })();
+                  const updDate = new Date(upd.created_at).toLocaleDateString("de-DE", {
+                    day: "2-digit", month: "short", year: "numeric"
+                  });
+                  return (
+                    <div key={upd.id || idx} style={{
+                      background: "#fff", borderRadius: 14,
+                      border: "1px solid rgba(0,0,0,0.06)",
+                      padding: "14px 16px",
+                    }}>
+                      {/* Header: Datum + Typ-Badge */}
+                      <div style={{
+                        display: "flex", alignItems: "center", gap: 8, marginBottom: 8,
+                      }}>
+                        <span style={{
+                          fontSize: 11, fontWeight: 700,
+                          color: typeInfo.color, background: typeInfo.bg,
+                          borderRadius: 99, padding: "3px 10px",
+                          display: "flex", alignItems: "center", gap: 4,
+                        }}>
+                          {typeInfo.icon} {upd.update_type || "Neuigkeit"}
+                        </span>
+                        <span style={{ fontSize: 11, color: "#999" }}>{updDate}</span>
+                      </div>
+
+                      {/* Titel */}
+                      <div style={{ fontSize: 14, fontWeight: 700, color: "#141422", marginBottom: 4 }}>
+                        {upd.title}
+                      </div>
+
+                      {/* Text */}
+                      {upd.content && (
+                        <div style={{ fontSize: 13, color: "#555", lineHeight: 1.6, marginBottom: 8 }}>
+                          {upd.content}
+                        </div>
+                      )}
+
+                      {/* Medien */}
+                      {upd.media_urls && upd.media_urls.length > 0 && (
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6 }}>
+                          {upd.media_urls.map((url, mi) => {
+                            const isImg = /\.(jpg|jpeg|png|webp|gif)$/i.test(url);
+                            const isVideo = /\.(mp4|webm|mov|ogg)$/i.test(url);
+                            return isImg ? (
+                              <a key={mi} href={url} target="_blank" rel="noreferrer">
+                                <img src={url} alt={`Update ${mi+1}`}
+                                  style={{ width: 64, height: 64, objectFit: "cover", borderRadius: 8,
+                                    border: "1px solid rgba(0,0,0,0.08)" }} />
+                              </a>
+                            ) : isVideo ? (
+                              <a key={mi} href={url} target="_blank" rel="noreferrer"
+                                style={{
+                                  width: 64, height: 64, borderRadius: 8,
+                                  background: "rgba(114,100,214,0.08)",
+                                  border: "1px solid rgba(114,100,214,0.20)",
+                                  display: "flex", alignItems: "center", justifyContent: "center",
+                                  fontSize: 22,
+                                }}>🎬</a>
+                            ) : (
+                              <a key={mi} href={url} target="_blank" rel="noreferrer"
+                                style={{
+                                  display: "flex", alignItems: "center", gap: 4,
+                                  background: "rgba(114,100,214,0.08)",
+                                  border: "1px solid rgba(114,100,214,0.20)",
+                                  borderRadius: 8, padding: "6px 10px",
+                                  fontSize: 11, color: "#7264D6", fontWeight: 600,
+                                  textDecoration: "none",
+                                }}>📎 Datei {mi+1}</a>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
         </div>{/* /Scroll-Wrapper */}
       </div>{/* /Sheet */}
+
+      {/* Update-Sheet */}
+      {showUpdateSheet && currentUser?.id && (
+        <ImpactProjektUpdateSheet
+          projectId={app.id}
+          authorId={currentUser.id}
+          onClose={() => setShowUpdateSheet(false)}
+          onSubmitted={async () => {
+            // Reload updates after submission
+            try {
+              const { data: updData } = await supabase
+                .from("impact_project_updates")
+                .select("id,title,content,update_type,media_urls,created_at,author_id")
+                .eq("project_id", app.id)
+                .order("created_at", { ascending: false });
+              setUpdates(updData || []);
+            } catch { /* silent */ }
+          }}
+        />
+      )}
     </>
   );
   return typeof document !== "undefined"

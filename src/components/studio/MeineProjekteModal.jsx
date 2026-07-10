@@ -9,6 +9,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
+import ImpactProjektUpdateSheet from "./ImpactProjektUpdateSheet.jsx";
 
 // ── Design Tokens (identisch zu HuiStudio) ────────────────────────
 const T = {
@@ -71,6 +72,10 @@ export default function MeineProjekteModal({ profile, onClose, switchTab = null 
   const [projects,     setProjects]     = useState({});  // { [id]: impact_projects record }
   const [loading,      setLoading]      = useState(true);
   const [selectedProj, setSelectedProj] = useState(null); // Projekt-Detail
+  const [impactApps,  setImpactApps]  = useState([]);  // impact_applications des Users
+  const [impactLoading, setImpactLoading] = useState(false);
+  const [showUpdateSheet, setShowUpdateSheet] = useState(false);
+  const [updateProject,  setUpdateProject]  = useState(null); // project_id for update sheet
 
   // ── Daten laden ──────────────────────────────────────────────────
   const load = useCallback(async () => {
@@ -111,6 +116,21 @@ export default function MeineProjekteModal({ profile, onClose, switchTab = null 
         (projData || []).forEach(p => { map[p.id] = p; });
         setProjects(map);
       }
+
+      // 4. Impact-Projekte des Users (impact_applications)
+      const email = profile?.email || profile?.contact_email || null;
+      let impactQuery = supabase
+        .from("impact_applications")
+        .select("id,project_name,short_desc,status,funding_goal,cover_url,media_urls,created_at,contact_email,user_id")
+        .order("created_at", { ascending: false });
+      // Filter by user_id OR contact_email
+      if (email) {
+        impactQuery = impactQuery.or(`user_id.eq.${profile.id},contact_email.eq.${email}`);
+      } else {
+        impactQuery = impactQuery.eq("user_id", profile.id);
+      }
+      const { data: impactData } = await impactQuery;
+      setImpactApps(impactData || []);
     } catch (e) {
       console.warn("[MeineProjekte] load:", e);
     } finally {
@@ -230,6 +250,7 @@ export default function MeineProjekteModal({ profile, onClose, switchTab = null 
           {[
             { key: "unterstuetzt", label: "💰 Finanziell" },
             { key: "stimmen",      label: "🗳️ Stimmen" },
+            { key: "impact",       label: "🌱 Impact" },
           ].map(t => (
             <button key={t.key} onClick={() => setTab(t.key)} style={{
               flex: 1, padding: "8px 0", borderRadius: T.r12 - 2,
@@ -325,10 +346,44 @@ export default function MeineProjekteModal({ profile, onClose, switchTab = null 
             </>
           )}
 
+          {/* ════ TAB: Impact Projekte ════ */}
+          {!loading && tab === "impact" && (
+            <>
+              {impactApps.length === 0 ? (
+                <EmptyState
+                  icon="🌱"
+                  title="Du hast noch kein Impact-Projekt eingereicht"
+                  desc="Reiche ein Herzensprojekt ein und sammle Unterstuetzung aus der Community."
+                />
+              ) : (
+                <>
+                  <GroupHeader label="🌱 Meine Impact-Projekte" count={impactApps.length} />
+                  {impactApps.map(app => (
+                    <ImpactProjectCard
+                      key={app.id}
+                      app={app}
+                      onAddUpdate={(pid) => { setUpdateProject(pid); setShowUpdateSheet(true); }}
+                    />
+                  ))}
+                </>
+              )}
+            </>
+          )}
+
         </div>
       </div>
     </div>
   );
+
+  {/* Update-Sheet */}
+  {showUpdateSheet && updateProject && (
+    <ImpactProjektUpdateSheet
+      projectId={updateProject}
+      authorId={profile?.id}
+      onClose={() => { setShowUpdateSheet(false); setUpdateProject(null); }}
+      onSubmitted={() => { /* could reload */ }}
+    />
+  )}
 
   return createPortal(modal, document.body);
 }
@@ -586,6 +641,139 @@ function VoteCard({ vote: v, project: p, onGoToProject }) {
             Ansehen →
           </button>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ── Impact-Projekt-Karte ──────────────────────────────────────────
+function ImpactProjectCard({ app, onAddUpdate }) {
+  const [voteCount, setVoteCount] = useState(null);
+  const fundingGoal = app.funding_goal || 0;
+  const progressPct = fundingGoal > 0 ? Math.min(100, Math.round((app.current_amount_eur || 0) / fundingGoal * 100)) : 0;
+
+  // Stimmen laden
+  useEffect(() => {
+    let dead = false;
+    (async () => {
+      try {
+        const { count } = await supabase
+          .from("impact_votes")
+          .select("id", { count: "exact", head: true })
+          .eq("project_id", app.id);
+        if (!dead) setVoteCount(count || 0);
+      } catch { if (!dead) setVoteCount(0); }
+    })();
+    return () => { dead = true; };
+  }, [app.id]);
+
+  const statusInfo = (() => {
+    switch (app.status) {
+      case "approved":  return { label: "Bewilligt",   color: T.green,  bg: T.greenSoft,  icon: "✅" };
+      case "pending":   return { label: "In Pruefung", color: T.amber,  bg: T.amberSoft,  icon: "⏳" };
+      case "rejected":  return { label: "Abgelehnt",   color: T.coral,  bg: T.coralSoft,  icon: "❌" };
+      case "draft":     return { label: "Entwurf",     color: T.inkSoft,bg: T.border,      icon: "📝" };
+      default:          return { label: app.status || "Offen", color: T.inkSoft, bg: T.border, icon: "📋" };
+    }
+  })();
+
+  const coverImg = app.cover_url || (app.media_urls && app.media_urls[0]) || null;
+
+  return (
+    <div style={{
+      background: T.bgCard, borderRadius: T.r16,
+      border: `1px solid ${T.border}`, marginBottom: 10,
+      boxShadow: T.card, overflow: "hidden",
+    }}>
+      {/* Cover */}
+      {coverImg && (
+        <div style={{ height: 100, overflow: "hidden" }}>
+          <img src={coverImg} alt={app.project_name}
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            onError={e => e.target.style.display = "none"} />
+        </div>
+      )}
+
+      <div style={{ padding: "12px 14px" }}>
+        {/* Name + Status */}
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 8 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: T.ink, lineHeight: 1.3 }}>
+              {app.project_name || "Unbenanntes Projekt"}
+            </div>
+            {app.short_desc && (
+              <div style={{
+                fontSize: 12, color: T.inkSoft, marginTop: 3, lineHeight: 1.4,
+                overflow: "hidden", display: "-webkit-box",
+                WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
+              }}>
+                {app.short_desc}
+              </div>
+            )}
+          </div>
+          <span style={{
+            fontSize: 10, fontWeight: 700, color: statusInfo.color,
+            background: statusInfo.bg, borderRadius: T.r99,
+            padding: "3px 8px", flexShrink: 0,
+          }}>
+            {statusInfo.icon} {statusInfo.label}
+          </span>
+        </div>
+
+        {/* Fortschrittsbalken */}
+        {fundingGoal > 0 && (
+          <div style={{ marginBottom: 10 }}>
+            <div style={{
+              display: "flex", justifyContent: "space-between",
+              fontSize: 11, color: T.inkSoft, marginBottom: 4,
+            }}>
+              <span>Fortschritt</span>
+              <span style={{ fontWeight: 700, color: T.teal }}>{progressPct}%</span>
+            </div>
+            <div style={{ height: 6, borderRadius: 99, background: "rgba(26,26,24,0.06)" }}>
+              <div style={{
+                height: "100%", borderRadius: 99,
+                background: `linear-gradient(90deg, ${T.teal}, ${T.tealDeep})`,
+                width: `${progressPct}%`, transition: "width 0.5s ease",
+              }} />
+            </div>
+            <div style={{
+              fontSize: 11, color: T.inkFaint, marginTop: 3,
+              display: "flex", justifyContent: "space-between",
+            }}>
+              <span>{fmtEur(app.current_amount_eur || 0)} erhalten</span>
+              <span>Ziel: {fmtEur(fundingGoal)}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Stimmen */}
+        <div style={{
+          display: "flex", alignItems: "center", gap: 6, marginBottom: 10,
+        }}>
+          <span style={{ fontSize: 14 }}>🗳️</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: T.ink }}>
+            {voteCount === null ? "..." : voteCount}
+          </span>
+          <span style={{ fontSize: 11, color: T.inkSoft }}>
+            {voteCount === 1 ? "Stimme" : "Stimmen"}
+          </span>
+        </div>
+
+        {/* Update-Button */}
+        <button
+          onClick={() => onAddUpdate(app.id)}
+          style={{
+            width: "100%", padding: "10px", borderRadius: T.r12,
+            background: T.tealSoft, border: `1px solid ${T.tealMid}`,
+            cursor: "pointer", fontFamily: "inherit",
+            fontSize: 13, fontWeight: 700, color: T.teal,
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+            WebkitTapHighlightColor: "transparent",
+          }}
+        >
+          📝 Update hinzufuegen
+        </button>
       </div>
     </div>
   );
