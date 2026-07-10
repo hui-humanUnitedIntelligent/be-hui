@@ -43,18 +43,18 @@ CREATE POLICY "impact_milestones_select_all"
 DROP POLICY IF EXISTS "impact_milestones_insert_initiator" ON public.impact_milestones;
 CREATE POLICY "impact_milestones_insert_initiator"
   ON public.impact_milestones FOR INSERT
-  WITH CHECK (project_id IN (SELECT id FROM public.impact_applications WHERE applicant_id = auth.uid()));
+  WITH CHECK (project_id IN (SELECT id FROM public.impact_applications WHERE user_id = auth.uid()));
 
 DROP POLICY IF EXISTS "impact_milestones_update_initiator" ON public.impact_milestones;
 CREATE POLICY "impact_milestones_update_initiator"
   ON public.impact_milestones FOR UPDATE
-  USING (project_id IN (SELECT id FROM public.impact_applications WHERE applicant_id = auth.uid()))
-  WITH CHECK (project_id IN (SELECT id FROM public.impact_applications WHERE applicant_id = auth.uid()));
+  USING (project_id IN (SELECT id FROM public.impact_applications WHERE user_id = auth.uid()))
+  WITH CHECK (project_id IN (SELECT id FROM public.impact_applications WHERE user_id = auth.uid()));
 
 DROP POLICY IF EXISTS "impact_milestones_delete_initiator" ON public.impact_milestones;
 CREATE POLICY "impact_milestones_delete_initiator"
   ON public.impact_milestones FOR DELETE
-  USING (project_id IN (SELECT id FROM public.impact_applications WHERE applicant_id = auth.uid()));
+  USING (project_id IN (SELECT id FROM public.impact_applications WHERE user_id = auth.uid()));
 
 -- ── 4. RLS: impact_milestone_updates ──────────────────────────────────────────
 ALTER TABLE public.impact_milestone_updates ENABLE ROW LEVEL SECURITY;
