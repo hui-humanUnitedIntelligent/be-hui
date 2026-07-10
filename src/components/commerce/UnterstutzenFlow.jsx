@@ -19,7 +19,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { EASE, DUR } from "../../design/hui.interaction.js";
 import {
   C, TYPE_META,
-  haptic, calcTotalWithQty, calcImpact,
+  haptic, calcTotalWithQty, calcImpact, calcPlatformFee,
   uniquePeople, clearCartAfterSuccess,
 } from "./commerceUtils.js";
 import StripePaymentStep from "./StripePaymentStep.jsx";
@@ -30,9 +30,10 @@ import { supabase } from "../../lib/supabaseClient.js";
 // ─────────────────────────────────────────────────────────────────
 // ImpactKarte — kompakt, oberhalb des Stripe Elements
 // ─────────────────────────────────────────────────────────────────
-function ImpactKarte({ impactEur }) {
+function ImpactKarte({ impactEur, huiEur }) {
   if (!impactEur || impactEur <= 0) return null;
-  const str = impactEur.toFixed(2).replace(".", ",");
+  const str    = impactEur.toFixed(2).replace(".", ",");
+  const huiStr = huiEur ? huiEur.toFixed(2).replace(".", ",") : str;
   return (
     <div style={{
       borderRadius:         14,
@@ -56,9 +57,7 @@ function ImpactKarte({ impactEur }) {
           Gemeinsam Wirkung schaffen
         </div>
         <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.6 }}>
-          Von deiner Unterstützung investiert HUI zusätzlich{" "}
-          <span style={{ fontWeight: 700, color: C.sage }}>{str}{"\u202F"}€</span>{" "}
-          in den gemeinsamen Impact Pool.
+          HUI investiert {huiStr}{" "}€ (20 %) aus den eigenen Einnahmen — davon {str}{" "}€ direkt in Impact-Projekte.
         </div>
       </div>
     </div>
@@ -217,7 +216,7 @@ function DankeScreen({ items, impact, total, onDiscover, onResonanz }) {
 
         {/* Impact */}
         <div style={{ width: "100%", marginBottom: 32, ...fade("400ms") }}>
-          <ImpactKarte impactEur={impact} />
+          <ImpactKarte impactEur={impact} huiEur={huiTotal} />
         </div>
       </div>
 
@@ -278,7 +277,8 @@ export default function UnterstutzenFlow({
 
 
   const total  = calcTotalWithQty(items);
-  const impact = calcImpact(total);
+  const impact   = calcImpact(total);
+  const huiTotal = calcPlatformFee(total);
 
   // Slide-Animation
   function goTo(nextStep, dir = 1) {
@@ -548,7 +548,7 @@ export default function UnterstutzenFlow({
 
                 {/* Impact-Karte (kompakt, oberhalb Stripe) */}
                 <div style={{ padding: "16px 20px 0", flexShrink: 0 }}>
-                  <ImpactKarte impactEur={impact} />
+                  <ImpactKarte impactEur={impact} huiEur={huiTotal} />
                 </div>
 
                 {/* Stripe Payment Step */}
