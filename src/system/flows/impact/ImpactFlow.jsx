@@ -334,7 +334,7 @@ function NextBtn({ label="Weiter →", onClick, disabled, loading }) {
 function Step1({ form, update, onNext, onBack, onClose }) {
   const ok = (form.name || "").trim().length >= 3;
   return (
-    <StepWrap step={0} total={6} onBack={onBack} onClose={onClose} label="Schritt 1 von 6">
+    <StepWrap step={0} total={7} onBack={onBack} onClose={onClose} label="Schritt 1 von 7">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{ fontSize:28, marginBottom:10 }}>🌱</div>
         <h2 style={{ margin:"0 0 8px", fontSize:24, fontWeight:900, color:T.ink,
@@ -357,7 +357,7 @@ function Step1({ form, update, onNext, onBack, onClose }) {
 function Step2({ form, update, onNext, onBack, onClose }) {
   const ok = (form.satz || "").trim().length >= 15;
   return (
-    <StepWrap step={1} total={6} onBack={onBack} onClose={onClose} label="Schritt 2 von 6">
+    <StepWrap step={1} total={7} onBack={onBack} onClose={onClose} label="Schritt 2 von 7">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{ fontSize:28, marginBottom:10 }}>💬</div>
         <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight:900, color:T.ink,
@@ -380,7 +380,7 @@ function Step2({ form, update, onNext, onBack, onClose }) {
 function Step3({ form, update, onNext, onBack, onClose }) {
   const ok = (form.problem || "").trim().length >= 20;
   return (
-    <StepWrap step={2} total={6} onBack={onBack} onClose={onClose} label="Schritt 3 von 6">
+    <StepWrap step={2} total={7} onBack={onBack} onClose={onClose} label="Schritt 3 von 7">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{ fontSize:28, marginBottom:10 }}>🎯</div>
         <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight:900, color:T.ink,
@@ -403,7 +403,7 @@ function Step3({ form, update, onNext, onBack, onClose }) {
 function Step4({ form, update, onNext, onBack, onClose }) {
   const ok = !!form.kategorie;
   return (
-    <StepWrap step={3} total={6} onBack={onBack} onClose={onClose} label="Schritt 4 von 6">
+    <StepWrap step={3} total={7} onBack={onBack} onClose={onClose} label="Schritt 4 von 7">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{ fontSize:28, marginBottom:10 }}>🤝</div>
         <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight:900, color:T.ink,
@@ -440,7 +440,7 @@ function Step4({ form, update, onNext, onBack, onClose }) {
 function Step5({ form, update, onNext, onBack, onClose }) {
   const ok = (form.umsetzung || "").trim().length >= 20;
   return (
-    <StepWrap step={4} total={6} onBack={onBack} onClose={onClose} label="Schritt 5 von 6">
+    <StepWrap step={4} total={7} onBack={onBack} onClose={onClose} label="Schritt 5 von 7">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{ fontSize:28, marginBottom:10 }}>🚀</div>
         <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight:900, color:T.ink,
@@ -460,6 +460,94 @@ function Step5({ form, update, onNext, onBack, onClose }) {
   );
 }
 
+// ═══ STEP 5b — MEILENSTEINE (NEU: zwischen "Was wird umgesetzt" und "Fördersumme") ═══
+function Step5b({ milestones, setMilestones, onNext, onBack, onClose }) {
+  const addMilestone = () => {
+    if (milestones.length >= 8) return;
+    setMilestones(prev => [...prev, { title: "", description: "" }]);
+  };
+  const removeMilestone = (i) => {
+    if (milestones.length <= 1) return;
+    setMilestones(prev => prev.filter((_, idx) => idx !== i));
+  };
+  const updateMilestone = (i, patch) => {
+    setMilestones(prev => prev.map((m, idx) => idx === i ? { ...m, ...patch } : m));
+  };
+  const hasAny = milestones.some(m => m.title.trim().length > 0);
+
+  return (
+    <StepWrap step={5} total={7} onBack={onBack} onClose={onClose} label="Schritt 6 von 7">
+      <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
+        <div style={{ fontSize:28, marginBottom:10 }}>🏁</div>
+        <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight:900, color:T.ink,
+          letterSpacing:"-0.022em", lineHeight:1.2 }}>Meilensteine definieren</h2>
+        <p style={{ margin:"0 0 20px", fontSize:14, color:T.ink2, lineHeight:1.65 }}>
+          Welche konkreten Etappen planst du? (Optional — du kannst auch überspringen.)
+        </p>
+
+        <div style={{ display:"flex", flexDirection:"column", gap:12, marginBottom:20, overflowY:"auto", maxHeight:320 }}>
+          {milestones.map((m, i) => (
+            <div key={i} style={{
+              background:"rgba(13,196,181,0.06)", borderRadius:14, padding:14,
+              border:"1px solid rgba(13,196,181,0.18)"
+            }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
+                <div style={{ width:22, height:22, borderRadius:"50%",
+                  background:T.teal, color:"white", display:"flex",
+                  alignItems:"center", justifyContent:"center",
+                  fontSize:11, fontWeight:800, flexShrink:0 }}>{i + 1}</div>
+                <input
+                  className="hui-input"
+                  placeholder={`Meilenstein ${i + 1} (z.B. Zaun gebaut)`}
+                  value={m.title}
+                  onChange={e => updateMilestone(i, { title: e.target.value })}
+                  maxLength={80}
+                  style={{ flex:1, fontSize:13, padding:"8px 12px", margin:0 }}
+                />
+                {milestones.length > 1 && (
+                  <button onClick={() => removeMilestone(i)}
+                    style={{ width:24, height:24, borderRadius:"50%", border:"none",
+                      background:"rgba(231,76,60,0.12)", color:"#e74c3c",
+                      fontSize:14, cursor:"pointer", flexShrink:0, display:"flex",
+                      alignItems:"center", justifyContent:"center" }}>✕</button>
+                )}
+              </div>
+              <textarea
+                className="hui-input hui-textarea"
+                placeholder="Beschreibung (optional)"
+                value={m.description}
+                onChange={e => updateMilestone(i, { description: e.target.value })}
+                rows={2}
+                maxLength={200}
+                style={{ fontSize:12, padding:"8px 12px", margin:0, resize:"none" }}
+              />
+            </div>
+          ))}
+        </div>
+
+        {milestones.length < 8 && (
+          <button onClick={addMilestone}
+            style={{ width:"100%", padding:"10px", borderRadius:12,
+              border:"1.5px dashed rgba(13,196,181,0.5)",
+              background:"transparent", color:T.teal,
+              fontSize:13, fontWeight:700, cursor:"pointer", marginBottom:16,
+              fontFamily:"inherit" }}>
+            + Meilenstein hinzufügen
+          </button>
+        )}
+
+        <NextBtn label="Weiter →" onClick={onNext} />
+        <button onClick={onNext}
+          style={{ background:"none", border:"none", color:T.ink3,
+            fontSize:12, cursor:"pointer", marginTop:8, textDecoration:"underline",
+            fontFamily:"inherit" }}>
+          Schritt überspringen
+        </button>
+      </div>
+    </StepWrap>
+  );
+}
+
 function Step6({ form, update, onNext, onBack, onClose }) {
   const raw = (form.foerder || "").replace(/\D/g,"");
   const val = raw ? parseInt(raw, 10) : 0;
@@ -469,7 +557,7 @@ function Step6({ form, update, onNext, onBack, onClose }) {
     return n ? parseInt(n,10).toLocaleString("de-DE") : "";
   };
   return (
-    <StepWrap step={5} total={6} onBack={onBack} onClose={onClose} label="Schritt 6 von 6">
+    <StepWrap step={6} total={7} onBack={onBack} onClose={onClose} label="Schritt 7 von 7">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{ fontSize:28, marginBottom:10 }}>💶</div>
         <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight:900, color:T.ink,
@@ -1304,6 +1392,7 @@ export default function ImpactFlow({ onClose }) {
   const [form, setForm] = useState({
     name:"", satz:"", problem:"", kategorie:"", umsetzung:"", foerder:"",
   });
+  const [milestones, setMilestones] = useState([{ title: "", description: "" }]);
   const [kontakt, setKontakt] = useState({
     standort:"", email:"", name:"", telefon:"",
   });
@@ -1315,10 +1404,10 @@ export default function ImpactFlow({ onClose }) {
   const goNext = useCallback(() => setStep(s => s+1), []);
   const goBack = useCallback(() => {
     if (step === 0) onClose?.();
-    else if (step === 6 || step === 7) setStep(5);
-    else if (step === 9) setStep(7);
-    else if (step === 10) setStep(9);   // Medien → zurück zu Persönliche Angaben
-    else if (step === 8) setStep(10);  // Wirkungsnetz → zurück zu Medien
+    else if (step === 7 || step === 8) setStep(6);  // KI/Ergebnis → Fördersumme
+    else if (step === 9) setStep(8);   // PersönlicheAngaben → zurück zu Ergebnis
+    else if (step === 10) setStep(9);  // Netzwerk → zurück zu PersönlicheAngaben
+    else if (step === 11) setStep(10); // Medien → zurück zu Netzwerk
     else setStep(s => s-1);
   }, [step, onClose]);
 
@@ -1373,6 +1462,29 @@ export default function ImpactFlow({ onClose }) {
         // Kein throw — Einreichung war erfolgreich, Notification-Fehler ist nicht kritisch
       }
 
+      // ── Meilensteine speichern ──────────────────────────────────
+      // Hole die neu angelegte impact_application ID
+      const { data: newApps } = await supabase
+        .from("impact_applications")
+        .select("id")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1);
+      if (newApps && newApps.length > 0) {
+        const newProjectId = newApps[0].id;
+        const validMilestones = milestones.filter(m => m.title.trim());
+        if (validMilestones.length > 0) {
+          await supabase.from("impact_milestones").insert(
+            validMilestones.map((m, i) => ({
+              project_id: newProjectId,
+              title: m.title.trim(),
+              description: m.description?.trim() || null,
+              sort_order: i,
+            }))
+          );
+        }
+      }
+
       setDone(true);
     } catch(e) {
       setError(e.message || "Fehler beim Absenden");
@@ -1412,17 +1524,18 @@ export default function ImpactFlow({ onClose }) {
         {!done && step === 2 && <Step3 form={form} update={update} onNext={goNext} onBack={goBack} onClose={onClose} />}
         {!done && step === 3 && <Step4 form={form} update={update} onNext={goNext} onBack={goBack} onClose={onClose} />}
         {!done && step === 4 && <Step5 form={form} update={update} onNext={goNext} onBack={goBack} onClose={onClose} />}
-        {!done && step === 5 && <Step6 form={form} update={update} onNext={goNext} onBack={goBack} onClose={onClose} />}
+        {!done && step === 5 && <Step5b milestones={milestones} setMilestones={setMilestones} onNext={goNext} onBack={goBack} onClose={onClose} />}
+        {!done && step === 6 && <Step6 form={form} update={update} onNext={goNext} onBack={goBack} onClose={onClose} />}
 
-        {!done && step === 6 && (
-          <AIPruefung form={form} onResult={res => { setAiRes(res); setStep(7); }} />
+        {!done && step === 7 && (
+          <AIPruefung form={form} onResult={res => { setAiRes(res); setStep(8); }} />
         )}
 
-        {!done && step === 7 && aiRes?.geeignet && (
+        {!done && step === 8 && aiRes?.geeignet && (
           <ErgebnisGeeignet form={form} aiRes={aiRes}
-            onNetworkConfirm={() => setStep(9)} onClose={onClose} />
+            onNetworkConfirm={() => setStep(10)} onClose={onClose} />
         )}
-        {!done && step === 7 && aiRes && !aiRes.geeignet && (
+        {!done && step === 8 && aiRes && !aiRes.geeignet && (
           <ErgebnisNichtGeeignet form={form} aiRes={aiRes} user={user} onClose={onClose}
             onRetry={() => { setStep(0); setAiRes(null); }} />
         )}
@@ -1431,25 +1544,25 @@ export default function ImpactFlow({ onClose }) {
           <PersoenlicheAngaben
             kontakt={kontakt}
             setKontakt={setKontakt}
-            onWeiter={() => setStep(10)}
+            onWeiter={() => setStep(11)}
             onClose={onClose}
           />
         )}
 
         {/* Step 10 — Medien & Dateien */}
-        {!done && step === 10 && (
+        {!done && step === 11 && (
           <MedienUploadStep
             coverUrl={coverUrl}
             setCoverUrl={setCoverUrl}
             attachments={attachments}
             setAttachments={setAttachments}
-            onWeiter={() => setStep(8)}
+            onWeiter={() => setStep(9)}
             onClose={onClose}
             userId={user?.id}
           />
         )}
 
-        {!done && step === 8 && (
+        {!done && step === 10 && (
           <WirkungsnetzScreen
             checks={netChecks}
             onToggle={toggleCheck}
@@ -1459,7 +1572,7 @@ export default function ImpactFlow({ onClose }) {
         )}
 
         {/* Error-Banner (bei Supabase-Fehler im Netzwerk-Screen) */}
-        {error && (step === 8 || step === 9 || step === 10) && (
+        {error && (step === 9 || step === 9 || step === 10) && (
           <div style={{
             position:"absolute", bottom:80, left:16, right:16,
             background:`${T.coral}15`, border:`1px solid ${T.coral}30`,
