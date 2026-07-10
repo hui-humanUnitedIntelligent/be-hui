@@ -7,7 +7,7 @@ import { EASE, DUR } from "../../design/hui.interaction.js";
 import { NAV_CLEARANCE_CSS } from "../home/navigation/navigationGeometry.js";
 import {
   C, TYPE_META, haptic as haptic_,
-  calcTotal, calcImpact, calcTotalWithQty,
+  calcTotal, calcImpact, calcTotalWithQty, calcPlatformFee,
   groupByPerson,
   allowsQuantity, getOriginalHint,
 } from "./commerceUtils.js";
@@ -800,9 +800,10 @@ function ErfolgsScreen({ result, onChat, onDiscover }) {
 // ══════════════════════════════════════════════════════════════════
 //  IMPACT-ZEILE
 // ══════════════════════════════════════════════════════════════════
-function ImpactZeile({ impactEur }) {
+function ImpactZeile({ impactEur, huiEur }) {
   if (!impactEur || impactEur <= 0) return null;
   const impactStr = impactEur.toFixed(2).replace(".", ",");
+  const huiStr    = huiEur ? huiEur.toFixed(2).replace(".", ",") : impactStr;
   return (
     <div style={{
       marginTop:  14,
@@ -954,7 +955,8 @@ export default function WerkeKorb({
   const pCount = groups.length;
 
   const total  = calcTotalWithQty(enrichedItems);
-  const impact = calcImpact(total);
+  const impact    = calcImpact(total);      // 6% Impact-Pool-Anteil
+  const huiTotal  = calcPlatformFee(total);  // 20% HUI-Gesamt
   const gesamt    = +total.toFixed(2); // Käufer zahlt nur den Werkpreis
   const versandEur = null; // TODO: aus items.delivery_cost ableiten
   const rabattEur  = null; // TODO: aus cart.discount ableiten
@@ -1167,7 +1169,7 @@ export default function WerkeKorb({
               )}
 
               {/* Impact-Info */}
-              <ImpactZeile impactEur={impact} />
+              <ImpactZeile impactEur={impact} huiEur={huiTotal} />
 
             </div>
           )}
