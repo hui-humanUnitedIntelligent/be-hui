@@ -172,6 +172,13 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
   // Stimme abgeben
   const castVote = async (projectId) => {
     if (!profile?.id || voting) return;
+    // Prüfe ob bereits für dieses SPEZIFISCHE Projekt gestimmt wurde
+    if (myVotes.some(v => v.project_id === projectId)) {
+      setErrorMsg("Du hast für dieses Projekt bereits gestimmt.");
+      setTimeout(() => setErrorMsg(""), 3500);
+      return;
+    }
+    // Prüfe ob alle Stimmen aufgebraucht
     if (myVotes.length >= maxVotes) {
       setErrorMsg("Du hast diesen Monat alle Stimmen genutzt.");
       setTimeout(() => setErrorMsg(""), 3500);
@@ -577,7 +584,16 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
                   Zum Projekt →
                 </button>
                 <button
-                  onClick={() => { castVote(detailProj.id); setDetailProj(null); }}
+                  onClick={() => {
+                    if (votedProjectIds.has(detailProj.id)) {
+                      setErrorMsg("Du hast für dieses Projekt bereits gestimmt.");
+                      setTimeout(() => setErrorMsg(""), 3000);
+                      setDetailProj(null);
+                      return;
+                    }
+                    castVote(detailProj.id);
+                    setDetailProj(null);
+                  }}
                   disabled={voting}
                   style={{
                     flex: 1, padding: "12px 10px", borderRadius: T.r12,
@@ -664,7 +680,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
 
                     {/* Wählen-Button */}
                     <button
-                      onClick={() => castVote(proj.id)}
+                      onClick={() => { setShowPicker(false); castVote(proj.id); }}
                       disabled={voting}
                       style={{
                         padding: "5px 12px", borderRadius: 99,
