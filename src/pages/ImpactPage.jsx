@@ -1521,15 +1521,6 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
       {/* ══ 4b ── IMPACT TIMELINE "Impact auf einen Blick" ═══════ */}
       <ImpactTimeline transp={transp} />
 
-      {/* ══ 4b.5 ── BEWILLIGTE HERZENSPROJEKTE — TOP 1 ═══════════ */}
-      {(approvedApps.loading || approvedApps.top1) && (
-        <BewilligteTop1Section
-          app={approvedApps.top1}
-          loading={approvedApps.loading}
-          onOpen={setDetailApp}
-        />
-      )}
-
       {/* ══ 4c ── WEITERE HERZENSPROJEKTE — Platz 2-5 dynamisch ══ */}
       <WeitereHerzensSection
         apps={approvedApps.weitere}
@@ -2417,32 +2408,6 @@ function EmptyImpactState({ type = "voting" }) {
 }
 
 // ════════════════════════════════════════════════════════════════
-// BewilligteTop1Section — Zeigt NUR das führende Projekt (Top 1)
-// ════════════════════════════════════════════════════════════════
-function BewilligteTop1Section({ app, loading, onOpen }) {
-  if (loading) return (
-    <div style={{ padding:"28px 20px 8px", maxWidth:600, margin:"0 auto" }}>
-      <h2 style={{ margin:"0 0 16px", fontSize:20, fontWeight:900, color:"#141422" }}>💚 Bewilligte Herzensprojekte</h2>
-      <SkeletonCards count={1} />
-    </div>
-  );
-  if (!app) return (
-    <div style={{ padding:"28px 20px 8px", maxWidth:600, margin:"0 auto" }}>
-      <h2 style={{ margin:"0 0 16px", fontSize:20, fontWeight:900, color:"#141422" }}>💚 Bewilligte Herzensprojekte</h2>
-      <EmptyImpactState type="bewilligt" />
-    </div>
-  );
-  return (
-    <div style={{ padding:"28px 20px 8px", maxWidth:600, width:"100%", margin:"0 auto", boxSizing:"border-box" }}>
-      <div style={{ marginBottom:16 }}>
-        <h2 style={{ margin:"0 0 4px", fontSize:20, fontWeight:900, color:"#141422" }}>💚 Bewilligte Herzensprojekte</h2>
-        <p style={{ margin:0, fontSize:13, color:"#666" }}>Diese Projekte wurden vom HUI-Team geprüft und bewilligt — jetzt abstimmen!</p>
-      </div>
-      <ApprovedAppCard app={app} onOpen={onOpen} />
-    </div>
-  );
-}
-
 // ════════════════════════════════════════════════════════════════
 // WeitereHerzensSection — Platz 2-5 approved + Fallback Seed
 // ════════════════════════════════════════════════════════════════
