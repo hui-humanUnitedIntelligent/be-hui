@@ -511,6 +511,13 @@ export const ImpactService = {
       return { data: null, error: { message: 'Bereits für dieses Projekt abgestimmt' } };
     }
 
+    // Session-Refresh vor dem Insert — verhindert RLS-Fehler bei abgelaufenen JWTs
+    const { error: refreshError } = await supabase.auth.refreshSession();
+    if (refreshError) {
+      console.warn('[castVote] Session refresh failed:', refreshError.message);
+      // Trotzdem versuchen — User könnte einen gültigen anon-Token haben
+    }
+
     return safeQuery(
       supabase.from('impact_votes').insert({
         voter_id:   userId,

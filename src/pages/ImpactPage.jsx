@@ -678,9 +678,16 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
         setUserVotesLeft(v => Math.max(0, (v || 1) - 1));
         onVoted(app.id);
       } else {
-        setVoteError("Abstimmung fehlgeschlagen. Bitte erneut versuchen.");
+        const msg = (error.message || "").toLowerCase();
+        if (msg.includes("maximale") || msg.includes("keine stimmen")) {
+          setVoteError("Du hast bereits alle deine Stimmen diesen Monat vergeben.");
+        } else if (msg.includes("bereits")) {
+          setVoteError("Du hast bereits für dieses Projekt gestimmt.");
+        } else {
+          setVoteError("Abstimmung fehlgeschlagen. Bitte lade die Seite neu und versuche es erneut. (Session abgelaufen?)");
+        }
       }
-    } catch { setVoteError("Verbindungsfehler. Bitte erneut versuchen."); }
+    } catch { setVoteError("Verbindungsfehler. Bitte lade die Seite neu und versuche es erneut."); }
     setLoading(false);
   };
 
@@ -1405,15 +1412,31 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
       // Single Source of Truth: voter_id + pool_month (kein round_id)
       const { error } = await ImpactService.castVote(currentUser.id, projectId, null, maxV);
       if (error) {
+        // Optimistic Update rückgängig machen
         setUserVotes(prev => prev.filter(v => v.project_id !== projectId));
         setProjects(prev => prev.map(p =>
           p.id === projectId ? { ...p, votes:Math.max(0,(p.votes||1)-1) } : p));
+        // Sichtbarer Fehler — kein stiller Fail
+        const msg = error.message || "";
+        if (msg.includes("Maximale Stimmen")) {
+          alert("Du hast bereits alle deine Stimmen diesen Monat vergeben.");
+        } else if (msg.includes("Bereits für")) {
+          alert("Du hast bereits für dieses Projekt gestimmt.");
+        } else {
+          alert("Abstimmung fehlgeschlagen. Bitte lade die Seite neu und versuche es erneut.");
+        }
       } else {
         const proj = projects.find(p => p.id === projectId);
         if (proj) FeedService.createActivity(currentUser.id, "impact_vote",
           `hat das Projekt „${proj.name}" unterstützt`, {}).catch(() => {});
       }
-    } catch { /* silent */ } finally { setVoteLoading(false); }
+    } catch (e) {
+      // Verbindungsfehler — UI zurücksetzen + Hinweis
+      setUserVotes(prev => prev.filter(v => v.project_id !== projectId));
+      setProjects(prev => prev.map(p =>
+        p.id === projectId ? { ...p, votes:Math.max(0,(p.votes||1)-1) } : p));
+      alert("Verbindungsfehler. Bitte lade die Seite neu und versuche es erneut.");
+    } finally { setVoteLoading(false); }
   };
 
   // ── Derived — Stimmen basieren auf echtem Profil-Status ──
