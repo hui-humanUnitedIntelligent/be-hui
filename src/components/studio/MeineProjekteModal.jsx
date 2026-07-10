@@ -10,6 +10,7 @@ import { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import ImpactProjektUpdateSheet from "./ImpactProjektUpdateSheet.jsx";
+import MilestoneUpdateSheet from "./MilestoneUpdateSheet.jsx";
 
 // ── Design Tokens (identisch zu HuiStudio) ────────────────────────
 const T = {
@@ -76,6 +77,7 @@ export default function MeineProjekteModal({ profile, onClose, switchTab = null 
   const [impactLoading, setImpactLoading] = useState(false);
   const [showUpdateSheet, setShowUpdateSheet] = useState(false);
   const [updateProject,  setUpdateProject]  = useState(null); // project_id for update sheet
+  const [milestoneUpdate, setMilestoneUpdate] = useState(null); // { milestone, projectId } for MilestoneUpdateSheet
 
   // ── Daten laden ──────────────────────────────────────────────────
   const load = useCallback(async () => {
@@ -363,6 +365,7 @@ export default function MeineProjekteModal({ profile, onClose, switchTab = null 
                       key={app.id}
                       app={app}
                       onAddUpdate={(pid) => { setUpdateProject(pid); setShowUpdateSheet(true); }}
+                      onMilestoneUpdate={(ms, pid) => { setMilestoneUpdate({ milestone: ms, projectId: pid }); }}
                     />
                   ))}
                 </>
@@ -375,13 +378,24 @@ export default function MeineProjekteModal({ profile, onClose, switchTab = null 
     </div>
   );
 
-  {/* Update-Sheet */}
+  {/* Update-Sheet (legacy project update) */}
   {showUpdateSheet && updateProject && (
     <ImpactProjektUpdateSheet
       projectId={updateProject}
       authorId={profile?.id}
       onClose={() => { setShowUpdateSheet(false); setUpdateProject(null); }}
       onSubmitted={() => { /* could reload */ }}
+    />
+  )}
+
+  {/* Milestone-Update-Sheet */}
+  {milestoneUpdate && (
+    <MilestoneUpdateSheet
+      milestone={milestoneUpdate.milestone}
+      projectId={milestoneUpdate.projectId}
+      authorId={profile?.id}
+      onClose={() => setMilestoneUpdate(null)}
+      onSubmitted={() => { load(); }}
     />
   )}
 
@@ -647,8 +661,10 @@ function VoteCard({ vote: v, project: p, onGoToProject }) {
 }
 
 // ── Impact-Projekt-Karte ──────────────────────────────────────────
-function ImpactProjectCard({ app, onAddUpdate }) {
+function ImpactProjectCard({ app, onAddUpdate, onMilestoneUpdate }) {
   const [voteCount, setVoteCount] = useState(null);
+  const [milestones, setMilestones] = useState([]);
+  const [milestonesLoading, setMilestonesLoading] = useState(false);
   const fundingGoal = app.funding_goal || 0;
   const progressPct = fundingGoal > 0 ? Math.min(100, Math.round((app.current_amount_eur || 0) / fundingGoal * 100)) : 0;
 
@@ -665,6 +681,25 @@ function ImpactProjectCard({ app, onAddUpdate }) {
       } catch { if (!dead) setVoteCount(0); }
     })();
     return () => { dead = true; };
+  }, [app.id]);
+
+  // Meilensteine laden
+  useEffect(() => {
+    let dead2 = false;
+    (async () => {
+      try {
+        setMilestonesLoading(true);
+        const { data: msData } = await supabase
+          .from("impact_milestones")
+          .select("*, impact_milestone_updates(*)")
+          .eq("project_id", app.id)
+          .order("sort_order");
+        if (!dead2) { setMilestones(msData || []); setMilestonesLoading(false); }
+      } catch {
+        if (!dead2) { setMilestones([]); setMilestonesLoading(false); }
+      }
+    })();
+    return () => { dead2 = true; };
   }, [app.id]);
 
   const statusInfo = (() => {
@@ -760,20 +795,69 @@ function ImpactProjectCard({ app, onAddUpdate }) {
           </span>
         </div>
 
-        {/* Update-Button */}
-        <button
-          onClick={() => onAddUpdate(app.id)}
-          style={{
-            width: "100%", padding: "10px", borderRadius: T.r12,
-            background: T.tealSoft, border: `1px solid ${T.tealMid}`,
-            cursor: "pointer", fontFamily: "inherit",
-            fontSize: 13, fontWeight: 700, color: T.teal,
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-            WebkitTapHighlightColor: "transparent",
-          }}
-        >
-          📝 Update hinzufuegen
-        </button>
+        {/* Meilensteine */}
+        <div style={{ marginBottom: 10 }}>
+          <div style={{
+            fontSize: 13, fontWeight: 700, color: T.ink, marginBottom: 8,
+          }}>🏁 Meilensteine</div>
+          {milestonesLoading ? (
+            <div style={{ fontSize: 12, color: T.inkSoft, padding: "8px 0" }}>Laden...</div>
+          ) : milestones.length === 0 ? (
+            <div style={{ fontSize: 12, color: T.inkSoft, padding: "8px 0" }}>
+              Noch keine Meilensteine definiert.
+            </div>
+          ) : (
+            milestones.map((m, mi) => {
+              const msStatus = {
+                planned:     { label: "📅 Geplant",      color: T.inkSoft,  bg: T.border },
+                in_progress: { label: "🔄 In Arbeit",    color: T.teal,     bg: T.tealSoft },
+                completed:   { label: "✅ Abgeschlossen", color: T.green,    bg: T.greenSoft },
+              };
+              const msc = msStatus[m.status] || msStatus.planned;
+              return (
+                <div key={m.id} style={{
+                  marginBottom: 8, padding: "10px 12px",
+                  background: "rgba(26,26,24,0.03)", borderRadius: T.r12,
+                }}>
+                  <div style={{
+                    display: "flex", alignItems: "center", gap: 6, marginBottom: 4,
+                    flexWrap: "wrap",
+                  }}>
+                    <span style={{
+                      width: 20, height: 20, borderRadius: "50%",
+                      background: T.teal, color: "#fff",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 10, fontWeight: 800, flexShrink: 0,
+                    }}>{mi + 1}</span>
+                    <span style={{
+                      fontSize: 13, fontWeight: 700, color: T.ink,
+                      flex: 1, minWidth: 0,
+                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                    }}>{m.title}</span>
+                    <span style={{
+                      fontSize: 9, fontWeight: 700, color: msc.color,
+                      background: msc.bg, borderRadius: T.r99, padding: "2px 6px",
+                      flexShrink: 0,
+                    }}>{msc.label}</span>
+                  </div>
+                  <button
+                    onClick={() => onMilestoneUpdate?.(m, app.id)}
+                    style={{
+                      width: "100%", padding: "8px", borderRadius: T.r8,
+                      background: T.tealSoft, border: `1px solid ${T.tealMid}`,
+                      cursor: "pointer", fontFamily: "inherit",
+                      fontSize: 12, fontWeight: 700, color: T.teal,
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
+                      WebkitTapHighlightColor: "transparent",
+                    }}
+                  >
+                    📝 Meilenstein aktualisieren
+                  </button>
+                </div>
+              );
+            })
+          )}
+        </div>
       </div>
     </div>
   );
