@@ -498,6 +498,12 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
 
   useEffect(() => { load(); }, [load]);
 
+  // Body-Scroll sicherstellen: VOR den Early Returns (Rules of Hooks!)
+  useEffect(() => {
+    document.body.style.overflow = "";
+    document.body.classList.remove("hui-wizard-open");
+  }, []);
+
   /* ── Share ─────────────────────────────────────────────────────── */
   // SHARE.1 (2026-07-09): zentrale, appweit einheitliche Share-Funktion.
   const handleShare = () => {
@@ -545,17 +551,6 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
   const username    = creator?.username || "hui-user";
   const avatarUrl   = creator?.avatar_url || null;
 
-  /* ── Render ────────────────────────────────────────────────────── */
-  // Body-Scroll sicherstellen: wizardBodyLock o.ä. könnte overflow:hidden gesetzt haben
-  useEffect(() => {
-    // WorkDetailPage läuft als eigene Route — body muss scrollbar sein
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "";
-    document.body.classList.remove("hui-wizard-open");
-    return () => {
-      // Beim Verlassen nichts zurücksetzen (nächste Route kümmert sich selbst)
-    };
-  }, []);
 
   return (
     <div style={{ minHeight:"100vh", background:C.warm,
