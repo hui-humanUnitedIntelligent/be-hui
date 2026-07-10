@@ -137,7 +137,7 @@ function TealPartikel() {
 // ─────────────────────────────────────────────────────────────────
 // Danke Screen
 // ─────────────────────────────────────────────────────────────────
-function DankeScreen({ items, impact, total, onDiscover, onResonanz }) {
+function DankeScreen({ items, impact, total, huiTotal = 0, onDiscover, onResonanz }) {
   const pCount = uniquePeople(items);
   const [visible, setVisible] = useState(false);
 
@@ -612,6 +612,7 @@ export default function UnterstutzenFlow({
                 items={items}
                 impact={impact}
                 total={total}
+                huiTotal={huiTotal}
                 onDiscover={() => { onClearCart?.(); onClose?.(); onDiscover?.(); }}
                 onResonanz={() => { onClearCart?.(); onClose?.(); onResonanzCenter?.(); }}
               />
