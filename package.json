@@ -10,6 +10,7 @@
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json",
     "preview": "vite preview",
+    "validate:vercel": "node scripts/validate-vercel-functions.mjs",
     "architecture:audit": "node --experimental-vm-modules src/architecture/scanner/cli.js --mode=audit",
     "architecture:report": "node --experimental-vm-modules src/architecture/scanner/cli.js --mode=report",
     "architecture:graph": "node --experimental-vm-modules src/architecture/scanner/cli.js --mode=graph",
