@@ -1,6 +1,3 @@
-// BALANCED GROWTH v1 (2026-07-10): 80% Talent / 20% HUI
-// HUI-Split: 50% Unternehmen / 30% Impact / 20% Innovation
-// Impact-Split: 70% Projekte / 30% Flex-Pool
 // src/components/commerce/commerceUtils.js
 // ─────────────────────────────────────────────────────────────────
 // Gemeinsame Commerce-Utilities für WerkeKorb + UnterstutzenFlow.
@@ -42,7 +39,7 @@ export const TYPE_META = {
 
 // ── Impact-Konstante ──────────────────────────────────────────────
 // HUI investiert 7 % der eigenen Einnahmen — kein Aufschlag für Käufer
-export const IMPACT_RATE = 0.06  // 30% von 20% HUI-Anteil; // COM-MIGRATION-015.3: vorher 0.07
+export const IMPACT_RATE = 0.0225; // COM-MIGRATION-015.3: vorher 0.07
 
 // ── Preis-Utilities ───────────────────────────────────────────────
 /**
@@ -256,9 +253,9 @@ export function calcTotalWithQty(items) {
 
 /** Platform-Konstanten — Single Source of Truth */
 export const COMMERCE_RATES = {
-  PLATFORM_FEE:  0.20,   // 10% Plattformgebühr
-  IMPACT_RATE:   0.06  // 30% von 20% HUI-Anteil, // COM-MIGRATION-015.3: 2.25% Impact Pool (vorher 7%)
-  CREATOR_SHARE: 0.80,   // COM-MIGRATION-015.3: 85% an Creator (vorher 90%)
+  PLATFORM_FEE:  0.10,   // 10% Plattformgebühr
+  IMPACT_RATE:   0.0225, // COM-MIGRATION-015.3: 2.25% Impact Pool (vorher 7%)
+  CREATOR_SHARE: 0.85,   // COM-MIGRATION-015.3: 85% an Creator (vorher 90%)
 };
 
 /**

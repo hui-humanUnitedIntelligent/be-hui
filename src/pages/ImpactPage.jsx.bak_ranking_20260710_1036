@@ -151,11 +151,11 @@ function usePoolBudgets() {
         const round = rRes.status === "fulfilled" ? rRes.value.data : null;
         const fees  = bRes.status === "fulfilled" ? (bRes.value.data || []) : [];
         const provSum = fees.reduce((a,b) => a + safeNum(b.platform_fee), 0);
-        const pool  = safeNum(round?.pool_eur) || Math.round(provSum * 0.06  // 6% vom Bruttoumsatz (Balanced Growth));
+        const pool  = safeNum(round?.pool_eur) || Math.round(provSum * 0.15);
         setS({
           pool,
-          community:  Math.round(pool * 0.70  // 70% -> Projekte),
-          wirkung:    Math.round(pool * 0.30  // 30% -> Flex-Pool),
+          community:  Math.round(pool * 0.40),
+          wirkung:    Math.round(pool * 0.30),
           innovation: Math.round(pool * 0.20),
           kuration:   Math.round(pool * 0.10),
           votingEnds: round?.voting_ends_at || null,
@@ -247,7 +247,7 @@ function useLastPayout() {
           payout: {
             month: round.month,
             poolEur: round.pool_eur,
-            winnerAmount: Math.round(safeNum(round.pool_eur) * 0.70  // 70% -> Rank 1 Projekte),
+            winnerAmount: Math.round(safeNum(round.pool_eur) * 0.40),
             project: wp || null,
           },
           others: (others || []),
@@ -358,91 +358,48 @@ class ImpactErrorBoundary extends React.Component {
 // ════════════════════════════════════════════════════════════════
 
 // ════════════════════════════════════════════════════════════════
-// HOOK: useAllApprovedByVotes — Single Source of Truth
-// Lädt ALLE approved Projekte + vote_count dieses Monats
-// Sortierung: vote_count DESC, dann created_at ASC (ältere bevorzugt bei Gleichstand)
-// Top 3 = VotingCards, Rest = Weitere Herzensprojekte
+// HOOK: useWeitereHerzensprojekte — lädt aus impact_applications (Platz 2-N approved)
 // ════════════════════════════════════════════════════════════════
-function useAllApprovedByVotes() {
-  const [allProjects, setAllProjects] = React.useState([]);
-  const [loading, setLoading]         = React.useState(true);
-
-  const load = React.useCallback(async () => {
-    try {
-      const poolMonth = new Date().toISOString().slice(0, 7);
-      // 1. Alle approved Projekte
-      const { data: rows } = await supabase
-        .from("impact_applications")
-        .select("id,project_name,short_desc,cover_url,media_urls,funding_goal,current_amount_eur,status,is_completed,created_at")
-        .eq("status", "approved")
-        .order("created_at", { ascending: true }) // Ältere bevorzugt bei Stimmengleichstand
-        .limit(50);
-      if (!rows?.length) return [];
-      // Abgeschlossene Projekte herausfiltern (is_completed oder Ziel vollständig erreicht)
-      const activeRows = rows.filter(a =>
-        !a.is_completed &&
-        safeNum(a.current_amount_eur) < safeNum(a.funding_goal)
-      );
-
-      // 2. Vote-Counts für diesen Monat für ALLE Projekte
-      const appIds = activeRows.map(a => a.id);
-      const { data: voteData } = await supabase
-        .from("impact_votes")
-        .select("project_id")
-        .in("project_id", appIds)
-        .eq("pool_month", poolMonth);
-      const voteMap = {};
-      (voteData || []).forEach(v => {
-        voteMap[v.project_id] = (voteMap[v.project_id] || 0) + 1;
-      });
-
-      // 3. Normalisieren + sortieren: Votes DESC, dann created_at ASC
-      return activeRows.map(app => ({
-        id:                 app.id,
-        name:               app.project_name,
-        category:           app.short_desc?.slice(0, 28) || "Herzensprojekt",
-        description:        app.short_desc,
-        icon:               "💚",
-        color:              "#0DC4B5",
-        votes:              voteMap[app.id] || 0,
-        vote_count:         voteMap[app.id] || 0,
-        goal_eur:           app.funding_goal || 2000,
-        current_amount_eur: app.current_amount_eur || 0,
-        status:             app.status,
-        is_completed:       app.is_completed || false,
-        img:                app.cover_url || (app.media_urls && app.media_urls[0]) || null,
-        img_url:            app.cover_url || (app.media_urls && app.media_urls[0]) || null,
-        created_at:         app.created_at,
-      })).sort((a, b) =>
-        b.votes - a.votes ||                                    // 1. Votes DESC
-        new Date(a.created_at) - new Date(b.created_at)        // 2. Ältere zuerst (Stabilität)
-      );
-    } catch(e) { console.warn("[ALL APPROVED VOTES]", e?.message); return []; }
-  }, []);
+function useWeitereHerzensprojekte(activeProjectIds) {
+  const [data,    setData]    = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const idsKey = (activeProjectIds || []).slice().sort().join(",");
 
   React.useEffect(() => {
     let dead = false;
-    load().then(rows => {
-      if (!dead) { setAllProjects(rows); setLoading(false); }
-    });
-    // Realtime: bei neuen Votes sofort neu sortieren
-    const topic = "imp_all_rt_" + Date.now();
-    const sub = supabase.channel(topic)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "impact_votes" }, () => {
-        load().then(rows => { if (!dead) setAllProjects(rows); });
-      })
-      .subscribe();
-    return () => { dead = true; supabase.removeChannel(sub); };
-  }, [load]);
+    (async () => {
+      try {
+        const { data: rows } = await supabase
+          .from("impact_applications")
+          .select("id,project_name,short_desc,cover_url,media_urls,funding_goal,current_amount_eur,status,created_at")
+          .eq("status", "approved")
+          .order("created_at", { ascending: false })
+          .limit(20);
+        if (dead) return;
+        const activeSet = new Set(activeProjectIds || []);
+        // Normalisiere auf einheitliches Format für HerzensKarte
+        const normalized = (rows || [])
+          .filter(p => !activeSet.has(p.id))
+          .map(p => ({
+            id:          p.id,
+            name:        p.project_name,
+            category:    p.short_desc?.slice(0, 20) || "Herzensprojekt",
+            description: p.short_desc,
+            icon:        "💚",
+            color:       "#0DC4B5",
+            status:      "approved",
+            goal_eur:    p.funding_goal || 0,
+            img_url:     p.cover_url || (p.media_urls && p.media_urls[0]) || null,
+          }))
+          .slice(0, 10);
+        setData(normalized);
+      } catch(e) { console.warn("[WEITERE HP]", e?.message); }
+      if (!dead) setLoading(false);
+    })();
+    return () => { dead = true; };
+  }, [idsKey]);
 
-  const top3   = allProjects.slice(0, 3);
-  const others = allProjects.slice(3);
-  return { allProjects, top3, others, loading };
-}
-
-// Legacy-Kompatibilität: wird nicht mehr benutzt, aber falls noch referenziert
-function useWeitereHerzensprojekte(_ignored) {
-  return { data: [], loading: false };
+  return { data, loading };
 }
 
 
@@ -460,11 +417,9 @@ function useApprovedApplications() {
       const currentPoolMonth = new Date().toISOString().slice(0, 7);
       const { data: rawApps } = await supabase
         .from("impact_applications")
-        .select("id,project_name,short_desc,problem,vision,why_support,funding_goal,current_amount_eur,funding_use,cover_url,media_urls,status,is_completed,created_at,contact_name,contact_email,user_id")
+        .select("id,project_name,short_desc,problem,vision,why_support,funding_goal,current_amount_eur,funding_use,cover_url,media_urls,status,created_at,contact_name,contact_email,user_id")
         .eq("status", "approved").order("created_at", { ascending: false }).limit(50);
-      const appList = (rawApps || []).filter(a =>
-        !a.is_completed && safeNum(a.current_amount_eur) < safeNum(a.funding_goal)
-      );
+      const appList = rawApps || [];
       if (!appList.length) return [];
       const appIds = appList.map(a => a.id);
       const { data: votes } = await supabase
@@ -678,16 +633,9 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
         setUserVotesLeft(v => Math.max(0, (v || 1) - 1));
         onVoted(app.id);
       } else {
-        const msg = (error.message || "").toLowerCase();
-        if (msg.includes("maximale") || msg.includes("keine stimmen")) {
-          setVoteError("Du hast bereits alle deine Stimmen diesen Monat vergeben.");
-        } else if (msg.includes("bereits")) {
-          setVoteError("Du hast bereits für dieses Projekt gestimmt.");
-        } else {
-          setVoteError("Abstimmung fehlgeschlagen. Bitte lade die Seite neu und versuche es erneut. (Session abgelaufen?)");
-        }
+        setVoteError("Abstimmung fehlgeschlagen. Bitte erneut versuchen.");
       }
-    } catch { setVoteError("Verbindungsfehler. Bitte lade die Seite neu und versuche es erneut."); }
+    } catch { setVoteError("Verbindungsfehler. Bitte erneut versuchen."); }
     setLoading(false);
   };
 
@@ -1304,17 +1252,66 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
   const payoutData = useLastPayout();
   const finanziert = useWeitereProjects();
   const activities = useImpactActivities();
-  const rankedProjs   = useAllApprovedByVotes();          // ← SSOT für alle Rankings
-  const approvedApps  = useApprovedApplications();        // für VotePersonal projMap
+  const activeIds     = projects.map(p => p.id);
+  const weitereHP     = useWeitereHerzensprojekte(activeIds);
+  const approvedApps  = useApprovedApplications();
   const [detailApp, setDetailApp] = React.useState(null);
 
-  // ── Projekte: werden jetzt von useAllApprovedByVotes gehandelt ──
-  // Top 3 nach Stimmen → projects State (für Kompatibilität mit bestehendem Code)
+  // ── Projekte laden — aus impact_applications (approved) ──
   React.useEffect(() => {
-    if (rankedProjs.loading) return;
-    setProjects(rankedProjs.top3);
-    setLoadingProj(false);
-  }, [rankedProjs.top3, rankedProjs.loading]);
+    let dead = false;
+    (async () => {
+      try {
+        // Lade approved Projekte aus impact_applications
+        const { data, error } = await supabase
+          .from("impact_applications")
+          .select("id,project_name,short_desc,cover_url,media_urls,funding_goal,current_amount_eur,status,created_at")
+          .eq("status", "approved")
+          .order("created_at", { ascending: false })
+          .limit(3);
+        if (dead) return;
+        if (error) throw error;
+
+        // Vote-Counts für diesen Monat
+        const poolMonth = new Date().toISOString().slice(0, 7);
+        const appIds = (data || []).map(a => a.id);
+        let voteMap = {};
+        if (appIds.length > 0) {
+          const { data: voteData } = await supabase
+            .from("impact_votes")
+            .select("project_id")
+            .in("project_id", appIds)
+            .eq("pool_month", poolMonth);
+          (voteData || []).forEach(v => {
+            voteMap[v.project_id] = (voteMap[v.project_id] || 0) + 1;
+          });
+        }
+
+        // Normalisiere auf VotingCard-Format
+        const rows = (data || []).map(app => ({
+          id:          app.id,
+          name:        app.project_name,
+          category:    app.short_desc?.slice(0, 28) || "Herzensprojekt",
+          description: app.short_desc,
+          icon:        "💚",
+          color:       "#0DC4B5",
+          votes:       voteMap[app.id] || 0,
+          goal_eur:    app.funding_goal || 2000,
+          current_amount_eur: app.current_amount_eur || 0,
+          status:      app.status,
+          img:         app.cover_url || (app.media_urls && app.media_urls[0]) || null,
+        })).sort((a, b) => b.votes - a.votes);
+
+        if (!dead) setProjects(rows);
+      } catch (e) {
+        console.warn("[PROJECTS]", e?.message);
+        if (!dead) setProjects([]);
+      } finally {
+        if (!dead) setLoadingProj(false);
+      }
+    })();
+    return () => { dead = true; };
+  }, []);
 
   // ── ActiveRound + UserVotes (live aus impact_votes) ──
   React.useEffect(() => {
@@ -1361,7 +1358,6 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
               setUserVotes(prev => [...prev, v]);
             }
             // Projektstimmen in Echtzeit hochzählen
-            // Optimistic vote-count — rankedProjs Realtime übernimmt echte Neu-Sortierung
             setProjects(prev => prev.map(p =>
               p.id === v.project_id ? { ...p, votes: (p.votes || 0) + 1 } : p
             ));
@@ -1412,31 +1408,15 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
       // Single Source of Truth: voter_id + pool_month (kein round_id)
       const { error } = await ImpactService.castVote(currentUser.id, projectId, null, maxV);
       if (error) {
-        // Optimistic Update rückgängig machen
         setUserVotes(prev => prev.filter(v => v.project_id !== projectId));
         setProjects(prev => prev.map(p =>
           p.id === projectId ? { ...p, votes:Math.max(0,(p.votes||1)-1) } : p));
-        // Sichtbarer Fehler — kein stiller Fail
-        const msg = error.message || "";
-        if (msg.includes("Maximale Stimmen")) {
-          alert("Du hast bereits alle deine Stimmen diesen Monat vergeben.");
-        } else if (msg.includes("Bereits für")) {
-          alert("Du hast bereits für dieses Projekt gestimmt.");
-        } else {
-          alert("Abstimmung fehlgeschlagen. Bitte lade die Seite neu und versuche es erneut.");
-        }
       } else {
         const proj = projects.find(p => p.id === projectId);
         if (proj) FeedService.createActivity(currentUser.id, "impact_vote",
           `hat das Projekt „${proj.name}" unterstützt`, {}).catch(() => {});
       }
-    } catch (e) {
-      // Verbindungsfehler — UI zurücksetzen + Hinweis
-      setUserVotes(prev => prev.filter(v => v.project_id !== projectId));
-      setProjects(prev => prev.map(p =>
-        p.id === projectId ? { ...p, votes:Math.max(0,(p.votes||1)-1) } : p));
-      alert("Verbindungsfehler. Bitte lade die Seite neu und versuche es erneut.");
-    } finally { setVoteLoading(false); }
+    } catch { /* silent */ } finally { setVoteLoading(false); }
   };
 
   // ── Derived — Stimmen basieren auf echtem Profil-Status ──
@@ -1521,12 +1501,21 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
       {/* ══ 4b ── IMPACT TIMELINE "Impact auf einen Blick" ═══════ */}
       <ImpactTimeline transp={transp} />
 
+      {/* ══ 4b.5 ── BEWILLIGTE HERZENSPROJEKTE — TOP 1 ═══════════ */}
+      {(approvedApps.loading || approvedApps.top1) && (
+        <BewilligteTop1Section
+          app={approvedApps.top1}
+          loading={approvedApps.loading}
+          onOpen={setDetailApp}
+        />
+      )}
+
       {/* ══ 4c ── WEITERE HERZENSPROJEKTE — Platz 2-5 dynamisch ══ */}
       <WeitereHerzensSection
         apps={approvedApps.weitere}
         loadingApps={approvedApps.loading}
-        seedData={rankedProjs.others}
-        seedLoading={rankedProjs.loading}
+        seedData={weitereHP.data}
+        seedLoading={weitereHP.loading}
         onOpen={setDetailApp}
         allApps={approvedApps.apps}
       />
@@ -2257,35 +2246,18 @@ function HerzensKarte({ p, idx }) {
               {p.description}
             </div>
           )}
-          {/* Stimmen-Counter */}
-          <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:5 }}>
-            <span style={{ fontSize:10, color:T.muted }}>
-              🗳 {safeNum(p.vote_count || p.votes)} {safeNum(p.vote_count || p.votes) === 1 ? "Stimme" : "Stimmen"}
-            </span>
+          <div style={{ display:"flex", alignItems:"center",
+            justifyContent:"space-between", gap:6 }}>
+            {p.category && (
+              <span style={{ fontSize:9, color:T.muted, fontWeight:700,
+                letterSpacing:"0.04em", textTransform:"uppercase" }}>{p.category}</span>
+            )}
+            {goalEur > 0 && (
+              <span style={{ fontSize:10, color:accent, fontWeight:800 }}>
+                Ziel: {fmtEur(goalEur)}
+              </span>
+            )}
           </div>
-          {/* Finanzierungsbalken */}
-          {goalEur > 0 && (() => {
-            const curr = safeNum(p.current_amount_eur) || 0;
-            const pct  = Math.min(100, goalEur > 0 ? (curr / goalEur) * 100 : 0);
-            return (
-              <div>
-                <div style={{ display:"flex", justifyContent:"space-between",
-                  alignItems:"center", marginBottom:3 }}>
-                  <span style={{ fontSize:9.5, color:T.ink2, fontWeight:600 }}>
-                    {fmtEur(curr)} von {fmtEur(goalEur)} finanziert
-                  </span>
-                  <span style={{ fontSize:9, color:accent, fontWeight:800 }}>
-                    {Math.round(pct)}%
-                  </span>
-                </div>
-                <div style={{ height:4, background:`${accent}18`, borderRadius:99, overflow:"hidden" }}>
-                  <div style={{ height:"100%", width:`${pct}%`,
-                    background:`linear-gradient(90deg,${accent},${accent}cc)`,
-                    borderRadius:99, transition:"width 0.6s ease" }} />
-                </div>
-              </div>
-            );
-          })()}
         </div>
       </div>
     </div>
@@ -2322,7 +2294,7 @@ function WeitereHerzensprojekte({ data, loading }) {
             ? "Wird geladen…"
             : isSeed
               ? "Beispielprojekte — so sehen eingereichte Herzensprojekte aus."
-              : `${rawList.length} Projekt${rawList.length !== 1 ? "e" : ""} — sortiert nach Community-Stimmen`
+              : `${rawList.length} Projekt${rawList.length !== 1 ? "e" : ""} — eingereicht, geprüft oder in Umsetzung.`
           }
         </p>
       </div>
@@ -2408,6 +2380,32 @@ function EmptyImpactState({ type = "voting" }) {
 }
 
 // ════════════════════════════════════════════════════════════════
+// BewilligteTop1Section — Zeigt NUR das führende Projekt (Top 1)
+// ════════════════════════════════════════════════════════════════
+function BewilligteTop1Section({ app, loading, onOpen }) {
+  if (loading) return (
+    <div style={{ padding:"28px 20px 8px", maxWidth:600, margin:"0 auto" }}>
+      <h2 style={{ margin:"0 0 16px", fontSize:20, fontWeight:900, color:"#141422" }}>💚 Bewilligte Herzensprojekte</h2>
+      <SkeletonCards count={1} />
+    </div>
+  );
+  if (!app) return (
+    <div style={{ padding:"28px 20px 8px", maxWidth:600, margin:"0 auto" }}>
+      <h2 style={{ margin:"0 0 16px", fontSize:20, fontWeight:900, color:"#141422" }}>💚 Bewilligte Herzensprojekte</h2>
+      <EmptyImpactState type="bewilligt" />
+    </div>
+  );
+  return (
+    <div style={{ padding:"28px 20px 8px", maxWidth:600, width:"100%", margin:"0 auto", boxSizing:"border-box" }}>
+      <div style={{ marginBottom:16 }}>
+        <h2 style={{ margin:"0 0 4px", fontSize:20, fontWeight:900, color:"#141422" }}>💚 Bewilligte Herzensprojekte</h2>
+        <p style={{ margin:0, fontSize:13, color:"#666" }}>Diese Projekte wurden vom HUI-Team geprüft und bewilligt — jetzt abstimmen!</p>
+      </div>
+      <ApprovedAppCard app={app} onOpen={onOpen} />
+    </div>
+  );
+}
+
 // ════════════════════════════════════════════════════════════════
 // WeitereHerzensSection — Platz 2-5 approved + Fallback Seed
 // ════════════════════════════════════════════════════════════════

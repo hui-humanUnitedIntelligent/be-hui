@@ -23,9 +23,9 @@ const corsHeaders = {
 
 // Serverseitige Konstanten — nie vom Client übernehmen
 // COM-MIGRATION-015.3: Gebuehr 10%->15%, Impact 7%->2.25% (=15% der Gebuehr), Creator 90%->85%
-const PLATFORM_FEE_RATE = 0.15
-const IMPACT_RATE       = 0.0225
-const CREATOR_SHARE     = 0.85
+const PLATFORM_FEE_RATE = 0.20  // Balanced Growth v1
+const IMPACT_RATE       = 0.06  // 30% von 20% HUI
+const CREATOR_SHARE     = 0.80  // Balanced Growth v1
 const MAX_QTY           = 99
 const MIN_AMOUNT_CENTS  = 50   // Stripe Minimum EUR
 
