@@ -1993,13 +1993,12 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
     // Seed-IDs wie "w1","w2" sind keine UUIDs → kein Navigate
     const isRealId = werkId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(werkId));
     if (isRealId) {
-      // OPEN.1 (2026-07-08): erst Vorschau (einheitlich mit Feed), von dort
-      // aus "Vollstaendige Ansicht oeffnen" -> /work/:id (keine Funktion verloren)
-      const item = normalizePostForPreview(werk, "work");
-      if (item) openPreview({ ...item, canOpenFull:true, fullPath:`/work/${werkId}` });
+      // Werke öffnen direkt WorkDetailPage (hat Bild, Preis, Kaufen-Button)
+      // ContentPreviewSheet ist für Beiträge/Projekte, nicht für Werke
+      navigate(`/work/${werkId}`);
     }
     // Seed-Karte: kein Navigate — kein "Werk nicht gefunden"
-  }, [openPreview]);
+  }, [navigate]);
 
   // Talent-Karte: Anmeldung/Registrierung erzwingen (useAuthGate), danach Anfrage-Modal öffnen.
   // Seed-Karten (keine echte UUID) öffnen nach Login bewusst kein Modal (kein echter Anbieter dahinter).
@@ -2029,25 +2028,14 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   const handleErlebnisPress = useCallback((erlebnis) => {
     const isRealId = erlebnis?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(erlebnis.id));
     if (isRealId) {
-      // Discover laedt Erlebnisse in einer eigenen Anzeige-Form (cover statt
-      // cover_url, date/month statt echtem Datumsfeld) -- kleine Adapter-
-      // Zuordnung auf die Rohfeldnamen, die toFeedItem() erwartet, statt
-      // erneut eine eigene Normalisierung zu bauen.
-      const item = normalizePostForPreview({
-        id: erlebnis.id, user_id: erlebnis.user_id, title: erlebnis.title,
-        cover_url: erlebnis.cover, location_label: erlebnis.location,
-        created_at: erlebnis.created_at || null,
-      }, "experience");
-      if (item) { openPreview(item); return; }
+      // Erlebnisse direkt mit ExperienceBookingFlow öffnen (hat Bild, Beschreibung, Buchungs-Button)
+      // ContentPreviewSheet ist für Beiträge/Projekte, nicht für buchbare Erlebnisse
+      if (typeof onBook === "function") { onBook(erlebnis); return; }
     }
-    // Seed-Karte (keine echte DB-Zeile): kein Normalizer moeglich, altes Verhalten als Fallback
-    if (typeof onBook === "function") {
-      onBook(erlebnis);
-    } else {
-      const profileId = erlebnis.user_id;
-      if (profileId && typeof onView === "function") onView(profileId);
-    }
-  }, [onBook, onView, openPreview]);
+    // Seed-Karte oder kein onBook: Fallback auf Profil
+    const profileId = erlebnis.user_id;
+    if (profileId && typeof onView === "function") onView(profileId);
+  }, [onBook, onView]);
 
   // Projekt-Karte (OPEN.1, 2026-07-08): zeigte bisher IMMER nur die
   // allgemeine Impact-Seite, unabhaengig davon welches Projekt angetippt
