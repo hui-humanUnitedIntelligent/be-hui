@@ -202,6 +202,13 @@ serve(async (req) => {
         contact_email:        pi.receipt_email ?? null,
       }).eq('id', order.id).eq('state', 'pending') // doppelter Guard
 
+      // ── stripe_payments → succeeded (SSOT für SADB Dashboard) ─────────
+      // rpc_process_order_fees insertet stripe_payments mit status='pending'.
+      // Hier setzen wir auf 'succeeded' damit Dashboard/Transaktionen live sind.
+      await supabase.from('stripe_payments')
+        .update({ status: 'succeeded' })
+        .eq('stripe_payment_id', pi.id)
+
       // ── Commerce Event ────────────────────────────────────────
       const { error: confirmEventErr } = await supabase.from('commerce_events').insert({
         event_type: 'payment_confirmed',
