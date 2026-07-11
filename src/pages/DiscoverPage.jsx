@@ -515,7 +515,7 @@ function MomentCard({ moment, delay=0, onPress }) {
           <span style={{ fontSize:10.5, fontWeight:600, color:T.inkSoft }}>{moment.name}</span>
           {moment.location && (
             <>
-              <span style={{ fontSize:9, color:T.inkFaint }}>·</span>
+              
               <span style={{ fontSize:10, color:T.inkFaint }}>📍 {moment.location}</span>
             </>
           )}
@@ -644,7 +644,7 @@ function CardLocationRow({ location, distanceKm }) {
     }}>
       <span style={{ fontSize:9 }}>📍</span>
       <span style={{ overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>
-        {location}{location && Number.isFinite(distanceKm) ? " · " : ""}
+        {location}{location && Number.isFinite(distanceKm) ? " " : ""}
         {Number.isFinite(distanceKm) ? `${distanceKm.toFixed(0)} km entfernt` : ""}
       </span>
     </div>

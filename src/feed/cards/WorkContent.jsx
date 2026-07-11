@@ -99,7 +99,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M7 1C4 1 1.5 3.5 1.5 7C1.5 10.5 4 13 7 13C10 13 12.5 10.5 12.5 7C12.5 3.5 10 1 7 1ZM6 10L3.5 7.5L4.5 6.5L6 8L9.5 4.5L10.5 5.5L6 10Z" fill="white"/>
             </svg>
-            {priceStr ? `${priceStr} \u00b7 Kaufen` : "Kaufen"}
+            {priceStr ? `${priceStr}  Kaufen` : "Kaufen"}
           </button>
         )}
 
@@ -120,7 +120,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
       {(category || priceStr) && !(onBuyWerk && isBuyable) && (
         <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:2 }}>
           {category && <span style={{ fontSize:12.5, fontWeight:600, color:CORAL }}>{category}</span>}
-          {category && priceStr && <span style={{ fontSize:12, color:INK3 }}>\u00b7</span>}
+
           {priceStr && <span style={{ fontSize:12.5, fontWeight:600, color:INK3 }}>{priceStr}</span>}
         </div>
       )}
@@ -128,7 +128,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
       {(category || priceStr) && onBuyWerk && isBuyable && (
         <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:2 }}>
           {category && <span style={{ fontSize:12.5, fontWeight:600, color:CORAL }}>{category}</span>}
-          {category && priceStr && <span style={{ fontSize:12, color:INK3 }}>\u00b7</span>}
+
           {priceStr && <span style={{ fontSize:12.5, color:INK3 }}>{priceStr}</span>}
         </div>
       )}
