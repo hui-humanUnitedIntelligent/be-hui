@@ -314,7 +314,10 @@ export default function UnterstutzenFlow({
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       supabase.auth.getSession().then(({ data: { session } }) => {
         fetch(`${supabaseUrl}/functions/v1/check-order-status?order_id=${huiOrder}`, {
-          headers: { 'Authorization': `Bearer ${session?.access_token}` }
+          headers: {
+            'Authorization': `Bearer ${session?.access_token}`,
+            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY ?? '',
+          }
         })
           .then(r => r.json())
           .then(result => {
@@ -344,14 +347,20 @@ export default function UnterstutzenFlow({
     let _step = 'S00';
     try {
 
-      // S01 — Session laden
+      // S01 — Session laden (refreshSession garantiert frischen Token)
       _step = 'S01';
       const { data: { session } } = await supabase.auth.getSession();
       dbg('S01 ✓ session', { exists: !!session });
 
-      // S02 — access_token
+      // S02 — access_token: ggf. refreshen damit er nicht abgelaufen ist
       _step = 'S02';
-      const accessToken = session?.access_token ?? null;
+      let accessToken = session?.access_token ?? null;
+      // Wenn Token abgelaufen oder nicht vorhanden → refreshen
+      if (!accessToken || (session?.expires_at && Date.now() / 1000 > session.expires_at - 60)) {
+        dbg('S02 Token abgelaufen oder fehlend — refreshe Session…');
+        const { data: refreshed } = await supabase.auth.refreshSession();
+        accessToken = refreshed?.session?.access_token ?? accessToken;
+      }
       dbg('S02 ✓ access_token', { present: !!accessToken, len: accessToken?.length ?? 0 });
 
       // S03 — shippingStrategy
@@ -374,13 +383,15 @@ export default function UnterstutzenFlow({
       const efUrl = `${supabaseUrl}/functions/v1/create-payment-intent`;
       dbg('S05 ✓ URL', { url: efUrl, online: navigator.onLine, origin: window.location.origin });
 
-      // S06 — Headers
+      // S06 — Headers (apikey + Authorization beide nötig für Supabase Edge Functions)
       _step = 'S06';
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
       const headers = {
         'Content-Type':  'application/json',
         'Authorization': `Bearer ${accessToken}`,
+        'apikey':        supabaseAnonKey ?? '',
       };
-      dbg('S06 ✓ Headers', { hasAuth: !!headers.Authorization, ct: headers['Content-Type'] });
+      dbg('S06 ✓ Headers', { hasAuth: !!headers.Authorization, hasApiKey: !!headers.apikey, ct: headers['Content-Type'] });
 
       // S07 — RequestBody
       _step = 'S07';
