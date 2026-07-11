@@ -74,7 +74,7 @@ function Step1({ title, setTitle, desc, setDesc, onNext }) {
           Was ist<br/>dein Talent?
         </h2>
         <p style={{ margin:0, fontSize:14, color:T.ink3, lineHeight:1.7 }}>
-          Erzähl uns von dir —<br/>ganz persönlich, nicht wie ein CV.
+          Was kannst du besonders gut?<br/>Was begeistert dich wirklich?
         </p>
       </div>
 
