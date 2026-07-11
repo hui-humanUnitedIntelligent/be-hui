@@ -145,6 +145,12 @@ serve(async (req) => {
             status: 'confirmed', confirmed_at: new Date().toISOString(),
           }).eq('id', tBooking.id).eq('status', 'pending_payment') // Guard gegen Doppel-Verarbeitung
 
+          // ESCROW v1: Holding bis Käufer bestätigt
+          await supabase.from('talent_bookings').update({
+            escrow_status: 'holding',
+            auto_confirm_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
+          }).eq('id', tBooking.id)
+
           const { data: feeResult, error: feeErr } = await supabase.rpc('rpc_process_talent_booking_fees', {
             p_booking_id: tBooking.id
           })
@@ -201,6 +207,14 @@ serve(async (req) => {
         contact_name:         (pi as any).shipping?.name ?? null,
         contact_email:        pi.receipt_email ?? null,
       }).eq('id', order.id).eq('state', 'pending') // doppelter Guard
+
+      // ESCROW v1: Geld bei HUI, kein sofortiger Transfer
+      if (order) {
+        await supabase.from('orders').update({
+          escrow_status: 'holding',
+          auto_confirm_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
+        }).eq('id', order.id)
+      }
 
       // ── stripe_payments → succeeded (SSOT für SADB Dashboard) ─────────
       // rpc_process_order_fees insertet stripe_payments mit status='pending'.
