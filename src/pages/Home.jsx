@@ -13,6 +13,7 @@ import {
 } from "../lib/world/orbLayer.js";
 import { SAFE_MODE } from "../config/safeMode.js";
 import { SafeRender } from "../config/SafeRender.jsx";
+import TalentOnboarding from "../components/TalentOnboarding.jsx";
 import { logDebug }  from "../lib/debugCollector.js";
 import { PaintRecoveryManager } from "../lib/world/safariPaintRecovery.js";
 import HomeShell, { useHome }   from "../components/home/HomeShell.jsx";
@@ -60,7 +61,7 @@ import { useContentPreview } from "../context/ContentPreviewContext.jsx";
 const HuiMembershipFlow   = React.lazy(() => import("../components/HuiMembershipFlow.jsx"));
 const CreatorDashboard    = React.lazy(() => import("./CreatorDashboard.jsx"));
 const HuiCreateFlow       = React.lazy(() => import("../components/HuiCreateFlow.jsx"));
-const TalentOnboarding    = React.lazy(() => import("../components/TalentOnboarding.jsx"));
+// TalentOnboarding: direct import (kein lazy — verhindert Suspense-Spinner-Bug)
 const StoryComposer       = React.lazy(() => import("../components/StoryComposer.jsx"));
 // ExperienceCreator.jsx / WerkPublisher.jsx: Datei komplett entfernt (2026-07-08
 // Dead-Code-Audit) -- showExperienceCreator/showWerkPublisher sind Legacy-benannte
@@ -445,7 +446,15 @@ function HomeInner() {
           {/* Phase 17.1 FIX: tabVisibilityController liefert jetzt position:absolute
                für inaktive Tabs → kein Flow-Space-Problem mehr */}
           <div ref={tabRefs.discover} style={keepDiscover}>
-            <Suspense fallback={<div style={{padding:"40px 20px",textAlign:"center",opacity:0.6,fontSize:13,
+            {/* TalentOnboarding — direkt (kein lazy/Suspense) */}
+      {showTalentFlow && SAFE_MODE.talentFlow && (
+        <TalentOnboarding
+          onClose={() => setShowTalentFlow(false)}
+          onActivate={() => setShowTalentFlow(false)}
+        />
+      )}
+
+      <Suspense fallback={<div style={{padding:"40px 20px",textAlign:"center",opacity:0.6,fontSize:13,
   color:"rgba(20,20,34,0.40)",animation:"huiFadeIn 0.5s ease"}}>Entdecken öffnet sich…</div>}>
               <SafeRender flag="discoverFeed" label="DiscoverPage">
                 <DiscoverPage
@@ -687,14 +696,7 @@ function HomeInner() {
           onNotif={closeMeinHuiCinematic}
           onSettings={closeMeinHuiCinematic}
         />
-        {showTalentFlow && SAFE_MODE.talentFlow && (
-          <SafeRender flag="talentFlow" label="TalentOnboarding">
-            <TalentOnboarding
-              onClose={() => setShowTalentFlow(false)}
-              onSuccess={() => setShowTalentFlow(false)}
-            />
-          </SafeRender>
-        )}
+        {/* TalentOnboarding: außerhalb Suspense (kein lazy mehr) */}
         {showStoryComposer && SAFE_MODE.storyComposer && canCreate && (
           <SafeRender flag="storyComposer" label="StoryComposer">
             <StoryComposer
