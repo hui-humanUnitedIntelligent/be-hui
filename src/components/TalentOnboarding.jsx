@@ -381,6 +381,7 @@ export default function TalentOnboarding({ onClose, onActivate }) {
         profile_modules:     modules,
         talent_offer_types:  Object.keys(modules).filter(k => modules[k]),
         is_wirker:           true,
+        is_talent:           true,
         role:                "talent",
         updated_at:          new Date().toISOString(),
       };
