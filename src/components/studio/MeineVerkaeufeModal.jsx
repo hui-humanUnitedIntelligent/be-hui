@@ -10,6 +10,9 @@
 
 import { createPortal } from "react-dom";
 import { useMySales } from "../../hooks/useMySales.js";
+import { useState } from "react";
+import EscrowStatusBadge from "../commerce/EscrowStatusBadge.jsx";
+import SellerPayoutRequestSheet from "../commerce/SellerPayoutRequestSheet.jsx";
 
 // ── Design Tokens (identisch zu den anderen Studio-Modals) ─────────
 const T = {
@@ -32,8 +35,9 @@ function fmtDate(iso) {
   return dt.toLocaleDateString("de-DE", { day: "2-digit", month: "short" });
 }
 
-export default function MeineVerkaeufeModal({ profile, onClose }) {
+export default function MeineVerkaeufeModal({ profile, onClose = () => {} }) {
   const { sales, totalEarned, loading } = useMySales(profile?.id);
+  const [payoutItem, setPayoutItem] = useState(null);
 
   const modal = (
     <div
@@ -133,8 +137,32 @@ export default function MeineVerkaeufeModal({ profile, onClose }) {
                             {fmtDate(s.orders?.created_at || s.created_at)}
                           </div>
                         </div>
-                        <div style={{ fontSize: 13, fontWeight: 800, color: T.teal, flexShrink: 0 }}>
-                          +{Number(s.payout_eur || 0).toFixed(2)}€
+                        <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:4, flexShrink:0 }}>
+                          <div style={{ fontSize: 13, fontWeight: 800, color: T.teal }}>
+                            +{Number(s.payout_eur || 0).toFixed(2)}€
+                          </div>
+                          {s.orders?.escrow_status === 'holding' && (
+                            <EscrowStatusBadge
+                              escrowStatus={s.orders.escrow_status}
+                              deliveryStatus={s.orders.delivery_status}
+                              size="sm"
+                            />
+                          )}
+                          {s.orders?.escrow_status === 'holding' && !s.orders?.payout_requested_at && (
+                            <button
+                              onClick={() => setPayoutItem({ id: s.orders.id, type: 'order', title: s.snapshot?.title })}
+                              style={{ fontSize:10, fontWeight:700, color:'#FF8A6B', background:'rgba(255,138,107,0.1)',
+                                border:'1px solid rgba(255,138,107,0.25)', borderRadius:8, padding:'3px 8px',
+                                cursor:'pointer', whiteSpace:'nowrap', touchAction:'manipulation' }}>
+                              Auszahlung beantragen
+                            </button>
+                          )}
+                          {s.orders?.escrow_status === 'holding' && s.orders?.payout_requested_at && (
+                            <span style={{ fontSize:10, color:'#F59E0B', fontWeight:600 }}>In Prüfung</span>
+                          )}
+                          {s.orders?.escrow_status === 'released' && (
+                            <span style={{ fontSize:10, color:'#16D7C5', fontWeight:600 }}>✓ Freigegeben</span>
+                          )}
                         </div>
                       </div>
                     );
@@ -156,5 +184,16 @@ export default function MeineVerkaeufeModal({ profile, onClose }) {
     </div>
   );
 
-  return createPortal(modal, document.body);
+  return (
+    <>
+      {createPortal(modal, document.body)}
+      {payoutItem && (
+        <SellerPayoutRequestSheet
+          item={payoutItem}
+          onClose={() => setPayoutItem(null)}
+          onSuccess={() => setPayoutItem(null)}
+        />
+      )}
+    </>
+  );
 }

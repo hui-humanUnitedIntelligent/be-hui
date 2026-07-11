@@ -116,7 +116,13 @@ export default function WerkKaufFlow({ werk, onClose }) {
               Anfrage gesendet
             </div>
             <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)", marginBottom: 28, lineHeight: 1.5 }}>
-              Der Creator wurde benachrichtigt und meldet sich bei dir.
+              Deine Zahlung ist sicher bei HUI hinterlegt. Sobald du das Werk erhalten hast,
+              bestätige den Erhalt in deinem Profil — erst dann erhält der Creator seine Auszahlung.
+            </div>
+            <div style={{ fontSize: 12, color: "rgba(26,26,46,0.45)", marginBottom: 20, lineHeight: 1.5,
+              padding: "10px 14px", borderRadius: 12, background: "rgba(22,215,197,0.07)",
+              border: "1px solid rgba(22,215,197,0.15)" }}>
+              💡 Gehe zu <strong>Mein Profil → Studio → Meine Verkäufe</strong>, um den Erhalt zu bestätigen.
             </div>
             <button onClick={onClose} style={{
               background: TEAL, color: "#fff", border: "none",
