@@ -687,7 +687,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
   if (hookLoading) {
     return (
       <div style={{
-        position:"fixed", inset:0, zIndex:9500, /* <BottomNav(10000) — Basis-Root der Seite, siehe PROFIL-NAV-FIX 2026-07-05 */
+        position:"fixed", top:0, left:0, right:0,
+        bottom:"calc(72px + env(safe-area-inset-bottom, 0px))",
+        zIndex:9500, /* <BottomNav(10000) — Root endet vor Navbar */
         background:T.bg,
         display:"flex", alignItems:"center", justifyContent:"center",
       }}>
@@ -704,7 +706,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
   return (
     <div className="mbp-root" style={{
-      position:"fixed", inset:0, zIndex:9500, /* <BottomNav(10000) — Basis-Root der Seite, siehe PROFIL-NAV-FIX 2026-07-05 */
+      position:"fixed", top:0, left:0, right:0,
+      bottom:"calc(72px + env(safe-area-inset-bottom, 0px))",
+      zIndex:9500, /* <BottomNav(10000) — Root endet vor Navbar */
       display:"flex", flexDirection:"column",
     }}>
 

@@ -1216,7 +1216,9 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
 
   return (
     <div className="tpp-root" style={{
-      position:"fixed", inset:0, zIndex:9500, /* <BottomNav(10000) — Basis-Root der Seite, siehe PROFIL-NAV-FIX 2026-07-05 */
+      position:"fixed", top:0, left:0, right:0,
+      bottom:"calc(72px + env(safe-area-inset-bottom, 0px))",
+      zIndex:9500, /* <BottomNav(10000) — Root endet vor Navbar */
       display:"flex", flexDirection:"column",
       opacity:mounted?1:0,
       transform:mounted?"none":"translateY(14px)",
