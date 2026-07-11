@@ -421,6 +421,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
     setChatRecipient  = () => {},
     setShowChat       = () => {},
     setShowWerkDetail = () => {},
+    setShowTalentFlow = () => {},
   } = useHome?.() || {};
   const { openRef } = useContentPreview();
 
@@ -926,7 +927,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
             {/* B1c. TALENT WERDEN — Einladungskarte für Basis-User */}
             {!profile?.is_talent && (
-              <TalentWerdenBanner onStart={() => setShowTalentOnboarding(true)} />
+              <TalentWerdenBanner onStart={() => setShowTalentFlow(true)} />
             )}
             <Gap h={20}/>
 
