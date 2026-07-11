@@ -2,6 +2,7 @@
 // 3 Steps: Identität → Module → Profil
 // Props-only, kein useNavigate/useParams, router-safe
 import React, { useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth }  from "../lib/AuthContext";
 import { HUI } from "../design/hui.design.js";
@@ -403,7 +404,7 @@ export default function TalentOnboarding({ onClose, onActivate }) {
     onClose();
   }
 
-  return (
+  return createPortal(
     <div style={{
       position:"fixed", inset:0, zIndex:10500,
       background:"rgba(8,8,8,.52)",
@@ -453,6 +454,7 @@ export default function TalentOnboarding({ onClose, onActivate }) {
 
         <div style={{ height:8 }}/>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
