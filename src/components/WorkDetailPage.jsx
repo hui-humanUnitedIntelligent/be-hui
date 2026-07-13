@@ -564,11 +564,13 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
 
   return (
     <div style={{
-      minHeight:"100dvh", background:C.warm,
+      height:"100dvh", overflowY:"auto", overflowX:"hidden",
+      WebkitOverflowScrolling:"touch",
+      background:C.warm,
       fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
-      maxWidth:680, margin:"0 auto",
       paddingBottom:"calc(90px + env(safe-area-inset-bottom, 0px))" }}>
       <style>{CSS}</style>
+      <div style={{ maxWidth:680, margin:"0 auto", minHeight:"100%" }}>
 
       {/* ── Back Button (floating) ── */}
       <div style={{ position:"fixed", top:"max(16px,env(safe-area-inset-top,16px))",
@@ -776,7 +778,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
             <div className="wd-scroll"
               style={{ display:"flex", gap:12, overflowX:"auto",
                 padding:"0 20px 4px" }}>
-              {console.log('[HUI MAP DEBUG] WorkDetailPage.jsx.related', related) || null}
+              
           {(related || []).filter(w => w && typeof w === 'object').map(w => (
                 <RelatedCard key={w.id} werk={w}
                   onClick={id => navigate(`/work/${id}`)}/>
@@ -815,6 +817,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
         </button>
       </div>
 
+      </div>
     </div>
   );
 }
