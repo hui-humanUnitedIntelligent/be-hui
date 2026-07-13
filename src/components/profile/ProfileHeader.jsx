@@ -91,7 +91,7 @@ export function ProfileHeader({
   [profile?.id, onEditCover]);
 
   const COVER_H  = 210;
-  const WAVE_H   = 52;
+  const WAVE_H   = 48;
   const AVATAR_D = 96;
 
   return (
@@ -176,7 +176,7 @@ export function ProfileHeader({
             </div>
           )}
           {/* Cover-Button (Mobile: immer sichtbar) */}
-          {isOwner && !loading && !coverHover && (
+          {isOwner && !loading && (
             <button className="ph-press"
               onClick={(e) => { e.stopPropagation(); coverInputRef.current?.click(); }}
               style={{
@@ -218,7 +218,7 @@ export function ProfileHeader({
 
           {/* ─── AVATAR — mittig über Welle ──────────────────────── */}
           <div style={{
-            position:"absolute", left:"50%", top:-(AVATAR_D / 2) - 2,
+            position:"absolute", left:"50%", top:-(AVATAR_D / 2) + 2,
             transform:"translateX(-50%)", zIndex:10,
           }}>
             {/* Puls-Ring Ambassador */}
@@ -296,7 +296,7 @@ export function ProfileHeader({
 
         {/* ─── IDENTITY ──────────────────────────────────────────── */}
         <div className="ph-identity" style={{
-          background:T.bg, paddingTop: AVATAR_D / 2 + 12,
+          background:T.bg, paddingTop: AVATAR_D / 2 + 4,
           paddingBottom:0, textAlign:"center",
         }}>
           {/* Name */}
@@ -348,7 +348,7 @@ export function ProfileHeader({
           )}
           {/* Trennlinie */}
           <div style={{
-            margin:"16px 20px 0", height:1,
+            margin:"10px 20px 0", height:1,
             background:"linear-gradient(to right,transparent,rgba(14,196,184,0.2),transparent)",
           }} />
         </div>
