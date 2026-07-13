@@ -1107,24 +1107,6 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
     return () => clearTimeout(t);
   }, []);
 
-  // Loading-Guard: Spinner zeigen solange Profil noch nicht geladen
-  if (loading && !profile) {
-    return (
-      <div style={{
-        position:"fixed", inset:0, zIndex:10500,
-        background:"#F9F7F4",
-        display:"flex", alignItems:"center", justifyContent:"center",
-      }}>
-        <div style={{
-          width:36, height:36, borderRadius:"50%",
-          border:"3px solid rgba(13,196,181,0.15)",
-          borderTopColor:"#0DC4B5",
-          animation:"spin 0.75s linear infinite",
-        }}/>
-        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-      </div>
-    );
-  }
   // ── Sprint F.9G.4: Realtime — Admin-Freigabe (works + experiences) ──
   // Nur UPDATE: wenn Admin status → published/approved setzt, sofort sichtbar.
   // DELETE bewusst ausgelassen (Skalierungsrisiko, kein primärer UX-Flow).
@@ -1232,6 +1214,25 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
     if (error) { console.error("handleVisibilityChange:", error.message); return; }
     reload();
   }, [user?.id, reload]);
+
+  // Loading-Guard (nach allen Hooks — Rules of Hooks konform)
+  if (loading && !profile) {
+    return (
+      <div style={{
+        position:"fixed", inset:0, zIndex:10500,
+        background:"#F9F7F4",
+        display:"flex", alignItems:"center", justifyContent:"center",
+      }}>
+        <div style={{
+          width:36, height:36, borderRadius:"50%",
+          border:"3px solid rgba(13,196,181,0.15)",
+          borderTopColor:"#0DC4B5",
+          animation:"spin 0.75s linear infinite",
+        }}/>
+        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      </div>
+    );
+  }
 
   return (
     <div className="tpp-root" style={{
