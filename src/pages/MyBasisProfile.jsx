@@ -767,7 +767,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
         <div style={{ display:"flex", gap:6, alignItems:"center", flexShrink:0 }}>
           <button
             className="mbp-press-light"
-            onClick={() => { setShowPublicPreview(false); setShowStudio(false); setShowMerken(true); }}
+            onClick={() => { setShowPublicPreview(false); setShowSettings(false); setShowMerken(true); }}
             title="Gemerkt"
             aria-label={savedCount > 0 ? `Gemerkt, ${savedCount} gespeicherte Inhalte` : "Gemerkt"}
             style={{
@@ -783,7 +783,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           </button>
           <button
             className="mbp-press-light"
-            onClick={() => { setShowMerken(false); setShowStudio(false); setShowPublicPreview(true); }}
+            onClick={() => { setShowMerken(false); setShowSettings(false); setShowPublicPreview(true); }}
             title="Profil ansehen"
             aria-label="Profil ansehen"
             style={{
@@ -795,7 +795,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           >👁️</button>
           <button
             className="mbp-press-light"
-            onClick={() => { setShowMerken(false); setShowPublicPreview(false); setShowStudio(true); }}
+            onClick={() => { setShowMerken(false); setShowPublicPreview(false); setShowSettings(true); }}
             title="Einstellungen"
             aria-label="Einstellungen"
             style={{
