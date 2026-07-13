@@ -755,7 +755,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
         {/* ── SEITEN-TITEL ─────────────────────────────────────── */}
         <div style={{
-          padding:`max(52px,calc(48px + env(safe-area-inset-top,0px))) ${T.px}px 0`,
+          padding:`max(14px,calc(10px + env(safe-area-inset-top,0px))) ${T.px}px 0`,
           display:"flex", justifyContent:"space-between", alignItems:"flex-start",
         }}>
           <div>
