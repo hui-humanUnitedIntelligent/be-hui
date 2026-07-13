@@ -750,6 +750,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
         padding:`max(14px,calc(10px + env(safe-area-inset-top,0px))) ${T.px}px 10px`,
         display:"flex", justifyContent:"space-between", alignItems:"flex-start",
         flexShrink:0,
+        position:"relative", zIndex:2,   /* über mbp-scroll (overflow=auto erzeugt Stacking Context) */
       }}>
         <div>
           <div style={{ fontSize:24, fontWeight:900, color:T.ink, letterSpacing:"-0.04em",
@@ -766,7 +767,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
         <div style={{ display:"flex", gap:6, alignItems:"center", flexShrink:0 }}>
           <button
             className="mbp-press-light"
-            onClick={() => setShowMerken(true)}
+            onClick={() => { setShowPublicPreview(false); setShowStudio(false); setShowMerken(true); }}
             title="Gemerkt"
             aria-label={savedCount > 0 ? `Gemerkt, ${savedCount} gespeicherte Inhalte` : "Gemerkt"}
             style={{
@@ -782,7 +783,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           </button>
           <button
             className="mbp-press-light"
-            onClick={() => setShowPublicPreview(true)}
+            onClick={() => { setShowMerken(false); setShowStudio(false); setShowPublicPreview(true); }}
             title="Profil ansehen"
             aria-label="Profil ansehen"
             style={{
@@ -794,7 +795,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           >👁️</button>
           <button
             className="mbp-press-light"
-            onClick={() => setShowStudio(true)}
+            onClick={() => { setShowMerken(false); setShowPublicPreview(false); setShowStudio(true); }}
             title="Einstellungen"
             aria-label="Einstellungen"
             style={{
@@ -1030,8 +1031,8 @@ export default function MyBasisProfile({ onClose, profileId }) {
         />
       )}
 
-      {/* GEMERKTE INHALTE — Icon: HUIBookmarkIcon (offizielles, einzige Merken-Icon appweit) */}
-      {showMerken && (
+      {/* GEMERKTE INHALTE — Portal pflicht (liegt sonst hinter BottomNav durch mbp-root Stacking Context) */}
+      {showMerken && createPortal(
         <div style={{
           position:"fixed", inset:0, zIndex:10500, /* >BottomNav(10000) */
           background:"#F9F7F4",
@@ -1078,7 +1079,8 @@ export default function MyBasisProfile({ onClose, profileId }) {
               }}
             />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* 👁️ ÖFFENTLICHE PROFILANSICHT */}
