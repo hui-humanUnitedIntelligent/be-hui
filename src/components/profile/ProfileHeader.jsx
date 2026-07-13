@@ -129,7 +129,7 @@ export function ProfileHeader({
 
         {/* Haupt-SVG — definiert die gesamte Header-Höhe */}
         <svg
-          viewBox="0 0 100 62"
+          viewBox="0 0 100 58"
           preserveAspectRatio="xMidYMid meet"
           style={{ display:"block", width:"100%", overflow:"visible" }}
           aria-hidden="true"
@@ -171,12 +171,12 @@ export function ProfileHeader({
 
             {/* Avatar-Clip: Kreis */}
             <clipPath id="avatarClip">
-              <circle cx="50" cy="43" r="12.5"/>
+              <circle cx="50" cy="38" r="12.5"/>
             </clipPath>
           </defs>
 
           {/* ── Hintergrund (unter Welle) ── */}
-          <rect x="0" y="36" width="100" height="26" fill={T.bg}/>
+          <rect x="0" y="36" width="100" height="22" fill={T.bg}/>
 
           {/* ── Cover-Bereich — durch Wellen-Clip beschnitten ── */}
           <g clipPath="url(#waveClip)">
@@ -222,23 +222,23 @@ export function ProfileHeader({
 
           {/* ── Avatar-Halo (Glow hinter Avatar) ── */}
           {!loading && (
-            <circle cx="50" cy="43" r="17" fill={T.teal} fillOpacity="0.10"/>
+            <circle cx="50" cy="38" r="14" fill={T.teal} fillOpacity="0.06"/>
           )}
 
           {/* ── Ambassador Puls-Ring ── */}
           {isAmbassador && !loading && (
-            <circle cx="50" cy="43" r="14.5" fill="none" stroke="#F59E0B" strokeWidth="0.4" strokeOpacity="0.8"/>
+            <circle cx="50" cy="38" r="13.5" fill="none" stroke="#F59E0B" strokeWidth="0.4" strokeOpacity="0.8"/>
           )}
 
           {/* ── Avatar Border (weißer Ring) ── */}
-          <circle cx="50" cy="43" r="13.5" fill={T.bg}/>
+          <circle cx="50" cy="38" r="13.5" fill={T.bg}/>
 
           {/* ── Avatar-Bild ── */}
           <g clipPath="url(#avatarClip)">
             {!loading ? (
               <image
                 href={avatar}
-                x="37.5" y="30.5" width="25" height="25"
+                x="37.5" y="25.5" width="25" height="25"
                 preserveAspectRatio="xMidYMid slice"
                 opacity={avatarLoaded ? "1" : "0"}
                 style={{ transition:"opacity 0.4s ease" }}
