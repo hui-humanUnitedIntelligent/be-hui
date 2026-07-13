@@ -151,46 +151,40 @@ export function ProfileHeader({
       </div>
 
       {/* ── IDENTITY BLOCK ─────────────────────────────────────── */}
-      <div style={{ background: T.bg, padding:"0 16px 20px" }}>
+      {/* Layout: [Avatar groß] [Name + @nick] [Badge rechts] */}
+      <div style={{ background: T.bg, padding:"0 14px 16px" }}>
 
-        {/* Row: Avatar + Name + Badge + Standort */}
-        <div style={{ display:"flex", alignItems:"flex-end", gap:14, marginTop:-36, marginBottom:14 }}>
+        <div style={{
+          display:"flex", alignItems:"center", gap:14,
+          marginTop:-52,  /* Avatar ragt über Cover hinaus */
+        }}>
 
-          {/* Avatar */}
+          {/* ── Avatar (doppelt so groß: 120px) ── */}
           <div style={{ position:"relative", flexShrink:0 }}>
             <div style={{
-              width:88, height:88, borderRadius:"50%",
-              border:"3.5px solid white",
-              boxShadow:"0 4px 20px rgba(0,0,0,0.15)",
+              width:120, height:120, borderRadius:"50%",
+              border:"4px solid white",
+              boxShadow:"0 4px 20px rgba(0,0,0,0.18)",
               overflow:"hidden", background:T.bg, position:"relative",
             }}>
-              {loading ? (
+              {(loading || !avatarLoaded) && (
                 <div style={{
                   position:"absolute", inset:0, borderRadius:"50%",
                   background:"linear-gradient(90deg,#ede9e2 25%,#f7f5f0 50%,#ede9e2 75%)",
                   backgroundSize:"200% 100%",
                   animation:"ph-shimmer 1.4s ease-in-out infinite",
                 }}/>
-              ) : (
-                <>
-                  {!avatarLoaded && (
-                    <div style={{
-                      position:"absolute", inset:0, borderRadius:"50%",
-                      background:"linear-gradient(90deg,#ede9e2 25%,#f7f5f0 50%,#ede9e2 75%)",
-                      backgroundSize:"200% 100%",
-                      animation:"ph-shimmer 1.4s ease-in-out infinite",
-                    }}/>
-                  )}
-                  <img
-                    src={avatar} alt={name}
-                    onLoad={() => setAvatarLoaded(true)}
-                    onError={() => setAvatarLoaded(true)}
-                    style={{
-                      width:"100%", height:"100%", objectFit:"cover",
-                      opacity: avatarLoaded ? 1 : 0, transition:"opacity .5s ease",
-                    }}
-                  />
-                </>
+              )}
+              {!loading && (
+                <img
+                  src={avatar} alt={name}
+                  onLoad={() => setAvatarLoaded(true)}
+                  onError={() => setAvatarLoaded(true)}
+                  style={{
+                    width:"100%", height:"100%", objectFit:"cover",
+                    opacity: avatarLoaded ? 1 : 0, transition:"opacity .5s ease",
+                  }}
+                />
               )}
             </div>
 
@@ -198,12 +192,12 @@ export function ProfileHeader({
             {isOwner && !loading && (
               <button className="ph-press" onClick={() => avatarInputRef.current?.click()}
                 style={{
-                  position:"absolute", bottom:2, right:2,
-                  width:26, height:26, borderRadius:"50%",
+                  position:"absolute", bottom:4, right:4,
+                  width:28, height:28, borderRadius:"50%",
                   background: avatarUploading ? "rgba(26,26,24,0.5)" : T.teal,
-                  border:"2px solid white",
+                  border:"2.5px solid white",
                   display:"flex", alignItems:"center", justifyContent:"center",
-                  fontSize:12, cursor:"pointer", touchAction:"manipulation",
+                  fontSize:13, cursor:"pointer", touchAction:"manipulation",
                   boxShadow:"0 2px 8px rgba(14,196,184,0.35)", zIndex:10,
                 }}
                 aria-label="Avatar ändern"
@@ -213,76 +207,56 @@ export function ProfileHeader({
             )}
           </div>
 
-          {/* Text-Block: Name / @username / Badge / Standort */}
-          <div style={{ flex:1, paddingBottom:4, minWidth:0 }}>
-
-            {loading ? <Sk w={140} h={22} r={6}/> : (
+          {/* ── Name + @username (mittig) ── */}
+          <div style={{ flex:1, minWidth:0, paddingTop:54 /* unter Cover-Kante */ }}>
+            {loading ? <Sk w={120} h={20} r={6}/> : (
               <div style={{
-                fontSize:22, fontWeight:800, color:T.ink,
-                letterSpacing:"-0.04em", lineHeight:1.1,
+                fontSize:18, fontWeight:800, color:T.ink,
+                letterSpacing:"-0.03em", lineHeight:1.2,
                 overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
               }}>
                 {name}
               </div>
             )}
-
             {!loading && username && (
-              <div style={{ fontSize:12, color:T.inkFaint, marginTop:2, fontWeight:400 }}>
+              <div style={{ fontSize:12, color:T.inkFaint, marginTop:1, fontWeight:400 }}>
                 @{username}
               </div>
             )}
-
-            {/* Mitgliedschaftsbadge — dynamisch nach is_talent */}
-            {!loading && (
-              <div style={{
-                display:"inline-flex", alignItems:"center", gap:5,
-                marginTop:5, marginBottom:2,
-                background: isTalentResolved ? "rgba(14,196,184,0.09)" : "rgba(14,196,184,0.07)",
-                border:`1px solid ${isTalentResolved ? "rgba(14,196,184,0.25)" : "rgba(14,196,184,0.15)"}`,
-                borderRadius:99, padding:"3px 10px",
-                fontSize:11, fontWeight:700, color:"#0AADA3",
-              }}>
-                <span style={{ fontSize:11 }}>{isTalentResolved ? "✨" : "🌿"}</span>
-                <span>{isTalentResolved ? "HUI-Talent" : "HUI-Mitglied"}</span>
-                {isTalentResolved && (
-                  <span style={{ fontWeight:400, color:"rgba(10,173,163,0.6)", fontSize:10 }}>
-                    · Aktiver Gestalter
-                  </span>
-                )}
-              </div>
-            )}
-
-            {/* Standort */}
-            {!loading && location ? (
-              <div style={{ display:"flex", alignItems:"center", gap:4, marginTop:4, fontSize:12, color:T.inkSoft }}>
-                <span>📍</span>
-                <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                  {location}
-                </span>
-              </div>
-            ) : loading ? (
-              <div style={{ marginTop:4 }}><Sk w={90} h={13} r={5}/></div>
-            ) : null}
           </div>
+
+          {/* ── Badge rechts ── */}
+          {!loading && (
+            <div style={{ flexShrink:0, paddingTop:54, alignSelf:"flex-end", paddingBottom:2 }}>
+              <div style={{
+                display:"inline-flex", alignItems:"center", gap:4,
+                background: isTalentResolved ? "rgba(14,196,184,0.10)" : "rgba(14,196,184,0.07)",
+                border:`1px solid ${isTalentResolved ? "rgba(14,196,184,0.30)" : "rgba(14,196,184,0.18)"}`,
+                borderRadius:99, padding:"4px 10px",
+                fontSize:11, fontWeight:700, color:"#0AADA3",
+                whiteSpace:"nowrap",
+              }}>
+                <span>{isTalentResolved ? "✨" : "🌿"}</span>
+                <span>{isTalentResolved ? "HUI-Talent" : "Basis-Nutzer"}</span>
+              </div>
+            </div>
+          )}
+          {loading && <div style={{ paddingTop:54 }}><Sk w={90} h={22} r={99}/></div>}
         </div>
 
-        {/* Bio — max. 2 Zeilen */}
-        {loading ? (
-          <div>
-            <Sk w="100%" h={13} r={5} style={{ marginBottom:5 }}/>
-            <Sk w="72%"  h={13} r={5}/>
+        {/* Standort */}
+        {!loading && location && (
+          <div style={{ display:"flex", alignItems:"center", gap:4, marginTop:8, fontSize:12, color:T.inkSoft }}>
+            <span>📍</span>
+            <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{location}</span>
           </div>
-        ) : null}
+        )}
 
         {/* Follow-Counts */}
         {!loading && (followCounts.followers > 0 || followCounts.following > 0) && (
-          <div style={{ display:"flex", gap:16, marginTop:12, fontSize:12, color:T.inkFaint }}>
-            <span>
-              <strong style={{ color:T.ink, fontWeight:700 }}>{followCounts.followers}</strong> Follower
-            </span>
-            <span>
-              <strong style={{ color:T.ink, fontWeight:700 }}>{followCounts.following}</strong> folgt
-            </span>
+          <div style={{ display:"flex", gap:16, marginTop:8, fontSize:12, color:T.inkFaint }}>
+            <span><strong style={{ color:T.ink, fontWeight:700 }}>{followCounts.followers}</strong> Follower</span>
+            <span><strong style={{ color:T.ink, fontWeight:700 }}>{followCounts.following}</strong> folgt</span>
           </div>
         )}
       </div>
