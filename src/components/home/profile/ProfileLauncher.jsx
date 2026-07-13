@@ -163,27 +163,37 @@ function useProfileType(profileId) {
     }
     setState({ resolved: false, isTalent: false, role: null });
 
+    let cancelled = false;
+
+    // Timeout-Schutz: nach 6s Fallback auf BasisProfilePage
+    const timeoutPromise = new Promise((resolve) =>
+      setTimeout(() => resolve({ data: null, error: { message: "timeout" } }), 6000)
+    );
+
     (async () => {
       try {
-        // ProfileService v1.0
-        const { data, error } = await ProfileService.getById(profileId);
+        const { data, error } = await Promise.race([
+          ProfileService.getById(profileId),
+          timeoutPromise,
+        ]);
+        if (cancelled) return;
 
         if (error) {
-          console.error("[PROFILE ROUTER] DB-Fehler:", error.message);
+          // Bei Timeout oder DB-Fehler: Fallback BasisProfilePage (sicher)
           setState({ resolved: true, isTalent: false, role: "error" });
           return;
         }
 
         // Sprint F.4C: isProfileTalent() ist die einzige Wahrheitsquelle
         const isTalent = isProfileTalent(data);
-
         setState({ resolved: true, isTalent, role: data?.role ?? null });
 
       } catch (e) {
-        console.error("[PROFILE ROUTER] Exception:", e);
-        setState({ resolved: true, isTalent: false, role: "exception" });
+        if (!cancelled) setState({ resolved: true, isTalent: false, role: "exception" });
       }
     })();
+
+    return () => { cancelled = true; };
   }, [profileId]);
 
   return state;

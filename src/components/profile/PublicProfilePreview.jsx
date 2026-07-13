@@ -35,13 +35,24 @@ export default function PublicProfilePreview({ profileId, onClose }) {
   const [loading,     setLoading]     = useState(true);
 
   useEffect(() => {
-    if (!profileId) return;
+    if (!profileId) { setLoading(false); return; }
+    let cancelled = false;
+    // Timeout-Schutz: max 8s warten
+    const timeout = setTimeout(() => {
+      if (!cancelled) { setLoading(false); setProfileType("basis"); }
+    }, 8000);
     ProfileService.getById(profileId)
       .then(({ data }) => {
+        if (cancelled) return;
         const isTalent = data?.has_talent_profile || data?.role === "talent" || data?.role === "wirker";
         setProfileType(isTalent ? "talent" : "basis");
         setLoading(false);
-      });
+      })
+      .catch(() => {
+        if (!cancelled) { setProfileType("basis"); setLoading(false); }
+      })
+      .finally(() => clearTimeout(timeout));
+    return () => { cancelled = true; clearTimeout(timeout); };
   }, [profileId]);
 
   if (loading) return <Spinner />;
