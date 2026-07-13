@@ -343,7 +343,7 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
                         fontSize: 22, color: "#fff",
                       }}>🎬</div>
                     ) : (
-                      <img src={p.url} alt={p.name}
+                      <img loading="lazy" decoding="async" src={p.url} alt={p.name}
                         style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: T.r8 }} />
                     )}
                     <button onClick={() => removeFile(idx)} style={{

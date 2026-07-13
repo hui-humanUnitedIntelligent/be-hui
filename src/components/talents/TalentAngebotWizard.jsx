@@ -472,7 +472,7 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginBottom: 14 }}>
               {images.map((img, idx) => (
                 <div key={idx} style={{ position: "relative", aspectRatio: "1", borderRadius: 12, overflow: "hidden", background: "#e8e4df", border: `1.5px solid ${C.border}` }}>
-                  <img src={img.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }}/>
+                  <img loading="lazy" decoding="async" src={img.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }}/>
                   {!locked && (
                     <button onClick={() => removeImage(idx)} style={{
                       position: "absolute", top: 4, right: 4, width: 20, height: 20, borderRadius: "50%",

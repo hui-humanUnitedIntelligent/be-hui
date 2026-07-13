@@ -347,8 +347,8 @@ function MerkenCard({ item, cover, title, creator, label, date, onOpen, onRemove
         display:"flex", alignItems:"center", justifyContent:"center",
       }}>
         {showImg
-          ? <img src={cover} alt="" onError={() => setImgErr(true)}
-              style={{ width:"100%", height:"100%", objectFit:"cover" }} loading="lazy" />
+          ? <img loading="lazy" decoding="async" src={cover} alt="" onError={() => setImgErr(true)}
+              style={{ width:"100%", height:"100%", objectFit:"cover" }} />
           : <span style={{ fontSize:32, opacity:0.85 }}>{TYPE_ICON[item.post_type] || "🌿"}</span>
         }
       </div>

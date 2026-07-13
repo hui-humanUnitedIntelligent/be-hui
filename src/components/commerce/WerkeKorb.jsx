@@ -526,7 +526,7 @@ function PersonGruppe({ group, onRemove, removingId, onQtyChange }) {
       }}>
         {/* Avatar */}
         {group.avatar
-          ? <img src={group.avatar} alt=""
+          ? <img loading="lazy" decoding="async" src={group.avatar} alt=""
               style={{
                 width: 36, height: 36, borderRadius: "50%",
                 objectFit: "cover", flexShrink: 0,

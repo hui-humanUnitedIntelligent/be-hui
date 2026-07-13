@@ -508,7 +508,7 @@ function StepPreview({ mode, data, profile, onPublish, publishing }) {
               overflow:"hidden",
             }}>
               {avatar
-                ? <img src={avatar} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+                ? <img loading="lazy" decoding="async" src={avatar} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
                 : name[0]?.toUpperCase()
               }
             </div>
@@ -536,7 +536,7 @@ function StepPreview({ mode, data, profile, onPublish, publishing }) {
               overflow:"hidden", flexShrink:0,
             }}>
               {avatar
-                ? <img src={avatar} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+                ? <img loading="lazy" decoding="async" src={avatar} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
                 : name[0]?.toUpperCase()
               }
             </div>
@@ -571,7 +571,7 @@ function StepPreview({ mode, data, profile, onPublish, publishing }) {
             <div style={{ padding:"0 0 0 0" }}>
               {data.mediaType === "video"
                 ? <video src={data.mediaPreview} controls style={{ width:"100%", display:"block", maxHeight:320, objectFit:"cover" }}/>
-                : <img src={data.mediaPreview} alt="" style={{ width:"100%", display:"block", maxHeight:320, objectFit:"cover" }}/>
+                : <img loading="lazy" decoding="async" src={data.mediaPreview} alt="" style={{ width:"100%", display:"block", maxHeight:320, objectFit:"cover" }}/>
               }
             </div>
           )}

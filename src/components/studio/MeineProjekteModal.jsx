@@ -723,7 +723,7 @@ function ImpactProjectCard({ app, onAddUpdate, onMilestoneUpdate }) {
       {/* Cover */}
       {coverImg && (
         <div style={{ height: 100, overflow: "hidden" }}>
-          <img src={coverImg} alt={app.project_name}
+          <img loading="lazy" decoding="async" src={coverImg} alt={app.project_name}
             style={{ width: "100%", height: "100%", objectFit: "cover" }}
             onError={e => e.target.style.display = "none"} />
         </div>

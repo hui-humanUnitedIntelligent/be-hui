@@ -441,7 +441,7 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
               {isVid
                 ? <video src={preview} style={{ width:"100%", height:"100%", objectFit:"cover" }}
                     muted playsInline autoPlay loop/>
-                : <img src={preview} alt="preview"
+                : <img loading="lazy" decoding="async" src={preview} alt="preview"
                     style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
               }
               {/* Change overlay */}
@@ -807,7 +807,7 @@ function ScreenSuggestion({ media, onBack, onPublishDirect, onDeepen }) {
           ? <video src={media.preview}
               style={{ width:"100%", height:"100%", objectFit:"cover" }}
               muted playsInline/>
-          : <img src={media.preview} alt="preview"
+          : <img loading="lazy" decoding="async" src={media.preview} alt="preview"
               style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
         }
         {media.caption && (
@@ -948,7 +948,7 @@ function ScreenWerk({ media, onBack, onPublish, loading, error }) {
         <div style={{
           height:110, borderRadius:16, overflow:"hidden", marginBottom:18,
         }}>
-          <img src={media.preview} alt=""
+          <img loading="lazy" decoding="async" src={media.preview} alt=""
             style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
         </div>
 
@@ -1168,7 +1168,7 @@ function ScreenErlebnis({ media, onBack, onPublish, loading, error }) {
 
         {/* Thumbnail */}
         <div style={{ height:110, borderRadius:16, overflow:"hidden", marginBottom:18 }}>
-          <img src={media.preview} alt=""
+          <img loading="lazy" decoding="async" src={media.preview} alt=""
             style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
         </div>
 

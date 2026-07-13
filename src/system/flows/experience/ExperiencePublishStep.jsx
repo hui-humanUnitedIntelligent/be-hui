@@ -76,7 +76,7 @@ function ExperiencePreviewCard({ form, mediaFiles, profile }) {
         position:"relative", overflow:"hidden",
       }}>
         {cover ? (
-          <img src={cover} alt=""
+          <img loading="lazy" decoding="async" src={cover} alt=""
             style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
         ) : (
           <div style={{
@@ -114,7 +114,7 @@ function ExperiencePreviewCard({ form, mediaFiles, profile }) {
             boxShadow:"0 4px 12px rgba(26,26,46,0.10)",
           }}>
             {profile.avatar_url ? (
-              <img src={profile.avatar_url} alt=""
+              <img loading="lazy" decoding="async" src={profile.avatar_url} alt=""
                 style={{ width:24,height:24,borderRadius:"50%",objectFit:"cover" }}/>
             ) : (
               <div style={{

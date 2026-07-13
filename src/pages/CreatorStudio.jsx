@@ -193,7 +193,7 @@ export default function CreatorStudio() {
               onClick={() => profile?.username && navigate(`/profile/${profile.username}`)}
               style={{ width:38, height:38, borderRadius:"50%", overflow:"hidden",
                 border:"1.5px solid rgba(22,215,197,0.35)", padding:0, background:"none" }}>
-              <img src={profile.avatar_url} alt={firstName}
+              <img loading="lazy" decoding="async" src={profile.avatar_url} alt={firstName}
                 style={{ width:"100%", height:"100%", objectFit:"cover" }} />
             </button>
           )}
@@ -253,7 +253,7 @@ export default function CreatorStudio() {
             boxShadow:"0 2px 12px rgba(0,0,0,0.04)",
             animation:`studioFadeUp ${TRANSITIONS.normal} 0.05s ${TRANSITIONS.overlay} both` }}>
           {profile?.avatar_url && (
-            <img src={profile.avatar_url} alt=""
+            <img loading="lazy" decoding="async" src={profile.avatar_url} alt=""
               style={{ width:36, height:36, borderRadius:"50%", objectFit:"cover" }} />
           )}
           <div style={{ flex:1, textAlign:"left" }}>

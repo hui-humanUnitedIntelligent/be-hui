@@ -69,7 +69,7 @@ function BookingRow({ b, forSeller, onCancelClick }) {
         flexShrink:0, background:"#e8e4de",
       }}>
         {cover
-          ? <img src={cover} alt={title} style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+          ? <img loading="lazy" decoding="async" src={cover} alt={title} style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
           : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16 }}>✨</div>
         }
       </div>

@@ -725,7 +725,7 @@ function SchwerpunktStatsBlock({ profile, works, experiences, moments, loading, 
           <div key={i} className="tpp-stat-item">
             <div style={{fontSize:13,marginBottom:1}}>{st.emoji}</div>
             <div style={{fontSize:16,fontWeight:800,color:T.ink,letterSpacing:"-0.03em"}}>{st.value}</div>
-            <div style={{fontSize:10,color:T.inkFaint,textAlign:"center",lineHeight:1.35,textAlign:"center"}}>{st.label}</div>
+            <div style={{fontSize:10,color:T.inkFaint,lineHeight:1.35,textAlign:"center"}}>{st.label}</div>
           </div>
         ))}
       </div>
@@ -1059,7 +1059,7 @@ function SocialContextBarTalent({ followCounts, experiences, moments, loading })
             <span style={{fontSize:16}}>{st.icon}</span>
             <span style={{fontSize:18,fontWeight:800,color:T.ink,letterSpacing:"-0.03em"}}>{st.value}</span>
           </div>
-          <span style={{fontSize:10.5,color:T.inkFaint,textAlign:"center",lineHeight:1.35,textAlign:"center"}}>{st.label}</span>
+          <span style={{fontSize:10.5,color:T.inkFaint,lineHeight:1.35,textAlign:"center"}}>{st.label}</span>
         </div>
       ))}
     </div>
@@ -1251,7 +1251,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
 
       {/* ── Scrollable Content ───────────────────────────────── */}
       <div className="tpp-scroll" style={{
-        flex:1, overflowY:"auto", touchAction:"pan-y",
+        flex:1, overflowY:"auto", touchAction:"pan-y", willChange:"transform", overscrollBehavior:"contain",
         paddingBottom:"max(40px,calc(28px + env(safe-area-inset-bottom,0px)))",
       }}>
 

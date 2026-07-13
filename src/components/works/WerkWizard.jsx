@@ -192,7 +192,7 @@ function S1({ data, onChange, userId, onNext }) {
       <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8, marginBottom:12 }}>
         {imgs.map((img,idx)=>(
           <div key={idx} style={{ position:"relative", aspectRatio:"1", borderRadius:12, overflow:"hidden", background:"#e8e4df", border:idx===0?`2.5px solid ${C.teal}`:`1.5px solid ${C.border}` }}>
-            <img src={img.url} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+            <img loading="lazy" decoding="async" src={img.url} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
             {idx===0&&<div style={{ position:"absolute", bottom:0, left:0, right:0, background:"linear-gradient(transparent,rgba(14,196,184,0.82))", padding:"12px 5px 4px", fontSize:9, fontWeight:700, color:"#fff", textAlign:"center" }}>TITELBILD</div>}
             <button onClick={()=>onChange({ images:imgs.filter((_,i)=>i!==idx) })} style={{ position:"absolute", top:4, right:4, width:22, height:22, borderRadius:"50%", background:"rgba(0,0,0,0.55)", border:"none", color:"#fff", fontSize:13, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", touchAction:"manipulation" }}>×</button>
           </div>
@@ -395,7 +395,7 @@ function S6({ data, onChange, onSave, onDraft, saving, hideButtons=false }) {
       <div style={{ background:"#fff", border:`1.5px solid ${C.border}`, borderRadius:16, padding:14, marginBottom:20 }}>
         <div style={{ fontSize:12, fontWeight:700, color:C.inkMid, marginBottom:12 }}>Zusammenfassung</div>
         <div style={{ display:"flex", gap:12, alignItems:"flex-start" }}>
-          {cover&&<img src={cover} alt="" style={{ width:64, height:64, borderRadius:10, objectFit:"cover", flexShrink:0 }}/>}
+          {cover&&<img loading="lazy" decoding="async" src={cover} alt="" style={{ width:64, height:64, borderRadius:10, objectFit:"cover", flexShrink:0 }}/>}
           <div>
             <div style={{ fontSize:14, fontWeight:700, color:C.ink, marginBottom:2 }}>{data.title||"—"}</div>
             <div style={{ fontSize:14, fontWeight:700, color:C.teal, marginBottom:6 }}>{ps}</div>

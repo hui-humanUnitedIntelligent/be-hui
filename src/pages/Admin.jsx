@@ -576,7 +576,7 @@ function FreigabenTab({ onPendingChange }) {
               <div style={{width:84,flexShrink:0,minHeight:84,
                 background:"#1A2235",position:"relative"}}>
                 {item.cover_url
-                  ? <img src={item.cover_url} alt=""
+                  ? <img loading="lazy" decoding="async" src={item.cover_url} alt=""
                       style={{width:"100%",height:"100%",objectFit:"cover",
                               position:"absolute",inset:0}}/>
                   : <div style={{position:"absolute",inset:0,display:"flex",
@@ -597,7 +597,7 @@ function FreigabenTab({ onPendingChange }) {
                 <div style={{display:"flex",alignItems:"center",
                   gap:6,marginBottom:6}}>
                   {profile.avatar_url && (
-                    <img src={profile.avatar_url} alt=""
+                    <img loading="lazy" decoding="async" src={profile.avatar_url} alt=""
                       style={{width:18,height:18,borderRadius:"50%",objectFit:"cover"}}/>
                   )}
                   <span style={{fontSize:10.5,color:C.sub,fontWeight:600}}>

@@ -96,7 +96,7 @@ function PreviewStep({ mediaURL, isVideo, text, setText, onShare, onDiscard, upl
         {isVideo
           ? <video src={mediaURL} controls playsInline
               style={{ width:"100%",maxHeight:280,display:"block",objectFit:"contain" }}/>
-          : <img src={mediaURL} alt="Vorschau"
+          : <img loading="lazy" decoding="async" src={mediaURL} alt="Vorschau"
               style={{ width:"100%",maxHeight:280,display:"block",objectFit:"contain" }}/>
         }
       </div>

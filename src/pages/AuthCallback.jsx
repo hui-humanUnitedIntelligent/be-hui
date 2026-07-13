@@ -52,7 +52,7 @@ export default function AuthCallback() {
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>
       {/* Background */}
-      <img src={BG} alt="" aria-hidden style={{
+      <img loading="lazy" decoding="async" src={BG} alt="" aria-hidden style={{
         position: 'absolute', inset: 0, width: '100%', height: '100%',
         objectFit: 'cover', filter: 'brightness(0.38) saturate(1.1)',
       }}/>

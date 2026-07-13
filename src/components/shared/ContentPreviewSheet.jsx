@@ -155,7 +155,7 @@ export default function ContentPreviewSheet({ item, loading, onClose }) {
           <div style={{ padding:"0 0 24px" }}>
             {/* Titelbild */}
             {hero ? (
-              <img src={hero} alt={item.title || ""} style={{ width:"100%", maxHeight:320, objectFit:"cover", display:"block" }}/>
+              <img loading="lazy" decoding="async" src={hero} alt={item.title || ""} style={{ width:"100%", maxHeight:320, objectFit:"cover", display:"block" }}/>
             ) : item.type === "project" ? (
               <div style={{ width:"100%", height:140, display:"flex", alignItems:"center", justifyContent:"center",
                 background: item.color ? `${item.color}14` : "rgba(13,196,181,0.08)", fontSize:44 }}>
@@ -169,7 +169,7 @@ export default function ContentPreviewSheet({ item, loading, onClose }) {
                 <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:12 }}>
                   <div style={{ width:32, height:32, borderRadius:"50%", overflow:"hidden", flexShrink:0,
                     background:"rgba(13,196,181,0.14)" }}>
-                    {item.author.avatar && <img src={item.author.avatar} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>}
+                    {item.author.avatar && <img loading="lazy" decoding="async" src={item.author.avatar} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>}
                   </div>
                   <div style={{ fontSize:13.5, fontWeight:700, color:T.ink }}>{item.author.name}</div>
                 </div>
@@ -205,7 +205,7 @@ export default function ContentPreviewSheet({ item, loading, onClose }) {
               {extraMedia.length > 0 && (
                 <div style={{ display:"flex", gap:8, overflowX:"auto", marginBottom:14 }}>
                   {extraMedia.map((m, i) => (
-                    <img key={i} src={m.url} alt="" style={{ width:96, height:96, borderRadius:12, objectFit:"cover", flexShrink:0 }}/>
+                    <img loading="lazy" decoding="async" key={i} src={m.url} alt="" style={{ width:96, height:96, borderRadius:12, objectFit:"cover", flexShrink:0 }}/>
                   ))}
                 </div>
               )}

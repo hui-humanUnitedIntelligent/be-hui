@@ -117,8 +117,7 @@ const CardAvatar = memo(function CardAvatar({ src, name, size = 38, isTalent = f
       fontSize:size*0.38,fontWeight:700,color:T.teal,
     }}>
       {src && !err
-        ? <img src={src} alt={name||""} onError={() => setErr(true)}
-            loading="lazy"
+        ? <img loading="lazy" decoding="async" src={src} alt={name||""} onError={() => setErr(true)}
             style={{ width:"100%",height:"100%",objectFit:"cover" }} />
         : letter}
     </div>
@@ -718,7 +717,7 @@ export const FeedActions = memo(function FeedActions({
 });
 
 // ── Base Card ─────────────────────────────────────────────────
-export default function BaseFeedCard({
+export default React.memo(function BaseFeedCard({
   item, onProfile, onReaction, onShare, badge, children, extraActions, onCardClick
 }) {
   injectCardCSS();
@@ -817,4 +816,4 @@ export default function BaseFeedCard({
       />
     </article>
   );
-}
+}); // React.memo(BaseFeedCard)

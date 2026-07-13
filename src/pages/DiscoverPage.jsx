@@ -287,7 +287,7 @@ function PersonCard({ person, onPress, delay=0 }) {
           display:"flex", alignItems:"center", justifyContent:"center",
         }}>
           {av ? (
-            <img src={av} alt={person.name} onError={() => setImgErr(true)}
+            <img loading="lazy" decoding="async" src={av} alt={person.name} onError={() => setImgErr(true)}
               style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
           ) : (
             <span style={{ fontSize:26, userSelect:"none" }}>👤</span>
@@ -413,7 +413,7 @@ function PeopleSection({ people, onPersonPress, loading, delay=0, view='cards', 
             : people.map((p, i) => (
                 <div key={p.id} className="dp-list-card" onClick={() => onPersonPress?.(p)}>
                   {p.avatar
-                    ? <img src={p.avatar} alt={p.name} className="dp-list-thumb" onError={e => e.target.style.display='none'}/>
+                    ? <img loading="lazy" decoding="async" src={p.avatar} alt={p.name} className="dp-list-thumb" onError={e => e.target.style.display='none'}/>
                     : <div className="dp-list-thumb-placeholder">👤</div>
                   }
                   <div style={{ flex:1, overflow:"hidden" }}>
@@ -462,7 +462,7 @@ function MomentCard({ moment, delay=0, onPress }) {
       {/* Bild */}
       <div style={{ width:"100%", height:130, position:"relative", overflow:"hidden" }}>
         {!imgErr && moment.src ? (
-          <img src={moment.src} alt={moment.caption}
+          <img loading="lazy" decoding="async" src={moment.src} alt={moment.caption}
             onError={() => setImgErr(true)}
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
         ) : (
@@ -563,7 +563,7 @@ function MomenteSection({ momente, loading, delay=0, view='cards', onPress, onSe
             : momente.map((m) => (
                 <div key={m.id} className="dp-list-card" onClick={() => onPress?.(m)} style={{cursor:"pointer"}}>
                   {m.src
-                    ? <img src={m.src} alt={m.caption} className="dp-list-thumb" onError={e => e.target.style.display='none'} style={{ objectFit:"cover" }}/>
+                    ? <img loading="lazy" decoding="async" src={m.src} alt={m.caption} className="dp-list-thumb" onError={e => e.target.style.display='none'} style={{ objectFit:"cover" }}/>
                     : <div className="dp-list-thumb-placeholder">📸</div>
                   }
                   <div style={{ flex:1, overflow:"hidden" }}>
@@ -611,7 +611,7 @@ function CardBadge({ pos="left", bg, color, cover, children }) {
     <div style={{
       position:"absolute", top:8, [pos]:8,
       background: cover ? "rgba(0,0,0,0.54)" : bg,
-      backdropFilter: cover ? "blur(6px)" : "none",
+      backdropFilter: "none",
       borderRadius:99, padding:"2px 9px",
       fontSize:9, fontWeight:700,
       color: cover ? "rgba(255,255,255,0.92)" : color,
@@ -675,7 +675,7 @@ function TalentCard({ talent, delay=0, onPress }) {
       {/* Cover */}
       <div style={{ width:"100%", height:120, position:"relative", overflow:"hidden", background:cover ? "#1A1A18" : medCol.bg }}>
         {cover ? (
-          <img src={cover} alt={talent.title} onError={() => setImgErr(true)}
+          <img loading="lazy" decoding="async" src={cover} alt={talent.title} onError={() => setImgErr(true)}
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
         ) : (
           <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:6 }}>
@@ -805,7 +805,7 @@ function TalenteSection({
                   <div style={{ padding:"10px 11px" }}><Skel w="80%" h={12} r={6} mb={6}/><Skel w="50%" h={10} r={6}/></div>
                 </div>
               ))
-            : talente.map((t, i) => <TalentCard key={t.id} talent={t} delay={i*35+delay} onPress={onPress} />)
+            : talente.map((t, i) => <TalentCardM key={t.id} talent={t} delay={i*35+delay} onPress={onPress} />)
           }
         </div>
       ) : (
@@ -824,7 +824,7 @@ function TalenteSection({
                 return (
                   <div key={t.id} className="dp-list-card" onClick={() => onPress?.(t)}>
                     {t.cover
-                      ? <img src={t.cover} alt={t.title} className="dp-list-thumb" onError={e => e.target.style.display='none'} style={{ objectFit:"cover" }}/>
+                      ? <img loading="lazy" decoding="async" src={t.cover} alt={t.title} className="dp-list-thumb" onError={e => e.target.style.display='none'} style={{ objectFit:"cover" }}/>
                       : <div className="dp-list-thumb-placeholder">✨</div>
                     }
                     <div style={{ flex:1, overflow:"hidden" }}>
@@ -890,7 +890,7 @@ function WerkCard({ werk, delay=0, onPress }) {
       {/* Cover */}
       <div style={{ width:"100%", height:120, position:"relative", overflow:"hidden", background:cover ? "#1A1A18" : medCol.bg }}>
         {cover ? (
-          <img src={cover} alt={werk.title} onError={() => setImgErr(true)}
+          <img loading="lazy" decoding="async" src={cover} alt={werk.title} onError={() => setImgErr(true)}
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
         ) : (
           <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:6 }}>
@@ -1041,7 +1041,7 @@ function WerkeSection({
                   <div style={{ padding:"9px 10px" }}><Skel w="75%" h={12} r={6} mb={6}/><Skel w="50%" h={10} r={5}/></div>
                 </div>
               ))
-            : werke.map((w, i) => <WerkCard key={w.id} werk={w} delay={i*35+delay} onPress={onPress} />)
+            : werke.map((w, i) => <WerkCardM key={w.id} werk={w} delay={i*35+delay} onPress={onPress} />)
           }
         </div>
       ) : (
@@ -1059,7 +1059,7 @@ function WerkeSection({
                   <div key={w.id} className="dp-list-card" onClick={() => onPress?.(w)} style={{cursor:"pointer"}}>
                     <div className="dp-list-thumb-placeholder" style={{ background: w.cover ? "#1A1A18" : medCol.bg }}>
                       {w.cover
-                        ? <img src={w.cover} alt={w.title} style={{ width:"100%", height:"100%", objectFit:"cover", borderRadius:12 }} onError={e => e.currentTarget.style.display="none"}/>
+                        ? <img loading="lazy" decoding="async" src={w.cover} alt={w.title} style={{ width:"100%", height:"100%", objectFit:"cover", borderRadius:12 }} onError={e => e.currentTarget.style.display="none"}/>
                         : <span style={{ fontSize:20 }}>🎨</span>
                       }
                     </div>
@@ -1130,7 +1130,7 @@ function ErlebnisCard({ erlebnis, delay=0, onPress }) {
       {/* Cover */}
       <div style={{ width:"100%", height:120, position:"relative", overflow:"hidden", background:cover ? "#1A1A18" : T.tealSoft }}>
         {cover ? (
-          <img src={cover} alt={erlebnis.title} onError={() => setImgErr(true)}
+          <img loading="lazy" decoding="async" src={cover} alt={erlebnis.title} onError={() => setImgErr(true)}
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block", opacity:0.88 }}/>
         ) : (
           <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
@@ -1227,7 +1227,7 @@ function ErlebnisseSection({
                   <div style={{ padding:"10px 10px" }}><Skel w="80%" h={12} r={6} mb={6}/><Skel w="55%" h={10} r={5}/></div>
                 </div>
               ))
-            : erlebnisse.map((e, i) => <ErlebnisCard key={e.id} erlebnis={e} delay={i*35+delay} onPress={onPress} />)
+            : erlebnisse.map((e, i) => <ErlebnisCardM key={e.id} erlebnis={e} delay={i*35+delay} onPress={onPress} />)
           }
         </div>
       ) : (
@@ -1244,7 +1244,7 @@ function ErlebnisseSection({
                   <div key={e.id} className="dp-list-card">
                     <div className="dp-list-thumb-placeholder" style={{ background: e.cover ? "#1A1A18" : T.tealSoft, position:"relative", overflow:"hidden" }}>
                       {e.cover
-                        ? <img src={e.cover} alt={e.title} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} onError={ev => ev.currentTarget.style.display="none"}/>
+                        ? <img loading="lazy" decoding="async" src={e.cover} alt={e.title} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} onError={ev => ev.currentTarget.style.display="none"}/>
                         : <span style={{ fontSize:20 }}>📅</span>
                       }
                       {e.date && (
@@ -1310,7 +1310,7 @@ function ProjektCard({ projekt, delay=0, onPress }) {
       {/* Cover */}
       <div style={{ width:"100%", height:90, position:"relative", overflow:"hidden", background:cover?"#000":cc.bg }}>
         {cover ? (
-          <img src={cover} alt={projekt.title} onError={() => setImgErr(true)}
+          <img loading="lazy" decoding="async" src={cover} alt={projekt.title} onError={() => setImgErr(true)}
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block", opacity:0.82 }}/>
         ) : (
           <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
@@ -1381,7 +1381,7 @@ function ProjekteSection({ projekte, loading, delay=0, view='cards', onPress, on
               animationDelay:`${delay}ms`,
             }}>
               {hero.cover && (
-                <img src={hero.cover} alt={hero.title}
+                <img loading="lazy" decoding="async" src={hero.cover} alt={hero.title}
                   style={{ position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",opacity:0.75 }}
                   onError={e => e.target.style.display="none"}/>
               )}
@@ -1442,7 +1442,7 @@ function ProjekteSection({ projekte, loading, delay=0, view='cards', onPress, on
                   <div key={p.id} className="dp-list-card" onClick={() => onPress?.(p)} style={{cursor:"pointer"}}>
                     <div className="dp-list-thumb-placeholder" style={{ background:cc.bg, position:"relative", overflow:"hidden" }}>
                       {p.cover
-                        ? <img src={p.cover} alt={p.title} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0.85 }} onError={ev => ev.target.style.display='none'}/>
+                        ? <img loading="lazy" decoding="async" src={p.cover} alt={p.title} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0.85 }} onError={ev => ev.target.style.display='none'}/>
                         : <span>🌍</span>
                       }
                     </div>
@@ -1496,7 +1496,7 @@ function OrteSection({ onMap, delay=0, view='cards' }) {
             <div key={ort.id} className="dp-list-card" onClick={onMap}>
               <div className="dp-list-thumb-placeholder" style={{ position:"relative", overflow:"hidden" }}>
                 {ort.cover
-                  ? <img src={ort.cover} alt={ort.name} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} onError={e => e.target.style.display='none'}/>
+                  ? <img loading="lazy" decoding="async" src={ort.cover} alt={ort.name} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} onError={e => e.target.style.display='none'}/>
                   : <span>📍</span>
                 }
               </div>
@@ -1528,7 +1528,7 @@ function OrtCard({ ort, delay=0, onMap }) {
     }}>
       <div style={{ width:"100%", height:68, overflow:"hidden", position:"relative", background:T.tealSoft }}>
         {!imgErr && ort.cover ? (
-          <img src={ort.cover} alt={ort.name} onError={() => setImgErr(true)}
+          <img loading="lazy" decoding="async" src={ort.cover} alt={ort.name} onError={() => setImgErr(true)}
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
         ) : (
           <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
@@ -1598,6 +1598,12 @@ function filterByRadius(items, radius, isOnlineFn) {
     });
   return { list, hidden };
 }
+
+// ── Performance: Memo-Wrapper für Karten-Komponenten ────────────
+// Verhindert Re-Renders bei Parent-State-Änderungen (Radius-Slider, Tab-Wechsel)
+const TalentCardM    = React.memo(TalentCard);
+const WerkCardM      = React.memo(WerkCard);
+const ErlebnisCardM  = React.memo(ErlebnisCard);
 
 export default function DiscoverPage({ onView, onMap, onBook }) {
   const [view, setView]         = useState("cards"); // "cards" | "list"

@@ -142,7 +142,7 @@ function BookingCard({ booking, onUpdate }) {
           display:"flex",alignItems:"center",justifyContent:"center",
           fontSize:16,fontWeight:700,color:T.teal}}>
           {booking?.guest?.avatar_url
-            ? <img src={booking.guest.avatar_url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+            ? <img loading="lazy" decoding="async" src={booking.guest.avatar_url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
             : (booking?.guest?.display_name||"G")[0].toUpperCase()}
         </div>
         <div style={{flex:1,minWidth:0}}>
@@ -210,7 +210,7 @@ function SupportCard({ support }) {
         display:"flex",alignItems:"center",justifyContent:"center",
         fontSize:15,fontWeight:700,color:T.coral}}>
         {support?.supporter?.avatar_url
-          ? <img src={support.supporter.avatar_url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+          ? <img loading="lazy" decoding="async" src={support.supporter.avatar_url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
           : (support?.supporter?.display_name||"S")[0].toUpperCase()}
       </div>
       <div style={{flex:1,minWidth:0}}>
@@ -459,7 +459,7 @@ export default function CreatorDashboard({ visible, onClose, onOpenProfile }) {
                       <div style={{width:38,height:38,borderRadius:12,overflow:"hidden",
                         background:"rgba(22,215,197,0.10)",flexShrink:0}}>
                         {s?.work?.cover_url
-                          ? <img src={s.work.cover_url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                          ? <img loading="lazy" decoding="async" src={s.work.cover_url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
                           : <div style={{width:"100%",height:"100%",display:"flex",alignItems:"center",
                               justifyContent:"center",fontSize:16}}>🎨</div>}
                       </div>

@@ -196,7 +196,7 @@ function HeroCard({ item, onDetails }) {
         <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:12 }}>
           <div style={{ display:"flex" }}>
             {item.avatars.map((av, i) => (
-              <img key={i} src={av} alt=""
+              <img loading="lazy" decoding="async" key={i} src={av} alt=""
                 style={{ width:22, height:22, borderRadius:"50%", objectFit:"cover",
                   border:"2px solid rgba(255,255,255,0.6)", marginLeft: i>0 ? -7 : 0 }}/>
             ))}
@@ -460,7 +460,7 @@ function ExperienceCard({ exp, idx, onView }) {
           justifyContent:"space-between" }}>
           <div style={{ display:"flex" }}>
             {exp.avatars.map((av, k) => (
-              <img key={k} src={av} alt=""
+              <img loading="lazy" decoding="async" key={k} src={av} alt=""
                 style={{ width:18, height:18, borderRadius:"50%", objectFit:"cover",
                   border:"1.5px solid #fff", marginLeft: k>0 ? -5 : 0 }}/>
             ))}

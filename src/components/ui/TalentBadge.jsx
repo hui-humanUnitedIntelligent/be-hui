@@ -45,7 +45,7 @@ export default function TalentBadge({ isTalent, size = "sm", style = {}, showLab
 
 /**
  * CreatorRing — teal Ring um Avatar-Container für Talent-User
- * Wrap Avatar mit: <CreatorRing isTalent={isTalent}><img .../></CreatorRing>
+ * Wrap Avatar mit: <CreatorRing isTalent={isTalent}><img loading="lazy" decoding="async" .../></CreatorRing>
  */
 export function CreatorRing({ isTalent, children, size = 40, style = {} }) {
   if (!isTalent) return <>{children}</>;

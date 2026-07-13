@@ -65,7 +65,7 @@ function getImages(werk) {
 function Avatar({ url, name, size = 40 }) {
   const initials = (name || "?").split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
   if (url) return (
-    <img src={url} alt={name}
+    <img loading="lazy" decoding="async" src={url} alt={name}
       style={{ width:size, height:size, borderRadius:"50%",
         objectFit:"cover", border:"2px solid white",
         boxShadow:"0 2px 10px rgba(0,0,0,0.15)", flexShrink:0 }}/>
@@ -148,7 +148,7 @@ function ImageGallery({ images, title }) {
 
       {/* Image */}
       {img ? (
-        <img key={idx} src={img} alt={`${title} ${idx+1}`}
+        <img loading="lazy" decoding="async" key={idx} src={img} alt={`${title} ${idx+1}`}
           style={{ width:"100%", height:"100%", objectFit:"cover",
             animation:"wdFadeUp 0.35s both",
             filter:"brightness(0.88) saturate(1.1)" }}/>
@@ -235,7 +235,7 @@ function RelatedCard({ werk, onClick }) {
         position:"relative", background:"#eee",
         boxShadow:"0 3px 12px rgba(0,0,0,0.10)" }}>
         {img ? (
-          <img src={img} alt={werk.title}
+          <img loading="lazy" decoding="async" src={img} alt={werk.title}
             style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
         ) : (
           <div style={{ width:"100%", height:"100%",

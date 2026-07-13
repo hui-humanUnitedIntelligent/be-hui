@@ -287,7 +287,7 @@ function MomentThumb({ m, onRemove }) {
             padding:"0 6px", lineHeight:1.4}}>Bild nicht verfügbar</span>
         </div>
       ) : (
-        <img src={m.img} alt="" onLoad={()=>setLoaded(true)} onError={()=>{ setLoaded(true); setBroken(true); }}
+        <img loading="lazy" decoding="async" src={m.img} alt="" onLoad={()=>setLoaded(true)} onError={()=>{ setLoaded(true); setBroken(true); }}
           style={{ width:"100%", height:"100%", objectFit:"cover", display:"block",
             opacity:loaded?1:0, transition:"opacity .5s ease" }}/>
       )}
@@ -738,7 +738,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           border:`1px solid ${saveOk ? T.tealMid : T.border}`,
           fontSize:11.5, fontWeight:600,
           color: saveOk ? T.teal : T.inkFaint,
-          backdropFilter:"blur(10px)",
+          backdropFilter:"blur(2px)",
           transition:"all .2s ease",
         }}>
           {saveOk ? "✓ Gespeichert" : "Speichert…"}
@@ -1048,7 +1048,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
             borderBottom:"1px solid rgba(26,26,46,0.07)",
             padding:"12px 16px",
             display:"flex", alignItems:"center", justifyContent:"space-between",
-            backdropFilter:"blur(10px)",
+            backdropFilter:"blur(2px)",
           }}>
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
               <span style={{ display:"flex", color:"#1A1A2E" }}><HUIBookmarkIcon size={18} /></span>
@@ -1645,7 +1645,7 @@ function MeinBereichDrawer({ title, icon, onClose, children, footer = true }) {
         </div>
         {/* Inhalt scrollbar */}
         <div style={{
-          flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch",
+          flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch", willChange:"transform", overscrollBehavior:"contain",
           scrollbarWidth:"none", padding: footer ? undefined : "0 0 24px",
         }}>
           {children}
@@ -1970,7 +1970,7 @@ function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTalent = 
                   boxShadow: isApproved ? "0 0 0 2px #0EC4B8" : isPending ? "0 0 0 2px #D4A800" : "0 0 0 2px #ff5050",
                 }}>
                 {cover
-                  ? <img src={cover} alt={t.title||""}
+                  ? <img loading="lazy" decoding="async" src={cover} alt={t.title||""}
                       style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
                   : <div style={{ width:"100%", height:"100%", display:"flex",
                       alignItems:"center", justifyContent:"center", fontSize:24 }}>💼</div>
@@ -1989,7 +1989,7 @@ function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTalent = 
                 >✕</button>
                 <div style={{
                   position:"absolute", bottom:0, left:0, right:0,
-                  background: badgeBg, backdropFilter:"blur(4px)",
+                  background: badgeBg,
                   fontSize:9, fontWeight:700, color:"#fff",
                   padding:"3px 5px", textAlign:"center", letterSpacing:"0.3px",
                 }}>
@@ -2089,7 +2089,7 @@ function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
                   boxShadow: isApproved ? "0 0 0 2px #0EC4B8" : isPending ? "0 0 0 2px #D4A800" : "0 0 0 2px #ff5050",
                 }}>
                 {w.cover_url
-                  ? <img src={w.cover_url} alt={w.title||""}
+                  ? <img loading="lazy" decoding="async" src={w.cover_url} alt={w.title||""}
                       style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
                   : <div style={{ width:"100%", height:"100%", display:"flex",
                       alignItems:"center", justifyContent:"center", fontSize:24 }}>🎨</div>
@@ -2110,7 +2110,7 @@ function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
                 {/* Status-Badge */}
                 <div style={{
                   position:"absolute", bottom:0, left:0, right:0,
-                  background: badgeBg, backdropFilter:"blur(4px)",
+                  background: badgeBg,
                   fontSize:9, fontWeight:700, color:"#fff",
                   padding:"3px 5px", textAlign:"center", letterSpacing:"0.3px",
                 }}>
@@ -2260,7 +2260,7 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
                 boxShadow: `0 0 0 2px ${borderCol}`,
               }}>
               {exp.cover_url
-                ? <img src={exp.cover_url} alt={exp.title||""}
+                ? <img loading="lazy" decoding="async" src={exp.cover_url} alt={exp.title||""}
                     style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
                 : <div style={{ width:"100%", height:"100%", display:"flex",
                     alignItems:"center", justifyContent:"center", fontSize:24 }}>🎟</div>
@@ -2281,7 +2281,7 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
               {/* Status-Badge unten */}
               <div style={{
                 position:"absolute", bottom:0, left:0, right:0,
-                background: badgeBg, backdropFilter:"blur(4px)",
+                background: badgeBg,
                 fontSize:9, fontWeight:700, color:"#fff",
                 padding:"3px 5px", textAlign:"center", letterSpacing:"0.3px",
               }}>

@@ -68,7 +68,7 @@ function initials(name) {
 
 function Avatar({ url, name, size = 34 }) {
   return url ? (
-    <img src={url} alt={name||""} style={{ width:size, height:size, borderRadius:"50%", objectFit:"cover", flexShrink:0 }} />
+    <img loading="lazy" decoding="async" src={url} alt={name||""} style={{ width:size, height:size, borderRadius:"50%", objectFit:"cover", flexShrink:0 }} />
   ) : (
     <div style={{
       width:size, height:size, borderRadius:"50%", flexShrink:0,

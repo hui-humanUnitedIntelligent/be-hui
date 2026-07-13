@@ -784,8 +784,8 @@ function SearchResultRow({ shape = "square", image, fallbackIcon, tint, title, s
         fontSize: shape === "circle" ? 17 : 18, fontWeight:700, color:SXR.teal,
       }}>
         {showImg
-          ? <img src={image} alt="" onError={() => setImgErr(true)}
-              style={{ width:"100%", height:"100%", objectFit:"cover" }} loading="lazy"/>
+          ? <img loading="lazy" decoding="async" src={image} alt="" onError={() => setImgErr(true)}
+              style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
           : (fallbackIcon || (title?.[0] || "H").toUpperCase())}
       </div>
       <div style={{ minWidth:0, flex:1 }}>

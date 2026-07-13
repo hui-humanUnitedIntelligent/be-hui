@@ -323,7 +323,7 @@ function VisitorHero({ profile, onClose, onBook, onChat, onSupport, currentUserI
             {/* Avatar + name */}
             <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:6}}>
               <div style={{position:"relative",flexShrink:0}}>
-                <img src={avatar} alt={name}
+                <img loading="lazy" decoding="async" src={avatar} alt={name}
                   style={{width:72,height:72,borderRadius:"50%",objectFit:"cover",
                     border:"3px solid rgba(255,255,255,.55)",
                     boxShadow:"0 4px 20px rgba(0,0,0,.4)"
@@ -409,7 +409,7 @@ function VisitorHero({ profile, onClose, onBook, onChat, onSupport, currentUserI
             <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
               <div style={{display:"flex"}}>
                 {LIVE_AVATARS.map((av,i)=>(
-                  <img key={i} src={av} alt=""
+                  <img loading="lazy" decoding="async" key={i} src={av} alt=""
                     style={{
                       width:24,height:24,borderRadius:"50%",
                       border:"2px solid rgba(10,22,22,.9)",
@@ -589,7 +589,7 @@ function WirkungSection({ profile, wirkerProfile, followerCount = 0 }) {
           width:110,flexShrink:0,borderRadius:R.md,overflow:"hidden",
           boxShadow:Sh.md,position:"relative",background:C.creamDeep,
         }}>
-          <img src={vidImg} alt="Creator"
+          <img loading="lazy" decoding="async" src={vidImg} alt="Creator"
             style={{width:"100%",height:150,objectFit:"cover",display:"block"}}
             onError={e=>{e.target.style.display="none";}}/>
           <div style={{
@@ -671,7 +671,7 @@ function ResonanceRow({ m }) {
         cursor:"pointer",touchAction:"manipulation",fontFamily:"inherit",
       }}>
       <div style={{position:"relative",flexShrink:0}}>
-        <img src={m.av} alt={m.name}
+        <img loading="lazy" decoding="async" src={m.av} alt={m.name}
           style={{width:38,height:38,borderRadius:"50%",objectFit:"cover",background:C.creamDeep}}
           onError={e=>{e.target.style.display="none";}}/>
         <div style={{

@@ -137,7 +137,7 @@ export default function WerkKaufFlow({ werk, onClose }) {
             {/* ── Header ── */}
             <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 22 }}>
               {coverUrl && (
-                <img src={coverUrl} alt={title} style={{
+                <img loading="lazy" decoding="async" src={coverUrl} alt={title} style={{
                   width: 56, height: 56, borderRadius: 14,
                   objectFit: "cover", flexShrink: 0,
                   border: "1px solid rgba(26,26,46,0.08)",

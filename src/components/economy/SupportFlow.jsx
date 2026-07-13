@@ -100,7 +100,7 @@ export default function SupportFlow({ creator, visible, onClose, sourceType="pro
                 background:"rgba(22,215,197,0.10)",border:`2px solid ${T.teal}`,
                 display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
                 {creator?.avatar_url
-                  ? <img src={creator.avatar_url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                  ? <img loading="lazy" decoding="async" src={creator.avatar_url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
                   : <span style={{fontSize:18,fontWeight:700,color:T.teal}}>
                       {(creator?.display_name||"T")[0].toUpperCase()}
                     </span>}

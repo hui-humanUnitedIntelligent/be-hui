@@ -228,7 +228,7 @@ export default function StoryComposer({ onClose, onSuccess }) {
         onClick={()=>!mediaPreview && fileRef.current?.click()}>
 
         {mediaPreview && mediaType==="image" && (
-          <img src={mediaPreview} alt=""
+          <img loading="lazy" decoding="async" src={mediaPreview} alt=""
             style={{width:"100%",height:"100%",objectFit:"cover",
               position:"absolute",inset:0}}/>
         )}

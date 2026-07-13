@@ -32,7 +32,7 @@ import { detectReferral } from './lib/referralTracking.js'
 // WirkerProfilePage (~140KB) und CreatorStudio laden nur bei Bedarf
 const Home              = lazy(() => import('./pages/Home'))
 const RefRedirect       = lazy(() => import('./pages/RefRedirect'))
-import ImpactPage from './pages/ImpactPage'
+const ImpactPage = React.lazy(() => import('./pages/ImpactPage'))
 const Admin             = lazy(() => import('./pages/Admin'))
 const DiagnosePage      = lazy(() => import('./pages/DiagnosePage'))
 const PlatformDashboard = lazy(() => import('./pages/PlatformDashboard'))

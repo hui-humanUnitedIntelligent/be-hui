@@ -36,11 +36,11 @@ import { clearCartAfterSuccess }        from "../components/commerce/commerceUti
 import ExperienceBookingFlow  from "../components/commerce/ExperienceBookingFlow.jsx"; // COMMERCE-01
 // ── Tab-Pages: lazy → eigene Chunks, nur bei Bedarf geladen ────
 // PHASE 17.3: ImpactPage + DiscoverPage — direkte imports (Safari-safe, kein lazy)
-import DiscoverPage  from "./DiscoverPage.jsx";
+const DiscoverPage  = React.lazy(() => import("./DiscoverPage.jsx"));
 import HuiLiveTicker    from "../components/shared/HuiLiveTicker.jsx"; // LIVETICKER.1 2026-07-08 -- ersetzt AmbientWorldBar (war Fake-Daten)
-import ImpactPage    from "./ImpactPage.jsx";
+const ImpactPage    = React.lazy(() => import('./ImpactPage.jsx'));
 // PHASE 18: FavoritesPage direkte import (Safari-safe)
-import FavoritesPage from "./FavoritesPage.jsx";
+const FavoritesPage = React.lazy(() => import("./FavoritesPage.jsx"));
 // ── Orb-Flows: lazy → nur bei Tap auf Orb-Node geladen ─────────
 const TeilenFlow     = React.lazy(() => import("../components/teilen/TeilenFlow.jsx"));
 const WorkFlow       = React.lazy(() => import("../system/flows/work/WorkFlow.jsx"));

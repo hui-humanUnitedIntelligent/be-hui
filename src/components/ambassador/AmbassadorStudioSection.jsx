@@ -714,7 +714,7 @@ function EinladungenModal({ ambassadorId, username, onClose }) {
                       flexShrink:0,
                     }}>
                       {u.avatar_url
-                        ? <img src={u.avatar_url} alt={initials} style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+                        ? <img loading="lazy" decoding="async" src={u.avatar_url} alt={initials} style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
                         : initials
                       }
                     </div>

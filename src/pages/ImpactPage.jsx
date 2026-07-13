@@ -731,7 +731,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
         }}>
         {/* Bild */}
         <div style={{ position:"relative", height:220, borderRadius:"24px 24px 0 0", overflow:"hidden" }}>
-          <img src={img} alt={app.project_name}
+          <img loading="lazy" decoding="async" src={img} alt={app.project_name}
             style={{ width:"100%", height:"100%", objectFit:"cover" }}
             onError={e => { e.target.src = "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=90"; }}
           />
@@ -835,7 +835,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
                   const isImg = /\.(jpg|jpeg|png|webp|gif)$/i.test(url);
                   return isImg ? (
                     <a key={idx} href={url} target="_blank" rel="noreferrer">
-                      <img src={url} alt={`Datei ${idx+1}`}
+                      <img loading="lazy" decoding="async" src={url} alt={`Datei ${idx+1}`}
                         style={{ width:72, height:72, objectFit:"cover", borderRadius:10,
                           border:"1px solid rgba(0,0,0,0.10)" }} />
                     </a>
@@ -1181,7 +1181,7 @@ function MilestoneDetailSheet({ milestone, onClose }) {
                       const isVid = /\.(mp4|webm|mov|avi)$/i.test(url);
                       return isImg ? (
                         <a key={mi} href={url} target="_blank" rel="noreferrer">
-                          <img src={url} alt={`Bild ${mi+1}`}
+                          <img loading="lazy" decoding="async" src={url} alt={`Bild ${mi+1}`}
                             style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 10,
                               border: "1px solid rgba(0,0,0,0.10)" }} />
                         </a>
@@ -1242,7 +1242,7 @@ function ApprovedAppCard({ app, onOpen }) {
     >
       {/* Bild */}
       <div style={{ height:160, overflow:"hidden", position:"relative" }}>
-        <img src={img} alt={app.project_name}
+        <img loading="lazy" decoding="async" src={img} alt={app.project_name}
           style={{ width:"100%", height:"100%", objectFit:"cover", transition:"transform 0.3s",
             transform: hov ? "scale(1.04)" : "scale(1)" }}
           onError={e => { e.target.src = "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=90"; }}
@@ -1587,11 +1587,11 @@ function BigHero({ stats, pool }) {
         position:"absolute", top:0, right:0, width:"52%", height:"100%",
         overflow:"hidden",
       }}>
-        <img src={HERO_IMG} alt="" style={{
+        <img src={HERO_IMG} alt="" loading="eager" decoding="sync" style={{
           width:"100%", height:"100%", objectFit:"cover",
           objectPosition:"center",
           filter:"saturate(0.82) brightness(0.90)",
-        }} loading="eager"/>
+        }}/>
         {/* Gradient-Überblendung nach links */}
         <div style={{
           position:"absolute", inset:0,
@@ -1988,9 +1988,9 @@ function VotingCard({ project:p, rank, voted, totalVotes, onVote, onOpen }) {
       <div style={{ position:"relative", height:180, overflow:"hidden",
         background:`${accent}12` }}>
         {p.img && !imgErr
-          ? <img src={p.img} alt={p.name} onError={() => setImgErr(true)}
+          ? <img loading="lazy" decoding="async" src={p.img} alt={p.name} onError={() => setImgErr(true)}
               style={{ width:"100%", height:"100%", objectFit:"cover",
-                filter:"saturate(0.85) brightness(0.92)" }} loading="lazy"/>
+                filter:"saturate(0.85) brightness(0.92)" }}/>
           : <div style={{ width:"100%", height:"100%", display:"flex",
               alignItems:"center", justifyContent:"center", fontSize:56 }}>{p.icon||"🌱"}</div>
         }
@@ -2044,7 +2044,7 @@ function VotingCard({ project:p, rank, voted, totalVotes, onVote, onOpen }) {
         <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:16 }}>
           <div style={{ display:"flex" }}>
             {AVTS.map((av,j) => (
-              <img key={j} src={av} alt="" style={{ width:22, height:22, borderRadius:"50%",
+              <img loading="lazy" decoding="async" key={j} src={av} alt="" style={{ width:22, height:22, borderRadius:"50%",
                 border:"1.5px solid white", marginLeft:j>0?-7:0, objectFit:"cover" }}/>
             ))}
           </div>
@@ -2234,8 +2234,8 @@ function HerzensKarte({ p, idx }) {
         <div style={{ width:84, flexShrink:0, background:`${accent}12`,
           display:"flex", alignItems:"center", justifyContent:"center", fontSize:30 }}>
           {p.img_url && !imgErr
-            ? <img src={p.img_url} alt={p.name} onError={() => setImgErr(true)}
-                style={{ width:"100%", height:"100%", objectFit:"cover" }} loading="lazy"/>
+            ? <img loading="lazy" decoding="async" src={p.img_url} alt={p.name} onError={() => setImgErr(true)}
+                style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
             : (p.icon || "🌱")
           }
         </div>
@@ -2487,7 +2487,7 @@ function ApprovedAppCardCompact({ app, rank, onOpen }) {
         {rank}
       </div>
       <div style={{ width:56, height:56, borderRadius:12, overflow:"hidden", flexShrink:0 }}>
-        <img src={img} alt={app.project_name}
+        <img loading="lazy" decoding="async" src={img} alt={app.project_name}
           style={{ width:"100%", height:"100%", objectFit:"cover" }}
           onError={e => { e.target.src = "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=90"; }} />
       </div>
@@ -2755,7 +2755,7 @@ function GemeinsamErmoegicht({ finanziert, transp }) {
                 background:`${p.color||T.teal}12`,
                 display:"flex", alignItems:"center", justifyContent:"center", fontSize:34 }}>
                 {p.img_url
-                  ? <img src={p.img_url} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>
+                  ? <img loading="lazy" decoding="async" src={p.img_url} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>
                   : (p.icon || "🌱")
                 }
               </div>
@@ -2894,7 +2894,7 @@ function LiveTicker({ activities }) {
               border:`1px solid ${T.teal}20`,
               display:"flex", alignItems:"center", justifyContent:"center", fontSize:12 }}>
               {act.avatar
-                ? <img src={act.avatar} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>
+                ? <img loading="lazy" decoding="async" src={act.avatar} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>
                 : "👤"
               }
             </div>

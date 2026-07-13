@@ -227,7 +227,7 @@ function ResultCard({ item, idx, onOpen, moodColor }) {
         e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.08)";
       }}>
       <div style={{ position:"relative", height:120, overflow:"hidden" }}>
-        <img src={img} alt=""
+        <img loading="lazy" decoding="async" src={img} alt=""
           style={{ width:"100%", height:"100%", objectFit:"cover",
             filter:"brightness(0.80) saturate(1.18)" }}/>
         <div style={{ position:"absolute", inset:0,

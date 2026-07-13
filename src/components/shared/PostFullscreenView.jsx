@@ -230,7 +230,7 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
 
         {/* 1) Grosses Bild/Video */}
         {hero && (
-          <img src={hero} alt={mountedItem.title || ""} style={{ width:"100%", maxHeight:"62vh", objectFit:"cover", display:"block", marginTop:8 }}/>
+          <img loading="lazy" decoding="async" src={hero} alt={mountedItem.title || ""} style={{ width:"100%", maxHeight:"62vh", objectFit:"cover", display:"block", marginTop:8 }}/>
         )}
 
         <div style={{ padding:"18px 18px 0" }}>
@@ -239,7 +239,7 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
             <div className="pfv-btn" onClick={handleOpenProfile} style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
               <div style={{ width:40, height:40, borderRadius:"50%", overflow:"hidden", flexShrink:0,
                 background:"rgba(13,196,181,0.14)" }}>
-                {mountedItem.author.avatar && <img src={mountedItem.author.avatar} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>}
+                {mountedItem.author.avatar && <img loading="lazy" decoding="async" src={mountedItem.author.avatar} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>}
               </div>
               <div style={{ minWidth:0 }}>
                 <div style={{ fontSize:14.5, fontWeight:700, color:T.ink }}>{mountedItem.author.name}</div>
@@ -262,7 +262,7 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
           {extraMedia.length > 0 && (
             <div className="pfv-strip" style={{ display:"flex", gap:8, overflowX:"auto", marginBottom:16 }}>
               {extraMedia.map((m, i) => (
-                <img key={i} src={m.url} alt="" style={{ width:110, height:110, borderRadius:12, objectFit:"cover", flexShrink:0 }}/>
+                <img loading="lazy" decoding="async" key={i} src={m.url} alt="" style={{ width:110, height:110, borderRadius:12, objectFit:"cover", flexShrink:0 }}/>
               ))}
             </div>
           )}
@@ -307,7 +307,7 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
                     width:96, height:96, borderRadius:12, overflow:"hidden", flexShrink:0,
                     background:"rgba(26,26,46,0.05)",
                   }}>
-                    {row.src && <img src={row.src} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>}
+                    {row.src && <img loading="lazy" decoding="async" src={row.src} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>}
                   </div>
                 ))}
               </div>

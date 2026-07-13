@@ -105,7 +105,7 @@ function AvatarUploader({ userId, current, onUploaded }) {
           cursor:"pointer",overflow:"hidden",position:"relative",touchAction:"manipulation",
         }}>
         {preview
-          ? <img src={preview} alt="Avatar" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+          ? <img loading="lazy" decoding="async" src={preview} alt="Avatar" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
           : <span style={{fontSize:36}}>📷</span>
         }
         {loading && (

@@ -51,7 +51,7 @@ function EventCard({ event, onPress, delay }) {
           overflow: "hidden",
         }}>
           {img && (
-            <img src={img} alt={event.title}
+            <img loading="lazy" decoding="async" src={img} alt={event.title}
               onError={() => setImgErr(true)}
               style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
           )}

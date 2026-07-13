@@ -197,7 +197,7 @@ export function MeineInhaltePage({ onBack, userId }) {
                 background:"#f0efed", position:"relative",
               }}>
                 {item.cover_url
-                  ? <img src={item.cover_url} alt=""
+                  ? <img loading="lazy" decoding="async" src={item.cover_url} alt=""
                       style={{ width:"100%", height:"100%", objectFit:"cover",
                                position:"absolute", inset:0 }}/>
                   : <div style={{

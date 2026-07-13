@@ -390,7 +390,7 @@ function S1({ data, onChange, userId }) {
       <Field label="Titelbild" req>
         {firstImg ? (
           <div style={{ position: "relative", borderRadius: 14, overflow: "hidden", aspectRatio: "16/9", background: "#1A1A18" }}>
-            <img src={firstImg} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}/>
+            <img loading="lazy" decoding="async" src={firstImg} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}/>
             <button
               onClick={() => removeImg(0)}
               style={{
@@ -665,7 +665,7 @@ function S4({ data, onChange, saving }) {
         {/* Titelbild */}
         {cover ? (
           <div style={{ width: "100%", aspectRatio: "16/9", background: "#1A1A18", overflow: "hidden" }}>
-            <img src={cover} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}/>
+            <img loading="lazy" decoding="async" src={cover} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}/>
           </div>
         ) : (
           <div style={{ width: "100%", height: 100, background: C.tealSoft, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, opacity: 0.4 }}>📅</div>

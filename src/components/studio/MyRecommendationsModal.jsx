@@ -252,7 +252,7 @@ function MyRecommendationsModal({ userId, onClose }) {
                       overflow:"hidden", fontSize:20,
                     }}>
                       {d.image
-                        ? <img src={d.image} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+                        ? <img loading="lazy" decoding="async" src={d.image} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
                         : <span>{d.icon || L.emoji}</span>
                       }
                     </div>

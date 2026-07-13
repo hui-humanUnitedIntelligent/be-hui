@@ -59,7 +59,7 @@ function MediaGallery({ files, onRemove, onAdd }) {
             <video src={f.preview}
               style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
           ) : (
-            <img src={f.preview} alt=""
+            <img loading="lazy" decoding="async" src={f.preview} alt=""
               style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
           )}
           <button onClick={() => onRemove(i)} style={{

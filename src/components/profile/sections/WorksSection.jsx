@@ -169,7 +169,7 @@ export function WorksSection({
                   <div style={{ width:100, height:100, borderRadius:T.r16, overflow:"hidden",
                     background:"linear-gradient(135deg,#2C3B2D,#4A6741)", boxShadow:T.card }}>
                     {w.cover_url
-                      ? <img src={w.cover_url} alt={w.title||""} style={{ width:"100%",height:"100%",objectFit:"cover" }}
+                      ? <img loading="lazy" decoding="async" src={w.cover_url} alt={w.title||""} style={{ width:"100%",height:"100%",objectFit:"cover" }}
                           onError={e=>e.target.style.display="none"}/>
                       : <div style={{ width:"100%",height:"100%",display:"flex",alignItems:"center",
                           justifyContent:"center",fontSize:24 }}>🎨</div>}

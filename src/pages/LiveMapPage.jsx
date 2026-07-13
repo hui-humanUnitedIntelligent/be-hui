@@ -197,7 +197,7 @@ function EnergyOrb({pin,x,y,onClick,isSelected}){
           ?<div style={{width:"100%",height:"100%",display:"flex",
               alignItems:"center",justifyContent:"center",
               fontSize:sz*0.38,position:"relative",zIndex:3}}>🌱</div>
-          :<img src={pin.img} alt={pin.name}
+          :<img loading="lazy" decoding="async" src={pin.img} alt={pin.name}
               style={{position:"absolute",inset:0,width:"100%",height:"100%",
                 objectFit:"cover",objectPosition:isW?"top":"center",
                 filter:"brightness(0.88)saturate(1.1)"}}/>}
@@ -233,7 +233,7 @@ function DetailSheet({pin,onClose,onBooking}){
         </div>
         <div style={{position:"relative",height:220,margin:"10px 16px 0",
           borderRadius:24,overflow:"hidden",flexShrink:0}}>
-          <img src={pin.bg} alt={pin.name}
+          <img loading="lazy" decoding="async" src={pin.bg} alt={pin.name}
             style={{width:"100%",height:"100%",objectFit:"cover",
               objectPosition:isW?"top center":"center",
               filter:"brightness(0.70)saturate(1.1)"}}/>
@@ -264,7 +264,7 @@ function DetailSheet({pin,onClose,onBooking}){
             ⏱ {pin.duration}</div>}
           {isW&&(
             <div style={{position:"absolute",bottom:-24,left:24}}>
-              <img src={pin.img} alt={pin.name}
+              <img loading="lazy" decoding="async" src={pin.img} alt={pin.name}
                 style={{width:52,height:52,borderRadius:"50%",objectFit:"cover",
                   border:"3px solid white",boxShadow:"0 4px 16px rgba(0,0,0,0.22)"}}/>
             </div>)}

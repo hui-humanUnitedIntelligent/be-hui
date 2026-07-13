@@ -118,7 +118,7 @@ export function ExperiencesSection({
               <div style={{ width:110, height:100, borderRadius:T.r16, overflow:"hidden",
                 background:"linear-gradient(135deg,#2C3B2D,#8B7355)", marginBottom:6 }}>
                 {ex.cover_url
-                  ? <img src={ex.cover_url} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}
+                  ? <img loading="lazy" decoding="async" src={ex.cover_url} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}
                       onError={e=>e.target.style.display="none"}/>
                   : <div style={{ width:"100%",height:"100%",display:"flex",alignItems:"center",
                       justifyContent:"center",fontSize:28 }}>🎭</div>}

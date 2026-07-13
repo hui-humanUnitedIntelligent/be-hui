@@ -63,7 +63,7 @@ function WorkPreviewCard({ form, mediaFiles, profile }) {
         position:"relative", overflow:"hidden",
       }}>
         {cover ? (
-          <img src={cover} alt=""
+          <img loading="lazy" decoding="async" src={cover} alt=""
             style={{ width:"100%", height:"100%", objectFit:"cover" }} />
         ) : (
           <div style={{

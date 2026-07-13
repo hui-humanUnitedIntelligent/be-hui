@@ -602,7 +602,7 @@ function Step5b({ milestones, setMilestones, onNext, onBack, onClose, userId }) 
                         overflow:"hidden", border:"1px solid rgba(13,196,181,0.20)",
                       }}>
                         {att.type?.startsWith("image/") ? (
-                          <img src={att.url} alt={att.name}
+                          <img loading="lazy" decoding="async" src={att.url} alt={att.name}
                             style={{ width:"100%", height:"100%", objectFit:"cover" }} />
                         ) : (
                           <div style={{
@@ -1357,7 +1357,7 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
 
           {coverUrl ? (
             <div style={{ position:"relative", borderRadius:16, overflow:"hidden", marginBottom:8 }}>
-              <img src={coverUrl} alt="Titelbild"
+              <img loading="lazy" decoding="async" src={coverUrl} alt="Titelbild"
                 style={{ width:"100%", height:180, objectFit:"cover", display:"block" }} />
               <button onClick={() => setCoverUrl("")} style={{
                 position:"absolute", top:8, right:8,
@@ -1438,7 +1438,7 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
                   borderRadius:12, padding:"10px 12px",
                 }}>
                   {att.type?.startsWith("image/") ? (
-                    <img src={att.url} alt={att.name}
+                    <img loading="lazy" decoding="async" src={att.url} alt={att.name}
                       style={{ width:40, height:40, borderRadius:8, objectFit:"cover" }} />
                   ) : (
                     <div style={{

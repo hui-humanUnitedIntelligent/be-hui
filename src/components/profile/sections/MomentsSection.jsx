@@ -86,7 +86,7 @@ export function MomentsSection({
               background:"#e8e4de", position:"relative", cursor:"pointer",
             }}>
               {m.src || m.media_url
-                ? <img src={m.src||m.media_url} alt=""
+                ? <img loading="lazy" decoding="async" src={m.src||m.media_url} alt=""
                     style={{ width:"100%",height:"100%",objectFit:"cover" }}
                     onError={e=>e.target.style.display="none"}/>
                 : <div style={{ width:"100%",height:"100%",display:"flex",

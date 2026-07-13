@@ -485,7 +485,7 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
       )}
 
       {/* Scrollable body */}
-      <div className="bpp-scroll" style={{ flex:1, overflowY:"auto",
+      <div className="bpp-scroll" style={{ flex:1, overflowY:"auto", willChange:"transform", overscrollBehavior:"contain",
         paddingBottom:"max(40px,calc(28px + env(safe-area-inset-bottom,0px)))" }}>
 
         {/* 1. Kanonischer ProfileHeader (Sprint F.9D) */}
