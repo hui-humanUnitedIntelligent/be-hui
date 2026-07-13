@@ -71,7 +71,7 @@ export function ProfileHeader({
 
   const cover    = sv(profile?.header_img, FB_COVER);
   const avatar   = sv(profile?.avatar_url, FB_AVT);
-  const name     = sv(profile?.display_name || profile?.username, "–");
+  const name     = sv(profile?.full_name || profile?.display_name || profile?.username, "–");
   const username = sv(profile?.username);
   const bio      = sv(profile?.bio);
   // location_final aus useProfileData; Fallback auf location für nicht migrierte Seiten
@@ -207,12 +207,12 @@ export function ProfileHeader({
             )}
           </div>
 
-          {/* ── Name + @username (mittig) ── */}
-          <div style={{ flex:1, minWidth:0, paddingTop:54 /* unter Cover-Kante */ }}>
+          {/* ── Name + @username + Badge (alles im mittleren Block) ── */}
+          <div style={{ flex:1, minWidth:0, paddingTop:54 }}>
             {loading ? <Sk w={120} h={20} r={6}/> : (
               <div style={{
-                fontSize:18, fontWeight:800, color:T.ink,
-                letterSpacing:"-0.03em", lineHeight:1.2,
+                fontSize:17, fontWeight:800, color:T.ink,
+                letterSpacing:"-0.02em", lineHeight:1.2,
                 overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
               }}>
                 {name}
@@ -223,25 +223,23 @@ export function ProfileHeader({
                 @{username}
               </div>
             )}
-          </div>
-
-          {/* ── Badge rechts ── */}
-          {!loading && (
-            <div style={{ flexShrink:0, paddingTop:54, alignSelf:"flex-end", paddingBottom:2 }}>
+            {/* Badge — direkt unter @username */}
+            {!loading ? (
               <div style={{
-                display:"inline-flex", alignItems:"center", gap:4,
+                display:"inline-flex", alignItems:"center", gap:4, marginTop:6,
                 background: isTalentResolved ? "rgba(14,196,184,0.10)" : "rgba(14,196,184,0.07)",
                 border:`1px solid ${isTalentResolved ? "rgba(14,196,184,0.30)" : "rgba(14,196,184,0.18)"}`,
-                borderRadius:99, padding:"4px 10px",
+                borderRadius:99, padding:"3px 10px",
                 fontSize:11, fontWeight:700, color:"#0AADA3",
                 whiteSpace:"nowrap",
               }}>
                 <span>{isTalentResolved ? "✨" : "🌿"}</span>
                 <span>{isTalentResolved ? "HUI-Talent" : "Basis-Nutzer"}</span>
               </div>
-            </div>
-          )}
-          {loading && <div style={{ paddingTop:54 }}><Sk w={90} h={22} r={99}/></div>}
+            ) : (
+              <div style={{ marginTop:5 }}><Sk w={90} h={22} r={99}/></div>
+            )}
+          </div>
         </div>
 
         {/* Standort */}
