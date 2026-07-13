@@ -425,6 +425,7 @@ function HomeInner() {
                   // Scroll-Ziel je Projekt waere eine zweite Navigation-Baustelle
                   // ohne echten Mehrwert fuer diesen Anwendungsfall.
                   onProjectPress={() => handleTab("impact")}
+                   scrollContainerRef={scrollContainerRef}
                 />
               </SafeRender>
             ) : (
