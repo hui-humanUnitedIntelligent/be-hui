@@ -129,7 +129,7 @@ export function ProfileHeader({
 
         {/* Haupt-SVG — definiert die gesamte Header-Höhe */}
         <svg
-          viewBox="0 0 100 68"
+          viewBox="0 0 100 72"
           preserveAspectRatio="xMidYMid meet"
           style={{ display:"block", width:"100%", overflow:"visible" }}
           aria-hidden="true"
@@ -171,12 +171,12 @@ export function ProfileHeader({
 
             {/* Avatar-Clip: Kreis */}
             <clipPath id="avatarClip">
-              <circle cx="50" cy="50" r="7.5"/>
+              <circle cx="50" cy="50" r="12.5"/>
             </clipPath>
           </defs>
 
           {/* ── Hintergrund (unter Welle) ── */}
-          <rect x="0" y="44" width="100" height="24" fill={T.bg}/>
+          <rect x="0" y="44" width="100" height="28" fill={T.bg}/>
 
           {/* ── Cover-Bereich — durch Wellen-Clip beschnitten ── */}
           <g clipPath="url(#waveClip)">
@@ -222,23 +222,23 @@ export function ProfileHeader({
 
           {/* ── Avatar-Halo (Glow hinter Avatar) ── */}
           {!loading && (
-            <circle cx="50" cy="50" r="10" fill={T.teal} fillOpacity="0.12"/>
+            <circle cx="50" cy="50" r="17" fill={T.teal} fillOpacity="0.10"/>
           )}
 
           {/* ── Ambassador Puls-Ring ── */}
           {isAmbassador && !loading && (
-            <circle cx="50" cy="50" r="8.5" fill="none" stroke="#F59E0B" strokeWidth="0.4" strokeOpacity="0.8"/>
+            <circle cx="50" cy="50" r="14.5" fill="none" stroke="#F59E0B" strokeWidth="0.4" strokeOpacity="0.8"/>
           )}
 
           {/* ── Avatar Border (weißer Ring) ── */}
-          <circle cx="50" cy="50" r="8" fill={T.bg}/>
+          <circle cx="50" cy="50" r="13.5" fill={T.bg}/>
 
           {/* ── Avatar-Bild ── */}
           <g clipPath="url(#avatarClip)">
             {!loading ? (
               <image
                 href={avatar}
-                x="42.5" y="42.5" width="15" height="15"
+                x="37.5" y="37.5" width="25" height="25"
                 preserveAspectRatio="xMidYMid slice"
                 opacity={avatarLoaded ? "1" : "0"}
                 style={{ transition:"opacity 0.4s ease" }}
@@ -294,7 +294,7 @@ export function ProfileHeader({
               left:"50%",
               transform:"translateX(-50%)",
               zIndex:20,
-              width:48, height:48,
+              width:80, height:80,
               borderRadius:"50%",
               background:"transparent",
               border:"none",
@@ -324,7 +324,7 @@ export function ProfileHeader({
           ════════════════════════════════════════════════════════ */}
       <div style={{
         background: T.bg,
-        paddingTop: 12,
+        paddingTop: 4,
         paddingBottom: 0,
         textAlign: "center",
       }}>
