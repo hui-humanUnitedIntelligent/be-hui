@@ -136,7 +136,7 @@ function StripeForm({ total, impact, orderId, onSuccess, onError }) {
               layout:           "tabs",
               defaultValues:    { billingDetails: { address: { country: BILLING_COUNTRY } } },
               fields:           { billingDetails: { address: { country: "never" } } },
-              wallets:          { applePay: "auto", googlePay: "auto" },
+              wallets:          { applePay: "auto", googlePay: "auto", link: "never" },
             }}
             onLoadError={(e) => { if (import.meta.env.DEV) console.error("[STRIPE] PaymentElement onLoadError", e); }}
           />
