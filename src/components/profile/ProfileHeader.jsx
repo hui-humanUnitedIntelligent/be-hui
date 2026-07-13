@@ -1,7 +1,17 @@
 // src/components/profile/ProfileHeader.jsx
 // ══════════════════════════════════════════════════════════════════════
-// UNIFIED PROFILE HEADER v3 — 2026-07-13
-// Cover + Welle als EIN SVG-Container, Avatar mittig auf Welle
+// UNIFIED PROFILE HEADER — Sprint B
+// ──────────────────────────────────────────────────────────────────────
+// Ersetzt langfristig:
+//   • MeinProfilHeader        (MyBasisProfile.jsx)
+//   • CinematicHero           (TalentProfilePage.jsx)
+//   • CinematicHero           (BasisProfilePage.jsx)
+//   • ProfileHeader (lokal)   (BasisProfilePage.jsx)
+//   • ProfileHeader (extern)  (wirker-profile/components/ProfileHeader.jsx)
+//   • HeroSection             (wirker-profile/sections/HeroSection.jsx)
+//   • ProfileHero             (TalentProfilePage.jsx, BasisProfilePage.jsx)
+//
+// NOCH NICHT INTEGRIERT — wird in Sprint C in die Seiten eingebunden.
 // ══════════════════════════════════════════════════════════════════════
 
 import React, { useState, useRef, useCallback } from "react";
@@ -11,17 +21,17 @@ import {
   handleAvatarUpload, handleCoverUpload,
 } from "../../lib/profileMedia.js";
 
+// Fallback-Assets: FB_COVER, FB_AVATAR aus profileMedia.js
+// FB_AVT-Alias fuer Rueckwaertskompatibilitaet im JSX unten
 const FB_AVT = FB_AVATAR;
 
+// Design-Tokens (inline)
 const T = {
   bg:       "#F7F5F0",
   ink:      "#1A1A18",
   inkSoft:  "#4A4A45",
   inkFaint: "#8C8C85",
   teal:     "#0EC4B8",
-  tealDeep: "#0AADA3",
-  purple:   "#845EC2",
-  dark:     "#111224",
 };
 
 function Sk({ w, h, r = 8 }) {
@@ -31,30 +41,17 @@ function Sk({ w, h, r = 8 }) {
       background: "linear-gradient(90deg,#ede9e2 25%,#f7f5f0 50%,#ede9e2 75%)",
       backgroundSize: "200% 100%",
       animation: "ph-shimmer 1.4s ease-in-out infinite",
-    }} />
+    }}/>
   );
 }
 
-function CameraIcon({ size = 14, color = "white" }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
-      strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-      <circle cx="12" cy="13" r="4"/>
-    </svg>
-  );
-}
+// sv() aus profileMedia.js importiert
 
-function Spinner({ size = 16, color = "white" }) {
-  return (
-    <div style={{
-      width: size, height: size, borderRadius: "50%",
-      border: `2px solid ${color}33`, borderTopColor: color,
-      animation: "ph-spin .7s linear infinite",
-    }} />
-  );
-}
+// uploadProfileImage() aus profileMedia.js importiert
 
+// ══════════════════════════════════════════════════════════════════════
+// ProfileHeader
+// ══════════════════════════════════════════════════════════════════════
 export function ProfileHeader({
   profile      = null,
   isOwner      = false,
@@ -68,8 +65,6 @@ export function ProfileHeader({
   const [avatarLoaded,    setAvatarLoaded]    = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [coverUploading,  setCoverUploading]  = useState(false);
-  const [coverHover,      setCoverHover]      = useState(false);
-  const [avatarHover,     setAvatarHover]     = useState(false);
 
   const avatarInputRef = useRef(null);
   const coverInputRef  = useRef(null);
@@ -78,9 +73,11 @@ export function ProfileHeader({
   const avatar   = sv(profile?.avatar_url, FB_AVT);
   const name     = sv(profile?.display_name || profile?.username, "–");
   const username = sv(profile?.username);
+  const bio      = sv(profile?.bio);
+  // location_final aus useProfileData; Fallback auf location für nicht migrierte Seiten
   const location = sv(profile?.location_final || profile?.location);
+
   const isTalentResolved = isTalent || profile?.is_talent === true;
-  const isAmbassador = profile?.is_ambassador === true;
 
   const handleAvatarFile = useCallback((e) =>
     handleAvatarUpload({ event: e, profileId: profile?.id, onSuccess: onEditAvatar, setUploading: setAvatarUploading }),
@@ -90,12 +87,6 @@ export function ProfileHeader({
     handleCoverUpload({ event: e, profileId: profile?.id, onSuccess: onEditCover, setUploading: setCoverUploading }),
   [profile?.id, onEditCover]);
 
-  // SVG viewBox: 100 Einheiten breit, 60 hoch
-  // Wellen-Kurve bei y=45: links oben, Mitte unten, rechts oben
-  // Cover füllt y=0..45 (oben), Welle schneidet unten ein
-  // Avatar-Mittelpunkt: x=50, y=45 (auf der Welle)
-  const AVATAR_D = 96;
-
   return (
     <>
       <style>{`
@@ -103,288 +94,282 @@ export function ProfileHeader({
           0%   { background-position: 200% 0; }
           100% { background-position: -200% 0; }
         }
-        @keyframes ph-spin { to { transform: rotate(360deg); } }
-        @keyframes ph-pulse-ring {
-          0%   { transform: scale(0.95); opacity: 0.6; }
-          70%  { transform: scale(1.08); opacity: 0; }
-          100% { transform: scale(0.95); opacity: 0; }
-        }
-        .ph-press { -webkit-tap-highlight-color: transparent; }
-        .ph-press:active { opacity: 0.7; }
+        .ph-press { -webkit-tap-highlight-color: transparent; transition: opacity .12s ease; }
+        .ph-press:active { opacity: 0.65; }
       `}</style>
 
-      <input ref={coverInputRef}  type="file" accept="image/*" style={{ display:"none" }} onChange={handleCoverFile} />
-      <input ref={avatarInputRef} type="file" accept="image/*" style={{ display:"none" }} onChange={handleAvatarFile} />
+      <input ref={coverInputRef}  type="file" accept="image/*"
+        style={{ display:"none" }} onChange={handleCoverFile}  />
+      <input ref={avatarInputRef} type="file" accept="image/*"
+        style={{ display:"none" }} onChange={handleAvatarFile} />
 
-      {/* ════════════════════════════════════════════════════════
-          HEADER-BLOCK: Cover + Welle + Avatar als Einheit
-          Breite: 100%, Höhe: auto durch SVG viewBox
-          SVG viewBox: 0 0 100 68
-            - Cover: y=0..50 (Cover-Bild)
-            - Welle: y≈42..50 (geschwungene Kurve)
-            - Avatar: Mittelpunkt x=50 y=50 (auf der Welle)
-            - Unterhalb der Welle: Hintergrundfarbe
-          ════════════════════════════════════════════════════════ */}
-      <div style={{ position:"relative", width:"100%", userSelect:"none" }}>
-
-        {/* Haupt-SVG — definiert die gesamte Header-Höhe */}
-        <svg
-          viewBox="0 0 100 58"
-          preserveAspectRatio="xMidYMid meet"
-          style={{ display:"block", width:"100%", overflow:"visible" }}
-          aria-hidden="true"
-        >
-          <defs>
-            {/* Cover-Bild als Pattern — füllt den Cover-Bereich */}
-            <pattern id="coverPat" patternUnits="userSpaceOnUse" x="0" y="0" width="100" height="50">
-              <image
-                href={(!loading && coverLoaded) ? cover : ""}
-                x="0" y="0" width="100" height="36"
-                preserveAspectRatio="xMidYMid slice"
-              />
-              {/* Gradient-Fallback wenn kein Bild */}
-              <rect x="0" y="0" width="100" height="50"
-                fill="url(#coverGrad)"
-                opacity={(!loading && coverLoaded) ? "0" : "1"}
-              />
-            </pattern>
-
-            {/* Cover Fallback-Gradient */}
-            <linearGradient id="coverGrad" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
-              <stop offset="0%"   stopColor="#1A3530"/>
-              <stop offset="40%"  stopColor={T.teal}/>
-              <stop offset="75%"  stopColor={T.purple}/>
-              <stop offset="100%" stopColor={T.dark}/>
-            </linearGradient>
-
-            {/* Clip-Path: Cover wird durch Wellen-Form beschnitten */}
-            <clipPath id="waveClip">
-              <path d="M0,0 L100,0 L100,36 C75,36 62,43 50,43 C38,43 25,36 0,36 Z"/>
-            </clipPath>
-
-            {/* Wellen-Gradient für den Stroke */}
-            <linearGradient id="waveStroke" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%"   stopColor={T.teal}   stopOpacity="0.8"/>
-              <stop offset="50%"  stopColor={T.purple} stopOpacity="0.6"/>
-              <stop offset="100%" stopColor={T.teal}   stopOpacity="0.8"/>
-            </linearGradient>
-
-            {/* Avatar-Clip: Kreis */}
-            <clipPath id="avatarClip">
-              <circle cx="50" cy="38" r="12.5"/>
-            </clipPath>
-          </defs>
-
-          {/* ── Hintergrund (unter Welle) ── */}
-          <rect x="0" y="36" width="100" height="22" fill={T.bg}/>
-
-          {/* ── Cover-Bereich — durch Wellen-Clip beschnitten ── */}
-          <g clipPath="url(#waveClip)">
-            {/* Gradient Fallback */}
-            <rect x="0" y="0" width="100" height="50" fill="url(#coverGrad)"/>
-            {/* Cover-Bild */}
-            {!loading && (
-              <image
-                href={cover}
-                x="0" y="0" width="100" height="36"
-                preserveAspectRatio="xMidYMid slice"
-                opacity={coverLoaded ? "1" : "0"}
-                style={{ transition:"opacity 0.8s ease" }}
-                onLoad={() => setCoverLoaded(true)}
-                onError={() => setCoverLoaded(true)}
-              />
-            )}
-            {/* Shimmer beim Laden */}
-            {loading && (
-              <rect x="0" y="0" width="100" height="50" fill="#2a5548" opacity="0.7"/>
-            )}
-            {/* Cover-Hover Overlay */}
-            {isOwner && !loading && coverHover && (
-              <rect x="0" y="0" width="100" height="50" fill="rgba(0,0,0,0.35)"/>
-            )}
-          </g>
-
-          {/* ── Wellen-Linie (Stroke über dem Clip) ── */}
-          <path
-            d="M0,36 C25,36 38,43 50,43 C62,43 75,36 100,36"
-            fill="none"
-            stroke="url(#waveStroke)"
-            strokeWidth="0.5"
-          />
-          {/* Wellen-Glow */}
-          <path
-            d="M0,36 C25,36 38,43 50,43 C62,43 75,36 100,36"
-            fill="none"
-            stroke={T.teal}
-            strokeWidth="1.5"
-            strokeOpacity="0.12"
-          />
-
-          {/* ── Avatar-Halo (Glow hinter Avatar) ── */}
-          {!loading && (
-            <circle cx="50" cy="38" r="14" fill={T.teal} fillOpacity="0.06"/>
-          )}
-
-          {/* ── Ambassador Puls-Ring ── */}
-          {isAmbassador && !loading && (
-            <circle cx="50" cy="38" r="13.5" fill="none" stroke="#F59E0B" strokeWidth="0.4" strokeOpacity="0.8"/>
-          )}
-
-          {/* ── Avatar Border (weißer Ring) ── */}
-          <circle cx="50" cy="38" r="13.5" fill={T.bg}/>
-
-          {/* ── Avatar-Bild ── */}
-          <g clipPath="url(#avatarClip)">
-            {!loading ? (
-              <image
-                href={avatar}
-                x="37.5" y="25.5" width="25" height="25"
-                preserveAspectRatio="xMidYMid slice"
-                opacity={avatarLoaded ? "1" : "0"}
-                style={{ transition:"opacity 0.4s ease" }}
-                onLoad={() => setAvatarLoaded(true)}
-                onError={() => setAvatarLoaded(true)}
-              />
-            ) : (
-              <circle cx="50" cy="50" r="7.5" fill="#ede9e2"/>
-            )}
-          </g>
-
-          {/* ── Ambassador Badge ── */}
-          {isAmbassador && !loading && (
-            <g>
-              <circle cx="56" cy="56.5" r="2.2" fill="url(#ambGrad)"/>
-              <text x="56" y="57.4" textAnchor="middle" fontSize="2.5" fill="white">⭐</text>
-            </g>
-          )}
-        </svg>
-
-        {/* ── Cover-Kamera-Button (absolut über SVG) ── */}
-        {isOwner && !loading && (
-          <button className="ph-press"
-            onClick={() => coverInputRef.current?.click()}
+      {/* ── COVER ──────────────────────────────────────────────── */}
+      <div style={{
+        position:"relative", width:"100%", height:180, overflow:"hidden",
+        background:"linear-gradient(160deg,#1A3530 0%,#2A5548 50%,#0EC4B8 100%)",
+      }}>
+        {loading ? (
+          <div style={{
+            position:"absolute", inset:0,
+            background:"linear-gradient(90deg,#ede9e2 25%,#f7f5f0 50%,#ede9e2 75%)",
+            backgroundSize:"200% 100%",
+            animation:"ph-shimmer 1.4s ease-in-out infinite",
+          }}/>
+        ) : (
+          <img
+            src={cover} alt=""
+            onLoad={() => setCoverLoaded(true)}
+            onError={() => setCoverLoaded(true)}
             style={{
-              position:"absolute", top:10, right:10, zIndex:20,
-              display:"flex", alignItems:"center", gap:5,
-              padding:"5px 10px", borderRadius:99,
-              background:"rgba(0,0,0,0.45)",
-              backdropFilter:"blur(8px)", WebkitBackdropFilter:"blur(8px)",
-              border:"1px solid rgba(255,255,255,0.2)",
-              cursor:"pointer", touchAction:"manipulation",
-              color:"white", fontSize:11, fontWeight:600,
+              width:"100%", height:"100%", objectFit:"cover", display:"block",
+              opacity: coverLoaded ? 0.88 : 0, transition:"opacity 1.1s ease",
+            }}
+          />
+        )}
+        {/* Gradient-Fade */}
+        <div style={{
+          position:"absolute", inset:0,
+          background:"linear-gradient(to bottom,transparent 40%,rgba(247,245,240,0.7) 100%)",
+          pointerEvents:"none",
+        }}/>
+
+        {/* Cover-Kamera (Owner only) */}
+        {isOwner && !loading && (
+          <button className="ph-press" onClick={() => coverInputRef.current?.click()}
+            style={{
+              position:"absolute", top:12, left:12, zIndex:20,
+              width:32, height:32, borderRadius:"50%",
+              background:"rgba(0,0,0,0.40)", backdropFilter:"blur(6px)", WebkitBackdropFilter:"blur(6px)",
+              border:"none", cursor:"pointer", touchAction:"manipulation",
+              display:"flex", alignItems:"center", justifyContent:"center", fontSize:14,
             }}
             aria-label="Cover ändern"
-            onMouseEnter={() => setCoverHover(true)}
-            onMouseLeave={() => setCoverHover(false)}
           >
-            {coverUploading ? <Spinner size={12} /> : <CameraIcon size={13} />}
-            <span>{coverUploading ? "…" : "Cover"}</span>
-          </button>
-        )}
-
-        {/* ── Avatar-Edit-Button (absolut über SVG, an Avatar-Position) ── */}
-        {isOwner && !loading && (
-          <button className="ph-press"
-            onClick={() => avatarInputRef.current?.click()}
-            style={{
-              position:"absolute",
-              /* Avatar-Mitte liegt bei SVG y=50/68 der SVG-Höhe vom Top */
-              /* In % der SVG-Höhe: 50/68 * 100 = 73.5% */
-              top:"calc(50/68 * 100% - 24px)",
-              left:"50%",
-              transform:"translateX(-50%)",
-              zIndex:20,
-              width:80, height:80,
-              borderRadius:"50%",
-              background:"transparent",
-              border:"none",
-              cursor:"pointer",
-              touchAction:"manipulation",
-            }}
-            onMouseEnter={() => setAvatarHover(true)}
-            onMouseLeave={() => setAvatarHover(false)}
-            aria-label="Profilbild ändern"
-          >
-            {(avatarHover || avatarUploading) && (
-              <div style={{
-                position:"absolute", inset:0, borderRadius:"50%",
-                background:"rgba(0,0,0,0.5)",
-                display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:2,
-              }}>
-                {avatarUploading ? <Spinner size={16}/> : <><CameraIcon size={16}/><span style={{ color:"white", fontSize:8, fontWeight:700 }}>Ändern</span></>}
-              </div>
-            )}
+            {coverUploading ? "⏳" : "📷"}
           </button>
         )}
       </div>
 
-      {/* ════════════════════════════════════════════════════════
-          IDENTITY BLOCK — direkt unter dem Header-SVG
-          Kein paddingTop nötig — SVG endet auf Höhe des Avatars
-          ════════════════════════════════════════════════════════ */}
-      <div style={{
-        background: T.bg,
-        paddingTop: 0,
-        paddingBottom: 0,
-        textAlign: "center",
-      }}>
-        {/* Name */}
-        {loading
-          ? <div style={{ display:"flex", justifyContent:"center", marginBottom:6 }}><Sk w={160} h={26} r={6}/></div>
-          : <div style={{ fontSize:22, fontWeight:900, letterSpacing:"-0.04em", lineHeight:1.1, color:T.ink, padding:"0 20px" }}>
-              {name}
-            </div>
-        }
+      {/* ── IDENTITY BLOCK ─────────────────────────────────────── */}
+      <div style={{ background: T.bg, padding:"0 16px 20px" }}>
 
-        {/* @username */}
-        {!loading && username && (
-          <div style={{ fontSize:12, color:T.inkFaint, marginTop:3, fontWeight:500 }}>@{username}</div>
-        )}
+        {/* Row: Avatar + Name + Badge + Standort */}
+        <div style={{ display:"flex", alignItems:"flex-end", gap:14, marginTop:-36, marginBottom:14 }}>
 
-        {/* Rolle Badge */}
-        {!loading
-          ? <div style={{
-              display:"inline-flex", alignItems:"center", gap:5, marginTop:8,
-              background: isTalentResolved
-                ? "linear-gradient(135deg,rgba(14,196,184,0.12),rgba(132,94,194,0.08))"
-                : "rgba(14,196,184,0.07)",
-              border:`1px solid ${isTalentResolved ? "rgba(14,196,184,0.28)" : "rgba(14,196,184,0.15)"}`,
-              borderRadius:99, padding:"4px 14px",
-              fontSize:11, fontWeight:700, color:T.tealDeep,
+          {/* Avatar */}
+          <div style={{ position:"relative", flexShrink:0 }}>
+            <div style={{
+              width:88, height:88, borderRadius:"50%",
+              border:"3.5px solid white",
+              boxShadow:"0 4px 20px rgba(0,0,0,0.15)",
+              overflow:"hidden", background:T.bg, position:"relative",
             }}>
-              <span>{isTalentResolved ? "✨" : "🌿"}</span>
-              <span>{isTalentResolved ? "HUI-Talent" : "HUI-Mitglied"}</span>
-              {isTalentResolved && (
-                <span style={{ fontWeight:400, color:"rgba(10,173,163,0.55)", fontSize:10 }}> · Creator</span>
+              {loading ? (
+                <div style={{
+                  position:"absolute", inset:0, borderRadius:"50%",
+                  background:"linear-gradient(90deg,#ede9e2 25%,#f7f5f0 50%,#ede9e2 75%)",
+                  backgroundSize:"200% 100%",
+                  animation:"ph-shimmer 1.4s ease-in-out infinite",
+                }}/>
+              ) : (
+                <>
+                  {!avatarLoaded && (
+                    <div style={{
+                      position:"absolute", inset:0, borderRadius:"50%",
+                      background:"linear-gradient(90deg,#ede9e2 25%,#f7f5f0 50%,#ede9e2 75%)",
+                      backgroundSize:"200% 100%",
+                      animation:"ph-shimmer 1.4s ease-in-out infinite",
+                    }}/>
+                  )}
+                  <img
+                    src={avatar} alt={name}
+                    onLoad={() => setAvatarLoaded(true)}
+                    onError={() => setAvatarLoaded(true)}
+                    style={{
+                      width:"100%", height:"100%", objectFit:"cover",
+                      opacity: avatarLoaded ? 1 : 0, transition:"opacity .5s ease",
+                    }}
+                  />
+                </>
               )}
             </div>
-          : <div style={{ display:"flex", justifyContent:"center", marginTop:8 }}><Sk w={110} h={22} r={99}/></div>
-        }
 
-        {/* Standort */}
-        {!loading && location && (
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:4, marginTop:7, fontSize:12, color:T.inkSoft }}>
-            <span style={{ fontSize:11 }}>📍</span>
-            <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth:220 }}>{location}</span>
+            {/* Avatar-Kamera (Owner only) */}
+            {isOwner && !loading && (
+              <button className="ph-press" onClick={() => avatarInputRef.current?.click()}
+                style={{
+                  position:"absolute", bottom:2, right:2,
+                  width:26, height:26, borderRadius:"50%",
+                  background: avatarUploading ? "rgba(26,26,24,0.5)" : T.teal,
+                  border:"2px solid white",
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  fontSize:12, cursor:"pointer", touchAction:"manipulation",
+                  boxShadow:"0 2px 8px rgba(14,196,184,0.35)", zIndex:10,
+                }}
+                aria-label="Avatar ändern"
+              >
+                {avatarUploading ? "⏳" : "📷"}
+              </button>
+            )}
           </div>
-        )}
+
+          {/* Text-Block: Name / @username / Badge / Standort */}
+          <div style={{ flex:1, paddingBottom:4, minWidth:0 }}>
+
+            {loading ? <Sk w={140} h={22} r={6}/> : (
+              <div style={{
+                fontSize:22, fontWeight:800, color:T.ink,
+                letterSpacing:"-0.04em", lineHeight:1.1,
+                overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+              }}>
+                {name}
+              </div>
+            )}
+
+            {!loading && username && (
+              <div style={{ fontSize:12, color:T.inkFaint, marginTop:2, fontWeight:400 }}>
+                @{username}
+              </div>
+            )}
+
+            {/* Mitgliedschaftsbadge — dynamisch nach is_talent */}
+            {!loading && (
+              <div style={{
+                display:"inline-flex", alignItems:"center", gap:5,
+                marginTop:5, marginBottom:2,
+                background: isTalentResolved ? "rgba(14,196,184,0.09)" : "rgba(14,196,184,0.07)",
+                border:`1px solid ${isTalentResolved ? "rgba(14,196,184,0.25)" : "rgba(14,196,184,0.15)"}`,
+                borderRadius:99, padding:"3px 10px",
+                fontSize:11, fontWeight:700, color:"#0AADA3",
+              }}>
+                <span style={{ fontSize:11 }}>{isTalentResolved ? "✨" : "🌿"}</span>
+                <span>{isTalentResolved ? "HUI-Talent" : "HUI-Mitglied"}</span>
+                {isTalentResolved && (
+                  <span style={{ fontWeight:400, color:"rgba(10,173,163,0.6)", fontSize:10 }}>
+                    · Aktiver Gestalter
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Standort */}
+            {!loading && location ? (
+              <div style={{ display:"flex", alignItems:"center", gap:4, marginTop:4, fontSize:12, color:T.inkSoft }}>
+                <span>📍</span>
+                <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                  {location}
+                </span>
+              </div>
+            ) : loading ? (
+              <div style={{ marginTop:4 }}><Sk w={90} h={13} r={5}/></div>
+            ) : null}
+          </div>
+        </div>
+
+        {/* Bio — max. 2 Zeilen */}
+        {loading ? (
+          <div>
+            <Sk w="100%" h={13} r={5} style={{ marginBottom:5 }}/>
+            <Sk w="72%"  h={13} r={5}/>
+          </div>
+        ) : null}
 
         {/* Follow-Counts */}
         {!loading && (followCounts.followers > 0 || followCounts.following > 0) && (
-          <div style={{ display:"flex", gap:20, justifyContent:"center", marginTop:10, fontSize:12, color:T.inkFaint }}>
-            <span><strong style={{ color:T.ink, fontWeight:800 }}>{followCounts.followers}</strong> Follower</span>
-            <span style={{ color:T.inkFaint }}>·</span>
-            <span><strong style={{ color:T.ink, fontWeight:800 }}>{followCounts.following}</strong> folge ich</span>
+          <div style={{ display:"flex", gap:16, marginTop:12, fontSize:12, color:T.inkFaint }}>
+            <span>
+              <strong style={{ color:T.ink, fontWeight:700 }}>{followCounts.followers}</strong> Follower
+            </span>
+            <span>
+              <strong style={{ color:T.ink, fontWeight:700 }}>{followCounts.following}</strong> folgt
+            </span>
           </div>
         )}
-
-        {/* Trennlinie */}
-        <div style={{
-          margin:"14px 20px 0", height:1,
-          background:"linear-gradient(to right,transparent,rgba(14,196,184,0.2),transparent)",
-        }}/>
       </div>
     </>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// DEMO — alle Zustände in einer Übersicht (Verifikation Sprint B)
+// Wird nicht in Produktion genutzt.
+// ══════════════════════════════════════════════════════════════════════
+
+const DEMO_TALENT = {
+  id: "demo-t1", display_name: "Lena Hartmann", username: "lena.hartmann",
+  bio: "Ich erschaffe Räume, die Menschen verbinden. Fotografie, Klang und stille Momente.",
+  avatar_url:   "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=300&q=80",
+  header_img:   "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=1200&q=80",
+  location_final: "München, Bayern",
+  is_talent:    true,
+};
+
+const DEMO_MEMBER = {
+  id: "demo-m1", display_name: "Jonas Weber", username: "jonas.weber",
+  bio: "Auf der Suche nach echten Begegnungen und gemeinsamen Projekten.",
+  avatar_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&q=80",
+  header_img: null,
+  location_final: "Berlin",
+  is_talent:  false,
+};
+
+export function ProfileHeaderDemo() {
+  return (
+    <div style={{ background:"#F7F5F0", minHeight:"100dvh" }}>
+      <style>{`
+        body { margin:0; }
+        .ph-demo-label {
+          font-size:11px; font-weight:700; color:#8C8C85;
+          letter-spacing:0.08em; text-transform:uppercase;
+          padding:16px 16px 6px;
+        }
+        .ph-demo-divider { height:8px; background:#EDE9E2; margin:16px 0; }
+      `}</style>
+
+      <div className="ph-demo-label">① Loading (Skeleton)</div>
+      <ProfileHeader loading={true}/>
+
+      <div className="ph-demo-divider"/>
+
+      <div className="ph-demo-label">② Talent — Besucher (isOwner=false, kein 📷)</div>
+      <ProfileHeader
+        profile={DEMO_TALENT} isOwner={false} isTalent={true}
+        followCounts={{ followers: 142, following: 38 }}
+      />
+
+      <div className="ph-demo-divider"/>
+
+      <div className="ph-demo-label">③ Talent — Owner (isOwner=true, 📷 sichtbar)</div>
+      <ProfileHeader
+        profile={DEMO_TALENT} isOwner={true} isTalent={true}
+        followCounts={{ followers: 142, following: 38 }}
+        onEditAvatar={(url) => console.log("[Demo] Avatar →", url)}
+        onEditCover={(url)  => console.log("[Demo] Cover →", url)}
+      />
+
+      <div className="ph-demo-divider"/>
+
+      <div className="ph-demo-label">④ Basis-Mitglied (🌿) — Besucher</div>
+      <ProfileHeader
+        profile={DEMO_MEMBER} isOwner={false} isTalent={false}
+        followCounts={{ followers: 23, following: 11 }}
+      />
+
+      <div className="ph-demo-divider"/>
+
+      <div className="ph-demo-label">⑤ Basis-Mitglied — Owner (📷 sichtbar)</div>
+      <ProfileHeader
+        profile={DEMO_MEMBER} isOwner={true} isTalent={false}
+        followCounts={{ followers: 23, following: 11 }}
+        onEditAvatar={(url) => console.log("[Demo] Avatar →", url)}
+        onEditCover={(url)  => console.log("[Demo] Cover →", url)}
+      />
+
+      <div className="ph-demo-divider"/>
+
+      <div className="ph-demo-label">⑥ Null-Profil — Fehlerfall</div>
+      <ProfileHeader profile={null} isOwner={false} isTalent={false} loading={false}/>
+    </div>
   );
 }
 
