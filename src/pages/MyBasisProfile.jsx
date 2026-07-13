@@ -745,75 +745,70 @@ export default function MyBasisProfile({ onClose, profileId }) {
         </div>
       )}
 
-      <div className="mbp-scroll" style={{ flex:1, overflowY:"auto",
-        // War: hartkodierte Naeherung ("max(80px, 64px+safeBottom)"), leicht
-        // abweichend von der ECHTEN Nav-Reservierung. Jetzt: dieselbe geteilte
-        // Konstante wie Feed/Discover/Impact (NAV_RESERVED_HEIGHT_CSS) -- der
-        // untere weisse Freiraum oberhalb der Bottom Navigation ist dadurch
-        // pixelgenau identisch zu den anderen Hauptseiten.
-        paddingBottom: NAV_RESERVED_HEIGHT_CSS }}>
-
-        {/* ── SEITEN-TITEL ─────────────────────────────────────── */}
-        <div style={{
-          padding:`max(14px,calc(10px + env(safe-area-inset-top,0px))) ${T.px}px 0`,
-          display:"flex", justifyContent:"space-between", alignItems:"flex-start",
-        }}>
-          <div>
-            <div style={{ fontSize:24, fontWeight:900, color:T.ink, letterSpacing:"-0.04em",
-              lineHeight:1.15 }}>
-              {profile?.is_talent ? "Mein Talent-Profil ✨" : "Mein Profil 🌿"}
-            </div>
-            <div style={{ fontSize:12, color:T.inkFaint, marginTop:2, fontWeight:400 }}>
-              {profile?.is_talent
-                ? "Gestalte dein Talent-Profil, wie es dich und dein Wirken zeigt."
-                : "Gestalte dein Profil so, wie du bist."}
-            </div>
+      {/* ── SEITEN-TITEL — AUSSERHALB scroll (kein touch-offset Bug) ── */}
+      <div style={{
+        padding:`max(14px,calc(10px + env(safe-area-inset-top,0px))) ${T.px}px 10px`,
+        display:"flex", justifyContent:"space-between", alignItems:"flex-start",
+        flexShrink:0,
+      }}>
+        <div>
+          <div style={{ fontSize:24, fontWeight:900, color:T.ink, letterSpacing:"-0.04em",
+            lineHeight:1.15 }}>
+            {profile?.is_talent ? "Mein Talent-Profil ✨" : "Mein Profil 🌿"}
           </div>
-          {/* Header-Buttons: Icon-Only — HUIBookmarkIcon (Merken) 👁️ ⚙️ */}
-          <div style={{ display:"flex", gap:6, alignItems:"center", flexShrink:0 }}>
-            <button
-              className="mbp-press-light"
-              onClick={() => setShowMerken(true)}
-              title="Gemerkt"
-              aria-label={savedCount > 0 ? `Gemerkt, ${savedCount} gespeicherte Inhalte` : "Gemerkt"}
-              style={{
-                width:34, height:34, borderRadius:"50%",
-                background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`,
-                display:"flex", alignItems:"center", justifyContent:"center",
-                color:T.ink, cursor:"pointer", touchAction:"manipulation", flexShrink:0,
-                position:"relative",
-              }}
-            >
-              <HUIBookmarkIcon size={18} />
-              <NotificationBadge count={savedCount} />
-            </button>
-            <button
-              className="mbp-press-light"
-              onClick={() => setShowPublicPreview(true)}
-              title="Profil ansehen"
-              aria-label="Profil ansehen"
-              style={{
-                width:34, height:34, borderRadius:"50%",
-                background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`,
-                display:"flex", alignItems:"center", justifyContent:"center",
-                fontSize:16, cursor:"pointer", touchAction:"manipulation", flexShrink:0,
-              }}
-            >👁️</button>
-            <button
-              className="mbp-press-light"
-              onClick={() => setShowStudio(true)}
-              title="Einstellungen"
-              aria-label="Einstellungen"
-              style={{
-                width:34, height:34, borderRadius:"50%",
-                background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`,
-                display:"flex", alignItems:"center", justifyContent:"center",
-                fontSize:16, cursor:"pointer", touchAction:"manipulation", flexShrink:0,
-              }}
-            >⚙️</button>
+          <div style={{ fontSize:12, color:T.inkFaint, marginTop:2, fontWeight:400 }}>
+            {profile?.is_talent
+              ? "Gestalte dein Talent-Profil, wie es dich und dein Wirken zeigt."
+              : "Gestalte dein Profil so, wie du bist."}
           </div>
         </div>
-        <Gap h={12}/>
+        {/* Header-Buttons: Icon-Only — Bookmark 👁️ ⚙️ */}
+        <div style={{ display:"flex", gap:6, alignItems:"center", flexShrink:0 }}>
+          <button
+            className="mbp-press-light"
+            onClick={() => setShowMerken(true)}
+            title="Gemerkt"
+            aria-label={savedCount > 0 ? `Gemerkt, ${savedCount} gespeicherte Inhalte` : "Gemerkt"}
+            style={{
+              width:34, height:34, borderRadius:"50%",
+              background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              color:T.ink, cursor:"pointer", touchAction:"manipulation", flexShrink:0,
+              position:"relative",
+            }}
+          >
+            <HUIBookmarkIcon size={18} />
+            <NotificationBadge count={savedCount} />
+          </button>
+          <button
+            className="mbp-press-light"
+            onClick={() => setShowPublicPreview(true)}
+            title="Profil ansehen"
+            aria-label="Profil ansehen"
+            style={{
+              width:34, height:34, borderRadius:"50%",
+              background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontSize:16, cursor:"pointer", touchAction:"manipulation", flexShrink:0,
+            }}
+          >👁️</button>
+          <button
+            className="mbp-press-light"
+            onClick={() => setShowStudio(true)}
+            title="Einstellungen"
+            aria-label="Einstellungen"
+            style={{
+              width:34, height:34, borderRadius:"50%",
+              background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontSize:16, cursor:"pointer", touchAction:"manipulation", flexShrink:0,
+            }}
+          >⚙️</button>
+        </div>
+      </div>
+
+      <div className="mbp-scroll" style={{ flex:1, overflowY:"auto",
+        paddingBottom: NAV_RESERVED_HEIGHT_CSS }}>
 
         {/* ── HEADER — Cover + Avatar + Name ───────────────── */}
         <CanonicalProfileHeader
