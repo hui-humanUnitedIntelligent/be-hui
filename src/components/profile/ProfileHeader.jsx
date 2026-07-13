@@ -129,7 +129,7 @@ export function ProfileHeader({
 
         {/* Haupt-SVG — definiert die gesamte Header-Höhe */}
         <svg
-          viewBox="0 0 100 72"
+          viewBox="0 0 100 62"
           preserveAspectRatio="xMidYMid meet"
           style={{ display:"block", width:"100%", overflow:"visible" }}
           aria-hidden="true"
@@ -139,7 +139,7 @@ export function ProfileHeader({
             <pattern id="coverPat" patternUnits="userSpaceOnUse" x="0" y="0" width="100" height="50">
               <image
                 href={(!loading && coverLoaded) ? cover : ""}
-                x="0" y="0" width="100" height="50"
+                x="0" y="0" width="100" height="36"
                 preserveAspectRatio="xMidYMid slice"
               />
               {/* Gradient-Fallback wenn kein Bild */}
@@ -159,7 +159,7 @@ export function ProfileHeader({
 
             {/* Clip-Path: Cover wird durch Wellen-Form beschnitten */}
             <clipPath id="waveClip">
-              <path d="M0,0 L100,0 L100,44 C75,44 62,52 50,52 C38,52 25,44 0,44 Z"/>
+              <path d="M0,0 L100,0 L100,36 C75,36 62,43 50,43 C38,43 25,36 0,36 Z"/>
             </clipPath>
 
             {/* Wellen-Gradient für den Stroke */}
@@ -171,12 +171,12 @@ export function ProfileHeader({
 
             {/* Avatar-Clip: Kreis */}
             <clipPath id="avatarClip">
-              <circle cx="50" cy="50" r="12.5"/>
+              <circle cx="50" cy="43" r="12.5"/>
             </clipPath>
           </defs>
 
           {/* ── Hintergrund (unter Welle) ── */}
-          <rect x="0" y="44" width="100" height="28" fill={T.bg}/>
+          <rect x="0" y="36" width="100" height="26" fill={T.bg}/>
 
           {/* ── Cover-Bereich — durch Wellen-Clip beschnitten ── */}
           <g clipPath="url(#waveClip)">
@@ -186,7 +186,7 @@ export function ProfileHeader({
             {!loading && (
               <image
                 href={cover}
-                x="0" y="0" width="100" height="50"
+                x="0" y="0" width="100" height="36"
                 preserveAspectRatio="xMidYMid slice"
                 opacity={coverLoaded ? "1" : "0"}
                 style={{ transition:"opacity 0.8s ease" }}
@@ -206,14 +206,14 @@ export function ProfileHeader({
 
           {/* ── Wellen-Linie (Stroke über dem Clip) ── */}
           <path
-            d="M0,44 C25,44 38,52 50,52 C62,52 75,44 100,44"
+            d="M0,36 C25,36 38,43 50,43 C62,43 75,36 100,36"
             fill="none"
             stroke="url(#waveStroke)"
             strokeWidth="0.5"
           />
           {/* Wellen-Glow */}
           <path
-            d="M0,44 C25,44 38,52 50,52 C62,52 75,44 100,44"
+            d="M0,36 C25,36 38,43 50,43 C62,43 75,36 100,36"
             fill="none"
             stroke={T.teal}
             strokeWidth="1.5"
@@ -222,23 +222,23 @@ export function ProfileHeader({
 
           {/* ── Avatar-Halo (Glow hinter Avatar) ── */}
           {!loading && (
-            <circle cx="50" cy="50" r="17" fill={T.teal} fillOpacity="0.10"/>
+            <circle cx="50" cy="43" r="17" fill={T.teal} fillOpacity="0.10"/>
           )}
 
           {/* ── Ambassador Puls-Ring ── */}
           {isAmbassador && !loading && (
-            <circle cx="50" cy="50" r="14.5" fill="none" stroke="#F59E0B" strokeWidth="0.4" strokeOpacity="0.8"/>
+            <circle cx="50" cy="43" r="14.5" fill="none" stroke="#F59E0B" strokeWidth="0.4" strokeOpacity="0.8"/>
           )}
 
           {/* ── Avatar Border (weißer Ring) ── */}
-          <circle cx="50" cy="50" r="13.5" fill={T.bg}/>
+          <circle cx="50" cy="43" r="13.5" fill={T.bg}/>
 
           {/* ── Avatar-Bild ── */}
           <g clipPath="url(#avatarClip)">
             {!loading ? (
               <image
                 href={avatar}
-                x="37.5" y="37.5" width="25" height="25"
+                x="37.5" y="30.5" width="25" height="25"
                 preserveAspectRatio="xMidYMid slice"
                 opacity={avatarLoaded ? "1" : "0"}
                 style={{ transition:"opacity 0.4s ease" }}
@@ -324,7 +324,7 @@ export function ProfileHeader({
           ════════════════════════════════════════════════════════ */}
       <div style={{
         background: T.bg,
-        paddingTop: 4,
+        paddingTop: 0,
         paddingBottom: 0,
         textAlign: "center",
       }}>
