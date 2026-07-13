@@ -931,7 +931,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
             {/* B1c. TALENT WERDEN — Einladungskarte für Basis-User */}
             {!profile?.is_talent && (
-              <TalentWerdenBanner onStart={() => setShowTalentFlow(true)} />
+              <TalentWerdenBanner onStart={() => setShowTalentOnboarding(true)} />
             )}
             <Gap h={20}/>
 
