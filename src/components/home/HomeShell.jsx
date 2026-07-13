@@ -35,8 +35,9 @@ const HomeCtx = createContext(null);
 
 export function useHome() {
   const ctx = useContext(HomeCtx);
-  if (!ctx) throw new Error("useHome must be inside HomeShell");
-  return ctx;
+  // Kein throw: TalentProfilePage/BasisProfilePage können auch außerhalb HomeShell
+  // gerendert werden (PublicProfilePreview, ProfileLauncher). null-Return ist sicher.
+  return ctx || null;
 }
 
 /* ── HomeShell ────────────────────────────────────────────────── */

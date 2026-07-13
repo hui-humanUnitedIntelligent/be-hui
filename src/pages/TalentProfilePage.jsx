@@ -1140,7 +1140,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
   const handleBack = useCallback(() => { onClose?.(); }, [onClose]);
 
   // Chat via CCO (identisch zu bisheriger Logik)
-  const { setShowChat, setChatRecipient } = useHome();
+  const { setShowChat, setChatRecipient } = useHome() || {};
   const handleOpenChat = useCallback(() => {
     if (!profile?.id) return;
     setChatRecipient({
