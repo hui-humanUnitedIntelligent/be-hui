@@ -121,69 +121,75 @@ export function ProfileHeader({
 
       <div style={{ position:"relative", width:"100%", userSelect:"none" }}>
 
-        {/* ─── COVER ─────────────────────────────────────────────── */}
-        <div
-          style={{
-            position:"relative", width:"100%", height:COVER_H, overflow:"hidden",
-            background:`linear-gradient(145deg,#1A3530 0%,${T.teal} 45%,${T.purple} 75%,${T.dark} 100%)`,
-            cursor: isOwner ? "pointer" : "default",
-          }}
-          onClick={isOwner && !coverUploading ? () => coverInputRef.current?.click() : undefined}
-          onMouseEnter={() => isOwner && setCoverHover(true)}
-          onMouseLeave={() => setCoverHover(false)}
-          onTouchStart={() => isOwner && setCoverHover(true)}
-          onTouchEnd={() => setCoverHover(false)}
-        >
-          {loading && (
-            <div style={{
-              position:"absolute", inset:0,
-              background:"linear-gradient(90deg,#1a3530 25%,#2a5548 50%,#1a3530 75%)",
-              backgroundSize:"200% 100%", animation:"ph-shimmer 1.6s ease-in-out infinite",
-            }} />
-          )}
-          {!loading && (
-            <img src={cover} alt=""
-              onLoad={() => setCoverLoaded(true)}
-              onError={() => setCoverLoaded(true)}
-              style={{
-                position:"absolute", inset:0, width:"100%", height:"100%",
-                objectFit:"cover", opacity: coverLoaded ? 0.85 : 0, transition:"opacity 1.1s ease",
-              }}
-            />
-          )}
-          {/* Gradient-Fade unten */}
-          <div style={{
-            position:"absolute", inset:0, pointerEvents:"none",
-            background:"linear-gradient(to bottom,transparent 30%,rgba(247,245,240,0.2) 80%,rgba(247,245,240,0.65) 100%)",
-          }} />
-          {/* Owner Hover-Overlay */}
-          {isOwner && !loading && (
-            <div style={{
-              position:"absolute", inset:0,
-              background: coverHover ? "rgba(0,0,0,0.38)" : "rgba(0,0,0,0)",
-              transition:"background 0.25s ease",
-              display:"flex", alignItems:"center", justifyContent:"center",
-              pointerEvents:"none",
-            }}>
-              {(coverHover || coverUploading) && (
-                <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:6 }}>
-                  {coverUploading
-                    ? <Spinner size={26} color="white" />
-                    : <><CameraIcon size={28} color="white" /><span style={{ color:"white", fontSize:12, fontWeight:600 }}>Cover ändern</span></>
-                  }
-                </div>
-              )}
-            </div>
-          )}
-          {/* Cover-Button (Mobile: immer sichtbar) */}
+        {/* ─── COVER + WAVE KOMBINIERT ────────────────────────────
+            Das Cover-Bild wird durch clip-path der Wellen-SVG beschnitten.
+            Avatar sitzt direkt auf der Welle — kein Leeraum darunter.
+        ─────────────────────────────────────────────────────────── */}
+        <div style={{ position:"relative", width:"100%", lineHeight:0 }}>
+
+          {/* Cover-Container — wird durch SVG-Clip beschnitten */}
+          <div
+            style={{
+              position:"relative", width:"100%", height: COVER_H + WAVE_H,
+              overflow:"hidden",
+              clipPath:`path('M0,0 L390,0 L390,${COVER_H} C330,${COVER_H} 300,${COVER_H - WAVE_H + 10} 195,${COVER_H - WAVE_H + 10} C90,${COVER_H - WAVE_H + 10} 60,${COVER_H} 0,${COVER_H} Z')`,
+              WebkitClipPath:`path('M0,0 L390,0 L390,${COVER_H} C330,${COVER_H} 300,${COVER_H - WAVE_H + 10} 195,${COVER_H - WAVE_H + 10} C90,${COVER_H - WAVE_H + 10} 60,${COVER_H} 0,${COVER_H} Z')`,
+              background:`linear-gradient(145deg,#1A3530 0%,${T.teal} 45%,${T.purple} 75%,${T.dark} 100%)`,
+              cursor: isOwner ? "pointer" : "default",
+            }}
+            onClick={isOwner && !coverUploading ? () => coverInputRef.current?.click() : undefined}
+            onMouseEnter={() => isOwner && setCoverHover(true)}
+            onMouseLeave={() => setCoverHover(false)}
+            onTouchStart={() => isOwner && setCoverHover(true)}
+            onTouchEnd={() => setCoverHover(false)}
+          >
+            {loading && (
+              <div style={{
+                position:"absolute", inset:0,
+                background:"linear-gradient(90deg,#1a3530 25%,#2a5548 50%,#1a3530 75%)",
+                backgroundSize:"200% 100%", animation:"ph-shimmer 1.6s ease-in-out infinite",
+              }} />
+            )}
+            {!loading && (
+              <img src={cover} alt=""
+                onLoad={() => setCoverLoaded(true)}
+                onError={() => setCoverLoaded(true)}
+                style={{
+                  position:"absolute", top:0, left:0, width:"100%", height: COVER_H,
+                  objectFit:"cover", opacity: coverLoaded ? 1 : 0, transition:"opacity 1.1s ease",
+                }}
+              />
+            )}
+            {/* Owner Hover-Overlay */}
+            {isOwner && !loading && (
+              <div style={{
+                position:"absolute", top:0, left:0, width:"100%", height: COVER_H,
+                background: coverHover ? "rgba(0,0,0,0.35)" : "rgba(0,0,0,0)",
+                transition:"background 0.25s ease",
+                display:"flex", alignItems:"center", justifyContent:"center",
+                pointerEvents:"none",
+              }}>
+                {(coverHover || coverUploading) && (
+                  <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:6 }}>
+                    {coverUploading
+                      ? <Spinner size={26} color="white" />
+                      : <><CameraIcon size={26} color="white" /><span style={{ color:"white", fontSize:12, fontWeight:600 }}>Cover ändern</span></>
+                    }
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Cover-Button oben rechts */}
           {isOwner && !loading && (
             <button className="ph-press"
-              onClick={(e) => { e.stopPropagation(); coverInputRef.current?.click(); }}
+              onClick={() => coverInputRef.current?.click()}
               style={{
                 position:"absolute", top:12, right:12, zIndex:20,
                 display:"flex", alignItems:"center", gap:5,
                 padding:"6px 11px", borderRadius:99,
-                background:"rgba(0,0,0,0.42)",
+                background:"rgba(0,0,0,0.45)",
                 backdropFilter:"blur(8px)", WebkitBackdropFilter:"blur(8px)",
                 border:"1px solid rgba(255,255,255,0.18)",
                 cursor:"pointer", touchAction:"manipulation",
@@ -195,30 +201,26 @@ export function ProfileHeader({
               <span>{coverUploading ? "…" : "Cover"}</span>
             </button>
           )}
-        </div>
 
-        {/* ─── ORB WAVE ──────────────────────────────────────────── */}
-        <div style={{ position:"relative", marginTop:-2, lineHeight:0 }}>
-          <svg viewBox="0 0 390 52" preserveAspectRatio="none"
-            style={{ display:"block", width:"100%", height:WAVE_H }} aria-hidden="true">
+          {/* Wellen-Linie (nur Stroke, kein Fill — Cover bereits geclippt) */}
+          <svg viewBox="0 0 390 20" preserveAspectRatio="none"
+            style={{ position:"absolute", bottom: WAVE_H - 10, left:0, width:"100%", height:20, pointerEvents:"none" }}
+            aria-hidden="true">
             <defs>
-              <linearGradient id="phwg" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%"   stopColor={T.teal}   stopOpacity="0.55" />
-                <stop offset="40%"  stopColor={T.purple} stopOpacity="0.40" />
-                <stop offset="100%" stopColor={T.teal}   stopOpacity="0.55" />
+              <linearGradient id="phwg2" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%"   stopColor={T.teal}   stopOpacity="0.7" />
+                <stop offset="50%"  stopColor={T.purple} stopOpacity="0.5" />
+                <stop offset="100%" stopColor={T.teal}   stopOpacity="0.7" />
               </linearGradient>
             </defs>
-            {/* Fill */}
-            <path d="M0,0 C60,0 90,38 195,38 C300,38 330,0 390,0 L390,52 L0,52 Z" fill={T.bg} />
-            {/* Stroke */}
-            <path d="M0,0 C60,0 90,38 195,38 C300,38 330,0 390,0" fill="none" stroke="url(#phwg)" strokeWidth="1.5" />
-            {/* Glow */}
-            <path d="M0,0 C60,0 90,38 195,38 C300,38 330,0 390,0" fill="none" stroke={T.teal} strokeWidth="4" strokeOpacity="0.09" />
+            <path d="M0,18 C60,18 90,2 195,2 C300,2 330,18 390,18" fill="none" stroke="url(#phwg2)" strokeWidth="1.8" />
+            <path d="M0,18 C60,18 90,2 195,2 C300,2 330,18 390,18" fill="none" stroke={T.teal} strokeWidth="5" strokeOpacity="0.10" />
           </svg>
 
-          {/* ─── AVATAR — mittig über Welle ──────────────────────── */}
+          {/* ─── AVATAR — sitzt direkt auf der Welle ──────────────── */}
           <div style={{
-            position:"absolute", left:"50%", top:-(AVATAR_D / 2) + 2,
+            position:"absolute", left:"50%",
+            bottom: WAVE_H - (AVATAR_D / 2) - 6,
             transform:"translateX(-50%)", zIndex:10,
           }}>
             {/* Puls-Ring Ambassador */}
@@ -296,7 +298,7 @@ export function ProfileHeader({
 
         {/* ─── IDENTITY ──────────────────────────────────────────── */}
         <div className="ph-identity" style={{
-          background:T.bg, paddingTop: AVATAR_D / 2 + 4,
+          background:T.bg, paddingTop: AVATAR_D / 2 - 2,
           paddingBottom:0, textAlign:"center",
         }}>
           {/* Name */}
