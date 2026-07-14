@@ -1,0 +1,1632 @@
+{
+  "falsePositives": {
+    "count": 117,
+    "percentage": 11,
+    "categories": {
+      "DOMAIN_TABLE_OWNER": 67,
+      "CONTRACT_VIOLATION": 50
+    },
+    "samples": [
+      {
+        "file": "components/home/header/SearchCommandCenter.jsx",
+        "type": "DOMAIN_TABLE_OWNER",
+        "message": "Direkter DB-Read auf 'profiles' — erwäge Service-Layer"
+      },
+      {
+        "file": "components/home/header/SearchCommandCenter.jsx",
+        "type": "DOMAIN_TABLE_OWNER",
+        "message": "Direkter DB-Read auf 'follows' — erwäge Service-Layer"
+      },
+      {
+        "file": "components/home/header/SearchCommandCenter.jsx",
+        "type": "DOMAIN_TABLE_OWNER",
+        "message": "Direkter DB-Read auf 'follows' — erwäge Service-Layer"
+      },
+      {
+        "file": "components/home/header/SearchCommandCenter.jsx",
+        "type": "DOMAIN_TABLE_OWNER",
+        "message": "Direkter DB-Read auf 'profiles' — erwäge Service-Layer"
+      },
+      {
+        "file": "components/home/header/SearchCommandCenter.jsx",
+        "type": "DOMAIN_TABLE_OWNER",
+        "message": "Direkter DB-Read auf 'works' — erwäge Service-Layer"
+      },
+      {
+        "file": "components/home/header/SearchCommandCenter.jsx",
+        "type": "DOMAIN_TABLE_OWNER",
+        "message": "Direkter DB-Read auf 'experiences' — erwäge Service-Layer"
+      },
+      {
+        "file": "components/home/header/SearchCommandCenter.jsx",
+        "type": "DOMAIN_TABLE_OWNER",
+        "message": "Direkter DB-Read auf 'follows' — erwäge Service-Layer"
+      },
+      {
+        "file": "components/home/header/SearchCommandCenter.jsx",
+        "type": "DOMAIN_TABLE_OWNER",
+        "message": "Direkter DB-Read auf 'profiles' — erwäge Service-Layer"
+      },
+      {
+        "file": "components/home/header/SearchCommandCenter.jsx",
+        "type": "DOMAIN_TABLE_OWNER",
+        "message": "Direkter DB-Read auf 'works' — erwäge Service-Layer"
+      },
+      {
+        "file": "components/home/header/SearchCommandCenter.jsx",
+        "type": "DOMAIN_TABLE_OWNER",
+        "message": "Direkter DB-Read auf 'experiences' — erwäge Service-Layer"
+      },
+      {
+        "file": "components/home/header/SearchCommandCenter.jsx",
+        "type": "DOMAIN_TABLE_OWNER",
+        "message": "Direkter DB-Read auf 'profiles' — erwäge Service-Layer"
+      },
+      {
+        "file": "components/home/header/SearchCommandCenter.jsx",
+        "type": "DOMAIN_TABLE_OWNER",
+        "message": "Direkter DB-Read auf 'works' — erwäge Service-Layer"
+      },
+      {
+        "file": "components/home/header/SearchCommandCenter.jsx",
+        "type": "DOMAIN_TABLE_OWNER",
+        "message": "Direkter DB-Read auf 'experiences' — erwäge Service-Layer"
+      },
+      {
+        "file": "components/home/header/SearchCommandCenter.jsx",
+        "type": "DOMAIN_TABLE_OWNER",
+        "message": "Direkter DB-Read auf 'beitraege' — erwäge Service-Layer"
+      },
+      {
+        "file": "components/home/header/SearchCommandCenter.jsx",
+        "type": "DOMAIN_TABLE_OWNER",
+        "message": "Direkter DB-Read auf 'profiles' — erwäge Service-Layer"
+      }
+    ]
+  },
+  "falseNegatives": {
+    "count": 0,
+    "unmappedFiles": 73,
+    "unmappedSample": [
+      "architecture/authority/api/authorityApi.js",
+      "architecture/authority/cli.js",
+      "architecture/authority/constants/ruleSchema.js",
+      "architecture/authority/constants/statusModel.js",
+      "architecture/authority/graph/authorityGraph.js",
+      "architecture/authority/health/governanceHealth.js",
+      "architecture/authority/index.js",
+      "architecture/authority/loader/documentLoader.js",
+      "architecture/authority/registries/registryBuilder.js",
+      "architecture/authority/reports/reportGenerator.js",
+      "architecture/authority/validation/authorityValidator.js",
+      "architecture/authority/validation/ciChecks.js",
+      "architecture/governance/adrRegistry.js",
+      "architecture/governance/constitution.js",
+      "architecture/governance/index.js"
+    ],
+    "note": "Dateien ohne Domain-Zuordnung werden nicht vollständig evaluiert"
+  },
+  "unknownDomains": {
+    "count": 0,
+    "violationCount": 0,
+    "fileCount": 73
+  },
+  "duplicateViolations": {
+    "count": 663,
+    "samples": [
+      {
+        "key": "components/HuiCreateFlow.jsx|CROSS_DOMAIN_WRITE|1578|works",
+        "first": {
+          "id": "CROSS_DOMAIN_WRITE_components/HuiCreateFlow.jsx_1578",
+          "type": "CROSS_DOMAIN_WRITE",
+          "severity": "CRITICAL",
+          "file": "components/HuiCreateFlow.jsx",
+          "line": 1578,
+          "domainId": "CREATION",
+          "contractId": "CREATION",
+          "ruleId": "KERNEL-RULE-NEVER-WRITE-works",
+          "policyId": "KERNEL-POLICY-TABLE",
+          "message": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works'",
+          "detail": "const { error:e } = await supabase.from(\"works\").insert({",
+          "table": "works",
+          "explanation": {
+            "domain": "CREATION",
+            "domainLabel": "Creation & Publishing",
+            "contract": "CREATION",
+            "contractVersion": "ARCH-005.1-v1",
+            "rule": "KERNEL-RULE-NEVER-WRITE-works",
+            "ruleType": "CROSS_DOMAIN_WRITE",
+            "policy": "KERNEL-POLICY-TABLE",
+            "constitution": [
+              "IV — Schichtenmodell",
+              "IV — Registry Single Source of Meaning",
+              "IV — unidirektionaler Datenfluss",
+              "IX — Entscheidungsregel"
+            ],
+            "adr": [
+              "ADR-001",
+              "ADR-002"
+            ],
+            "rfc": [
+              "RFC-000",
+              "RFC-000A"
+            ],
+            "ownership": {
+              "services": [
+                "WorkService",
+                "ExperienceService",
+                "StoryService (db.js)",
+                "worksService",
+                "storageService (content.js)"
+              ],
+              "contexts": [
+                "AppStateContext.works (Owner → Ziel: CreationContext)"
+              ],
+              "hooks": [],
+              "components": [
+                "components/HuiCreateFlow",
+                "components/WerkPublisher",
+                "components/ExperienceCreator",
+                "components/publishing/*",
+                "components/works/*",
+                "components/WorkDetailPage",
+                "components/StoryComposer",
+                "components/StoryBar"
+              ],
+              "pages": []
+            },
+            "risk": "Architektur-Integrität gefährdet — Merge blockieren",
+            "recommendation": [
+              "creationService aus WorkService + worksService",
+              "WorkDetailPage → CreationService",
+              "Cross-Domain Write über Owner-Service delegieren",
+              "Domain KERNEL darf 'works' nicht schreiben"
+            ],
+            "migration": "Cross-Domain Write über Owner-Service delegieren",
+            "confidence": 1,
+            "statement": {
+              "text": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works' [CROSS_DOMAIN_WRITE]",
+              "confidence": 1,
+              "source": "domain-contract",
+              "generatedAt": "2026-06-30T16:22:17.036Z"
+            }
+          }
+        },
+        "duplicate": {
+          "id": "CROSS_DOMAIN_WRITE_components/HuiCreateFlow.jsx_1578",
+          "type": "CROSS_DOMAIN_WRITE",
+          "severity": "CRITICAL",
+          "file": "components/HuiCreateFlow.jsx",
+          "line": 1578,
+          "domainId": "CREATION",
+          "contractId": "CREATION",
+          "ruleId": "IDENTITY-RULE-NEVER-WRITE-works",
+          "policyId": "IDENTITY-POLICY-TABLE",
+          "message": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works'",
+          "detail": "const { error:e } = await supabase.from(\"works\").insert({",
+          "table": "works",
+          "explanation": {
+            "domain": "CREATION",
+            "domainLabel": "Creation & Publishing",
+            "contract": "CREATION",
+            "contractVersion": "ARCH-005.1-v1",
+            "rule": "IDENTITY-RULE-NEVER-WRITE-works",
+            "ruleType": "CROSS_DOMAIN_WRITE",
+            "policy": "IDENTITY-POLICY-TABLE",
+            "constitution": [
+              "Regel 1 — Menschen sind keine Produkte",
+              "Regel 7 — KI ersetzt Menschen nicht",
+              "VIII — Sprache (kein Follower/Score)"
+            ],
+            "adr": [
+              "ADR-001 (Login/Callback Routes)"
+            ],
+            "rfc": [
+              "RFC-000 Rule 4 — Core tables via Core Engine"
+            ],
+            "ownership": {
+              "services": [
+                "WorkService",
+                "ExperienceService",
+                "StoryService (db.js)",
+                "worksService",
+                "storageService (content.js)"
+              ],
+              "contexts": [
+                "AppStateContext.works (Owner → Ziel: CreationContext)"
+              ],
+              "hooks": [],
+              "components": [
+                "components/HuiCreateFlow",
+                "components/WerkPublisher",
+                "components/ExperienceCreator",
+                "components/publishing/*",
+                "components/works/*",
+                "components/WorkDetailPage",
+                "components/StoryComposer",
+                "components/StoryBar"
+              ],
+              "pages": []
+            },
+            "risk": "Architektur-Integrität gefährdet — Merge blockieren",
+            "recommendation": [
+              "creationService aus WorkService + worksService",
+              "WorkDetailPage → CreationService",
+              "Cross-Domain Write über Owner-Service delegieren",
+              "Domain IDENTITY darf 'works' nicht schreiben"
+            ],
+            "migration": "Cross-Domain Write über Owner-Service delegieren",
+            "confidence": 1,
+            "statement": {
+              "text": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works' [CROSS_DOMAIN_WRITE]",
+              "confidence": 1,
+              "source": "domain-contract",
+              "generatedAt": "2026-06-30T16:22:17.037Z"
+            }
+          }
+        }
+      },
+      {
+        "key": "components/HuiCreateFlow.jsx|CROSS_DOMAIN_WRITE|1578|works",
+        "first": {
+          "id": "CROSS_DOMAIN_WRITE_components/HuiCreateFlow.jsx_1578",
+          "type": "CROSS_DOMAIN_WRITE",
+          "severity": "CRITICAL",
+          "file": "components/HuiCreateFlow.jsx",
+          "line": 1578,
+          "domainId": "CREATION",
+          "contractId": "CREATION",
+          "ruleId": "KERNEL-RULE-NEVER-WRITE-works",
+          "policyId": "KERNEL-POLICY-TABLE",
+          "message": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works'",
+          "detail": "const { error:e } = await supabase.from(\"works\").insert({",
+          "table": "works",
+          "explanation": {
+            "domain": "CREATION",
+            "domainLabel": "Creation & Publishing",
+            "contract": "CREATION",
+            "contractVersion": "ARCH-005.1-v1",
+            "rule": "KERNEL-RULE-NEVER-WRITE-works",
+            "ruleType": "CROSS_DOMAIN_WRITE",
+            "policy": "KERNEL-POLICY-TABLE",
+            "constitution": [
+              "IV — Schichtenmodell",
+              "IV — Registry Single Source of Meaning",
+              "IV — unidirektionaler Datenfluss",
+              "IX — Entscheidungsregel"
+            ],
+            "adr": [
+              "ADR-001",
+              "ADR-002"
+            ],
+            "rfc": [
+              "RFC-000",
+              "RFC-000A"
+            ],
+            "ownership": {
+              "services": [
+                "WorkService",
+                "ExperienceService",
+                "StoryService (db.js)",
+                "worksService",
+                "storageService (content.js)"
+              ],
+              "contexts": [
+                "AppStateContext.works (Owner → Ziel: CreationContext)"
+              ],
+              "hooks": [],
+              "components": [
+                "components/HuiCreateFlow",
+                "components/WerkPublisher",
+                "components/ExperienceCreator",
+                "components/publishing/*",
+                "components/works/*",
+                "components/WorkDetailPage",
+                "components/StoryComposer",
+                "components/StoryBar"
+              ],
+              "pages": []
+            },
+            "risk": "Architektur-Integrität gefährdet — Merge blockieren",
+            "recommendation": [
+              "creationService aus WorkService + worksService",
+              "WorkDetailPage → CreationService",
+              "Cross-Domain Write über Owner-Service delegieren",
+              "Domain KERNEL darf 'works' nicht schreiben"
+            ],
+            "migration": "Cross-Domain Write über Owner-Service delegieren",
+            "confidence": 1,
+            "statement": {
+              "text": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works' [CROSS_DOMAIN_WRITE]",
+              "confidence": 1,
+              "source": "domain-contract",
+              "generatedAt": "2026-06-30T16:22:17.036Z"
+            }
+          }
+        },
+        "duplicate": {
+          "id": "CROSS_DOMAIN_WRITE_components/HuiCreateFlow.jsx_1578",
+          "type": "CROSS_DOMAIN_WRITE",
+          "severity": "CRITICAL",
+          "file": "components/HuiCreateFlow.jsx",
+          "line": 1578,
+          "domainId": "CREATION",
+          "contractId": "CREATION",
+          "ruleId": "CONNECTION-RULE-NEVER-WRITE-works",
+          "policyId": "CONNECTION-POLICY-TABLE",
+          "message": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works'",
+          "detail": "const { error:e } = await supabase.from(\"works\").insert({",
+          "table": "works",
+          "explanation": {
+            "domain": "CREATION",
+            "domainLabel": "Creation & Publishing",
+            "contract": "CREATION",
+            "contractVersion": "ARCH-005.1-v1",
+            "rule": "CONNECTION-RULE-NEVER-WRITE-works",
+            "ruleType": "CROSS_DOMAIN_WRITE",
+            "policy": "CONNECTION-POLICY-TABLE",
+            "constitution": [
+              "Regel 3 — Verbinden wichtiger als Reichweite",
+              "Regel 8 — Keine Gamification"
+            ],
+            "adr": [],
+            "rfc": [
+              "RFC-000"
+            ],
+            "ownership": {
+              "services": [
+                "WorkService",
+                "ExperienceService",
+                "StoryService (db.js)",
+                "worksService",
+                "storageService (content.js)"
+              ],
+              "contexts": [
+                "AppStateContext.works (Owner → Ziel: CreationContext)"
+              ],
+              "hooks": [],
+              "components": [
+                "components/HuiCreateFlow",
+                "components/WerkPublisher",
+                "components/ExperienceCreator",
+                "components/publishing/*",
+                "components/works/*",
+                "components/WorkDetailPage",
+                "components/StoryComposer",
+                "components/StoryBar"
+              ],
+              "pages": []
+            },
+            "risk": "Architektur-Integrität gefährdet — Merge blockieren",
+            "recommendation": [
+              "creationService aus WorkService + worksService",
+              "WorkDetailPage → CreationService",
+              "Cross-Domain Write über Owner-Service delegieren",
+              "Domain CONNECTION darf 'works' nicht schreiben"
+            ],
+            "migration": "Cross-Domain Write über Owner-Service delegieren",
+            "confidence": 1,
+            "statement": {
+              "text": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works' [CROSS_DOMAIN_WRITE]",
+              "confidence": 1,
+              "source": "domain-contract",
+              "generatedAt": "2026-06-30T16:22:17.037Z"
+            }
+          }
+        }
+      },
+      {
+        "key": "components/HuiCreateFlow.jsx|CROSS_DOMAIN_WRITE|1578|works",
+        "first": {
+          "id": "CROSS_DOMAIN_WRITE_components/HuiCreateFlow.jsx_1578",
+          "type": "CROSS_DOMAIN_WRITE",
+          "severity": "CRITICAL",
+          "file": "components/HuiCreateFlow.jsx",
+          "line": 1578,
+          "domainId": "CREATION",
+          "contractId": "CREATION",
+          "ruleId": "KERNEL-RULE-NEVER-WRITE-works",
+          "policyId": "KERNEL-POLICY-TABLE",
+          "message": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works'",
+          "detail": "const { error:e } = await supabase.from(\"works\").insert({",
+          "table": "works",
+          "explanation": {
+            "domain": "CREATION",
+            "domainLabel": "Creation & Publishing",
+            "contract": "CREATION",
+            "contractVersion": "ARCH-005.1-v1",
+            "rule": "KERNEL-RULE-NEVER-WRITE-works",
+            "ruleType": "CROSS_DOMAIN_WRITE",
+            "policy": "KERNEL-POLICY-TABLE",
+            "constitution": [
+              "IV — Schichtenmodell",
+              "IV — Registry Single Source of Meaning",
+              "IV — unidirektionaler Datenfluss",
+              "IX — Entscheidungsregel"
+            ],
+            "adr": [
+              "ADR-001",
+              "ADR-002"
+            ],
+            "rfc": [
+              "RFC-000",
+              "RFC-000A"
+            ],
+            "ownership": {
+              "services": [
+                "WorkService",
+                "ExperienceService",
+                "StoryService (db.js)",
+                "worksService",
+                "storageService (content.js)"
+              ],
+              "contexts": [
+                "AppStateContext.works (Owner → Ziel: CreationContext)"
+              ],
+              "hooks": [],
+              "components": [
+                "components/HuiCreateFlow",
+                "components/WerkPublisher",
+                "components/ExperienceCreator",
+                "components/publishing/*",
+                "components/works/*",
+                "components/WorkDetailPage",
+                "components/StoryComposer",
+                "components/StoryBar"
+              ],
+              "pages": []
+            },
+            "risk": "Architektur-Integrität gefährdet — Merge blockieren",
+            "recommendation": [
+              "creationService aus WorkService + worksService",
+              "WorkDetailPage → CreationService",
+              "Cross-Domain Write über Owner-Service delegieren",
+              "Domain KERNEL darf 'works' nicht schreiben"
+            ],
+            "migration": "Cross-Domain Write über Owner-Service delegieren",
+            "confidence": 1,
+            "statement": {
+              "text": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works' [CROSS_DOMAIN_WRITE]",
+              "confidence": 1,
+              "source": "domain-contract",
+              "generatedAt": "2026-06-30T16:22:17.036Z"
+            }
+          }
+        },
+        "duplicate": {
+          "id": "CROSS_DOMAIN_WRITE_components/HuiCreateFlow.jsx_1578",
+          "type": "CROSS_DOMAIN_WRITE",
+          "severity": "CRITICAL",
+          "file": "components/HuiCreateFlow.jsx",
+          "line": 1578,
+          "domainId": "CREATION",
+          "contractId": "CREATION",
+          "ruleId": "COMMUNICATION-RULE-NEVER-WRITE-works",
+          "policyId": "COMMUNICATION-POLICY-TABLE",
+          "message": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works'",
+          "detail": "const { error:e } = await supabase.from(\"works\").insert({",
+          "table": "works",
+          "explanation": {
+            "domain": "CREATION",
+            "domainLabel": "Creation & Publishing",
+            "contract": "CREATION",
+            "contractVersion": "ARCH-005.1-v1",
+            "rule": "COMMUNICATION-RULE-NEVER-WRITE-works",
+            "ruleType": "CROSS_DOMAIN_WRITE",
+            "policy": "COMMUNICATION-POLICY-TABLE",
+            "constitution": [
+              "Regel 7 — KI ersetzt Menschen nicht",
+              "Design: Keine aggressive Push-Strategie"
+            ],
+            "adr": [],
+            "rfc": [
+              "RFC-000"
+            ],
+            "ownership": {
+              "services": [
+                "WorkService",
+                "ExperienceService",
+                "StoryService (db.js)",
+                "worksService",
+                "storageService (content.js)"
+              ],
+              "contexts": [
+                "AppStateContext.works (Owner → Ziel: CreationContext)"
+              ],
+              "hooks": [],
+              "components": [
+                "components/HuiCreateFlow",
+                "components/WerkPublisher",
+                "components/ExperienceCreator",
+                "components/publishing/*",
+                "components/works/*",
+                "components/WorkDetailPage",
+                "components/StoryComposer",
+                "components/StoryBar"
+              ],
+              "pages": []
+            },
+            "risk": "Architektur-Integrität gefährdet — Merge blockieren",
+            "recommendation": [
+              "creationService aus WorkService + worksService",
+              "WorkDetailPage → CreationService",
+              "Cross-Domain Write über Owner-Service delegieren",
+              "Domain COMMUNICATION darf 'works' nicht schreiben"
+            ],
+            "migration": "Cross-Domain Write über Owner-Service delegieren",
+            "confidence": 1,
+            "statement": {
+              "text": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works' [CROSS_DOMAIN_WRITE]",
+              "confidence": 1,
+              "source": "domain-contract",
+              "generatedAt": "2026-06-30T16:22:17.038Z"
+            }
+          }
+        }
+      },
+      {
+        "key": "components/HuiCreateFlow.jsx|CROSS_DOMAIN_WRITE|1578|works",
+        "first": {
+          "id": "CROSS_DOMAIN_WRITE_components/HuiCreateFlow.jsx_1578",
+          "type": "CROSS_DOMAIN_WRITE",
+          "severity": "CRITICAL",
+          "file": "components/HuiCreateFlow.jsx",
+          "line": 1578,
+          "domainId": "CREATION",
+          "contractId": "CREATION",
+          "ruleId": "KERNEL-RULE-NEVER-WRITE-works",
+          "policyId": "KERNEL-POLICY-TABLE",
+          "message": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works'",
+          "detail": "const { error:e } = await supabase.from(\"works\").insert({",
+          "table": "works",
+          "explanation": {
+            "domain": "CREATION",
+            "domainLabel": "Creation & Publishing",
+            "contract": "CREATION",
+            "contractVersion": "ARCH-005.1-v1",
+            "rule": "KERNEL-RULE-NEVER-WRITE-works",
+            "ruleType": "CROSS_DOMAIN_WRITE",
+            "policy": "KERNEL-POLICY-TABLE",
+            "constitution": [
+              "IV — Schichtenmodell",
+              "IV — Registry Single Source of Meaning",
+              "IV — unidirektionaler Datenfluss",
+              "IX — Entscheidungsregel"
+            ],
+            "adr": [
+              "ADR-001",
+              "ADR-002"
+            ],
+            "rfc": [
+              "RFC-000",
+              "RFC-000A"
+            ],
+            "ownership": {
+              "services": [
+                "WorkService",
+                "ExperienceService",
+                "StoryService (db.js)",
+                "worksService",
+                "storageService (content.js)"
+              ],
+              "contexts": [
+                "AppStateContext.works (Owner → Ziel: CreationContext)"
+              ],
+              "hooks": [],
+              "components": [
+                "components/HuiCreateFlow",
+                "components/WerkPublisher",
+                "components/ExperienceCreator",
+                "components/publishing/*",
+                "components/works/*",
+                "components/WorkDetailPage",
+                "components/StoryComposer",
+                "components/StoryBar"
+              ],
+              "pages": []
+            },
+            "risk": "Architektur-Integrität gefährdet — Merge blockieren",
+            "recommendation": [
+              "creationService aus WorkService + worksService",
+              "WorkDetailPage → CreationService",
+              "Cross-Domain Write über Owner-Service delegieren",
+              "Domain KERNEL darf 'works' nicht schreiben"
+            ],
+            "migration": "Cross-Domain Write über Owner-Service delegieren",
+            "confidence": 1,
+            "statement": {
+              "text": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works' [CROSS_DOMAIN_WRITE]",
+              "confidence": 1,
+              "source": "domain-contract",
+              "generatedAt": "2026-06-30T16:22:17.036Z"
+            }
+          }
+        },
+        "duplicate": {
+          "id": "CROSS_DOMAIN_WRITE_components/HuiCreateFlow.jsx_1578",
+          "type": "CROSS_DOMAIN_WRITE",
+          "severity": "CRITICAL",
+          "file": "components/HuiCreateFlow.jsx",
+          "line": 1578,
+          "domainId": "CREATION",
+          "contractId": "CREATION",
+          "ruleId": "DISCOVERY-RULE-NEVER-WRITE-works",
+          "policyId": "DISCOVERY-POLICY-TABLE",
+          "message": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works'",
+          "detail": "const { error:e } = await supabase.from(\"works\").insert({",
+          "table": "works",
+          "explanation": {
+            "domain": "CREATION",
+            "domainLabel": "Creation & Publishing",
+            "contract": "CREATION",
+            "contractVersion": "ARCH-005.1-v1",
+            "rule": "DISCOVERY-RULE-NEVER-WRITE-works",
+            "ruleType": "CROSS_DOMAIN_WRITE",
+            "policy": "DISCOVERY-POLICY-TABLE",
+            "constitution": [
+              "Regel 6 — Feed dient Orientierung",
+              "Regel 2 — Wirkung wichtiger als Aufmerksamkeit",
+              "Kein Infinite Scroll ohne Pause"
+            ],
+            "adr": [],
+            "rfc": [
+              "RFC-000"
+            ],
+            "ownership": {
+              "services": [
+                "WorkService",
+                "ExperienceService",
+                "StoryService (db.js)",
+                "worksService",
+                "storageService (content.js)"
+              ],
+              "contexts": [
+                "AppStateContext.works (Owner → Ziel: CreationContext)"
+              ],
+              "hooks": [],
+              "components": [
+                "components/HuiCreateFlow",
+                "components/WerkPublisher",
+                "components/ExperienceCreator",
+                "components/publishing/*",
+                "components/works/*",
+                "components/WorkDetailPage",
+                "components/StoryComposer",
+                "components/StoryBar"
+              ],
+              "pages": []
+            },
+            "risk": "Architektur-Integrität gefährdet — Merge blockieren",
+            "recommendation": [
+              "creationService aus WorkService + worksService",
+              "WorkDetailPage → CreationService",
+              "Cross-Domain Write über Owner-Service delegieren",
+              "Domain DISCOVERY darf 'works' nicht schreiben"
+            ],
+            "migration": "Cross-Domain Write über Owner-Service delegieren",
+            "confidence": 1,
+            "statement": {
+              "text": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works' [CROSS_DOMAIN_WRITE]",
+              "confidence": 1,
+              "source": "domain-contract",
+              "generatedAt": "2026-06-30T16:22:17.038Z"
+            }
+          }
+        }
+      },
+      {
+        "key": "components/HuiCreateFlow.jsx|CROSS_DOMAIN_WRITE|1578|works",
+        "first": {
+          "id": "CROSS_DOMAIN_WRITE_components/HuiCreateFlow.jsx_1578",
+          "type": "CROSS_DOMAIN_WRITE",
+          "severity": "CRITICAL",
+          "file": "components/HuiCreateFlow.jsx",
+          "line": 1578,
+          "domainId": "CREATION",
+          "contractId": "CREATION",
+          "ruleId": "KERNEL-RULE-NEVER-WRITE-works",
+          "policyId": "KERNEL-POLICY-TABLE",
+          "message": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works'",
+          "detail": "const { error:e } = await supabase.from(\"works\").insert({",
+          "table": "works",
+          "explanation": {
+            "domain": "CREATION",
+            "domainLabel": "Creation & Publishing",
+            "contract": "CREATION",
+            "contractVersion": "ARCH-005.1-v1",
+            "rule": "KERNEL-RULE-NEVER-WRITE-works",
+            "ruleType": "CROSS_DOMAIN_WRITE",
+            "policy": "KERNEL-POLICY-TABLE",
+            "constitution": [
+              "IV — Schichtenmodell",
+              "IV — Registry Single Source of Meaning",
+              "IV — unidirektionaler Datenfluss",
+              "IX — Entscheidungsregel"
+            ],
+            "adr": [
+              "ADR-001",
+              "ADR-002"
+            ],
+            "rfc": [
+              "RFC-000",
+              "RFC-000A"
+            ],
+            "ownership": {
+              "services": [
+                "WorkService",
+                "ExperienceService",
+                "StoryService (db.js)",
+                "worksService",
+                "storageService (content.js)"
+              ],
+              "contexts": [
+                "AppStateContext.works (Owner → Ziel: CreationContext)"
+              ],
+              "hooks": [],
+              "components": [
+                "components/HuiCreateFlow",
+                "components/WerkPublisher",
+                "components/ExperienceCreator",
+                "components/publishing/*",
+                "components/works/*",
+                "components/WorkDetailPage",
+                "components/StoryComposer",
+                "components/StoryBar"
+              ],
+              "pages": []
+            },
+            "risk": "Architektur-Integrität gefährdet — Merge blockieren",
+            "recommendation": [
+              "creationService aus WorkService + worksService",
+              "WorkDetailPage → CreationService",
+              "Cross-Domain Write über Owner-Service delegieren",
+              "Domain KERNEL darf 'works' nicht schreiben"
+            ],
+            "migration": "Cross-Domain Write über Owner-Service delegieren",
+            "confidence": 1,
+            "statement": {
+              "text": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works' [CROSS_DOMAIN_WRITE]",
+              "confidence": 1,
+              "source": "domain-contract",
+              "generatedAt": "2026-06-30T16:22:17.036Z"
+            }
+          }
+        },
+        "duplicate": {
+          "id": "CROSS_DOMAIN_WRITE_components/HuiCreateFlow.jsx_1578",
+          "type": "CROSS_DOMAIN_WRITE",
+          "severity": "CRITICAL",
+          "file": "components/HuiCreateFlow.jsx",
+          "line": 1578,
+          "domainId": "CREATION",
+          "contractId": "CREATION",
+          "ruleId": "IMPACT-RULE-NEVER-WRITE-works",
+          "policyId": "IMPACT-POLICY-TABLE",
+          "message": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works'",
+          "detail": "const { error:e } = await supabase.from(\"works\").insert({",
+          "table": "works",
+          "explanation": {
+            "domain": "CREATION",
+            "domainLabel": "Creation & Publishing",
+            "contract": "CREATION",
+            "contractVersion": "ARCH-005.1-v1",
+            "rule": "IMPACT-RULE-NEVER-WRITE-works",
+            "ruleType": "CROSS_DOMAIN_WRITE",
+            "policy": "IMPACT-POLICY-TABLE",
+            "constitution": [
+              "Regel 4 — Wertschöpfung und Gemeinwohl",
+              "Impact Pool Prinzip",
+              "Regel 8 — Keine Gamification"
+            ],
+            "adr": [],
+            "rfc": [
+              "RFC-000 Rule 4 — impact_votes Core-Tabelle"
+            ],
+            "ownership": {
+              "services": [
+                "WorkService",
+                "ExperienceService",
+                "StoryService (db.js)",
+                "worksService",
+                "storageService (content.js)"
+              ],
+              "contexts": [
+                "AppStateContext.works (Owner → Ziel: CreationContext)"
+              ],
+              "hooks": [],
+              "components": [
+                "components/HuiCreateFlow",
+                "components/WerkPublisher",
+                "components/ExperienceCreator",
+                "components/publishing/*",
+                "components/works/*",
+                "components/WorkDetailPage",
+                "components/StoryComposer",
+                "components/StoryBar"
+              ],
+              "pages": []
+            },
+            "risk": "Architektur-Integrität gefährdet — Merge blockieren",
+            "recommendation": [
+              "creationService aus WorkService + worksService",
+              "WorkDetailPage → CreationService",
+              "Cross-Domain Write über Owner-Service delegieren",
+              "Domain IMPACT darf 'works' nicht schreiben"
+            ],
+            "migration": "Cross-Domain Write über Owner-Service delegieren",
+            "confidence": 1,
+            "statement": {
+              "text": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works' [CROSS_DOMAIN_WRITE]",
+              "confidence": 1,
+              "source": "domain-contract",
+              "generatedAt": "2026-06-30T16:22:17.039Z"
+            }
+          }
+        }
+      },
+      {
+        "key": "components/HuiCreateFlow.jsx|CROSS_DOMAIN_WRITE|1578|works",
+        "first": {
+          "id": "CROSS_DOMAIN_WRITE_components/HuiCreateFlow.jsx_1578",
+          "type": "CROSS_DOMAIN_WRITE",
+          "severity": "CRITICAL",
+          "file": "components/HuiCreateFlow.jsx",
+          "line": 1578,
+          "domainId": "CREATION",
+          "contractId": "CREATION",
+          "ruleId": "KERNEL-RULE-NEVER-WRITE-works",
+          "policyId": "KERNEL-POLICY-TABLE",
+          "message": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works'",
+          "detail": "const { error:e } = await supabase.from(\"works\").insert({",
+          "table": "works",
+          "explanation": {
+            "domain": "CREATION",
+            "domainLabel": "Creation & Publishing",
+            "contract": "CREATION",
+            "contractVersion": "ARCH-005.1-v1",
+            "rule": "KERNEL-RULE-NEVER-WRITE-works",
+            "ruleType": "CROSS_DOMAIN_WRITE",
+            "policy": "KERNEL-POLICY-TABLE",
+            "constitution": [
+              "IV — Schichtenmodell",
+              "IV — Registry Single Source of Meaning",
+              "IV — unidirektionaler Datenfluss",
+              "IX — Entscheidungsregel"
+            ],
+            "adr": [
+              "ADR-001",
+              "ADR-002"
+            ],
+            "rfc": [
+              "RFC-000",
+              "RFC-000A"
+            ],
+            "ownership": {
+              "services": [
+                "WorkService",
+                "ExperienceService",
+                "StoryService (db.js)",
+                "worksService",
+                "storageService (content.js)"
+              ],
+              "contexts": [
+                "AppStateContext.works (Owner → Ziel: CreationContext)"
+              ],
+              "hooks": [],
+              "components": [
+                "components/HuiCreateFlow",
+                "components/WerkPublisher",
+                "components/ExperienceCreator",
+                "components/publishing/*",
+                "components/works/*",
+                "components/WorkDetailPage",
+                "components/StoryComposer",
+                "components/StoryBar"
+              ],
+              "pages": []
+            },
+            "risk": "Architektur-Integrität gefährdet — Merge blockieren",
+            "recommendation": [
+              "creationService aus WorkService + worksService",
+              "WorkDetailPage → CreationService",
+              "Cross-Domain Write über Owner-Service delegieren",
+              "Domain KERNEL darf 'works' nicht schreiben"
+            ],
+            "migration": "Cross-Domain Write über Owner-Service delegieren",
+            "confidence": 1,
+            "statement": {
+              "text": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works' [CROSS_DOMAIN_WRITE]",
+              "confidence": 1,
+              "source": "domain-contract",
+              "generatedAt": "2026-06-30T16:22:17.036Z"
+            }
+          }
+        },
+        "duplicate": {
+          "id": "CROSS_DOMAIN_WRITE_components/HuiCreateFlow.jsx_1578",
+          "type": "CROSS_DOMAIN_WRITE",
+          "severity": "CRITICAL",
+          "file": "components/HuiCreateFlow.jsx",
+          "line": 1578,
+          "domainId": "CREATION",
+          "contractId": "CREATION",
+          "ruleId": "WIRKUNG-RULE-NEVER-WRITE-works",
+          "policyId": "WIRKUNG-POLICY-TABLE",
+          "message": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works'",
+          "detail": "const { error:e } = await supabase.from(\"works\").insert({",
+          "table": "works",
+          "explanation": {
+            "domain": "CREATION",
+            "domainLabel": "Creation & Publishing",
+            "contract": "CREATION",
+            "contractVersion": "ARCH-005.1-v1",
+            "rule": "WIRKUNG-RULE-NEVER-WRITE-works",
+            "ruleType": "CROSS_DOMAIN_WRITE",
+            "policy": "WIRKUNG-POLICY-TABLE",
+            "constitution": [
+              "IV — Core Engine Single Source of Truth",
+              "VI — Orb-Philosophie",
+              "Regel 5 — Orb zeigt keine Leistung",
+              "Regel 8 — Keine Gamification"
+            ],
+            "adr": [
+              "ADR-0001 (Core Architecture — TODO: Branch-Merge)"
+            ],
+            "rfc": [
+              "RFC-000 Rule 4"
+            ],
+            "ownership": {
+              "services": [
+                "WorkService",
+                "ExperienceService",
+                "StoryService (db.js)",
+                "worksService",
+                "storageService (content.js)"
+              ],
+              "contexts": [
+                "AppStateContext.works (Owner → Ziel: CreationContext)"
+              ],
+              "hooks": [],
+              "components": [
+                "components/HuiCreateFlow",
+                "components/WerkPublisher",
+                "components/ExperienceCreator",
+                "components/publishing/*",
+                "components/works/*",
+                "components/WorkDetailPage",
+                "components/StoryComposer",
+                "components/StoryBar"
+              ],
+              "pages": []
+            },
+            "risk": "Architektur-Integrität gefährdet — Merge blockieren",
+            "recommendation": [
+              "creationService aus WorkService + worksService",
+              "WorkDetailPage → CreationService",
+              "Cross-Domain Write über Owner-Service delegieren",
+              "Domain WIRKUNG darf 'works' nicht schreiben"
+            ],
+            "migration": "Cross-Domain Write über Owner-Service delegieren",
+            "confidence": 1,
+            "statement": {
+              "text": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works' [CROSS_DOMAIN_WRITE]",
+              "confidence": 1,
+              "source": "domain-contract",
+              "generatedAt": "2026-06-30T16:22:17.039Z"
+            }
+          }
+        }
+      },
+      {
+        "key": "components/HuiCreateFlow.jsx|CROSS_DOMAIN_WRITE|1578|works",
+        "first": {
+          "id": "CROSS_DOMAIN_WRITE_components/HuiCreateFlow.jsx_1578",
+          "type": "CROSS_DOMAIN_WRITE",
+          "severity": "CRITICAL",
+          "file": "components/HuiCreateFlow.jsx",
+          "line": 1578,
+          "domainId": "CREATION",
+          "contractId": "CREATION",
+          "ruleId": "KERNEL-RULE-NEVER-WRITE-works",
+          "policyId": "KERNEL-POLICY-TABLE",
+          "message": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works'",
+          "detail": "const { error:e } = await supabase.from(\"works\").insert({",
+          "table": "works",
+          "explanation": {
+            "domain": "CREATION",
+            "domainLabel": "Creation & Publishing",
+            "contract": "CREATION",
+            "contractVersion": "ARCH-005.1-v1",
+            "rule": "KERNEL-RULE-NEVER-WRITE-works",
+            "ruleType": "CROSS_DOMAIN_WRITE",
+            "policy": "KERNEL-POLICY-TABLE",
+            "constitution": [
+              "IV — Schichtenmodell",
+              "IV — Registry Single Source of Meaning",
+              "IV — unidirektionaler Datenfluss",
+              "IX — Entscheidungsregel"
+            ],
+            "adr": [
+              "ADR-001",
+              "ADR-002"
+            ],
+            "rfc": [
+              "RFC-000",
+              "RFC-000A"
+            ],
+            "ownership": {
+              "services": [
+                "WorkService",
+                "ExperienceService",
+                "StoryService (db.js)",
+                "worksService",
+                "storageService (content.js)"
+              ],
+              "contexts": [
+                "AppStateContext.works (Owner → Ziel: CreationContext)"
+              ],
+              "hooks": [],
+              "components": [
+                "components/HuiCreateFlow",
+                "components/WerkPublisher",
+                "components/ExperienceCreator",
+                "components/publishing/*",
+                "components/works/*",
+                "components/WorkDetailPage",
+                "components/StoryComposer",
+                "components/StoryBar"
+              ],
+              "pages": []
+            },
+            "risk": "Architektur-Integrität gefährdet — Merge blockieren",
+            "recommendation": [
+              "creationService aus WorkService + worksService",
+              "WorkDetailPage → CreationService",
+              "Cross-Domain Write über Owner-Service delegieren",
+              "Domain KERNEL darf 'works' nicht schreiben"
+            ],
+            "migration": "Cross-Domain Write über Owner-Service delegieren",
+            "confidence": 1,
+            "statement": {
+              "text": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works' [CROSS_DOMAIN_WRITE]",
+              "confidence": 1,
+              "source": "domain-contract",
+              "generatedAt": "2026-06-30T16:22:17.036Z"
+            }
+          }
+        },
+        "duplicate": {
+          "id": "CROSS_DOMAIN_WRITE_components/HuiCreateFlow.jsx_1578",
+          "type": "CROSS_DOMAIN_WRITE",
+          "severity": "CRITICAL",
+          "file": "components/HuiCreateFlow.jsx",
+          "line": 1578,
+          "domainId": "CREATION",
+          "contractId": "CREATION",
+          "ruleId": "TRUST-RULE-NEVER-WRITE-works",
+          "policyId": "TRUST-POLICY-TABLE",
+          "message": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works'",
+          "detail": "const { error:e } = await supabase.from(\"works\").insert({",
+          "table": "works",
+          "explanation": {
+            "domain": "CREATION",
+            "domainLabel": "Creation & Publishing",
+            "contract": "CREATION",
+            "contractVersion": "ARCH-005.1-v1",
+            "rule": "TRUST-RULE-NEVER-WRITE-works",
+            "ruleType": "CROSS_DOMAIN_WRITE",
+            "policy": "TRUST-POLICY-TABLE",
+            "constitution": [
+              "Regel 1 — Menschen sind keine Produkte",
+              "Regel 8 — Keine Gamification"
+            ],
+            "adr": [],
+            "rfc": [
+              "RFC-000"
+            ],
+            "ownership": {
+              "services": [
+                "WorkService",
+                "ExperienceService",
+                "StoryService (db.js)",
+                "worksService",
+                "storageService (content.js)"
+              ],
+              "contexts": [
+                "AppStateContext.works (Owner → Ziel: CreationContext)"
+              ],
+              "hooks": [],
+              "components": [
+                "components/HuiCreateFlow",
+                "components/WerkPublisher",
+                "components/ExperienceCreator",
+                "components/publishing/*",
+                "components/works/*",
+                "components/WorkDetailPage",
+                "components/StoryComposer",
+                "components/StoryBar"
+              ],
+              "pages": []
+            },
+            "risk": "Architektur-Integrität gefährdet — Merge blockieren",
+            "recommendation": [
+              "creationService aus WorkService + worksService",
+              "WorkDetailPage → CreationService",
+              "Cross-Domain Write über Owner-Service delegieren",
+              "Domain TRUST darf 'works' nicht schreiben"
+            ],
+            "migration": "Cross-Domain Write über Owner-Service delegieren",
+            "confidence": 1,
+            "statement": {
+              "text": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works' [CROSS_DOMAIN_WRITE]",
+              "confidence": 1,
+              "source": "domain-contract",
+              "generatedAt": "2026-06-30T16:22:17.039Z"
+            }
+          }
+        }
+      },
+      {
+        "key": "components/HuiCreateFlow.jsx|CROSS_DOMAIN_WRITE|1578|works",
+        "first": {
+          "id": "CROSS_DOMAIN_WRITE_components/HuiCreateFlow.jsx_1578",
+          "type": "CROSS_DOMAIN_WRITE",
+          "severity": "CRITICAL",
+          "file": "components/HuiCreateFlow.jsx",
+          "line": 1578,
+          "domainId": "CREATION",
+          "contractId": "CREATION",
+          "ruleId": "KERNEL-RULE-NEVER-WRITE-works",
+          "policyId": "KERNEL-POLICY-TABLE",
+          "message": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works'",
+          "detail": "const { error:e } = await supabase.from(\"works\").insert({",
+          "table": "works",
+          "explanation": {
+            "domain": "CREATION",
+            "domainLabel": "Creation & Publishing",
+            "contract": "CREATION",
+            "contractVersion": "ARCH-005.1-v1",
+            "rule": "KERNEL-RULE-NEVER-WRITE-works",
+            "ruleType": "CROSS_DOMAIN_WRITE",
+            "policy": "KERNEL-POLICY-TABLE",
+            "constitution": [
+              "IV — Schichtenmodell",
+              "IV — Registry Single Source of Meaning",
+              "IV — unidirektionaler Datenfluss",
+              "IX — Entscheidungsregel"
+            ],
+            "adr": [
+              "ADR-001",
+              "ADR-002"
+            ],
+            "rfc": [
+              "RFC-000",
+              "RFC-000A"
+            ],
+            "ownership": {
+              "services": [
+                "WorkService",
+                "ExperienceService",
+                "StoryService (db.js)",
+                "worksService",
+                "storageService (content.js)"
+              ],
+              "contexts": [
+                "AppStateContext.works (Owner → Ziel: CreationContext)"
+              ],
+              "hooks": [],
+              "components": [
+                "components/HuiCreateFlow",
+                "components/WerkPublisher",
+                "components/ExperienceCreator",
+                "components/publishing/*",
+                "components/works/*",
+                "components/WorkDetailPage",
+                "components/StoryComposer",
+                "components/StoryBar"
+              ],
+              "pages": []
+            },
+            "risk": "Architektur-Integrität gefährdet — Merge blockieren",
+            "recommendation": [
+              "creationService aus WorkService + worksService",
+              "WorkDetailPage → CreationService",
+              "Cross-Domain Write über Owner-Service delegieren",
+              "Domain KERNEL darf 'works' nicht schreiben"
+            ],
+            "migration": "Cross-Domain Write über Owner-Service delegieren",
+            "confidence": 1,
+            "statement": {
+              "text": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works' [CROSS_DOMAIN_WRITE]",
+              "confidence": 1,
+              "source": "domain-contract",
+              "generatedAt": "2026-06-30T16:22:17.036Z"
+            }
+          }
+        },
+        "duplicate": {
+          "id": "CROSS_DOMAIN_WRITE_components/HuiCreateFlow.jsx_1578",
+          "type": "CROSS_DOMAIN_WRITE",
+          "severity": "CRITICAL",
+          "file": "components/HuiCreateFlow.jsx",
+          "line": 1578,
+          "domainId": "CREATION",
+          "contractId": "CREATION",
+          "ruleId": "PRESENCE-RULE-NEVER-WRITE-works",
+          "policyId": "PRESENCE-POLICY-TABLE",
+          "message": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works'",
+          "detail": "const { error:e } = await supabase.from(\"works\").insert({",
+          "table": "works",
+          "explanation": {
+            "domain": "CREATION",
+            "domainLabel": "Creation & Publishing",
+            "contract": "CREATION",
+            "contractVersion": "ARCH-005.1-v1",
+            "rule": "PRESENCE-RULE-NEVER-WRITE-works",
+            "ruleType": "CROSS_DOMAIN_WRITE",
+            "policy": "PRESENCE-POLICY-TABLE",
+            "constitution": [
+              "Presence Philosophy — keine Performance Identity",
+              "Design: Ruhig, nicht aktivierend"
+            ],
+            "adr": [],
+            "rfc": [
+              "RFC-000"
+            ],
+            "ownership": {
+              "services": [
+                "WorkService",
+                "ExperienceService",
+                "StoryService (db.js)",
+                "worksService",
+                "storageService (content.js)"
+              ],
+              "contexts": [
+                "AppStateContext.works (Owner → Ziel: CreationContext)"
+              ],
+              "hooks": [],
+              "components": [
+                "components/HuiCreateFlow",
+                "components/WerkPublisher",
+                "components/ExperienceCreator",
+                "components/publishing/*",
+                "components/works/*",
+                "components/WorkDetailPage",
+                "components/StoryComposer",
+                "components/StoryBar"
+              ],
+              "pages": []
+            },
+            "risk": "Architektur-Integrität gefährdet — Merge blockieren",
+            "recommendation": [
+              "creationService aus WorkService + worksService",
+              "WorkDetailPage → CreationService",
+              "Cross-Domain Write über Owner-Service delegieren",
+              "Domain PRESENCE darf 'works' nicht schreiben"
+            ],
+            "migration": "Cross-Domain Write über Owner-Service delegieren",
+            "confidence": 1,
+            "statement": {
+              "text": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works' [CROSS_DOMAIN_WRITE]",
+              "confidence": 1,
+              "source": "domain-contract",
+              "generatedAt": "2026-06-30T16:22:17.039Z"
+            }
+          }
+        }
+      },
+      {
+        "key": "components/HuiCreateFlow.jsx|CROSS_DOMAIN_WRITE|1578|works",
+        "first": {
+          "id": "CROSS_DOMAIN_WRITE_components/HuiCreateFlow.jsx_1578",
+          "type": "CROSS_DOMAIN_WRITE",
+          "severity": "CRITICAL",
+          "file": "components/HuiCreateFlow.jsx",
+          "line": 1578,
+          "domainId": "CREATION",
+          "contractId": "CREATION",
+          "ruleId": "KERNEL-RULE-NEVER-WRITE-works",
+          "policyId": "KERNEL-POLICY-TABLE",
+          "message": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works'",
+          "detail": "const { error:e } = await supabase.from(\"works\").insert({",
+          "table": "works",
+          "explanation": {
+            "domain": "CREATION",
+            "domainLabel": "Creation & Publishing",
+            "contract": "CREATION",
+            "contractVersion": "ARCH-005.1-v1",
+            "rule": "KERNEL-RULE-NEVER-WRITE-works",
+            "ruleType": "CROSS_DOMAIN_WRITE",
+            "policy": "KERNEL-POLICY-TABLE",
+            "constitution": [
+              "IV — Schichtenmodell",
+              "IV — Registry Single Source of Meaning",
+              "IV — unidirektionaler Datenfluss",
+              "IX — Entscheidungsregel"
+            ],
+            "adr": [
+              "ADR-001",
+              "ADR-002"
+            ],
+            "rfc": [
+              "RFC-000",
+              "RFC-000A"
+            ],
+            "ownership": {
+              "services": [
+                "WorkService",
+                "ExperienceService",
+                "StoryService (db.js)",
+                "worksService",
+                "storageService (content.js)"
+              ],
+              "contexts": [
+                "AppStateContext.works (Owner → Ziel: CreationContext)"
+              ],
+              "hooks": [],
+              "components": [
+                "components/HuiCreateFlow",
+                "components/WerkPublisher",
+                "components/ExperienceCreator",
+                "components/publishing/*",
+                "components/works/*",
+                "components/WorkDetailPage",
+                "components/StoryComposer",
+                "components/StoryBar"
+              ],
+              "pages": []
+            },
+            "risk": "Architektur-Integrität gefährdet — Merge blockieren",
+            "recommendation": [
+              "creationService aus WorkService + worksService",
+              "WorkDetailPage → CreationService",
+              "Cross-Domain Write über Owner-Service delegieren",
+              "Domain KERNEL darf 'works' nicht schreiben"
+            ],
+            "migration": "Cross-Domain Write über Owner-Service delegieren",
+            "confidence": 1,
+            "statement": {
+              "text": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works' [CROSS_DOMAIN_WRITE]",
+              "confidence": 1,
+              "source": "domain-contract",
+              "generatedAt": "2026-06-30T16:22:17.036Z"
+            }
+          }
+        },
+        "duplicate": {
+          "id": "CROSS_DOMAIN_WRITE_components/HuiCreateFlow.jsx_1578",
+          "type": "CROSS_DOMAIN_WRITE",
+          "severity": "CRITICAL",
+          "file": "components/HuiCreateFlow.jsx",
+          "line": 1578,
+          "domainId": "CREATION",
+          "contractId": "CREATION",
+          "ruleId": "INTELLIGENCE-RULE-NEVER-WRITE-works",
+          "policyId": "INTELLIGENCE-POLICY-TABLE",
+          "message": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works'",
+          "detail": "const { error:e } = await supabase.from(\"works\").insert({",
+          "table": "works",
+          "explanation": {
+            "domain": "CREATION",
+            "domainLabel": "Creation & Publishing",
+            "contract": "CREATION",
+            "contractVersion": "ARCH-005.1-v1",
+            "rule": "INTELLIGENCE-RULE-NEVER-WRITE-works",
+            "ruleType": "CROSS_DOMAIN_WRITE",
+            "policy": "INTELLIGENCE-POLICY-TABLE",
+            "constitution": [
+              "VII — KI-Prinzipien",
+              "Regel 7 — KI ersetzt Menschen nicht",
+              "Zentrale Frage: sinnvolle Begegnung"
+            ],
+            "adr": [
+              "ADR-002 (Intelligence via Scanner)"
+            ],
+            "rfc": [
+              "RFC-000A"
+            ],
+            "ownership": {
+              "services": [
+                "WorkService",
+                "ExperienceService",
+                "StoryService (db.js)",
+                "worksService",
+                "storageService (content.js)"
+              ],
+              "contexts": [
+                "AppStateContext.works (Owner → Ziel: CreationContext)"
+              ],
+              "hooks": [],
+              "components": [
+                "components/HuiCreateFlow",
+                "components/WerkPublisher",
+                "components/ExperienceCreator",
+                "components/publishing/*",
+                "components/works/*",
+                "components/WorkDetailPage",
+                "components/StoryComposer",
+                "components/StoryBar"
+              ],
+              "pages": []
+            },
+            "risk": "Architektur-Integrität gefährdet — Merge blockieren",
+            "recommendation": [
+              "creationService aus WorkService + worksService",
+              "WorkDetailPage → CreationService",
+              "Cross-Domain Write über Owner-Service delegieren",
+              "Domain INTELLIGENCE darf 'works' nicht schreiben"
+            ],
+            "migration": "Cross-Domain Write über Owner-Service delegieren",
+            "confidence": 1,
+            "statement": {
+              "text": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works' [CROSS_DOMAIN_WRITE]",
+              "confidence": 1,
+              "source": "domain-contract",
+              "generatedAt": "2026-06-30T16:22:17.040Z"
+            }
+          }
+        }
+      },
+      {
+        "key": "components/HuiCreateFlow.jsx|CROSS_DOMAIN_WRITE|1578|works",
+        "first": {
+          "id": "CROSS_DOMAIN_WRITE_components/HuiCreateFlow.jsx_1578",
+          "type": "CROSS_DOMAIN_WRITE",
+          "severity": "CRITICAL",
+          "file": "components/HuiCreateFlow.jsx",
+          "line": 1578,
+          "domainId": "CREATION",
+          "contractId": "CREATION",
+          "ruleId": "KERNEL-RULE-NEVER-WRITE-works",
+          "policyId": "KERNEL-POLICY-TABLE",
+          "message": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works'",
+          "detail": "const { error:e } = await supabase.from(\"works\").insert({",
+          "table": "works",
+          "explanation": {
+            "domain": "CREATION",
+            "domainLabel": "Creation & Publishing",
+            "contract": "CREATION",
+            "contractVersion": "ARCH-005.1-v1",
+            "rule": "KERNEL-RULE-NEVER-WRITE-works",
+            "ruleType": "CROSS_DOMAIN_WRITE",
+            "policy": "KERNEL-POLICY-TABLE",
+            "constitution": [
+              "IV — Schichtenmodell",
+              "IV — Registry Single Source of Meaning",
+              "IV — unidirektionaler Datenfluss",
+              "IX — Entscheidungsregel"
+            ],
+            "adr": [
+              "ADR-001",
+              "ADR-002"
+            ],
+            "rfc": [
+              "RFC-000",
+              "RFC-000A"
+            ],
+            "ownership": {
+              "services": [
+                "WorkService",
+                "ExperienceService",
+                "StoryService (db.js)",
+                "worksService",
+                "storageService (content.js)"
+              ],
+              "contexts": [
+                "AppStateContext.works (Owner → Ziel: CreationContext)"
+              ],
+              "hooks": [],
+              "components": [
+                "components/HuiCreateFlow",
+                "components/WerkPublisher",
+                "components/ExperienceCreator",
+                "components/publishing/*",
+                "components/works/*",
+                "components/WorkDetailPage",
+                "components/StoryComposer",
+                "components/StoryBar"
+              ],
+              "pages": []
+            },
+            "risk": "Architektur-Integrität gefährdet — Merge blockieren",
+            "recommendation": [
+              "creationService aus WorkService + worksService",
+              "WorkDetailPage → CreationService",
+              "Cross-Domain Write über Owner-Service delegieren",
+              "Domain KERNEL darf 'works' nicht schreiben"
+            ],
+            "migration": "Cross-Domain Write über Owner-Service delegieren",
+            "confidence": 1,
+            "statement": {
+              "text": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works' [CROSS_DOMAIN_WRITE]",
+              "confidence": 1,
+              "source": "domain-contract",
+              "generatedAt": "2026-06-30T16:22:17.036Z"
+            }
+          }
+        },
+        "duplicate": {
+          "id": "CROSS_DOMAIN_WRITE_components/HuiCreateFlow.jsx_1578",
+          "type": "CROSS_DOMAIN_WRITE",
+          "severity": "CRITICAL",
+          "file": "components/HuiCreateFlow.jsx",
+          "line": 1578,
+          "domainId": "CREATION",
+          "contractId": "CREATION",
+          "ruleId": "STUDIO-RULE-NEVER-WRITE-works",
+          "policyId": "STUDIO-POLICY-TABLE",
+          "message": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works'",
+          "detail": "const { error:e } = await supabase.from(\"works\").insert({",
+          "table": "works",
+          "explanation": {
+            "domain": "CREATION",
+            "domainLabel": "Creation & Publishing",
+            "contract": "CREATION",
+            "contractVersion": "ARCH-005.1-v1",
+            "rule": "STUDIO-RULE-NEVER-WRITE-works",
+            "ruleType": "CROSS_DOMAIN_WRITE",
+            "policy": "STUDIO-POLICY-TABLE",
+            "constitution": [
+              "Regel 9 — Funktion muss Grundpfeiler stärken",
+              "DiagnosePage: Admin by design"
+            ],
+            "adr": [
+              "ADR-001 (Studio Routes)"
+            ],
+            "rfc": [
+              "RFC-000"
+            ],
+            "ownership": {
+              "services": [
+                "WorkService",
+                "ExperienceService",
+                "StoryService (db.js)",
+                "worksService",
+                "storageService (content.js)"
+              ],
+              "contexts": [
+                "AppStateContext.works (Owner → Ziel: CreationContext)"
+              ],
+              "hooks": [],
+              "components": [
+                "components/HuiCreateFlow",
+                "components/WerkPublisher",
+                "components/ExperienceCreator",
+                "components/publishing/*",
+                "components/works/*",
+                "components/WorkDetailPage",
+                "components/StoryComposer",
+                "components/StoryBar"
+              ],
+              "pages": []
+            },
+            "risk": "Architektur-Integrität gefährdet — Merge blockieren",
+            "recommendation": [
+              "creationService aus WorkService + worksService",
+              "WorkDetailPage → CreationService",
+              "Cross-Domain Write über Owner-Service delegieren",
+              "Domain STUDIO darf 'works' nicht schreiben"
+            ],
+            "migration": "Cross-Domain Write über Owner-Service delegieren",
+            "confidence": 1,
+            "statement": {
+              "text": "Cross-Domain Write: CREATION schreibt verbotene Tabelle 'works' [CROSS_DOMAIN_WRITE]",
+              "confidence": 1,
+              "source": "domain-contract",
+              "generatedAt": "2026-06-30T16:22:17.040Z"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "severityInflation": {
+    "count": 719,
+    "percentage": 66,
+    "primaryCause": "neverWrite → CROSS_DOMAIN_WRITE → CRITICAL"
+  },
+  "multiCounting": {
+    "crossDomainNeverWrite": 719,
+    "potentialDoubleWithCheckNeverWrite": "evaluateCrossDomainWrites + checkNeverWrite may overlap"
+  }
+}

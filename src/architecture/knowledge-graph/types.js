@@ -1,0 +1,71 @@
+// src/architecture/knowledge-graph/types.js
+// ══════════════════════════════════════════════════════════════════════════════
+// HUI Architecture Knowledge Graph — ARCH-002
+// Kanonische Knoten- und Kantentypen des Architektur-Graphen.
+// ══════════════════════════════════════════════════════════════════════════════
+
+export const NODE_TYPES = Object.freeze({
+  CONSTITUTION:       'Constitution',
+  ADR:                'ADR',
+  RFC:                'RFC',
+  DOMAIN_CHARTER:     'Domain Charter',
+  LAYER:              'Layer',
+  DOMAIN:             'Domain',
+  MODULE:             'Module',
+  FILE:               'File',
+  CLASS:              'Class',
+  HOOK:               'Hook',
+  CONTEXT:            'Context',
+  SERVICE:            'Service',
+  ENGINE:             'Engine',
+  REGISTRY:           'Registry',
+  SUPABASE_TABLE:     'Supabase Table',
+  EDGE_FUNCTION:      'Edge Function',
+  ACTION:             'Action',
+  CONTRACT:           'Contract',
+  STATE_OWNER:        'State Owner',
+  CONSUMER:           'Consumer',
+  ROUTE:              'Route',
+  FEATURE:            'Feature',
+  COMPONENT:          'Component',
+  PAGE:               'Page',
+  CONTEXT_PROVIDER:   'Context Provider',
+  ENUM:               'Enum',
+  SIGNAL:             'Signal',
+  INVARIANT:          'Invariant',
+  VIOLATION:          'Violation',
+  MIGRATION:          'Migration',
+  TODO_ADR:           'TODO(ADR)',
+  CONSTITUTION_RULE:  'Constitution Rule',
+});
+
+export const EDGE_TYPES = Object.freeze({
+  OWNS:           'OWNS',
+  IMPORTS:        'IMPORTS',
+  USES:           'USES',
+  READS:          'READS',
+  WRITES:         'WRITES',
+  CONSUMES:       'CONSUMES',
+  PROVIDES:       'PROVIDES',
+  CALLS:          'CALLS',
+  DEPENDS_ON:     'DEPENDS_ON',
+  IMPLEMENTS:     'IMPLEMENTS',
+  BELONGS_TO:     'BELONGS_TO',
+  VIOLATES:       'VIOLATES',
+  PROTECTED_BY:   'PROTECTED_BY',
+  DEFINED_IN:     'DEFINED_IN',
+  USES_ACTION:    'USES_ACTION',
+  USES_REGISTRY:  'USES_REGISTRY',
+  USES_CORE:      'USES_CORE',
+  USES_SERVICE:   'USES_SERVICE',
+  USES_CONTEXT:   'USES_CONTEXT',
+  USES_CONTRACT:  'USES_CONTRACT',
+  USES_ENGINE:    'USES_ENGINE',
+  MIGRATES_TO:    'MIGRATES_TO',
+  REPLACES:       'REPLACES',
+  OBSERVES:       'OBSERVES',
+  PUBLISHES:      'PUBLISHES',
+  SUBSCRIBES:     'SUBSCRIBES',
+});
+
+export const SCAN_VERSION = 'ARCH-002';

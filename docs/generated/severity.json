@@ -1,0 +1,89 @@
+{
+  "distribution": {
+    "CRITICAL": 811,
+    "HIGH": 159,
+    "MEDIUM": 67,
+    "LOW": 3,
+    "INFO": 50
+  },
+  "ruleDistribution": {
+    "HIGH": 151,
+    "MEDIUM": 25,
+    "CRITICAL": 87,
+    "LOW": 6,
+    "INFO": 14
+  },
+  "thresholds": {
+    "CORE_WRITE": "CRITICAL",
+    "CROSS_DOMAIN_WRITE": "CRITICAL",
+    "WORLD_DB_WRITE": "HIGH",
+    "OWNERSHIP_VIOLATION": "HIGH",
+    "DOMAIN_LAYER": "HIGH",
+    "DOMAIN_IMPORT": "HIGH",
+    "DOMAIN_EVENT": "HIGH",
+    "DOMAIN_REALTIME": "HIGH",
+    "DOMAIN_CONTEXT": "MEDIUM",
+    "DOMAIN_TABLE_OWNER": "MEDIUM",
+    "SERVICE_BYPASS": "HIGH",
+    "HOOK_BYPASS": "MEDIUM",
+    "PAGE_BYPASS": "HIGH",
+    "COMPONENT_BYPASS": "LOW",
+    "EVENT_ABUSE": "HIGH",
+    "INTELLIGENCE_WRITE": "HIGH",
+    "STUDIO_AGGREGATOR": "MEDIUM",
+    "CONTRACT_VIOLATION": "CRITICAL"
+  },
+  "adr002Mapping": {
+    "CORE_BYPASS": "CRITICAL",
+    "DB_DIRECT_WRITE": "HIGH",
+    "LAYER_VIOLATION": "HIGH",
+    "DUPLICATE_OWNER": "HIGH",
+    "DIRECT_ROUTING": "HIGH",
+    "REGISTRY_BYPASS": "LOW",
+    "MISSING_HEADER": "INFO"
+  },
+  "inconsistencies": [
+    {
+      "prefix": "MISSING_HEADER",
+      "adr002": "INFO",
+      "compiler": "CRITICAL",
+      "mapped": "CONTRACT_VIOLATION"
+    }
+  ],
+  "logical": false,
+  "consistent": true,
+  "documented": true,
+  "documentationSources": [
+    "ADR-002",
+    "ruleCompiler.js SEVERITY_BY_TYPE",
+    "explanationEngine.js RISK_BY_SEVERITY"
+  ],
+  "recommendations": [
+    {
+      "severity": "CRITICAL",
+      "issue": "CRITICAL überrepräsentiert (74% aller Violations)",
+      "recommendation": "neverWrite-Regeln auf HIGH herabstufen oder nur echte Cross-Domain-Writes als CRITICAL markieren",
+      "documented": false
+    },
+    {
+      "severity": "MEDIUM",
+      "issue": "ADR-002 vs SEVERITY_BY_TYPE Abweichungen",
+      "recommendation": "SEVERITY_BY_TYPE mit ADR-002 harmonisieren oder ADR aktualisieren",
+      "documented": true,
+      "details": [
+        {
+          "prefix": "MISSING_HEADER",
+          "adr002": "INFO",
+          "compiler": "CRITICAL",
+          "mapped": "CONTRACT_VIOLATION"
+        }
+      ]
+    },
+    {
+      "severity": "INFO",
+      "issue": "MISSING_HEADER als INFO korrekt",
+      "recommendation": "Beibehalten — Dokumentationspflicht, kein Merge-Blocker",
+      "documented": true
+    }
+  ]
+}

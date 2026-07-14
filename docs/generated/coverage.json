@@ -1,0 +1,1630 @@
+{
+  "contract": {
+    "scannedFileCount": 370,
+    "contractFileCount": 298,
+    "withDomain": 297,
+    "unknown": 73,
+    "multiDomain": 34,
+    "notInContract": 0,
+    "notInContractSample": [],
+    "unknownSample": [
+      "architecture/authority/api/authorityApi.js",
+      "architecture/authority/cli.js",
+      "architecture/authority/constants/ruleSchema.js",
+      "architecture/authority/constants/statusModel.js",
+      "architecture/authority/graph/authorityGraph.js",
+      "architecture/authority/health/governanceHealth.js",
+      "architecture/authority/index.js",
+      "architecture/authority/loader/documentLoader.js",
+      "architecture/authority/registries/registryBuilder.js",
+      "architecture/authority/reports/reportGenerator.js",
+      "architecture/authority/validation/authorityValidator.js",
+      "architecture/authority/validation/ciChecks.js",
+      "architecture/governance/adrRegistry.js",
+      "architecture/governance/constitution.js",
+      "architecture/governance/index.js",
+      "architecture/governance/rfcRegistry.js",
+      "architecture/graph/graphStore.js",
+      "architecture/graph/schema.js",
+      "architecture/graph/technicalGraphBuilder.js",
+      "architecture/index.js"
+    ],
+    "domainGaps": [
+      {
+        "domainId": "KERNEL",
+        "gapCount": 0,
+        "gaps": []
+      },
+      {
+        "domainId": "IDENTITY",
+        "gapCount": 0,
+        "gaps": []
+      },
+      {
+        "domainId": "CONNECTION",
+        "gapCount": 0,
+        "gaps": []
+      },
+      {
+        "domainId": "CREATION",
+        "gapCount": 0,
+        "gaps": []
+      },
+      {
+        "domainId": "COMMERCE",
+        "gapCount": 0,
+        "gaps": []
+      },
+      {
+        "domainId": "COMMUNICATION",
+        "gapCount": 0,
+        "gaps": []
+      },
+      {
+        "domainId": "DISCOVERY",
+        "gapCount": 0,
+        "gaps": []
+      },
+      {
+        "domainId": "IMPACT",
+        "gapCount": 0,
+        "gaps": []
+      },
+      {
+        "domainId": "WIRKUNG",
+        "gapCount": 0,
+        "gaps": []
+      },
+      {
+        "domainId": "TRUST",
+        "gapCount": 0,
+        "gaps": []
+      },
+      {
+        "domainId": "PRESENCE",
+        "gapCount": 0,
+        "gaps": []
+      },
+      {
+        "domainId": "INTELLIGENCE",
+        "gapCount": 0,
+        "gaps": []
+      },
+      {
+        "domainId": "WORLD",
+        "gapCount": 0,
+        "gaps": []
+      },
+      {
+        "domainId": "STUDIO",
+        "gapCount": 0,
+        "gaps": []
+      }
+    ],
+    "coveragePct": 80
+  },
+  "rule": {
+    "neverTriggered": [
+      {
+        "id": "KERNEL-RULE-OWNERSHIP",
+        "type": "OWNERSHIP_VIOLATION",
+        "domainId": "KERNEL"
+      },
+      {
+        "id": "KERNEL-RULE-LAYER",
+        "type": "DOMAIN_LAYER",
+        "domainId": "KERNEL"
+      },
+      {
+        "id": "KERNEL-RULE-SERVICE",
+        "type": "SERVICE_BYPASS",
+        "domainId": "KERNEL"
+      },
+      {
+        "id": "KERNEL-RULE-CONTEXT",
+        "type": "DOMAIN_CONTEXT",
+        "domainId": "KERNEL"
+      },
+      {
+        "id": "KERNEL-RULE-NEVER-WRITE-resonance_signals",
+        "type": "CROSS_DOMAIN_WRITE",
+        "domainId": "KERNEL"
+      },
+      {
+        "id": "KERNEL-RULE-NEVER-WRITE-orb_states",
+        "type": "CROSS_DOMAIN_WRITE",
+        "domainId": "KERNEL"
+      },
+      {
+        "id": "KERNEL-RULE-NEVER-WRITE-core_metrics",
+        "type": "CROSS_DOMAIN_WRITE",
+        "domainId": "KERNEL"
+      },
+      {
+        "id": "KERNEL-RULE-EVENT-FORBIDDEN-resonance_sent",
+        "type": "EVENT_ABUSE",
+        "domainId": "KERNEL"
+      },
+      {
+        "id": "KERNEL-RULE-EVENT-FORBIDDEN-orb_evolved",
+        "type": "EVENT_ABUSE",
+        "domainId": "KERNEL"
+      },
+      {
+        "id": "KERNEL-RULE-EVENT-FORBIDDEN-booking_completed",
+        "type": "EVENT_ABUSE",
+        "domainId": "KERNEL"
+      },
+      {
+        "id": "KERNEL-RULE-EVENT-FORBIDDEN-message_sent",
+        "type": "EVENT_ABUSE",
+        "domainId": "KERNEL"
+      },
+      {
+        "id": "KERNEL-SCAN-02",
+        "type": "DOMAIN_LAYER",
+        "domainId": "KERNEL"
+      },
+      {
+        "id": "KERNEL-SCAN-03",
+        "type": "CROSS_DOMAIN_WRITE",
+        "domainId": "KERNEL"
+      },
+      {
+        "id": "IDENTITY-RULE-OWNERSHIP",
+        "type": "OWNERSHIP_VIOLATION",
+        "domainId": "IDENTITY"
+      },
+      {
+        "id": "IDENTITY-RULE-IMPORT-MATRIX",
+        "type": "DOMAIN_IMPORT",
+        "domainId": "IDENTITY"
+      },
+      {
+        "id": "IDENTITY-RULE-SERVICE",
+        "type": "SERVICE_BYPASS",
+        "domainId": "IDENTITY"
+      },
+      {
+        "id": "IDENTITY-RULE-CONTEXT",
+        "type": "DOMAIN_CONTEXT",
+        "domainId": "IDENTITY"
+      },
+      {
+        "id": "IDENTITY-RULE-TABLE-OWNER-profile_modules",
+        "type": "DOMAIN_TABLE_OWNER",
+        "domainId": "IDENTITY"
+      },
+      {
+        "id": "IDENTITY-RULE-TABLE-OWNER-profile_views",
+        "type": "DOMAIN_TABLE_OWNER",
+        "domainId": "IDENTITY"
+      },
+      {
+        "id": "IDENTITY-RULE-EVENT-FORBIDDEN-resonance_sent",
+        "type": "EVENT_ABUSE",
+        "domainId": "IDENTITY"
+      },
+      {
+        "id": "IDENTITY-RULE-EVENT-FORBIDDEN-impact_vote_cast",
+        "type": "EVENT_ABUSE",
+        "domainId": "IDENTITY"
+      },
+      {
+        "id": "IDENTITY-RULE-EVENT-FORBIDDEN-work_published",
+        "type": "EVENT_ABUSE",
+        "domainId": "IDENTITY"
+      },
+      {
+        "id": "IDENTITY-RULE-HOOK",
+        "type": "HOOK_BYPASS",
+        "domainId": "IDENTITY"
+      },
+      {
+        "id": "IDENTITY-SCAN-02",
+        "type": "OWNERSHIP_VIOLATION",
+        "domainId": "IDENTITY"
+      },
+      {
+        "id": "IDENTITY-SCAN-04",
+        "type": "CROSS_DOMAIN_WRITE",
+        "domainId": "IDENTITY"
+      },
+      {
+        "id": "CONNECTION-RULE-OWNERSHIP",
+        "type": "OWNERSHIP_VIOLATION",
+        "domainId": "CONNECTION"
+      },
+      {
+        "id": "CONNECTION-RULE-IMPORT-MATRIX",
+        "type": "DOMAIN_IMPORT",
+        "domainId": "CONNECTION"
+      },
+      {
+        "id": "CONNECTION-RULE-SERVICE",
+        "type": "SERVICE_BYPASS",
+        "domainId": "CONNECTION"
+      },
+      {
+        "id": "CONNECTION-RULE-CONTEXT",
+        "type": "DOMAIN_CONTEXT",
+        "domainId": "CONNECTION"
+      },
+      {
+        "id": "CONNECTION-RULE-TABLE-OWNER-connections",
+        "type": "DOMAIN_TABLE_OWNER",
+        "domainId": "CONNECTION"
+      },
+      {
+        "id": "CONNECTION-RULE-TABLE-OWNER-user_match_scores",
+        "type": "DOMAIN_TABLE_OWNER",
+        "domainId": "CONNECTION"
+      },
+      {
+        "id": "CONNECTION-RULE-TABLE-OWNER-referrals",
+        "type": "DOMAIN_TABLE_OWNER",
+        "domainId": "CONNECTION"
+      },
+      {
+        "id": "CONNECTION-RULE-EVENT-FORBIDDEN-resonance_sent",
+        "type": "EVENT_ABUSE",
+        "domainId": "CONNECTION"
+      },
+      {
+        "id": "CONNECTION-RULE-EVENT-FORBIDDEN-impact_vote_cast",
+        "type": "EVENT_ABUSE",
+        "domainId": "CONNECTION"
+      },
+      {
+        "id": "CONNECTION-SCAN-02",
+        "type": "OWNERSHIP_VIOLATION",
+        "domainId": "CONNECTION"
+      },
+      {
+        "id": "CONNECTION-SCAN-03",
+        "type": "CROSS_DOMAIN_WRITE",
+        "domainId": "CONNECTION"
+      },
+      {
+        "id": "CREATION-RULE-OWNERSHIP",
+        "type": "OWNERSHIP_VIOLATION",
+        "domainId": "CREATION"
+      },
+      {
+        "id": "CREATION-RULE-IMPORT-MATRIX",
+        "type": "DOMAIN_IMPORT",
+        "domainId": "CREATION"
+      },
+      {
+        "id": "CREATION-RULE-REALTIME",
+        "type": "DOMAIN_REALTIME",
+        "domainId": "CREATION"
+      },
+      {
+        "id": "CREATION-RULE-SERVICE",
+        "type": "SERVICE_BYPASS",
+        "domainId": "CREATION"
+      },
+      {
+        "id": "CREATION-RULE-CONTEXT",
+        "type": "DOMAIN_CONTEXT",
+        "domainId": "CREATION"
+      },
+      {
+        "id": "CREATION-RULE-TABLE-OWNER-moments",
+        "type": "DOMAIN_TABLE_OWNER",
+        "domainId": "CREATION"
+      },
+      {
+        "id": "CREATION-RULE-TABLE-OWNER-work_likes",
+        "type": "DOMAIN_TABLE_OWNER",
+        "domainId": "CREATION"
+      },
+      {
+        "id": "CREATION-RULE-TABLE-OWNER-work_saves",
+        "type": "DOMAIN_TABLE_OWNER",
+        "domainId": "CREATION"
+      },
+      {
+        "id": "CREATION-RULE-TABLE-OWNER-comments",
+        "type": "DOMAIN_TABLE_OWNER",
+        "domainId": "CREATION"
+      },
+      {
+        "id": "CREATION-RULE-EVENT-FORBIDDEN-resonance_sent____WIRKUNG_",
+        "type": "EVENT_ABUSE",
+        "domainId": "CREATION"
+      },
+      {
+        "id": "CREATION-RULE-EVENT-FORBIDDEN-impact_vote_cast",
+        "type": "EVENT_ABUSE",
+        "domainId": "CREATION"
+      },
+      {
+        "id": "CREATION-SCAN-02",
+        "type": "OWNERSHIP_VIOLATION",
+        "domainId": "CREATION"
+      },
+      {
+        "id": "CREATION-SCAN-03",
+        "type": "CROSS_DOMAIN_WRITE",
+        "domainId": "CREATION"
+      },
+      {
+        "id": "COMMERCE-RULE-OWNERSHIP",
+        "type": "OWNERSHIP_VIOLATION",
+        "domainId": "COMMERCE"
+      },
+      {
+        "id": "COMMERCE-RULE-IMPORT-MATRIX",
+        "type": "DOMAIN_IMPORT",
+        "domainId": "COMMERCE"
+      },
+      {
+        "id": "COMMERCE-RULE-REALTIME",
+        "type": "DOMAIN_REALTIME",
+        "domainId": "COMMERCE"
+      },
+      {
+        "id": "COMMERCE-RULE-SERVICE",
+        "type": "SERVICE_BYPASS",
+        "domainId": "COMMERCE"
+      },
+      {
+        "id": "COMMERCE-RULE-CONTEXT",
+        "type": "DOMAIN_CONTEXT",
+        "domainId": "COMMERCE"
+      },
+      {
+        "id": "COMMERCE-RULE-TABLE-OWNER-experience_bookings",
+        "type": "DOMAIN_TABLE_OWNER",
+        "domainId": "COMMERCE"
+      },
+      {
+        "id": "COMMERCE-RULE-TABLE-OWNER-orders",
+        "type": "DOMAIN_TABLE_OWNER",
+        "domainId": "COMMERCE"
+      },
+      {
+        "id": "COMMERCE-RULE-TABLE-OWNER-order_items",
+        "type": "DOMAIN_TABLE_OWNER",
+        "domainId": "COMMERCE"
+      },
+      {
+        "id": "COMMERCE-RULE-TABLE-OWNER-creator_wallets",
+        "type": "DOMAIN_TABLE_OWNER",
+        "domainId": "COMMERCE"
+      },
+      {
+        "id": "COMMERCE-RULE-TABLE-OWNER-creator_supports",
+        "type": "DOMAIN_TABLE_OWNER",
+        "domainId": "COMMERCE"
+      },
+      {
+        "id": "COMMERCE-RULE-TABLE-OWNER-commerce_events",
+        "type": "DOMAIN_TABLE_OWNER",
+        "domainId": "COMMERCE"
+      },
+      {
+        "id": "COMMERCE-RULE-TABLE-OWNER-availability_slots",
+        "type": "DOMAIN_TABLE_OWNER",
+        "domainId": "COMMERCE"
+      },
+      {
+        "id": "COMMERCE-RULE-EVENT-FORBIDDEN-resonance_sent",
+        "type": "EVENT_ABUSE",
+        "domainId": "COMMERCE"
+      },
+      {
+        "id": "COMMERCE-RULE-EVENT-FORBIDDEN-impact_vote_cast",
+        "type": "EVENT_ABUSE",
+        "domainId": "COMMERCE"
+      },
+      {
+        "id": "COMMERCE-RULE-HOOK",
+        "type": "HOOK_BYPASS",
+        "domainId": "COMMERCE"
+      },
+      {
+        "id": "COMMERCE-RULE-CORE",
+        "type": "CORE_WRITE",
+        "domainId": "COMMERCE"
+      },
+      {
+        "id": "COMMERCE-SCAN-01",
+        "type": "OWNERSHIP_VIOLATION",
+        "domainId": "COMMERCE"
+      },
+      {
+        "id": "COMMERCE-SCAN-03",
+        "type": "CROSS_DOMAIN_WRITE",
+        "domainId": "COMMERCE"
+      },
+      {
+        "id": "COMMUNICATION-RULE-OWNERSHIP",
+        "type": "OWNERSHIP_VIOLATION",
+        "domainId": "COMMUNICATION"
+      },
+      {
+        "id": "COMMUNICATION-RULE-IMPORT-MATRIX",
+        "type": "DOMAIN_IMPORT",
+        "domainId": "COMMUNICATION"
+      },
+      {
+        "id": "COMMUNICATION-RULE-REALTIME",
+        "type": "DOMAIN_REALTIME",
+        "domainId": "COMMUNICATION"
+      },
+      {
+        "id": "COMMUNICATION-RULE-SERVICE",
+        "type": "SERVICE_BYPASS",
+        "domainId": "COMMUNICATION"
+      },
+      {
+        "id": "COMMUNICATION-RULE-CONTEXT",
+        "type": "DOMAIN_CONTEXT",
+        "domainId": "COMMUNICATION"
+      },
+      {
+        "id": "COMMUNICATION-RULE-EVENT-FORBIDDEN-resonance_sent",
+        "type": "EVENT_ABUSE",
+        "domainId": "COMMUNICATION"
+      },
+      {
+        "id": "COMMUNICATION-RULE-EVENT-FORBIDDEN-spam_ohne_SPAM_DETECTED",
+        "type": "EVENT_ABUSE",
+        "domainId": "COMMUNICATION"
+      },
+      {
+        "id": "COMMUNICATION-RULE-HOOK",
+        "type": "HOOK_BYPASS",
+        "domainId": "COMMUNICATION"
+      },
+      {
+        "id": "COMMUNICATION-SCAN-01",
+        "type": "DOMAIN_REALTIME",
+        "domainId": "COMMUNICATION"
+      },
+      {
+        "id": "COMMUNICATION-SCAN-02",
+        "type": "OWNERSHIP_VIOLATION",
+        "domainId": "COMMUNICATION"
+      },
+      {
+        "id": "COMMUNICATION-SCAN-04",
+        "type": "SERVICE_BYPASS",
+        "domainId": "COMMUNICATION"
+      },
+      {
+        "id": "DISCOVERY-RULE-OWNERSHIP",
+        "type": "OWNERSHIP_VIOLATION",
+        "domainId": "DISCOVERY"
+      },
+      {
+        "id": "DISCOVERY-RULE-IMPORT-MATRIX",
+        "type": "DOMAIN_IMPORT",
+        "domainId": "DISCOVERY"
+      },
+      {
+        "id": "DISCOVERY-RULE-REALTIME",
+        "type": "DOMAIN_REALTIME",
+        "domainId": "DISCOVERY"
+      },
+      {
+        "id": "DISCOVERY-RULE-SERVICE",
+        "type": "SERVICE_BYPASS",
+        "domainId": "DISCOVERY"
+      },
+      {
+        "id": "DISCOVERY-RULE-CONTEXT",
+        "type": "DOMAIN_CONTEXT",
+        "domainId": "DISCOVERY"
+      },
+      {
+        "id": "DISCOVERY-RULE-TABLE-OWNER-feed_posts",
+        "type": "DOMAIN_TABLE_OWNER",
+        "domainId": "DISCOVERY"
+      },
+      {
+        "id": "DISCOVERY-RULE-EVENT-FORBIDDEN-resonance_sent",
+        "type": "EVENT_ABUSE",
+        "domainId": "DISCOVERY"
+      },
+      {
+        "id": "DISCOVERY-RULE-EVENT-FORBIDDEN-engagement_maximized",
+        "type": "EVENT_ABUSE",
+        "domainId": "DISCOVERY"
+      },
+      {
+        "id": "DISCOVERY-RULE-HOOK",
+        "type": "HOOK_BYPASS",
+        "domainId": "DISCOVERY"
+      },
+      {
+        "id": "DISCOVERY-SCAN-02",
+        "type": "CROSS_DOMAIN_WRITE",
+        "domainId": "DISCOVERY"
+      },
+      {
+        "id": "IMPACT-RULE-OWNERSHIP",
+        "type": "OWNERSHIP_VIOLATION",
+        "domainId": "IMPACT"
+      },
+      {
+        "id": "IMPACT-RULE-IMPORT-MATRIX",
+        "type": "DOMAIN_IMPORT",
+        "domainId": "IMPACT"
+      },
+      {
+        "id": "IMPACT-RULE-SERVICE",
+        "type": "SERVICE_BYPASS",
+        "domainId": "IMPACT"
+      },
+      {
+        "id": "IMPACT-RULE-TABLE-OWNER-impact_rounds",
+        "type": "DOMAIN_TABLE_OWNER",
+        "domainId": "IMPACT"
+      },
+      {
+        "id": "IMPACT-RULE-EVENT-FORBIDDEN-resonance_sent",
+        "type": "EVENT_ABUSE",
+        "domainId": "IMPACT"
+      },
+      {
+        "id": "IMPACT-RULE-EVENT-FORBIDDEN-gamification__",
+        "type": "EVENT_ABUSE",
+        "domainId": "IMPACT"
+      },
+      {
+        "id": "IMPACT-SCAN-03",
+        "type": "CROSS_DOMAIN_WRITE",
+        "domainId": "IMPACT"
+      },
+      {
+        "id": "WIRKUNG-RULE-OWNERSHIP",
+        "type": "OWNERSHIP_VIOLATION",
+        "domainId": "WIRKUNG"
+      },
+      {
+        "id": "WIRKUNG-RULE-IMPORT-MATRIX",
+        "type": "DOMAIN_IMPORT",
+        "domainId": "WIRKUNG"
+      },
+      {
+        "id": "WIRKUNG-RULE-LAYER",
+        "type": "DOMAIN_LAYER",
+        "domainId": "WIRKUNG"
+      },
+      {
+        "id": "WIRKUNG-RULE-SERVICE",
+        "type": "SERVICE_BYPASS",
+        "domainId": "WIRKUNG"
+      },
+      {
+        "id": "WIRKUNG-RULE-TABLE-OWNER-resonance_signals",
+        "type": "DOMAIN_TABLE_OWNER",
+        "domainId": "WIRKUNG"
+      },
+      {
+        "id": "WIRKUNG-RULE-TABLE-OWNER-orb_states",
+        "type": "DOMAIN_TABLE_OWNER",
+        "domainId": "WIRKUNG"
+      },
+      {
+        "id": "WIRKUNG-RULE-TABLE-OWNER-core_metrics",
+        "type": "DOMAIN_TABLE_OWNER",
+        "domainId": "WIRKUNG"
+      },
+      {
+        "id": "WIRKUNG-RULE-EVENT-FORBIDDEN-gamification__",
+        "type": "EVENT_ABUSE",
+        "domainId": "WIRKUNG"
+      },
+      {
+        "id": "WIRKUNG-RULE-EVENT-FORBIDDEN-realtime_orb_levelup",
+        "type": "EVENT_ABUSE",
+        "domainId": "WIRKUNG"
+      },
+      {
+        "id": "WIRKUNG-RULE-HOOK",
+        "type": "HOOK_BYPASS",
+        "domainId": "WIRKUNG"
+      },
+      {
+        "id": "WIRKUNG-RULE-CORE",
+        "type": "CORE_WRITE",
+        "domainId": "WIRKUNG"
+      },
+      {
+        "id": "WIRKUNG-SCAN-01",
+        "type": "CORE_WRITE",
+        "domainId": "WIRKUNG"
+      },
+      {
+        "id": "WIRKUNG-SCAN-02",
+        "type": "COMPONENT_BYPASS",
+        "domainId": "WIRKUNG"
+      },
+      {
+        "id": "WIRKUNG-SCAN-03",
+        "type": "DOMAIN_REALTIME",
+        "domainId": "WIRKUNG"
+      },
+      {
+        "id": "TRUST-RULE-OWNERSHIP",
+        "type": "OWNERSHIP_VIOLATION",
+        "domainId": "TRUST"
+      },
+      {
+        "id": "TRUST-RULE-IMPORT-MATRIX",
+        "type": "DOMAIN_IMPORT",
+        "domainId": "TRUST"
+      },
+      {
+        "id": "TRUST-RULE-SERVICE",
+        "type": "SERVICE_BYPASS",
+        "domainId": "TRUST"
+      },
+      {
+        "id": "TRUST-RULE-CONTEXT",
+        "type": "DOMAIN_CONTEXT",
+        "domainId": "TRUST"
+      },
+      {
+        "id": "TRUST-RULE-TABLE-OWNER-trust_scores",
+        "type": "DOMAIN_TABLE_OWNER",
+        "domainId": "TRUST"
+      },
+      {
+        "id": "TRUST-RULE-TABLE-OWNER-reputation_events",
+        "type": "DOMAIN_TABLE_OWNER",
+        "domainId": "TRUST"
+      },
+      {
+        "id": "TRUST-RULE-EVENT-FORBIDDEN-gamification_badge",
+        "type": "EVENT_ABUSE",
+        "domainId": "TRUST"
+      },
+      {
+        "id": "TRUST-RULE-EVENT-FORBIDDEN-leaderboard_update",
+        "type": "EVENT_ABUSE",
+        "domainId": "TRUST"
+      },
+      {
+        "id": "TRUST-RULE-HOOK",
+        "type": "HOOK_BYPASS",
+        "domainId": "TRUST"
+      },
+      {
+        "id": "TRUST-RULE-CORE",
+        "type": "CORE_WRITE",
+        "domainId": "TRUST"
+      },
+      {
+        "id": "TRUST-SCAN-01",
+        "type": "EVENT_ABUSE",
+        "domainId": "TRUST"
+      },
+      {
+        "id": "TRUST-SCAN-02",
+        "type": "CROSS_DOMAIN_WRITE",
+        "domainId": "TRUST"
+      },
+      {
+        "id": "TRUST-SCAN-03",
+        "type": "EVENT_ABUSE",
+        "domainId": "TRUST"
+      },
+      {
+        "id": "PRESENCE-RULE-OWNERSHIP",
+        "type": "OWNERSHIP_VIOLATION",
+        "domainId": "PRESENCE"
+      },
+      {
+        "id": "PRESENCE-RULE-IMPORT-MATRIX",
+        "type": "DOMAIN_IMPORT",
+        "domainId": "PRESENCE"
+      },
+      {
+        "id": "PRESENCE-RULE-REALTIME",
+        "type": "DOMAIN_REALTIME",
+        "domainId": "PRESENCE"
+      },
+      {
+        "id": "PRESENCE-RULE-SERVICE",
+        "type": "SERVICE_BYPASS",
+        "domainId": "PRESENCE"
+      },
+      {
+        "id": "PRESENCE-RULE-CONTEXT",
+        "type": "DOMAIN_CONTEXT",
+        "domainId": "PRESENCE"
+      },
+      {
+        "id": "PRESENCE-RULE-TABLE-OWNER-presence",
+        "type": "DOMAIN_TABLE_OWNER",
+        "domainId": "PRESENCE"
+      },
+      {
+        "id": "PRESENCE-RULE-EVENT-FORBIDDEN-gamification_streak",
+        "type": "EVENT_ABUSE",
+        "domainId": "PRESENCE"
+      },
+      {
+        "id": "PRESENCE-RULE-EVENT-FORBIDDEN-online_leaderboard",
+        "type": "EVENT_ABUSE",
+        "domainId": "PRESENCE"
+      },
+      {
+        "id": "PRESENCE-RULE-HOOK",
+        "type": "HOOK_BYPASS",
+        "domainId": "PRESENCE"
+      },
+      {
+        "id": "PRESENCE-RULE-CORE",
+        "type": "CORE_WRITE",
+        "domainId": "PRESENCE"
+      },
+      {
+        "id": "PRESENCE-SCAN-01",
+        "type": "DOMAIN_REALTIME",
+        "domainId": "PRESENCE"
+      },
+      {
+        "id": "PRESENCE-SCAN-02",
+        "type": "EVENT_ABUSE",
+        "domainId": "PRESENCE"
+      },
+      {
+        "id": "PRESENCE-SCAN-03",
+        "type": "CROSS_DOMAIN_WRITE",
+        "domainId": "PRESENCE"
+      },
+      {
+        "id": "INTELLIGENCE-RULE-OWNERSHIP",
+        "type": "OWNERSHIP_VIOLATION",
+        "domainId": "INTELLIGENCE"
+      },
+      {
+        "id": "INTELLIGENCE-RULE-IMPORT-MATRIX",
+        "type": "DOMAIN_IMPORT",
+        "domainId": "INTELLIGENCE"
+      },
+      {
+        "id": "INTELLIGENCE-RULE-LAYER",
+        "type": "DOMAIN_LAYER",
+        "domainId": "INTELLIGENCE"
+      },
+      {
+        "id": "INTELLIGENCE-RULE-SERVICE",
+        "type": "SERVICE_BYPASS",
+        "domainId": "INTELLIGENCE"
+      },
+      {
+        "id": "INTELLIGENCE-RULE-NEVER-WRITE-resonance_signals",
+        "type": "CROSS_DOMAIN_WRITE",
+        "domainId": "INTELLIGENCE"
+      },
+      {
+        "id": "INTELLIGENCE-RULE-EVENT-FORBIDDEN-engagement_maximized",
+        "type": "EVENT_ABUSE",
+        "domainId": "INTELLIGENCE"
+      },
+      {
+        "id": "INTELLIGENCE-RULE-EVENT-FORBIDDEN-filterbubble_amplify",
+        "type": "EVENT_ABUSE",
+        "domainId": "INTELLIGENCE"
+      },
+      {
+        "id": "INTELLIGENCE-RULE-EVENT-FORBIDDEN-profit_recommendation",
+        "type": "EVENT_ABUSE",
+        "domainId": "INTELLIGENCE"
+      },
+      {
+        "id": "INTELLIGENCE-RULE-HOOK",
+        "type": "HOOK_BYPASS",
+        "domainId": "INTELLIGENCE"
+      },
+      {
+        "id": "INTELLIGENCE-RULE-UI",
+        "type": "COMPONENT_BYPASS",
+        "domainId": "INTELLIGENCE"
+      },
+      {
+        "id": "INTELLIGENCE-SCAN-01",
+        "type": "CROSS_DOMAIN_WRITE",
+        "domainId": "INTELLIGENCE"
+      },
+      {
+        "id": "INTELLIGENCE-SCAN-02",
+        "type": "EVENT_ABUSE",
+        "domainId": "INTELLIGENCE"
+      },
+      {
+        "id": "INTELLIGENCE-SCAN-03",
+        "type": "COMPONENT_BYPASS",
+        "domainId": "INTELLIGENCE"
+      },
+      {
+        "id": "WORLD-RULE-OWNERSHIP",
+        "type": "OWNERSHIP_VIOLATION",
+        "domainId": "WORLD"
+      },
+      {
+        "id": "WORLD-RULE-IMPORT-FORBIDDEN-CREATION",
+        "type": "DOMAIN_IMPORT",
+        "domainId": "WORLD"
+      },
+      {
+        "id": "WORLD-RULE-IMPORT-FORBIDDEN-COMMERCE",
+        "type": "DOMAIN_IMPORT",
+        "domainId": "WORLD"
+      },
+      {
+        "id": "WORLD-RULE-IMPORT-MATRIX",
+        "type": "DOMAIN_IMPORT",
+        "domainId": "WORLD"
+      },
+      {
+        "id": "WORLD-RULE-LAYER",
+        "type": "DOMAIN_LAYER",
+        "domainId": "WORLD"
+      },
+      {
+        "id": "WORLD-RULE-SERVICE",
+        "type": "SERVICE_BYPASS",
+        "domainId": "WORLD"
+      },
+      {
+        "id": "WORLD-RULE-CONTEXT",
+        "type": "DOMAIN_CONTEXT",
+        "domainId": "WORLD"
+      },
+      {
+        "id": "WORLD-RULE-NEVER-WRITE-*",
+        "type": "CROSS_DOMAIN_WRITE",
+        "domainId": "WORLD"
+      },
+      {
+        "id": "WORLD-RULE-EVENT-FORBIDDEN-resonance_sent",
+        "type": "EVENT_ABUSE",
+        "domainId": "WORLD"
+      },
+      {
+        "id": "WORLD-RULE-EVENT-FORBIDDEN-profile_updated",
+        "type": "EVENT_ABUSE",
+        "domainId": "WORLD"
+      },
+      {
+        "id": "WORLD-SCAN-01",
+        "type": "WORLD_DB_WRITE",
+        "domainId": "WORLD"
+      },
+      {
+        "id": "WORLD-SCAN-02",
+        "type": "CORE_WRITE",
+        "domainId": "WORLD"
+      },
+      {
+        "id": "WORLD-SCAN-03",
+        "type": "DOMAIN_LAYER",
+        "domainId": "WORLD"
+      },
+      {
+        "id": "STUDIO-RULE-OWNERSHIP",
+        "type": "OWNERSHIP_VIOLATION",
+        "domainId": "STUDIO"
+      },
+      {
+        "id": "STUDIO-RULE-IMPORT-MATRIX",
+        "type": "DOMAIN_IMPORT",
+        "domainId": "STUDIO"
+      },
+      {
+        "id": "STUDIO-RULE-LAYER",
+        "type": "DOMAIN_LAYER",
+        "domainId": "STUDIO"
+      },
+      {
+        "id": "STUDIO-RULE-SERVICE",
+        "type": "SERVICE_BYPASS",
+        "domainId": "STUDIO"
+      },
+      {
+        "id": "STUDIO-RULE-NEVER-WRITE-availability_slots",
+        "type": "CROSS_DOMAIN_WRITE",
+        "domainId": "STUDIO"
+      },
+      {
+        "id": "STUDIO-RULE-EVENT-FORBIDDEN-resonance_sent",
+        "type": "EVENT_ABUSE",
+        "domainId": "STUDIO"
+      },
+      {
+        "id": "STUDIO-RULE-EVENT-FORBIDDEN-profile_updated",
+        "type": "EVENT_ABUSE",
+        "domainId": "STUDIO"
+      },
+      {
+        "id": "STUDIO-RULE-EVENT-FORBIDDEN-booking_created",
+        "type": "EVENT_ABUSE",
+        "domainId": "STUDIO"
+      },
+      {
+        "id": "STUDIO-RULE-EVENT-FORBIDDEN-impact_vote_cast",
+        "type": "EVENT_ABUSE",
+        "domainId": "STUDIO"
+      },
+      {
+        "id": "STUDIO-SCAN-01",
+        "type": "CROSS_DOMAIN_WRITE",
+        "domainId": "STUDIO"
+      },
+      {
+        "id": "STUDIO-SCAN-03",
+        "type": "STUDIO_AGGREGATOR",
+        "domainId": "STUDIO"
+      }
+    ],
+    "neverTriggeredCount": 172,
+    "topFrequent": [
+      {
+        "ruleId": "DISCOVERY-SCAN-01",
+        "domainId": "DISCOVERY",
+        "type": "DOMAIN_TABLE_OWNER",
+        "count": 67
+      },
+      {
+        "ruleId": "KERNEL-SCAN-01",
+        "domainId": "KERNEL",
+        "type": "CONTRACT_VIOLATION",
+        "count": 50
+      },
+      {
+        "ruleId": "KERNEL-RULE-NEVER-WRITE-profiles",
+        "domainId": "KERNEL",
+        "type": "CROSS_DOMAIN_WRITE",
+        "count": 35
+      },
+      {
+        "ruleId": "PRESENCE-RULE-NEVER-WRITE-profiles",
+        "domainId": "PRESENCE",
+        "type": "CROSS_DOMAIN_WRITE",
+        "count": 35
+      },
+      {
+        "ruleId": "CONNECTION-RULE-NEVER-WRITE-profiles",
+        "domainId": "CONNECTION",
+        "type": "CROSS_DOMAIN_WRITE",
+        "count": 34
+      },
+      {
+        "ruleId": "STUDIO-RULE-NEVER-WRITE-profiles",
+        "domainId": "STUDIO",
+        "type": "CROSS_DOMAIN_WRITE",
+        "count": 34
+      },
+      {
+        "ruleId": "CREATION-RULE-NEVER-WRITE-profiles",
+        "domainId": "CREATION",
+        "type": "CROSS_DOMAIN_WRITE",
+        "count": 33
+      },
+      {
+        "ruleId": "COMMERCE-RULE-NEVER-WRITE-profiles",
+        "domainId": "COMMERCE",
+        "type": "CROSS_DOMAIN_WRITE",
+        "count": 33
+      },
+      {
+        "ruleId": "COMMUNICATION-RULE-NEVER-WRITE-profiles",
+        "domainId": "COMMUNICATION",
+        "type": "CROSS_DOMAIN_WRITE",
+        "count": 33
+      },
+      {
+        "ruleId": "DISCOVERY-RULE-NEVER-WRITE-profiles",
+        "domainId": "DISCOVERY",
+        "type": "CROSS_DOMAIN_WRITE",
+        "count": 33
+      },
+      {
+        "ruleId": "IMPACT-RULE-NEVER-WRITE-profiles",
+        "domainId": "IMPACT",
+        "type": "CROSS_DOMAIN_WRITE",
+        "count": 33
+      },
+      {
+        "ruleId": "TRUST-RULE-NEVER-WRITE-profiles",
+        "domainId": "TRUST",
+        "type": "CROSS_DOMAIN_WRITE",
+        "count": 33
+      },
+      {
+        "ruleId": "INTELLIGENCE-RULE-NEVER-WRITE-profiles",
+        "domainId": "INTELLIGENCE",
+        "type": "CROSS_DOMAIN_WRITE",
+        "count": 33
+      },
+      {
+        "ruleId": "IDENTITY-RULE-CORE",
+        "domainId": "IDENTITY",
+        "type": "CORE_WRITE",
+        "count": 29
+      },
+      {
+        "ruleId": "IDENTITY-SCAN-01",
+        "domainId": "IDENTITY",
+        "type": "CORE_WRITE",
+        "count": 29
+      },
+      {
+        "ruleId": "CREATION-RULE-CORE",
+        "domainId": "CREATION",
+        "type": "CORE_WRITE",
+        "count": 17
+      },
+      {
+        "ruleId": "KERNEL-RULE-NEVER-WRITE-works",
+        "domainId": "KERNEL",
+        "type": "CROSS_DOMAIN_WRITE",
+        "count": 16
+      },
+      {
+        "ruleId": "KERNEL-RULE-NEVER-WRITE-notifications",
+        "domainId": "KERNEL",
+        "type": "CROSS_DOMAIN_WRITE",
+        "count": 15
+      },
+      {
+        "ruleId": "IDENTITY-RULE-NEVER-WRITE-works",
+        "domainId": "IDENTITY",
+        "type": "CROSS_DOMAIN_WRITE",
+        "count": 15
+      },
+      {
+        "ruleId": "DISCOVERY-RULE-NEVER-WRITE-works",
+        "domainId": "DISCOVERY",
+        "type": "CROSS_DOMAIN_WRITE",
+        "count": 15
+      }
+    ],
+    "noiseRules": [
+      {
+        "ruleId": "DISCOVERY-SCAN-01",
+        "domainId": "DISCOVERY",
+        "type": "DOMAIN_TABLE_OWNER",
+        "count": 67
+      }
+    ],
+    "precisionRules": [
+      {
+        "ruleId": "IDENTITY-RULE-NEVER-WRITE-messages",
+        "domainId": "IDENTITY",
+        "type": "CROSS_DOMAIN_WRITE",
+        "count": 5
+      },
+      {
+        "ruleId": "IDENTITY-RULE-NEVER-WRITE-follows",
+        "domainId": "IDENTITY",
+        "type": "CROSS_DOMAIN_WRITE",
+        "count": 5
+      },
+      {
+        "ruleId": "CONNECTION-RULE-NEVER-WRITE-messages",
+        "domainId": "CONNECTION",
+        "type": "CROSS_DOMAIN_WRITE",
+        "count": 5
+      },
+      {
+        "ruleId": "CREATION-SCAN-01",
+        "domainId": "CREATION",
+        "type": "WORLD_DB_WRITE",
+        "count": 5
+      },
+      {
+        "ruleId": "COMMUNICATION-RULE-NEVER-WRITE-follows",
+        "domainId": "COMMUNICATION",
+        "type": "CROSS_DOMAIN_WRITE",
+        "count": 5
+      },
+      {
+        "ruleId": "DISCOVERY-RULE-NEVER-WRITE-messages",
+        "domainId": "DISCOVERY",
+        "type": "CROSS_DOMAIN_WRITE",
+        "count": 5
+      },
+      {
+        "ruleId": "WIRKUNG-RULE-NEVER-WRITE-messages",
+        "domainId": "WIRKUNG",
+        "type": "CROSS_DOMAIN_WRITE",
+        "count": 5
+      },
+      {
+        "ruleId": "WIRKUNG-RULE-NEVER-WRITE-follows",
+        "domainId": "WIRKUNG",
+        "type": "CROSS_DOMAIN_WRITE",
+        "count": 5
+      },
+      {
+        "ruleId": "TRUST-RULE-NEVER-WRITE-messages",
+        "domainId": "TRUST",
+        "type": "CROSS_DOMAIN_WRITE",
+        "count": 5
+      },
+      {
+        "ruleId": "PRESENCE-RULE-NEVER-WRITE-messages",
+        "domainId": "PRESENCE",
+        "type": "CROSS_DOMAIN_WRITE",
+        "count": 5
+      },
+      {
+        "ruleId": "INTELLIGENCE-RULE-NEVER-WRITE-messages",
+        "domainId": "INTELLIGENCE",
+        "type": "CROSS_DOMAIN_WRITE",
+        "count": 5
+      },
+      {
+        "ruleId": "STUDIO-RULE-NEVER-WRITE-wirker_profiles",
+        "domainId": "STUDIO",
+        "type": "CROSS_DOMAIN_WRITE",
+        "count": 5
+      },
+      {
+        "ruleId": "STUDIO-RULE-NEVER-WRITE-messages",
+        "domainId": "STUDIO",
+        "type": "CROSS_DOMAIN_WRITE",
+        "count": 5
+      },
+      {
+        "ruleId": "KERNEL-RULE-NEVER-WRITE-impact_votes",
+        "domainId": "KERNEL",
+        "type": "CROSS_DOMAIN_WRITE",
+        "count": 4
+      },
+      {
+        "ruleId": "KERNEL-RULE-UI",
+        "domainId": "KERNEL",
+        "type": "COMPONENT_BYPASS",
+        "count": 4
+      },
+      {
+        "ruleId": "IMPACT-SCAN-02",
+        "domainId": "IMPACT",
+        "type": "WORLD_DB_WRITE",
+        "count": 4
+      },
+      {
+        "ruleId": "KERNEL-SCAN-04",
+        "domainId": "KERNEL",
+        "type": "COMPONENT_BYPASS",
+        "count": 3
+      },
+      {
+        "ruleId": "KERNEL-SCAN-05",
+        "domainId": "KERNEL",
+        "type": "PAGE_BYPASS",
+        "count": 3
+      },
+      {
+        "ruleId": "IDENTITY-RULE-NEVER-WRITE-impact_votes",
+        "domainId": "IDENTITY",
+        "type": "CROSS_DOMAIN_WRITE",
+        "count": 3
+      },
+      {
+        "ruleId": "CONNECTION-SCAN-01",
+        "domainId": "CONNECTION",
+        "type": "WORLD_DB_WRITE",
+        "count": 3
+      }
+    ],
+    "heatmap": {
+      "KERNEL": {
+        "OWNERSHIP_VIOLATION": 0,
+        "DOMAIN_LAYER": 0,
+        "SERVICE_BYPASS": 0,
+        "DOMAIN_CONTEXT": 0,
+        "CROSS_DOMAIN_WRITE": 95,
+        "EVENT_ABUSE": 0,
+        "COMPONENT_BYPASS": 7,
+        "CONTRACT_VIOLATION": 50,
+        "PAGE_BYPASS": 3
+      },
+      "IDENTITY": {
+        "OWNERSHIP_VIOLATION": 0,
+        "DOMAIN_IMPORT": 0,
+        "SERVICE_BYPASS": 0,
+        "DOMAIN_CONTEXT": 0,
+        "DOMAIN_TABLE_OWNER": 3,
+        "CROSS_DOMAIN_WRITE": 36,
+        "EVENT_ABUSE": 0,
+        "HOOK_BYPASS": 0,
+        "CORE_WRITE": 58,
+        "WORLD_DB_WRITE": 12,
+        "CONTRACT_VIOLATION": 0
+      },
+      "CONNECTION": {
+        "OWNERSHIP_VIOLATION": 0,
+        "DOMAIN_IMPORT": 0,
+        "SERVICE_BYPASS": 0,
+        "DOMAIN_CONTEXT": 0,
+        "DOMAIN_TABLE_OWNER": 2,
+        "CROSS_DOMAIN_WRITE": 60,
+        "EVENT_ABUSE": 0,
+        "CORE_WRITE": 2,
+        "WORLD_DB_WRITE": 3,
+        "CONTRACT_VIOLATION": 0
+      },
+      "CREATION": {
+        "OWNERSHIP_VIOLATION": 0,
+        "DOMAIN_IMPORT": 0,
+        "DOMAIN_REALTIME": 0,
+        "SERVICE_BYPASS": 0,
+        "DOMAIN_CONTEXT": 0,
+        "DOMAIN_TABLE_OWNER": 5,
+        "CROSS_DOMAIN_WRITE": 44,
+        "EVENT_ABUSE": 0,
+        "CORE_WRITE": 17,
+        "WORLD_DB_WRITE": 5,
+        "CONTRACT_VIOLATION": 0
+      },
+      "COMMERCE": {
+        "OWNERSHIP_VIOLATION": 0,
+        "DOMAIN_IMPORT": 0,
+        "DOMAIN_REALTIME": 0,
+        "SERVICE_BYPASS": 0,
+        "DOMAIN_CONTEXT": 0,
+        "DOMAIN_TABLE_OWNER": 1,
+        "CROSS_DOMAIN_WRITE": 42,
+        "EVENT_ABUSE": 0,
+        "HOOK_BYPASS": 0,
+        "CORE_WRITE": 0,
+        "WORLD_DB_WRITE": 2,
+        "CONTRACT_VIOLATION": 0
+      },
+      "COMMUNICATION": {
+        "OWNERSHIP_VIOLATION": 0,
+        "DOMAIN_IMPORT": 0,
+        "DOMAIN_REALTIME": 0,
+        "SERVICE_BYPASS": 0,
+        "DOMAIN_CONTEXT": 0,
+        "DOMAIN_TABLE_OWNER": 4,
+        "CROSS_DOMAIN_WRITE": 59,
+        "EVENT_ABUSE": 0,
+        "HOOK_BYPASS": 0,
+        "CORE_WRITE": 9,
+        "WORLD_DB_WRITE": 10,
+        "CONTRACT_VIOLATION": 0
+      },
+      "DISCOVERY": {
+        "OWNERSHIP_VIOLATION": 0,
+        "DOMAIN_IMPORT": 0,
+        "DOMAIN_REALTIME": 0,
+        "SERVICE_BYPASS": 0,
+        "DOMAIN_CONTEXT": 0,
+        "DOMAIN_TABLE_OWNER": 68,
+        "CROSS_DOMAIN_WRITE": 64,
+        "EVENT_ABUSE": 2,
+        "HOOK_BYPASS": 0,
+        "CORE_WRITE": 2,
+        "CONTRACT_VIOLATION": 0
+      },
+      "IMPACT": {
+        "OWNERSHIP_VIOLATION": 0,
+        "DOMAIN_IMPORT": 0,
+        "SERVICE_BYPASS": 0,
+        "DOMAIN_TABLE_OWNER": 2,
+        "CROSS_DOMAIN_WRITE": 54,
+        "EVENT_ABUSE": 0,
+        "CORE_WRITE": 4,
+        "WORLD_DB_WRITE": 4,
+        "CONTRACT_VIOLATION": 0
+      },
+      "WIRKUNG": {
+        "OWNERSHIP_VIOLATION": 0,
+        "DOMAIN_IMPORT": 4,
+        "DOMAIN_LAYER": 0,
+        "SERVICE_BYPASS": 0,
+        "DOMAIN_TABLE_OWNER": 0,
+        "CROSS_DOMAIN_WRITE": 31,
+        "EVENT_ABUSE": 0,
+        "HOOK_BYPASS": 0,
+        "COMPONENT_BYPASS": 3,
+        "CORE_WRITE": 0,
+        "DOMAIN_REALTIME": 0,
+        "CONTRACT_VIOLATION": 0
+      },
+      "TRUST": {
+        "OWNERSHIP_VIOLATION": 0,
+        "DOMAIN_IMPORT": 0,
+        "SERVICE_BYPASS": 0,
+        "DOMAIN_CONTEXT": 0,
+        "DOMAIN_TABLE_OWNER": 0,
+        "CROSS_DOMAIN_WRITE": 51,
+        "EVENT_ABUSE": 0,
+        "HOOK_BYPASS": 0,
+        "CORE_WRITE": 0,
+        "CONTRACT_VIOLATION": 0
+      },
+      "PRESENCE": {
+        "OWNERSHIP_VIOLATION": 0,
+        "DOMAIN_IMPORT": 0,
+        "DOMAIN_REALTIME": 0,
+        "SERVICE_BYPASS": 0,
+        "DOMAIN_CONTEXT": 0,
+        "DOMAIN_TABLE_OWNER": 0,
+        "CROSS_DOMAIN_WRITE": 53,
+        "EVENT_ABUSE": 0,
+        "HOOK_BYPASS": 0,
+        "CORE_WRITE": 0,
+        "CONTRACT_VIOLATION": 0
+      },
+      "INTELLIGENCE": {
+        "OWNERSHIP_VIOLATION": 0,
+        "DOMAIN_IMPORT": 0,
+        "DOMAIN_LAYER": 0,
+        "SERVICE_BYPASS": 0,
+        "CROSS_DOMAIN_WRITE": 62,
+        "EVENT_ABUSE": 0,
+        "HOOK_BYPASS": 0,
+        "COMPONENT_BYPASS": 0,
+        "CONTRACT_VIOLATION": 0
+      },
+      "WORLD": {
+        "OWNERSHIP_VIOLATION": 0,
+        "DOMAIN_IMPORT": 0,
+        "DOMAIN_LAYER": 0,
+        "SERVICE_BYPASS": 0,
+        "DOMAIN_CONTEXT": 0,
+        "CROSS_DOMAIN_WRITE": 0,
+        "EVENT_ABUSE": 0,
+        "WORLD_DB_WRITE": 0,
+        "CORE_WRITE": 0,
+        "CONTRACT_VIOLATION": 0
+      },
+      "STUDIO": {
+        "OWNERSHIP_VIOLATION": 0,
+        "DOMAIN_IMPORT": 0,
+        "DOMAIN_LAYER": 0,
+        "SERVICE_BYPASS": 0,
+        "CROSS_DOMAIN_WRITE": 68,
+        "EVENT_ABUSE": 0,
+        "WORLD_DB_WRITE": 6,
+        "STUDIO_AGGREGATOR": 0,
+        "CONTRACT_VIOLATION": 0
+      }
+    },
+    "usageStats": {
+      "rulesWithViolations": 127,
+      "rulesWithoutViolations": 156,
+      "avgViolationsPerRule": 8.6
+    }
+  },
+  "scanner": {
+    "scanners": [
+      {
+        "file": "src/architecture/scanner/violationDetector.js",
+        "usesPolicyEngine": true,
+        "hasLegacyRules": false,
+        "hasLocalDomains": false,
+        "hasDuplicateLogic": true
+      },
+      {
+        "file": "src/architecture/scanner/domains.js",
+        "usesPolicyEngine": true,
+        "hasLegacyRules": false,
+        "hasLocalDomains": false,
+        "hasDuplicateLogic": false
+      },
+      {
+        "file": "src/architecture/scanner/fileScanner.js",
+        "usesPolicyEngine": false,
+        "hasLegacyRules": false,
+        "hasLocalDomains": false,
+        "hasDuplicateLogic": false
+      },
+      {
+        "file": "src/architecture/scanner/index.js",
+        "usesPolicyEngine": false,
+        "hasLegacyRules": false,
+        "hasLocalDomains": false,
+        "hasDuplicateLogic": false
+      },
+      {
+        "file": "src/architecture/scanner/metricsCalculator.js",
+        "usesPolicyEngine": false,
+        "hasLegacyRules": false,
+        "hasLocalDomains": false,
+        "hasDuplicateLogic": false
+      },
+      {
+        "file": "src/architecture/scanner/cli.js",
+        "usesPolicyEngine": false,
+        "hasLegacyRules": false,
+        "hasLocalDomains": false,
+        "hasDuplicateLogic": false
+      }
+    ],
+    "fullyIntegrated": [
+      "src/architecture/scanner/violationDetector.js",
+      "src/architecture/scanner/domains.js"
+    ],
+    "partialLegacy": [],
+    "legacyConstants": [
+      {
+        "file": "src/architecture/policy/validation/governanceValidator.js",
+        "pattern": "SCANNER_RULES"
+      }
+    ],
+    "duplicateLogicModules": [
+      "src/architecture/scanner/violationDetector.js"
+    ],
+    "summary": {
+      "policyEngineAdoption": "2/6",
+      "legacyRemaining": 1
+    }
+  },
+  "authority": {
+    "localRules": [
+      {
+        "file": "src/architecture/policy/validation/governanceValidator.js",
+        "pattern": "export const DOMAINS ="
+      },
+      {
+        "file": "src/architecture/scanner/domains.js",
+        "pattern": "export const DOMAINS ="
+      }
+    ],
+    "localDomainLists": [
+      {
+        "file": "src/architecture/policy/validation/governanceValidator.js",
+        "pattern": "export const DOMAINS ="
+      },
+      {
+        "file": "src/architecture/scanner/domains.js",
+        "pattern": "export const DOMAINS ="
+      }
+    ],
+    "duplicateRegistries": [
+      {
+        "file": "src/architecture/authority/index.js",
+        "pattern": "CANONICAL_DOMAINS"
+      },
+      {
+        "file": "src/architecture/authority/registries/registryBuilder.js",
+        "pattern": "CANONICAL_DOMAINS"
+      },
+      {
+        "file": "src/architecture/authority/validation/authorityValidator.js",
+        "pattern": "CANONICAL_DOMAINS"
+      },
+      {
+        "file": "src/architecture/policy/validation/governanceValidator.js",
+        "pattern": "CANONICAL_DOMAINS"
+      },
+      {
+        "file": "src/architecture/policy/validation/reportWriter.js",
+        "pattern": "CANONICAL_DOMAINS"
+      }
+    ],
+    "legacyExports": [
+      {
+        "file": "src/architecture/authority/index.js",
+        "pattern": "CANONICAL_DOMAINS"
+      },
+      {
+        "file": "src/architecture/authority/registries/registryBuilder.js",
+        "pattern": "CANONICAL_DOMAINS"
+      },
+      {
+        "file": "src/architecture/authority/validation/authorityValidator.js",
+        "pattern": "CANONICAL_DOMAINS"
+      },
+      {
+        "file": "src/architecture/policy/validation/governanceValidator.js",
+        "pattern": "CANONICAL_DOMAINS"
+      },
+      {
+        "file": "src/architecture/policy/validation/reportWriter.js",
+        "pattern": "CANONICAL_DOMAINS"
+      }
+    ],
+    "authorityDomains": 11,
+    "authorityScannerRules": 9,
+    "policyEngineDomains": 14,
+    "policyEngineRules": 283,
+    "removableInArch007": [
+      {
+        "item": "CANONICAL_DOMAINS in registryBuilder.js",
+        "reason": "Ersetzt durch domain-contracts.json",
+        "risk": "MEDIUM"
+      },
+      {
+        "item": "SCANNER_RULES in registryBuilder.js",
+        "reason": "Ersetzt durch compileRules()",
+        "risk": "LOW"
+      },
+      {
+        "item": "RECOMMENDATIONS in intelligence/recommend.js",
+        "reason": "Dupliziert explanationEngine",
+        "risk": "LOW"
+      },
+      {
+        "item": "ARCHITECTURE_RULES in governance/constitution.js",
+        "reason": "Parallel zu Policy Engine",
+        "risk": "MEDIUM"
+      },
+      {
+        "item": "DOMAINS Proxy in scanner/domains.js",
+        "reason": "Kompatibilitätsschicht — nach Migration entfernen",
+        "risk": "HIGH"
+      }
+    ],
+    "registryMismatch": true
+  },
+  "intelligence": {
+    "functions": {
+      "recommend": {
+        "path": "src/architecture/intelligence/recommend.js",
+        "usesPolicies": true,
+        "hasFallbackRules": true,
+        "hasDuplicateRecommendations": true,
+        "imports": {
+          "policy": true,
+          "constitution": false,
+          "authority": false
+        }
+      },
+      "validate": {
+        "path": "src/architecture/intelligence/validate.js",
+        "usesPolicies": true,
+        "hasFallbackRules": true,
+        "hasDuplicateRecommendations": false,
+        "imports": {
+          "policy": true,
+          "constitution": true,
+          "authority": false
+        }
+      },
+      "simulate": {
+        "path": "src/architecture/intelligence/simulate.js",
+        "usesPolicies": true,
+        "hasFallbackRules": false,
+        "hasDuplicateRecommendations": false,
+        "imports": {
+          "policy": true,
+          "constitution": true,
+          "authority": false
+        }
+      },
+      "risk": {
+        "path": "src/architecture/intelligence/risk.js",
+        "usesPolicies": false,
+        "hasFallbackRules": false,
+        "hasDuplicateRecommendations": false,
+        "imports": {
+          "policy": false,
+          "constitution": false,
+          "authority": false
+        }
+      },
+      "decisionTrace": {
+        "path": "src/architecture/intelligence/decisionTrace.js",
+        "usesPolicies": false,
+        "hasFallbackRules": false,
+        "hasDuplicateRecommendations": false,
+        "imports": {
+          "policy": false,
+          "constitution": true,
+          "authority": false
+        }
+      }
+    },
+    "exclusivelyPolicies": false,
+    "fallbackRulesExist": true,
+    "duplicateRecommendations": [
+      "src/architecture/intelligence/recommend.js"
+    ]
+  }
+}
