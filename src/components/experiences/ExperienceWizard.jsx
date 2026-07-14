@@ -1,6 +1,11 @@
 // src/components/experiences/ExperienceWizard.jsx
 // HUI – Erlebnis-Editor: 4-Schritte-Wizard (v2)
 // Schritt 1: Basis | 2: Wann & Wo | 3: Teilnahme | 4: Veröffentlichen
+import {
+  HUIVorOrtIcon, HUIOnlineIcon,
+  HUIKalenderIcon, HUIZeitIcon, HUILocationIcon,
+  HUIPersonenIcon, HUIEuroIcon, HUIEinladungIcon,
+} from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
@@ -508,8 +513,8 @@ function S2({ data, onChange, onPickLocation }) {
       {/* Online oder Vor Ort */}
       <Field label="Online oder Vor Ort" req>
         <div style={{ display: "flex", gap: 10 }}>
-          <FormatPill active={data.format === "vor_ort"} label="Vor Ort" icon="🏛️" onClick={() => onChange({ format: "vor_ort" })}/>
-          <FormatPill active={data.format === "online"}  label="Online"  icon="💻" onClick={() => onChange({ format: "online"  })}/>
+          <FormatPill active={data.format === "vor_ort"} label="Vor Ort" icon={<HUIVorOrtIcon size={16}/>} onClick={() => onChange({ format: "vor_ort" })}/>
+          <FormatPill active={data.format === "online"}  label="Online"  icon={<HUIOnlineIcon size={16}/>} onClick={() => onChange({ format: "online"  })}/>
         </div>
       </Field>
     </div>
@@ -647,12 +652,12 @@ function S4({ data, onChange, saving }) {
       : null;
 
   const summaryRows = [
-    fmtDate(data.date) && { icon:"📅", text: fmtDate(data.date) },
-    timeRange          && { icon:"🕐", text: timeRange },
-    data.location_text && { icon:"📍", text: data.location_text },
-    data.max_participants && { icon:"👥", text: `Max. ${data.max_participants} Teilnehmende` },
-    preisAnzeige       && { icon:"💰", text: preisAnzeige },
-    data.registration_required && { icon:"📋", text: "Anmeldung erforderlich" },
+    fmtDate(data.date) && { icon:<HUIKalenderIcon size={14}/>, text: fmtDate(data.date) },
+    timeRange          && { icon:<HUIZeitIcon size={14}/>, text: timeRange },
+    data.location_text && { icon:<HUILocationIcon size={14}/>, text: data.location_text },
+    data.max_participants && { icon:<HUIPersonenIcon size={14}/>, text: `Max. ${data.max_participants} Teilnehmende` },
+    preisAnzeige       && { icon:<HUIEuroIcon size={14}/>, text: preisAnzeige },
+    data.registration_required && { icon:<HUIEinladungIcon size={14}/>, text: "Anmeldung erforderlich" },
   ].filter(Boolean);
 
   return (
@@ -687,7 +692,7 @@ function S4({ data, onChange, saving }) {
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {summaryRows.map((row, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-                  <span style={{ fontSize: 14, flexShrink: 0, marginTop: 1 }}>{row.icon}</span>
+                  <span style={{ flexShrink: 0, marginTop: 1, display:"flex", alignItems:"center", color:"rgba(14,196,184,0.7)" }}>{row.icon}</span>
                   <span style={{ fontSize: 13, color: C.inkMid, lineHeight: 1.4 }}>{row.text}</span>
                 </div>
               ))}

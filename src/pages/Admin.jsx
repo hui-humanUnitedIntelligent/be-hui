@@ -496,7 +496,7 @@ function FreigabenTab({ onPendingChange }) {
         <div style={{...card, background:"rgba(251,191,36,0.09)",
           border:"1px solid rgba(251,191,36,0.30)", marginBottom:8,
           display:"flex", alignItems:"center", gap:10}}>
-          <span style={{fontSize:20}}>⚠️</span>
+          <HUIWarnIcon size={20} style={{color:'#F59E0B'}} />
           <div>
             <div style={{fontSize:13,fontWeight:700,color:C.yellow}}>
               {items.filter(x=>x._type==="werk").length} Werk{items.filter(x=>x._type==="werk").length!==1?"e":""} wartet{items.filter(x=>x._type==="werk").length===1?"":"en"} auf Freigabe
@@ -743,7 +743,7 @@ function ErlebnisseProjekteTab() {
         border:`1px solid ${C.border}`, marginBottom:12,
       }}>
         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:4}}>
-          <span style={{fontSize:22}}>🌿</span>
+          <HUIImpactIcon size={22} style={{color:'rgba(14,196,184,0.7)'}} />
           <div>
             <div style={{fontSize:16,fontWeight:800,color:C.text}}>
               Erlebnisse & Projekte
@@ -815,7 +815,7 @@ function ErlebnisseProjekteTab() {
 
         {/* Leerer Zustand */}
         <div style={{textAlign:"center",padding:"60px 20px",color:C.sub}}>
-          <div style={{fontSize:40,marginBottom:12}}>🌿</div>
+          <div style={{marginBottom:12, display:'flex', justifyContent:'center'}}><HUIImpactIcon size={40} style={{color:'rgba(14,196,184,0.5)'}} /></div>
           <div style={{fontSize:15,fontWeight:700,color:C.text,marginBottom:6}}>
             Noch keine Daten
           </div>
@@ -954,7 +954,7 @@ function FeedAnalyticsTab() {
     <div>
       {/* ── Impressions ── */}
       <div style={{...card}}>
-        <div style={{fontWeight:700,marginBottom:14,fontSize:15}}>📡 Feed-Impressions</div>
+        <div style={{fontWeight:700,marginBottom:14,fontSize:15,display:'flex',alignItems:'center',gap:6}}><HUIAnalyticsIcon size={16}/>Feed-Impressions</div>
         <div style={kpiGrid}>
           {[
             { label:"Gesamt",             value: impress.total, color: C.teal,   icon:"👁" },
@@ -1014,7 +1014,7 @@ function FeedAnalyticsTab() {
       {/* ── Top Works ── */}
       {impress.topWorks.length > 0 && (
         <div style={card}>
-          <div style={{fontWeight:700,marginBottom:12,fontSize:15}}>🎨 Top Works (nach Impressions)</div>
+          <div style={{fontWeight:700,marginBottom:12,fontSize:15,display:'flex',alignItems:'center',gap:6}}><HUIWerkeIcon size={16}/>Top Works (nach Impressions)</div>
           {impress.topWorks.map((w,i) => (
             <div key={w.id} style={{display:"flex",justifyContent:"space-between",
               padding:"8px 0",borderBottom:`1px solid ${C.border}`}}>
@@ -1051,7 +1051,7 @@ function FeedAnalyticsTab() {
           {invisible.works.slice(0,5).map(w => (
             <div key={w.id} style={{padding:"6px 0",borderBottom:`1px solid ${C.border}`,
               fontSize:12}}>
-              <span style={{color:C.coral}}>🎨 Work</span>
+              <span style={{color:C.coral,display:"flex",alignItems:"center",gap:3}}><HUIWerkeIcon size={12}/>Work</span>
               <span style={{color:C.sub,marginLeft:8}}>{w.title || w.id.slice(0,12)}</span>
             </div>
           ))}

@@ -14,6 +14,8 @@
 //   - toast aus useToast.jsx, haptic aus commerceUtils.js
 //   - Realtime-Dedup-Pattern aus useReactions.jsx (via commentsService.js)
 // ══════════════════════════════════════════════════════════════════
+import { HUISendenIcon } from '../../design/icons/HuiSystemIcons.jsx';
+import { HUIHeartIcon } from '../../design/icons/HuiInteractionIcons.jsx';
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
@@ -142,9 +144,7 @@ function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdi
           {!editing && (
             <div style={{ display:"flex", alignItems:"center", gap:16, marginTop:6 }}>
               <button className="cs-btn" onClick={() => onHeart(comment)} style={{ display:"flex", alignItems:"center", gap:5 }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill={comment.hearted_by_me ? T.coral : "none"} stroke={comment.hearted_by_me ? T.coral : T.inkFaint} strokeWidth="2">
-                  <path d="M12 21s-7.5-4.6-10-9.2C.5 8.4 2 4.8 5.5 4c2-.4 4 .5 5 2.2C11.5 4.5 13.5 3.6 15.5 4c3.5.8 5 4.4 3.5 7.8C19.5 16.4 12 21 12 21z" strokeLinejoin="round"/>
-                </svg>
+                <HUIHeartIcon size={15} active={comment.hearted_by_me} style={{color: comment.hearted_by_me ? T.coral : T.inkFaint}} />
                 {comment.heart_count > 0 && <span style={{ fontSize:12, color: comment.hearted_by_me ? T.coral : T.inkFaint, fontWeight:600 }}>{comment.heart_count}</span>}
               </button>
               <button className="cs-btn" onClick={() => onReply(comment)} style={{ fontSize:12, fontWeight:700, color:T.inkFaint }}>Antworten</button>
@@ -486,9 +486,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
               color: input.trim() ? "#fff" : T.inkFaint,
               display:"flex", alignItems:"center", justifyContent:"center",
             }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-            </svg>
+            <HUISendenIcon size={16} />
           </button>
         </div>
       </div>

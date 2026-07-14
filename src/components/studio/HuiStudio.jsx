@@ -232,7 +232,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
             border:`1px solid rgba(14,196,184,0.18)`, padding:"14px 18px",
             display:"flex", alignItems:"center", gap:12,
           }}>
-            <span style={{ fontSize:22, flexShrink:0 }}>🔒</span>
+            <HUISicherheitIcon size={22} style={{flexShrink:0}} />
             <div>
               <div style={{ fontSize:13, fontWeight:700, color:T.ink }}>Dein Studio ist privat.</div>
               <div style={{ fontSize:12, color:T.inkSoft, marginTop:2 }}>Nur du hast hier Zugriff.</div>

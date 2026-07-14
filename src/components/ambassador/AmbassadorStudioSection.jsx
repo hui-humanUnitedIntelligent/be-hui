@@ -658,7 +658,7 @@ function EinladungenModal({ ambassadorId, username, onClose }) {
             </div>
           ) : invited.length === 0 ? (
             <div style={{ textAlign:"center", padding:"50px 20px" }}>
-              <div style={{ fontSize:36, marginBottom:12 }}>✉️</div>
+              <div style={{ marginBottom:12, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.7)" }}><HUIMailIcon size={36}/></div>
               <div style={{ fontSize:15, fontWeight:600, color:"#1A1A18", marginBottom:6 }}>
                 Noch keine Einladungen
               </div>

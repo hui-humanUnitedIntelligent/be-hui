@@ -11,6 +11,10 @@
 // vollständig erhalten — sie sind nur in Phase 3 / Collapse-Sektionen.
 
 import { useDraftPersist } from "../lib/sessionHooks";
+import {
+  HUISchreibenIcon, HUIVersandIcon, HUIStimmungIcon,
+  HUIKalenderIcon, HUISpracheIcon,
+} from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { publishExperience } from "../lib/factories/experienceContract.js";
 import { supabase }  from "../lib/supabaseClient";
@@ -984,7 +988,7 @@ function ScreenWerk({ media, onBack, onPublish, loading, error }) {
         {/* Optionale Sektionen */}
         <div style={{ marginTop:18 }}>
 
-          <CollapseSection title="Beschreibung & Kategorie" icon="✍️" accent={C.teal}>
+          <CollapseSection title="Beschreibung & Kategorie" icon={<HUISchreibenIcon size={16}/>} accent={C.teal}>
             <div className="hcf2-field" style={{ marginBottom:12 }}>
               <textarea className="hcf2-input" rows={3}
                 placeholder="Beschreibe dein Werk..."
@@ -1002,7 +1006,7 @@ function ScreenWerk({ media, onBack, onPublish, loading, error }) {
           </CollapseSection>
 
           {forSale && (
-            <CollapseSection title="Versand & Abholung" icon="📦" accent={C.coral}>
+            <CollapseSection title="Versand & Abholung" icon={<HUIVersandIcon size={16}/>} accent={C.coral}>
               <div className="hcf2-field" style={{ marginBottom:12 }}>
                 <div className="hcf2-field-label">Menge</div>
                 <input className="hcf2-input" type="number" inputMode="numeric"
@@ -1026,7 +1030,7 @@ function ScreenWerk({ media, onBack, onPublish, loading, error }) {
             </CollapseSection>
           )}
 
-          <CollapseSection title="Atmosphäre & Stimmung" icon="🌊" accent={C.purple}>
+          <CollapseSection title="Atmosphäre & Stimmung" icon={<HUIStimmungIcon size={16}/>} accent={C.purple}>
             <div style={{ marginBottom:12 }}>
               <div style={{ fontSize:12, fontWeight:700, color:C.muted, marginBottom:8,
                 textTransform:"uppercase", letterSpacing:0.5 }}>Mood Tags</div>
@@ -1221,7 +1225,7 @@ function ScreenErlebnis({ media, onBack, onPublish, loading, error }) {
         </div>
 
         {/* Optionale Sektionen */}
-        <CollapseSection title="Beschreibung & Kategorie" icon="✍️" accent={C.purple}>
+        <CollapseSection title="Beschreibung & Kategorie" icon={<HUISchreibenIcon size={16}/>} accent={C.purple}>
           <div className="hcf2-field" style={{ marginBottom:12 }}>
             <textarea className="hcf2-input" rows={3}
               placeholder="Was erwartet die Teilnehmer?"
@@ -1238,7 +1242,7 @@ function ScreenErlebnis({ media, onBack, onPublish, loading, error }) {
           </div>
         </CollapseSection>
 
-        <CollapseSection title="Ort, Dauer & Teilnehmer" icon="📅" accent={C.coral}>
+        <CollapseSection title="Ort, Dauer & Teilnehmer" icon={<HUIKalenderIcon size={16}/>} accent={C.coral}>
           {(format==="vor-ort"||format==="hybrid") && (
             <div className="hcf2-field" style={{ marginBottom:12 }}>
               <div className="hcf2-field-label">Ort</div>
@@ -1266,7 +1270,7 @@ function ScreenErlebnis({ media, onBack, onPublish, loading, error }) {
           </div>
         </CollapseSection>
 
-        <CollapseSection title="Sprache" icon="🗣️" accent={C.teal}>
+        <CollapseSection title="Sprache" icon={<HUISpracheIcon size={16}/>} accent={C.teal}>
           <div className="hcf2-pill-row">
             {(LANGS||[]).filter(l=>l&&l.key).map(l => (
               <Pill key={l} label={l} selected={lang===l} color={C.teal}
@@ -1275,7 +1279,7 @@ function ScreenErlebnis({ media, onBack, onPublish, loading, error }) {
           </div>
         </CollapseSection>
 
-        <CollapseSection title="Atmosphäre & Stimmung" icon="🌊" accent={C.purple}>
+        <CollapseSection title="Atmosphäre & Stimmung" icon={<HUIStimmungIcon size={16}/>} accent={C.purple}>
           <div style={{ marginBottom:12 }}>
             <div style={{ fontSize:12, fontWeight:700, color:C.muted, marginBottom:8,
               textTransform:"uppercase", letterSpacing:0.5 }}>Mood Tags</div>

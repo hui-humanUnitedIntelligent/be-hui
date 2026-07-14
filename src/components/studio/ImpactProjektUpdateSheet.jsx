@@ -39,8 +39,8 @@ const T = {
 const UPDATE_TYPES = [
   { key: "Meilenstein", icon: "🏆", color: T.amber,  bg: T.amberSoft },
   { key: "Fortschritt", icon: "📈", color: T.teal,   bg: T.tealSoft },
-  { key: "Neuigkeit",   icon: "📢", color: T.violet, bg: T.violetSoft },
-  { key: "Geplant",     icon: "📅", color: T.green,  bg: T.greenSoft },
+  { key: "Neuigkeit",   icon: <HUINachrichtIcon size={16}/>, color: T.violet, bg: T.violetSoft },
+  { key: "Geplant",     icon: <HUIKalenderIcon size={16}/>, color: T.green,  bg: T.greenSoft },
 ];
 
 function fmtToday() {

@@ -1,3 +1,6 @@
+import {
+  HUIWarnIcon, HUIImpactIcon, HUISupportIcon, HUINachrichtIcon,
+} from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 
@@ -151,7 +154,7 @@ function NotifCard({ n, onRead, onAction = () => {} }) {
       const tm = typeMap[n.type] || { label:"Eintrag", emoji:"📋" };
       const entryTitle = md.entry_title || md.project_name || md.werk_title || `Dein ${tm.label}`;
       return (
-        <InlineModal onClose={() => setOpen(false)} icon="❌"
+        <InlineModal onClose={() => setOpen(false)} icon={<HUIWarnIcon size={20}/>}
           title={`${tm.label} abgelehnt`} accentColor="#DC2626"
           btnLabel="Verstanden">
           <div style={{ background:"#f5f4f1", borderRadius:10, padding:"10px 14px", marginBottom:12, display:"flex", gap:8, alignItems:"center" }}>
@@ -174,7 +177,7 @@ function NotifCard({ n, onRead, onAction = () => {} }) {
       const projectName = md.project_name || md.entry_title || n.title || "Dein Projekt";
       const msg = md.message || md.admin_note || n.body || "Herzlichen Glückwunsch!";
       return (
-        <InlineModal onClose={() => setOpen(false)} icon="💚"
+        <InlineModal onClose={() => setOpen(false)} icon={<HUIImpactIcon size={20}/>}
           title="Projekt angenommen!" subtitle={projectName} accentColor="#0EC4B8"
           btnLabel="Super, danke!">
           <div style={{ background:"rgba(14,196,184,0.06)", border:"1px solid rgba(14,196,184,0.22)", borderRadius:10, padding:"12px 14px", marginBottom:16, fontSize:14, color:"#1a1a18", lineHeight:1.6, whiteSpace:"pre-wrap", wordBreak:"break-word" }}>{msg}</div>
@@ -187,7 +190,7 @@ function NotifCard({ n, onRead, onAction = () => {} }) {
       const ticketId = md.ticket_id || md.ticket_number || "";
       const subject  = md.subject || n.title || "Support-Antwort";
       return (
-        <InlineModal onClose={() => setOpen(false)} icon="🎧"
+        <InlineModal onClose={() => setOpen(false)} icon={<HUISupportIcon size={20}/>}
           title="Support hat geantwortet"
           subtitle={ticketId || null}
           accentColor="#0EC4B8" btnLabel="Verstanden">
@@ -206,7 +209,7 @@ function NotifCard({ n, onRead, onAction = () => {} }) {
       const text  = md.message || md.body || n.body || "(Keine Nachricht)";
       const title = md.title || n.title || "Nachricht vom Admin";
       return (
-        <InlineModal onClose={() => setOpen(false)} icon="📢"
+        <InlineModal onClose={() => setOpen(false)} icon={<HUINachrichtIcon size={20}/>}
           title={title}
           subtitle="Nachricht vom Admin"
           accentColor="#0EC4B8" btnLabel="Verstanden">

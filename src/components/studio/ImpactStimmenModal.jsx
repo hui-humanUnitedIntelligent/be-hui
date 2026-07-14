@@ -8,6 +8,7 @@
 // Reset: automatisch am 1. des Monats (month_key = "YYYY-MM")
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { HUIImpactIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useCallback } from "react";
 import { isProfileTalent } from '../../lib/profileUtils.js';
 import { createPortal } from "react-dom";
@@ -124,7 +125,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
         id:               a.id,
         name:             a.project_name,
         description:      a.short_desc,
-        icon:             "💚",
+        icon:             <HUIImpactIcon size={20}/>,
         color:            "#0DC4B5",
         status:           "approved",
         votes:            0, // wird live aus impact_votes gezählt

@@ -1,6 +1,10 @@
 // src/system/flows/experience/ExperiencePublishStep.jsx
 // Step 3 — Veröffentlichung: Sichtbarkeit + immersive Live-Vorschau
 
+import {
+  HUIZeitIcon, HUILocationIcon, HUIKalenderIcon, HUIPersonenIcon,
+  HUIKategorieIcon, HUIEinladungIcon, HUIGlobeIcon, HUIGemeinschaftIcon, HUIPrivatIcon,
+} from '../../../design/icons/HuiSystemIcons.jsx';
 import React from "react";
 import { ET } from "./ExperienceTokens.js";
 
@@ -155,19 +159,19 @@ function ExperiencePreviewCard({ form, mediaFiles, profile }) {
           display:"grid", gridTemplateColumns:"1fr 1fr",
           gap:"8px 16px",
         }}>
-          <MetaRow icon="⏱" label="Dauer" value={
+          <MetaRow icon={<HUIZeitIcon size={14}/>} label="Dauer" value={
             form.duration === "Individuell" && form.durationCustom
               ? form.durationCustom : form.duration
           }/>
-          <MetaRow icon="📍" label="Ort" value={locLabel}/>
-          <MetaRow icon="📅" label="Tage" value={dayStr}/>
+          <MetaRow icon={<HUILocationIcon size={14}/>} label="Ort" value={locLabel}/>
+          <MetaRow icon={<HUIKalenderIcon size={14}/>} label="Tage" value={dayStr}/>
           {form.maxParticipants && (
-            <MetaRow icon="👥" label="Max." value={`${form.maxParticipants} Personen`}/>
+            <MetaRow icon={<HUIPersonenIcon size={14}/>} label="Max." value={`${form.maxParticipants} Personen`}/>
           )}
           {form.category && (
-            <MetaRow icon="🏷" label="Kategorie" value={form.category}/>
+            <MetaRow icon={<HUIKategorieIcon size={14}/>} label="Kategorie" value={form.category}/>
           )}
-          <MetaRow icon="❖" label="Einladung"
+          <MetaRow icon={<HUIEinladungIcon size={14}/>} label="Einladung"
             value={form.bookingMode==="direct" ? "Direkte Einladung" : "Auf Anfrage"}/>
         </div>
       </div>
@@ -211,13 +215,13 @@ export function ExperiencePublishStep({
 
       {/* ── Sichtbarkeit ── */}
       <div style={{ display:"flex", gap:8, marginBottom:24 }}>
-        <VisibilityCard icon="🌐" label="Offen" sub="Für alle erlebbar"
+        <VisibilityCard icon={<HUIGlobeIcon size={18}/>} label="Offen" sub="Für alle erlebbar"
           active={form.visibility==="public"}
           onClick={() => onFormChange({ visibility:"public" })}/>
-        <VisibilityCard icon="👥" label="Gemeinschaft" sub="Im Resonanzraum"
+        <VisibilityCard icon={<HUIGemeinschaftIcon size={18}/>} label="Gemeinschaft" sub="Im Resonanzraum"
           active={form.visibility==="community"}
           onClick={() => onFormChange({ visibility:"community" })}/>
-        <VisibilityCard icon="🔒" label="Privat" sub="Dein stiller Raum"
+        <VisibilityCard icon={<HUIPrivatIcon size={18}/>} label="Privat" sub="Dein stiller Raum"
           active={form.visibility==="private"}
           onClick={() => onFormChange({ visibility:"private" })}/>
       </div>

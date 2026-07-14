@@ -368,26 +368,26 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
           {view === "main" && (<>
 
             {/* Account-Aktionen */}
-            <Section title="Account" icon="👤">
-              <NavItem icon="✏️" label="Profil bearbeiten"
+            <Section title="Account" icon={<HUIProfilIcon size={16}/>}>
+              <NavItem icon={<HUIProfilIcon size={16}/>} label="Profil bearbeiten"
                 onClick={() => { onClose?.(); onEditProfile?.(); }}/>
-              <NavItem icon="📅" label="Meine Buchungen"
+              <NavItem icon={<HUIKalenderIcon size={16}/>} label="Meine Buchungen"
                 onClick={() => { onClose?.(); onOpenBookings?.(); }} last/>
             </Section>
 
             {/* Einstellungen */}
-            <Section title="Einstellungen" icon="⚙️">
-              <NavItem icon="📬" label="Persönliche Daten & Kontakt"
+            <Section title="Einstellungen" icon={<HUISettingsIcon size={16}/>}>
+              <NavItem icon={<HUIKontaktIcon size={16}/>} label="Persönliche Daten & Kontakt"
                 onClick={() => setView("contact")}/>
-              <NavItem icon="🔒" label="Sicherheit & Passwort"
+              <NavItem icon={<HUISicherheitIcon size={16}/>} label="Sicherheit & Passwort"
                 onClick={() => setView("security")}/>
-              <NavItem icon="🕵️" label="Privatsphäre"
+              <NavItem icon={<HUIDatenschutzIcon size={16}/>} label="Privatsphäre"
                 onClick={() => setView("privacy")} last/>
             </Section>
 
             {/* Account löschen / Abmelden */}
-            <Section title="Account" icon="🚪">
-              <NavItem icon="🚪" label="Abmelden" onClick={logout} danger last/>
+            <Section title="Account" icon={<HUIAbmeldenIcon size={16}/>}>
+              <NavItem icon={<HUIAbmeldenIcon size={16}/>} label="Abmelden" onClick={logout} danger last/>
             </Section>
 
             {/* ── Brand Footer: Logo + Version ──────────────── */}
@@ -406,7 +406,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
 
           {/* ══ VERIFIZIERUNG ══════════════════════════════════ */}
           {view === "verification" && (<>
-            <Section title="Verifizierung" icon="✅">
+            <Section title="Verifizierung" icon={<HUIVerifIcon size={16}/>}>
               <div style={{padding:"14px 16px"}}>
                 <div style={{fontSize:13,color:"#555",lineHeight:1.65}}>
                   Die Identitäts-Verifizierung ist in Kürze verfügbar. Damit stärkst du das Vertrauen in deiner HUI-Gemeinschaft.
@@ -424,7 +424,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
 
           {/* ══ MITGLIEDSCHAFT ════════════════════════════════ */}
           {view === "membership" && (<>
-            <Section title="Mitgliedschaftsinformation" icon="🌿">
+            <Section title="Mitgliedschaftsinformation" icon={<HUIMitgliedIcon size={16}/>}>
               <div style={{padding:"14px 16px"}}>
                 <div style={{
                   padding:"12px 14px", borderRadius:10,
@@ -450,10 +450,10 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
 
           {/* ══ PERSÖNLICHE DATEN ══════════════════════════════ */}
           {view === "contact" && (<>
-            <Section title="Name" icon="👤">
+            <Section title="Name" icon={<HUIProfilIcon size={16}/>}>
               <NameBlock profile={profile} onProfileUpdate={onProfileUpdate}/>
             </Section>
-            <Section title="Kontakt" icon="📬">
+            <Section title="Kontakt" icon={<HUIKontaktIcon size={16}/>}>
               <EmailBlock profile={profile} onProfileUpdate={onProfileUpdate}/>
               <PhoneBlock profile={profile} onProfileUpdate={onProfileUpdate}/>
             </Section>
@@ -461,14 +461,14 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
 
           {/* ══ SICHERHEIT ═════════════════════════════════════ */}
           {view === "security" && (
-            <Section title="Passwort ändern" icon="🔒">
+            <Section title="Passwort ändern" icon={<HUISicherheitIcon size={16}/>}>
               <PasswordBlock/>
             </Section>
           )}
 
           {/* ══ PRIVATSPHÄRE ═══════════════════════════════════ */}
           {view === "privacy" && (
-            <Section title="Profil-Sichtbarkeit" icon="🕵️">
+            <Section title="Profil-Sichtbarkeit" icon={<HUIDatenschutzIcon size={16}/>}>
               <PrivacyBlock profile={profile} onProfileUpdate={onProfileUpdate}/>
             </Section>
           )}

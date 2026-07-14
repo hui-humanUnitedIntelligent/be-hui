@@ -4,6 +4,7 @@
 //   showCreatorDashboard → MyBasisProfile (eigenes Profil — Talent-UI via isTalent)
 // ROUTING-ENTSCHEIDUNG: aus Datenbank, NICHT aus flow.state (war immer undefined)
 
+import { HUIWarnIcon } from '../../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useCallback } from "react";
 import { useHome } from "../HomeShell.jsx";
 import { useHuiActions, A } from "../../../core/hui.actions.js";
@@ -71,7 +72,7 @@ class ProfileErrorBoundary extends React.Component {
           alignItems:"center", justifyContent:"center", gap:12,
           padding:24,
         }}>
-          <div style={{fontSize:32}}>⚠️</div>
+          <div style={{display:"flex",justifyContent:"center",color:"#F59E0B"}}><HUIWarnIcon size={32}/></div>
           <p style={{color:"#FF6B6B", fontSize:15, fontFamily:"sans-serif", textAlign:"center", margin:0}}>
             Profil konnte nicht geladen werden
           </p>

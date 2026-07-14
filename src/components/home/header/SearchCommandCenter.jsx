@@ -13,6 +13,7 @@
 // diesem Sprint: 3 verschiedene, inkonsistente hartcodierte Kategorie-Listen).
 // Siehe Kommentar am Anfang der Hauptkomponente fuer weitere Architektur-Details.
 
+import { HUILocationIcon } from '../../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal }          from "react-dom";
 import { supabase }              from "../../../lib/supabaseClient.js";
@@ -183,7 +184,7 @@ function RadiusRow({ radius }) {
           color: radius.geo ? T.teal : T.inkF, whiteSpace:"nowrap",
           WebkitTapHighlightColor:"transparent",
         }}>
-          <span style={{fontSize:12}}>📍</span>
+          <HUILocationIcon size={12} style={{flexShrink:0, opacity:0.55}} />
           {radius.status === "requesting" ? "Suche…" : (radius.geo ? radius.geo.label : "Standort")}
         </button>
         {radius.stages.map(stage => {
@@ -668,7 +669,7 @@ export default function SearchCommandCenter({
       )}
       <div ref={kiRef} style={{position:"relative",flexShrink:0}}>
         <button className="dc-tag" onClick={e=>{e.stopPropagation();open_();setShowKi(p=>!p);}} style={{display:"flex",alignItems:"center",gap:3,background:showKi?T.teal:"rgba(14,196,184,0.07)",border:"none",borderRadius:99,padding:"4px 9px",cursor:"pointer",transition:"background .18s ease",WebkitTapHighlightColor:"transparent"}}>
-          <span style={{fontSize:8.5}}>✨</span>
+          <span style={{width:6,height:6,borderRadius:"50%",background:"rgba(14,196,184,0.4)",flexShrink:0,display:"inline-block"}} />
           <span style={{fontSize:8.5,fontWeight:700,color:showKi?"white":`${T.teal}CC`,letterSpacing:".01em"}}>KI</span>
         </button>
         {showKi && <KiPanel onSelect={handleKiSelect} onClose={()=>setShowKi(false)}/>}

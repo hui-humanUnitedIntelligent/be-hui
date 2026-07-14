@@ -5,6 +5,7 @@
 // Visitor: Scroller read-only. Empty-State statt null.
 // Filter: Visitor sieht nur approved/published. Owner sieht alle.
 // ══════════════════════════════════════════════════════════════════════
+import { HUIWerkeIcon, HUIWarnIcon } from '../../../design/icons/HuiSystemIcons.jsx';
 import React, { useState } from "react";
 import { supabase } from "../../../lib/supabaseClient.js";
 import { createPortal } from "react-dom";
@@ -31,7 +32,7 @@ function DeleteConfirm({ werk, onConfirm, onCancel }) {
       background:"rgba(0,0,0,0.55)", display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
       <div onClick={e=>e.stopPropagation()} style={{ background:"#fff", borderRadius:16,
         padding:"24px 20px 20px", maxWidth:320, width:"100%", boxShadow:"0 8px 40px rgba(0,0,0,0.18)" }}>
-        <div style={{ fontSize:36, textAlign:"center", marginBottom:8 }}>🗑️</div>
+        <div style={{ textAlign:"center", marginBottom:8, display:"flex", justifyContent:"center", color:"#F59E0B" }}><HUIWarnIcon size={36}/></div>
         <div style={{ fontSize:16, fontWeight:700, textAlign:"center", marginBottom:6, color:T.ink }}>
           Werk unwiderruflich löschen?
         </div>
@@ -127,7 +128,7 @@ export function WorksSection({
                 display:"flex", flexDirection:"column", alignItems:"center", gap:6,
                 cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
               }}>
-                <span style={{ fontSize:24 }}>🎨</span>
+                <HUIWerkeIcon size={24} style={{color:"rgba(14,196,184,0.6)"}} />
                 <div style={{ fontSize:13, fontWeight:700, color:T.ink }}>Erstes Werk veröffentlichen</div>
                 <div style={{ fontSize:12, color:T.inkFaint }}>Teile deine Arbeit mit der Gemeinschaft</div>
               </button>
@@ -136,7 +137,7 @@ export function WorksSection({
             /* Visitor Empty State */
             <div style={{ margin:`0 ${T.px}px`, padding:"20px 16px", borderRadius:T.r16,
               background:T.bgCard, border:`1px solid ${T.border}`, textAlign:"center" }}>
-              <div style={{ fontSize:20, marginBottom:6 }}>🎨</div>
+              <div style={{ marginBottom:6, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)" }}><HUIWerkeIcon size={20}/></div>
               <div style={{ fontSize:13, color:T.inkFaint, fontStyle:"italic" }}>
                 Dieses Talent hat noch keine Werke veröffentlicht.
               </div>
