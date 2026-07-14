@@ -100,7 +100,9 @@ function ImpactCard() {
 
 /* ══════════════════════════════════════════════════════════════ */
 export default function ConversationList({ chats, loading, onOpen, onDiscover, connections = [], search = "" }) {
-  console.log("[CONVERSATION_LIST_RENDER]", { chatCount: chats?.length, loading });
+  if (import.meta.env.DEV) {
+    console.log("[CONVERSATION_LIST_RENDER]", { chatCount: chats?.length, loading });
+  }
   const [activeFilter, setActiveFilter] = useState("alle");
 
   // Nur echte Daten — kein Mock-Fallback
@@ -160,8 +162,8 @@ export default function ConversationList({ chats, loading, onOpen, onDiscover, c
             background:`linear-gradient(135deg,${C.teal}30,${C.coral}20)`,
             border:`1.5px solid ${C.teal}40`,
             display:"flex", alignItems:"center", justifyContent:"center",
-            fontSize:20,
-          }} style={{display:"flex",alignItems:"center",justifyContent:"center",color:"rgba(14,196,184,0.5)"}}><HUIChatIcon size={40}/></div>
+            color:"rgba(14,196,184,0.5)",
+          }}><HUIChatIcon size={40}/></div>
           <p style={{ margin:0, fontSize:15, fontWeight:600, color:C.ink, letterSpacing:-0.2 }}>
             Dieser Raum sammelt noch Resonanz.
           </p>

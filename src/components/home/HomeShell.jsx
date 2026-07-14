@@ -207,24 +207,23 @@ export default function HomeShell({ children }) {
   const keepImpact    = tabImpact;
   const keepFavorites = tabFavorites;
 
-  /* switchTab — schließt alle Overlays + wechselt Tab */
-  const switchTab = useCallback((newTab) => {
-    // GUARD: Orb is a world-layer, never a tab destination
-    if (!assertValidTab(newTab)) return;
-    // Erste relevante Stack-Zeile (überspringt Error + switchTab selbst)
-    // World continuity: track tab transition for atmospheric carry-over
-    setPrevTab(tab);
-    setCarryOver({ from: tab, to: newTab, timestamp: Date.now() });
+  /* closeAllOverlays — schließt sämtliche Overlay-States (P1-01/P1-03) */
+  const closeAllOverlays = useCallback(() => {
     setShowWirker(null);
+    setSelectedProfileId(null);
     setShowWerkDetail(null);
     setShowWerkCheckout(null);
+    setShowBookingFlow(null);
     setShowWerkeKorb(false);
+    setShowUnterstutzenFlow(false);
+    setActiveStory(null);
     setShowStoryComposer(false);
     setShowWerkPublisher(false);
     setShowExperienceCreator(false);
     setShowImpactFlow(false);
     setShowContentSelector(false);
     setShowInvitationFlow(false);
+    setShowCreatorDash(false);
     setShowMatch(false);
     setShowMap(false);
     setChatRecipient?.(null);
@@ -241,18 +240,30 @@ export default function HomeShell({ children }) {
     // showChat bleibt offen bei Tab-Wechsel (Chat ist Tab-unabhängiges Overlay)
     setShowConnect(false);
     setShowTalentFlow(false);
+    if (isOrbOpen) closeOrbWorld("tab-switch");
+  }, [closeOrbWorld, isOrbOpen, setShowCreatorDashboard]);
+
+  /* switchTab — schließt alle Overlays + wechselt Tab */
+  const switchTab = useCallback((newTab) => {
+    // GUARD: Orb is a world-layer, never a tab destination
+    if (!assertValidTab(newTab)) return;
+    // World continuity: track tab transition for atmospheric carry-over
+    setPrevTab(tab);
+    setCarryOver({ from: tab, to: newTab, timestamp: Date.now() });
+    closeAllOverlays();
     _setTab(newTab);
-  }, [_setTab, setShowCreatorDashboard]);
+  }, [_setTab, tab, closeAllOverlays]);
 
   /* openCreatorDashboard — kanonische Funktion zum Öffnen des Profilbereichs
    * NAV-001: Konsolidiert openOwnProfile + openCreatorDashboard (identisch gewesen).
    * sessionStorage-Key "hui_mein_hui_open" = historischer Naming-Drift (Tab-Key ist "creator").
    * Key bleibt aus Kompatibilitätsgründen unverändert. */
   const openCreatorDashboard = useCallback(() => {
+    closeAllOverlays();
     _setTab("creator");
     setShowCreatorDashboard(true);
     try { sessionStorage.setItem("hui_mein_hui_open", "1"); } catch(_) {}
-  }, [_setTab, setShowCreatorDashboard]);
+  }, [_setTab, setShowCreatorDashboard, closeAllOverlays]);
 
   /* openOwnProfile — Alias für openCreatorDashboard (NAV-001: konsolidiert) */
   const openOwnProfile = openCreatorDashboard;
@@ -283,10 +294,9 @@ export default function HomeShell({ children }) {
       openCreatorDashboard();    // ← Overlay öffnen
       return;
     }
-    // Impact: direkter _setTab ohne switchTab — bewusst, damit offen Overlays
-    // (z.B. Chat) beim Impact-Wechsel nicht geschlossen werden.
+    // Impact: Overlays schließen, dann Tab wechseln (P1-02)
     if (key === "impact") {
-      _setTab("impact");
+      switchTab("impact");
       return;
     }
     // feed, discover, favorites → switchTab (schließt alle Overlays + wechselt Tab)

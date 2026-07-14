@@ -33,8 +33,8 @@ function relTime(ts){
 
 function extractAuthor(raw){
   const p=raw.profile||raw.creator||raw.author||raw.user||{};
-  // ── TRACE STEP 7 (nur erstes Work) ────────────────────
-  if (!window.__HUI_STEP7_DONE__ && (raw.type === "work" || raw.title !== undefined)) {
+  // ── TRACE STEP 7 (nur erstes Work, DEV only) ────────────────────
+  if (import.meta.env.DEV && !window.__HUI_STEP7_DONE__ && (raw.type === "work" || raw.title !== undefined)) {
     window.__HUI_STEP7_DONE__ = true;
     console.group("🔍 STEP 7 - extractAuthor");
     console.log("raw.profile:", raw.profile);
@@ -83,7 +83,7 @@ function extractAuthor(raw){
     membershipActive: !!(p.membership_active),
     isTalent: isProfileTalent(p), // Sprint F.4C: einzige Wahrheitsquelle
   };
-  if (window.__HUI_STEP7_DONE__ && !window.__HUI_STEP7b_DONE__) {
+  if (import.meta.env.DEV && window.__HUI_STEP7_DONE__ && !window.__HUI_STEP7b_DONE__) {
     window.__HUI_STEP7b_DONE__ = true;
     console.group("🔍 STEP 7b - author result");
     console.log("author.name:", _authorResult.name);
@@ -126,8 +126,8 @@ export function toFeedItem(raw){
   if(!raw||!raw.id)return null;
   try{
     const type  =normalizeType(raw);
-    // ── TRACE STEP 6 (nur erstes Work) ────────────────────
-    if (type === "work" && !window.__HUI_STEP6_DONE__) {
+    // ── TRACE STEP 6 (nur erstes Work, DEV only) ────────────────────
+    if (import.meta.env.DEV && type === "work" && !window.__HUI_STEP6_DONE__) {
       window.__HUI_STEP6_DONE__ = true;
       console.group("🔍 STEP 6 - normalizeWorkRow → toFeedItem");
       console.log("raw:", raw);
