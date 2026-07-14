@@ -9,34 +9,72 @@
  */
 
 import { useEffect, useRef, useCallback } from "react";
+import { feedSafariDebug, isFeedDebugEnabled } from "../lib/feedSafariDebug.js";
 
 // ── Bottom Sentinel (triggert loadMore) ──────────────────────────────────────
-export function FeedBottomSentinel({ onVisible, enabled = true }) {
+export function FeedBottomSentinel({ onVisible, enabled = true, scrollRootRef = null }) {
   const ref = useRef(null);
 
   useEffect(() => {
     if (!enabled || !ref.current) return;
     const el = ref.current;
+    const scrollRoot = scrollRootRef?.current ?? null;
 
+    // SAFARI FIX: root MUST be the scroll container when feed scrolls inside
+    // .hui-scroll — root:null (viewport) misses intersection updates on iOS Safari.
     const observer = new IntersectionObserver(
       ([entry]) => {
+        const payload = {
+          isIntersecting: entry.isIntersecting,
+          intersectionRatio: entry.intersectionRatio,
+          rootIsViewport: !scrollRoot,
+          scrollRootTag: scrollRoot?.tagName ?? "viewport",
+          boundingClientRect: {
+            top: Math.round(entry.boundingClientRect.top),
+            bottom: Math.round(entry.boundingClientRect.bottom),
+          },
+        };
+        feedSafariDebug.logIoFire(payload);
+
         if (entry.isIntersecting) {
+          feedSafariDebug.logEvent("SENTINEL_VISIBLE", payload);
           onVisible?.();
         }
       },
       {
-        root:       null,        // viewport
-        rootMargin: "200px",     // 200px Voraus-Trigger (kein harter Bruch)
+        root:       scrollRoot,
+        rootMargin: "200px",
         threshold:  0,
       }
     );
     observer.observe(el);
-    return () => observer.disconnect();
-  }, [enabled, onVisible]);
+
+    // Debug: parallel viewport-root observer to prove Firefox vs Safari divergence
+    let viewportObserver = null;
+    if (scrollRoot && isFeedDebugEnabled()) {
+      viewportObserver = new IntersectionObserver(
+        ([entry]) => {
+          feedSafariDebug.logEvent("IO_VIEWPORT_COMPARE", {
+            isIntersecting: entry.isIntersecting,
+            intersectionRatio: entry.intersectionRatio,
+            note: "viewport root — diverges from scroll-root on Safari nested scroll",
+          });
+        },
+        { root: null, rootMargin: "200px", threshold: 0 }
+      );
+      viewportObserver.observe(el);
+    }
+
+    return () => {
+      observer.disconnect();
+      viewportObserver?.disconnect();
+    };
+  }, [enabled, onVisible, scrollRootRef]);
 
   return (
     <div
       ref={ref}
+      data-feed-sentinel="true"
       aria-hidden="true"
       style={{
         height:     1,
