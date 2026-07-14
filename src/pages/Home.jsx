@@ -13,7 +13,6 @@ import {
 } from "../lib/world/orbLayer.js";
 import { SAFE_MODE } from "../config/safeMode.js";
 import { SafeRender } from "../config/SafeRender.jsx";
-import TalentOnboarding from "../components/TalentOnboarding.jsx";
 import { logDebug }  from "../lib/debugCollector.js";
 import { PaintRecoveryManager } from "../lib/world/safariPaintRecovery.js";
 import HomeShell, { useHome }   from "../components/home/HomeShell.jsx";
@@ -21,19 +20,11 @@ import { useHuiFlow } from "../core/hui.flow.js";
 import { safeOrbAction } from "../core/hui.safePayload.js";
 import HomeHeader                from "../components/home/header/HomeHeader.jsx";
 import HUIBottomNavigation       from "../components/home/navigation/HUIBottomNavigation.jsx";
-import ProfileLauncher           from "../components/home/profile/ProfileLauncher.jsx";
 import UnifiedFeed from "../feed/UnifiedFeed.jsx";
 import { shareContent } from "../lib/shareContent.js"; // SHARE.1 2026-07-09
 import { usePresence }             from "../lib/usePresence.js";
-import { StoryViewer }           from "../components/StoryBar.jsx";
-import ChatCenterOverlay          from "../components/chat-center/ChatCenterOverlay.jsx";
 import { useChatList }             from "../lib/chatContext.js";
-import ConnectionCreatePage      from "../components/connection-create/ConnectionCreatePage.jsx";
-import WerkKaufFlow           from "../components/commerce/WerkKaufFlow.jsx";         // COMMERCE-01
-import WerkeKorb, { WerkeKorbButton } from "../components/commerce/WerkeKorb.jsx"; // KORB-01
-import UnterstutzenFlow                from "../components/commerce/UnterstutzenFlow.jsx"; // KORB-02
 import { clearCartAfterSuccess }        from "../components/commerce/commerceUtils.js";    // KORB-02
-import ExperienceBookingFlow  from "../components/commerce/ExperienceBookingFlow.jsx"; // COMMERCE-01
 // ── Tab-Pages: lazy → eigene Chunks, nur bei Bedarf geladen ────
 // PHASE 17.3: ImpactPage + DiscoverPage — direkte imports (Safari-safe, kein lazy)
 const DiscoverPage  = React.lazy(() => import("./DiscoverPage.jsx"));
@@ -50,13 +41,21 @@ const ImpactFlow     = React.lazy(() => import("../system/flows/impact/ImpactFlo
 // NotificationCenter deaktiviert — Resonanzzentrum übernimmt (NotificationButton.jsx)
 const LiveMapPage         = React.lazy(() => import("./LiveMapPage.jsx"));
 const HuiMatchOverlay     = React.lazy(() => import("../components/HuiMatchOverlay.jsx"));
-// PHASE 18: HuiPlusSheet direkte import (Orb immer bereit)
-// OrbCompass replaces HuiPlusSheet — Begegnungs-Kompass
-import OrbCompass from "../components/OrbCompass.jsx";
-import MeinHUI    from "./MeinHUI.jsx";
+// ── P1: Overlay/Commerce/Resonance — lazy, nur bei Bedarf geladen ──
+const MeinHUI             = React.lazy(() => import("./MeinHUI.jsx"));
+const ProfileLauncher     = React.lazy(() => import("../components/home/profile/ProfileLauncher.jsx"));
+const TalentOnboarding    = React.lazy(() => import("../components/TalentOnboarding.jsx"));
+const ChatCenterOverlay   = React.lazy(() => import("../components/chat-center/ChatCenterOverlay.jsx"));
+const ConnectionCreatePage = React.lazy(() => import("../components/connection-create/ConnectionCreatePage.jsx"));
+const WerkKaufFlow        = React.lazy(() => import("../components/commerce/WerkKaufFlow.jsx"));
+const WerkeKorb           = React.lazy(() => import("../components/commerce/WerkeKorb.jsx"));
+const WerkeKorbButton     = React.lazy(() => import("../components/commerce/WerkeKorb.jsx").then(m => ({ default: m.WerkeKorbButton })));
+const UnterstutzenFlow    = React.lazy(() => import("../components/commerce/UnterstutzenFlow.jsx"));
+const ExperienceBookingFlow = React.lazy(() => import("../components/commerce/ExperienceBookingFlow.jsx"));
+const ContentTypeSelector = React.lazy(() => import("../content/ContentTypeSelector.jsx"));
+const InvitationFlow      = React.lazy(() => import("../content/invitation/InvitationFlow.jsx"));
+const StoryViewer         = React.lazy(() => import("../components/StoryBar.jsx").then(m => ({ default: m.StoryViewer })));
 import { IX } from "../design/hui.interaction.js";
-import ContentTypeSelector from "../content/ContentTypeSelector.jsx";
-import InvitationFlow from "../content/invitation/InvitationFlow.jsx";
 import { useContentPreview } from "../context/ContentPreviewContext.jsx";
 const HuiMembershipFlow   = React.lazy(() => import("../components/HuiMembershipFlow.jsx"));
 const CreatorDashboard    = React.lazy(() => import("./CreatorDashboard.jsx"));
@@ -166,6 +165,7 @@ function HomeInner() {
     activeStory,       setActiveStory,
     showCreatorDash,   setShowCreatorDash,
     showCreatorDashboard,
+    selectedProfileId,
     showWerkCheckout,  setShowWerkCheckout,  // COMMERCE-01 W-1
     showBookingFlow,   setShowBookingFlow,   // COMMERCE-01 W-1
     showWerkeKorb,     setShowWerkeKorb,     // KORB-01
@@ -449,10 +449,12 @@ function HomeInner() {
           <div ref={tabRefs.discover} style={keepDiscover}>
             {/* TalentOnboarding — direkt (kein lazy/Suspense) */}
       {showTalentFlow && SAFE_MODE.talentFlow && (
-        <TalentOnboarding
-          onClose={() => setShowTalentFlow(false)}
-          onActivate={() => setShowTalentFlow(false)}
-        />
+        <Suspense fallback={null}>
+          <TalentOnboarding
+            onClose={() => setShowTalentFlow(false)}
+            onActivate={() => setShowTalentFlow(false)}
+          />
+        </Suspense>
       )}
 
       <Suspense fallback={<div style={{padding:"40px 20px",textAlign:"center",opacity:0.6,fontSize:13,
@@ -542,117 +544,136 @@ function HomeInner() {
 
       {/* KORB-01: Floating Korb-Button — oberhalb TabBar */}
       {SAFE_MODE.werkFlow && (
-        <WerkeKorbButton
-          count={cart.length}
-          onOpen={() => setShowWerkeKorb(true)}
-        />
+        <Suspense fallback={null}>
+          <WerkeKorbButton
+            count={cart.length}
+            onOpen={() => setShowWerkeKorb(true)}
+          />
+        </Suspense>
       )}
 
       {/* KORB-01: Werkekorb Bottom Sheet */}
       {showWerkeKorb && SAFE_MODE.werkFlow && (
-        <WerkeKorb
-          items={cart}
-          onClose={() => setShowWerkeKorb(false)}
-          onRemove={(item) => setCart(prev => prev.filter(x => x.id !== item.id))}
-          onUnterstuetzen={async (items) => {
-            // KORB-02: WerkeKorb → UnterstutzenFlow (kein Magic-Timeout)
-            // WerkeKorb setzt phase="loading" → der Flow öffnet sich nach
-            // Abschluss des await. onUnterstuetzen resolved → WerkeKorb schließt sich.
-            setShowUnterstutzenFlow(true);
-            setShowWerkeKorb(false);
-            // C2.1: PI-Erstellung startet automatisch im UnterstutzenFlow-useEffect
-          }}
-          onDiscover={() => { setShowWerkeKorb(false); handleTab("discover"); }}
-          onChat={null}
-        />
+        <Suspense fallback={null}>
+          <WerkeKorb
+            items={cart}
+            onClose={() => setShowWerkeKorb(false)}
+            onRemove={(item) => setCart(prev => prev.filter(x => x.id !== item.id))}
+            onUnterstuetzen={async (items) => {
+              // KORB-02: WerkeKorb → UnterstutzenFlow (kein Magic-Timeout)
+              // WerkeKorb setzt phase="loading" → der Flow öffnet sich nach
+              // Abschluss des await. onUnterstuetzen resolved → WerkeKorb schließt sich.
+              setShowUnterstutzenFlow(true);
+              setShowWerkeKorb(false);
+              // C2.1: PI-Erstellung startet automatisch im UnterstutzenFlow-useEffect
+            }}
+            onDiscover={() => { setShowWerkeKorb(false); handleTab("discover"); }}
+            onChat={null}
+          />
+        </Suspense>
       )}
 
       {/* KORB-02: UnterstutzenFlow */}
       {showUnterstutzenFlow && SAFE_MODE.werkFlow && (
-        <UnterstutzenFlow
-          items={cart}
-          onClose={() => { setShowUnterstutzenFlow(false); closeContentPreview(); }}
-          onUnterstuetzen={async (items, form, method) => {
-            // P1: Mock-Timeout entfernt — Stripe übernimmt Payment
-            // UnterstutzenFlow ruft create-payment-intent direkt auf
-          }}
-          onClearCart={() => { clearCartAfterSuccess(setCart); clearCartPersist?.(); }}
-          onDiscover={() => { setShowUnterstutzenFlow(false); handleTab("discover"); }}
-          onResonanzCenter={() => setShowUnterstutzenFlow(false)}
-        />
+        <Suspense fallback={null}>
+          <UnterstutzenFlow
+            items={cart}
+            onClose={() => { setShowUnterstutzenFlow(false); closeContentPreview(); }}
+            onUnterstuetzen={async (items, form, method) => {
+              // P1: Mock-Timeout entfernt — Stripe übernimmt Payment
+              // UnterstutzenFlow ruft create-payment-intent direkt auf
+            }}
+            onClearCart={() => { clearCartAfterSuccess(setCart); clearCartPersist?.(); }}
+            onDiscover={() => { setShowUnterstutzenFlow(false); handleTab("discover"); }}
+            onResonanzCenter={() => setShowUnterstutzenFlow(false)}
+          />
+        </Suspense>
       )}
 
       {/* ── Overlay Layer ──────────────────────────────────────── */}
-      <ProfileLauncher/>
+      {(selectedProfileId || showCreatorDashboard) && (
+        <Suspense fallback={null}>
+          <ProfileLauncher/>
+        </Suspense>
+      )}
       {/* ── WerkKaufFlow — COMMERCE-01 ─────────────────────────── */}
       {showWerkCheckout && (
-        <WerkKaufFlow
-          werk={showWerkCheckout}
-          onClose={() => setShowWerkCheckout(null)}
-        />
+        <Suspense fallback={null}>
+          <WerkKaufFlow
+            werk={showWerkCheckout}
+            onClose={() => setShowWerkCheckout(null)}
+          />
+        </Suspense>
       )}
 
       {/* ── ExperienceBookingFlow — COMMERCE-01 ─────────────────── */}
       {showBookingFlow && (
-        <ExperienceBookingFlow
-          experience={showBookingFlow}
-          onClose={() => setShowBookingFlow(null)}
-        />
+        <Suspense fallback={null}>
+          <ExperienceBookingFlow
+            experience={showBookingFlow}
+            onClose={() => setShowBookingFlow(null)}
+          />
+        </Suspense>
       )}
 
 
       {/* ── Connection Create ───────────────────────────────────── */}
       {showConnect && SAFE_MODE.connectFlow && (
         <SafeRender flag="connectFlow" label="ConnectionCreatePage">
-          <ConnectionCreatePage
-            onClose={() => {
-              setShowConnect(false);
-            }}
-            onPublish={(result) => {
+          <Suspense fallback={null}>
+            <ConnectionCreatePage
+              onClose={() => {
+                setShowConnect(false);
+              }}
+              onPublish={(result) => {
 
-              // Feed Refresh: falls FeedRefresh-Mechanismus existiert, hier auslösen
-              // Aktuell: kein automatischer Refresh → nur schließen
-              setShowConnect(false);
-            }}
-          />
+                // Feed Refresh: falls FeedRefresh-Mechanismus existiert, hier auslösen
+                // Aktuell: kein automatischer Refresh → nur schließen
+                setShowConnect(false);
+              }}
+            />
+          </Suspense>
         </SafeRender>
       )}
 
-      {/* ── Teilen Flow — STATIC IMPORT, ALWAYS IN DOM ── */}
-      {/* visible prop steuert Sichtbarkeit — KEIN lazy, KEIN SafeRender, KEIN conditional */}
-      <TeilenFlow
-        visible={showTeilen}
-        onClose={() => {
-          setShowTeilen(false);
-        }}
-        onPublished={(result) => {
-          setShowTeilen(false);
-        }}
-      />
+      {/* ── Teilen Flow — lazy, nur bei Bedarf geladen ── */}
+      {showTeilen && (
+        <TeilenFlow
+          visible={showTeilen}
+          onClose={() => {
+            setShowTeilen(false);
+          }}
+          onPublished={(result) => {
+            setShowTeilen(false);
+          }}
+        />
+      )}
 
       {/* ── HUI Resonanz Center ─────────────────────────────────── */}
       {showChat && SAFE_MODE.chatCenter && (
         <SafeRender flag="chatCenter" label="ChatCenterOverlay">
-          <ChatCenterOverlay
-            onClose={() => {
-              setShowChat(false);
-              setChatRecipient(null);
-              const returnProfile = flow.getReturnProfile();
-              if (returnProfile) {
+          <Suspense fallback={null}>
+            <ChatCenterOverlay
+              onClose={() => {
+                setShowChat(false);
+                setChatRecipient(null);
+                const returnProfile = flow.getReturnProfile();
+                if (returnProfile) {
+                  flow.clearReturnProfile();
+                  const retId = returnProfile?.id || returnProfile?.user_id;
+                  if (retId) { setTimeout(() => openProfileById(retId), 50); }
+                }
+              }}
+              onMarkRead={markChatRead}
+              initialRecipient={chatRecipient}
+              onDiscoverClose={() => {
+                setShowChat(false);
+                setChatRecipient(null);
                 flow.clearReturnProfile();
-                const retId = returnProfile?.id || returnProfile?.user_id;
-                if (retId) { setTimeout(() => openProfileById(retId), 50); }
-              }
-            }}
-            onMarkRead={markChatRead}
-            initialRecipient={chatRecipient}
-            onDiscoverClose={() => {
-              setShowChat(false);
-              setChatRecipient(null);
-              flow.clearReturnProfile();
-              handleTab("discover");
-            }}
-          />
+                handleTab("discover");
+              }}
+            />
+          </Suspense>
         </SafeRender>
       )}
 
@@ -689,14 +710,16 @@ function HomeInner() {
           </SafeRender>
         )}
         {/* MeinHUI — Persönlicher Wirkungsraum (Orb-Erfahrung v2.0, Cinematic Closing) */}
-        <MeinHUI
-          visible={showPlusSheet}
-          closing={meinHuiClosing}
-          profile={authProfile}
-          onClose={closeMeinHuiCinematic}
-          onNotif={closeMeinHuiCinematic}
-          onSettings={closeMeinHuiCinematic}
-        />
+        {(showPlusSheet || meinHuiClosing) && (
+          <MeinHUI
+            visible={showPlusSheet}
+            closing={meinHuiClosing}
+            profile={authProfile}
+            onClose={closeMeinHuiCinematic}
+            onNotif={closeMeinHuiCinematic}
+            onSettings={closeMeinHuiCinematic}
+          />
+        )}
         {/* TalentOnboarding: außerhalb Suspense (kein lazy mehr) */}
         {showStoryComposer && SAFE_MODE.storyComposer && canCreate && (
           <SafeRender flag="storyComposer" label="StoryComposer">
@@ -773,36 +796,42 @@ function HomeInner() {
 
       {/* Phase 4B: Content Type Selector — öffnet sich statt Orb für Mitglieder */}
       {showContentSelector && isTalent && (
-        <ContentTypeSelector
-          visible={showContentSelector}
-          onClose={() => setShowContentSelector(false)}
-          onSelect={(type) => {
-            setShowContentSelector(false);
-            // Routing: type → richtiger Flow
-            if (type === "moment") {
-              setShowTeilen(true);
-            } else if (type === "experience") {
-              setShowExperienceCreator(true);
-            } else if (type === "work") {
-              setShowWerkPublisher(true);
-            } else if (type === "invitation") {
-              setShowInvitationFlow(true);
-            }
-          }}
-        />
+        <Suspense fallback={null}>
+          <ContentTypeSelector
+            visible={showContentSelector}
+            onClose={() => setShowContentSelector(false)}
+            onSelect={(type) => {
+              setShowContentSelector(false);
+              // Routing: type → richtiger Flow
+              if (type === "moment") {
+                setShowTeilen(true);
+              } else if (type === "experience") {
+                setShowExperienceCreator(true);
+              } else if (type === "work") {
+                setShowWerkPublisher(true);
+              } else if (type === "invitation") {
+                setShowInvitationFlow(true);
+              }
+            }}
+          />
+        </Suspense>
       )}
 
       {/* Phase 4B: Einladung erstellen Flow */}
       {showInvitationFlow && (
-        <InvitationFlow
-          visible={showInvitationFlow}
-          onClose={() => setShowInvitationFlow(false)}
-        />
+        <Suspense fallback={null}>
+          <InvitationFlow
+            visible={showInvitationFlow}
+            onClose={() => setShowInvitationFlow(false)}
+          />
+        </Suspense>
       )}
 
       {activeStory && SAFE_MODE.storyViewer && (
         <SafeRender flag="storyViewer" label="StoryViewer">
-          <StoryViewer story={activeStory} onClose={() => setActiveStory(null)}/>
+          <Suspense fallback={null}>
+            <StoryViewer story={activeStory} onClose={() => setActiveStory(null)}/>
+          </Suspense>
         </SafeRender>
       )}
 
