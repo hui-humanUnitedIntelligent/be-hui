@@ -287,6 +287,32 @@ export const StoryService = {
     return safeQuery(q);
   },
 
+  // StoryBar feed — active stories with profile join (null or future expires_at)
+  async getBarFeed() {
+    const now = new Date().toISOString();
+    return safeQuery(
+      supabase.from('stories')
+        .select(`
+          id, user_id, media_url, media_type, caption, text_overlay,
+          is_highlight, created_at, expires_at,
+          profile:user_id(display_name, avatar_url)
+        `)
+        .or(`expires_at.is.null,expires_at.gt.${now}`)
+        .order('created_at', { ascending: false })
+        .limit(50)
+    );
+  },
+
+  // StoryBar seen-state — viewed story IDs for current user
+  async getViewedStoryIds(viewerId) {
+    if (!viewerId) return { data: [], error: null };
+    return safeQuery(
+      supabase.from('story_views')
+        .select('story_id')
+        .eq('viewer_id', viewerId)
+    );
+  },
+
   async getByUser(userId) {
     const now = new Date().toISOString();
     return safeQuery(
