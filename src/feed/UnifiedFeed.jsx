@@ -20,7 +20,8 @@ import { useFeedStream }       from "./useFeedStream.js";
 import { FeedSoftHydrationBadge } from "./FeedSoftHydrationBadge.jsx";
 import { toFeedItem }          from "../system/feed/unifiedNormalizer.js";
 import FeedEventsSection       from "./FeedEventsSection.jsx";
-import { FeedBottomSentinel, FeedLoadMoreSpinner } from "./FeedScrollSentinel.jsx";
+import { FeedBottomSentinel, FeedLoadMoreSpinner, useFeedScrollProgress } from "./FeedScrollSentinel.jsx";
+import { feedSafariDebug, isSafariLike } from "../lib/feedSafariDebug.js";
 import { useSingleReaction }   from "../lib/useReactions.jsx";
 import { useSavedPostsContext } from "../context/SavedPostsContext.jsx";
 import { useAuth }             from "../lib/AuthContext.jsx";
@@ -390,7 +391,7 @@ class ReactionErrorBoundary extends React.Component {
   }
 }
 
-function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemIndex, onDepth }) {
+function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemIndex, onDepth, scrollRootRef = null }) {
   // Guard: item must be valid before calling any hook
   const postId   = item?.id    || "";
   const postType = item?.type  || "post";
@@ -431,6 +432,7 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
   useEffect(() => {
     const el = cardRef.current;
     if (!el || visible) return; // already visible — no new observer needed
+    const scrollRoot = scrollRootRef?.current ?? null;
     const obs = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -438,11 +440,11 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
           obs.disconnect(); // once=true: nie wieder beobachten
         }
       },
-      { threshold: 0.1 }
+      { root: scrollRoot, threshold: 0.1 }
     );
     obs.observe(el);
     return () => obs.disconnect();
-  }, [visible]);
+  }, [visible, scrollRootRef]);
 
   // MERKEN.2A (2026-07-08): Snapshot der echten Anzeige-Daten fuer
   // saved_posts.post_data -- ohne das zeigt "Gemerkte Inhalte" nur
@@ -512,7 +514,7 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
   );
 }
 
-function ReactionCard({ item, onProfile, onBook, onDetail, onShare, itemIndex, onDepth }) {
+function ReactionCard({ item, onProfile, onBook, onDetail, onShare, itemIndex, onDepth, scrollRootRef = null }) {
   // Absolute guard — no item = no render, log it
   if (!item?.id) {
     if (import.meta.env.DEV) console.warn("[REACTION_CARD] invalid item — skipping", item);
@@ -528,12 +530,13 @@ function ReactionCard({ item, onProfile, onBook, onDetail, onShare, itemIndex, o
         onShare={onShare}
         itemIndex={itemIndex}
         onDepth={onDepth}
+        scrollRootRef={scrollRootRef}
       />
     </ReactionErrorBoundary>
   );
 }
 
-function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loadMore, hasMore, loadingMore, onDiscover, scrollContainerRef }) {
+function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loadMore, hasMore, loadingMore, onDiscover, scrollContainerRef, pagesLength = 0, onScrollProgress = null }) {
   // per-item reaction is handled in ReactionCard wrapper below
   const arr = useMemo(() => {
     if (!Array.isArray(items)) return [];
@@ -582,6 +585,23 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
     }
   }, [hasMore, arr.length, depthUser?.id]); // eslint-disable-line
 
+  const feedListRef = useRef(null);
+
+  // Scroll-container readiness — ref assignment does not re-render; force virt path when ready
+  const [scrollReady, setScrollReady] = useState(false);
+  useEffect(() => {
+    if (scrollContainerRef?.current) {
+      setScrollReady(true);
+      return;
+    }
+    const id = requestAnimationFrame(() => {
+      if (scrollContainerRef?.current) setScrollReady(true);
+    });
+    return () => cancelAnimationFrame(id);
+  }, [scrollContainerRef, arr.length]);
+
+  useFeedScrollProgress(scrollContainerRef, onScrollProgress);
+
   // ── Virtualizer: schätze ~620px pro Karte, rendert nur sichtbare Items ──
   const rowVirtualizer = useVirtualizer({
     count: arr.length,
@@ -592,11 +612,28 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
 
   const totalHeight = rowVirtualizer.getTotalSize();
   const virtItems   = rowVirtualizer.getVirtualItems();
-  const useVirt     = !!scrollContainerRef?.current && arr.length > 6;
+  const useVirt     = scrollReady && arr.length > 6;
+
+  // Runtime debug probe (enable via localStorage hui_feed_debug=1)
+  useEffect(() => {
+    feedSafariDebug.init();
+    const scrollEl = scrollContainerRef?.current;
+    if (!scrollEl) return;
+    return feedSafariDebug.attachScrollProbe(scrollEl, scrollEl.querySelector("[data-feed-sentinel]"), () => ({
+      itemsLength: arr.length,
+      hasMore,
+      loadingMore,
+      pagesLength,
+      useVirt,
+      totalHeight: rowVirtualizer.getTotalSize(),
+      virtItemCount: rowVirtualizer.getVirtualItems().length,
+      renderedCards: scrollEl.querySelectorAll("[data-index], .hui-feed-card").length,
+    }));
+  }, [scrollContainerRef, arr.length, hasMore, loadingMore, pagesLength, scrollReady, useVirt, totalHeight, virtItems.length]); // eslint-disable-line
 
   if (arr.length === 0) return <EmptyFeed />;
   return (
-    <div style={{ paddingTop: 8 }}>
+    <div ref={feedListRef} data-feed-list="true" style={{ paddingTop: 8 }}>
       {useVirt ? (
         // ── Virtualisierter Modus (scrollContainer bekannt) ──
         <div style={{ height: totalHeight, position: "relative" }}>
@@ -627,6 +664,7 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
                   onShare={() => onShare?.(item)}
                   itemIndex={vRow.index}
                   onDepth={onDepth}
+                  scrollRootRef={scrollContainerRef}
                 />
               </div>
             );
@@ -637,6 +675,7 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
         arr.map((item, idx) => {
           const { isRelaxed, mb } = getCardRhythm(idx);
           const itemReactions = reactions[String(item.id)] || {};
+          const useContentVisibility = !isSafariLike() && idx > 4;
           return (
             <div
               key={String(item.id)}
@@ -644,8 +683,10 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
               style={{
                 marginBottom: mb,
                 animationDelay: Math.min(idx * 40, 300) + "ms",
-                contentVisibility: idx > 4 ? "auto" : "visible",
-                containIntrinsicSize: idx > 4 ? "0 620px" : undefined,
+                ...(useContentVisibility ? {
+                  contentVisibility: "auto",
+                  containIntrinsicSize: "0 620px",
+                } : {}),
               }}
             >
               <ReactionCard
@@ -656,6 +697,7 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
                 onShare={() => onShare?.(item)}
                 itemIndex={idx}
                 onDepth={onDepth}
+                scrollRootRef={scrollContainerRef}
               />
             </div>
           );
@@ -666,6 +708,7 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
       <FeedBottomSentinel
         enabled={!!hasMore && !loadingMore}
         onVisible={loadMore}
+        scrollRootRef={scrollContainerRef}
       />
 
       {/* ── FEED.11B — Feed-Ende State ── */}
@@ -1105,6 +1148,8 @@ export default function UnifiedFeed({
     searchPeople,
     searchProjects,
     searchGroups,
+    onScrollProgress,
+    pagesLength,
   } = useFeedStream({ searchQuery, typeFilter, categoryFilters, radiusKm, geo });
 
   // ── Bind refresh fn to parent (defensive) ──────────────────────────
@@ -1294,6 +1339,8 @@ export default function UnifiedFeed({
                 loadingMore={loadingMore}
                 onDiscover={onDiscover}
                 scrollContainerRef={scrollContainerRef}
+                pagesLength={pagesLength}
+                onScrollProgress={onScrollProgress}
               />
             )}
           </div>

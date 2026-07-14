@@ -15,6 +15,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { feedSafariDebug } from "../lib/feedSafariDebug.js";
 import { ProfileService, IDENTITY_CONTRACT } from '../services/db';
 import { supabase }        from "../lib/supabaseClient.js";
 import { useAuth }         from "../lib/AuthContext.jsx";
@@ -765,6 +766,8 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
   const softHydrateTimer  = useRef(null);     // Debounce für Badge
   const idleCallbackRef   = useRef(null);     // requestIdleCallback ID
   const mountedRef        = useRef(true);
+  const pageCountRef      = useRef(0);
+  const [pagesLength, setPagesLength] = useState(0);
 
   // ── Safeguard ──────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -805,6 +808,9 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
       cursorRef.current = nextCursors;
       setHasMore(more);
       setItems(newItems);
+      pageCountRef.current = 1;
+      setPagesLength(1);
+      feedSafariDebug.logDataArrived({ source: "initial", count: newItems.length, hasMore: more, pagesLength: 1 });
     } catch (err) {
       if (!mountedRef.current) return;
       console.error("[HUI_STREAM] initial load error:", err.message);
@@ -833,7 +839,12 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
 
   // ── Load More (Pagination) ─────────────────────────────────────────────────
   const loadMore = useCallback(async () => {
-    if (loadingMore || !hasMore) return;
+    if (loadingMore || !hasMore) {
+      feedSafariDebug.logLoadMore({ skipped: true, loadingMore, hasMore });
+      return;
+    }
+
+    feedSafariDebug.logLoadMore({ skipped: false, loadingMore, hasMore, pagesLength: pageCountRef.current });
 
     // Prefetch bereits vorhanden? → sofort einfügen
     if (prefetchedRef.current) {
@@ -847,6 +858,14 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
       });
       cursorRef.current = nextCursors;
       setHasMore(more);
+      pageCountRef.current += 1;
+      setPagesLength(pageCountRef.current);
+      feedSafariDebug.logDataArrived({
+        source: "prefetch",
+        added: nextItems.length,
+        hasMore: more,
+        pagesLength: pageCountRef.current,
+      });
       // Neuen Prefetch anstoßen
       _schedulePrefetch(user.id);
       return;
@@ -864,6 +883,14 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
       });
       cursorRef.current = nextCursors;
       setHasMore(more);
+      pageCountRef.current += 1;
+      setPagesLength(pageCountRef.current);
+      feedSafariDebug.logDataArrived({
+        source: "fetch",
+        added: nextItems.length,
+        hasMore: more,
+        pagesLength: pageCountRef.current,
+      });
     } catch (err) {
       console.error("[HUI_STREAM] loadMore error:", err.message);
     } finally {
@@ -1063,6 +1090,7 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
     // Pagination
     loadMore,
     onScrollProgress,
+    pagesLength,
 
     // Soft Hydration
     pendingCount,
