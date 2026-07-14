@@ -1,6 +1,6 @@
 {
-  "totalFiles": 297,
-  "totalLines": 104635,
+  "totalFiles": 318,
+  "totalLines": 107747,
   "totalComponents": 676,
   "totalHooks": 109,
   "totalDomains": 12,
@@ -11,16 +11,16 @@
   "dbDirectInUI": 69,
   "crossDomainWrites": 0,
   "duplicateOwners": 17,
-  "actionEngineFiles": 11,
-  "actionEngineTotal": 137,
+  "actionEngineFiles": 14,
+  "actionEngineTotal": 142,
   "actionEnginePct": 4,
-  "coreEngineFiles": 9,
-  "coreEnginePct": 4,
-  "registryFiles": 7,
-  "registryPct": 2,
+  "coreEngineFiles": 11,
+  "coreEnginePct": 5,
+  "registryFiles": 8,
+  "registryPct": 3,
   "filesWithOwnerHeader": 0,
   "ownershipCoveragePct": 0,
-  "architectureCoveragePct": 10,
+  "architectureCoveragePct": 16,
   "totalViolations": 629,
   "criticalViolations": 42,
   "highViolations": 112,
@@ -41,14 +41,14 @@
       "label": "UNKNOWN"
     },
     "ARCHITECTURE": {
-      "files": 8,
-      "lines": 1832,
+      "files": 29,
+      "lines": 4944,
       "components": 1,
       "hooks": 0,
       "dbReads": 0,
       "dbWrites": 0,
-      "actionEngine": 1,
-      "coreEngine": 1,
+      "actionEngine": 4,
+      "coreEngine": 3,
       "violations": 0,
       "label": "Architecture"
     },
@@ -173,6 +173,7 @@
       "label": "Routes"
     }
   },
-  "generatedAt": "2026-06-30T13:36:53.835Z",
-  "scanVersion": "ARCH-001"
+  "generatedAt": "2026-06-30T14:13:01.169Z",
+  "scanVersion": "ARCH-003",
+  "scanDurationMs": 163
 }
