@@ -1,5 +1,6 @@
 import {
   HUIWarnIcon, HUIImpactIcon, HUISupportIcon, HUINachrichtIcon,
+  HUIProfilIcon, HUIBenachrichtigungIcon,
 } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
@@ -100,7 +101,7 @@ const META = {
   work_sensitive:         { emoji:"⚠️", label:"Inhalt gemeldet"        },
   work_deleted:           { emoji:"🗑", label:"Werk entfernt"          },
   meldung_aufgehoben:     { emoji:"✅", label:"Meldung aufgehoben"     },
-  new_follower:           { emoji:"👤", label:"Neuer Follower"         },
+  new_follower:           { emoji:<HUIProfilIcon size={18}/>, label:"Neuer Follower"         },
   new_booking:            { emoji:"📅", label:"Neue Buchung"           },
   // MERKEN.6 (2026-07-08): zusammengefasste Merken-Digests (taeglich/
   // woechentlich), NIE eine Notification pro einzelnem Speichervorgang.
@@ -108,7 +109,7 @@ const META = {
   // KOMMENTAR.1 (2026-07-09): Kommentar/Antwort auf eigenen Beitrag.
   comment:                { emoji:"💬", label:"Neuer Kommentar"        },
   comment_reply:          { emoji:"💬", label:"Antwort auf deinen Kommentar" },
-  default:                { emoji:"🔔", label:"Benachrichtigung"       },
+  default:                { emoji:<HUIBenachrichtigungIcon size={18}/>, label:"Benachrichtigung"       },
 };
 
 function getMeta(type) { return META[type] || META.default; }
@@ -390,7 +391,7 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
         {/* Header */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"16px 20px 12px", borderBottom:`1px solid ${T.border}`, background:T.bgCard }}>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <span style={{ fontSize:20 }}>🔔</span>
+            <HUIBenachrichtigungIcon size={20} />
             <span style={{ fontSize:17, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>Resonanzzentrum</span>
             {unreadCount > 0 && (
               <span style={{ background:T.teal, color:"white", borderRadius:T.r99, padding:"2px 8px", fontSize:11, fontWeight:700 }}>{unreadCount}</span>
@@ -427,7 +428,7 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
             <div style={{ textAlign:"center", padding:"40px 0", color:T.inkFaint, fontSize:13 }}>Lädt…</div>
           ) : visible.length === 0 ? (
             <div style={{ textAlign:"center", padding:"48px 0" }}>
-              <div style={{ fontSize:36, marginBottom:8 }}>🔔</div>
+              <div style={{ marginBottom:8, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)" }}><HUIBenachrichtigungIcon size={36}/></div>
               <div style={{ fontSize:14, color:T.inkFaint }}>Keine Benachrichtigungen</div>
             </div>
           ) : (

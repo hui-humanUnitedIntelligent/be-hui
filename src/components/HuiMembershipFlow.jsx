@@ -1040,7 +1040,7 @@ function Card4({ onFinish, onBack, dir, loading, error }) {
             display:"flex", alignItems:"center", justifyContent:"center", gap:6,
             animation:"hmf5-fade 0.5s 0.45s ease both",
           }}>
-            <span style={{ fontSize:13 }}>🔒</span>
+            <HUISicherheitIcon size={13} style={{flexShrink:0}} />
             <span style={{ fontSize:12.5, color:T.muted }}>
               Sicher. Transparent. Respektvoll.
             </span>

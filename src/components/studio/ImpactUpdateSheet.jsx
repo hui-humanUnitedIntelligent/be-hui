@@ -2,6 +2,7 @@
 // Bottom-Sheet zum Veröffentlichen von Projekt-Updates für Impact-Projekte.
 // Nur für den Initiator (user_id == profile.id) eines bewilligten Projekts.
 // ══════════════════════════════════════════════════════════════════════
+import { HUINachrichtIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
@@ -112,7 +113,7 @@ export default function ImpactUpdateSheet({ project, currentUser, onClose, onSuc
             flexShrink: 0,
           }}
         >
-          <div style={{ fontSize: 18, fontWeight: 800 }}>📢 Projekt-Update</div>
+          <div style={{ fontSize: 18, fontWeight: 800, display:"flex", alignItems:"center", gap:6 }}><HUINachrichtIcon size={18}/>Projekt-Update</div>
           <button
             onClick={onClose}
             style={{

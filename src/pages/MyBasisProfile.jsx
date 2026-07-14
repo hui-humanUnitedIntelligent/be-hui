@@ -56,6 +56,7 @@ import {
   HUIAmbassadorIcon, HUIEmpfehlungIcon, HUIImpactIcon, HUIFinanzIcon,
   HUIStimmeIcon, HUIProjektIcon, HUIEinAusIcon, HUIKalenderIcon,
   HUIVerkaufIcon, HUIStatistikIcon,
+  HUIFotoIcon, HUIAnsichtIcon, HUISettingsIcon, HUISchreibenIcon,
 } from "../design/icons/HuiSystemIcons.jsx";
 import { NotificationBadge }    from "../lib/useNotifications.jsx";
 import { useSavedPostsContext }  from "../context/SavedPostsContext.jsx";
@@ -288,7 +289,7 @@ function MomentThumb({ m, onRemove }) {
         <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column",
           alignItems:"center", justifyContent:"center",
           background:"rgba(26,26,24,0.06)", gap:4 }}>
-          <span style={{fontSize:22}}>🖼️</span>
+          <HUIFotoIcon size={22} style={{color:"rgba(26,26,24,0.35)"}} />
           <span style={{fontSize:9, color:"rgba(26,26,24,0.35)", textAlign:"center",
             padding:"0 6px", lineHeight:1.4}}>Bild nicht verfügbar</span>
         </div>
@@ -798,7 +799,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
               display:"flex", alignItems:"center", justifyContent:"center",
               fontSize:16, cursor:"pointer", touchAction:"manipulation", flexShrink:0,
             }}
-          >👁️</button>
+          ><HUIAnsichtIcon size={16}/></button>
           <button
             className="mbp-press-light"
             onClick={() => { setShowMerken(false); setShowPublicPreview(false); setShowSettings(true); }}
@@ -810,7 +811,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
               display:"flex", alignItems:"center", justifyContent:"center",
               fontSize:16, cursor:"pointer", touchAction:"manipulation", flexShrink:0,
             }}
-          >⚙️</button>
+          ><HUISettingsIcon size={16}/></button>
         </div>
       </div>
 
@@ -1256,7 +1257,7 @@ function AmbassadorProfilSection({ profile, ambState, onApply }) {
           boxShadow:T2.card,
         }}>
           <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
-            <span style={{fontSize:18}}>🌟</span>
+            <HUIAmbassadorIcon size={18} style={{color:"rgba(14,196,184,0.8)"}} />
             <span style={{fontSize:14, fontWeight:800, color:T2.ink}}>Ambassador werden</span>
           </div>
           <div style={{fontSize:13, color:T2.inkSoft, lineHeight:1.6, marginBottom:14}}>
@@ -2354,7 +2355,7 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
                     background:"rgba(0,0,0,0.72)", color:"#fff",
                     fontSize:8, fontWeight:700, padding:"2px 7px",
                     borderRadius:20, letterSpacing:"0.3px",
-                  }}>✏️ Anpassen</span>
+                  }}>Anpassen</span>
                 </div>
               )}
             </div>

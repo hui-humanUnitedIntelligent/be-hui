@@ -3,6 +3,7 @@
 // - Kein Edit-Modus, keine Admin-Komponenten
 // - publicView=true erzwingt isOwner=false in TalentProfilePage/BasisProfilePage
 //
+import { HUIAnsichtIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { ProfileService } from '../../services/db';
@@ -76,7 +77,7 @@ export default function PublicProfilePreview({ profileId, onClose }) {
         backdropFilter:"blur(10px)",
       }}>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          <span style={{ fontSize:15 }}>👁️</span>
+          <HUIAnsichtIcon size={15} style={{flexShrink:0}} />
           <span style={{ fontSize:12, fontWeight:700, color:"#16D7C5", letterSpacing:"0.02em" }}>
             Öffentliche Ansicht
           </span>

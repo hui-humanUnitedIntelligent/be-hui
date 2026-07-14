@@ -7,6 +7,7 @@
 // rgba-Ränder), wird aber im hellen Studio-Modal (T.bg #F7F5F0, T.ink #1A1A18) angezeigt --
 // Text/Eingabefelder waren dadurch praktisch unsichtbar. Komplett auf Light-Theme umgestellt,
 // passend zu den Farbwerten aus HuiStudio.jsx (T-Objekt).
+import { HUISicherheitIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect } from 'react';
 import { useAmbassadorPayout } from '../../hooks/useAmbassadorPayout';
 
@@ -139,7 +140,7 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
             <input value={bankNameInput} onChange={e => setBankNameInput(e.target.value)} placeholder="Name und Anschrift der Bank (optional)"
               style={inputStyle} />
             <div style={{ fontSize: 11, color: inkFaint, lineHeight: 1.4 }}>
-              🔒 Deine Bankdaten werden verschlüsselt gespeichert und sind nur für die Auszahlungs-Genehmigung sichtbar.
+              <span style={{display:"flex",alignItems:"flex-start",gap:4}}><HUISicherheitIcon size={13} style={{flexShrink:0,marginTop:1}}/><span>Deine Bankdaten werden verschlüsselt gespeichert und sind nur für die Auszahlungs-Genehmigung sichtbar.</span></span>
             </div>
             {bankResult && !bankResult.ok && (
               <div style={{ fontSize: 11, color: red, fontWeight: 600 }}>

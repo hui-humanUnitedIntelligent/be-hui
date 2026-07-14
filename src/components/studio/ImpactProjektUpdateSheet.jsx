@@ -37,8 +37,8 @@ const T = {
 };
 
 const UPDATE_TYPES = [
-  { key: "Meilenstein", icon: "🏆", color: T.amber,  bg: T.amberSoft },
-  { key: "Fortschritt", icon: "📈", color: T.teal,   bg: T.tealSoft },
+  { key: "Meilenstein", icon: <HUIAwardIcon size={16}/>, color: T.amber,  bg: T.amberSoft },
+  { key: "Fortschritt", icon: <HUIFortschrittIcon size={16}/>, color: T.teal,   bg: T.tealSoft },
   { key: "Neuigkeit",   icon: <HUINachrichtIcon size={16}/>, color: T.violet, bg: T.violetSoft },
   { key: "Geplant",     icon: <HUIKalenderIcon size={16}/>, color: T.green,  bg: T.greenSoft },
 ];
@@ -188,7 +188,7 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
         }}>
           <div>
             <div style={{ fontSize: 18, fontWeight: 800, color: T.ink, letterSpacing: "-0.02em" }}>
-              📝 Projekt-Update
+              
             </div>
             <div style={{ fontSize: 12, color: T.inkSoft, marginTop: 2 }}>
               Halte deine Unterstützer auf dem Laufenden
@@ -367,7 +367,7 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
               padding: "10px 14px", background: T.coralSoft,
               borderRadius: T.r8, border: `1px solid rgba(255,107,107,0.20)`,
             }}>
-              ⚠️ {error}
+              
             </div>
           )}
 

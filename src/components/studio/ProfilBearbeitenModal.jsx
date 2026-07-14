@@ -41,7 +41,7 @@ const T = {
 
 // ── Tabs ───────────────────────────────────────────────────────────
 const TABS = [
-  { key: "basis",   label: "Basis-Profil",   icon: "👤" },
+  { key: "basis",   label: "Basis-Profil",   icon: <HUIProfilIcon size={14}/> },
   { key: "kontakt", label: "Kontakt",         icon: "📬" },
   { key: "talent",  label: "Talent-Profil",   icon: "🎯" },
 ];
@@ -267,7 +267,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
         }}>
           <div>
             <div style={{ fontSize:18, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>
-              ✏️ Profil bearbeiten
+              
             </div>
             <div style={{ fontSize:12, color:T.inkSoft, marginTop:2 }}>
               {isTalent ? "Basis + Talent-Profil" : "Basis-Profil"}

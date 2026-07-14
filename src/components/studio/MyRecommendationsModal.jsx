@@ -17,7 +17,7 @@ import { ProfileService } from "../../services/db";
 // Kategorien: profile, project, work (vorbereitet), experience (vorbereitet)
 // ═══════════════════════════════════════════════════════════════
 const REC_LABELS = {
-  profile:    { emoji: "👤", label: "Profile",           desc: "Verbundene Nutzer" },
+  profile:    { emoji: <HUIProfilIcon size={14}/>, label: "Profile",           desc: "Verbundene Nutzer" },
   project:    { emoji: "❤️", label: "Projekte",          desc: "Unterstützte Projekte" },
   work:       { emoji: "🎨", label: "Werke",             desc: "Gekaufte Werke" },
   experience: { emoji: "✨", label: "Erlebnisse",        desc: "Erlebte Erlebnisse" },
@@ -122,7 +122,7 @@ function MyRecommendationsModal({ userId, onClose }) {
         }}>
           <div>
             <div style={{ fontSize:18, fontWeight:700, color:"#1A1A18", letterSpacing:"-0.02em" }}>
-              ⭐ Meine Empfehlungen
+              
             </div>
             <div style={{ fontSize:12, color:"rgba(26,26,24,0.45)", marginTop:2 }}>
               {recs.length === 0 ? "Noch keine Empfehlungen" : `${recs.length} Empfehlung${recs.length !== 1 ? "en" : ""}`}
@@ -164,7 +164,7 @@ function MyRecommendationsModal({ userId, onClose }) {
             </div>
           ) : filtered.length === 0 ? (
             <div style={{ textAlign:"center", padding:"50px 20px" }}>
-              <div style={{ fontSize:36, marginBottom:12 }}>⭐</div>
+              <div style={{marginBottom:12, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)"}}><HUIEmpfehlungIcon size={36}/></div>
               <div style={{ fontSize:15, fontWeight:600, color:"#1A1A18", marginBottom:6 }}>
                 {activeTab === "all" ? "Noch keine Empfehlungen" : `Keine ${REC_LABELS[activeTab]?.label || ""} noch`}
               </div>

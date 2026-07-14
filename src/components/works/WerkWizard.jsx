@@ -1,5 +1,6 @@
 // src/components/works/WerkWizard.jsx
 // HUI – Werk-Editor als 6-Schritte-Wizard
+import { HUIPrivatIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
@@ -381,7 +382,7 @@ function S6({ data, onChange, onSave, onDraft, saving, hideButtons=false }) {
   const SICHT=[
     { id:"public",      icon:"🌍", label:"Öffentlich",   sub:"Sichtbar in deinem Talent-Profil und ggf. im HUI-Marktplatz." },
     { id:"connections", icon:"🔗", label:"Verbindungen", sub:"Nur für Menschen in deinem Netzwerk sichtbar." },
-    { id:"private",     icon:"🔒", label:"Privat",       sub:"Nur für dich sichtbar." },
+    { id:"private",     icon:<HUIPrivatIcon size={16}/>, label:"Privat",       sub:"Nur für dich sichtbar." },
   ];
   const cover=data.images?.[0]?.url;
   const ps=data.price?`${parseFloat(data.price).toLocaleString("de-DE",{minimumFractionDigits:2})} ${data.currency||"€"}`:"—";
@@ -401,7 +402,7 @@ function S6({ data, onChange, onSave, onDraft, saving, hideButtons=false }) {
             <div style={{ fontSize:14, fontWeight:700, color:C.teal, marginBottom:6 }}>{ps}</div>
             <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
               {data.availability==="available"&&<span style={{ fontSize:11, fontWeight:600, color:"#22c55e", display:"flex", alignItems:"center", gap:4 }}><span style={{ width:6, height:6, borderRadius:"50%", background:"#22c55e", display:"inline-block" }}/>Verfügbar</span>}
-              {data.versand&&<span style={{ fontSize:11, fontWeight:600, color:C.inkMid }}>📦 Versand möglich</span>}
+              {data.versand&&<span style={{ fontSize:11, fontWeight:600, color:C.inkMid }} style={{display:"flex",alignItems:"center",gap:3}}><HUIVersandIcon size={11}/>Versand möglich</span>}
               {data.abholung&&<span style={{ fontSize:11, fontWeight:600, color:C.inkMid }}>🤝 Abholung möglich</span>}
             </div>
           </div>
@@ -677,7 +678,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
           color:"rgba(239,68,68,0.9)",
           display:"flex", alignItems:"center", gap:8,
         }}>
-          <span>⚠</span>
+          <HUIWarnIcon size={14} style={{flexShrink:0}} />
           <span style={{ flex:1 }}>{saveError}</span>
           <button onClick={()=>setSaveError(null)} style={{
             background:"none", border:"none", cursor:"pointer",

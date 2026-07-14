@@ -2,6 +2,7 @@
 // Phase 3D: Weniger Dashboard. Mehr kreatives Zuhause.
 // Creator-zentriert, emotional, ruhig.
 
+import { HUIDateiIcon } from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAppState } from "../lib/AppStateContext";
@@ -222,7 +223,7 @@ export default function CreatorStudio() {
                 animation:"studioPendingPulse 3s ease-in-out infinite",
                 cursor:"pointer" }}
                 onClick={() => openTool("orders")}>
-                <span style={{ fontSize:12 }}>📋</span>
+                <HUIDateiIcon size={12} style={{flexShrink:0}} />
                 <span style={{ fontSize:12, fontWeight:700, color:"rgba(245,166,35,0.90)" }}>
                   {pendingCount} offene Anfrage{pendingCount > 1 ? "n" : ""}
                 </span>

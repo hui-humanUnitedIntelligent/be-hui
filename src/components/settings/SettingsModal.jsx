@@ -327,9 +327,9 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
 
   // Titel je nach View
   const titles = {
-    main:     "⚙️ Einstellungen",
+    main:     "Einstellungen",
     contact:  "📬 Persönliche Daten",
-    security: "🔒 Sicherheit",
+    security: "Sicherheit",
     privacy:  "🕵️ Privatsphäre",
   };
 
@@ -347,7 +347,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
             )}
             <div>
               <div style={{ fontSize:17, fontWeight:700, color:T.ink }}>
-                {titles[view] || "⚙️ Einstellungen"}
+                <span style={{display:"flex",alignItems:"center",gap:6}}><HUISettingsIcon size={14}/>{titles[view] || "Einstellungen"}</span>
               </div>
               {view==="main" && (
                 <div style={{ fontSize:12, color:T.inkSoft, marginTop:1 }}>

@@ -1,6 +1,7 @@
 // chat-center/ConversationList.jsx v2
 // Screenshot-exact: Sektionen — Aktive Gespräche, Buchungen, Verbindungen, Impact-Card
 
+import { HUIImpactIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState } from "react";
 import ConversationCard from "./ConversationCard.jsx";
 import { HUI } from "../../design/hui.design.js";
@@ -91,7 +92,7 @@ function ImpactCard() {
           WebkitTapHighlightColor:"transparent",
         }}>Menschen entdecken</button>
       </div>
-      <div style={{ fontSize:48, flexShrink:0 }}>🌱</div>
+      <div style={{ flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", color:"rgba(14,196,184,0.5)" }}><HUIImpactIcon size={48}/></div>
     </div>
   );
 }
@@ -159,7 +160,7 @@ export default function ConversationList({ chats, loading, onOpen, onDiscover, c
             border:`1.5px solid ${C.teal}40`,
             display:"flex", alignItems:"center", justifyContent:"center",
             fontSize:20,
-          }}>💬</div>
+          }} style={{display:"flex",alignItems:"center",justifyContent:"center",color:"rgba(14,196,184,0.5)"}}><HUIChatIcon size={40}/></div>
           <p style={{ margin:0, fontSize:15, fontWeight:600, color:C.ink, letterSpacing:-0.2 }}>
             Dieser Raum sammelt noch Resonanz.
           </p>

@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useStripeImpactPool } from '@/hooks/useStripeImpactPool';
+import { HUIImpactIcon, HUIStimmeIcon } from '../design/icons/HuiSystemIcons.jsx';
 import ReactDOM from 'react-dom';
 import React from "react";
 import { ProfileService } from '../services/db';
@@ -337,7 +338,7 @@ class ImpactErrorBoundary extends React.Component {
       <div style={{ padding:40, textAlign:"center", fontFamily:T.ff,
         minHeight:"50vh", display:"flex", flexDirection:"column",
         alignItems:"center", justifyContent:"center", background:T.page }}>
-        <div style={{ fontSize:36, marginBottom:12 }}>🌱</div>
+        <div style={{ marginBottom:12, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)" }}><HUIImpactIcon size={36}/></div>
         <div style={{ fontSize:16, fontWeight:700, color:T.ink, marginBottom:8 }}>
           Etwas ist schiefgelaufen
         </div>
@@ -822,7 +823,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
             </div>
           </div>
           {/* Stimmen-Counter — NUR Counter, kein Balken */}
-          <div style={{ fontSize:13, color:'#888', marginBottom:16 }}>🗳️ {voteCount} Stimmen bisher</div>
+          <div style={{ fontSize:13, color:"#888", marginBottom:16, display:"flex", alignItems:"center", gap:4 }}><HUIStimmeIcon size={13}/>{voteCount} Stimmen bisher</div>
 
           {/* Zusatzmaterial */}
           {app.media_urls && app.media_urls.length > 0 && (
@@ -880,7 +881,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
               marginBottom:12,
             }}>
               <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                <span style={{ fontSize:20 }}>🗳</span>
+                <HUIStimmeIcon size={20} />
                 <span style={{ fontSize:15, fontWeight:800, color:"#141422" }}>
                   {checking ? "…" : voteCount}
                 </span>
@@ -973,7 +974,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
                   {loading ? (
                     <><span style={{ fontSize:16 }}>⏳</span> Wird gespeichert…</>
                   ) : (
-                    <><span style={{ fontSize:16 }}>🗳</span> Für dieses Projekt abstimmen</>
+                    <><HUIStimmeIcon size={16}/> Für dieses Projekt abstimmen</>
                   )}
                 </button>
               )
@@ -2423,7 +2424,7 @@ function WeitereHerzensSection({ apps, loadingApps, seedData, seedLoading, onOpe
     <div style={{ marginTop:24, padding:"0 16px" }}>
       <div style={{ marginBottom:14 }}>
         <div style={{ display:"flex", alignItems:"baseline", justifyContent:"space-between", marginBottom:4 }}>
-          <h2 style={{ margin:0, fontSize:20, fontWeight:900, color:T.ink, letterSpacing:"-0.022em" }}>🌱 Weitere Herzensprojekte</h2>
+          <h2 style={{ margin:0, fontSize:20, fontWeight:900, color:T.ink, letterSpacing:"-0.022em", display:"flex", alignItems:"center", gap:6 }}><HUIImpactIcon size={18}/>Weitere Herzensprojekte</h2>
           {!isLoading && rawList.length > 4 && !expanded && (
             <button onClick={() => setExpanded(true)} className="ip-p"
               style={{ background:"none", border:"none", padding:0, cursor:"pointer", fontSize:11, fontWeight:700, color:T.teal, flexShrink:0, marginLeft:8 }}>
@@ -2841,7 +2842,7 @@ function HerzensprojektEmotional({ onPropose }) {
           display:"inline-flex", alignItems:"center", gap:9,
           letterSpacing:"-0.01em",
         }}>
-          <span style={{ fontSize:18 }}>🌱</span>
+          <HUIImpactIcon size={18} style={{color:"rgba(14,196,184,0.6)"}} />
           Herzensprojekt einreichen
         </button>
 
@@ -3029,7 +3030,7 @@ function LetzteAuszahlung({ payout, others }) {
         <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:12,
           padding:"12px 14px", background:`${T.gold}10`,
           borderRadius:14, border:`1px solid ${T.gold}22` }}>
-          <span style={{ fontSize:22 }}>🏆</span>
+          <HUIAwardIcon size={22} style={{color:"rgba(245,158,11,0.8)"}} />
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ fontSize:9, color:T.gold, fontWeight:700,
               letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:2 }}>

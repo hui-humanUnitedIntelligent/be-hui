@@ -4,6 +4,7 @@
 // Owner: + Weitere hinzufügen. Empty-State mit Hinweis.
 // Visitor: Sterne-Rating + work_title. Empty-State statt null.
 // ══════════════════════════════════════════════════════════════════════
+import { HUIEmpfehlungIcon } from '../../../design/icons/HuiSystemIcons.jsx';
 import React from "react";
 import { useContentPreview } from "../../../context/ContentPreviewContext.jsx"; // OPEN.1 2026-07-08
 import { normalizeRecommendationForPreview } from "../../../lib/previewNormalizers.js";
@@ -89,7 +90,7 @@ export function RecommendationsSection({
         ) : (
           <div style={{ margin:`0 ${T.px}px`, padding:"20px 16px", borderRadius:T.r16,
             background:T.bgCard, border:`1px solid ${T.border}`, textAlign:"center" }}>
-            <div style={{ fontSize:20, marginBottom:6 }}>💬</div>
+            <div style={{marginBottom:6, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)"}}><HUIEmpfehlungIcon size={20}/></div>
             <div style={{ fontSize:13, color:T.inkFaint, fontStyle:"italic" }}>
               Dieses Talent hat noch keine Kundenstimmen erhalten.
             </div>

@@ -6,6 +6,7 @@
 // Crash → leerer Container, kein Feed-Crash.
 // ═══════════════════════════════════════════════════════════════
 
+import { HUILocationIcon } from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient.js";
 
@@ -211,7 +212,7 @@ export default function FeedEventsSection({ onEventPress, onMoreEvents }) {
           marginBottom: 2,
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ fontSize: 15, lineHeight: 1 }}>📍</span>
+            <HUILocationIcon size={15} style={{flexShrink:0}} />
             <span style={{
               fontSize: 15, fontWeight: 700, color: "#141422",
               letterSpacing: -0.3,

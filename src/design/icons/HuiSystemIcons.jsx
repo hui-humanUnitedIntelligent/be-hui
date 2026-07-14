@@ -586,3 +586,57 @@ export function HUIKontaktIcon({ size = 24, className, style }) {
     </Icon>
   );
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   ERWEITERUNG v1.2 — Icons #52-56 (2026-07-14)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* 52. Ansicht — Auge (öffentlich sehen / Passwort-Toggle) */
+export function HUIAnsichtIcon({ size = 24, className, style }) {
+  return (
+    <Icon size={size} className={className} style={style} title="Ansicht">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" />
+    </Icon>
+  );
+}
+
+/* 53. Benachrichtigung — Glocke */
+export function HUIBenachrichtigungIcon({ size = 24, className, style }) {
+  return (
+    <Icon size={size} className={className} style={style} title="Benachrichtigung">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    </Icon>
+  );
+}
+
+/* 54. Folgen — Pfeil rechts mit Person */
+export function HUIFolgenIcon({ size = 24, className, style }) {
+  return (
+    <Icon size={size} className={className} style={style} title="Folge ich">
+      <path d="M5 12h14" />
+      <polyline points="12 5 19 12 12 19" />
+    </Icon>
+  );
+}
+
+/* 55. Award — Auszeichnung / Gefördert */
+export function HUIAwardIcon({ size = 24, className, style }) {
+  return (
+    <Icon size={size} className={className} style={style} title="Auszeichnung">
+      <circle cx="12" cy="8" r="6" />
+      <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11" />
+    </Icon>
+  );
+}
+
+/* 56. Fortschritt — Aufsteigender Trend */
+export function HUIFortschrittIcon({ size = 24, className, style }) {
+  return (
+    <Icon size={size} className={className} style={style} title="Fortschritt">
+      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+      <polyline points="17 6 23 6 23 12" />
+    </Icon>
+  );
+}

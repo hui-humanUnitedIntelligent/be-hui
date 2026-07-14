@@ -54,7 +54,7 @@ const PREIS_PRO = [
 const SICHTBARKEIT = [
   { id:"public",      icon:"🌍", label:"Öffentlich",   sub:"Sichtbar im HUI-Feed und Talent-Profil." },
   { id:"connections", icon:"🔗", label:"Verbindungen", sub:"Nur für Menschen in deinem Netzwerk." },
-  { id:"private",     icon:"🔒", label:"Privat",       sub:"Nur für dich sichtbar." },
+  { id:"private",     icon:<HUIPrivatIcon size={16}/>, label:"Privat",       sub:"Nur für dich sichtbar." },
 ];
 
 // ══════════════════════════════════════════════════════════════
@@ -456,7 +456,7 @@ function S2({ data, onChange, onPickLocation }) {
       {/* Datum */}
       <Field label="Datum" req>
         <div style={{ position: "relative" }}>
-          <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", fontSize: 16, color: C.inkFade, pointerEvents: "none" }}>📅</span>
+          <span style={{ position:"absolute", left:16, top:"50%", transform:"translateY(-50%)", color:C.inkFade, pointerEvents:"none" }}><HUIKalenderIcon size={16}/></span>
           <input
             type="date"
             value={data.date || ""}
@@ -499,7 +499,7 @@ function S2({ data, onChange, onPickLocation }) {
       {/* Ort */}
       <Field label="Ort" req hint="Tippen fuer Vorschlaege, z.B. Ortsname oder PLZ.">
         <div style={{ position: "relative" }}>
-          <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", fontSize: 16, color: C.inkFade, pointerEvents: "none", zIndex: 1 }}>📍</span>
+          <span style={{ position:"absolute", left:16, top:"50%", transform:"translateY(-50%)", color:C.inkFade, pointerEvents:"none", zIndex:1 }}><HUILocationIcon size={16}/></span>
           <LocationAutocompleteInput
             value={data.location_text || ""}
             onChange={v => onChange({ location_text: v })}
@@ -599,7 +599,7 @@ function S3({ data, onChange }) {
       {/* Max. Teilnehmerzahl */}
       <Field label="Maximale Teilnehmerzahl" hint="optional">
         <div style={{ position: "relative" }}>
-          <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", fontSize: 18, color: C.inkFade, pointerEvents: "none" }}>👥</span>
+          <span style={{ position:"absolute", left:16, top:"50%", transform:"translateY(-50%)", color:C.inkFade, pointerEvents:"none" }}><HUIPersonenIcon size={18}/></span>
           <input
             type="number" min="1" max="9999"
             inputMode="numeric"
@@ -673,7 +673,7 @@ function S4({ data, onChange, saving }) {
             <img loading="lazy" decoding="async" src={cover} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}/>
           </div>
         ) : (
-          <div style={{ width: "100%", height: 100, background: C.tealSoft, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, opacity: 0.4 }}>📅</div>
+          <div style={{ width:"100%", height:100, background:C.tealSoft, display:"flex", alignItems:"center", justifyContent:"center", opacity:0.4, color:"rgba(14,196,184,0.8)" }}><HUIKalenderIcon size={32}/></div>
         )}
         {/* Info */}
         <div style={{ padding: "16px 18px" }}>
@@ -930,7 +930,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
           background: "rgba(239,68,68,0.08)", borderBottom: "1px solid rgba(239,68,68,0.18)",
           padding: "10px 20px", display: "flex", alignItems: "flex-start", gap: 10,
         }}>
-          <span style={{ fontSize: 16, flexShrink: 0 }}>✏️</span>
+          <HUISchreibenIcon size={16} style={{flexShrink:0, color:"rgba(14,196,184,0.6)"}} />
           <div>
             <div style={{ fontSize: 13, fontWeight: 700, color: "#DC2626", marginBottom: 2 }}>
               Du passt ein abgelehntes Erlebnis an
@@ -969,7 +969,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
           fontSize: 12.5, fontWeight: 600, color: "rgba(239,68,68,0.9)",
           display: "flex", alignItems: "center", gap: 8,
         }}>
-          <span>⚠</span>
+          <HUIWarnIcon size={14} style={{flexShrink:0}} />
           <span style={{ flex: 1 }}>{saveError}</span>
           <button onClick={() => setSaveError(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(239,68,68,0.7)", fontSize: 16, padding: 0 }}>×</button>
         </div>

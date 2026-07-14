@@ -376,7 +376,7 @@ export default function StatistikenModal({ profile, onClose }) {
         }}>
           <div>
             <div style={{ fontSize:18, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>
-              📊 Statistiken
+              
             </div>
             <div style={{ fontSize:12, color:T.inkSoft, marginTop:2 }}>
               Deine gesamte HUI-Aktivität auf einen Blick
@@ -396,7 +396,7 @@ export default function StatistikenModal({ profile, onClose }) {
 
           {loading && (
             <div style={{ textAlign:"center", padding:"48px 0", color:T.inkSoft }}>
-              <div style={{ fontSize:24, marginBottom:10, animation:"spin 1.2s linear infinite", display:"inline-block" }}>📊</div>
+              <div style={{ marginBottom:10, animation:"spin 1.2s linear infinite", display:"inline-block", color:"rgba(14,196,184,0.7)" }}><HUIStatistikIcon size={24}/></div>
               <div style={{ fontSize:14 }}>Statistiken werden geladen…</div>
             </div>
           )}
@@ -419,7 +419,7 @@ export default function StatistikenModal({ profile, onClose }) {
                 <div style={{ textAlign:"right" }}>
                   <div style={{ fontSize:10, color:T.inkFaint }}>Status</div>
                   <div style={{ fontSize:13, fontWeight:700, color:T.teal }}>
-                    {stats.isTalent ? "🎯 HUI-Talent" : "🌟 HUI-Mitglied"}
+                    {stats.isTalent ? <><HUITalentIcon size={12} style={{marginRight:4}}/> HUI-Talent</> : <><HUIMitgliedIcon size={12} style={{marginRight:4}}/> HUI-Mitglied</>}
                     {stats.isAmbassador && " · 🏅 Ambassador"}
                   </div>
                 </div>
@@ -428,23 +428,23 @@ export default function StatistikenModal({ profile, onClose }) {
               {/* ── Kategorien ── */}
               <StatSection icon={<HUIAmbassadorIcon size={18}/>} label="Community & Netzwerk" color={T.teal}>
                 <KachelGrid items={[
-                  { icon:"🔔", label:"Follower",          val: fmtNum(stats.followers),    col:T.teal   },
-                  { icon:"➡️", label:"Folge ich",          val: fmtNum(stats.following),    col:T.teal   },
+                  { icon:<HUIBenachrichtigungIcon size={16}/>, label:"Follower",          val: fmtNum(stats.followers),    col:T.teal   },
+                  { icon:<HUIFolgenIcon size={16}/>, label:"Folge ich",          val: fmtNum(stats.following),    col:T.teal   },
                   { icon:"🤝", label:"Verbindungen",       val: fmtNum(stats.connections),  col:T.violet },
-                  { icon:"👁️", label:"Profil-Aufrufe",     val: fmtNum(stats.profileViews), col:T.amber  },
+                  { icon:<HUIAnsichtIcon size={16}/>, label:"Profil-Aufrufe",     val: fmtNum(stats.profileViews), col:T.amber  },
                   { icon:<HUIHeartIcon size={14}/>, label:"Likes vergeben",     val: fmtNum(stats.likesGiven),   col:T.coral  },
                   { icon:<HUIBookmarkIcon size={14}/>, label:"Gespeichert",        val: fmtNum(stats.likesSaved),   col:T.coral  },
-                  { icon:"💬", label:"Kommentare",         val: fmtNum(stats.commentsGiven),col:T.violet },
+                  { icon:<HUIChatIcon size={16}/>, label:"Kommentare",         val: fmtNum(stats.commentsGiven),col:T.violet },
                   { icon:<HUIEmpfehlungIcon size={14}/>, label:"Empfehlungen",       val: fmtNum(stats.recsGiven),    col:T.green  },
                 ]} />
               </StatSection>
 
               <StatSection icon={<HUIWerkeIcon size={18}/>} label="Inhalte & Werke" color={T.violet}>
                 <KachelGrid items={[
-                  { icon:"🖼️", label:"Werke gesamt",       val: fmtNum(stats.worksTotal),     col:T.violet },
+                  { icon:<HUIWerkeIcon size={16}/>, label:"Werke gesamt",       val: fmtNum(stats.worksTotal),     col:T.violet },
                   { icon:"✅", label:"Veröffentlicht",     val: fmtNum(stats.worksPublished), col:T.green  },
-                  { icon:"📖", label:"Stories",            val: fmtNum(stats.storiesCount),   col:T.amber  },
-                  { icon:"📸", label:"Momente",            val: fmtNum(stats.momentsCount),   col:T.amber  },
+                  { icon:<HUIFotoIcon size={16}/>, label:"Stories",            val: fmtNum(stats.storiesCount),   col:T.amber  },
+                  { icon:<HUIFotoIcon size={16}/>, label:"Momente",            val: fmtNum(stats.momentsCount),   col:T.amber  },
                   { icon:"📝", label:"Beiträge",           val: fmtNum(stats.beitraegeCount), col:T.teal   },
                   { icon:"👀", label:"Werk-Aufrufe",       val: fmtNum(stats.totalWorkViews), col:T.violet },
                   { icon:<HUIHeartIcon size={14}/>, label:"Likes erhalten",     val: fmtNum(stats.totalWorkLikes), col:T.coral  },

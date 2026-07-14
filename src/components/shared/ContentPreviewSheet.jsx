@@ -18,6 +18,7 @@
 //                                                 type="work" begrenzte
 //                                                 Inline-Implementierung.
 // ══════════════════════════════════════════════════════════════════
+import { HUILocationIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient.js";
@@ -196,7 +197,7 @@ export default function ContentPreviewSheet({ item, loading, onClose }) {
                     <span style={{ fontSize:12, color:T.inkFaint }}>🕐 {item.createdAt}</span>
                   )}
                   {item.location && (
-                    <span style={{ fontSize:12, color:T.inkFaint }}>📍 {item.location}</span>
+                    <span style={{ fontSize:12, color:T.inkFaint, display:"flex", alignItems:"center", gap:2 }}><HUILocationIcon size={12}/>{item.location}</span>
                   )}
                 </div>
               )}

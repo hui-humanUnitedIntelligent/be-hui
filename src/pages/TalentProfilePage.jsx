@@ -810,7 +810,7 @@ function NaechsteErlebnisseSection({ experiences, loading }) {
                     )}
                     {exp.location_text && (
                       <div style={{fontSize:11.5,color:T.inkSoft,display:"flex",alignItems:"center",gap:4}}>
-                        <span>📍</span> {exp.location_text}
+                        <span style={{display:"flex",alignItems:"center",gap:3}}><HUILocationIcon size={13}/>{exp.location_text}</span>
                       </div>
                     )}
                   </div>

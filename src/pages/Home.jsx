@@ -834,7 +834,7 @@ function HomeInner() {
           </b></div>
 
           <div style={{ borderTop:"1px solid rgba(255,255,255,0.12)", margin:"5px 0 3px" }} />
-          <div style={{ color:"#a8d8cf", fontWeight:700, marginBottom:2 }}>📋 Tabs</div>
+          <div style={{ color:"#a8d8cf", fontWeight:700, marginBottom:2 }}>Tabs</div>
           <div>activeTab: <b style={{color:"#16D7C5"}}>{tab}</b></div>
           <div>feed op: <b style={{color: keepFeed?.opacity === 1 ? "#16D7C5":"#FF8A6B"}}>
             {keepFeed?.opacity ?? "?"}

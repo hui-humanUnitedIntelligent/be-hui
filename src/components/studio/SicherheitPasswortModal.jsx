@@ -123,7 +123,7 @@ export default function SicherheitPasswortModal({ profile, onClose }) {
         }}>
           <div>
             <div style={{ fontSize:18, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>
-              🔒 Sicherheit & Passwort
+              
             </div>
             <div style={{ fontSize:12, color:T.inkSoft, marginTop:2 }}>
               {profile?.email || "Account-Sicherheit"}
@@ -379,7 +379,7 @@ function PwInput({ value, onChange, show, onToggleShow, placeholder, hasError, h
         cursor:"pointer", fontSize:16, color:T.inkSoft,
         WebkitTapHighlightColor:"transparent",
       }}>
-        {show ? "🙈" : "👁️"}
+        {show ? <HUIDatenschutzIcon size={18}/> : <HUIAnsichtIcon size={18}/>}
       </button>
     </div>
   );

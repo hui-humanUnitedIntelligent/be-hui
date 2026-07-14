@@ -159,7 +159,7 @@ export function WorksSection({
                 : isUpdate   ? "🔄 Update"
                 : isPending  ? "⏳ Prüfung"
                 : isRejected ? "❌ Abgelehnt"
-                : "📝 Entwurf";
+                : "Entwurf";
 
               return (
                 <div key={w.id || i} className="ws-press"
@@ -173,7 +173,7 @@ export function WorksSection({
                       ? <img loading="lazy" decoding="async" src={w.cover_url} alt={w.title||""} style={{ width:"100%",height:"100%",objectFit:"cover" }}
                           onError={e=>e.target.style.display="none"}/>
                       : <div style={{ width:"100%",height:"100%",display:"flex",alignItems:"center",
-                          justifyContent:"center",fontSize:24 }}>🎨</div>}
+                          justifyContent:"center" }}><HUIWerkeIcon size={24} style={{color:"rgba(14,196,184,0.5)"}}/></div>}
                   </div>
 
                   {/* approval Badge — nur Owner */}

@@ -5,6 +5,7 @@
 // ═══════════════════════════════════════════════════════════════════
 // Bottom-Sheet: Erlebnis buchen → bookingService.create() → Notification → Bestätigung
 // Keine neuen Systeme. Kein Stripe. booking_status = "pending" für Beta.
+import { HUIImpactIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState } from "react";
 import { useAuth } from "../../lib/AuthContext";
 import { bookingService } from "../../services/creatorEconomy";
@@ -106,7 +107,7 @@ export default function ExperienceBookingFlow({ experience, onClose }) {
         {phase === "success" ? (
           /* ── Bestätigung ── */
           <div style={{ textAlign: "center", padding: "16px 0 8px" }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>🌿</div>
+            <div style={{ marginBottom:12, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.7)" }}><HUIImpactIcon size={48}/></div>
             <div style={{ fontSize: 18, fontWeight: 700, color: "#1A1A2E", marginBottom: 8 }}>
               Anfrage gesendet
             </div>

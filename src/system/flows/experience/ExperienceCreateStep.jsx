@@ -1,6 +1,7 @@
 // src/system/flows/experience/ExperienceCreateStep.jsx
 // Step 1 — Fähigkeit vorstellen: Titel, Beschreibung, Medien
 
+import { HUIFotoIcon } from '../../../design/icons/HuiSystemIcons.jsx';
 import React, { useRef, useCallback } from "react";
 import { ET, EInput } from "./ExperienceTokens.js";
 // Kategorien-Architektur vereinheitlicht (2026-07-06, Lars) -- zentrale
@@ -223,13 +224,13 @@ export function ExperienceCreateStep({
           marginBottom:12 }}>Medien hinzufügen</div>
 
         <div style={{ display:"flex", gap:10, marginBottom:12 }}>
-          <MediaBtn icon="🖼" label="Foto hinzufügen"
+          <MediaBtn icon={<HUIFotoIcon size={18}/>} label="Foto hinzufügen"
             color={ET.teal} bg="rgba(10,191,184,0.05)"
             onClick={() => photoRef.current?.click()} />
-          <MediaBtn icon="▶" label="Video hinzufügen"
+          <MediaBtn icon={<HUIVideoIcon size={18}/>} label="Video hinzufügen"
             color={ET.violet} bg="rgba(139,92,246,0.05)"
             onClick={() => videoRef.current?.click()} />
-          <MediaBtn icon="📁" label="Beispielwerke"
+          <MediaBtn icon={<HUIDateiIcon size={18}/>} label="Beispielwerke"
             color={ET.coral} bg="rgba(251,146,60,0.05)"
             onClick={() => fileRef.current?.click()} />
         </div>

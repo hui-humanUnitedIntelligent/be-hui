@@ -3,6 +3,7 @@
 //          reactions, quick reply, seen state, gradient rings
 // Phase 2: Highlights row on profile
 
+import { HUIAnsichtIcon, HUIAwardIcon } from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../lib/AuthContext';
@@ -429,7 +430,7 @@ export function StoryViewer({ data: initData, onClose, onViewProfile }) {
             background:'rgba(255,255,255,.12)', backdropFilter:'blur(10px)',
             borderRadius:20, padding:'4px 10px',
             border:'1px solid rgba(255,255,255,.14)' }}>
-            <span style={{ fontSize:12, opacity:.7 }}>👁</span>
+            <HUIAnsichtIcon size={12} style={{opacity:0.7}} />
             <span style={{ color:'white', fontSize:12, fontWeight:600 }}>{viewerCount}</span>
           </div>
         )}
@@ -495,7 +496,7 @@ export function StoryViewer({ data: initData, onClose, onViewProfile }) {
                   border:'1px solid rgba(255,255,255,.14)',
                   borderRadius:50, padding:'4px 10px',
                   fontWeight:600, display:'flex', alignItems:'center', gap:4 }}>
-                  <span>📍</span>{location}
+                  <HUILocationIcon size={11} style={{flexShrink:0}}/>{location}
                 </span>
               )}
               {mood && (
@@ -576,7 +577,7 @@ export function StoryViewer({ data: initData, onClose, onViewProfile }) {
                 padding:'11px 16px', color:'rgba(255,255,255,.72)',
                 fontSize:13.5, fontWeight:500, cursor:'pointer',
                 textAlign:'left', display:'flex', alignItems:'center', gap:8 }}>
-              <span style={{ opacity:.65 }}>💬</span>
+              <HUIChatIcon size={14} style={{opacity:0.65}} />
               <span>Antworten…</span>
             </button>
             {/* Share */}
@@ -710,7 +711,7 @@ export function HighlightsRow({ userId }) {
                   {h.media_url
                     ? <img loading="eager" decoding="async" src={h.media_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                     : <div style={{ width:'100%', height:'100%', background:`linear-gradient(135deg,${C.gold}44,${C.coral}44)`,
-                        display:'flex', alignItems:'center', justifyContent:'center', fontSize:20 }}>⭐</div>}
+                        display:"flex", alignItems:"center", justifyContent:"center" }}><HUIAwardIcon size={20} style={{color:"rgba(245,158,11,0.8)"}}/></div>}
                 </div>
               </div>
               <span style={{ fontSize:11, fontWeight:600, color:'#555', maxWidth:64,

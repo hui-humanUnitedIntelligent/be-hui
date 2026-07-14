@@ -59,9 +59,9 @@ function fmtMonth(iso) {
 function projectStatus(proj) {
   if (!proj) return { label: "Unbekannt", color: T.inkSoft, bg: T.border, icon: "❓" };
   if (proj.distributed_at) return { label: "Abgeschlossen", color: T.green,  bg: T.greenSoft,  icon: "✅" };
-  if (proj.status === "voting")      return { label: "Abstimmung",  color: T.violet, bg: T.violetSoft, icon: "🗳️" };
+  if (proj.status === "voting")      return { label: "Abstimmung",  color: T.violet, bg: T.violetSoft, icon: <HUIStimmeIcon size={14}/> };
   if (proj.status === "active")      return { label: "Laufend",     color: T.teal,   bg: T.tealSoft,   icon: "🟢" };
-  if (proj.status === "funded")      return { label: "Gefördert",   color: T.amber,  bg: T.amberSoft,  icon: "🏆" };
+  if (proj.status === "funded")      return { label: "Gefördert",   color: T.amber,  bg: T.amberSoft,  icon: <HUIAwardIcon size={14}/> };
   return { label: proj.status || "Offen", color: T.inkSoft, bg: T.border, icon: "⏳" };
 }
 
@@ -194,7 +194,7 @@ export default function MeineProjekteModal({ profile, onClose, switchTab = null 
         }}>
           <div>
             <div style={{ fontSize: 18, fontWeight: 800, color: T.ink, letterSpacing: "-0.02em" }}>
-              ❤️ Meine Projekte
+              
             </div>
             <div style={{ fontSize: 12, color: T.inkSoft, marginTop: 2 }}>
               Unterstützungen &amp; Stimmen
@@ -250,9 +250,9 @@ export default function MeineProjekteModal({ profile, onClose, switchTab = null 
           background: "rgba(26,26,24,0.06)", borderRadius: T.r12, padding: 3,
         }}>
           {[
-            { key: "unterstuetzt", label: "💰 Finanziell" },
-            { key: "stimmen",      label: "🗳️ Stimmen" },
-            { key: "impact",       label: "🌱 Impact" },
+            { key: "unterstuetzt", label: "Finanziell" },
+            { key: "stimmen",      label: "Stimmen" },
+            { key: "impact",       label: "Impact" },
           ].map(t => (
             <button key={t.key} onClick={() => setTab(t.key)} style={{
               flex: 1, padding: "8px 0", borderRadius: T.r12 - 2,
@@ -332,7 +332,7 @@ export default function MeineProjekteModal({ profile, onClose, switchTab = null 
                   {/* Stimmen nach Monat gruppieren */}
                   {groupByMonth(votes).map(({ month, items }) => (
                     <div key={month}>
-                      <GroupHeader label={`📅 ${fmtMonth(month)}`} count={items.length} />
+                      <GroupHeader label={fmtMonth(month)} count={items.length} />
                       {items.map(v => (
                         <VoteCard
                           key={v.id}
@@ -359,7 +359,7 @@ export default function MeineProjekteModal({ profile, onClose, switchTab = null 
                 />
               ) : (
                 <>
-                  <GroupHeader label="🌱 Meine Impact-Projekte" count={impactApps.length} />
+                  <GroupHeader label="Meine Impact-Projekte" count={impactApps.length} />
                   {impactApps.map(app => (
                     <ImpactProjectCard
                       key={app.id}
@@ -533,21 +533,21 @@ function SupportCard({ support: s, project: p, onGoToProject }) {
                 fontSize: 11, color: T.inkSoft,
                 background: "rgba(26,26,24,0.06)", borderRadius: T.r99,
                 padding: "3px 10px",
-              }}>📁 {p.category}</span>
+              }} style={{display:"flex",alignItems:"center",gap:3}}><HUIKategorieIcon size={12}/>{p.category}</span>
             )}
             {p?.votes !== undefined && (
               <span style={{
                 fontSize: 11, color: T.inkSoft,
                 background: "rgba(26,26,24,0.06)", borderRadius: T.r99,
                 padding: "3px 10px",
-              }}>🗳️ {p.votes} Stimmen</span>
+              }} style={{display:"flex",alignItems:"center",gap:3}}><HUIStimmeIcon size={12}/>{p.votes} Stimmen</span>
             )}
             {p?.awarded_eur > 0 && (
               <span style={{
                 fontSize: 11, color: T.green, fontWeight: 700,
                 background: T.greenSoft, borderRadius: T.r99,
                 padding: "3px 10px",
-              }}>🏆 {fmtEur(p.awarded_eur)} gefördert</span>
+              }} style={{display:"flex",alignItems:"center",gap:3}}><HUIAwardIcon size={12}/>{fmtEur(p.awarded_eur)} gefördert</span>
             )}
           </div>
 
@@ -586,7 +586,7 @@ function SupportCard({ support: s, project: p, onGoToProject }) {
               fontSize: 12, color: T.inkFaint, textAlign: "center",
               padding: "6px 0",
             }}>
-              🔗 Projekt-Verlinkung wird vorbereitet (ID wird vergeben)
+              Projekt-Verlinkung wird vorbereitet (ID wird vergeben)
             </div>
           )}
         </div>
@@ -707,8 +707,8 @@ function ImpactProjectCard({ app, onAddUpdate, onMilestoneUpdate }) {
       case "approved":  return { label: "Bewilligt",   color: T.green,  bg: T.greenSoft,  icon: "✅" };
       case "pending":   return { label: "In Pruefung", color: T.amber,  bg: T.amberSoft,  icon: "⏳" };
       case "rejected":  return { label: "Abgelehnt",   color: T.coral,  bg: T.coralSoft,  icon: "❌" };
-      case "draft":     return { label: "Entwurf",     color: T.inkSoft,bg: T.border,      icon: "📝" };
-      default:          return { label: app.status || "Offen", color: T.inkSoft, bg: T.border, icon: "📋" };
+      case "draft":     return { label: "Entwurf",     color: T.inkSoft,bg: T.border,      icon: <HUISchreibenIcon size={14}/> };
+      default:          return { label: app.status || "Offen", color: T.inkSoft, bg: T.border, icon: <HUIStimmeIcon size={14}/> };
     }
   })();
 
@@ -786,7 +786,7 @@ function ImpactProjectCard({ app, onAddUpdate, onMilestoneUpdate }) {
         <div style={{
           display: "flex", alignItems: "center", gap: 6, marginBottom: 10,
         }}>
-          <span style={{ fontSize: 14 }}>🗳️</span>
+          <HUIStimmeIcon size={14} />
           <span style={{ fontSize: 13, fontWeight: 700, color: T.ink }}>
             {voteCount === null ? "..." : voteCount}
           </span>
@@ -809,7 +809,7 @@ function ImpactProjectCard({ app, onAddUpdate, onMilestoneUpdate }) {
           ) : (
             milestones.map((m, mi) => {
               const msStatus = {
-                planned:     { label: "📅 Geplant",      color: T.inkSoft,  bg: T.border },
+                planned:     { label: "Geplant",         color: T.inkSoft,  bg: T.border },
                 in_progress: { label: "🔄 In Arbeit",    color: T.teal,     bg: T.tealSoft },
                 completed:   { label: "✅ Abgeschlossen", color: T.green,    bg: T.greenSoft },
               };
@@ -851,7 +851,7 @@ function ImpactProjectCard({ app, onAddUpdate, onMilestoneUpdate }) {
                       WebkitTapHighlightColor: "transparent",
                     }}
                   >
-                    📝 Meilenstein aktualisieren
+                    Meilenstein aktualisieren
                   </button>
                 </div>
               );

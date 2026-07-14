@@ -5,6 +5,7 @@
 // Visitor: Read-only Pills. Empty-State statt null.
 // Daten: profile.skills_final (aus useProfileData) oder profile.skills
 // ══════════════════════════════════════════════════════════════════════
+import { HUITalentIcon } from '../../../design/icons/HuiSystemIcons.jsx';
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -101,7 +102,7 @@ export function TalentSection({ profile, isOwner = false, loading = false, onCha
               width:"100%", padding:"16px", borderRadius:T.r16,
               background:T.bgCard, border:`1px solid ${T.border}`, textAlign:"center",
             }}>
-              <div style={{ fontSize:20, marginBottom:6 }}>✨</div>
+              <div style={{marginBottom:6, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)"}}><HUITalentIcon size={20}/></div>
               <div style={{ fontSize:13, color:T.inkFaint, fontStyle:"italic" }}>
                 Dieses Talent hat noch keine Angebote hinterlegt.
               </div>

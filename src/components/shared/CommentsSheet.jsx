@@ -15,7 +15,7 @@
 //   - Realtime-Dedup-Pattern aus useReactions.jsx (via commentsService.js)
 // ══════════════════════════════════════════════════════════════════
 import { HUISendenIcon } from '../../design/icons/HuiSystemIcons.jsx';
-import { HUIHeartIcon } from '../../design/icons/HuiInteractionIcons.jsx';
+import { HUIHeartIcon, HUIChatIcon } from '../../design/icons/HuiInteractionIcons.jsx';
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
@@ -419,7 +419,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
         {/* Header */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 20px 10px" }}>
           <div>
-            <div style={{ fontSize:17, fontWeight:800, color:T.ink }}>💬 Kommentare</div>
+            <div style={{ fontSize:17, fontWeight:800, color:T.ink, display:"flex", alignItems:"center", gap:6 }}><HUIChatIcon size={17}/>Kommentare</div>
             <div style={{ fontSize:12, color:T.inkFaint, marginTop:2 }}>
               {total > 0 ? `${total} ${total === 1 ? "Kommentar" : "Kommentare"}` : "Noch keine Kommentare"}
             </div>
@@ -446,7 +446,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
 
           {!migrationPending && !loading && total === 0 && (
             <div style={{ textAlign:"center", padding:"48px 20px" }}>
-              <div style={{ fontSize:34, marginBottom:10 }}>💬</div>
+              <div style={{ marginBottom:10, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)" }}><HUIChatIcon size={34}/></div>
               <div style={{ fontSize:14, fontWeight:700, color:T.ink }}>Noch keine Kommentare.</div>
               <div style={{ fontSize:13, color:T.inkFaint, marginTop:4 }}>Sei der Erste und teile deine Gedanken.</div>
             </div>

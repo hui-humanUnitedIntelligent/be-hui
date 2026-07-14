@@ -156,7 +156,7 @@ export default function MeineBuchungenModal({ profile, onClose }) {
         }}>
           <div>
             <div style={{ fontSize: 18, fontWeight: 800, color: T.ink, letterSpacing: "-0.02em" }}>
-              📅 Meine Buchungen
+              
             </div>
             <div style={{ fontSize: 12, color: T.inkSoft, marginTop: 2 }}>
               Talent-Termine & Anfragen für deine Angebote
@@ -177,7 +177,7 @@ export default function MeineBuchungenModal({ profile, onClose }) {
         }}>
           {loading && (
             <div style={{ textAlign: "center", padding: "48px 0", color: T.inkSoft }}>
-              <div style={{ fontSize: 24, marginBottom: 10 }}>📅</div>
+              <div style={{marginBottom:10, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)"}}><HUIKalenderIcon size={24}/></div>
               <div style={{ fontSize: 14 }}>Buchungen werden geladen…</div>
             </div>
           )}

@@ -13,6 +13,7 @@
 //   - Verbose debug logs: Payload, Insert-Result, Fehlercode
 //   - Error Banner mit konkreter Fehlermeldung
 // ════════════════════════════════════════════════════════════════
+import { HUIWarnIcon } from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "../lib/supabaseClient.js";
 
@@ -362,7 +363,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
               display:"flex",alignItems:"flex-start",gap:10,
               animation:"hms-shake .4s ease",
             }}>
-              <span style={{ fontSize:18,flexShrink:0 }}>⚠️</span>
+              <HUIWarnIcon size={18} style={{flexShrink:0, color:"rgba(245,158,11,0.8)"}} />
               <div style={{ flex:1,minWidth:0 }}>
                 <div style={{ fontSize:13.5,fontWeight:700,color:D.coral }}>Fehler beim Teilen</div>
                 <div style={{ fontSize:12,color:D.inkSoft,marginTop:2,wordBreak:"break-word" }}>{shareErr}</div>

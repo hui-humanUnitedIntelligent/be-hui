@@ -14,6 +14,7 @@ import { useDraftPersist } from "../lib/sessionHooks";
 import {
   HUISchreibenIcon, HUIVersandIcon, HUIStimmungIcon,
   HUIKalenderIcon, HUISpracheIcon,
+  HUIWerkeIcon, HUIErlebnisIcon, HUIImpactIcon, HUIGemeinschaftIcon, HUIPrivatIcon,
 } from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { publishExperience } from "../lib/factories/experienceContract.js";
@@ -395,7 +396,7 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
         </button>
         <div style={{ display:"flex", alignItems:"center", gap:7 }}>
           <span style={{ fontSize:18 }}>
-            {forcedType === "werk" ? "🎨" : forcedType === "erlebnis" ? "🌟" : "✨"}
+            {forcedType === "werk" ? <HUIWerkeIcon size={18}/> : forcedType === "erlebnis" ? <HUIErlebnisIcon size={18}/> : <HUIImpactIcon size={18}/>}
           </span>
           <span style={{ fontWeight:900, fontSize:16, color:C.ink, letterSpacing:-.3 }}>
             {forcedType === "werk" ? "Bild für dein Werk"
@@ -647,8 +648,8 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
                 transition:"all 150ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.card */,
               }}>
               {visibility==="public" ? "🌍 Alle"
-                : visibility==="followers" ? "👥 Follower"
-                : "🔒 Nur ich"}
+                : visibility==="followers" ? "Follower"
+                : "Nur ich"}
             </button>
           </div>
 
@@ -704,7 +705,7 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
                 animation:"hcf2-spin .7s linear infinite", flexShrink:0,
               }}/> Wird geteilt…</>
             : canPost ? (forcedType === "werk" ? "🎨  Bild wählen & weiter"
-                : forcedType === "erlebnis" ? "🌟  Bild wählen & weiter"
+                : forcedType === "erlebnis" ? "Bild wählen & weiter"
                 : "✨  Moment veröffentlichen")
             : "Foto oder Video wählen"
           }
@@ -1160,7 +1161,7 @@ function ScreenErlebnis({ media, onBack, onPublish, loading, error }) {
         </button>
         <div>
           <div style={{ fontSize:17, fontWeight:800, color:C.ink, letterSpacing:-.3 }}>
-            🌟 Dein Erlebnis
+            
           </div>
           <div style={{ fontSize:12.5, color:C.muted, marginTop:1 }}>
             Nur Titel & Format sind Pflicht
@@ -1333,7 +1334,7 @@ function ScreenErlebnis({ media, onBack, onPublish, loading, error }) {
           }}>
           {loading
             ? <span style={{ animation:"hcf2-pulse 1s ease infinite" }}>Wird veröffentlicht…</span>
-            : "Erlebnis veröffentlichen 🌟"}
+            : "Erlebnis veröffentlichen"}
         </button>
       </div>
     </div>
@@ -1347,7 +1348,7 @@ function ScreenDone({ type }) {
   const MAP = {
     moment:   { emoji:"✨", title:"Geteilt!", sub:"Dein Moment ist jetzt live." },
     werk:     { emoji:"🎨", title:"Werk live!", sub:"Andere können es jetzt entdecken." },
-    erlebnis: { emoji:"🌟", title:"Erlebnis live!", sub:"Buchungen können jetzt eingehen." },
+    erlebnis: { emoji:<HUIErlebnisIcon size={32}/>, title:"Erlebnis live!", sub:"Buchungen können jetzt eingehen." },
   };
   const d = MAP[type] || MAP.moment;
 
@@ -1374,7 +1375,7 @@ function ScreenDone({ type }) {
 /* ══════════════════════════════════════════════════════════════════
    SCREEN 0 — TYPE SELECTOR
    Erster Screen: Was möchtest du erstellen?
-   ✨ Moment  🎨 Werk  🌟 Erlebnis  📖 Story
+   Moment | Werk | Erlebnis | Story
 ══════════════════════════════════════════════════════════════════ */
 function ScreenTypeSelector({ onClose, onSelect }) {
   const TYPES = [
@@ -1398,7 +1399,7 @@ function ScreenTypeSelector({ onClose, onSelect }) {
     },
     {
       key:   "erlebnis",
-      emoji: "🌟",
+      emoji: <HUIErlebnisIcon size={32}/>,
       label: "Erlebnis",
       sub:   "Event · Workshop · Session",
       grad:  `linear-gradient(135deg, rgba(245,166,35,0.12) 0%, rgba(245,166,35,0.04) 100%)`,

@@ -1,5 +1,6 @@
 // LiveMapPage.jsx — HUI Discovery v6
 // Karte atmet. UI schwebt. Nicht umgekehrt.
+import { HUILocationIcon } from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useRef } from "react";
 import { HUI } from "../design/hui.design.js";
 
@@ -283,7 +284,7 @@ function DetailSheet({pin,onClose,onBooking}){
           {isW&&<div style={{fontSize:13,color:ac,fontWeight:700,marginBottom:4}}>{pin.talent}</div>}
           {(isWk||isE)&&<div style={{fontSize:12,color:C.teal,fontWeight:600,marginBottom:4}}>
             {pin.creator} · {pin.city}</div>}
-          <div style={{fontSize:12,color:C.muted,marginBottom:14}}>📍 {pin.city}</div>
+          <div style={{fontSize:12,color:C.muted,marginBottom:14,display:"flex",alignItems:"center",gap:3}}><HUILocationIcon size={12}/>{pin.city}</div>
           <div style={{fontSize:14,color:C.ink2,lineHeight:1.8,fontStyle:"italic",marginBottom:18}}>
             „{pin.bio}"</div>
           {isW&&(

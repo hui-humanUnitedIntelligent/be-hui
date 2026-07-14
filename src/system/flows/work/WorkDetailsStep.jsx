@@ -1,6 +1,7 @@
 // src/system/flows/work/WorkDetailsStep.jsx
 // Step 2 — Werk Informationen: Preis, Versand, Details
 
+import { HUIChatIcon } from '../../../design/icons/HuiInteractionIcons.jsx';
 import React from "react";
 import { WT } from "./WorkTokens.js";
 // Kategorien-Architektur vereinheitlicht (2026-07-06, Lars) -- zentrale
@@ -50,7 +51,7 @@ function PricePills({ value, onChange }) {
   const opts = [
     { key:"free",    icon:"🎁", label:"Kostenlos" },
     { key:"fixed",   icon:"🛡", label:"Festpreis" },
-    { key:"inquiry", icon:"💬", label:"Auf Anfrage" },
+    { key:"inquiry", icon:<HUIChatIcon size={14}/>, label:"Auf Anfrage" },
   ];
   return (
     <div style={{ display:"flex", gap:8 }}>

@@ -4,6 +4,11 @@
 // 6 Steps + HUI-Fit-Score + Wirkungsnetzwerk-Zustimmung + Hall-of-Impact-Datenstruktur
 // ═══════════════════════════════════════════════════════════════
 
+import {
+  HUISettingsIcon, HUISicherheitIcon, HUIImpactIcon, HUIWarnIcon,
+  HUIFotoIcon, HUISchreibenIcon, HUIEmpfehlungIcon, HUIVerifIcon,
+} from '../../../design/icons/HuiSystemIcons.jsx';
+import { HUIChatIcon } from '../../../design/icons/HuiInteractionIcons.jsx';
 import React, { useState, useCallback, useEffect } from "react";
 import { supabase }  from "../../../lib/supabaseClient.js";
 import { useAuth }   from "../../../lib/AuthContext.jsx";
@@ -336,7 +341,7 @@ function Step1({ form, update, onNext, onBack, onClose }) {
   return (
     <StepWrap step={0} total={7} onBack={onBack} onClose={onClose} label="Schritt 1 von 7">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
-        <div style={{ fontSize:28, marginBottom:10 }}>🌱</div>
+        <div style={{ marginBottom:10, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)" }}><HUIImpactIcon size={28}/></div>
         <h2 style={{ margin:"0 0 8px", fontSize:24, fontWeight:900, color:T.ink,
           letterSpacing:"-0.025em", lineHeight:1.2 }}>Wie heißt dein Projekt?</h2>
         <p style={{ margin:"0 0 28px", fontSize:14, color:T.ink2, lineHeight:1.65 }}>
@@ -359,7 +364,7 @@ function Step2({ form, update, onNext, onBack, onClose }) {
   return (
     <StepWrap step={1} total={7} onBack={onBack} onClose={onClose} label="Schritt 2 von 7">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
-        <div style={{ fontSize:28, marginBottom:10 }}>💬</div>
+        <div style={{marginBottom:10, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)"}}><HUIChatIcon size={28}/></div>
         <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight:900, color:T.ink,
           letterSpacing:"-0.022em", lineHeight:1.2 }}>Beschreibe dein Projekt in einem Satz.</h2>
         <p style={{ margin:"0 0 28px", fontSize:14, color:T.ink2, lineHeight:1.65 }}>
@@ -510,7 +515,7 @@ function Step5b({ milestones, setMilestones, onNext, onBack, onClose, userId }) 
   };
 
   const getFileIcon = (type = "") => {
-    if (type.startsWith("image/")) return "🖼️";
+    if (type.startsWith("image/")) return <HUIFotoIcon size={14}/>;
     if (type.startsWith("video/")) return "🎬";
     return "📎";
   };
@@ -732,8 +737,8 @@ function AIPruefung({ form, onResult }) {
   const PHASEN = [
     { icon:"🔍", text:"Wirkung analysieren …"        },
     { icon:"🤝", text:"Gemeinwohl prüfen …"           },
-    { icon:"⚙️", text:"Umsetzbarkeit bewerten …"     },
-    { icon:"🛡️", text:"Vertrauenswürdigkeit prüfen …"},
+    { icon:<HUISettingsIcon size={14}/>, text:"Umsetzbarkeit bewerten …"     },
+    { icon:<HUISicherheitIcon size={14}/>, text:"Vertrauenswürdigkeit prüfen …"},
     { icon:"💚", text:"HUI-Fit-Score berechnen …"    },
     { icon:"✨", text:"Ergebnis berechnen …"          },
   ];
@@ -936,7 +941,7 @@ function ErgebnisGeeignet({ form, aiRes, onNetworkConfirm, onClose }) {
       padding:"28px 22px 22px", animation:"ifFadeIn 0.35s ease both", overflowY:"auto" }}>
       <div style={{ textAlign:"center", marginBottom:22 }}>
         <div style={{ fontSize:48, marginBottom:12,
-          filter:`drop-shadow(0 4px 16px ${T.teal}44)` }}>🌟</div>
+          filter:`drop-shadow(0 4px 16px ${T.teal}44)`, display:"flex", justifyContent:"center" }}><HUIImpactIcon size={80}/></div>
         <div style={{
           display:"inline-block",
           background: isManual ? `${T.gold}15` : `${T.teal}15`,
@@ -1043,7 +1048,7 @@ function ErgebnisNichtGeeignet({ form, onClose, onRetry, aiRes, user }) {
     },
     // Beschreibung zu kurz
     zu_kurz: {
-      emoji:   "✏️",
+      emoji:   <HUISchreibenIcon size={16}/>,
       badge:   "ZU WENIG INFORMATIONEN",
       titel:   "Bitte beschreibe dein Projekt ausführlicher.",
       erkl:    "Das HUI-Team braucht genügend Details, um dein Projekt fair beurteilen zu können.",
@@ -1199,7 +1204,7 @@ function PersoenlicheAngaben({ onWeiter, onClose, kontakt, setKontakt }) {
     <div style={{ overflowY:"auto", flex:1, padding:"28px 24px 32px" }}>
       {/* Header */}
       <div style={{ textAlign:"center", marginBottom:24 }}>
-        <div style={{ fontSize:36, marginBottom:8 }}>📋</div>
+        <div style={{ marginBottom:8, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)" }}><HUIDateiIcon size={36}/></div>
         <div style={{ fontSize:20, fontWeight:800, color:T.ink, marginBottom:6 }}>
           Persönliche Angaben
         </div>
@@ -1313,7 +1318,7 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
   const canContinue = !!coverUrl && !coverUploading && !extrasUploading;
 
   const getFileIcon = (type = "") => {
-    if (type.startsWith("image/")) return "🖼️";
+    if (type.startsWith("image/")) return <HUIFotoIcon size={14}/>;
     if (type.startsWith("video/")) return "🎬";
     if (type.includes("pdf"))      return "📄";
     return "📎";
@@ -1330,7 +1335,7 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
       }}>
         <div>
           <div style={{ fontSize:22, fontWeight:900, color:T.ink, lineHeight:1.1 }}>
-            📸 Medien & Dateien
+            
           </div>
           <div style={{ fontSize:12.5, color:T.ink3, marginTop:3 }}>
             Zeig dein Projekt — Bilder sagen mehr als Worte.
@@ -1383,7 +1388,7 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
               }}
             >
               <div style={{ fontSize:32, marginBottom:8 }}>
-                {coverUploading ? "⏳" : "🖼️"}
+                {coverUploading ? "…" : <HUIFotoIcon size={18}/>}
               </div>
               <div style={{ fontSize:13, fontWeight:700, color: coverUploading ? T.ink3 : T.teal }}>
                 {coverUploading ? "Wird hochgeladen…" : "Titelbild auswählen"}
@@ -1396,7 +1401,7 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
           <input ref={coverRef} type="file" accept="image/*" style={{ display:"none" }}
             onChange={e => uploadCover(e.target.files?.[0])} />
           {coverErr && (
-            <div style={{ fontSize:11, color:T.coral, marginTop:6 }}>⚠️ {coverErr}</div>
+            <div style={{ fontSize:11, color:T.coral, marginTop:6, display:"flex", alignItems:"center", gap:3 }}><HUIWarnIcon size={12}/>{coverErr}</div>
           )}
         </div>
 
@@ -1474,7 +1479,7 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
             fontSize:11.5, color:T.coral, textAlign:"center",
             marginBottom:10, fontWeight:600,
           }}>
-            ⚠️ Bitte lade ein Titelbild hoch, um fortzufahren.
+            
           </div>
         )}
         <button
@@ -1711,7 +1716,7 @@ export default function ImpactFlow({ onClose }) {
             background:`${T.coral}15`, border:`1px solid ${T.coral}30`,
             borderRadius:12, padding:"10px 14px",
             fontSize:12, color:T.coral, textAlign:"center",
-          }}>⚠️ {error}</div>
+          }} style={{display:"flex",alignItems:"center",gap:4}}><HUIWarnIcon size={14}/>{error}</div>
         )}
       </div>
     </div>

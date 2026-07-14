@@ -2,6 +2,7 @@
 // Linke Spalte — Verbindungstypen
 // Screenshot-exact: weiche Karten, aktiver Typ mit Lila-Glow
 
+import { HUISupportIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React from "react";
 import { HUI } from "../../design/hui.design.js";
 
@@ -128,7 +129,7 @@ export default function ConnectionTypeSidebar({ active, onChange }) {
         <div style={{
           display:"flex", alignItems:"center", gap:6, marginBottom:5,
         }}>
-          <span style={{ fontSize:14 }}>💡</span>
+          <HUISupportIcon size={14} style={{flexShrink:0}} />
           <span style={{ fontSize:13, fontWeight:700, color:"#92400E" }}>Tipp</span>
         </div>
         <div style={{ fontSize:12, color:"rgba(120,80,20,0.75)", lineHeight:1.55 }}>

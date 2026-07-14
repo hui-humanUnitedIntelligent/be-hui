@@ -1,5 +1,6 @@
 // SellerPayoutRequestSheet.jsx — Verk\u00e4ufer beantragt Auszahlung wenn K\u00e4ufer nicht best\u00e4tigt
 // PFLICHT: createPortal + zIndex:10500 + useWizardBodyLock + sticky button
+import { HUIDateiIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useWizardBodyLock } from '../../lib/wizardBodyLock.js'
@@ -54,7 +55,7 @@ export default function SellerPayoutRequestSheet({ item, onClose = () => {}, onS
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px 16px', WebkitOverflowScrolling: 'touch' }}>
           {done ? (
             <div style={{ textAlign: 'center', padding: '20px 0' }}>
-              <div style={{ fontSize: 48 }}>📋</div>
+              <div style={{ display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.7)" }}><HUIDateiIcon size={48}/></div>
               <div style={{ fontSize: 18, fontWeight: 700, color: '#1A1A2E', marginTop: 12 }}>Antrag gestellt</div>
               <div style={{ fontSize: 14, color: 'rgba(26,26,46,0.55)', marginTop: 8, lineHeight: 1.6 }}>
                 HUI pr\u00fcft deinen Antrag und meldet sich bei dir. Die Auszahlung erfolgt nach Pr\u00fcfung.

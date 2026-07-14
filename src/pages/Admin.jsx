@@ -945,7 +945,7 @@ function FeedAnalyticsTab() {
 
   if (loading) return (
     <div style={{textAlign:"center",padding:40}}>
-      <div style={{fontSize:32,marginBottom:8}}>📊</div>
+      <div style={{marginBottom:8,display:"flex",justifyContent:"center",color:"rgba(14,196,184,0.5)"}}><HUIStatistikIcon size={32}/></div>
       <div style={{color:C.sub}}>Lade Feed-Analytics…</div>
     </div>
   );
@@ -1171,7 +1171,7 @@ export default function Admin() {
   if (loading) return (
     <div style={{...s,display:"flex",alignItems:"center",justifyContent:"center"}}>
       <div style={{textAlign:"center"}}>
-        <div style={{fontSize:40,marginBottom:12}}>🌱</div>
+        <div style={{marginBottom:12,display:"flex",justifyContent:"center",color:"rgba(14,196,184,0.5)"}}><HUIImpactIcon size={40}/></div>
         <div style={{color:C.teal}}>Lade Admin-Daten…</div>
       </div>
     </div>

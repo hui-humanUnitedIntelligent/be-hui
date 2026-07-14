@@ -15,6 +15,7 @@
 //   - Ungenutzte States: form, paymentMethod, loading
 // ═══════════════════════════════════════════════════════════════════
 
+import { HUIWarnIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef, useEffect } from "react";
 import { EASE, DUR } from "../../design/hui.interaction.js";
 import {
@@ -574,7 +575,7 @@ export default function UnterstutzenFlow({
                         flex: 1, display: "flex", flexDirection: "column",
                         alignItems: "center", justifyContent: "center", gap: 16,
                       }}>
-                        <div style={{ fontSize: 28 }}>⚠️</div>
+                        <div style={{ display:"flex", justifyContent:"center", color:"#F59E0B" }}><HUIWarnIcon size={28}/></div>
                         <div style={{
                           padding: "14px 16px", borderRadius: 14,
                           background: `rgba(244,115,85,0.08)`,
