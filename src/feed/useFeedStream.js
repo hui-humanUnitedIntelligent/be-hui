@@ -18,7 +18,6 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { ProfileService, IDENTITY_CONTRACT } from '../services/db';
 import { supabase }        from "../lib/supabaseClient.js";
 import { useAuth }         from "../lib/AuthContext.jsx";
-import { rhythmizeFeed }   from "./feedRhythmEngine.js";
 import {
   normalizeMomentRow     as normalizeBeitragRow,
   normalizeExperienceRow,
@@ -749,7 +748,6 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
 
   // ── State ──────────────────────────────────────────────────────────────────
   const [items,          setItems]          = useState([]);
-  const [rhythmicItems,  setRhythmicItems]  = useState([]);
   const [loading,        setLoading]        = useState(true);
   const [loadingMore,    setLoadingMore]     = useState(false);
   const [hasMore,        setHasMore]        = useState(true);
@@ -772,11 +770,9 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
     return () => { mountedRef.current = false; };
   }, []);
 
-  // ── Rhythmisierung (nur bei items-Änderung, nicht bei pending) ────────────
+  // ── Cache sync (chronologische items, keine Rhythmisierung) ───────────────
   useEffect(() => {
-    if (items.length === 0) { setRhythmicItems([]); return; }
-    const rhythmic = rhythmizeFeed([...items]);
-    setRhythmicItems(rhythmic);
+    if (items.length === 0) return;
     saveCache(items, cursorRef.current); // FEED.2E: cursorRef.current ist { works, exps, beitr } | null
   }, [items]);
 
@@ -1042,8 +1038,8 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
     // durch die Suchergebnisse ersetzt; Pagination/Realtime laufen im
     // Hintergrund unveraendert weiter und uebernehmen sofort wieder, wenn
     // die Suche verlassen wird (searchQuery wird leer).
-    items:          isSearching ? searchItems : rhythmicItems,
-    rawItems:       items,           // Unverarbeitet (für Debug) -- immer der normale Stream
+    items:          isSearching ? searchItems : items,
+    rawItems:       items,           // Chronologischer Stream (identisch mit items im Normalmodus)
     loading:        isSearching ? searchLoading : loading,
     loadingMore:    isSearching ? false : loadingMore,
     hasMore:        isSearching ? false : hasMore,   // Suchergebnisse v1: keine Pagination
