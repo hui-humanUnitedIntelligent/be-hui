@@ -15,6 +15,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { recordLoadMoreCall } from "./huiFeedRuntimeDiagnostics.js";
 import { ProfileService, IDENTITY_CONTRACT } from '../services/db';
 import { supabase }        from "../lib/supabaseClient.js";
 import { useAuth }         from "../lib/AuthContext.jsx";
@@ -833,6 +834,12 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
 
   // ── Load More (Pagination) ─────────────────────────────────────────────────
   const loadMore = useCallback(async () => {
+    recordLoadMoreCall("loadMore()", {
+      hasNextPage: hasMore,
+      isFetching: loading,
+      isFetchingNextPage: loadingMore,
+      blocked: loadingMore || !hasMore,
+    });
     if (loadingMore || !hasMore) return;
 
     // Prefetch bereits vorhanden? → sofort einfügen

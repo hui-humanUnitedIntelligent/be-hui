@@ -9,18 +9,48 @@
  */
 
 import { useEffect, useRef, useCallback } from "react";
+import {
+  isFeedDiagnosticsActive,
+  recordObserverEvent,
+} from "./huiFeedRuntimeDiagnostics.js";
 
 // ── Bottom Sentinel (triggert loadMore) ──────────────────────────────────────
-export function FeedBottomSentinel({ onVisible, enabled = true }) {
+export function FeedBottomSentinel({ onVisible, enabled = true, sentinelRef = null }) {
   const ref = useRef(null);
+
+  useEffect(() => {
+    if (sentinelRef) sentinelRef.current = ref.current;
+  });
 
   useEffect(() => {
     if (!enabled || !ref.current) return;
     const el = ref.current;
+    const diagnostics = isFeedDiagnosticsActive();
 
     const observer = new IntersectionObserver(
       ([entry]) => {
+        if (diagnostics) {
+          const rect = el.getBoundingClientRect();
+          recordObserverEvent(entry.isIntersecting ? "intersecting" : "not_intersecting", {
+            isIntersecting: entry.isIntersecting,
+            intersectionRatio: entry.intersectionRatio,
+            boundingClientRect: {
+              top: rect.top,
+              bottom: rect.bottom,
+              left: rect.left,
+              right: rect.right,
+              height: rect.height,
+            },
+            rootBounds: entry.rootBounds ? {
+              top: entry.rootBounds.top,
+              bottom: entry.rootBounds.bottom,
+              height: entry.rootBounds.height,
+            } : null,
+            enabled,
+          });
+        }
         if (entry.isIntersecting) {
+          if (diagnostics) recordObserverEvent("loadMore_triggered", { enabled });
           onVisible?.();
         }
       },
@@ -31,7 +61,11 @@ export function FeedBottomSentinel({ onVisible, enabled = true }) {
       }
     );
     observer.observe(el);
-    return () => observer.disconnect();
+    if (diagnostics) recordObserverEvent("observer_connected", { enabled });
+    return () => {
+      if (diagnostics) recordObserverEvent("observer_disconnected", { enabled });
+      observer.disconnect();
+    };
   }, [enabled, onVisible]);
 
   return (
