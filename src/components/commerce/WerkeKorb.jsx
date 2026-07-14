@@ -5,6 +5,8 @@
 import { HUIImpactIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { EASE, DUR } from "../../design/hui.interaction.js";
+import HuiImage from "../ui/HuiImage.jsx";
+import { IMAGE_SIZES } from "../../lib/huiImageUtils.js";
 import { NAV_CLEARANCE_CSS } from "../home/navigation/navigationGeometry.js";
 import {
   C, TYPE_META, haptic as haptic_,
@@ -312,8 +314,8 @@ function KorbKarte({ item, onRemove, idx, removing, onQtyChange }) {
         boxShadow:    "0 4px 14px rgba(20,20,34,0.10)",
       }}>
         {thumb
-          ? <img src={thumb} alt="" loading="lazy"
-              style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+          ? <HuiImage src={thumb} alt="" fill width={88} height={88}
+              borderRadius={18} sizes={IMAGE_SIZES.thumb} placeholder="shimmer" />
           : <span style={{ fontSize: 32, opacity: 0.35, color: meta.accent }}>◈</span>
         }
       </div>
@@ -527,10 +529,9 @@ function PersonGruppe({ group, onRemove, removingId, onQtyChange }) {
       }}>
         {/* Avatar */}
         {group.avatar
-          ? <img loading="lazy" decoding="async" src={group.avatar} alt=""
+          ? <HuiImage src={group.avatar} alt="" width={36} height={36} variant="avatar"
+              sizes={IMAGE_SIZES.avatarSm} placeholder="shimmer"
               style={{
-                width: 36, height: 36, borderRadius: "50%",
-                objectFit: "cover", flexShrink: 0,
                 border: `1.5px solid ${C.tealPale}`,
                 boxShadow: "0 1px 8px rgba(13,196,181,0.14)",
               }} />

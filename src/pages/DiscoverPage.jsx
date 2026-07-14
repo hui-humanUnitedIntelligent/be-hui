@@ -22,6 +22,8 @@ import { HUIHeartIcon, HUIChatIcon } from "../design/icons/HuiInteractionIcons.j
 import HuiLiveTicker from "../components/shared/HuiLiveTicker.jsx"; // LIVETICKER.1 2026-07-08 -- ersetzt LiveActivityBar (war Fake-Daten)
 import { useContentPreview } from "../context/ContentPreviewContext.jsx"; // OPEN.1 2026-07-08 -- geteilte Vorschau statt totem Tap / falschem Sprung
 import { normalizePostForPreview, normalizeProjectForPreview, normalizeWirkerForPreview } from "../lib/previewNormalizers.js";
+import HuiImage, { HuiImageSkeleton } from "../components/ui/HuiImage.jsx";
+import { IMAGE_SIZES } from "../lib/huiImageUtils.js";
 
 // ── Design Tokens ────────────────────────────────────────────────
 const T = {
@@ -146,9 +148,22 @@ function ViewToggle({ view, onChange }) {
   );
 }
 
-// ── Skeleton ─────────────────────────────────────────────────────
+// ── Skeleton & Image Helpers (HUI P5) ────────────────────────────
 function Skel({ w="100%", h=14, r=10, mb=0 }) {
-  return <div className="dp-skel" style={{ width:w, height:h, borderRadius:r, marginBottom:mb }} />;
+  return <HuiImageSkeleton width={w} height={h} borderRadius={r} style={{ marginBottom: mb }} />;
+}
+
+function DpThumb({ src, alt = "", priority = false, size = 58, radius = 12, className, style, fill }) {
+  if (!src) return null;
+  return (
+    <HuiImage
+      src={src} alt={alt}
+      width={fill ? undefined : size} height={fill ? undefined : size}
+      fill={fill} borderRadius={radius}
+      priority={priority} sizes={IMAGE_SIZES.thumb}
+      placeholder="shimmer" className={className} style={style}
+    />
+  );
 }
 
 // ── Section Header ────────────────────────────────────────────────
@@ -292,8 +307,9 @@ function PersonCard({ person, onPress, delay=0 }) {
           display:"flex", alignItems:"center", justifyContent:"center",
         }}>
           {av ? (
-            <img loading="lazy" decoding="async" src={av} alt={person.name} onError={() => setImgErr(true)}
-              style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
+            <HuiImage src={av} alt={person.name} width={72} height={72} variant="avatar"
+              priority={delay < 200} sizes={IMAGE_SIZES.avatar} placeholder="shimmer"
+              onError={() => setImgErr(true)} />
           ) : (
             <HUIProfilIcon size={26} style={{opacity:0.4, color:"rgba(14,196,184,0.6)"}} />
           )}
@@ -418,7 +434,7 @@ function PeopleSection({ people, onPersonPress, loading, delay=0, view='cards', 
             : people.map((p, i) => (
                 <div key={p.id} className="dp-list-card" onClick={() => onPersonPress?.(p)}>
                   {p.avatar
-                    ? <img loading="lazy" decoding="async" src={p.avatar} alt={p.name} className="dp-list-thumb" onError={e => e.target.style.display='none'}/>
+                    ? <DpThumb src={p.avatar} alt={p.name} className="dp-list-thumb" />
                     : <div className="dp-list-thumb-placeholder" style={{display:"flex",alignItems:"center",justifyContent:"center"}}><HUIProfilIcon size={24} style={{opacity:0.35, color:"rgba(14,196,184,0.5)"}}/></div>
                   }
                   <div style={{ flex:1, overflow:"hidden" }}>
@@ -467,9 +483,8 @@ function MomentCard({ moment, delay=0, onPress }) {
       {/* Bild */}
       <div style={{ width:"100%", height:130, position:"relative", overflow:"hidden" }}>
         {!imgErr && moment.src ? (
-          <img loading="lazy" decoding="async" src={moment.src} alt={moment.caption}
-            onError={() => setImgErr(true)}
-            style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
+          <HuiImage src={moment.src} alt={moment.caption} fill height={130}
+            sizes={IMAGE_SIZES.card} placeholder="shimmer" onError={() => setImgErr(true)} />
         ) : (
           <div style={{ width:"100%", height:"100%", background:`linear-gradient(135deg,${T.tealSoft},${T.coralSoft})`, display:"flex", alignItems:"center", justifyContent:"center" }}>
             <HUIFotoIcon size={32} style={{opacity:0.3, color:"rgba(14,196,184,0.5)"}} />
@@ -568,7 +583,7 @@ function MomenteSection({ momente, loading, delay=0, view='cards', onPress, onSe
             : momente.map((m) => (
                 <div key={m.id} className="dp-list-card" onClick={() => onPress?.(m)} style={{cursor:"pointer"}}>
                   {m.src
-                    ? <img loading="lazy" decoding="async" src={m.src} alt={m.caption} className="dp-list-thumb" onError={e => e.target.style.display='none'} style={{ objectFit:"cover" }}/>
+                    ? <DpThumb src={m.src} alt={m.caption} className="dp-list-thumb" style={{ objectFit:"cover" }} />
                     : <div className="dp-list-thumb-placeholder" style={{display:"flex",alignItems:"center",justifyContent:"center"}}><HUIFotoIcon size={24} style={{opacity:0.3, color:"rgba(14,196,184,0.5)"}}/></div>
                   }
                   <div style={{ flex:1, overflow:"hidden" }}>
@@ -680,8 +695,8 @@ function TalentCard({ talent, delay=0, onPress }) {
       {/* Cover */}
       <div style={{ width:"100%", height:120, position:"relative", overflow:"hidden", background:cover ? "#1A1A18" : medCol.bg }}>
         {cover ? (
-          <img loading="lazy" decoding="async" src={cover} alt={talent.title} onError={() => setImgErr(true)}
-            style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
+          <HuiImage src={cover} alt={talent.title} fill height={120}
+            sizes={IMAGE_SIZES.card} placeholder="shimmer" onError={() => setImgErr(true)} />
         ) : (
           <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:6 }}>
             <HUIImpactIcon size={32} style={{opacity:0.3, color:"rgba(14,196,184,0.5)"}} />
@@ -829,7 +844,7 @@ function TalenteSection({
                 return (
                   <div key={t.id} className="dp-list-card" onClick={() => onPress?.(t)}>
                     {t.cover
-                      ? <img loading="lazy" decoding="async" src={t.cover} alt={t.title} className="dp-list-thumb" onError={e => e.target.style.display='none'} style={{ objectFit:"cover" }}/>
+                      ? <DpThumb src={t.cover} alt={t.title} className="dp-list-thumb" style={{ objectFit:"cover" }} />
                       : <div className="dp-list-thumb-placeholder" style={{display:"flex",alignItems:"center",justifyContent:"center"}}><HUIImpactIcon size={24} style={{opacity:0.3, color:"rgba(14,196,184,0.5)"}}/></div>
                     }
                     <div style={{ flex:1, overflow:"hidden" }}>
@@ -895,8 +910,8 @@ function WerkCard({ werk, delay=0, onPress }) {
       {/* Cover */}
       <div style={{ width:"100%", height:120, position:"relative", overflow:"hidden", background:cover ? "#1A1A18" : medCol.bg }}>
         {cover ? (
-          <img loading="lazy" decoding="async" src={cover} alt={werk.title} onError={() => setImgErr(true)}
-            style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
+          <HuiImage src={cover} alt={werk.title} fill height={120}
+            sizes={IMAGE_SIZES.card} placeholder="shimmer" onError={() => setImgErr(true)} />
         ) : (
           <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:6 }}>
             <HUIWerkeIcon size={32} style={{opacity:0.3, color:"rgba(14,196,184,0.5)"}} />
@@ -1064,7 +1079,8 @@ function WerkeSection({
                   <div key={w.id} className="dp-list-card" onClick={() => onPress?.(w)} style={{cursor:"pointer"}}>
                     <div className="dp-list-thumb-placeholder" style={{ background: w.cover ? "#1A1A18" : medCol.bg }}>
                       {w.cover
-                        ? <img loading="lazy" decoding="async" src={w.cover} alt={w.title} style={{ width:"100%", height:"100%", objectFit:"cover", borderRadius:12 }} onError={e => e.currentTarget.style.display="none"}/>
+                        ? <HuiImage src={w.cover} alt={w.title} fill borderRadius={12}
+                            sizes={IMAGE_SIZES.thumb} placeholder="shimmer" />
                         : <span style={{ fontSize:20 }}>🎨</span>
                       }
                     </div>
@@ -1135,8 +1151,10 @@ function ErlebnisCard({ erlebnis, delay=0, onPress }) {
       {/* Cover */}
       <div style={{ width:"100%", height:120, position:"relative", overflow:"hidden", background:cover ? "#1A1A18" : T.tealSoft }}>
         {cover ? (
-          <img loading="lazy" decoding="async" src={cover} alt={erlebnis.title} onError={() => setImgErr(true)}
-            style={{ width:"100%", height:"100%", objectFit:"cover", display:"block", opacity:0.88 }}/>
+          <HuiImage src={cover} alt={erlebnis.title} fill height={120}
+            sizes={IMAGE_SIZES.card} placeholder="shimmer"
+            imgStyle={{ opacity: 0.88 }}
+            onError={() => setImgErr(true)} />
         ) : (
           <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
             <HUIKalenderIcon size={36} style={{opacity:0.35, color:"rgba(14,196,184,0.5)"}} />
@@ -1249,7 +1267,8 @@ function ErlebnisseSection({
                   <div key={e.id} className="dp-list-card">
                     <div className="dp-list-thumb-placeholder" style={{ background: e.cover ? "#1A1A18" : T.tealSoft, position:"relative", overflow:"hidden" }}>
                       {e.cover
-                        ? <img loading="lazy" decoding="async" src={e.cover} alt={e.title} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} onError={ev => ev.currentTarget.style.display="none"}/>
+                        ? <HuiImage src={e.cover} alt={e.title} fill
+                            sizes={IMAGE_SIZES.thumb} placeholder="shimmer" />
                         : <HUIKalenderIcon size={20} style={{color:"rgba(14,196,184,0.5)"}} />
                       }
                       {e.date && (
@@ -1315,8 +1334,10 @@ function ProjektCard({ projekt, delay=0, onPress }) {
       {/* Cover */}
       <div style={{ width:"100%", height:90, position:"relative", overflow:"hidden", background:cover?"#000":cc.bg }}>
         {cover ? (
-          <img loading="lazy" decoding="async" src={cover} alt={projekt.title} onError={() => setImgErr(true)}
-            style={{ width:"100%", height:"100%", objectFit:"cover", display:"block", opacity:0.82 }}/>
+          <HuiImage src={cover} alt={projekt.title} fill height={90}
+            sizes={IMAGE_SIZES.card} placeholder="shimmer"
+            imgStyle={{ opacity: 0.82 }}
+            onError={() => setImgErr(true)} />
         ) : (
           <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
             <span style={{ fontSize:28, opacity:0.4 }}>🌍</span>
@@ -1386,9 +1407,9 @@ function ProjekteSection({ projekte, loading, delay=0, view='cards', onPress, on
               animationDelay:`${delay}ms`,
             }}>
               {hero.cover && (
-                <img loading="lazy" decoding="async" src={hero.cover} alt={hero.title}
-                  style={{ position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",opacity:0.75 }}
-                  onError={e => e.target.style.display="none"}/>
+                <HuiImage src={hero.cover} alt={hero.title} fill height={180}
+                  priority={delay < 300} sizes={IMAGE_SIZES.hero} placeholder="shimmer"
+                  imgStyle={{ opacity: 0.75 }} />
               )}
               {/* Gradient */}
               <div style={{ position:"absolute",inset:0,background:"linear-gradient(to top,rgba(0,0,0,0.80) 0%,rgba(0,0,0,0.10) 60%)" }}/>
@@ -1447,7 +1468,9 @@ function ProjekteSection({ projekte, loading, delay=0, view='cards', onPress, on
                   <div key={p.id} className="dp-list-card" onClick={() => onPress?.(p)} style={{cursor:"pointer"}}>
                     <div className="dp-list-thumb-placeholder" style={{ background:cc.bg, position:"relative", overflow:"hidden" }}>
                       {p.cover
-                        ? <img loading="lazy" decoding="async" src={p.cover} alt={p.title} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0.85 }} onError={ev => ev.target.style.display='none'}/>
+                        ? <HuiImage src={p.cover} alt={p.title} fill
+                            sizes={IMAGE_SIZES.thumb} placeholder="shimmer"
+                            imgStyle={{ opacity: 0.85 }} />
                         : <span>🌍</span>
                       }
                     </div>
@@ -1501,7 +1524,8 @@ function OrteSection({ onMap, delay=0, view='cards' }) {
             <div key={ort.id} className="dp-list-card" onClick={onMap}>
               <div className="dp-list-thumb-placeholder" style={{ position:"relative", overflow:"hidden" }}>
                 {ort.cover
-                  ? <img loading="lazy" decoding="async" src={ort.cover} alt={ort.name} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} onError={e => e.target.style.display='none'}/>
+                  ? <HuiImage src={ort.cover} alt={ort.name} fill
+                      sizes={IMAGE_SIZES.thumb} placeholder="shimmer" />
                   : <HUILocationIcon size={11} style={{flexShrink:0}} />
                 }
               </div>
@@ -1533,8 +1557,8 @@ function OrtCard({ ort, delay=0, onMap }) {
     }}>
       <div style={{ width:"100%", height:68, overflow:"hidden", position:"relative", background:T.tealSoft }}>
         {!imgErr && ort.cover ? (
-          <img loading="lazy" decoding="async" src={ort.cover} alt={ort.name} onError={() => setImgErr(true)}
-            style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
+          <HuiImage src={ort.cover} alt={ort.name} fill height={68}
+            sizes={IMAGE_SIZES.thumb} placeholder="shimmer" onError={() => setImgErr(true)} />
         ) : (
           <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
             <HUILocationIcon size={24} style={{opacity:0.4, color:"rgba(14,196,184,0.5)"}} />

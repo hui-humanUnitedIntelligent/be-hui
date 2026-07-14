@@ -5,8 +5,10 @@ import ReactDOM from 'react-dom/client'
 import App from './App'
 import './index.css'
 import { initSentry, sentryCapture } from './lib/sentry'
+import { initWebVitals } from './lib/webVitals'
 
 initSentry();
+initWebVitals();
 
 // ── DEV: Contract Inspector ──────────────────────────────────────
 // In DevTools: window.__HUI_CONTRACTS?.()

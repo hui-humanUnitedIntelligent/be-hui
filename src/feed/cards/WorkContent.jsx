@@ -14,7 +14,7 @@ function formatPrice(val) {
   return n.toLocaleString("de-DE", { minimumFractionDigits:0 }) + " \u20ac";
 }
 
-export default function WorkContent({ item, onProfile, onReaction, onShare, onBuyWerk, onDetail }) {
+export default function WorkContent({ item, onProfile, onReaction, onShare, onBuyWerk, onDetail, imagePriority }) {
   if (!item) return null;
 
   const title    = item.title || item.text || "";
@@ -46,6 +46,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
       onReaction={onReaction}
       onShare={onShare}
       onCardClick={handleCardClick}
+      imagePriority={imagePriority}
     >
 
       {/* Beschreibung (falls vorhanden, über dem Bild) */}

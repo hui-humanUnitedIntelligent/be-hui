@@ -1,4 +1,5 @@
 // src/lib/perfUtils.js — HUI Performance Utils
+import { optimizeImageUrl } from "./huiImageUtils.js";
 // VERIFIZIERT: Nur Spalten die in profiles wirklich existieren (Stand 2026-06-08)
 // Verboten: membership_type, has_talent_profile, is_wirker, wirkerProfile,
 //           ambassador_level, ref_link, referred_users_count, impact_revenue,
@@ -106,10 +107,7 @@ export async function batchQueries(queries) {
 }
 
 export function optimizeImg(url, width = 400) {
-  if (!url) return url;
-  if (url.includes('unsplash.com')) return `${url}&w=${width}&q=80&auto=format`;
-  if (url.includes('supabase')) return url; // Supabase hat eigene Optimierung
-  return url;
+  return optimizeImageUrl(url, width);
 }
 
 export function normalizeProfileInput(raw) {

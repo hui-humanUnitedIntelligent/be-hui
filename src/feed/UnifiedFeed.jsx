@@ -507,6 +507,7 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
         onBook={onBook}
         onDetail={onDetail}
         onShare={onShare}
+        imagePriority={typeof itemIndex === "number" && itemIndex < 3}
       />
     </div>
   );

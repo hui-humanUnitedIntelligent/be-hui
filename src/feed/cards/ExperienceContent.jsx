@@ -6,7 +6,7 @@ const TEAL = "#0DC4B5";
 const INK  = "#1A1A2E";
 const INK3 = "rgba(26,26,46,0.42)";
 
-export default function ExperienceContent({ item, onProfile, onReaction, onShare, onBook }) {
+export default function ExperienceContent({ item, onProfile, onReaction, onShare, onBook, imagePriority }) {
   if (!item) return null;
   const { open } = useContentPreview(); // OPEN.1 2026-07-08 -- Karte oeffnet jetzt Vorschau statt nichts zu tun
 
@@ -30,7 +30,7 @@ export default function ExperienceContent({ item, onProfile, onReaction, onShare
 
   return (
     <BaseFeedCard item={item} onProfile={onProfile} onReaction={onReaction} onShare={onShare}
-      onCardClick={() => open(item)}>
+      onCardClick={() => open(item)} imagePriority={imagePriority}>
 
       {/* Beschreibung */}
       {desc && (

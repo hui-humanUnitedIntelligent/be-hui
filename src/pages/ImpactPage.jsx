@@ -12,6 +12,8 @@ import { ProfileService } from '../services/db';
 import { supabase } from "../lib/supabaseClient";
 import { ImpactService, FeedService } from "../services/db.js";
 import { HUI } from "../design/hui.design.js";
+import HuiImage from "../components/ui/HuiImage.jsx";
+import { IMAGE_SIZES } from "../lib/huiImageUtils.js";
 import ImpactFlow from "../system/flows/impact/ImpactFlow.jsx";
 import ImpactProjektUpdateSheet from "../components/studio/ImpactProjektUpdateSheet.jsx";
 import { useAuth } from "../lib/AuthContext";
@@ -1590,11 +1592,14 @@ function BigHero({ stats, pool }) {
         position:"absolute", top:0, right:0, width:"52%", height:"100%",
         overflow:"hidden",
       }}>
-        <img src={HERO_IMG} alt="" loading="eager" decoding="sync" style={{
-          width:"100%", height:"100%", objectFit:"cover",
-          objectPosition:"center",
-          filter:"saturate(0.82) brightness(0.90)",
-        }}/>
+        <HuiImage src={HERO_IMG} alt="" fill priority sizes={IMAGE_SIZES.hero}
+          placeholder="shimmer"
+          imgStyle={{
+            objectFit: "cover",
+            objectPosition: "center",
+            filter: "saturate(0.82) brightness(0.90)",
+          }}
+        />
         {/* Gradient-Überblendung nach links */}
         <div style={{
           position:"absolute", inset:0,

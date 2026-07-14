@@ -6,7 +6,7 @@ const PURPLE = "#7264D6";
 const INK    = "#1A1A2E";
 const INK3   = "rgba(26,26,46,0.42)";
 
-export default function EventContent({ item, onProfile, onReaction, onShare }) {
+export default function EventContent({ item, onProfile, onReaction, onShare, imagePriority }) {
   if (!item) return null;
   const { open } = useContentPreview(); // OPEN.1 2026-07-08
 
@@ -33,7 +33,7 @@ export default function EventContent({ item, onProfile, onReaction, onShare }) {
 
   return (
     <BaseFeedCard item={item} onProfile={onProfile} onReaction={onReaction} onShare={onShare}
-      onCardClick={() => open(item)}>
+      onCardClick={() => open(item)} imagePriority={imagePriority}>
 
       {desc && (
         <p style={{ margin:"0 0 10px", fontSize:13.5, fontWeight:400, color:"rgba(26,26,46,0.65)", lineHeight:1.55 }}>
