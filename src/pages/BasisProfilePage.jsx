@@ -19,7 +19,7 @@ import { HUIImpactIcon, HUISettingsIcon, HUISicherheitIcon } from '../design/ico
 import { useState, useEffect, useCallback } from 'react';
 import { useProfileData } from "../hooks/useProfileData.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
-import { useHome }   from "../components/home/HomeShell.jsx";
+import { useHomeDispatch } from "../components/home/HomeShell.jsx";
 import SettingsModal  from "../components/settings/SettingsModal.jsx";
 import HuiStudio      from "../components/studio/HuiStudio.jsx";
 import { supabase }   from "../lib/supabaseClient.js";
@@ -386,7 +386,7 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
   const handleBack = useCallback(()=>{ if(onClose) onClose(); }, [onClose]);
 
   // P3: Chat-Einstieg via ChatCenterOverlay — identisch zu TalentProfilePage
-  const { setShowChat, setChatRecipient } = useHome() || {};
+  const { setShowChat, setChatRecipient } = useHomeDispatch() || {};
   const handleOpenChat = useCallback(() => {
     if (!profile?.id || !setShowChat) return;
     setChatRecipient?.({

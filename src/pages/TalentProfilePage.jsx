@@ -20,7 +20,7 @@ import { createPortal } from "react-dom";
 import { supabase } from "../lib/supabaseClient.js";
 import { useAuth }  from "../lib/AuthContext.jsx";
 import { notifyWatcher } from "../lib/notificationService.js";
-import { useHome }       from "../components/home/HomeShell.jsx";
+import { useHomeDispatch } from "../components/home/HomeShell.jsx";
 import SettingsModal  from "../components/settings/SettingsModal.jsx";
 import HuiStudio      from "../components/studio/HuiStudio.jsx";
 // Sprint D: Datenlayer
@@ -1144,7 +1144,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
   const handleBack = useCallback(() => { onClose?.(); }, [onClose]);
 
   // Chat via CCO (identisch zu bisheriger Logik)
-  const { setShowChat, setChatRecipient } = useHome() || {};
+  const { setShowChat, setChatRecipient } = useHomeDispatch() || {};
   const handleOpenChat = useCallback(() => {
     if (!profile?.id) return;
     setChatRecipient({

@@ -15,7 +15,7 @@ import {
 } from "../lib/profileMedia.js";
 import { NAV_RESERVED_HEIGHT_CSS } from "../components/home/navigation/navigationGeometry.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
-import { useHome }   from "../components/home/HomeShell.jsx";
+import { useHomeDispatch } from "../components/home/HomeShell.jsx";
 const GemeinschaftsFlow = React.lazy(() => import("../components/GemeinschaftsFlow.jsx"));
 const NotificationPanel = React.lazy(() => import("../components/notifications/NotificationPanel.jsx"));
 import AmbassadorModal from "../components/ambassador/AmbassadorModal.jsx";
@@ -429,7 +429,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
     setShowChat       = () => {},
     setShowWerkDetail = () => {},
     setShowTalentFlow = () => {},
-  } = useHome?.() || {};
+  } = useHomeDispatch() || {};
   const { openRef } = useContentPreview();
 
   const handleNotifAction = (n) => {
@@ -1742,7 +1742,7 @@ function MeinBereichMenu({
   onOpenResonanz = () => {},
   onProfileUpdate = () => {},
 }) {
-  const { switchTab } = useHome();
+  const { switchTab } = useHomeDispatch() || {};
   const [activeDrawer, setActiveDrawer] = useState(null); // talente|werke|erlebnisse|ambassador|empfehlungen|impact|finanzen
   const [impactDetail, setImpactDetail] = useState(null); // stimmen|projekte
   const [financeDetail, setFinanceDetail] = useState(null); // ein_aus|verkaeufe|buchungen|statistiken

@@ -1,30 +1,22 @@
 // src/core/HuiActionProvider.jsx
 // ══════════════════════════════════════════════════════════════════
-// Wraps HomeShell children — bridges HomeCtx state into ActionCtx.
-// Place INSIDE HomeShell (so useHome() is available).
-//
-// USAGE in HomeShell.jsx:
-//   import HuiActionProvider from "../../core/HuiActionProvider.jsx";
-//   // Inside HomeShell return, wrap children:
-//   <HomeCtx.Provider value={ctx}>
-//     <HuiActionProvider>
-//       {children}
-//     </HuiActionProvider>
-//   </HomeCtx.Provider>
+// Wraps HomeShell children — bridges HomeDispatchCtx into ActionCtx.
+// P3: Nutzt stabilen Dispatch-Slice statt vollem HomeCtx →
+//     buildActions() läuft einmal, kein Rebuild bei Overlay-Änderungen.
 // ══════════════════════════════════════════════════════════════════
 
 import React, { useMemo } from "react";
 import { ActionCtx, buildActions } from "./hui.actions.js";
-import { useHome } from "../components/home/HomeShell.jsx";
+import { useHomeDispatch } from "../components/home/HomeShell.jsx";
 
 export default function HuiActionProvider({ children }) {
-  const shell = useHome();
+  const dispatch = useHomeDispatch();
 
-  // Rebuild actions only when shell reference changes
-  // shell is the full HomeCtx value — stable reference from useMemo in HomeShell
+  // dispatch-Referenz ist stabil (useMemo mit [] in HomeShell)
   const actions = useMemo(() => {
-    return buildActions(shell);
-  }, [shell]);
+    if (!dispatch) return null;
+    return buildActions(dispatch);
+  }, [dispatch]);
 
   return (
     <ActionCtx.Provider value={actions}>

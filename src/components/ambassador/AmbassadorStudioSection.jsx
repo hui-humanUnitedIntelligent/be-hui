@@ -10,7 +10,7 @@ import { HUIGemeinschaftIcon, HUILinkIcon, HUIMailIcon, HUIVerifIcon } from '../
 
 import { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { useHome } from "../home/HomeShell.jsx";
+import { useHomeDispatch } from "../home/HomeShell.jsx";
 import { supabase } from "../../lib/supabaseClient.js";
 import AmbassadorModal from "./AmbassadorModal.jsx";
 import AmbassadorPayoutPanel from "./AmbassadorPayoutPanel.jsx";
@@ -581,7 +581,7 @@ function AmbassadorStudioSection({ profile }) {
 // Kein Löschen, kein Mutieren — nur lesen + navigieren
 // ═══════════════════════════════════════════════════════════════
 function EinladungenModal({ ambassadorId, username, onClose }) {
-  const { openProfileById } = useHome();
+  const { openProfileById } = useHomeDispatch() || {};
   const [invited, setInvited] = useState([]);
   const [loading, setLoading] = useState(true);
 
