@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, memo } from "react";
 import BaseFeedCard from "./BaseFeedCard.jsx";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
 
@@ -14,7 +14,7 @@ function formatPrice(val) {
   return n.toLocaleString("de-DE", { minimumFractionDigits:0 }) + " \u20ac";
 }
 
-export default function WorkContent({ item, onProfile, onReaction, onShare, onBuyWerk, onDetail }) {
+const WorkContent = memo(function WorkContent({ item, onProfile, onReaction, onShare, onBuyWerk, onDetail }) {
   if (!item) return null;
 
   const title    = item.title || item.text || "";
@@ -33,11 +33,11 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
   // mit allen anderen Feed-Typen). Von dort aus fuehrt "Vollstaendige
   // Ansicht oeffnen" weiterhin zu /work/:id -- keine Funktion verloren.
   const { open } = useContentPreview();
-  const handleCardClick = () => open({
+  const handleCardClick = useCallback(() => open({
     ...item,
     canOpenFull: true,
     fullPath: `/work/${item.id}`,
-  });
+  }), [open, item]);
 
   return (
     <BaseFeedCard
@@ -148,4 +148,6 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
       )}
     </BaseFeedCard>
   );
-}
+});
+
+export default WorkContent;

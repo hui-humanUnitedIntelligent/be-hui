@@ -5,7 +5,8 @@
 // Shimmer skeleton · Lazy image loading · Scale press states
 // GPU-accelerated animations via transform
 // ══════════════════════════════════════════════════════════════
-import React, { useState, useRef, useCallback, memo } from "react";
+import React, { useState, useRef, useCallback, useMemo, useLayoutEffect, memo } from "react";
+import { profMark, profRender } from "./feedCardProfiler.js";
 import { PresenceDot, fmtPresence } from "../../lib/usePresence.jsx";
 import { MembershipLabel } from "../../components/ui/TalentBadge.jsx";
 // HUI Interaction Language v1.0 (2026-07-05) — Single Source of Truth fuer
@@ -104,7 +105,7 @@ export function CardSkeleton() {
 }
 
 // ── Avatar ────────────────────────────────────────────────────
-const CardAvatar = memo(function CardAvatar({ src, name, size = 38, isTalent = false }) {
+const CardAvatar = memo(function CardAvatar({ src, name, size = 38, isTalent = false, markId }) {
   const [err, setErr] = useState(false);
   const letter = ((name || "H")[0] || "H").toUpperCase();
   return (
@@ -117,7 +118,8 @@ const CardAvatar = memo(function CardAvatar({ src, name, size = 38, isTalent = f
       fontSize:size*0.38,fontWeight:700,color:T.teal,
     }}>
       {src && !err
-        ? <img loading="lazy" decoding="async" src={src} alt={name||""} onError={() => setErr(true)}
+        ? <img loading="eager" decoding="async" fetchPriority="high" src={src} alt={name||""} onError={() => setErr(true)}
+            onLoad={() => markId && profMark(markId, "avatar-visible")}
             style={{ width:"100%",height:"100%",objectFit:"cover" }} />
         : letter}
     </div>
@@ -209,7 +211,25 @@ function getBegegnungsgrund(item) {
 // Zeile 1: Avatar (52px rund) · Name · Zeit rechts · ⋮
 // Zeile 2: Talent (farbig) · Pin-SVG · Ort
 // Zeile 3: " (groß, orange) + Story-Satz
+function headerPropsAreEqual(prev, next) {
+  if (prev.onProfile !== next.onProfile) return false;
+  const a = prev.item, b = next.item;
+  if (!a || !b) return a === b;
+  if (a.id !== b.id) return false;
+  return (
+    a.author === b.author &&
+    a.type === b.type &&
+    a.title === b.title &&
+    a.text === b.text &&
+    a.location === b.location &&
+    a.createdAt === b.createdAt &&
+    a._presenceStatus === b._presenceStatus &&
+    a._raw === b._raw
+  );
+}
+
 export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
+  profRender("HumanHeader", item?.id);
   const author   = item?.author || {};
   // ── TRACE STEP 8 ──────────────────────────────────────
   if (!window.__HUI_STEP8_DONE__ && item?.type === "work") {
@@ -228,8 +248,18 @@ export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
   const mType    = author.membershipType || "base";
   const presence = item?._presenceStatus || null;
   const timeStr  = item?.createdAt || null;
-  const grund    = getBegegnungsgrund(item);
+  const grund    = useMemo(
+    () => getBegegnungsgrund(item),
+    [item?.id, item?.type, item?.title, item?.text, item?.location, item?.author, item?._raw]
+  );
   const [pressed, setPressed] = React.useState(false);
+
+  useLayoutEffect(() => {
+    if (item?.id) {
+      profMark(item.id, "text-visible");
+      profMark(item.id, "card-created");
+    }
+  }, [item?.id]);
 
   // Talent-Akzentfarbe: Wirker=Teal, Ambassador=Coral, Basis=gedämpft
   const talentColor = (isT || mType === "talent" || mType === "wirker")
@@ -254,7 +284,7 @@ export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
             WebkitTapHighlightColor:"transparent", cursor:"pointer",
           }}
         >
-          <CardAvatar src={avatar} name={name} size={52} isTalent={isT} />
+          <CardAvatar src={avatar} name={name} size={52} isTalent={isT} markId={item?.id} />
           {presence === "online" && (
             <div style={{
               position:"absolute", bottom:2, right:2,
@@ -330,7 +360,7 @@ export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
       )}
     </div>
   );
-});
+}, headerPropsAreEqual);
 
 
 // ── Header ────────────────────────────────────────────────────
@@ -413,7 +443,17 @@ export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge
 });
 
 // ── Media (lazy + fade-in + double-tap like) ──────────────────
-export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDoubleTap }) {
+function feedMediaPropsAreEqual(prev, next) {
+  return (
+    prev.media === next.media &&
+    prev.alt === next.alt &&
+    prev.relaxed === next.relaxed &&
+    prev.onDoubleTap === next.onDoubleTap
+  );
+}
+
+export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDoubleTap, cardId }) {
+  profRender("FeedMedia", cardId);
   const [err,     setErr]     = useState(false);
   const [loaded,  setLoaded]  = useState(false);
   const [heartPos,setHeartPos]= useState(null);
@@ -433,11 +473,10 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
 
   const h = relaxed ? 340 : T.mediaH;
 
-  function handleTap(e) {
+  const handleTap = useCallback((e) => {
     const now = Date.now();
     const dt  = now - tapRef.current.t;
     if (dt < 320 && dt > 60) {
-      // Double tap
       const rect = e.currentTarget.getBoundingClientRect();
       const cx = (e.touches?.[0]?.clientX || e.clientX) - rect.left;
       const cy = (e.touches?.[0]?.clientY || e.clientY) - rect.top;
@@ -446,7 +485,7 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
       setTimeout(() => setHeartPos(null), 750);
     }
     tapRef.current = { t: now };
-  }
+  }, [onDoubleTap]);
 
   return (
     <div
@@ -475,8 +514,13 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
       <img
         src={url}
         alt={alt || ""}
-        loading="lazy"
-        onLoad={() => setLoaded(true)}
+        loading="eager"
+        decoding="async"
+        fetchPriority="high"
+        onLoad={() => {
+          setLoaded(true);
+          if (cardId) profMark(cardId, "image-visible");
+        }}
         onError={() => setErr(true)}
         className="hui-card-img"
         style={{
@@ -503,7 +547,7 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
       )}
     </div>
   );
-});
+}, feedMediaPropsAreEqual);
 
 // ── Action Button ─────────────────────────────────────────────
 // HUI Interaction Language v1.0: "Icon" ist eine der vier zentralen SVG-
@@ -654,11 +698,50 @@ function getResonanzText(r) {
 }
 
 // ── Actions bar ───────────────────────────────────────────────
+function feedActionsPropsAreEqual(prev, next) {
+  const pr = prev.reactions || {}, nr = next.reactions || {};
+  return (
+    pr.inspired === nr.inspired &&
+    pr.touched === nr.touched &&
+    pr.saved === nr.saved &&
+    pr.inspireCount === nr.inspireCount &&
+    pr.touchCount === nr.touchCount &&
+    pr.firstInspirer === nr.firstInspirer &&
+    prev.onReaction === next.onReaction &&
+    prev.onShare === next.onShare &&
+    prev.extraActions === next.extraActions
+  );
+}
+
 export const FeedActions = memo(function FeedActions({
-  reactions, onReaction, onShare, extraActions
+  reactions, onReaction, onShare, extraActions, cardId
 }) {
+  profRender("FeedActions", cardId);
   const r = reactions || {};
-  const resonanz = getResonanzText(r);
+  const resonanz = useMemo(() => getResonanzText(r), [
+    r.inspireCount, r.touchCount, r.firstInspirer,
+  ]);
+
+  const handleInspire = useCallback(() => {
+    haptic(r.inspired ? "selection" : "light");
+    onReaction?.("inspire");
+  }, [onReaction, r.inspired]);
+  const handleTouch = useCallback(() => {
+    haptic(r.touched ? "selection" : "light");
+    onReaction?.("touch");
+  }, [onReaction, r.touched]);
+  const handleShare = useCallback(() => {
+    haptic("light");
+    onShare?.();
+  }, [onShare]);
+  const handleSave = useCallback(() => {
+    haptic(r.saved ? "selection" : "light");
+    onReaction?.("save");
+  }, [onReaction, r.saved]);
+
+  useLayoutEffect(() => {
+    if (cardId) profMark(cardId, "likes-visible");
+  }, [cardId, r.inspired, r.touched, r.saved]);
   // Premium-Finetuning Runde 3 2026-07-05 (Lars Punkt 3, "mit der Karte
   // verschmelzen"): marginTop 12->4, Border-Deckkraft 0.07->0.045
   // ("nur sehr dezent"), explizites background:T.bgCard (identisch zur
@@ -696,10 +779,10 @@ export const FeedActions = memo(function FeedActions({
                                     → Schwung-Pfeil nach Lars-Vorlage; onShare
                                     oeffnet bereits den Teilen-Flow)
               save    → Merken */}
-        <ActionBtn Icon={HUIHeartIcon}    count={r.inspireCount||null} active={r.inspired} activeColor={T.teal}  variant="resonanz"    onClick={() => { haptic(r.inspired ? "selection" : "light"); onReaction?.("inspire"); }} />
-        <ActionBtn Icon={HUIChatIcon}     count={r.touchCount||null}   active={r.touched}  activeColor={T.teal}  variant="austauschen" onClick={() => { haptic(r.touched ? "selection" : "light"); onReaction?.("touch"); }} />
-        <ActionBtn Icon={HUIShareIcon}    activeColor={T.teal}  variant="weitergeben" onClick={() => { haptic("light"); onShare?.(); }} />
-        <ActionBtn Icon={HUIBookmarkIcon} active={r.saved} activeColor={T.coral} variant="merken"      onClick={() => { haptic(r.saved ? "selection" : "light"); onReaction?.("save"); }} />
+        <ActionBtn Icon={HUIHeartIcon}    count={r.inspireCount||null} active={r.inspired} activeColor={T.teal}  variant="resonanz"    onClick={handleInspire} />
+        <ActionBtn Icon={HUIChatIcon}     count={r.touchCount||null}   active={r.touched}  activeColor={T.teal}  variant="austauschen" onClick={handleTouch} />
+        <ActionBtn Icon={HUIShareIcon}    activeColor={T.teal}  variant="weitergeben" onClick={handleShare} />
+        <ActionBtn Icon={HUIBookmarkIcon} active={r.saved} activeColor={T.coral} variant="merken"      onClick={handleSave} />
         {extraActions || null}
       </div>
       {/* Resonanz-Zeile — "Maja und 18 weitere wurden inspiriert." */}
@@ -714,15 +797,53 @@ export const FeedActions = memo(function FeedActions({
       )}
     </div>
   );
-});
+}, feedActionsPropsAreEqual);
 
 // ── Base Card ─────────────────────────────────────────────────
-export default React.memo(function BaseFeedCard({
+function baseFeedCardPropsAreEqual(prev, next) {
+  if (prev.onProfile !== next.onProfile) return false;
+  if (prev.onReaction !== next.onReaction) return false;
+  if (prev.onShare !== next.onShare) return false;
+  if (prev.onCardClick !== next.onCardClick) return false;
+  if (prev.badge !== next.badge) return false;
+  if (prev.children !== next.children) return false;
+  if (prev.extraActions !== next.extraActions) return false;
+  const a = prev.item, b = next.item;
+  if (!a || !b) return a === b;
+  if (a.id !== b.id) return false;
+  const ar = a._reactions || {}, br = b._reactions || {};
+  return (
+    a.author === b.author &&
+    a.media === b.media &&
+    a.title === b.title &&
+    a.text === b.text &&
+    a.pillar_hint === b.pillar_hint &&
+    ar.inspired === br.inspired &&
+    ar.touched === br.touched &&
+    ar.saved === br.saved &&
+    ar.inspireCount === br.inspireCount &&
+    ar.touchCount === br.touchCount &&
+    ar._relaxed === br._relaxed
+  );
+}
+
+const BaseFeedCard = memo(function BaseFeedCard({
   item, onProfile, onReaction, onShare, badge, children, extraActions, onCardClick
 }) {
+  profRender("BaseFeedCard", item?.id);
   injectCardCSS();
 
   const reactions = item?._reactions || {};
+
+  // Header braucht keine Reaktions-Updates — verhindert unnötige HumanHeader Re-Renders
+  const headerItem = useMemo(() => {
+    if (!item) return item;
+    const { _reactions: _r, ...rest } = item;
+    return rest;
+  }, [
+    item?.id, item?.author, item?.type, item?.title, item?.text,
+    item?.location, item?.createdAt, item?._presenceStatus, item?.pillar_hint, item?._raw,
+  ]);
 
   // Optimistic like state
   const [localReactions, setLocalReactions] = useState(reactions);
@@ -775,7 +896,7 @@ export default React.memo(function BaseFeedCard({
       }}
     >
       {/* Kapitel 2.3: Menschen zuerst */}
-      <HumanHeader item={item} onProfile={onProfile} />
+      <HumanHeader item={headerItem} onProfile={onProfile} />
 
       {/* HUI Pillar Hint — 🍃 dezent, nie dominant, nur wenn vorhanden */}
       {item?.pillar_hint && (
@@ -802,13 +923,15 @@ export default React.memo(function BaseFeedCard({
       >
         <div style={{ padding: "0 " + T.p + "px 4px" }}>{children}</div>
         <FeedMedia
+          cardId={item.id}
           media={item.media}
           alt={item.title || item.text}
           relaxed={!!(item._reactions?._relaxed)}
-          onDoubleTap={onCardClick ? (e) => { /* double-tap → detail, kein like-trigger */ } : handleDoubleTap}
+          onDoubleTap={onCardClick ? undefined : handleDoubleTap}
         />
       </div>
       <FeedActions
+        cardId={item.id}
         reactions={localReactions}
         onReaction={handleReaction}
         onShare={onShare}
@@ -816,4 +939,6 @@ export default React.memo(function BaseFeedCard({
       />
     </article>
   );
-}); // React.memo(BaseFeedCard)
+}, baseFeedCardPropsAreEqual);
+
+export default BaseFeedCard;

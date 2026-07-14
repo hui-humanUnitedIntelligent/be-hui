@@ -1,31 +1,14 @@
 // src/feed/cards/FeedRouter.jsx — HUI FEED ROUTER (Phase 1)
 import { HUIImpactIcon } from '../../design/icons/HuiSystemIcons.jsx';
-import React, { Suspense, lazy } from "react";
+import React, { useMemo, useCallback, memo } from "react";
 import { toFeedItem } from "../../system/feed/unifiedNormalizer.js";
+import { profMark } from "./feedCardProfiler.js";
 
-const MomentContent     = lazy(() => import("./MomentContent.jsx"));
-const ExperienceContent = lazy(() => import("./ExperienceContent.jsx"));
-const WorkContent       = lazy(() => import("./WorkContent.jsx"));
-const EventContent      = lazy(() => import("./EventContent.jsx"));
-
-function CardSkeleton() {
-  return (
-    <div style={{margin:"0 12px 14px",borderRadius:28,background:"#fff",
-      border:"1px solid rgba(26,26,46,0.06)",boxShadow:"0 2px 16px rgba(26,26,46,0.07)"}}>
-      <div style={{padding:"16px 16px 0",display:"flex",gap:12,alignItems:"center"}}>
-        <div style={{width:38,height:38,borderRadius:13,background:"rgba(22,215,197,0.10)"}}/>
-        <div>
-          <div style={{width:100,height:12,borderRadius:6,background:"rgba(26,26,46,0.07)",marginBottom:6}}/>
-          <div style={{width:60,height:9,borderRadius:5,background:"rgba(26,26,46,0.05)"}}/>
-        </div>
-      </div>
-      <div style={{padding:"12px 16px 20px"}}>
-        <div style={{height:10,borderRadius:5,background:"rgba(26,26,46,0.06)",marginBottom:6}}/>
-        <div style={{height:10,borderRadius:5,background:"rgba(26,26,46,0.06)",width:"75%"}}/>
-      </div>
-    </div>
-  );
-}
+// Eager imports: kein Suspense-Fallback beim ersten Paint (lazy chunk blockierte Text/Avatar)
+import MomentContent     from "./MomentContent.jsx";
+import ExperienceContent from "./ExperienceContent.jsx";
+import WorkContent       from "./WorkContent.jsx";
+import EventContent      from "./EventContent.jsx";
 
 class CardErrorBoundary extends React.Component {
   constructor(p) { super(p); this.state = { crashed:false }; }
@@ -53,10 +36,30 @@ class CardErrorBoundary extends React.Component {
   }
 }
 
-export default function FeedRouter({ item: rawItem, onProfile, onReaction, onBook, onDetail, onShare, itemReactions }) {
-  const item = React.useMemo(() => {
+function feedRouterPropsAreEqual(prev, next) {
+  if (prev.onProfile !== next.onProfile) return false;
+  if (prev.onReaction !== next.onReaction) return false;
+  if (prev.onBook !== next.onBook) return false;
+  if (prev.onDetail !== next.onDetail) return false;
+  if (prev.onShare !== next.onShare) return false;
+  const a = prev.item, b = next.item;
+  if (!a || !b) return a === b;
+  if (a.id !== b.id || a.type !== b.type) return false;
+  const ar = a._reactions || {}, br = b._reactions || {};
+  return (
+    a.author === b.author &&
+    a.media === b.media &&
+    a.title === b.title &&
+    a.text === b.text &&
+    ar.inspired === br.inspired &&
+    ar.touched === br.touched &&
+    ar.saved === br.saved
+  );
+}
+
+const FeedRouter = memo(function FeedRouter({ item: rawItem, onProfile, onReaction, onBook, onDetail, onShare, itemReactions }) {
+  const item = useMemo(() => {
     if (!rawItem?.id) return null;
-    // Already unified shape? (has author object)
     if (rawItem.author && typeof rawItem.author === "object" && rawItem.createdAt !== undefined) {
       return { ...rawItem, _reactions: itemReactions || rawItem._reactions || {} };
     }
@@ -70,12 +73,12 @@ export default function FeedRouter({ item: rawItem, onProfile, onReaction, onBoo
     return null;
   }
 
+  if (item.id) profMark(item.id, "data");
+
   const type       = item.type || "moment";
   const authorName = item.author?.name || "Human";
   const text       = item.text || item.title || "";
 
-  // ── AUTHOR ID: aus ALLEN möglichen Quellen extrahieren ──────
-  // Priorität: normalisiertes item.author.id > rawItem DB-Felder
   const _rawAuthorId = (
     item?.author?.id
     || item?.author?.user_id
@@ -84,37 +87,44 @@ export default function FeedRouter({ item: rawItem, onProfile, onReaction, onBoo
     || rawItem?.author_id
     || null
   );
-  // UUID ist mind. 32 Zeichen — leere Strings und kurze Fallbacks ablehnen
   const authorId   = (_rawAuthorId && _rawAuthorId.trim().length > 8) ? _rawAuthorId.trim() : null;
   const hasValidId = !!authorId;
 
-  const shared = {
+  const handleProfile = useCallback(() => {
+    if (!hasValidId) {
+      console.warn("🔴 STEP 2 — FeedRouter: kein authorId", {
+        "item.author": item?.author,
+        "rawItem.user_id": rawItem?.user_id,
+        _rawAuthorId,
+        hasValidId,
+      });
+      return;
+    }
+    onProfile?.(authorId);
+  }, [hasValidId, authorId, onProfile, item?.author, rawItem?.user_id, _rawAuthorId]);
+
+  const handleReaction = useCallback((t) => onReaction?.(t), [onReaction]);
+  const handleShare    = useCallback(() => onShare?.(rawItem), [onShare, rawItem]);
+  const handleBook     = useCallback(() => onBook?.(rawItem), [onBook, rawItem]);
+  const handleDetail   = useCallback(() => onDetail?.(item), [onDetail, item]);
+  const handleBuyWerk  = useCallback(() => onBook?.(rawItem), [onBook, rawItem]);
+
+  const shared = useMemo(() => ({
     item,
-    onProfile: hasValidId
-      ? () => onProfile?.(authorId)
-      : (() => {
-          console.warn("🔴 STEP 2 — FeedRouter: kein authorId", {
-            "item.author": item?.author,
-            "rawItem.user_id": rawItem?.user_id,
-            _rawAuthorId,
-            hasValidId,
-          });
-          return null;
-        })(),
-    onReaction: (t) => onReaction?.(t),
-    onShare:    () => onShare?.(rawItem),
-  };
+    onProfile: handleProfile,
+    onReaction: handleReaction,
+    onShare: handleShare,
+  }), [item, hasValidId, handleProfile, handleReaction, handleShare]);
 
   return (
     <CardErrorBoundary itemId={item.id} itemType={type} authorName={authorName} text={text}>
-      <Suspense fallback={<CardSkeleton/>}>
-        {type === "experience" ? <ExperienceContent {...shared} onBook={()=>onBook?.(rawItem)}/> :
-         type === "work"       ? <WorkContent {...shared} onDetail={()=>onDetail?.(item)} onBuyWerk={onBook ? ()=>onBook(rawItem) : undefined}/> : /* COMMERCE-01 W-5 */
-         type === "event"      ? <EventContent {...shared}/> :
-                                 <MomentContent {...shared}/>}
-      </Suspense>
+      {type === "experience" ? <ExperienceContent {...shared} onBook={handleBook}/> :
+       type === "work"       ? <WorkContent {...shared} onDetail={handleDetail} onBuyWerk={onBook ? handleBuyWerk : undefined}/> :
+       type === "event"      ? <EventContent {...shared}/> :
+                               <MomentContent {...shared}/>}
     </CardErrorBoundary>
   );
-}
+}, feedRouterPropsAreEqual);
 
+export default FeedRouter;
 export { toFeedItem as resolveType };

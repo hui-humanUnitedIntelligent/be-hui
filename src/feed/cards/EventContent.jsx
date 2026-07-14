@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, memo } from "react";
 import BaseFeedCard from "./BaseFeedCard.jsx";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
 
@@ -6,9 +6,10 @@ const PURPLE = "#7264D6";
 const INK    = "#1A1A2E";
 const INK3   = "rgba(26,26,46,0.42)";
 
-export default function EventContent({ item, onProfile, onReaction, onShare }) {
+const EventContent = memo(function EventContent({ item, onProfile, onReaction, onShare }) {
   if (!item) return null;
-  const { open } = useContentPreview(); // OPEN.1 2026-07-08
+  const { open } = useContentPreview();
+  const handleCardClick = useCallback(() => open(item), [open, item]);
 
   const title    = item.title || item.text || "";
   const desc     = item._raw?.description || item._raw?.caption || null;
@@ -33,7 +34,7 @@ export default function EventContent({ item, onProfile, onReaction, onShare }) {
 
   return (
     <BaseFeedCard item={item} onProfile={onProfile} onReaction={onReaction} onShare={onShare}
-      onCardClick={() => open(item)}>
+      onCardClick={handleCardClick}>
 
       {desc && (
         <p style={{ margin:"0 0 10px", fontSize:13.5, fontWeight:400, color:"rgba(26,26,46,0.65)", lineHeight:1.55 }}>
@@ -70,4 +71,6 @@ export default function EventContent({ item, onProfile, onReaction, onShare }) {
       )}
     </BaseFeedCard>
   );
-}
+});
+
+export default EventContent;

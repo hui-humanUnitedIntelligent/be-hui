@@ -487,8 +487,8 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
     toast.info(wasActive ? (removeLabels[type] || type) : (labels[type] || type), { duration: 1800 });
   }, [toggle, myTypes, toggleSave, postId, postType, postSnapshot, saved]);
 
-  // Merge live reaction state into item
-  const enriched = {
+  // Merge live reaction state into item — stabile Referenz verhindert FeedRouter/BaseFeedCard Re-Renders
+  const enriched = useMemo(() => ({
     ...item,
     _reactions: {
       ...(item._reactions || {}),
@@ -496,7 +496,7 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
       inspired: myTypes?.has?.("inspire") ?? false,
       saved,
     },
-  };
+  }), [item, saved, myTypes]);
 
   return (
     <div ref={cardRef}>
