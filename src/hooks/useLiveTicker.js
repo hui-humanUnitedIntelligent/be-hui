@@ -44,6 +44,7 @@
 // ══════════════════════════════════════════════════════════════════
 import { useEffect, useRef, useState, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient.js";
+import { useLiveTickerActive } from "../lib/world/tabLifecycle.js";
 
 const REFRESH_INTERVAL_MS = 60_000;
 const PER_SOURCE_LIMIT    = 5;
@@ -259,6 +260,7 @@ export function useLiveTicker() {
   const [loading, setLoading] = useState(true);
   const bufferRef = useRef(new Map()); // id -> item, für Dedupe über Refreshes hinweg
   const mounted   = useRef(true);
+  const tickerActive = useLiveTickerActive();
 
   const refresh = useCallback(async () => {
     const results = await Promise.all(SOURCES.map(fn => fn().catch(() => [])));
@@ -283,10 +285,20 @@ export function useLiveTicker() {
 
   useEffect(() => {
     mounted.current = true;
+    if (!tickerActive) return undefined;
     refresh();
     const interval = setInterval(refresh, REFRESH_INTERVAL_MS);
     return () => { mounted.current = false; clearInterval(interval); };
-  }, [refresh]);
+  }, [refresh, tickerActive]);
+
+  // Resume: one fetch when ticker becomes active again
+  const wasActiveRef = useRef(tickerActive);
+  useEffect(() => {
+    if (!wasActiveRef.current && tickerActive) {
+      refresh();
+    }
+    wasActiveRef.current = tickerActive;
+  }, [tickerActive, refresh]);
 
   return { items, loading };
 }

@@ -679,7 +679,7 @@ async function fetchSearchResults(query, typeFilter = null, categoryFilters = nu
   };
 }
 
-export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFilters = null, radiusKm = null, geo = null } = {}) {
+export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFilters = null, radiusKm = null, geo = null, paused = false } = {}) {
   const { user } = useAuth();
 
   // ── SEARCH-MODE STATE — Search Experience 2.0 ─────────────────────────────
@@ -720,10 +720,12 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
   const categoryKey = (categoryFilters || []).map(c => c?.id).filter(Boolean).sort().join(",");
 
   useEffect(() => {
-    if (!isSearching) {
-      setSearchItems([]); setSearchPeople([]); setSearchProjects([]);
-      setSearchGroups({ works: [], experiences: [], events: [], moments: [] });
-      setSearchLoading(false);
+    if (!isSearching || paused) {
+      if (!isSearching) {
+        setSearchItems([]); setSearchPeople([]); setSearchProjects([]);
+        setSearchGroups({ works: [], experiences: [], events: [], moments: [] });
+        setSearchLoading(false);
+      }
       return;
     }
     searchAliveRef.current.v = false;
@@ -745,7 +747,7 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
     // aus einer Mehrfachauswahl bekommt bei jedem Render eine neue Referenz,
     // ein stabiler String verhindert unnoetige Refetches (2026-07-07).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery, typeFilter, categoryKey, radiusKm, geo?.lat, geo?.lng]);
+  }, [searchQuery, typeFilter, categoryKey, radiusKm, geo?.lat, geo?.lng, paused]);
 
   // ── State ──────────────────────────────────────────────────────────────────
   const [items,          setItems]          = useState([]);
@@ -816,6 +818,25 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
 
   useEffect(() => { initialLoad(); }, [initialLoad]);
 
+  // P2: targeted refresh when feed tab becomes active again
+  const wasPausedRef = useRef(paused);
+  useEffect(() => {
+    if (wasPausedRef.current && !paused && user?.id) {
+      (async () => {
+        try {
+          const { items: fresh } = await fetchFeedPage(user.id);
+          if (!mountedRef.current) return;
+          setItems((prev) => {
+            const existingIds = new Set(prev.map((i) => i.id));
+            const newOnes = fresh.filter((i) => !existingIds.has(i.id));
+            return newOnes.length ? [...newOnes, ...prev] : prev;
+          });
+        } catch (_) { /* silent */ }
+      })();
+    }
+    wasPausedRef.current = paused;
+  }, [paused, user?.id]);
+
   // ── Silent Refresh (Cache war fresh — update im Hintergrund) ──────────────
   async function _silentRefresh(userId) {
     try {
@@ -833,7 +854,7 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
 
   // ── Load More (Pagination) ─────────────────────────────────────────────────
   const loadMore = useCallback(async () => {
-    if (loadingMore || !hasMore) return;
+    if (paused || loadingMore || !hasMore) return;
 
     // Prefetch bereits vorhanden? → sofort einfügen
     if (prefetchedRef.current) {
@@ -869,10 +890,11 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
     } finally {
       if (mountedRef.current) setLoadingMore(false);
     }
-  }, [user?.id, loadingMore, hasMore]);
+  }, [user?.id, loadingMore, hasMore, paused]);
 
   // ── Prefetch (Idle) ───────────────────────────────────────────────────────
   const _schedulePrefetch = useCallback((userId) => {
+    if (paused) return;
     // FEED.2E: !cursorRef.current entfernt — cursorRef.current ist jetzt Objekt (immer truthy)
     // hasMore allein entscheidet ob Prefetch sinnvoll ist
     if (prefetchingRef.current || !hasMore) return;
@@ -891,7 +913,7 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
     } else {
       setTimeout(run, 1000);
     }
-  }, [hasMore]);
+  }, [hasMore, paused]);
 
   // ── Soft Hydration: neue Items aus Realtime akkumulieren ──────────────────
   const _receiveLiveItem = useCallback((rawItem, normalizer) => {
@@ -933,7 +955,18 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
 
   // ── Realtime Setup ─────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id || paused) {
+      if (realtimeRef.current) {
+        supabase.removeChannel(realtimeRef.current);
+        realtimeRef.current = null;
+      }
+      clearTimeout(softHydrateTimer.current);
+      if (typeof cancelIdleCallback !== "undefined" && idleCallbackRef.current) {
+        cancelIdleCallback(idleCallbackRef.current);
+        idleCallbackRef.current = null;
+      }
+      return undefined;
+    }
 
     // Cleanup vorheriger Channel (eigene Instanz, bestehendes Verhalten)
     if (realtimeRef.current) {
@@ -1017,14 +1050,15 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
         cancelIdleCallback(idleCallbackRef.current);
       }
     };
-  }, [user?.id, _receiveLiveItem]);
+  }, [user?.id, _receiveLiveItem, paused]);
 
   // ── Prefetch bei 70% Scroll (wird von ScrollSentinel aufgerufen) ──────────
   const onScrollProgress = useCallback((progress) => {
+    if (paused) return;
     if (progress >= PREFETCH_THRESHOLD && user?.id) {
       _schedulePrefetch(user.id);
     }
-  }, [user?.id, _schedulePrefetch]);
+  }, [user?.id, _schedulePrefetch, paused]);
 
   // ── Hard Refresh (pull-to-refresh, manuell) ────────────────────────────────
   const refresh = useCallback(async () => {

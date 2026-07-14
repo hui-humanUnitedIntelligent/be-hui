@@ -16,6 +16,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useLiveTickerContext } from "../../context/LiveTickerContext.jsx";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx"; // OPEN.1 2026-07-08
+import { useTabLifecycle } from "../../lib/world/tabLifecycle.js";
 
 const T = {
   teal:     "#0EC4B8",
@@ -37,9 +38,10 @@ function nextDelay() {
   return 8000 + Math.random() * 4000; // 8–12s
 }
 
-export default function HuiLiveTicker() {
+export default function HuiLiveTicker({ tabId = "feed" }) {
   const { items, loading } = useLiveTickerContext();
   const { openRef } = useContentPreview(); // OPEN.1 2026-07-08
+  const { paused } = useTabLifecycle(tabId);
   const [idx, setIdx]         = useState(0);
   const [entering, setEntering] = useState(true);
   const timerRef = useRef(null);
@@ -49,7 +51,7 @@ export default function HuiLiveTicker() {
   }, [items.length, idx]);
 
   useEffect(() => {
-    if (items.length < 2) return undefined; // nichts zu rotieren
+    if (paused || items.length < 2) return undefined; // nichts zu rotieren / pausiert
 
     function schedule() {
       timerRef.current = setTimeout(() => {
@@ -63,7 +65,7 @@ export default function HuiLiveTicker() {
     }
     schedule();
     return () => clearTimeout(timerRef.current);
-  }, [items.length]);
+  }, [items.length, paused]);
 
   // Keine Demo-Fallbacks: solange keine echten Daten da sind, lieber
   // unsichtbar bleiben als Platzhaltertext zu zeigen.

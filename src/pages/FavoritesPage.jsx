@@ -9,6 +9,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useContentPreview } from "../context/ContentPreviewContext.jsx"; // OPEN.3 2026-07-08 -- ContentPreviewSheet-Anbindung
 import { normalizePostForPreview, normalizeWirkerForPreview } from "../lib/previewNormalizers.js";
+import { useTabLifecycle } from "../lib/world/tabLifecycle.js";
 
 /* ══════════════════════════════════════════════════════════════
    DESIGN TOKENS
@@ -613,6 +614,7 @@ function EmptyState({ onDiscover }) {
    Props: { currentUser, onView, onImpact, onDiscover }
 ══════════════════════════════════════════════════════════════ */
 export default function FavoritesPage({ currentUser, onView, onImpact, onDiscover }) {
+  const { paused: favoritesPaused } = useTabLifecycle("favorites");
   const actions = useHuiActions();
   const { open: openPreview } = useContentPreview();
 
@@ -685,7 +687,8 @@ export default function FavoritesPage({ currentUser, onView, onImpact, onDiscove
 
   // ── Daten laden (DB-Favorites) ────────────────────────────────────
   useEffect(() => {
-    if (!currentUser?.id) return;
+    if (!currentUser?.id || favoritesPaused) return undefined;
+    let cancelled = false;
     (async () => {
       try {
         setLoading(true);
@@ -733,9 +736,10 @@ export default function FavoritesPage({ currentUser, onView, onImpact, onDiscove
           if (total > 0) setImpactEur(total);
         }
       } catch { /* silent — Mocks bleiben */ }
-      finally { setLoading(false); }
+      finally { if (!cancelled) setLoading(false); }
     })();
-  }, [currentUser?.id]);
+    return () => { cancelled = true; };
+  }, [currentUser?.id, favoritesPaused]);
 
   // ── Filter ────────────────────────────────────────────────────────
   const showPeople  = activeCategory === "Alles" || activeCategory === "Menschen";
