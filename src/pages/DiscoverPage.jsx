@@ -21,7 +21,7 @@ import { useRadiusFilter, radiusLabel } from "../hooks/useRadiusFilter.js"; // U
 import { HUIHeartIcon, HUIChatIcon } from "../design/icons/HuiInteractionIcons.jsx"; // ICON-SSOT 2026-07-08 -- ersetzt lokale Emoji-Badges (❤️/💬)
 import HuiLiveTicker from "../components/shared/HuiLiveTicker.jsx"; // LIVETICKER.1 2026-07-08 -- ersetzt LiveActivityBar (war Fake-Daten)
 import { useContentPreview } from "../context/ContentPreviewContext.jsx"; // OPEN.1 2026-07-08 -- geteilte Vorschau statt totem Tap / falschem Sprung
-import { normalizePostForPreview, normalizeProjectForPreview, normalizeWirkerForPreview } from "../lib/previewNormalizers.js";
+import { useTabLifecycle } from "../lib/world/tabLifecycle.js";
 
 // ── Design Tokens ────────────────────────────────────────────────
 const T = {
@@ -1611,6 +1611,7 @@ const WerkCardM      = React.memo(WerkCard);
 const ErlebnisCardM  = React.memo(ErlebnisCard);
 
 export default function DiscoverPage({ onView, onMap, onBook }) {
+  const { paused: discoverPaused } = useTabLifecycle("discover");
   const [view, setView]         = useState("cards"); // "cards" | "list"
   const [loading, setLoading] = useState(true);
   const [people, setPeople]           = useState([]);
@@ -1635,6 +1636,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   const talentLocDebounce = useRef(null);
 
   useEffect(() => {
+    if (discoverPaused) return undefined;
     clearTimeout(talentLocDebounce.current);
     if (talentLocQuery.trim().length < 2) { setTalentLocSuggest([]); return; }
     setTalentLocSearching(true);
@@ -1644,7 +1646,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
       setTalentLocSearching(false);
     }, 450);
     return () => clearTimeout(talentLocDebounce.current);
-  }, [talentLocQuery]);
+  }, [talentLocQuery, discoverPaused]);
 
   function handlePickTalentLoc(place) {
     radius.setGeo(place);
@@ -1667,6 +1669,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   const werkLocDebounce = useRef(null);
 
   useEffect(() => {
+    if (discoverPaused) return undefined;
     clearTimeout(werkLocDebounce.current);
     if (werkLocQuery.trim().length < 2) { setWerkLocSuggest([]); return; }
     setWerkLocSearching(true);
@@ -1676,7 +1679,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
       setWerkLocSearching(false);
     }, 450);
     return () => clearTimeout(werkLocDebounce.current);
-  }, [werkLocQuery]);
+  }, [werkLocQuery, discoverPaused]);
 
   function handlePickWerkLoc(place) {
     radius.setGeo(place);
@@ -1695,6 +1698,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   const erlebnisLocDebounce = useRef(null);
 
   useEffect(() => {
+    if (discoverPaused) return undefined;
     clearTimeout(erlebnisLocDebounce.current);
     if (erlebnisLocQuery.trim().length < 2) { setErlebnisLocSuggest([]); return; }
     setErlebnisLocSearching(true);
@@ -1704,7 +1708,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
       setErlebnisLocSearching(false);
     }, 450);
     return () => clearTimeout(erlebnisLocDebounce.current);
-  }, [erlebnisLocQuery]);
+  }, [erlebnisLocQuery, discoverPaused]);
 
   function handlePickErlebnisLoc(place) {
     radius.setGeo(place);
@@ -1725,6 +1729,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
 
   // ── Daten laden ─────────────────────────────────────────────
   useEffect(() => {
+    if (discoverPaused) return undefined;
     let cancelled = false;
     async function load() {
       try {
@@ -1931,7 +1936,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
     }
     load();
     return () => { cancelled = true; };
-  }, []);
+  }, [discoverPaused]);
 
   // ── People: DB oder Seed ─────────────────────────────────────
   const filteredPeople = people.length > 0 ? people : SEED_PEOPLE;
@@ -2081,7 +2086,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
       <DiscoverTitleBar view={view} onViewChange={setView} />
 
       {/* ── 1b. Live Activity Bar ── */}
-      <HuiLiveTicker/>
+      <HuiLiveTicker tabId="discover" />
 
       {/* ── 3. Menschen entdecken ── */}
       <PeopleSection

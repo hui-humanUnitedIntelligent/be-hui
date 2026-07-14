@@ -30,7 +30,7 @@ export const NAV_ITEMS = filterValidPages([
 ]);
 
 // Tabs die im Keep-Alive Modus bleiben
-export const KEEP_ALIVE_TABS = ["feed", "discover", "impact"];
+export const KEEP_ALIVE_TABS = ["feed", "discover", "impact", "favorites"];
 
 // Tabs die echte Seiten sind
 export const PAGE_TABS = ["feed", "discover", "impact"];

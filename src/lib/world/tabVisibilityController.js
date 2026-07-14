@@ -55,8 +55,11 @@ export function getTabStyle(tabId, activeTab, activeSurface, searchActive = fals
       transform:     "translateY(4px) scale(0.999)",
       pointerEvents: "none",
       userSelect:    "none",
-      transition:    TAB_TRANSITION,
+      // P2: skip transition work on hidden tabs (resume animates on activate)
+      transition:    "none",
       zIndex:        0,
+      // P2: contain layout/paint for inactive keep-alive tabs
+      contain:       "strict",
     };
   }
 

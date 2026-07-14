@@ -15,6 +15,11 @@ import {
   useOwnPresence,
 } from "../../lib/sessionHooks";
 import { useTabStyles } from "../../lib/world/tabVisibilityController.js";
+import {
+  syncTabLifecycleState,
+  getEffectiveActiveTab,
+  isTabActive as checkTabActive,
+} from "../../lib/world/tabLifecycle.js";
 import { useCartPersistence } from "../../hooks/useCartPersistence.js"; // KORB-PERSIST
 import HuiActionProvider from "../../core/HuiActionProvider.jsx";
 import { useWorldSurface } from "../../context/WorldSurfaceContext.jsx";
@@ -207,6 +212,19 @@ export default function HomeShell({ children }) {
   const keepImpact    = tabImpact;
   const keepFavorites = tabFavorites;
 
+  // P2 Intelligent Keep-Alive: sync module-level state for App-level consumers
+  const effectiveActiveTab = useMemo(
+    () => getEffectiveActiveTab(tab, searchState.active),
+    [tab, searchState.active],
+  );
+  const isTabActiveFn = useCallback(
+    (tabId) => checkTabActive(tabId, tab, searchState.active),
+    [tab, searchState.active],
+  );
+  useEffect(() => {
+    syncTabLifecycleState(tab, searchState.active);
+  }, [tab, searchState.active]);
+
   /* switchTab — schließt alle Overlays + wechselt Tab */
   const switchTab = useCallback((newTab) => {
     // GUARD: Orb is a world-layer, never a tab destination
@@ -302,6 +320,7 @@ export default function HomeShell({ children }) {
     tab, switchTab, handleTab, mainScrollRef,
     keepFeed, keepDiscover, keepImpact, keepFavorites,
     tabFeed,  tabDiscover,  tabImpact,  tabFavorites,
+    effectiveActiveTab, isTabActive: isTabActiveFn,
     searchState, setSearchState,
     activeSurface,
     prevTab, carryOver,
@@ -348,6 +367,7 @@ export default function HomeShell({ children }) {
     currentUser, userName, tab, switchTab, handleTab,
     keepFeed, keepDiscover, keepImpact, keepFavorites,
     tabFeed, tabDiscover, tabImpact, tabFavorites,
+    effectiveActiveTab, isTabActiveFn,
     searchState, setSearchState,
     activeSurface, prevTab, carryOver,
     isOrbOpen, openOrbWorld, closeOrbWorld, orbState,

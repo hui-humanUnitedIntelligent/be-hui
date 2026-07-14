@@ -17,6 +17,7 @@ import React, { useState, useMemo, useEffect, useRef, useCallback } from "react"
 import FeedRouter              from "./cards/FeedRouter.jsx";
 import { CardSkeleton }        from "./cards/BaseFeedCard.jsx";
 import { useFeedStream }       from "./useFeedStream.js";
+import { useTabLifecycle }     from "../lib/world/tabLifecycle.js";
 import { FeedSoftHydrationBadge } from "./FeedSoftHydrationBadge.jsx";
 import { toFeedItem }          from "../system/feed/unifiedNormalizer.js";
 import FeedEventsSection       from "./FeedEventsSection.jsx";
@@ -48,10 +49,11 @@ function getGreeting() {
 }
 
 // ── "Heute auf HUI" — Live-Stats ────────────────────────────────
-function useHeuteStats() {
+function useHeuteStats(paused = false) {
   const [stats, setStats] = React.useState({ works: 0, experiences: 0, members: 0, liveText: "" });
 
   React.useEffect(() => {
+    if (paused) return undefined;
     let cancelled = false;
     (async () => {
       try {
@@ -90,7 +92,7 @@ function useHeuteStats() {
       } catch { /* silent — Platzhalter bleiben */ }
     })();
     return () => { cancelled = true; };
-  }, []);
+  }, [paused]);
 
   return stats;
 }
@@ -101,7 +103,8 @@ function FeedWelcomeHeader({ currentUser }) {
   const firstName = currentUser?.display_name?.split(" ")[0]
     || currentUser?.username
     || null;
-  const stats = useHeuteStats();
+  const { paused } = useTabLifecycle("feed");
+  const stats = useHeuteStats(paused);
 
   // Design-Tokens (aus HUI-Design-System)
   const TEAL   = "#0DC4B5";
@@ -533,7 +536,7 @@ function ReactionCard({ item, onProfile, onBook, onDetail, onShare, itemIndex, o
   );
 }
 
-function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loadMore, hasMore, loadingMore, onDiscover, scrollContainerRef }) {
+function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loadMore, hasMore, loadingMore, onDiscover, scrollContainerRef, tabPaused = false }) {
   // per-item reaction is handled in ReactionCard wrapper below
   const arr = useMemo(() => {
     if (!Array.isArray(items)) return [];
@@ -664,7 +667,7 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
       {/* ── Pagination: Sentinel + Spinner (solange hasMore) ── */}
       <FeedLoadMoreSpinner loading={!!loadingMore} />
       <FeedBottomSentinel
-        enabled={!!hasMore && !loadingMore}
+        enabled={!!hasMore && !loadingMore && !tabPaused}
         onVisible={loadMore}
       />
 
@@ -1091,6 +1094,8 @@ export default function UnifiedFeed({
     injectFeedCSS();
   }, []); // eslint-disable-line
 
+  const { paused: feedPaused } = useTabLifecycle("feed");
+
   // ── OWN FEED STREAM — läuft immer, liefert Items aus DB ──────────
   const {
     items: streamItems,
@@ -1105,7 +1110,7 @@ export default function UnifiedFeed({
     searchPeople,
     searchProjects,
     searchGroups,
-  } = useFeedStream({ searchQuery, typeFilter, categoryFilters, radiusKm, geo });
+  } = useFeedStream({ searchQuery, typeFilter, categoryFilters, radiusKm, geo, paused: feedPaused });
 
   // ── Bind refresh fn to parent (defensive) ──────────────────────────
   React.useEffect(() => {
@@ -1294,6 +1299,7 @@ export default function UnifiedFeed({
                 loadingMore={loadingMore}
                 onDiscover={onDiscover}
                 scrollContainerRef={scrollContainerRef}
+                tabPaused={feedPaused}
               />
             )}
           </div>

@@ -55,6 +55,7 @@ const HuiMatchOverlay     = React.lazy(() => import("../components/HuiMatchOverl
 import OrbCompass from "../components/OrbCompass.jsx";
 import MeinHUI    from "./MeinHUI.jsx";
 import { IX } from "../design/hui.interaction.js";
+import { TAB_PAUSE_CSS } from "../lib/world/tabLifecycle.js";
 import ContentTypeSelector from "../content/ContentTypeSelector.jsx";
 import InvitationFlow from "../content/invitation/InvitationFlow.jsx";
 import { useContentPreview } from "../context/ContentPreviewContext.jsx";
@@ -78,7 +79,7 @@ const SAFE_MOTION_CSS = SAFE_MODE.motion ? '' : `
   }
 `;
 
-const GLOBAL_CSS = IX.CSS + `
+const GLOBAL_CSS = IX.CSS + TAB_PAUSE_CSS + `
   * { box-sizing: border-box; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
   html, body { margin: 0; padding: 0; background: #F9F7F4; }
   #root { width: 100%; max-width: 100%; overflow-x: hidden; background: #F9F7F4; }
@@ -139,6 +140,7 @@ function HomeInner() {
     mainScrollRef,
     keepFeed, keepDiscover,           keepImpact, keepFavorites,
     searchState,   setSearchState,
+    isTabActive,
     activeMood,    setActiveMood,
     liveNotifCount,
     isTalent, isBaseUser, canCreate,
@@ -371,7 +373,7 @@ function HomeInner() {
             ...worldTokens.feedContainerStyle,
           }}
         >
-          <div ref={tabRefs.feed} style={keepFeed}>
+          <div ref={tabRefs.feed} style={keepFeed} data-tab-paused={isTabActive ? !isTabActive("feed") : undefined}>
             <HuiLiveTicker />
             {SAFE_MODE.homeFeed ? (
               <SafeRender flag="homeFeed" label="Feed">
@@ -446,7 +448,7 @@ function HomeInner() {
 
           {/* Phase 17.1 FIX: tabVisibilityController liefert jetzt position:absolute
                für inaktive Tabs → kein Flow-Space-Problem mehr */}
-          <div ref={tabRefs.discover} style={keepDiscover}>
+          <div ref={tabRefs.discover} style={keepDiscover} data-tab-paused={isTabActive ? !isTabActive("discover") : undefined}>
             {/* TalentOnboarding — direkt (kein lazy/Suspense) */}
       {showTalentFlow && SAFE_MODE.talentFlow && (
         <TalentOnboarding
@@ -470,7 +472,7 @@ function HomeInner() {
             </Suspense>
           </div>
 
-          <div ref={tabRefs.impact} style={keepImpact}>
+          <div ref={tabRefs.impact} style={keepImpact} data-tab-paused={isTabActive ? !isTabActive("impact") : undefined}>
             <Suspense fallback={<div style={{padding:"40px 20px",textAlign:"center",opacity:0.6,fontSize:13,
   color:"rgba(20,20,34,0.40)",animation:"huiFadeIn 0.5s ease"}}>Impact-Raum öffnet sich…</div>}>
               <SafeRender flag="impactPage" label="ImpactPage">
@@ -479,7 +481,7 @@ function HomeInner() {
             </Suspense>
           </div>
 
-          <div ref={tabRefs.favorites} style={keepFavorites}>
+          <div ref={tabRefs.favorites} style={keepFavorites} data-tab-paused={isTabActive ? !isTabActive("favorites") : undefined}>
             <Suspense fallback={<div style={{
           position:'fixed',inset:0,display:'flex',
           alignItems:'center',justifyContent:'center',

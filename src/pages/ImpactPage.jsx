@@ -15,6 +15,7 @@ import { HUI } from "../design/hui.design.js";
 import ImpactFlow from "../system/flows/impact/ImpactFlow.jsx";
 import ImpactProjektUpdateSheet from "../components/studio/ImpactProjektUpdateSheet.jsx";
 import { useAuth } from "../lib/AuthContext";
+import { useTabLifecycle } from "../lib/world/tabLifecycle.js";
 import { isProfileTalent } from "../lib/profileUtils.js";
 
 // ── Helpers ──────────────────────────────────────────────────
@@ -286,9 +287,10 @@ function useWeitereProjects() {
   return projects;
 }
 
-function useImpactActivities() {
+function useImpactActivities(paused = false) {
   const [acts, setActs] = React.useState([]);
   React.useEffect(() => {
+    if (paused) return undefined;
     let dead = false;
     const load = async () => {
       try {
@@ -321,7 +323,7 @@ function useImpactActivities() {
     load();
     const iv = setInterval(load, 30_000);
     return () => { dead = true; clearInterval(iv); };
-  }, []);
+  }, [paused]);
   return acts;
 }
 
@@ -366,7 +368,7 @@ class ImpactErrorBoundary extends React.Component {
 // Sortierung: vote_count DESC, dann created_at ASC (ältere bevorzugt bei Gleichstand)
 // Top 3 = VotingCards, Rest = Weitere Herzensprojekte
 // ════════════════════════════════════════════════════════════════
-function useAllApprovedByVotes() {
+function useAllApprovedByVotes(paused = false) {
   const [allProjects, setAllProjects] = React.useState([]);
   const [loading, setLoading]         = React.useState(true);
 
@@ -424,6 +426,7 @@ function useAllApprovedByVotes() {
   }, []);
 
   React.useEffect(() => {
+    if (paused) return undefined;
     let dead = false;
     load().then(rows => {
       if (!dead) { setAllProjects(rows); setLoading(false); }
@@ -436,7 +439,7 @@ function useAllApprovedByVotes() {
       })
       .subscribe();
     return () => { dead = true; supabase.removeChannel(sub); };
-  }, [load]);
+  }, [load, paused]);
 
   const top3   = allProjects.slice(0, 3);
   const others = allProjects.slice(3);
@@ -452,7 +455,7 @@ function useWeitereHerzensprojekte(_ignored) {
 // ════════════════════════════════════════════════════════════════
 // HOOK: useApprovedApplications — bewilligte Herzensprojekte aus impact_applications
 // ════════════════════════════════════════════════════════════════
-function useApprovedApplications() {
+function useApprovedApplications(paused = false) {
   const [apps, setApps]       = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   // poolMonth stabil halten — kein Re-Render auf iOS
@@ -480,6 +483,7 @@ function useApprovedApplications() {
   }, []);  // ← Keine poolMonth Dependency → kein Re-Render-Loop auf iOS
 
   React.useEffect(() => {
+    if (paused) return undefined;
     let dead = false;
     let createdHere = false;
     loadApps().then(s => { if (!dead) { setApps(s); setLoading(false); } });
@@ -510,7 +514,7 @@ function useApprovedApplications() {
       createdHere = true;
     }
     return () => { dead = true; if (createdHere) supabase.removeChannel(sub); };
-  }, [loadApps]);
+  }, [loadApps, paused]);
 
   const top1    = apps[0]    || null;
   const weitere = apps.slice(1, 5);
@@ -1287,6 +1291,7 @@ function ApprovedAppCard({ app, onOpen }) {
 function ImpactPageInner({ currentUser: currentUserProp }) {
   // ── Auth — immer aus AuthContext, Props als Fallback ──
   const { user, profile } = useAuth();
+  const { paused: impactPaused } = useTabLifecycle("impact");
   // currentUser = echtes Supabase-Profil (Single Source of Truth)
   const currentUser = profile || currentUserProp || null;
 
@@ -1306,9 +1311,9 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
   const transp     = useTransparenz();
   const payoutData = useLastPayout();
   const finanziert = useWeitereProjects();
-  const activities = useImpactActivities();
-  const rankedProjs   = useAllApprovedByVotes();          // ← SSOT für alle Rankings
-  const approvedApps  = useApprovedApplications();        // für VotePersonal projMap
+  const activities = useImpactActivities(impactPaused);
+  const rankedProjs   = useAllApprovedByVotes(impactPaused);          // ← SSOT für alle Rankings
+  const approvedApps  = useApprovedApplications(impactPaused);        // für VotePersonal projMap
   const [detailApp, setDetailApp] = React.useState(null);
 
   // ── Projekte: werden jetzt von useAllApprovedByVotes gehandelt ──
@@ -1343,7 +1348,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
 
   // ── Realtime: impact_votes → Stimmen sofort aktualisieren ──
   React.useEffect(() => {
-    if (!currentUser?.id) return;
+    if (!currentUser?.id || impactPaused) return undefined;
     const month = new Date().toISOString().slice(0,7);
     // Realtime-Dedupe-Schutz (2026-07-08, systemweit, siehe useProfileLocations.js):
     // existierenden Channel fuer diesen Topic wiederverwenden statt erneut zu
@@ -1373,7 +1378,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
       createdHere = true;
     }
     return () => { if (createdHere) supabase.removeChannel(sub); };
-  }, [currentUser?.id]);
+  }, [currentUser?.id, impactPaused]);
 
   // ── Persönliche Wirkung des Nutzers ──
   React.useEffect(() => {
