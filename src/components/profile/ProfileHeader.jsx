@@ -121,6 +121,8 @@ export function ProfileHeader({
         ) : (
           <img
             src={cover} alt=""
+            loading="eager"
+            decoding="async"
             onLoad={() => setCoverLoaded(true)}
             onError={() => setCoverLoaded(true)}
             style={{
@@ -181,6 +183,8 @@ export function ProfileHeader({
               {!loading && (
                 <img
                   src={avatar} alt={name}
+                  loading="eager"
+                  decoding="async"
                   onLoad={() => setAvatarLoaded(true)}
                   onError={() => setAvatarLoaded(true)}
                   style={{
@@ -245,21 +249,35 @@ export function ProfileHeader({
           </div>
         </div>
 
-        {/* Standort */}
-        {!loading && location && (
-          <div style={{ display:"flex", alignItems:"center", gap:4, marginTop:8, fontSize:12, color:T.inkSoft }}>
-            <HUILocationIcon size={13} style={{flexShrink:0, color:"rgba(14,196,184,0.6)"}} />
-            <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{location}</span>
-          </div>
-        )}
+        {/* Standort — P4: Platz reservieren */}
+        <div style={{ minHeight: loading || location ? 20 : 0, marginTop: loading || location ? 8 : 0 }}>
+          {loading ? (
+            <Sk w={120} h={14} r={4}/>
+          ) : location ? (
+            <div style={{ display:"flex", alignItems:"center", gap:4, fontSize:12, color:T.inkSoft }}>
+              <HUILocationIcon size={13} style={{flexShrink:0, color:"rgba(14,196,184,0.6)"}} />
+              <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{location}</span>
+            </div>
+          ) : null}
+        </div>
 
-        {/* Follow-Counts */}
-        {!loading && (followCounts.followers > 0 || followCounts.following > 0) && (
-          <div style={{ display:"flex", gap:16, marginTop:8, fontSize:12, color:T.inkFaint }}>
-            <span><strong style={{ color:T.ink, fontWeight:700 }}>{followCounts.followers}</strong> Follower</span>
-            <span><strong style={{ color:T.ink, fontWeight:700 }}>{followCounts.following}</strong> folgt</span>
-          </div>
-        )}
+        {/* Follow-Counts — P4: Platz reservieren */}
+        <div style={{
+          display:"flex", gap:16, marginTop:8, minHeight:20,
+          fontSize:12, color:T.inkFaint,
+        }}>
+          {loading ? (
+            <>
+              <Sk w={80} h={14} r={4}/>
+              <Sk w={60} h={14} r={4}/>
+            </>
+          ) : (followCounts.followers > 0 || followCounts.following > 0) ? (
+            <>
+              <span><strong style={{ color:T.ink, fontWeight:700 }}>{followCounts.followers}</strong> Follower</span>
+              <span><strong style={{ color:T.ink, fontWeight:700 }}>{followCounts.following}</strong> folgt</span>
+            </>
+          ) : null}
+        </div>
       </div>
     </>
   );

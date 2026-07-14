@@ -92,6 +92,7 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
   //    Rueckanimation abspielt, bevor tatsaechlich unmountet wird.
   const [mountedItem, setMountedItem] = useState(item);
   const [visible, setVisible] = useState(false);
+  const [heroLoaded, setHeroLoaded] = useState(false);
   const rafRef = useRef(null);
   const closeTimerRef = useRef(null);
 
@@ -123,6 +124,8 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = prev; };
   }, [mountedItem]);
+
+  useEffect(() => { setHeroLoaded(false); }, [mountedItem?.media?.[0]?.url]);
 
   const postId    = mountedItem?.id || null;
   const postType  = mountedItem?.type || "moment";
@@ -231,7 +234,26 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
 
         {/* 1) Grosses Bild/Video */}
         {hero && (
-          <img loading="lazy" decoding="async" src={hero} alt={mountedItem.title || ""} style={{ width:"100%", maxHeight:"62vh", objectFit:"cover", display:"block", marginTop:8 }}/>
+          <div style={{
+            width:"100%", aspectRatio:"4/5", maxHeight:"62vh", minHeight:200,
+            marginTop:8, background:"#F0EFED", overflow:"hidden", position:"relative",
+          }}>
+            {!heroLoaded && (
+              <div style={{
+                position:"absolute", inset:0,
+                background:"linear-gradient(90deg,rgba(26,26,46,0.06) 25%,rgba(26,26,46,0.12) 50%,rgba(26,26,46,0.06) 75%)",
+                backgroundSize:"200% 100%",
+              }}/>
+            )}
+            <img loading="lazy" decoding="async" src={hero} alt={mountedItem.title || ""}
+              onLoad={() => setHeroLoaded(true)}
+              onError={() => setHeroLoaded(true)}
+              style={{
+                width:"100%", height:"100%", objectFit:"cover", display:"block",
+                opacity: heroLoaded ? 1 : 0, transition:"opacity 0.3s ease",
+              }}
+            />
+          </div>
         )}
 
         <div style={{ padding:"18px 18px 0" }}>
