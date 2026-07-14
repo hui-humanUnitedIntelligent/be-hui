@@ -31,6 +31,9 @@ const T = {
   r: 16, rMedia: 14, rAvatar: 99, p: 16, gap: 12, mediaH: 220,
 };
 
+/** P4: Einheitliche Medienhöhe für Skeletons, Virtualizer und FeedMedia */
+export const FEED_MEDIA_H = T.mediaH;
+
 // ── CSS injection (once) ──────────────────────────────────────
 const CARD_CSS = `
 @keyframes huiHeartBurst {
@@ -98,7 +101,7 @@ export function CardSkeleton() {
         <div style={{ height:10,borderRadius:5,marginBottom:7,...shimmer }} />
         <div style={{ height:10,borderRadius:5,width:"72%",...shimmer }} />
       </div>
-      <div style={{ margin:"10px 16px 16px",height:180,borderRadius:T.rMedia,...shimmer }} />
+      <div style={{ margin:"10px 16px 16px",height:T.mediaH,borderRadius:T.rMedia,...shimmer }} />
     </article>
   );
 }
@@ -429,9 +432,10 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
     url = media;
   }
 
-  if (!url || err) return null;
-
   const h = relaxed ? 340 : T.mediaH;
+
+  // P4: Medienfläche immer reservieren — auch bei fehlendem/fehlerhaftem Bild
+  if (!url) return null;
 
   function handleTap(e) {
     const now = Date.now();
@@ -472,20 +476,23 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
         }} />
       )}
 
-      <img
-        src={url}
-        alt={alt || ""}
-        loading="lazy"
-        onLoad={() => setLoaded(true)}
-        onError={() => setErr(true)}
-        className="hui-card-img"
-        style={{
-          width: "100%", height: "100%", objectFit: "cover", display: "block",
-          opacity: loaded ? 1 : 0,
-          transition: "opacity 0.3s ease",
-          willChange: "opacity, transform",
-        }}
-      />
+      {!err && (
+        <img
+          src={url}
+          alt={alt || ""}
+          loading="lazy"
+          decoding="async"
+          onLoad={() => setLoaded(true)}
+          onError={() => { setErr(true); setLoaded(true); }}
+          className="hui-card-img"
+          style={{
+            width: "100%", height: "100%", objectFit: "cover", display: "block",
+            opacity: loaded ? 1 : 0,
+            transition: "opacity 0.3s ease",
+            willChange: "opacity, transform",
+          }}
+        />
+      )}
 
       {/* Heart burst on double-tap */}
       {heartPos && (

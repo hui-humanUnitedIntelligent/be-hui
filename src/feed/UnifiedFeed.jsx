@@ -50,6 +50,7 @@ function getGreeting() {
 // ── "Heute auf HUI" — Live-Stats ────────────────────────────────
 function useHeuteStats() {
   const [stats, setStats] = React.useState({ works: 0, experiences: 0, members: 0, liveText: "" });
+  const [loaded, setLoaded] = React.useState(false);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -88,11 +89,14 @@ function useHeuteStats() {
           liveText,
         });
       } catch { /* silent — Platzhalter bleiben */ }
+      finally {
+        if (!cancelled) setLoaded(true);
+      }
     })();
     return () => { cancelled = true; };
   }, []);
 
-  return stats;
+  return { ...stats, loaded };
 }
 
 // ── FeedWelcomeHeader ────────────────────────────────────────────
@@ -102,6 +106,11 @@ function FeedWelcomeHeader({ currentUser }) {
     || currentUser?.username
     || null;
   const stats = useHeuteStats();
+  const statsShimmer = {
+    background: "linear-gradient(90deg,rgba(26,26,46,0.06) 25%,rgba(26,26,46,0.12) 50%,rgba(26,26,46,0.06) 75%)",
+    backgroundSize: "200% 100%",
+    animation: "huiShimmerStats 1.5s ease-in-out infinite",
+  };
 
   // Design-Tokens (aus HUI-Design-System)
   const TEAL   = "#0DC4B5";
@@ -117,6 +126,7 @@ function FeedWelcomeHeader({ currentUser }) {
       paddingTop: 20,
       paddingBottom: 4,
     }}>
+      <style>{`@keyframes huiShimmerStats { 0%{background-position:200% 0} 100%{background-position:-200% 0} }`}</style>
 
       {/* ── Begrüßung ───────────────────────────────────────────── */}
       <div style={{ paddingLeft: 20, paddingRight: 20, marginBottom: 20 }}>
@@ -229,8 +239,11 @@ function FeedWelcomeHeader({ currentUser }) {
                 <div style={{
                   fontSize: 22, fontWeight: 800, color: INK,
                   lineHeight: 1.1, letterSpacing: -0.8,
+                  minWidth: 28, minHeight: 24,
                 }}>
-                  {s.count}
+                  {!stats.loaded ? (
+                    <span style={{ display:"inline-block", width:28, height:22, borderRadius:6, ...statsShimmer }} />
+                  ) : s.count}
                 </div>
                 <div style={{ fontSize: 10.5, color: MUTED, fontWeight: 500, marginTop: 1 }}>
                   {s.label}
@@ -259,8 +272,11 @@ function FeedWelcomeHeader({ currentUser }) {
           <span style={{
             fontSize: 12, color: "rgba(20,20,34,0.65)", fontWeight: 400,
             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            flex: 1, minHeight: 16,
           }}>
-            {stats.liveText || "Neue Inhalte werden geladen…"}
+            {!stats.loaded ? (
+              <span style={{ display:"inline-block", width:"70%", height:12, borderRadius:4, ...statsShimmer, verticalAlign:"middle" }} />
+            ) : (stats.liveText || "Neue Inhalte werden geladen…")}
           </span>
         </div>
       </div>
@@ -582,6 +598,14 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
     }
   }, [hasMore, arr.length, depthUser?.id]); // eslint-disable-line
 
+  // ── Scroll-Container: Ref ist beim ersten Render oft noch null (kein Re-Render
+  // durch Callback-Ref) → Virtualisierung wird fälschlich deaktiviert und der
+  // Fallback mit content-visibility greift (nur ~5 Karten sichtbar).
+  const [scrollReady, setScrollReady] = React.useState(false);
+  React.useLayoutEffect(() => {
+    if (scrollContainerRef?.current) setScrollReady(true);
+  });
+
   // ── Virtualizer: schätze ~620px pro Karte, rendert nur sichtbare Items ──
   const rowVirtualizer = useVirtualizer({
     count: arr.length,
@@ -592,7 +616,7 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
 
   const totalHeight = rowVirtualizer.getTotalSize();
   const virtItems   = rowVirtualizer.getVirtualItems();
-  const useVirt     = !!scrollContainerRef?.current && arr.length > 6;
+  const useVirt     = scrollReady && arr.length > 6;
 
   if (arr.length === 0) return <EmptyFeed />;
   return (
@@ -607,7 +631,7 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
             const itemReactions = reactions[String(item.id)] || {};
             return (
               <div
-                key={String(item.id)}
+                key={vRow.key}
                 data-index={vRow.index}
                 ref={rowVirtualizer.measureElement}
                 style={{
@@ -644,8 +668,6 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
               style={{
                 marginBottom: mb,
                 animationDelay: Math.min(idx * 40, 300) + "ms",
-                contentVisibility: idx > 4 ? "auto" : "visible",
-                containIntrinsicSize: idx > 4 ? "0 620px" : undefined,
               }}
             >
               <ReactionCard

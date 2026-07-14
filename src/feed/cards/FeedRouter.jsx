@@ -2,30 +2,12 @@
 import { HUIImpactIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { Suspense, lazy } from "react";
 import { toFeedItem } from "../../system/feed/unifiedNormalizer.js";
+import { CardSkeleton } from "./BaseFeedCard.jsx";
 
 const MomentContent     = lazy(() => import("./MomentContent.jsx"));
 const ExperienceContent = lazy(() => import("./ExperienceContent.jsx"));
 const WorkContent       = lazy(() => import("./WorkContent.jsx"));
 const EventContent      = lazy(() => import("./EventContent.jsx"));
-
-function CardSkeleton() {
-  return (
-    <div style={{margin:"0 12px 14px",borderRadius:28,background:"#fff",
-      border:"1px solid rgba(26,26,46,0.06)",boxShadow:"0 2px 16px rgba(26,26,46,0.07)"}}>
-      <div style={{padding:"16px 16px 0",display:"flex",gap:12,alignItems:"center"}}>
-        <div style={{width:38,height:38,borderRadius:13,background:"rgba(22,215,197,0.10)"}}/>
-        <div>
-          <div style={{width:100,height:12,borderRadius:6,background:"rgba(26,26,46,0.07)",marginBottom:6}}/>
-          <div style={{width:60,height:9,borderRadius:5,background:"rgba(26,26,46,0.05)"}}/>
-        </div>
-      </div>
-      <div style={{padding:"12px 16px 20px"}}>
-        <div style={{height:10,borderRadius:5,background:"rgba(26,26,46,0.06)",marginBottom:6}}/>
-        <div style={{height:10,borderRadius:5,background:"rgba(26,26,46,0.06)",width:"75%"}}/>
-      </div>
-    </div>
-  );
-}
 
 class CardErrorBoundary extends React.Component {
   constructor(p) { super(p); this.state = { crashed:false }; }
