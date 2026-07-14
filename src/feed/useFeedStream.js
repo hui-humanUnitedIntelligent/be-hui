@@ -25,6 +25,30 @@ import {
   normalizeEventRow      as normalizeInvitationRow,
 } from "../system/feed/unifiedNormalizer.js";
 
+// FEED V3 — Upcoming experiences belong in "Demnächst", not the main feed.
+function isUpcomingExperience(item) {
+  if (item?.type !== "experience") return false;
+  const dateStr = item?._raw?.date;
+  if (!dateStr) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const evDay = new Date(dateStr);
+  evDay.setHours(0, 0, 0, 0);
+  return evDay >= today;
+}
+
+function shouldExcludeFromMainFeed(item) {
+  if (isUpcomingExperience(item)) return true;
+  // Veranstaltungen/Einladungen erscheinen ausschließlich im Bereich "Demnächst"
+  if (item?.type === "event") return true;
+  return false;
+}
+
+function createdAtMs(item) {
+  const ts = item?._raw?.created_at;
+  return ts ? new Date(ts).getTime() : 0;
+}
+
 // ─── Konstanten ──────────────────────────────────────────────────────────────
 const PAGE_SIZE          = 20;   // Items pro Seite
 const PREFETCH_THRESHOLD = 0.70; // 70% gescrollt → prefetch
@@ -72,13 +96,12 @@ async function fetchFeedPage(userId = null, cursors = null) {
   const worksCursor = cursors?.works || null;
   const expsCursor  = cursors?.exps  || null;
   const beitrCursor = cursors?.beitr || null;
-  // invitations: kein Cursor — immer neueste 2 aktive, nicht-abgelaufene
   const filterWorks = (q) => worksCursor ? q.lt("created_at", worksCursor) : q;
   const filterExps  = (q) => expsCursor  ? q.lt("created_at", expsCursor)  : q;
   const filterBeitr = (q) => beitrCursor ? q.lt("created_at", beitrCursor) : q;
 
   // ── Step 1: Plain queries — kein JOIN ──────────────────────────────────
-  const [worksRes, expsRes, beitrRes, invRes] = await Promise.allSettled([
+  const [worksRes, expsRes, beitrRes] = await Promise.allSettled([
     filterWorks(
       supabase.from("works")
         .select("id,title,cover_url,media_url,category,description,caption,tags,price,for_sale,status,approval_status,user_id,creator_id,created_at")
@@ -101,21 +124,11 @@ async function fetchFeedPage(userId = null, cursors = null) {
         .order("created_at", { ascending: false })
         .limit(limit)
     ),
-    // invitations: kein rangeFilter — immer neueste 2 aktive Einladungen
-    supabase.from("invitations")
-      .select("id,user_id,text,title,vibe,mood,energy,location,city,time_label,starts_at,expires_at,visibility,status,max_participants,content_type,created_at")
-      .eq("status", "active")
-      .eq("visibility", "public")
-      .gt("expires_at", new Date().toISOString())
-      .order("created_at", { ascending: false })
-      .limit(2),
   ]);
 
   const works = worksRes.status === "fulfilled" ? (worksRes.value?.data || []) : [];
   const exps  = expsRes.status  === "fulfilled" ? (expsRes.value?.data  || []) : [];
   const beitr = beitrRes.status === "fulfilled" ? (beitrRes.value?.data || []) : [];
-  const invs  = invRes.status   === "fulfilled" ? (invRes.value?.data   || []) : [];
-
   const beitrErr = beitrRes.status === "rejected"
     ? beitrRes.reason?.message
     : (beitrRes.value?.error?.message || null);
@@ -224,48 +237,12 @@ async function fetchFeedPage(userId = null, cursors = null) {
     ...works.map(r => normalizeWorkRow(injectProfile(r))).filter(Boolean),
     ...exps.map(r => normalizeExperienceRow(injectProfile(r))).filter(Boolean),
     ...normalizedBeitr,
-    ...invs.map(r => normalizeInvitationRow(injectProfile(r))).filter(Boolean),
-  ];
+  ]
+    // FEED V3 — bevorstehende Erlebnisse nur im Bereich "Demnächst"
+    .filter(item => !shouldExcludeFromMainFeed(item));
 
-
-  // FEED.13B — Upcoming Experience Relevance Ranking
-  // Ersetzt FEED.10C (+4h Boost) durch zeitliche Relevanz-Verankerung.
-  //
-  // Regel: Experience mit Termin innerhalb von 7 Tagen erhält
-  //   _sortKey = max(created_at, event_date - 48h)
-  //
-  // Effekte:
-  //   Termin morgen (24h)  → visibilityAnchor = heute       → max(base, heute)
-  //   Termin in 3 Tagen    → visibilityAnchor = übermorgen  → max(base, übermorgen)
-  //   Termin in 6 Monaten  → CAP greift        → base (created_at, kein Vorteil)
-  //   Vergangene Termine   → kein Vorteil      → base
-  //   Works / Moments      → base (unverändert)
-  //
-  // Cursor, Pagination und Analytics bleiben vollständig unberührt.
-  const _now                     = Date.now();
-  const EVENT_VISIBILITY_WINDOW_MS = 48 * 60 * 60 * 1000;  // 48 Stunden Vorlauf
-  const _WINDOW_MS                = 7  * 24 * 60 * 60 * 1000; // 7 Tage CAP (unverändert)
-
-  normalized.forEach(item => {
-    const base = item._raw?.created_at ? new Date(item._raw.created_at).getTime() : 0;
-    if (item.type === "experience" && item._raw?.date) {
-      const eventMs = new Date(item._raw.date).getTime();
-      const delta   = eventMs - _now;
-      if (delta >= 0 && delta < _WINDOW_MS) {
-        // Termin in 0–7 Tagen → zeitliche Relevanz-Verankerung
-        const visibilityAnchor = eventMs - EVENT_VISIBILITY_WINDOW_MS;
-        item._sortKey = Math.max(base, visibilityAnchor);
-      } else {
-        // Vergangen oder > 7 Tage → kein Vorteil
-        item._sortKey = base;
-      }
-    } else {
-      item._sortKey = base;
-    }
-  });
-
-  // Zeitsortiert (via _sortKey — created_at bleibt unberührt)
-  normalized.sort((a, b) => (b._sortKey || 0) - (a._sortKey || 0));
+  // FEED V3 — strikt chronologisch: created_at DESC, keine _sortKey-Priorisierung
+  normalized.sort((a, b) => createdAtMs(b) - createdAtMs(a));
 
   // FEED.2E — Cursor pro Quelle: letztes Item jeder Quelle (vor Normalisierung verfügbar)
   // works/exps/beitr existieren bereits aus Step 1 (Z.107-112)
@@ -770,7 +747,7 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
     return () => { mountedRef.current = false; };
   }, []);
 
-  // ── Cache sync (chronologische items, keine Rhythmisierung) ───────────────
+  // FEED V3 — Cache ohne Rhythmus-Engine (Haupt-Feed bleibt chronologisch)
   useEffect(() => {
     if (items.length === 0) return;
     saveCache(items, cursorRef.current); // FEED.2E: cursorRef.current ist { works, exps, beitr } | null
@@ -893,6 +870,7 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
   const _receiveLiveItem = useCallback((rawItem, normalizer) => {
     const normalized = normalizer(rawItem);
     if (!normalized) return;
+    if (shouldExcludeFromMainFeed(normalized)) return;
 
     // Existiert bereits? → update statt duplizieren
     setItems(prev => {
@@ -920,7 +898,9 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
     if (pendingItems.length === 0) return;
     setItems(prev => {
       const existingIds = new Set(prev.map(i => i.id));
-      const newOnes = pendingItems.filter(i => !existingIds.has(i.id));
+      const newOnes = pendingItems
+        .filter(i => !existingIds.has(i.id))
+        .filter(i => !shouldExcludeFromMainFeed(i));
       return [...newOnes, ...prev];
     });
     setPendingItems([]);
