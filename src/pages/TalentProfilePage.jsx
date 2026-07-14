@@ -18,6 +18,7 @@ import {
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../lib/supabaseClient.js";
+import { ProfileService } from "../services/db.js";
 import { useAuth }  from "../lib/AuthContext.jsx";
 import { notifyWatcher } from "../lib/notificationService.js";
 import { useHome }       from "../components/home/HomeShell.jsx";
@@ -114,12 +115,7 @@ function useRelationship(profileId, currentUserId) {
       setState(s => ({ ...s, loading: true }));
       try {
         const [watchRes, relRes] = await Promise.all([
-          supabase
-            .from("profile_watchlist")
-            .select("id")
-            .eq("watcher_id", currentUserId)
-            .eq("profile_id", profileId)
-            .maybeSingle(),
+          ProfileService.getWatchStatus(currentUserId, profileId),
           supabase
             .from("profile_relations")
             .select("id, status")
@@ -520,10 +516,7 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat, onOpenKomp
     const next = !isWatching;
     setWatchingLocal(next);
     if (next) {
-      const { error } = await supabase
-        .from("profile_watchlist")
-        .insert({ watcher_id: currentUserId, profile_id: profile.id })
-        .select("id").single();
+      const { error } = await ProfileService.addToWatchlist(currentUserId, profile.id);
       if (error) { setWatchingLocal(null); return; }
       // Notification an Profilinhaber — non-blocking, bestehender Service
       notifyWatcher({
@@ -533,11 +526,7 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat, onOpenKomp
       }).catch(() => {});
       rel.refetch();
     } else {
-      const { error } = await supabase
-        .from("profile_watchlist")
-        .delete()
-        .eq("watcher_id", currentUserId)
-        .eq("profile_id", profile.id);
+      const { error } = await ProfileService.removeFromWatchlist(currentUserId, profile.id);
       if (error) { setWatchingLocal(null); return; }
       rel.refetch();
     }
@@ -878,10 +867,7 @@ function AbschlussButtons({ profile, currentUserId, onOpenChat }) {
     const next = !isWatching;
     setWatchingLocal(next);
     if (next) {
-      const { error } = await supabase
-        .from("profile_watchlist")
-        .insert({ watcher_id: currentUserId, profile_id: profile.id })
-        .select("id").single();
+      const { error } = await ProfileService.addToWatchlist(currentUserId, profile.id);
       if (error) { setWatchingLocal(null); return; }
       // Notification an Profilinhaber — non-blocking, bestehender Service
       notifyWatcher({
@@ -891,11 +877,7 @@ function AbschlussButtons({ profile, currentUserId, onOpenChat }) {
       }).catch(() => {});
       rel.refetch();
     } else {
-      const { error } = await supabase
-        .from("profile_watchlist")
-        .delete()
-        .eq("watcher_id", currentUserId)
-        .eq("profile_id", profile.id);
+      const { error } = await ProfileService.removeFromWatchlist(currentUserId, profile.id);
       if (error) { setWatchingLocal(null); return; }
       rel.refetch();
     }
@@ -1174,47 +1156,35 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
   // Verfügbarkeit — schreibt direkt in profiles.is_available (Sprint F.3A / F.9G.1: error-check)
   const handleAvailabilityChange = useCallback(async (isAvailable) => {
     if (!user?.id) return;
-    const { error } = await supabase.from("profiles")
-      .update({ is_available: isAvailable, updated_at: new Date().toISOString() })
-      .eq("id", user.id);
+    const { error } = await ProfileService.update(user.id, { is_available: isAvailable });
     if (error) { console.error("handleAvailabilityChange:", error.message); return; }
     reload();
   }, [user?.id, reload]);
 
-  // Standort — schreibt direkt in profiles.location (Sprint F.3B — einzige Wahrheitsquelle)
-  // Standort error-check (Sprint F.9G.1)
+  // Standort — schreibt in profiles.location via ProfileService (Sprint F.3B — einzige Wahrheitsquelle)
   const handleLocationChange = useCallback(async (locationStr) => {
     if (!user?.id) return;
-    const { error } = await supabase.from("profiles")
-      .update({ location: locationStr, updated_at: new Date().toISOString() })
-      .eq("id", user.id);
+    const { error } = await ProfileService.update(user.id, { location: locationStr });
     if (error) { console.error("handleLocationChange:", error.message); return; }
     reload();
   }, [user?.id, reload]);
 
-  // Talente/Skills — schreibt direkt in profiles.skills (Sprint F.3C — einzige Wahrheitsquelle)
+  // Talente/Skills — schreibt in profiles.skills via ProfileService (Sprint F.3C — einzige Wahrheitsquelle)
   // labels: string[] — z.B. ["Malerei", "Fotografie"]
   // Debounced reload: mehrere schnelle Toggle-Klicks = nur ein reload am Ende
   const _skillsReloadTimer = React.useRef(null);
   const handleSkillsChange = useCallback(async (labels) => {
     if (!user?.id) return;
-    // Optimistisches Update — sofort sichtbar ohne Warten auf reload
-    // (Profile-Objekt im Hook wird beim reload() aktualisiert)
-    const { error } = await supabase.from("profiles")
-      .update({ skills: labels, updated_at: new Date().toISOString() })
-      .eq("id", user.id);
+    const { error } = await ProfileService.update(user.id, { skills: labels });
     if (error) { console.error("handleSkillsChange:", error.message); return; }
-    // Reload debounced: 400ms nach letztem Toggle
     clearTimeout(_skillsReloadTimer.current);
     _skillsReloadTimer.current = setTimeout(() => reload(), 400);
   }, [user?.id, reload]);
 
-  // Sichtbarkeit — schreibt direkt in profiles.focus_type (Sprint F.9G.1)
+  // Sichtbarkeit — schreibt in profiles.focus_type via ProfileService (Sprint F.9G.1)
   const handleVisibilityChange = useCallback(async (visibility) => {
     if (!user?.id) return;
-    const { error } = await supabase.from("profiles")
-      .update({ focus_type: visibility, updated_at: new Date().toISOString() })
-      .eq("id", user.id);
+    const { error } = await ProfileService.update(user.id, { focus_type: visibility });
     if (error) { console.error("handleVisibilityChange:", error.message); return; }
     reload();
   }, [user?.id, reload]);
