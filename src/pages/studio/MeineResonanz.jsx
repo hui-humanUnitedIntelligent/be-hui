@@ -12,7 +12,8 @@ import {
 } from '../../design/icons/HuiSystemIcons.jsx';
 import { HUIHeartIcon } from '../../design/icons/HuiInteractionIcons.jsx';
 import React from "react";
-import { supabase } from "../../lib/supabaseClient.js";
+import HuiImage from "../../components/ui/HuiImage.jsx";
+import { IMAGE_SIZES } from "../../lib/huiImageUtils.js";
 import { useAuth }  from "../../lib/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
 
@@ -348,9 +349,18 @@ function ResonanzEntry({ entry, animIndex, onTap }) {
         WebkitMaskImage:"-webkit-radial-gradient(white,black)",
       }}>
         {hasImg ? (
-          <img src={entry.img} alt="" loading="eager"
+          <HuiImage
+            src={entry.img}
+            alt=""
+            fill
+            width={72}
+            height={72}
+            borderRadius={16}
+            priority={animIndex < 4}
+            sizes={IMAGE_SIZES.thumb}
+            placeholder="shimmer"
             onError={() => setImgErr(true)}
-            style={{ width:"100%", height:"100%", objectFit:"cover", WebkitTransform:"translateZ(0)" }} />
+          />
         ) : (
           <span style={{ fontSize:30 }}>{cfg.icon}</span>
         )}

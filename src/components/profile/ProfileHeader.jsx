@@ -23,6 +23,8 @@ import {
   sv,
   handleAvatarUpload, handleCoverUpload,
 } from "../../lib/profileMedia.js";
+import HuiImage, { HuiImageSkeleton } from "../ui/HuiImage.jsx";
+import { IMAGE_SIZES } from "../../lib/huiImageUtils.js";
 
 // Fallback-Assets: FB_COVER, FB_AVATAR aus profileMedia.js
 // FB_AVT-Alias fuer Rueckwaertskompatibilitaet im JSX unten
@@ -38,14 +40,7 @@ const T = {
 };
 
 function Sk({ w, h, r = 8 }) {
-  return (
-    <div style={{
-      width: w, height: h, borderRadius: r, flexShrink: 0,
-      background: "linear-gradient(90deg,#ede9e2 25%,#f7f5f0 50%,#ede9e2 75%)",
-      backgroundSize: "200% 100%",
-      animation: "ph-shimmer 1.4s ease-in-out infinite",
-    }}/>
-  );
+  return <HuiImageSkeleton width={w} height={h} borderRadius={r} />;
 }
 
 // sv() aus profileMedia.js importiert
@@ -64,8 +59,6 @@ export function ProfileHeader({
   onEditAvatar = null,
   onEditCover  = null,
 }) {
-  const [coverLoaded,     setCoverLoaded]     = useState(false);
-  const [avatarLoaded,    setAvatarLoaded]    = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [coverUploading,  setCoverUploading]  = useState(false);
 
@@ -112,21 +105,17 @@ export function ProfileHeader({
         background:"linear-gradient(160deg,#1A3530 0%,#2A5548 50%,#0EC4B8 100%)",
       }}>
         {loading ? (
-          <div style={{
-            position:"absolute", inset:0,
-            background:"linear-gradient(90deg,#ede9e2 25%,#f7f5f0 50%,#ede9e2 75%)",
-            backgroundSize:"200% 100%",
-            animation:"ph-shimmer 1.4s ease-in-out infinite",
-          }}/>
+          <HuiImageSkeleton width="100%" height={180} borderRadius={0} />
         ) : (
-          <img
-            src={cover} alt=""
-            onLoad={() => setCoverLoaded(true)}
-            onError={() => setCoverLoaded(true)}
-            style={{
-              width:"100%", height:"100%", objectFit:"cover", display:"block",
-              opacity: coverLoaded ? 0.88 : 0, transition:"opacity 1.1s ease",
-            }}
+          <HuiImage
+            src={cover}
+            alt=""
+            fill
+            height={180}
+            priority
+            sizes={IMAGE_SIZES.profileCover}
+            placeholder="shimmer"
+            imgStyle={{ opacity: 0.88 }}
           />
         )}
         {/* Gradient-Fade */}
@@ -170,23 +159,23 @@ export function ProfileHeader({
               boxShadow:"0 4px 20px rgba(0,0,0,0.18)",
               overflow:"hidden", background:T.bg, position:"relative",
             }}>
-              {(loading || !avatarLoaded) && (
-                <div style={{
-                  position:"absolute", inset:0, borderRadius:"50%",
-                  background:"linear-gradient(90deg,#ede9e2 25%,#f7f5f0 50%,#ede9e2 75%)",
-                  backgroundSize:"200% 100%",
-                  animation:"ph-shimmer 1.4s ease-in-out infinite",
-                }}/>
-              )}
-              {!loading && (
-                <img
-                  src={avatar} alt={name}
-                  onLoad={() => setAvatarLoaded(true)}
-                  onError={() => setAvatarLoaded(true)}
-                  style={{
-                    width:"100%", height:"100%", objectFit:"cover",
-                    opacity: avatarLoaded ? 1 : 0, transition:"opacity .5s ease",
-                  }}
+              {loading ? (
+                <HuiImageSkeleton width="100%" height="100%" borderRadius="50%" />
+              ) : (
+                <HuiImage
+                  src={avatar}
+                  alt={name}
+                  fill
+                  width={120}
+                  height={120}
+                  variant="avatar"
+                  borderRadius="50%"
+                  priority
+                  isTalent={isTalentResolved}
+                  fallbackText={name}
+                  sizes={IMAGE_SIZES.profileAvatar}
+                  placeholder="shimmer"
+                  style={{ border: "none", boxShadow: "none" }}
                 />
               )}
             </div>

@@ -11,6 +11,8 @@ import { supabase } from "../../../lib/supabaseClient.js";
 import { createPortal } from "react-dom";
 import { useContentPreview } from "../../../context/ContentPreviewContext.jsx"; // OPEN.2 2026-07-08
 import { normalizePostForPreview } from "../../../lib/previewNormalizers.js";
+import HuiImage, { HuiImageSkeleton } from "../../ui/HuiImage.jsx";
+import { IMAGE_SIZES } from "../../../lib/huiImageUtils.js";
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", ink:"#1A1A18",
@@ -21,9 +23,7 @@ const T = {
 };
 
 function Sk({ w, h, r=8 }) {
-  return <div style={{ width:w, height:h, borderRadius:r, flexShrink:0,
-    background:"linear-gradient(90deg,#ede9e2 25%,#f7f5f0 50%,#ede9e2 75%)",
-    backgroundSize:"200% 100%", animation:"ps-shimmer 1.4s ease-in-out infinite" }}/>;
+  return <HuiImageSkeleton width={w} height={h} borderRadius={r} />;
 }
 
 function DeleteConfirm({ werk, onConfirm, onCancel }) {
@@ -170,8 +170,8 @@ export function WorksSection({
                   <div style={{ width:100, height:100, borderRadius:T.r16, overflow:"hidden",
                     background:"linear-gradient(135deg,#2C3B2D,#4A6741)", boxShadow:T.card }}>
                     {w.cover_url
-                      ? <img loading="lazy" decoding="async" src={w.cover_url} alt={w.title||""} style={{ width:"100%",height:"100%",objectFit:"cover" }}
-                          onError={e=>e.target.style.display="none"}/>
+                      ? <HuiImage src={w.cover_url} alt={w.title||""} fill width={100} height={100}
+                          borderRadius={T.r16} sizes={IMAGE_SIZES.thumb} placeholder="shimmer" />
                       : <div style={{ width:"100%",height:"100%",display:"flex",alignItems:"center",
                           justifyContent:"center" }}><HUIWerkeIcon size={24} style={{color:"rgba(14,196,184,0.5)"}}/></div>}
                   </div>

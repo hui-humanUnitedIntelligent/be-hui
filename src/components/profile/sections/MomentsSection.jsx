@@ -8,6 +8,8 @@ import { HUIFotoIcon } from '../../../design/icons/HuiSystemIcons.jsx';
 import React from "react";
 import { useContentPreview } from "../../../context/ContentPreviewContext.jsx"; // OPEN.2 2026-07-08
 import { normalizePostForPreview } from "../../../lib/previewNormalizers.js";
+import HuiImage, { HuiImageSkeleton } from "../../ui/HuiImage.jsx";
+import { IMAGE_SIZES } from "../../../lib/huiImageUtils.js";
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", ink:"#1A1A18",
@@ -18,9 +20,7 @@ const T = {
 };
 
 function Sk({ w, h, r=8 }) {
-  return <div style={{ width:w, height:h, borderRadius:r,
-    background:"linear-gradient(90deg,#ede9e2 25%,#f7f5f0 50%,#ede9e2 75%)",
-    backgroundSize:"200% 100%", animation:"ps-shimmer 1.4s ease-in-out infinite" }}/>;
+  return <HuiImageSkeleton width={w} height={h} borderRadius={r} />;
 }
 
 export function MomentsSection({
@@ -87,9 +87,8 @@ export function MomentsSection({
               background:"#e8e4de", position:"relative", cursor:"pointer",
             }}>
               {m.src || m.media_url
-                ? <img loading="lazy" decoding="async" src={m.src||m.media_url} alt=""
-                    style={{ width:"100%",height:"100%",objectFit:"cover" }}
-                    onError={e=>e.target.style.display="none"}/>
+                ? <HuiImage src={m.src||m.media_url} alt="" fill aspectRatio="1"
+                    borderRadius={T.r12} sizes={IMAGE_SIZES.thumb} placeholder="shimmer" />
                 : <div style={{ width:"100%",height:"100%",display:"flex",
                     alignItems:"center",justifyContent:"center" }}><HUIFotoIcon size={20} style={{color:"rgba(14,196,184,0.4)"}}/></div>
               }

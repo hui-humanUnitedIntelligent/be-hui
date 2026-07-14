@@ -15,6 +15,8 @@ import {
   HUIHeartIcon, HUIChatIcon, HUIBookmarkIcon, HUIShareIcon,
 } from "../../design/icons/HuiInteractionIcons.jsx";
 import { haptic } from "../../components/commerce/commerceUtils.js";
+import HuiImage, { HuiImageSkeleton } from "../../components/ui/HuiImage.jsx";
+import { IMAGE_SIZES } from "../../lib/huiImageUtils.js";
 
 const T = {
   bgCard:   "#FFFFFF",
@@ -73,14 +75,9 @@ function injectCardCSS() {
   document.head.appendChild(s);
 }
 
-// ── Shimmer skeleton ──────────────────────────────────────────
+// ── Shimmer skeleton (einheitliche HuiImage-Placeholder) ─────
 export function CardSkeleton() {
   injectCardCSS();
-  const shimmer = {
-    background: "linear-gradient(90deg,rgba(26,26,46,0.06) 25%,rgba(26,26,46,0.13) 50%,rgba(26,26,46,0.06) 75%)",
-    backgroundSize: "200% 100%",
-    animation: "huiShimmer 1.6s ease-in-out infinite",
-  };
   return (
     <article style={{
       background: T.bgCard, borderRadius: T.r, marginBottom: 14,
@@ -88,39 +85,41 @@ export function CardSkeleton() {
       boxShadow: T.shadow, border: "1px solid " + T.border, overflow: "hidden",
     }}>
       <div style={{ padding: "16px 16px 0", display:"flex", gap:12, alignItems:"center" }}>
-        <div style={{ width:38,height:38,borderRadius:T.rAvatar, ...shimmer }} />
+        <HuiImageSkeleton width={38} height={38} borderRadius={T.rAvatar} />
         <div style={{ flex:1 }}>
-          <div style={{ height:11,borderRadius:6,width:"55%",marginBottom:7,...shimmer }} />
-          <div style={{ height:9,borderRadius:5,width:"35%",...shimmer }} />
+          <HuiImageSkeleton width="55%" height={11} borderRadius={6} />
+          <div style={{ height:7 }} />
+          <HuiImageSkeleton width="35%" height={9} borderRadius={5} />
         </div>
       </div>
       <div style={{ padding:"14px 16px 6px" }}>
-        <div style={{ height:10,borderRadius:5,marginBottom:7,...shimmer }} />
-        <div style={{ height:10,borderRadius:5,width:"72%",...shimmer }} />
+        <HuiImageSkeleton width="100%" height={10} borderRadius={5} />
+        <div style={{ height:7 }} />
+        <HuiImageSkeleton width="72%" height={10} borderRadius={5} />
       </div>
-      <div style={{ margin:"10px 16px 16px",height:180,borderRadius:T.rMedia,...shimmer }} />
+      <div style={{ margin:"10px 16px 16px" }}>
+        <HuiImageSkeleton width="100%" height={180} borderRadius={T.rMedia} />
+      </div>
     </article>
   );
 }
 
-// ── Avatar ────────────────────────────────────────────────────
-const CardAvatar = memo(function CardAvatar({ src, name, size = 38, isTalent = false }) {
-  const [err, setErr] = useState(false);
-  const letter = ((name || "H")[0] || "H").toUpperCase();
+// ── Avatar (HuiImage) ─────────────────────────────────────────
+const CardAvatar = memo(function CardAvatar({ src, name, size = 38, isTalent = false, priority = false }) {
   return (
-    <div style={{
-      width:size,height:size,borderRadius:T.rAvatar,flexShrink:0,
-      overflow:"hidden",background:T.tealSoft,
-      border: isTalent ? "2px solid #16D7C5" : "1.5px solid "+T.tealLine,
-      boxShadow: isTalent ? "0 0 8px rgba(22,215,197,0.30)" : "none",
-      display:"flex",alignItems:"center",justifyContent:"center",
-      fontSize:size*0.38,fontWeight:700,color:T.teal,
-    }}>
-      {src && !err
-        ? <img loading="lazy" decoding="async" src={src} alt={name||""} onError={() => setErr(true)}
-            style={{ width:"100%",height:"100%",objectFit:"cover" }} />
-        : letter}
-    </div>
+    <HuiImage
+      src={src}
+      alt={name || ""}
+      width={size}
+      height={size}
+      variant="avatar"
+      borderRadius={T.rAvatar}
+      isTalent={isTalent}
+      priority={priority}
+      fallbackText={name}
+      sizes={size >= 50 ? IMAGE_SIZES.avatar : IMAGE_SIZES.avatarSm}
+      placeholder="shimmer"
+    />
   );
 });
 
@@ -209,7 +208,7 @@ function getBegegnungsgrund(item) {
 // Zeile 1: Avatar (52px rund) · Name · Zeit rechts · ⋮
 // Zeile 2: Talent (farbig) · Pin-SVG · Ort
 // Zeile 3: " (groß, orange) + Story-Satz
-export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
+export const HumanHeader = memo(function HumanHeader({ item, onProfile, imagePriority = false }) {
   const author   = item?.author || {};
   // ── TRACE STEP 8 ──────────────────────────────────────
   if (!window.__HUI_STEP8_DONE__ && item?.type === "work") {
@@ -254,7 +253,7 @@ export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
             WebkitTapHighlightColor:"transparent", cursor:"pointer",
           }}
         >
-          <CardAvatar src={avatar} name={name} size={52} isTalent={isT} />
+          <CardAvatar src={avatar} name={name} size={52} isTalent={isT} priority={imagePriority} />
           {presence === "online" && (
             <div style={{
               position:"absolute", bottom:2, right:2,
@@ -334,7 +333,7 @@ export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
 
 
 // ── Header ────────────────────────────────────────────────────
-export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge, onProfile, presenceStatus }) {
+export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge, onProfile, presenceStatus, imagePriority = false }) {
   const _isTalent = author?.isTalent || false;
   const _mType    = author?.membershipType || "base";
   const name   = ((author && (author.name || author.displayName)) || "").trim() || "Mitglied";
@@ -365,7 +364,7 @@ export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge
           WebkitTapHighlightColor:"transparent",
         }}
       >
-        <CardAvatar src={avatar} name={name} size={38} isTalent={_isTalent}/>
+        <CardAvatar src={avatar} name={name} size={38} isTalent={_isTalent} priority={imagePriority} />
         {presenceStatus && presenceStatus !== "offline" && (
           <div style={{ position:"absolute", bottom:-1, right:-1 }}>
             <PresenceDot status={presenceStatus} size={9} />
@@ -412,10 +411,8 @@ export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge
   );
 });
 
-// ── Media (lazy + fade-in + double-tap like) ──────────────────
-export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDoubleTap }) {
-  const [err,     setErr]     = useState(false);
-  const [loaded,  setLoaded]  = useState(false);
+// ── Media (HuiImage + Priorität + feste Aspect Ratio) ─────────
+export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDoubleTap, priority = false, blurhash, thumbnail }) {
   const [heartPos,setHeartPos]= useState(null);
   const tapRef = useRef({ t: 0, x: 0, y: 0 });
 
@@ -425,11 +422,13 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
   if (Array.isArray(media) && media.length > 0) {
     const f = media[0];
     url = f?.url || (typeof f === "string" ? f : null);
+    thumbnail = thumbnail || f?.thumbnail || f?.thumbnail_path || null;
+    blurhash = blurhash || f?.blurhash || null;
   } else if (typeof media === "string" && media.length > 0) {
     url = media;
   }
 
-  if (!url || err) return null;
+  if (!url) return null;
 
   const h = relaxed ? 340 : T.mediaH;
 
@@ -437,7 +436,6 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
     const now = Date.now();
     const dt  = now - tapRef.current.t;
     if (dt < 320 && dt > 60) {
-      // Double tap
       const rect = e.currentTarget.getBoundingClientRect();
       const cx = (e.touches?.[0]?.clientX || e.clientX) - rect.left;
       const cy = (e.touches?.[0]?.clientY || e.clientY) - rect.top;
@@ -453,41 +451,26 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
       style={{
         margin: "14px " + T.p + "px 0",
         height: h, borderRadius: T.rMedia,
-        overflow: "hidden", background: "#F0EFED",
-        flexShrink: 0, position: "relative",
+        overflow: "hidden", flexShrink: 0, position: "relative",
         cursor: "pointer",
-        // Soft shadow under media
         boxShadow: "0 4px 20px rgba(26,26,46,0.08)",
       }}
       onTouchEnd={handleTap}
       onDoubleClick={handleTap}
     >
-      {/* Blur placeholder while loading */}
-      {!loaded && (
-        <div style={{
-          position: "absolute", inset: 0,
-          background: "linear-gradient(135deg,rgba(22,215,197,0.07),rgba(255,138,107,0.07))",
-          animation: "huiShimmer 1.6s ease-in-out infinite",
-          backgroundSize: "200% 100%",
-        }} />
-      )}
-
-      <img
+      <HuiImage
         src={url}
         alt={alt || ""}
-        loading="lazy"
-        onLoad={() => setLoaded(true)}
-        onError={() => setErr(true)}
-        className="hui-card-img"
-        style={{
-          width: "100%", height: "100%", objectFit: "cover", display: "block",
-          opacity: loaded ? 1 : 0,
-          transition: "opacity 0.3s ease",
-          willChange: "opacity, transform",
-        }}
+        fill
+        height={h}
+        borderRadius={T.rMedia}
+        priority={priority}
+        blurhash={blurhash}
+        thumbnail={thumbnail}
+        sizes={IMAGE_SIZES.feed}
+        placeholder="auto"
       />
 
-      {/* Heart burst on double-tap */}
       {heartPos && (
         <div style={{
           position: "absolute",
@@ -718,7 +701,8 @@ export const FeedActions = memo(function FeedActions({
 
 // ── Base Card ─────────────────────────────────────────────────
 export default React.memo(function BaseFeedCard({
-  item, onProfile, onReaction, onShare, badge, children, extraActions, onCardClick
+  item, onProfile, onReaction, onShare, badge, children, extraActions, onCardClick,
+  imagePriority = false,
 }) {
   injectCardCSS();
 
@@ -775,7 +759,7 @@ export default React.memo(function BaseFeedCard({
       }}
     >
       {/* Kapitel 2.3: Menschen zuerst */}
-      <HumanHeader item={item} onProfile={onProfile} />
+      <HumanHeader item={item} onProfile={onProfile} imagePriority={imagePriority} />
 
       {/* HUI Pillar Hint — 🍃 dezent, nie dominant, nur wenn vorhanden */}
       {item?.pillar_hint && (
@@ -806,6 +790,7 @@ export default React.memo(function BaseFeedCard({
           alt={item.title || item.text}
           relaxed={!!(item._reactions?._relaxed)}
           onDoubleTap={onCardClick ? (e) => { /* double-tap → detail, kein like-trigger */ } : handleDoubleTap}
+          priority={imagePriority}
         />
       </div>
       <FeedActions
