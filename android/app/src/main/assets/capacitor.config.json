@@ -1,5 +1,6 @@
 {
 	"appId": "com.hui.app",
-	"appName": "hui",
-	"webDir": "dist"
+	"appName": "HUI",
+	"webDir": "www",
+	"bundledWebRuntime": false
 }

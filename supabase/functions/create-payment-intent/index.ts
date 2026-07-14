@@ -23,9 +23,9 @@ const corsHeaders = {
 
 // Serverseitige Konstanten — nie vom Client übernehmen
 // COM-MIGRATION-015.3: Gebuehr 10%->15%, Impact 7%->2.25% (=15% der Gebuehr), Creator 90%->85%
-const PLATFORM_FEE_RATE = 0.20  // Balanced Growth v1
-const IMPACT_RATE       = 0.06  // 30% von 20% HUI
-const CREATOR_SHARE     = 0.80  // Balanced Growth v1
+const PLATFORM_FEE_RATE = 0.15
+const IMPACT_RATE       = 0.0225
+const CREATOR_SHARE     = 0.85
 const MAX_QTY           = 99
 const MIN_AMOUNT_CENTS  = 50   // Stripe Minimum EUR
 
@@ -85,35 +85,6 @@ serve(async (req) => {
       item_type: (i.item_type || 'work') as string,
       quantity:  Math.max(1, Math.min(MAX_QTY, Math.round(Number(i.quantity) || 1))),
     }))
-
-
-    // ── 2b. Stripe Customer Isolation (Security Fix) ─────────────
-    // Jeder Nutzer bekommt exakt einen eigenen Stripe Customer
-    const stripeKeyEarly = Deno.env.get('STRIPE_SECRET_KEY')!
-    const stripeEarly = new Stripe(stripeKeyEarly, { apiVersion: '2024-06-20' })
-
-    let stripeCustomerId: string
-    {
-      const { data: existingCust } = await supabase
-        .from('stripe_customers')
-        .select('stripe_customer_id')
-        .eq('user_id', user.id)
-        .maybeSingle()
-
-      if (existingCust?.stripe_customer_id) {
-        stripeCustomerId = existingCust.stripe_customer_id
-      } else {
-        const newCust = await stripeEarly.customers.create({
-          email:    user.email || undefined,
-          metadata: { hui_user_id: user.id },
-        })
-        stripeCustomerId = newCust.id
-        await supabase.from('stripe_customers').upsert({
-          user_id:            user.id,
-          stripe_customer_id: stripeCustomerId,
-        }, { onConflict: 'user_id', ignoreDuplicates: true })
-      }
-    }
 
     // ── 3. Session-Idempotenz: bestehende offene Order prüfen ────
     const cartHash = buildCartHash(user.id, clientItems)
@@ -311,7 +282,6 @@ serve(async (req) => {
     let paymentIntent: Stripe.PaymentIntent
     try {
       paymentIntent = await stripe.paymentIntents.create({
-        customer: stripeCustomerId,
         amount:   amountCents,
         currency: 'eur',
         automatic_payment_methods: { enabled: true },
