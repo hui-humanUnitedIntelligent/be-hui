@@ -9,7 +9,7 @@ import { HUIEmpfehlungIcon, HUIProfilIcon } from '../../design/icons/HuiSystemIc
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { useHome } from "../home/HomeShell.jsx";
+import { useHomeDispatch } from "../home/HomeShell.jsx";
 import { supabase } from "../../lib/supabaseClient.js";
 import { ProfileService } from "../../services/db";
 
@@ -29,7 +29,7 @@ const REC_LABELS = {
 const CAT_ORDER = ["profile", "project", "work", "experience", "event"];
 
 function MyRecommendationsModal({ userId, onClose }) {
-  const { openProfileById } = useHome();
+  const { openProfileById } = useHomeDispatch() || {};
   const [recs,     setRecs]     = useState([]);
   const [details,  setDetails]  = useState({}); // item_id → enriched data
   const [loading,  setLoading]  = useState(true);

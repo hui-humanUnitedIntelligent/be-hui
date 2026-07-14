@@ -6,7 +6,7 @@
 
 import { HUIWarnIcon } from '../../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useCallback } from "react";
-import { useHome } from "../HomeShell.jsx";
+import { useHomeProfile } from "../HomeShell.jsx";
 import { useHuiActions, A } from "../../../core/hui.actions.js";
 import { S } from "../../../core/hui.sources.js";
 import { ProfileService } from '../../../services/db';
@@ -228,7 +228,7 @@ export default function ProfileLauncher() {
     selectedProfileId,    closeProfileById,
     showCreatorDashboard, setShowCreatorDashboard,
     authProfile,
-  } = useHome();
+  } = useHomeProfile();
 
   // ── DB-Routing für fremde öffentliche Profile ─────────────────
   const { resolved, isTalent, role } = useProfileType(selectedProfileId);
