@@ -12,7 +12,9 @@
  * iPad + Mobile + Desktop optimiert
  */
 
-import { HUIAmbassadorIcon } from '../design/icons/HuiSystemIcons.jsx';
+import { HUIAmbassadorIcon,
+  HUISicherheitIcon,
+} from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { cleanupOrbEnvironment } from "../lib/cleanup/cleanupOrbEnvironment.js";
 import { useAuth } from "../lib/AuthContext";

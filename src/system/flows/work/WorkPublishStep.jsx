@@ -4,6 +4,7 @@
 import {
   HUIVersandIcon, HUIZeitIcon, HUIDateiIcon, HUIKategorieIcon,
   HUIGlobeIcon, HUIGemeinschaftIcon, HUIPrivatIcon,
+  HUIFotoIcon,
 } from '../../../design/icons/HuiSystemIcons.jsx';
 import React from "react";
 import { WT } from "./WorkTokens.js";

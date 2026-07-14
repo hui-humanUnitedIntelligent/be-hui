@@ -4,6 +4,7 @@
 import {
   HUIZeitIcon, HUILocationIcon, HUIKalenderIcon, HUIPersonenIcon,
   HUIKategorieIcon, HUIEinladungIcon, HUIGlobeIcon, HUIGemeinschaftIcon, HUIPrivatIcon,
+  HUIWarnIcon,
 } from '../../../design/icons/HuiSystemIcons.jsx';
 import React from "react";
 import { ET } from "./ExperienceTokens.js";

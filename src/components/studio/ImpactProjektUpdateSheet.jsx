@@ -1,3 +1,4 @@
+import { HUIAwardIcon, HUIFortschrittIcon, HUIKalenderIcon, HUINachrichtIcon } from '../../design/icons/HuiSystemIcons.jsx';
 // ImpactProjektUpdateSheet.jsx — Bottom-Sheet zum Hinzufügen von Projekt-Updates
 // ════════════════════════════════════════════════════════════════════════════
 // Felder: Überschrift, Beschreibung, Bilder/Videos Upload (multiple),

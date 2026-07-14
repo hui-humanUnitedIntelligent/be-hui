@@ -6,6 +6,7 @@
 // ══════════════════════════════════════════════════════════════════════
 import {
   HUIGemeinschaftIcon, HUISicherheitIcon, HUIGlobeIcon,
+  HUIPrivatIcon,
 } from '../../../design/icons/HuiSystemIcons.jsx';
 import React, { useState } from "react";
 import { createPortal } from "react-dom";

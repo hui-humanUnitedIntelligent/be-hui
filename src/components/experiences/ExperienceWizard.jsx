@@ -5,6 +5,7 @@ import {
   HUIVorOrtIcon, HUIOnlineIcon,
   HUIKalenderIcon, HUIZeitIcon, HUILocationIcon,
   HUIPersonenIcon, HUIEuroIcon, HUIEinladungIcon,
+  HUIPrivatIcon, HUISchreibenIcon, HUIWarnIcon,
 } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";

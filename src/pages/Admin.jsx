@@ -1,3 +1,4 @@
+import { HUIAnalyticsIcon, HUIImpactIcon, HUIStatistikIcon, HUIWarnIcon, HUIWerkeIcon } from '../design/icons/HuiSystemIcons.jsx';
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 

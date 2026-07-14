@@ -1,6 +1,8 @@
 // StoryComposer v2 — Production-ready with proper Supabase upload
 // Fixes: RLS, storage persistence, error handling, mobile Safari
-import { HUISettingsIcon } from '../design/icons/HuiSystemIcons.jsx';
+import { HUISettingsIcon,
+  HUIWarnIcon,
+} from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth }  from "../lib/AuthContext";
@@ -301,7 +303,7 @@ export default function StoryComposer({ onClose, onSuccess }) {
               background:panel==="settings"?"rgba(22,215,197,.5)":"rgba(0,0,0,.4)",
               color:"white",fontSize:16,cursor:"pointer",
               display:"flex",alignItems:"center",justifyContent:"center",
-              backdropFilter:"blur(8px)", display:"flex", alignItems:"center", justifyContent:"center"}}><HUISettingsIcon size={20}/></button>
+              backdropFilter:"blur(8px)"}}><HUISettingsIcon size={20}/></button>
         </div>
 
         {/* Mood chips */}

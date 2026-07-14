@@ -5,6 +5,7 @@
 
 import {
   HUIPersonenIcon, HUIFotoIcon, HUILinkIcon, HUIKalenderIcon,
+  HUILocationIcon, HUIPrivatIcon, HUIGlobeIcon, HUIGemeinschaftIcon,
 } from '../../design/icons/HuiSystemIcons.jsx';
 import React from "react";
 import { HUI } from "../../design/hui.design.js";

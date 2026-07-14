@@ -1,3 +1,4 @@
+import { HUIChatIcon } from '../../design/icons/HuiInteractionIcons.jsx';
 // chat-center/ConversationList.jsx v2
 // Screenshot-exact: Sektionen — Aktive Gespräche, Buchungen, Verbindungen, Impact-Card
 

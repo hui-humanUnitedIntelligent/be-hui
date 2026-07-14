@@ -1,3 +1,4 @@
+import { HUIAwardIcon, HUIFinanzIcon, HUIImpactIcon, HUIKategorieIcon, HUISchreibenIcon, HUIStimmeIcon } from '../../design/icons/HuiSystemIcons.jsx';
 // MeineProjekteModal.jsx — "Meine unterstützten Projekte"
 // ══════════════════════════════════════════════════════
 // Zeigt finanzielle Unterstützungen aus project_support

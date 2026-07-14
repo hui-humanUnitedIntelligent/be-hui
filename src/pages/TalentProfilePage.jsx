@@ -13,6 +13,7 @@
 
 import {
   HUIWerkeIcon, HUIErlebnisIcon, HUIImpactIcon, HUITalentIcon, HUIKalenderIcon,
+  HUILocationIcon,
 } from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";

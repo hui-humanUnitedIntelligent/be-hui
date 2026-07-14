@@ -1,7 +1,9 @@
 // src/system/flows/experience/ExperienceCreateStep.jsx
 // Step 1 — Fähigkeit vorstellen: Titel, Beschreibung, Medien
 
-import { HUIFotoIcon } from '../../../design/icons/HuiSystemIcons.jsx';
+import { HUIFotoIcon,
+  HUIDateiIcon, HUIVideoIcon,
+} from '../../../design/icons/HuiSystemIcons.jsx';
 import React, { useRef, useCallback } from "react";
 import { ET, EInput } from "./ExperienceTokens.js";
 // Kategorien-Architektur vereinheitlicht (2026-07-06, Lars) -- zentrale

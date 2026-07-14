@@ -1,3 +1,4 @@
+import { HUIGemeinschaftIcon, HUILinkIcon, HUIMailIcon, HUIVerifIcon } from '../../design/icons/HuiSystemIcons.jsx';
 // src/components/ambassador/AmbassadorStudioSection.jsx
 // ══════════════════════════════════════════════════════════
 // Extrahiert aus HuiStudio.jsx (PROFIL-DRAWER-REDESIGN-003, 2026-07-06).

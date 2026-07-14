@@ -7,6 +7,7 @@
 import {
   HUISettingsIcon, HUISicherheitIcon, HUIImpactIcon, HUIWarnIcon,
   HUIFotoIcon, HUISchreibenIcon, HUIEmpfehlungIcon, HUIVerifIcon,
+  HUIDateiIcon,
 } from '../../../design/icons/HuiSystemIcons.jsx';
 import { HUIChatIcon } from '../../../design/icons/HuiInteractionIcons.jsx';
 import React, { useState, useCallback, useEffect } from "react";

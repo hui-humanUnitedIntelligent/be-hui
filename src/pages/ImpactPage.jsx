@@ -3,7 +3,9 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useStripeImpactPool } from '@/hooks/useStripeImpactPool';
-import { HUIImpactIcon, HUIStimmeIcon } from '../design/icons/HuiSystemIcons.jsx';
+import { HUIImpactIcon, HUIStimmeIcon,
+  HUIAwardIcon,
+} from '../design/icons/HuiSystemIcons.jsx';
 import ReactDOM from 'react-dom';
 import React from "react";
 import { ProfileService } from '../services/db';

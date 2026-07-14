@@ -22,6 +22,7 @@
 import {
   HUIImpactIcon, HUIAnalyticsIcon, HUIFinanzIcon, HUIBenachrichtigungIcon,
   HUIWarnIcon, HUIGemeinschaftIcon, HUIFortschrittIcon,
+  HUIFolgenIcon, HUISicherheitIcon,
 } from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from '@/lib/AuthContext';
@@ -424,7 +425,7 @@ function FlagSection() {
           background: '#FFEBEE', border: `1px solid ${C.red}`, borderRadius: 8,
           padding: '6px 14px', cursor: 'pointer', fontSize: 12,
           color: C.red, fontWeight: 700,
-        }} style={{display:"flex",alignItems:"center",gap:6}}><HUIWarnIcon size={14}/>Emergency Downgrade</button>
+          display:"flex", alignItems:"center", gap:6}}><HUIWarnIcon size={14}/>Emergency Downgrade</button>
         <button onClick={recover} style={{
           background: '#E8F5E9', border: `1px solid ${C.green}`, borderRadius: 8,
           padding: '6px 14px', cursor: 'pointer', fontSize: 12,

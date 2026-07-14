@@ -1,9 +1,12 @@
+import { HUIChatIcon } from '../design/icons/HuiInteractionIcons.jsx';
 // StoryBar.jsx + StoryViewer.jsx — HUI Premium v2
 // Phase 1: Progress bars, auto-advance, tap nav, hold-to-pause,
 //          reactions, quick reply, seen state, gradient rings
 // Phase 2: Highlights row on profile
 
-import { HUIAnsichtIcon, HUIAwardIcon } from '../design/icons/HuiSystemIcons.jsx';
+import { HUIAnsichtIcon, HUIAwardIcon,
+  HUILocationIcon,
+} from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../lib/AuthContext';

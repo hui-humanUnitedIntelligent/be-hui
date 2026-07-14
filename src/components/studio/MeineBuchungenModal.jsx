@@ -1,3 +1,4 @@
+import { HUIKalenderIcon, HUIWarnIcon } from '../../design/icons/HuiSystemIcons.jsx';
 // MeineBuchungenModal.jsx — "Meine Buchungen" (Studio-Bereich)
 // ══════════════════════════════════════════════════════════
 // Verschoben aus MyBasisProfile.jsx (Profil-Sektion T2c) in den Studio-Bereich,

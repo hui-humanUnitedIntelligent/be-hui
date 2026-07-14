@@ -1,3 +1,4 @@
+import { HUILinkIcon } from '../design/icons/HuiSystemIcons.jsx';
 // src/pages/RefRedirect.jsx
 // ── HUI Ref-Link Weiterleitung ────────────────────────────────
 // Route: /ref/:username  OR  /:username (direkt, z.B. be-hui.com/milileo)

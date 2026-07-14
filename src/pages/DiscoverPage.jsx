@@ -7,6 +7,7 @@
 import {
   HUIProfilIcon, HUILocationIcon, HUIFotoIcon, HUIImpactIcon,
   HUIWerkeIcon, HUIAnsichtIcon,
+  HUIKalenderIcon, HUIPersonenIcon,
 } from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate }   from "react-router-dom";

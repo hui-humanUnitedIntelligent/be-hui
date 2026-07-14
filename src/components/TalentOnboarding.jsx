@@ -1,7 +1,9 @@
 // TalentOnboarding v2 — "Deinen Raum öffnen"
 // 3 Steps: Identität → Module → Profil
 // Props-only, kein useNavigate/useParams, router-safe
-import { HUITalentIcon } from '../design/icons/HuiSystemIcons.jsx';
+import { HUITalentIcon,
+  HUIWarnIcon,
+} from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../lib/supabaseClient";

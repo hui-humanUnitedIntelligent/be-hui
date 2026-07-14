@@ -1,3 +1,4 @@
+import { HUIFinanzIcon } from '../../design/icons/HuiSystemIcons.jsx';
 // EinAusgabenModal.jsx — "Ein-/Ausgaben Übersicht"
 // ══════════════════════════════════════════════════
 // Quellen:

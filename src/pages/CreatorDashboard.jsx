@@ -4,6 +4,7 @@
 // ══════════════════════════════════════════════════════════════════════
 import {
   HUIKalenderIcon, HUIImpactIcon, HUIWerkeIcon,
+  HUISupportIcon,
 } from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth }           from "../lib/AuthContext";

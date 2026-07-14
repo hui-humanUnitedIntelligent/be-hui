@@ -1,3 +1,4 @@
+import { HUIChatIcon } from '../../design/icons/HuiInteractionIcons.jsx';
 // src/pages/wirker-profile/index.jsx — Phase 24 VISITOR VIEW
 // "Entering another human's creative universe"
 // Layout: Hero → Stats Strip → ExperiencesSection → WirkungSection → MomentsSection → Community → Footer Values

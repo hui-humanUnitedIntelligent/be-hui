@@ -1,3 +1,5 @@
+import { HUIBookmarkIcon, HUIChatIcon, HUIHeartIcon } from '../../design/icons/HuiInteractionIcons.jsx';
+import { HUIAmbassadorIcon, HUIAnsichtIcon, HUIBenachrichtigungIcon, HUIEmpfehlungIcon, HUIFinanzIcon, HUIFolgenIcon, HUIFotoIcon, HUIImpactIcon, HUIMitgliedIcon, HUIProjektIcon, HUIStatistikIcon, HUIStimmeIcon, HUITalentIcon, HUIWerkeIcon } from '../../design/icons/HuiSystemIcons.jsx';
 // StatistikenModal.jsx — Nutzer-Statistiken + PDF-Download
 // ══════════════════════════════════════════════════════════
 // Lädt alle relevanten Aktivitätsdaten des Nutzers aus Supabase

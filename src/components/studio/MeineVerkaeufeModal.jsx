@@ -1,3 +1,4 @@
+import { HUIVerkaufIcon } from '../../design/icons/HuiSystemIcons.jsx';
 // MeineVerkaeufeModal.jsx — "Meine Verkäufe" (Studio-Bereich)
 // ══════════════════════════════════════════════════════════
 // Verschoben aus MyBasisProfile.jsx (Profil-Sektion T3b) in den Studio-Bereich,

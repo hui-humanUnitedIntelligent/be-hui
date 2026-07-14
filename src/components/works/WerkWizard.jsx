@@ -1,6 +1,6 @@
 // src/components/works/WerkWizard.jsx
 // HUI – Werk-Editor als 6-Schritte-Wizard
-import { HUIPrivatIcon } from '../../design/icons/HuiSystemIcons.jsx';
+import { HUIPrivatIcon, HUIVersandIcon, HUIWarnIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
@@ -402,7 +402,7 @@ function S6({ data, onChange, onSave, onDraft, saving, hideButtons=false }) {
             <div style={{ fontSize:14, fontWeight:700, color:C.teal, marginBottom:6 }}>{ps}</div>
             <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
               {data.availability==="available"&&<span style={{ fontSize:11, fontWeight:600, color:"#22c55e", display:"flex", alignItems:"center", gap:4 }}><span style={{ width:6, height:6, borderRadius:"50%", background:"#22c55e", display:"inline-block" }}/>Verfügbar</span>}
-              {data.versand&&<span style={{ fontSize:11, fontWeight:600, color:C.inkMid }} style={{display:"flex",alignItems:"center",gap:3}}><HUIVersandIcon size={11}/>Versand möglich</span>}
+              {data.versand&&<span style={{display:"flex",alignItems:"center",gap:3, fontSize:11, fontWeight:600, color:C.inkMid}}><HUIVersandIcon size={11}/>Versand möglich</span>}
               {data.abholung&&<span style={{ fontSize:11, fontWeight:600, color:C.inkMid }}>🤝 Abholung möglich</span>}
             </div>
           </div>

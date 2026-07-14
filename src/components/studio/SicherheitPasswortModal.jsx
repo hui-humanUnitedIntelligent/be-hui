@@ -1,3 +1,4 @@
+import { HUIAnsichtIcon, HUIDatenschutzIcon } from '../../design/icons/HuiSystemIcons.jsx';
 // SicherheitPasswortModal.jsx — Passwort ändern via Supabase Auth
 // ═══════════════════════════════════════════════════════════════
 // Nutzt supabase.auth.updateUser({ password }) für direktes Update

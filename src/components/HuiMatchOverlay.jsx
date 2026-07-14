@@ -2,7 +2,9 @@
 // Emotionale Discovery Experience: Stimmungs-Flow × dynamische UI-Reaktion × kuratierte Ergebnisse
 // Datenlogik (doMatch, doSurprise, Supabase) vollständig erhalten.
 
-import { HUITalentIcon } from '../design/icons/HuiSystemIcons.jsx';
+import { HUITalentIcon,
+  HUIImpactIcon, HUILocationIcon,
+} from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { normalizeProfileInput, PROFILE_FIELDS } from '../lib/perfUtils';

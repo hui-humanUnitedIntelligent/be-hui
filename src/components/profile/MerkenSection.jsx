@@ -1,3 +1,4 @@
+import { HUIErlebnisIcon, HUIImpactIcon, HUIKalenderIcon, HUIProfilIcon, HUIWerkeIcon } from '../../design/icons/HuiSystemIcons.jsx';
 // MerkenSection — Gespeicherte Inhalte im Mein-HUI-Profil
 // MERKEN.1B: verschoben aus CreatorDashboard (dead) → MyBasisProfile (produktiv)
 // MERKLISTE.1 (2026-07-08): Filter-Tabs + Realtime-Sync + typgerechte
