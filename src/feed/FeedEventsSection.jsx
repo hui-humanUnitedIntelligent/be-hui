@@ -106,6 +106,41 @@ function EventCard({ event, onPress, delay }) {
   );
 }
 
+/* ── Events Section Skeleton (P4: Platz reservieren) ─────────── */
+function EventsSectionSkeleton() {
+  const shimmer = {
+    background: "linear-gradient(90deg,rgba(26,26,46,0.06) 25%,rgba(26,26,46,0.12) 50%,rgba(26,26,46,0.06) 75%)",
+    backgroundSize: "200% 100%",
+    animation: "huiEventsShimmer 1.5s ease-in-out infinite",
+  };
+  return (
+    <div style={{ paddingTop: 10, paddingBottom: 4, marginBottom: 4 }}>
+      <style>{`@keyframes huiEventsShimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }`}</style>
+      <div style={{ paddingLeft: 16, paddingRight: 16, marginBottom: 10 }}>
+        <div style={{ height: 18, width: 180, borderRadius: 6, marginBottom: 6, ...shimmer }} />
+        <div style={{ height: 14, width: 220, borderRadius: 5, ...shimmer }} />
+      </div>
+      <div style={{
+        display: "flex", flexDirection: "row", gap: 10,
+        paddingLeft: 16, paddingRight: 16, paddingBottom: 4,
+      }}>
+        {[0, 1, 2].map((i) => (
+          <div key={i} style={{ flexShrink: 0, width: 148, borderRadius: 20, overflow: "hidden" }}>
+            <div style={{ width: "100%", height: 100, ...shimmer }} />
+            <div style={{ padding: "7px 10px 9px" }}>
+              <div style={{ height: 10, width: "80%", borderRadius: 4, ...shimmer }} />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{
+        height: 1, marginLeft: 16, marginRight: 16,
+        marginTop: 10, background: "rgba(26,53,48,0.06)",
+      }} />
+    </div>
+  );
+}
+
 /* ── Main Section ─────────────────────────────────────────────── */
 export default function FeedEventsSection({ onEventPress, onMoreEvents }) {
   // Active system log
@@ -197,8 +232,8 @@ export default function FeedEventsSection({ onEventPress, onMoreEvents }) {
     }
   }
 
-  // Don't render while loading to avoid layout jump
-  if (loading) return null;
+  // P4: Skeleton statt null — verhindert Layout-Sprung beim Nachladen
+  if (loading) return <EventsSectionSkeleton />;
   if (events.length === 0) return null;
 
   return (

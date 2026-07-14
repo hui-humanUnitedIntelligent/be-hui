@@ -86,6 +86,7 @@ export default function ContentPreviewSheet({ item, loading, onClose }) {
   // nicht mehr nur type="work" (siehe post_comments-Generalisierung).
   const [commentCount, setCommentCount] = useState(0);
   const [showComments, setShowComments] = useState(false);
+  const [heroLoaded, setHeroLoaded] = useState(false);
   useEffect(() => {
     if (!postId) return;
     let cancelled = false;
@@ -102,6 +103,8 @@ export default function ContentPreviewSheet({ item, loading, onClose }) {
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = prev; };
   }, [item]);
+
+  useEffect(() => { setHeroLoaded(false); }, [item?.media?.[0]?.url]);
 
   if (!item && !loading) return null;
 
@@ -156,7 +159,26 @@ export default function ContentPreviewSheet({ item, loading, onClose }) {
           <div style={{ padding:"0 0 24px" }}>
             {/* Titelbild */}
             {hero ? (
-              <img loading="lazy" decoding="async" src={hero} alt={item.title || ""} style={{ width:"100%", maxHeight:320, objectFit:"cover", display:"block" }}/>
+              <div style={{
+                width:"100%", aspectRatio:"4/3", maxHeight:320,
+                background:"#F0EFED", overflow:"hidden", position:"relative",
+              }}>
+                {!heroLoaded && (
+                  <div style={{
+                    position:"absolute", inset:0,
+                    background:"linear-gradient(90deg,rgba(26,26,46,0.06) 25%,rgba(26,26,46,0.12) 50%,rgba(26,26,46,0.06) 75%)",
+                    backgroundSize:"200% 100%",
+                  }}/>
+                )}
+                <img loading="lazy" decoding="async" src={hero} alt={item.title || ""}
+                  onLoad={() => setHeroLoaded(true)}
+                  onError={() => setHeroLoaded(true)}
+                  style={{
+                    width:"100%", height:"100%", objectFit:"cover", display:"block",
+                    opacity: heroLoaded ? 1 : 0, transition:"opacity 0.3s ease",
+                  }}
+                />
+              </div>
             ) : item.type === "project" ? (
               <div style={{ width:"100%", height:140, display:"flex", alignItems:"center", justifyContent:"center",
                 background: item.color ? `${item.color}14` : "rgba(13,196,181,0.08)", fontSize:44 }}>

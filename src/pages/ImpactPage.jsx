@@ -3375,13 +3375,24 @@ function InfoSheet({ modal, onClose }) {
 // SHARED
 // ════════════════════════════════════════════════════════════════
 function SkeletonCards({ count = 2 }) {
+  const shimmer = {
+    background:"linear-gradient(90deg,#EDE9E0 25%,#F5F0E8 50%,#EDE9E0 75%)",
+    backgroundSize:"200% 100%",
+    animation:"ipShimmer 1.5s ease-in-out infinite",
+  };
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+      <style>{`@keyframes ipShimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }`}</style>
       {Array.from({ length:count }).map((_,i) => (
-        <div key={i} style={{ height:200, borderRadius:22,
-          background:"linear-gradient(90deg,#EDE9E0 25%,#F5F0E8 50%,#EDE9E0 75%)",
-          backgroundSize:"200% 100%",
-          animation:"ipFade 1.5s ease-in-out infinite" }}/>
+        <div key={i} style={{ borderRadius:22, overflow:"hidden", background:"#fff" }}>
+          <div style={{ height:180, ...shimmer }}/>
+          <div style={{ padding:"16px 20px 20px" }}>
+            <div style={{ height:18, width:"65%", borderRadius:6, marginBottom:10, ...shimmer }}/>
+            <div style={{ height:12, width:"90%", borderRadius:5, marginBottom:6, ...shimmer }}/>
+            <div style={{ height:12, width:"75%", borderRadius:5, marginBottom:14, ...shimmer }}/>
+            <div style={{ height:5, borderRadius:99, ...shimmer }}/>
+          </div>
+        </div>
       ))}
     </div>
   );

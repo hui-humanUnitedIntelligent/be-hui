@@ -1219,24 +1219,8 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
     reload();
   }, [user?.id, reload]);
 
-  // Loading-Guard (nach allen Hooks — Rules of Hooks konform)
-  if (loading && !profile) {
-    return (
-      <div style={{
-        position:"fixed", inset:0, zIndex:10500,
-        background:"#F9F7F4",
-        display:"flex", alignItems:"center", justifyContent:"center",
-      }}>
-        <div style={{
-          width:36, height:36, borderRadius:"50%",
-          border:"3px solid rgba(13,196,181,0.15)",
-          borderTopColor:"#0DC4B5",
-          animation:"spin 0.75s linear infinite",
-        }}/>
-        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-      </div>
-    );
-  }
+  // P4: Inline-Skeleton statt Vollbild-Spinner — Profil baut sich ruhig auf
+  const initialLoading = loading && !profile;
 
   return (
     <div className="tpp-root" style={{
@@ -1244,9 +1228,8 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
       bottom: publicView ? 0 : "calc(72px + env(safe-area-inset-bottom, 0px))",
       zIndex:9500, /* <BottomNav(10000) — Root endet vor Navbar */
       display:"flex", flexDirection:"column",
-      opacity:mounted?1:0,
-      transform:mounted?"none":"translateY(14px)",
-      transition:"opacity .35s ease, transform .35s cubic-bezier(.22,1,.36,1)",
+      opacity: mounted ? 1 : 0,
+      transition:"opacity .35s ease",
     }}>
       <style>{CSS}</style>
 
@@ -1264,7 +1247,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
           profile={profile}
           isOwner={isOwner}
           isTalent={profile?.is_talent === true}
-          loading={loading}
+          loading={initialLoading || loading}
           followCounts={followCounts}
           onEditAvatar={handleAvatarChange}
           onEditCover={handleCoverChange}
@@ -1278,7 +1261,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
             <ActionButtons
               profile={profile}
               currentUserId={user?.id}
-              loading={loading}
+              loading={initialLoading || loading}
               onOpenChat={handleOpenChat}
               onOpenKompass={({ isWatching: iw, toggleWatch: tw }) => {
                 setKompassWatchLocal(iw);
@@ -1304,7 +1287,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
         <TalentSection
           profile={profile}
           isOwner={isOwner}
-          loading={loading}
+          loading={initialLoading || loading}
           onChange={handleSkillsChange}
         />
         <Gap h={28}/>
@@ -1314,7 +1297,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
           works={works}
           profile={profile}
           isOwner={isOwner}
-          loading={loading}
+          loading={initialLoading || loading}
           onShowAll={() => {}}
         />
         <Gap h={28}/>
@@ -1323,7 +1306,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
         <ExperiencesSection
           experiences={experiences}
           isOwner={isOwner}
-          loading={loading}
+          loading={initialLoading || loading}
           onShowAll={() => {}}
         />
         <Gap h={28}/>
@@ -1332,7 +1315,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
         <RecommendationsSection
           recommendations={recommendations}
           isOwner={isOwner}
-          loading={loading}
+          loading={initialLoading || loading}
           onShowAll={() => {}}
         />
         <Gap h={28}/>
@@ -1341,7 +1324,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
         <AvailabilitySection
           profile={profile}
           isOwner={isOwner}
-          loading={loading}
+          loading={initialLoading || loading}
           onSave={handleAvailabilityChange}
         />
         <Gap h={12}/>
@@ -1350,7 +1333,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
         <LocationSection
           profile={profile}
           isOwner={isOwner}
-          loading={loading}
+          loading={initialLoading || loading}
           onSave={handleLocationChange}
         />
         <Gap h={12}/>
@@ -1359,7 +1342,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
         <VisibilitySection
           profile={profile}
           isOwner={isOwner}
-          loading={loading}
+          loading={initialLoading || loading}
           onSave={handleVisibilityChange}
         />
         <Gap h={24}/>
@@ -1368,7 +1351,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
         <MomentsSection
           moments={moments}
           isOwner={isOwner}
-          loading={loading}
+          loading={initialLoading || loading}
         />
         <Gap h={24}/>
 
@@ -1377,7 +1360,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
           followCounts={followCounts}
           experiences={experiences}
           moments={moments}
-          loading={loading}
+          loading={initialLoading || loading}
         />
         <Gap h={24}/>
 
