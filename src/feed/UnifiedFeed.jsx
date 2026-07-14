@@ -21,6 +21,12 @@ import { FeedSoftHydrationBadge } from "./FeedSoftHydrationBadge.jsx";
 import { toFeedItem }          from "../system/feed/unifiedNormalizer.js";
 import FeedEventsSection       from "./FeedEventsSection.jsx";
 import { FeedBottomSentinel, FeedLoadMoreSpinner } from "./FeedScrollSentinel.jsx";
+import {
+  logFeedStage,
+  logDataLoss,
+  logVirtualizerDivergence,
+  logKeepAlive,
+} from "./feedStabilizationDebug.js";
 import { useSingleReaction }   from "../lib/useReactions.jsx";
 import { useSavedPostsContext } from "../context/SavedPostsContext.jsx";
 import { useAuth }             from "../lib/AuthContext.jsx";
@@ -361,6 +367,34 @@ function EmptyFeed() {
   );
 }
 
+/* ── Scroll-Container Ready Hook ────────────────────────────────
+   ROOT CAUSE FIX: useVirt prüfte scrollContainerRef.current beim Render.
+   Refs sind beim ersten Render null → Virtualizer aktiviert sich nie oder
+   erst nach zufälligem Re-Render → nicht-deterministisches Verhalten. */
+function useScrollContainerReady(scrollContainerRef) {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    if (!scrollContainerRef) return;
+    const check = () => {
+      const el = scrollContainerRef.current;
+      setReady(prev => {
+        const next = !!el;
+        return prev === next ? prev : next;
+      });
+    };
+    check();
+    const el = scrollContainerRef.current;
+    if (!el) {
+      const id = requestAnimationFrame(check);
+      return () => cancelAnimationFrame(id);
+    }
+    return undefined;
+  }, [scrollContainerRef]);
+
+  return ready;
+}
+
 /* ── Feed List ────────────────────────────────────────────────── */
 
 // ── Per-item reaction wrapper — wires FeedRouter to reaction DB ─
@@ -375,7 +409,7 @@ class ReactionErrorBoundary extends React.Component {
   render() {
     if (this.state.crashed) {
       // Fallback: render the FeedRouter directly without reaction logic
-      const { item, onProfile, onBook, onShare } = this.props;
+      const { item, onProfile, onBook, onDetail, onShare } = this.props;
       return (
         <FeedRouter
           item={item}
@@ -533,14 +567,26 @@ function ReactionCard({ item, onProfile, onBook, onDetail, onShare, itemIndex, o
   );
 }
 
-function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loadMore, hasMore, loadingMore, onDiscover, scrollContainerRef }) {
+function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loadMore, hasMore, loadingMore, onDiscover, scrollContainerRef, tabVisible = true }) {
   // per-item reaction is handled in ReactionCard wrapper below
+  const scrollReady = useScrollContainerReady(scrollContainerRef);
+
   const arr = useMemo(() => {
     if (!Array.isArray(items)) return [];
-    const valid = items.filter(i => i && typeof i === "object" && i.id);
-    return Array.from(
+    const valid = items.filter(i => i && typeof i === "object" && i.id && !i._isGhost);
+    const deduped = Array.from(
       new Map(valid.map(i => [String(i.id), i])).values()
     );
+    const ghostsFiltered = items.length - valid.length;
+    if (ghostsFiltered > 0) {
+      logDataLoss("rhythmic", "filtered", items.length, deduped.length, { ghostsFiltered });
+    }
+    logFeedStage("filtered", {
+      input: items.length,
+      filtered: deduped.length,
+      ghostsFiltered,
+    });
+    return deduped;
   }, [items]);
 
   const [reactions, setReactions] = useState({});
@@ -592,7 +638,43 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
 
   const totalHeight = rowVirtualizer.getTotalSize();
   const virtItems   = rowVirtualizer.getVirtualItems();
-  const useVirt     = !!scrollContainerRef?.current && arr.length > 6;
+  const useVirt     = scrollReady && tabVisible && arr.length > 6;
+
+  // Remeasure when tab becomes visible or scroll container attaches
+  useEffect(() => {
+    if (!scrollReady || !tabVisible) return;
+    rowVirtualizer.measure();
+  }, [scrollReady, tabVisible, arr.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Runtime diagnostics (AUFGABE 2 + 4)
+  useEffect(() => {
+    const el = scrollContainerRef?.current;
+    const scrollHeight = el?.scrollHeight ?? 0;
+    const clientHeight = el?.clientHeight ?? 0;
+    const diverged = useVirt && virtItems.length > 0 && totalHeight < arr.length * 200;
+
+    logFeedStage("virtualizer", {
+      count: arr.length,
+      virtualRows: virtItems.length,
+      totalSize: totalHeight,
+      scrollHeight,
+      clientHeight,
+      useVirt,
+      scrollReady,
+      tabVisible,
+      hasNextPage: hasMore,
+      isFetchingNextPage: loadingMore,
+    });
+
+    if (diverged) {
+      logVirtualizerDivergence({
+        count: arr.length,
+        totalSize: totalHeight,
+        virtualRows: virtItems.length,
+        expectedMin: arr.length * 200,
+      });
+    }
+  }, [arr.length, virtItems.length, totalHeight, useVirt, scrollReady, tabVisible, hasMore, loadingMore, scrollContainerRef]); // eslint-disable-line
 
   if (arr.length === 0) return <EmptyFeed />;
   return (
@@ -935,6 +1017,8 @@ function GroupedSearchResults({
   const hasAny = people.length || projects.length || works.length || experiences.length || events.length || moments.length;
   if (!hasAny) return null;
 
+  const { open: openPreview } = useContentPreview();
+
   // Zweck: dieselbe saved_posts-Quelle wie Feed/Detail/Profil fuer die
   // Merken-Icons in der Suche -- kein zweiter Zustand, kein Re-Fetch.
   const { isSaved, toggleSave } = useSavedPostsContext();
@@ -1086,6 +1170,8 @@ export default function UnifiedFeed({
   geo            = null,
   // Performance: Scroll-Container-Ref für Virtualizer
   scrollContainerRef = null,
+  // KeepAlive: Feed-Tab sichtbar? (inactive tabs haben height:0)
+  tabVisible     = true,
 }) {
   useEffect(() => {
     injectFeedCSS();
@@ -1144,6 +1230,12 @@ export default function UnifiedFeed({
     // Nur null-Items und Items ohne id rausfiltern — nie mehr
     const safe = normalized.filter(i => i?.id);
 
+    logFeedStage("resolved", {
+      input: src.length,
+      resolved: safe.length,
+      streamLoading,
+    });
+    logDataLoss("stream", "resolved", (streamItems || []).length, safe.length);
 
     return safe;
   }, [itemsProp, streamItems, streamLoading]);
@@ -1159,6 +1251,10 @@ export default function UnifiedFeed({
   // der Feed-Bereich selbst bleibt hier bewusst leer (keine Karten, kein
   // Dashboard), bis der Nutzer zu tippen beginnt.
   const pureDiscovery = searchActive && !isSearching;
+
+  useEffect(() => {
+    logKeepAlive({ tabVisible, searchActive, isSearching, resolvedCount: resolvedItems.length });
+  }, [tabVisible, searchActive, isSearching, resolvedItems.length]);
 
   return (
     <div style={{
@@ -1294,6 +1390,7 @@ export default function UnifiedFeed({
                 loadingMore={loadingMore}
                 onDiscover={onDiscover}
                 scrollContainerRef={scrollContainerRef}
+                tabVisible={tabVisible}
               />
             )}
           </div>
