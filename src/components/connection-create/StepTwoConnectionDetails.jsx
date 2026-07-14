@@ -133,7 +133,8 @@ function DateTimeRow({ date, time, onDate, onTime }) {
             position:"absolute", left:12, top:"50%",
             transform:"translateY(-50%)", fontSize:15,
             pointerEvents:"none", zIndex:1,
-          }} style={{display:"flex",alignItems:"center"}}><HUIKalenderIcon size={15}/></span>
+            display:"flex", alignItems:"center",
+          }}><HUIKalenderIcon size={15}/></span>
           <select
             className="s2v3-field"
             style={selectStyle}
@@ -229,7 +230,8 @@ function LocationRow({ value, onChange }) {
         <div style={{
           fontSize:18, filter:"drop-shadow(0 2px 3px rgba(0,0,0,0.18))",
           position:"relative", zIndex:1,
-        }} style={{display:"flex",alignItems:"center",justifyContent:"center"}}><HUILocationIcon size={18}/></div>
+          display:"flex", alignItems:"center", justifyContent:"center",
+        }}><HUILocationIcon size={18}/></div>
       </div>
     </div>
   );

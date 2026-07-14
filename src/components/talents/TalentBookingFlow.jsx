@@ -68,13 +68,11 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
       .catch(() => {});
   }, [talent?.id]);
 
-  if (!talent) return null;
-
-  const isGruppe   = talent.booking_type === "gruppe";
-  const hasDates    = Array.isArray(talent.available_dates) && talent.available_dates.length > 0;
-  const hasSlots    = Array.isArray(talent.available_time_slots) && talent.available_time_slots.length > 0;
-  const minDate     = talent.booking_window_start || todayIso();
-  const maxDate     = talent.booking_window_end || addDaysIso(90);
+  const isGruppe   = talent?.booking_type === "gruppe";
+  const hasDates    = Array.isArray(talent?.available_dates) && talent.available_dates.length > 0;
+  const hasSlots    = Array.isArray(talent?.available_time_slots) && talent.available_time_slots.length > 0;
+  const minDate     = talent?.booking_window_start || todayIso();
+  const maxDate     = talent?.booking_window_end || addDaysIso(90);
 
   const fullDates = useMemo(
     () => Object.keys(monthAvail).filter(d => monthAvail[d]?.is_full),
@@ -82,23 +80,17 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
   );
   const slotAvailability = selectedDate ? monthAvail[selectedDate]?.slots : null;
 
-  const priceStr = talent.price_per_hour != null
-    ? `${fmtEur(talent.price_per_hour)}/Std`
-    : talent.price_per_session != null
-      ? `${fmtEur(talent.price_per_session)}/Termin`
-      : null;
-
   const previewAmount = useMemo(() => {
     const p = Math.max(1, participants || 1);
-    if (talent.price_per_session != null) return talent.price_per_session * p;
-    if (talent.price_per_hour != null && talent.duration_minutes) {
+    if (talent?.price_per_session != null) return talent.price_per_session * p;
+    if (talent?.price_per_hour != null && talent.duration_minutes) {
       return Math.round(talent.price_per_hour * (talent.duration_minutes / 60) * p * 100) / 100;
     }
     return null;
   }, [talent, participants]);
 
   useEffect(() => {
-    if (!selectedDate || !isGruppe) { setAvailability(null); return; }
+    if (!talent?.id || !selectedDate || !isGruppe) { setAvailability(null); return; }
     let cancelled = false;
     setAvailLoading(true);
     supabase.rpc("rpc_get_talent_availability", { p_talent_id: talent.id, p_date: selectedDate })
@@ -106,7 +98,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
       .catch(() => { if (!cancelled) setAvailability(null); })
       .finally(() => { if (!cancelled) setAvailLoading(false); });
     return () => { cancelled = true; };
-  }, [selectedDate, isGruppe, talent.id]);
+  }, [selectedDate, isGruppe, talent?.id]);
 
   const remaining = availability?.unlimited ? Infinity : (availability?.remaining ?? null);
   const isFull     = availability?.is_full === true;
@@ -118,13 +110,14 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
 
   const canSubmit = !!selectedDate
     && (!hasSlots || !!selectedSlot)
-    && participants >= (talent.min_participants || 1)
+    && participants >= (talent?.min_participants || 1)
     && (!isGruppe || remaining === null || remaining === Infinity || participants <= remaining)
     && !isFull
     && !selectedSlotFull
     && !selectedDateFullNoSlots;
 
   const handleBuchen = useCallback(async () => {
+    if (!talent) return;
     if (!user?.id) return setErrMsg("Bitte melde dich an.");
     if (user.id === talent.user_id) return setErrMsg("Du kannst dein eigenes Angebot nicht buchen.");
     if (!canSubmit) return;
@@ -173,6 +166,14 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
   }, []);
 
   const stripePromise = useMemo(() => (step === "payment" ? getStripe() : null), [step]);
+
+  if (!talent) return null;
+
+  const priceStr = talent.price_per_hour != null
+    ? `${fmtEur(talent.price_per_hour)}/Std`
+    : talent.price_per_session != null
+      ? `${fmtEur(talent.price_per_session)}/Termin`
+      : null;
 
   return createPortal(
     <div

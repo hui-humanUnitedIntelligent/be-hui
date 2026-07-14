@@ -165,7 +165,7 @@ function NavBar({ onBack, isOwner = false, onSettings }) {
           display:"flex", alignItems:"center", justifyContent:"center",
           fontSize:17, cursor:"pointer", touchAction:"manipulation",
           boxShadow:T.card, color:T.ink,
-        }} style={{display:"flex",alignItems:"center",justifyContent:"center"}}><HUISettingsIcon size={17}/></button>
+        }}><HUISettingsIcon size={17}/></button>
       ) : (
         <button className="bpp-press-light" style={{
           width:36, height:36, borderRadius:"50%",

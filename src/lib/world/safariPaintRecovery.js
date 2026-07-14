@@ -11,6 +11,7 @@
 //   5. safeRepaint() uses translateZ(0) nudge instead of display toggle.
 
 // ─── Safari detection ─────────────────────────────────────────────────────
+const isDev = import.meta.env?.DEV ?? false;
 const isSafariLike = () =>
   typeof navigator !== "undefined" &&
   /Safari/i.test(navigator.userAgent) &&
@@ -74,7 +75,7 @@ export function safeRepaint(node, label = "node") {
         }
         // Force reflow so the layer is actually created
         safeReflow(node, label);
-        console.log(`[PAINT] tab restored — ${label}`);
+        if (isDev) console.log(`[PAINT] tab restored — ${label}`);
 
         raf2 = requestAnimationFrame(() => {
           if (cancelled || !isLiveNode(node)) return;
@@ -95,7 +96,7 @@ export function safeRepaint(node, label = "node") {
 
             // Release GPU hint
             node.style.willChange = "auto";
-            console.log(`[PAINT] reflow forced — ${label} (double-pass complete)`);
+            if (isDev) console.log(`[PAINT] reflow forced — ${label} (double-pass complete)`);
           } catch (e) {
             console.warn(`[PAINT] phase3 failed — ${label}:`, e.message);
           }
@@ -121,7 +122,7 @@ export function stripGpuHints(node, label = "container") {
     node.style.willChange = "auto";
     node.style.contain    = "";
     safeReflow(node, label);
-    console.log(`[PAINT] contain removed — ${label}`);
+    if (isDev) console.log(`[PAINT] contain removed — ${label}`);
   } catch (e) {
     console.warn(`[PAINT] stripGpuHints failed — ${label}:`, e.message);
   }
@@ -153,7 +154,7 @@ export class PaintRecoveryManager {
   }
 
   cleanup() {
-    console.log(`[PAINT] recovery manager cleanup — ${this._handles.size} handles`);
+    if (isDev) console.log(`[PAINT] recovery manager cleanup — ${this._handles.size} handles`);
     for (const h of this._handles) {
       try { h.cancel(); } catch (_) {}
     }

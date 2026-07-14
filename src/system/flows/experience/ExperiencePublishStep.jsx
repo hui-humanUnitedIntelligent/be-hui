@@ -243,7 +243,8 @@ export function ExperiencePublishStep({
           border:"1px solid rgba(251,146,60,0.22)",
           borderRadius:12, padding:"10px 14px",
           fontSize:13, color:ET.coral, marginBottom:14,
-        }} style={{display:"flex",alignItems:"center",gap:4}}><HUIWarnIcon size={14}/>{error}</div>
+          display:"flex", alignItems:"center", gap:4,
+        }}><HUIWarnIcon size={14}/>{error}</div>
       )}
 
       {/* ── Haupt CTA ── */}

@@ -418,7 +418,9 @@ export default function InvitationFlow({ onClose, visible = true }) {
 
       if (insertError) throw insertError;
 
-      console.log("[InvitationFlow] ✓ Invitation erstellt:", insertedInv?.id);
+      if (import.meta.env.DEV) {
+        console.log("[InvitationFlow] ✓ Invitation erstellt:", insertedInv?.id);
+      }
 
       setSuccess(true);
     } catch (err) {
@@ -474,8 +476,8 @@ export default function InvitationFlow({ onClose, visible = true }) {
                 width:34, height:34, borderRadius:10,
                 background:"rgba(139,92,246,0.12)",
                 display:"flex", alignItems:"center", justifyContent:"center",
-                fontSize:18,
-              }} style={{display:"flex",alignItems:"center",justifyContent:"center",color:"rgba(14,196,184,0.5)"}}><HUIPersonenIcon size={28}/></div>
+                color:"rgba(14,196,184,0.5)",
+              }}><HUIPersonenIcon size={28}/></div>
               <div>
                 <div style={{ fontSize:15, fontWeight:700, color:V.ink, letterSpacing:-0.3 }}>Einladung</div>
                 <ProgressDots step={step} />
