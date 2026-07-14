@@ -395,10 +395,11 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
   const postId   = item?.id    || "";
   const postType = item?.type  || "post";
   const authorId = item?.author?.id || null;
+  const isPriority = typeof itemIndex === "number" && itemIndex < 3;
 
-  // FEED.9B — Lazy-Loading: nur laden wenn Karte sichtbar
+  // FEED.9B — Lazy-Loading: nur laden wenn Karte sichtbar (erste 3 sofort)
   const cardRef    = useRef(null);
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(isPriority);
 
   // FEED.12B — Impression Tracking
   const { user } = useAuth();
@@ -429,20 +430,20 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
   }, [visible]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    if (isPriority || !cardRef.current || visible) return;
     const el = cardRef.current;
-    if (!el || visible) return; // already visible — no new observer needed
     const obs = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setVisible(true);
-          obs.disconnect(); // once=true: nie wieder beobachten
+          obs.disconnect();
         }
       },
       { threshold: 0.1 }
     );
     obs.observe(el);
     return () => obs.disconnect();
-  }, [visible]);
+  }, [visible, isPriority]);
 
   // MERKEN.2A (2026-07-08): Snapshot der echten Anzeige-Daten fuer
   // saved_posts.post_data -- ohne das zeigt "Gemerkte Inhalte" nur
@@ -490,6 +491,7 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
   // Merge live reaction state into item
   const enriched = {
     ...item,
+    _imagePriority: isPriority,
     _reactions: {
       ...(item._reactions || {}),
       touched:  myTypes?.has?.("touch")   ?? false,
@@ -643,7 +645,7 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
               className="hui-feed-card"
               style={{
                 marginBottom: mb,
-                animationDelay: Math.min(idx * 40, 300) + "ms",
+                animationDelay: idx < 3 ? "0ms" : Math.min(idx * 40, 300) + "ms",
                 contentVisibility: idx > 4 ? "auto" : "visible",
                 containIntrinsicSize: idx > 4 ? "0 620px" : undefined,
               }}
