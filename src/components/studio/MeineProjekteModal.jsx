@@ -282,7 +282,7 @@ export default function MeineProjekteModal({ profile, onClose, switchTab = null 
             <>
               {supports.length === 0 ? (
                 <EmptyState
-                  icon="💸"
+                  icon={<HUIFinanzIcon size={36}/>}
                   title="Noch keine Unterstützungen"
                   desc="Sobald du Projekte finanziell unterstützt, erscheinen sie hier."
                 />
@@ -323,7 +323,7 @@ export default function MeineProjekteModal({ profile, onClose, switchTab = null 
             <>
               {votes.length === 0 ? (
                 <EmptyState
-                  icon="🗳️"
+                  icon={<HUIStimmeIcon size={36}/>}
                   title="Noch keine Stimmen"
                   desc="Deine monatlichen Impact-Stimmen erscheinen hier, sobald du abgestimmt hast."
                 />
@@ -353,7 +353,7 @@ export default function MeineProjekteModal({ profile, onClose, switchTab = null 
             <>
               {impactApps.length === 0 ? (
                 <EmptyState
-                  icon="🌱"
+                  icon={<HUIImpactIcon size={36}/>}
                   title="Du hast noch kein Impact-Projekt eingereicht"
                   desc="Reiche ein Herzensprojekt ein und sammle Unterstuetzung aus der Community."
                 />

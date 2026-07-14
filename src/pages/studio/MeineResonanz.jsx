@@ -6,6 +6,11 @@
 // Design: Apple Journal, nicht Amazon Orders.
 // ─────────────────────────────────────────────────────────────────
 
+import {
+  HUIResonanzIcon, HUIWerkeIcon, HUIImpactIcon,
+  HUIErlebnisIcon, HUIKalenderIcon,
+} from '../../design/icons/HuiSystemIcons.jsx';
+import { HUIHeartIcon } from '../../design/icons/HuiInteractionIcons.jsx';
 import React from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useAuth }  from "../../lib/AuthContext.jsx";
@@ -26,20 +31,20 @@ const T = {
 };
 
 const TYPE_CONFIG = {
-  support:   { icon: "❤️",  label: "Unterstützung", color: "#E85D75", bg: "rgba(232,93,117,0.09)"  },
-  werk:      { icon: "🎨",  label: "Werk",          color: "#7264D6", bg: "rgba(114,100,214,0.09)" },
-  erlebnis:  { icon: "🌿",  label: "Erlebnis",      color: "#2D9E6A", bg: "rgba(45,158,106,0.09)"  },
-  impact:    { icon: "🌍",  label: "Impact",         color: "#0EC4B8", bg: "rgba(14,196,184,0.09)"  },
-  buchung:   { icon: "📅",  label: "Buchung",        color: "#F59E0B", bg: "rgba(245,158,11,0.09)"  },
+  support:   { icon: <HUIHeartIcon size={18}/>,  label: "Unterstützung", color: "#E85D75", bg: "rgba(232,93,117,0.09)"  },
+  werk:      { icon: <HUIWerkeIcon size={18}/>,  label: "Werk",          color: "#7264D6", bg: "rgba(114,100,214,0.09)" },
+  erlebnis:  { icon: <HUIErlebnisIcon size={18}/>,  label: "Erlebnis",      color: "#2D9E6A", bg: "rgba(45,158,106,0.09)"  },
+  impact:    { icon: <HUIImpactIcon size={18}/>,  label: "Impact",         color: "#0EC4B8", bg: "rgba(14,196,184,0.09)"  },
+  buchung:   { icon: <HUIKalenderIcon size={18}/>,  label: "Buchung",        color: "#F59E0B", bg: "rgba(245,158,11,0.09)"  },
 };
 
 const FILTERS = [
-  { id: "all",      label: "Alle",          icon: "✨" },
-  { id: "support",  label: "Unterstützung", icon: "❤️" },
-  { id: "werk",     label: "Werke",         icon: "🎨" },
-  { id: "erlebnis", label: "Erlebnisse",    icon: "🌿" },
-  { id: "impact",   label: "Impact",        icon: "🌍" },
-  { id: "buchung",  label: "Buchungen",     icon: "📅" },
+  { id: "all",      label: "Alle",          icon: <HUIImpactIcon size={14}/> },
+  { id: "support",  label: "Unterstützung", icon: <HUIHeartIcon size={14}/> },
+  { id: "werk",     label: "Werke",         icon: <HUIWerkeIcon size={14}/> },
+  { id: "erlebnis", label: "Erlebnisse",    icon: <HUIErlebnisIcon size={14}/> },
+  { id: "impact",   label: "Impact",        icon: <HUIImpactIcon size={14}/> },
+  { id: "buchung",  label: "Buchungen",     icon: <HUIKalenderIcon size={14}/> },
 ];
 
 const CSS = `
@@ -266,8 +271,8 @@ function ResonanzSummary({ entries }) {
   }
 
   const stats = [
-    { icon:"❤️", label:"Unterstützt", val:t.support  },
-    { icon:"🎨", label:"Werke",       val:t.werk      },
+    { icon:<HUIHeartIcon size={14}/>, label:"Unterstützt", val:t.support  },
+    { icon:<HUIWerkeIcon size={14}/>, label:"Werke",       val:t.werk      },
     { icon:"🌿", label:"Erlebnisse",  val:t.erlebnis  },
     { icon:"🌍", label:"Impact",      val:t.impact    },
     { icon:"📅", label:"Buchungen",   val:t.buchung   },
@@ -423,7 +428,7 @@ function EmptyState({ filter }) {
   const cfg = filter !== "all" ? TYPE_CONFIG[filter] : null;
   return (
     <div style={{ textAlign:"center", padding:"72px 32px 48px" }}>
-      <div style={{ fontSize:54, marginBottom:18 }}>{cfg?.icon || "✨"}</div>
+      <div style={{ marginBottom:18, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)" }}>{cfg?.icon || <HUIResonanzIcon size={48}/>}</div>
       <div style={{ fontSize:18, fontWeight:700, color:T.ink, marginBottom:10, letterSpacing:"-0.02em" }}>
         {filter==="all" ? "Deine Geschichte beginnt hier" : "Noch keine " + (cfg?.label||"Aktivitäten")}
       </div>

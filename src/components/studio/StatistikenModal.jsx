@@ -41,11 +41,11 @@ const fmtNum  = (n)   => n == null ? "0" : Number(n).toLocaleString("de-DE");
 
 // ── Statistiken-Kategorien ─────────────────────────────────────────
 const CATEGORIES = [
-  { key: "community",  label: "Community",         icon: "👥", color: T.teal   },
-  { key: "content",    label: "Inhalte & Werke",   icon: "🎨", color: T.violet },
-  { key: "handel",     label: "Handel & Buchungen",icon: "💶", color: T.green  },
-  { key: "impact",     label: "Impact & Wirkung",  icon: "🌱", color: T.teal   },
-  { key: "engagement", label: "Engagement",        icon: "✨", color: T.amber  },
+  { key: "community",  label: "Community",         icon: <HUIAmbassadorIcon size={16}/>, color: T.teal   },
+  { key: "content",    label: "Inhalte & Werke",   icon: <HUIWerkeIcon size={16}/>, color: T.violet },
+  { key: "handel",     label: "Handel & Buchungen",icon: <HUIFinanzIcon size={16}/>, color: T.green  },
+  { key: "impact",     label: "Impact & Wirkung",  icon: <HUIImpactIcon size={16}/>, color: T.teal   },
+  { key: "engagement", label: "Engagement",        icon: <HUIImpactIcon size={16}/>, color: T.amber  },
 ];
 
 // ── Haupt-Komponente ───────────────────────────────────────────────
@@ -426,20 +426,20 @@ export default function StatistikenModal({ profile, onClose }) {
               </div>
 
               {/* ── Kategorien ── */}
-              <StatSection icon="👥" label="Community & Netzwerk" color={T.teal}>
+              <StatSection icon={<HUIAmbassadorIcon size={18}/>} label="Community & Netzwerk" color={T.teal}>
                 <KachelGrid items={[
                   { icon:"🔔", label:"Follower",          val: fmtNum(stats.followers),    col:T.teal   },
                   { icon:"➡️", label:"Folge ich",          val: fmtNum(stats.following),    col:T.teal   },
                   { icon:"🤝", label:"Verbindungen",       val: fmtNum(stats.connections),  col:T.violet },
                   { icon:"👁️", label:"Profil-Aufrufe",     val: fmtNum(stats.profileViews), col:T.amber  },
-                  { icon:"❤️", label:"Likes vergeben",     val: fmtNum(stats.likesGiven),   col:T.coral  },
-                  { icon:"🔖", label:"Gespeichert",        val: fmtNum(stats.likesSaved),   col:T.coral  },
+                  { icon:<HUIHeartIcon size={14}/>, label:"Likes vergeben",     val: fmtNum(stats.likesGiven),   col:T.coral  },
+                  { icon:<HUIBookmarkIcon size={14}/>, label:"Gespeichert",        val: fmtNum(stats.likesSaved),   col:T.coral  },
                   { icon:"💬", label:"Kommentare",         val: fmtNum(stats.commentsGiven),col:T.violet },
-                  { icon:"⭐", label:"Empfehlungen",       val: fmtNum(stats.recsGiven),    col:T.green  },
+                  { icon:<HUIEmpfehlungIcon size={14}/>, label:"Empfehlungen",       val: fmtNum(stats.recsGiven),    col:T.green  },
                 ]} />
               </StatSection>
 
-              <StatSection icon="🎨" label="Inhalte & Werke" color={T.violet}>
+              <StatSection icon={<HUIWerkeIcon size={18}/>} label="Inhalte & Werke" color={T.violet}>
                 <KachelGrid items={[
                   { icon:"🖼️", label:"Werke gesamt",       val: fmtNum(stats.worksTotal),     col:T.violet },
                   { icon:"✅", label:"Veröffentlicht",     val: fmtNum(stats.worksPublished), col:T.green  },
@@ -447,12 +447,12 @@ export default function StatistikenModal({ profile, onClose }) {
                   { icon:"📸", label:"Momente",            val: fmtNum(stats.momentsCount),   col:T.amber  },
                   { icon:"📝", label:"Beiträge",           val: fmtNum(stats.beitraegeCount), col:T.teal   },
                   { icon:"👀", label:"Werk-Aufrufe",       val: fmtNum(stats.totalWorkViews), col:T.violet },
-                  { icon:"❤️", label:"Likes erhalten",     val: fmtNum(stats.totalWorkLikes), col:T.coral  },
-                  { icon:"🔖", label:"Gemerkt",            val: fmtNum(stats.totalGemerkt),   col:T.coral  },
+                  { icon:<HUIHeartIcon size={14}/>, label:"Likes erhalten",     val: fmtNum(stats.totalWorkLikes), col:T.coral  },
+                  { icon:<HUIBookmarkIcon size={14}/>, label:"Gemerkt",            val: fmtNum(stats.totalGemerkt),   col:T.coral  },
                 ]} />
               </StatSection>
 
-              <StatSection icon="💶" label="Handel & Buchungen" color={T.green}>
+              <StatSection icon={<HUIFinanzIcon size={18}/>} label="Handel & Buchungen" color={T.green}>
                 <KachelGrid items={[
                   { icon:"🛒", label:"Käufe / Buchungen",  val: fmtNum(stats.bookingsBuyer),  col:T.coral  },
                   { icon:"💼", label:"Verkäufe",           val: fmtNum(stats.bookingsSeller), col:T.green  },
@@ -465,10 +465,10 @@ export default function StatistikenModal({ profile, onClose }) {
                 ]} />
               </StatSection>
 
-              <StatSection icon="🌱" label="Impact & Wirkung" color={T.teal}>
+              <StatSection icon={<HUIImpactIcon size={18}/>} label="Impact & Wirkung" color={T.teal}>
                 <KachelGrid items={[
-                  { icon:"🗳️", label:"Impact-Stimmen",      val: fmtNum(stats.impactVotes),     col:T.teal  },
-                  { icon:"❤️", label:"Projekte unterstützt", val: fmtNum(stats.projectSupports), col:T.green },
+                  { icon:<HUIStimmeIcon size={14}/>, label:"Impact-Stimmen",      val: fmtNum(stats.impactVotes),     col:T.teal  },
+                  { icon:<HUIProjektIcon size={14}/>, label:"Projekte unterstützt", val: fmtNum(stats.projectSupports), col:T.green },
                   { icon:"💧", label:"Impact-Beitrag",       val: fmtEur(stats.totalImpactEur),  col:T.teal  },
                   { icon:"🌍", label:"Projekt-Support",      val: fmtEur(stats.totalProjSupp),   col:T.green },
                 ]} />

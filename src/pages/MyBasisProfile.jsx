@@ -51,6 +51,12 @@ const MeineBuchungenModal      = React.lazy(() => import("../components/studio/M
 const StatistikenModal         = React.lazy(() => import("../components/studio/StatistikenModal.jsx"));
 import ProfilBearbeitenModal    from "../components/studio/ProfilBearbeitenModal.jsx";
 import { HUIBookmarkIcon }      from "../design/icons/HuiInteractionIcons.jsx";
+import {
+  HUIResonanzIcon, HUITalentIcon, HUIWerkeIcon, HUIErlebnisIcon,
+  HUIAmbassadorIcon, HUIEmpfehlungIcon, HUIImpactIcon, HUIFinanzIcon,
+  HUIStimmeIcon, HUIProjektIcon, HUIEinAusIcon, HUIKalenderIcon,
+  HUIVerkaufIcon, HUIStatistikIcon,
+} from "../design/icons/HuiSystemIcons.jsx";
 import { NotificationBadge }    from "../lib/useNotifications.jsx";
 import { useSavedPostsContext }  from "../context/SavedPostsContext.jsx";
 import { useContentPreview } from "../context/ContentPreviewContext.jsx";
@@ -1645,7 +1651,7 @@ function MeinBereichDrawer({ title, icon, onClose, children, footer = true }) {
           borderBottom:"1px solid rgba(26,26,24,0.08)",
         }}>
           <div style={{ fontSize:17, fontWeight:800, color:"#1A1A18", letterSpacing:"-0.02em" }}>
-            {icon} {title}
+            <span style={{display:"flex",alignItems:"center",gap:7,color:"rgba(14,196,184,0.9)"}}>{icon}</span>{title}
           </div>
           <button onClick={onClose} style={{
             background:"rgba(26,26,24,0.07)", border:"none", cursor:"pointer",
@@ -1689,7 +1695,8 @@ function MeinBereichChooserRow({ icon, label, desc, onPress }) {
       <span style={{
         width:38, height:38, borderRadius:11, flexShrink:0,
         background:"rgba(14,196,184,0.10)",
-        display:"flex", alignItems:"center", justifyContent:"center", fontSize:18,
+        display:"flex", alignItems:"center", justifyContent:"center",
+        color:"rgba(14,196,184,0.85)",
       }}>{icon}</span>
       <div style={{ flex:1, minWidth:0 }}>
         <div style={{ fontSize:14, fontWeight:700, color:"#1A1A18" }}>{label}</div>
@@ -1714,8 +1721,8 @@ function MeinBereichTile({ icon, label, onPress }) {
       <span style={{
         width:52, height:52, borderRadius:"50%",
         background:"rgba(14,196,184,0.10)", border:"1px solid rgba(14,196,184,0.22)",
-        display:"flex", alignItems:"center", justifyContent:"center", fontSize:22,
-        flexShrink:0,
+        display:"flex", alignItems:"center", justifyContent:"center",
+        flexShrink:0, color:"rgba(14,196,184,0.85)",
       }}>{icon}</span>
       <span style={{
         fontSize:11.5, fontWeight:600, color:"rgba(26,26,24,0.75)",
@@ -1774,26 +1781,26 @@ function MeinBereichMenu({
           display:"grid", gridTemplateColumns:"repeat(4, 1fr)",
           rowGap:18, columnGap:4,
         }}>
-          <MeinBereichTile icon="❤️" label="Meine Resonanz" onPress={onOpenResonanz} />
+          <MeinBereichTile icon={<HUIResonanzIcon size={22}/>} label="Meine Resonanz" onPress={onOpenResonanz} />
           {isTalent && (
-            <MeinBereichTile icon="🧑‍🎨" label="Talent-Angebote" onPress={() => setActiveDrawer("talente")} />
+            <MeinBereichTile icon={<HUITalentIcon size={22}/>} label="Talent-Angebote" onPress={() => setActiveDrawer("talente")} />
           )}
           {isTalent && (
-            <MeinBereichTile icon="🎨" label="Meine Werke" onPress={() => setActiveDrawer("werke")} />
+            <MeinBereichTile icon={<HUIWerkeIcon size={22}/>} label="Meine Werke" onPress={() => setActiveDrawer("werke")} />
           )}
           {isTalent && (
-            <MeinBereichTile icon="🌟" label="Erlebnisse & Projekte" onPress={() => setActiveDrawer("erlebnisse")} />
+            <MeinBereichTile icon={<HUIErlebnisIcon size={22}/>} label="Erlebnisse & Projekte" onPress={() => setActiveDrawer("erlebnisse")} />
           )}
-          <MeinBereichTile icon="👥" label="Ambassador-Bereich" onPress={() => setActiveDrawer("ambassador")} />
-          <MeinBereichTile icon="⭐" label="Meine Empfehlungen" onPress={() => setActiveDrawer("empfehlungen")} />
-          <MeinBereichTile icon="🗳️" label="Impact & Stimmen" onPress={() => setActiveDrawer("impact")} />
-          <MeinBereichTile icon="💶" label="Finanzabteilung" onPress={() => setActiveDrawer("finanzen")} />
+          <MeinBereichTile icon={<HUIAmbassadorIcon size={22}/>} label="Ambassador-Bereich" onPress={() => setActiveDrawer("ambassador")} />
+          <MeinBereichTile icon={<HUIEmpfehlungIcon size={22}/>} label="Meine Empfehlungen" onPress={() => setActiveDrawer("empfehlungen")} />
+          <MeinBereichTile icon={<HUIImpactIcon size={22}/>} label="Impact & Stimmen" onPress={() => setActiveDrawer("impact")} />
+          <MeinBereichTile icon={<HUIFinanzIcon size={22}/>} label="Finanzabteilung" onPress={() => setActiveDrawer("finanzen")} />
         </div>
       </div>
 
       {/* ── Talent-Angebote ─────────────────────────────────── */}
       {activeDrawer === "talente" && (
-        <MeinBereichDrawer title="Talent-Angebote" icon="🧑‍🎨" onClose={close} footer={false}>
+        <MeinBereichDrawer title="Talent-Angebote" icon={<HUITalentIcon size={18}/>} onClose={close} footer={false}>
           <TalentAngeboteSection
             talents={talents}
             onTalentWizard={onTalentWizard}
@@ -1804,7 +1811,7 @@ function MeinBereichMenu({
 
       {/* ── Meine Werke ──────────────────────────────────────── */}
       {activeDrawer === "werke" && (
-        <MeinBereichDrawer title="Meine Werke" icon="🎨" onClose={close} footer={false}>
+        <MeinBereichDrawer title="Meine Werke" icon={<HUIWerkeIcon size={18}/>} onClose={close} footer={false}>
           <MeineWerkeSection
             works={works}
             onWerkWizard={onWerkWizard}
@@ -1815,10 +1822,10 @@ function MeinBereichMenu({
 
       {/* ── Erlebnisse & Projekte ────────────────────────────── */}
       {activeDrawer === "erlebnisse" && (
-        <MeinBereichDrawer title="Erlebnisse & Projekte" icon="🌟" onClose={close} footer={false}>
+        <MeinBereichDrawer title="Erlebnisse & Projekte" icon={<HUIErlebnisIcon size={18}/>} onClose={close} footer={false}>
           {/* Tab-Switcher */}
           <div style={{ display:"flex", gap:0, margin:"0 20px 16px", background:"rgba(0,0,0,0.05)", borderRadius:12, padding:4 }}>
-            {[["erlebnisse","🌟 Erlebnisse"],["impact","💚 Impact Projekte"]].map(([key,label]) => (
+            {[["erlebnisse","Erlebnisse"],["impact","Impact Projekte"]].map(([key,label]) => (
               <button key={key} onClick={() => setActiveTab(key)} style={{
                 flex:1, padding:"8px 4px", borderRadius:10, border:"none",
                 background: activeTab===key ? "white" : "transparent",
@@ -1861,7 +1868,7 @@ function MeinBereichMenu({
       {/* ── Ambassador-Bereich ───────────────────────────────── */}
       {activeDrawer === "ambassador" && (
               <React.Suspense fallback={null}>
-        <MeinBereichDrawer title="Ambassador-Bereich" icon="👥" onClose={close} footer={false}>
+        <MeinBereichDrawer title="Ambassador-Bereich" icon={<HUIAmbassadorIcon size={18}/>} onClose={close} footer={false}>
           <AmbassadorStudioSection profile={profile} />
         </MeinBereichDrawer>
               </React.Suspense>
@@ -1876,14 +1883,14 @@ function MeinBereichMenu({
 
       {/* ── Impact & Stimmen (Chooser + Detail-Drawer) ──────── */}
       {activeDrawer === "impact" && !impactDetail && (
-        <MeinBereichDrawer title="Impact & Stimmen" icon="🗳️" onClose={close} footer={false}>
+        <MeinBereichDrawer title="Impact & Stimmen" icon={<HUIImpactIcon size={18}/>} onClose={close} footer={false}>
           <MeinBereichChooserRow
-            icon="🗳️" label="Impact-Stimmen"
+            icon={<HUIStimmeIcon size={18}/>} label="Impact-Stimmen"
             desc={isTalent ? "2 Stimmen / Monat" : "1 Stimme / Monat"}
             onPress={() => setImpactDetail("stimmen")}
           />
           <MeinBereichChooserRow
-            icon="❤️" label="Meine unterstützten Projekte"
+            icon={<HUIProjektIcon size={18}/>} label="Meine unterstützten Projekte"
             onPress={() => setImpactDetail("projekte")}
           />
         </MeinBereichDrawer>
@@ -1909,11 +1916,11 @@ function MeinBereichMenu({
 
       {/* ── Finanzabteilung (Chooser + Detail-Drawer) ───────── */}
       {activeDrawer === "finanzen" && !financeDetail && (
-        <MeinBereichDrawer title="Finanzabteilung" icon="💶" onClose={close} footer={false}>
-          <MeinBereichChooserRow icon="💶" label="Ein-/Ausgaben Übersicht" onPress={() => setFinanceDetail("ein_aus")} />
-          <MeinBereichChooserRow icon="🛍️" label="Meine Verkäufe" onPress={() => setFinanceDetail("verkaeufe")} />
-          <MeinBereichChooserRow icon="📅" label="Meine Buchungen" onPress={() => setFinanceDetail("buchungen")} />
-          <MeinBereichChooserRow icon="📊" label="Statistiken" onPress={() => setFinanceDetail("statistiken")} />
+        <MeinBereichDrawer title="Finanzabteilung" icon={<HUIFinanzIcon size={18}/>} onClose={close} footer={false}>
+          <MeinBereichChooserRow icon={<HUIEinAusIcon size={18}/>} label="Ein-/Ausgaben Übersicht" onPress={() => setFinanceDetail("ein_aus")} />
+          <MeinBereichChooserRow icon={<HUIVerkaufIcon size={18}/>} label="Meine Verkäufe" onPress={() => setFinanceDetail("verkaeufe")} />
+          <MeinBereichChooserRow icon={<HUIKalenderIcon size={18}/>} label="Meine Buchungen" onPress={() => setFinanceDetail("buchungen")} />
+          <MeinBereichChooserRow icon={<HUIStatistikIcon size={18}/>} label="Statistiken" onPress={() => setFinanceDetail("statistiken")} />
         </MeinBereichDrawer>
       )}
       {activeDrawer === "finanzen" && financeDetail === "ein_aus" && (
