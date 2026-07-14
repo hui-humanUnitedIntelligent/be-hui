@@ -1177,12 +1177,13 @@ export default function UnifiedFeed({
 
       {/* Stories entfernt — HUI-Momente sind die Stories */}
 
-      {/* ── EVENTS — below stories — ausgeblendet waehrend Suche aktiv ── */}
+      {/* ── DEMNÄCHST — bevorstehende Erlebnisse & Veranstaltungen (Feed V3) ── */}
       {showEvents && !hideDashboard && (
         <SectionBoundary name="events">
           <FeedEventsSection
             onEventPress={onEventPress}
             onMoreEvents={onMoreEvents}
+            onBook={onBook}
           />
         </SectionBoundary>
       )}
@@ -1193,9 +1194,27 @@ export default function UnifiedFeed({
         <div style={{ minHeight:"40vh" }} aria-hidden="true"/>
       )}
 
-      {/* ── MAIN FEED — vertical timeline, stable, always renders (auch mit gefilterten Suchergebnissen) ── */}
+      {/* ── MAIN FEED — "Neu auf HUI", strikt chronologisch (Feed V3) ── */}
       {!pureDiscovery && (
       <div key={searchActive ? "search" : "normal"} style={{ animation: "hui-search-fade-in .22s cubic-bezier(.22,1,.36,1) both" }}>
+
+      {/* Feed V3 — erklärt, warum dieser Bereich existiert */}
+      {!hideDashboard && !isSearching && (
+        <div style={{ padding: "8px 16px 4px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+            <span style={{ fontSize: 15 }}>✨</span>
+            <span style={{ fontSize: 15, fontWeight: 700, color: "#141422", letterSpacing: -0.3 }}>
+              Neu auf HUI
+            </span>
+          </div>
+          <p style={{
+            margin: 0, fontSize: 12.5, color: "rgba(20,20,34,0.46)",
+            fontWeight: 400, lineHeight: 1.45,
+          }}>
+            Alles Neue — sortiert nach Veröffentlichungsdatum, ohne versteckte Priorisierung.
+          </p>
+        </div>
+      )}
 
       {/* FEED.3B FIX-1 — Soft Hydration Badge */}
       <FeedSoftHydrationBadge
