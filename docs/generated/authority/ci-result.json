@@ -1,0 +1,139 @@
+{
+  "passed": true,
+  "authority": "ARCH-004",
+  "checkedAt": "2026-06-30T14:28:40.521Z",
+  "checks": [
+    {
+      "id": "authority-loaded",
+      "passed": true,
+      "message": "Constitution geladen",
+      "warning": false
+    },
+    {
+      "id": "adrs-present",
+      "passed": true,
+      "message": "2 ADRs",
+      "warning": false
+    },
+    {
+      "id": "rfcs-present",
+      "passed": true,
+      "message": "2 RFCs",
+      "warning": false
+    },
+    {
+      "id": "rules-present",
+      "passed": true,
+      "message": "29 Regeln",
+      "warning": false
+    },
+    {
+      "id": "no-duplicate-rules",
+      "passed": true,
+      "message": "Keine Duplikat-Regeln",
+      "warning": false
+    },
+    {
+      "id": "authority-valid",
+      "passed": true,
+      "message": "Authority self-check",
+      "warning": false
+    },
+    {
+      "id": "version-registry",
+      "passed": true,
+      "message": "10 Versionen",
+      "warning": false
+    },
+    {
+      "id": "invalid-refs",
+      "passed": true,
+      "message": "0 ungültige Referenzen",
+      "warning": false
+    },
+    {
+      "id": "non-ratified-flagged",
+      "passed": true,
+      "message": "Alle RFCs ratifiziert oder accepted",
+      "warning": false
+    },
+    {
+      "id": "stale-references",
+      "passed": true,
+      "message": "1 veraltete Referenz(en) erkannt",
+      "warning": true,
+      "details": [
+        {
+          "document": "ADR-002",
+          "reference": "ARCH-003 intelligence module",
+          "status": "not yet merged"
+        }
+      ]
+    }
+  ],
+  "authorityValidation": {
+    "valid": true,
+    "errors": [],
+    "warnings": [],
+    "checkedAt": "2026-06-30T14:28:40.520Z"
+  },
+  "moduleCompliance": {
+    "compliant": false,
+    "violations": [
+      {
+        "module": "src/architecture/scanner/domains.js",
+        "issue": "Definiert DOMAINS lokal statt Authority zu importieren",
+        "drift": [],
+        "recommendation": "Import aus src/architecture/authority — getAuthorityState().domainRegistry"
+      },
+      {
+        "module": "src/architecture/scanner/violationDetector.js",
+        "issue": "Definiert Scanner-Regeln lokal (ALLOWED_DIRECT_DB_PATHS, SEVERITY)",
+        "recommendation": "Regeln aus Authority ruleRegistry lesen"
+      }
+    ],
+    "consumingModules": [
+      {
+        "path": "src/architecture/scanner/domains.js",
+        "name": "ARCH-001 domains.js",
+        "type": "domain-registry"
+      },
+      {
+        "path": "src/architecture/scanner/violationDetector.js",
+        "name": "ARCH-001 violationDetector.js",
+        "type": "rule-definitions"
+      },
+      {
+        "path": "src/architecture/knowledge-graph/",
+        "name": "ARCH-002 Knowledge Graph",
+        "type": "governance-consumer",
+        "optional": true
+      },
+      {
+        "path": "src/architecture/semantic/",
+        "name": "ARCH-002.1 Semantic Layer",
+        "type": "governance-consumer",
+        "optional": true
+      },
+      {
+        "path": "src/architecture/intelligence/",
+        "name": "ARCH-003 Intelligence",
+        "type": "governance-consumer",
+        "optional": true
+      }
+    ],
+    "authority": "ARCH-004",
+    "note": "Module mit lokalen Regeldefinitionen müssen auf Authority migriert werden. Keine automatische Codeänderung."
+  },
+  "references": {
+    "stale": [
+      {
+        "document": "ADR-002",
+        "reference": "ARCH-003 intelligence module",
+        "status": "not yet merged"
+      }
+    ],
+    "invalid": []
+  },
+  "nonRatifiedRules": []
+}
