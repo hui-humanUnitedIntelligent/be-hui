@@ -426,6 +426,7 @@ function HomeInner() {
                   // ohne echten Mehrwert fuer diesen Anwendungsfall.
                   onProjectPress={() => handleTab("impact")}
                    scrollContainerRef={scrollContainerRef}
+                   tabVisible={keepFeed?.opacity === 1}
                 />
               </SafeRender>
             ) : (

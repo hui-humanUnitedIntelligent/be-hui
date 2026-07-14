@@ -9,10 +9,16 @@
  */
 
 import { useEffect, useRef, useCallback } from "react";
+import { logSentinelFire } from "./feedStabilizationDebug.js";
 
 // ── Bottom Sentinel (triggert loadMore) ──────────────────────────────────────
 export function FeedBottomSentinel({ onVisible, enabled = true }) {
   const ref = useRef(null);
+  const firedRef = useRef(false);
+
+  useEffect(() => {
+    firedRef.current = false;
+  }, [enabled]);
 
   useEffect(() => {
     if (!enabled || !ref.current) return;
@@ -21,7 +27,12 @@ export function FeedBottomSentinel({ onVisible, enabled = true }) {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
+          if (firedRef.current) return;
+          firedRef.current = true;
+          logSentinelFire({ enabled, intersecting: true });
           onVisible?.();
+        } else {
+          firedRef.current = false;
         }
       },
       {

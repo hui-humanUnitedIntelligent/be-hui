@@ -25,6 +25,13 @@ import {
   normalizeWorkRow,
   normalizeEventRow      as normalizeInvitationRow,
 } from "../system/feed/unifiedNormalizer.js";
+import {
+  logFeedStage,
+  logDataLoss,
+  logLoadMore,
+  logHookMount,
+  logHookUnmount,
+} from "./feedStabilizationDebug.js";
 
 // ─── Konstanten ──────────────────────────────────────────────────────────────
 const PAGE_SIZE          = 20;   // Items pro Seite
@@ -268,6 +275,9 @@ async function fetchFeedPage(userId = null, cursors = null) {
   // Zeitsortiert (via _sortKey — created_at bleibt unberührt)
   normalized.sort((a, b) => (b._sortKey || 0) - (a._sortKey || 0));
 
+  logFeedStage("sorted", { sorted: normalized.length });
+  logDataLoss("raw", "normalized", allRows.length, normalized.length);
+
   // FEED.2E — Cursor pro Quelle: letztes Item jeder Quelle (vor Normalisierung verfügbar)
   // works/exps/beitr existieren bereits aus Step 1 (Z.107-112)
   const nextCursors = {
@@ -278,6 +288,19 @@ async function fetchFeedPage(userId = null, cursors = null) {
 
   // FEED.2E — hasMore: true wenn mind. eine Quelle weitere Items hat
   const hasMore = works.length >= limit || exps.length >= limit || beitr.length >= limit;
+
+  logFeedStage("supabase", {
+    works: works.length,
+    exps: exps.length,
+    beitraege: beitr.length,
+    invitations: invs.length,
+    beitrErr,
+    worksErr,
+    expsErr,
+    normalized: normalized.length,
+    hasMore,
+    nextCursors,
+  });
 
   return { items: normalized, nextCursors, hasMore };
 }
@@ -681,6 +704,12 @@ async function fetchSearchResults(query, typeFilter = null, categoryFilters = nu
 
 export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFilters = null, radiusKm = null, geo = null } = {}) {
   const { user } = useAuth();
+  const hookInstanceRef = useRef(`feed-${Math.random().toString(36).slice(2, 8)}`);
+
+  useEffect(() => {
+    logHookMount(hookInstanceRef.current);
+    return () => logHookUnmount(hookInstanceRef.current);
+  }, []);
 
   // ── SEARCH-MODE STATE — Search Experience 2.0 ─────────────────────────────
   // Laeuft komplett PARALLEL zur normalen Pagination/Realtime-Pipeline unten
@@ -765,6 +794,7 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
   const softHydrateTimer  = useRef(null);     // Debounce für Badge
   const idleCallbackRef   = useRef(null);     // requestIdleCallback ID
   const mountedRef        = useRef(true);
+  const loadMoreInFlightRef = useRef(false);  // Race-guard: verhindert parallele loadMore-Aufrufe
 
   // ── Safeguard ──────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -774,8 +804,15 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
 
   // ── Rhythmisierung (nur bei items-Änderung, nicht bei pending) ────────────
   useEffect(() => {
-    if (items.length === 0) { setRhythmicItems([]); return; }
+    if (items.length === 0) {
+      setRhythmicItems([]);
+      logFeedStage("items", { items: 0, rhythmic: 0, ghosts: 0 });
+      return;
+    }
     const rhythmic = rhythmizeFeed([...items]);
+    const ghosts = rhythmic.filter(i => i._isGhost).length;
+    logFeedStage("items", { items: items.length, rhythmic: rhythmic.length, ghosts });
+    logDataLoss("items", "rhythmic", items.length, rhythmic.length - ghosts, { ghostsAdded: ghosts });
     setRhythmicItems(rhythmic);
     saveCache(items, cursorRef.current); // FEED.2E: cursorRef.current ist { works, exps, beitr } | null
   }, [items]);
@@ -833,20 +870,32 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
 
   // ── Load More (Pagination) ─────────────────────────────────────────────────
   const loadMore = useCallback(async () => {
-    if (loadingMore || !hasMore) return;
+    if (loadingMore || !hasMore || loadMoreInFlightRef.current) {
+      logLoadMore("skip", { reason: loadingMore ? "loadingMore" : !hasMore ? "noMore" : "inFlight" });
+      return;
+    }
+    loadMoreInFlightRef.current = true;
+    logLoadMore("call", { hasMore, cursor: cursorRef.current });
 
     // Prefetch bereits vorhanden? → sofort einfügen
     if (prefetchedRef.current) {
       const { items: nextItems, nextCursors, hasMore: more } = prefetchedRef.current;
       prefetchedRef.current = null;
-      if (!mountedRef.current) return;
+      if (!mountedRef.current) { loadMoreInFlightRef.current = false; return; }
       setItems(prev => {
         const existingIds = new Set(prev.map(i => i.id));
         const deduped = nextItems.filter(i => !existingIds.has(i.id));
+        logFeedStage("pagination", {
+          source: "prefetch",
+          appended: deduped.length,
+          skippedDupes: nextItems.length - deduped.length,
+          pages: prev.length + deduped.length,
+        });
         return [...prev, ...deduped];
       });
       cursorRef.current = nextCursors;
       setHasMore(more);
+      loadMoreInFlightRef.current = false;
       // Neuen Prefetch anstoßen
       _schedulePrefetch(user.id);
       return;
@@ -860,6 +909,13 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
       setItems(prev => {
         const existingIds = new Set(prev.map(i => i.id));
         const deduped = nextItems.filter(i => !existingIds.has(i.id));
+        logFeedStage("pagination", {
+          source: "fetch",
+          appended: deduped.length,
+          skippedDupes: nextItems.length - deduped.length,
+          pages: prev.length + deduped.length,
+          hasNextPage: more,
+        });
         return [...prev, ...deduped];
       });
       cursorRef.current = nextCursors;
@@ -867,6 +923,7 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
     } catch (err) {
       console.error("[HUI_STREAM] loadMore error:", err.message);
     } finally {
+      loadMoreInFlightRef.current = false;
       if (mountedRef.current) setLoadingMore(false);
     }
   }, [user?.id, loadingMore, hasMore]);
@@ -1049,6 +1106,8 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
     hasMore:        isSearching ? false : hasMore,   // Suchergebnisse v1: keine Pagination
     error,
     isSearching,
+    isFetching:     isSearching ? searchLoading : loading,
+    isFetchingNextPage: isSearching ? false : loadingMore,
 
     // Wirker/Projekte-Treffer (2026-07-06) -- nur im Suchmodus befuellt,
     // sonst immer leere Arrays (kein Leck alter Ergebnisse beim Verlassen
