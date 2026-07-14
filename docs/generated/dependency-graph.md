@@ -12,15 +12,15 @@ graph TD
   %% HUI Dependency Graph — ARCH-001
   %% Zeigt Datei-zu-Datei Abhängigkeiten (Top 50 nach Verbindungen)
 
-  lib_supabaseClient["supabaseClient<br/>(41×)"]
+  lib_supabaseClient["supabaseClient<br/>(40×)"]
   lib_supabaseClient["supabaseClient<br/>(29×)"]
   lib_AuthContext["AuthContext<br/>(23×)"]
   design_hui_design["hui.design<br/>(23×)"]
   lib_AuthContext["AuthContext<br/>(22×)"]
   design_hui_design["hui.design<br/>(16×)"]
   supabaseClient["supabaseClient<br/>(15×)"]
+  services_db["db<br/>(10×)"]
   sentry[".sentry<br/>(10×)"]
-  services_db["db<br/>(9×)"]
   supabaseClient[".supabaseClient<br/>(8×)"]
   design_hui_interaction["hui.interaction<br/>(7×)"]
   AuthContext["AuthContext<br/>(7×)"]
@@ -165,6 +165,6 @@ graph LR
 ```mermaid
 pie title Dateien mit Architektur-Header (@domain + @owner)
 
-  "Mit Header (0)" : 0
-  "Ohne Header (267)" : 267
+  "Mit Header (1)" : 1
+  "Ohne Header (266)" : 266
 ```

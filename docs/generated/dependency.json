@@ -1341,9 +1341,7 @@
   },
   {
     "path": "core/HuiConnectionEngine.jsx",
-    "imports": [
-      "../lib/supabaseClient.js"
-    ],
+    "imports": [],
     "exports": [
       "INTENT",
       "CONNECTION_STATE",
@@ -1813,7 +1811,8 @@
     "path": "lib/AppStateContext.jsx",
     "imports": [
       "./supabaseClient",
-      "./AuthContext"
+      "./AuthContext",
+      "../services/db"
     ],
     "exports": [
       "AppStateProvider",
@@ -3266,6 +3265,7 @@
       "FeedService",
       "MatchService",
       "RecommendationService",
+      "SocialService",
       "SearchService"
     ]
   },

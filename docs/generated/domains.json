@@ -61,14 +61,14 @@
   },
   "CORE": {
     "files": 15,
-    "lines": 3778,
+    "lines": 3754,
     "components": 3,
     "hooks": 10,
     "dbReads": 12,
-    "dbWrites": 4,
+    "dbWrites": 1,
     "actionEngine": 3,
     "coreEngine": 3,
-    "violations": 17,
+    "violations": 15,
     "label": "Core"
   },
   "SYSTEM": {
@@ -97,10 +97,10 @@
   },
   "SERVICES": {
     "files": 75,
-    "lines": 20544,
+    "lines": 20584,
     "components": 13,
     "hooks": 47,
-    "dbReads": 119,
+    "dbReads": 120,
     "dbWrites": 90,
     "actionEngine": 0,
     "coreEngine": 0,

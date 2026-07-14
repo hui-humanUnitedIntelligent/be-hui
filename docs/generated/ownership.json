@@ -993,11 +993,11 @@
   },
   {
     "path": "core/HuiConnectionEngine.jsx",
-    "lines": 415,
-    "hasDomain": false,
-    "hasOwner": false,
-    "domain": null,
-    "owner": null
+    "lines": 391,
+    "hasDomain": true,
+    "hasOwner": true,
+    "domain": "CORE",
+    "owner": "connection-engine"
   },
   {
     "path": "core/HuiContextBridge.jsx",
@@ -1313,7 +1313,7 @@
   },
   {
     "path": "lib/AppStateContext.jsx",
-    "lines": 212,
+    "lines": 205,
     "hasDomain": false,
     "hasOwner": false,
     "domain": null,
@@ -2153,7 +2153,7 @@
   },
   {
     "path": "services/db.js",
-    "lines": 651,
+    "lines": 698,
     "hasDomain": false,
     "hasOwner": false,
     "domain": null,

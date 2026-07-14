@@ -636,6 +636,53 @@ export const RecommendationService = {
   },
 };
 
+// @domain SERVICES
+// @owner social-service
+// ─── SOCIAL (Follows / Connections) ──────────────────────────
+export const SocialService = {
+  async getFollowedIds(followerId) {
+    if (!followerId) return { data: [], error: null };
+    return safeQuery(
+      supabase.from('follows')
+        .select('followed_id')
+        .eq('follower_id', followerId)
+        .limit(500)
+    );
+  },
+
+  async follow(followerId, followedId) {
+    if (!followerId || !followedId) return { data: null, error: { message: 'Missing ids' } };
+    return safeQuery(
+      supabase.from('follows')
+        .insert({ follower_id: followerId, followed_id: followedId })
+        .select('follower_id,followed_id')
+        .single()
+    );
+  },
+
+  async unfollow(followerId, followedId) {
+    if (!followerId || !followedId) return { data: null, error: { message: 'Missing ids' } };
+    return safeQuery(
+      supabase.from('follows')
+        .delete()
+        .eq('follower_id', followerId)
+        .eq('followed_id', followedId)
+    );
+  },
+
+  async isFollowing(followerId, followedId) {
+    if (!followerId || !followedId) return { data: false, error: null };
+    const { data, error } = await safeQuery(
+      supabase.from('follows')
+        .select('followed_id')
+        .eq('follower_id', followerId)
+        .eq('followed_id', followedId)
+        .maybeSingle()
+    );
+    return { data: !!data, error };
+  },
+};
+
 // ─── SEARCH ──────────────────────────────────────────────────
 export const SearchService = {
   async search(query, { limit = 15 } = {}) {
