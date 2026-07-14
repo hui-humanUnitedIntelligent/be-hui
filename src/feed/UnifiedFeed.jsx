@@ -21,6 +21,13 @@ import { FeedSoftHydrationBadge } from "./FeedSoftHydrationBadge.jsx";
 import { toFeedItem }          from "../system/feed/unifiedNormalizer.js";
 import FeedEventsSection       from "./FeedEventsSection.jsx";
 import { FeedBottomSentinel, FeedLoadMoreSpinner } from "./FeedScrollSentinel.jsx";
+import FeedDebugOverlay from "./FeedDebugOverlay.jsx";
+import {
+  attachFeedDebugExport,
+  initFeedDiagnostics,
+  recordFeedSnapshot,
+  recordSuccessfulRender,
+} from "./huiFeedRuntimeDiagnostics.js";
 import { useSingleReaction }   from "../lib/useReactions.jsx";
 import { useSavedPostsContext } from "../context/SavedPostsContext.jsx";
 import { useAuth }             from "../lib/AuthContext.jsx";
@@ -533,7 +540,7 @@ function ReactionCard({ item, onProfile, onBook, onDetail, onShare, itemIndex, o
   );
 }
 
-function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loadMore, hasMore, loadingMore, onDiscover, scrollContainerRef }) {
+function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loadMore, hasMore, loadingMore, onDiscover, scrollContainerRef, streamLoading }) {
   // per-item reaction is handled in ReactionCard wrapper below
   const arr = useMemo(() => {
     if (!Array.isArray(items)) return [];
@@ -593,6 +600,49 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
   const totalHeight = rowVirtualizer.getTotalSize();
   const virtItems   = rowVirtualizer.getVirtualItems();
   const useVirt     = !!scrollContainerRef?.current && arr.length > 6;
+  const renderedCards = useVirt ? virtItems.length : arr.length;
+  const sentinelRef = useRef(null);
+  const observerConnectedRef = useRef(false);
+
+  const publishSnapshot = useCallback(() => {
+    recordFeedSnapshot({
+      scrollContainerRef,
+      itemsLength: arr.length,
+      renderedCards,
+      hasNextPage: hasMore,
+      isFetching: !!streamLoading,
+      isFetchingNextPage: !!loadingMore,
+      useVirtualizer: useVirt,
+      virtualItems: virtItems,
+      sentinelEl: sentinelRef.current,
+      extra: { observerConnected: observerConnectedRef.current },
+    });
+  }, [arr.length, renderedCards, hasMore, streamLoading, loadingMore, useVirt, virtItems, scrollContainerRef]);
+
+  useEffect(() => {
+    publishSnapshot();
+    recordSuccessfulRender({
+      itemsLength: arr.length,
+      renderedCards,
+      useVirtualizer: useVirt,
+    });
+  }, [arr.length, renderedCards, hasMore, loadingMore, streamLoading, useVirt, publishSnapshot]);
+
+  useEffect(() => {
+    const el = scrollContainerRef?.current;
+    if (!el) return undefined;
+    const onScroll = () => publishSnapshot();
+    el.addEventListener("scroll", onScroll, { passive: true });
+    const interval = setInterval(publishSnapshot, 1000);
+    return () => {
+      el.removeEventListener("scroll", onScroll);
+      clearInterval(interval);
+    };
+  }, [scrollContainerRef, publishSnapshot]);
+
+  useEffect(() => {
+    observerConnectedRef.current = !!(hasMore && !loadingMore);
+  }, [hasMore, loadingMore]);
 
   if (arr.length === 0) return <EmptyFeed />;
   return (
@@ -666,6 +716,7 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
       <FeedBottomSentinel
         enabled={!!hasMore && !loadingMore}
         onVisible={loadMore}
+        sentinelRef={sentinelRef}
       />
 
       {/* ── FEED.11B — Feed-Ende State ── */}
@@ -1089,6 +1140,8 @@ export default function UnifiedFeed({
 }) {
   useEffect(() => {
     injectFeedCSS();
+    initFeedDiagnostics();
+    attachFeedDebugExport();
   }, []); // eslint-disable-line
 
   // ── OWN FEED STREAM — läuft immer, liefert Items aus DB ──────────
@@ -1292,6 +1345,7 @@ export default function UnifiedFeed({
                 loadMore={loadMore}
                 hasMore={hasMore}
                 loadingMore={loadingMore}
+                streamLoading={streamLoading}
                 onDiscover={onDiscover}
                 scrollContainerRef={scrollContainerRef}
               />
@@ -1302,6 +1356,8 @@ export default function UnifiedFeed({
 
       </div>
       )}
+
+      <FeedDebugOverlay />
 
     </div>
   );
