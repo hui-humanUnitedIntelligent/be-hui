@@ -180,7 +180,6 @@ button, a, [role="button"] {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;       /* kein Bounce/Rubber-Band, Scrollen bleibt möglich */
-  will-change: transform;             /* GPU-Layer → smoothes Scrollen */
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
