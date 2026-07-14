@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, memo } from "react";
 import BaseFeedCard from "./BaseFeedCard.jsx";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
 
@@ -6,9 +6,10 @@ const TEAL = "#0DC4B5";
 const INK  = "#1A1A2E";
 const INK3 = "rgba(26,26,46,0.42)";
 
-export default function ExperienceContent({ item, onProfile, onReaction, onShare, onBook }) {
+const ExperienceContent = memo(function ExperienceContent({ item, onProfile, onReaction, onShare, onBook }) {
   if (!item) return null;
-  const { open } = useContentPreview(); // OPEN.1 2026-07-08 -- Karte oeffnet jetzt Vorschau statt nichts zu tun
+  const { open } = useContentPreview();
+  const handleCardClick = useCallback(() => open(item), [open, item]);
 
   const title       = item.title || item.text || "";
   const desc        = item._raw?.description || item._raw?.caption || null;
@@ -30,7 +31,7 @@ export default function ExperienceContent({ item, onProfile, onReaction, onShare
 
   return (
     <BaseFeedCard item={item} onProfile={onProfile} onReaction={onReaction} onShare={onShare}
-      onCardClick={() => open(item)}>
+      onCardClick={handleCardClick}>
 
       {/* Beschreibung */}
       {desc && (
@@ -102,4 +103,6 @@ export default function ExperienceContent({ item, onProfile, onReaction, onShare
       )}
     </BaseFeedCard>
   );
-}
+});
+
+export default ExperienceContent;
