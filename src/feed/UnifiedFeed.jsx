@@ -598,17 +598,25 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
     }
   }, [hasMore, arr.length, depthUser?.id]); // eslint-disable-line
 
+  // ── Scroll-Container: Ref ist beim ersten Render oft noch null (kein Re-Render
+  // durch Callback-Ref) → Virtualisierung wird fälschlich deaktiviert und der
+  // Fallback mit content-visibility greift (nur ~5 Karten sichtbar).
+  const [scrollReady, setScrollReady] = React.useState(false);
+  React.useLayoutEffect(() => {
+    if (scrollContainerRef?.current) setScrollReady(true);
+  });
+
   // ── Virtualizer: schätze ~620px pro Karte, rendert nur sichtbare Items ──
   const rowVirtualizer = useVirtualizer({
     count: arr.length,
     getScrollElement: () => scrollContainerRef?.current ?? null,
-    estimateSize: () => 560,
+    estimateSize: () => 640,
     overscan: 3,
   });
 
   const totalHeight = rowVirtualizer.getTotalSize();
   const virtItems   = rowVirtualizer.getVirtualItems();
-  const useVirt     = !!scrollContainerRef?.current && arr.length > 6;
+  const useVirt     = scrollReady && arr.length > 6;
 
   if (arr.length === 0) return <EmptyFeed />;
   return (
@@ -623,7 +631,7 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
             const itemReactions = reactions[String(item.id)] || {};
             return (
               <div
-                key={String(item.id)}
+                key={vRow.key}
                 data-index={vRow.index}
                 ref={rowVirtualizer.measureElement}
                 style={{
@@ -660,8 +668,6 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
               style={{
                 marginBottom: mb,
                 animationDelay: Math.min(idx * 40, 300) + "ms",
-                contentVisibility: idx > 4 ? "auto" : "visible",
-                containIntrinsicSize: idx > 4 ? "0 620px" : undefined,
               }}
             >
               <ReactionCard
