@@ -2,6 +2,10 @@
 // Creator Dashboard — Einnahmen · Buchungen · Verkäufe · Analytics
 // Nicht überladen. Nicht aggressiv. Kreative Klarheit.
 // ══════════════════════════════════════════════════════════════════════
+import {
+  HUIKalenderIcon, HUIImpactIcon, HUIWerkeIcon,
+  HUISupportIcon,
+} from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth }           from "../lib/AuthContext";
 import { supabase }          from "../lib/supabaseClient.js";
@@ -255,7 +259,7 @@ function AnalyticsView({ analytics }) {
       ))}
       <div style={{marginTop:20,padding:"16px",borderRadius:18,
         background:"rgba(22,215,197,0.07)",border:`1px solid rgba(22,215,197,0.15)`}}>
-        <div style={{fontSize:12,color:T.teal,fontWeight:600,marginBottom:4}}>💡 Einblick</div>
+        <div style={{fontSize:12,color:T.teal,fontWeight:600,marginBottom:4,display:"flex",alignItems:"center",gap:4}}><HUISupportIcon size={12}/>Einblick</div>
         <div style={{fontSize:13,color:T.soft,lineHeight:1.6}}>
           Erweiterte Analytics kommen bald. Fokussiere dich jetzt auf echte Verbindungen —
           das ist das Herz von HUI.
@@ -378,16 +382,16 @@ export default function CreatorDashboard({ visible, onClose, onOpenProfile }) {
                 <WalletHero wallet={w}/>
                 {/* Stats Grid */}
                 <div style={{display:"flex",gap:10,padding:"0 16px",marginBottom:16}}>
-                  <StatCard icon="📅" label="Buchungen offen"
+                  <StatCard icon={<HUIKalenderIcon size={18}/>} label="Buchungen offen"
                     value={summary?.bookings?.pending||0}
                     color={T.gold} delay={0.05}
                     onClick={() => setTab("bookings")}/>
-                  <StatCard icon="💫" label="Unterstützungen"
+                  <StatCard icon={<HUIImpactIcon size={18}/>} label="Unterstützungen"
                     value={summary?.supports_30d?.count||0}
                     sub={`€ ${parseFloat(summary?.supports_30d?.total||0).toFixed(0)} / 30 Tage`}
                     color={T.coral} delay={0.10}
                     onClick={() => setTab("supports")}/>
-                  <StatCard icon="🎨" label="Verkäufe"
+                  <StatCard icon={<HUIWerkeIcon size={18}/>} label="Verkäufe"
                     value={summary?.sales_30d?.count||0}
                     sub={`€ ${parseFloat(summary?.sales_30d?.total||0).toFixed(0)} / 30 Tage`}
                     color={T.teal} delay={0.15}
@@ -422,7 +426,7 @@ export default function CreatorDashboard({ visible, onClose, onOpenProfile }) {
             {tab==="bookings" && (
               <div style={{padding:"0 16px"}}>
                 {bookings.length === 0
-                  ? <EmptyState icon="📅"
+                  ? <EmptyState icon={<HUIKalenderIcon size={36}/>}
                       title="Keine Buchungen"
                       sub="Sobald jemand eines deiner Erlebnisse bucht, siehst du es hier."/>
                   : bookings.map(b => (
@@ -436,7 +440,7 @@ export default function CreatorDashboard({ visible, onClose, onOpenProfile }) {
             {tab==="supports" && (
               <div style={{padding:"0 16px"}}>
                 {supports.length === 0
-                  ? <EmptyState icon="💫"
+                  ? <EmptyState icon={<HUIImpactIcon size={36}/>}
                       title="Noch keine Unterstützungen"
                       sub="Wenn jemand dich unterstützt, erscheint es hier. Sei präsent — die Gemeinschaft sieht dich."/>
                   : supports.map(s => <SupportCard key={s.id} support={s}/>)
@@ -448,7 +452,7 @@ export default function CreatorDashboard({ visible, onClose, onOpenProfile }) {
             {tab==="sales" && (
               <div style={{padding:"0 16px"}}>
                 {sales.length === 0
-                  ? <EmptyState icon="🎨"
+                  ? <EmptyState icon={<HUIWerkeIcon size={36}/>}
                       title="Noch keine Werkverkäufe"
                       sub="Markiere deine Werke als käuflich, um hier Einnahmen zu sehen."/>
                   : sales.map(s => (

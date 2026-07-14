@@ -4,6 +4,10 @@
 // Owner: Optionen auswählbar (public / connections / private)
 // Visitor: Info-Text + "Mehr erfahren" Sheet
 // ══════════════════════════════════════════════════════════════════════
+import {
+  HUIGemeinschaftIcon, HUISicherheitIcon, HUIGlobeIcon,
+  HUIPrivatIcon,
+} from '../../../design/icons/HuiSystemIcons.jsx';
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -19,8 +23,8 @@ const T = {
 
 const OPTIONS = [
   { key:"public",      icon:"🌍", label:"Öffentlich",   sub:"Für alle sichtbar" },
-  { key:"connections", icon:"👥", label:"Verbindungen", sub:"Nur für deine Verbindungen" },
-  { key:"private",     icon:"🔒", label:"Privat",       sub:"Nur für dich" },
+  { key:"connections", icon:<HUIGemeinschaftIcon size={16}/>, label:"Verbindungen", sub:"Nur für deine Verbindungen" },
+  { key:"private",     icon:<HUIPrivatIcon size={16}/>, label:"Privat",       sub:"Nur für dich" },
 ];
 
 export function VisibilitySection({
@@ -73,7 +77,7 @@ export function VisibilitySection({
           cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
           flexShrink:0, boxShadow:T.card,
         }}>
-          <span style={{ fontSize:12 }}>👥</span>
+          <HUIGemeinschaftIcon size={12} style={{flexShrink:0}} />
           {isOwner ? "Ändern" : "Mehr erfahren"}
         </button>
       </div>
@@ -92,7 +96,7 @@ export function VisibilitySection({
             <div style={{ width:36, height:4, borderRadius:99,
               background:"rgba(26,26,24,0.12)", margin:"0 auto 20px" }}/>
             <div style={{ fontSize:16, fontWeight:800, color:T.ink, marginBottom:6 }}>
-              🔒 Sichtbarkeit
+              
             </div>
             {isOwner ? (
               <>

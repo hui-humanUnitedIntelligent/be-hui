@@ -3,6 +3,10 @@
 // Titel → Beschreibung → Datum+Uhrzeit → Ort → Teilnehmer →
 // Kosten → Stimmung → Sichtbarkeit → Offenheit → Extras → Medien
 
+import {
+  HUIPersonenIcon, HUIFotoIcon, HUILinkIcon, HUIKalenderIcon,
+  HUILocationIcon, HUIPrivatIcon, HUIGlobeIcon, HUIGemeinschaftIcon,
+} from '../../design/icons/HuiSystemIcons.jsx';
 import React from "react";
 import { HUI } from "../../design/hui.design.js";
 
@@ -129,7 +133,7 @@ function DateTimeRow({ date, time, onDate, onTime }) {
             position:"absolute", left:12, top:"50%",
             transform:"translateY(-50%)", fontSize:15,
             pointerEvents:"none", zIndex:1,
-          }}>📅</span>
+          }} style={{display:"flex",alignItems:"center"}}><HUIKalenderIcon size={15}/></span>
           <select
             className="s2v3-field"
             style={selectStyle}
@@ -194,7 +198,7 @@ function LocationRow({ value, onChange }) {
         border: `1.5px solid ${C.border}`,
         borderRadius:14, boxSizing:"border-box",
       }}>
-        <span style={{ fontSize:16, flexShrink:0, opacity:0.65 }}>📍</span>
+        <HUILocationIcon size={16} style={{flexShrink:0, opacity:0.65}} />
         <input
           value={value}
           onChange={e => onChange(e.target.value)}
@@ -225,7 +229,7 @@ function LocationRow({ value, onChange }) {
         <div style={{
           fontSize:18, filter:"drop-shadow(0 2px 3px rgba(0,0,0,0.18))",
           position:"relative", zIndex:1,
-        }}>📍</div>
+        }} style={{display:"flex",alignItems:"center",justifyContent:"center"}}><HUILocationIcon size={18}/></div>
       </div>
     </div>
   );
@@ -241,7 +245,7 @@ function ParticipantRow({ value, onChange }) {
       border:`1.5px solid ${C.border}`,
       borderRadius:14,
     }}>
-      <span style={{ fontSize:15, marginRight:8, opacity:0.6 }}>👥</span>
+      <HUIPersonenIcon size={15} style={{marginRight:8, opacity:0.6, flexShrink:0}} />
       <span style={{ fontSize:14, color:C.muted, flex:1 }}>
         Maximale Anzahl (optional)
       </span>
@@ -373,7 +377,7 @@ const VIS_OPTS = [
   { key:"public",  label:"\u00d6ffentlich", sub:"Im Feed & Entdecken",  icon:"🌐" },
   { key:"local",   label:"Lokal",           sub:"Nur in deiner N\u00e4he", icon:"📍" },
   { key:"friends", label:"Freunde",         sub:"Nur f\u00fcr Freunde", icon:"👥" },
-  { key:"private", label:"Privat",          sub:"Nur mit Einladung",    icon:"🔒" },
+  { key:"private", label:"Privat",          sub:"Nur mit Einladung",    icon:<HUIPrivatIcon size={16}/> },
 ];
 
 function VisibilityRow({ value, onChange }) {
@@ -491,13 +495,13 @@ function AttachmentBar() {
   return (
     <div style={{ display:"flex", gap:9 }}>
       <button style={BtnS} onMouseEnter={hover} onMouseLeave={leave}>
-        <span style={{ fontSize:16 }}>🖼</span> Bild hinzuf\u00fcgen
+        <HUIFotoIcon size={16} style={{flexShrink:0}}/> Bild hinzufügen
       </button>
       <button style={BtnS} onMouseEnter={hover} onMouseLeave={leave}>
-        <span style={{ fontSize:16 }}>🎵</span> Musik hinzuf\u00fcgen
+        Musik hinzufügen
       </button>
       <button style={BtnS} onMouseEnter={hover} onMouseLeave={leave}>
-        <span style={{ fontSize:16 }}>🔗</span> Link hinzuf\u00fcgen
+        <HUILinkIcon size={16} style={{flexShrink:0}}/> Link hinzufügen
       </button>
     </div>
   );

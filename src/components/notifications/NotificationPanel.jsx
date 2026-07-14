@@ -1,3 +1,7 @@
+import {
+  HUIWarnIcon, HUIImpactIcon, HUISupportIcon, HUINachrichtIcon,
+  HUIProfilIcon, HUIBenachrichtigungIcon,
+} from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 
@@ -97,7 +101,7 @@ const META = {
   work_sensitive:         { emoji:"⚠️", label:"Inhalt gemeldet"        },
   work_deleted:           { emoji:"🗑", label:"Werk entfernt"          },
   meldung_aufgehoben:     { emoji:"✅", label:"Meldung aufgehoben"     },
-  new_follower:           { emoji:"👤", label:"Neuer Follower"         },
+  new_follower:           { emoji:<HUIProfilIcon size={18}/>, label:"Neuer Follower"         },
   new_booking:            { emoji:"📅", label:"Neue Buchung"           },
   // MERKEN.6 (2026-07-08): zusammengefasste Merken-Digests (taeglich/
   // woechentlich), NIE eine Notification pro einzelnem Speichervorgang.
@@ -105,7 +109,7 @@ const META = {
   // KOMMENTAR.1 (2026-07-09): Kommentar/Antwort auf eigenen Beitrag.
   comment:                { emoji:"💬", label:"Neuer Kommentar"        },
   comment_reply:          { emoji:"💬", label:"Antwort auf deinen Kommentar" },
-  default:                { emoji:"🔔", label:"Benachrichtigung"       },
+  default:                { emoji:<HUIBenachrichtigungIcon size={18}/>, label:"Benachrichtigung"       },
 };
 
 function getMeta(type) { return META[type] || META.default; }
@@ -151,7 +155,7 @@ function NotifCard({ n, onRead, onAction = () => {} }) {
       const tm = typeMap[n.type] || { label:"Eintrag", emoji:"📋" };
       const entryTitle = md.entry_title || md.project_name || md.werk_title || `Dein ${tm.label}`;
       return (
-        <InlineModal onClose={() => setOpen(false)} icon="❌"
+        <InlineModal onClose={() => setOpen(false)} icon={<HUIWarnIcon size={20}/>}
           title={`${tm.label} abgelehnt`} accentColor="#DC2626"
           btnLabel="Verstanden">
           <div style={{ background:"#f5f4f1", borderRadius:10, padding:"10px 14px", marginBottom:12, display:"flex", gap:8, alignItems:"center" }}>
@@ -174,7 +178,7 @@ function NotifCard({ n, onRead, onAction = () => {} }) {
       const projectName = md.project_name || md.entry_title || n.title || "Dein Projekt";
       const msg = md.message || md.admin_note || n.body || "Herzlichen Glückwunsch!";
       return (
-        <InlineModal onClose={() => setOpen(false)} icon="💚"
+        <InlineModal onClose={() => setOpen(false)} icon={<HUIImpactIcon size={20}/>}
           title="Projekt angenommen!" subtitle={projectName} accentColor="#0EC4B8"
           btnLabel="Super, danke!">
           <div style={{ background:"rgba(14,196,184,0.06)", border:"1px solid rgba(14,196,184,0.22)", borderRadius:10, padding:"12px 14px", marginBottom:16, fontSize:14, color:"#1a1a18", lineHeight:1.6, whiteSpace:"pre-wrap", wordBreak:"break-word" }}>{msg}</div>
@@ -187,7 +191,7 @@ function NotifCard({ n, onRead, onAction = () => {} }) {
       const ticketId = md.ticket_id || md.ticket_number || "";
       const subject  = md.subject || n.title || "Support-Antwort";
       return (
-        <InlineModal onClose={() => setOpen(false)} icon="🎧"
+        <InlineModal onClose={() => setOpen(false)} icon={<HUISupportIcon size={20}/>}
           title="Support hat geantwortet"
           subtitle={ticketId || null}
           accentColor="#0EC4B8" btnLabel="Verstanden">
@@ -206,7 +210,7 @@ function NotifCard({ n, onRead, onAction = () => {} }) {
       const text  = md.message || md.body || n.body || "(Keine Nachricht)";
       const title = md.title || n.title || "Nachricht vom Admin";
       return (
-        <InlineModal onClose={() => setOpen(false)} icon="📢"
+        <InlineModal onClose={() => setOpen(false)} icon={<HUINachrichtIcon size={20}/>}
           title={title}
           subtitle="Nachricht vom Admin"
           accentColor="#0EC4B8" btnLabel="Verstanden">
@@ -387,7 +391,7 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
         {/* Header */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"16px 20px 12px", borderBottom:`1px solid ${T.border}`, background:T.bgCard }}>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <span style={{ fontSize:20 }}>🔔</span>
+            <HUIBenachrichtigungIcon size={20} />
             <span style={{ fontSize:17, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>Resonanzzentrum</span>
             {unreadCount > 0 && (
               <span style={{ background:T.teal, color:"white", borderRadius:T.r99, padding:"2px 8px", fontSize:11, fontWeight:700 }}>{unreadCount}</span>
@@ -424,7 +428,7 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
             <div style={{ textAlign:"center", padding:"40px 0", color:T.inkFaint, fontSize:13 }}>Lädt…</div>
           ) : visible.length === 0 ? (
             <div style={{ textAlign:"center", padding:"48px 0" }}>
-              <div style={{ fontSize:36, marginBottom:8 }}>🔔</div>
+              <div style={{ marginBottom:8, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)" }}><HUIBenachrichtigungIcon size={36}/></div>
               <div style={{ fontSize:14, color:T.inkFaint }}>Keine Benachrichtigungen</div>
             </div>
           ) : (

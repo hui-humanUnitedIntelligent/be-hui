@@ -1,3 +1,5 @@
+import { HUIChatIcon } from '../design/icons/HuiInteractionIcons.jsx';
+import { HUIImpactIcon, HUISettingsIcon, HUISicherheitIcon } from '../design/icons/HuiSystemIcons.jsx';
 // src/pages/BasisProfilePage.jsx — HUI BasisUser Public Profile v2
 // "Öffentliches Profil 🌿 — Lerne mich kennen."
 // ════════════════════════════════════════════════════════════════
@@ -148,7 +150,7 @@ function NavBar({ onBack, isOwner = false, onSettings }) {
       <div style={{ textAlign:"center" }}>
         <div style={{ fontSize:16, fontWeight:700, color:T.ink, letterSpacing:"-0.02em",
           display:"flex", alignItems:"center", gap:6, justifyContent:"center" }}>
-          Öffentliches Profil <span style={{fontSize:15}}>🌿</span>
+          <span style={{display:"flex",alignItems:"center",gap:5}}>Öffentliches Profil<HUIImpactIcon size={15} style={{color:"rgba(14,196,184,0.7)"}}/></span>
         </div>
         <div style={{ fontSize:11.5, color:T.inkFaint, fontWeight:400, marginTop:1 }}>
           Lerne mich kennen.
@@ -163,7 +165,7 @@ function NavBar({ onBack, isOwner = false, onSettings }) {
           display:"flex", alignItems:"center", justifyContent:"center",
           fontSize:17, cursor:"pointer", touchAction:"manipulation",
           boxShadow:T.card, color:T.ink,
-        }}>⚙️</button>
+        }} style={{display:"flex",alignItems:"center",justifyContent:"center"}}><HUISettingsIcon size={17}/></button>
       ) : (
         <button className="bpp-press-light" style={{
           width:36, height:36, borderRadius:"50%",
@@ -480,7 +482,7 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
               boxShadow:"0 2px 10px rgba(14,196,184,0.35)",
               touchAction:"manipulation",
             }}
-          ><span style={{fontSize:17}}>💬</span></button>
+          ><HUIChatIcon size={17}/></button>
         </div>
       )}
 
@@ -584,7 +586,7 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
             }}>
               {/* Titel */}
               <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                <span style={{ fontSize:22 }}>🌿</span>
+                <HUIImpactIcon size={22} style={{opacity:0.5, color:"rgba(14,196,184,0.6)"}} />
                 <div>
                   <div style={{ fontSize:15, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>
                     Mein HUI
@@ -606,7 +608,7 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
                   display:"flex", flexDirection:"column", alignItems:"center", gap:4,
                   boxShadow:"0 4px 14px rgba(14,196,184,0.25)",
                 }}>
-                  <span style={{ fontSize:20 }}>⚙️</span>
+                  <HUISettingsIcon size={20} />
                   <span style={{ fontSize:11.5, fontWeight:700, color:"white" }}>Einstellungen</span>
                 </button>
 
@@ -631,7 +633,7 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
                 background:"rgba(14,196,184,0.06)",
                 border:`1px solid rgba(14,196,184,0.15)`,
               }}>
-                <span style={{ fontSize:14 }}>🔒</span>
+                <HUISicherheitIcon size={14} style={{flexShrink:0}} />
                 <span style={{ fontSize:11.5, color:T.inkSoft, lineHeight:1.45 }}>
                   So sieht dein Profil für andere aus. Bearbeite es über Einstellungen.
                 </span>

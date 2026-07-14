@@ -19,6 +19,11 @@
 //   8. Community Health (von useCommunityHealth)
 // ═══════════════════════════════════════════════════════════════
 
+import {
+  HUIImpactIcon, HUIAnalyticsIcon, HUIFinanzIcon, HUIBenachrichtigungIcon,
+  HUIWarnIcon, HUIGemeinschaftIcon, HUIFortschrittIcon,
+  HUIFolgenIcon, HUISicherheitIcon,
+} from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from '@/lib/AuthContext';
 import {
@@ -209,7 +214,7 @@ export default function PlatformDashboard() {
       </div>
 
       {/* 1. Operational Score */}
-      <Section title="Operational Score" icon="🟢" accent={
+      <Section title="Operational Score" icon={<HUIImpactIcon size={14}/>} accent={
         opScore?.level === 'excellent' ? C.green :
         opScore?.level === 'healthy'   ? C.teal  :
         opScore?.level === 'degraded'  ? C.gold  : C.red
@@ -227,7 +232,7 @@ export default function PlatformDashboard() {
       </Section>
 
       {/* 2. Runtime Performance */}
-      <Section title="Runtime Performance" icon="⚡️" accent={C.teal}>
+      <Section title="Runtime Performance" icon={<HUIFortschrittIcon size={14}/>} accent={C.teal}>
         <MetricRow label="Feed Latenz (avg)"
           value={rt?.feedLatencyAvg} unit="ms"
           warn={rt?.feedLatencyAvg > 1500} ok={rt?.feedLatencyAvg < 500} />
@@ -249,7 +254,7 @@ export default function PlatformDashboard() {
 
       {/* 3. Pipeline Stages */}
       {pipeline && (
-        <Section title="Discovery Pipeline" icon="🔬" accent={C.teal}>
+        <Section title="Discovery Pipeline" icon={<HUIAnalyticsIcon size={14}/>} accent={C.teal}>
           <MetricRow label="Runs aufgezeichnet" value={pipeline.runsRecorded} />
           <MetricRow label="Gesamtdauer (avg)" value={pipeline.avgTotalMs} unit="ms"
             warn={pipeline.avgTotalMs > 300} ok={pipeline.avgTotalMs < 100} />
@@ -261,7 +266,7 @@ export default function PlatformDashboard() {
       )}
 
       {/* 4. Cache & Cost */}
-      <Section title="Cache & Cost Savings" icon="💾" accent={C.green}>
+      <Section title="Cache & Cost Savings" icon={<HUIFinanzIcon size={14}/>} accent={C.green}>
         <MetricRow label="Cache Hit Rate"
           value={cacheData?.cacheHitRate} unit="%"
           warn={cacheData?.cacheHitRate < 50} ok={cacheData?.cacheHitRate >= 80} />
@@ -282,7 +287,7 @@ export default function PlatformDashboard() {
       </Section>
 
       {/* 5. Realtime */}
-      <Section title="Realtime Stabilität" icon="📡"
+      <Section title="Realtime Stabilität" icon={<HUIBenachrichtigungIcon size={14}/>}
         accent={rtHealth?.level === 'stable' ? C.green : C.gold}>
         <div style={{ marginBottom: 12 }}>
           <Pill level={rtHealth?.level} />
@@ -305,7 +310,7 @@ export default function PlatformDashboard() {
       </Section>
 
       {/* 6. Mobile */}
-      <Section title="Mobile Experience" icon="📱"
+      <Section title="Mobile Experience" icon={<HUIBenachrichtigungIcon size={14}/>}
         accent={mobileH?.level === 'smooth' ? C.green : C.gold}>
         <div style={{ marginBottom: 12 }}>
           <Pill level={mobileH?.level} />
@@ -325,7 +330,7 @@ export default function PlatformDashboard() {
       </Section>
 
       {/* 7. Errors */}
-      <Section title="Fehler-Übersicht" icon="🔴"
+      <Section title="Fehler-Übersicht" icon={<HUIWarnIcon size={14}/>}
         accent={errData?.level === 'clean' ? C.green : C.red}>
         <div style={{ marginBottom: 12 }}>
           <Pill level={errData?.level} label={
@@ -346,7 +351,7 @@ export default function PlatformDashboard() {
 
       {/* 8. Community Health */}
       {communityHealth && (
-        <Section title="Community Health" icon="🌿" accent={C.green}>
+        <Section title="Community Health" icon={<HUIGemeinschaftIcon size={14}/>} accent={C.green}>
           <MetricRow label="Overall Score"
             value={Math.round((communityHealth.overallScore || 0) * 100)} unit="%"
             warn={communityHealth.overallScore < 0.5} ok={communityHealth.overallScore >= 0.75} />
@@ -370,7 +375,7 @@ export default function PlatformDashboard() {
 
       {/* Budget Violations */}
       {budgets && !budgets.pass && (
-        <Section title="Budget Violations" icon="⚠" accent={C.coral}>
+        <Section title="Budget Violations" icon={<HUIWarnIcon size={14}/>} accent={C.coral}>
           {budgets.violations.map((v, i) => (
             <div key={i} style={{ fontSize: 12, color: C.coral,
               padding: '6px 0', borderBottom: `1px solid ${C.border}` }}>
@@ -381,22 +386,22 @@ export default function PlatformDashboard() {
       )}
 
       {/* 9. Release & Feature Flags */}
-      <Section title="Feature Flags & Kill Switches" icon="🚦" accent={C.gold}>
+      <Section title="Feature Flags & Kill Switches" icon={<HUIAnalyticsIcon size={14}/>} accent={C.gold}>
         <FlagSection />
       </Section>
 
       {/* 10. Degradation + Protection */}
-      <Section title="Runtime Protection" icon="🛡️" accent={C.coral}>
+      <Section title="Runtime Protection" icon={<HUISicherheitIcon size={14}/>} accent={C.coral}>
         <ProtectionSection />
       </Section>
 
       {/* 11. Recovery Status */}
-      <Section title="Recovery Status" icon="🔄" accent={C.teal}>
+      <Section title="Recovery Status" icon={<HUIFortschrittIcon size={14}/>} accent={C.teal}>
         <RecoverySection />
       </Section>
 
       {/* 12. Preflight */}
-      <Section title="Deployment Preflight" icon="✈️" accent={C.gold}>
+      <Section title="Deployment Preflight" icon={<HUIFolgenIcon size={14}/>} accent={C.gold}>
         <PreflightSection />
       </Section>
 
@@ -420,7 +425,7 @@ function FlagSection() {
           background: '#FFEBEE', border: `1px solid ${C.red}`, borderRadius: 8,
           padding: '6px 14px', cursor: 'pointer', fontSize: 12,
           color: C.red, fontWeight: 700,
-        }}>⚠ Emergency Downgrade</button>
+          display:"flex", alignItems:"center", gap:6}}><HUIWarnIcon size={14}/>Emergency Downgrade</button>
         <button onClick={recover} style={{
           background: '#E8F5E9', border: `1px solid ${C.green}`, borderRadius: 8,
           padding: '6px 14px', cursor: 'pointer', fontSize: 12,

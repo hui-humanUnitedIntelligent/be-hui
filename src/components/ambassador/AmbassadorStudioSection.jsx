@@ -1,3 +1,4 @@
+import { HUIGemeinschaftIcon, HUILinkIcon, HUIMailIcon, HUIVerifIcon } from '../../design/icons/HuiSystemIcons.jsx';
 // src/components/ambassador/AmbassadorStudioSection.jsx
 // ══════════════════════════════════════════════════════════
 // Extrahiert aus HuiStudio.jsx (PROFIL-DRAWER-REDESIGN-003, 2026-07-06).
@@ -356,7 +357,7 @@ function AmbassadorStudioSection({ profile }) {
       <>
         <div style={{ padding:"16px 18px" }}>
           <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
-            <span style={{fontSize:22}}>🌟</span>
+            <HUIVerifIcon size={22} style={{color:"rgba(245,158,11,0.8)"}} />
             <div>
               <div style={{ fontSize:15, fontWeight:800, color:T.ink }}>Ambassador werden</div>
               <div style={{ fontSize:12, color:T.inkFaint }}>Empfehle HUI weiter und verdiene mit</div>
@@ -425,7 +426,7 @@ function AmbassadorStudioSection({ profile }) {
       ) : (
         <div style={{ padding:"14px 14px", display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10 }}>
           {[
-            { emoji:"👥", label:"Geworbene",  count: referred, key:"geworbene"  },
+            { emoji:<HUIGemeinschaftIcon size={16}/>, label:"Geworbene",  count: referred, key:"geworbene"  },
             { emoji:"⚡", label:"Aktive",      count: active,   key:"aktive"     },
             { emoji:"😴", label:"Schlafende",  count: sleeping, key:"schlafende" },
           ].map(({ emoji, label, count, key }) => (
@@ -487,7 +488,7 @@ function AmbassadorStudioSection({ profile }) {
       <div style={{ margin:"0 14px 16px" }}>
         <div style={{ fontSize:11, color:T.inkFaint, fontWeight:600, marginBottom:6,
           display:"flex", alignItems:"center", gap:5 }}>
-          <span>🔗</span> Dein persönlicher Einladungslink
+          <span style={{display:"flex",alignItems:"center",gap:6}}><HUILinkIcon size={14}/> Dein persönlicher Einladungslink</span>
         </div>
         <div style={{
           background:T.bg, borderRadius:T.r12,
@@ -658,7 +659,7 @@ function EinladungenModal({ ambassadorId, username, onClose }) {
             </div>
           ) : invited.length === 0 ? (
             <div style={{ textAlign:"center", padding:"50px 20px" }}>
-              <div style={{ fontSize:36, marginBottom:12 }}>✉️</div>
+              <div style={{ marginBottom:12, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.7)" }}><HUIMailIcon size={36}/></div>
               <div style={{ fontSize:15, fontWeight:600, color:"#1A1A18", marginBottom:6 }}>
                 Noch keine Einladungen
               </div>

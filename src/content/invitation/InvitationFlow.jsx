@@ -9,6 +9,7 @@
 // Step 3: Veröffentlichen (Preview + Confirm)
 // ═══════════════════════════════════════════════════════════════
 
+import { HUIAmbassadorIcon, HUILocationIcon, HUIPersonenIcon, HUIWarnIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useCallback, useRef } from "react";
 import { supabase }  from "../../lib/supabaseClient.js";
 import { useAuth }   from "../../lib/AuthContext.jsx";
@@ -292,9 +293,9 @@ function PreviewStep({ data, onPublish, onBack, publishing }) {
             display:"flex", flexWrap:"wrap", gap:8,
             fontSize:12.5, color:V.ink3,
           }}>
-            {data.location     && <span>📍 {data.location}</span>}
+            {data.location     && <span style={{display:"flex",alignItems:"center",gap:3}}><HUILocationIcon size={13}/>{data.location}</span>}
             {data.time_label   && <span>🕐 {data.time_label}</span>}
-            {data.max_participants && <span>👥 Max. {data.max_participants}</span>}
+            {data.max_participants && <span style={{display:"flex",alignItems:"center",gap:3}}><HUIPersonenIcon size={13}/>Max. {data.max_participants}</span>}
           </div>
         )}
       </div>
@@ -342,7 +343,7 @@ function PreviewStep({ data, onPublish, onBack, publishing }) {
 function SuccessScreen({ onClose }) {
   return (
     <div style={{ textAlign:"center", padding:"32px 24px", animation:"if-up .32s ease both" }}>
-      <div style={{ fontSize:56, marginBottom:16, animation:"if-pop .5s ease both" }}>🌟</div>
+      <div style={{ marginBottom:16, animation:"if-pop .5s ease both", display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.8)" }}><HUIAmbassadorIcon size={56}/></div>
       <div style={{ fontSize:22, fontWeight:800, color:V.ink, letterSpacing:-0.5, marginBottom:8 }}>
         Einladung raus!
       </div>
@@ -474,7 +475,7 @@ export default function InvitationFlow({ onClose, visible = true }) {
                 background:"rgba(139,92,246,0.12)",
                 display:"flex", alignItems:"center", justifyContent:"center",
                 fontSize:18,
-              }}>👥</div>
+              }} style={{display:"flex",alignItems:"center",justifyContent:"center",color:"rgba(14,196,184,0.5)"}}><HUIPersonenIcon size={28}/></div>
               <div>
                 <div style={{ fontSize:15, fontWeight:700, color:V.ink, letterSpacing:-0.3 }}>Einladung</div>
                 <ProgressDots step={step} />
@@ -492,7 +493,7 @@ export default function InvitationFlow({ onClose, visible = true }) {
         {error && (
           <div style={{ margin:"10px 20px 0", padding:"10px 14px", borderRadius:12,
             background:"rgba(239,68,68,0.10)", border:"1px solid rgba(239,68,68,0.20)",
-            fontSize:12.5, color:"#DC2626" }}>⚠️ {error}</div>
+            fontSize:12.5, color:"#DC2626", display:"flex", alignItems:"center", gap:3 }}><HUIWarnIcon size={13}/>{error}</div>
         )}
 
         {/* Content */}

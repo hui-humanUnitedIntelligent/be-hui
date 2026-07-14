@@ -4,6 +4,7 @@
 // Owner: Grid + Hinzufügen-Button
 // Visitor: Read-only Grid. Empty-State statt null.
 // ══════════════════════════════════════════════════════════════════════
+import { HUIFotoIcon } from '../../../design/icons/HuiSystemIcons.jsx';
 import React from "react";
 import { useContentPreview } from "../../../context/ContentPreviewContext.jsx"; // OPEN.2 2026-07-08
 import { normalizePostForPreview } from "../../../lib/previewNormalizers.js";
@@ -63,14 +64,14 @@ export function MomentsSection({
             display:"flex", flexDirection:"column", alignItems:"center", gap:6,
             cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
           }}>
-            <span style={{ fontSize:24 }}>📸</span>
+            <HUIFotoIcon size={24} style={{color:"rgba(14,196,184,0.5)"}} />
             <div style={{ fontSize:13, fontWeight:700, color:T.ink }}>Ersten Moment teilen</div>
             <div style={{ fontSize:12, color:T.inkFaint }}>Bilder, die dein Wirken zeigen</div>
           </button>
         ) : (
           <div style={{ padding:"20px 16px", borderRadius:T.r16,
             background:T.bgCard, border:`1px solid ${T.border}`, textAlign:"center" }}>
-            <div style={{ fontSize:20, marginBottom:6 }}>📸</div>
+            <div style={{marginBottom:6, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)"}}><HUIFotoIcon size={20}/></div>
             <div style={{ fontSize:13, color:T.inkFaint, fontStyle:"italic" }}>
               Noch keine Momente geteilt.
             </div>
@@ -90,7 +91,7 @@ export function MomentsSection({
                     style={{ width:"100%",height:"100%",objectFit:"cover" }}
                     onError={e=>e.target.style.display="none"}/>
                 : <div style={{ width:"100%",height:"100%",display:"flex",
-                    alignItems:"center",justifyContent:"center",fontSize:20 }}>📸</div>
+                    alignItems:"center",justifyContent:"center" }}><HUIFotoIcon size={20} style={{color:"rgba(14,196,184,0.4)"}}/></div>
               }
             </div>
           ))}

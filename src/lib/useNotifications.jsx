@@ -3,6 +3,9 @@
 // Hook + vollständiges Resonanzzentrum Panel
 // Slide-Over von rechts, 4 Tabs, Verbindungsanfragen, Wochenstats
 // ══════════════════════════════════════════════════════════════
+import {
+  HUIImpactIcon, HUIBenachrichtigungIcon, HUIStatistikIcon,
+} from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "./supabaseClient.js";
@@ -453,7 +456,7 @@ function ConnectionRequestItem({ req, onRespond }) {
         background:"rgba(22,215,197,0.08)",
         border:`1px solid rgba(22,215,197,0.20)`,
       }}>
-        <span style={{fontSize:20}}>🌿</span>
+        <HUIImpactIcon size={20} style={{opacity:0.5, color:"rgba(14,196,184,0.6)"}} />
         <span style={{fontSize:13.5, fontWeight:600, color:T.teal}}>
           Ihr seid jetzt verbunden.
         </span>
@@ -585,7 +588,7 @@ function WeekStats({ userId }) {
           background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
           display:"flex", alignItems:"center", justifyContent:"center",
           fontSize:11, color:"#fff",
-        }}>📊</div>
+        }} style={{display:"flex",alignItems:"center",justifyContent:"center",color:"rgba(14,196,184,0.5)"}}><HUIStatistikIcon size={24}/></div>
         <span style={{
           fontSize:11, fontWeight:800,
           color:"rgba(26,26,24,0.40)",
@@ -782,7 +785,7 @@ export function ResonanzzentrumPanel({ onClose }) {
             marginBottom:4,
           }}>
             <div style={{display:"flex", alignItems:"center", gap:10}}>
-              <span style={{fontSize:24}}>🔔</span>
+              <HUIBenachrichtigungIcon size={24} style={{color:"rgba(14,196,184,0.5)"}} />
               <div>
                 <div style={{
                   fontSize:20, fontWeight:900, color:T.ink,

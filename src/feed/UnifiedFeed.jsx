@@ -9,6 +9,10 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 // CSS KEYFRAMES werden nur einmal injiziert.
 // ═══════════════════════════════════════════════════════════════
 
+import {
+  HUIWirkerIcon, HUIProjektIcon, HUIWerkeIcon, HUIErlebnisIcon,
+  HUIKalenderIcon, HUINachrichtIcon,
+} from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import FeedRouter              from "./cards/FeedRouter.jsx";
 import { CardSkeleton }        from "./cards/BaseFeedCard.jsx";
@@ -956,7 +960,7 @@ function GroupedSearchResults({
   return (
     <div style={{ animation: "hui-search-fade-in .2s cubic-bezier(.22,1,.36,1) both", marginBottom: 4 }}>
       {people.length > 0 && (
-        <SearchGroupCard icon="👤" label="Wirker">
+        <SearchGroupCard icon={<HUIWirkerIcon size={18}/>} label="Wirker">
           {people.map(p => {
             const name = p.display_name || p.full_name || p.username || "Mitglied";
             return (
@@ -972,7 +976,7 @@ function GroupedSearchResults({
         </SearchGroupCard>
       )}
       {projects.length > 0 && (
-        <SearchGroupCard icon="🌱" label="Projekte">
+        <SearchGroupCard icon={<HUIProjektIcon size={18}/>} label="Projekte">
           {projects.map(p => (
             <SearchResultRow key={p.id} shape="square" fallbackIcon={p.icon || "🌱"}
               tint={p.color ? `${p.color}1A` : `${SXR.coral}1A`}
@@ -985,7 +989,7 @@ function GroupedSearchResults({
         </SearchGroupCard>
       )}
       {works.length > 0 && (
-        <SearchGroupCard icon="🛠" label="Werke">
+        <SearchGroupCard icon={<HUIWerkeIcon size={18}/>} label="Werke">
           {works.map(it => (
             <SearchResultRow key={it.id} shape="square" fallbackIcon="🛠" tint={TEAL_TINT}
               image={firstMediaUrl(it)}
@@ -999,7 +1003,7 @@ function GroupedSearchResults({
         </SearchGroupCard>
       )}
       {experiences.length > 0 && (
-        <SearchGroupCard icon="✨" label="Erlebnisse">
+        <SearchGroupCard icon={<HUIErlebnisIcon size={18}/>} label="Erlebnisse">
           {experiences.map(it => (
             <SearchResultRow key={it.id} shape="square" fallbackIcon="✨" tint={TEAL_TINT}
               image={firstMediaUrl(it)}
@@ -1012,7 +1016,7 @@ function GroupedSearchResults({
         </SearchGroupCard>
       )}
       {events.length > 0 && (
-        <SearchGroupCard icon="📅" label="Veranstaltungen">
+        <SearchGroupCard icon={<HUIKalenderIcon size={18}/>} label="Veranstaltungen">
           {events.map(it => (
             <SearchResultRow key={it.id} shape="square" fallbackIcon="📅" tint={TEAL_TINT}
               image={firstMediaUrl(it)}
@@ -1025,7 +1029,7 @@ function GroupedSearchResults({
         </SearchGroupCard>
       )}
       {moments.length > 0 && (
-        <SearchGroupCard icon="📰" label="Beiträge">
+        <SearchGroupCard icon={<HUINachrichtIcon size={18}/>} label="Beiträge">
           {moments.map(it => (
             <SearchResultRow key={it.id} shape="square" fallbackIcon="📰" tint={TEAL_TINT}
               image={firstMediaUrl(it)}

@@ -1,6 +1,9 @@
 // src/system/flows/work/WorkMediaStep.jsx
 // Step 1 — Werk erstellen: Titel, Beschreibung, Medien-Galerie
 
+import {
+  HUIFotoIcon, HUIVideoIcon, HUIDateiIcon,
+} from '../../../design/icons/HuiSystemIcons.jsx';
 import React, { useRef, useCallback } from "react";
 import { WT } from "./WorkTokens.js";
 
@@ -200,21 +203,21 @@ export function WorkMediaStep({ form, mediaFiles, onFormChange, onMediaChange, o
         {/* Upload-Buttons */}
         <div style={{ display:"flex", gap:10, marginBottom:12 }}>
           <MediaButton
-            icon="🖼"
+            icon={<HUIFotoIcon size={18}/>}
             label="Foto hinzufügen"
             color={WT.teal}
             bgColor="rgba(10,191,184,0.06)"
             onClick={() => photoRef.current?.click()}
           />
           <MediaButton
-            icon="▶"
+            icon={<HUIVideoIcon size={18}/>}
             label="Video hinzufügen"
             color={WT.violet}
             bgColor="rgba(139,92,246,0.06)"
             onClick={() => videoRef.current?.click()}
           />
           <MediaButton
-            icon="📄"
+            icon={<HUIDateiIcon size={18}/>}
             label="Datei hochladen"
             color={WT.coral}
             bgColor="rgba(251,146,60,0.06)"

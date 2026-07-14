@@ -1,7 +1,9 @@
+import { HUIChatIcon } from '../../design/icons/HuiInteractionIcons.jsx';
 // src/pages/wirker-profile/index.jsx — Phase 24 VISITOR VIEW
 // "Entering another human's creative universe"
 // Layout: Hero → Stats Strip → ExperiencesSection → WirkungSection → MomentsSection → Community → Footer Values
 
+import { HUITicketIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, {
   useState, useEffect, useRef, useCallback,
 } from "react";
@@ -98,7 +100,7 @@ function BookBtn({ onBook }) {
       boxShadow:`0 4px 18px ${C.tealGlow}`,
       transition:"background .15s ease",
     }}>
-      <span style={{fontSize:15}}>📋</span> Erlebnis buchen
+      <span style={{display:"flex",alignItems:"center",gap:4}}><HUITicketIcon size={15}/> Erlebnis buchen</span>
     </button>
   );
 }
@@ -114,7 +116,7 @@ function MsgBtn({ onChat }) {
       cursor:"pointer",touchAction:"manipulation",
       transition:"background .15s ease",
     }}>
-      <span style={{fontSize:14}}>💬</span> Nachricht senden
+      <span style={{display:"flex",alignItems:"center",gap:4}}><HUIChatIcon size={14}/> Nachricht senden</span>
     </button>
   );
 }

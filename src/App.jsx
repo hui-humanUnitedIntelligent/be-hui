@@ -1,3 +1,4 @@
+import { HUIImpactIcon } from './design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, lazy, Suspense } from 'react'
 import { sentryCapture, Sentry } from './lib/sentry'
 import { RouteBoundary, OverlayBoundary } from './lib/ErrorBoundaries'
@@ -363,7 +364,7 @@ function ContentUnavailablePage() {
     <div style={{ minHeight:"100dvh", display:"flex", flexDirection:"column",
       alignItems:"center", justifyContent:"center", padding:32,
       background:HUI.COLOR.cream, fontFamily:"inherit", textAlign:"center" }}>
-      <div style={{ fontSize:42, marginBottom:14 }}>🌱</div>
+      <div style={{ marginBottom:14, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)" }}><HUIImpactIcon size={42}/></div>
       <div style={{ fontWeight:800, fontSize:18, color:HUI.COLOR.ink, marginBottom:8 }}>
         Inhalt nicht mehr verfügbar
       </div>

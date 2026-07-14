@@ -1,3 +1,4 @@
+import { HUILinkIcon } from '../design/icons/HuiSystemIcons.jsx';
 // src/pages/RefRedirect.jsx
 // ── HUI Ref-Link Weiterleitung ────────────────────────────────
 // Route: /ref/:username  OR  /:username (direkt, z.B. be-hui.com/milileo)
@@ -70,7 +71,7 @@ export default function RefRedirect() {
     <div style={{ display:"flex", alignItems:"center", justifyContent:"center",
       height:"100vh", background:"#F7F5F2" }}>
       <div style={{ textAlign:"center" }}>
-        <div style={{ fontSize:36, marginBottom:12 }}>🔗</div>
+        <div style={{ marginBottom:12, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.7)" }}><HUILinkIcon size={36}/></div>
         <div style={{ fontSize:14, color:"rgba(26,26,24,0.55)" }}>Weiterleitung…</div>
       </div>
     </div>

@@ -1,6 +1,12 @@
 // src/components/experiences/ExperienceWizard.jsx
 // HUI – Erlebnis-Editor: 4-Schritte-Wizard (v2)
 // Schritt 1: Basis | 2: Wann & Wo | 3: Teilnahme | 4: Veröffentlichen
+import {
+  HUIVorOrtIcon, HUIOnlineIcon,
+  HUIKalenderIcon, HUIZeitIcon, HUILocationIcon,
+  HUIPersonenIcon, HUIEuroIcon, HUIEinladungIcon,
+  HUIPrivatIcon, HUISchreibenIcon, HUIWarnIcon,
+} from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
@@ -49,7 +55,7 @@ const PREIS_PRO = [
 const SICHTBARKEIT = [
   { id:"public",      icon:"🌍", label:"Öffentlich",   sub:"Sichtbar im HUI-Feed und Talent-Profil." },
   { id:"connections", icon:"🔗", label:"Verbindungen", sub:"Nur für Menschen in deinem Netzwerk." },
-  { id:"private",     icon:"🔒", label:"Privat",       sub:"Nur für dich sichtbar." },
+  { id:"private",     icon:<HUIPrivatIcon size={16}/>, label:"Privat",       sub:"Nur für dich sichtbar." },
 ];
 
 // ══════════════════════════════════════════════════════════════
@@ -451,7 +457,7 @@ function S2({ data, onChange, onPickLocation }) {
       {/* Datum */}
       <Field label="Datum" req>
         <div style={{ position: "relative" }}>
-          <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", fontSize: 16, color: C.inkFade, pointerEvents: "none" }}>📅</span>
+          <span style={{ position:"absolute", left:16, top:"50%", transform:"translateY(-50%)", color:C.inkFade, pointerEvents:"none" }}><HUIKalenderIcon size={16}/></span>
           <input
             type="date"
             value={data.date || ""}
@@ -494,7 +500,7 @@ function S2({ data, onChange, onPickLocation }) {
       {/* Ort */}
       <Field label="Ort" req hint="Tippen fuer Vorschlaege, z.B. Ortsname oder PLZ.">
         <div style={{ position: "relative" }}>
-          <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", fontSize: 16, color: C.inkFade, pointerEvents: "none", zIndex: 1 }}>📍</span>
+          <span style={{ position:"absolute", left:16, top:"50%", transform:"translateY(-50%)", color:C.inkFade, pointerEvents:"none", zIndex:1 }}><HUILocationIcon size={16}/></span>
           <LocationAutocompleteInput
             value={data.location_text || ""}
             onChange={v => onChange({ location_text: v })}
@@ -508,8 +514,8 @@ function S2({ data, onChange, onPickLocation }) {
       {/* Online oder Vor Ort */}
       <Field label="Online oder Vor Ort" req>
         <div style={{ display: "flex", gap: 10 }}>
-          <FormatPill active={data.format === "vor_ort"} label="Vor Ort" icon="🏛️" onClick={() => onChange({ format: "vor_ort" })}/>
-          <FormatPill active={data.format === "online"}  label="Online"  icon="💻" onClick={() => onChange({ format: "online"  })}/>
+          <FormatPill active={data.format === "vor_ort"} label="Vor Ort" icon={<HUIVorOrtIcon size={16}/>} onClick={() => onChange({ format: "vor_ort" })}/>
+          <FormatPill active={data.format === "online"}  label="Online"  icon={<HUIOnlineIcon size={16}/>} onClick={() => onChange({ format: "online"  })}/>
         </div>
       </Field>
     </div>
@@ -594,7 +600,7 @@ function S3({ data, onChange }) {
       {/* Max. Teilnehmerzahl */}
       <Field label="Maximale Teilnehmerzahl" hint="optional">
         <div style={{ position: "relative" }}>
-          <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", fontSize: 18, color: C.inkFade, pointerEvents: "none" }}>👥</span>
+          <span style={{ position:"absolute", left:16, top:"50%", transform:"translateY(-50%)", color:C.inkFade, pointerEvents:"none" }}><HUIPersonenIcon size={18}/></span>
           <input
             type="number" min="1" max="9999"
             inputMode="numeric"
@@ -647,12 +653,12 @@ function S4({ data, onChange, saving }) {
       : null;
 
   const summaryRows = [
-    fmtDate(data.date) && { icon:"📅", text: fmtDate(data.date) },
-    timeRange          && { icon:"🕐", text: timeRange },
-    data.location_text && { icon:"📍", text: data.location_text },
-    data.max_participants && { icon:"👥", text: `Max. ${data.max_participants} Teilnehmende` },
-    preisAnzeige       && { icon:"💰", text: preisAnzeige },
-    data.registration_required && { icon:"📋", text: "Anmeldung erforderlich" },
+    fmtDate(data.date) && { icon:<HUIKalenderIcon size={14}/>, text: fmtDate(data.date) },
+    timeRange          && { icon:<HUIZeitIcon size={14}/>, text: timeRange },
+    data.location_text && { icon:<HUILocationIcon size={14}/>, text: data.location_text },
+    data.max_participants && { icon:<HUIPersonenIcon size={14}/>, text: `Max. ${data.max_participants} Teilnehmende` },
+    preisAnzeige       && { icon:<HUIEuroIcon size={14}/>, text: preisAnzeige },
+    data.registration_required && { icon:<HUIEinladungIcon size={14}/>, text: "Anmeldung erforderlich" },
   ].filter(Boolean);
 
   return (
@@ -668,7 +674,7 @@ function S4({ data, onChange, saving }) {
             <img loading="lazy" decoding="async" src={cover} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}/>
           </div>
         ) : (
-          <div style={{ width: "100%", height: 100, background: C.tealSoft, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, opacity: 0.4 }}>📅</div>
+          <div style={{ width:"100%", height:100, background:C.tealSoft, display:"flex", alignItems:"center", justifyContent:"center", opacity:0.4, color:"rgba(14,196,184,0.8)" }}><HUIKalenderIcon size={32}/></div>
         )}
         {/* Info */}
         <div style={{ padding: "16px 18px" }}>
@@ -687,7 +693,7 @@ function S4({ data, onChange, saving }) {
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {summaryRows.map((row, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-                  <span style={{ fontSize: 14, flexShrink: 0, marginTop: 1 }}>{row.icon}</span>
+                  <span style={{ flexShrink: 0, marginTop: 1, display:"flex", alignItems:"center", color:"rgba(14,196,184,0.7)" }}>{row.icon}</span>
                   <span style={{ fontSize: 13, color: C.inkMid, lineHeight: 1.4 }}>{row.text}</span>
                 </div>
               ))}
@@ -925,7 +931,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
           background: "rgba(239,68,68,0.08)", borderBottom: "1px solid rgba(239,68,68,0.18)",
           padding: "10px 20px", display: "flex", alignItems: "flex-start", gap: 10,
         }}>
-          <span style={{ fontSize: 16, flexShrink: 0 }}>✏️</span>
+          <HUISchreibenIcon size={16} style={{flexShrink:0, color:"rgba(14,196,184,0.6)"}} />
           <div>
             <div style={{ fontSize: 13, fontWeight: 700, color: "#DC2626", marginBottom: 2 }}>
               Du passt ein abgelehntes Erlebnis an
@@ -964,7 +970,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
           fontSize: 12.5, fontWeight: 600, color: "rgba(239,68,68,0.9)",
           display: "flex", alignItems: "center", gap: 8,
         }}>
-          <span>⚠</span>
+          <HUIWarnIcon size={14} style={{flexShrink:0}} />
           <span style={{ flex: 1 }}>{saveError}</span>
           <button onClick={() => setSaveError(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(239,68,68,0.7)", fontSize: 16, padding: 0 }}>×</button>
         </div>

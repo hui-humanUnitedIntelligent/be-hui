@@ -5,6 +5,7 @@
 // Visitor: Read-only Liste. Empty-State statt null.
 // Daten: profile_locations (Standort-DB.md 20260706), Migration 066
 // ══════════════════════════════════════════════════════════════════════
+import { HUILocationIcon } from '../../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef, useEffect } from "react";
 import { useProfileLocations } from "../../../hooks/useProfileLocations.js";
 import { searchPlaces } from "../../../lib/geocoding.js";
@@ -96,7 +97,7 @@ export function LocationSection({
             {locations.map(loc => (
               <div key={loc.id} style={{ display:"flex", alignItems:"center", gap:6, padding:"7px 8px",
                 borderRadius:T.r12, background:"rgba(26,26,24,0.03)", border:`1px solid ${T.border}` }}>
-                <span style={{ fontSize:14 }}>📍</span>
+                <HUILocationIcon size={14} style={{flexShrink:0, color:"rgba(14,196,184,0.6)"}} />
                 <span style={{ fontSize:11.5, color:T.ink, fontWeight:500, flex:1, minWidth:0,
                   overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                   {loc.label}
@@ -139,13 +140,13 @@ export function LocationSection({
               style={{ display:"flex", alignItems:"center", gap:6, padding:"7px 8px",
                 borderRadius:T.r12, background:"rgba(26,26,24,0.03)", border:`1px solid ${T.border}`,
                 cursor:"pointer", width:"100%", fontFamily:"inherit" }}>
-              <span style={{ fontSize:14 }}>📍</span>
+              <HUILocationIcon size={14} style={{flexShrink:0, color:"rgba(14,196,184,0.6)"}} />
               <span style={{ fontSize:11.5, color:T.inkFaint }}>Standort hinzufügen</span>
             </button>
           ) : (
             <div style={{ display:"flex", alignItems:"center", gap:6, padding:"7px 8px",
               borderRadius:T.r12, background:"rgba(26,26,24,0.03)", border:`1px solid ${T.border}` }}>
-              <span style={{ fontSize:14 }}>📍</span>
+              <HUILocationIcon size={14} style={{flexShrink:0, color:"rgba(14,196,184,0.6)"}} />
               <span style={{ fontSize:11.5, color:T.inkFaint }}>Standort nicht angegeben</span>
             </div>
           )
@@ -171,7 +172,7 @@ export function LocationSection({
                     style={{ display:"block", width:"100%", textAlign:"left", padding:"8px 10px",
                       background:"none", border:"none", borderTop: i>0 ? `1px solid ${T.border}` : "none",
                       fontSize:11.5, color:T.ink, cursor: saving ? "default" : "pointer", fontFamily:"inherit" }}>
-                    📍 {s.label}
+                    {s.label}
                   </button>
                 ))}
               </div>

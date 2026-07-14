@@ -1,6 +1,7 @@
 // src/system/flows/experience/ExperienceDetailsStep.jsx
 // Step 2 — Angebotsdetails: Preis, Dauer, Ort, Verfügbarkeit
 
+import { HUIChatIcon } from '../../../design/icons/HuiInteractionIcons.jsx';
 import React from "react";
 import { ET, EInput, ESelect } from "./ExperienceTokens.js";
 
@@ -45,7 +46,7 @@ function PricePills({ value, onChange }) {
     { k:"free",    icon:"🎁", l:"Kostenlos" },
     { k:"hourly",  icon:"⏱", l:"Stundenpreis" },
     { k:"fixed",   icon:"🛡", l:"Festpreis" },
-    { k:"inquiry", icon:"💬", l:"Auf Anfrage" },
+    { k:"inquiry", icon:<HUIChatIcon size={14}/>, l:"Auf Anfrage" },
   ];
   return (
     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>

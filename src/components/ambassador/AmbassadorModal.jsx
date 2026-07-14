@@ -1,4 +1,5 @@
 // src/components/ambassador/AmbassadorModal.jsx
+import { HUIAmbassadorIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useAmbassadorApplication } from "../../hooks/useAmbassador.js";
@@ -115,7 +116,7 @@ export default function AmbassadorModal({ userId, onClose, onSuccess }) {
           {/* Header */}
           <div style={{ padding: "20px 20px 0", display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
             <div>
-              <div style={{ fontSize: 22, marginBottom: 2 }}>🌟</div>
+              <div style={{ marginBottom:2, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.8)" }}><HUIAmbassadorIcon size={22}/></div>
               <div style={{ fontSize: 18, fontWeight: 800, color: T.ink }}>Werde Ambassador</div>
               <div style={{ fontSize: 13, color: T.inkSoft, marginTop: 3 }}>
                 Teile deine Leidenschaft und wachse mit der Community.

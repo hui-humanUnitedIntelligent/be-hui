@@ -8,6 +8,7 @@
 // Reset: automatisch am 1. des Monats (month_key = "YYYY-MM")
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { HUIImpactIcon, HUIAwardIcon, HUIStimmeIcon, HUIWarnIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useCallback } from "react";
 import { isProfileTalent } from '../../lib/profileUtils.js';
 import { createPortal } from "react-dom";
@@ -82,7 +83,7 @@ function VoteButton({ index, used, loading, onClick }) {
         opacity: loading ? 0.6 : 1,
       }}
     >
-      {isUsed ? "✓" : "🗳️"}
+      {isUsed ? "✓" : <HUIStimmeIcon size={14}/>}
     </button>
   );
 }
@@ -124,7 +125,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
         id:               a.id,
         name:             a.project_name,
         description:      a.short_desc,
-        icon:             "💚",
+        icon:             <HUIImpactIcon size={20}/>,
         color:            "#0DC4B5",
         status:           "approved",
         votes:            0, // wird live aus impact_votes gezählt
@@ -293,7 +294,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
         }}>
           <div>
             <div style={{ fontSize: 20, fontWeight: 800, color: T.ink, letterSpacing: "-0.02em" }}>
-              🗳️ Impact-Stimmen
+              
             </div>
             <div style={{ fontSize: 12, color: T.inkSoft, marginTop: 2 }}>
               {monthKey} · {isTalent ? "Talent" : "Basis"}-Mitglied
@@ -391,7 +392,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
                       {freeCount} Stimme{freeCount !== 1 ? "n" : ""} verfügbar
                     </div>
                     <div style={{ fontSize: 11, color: T.inkSoft, marginTop: 3 }}>
-                      Tippe auf 🗳️ um abzustimmen
+                      Tippe auf das Stimmen-Icon zum Abstimmen
                     </div>
                   </div>
                 )}
@@ -405,7 +406,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
                 border: "1px solid rgba(255,193,7,0.2)", padding: "10px 14px",
                 display: "flex", gap: 10, alignItems: "center",
               }}>
-                <span style={{ fontSize: 18, flexShrink: 0 }}>⭐</span>
+                <HUIAwardIcon size={18} style={{flexShrink:0, color:"rgba(245,158,11,0.8)"}} />
                 <div>
                   <div style={{ fontSize: 12, fontWeight: 700, color: "#92700A" }}>
                     Mit Mitgliedschaft auf 2 Stimmen
@@ -458,7 +459,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
               border: "1px solid rgba(220,38,38,0.18)", padding: "12px 16px",
               marginBottom: 14, fontSize: 13, color: "#B91C1C", fontWeight: 500,
             }}>
-              ⚠️ {errorMsg}
+              
             </div>
           )}
           {successMsg && (
@@ -635,7 +636,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
                     opacity: voting ? 0.65 : 1,
                   }}
                 >
-                  🗳️ Jetzt wählen
+                  Jetzt wählen
                 </button>
               </div>
             </div>

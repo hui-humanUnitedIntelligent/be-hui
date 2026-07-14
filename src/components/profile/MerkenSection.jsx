@@ -1,3 +1,4 @@
+import { HUIErlebnisIcon, HUIImpactIcon, HUIKalenderIcon, HUIProfilIcon, HUIWerkeIcon } from '../../design/icons/HuiSystemIcons.jsx';
 // MerkenSection — Gespeicherte Inhalte im Mein-HUI-Profil
 // MERKEN.1B: verschoben aus CreatorDashboard (dead) → MyBasisProfile (produktiv)
 // MERKLISTE.1 (2026-07-08): Filter-Tabs + Realtime-Sync + typgerechte
@@ -45,8 +46,13 @@ const TYPE_LABEL = {
   work: "Werk", experience: "Erlebnis", post: "Beitrag", beitrag: "Beitrag",
   event: "Veranstaltung", wirker: "Wirker", project: "Projekt",
 };
-const TYPE_ICON = {
-  work: "🎨", experience: "📅", event: "📅", wirker: "👤", project: "🌱",
+const TYPE_ICON_COMPONENT = (type) => {
+  if (type === "work")       return <HUIWerkeIcon size={32} style={{opacity:0.7, color:"rgba(14,196,184,0.7)"}} />;
+  if (type === "experience") return <HUIErlebnisIcon size={32} style={{opacity:0.7, color:"rgba(14,196,184,0.7)"}} />;
+  if (type === "event")      return <HUIKalenderIcon size={32} style={{opacity:0.7, color:"rgba(14,196,184,0.7)"}} />;
+  if (type === "wirker")     return <HUIProfilIcon size={32} style={{opacity:0.7, color:"rgba(14,196,184,0.7)"}} />;
+  if (type === "project")    return <HUIImpactIcon size={32} style={{opacity:0.7, color:"rgba(14,196,184,0.7)"}} />;
+  return <HUIImpactIcon size={32} style={{opacity:0.5, color:"rgba(14,196,184,0.5)"}} />;
 };
 
 // Filter-Tabs (Auftrag: Alle / Beiträge / Werke / Erlebnisse / Projekte)
@@ -349,7 +355,7 @@ function MerkenCard({ item, cover, title, creator, label, date, onOpen, onRemove
         {showImg
           ? <img loading="lazy" decoding="async" src={cover} alt="" onError={() => setImgErr(true)}
               style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-          : <span style={{ fontSize:32, opacity:0.85 }}>{TYPE_ICON[item.post_type] || "🌿"}</span>
+          : <span style={{ display:"flex", alignItems:"center", justifyContent:"center", width:"100%", height:"100%" }}>{TYPE_ICON_COMPONENT(item.post_type)}</span>
         }
       </div>
 

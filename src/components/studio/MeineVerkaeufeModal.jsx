@@ -1,3 +1,4 @@
+import { HUIVerkaufIcon } from '../../design/icons/HuiSystemIcons.jsx';
 // MeineVerkaeufeModal.jsx — "Meine Verkäufe" (Studio-Bereich)
 // ══════════════════════════════════════════════════════════
 // Verschoben aus MyBasisProfile.jsx (Profil-Sektion T3b) in den Studio-Bereich,
@@ -67,7 +68,7 @@ export default function MeineVerkaeufeModal({ profile, onClose = () => {} }) {
         }}>
           <div>
             <div style={{ fontSize: 18, fontWeight: 800, color: T.ink, letterSpacing: "-0.02em" }}>
-              🛍️ Meine Verkäufe
+              
             </div>
             <div style={{ fontSize: 12, color: T.inkSoft, marginTop: 2 }}>
               Abgeschlossene Käufe deiner Werke
@@ -88,7 +89,7 @@ export default function MeineVerkaeufeModal({ profile, onClose = () => {} }) {
         }}>
           {loading && (
             <div style={{ textAlign: "center", padding: "48px 0", color: T.inkSoft }}>
-              <div style={{ fontSize: 24, marginBottom: 10 }}>🛍️</div>
+              <div style={{marginBottom:10, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.6)"}}><HUIVerkaufIcon size={24}/></div>
               <div style={{ fontSize: 14 }}>Verkäufe werden geladen…</div>
             </div>
           )}
@@ -126,7 +127,7 @@ export default function MeineVerkaeufeModal({ profile, onClose = () => {} }) {
                         }}>
                           {cover
                             ? <img loading="lazy" decoding="async" src={cover} alt={title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                            : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>🛍️</div>
+                            : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", color:"rgba(14,196,184,0.5)" }}><HUIVerkaufIcon size={24}/></div>
                           }
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>

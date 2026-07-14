@@ -67,32 +67,6 @@ serve(async (req) => {
     }
 
     const body = await req.json()
-    // ── Stripe Customer Isolation (Security Fix) ──────────────────
-    const stripeEarly = new Stripe(stripeKey, { apiVersion: '2024-06-20' })
-    let stripeCustomerId: string
-    {
-      const { data: existingCust } = await supabase
-        .from('stripe_customers')
-        .select('stripe_customer_id')
-        .eq('user_id', user.id)
-        .maybeSingle()
-
-      if (existingCust?.stripe_customer_id) {
-        stripeCustomerId = existingCust.stripe_customer_id
-      } else {
-        const newCust = await stripeEarly.customers.create({
-          email:    user.email || undefined,
-          metadata: { hui_user_id: user.id },
-        })
-        stripeCustomerId = newCust.id
-        await supabase.from('stripe_customers').upsert({
-          user_id:            user.id,
-          stripe_customer_id: stripeCustomerId,
-        }, { onConflict: 'user_id', ignoreDuplicates: true })
-      }
-    }
-
-
     const talentId       = body.talent_id as string
     const selectedDate   = body.selected_date as string       // 'YYYY-MM-DD'
     const timeSlot        = body.time_slot ?? null
@@ -153,7 +127,6 @@ serve(async (req) => {
     let pi: Stripe.PaymentIntent
     try {
       pi = await stripe.paymentIntents.create({
-        customer: stripeCustomerId,
         amount: amountCents,
         currency: 'eur',
         automatic_payment_methods: { enabled: true },

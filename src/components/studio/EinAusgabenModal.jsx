@@ -1,3 +1,4 @@
+import { HUIFinanzIcon } from '../../design/icons/HuiSystemIcons.jsx';
 // EinAusgabenModal.jsx — "Ein-/Ausgaben Übersicht"
 // ══════════════════════════════════════════════════
 // Quellen:
@@ -459,7 +460,7 @@ export default function EinAusgabenModal({ profile, onClose }) {
 
           {!loading && filteredList.length === 0 && (
             <EmptyState
-              icon={tab === "einnahmen" ? "💰" : "💸"}
+              icon={<HUIFinanzIcon size={36}/>}
               title={tab === "einnahmen" ? "Noch keine Einnahmen" : "Noch keine Ausgaben"}
               desc={tab === "einnahmen"
                 ? "Sobald du etwas verkaufst oder eine Buchung abgeschlossen wird, erscheint es hier."

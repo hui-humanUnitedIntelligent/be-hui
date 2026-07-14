@@ -1,4 +1,5 @@
 // src/feed/cards/FeedRouter.jsx — HUI FEED ROUTER (Phase 1)
+import { HUIImpactIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { Suspense, lazy } from "react";
 import { toFeedItem } from "../../system/feed/unifiedNormalizer.js";
 
@@ -36,7 +37,7 @@ class CardErrorBoundary extends React.Component {
         <div style={{margin:"0 12px 14px",padding:"14px 16px",borderRadius:28,
           background:"rgba(249,247,244,0.9)",border:"1px solid rgba(26,26,46,0.06)",
           boxShadow:"0 2px 16px rgba(26,26,46,0.07)",display:"flex",alignItems:"center",gap:10}}>
-          <span style={{fontSize:20}}>🌿</span>
+          <HUIImpactIcon size={20} style={{opacity:0.5, color:"rgba(14,196,184,0.6)"}} />
           <div>
             <div style={{fontSize:13,fontWeight:600,color:"#1A1A2E"}}>{this.props.authorName||"Human"}</div>
             {this.props.text && (

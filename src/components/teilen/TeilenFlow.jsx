@@ -4,6 +4,7 @@
 // Design: soft white, glass, teal+violet, premium Apple-feel
 // iOS-safe: touch-action:manipulation, zIndex:10100, no overflow:hidden
 
+import { HUIAnsichtIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef, useCallback } from "react";
 import { useAuth } from "../../lib/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
@@ -930,7 +931,7 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
   const STEP_META = {
     1: { emoji:"🌿", hint:"W\u00e4hle aus" },
     2: { emoji:"✨", hint:"Erstelle deinen Moment" },
-    3: { emoji:"👁",  hint:"Alles bereit?" },
+    3: { emoji:<HUIAnsichtIcon size={20}/>,  hint:"Alles bereit?" },
   };
   const meta = STEP_META[step];
 

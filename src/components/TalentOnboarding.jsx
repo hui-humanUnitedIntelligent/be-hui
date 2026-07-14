@@ -1,6 +1,9 @@
 // TalentOnboarding v2 — "Deinen Raum öffnen"
 // 3 Steps: Identität → Module → Profil
 // Props-only, kein useNavigate/useParams, router-safe
+import { HUITalentIcon,
+  HUIWarnIcon,
+} from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../lib/supabaseClient";
@@ -169,7 +172,7 @@ function Step2({ modules, onToggle, onNext, onBack }) {
   return (
     <div style={{ animation:"toSlide .35s both" }}>
       <div style={{ textAlign:"center", marginBottom:24 }}>
-        <div style={{ fontSize:40, marginBottom:12 }}>🌟</div>
+        <div style={{ marginBottom:12, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.7)" }}><HUITalentIcon size={40}/></div>
         <h2 style={{ margin:"0 0 8px", fontSize:24, fontWeight:900,
           color:T.ink, letterSpacing:"-0.5px" }}>
           Wie möchtest du<br/>sichtbar sein?
@@ -292,7 +295,7 @@ function Step3({ intro, setIntro, onFinish, onBack, saving, error }) {
       {error && (
         <div style={{ marginTop:14, padding:"12px 14px", borderRadius:12,
           background:"rgba(255,80,80,0.07)", border:"1px solid rgba(255,80,80,0.18)",
-          fontSize:13, color:"#E53E3E" }}>⚠️ {error}</div>
+          fontSize:13, color:"#E53E3E", display:"flex", alignItems:"center", gap:3 }}><HUIWarnIcon size={13}/>{error}</div>
       )}
 
       <div style={{ display:"flex", gap:10, marginTop:22 }}>

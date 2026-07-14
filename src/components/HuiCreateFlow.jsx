@@ -11,6 +11,11 @@
 // vollständig erhalten — sie sind nur in Phase 3 / Collapse-Sektionen.
 
 import { useDraftPersist } from "../lib/sessionHooks";
+import {
+  HUISchreibenIcon, HUIVersandIcon, HUIStimmungIcon,
+  HUIKalenderIcon, HUISpracheIcon,
+  HUIWerkeIcon, HUIErlebnisIcon, HUIImpactIcon, HUIGemeinschaftIcon, HUIPrivatIcon,
+} from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { publishExperience } from "../lib/factories/experienceContract.js";
 import { supabase }  from "../lib/supabaseClient";
@@ -391,7 +396,7 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
         </button>
         <div style={{ display:"flex", alignItems:"center", gap:7 }}>
           <span style={{ fontSize:18 }}>
-            {forcedType === "werk" ? "🎨" : forcedType === "erlebnis" ? "🌟" : "✨"}
+            {forcedType === "werk" ? <HUIWerkeIcon size={18}/> : forcedType === "erlebnis" ? <HUIErlebnisIcon size={18}/> : <HUIImpactIcon size={18}/>}
           </span>
           <span style={{ fontWeight:900, fontSize:16, color:C.ink, letterSpacing:-.3 }}>
             {forcedType === "werk" ? "Bild für dein Werk"
@@ -643,8 +648,8 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
                 transition:"all 150ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.card */,
               }}>
               {visibility==="public" ? "🌍 Alle"
-                : visibility==="followers" ? "👥 Follower"
-                : "🔒 Nur ich"}
+                : visibility==="followers" ? "Follower"
+                : "Nur ich"}
             </button>
           </div>
 
@@ -700,7 +705,7 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
                 animation:"hcf2-spin .7s linear infinite", flexShrink:0,
               }}/> Wird geteilt…</>
             : canPost ? (forcedType === "werk" ? "🎨  Bild wählen & weiter"
-                : forcedType === "erlebnis" ? "🌟  Bild wählen & weiter"
+                : forcedType === "erlebnis" ? "Bild wählen & weiter"
                 : "✨  Moment veröffentlichen")
             : "Foto oder Video wählen"
           }
@@ -984,7 +989,7 @@ function ScreenWerk({ media, onBack, onPublish, loading, error }) {
         {/* Optionale Sektionen */}
         <div style={{ marginTop:18 }}>
 
-          <CollapseSection title="Beschreibung & Kategorie" icon="✍️" accent={C.teal}>
+          <CollapseSection title="Beschreibung & Kategorie" icon={<HUISchreibenIcon size={16}/>} accent={C.teal}>
             <div className="hcf2-field" style={{ marginBottom:12 }}>
               <textarea className="hcf2-input" rows={3}
                 placeholder="Beschreibe dein Werk..."
@@ -1002,7 +1007,7 @@ function ScreenWerk({ media, onBack, onPublish, loading, error }) {
           </CollapseSection>
 
           {forSale && (
-            <CollapseSection title="Versand & Abholung" icon="📦" accent={C.coral}>
+            <CollapseSection title="Versand & Abholung" icon={<HUIVersandIcon size={16}/>} accent={C.coral}>
               <div className="hcf2-field" style={{ marginBottom:12 }}>
                 <div className="hcf2-field-label">Menge</div>
                 <input className="hcf2-input" type="number" inputMode="numeric"
@@ -1026,7 +1031,7 @@ function ScreenWerk({ media, onBack, onPublish, loading, error }) {
             </CollapseSection>
           )}
 
-          <CollapseSection title="Atmosphäre & Stimmung" icon="🌊" accent={C.purple}>
+          <CollapseSection title="Atmosphäre & Stimmung" icon={<HUIStimmungIcon size={16}/>} accent={C.purple}>
             <div style={{ marginBottom:12 }}>
               <div style={{ fontSize:12, fontWeight:700, color:C.muted, marginBottom:8,
                 textTransform:"uppercase", letterSpacing:0.5 }}>Mood Tags</div>
@@ -1156,7 +1161,7 @@ function ScreenErlebnis({ media, onBack, onPublish, loading, error }) {
         </button>
         <div>
           <div style={{ fontSize:17, fontWeight:800, color:C.ink, letterSpacing:-.3 }}>
-            🌟 Dein Erlebnis
+            
           </div>
           <div style={{ fontSize:12.5, color:C.muted, marginTop:1 }}>
             Nur Titel & Format sind Pflicht
@@ -1221,7 +1226,7 @@ function ScreenErlebnis({ media, onBack, onPublish, loading, error }) {
         </div>
 
         {/* Optionale Sektionen */}
-        <CollapseSection title="Beschreibung & Kategorie" icon="✍️" accent={C.purple}>
+        <CollapseSection title="Beschreibung & Kategorie" icon={<HUISchreibenIcon size={16}/>} accent={C.purple}>
           <div className="hcf2-field" style={{ marginBottom:12 }}>
             <textarea className="hcf2-input" rows={3}
               placeholder="Was erwartet die Teilnehmer?"
@@ -1238,7 +1243,7 @@ function ScreenErlebnis({ media, onBack, onPublish, loading, error }) {
           </div>
         </CollapseSection>
 
-        <CollapseSection title="Ort, Dauer & Teilnehmer" icon="📅" accent={C.coral}>
+        <CollapseSection title="Ort, Dauer & Teilnehmer" icon={<HUIKalenderIcon size={16}/>} accent={C.coral}>
           {(format==="vor-ort"||format==="hybrid") && (
             <div className="hcf2-field" style={{ marginBottom:12 }}>
               <div className="hcf2-field-label">Ort</div>
@@ -1266,7 +1271,7 @@ function ScreenErlebnis({ media, onBack, onPublish, loading, error }) {
           </div>
         </CollapseSection>
 
-        <CollapseSection title="Sprache" icon="🗣️" accent={C.teal}>
+        <CollapseSection title="Sprache" icon={<HUISpracheIcon size={16}/>} accent={C.teal}>
           <div className="hcf2-pill-row">
             {(LANGS||[]).filter(l=>l&&l.key).map(l => (
               <Pill key={l} label={l} selected={lang===l} color={C.teal}
@@ -1275,7 +1280,7 @@ function ScreenErlebnis({ media, onBack, onPublish, loading, error }) {
           </div>
         </CollapseSection>
 
-        <CollapseSection title="Atmosphäre & Stimmung" icon="🌊" accent={C.purple}>
+        <CollapseSection title="Atmosphäre & Stimmung" icon={<HUIStimmungIcon size={16}/>} accent={C.purple}>
           <div style={{ marginBottom:12 }}>
             <div style={{ fontSize:12, fontWeight:700, color:C.muted, marginBottom:8,
               textTransform:"uppercase", letterSpacing:0.5 }}>Mood Tags</div>
@@ -1329,7 +1334,7 @@ function ScreenErlebnis({ media, onBack, onPublish, loading, error }) {
           }}>
           {loading
             ? <span style={{ animation:"hcf2-pulse 1s ease infinite" }}>Wird veröffentlicht…</span>
-            : "Erlebnis veröffentlichen 🌟"}
+            : "Erlebnis veröffentlichen"}
         </button>
       </div>
     </div>
@@ -1343,7 +1348,7 @@ function ScreenDone({ type }) {
   const MAP = {
     moment:   { emoji:"✨", title:"Geteilt!", sub:"Dein Moment ist jetzt live." },
     werk:     { emoji:"🎨", title:"Werk live!", sub:"Andere können es jetzt entdecken." },
-    erlebnis: { emoji:"🌟", title:"Erlebnis live!", sub:"Buchungen können jetzt eingehen." },
+    erlebnis: { emoji:<HUIErlebnisIcon size={32}/>, title:"Erlebnis live!", sub:"Buchungen können jetzt eingehen." },
   };
   const d = MAP[type] || MAP.moment;
 
@@ -1370,7 +1375,7 @@ function ScreenDone({ type }) {
 /* ══════════════════════════════════════════════════════════════════
    SCREEN 0 — TYPE SELECTOR
    Erster Screen: Was möchtest du erstellen?
-   ✨ Moment  🎨 Werk  🌟 Erlebnis  📖 Story
+   Moment | Werk | Erlebnis | Story
 ══════════════════════════════════════════════════════════════════ */
 function ScreenTypeSelector({ onClose, onSelect }) {
   const TYPES = [
@@ -1394,7 +1399,7 @@ function ScreenTypeSelector({ onClose, onSelect }) {
     },
     {
       key:   "erlebnis",
-      emoji: "🌟",
+      emoji: <HUIErlebnisIcon size={32}/>,
       label: "Erlebnis",
       sub:   "Event · Workshop · Session",
       grad:  `linear-gradient(135deg, rgba(245,166,35,0.12) 0%, rgba(245,166,35,0.04) 100%)`,

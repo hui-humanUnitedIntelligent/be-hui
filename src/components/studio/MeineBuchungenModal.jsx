@@ -1,3 +1,4 @@
+import { HUIKalenderIcon, HUIWarnIcon } from '../../design/icons/HuiSystemIcons.jsx';
 // MeineBuchungenModal.jsx — "Meine Buchungen" (Studio-Bereich)
 // ══════════════════════════════════════════════════════════
 // Verschoben aus MyBasisProfile.jsx (Profil-Sektion T2c) in den Studio-Bereich,
@@ -70,7 +71,7 @@ function BookingRow({ b, forSeller, onCancelClick }) {
       }}>
         {cover
           ? <img loading="lazy" decoding="async" src={cover} alt={title} style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-          : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16 }}>✨</div>
+          : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, color:"rgba(14,196,184,0.7)" }}>HUI</div>
         }
       </div>
       <div style={{ flex:1, minWidth:0 }}>
@@ -156,7 +157,7 @@ export default function MeineBuchungenModal({ profile, onClose }) {
         }}>
           <div>
             <div style={{ fontSize: 18, fontWeight: 800, color: T.ink, letterSpacing: "-0.02em" }}>
-              📅 Meine Buchungen
+              
             </div>
             <div style={{ fontSize: 12, color: T.inkSoft, marginTop: 2 }}>
               Talent-Termine & Anfragen für deine Angebote
@@ -177,7 +178,7 @@ export default function MeineBuchungenModal({ profile, onClose }) {
         }}>
           {loading && (
             <div style={{ textAlign: "center", padding: "48px 0", color: T.inkSoft }}>
-              <div style={{ fontSize: 24, marginBottom: 10 }}>📅</div>
+              <div style={{marginBottom:10, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)"}}><HUIKalenderIcon size={24}/></div>
               <div style={{ fontSize: 14 }}>Buchungen werden geladen…</div>
             </div>
           )}
@@ -266,7 +267,7 @@ export default function MeineBuchungenModal({ profile, onClose }) {
             background:"#fff", borderRadius:16, padding:"24px 20px 20px",
             maxWidth:320, width:"100%", boxShadow:"0 8px 40px rgba(0,0,0,0.18)",
           }}>
-            <div style={{ fontSize:36, textAlign:"center", marginBottom:8 }}>⚠️</div>
+            <div style={{ textAlign:"center", marginBottom:8, display:"flex", justifyContent:"center", color:"#F59E0B" }}><HUIWarnIcon size={36}/></div>
             <div style={{ fontSize:16, fontWeight:700, textAlign:"center", marginBottom:6, color:"#1a1a18" }}>
               Buchung stornieren?
             </div>

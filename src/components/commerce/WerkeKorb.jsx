@@ -2,6 +2,7 @@
 // Persönlicher Sammelraum. Kein Warenkorb. Ruhiger menschlicher Raum.
 // Designsprache: HUI Design System (hui.design.js + hui.interaction.js)
 
+import { HUIImpactIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { EASE, DUR } from "../../design/hui.interaction.js";
 import { NAV_CLEARANCE_CSS } from "../home/navigation/navigationGeometry.js";
@@ -817,7 +818,7 @@ function ImpactZeile({ impactEur, huiEur }) {
         gap:            8,
         marginBottom:   6,
       }}>
-        <span style={{ fontSize:12, lineHeight:1.5, flexShrink:0 }}>🌱</span>
+        <HUIImpactIcon size={12} style={{flexShrink:0, lineHeight:1.5, color:"rgba(14,196,184,0.7)"}} />
         <div style={{ flex:1 }}>
           <span style={{
             fontSize:   12,

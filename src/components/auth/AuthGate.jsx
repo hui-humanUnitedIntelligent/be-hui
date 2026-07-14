@@ -11,6 +11,7 @@
 //   const { requireAuth } = useAuthGate();
 //   requireAuth("liken", () => doLike());
 // ══════════════════════════════════════════════════════════════
+import { HUIMailIcon, HUIVerifIcon, HUIWarnIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, createContext, useContext, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../lib/AuthContext.jsx";
@@ -224,8 +225,8 @@ function AuthModal({ action, onClose, onConfirm }) {
                   {refValid === true && <span style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",color:"#0EC4B8",fontSize:14}}>✓</span>}
                   {refValid === false && <span style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",color:"#FF5B5B",fontSize:14}}>✗</span>}
                 </div>
-                {refValid === true && <div style={{fontSize:11,color:"#0EC4B8",marginTop:3}}>✅ Gültiger Einladungslink</div>}
-                {refValid === false && <div style={{fontSize:11,color:"#FF5B5B",marginTop:3}}>❌ Link nicht gefunden — trotzdem fortfahren?</div>}
+                {refValid === true && <div style={{fontSize:11,color:"#0EC4B8",marginTop:3}}>✓ Gültiger Einladungslink</div>}
+                {refValid === false && <div style={{fontSize:11,color:"#FF5B5B",marginTop:3}}>⚠ Link nicht gefunden — trotzdem fortfahren?</div>}
               </div>
 
               <button type="submit" disabled={busy} style={{
@@ -299,8 +300,8 @@ function AuthModal({ action, onClose, onConfirm }) {
                   {refValid === true && <span style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",color:"#0EC4B8",fontSize:14}}>✓</span>}
                   {refValid === false && <span style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",color:"#FF5B5B",fontSize:14}}>✗</span>}
                 </div>
-                {refValid === true && <div style={{fontSize:11,color:"#0EC4B8",marginTop:3}}>✅ Gültiger Einladungslink</div>}
-                {refValid === false && <div style={{fontSize:11,color:"#FF5B5B",marginTop:3}}>❌ Link nicht gefunden — trotzdem fortfahren?</div>}
+                {refValid === true && <div style={{fontSize:11,color:"#0EC4B8",marginTop:3}}>✓ Gültiger Einladungslink</div>}
+                {refValid === false && <div style={{fontSize:11,color:"#FF5B5B",marginTop:3}}>⚠ Link nicht gefunden — trotzdem fortfahren?</div>}
               </div>
 
               <button type="submit" disabled={busy} style={{
@@ -319,7 +320,7 @@ function AuthModal({ action, onClose, onConfirm }) {
 
         {mode === "verify" && (
           <div style={{textAlign:"center",padding:"12px 0"}}>
-            <div style={{fontSize:48,marginBottom:16}}>✉️</div>
+            <div style={{marginBottom:16, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.7)"}}><HUIMailIcon size={48}/></div>
             <div style={{fontSize:20,fontWeight:800,color:INK,marginBottom:8}}>E-Mail bestätigen</div>
             <div style={{fontSize:14,color:"rgba(26,26,46,0.5)",lineHeight:1.7}}>
               Wir haben dir einen Link geschickt.<br/>

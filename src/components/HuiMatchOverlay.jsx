@@ -2,6 +2,9 @@
 // Emotionale Discovery Experience: Stimmungs-Flow × dynamische UI-Reaktion × kuratierte Ergebnisse
 // Datenlogik (doMatch, doSurprise, Supabase) vollständig erhalten.
 
+import { HUITalentIcon,
+  HUIImpactIcon, HUILocationIcon,
+} from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { normalizeProfileInput, PROFILE_FIELDS } from '../lib/perfUtils';
@@ -263,7 +266,7 @@ function ResultCard({ item, idx, onOpen, moodColor }) {
         {(item.location || item.city) && (
           <div style={{ fontSize:10.5, color:"#BBB", marginTop:5,
             display:"flex", alignItems:"center", gap:3 }}>
-            <span style={{ opacity:0.7 }}>📍</span>
+            <HUILocationIcon size={14} style={{opacity:0.7}} />
             {item.location || item.city}
           </div>
         )}
@@ -543,7 +546,7 @@ export default function HuiMatchOverlay({ onClose, onView, onMoodSelect }) {
               <div style={{ animation:"revealUp 0.35s both" }}>
                 {/* Intro */}
                 <div style={{ textAlign:"center", marginBottom:26, paddingTop:4 }}>
-                  <div style={{ fontSize:28, marginBottom:10 }}>🌟</div>
+                  <div style={{ marginBottom:10, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.7)" }}><HUITalentIcon size={28}/></div>
                   <div style={{ fontSize:21, fontWeight:900, color:HUI.COLOR.ink,
                     letterSpacing:-0.5, lineHeight:1.2, marginBottom:8 }}>
                     Wie fühlst du dich heute?
@@ -626,7 +629,7 @@ export default function HuiMatchOverlay({ onClose, onView, onMoodSelect }) {
               <div style={{ animation:"revealUp 0.4s both" }}>
                 {loading ? <Skeleton/> : results.length === 0 ? (
                   <div style={{ textAlign:"center", padding:"52px 24px" }}>
-                    <div style={{ fontSize:36, marginBottom:14 }}>🌱</div>
+                    <div style={{ marginBottom:14, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)" }}><HUIImpactIcon size={36}/></div>
                     <div style={{ fontSize:16, fontWeight:800, color:HUI.COLOR.ink,
                       marginBottom:8 }}>Noch keine Treffer</div>
                     <div style={{ fontSize:13, color:"#888", marginBottom:20,

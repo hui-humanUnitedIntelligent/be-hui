@@ -1,5 +1,8 @@
 // StoryComposer v2 — Production-ready with proper Supabase upload
 // Fixes: RLS, storage persistence, error handling, mobile Safari
+import { HUISettingsIcon,
+  HUIWarnIcon,
+} from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth }  from "../lib/AuthContext";
@@ -300,7 +303,7 @@ export default function StoryComposer({ onClose, onSuccess }) {
               background:panel==="settings"?"rgba(22,215,197,.5)":"rgba(0,0,0,.4)",
               color:"white",fontSize:16,cursor:"pointer",
               display:"flex",alignItems:"center",justifyContent:"center",
-              backdropFilter:"blur(8px)"}}>⚙️</button>
+              backdropFilter:"blur(8px)"}}><HUISettingsIcon size={20}/></button>
         </div>
 
         {/* Mood chips */}
@@ -409,7 +412,7 @@ export default function StoryComposer({ onClose, onSuccess }) {
               <div style={{padding:"12px 14px",borderRadius:14,
                 background:"rgba(255,80,80,.12)",border:"1px solid rgba(255,80,80,.3)",
                 fontSize:13,color:"#FF8A8A",lineHeight:1.5}}>
-                <div style={{fontWeight:700,marginBottom:4}}>⚠️ Ups.</div>
+                <div style={{fontWeight:700,marginBottom:4, display:"flex", alignItems:"center", gap:4}}><HUIWarnIcon size={16}/>Ups.</div>
                 <div>{error}</div>
                 <button className="sc-tap" onClick={publish}
                   style={{marginTop:8,padding:"6px 14px",borderRadius:10,border:"none",

@@ -37,6 +37,7 @@
 //     ueber die generalisierte post_comments-Tabelle (Migration 073) echt
 //     angebunden -- dieselbe CommentsSheet-Komponente wie ContentPreviewSheet.
 // ══════════════════════════════════════════════════════════════════
+import { HUILocationIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useSingleReaction } from "../../lib/useReactions.jsx";
@@ -244,7 +245,7 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
               <div style={{ minWidth:0 }}>
                 <div style={{ fontSize:14.5, fontWeight:700, color:T.ink }}>{mountedItem.author.name}</div>
                 <div style={{ fontSize:12, color:T.inkFaint, display:"flex", gap:8, flexWrap:"wrap" }}>
-                  {mountedItem.location && <span>📍 {mountedItem.location}</span>}
+                  {mountedItem.location && <span style={{display:"flex",alignItems:"center",gap:3}}><HUILocationIcon size={12}/>{mountedItem.location}</span>}
                   {mountedItem.createdAt && <span>🕐 {mountedItem.createdAt}</span>}
                 </div>
               </div>

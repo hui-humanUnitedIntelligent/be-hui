@@ -2,6 +2,9 @@
 // Screenshot-exact: "So wird deine Verbindung wirken"
 // Hero (violet gradient) → Type Badge → Meta-Rows → Avatar Bubbles → CTA
 
+import {
+  HUIKalenderIcon, HUIZeitIcon, HUILocationIcon, HUIPersonenIcon, HUIFinanzIcon, HUIProfilIcon,
+} from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState } from "react";
 import { CONNECTION_TYPES } from "./ConnectionTypeSidebar.jsx";
 import { HUI } from "../../design/hui.design.js";
@@ -407,15 +410,15 @@ export default function StepThreePreview({ data, onPublish, onBack, publishing }
 
           {/* Meta Rows — screenshot-exact: Icon + Text + Divider */}
           <div>
-            <MetaRow icon="📅" text={fmtDate(date)}/>
-            <MetaRow icon="🕐" text={time || "20:00"}/>
-            <MetaRow icon="📍" text={location || "\u2014"}/>
+            <MetaRow icon={<HUIKalenderIcon size={14}/>} text={fmtDate(date)}/>
+            <MetaRow icon={<HUIZeitIcon size={14}/>} text={time || "20:00"}/>
+            <MetaRow icon={<HUILocationIcon size={14}/>} text={location || "\u2014"}/>
             <MetaRow
-              icon="👥"
+              icon={<HUIPersonenIcon size={14}/>}
               text={`12 / ${participants || 30} Teilnehmer`}
             />
             <MetaRow
-              icon="💰"
+              icon={<HUIFinanzIcon size={14}/>}
               text={COST_LABELS[cost] || "Kostenlos"}
             />
             {mood && (
@@ -425,7 +428,7 @@ export default function StepThreePreview({ data, onPublish, onBack, publishing }
               />
             )}
             <MetaRow
-              icon="👁"
+              icon={<HUIProfilIcon size={14}/>}
               text={VIS_LABELS[visibility] || "\u00d6ffentlich"}
               last
             />

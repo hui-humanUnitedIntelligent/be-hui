@@ -4,6 +4,7 @@
 // SafeBoundary zeigt immer eine minimale Fallback-UI.
 // ═══════════════════════════════════════════════════════════════
 
+import { HUIWarnIcon } from '../design/icons/HuiSystemIcons.jsx';
 import React from 'react';
 import { SAFE_MODE } from './safeMode.js';
 
@@ -74,7 +75,7 @@ class SafeBoundary extends React.Component {
           border: '1px solid rgba(255,138,107,0.15)',
           display: 'flex', alignItems: 'center', gap: 10,
         }}>
-          <span style={{ fontSize: 16 }}>⚠️</span>
+          <HUIWarnIcon size={16} style={{flexShrink:0, color:"#F59E0B"}} />
           <div>
             <div style={{ fontSize: 12, color: '#888', fontWeight: 600 }}>
               {label || 'Bereich'} konnte nicht geladen werden

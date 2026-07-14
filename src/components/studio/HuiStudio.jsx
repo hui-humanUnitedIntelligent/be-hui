@@ -6,6 +6,10 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { isProfileTalent } from '../../lib/profileUtils.js';
+import {
+  HUIProfilIcon, HUIVerifIcon, HUISicherheitIcon, HUIMitgliedIcon,
+  HUISupportIcon, HUITicketIcon, HUIAbmeldenIcon,
+} from '../../design/icons/HuiSystemIcons.jsx';
 import { createPortal } from "react-dom";
 import { useAuth }     from "../../lib/AuthContext.jsx";
 import ProfilBearbeitenModal    from "./ProfilBearbeitenModal.jsx";
@@ -82,7 +86,8 @@ function StudioRow({ icon, label, badge, onPress, last = false, labelColor }) {
       <span style={{
         width:34, height:34, borderRadius:10, flexShrink:0,
         background:"rgba(26,26,24,0.05)",
-        display:"flex", alignItems:"center", justifyContent:"center", fontSize:17,
+        display:"flex", alignItems:"center", justifyContent:"center",
+        color:"rgba(14,196,184,0.85)",
       }}>{icon}</span>
       <span style={{ flex:1, fontSize:14, fontWeight:500, color: labelColor || T.ink }}>{label}</span>
       {badge && (
@@ -202,17 +207,17 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
 
         {/* ── Account & Einstellungen ────────────────────── */}
         <StudioSection label="Account & Einstellungen">
-          <StudioRow icon="👤" label="Profil bearbeiten"  onPress={handleEditProfile} />
-          <StudioRow icon="🛡️" label="Verifizierung"
+          <StudioRow icon={<HUIProfilIcon size={18}/>} label="Profil bearbeiten"  onPress={handleEditProfile} />
+          <StudioRow icon={<HUIVerifIcon size={18}/>} label="Verifizierung"
             badge={isVerified ? "✓ Aktiv" : undefined} onPress={() => setShowVerifCS(true)} />
-          <StudioRow icon="🔒" label="Sicherheit & Passwort" onPress={() => setShowSicherheit(true)} />
-          <StudioRow icon="👑" label="Mitgliedschaft"
+          <StudioRow icon={<HUISicherheitIcon size={18}/>} label="Sicherheit & Passwort" onPress={() => setShowSicherheit(true)} />
+          <StudioRow icon={<HUIMitgliedIcon size={18}/>} label="Mitgliedschaft"
             badge={isTalent ? "HUI-Talent" : "HUI-Mitglied"}
             onPress={() => setShowMitgliedschaftCS(true)} />
-          <StudioRow icon="🎧" label="Support" onPress={() => setShowSupport(true)} />
-          <StudioRow icon="🎟" label="Meine Tickets" onPress={() => setShowMeineTickets(true)} />
+          <StudioRow icon={<HUISupportIcon size={18}/>} label="Support" onPress={() => setShowSupport(true)} />
+          <StudioRow icon={<HUITicketIcon size={18}/>} label="Meine Tickets" onPress={() => setShowMeineTickets(true)} />
           <StudioRow
-            icon="🚪" label="Abmelden"
+            icon={<HUIAbmeldenIcon size={18}/>} label="Abmelden"
             labelColor="#DC2626"
             onPress={() => setShowLogoutConfirm(true)}
             last
@@ -227,7 +232,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
             border:`1px solid rgba(14,196,184,0.18)`, padding:"14px 18px",
             display:"flex", alignItems:"center", gap:12,
           }}>
-            <span style={{ fontSize:22, flexShrink:0 }}>🔒</span>
+            <HUISicherheitIcon size={22} style={{flexShrink:0}} />
             <div>
               <div style={{ fontSize:13, fontWeight:700, color:T.ink }}>Dein Studio ist privat.</div>
               <div style={{ fontSize:12, color:T.inkSoft, marginTop:2 }}>Nur du hast hier Zugriff.</div>

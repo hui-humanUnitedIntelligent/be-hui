@@ -1,3 +1,4 @@
+import { HUIEuroIcon, HUILinkIcon, HUILocationIcon, HUIMailIcon, HUIPhoneIcon, HUIProfilIcon } from '../../design/icons/HuiSystemIcons.jsx';
 // ProfilBearbeitenModal.jsx — vollständige Profil-Bearbeitung
 // ═══════════════════════════════════════════════════════════
 // Basis-Profil:   profiles (full_name, display_name, username, email, phone,
@@ -41,7 +42,7 @@ const T = {
 
 // ── Tabs ───────────────────────────────────────────────────────────
 const TABS = [
-  { key: "basis",   label: "Basis-Profil",   icon: "👤" },
+  { key: "basis",   label: "Basis-Profil",   icon: <HUIProfilIcon size={14}/> },
   { key: "kontakt", label: "Kontakt",         icon: "📬" },
   { key: "talent",  label: "Talent-Profil",   icon: "🎯" },
 ];
@@ -267,7 +268,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
         }}>
           <div>
             <div style={{ fontSize:18, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>
-              ✏️ Profil bearbeiten
+              
             </div>
             <div style={{ fontSize:12, color:T.inkSoft, marginTop:2 }}>
               {isTalent ? "Basis + Talent-Profil" : "Basis-Profil"}
@@ -353,12 +354,12 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
 
               <FieldGroup label="Standort">
                 <Input value={locationLabel} onChange={setLocationLabel}
-                  placeholder="Stadt, Region oder Land" maxLength={80} icon="📍" />
+                  placeholder="Stadt, Region oder Land" maxLength={80} icon={<HUILocationIcon size={15}/>} />
               </FieldGroup>
 
               <FieldGroup label="Website / Link">
                 <Input value={website} onChange={setWebsite}
-                  placeholder="https://deine-website.de" maxLength={200} icon="🔗" />
+                  placeholder="https://deine-website.de" maxLength={200} icon={<HUILinkIcon size={15}/>} />
               </FieldGroup>
 
               <FieldGroup label="Skills (max. 10)">
@@ -379,7 +380,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
 
               <FieldGroup label="Stundensatz (€)">
                 <Input value={hourlyRate} onChange={setHourlyRate}
-                  placeholder="z.B. 85" type="number" icon="€" />
+                  placeholder="z.B. 85" type="number" icon={<HUIEuroIcon size={15}/>} />
               </FieldGroup>
 
               <FieldGroup label="Verfügbarkeit">
@@ -403,7 +404,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
 
               <FieldGroup label="E-Mail-Adresse">
                 <Input value={email} onChange={setEmail}
-                  placeholder="deine@email.de" type="email" icon="📧"
+                  placeholder="deine@email.de" type="email" icon={<HUIMailIcon size={15}/>}
                   disabled={true}
                 />
                 <div style={{ fontSize:11, color:T.inkFaint, marginTop:4 }}>
@@ -413,17 +414,17 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
 
               <FieldGroup label="Telefonnummer">
                 <Input value={phone} onChange={setPhone}
-                  placeholder="+49 123 456789" type="tel" icon="📱" maxLength={30} />
+                  placeholder="+49 123 456789" type="tel" icon={<HUIPhoneIcon size={15}/>} maxLength={30} />
               </FieldGroup>
 
               <FieldGroup label="Website / Portfolio">
                 <Input value={website} onChange={setWebsite}
-                  placeholder="https://deine-website.de" icon="🔗" maxLength={200} />
+                  placeholder="https://deine-website.de" icon={<HUILinkIcon size={15}/>} maxLength={200} />
               </FieldGroup>
 
               <FieldGroup label="Standort">
                 <Input value={locationLabel} onChange={setLocationLabel}
-                  placeholder="Stadt, Region" icon="📍" maxLength={80} />
+                  placeholder="Stadt, Region" icon={<HUILocationIcon size={15}/>} maxLength={80} />
               </FieldGroup>
 
             </div>
@@ -459,7 +460,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
 
               <FieldGroup label="Standort (Talent)">
                 <Input value={talentLocation} onChange={setTalentLocation}
-                  placeholder="Stadt oder Region" icon="📍" maxLength={80} />
+                  placeholder="Stadt oder Region" icon={<HUILocationIcon size={15}/>} maxLength={80} />
               </FieldGroup>
 
               <FieldGroup label="Mein Angebotsradius">
@@ -487,7 +488,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
 
               <FieldGroup label="Stundensatz (€)">
                 <Input value={talentRate} onChange={setTalentRate}
-                  placeholder="z.B. 120" type="number" icon="€" />
+                  placeholder="z.B. 120" type="number" icon={<HUIEuroIcon size={15}/>} />
               </FieldGroup>
 
               <FieldGroup label="Verfügbarkeit (Talent)">

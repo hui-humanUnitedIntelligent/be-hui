@@ -11,6 +11,10 @@
 //  10. AbschlussBar (Verbinden, Nachricht, Einladung)
 // ════════════════════════════════════════════════════════════════
 
+import {
+  HUIWerkeIcon, HUIErlebnisIcon, HUIImpactIcon, HUITalentIcon, HUIKalenderIcon,
+  HUILocationIcon,
+} from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../lib/supabaseClient.js";
@@ -322,19 +326,19 @@ function detectSchwerpunkt(profile, works, experiences) {
   const hasKw = (...kws) => kws.some(k => interests.some(i => i.toLowerCase().includes(k)));
 
   if (hasKw("gemeinschaft","verbindung","netzwerk","mensch")) {
-    return { icon:"🌱", title:"Gemeinschaftsstifter·in", desc:"Ich bringe Menschen zusammen, um gemeinsam etwas Sinnvolles zu erschaffen." };
+    return { icon:<HUITalentIcon size={24}/>, title:"Gemeinschaftsstifter·in", desc:"Ich bringe Menschen zusammen, um gemeinsam etwas Sinnvolles zu erschaffen." };
   }
   if (hasKw("musik","klang","sound","sing")) {
     return { icon:"🎵", title:"Musikerin · Musikschaffende·r", desc:"Musik als Brücke zwischen Menschen und Momenten." };
   }
   if (hasKw("malen","kunst","kreativ","design","illustr","bild")) {
-    return { icon:"🎨", title:"Künstler·in", desc:"Ich erschaffe Werke, die das Unsichtbare sichtbar machen." };
+    return { icon:<HUIWerkeIcon size={24}/>, title:"Künstler·in", desc:"Ich erschaffe Werke, die das Unsichtbare sichtbar machen." };
   }
   if (hasKw("wissen","lehr","bildung","coach","kurs","workshop")) {
     return { icon:"📚", title:"Wissensgeber·in", desc:"Ich teile Wissen und begleite Menschen in ihrer Entwicklung." };
   }
   if (hasKw("natur","wald","pflanz","ökolog","nachhaltig","umwelt")) {
-    return { icon:"🌿", title:"Naturverbunden·e", desc:"Ich wirke für eine Welt im Einklang mit der Natur." };
+    return { icon:<HUIImpactIcon size={24}/>, title:"Naturverbunden·e", desc:"Ich wirke für eine Welt im Einklang mit der Natur." };
   }
   if (hasKw("tier","hund","katze","pferd","wildtier")) {
     return { icon:"🐾", title:"Tierliebhaber·in", desc:"Menschen und Tiere in Verbindung bringen." };
@@ -342,13 +346,13 @@ function detectSchwerpunkt(profile, works, experiences) {
 
   // Fallback nach Content-Typ
   if (wCount > eCount && wCount > 0) {
-    return { icon:"🎨", title:"Schaffende·r", desc:"Meine Werke sprechen für mich — jedes ein Stück meiner Welt." };
+    return { icon:<HUIWerkeIcon size={24}/>, title:"Schaffende·r", desc:"Meine Werke sprechen für mich — jedes ein Stück meiner Welt." };
   }
   if (eCount > wCount && eCount > 0) {
-    return { icon:"📅", title:"Erlebnis-Gestalter·in", desc:"Ich schaffe Räume für echte Begegnungen und gemeinsames Erleben." };
+    return { icon:<HUIErlebnisIcon size={24}/>, title:"Erlebnis-Gestalter·in", desc:"Ich schaffe Räume für echte Begegnungen und gemeinsames Erleben." };
   }
   if (wCount > 0 && eCount > 0) {
-    return { icon:"✨", title:"Vielseitig Wirkende·r", desc:"Werke, Erlebnisse und Projekte — meine Wirkung ist vielschichtig." };
+    return { icon:<HUIImpactIcon size={24}/>, title:"Vielseitig Wirkende·r", desc:"Werke, Erlebnisse und Projekte — meine Wirkung ist vielschichtig." };
   }
 
   return { icon:"🤝", title:"Teil der Gemeinschaft", desc:"Aktiv dabei — gemeinsam gestalten wir eine bessere Welt." };
@@ -761,7 +765,7 @@ function NaechsteErlebnisseSection({ experiences, loading }) {
   return (
     <div>
       <SectionHead
-        icon="📅"
+        icon={<HUIKalenderIcon size={28}/>}
         title="Nächste Erlebnisse"
         subtitle="Offene Begegnungen und Veranstaltungen, zu denen du herzlich eingeladen bist."
       />
@@ -807,7 +811,7 @@ function NaechsteErlebnisseSection({ experiences, loading }) {
                     )}
                     {exp.location_text && (
                       <div style={{fontSize:11.5,color:T.inkSoft,display:"flex",alignItems:"center",gap:4}}>
-                        <span>📍</span> {exp.location_text}
+                        <span style={{display:"flex",alignItems:"center",gap:3}}><HUILocationIcon size={13}/>{exp.location_text}</span>
                       </div>
                     )}
                   </div>

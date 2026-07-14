@@ -4,6 +4,11 @@
 // Reihenfolge: Suche → Heute auf HUI → Menschen → Momente → Werke → Erlebnisse → Projekte → Orte
 // KEINE Kategorie-Pills (HUI-Orb übernimmt Themennavigation)
 // ══════════════════════════════════════════════════════════════════
+import {
+  HUIProfilIcon, HUILocationIcon, HUIFotoIcon, HUIImpactIcon,
+  HUIWerkeIcon, HUIAnsichtIcon,
+  HUIKalenderIcon, HUIPersonenIcon,
+} from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate }   from "react-router-dom";
 import { supabase }      from "../lib/supabaseClient.js";
@@ -290,7 +295,7 @@ function PersonCard({ person, onPress, delay=0 }) {
             <img loading="lazy" decoding="async" src={av} alt={person.name} onError={() => setImgErr(true)}
               style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
           ) : (
-            <span style={{ fontSize:26, userSelect:"none" }}>👤</span>
+            <HUIProfilIcon size={26} style={{opacity:0.4, color:"rgba(14,196,184,0.6)"}} />
           )}
         </div>
         {/* Online-Status Dot */}
@@ -353,7 +358,7 @@ function PersonCard({ person, onPress, delay=0 }) {
           display:"flex", alignItems:"center", gap:3,
           fontSize:10, color:T.inkFaint, marginBottom:8,
         }}>
-          <span style={{ fontSize:9 }}>📍</span>
+          <HUILocationIcon size={9} style={{flexShrink:0}} />
           <span style={{ fontWeight:500 }}>{person.location}</span>
         </div>
       )}
@@ -414,13 +419,13 @@ function PeopleSection({ people, onPersonPress, loading, delay=0, view='cards', 
                 <div key={p.id} className="dp-list-card" onClick={() => onPersonPress?.(p)}>
                   {p.avatar
                     ? <img loading="lazy" decoding="async" src={p.avatar} alt={p.name} className="dp-list-thumb" onError={e => e.target.style.display='none'}/>
-                    : <div className="dp-list-thumb-placeholder">👤</div>
+                    : <div className="dp-list-thumb-placeholder" style={{display:"flex",alignItems:"center",justifyContent:"center"}}><HUIProfilIcon size={24} style={{opacity:0.35, color:"rgba(14,196,184,0.5)"}}/></div>
                   }
                   <div style={{ flex:1, overflow:"hidden" }}>
                     <div style={{ fontSize:13.5, fontWeight:700, color:T.ink, marginBottom:3, letterSpacing:"-0.02em" }}>{p.name}</div>
                     <div style={{ fontSize:11.5, color:T.inkSoft, marginBottom:5, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{p.bio}</div>
                     <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                      {p.location && <span style={{ fontSize:11, color:T.inkFaint }}>📍 {p.location}</span>}
+                      {p.location && <span style={{ fontSize:11, color:T.inkFaint, display:"flex", alignItems:"center", gap:2 }}><HUILocationIcon size={11}/>{p.location}</span>}
                       <span style={{ fontSize:11, color:T.teal, fontWeight:600 }}>⚡ {fmtImpact(p.impact)}</span>
                     </div>
                   </div>
@@ -467,7 +472,7 @@ function MomentCard({ moment, delay=0, onPress }) {
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
         ) : (
           <div style={{ width:"100%", height:"100%", background:`linear-gradient(135deg,${T.tealSoft},${T.coralSoft})`, display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <span style={{ fontSize:32, opacity:0.4 }}>📸</span>
+            <HUIFotoIcon size={32} style={{opacity:0.3, color:"rgba(14,196,184,0.5)"}} />
           </div>
         )}
         {/* Gradient overlay */}
@@ -511,12 +516,12 @@ function MomentCard({ moment, delay=0, onPress }) {
             background:T.tealSoft,
             display:"flex", alignItems:"center", justifyContent:"center",
             fontSize:9, flexShrink:0,
-          }}>👤</div>
+          }} style={{display:"flex",alignItems:"center",justifyContent:"center"}}><HUIProfilIcon size={24} style={{opacity:0.35, color:"rgba(14,196,184,0.5)"}}/></div>
           <span style={{ fontSize:10.5, fontWeight:600, color:T.inkSoft }}>{moment.name}</span>
           {moment.location && (
             <>
               
-              <span style={{ fontSize:10, color:T.inkFaint }}>📍 {moment.location}</span>
+              <span style={{ fontSize:10, color:T.inkFaint, display:"flex", alignItems:"center", gap:2 }}><HUILocationIcon size={10}/>{moment.location}</span>
             </>
           )}
         </div>
@@ -524,7 +529,7 @@ function MomentCard({ moment, delay=0, onPress }) {
         <div className="dp-engage">
           <span><HUIHeartIcon size={12} /> {moment.likes ?? Math.floor(4 + (moment.id?.charCodeAt?.(moment.id.length-1)??7) % 30)}</span>
           <span><HUIChatIcon size={12} /> {moment.comments ?? Math.floor(1 + (moment.id?.charCodeAt?.(0)??3) % 12)}</span>
-          <span>🌱 {moment.wirkung ?? Math.floor(1 + (moment.id?.charCodeAt?.(1)??2) % 8)}</span>
+          <span style={{display:"flex",alignItems:"center",gap:2}}><HUIImpactIcon size={12}/>{moment.wirkung ?? Math.floor(1 + (moment.id?.charCodeAt?.(1)??2) % 8)}</span>
         </div>
       </div>
     </div>
@@ -564,13 +569,13 @@ function MomenteSection({ momente, loading, delay=0, view='cards', onPress, onSe
                 <div key={m.id} className="dp-list-card" onClick={() => onPress?.(m)} style={{cursor:"pointer"}}>
                   {m.src
                     ? <img loading="lazy" decoding="async" src={m.src} alt={m.caption} className="dp-list-thumb" onError={e => e.target.style.display='none'} style={{ objectFit:"cover" }}/>
-                    : <div className="dp-list-thumb-placeholder">📸</div>
+                    : <div className="dp-list-thumb-placeholder" style={{display:"flex",alignItems:"center",justifyContent:"center"}}><HUIFotoIcon size={24} style={{opacity:0.3, color:"rgba(14,196,184,0.5)"}}/></div>
                   }
                   <div style={{ flex:1, overflow:"hidden" }}>
                     <div style={{ fontSize:13, fontWeight:600, color:T.ink, marginBottom:4, overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", lineHeight:1.35 }}>{m.caption}</div>
                     <div style={{ display:"flex", alignItems:"center", gap:6 }}>
                       <span style={{ fontSize:11, fontWeight:600, color:T.inkSoft }}>{m.name}</span>
-                      {m.location && <span style={{ fontSize:11, color:T.inkFaint }}>📍 {m.location}</span>}
+                      {m.location && <span style={{ fontSize:11, color:T.inkFaint, display:"flex", alignItems:"center", gap:2 }}><HUILocationIcon size={11}/>{m.location}</span>}
                       <span style={{ fontSize:10.5, color:T.inkFaint }}>{timeAgo(m.created_at)}</span>
                     </div>
                   </div>
@@ -642,7 +647,7 @@ function CardLocationRow({ location, distanceKm }) {
       fontSize:10, color:T.inkFaint, marginBottom:6,
       display:"flex", alignItems:"center", gap:3,
     }}>
-      <span style={{ fontSize:9 }}>📍</span>
+      <HUILocationIcon size={9} style={{flexShrink:0}} />
       <span style={{ overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>
         {location}{location && Number.isFinite(distanceKm) ? " " : ""}
         {Number.isFinite(distanceKm) ? `${distanceKm.toFixed(0)} km entfernt` : ""}
@@ -679,7 +684,7 @@ function TalentCard({ talent, delay=0, onPress }) {
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
         ) : (
           <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:6 }}>
-            <span style={{ fontSize:32, opacity:0.4 }}>✨</span>
+            <HUIImpactIcon size={32} style={{opacity:0.3, color:"rgba(14,196,184,0.5)"}} />
           </div>
         )}
         {/* Kategorie-Badge oben links */}
@@ -740,7 +745,7 @@ function TalenteSection({
           <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
             <div style={{ display:"flex", alignItems:"center", gap:6, padding:"6px 10px",
               borderRadius:99, background:T.tealSoft || "rgba(14,196,184,0.1)", border:`1px solid ${T.border}` }}>
-              <span style={{ fontSize:12 }}>📍</span>
+              <HUILocationIcon size={12} style={{flexShrink:0}} />
               <span style={{ fontSize:11.5, fontWeight:600, color:T.ink,
                 maxWidth:180, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>
                 {locActive.label}
@@ -788,7 +793,7 @@ function TalenteSection({
                     style={{ display:"block", width:"100%", textAlign:"left", padding:"8px 10px",
                       background:"none", border:"none", borderTop: i>0 ? `1px solid ${T.border}` : "none",
                       fontSize:11.5, color:T.ink, cursor:"pointer", fontFamily:"inherit" }}>
-                    📍 {s.label}
+                    {s.label}
                   </button>
                 ))}
               </div>
@@ -825,7 +830,7 @@ function TalenteSection({
                   <div key={t.id} className="dp-list-card" onClick={() => onPress?.(t)}>
                     {t.cover
                       ? <img loading="lazy" decoding="async" src={t.cover} alt={t.title} className="dp-list-thumb" onError={e => e.target.style.display='none'} style={{ objectFit:"cover" }}/>
-                      : <div className="dp-list-thumb-placeholder">✨</div>
+                      : <div className="dp-list-thumb-placeholder" style={{display:"flex",alignItems:"center",justifyContent:"center"}}><HUIImpactIcon size={24} style={{opacity:0.3, color:"rgba(14,196,184,0.5)"}}/></div>
                     }
                     <div style={{ flex:1, overflow:"hidden" }}>
                       <div style={{ fontSize:13, fontWeight:600, color:T.ink, marginBottom:4, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{t.title}</div>
@@ -894,7 +899,7 @@ function WerkCard({ werk, delay=0, onPress }) {
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
         ) : (
           <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:6 }}>
-            <span style={{ fontSize:32, opacity:0.4 }}>🎨</span>
+            <HUIWerkeIcon size={32} style={{opacity:0.3, color:"rgba(14,196,184,0.5)"}} />
           </div>
         )}
         {/* Kategorie-Badge oben links */}
@@ -932,7 +937,7 @@ function WerkCard({ werk, delay=0, onPress }) {
         {/* Likes + Views */}
         <div className="dp-engage">
           <span><HUIHeartIcon size={12} /> {werk.likes ?? Math.floor(5 + (werk.id?.charCodeAt?.(werk.id.length-1)??9) % 40)}</span>
-          <span>👁 {werk.views ?? Math.floor(50 + (werk.id?.charCodeAt?.(0)??5) % 400)}</span>
+          <span style={{display:"flex",alignItems:"center",gap:2}}><HUIAnsichtIcon size={12}/>{werk.views ?? Math.floor(50 + (werk.id?.charCodeAt?.(0)??5) % 400)}</span>
         </div>
       </div>
     </div>
@@ -957,7 +962,7 @@ function LocationRadiusRow({
         <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
           <div style={{ display:"flex", alignItems:"center", gap:6, padding:"6px 10px",
             borderRadius:99, background:T.tealSoft || "rgba(14,196,184,0.1)", border:`1px solid ${T.border}` }}>
-            <span style={{ fontSize:12 }}>📍</span>
+            <HUILocationIcon size={12} style={{flexShrink:0}} />
             <span style={{ fontSize:11.5, fontWeight:600, color:T.ink,
               maxWidth:180, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>
               {locActive.label}
@@ -999,7 +1004,7 @@ function LocationRadiusRow({
                   style={{ display:"block", width:"100%", textAlign:"left", padding:"8px 10px",
                     background:"none", border:"none", borderTop: i>0 ? `1px solid ${T.border}` : "none",
                     fontSize:11.5, color:T.ink, cursor:"pointer", fontFamily:"inherit" }}>
-                  📍 {s.label}
+                  {s.label}
                 </button>
               ))}
             </div>
@@ -1069,7 +1074,7 @@ function WerkeSection({
                       <div style={{ fontSize:11.5, color:T.inkFaint, marginBottom:4 }}>von {w.author}</div>
                       {w.location && (
                         <div style={{ fontSize:10.5, color:T.inkFaint, marginBottom:4, display:"flex", alignItems:"center", gap:3 }}>
-                          <span style={{ fontSize:9 }}>📍</span>
+                          <HUILocationIcon size={9} style={{flexShrink:0}} />
                           <span style={{ overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{w.location}</span>
                         </div>
                       )}
@@ -1134,7 +1139,7 @@ function ErlebnisCard({ erlebnis, delay=0, onPress }) {
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block", opacity:0.88 }}/>
         ) : (
           <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <span style={{ fontSize:36, opacity:0.35 }}>📅</span>
+            <HUIKalenderIcon size={36} style={{opacity:0.35, color:"rgba(14,196,184,0.5)"}} />
           </div>
         )}
 
@@ -1245,7 +1250,7 @@ function ErlebnisseSection({
                     <div className="dp-list-thumb-placeholder" style={{ background: e.cover ? "#1A1A18" : T.tealSoft, position:"relative", overflow:"hidden" }}>
                       {e.cover
                         ? <img loading="lazy" decoding="async" src={e.cover} alt={e.title} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} onError={ev => ev.currentTarget.style.display="none"}/>
-                        : <span style={{ fontSize:20 }}>📅</span>
+                        : <HUIKalenderIcon size={20} style={{color:"rgba(14,196,184,0.5)"}} />
                       }
                       {e.date && (
                         <div style={{ position:"absolute", bottom:3, left:0, right:0, textAlign:"center",
@@ -1261,7 +1266,7 @@ function ErlebnisseSection({
                         <div style={{ fontSize:11, color:T.teal, fontWeight:600, marginBottom:3 }}>{e.typeLabel}</div>
                       )}
                       {e.location && (
-                        <div style={{ fontSize:11, color:T.inkFaint, marginBottom:3 }}>📍 {e.location}</div>
+                        <div style={{ fontSize:11, color:T.inkFaint, marginBottom:3, display:"flex", alignItems:"center", gap:2 }}><HUILocationIcon size={11}/>{e.location}</div>
                       )}
                       {e.statusLabel && (
                         <div style={{ display:"flex", alignItems:"center", gap:4 }}>
@@ -1346,7 +1351,7 @@ function ProjektCard({ projekt, delay=0, onPress }) {
           {projekt.desc}
         </div>
         <div style={{ display:"flex", alignItems:"center", gap:4 }}>
-          <span style={{ fontSize:11 }}>👥</span>
+          <HUIPersonenIcon size={11} style={{flexShrink:0}} />
           <span style={{ fontSize:10.5, fontWeight:600, color:T.inkSoft }}>{projekt.members} Mitglieder</span>
         </div>
       </div>
@@ -1404,7 +1409,7 @@ function ProjekteSection({ projekte, loading, delay=0, view='cards', onPress, on
                 </div>
                 <div style={{ display:"flex", alignItems:"center", gap:10 }}>
                   <div style={{ fontSize:11, color:"rgba(255,255,255,0.80)", display:"flex", alignItems:"center", gap:4 }}>
-                    <span>👥</span><span>{hero.members} Mitglieder</span>
+                    <span style={{display:"flex",alignItems:"center",gap:4}}><HUIPersonenIcon size={14}/><span>{hero.members} Mitglieder</span></span>
                   </div>
                   <div onClick={() => onPress?.(hero)} style={{
                     background:"rgba(14,196,184,0.90)", backdropFilter:"blur(8px)",
@@ -1451,7 +1456,7 @@ function ProjekteSection({ projekte, loading, delay=0, view='cards', onPress, on
                       <div style={{ fontSize:11.5, color:T.inkSoft, marginBottom:5, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{p.desc}</div>
                       <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                         <span style={{ fontSize:11, background:cc.bg, color:cc.text, borderRadius:99, padding:"1px 7px", fontWeight:600 }}>{p.cat}</span>
-                        <span style={{ fontSize:11, color:T.inkFaint }}>👥 {p.members} Mitgl.</span>
+                        <span style={{ fontSize:11, color:T.inkFaint, display:"flex", alignItems:"center", gap:2 }}><HUIPersonenIcon size={11}/>{p.members} Mitgl.</span>
                       </div>
                     </div>
                   </div>
@@ -1497,13 +1502,13 @@ function OrteSection({ onMap, delay=0, view='cards' }) {
               <div className="dp-list-thumb-placeholder" style={{ position:"relative", overflow:"hidden" }}>
                 {ort.cover
                   ? <img loading="lazy" decoding="async" src={ort.cover} alt={ort.name} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} onError={e => e.target.style.display='none'}/>
-                  : <span>📍</span>
+                  : <HUILocationIcon size={11} style={{flexShrink:0}} />
                 }
               </div>
               <div style={{ flex:1 }}>
                 <div style={{ fontSize:13.5, fontWeight:700, color:T.ink, marginBottom:2, letterSpacing:"-0.02em" }}>{ort.name}</div>
                 <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                  <span style={{ fontSize:11.5, color:T.inkFaint }}>📍 {ort.city}</span>
+                  <span style={{ fontSize:11.5, color:T.inkFaint, display:"flex", alignItems:"center", gap:2 }}><HUILocationIcon size={11}/>{ort.city}</span>
                   {ort.dist !== "—" && <span style={{ fontSize:11, background:T.tealSoft, color:T.teal, borderRadius:99, padding:"1px 7px", fontWeight:600 }}>{ort.dist}</span>}
                 </div>
               </div>
@@ -1532,7 +1537,7 @@ function OrtCard({ ort, delay=0, onMap }) {
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
         ) : (
           <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <span style={{ fontSize:24, opacity:0.4 }}>📍</span>
+            <HUILocationIcon size={24} style={{opacity:0.4, color:"rgba(14,196,184,0.5)"}} />
           </div>
         )}
         {ort.dist !== "—" && (
@@ -1554,7 +1559,7 @@ function OrtCard({ ort, delay=0, onMap }) {
         <div style={{ fontSize:9.5, color:T.inkFaint, fontWeight:500, marginBottom:4 }}>{ort.city}</div>
         {/* Aktivität */}
         {ort.nextEvent ? (
-          <div style={{ fontSize:9, color:"#D97706", fontWeight:600 }}>📅 {ort.nextEvent}</div>
+          <div style={{ fontSize:9, color:"#D97706", fontWeight:600, display:"flex", alignItems:"center", gap:2 }}><HUIKalenderIcon size={9}/>{ort.nextEvent}</div>
         ) : ort.active ? (
           <div style={{ display:"flex", alignItems:"center", gap:3, fontSize:9.5, color:"#22c55e", fontWeight:700 }}>
             <span style={{ display:"inline-block",width:6,height:6,borderRadius:"50%",background:"#22c55e" }}/>

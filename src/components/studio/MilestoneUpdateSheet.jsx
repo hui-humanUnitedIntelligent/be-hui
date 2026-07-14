@@ -312,7 +312,7 @@ export default function MilestoneUpdateSheet({ milestone, projectId, authorId, o
               padding: "10px 14px", background: T.coralSoft,
               borderRadius: T.r8, border: `1px solid rgba(255,107,107,0.20)`,
             }}>
-              ⚠️ {error}
+              
             </div>
           )}
 

@@ -14,6 +14,9 @@
 // NOCH NICHT INTEGRIERT — wird in Sprint C in die Seiten eingebunden.
 // ══════════════════════════════════════════════════════════════════════
 
+import {
+  HUILocationIcon, HUITalentIcon, HUIImpactIcon,
+} from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef, useCallback } from "react";
 import {
   FB_COVER, FB_AVATAR,
@@ -233,7 +236,7 @@ export function ProfileHeader({
                 fontSize:11, fontWeight:700, color:"#0AADA3",
                 whiteSpace:"nowrap",
               }}>
-                <span>{isTalentResolved ? "✨" : "🌿"}</span>
+                <span style={{display:"flex",alignItems:"center"}}>{isTalentResolved ? <HUITalentIcon size={14}/> : <HUIImpactIcon size={14}/>}</span>
                 <span>{isTalentResolved ? "HUI-Talent" : "Basis-Nutzer"}</span>
               </div>
             ) : (
@@ -245,7 +248,7 @@ export function ProfileHeader({
         {/* Standort */}
         {!loading && location && (
           <div style={{ display:"flex", alignItems:"center", gap:4, marginTop:8, fontSize:12, color:T.inkSoft }}>
-            <span>📍</span>
+            <HUILocationIcon size={13} style={{flexShrink:0, color:"rgba(14,196,184,0.6)"}} />
             <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{location}</span>
           </div>
         )}
