@@ -1,0 +1,67 @@
+graph TB
+%% HUI Architecture Knowledge Graph — ARCH-002
+
+  subgraph Layer__1["Layer -1"]
+    ARCHITECTURE["Architecture<br/>21 files"]
+  end
+  subgraph Layer_0["Layer 0"]
+    CORE["Core<br/>32 files"]
+    REGISTRY["Registry<br/>2 files"]
+  end
+  subgraph Layer_1["Layer 1"]
+    ROUTES["Routes<br/>2 files"]
+  end
+  subgraph Layer_2["Layer 2"]
+    SERVICES["Services<br/>163 files"]
+    SYSTEM["System<br/>98 files"]
+  end
+  subgraph Layer_3["Layer 3"]
+    HOOKS["Hooks<br/>25 files"]
+    CONTEXT["Context<br/>4 files"]
+  end
+  subgraph Layer_4["Layer 4"]
+    FEATURES["Features<br/>28 files"]
+  end
+  subgraph Layer_5["Layer 5"]
+    PAGES["Pages<br/>171 files"]
+    COMPONENTS["Components<br/>372 files"]
+  end
+  CORE --> REGISTRY
+  ROUTES --> CORE
+  ROUTES --> REGISTRY
+  SERVICES --> CORE
+  SERVICES --> REGISTRY
+  SERVICES --> ROUTES
+  SYSTEM --> CORE
+  SYSTEM --> REGISTRY
+  SYSTEM --> SERVICES
+  HOOKS --> CORE
+  HOOKS --> REGISTRY
+  HOOKS --> SERVICES
+  HOOKS --> SYSTEM
+  CONTEXT --> CORE
+  CONTEXT --> REGISTRY
+  CONTEXT --> SERVICES
+  CONTEXT --> SYSTEM
+  CONTEXT --> HOOKS
+  FEATURES --> CORE
+  FEATURES --> REGISTRY
+  FEATURES --> SERVICES
+  FEATURES --> SYSTEM
+  FEATURES --> HOOKS
+  FEATURES --> CONTEXT
+  PAGES --> CORE
+  PAGES --> REGISTRY
+  PAGES --> SERVICES
+  PAGES --> SYSTEM
+  PAGES --> HOOKS
+  PAGES --> CONTEXT
+  PAGES --> FEATURES
+  PAGES --> COMPONENTS
+  COMPONENTS --> CORE
+  COMPONENTS --> REGISTRY
+  COMPONENTS --> SERVICES
+  COMPONENTS --> SYSTEM
+  COMPONENTS --> HOOKS
+  COMPONENTS --> CONTEXT
+  COMPONENTS --> FEATURES

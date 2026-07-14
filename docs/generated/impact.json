@@ -1,0 +1,354 @@
+{
+  "AuthContext": {
+    "direct": [],
+    "indirect": [],
+    "total": 0
+  },
+  "AppStateContext": {
+    "direct": [],
+    "indirect": [],
+    "total": 0
+  },
+  "WorldSurfaceContext": {
+    "direct": [],
+    "indirect": [],
+    "total": 0
+  },
+  "OrbWorldContext": {
+    "direct": [],
+    "indirect": [],
+    "total": 0
+  },
+  "GuidanceContext": {
+    "direct": [],
+    "indirect": [],
+    "total": 0
+  },
+  "db": {
+    "direct": [
+      "components/WorkDetailPage.jsx",
+      "components/chat-center/ChatCenterOverlay.jsx",
+      "components/home/profile/ProfileLauncher.jsx",
+      "components/profile/PublicProfilePreview.jsx",
+      "components/studio/HuiStudio.jsx",
+      "feed/useFeedStream.js",
+      "hooks/useProfileData.js",
+      "hooks/useProfileId.js",
+      "lib/AuthContext.jsx",
+      "lib/chatContext.js",
+      "lib/discovery/index.js",
+      "pages/ImpactPage.jsx"
+    ],
+    "indirect": [
+      "components/WorkDetailPage.jsx",
+      "components/chat-center/ChatCenterOverlay.jsx",
+      "components/home/profile/ProfileLauncher.jsx",
+      "components/profile/PublicProfilePreview.jsx",
+      "components/studio/HuiStudio.jsx",
+      "feed/useFeedStream.js",
+      "hooks/useProfileData.js",
+      "hooks/useProfileId.js",
+      "lib/AuthContext.jsx",
+      "lib/chatContext.js",
+      "lib/discovery/index.js",
+      "pages/ImpactPage.jsx",
+      "pages/Home.jsx",
+      "pages/MyBasisProfile.jsx",
+      "pages/BasisProfilePage.jsx",
+      "pages/TalentProfilePage.jsx",
+      "feed/UnifiedFeed.jsx",
+      "pages/wirker-profile/index.jsx",
+      "components/GemeinschaftsFlow.jsx",
+      "components/auth/AuthGate.jsx",
+      "components/auth/ProfileCompletionFlow.jsx",
+      "components/chat-center/ConversationRoom.jsx",
+      "components/commerce/UnterstutzenFlow.jsx",
+      "components/connection-create/ConnectionCreatePage.jsx",
+      "components/entry/AppEntryController.jsx",
+      "components/profile/MerkenSection.jsx",
+      "components/publishing/PublishExperienceFlow.jsx",
+      "components/publishing/PublishWorkFlow.jsx",
+      "components/settings/SettingsModal.jsx",
+      "components/studio/ProfilBearbeitenModal.jsx",
+      "content/invitation/InvitationFlow.jsx",
+      "content/invitation/useInvitationResponse.js",
+      "feed/FeedStoriesBar.jsx",
+      "feed/StoryCreator.jsx",
+      "feed/StoryViewer.jsx",
+      "lib/resonance/index.js",
+      "lib/roles/index.js",
+      "lib/useNotifications.jsx",
+      "lib/useReactions.jsx",
+      "pages/MyCreatorDashboard.jsx",
+      "pages/studio/MeineResonanz.jsx",
+      "system/flows/experience/ExperienceFlow.jsx",
+      "system/flows/impact/ImpactFlow.jsx",
+      "system/flows/work/WorkFlow.jsx",
+      "components/OrbCompass.jsx",
+      "App.jsx",
+      "components/publishing/PublishingHub.jsx",
+      "content/invitation/InvitationCard.jsx",
+      "services/content.js",
+      "components/HuiPlusSheet.jsx",
+      "system/orb/OrbSystem.jsx",
+      "components/home/header/NotificationButton.jsx"
+    ],
+    "total": 52
+  },
+  "AuthGate": {
+    "direct": [],
+    "indirect": [],
+    "total": 0
+  },
+  "AuthGateCtx": {
+    "direct": [
+      "components/auth/AuthGate.jsx"
+    ],
+    "indirect": [
+      "components/auth/AuthGate.jsx",
+      "App.jsx"
+    ],
+    "total": 2
+  },
+  "chatContext": {
+    "direct": [
+      "components/chat-center/ChatCenterOverlay.jsx",
+      "components/chat-center/ConversationRoom.jsx",
+      "pages/Home.jsx"
+    ],
+    "indirect": [
+      "components/chat-center/ChatCenterOverlay.jsx",
+      "components/chat-center/ConversationRoom.jsx",
+      "pages/Home.jsx"
+    ],
+    "total": 3
+  },
+  "creatorEconomy": {
+    "direct": [
+      "components/commerce/ExperienceBookingFlow.jsx",
+      "components/commerce/WerkKaufFlow.jsx",
+      "components/economy/SupportFlow.jsx",
+      "feed/UnifiedFeed.jsx",
+      "pages/CreatorDashboard.jsx"
+    ],
+    "indirect": [
+      "components/commerce/ExperienceBookingFlow.jsx",
+      "components/commerce/WerkKaufFlow.jsx",
+      "components/economy/SupportFlow.jsx",
+      "feed/UnifiedFeed.jsx",
+      "pages/CreatorDashboard.jsx",
+      "pages/Home.jsx",
+      "pages/wirker-profile/index.jsx"
+    ],
+    "total": 7
+  },
+  "commerceEngine": {
+    "direct": [
+      "components/commerce/StripePaymentStep.jsx",
+      "components/commerce/UnterstutzenFlow.jsx"
+    ],
+    "indirect": [
+      "components/commerce/StripePaymentStep.jsx",
+      "components/commerce/UnterstutzenFlow.jsx",
+      "pages/Home.jsx"
+    ],
+    "total": 3
+  },
+  "GuidanceCtx": {
+    "direct": [
+      "components/guidance/GuidanceContext.jsx"
+    ],
+    "indirect": [
+      "components/guidance/GuidanceContext.jsx",
+      "App.jsx",
+      "components/guidance/GuidanceFooter.jsx",
+      "components/guidance/GuidanceLayer.jsx"
+    ],
+    "total": 4
+  },
+  "HomeShell": {
+    "direct": [],
+    "indirect": [],
+    "total": 0
+  },
+  "HuiActionProvider": {
+    "direct": [],
+    "indirect": [],
+    "total": 0
+  },
+  "HuiContextBridge": {
+    "direct": [],
+    "indirect": [],
+    "total": 0
+  },
+  "HomeCtx": {
+    "direct": [
+      "components/home/HomeShell.jsx"
+    ],
+    "indirect": [
+      "components/home/HomeShell.jsx",
+      "components/home/header/SearchCommandCenter.jsx",
+      "components/home/profile/ProfileLauncher.jsx",
+      "components/studio/HuiStudio.jsx",
+      "core/HuiActionProvider.jsx",
+      "pages/BasisProfilePage.jsx",
+      "pages/Home.jsx",
+      "pages/MyBasisProfile.jsx",
+      "pages/TalentProfilePage.jsx",
+      "components/home/header/HomeHeader.jsx",
+      "components/chat-center/ChatCenterOverlay.jsx"
+    ],
+    "total": 11
+  },
+  "OrbWorldCtx": {
+    "direct": [
+      "context/OrbWorldContext.jsx"
+    ],
+    "indirect": [
+      "context/OrbWorldContext.jsx",
+      "App.jsx",
+      "components/home/HomeShell.jsx",
+      "pages/Home.jsx",
+      "components/home/header/SearchCommandCenter.jsx",
+      "components/home/profile/ProfileLauncher.jsx",
+      "components/studio/HuiStudio.jsx",
+      "core/HuiActionProvider.jsx",
+      "pages/BasisProfilePage.jsx",
+      "pages/MyBasisProfile.jsx",
+      "pages/TalentProfilePage.jsx"
+    ],
+    "total": 11
+  },
+  "WorldSurfaceCtx": {
+    "direct": [
+      "context/WorldSurfaceContext.jsx"
+    ],
+    "indirect": [
+      "context/WorldSurfaceContext.jsx",
+      "App.jsx",
+      "components/home/HomeShell.jsx",
+      "pages/Home.jsx",
+      "components/home/header/SearchCommandCenter.jsx",
+      "components/home/profile/ProfileLauncher.jsx",
+      "components/studio/HuiStudio.jsx",
+      "core/HuiActionProvider.jsx",
+      "pages/BasisProfilePage.jsx",
+      "pages/MyBasisProfile.jsx",
+      "pages/TalentProfilePage.jsx"
+    ],
+    "total": 11
+  },
+  "HuiConnectionEngine": {
+    "direct": [],
+    "indirect": [],
+    "total": 0
+  },
+  "EngineCtx": {
+    "direct": [
+      "core/HuiConnectionEngine.jsx"
+    ],
+    "indirect": [
+      "core/HuiConnectionEngine.jsx",
+      "components/home/HomeShell.jsx",
+      "components/home/header/SearchCommandCenter.jsx",
+      "components/home/profile/ProfileLauncher.jsx",
+      "components/studio/HuiStudio.jsx",
+      "core/HuiActionProvider.jsx",
+      "pages/BasisProfilePage.jsx",
+      "pages/Home.jsx",
+      "pages/MyBasisProfile.jsx",
+      "pages/TalentProfilePage.jsx",
+      "components/home/header/HomeHeader.jsx"
+    ],
+    "total": 11
+  },
+  "BridgeCtx": {
+    "direct": [
+      "core/HuiContextBridge.jsx"
+    ],
+    "indirect": [
+      "core/HuiContextBridge.jsx",
+      "components/home/HomeShell.jsx",
+      "components/home/header/SearchCommandCenter.jsx",
+      "components/home/profile/ProfileLauncher.jsx",
+      "components/studio/HuiStudio.jsx",
+      "core/HuiActionProvider.jsx",
+      "pages/BasisProfilePage.jsx",
+      "pages/Home.jsx",
+      "pages/MyBasisProfile.jsx",
+      "pages/TalentProfilePage.jsx"
+    ],
+    "total": 10
+  },
+  "hui.actions": {
+    "direct": [],
+    "indirect": [],
+    "total": 0
+  },
+  "ActionCtx": {
+    "direct": [
+      "core/hui.actions.js"
+    ],
+    "indirect": [
+      "core/hui.actions.js",
+      "components/NotificationCenter.jsx",
+      "components/home/header/HomeHeader.jsx",
+      "components/home/navigation/BottomNav.jsx",
+      "components/home/profile/ProfileLauncher.jsx",
+      "core/HuiActionProvider.jsx",
+      "pages/FavoritesPage.jsx",
+      "pages/MyCreatorDashboard.jsx",
+      "pages/wirker-profile/index.jsx",
+      "pages/Home.jsx",
+      "components/chat-center/ChatCenterOverlay.jsx",
+      "components/home/HomeShell.jsx"
+    ],
+    "total": 12
+  },
+  "hui.flow": {
+    "direct": [],
+    "indirect": [],
+    "total": 0
+  },
+  "FlowCtx": {
+    "direct": [
+      "core/hui.flow.js"
+    ],
+    "indirect": [
+      "core/hui.flow.js",
+      "components/home/HomeShell.jsx",
+      "pages/Home.jsx",
+      "components/home/header/SearchCommandCenter.jsx",
+      "components/home/profile/ProfileLauncher.jsx",
+      "components/studio/HuiStudio.jsx",
+      "core/HuiActionProvider.jsx",
+      "pages/BasisProfilePage.jsx",
+      "pages/MyBasisProfile.jsx",
+      "pages/TalentProfilePage.jsx"
+    ],
+    "total": 10
+  },
+  "hui.navigator": {
+    "direct": [],
+    "indirect": [],
+    "total": 0
+  },
+  "NavigatorCtx": {
+    "direct": [
+      "core/hui.navigator.jsx"
+    ],
+    "indirect": [
+      "core/hui.navigator.jsx",
+      "components/home/HomeShell.jsx",
+      "components/home/header/SearchCommandCenter.jsx",
+      "components/home/profile/ProfileLauncher.jsx",
+      "components/studio/HuiStudio.jsx",
+      "core/HuiActionProvider.jsx",
+      "pages/BasisProfilePage.jsx",
+      "pages/Home.jsx",
+      "pages/MyBasisProfile.jsx",
+      "pages/TalentProfilePage.jsx"
+    ],
+    "total": 10
+  }
+}

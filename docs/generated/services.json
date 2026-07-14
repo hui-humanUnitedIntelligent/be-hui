@@ -1,0 +1,145 @@
+{
+  "AuthContext": {
+    "consumers": [
+      "App.jsx",
+      "components/ExperienceCreator.jsx",
+      "components/GemeinschaftsFlow.jsx",
+      "components/HuiCreateFlow.jsx",
+      "components/HuiMembershipFlow.jsx",
+      "components/ProtectedRoute.jsx",
+      "components/StoryBar.jsx",
+      "components/StoryComposer.jsx",
+      "components/TalentOnboarding.jsx",
+      "components/WerkPublisher.jsx",
+      "components/WorkDetailPage.jsx",
+      "components/auth/AuthGate.jsx",
+      "components/auth/ProfileCompletionFlow.jsx",
+      "components/chat-center/ChatCenterOverlay.jsx",
+      "components/chat-center/ConversationRoom.jsx",
+      "components/commerce/ExperienceBookingFlow.jsx",
+      "components/commerce/UnterstutzenFlow.jsx",
+      "components/commerce/WerkKaufFlow.jsx",
+      "components/connection-create/ConnectionCreatePage.jsx",
+      "components/economy/SupportFlow.jsx",
+      "components/entry/AppEntryController.jsx",
+      "components/home/HomeShell.jsx",
+      "components/profile/MerkenSection.jsx",
+      "components/publishing/PublishExperienceFlow.jsx",
+      "components/publishing/PublishWorkFlow.jsx",
+      "components/settings/SettingsModal.jsx",
+      "components/studio/HuiStudio.jsx",
+      "components/studio/ProfilBearbeitenModal.jsx",
+      "components/teilen/TeilenFlow.jsx",
+      "content/invitation/InvitationFlow.jsx",
+      "content/invitation/useInvitationResponse.js",
+      "feed/FeedStoriesBar.jsx",
+      "feed/StoryCreator.jsx",
+      "feed/StoryViewer.jsx",
+      "feed/UnifiedFeed.jsx",
+      "feed/useFeedStream.js",
+      "pages/BasisProfilePage.jsx",
+      "pages/CreatorDashboard.jsx",
+      "pages/CreatorStudio.jsx",
+      "pages/ImpactPage.jsx",
+      "pages/LoginPage.jsx",
+      "pages/MyBasisProfile.jsx",
+      "pages/MyCreatorDashboard.jsx",
+      "pages/PlatformDashboard.jsx",
+      "pages/ProfileDebugPage.jsx",
+      "pages/TalentProfilePage.jsx",
+      "pages/studio/MeineResonanz.jsx",
+      "pages/wirker-profile/index.jsx",
+      "system/flows/experience/ExperienceFlow.jsx",
+      "system/flows/impact/ImpactFlow.jsx",
+      "system/flows/work/WorkFlow.jsx"
+    ],
+    "tableAccess": []
+  },
+  "AppStateContext": {
+    "consumers": [
+      "App.jsx",
+      "components/NotificationCenter.jsx",
+      "components/WorkDetailPage.jsx",
+      "components/discovery/PeopleSearch.jsx",
+      "components/home/HomeShell.jsx",
+      "pages/CreatorStudio.jsx"
+    ],
+    "tableAccess": []
+  },
+  "db": {
+    "file": "services/db.js",
+    "consumers": [
+      "components/WorkDetailPage.jsx",
+      "components/chat-center/ChatCenterOverlay.jsx",
+      "components/home/profile/ProfileLauncher.jsx",
+      "components/profile/PublicProfilePreview.jsx",
+      "components/studio/HuiStudio.jsx",
+      "feed/useFeedStream.js",
+      "hooks/useProfileData.js",
+      "hooks/useProfileId.js",
+      "lib/AuthContext.jsx",
+      "lib/chatContext.js",
+      "lib/discovery/index.js",
+      "pages/ImpactPage.jsx"
+    ],
+    "tableAccess": []
+  },
+  "chatContext": {
+    "consumers": [
+      "components/chat-center/ChatCenterOverlay.jsx",
+      "components/chat-center/ConversationRoom.jsx",
+      "pages/Home.jsx"
+    ],
+    "tableAccess": []
+  },
+  "creatorEconomy": {
+    "file": "services/creatorEconomy.js",
+    "consumers": [
+      "components/commerce/ExperienceBookingFlow.jsx",
+      "components/commerce/WerkKaufFlow.jsx",
+      "components/economy/SupportFlow.jsx",
+      "feed/UnifiedFeed.jsx",
+      "pages/CreatorDashboard.jsx"
+    ],
+    "tableAccess": []
+  },
+  "commerceEngine": {
+    "file": "services/commerceEngine.js",
+    "consumers": [
+      "components/commerce/StripePaymentStep.jsx",
+      "components/commerce/UnterstutzenFlow.jsx"
+    ],
+    "tableAccess": []
+  },
+  "notificationService": {
+    "consumers": [
+      "lib/chatContext.js",
+      "lib/useReactions.jsx",
+      "pages/TalentProfilePage.jsx"
+    ],
+    "tableAccess": []
+  },
+  "trustContext": {
+    "consumers": [
+      "lib/presence/index.js"
+    ],
+    "tableAccess": []
+  },
+  "bookingContext": {
+    "consumers": [
+      "pages/CreatorStudio.jsx"
+    ],
+    "tableAccess": []
+  },
+  "journeyContext": {
+    "consumers": [
+      "pages/CreatorStudio.jsx"
+    ],
+    "tableAccess": []
+  },
+  "content": {
+    "file": "services/content.js",
+    "consumers": [],
+    "tableAccess": []
+  }
+}
