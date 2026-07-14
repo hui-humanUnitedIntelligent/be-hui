@@ -586,13 +586,31 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
   const rowVirtualizer = useVirtualizer({
     count: arr.length,
     getScrollElement: () => scrollContainerRef?.current ?? null,
-    estimateSize: () => 640,
+    estimateSize: () => 780,
     overscan: 3,
   });
 
   const totalHeight = rowVirtualizer.getTotalSize();
   const virtItems   = rowVirtualizer.getVirtualItems();
   const useVirt     = !!scrollContainerRef?.current && arr.length > 6;
+
+  // Runtime-Snapshot für HUI_FEED_REALITY_CHECK (kein Prod-Verhalten geändert)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const scrollEl = scrollContainerRef?.current;
+  window.__HUI_FEED_REALITY__ = {
+      itemsLength:        arr.length,
+      feedListLength:     arr.length,
+      domCards:           useVirt ? virtItems.length : arr.length,
+      scrollHeight:       scrollEl?.scrollHeight ?? null,
+      clientHeight:       scrollEl?.clientHeight ?? null,
+      hasMore,
+      isFetchingNextPage: !!loadingMore,
+      useVirtualizer:     useVirt,
+      virtualTotalHeight: useVirt ? totalHeight : null,
+      intersectionRoot:   useVirt ? "scrollContainer" : "n/a",
+    };
+  }, [arr.length, useVirt, virtItems.length, totalHeight, hasMore, loadingMore, scrollContainerRef]);
 
   if (arr.length === 0) return <EmptyFeed />;
   return (
@@ -666,6 +684,7 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
       <FeedBottomSentinel
         enabled={!!hasMore && !loadingMore}
         onVisible={loadMore}
+        scrollRootRef={scrollContainerRef}
       />
 
       {/* ── FEED.11B — Feed-Ende State ── */}
