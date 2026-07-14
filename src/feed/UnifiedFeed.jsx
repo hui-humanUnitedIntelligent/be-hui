@@ -1,5 +1,4 @@
 // src/feed/UnifiedFeed.jsx
-import { useVirtualizer } from '@tanstack/react-virtual';
 // ═══════════════════════════════════════════════════════════════
 // HUI — UNIFIED FEED  (Phase 2A: Safe Reintegration)
 //
@@ -20,7 +19,7 @@ import { useFeedStream }       from "./useFeedStream.js";
 import { FeedSoftHydrationBadge } from "./FeedSoftHydrationBadge.jsx";
 import { toFeedItem }          from "../system/feed/unifiedNormalizer.js";
 import FeedEventsSection       from "./FeedEventsSection.jsx";
-import { FeedBottomSentinel, FeedLoadMoreSpinner } from "./FeedScrollSentinel.jsx";
+import { FeedBottomSentinel, FeedLoadMoreSpinner, useFeedScrollProgress } from "./FeedScrollSentinel.jsx";
 import { useSingleReaction }   from "../lib/useReactions.jsx";
 import { useSavedPostsContext } from "../context/SavedPostsContext.jsx";
 import { useAuth }             from "../lib/AuthContext.jsx";
@@ -582,90 +581,35 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
     }
   }, [hasMore, arr.length, depthUser?.id]); // eslint-disable-line
 
-  // ── Virtualizer: schätze ~620px pro Karte, rendert nur sichtbare Items ──
-  const rowVirtualizer = useVirtualizer({
-    count: arr.length,
-    getScrollElement: () => scrollContainerRef?.current ?? null,
-    estimateSize: () => 640,
-    overscan: 3,
-  });
-
-  const totalHeight = rowVirtualizer.getTotalSize();
-  const virtItems   = rowVirtualizer.getVirtualItems();
-  const useVirt     = !!scrollContainerRef?.current && arr.length > 6;
-
   if (arr.length === 0) return <EmptyFeed />;
   return (
     <div style={{ paddingTop: 8 }}>
-      {useVirt ? (
-        // ── Virtualisierter Modus (scrollContainer bekannt) ──
-        <div style={{ height: totalHeight, position: "relative" }}>
-          {virtItems.map(vRow => {
-            const item = arr[vRow.index];
-            if (!item) return null;
-            const { isRelaxed, mb } = getCardRhythm(vRow.index);
-            const itemReactions = reactions[String(item.id)] || {};
-            return (
-              <div
-                key={String(item.id)}
-                data-index={vRow.index}
-                ref={rowVirtualizer.measureElement}
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  transform: `translateY(${vRow.start}px)`,
-                  paddingBottom: mb,
-                }}
-              >
-                <ReactionCard
-                  item={{ ...item, _reactions: { ...itemReactions, _relaxed: isRelaxed } }}
-                  onProfile={onProfile}
-                  onBook={onBook}
-                  onDetail={onDetail}
-                  onShare={() => onShare?.(item)}
-                  itemIndex={vRow.index}
-                  onDepth={onDepth}
-                />
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        // ── Fallback: normales Rendering (kein scrollContainer) ──
-        arr.map((item, idx) => {
-          const { isRelaxed, mb } = getCardRhythm(idx);
-          const itemReactions = reactions[String(item.id)] || {};
-          return (
-            <div
-              key={String(item.id)}
-              className="hui-feed-card"
-              style={{
-                marginBottom: mb,
-                animationDelay: Math.min(idx * 40, 300) + "ms",
-                contentVisibility: idx > 4 ? "auto" : "visible",
-                containIntrinsicSize: idx > 4 ? "0 620px" : undefined,
-              }}
-            >
-              <ReactionCard
-                item={{ ...item, _reactions: { ...itemReactions, _relaxed: isRelaxed } }}
-                onProfile={onProfile}
-                onBook={onBook}
-                onDetail={onDetail}
-                onShare={() => onShare?.(item)}
-                itemIndex={idx}
-                onDepth={onDepth}
-              />
-            </div>
-          );
-        })
-      )}
+      {arr.map((item, idx) => {
+        const { isRelaxed, mb } = getCardRhythm(idx);
+        const itemReactions = reactions[String(item.id)] || {};
+        return (
+          <div
+            key={String(item.id)}
+            style={{ marginBottom: mb }}
+          >
+            <ReactionCard
+              item={{ ...item, _reactions: { ...itemReactions, _relaxed: isRelaxed } }}
+              onProfile={onProfile}
+              onBook={onBook}
+              onDetail={onDetail}
+              onShare={() => onShare?.(item)}
+              itemIndex={idx}
+              onDepth={onDepth}
+            />
+          </div>
+        );
+      })}
       {/* ── Pagination: Sentinel + Spinner (solange hasMore) ── */}
       <FeedLoadMoreSpinner loading={!!loadingMore} />
       <FeedBottomSentinel
         enabled={!!hasMore && !loadingMore}
         onVisible={loadMore}
+        scrollRootRef={scrollContainerRef}
       />
 
       {/* ── FEED.11B — Feed-Ende State ── */}
@@ -734,30 +678,6 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
     </div>
   );
 }
-
-/* ── LazyCard — only renders when near viewport ──────────────── */
-const LazyCard = React.memo(function LazyCard({ raw, ...handlers }) {
-  const [visible, setVisible] = React.useState(false);
-  const ref = React.useRef(null);
-  React.useEffect(() => {
-    if (!ref.current || typeof IntersectionObserver === "undefined") {
-      setVisible(true); return;
-    }
-    const obs = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect(); } },
-      { rootMargin: "200px" }
-    );
-    obs.observe(ref.current);
-    return () => obs.disconnect();
-  }, []);
-  return (
-    <div ref={ref} style={{ minHeight: visible ? undefined : 280 }}>
-      {visible
-        ? <FeedRouter item={raw} {...handlers} />
-        : <CardSkeleton />}
-    </div>
-  );
-});
 
 /* ── Wirker-/Projekte-Suchtreffer (2026-07-06) ────────────────────
    "Home reagiert auf die globale Suche": fetchSearchResults() (useFeedStream)
@@ -1084,7 +1004,7 @@ export default function UnifiedFeed({
   // aus SearchCommandCenter/useRadiusFilter. Wird 1:1 an useFeedStream durchgereicht.
   radiusKm       = null,
   geo            = null,
-  // Performance: Scroll-Container-Ref für Virtualizer
+  // Scroll-Container-Ref für Sentinel (IntersectionObserver root) + Prefetch
   scrollContainerRef = null,
 }) {
   useEffect(() => {
@@ -1105,7 +1025,11 @@ export default function UnifiedFeed({
     searchPeople,
     searchProjects,
     searchGroups,
+    onScrollProgress,
   } = useFeedStream({ searchQuery, typeFilter, categoryFilters, radiusKm, geo });
+
+  // Prefetch bei 70% Scrolltiefe — nutzt denselben Scroll-Container wie der Feed
+  useFeedScrollProgress(scrollContainerRef, onScrollProgress);
 
   // ── Bind refresh fn to parent (defensive) ──────────────────────────
   React.useEffect(() => {

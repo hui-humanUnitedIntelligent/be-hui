@@ -11,12 +11,13 @@
 import { useEffect, useRef, useCallback } from "react";
 
 // ── Bottom Sentinel (triggert loadMore) ──────────────────────────────────────
-export function FeedBottomSentinel({ onVisible, enabled = true }) {
+export function FeedBottomSentinel({ onVisible, enabled = true, scrollRootRef = null }) {
   const ref = useRef(null);
 
   useEffect(() => {
     if (!enabled || !ref.current) return;
     const el = ref.current;
+    const root = scrollRootRef?.current ?? null;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -25,14 +26,14 @@ export function FeedBottomSentinel({ onVisible, enabled = true }) {
         }
       },
       {
-        root:       null,        // viewport
-        rootMargin: "200px",     // 200px Voraus-Trigger (kein harter Bruch)
+        root,
+        rootMargin: "200px",
         threshold:  0,
       }
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [enabled, onVisible]);
+  }, [enabled, onVisible, scrollRootRef]);
 
   return (
     <div
