@@ -1,0 +1,94 @@
+{
+  "bookingContext": {
+    "subject": {
+      "confidence": "confirmed",
+      "id": "file:lib/bookingContext.js",
+      "type": "File",
+      "label": "bookingContext.js",
+      "description": "lib/bookingContext.js",
+      "source": "fileScanner",
+      "meta": {
+        "path": "lib/bookingContext.js",
+        "lines": 415,
+        "domain": "UNKNOWN",
+        "header": {
+          "hasDomainTag": false,
+          "hasOwnerTag": false,
+          "hasResponsibility": false,
+          "domain": null,
+          "owner": null,
+          "responsibility": null
+        }
+      }
+    },
+    "existsBecause": "Zentrales Booking-Intelligence-Layer",
+    "realizesCapabilities": [
+      "Booking"
+    ],
+    "governedBy": [],
+    "confidence": "confirmed"
+  },
+  "huiRegistry": {
+    "subject": {
+      "confidence": "confirmed",
+      "id": "file:registry/HuiRegistry.js",
+      "type": "File",
+      "label": "HuiRegistry.js",
+      "description": "registry/HuiRegistry.js",
+      "source": "fileScanner",
+      "meta": {
+        "path": "registry/HuiRegistry.js",
+        "lines": 812,
+        "domain": "UNKNOWN",
+        "header": {
+          "hasDomainTag": false,
+          "hasOwnerTag": false,
+          "hasResponsibility": false,
+          "domain": null,
+          "owner": null,
+          "responsibility": null
+        }
+      }
+    },
+    "existsBecause": "Single Source of Meaning — operationalisiert die Constitution",
+    "realizesCapabilities": [
+      "Identity"
+    ],
+    "governedBy": [
+      "Registry ist Single Source of Meaning"
+    ],
+    "confidence": "confirmed"
+  },
+  "discoveryProtection": {
+    "target": {
+      "confidence": "confirmed",
+      "id": "capability:discovery",
+      "type": "Capability",
+      "label": "Discovery",
+      "description": "Plattform-Capability: Discovery",
+      "source": "ARCH-002.1 capability registry",
+      "meta": {
+        "fileCount": 6,
+        "actionCount": 1,
+        "serviceCount": 1
+      }
+    },
+    "protectors": [
+      {
+        "node": {
+          "confidence": "confirmed",
+          "id": "constitution-rule:6",
+          "type": "ConstitutionPrinciple",
+          "label": "Regel 6: Der Feed dient Orientierung. Nicht Sucht.",
+          "description": "Der Feed von HUI ist keine Aufmerksamkeitsmaschine.   Er hat keinen Infinite Scroll ohne Pause. Keine algorithmische Outrage-Verstärkung.   Er soll Menschen helfen zu finden, was ihre Wirkung ergänzt.",
+          "source": "HUI_CONSTITUTION.md §III.6",
+          "meta": {
+            "ruleNumber": 6,
+            "title": "Der Feed dient Orientierung. Nicht Sucht."
+          }
+        },
+        "confidence": "inferred"
+      }
+    ]
+  }
+}

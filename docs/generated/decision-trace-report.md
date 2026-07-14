@@ -1,0 +1,16 @@
+# Decision Trace Report — ARCH-002.1
+
+## ADR-001: Route Authority
+
+Zentrale Route Registry im Shadow Mode — dokumentiert in src/routes/registry.js
+
+Betrifft:
+
+- DIRECT_ROUTING (CONSTRAINS)
+- DIRECT_ROUTING (CONSTRAINS)
+- DIRECT_ROUTING (CONSTRAINS)
+- DIRECT_ROUTING (CONSTRAINS)
+- DIRECT_ROUTING (CONSTRAINS)
+- DIRECT_ROUTING (CONSTRAINS)
+- DIRECT_ROUTING (CONSTRAINS)
+- DIRECT_ROUTING (CONSTRAINS)
