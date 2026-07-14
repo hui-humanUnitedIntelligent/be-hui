@@ -104,7 +104,7 @@ export function CardSkeleton() {
 }
 
 // ── Avatar ────────────────────────────────────────────────────
-const CardAvatar = memo(function CardAvatar({ src, name, size = 38, isTalent = false }) {
+const CardAvatar = memo(function CardAvatar({ src, name, size = 38, isTalent = false, priority = false }) {
   const [err, setErr] = useState(false);
   const letter = ((name || "H")[0] || "H").toUpperCase();
   return (
@@ -117,7 +117,11 @@ const CardAvatar = memo(function CardAvatar({ src, name, size = 38, isTalent = f
       fontSize:size*0.38,fontWeight:700,color:T.teal,
     }}>
       {src && !err
-        ? <img loading="lazy" decoding="async" src={src} alt={name||""} onError={() => setErr(true)}
+        ? <img
+            loading={priority ? "eager" : "lazy"}
+            decoding="async"
+            fetchPriority={priority ? "high" : "auto"}
+            src={src} alt={name||""} onError={() => setErr(true)}
             style={{ width:"100%",height:"100%",objectFit:"cover" }} />
         : letter}
     </div>
@@ -209,7 +213,7 @@ function getBegegnungsgrund(item) {
 // Zeile 1: Avatar (52px rund) · Name · Zeit rechts · ⋮
 // Zeile 2: Talent (farbig) · Pin-SVG · Ort
 // Zeile 3: " (groß, orange) + Story-Satz
-export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
+export const HumanHeader = memo(function HumanHeader({ item, onProfile, imagePriority = false }) {
   const author   = item?.author || {};
   // ── TRACE STEP 8 ──────────────────────────────────────
   if (!window.__HUI_STEP8_DONE__ && item?.type === "work") {
@@ -254,7 +258,7 @@ export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
             WebkitTapHighlightColor:"transparent", cursor:"pointer",
           }}
         >
-          <CardAvatar src={avatar} name={name} size={52} isTalent={isT} />
+          <CardAvatar src={avatar} name={name} size={52} isTalent={isT} priority={imagePriority} />
           {presence === "online" && (
             <div style={{
               position:"absolute", bottom:2, right:2,
@@ -413,7 +417,7 @@ export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge
 });
 
 // ── Media (lazy + fade-in + double-tap like) ──────────────────
-export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDoubleTap }) {
+export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDoubleTap, priority = false }) {
   const [err,     setErr]     = useState(false);
   const [loaded,  setLoaded]  = useState(false);
   const [heartPos,setHeartPos]= useState(null);
@@ -475,7 +479,9 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
       <img
         src={url}
         alt={alt || ""}
-        loading="lazy"
+        loading={priority ? "eager" : "lazy"}
+        decoding="async"
+        fetchPriority={priority ? "high" : "auto"}
         onLoad={() => setLoaded(true)}
         onError={() => setErr(true)}
         className="hui-card-img"
@@ -723,6 +729,7 @@ export default React.memo(function BaseFeedCard({
   injectCardCSS();
 
   const reactions = item?._reactions || {};
+  const imagePriority = !!item?._imagePriority;
 
   // Optimistic like state
   const [localReactions, setLocalReactions] = useState(reactions);
@@ -775,7 +782,7 @@ export default React.memo(function BaseFeedCard({
       }}
     >
       {/* Kapitel 2.3: Menschen zuerst */}
-      <HumanHeader item={item} onProfile={onProfile} />
+      <HumanHeader item={item} onProfile={onProfile} imagePriority={imagePriority} />
 
       {/* HUI Pillar Hint — 🍃 dezent, nie dominant, nur wenn vorhanden */}
       {item?.pillar_hint && (
@@ -805,6 +812,7 @@ export default React.memo(function BaseFeedCard({
           media={item.media}
           alt={item.title || item.text}
           relaxed={!!(item._reactions?._relaxed)}
+          priority={imagePriority}
           onDoubleTap={onCardClick ? (e) => { /* double-tap → detail, kein like-trigger */ } : handleDoubleTap}
         />
       </div>

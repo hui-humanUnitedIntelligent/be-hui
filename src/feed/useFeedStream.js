@@ -45,9 +45,16 @@ function saveCache(items, cursor) {
 }
 
 function loadCache() {
-  // CACHE DISABLED — always fresh load
-  try { sessionStorage.removeItem(CACHE_KEY); } catch (_) {}
-  return null;
+  try {
+    const raw = sessionStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed?.items?.length) return null;
+    if (Date.now() - (parsed.ts || 0) > CACHE_TTL_MS) return null;
+    return { items: parsed.items, cursors: parsed.cursor ?? parsed.cursors ?? null };
+  } catch (_) {
+    return null;
+  }
 }
 
 function clearCache() {
@@ -59,9 +66,82 @@ const _scrollPos = { y: 0 };
 export function saveFeedScrollPos(y) { _scrollPos.y = y; }
 export function getFeedScrollPos()   { return _scrollPos.y; }
 
+// ─── Profile-Map laden ───────────────────────────────────────────────────────
+async function fetchProfileMap(userIds) {
+  const profileMap = {};
+  if (!userIds?.length) return profileMap;
+  try {
+    const { data: profileRows } = await ProfileService.getMany(userIds);
+    if (profileRows) profileRows.forEach(p => { profileMap[p.id] = p; });
+  } catch (_) { /* Profile enrichment optional */ }
+  return profileMap;
+}
+
+// ─── Rohdaten → normalisierte Feed-Items ─────────────────────────────────────
+function buildFeedPageItems({ works, exps, beitr, invs, limit, profileMap }) {
+  let _step5Done = false;
+  function injectProfile(row) {
+    const uid = row.user_id || row.creator_id || null;
+    const p   = (uid && profileMap[uid]) ? profileMap[uid] : null;
+    const result = { ...row, profile: p || { id: uid } };
+    if (!_step5Done && row.title !== undefined) {
+      _step5Done = true;
+      if (import.meta.env.DEV) {
+        console.group("🔍 STEP 5 - injectProfile (first work)");
+        if (import.meta.env.DEV) { console.log("uid:", uid); }
+        if (import.meta.env.DEV) { console.log("profileMap[uid]:", profileMap[uid]); }
+        if (import.meta.env.DEV) { console.log("row.id:", row.id, "row.title:", row.title); }
+        if (import.meta.env.DEV) { console.log("result.profile:", result.profile); }
+        if (import.meta.env.DEV) { console.groupEnd(); }
+      }
+    }
+    return result;
+  }
+
+  const normalizedBeitr = beitr.map(r => normalizeBeitragRow(injectProfile(r))).filter(Boolean);
+  const normalized = [
+    ...works.map(r => normalizeWorkRow(injectProfile(r))).filter(Boolean),
+    ...exps.map(r => normalizeExperienceRow(injectProfile(r))).filter(Boolean),
+    ...normalizedBeitr,
+    ...invs.map(r => normalizeInvitationRow(injectProfile(r))).filter(Boolean),
+  ];
+
+  const _now = Date.now();
+  const EVENT_VISIBILITY_WINDOW_MS = 48 * 60 * 60 * 1000;
+  const _WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+
+  normalized.forEach(item => {
+    const base = item._raw?.created_at ? new Date(item._raw.created_at).getTime() : 0;
+    if (item.type === "experience" && item._raw?.date) {
+      const eventMs = new Date(item._raw.date).getTime();
+      const delta   = eventMs - _now;
+      if (delta >= 0 && delta < _WINDOW_MS) {
+        const visibilityAnchor = eventMs - EVENT_VISIBILITY_WINDOW_MS;
+        item._sortKey = Math.max(base, visibilityAnchor);
+      } else {
+        item._sortKey = base;
+      }
+    } else {
+      item._sortKey = base;
+    }
+  });
+
+  normalized.sort((a, b) => (b._sortKey || 0) - (a._sortKey || 0));
+
+  const nextCursors = {
+    works: works.length >= limit ? (works[works.length - 1]?.created_at || null) : null,
+    exps:  exps.length  >= limit ? (exps[exps.length   - 1]?.created_at || null) : null,
+    beitr: beitr.length >= limit ? (beitr[beitr.length - 1]?.created_at || null) : null,
+  };
+  const hasMore = works.length >= limit || exps.length >= limit || beitr.length >= limit;
+
+  return { items: normalized, nextCursors, hasMore };
+}
+
 // ─── Batch-Query: eine Seite laden ───────────────────────────────────────────
 // FEED.2E — Multi-Cursor: cursors = { works, exps, beitr } | null
-async function fetchFeedPage(userId = null, cursors = null) {
+// deferProfiles: true → Karten sofort ohne Profil-Enrichment (First Paint)
+async function fetchFeedPage(userId = null, cursors = null, { deferProfiles = false } = {}) {
   /**
    * Phase 4H — NO PROFILE JOINS
    * Alle Queries ohne relational join zu profiles.
@@ -159,127 +239,34 @@ async function fetchFeedPage(userId = null, cursors = null) {
     if (import.meta.env.DEV) { console.groupEnd(); }
   }
 
-  let profileMap = {};
+  const pagePayload = { works, exps, beitr, invs, limit };
 
-  if (userIds.length > 0) {
-    try {
-      // ProfileService v1.0
-      const { data: profileRows } = await ProfileService.getMany(userIds);
-      // ── TRACE STEP 3: Supabase Profile Query Result ──────────
-      if (import.meta.env.DEV) {
-        console.group("🔍 STEP 3 - PROFILE QUERY");
-        if (import.meta.env.DEV) { console.log("profileRows:", profileRows); }
-        if (import.meta.env.DEV) { console.log("count:", profileRows?.length); }
-        if (profileRows && profileRows.length > 0) {
-          if (import.meta.env.DEV) { console.log("profileRows[0] fields:", Object.keys(profileRows[0])); }
-          if (import.meta.env.DEV) { console.log("avatar_url:", profileRows[0].avatar_url); }
-          if (import.meta.env.DEV) { console.log("display_name:", profileRows[0].display_name); }
-          if (import.meta.env.DEV) { console.log("full_name:", profileRows[0].full_name); }
-        }
-        if (import.meta.env.DEV) { console.groupEnd(); }
-      }
+  if (deferProfiles) {
+    const fast = buildFeedPageItems({ ...pagePayload, profileMap: {} });
+    return {
+      ...fast,
+      _enrichPayload: { ...pagePayload, userIds },
+    };
+  }
 
-      if (profileRows) {
-        profileRows.forEach(p => { profileMap[p.id] = p; });
-      }
-    } catch (_) {
-      if (import.meta.env.DEV) { console.warn("[HUI_STREAM] Profile enrichment failed:", _?.message || _); }
-    }
+  const profileMap = await fetchProfileMap(userIds);
 
-  // ── TRACE STEP 4: profileMap ──────────────────────────────
-  const _w0uid = works[0] ? (works[0].user_id || works[0].creator_id) : null;
-  if (import.meta.env.DEV) {
-    console.group("🔍 STEP 4 - PROFILE MAP");
+  if (import.meta.env.DEV && userIds.length > 0) {
+    const _w0uid = works[0] ? (works[0].user_id || works[0].creator_id) : null;
+    console.group("🔍 STEP 3-4 - PROFILE MAP");
     if (import.meta.env.DEV) { console.log("profileMap keys:", Object.keys(profileMap)); }
     if (import.meta.env.DEV) { console.log("works[0] uid:", _w0uid); }
     if (import.meta.env.DEV) { console.log("profileMap[uid]:", _w0uid ? profileMap[_w0uid] : "no uid"); }
-    if (import.meta.env.DEV) { console.groupEnd(); }
-  }
-  }
-
-  // ── Step 3: Normalisieren (mit injiziertem profile aus profileMap) ──────
-  let _step5Done = false; // nur erstes Work tracen
-  function injectProfile(row) {
-    const uid = row.user_id || row.creator_id || null;
-    const p   = (uid && profileMap[uid]) ? profileMap[uid] : null;
-    const result = { ...row, profile: p || { id: uid } };
-    // ── TRACE STEP 5 (nur erstes Work) ────────────────────
-    if (!_step5Done && row.title !== undefined) {
-      _step5Done = true;
-      if (import.meta.env.DEV) {
-        console.group("🔍 STEP 5 - injectProfile (first work)");
-        if (import.meta.env.DEV) { console.log("uid:", uid); }
-        if (import.meta.env.DEV) { console.log("profileMap[uid]:", profileMap[uid]); }
-        if (import.meta.env.DEV) { console.log("row.id:", row.id, "row.title:", row.title); }
-        if (import.meta.env.DEV) { console.log("result.profile:", result.profile); }
-        if (import.meta.env.DEV) { console.log("result.profile.avatar_url:", result.profile?.avatar_url); }
-        if (import.meta.env.DEV) { console.log("result.profile.display_name:", result.profile?.display_name); }
-        if (import.meta.env.DEV) { console.groupEnd(); }
-      }
-    }
-    return result;
+    console.groupEnd();
   }
 
-  const normalizedBeitr = beitr.map(r => normalizeBeitragRow(injectProfile(r))).filter(Boolean);
-  const normalized = [
-    ...works.map(r => normalizeWorkRow(injectProfile(r))).filter(Boolean),
-    ...exps.map(r => normalizeExperienceRow(injectProfile(r))).filter(Boolean),
-    ...normalizedBeitr,
-    ...invs.map(r => normalizeInvitationRow(injectProfile(r))).filter(Boolean),
-  ];
+  return buildFeedPageItems({ ...pagePayload, profileMap });
+}
 
-
-  // FEED.13B — Upcoming Experience Relevance Ranking
-  // Ersetzt FEED.10C (+4h Boost) durch zeitliche Relevanz-Verankerung.
-  //
-  // Regel: Experience mit Termin innerhalb von 7 Tagen erhält
-  //   _sortKey = max(created_at, event_date - 48h)
-  //
-  // Effekte:
-  //   Termin morgen (24h)  → visibilityAnchor = heute       → max(base, heute)
-  //   Termin in 3 Tagen    → visibilityAnchor = übermorgen  → max(base, übermorgen)
-  //   Termin in 6 Monaten  → CAP greift        → base (created_at, kein Vorteil)
-  //   Vergangene Termine   → kein Vorteil      → base
-  //   Works / Moments      → base (unverändert)
-  //
-  // Cursor, Pagination und Analytics bleiben vollständig unberührt.
-  const _now                     = Date.now();
-  const EVENT_VISIBILITY_WINDOW_MS = 48 * 60 * 60 * 1000;  // 48 Stunden Vorlauf
-  const _WINDOW_MS                = 7  * 24 * 60 * 60 * 1000; // 7 Tage CAP (unverändert)
-
-  normalized.forEach(item => {
-    const base = item._raw?.created_at ? new Date(item._raw.created_at).getTime() : 0;
-    if (item.type === "experience" && item._raw?.date) {
-      const eventMs = new Date(item._raw.date).getTime();
-      const delta   = eventMs - _now;
-      if (delta >= 0 && delta < _WINDOW_MS) {
-        // Termin in 0–7 Tagen → zeitliche Relevanz-Verankerung
-        const visibilityAnchor = eventMs - EVENT_VISIBILITY_WINDOW_MS;
-        item._sortKey = Math.max(base, visibilityAnchor);
-      } else {
-        // Vergangen oder > 7 Tage → kein Vorteil
-        item._sortKey = base;
-      }
-    } else {
-      item._sortKey = base;
-    }
-  });
-
-  // Zeitsortiert (via _sortKey — created_at bleibt unberührt)
-  normalized.sort((a, b) => (b._sortKey || 0) - (a._sortKey || 0));
-
-  // FEED.2E — Cursor pro Quelle: letztes Item jeder Quelle (vor Normalisierung verfügbar)
-  // works/exps/beitr existieren bereits aus Step 1 (Z.107-112)
-  const nextCursors = {
-    works: works.length >= limit ? (works[works.length - 1]?.created_at || null) : null,
-    exps:  exps.length  >= limit ? (exps[exps.length   - 1]?.created_at || null) : null,
-    beitr: beitr.length >= limit ? (beitr[beitr.length - 1]?.created_at || null) : null,
-  };
-
-  // FEED.2E — hasMore: true wenn mind. eine Quelle weitere Items hat
-  const hasMore = works.length >= limit || exps.length >= limit || beitr.length >= limit;
-
-  return { items: normalized, nextCursors, hasMore };
+async function enrichFeedPageItems(enrichPayload) {
+  if (!enrichPayload) return null;
+  const profileMap = await fetchProfileMap(enrichPayload.userIds);
+  return buildFeedPageItems({ ...enrichPayload, profileMap });
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
@@ -800,11 +787,21 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
 
     setLoading(true);
     try {
-      const { items: newItems, nextCursors, hasMore: more } = await fetchFeedPage(userId);
+      const { items: newItems, nextCursors, hasMore: more, _enrichPayload } =
+        await fetchFeedPage(userId, null, { deferProfiles: true });
       if (!mountedRef.current) return;
       cursorRef.current = nextCursors;
       setHasMore(more);
       setItems(newItems);
+      setLoading(false);
+
+      if (_enrichPayload) {
+        enrichFeedPageItems(_enrichPayload).then((enriched) => {
+          if (!mountedRef.current || !enriched?.items?.length) return;
+          setItems(enriched.items);
+        }).catch(() => { /* silent — Karten bleiben mit Platzhalter-Profilen sichtbar */ });
+      }
+      return;
     } catch (err) {
       if (!mountedRef.current) return;
       console.error("[HUI_STREAM] initial load error:", err.message);

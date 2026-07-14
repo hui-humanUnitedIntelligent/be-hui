@@ -108,7 +108,12 @@ function extractMedia(raw){
       return safeUrl(u)?{type:"image",url:safeUrl(u)}:null;
     }).filter(Boolean);
   }
-  const candidates=[raw.src,raw.image_url,raw.cover_url,raw.media_url,raw.expImg,raw.coverUrl,raw.thumbnail,raw.banner];
+  // Feed-Vorschau: kleinere Felder vor Vollbild-URLs bevorzugen
+  const candidates=[
+    raw.thumbnail, raw.cover_url, raw.coverUrl, raw.src_thumb,
+    raw.image_url, raw.banner,
+    raw.media_url, raw.src, raw.expImg,
+  ];
   for(const c of candidates){const u=safeUrl(c);if(u)return[{type:"image",url:u}];}
   return[];
 }
