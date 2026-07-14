@@ -872,25 +872,12 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
     if (!normalized) return;
     if (shouldExcludeFromMainFeed(normalized)) return;
 
-    // Existiert bereits? → update statt duplizieren
+    // Sofort in items[] einfügen — Soft-Hydration-Queue allein ließ neue Beiträge
+    // unsichtbar (pending bis Badge-Tap) bzw. nach refresh() verloren gehen.
     setItems(prev => {
-      const exists = prev.find(i => i.id === normalized.id);
-      if (exists) return prev;  // kein Duplicate
-      return prev;  // noch nicht einbauen — erst in pending
-    });
-
-    // In pending queue
-    setPendingItems(prev => {
       if (prev.find(i => i.id === normalized.id)) return prev;
       return [normalized, ...prev];
     });
-
-    // Debounce Badge
-    clearTimeout(softHydrateTimer.current);
-    softHydrateTimer.current = setTimeout(() => {
-      if (!mountedRef.current) return;
-      setPendingCount(prev => prev + 1);
-    }, SOFT_HYDRATE_DELAY);
   }, []);
 
   // ── Soft Hydration: Items einbauen (User-Tap) ────────────────────────────
@@ -1007,11 +994,31 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
     clearCache();
     cursorRef.current = null;
     prefetchedRef.current = null;
-    setPendingItems([]);
     setPendingCount(0);
-    setItems([]);  // UI sofort clearen damit neue Items direkt sichtbar
-    await initialLoad();
-  }, [initialLoad]);
+    setError(null);
+    setLoading(true);
+    try {
+      const { items: newItems, nextCursors, hasMore: more } =
+        await fetchFeedPage(user?.id || null);
+      if (!mountedRef.current) return;
+      cursorRef.current = nextCursors;
+      setHasMore(more);
+      // Realtime-Inserts während des Fetches behalten (feed-refresh + INSERT Race)
+      setItems(prev => {
+        const extras = prev.filter(p => !newItems.some(n => n.id === p.id));
+        if (!extras.length) return newItems;
+        const merged = [...extras, ...newItems];
+        merged.sort((a, b) => (b._sortKey || 0) - (a._sortKey || 0));
+        return merged;
+      });
+    } catch (err) {
+      if (!mountedRef.current) return;
+      console.error("[HUI_STREAM] refresh error:", err.message);
+      setError(err.message);
+    } finally {
+      if (mountedRef.current) setLoading(false);
+    }
+  }, [user?.id]);
 
   return {
     // Items -- im Suchmodus (isSearching) werden die normalen Feed-Items
