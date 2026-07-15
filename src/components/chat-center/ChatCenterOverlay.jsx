@@ -52,7 +52,9 @@ function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose
   const mountedAt = React.useRef(Date.now());
   function safeClose() {
     const age = Date.now() - mountedAt.current;
-    console.log('[CHAT_BACK_BUTTON]', { age_ms: age, blocked: age < 400, ts: Date.now() });
+    if (import.meta.env.DEV) {
+      console.log('[CHAT_BACK_BUTTON]', { age_ms: age, blocked: age < 400, ts: Date.now() });
+    }
     if (age < 400) return; // iOS ghost-click guard
     onClose?.();
   }
@@ -165,7 +167,9 @@ function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose
 
 /* ── HAUPT-OVERLAY ── */
 export default function ChatCenterOverlay({ onClose, initialRecipient = null, onDiscoverClose, onMarkRead }) {
-  console.log("[CCO_RENDER_START]", { hasInitialRecipient: !!initialRecipient?.id });
+  if (import.meta.env.DEV) {
+    console.log("[CCO_RENDER_START]", { hasInitialRecipient: !!initialRecipient?.id });
+  }
   const [activeConv,       setActiveConv]       = useState(null);
   const [showPeopleSearch, setShowPeopleSearch] = useState(false);
   const [loadingConv,      setLoadingConv]      = useState(false);
@@ -188,7 +192,9 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
         const followCount = iFollow?.length ?? 0;
 
         if (!followCount) {
-          console.log("[CONNECTIONS_LOAD]", { followCount: 0, mutualCount: 0, profileCount: 0 });
+          if (import.meta.env.DEV) {
+            console.log("[CONNECTIONS_LOAD]", { followCount: 0, mutualCount: 0, profileCount: 0 });
+          }
           return;
         }
 
@@ -202,7 +208,9 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
           .in("follower_id", iFollowIds);
         const mutualCount = mutual?.length ?? 0;
 
-        console.log("[CONNECTIONS_LOAD]", { followCount, mutualCount, profileCount: mutualCount });
+        if (import.meta.env.DEV) {
+          console.log("[CONNECTIONS_LOAD]", { followCount, mutualCount, profileCount: mutualCount });
+        }
 
         if (!mutualCount || cancelled) return;
 

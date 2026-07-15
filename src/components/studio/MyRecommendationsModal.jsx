@@ -210,9 +210,13 @@ function MyRecommendationsModal({ userId, onClose }) {
                       window.history.pushState({}, "", `/impact`);
                       window.dispatchEvent(new PopStateEvent("popstate"));
                     } else if (t === "experience") {
-                      alert("Erlebnis-Detailseite ist noch nicht verfügbar.");
+                      onClose();
+                      window.history.pushState({}, "", `/erlebnis/${rec.item_id}`);
+                      window.dispatchEvent(new PopStateEvent("popstate"));
                     } else if (t === "event") {
-                      alert("Event-Detailseite ist noch nicht verfügbar.");
+                      onClose();
+                      window.history.pushState({}, "", `/veranstaltung/${rec.item_id}`);
+                      window.dispatchEvent(new PopStateEvent("popstate"));
                     }
                   } catch(e) {
                     console.warn("[MyRec] Navigation Fehler:", e);
