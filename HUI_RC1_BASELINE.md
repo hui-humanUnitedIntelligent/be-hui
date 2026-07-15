@@ -11,7 +11,7 @@
 | Feld | Wert |
 |------|------|
 | **Feed-Basis-Commit** | `30c98d287d79c7c9978b6a1b9cefc7384f84e14c` |
-| **Branch-HEAD (Recovery)** | `dbd5f922996fe3ef35afafb4f7b25b831295645c` |
+| **Branch-HEAD (Recovery)** | `80a5ed58d58397ce7dfe50352e36f1787c075cbb` |
 | **Branch** | `cursor/feed-recovery-base` |
 | **Pull Request** | [#147](https://github.com/hui-humanUnitedIntelligent/be-hui/pull/147) |
 
@@ -41,9 +41,9 @@ Ausgeführt am **2026-07-15** (Cloud-Agent-Umgebung):
 | Feld | Wert |
 |------|------|
 | **Deploy-URL (Preview)** | https://be-hui-git-cursor-f-2ce7ba-hui-humanunitedintelligents-projects.vercel.app |
-| **Build-ID** | `HU17697WxR8yHkEtgupKMTjXtiea` |
-| **Vercel Dashboard** | https://vercel.com/hui-humanunitedintelligents-projects/be-hui/HU17697WxR8yHkEtgupKMTjXtiea |
-| **Zeitpunkt** | 2026-07-15 14:27:36 UTC |
+| **Build-ID** | `C9Xh8L2QBJQHQJx2mpd7UC6UqKsa` |
+| **Vercel Dashboard** | https://vercel.com/hui-humanunitedintelligents-projects/be-hui/C9Xh8L2QBJQHQJx2mpd7UC6UqKsa |
+| **Zeitpunkt** | 2026-07-15 14:34:12 UTC |
 | **Status** | ✅ Ready (Vercel GitHub Integration, PR #147) |
 | **Deployed Branch** | `cursor/feed-recovery-base` (nicht `main`) |
 
@@ -98,4 +98,4 @@ Ausgeführt am **2026-07-15** (Cloud-Agent-Umgebung):
 
 - [HUI_FEED_RECOVERY_PLAN.md](./HUI_FEED_RECOVERY_PLAN.md) — vollständige Recovery-Analyse
 - [PR #147](https://github.com/hui-humanUnitedIntelligent/be-hui/pull/147) — Recovery-Branch PR
-- [Vercel Deployment](https://vercel.com/hui-humanunitedintelligents-projects/be-hui/HU17697WxR8yHkEtgupKMTjXtiea) — Build-Details
+- [Vercel Deployment](https://vercel.com/hui-humanunitedintelligents-projects/be-hui/C9Xh8L2QBJQHQJx2mpd7UC6UqKsa) — Build-Details
