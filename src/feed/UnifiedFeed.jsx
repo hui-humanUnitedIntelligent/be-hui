@@ -1,5 +1,4 @@
 // src/feed/UnifiedFeed.jsx
-import { useVirtualizer } from '@tanstack/react-virtual';
 // ═══════════════════════════════════════════════════════════════
 // HUI — UNIFIED FEED  (Phase 2A: Safe Reintegration)
 //
@@ -9,10 +8,6 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 // CSS KEYFRAMES werden nur einmal injiziert.
 // ═══════════════════════════════════════════════════════════════
 
-import {
-  HUIWirkerIcon, HUIProjektIcon, HUIWerkeIcon, HUIErlebnisIcon,
-  HUIKalenderIcon, HUINachrichtIcon,
-} from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import FeedRouter              from "./cards/FeedRouter.jsx";
 import { CardSkeleton }        from "./cards/BaseFeedCard.jsx";
@@ -22,14 +17,10 @@ import { toFeedItem }          from "../system/feed/unifiedNormalizer.js";
 import FeedEventsSection       from "./FeedEventsSection.jsx";
 import { FeedBottomSentinel, FeedLoadMoreSpinner } from "./FeedScrollSentinel.jsx";
 import { useSingleReaction }   from "../lib/useReactions.jsx";
-import { useSavedPostsContext } from "../context/SavedPostsContext.jsx";
 import { useAuth }             from "../lib/AuthContext.jsx";
 import { analyticsService }    from "../services/creatorEconomy.js";
 import { emit }                from "../lib/events/index.js";
 import { toast }               from "../lib/useToast.jsx";
-import { useContentPreview } from "../context/ContentPreviewContext.jsx"; // OPEN.2 2026-07-08
-import { normalizePostForPreview, normalizeProjectForPreview, normalizeWirkerForPreview } from "../lib/previewNormalizers.js";
-import { HUIBookmarkIcon }     from "../design/icons/HuiInteractionIcons.jsx";
 
 
 /* ═══════════════════════════════════════════════════════════════
@@ -285,23 +276,6 @@ const FEED_CSS = `
   animation: huiFeedCardIn 0.32s ease both;
   -webkit-tap-highlight-color: transparent;
 }
-
-/* Search Experience 2.0 (2026-07-06, Lars) -- weicher Uebergang
-   zwischen Normal-/Such-Zustand des Feeds, kein harter Layoutwechsel. */
-@keyframes hui-search-fade-in {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* Suchtreffer-Zeilen (2026-07-07) -- EINE Touch-/Hover-Definition fuer
-   alle sechs Suchtypen (SearchResultRow), statt je Typ eigenes Verhalten.
-   Erste Zeile je Gruppe verliert den oberen Trennstrich (die Gruppen-
-   Card selbst hat schon einen sauberen oberen Abschluss via Radius). */
-.hui-search-row:active { background: rgba(26,53,48,0.035); }
-.hui-search-group > .hui-search-row:first-child { border-top: none; }
-@media (hover:hover) {
-  .hui-search-row:hover { background: rgba(26,53,48,0.02); }
-}
 `;
 
 let _feedCSSInjected = false;
@@ -444,57 +418,30 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
     return () => obs.disconnect();
   }, [visible]);
 
-  // MERKEN.2A (2026-07-08): Snapshot der echten Anzeige-Daten fuer
-  // saved_posts.post_data -- ohne das zeigt "Gemerkte Inhalte" nur
-  // Platzhalter statt Titel/Bild/Ersteller. useMemo haelt die Objekt-
-  // Referenz stabil (sonst Re-Trigger von useSingleReaction bei jedem Render).
-  const postSnapshot = useMemo(() => ({
-    cover_url:   Array.isArray(item?.media) ? (item.media[0] || null) : (item?.media || null),
-    title:       item?.title || item?.text || null,
-    author_name: item?.author?.name || item?.author?.displayName || null,
-    user_id:     item?.author?.id || null,
-  }), [item?.media, item?.title, item?.text, item?.author?.name, item?.author?.displayName, item?.author?.id]);
-
   // Hook-Gating: kein RPC / kein SELECT solange nicht sichtbar
   const { toggle, myTypes } = useSingleReaction(
     visible ? postId : null,
     postType,
-    authorId,
-    postSnapshot
+    authorId
   );
-  // Zweck: "gemerkt"-Status appweit einheitlich aus saved_posts lesen
-  // (nicht aus post_reactions). Warum: EIN geteilter Context-Zustand
-  // (siehe SavedPostsContext.jsx) statt lokal pro Karte -- Feed, Suche,
-  // Detailseite, Profil und Gemerkte Inhalte zeigen so garantiert denselben
-  // Zustand, optimistisch und live.
-  const { isSaved, toggleSave } = useSavedPostsContext();
-  const { open: openPreview } = useContentPreview(); // OPEN.2 2026-07-08 -- Suche nutzt jetzt dieselbe Vorschau wie Feed/Discover/Profil
-  const saved = isSaved(postId);
 
   const handleReaction = useCallback((type) => {
-    if (type === "save") {
-      // Merken laeuft ausschliesslich ueber den geteilten Context-Toggle --
-      // schreibt saved_posts + post_reactions, optimistisch appweit sichtbar.
-      toggleSave(postId, postType, postSnapshot);
-      toast.info(saved ? "Aus Merkliste entfernt" : "Gespeichert", { duration: 1800 });
-      return;
-    }
     if (!toggle) return;
     toggle(type);
-    const labels       = { like:"Gefällt dir ✦", inspire:"Inspiriert dich ✨" };
-    const removeLabels = { like:"Gefällt dir nicht mehr", inspire:"Inspiration entfernt" };
+    const labels       = { like:"Gefällt dir ✦", inspire:"Inspiriert dich ✨", save:"Gespeichert 🔖" };
+    const removeLabels = { like:"Gefällt dir nicht mehr", inspire:"Inspiration entfernt", save:"Entfernt" };
     const wasActive    = myTypes?.has?.(type);
     toast.info(wasActive ? (removeLabels[type] || type) : (labels[type] || type), { duration: 1800 });
-  }, [toggle, myTypes, toggleSave, postId, postType, postSnapshot, saved]);
+  }, [toggle, myTypes]);
 
   // Merge live reaction state into item
   const enriched = {
     ...item,
     _reactions: {
       ...(item._reactions || {}),
-      touched:  myTypes?.has?.("touch")   ?? false,
+      touched:  myTypes?.has?.("like")    ?? false,
       inspired: myTypes?.has?.("inspire") ?? false,
-      saved,
+      saved:    myTypes?.has?.("save")    ?? false,
     },
   };
 
@@ -533,7 +480,7 @@ function ReactionCard({ item, onProfile, onBook, onDetail, onShare, itemIndex, o
   );
 }
 
-function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loadMore, hasMore, loadingMore, onDiscover, scrollContainerRef }) {
+function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loadMore, hasMore, loadingMore, onDiscover }) {
   // per-item reaction is handled in ReactionCard wrapper below
   const arr = useMemo(() => {
     if (!Array.isArray(items)) return [];
@@ -582,73 +529,22 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
     }
   }, [hasMore, arr.length, depthUser?.id]); // eslint-disable-line
 
-  // ── Virtualizer: schätze ~620px pro Karte, rendert nur sichtbare Items ──
-  const rowVirtualizer = useVirtualizer({
-    count: arr.length,
-    getScrollElement: () => scrollContainerRef?.current ?? null,
-    estimateSize: () => 640,
-    overscan: 3,
-  });
-
-  const totalHeight = rowVirtualizer.getTotalSize();
-  const virtItems   = rowVirtualizer.getVirtualItems();
-  const useVirt     = !!scrollContainerRef?.current && arr.length > 6;
-
   if (arr.length === 0) return <EmptyFeed />;
   return (
-    <div style={{ paddingTop: 8 }}>
-      {useVirt ? (
-        // ── Virtualisierter Modus (scrollContainer bekannt) ──
-        <div style={{ height: totalHeight, position: "relative" }}>
-          {virtItems.map(vRow => {
-            const item = arr[vRow.index];
-            if (!item) return null;
-            const { isRelaxed, mb } = getCardRhythm(vRow.index);
-            const itemReactions = reactions[String(item.id)] || {};
-            return (
-              <div
-                key={String(item.id)}
-                data-index={vRow.index}
-                ref={rowVirtualizer.measureElement}
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  transform: `translateY(${vRow.start}px)`,
-                  paddingBottom: mb,
-                }}
-              >
-                <ReactionCard
-                  item={{ ...item, _reactions: { ...itemReactions, _relaxed: isRelaxed } }}
-                  onProfile={onProfile}
-                  onBook={onBook}
-                  onDetail={onDetail}
-                  onShare={() => onShare?.(item)}
-                  itemIndex={vRow.index}
-                  onDepth={onDepth}
-                />
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        // ── Fallback: normales Rendering (kein scrollContainer) ──
-        arr.map((item, idx) => {
-          const { isRelaxed, mb } = getCardRhythm(idx);
-          const itemReactions = reactions[String(item.id)] || {};
-          return (
-            <div
-              key={String(item.id)}
-              className="hui-feed-card"
-              style={{
-                marginBottom: mb,
-                animationDelay: Math.min(idx * 40, 300) + "ms",
-                contentVisibility: idx > 4 ? "auto" : "visible",
-                containIntrinsicSize: idx > 4 ? "0 620px" : undefined,
-              }}
-            >
-              <ReactionCard
+    <div style={{ paddingTop: 8, paddingBottom: 100 }}>
+      {arr.map((item, idx) => {
+        const { isRelaxed, mb } = getCardRhythm(idx);
+        const itemReactions = reactions[String(item.id)] || {};
+        return (
+          <div
+            key={String(item.id)}
+            className="hui-feed-card"
+            style={{
+              marginBottom: mb,
+              animationDelay: Math.min(idx * 40, 300) + "ms",
+            }}
+          >
+            <ReactionCard
                 item={{ ...item, _reactions: { ...itemReactions, _relaxed: isRelaxed } }}
                 onProfile={onProfile}
                 onBook={onBook}
@@ -657,10 +553,9 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
                 itemIndex={idx}
                 onDepth={onDepth}
               />
-            </div>
-          );
-        })
-      )}
+          </div>
+        );
+      })}
       {/* ── Pagination: Sentinel + Spinner (solange hasMore) ── */}
       <FeedLoadMoreSpinner loading={!!loadingMore} />
       <FeedBottomSentinel
@@ -759,292 +654,6 @@ const LazyCard = React.memo(function LazyCard({ raw, ...handlers }) {
   );
 });
 
-/* ── Wirker-/Projekte-Suchtreffer (2026-07-06) ────────────────────
-   "Home reagiert auf die globale Suche": fetchSearchResults() (useFeedStream)
-   liefert neben den gewohnten Content-Items (Werk/Erlebnis/Beitrag/Event)
-   jetzt zusaetzlich Wirker- und Impact-Projekt-Treffer. BaseFeedCard bleibt
-   bewusst UNVERAENDERT (Architektur-Charta: keine Rewrites an stabilen,
-   fein abgestimmten Komponenten) -- Menschen/Projekte sind keine "Beitraege
-   eines Autors" und passen konzeptionell nicht in dessen Karten-Layout.
-   Stattdessen: eigene, kompakte Ergebnis-Reihe, gleiche Tokens (TEAL/CORAL/
-   Ink) wie der Rest von UnifiedFeed -- kein neues Design erfunden. */
-const SXR = {
-  teal:  "#0DC4B5",
-  coral: "#F47355",
-  ink:   "rgba(26,53,48,0.82)",
-  ink2:  "rgba(26,53,48,0.50)",
-  ink3:  "rgba(26,53,48,0.34)",
-  border:"rgba(26,53,48,0.08)",
-};
-
-// Suchbegriff dezent hervorheben (2026-07-07, "intelligente Treffer") --
-// EINE Komponente fuer alle sechs Suchtypen, respektiert das bestehende
-// Farbsystem (Teal, bereits die Suchakzentfarbe in SXR) statt eine neue
-// "Textmarker"-Farbe zu erfinden. Hebt nur den ERSTEN Treffer hervor (reicht
-// fuer die Wiedererkennung, wirkt ruhiger als jedes Vorkommen zu markieren).
-function HighlightText({ text, query }) {
-  const str = text == null ? "" : String(text);
-  const q = (query || "").trim();
-  if (!q || !str) return <>{str}</>;
-  const idx = str.toLowerCase().indexOf(q.toLowerCase());
-  if (idx === -1) return <>{str}</>;
-  return (
-    <>
-      {str.slice(0, idx)}
-      <span style={{
-        background: "rgba(13,196,181,0.16)", color: SXR.teal,
-        borderRadius: 4, padding: "0 2px", fontWeight: 800,
-      }}>
-        {str.slice(idx, idx + q.length)}
-      </span>
-      {str.slice(idx + q.length)}
-    </>
-  );
-}
-
-// EINE gemeinsame Trefferzeile fuer alle sechs Suchtypen (2026-07-07,
-// "einheitliches Sucherlebnis"). Vorher: SearchPersonRow/SearchProjectRow
-// (kompakte Karten in Horizontal-Scrollern) fuer Wirker/Projekte, dazu die
-// volle ReactionCard/FeedRouter-Feedkarte (Bild+Reaktionsleiste+Autorzeile)
-// fuer Werke/Erlebnisse/Veranstaltungen/Beitraege -- zwei komplett
-// unterschiedliche Optiken UND zwei Layout-Richtungen (horizontal vs.
-// vertikal) nebeneinander, was den "wirkt wie einzelne Bereiche"-Eindruck
-// erzeugt hat. Jetzt: EINE Zeilen-Komponente, EINE Layout-Richtung
-// (vertikal, wie eine durchgehende Trefferliste), parametrisiert nur ueber
-// shape (circle=Person, square=alles andere) und optionalem Bild/Icon-
-// Fallback. Reaktionen (Resonanz/Austauschen/Merken/Weitergeben) bleiben
-// bewusst der Detailseite/dem normalen Feed vorbehalten -- eine Suchzeile
-// dient dem schnellen Finden, nicht dem Interagieren; Antippen fuehrt
-// weiterhin zur jeweils bestehenden Zielaktion (Profil/Projekt/Werk/
-// Buchung/Event/Profil-des-Autors), keine neuen Navigationsziele erfunden.
-function SearchResultRow({ shape = "square", image, fallbackIcon, tint, title, subtitle, query, onPress, saved, onToggleSave }) {
-  const [imgErr, setImgErr] = useState(false);
-  const showImg = image && !imgErr;
-  return (
-    <div
-      onClick={onPress}
-      className="hui-search-row"
-      style={{
-        display:"flex", alignItems:"center", gap:12,
-        padding:"10px 16px", background:"#fff",
-        borderTop:`1px solid ${SXR.border}`,
-        touchAction:"manipulation", WebkitTapHighlightColor:"transparent",
-        cursor: onPress ? "pointer" : "default",
-      }}
-    >
-      <div style={{
-        width:44, height:44, borderRadius: shape === "circle" ? "50%" : 12,
-        overflow:"hidden", flexShrink:0,
-        background: showImg ? "transparent" : (tint || "rgba(13,196,181,0.10)"),
-        border: shape === "circle" ? "1.5px solid rgba(13,196,181,0.25)" : `1px solid ${SXR.border}`,
-        display:"flex", alignItems:"center", justifyContent:"center",
-        fontSize: shape === "circle" ? 17 : 18, fontWeight:700, color:SXR.teal,
-      }}>
-        {showImg
-          ? <img loading="lazy" decoding="async" src={image} alt="" onError={() => setImgErr(true)}
-              style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-          : (fallbackIcon || (title?.[0] || "H").toUpperCase())}
-      </div>
-      <div style={{ minWidth:0, flex:1 }}>
-        <div style={{ fontSize:13.5, fontWeight:700, color:SXR.ink, lineHeight:1.3,
-          overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>
-          <HighlightText text={title} query={query} />
-        </div>
-        {subtitle && (
-          <div style={{ fontSize:11.5, color:SXR.ink2, fontWeight:500, marginTop:1,
-            overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>
-            <HighlightText text={subtitle} query={query} />
-          </div>
-        )}
-      </div>
-      {/* Merken-Icon nur fuer bookmarkbare Typen (Werke/Erlebnisse/
-          Veranstaltungen/Beitraege) -- Wirker/Projekte bewusst ohne
-          (bestehende Entscheidung, siehe MerkenSection-Kommentare). */}
-      {onToggleSave && (
-        <button
-          onClick={(e) => { e.stopPropagation(); onToggleSave(); }}
-          aria-label={saved ? "Aus Merkliste entfernen" : "Merken"}
-          style={{
-            flexShrink:0, width:36, height:36, display:"flex",
-            alignItems:"center", justifyContent:"center",
-            background:"transparent", border:"none", cursor:"pointer",
-            color: saved ? SXR.coral : SXR.ink2, touchAction:"manipulation",
-          }}
-        >
-          <HUIBookmarkIcon size={19} active={saved} />
-        </button>
-      )}
-    </div>
-  );
-}
-
-// Dezente Gruppen-Ueberschrift -- EINE Stildefinition fuer alle sechs
-// Suchergebnis-Gruppen (Lars-Vorgabe: "kleine, dezente Ueberschrift").
-function SearchGroupHeader({ icon, label }) {
-  return (
-    <div style={{ fontSize:11.5, fontWeight:700, color:SXR.ink2, letterSpacing:"0.02em",
-      textTransform:"uppercase", padding:"4px 16px 8px", display:"flex", alignItems:"center", gap:6 }}>
-      <span style={{ fontSize:13, textTransform:"none" }}>{icon}</span>
-      {label}
-    </div>
-  );
-}
-
-// Eine Gruppen-"Card" -- rundet die ganze Gruppe als EIN visuelles Objekt
-// ab (Radius+Schatten), die einzelnen SearchResultRow-Zeilen darin trennen
-// sich nur durch einen 1px-Strich (siehe .hui-search-group CSS). Dieselbe
-// Huelle fuer alle sechs Gruppen -- der einzige Unterschied ist der Inhalt.
-function SearchGroupCard({ icon, label, children }) {
-  return (
-    <div style={{ marginBottom: 14 }}>
-      <SearchGroupHeader icon={icon} label={label} />
-      <div className="hui-search-group" style={{
-        borderRadius: 18, overflow: "hidden", background: "#fff",
-        border: `1px solid ${SXR.border}`,
-        boxShadow: "0 1px 6px rgba(26,53,48,0.05)",
-      }}>
-        {children}
-      </div>
-    </div>
-  );
-}
-
-/* ── Gruppierte, einheitliche Suchergebnisse (2026-07-07, "ein einziges
-   zusammenhaengendes Sucherlebnis") ───────────────────────────────────
-   Feste Reihenfolge Wirker → Projekte → Werke → Erlebnisse →
-   Veranstaltungen → Beitraege (Lars-Vorgabe). Jede Gruppe ist bereits vom
-   Hook relevanzsortiert (useFeedStream.fetchSearchResults) -- hier wird nur
-   noch gerendert, keine zweite Sortierung/Sucharchitektur.
-   ALLE SECHS Typen nutzen jetzt dieselbe SearchResultRow (siehe oben) statt
-   vorher zwei verschiedener Optiken (kompakte Karten im Horizontal-Scroller
-   fuer Wirker/Projekte vs. volle ReactionCard/FeedRouter-Feedkarte fuer
-   Werke/Erlebnisse/Veranstaltungen/Beitraege) -- EIN Renderer, EINE
-   Layout-Richtung (vertikale Liste), EIN Antipp-Verhalten (siehe unten),
-   keine Sonderbehandlung mehr pro Typ ausser der Datenzuordnung selbst.
-   Antippen fuehrt zu genau denselben Zielen wie im normalen Feed/Header
-   (kein neues Navigationsziel erfunden): Werk→onDetail (bestehende
-   /work/:id-Route), Erlebnis→onBook (bestehender Buchungs-Einstieg),
-   Veranstaltung→onEventPress (bestehender Handler der Events-Reihe),
-   Beitrag→onProfile des Autors (es gibt aktuell keine eigene Beitrags-
-   Detailseite -- "wer hat das gepostet" ist der sinnvollste Fallback). */
-function GroupedSearchResults({
-  people, projects, groups, query,
-  onProfile, onBook, onDetail, onShare, onProjectPress, onEventPress,
-}) {
-  const { works = [], experiences = [], events = [], moments = [] } = groups || {};
-  const hasAny = people.length || projects.length || works.length || experiences.length || events.length || moments.length;
-  if (!hasAny) return null;
-
-  // Zweck: dieselbe saved_posts-Quelle wie Feed/Detail/Profil fuer die
-  // Merken-Icons in der Suche -- kein zweiter Zustand, kein Re-Fetch.
-  const { isSaved, toggleSave } = useSavedPostsContext();
-  const bookmarkProps = (item, postType) => {
-    const alreadySaved = isSaved(item.id);
-    return {
-      saved: alreadySaved,
-      onToggleSave: () => {
-        toggleSave(item.id, postType, {
-          cover_url:   Array.isArray(item.media) ? (item.media[0] || null) : (item.media || item.media?.[0]?.url || null),
-          title:       item.title || null,
-          author_name: item.author?.name || null,
-          user_id:     item.author?.id || null,
-        });
-        toast.info(alreadySaved ? "Aus Merkliste entfernt" : "Gespeichert", { duration: 1800 });
-      },
-    };
-  };
-
-  const TEAL_TINT = "rgba(13,196,181,0.10)";
-  const firstMediaUrl = (item) => item.media?.find(m => m.type === "image")?.url || item.media?.[0]?.url || null;
-
-  return (
-    <div style={{ animation: "hui-search-fade-in .2s cubic-bezier(.22,1,.36,1) both", marginBottom: 4 }}>
-      {people.length > 0 && (
-        <SearchGroupCard icon={<HUIWirkerIcon size={18}/>} label="Wirker">
-          {people.map(p => {
-            const name = p.display_name || p.full_name || p.username || "Mitglied";
-            return (
-              <SearchResultRow key={p.id} shape="circle" image={p.avatar_url}
-                title={name} subtitle={p.talent || p.location_label} query={query}
-                onPress={() => {
-                  const item = normalizeWirkerForPreview({ ...p, name });
-                  if (item) openPreview({ ...item, canOpenFull: !!p.username, fullPath: p.username ? `/${p.username}` : null });
-                  else onProfile?.(p.id);
-                }} />
-            );
-          })}
-        </SearchGroupCard>
-      )}
-      {projects.length > 0 && (
-        <SearchGroupCard icon={<HUIProjektIcon size={18}/>} label="Projekte">
-          {projects.map(p => (
-            <SearchResultRow key={p.id} shape="square" fallbackIcon={p.icon || "🌱"}
-              tint={p.color ? `${p.color}1A` : `${SXR.coral}1A`}
-              title={p.name} subtitle={p.category} query={query}
-              onPress={() => {
-                const item = normalizeProjectForPreview(p);
-                if (item) openPreview(item); else onProjectPress?.(p);
-              }} />
-          ))}
-        </SearchGroupCard>
-      )}
-      {works.length > 0 && (
-        <SearchGroupCard icon={<HUIWerkeIcon size={18}/>} label="Werke">
-          {works.map(it => (
-            <SearchResultRow key={it.id} shape="square" fallbackIcon="🛠" tint={TEAL_TINT}
-              image={firstMediaUrl(it)}
-              title={it.title} subtitle={[it.author?.name, it._raw?.category].filter(Boolean).join(" · ")}
-              query={query} onPress={() => {
-                const item = normalizePostForPreview(it._raw || it, "work");
-                if (item) openPreview({ ...item, canOpenFull:true, fullPath:`/work/${it.id}` });
-                else onDetail?.(it);
-              }} {...bookmarkProps(it, "work")} />
-          ))}
-        </SearchGroupCard>
-      )}
-      {experiences.length > 0 && (
-        <SearchGroupCard icon={<HUIErlebnisIcon size={18}/>} label="Erlebnisse">
-          {experiences.map(it => (
-            <SearchResultRow key={it.id} shape="square" fallbackIcon="✨" tint={TEAL_TINT}
-              image={firstMediaUrl(it)}
-              title={it.title} subtitle={[it.author?.name, it._raw?.location_text].filter(Boolean).join(" · ")}
-              query={query} onPress={() => {
-                const item = normalizePostForPreview(it._raw || it, "experience");
-                if (item) openPreview(item); else onBook?.(it);
-              }} {...bookmarkProps(it, "experience")} />
-          ))}
-        </SearchGroupCard>
-      )}
-      {events.length > 0 && (
-        <SearchGroupCard icon={<HUIKalenderIcon size={18}/>} label="Veranstaltungen">
-          {events.map(it => (
-            <SearchResultRow key={it.id} shape="square" fallbackIcon="📅" tint={TEAL_TINT}
-              image={firstMediaUrl(it)}
-              title={it.title} subtitle={[it.author?.name, it.location].filter(Boolean).join(" · ")}
-              query={query} onPress={() => {
-                const item = normalizePostForPreview(it._raw || it, "event");
-                if (item) openPreview(item); else onEventPress?.(it);
-              }} {...bookmarkProps(it, "event")} />
-          ))}
-        </SearchGroupCard>
-      )}
-      {moments.length > 0 && (
-        <SearchGroupCard icon={<HUINachrichtIcon size={18}/>} label="Beiträge">
-          {moments.map(it => (
-            <SearchResultRow key={it.id} shape="square" fallbackIcon="📰" tint={TEAL_TINT}
-              image={firstMediaUrl(it)}
-              title={it.title} subtitle={it.author?.name}
-              query={query} onPress={() => {
-                const item = normalizePostForPreview(it._raw || it, "moment");
-                if (item) openPreview(item); else onProfile?.(it.author?.id);
-              }} {...bookmarkProps(it, "post")} />
-          ))}
-        </SearchGroupCard>
-      )}
-    </div>
-  );
-}
-
 /* ── Main UnifiedFeed ─────────────────────────────────────────── */
 export default function UnifiedFeed({
   // Items prop (optional — wenn nicht übergeben, eigener useFeedStream)
@@ -1058,34 +667,12 @@ export default function UnifiedFeed({
   onShare      = null,
   onEventPress = null,
   onMoreEvents = null,
-  // Wirker-/Projekte-Suchtreffer (2026-07-06): Klick auf einen Projekt-Treffer
-  // in der Suche -- optional, faellt bei Nichtangabe auf No-Op zurueck statt
-  // zu crashen.
-  onProjectPress = null,
   // Refresh binding — parent can register for feed refresh fn
   onRefreshBind = null,
   // Navigation
   onDiscover   = null,
   // User context
   currentUser  = null,
-  // Search Experience 2.0 (2026-07-06, Lars) -- Suche als Feed-Zustand statt
-  // eigene Seite/Overlay. Wenn searchActive: Dashboard-Elemente (Begruessung,
-  // Heute-auf-HUI, Events) werden ausgeblendet; bei nicht-leerer searchQuery
-  // zeigt der Feed direkt die (im useFeedStream-Hook) gefilterten Ergebnisse
-  // -- dieselben Karten/Komponenten wie im Normalzustand, keine Suchkarten.
-  searchActive   = false,
-  searchQuery    = "",
-  typeFilter     = null,
-  // "Alle Kategorien"-Feature (2026-07-06); Mehrfachauswahl (2026-07-07):
-  // Array von Kategorie-Objekten aus src/lib/categories.js oder null/leer.
-  // Wird 1:1 an useFeedStream durchgereicht.
-  categoryFilters = null,
-  // Umkreissuche (2026-07-06): radiusKm (Zahl oder "world") + geo ({lat,lng})
-  // aus SearchCommandCenter/useRadiusFilter. Wird 1:1 an useFeedStream durchgereicht.
-  radiusKm       = null,
-  geo            = null,
-  // Performance: Scroll-Container-Ref für Virtualizer
-  scrollContainerRef = null,
 }) {
   useEffect(() => {
     injectFeedCSS();
@@ -1101,11 +688,7 @@ export default function UnifiedFeed({
     loadingMore,
     pendingCount,
     flushPendingItems,
-    isSearching,
-    searchPeople,
-    searchProjects,
-    searchGroups,
-  } = useFeedStream({ searchQuery, typeFilter, categoryFilters, radiusKm, geo });
+  } = useFeedStream();
 
   // ── Bind refresh fn to parent (defensive) ──────────────────────────
   React.useEffect(() => {
@@ -1150,16 +733,6 @@ export default function UnifiedFeed({
 
   // Sections are directly imported — no lazy load needed
 
-  // Search Experience 2.0: waehrend die Suche aktiv ist (Bar fokussiert),
-  // sind Dashboard-Elemente (Begruessung/Heute-auf-HUI/Events) ausgeblendet --
-  // sie sind kein Suchergebnis und wuerden wieder wie "ein zweites Home" wirken.
-  const hideDashboard = searchActive;
-  // Reine Discovery-Phase (Bar aktiv, aber noch kein Suchtext): die Kategorien-/
-  // Filter-/Verlaufs-Chips werden vom Header (SearchExperience) gerendert --
-  // der Feed-Bereich selbst bleibt hier bewusst leer (keine Karten, kein
-  // Dashboard), bis der Nutzer zu tippen beginnt.
-  const pureDiscovery = searchActive && !isSearching;
-
   return (
     <div style={{
       width: "100%",
@@ -1168,17 +741,13 @@ export default function UnifiedFeed({
       minHeight: "100vh",
     }}>
 
-      {/* ── FEED WELCOME HEADER — Kapitel 2 Sprint 2.1 — ausgeblendet waehrend Suche aktiv ── */}
-      {!hideDashboard && (
-        <div style={{ animation: "hui-search-fade-in .18s cubic-bezier(.22,1,.36,1) both" }}>
-          <FeedWelcomeHeader currentUser={currentUser} />
-        </div>
-      )}
+      {/* ── FEED WELCOME HEADER — Kapitel 2 Sprint 2.1 ── */}
+      <FeedWelcomeHeader currentUser={currentUser} />
 
       {/* Stories entfernt — HUI-Momente sind die Stories */}
 
-      {/* ── EVENTS — below stories — ausgeblendet waehrend Suche aktiv ── */}
-      {showEvents && !hideDashboard && (
+      {/* ── EVENTS — below stories ── */}
+      {showEvents && (
         <SectionBoundary name="events">
           <FeedEventsSection
             onEventPress={onEventPress}
@@ -1187,15 +756,7 @@ export default function UnifiedFeed({
         </SectionBoundary>
       )}
 
-      {/* Reine Discovery-Phase: Feed-Bereich bewusst leer -- Kategorien/Filter/
-          Verlauf werden vom Header (SearchExperience) darueber angezeigt. */}
-      {pureDiscovery && (
-        <div style={{ minHeight:"40vh" }} aria-hidden="true"/>
-      )}
-
-      {/* ── MAIN FEED — vertical timeline, stable, always renders (auch mit gefilterten Suchergebnissen) ── */}
-      {!pureDiscovery && (
-      <div key={searchActive ? "search" : "normal"} style={{ animation: "hui-search-fade-in .22s cubic-bezier(.22,1,.36,1) both" }}>
+      {/* ── MAIN FEED — vertical timeline, stable, always renders ── */}
 
       {/* FEED.3B FIX-1 — Soft Hydration Badge */}
       <FeedSoftHydrationBadge
@@ -1237,71 +798,21 @@ export default function UnifiedFeed({
           </div>
         )}
 
-        {/* Keine Ergebnisse -- Suchmodus, kompakter Hinweis statt leerer Flaeche.
-            Zaehlt Wirker-/Projekte-Treffer mit -- sonst wuerde "keine Ergebnisse"
-            angezeigt, obwohl oben bereits Menschen/Projekte gefunden wurden. */}
-        {isSearching && !streamLoading && resolvedItems.length === 0
-          && searchPeople.length === 0 && searchProjects.length === 0 && (
-          <div style={{ padding:"48px 24px", textAlign:"center" }}>
-            <div style={{ fontSize:26, marginBottom:8 }}>🔍</div>
-            <div style={{ fontSize:13.5, color:"rgba(26,53,48,0.55)", fontWeight:500 }}>
-              Keine Ergebnisse für „{searchQuery || categoryFilters?.map(c => c.name).join(", ") || ""}"
-            </div>
-          </div>
-        )}
-
-        {/* Feed list — only when not first-load.
-            Sanftes Fade waehrend eines Refetches (Radius-/Kategorie-/
-            Suchwechsel, 2026-07-06): die ALTEN Items bleiben im DOM (kein
-            Unmount, kein Skeleton, kein Flackern) und dimmen nur kurz ab,
-            bis die neuen Items da sind -- dann Wechsel + Fade zurueck auf
-            volle Deckkraft. Kein Layout-Sprung, keine Ladeunterbrechung. */}
+        {/* Feed list — only when not first-load */}
         {(!streamLoading || resolvedItems.length > 0) && (
-          <div style={{
-            opacity: streamLoading ? 0.45 : 1,
-            transition: "opacity .25s ease",
-          }}>
-            {/* Suchmodus: EINE einheitliche, nach Typ gruppierte Ergebnis-
-                Darstellung (Wirker→Projekte→Werke→Erlebnisse→Veranstaltungen→
-                Beitraege) statt der normalen chronologischen Feed-Liste.
-                Ausserhalb der Suche unveraendert: normale FeedList. Beide
-                haengen im selben Fade-Wrapper -- "keine Ladeunterbrechung"
-                gilt fuer beide Zustaende identisch. */}
-            {isSearching ? (
-              <SectionBoundary name="groupedSearchResults">
-                <GroupedSearchResults
-                  people={searchPeople}
-                  projects={searchProjects}
-                  groups={searchGroups}
-                  query={searchQuery}
-                  onProfile={onProfile}
-                  onBook={onBook}
-                  onDetail={onDetail}
-                  onShare={onShare}
-                  onProjectPress={onProjectPress}
-                  onEventPress={onEventPress}
-                />
-              </SectionBoundary>
-            ) : (
-              <FeedList
-                items={resolvedItems}
-                onProfile={onProfile}
-                onBook={onBook}
-                onDetail={onDetail}
-                onShare={onShare}
-                loadMore={loadMore}
-                hasMore={hasMore}
-                loadingMore={loadingMore}
-                onDiscover={onDiscover}
-                scrollContainerRef={scrollContainerRef}
-              />
-            )}
-          </div>
+          <FeedList
+            items={resolvedItems}
+            onProfile={onProfile}
+            onBook={onBook}
+            onDetail={onDetail}
+            onShare={onShare}
+            loadMore={loadMore}
+            hasMore={hasMore}
+            loadingMore={loadingMore}
+            onDiscover={onDiscover}
+          />
         )}
       </SectionBoundary>
-
-      </div>
-      )}
 
     </div>
   );
