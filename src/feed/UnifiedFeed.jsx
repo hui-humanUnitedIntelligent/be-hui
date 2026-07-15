@@ -1124,7 +1124,7 @@ export default function UnifiedFeed({
     searchPeople,
     searchProjects,
     searchGroups,
-  } = useFeedStream({ searchQuery, typeFilter, categoryFilters, radiusKm, geo });
+  } = useFeedStream({ searchQuery, typeFilter, categoryFilters, radiusKm, geo, searchActive });
 
   // ── Bind refresh fn to parent (defensive) ──────────────────────────
   React.useEffect(() => {
