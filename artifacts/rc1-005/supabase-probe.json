@@ -1,0 +1,250 @@
+{
+  "capturedAt": "2026-07-15T13:20:35.463Z",
+  "durationMs": 641,
+  "supabaseUrl": "https://gxztrhvhcxhmunhhkfjd.supabase.co",
+  "sql": {
+    "works": {
+      "table": "works",
+      "filters": {
+        "status": "published",
+        "approval_status": "approved"
+      },
+      "limit": 10
+    },
+    "experiences": {
+      "table": "experiences",
+      "filters": {
+        "status": "published",
+        "approval_status": "approved"
+      },
+      "limit": 10
+    },
+    "beitraege": {
+      "table": "beitraege",
+      "filters": {},
+      "limit": 10
+    }
+  },
+  "rpc": null,
+  "responses": {
+    "works": {
+      "url": "https://gxztrhvhcxhmunhhkfjd.supabase.co/rest/v1/works?select=id,title,created_at,user_id&status=eq.published&approval_status=eq.approved&order=created_at.desc&limit=10",
+      "httpStatus": 200,
+      "ok": true,
+      "count": 10,
+      "data": [
+        {
+          "id": "683b2d60-21cc-4370-93e8-621266ec303e",
+          "title": "Tolles Handy",
+          "created_at": "2026-07-11T14:01:39.538567+00:00",
+          "user_id": "6a93098f-076f-49ef-a0c5-8ec091735036"
+        },
+        {
+          "id": "6494f0be-ebe1-4960-9cd3-61e606c9509c",
+          "title": "Office zu verkaufen",
+          "created_at": "2026-07-10T15:54:25.744758+00:00",
+          "user_id": "3a291a5c-9c4c-4537-9e87-b7b137d5ec01"
+        },
+        {
+          "id": "2f044713-8be0-4795-a45b-488b0a60b7e4",
+          "title": "Schönes Haus",
+          "created_at": "2026-06-25T14:03:28.004537+00:00",
+          "user_id": "3a291a5c-9c4c-4537-9e87-b7b137d5ec01"
+        },
+        {
+          "id": "5123f4ea-f18e-4099-ba54-1b2af8ededdf",
+          "title": "Sexy Ohrringe",
+          "created_at": "2026-06-11T17:16:22.818509+00:00",
+          "user_id": "3a291a5c-9c4c-4537-9e87-b7b137d5ec01"
+        },
+        {
+          "id": "c14d7eb0-f9c7-4e7f-a9e3-6975edc76786",
+          "title": "Schöne Kerzen",
+          "created_at": "2026-06-11T17:08:18.210529+00:00",
+          "user_id": "3a291a5c-9c4c-4537-9e87-b7b137d5ec01"
+        },
+        {
+          "id": "32bd7a6a-42f6-437f-9507-9a37e8409e83",
+          "title": "Blumentopf",
+          "created_at": "2026-06-11T16:51:52.695768+00:00",
+          "user_id": "3a291a5c-9c4c-4537-9e87-b7b137d5ec01"
+        },
+        {
+          "id": "de9d687c-65be-48f0-910e-9eb46467fa31",
+          "title": "Der Neger Kuss ",
+          "created_at": "2026-06-11T16:49:51.607485+00:00",
+          "user_id": "3a291a5c-9c4c-4537-9e87-b7b137d5ec01"
+        },
+        {
+          "id": "2084c1bf-47b0-4ad3-88ae-ba023519e318",
+          "title": "Test WERK sehr cool",
+          "created_at": "2026-06-10T14:58:36.54094+00:00",
+          "user_id": "3a291a5c-9c4c-4537-9e87-b7b137d5ec01"
+        },
+        {
+          "id": "8e321f29-3a04-4350-8035-0a0fcc4febd9",
+          "title": "Das sind wir",
+          "created_at": "2026-06-10T07:50:05.805004+00:00",
+          "user_id": "e85e0057-7af7-44c8-bd94-df90926275fa"
+        },
+        {
+          "id": "6a4e9dc5-6511-4abe-8c4f-9d50feadd593",
+          "title": "test",
+          "created_at": "2026-06-09T14:22:02.762999+00:00",
+          "user_id": "3a291a5c-9c4c-4537-9e87-b7b137d5ec01"
+        }
+      ],
+      "error": null
+    },
+    "experiences": {
+      "url": "https://gxztrhvhcxhmunhhkfjd.supabase.co/rest/v1/experiences?select=id,title,created_at,user_id&status=eq.published&approval_status=eq.approved&order=created_at.desc&limit=10",
+      "httpStatus": 200,
+      "ok": true,
+      "count": 10,
+      "data": [
+        {
+          "id": "e58dc35b-4ab1-4450-a8a8-e38f2f454ba5",
+          "title": "Malen nach Zahlen",
+          "created_at": "2026-07-14T18:34:05.524512+00:00",
+          "user_id": "e85e0057-7af7-44c8-bd94-df90926275fa"
+        },
+        {
+          "id": "a96e6149-cd67-40d3-a642-8b44f32cc194",
+          "title": "Jodeltraining",
+          "created_at": "2026-07-11T14:22:30.719512+00:00",
+          "user_id": "6a93098f-076f-49ef-a0c5-8ec091735036"
+        },
+        {
+          "id": "0d65149a-5379-4636-8f66-fb43d8d8c746",
+          "title": "Baumschule",
+          "created_at": "2026-06-27T08:28:53.301243+00:00",
+          "user_id": "3a291a5c-9c4c-4537-9e87-b7b137d5ec01"
+        },
+        {
+          "id": "ce0a9082-8517-45db-ae2c-59c5bd11f300",
+          "title": "Lorbeer zu verkaufen ",
+          "created_at": "2026-06-12T03:53:19.797638+00:00",
+          "user_id": "3a291a5c-9c4c-4537-9e87-b7b137d5ec01"
+        },
+        {
+          "id": "354df3d5-3dbc-4486-8044-2bf2392070d1",
+          "title": "vielleicht können wir uns treffennnn",
+          "created_at": "2026-06-10T21:10:31.681588+00:00",
+          "user_id": "3a291a5c-9c4c-4537-9e87-b7b137d5ec01"
+        },
+        {
+          "id": "c36f3c4b-0bde-4cee-a16f-4c3e170e4986",
+          "title": "Ich sag nein oder nichtttttt",
+          "created_at": "2026-06-10T21:08:01.156233+00:00",
+          "user_id": "3a291a5c-9c4c-4537-9e87-b7b137d5ec01"
+        },
+        {
+          "id": "2468c5a1-8375-4e05-9bfd-5c363701a029",
+          "title": "Testsubjekt",
+          "created_at": "2026-06-10T18:39:58.336168+00:00",
+          "user_id": "3a291a5c-9c4c-4537-9e87-b7b137d5ec01"
+        },
+        {
+          "id": "3d7bbd17-7aa2-4dbb-ad47-e5f851be317c",
+          "title": "jjk",
+          "created_at": "2026-05-30T19:33:49.547844+00:00",
+          "user_id": "e85e0057-7af7-44c8-bd94-df90926275fa"
+        },
+        {
+          "id": "602ea970-0925-4b7e-bd88-7c23572ca24d",
+          "title": "Gitarrenunterricht für Anfänger",
+          "created_at": "2026-05-25T16:31:23.260969+00:00",
+          "user_id": "e85e0057-7af7-44c8-bd94-df90926275fa"
+        },
+        {
+          "id": "62905710-1738-4058-a897-6cf11545a560",
+          "title": "jkbkj",
+          "created_at": "2026-05-24T20:19:25.233793+00:00",
+          "user_id": "e85e0057-7af7-44c8-bd94-df90926275fa"
+        }
+      ],
+      "error": null
+    },
+    "beitraege": {
+      "url": "https://gxztrhvhcxhmunhhkfjd.supabase.co/rest/v1/beitraege?select=id,user_id,type,caption,created_at&order=created_at.desc&limit=10",
+      "httpStatus": 200,
+      "ok": true,
+      "count": 10,
+      "data": [
+        {
+          "id": "016516ac-042b-4ee3-bdb8-339d8ef35636",
+          "user_id": "3a291a5c-9c4c-4537-9e87-b7b137d5ec01",
+          "type": "foto",
+          "caption": "Spek-takel",
+          "created_at": "2026-06-03T19:55:29.034925+00:00"
+        },
+        {
+          "id": "720c3755-95c2-42a0-b549-8040fa324135",
+          "user_id": "3a291a5c-9c4c-4537-9e87-b7b137d5ec01",
+          "type": "foto",
+          "caption": "Animation",
+          "created_at": "2026-06-03T19:53:46.916881+00:00"
+        },
+        {
+          "id": "070c81d4-ec4b-40ad-b12d-c81c74a33a33",
+          "user_id": "3a291a5c-9c4c-4537-9e87-b7b137d5ec01",
+          "type": "foto",
+          "caption": "funktioniert noch nicht",
+          "created_at": "2026-06-03T19:52:50.886402+00:00"
+        },
+        {
+          "id": "0f230241-dc02-4cb9-8393-5972a36911ee",
+          "user_id": "e85e0057-7af7-44c8-bd94-df90926275fa",
+          "type": "foto",
+          "caption": "Nur am ausruhen! 😜",
+          "created_at": "2026-05-29T19:42:41.170987+00:00"
+        },
+        {
+          "id": "e8382154-c8a8-4192-bb97-5f87488190d2",
+          "user_id": "e85e0057-7af7-44c8-bd94-df90926275fa",
+          "type": "video",
+          "caption": "So sieht der Boden aus.",
+          "created_at": "2026-05-29T19:40:38.982614+00:00"
+        },
+        {
+          "id": "96e9e18c-9fe4-43a5-ad69-7ba9006b47ca",
+          "user_id": "e85e0057-7af7-44c8-bd94-df90926275fa",
+          "type": "foto",
+          "caption": "Und weiter geht´s 😁",
+          "created_at": "2026-05-29T19:39:19.934031+00:00"
+        },
+        {
+          "id": "c8ce8bca-e681-49bf-ac0b-3f3da5039cf2",
+          "user_id": "e85e0057-7af7-44c8-bd94-df90926275fa",
+          "type": "gedanke",
+          "caption": "Dann denken wir mal drüber nach🤔",
+          "created_at": "2026-05-29T19:36:20.91615+00:00"
+        },
+        {
+          "id": "6c93e40c-f406-4919-86c1-2a9b2768f234",
+          "user_id": "e85e0057-7af7-44c8-bd94-df90926275fa",
+          "type": "moment",
+          "caption": "ja ja ja",
+          "created_at": "2026-05-26T14:21:33.166+00:00"
+        },
+        {
+          "id": "b6acb695-a00c-48f5-828b-24092ac47ec3",
+          "user_id": "e85e0057-7af7-44c8-bd94-df90926275fa",
+          "type": "moment",
+          "caption": "nlksanlkd",
+          "created_at": "2026-05-26T14:20:31.727+00:00"
+        },
+        {
+          "id": "2df2dd5d-a50b-4496-a8e5-d2163cf624a6",
+          "user_id": "e85e0057-7af7-44c8-bd94-df90926275fa",
+          "type": "moment",
+          "caption": null,
+          "created_at": "2026-05-26T11:15:43.072+00:00"
+        }
+      ],
+      "error": null
+    }
+  },
+  "rawItemsLength": 30,
+  "httpErrors": []
+}

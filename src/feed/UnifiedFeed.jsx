@@ -28,6 +28,11 @@ import { analyticsService }    from "../services/creatorEconomy.js";
 import { emit }                from "../lib/events/index.js";
 import { toast }               from "../lib/useToast.jsx";
 import { useContentPreview } from "../context/ContentPreviewContext.jsx"; // OPEN.2 2026-07-08
+import {
+  updateFeedRuntimeTruth,
+  feedRuntimeSnapshot,
+  recordFeedStateChange,
+} from "./feedRuntimeTruth.js";
 import { normalizePostForPreview, normalizeProjectForPreview, normalizeWirkerForPreview } from "../lib/previewNormalizers.js";
 import { HUIBookmarkIcon }     from "../design/icons/HuiInteractionIcons.jsx";
 
@@ -594,14 +599,17 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
   const virtItems   = rowVirtualizer.getVirtualItems();
   const useVirt     = !!scrollContainerRef?.current && arr.length > 6;
 
-  // Runtime-Snapshot für HUI_FEED_REALITY_CHECK (kein Prod-Verhalten geändert)
+  // Runtime-Snapshot für HUI_RC1_005 + HUI_FEED_REALITY_CHECK
   useEffect(() => {
     if (typeof window === "undefined") return;
     const scrollEl = scrollContainerRef?.current;
-  window.__HUI_FEED_REALITY__ = {
+    const emptyState = arr.length === 0;
+    const domCards = useVirt ? virtItems.length : arr.length;
+
+    window.__HUI_FEED_REALITY__ = {
       itemsLength:        arr.length,
       feedListLength:     arr.length,
-      domCards:           useVirt ? virtItems.length : arr.length,
+      domCards,
       scrollHeight:       scrollEl?.scrollHeight ?? null,
       clientHeight:       scrollEl?.clientHeight ?? null,
       hasMore,
@@ -610,6 +618,21 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
       virtualTotalHeight: useVirt ? totalHeight : null,
       intersectionRoot:   useVirt ? "scrollContainer" : "n/a",
     };
+
+    updateFeedRuntimeTruth({
+      FeedList: { length: arr.length },
+      DOM_Karten: domCards,
+      EmptyState: emptyState,
+      visibleItems: { length: domCards },
+      hasNextPage: hasMore,
+      isFetchingNextPage: !!loadingMore,
+    });
+    feedRuntimeSnapshot("FeedList:render", {
+      "FeedList.length": arr.length,
+      "visibleItems.length": domCards,
+      DOM_Karten: domCards,
+      EmptyState: emptyState,
+    });
   }, [arr.length, useVirt, virtItems.length, totalHeight, hasMore, loadingMore, scrollContainerRef]);
 
   if (arr.length === 0) return <EmptyFeed />;
@@ -1113,6 +1136,7 @@ export default function UnifiedFeed({
   // ── OWN FEED STREAM — läuft immer, liefert Items aus DB ──────────
   const {
     items: streamItems,
+    rawItems: streamRawItems,
     loading: streamLoading,
     refresh: streamRefresh,
     loadMore,
@@ -1166,6 +1190,41 @@ export default function UnifiedFeed({
 
     return safe;
   }, [itemsProp, streamItems, streamLoading]);
+
+  // RC1-005: Snapshot bei jedem Render
+  useEffect(() => {
+    updateFeedRuntimeTruth({
+      resolvedItems: { length: resolvedItems.length },
+      searchActive,
+      searchQuery: searchQuery || "",
+      categoryFilters,
+      radiusKm,
+      hasRadius: !!(geo && radiusKm && radiusKm !== "world"),
+      isSearching,
+      isFetching: streamLoading,
+      hasNextPage: hasMore,
+      isFetchingNextPage: loadingMore,
+    });
+    feedRuntimeSnapshot("UnifiedFeed:render", {
+      "resolvedItems.length": resolvedItems.length,
+      "items.length": streamItems?.length ?? 0,
+      "rawItems.length": streamRawItems?.length ?? 0,
+      isSearching,
+      searchActive,
+      EmptyState: resolvedItems.length === 0 && !streamLoading,
+    });
+    if (resolvedItems.length === 0 && (streamRawItems?.length > 0 || streamItems?.length > 0)) {
+      recordFeedStateChange({
+        file: "src/feed/UnifiedFeed.jsx",
+        fn: "resolvedItems",
+        line: 1139,
+        variable: "resolvedItems.length",
+        before: streamRawItems?.length || streamItems?.length || 0,
+        after: 0,
+        note: "resolvedItems leer obwohl Stream Items hat",
+      });
+    }
+  });
 
   // Sections are directly imported — no lazy load needed
 

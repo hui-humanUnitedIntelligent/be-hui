@@ -24,6 +24,14 @@ import {
   normalizeWorkRow,
   normalizeEventRow      as normalizeInvitationRow,
 } from "../system/feed/unifiedNormalizer.js";
+import {
+  markFetchFeedPageStart,
+  markFetchFeedPageEnd,
+  updateFeedRuntimeTruth,
+  feedRuntimeSnapshot,
+  recordFeedStateChange,
+  wrapFeedSetter,
+} from "./feedRuntimeTruth.js";
 
 // FEED V3 — Upcoming experiences belong in "Demnächst", not the main feed.
 function isUpcomingExperience(item) {
@@ -84,12 +92,40 @@ export function getFeedScrollPos()   { return _scrollPos.y; }
 
 // ─── Batch-Query: eine Seite laden ───────────────────────────────────────────
 // FEED.2E — Multi-Cursor: cursors = { works, exps, beitr } | null
-async function fetchFeedPage(userId = null, cursors = null) {
+export async function fetchFeedPage(userId = null, cursors = null) {
   /**
    * Phase 4H — NO PROFILE JOINS
    * Alle Queries ohne relational join zu profiles.
    * Profile werden separat angereichert (optional, nie blockierend).
    */
+  const FETCH_SQL = {
+    works: {
+      table: "works",
+      select: "id,title,cover_url,media_url,category,description,caption,tags,price,for_sale,status,approval_status,user_id,creator_id,created_at",
+      filters: { status: "published", approval_status: "approved" },
+      order: { created_at: "desc" },
+    },
+    experiences: {
+      table: "experiences",
+      select: "id,title,cover_url,media_url,category,description,price,duration,format,location_text,date,time_start,time_end,is_live,booking_mode,pricing_type,experience_type,participant_limit,max_participants,mood,mood_tags,social_energy,status,approval_status,visibility,user_id,created_at",
+      filters: { status: "published", approval_status: "approved" },
+      order: { created_at: "desc" },
+    },
+    beitraege: {
+      table: "beitraege",
+      select: "id,user_id,src,type,caption,created_at",
+      filters: {},
+      order: { created_at: "desc" },
+    },
+  };
+
+  markFetchFeedPageStart({
+    sql: FETCH_SQL,
+    rpc: null,
+    userId,
+    cursors,
+  });
+
   const limit = Math.ceil(PAGE_SIZE / 2); // 10 pro Quelle
 
   // FEED.2E — eigene Cursor pro Quelle statt eines globalen Timestamps
@@ -140,13 +176,45 @@ async function fetchFeedPage(userId = null, cursors = null) {
     : (expsRes.value?.error?.message || null);
 
 
+  const supabaseResponse = {
+    works: {
+      status: worksRes.status,
+      count: works.length,
+      error: worksErr,
+      httpStatus: worksRes.status === "fulfilled" ? worksRes.value?.status : null,
+      sampleIds: works.slice(0, 3).map((r) => r.id),
+    },
+    experiences: {
+      status: expsRes.status,
+      count: exps.length,
+      error: expsErr,
+      httpStatus: expsRes.status === "fulfilled" ? expsRes.value?.status : null,
+      sampleIds: exps.slice(0, 3).map((r) => r.id),
+    },
+    beitraege: {
+      status: beitrRes.status,
+      count: beitr.length,
+      error: beitrErr,
+      httpStatus: beitrRes.status === "fulfilled" ? beitrRes.value?.status : null,
+      sampleIds: beitr.slice(0, 3).map((r) => r.id),
+    },
+  };
+
   if (typeof window !== "undefined") {
     window.__HUI_STREAM_DEBUG__ = {
       works: works.length, exps: exps.length,
       beitraege: beitr.length, beitrErr, worksErr, expsErr,
     };
+    updateFeedRuntimeTruth({ fetchFeedPage: { supabaseResponse } });
+    feedRuntimeSnapshot("fetchFeedPage:supabase", {
+      "rawItems.length": works.length + exps.length + beitr.length,
+      works: works.length,
+      exps: exps.length,
+      beitr: beitr.length,
+    });
   }
 
+  try {
   // ── Step 2: Profile-Enrichment — optional, nie blockierend ─────────────
   // ── TRACE STEP 1: erstes Work-Item ─────────────────────────
   if (works && works.length > 0) {
@@ -255,7 +323,26 @@ async function fetchFeedPage(userId = null, cursors = null) {
   // FEED.2E — hasMore: true wenn mind. eine Quelle weitere Items hat
   const hasMore = works.length >= limit || exps.length >= limit || beitr.length >= limit;
 
+  const rawCount = works.length + exps.length + beitr.length;
+  markFetchFeedPageEnd({
+    error: null,
+    supabaseResponse,
+    httpStatus: 200,
+    rawItemsLength: rawCount,
+    normalizedItemsLength: normalized.length,
+  });
+
   return { items: normalized, nextCursors, hasMore };
+  } catch (err) {
+    markFetchFeedPageEnd({
+      error: err?.message || String(err),
+      supabaseResponse,
+      httpStatus: null,
+      rawItemsLength: works.length + exps.length + beitr.length,
+      normalizedItemsLength: 0,
+    });
+    throw err;
+  }
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
@@ -676,7 +763,6 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
   // "isSearching" -- Nutzer soll direkt nach Standortwahl Ergebnisse in der
   // Naehe sehen, auch ohne eingetippten Suchtext.
   const [searchItems,    setSearchItems]    = useState([]);
-  // Wirker/Projekte (2026-07-06, "Home reagiert auf globale Suche") --
   // separat von searchItems gehalten, da sie in UnifiedFeed als eigene,
   // kompakte Ergebnis-Reihen dargestellt werden (kein Feed-Card-Layout),
   // aber aus derselben fetchSearchResults()-Antwort stammen -- keine
@@ -732,6 +818,40 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
   const [pendingItems,   setPendingItems]   = useState([]);  // Soft Hydration Queue
   const [pendingCount,   setPendingCount]   = useState(0);   // Badge "N neue"
 
+  const _setItemsTracked = useCallback(
+    wrapFeedSetter(setItems, { file: "src/feed/useFeedStream.js", fn: "setItems", line: 780, variable: "items.length" }),
+    []
+  );
+  const _setSearchItemsTracked = useCallback(
+    wrapFeedSetter(setSearchItems, { file: "src/feed/useFeedStream.js", fn: "setSearchItems", line: 712, variable: "searchItems.length" }),
+    []
+  );
+
+  // RC1-005: Hook-State → window.__HUI_FEED_RUNTIME__
+  useEffect(() => {
+    updateFeedRuntimeTruth({
+      rawItems: { length: items.length },
+      items: { length: isSearching ? searchItems.length : items.length },
+      searchItems: { length: searchItems.length },
+      isSearching,
+      hasRadius,
+      hasNextPage: hasMore,
+      isFetching: loading || searchLoading,
+      isFetchingNextPage: loadingMore,
+      searchQuery: searchQuery || "",
+      categoryFilters,
+      radiusKm,
+    });
+    feedRuntimeSnapshot("useFeedStream:state", {
+      "rawItems.length": items.length,
+      "items.length": isSearching ? searchItems.length : items.length,
+      "searchItems.length": searchItems.length,
+      isSearching,
+      hasNextPage: hasMore,
+      isFetching: loading || searchLoading,
+    });
+  }, [items.length, searchItems.length, isSearching, hasRadius, hasMore, loading, searchLoading, loadingMore, searchQuery, categoryFilters, radiusKm]);
+
   // ── Refs ───────────────────────────────────────────────────────────────────
   const cursorRef         = useRef(null);     // FEED.2E: null | { works, exps, beitr } — Cursor pro Quelle
   const prefetchedRef     = useRef(null);     // Vorgeladene nächste Seite
@@ -763,7 +883,7 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
     // Cache prüfen — sofort rendern wenn fresh
     const cached = loadCache();
     if (cached?.items?.length > 0) {
-      setItems(cached.items);
+      _setItemsTracked(cached.items);
       cursorRef.current = cached.cursors || null; // FEED.2E: cursors-Objekt (Cache aktuell disabled)
       setLoading(false);
       // Trotzdem im Hintergrund refreshen (silent)
@@ -777,11 +897,20 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
       if (!mountedRef.current) return;
       cursorRef.current = nextCursors;
       setHasMore(more);
-      setItems(newItems);
+      _setItemsTracked(newItems);
     } catch (err) {
       if (!mountedRef.current) return;
       console.error("[HUI_STREAM] initial load error:", err.message);
       setError(err.message);
+      recordFeedStateChange({
+        file: "src/feed/useFeedStream.js",
+        fn: "initialLoad",
+        line: 901,
+        variable: "items.length",
+        before: null,
+        after: 0,
+        note: err?.message || String(err),
+      });
     } finally {
       if (mountedRef.current) setLoading(false);
     }
@@ -799,7 +928,7 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
       const currentIds = items.map(i => i.id).join(",");  // closure, okay hier
       if (freshIds !== currentIds) {
         cursorRef.current = nextCursors;
-        setItems(fresh);
+        _setItemsTracked(fresh);
       }
     } catch (_) { /* silent */ }
   }
@@ -813,7 +942,7 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
       const { items: nextItems, nextCursors, hasMore: more } = prefetchedRef.current;
       prefetchedRef.current = null;
       if (!mountedRef.current) return;
-      setItems(prev => {
+      _setItemsTracked(prev => {
         const existingIds = new Set(prev.map(i => i.id));
         const deduped = nextItems.filter(i => !existingIds.has(i.id));
         return [...prev, ...deduped];
@@ -830,7 +959,7 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
       const { items: nextItems, nextCursors, hasMore: more } =
         await fetchFeedPage(user.id, cursorRef.current);
       if (!mountedRef.current) return;
-      setItems(prev => {
+      _setItemsTracked(prev => {
         const existingIds = new Set(prev.map(i => i.id));
         const deduped = nextItems.filter(i => !existingIds.has(i.id));
         return [...prev, ...deduped];
@@ -874,7 +1003,7 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
 
     // Sofort in items[] einfügen — Soft-Hydration-Queue allein ließ neue Beiträge
     // unsichtbar (pending bis Badge-Tap) bzw. nach refresh() verloren gehen.
-    setItems(prev => {
+    _setItemsTracked(prev => {
       if (prev.find(i => i.id === normalized.id)) return prev;
       return [normalized, ...prev];
     });
@@ -883,7 +1012,7 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
   // ── Soft Hydration: Items einbauen (User-Tap) ────────────────────────────
   const flushPendingItems = useCallback(() => {
     if (pendingItems.length === 0) return;
-    setItems(prev => {
+    _setItemsTracked(prev => {
       const existingIds = new Set(prev.map(i => i.id));
       const newOnes = pendingItems
         .filter(i => !existingIds.has(i.id))
@@ -1004,7 +1133,7 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
       cursorRef.current = nextCursors;
       setHasMore(more);
       // Realtime-Inserts während des Fetches behalten (feed-refresh + INSERT Race)
-      setItems(prev => {
+      _setItemsTracked(prev => {
         const extras = prev.filter(p => !newItems.some(n => n.id === p.id));
         if (!extras.length) return newItems;
         const merged = [...extras, ...newItems];
