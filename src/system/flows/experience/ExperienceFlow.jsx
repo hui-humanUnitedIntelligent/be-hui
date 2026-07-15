@@ -157,7 +157,9 @@ export default function ExperienceFlow({ onClose }) {
         supabase, form, user.id, uploadedUrls
       );
       if (contractErr) throw new Error(contractErr.message);
-      console.log("[HUI_REALITY] ✓ experience published:", expData?.id);
+      if (import.meta.env.DEV) {
+        console.log("[HUI_REALITY] ✓ experience published:", expData?.id);
+      }
       setDone(true);
       setTimeout(() => onClose?.(), 2200);
     } catch(e) {

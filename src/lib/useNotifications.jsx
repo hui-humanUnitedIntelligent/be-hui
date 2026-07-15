@@ -587,8 +587,8 @@ function WeekStats({ userId }) {
           width:22, height:22, borderRadius:6,
           background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
           display:"flex", alignItems:"center", justifyContent:"center",
-          fontSize:11, color:"#fff",
-        }} style={{display:"flex",alignItems:"center",justifyContent:"center",color:"rgba(14,196,184,0.5)"}}><HUIStatistikIcon size={24}/></div>
+          color:"rgba(14,196,184,0.5)",
+        }}><HUIStatistikIcon size={24}/></div>
         <span style={{
           fontSize:11, fontWeight:800,
           color:"rgba(26,26,24,0.40)",

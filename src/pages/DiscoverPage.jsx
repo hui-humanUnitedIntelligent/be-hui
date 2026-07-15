@@ -515,8 +515,8 @@ function MomentCard({ moment, delay=0, onPress }) {
             width:18, height:18, borderRadius:"50%",
             background:T.tealSoft,
             display:"flex", alignItems:"center", justifyContent:"center",
-            fontSize:9, flexShrink:0,
-          }} style={{display:"flex",alignItems:"center",justifyContent:"center"}}><HUIProfilIcon size={24} style={{opacity:0.35, color:"rgba(14,196,184,0.5)"}}/></div>
+            flexShrink:0,
+          }}><HUIProfilIcon size={24} style={{opacity:0.35, color:"rgba(14,196,184,0.5)"}}/></div>
           <span style={{ fontSize:10.5, fontWeight:600, color:T.inkSoft }}>{moment.name}</span>
           {moment.location && (
             <>

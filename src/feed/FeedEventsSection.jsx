@@ -1,27 +1,58 @@
 // src/feed/FeedEventsSection.jsx
 // ═══════════════════════════════════════════════════════════════
-// HUI — EVENTS SECTION (Phase 2A: Safe Reintegration)
+// HUI Feed V3 — Bereich "Demnächst"
 //
-// ISOLIERT — eigene Query, eigener State.
-// Crash → leerer Container, kein Feed-Crash.
+// Zeigt bevorstehende Erlebnisse und Veranstaltungen oberhalb des
+// Haupt-Feeds. Eigene Query, eigener State — kein Feed-Crash bei Fehler.
 // ═══════════════════════════════════════════════════════════════
 
-import { HUILocationIcon } from '../design/icons/HuiSystemIcons.jsx';
+import { HUILocationIcon, HUIKalenderIcon, HUIPersonenIcon } from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient.js";
 
 const TEAL  = "#16D7C5";
 const CORAL = "#FF8A6B";
+const INK   = "#141422";
+const MUTED = "rgba(20,20,34,0.46)";
 
+function formatDateBlock(dateStr) {
+  if (!dateStr) return { month: "", day: "?", weekday: "" };
+  try {
+    const d = new Date(dateStr);
+    return {
+      month:   d.toLocaleDateString("de-DE", { month: "short" }).toUpperCase(),
+      day:     d.getDate(),
+      weekday: d.toLocaleDateString("de-DE", { weekday: "short" }),
+    };
+  } catch {
+    return { month: "", day: "?", weekday: "" };
+  }
+}
 
-/* ── Event Card ───────────────────────────────────────────────── */
-function EventCard({ event, onPress, delay }) {
+function formatTime(timeStr, fallbackLabel) {
+  if (timeStr) return timeStr.slice(0, 5);
+  return fallbackLabel || "";
+}
+
+function participantLabel(event) {
+  const max = event.maxParticipants;
+  if (!max) return null;
+  return `Max. ${max} Teilnehmende`;
+}
+
+/* ── Event Card (Demnächst) ───────────────────────────────────── */
+function EventCard({ event, onPress, onBook }) {
   const [pressed, setPressed] = useState(false);
-  const [imgErr,  setImgErr]  = useState(false);
-  const img = (!imgErr && event.img) ? event.img : null;
+  const dt = formatDateBlock(event.date);
+  const time = formatTime(event.time, event.timeLabel);
+  const participants = participantLabel(event);
+  const isExperience = event.kind === "experience";
 
-  // Color from badge
-  const accentColor = event.badgeColor || TEAL;
+  const handleCta = (e) => {
+    e.stopPropagation();
+    if (isExperience && onBook) onBook(event.rawItem);
+    else onPress?.(event);
+  };
 
   return (
     <button
@@ -31,213 +62,243 @@ function EventCard({ event, onPress, delay }) {
       onMouseDown={() => setPressed(true)}
       onMouseUp={() => setPressed(false)}
       style={{
-        background: "none", border: "none", padding: 0, cursor: "pointer",
-        flexShrink: 0, width: 148,
-        opacity: pressed ? 0.85 : 1,
+        background: "#fff",
+        border: "1px solid rgba(26,26,46,0.06)",
+        borderRadius: 16,
+        padding: 12,
+        cursor: "pointer",
+        flexShrink: 0,
+        width: 260,
+        textAlign: "left",
+        boxShadow: "0 2px 12px rgba(26,26,46,0.06)",
+        opacity: pressed ? 0.9 : 1,
         transition: "opacity 0.15s ease",
         touchAction: "manipulation",
+        display: "flex",
+        gap: 12,
+        alignItems: "flex-start",
       }}
     >
+      {/* Datum */}
       <div style={{
-        borderRadius: 20, overflow: "hidden",
-        background: "#fff",
-        boxShadow: "0 2px 12px rgba(26,26,46,0.08)",
-        border: "1px solid rgba(26,26,46,0.05)",
+        width: 44, minWidth: 44, background: "rgba(13,196,181,0.10)",
+        borderRadius: 10, padding: "6px 4px", textAlign: "center",
       }}>
-        {/* Media area — fixed 100px */}
-        <div style={{
-          width: "100%", height: 100, position: "relative",
-          background: img ? "#F0EFED"
-            : `linear-gradient(135deg, ${accentColor}22 0%, ${accentColor}08 100%)`,
-          overflow: "hidden",
-        }}>
-          {img && (
-            <img loading="lazy" decoding="async" src={img} alt={event.title}
-              onError={() => setImgErr(true)}
-              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-          )}
-
-          {/* Gradient overlay for text */}
-          <div style={{
-            position: "absolute", inset: 0,
-            background: "linear-gradient(180deg, rgba(0,0,0,0.02) 40%, rgba(0,0,0,0.48) 100%)",
-          }} />
-
-          {/* Badge */}
-          {event.badge && (
-            <div style={{
-              position: "absolute", top: 8, left: 8,
-              background: accentColor, color: "#fff",
-              fontSize: 9, fontWeight: 800, letterSpacing: 0.4,
-              padding: "2px 7px", borderRadius: 6,
-            }}>
-              {event.badge}
-            </div>
-          )}
-
-          {/* Title on image */}
-          <div style={{
-            position: "absolute", bottom: 0, left: 0, right: 0,
-            padding: "6px 10px 8px",
-          }}>
-            <div style={{
-              fontSize: 11.5, fontWeight: 700, color: "#fff",
-              lineHeight: 1.2, overflow: "hidden",
-              display: "-webkit-box", WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-            }}>
-              {event.title}
-            </div>
+        <div style={{ fontSize: 9, fontWeight: 800, color: TEAL, letterSpacing: "0.06em" }}>
+          {dt.month}
+        </div>
+        <div style={{ fontSize: 20, fontWeight: 800, color: INK, lineHeight: 1.1 }}>
+          {dt.day}
+        </div>
+        {dt.weekday && (
+          <div style={{ fontSize: 9, fontWeight: 600, color: MUTED, marginTop: 2 }}>
+            {dt.weekday}
           </div>
+        )}
+      </div>
+
+      {/* Inhalt */}
+      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 4 }}>
+        <div style={{
+          fontSize: 13.5, fontWeight: 700, color: INK, lineHeight: 1.25,
+          overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
+        }}>
+          {event.title}
         </div>
 
-        {/* Meta row */}
-        <div style={{
-          padding: "7px 10px 9px",
-          display: "flex", alignItems: "center", gap: 5,
-        }}>
-          <span style={{ fontSize: 10, color: "rgba(26,26,46,0.42)" }}>🕐</span>
-          <span style={{ fontSize: 10.5, color: "rgba(26,26,46,0.55)", fontWeight: 500 }}>
-            {event.time} · {event.location}
-          </span>
-        </div>
+        {time && (
+          <div style={{ fontSize: 11.5, color: MUTED, display: "flex", alignItems: "center", gap: 4 }}>
+            <span>🕐</span> {time} Uhr
+          </div>
+        )}
+
+        {event.location && (
+          <div style={{ fontSize: 11.5, color: MUTED, display: "flex", alignItems: "center", gap: 4 }}>
+            <HUILocationIcon size={12} style={{ flexShrink: 0 }} />
+            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {event.location}
+            </span>
+          </div>
+        )}
+
+        {participants && (
+          <div style={{ fontSize: 11.5, color: MUTED, display: "flex", alignItems: "center", gap: 4 }}>
+            <HUIPersonenIcon size={12} style={{ flexShrink: 0 }} />
+            {participants}
+          </div>
+        )}
+
+        <button
+          onClick={handleCta}
+          style={{
+            marginTop: 6, alignSelf: "flex-start",
+            background: "linear-gradient(135deg,#0DC4B5,#09A89A)",
+            color: "#fff", border: "none", borderRadius: 99,
+            padding: "7px 14px", fontSize: 12, fontWeight: 700,
+            cursor: "pointer", touchAction: "manipulation",
+          }}
+        >
+          {isExperience ? "Teilnehmen" : "Ansehen"}
+        </button>
       </div>
     </button>
   );
 }
 
+function computeBadge(dateStr) {
+  if (!dateStr) return "Geplant";
+  const evDate   = new Date(dateStr);
+  const now      = new Date();
+  const today    = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
+  const in7days  = new Date(today); in7days.setDate(today.getDate() + 7);
+  const evDay    = new Date(evDate.getFullYear(), evDate.getMonth(), evDate.getDate());
+  if (evDay.getTime() === today.getTime())    return "Heute";
+  if (evDay.getTime() === tomorrow.getTime()) return "Morgen";
+  if (evDay < in7days) {
+    return evDate.toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" });
+  }
+  return evDate.toLocaleDateString("de-DE", { day: "numeric", month: "short" });
+}
+
+function mapExperienceRow(r) {
+  const sortDate = r.date || null;
+  return {
+    id:              `exp-${r.id}`,
+    kind:            "experience",
+    title:           r.title || "Erlebnis",
+    date:            sortDate,
+    sortMs:          sortDate ? new Date(sortDate).getTime() : 0,
+    time:            r.time_start || null,
+    timeLabel:       null,
+    location:        r.location_text || "Online",
+    maxParticipants: r.max_participants || r.participant_limit || null,
+    badge:           r.is_live ? "Live" : computeBadge(r.date),
+    badgeColor:      r.is_live ? CORAL : TEAL,
+    user_id:         r.user_id || null,
+    creator_id:      r.creator_id || null,
+    rawItem:         { id: r.id, type: "experience", title: r.title, _raw: r },
+  };
+}
+
+function mapInvitationRow(r) {
+  const sortDate = r.starts_at ? r.starts_at.slice(0, 10) : null;
+  const timeFromStart = r.starts_at ? new Date(r.starts_at).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) : null;
+  return {
+    id:              `inv-${r.id}`,
+    kind:            "invitation",
+    title:           r.title || r.text || "Veranstaltung",
+    date:            sortDate,
+    sortMs:          sortDate ? new Date(sortDate).getTime() : (r.starts_at ? new Date(r.starts_at).getTime() : 0),
+    time:            timeFromStart,
+    timeLabel:       r.time_label || null,
+    location:        [r.location, r.city].filter(Boolean).join(", ") || "Ort folgt",
+    maxParticipants: r.max_participants || null,
+    badge:           computeBadge(sortDate),
+    badgeColor:      TEAL,
+    user_id:         r.user_id || null,
+    creator_id:      r.user_id || null,
+    rawItem:         { id: r.id, type: "event", title: r.title, _raw: r },
+  };
+}
+
 /* ── Main Section ─────────────────────────────────────────────── */
-export default function FeedEventsSection({ onEventPress, onMoreEvents }) {
-  // Active system log
-  React.useEffect(() => {
-  }, []);
+export default function FeedEventsSection({ onEventPress, onMoreEvents, onBook }) {
   const [events,  setEvents]  = useState([]);
   const [loading, setLoading] = useState(true);
-
-  // FEED.4D FIX-6 — Badge-Logik: echtes Datum statt immer "Heute"
-  function computeBadge(dateStr) {
-    if (!dateStr) return "Geplant";
-    const evDate  = new Date(dateStr);
-    const now     = new Date();
-    // Mitternacht local → sauberer Tagesvergleich
-    const today   = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const tomorrow= new Date(today); tomorrow.setDate(today.getDate() + 1);
-    const in7days = new Date(today); in7days.setDate(today.getDate() + 7);
-    const evDay   = new Date(evDate.getFullYear(), evDate.getMonth(), evDate.getDate());
-    if (evDay.getTime() === today.getTime())    return "Heute";
-    if (evDay.getTime() === tomorrow.getTime()) return "Morgen";
-    if (evDay < in7days) {
-      // z.B. "Mi 18 Jun"
-      return evDate.toLocaleDateString("de-DE", { weekday:"short", day:"numeric", month:"short" });
-    }
-    // z.B. "21 Aug"
-    return evDate.toLocaleDateString("de-DE", { day:"numeric", month:"short" });
-  }
 
   useEffect(() => { loadEvents(); }, []);
 
   async function loadEvents() {
     setLoading(true);
     try {
-      const today = new Date();
-      const todayStr = today.toISOString().slice(0, 10);
-      const { data, error } = await supabase
-        .from("experiences")
-        .select(`
-          id, title, location_text, price, format, duration,
-          date, time_start, time_end,
-          cover_url, media_url, is_live,
-          creator_id, user_id
-        `)
-        // FEED.4D FIX-1 — date/time_start/time_end/creator_id/user_id ergänzt, toter JOIN entfernt
-        // FEED.4B FIX-1 — Moderation-konforme Filter (identisch zu fetchFeedPage)
-        .eq("status", "published")
-        .eq("approval_status", "approved")
-        // FEED.4D FIX-2 — nur zukünftige/heutige Events (date >= heute)
-        .gte("date", todayStr)
-        .order("date", { ascending: true })  // FEED.4D FIX-3 — chronologisch statt Erstellungsdatum
-        .limit(12);
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const nowIso   = new Date().toISOString();
 
-      if (error) throw error;
+      const [expRes, invRes] = await Promise.all([
+        supabase
+          .from("experiences")
+          .select(`
+            id, title, location_text, date, time_start, time_end,
+            cover_url, media_url, is_live,
+            creator_id, user_id, max_participants, participant_limit
+          `)
+          .eq("status", "published")
+          .eq("approval_status", "approved")
+          .gte("date", todayStr)
+          .order("date", { ascending: true })
+          .limit(12),
+        supabase
+          .from("invitations")
+          .select(`
+            id, user_id, text, title, location, city, time_label,
+            starts_at, expires_at, max_participants
+          `)
+          .eq("status", "active")
+          .eq("visibility", "public")
+          .gt("expires_at", nowIso)
+          .order("starts_at", { ascending: true, nullsFirst: false })
+          .limit(12),
+      ]);
 
-      const rows = (data || []).map(r => {
-        // FEED.4D FIX-4 — time_start als echte Uhrzeit, duration als Fallback
-        const timeStr = r.time_start ? r.time_start.slice(0, 5) : "";
-        // FEED.4D FIX-6b — Badge aus echtem Datum
-        const badge = r.is_live ? "Live" : computeBadge(r.date);
-        return {
-          id:         String(r.id),
-          title:      r.title        || "Erlebnis",
-          // FIX-4: echte Startzeit statt Dauer-Freitext
-          time:       timeStr,
-          location:   r.location_text || "Online",
-          img:        r.cover_url || r.media_url || null,
-          // FIX-5: Datumsdaten für spätere Nutzung verfügbar
-          date:       r.date       || null,
-          time_start: r.time_start || null,
-          time_end:   r.time_end   || null,
-          // FIX-6: echte Badge-Logik
-          badge,
-          badgeColor: badge === "Heute" ? TEAL
-                    : badge === "Morgen" ? CORAL
-                    : badge === "Geplant" ? "rgba(26,26,46,0.35)"
-                    : "#8B6FE8",  // Datum: Violett
-          // FIX-7: Creator-Navigation
-          user_id:    r.user_id    || null,
-          creator_id: r.creator_id || null,
-        };
-      });
+      if (expRes.error) throw expRes.error;
+      if (invRes.error) throw invRes.error;
 
-      setEvents(rows);  // FEED.4B FIX-3 — leere DB → Section rendert nicht (Z.169)
+      const rows = [
+        ...(expRes.data || []).map(mapExperienceRow),
+        ...(invRes.data || []).map(mapInvitationRow),
+      ]
+        .filter(e => e.sortMs > 0 || e.date)
+        .sort((a, b) => (a.sortMs || 0) - (b.sortMs || 0))
+        .slice(0, 12);
+
+      setEvents(rows);
     } catch (err) {
-      if (import.meta.env.DEV) console.warn("[HUI_EVENTS_LOAD_ERR]", err?.message);
-      setEvents([]); // FEED.4B FIX-3 — DB-Fehler → Section rendert nicht
+      if (import.meta.env.DEV) console.warn("[HUI_DEMNAECHST_LOAD_ERR]", err?.message);
+      setEvents([]);
     } finally {
       setLoading(false);
     }
   }
 
-  // Don't render while loading to avoid layout jump
   if (loading) return null;
   if (events.length === 0) return null;
 
   return (
     <div style={{ paddingTop: 10, paddingBottom: 4, marginBottom: 4 }}>
-      {/* Header — Sprint 2.1 Upgrade */}
-      <div style={{
-        paddingLeft: 16, paddingRight: 16, marginBottom: 10,
-      }}>
+      <div style={{ paddingLeft: 16, paddingRight: 16, marginBottom: 10 }}>
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
           marginBottom: 2,
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <HUILocationIcon size={15} style={{flexShrink:0}} />
+            <HUIKalenderIcon size={15} style={{ flexShrink: 0 }} />
             <span style={{
-              fontSize: 15, fontWeight: 700, color: "#141422",
+              fontSize: 15, fontWeight: 700, color: INK,
               letterSpacing: -0.3,
             }}>
-              Heute in deiner Nähe
+              Demnächst
             </span>
           </div>
-          <button onClick={onMoreEvents} style={{
-            background: "none", border: "none", cursor: "pointer",
-            fontSize: 12, fontWeight: 600, color: TEAL, padding: "2px 0",
-            touchAction: "manipulation",
-            display: "flex", alignItems: "center", gap: 2,
-          }}>
-            Alle anzeigen <span style={{ fontSize: 11 }}>›</span>
-          </button>
+          {onMoreEvents && (
+            <button onClick={onMoreEvents} style={{
+              background: "none", border: "none", cursor: "pointer",
+              fontSize: 12, fontWeight: 600, color: TEAL, padding: "2px 0",
+              touchAction: "manipulation",
+              display: "flex", alignItems: "center", gap: 2,
+            }}>
+              Alle anzeigen <span style={{ fontSize: 11 }}>›</span>
+            </button>
+          )}
         </div>
         <p style={{
           margin: 0, padding: 0,
-          fontSize: 12.5, color: "rgba(20,20,34,0.46)", fontWeight: 400,
+          fontSize: 12.5, color: MUTED, fontWeight: 400, lineHeight: 1.45,
         }}>
-          Menschen treffen. Gemeinsam erleben.
+          Erlebnisse und Veranstaltungen, die bald stattfinden.
         </p>
       </div>
 
-      {/* Horizontal carousel — fixed */}
       <div style={{
         display: "flex", flexDirection: "row",
         overflowX: "auto", overflowY: "hidden",
@@ -246,12 +307,16 @@ export default function FeedEventsSection({ onEventPress, onMoreEvents }) {
         scrollbarWidth: "none", msOverflowStyle: "none",
         paddingBottom: 4,
       }}>
-        {events.map((ev, i) => (
-          <EventCard key={ev.id} event={ev} onPress={onEventPress} delay={i * 50} />
+        {events.map((ev) => (
+          <EventCard
+            key={ev.id}
+            event={ev}
+            onPress={onEventPress}
+            onBook={onBook}
+          />
         ))}
       </div>
 
-      {/* Divider */}
       <div style={{
         height: 1, marginLeft: 16, marginRight: 16,
         marginTop: 10, background: "rgba(26,53,48,0.06)",

@@ -534,21 +534,24 @@ function SupportCard({ support: s, project: p, onGoToProject }) {
                 fontSize: 11, color: T.inkSoft,
                 background: "rgba(26,26,24,0.06)", borderRadius: T.r99,
                 padding: "3px 10px",
-              }} style={{display:"flex",alignItems:"center",gap:3}}><HUIKategorieIcon size={12}/>{p.category}</span>
+                display: "flex", alignItems: "center", gap: 3,
+              }}><HUIKategorieIcon size={12}/>{p.category}</span>
             )}
             {p?.votes !== undefined && (
               <span style={{
                 fontSize: 11, color: T.inkSoft,
                 background: "rgba(26,26,24,0.06)", borderRadius: T.r99,
                 padding: "3px 10px",
-              }} style={{display:"flex",alignItems:"center",gap:3}}><HUIStimmeIcon size={12}/>{p.votes} Stimmen</span>
+                display: "flex", alignItems: "center", gap: 3,
+              }}><HUIStimmeIcon size={12}/>{p.votes} Stimmen</span>
             )}
             {p?.awarded_eur > 0 && (
               <span style={{
                 fontSize: 11, color: T.green, fontWeight: 700,
                 background: T.greenSoft, borderRadius: T.r99,
                 padding: "3px 10px",
-              }} style={{display:"flex",alignItems:"center",gap:3}}><HUIAwardIcon size={12}/>{fmtEur(p.awarded_eur)} gefördert</span>
+                display: "flex", alignItems: "center", gap: 3,
+              }}><HUIAwardIcon size={12}/>{fmtEur(p.awarded_eur)} gefördert</span>
             )}
           </div>
 

@@ -342,7 +342,7 @@ export function buildActions(shell) {
       logAction(A.OPEN_ORB, payload);
       // ROLE GATE: BasisUser → membership flow, never PlusSheet
       if (!isTalent) {
-        console.log("[HUI ACTION OPEN_ORB] BasisUser → membership flow");
+        if (isDev) console.log("[HUI ACTION OPEN_ORB] BasisUser → membership flow");
         setShowMembership?.(true);
         return;
       }

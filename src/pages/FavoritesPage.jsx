@@ -717,7 +717,9 @@ export default function FavoritesPage({ currentUser, onView, onImpact, onDiscove
             status:      e.status,
             _raw:        e,
           })));
-          console.log("[HUI_REALITY] experience hydrated ✓", userExps.length);
+          if (import.meta.env.DEV) {
+            console.log("[HUI_REALITY] experience hydrated ✓", userExps.length);
+          }
         }
 
         const { data: payments } = await supabase
