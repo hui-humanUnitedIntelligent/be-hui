@@ -56,6 +56,50 @@ const SOFT_HYDRATE_DELAY = 800;  // ms Debounce bevor "N neue" Badge erscheint
 const CACHE_KEY          = "hui_feed_cache_v5";
 const CACHE_TTL_MS       = 5 * 60 * 1000; // 5 Minuten
 
+// ─── RC1-004: items[] Instrumentation (Laufzeit-Timeline) ───────────────────
+const _ITEMS_PERF_T0 = typeof performance !== "undefined" ? performance.now() : Date.now();
+
+function _ensureItemsTimeline() {
+  if (typeof window === "undefined") return;
+  if (!window.__HUI_ITEMS_TIMELINE__) {
+    window.__HUI_ITEMS_TIMELINE__ = { t0: Date.now(), _perfT0: _ITEMS_PERF_T0, events: [] };
+  }
+}
+
+function _logItemsSet(caller, reason, before, after) {
+  _ensureItemsTimeline();
+  const now = typeof performance !== "undefined" ? performance.now() : Date.now();
+  const ms  = Math.round(now - (window.__HUI_ITEMS_TIMELINE__?._perfT0 ?? _ITEMS_PERF_T0));
+  const evt = { ms, time: new Date().toISOString(), caller, reason, before, after };
+  window.__HUI_ITEMS_TIMELINE__.events.push(evt);
+  if (import.meta.env.DEV) {
+    console.log(`[HUI_ITEMS] ${ms}ms ${caller} — ${reason}: ${before} → ${after}`);
+  }
+}
+
+function _logItemsDisplaySwap(isSearching, itemsLen, searchItemsLen) {
+  _ensureItemsTimeline();
+  const now = typeof performance !== "undefined" ? performance.now() : Date.now();
+  const ms  = Math.round(now - (window.__HUI_ITEMS_TIMELINE__?._perfT0 ?? _ITEMS_PERF_T0));
+  const displayLen = isSearching ? searchItemsLen : itemsLen;
+  const evt = {
+    ms, time: new Date().toISOString(),
+    caller: "useFeedStream",
+    reason: isSearching
+      ? "display swap → searchItems (feed items[] unverändert)"
+      : "display swap → items[]",
+    before: isSearching ? itemsLen : searchItemsLen,
+    after: displayLen,
+    displaySource: isSearching ? "searchItems" : "items",
+    itemsStateLen: itemsLen,
+    searchItemsLen,
+  };
+  window.__HUI_ITEMS_TIMELINE__.events.push(evt);
+  if (import.meta.env.DEV) {
+    console.log(`[HUI_ITEMS] ${ms}ms display — ${evt.reason}: sichtbar=${displayLen} (items=${itemsLen}, searchItems=${searchItemsLen})`);
+  }
+}
+
 // ─── Cache Helpers ────────────────────────────────────────────────────────────
 function saveCache(items, cursor) {
   try {
@@ -655,7 +699,7 @@ async function fetchSearchResults(query, typeFilter = null, categoryFilters = nu
   };
 }
 
-export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFilters = null, radiusKm = null, geo = null } = {}) {
+export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFilters = null, radiusKm = null, geo = null, searchActive = false } = {}) {
   const { user } = useAuth();
 
   // ── SEARCH-MODE STATE — Search Experience 2.0 ─────────────────────────────
@@ -691,7 +735,11 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
   const [searchLoading,  setSearchLoading]  = useState(false);
   const searchAliveRef = useRef({ v: false });
   const hasRadius = !!(geo && radiusKm && radiusKm !== "world");
-  const isSearching = !!(searchQuery || "").trim() || !!categoryFilters?.length || hasRadius;
+  // RC1-004: isSearching nur wenn Such-UI aktiv — verhindert, dass gespeicherter
+  // Radius/Geo aus localStorage den Feed leert, während searchActive=false ist.
+  const isSearching = searchActive && (
+    !!(searchQuery || "").trim() || !!categoryFilters?.length || hasRadius
+  );
 
   const categoryKey = (categoryFilters || []).map(c => c?.id).filter(Boolean).sort().join(",");
 
@@ -724,13 +772,32 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
   }, [searchQuery, typeFilter, categoryKey, radiusKm, geo?.lat, geo?.lng]);
 
   // ── State ──────────────────────────────────────────────────────────────────
-  const [items,          setItems]          = useState([]);
+  const [items, setItemsState] = useState([]);
+
+  const setItems = useCallback((updaterOrValue, caller, reason) => {
+    setItemsState(prev => {
+      const before = prev.length;
+      const next   = typeof updaterOrValue === "function" ? updaterOrValue(prev) : updaterOrValue;
+      const after  = Array.isArray(next) ? next.length : 0;
+      _logItemsSet(caller, reason, before, after);
+      return next;
+    });
+  }, []);
   const [loading,        setLoading]        = useState(true);
   const [loadingMore,    setLoadingMore]     = useState(false);
   const [hasMore,        setHasMore]        = useState(true);
   const [error,          setError]          = useState(null);
   const [pendingItems,   setPendingItems]   = useState([]);  // Soft Hydration Queue
   const [pendingCount,   setPendingCount]   = useState(0);   // Badge "N neue"
+
+  // RC1-004: Display-Swap protokollieren (items[] vs searchItems — kein setItems)
+  const prevSearchingRef = useRef(isSearching);
+  useEffect(() => {
+    if (prevSearchingRef.current !== isSearching) {
+      _logItemsDisplaySwap(isSearching, items.length, searchItems.length);
+      prevSearchingRef.current = isSearching;
+    }
+  }, [isSearching, items.length, searchItems.length]);
 
   // ── Refs ───────────────────────────────────────────────────────────────────
   const cursorRef         = useRef(null);     // FEED.2E: null | { works, exps, beitr } — Cursor pro Quelle
@@ -763,7 +830,7 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
     // Cache prüfen — sofort rendern wenn fresh
     const cached = loadCache();
     if (cached?.items?.length > 0) {
-      setItems(cached.items);
+      setItems(cached.items, "initialLoad", "cache restore()");
       cursorRef.current = cached.cursors || null; // FEED.2E: cursors-Objekt (Cache aktuell disabled)
       setLoading(false);
       // Trotzdem im Hintergrund refreshen (silent)
@@ -777,7 +844,7 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
       if (!mountedRef.current) return;
       cursorRef.current = nextCursors;
       setHasMore(more);
-      setItems(newItems);
+      setItems(newItems, "initialLoad", "initialLoad()");
     } catch (err) {
       if (!mountedRef.current) return;
       console.error("[HUI_STREAM] initial load error:", err.message);
@@ -785,7 +852,7 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
     } finally {
       if (mountedRef.current) setLoading(false);
     }
-  }, [user?.id]);
+  }, [user?.id, setItems]);
 
   useEffect(() => { initialLoad(); }, [initialLoad]);
 
@@ -799,7 +866,7 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
       const currentIds = items.map(i => i.id).join(",");  // closure, okay hier
       if (freshIds !== currentIds) {
         cursorRef.current = nextCursors;
-        setItems(fresh);
+        setItems(fresh, "_silentRefresh", "silent refresh()");
       }
     } catch (_) { /* silent */ }
   }
@@ -817,7 +884,7 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
         const existingIds = new Set(prev.map(i => i.id));
         const deduped = nextItems.filter(i => !existingIds.has(i.id));
         return [...prev, ...deduped];
-      });
+      }, "loadMore", "loadMore()");
       cursorRef.current = nextCursors;
       setHasMore(more);
       // Neuen Prefetch anstoßen
@@ -834,7 +901,7 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
         const existingIds = new Set(prev.map(i => i.id));
         const deduped = nextItems.filter(i => !existingIds.has(i.id));
         return [...prev, ...deduped];
-      });
+      }, "loadMore", "loadMore()");
       cursorRef.current = nextCursors;
       setHasMore(more);
     } catch (err) {
@@ -842,7 +909,7 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
     } finally {
       if (mountedRef.current) setLoadingMore(false);
     }
-  }, [user?.id, loadingMore, hasMore]);
+  }, [user?.id, loadingMore, hasMore, setItems]);
 
   // ── Prefetch (Idle) ───────────────────────────────────────────────────────
   const _schedulePrefetch = useCallback((userId) => {
@@ -877,8 +944,8 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
     setItems(prev => {
       if (prev.find(i => i.id === normalized.id)) return prev;
       return [normalized, ...prev];
-    });
-  }, []);
+    }, "_receiveLiveItem", "receiveRealtime()");
+  }, [setItems]);
 
   // ── Soft Hydration: Items einbauen (User-Tap) ────────────────────────────
   const flushPendingItems = useCallback(() => {
@@ -889,10 +956,10 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
         .filter(i => !existingIds.has(i.id))
         .filter(i => !shouldExcludeFromMainFeed(i));
       return [...newOnes, ...prev];
-    });
+    }, "flushPendingItems", "flushPendingItems()");
     setPendingItems([]);
     setPendingCount(0);
-  }, [pendingItems]);
+  }, [pendingItems, setItems]);
 
   // ── Realtime Setup ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -1010,7 +1077,7 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
         const merged = [...extras, ...newItems];
         merged.sort((a, b) => (b._sortKey || 0) - (a._sortKey || 0));
         return merged;
-      });
+      }, "refresh", "refresh()");
     } catch (err) {
       if (!mountedRef.current) return;
       console.error("[HUI_STREAM] refresh error:", err.message);
@@ -1018,7 +1085,7 @@ export function useFeedStream({ searchQuery = "", typeFilter = null, categoryFil
     } finally {
       if (mountedRef.current) setLoading(false);
     }
-  }, [user?.id]);
+  }, [user?.id, setItems]);
 
   return {
     // Items -- im Suchmodus (isSearching) werden die normalen Feed-Items
