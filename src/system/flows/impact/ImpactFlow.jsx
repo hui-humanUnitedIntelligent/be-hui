@@ -1717,7 +1717,8 @@ export default function ImpactFlow({ onClose }) {
             background:`${T.coral}15`, border:`1px solid ${T.coral}30`,
             borderRadius:12, padding:"10px 14px",
             fontSize:12, color:T.coral, textAlign:"center",
-          }} style={{display:"flex",alignItems:"center",gap:4}}><HUIWarnIcon size={14}/>{error}</div>
+            display:"flex", alignItems:"center", gap:4,
+          }}><HUIWarnIcon size={14}/>{error}</div>
         )}
       </div>
     </div>

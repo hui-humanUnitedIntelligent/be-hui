@@ -30,6 +30,8 @@ import {
 } from "../lib/world/orbLayer.js";
 import { cleanupOrbEnvironment } from "../lib/cleanup/cleanupOrbEnvironment.js";
 
+const isDev = import.meta.env?.DEV ?? false;
+
 // ─────────────────────────────────────────────────────────────────
 // Context
 // ─────────────────────────────────────────────────────────────────
@@ -82,13 +84,15 @@ export function OrbWorldProvider({ children }) {
       originTab, worldTemperature, atmosphereId, continuityCarry, source,
     });
 
-    console.log("[HUI ORB] open", {
-      source,
-      originTab,
-      worldTemperature,
-      atmosphereId,
-      openedAt: new Date(next.openedAt).toISOString(),
-    });
+    if (isDev) {
+      console.log("[HUI ORB] open", {
+        source,
+        originTab,
+        worldTemperature,
+        atmosphereId,
+        openedAt: new Date(next.openedAt).toISOString(),
+      });
+    }
 
     setOrbState(next);
   }, []);
@@ -98,13 +102,15 @@ export function OrbWorldProvider({ children }) {
     setOrbState(prev => {
       const next = buildCloseOrbState(prev);
 
-      console.log("[HUI ORB] close", {
-        reason,
-        originTab:        prev.originTab,
-        wasOpen:          prev.isOpen,
-        durationMs:       prev.openedAt ? Date.now() - prev.openedAt : 0,
-        continuityCarry:  prev.continuityCarry,
-      });
+      if (isDev) {
+        console.log("[HUI ORB] close", {
+          reason,
+          originTab:        prev.originTab,
+          wasOpen:          prev.isOpen,
+          durationMs:       prev.openedAt ? Date.now() - prev.openedAt : 0,
+          continuityCarry:  prev.continuityCarry,
+        });
+      }
 
       return next;
     });
