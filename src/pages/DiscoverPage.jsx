@@ -2041,12 +2041,17 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   // (Seed-Karten) bleibt nur die Vorschau ohne Profil-Sprung.
   const handlePersonPress = useCallback((person) => {
     const isRealId = person?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(person.id));
+    // Direkt Profil öffnen — kein Preview-Sheet für Personen (Karte zeigt schon alles)
+    if (isRealId && typeof onView === "function") {
+      onView(person.id);
+      return;
+    }
+    // Fallback: Preview für unbekannte IDs / Seed-Daten
     const item = normalizeWirkerForPreview(person);
     if (item) {
       openPreview({
         ...item,
-        canOpenFull: isRealId && !!person.username,
-        fullPath: (isRealId && person.username) ? `/${person.username}` : null,
+        canOpenFull: false, // Kein navigate — würde RefRedirect auslösen
       });
       return;
     }
