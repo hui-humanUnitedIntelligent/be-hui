@@ -12,6 +12,7 @@ export default defineConfig({
     },
   },
   build: {
+    outDir: "www",
     rollupOptions: {
       output: {
         // Timestamp im Namen → Vercel kann nicht cachen
