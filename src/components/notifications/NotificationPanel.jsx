@@ -2,6 +2,7 @@ import {
   HUIWarnIcon, HUIImpactIcon, HUISupportIcon, HUINachrichtIcon,
   HUIProfilIcon, HUIBenachrichtigungIcon,
 } from '../../design/icons/HuiSystemIcons.jsx';
+import { HUIHeartIcon } from '../../design/icons/HuiInteractionIcons.jsx';
 import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 
@@ -106,6 +107,7 @@ const META = {
   // MERKEN.6 (2026-07-08): zusammengefasste Merken-Digests (taeglich/
   // woechentlich), NIE eine Notification pro einzelnem Speichervorgang.
   save_digest:            { emoji:"🔖", label:"Gemerkt-Zusammenfassung" },
+  resonanz:               { emoji:<HUIHeartIcon size={18} active />, label:"Resonanz" },
   // KOMMENTAR.1 (2026-07-09): Kommentar/Antwort auf eigenen Beitrag.
   comment:                { emoji:"💬", label:"Neuer Kommentar"        },
   comment_reply:          { emoji:"💬", label:"Antwort auf deinen Kommentar" },
@@ -448,7 +450,7 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
     all:       () => true,
     unread:    n => !n.is_read,
     important: n => ["work_rejected","experience_rejected","project_rejected","impact_project_rejected","impact_project_approved","support_ticket_reply"].includes(n.type),
-    relevant:  n => ["work_approved","experience_approved","project_approved","new_booking","new_follower"].includes(n.type),
+    relevant:  n => ["work_approved","experience_approved","project_approved","new_booking","new_follower","resonanz","like","save"].includes(n.type),
     info:      n => ["admin_broadcast","broadcast","meldung_aufgehoben","work_sensitive","work_deleted"].includes(n.type),
   };
 

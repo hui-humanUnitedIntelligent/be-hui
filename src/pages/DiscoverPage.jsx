@@ -25,6 +25,7 @@ const MomenteAllModal = lazy(() => import("../components/discover/MomenteAllModa
 const ProjekteAllModal = lazy(() => import("../components/discover/ProjekteAllModal.jsx"));
 const OrteAllModal = lazy(() => import("../components/discover/OrteAllModal.jsx")); // Umkreissuche-Vereinheitlichung 2026-07-06 -- globaler Radius statt eigenem State
 import { HUIHeartIcon, HUIChatIcon } from "../design/icons/HuiInteractionIcons.jsx"; // ICON-SSOT 2026-07-08 -- ersetzt lokale Emoji-Badges (❤️/💬)
+import { ResonanzStats } from "../lib/useReactions.jsx";
 import HuiLiveTicker from "../components/shared/HuiLiveTicker.jsx"; // LIVETICKER.1 2026-07-08 -- ersetzt LiveActivityBar (war Fake-Daten)
 import { useContentPreview } from "../context/ContentPreviewContext.jsx"; // OPEN.1 2026-07-08 -- geteilte Vorschau statt totem Tap / falschem Sprung
 import { normalizePostForPreview, normalizeProjectForPreview, normalizeWirkerForPreview } from "../lib/previewNormalizers.js";
@@ -537,8 +538,8 @@ function MomentCard({ moment, delay=0, onPress }) {
         </div>
         {/* Engagement Row — immer am unteren Rand */}
         <div className="dp-engage" style={{ marginTop:"auto", paddingTop:8 }}>
-          <span><HUIHeartIcon size={12} /> {moment.likes ?? Math.floor(4 + (moment.id?.charCodeAt?.(moment.id.length-1)??7) % 30)}</span>
-          <span><HUIChatIcon size={12} /> {moment.comments ?? Math.floor(1 + (moment.id?.charCodeAt?.(0)??3) % 12)}</span>
+          <ResonanzStats postId={moment.id} postType="moment" authorId={moment.user_id} size={12} />
+          <span><HUIChatIcon size={12} /> {moment.comments ?? 0}</span>
           <span style={{display:"flex",alignItems:"center",gap:2}}><HUIImpactIcon size={12}/>{moment.wirkung ?? Math.floor(1 + (moment.id?.charCodeAt?.(1)??2) % 8)}</span>
         </div>
       </div>
@@ -952,8 +953,8 @@ function WerkCard({ werk, delay=0, onPress }) {
           </div>
           {/* Likes + Views */}
           <div className="dp-engage">
-            <span><HUIHeartIcon size={12} /> {werk.likes ?? Math.floor(5 + (werk.id?.charCodeAt?.(werk.id.length-1)??9) % 40)}</span>
-            <span style={{display:"flex",alignItems:"center",gap:2}}><HUIAnsichtIcon size={12}/>{werk.views ?? Math.floor(50 + (werk.id?.charCodeAt?.(0)??5) % 400)}</span>
+            <ResonanzStats postId={werk.id} postType="work" authorId={werk.user_id} size={12} />
+            <span style={{display:"flex",alignItems:"center",gap:2}}><HUIAnsichtIcon size={12}/>{werk.views ?? 0}</span>
           </div>
         </div>
       </div>

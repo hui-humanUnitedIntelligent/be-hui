@@ -9,6 +9,105 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase }   from "./supabaseClient.js";
 import { useAuth }    from "./AuthContext.jsx";
 import { createNotification } from "./notificationService.js";
+import { HUIHeartIcon } from "../design/icons/HuiInteractionIcons.jsx";
+
+// ── Shared Realtime Registry (post_reactions) ─────────────────
+// Ein Channel pro Post, mehrere Hook-Instanzen als Listener.
+// Behebt: doppelte Channels, verwaiste Callbacks, fehlende
+// Cross-Instance-Sync (Feed + Detail + Preview gleichzeitig).
+const _reactionChannels = new Map(); // topic -> { channel, refCount, listeners:Set }
+
+function _topicKey(postId) {
+  return `post_reactions:${postId}`;
+}
+
+function _broadcast(topic, msg) {
+  const entry = _reactionChannels.get(topic);
+  if (!entry) return;
+  entry.listeners.forEach(fn => {
+    try { fn(msg); } catch { /* silent */ }
+  });
+}
+
+function _subscribePostReactions(postId, listener) {
+  const topic = _topicKey(postId);
+  let entry = _reactionChannels.get(topic);
+
+  if (!entry) {
+    const channel = supabase
+      .channel(topic)
+      .on("postgres_changes",
+        { event: "INSERT", schema: "public", table: "post_reactions", filter: `post_id=eq.${postId}` },
+        (payload) => { _broadcast(topic, { source: "realtime", event: "INSERT", row: payload.new }); })
+      .on("postgres_changes",
+        { event: "DELETE", schema: "public", table: "post_reactions", filter: `post_id=eq.${postId}` },
+        (payload) => { _broadcast(topic, { source: "realtime", event: "DELETE", row: payload.old }); })
+      .subscribe();
+    entry = { channel, refCount: 0, listeners: new Set() };
+    _reactionChannels.set(topic, entry);
+  }
+
+  entry.refCount++;
+  entry.listeners.add(listener);
+
+  return () => {
+    const e = _reactionChannels.get(topic);
+    if (!e) return;
+    e.listeners.delete(listener);
+    e.refCount--;
+    if (e.refCount <= 0) {
+      supabase.removeChannel(e.channel);
+      _reactionChannels.delete(topic);
+    }
+  };
+}
+
+function _broadcastLocalReaction(postId, msg) {
+  _broadcast(_topicKey(postId), { source: "local", ...msg });
+}
+
+function _applyReactionEvent(setMyTypes, setCounts, userId, msg) {
+  const row = msg.row;
+  if (!row?.type) return;
+
+  const isOwn = row.user_id === userId;
+
+  if (msg.event === "INSERT") {
+    setMyTypes(prev => {
+      if (!isOwn || prev.has(row.type)) return prev;
+      const next = new Set(prev);
+      next.add(row.type);
+      return next;
+    });
+    setCounts(prev => {
+      // Deduplizierung: optimistisch oder bereits gezählt
+      if (isOwn && msg.source === "realtime") {
+        // Realtime-Echo nach eigenem Toggle — Count bereits optimistisch
+        return prev;
+      }
+      return {
+        ...prev,
+        [row.type]: (prev[row.type] || 0) + 1,
+        total: (prev.total || 0) + 1,
+      };
+    });
+  } else if (msg.event === "DELETE") {
+    setMyTypes(prev => {
+      if (!isOwn || !prev.has(row.type)) return prev;
+      const next = new Set(prev);
+      next.delete(row.type);
+      return next;
+    });
+    setCounts(prev => {
+      if (isOwn && msg.source === "realtime") return prev;
+      return {
+        ...prev,
+        [row.type]: Math.max(0, (prev[row.type] || 0) - 1),
+        total: Math.max(0, (prev.total || 0) - 1),
+      };
+    });
+  }
+}
 
 // ── useSingleReaction ─────────────────────────────────────────
 // postId: uuid of the post/work/experience
@@ -20,6 +119,7 @@ export function useSingleReaction(postId, postType = "post", authorId = null, po
   const [myTypes,  setMyTypes]  = useState(new Set()); // which types current user has set
   const [loading,  setLoading]  = useState(false);
   const mounted = useRef(true);
+  const pendingLocalRef = useRef(null); // eigene Instanz nicht doppelt updaten
 
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
 
@@ -43,6 +143,8 @@ export function useSingleReaction(postId, postType = "post", authorId = null, po
             .eq("post_id", postId)
             .eq("user_id", user.id);
           if (!cancelled && myData) setMyTypes(new Set(myData.map(r => r.type)));
+        } else if (!cancelled) {
+          setMyTypes(new Set());
         }
       } catch { /* silent */ }
     }
@@ -50,40 +152,24 @@ export function useSingleReaction(postId, postType = "post", authorId = null, po
     return () => { cancelled = true; };
   }, [postId, user?.id]);
 
-  // ── Realtime — andere Clients sehen neue/entfernte Reaktionen live,
-  //    ohne Reload. Eigene Aenderungen kommen bereits optimistisch rein
-  //    und werden hier ignoriert (sonst Doppelzaehlung durch das Echo). ──
+  // ── Realtime — geteilter Channel pro Post, Fan-out an alle Instanzen ──
   useEffect(() => {
     if (!postId) return;
-    // Realtime-Dedupe-Schutz (2026-07-08, systemweit, siehe useProfileLocations.js):
-    // existierenden Channel fuer diesen Topic wiederverwenden statt erneut zu
-    // subscriben -- verhindert "cannot add postgres_changes callbacks ... after
-    // subscribe()" bei gleichzeitigen Mounts fuer denselben Topic.
-    const topic = `post_reactions:${postId}`;
-    const existing = supabase.getChannels().find(c => c.topic === `realtime:${topic}`);
-    let channel = existing;
-    let createdHere = false;
-    if (!existing) {
-      channel = supabase
-        .channel(topic)
-        .on("postgres_changes",
-          { event: "INSERT", schema: "public", table: "post_reactions", filter: `post_id=eq.${postId}` },
-          (payload) => {
-            const row = payload.new;
-            if (!row || row.user_id === user?.id) return; // eigene Aenderung schon optimistisch drin
-            setCounts(prev => ({ ...prev, [row.type]: (prev[row.type] || 0) + 1, total: (prev.total || 0) + 1 }));
-          })
-        .on("postgres_changes",
-          { event: "DELETE", schema: "public", table: "post_reactions", filter: `post_id=eq.${postId}` },
-          (payload) => {
-            const row = payload.old;
-            if (!row || row.user_id === user?.id) return;
-            setCounts(prev => ({ ...prev, [row.type]: Math.max(0, (prev[row.type] || 0) - 1), total: Math.max(0, (prev.total || 0) - 1) }));
-          })
-        .subscribe();
-      createdHere = true;
-    }
-    return () => { if (createdHere) supabase.removeChannel(channel); };
+
+    const listener = (msg) => {
+      if (!mounted.current) return;
+      // Lokales Fan-out: diese Instanz hat bereits optimistisch aktualisiert
+      if (msg.source === "local" && pendingLocalRef.current) {
+        const p = pendingLocalRef.current;
+        if (p.event === msg.event && p.type === msg.row?.type && msg.row?.user_id === user?.id) {
+          pendingLocalRef.current = null;
+          return;
+        }
+      }
+      _applyReactionEvent(setMyTypes, setCounts, user?.id, msg);
+    };
+
+    return _subscribePostReactions(postId, listener);
   }, [postId, user?.id]);
 
   const toggle = useCallback(async (type) => {
@@ -103,6 +189,13 @@ export function useSingleReaction(postId, postType = "post", authorId = null, po
       [type]: Math.max(0, (prev[type] || 0) + (wasActive ? -1 : 1)),
       total:  Math.max(0, (prev.total  || 0) + (wasActive ? -1 : 1)),
     }));
+
+    // Andere Instanzen (Feed + Detail + Preview) sofort synchronisieren
+    pendingLocalRef.current = { event: wasActive ? "DELETE" : "INSERT", type };
+    _broadcastLocalReaction(postId, {
+      event: wasActive ? "DELETE" : "INSERT",
+      row: { post_id: postId, user_id: user.id, type },
+    });
 
     setLoading(true);
     try {
@@ -124,31 +217,37 @@ export function useSingleReaction(postId, postType = "post", authorId = null, po
           .upsert({ post_id: postId, post_type: postType, user_id: user.id, type },
             { ignoreDuplicates: true });
         // Save snapshot to saved_posts -- MERKEN.2A (2026-07-08): postSnapshot
-        // enthaelt die echten Anzeige-Daten (Cover/Titel/Ersteller), damit
-        // MerkenSection.jsx sie tatsaechlich zeigen kann. Vorher wurde hier
-        // immer {} geschrieben -- Gemerktes war dadurch nie befuellbar.
         if (type === "save") {
           await supabase.from("saved_posts").upsert(
             { user_id: user.id, post_id: postId, post_type: postType, post_data: postSnapshot || {} },
             { ignoreDuplicates: true }
           );
         }
-        // Fire notification silently -- NICHT fuer 'save': Lars-Vorgabe
-        // (MERKEN.6, 2026-07-08) "keine einzelne Benachrichtigung pro
-        // Speichervorgang, stattdessen sinnvolle Zusammenfassungen".
-        // Merken-Digests laufen separat als taeglicher/woechentlicher
-        // Batch-Job (siehe save_digest_batch()-RPC + Superagent-Automation),
-        // NICHT pro einzelnem Toggle hier.
+        // Resonanz-Notification — nur Ersteller, nur inspire (nicht save)
         if (authorId && authorId !== user.id && type !== "save") {
-          createNotification({
-            recipientId: authorId,
-            senderId:    user.id,
-            type:        type === "inspire" ? "resonanz" : "like",
-            title:       type === "inspire" ? "Jemand lässt sich von dir inspirieren" :
-                                              "Jemandem gefällt dein Beitrag",
-            entityId:   postId,
-            entityType: postType,
-          }).catch(() => {});
+          const senderName = user.display_name || user.username || "Jemand";
+          const postTitle  = postSnapshot?.title || "";
+          if (type === "inspire") {
+            createNotification({
+              recipientId: authorId,
+              senderId:    user.id,
+              type:        "resonanz",
+              title:       `${senderName} hat deinem Beitrag Resonanz gegeben`,
+              body:        postTitle ? `„${postTitle.slice(0, 80)}"` : "",
+              entityId:    postId,
+              entityType:  postType,
+            }).catch(() => {});
+          } else {
+            createNotification({
+              recipientId: authorId,
+              senderId:    user.id,
+              type:        "like",
+              title:       `${senderName} gefällt dein Beitrag`,
+              body:        postTitle ? `„${postTitle.slice(0, 80)}"` : "",
+              entityId:    postId,
+              entityType:  postType,
+            }).catch(() => {});
+          }
         }
       }
     } catch {
@@ -163,24 +262,46 @@ export function useSingleReaction(postId, postType = "post", authorId = null, po
         [type]: Math.max(0, (prev[type] || 0) + (wasActive ? 1 : -1)),
         total:  Math.max(0, (prev.total  || 0) + (wasActive ? 1 : -1)),
       }));
+      pendingLocalRef.current = { event: wasActive ? "INSERT" : "DELETE", type };
+      _broadcastLocalReaction(postId, {
+        event: wasActive ? "INSERT" : "DELETE",
+        row: { post_id: postId, user_id: user.id, type },
+      });
     } finally {
       if (mounted.current) setLoading(false);
     }
-  }, [user?.id, postId, postType, authorId, postSnapshot, myTypes, loading]);
+  }, [user?.id, user?.display_name, user?.username, postId, postType, authorId, postSnapshot, myTypes, loading]);
 
   return { counts, myTypes, toggle, isLoggedIn: !!user?.id };
 }
 
+// ── ResonanzStats — kompakte Anzeige fuer Karten ohne FeedActions ──
+// Nutzt denselben useSingleReaction-Hook (keine zweite Datenquelle).
+export function ResonanzStats({ postId, postType = "post", authorId = null, size = 12, showCount = true }) {
+  const { counts, myTypes } = useSingleReaction(postId, postType, authorId);
+  const count = counts?.inspire || 0;
+  const active = myTypes?.has?.("inspire") ?? false;
+
+  if (!postId) return null;
+  if (!showCount && !active) return null;
+  if (!showCount && active) {
+    return <HUIHeartIcon size={size} active />;
+  }
+  if (count === 0 && !active) return null;
+
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
+      <HUIHeartIcon size={size} active={active} />
+      {showCount && count > 0 ? count : null}
+    </span>
+  );
+}
+
 // ── useSavedPosts ─────────────────────────────────────────────
 // Returns saved post ids + toggle save function
-// Zweck: liefert appweit die live-aktuellen gespeicherten Post-IDs + Count.
-// Warum diese Loesung: einzige Realtime-Quelle fuer saved_posts pro Nutzer,
-// damit Badge/Profil/Feed nie auseinanderlaufen (siehe Kommentare unten).
 export function useSavedPosts() {
   const { user } = useAuth();
   const [savedIds, setSavedIds] = useState(new Set());
-  // Zweck: id (PK) -> post_id Zuordnung.
-  // Warum: DELETE liefert bei RLS im old-Record nur die PK, kein post_id.
   const idMapRef = useRef(new Map());
 
   useEffect(() => {
@@ -196,14 +317,8 @@ export function useSavedPosts() {
       });
   }, [user?.id]);
 
-  // Zweck: savedIds appweit live halten (Badge, Feed, Detailseite).
-  // Warum: einzige Realtime-Subscription auf saved_posts fuer den Count.
   useEffect(() => {
     if (!user?.id) return;
-    // Realtime-Dedupe-Schutz (2026-07-08, systemweit, siehe useProfileLocations.js):
-    // existierenden Channel fuer diesen Topic wiederverwenden statt erneut zu
-    // subscriben -- verhindert "cannot add postgres_changes callbacks ... after
-    // subscribe()" bei gleichzeitigen Mounts fuer denselben Topic.
     const topic = `saved_posts_count:${user.id}`;
     const existing = supabase.getChannels().find(c => c.topic === `realtime:${topic}`);
     let channel = existing;
@@ -222,7 +337,7 @@ export function useSavedPosts() {
         .on("postgres_changes",
           { event: "DELETE", schema: "public", table: "saved_posts", filter: `user_id=eq.${user.id}` },
           (payload) => {
-            const rowId = payload.old?.id; // nur { id } bei RLS+DELETE
+            const rowId = payload.old?.id;
             if (!rowId) return;
             const postId = idMapRef.current.get(rowId);
             if (!postId) return;
@@ -244,7 +359,6 @@ export function useSavedPosts() {
     if (!user?.id) return;
     const isSaved = savedIds.has(postId);
 
-    // Optimistic
     setSavedIds(prev => {
       const next = new Set(prev);
       isSaved ? next.delete(postId) : next.add(postId);
@@ -268,7 +382,6 @@ export function useSavedPosts() {
         );
       }
     } catch {
-      // Rollback
       setSavedIds(prev => {
         const next = new Set(prev);
         isSaved ? next.add(postId) : next.delete(postId);
