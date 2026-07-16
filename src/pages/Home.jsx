@@ -25,15 +25,17 @@ import ProfileLauncher           from "../components/home/profile/ProfileLaunche
 import UnifiedFeed from "../feed/UnifiedFeed.jsx";
 import { shareContent } from "../lib/shareContent.js"; // SHARE.1 2026-07-09
 import { usePresence }             from "../lib/usePresence.js";
-import { StoryViewer }           from "../components/StoryBar.jsx";
-import ChatCenterOverlay          from "../components/chat-center/ChatCenterOverlay.jsx";
 import { useChatList }             from "../lib/chatContext.js";
-import ConnectionCreatePage      from "../components/connection-create/ConnectionCreatePage.jsx";
-import WerkKaufFlow           from "../components/commerce/WerkKaufFlow.jsx";         // COMMERCE-01
-import WerkeKorb, { WerkeKorbButton } from "../components/commerce/WerkeKorb.jsx"; // KORB-01
-import UnterstutzenFlow                from "../components/commerce/UnterstutzenFlow.jsx"; // KORB-02
 import { clearCartAfterSuccess }        from "../components/commerce/commerceUtils.js";    // KORB-02
-import ExperienceBookingFlow  from "../components/commerce/ExperienceBookingFlow.jsx"; // COMMERCE-01
+// ── Overlays / Flows: lazy → erst bei Öffnen geladen ───────────
+const StoryViewer           = React.lazy(() => import("../components/StoryBar.jsx").then(m => ({ default: m.StoryViewer })));
+const ChatCenterOverlay     = React.lazy(() => import("../components/chat-center/ChatCenterOverlay.jsx"));
+const ConnectionCreatePage  = React.lazy(() => import("../components/connection-create/ConnectionCreatePage.jsx"));
+const WerkKaufFlow          = React.lazy(() => import("../components/commerce/WerkKaufFlow.jsx"));         // COMMERCE-01
+const WerkeKorb             = React.lazy(() => import("../components/commerce/WerkeKorb.jsx"));           // KORB-01
+const WerkeKorbButton       = React.lazy(() => import("../components/commerce/WerkeKorb.jsx").then(m => ({ default: m.WerkeKorbButton })));
+const UnterstutzenFlow      = React.lazy(() => import("../components/commerce/UnterstutzenFlow.jsx"));     // KORB-02
+const ExperienceBookingFlow = React.lazy(() => import("../components/commerce/ExperienceBookingFlow.jsx")); // COMMERCE-01
 // ── Tab-Pages: lazy → eigene Chunks, nur bei Bedarf geladen ────
 // PHASE 17.3: ImpactPage + DiscoverPage — direkte imports (Safari-safe, kein lazy)
 const DiscoverPage  = React.lazy(() => import("./DiscoverPage.jsx"));
@@ -50,13 +52,10 @@ const ImpactFlow     = React.lazy(() => import("../system/flows/impact/ImpactFlo
 // NotificationCenter deaktiviert — Resonanzzentrum übernimmt (NotificationButton.jsx)
 const LiveMapPage         = React.lazy(() => import("./LiveMapPage.jsx"));
 const HuiMatchOverlay     = React.lazy(() => import("../components/HuiMatchOverlay.jsx"));
-// PHASE 18: HuiPlusSheet direkte import (Orb immer bereit)
-// OrbCompass replaces HuiPlusSheet — Begegnungs-Kompass
-import OrbCompass from "../components/OrbCompass.jsx";
-import MeinHUI    from "./MeinHUI.jsx";
+const MeinHUI             = React.lazy(() => import("./MeinHUI.jsx"));
 import { IX } from "../design/hui.interaction.js";
-import ContentTypeSelector from "../content/ContentTypeSelector.jsx";
-import InvitationFlow from "../content/invitation/InvitationFlow.jsx";
+const ContentTypeSelector = React.lazy(() => import("../content/ContentTypeSelector.jsx"));
+const InvitationFlow      = React.lazy(() => import("../content/invitation/InvitationFlow.jsx"));
 import { useContentPreview } from "../context/ContentPreviewContext.jsx";
 const HuiMembershipFlow   = React.lazy(() => import("../components/HuiMembershipFlow.jsx"));
 const CreatorDashboard    = React.lazy(() => import("./CreatorDashboard.jsx"));
@@ -551,14 +550,17 @@ function HomeInner() {
 
       {/* KORB-01: Floating Korb-Button — oberhalb TabBar */}
       {SAFE_MODE.werkFlow && (
-        <WerkeKorbButton
-          count={cart.length}
-          onOpen={() => setShowWerkeKorb(true)}
-        />
+        <Suspense fallback={null}>
+          <WerkeKorbButton
+            count={cart.length}
+            onOpen={() => setShowWerkeKorb(true)}
+          />
+        </Suspense>
       )}
 
       {/* KORB-01: Werkekorb Bottom Sheet */}
       {showWerkeKorb && SAFE_MODE.werkFlow && (
+        <Suspense fallback={null}>
         <WerkeKorb
           items={cart}
           onClose={() => setShowWerkeKorb(false)}
@@ -574,10 +576,12 @@ function HomeInner() {
           onDiscover={() => { setShowWerkeKorb(false); handleTab("discover"); }}
           onChat={null}
         />
+        </Suspense>
       )}
 
       {/* KORB-02: UnterstutzenFlow */}
       {showUnterstutzenFlow && SAFE_MODE.werkFlow && (
+        <Suspense fallback={null}>
         <UnterstutzenFlow
           items={cart}
           onClose={() => { setShowUnterstutzenFlow(false); closeContentPreview(); }}
@@ -589,29 +593,35 @@ function HomeInner() {
           onDiscover={() => { setShowUnterstutzenFlow(false); handleTab("discover"); }}
           onResonanzCenter={() => setShowUnterstutzenFlow(false)}
         />
+        </Suspense>
       )}
 
       {/* ── Overlay Layer ──────────────────────────────────────── */}
       <ProfileLauncher/>
       {/* ── WerkKaufFlow — COMMERCE-01 ─────────────────────────── */}
       {showWerkCheckout && (
+        <Suspense fallback={null}>
         <WerkKaufFlow
           werk={showWerkCheckout}
           onClose={() => setShowWerkCheckout(null)}
         />
+        </Suspense>
       )}
 
       {/* ── ExperienceBookingFlow — COMMERCE-01 ─────────────────── */}
       {showBookingFlow && (
+        <Suspense fallback={null}>
         <ExperienceBookingFlow
           experience={showBookingFlow}
           onClose={() => setShowBookingFlow(null)}
         />
+        </Suspense>
       )}
 
 
       {/* ── Connection Create ───────────────────────────────────── */}
       {showConnect && SAFE_MODE.connectFlow && (
+        <Suspense fallback={null}>
         <SafeRender flag="connectFlow" label="ConnectionCreatePage">
           <ConnectionCreatePage
             onClose={() => {
@@ -625,10 +635,12 @@ function HomeInner() {
             }}
           />
         </SafeRender>
+        </Suspense>
       )}
 
-      {/* ── Teilen Flow — STATIC IMPORT, ALWAYS IN DOM ── */}
-      {/* visible prop steuert Sichtbarkeit — KEIN lazy, KEIN SafeRender, KEIN conditional */}
+      {/* ── Teilen Flow — lazy, nur bei Öffnen im DOM ── */}
+      {showTeilen && (
+      <Suspense fallback={null}>
       <TeilenFlow
         visible={showTeilen}
         onClose={() => {
@@ -638,9 +650,12 @@ function HomeInner() {
           setShowTeilen(false);
         }}
       />
+      </Suspense>
+      )}
 
       {/* ── HUI Resonanz Center ─────────────────────────────────── */}
       {showChat && SAFE_MODE.chatCenter && (
+        <Suspense fallback={null}>
         <SafeRender flag="chatCenter" label="ChatCenterOverlay">
           <ChatCenterOverlay
             onClose={() => {
@@ -663,6 +678,7 @@ function HomeInner() {
             }}
           />
         </SafeRender>
+        </Suspense>
       )}
 
       <Suspense fallback={<div style={{
@@ -698,6 +714,7 @@ function HomeInner() {
           </SafeRender>
         )}
         {/* MeinHUI — Persönlicher Wirkungsraum (Orb-Erfahrung v2.0, Cinematic Closing) */}
+        {(showPlusSheet || meinHuiClosing) && (
         <MeinHUI
           visible={showPlusSheet}
           closing={meinHuiClosing}
@@ -706,6 +723,7 @@ function HomeInner() {
           onNotif={closeMeinHuiCinematic}
           onSettings={closeMeinHuiCinematic}
         />
+        )}
         {/* TalentOnboarding: außerhalb Suspense (kein lazy mehr) */}
         {showStoryComposer && SAFE_MODE.storyComposer && canCreate && (
           <SafeRender flag="storyComposer" label="StoryComposer">
@@ -782,6 +800,7 @@ function HomeInner() {
 
       {/* Phase 4B: Content Type Selector — öffnet sich statt Orb für Mitglieder */}
       {showContentSelector && isTalent && (
+        <Suspense fallback={null}>
         <ContentTypeSelector
           visible={showContentSelector}
           onClose={() => setShowContentSelector(false)}
@@ -799,20 +818,25 @@ function HomeInner() {
             }
           }}
         />
+        </Suspense>
       )}
 
       {/* Phase 4B: Einladung erstellen Flow */}
       {showInvitationFlow && (
+        <Suspense fallback={null}>
         <InvitationFlow
           visible={showInvitationFlow}
           onClose={() => setShowInvitationFlow(false)}
         />
+        </Suspense>
       )}
 
       {activeStory && SAFE_MODE.storyViewer && (
+        <Suspense fallback={null}>
         <SafeRender flag="storyViewer" label="StoryViewer">
           <StoryViewer story={activeStory} onClose={() => setActiveStory(null)}/>
         </SafeRender>
+        </Suspense>
       )}
 
       {/* Phase 16.4: World Surface + Tab Debug — tree-shaken in prod */}
