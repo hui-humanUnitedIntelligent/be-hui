@@ -118,7 +118,10 @@ function normalizeType(raw){
   const map={moment:"moment",note:"moment",post:"moment",beitrag:"moment",
     experience:"experience",erlebnis:"experience",booking:"experience",
     work:"work",work_upload:"work",werk:"work",project:"work",
-    event:"event",veranstaltung:"event",invitation:"event"};
+    event:"event",veranstaltung:"event",invitation:"event",
+    // FEED-GLOBAL-001: Talente + Impact als eigene Typen
+    talent:"talent",dienstleistung:"talent",angebot:"talent",
+    impact:"impact",herzensprojekt:"impact",impact_project:"impact"};
   return map[t]||"moment";
 }
 

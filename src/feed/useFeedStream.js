@@ -24,6 +24,7 @@ import {
   normalizeExperienceRow,
   normalizeWorkRow,
   normalizeEventRow      as normalizeInvitationRow,
+  toFeedItem,
 } from "../system/feed/unifiedNormalizer.js";
 
 // ─── Konstanten ──────────────────────────────────────────────────────────────
@@ -70,16 +71,20 @@ async function fetchFeedPage(userId = null, cursors = null) {
   const limit = Math.ceil(PAGE_SIZE / 2); // 10 pro Quelle
 
   // FEED.2E — eigene Cursor pro Quelle statt eines globalen Timestamps
-  const worksCursor = cursors?.works || null;
-  const expsCursor  = cursors?.exps  || null;
-  const beitrCursor = cursors?.beitr || null;
+  const worksCursor   = cursors?.works   || null;
+  const expsCursor    = cursors?.exps    || null;
+  const beitrCursor   = cursors?.beitr   || null;
+  const talentsCursor = cursors?.talents || null;
+  const impactsCursor = cursors?.impacts || null;
   // invitations: kein Cursor — immer neueste 2 aktive, nicht-abgelaufene
-  const filterWorks = (q) => worksCursor ? q.lt("created_at", worksCursor) : q;
-  const filterExps  = (q) => expsCursor  ? q.lt("created_at", expsCursor)  : q;
-  const filterBeitr = (q) => beitrCursor ? q.lt("created_at", beitrCursor) : q;
+  const filterWorks   = (q) => worksCursor   ? q.lt("created_at", worksCursor)   : q;
+  const filterExps    = (q) => expsCursor    ? q.lt("created_at", expsCursor)    : q;
+  const filterBeitr   = (q) => beitrCursor   ? q.lt("created_at", beitrCursor)   : q;
+  const filterTalents = (q) => talentsCursor ? q.lt("created_at", talentsCursor) : q;
+  const filterImpacts = (q) => impactsCursor ? q.lt("created_at", impactsCursor) : q;
 
   // ── Step 1: Plain queries — kein JOIN ──────────────────────────────────
-  const [worksRes, expsRes, beitrRes, invRes] = await Promise.allSettled([
+  const [worksRes, expsRes, beitrRes, invRes, talentsRes, impactRes] = await Promise.allSettled([
     filterWorks(
       supabase.from("works")
         .select("id,title,cover_url,media_url,category,description,caption,tags,price,for_sale,status,approval_status,user_id,creator_id,created_at")
@@ -110,12 +115,30 @@ async function fetchFeedPage(userId = null, cursors = null) {
       .gt("expires_at", new Date().toISOString())
       .order("created_at", { ascending: false })
       .limit(2),
+    // FEED-GLOBAL-001: Talente (approved) — chronologisch
+    filterTalents(
+      supabase.from("talents")
+        .select("id,user_id,title,description,category,images,price_per_hour,price_per_session,currency,location_type,location_address,lat,lng,created_at")
+        .eq("status", "approved")
+        .order("created_at", { ascending: false })
+        .limit(limit)
+    ),
+    // FEED-GLOBAL-001: Impact-Projekte (approved) — chronologisch
+    filterImpacts(
+      supabase.from("impact_applications")
+        .select("id,user_id,project_name,short_desc,problem,cover_url,media_urls,funding_goal,current_amount_eur,rank,created_at")
+        .eq("status", "approved")
+        .order("created_at", { ascending: false })
+        .limit(limit)
+    ),
   ]);
 
-  const works = worksRes.status === "fulfilled" ? (worksRes.value?.data || []) : [];
-  const exps  = expsRes.status  === "fulfilled" ? (expsRes.value?.data  || []) : [];
-  const beitr = beitrRes.status === "fulfilled" ? (beitrRes.value?.data || []) : [];
-  const invs  = invRes.status   === "fulfilled" ? (invRes.value?.data   || []) : [];
+  const works   = worksRes.status   === "fulfilled" ? (worksRes.value?.data   || []) : [];
+  const exps    = expsRes.status    === "fulfilled" ? (expsRes.value?.data    || []) : [];
+  const beitr   = beitrRes.status   === "fulfilled" ? (beitrRes.value?.data   || []) : [];
+  const invs    = invRes.status     === "fulfilled" ? (invRes.value?.data     || []) : [];
+  const talents = talentsRes.status === "fulfilled" ? (talentsRes.value?.data || []) : [];
+  const impacts = impactRes.status  === "fulfilled" ? (impactRes.value?.data  || []) : [];
 
   const beitrErr = beitrRes.status === "rejected"
     ? beitrRes.reason?.message
@@ -149,7 +172,7 @@ async function fetchFeedPage(userId = null, cursors = null) {
     }
   }
 
-  const allRows = [...works, ...exps, ...beitr, ...invs];
+  const allRows = [...works, ...exps, ...beitr, ...invs, ...talents, ...impacts];
   const userIds = [...new Set(allRows.map(r => r.user_id || r.creator_id).filter(Boolean))];
   // ── TRACE STEP 2: userIds ───────────────────────────────────
   if (import.meta.env.DEV) {
@@ -226,6 +249,23 @@ async function fetchFeedPage(userId = null, cursors = null) {
     ...exps.map(r => normalizeExperienceRow(injectProfile(r))).filter(Boolean),
     ...normalizedBeitr,
     ...invs.map(r => normalizeInvitationRow(injectProfile(r))).filter(Boolean),
+    // FEED-GLOBAL-001: Talente normalisieren
+    ...talents.map(r => {
+      try {
+        return toFeedItem({ ...injectProfile(r), type: "talent" });
+      } catch { return null; }
+    }).filter(Boolean),
+    // FEED-GLOBAL-001: Impact-Projekte normalisieren
+    ...impacts.map(r => {
+      try {
+        return toFeedItem({
+          ...injectProfile(r),
+          type:    "impact",
+          title:   r.project_name || "",
+          caption: r.short_desc   || r.problem || "",
+        });
+      } catch { return null; }
+    }).filter(Boolean),
   ];
 
 
@@ -271,13 +311,17 @@ async function fetchFeedPage(userId = null, cursors = null) {
   // FEED.2E — Cursor pro Quelle: letztes Item jeder Quelle (vor Normalisierung verfügbar)
   // works/exps/beitr existieren bereits aus Step 1 (Z.107-112)
   const nextCursors = {
-    works: works.length >= limit ? (works[works.length - 1]?.created_at || null) : null,
-    exps:  exps.length  >= limit ? (exps[exps.length   - 1]?.created_at || null) : null,
-    beitr: beitr.length >= limit ? (beitr[beitr.length - 1]?.created_at || null) : null,
+    works:   works.length   >= limit ? (works[works.length - 1]?.created_at     || null) : null,
+    exps:    exps.length    >= limit ? (exps[exps.length   - 1]?.created_at     || null) : null,
+    beitr:   beitr.length   >= limit ? (beitr[beitr.length - 1]?.created_at     || null) : null,
+    talents: talents.length >= limit ? (talents[talents.length - 1]?.created_at || null) : null,
+    impacts: impacts.length >= limit ? (impacts[impacts.length - 1]?.created_at || null) : null,
   };
 
   // FEED.2E — hasMore: true wenn mind. eine Quelle weitere Items hat
-  const hasMore = works.length >= limit || exps.length >= limit || beitr.length >= limit;
+  const hasMore = works.length   >= limit || exps.length  >= limit ||
+                  beitr.length   >= limit || talents.length >= limit ||
+                  impacts.length >= limit;
 
   return { items: normalized, nextCursors, hasMore };
 }

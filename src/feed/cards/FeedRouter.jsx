@@ -7,6 +7,9 @@ const MomentContent     = lazy(() => import("./MomentContent.jsx"));
 const ExperienceContent = lazy(() => import("./ExperienceContent.jsx"));
 const WorkContent       = lazy(() => import("./WorkContent.jsx"));
 const EventContent      = lazy(() => import("./EventContent.jsx"));
+// FEED-GLOBAL-001: Talente + Impact-Projekte
+const TalentContent     = lazy(() => import("./TalentContent.jsx"));
+const ImpactContent     = lazy(() => import("./ImpactContent.jsx"));
 
 function CardSkeleton() {
   return (
@@ -111,6 +114,8 @@ export default function FeedRouter({ item: rawItem, onProfile, onReaction, onBoo
         {type === "experience" ? <ExperienceContent {...shared} onBook={()=>onBook?.(rawItem)}/> :
          type === "work"       ? <WorkContent {...shared} onDetail={()=>onDetail?.(item)} onBuyWerk={onBook ? ()=>onBook(rawItem) : undefined}/> : /* COMMERCE-01 W-5 */
          type === "event"      ? <EventContent {...shared}/> :
+         type === "talent"     ? <TalentContent {...shared}/> : /* FEED-GLOBAL-001 */
+         type === "impact"     ? <ImpactContent {...shared}/> : /* FEED-GLOBAL-001 */
                                  <MomentContent {...shared}/>}
       </Suspense>
     </CardErrorBoundary>
