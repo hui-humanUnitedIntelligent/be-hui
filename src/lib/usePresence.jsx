@@ -1,32 +1,93 @@
-// src/lib/usePresence.js — Phase 3D
+// src/lib/usePresence.jsx — Phase 3D (Sprint 8 Phase 2: produktionsfähig)
 // ══════════════════════════════════════════════════════════════
-// Lightweight presence hook. Isolated — NEVER blocks feed.
-// Updates user_presence table + subscribes to realtime changes.
-// Auto: online on mount, away after 90s idle, offline on unload.
+// Write: user_presence (status, last_seen_at, current_page)
+// Read:  usePresenceMap + Realtime postgres_changes
+// UI:    PresenceDot, fmtPresence — noch nicht in Chat/Discover/Feed
 // ══════════════════════════════════════════════════════════════
 import { useEffect, useRef, useCallback, useState } from "react";
 import { supabase } from "./supabaseClient.js";
 
-const AWAY_TIMEOUT    = 90_000;  // 90s idle → away
-const HEARTBEAT_MS    = 45_000;  // upsert every 45s while active
-const DEBOUNCE_MS     = 2_000;   // debounce activity events
+const AWAY_TIMEOUT = 90_000;
+const HEARTBEAT_MS = 45_000;
+const DEBOUNCE_MS  = 2_000;
 
+// ── Realtime channel registry (ref-counted, multi-mount safe) ───
+const presenceMapChannels = new Map();
+
+function presenceMapKey(userIds) {
+  return [...new Set(userIds.filter(Boolean))].sort().join(",");
+}
+
+function presenceRealtimeFilter(userIds) {
+  const ids = [...new Set(userIds.filter(Boolean))];
+  if (ids.length === 0) return null;
+  if (ids.length === 1) return `user_id=eq.${ids[0]}`;
+  return `user_id=in.(${ids.join(",")})`;
+}
+
+function subscribePresenceMap(userIds, listener) {
+  const key = presenceMapKey(userIds);
+  if (!key) return () => {};
+
+  const filter = presenceRealtimeFilter(userIds);
+  if (!filter) return () => {};
+
+  let entry = presenceMapChannels.get(key);
+  if (!entry) {
+    const topic = `presence_map_${key.replace(/,/g, "_").slice(0, 96)}`;
+    const listeners = new Set();
+    const channel = supabase
+      .channel(topic)
+      .on("postgres_changes", {
+        event: "*",
+        schema: "public",
+        table: "user_presence",
+        filter,
+      }, (payload) => {
+        const row = payload.eventType === "DELETE"
+          ? { ...payload.old, status: "offline" }
+          : payload.new;
+        if (row?.user_id) {
+          listeners.forEach(fn => fn(row));
+        }
+      })
+      .subscribe();
+    entry = { channel, listeners, refCount: 0 };
+    presenceMapChannels.set(key, entry);
+  }
+
+  entry.listeners.add(listener);
+  entry.refCount++;
+
+  return () => {
+    entry.listeners.delete(listener);
+    entry.refCount--;
+    if (entry.refCount <= 0) {
+      supabase.removeChannel(entry.channel);
+      presenceMapChannels.delete(key);
+    }
+  };
+}
+
+// ── usePresence — own user_presence write ─────────────────────
 export function usePresence(userId, currentPage = "home") {
-  const idleTimerRef = useRef(null);
-  const heartbeatRef = useRef(null);
-  const statusRef    = useRef("offline");
-  const mountedRef   = useRef(false);
+  const idleTimerRef  = useRef(null);
+  const heartbeatRef  = useRef(null);
+  const debounceRef   = useRef(null);
+  const statusRef     = useRef("offline");
+  const mountedRef    = useRef(false);
 
   const upsert = useCallback(async (status) => {
-    if (!userId) return;
+    if (!userId || !mountedRef.current) return;
     try {
       statusRef.current = status;
+      const now = new Date().toISOString();
       await supabase.from("user_presence").upsert({
         user_id:      userId,
         status,
-        last_seen_at: new Date().toISOString(),
+        last_seen_at: now,
         current_page: currentPage,
-        updated_at:   new Date().toISOString(),
+        updated_at:   now,
       }, { onConflict: "user_id" });
     } catch { /* silent */ }
   }, [userId, currentPage]);
@@ -44,36 +105,30 @@ export function usePresence(userId, currentPage = "home") {
     if (!userId) return;
     mountedRef.current = true;
 
-    // Initial online
     upsert("online");
 
-    // Heartbeat
     heartbeatRef.current = setInterval(() => {
       if (statusRef.current !== "offline") upsert(statusRef.current);
     }, HEARTBEAT_MS);
 
-    // Activity events — debounced
-    let debounce = null;
     const onActivity = () => {
-      clearTimeout(debounce);
-      debounce = setTimeout(goOnline, DEBOUNCE_MS);
+      clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(goOnline, DEBOUNCE_MS);
     };
 
-    // Visibility change → away/online
     const onVisibility = () => {
       if (document.hidden) upsert("away");
       else goOnline();
     };
 
-    const onUnload = () => upsert("offline");
+    const onUnload = () => { upsert("offline"); };
 
-    window.addEventListener("pointermove",   onActivity,  { passive: true });
-    window.addEventListener("keydown",       onActivity,  { passive: true });
-    window.addEventListener("touchstart",    onActivity,  { passive: true });
+    window.addEventListener("pointermove", onActivity, { passive: true });
+    window.addEventListener("keydown",     onActivity, { passive: true });
+    window.addEventListener("touchstart",  onActivity, { passive: true });
     document.addEventListener("visibilitychange", onVisibility);
-    window.addEventListener("beforeunload",  onUnload);
+    window.addEventListener("beforeunload", onUnload);
 
-    // Start idle timer
     idleTimerRef.current = setTimeout(() => {
       if (mountedRef.current) upsert("away");
     }, AWAY_TIMEOUT);
@@ -81,31 +136,40 @@ export function usePresence(userId, currentPage = "home") {
     return () => {
       mountedRef.current = false;
       clearTimeout(idleTimerRef.current);
-      clearTimeout(debounce);
+      clearTimeout(debounceRef.current);
       clearInterval(heartbeatRef.current);
-      window.removeEventListener("pointermove",   onActivity);
-      window.removeEventListener("keydown",       onActivity);
-      window.removeEventListener("touchstart",    onActivity);
+      window.removeEventListener("pointermove", onActivity);
+      window.removeEventListener("keydown",     onActivity);
+      window.removeEventListener("touchstart",  onActivity);
       document.removeEventListener("visibilitychange", onVisibility);
-      window.removeEventListener("beforeunload",  onUnload);
+      window.removeEventListener("beforeunload", onUnload);
       upsert("offline").catch(() => {});
     };
-  }, [userId]); // eslint-disable-line
+  }, [userId, currentPage, upsert, goOnline]);
 }
 
-// ── Read presence for a list of user IDs ─────────────────────
+// ── usePresenceMap — read + realtime for foreign user IDs ─────
 export function usePresenceMap(userIds = []) {
   const [map, setMap] = useState({});
+  const mountedRef = useRef(true);
+  const idsKey = presenceMapKey(userIds);
 
   useEffect(() => {
-    if (!userIds.length) return;
+    mountedRef.current = true;
+    if (!idsKey) {
+      setMap({});
+      return () => { mountedRef.current = false; };
+    }
+
+    const ids = idsKey.split(",");
 
     async function load() {
       try {
         const { data } = await supabase
           .from("user_presence")
-          .select("user_id,status,last_seen_at")
-          .in("user_id", userIds);
+          .select("user_id,status,last_seen_at,current_page,updated_at")
+          .in("user_id", ids);
+        if (!mountedRef.current) return;
         if (data) {
           const m = {};
           data.forEach(r => { m[r.user_id] = r; });
@@ -113,43 +177,27 @@ export function usePresenceMap(userIds = []) {
         }
       } catch { /* silent */ }
     }
+
     load();
 
-    // Realtime subscription
-    let sub;
-    let createdHere = false;
-    try {
-    // Realtime-Dedupe-Schutz (2026-07-08, systemweit, siehe useProfileLocations.js):
-    // existierenden Channel fuer diesen Topic wiederverwenden statt erneut zu
-    // subscriben -- verhindert "cannot add postgres_changes callbacks ... after
-    // subscribe()" bei gleichzeitigen Mounts fuer denselben Topic.
-      // Cleanup vereinheitlicht auf removeChannel() (war zuvor sub.unsubscribe(),
-      // das entfernt den Channel nicht aus der globalen Registry).
-      const topic = "presence_map_" + userIds[0];
-      const existing = supabase.getChannels().find(c => c.topic === `realtime:${topic}`);
-      if (existing) {
-        sub = existing;
-      } else {
-        sub = supabase
-          .channel(topic)
-          .on("postgres_changes", {
-            event: "*",
-            schema: "public",
-            table: "user_presence",
-            filter: `user_id=in.(${userIds.join(",")})`,
-          }, (payload) => {
-            const r = payload.new;
-            if (r?.user_id) {
-              setMap(prev => ({ ...prev, [r.user_id]: r }));
-            }
-          })
-          .subscribe();
-        createdHere = true;
-      }
-    } catch { /* silent — realtime optional */ }
+    const onRealtime = (row) => {
+      if (!mountedRef.current || !row?.user_id) return;
+      setMap(prev => ({ ...prev, [row.user_id]: row }));
+    };
 
-    return () => { try { if (createdHere && sub) supabase.removeChannel(sub); } catch {} };
-  }, [userIds.join(",")]); // eslint-disable-line
+    const unsubscribe = subscribePresenceMap(ids, onRealtime);
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") load();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+
+    return () => {
+      mountedRef.current = false;
+      document.removeEventListener("visibilitychange", onVisible);
+      unsubscribe();
+    };
+  }, [idsKey]);
 
   return map;
 }
@@ -186,5 +234,5 @@ export function fmtPresence(presence) {
   if (m < 60) return `vor ${m} Min aktiv`;
   const h = Math.floor(m / 60);
   if (h < 24) return `vor ${h} Std aktiv`;
-  return `vor ${Math.floor(h/24)} T aktiv`;
+  return `vor ${Math.floor(h / 24)} T aktiv`;
 }
