@@ -1466,7 +1466,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
       `}</style>
 
       {/* ══ 1 ── GROSSER EMOTIONALER HERO ════════════════════════ */}
-      <BigHero stats={hero} pool={pool} />
+      <BigHero pool={pool} />
 
       {/* ══ 2 ── POOL-KARTE mit Budget-Chips ════════════════════ */}
       <PoolCard pool={pool} userImpact={userImpact} />
@@ -1563,7 +1563,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
 // ════════════════════════════════════════════════════════════════
 const HERO_IMG = "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1000&q=92";
 
-function BigHero({ stats, pool }) {
+function BigHero({ pool }) {
   return (
     <div style={{
       position:"relative", overflow:"hidden", minHeight:320,
