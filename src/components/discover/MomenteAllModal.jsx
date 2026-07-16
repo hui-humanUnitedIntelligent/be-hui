@@ -172,7 +172,7 @@ export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
               background:"#f8fafc", fontSize:14, color:T.ink, outline:"none", boxSizing:"border-box" }}/>
         </div>
         <div ref={scrollRef} onScroll={onScroll}
-          style={{ flex:1, overflowY:"auto", padding:12, paddingBottom:88 }}>
+          style={{ flex:1, overflowY:"auto", padding:"12px 12px 0" }}>
           {items.length === 0 && loading && (
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
               {[1,2,3,4].map(i => <div key={i} style={{ borderRadius:18, height:200, background:"rgba(0,0,0,0.06)" }}/>)}
@@ -190,6 +190,9 @@ export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
           {loading && items.length > 0 && (
             <div style={{ textAlign:"center", padding:16, color:T.inkFaint, fontSize:13 }}>Lade weitere…</div>
           )}
+
+          {/* Bottom-Spacer: Navbar + safe-area (iOS Safari ignoriert paddingBottom bei scroll) */}
+          <div style={{ height:"calc(88px + env(safe-area-inset-bottom, 0px))", flexShrink:0 }}/>
         </div>
       </div>
     </div>,

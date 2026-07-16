@@ -130,7 +130,9 @@ export default function ContentPreviewSheet({ item, loading, onClose }) {
         className="cps-sheet"
         onClick={e => e.stopPropagation()}
         style={{
-          width:"100%", maxWidth:560, maxHeight:"88vh", overflowY:"auto",
+          width:"100%", maxWidth:560,
+          maxHeight:"calc(92dvh - env(safe-area-inset-top, 44px))",
+          overflowY:"auto",
           background:T.sheet, borderTopLeftRadius:24, borderTopRightRadius:24,
           boxShadow:"0 -8px 40px rgba(20,24,22,0.25)",
         }}
@@ -153,7 +155,7 @@ export default function ContentPreviewSheet({ item, loading, onClose }) {
         )}
 
         {item && (
-          <div style={{ padding:"0 0 24px" }}>
+          <div style={{ padding:"0 0 8px" }}>
             {/* Titelbild */}
             {hero ? (
               <img loading="lazy" decoding="async" src={hero} alt={item.title || ""} style={{ width:"100%", maxHeight:320, objectFit:"cover", display:"block" }}/>
@@ -236,6 +238,10 @@ export default function ContentPreviewSheet({ item, loading, onClose }) {
           </div>
         )}
       </div>
+
+      {/* Bottom-Spacer: Navbar (72px) + safe-area — verhindert Abschneiden
+          auf iOS (Safari ignoriert paddingBottom bei overflowY:auto) */}
+      <div style={{ height:"calc(88px + env(safe-area-inset-bottom, 0px))", flexShrink:0 }}/>
 
       {/* KOMMENTAR.1: EIN Kommentar-Sheet fuer ALLE Typen (post_comments,
           generisch ueber post_id+post_type, Migration 073). */}

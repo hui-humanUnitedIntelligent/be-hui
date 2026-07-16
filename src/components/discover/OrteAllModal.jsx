@@ -106,7 +106,7 @@ export default function OrteAllModal({ isOpen, onClose }) {
             style={{ width:"100%", padding:"9px 14px", borderRadius:12, border:`1px solid ${T.border}`,
               background:"#f8fafc", fontSize:14, color:T.ink, outline:"none", boxSizing:"border-box" }}/>
         </div>
-        <div style={{ flex:1, overflowY:"auto", padding:12, paddingBottom:88 }}>
+        <div style={{ flex:1, overflowY:"auto", padding:"12px 12px 0" }}>
           {filtered.length === 0 && (
             <div style={{ textAlign:"center", padding:"40px 20px", color:T.inkFaint }}>
               <div style={{ fontSize:32, marginBottom:12 }}>🌿</div>
@@ -116,6 +116,9 @@ export default function OrteAllModal({ isOpen, onClose }) {
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
             {filtered.map(o => <OrtCardItem key={o.id} ort={o}/>)}
           </div>
+
+          {/* Bottom-Spacer: Navbar + safe-area (iOS Safari ignoriert paddingBottom bei scroll) */}
+          <div style={{ height:"calc(88px + env(safe-area-inset-bottom, 0px))", flexShrink:0 }}/>
         </div>
       </div>
     </div>,

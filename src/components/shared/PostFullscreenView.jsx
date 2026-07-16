@@ -322,6 +322,9 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
           }}>
             Profil ansehen
           </button>
+
+          {/* Bottom-Spacer: verhindert Abschneiden hinter Navbar */}
+          <div style={{ height:"calc(88px + env(safe-area-inset-bottom, 0px))" }}/>
         </div>
       </div>
 
