@@ -78,14 +78,14 @@ elif [[ -n "$MODE" ]]; then
   NEW_CODE="${2:-}"
 
   info "Setze versionName = \"$NEW_VERSION\""
-  sed -i.bak "s/versionName \".*\"/versionName \"$NEW_VERSION\"/" "$BUILD_GRADLE"
-  rm -f "${BUILD_GRADLE}.bak"
+sed -i.bak "s/versionName \".*\"/versionName \"${NEW_VERSION}\"/" "$BUILD_GRADLE"
+rm -f "${BUILD_GRADLE}.bak"
 
-  if [[ -n "$NEW_CODE" ]]; then
-    info "Setze versionCode = $NEW_CODE"
-    sed -i.bak "s/versionCode .*/versionCode $NEW_CODE/" "$BUILD_GRADLE"
-    rm -f "${BUILD_GRADLE}.bak"
-  fi
+if [[ -n "$NEW_CODE" ]]; then
+  info "Setze versionCode = $NEW_CODE"
+  sed -i.bak "s/versionCode [0-9]\+/versionCode ${NEW_CODE}/" "$BUILD_GRADLE"
+  rm -f "${BUILD_GRADLE}.bak"
+fi
 
   VERSION_NAME="$NEW_VERSION"
   VERSION_CODE="$NEW_CODE"
