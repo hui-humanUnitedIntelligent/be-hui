@@ -220,7 +220,7 @@ function AmbassadorStudioSection({ profile }) {
       return;
     }
     // Timeout-Sicherheit: falls Supabase nicht antwortet → nie mehr "Lädt..." hängen
-    const loadTimeout = setTimeout(() => setLoading(false), 8000);
+    const loadTimeout = setTimeout(() => setLoading(false), 5000); // 5s max
     (async () => {
       setLoading(true);
       try {

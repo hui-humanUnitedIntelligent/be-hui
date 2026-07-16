@@ -40,7 +40,7 @@ const WerkWizard      = React.lazy(() => import("../components/works/WerkWizard.
 const TalentAngebotWizard = React.lazy(() => import("../components/talents/TalentAngebotWizard.jsx"));
 import { useTalents, deleteTalent } from "../hooks/useTalents.js";
 const ExperienceWizard = React.lazy(() => import("../components/experiences/ExperienceWizard.jsx"));
-const AmbassadorStudioSection = React.lazy(() => import("../components/ambassador/AmbassadorStudioSection.jsx"));
+// AmbassadorStudioSection wird direkt importiert (kein lazy → kein Suspense-Hänger)
 const HuiMomentSheet = React.lazy(() => import("../components/HuiMomentSheet.jsx"));
 const MyRecommendationsModal   = React.lazy(() => import("../components/studio/MyRecommendationsModal.jsx"));
 const ImpactStimmenModal       = React.lazy(() => import("../components/studio/ImpactStimmenModal.jsx"));
@@ -62,6 +62,7 @@ import {
 import { NotificationBadge }    from "../lib/useNotifications.jsx";
 import { useSavedPostsContext }  from "../context/SavedPostsContext.jsx";
 import { useContentPreview } from "../context/ContentPreviewContext.jsx";
+import AmbassadorStudioSection from "../components/ambassador/AmbassadorStudioSection.jsx";
 
 // ── Design Tokens ────────────────────────────────────────────────
 
@@ -1108,16 +1109,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
                 fontFamily:"inherit",
               }}>✕</button>
             </div>
-            {/* Suspense + ErrorBoundary — nur um die lazy Komponente */}
+            {/* AmbassadorStudioSection direkt — kein lazy/Suspense nötig */}
             <AmbassadorErrorBoundary>
-              <React.Suspense fallback={
-                <div style={{ padding:"32px 20px", textAlign:"center", color:"rgba(26,26,24,0.4)", fontSize:13 }}>
-                  <div style={{ width:24, height:24, borderRadius:"50%", border:"2px solid rgba(14,196,184,0.3)", borderTopColor:"#0EC4B8", animation:"hms-spin .7s linear infinite", display:"inline-block", marginBottom:8 }}/>
-                  <div>Wird geladen…</div>
-                </div>
-              }>
-                <AmbassadorStudioSection profile={profile} />
-              </React.Suspense>
+              <AmbassadorStudioSection profile={profile} />
             </AmbassadorErrorBoundary>
           </div>
         </div>,
