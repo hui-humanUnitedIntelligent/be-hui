@@ -159,42 +159,55 @@ function usePoolBudgets() {
 function useTransparenz() {
   const [s, setS] = React.useState({
     projekte:0, eur:0, stimmen:0, menschen:0, loading:true,
-    // Status-Counts für "Impact auf einen Blick" Timeline
+    // Status-Counts für "Impact auf einen Blick" Timeline — SSOT: impact_applications
     eingereicht:0, pruefung:0, nominiert:0, finanziert_count:0, umsetzung:0,
   });
   React.useEffect(() => {
     let dead = false;
-    (async () => {
+    const fetch = async () => {
       try {
-        const [allRes, vRes] = await Promise.allSettled([
-          supabase.from("impact_projects")
-            .select("id,status,awarded_eur"),
+        const now30 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+        const [appRes, vRes] = await Promise.allSettled([
+          // SSOT: impact_applications (identisch mit SADB-Quelle)
+          supabase.from("impact_applications")
+            .select("id,status,is_completed,funding_goal,current_amount_eur,created_at"),
           supabase.from("impact_votes")
             .select("id,user_id", { count:"exact" }),
         ]);
         if (dead) return;
-        const allProjs = allRes.status === "fulfilled" ? (allRes.value.data || []) : [];
-        const vdata    = vRes.status   === "fulfilled" ? vRes.value : { count:0, data:[] };
-        const unique   = new Set((vdata.data || []).map(v => v.user_id)).size;
-        const funded   = allProjs.filter(p => ["funded","finished"].includes(p.status));
-        setS({
+        const apps  = appRes.status === "fulfilled" ? (appRes.value.data || []) : [];
+        const vdata = vRes.status   === "fulfilled" ? vRes.value : { count:0, data:[] };
+        const unique = new Set((vdata.data || []).map(v => v.user_id)).size;
+
+        // Finanziert = is_completed ODER current_amount_eur >= funding_goal (wie SADB)
+        const funded = apps.filter(p =>
+          p.is_completed || (safeNum(p.current_amount_eur) >= safeNum(p.funding_goal) && safeNum(p.funding_goal) > 0)
+        );
+        if (!dead) setS({
           projekte:         funded.length,
-          eur:              funded.reduce((a,p) => a + safeNum(p.awarded_eur), 0),
+          eur:              0,
           stimmen:          vdata.count || 0,
           menschen:         unique,
-          eingereicht:      allProjs.filter(p => p.status === "submitted").length,
-          pruefung:         allProjs.filter(p => ["pending","approved"].includes(p.status)).length,
-          nominiert:        allProjs.filter(p => ["nominated","active"].includes(p.status)).length,
+          // Timeline-Counts — direkt aus impact_applications (SSOT = SADB)
+          eingereicht:      apps.filter(p => p.status === "submitted" && p.created_at >= now30).length,
+          pruefung:         apps.filter(p => ["submitted","pending"].includes(p.status)).length,
+          nominiert:        apps.filter(p => p.status === "approved" && !p.is_completed).length,
           finanziert_count: funded.length,
-          umsetzung:        allProjs.filter(p => p.status === "in_progress").length,
+          umsetzung:        apps.filter(p => p.status === "in_progress").length,
           loading: false,
         });
       } catch (e) {
         console.warn("[TRANSP]", e?.message);
         if (!dead) setS(d => ({ ...d, loading:false }));
       }
-    })();
-    return () => { dead = true; };
+    };
+    fetch();
+    // Realtime: bei Status-Änderung in impact_applications → sofort neu laden
+    const ch = supabase.channel("transp_live_" + Date.now())
+      .on("postgres_changes", { event: "*", schema: "public", table: "impact_applications" }, () => { if (!dead) fetch(); })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "impact_votes" },   () => { if (!dead) fetch(); })
+      .subscribe();
+    return () => { dead = true; supabase.removeChannel(ch); };
   }, []);
   return s;
 }
