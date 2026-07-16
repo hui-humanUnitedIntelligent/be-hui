@@ -458,14 +458,17 @@ function MomentCard({ moment, delay=0, onPress }) {
     <div className="dp-press dp-in dp-card-hover" onClick={() => onPress?.(moment)} style={{
       width:175, flexShrink:0,
       borderRadius:18, overflow:"hidden",
-      background:"transparent", position:"relative",
+      background:T.white,
+      display:"flex", flexDirection:"column",
       boxShadow:T.cardShadow,
+      border:`1px solid ${T.border}`,
       animationDelay:`${delay}ms`,
       touchAction:"manipulation",
       WebkitTapHighlightColor:"transparent",
+      position:"relative",
     }}>
-      {/* Bild */}
-      <div style={{ width:"100%", height:130, position:"relative", overflow:"hidden" }}>
+      {/* Bildbereich — feste Höhe, kein Hintergrundleck */}
+      <div style={{ width:"100%", height:130, flexShrink:0, position:"relative", overflow:"hidden" }}>
         {!imgErr && moment.src ? (
           <img loading="lazy" decoding="async" src={moment.src} alt={moment.caption}
             onError={() => setImgErr(true)}
@@ -486,22 +489,23 @@ function MomentCard({ moment, delay=0, onPress }) {
         }}>
           {ago}
         </div>
+        {/* Live Badge — within image so position:absolute works correctly */}
+        {moment.isLive && (
+          <div style={{
+            position:"absolute", top:8, right:8,
+            background:"#E8573A", borderRadius:99, padding:"2px 7px",
+            fontSize:9, fontWeight:700, color:"white", letterSpacing:".04em",
+            display:"flex", alignItems:"center", gap:4,
+          }}>
+            <div className="dp-live-dot" style={{ width:5,height:5,borderRadius:"50%",background:"white" }}/>
+            Live
+          </div>
+        )}
       </div>
 
-      {/* Live Badge — if fresh */}
-      {moment.isLive && (
-        <div style={{
-          position:"absolute", top:8, right:8,
-          background:"#E8573A", borderRadius:99, padding:"2px 7px",
-          fontSize:9, fontWeight:700, color:"white", letterSpacing:".04em",
-          display:"flex", alignItems:"center", gap:4,
-        }}>
-          <div className="dp-live-dot" style={{ width:5,height:5,borderRadius:"50%",background:"white" }}/>
-          Live
-        </div>
-      )}
-      {/* Caption */}
-      <div style={{ background:T.white, padding:"10px 10px 10px" }}>
+      {/* Content-Bereich — flexGrow:1 füllt den Rest, kein Hintergrundleck */}
+      <div style={{ flexGrow:1, display:"flex", flexDirection:"column", padding:"10px 11px 12px", background:T.white }}>
+        {/* Caption */}
         <div style={{
           fontSize:11.5, fontWeight:600, color:T.ink, lineHeight:1.35,
           marginBottom:6,
@@ -510,7 +514,8 @@ function MomentCard({ moment, delay=0, onPress }) {
         }}>
           {moment.caption}
         </div>
-        <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:7 }}>
+        {/* Autor */}
+        <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:0 }}>
           <div style={{
             width:18, height:18, borderRadius:"50%",
             background:T.tealSoft,
@@ -519,14 +524,13 @@ function MomentCard({ moment, delay=0, onPress }) {
           }}><HUIProfilIcon size={24} style={{opacity:0.35, color:"rgba(14,196,184,0.5)"}}/></div>
           <span style={{ fontSize:10.5, fontWeight:600, color:T.inkSoft }}>{moment.name}</span>
           {moment.location && (
-            <>
-              
-              <span style={{ fontSize:10, color:T.inkFaint, display:"flex", alignItems:"center", gap:2 }}><HUILocationIcon size={10}/>{moment.location}</span>
-            </>
+            <span style={{ fontSize:10, color:T.inkFaint, display:"flex", alignItems:"center", gap:2 }}>
+              <HUILocationIcon size={10}/>{moment.location}
+            </span>
           )}
         </div>
-        {/* Engagement Row */}
-        <div className="dp-engage">
+        {/* Engagement Row — immer am unteren Rand */}
+        <div className="dp-engage" style={{ marginTop:"auto", paddingTop:8 }}>
           <span><HUIHeartIcon size={12} /> {moment.likes ?? Math.floor(4 + (moment.id?.charCodeAt?.(moment.id.length-1)??7) % 30)}</span>
           <span><HUIChatIcon size={12} /> {moment.comments ?? Math.floor(1 + (moment.id?.charCodeAt?.(0)??3) % 12)}</span>
           <span style={{display:"flex",alignItems:"center",gap:2}}><HUIImpactIcon size={12}/>{moment.wirkung ?? Math.floor(1 + (moment.id?.charCodeAt?.(1)??2) % 8)}</span>
