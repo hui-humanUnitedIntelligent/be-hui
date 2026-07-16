@@ -21,7 +21,7 @@ src/lib/world/orbLayer.js        ← Orb Engine
 src/feed/useFeedStream.js        ← Feed Engine
 ```
 
-Weiterführende Dokumente: [`docs/ARCHITECTURE_INDEX.md`](docs/ARCHITECTURE_INDEX.md)
+Weiterführende Dokumente: [`docs/ARCHITECTURE_INDEX.md`](docs/ARCHITECTURE_INDEX.md) · [`HUI_ENGINEERING_CONSTITUTION.md`](HUI_ENGINEERING_CONSTITUTION.md)
 
 ---
 
