@@ -12,7 +12,6 @@ import { useNotifCount }  from "../../lib/AppStateContext";
 import {
   useSessionRestore,
   useScrollMemory,
-  useOwnPresence,
 } from "../../lib/sessionHooks";
 import { useTabStyles } from "../../lib/world/tabVisibilityController.js";
 import { useCartPersistence } from "../../hooks/useCartPersistence.js"; // KORB-PERSIST
@@ -74,7 +73,6 @@ export default function HomeShell({ children }) {
   const [prevTab, setPrevTab]   = React.useState("feed");
   const [carryOver, setCarryOver] = React.useState(null);
   const { ref: mainScrollRef }  = useScrollMemory(tab);
-  useOwnPresence(user?.id);
 
   /* Talent / Membership — single source of truth from AuthContext
    * RULE: isProfileTalent(authProfile) — einzige Wahrheitsquelle (Sprint F.4C)

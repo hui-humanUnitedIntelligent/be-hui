@@ -12,7 +12,7 @@ import {
 import React, { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
 import { useNavigate }   from "react-router-dom";
 import { supabase }      from "../lib/supabaseClient.js";
-import { formatPresence } from "../lib/usePresence.js";
+import { usePresenceMap, presenceDisplay } from "../lib/usePresence.jsx";
 import { useAuthGate }    from "../components/auth/AuthGate.jsx";
 import TalentAnfrageFlow  from "../components/talents/TalentAnfrageFlow.jsx";
 import TalentBookingFlow  from "../components/talents/TalentBookingFlow.jsx";
@@ -268,10 +268,10 @@ function personTags(person, max=2) {
   return [INTEREST_POOLS[start % INTEREST_POOLS.length], INTEREST_POOLS[(start+3) % INTEREST_POOLS.length]];
 }
 
-function PersonCard({ person, onPress, delay=0 }) {
+function PersonCard({ person, onPress, delay=0, presenceRow=null }) {
   const [imgErr, setImgErr] = useState(false);
   const av = (!imgErr && person.avatar) ? person.avatar : null;
-  const presence = formatPresence(person.last_seen_at);
+  const presence = presenceDisplay(presenceRow);
   const tags = personTags(person, 2);
 
   return (
@@ -386,6 +386,12 @@ function PersonCard({ person, onPress, delay=0 }) {
 }
 
 function PeopleSection({ people, onPersonPress, loading, delay=0, view='cards', onSectionAction }) {
+  const peopleIds = useMemo(
+    () => (people || []).map(p => p.id).filter(Boolean),
+    [people]
+  );
+  const presenceMap = usePresenceMap(peopleIds);
+
   return (
     <div className="dp-in" style={{ animationDelay:`${delay}ms`, marginTop:10 }}>
       <div data-dp-people/>
@@ -411,7 +417,7 @@ function PeopleSection({ people, onPersonPress, loading, delay=0, view='cards', 
                 </div>
               ))
             : people.map((p, i) => (
-                <PersonCard key={p.id} person={p} onPress={onPersonPress} delay={i*40+delay} />
+                <PersonCard key={p.id} person={p} onPress={onPersonPress} delay={i*40+delay} presenceRow={presenceMap[p.id]} />
               ))
           }
         </div>

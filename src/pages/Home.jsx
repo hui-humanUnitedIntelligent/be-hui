@@ -24,7 +24,7 @@ import HUIBottomNavigation       from "../components/home/navigation/HUIBottomNa
 import ProfileLauncher           from "../components/home/profile/ProfileLauncher.jsx";
 import UnifiedFeed from "../feed/UnifiedFeed.jsx";
 import { shareContent } from "../lib/shareContent.js"; // SHARE.1 2026-07-09
-import { usePresence }             from "../lib/usePresence.js";
+import { usePresence }             from "../lib/usePresence.jsx";
 import { StoryViewer }           from "../components/StoryBar.jsx";
 import ChatCenterOverlay          from "../components/chat-center/ChatCenterOverlay.jsx";
 import { useChatList }             from "../lib/chatContext.js";

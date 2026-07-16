@@ -4,7 +4,7 @@
 
 import React from "react";
 import { HUI } from "../../design/hui.design.js";
-import { formatPresence } from "../../lib/usePresence.js";
+import { usePresenceMap, presenceDisplay } from "../../lib/usePresence.jsx";
 
 const C = { teal:HUI.COLOR.teal, coral:HUI.COLOR.coral, ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.52)" };
 
@@ -30,7 +30,9 @@ export default function ConversationCard({ conv, onPress, isActive }) {
   const avatar     = conv.avatar_url || conv.other_profile?.avatar_url;
   const lastMsg    = conv.last_message || "Eine Verbindung entsteht ✦";
   const unread     = conv.unread || 0;
-  const presence   = formatPresence(conv.other_profile?.last_seen_at || conv.last_seen_at);
+  const otherId    = conv?.other_profile?.id || conv?.user_id || null;
+  const presenceMap = usePresenceMap(otherId ? [otherId] : []);
+  const presence   = presenceDisplay(otherId ? presenceMap[otherId] : null);
   const moodIndex =
     Math.abs(
       String(conv.id)
