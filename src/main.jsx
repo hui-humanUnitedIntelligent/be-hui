@@ -8,11 +8,14 @@ import { initSentry, sentryCapture } from './lib/sentry'
 
 initSentry();
 
-// ── DEV: Contract Inspector ──────────────────────────────────────
-// In DevTools: window.__HUI_CONTRACTS?.()
+// ── DEV: Contract Inspector + Observability ────────────────────
+// DevTools: window.__HUI_CONTRACTS?.()  |  window.__HUI_OBSERVABILITY__?.getReport()
 if (import.meta.env.DEV) {
   import("./core/hui.contracts.js").then(({ inspectContracts }) => {
     window.__HUI_CONTRACTS = inspectContracts;
+  });
+  import("./lib/observability/index.dev.js").then(({ initObservability }) => {
+    initObservability();
   });
 }
 
