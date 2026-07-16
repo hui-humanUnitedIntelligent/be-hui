@@ -40,6 +40,8 @@ const WerkWizard      = React.lazy(() => import("../components/works/WerkWizard.
 const TalentAngebotWizard = React.lazy(() => import("../components/talents/TalentAngebotWizard.jsx"));
 import { useTalents, deleteTalent } from "../hooks/useTalents.js";
 const ExperienceWizard = React.lazy(() => import("../components/experiences/ExperienceWizard.jsx"));
+const TeilenFlow       = React.lazy(() => import("../components/teilen/TeilenFlow.jsx"));
+const ImpactFlow       = React.lazy(() => import("../system/flows/impact/ImpactFlow.jsx"));
 const AmbassadorStudioSection = React.lazy(() => import("../components/ambassador/AmbassadorStudioSection.jsx"));
 const MyRecommendationsModal   = React.lazy(() => import("../components/studio/MyRecommendationsModal.jsx"));
 const ImpactStimmenModal       = React.lazy(() => import("../components/studio/ImpactStimmenModal.jsx"));
@@ -536,6 +538,8 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const recommendations = hooksRecs ?? [];
   const [showWerkWizard, setShowWerkWizard] = useState(false);
   const [showExpWizard,  setShowExpWizard]  = useState(false);
+  const [showTeilenFlow, setShowTeilenFlow] = useState(false);
+  const [showImpactPropose, setShowImpactPropose] = useState(false);
   const [editingWerk,   setEditingWerk]   = useState(null);
   const [editingExp,    setEditingExp]    = useState(null);
   const [showTalentWizard, setShowTalentWizard] = useState(false);
@@ -543,6 +547,12 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [editingTalent,    setEditingTalent]    = useState(null);
   const { talents, reload: reloadTalents } = useTalents(profile?.id);
 
+  // Sprint 9 Phase 1: Impact-Einreichung aus ImpactPage/Actions → Profil
+  useEffect(() => {
+    const handler = () => setShowImpactPropose(true);
+    window.addEventListener("hui:open-impact-propose", handler);
+    return () => window.removeEventListener("hui:open-impact-propose", handler);
+  }, []);
 
   // Sprint F.7D: Profil-Loader entfernt — useProfileData(user?.id) übernimmt
   // Alte lokale States (profile, loading) werden durch Hook-Werte ersetzt (Phase 2)
@@ -969,7 +979,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
             <MomentsSection
               moments={moments}
               isOwner={true}
-              onAddMoment={(newMoments) => handleMomentsSave(newMoments)}
+              onAddMoment={() => setShowTeilenFlow(true)}
             />
             <Gap h={24}/>
 
@@ -1213,6 +1223,27 @@ export default function MyBasisProfile({ onClose, profileId }) {
           }}
         />
               </React.Suspense>
+      )}
+
+      {/* MOMENT TEILEN — Sprint 9: einziger Einstieg für Moment-Erstellung */}
+      {showTeilenFlow && (
+        <React.Suspense fallback={null}>
+          <TeilenFlow
+            visible={showTeilenFlow}
+            onClose={() => setShowTeilenFlow(false)}
+            onPublished={() => {
+              setShowTeilenFlow(false);
+              reload();
+            }}
+          />
+        </React.Suspense>
+      )}
+
+      {/* IMPACT PROJEKT EINREICHEN — Sprint 9: einziger Einstieg für neue Impact-Anträge */}
+      {showImpactPropose && (
+        <React.Suspense fallback={null}>
+          <ImpactFlow onClose={() => setShowImpactPropose(false)} />
+        </React.Suspense>
       )}
     </div>
   );
@@ -1850,6 +1881,7 @@ function MeinBereichMenu({
               profile={profile}
               supabase={supabase}
               onUpdateClick={(proj) => { setUpdateTargetProject(proj); setShowUpdateSheet(true); }}
+              onProposeClick={() => setShowImpactPropose(true)}
             />
           )}
 
@@ -2392,7 +2424,7 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
 // Fragt impact_applications per user_id ab.
 // Für bewilligte Projekte: "+ Update hinzufügen" Button.
 // ══════════════════════════════════════════════════════════════
-function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
+function ImpactProjekteTab({ profile, supabase, onUpdateClick, onProposeClick }) {
   const [projects, setProjects] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
 
@@ -2431,9 +2463,29 @@ function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
         <div style={{ fontSize: 15, fontWeight: 700, color: "#1A1A1A", marginBottom: 8 }}>
           Noch kein Impact-Projekt
         </div>
-        <div style={{ fontSize: 13, color: "#666" }}>
+        <div style={{ fontSize: 13, color: "#666", marginBottom: 16 }}>
           Reiche dein erstes Herzensprojekt ein und erhalte Community-Finanzierung.
         </div>
+        {onProposeClick && (
+          <button
+            type="button"
+            onClick={onProposeClick}
+            className="mbp-press-light"
+            style={{
+              padding: "12px 20px",
+              borderRadius: 99,
+              background: "rgba(14,196,184,0.10)",
+              border: "1px solid rgba(14,196,184,0.25)",
+              color: "#0EC4B8",
+              fontSize: 14,
+              fontWeight: 800,
+              cursor: "pointer",
+              fontFamily: "inherit",
+            }}
+          >
+            Projekt einreichen
+          </button>
+        )}
       </div>
     );
   }

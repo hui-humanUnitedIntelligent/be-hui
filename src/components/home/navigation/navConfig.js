@@ -11,7 +11,7 @@
 // TAB-KEY → VERHALTEN:
 //   feed     → switchTab("feed")           — UnifiedFeed, schließt Overlays
 //   discover → switchTab("discover")       — DiscoverPage, schließt Overlays
-//   orb      → onOrbAction("create")       — OrbCompass Overlay, kein Tab-Switch
+//   orb      → onOrbAction("create")       — MeinHUI / Membership, kein Tab-Switch
 //   impact   → _setTab("impact")           — ImpactPage, schließt Overlays NICHT
 //   creator  → openCreatorDashboard()      — ProfileLauncher Overlay, Tab=creator
 //

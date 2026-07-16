@@ -12,9 +12,9 @@ import { ProfileService } from '../services/db';
 import { supabase } from "../lib/supabaseClient";
 import { ImpactService, FeedService } from "../services/db.js";
 import { HUI } from "../design/hui.design.js";
-import ImpactFlow from "../system/flows/impact/ImpactFlow.jsx";
 import ImpactProjektUpdateSheet from "../components/studio/ImpactProjektUpdateSheet.jsx";
 import { useAuth } from "../lib/AuthContext";
+import { useHome } from "../components/home/HomeShell.jsx";
 import { isProfileTalent } from "../lib/profileUtils.js";
 
 // ── Helpers ──────────────────────────────────────────────────
@@ -1296,7 +1296,6 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
   const [activeRound, setActiveRound] = React.useState(null);
   const [userVotes,   setUserVotes]   = React.useState([]);
   const [voteLoading, setVoteLoading] = React.useState(false);
-  const [showPropose,   setShowPropose]   = React.useState(false);
   const [infoModal,     setInfoModal]     = React.useState(null);
   const [userImpact,    setUserImpact]    = React.useState({ eur:0, projekte:0, loading:true });
 
@@ -1310,6 +1309,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
   const rankedProjs   = useAllApprovedByVotes();          // ← SSOT für alle Rankings
   const approvedApps  = useApprovedApplications();        // für VotePersonal projMap
   const [detailApp, setDetailApp] = React.useState(null);
+  const { openOwnProfile } = useHome() || {};
 
   // ── Projekte: werden jetzt von useAllApprovedByVotes gehandelt ──
   // Top 3 nach Stimmen → projects State (für Kompatibilität mit bestehendem Code)
@@ -1538,7 +1538,10 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
       <GemeinsamErmoegicht finanziert={finanziert} transp={transp} />
 
       {/* ══ 6 ── HERZENSPROJEKT EINREICHEN ═══════════════════════ */}
-      <HerzensprojektEmotional onPropose={() => setShowPropose(true)} />
+      <HerzensprojektEmotional onPropose={() => {
+        openOwnProfile?.();
+        window.dispatchEvent(new CustomEvent("hui:open-impact-propose"));
+      }} />
 
       {/* ══ 7 ── SO FUNKTIONIERT DER IMPACT POOL ════════════════ */}
       <MechanikErklaeung onInfo={() => setInfoModal("cycle")} />
@@ -1562,11 +1565,6 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
       )}
 
       {/* ══ FLOWS + MODALS ════════════════════════════════════════ */}
-      {showPropose && (
-        <React.Suspense fallback={null}>
-          <ImpactFlow onClose={() => setShowPropose(false)} />
-        </React.Suspense>
-      )}
       {infoModal && (
         <InfoSheet modal={infoModal} onClose={() => setInfoModal(null)} />
       )}

@@ -160,16 +160,8 @@ export default function HomeShell({ children }) {
   // Legacy alias — HuiPlusSheet consumers use setShowPlusSheet(false) to close
   // We keep the state for SafeRender gating ONLY
   const [showPlusSheet,          setShowPlusSheet]         = useState(false);
-  const [showCreateFlow,         setShowCreateFlow]        = useState(false);
   const [showConnect,            setShowConnect]           = useState(false);
-  const [showTeilen,             setShowTeilen]            = useState(false);
   const [showTalentFlow,         setShowTalentFlow]        = useState(false);
-  const [showStoryComposer,      setShowStoryComposer]     = useState(false);
-  const [showWerkPublisher,      setShowWerkPublisher]     = useState(false);
-  const [showExperienceCreator,  setShowExperienceCreator] = useState(false);
-  const [showImpactFlow,         setShowImpactFlow]         = useState(false);
-  const [showContentSelector,    setShowContentSelector]    = useState(false);
-  const [showInvitationFlow,     setShowInvitationFlow]     = useState(false);
   const [showCreatorDash,        setShowCreatorDash]        = useState(false); // Phase 4D
   const [showWerkDetail,         setShowWerkDetail]        = useState(null);
   const [showWerkCheckout,       setShowWerkCheckout]      = useState(null);
@@ -217,22 +209,12 @@ export default function HomeShell({ children }) {
     setShowWerkeKorb(false);
     setShowUnterstutzenFlow(false);
     setActiveStory(null);
-    setShowStoryComposer(false);
-    setShowWerkPublisher(false);
-    setShowExperienceCreator(false);
-    setShowImpactFlow(false);
-    setShowContentSelector(false);
-    setShowInvitationFlow(false);
     setShowCreatorDash(false);
     setShowMatch(false);
     setShowMap(false);
     setChatRecipient?.(null);
     setShowNotifs(false);
     setShowMembership(false);
-    setShowCreateFlow(false);
-    if (!window.__PUBLISHING__) {
-      setShowTeilen(false);
-    }
     setShowPlusSheet(false);
     setCreateType(null);
     setShowCreatorDashboard(false);
@@ -330,16 +312,8 @@ export default function HomeShell({ children }) {
     showMatch,             setShowMatch,
     showMembership,        setShowMembership,
     showPlusSheet,         setShowPlusSheet,
-    showCreateFlow,        setShowCreateFlow,
     showConnect,           setShowConnect,
-    showTeilen,            setShowTeilen,
     showTalentFlow,        setShowTalentFlow,
-    showStoryComposer,     setShowStoryComposer,
-    showWerkPublisher,     setShowWerkPublisher,
-    showExperienceCreator, setShowExperienceCreator,
-    showImpactFlow,         setShowImpactFlow,
-    showContentSelector,    setShowContentSelector,
-    showInvitationFlow,     setShowInvitationFlow,
     showCreatorDash,        setShowCreatorDash,
     showWerkDetail,        setShowWerkDetail,
     showWerkCheckout,      setShowWerkCheckout,
@@ -367,10 +341,8 @@ export default function HomeShell({ children }) {
     openProfileById, closeProfileById,
     showChat, chatRecipient,
     showNotifs, showMap, showMatch, showMembership,
-    showPlusSheet, showCreateFlow, showConnect,
-    showTeilen, showTalentFlow, showStoryComposer,
-    showWerkPublisher, showExperienceCreator,
-    showImpactFlow, showContentSelector, showInvitationFlow,
+    showPlusSheet, showConnect,
+    showTalentFlow,
     showCreatorDash, showWerkDetail, showWerkCheckout, showWerkeKorb,
     showUnterstutzenFlow, showBookingFlow,
     createType, activeStory, cart, clearCartPersist,
