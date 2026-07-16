@@ -9,6 +9,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import FeedRouter              from "./cards/FeedRouter.jsx";
 import { CardSkeleton }        from "./cards/BaseFeedCard.jsx";
 import { useFeedStream }       from "./useFeedStream.js";
@@ -482,9 +483,7 @@ function ReactionCard({ item, onProfile, onBook, onDetail, onShare, itemIndex, o
 }
 
 function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loadMore, hasMore, loadingMore, onDiscover, scrollContainerRef = null }) {
-  // VIRT-001 — Virtualisierter Feed mit @tanstack/react-virtual
-  // Rendert nur Karten die im Viewport (+ 400px Margin) sichtbar sind.
-  // Memory-Cleanup: Karten außerhalb DOM werden unmounted (overscan=3).
+  // VIRT-S12: Nur Karten-Rendering virtualisieren — Daten/Stream unverändert.
 
   const arr = useMemo(() => {
     if (!Array.isArray(items)) return [];
@@ -549,44 +548,97 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
     }
   }, [hasMore, arr.length, depthUser?.id]); // eslint-disable-line
 
-  // VIRT-001 REV3: Stabiles normales Rendering — alle Items immer gerendert.
-  // Kein contentVisibility-Hack, kein position:absolute. Einfach, korrekt, schnell.
-  // Bei 200 Items Cap (useFeedStream) ist kein weiteres Virtualisierung nötig.
+  const estimateRowSize = useCallback((index) => {
+    const { isRelaxed, mb } = getCardRhythm(index);
+    return (isRelaxed ? 820 : 680) + mb;
+  }, []);
+
+  const useVirtual = arr.length > 6;
+
+  const virtualizer = useVirtualizer({
+    count:            arr.length,
+    getScrollElement: () => scrollContainerRef?.current ?? null,
+    estimateSize:     estimateRowSize,
+    overscan:         3,
+    enabled:          useVirtual,
+  });
+
+  const renderCard = useCallback((item, idx) => {
+    const { isRelaxed, mb } = getCardRhythm(idx);
+    const itemReactions = reactions[String(item.id)] || {};
+    return (
+      <div
+        className="hui-feed-card"
+        style={{
+          marginBottom: mb,
+          animationDelay: Math.min(idx * 40, 300) + "ms",
+        }}
+      >
+        <ReactionCard
+          item={{
+            ...item,
+            _reactions: { ...itemReactions, _relaxed: isRelaxed },
+            _presenceStatus: resolvePresenceStatus(item),
+          }}
+          onProfile={onProfile}
+          onBook={onBook}
+          onDetail={onDetail}
+          onShare={() => onShare?.(item)}
+          itemIndex={idx}
+          onDepth={onDepth}
+        />
+      </div>
+    );
+  }, [reactions, resolvePresenceStatus, onProfile, onBook, onDetail, onShare, onDepth]);
 
   if (arr.length === 0) return <EmptyFeed />;
 
   return (
     <div style={{ paddingTop: 8, paddingBottom: 8 }}>
-      {arr.map((item, idx) => {
-        const { isRelaxed, mb } = getCardRhythm(idx);
-        const itemReactions = reactions[String(item.id)] || {};
-        return (
-          <div
-            key={String(item.id)}
-            className="hui-feed-card"
-            style={{
-              marginBottom: mb,
-              animationDelay: Math.min(idx * 40, 300) + "ms",
-            }}
-          >
-            <ReactionCard
-              item={{
-                ...item,
-                _reactions: { ...itemReactions, _relaxed: isRelaxed },
-                _presenceStatus: resolvePresenceStatus(item),
-              }}
-              onProfile={onProfile}
-              onBook={onBook}
-              onDetail={onDetail}
-              onShare={() => onShare?.(item)}
-              itemIndex={idx}
-              onDepth={onDepth}
-            />
+      {useVirtual ? (
+        <div
+          style={{
+            height:   virtualizer.getTotalSize(),
+            width:    "100%",
+            position: "relative",
+          }}
+        >
+          {virtualizer.getVirtualItems().map((virtualRow) => {
+            const item = arr[virtualRow.index];
+            if (!item) return null;
+            return (
+              <div
+                key={virtualRow.key}
+                data-index={virtualRow.index}
+                ref={virtualizer.measureElement}
+                style={{
+                  position:  "absolute",
+                  top:         0,
+                  left:        0,
+                  width:       "100%",
+                  transform:   `translateY(${virtualRow.start}px)`,
+                }}
+              >
+                {renderCard(item, virtualRow.index)}
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        arr.map((item, idx) => (
+          <div key={String(item.id)}>
+            {renderCard(item, idx)}
           </div>
-        );
-      })}
+        ))
+      )}
 
-      {/* Feed-Ende State (wenn kein hasMore mehr) */}
+      <FeedLoadMoreSpinner loading={!!loadingMore} />
+      <FeedBottomSentinel
+        enabled={!!hasMore && !loadingMore}
+        onVisible={loadMore}
+        scrollRootRef={scrollContainerRef}
+      />
+
       {!hasMore && arr.length > 0 && (
         <div style={{
           display:       "flex",
