@@ -2,6 +2,7 @@ import {
   HUIWarnIcon, HUIImpactIcon, HUISupportIcon, HUINachrichtIcon,
   HUIProfilIcon, HUIBenachrichtigungIcon,
 } from '../../design/icons/HuiSystemIcons.jsx';
+import { HUIHeartIcon } from '../../design/icons/HuiInteractionIcons.jsx';
 import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 
@@ -109,6 +110,9 @@ const META = {
   // KOMMENTAR.1 (2026-07-09): Kommentar/Antwort auf eigenen Beitrag.
   comment:                { emoji:"💬", label:"Neuer Kommentar"        },
   comment_reply:          { emoji:"💬", label:"Antwort auf deinen Kommentar" },
+  // RESONANZ.3 (2026-07-16): Resonanz auf eigenen Beitrag.
+  resonanz:               { emoji:<HUIHeartIcon size={18}/>,            label:"Resonanz"               },
+  like:                   { emoji:"✦",  label:"Gefällt jemandem"       },
   default:                { emoji:<HUIBenachrichtigungIcon size={18}/>, label:"Benachrichtigung"       },
 };
 

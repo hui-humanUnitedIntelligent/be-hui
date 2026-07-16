@@ -140,14 +140,17 @@ export function useSingleReaction(postId, postType = "post", authorId = null, po
         // Batch-Job (siehe save_digest_batch()-RPC + Superagent-Automation),
         // NICHT pro einzelnem Toggle hier.
         if (authorId && authorId !== user.id && type !== "save") {
+          // RESONANZ.4 (2026-07-16): Beitragstitel aus postSnapshot für aussagekräftigen Body.
+          const _title = postSnapshot?.title || postSnapshot?.caption || null;
           createNotification({
             recipientId: authorId,
             senderId:    user.id,
             type:        type === "inspire" ? "resonanz" : "like",
             title:       type === "inspire" ? "Jemand lässt sich von dir inspirieren" :
                                               "Jemandem gefällt dein Beitrag",
-            entityId:   postId,
-            entityType: postType,
+            body:        _title ? `"${_title.slice(0, 80)}"` : undefined,
+            entityId:    postId,
+            entityType:  postType,
           }).catch(() => {});
         }
       }

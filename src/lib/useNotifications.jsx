@@ -39,6 +39,7 @@ const TYPE_META = {
   booking_change: { tab:"wichtig", icon:"⚠️", color:"#F59E0B", label:"Buchungsänderung" },
   experience_soon:{ tab:"wichtig", icon:"📅", color:"#22C55E", label:"Erlebnis morgen" },
   // RELEVANT
+  resonanz:       { tab:"relevant", icon:"✦",  color:T.teal,   label:"Resonanz" },
   like:           { tab:"relevant", icon:"❤️", color:"#EF4444", label:"Favorisiert" },
   save:           { tab:"relevant", icon:"⭐", color:"#F59E0B", label:"Gespeichert" },
   profile_visit:  { tab:"relevant", icon:"👀", color:"#8B5CF6", label:"Profilbesuch" },

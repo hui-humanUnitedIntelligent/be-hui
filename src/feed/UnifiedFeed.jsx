@@ -420,7 +420,7 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
   }, [visible]);
 
   // Hook-Gating: kein RPC / kein SELECT solange nicht sichtbar
-  const { toggle, myTypes } = useSingleReaction(
+  const { toggle, myTypes, counts } = useSingleReaction(
     visible ? postId : null,
     postType,
     authorId
@@ -436,13 +436,17 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
   }, [toggle, myTypes]);
 
   // Merge live reaction state into item
+  // RESONANZ.1 (2026-07-16): inspireCount + touchCount aus Hook-State (counts),
+  // nicht aus Feed-Snapshot — Feed-Items haben keine reaction_count-Spalten.
   const enriched = {
     ...item,
     _reactions: {
       ...(item._reactions || {}),
-      touched:  myTypes?.has?.("like")    ?? false,
-      inspired: myTypes?.has?.("inspire") ?? false,
-      saved:    myTypes?.has?.("save")    ?? false,
+      touched:      myTypes?.has?.("like")    ?? false,
+      inspired:     myTypes?.has?.("inspire") ?? false,
+      saved:        myTypes?.has?.("save")    ?? false,
+      inspireCount: counts?.inspire ?? (item._reactions?.inspireCount ?? null),
+      touchCount:   counts?.like    ?? (item._reactions?.touchCount   ?? null),
     },
   };
 
