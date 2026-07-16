@@ -236,3 +236,26 @@ export function fmtPresence(presence) {
   if (h < 24) return `vor ${h} Std aktiv`;
   return `vor ${Math.floor(h / 24)} T aktiv`;
 }
+
+// ── Chat presence helpers (Sprint 8 Phase 3) ────────────────────
+/** Löst die Partner-User-ID aus einem Chat-Conv-Objekt. */
+export function chatOtherUserId(conv, currentUserId) {
+  return conv?.user_id
+    || conv?.other_profile?.id
+    || (conv?.participant_ids || []).find(id => id && id !== currentUserId)
+    || null;
+}
+
+/** Mappt user_presence-Zeile auf Chat-UI-Format { label, dot, online }. */
+export function presenceDisplayFromRow(row) {
+  if (!row) return null;
+  if (row.status === "online") {
+    return { label: "Online", dot: "#22c55e", online: true };
+  }
+  if (row.status === "away") {
+    return { label: "Gerade aktiv", dot: "#F59E0B", online: false };
+  }
+  const label = fmtPresence(row);
+  if (!label) return null;
+  return { label, dot: "rgba(0,0,0,0.22)", online: false };
+}

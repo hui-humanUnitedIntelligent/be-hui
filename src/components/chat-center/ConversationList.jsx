@@ -99,7 +99,7 @@ function ImpactCard() {
 }
 
 /* ══════════════════════════════════════════════════════════════ */
-export default function ConversationList({ chats, loading, onOpen, onDiscover, connections = [], search = "" }) {
+export default function ConversationList({ chats, loading, onOpen, onDiscover, connections = [], search = "", presenceMap, currentUserId }) {
   if (import.meta.env.DEV) {
     console.log("[CONVERSATION_LIST_RENDER]", { chatCount: chats?.length, loading });
   }
@@ -188,7 +188,7 @@ export default function ConversationList({ chats, loading, onOpen, onDiscover, c
         </div>
       ) : (
         (activeConvs || []).filter(c => c && c.id).map(c => (
-          <ConversationCard key={c.id} conv={c} onPress={onOpen}/>
+          <ConversationCard key={c.id} conv={c} onPress={onOpen} presenceMap={presenceMap} currentUserId={currentUserId}/>
         ))
       )}
 
@@ -197,7 +197,7 @@ export default function ConversationList({ chats, loading, onOpen, onDiscover, c
         <>
           <SectionHead title="Buchungsanfragen" onMore={() => {}}/>
           {(bookingConvs || []).filter(c => c && c.id).map(c => (
-            <ConversationCard key={c.id} conv={c} onPress={onOpen}/>
+            <ConversationCard key={c.id} conv={c} onPress={onOpen} presenceMap={presenceMap} currentUserId={currentUserId}/>
           ))}
         </>
       )}
