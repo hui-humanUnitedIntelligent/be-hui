@@ -384,7 +384,7 @@ function PeopleSection({ people, onPersonPress, loading, delay=0, view='cards', 
     <div className="dp-in" style={{ animationDelay:`${delay}ms` }}>
       <div data-dp-people/>
       <SectionHead
-        title="Inspiring Menschen"
+        title="Inspirierende Menschen"
         sub="Entdecke wundervolle Menschen auf HUI."
         action="Alle anzeigen"
         onAction={onSectionAction}
