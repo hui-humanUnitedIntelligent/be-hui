@@ -29,8 +29,8 @@ error()   { echo -e "${RED}[VERSION]${NC} ❌ $*"; exit 1; }
 [[ -d "${ROOT_DIR}/src" ]] || error "src/ nicht gefunden"
 
 # ── Aktuelle Werte lesen ─────────────────────────────────────────────────────
-VERSION_NAME=$(grep 'versionName' "$BUILD_GRADLE" | sed 's/.*"\(.*\)".*/\1/')
-VERSION_CODE=$(grep 'versionCode' "$BUILD_GRADLE" | sed 's/.*versionCode[[:space:]]*\([0-9]*\).*/\1/')
+VERSION_NAME=$(grep -oP 'versionName\s*"\K[^"]+' "$BUILD_GRADLE")
+VERSION_CODE=$(grep -oP 'versionCode\s*\K[0-9]+' "$BUILD_GRADLE")
 
 [[ -n "$VERSION_CODE" ]] || VERSION_CODE=1
 
