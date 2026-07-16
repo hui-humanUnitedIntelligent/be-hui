@@ -676,6 +676,7 @@ function TalentCard({ talent, delay=0, onPress }) {
       animationDelay:`${delay}ms`,
       touchAction:"manipulation",
       WebkitTapHighlightColor:"transparent",
+      display:"flex", flexDirection:"column",
     }}>
       {/* Cover */}
       <div style={{ width:"100%", height:120, position:"relative", overflow:"hidden", background:cover ? "#1A1A18" : medCol.bg }}>
@@ -695,8 +696,8 @@ function TalentCard({ talent, delay=0, onPress }) {
         )}
       </div>
 
-      {/* Info */}
-      <div style={{ padding:"10px 11px 12px" }}>
+      {/* Info — flex-column damit Preis immer unten sitzt */}
+      <div style={{ padding:"10px 11px 12px", display:"flex", flexDirection:"column", flexGrow:1 }}>
         {/* Titel */}
         <CardTitle>{talent.title}</CardTitle>
 
@@ -705,11 +706,13 @@ function TalentCard({ talent, delay=0, onPress }) {
           von {talent.author}
         </div>
 
-        {/* Standort/Ort */}
-        <CardLocationRow location={locationLabel} distanceKm={talent.distanceKm}/>
+        {/* Standort/Ort — nimmt Platz ein oder nicht, Preis bleibt unten */}
+        <div style={{ minHeight:20 }}>
+          <CardLocationRow location={locationLabel} distanceKm={talent.distanceKm}/>
+        </div>
 
-        {/* Preis */}
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:2 }}>
+        {/* Preis — immer am unteren Rand */}
+        <div style={{ marginTop:"auto", paddingTop:4, display:"flex", alignItems:"center" }}>
           {priceStr ? (
             <div style={{ fontSize:14, fontWeight:800, color:T.teal, letterSpacing:"-0.02em" }}>
               {priceStr}
