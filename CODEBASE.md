@@ -15,6 +15,20 @@
 
 ---
 
+## Archiv (Sprint 1 Cleanup — 2026-07-16)
+
+Historische Dateien wurden archiviert, nicht gelöscht. Git-Historie bleibt erhalten.
+
+| Pfad | Inhalt |
+|---|---|
+| [`archive/backups/`](archive/backups/) | `.bak`, `.v1_backup` und andere Backup-Dateien |
+| [`archive/sql-history/`](archive/sql-history/) | Historische SQL-Deploy-Skripte aus dem Projekt-Root |
+| [`archive/debug-html/`](archive/debug-html/) | HTML-Test- und Debug-Panels (`hui_*.html`) |
+
+Kanonische Datenbank-Migrationen: [`supabase/migrations/`](supabase/migrations/) (unverändert).
+
+---
+
 ## ACTIVE SYSTEMS
 
 ### Navigation & Routing
@@ -30,18 +44,16 @@
 ### Phase-3 Systems (alle aktiv)
 - src/lib/bookingContext.js      → Booking Intelligence (Phase 3A)
 - src/lib/chatContext.js         → Chat Intelligence (Phase 3B)
-- src/lib/trustContext.js        → Trust & Reputation (Phase 3C)
 - src/lib/journeyContext.js      → Journey Cohesion (Phase 3D)
 - src/lib/sessionHooks.js        → Session & Presence
 
 ### Active UI Components
-- src/components/ChatPage.jsx         → Chat (AKTIV, v2)
-- src/components/BookingFlow.jsx      → Buchungs-Flow (AKTIV)
-- src/components/WirkerProfilePage.jsx → Creator-Profil (AKTIV)
-- src/components/ProfilePage.jsx      → Props-basiertes Profil
-- src/components/DiscoveryFeed.jsx    → Haupt-Feed
-- src/components/MeinHUI_SubPages.jsx → Creator Studio Sub-Pages
-- src/components/HuiCreateFlow.jsx    → Create-Flow
+- src/components/chat-center/ChatCenterOverlay.jsx → Chat (AKTIV)
+- src/components/commerce/ExperienceBookingFlow.jsx  → Buchungs-Flow (AKTIV)
+- src/pages/wirker-profile/index.jsx                 → Fremdes Profil (URL-Route)
+- src/feed/UnifiedFeed.jsx                           → Haupt-Feed
+- src/pages/studio/StudioSubPages.jsx                → Creator Studio Sub-Pages
+- src/components/HuiCreateFlow.jsx                   → Create-Flow
 
 ### Active Pages (Routes)
 - src/pages/Home.jsx             → /Home (App-Shell)
@@ -56,19 +68,24 @@
 - src/pages/DiscoverPage.jsx     → Intern via Tab
 - src/pages/LiveMapPage.jsx      → Intern via Map-Button
 - src/pages/FavoritesPage.jsx    → Intern via Favorites
-- src/pages/Index.jsx            → Landing Page (separater Einstieg)
+
+### Internal Profile Pages (über ProfileLauncher, keine URL-Route)
+- src/pages/MyBasisProfile.jsx       → Eigenes Profil
+- src/pages/BasisProfilePage.jsx     → Basis-User öffentliches Profil
+- src/pages/TalentProfilePage.jsx    → Talent öffentliches Profil
 
 ## LEGACY / DEPRECATED
 
-### Stubs (bewusste Platzhalter)
-- src/pages/BookingFlow.jsx      → STUB (echte: components/BookingFlow.jsx)
-- src/pages/ChatPage.jsx         → STUB (echte: components/ChatPage.jsx)
+### Entfernt (Sprint 1 — nachweislich ungenutzt)
+- src/components/commerce/BuyerConfirmSheet.jsx  → 0 Importeure (siehe HUI_REPOSITORY_AUDIT.md)
+- src/architecture/scanner/cli.js                → Dev-Tool, nicht eingebunden
+- src/architecture/scanner/index.js              → Dev-Tool, nicht eingebunden
+- src/version.ts                                 → 0 Importeure
 
-### Legacy (nicht mehr aktiv)
-- src/components/ChatDetailPage.jsx  → LEGACY (→ components/ChatPage.jsx)
-- src/pages/Diagnose.jsx             → LEGACY DUPLICATE (→ DiagnosePage.jsx)
-- src/pages/ImpactPool.jsx           → LEGACY (→ MeinHUI_SubPages ImpactSubPage)
-- src/lib/mockData.js                → LEGACY (→ echte Supabase-Daten)
+### Archiviert (siehe `archive/`)
+- Root-SQL-Deploy-Skripte → `archive/sql-history/`
+- HTML-Debug-Panels → `archive/debug-html/`
+- Backup-Dateien → `archive/backups/`
 
 ## RULES
 1. Eine Funktion = eine Datei = eine Wahrheit
