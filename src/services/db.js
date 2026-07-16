@@ -93,7 +93,7 @@ export const ProfileService = {
     if (!ids || ids.length === 0) return { data: [], error: null };
     return cachedQuery(`profiles:batch:${[...ids].sort().join(',')}`,
       () => safeQuery(
-        supabase.from('profiles').select(F.profile).in('id', ids)
+        supabase.from('profiles').select(F.profile).in('id', ids).limit(ids.length)
       ), 60_000
     );
   },
@@ -499,6 +499,7 @@ export const ImpactService = {
         .select('id,project_id,weight')
         .eq('voter_id', userId)
         .eq('pool_month', month)
+        .limit(10) // Max. 2 Stimmen/Monat (Talent); Puffer für Validierung
     );
     const totalUsed = (existing || []).reduce((s, v) => s + (v.weight || 1), 0);
     const maxVotes  = voteWeight >= 2 ? 2 : 1;

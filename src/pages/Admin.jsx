@@ -124,13 +124,13 @@ function KommentarMeldungenTab({ onCountChange }) {
     const reporterIds = [...new Set(reports.map(r => r.reporter_id))];
 
     const { data: cmts } = commentIds.length
-      ? await supabase.from("post_comments").select("id,text,user_id,post_id,post_type,deleted_at").in("id", commentIds)
+      ? await supabase.from("post_comments").select("id,text,user_id,post_id,post_type,deleted_at").in("id", commentIds).limit(commentIds.length)
       : { data: [] };
     const authorIds = [...new Set((cmts || []).map(c => c.user_id))];
     const profileIds = [...new Set([...reporterIds, ...authorIds])];
 
     const { data: profiles } = profileIds.length
-      ? await supabase.from("profiles").select("id,display_name,username").in("id", profileIds)
+      ? await supabase.from("profiles").select("id,display_name,username").in("id", profileIds).limit(profileIds.length)
       : { data: [] };
 
     const cmtMap  = new Map((cmts || []).map(c => [c.id, c]));

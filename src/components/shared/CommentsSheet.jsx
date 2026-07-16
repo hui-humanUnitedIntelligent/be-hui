@@ -226,7 +226,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
     const flat = flatten(rows);
     const ids = [...new Set(flat.map(c => c.user_id))].filter(id => !authorCache.current.has(id));
     if (ids.length) {
-      const { data } = await supabase.from("profiles").select("id,display_name,username,avatar_url").in("id", ids);
+      const { data } = await supabase.from("profiles").select("id,display_name,username,avatar_url").in("id", ids).limit(ids.length);
       (data || []).forEach(p => authorCache.current.set(p.id, p));
     }
     const attach = (list) => list.map(c => ({ ...c, _author: authorCache.current.get(c.user_id) || null, replies: attach(c.replies || []) }));

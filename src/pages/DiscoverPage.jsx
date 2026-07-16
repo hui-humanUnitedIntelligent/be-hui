@@ -1848,7 +1848,8 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
             const { data: provs } = await supabase
               .from("profiles")
               .select("id,display_name,username")
-              .in("id", providerIds);
+              .in("id", providerIds)
+              .limit(providerIds.length);
             providerMap = Object.fromEntries((provs || []).map(p => [p.id, safeStr(p.display_name || p.username, "HUI Talent")]));
           }
           if (!cancelled) {

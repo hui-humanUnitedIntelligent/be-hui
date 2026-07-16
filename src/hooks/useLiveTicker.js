@@ -151,7 +151,7 @@ async function fetchResonance() {
   let titleById = {};
   if (workIds.length) {
     const works = await safe(
-      supabase.from("works").select("id,title").in("id", workIds)
+      supabase.from("works").select("id,title").in("id", workIds).limit(workIds.length)
     );
     titleById = Object.fromEntries(works.map(w => [w.id, w.title]));
   }
@@ -182,7 +182,7 @@ async function fetchProjectSupport() {
 
   const projectIds = [...new Set(rows.map(r => r.project_id))];
   const projects = await safe(
-    supabase.from("impact_projects").select("id,name").in("id", projectIds)
+    supabase.from("impact_projects").select("id,name").in("id", projectIds).limit(projectIds.length)
   );
   const nameById = Object.fromEntries(projects.map(p => [p.id, p.name]));
 

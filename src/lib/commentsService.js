@@ -37,7 +37,7 @@ async function attachHearts(flatRows, currentUserId) {
   const countMap = new Map((counts || []).map(c => [c.comment_id, c.count]));
   let myHearts = new Set();
   if (currentUserId) {
-    const { data: mine } = await supabase.from("comment_hearts").select("comment_id").eq("user_id", currentUserId).in("comment_id", ids);
+    const { data: mine } = await supabase.from("comment_hearts").select("comment_id").eq("user_id", currentUserId).in("comment_id", ids).limit(ids.length);
     myHearts = new Set((mine || []).map(m => m.comment_id));
   }
   flatRows.forEach(r => {

@@ -67,7 +67,8 @@ function MyRecommendationsModal({ userId, onClose }) {
           const { data: projs } = await supabase
             .from("impact_projects")
             .select("id, name, icon, category")
-            .in("id", projectIds);
+            .in("id", projectIds)
+            .limit(projectIds.length);
           (projs || []).forEach(p => { enriched[p.id] = { title: p.name || "Projekt", subtitle: p.category || "", image: null, icon: p.icon || "🌱" }; });
         }
 
@@ -77,7 +78,8 @@ function MyRecommendationsModal({ userId, onClose }) {
           const { data: wrks } = await supabase
             .from("works")
             .select("id, title, cover_url, user_id, category")
-            .in("id", workIds);
+            .in("id", workIds)
+            .limit(workIds.length);
           (wrks || []).forEach(w => { enriched[w.id] = { title: w.title || "Werk", subtitle: w.category || "", image: w.cover_url }; });
         }
 
@@ -87,7 +89,8 @@ function MyRecommendationsModal({ userId, onClose }) {
           const { data: exps } = await supabase
             .from("experiences")
             .select("id, title, cover_url, category")
-            .in("id", expIds);
+            .in("id", expIds)
+            .limit(expIds.length);
           (exps || []).forEach(e => { enriched[e.id] = { title: e.title || "Erlebnis", subtitle: e.category || "", image: e.cover_url }; });
         }
 

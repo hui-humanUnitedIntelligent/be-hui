@@ -236,6 +236,7 @@ function useLastPayout() {
           ? await supabase.from("impact_projects")
               .select("id,name,icon,color,img_url,awarded_eur")
               .in("id", projIds)
+              .limit(projIds.length)
           : { data:[] };
         const { data:others } = await supabase
           .from("impact_projects")
@@ -303,7 +304,7 @@ function useImpactActivities() {
         const [uRes, pRes] = await Promise.allSettled([
           uIds.length ? ProfileService.getMany(uIds) // ProfileService v1.0
                       : Promise.resolve({ data:[] }),
-          pIds.length ? supabase.from("impact_projects").select("id,name").in("id", pIds)
+          pIds.length ? supabase.from("impact_projects").select("id,name").in("id", pIds).limit(pIds.length)
                       : Promise.resolve({ data:[] }),
         ]);
         if (dead) return;
@@ -1334,7 +1335,8 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
           .from("impact_votes")
           .select("id,project_id,pool_month,weight,created_at")
           .eq("voter_id", currentUser.id)
-          .eq("pool_month", month);
+          .eq("pool_month", month)
+          .limit(10); // Max. 2 Stimmen/Monat (Talent)
         if (!dead) setUserVotes(safeArr(votes));
       } catch { /* silent */ }
     })();

@@ -114,7 +114,8 @@ export default function MeineProjekteModal({ profile, onClose, switchTab = null 
         const { data: projData } = await supabase
           .from("impact_projects")
           .select("id,name,icon,color,status,description,tags,category,votes,awarded_eur,distributed_at,website,month")
-          .in("id", allIds);
+          .in("id", allIds)
+          .limit(allIds.length);
         const map = {};
         (projData || []).forEach(p => { map[p.id] = p; });
         setProjects(map);
