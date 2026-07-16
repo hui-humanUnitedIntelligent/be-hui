@@ -1034,51 +1034,54 @@ export default function MyBasisProfile({ onClose, profileId }) {
         document.body
       )}
 
-      {/* AMBASSADOR-DRAWER — Portal (Guard: showAmbDrawer reicht, Balken ist bereits sichtbar) */}
-      {showAmbDrawer && (
-        <React.Suspense fallback={null}>
-          {createPortal(
+      {/* AMBASSADOR-DRAWER — createPortal(body), zIndex:10500 */}
+      {showAmbDrawer && createPortal(
+        <div style={{
+          position:"fixed", inset:0, zIndex:10500,
+          display:"flex", flexDirection:"column", justifyContent:"flex-end",
+        }}>
+          {/* Backdrop */}
+          <div onClick={() => setShowAmbDrawer(false)} style={{
+            position:"absolute", inset:0,
+            background:"rgba(26,26,24,0.55)", backdropFilter:"blur(2px)",
+          }}/>
+          {/* Sheet */}
+          <div style={{
+            position:"relative", zIndex:1,
+            background:"#F7F5F0", borderRadius:"20px 20px 0 0",
+            maxHeight:"88dvh", overflowY:"auto",
+            paddingBottom:"calc(16px + env(safe-area-inset-bottom,0px))",
+          }}>
+            {/* Handle */}
+            <div style={{ display:"flex", justifyContent:"center", paddingTop:12, marginBottom:4 }}>
+              <div style={{ width:38, height:4, borderRadius:2, background:"rgba(26,26,24,0.15)" }}/>
+            </div>
+            {/* Header */}
             <div style={{
-              position:"fixed", inset:0, zIndex:10500,
-              display:"flex", flexDirection:"column", justifyContent:"flex-end",
+              display:"flex", alignItems:"center", justifyContent:"space-between",
+              padding:"8px 20px 14px",
             }}>
-              {/* Backdrop */}
-              <div onClick={() => setShowAmbDrawer(false)} style={{
-                position:"absolute", inset:0,
-                background:"rgba(26,26,24,0.55)", backdropFilter:"blur(2px)",
-              }}/>
-              {/* Sheet */}
-              <div style={{
-                position:"relative", zIndex:1,
-                background:"#F7F5F0", borderRadius:"20px 20px 0 0",
-                maxHeight:"88dvh", overflowY:"auto",
-                paddingBottom:"calc(16px + env(safe-area-inset-bottom,0px))",
-              }}>
-                {/* Handle */}
-                <div style={{ display:"flex", justifyContent:"center", paddingTop:12, marginBottom:4 }}>
-                  <div style={{ width:38, height:4, borderRadius:2, background:"rgba(26,26,24,0.15)" }}/>
-                </div>
-                {/* Header */}
-                <div style={{
-                  display:"flex", alignItems:"center", justifyContent:"space-between",
-                  padding:"8px 20px 14px",
-                }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                    <HUIAmbassadorIcon size={18} style={{color:"rgba(255,193,7,0.9)"}}/>
-                    <span style={{ fontSize:16, fontWeight:800, color:"#1A1A18" }}>Ambassador-Bereich</span>
-                  </div>
-                  <button onClick={() => setShowAmbDrawer(false)} style={{
-                    background:"none", border:"none", cursor:"pointer",
-                    fontSize:18, color:"rgba(26,26,24,0.45)", padding:4,
-                    fontFamily:"inherit",
-                  }}>✕</button>
-                </div>
-                <AmbassadorStudioSection profile={profile} />
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                <HUIAmbassadorIcon size={18} style={{color:"rgba(255,193,7,0.9)"}}/>
+                <span style={{ fontSize:16, fontWeight:800, color:"#1A1A18" }}>Ambassador-Bereich</span>
               </div>
-            </div>,
-            document.body
-          )}
-        </React.Suspense>
+              <button onClick={() => setShowAmbDrawer(false)} style={{
+                background:"none", border:"none", cursor:"pointer",
+                fontSize:18, color:"rgba(26,26,24,0.45)", padding:4,
+                fontFamily:"inherit",
+              }}>✕</button>
+            </div>
+            {/* Suspense nur um die lazy Komponente — NICHT um das Portal */}
+            <React.Suspense fallback={
+              <div style={{ padding:"32px 20px", textAlign:"center", color:"rgba(26,26,24,0.4)", fontSize:13 }}>
+                Lädt...
+              </div>
+            }>
+              <AmbassadorStudioSection profile={profile} />
+            </React.Suspense>
+          </div>
+        </div>,
+        document.body
       )}
 
       {/* GEMEINSCHAFT FLOW MODAL */}
