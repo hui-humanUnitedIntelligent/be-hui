@@ -9,7 +9,6 @@
 // ═══════════════════════════════════════════════════════════════
 
 import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
-import { useVirtualizer } from "@tanstack/react-virtual";
 import FeedRouter              from "./cards/FeedRouter.jsx";
 import { CardSkeleton }        from "./cards/BaseFeedCard.jsx";
 import { useFeedStream }       from "./useFeedStream.js";
@@ -531,31 +530,9 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
     }
   }, [hasMore, arr.length, depthUser?.id]); // eslint-disable-line
 
-  // VIRT-001 REV2: Lazy-Rendering via IntersectionObserver (stable, kein position:absolute nötig)
-  // @tanstack/react-virtual + position:absolute + scrollMargin hat
-  // Race Condition auf dem ersten Render (parentRef.current=null) → alle Items bei y=0.
-  // Lösung: normaler Render-Flow + LazyCard (IntersectionObserver, 400px rootMargin).
-  // Memory-Cleanup: Items > MAX_VISIBLE werden via CSS visibility:hidden gehalten
-  // (DOM bleibt, aber GPU-Layer/Bitmaps werden freigegeben).
-
-  const MAX_VISIBLE = 60; // oberhalb: nur DOM, kein Paint
-  const [topIdx, setTopIdx] = React.useState(0);
-
-  // Scroll-Tracking für Memory-Cleanup
-  const lastScrollTop = React.useRef(0);
-  React.useEffect(() => {
-    const el = scrollContainerRef?.current;
-    if (!el) return;
-    const ITEM_HEIGHT_AVG = 300;
-    const handler = () => {
-      const st = el.scrollTop;
-      lastScrollTop.current = st;
-      const newTop = Math.max(0, Math.floor(st / ITEM_HEIGHT_AVG) - 5);
-      setTopIdx(newTop);
-    };
-    el.addEventListener("scroll", handler, { passive: true });
-    return () => el.removeEventListener("scroll", handler);
-  }, [scrollContainerRef]); // eslint-disable-line
+  // VIRT-001 REV3: Stabiles normales Rendering — alle Items immer gerendert.
+  // Kein contentVisibility-Hack, kein position:absolute. Einfach, korrekt, schnell.
+  // Bei 200 Items Cap (useFeedStream) ist kein weiteres Virtualisierung nötig.
 
   if (arr.length === 0) return <EmptyFeed />;
 
@@ -564,10 +541,6 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
       {arr.map((item, idx) => {
         const { isRelaxed, mb } = getCardRhythm(idx);
         const itemReactions = reactions[String(item.id)] || {};
-        // Memory-Cleanup: Items weit außerhalb Viewport → CSS hidden (kein Layout-Effekt)
-        const tooFarAbove = idx < topIdx - 10;
-        const tooFarBelow = idx > topIdx + MAX_VISIBLE + 10;
-        const outOfRange  = tooFarAbove || tooFarBelow;
         return (
           <div
             key={String(item.id)}
@@ -575,21 +548,17 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
             style={{
               marginBottom: mb,
               animationDelay: Math.min(idx * 40, 300) + "ms",
-              // Behalte Platz, aber entferne GPU-Layer wenn weit außerhalb
-              contentVisibility: outOfRange ? "hidden" : "visible",
             }}
           >
-            {!outOfRange && (
-              <ReactionCard
-                item={{ ...item, _reactions: { ...itemReactions, _relaxed: isRelaxed } }}
-                onProfile={onProfile}
-                onBook={onBook}
-                onDetail={onDetail}
-                onShare={() => onShare?.(item)}
-                itemIndex={idx}
-                onDepth={onDepth}
-              />
-            )}
+            <ReactionCard
+              item={{ ...item, _reactions: { ...itemReactions, _relaxed: isRelaxed } }}
+              onProfile={onProfile}
+              onBook={onBook}
+              onDetail={onDetail}
+              onShare={() => onShare?.(item)}
+              itemIndex={idx}
+              onDepth={onDepth}
+            />
           </div>
         );
       })}
