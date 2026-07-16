@@ -132,7 +132,8 @@ export function useHuiActions() {
 export function buildActions(shell) {
   const {
     // Profile
-    setShowWirker,
+    openProfileById,
+    closeProfileById,
     openOwnProfile,
     // Flow Memory (Phase 2)
     flowStore,
@@ -163,7 +164,7 @@ export function buildActions(shell) {
 
   // ── helper: close all overlays before opening another ────────────
   function closeAll(callerAction) {
-    setShowWirker?.(null);
+    closeProfileById?.();
     setShowChat?.(false);
     setShowPlusSheet?.(false);
     setShowConnect?.(false);
@@ -201,7 +202,8 @@ export function buildActions(shell) {
       // Phase 2: Flow Stack — merke Navigations-Ursprung
       logFlow(source, S.VISITOR_PROFILE);
       flowStore?.push({ surface: S.VISITOR_PROFILE, creatorId: creatorId ?? data?.id, creator: data, source });
-      setShowWirker?.(data);
+      const profileId = creatorId ?? data?.id ?? data?.user_id;
+      if (profileId) openProfileById?.(String(profileId).trim());
     },
 
     [A.OPEN_OWN_PROFILE]: (payload = {}) => {
@@ -211,7 +213,7 @@ export function buildActions(shell) {
 
     [A.CLOSE_PROFILE]: () => {
       logAction(A.CLOSE_PROFILE);
-      setShowWirker?.(null);
+      closeProfileById?.();
     },
 
     // ── CHAT ─────────────────────────────────────────────────────
