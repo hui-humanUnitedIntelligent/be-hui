@@ -921,6 +921,14 @@ export default function MyBasisProfile({ onClose, profileId }) {
               isOwner={true}
               onSave={handleVisibilitySave}
             />
+            <Gap h={28}/>
+
+            {/* T8. Ambassador-Balken — nur sichtbar wenn is_ambassador=true */}
+            <AmbassadorBanner
+              profile={profile}
+              ambState={ambState}
+              onPress={() => setShowAmbDrawer(true)}
+            />
             <Gap h={40}/>
           </>
         ) : (
