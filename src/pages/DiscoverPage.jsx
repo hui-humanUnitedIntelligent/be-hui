@@ -1317,59 +1317,62 @@ const SEED_PROJEKTE = [
 function ProjektCard({ projekt, delay=0, onPress }) {
   const [imgErr, setImgErr] = useState(false);
   const cover = (!imgErr && projekt.cover) ? projekt.cover : null;
-  const cc = projekt.catColor || { bg:T.tealSoft, text:T.teal };
+  const cc = projekt.catColor || { bg:"rgba(34,197,94,0.12)", text:"#16A34A" };
+  const membersStr = projekt.members != null
+    ? projekt.members.toLocaleString("de-DE") + " Mitglieder"
+    : null;
 
   return (
     <div className="dp-press dp-in dp-card-hover" onClick={() => onPress?.(projekt)} style={{
-      width:160, flexShrink:0,
-      borderRadius:18, overflow:"hidden",
+      width:165, flexShrink:0,
+      borderRadius:CARD_RADIUS, overflow:"hidden",
       background:T.white, boxShadow:T.cardShadow,
       border:`1px solid ${T.border}`,
       animationDelay:`${delay}ms`,
       touchAction:"manipulation",
       WebkitTapHighlightColor:"transparent",
+      display:"flex", flexDirection:"column",
     }}>
-      {/* Cover */}
-      <div style={{ width:"100%", height:90, position:"relative", overflow:"hidden", background:cover?"#000":cc.bg }}>
+      {/* Cover — feste Höhe, identisch zu WerkCard / TalentCard */}
+      <div style={{ width:"100%", height:120, flexShrink:0, position:"relative", overflow:"hidden", background:cover ? "#1A1A18" : cc.bg }}>
         {cover ? (
           <img loading="lazy" decoding="async" src={cover} alt={projekt.title} onError={() => setImgErr(true)}
-            style={{ width:"100%", height:"100%", objectFit:"cover", display:"block", opacity:0.82 }}/>
+            style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
         ) : (
-          <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <span style={{ fontSize:28, opacity:0.4 }}>🌍</span>
+          <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:6 }}>
+            <HUIImpactIcon size={32} style={{opacity:0.3, color:"rgba(34,197,94,0.5)"}} />
           </div>
         )}
-        {/* Category badge */}
-        <div style={{
-          position:"absolute", top:7, left:7,
-          background:"rgba(255,255,255,0.90)", backdropFilter:"blur(6px)",
-          borderRadius:99, padding:"2px 8px",
-          fontSize:9, fontWeight:700, color:cc.text,
-        }}>
-          {projekt.cat}
-        </div>
+        {/* Kategorie-Badge oben links */}
+        {projekt.cat && (
+          <CardBadge pos="left" bg={cc.bg} color={cc.text} cover={cover}>
+            {projekt.cat}
+          </CardBadge>
+        )}
       </div>
 
-      {/* Info */}
-      <div style={{ padding:"10px 10px 11px" }}>
-        <div style={{
-          fontSize:12.5, fontWeight:700, color:T.ink, marginBottom:4,
-          letterSpacing:"-0.02em", lineHeight:1.25,
+      {/* Info — flex-column damit Footer immer unten sitzt */}
+      <div style={{ padding:"10px 11px 12px", flexGrow:1, display:"flex", flexDirection:"column" }}>
+        {/* Titel */}
+        <CardTitle>{projekt.title}</CardTitle>
+
+        {/* Beschreibung */}
+        <div style={{ fontSize:10.5, color:T.inkFaint, lineHeight:1.4, marginBottom:6,
           overflow:"hidden", display:"-webkit-box",
-          WebkitLineClamp:1, WebkitBoxOrient:"vertical",
-        }}>
-          {projekt.title}
-        </div>
-        <div style={{
-          fontSize:10.5, color:T.inkSoft, lineHeight:1.4, marginBottom:9,
-          overflow:"hidden", display:"-webkit-box",
-          WebkitLineClamp:2, WebkitBoxOrient:"vertical",
-        }}>
+          WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>
           {projekt.desc}
         </div>
-        <div style={{ display:"flex", alignItems:"center", gap:4 }}>
-          <HUIPersonenIcon size={11} style={{flexShrink:0}} />
-          <span style={{ fontSize:10.5, fontWeight:600, color:T.inkSoft }}>{projekt.members} Mitglieder</span>
+
+        {/* Mitglieder — immer am unteren Rand */}
+        <div style={{ marginTop:"auto", paddingTop:4, display:"flex", alignItems:"center", gap:4 }}>
+          {membersStr ? (
+            <>
+              <HUIPersonenIcon size={11} style={{flexShrink:0, color:"rgba(34,197,94,0.8)"}} />
+              <span style={{ fontSize:10.5, fontWeight:600, color:"rgba(34,197,94,0.9)" }}>{membersStr}</span>
+            </>
+          ) : (
+            <span style={{ fontSize:10.5, color:T.inkFaint, fontStyle:"italic" }}>Mitmachen</span>
+          )}
         </div>
       </div>
     </div>
@@ -1443,9 +1446,9 @@ function ProjekteSection({ projekte, loading, delay=0, view='cards', onPress, on
           <div className="dp-hscroll" style={{ display:"flex", gap:10, paddingBottom:4 }}>
             {loading
               ? Array.from({length:4}).map((_,i) => (
-                  <div key={i} style={{ width:160, flexShrink:0, borderRadius:18, overflow:"hidden", background:T.white, boxShadow:T.cardShadow }}>
-                    <Skel w="100%" h={90} r={0} mb={0}/>
-                    <div style={{ padding:"10px 10px" }}><Skel w="75%" h={12} r={6} mb={6}/><Skel w="60%" h={10} r={5}/></div>
+                  <div key={i} style={{ width:165, flexShrink:0, borderRadius:CARD_RADIUS, overflow:"hidden", background:T.white, boxShadow:T.cardShadow }}>
+                    <Skel w="100%" h={120} r={0} mb={0}/>
+                    <div style={{ padding:"10px 11px" }}><Skel w="75%" h={12} r={6} mb={6}/><Skel w="60%" h={10} r={5} mb={6}/><Skel w="50%" h={10} r={5}/></div>
                   </div>
                 ))
               : rest.map((p, i) => <ProjektCard key={p.id} projekt={p} delay={i*35+delay} onPress={onPress} />)
