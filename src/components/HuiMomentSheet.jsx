@@ -86,7 +86,7 @@ function ActionCard({ action, onSelect, delay }) {
   );
 }
 
-function PreviewStep({ mediaURL, isVideo, text, setText, onShare, onDiscard, uploading }) {
+function PreviewStep({ mediaURL, isVideo, text, setText, onShare, onDiscard, uploading, fileSize }) {
   return (
     <div style={{ animation:"hms-preview-in .30s ease both" }}>
       <div style={{ width:"100%",borderRadius:20,background:"#000",
@@ -114,13 +114,26 @@ function PreviewStep({ mediaURL, isVideo, text, setText, onShare, onDiscard, upl
           {text.length}/300
         </div>
       )}
-      <button className="hms-btn-primary" onClick={onShare} disabled={uploading} style={{
+      {/* Dateigröße-Warnung */}
+      {fileSize > 0 && (
+        <div style={{
+          marginBottom:12, padding:"8px 14px", borderRadius:12,
+          background: fileSize > 50*1024*1024 ? "rgba(232,87,58,0.10)" : "rgba(14,196,184,0.07)",
+          color: fileSize > 50*1024*1024 ? "#E8573A" : "rgba(26,53,48,0.55)",
+          fontSize:12, display:"flex", alignItems:"center", gap:6,
+        }}>
+          {isVideo ? "🎥" : "📷"} {(fileSize/(1024*1024)).toFixed(1)} MB
+          {fileSize > 100*1024*1024 && " · Zu groß — max. 100 MB"}
+          {fileSize > 50*1024*1024 && fileSize <= 100*1024*1024 && " · Upload kann etwas dauern"}
+        </div>
+      )}
+      <button className="hms-btn-primary" onClick={onShare} disabled={uploading || fileSize > 100*1024*1024} style={{
         width:"100%",padding:"16px",borderRadius:18,
         background:`linear-gradient(135deg,${D.teal} 0%,${D.tealDeep} 100%)`,
         color:"white",fontSize:15.5,fontWeight:800,letterSpacing:"-0.02em",
         boxShadow:`0 6px 24px rgba(14,196,184,0.40)`,marginBottom:10,
         display:"flex",alignItems:"center",justifyContent:"center",gap:10,
-        opacity:uploading?0.72:1,
+        opacity:(uploading||fileSize>100*1024*1024)?0.72:1,
       }}>
         {uploading ? <><Spinner/> Wird hochgeladen…</> : "HUI-Moment teilen"}
       </button>
@@ -135,19 +148,47 @@ function PreviewStep({ mediaURL, isVideo, text, setText, onShare, onDiscard, upl
 }
 
 // ── Upload zu 'media' bucket → Pfad: beitraege/{userId}/{ts}.ext ─────
+// Max-Größen
+const MAX_VIDEO_MB = 100;
+const MAX_FOTO_MB  = 20;
+
 async function uploadToMedia(file, userId) {
-  const ext  = file.name?.split(".").pop() || (file.type.startsWith("video") ? "mp4" : "jpg");
+  const isVid = file.type.startsWith("video");
+
+  // Größen-Check VOR Upload
+  const maxMB  = isVid ? MAX_VIDEO_MB : MAX_FOTO_MB;
+  const sizeMB = file.size / (1024 * 1024);
+  if (sizeMB > maxMB) {
+    throw new Error(
+      isVid
+        ? `Video zu groß (${sizeMB.toFixed(1)} MB). Bitte max. ${maxMB} MB.`
+        : `Bild zu groß (${sizeMB.toFixed(1)} MB). Bitte max. ${maxMB} MB.`
+    );
+  }
+
+  // contentType sicherstellen
+  const contentType = file.type || (isVid ? "video/mp4" : "image/jpeg");
+  const ext  = file.name?.split(".").pop()?.toLowerCase() || (isVid ? "mp4" : "jpg");
   const path = `beitraege/${userId}/${Date.now()}.${ext}`;
 
-  console.log("[HuiMoment] Upload start →", { bucket:"media", path, size:file.size, type:file.type });
+  console.log("[HuiMoment] Upload start →", { bucket:"media", path, sizeMB:sizeMB.toFixed(2), contentType });
 
   const { error } = await supabase.storage
     .from("media")
-    .upload(path, file, { upsert: false, contentType: file.type });
+    .upload(path, file, { upsert: false, contentType });
 
   if (error) {
     console.error("[HuiMoment] Upload FEHLER →", { code:error.statusCode, msg:error.message, error });
-    return null; // graceful: weiter ohne Bild
+    // Bei Videos: KEIN graceful-Fallback — Nutzer muss es wissen
+    if (isVid) {
+      const msg = error.statusCode === 413
+        ? "Video zu groß für den Upload. Bitte kürze das Video."
+        : error.statusCode === 403
+        ? "Keine Upload-Berechtigung. Bitte neu einloggen."
+        : `Upload fehlgeschlagen: ${error.message}`;
+      throw new Error(msg);
+    }
+    return null; // bei Fotos: graceful
   }
 
   const { data: urlData } = supabase.storage.from("media").getPublicUrl(path);
@@ -264,7 +305,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
         const { data: authData } = await supabase.auth.getUser();
         const userId = authData?.user?.id;
         if (userId) src = await uploadToMedia(fileObj, userId);
-        // Upload-Fehler = graceful (null src)
+        // Upload-Fehler wirft jetzt bei Videos (kein graceful-Fallback mehr)
       }
 
       await _publishMoment({ src, type, caption: text.trim() });
@@ -391,7 +432,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
 
           {/* PREVIEW */}
           {isPreview && (
-            <PreviewStep mediaURL={mediaURL} isVideo={isVideo}
+            <PreviewStep mediaURL={mediaURL} isVideo={isVideo} fileSize={fileObj?.size || 0}
               text={text} setText={setText}
               onShare={doShare} onDiscard={doDiscard} uploading={uploading}/>
           )}
