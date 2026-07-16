@@ -57,7 +57,7 @@ export function AppStateProvider({ children }) {
         .from("notifications")
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id)
-        .eq("read", false);
+        .eq("is_read", false);
       console.log("[BADGE COUNT]", count);
       console.log("[BADGE ERROR]", error);
       setUnreadNotifCount(count || 0);
@@ -69,10 +69,14 @@ export function AppStateProvider({ children }) {
   useEffect(() => {
     if (!user?.id) return;
     fetchNotifCount();
-    // Polling alle 60s — kein Realtime (Phase 3)
+    // Polling alle 60s
     notifTimerRef.current = setInterval(fetchNotifCount, 60_000);
+    // CustomEvent: sofort neu laden wenn Notification gelesen wird
+    const handler = () => fetchNotifCount();
+    window.addEventListener("hui:notif:read", handler);
     return () => {
       if (notifTimerRef.current) clearInterval(notifTimerRef.current);
+      window.removeEventListener("hui:notif:read", handler);
     };
   }, [user?.id, fetchNotifCount]);
 

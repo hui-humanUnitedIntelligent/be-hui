@@ -148,6 +148,7 @@ function NotifCard({ n, onRead, onAction = () => {} }) {
       const typeMap = {
         work_rejected:       { label:"Werk",           emoji:"🎨" },
         content_rejected:    { label:"Inhalt",         emoji:"📝" },
+        talent_rejected:     { label:"Talent",         emoji:"⭐" },
         experience_rejected: { label:"Erlebnis",       emoji:"🌿" },
         project_rejected:    { label:"Projekt",        emoji:"📌" },
         impact_project_rejected:{ label:"Herzensprojekt", emoji:"💚" },
@@ -350,6 +351,8 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
   async function markRead(id) {
     await supabase.from("notifications").update({ is_read: true }).eq("id", id);
     setNotifs(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+    // Badge im Header sofort aktualisieren
+    window.dispatchEvent(new CustomEvent("hui:notif:read"));
     setNotifs(cur => {
       const unread = cur.filter(n => !n.is_read).length;
       onUnreadChange?.(unread);

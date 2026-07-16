@@ -56,7 +56,9 @@ const TYPE_META = {
   referral_joined:{ tab:"info", icon:"🎉", color:"#22C55E", label:"Empfehlung" },
   // FREIGABEN — Werke
   work_approved:       { tab:"info", icon:"✅", color:"#22C55E", label:"Werk freigegeben" },
-  work_rejected:            { tab:"info", icon:"❌", color:"#EF4444", label:"Werk abgelehnt" },
+  work_rejected:       { tab:"info", icon:"❌", color:"#EF4444", label:"Werk abgelehnt" },
+  talent_approved:     { tab:"info", icon:"✅", color:"#22C55E", label:"Talent freigegeben" },
+  talent_rejected:     { tab:"info", icon:"❌", color:"#EF4444", label:"Talent abgelehnt" },
   impact_project_rejected:  { tab:"info", icon:"📋", color:"#EF4444", label:"Herzensprojekt abgelehnt" },
   content_approved:    { tab:"info", icon:"✅", color:"#22C55E", label:"Inhalt freigegeben" },
   content_rejected:    { tab:"info", icon:"❌", color:"#EF4444", label:"Inhalt abgelehnt" },
@@ -115,10 +117,7 @@ export function useNotifications() {
           return !(d.is_followup === true);
         });
         setItems(filtered);
-        const wichtigTypes = Object.entries(TYPE_META)
-          .filter(([,v]) => v.tab === "wichtig").map(([k]) => k);
-        setUnread(data.filter(n => !n.read && wichtigTypes.includes(n.type)).length ||
-                  data.filter(n => !n.read).length);
+        setUnread(data.filter(n => !n.is_read).length);
       }
     } catch(e) {
       console.error("[RESONANZZENTRUM] notifications load error:", e.message);
@@ -154,19 +153,23 @@ export function useNotifications() {
 
   const markRead = useCallback(async (id) => {
     if (!user?.id) return;
-    setItems(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    setItems(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
     setUnread(prev => Math.max(0, prev - 1));
     try {
-      await supabase.from("notifications").update({ read: true }).eq("id", id).eq("user_id", user.id);
+      await supabase.from("notifications").update({ is_read: true }).eq("id", id).eq("user_id", user.id);
+      // Badge im Header sofort aktualisieren
+      window.dispatchEvent(new CustomEvent("hui:notif:read"));
     } catch { /* silent */ }
   }, [user?.id]);
 
   const markAllRead = useCallback(async () => {
     if (!user?.id) return;
-    setItems(prev => prev.map(n => ({ ...n, read: true })));
+    setItems(prev => prev.map(n => ({ ...n, is_read: true })));
     setUnread(0);
     try {
-      await supabase.from("notifications").update({ read: true }).eq("user_id", user.id).eq("read", false);
+      await supabase.from("notifications").update({ is_read: true }).eq("user_id", user.id).eq("is_read", false);
+      // Badge im Header sofort aktualisieren
+      window.dispatchEvent(new CustomEvent("hui:notif:read"));
     } catch { /* silent */ }
   }, [user?.id]);
 
@@ -263,6 +266,7 @@ function RejectionDetailModal({ n, onClose }) {
   const typeMap = {
     work_rejected:            { label:"Werk",             emoji:"🎨", hint:"Du kannst dein Werk überarbeiten und erneut einreichen." },
     content_rejected:         { label:"Inhalt",           emoji:"📝", hint:"Du kannst den Inhalt überarbeiten und erneut einreichen." },
+    talent_rejected:          { label:"Talent",           emoji:"⭐", hint:"Du kannst dein Talent-Angebot überarbeiten und erneut einreichen." },
     experience_rejected:      { label:"Erlebnis",         emoji:"🌿", hint:"Du kannst dein Erlebnis überarbeiten und erneut einreichen." },
     project_rejected:         { label:"Projekt",          emoji:"📌", hint:"Du kannst dein Projekt überarbeiten und erneut einreichen." },
     impact_project_rejected:  { label:"Herzensprojekt",   emoji:"💚", hint:"Du kannst dein Projekt überarbeiten und erneut einreichen." },
@@ -333,17 +337,18 @@ function NotifItem({ n, onRead }) {
   const [showRejection, setShowRejection] = useState(false);
 
   const isRejection = n.type === "work_rejected" || n.type === "content_rejected"
+    || n.type === "talent_rejected"
     || n.type === "experience_rejected" || n.type === "project_rejected"
     || n.type === "impact_project_rejected";
 
   const handleClick = () => {
-    if (!n.read) onRead(n.id);
+    if (!n.is_read) onRead(n.id);
     if (isRejection) setShowRejection(true);
   };
 
   const handleGrundBtn = (e) => {
     e.stopPropagation();
-    if (!n.read) onRead(n.id);
+    if (!n.is_read) onRead(n.id);
     setShowRejection(true);
   };
 
@@ -359,7 +364,7 @@ function NotifItem({ n, onRead }) {
           padding:"13px 16px",
           background: hov
             ? "rgba(26,26,24,0.025)"
-            : n.read ? "transparent" : "rgba(22,215,197,0.05)",
+            : n.is_read ? "transparent" : "rgba(22,215,197,0.05)",
           border:"none",
           borderBottom:`1px solid ${T.border}`,
           cursor:"pointer", width:"100%", textAlign:"left",
@@ -381,8 +386,8 @@ function NotifItem({ n, onRead }) {
         {/* Text */}
         <div style={{flex:1, minWidth:0}}>
           <div style={{
-            fontSize:13.5, fontWeight: n.read ? 500 : 700,
-            color: n.read ? T.inkSoft : T.ink,
+            fontSize:13.5, fontWeight: n.is_read ? 500 : 700,
+            color: n.is_read ? T.inkSoft : T.ink,
             lineHeight:1.4, marginBottom:2,
           }}>
             {n.title || meta.label}
@@ -423,13 +428,13 @@ function NotifItem({ n, onRead }) {
 
         {/* Chevron + Unread dot */}
         <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,flexShrink:0}}>
-          {!n.read && (
+          {!n.is_read && (
             <div style={{
               width:7, height:7, borderRadius:"50%",
               background:T.teal, marginTop:4,
             }}/>
           )}
-          <span style={{fontSize:14, color:"rgba(26,26,24,0.20)", marginTop: n.read ? 8 : 0}}>›</span>
+          <span style={{fontSize:14, color:"rgba(26,26,24,0.20)", marginTop: n.is_read ? 8 : 0}}>›</span>
         </div>
       </button>
     </>
@@ -712,10 +717,10 @@ export function ResonanzzentrumPanel({ onClose }) {
   // Tab-Counts — safeItems/safeRequests statt direkte Zugriffe
   const counts = useMemo(() => {
     const alle = safeItems.length + safeRequests.length;
-    const wichtig = safeItems.filter(n => getMeta(n?.type).tab === "wichtig" && !n?.read).length
+    const wichtig = safeItems.filter(n => getMeta(n?.type).tab === "wichtig" && !n?.is_read).length
                   + safeRequests.length;
-    const relevant = safeItems.filter(n => getMeta(n?.type).tab === "relevant" && !n?.read).length;
-    const info     = safeItems.filter(n => getMeta(n?.type).tab === "info"     && !n?.read).length;
+    const relevant = safeItems.filter(n => getMeta(n?.type).tab === "relevant" && !n?.is_read).length;
+    const info     = safeItems.filter(n => getMeta(n?.type).tab === "info"     && !n?.is_read).length;
     return { alle, wichtig, relevant, info };
   }, [safeItems, safeRequests]);
 
