@@ -898,9 +898,10 @@ function WerkCard({ werk, delay=0, onPress }) {
       animationDelay:`${delay}ms`,
       touchAction:"manipulation",
       WebkitTapHighlightColor:"transparent",
+      display:"flex", flexDirection:"column",
     }}>
-      {/* Cover */}
-      <div style={{ width:"100%", height:120, position:"relative", overflow:"hidden", background:cover ? "#1A1A18" : medCol.bg }}>
+      {/* Cover — feste Höhe, nie gestaucht */}
+      <div style={{ width:"100%", height:120, flexShrink:0, position:"relative", overflow:"hidden", background:cover ? "#1A1A18" : medCol.bg }}>
         {cover ? (
           <img loading="lazy" decoding="async" src={cover} alt={werk.title} onError={() => setImgErr(true)}
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
@@ -917,8 +918,8 @@ function WerkCard({ werk, delay=0, onPress }) {
         )}
       </div>
 
-      {/* Info */}
-      <div style={{ padding:"10px 11px 12px" }}>
+      {/* Info — flexGrow:1 füllt den Rest, flex-column für marginTop:auto */}
+      <div style={{ padding:"10px 11px 12px", flexGrow:1, display:"flex", flexDirection:"column" }}>
         {/* Titel */}
         <CardTitle>{werk.title}</CardTitle>
 
@@ -927,24 +928,27 @@ function WerkCard({ werk, delay=0, onPress }) {
           von {werk.author}
         </div>
 
-        {/* Standort falls vorhanden */}
-        <CardLocationRow location={werk.location} distanceKm={werk.distanceKm}/>
-
-        {/* Preis — prominente Teal-Farbe */}
-        {/* Price row */}
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:6 }}>
-          {priceStr ? (
-            <div style={{ fontSize:14, fontWeight:800, color:T.teal, letterSpacing:"-0.02em" }}>
-              {priceStr}
-            </div>
-          ) : (
-            <div style={{ fontSize:10.5, color:T.inkFaint, fontStyle:"italic" }}>Nicht zum Verkauf</div>
-          )}
+        {/* Standort — reservierter Platz damit Preis nicht springt */}
+        <div style={{ minHeight:20 }}>
+          <CardLocationRow location={werk.location} distanceKm={werk.distanceKm}/>
         </div>
-        {/* Likes + Views */}
-        <div className="dp-engage">
-          <span><HUIHeartIcon size={12} /> {werk.likes ?? Math.floor(5 + (werk.id?.charCodeAt?.(werk.id.length-1)??9) % 40)}</span>
-          <span style={{display:"flex",alignItems:"center",gap:2}}><HUIAnsichtIcon size={12}/>{werk.views ?? Math.floor(50 + (werk.id?.charCodeAt?.(0)??5) % 400)}</span>
+
+        {/* Preis — immer am unteren Rand, unabhängig vom Ort */}
+        <div style={{ marginTop:"auto", paddingTop:4 }}>
+          <div style={{ display:"flex", alignItems:"center", marginBottom:6 }}>
+            {priceStr ? (
+              <div style={{ fontSize:14, fontWeight:800, color:T.teal, letterSpacing:"-0.02em" }}>
+                {priceStr}
+              </div>
+            ) : (
+              <div style={{ fontSize:10.5, color:T.inkFaint, fontStyle:"italic" }}>Nicht zum Verkauf</div>
+            )}
+          </div>
+          {/* Likes + Views */}
+          <div className="dp-engage">
+            <span><HUIHeartIcon size={12} /> {werk.likes ?? Math.floor(5 + (werk.id?.charCodeAt?.(werk.id.length-1)??9) % 40)}</span>
+            <span style={{display:"flex",alignItems:"center",gap:2}}><HUIAnsichtIcon size={12}/>{werk.views ?? Math.floor(50 + (werk.id?.charCodeAt?.(0)??5) % 400)}</span>
+          </div>
         </div>
       </div>
     </div>
