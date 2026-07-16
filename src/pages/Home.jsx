@@ -29,11 +29,9 @@ import { StoryViewer }           from "../components/StoryBar.jsx";
 import ChatCenterOverlay          from "../components/chat-center/ChatCenterOverlay.jsx";
 import { useChatList }             from "../lib/chatContext.js";
 import ConnectionCreatePage      from "../components/connection-create/ConnectionCreatePage.jsx";
-import WerkKaufFlow           from "../components/commerce/WerkKaufFlow.jsx";         // COMMERCE-01
 import WerkeKorb, { WerkeKorbButton } from "../components/commerce/WerkeKorb.jsx"; // KORB-01
 import UnterstutzenFlow                from "../components/commerce/UnterstutzenFlow.jsx"; // KORB-02
-import { clearCartAfterSuccess }        from "../components/commerce/commerceUtils.js";    // KORB-02
-import ExperienceBookingFlow  from "../components/commerce/ExperienceBookingFlow.jsx"; // COMMERCE-01
+import { clearCartAfterSuccess, addCommerceCartItem } from "../components/commerce/commerceUtils.js";    // KORB-02
 // ── Tab-Pages: lazy → eigene Chunks, nur bei Bedarf geladen ────
 // PHASE 17.3: ImpactPage + DiscoverPage — direkte imports (Safari-safe, kein lazy)
 const DiscoverPage  = React.lazy(() => import("./DiscoverPage.jsx"));
@@ -166,8 +164,6 @@ function HomeInner() {
     activeStory,       setActiveStory,
     showCreatorDash,   setShowCreatorDash,
     showCreatorDashboard,
-    showWerkCheckout,  setShowWerkCheckout,  // COMMERCE-01 W-1
-    showBookingFlow,   setShowBookingFlow,   // COMMERCE-01 W-1
     showWerkeKorb,     setShowWerkeKorb,     // KORB-01
     showUnterstutzenFlow, setShowUnterstutzenFlow, // KORB-02
     cart,              setCart,              // KORB-01
@@ -180,18 +176,18 @@ function HomeInner() {
   const { unreadTotal, markChatRead } = useChatList("home");
   usePresence(currentUser?.id);
 
-  // COMMERCE-01: WorkDetailPage → /Home + state → WerkKaufFlow öffnen
+  // Commerce 2.0: WorkDetailPage → /Home + state → Werkekorb
   const location = useLocation();
 
   // Stripe Redirect wird in UnterstutzenFlow behandelt (P1)
 
     useEffect(() => {
     const pending = location?.state?.pendingWerkKauf;
-    if (pending && setShowWerkCheckout) {
-      setShowWerkCheckout(pending);
-      // Router-State sofort leeren damit Reload nicht erneut öffnet
-      try { window.history.replaceState({}, document.title, window.location.pathname); } catch {}
-    }
+    if (!pending || !setCart) return;
+    addCommerceCartItem(setCart, pending);
+    if (location?.state?.openWerkeKorb) setShowWerkeKorb?.(true);
+    // Router-State sofort leeren damit Reload nicht erneut öffnet
+    try { window.history.replaceState({}, document.title, window.location.pathname); } catch {}
   }, [location?.state?.pendingWerkKauf]); // eslint-disable-line  // Activity Tracking: App-Start, Foreground, Heartbeat
 
 
@@ -462,8 +458,13 @@ function HomeInner() {
                     onView={(id) => { if(id) openProfileById(id); }}
                     onMap={() => setShowMap(true)}
                     onBook={(item) => {
-                      // Erlebnis aus DiscoverPage → ExperienceBookingFlow
-                      setShowBookingFlow(item);
+                      // Commerce 2.0: Erlebnis → Werkekorb (wie Feed onBook)
+                      if (!item?.id) return;
+                      setCart(prev => {
+                        if (prev.some(x => x.id === item.id)) return prev;
+                        return [...prev, item];
+                      });
+                      setShowWerkeKorb(false);
                     }}
                   />
               </SafeRender>
@@ -584,22 +585,6 @@ function HomeInner() {
 
       {/* ── Overlay Layer ──────────────────────────────────────── */}
       <ProfileLauncher/>
-      {/* ── WerkKaufFlow — COMMERCE-01 ─────────────────────────── */}
-      {showWerkCheckout && (
-        <WerkKaufFlow
-          werk={showWerkCheckout}
-          onClose={() => setShowWerkCheckout(null)}
-        />
-      )}
-
-      {/* ── ExperienceBookingFlow — COMMERCE-01 ─────────────────── */}
-      {showBookingFlow && (
-        <ExperienceBookingFlow
-          experience={showBookingFlow}
-          onClose={() => setShowBookingFlow(null)}
-        />
-      )}
-
 
       {/* ── Connection Create ───────────────────────────────────── */}
       {showConnect && SAFE_MODE.connectFlow && (

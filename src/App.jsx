@@ -467,16 +467,17 @@ function SmartNotFound() {
 
 
 /* ── WorkDetailRouteWrapper: /work/:id → WorkDetailPage ─────────── */
-// onBuyWerk: navigiert zurück zu /Home mit Router-State.
-// Home.jsx liest location.state.pendingWerkKauf und öffnet WerkKaufFlow.
-// Keine globale Variable — React Router v6 state ist offizieller Mechanismus.
+// onBuyWerk / onAddToKorb: navigiert zurück zu /Home mit Router-State.
+// Home.jsx liest location.state.pendingWerkKauf und fügt zum Werkekorb hinzu.
 function WorkDetailRouteWrapper() {
   const navigate = useNavigate();
   return (
     <WorkDetailPage
-      onBuyWerk={(werk) => {
-        // COMMERCE-01: Router-State → Home.jsx öffnet WerkKaufFlow
+      onAddToKorb={(werk) => {
         navigate("/Home", { state: { pendingWerkKauf: werk } });
+      }}
+      onBuyWerk={(werk) => {
+        navigate("/Home", { state: { pendingWerkKauf: werk, openWerkeKorb: true } });
       }}
     />
   );
