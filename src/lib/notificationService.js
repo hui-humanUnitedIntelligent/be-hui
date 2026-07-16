@@ -45,6 +45,7 @@ export async function createNotification({
         entity_type: entityType || null,
         action_url:  actionUrl  || null,
         read:        false,
+        is_read:     false,
         created_at:  new Date().toISOString(),
       })
       .select("id")
@@ -120,15 +121,18 @@ export async function notifyBooking({ senderId, recipientId, senderName, booking
 /**
  * Notification bei Resonanz auf ein Werk
  */
-export async function notifyResonanz({ senderId, recipientId, senderName, workId, workTitle }) {
+export async function notifyResonanz({ senderId, recipientId, senderName, workId, workTitle, postType = "work" }) {
+  const title = workTitle
+    ? `${senderName || "Jemand"} hat deinem Beitrag Resonanz gegeben`
+    : `${senderName || "Jemand"} hat deinem Beitrag Resonanz gegeben`;
   return createNotification({
     recipientId,
     senderId,
     type:        "resonanz",
-    title:       `${senderName || "Jemand"} resoniert mit deinem Werk`,
-    body:        workTitle ? `"${workTitle.slice(0,60)}"` : "Dein Werk bewegt jemanden.",
+    title,
+    body:        workTitle ? `„${workTitle.slice(0, 80)}"` : "",
     entityId:    workId,
-    entityType:  "work",
+    entityType:  postType,
   });
 }
 

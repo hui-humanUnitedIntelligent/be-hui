@@ -2,6 +2,7 @@ import { createPortal } from "react-dom";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
+import { ResonanzStats } from "../../lib/useReactions.jsx";
 
 const T = {
   teal:"rgba(14,196,184,1)", white:"#FFFFFF", ink:"rgba(26,26,46,0.92)",
@@ -22,7 +23,6 @@ const timeAgo = (iso) => {
 
 function MomentCardItem({ m }) {
   const [imgErr, setImgErr] = useState(false);
-  const likes = 4 + (m.id?.charCodeAt(m.id.length-1) % 30 || 0);
   return (
     <div style={{
       background:T.white, borderRadius:18, overflow:"hidden",
@@ -57,8 +57,7 @@ function MomentCardItem({ m }) {
           <span style={{ fontSize:11, color:T.inkFaint }}>{m._name || "HUI Mitglied"}</span>
         </div>
         <div style={{ display:"flex", gap:10, marginTop:6 }}>
-          <span style={{ fontSize:11, color:T.inkFaint }}>♡ {likes}</span>
-          <span style={{ fontSize:11, color:T.inkFaint }}>◎ {Math.floor(likes/4)}</span>
+          <ResonanzStats postId={m.id} postType="moment" authorId={m.user_id} size={11} />
         </div>
       </div>
     </div>

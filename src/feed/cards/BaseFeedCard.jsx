@@ -722,40 +722,13 @@ export default React.memo(function BaseFeedCard({
 
   const reactions = item?._reactions || {};
 
-  // Optimistic like state
-  const [localReactions, setLocalReactions] = useState(reactions);
-
-  // Sync if item changes externally
-  React.useEffect(() => {
-    setLocalReactions(item?._reactions || {});
-  }, [item?.id]); // eslint-disable-line
-
   if (!item?.id) return null;
 
-  const handleReaction = useCallback((type) => {
-    // Optimistic update
-    setLocalReactions(prev => {
-      const next = { ...prev };
-      if (type === "inspire") {
-        next.inspired = !prev.inspired;
-        next.inspireCount = (prev.inspireCount || 0) + (next.inspired ? 1 : -1);
-      } else if (type === "touch") {
-        next.touched = !prev.touched;
-        next.touchCount = (prev.touchCount || 0) + (next.touched ? 1 : -1);
-      } else if (type === "save") {
-        next.saved = !prev.saved;
-      }
-      return next;
-    });
-    // Propagate to parent (DB update)
-    onReaction?.(type);
-  }, [onReaction]);
-
   const handleDoubleTap = useCallback(() => {
-    if (!localReactions.touched) {
-      handleReaction("touch");
+    if (!reactions.touched) {
+      onReaction?.("touch");
     }
-  }, [localReactions.touched, handleReaction]);
+  }, [reactions.touched, onReaction]);
 
   return (
     <article
@@ -807,8 +780,8 @@ export default React.memo(function BaseFeedCard({
         />
       </div>
       <FeedActions
-        reactions={localReactions}
-        onReaction={handleReaction}
+        reactions={reactions}
+        onReaction={onReaction}
         onShare={onShare}
         extraActions={extraActions}
       />

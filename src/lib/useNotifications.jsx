@@ -6,6 +6,7 @@
 import {
   HUIImpactIcon, HUIBenachrichtigungIcon, HUIStatistikIcon,
 } from '../design/icons/HuiSystemIcons.jsx';
+import { HUIHeartIcon } from '../design/icons/HuiInteractionIcons.jsx';
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "./supabaseClient.js";
@@ -39,6 +40,7 @@ const TYPE_META = {
   booking_change: { tab:"wichtig", icon:"⚠️", color:"#F59E0B", label:"Buchungsänderung" },
   experience_soon:{ tab:"wichtig", icon:"📅", color:"#22C55E", label:"Erlebnis morgen" },
   // RELEVANT
+  resonanz:       { tab:"relevant", Icon: HUIHeartIcon, color:"#EF4444", label:"Resonanz" },
   like:           { tab:"relevant", icon:"❤️", color:"#EF4444", label:"Favorisiert" },
   save:           { tab:"relevant", icon:"⭐", color:"#F59E0B", label:"Gespeichert" },
   profile_visit:  { tab:"relevant", icon:"👀", color:"#8B5CF6", label:"Profilbesuch" },
@@ -399,7 +401,9 @@ function NotifItem({ n, onRead, onDelete }) {
           display:"flex", alignItems:"center", justifyContent:"center",
           fontSize:19,
         }}>
-          {n.icon || meta.icon}
+          {meta.Icon
+            ? <meta.Icon size={22} active />
+            : (n.icon || meta.icon)}
         </div>
 
         {/* Text */}

@@ -420,10 +420,18 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
   }, [visible]);
 
   // Hook-Gating: kein RPC / kein SELECT solange nicht sichtbar
-  const { toggle, myTypes } = useSingleReaction(
+  const postSnapshot = useMemo(() => ({
+    cover_url: item.media?.[0]?.url || null,
+    title:     item.title || item.text || null,
+    author_name: item.author?.name || null,
+    user_id:   authorId,
+  }), [item.media, item.title, item.text, item.author?.name, authorId]);
+
+  const { toggle, myTypes, counts } = useSingleReaction(
     visible ? postId : null,
     postType,
-    authorId
+    authorId,
+    postSnapshot
   );
 
   const handleReaction = useCallback((type) => {
@@ -435,14 +443,16 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
     toast.info(wasActive ? (removeLabels[type] || type) : (labels[type] || type), { duration: 1800 });
   }, [toggle, myTypes]);
 
-  // Merge live reaction state into item
+  // Merge live reaction state into item — Single Source: post_reactions
   const enriched = {
     ...item,
     _reactions: {
       ...(item._reactions || {}),
-      touched:  myTypes?.has?.("like")    ?? false,
-      inspired: myTypes?.has?.("inspire") ?? false,
-      saved:    myTypes?.has?.("save")    ?? false,
+      touched:      myTypes?.has?.("like")    ?? false,
+      inspired:     myTypes?.has?.("inspire") ?? false,
+      saved:        myTypes?.has?.("save")    ?? false,
+      inspireCount: counts?.inspire > 0 ? counts.inspire : null,
+      touchCount:   counts?.like    > 0 ? counts.like    : null,
     },
   };
 
@@ -512,8 +522,6 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
     return presenceMap[uid]?.status || "offline";
   }, [presenceMap]);
 
-  const [reactions, setReactions] = useState({});
-
   // FEED.12C — Scroll Depth Analytics
   const { user: depthUser } = useAuth();
   const depthRef   = useRef(0);
@@ -559,7 +567,6 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
     <div style={{ paddingTop: 8, paddingBottom: 8 }}>
       {arr.map((item, idx) => {
         const { isRelaxed, mb } = getCardRhythm(idx);
-        const itemReactions = reactions[String(item.id)] || {};
         return (
           <div
             key={String(item.id)}
@@ -572,7 +579,7 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
             <ReactionCard
               item={{
                 ...item,
-                _reactions: { ...itemReactions, _relaxed: isRelaxed },
+                _reactions: { ...(item._reactions || {}), _relaxed: isRelaxed },
                 _presenceStatus: resolvePresenceStatus(item),
               }}
               onProfile={onProfile}
