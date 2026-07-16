@@ -28,6 +28,7 @@ import { HUIHeartIcon, HUIChatIcon } from "../design/icons/HuiInteractionIcons.j
 import HuiLiveTicker from "../components/shared/HuiLiveTicker.jsx"; // LIVETICKER.1 2026-07-08 -- ersetzt LiveActivityBar (war Fake-Daten)
 import { useContentPreview } from "../context/ContentPreviewContext.jsx"; // OPEN.1 2026-07-08 -- geteilte Vorschau statt totem Tap / falschem Sprung
 import { normalizePostForPreview, normalizeProjectForPreview, normalizeWirkerForPreview } from "../lib/previewNormalizers.js";
+import GlobalDiscoverFeed from "../feed/GlobalDiscoverFeed.jsx";
 
 // ── Design Tokens ────────────────────────────────────────────────
 const T = {
@@ -2146,7 +2147,27 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         <HuiLiveTicker/>
       </div>
 
-      {/* ── 3. Menschen entdecken ── */}
+      {/* ── 2. Globaler Discover-Feed ── */}
+      <div style={{ marginBottom:8 }}>
+        <div style={{ padding:"0 16px 6px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+          <span style={{ fontSize:13, fontWeight:700, color:T.ink, opacity:0.55, letterSpacing:"0.3px" }}>
+            ALLE INHALTE
+          </span>
+          <span style={{ fontSize:11, color:T.teal, fontWeight:600 }}>
+            Neueste zuerst
+          </span>
+        </div>
+        <GlobalDiscoverFeed
+          onPressWork={(item) => openPreview({ id:item.id, type:"werk", title:item.title, workId:item.id })}
+          onPressTalent={(item) => openPreview({ id:item.id, type:"talent", title:item.title, talentId:item.id })}
+          onPressExperience={(item) => openPreview({ id:item.id, type:"erlebnis", title:item.title, experienceId:item.id })}
+          onPressImpact={(item) => openPreview({ id:item.id, type:"projekt", title:item.title, projectId:item.id })}
+          onPressMoment={(item) => openPreview({ id:item.id, type:"moment", title:item.caption || "Moment" })}
+          style={{ minHeight:200 }}
+        />
+      </div>
+
+            {/* ── 3. Menschen entdecken ── */}
       <PeopleSection
         people={filteredPeople}
         onPersonPress={handlePersonPress}
