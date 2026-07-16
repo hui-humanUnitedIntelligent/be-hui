@@ -62,6 +62,7 @@ import {
 import { NotificationBadge }    from "../lib/useNotifications.jsx";
 import { useSavedPostsContext }  from "../context/SavedPostsContext.jsx";
 import { useContentPreview } from "../context/ContentPreviewContext.jsx";
+import { normalizePostForPreview } from "../lib/previewNormalizers.js";
 
 // ── Design Tokens ────────────────────────────────────────────────
 
@@ -914,6 +915,8 @@ export default function MyBasisProfile({ onClose, profileId }) {
               onDeleteErlebnis={(id) => { setLocalExperiences(null); reload(); }}
               onOpenResonanz={() => setShowResonanz(true)}
               onOpenMomentSheet={() => setShowMomentSheet(true)}
+              moments={hooksMoments ?? []}
+              momentsLoading={hookLoading}
               onProfileUpdate={(upd) => {
                 setAuthProfile && setAuthProfile(p => ({ ...p, ...upd }));
                 refreshProfile?.().catch(() => {});
@@ -994,6 +997,8 @@ export default function MyBasisProfile({ onClose, profileId }) {
               onDeleteErlebnis={(id) => { setLocalExperiences(null); reload(); }}
               onOpenResonanz={() => setShowResonanz(true)}
               onOpenMomentSheet={() => setShowMomentSheet(true)}
+              moments={hooksMoments ?? []}
+              momentsLoading={hookLoading}
               onProfileUpdate={(upd) => {
                 setAuthProfile && setAuthProfile(p => ({ ...p, ...upd }));
                 refreshProfile?.().catch(() => {});
@@ -1334,33 +1339,21 @@ export default function MyBasisProfile({ onClose, profileId }) {
 // Performance: lazy images, keine Off-Screen-Elemente, Viewport-only Render
 // Rechte: alle Nutzer können Momente veröffentlichen
 // ══════════════════════════════════════════════════════════════
-function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
-  const [moments, setMoments] = React.useState([]);
-  const [loading, setLoading] = React.useState(true);
+function MeinMomenteDrawerContent({ profile, moments = [], loading = false, onOpenMomentSheet }) {
+  const { open: openPreview } = useContentPreview();
   const [imgErrors, setImgErrors] = React.useState({});
 
-  // Lade Momente des Users aus beitraege-Tabelle (type='moment')
-  React.useEffect(() => {
-    if (!profile?.id) return;
-    let cancelled = false;
-    setLoading(true);
-
-    supabase
-      .from("beitraege")
-      .select("id, src, type, caption, created_at")
-      .eq("user_id", profile.id)
-      .eq("type", "moment")
-      .order("created_at", { ascending: false })
-      .limit(18)
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        if (!error && data) setMoments(data);
-        setLoading(false);
-      });
-
-    // Memory-Cleanup bei Unmount
-    return () => { cancelled = true; };
-  }, [profile?.id]);
+  const handleOpenMoment = React.useCallback((m) => {
+    const item = normalizePostForPreview({
+      ...m,
+      user_id: m.user_id || profile?.id,
+      profile: m.profile || {
+        display_name: profile?.display_name,
+        avatar_url: profile?.avatar_url,
+      },
+    }, "moment");
+    if (item) openPreview(item);
+  }, [openPreview, profile?.id, profile?.display_name, profile?.avatar_url]);
 
   const handleImgError = React.useCallback((id) => {
     setImgErrors(prev => ({ ...prev, [id]: true }));
@@ -1435,9 +1428,16 @@ function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
         /* Grid — nur Bilder laden (lazy), 3-spaltig */
         <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:4 }}>
           {moments.map((m, i) => (
-            <div key={m.id || i} style={{
+            <div
+              key={m.id || i}
+              role="button"
+              tabIndex={0}
+              onClick={() => handleOpenMoment(m)}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleOpenMoment(m); }}
+              style={{
               aspectRatio:"1", borderRadius:12, overflow:"hidden",
               background:"rgba(26,26,24,0.06)", position:"relative",
+              cursor:"pointer", touchAction:"manipulation",
             }}>
               {m.src && !imgErrors[m.id] ? (
                 <img
@@ -1940,6 +1940,8 @@ function MeinBereichMenu({
   onErlebnisWizard, onDeleteErlebnis,
   onOpenResonanz = () => {},
   onOpenMomentSheet: onOpenMomentSheetProp = null,
+  moments = [],
+  momentsLoading = false,
   onProfileUpdate = () => {},
 }) {
   const { switchTab } = useHome();
@@ -2076,6 +2078,8 @@ function MeinBereichMenu({
         <MeinBereichDrawer title="Meine Momente" icon={<HUIFotoIcon size={18}/>} onClose={close} footer={false}>
           <MeinMomenteDrawerContent
             profile={profile}
+            moments={moments}
+            loading={momentsLoading}
             onOpenMomentSheet={() => {
               close();
               // openMomentSheet: nutzt onOpenMomentSheetProp (Parent) wenn vorhanden,
