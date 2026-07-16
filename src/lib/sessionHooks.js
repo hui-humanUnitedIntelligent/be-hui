@@ -130,12 +130,9 @@ export function useDraftPersist(key, initialState) {
 }
 
 // ────────────────────────────────────────────────────────────────
-// usePresence
-// Leichtes Presence-System — sehr subtil, kein Gamer-Look
-//
-// - Setzt "last_seen" alle 2 Minuten in Supabase
-// - Liest "last_seen" für einen anderen User
-// - Gibt zurück: status ("online"|"recently"|"away"|"offline")
+// usePresence (sessionHooks)
+// Legacy Read-Hook — liest profiles.last_seen (0 produktive Importe).
+// Produktiver Write: usePresence.js → profiles.last_seen_at (Home.jsx).
 // ────────────────────────────────────────────────────────────────
 export function usePresence(userId) {
   const [presenceStatus, setPresenceStatus] = useState("offline");
@@ -168,58 +165,6 @@ export function usePresence(userId) {
   }, [userId]);
 
   return presenceStatus;
-}
-
-// useOwnPresence — setzt eigene last_seen
-export function useOwnPresence(userId) {
-  // FIX: alle Timer als Refs — kein Scope-Problem bei userId-Wechsel
-  const intervalRef    = useRef(null);
-  const mountedRef     = useRef(false);
-  const listenerRef    = useRef(null);
-
-  useEffect(() => {
-    if (!userId) return;
-
-    mountedRef.current = true;
-
-    async function touch() {
-      if (!mountedRef.current) return;
-      try {
-        await supabase.from("profiles")
-          .update({ last_seen: new Date().toISOString() })
-          .eq("id", userId);
-      } catch { /* silent — kein Crash bei Netzwerkproblemen */ }
-    }
-
-    // Sofort beim Mount
-    touch();
-
-    // Pause presence updates wenn Tab hidden — spart Battery + Requests
-    // FIX: via Ref → sauber clearable
-    intervalRef.current = setInterval(() => {
-      if (!document.hidden && mountedRef.current) touch();
-    }, 2 * 60 * 1000);
-
-    // FIX: Listener via Ref → symmetrisches add/remove auch bei userId-Wechsel
-    const onVisible = () => {
-      if (!document.hidden && mountedRef.current) touch();
-    };
-    listenerRef.current = onVisible;
-    document.addEventListener("visibilitychange", onVisible, { passive: true });
-
-    return () => {
-      mountedRef.current = false;
-      // FIX: Ref-basiertes cleanup — kein dangling interval/listener
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-      if (listenerRef.current) {
-        document.removeEventListener("visibilitychange", listenerRef.current);
-        listenerRef.current = null;
-      }
-    };
-  }, [userId]);
 }
 
 // Presence Label + Color — für UI-Nutzung
