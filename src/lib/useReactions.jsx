@@ -41,7 +41,8 @@ export function useSingleReaction(postId, postType = "post", authorId = null, po
             .from("post_reactions")
             .select("type")
             .eq("post_id", postId)
-            .eq("user_id", user.id);
+            .eq("user_id", user.id)
+            .limit(20); // Max. Anzahl Reaktionstypen pro Post
           if (!cancelled && myData) setMyTypes(new Set(myData.map(r => r.type)));
         }
       } catch { /* silent */ }

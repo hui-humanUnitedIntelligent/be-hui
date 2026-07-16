@@ -52,7 +52,7 @@ export function useTalentBookings(userId) {
     let nameMap = {};
     if (otherIds.length > 0) {
       const { data: profs } = await supabase.from("profiles")
-        .select("id, display_name, username").in("id", otherIds);
+        .select("id, display_name, username").in("id", otherIds).limit(otherIds.length);
       nameMap = Object.fromEntries((profs || []).map(p => [p.id, p.display_name || p.username || "HUI Mitglied"]));
     }
 

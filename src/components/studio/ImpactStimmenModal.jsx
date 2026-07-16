@@ -114,11 +114,13 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
         supabase.from("impact_applications")
           .select("id,project_name,short_desc,cover_url,media_urls,funding_goal,current_amount_eur,rank,status,created_at")
           .eq("status", "approved")
-          .order("created_at", { ascending: false }),
+          .order("created_at", { ascending: false })
+          .limit(50), // SSOT: gleiches Cap wie ImpactPage useAllApprovedByVotes
         supabase.from("impact_votes")
           .select("id,project_id,created_at")
           .eq("voter_id", profile.id)
-          .eq("pool_month", monthKey),
+          .eq("pool_month", monthKey)
+          .limit(10), // Max. 2 Stimmen/Monat (Talent)
       ]);
       // Normalisiere auf einheitliches Format
       const normalized = (projRes.data || []).map(a => ({

@@ -159,7 +159,8 @@ export function useChatList(instanceId = "default") {
         .from("chat_participants")
         .select("chat_id, last_read_at")
         .eq("user_id", user.id)
-        .in("chat_id", chatIds);
+        .in("chat_id", chatIds)
+        .limit(chatIds.length);
 
       const lastReadMap = {};
       (readRows || []).forEach(r => { lastReadMap[r.chat_id] = r.last_read_at; });

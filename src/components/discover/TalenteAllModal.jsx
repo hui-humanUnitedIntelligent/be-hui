@@ -105,7 +105,7 @@ export default function TalenteAllModal({ isOpen, onClose, onPressTalent }) {
       let pMap = {};
       if (ids.length > 0) {
         const { data: provs } = await supabase.from("profiles")
-          .select("id,display_name,username").in("id", ids);
+          .select("id,display_name,username").in("id", ids).limit(ids.length);
         pMap = Object.fromEntries((provs||[]).map(p => [p.id, p.display_name || p.username || "HUI Talent"]));
       }
 
