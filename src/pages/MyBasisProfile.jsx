@@ -64,6 +64,34 @@ import { useSavedPostsContext }  from "../context/SavedPostsContext.jsx";
 import { useContentPreview } from "../context/ContentPreviewContext.jsx";
 
 // ── Design Tokens ────────────────────────────────────────────────
+
+// ── Ambassador ErrorBoundary ─────────────────────────────────────
+class AmbassadorErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { hasError: false }; }
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(e, info) { console.error("[Ambassador] Render-Fehler:", e, info); }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding:"24px 20px", textAlign:"center", color:"rgba(26,26,24,0.45)", fontSize:13 }}>
+          <div style={{ fontSize:22, marginBottom:8 }}>⚠️</div>
+          Ambassador-Bereich konnte nicht geladen werden.
+          <br/>
+          <button
+            onClick={() => this.setState({ hasError: false })}
+            style={{
+              marginTop:12, padding:"8px 18px", borderRadius:99,
+              background:"rgba(14,196,184,0.12)", border:"1px solid rgba(14,196,184,0.3)",
+              color:"#0A9E94", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"inherit",
+            }}
+          >Nochmal versuchen</button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 const T = {
   bg:       "#F9F7F4",
   bgCard:   "#FFFFFF",
@@ -1088,14 +1116,17 @@ export default function MyBasisProfile({ onClose, profileId }) {
                 fontFamily:"inherit",
               }}>✕</button>
             </div>
-            {/* Suspense nur um die lazy Komponente — NICHT um das Portal */}
-            <React.Suspense fallback={
-              <div style={{ padding:"32px 20px", textAlign:"center", color:"rgba(26,26,24,0.4)", fontSize:13 }}>
-                Lädt...
-              </div>
-            }>
-              <AmbassadorStudioSection profile={profile} />
-            </React.Suspense>
+            {/* Suspense + ErrorBoundary — nur um die lazy Komponente */}
+            <AmbassadorErrorBoundary>
+              <React.Suspense fallback={
+                <div style={{ padding:"32px 20px", textAlign:"center", color:"rgba(26,26,24,0.4)", fontSize:13 }}>
+                  <div style={{ width:24, height:24, borderRadius:"50%", border:"2px solid rgba(14,196,184,0.3)", borderTopColor:"#0EC4B8", animation:"hms-spin .7s linear infinite", display:"inline-block", marginBottom:8 }}/>
+                  <div>Wird geladen…</div>
+                </div>
+              }>
+                <AmbassadorStudioSection profile={profile} />
+              </React.Suspense>
+            </AmbassadorErrorBoundary>
           </div>
         </div>,
         document.body

@@ -215,7 +215,12 @@ function AmbassadorStudioSection({ profile }) {
   const uid   = profile?.id;
 
   useEffect(() => {
-    if (!uid) return;
+    if (!uid) {
+      setLoading(false); // uid noch nicht da → kein Lade-Hänger
+      return;
+    }
+    // Timeout-Sicherheit: falls Supabase nicht antwortet → nie mehr "Lädt..." hängen
+    const loadTimeout = setTimeout(() => setLoading(false), 8000);
     (async () => {
       setLoading(true);
       try {
@@ -277,6 +282,7 @@ function AmbassadorStudioSection({ profile }) {
       } catch(e) {
         console.warn("AmbassadorStudio load:", e);
       }
+      clearTimeout(loadTimeout);
       setLoading(false);
     })();
   }, [uid]);
