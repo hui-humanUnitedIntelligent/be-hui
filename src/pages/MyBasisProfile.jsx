@@ -41,6 +41,7 @@ const TalentAngebotWizard = React.lazy(() => import("../components/talents/Talen
 import { useTalents, deleteTalent } from "../hooks/useTalents.js";
 const ExperienceWizard = React.lazy(() => import("../components/experiences/ExperienceWizard.jsx"));
 const AmbassadorStudioSection = React.lazy(() => import("../components/ambassador/AmbassadorStudioSection.jsx"));
+const HuiMomentSheet = React.lazy(() => import("../components/HuiMomentSheet.jsx"));
 const MyRecommendationsModal   = React.lazy(() => import("../components/studio/MyRecommendationsModal.jsx"));
 const ImpactStimmenModal       = React.lazy(() => import("../components/studio/ImpactStimmenModal.jsx"));
 const MeineProjekteModal       = React.lazy(() => import("../components/studio/MeineProjekteModal.jsx"));
@@ -409,6 +410,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [localCover,  setLocalCover]  = useState(null);
   const [showGemeinschaft, setShowGemeinschaft] = useState(false);
   const [showAmbModal,    setShowAmbModal]    = useState(false);
+  const [showAmbDrawer,   setShowAmbDrawer]   = useState(false);
   const [showPublicPreview, setShowPublicPreview] = useState(false);
   const [showMerken,       setShowMerken]       = useState(false);
   // MERKEN.3 (2026-07-08): Live-Zaehler fuer den Merken-Badge im Header.
@@ -985,11 +987,11 @@ export default function MyBasisProfile({ onClose, profileId }) {
             />
             <Gap h={28}/>
 
-            {/* B6. Ambassador-Banner */}
+            {/* B6. Ambassador-Balken — nur sichtbar wenn is_ambassador=true */}
             <AmbassadorBanner
               profile={profile}
               ambState={ambState}
-              onApply={() => setShowAmbModal(true)}
+              onPress={() => setShowAmbDrawer(true)}
             />
             <Gap h={40}/>
           </>
@@ -1002,6 +1004,53 @@ export default function MyBasisProfile({ onClose, profileId }) {
           der jetzt automatisch auf ALLEN vier Tabs (Entdecken/Home/Impact/
           Profil) gleichzeitig greift -- keine Duplikat-Loesung pro Seite
           mehr noetig. */}
+
+      {/* AMBASSADOR-DRAWER — Portal, nur für is_ambassador=true */}
+      {showAmbDrawer && profile?.is_ambassador === true && (
+        <React.Suspense fallback={null}>
+          {createPortal(
+            <div style={{
+              position:"fixed", inset:0, zIndex:10500,
+              display:"flex", flexDirection:"column", justifyContent:"flex-end",
+            }}>
+              {/* Backdrop */}
+              <div onClick={() => setShowAmbDrawer(false)} style={{
+                position:"absolute", inset:0,
+                background:"rgba(26,26,24,0.55)", backdropFilter:"blur(2px)",
+              }}/>
+              {/* Sheet */}
+              <div style={{
+                position:"relative", zIndex:1,
+                background:"#F7F5F0", borderRadius:"20px 20px 0 0",
+                maxHeight:"88dvh", overflowY:"auto",
+                paddingBottom:"calc(16px + env(safe-area-inset-bottom,0px))",
+              }}>
+                {/* Handle */}
+                <div style={{ display:"flex", justifyContent:"center", paddingTop:12, marginBottom:4 }}>
+                  <div style={{ width:38, height:4, borderRadius:2, background:"rgba(26,26,24,0.15)" }}/>
+                </div>
+                {/* Header */}
+                <div style={{
+                  display:"flex", alignItems:"center", justifyContent:"space-between",
+                  padding:"8px 20px 14px",
+                }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                    <HUIAmbassadorIcon size={18} style={{color:"rgba(255,193,7,0.9)"}}/>
+                    <span style={{ fontSize:16, fontWeight:800, color:"#1A1A18" }}>Ambassador-Bereich</span>
+                  </div>
+                  <button onClick={() => setShowAmbDrawer(false)} style={{
+                    background:"none", border:"none", cursor:"pointer",
+                    fontSize:18, color:"rgba(26,26,24,0.45)", padding:4,
+                    fontFamily:"inherit",
+                  }}>✕</button>
+                </div>
+                <AmbassadorStudioSection profile={profile} />
+              </div>
+            </div>,
+            document.body
+          )}
+        </React.Suspense>
+      )}
 
       {/* GEMEINSCHAFT FLOW MODAL */}
       {showGemeinschaft && (
@@ -1224,6 +1273,154 @@ export default function MyBasisProfile({ onClose, profileId }) {
 // AMBASSADOR-PROFIL-SEKTION
 // Zeigt Status, Einladungslink, Empfehlungen
 // ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════
+// MEIN MOMENTE DRAWER — Zeigt Momente-Grid + "Neuen Moment erstellen"
+// Performance: lazy images, keine Off-Screen-Elemente, Viewport-only Render
+// Rechte: alle Nutzer können Momente veröffentlichen
+// ══════════════════════════════════════════════════════════════
+function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
+  const [moments, setMoments] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [imgErrors, setImgErrors] = React.useState({});
+
+  // Lade Momente des Users aus beitraege-Tabelle (type='moment')
+  React.useEffect(() => {
+    if (!profile?.id) return;
+    let cancelled = false;
+    setLoading(true);
+
+    supabase
+      .from("beitraege")
+      .select("id, src, type, caption, created_at")
+      .eq("user_id", profile.id)
+      .eq("type", "moment")
+      .order("created_at", { ascending: false })
+      .limit(18)
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (!error && data) setMoments(data);
+        setLoading(false);
+      });
+
+    // Memory-Cleanup bei Unmount
+    return () => { cancelled = true; };
+  }, [profile?.id]);
+
+  const handleImgError = React.useCallback((id) => {
+    setImgErrors(prev => ({ ...prev, [id]: true }));
+  }, []);
+
+  if (loading) {
+    return (
+      <div style={{ padding:"16px 20px" }}>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:4 }}>
+          {[1,2,3,4,5,6].map(i => (
+            <div key={i} style={{
+              aspectRatio:"1", borderRadius:12,
+              background:"linear-gradient(90deg,rgba(26,26,24,0.06) 25%,rgba(26,26,24,0.12) 50%,rgba(26,26,24,0.06) 75%)",
+              backgroundSize:"200% 100%",
+              animation:"mbp-shimmer 1.4s ease-in-out infinite",
+            }}/>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ padding:"16px 20px", paddingBottom:"calc(24px + env(safe-area-inset-bottom,0px))" }}>
+      {/* Header-Zeile mit Zähler und CTA */}
+      <div style={{
+        display:"flex", alignItems:"center", justifyContent:"space-between",
+        marginBottom:14,
+      }}>
+        <div style={{ fontSize:14, fontWeight:800, color:"#1A1A18", letterSpacing:"-0.01em" }}>
+          Meine Momente
+          {moments.length > 0 && (
+            <span style={{ fontSize:12, fontWeight:600, color:"rgba(26,26,24,0.45)", marginLeft:6 }}>
+              ({moments.length})
+            </span>
+          )}
+        </div>
+        <button
+          onClick={onOpenMomentSheet}
+          style={{
+            padding:"8px 16px", borderRadius:99,
+            background:"#0EC4B8", border:"none", color:"white",
+            fontSize:12.5, fontWeight:700, cursor:"pointer",
+            fontFamily:"inherit", touchAction:"manipulation",
+            WebkitTapHighlightColor:"transparent",
+          }}
+        >
+          + Neuer Moment
+        </button>
+      </div>
+
+      {moments.length === 0 ? (
+        /* Empty-State — kein Off-Screen-Content */
+        <button
+          onClick={onOpenMomentSheet}
+          style={{
+            width:"100%", padding:"28px 16px", borderRadius:16,
+            background:"#FFFFFF", border:"1.5px dashed rgba(26,26,24,0.14)",
+            display:"flex", flexDirection:"column", alignItems:"center", gap:8,
+            cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
+          }}
+        >
+          <HUIFotoIcon size={28} style={{color:"rgba(14,196,184,0.5)"}} />
+          <div style={{ fontSize:14, fontWeight:700, color:"#1A1A18" }}>
+            Ersten Moment teilen
+          </div>
+          <div style={{ fontSize:12, color:"rgba(26,26,24,0.45)" }}>
+            Fotos, Gedanken oder Videos
+          </div>
+        </button>
+      ) : (
+        /* Grid — nur Bilder laden (lazy), 3-spaltig */
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:4 }}>
+          {moments.map((m, i) => (
+            <div key={m.id || i} style={{
+              aspectRatio:"1", borderRadius:12, overflow:"hidden",
+              background:"rgba(26,26,24,0.06)", position:"relative",
+            }}>
+              {m.src && !imgErrors[m.id] ? (
+                <img
+                  loading="lazy"
+                  decoding="async"
+                  src={m.src}
+                  alt=""
+                  onError={() => handleImgError(m.id)}
+                  style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}
+                />
+              ) : (
+                <div style={{
+                  width:"100%", height:"100%",
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                }}>
+                  <HUIFotoIcon size={18} style={{color:"rgba(14,196,184,0.4)"}} />
+                </div>
+              )}
+            </div>
+          ))}
+          {/* Hinzufügen-Kachel — performance-safe */}
+          <button
+            onClick={onOpenMomentSheet}
+            style={{
+              aspectRatio:"1", borderRadius:12,
+              background:"#FFFFFF", border:"1.5px dashed rgba(26,26,24,0.14)",
+              display:"flex", flexDirection:"column", alignItems:"center",
+              justifyContent:"center", gap:4, cursor:"pointer",
+              touchAction:"manipulation",
+            }}
+          >
+            <span style={{ fontSize:20, color:"rgba(26,26,24,0.45)" }}>+</span>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function AmbassadorProfilSection({ profile, ambState, onApply }) {
   const T2 = {
     teal:"#0EC4B8", tealSoft:"rgba(14,196,184,0.08)",
@@ -1247,56 +1444,12 @@ function AmbassadorProfilSection({ profile, ambState, onApply }) {
     }
   }
 
-  // Nicht-Ambassador: CTA anzeigen
-  if (!isAmb) {
-    return (
-      <div style={{ padding:"0 20px" }}>
-        <div style={{
-          background:T2.bgCard, borderRadius:T2.r16,
-          border:`1px solid ${T2.border}`, padding:"18px",
-          boxShadow:T2.card,
-        }}>
-          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
-            <HUIAmbassadorIcon size={18} style={{color:"rgba(14,196,184,0.8)"}} />
-            <span style={{fontSize:14, fontWeight:800, color:T2.ink}}>Ambassador werden</span>
-          </div>
-          <div style={{fontSize:13, color:T2.inkSoft, lineHeight:1.6, marginBottom:14}}>
-            Als Ambassador empfiehlst du HUI weiter und verdienst mit jedem aktiven Mitglied, das du eingeladen hast.
-          </div>
-          {hasPending && (
-            <div style={{
-              background:"rgba(255,193,7,0.1)", borderRadius:T2.r12,
-              border:"1px solid rgba(255,193,7,0.3)", padding:"10px 14px",
-              fontSize:12, color:"#B8860B", fontWeight:600, marginBottom:10,
-            }}>
-              ⏳ Deine Bewerbung wird geprüft
-            </div>
-          )}
-          {isRejected && (
-            <div style={{
-              background:"rgba(255,99,71,0.08)", borderRadius:T2.r12,
-              border:"1px solid rgba(255,99,71,0.2)", padding:"10px 14px",
-              fontSize:12, color:"#cc4433", fontWeight:600, marginBottom:10,
-            }}>
-              ❌ Bewerbung abgelehnt
-            </div>
-          )}
-          {!hasPending && !isRejected && (
-            <button onClick={onApply} style={{
-              padding:"10px 20px", borderRadius:T2.r99,
-              background:T2.teal, border:"none", color:"white",
-              fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"inherit",
-              touchAction:"manipulation",
-            }}>
-              Jetzt bewerben
-            </button>
-          )}
-        </div>
-      </div>
-    );
-  }
+  // RECHTE-LOGIK: Kein Ambassador → nichts anzeigen
+  // Ambassador-Rechte werden ausschließlich durch SADB vergeben (kein Self-Signup)
+  if (!isAmb) return null;
 
   // Aktiver Ambassador: Dashboard
+
   return (
     <div style={{ padding:"0 20px" }}>
       {/* Status-Badge */}
@@ -1443,71 +1596,61 @@ function TalentErweiterung({ profile, onProfileUpdate }) {
 // AMBASSADOR BANNER — Screenshot-genau unten im Profil
 // Kompakter Banner mit Bild + Text + Button
 // ══════════════════════════════════════════════════════════════
-function AmbassadorBanner({ profile, ambState, onApply }) {
-  const isAmb     = profile?.is_ambassador === true;
-  const isPending = ambState?.isPending || ambState?.applicationStatus === "offen"
-                    || ambState?.applicationStatus === "pending";
-  if (isAmb) return null; // Aktive Ambassadors brauchen keinen CTA
+function AmbassadorBanner({ profile, ambState, onPress }) {
+  // RECHTE-LOGIK: Ambassador-Balken nur für bestätigte Ambassadors sichtbar
+  // Vergabe ausschließlich durch SADB — keine Self-Aktivierung möglich
+  const isAmb = profile?.is_ambassador === true;
+  if (!isAmb) return null; // Kein CTA, kein Bewerben-Button — nur für aktive Ambassadors
 
+  // Ambassador-Balken: horizontaler Streifen am unteren Profilrand
   return (
     <div style={{ padding:`0 ${T.px}px` }}>
       <div style={{
-        background:T.bgCard,
-        borderRadius:T.r20,
-        border:`1px solid ${T.border}`,
-        boxShadow:T.card,
-        padding:"16px 18px",
-        display:"flex", alignItems:"center", gap:14,
+        background:"linear-gradient(135deg,rgba(255,193,7,0.10),rgba(255,165,0,0.07))",
+        borderRadius:T.r16,
+        border:"1.5px solid rgba(255,193,7,0.28)",
+        padding:"13px 16px",
+        display:"flex", alignItems:"center", gap:12,
       }}>
-        {/* Münz-Icon */}
+        {/* Badge-Icon */}
         <div style={{
-          width:44, height:44, borderRadius:T.r12, flexShrink:0,
-          background:"linear-gradient(135deg,rgba(255,193,7,0.15),rgba(255,193,7,0.08))",
-          border:"1.5px solid rgba(255,193,7,0.25)",
+          width:36, height:36, borderRadius:T.r12, flexShrink:0,
+          background:"linear-gradient(135deg,rgba(255,193,7,0.18),rgba(255,193,7,0.08))",
+          border:"1.5px solid rgba(255,193,7,0.30)",
           display:"flex", alignItems:"center", justifyContent:"center",
-          fontSize:22,
+          fontSize:18,
         }}>
           🏅
         </div>
 
         {/* Text */}
         <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ fontSize:14, fontWeight:800, color:T.ink, marginBottom:2 }}>
-            Ambassador werden
+          <div style={{ fontSize:13, fontWeight:800, color:T.ink, marginBottom:1 }}>
+            HUI Ambassador
           </div>
-          <div style={{ fontSize:12, color:T.inkSoft, lineHeight:1.45 }}>
-            Teile HUI mit anderen und unterstütze das Wachstum der Gemeinschaft.
+          <div style={{ fontSize:11.5, color:T.inkSoft, lineHeight:1.4 }}>
+            Aktiv · Empfiehlst HUI weiter
           </div>
-          {isPending && (
-            <div style={{
-              marginTop:6, fontSize:11.5, fontWeight:600,
-              color:"#B8860B",
-            }}>
-              ⏳ Bewerbung wird geprüft
-            </div>
-          )}
         </div>
 
-        {/* Button */}
-        {!isPending && (
-          <button
-            onClick={onApply}
-            className="mbp-press"
-            style={{
-              flexShrink:0,
-              padding:"10px 16px", borderRadius:T.r99,
-              background:`linear-gradient(135deg,${T.teal},#0DBBAF)`,
-              border:"none", color:"white",
-              fontSize:12.5, fontWeight:700,
-              cursor:"pointer", touchAction:"manipulation",
-              fontFamily:"inherit",
-              whiteSpace:"nowrap",
-              boxShadow:T.glowTeal,
-            }}
-          >
-            Jetzt anmelden ›
-          </button>
-        )}
+        {/* Öffnen-Button */}
+        <button
+          onClick={onPress}
+          className="mbp-press"
+          style={{
+            flexShrink:0,
+            padding:"8px 14px", borderRadius:T.r99,
+            background:"rgba(255,193,7,0.18)",
+            border:"1.5px solid rgba(255,193,7,0.35)",
+            color:"#9A7000",
+            fontSize:12, fontWeight:700,
+            cursor:"pointer", touchAction:"manipulation",
+            fontFamily:"inherit",
+            whiteSpace:"nowrap",
+          }}
+        >
+          Mein Bereich ›
+        </button>
       </div>
     </div>
   );
@@ -1743,7 +1886,8 @@ function MeinBereichMenu({
   onProfileUpdate = () => {},
 }) {
   const { switchTab } = useHome();
-  const [activeDrawer, setActiveDrawer] = useState(null); // talente|werke|erlebnisse|ambassador|empfehlungen|impact|finanzen
+  const [activeDrawer, setActiveDrawer] = useState(null); // talente|werke|erlebnisse|momente|ambassador|empfehlungen|impact|finanzen
+  const [showMomentSheet, setShowMomentSheet] = useState(false);
   const [impactDetail, setImpactDetail] = useState(null); // stimmen|projekte
   const [financeDetail, setFinanceDetail] = useState(null); // ein_aus|verkaeufe|buchungen|statistiken
   const [activeTab, setActiveTab] = useState("erlebnisse"); // erlebnisse | impact
@@ -1792,7 +1936,7 @@ function MeinBereichMenu({
           {isTalent && (
             <MeinBereichTile icon={<HUIErlebnisIcon size={22}/>} label="Erlebnisse & Projekte" onPress={() => setActiveDrawer("erlebnisse")} />
           )}
-          <MeinBereichTile icon={<HUIAmbassadorIcon size={22}/>} label="Ambassador-Bereich" onPress={() => setActiveDrawer("ambassador")} />
+          <MeinBereichTile icon={<HUIFotoIcon size={22}/>} label="Meine Momente" onPress={() => setActiveDrawer("momente")} />
           <MeinBereichTile icon={<HUIEmpfehlungIcon size={22}/>} label="Meine Empfehlungen" onPress={() => setActiveDrawer("empfehlungen")} />
           <MeinBereichTile icon={<HUIImpactIcon size={22}/>} label="Impact & Stimmen" onPress={() => setActiveDrawer("impact")} />
           <MeinBereichTile icon={<HUIFinanzIcon size={22}/>} label="Finanzabteilung" onPress={() => setActiveDrawer("finanzen")} />
@@ -1864,6 +2008,27 @@ function MeinBereichMenu({
                   </React.Suspense>
           )}
         </MeinBereichDrawer>
+      )}
+
+      {/* ── Meine Momente ───────────────────────────────────── */}
+      {activeDrawer === "momente" && (
+        <MeinBereichDrawer title="Meine Momente" icon={<HUIFotoIcon size={18}/>} onClose={close} footer={false}>
+          <MeinMomenteDrawerContent
+            profile={profile}
+            onOpenMomentSheet={() => setShowMomentSheet(true)}
+          />
+        </MeinBereichDrawer>
+      )}
+
+      {/* HuiMomentSheet — Portal, via showMomentSheet */}
+      {showMomentSheet && (
+        <React.Suspense fallback={null}>
+          <HuiMomentSheet
+            visible={showMomentSheet}
+            onClose={() => setShowMomentSheet(false)}
+            visibilityScope="public"
+          />
+        </React.Suspense>
       )}
 
       {/* ── Ambassador-Bereich ───────────────────────────────── */}
