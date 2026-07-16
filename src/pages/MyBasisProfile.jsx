@@ -887,7 +887,8 @@ export default function MyBasisProfile({ onClose, profileId }) {
               onOpenResonanz={() => setShowResonanz(true)}
               onOpenMomentSheet={() => {
                 close(); // Drawer zuerst schließen
-                setTimeout(() => setShowMomentSheet(true), 80); // dann Sheet öffnen
+                // openMomentSheet: nutzt Parent-Prop (MyBasisProfile) oder internen State
+                setTimeout(() => openMomentSheet(), 80);
               }}
               onProfileUpdate={(upd) => {
                 setAuthProfile && setAuthProfile(p => ({ ...p, ...upd }));
@@ -970,7 +971,8 @@ export default function MyBasisProfile({ onClose, profileId }) {
               onOpenResonanz={() => setShowResonanz(true)}
               onOpenMomentSheet={() => {
                 close(); // Drawer zuerst schließen
-                setTimeout(() => setShowMomentSheet(true), 80); // dann Sheet öffnen
+                // openMomentSheet: nutzt Parent-Prop (MyBasisProfile) oder internen State
+                setTimeout(() => openMomentSheet(), 80);
               }}
               onProfileUpdate={(upd) => {
                 setAuthProfile && setAuthProfile(p => ({ ...p, ...upd }));
@@ -1022,9 +1024,24 @@ export default function MyBasisProfile({ onClose, profileId }) {
           Profil) gleichzeitig greift -- keine Duplikat-Loesung pro Seite
           mehr noetig. */}
 
-      {/* MEINE MOMENTE SHEET — createPortal direkt zu body, zIndex 11000 (über Drawer 10500) */}
+      {/* MEINE MOMENTE SHEET — createPortal direkt zu body, zIndex 11000 (über Drawer 10500)
+          Suspense INNERHALB des Portals — nicht darum (sonst rendert Portal nicht) */}
       {showMomentSheet && createPortal(
-        <React.Suspense fallback={null}>
+        <React.Suspense fallback={
+          <div style={{
+            position:"fixed", inset:0, zIndex:11000,
+            background:"rgba(26,53,48,0.55)",
+            display:"flex", alignItems:"flex-end",
+          }}>
+            <div style={{
+              width:"100%", background:"#FCFDFC", borderRadius:"24px 24px 0 0",
+              padding:"40px 20px", textAlign:"center",
+              color:"rgba(26,53,48,0.45)", fontSize:13,
+            }}>
+              Lädt…
+            </div>
+          </div>
+        }>
           <HuiMomentSheet
             visible={showMomentSheet}
             onClose={() => setShowMomentSheet(false)}
@@ -1915,11 +1932,15 @@ function MeinBereichMenu({
   onWerkWizard, onDeleteWerk,
   onErlebnisWizard, onDeleteErlebnis,
   onOpenResonanz = () => {},
+  onOpenMomentSheet: onOpenMomentSheetProp = null,
   onProfileUpdate = () => {},
 }) {
   const { switchTab } = useHome();
   const [activeDrawer, setActiveDrawer] = useState(null); // talente|werke|erlebnisse|momente|ambassador|empfehlungen|impact|finanzen
+  // showMomentSheet: wenn Parent eine onOpenMomentSheetProp übergibt, 
+  // wird der interne State nicht gebraucht — Prop hat Vorrang
   const [showMomentSheet, setShowMomentSheet] = useState(false);
+  const openMomentSheet = onOpenMomentSheetProp ?? (() => setShowMomentSheet(true));
   const [impactDetail, setImpactDetail] = useState(null); // stimmen|projekte
   const [financeDetail, setFinanceDetail] = useState(null); // ein_aus|verkaeufe|buchungen|statistiken
   const [activeTab, setActiveTab] = useState("erlebnisse"); // erlebnisse | impact
@@ -2055,15 +2076,31 @@ function MeinBereichMenu({
         </MeinBereichDrawer>
       )}
 
-      {/* HuiMomentSheet — Portal, via showMomentSheet */}
-      {showMomentSheet && (
-        <React.Suspense fallback={null}>
+      {/* HuiMomentSheet — Portal (internen State, nur wenn kein Parent-Prop)
+          Suspense INNERHALB des Portals — createPortal zu document.body */}
+      {showMomentSheet && createPortal(
+        <React.Suspense fallback={
+          <div style={{
+            position:"fixed", inset:0, zIndex:11000,
+            background:"rgba(26,53,48,0.55)",
+            display:"flex", alignItems:"flex-end",
+          }}>
+            <div style={{
+              width:"100%", background:"#FCFDFC", borderRadius:"24px 24px 0 0",
+              padding:"40px 20px", textAlign:"center",
+              color:"rgba(26,53,48,0.45)", fontSize:13,
+            }}>
+              Lädt…
+            </div>
+          </div>
+        }>
           <HuiMomentSheet
             visible={showMomentSheet}
             onClose={() => setShowMomentSheet(false)}
             visibilityScope="public"
           />
-        </React.Suspense>
+        </React.Suspense>,
+        document.body
       )}
 
       {/* ── Ambassador-Bereich ───────────────────────────────── */}
