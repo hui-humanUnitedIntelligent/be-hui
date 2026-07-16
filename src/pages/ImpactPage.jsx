@@ -168,9 +168,9 @@ function useTransparenz() {
       try {
         const now30 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
         const [appRes, vRes] = await Promise.allSettled([
-          // SSOT: impact_applications (identisch mit SADB-Quelle)
+          // SSOT: impact_applications mit submitted_at für korrekte "Eingereicht"-Zählung
           supabase.from("impact_applications")
-            .select("id,status,is_completed,funding_goal,current_amount_eur,created_at"),
+            .select("id,status,is_completed,funding_goal,current_amount_eur,created_at,submitted_at"),
           supabase.from("impact_votes")
             .select("id,user_id", { count:"exact" }),
         ]);
@@ -179,21 +179,29 @@ function useTransparenz() {
         const vdata = vRes.status   === "fulfilled" ? vRes.value : { count:0, data:[] };
         const unique = new Set((vdata.data || []).map(v => v.user_id)).size;
 
-        // Finanziert = is_completed ODER current_amount_eur >= funding_goal (wie SADB)
-        const funded = apps.filter(p =>
-          p.is_completed || (safeNum(p.current_amount_eur) >= safeNum(p.funding_goal) && safeNum(p.funding_goal) > 0)
-        );
+        // Finanziert = is_completed=true (via SADB gesetzt oder Trigger)
+        const funded = apps.filter(p => p.is_completed === true);
+
+        // In Umsetzung = alle finanzierten Projekte (is_completed=true)
+        // Logik: Finanziert → startet Umsetzung (+1 pro finanziertem Projekt)
+        const umsetzung = funded.length;
+
         if (!dead) setS({
           projekte:         funded.length,
           eur:              0,
           stimmen:          vdata.count || 0,
           menschen:         unique,
-          // Timeline-Counts — direkt aus impact_applications (SSOT = SADB)
-          eingereicht:      apps.filter(p => p.status === "submitted" && p.created_at >= now30).length,
-          pruefung:         apps.filter(p => ["submitted","pending"].includes(p.status)).length,
+          // Timeline-Counts — SSOT = impact_applications, identisch mit SADB
+          // "Eingereicht": submitted_at gesetzt in letzten 30 Tagen (unabhängig vom Status)
+          eingereicht:      apps.filter(p => p.submitted_at && p.submitted_at >= now30).length,
+          // "In Prüfung": status=pending (warten auf SADB-Entscheidung)
+          pruefung:         apps.filter(p => p.status === "pending").length,
+          // "Nominiert": status=approved AND NOT is_completed (aktiv im Pool)
           nominiert:        apps.filter(p => p.status === "approved" && !p.is_completed).length,
+          // "Finanziert": is_completed=true — Realtime live sobald SADB markiert
           finanziert_count: funded.length,
-          umsetzung:        apps.filter(p => p.status === "in_progress").length,
+          // "In Umsetzung": = Finanziert-Count (jedes finanzierte Projekt = in Umsetzung)
+          umsetzung,
           loading: false,
         });
       } catch (e) {
@@ -2379,7 +2387,7 @@ function ImpactTimeline({ transp }) {
       icon: "🌱",
       count: transp.nominiert,
       label: "Nominiert",
-      sub: "Diesen Monat",
+      sub: "Aktiv im Pool",
       color: T.teal,
     },
     {
@@ -2393,7 +2401,7 @@ function ImpactTimeline({ transp }) {
       icon: "🚀",
       count: transp.umsetzung,
       label: "In Umsetzung",
-      sub: "Aktuell",
+      sub: "Davon finanziert",
       color: "#7264D6",
     },
   ];
