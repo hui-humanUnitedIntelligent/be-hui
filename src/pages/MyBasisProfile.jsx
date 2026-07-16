@@ -885,7 +885,10 @@ export default function MyBasisProfile({ onClose, profileId }) {
               onErlebnisWizard={(exp) => { setEditingExp(exp || null); setShowExpWizard(true); }}
               onDeleteErlebnis={(id) => { setLocalExperiences(null); reload(); }}
               onOpenResonanz={() => setShowResonanz(true)}
-              onOpenMomentSheet={() => setShowMomentSheet(true)}
+              onOpenMomentSheet={() => {
+                close(); // Drawer zuerst schließen
+                setTimeout(() => setShowMomentSheet(true), 80); // dann Sheet öffnen
+              }}
               onProfileUpdate={(upd) => {
                 setAuthProfile && setAuthProfile(p => ({ ...p, ...upd }));
                 refreshProfile?.().catch(() => {});
@@ -965,7 +968,10 @@ export default function MyBasisProfile({ onClose, profileId }) {
               onErlebnisWizard={(exp) => { setEditingExp(exp || null); setShowExpWizard(true); }}
               onDeleteErlebnis={(id) => { setLocalExperiences(null); reload(); }}
               onOpenResonanz={() => setShowResonanz(true)}
-              onOpenMomentSheet={() => setShowMomentSheet(true)}
+              onOpenMomentSheet={() => {
+                close(); // Drawer zuerst schließen
+                setTimeout(() => setShowMomentSheet(true), 80); // dann Sheet öffnen
+              }}
               onProfileUpdate={(upd) => {
                 setAuthProfile && setAuthProfile(p => ({ ...p, ...upd }));
                 refreshProfile?.().catch(() => {});
@@ -2038,7 +2044,10 @@ function MeinBereichMenu({
         <MeinBereichDrawer title="Meine Momente" icon={<HUIFotoIcon size={18}/>} onClose={close} footer={false}>
           <MeinMomenteDrawerContent
             profile={profile}
-            onOpenMomentSheet={() => setShowMomentSheet(true)}
+            onOpenMomentSheet={() => {
+              close();
+              setTimeout(() => setShowMomentSheet(true), 80);
+            }}
           />
         </MeinBereichDrawer>
       )}
