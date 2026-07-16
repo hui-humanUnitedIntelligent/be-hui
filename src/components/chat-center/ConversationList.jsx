@@ -82,7 +82,7 @@ function ImpactCard() {
           Gemeinsam Wirkung schaffen
         </div>
         <div style={{ fontSize:13, color:C.muted, lineHeight:1.6, marginBottom:14 }}>
-          Jedes Gespr\u00e4ch kann der Anfang von etwas Gro\u00dfem sein.
+          Jedes Gespräch kann der Anfang von etwas Großem sein.
         </div>
         <button onClick={() => onDiscover?.()} style={{
           padding:"9px 18px", borderRadius:99,
