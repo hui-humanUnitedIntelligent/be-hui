@@ -108,16 +108,17 @@ export default function ConversationList({ chats, loading, onOpen, onDiscover, c
   // Nur echte Daten — kein Mock-Fallback
   // Suchfilter: display_name, name, username, title (case-insensitive)
   const q = (search || "").trim().toLowerCase();
+  // Geschlossene Chats (state==="closed") immer herausfiltern
+  const openChats = (chats || []).filter(c => c?.id && c.state !== "closed");
   const filteredChats = q
-    ? (chats || []).filter(c => {
-        if (!c?.id) return false;
+    ? openChats.filter(c => {
         const hay = [
           c.name, c.title, c.display_name, c.username,
           c.other_profile?.display_name, c.other_profile?.username,
         ].filter(Boolean).join(" ").toLowerCase();
         return hay.includes(q);
       })
-    : (chats || []);
+    : openChats;
   const activeConvs  = filteredChats.filter(c => c?.id && c.chat_type !== "booking");
   const bookingConvs = filteredChats.filter(c => c?.id && c.chat_type === "booking");
 

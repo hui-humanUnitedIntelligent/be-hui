@@ -8,7 +8,7 @@ import { formatPresence } from "../../lib/usePresence.js";
 
 const C = { teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.55)" };
 
-export default function ChatHeader({ conv, onBack, onOpenProfile }) {
+export default function ChatHeader({ conv, onBack, onOpenProfile, onCloseChat }) {
   const name     = conv?.name   || "Gespräch";
   const talent   = conv?.talent || conv?.type || "Kreative:r";
   const mood     = conv?.mood   || "Gerade kreativ im Studio";
@@ -146,7 +146,7 @@ export default function ChatHeader({ conv, onBack, onOpenProfile }) {
               }}
             >🗓 Termin anfragen</button>
             <button
-              onClick={() => setMenuOpen(false)}
+              onClick={() => { setMenuOpen(false); onCloseChat?.(); }}
               style={{
                 width:"100%", padding:"13px 16px", background:"none", border:"none",
                 textAlign:"left", fontSize:14, color:"rgba(220,60,60,0.8)", cursor:"pointer",

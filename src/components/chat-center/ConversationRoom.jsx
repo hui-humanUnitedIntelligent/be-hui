@@ -12,7 +12,7 @@ const CSS = `
   .hui-scroll::-webkit-scrollbar{display:none;}
 `;
 
-export default function ConversationRoom({ conv, onBack, onOpenProfile }) {
+export default function ConversationRoom({ conv, onBack, onOpenProfile, onCloseChat }) {
   const { user } = useAuth();
 
   const rawId      = conv?.id ?? null;
@@ -44,7 +44,7 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile }) {
       background: "#F2F4F8",
     }}>
       <style>{CSS}</style>
-      <ChatHeader conv={conv} onBack={onBack} onOpenProfile={onOpenProfile}/>
+      <ChatHeader conv={conv} onBack={onBack} onOpenProfile={onOpenProfile} onCloseChat={onCloseChat}/>
 
       {showEmpty
         ? (

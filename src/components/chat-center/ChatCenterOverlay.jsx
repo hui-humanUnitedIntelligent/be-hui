@@ -9,7 +9,7 @@ import ConversationList from "./ConversationList.jsx";
 import ConversationRoom from "./ConversationRoom.jsx";
 import { useProfileLauncher } from "../home/profile/ProfileLauncher.jsx";
 import { useAuth } from "../../lib/AuthContext.jsx";
-import { useChatList, findOrCreateChat } from "../../lib/chatContext.js";
+import { useChatList, findOrCreateChat, closeChat } from "../../lib/chatContext.js";
 import { ProfileService } from '../../services/db';
 import { supabase } from "../../lib/supabaseClient.js";
 import PeopleSearch from "../discovery/PeopleSearch.jsx";
@@ -233,7 +233,13 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
     })();
     return () => { cancelled = true; };
   }, [user?.id]);
-  const { chats, loading } = useChatList("cco");
+  const { chats: rawChats, loading } = useChatList("cco");
+  // Lokal geschlossene Chats (bis nächstem Reload)
+  const [closedChatIds, setClosedChatIds] = React.useState(new Set());
+  const chats = React.useMemo(
+    () => (rawChats || []).filter(ch => !closedChatIds.has(ch?.id)),
+    [rawChats, closedChatIds]
+  );
 
 
 
@@ -346,6 +352,17 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
             avatar_url:   conv?.avatar_url,
             talent:       conv?.talent,
           });
+        }}
+        onCloseChat={async () => {
+          if (!activeConv?.id || !user?.id) {
+            // kein DB-Chat vorhanden (z.B. neues Gespräch noch ohne ID) → einfach zurück
+            setActiveConv(null);
+            return;
+          }
+          await closeChat(activeConv.id, user.id);
+          // UI sofort aktualisieren: Chat aus der lokalen Sichtliste entfernen
+          setClosedChatIds(prev => new Set([...prev, activeConv.id]));
+          setActiveConv(null);
         }}
       />
     );

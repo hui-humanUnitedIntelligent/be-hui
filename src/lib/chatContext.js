@@ -678,3 +678,26 @@ export async function findOrCreateChat({
 
   return created ?? null;
 }
+
+// ────────────────────────────────────────────────────────────────
+// closeChat — Chat als geschlossen markieren (state = "closed")
+// Setzt closed_at auf jetzt; betrifft nur diesen User / diesen Chat.
+// Verwendet vorhandene DB-Felder: state + closed_at.
+// ────────────────────────────────────────────────────────────────
+export async function closeChat(chatId, userId) {
+  if (!chatId || !userId) return { error: "missing_args" };
+  try {
+    const { error } = await supabase
+      .from("chats")
+      .update({
+        state:     "closed",
+        closed_at: new Date().toISOString(),
+      })
+      .eq("id", chatId)
+      .contains("participant_ids", [userId]); // Sicherheitscheck: nur eigene Chats
+    return { error: error?.message ?? null };
+  } catch (e) {
+    return { error: e?.message ?? "unknown" };
+  }
+}
+
