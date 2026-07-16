@@ -913,11 +913,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
               onErlebnisWizard={(exp) => { setEditingExp(exp || null); setShowExpWizard(true); }}
               onDeleteErlebnis={(id) => { setLocalExperiences(null); reload(); }}
               onOpenResonanz={() => setShowResonanz(true)}
-              onOpenMomentSheet={() => {
-                close(); // Drawer zuerst schließen
-                // openMomentSheet: nutzt Parent-Prop (MyBasisProfile) oder internen State
-                setTimeout(() => openMomentSheet(), 80);
-              }}
+              onOpenMomentSheet={() => setShowMomentSheet(true)}
               onProfileUpdate={(upd) => {
                 setAuthProfile && setAuthProfile(p => ({ ...p, ...upd }));
                 refreshProfile?.().catch(() => {});
@@ -997,11 +993,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
               onErlebnisWizard={(exp) => { setEditingExp(exp || null); setShowExpWizard(true); }}
               onDeleteErlebnis={(id) => { setLocalExperiences(null); reload(); }}
               onOpenResonanz={() => setShowResonanz(true)}
-              onOpenMomentSheet={() => {
-                close(); // Drawer zuerst schließen
-                // openMomentSheet: nutzt Parent-Prop (MyBasisProfile) oder internen State
-                setTimeout(() => openMomentSheet(), 80);
-              }}
+              onOpenMomentSheet={() => setShowMomentSheet(true)}
               onProfileUpdate={(upd) => {
                 setAuthProfile && setAuthProfile(p => ({ ...p, ...upd }));
                 refreshProfile?.().catch(() => {});
@@ -1968,10 +1960,11 @@ function MeinBereichMenu({
 }) {
   const { switchTab } = useHome();
   const [activeDrawer, setActiveDrawer] = useState(null); // talente|werke|erlebnisse|momente|ambassador|empfehlungen|impact|finanzen
-  // showMomentSheet: wenn Parent eine onOpenMomentSheetProp übergibt, 
-  // wird der interne State nicht gebraucht — Prop hat Vorrang
-  const [showMomentSheet, setShowMomentSheet] = useState(false);
-  const openMomentSheet = onOpenMomentSheetProp ?? (() => setShowMomentSheet(true));
+  // openMomentSheet: delegiert immer an Parent (onOpenMomentSheetProp)
+  // Falls kein Prop: fallback auf leere Funktion (sollte nie passieren)
+  const openMomentSheet = onOpenMomentSheetProp ?? (() => {
+    console.warn("[MeinBereichMenu] openMomentSheet aufgerufen ohne Parent-Prop");
+  });
   const [impactDetail, setImpactDetail] = useState(null); // stimmen|projekte
   const [financeDetail, setFinanceDetail] = useState(null); // ein_aus|verkaeufe|buchungen|statistiken
   const [activeTab, setActiveTab] = useState("erlebnisse"); // erlebnisse | impact
@@ -2101,38 +2094,17 @@ function MeinBereichMenu({
             profile={profile}
             onOpenMomentSheet={() => {
               close();
-              setTimeout(() => setShowMomentSheet(true), 80);
+              // openMomentSheet: nutzt onOpenMomentSheetProp (Parent) wenn vorhanden,
+              // sonst internen showMomentSheet State
+              setTimeout(() => openMomentSheet(), 80);
             }}
           />
         </MeinBereichDrawer>
       )}
 
-      {/* HuiMomentSheet — Portal (internen State, nur wenn kein Parent-Prop)
-          Suspense INNERHALB des Portals — createPortal zu document.body */}
-      {showMomentSheet && createPortal(
-        <React.Suspense fallback={
-          <div style={{
-            position:"fixed", inset:0, zIndex:11000,
-            background:"rgba(26,53,48,0.55)",
-            display:"flex", alignItems:"flex-end",
-          }}>
-            <div style={{
-              width:"100%", background:"#FCFDFC", borderRadius:"24px 24px 0 0",
-              padding:"40px 20px", textAlign:"center",
-              color:"rgba(26,53,48,0.45)", fontSize:13,
-            }}>
-              Lädt…
-            </div>
-          </div>
-        }>
-          <HuiMomentSheet
-            visible={showMomentSheet}
-            onClose={() => setShowMomentSheet(false)}
-            visibilityScope="public"
-          />
-        </React.Suspense>,
-        document.body
-      )}
+      {/* HuiMomentSheet — wird AUSSCHLIESSLICH über MyBasisProfile-Portal geöffnet
+          (onOpenMomentSheetProp = MyBasisProfile.setShowMomentSheet).
+          Kein eigenes internes Portal → kein redundanter lazy-Load-Hänger */}
 
       {/* ── Ambassador-Bereich ───────────────────────────────── */}
       {activeDrawer === "ambassador" && (
