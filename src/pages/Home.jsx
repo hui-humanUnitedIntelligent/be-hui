@@ -103,12 +103,6 @@ function HomeInner() {
   // ── feed-refresh Event → Feed neu laden ──────────────────────────
   const feedRefreshRef = React.useRef(null);   // wird von UnifiedFeed befüllt
 
-  // ── hui:navigate:tab Event → Tab wechseln (aus Feed-Karten, Modals etc.) ──
-  React.useEffect(() => {
-    const handler = (e) => { if (e.detail?.tab) handleTab(e.detail.tab); };
-    window.addEventListener("hui:navigate:tab", handler);
-    return () => window.removeEventListener("hui:navigate:tab", handler);
-  }, [handleTab]);
   React.useEffect(() => {
     const handler = () => {
       feedRefreshRef.current?.();
@@ -182,6 +176,14 @@ function HomeInner() {
   } = useHome();
 
   const { close: closeContentPreview } = useContentPreview();
+
+  // ── hui:navigate:tab Event → Tab wechseln (aus Feed-Karten, ContentPreviewSheet etc.) ──
+  // MUSS nach useHome() stehen, da handleTab erst dort definiert wird
+  React.useEffect(() => {
+    const handler = (e) => { if (e.detail?.tab) handleTab(e.detail.tab); };
+    window.addEventListener("hui:navigate:tab", handler);
+    return () => window.removeEventListener("hui:navigate:tab", handler);
+  }, [handleTab]);
 
   // ── Unread Message Count — live aus chatContext ────────
   const { unreadTotal, markChatRead } = useChatList("home");
