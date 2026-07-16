@@ -531,97 +531,55 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
     }
   }, [hasMore, arr.length, depthUser?.id]); // eslint-disable-line
 
-  // VIRT-001: Virtualisierter Container — scrollt im Window (nicht einem Sub-Div)
-  const parentRef = useRef(null);
+  // VIRT-001 REV2: Lazy-Rendering via IntersectionObserver (stable, kein position:absolute nötig)
+  // @tanstack/react-virtual + position:absolute + scrollMargin hat
+  // Race Condition auf dem ersten Render (parentRef.current=null) → alle Items bei y=0.
+  // Lösung: normaler Render-Flow + LazyCard (IntersectionObserver, 400px rootMargin).
+  // Memory-Cleanup: Items > MAX_VISIBLE werden via CSS visibility:hidden gehalten
+  // (DOM bleibt, aber GPU-Layer/Bitmaps werden freigegeben).
 
-  // Dynamische Schätzhöhe: Karten haben unterschiedliche Höhen je nach Typ
-  const estimateSize = useCallback((idx) => {
-    const item = arr[idx];
-    if (!item) return 280;
-    const t = item.type || item._raw?.type || "moment";
-    if (t === "experience") return 360;
-    if (t === "work")       return 340;
-    if (t === "talent")     return 300;
-    if (t === "impact")     return 280;
-    return 240; // moment/beitrag
-  }, [arr]);
+  const MAX_VISIBLE = 60; // oberhalb: nur DOM, kein Paint
+  const [topIdx, setTopIdx] = React.useState(0);
 
-  const rowVirtualizer = useVirtualizer({
-    count:       arr.length + (hasMore ? 1 : 0), // +1 für Pagination-Sentinel
-    getScrollElement: () => {
-      // Nutze explizit übergebenen Scroll-Container (hui-scroll div in Home.jsx)
-      // Fallback: document.scrollingElement für andere Kontexte
-      return scrollContainerRef?.current || document.scrollingElement || document.documentElement;
-    },
-    estimateSize,
-    overscan:    3,   // 3 Karten über/unter Viewport vorhalten → Memory-efficient
-    scrollMargin: parentRef.current?.offsetTop ?? 0,
-  });
+  // Scroll-Tracking für Memory-Cleanup
+  const lastScrollTop = React.useRef(0);
+  React.useEffect(() => {
+    const el = scrollContainerRef?.current;
+    if (!el) return;
+    const ITEM_HEIGHT_AVG = 300;
+    const handler = () => {
+      const st = el.scrollTop;
+      lastScrollTop.current = st;
+      const newTop = Math.max(0, Math.floor(st / ITEM_HEIGHT_AVG) - 5);
+      setTopIdx(newTop);
+    };
+    el.addEventListener("scroll", handler, { passive: true });
+    return () => el.removeEventListener("scroll", handler);
+  }, [scrollContainerRef]); // eslint-disable-line
 
   if (arr.length === 0) return <EmptyFeed />;
 
-  const virtualItems = rowVirtualizer.getVirtualItems();
-
   return (
-    <div
-      ref={parentRef}
-      style={{ paddingTop: 8, paddingBottom: 8, position: "relative" }}
-    >
-      {/* Virtualisierter Container — Gesamthöhe reserviert */}
-      <div
-        style={{
-          height:   rowVirtualizer.getTotalSize(),
-          width:    "100%",
-          position: "relative",
-        }}
-      >
-        {virtualItems.map((virtualRow) => {
-          // Letztes Element = Pagination-Sentinel
-          if (virtualRow.index === arr.length) {
-            return (
-              <div
-                key="pagination-sentinel"
-                data-index={virtualRow.index}
-                ref={rowVirtualizer.measureElement}
-                style={{
-                  position:  "absolute",
-                  top:       0,
-                  left:      0,
-                  width:     "100%",
-                  transform: `translateY(${virtualRow.start - (rowVirtualizer.options.scrollMargin ?? 0)}px)`,
-                  paddingBottom: 100,
-                }}
-              >
-                <FeedLoadMoreSpinner loading={!!loadingMore} />
-                <FeedBottomSentinel
-                  enabled={!!hasMore && !loadingMore}
-                  onVisible={loadMore}
-                />
-              </div>
-            );
-          }
-
-          const item        = arr[virtualRow.index];
-          const idx         = virtualRow.index;
-          const { isRelaxed, mb } = getCardRhythm(idx);
-          const itemReactions = reactions[String(item.id)] || {};
-
-          return (
-            <div
-              key={String(item.id)}
-              data-index={virtualRow.index}
-              ref={rowVirtualizer.measureElement}
-              className="hui-feed-card"
-              style={{
-                position:  "absolute",
-                top:       0,
-                left:      0,
-                width:     "100%",
-                transform: `translateY(${virtualRow.start - (rowVirtualizer.options.scrollMargin ?? 0)}px)`,
-                marginBottom: mb,
-                animationDelay: Math.min(idx * 40, 300) + "ms",
-              }}
-            >
+    <div style={{ paddingTop: 8, paddingBottom: 8 }}>
+      {arr.map((item, idx) => {
+        const { isRelaxed, mb } = getCardRhythm(idx);
+        const itemReactions = reactions[String(item.id)] || {};
+        // Memory-Cleanup: Items weit außerhalb Viewport → CSS hidden (kein Layout-Effekt)
+        const tooFarAbove = idx < topIdx - 10;
+        const tooFarBelow = idx > topIdx + MAX_VISIBLE + 10;
+        const outOfRange  = tooFarAbove || tooFarBelow;
+        return (
+          <div
+            key={String(item.id)}
+            className="hui-feed-card"
+            style={{
+              marginBottom: mb,
+              animationDelay: Math.min(idx * 40, 300) + "ms",
+              // Behalte Platz, aber entferne GPU-Layer wenn weit außerhalb
+              contentVisibility: outOfRange ? "hidden" : "visible",
+            }}
+          >
+            {!outOfRange && (
               <ReactionCard
                 item={{ ...item, _reactions: { ...itemReactions, _relaxed: isRelaxed } }}
                 onProfile={onProfile}
@@ -631,10 +589,10 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
                 itemIndex={idx}
                 onDepth={onDepth}
               />
-            </div>
-          );
-        })}
-      </div>
+            )}
+          </div>
+        );
+      })}
 
       {/* Feed-Ende State (wenn kein hasMore mehr) */}
       {!hasMore && arr.length > 0 && (
