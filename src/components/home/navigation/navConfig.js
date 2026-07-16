@@ -22,8 +22,8 @@ import { createNavItem } from "../../../lib/factories/createNavItem.js";
 import { filterValidPages } from "../../../lib/factories/createTabPage.js";
 
 export const NAV_ITEMS = filterValidPages([
-  createNavItem({ key: "discover",  label: "Entdecken" }),
-  createNavItem({ key: "feed",      label: "Home"      }),
+  createNavItem({ key: "feed",      label: "Entdecken" }),
+  createNavItem({ key: "discover",  label: "Home"      }),
   createNavItem({ key: "orb",       label: "Mein HUI",  isOrb: true }),  // Persönlicher HUI-Bereich
   createNavItem({ key: "impact",    label: "Impact"    }),
   createNavItem({ key: "creator",   label: "Profil"    }),       // Persönlicher Bereich (Profil, Werke, Buchungen, …)
