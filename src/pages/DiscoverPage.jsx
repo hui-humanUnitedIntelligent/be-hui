@@ -9,7 +9,7 @@ import {
   HUIWerkeIcon, HUIAnsichtIcon,
   HUIKalenderIcon, HUIPersonenIcon,
 } from '../design/icons/HuiSystemIcons.jsx';
-import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
 import { useNavigate }   from "react-router-dom";
 import { supabase }      from "../lib/supabaseClient.js";
 import { formatPresence } from "../lib/usePresence.js";
@@ -17,7 +17,13 @@ import { useAuthGate }    from "../components/auth/AuthGate.jsx";
 import TalentAnfrageFlow  from "../components/talents/TalentAnfrageFlow.jsx";
 import TalentBookingFlow  from "../components/talents/TalentBookingFlow.jsx";
 import { searchPlaces, distanceKm } from "../lib/geocoding.js";
-import { useRadiusFilter, radiusLabel } from "../hooks/useRadiusFilter.js"; // Umkreissuche-Vereinheitlichung 2026-07-06 -- globaler Radius statt eigenem State
+import { useRadiusFilter, radiusLabel } from "../hooks/useRadiusFilter.js";
+const WerkeAllModal = lazy(() => import("../components/discover/WerkeAllModal.jsx"));
+const TalenteAllModal = lazy(() => import("../components/discover/TalenteAllModal.jsx"));
+const ErlebnisseAllModal = lazy(() => import("../components/discover/ErlebnisseAllModal.jsx"));
+const MomenteAllModal = lazy(() => import("../components/discover/MomenteAllModal.jsx"));
+const ProjekteAllModal = lazy(() => import("../components/discover/ProjekteAllModal.jsx"));
+const OrteAllModal = lazy(() => import("../components/discover/OrteAllModal.jsx")); // Umkreissuche-Vereinheitlichung 2026-07-06 -- globaler Radius statt eigenem State
 import { HUIHeartIcon, HUIChatIcon } from "../design/icons/HuiInteractionIcons.jsx"; // ICON-SSOT 2026-07-08 -- ersetzt lokale Emoji-Badges (❤️/💬)
 import HuiLiveTicker from "../components/shared/HuiLiveTicker.jsx"; // LIVETICKER.1 2026-07-08 -- ersetzt LiveActivityBar (war Fake-Daten)
 import { useContentPreview } from "../context/ContentPreviewContext.jsx"; // OPEN.1 2026-07-08 -- geteilte Vorschau statt totem Tap / falschem Sprung
@@ -1499,7 +1505,7 @@ function OrteSection({ onMap, delay=0, view='cards' }) {
         title="Orte entdecken"
         sub="Besondere HUI-Räume, Parks & Begegnungsorte."
         action="Alle Orte"
-        onAction={onMap}
+        onAction={() => setShowOrteModal(true)}
         delay={delay}
       />
       {view === "cards" ? (
@@ -2072,11 +2078,19 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
     if (item) openPreview(item);
   }, [openPreview]);
 
-  // SectionHead "Alle ansehen →" → scroll zum nächsten Marker
+  // SectionHead "Alle ansehen →" → Modal öffnen
   const makeScrollHandler = useCallback((selector) => () => {
     const el = document.querySelector(selector);
     if (el) el.scrollIntoView({ behavior:"smooth", block:"start" });
   }, []);
+
+  // Modal-States (lazy — erst beim Öffnen initialisiert)
+  const [showWerkeModal,      setShowWerkeModal]      = useState(false);
+  const [showTalenteModal,    setShowTalenteModal]     = useState(false);
+  const [showErlebnisseModal, setShowErlebnisseModal]  = useState(false);
+  const [showMomenteModal,    setShowMomenteModal]     = useState(false);
+  const [showProjekteModal,   setShowProjekteModal]    = useState(false);
+  const [showOrteModal,       setShowOrteModal]        = useState(false);
 
   // ── Render ───────────────────────────────────────────────────
   return (
@@ -2113,7 +2127,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         delay={80}
         view={view}
         onPress={handleMomentPress}
-        onSectionAction={makeScrollHandler("[data-dp-momente]")}
+        onSectionAction={() => setShowMomenteModal(true)}
       />
 
       {/* ── 4b. Talente entdecken ── */}
@@ -2123,7 +2137,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         delay={90}
         view={view}
         onPress={handleTalentPress}
-        onSectionAction={makeScrollHandler("[data-dp-talente]")}
+        onSectionAction={() => setShowTalenteModal(true)}
         locQuery={talentLocQuery}
         onLocQueryChange={setTalentLocQuery}
         locSuggest={talentLocSuggest}
@@ -2144,7 +2158,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         delay={100}
         view={view}
         onPress={handleWerkPress}
-        onSectionAction={makeScrollHandler("[data-dp-werke]")}
+        onSectionAction={() => setShowWerkeModal(true)}
         locQuery={werkLocQuery}
         onLocQueryChange={setWerkLocQuery}
         locSuggest={werkLocSuggest}
@@ -2165,7 +2179,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         delay={120}
         view={view}
         onPress={handleErlebnisPress}
-        onSectionAction={makeScrollHandler("[data-dp-erlebnisse]")}
+        onSectionAction={() => setShowErlebnisseModal(true)}
         locQuery={erlebnisLocQuery}
         onLocQueryChange={setErlebnisLocQuery}
         locSuggest={erlebnisLocSuggest}
@@ -2186,7 +2200,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         delay={140}
         view={view}
         onPress={handleProjektPress}
-        onSectionAction={makeScrollHandler("[data-dp-projekte]")}
+        onSectionAction={() => setShowProjekteModal(true)}
       />
 
       {/* ── 8. Orte entdecken ── */}
@@ -2199,6 +2213,51 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
       {talentBooking && (
         <TalentBookingFlow talent={talentBooking} onClose={() => setTalentBooking(null)} />
       )}
+
+      {/* ── Alle-Ansehen-Modals (lazy, erst beim Öffnen geladen) ── */}
+      <Suspense fallback={null}>
+        <WerkeAllModal
+          isOpen={showWerkeModal}
+          onClose={() => setShowWerkeModal(false)}
+          onPressItem={(werk) => {
+            setShowWerkeModal(false);
+            openPreview({ id:werk.id, type:"werk", title:werk.title, cover:werk.cover_url, workId:werk.id });
+          }}
+        />
+        <TalenteAllModal
+          isOpen={showTalenteModal}
+          onClose={() => setShowTalenteModal(false)}
+          onPressTalent={(talent) => {
+            setShowTalenteModal(false);
+            openPreview({ id:talent.id, type:"talent", title:talent.title, talentId:talent.id });
+          }}
+        />
+        <ErlebnisseAllModal
+          isOpen={showErlebnisseModal}
+          onClose={() => setShowErlebnisseModal(false)}
+          onPressItem={(exp) => {
+            setShowErlebnisseModal(false);
+            openPreview({ id:exp.id, type:"erlebnis", title:exp.title, experienceId:exp.id });
+          }}
+        />
+        <MomenteAllModal
+          isOpen={showMomenteModal}
+          onClose={() => setShowMomenteModal(false)}
+          onPressItem={() => setShowMomenteModal(false)}
+        />
+        <ProjekteAllModal
+          isOpen={showProjekteModal}
+          onClose={() => setShowProjekteModal(false)}
+          onPressItem={(proj) => {
+            setShowProjekteModal(false);
+            openPreview({ id:proj.id, type:"projekt", title:proj.name, projectId:proj.id });
+          }}
+        />
+        <OrteAllModal
+          isOpen={showOrteModal}
+          onClose={() => setShowOrteModal(false)}
+        />
+      </Suspense>
     </div>
   );
 }
