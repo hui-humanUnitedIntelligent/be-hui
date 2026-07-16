@@ -41,31 +41,15 @@ import HuiLiveTicker    from "../components/shared/HuiLiveTicker.jsx"; // LIVETI
 const ImpactPage    = React.lazy(() => import('./ImpactPage.jsx'));
 // PHASE 18: FavoritesPage direkte import (Safari-safe)
 const FavoritesPage = React.lazy(() => import("./FavoritesPage.jsx"));
-// ── Orb-Flows: lazy → nur bei Tap auf Orb-Node geladen ─────────
-const TeilenFlow     = React.lazy(() => import("../components/teilen/TeilenFlow.jsx"));
-const WorkFlow       = React.lazy(() => import("../system/flows/work/WorkFlow.jsx"));
-const ExperienceFlow = React.lazy(() => import("../system/flows/experience/ExperienceFlow.jsx"));
-const ImpactFlow     = React.lazy(() => import("../system/flows/impact/ImpactFlow.jsx"));
-
 // NotificationCenter deaktiviert — Resonanzzentrum übernimmt (NotificationButton.jsx)
 const LiveMapPage         = React.lazy(() => import("./LiveMapPage.jsx"));
 const HuiMatchOverlay     = React.lazy(() => import("../components/HuiMatchOverlay.jsx"));
-// PHASE 18: HuiPlusSheet direkte import (Orb immer bereit)
-// OrbCompass replaces HuiPlusSheet — Begegnungs-Kompass
-import OrbCompass from "../components/OrbCompass.jsx";
 import MeinHUI    from "./MeinHUI.jsx";
 import { IX } from "../design/hui.interaction.js";
-import ContentTypeSelector from "../content/ContentTypeSelector.jsx";
-import InvitationFlow from "../content/invitation/InvitationFlow.jsx";
 import { useContentPreview } from "../context/ContentPreviewContext.jsx";
 const HuiMembershipFlow   = React.lazy(() => import("../components/HuiMembershipFlow.jsx"));
 const CreatorDashboard    = React.lazy(() => import("./CreatorDashboard.jsx"));
-const HuiCreateFlow       = React.lazy(() => import("../components/HuiCreateFlow.jsx"));
-// TalentOnboarding: direct import (kein lazy — verhindert Suspense-Spinner-Bug)
-const StoryComposer       = React.lazy(() => import("../components/StoryComposer.jsx"));
-// ExperienceCreator.jsx / WerkPublisher.jsx: Datei komplett entfernt (2026-07-08
-// Dead-Code-Audit) -- showExperienceCreator/showWerkPublisher sind Legacy-benannte
-// State-Flags, rendern aber schon seit laengerem ExperienceFlow/WorkFlow (s.u.).
+// Sprint 9 Phase 1: Create-Einstiege nur noch über MyBasisProfile (ProfileLauncher).
 
 const C = { cream: "#F9F7F4" };
 
@@ -154,16 +138,8 @@ function HomeInner() {
     showMatch,         setShowMatch,
     showMembership,    setShowMembership,
     showPlusSheet,     setShowPlusSheet,
-    showCreateFlow,    setShowCreateFlow,
     showConnect,       setShowConnect,
-    showTeilen,        setShowTeilen,
     showTalentFlow,    setShowTalentFlow,
-    showStoryComposer, setShowStoryComposer,
-    showWerkPublisher, setShowWerkPublisher,
-    showExperienceCreator, setShowExperienceCreator,
-    showImpactFlow,         setShowImpactFlow,
-    showContentSelector,    setShowContentSelector,
-    showInvitationFlow,     setShowInvitationFlow,
     activeStory,       setActiveStory,
     showCreatorDash,   setShowCreatorDash,
     showCreatorDashboard,
@@ -627,18 +603,6 @@ function HomeInner() {
         </SafeRender>
       )}
 
-      {/* ── Teilen Flow — STATIC IMPORT, ALWAYS IN DOM ── */}
-      {/* visible prop steuert Sichtbarkeit — KEIN lazy, KEIN SafeRender, KEIN conditional */}
-      <TeilenFlow
-        visible={showTeilen}
-        onClose={() => {
-          setShowTeilen(false);
-        }}
-        onPublished={(result) => {
-          setShowTeilen(false);
-        }}
-      />
-
       {/* ── HUI Resonanz Center ─────────────────────────────────── */}
       {showChat && SAFE_MODE.chatCenter && (
         <SafeRender flag="chatCenter" label="ChatCenterOverlay">
@@ -706,30 +670,6 @@ function HomeInner() {
           onNotif={closeMeinHuiCinematic}
           onSettings={closeMeinHuiCinematic}
         />
-        {/* TalentOnboarding: außerhalb Suspense (kein lazy mehr) */}
-        {showStoryComposer && SAFE_MODE.storyComposer && canCreate && (
-          <SafeRender flag="storyComposer" label="StoryComposer">
-            <StoryComposer
-              onClose={() => setShowStoryComposer(false)}
-              onPublished={() => setShowStoryComposer(false)}
-            />
-          </SafeRender>
-        )}
-        {showWerkPublisher && SAFE_MODE.werkFlow && canCreate && (
-          <SafeRender flag="werkFlow" label="WorkFlow">
-            <WorkFlow
-              onClose={() => setShowWerkPublisher(false)}
-              onPublished={() => setShowWerkPublisher(false)}
-            />
-          </SafeRender>
-        )}
-        {showExperienceCreator && SAFE_MODE.experienceFlow && canCreate && (
-          <SafeRender flag="experienceFlow" label="ExperienceFlow">
-            <ExperienceFlow
-              onClose={() => setShowExperienceCreator(false)}
-            />
-          </SafeRender>
-        )}
         {/* DEAKTIVIERT: NotificationCenter.jsx (altes System).
              Notification-Zugang läuft jetzt ausschliesslich über
              ResonanzzentrumPanel in NotificationButton.jsx.
@@ -766,48 +706,7 @@ function HomeInner() {
             />
           </React.Suspense>
         )}
-        {showCreateFlow && SAFE_MODE.createFlow && (
-          <SafeRender flag="createFlow" label="HuiCreateFlow">
-            <HuiCreateFlow onClose={() => setShowCreateFlow(false)}/>
-          </SafeRender>
-        )}
-        {showImpactFlow && SAFE_MODE.impactFlow && (
-          <SafeRender flag="impactFlow" label="ImpactFlow">
-            <ImpactFlow
-              onClose={() => setShowImpactFlow(false)}
-            />
-          </SafeRender>
-        )}
       </Suspense>
-
-      {/* Phase 4B: Content Type Selector — öffnet sich statt Orb für Mitglieder */}
-      {showContentSelector && isTalent && (
-        <ContentTypeSelector
-          visible={showContentSelector}
-          onClose={() => setShowContentSelector(false)}
-          onSelect={(type) => {
-            setShowContentSelector(false);
-            // Routing: type → richtiger Flow
-            if (type === "moment") {
-              setShowTeilen(true);
-            } else if (type === "experience") {
-              setShowExperienceCreator(true);
-            } else if (type === "work") {
-              setShowWerkPublisher(true);
-            } else if (type === "invitation") {
-              setShowInvitationFlow(true);
-            }
-          }}
-        />
-      )}
-
-      {/* Phase 4B: Einladung erstellen Flow */}
-      {showInvitationFlow && (
-        <InvitationFlow
-          visible={showInvitationFlow}
-          onClose={() => setShowInvitationFlow(false)}
-        />
-      )}
 
       {activeStory && SAFE_MODE.storyViewer && (
         <SafeRender flag="storyViewer" label="StoryViewer">

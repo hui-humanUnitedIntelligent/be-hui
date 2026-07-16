@@ -146,15 +146,11 @@ export function buildActions(shell) {
     // Overlays
     setShowPlusSheet,
     setShowMembership,
-    setShowCreateFlow,
     setShowConnect,
     setShowBookingFlow,      // COMMERCE-01
     setShowNotifs,
     setShowMap,
     setShowMatch,
-    setShowStoryComposer,
-    setShowImpactFlow,
-    setShowExperienceCreator,
     // Tabs
     switchTab,
     handleTab,
@@ -174,9 +170,6 @@ export function buildActions(shell) {
     setShowNotifs?.(false);
     setShowMap?.(false);
     setShowMatch?.(false);
-    setShowStoryComposer?.(false);
-    setShowImpactFlow?.(false);
-    setShowExperienceCreator?.(false);
     closeOrbWorld?.();
   }
 
@@ -302,9 +295,28 @@ export function buildActions(shell) {
       setShowBookingFlow?.({ experience: safeExp, creator: safeCr });
     },
 
+    // ── CREATOR TOOLS (Sprint 9: Create-Zentrale = MyBasisProfile) ─
+    [A.OPEN_STORY_COMPOSER]: () => {
+      logAction(A.OPEN_STORY_COMPOSER);
+      openOwnProfile?.();
+    },
+
+    [A.OPEN_IMPACT_FLOW]: () => {
+      logAction(A.OPEN_IMPACT_FLOW);
+      openOwnProfile?.();
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("hui:open-impact-propose"));
+      }
+    },
+
+    [A.OPEN_CREATE_FLOW]: (payload = {}) => {
+      logAction(A.OPEN_CREATE_FLOW, payload);
+      openOwnProfile?.();
+    },
+
     [A.CREATE_EXPERIENCE]: (payload = {}) => {
       logAction(A.CREATE_EXPERIENCE, payload);
-      setShowExperienceCreator?.(true);
+      openOwnProfile?.();
     },
 
     // ── IMPACT ────────────────────────────────────────────────────
@@ -342,9 +354,6 @@ export function buildActions(shell) {
       const { url, title, text } = payload;
       if (typeof navigator !== "undefined" && navigator.share) {
         navigator.share({ url, title, text }).catch(() => {});
-      } else {
-        // Fallback: open share overlay
-        setShowStoryComposer?.(true);
       }
     },
 
@@ -417,22 +426,6 @@ export function buildActions(shell) {
     [A.OPEN_COMMUNITY]: (payload = {}) => {
       logAction(A.OPEN_COMMUNITY, payload);
       switchTab?.("community");
-    },
-
-    // ── CREATOR TOOLS ─────────────────────────────────────────────
-    [A.OPEN_STORY_COMPOSER]: () => {
-      logAction(A.OPEN_STORY_COMPOSER);
-      setShowStoryComposer?.(true);
-    },
-
-    [A.OPEN_IMPACT_FLOW]: () => {
-      logAction(A.OPEN_IMPACT_FLOW);
-      setShowImpactFlow?.(true);
-    },
-
-    [A.OPEN_CREATE_FLOW]: (payload = {}) => {
-      logAction(A.OPEN_CREATE_FLOW, payload);
-      setShowCreateFlow?.(true);
     },
 
     [A.OPEN_CALENDAR]: () => {
