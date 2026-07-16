@@ -6,7 +6,7 @@
 // GPU-accelerated animations via transform
 // ══════════════════════════════════════════════════════════════
 import React, { useState, useRef, useCallback, memo } from "react";
-import { PresenceDot, fmtPresence } from "../../lib/usePresence.jsx";
+import { PresenceDot } from "../../lib/usePresence.jsx";
 import { MembershipLabel } from "../../components/ui/TalentBadge.jsx";
 // HUI Interaction Language v1.0 (2026-07-05) — Single Source of Truth fuer
 // die vier universellen Interaktionen (Resonanz/Austauschen/Merken/Empfehlen).
@@ -255,12 +255,10 @@ export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
           }}
         >
           <CardAvatar src={avatar} name={name} size={52} isTalent={isT} />
-          {presence === "online" && (
-            <div style={{
-              position:"absolute", bottom:2, right:2,
-              width:11, height:11, borderRadius:"50%",
-              background:"#22C55E", border:"2.5px solid #FFFFFF",
-            }} />
+          {presence && presence !== "offline" && (
+            <div style={{ position:"absolute", bottom:2, right:2 }}>
+              <PresenceDot status={presence} size={11} />
+            </div>
           )}
         </button>
 

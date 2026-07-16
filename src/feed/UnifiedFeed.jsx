@@ -21,6 +21,7 @@ import { useAuth }             from "../lib/AuthContext.jsx";
 import { analyticsService }    from "../services/creatorEconomy.js";
 import { emit }                from "../lib/events/index.js";
 import { toast }               from "../lib/useToast.jsx";
+import { usePresenceMap }      from "../lib/usePresence.jsx";
 
 
 /* ═══════════════════════════════════════════════════════════════
@@ -493,6 +494,24 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
     );
   }, [items]);
 
+  // Sprint 8 Phase 5 — Presence Read Cutover: user_presence via usePresenceMap
+  const authorIds = useMemo(() => {
+    const ids = new Set();
+    for (const item of arr) {
+      const uid = item?.author?.id || item?._raw?.user_id || item?._raw?.creator_id;
+      if (uid) ids.add(uid);
+    }
+    return [...ids];
+  }, [arr]);
+
+  const presenceMap = usePresenceMap(authorIds);
+
+  const resolvePresenceStatus = useCallback((item) => {
+    const uid = item?.author?.id || item?._raw?.user_id || item?._raw?.creator_id;
+    if (!uid) return null;
+    return presenceMap[uid]?.status || "offline";
+  }, [presenceMap]);
+
   const [reactions, setReactions] = useState({});
 
   // FEED.12C — Scroll Depth Analytics
@@ -551,7 +570,11 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
             }}
           >
             <ReactionCard
-              item={{ ...item, _reactions: { ...itemReactions, _relaxed: isRelaxed } }}
+              item={{
+                ...item,
+                _reactions: { ...itemReactions, _relaxed: isRelaxed },
+                _presenceStatus: resolvePresenceStatus(item),
+              }}
               onProfile={onProfile}
               onBook={onBook}
               onDetail={onDetail}
