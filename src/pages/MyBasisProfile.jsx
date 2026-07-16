@@ -41,15 +41,15 @@ const TalentAngebotWizard = React.lazy(() => import("../components/talents/Talen
 import { useTalents, deleteTalent } from "../hooks/useTalents.js";
 const ExperienceWizard = React.lazy(() => import("../components/experiences/ExperienceWizard.jsx"));
 // AmbassadorStudioSection wird direkt importiert (kein lazy → kein Suspense-Hänger)
-const HuiMomentSheet = React.lazy(() => import("../components/HuiMomentSheet.jsx"));
-const MyRecommendationsModal   = React.lazy(() => import("../components/studio/MyRecommendationsModal.jsx"));
-const ImpactStimmenModal       = React.lazy(() => import("../components/studio/ImpactStimmenModal.jsx"));
-const MeineProjekteModal       = React.lazy(() => import("../components/studio/MeineProjekteModal.jsx"));
-const ImpactUpdateSheet       = React.lazy(() => import("../components/studio/ImpactUpdateSheet.jsx"));
-const EinAusgabenModal         = React.lazy(() => import("../components/studio/EinAusgabenModal.jsx"));
-const MeineVerkaeufeModal      = React.lazy(() => import("../components/studio/MeineVerkaeufeModal.jsx"));
-const MeineBuchungenModal      = React.lazy(() => import("../components/studio/MeineBuchungenModal.jsx"));
-const StatistikenModal         = React.lazy(() => import("../components/studio/StatistikenModal.jsx"));
+// HuiMomentSheet direkt importiert (kein lazy — verhindert ewigen Suspense-Spinner)
+// MyRecommendationsModal direkt importiert
+// ImpactStimmenModal direkt importiert
+// MeineProjekteModal direkt importiert
+// ImpactUpdateSheet direkt importiert
+// EinAusgabenModal direkt importiert
+// MeineVerkaeufeModal direkt importiert
+// MeineBuchungenModal direkt importiert
+// StatistikenModal direkt importiert
 import ProfilBearbeitenModal    from "../components/studio/ProfilBearbeitenModal.jsx";
 import { HUIBookmarkIcon }      from "../design/icons/HuiInteractionIcons.jsx";
 import {
@@ -63,6 +63,15 @@ import { NotificationBadge }    from "../lib/useNotifications.jsx";
 import { useSavedPostsContext }  from "../context/SavedPostsContext.jsx";
 import { useContentPreview } from "../context/ContentPreviewContext.jsx";
 import AmbassadorStudioSection from "../components/ambassador/AmbassadorStudioSection.jsx";
+import HuiMomentSheet from "../components/HuiMomentSheet.jsx";
+import MyRecommendationsModal from "../components/studio/MyRecommendationsModal.jsx";
+import ImpactStimmenModal from "../components/studio/ImpactStimmenModal.jsx";
+import MeineProjekteModal from "../components/studio/MeineProjekteModal.jsx";
+import ImpactUpdateSheet from "../components/studio/ImpactUpdateSheet.jsx";
+import EinAusgabenModal from "../components/studio/EinAusgabenModal.jsx";
+import MeineVerkaeufeModal from "../components/studio/MeineVerkaeufeModal.jsx";
+import MeineBuchungenModal from "../components/studio/MeineBuchungenModal.jsx";
+import StatistikenModal from "../components/studio/StatistikenModal.jsx";
 
 // ── Design Tokens ────────────────────────────────────────────────
 
@@ -1048,27 +1057,11 @@ export default function MyBasisProfile({ onClose, profileId }) {
       {/* MEINE MOMENTE SHEET — createPortal direkt zu body, zIndex 11000 (über Drawer 10500)
           Suspense INNERHALB des Portals — nicht darum (sonst rendert Portal nicht) */}
       {showMomentSheet && createPortal(
-        <React.Suspense fallback={
-          <div style={{
-            position:"fixed", inset:0, zIndex:11000,
-            background:"rgba(26,53,48,0.55)",
-            display:"flex", alignItems:"flex-end",
-          }}>
-            <div style={{
-              width:"100%", background:"#FCFDFC", borderRadius:"24px 24px 0 0",
-              padding:"40px 20px", textAlign:"center",
-              color:"rgba(26,53,48,0.45)", fontSize:13,
-            }}>
-              Lädt…
-            </div>
-          </div>
-        }>
-          <HuiMomentSheet
-            visible={showMomentSheet}
-            onClose={() => setShowMomentSheet(false)}
-            visibilityScope="public"
-          />
-        </React.Suspense>,
+        <HuiMomentSheet
+          visible={showMomentSheet}
+          onClose={() => setShowMomentSheet(false)}
+          visibilityScope="public"
+        />,
         document.body
       )}
 
@@ -1120,7 +1113,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
       {/* GEMEINSCHAFT FLOW MODAL */}
       {showGemeinschaft && (
-              <React.Suspense fallback={null}>
         <GemeinschaftsFlow
           onClose={() => setShowGemeinschaft(false)}
           onComplete={() => {
@@ -1130,7 +1122,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
             reload();
           }}
         />
-              </React.Suspense>
       )}
 
       {/* SETTINGS MODAL */}
@@ -1215,7 +1206,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
       {/* HUI STUDIO MODAL */}
       {showStudio && (
-              <React.Suspense fallback={null}>
         <HuiStudio
           profile={profile}
           onClose={() => setShowStudio(false)}
@@ -1226,19 +1216,16 @@ export default function MyBasisProfile({ onClose, profileId }) {
             reload();
           }}
         />
-              </React.Suspense>
       )}
 
       {/* ❤️ MEINE RESONANZ */}
       {showResonanz && (
-              <React.Suspense fallback={null}>
         <MeineResonanz
           onClose={() => setShowResonanz(false)}
           onNavigate={(type, navId) => {
             setShowResonanz(false);
           }}
         />
-              </React.Suspense>
       )}
 
       {/* AMBASSADOR BEWERBUNGS-MODAL */}
@@ -1255,20 +1242,17 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
       {/* NOTIFICATION PANEL */}
       {showNotifications && profile?.id && (
-              <React.Suspense fallback={null}>
         <NotificationPanel
           userId={profile.id}
           onClose={() => setShowNotifications(false)}
           onUnreadChange={setUnreadCount}
           onAction={handleNotifAction}
         />
-              </React.Suspense>
       )}
 
 
       {/* WERK WIZARD */}
       {showWerkWizard && profile?.id && (
-              <React.Suspense fallback={null}>
         <WerkWizard
           userId={profile.id}
           existingWork={editingWerk}
@@ -1283,7 +1267,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
             });
           }}
         />
-              </React.Suspense>
       )}
 
       {/* TALENT WERDEN — Onboarding Flow */}
@@ -1300,19 +1283,16 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
       {/* TALENT-ANGEBOT WIZARD */}
       {showTalentWizard && profile?.id && (
-              <React.Suspense fallback={null}>
         <TalentAngebotWizard
           userId={profile.id}
           existingTalent={editingTalent}
           onClose={() => { setShowTalentWizard(false); setEditingTalent(null); }}
           onSaved={() => { setShowTalentWizard(false); setEditingTalent(null); reloadTalents(); }}
         />
-              </React.Suspense>
       )}
 
       {/* EXPERIENCE WIZARD */}
       {showExpWizard && profile?.id && (
-              <React.Suspense fallback={null}>
         <ExperienceWizard
           userId={profile.id}
           existingExp={editingExp}
@@ -1327,7 +1307,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
             });
           }}
         />
-              </React.Suspense>
       )}
     </div>
   );
@@ -2069,14 +2048,12 @@ function MeinBereichMenu({
           )}
 
           {showUpdateSheet && updateTargetProject && (
-                  <React.Suspense fallback={null}>
             <ImpactUpdateSheet
               project={updateTargetProject}
               currentUser={profile}
               onClose={() => { setShowUpdateSheet(false); setUpdateTargetProject(null); }}
               onSuccess={() => { /* optional: refetch */ }}
             />
-                  </React.Suspense>
           )}
         </MeinBereichDrawer>
       )}
@@ -2102,18 +2079,14 @@ function MeinBereichMenu({
 
       {/* ── Ambassador-Bereich ───────────────────────────────── */}
       {activeDrawer === "ambassador" && (
-              <React.Suspense fallback={null}>
         <MeinBereichDrawer title="Ambassador-Bereich" icon={<HUIAmbassadorIcon size={18}/>} onClose={close} footer={false}>
           <AmbassadorStudioSection profile={profile} />
         </MeinBereichDrawer>
-              </React.Suspense>
       )}
 
       {/* ── Meine Empfehlungen (bereits eigenstaendiger Drawer) ─ */}
       {activeDrawer === "empfehlungen" && (
-              <React.Suspense fallback={null}>
         <MyRecommendationsModal userId={profile?.id} onClose={close} />
-              </React.Suspense>
       )}
 
       {/* ── Impact & Stimmen (Chooser + Detail-Drawer) ──────── */}
@@ -2131,22 +2104,18 @@ function MeinBereichMenu({
         </MeinBereichDrawer>
       )}
       {activeDrawer === "impact" && impactDetail === "stimmen" && (
-              <React.Suspense fallback={null}>
         <ImpactStimmenModal
           profile={profile}
           onClose={() => setImpactDetail(null)}
           switchTab={switchTab}
         />
-              </React.Suspense>
       )}
       {activeDrawer === "impact" && impactDetail === "projekte" && (
-              <React.Suspense fallback={null}>
         <MeineProjekteModal
           profile={profile}
           onClose={() => setImpactDetail(null)}
           switchTab={switchTab}
         />
-              </React.Suspense>
       )}
 
       {/* ── Finanzabteilung (Chooser + Detail-Drawer) ───────── */}
@@ -2159,24 +2128,16 @@ function MeinBereichMenu({
         </MeinBereichDrawer>
       )}
       {activeDrawer === "finanzen" && financeDetail === "ein_aus" && (
-              <React.Suspense fallback={null}>
         <EinAusgabenModal profile={profile} onClose={() => setFinanceDetail(null)} />
-              </React.Suspense>
       )}
       {activeDrawer === "finanzen" && financeDetail === "verkaeufe" && (
-              <React.Suspense fallback={null}>
         <MeineVerkaeufeModal profile={profile} onClose={() => setFinanceDetail(null)} />
-              </React.Suspense>
       )}
       {activeDrawer === "finanzen" && financeDetail === "buchungen" && (
-              <React.Suspense fallback={null}>
         <MeineBuchungenModal profile={profile} onClose={() => setFinanceDetail(null)} />
-              </React.Suspense>
       )}
       {activeDrawer === "finanzen" && financeDetail === "statistiken" && (
-              <React.Suspense fallback={null}>
         <StatistikenModal profile={profile} onClose={() => setFinanceDetail(null)} />
-              </React.Suspense>
       )}
 
       {/* ── Profil bearbeiten ───────────────────────────────── */}
@@ -2957,12 +2918,10 @@ const LazyTalentOnboarding = React.lazy(() => import('../components/TalentOnboar
 
 function TalentOnboardingModal({ onClose = () => {}, onSuccess = () => {} }) {
   return createPortal(
-    <React.Suspense fallback={null}>
       <LazyTalentOnboarding
         onClose={onClose}
         onActivate={onSuccess}
-      />
-    </React.Suspense>,
+      />,
     document.body
   );
 }
