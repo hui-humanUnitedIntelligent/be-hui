@@ -351,70 +351,66 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
   // ── ConversationRoom ──
   if (activeConv) {
     return (
-      <ConversationRoom
-        conv={activeConv}
-        onBack={() => setActiveConv(null)}
-        onOpenProfile={(conv) => {
-          // user_id ist die Supabase Auth UUID des Gesprächspartners
-          // conv.id ist die Chat-ID — NIEMALS als Profil-ID verwenden
-          const userId = conv?.user_id || conv?.other_profile?.id;
-          if (userId) openCreatorProfile(userId, {
-            display_name: conv?.name,
-            avatar_url:   conv?.avatar_url,
-            talent:       conv?.talent,
-          });
-        }}
-        onRequestBooking={async (conv) => {
-          // Talent-Objekt aus DB laden (braucht talents.id, nicht user_id)
-          const userId = conv?.user_id || conv?.other_profile?.id;
-          if (!userId) return;
-          try {
-            const { data } = await supabase
-              .from("talents")
-              .select("id,title,price_per_hour,price_per_session,location_type,user_id,status")
-              .eq("user_id", userId)
-              .eq("status", "approved")
-              .limit(1)
-              .maybeSingle();
-            if (data?.id) {
-              setTalentForBooking(data);
-              setShowTalentBooking(true);
-            }
-          } catch (e) {
-            console.warn("[CHAT] talent lookup failed:", e?.message);
-          }
-        }}
-        onCloseChat={async () => {
-          if (!activeConv?.id || !user?.id) {
-            // kein DB-Chat vorhanden (z.B. neues Gespräch noch ohne ID) → einfach zurück
-            setActiveConv(null);
-            return;
-          }
-          await closeChat(activeConv.id, user.id);
-          // UI sofort aktualisieren: Chat aus der lokalen Sichtliste entfernen
-          setClosedChatIds(prev => new Set([...prev, activeConv.id]));
-          setActiveConv(null);
-        }}
-      />
-    );
-  }
-
-  // ── TalentBookingFlow Overlay (aus Chat heraus) ──
-  if (showTalentBooking && talentForBooking) {
-    return (
       <>
-        {/* ConversationRoom bleibt gerendert, BookingFlow liegt drüber */}
         <ConversationRoom
           conv={activeConv}
           onBack={() => setActiveConv(null)}
-          onOpenProfile={() => {}}
-          onRequestBooking={() => {}}
-          onCloseChat={() => {}}
+          onOpenProfile={(conv) => {
+            // user_id ist die Supabase Auth UUID des Gesprächspartners
+            // conv.id ist die Chat-ID — NIEMALS als Profil-ID verwenden
+            const userId = conv?.user_id || conv?.other_profile?.id;
+            if (!userId) return;
+            // openCreatorProfile → A.OPEN_PROFILE → openProfileById → ProfileLauncher
+            openCreatorProfile(userId, {
+              display_name: conv?.name,
+              avatar_url:   conv?.avatar_url,
+              talent:       conv?.talent,
+            });
+          }}
+          onRequestBooking={async (conv) => {
+            // Talent-Objekt aus DB laden (braucht talents.id, nicht user_id)
+            const userId = conv?.user_id || conv?.other_profile?.id;
+            if (!userId) return;
+            try {
+              const { data } = await supabase
+                .from("talents")
+                .select("id,title,price_per_hour,price_per_session,location_type,user_id,status")
+                .eq("user_id", userId)
+                .eq("status", "approved")
+                .limit(1)
+                .maybeSingle();
+              if (data?.id) {
+                setTalentForBooking(data);
+                setShowTalentBooking(true);
+              } else {
+                // Kein genehmigtes Talent → visuelles Feedback
+                console.info("[CHAT] Kein aktives Talent-Angebot gefunden für:", userId);
+              }
+            } catch (e) {
+              console.warn("[CHAT] talent lookup failed:", e?.message);
+            }
+          }}
+          onCloseChat={async () => {
+            if (!activeConv?.id || !user?.id) {
+              setActiveConv(null);
+              return;
+            }
+            await closeChat(activeConv.id, user.id);
+            setClosedChatIds(prev => new Set([...prev, activeConv.id]));
+            setActiveConv(null);
+          }}
         />
-        <TalentBookingFlow
-          talent={talentForBooking}
-          onClose={() => { setShowTalentBooking(false); setTalentForBooking(null); }}
-        />
+
+        {/* ── TalentBookingFlow als Portal-Overlay ÜBER dem Chat ── */}
+        {showTalentBooking && talentForBooking && (
+          <TalentBookingFlow
+            talent={talentForBooking}
+            onClose={() => {
+              setShowTalentBooking(false);
+              setTalentForBooking(null);
+            }}
+          />
+        )}
       </>
     );
   }

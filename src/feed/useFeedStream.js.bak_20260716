@@ -269,11 +269,6 @@ async function fetchFeedPage(userId = null, cursors = null) {
   ];
 
 
-
-  // HUI-DEBUG-FEED (TEMP — wird nach Verifizierung entfernt)
-  console.warn("[HUI_FEED_DEBUG] experiences raw:", exps.length, "normalized exp:", normalized.filter(n=>n?.type==='experience').length, "total normalized:", normalized.length);
-  console.warn("[HUI_FEED_DEBUG] exp titles:", exps.slice(0,3).map(e=>e.title));
-
   // FEED.13B — Upcoming Experience Relevance Ranking
   // Ersetzt FEED.10C (+4h Boost) durch zeitliche Relevanz-Verankerung.
   //
@@ -431,9 +426,7 @@ export function useFeedStream() {
       setItems(prev => {
         const existingIds = new Set(prev.map(i => i.id));
         const deduped = nextItems.filter(i => !existingIds.has(i.id));
-        const merged = [...prev, ...deduped];
-        // VIRT-MEM-001: Hard-Cap bei 200 Items — älteste (hintere) trimmen
-        return merged.length > 200 ? merged.slice(0, 200) : merged;
+        return [...prev, ...deduped];
       });
       cursorRef.current = nextCursors;
       setHasMore(more);
@@ -450,9 +443,7 @@ export function useFeedStream() {
       setItems(prev => {
         const existingIds = new Set(prev.map(i => i.id));
         const deduped = nextItems.filter(i => !existingIds.has(i.id));
-        const merged = [...prev, ...deduped];
-        // VIRT-MEM-001: Hard-Cap bei 200 Items — älteste (hintere) trimmen
-        return merged.length > 200 ? merged.slice(0, 200) : merged;
+        return [...prev, ...deduped];
       });
       cursorRef.current = nextCursors;
       setHasMore(more);
