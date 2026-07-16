@@ -48,8 +48,10 @@ export function usePresence(userId) {
     // App-Start
     ping();
 
-    // Heartbeat alle 60 Sekunden
-    heartbeatRef.current = setInterval(ping, 60_000);
+    // Heartbeat alle 60 Sekunden (pausiert wenn Tab hidden)
+    heartbeatRef.current = setInterval(() => {
+      if (!document.hidden) ping();
+    }, 60_000);
 
     // Foreground-Return (Visibility API)
     function onVisible() {

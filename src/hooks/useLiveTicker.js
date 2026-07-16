@@ -45,6 +45,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient.js";
 import { cachedQuery, CACHE_TTL, safeQuery } from "../lib/perfUtils.js";
+import { useIdleAwareInterval } from "./usePollingPause.js";
 
 const REFRESH_INTERVAL_MS = 60_000;
 const PER_SOURCE_LIMIT    = 5;
@@ -65,7 +66,7 @@ async function safe(promise) {
 }
 
 function tickerQuery(key, buildQuery) {
-  return cachedQuery(key, () => safeQuery(buildQuery()), CACHE_TTL.feed);
+  return cachedQuery(key, () => safeQuery(buildQuery()), CACHE_TTL.ticker);
 }
 
 async function fetchWorks() {
@@ -313,9 +314,10 @@ export function useLiveTicker() {
   useEffect(() => {
     mounted.current = true;
     refresh();
-    const interval = setInterval(refresh, REFRESH_INTERVAL_MS);
-    return () => { mounted.current = false; clearInterval(interval); };
+    return () => { mounted.current = false; };
   }, [refresh]);
+
+  useIdleAwareInterval(refresh, REFRESH_INTERVAL_MS);
 
   return { items, loading };
 }

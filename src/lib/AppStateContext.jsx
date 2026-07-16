@@ -16,6 +16,7 @@ import React, {
 import { supabase }  from "./supabaseClient";
 import { useAuth }   from "./AuthContext";
 import { cachedQuery, CACHE_TTL } from "./perfUtils";
+import { useIdleAwareInterval } from "../hooks/usePollingPause.js";
 
 // ── Context ───────────────────────────────────────────────────────
 const AppStateContext = createContext(null);
@@ -48,7 +49,6 @@ export function AppStateProvider({ children }) {
 
   // ── Notification Count — direkter Supabase-Query (kein Service) ─
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
-  const notifTimerRef = useRef(null);
 
   const fetchNotifCount = useCallback(async () => {
     if (!user?.id) return;
@@ -74,16 +74,14 @@ export function AppStateProvider({ children }) {
   useEffect(() => {
     if (!user?.id) return;
     fetchNotifCount();
-    // Polling alle 60s
-    notifTimerRef.current = setInterval(fetchNotifCount, 60_000);
-    // CustomEvent: sofort neu laden wenn Notification gelesen wird
     const handler = () => fetchNotifCount();
     window.addEventListener("hui:notif:read", handler);
     return () => {
-      if (notifTimerRef.current) clearInterval(notifTimerRef.current);
       window.removeEventListener("hui:notif:read", handler);
     };
   }, [user?.id, fetchNotifCount]);
+
+  useIdleAwareInterval(fetchNotifCount, 60_000, !!user?.id);
 
   // ── Follow Status — direkter Supabase-Query (kein security layer) ─
   const [followedIds, setFollowedIds] = useState([]);

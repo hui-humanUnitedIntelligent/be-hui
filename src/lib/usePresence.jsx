@@ -47,9 +47,10 @@ export function usePresence(userId, currentPage = "home") {
     // Initial online
     upsert("online");
 
-    // Heartbeat
+    // Heartbeat — pausiert wenn Tab hidden
     heartbeatRef.current = setInterval(() => {
-      if (statusRef.current !== "offline") upsert(statusRef.current);
+      if (document.hidden || statusRef.current === "offline") return;
+      upsert(statusRef.current);
     }, HEARTBEAT_MS);
 
     // Activity events — debounced

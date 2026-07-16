@@ -11,7 +11,9 @@ export const CACHE_TTL = {
   experiences:  30_000,
   feed:         20_000,
   discover:     60_000,
-  notifications: 15_000,
+  notifications: 60_000,
+  // LiveTicker polls every 60s — TTL covers two ticks to skip redundant HTTP.
+  ticker:      120_000,
 };
 
 // ─── Verifizierte Profile-Spalten ─────────────────────────────

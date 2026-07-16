@@ -303,9 +303,10 @@ function useWeitereProjects() {
   return projects;
 }
 
-function useImpactActivities() {
+function useImpactActivities(pollEnabled = true) {
   const [acts, setActs] = React.useState([]);
   React.useEffect(() => {
+    if (!pollEnabled) return;
     let dead = false;
     const load = async () => {
       try {
@@ -340,9 +341,11 @@ function useImpactActivities() {
       } catch { /* silent */ }
     };
     load();
-    const iv = setInterval(load, 30_000);
+    const iv = setInterval(() => {
+      if (!document.hidden) load();
+    }, 30_000);
     return () => { dead = true; clearInterval(iv); };
-  }, []);
+  }, [pollEnabled]);
   return acts;
 }
 
@@ -1305,7 +1308,7 @@ function ApprovedAppCard({ app, onOpen }) {
   );
 }
 
-function ImpactPageInner({ currentUser: currentUserProp }) {
+function ImpactPageInner({ currentUser: currentUserProp, isTabActive = true }) {
   // ── Auth — immer aus AuthContext, Props als Fallback ──
   const { user, profile } = useAuth();
   // currentUser = echtes Supabase-Profil (Single Source of Truth)
@@ -1327,7 +1330,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
   const transp     = useTransparenz();
   const payoutData = useLastPayout();
   const finanziert = useWeitereProjects();
-  const activities = useImpactActivities();
+  const activities = useImpactActivities(isTabActive);
   const rankedProjs   = useAllApprovedByVotes();          // ← SSOT für alle Rankings
   const approvedApps  = useApprovedApplications();        // für VotePersonal projMap
   const [detailApp, setDetailApp] = React.useState(null);
@@ -3414,7 +3417,10 @@ function SkeletonCards({ count = 2 }) {
 export default function ImpactPage(props) {
   return (
     <ImpactErrorBoundary>
-      <ImpactPageInner currentUser={props.currentUser} />
+      <ImpactPageInner
+        currentUser={props.currentUser}
+        isTabActive={props.isTabActive !== false}
+      />
     </ImpactErrorBoundary>
   );
 }
