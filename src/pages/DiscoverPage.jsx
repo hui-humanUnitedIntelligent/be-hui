@@ -2088,12 +2088,10 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
     if (item) openPreview(item);
   }, [openPreview]);
 
-  // Erlebnis-Karte: öffne ExperienceBookingFlow (Detail + Buchen)
+  // Erlebnis-Karte: Commerce 2.0 — onBook → Werkekorb
   const handleErlebnisPress = useCallback((erlebnis) => {
     const isRealId = erlebnis?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(erlebnis.id));
     if (isRealId) {
-      // Erlebnisse direkt mit ExperienceBookingFlow öffnen (hat Bild, Beschreibung, Buchungs-Button)
-      // ContentPreviewSheet ist für Beiträge/Projekte, nicht für buchbare Erlebnisse
       if (typeof onBook === "function") { onBook(erlebnis); return; }
     }
     // Seed-Karte oder kein onBook: Fallback auf Profil

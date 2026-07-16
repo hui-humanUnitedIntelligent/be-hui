@@ -16,7 +16,6 @@ import { useHuiActions, A } from "../../core/hui.actions.js";
 // Sprint F.7B: useWirkerProfile → useProfileData + useProfileId (F.8A: Hook gelöscht)
 import { useProfileData } from "../../hooks/useProfileData.js";
 import { useProfileId } from "../../hooks/useProfileId.js";
-import SupportFlow from "../../components/economy/SupportFlow.jsx";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
 
@@ -797,9 +796,6 @@ function FloatingBookCTA({ onBook, profileName }) {
 //      useProfileData(profileId) → eine Datenquelle für alle Profile
 // ────────────────────────────────────────────────────────────────────────────
 export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profileIdProp, onClose, onBook, onChat, _zIndex = 9500 }) {
-  // Phase 4D: Support Flow State — MUSS VOR ALLEM ANDEREN STEHEN (Rules of Hooks)
-  const [showSupport, setShowSupport] = React.useState(false);
-
   // ── SCHRITT 1: rawId bestimmen ────────────────────────────────
   // Priorität: profileIdProp (UUID direkt) > wirkerProp.id > wirkerProp.username
   const rawId = profileIdProp || wirkerProp?.id || wirkerProp?.user_id || wirkerProp?.username || null;
@@ -864,10 +860,12 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profi
     }
   }, [actions, profile, onChat]);
 
-  // Phase 4D: Support Handler
+  // Commerce 2.0: Unterstützen → Werkekorb (kein Legacy SupportFlow)
   const handleSupport = React.useCallback(() => {
-    setShowSupport(true);
-  }, []);
+    if (actions[A.OPEN_WERKE_KORB]) {
+      actions[A.OPEN_WERKE_KORB]({ source: S.VISITOR_PROFILE });
+    }
+  }, [actions]);
 
   // Guard: kein rawId oder profileId-Fehler → "Profil nicht gefunden"
   if (!rawId || (!loading && !profile?.id && idError)) {
@@ -921,14 +919,6 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profi
       <ResonanceCommunity community={null}/>
       <FooterValues/>
       <FloatingBookCTA onBook={handleBook} profileName={name}/>
-      {/* Phase 4D: Support Flow */}
-      <SupportFlow
-        creator={profile}
-        visible={showSupport}
-        onClose={() => setShowSupport(false)}
-        sourceType="profile"
-        sourceId={profile?.id||null}
-      />
     </div>
   );
 }

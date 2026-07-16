@@ -159,6 +159,47 @@ export function clearCartAfterSuccess(setCart) {
   setCart([]);
 }
 
+/**
+ * Normalisiert Werk/Erlebnis-Daten für den Commerce-2.0-Warenkorb.
+ * Akzeptiert Feed-Items, Discover-Karten und Action-Payloads.
+ */
+export function toCommerceCartItem(raw, creator = null) {
+  const item = raw?.experience || raw;
+  if (!item || typeof item !== "object") return null;
+  const src = item._raw || item;
+  const id = item.id || src.id;
+  if (!id) return null;
+
+  const type = item.type || src.type
+    || (src.experience_type || src.date ? "experience" : "work");
+
+  const cr = creator || item.author || item.creator;
+  const author = cr ? {
+    id:          cr.id || cr.user_id,
+    name:        cr.display_name || cr.name,
+    avatar:      cr.avatar_url || cr.img || cr.avatar,
+    username:    cr.username,
+  } : item.author;
+
+  return {
+    id,
+    type: type === "event" ? "experience" : type,
+    title: item.title || item.name || src.title || "Artikel",
+    author,
+    price: item.price ?? src.price,
+    img:   item.img || item.cover_url || src.cover_url || src.media_url,
+    _raw:  src,
+  };
+}
+
+/** Fügt ein Item zum Cart hinzu — dedupliziert nach id. */
+export function addCommerceCartItem(setCart, raw, creator = null) {
+  const item = toCommerceCartItem(raw, creator);
+  if (!item) return false;
+  setCart(prev => (prev.some(x => x.id === item.id) ? prev : [...prev, item]));
+  return true;
+}
+
 // ── Quantity Logic (v3.1) ─────────────────────────────────────────
 /**
  * Bestimmt ob ein Item einen Mengenwähler anzeigen soll.

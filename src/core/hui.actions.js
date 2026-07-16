@@ -22,6 +22,7 @@ import {
   checkSemantics,
   INTENT,
 } from "./hui.semantics.js";
+import { addCommerceCartItem } from "../components/commerce/commerceUtils.js";
 
 // ─── Action log (dev mode) ─────────────────────────────────────────
 const isDev = import.meta.env?.DEV ?? false;
@@ -86,6 +87,7 @@ export const A = {
   OPEN_ORB:             "OPEN_ORB",
   CLOSE_ORB:            "CLOSE_ORB",
   OPEN_BOOKING:         "OPEN_BOOKING",
+  OPEN_WERKE_KORB:      "OPEN_WERKE_KORB",
   OPEN_CONNECT:         "OPEN_CONNECT",
   OPEN_NOTIFICATIONS:   "OPEN_NOTIFICATIONS",
   OPEN_MAP:             "OPEN_MAP",
@@ -146,7 +148,9 @@ export function buildActions(shell) {
     setShowMembership,
     setShowCreateFlow,
     setShowConnect,
-    setShowBookingFlow,      // COMMERCE-01
+    setShowBookingFlow,      // COMMERCE-01 (legacy state — nicht mehr für Checkout)
+    setShowWerkeKorb,        // Commerce 2.0
+    setCart,                 // Commerce 2.0
     setShowNotifs,
     setShowMap,
     setShowMatch,
@@ -287,8 +291,14 @@ export function buildActions(shell) {
       // Flow-Log
       const bookSource = payload?.source || S.SYSTEM;
       logFlow(bookSource, S.BOOKING, safeCr ? { to: safeCr.display_name } : null);
-      // COMMERCE-01: ExperienceBookingFlow öffnen statt ConnectionCreatePage
-      setShowBookingFlow?.({ experience: safeExp, creator: safeCr });
+      // Commerce 2.0: Erlebnis in Werkekorb → UnterstutzenFlow
+      if (!addCommerceCartItem(setCart, experience, safeCr)) return;
+      setShowWerkeKorb?.(true);
+    },
+
+    [A.OPEN_WERKE_KORB]: (payload = {}) => {
+      logAction(A.OPEN_WERKE_KORB, payload);
+      setShowWerkeKorb?.(true);
     },
 
     [A.CREATE_EXPERIENCE]: (payload = {}) => {
