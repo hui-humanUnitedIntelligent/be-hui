@@ -95,7 +95,7 @@ async function fetchFeedPage(userId = null, cursors = null) {
     ),
     filterExps(
       supabase.from("experiences")
-        .select("id,title,cover_url,media_url,category,description,price,duration,format,location_text,date,time_start,time_end,is_live,booking_mode,pricing_type,experience_type,participant_limit,max_participants,mood,mood_tags,social_energy,status,approval_status,visibility,user_id,created_at")
+        .select("id,title,cover_url,media_url,category,description,price,duration,format,location_text,date,time_start,time_end,booking_mode,pricing_type,experience_type,participant_limit,max_participants,mood,mood_tags,social_energy,status,approval_status,visibility,user_id,created_at,lat,lng,images,tags")
         .eq("status", "published")
         .eq("approval_status", "approved")
         .order("created_at", { ascending: false })
@@ -269,10 +269,6 @@ async function fetchFeedPage(userId = null, cursors = null) {
   ];
 
 
-
-  // HUI-DEBUG-FEED (TEMP — wird nach Verifizierung entfernt)
-  console.warn("[HUI_FEED_DEBUG] experiences raw:", exps.length, "normalized exp:", normalized.filter(n=>n?.type==='experience').length, "total normalized:", normalized.length);
-  console.warn("[HUI_FEED_DEBUG] exp titles:", exps.slice(0,3).map(e=>e.title));
 
   // FEED.13B — Upcoming Experience Relevance Ranking
   // Ersetzt FEED.10C (+4h Boost) durch zeitliche Relevanz-Verankerung.
