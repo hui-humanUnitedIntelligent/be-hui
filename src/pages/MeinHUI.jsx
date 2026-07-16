@@ -21,6 +21,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useEffect, useRef, useState } from "react";
+import { APP_VERSION } from "../version";
 
 // ─────────────────────────────────────────────────────────────────
 // DESIGN TOKENS
@@ -714,6 +715,9 @@ export default function MeinHUI({
           <ImpactMoments delay={MOMENTS_DELAY} />
 
           <div style={{ height: 12 }} />
+<p style={{ opacity: 0.6, fontSize: 12, marginTop: 20, textAlign: "center" }}>
+  Version {APP_VERSION}
+</p>
         </div>
       </div>
     </>

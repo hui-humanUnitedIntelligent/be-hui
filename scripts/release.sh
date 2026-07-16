@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo "🧹 Lösche alten www Ordner..."
+rm -rf www
+
 echo "🔧 Version erhöhen..."
 bash scripts/version.sh
 
