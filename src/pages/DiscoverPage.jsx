@@ -197,7 +197,7 @@ function SectionHead({ title, sub, action, onAction, delay=0 }) {
 function DiscoverTitleBar({ view, onViewChange }) {
   return (
     <div style={{
-      padding:`12px ${T.px}px 8px`,
+      padding:`12px ${T.px}px 14px`,
       background:T.bg,
     }}>
       {/* Title Row */}
@@ -381,7 +381,7 @@ function PersonCard({ person, onPress, delay=0 }) {
 
 function PeopleSection({ people, onPersonPress, loading, delay=0, view='cards', onSectionAction }) {
   return (
-    <div className="dp-in" style={{ animationDelay:`${delay}ms` }}>
+    <div className="dp-in" style={{ animationDelay:`${delay}ms`, marginTop:10 }}>
       <div data-dp-people/>
       <SectionHead
         title="Inspirierende Menschen"
@@ -2092,7 +2092,9 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
       <DiscoverTitleBar view={view} onViewChange={setView} />
 
       {/* ── 1b. Live Activity Bar ── */}
-      <HuiLiveTicker/>
+      <div style={{ marginBottom:8 }}>
+        <HuiLiveTicker/>
+      </div>
 
       {/* ── 3. Menschen entdecken ── */}
       <PeopleSection
