@@ -120,8 +120,9 @@ function parseMeta(raw) {
   try { return JSON.parse(raw); } catch { return {}; }
 }
 
-function NotifCard({ n, onRead, onAction = () => {} }) {
+function NotifCard({ n, onRead, onDelete, onAction = () => {} }) {
   const [open, setOpen] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const meta = getMeta(n.type);
 
   const isRejection  = n.type?.includes("_rejected");
@@ -284,9 +285,75 @@ function NotifCard({ n, onRead, onAction = () => {} }) {
             )}
 
             <div style={{ fontSize:11, color:T.inkFaint, marginTop:6 }}>{fmtTime(n.created_at)}</div>
+
+            {/* Löschen-Button */}
+            {onDelete && (
+              <button
+                onClick={e => { e.stopPropagation(); setShowDeleteConfirm(true); }}
+                style={{
+                  marginTop:6, padding:"3px 10px", borderRadius:99,
+                  background:"rgba(239,68,68,0.07)", border:"1px solid rgba(239,68,68,0.20)",
+                  color:"#DC2626", fontSize:11, fontWeight:600,
+                  cursor:"pointer", fontFamily:"inherit",
+                  display:"inline-flex", alignItems:"center", gap:4,
+                }}
+              >
+                ✕ Löschen
+              </button>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Löschen-Bestätigung */}
+      {showDeleteConfirm && (
+        <div
+          onClick={() => setShowDeleteConfirm(false)}
+          style={{
+            position:"fixed", inset:0, zIndex:99999,
+            background:"rgba(10,26,26,0.60)",
+            display:"flex", alignItems:"center", justifyContent:"center", padding:24,
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              background:"#fff", borderRadius:16, padding:"22px 20px 18px",
+              maxWidth:300, width:"100%",
+              boxShadow:"0 20px 60px rgba(0,0,0,0.25)",
+            }}
+          >
+            <div style={{fontSize:16, fontWeight:800, color:"#1a1a18", marginBottom:8}}>Nachricht löschen?</div>
+            <div style={{fontSize:13, color:"#888", marginBottom:20, lineHeight:1.5}}>
+              Diese Benachrichtigung wird dauerhaft entfernt.
+            </div>
+            <div style={{display:"flex", gap:10}}>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                style={{
+                  flex:1, padding:"12px", borderRadius:99,
+                  background:"rgba(26,26,24,0.07)", border:"none",
+                  color:"#1a1a18", fontSize:13, fontWeight:600,
+                  cursor:"pointer", fontFamily:"inherit",
+                }}
+              >
+                Abbrechen
+              </button>
+              <button
+                onClick={() => { setShowDeleteConfirm(false); onDelete?.(n.id); }}
+                style={{
+                  flex:1, padding:"12px", borderRadius:99,
+                  background:"#DC2626", border:"none",
+                  color:"#fff", fontSize:13, fontWeight:700,
+                  cursor:"pointer", fontFamily:"inherit",
+                }}
+              >
+                Löschen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
@@ -346,6 +413,7 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
     await supabase.from("notifications").update({ is_read: true }).eq("user_id", userId).eq("is_read", false);
     setNotifs(prev => prev.map(n => ({ ...n, is_read: true })));
     onUnreadChange?.(0);
+    window.dispatchEvent(new CustomEvent("hui:notif:read"));
   }
 
   async function markRead(id) {
@@ -358,6 +426,22 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
       onUnreadChange?.(unread);
       return cur;
     });
+  }
+
+  async function deleteNotif(id) {
+    if (!userId) return;
+    // Optimistic: sofort aus UI entfernen
+    setNotifs(prev => {
+      const removed = prev.find(n => n.id === id);
+      const next = prev.filter(n => n.id !== id);
+      const newUnread = next.filter(n => !n.is_read).length;
+      onUnreadChange?.(newUnread);
+      return next;
+    });
+    try {
+      await supabase.from("notifications").delete().eq("id", id).eq("user_id", userId);
+      window.dispatchEvent(new CustomEvent("hui:notif:read"));
+    } catch { /* silent */ }
   }
 
   const TAB_FILTERS = {
@@ -420,7 +504,7 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
         {unreadCount > 0 && (
           <div style={{ padding:"8px 20px 0", display:"flex", justifyContent:"flex-end" }}>
             <button onClick={markAllRead} style={{ fontSize:11, color:T.teal, background:"none", border:"none", cursor:"pointer", fontWeight:600, fontFamily:"inherit" }}>
-              ✓ Alle als gelesen markieren
+              Alle Nachrichten gelesen
             </button>
           </div>
         )}
@@ -436,7 +520,7 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
             </div>
           ) : (
             visible.map(n => (
-              <NotifCard key={n.id} n={n} onRead={markRead} onAction={onAction} />
+              <NotifCard key={n.id} n={n} onRead={markRead} onDelete={deleteNotif} onAction={onAction} />
             ))
           )}
         </div>

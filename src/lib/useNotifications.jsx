@@ -173,7 +173,25 @@ export function useNotifications() {
     } catch { /* silent */ }
   }, [user?.id]);
 
-  return { items, unread, loading, markRead, markAllRead, reload: load };
+  const deleteNotif = useCallback(async (id) => {
+    if (!user?.id) return;
+    // Optimistic: sofort aus UI entfernen
+    setItems(prev => {
+      const removed = prev.find(n => n.id === id);
+      const next = prev.filter(n => n.id !== id);
+      if (removed && !removed.is_read) {
+        setUnread(u => Math.max(0, u - 1));
+      }
+      return next;
+    });
+    try {
+      await supabase.from("notifications").delete().eq("id", id).eq("user_id", user.id);
+      // Badge im Header sofort aktualisieren
+      window.dispatchEvent(new CustomEvent("hui:notif:read"));
+    } catch { /* silent */ }
+  }, [user?.id]);
+
+  return { items, unread, loading, markRead, markAllRead, deleteNotif, reload: load };
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -331,10 +349,11 @@ function RejectionDetailModal({ n, onClose }) {
 }
 
 // ── Notification Item ─────────────────────────────────────────
-function NotifItem({ n, onRead }) {
+function NotifItem({ n, onRead, onDelete }) {
   const meta = getMeta(n.type);
   const [hov, setHov] = useState(false);
   const [showRejection, setShowRejection] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const isRejection = n.type === "work_rejected" || n.type === "content_rejected"
     || n.type === "talent_rejected"
@@ -435,8 +454,74 @@ function NotifItem({ n, onRead }) {
             }}/>
           )}
           <span style={{fontSize:14, color:"rgba(26,26,24,0.20)", marginTop: n.is_read ? 8 : 0}}>›</span>
+          {/* Löschen-Button */}
+          {onDelete && (
+            <button
+              onClick={e => { e.stopPropagation(); setShowDeleteConfirm(true); }}
+              title="Nachricht löschen"
+              style={{
+                marginTop:4, width:22, height:22, borderRadius:6,
+                background:"rgba(239,68,68,0.08)", border:"1px solid rgba(239,68,68,0.20)",
+                color:"#DC2626", fontSize:12, display:"flex", alignItems:"center",
+                justifyContent:"center", cursor:"pointer", flexShrink:0,
+                fontFamily:"inherit", padding:0,
+              }}
+            >
+              ✕
+            </button>
+          )}
         </div>
       </button>
+
+      {/* Löschen-Bestätigung (mini) */}
+      {showDeleteConfirm && (
+        <div
+          onClick={() => setShowDeleteConfirm(false)}
+          style={{
+            position:"fixed", inset:0, zIndex:99999,
+            background:"rgba(10,26,26,0.60)",
+            display:"flex", alignItems:"center", justifyContent:"center", padding:24,
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              background:"#fff", borderRadius:16, padding:"22px 20px 18px",
+              maxWidth:300, width:"100%",
+              boxShadow:"0 20px 60px rgba(0,0,0,0.25)",
+            }}
+          >
+            <div style={{fontSize:16, fontWeight:800, color:"#1a1a18", marginBottom:8}}>Nachricht löschen?</div>
+            <div style={{fontSize:13, color:"#888", marginBottom:20, lineHeight:1.5}}>
+              Diese Benachrichtigung wird dauerhaft entfernt.
+            </div>
+            <div style={{display:"flex", gap:10}}>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                style={{
+                  flex:1, padding:"12px", borderRadius:99,
+                  background:"rgba(26,26,24,0.07)", border:"none",
+                  color:"#1a1a18", fontSize:13, fontWeight:600,
+                  cursor:"pointer", fontFamily:"inherit",
+                }}
+              >
+                Abbrechen
+              </button>
+              <button
+                onClick={() => { setShowDeleteConfirm(false); onDelete?.(n.id); }}
+                style={{
+                  flex:1, padding:"12px", borderRadius:99,
+                  background:"#DC2626", border:"none",
+                  color:"#fff", fontSize:13, fontWeight:700,
+                  cursor:"pointer", fontFamily:"inherit",
+                }}
+              >
+                Löschen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
@@ -893,7 +978,7 @@ export function ResonanzzentrumPanel({ onClose }) {
                   touchAction:"manipulation",
                 }}
               >
-                ✓ Alle gelesen
+                Alle Nachrichten gelesen
               </button>
             )}
           </div>
@@ -929,19 +1014,19 @@ export function ResonanzzentrumPanel({ onClose }) {
               {grouped.wichtig.length > 0 && (
                 <>
                   {safeRequests.length === 0 && <SectionHeader emoji="⭐" label="Wichtig" />}
-                  {grouped.wichtig.map(n => <NotifItem key={n.id} n={n} onRead={notif?.markRead ?? (() => {})} />)}
+                  {grouped.wichtig.map(n => <NotifItem key={n.id} n={n} onRead={notif?.markRead ?? (() => {})} onDelete={notif?.deleteNotif} />)}
                 </>
               )}
               {grouped.relevant.length > 0 && (
                 <>
                   <SectionHeader emoji="⭐" label="Relevant" />
-                  {grouped.relevant.map(n => <NotifItem key={n.id} n={n} onRead={notif?.markRead ?? (() => {})} />)}
+                  {grouped.relevant.map(n => <NotifItem key={n.id} n={n} onRead={notif?.markRead ?? (() => {})} onDelete={notif?.deleteNotif} />)}
                 </>
               )}
               {grouped.info.length > 0 && (
                 <>
                   <SectionHeader emoji="⭐" label="Informativ" />
-                  {grouped.info.map(n => <NotifItem key={n.id} n={n} onRead={notif?.markRead ?? (() => {})} />)}
+                  {grouped.info.map(n => <NotifItem key={n.id} n={n} onRead={notif?.markRead ?? (() => {})} onDelete={notif?.deleteNotif} />)}
                 </>
               )}
               {safeItems.length === 0 && safeRequests.length === 0 && (
@@ -954,7 +1039,7 @@ export function ResonanzzentrumPanel({ onClose }) {
           {tab !== "alle" && (
             isEmpty
               ? <EmptyTab tab={tab} />
-              : filteredItems.map(n => <NotifItem key={n.id} n={n} onRead={notif?.markRead ?? (() => {})} />)
+              : filteredItems.map(n => <NotifItem key={n.id} n={n} onRead={notif?.markRead ?? (() => {})} onDelete={notif?.deleteNotif} />)
           )}
 
           {/* Lade-Spinner */}
