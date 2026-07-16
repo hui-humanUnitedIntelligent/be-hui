@@ -149,7 +149,7 @@ async function fetchFeedPage(userId = null, cursors = null) {
     }
   }
 
-  const allRows = [...works, ...exps, ...beitr, ...invs];
+  const allRows = [...works, ...exps, ...beitr];
   const userIds = [...new Set(allRows.map(r => r.user_id || r.creator_id).filter(Boolean))];
   // ── TRACE STEP 2: userIds ───────────────────────────────────
   if (import.meta.env.DEV) {
