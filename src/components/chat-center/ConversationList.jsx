@@ -146,7 +146,7 @@ export default function ConversationList({ chats, loading, onOpen, onDiscover, c
       </div>
 
       {/* Aktive Gespräche */}
-      <SectionHead title="Aktive Gespr\u00e4che"/>
+      <SectionHead title="Aktive Gespräche"/>
       {loading ? (
         <div style={{ padding:"24px 0", textAlign:"center", color:C.muted, fontSize:13 }}>
           Laden\u2026
