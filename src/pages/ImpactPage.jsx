@@ -132,38 +132,20 @@ function useHeroStats() {
 }
 
 function usePoolBudgets() {
-  const [s, setS] = React.useState({
-    pool:0, community:0, wirkung:0, innovation:0, kuration:0, loading:true,
-  });
+  const [s, setS] = React.useState({ pool:0, loading:true });
   React.useEffect(() => {
     let dead = false;
     (async () => {
       try {
-        const now     = new Date();
-        const msStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-        const [rRes, bRes] = await Promise.allSettled([
-          supabase.from("impact_rounds")
-            .select("pool_eur,voting_ends_at")
-            .eq("month", now.toISOString().slice(0,7))
-            .single(),
-          supabase.from("bookings")
-            .select("platform_fee")
-            .gte("created_at", msStart),
-        ]);
+        const month = new Date().toISOString().slice(0,7);
+        // SSOT: stripe_impact_pool — Summe des laufenden Monats
+        const { data, error } = await supabase
+          .from("stripe_impact_pool")
+          .select("impact_pool_eur")
+          .eq("month", month);
         if (dead) return;
-        const round = rRes.status === "fulfilled" ? rRes.value.data : null;
-        const fees  = bRes.status === "fulfilled" ? (bRes.value.data || []) : [];
-        const provSum = fees.reduce((a,b) => a + safeNum(b.platform_fee), 0);
-        const pool  = safeNum(round?.pool_eur) || Math.round(provSum * 0.06);  // 6% vom Bruttoumsatz (Balanced Growth)
-        setS({
-          pool,
-          community:  Math.round(pool * 0.70),  // 70% -> Projekte
-          wirkung:    Math.round(pool * 0.30),  // 30% -> Flex-Pool
-          innovation: Math.round(pool * 0.20),
-          kuration:   Math.round(pool * 0.10),
-          votingEnds: round?.voting_ends_at || null,
-          loading: false,
-        });
+        const pool = (data || []).reduce((s, r) => s + safeNum(r.impact_pool_eur), 0);
+        setS({ pool, loading:false });
       } catch (e) {
         console.warn("[POOL BUDGETS]", e?.message);
         if (!dead) setS(d => ({ ...d, loading:false }));
@@ -1381,16 +1363,19 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
     let dead = false;
     (async () => {
       try {
-        const [payRes, voteRes] = await Promise.allSettled([
-          supabase.from("hui_payments")
-            .select("impact_eur").eq("user_id", currentUser.id).eq("payment_status","paid"),
+        const [poolRes, voteRes] = await Promise.allSettled([
+          // SSOT: stripe_impact_pool JOIN orders WHERE customer_id = user
+          // Gesamt-Impact des Nutzers über alle Monate (nie reset)
+          supabase.from("stripe_impact_pool")
+            .select("impact_pool_eur, orders!inner(customer_id)")
+            .eq("orders.customer_id", currentUser.id),
           supabase.from("impact_votes")
             .select("id,project_id").eq("voter_id", currentUser.id),
         ]);
         if (dead) return;
-        const pays  = payRes.status  === "fulfilled" ? (payRes.value.data  || []) : [];
-        const votes = voteRes.status === "fulfilled" ? (voteRes.value.data || []) : [];
-        const eur = pays.reduce((s, p) => s + (Number(p.impact_eur) || 0), 0);
+        const poolRows = poolRes.status === "fulfilled" ? (poolRes.value.data || []) : [];
+        const votes    = voteRes.status === "fulfilled" ? (voteRes.value.data || []) : [];
+        const eur = poolRows.reduce((s, r) => s + safeNum(r.impact_pool_eur), 0);
         const uniqueProj = [...new Set(votes.map(v => v.project_id))].length;
         setUserImpact({ eur, projekte:uniqueProj, loading:false });
       } catch { if (!dead) setUserImpact(p => ({ ...p, loading:false })); }
@@ -1670,146 +1655,6 @@ function BigHero({ stats, pool }) {
 }
 
 // ════════════════════════════════════════════════════════════════
-// WIRKUNGS-CHIPS — selbsterklärend + Popover
-// ════════════════════════════════════════════════════════════════
-const WIRKUNGSCHIPS = [
-  {
-    pct:40, emoji:"💚", label:"Projekte fördern",
-    color:"#0DC4B5",
-    popover:"Finanziert Herzensprojekte der Gemeinschaft. Der Sieger erhält die volle Wunschsumme — die übrigen Projekte erhalten einen Anteil. Kein Projekt geht leer aus.",
-    eurKey:"community",
-  },
-  {
-    pct:30, emoji:"🚀", label:"HUI weiterentwickeln",
-    color:"#F4714F",
-    popover:"Ermöglicht neue Funktionen, Verbesserungen und strategische Projekte, die HUI als Plattform langfristig stärken — für alle Mitglieder.",
-    eurKey:"wirkung",
-  },
-  {
-    pct:20, emoji:"💡", label:"Neue Ideen ermöglichen",
-    color:"#D4952A",
-    popover:"Schafft Raum für innovative Projekte und Experimente. Ideen, die noch keinen Platz haben, bekommen hier ihre Chance.",
-    eurKey:"innovation",
-  },
-  {
-    pct:10, emoji:"🛡️", label:"Qualität sichern",
-    color:"#7264D6",
-    popover:"Finanziert die Prüfung, Begleitung und Qualitätssicherung aller eingereichten Projekte — damit nur echte Wirkung gefördert wird.",
-    eurKey:"kuration",
-  },
-];
-
-function WirkungsChips({ pool }) {
-  const [activeChip, setActiveChip] = React.useState(null);
-
-  // Klick außerhalb schließt Popover
-  React.useEffect(() => {
-    if (activeChip === null) return;
-    const close = (e) => {
-      if (!e.target.closest("[data-chip-wrap]")) setActiveChip(null);
-    };
-    document.addEventListener("pointerdown", close);
-    return () => document.removeEventListener("pointerdown", close);
-  }, [activeChip]);
-
-  return (
-    <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
-      {WIRKUNGSCHIPS.map((chip, i) => {
-        const eur    = pool[chip.eurKey] || 0;
-        const isOpen = activeChip === i;
-
-        return (
-          <div key={i} data-chip-wrap style={{ position:"relative" }}>
-            {/* Chip */}
-            <button
-              onClick={() => setActiveChip(isOpen ? null : i)}
-              className="ip-p"
-              style={{
-                display:"inline-flex", alignItems:"center", gap:6,
-                background: isOpen ? `${chip.color}22` : `${chip.color}12`,
-                border:`1.5px solid ${chip.color}${isOpen ? "55" : "30"}`,
-                borderRadius:99, padding:"6px 11px",
-                cursor:"pointer",
-                transition:"all 0.16s ease",
-                boxShadow: isOpen ? `0 2px 12px ${chip.color}28` : "none",
-                outline:"none",
-              }}
-              onMouseEnter={e => {
-                if (!isOpen) {
-                  e.currentTarget.style.background  = `${chip.color}1E`;
-                  e.currentTarget.style.boxShadow   = `0 2px 10px ${chip.color}22`;
-                  e.currentTarget.style.borderColor = `${chip.color}48`;
-                }
-              }}
-              onMouseLeave={e => {
-                if (!isOpen) {
-                  e.currentTarget.style.background  = `${chip.color}12`;
-                  e.currentTarget.style.boxShadow   = "none";
-                  e.currentTarget.style.borderColor = `${chip.color}30`;
-                }
-              }}
-              aria-expanded={isOpen}
-              aria-label={`${chip.label} – ${chip.pct}%`}
-            >
-              <span style={{ fontSize:14, lineHeight:1 }}>{chip.emoji}</span>
-              <span style={{ fontSize:11, fontWeight:700, color:chip.color,
-                lineHeight:1.2 }}>
-                {chip.label}
-              </span>
-              <span style={{
-                fontSize:10, fontWeight:900, color:chip.color,
-                background:`${chip.color}18`, borderRadius:99,
-                padding:"1px 6px", marginLeft:1,
-              }}>{chip.pct}%</span>
-              {!pool.loading && eur > 0 && (
-                <span style={{ fontSize:10, fontWeight:800, color:chip.color,
-                  opacity:0.78 }}>{fmtEur(eur)}</span>
-              )}
-            </button>
-
-            {/* Popover */}
-            {isOpen && (
-              <div style={{
-                position:"absolute", top:"calc(100% + 8px)", left:0,
-                zIndex:200, minWidth:220, maxWidth:280,
-                background:"#FFFFFF",
-                border:`1.5px solid ${chip.color}30`,
-                borderRadius:16,
-                padding:"14px 16px",
-                boxShadow:`0 8px 32px rgba(0,0,0,0.10), 0 2px 8px ${chip.color}18`,
-                animation:"ipFade 0.16s ease both",
-              }}>
-                {/* Pfeil */}
-                <div style={{
-                  position:"absolute", top:-7, left:18,
-                  width:12, height:12, background:"#FFFFFF",
-                  border:`1.5px solid ${chip.color}30`,
-                  transform:"rotate(45deg)",
-                  borderBottom:"none", borderRight:"none",
-                  borderRadius:"2px 0 0 0",
-                }}/>
-                {/* Inhalt */}
-                <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:8 }}>
-                  <span style={{ fontSize:18 }}>{chip.emoji}</span>
-                  <div>
-                    <div style={{ fontSize:12, fontWeight:800, color:"#141422",
-                      lineHeight:1.25 }}>{chip.label}</div>
-                    <div style={{ fontSize:10, fontWeight:700,
-                      color:chip.color }}>{chip.pct}% des Impact Pools</div>
-                  </div>
-                </div>
-                <p style={{ margin:0, fontSize:12, color:"#38384F",
-                  lineHeight:1.6 }}>{chip.popover}</p>
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-// ════════════════════════════════════════════════════════════════
 // 2. POOL-KARTE (zentral, einfach, emotional)
 // ════════════════════════════════════════════════════════════════
 function PoolCard({ pool, stats, userImpact }) {
@@ -1852,9 +1697,6 @@ function PoolCard({ pool, stats, userImpact }) {
             animation:"ipBreath 6s ease-in-out infinite",
           }}>💚</div>
         </div>
-
-        {/* Wirkungs-Chips mit Popover */}
-        <WirkungsChips pool={pool} />
 
         {/* Deine Wirkung — dezent, nur wenn User eingeloggt */}
         {userImpact && !userImpact.loading && (
@@ -3005,7 +2847,7 @@ function FondsAufteilungKompakt({ pool }) {
             {!pool.loading && (
               <span style={{ fontSize:13, fontWeight:900, color:sl.color,
                 letterSpacing:"-0.01em" }}>
-                {fmtEur([pool.community,pool.wirkung,pool.innovation,pool.kuration][i])}
+                {fmtEur(Math.round(pool.pool * [0.70,0.30,0.20,0.10][i]))}
               </span>
             )}
           </div>
