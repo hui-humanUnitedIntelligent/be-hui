@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -e
 
-# 1. Nächste Version bestimmen (Patch erhöhen)
+echo "🔧 Starte automatisches Release-System..."
+
+# 1. Version erhöhen
 CURRENT_VERSION=$(node -p "require('./package.json').version")
 NEXT_VERSION=$(node -e "
 const v = require('./package.json').version.split('.');
@@ -12,47 +14,49 @@ console.log(v.join('.'));
 echo "Aktuelle Version: $CURRENT_VERSION"
 echo "Neue Version:     $NEXT_VERSION"
 
-# 2. package.json Version setzen
 npm version "$NEXT_VERSION" --no-git-tag-version
 
-# 3. Android build.gradle Version setzen
-# Annahme: versionName ist z.B. "2.0.2 Beta" → wir ersetzen nur die Zahl
-sed -i "s/versionName \".*\"/versionName \"${NEXT_VERSION} Beta\"/g" android/app/build.gradle
-
-# versionCode auslesen und erhöhen
+# 2. Android Version erhöhen
 CURRENT_CODE=$(grep "versionCode" android/app/build.gradle | awk '{print $2}')
 NEXT_CODE=$((CURRENT_CODE + 1))
+
 sed -i "s/versionCode ${CURRENT_CODE}/versionCode ${NEXT_CODE}/g" android/app/build.gradle
+sed -i "s/versionName \".*\"/versionName \"${NEXT_VERSION} Beta\"/g" android/app/build.gradle
 
-echo "versionCode: ${CURRENT_CODE} → ${NEXT_CODE}"
-
-# 4. src/version.ts aktualisieren
-# Annahme: APP_VERSION & APP_VERSION_CODE existieren
+# 3. src/version.ts aktualisieren
 sed -i "s/export const APP_VERSION = \".*\"/export const APP_VERSION = \"${NEXT_VERSION} Beta\"/g" src/version.ts
 sed -i "s/export const APP_VERSION_CODE = .*/export const APP_VERSION_CODE = ${NEXT_CODE};/g" src/version.ts
 
-# 5. Git: pull --rebase
-echo "Git: pull --rebase..."
-git pull --rebase
+echo "📦 Versionen aktualisiert."
 
-# 6. Änderungen committen
-git add package.json android/app/build.gradle src/version.ts
-git commit -m "Release ${NEXT_VERSION}"
+# 4. Änderungen committen (wichtig!)
+echo "📌 Committe Änderungen..."
+git add .
+git commit -m "Auto-Release: Version ${NEXT_VERSION}"
 
-# 7. Pushen
-echo "Git: push..."
+# 5. Rebase automatisch durchführen
+echo "🔄 Git Pull mit Rebase..."
+git pull --rebase || {
+    echo "⚠️ Rebase-Konflikt erkannt – automatischer Fix..."
+    git add .
+    git commit -m "Auto-Fix während Rebase"
+    git rebase --continue
+}
+
+# 6. Pushen
+echo "⬆️ Push zum Remote..."
 git push
 
-# 8. Capacitor sync
-echo "Capacitor: sync..."
+# 7. Capacitor Sync
+echo "🔄 Capacitor Sync..."
 npx cap sync
 
-# 9. Release-Script starten
-echo "Starte Release-Script..."
+# 8. Release Script starten
+echo "🚀 Starte Release..."
 bash scripts/release.sh
 
-# 10. Android Studio öffnen
-echo "Öffne Android Studio..."
+# 9. Android Studio öffnen
+echo "📂 Öffne Android Studio..."
 npx cap open android
 
-echo "✅ Auto-Release für Version ${NEXT_VERSION} abgeschlossen."
+echo "✅ Auto-Release abgeschlossen!"
