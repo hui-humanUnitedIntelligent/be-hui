@@ -725,10 +725,15 @@ export default React.memo(function BaseFeedCard({
   // Optimistic like state
   const [localReactions, setLocalReactions] = useState(reactions);
 
-  // Sync if item changes externally
+  // Sync if item changes externally.
+  // FIX B (2026-07-16): Primitive Dependencies statt Objekt-Referenz.
+  // Vorher: [item?.id] — reagierte nie auf asynchron nachgeladene Counts
+  // (inspireCount/touchCount kommen aus useSingleReaction nach dem Mount).
+  // Jetzt: drei primitive Werte — React vergleicht mit === statt Referenz.
   React.useEffect(() => {
     setLocalReactions(item?._reactions || {});
-  }, [item?.id]); // eslint-disable-line
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item?.id, item?._reactions?.inspireCount, item?._reactions?.touchCount]);
 
   if (!item?.id) return null;
 
