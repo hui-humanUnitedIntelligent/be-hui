@@ -1750,6 +1750,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
           .from("profiles")
           .select("id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views") // Identity Contract v1.0
           .or("has_talent_profile.eq.true,is_member.eq.true,role.eq.talent,role.eq.wirker")
+          .order("created_at", { ascending:false })
           .limit(12);
 
         if (!cancelled && profiles?.length > 0) {
@@ -1939,6 +1940,41 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         }
 
         // SYS-REFACTOR-023: totes impact_pool-Query entfernt (Ergebnis 'imp' wurde nie gelesen, keine Verhaltensaenderung)
+
+        // Impact-Projekte — neueste zuerst (approved & aktiv)
+        const { data: projData } = await supabase
+          .from("impact_applications")
+          .select("id,name,description,cover_url,category,vote_count,rank,funding_goal,current_amount_eur,status,created_at")
+          .eq("status","approved")
+          .order("created_at", { ascending:false })
+          .limit(6);
+
+        if (!cancelled && projData?.length > 0) {
+          const CAT_COLOR = {
+            natur:    { bg:"rgba(22,163,74,0.12)", text:"#16A34A" },
+            tiere:    { bg:"rgba(217,119,6,0.12)",  text:"#D97706" },
+            umwelt:   { bg:"rgba(14,196,184,0.12)", text:"#0DC4B5" },
+            kultur:   { bg:"rgba(99,102,241,0.12)", text:"#6366F1" },
+            bildung:  { bg:"rgba(232,87,58,0.12)",  text:"#F47355" },
+            sozial:   { bg:"rgba(14,196,184,0.12)", text:"#0DC4B5" },
+          };
+          setProjekte(projData.map(p => {
+            const cat = (p.category || "").toLowerCase();
+            const cc = CAT_COLOR[cat] || { bg:"rgba(14,196,184,0.12)", text:"#0DC4B5" };
+            return {
+              id:       p.id,
+              title:    p.name || "Projekt",
+              desc:     p.description || "",
+              cat:      p.category || "Projekt",
+              catColor: cc,
+              cover:    p.cover_url || null,
+              members:  p.vote_count || 0,
+              rank:     p.rank || 0,
+              funding_goal:       p.funding_goal || 0,
+              current_amount_eur: p.current_amount_eur || 0,
+            };
+          }));
+        }
 
       } catch (e) {
         console.warn("[DiscoverPage] load error:", e?.message);
