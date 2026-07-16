@@ -458,7 +458,7 @@ function MomentCard({ moment, delay=0, onPress }) {
     <div className="dp-press dp-in dp-card-hover" onClick={() => onPress?.(moment)} style={{
       width:175, flexShrink:0,
       borderRadius:18, overflow:"hidden",
-      background:"#111", position:"relative",
+      background:"transparent", position:"relative",
       boxShadow:T.cardShadow,
       animationDelay:`${delay}ms`,
       touchAction:"manipulation",
