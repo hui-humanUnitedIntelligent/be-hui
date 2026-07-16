@@ -1028,8 +1028,8 @@ export default function MyBasisProfile({ onClose, profileId }) {
         document.body
       )}
 
-      {/* AMBASSADOR-DRAWER — Portal, nur für is_ambassador=true */}
-      {showAmbDrawer && profile?.is_ambassador === true && (
+      {/* AMBASSADOR-DRAWER — Portal (Guard: showAmbDrawer reicht, Balken ist bereits sichtbar) */}
+      {showAmbDrawer && (
         <React.Suspense fallback={null}>
           {createPortal(
             <div style={{
