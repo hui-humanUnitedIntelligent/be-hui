@@ -5,7 +5,7 @@
 // Alles inline-editierbar. Ruhig. Emotional. Human.
 // ════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, startTransition } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
 import { supabase } from "../lib/supabaseClient.js";
@@ -441,6 +441,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [showAmbModal,    setShowAmbModal]    = useState(false);
   const [showAmbDrawer,   setShowAmbDrawer]   = useState(false);
   const [showMomentSheet, setShowMomentSheet]  = useState(false);
+  const openMomentSheet = useCallback(() => {
+    startTransition(() => setShowMomentSheet(true));
+  }, []);
   const [showPublicPreview, setShowPublicPreview] = useState(false);
   const [showMerken,       setShowMerken]       = useState(false);
   // MERKEN.3 (2026-07-08): Live-Zaehler fuer den Merken-Badge im Header.
@@ -914,7 +917,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
               onErlebnisWizard={(exp) => { setEditingExp(exp || null); setShowExpWizard(true); }}
               onDeleteErlebnis={(id) => { setLocalExperiences(null); reload(); }}
               onOpenResonanz={() => setShowResonanz(true)}
-              onOpenMomentSheet={() => setShowMomentSheet(true)}
+              onOpenMomentSheet={openMomentSheet}
               moments={hooksMoments ?? []}
               momentsLoading={hookLoading}
               onProfileUpdate={(upd) => {
@@ -996,7 +999,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
               onErlebnisWizard={(exp) => { setEditingExp(exp || null); setShowExpWizard(true); }}
               onDeleteErlebnis={(id) => { setLocalExperiences(null); reload(); }}
               onOpenResonanz={() => setShowResonanz(true)}
-              onOpenMomentSheet={() => setShowMomentSheet(true)}
+              onOpenMomentSheet={openMomentSheet}
               moments={hooksMoments ?? []}
               momentsLoading={hookLoading}
               onProfileUpdate={(upd) => {
@@ -1049,9 +1052,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
           Profil) gleichzeitig greift -- keine Duplikat-Loesung pro Seite
           mehr noetig. */}
 
-      {/* MEINE MOMENTE SHEET — createPortal direkt zu body, zIndex 11000 (über Drawer 10500)
-          Suspense INNERHALB des Portals — nicht darum (sonst rendert Portal nicht) */}
-      {showMomentSheet && createPortal(
+      {/* MEINE MOMENTE SHEET — Portal dauerhaft gemountet (OrbCompass-Muster):
+          kein Remount pro Öffnen → kein Cold-Start. visible steuert Anzeige. */}
+      {createPortal(
         <HuiMomentSheet
           visible={showMomentSheet}
           onClose={() => setShowMomentSheet(false)}
@@ -2082,9 +2085,7 @@ function MeinBereichMenu({
             loading={momentsLoading}
             onOpenMomentSheet={() => {
               close();
-              // openMomentSheet: nutzt onOpenMomentSheetProp (Parent) wenn vorhanden,
-              // sonst internen showMomentSheet State
-              setTimeout(() => openMomentSheet(), 80);
+              openMomentSheet();
             }}
           />
         </MeinBereichDrawer>

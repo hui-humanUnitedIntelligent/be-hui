@@ -14,7 +14,7 @@
 //   - Error Banner mit konkreter Fehlermeldung
 // ════════════════════════════════════════════════════════════════
 import { HUIWarnIcon } from '../design/icons/HuiSystemIcons.jsx';
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useLayoutEffect, useCallback, useRef } from "react";
 import { supabase } from "../lib/supabaseClient.js";
 
 const D = {
@@ -171,10 +171,14 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
   const galerieRef  = useRef(null);
   const textareaRef = useRef(null);
 
-  useEffect(() => {
-    if (visible  && phase === "hidden") { setPhase("open"); resetState(); }
-    if (!visible && phase !== "hidden") setPhase("hidden");
-  }, [visible]);
+  useLayoutEffect(() => {
+    if (visible && phase === "hidden") { setPhase("open"); resetState(); }
+    if (!visible && phase !== "hidden" && phase !== "closing") setPhase("hidden");
+  }, [visible]); // eslint-disable-line react-hooks/exhaustive-deps -- phase bewusst nicht in deps (open/close-Zustandsmaschine)
+
+  useLayoutEffect(() => {
+    if (phase === "gedanke") setTimeout(() => textareaRef.current?.focus(), 120);
+  }, [phase]);
 
   function resetState() {
     setText(""); setShareErr(null); setUploading(false);
@@ -186,10 +190,6 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
     setPhase("closing");
     setTimeout(() => { resetState(); setPhase("hidden"); onClose?.(); }, 300);
   }, [onClose]);
-
-  useEffect(() => {
-    if (phase === "gedanke") setTimeout(() => textareaRef.current?.focus(), 120);
-  }, [phase]);
 
   const handleAction = useCallback((action) => {
     if (action.id === "gedanke") { setPhase("gedanke"); return; }
