@@ -411,6 +411,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [showGemeinschaft, setShowGemeinschaft] = useState(false);
   const [showAmbModal,    setShowAmbModal]    = useState(false);
   const [showAmbDrawer,   setShowAmbDrawer]   = useState(false);
+  const [showMomentSheet, setShowMomentSheet]  = useState(false);
   const [showPublicPreview, setShowPublicPreview] = useState(false);
   const [showMerken,       setShowMerken]       = useState(false);
   // MERKEN.3 (2026-07-08): Live-Zaehler fuer den Merken-Badge im Header.
@@ -884,6 +885,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
               onErlebnisWizard={(exp) => { setEditingExp(exp || null); setShowExpWizard(true); }}
               onDeleteErlebnis={(id) => { setLocalExperiences(null); reload(); }}
               onOpenResonanz={() => setShowResonanz(true)}
+              onOpenMomentSheet={() => setShowMomentSheet(true)}
               onProfileUpdate={(upd) => {
                 setAuthProfile && setAuthProfile(p => ({ ...p, ...upd }));
                 refreshProfile?.().catch(() => {});
@@ -963,6 +965,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
               onErlebnisWizard={(exp) => { setEditingExp(exp || null); setShowExpWizard(true); }}
               onDeleteErlebnis={(id) => { setLocalExperiences(null); reload(); }}
               onOpenResonanz={() => setShowResonanz(true)}
+              onOpenMomentSheet={() => setShowMomentSheet(true)}
               onProfileUpdate={(upd) => {
                 setAuthProfile && setAuthProfile(p => ({ ...p, ...upd }));
                 refreshProfile?.().catch(() => {});
@@ -1012,6 +1015,18 @@ export default function MyBasisProfile({ onClose, profileId }) {
           der jetzt automatisch auf ALLEN vier Tabs (Entdecken/Home/Impact/
           Profil) gleichzeitig greift -- keine Duplikat-Loesung pro Seite
           mehr noetig. */}
+
+      {/* MEINE MOMENTE SHEET — createPortal direkt zu body, zIndex 11000 (über Drawer 10500) */}
+      {showMomentSheet && createPortal(
+        <React.Suspense fallback={null}>
+          <HuiMomentSheet
+            visible={showMomentSheet}
+            onClose={() => setShowMomentSheet(false)}
+            visibilityScope="public"
+          />
+        </React.Suspense>,
+        document.body
+      )}
 
       {/* AMBASSADOR-DRAWER — Portal, nur für is_ambassador=true */}
       {showAmbDrawer && profile?.is_ambassador === true && (
