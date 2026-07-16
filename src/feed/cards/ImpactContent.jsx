@@ -1,9 +1,10 @@
 /**
  * ImpactContent.jsx — Feed-Karte für Herzensprojekte
- * FEED-GLOBAL-001 (2026-07-16) | IMPACT-CLICK-001 (2026-07-16)
+ * IMPACT-CLICK-002 (2026-07-16) — BaseFeedCard-konformes Layout
  *
- * Klick → ContentPreviewSheet öffnet sich mit allen Projekt-Infos
- * + "Zum Projekt" Button navigiert zum Impact-Tab
+ * Identischer Aufbau wie WorkContent/ExperienceContent/TalentContent:
+ * Header + Bild (via BaseFeedCard.FeedMedia) + Badge + Titel + Progress
+ * Karte anklicken → ContentPreviewSheet → "Zum Herzensprojekt" → Impact-Tab
  */
 import React from "react";
 import BaseFeedCard from "./BaseFeedCard.jsx";
@@ -11,11 +12,11 @@ import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
 
 const GREEN      = "rgba(34,197,94,1)";
 const GREEN_SOFT = "rgba(34,197,94,0.10)";
-const INK        = "rgba(26,26,46,0.85)";
+const INK        = "#1A1A2E";
 const INK_SUB    = "rgba(26,26,46,0.45)";
 
-const RANK_MEDAL  = { 1:"🥇", 2:"🥈", 3:"🥉" };
-const RANK_LABEL  = { 1:"Top 1", 2:"Top 2", 3:"Top 3" };
+const RANK_MEDAL = { 1:"🥇", 2:"🥈", 3:"🥉" };
+const RANK_LABEL = { 1:"Top 1", 2:"Top 2", 3:"Top 3" };
 
 function ProgressBar({ current, goal }) {
   const pct = goal > 0 ? Math.min(100, (current / goal) * 100) : 0;
@@ -42,31 +43,26 @@ function ProgressBar({ current, goal }) {
 export default function ImpactContent({ item, onProfile, onReaction, onShare }) {
   if (!item) return null;
 
-  const raw    = item._raw  || {};
-  const title  = item.title || raw.project_name || raw.name || "";
-  const desc   = item.text  || raw.short_desc   || raw.problem || raw.description || "";
-  const cover  = raw.cover_url || raw.media_urls?.[0] || null;
-  const rank   = raw.rank  || null;
-  const goal   = raw.funding_goal || 0;
-  const curr   = raw.current_amount_eur || 0;
-  const medal  = rank && RANK_MEDAL[rank] ? RANK_MEDAL[rank] : null;
-  const badge  = medal ? `${medal} ${RANK_LABEL[rank]}` : "Herzensprojekt";
+  const raw   = item._raw || {};
+  const title = item.title || raw.project_name || raw.name || "";
+  const desc  = item.text  || raw.short_desc   || raw.problem || raw.description || "";
+  const rank  = raw.rank   || null;
+  const goal  = raw.funding_goal       || 0;
+  const curr  = raw.current_amount_eur || 0;
+
+  const badgeText = rank && RANK_MEDAL[rank]
+    ? `${RANK_MEDAL[rank]} ${RANK_LABEL[rank]}`
+    : "Herzensprojekt";
 
   const { open } = useContentPreview();
-
-  // Beim Klick: ContentPreviewSheet öffnen mit "Zum Projekt"-Button
-  // der per CustomEvent den Impact-Tab navigiert
-  const handleCardClick = () => {
-    open({
-      ...item,
-      // Impact navigiert zum Impact-Tab via CustomEvent
-      canOpenFull: true,
-      fullPath: null, // kein URL-Pfad — wird via onOpenFull gehandhabt
-      _onOpenFull: () => {
-        window.dispatchEvent(new CustomEvent("hui:navigate:tab", { detail: { tab: "impact" } }));
-      },
-    });
-  };
+  const handleCardClick = () => open({
+    ...item,
+    canOpenFull: true,
+    fullPath: null,
+    _onOpenFull: () => {
+      window.dispatchEvent(new CustomEvent("hui:navigate:tab", { detail: { tab: "impact" } }));
+    },
+  });
 
   return (
     <BaseFeedCard
@@ -76,51 +72,38 @@ export default function ImpactContent({ item, onProfile, onReaction, onShare }) 
       onShare={onShare}
       onCardClick={handleCardClick}
     >
-      {/* Cover-Bild */}
-      {cover && (
-        <div style={{ margin:"0 0 10px", borderRadius:14, overflow:"hidden",
-          width:"100%", paddingTop:"50%", position:"relative",
-          background:"rgba(26,26,46,0.04)" }}>
-          <img src={cover} alt={title} loading="lazy" decoding="async"
-            style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }}
-            onError={e => { e.currentTarget.parentElement.style.display="none"; }}
-          />
-          {/* Rang-Badge über dem Bild */}
-          <div style={{
-            position:"absolute", top:10, left:10,
-            background:rank ? (rank===1?"rgba(251,191,36,1)":rank===2?"rgba(156,163,175,1)":"rgba(180,113,67,1)") : GREEN,
-            color:"#fff", fontSize:10, fontWeight:700, padding:"3px 10px", borderRadius:20,
-          }}>{badge}</div>
-        </div>
-      )}
-
-      {/* Badge + Titel */}
-      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom: desc ? 6 : 4 }}>
-        {!cover && (
-          <span style={{
-            flexShrink:0, fontSize:10.5, fontWeight:700, color:GREEN,
-            background:GREEN_SOFT, border:`1px solid rgba(34,197,94,0.22)`,
-            borderRadius:99, padding:"3px 9px", letterSpacing:0.2, whiteSpace:"nowrap",
-          }}>💚 {badge}</span>
-        )}
-        {title && (
-          <span style={{
-            fontSize:15, fontWeight:700, color:INK,
-            lineHeight:1.3, letterSpacing:"-0.02em",
-            overflow:"hidden", textOverflow:"ellipsis",
-            flex:1, minWidth:0,
-          }}>{title}</span>
-        )}
-      </div>
-
-      {/* Beschreibung */}
+      {/* Beschreibung (optional, über Badge/Titel) */}
       {desc && (
-        <p style={{ margin:"0 0 6px", fontSize:13.5, color:INK_SUB, lineHeight:1.55,
+        <p style={{ margin:"0 0 10px", fontSize:13.5, fontWeight:400,
+          color:"rgba(26,26,46,0.65)", lineHeight:1.55,
           overflow:"hidden", display:"-webkit-box",
           WebkitLineClamp:3, WebkitBoxOrient:"vertical" }}>
           {desc}
         </p>
       )}
+
+      {/* Badge + Titel — gleiche Struktur wie WorkContent/ExperienceContent */}
+      <div style={{
+        display:"flex", alignItems:"center", gap:8,
+        marginBottom: goal > 0 ? 4 : 0, flexWrap:"nowrap",
+      }}>
+        <span style={{
+          flexShrink:0,
+          fontSize:10.5, fontWeight:700, color:GREEN,
+          background:GREEN_SOFT,
+          border:`1px solid rgba(34,197,94,0.22)`,
+          borderRadius:99, padding:"3px 9px",
+          letterSpacing:0.2, whiteSpace:"nowrap",
+        }}>💚 {badgeText}</span>
+        {title && (
+          <span style={{
+            fontSize:15, fontWeight:700, color:INK,
+            lineHeight:1.3, letterSpacing:"-0.02em",
+            overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+            flex:1, minWidth:0,
+          }}>{title}</span>
+        )}
+      </div>
 
       {/* Fortschrittsbalken */}
       {goal > 0 && <ProgressBar current={curr} goal={goal} />}

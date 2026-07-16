@@ -1,9 +1,10 @@
 /**
  * TalentContent.jsx — Feed-Karte für Talent-Angebote
- * FEED-GLOBAL-001 (2026-07-16) | TALENT-CLICK-001 (2026-07-16)
+ * TALENT-CLICK-002 (2026-07-16) — BaseFeedCard-konformes Layout
  *
- * Zeigt: Avatar, Name, Kategorie, Preis, Ort-Typ, Beschreibung, Bild
- * Karte anklicken → ContentPreviewSheet (identisch zu Work/Experience)
+ * Identischer Aufbau wie WorkContent/ExperienceContent/ImpactContent.
+ * Bild wird von BaseFeedCard.FeedMedia via item.media gerendert (kein eigenes).
+ * Karte anklicken → ContentPreviewSheet
  */
 import React from "react";
 import BaseFeedCard from "./BaseFeedCard.jsx";
@@ -11,7 +12,7 @@ import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
 
 const PURPLE      = "rgba(139,92,246,1)";
 const PURPLE_SOFT = "rgba(139,92,246,0.10)";
-const INK         = "rgba(26,26,46,0.85)";
+const INK         = "#1A1A2E";
 const INK_SUB     = "rgba(26,26,46,0.45)";
 
 function fmtPrice(ph, ps, currency = "EUR") {
@@ -22,10 +23,9 @@ function fmtPrice(ph, ps, currency = "EUR") {
 }
 
 function locLabel(t) {
-  if (t === "online")  return "Online";
-  if (t === "local")   return "Vor Ort";
-  if (t === "flexible" || t === "flexibel") return "Flexibel";
-  return t || "Flexibel";
+  if (t === "online")   return "Online";
+  if (t === "local")    return "Vor Ort";
+  return "Flexibel";
 }
 
 export default function TalentContent({ item, onProfile, onReaction, onShare }) {
@@ -37,12 +37,10 @@ export default function TalentContent({ item, onProfile, onReaction, onShare }) 
   const category = raw.category || "";
   const locType  = raw.location_type || null;
   const price    = fmtPrice(raw.price_per_hour, raw.price_per_session, raw.currency);
-  const img      = raw.images?.[0] || null;
 
   const { open } = useContentPreview();
   const handleCardClick = () => open({
     ...item,
-    // Talente haben keine eigene Detail-Route — Sheet zeigt alle Infos
     canOpenFull: false,
   });
 
@@ -54,22 +52,22 @@ export default function TalentContent({ item, onProfile, onReaction, onShare }) 
       onShare={onShare}
       onCardClick={handleCardClick}
     >
-      {/* Titelbild */}
-      {img && (
-        <div style={{ margin:"0 0 10px", borderRadius:14, overflow:"hidden",
-          width:"100%", paddingTop:"52%", position:"relative",
-          background:"rgba(26,26,46,0.04)" }}>
-          <img src={img} alt={title} loading="lazy" decoding="async"
-            style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }}
-            onError={e => { e.currentTarget.parentElement.style.display="none"; }}
-          />
-        </div>
+      {/* Beschreibung */}
+      {desc && (
+        <p style={{ margin:"0 0 10px", fontSize:13.5, fontWeight:400,
+          color:"rgba(26,26,46,0.65)", lineHeight:1.55,
+          overflow:"hidden", display:"-webkit-box",
+          WebkitLineClamp:3, WebkitBoxOrient:"vertical" }}>
+          {desc}
+        </p>
       )}
 
-      {/* Badge + Titel + CTA-Zeile */}
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
-        gap:10, flexWrap:"nowrap", marginBottom: locType || price ? 6 : 0 }}>
-        {/* Links: Badge + Titel */}
+      {/* Badge + Titel + Preis — identische Struktur wie Work/Experience */}
+      <div style={{
+        display:"flex", alignItems:"center", justifyContent:"space-between",
+        gap:10, flexWrap:"nowrap",
+        marginBottom: (locType || category) ? 6 : 0,
+      }}>
         <div style={{ display:"flex", alignItems:"center", gap:8, minWidth:0, flex:1 }}>
           <span style={{
             flexShrink:0,
@@ -87,38 +85,30 @@ export default function TalentContent({ item, onProfile, onReaction, onShare }) 
             }}>{title}</span>
           )}
         </div>
-      </div>
-
-      {/* Beschreibung */}
-      {desc && (
-        <p style={{ margin:"6px 0 8px", fontSize:13.5, color:INK_SUB, lineHeight:1.55,
-          overflow:"hidden", display:"-webkit-box",
-          WebkitLineClamp:3, WebkitBoxOrient:"vertical" }}>
-          {desc}
-        </p>
-      )}
-
-      {/* Footer: Ort + Kategorie + Preis */}
-      <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap", marginTop:4 }}>
-        {locType && (
-          <span style={{
-            fontSize:11, color:INK_SUB,
-            background:"rgba(26,26,46,0.05)", padding:"3px 9px", borderRadius:12,
-          }}>📍 {locLabel(locType)}</span>
-        )}
-        {category && (
-          <span style={{
-            fontSize:11, color:INK_SUB,
-            background:"rgba(26,26,46,0.05)", padding:"3px 9px", borderRadius:12,
-          }}>{category}</span>
-        )}
         {price && (
           <span style={{
+            flexShrink:0,
             fontSize:12, fontWeight:700, color:PURPLE,
-            marginLeft:"auto",
           }}>{price}</span>
         )}
       </div>
+
+      {/* Meta: Ort + Kategorie */}
+      {(locType || category) && (
+        <div style={{ display:"flex", alignItems:"center", gap:5, flexWrap:"wrap" }}>
+          {locType && (
+            <span style={{ fontSize:12.5, fontWeight:600, color:"rgba(139,92,246,0.8)" }}>
+              📍 {locLabel(locType)}
+            </span>
+          )}
+          {locType && category && (
+            <span style={{ fontSize:12, color:"rgba(26,26,46,0.28)" }}>·</span>
+          )}
+          {category && (
+            <span style={{ fontSize:12.5, color:INK_SUB }}>{category}</span>
+          )}
+        </div>
+      )}
     </BaseFeedCard>
   );
 }
