@@ -4,17 +4,18 @@
 
 import React, { useState } from "react";
 import { HUI } from "../../design/hui.design.js";
-import { formatPresence } from "../../lib/usePresence.js";
+import { chatOtherUserId, presenceDisplayFromRow } from "../../lib/usePresence.jsx";
 
 const C = { teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.55)" };
 
-export default function ChatHeader({ conv, onBack, onOpenProfile, onCloseChat, onRequestBooking }) {
+export default function ChatHeader({ conv, onBack, onOpenProfile, onCloseChat, onRequestBooking, presenceMap, currentUserId }) {
   const name           = conv?.name   || "Gespräch";
   const talent         = conv?.talent || conv?.type || "Kreative:r";
   const mood           = conv?.mood   || "Gerade kreativ im Studio";
   const avatar         = conv?.avatar_url;
   const initials       = name[0]?.toUpperCase() || "?";
-  const presence       = formatPresence(conv?.other_profile?.last_seen_at || conv?.last_seen_at);
+  const otherId        = chatOtherUserId(conv, currentUserId);
+  const presence       = presenceDisplayFromRow(otherId ? presenceMap?.[otherId] : null);
   const hasTalent      = !!(conv?.has_talent_profile);
   const [menuOpen, setMenuOpen] = useState(false);
 

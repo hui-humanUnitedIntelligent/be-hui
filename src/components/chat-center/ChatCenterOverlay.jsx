@@ -3,7 +3,7 @@
 // Wenn activeConv: zeige ConversationRoom. Sonst: zeige Liste.
 // Keine opacity-Tricks, keine doppelten Layer, keine Animation-Gates.
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import ChatAtmosphere  from "./ChatAtmosphere.jsx";
 import ConversationList from "./ConversationList.jsx";
 import ConversationRoom from "./ConversationRoom.jsx";
@@ -15,6 +15,7 @@ import { ProfileService } from '../../services/db';
 import { supabase } from "../../lib/supabaseClient.js";
 import PeopleSearch from "../discovery/PeopleSearch.jsx";
 import { HUI } from "../../design/hui.design.js";
+import { usePresenceMap, chatOtherUserId } from "../../lib/usePresence.jsx";
 
 const C = { teal: HUI.COLOR.teal, teal2: HUI.COLOR.tealDeep, ink: HUI.COLOR.ink, muted: "rgba(80,80,80,0.50)" };
 
@@ -47,7 +48,7 @@ function ComposeBtn({ onClick }) {
 }
 
 /* ── LIST PANEL ── */
-function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose, pendingRecipient, onOpenPending, connections }) {
+function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose, pendingRecipient, onOpenPending, connections, presenceMap, currentUserId }) {
   const [search, setSearch] = React.useState("");
   // iOS tap-through guard: ignoriere clicks auf ← in den ersten 400ms nach Mount
   const mountedAt = React.useRef(Date.now());
@@ -160,6 +161,8 @@ function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose
           onDiscover={onDiscoverClose}
           connections={connections || []}
           search={search}
+          presenceMap={presenceMap}
+          currentUserId={currentUserId}
         />
       </div>
     </div>
@@ -244,7 +247,19 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
     [rawChats, closedChatIds]
   );
 
+  const presenceUserIds = useMemo(() => {
+    if (!user?.id) return [];
+    const ids = new Set();
+    for (const c of chats) {
+      const oid = chatOtherUserId(c, user.id);
+      if (oid) ids.add(oid);
+    }
+    const activeOid = activeConv ? chatOtherUserId(activeConv, user.id) : null;
+    if (activeOid) ids.add(activeOid);
+    return [...ids];
+  }, [chats, activeConv, user?.id]);
 
+  const presenceMap = usePresenceMap(presenceUserIds);
 
   const [pendingRecipient, setPendingRecipient] = React.useState(initialRecipient || null);
 
@@ -354,6 +369,8 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
       <ConversationRoom
         conv={activeConv}
         onBack={() => setActiveConv(null)}
+        presenceMap={presenceMap}
+        currentUserId={user?.id}
         onOpenProfile={(conv) => {
           // user_id ist die Supabase Auth UUID des Gesprächspartners
           // conv.id ist die Chat-ID — NIEMALS als Profil-ID verwenden
@@ -407,6 +424,8 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
         <ConversationRoom
           conv={activeConv}
           onBack={() => setActiveConv(null)}
+          presenceMap={presenceMap}
+          currentUserId={user?.id}
           onOpenProfile={() => {}}
           onRequestBooking={() => {}}
           onCloseChat={() => {}}
@@ -471,6 +490,8 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
           pendingRecipient={pendingRecipient}
           onOpenPending={openPendingChat}
           connections={connections}
+          presenceMap={presenceMap}
+          currentUserId={user?.id}
         />
       )}
     </>
