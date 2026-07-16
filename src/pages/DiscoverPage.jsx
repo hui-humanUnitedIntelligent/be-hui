@@ -12,7 +12,7 @@ import {
 import React, { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
 import { useNavigate }   from "react-router-dom";
 import { supabase }      from "../lib/supabaseClient.js";
-import { formatPresence } from "../lib/usePresence.js";
+import { usePresenceMap, presenceDisplayFromRow } from "../lib/usePresence.jsx";
 import { useAuthGate }    from "../components/auth/AuthGate.jsx";
 import TalentAnfrageFlow  from "../components/talents/TalentAnfrageFlow.jsx";
 import TalentBookingFlow  from "../components/talents/TalentBookingFlow.jsx";
@@ -268,10 +268,10 @@ function personTags(person, max=2) {
   return [INTEREST_POOLS[start % INTEREST_POOLS.length], INTEREST_POOLS[(start+3) % INTEREST_POOLS.length]];
 }
 
-function PersonCard({ person, onPress, delay=0 }) {
+function PersonCard({ person, onPress, delay=0, presenceMap }) {
   const [imgErr, setImgErr] = useState(false);
   const av = (!imgErr && person.avatar) ? person.avatar : null;
-  const presence = formatPresence(person.last_seen_at);
+  const presence = presenceDisplayFromRow(presenceMap?.[person.id]);
   const tags = personTags(person, 2);
 
   return (
@@ -385,7 +385,7 @@ function PersonCard({ person, onPress, delay=0 }) {
   );
 }
 
-function PeopleSection({ people, onPersonPress, loading, delay=0, view='cards', onSectionAction }) {
+function PeopleSection({ people, onPersonPress, loading, delay=0, view='cards', onSectionAction, presenceMap }) {
   return (
     <div className="dp-in" style={{ animationDelay:`${delay}ms`, marginTop:10 }}>
       <div data-dp-people/>
@@ -411,7 +411,7 @@ function PeopleSection({ people, onPersonPress, loading, delay=0, view='cards', 
                 </div>
               ))
             : people.map((p, i) => (
-                <PersonCard key={p.id} person={p} onPress={onPersonPress} delay={i*40+delay} />
+                <PersonCard key={p.id} person={p} onPress={onPersonPress} delay={i*40+delay} presenceMap={presenceMap} />
               ))
           }
         </div>
@@ -1761,7 +1761,6 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
             location:     safeStr(p.location_label), // Identity Contract v1.0
             avatar:       safeStr(p.avatar_url),
             impact:       safeNum(p.impact_eur, 0),
-            last_seen_at: null, // last_seen_at nicht im Identity Contract
             interests:    [], // dna_tags/skills nicht im Identity Contract
           })));
         }
@@ -1989,6 +1988,17 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   // ── People: DB oder Seed ─────────────────────────────────────
   const filteredPeople = people.length > 0 ? people : SEED_PEOPLE;
 
+  const presenceUserIds = useMemo(() => {
+    const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return [...new Set(
+      filteredPeople
+        .map(p => p.id)
+        .filter(id => id && uuidRe.test(String(id)))
+    )];
+  }, [filteredPeople]);
+
+  const presenceMap = usePresenceMap(presenceUserIds);
+
   const displayMomente    = momente.length > 0 ? momente : SEED_MOMENTE;
   const navigate           = useNavigate();
   const { open: openPreview } = useContentPreview(); // OPEN.1 2026-07-08
@@ -2154,6 +2164,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         delay={60}
         view={view}
         onSectionAction={makeScrollHandler("[data-dp-people]")}
+        presenceMap={presenceMap}
       />
 
       {/* ── 4. Momente aus deiner Nähe ── */}

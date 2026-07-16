@@ -1,7 +1,8 @@
 // src/lib/usePresence.js
 // ══════════════════════════════════════════════════════════════
-// HUI Presence System — Phase 1
-// Tracking: App-Start, Foreground-Return, Heartbeat alle 60s
+// HUI Presence System — profiles.last_seen_at (Legacy-UI-Read)
+// Sprint 8 Phase 2: user_presence Write → usePresence.jsx (PresenceRuntime)
+// UI liest weiterhin profiles.last_seen_at via formatPresence (unverändert)
 // ══════════════════════════════════════════════════════════════
 
 import { useEffect, useRef } from "react";
@@ -23,29 +24,23 @@ export function formatPresence(last_seen_at) {
   };
 }
 
-// ── usePresence — Activity Tracking Hook ──────────────────────
-// Nur für den eingeloggten User. Kein Polling für fremde User.
+// ── usePresence — profiles.last_seen_at Write (UI-Read-Pfad) ──
 export function usePresence(userId) {
   const heartbeatRef = useRef(null);
-
-  async function ping() {
-    if (!userId) return;
-    await supabase
-      .from("profiles")
-      .update({ last_seen_at: new Date().toISOString() })
-      .eq("id", userId);
-  }
 
   useEffect(() => {
     if (!userId) return;
 
-    // App-Start
-    ping();
+    async function ping() {
+      await supabase
+        .from("profiles")
+        .update({ last_seen_at: new Date().toISOString() })
+        .eq("id", userId);
+    }
 
-    // Heartbeat alle 60 Sekunden
+    ping();
     heartbeatRef.current = setInterval(ping, 60_000);
 
-    // Foreground-Return (Visibility API)
     function onVisible() {
       if (document.visibilityState === "visible") ping();
     }

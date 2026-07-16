@@ -25,6 +25,7 @@ import ProfileLauncher           from "../components/home/profile/ProfileLaunche
 import UnifiedFeed from "../feed/UnifiedFeed.jsx";
 import { shareContent } from "../lib/shareContent.js"; // SHARE.1 2026-07-09
 import { usePresence }             from "../lib/usePresence.js";
+import PresenceRuntime             from "../lib/PresenceRuntime.jsx";
 import { StoryViewer }           from "../components/StoryBar.jsx";
 import ChatCenterOverlay          from "../components/chat-center/ChatCenterOverlay.jsx";
 import { useChatList }             from "../lib/chatContext.js";
@@ -289,7 +290,9 @@ function HomeInner() {
   return (
     <>
       <style>{GLOBAL_CSS + SAFE_MOTION_CSS}</style>
-
+      {currentUser?.id && (
+        <PresenceRuntime userId={currentUser.id} currentPage="home" />
+      )}
 
       {/* ── Haupt-Layout: Header → Feed → HUIBottomNavigation ─── */}
       <div style={{
