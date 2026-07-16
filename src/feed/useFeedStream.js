@@ -426,7 +426,9 @@ export function useFeedStream() {
       setItems(prev => {
         const existingIds = new Set(prev.map(i => i.id));
         const deduped = nextItems.filter(i => !existingIds.has(i.id));
-        return [...prev, ...deduped];
+        const merged = [...prev, ...deduped];
+        // VIRT-MEM-001: Hard-Cap bei 200 Items — älteste (hintere) trimmen
+        return merged.length > 200 ? merged.slice(0, 200) : merged;
       });
       cursorRef.current = nextCursors;
       setHasMore(more);
@@ -443,7 +445,9 @@ export function useFeedStream() {
       setItems(prev => {
         const existingIds = new Set(prev.map(i => i.id));
         const deduped = nextItems.filter(i => !existingIds.has(i.id));
-        return [...prev, ...deduped];
+        const merged = [...prev, ...deduped];
+        // VIRT-MEM-001: Hard-Cap bei 200 Items — älteste (hintere) trimmen
+        return merged.length > 200 ? merged.slice(0, 200) : merged;
       });
       cursorRef.current = nextCursors;
       setHasMore(more);

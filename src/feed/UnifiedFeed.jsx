@@ -9,6 +9,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import FeedRouter              from "./cards/FeedRouter.jsx";
 import { CardSkeleton }        from "./cards/BaseFeedCard.jsx";
 import { useFeedStream }       from "./useFeedStream.js";
@@ -480,8 +481,11 @@ function ReactionCard({ item, onProfile, onBook, onDetail, onShare, itemIndex, o
   );
 }
 
-function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loadMore, hasMore, loadingMore, onDiscover }) {
-  // per-item reaction is handled in ReactionCard wrapper below
+function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loadMore, hasMore, loadingMore, onDiscover, scrollContainerRef = null }) {
+  // VIRT-001 — Virtualisierter Feed mit @tanstack/react-virtual
+  // Rendert nur Karten die im Viewport (+ 400px Margin) sichtbar sind.
+  // Memory-Cleanup: Karten außerhalb DOM werden unmounted (overscan=3).
+
   const arr = useMemo(() => {
     if (!Array.isArray(items)) return [];
     const valid = items.filter(i => i && typeof i === "object" && i.id);
@@ -494,16 +498,15 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
 
   // FEED.12C — Scroll Depth Analytics
   const { user: depthUser } = useAuth();
-  const depthRef    = useRef(0);           // max sichtbarer 1-basierter Index
-  const sentRef     = useRef(new Set());   // gesendete Schwellen {5,10,20}
-  const endSentRef  = useRef(false);       // feed_end_reached gesendet?
-
+  const depthRef   = useRef(0);
+  const sentRef    = useRef(new Set());
+  const endSentRef = useRef(false);
   const DEPTH_THRESHOLDS = [5, 10, 20];
 
   const onDepth = useCallback((zeroBasedIdx) => {
     if (!depthUser?.id) return;
-    const reached = zeroBasedIdx + 1; // 1-basiert
-    if (reached <= depthRef.current) return; // schon gesehen
+    const reached = zeroBasedIdx + 1;
+    if (reached <= depthRef.current) return;
     depthRef.current = reached;
     for (const threshold of DEPTH_THRESHOLDS) {
       if (reached >= threshold && !sentRef.current.has(threshold)) {
@@ -517,7 +520,6 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
     }
   }, [depthUser?.id]); // eslint-disable-line
 
-  // Feed-Ende: einmalig senden wenn !hasMore + Karten vorhanden
   useEffect(() => {
     if (!hasMore && arr.length > 0 && !endSentRef.current && depthUser?.id) {
       endSentRef.current = true;
@@ -529,22 +531,98 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
     }
   }, [hasMore, arr.length, depthUser?.id]); // eslint-disable-line
 
+  // VIRT-001: Virtualisierter Container — scrollt im Window (nicht einem Sub-Div)
+  const parentRef = useRef(null);
+
+  // Dynamische Schätzhöhe: Karten haben unterschiedliche Höhen je nach Typ
+  const estimateSize = useCallback((idx) => {
+    const item = arr[idx];
+    if (!item) return 280;
+    const t = item.type || item._raw?.type || "moment";
+    if (t === "experience") return 360;
+    if (t === "work")       return 340;
+    if (t === "talent")     return 300;
+    if (t === "impact")     return 280;
+    return 240; // moment/beitrag
+  }, [arr]);
+
+  const rowVirtualizer = useVirtualizer({
+    count:       arr.length + (hasMore ? 1 : 0), // +1 für Pagination-Sentinel
+    getScrollElement: () => {
+      // Nutze explizit übergebenen Scroll-Container (hui-scroll div in Home.jsx)
+      // Fallback: document.scrollingElement für andere Kontexte
+      return scrollContainerRef?.current || document.scrollingElement || document.documentElement;
+    },
+    estimateSize,
+    overscan:    3,   // 3 Karten über/unter Viewport vorhalten → Memory-efficient
+    scrollMargin: parentRef.current?.offsetTop ?? 0,
+  });
+
   if (arr.length === 0) return <EmptyFeed />;
+
+  const virtualItems = rowVirtualizer.getVirtualItems();
+
   return (
-    <div style={{ paddingTop: 8, paddingBottom: 100 }}>
-      {arr.map((item, idx) => {
-        const { isRelaxed, mb } = getCardRhythm(idx);
-        const itemReactions = reactions[String(item.id)] || {};
-        return (
-          <div
-            key={String(item.id)}
-            className="hui-feed-card"
-            style={{
-              marginBottom: mb,
-              animationDelay: Math.min(idx * 40, 300) + "ms",
-            }}
-          >
-            <ReactionCard
+    <div
+      ref={parentRef}
+      style={{ paddingTop: 8, paddingBottom: 8, position: "relative" }}
+    >
+      {/* Virtualisierter Container — Gesamthöhe reserviert */}
+      <div
+        style={{
+          height:   rowVirtualizer.getTotalSize(),
+          width:    "100%",
+          position: "relative",
+        }}
+      >
+        {virtualItems.map((virtualRow) => {
+          // Letztes Element = Pagination-Sentinel
+          if (virtualRow.index === arr.length) {
+            return (
+              <div
+                key="pagination-sentinel"
+                data-index={virtualRow.index}
+                ref={rowVirtualizer.measureElement}
+                style={{
+                  position:  "absolute",
+                  top:       0,
+                  left:      0,
+                  width:     "100%",
+                  transform: `translateY(${virtualRow.start - (rowVirtualizer.options.scrollMargin ?? 0)}px)`,
+                  paddingBottom: 100,
+                }}
+              >
+                <FeedLoadMoreSpinner loading={!!loadingMore} />
+                <FeedBottomSentinel
+                  enabled={!!hasMore && !loadingMore}
+                  onVisible={loadMore}
+                />
+              </div>
+            );
+          }
+
+          const item        = arr[virtualRow.index];
+          const idx         = virtualRow.index;
+          const { isRelaxed, mb } = getCardRhythm(idx);
+          const itemReactions = reactions[String(item.id)] || {};
+
+          return (
+            <div
+              key={String(item.id)}
+              data-index={virtualRow.index}
+              ref={rowVirtualizer.measureElement}
+              className="hui-feed-card"
+              style={{
+                position:  "absolute",
+                top:       0,
+                left:      0,
+                width:     "100%",
+                transform: `translateY(${virtualRow.start - (rowVirtualizer.options.scrollMargin ?? 0)}px)`,
+                marginBottom: mb,
+                animationDelay: Math.min(idx * 40, 300) + "ms",
+              }}
+            >
+              <ReactionCard
                 item={{ ...item, _reactions: { ...itemReactions, _relaxed: isRelaxed } }}
                 onProfile={onProfile}
                 onBook={onBook}
@@ -553,77 +631,49 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
                 itemIndex={idx}
                 onDepth={onDepth}
               />
-          </div>
-        );
-      })}
-      {/* ── Pagination: Sentinel + Spinner (solange hasMore) ── */}
-      <FeedLoadMoreSpinner loading={!!loadingMore} />
-      <FeedBottomSentinel
-        enabled={!!hasMore && !loadingMore}
-        onVisible={loadMore}
-      />
+            </div>
+          );
+        })}
+      </div>
 
-      {/* ── FEED.11B — Feed-Ende State ── */}
+      {/* Feed-Ende State (wenn kein hasMore mehr) */}
       {!hasMore && arr.length > 0 && (
         <div style={{
-          display:        "flex",
-          flexDirection:  "column",
-          alignItems:     "center",
-          textAlign:      "center",
-          padding:        "32px 24px 48px",
-          gap:            12,
+          display:       "flex",
+          flexDirection: "column",
+          alignItems:    "center",
+          textAlign:     "center",
+          padding:       "32px 24px 48px",
+          gap:           12,
         }}>
-          {/* Dekoratives Symbol */}
-          <div style={{
-            fontSize:    18,
-            color:       "rgba(13,196,181,0.55)",
-            marginBottom: 4,
-            letterSpacing: 2,
-          }}>
-            ✦
-          </div>
-
-          {/* Haupttext */}
-          <div style={{
-            fontSize:   14,
-            fontWeight: 600,
-            color:      "rgba(26,53,48,0.70)",
-            letterSpacing: -0.2,
-          }}>
+          <div style={{ fontSize: 18, color: "rgba(13,196,181,0.55)", marginBottom: 4, letterSpacing: 2 }}>✦</div>
+          <div style={{ fontSize: 14, fontWeight: 600, color: "rgba(26,53,48,0.70)", letterSpacing: -0.2 }}>
             Das war dein aktueller Feed
           </div>
-
-          {/* Subtext */}
-          <div style={{
-            fontSize:   12.5,
-            color:      "rgba(26,53,48,0.40)",
-            fontWeight: 400,
-            maxWidth:   220,
-            lineHeight: 1.5,
-          }}>
-            Neue Talente und Erlebnisse warten auf dich.
+          <div style={{ fontSize: 12.5, color: "rgba(26,53,48,0.40)", fontWeight: 400, lineHeight: 1.5, maxWidth: 220 }}>
+            Schau später wieder rein — neue Werke, Erlebnisse und Momente warten auf dich.
           </div>
-
-          {/* Discovery CTA */}
-          <button
-            onClick={() => onDiscover?.()}
-            style={{
-              marginTop:    8,
-              padding:      "10px 22px",
-              borderRadius: 20,
-              border:       "1.5px solid rgba(13,196,181,0.35)",
-              background:   "rgba(13,196,181,0.06)",
-              color:        "#0DC4B5",
-              fontSize:     13,
-              fontWeight:   600,
-              cursor:       "pointer",
-              letterSpacing: -0.1,
-              touchAction:  "manipulation",
-              WebkitTapHighlightColor: "transparent",
-            }}
-          >
-            Neue Talente entdecken →
-          </button>
+          {onDiscover && (
+            <button
+              onClick={onDiscover}
+              style={{
+                marginTop:   8,
+                padding:     "9px 20px",
+                borderRadius: 20,
+                border:      "1.5px solid rgba(13,196,181,0.35)",
+                background:  "transparent",
+                color:       "rgba(13,196,181,0.85)",
+                fontSize:    13,
+                fontWeight:  600,
+                cursor:      "pointer",
+                letterSpacing: -0.1,
+                touchAction: "manipulation",
+                WebkitTapHighlightColor: "transparent",
+              }}
+            >
+              Neue Talente entdecken →
+            </button>
+          )}
         </div>
       )}
     </div>
@@ -673,6 +723,8 @@ export default function UnifiedFeed({
   onDiscover   = null,
   // User context
   currentUser  = null,
+  // Scroll-Container-Ref (von Home.jsx übergeben) — für Virtualisierung
+  scrollContainerRef = null,
 }) {
   useEffect(() => {
     injectFeedCSS();
@@ -810,6 +862,7 @@ export default function UnifiedFeed({
             hasMore={hasMore}
             loadingMore={loadingMore}
             onDiscover={onDiscover}
+            scrollContainerRef={scrollContainerRef}
           />
         )}
       </SectionBoundary>

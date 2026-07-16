@@ -138,15 +138,26 @@ export function rhythmizeFeed(rawItems) {
   }
 
   // R7: Mindestens 1 Moment am Anfang (sanfter Einstieg)
-  // — stelle sicher dass item[0] oder item[1] ein Moment ist
+  // FIX-R7: Nur Moment vorziehen wenn er NICHT wesentlich älter als die erste Experience ist.
+  // Alten Moment (z.B. 6 Wochen alt) vor eine neue Experience zu schieben zerstört die Zeitsortierung.
+  // Schwellwert: max. 3 Tage älter als die erste Experience erlaubt.
   const firstExp = items.findIndex(i => resolveContentType(i) === "experience");
   if (firstExp === 0 && items.length > 1) {
-    // Suche ersten Moment und stelle ihn voran
-    const firstMoment = items.findIndex(i => resolveContentType(i) === "moment");
+    const firstExpTs = items[0]?._sortKey || (items[0]?._raw?.created_at ? new Date(items[0]._raw.created_at).getTime() : 0);
+    const MAX_OLDER_MS = 3 * 24 * 60 * 60 * 1000; // 3 Tage
+    // Suche ersten Moment der zeitlich nah genug ist
+    const firstMoment = items.findIndex((item, idx) => {
+      if (idx === 0) return false;
+      if (resolveContentType(item) !== "moment") return false;
+      if (item._isGhost) return true; // Ghost-Moments immer erlaubt
+      const itemTs = item._sortKey || (item._raw?.created_at ? new Date(item._raw.created_at).getTime() : 0);
+      return (firstExpTs - itemTs) <= MAX_OLDER_MS; // max 3 Tage älter
+    });
     if (firstMoment > 0) {
       const [m] = items.splice(firstMoment, 1);
       items.unshift(m);
     }
+    // Kein passender Moment gefunden → R7 nicht erzwingen (Zeitsortierung hat Vorrang)
   }
 
   // Queues pro Typ (in Originalreihenfolge)
