@@ -19,6 +19,7 @@ import { ProfileService } from '../services/db';
 import { supabase }        from "../lib/supabaseClient.js";
 import { useAuth }         from "../lib/AuthContext.jsx";
 import { rhythmizeFeed }   from "./feedRhythmEngine.js";
+import { cachedQuery, CACHE_TTL } from "../lib/perfUtils.js";
 import {
   normalizeMomentRow     as normalizeBeitragRow,
   normalizeExperienceRow,
@@ -384,7 +385,11 @@ export function useFeedStream() {
 
     setLoading(true);
     try {
-      const { items: newItems, nextCursors, hasMore: more } = await fetchFeedPage(userId);
+      const { items: newItems, nextCursors, hasMore: more } = await cachedQuery(
+        `feed:initial:${userId || "anon"}`,
+        () => fetchFeedPage(userId),
+        CACHE_TTL.feed
+      );
       if (!mountedRef.current) return;
       cursorRef.current = nextCursors;
       setHasMore(more);

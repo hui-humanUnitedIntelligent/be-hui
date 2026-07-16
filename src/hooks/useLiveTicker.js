@@ -44,6 +44,7 @@
 // ══════════════════════════════════════════════════════════════════
 import { useEffect, useRef, useState, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient.js";
+import { cachedQuery, CACHE_TTL, safeQuery } from "../lib/perfUtils.js";
 
 const REFRESH_INTERVAL_MS = 60_000;
 const PER_SOURCE_LIMIT    = 5;
@@ -63,12 +64,18 @@ async function safe(promise) {
   }
 }
 
+function tickerQuery(key, buildQuery) {
+  return cachedQuery(key, () => safeQuery(buildQuery()), CACHE_TTL.feed);
+}
+
 async function fetchWorks() {
   const rows = await safe(
-    supabase.from("works")
-      .select("id,title,created_at")
-      .eq("status", "published").eq("approval_status", "approved")
-      .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
+    tickerQuery("ticker:works:recent5", () =>
+      supabase.from("works")
+        .select("id,title,created_at")
+        .eq("status", "published").eq("approval_status", "approved")
+        .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
+    )
   );
   return rows.map(w => ({
     id: `work_${w.id}`, createdAt: w.created_at,
@@ -79,10 +86,12 @@ async function fetchWorks() {
 
 async function fetchExperiences() {
   const rows = await safe(
-    supabase.from("experiences")
-      .select("id,title,created_at")
-      .eq("status", "published").eq("approval_status", "approved")
-      .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
+    tickerQuery("ticker:experiences:recent5", () =>
+      supabase.from("experiences")
+        .select("id,title,created_at")
+        .eq("status", "published").eq("approval_status", "approved")
+        .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
+    )
   );
   return rows.map(e => ({
     id: `exp_${e.id}`, createdAt: e.created_at,
@@ -93,9 +102,11 @@ async function fetchExperiences() {
 
 async function fetchImpactProjects() {
   const rows = await safe(
-    supabase.from("impact_projects")
-      .select("id,name,created_at")
-      .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
+    tickerQuery("ticker:impact_projects:recent5", () =>
+      supabase.from("impact_projects")
+        .select("id,name,created_at")
+        .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
+    )
   );
   return rows.map(p => ({
     id: `impact_${p.id}`, createdAt: p.created_at,
@@ -106,10 +117,12 @@ async function fetchImpactProjects() {
 
 async function fetchConnections() {
   const rows = await safe(
-    supabase.from("connections")
-      .select("id,title,created_at")
-      .eq("visibility", "public").eq("status", "active")
-      .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
+    tickerQuery("ticker:connections:recent5", () =>
+      supabase.from("connections")
+        .select("id,title,created_at")
+        .eq("visibility", "public").eq("status", "active")
+        .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
+    )
   );
   return rows.map(c => ({
     id: `conn_${c.id}`, createdAt: c.created_at,
@@ -120,10 +133,12 @@ async function fetchConnections() {
 
 async function fetchRecommendations() {
   const rows = await safe(
-    supabase.from("recommendations")
-      .select("id,created_at,to_profile:profiles!recommendations_to_user_id_fkey(display_name)")
-      .eq("is_public", true)
-      .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
+    tickerQuery("ticker:recommendations:recent5", () =>
+      supabase.from("recommendations")
+        .select("id,created_at,to_profile:profiles!recommendations_to_user_id_fkey(display_name)")
+        .eq("is_public", true)
+        .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
+    )
   );
   return rows
     .filter(r => esc(r.to_profile?.display_name))
@@ -140,10 +155,12 @@ async function fetchRecommendations() {
 // um nicht fuer jeden post_type eine eigene Join-Query zu brauchen.
 async function fetchResonance() {
   const rows = await safe(
-    supabase.from("post_reactions")
-      .select("id,post_id,post_type,created_at")
-      .eq("type", "inspire")
-      .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
+    tickerQuery("ticker:post_reactions:inspire5", () =>
+      supabase.from("post_reactions")
+        .select("id,post_id,post_type,created_at")
+        .eq("type", "inspire")
+        .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
+    )
   );
   if (!rows.length) return [];
 
@@ -151,7 +168,9 @@ async function fetchResonance() {
   let titleById = {};
   if (workIds.length) {
     const works = await safe(
-      supabase.from("works").select("id,title").in("id", workIds)
+      tickerQuery(`ticker:works:titles:${[...workIds].sort().join(",")}`, () =>
+        supabase.from("works").select("id,title").in("id", workIds)
+      )
     );
     titleById = Object.fromEntries(works.map(w => [w.id, w.title]));
   }
@@ -174,15 +193,19 @@ async function fetchResonance() {
 // Projekt, das die Unterstuetzung erhalten hat.
 async function fetchProjectSupport() {
   const rows = await safe(
-    supabase.from("project_support")
-      .select("id,project_id,created_at")
-      .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
+    tickerQuery("ticker:project_support:recent5", () =>
+      supabase.from("project_support")
+        .select("id,project_id,created_at")
+        .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
+    )
   );
   if (!rows.length) return [];
 
   const projectIds = [...new Set(rows.map(r => r.project_id))];
   const projects = await safe(
-    supabase.from("impact_projects").select("id,name").in("id", projectIds)
+    tickerQuery(`ticker:impact_projects:names:${[...projectIds].sort().join(",")}`, () =>
+      supabase.from("impact_projects").select("id,name").in("id", projectIds)
+    )
   );
   const nameById = Object.fromEntries(projects.map(p => [p.id, p.name]));
 
@@ -197,10 +220,12 @@ async function fetchProjectSupport() {
 
 async function fetchWirker() {
   const rows = await safe(
-    supabase.from("wirker")
-      .select("id,name,talent,created_at")
-      .eq("verified", true)
-      .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
+    tickerQuery("ticker:wirker:verified5", () =>
+      supabase.from("wirker")
+        .select("id,name,talent,created_at")
+        .eq("verified", true)
+        .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
+    )
   );
   return rows
     .filter(w => esc(w.name))
@@ -218,10 +243,12 @@ async function fetchWirker() {
 // daher unbedenklich.
 async function fetchWorkSales() {
   const rows = await safe(
-    supabase.from("work_sales")
-      .select("id,created_at,work_id,work:work_id(title)")
-      .eq("payment_status", "completed")
-      .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
+    tickerQuery("ticker:work_sales:completed5", () =>
+      supabase.from("work_sales")
+        .select("id,created_at,work_id,work:work_id(title)")
+        .eq("payment_status", "completed")
+        .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
+    )
   );
   return rows.map(s => ({
     id: `sale_${s.id}`, createdAt: s.created_at,
@@ -234,10 +261,12 @@ async function fetchWorkSales() {
 
 async function fetchExperienceBookings() {
   const rows = await safe(
-    supabase.from("experience_bookings")
-      .select("id,created_at,booking_status,experience_id,experience:experience_id(title)")
-      .in("booking_status", ["confirmed", "completed"])
-      .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
+    tickerQuery("ticker:experience_bookings:confirmed5", () =>
+      supabase.from("experience_bookings")
+        .select("id,created_at,booking_status,experience_id,experience:experience_id(title)")
+        .in("booking_status", ["confirmed", "completed"])
+        .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
+    )
   );
   return rows.map(b => ({
     id: `booking_${b.id}`, createdAt: b.created_at,

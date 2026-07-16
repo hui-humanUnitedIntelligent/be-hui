@@ -15,6 +15,7 @@ import React, {
 } from "react";
 import { supabase }  from "./supabaseClient";
 import { useAuth }   from "./AuthContext";
+import { cachedQuery, CACHE_TTL } from "./perfUtils";
 
 // ── Context ───────────────────────────────────────────────────────
 const AppStateContext = createContext(null);
@@ -53,11 +54,15 @@ export function AppStateProvider({ children }) {
     if (!user?.id) return;
     try {
       console.log("[BADGE USER]", user?.id);
-      const { count, error } = await supabase
-        .from("notifications")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", user.id)
-        .eq("is_read", false);
+      const { count, error } = await cachedQuery(
+        `notif:unread:${user.id}`,
+        () => supabase
+          .from("notifications")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id)
+          .eq("is_read", false),
+        CACHE_TTL.notifications
+      );
       console.log("[BADGE COUNT]", count);
       console.log("[BADGE ERROR]", error);
       setUnreadNotifCount(count || 0);
@@ -85,11 +90,14 @@ export function AppStateProvider({ children }) {
 
   useEffect(() => {
     if (!user?.id) return;
-    supabase
-      .from("follows")
-      .select("followed_id")
-      .eq("follower_id", user.id)
-      .then(({ data }) => {
+    cachedQuery(
+      `follows:list:${user.id}`,
+      () => supabase
+        .from("follows")
+        .select("followed_id")
+        .eq("follower_id", user.id),
+      CACHE_TTL.profiles
+    ).then(({ data }) => {
         if (data && Array.isArray(data)) setFollowedIds((data).filter(r=>r&&r.followed_id).map(r => r.followed_id));
       })
       .catch(() => {}); // silent

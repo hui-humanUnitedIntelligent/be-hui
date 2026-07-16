@@ -22,6 +22,7 @@ import { analyticsService }    from "../services/creatorEconomy.js";
 import { emit }                from "../lib/events/index.js";
 import { toast }               from "../lib/useToast.jsx";
 import { usePresenceMap }      from "../lib/usePresence.jsx";
+import { cachedQuery, CACHE_TTL } from "../lib/perfUtils.js";
 
 
 /* ═══════════════════════════════════════════════════════════════
@@ -53,17 +54,21 @@ function useHeuteStats() {
         const iso = today.toISOString();
 
         const [worksRes, expRes, membersRes, recentMember] = await Promise.all([
-          supabase.from("works").select("id", { count: "exact", head: true })
-            .gte("created_at", iso),
-          supabase.from("experiences").select("id", { count: "exact", head: true })
-            .gte("created_at", iso),
-          supabase.from("profiles").select("id", { count: "exact", head: true })
-            .gte("created_at", iso),
-          supabase.from("profiles")
-            .select("display_name, username, city")
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .single(),
+          cachedQuery(`heute:works_count:${iso}`, () =>
+            supabase.from("works").select("id", { count: "exact", head: true })
+              .gte("created_at", iso), CACHE_TTL.feed),
+          cachedQuery(`heute:experiences_count:${iso}`, () =>
+            supabase.from("experiences").select("id", { count: "exact", head: true })
+              .gte("created_at", iso), CACHE_TTL.feed),
+          cachedQuery(`heute:members_count:${iso}`, () =>
+            supabase.from("profiles").select("id", { count: "exact", head: true })
+              .gte("created_at", iso), CACHE_TTL.feed),
+          cachedQuery("heute:recent_member", () =>
+            supabase.from("profiles")
+              .select("display_name, username, city")
+              .order("created_at", { ascending: false })
+              .limit(1)
+              .single(), CACHE_TTL.feed),
         ]);
 
         if (cancelled) return;

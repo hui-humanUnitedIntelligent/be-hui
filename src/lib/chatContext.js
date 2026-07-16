@@ -22,6 +22,27 @@ import { supabase } from "./supabaseClient";
 import { logDebug } from "./debugCollector.js";
 import { notifyMessage } from "./notificationService";
 import { useAuth } from "./AuthContext";
+import { cachedQuery, CACHE_TTL, safeQuery } from "./perfUtils.js";
+
+async function fetchChatListRows(userId) {
+  return cachedQuery(
+    `chats:list:${userId}`,
+    () => safeQuery(
+      supabase
+        .from("chats")
+        .select(`
+          id, state, booking_title,
+          last_message, last_message_at,
+          opened_at, booking_id,
+          participant_ids
+        `)
+        .contains("participant_ids", [userId])
+        .order("last_message_at", { ascending: false, nullsFirst: false })
+        .limit(50)
+    ),
+    CACHE_TTL.discover
+  );
+}
 
 // ────────────────────────────────────────────────────────────────
 // Konstanten
@@ -103,19 +124,7 @@ export function useChatList(instanceId = "default") {
     }
     try {
       // SELECT nur existierende Spalten (verifiziert 2026-06-01)
-      const { data: rawChats, error: chatError } = await supabase
-        .from("chats")
-        .select(`
-          id, state, booking_title,
-          last_message, last_message_at,
-          opened_at, booking_id,
-          participant_ids
-        `)
-        // participant_ids ist uuid[] → cs. (contains) prüft ob user.id enthalten
-        .contains("participant_ids", [user.id])
-        // state-Filter bewusst entfernt — akzeptiere alle states
-        .order("last_message_at", { ascending: false, nullsFirst: false })
-        .limit(50);
+      const { data: rawChats, error: chatError } = await fetchChatListRows(user.id);
 
       console.log("[CHATLIST_QUERY]", {
         userId: user.id,

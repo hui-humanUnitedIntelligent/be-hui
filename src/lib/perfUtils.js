@@ -60,8 +60,9 @@ export function normalizeProfile(raw) {
 // ── Legacy Exports (von db.js, content.js, discovery/index.js benötigt) ──────
 export const PAGE_SIZE = 20;
 
-// Query-Cache (in-memory)
+// Query-Cache (in-memory) + in-flight promise sharing (Sprint 13 Phase 4)
 const _queryCache = new Map();
+const _inflight   = new Map();
 
 export async function safeQuery(fn) {
   try {
@@ -76,13 +77,28 @@ export async function safeQuery(fn) {
 
 export async function cachedQuery(key, fn, ttl = 30_000) {
   const now = Date.now();
-  const cached = _queryCache.get(key);
-  if (cached && now - cached.ts < ttl) return cached.data;
-  const result = await fn();
-  if (!result?.error) {
-    _queryCache.set(key, { data: result, ts: now });
+  if (ttl > 0) {
+    const cached = _queryCache.get(key);
+    if (cached && now - cached.ts < ttl) return cached.data;
   }
-  return result;
+
+  const pending = _inflight.get(key);
+  if (pending) return pending;
+
+  const promise = (async () => {
+    try {
+      const result = await fn();
+      if (!result?.error) {
+        _queryCache.set(key, { data: result, ts: Date.now() });
+      }
+      return result;
+    } finally {
+      _inflight.delete(key);
+    }
+  })();
+
+  _inflight.set(key, promise);
+  return promise;
 }
 
 export function clearQueryCache(keyPrefix) {

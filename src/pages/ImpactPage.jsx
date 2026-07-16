@@ -16,6 +16,7 @@ import ImpactFlow from "../system/flows/impact/ImpactFlow.jsx";
 import ImpactProjektUpdateSheet from "../components/studio/ImpactProjektUpdateSheet.jsx";
 import { useAuth } from "../lib/AuthContext";
 import { isProfileTalent } from "../lib/profileUtils.js";
+import { cachedQuery, CACHE_TTL, safeQuery } from "../lib/perfUtils.js";
 
 // ── Helpers ──────────────────────────────────────────────────
 const safeArr = (v) => Array.isArray(v) ? v : [];
@@ -101,17 +102,22 @@ function useHeroStats() {
       try {
         const now     = new Date();
         const msStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+        const month   = now.toISOString().slice(0, 7);
         const [wRes, eRes, bRes, rRes] = await Promise.allSettled([
-          supabase.from("bookings").select("id", { count:"exact", head:true })
-            .not("work_id","is",null),
-          supabase.from("bookings").select("id", { count:"exact", head:true })
-            .not("experience_id","is",null),
-          supabase.from("bookings").select("id", { count:"exact", head:true })
-            .gte("created_at", msStart),
-          supabase.from("impact_rounds")
-            .select("pool_eur")
-            .eq("month", now.toISOString().slice(0,7))
-            .single(),
+          cachedQuery("impact:bookings:works_count", () =>
+            supabase.from("bookings").select("id", { count:"exact", head:true })
+              .not("work_id","is",null), CACHE_TTL.discover),
+          cachedQuery("impact:bookings:experiences_count", () =>
+            supabase.from("bookings").select("id", { count:"exact", head:true })
+              .not("experience_id","is",null), CACHE_TTL.discover),
+          cachedQuery(`impact:bookings:month_count:${msStart}`, () =>
+            supabase.from("bookings").select("id", { count:"exact", head:true })
+              .gte("created_at", msStart), CACHE_TTL.discover),
+          cachedQuery(`impact:round:pool_only:${month}`, () =>
+            supabase.from("impact_rounds")
+              .select("pool_eur")
+              .eq("month", month)
+              .single(), CACHE_TTL.discover),
         ]);
         if (dead) return;
         setS({
@@ -141,14 +147,17 @@ function usePoolBudgets() {
       try {
         const now     = new Date();
         const msStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+        const month   = now.toISOString().slice(0, 7);
         const [rRes, bRes] = await Promise.allSettled([
-          supabase.from("impact_rounds")
-            .select("pool_eur,voting_ends_at")
-            .eq("month", now.toISOString().slice(0,7))
-            .single(),
-          supabase.from("bookings")
-            .select("platform_fee")
-            .gte("created_at", msStart),
+          cachedQuery(`impact:round:pool_budget:${month}`, () =>
+            supabase.from("impact_rounds")
+              .select("pool_eur,voting_ends_at")
+              .eq("month", month)
+              .single(), CACHE_TTL.discover),
+          cachedQuery(`impact:bookings:platform_fees:${msStart}`, () =>
+            supabase.from("bookings")
+              .select("platform_fee")
+              .gte("created_at", msStart), CACHE_TTL.discover),
         ]);
         if (dead) return;
         const round = rRes.status === "fulfilled" ? rRes.value.data : null;
@@ -185,10 +194,12 @@ function useTransparenz() {
     (async () => {
       try {
         const [allRes, vRes] = await Promise.allSettled([
-          supabase.from("impact_projects")
-            .select("id,status,awarded_eur"),
-          supabase.from("impact_votes")
-            .select("id,user_id", { count:"exact" }),
+          cachedQuery("impact:projects:transparenz", () =>
+            supabase.from("impact_projects")
+              .select("id,status,awarded_eur"), CACHE_TTL.discover),
+          cachedQuery("impact:votes:transparenz", () =>
+            supabase.from("impact_votes")
+              .select("id,user_id", { count:"exact" }), CACHE_TTL.discover),
         ]);
         if (dead) return;
         const allProjs = allRes.status === "fulfilled" ? (allRes.value.data || []) : [];
@@ -223,13 +234,19 @@ function useLastPayout() {
     let dead = false;
     (async () => {
       try {
-        const { data:round } = await supabase
-          .from("impact_rounds")
-          .select("id,month,pool_eur,distributed_at,winner_project_id")
-          .eq("status","distributed")
-          .order("distributed_at", { ascending:false })
-          .limit(1)
-          .single();
+        const { data:round } = await cachedQuery(
+          "impact:round:last_distributed",
+          () => safeQuery(
+            supabase
+              .from("impact_rounds")
+              .select("id,month,pool_eur,distributed_at,winner_project_id")
+              .eq("status","distributed")
+              .order("distributed_at", { ascending:false })
+              .limit(1)
+              .single()
+          ),
+          CACHE_TTL.discover
+        );
         if (dead || !round) { if (!dead) setS(d => ({...d, loading:false})); return; }
         const projIds = [round.winner_project_id].filter(Boolean);
         const { data:winnerProjs } = projIds.length
@@ -292,11 +309,15 @@ function useImpactActivities() {
     let dead = false;
     const load = async () => {
       try {
-        const { data:votes } = await supabase
-          .from("impact_votes")
-          .select("id,created_at,user_id,project_id")
-          .order("created_at", { ascending:false })
-          .limit(8);
+        const { data:votes } = await cachedQuery(
+          "impact:votes:activity8",
+          () => supabase
+            .from("impact_votes")
+            .select("id,created_at,user_id,project_id")
+            .order("created_at", { ascending:false })
+            .limit(8),
+          CACHE_TTL.feed
+        );
         if (dead || !votes?.length) return;
         const uIds = [...new Set(votes.map(v => v.user_id).filter(Boolean))];
         const pIds = [...new Set(votes.map(v => v.project_id).filter(Boolean))];

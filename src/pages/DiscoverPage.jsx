@@ -28,6 +28,7 @@ import { HUIHeartIcon, HUIChatIcon } from "../design/icons/HuiInteractionIcons.j
 import HuiLiveTicker from "../components/shared/HuiLiveTicker.jsx"; // LIVETICKER.1 2026-07-08 -- ersetzt LiveActivityBar (war Fake-Daten)
 import { useContentPreview } from "../context/ContentPreviewContext.jsx"; // OPEN.1 2026-07-08 -- geteilte Vorschau statt totem Tap / falschem Sprung
 import { normalizePostForPreview, normalizeProjectForPreview, normalizeWirkerForPreview } from "../lib/previewNormalizers.js";
+import { cachedQuery, CACHE_TTL } from "../lib/perfUtils.js";
 
 // ── Design Tokens ────────────────────────────────────────────────
 const T = {
@@ -1749,12 +1750,16 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
     async function load() {
       try {
         // People
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views") // Identity Contract v1.0
-          .or("has_talent_profile.eq.true,is_member.eq.true,role.eq.talent,role.eq.wirker")
-          .order("created_at", { ascending:false })
-          .limit(12);
+        const { data: profiles } = await cachedQuery(
+          "discover:people:profiles12",
+          () => supabase
+            .from("profiles")
+            .select("id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views")
+            .or("has_talent_profile.eq.true,is_member.eq.true,role.eq.talent,role.eq.wirker")
+            .order("created_at", { ascending:false })
+            .limit(12),
+          CACHE_TTL.discover
+        );
 
         if (!cancelled && profiles?.length > 0) {
           setPeople(profiles.map(p => ({
@@ -1770,11 +1775,15 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         }
 
         // Momente (beitraege)
-        const { data: beitr } = await supabase
-          .from("beitraege")
-          .select("id,src,type,caption,created_at,user_id")
-          .order("created_at", { ascending:false })
-          .limit(8);
+        const { data: beitr } = await cachedQuery(
+          "discover:beitraege:8",
+          () => supabase
+            .from("beitraege")
+            .select("id,src,type,caption,created_at,user_id")
+            .order("created_at", { ascending:false })
+            .limit(8),
+          CACHE_TTL.discover
+        );
 
         if (!cancelled && beitr?.length > 0) {
           setMomente(beitr.map(b => ({
@@ -1791,14 +1800,18 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
 
         // Werke — nur existierende DB-Felder (medium/media_url/likes_count existieren NICHT)
         // Felder: id, title, cover_url, category, file_format, tags, status, visibility, user_id, created_at
-        const { data: ws, error: wsErr } = await supabase
-          .from("works")
-          .select("id,title,cover_url,category,file_format,tags,status,approval_status,visibility,price,location_text,lat,lng,user_id,created_at")
-          .eq("status", "published")
-          .eq("approval_status", "approved")
-          .eq("visibility", "public")
-          .order("created_at", { ascending:false })
-          .limit(8);
+        const { data: ws, error: wsErr } = await cachedQuery(
+          "discover:works:8",
+          () => supabase
+            .from("works")
+            .select("id,title,cover_url,category,file_format,tags,status,approval_status,visibility,price,location_text,lat,lng,user_id,created_at")
+            .eq("status", "published")
+            .eq("approval_status", "approved")
+            .eq("visibility", "public")
+            .order("created_at", { ascending:false })
+            .limit(8),
+          CACHE_TTL.discover
+        );
 
         if (wsErr) {
         }
@@ -1830,12 +1843,16 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
 
         // Talente — freigegebene Dienstleistungsangebote (TALENT-OFFERS-001/TALENT-SERVICES-001)
         // Oeffentlich sichtbar nur status='approved' (RLS deckt das zusaetzlich ab)
-        const { data: tal, error: talErr } = await supabase
-          .from("talents")
-          .select("id,title,description,category,images,price_per_hour,price_per_session,currency,location_type,location_address,location_notes,map_link,lat,lng,user_id,created_at,available_dates,available_time_slots,recurring,duration_minutes,max_participants,min_participants,booking_type,booking_window_start,booking_window_end")
-          .eq("status", "approved")
-          .order("created_at", { ascending:false })
-          .limit(8);
+        const { data: tal, error: talErr } = await cachedQuery(
+          "discover:talents:8",
+          () => supabase
+            .from("talents")
+            .select("id,title,description,category,images,price_per_hour,price_per_session,currency,location_type,location_address,location_notes,map_link,lat,lng,user_id,created_at,available_dates,available_time_slots,recurring,duration_minutes,max_participants,min_participants,booking_type,booking_window_start,booking_window_end")
+            .eq("status", "approved")
+            .order("created_at", { ascending:false })
+            .limit(8),
+          CACHE_TTL.discover
+        );
 
         if (talErr) {
         }
@@ -1845,10 +1862,14 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
           const providerIds = [...new Set(tal.map(t => t.user_id).filter(Boolean))];
           let providerMap = {};
           if (providerIds.length > 0) {
-            const { data: provs } = await supabase
-              .from("profiles")
-              .select("id,display_name,username")
-              .in("id", providerIds);
+            const { data: provs } = await cachedQuery(
+              `discover:profiles:providers:${[...providerIds].sort().join(",")}`,
+              () => supabase
+                .from("profiles")
+                .select("id,display_name,username")
+                .in("id", providerIds),
+              CACHE_TTL.discover
+            );
             providerMap = Object.fromEntries((provs || []).map(p => [p.id, safeStr(p.display_name || p.username, "HUI Talent")]));
           }
           if (!cancelled) {

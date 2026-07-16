@@ -7,6 +7,8 @@
 import { useEffect, useRef } from "react";
 import { supabase } from "./supabaseClient.js";
 
+const _presencePingInflight = new Map();
+
 // ── formatPresence — öffentliche Utility ──────────────────────
 export function formatPresence(last_seen_at) {
   if (!last_seen_at) return null;
@@ -30,10 +32,14 @@ export function usePresence(userId) {
 
   async function ping() {
     if (!userId) return;
-    await supabase
+    if (_presencePingInflight.has(userId)) return _presencePingInflight.get(userId);
+    const p = supabase
       .from("profiles")
       .update({ last_seen_at: new Date().toISOString() })
-      .eq("id", userId);
+      .eq("id", userId)
+      .finally(() => { _presencePingInflight.delete(userId); });
+    _presencePingInflight.set(userId, p);
+    return p;
   }
 
   useEffect(() => {

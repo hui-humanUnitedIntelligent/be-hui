@@ -9,6 +9,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase }   from "./supabaseClient.js";
 import { useAuth }    from "./AuthContext.jsx";
 import { createNotification } from "./notificationService.js";
+import { cachedQuery, CACHE_TTL } from "./perfUtils.js";
 
 // ── useSingleReaction ─────────────────────────────────────────
 // postId: uuid of the post/work/experience
@@ -31,8 +32,11 @@ export function useSingleReaction(postId, postType = "post", authorId = null, po
     async function load() {
       try {
         // Counts (public)
-        const { data: cData } = await supabase
-          .rpc("reaction_counts", { p_post_id: postId });
+        const { data: cData } = await cachedQuery(
+          `rpc:reaction_counts:${postId}`,
+          () => supabase.rpc("reaction_counts", { p_post_id: postId }),
+          CACHE_TTL.feed
+        );
         if (!cancelled && cData) setCounts(cData);
 
         // My reactions (if logged in)
@@ -185,10 +189,13 @@ export function useSavedPosts() {
 
   useEffect(() => {
     if (!user?.id) { setSavedIds(new Set()); idMapRef.current = new Map(); return; }
-    supabase.from("saved_posts")
-      .select("id, post_id")
-      .eq("user_id", user.id)
-      .then(({ data }) => {
+    cachedQuery(
+      `saved_posts:list:${user.id}`,
+      () => supabase.from("saved_posts")
+        .select("id, post_id")
+        .eq("user_id", user.id),
+      CACHE_TTL.feed
+    ).then(({ data }) => {
         if (data) {
           setSavedIds(new Set(data.map(r => r.post_id)));
           idMapRef.current = new Map(data.map(r => [r.id, r.post_id]));
