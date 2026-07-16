@@ -92,8 +92,8 @@ elif [[ -n "$MODE" ]]; then
 fi
 
 # ── build.gradle aktualisieren ───────────────────────────────────────────────
-sed -i.bak "s/versionName \".*\"/versionName \"$VERSION_NAME\"/" "$BUILD_GRADLE"
-sed -i.bak "s/versionCode .*/versionCode $VERSION_CODE/" "$BUILD_GRADLE"
+sed -i.bak "s/versionName \".*\"/versionName \"${VERSION_NAME}\"/" "$BUILD_GRADLE"
+sed -i.bak "s/versionCode [0-9]\+/versionCode ${VERSION_CODE}/" "$BUILD_GRADLE"
 rm -f "${BUILD_GRADLE}.bak"
 
 # ── version.ts schreiben ─────────────────────────────────────────────────────
