@@ -1283,7 +1283,6 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
   const [userImpact,    setUserImpact]    = React.useState({ eur:0, projekte:0, loading:true });
 
   // ── Hooks ──
-  const hero       = useHeroStats();
   const pool       = usePoolBudgets();
   const transp     = useTransparenz();
   const payoutData = useLastPayout();
@@ -1470,7 +1469,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
       <BigHero stats={hero} pool={pool} />
 
       {/* ══ 2 ── POOL-KARTE mit Budget-Chips ════════════════════ */}
-      <PoolCard pool={pool} stats={hero} userImpact={userImpact} />
+      <PoolCard pool={pool} userImpact={userImpact} />
 
       {/* ══ 3 ── AKTUELLE ABSTIMMUNG ═══════════════════════════ */}
       <VotingSection
@@ -1657,13 +1656,7 @@ function BigHero({ stats, pool }) {
 // ════════════════════════════════════════════════════════════════
 // 2. POOL-KARTE (zentral, einfach, emotional)
 // ════════════════════════════════════════════════════════════════
-function PoolCard({ pool, stats, userImpact }) {
-  const MINI_STATS = [
-    { emoji:"📦", val:stats.werke,      label:"Werke verkauft"          },
-    { emoji:"📅", val:stats.erlebnisse, label:"Erlebnisse gebucht"      },
-    { emoji:"👥", val:stats.buchungen,  label:"Buchungen diesen Monat"  },
-  ];
-
+function PoolCard({ pool, userImpact }) {
   return (
     <div style={{ padding:"24px 16px 0" }}>
       {/* Haupt-Pool-Karte */}
@@ -1672,7 +1665,6 @@ function PoolCard({ pool, stats, userImpact }) {
         border:`1.5px solid ${T.teal}35`,
         borderRadius:24, padding:"24px 22px",
         boxShadow:`0 4px 28px ${T.teal}18, 0 1px 6px rgba(0,0,0,0.04)`,
-        marginBottom:14,
       }}>
         <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between",
           marginBottom:16 }}>
@@ -1729,23 +1721,6 @@ function PoolCard({ pool, stats, userImpact }) {
         )}
       </div>
 
-      {/* 3 Mini-Stat-Karten */}
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10 }}>
-        {MINI_STATS.map((st, i) => (
-          <div key={i} style={{
-            background:T.surfaceHi, borderRadius:16, padding:"14px 12px",
-            boxShadow:S.card, border:`1px solid ${T.line}`,
-            textAlign:"center",
-            animation:"ipFade 0.3s ease both", animationDelay:`${i*0.06}s`,
-          }}>
-            <div style={{ fontSize:20, marginBottom:6 }}>{st.emoji}</div>
-            <div style={{ fontSize:18, fontWeight:900, color:T.ink, letterSpacing:"-0.02em" }}>
-              {stats.loading ? "—" : st.val}
-            </div>
-            <div style={{ fontSize:9, color:T.muted, marginTop:3, lineHeight:1.35 }}>{st.label}</div>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
