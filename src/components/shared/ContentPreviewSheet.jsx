@@ -226,12 +226,18 @@ export default function ContentPreviewSheet({ item, loading, onClose }) {
 
             <div style={{ padding:"0 18px" }}>
               {/* Vollstaendige Detailseite, falls vorhanden */}
-              {item.canOpenFull && item.fullPath && (
-                <button className="cps-btn" onClick={() => { onClose(); navigate(item.fullPath); }} style={{
+              {item.canOpenFull && (item.fullPath || item._onOpenFull) && (
+                <button className="cps-btn" onClick={() => {
+                  onClose();
+                  if (item._onOpenFull) { item._onOpenFull(); }
+                  else { navigate(item.fullPath); }
+                }} style={{
                   width:"100%", marginTop:16, padding:"13px", borderRadius:14,
                   background:T.ink, color:"#fff", fontSize:14, fontWeight:700,
                 }}>
-                  Vollständige Ansicht öffnen
+                  {item.type === "impact" ? "Zum Herzensprojekt" :
+                   item.type === "talent" ? "Talent-Profil ansehen" :
+                   "Vollständige Ansicht öffnen"}
                 </button>
               )}
             </div>

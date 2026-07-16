@@ -1,19 +1,18 @@
 /**
  * TalentContent.jsx — Feed-Karte für Talent-Angebote
- * FEED-GLOBAL-001 (2026-07-16)
+ * FEED-GLOBAL-001 (2026-07-16) | TALENT-CLICK-001 (2026-07-16)
  *
- * Zeigt: Avatar, Name, Kategorie, Preis/Stunde, Ort-Typ, Beschreibung
- * Layout: identisch zu WorkContent (Header + Body + Footer)
+ * Zeigt: Avatar, Name, Kategorie, Preis, Ort-Typ, Beschreibung, Bild
+ * Karte anklicken → ContentPreviewSheet (identisch zu Work/Experience)
  */
 import React from "react";
+import BaseFeedCard from "./BaseFeedCard.jsx";
+import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
 
-const T = {
-  purple:     "rgba(139,92,246,1)",
-  purpleSoft: "rgba(139,92,246,0.10)",
-  ink:        "rgba(26,26,46,0.85)",
-  sub:        "rgba(26,26,46,0.45)",
-  border:     "rgba(26,26,46,0.07)",
-};
+const PURPLE      = "rgba(139,92,246,1)";
+const PURPLE_SOFT = "rgba(139,92,246,0.10)";
+const INK         = "rgba(26,26,46,0.85)";
+const INK_SUB     = "rgba(26,26,46,0.45)";
 
 function fmtPrice(ph, ps, currency = "EUR") {
   const sym = currency === "EUR" ? "€" : currency;
@@ -22,115 +21,104 @@ function fmtPrice(ph, ps, currency = "EUR") {
   return null;
 }
 
-export default function TalentContent({ item, onProfile }) {
+function locLabel(t) {
+  if (t === "online")  return "Online";
+  if (t === "local")   return "Vor Ort";
+  if (t === "flexible" || t === "flexibel") return "Flexibel";
+  return t || "Flexibel";
+}
+
+export default function TalentContent({ item, onProfile, onReaction, onShare }) {
   if (!item) return null;
+
   const raw      = item._raw || {};
-  const title    = item.title  || raw.title   || "";
+  const title    = item.title  || raw.title       || "";
   const desc     = item.text   || raw.description || "";
   const category = raw.category || "";
   const locType  = raw.location_type || null;
   const price    = fmtPrice(raw.price_per_hour, raw.price_per_session, raw.currency);
-  const avatar   = item.author?.avatar || null;
-  const author   = item.author?.name   || "HUI Mitglied";
-  const img      = raw.images?.[0]     || null;
+  const img      = raw.images?.[0] || null;
+
+  const { open } = useContentPreview();
+  const handleCardClick = () => open({
+    ...item,
+    // Talente haben keine eigene Detail-Route — Sheet zeigt alle Infos
+    canOpenFull: false,
+  });
 
   return (
-    <div style={{
-      margin:"0 12px 14px",
-      borderRadius:24,
-      background:"#fff",
-      border:`1px solid ${T.border}`,
-      boxShadow:"0 2px 16px rgba(26,26,46,0.07)",
-      overflow:"hidden",
-    }}>
-      {/* Bild */}
+    <BaseFeedCard
+      item={item}
+      onProfile={onProfile}
+      onReaction={onReaction}
+      onShare={onShare}
+      onCardClick={handleCardClick}
+    >
+      {/* Titelbild */}
       {img && (
-        <div style={{ width:"100%", paddingTop:"52%", position:"relative", background:"rgba(26,26,46,0.04)" }}>
+        <div style={{ margin:"0 0 10px", borderRadius:14, overflow:"hidden",
+          width:"100%", paddingTop:"52%", position:"relative",
+          background:"rgba(26,26,46,0.04)" }}>
           <img src={img} alt={title} loading="lazy" decoding="async"
             style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }}
-            onError={e => { e.currentTarget.parentElement.style.display = "none"; }}
+            onError={e => { e.currentTarget.parentElement.style.display="none"; }}
           />
-          <div style={{
-            position:"absolute", top:10, left:10,
-            background:T.purple, color:"#fff",
-            fontSize:10, fontWeight:700, padding:"3px 9px", borderRadius:20,
-          }}>Talent</div>
         </div>
       )}
 
-      {/* Header */}
-      <div style={{ padding:"14px 16px 0", display:"flex", gap:10, alignItems:"center" }}>
-        <div
-          onClick={() => onProfile?.()}
-          style={{
-            width:40, height:40, borderRadius:14, flexShrink:0, overflow:"hidden",
-            background: T.purpleSoft, cursor:"pointer",
-            display:"flex", alignItems:"center", justifyContent:"center",
-          }}
-        >
-          {avatar
-            ? <img src={avatar} alt={author} loading="lazy"
-                style={{ width:"100%", height:"100%", objectFit:"cover" }}
-                onError={e=>{ e.currentTarget.style.display="none"; }}
-              />
-            : <span style={{ fontSize:16 }}>✨</span>
-          }
-        </div>
-        <div>
-          <div
-            onClick={() => onProfile?.()}
-            style={{ fontSize:13, fontWeight:700, color:T.ink, cursor:"pointer" }}
-          >{author}</div>
-          {category && (
-            <div style={{ fontSize:11, color:T.sub }}>{category}</div>
+      {/* Badge + Titel + CTA-Zeile */}
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
+        gap:10, flexWrap:"nowrap", marginBottom: locType || price ? 6 : 0 }}>
+        {/* Links: Badge + Titel */}
+        <div style={{ display:"flex", alignItems:"center", gap:8, minWidth:0, flex:1 }}>
+          <span style={{
+            flexShrink:0,
+            fontSize:10.5, fontWeight:700, color:PURPLE,
+            background:PURPLE_SOFT,
+            border:`1px solid rgba(139,92,246,0.22)`,
+            borderRadius:99, padding:"3px 9px",
+            letterSpacing:0.2, whiteSpace:"nowrap",
+          }}>TALENT</span>
+          {title && (
+            <span style={{
+              fontSize:15, fontWeight:700, color:INK,
+              lineHeight:1.3, letterSpacing:"-0.02em",
+              overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+            }}>{title}</span>
           )}
         </div>
-        {!img && (
-          <div style={{
+      </div>
+
+      {/* Beschreibung */}
+      {desc && (
+        <p style={{ margin:"6px 0 8px", fontSize:13.5, color:INK_SUB, lineHeight:1.55,
+          overflow:"hidden", display:"-webkit-box",
+          WebkitLineClamp:3, WebkitBoxOrient:"vertical" }}>
+          {desc}
+        </p>
+      )}
+
+      {/* Footer: Ort + Kategorie + Preis */}
+      <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap", marginTop:4 }}>
+        {locType && (
+          <span style={{
+            fontSize:11, color:INK_SUB,
+            background:"rgba(26,26,46,0.05)", padding:"3px 9px", borderRadius:12,
+          }}>📍 {locLabel(locType)}</span>
+        )}
+        {category && (
+          <span style={{
+            fontSize:11, color:INK_SUB,
+            background:"rgba(26,26,46,0.05)", padding:"3px 9px", borderRadius:12,
+          }}>{category}</span>
+        )}
+        {price && (
+          <span style={{
+            fontSize:12, fontWeight:700, color:PURPLE,
             marginLeft:"auto",
-            background:T.purple, color:"#fff",
-            fontSize:10, fontWeight:700, padding:"3px 9px", borderRadius:20,
-          }}>Talent</div>
+          }}>{price}</span>
         )}
       </div>
-
-      {/* Body */}
-      <div style={{ padding:"10px 16px 14px" }}>
-        {title && (
-          <div style={{ fontSize:15, fontWeight:700, color:T.ink, marginBottom:4, lineHeight:1.35 }}>
-            {title}
-          </div>
-        )}
-        {desc && (
-          <div style={{
-            fontSize:13, color:T.sub, lineHeight:1.6,
-            overflow:"hidden", display:"-webkit-box",
-            WebkitLineClamp:3, WebkitBoxOrient:"vertical",
-          }}>
-            {desc}
-          </div>
-        )}
-
-        {/* Footer: Ort + Preis */}
-        <div style={{ marginTop:10, display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
-          {locType && (
-            <span style={{
-              fontSize:11, color:T.sub,
-              background:"rgba(26,26,46,0.05)", padding:"3px 8px", borderRadius:12,
-            }}>
-              📍 {locType === "online" ? "Online" : locType === "local" ? "Vor Ort" : "Flexibel"}
-            </span>
-          )}
-          {price && (
-            <span style={{
-              fontSize:12, fontWeight:700, color:T.purple,
-              marginLeft:"auto",
-            }}>
-              {price}
-            </span>
-          )}
-        </div>
-      </div>
-    </div>
+    </BaseFeedCard>
   );
 }
