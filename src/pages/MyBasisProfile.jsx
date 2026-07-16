@@ -41,7 +41,7 @@ const TalentAngebotWizard = React.lazy(() => import("../components/talents/Talen
 import { useTalents, deleteTalent } from "../hooks/useTalents.js";
 const ExperienceWizard = React.lazy(() => import("../components/experiences/ExperienceWizard.jsx"));
 const AmbassadorStudioSection = React.lazy(() => import("../components/ambassador/AmbassadorStudioSection.jsx"));
-const HuiMomentSheet = React.lazy(() => import("../components/HuiMomentSheet.jsx"));
+import HuiMomentSheet from "../components/HuiMomentSheet.jsx";
 const MyRecommendationsModal   = React.lazy(() => import("../components/studio/MyRecommendationsModal.jsx"));
 const ImpactStimmenModal       = React.lazy(() => import("../components/studio/ImpactStimmenModal.jsx"));
 const MeineProjekteModal       = React.lazy(() => import("../components/studio/MeineProjekteModal.jsx"));
@@ -1047,27 +1047,11 @@ export default function MyBasisProfile({ onClose, profileId }) {
       {/* MEINE MOMENTE SHEET — createPortal direkt zu body, zIndex 11000 (über Drawer 10500)
           Suspense INNERHALB des Portals — nicht darum (sonst rendert Portal nicht) */}
       {showMomentSheet && createPortal(
-        <React.Suspense fallback={
-          <div style={{
-            position:"fixed", inset:0, zIndex:11000,
-            background:"rgba(26,53,48,0.55)",
-            display:"flex", alignItems:"flex-end",
-          }}>
-            <div style={{
-              width:"100%", background:"#FCFDFC", borderRadius:"24px 24px 0 0",
-              padding:"40px 20px", textAlign:"center",
-              color:"rgba(26,53,48,0.45)", fontSize:13,
-            }}>
-              Lädt…
-            </div>
-          </div>
-        }>
-          <HuiMomentSheet
-            visible={showMomentSheet}
-            onClose={() => setShowMomentSheet(false)}
-            visibilityScope="public"
-          />
-        </React.Suspense>,
+        <HuiMomentSheet
+          visible={showMomentSheet}
+          onClose={() => setShowMomentSheet(false)}
+          visibilityScope="public"
+        />,
         document.body
       )}
 
