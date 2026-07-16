@@ -1,7 +1,7 @@
 // navigation/navConfig.js — HUI Navigation v2 (NAV-001)
 // TAB STRUCTURE: Entdecken / Home / Mein HUI (Orb) / Impact / Profil
-// NAV.1A Audit: feed = globaler Community-Stream → Label "Entdecken"
-//               discover = strukturierter Sektions-Browse → Label "Home"
+// NAV.1A Audit: discover = strukturierter Sektions-Browse → Label "Entdecken" (Position 1)
+//               feed     = globaler Community-Stream     → Label "Home"       (Position 2)
 //
 // NAVIGATION CONTRACTS (NAV-001):
 //   Tab-Keys sind unveränderlich (Analytics, sessionStorage, Deep Links).
@@ -22,8 +22,8 @@ import { createNavItem } from "../../../lib/factories/createNavItem.js";
 import { filterValidPages } from "../../../lib/factories/createTabPage.js";
 
 export const NAV_ITEMS = filterValidPages([
-  createNavItem({ key: "feed",      label: "Entdecken" }),
-  createNavItem({ key: "discover",  label: "Home"      }),
+  createNavItem({ key: "discover",  label: "Entdecken" }),
+  createNavItem({ key: "feed",      label: "Home"      }),
   createNavItem({ key: "orb",       label: "Mein HUI",  isOrb: true }),  // Persönlicher HUI-Bereich
   createNavItem({ key: "impact",    label: "Impact"    }),
   createNavItem({ key: "creator",   label: "Profil"    }),       // Persönlicher Bereich (Profil, Werke, Buchungen, …)
