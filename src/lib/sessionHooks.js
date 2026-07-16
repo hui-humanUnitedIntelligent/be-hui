@@ -1,15 +1,15 @@
 // sessionHooks.js — HUI Session & Persistence Layer v1.0
-// Phase 2D: Scroll memory, draft persistence, presence
+// Phase 2D: Scroll memory, draft persistence
 //
 // ENTHÄLT:
 // - useScrollMemory: merkt scroll position pro key
 // - useDraftPersist: auto-saved drafts in localStorage
-// - usePresence:     leichtes online/zuletzt-aktiv system
 // - useTabKeepAlive: verhindert unmount bei Tab-Wechsel
 // - useSoftLoad:     fade-in statt harte lade-Sprünge
+//
+// Presence: siehe src/lib/usePresence.jsx (user_presence — Sprint 8 Phase 6)
 
 import { useEffect, useRef, useCallback, useState } from "react";
-import { supabase } from "./supabaseClient";
 
 // ────────────────────────────────────────────────────────────────
 // useScrollMemory
@@ -127,110 +127,6 @@ export function useDraftPersist(key, initialState) {
   })();
 
   return [draft, setDraft, clearDraft, hasDraft];
-}
-
-// ────────────────────────────────────────────────────────────────
-// usePresence
-// Leichtes Presence-System — sehr subtil, kein Gamer-Look
-//
-// - Setzt "last_seen" alle 2 Minuten in Supabase
-// - Liest "last_seen" für einen anderen User
-// - Gibt zurück: status ("online"|"recently"|"away"|"offline")
-// ────────────────────────────────────────────────────────────────
-export function usePresence(userId) {
-  const [presenceStatus, setPresenceStatus] = useState("offline");
-
-  useEffect(() => {
-    if (!userId) return;
-    let mounted = true;
-
-    async function checkPresence() {
-      try {
-        const { data } = await supabase
-          .from("profiles")
-          .select("last_seen")
-          .eq("id", userId)
-          .single();
-        if (!mounted || !data?.last_seen) return;
-        const diffMin = (Date.now() - new Date(data.last_seen).getTime()) / 60000;
-        if      (diffMin < 5)   setPresenceStatus("online");
-        else if (diffMin < 60)  setPresenceStatus("recently");
-        else if (diffMin < 720) setPresenceStatus("away");
-        else                     setPresenceStatus("offline");
-      } catch { /* silent */ }
-    }
-
-    checkPresence();
-    const interval = setInterval(() => {
-      if (!document.hidden) checkPresence(); // Pause wenn Tab hidden
-    }, 3 * 60 * 1000);
-    return () => { mounted = false; clearInterval(interval); };
-  }, [userId]);
-
-  return presenceStatus;
-}
-
-// useOwnPresence — setzt eigene last_seen
-export function useOwnPresence(userId) {
-  // FIX: alle Timer als Refs — kein Scope-Problem bei userId-Wechsel
-  const intervalRef    = useRef(null);
-  const mountedRef     = useRef(false);
-  const listenerRef    = useRef(null);
-
-  useEffect(() => {
-    if (!userId) return;
-
-    mountedRef.current = true;
-
-    async function touch() {
-      if (!mountedRef.current) return;
-      try {
-        await supabase.from("profiles")
-          .update({ last_seen: new Date().toISOString() })
-          .eq("id", userId);
-      } catch { /* silent — kein Crash bei Netzwerkproblemen */ }
-    }
-
-    // Sofort beim Mount
-    touch();
-
-    // Pause presence updates wenn Tab hidden — spart Battery + Requests
-    // FIX: via Ref → sauber clearable
-    intervalRef.current = setInterval(() => {
-      if (!document.hidden && mountedRef.current) touch();
-    }, 2 * 60 * 1000);
-
-    // FIX: Listener via Ref → symmetrisches add/remove auch bei userId-Wechsel
-    const onVisible = () => {
-      if (!document.hidden && mountedRef.current) touch();
-    };
-    listenerRef.current = onVisible;
-    document.addEventListener("visibilitychange", onVisible, { passive: true });
-
-    return () => {
-      mountedRef.current = false;
-      // FIX: Ref-basiertes cleanup — kein dangling interval/listener
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-      if (listenerRef.current) {
-        document.removeEventListener("visibilitychange", listenerRef.current);
-        listenerRef.current = null;
-      }
-    };
-  }, [userId]);
-}
-
-// Presence Label + Color — für UI-Nutzung
-export function getPresenceLabel(status) {
-  switch (status) {
-    case "online":    return { text: "Aktiv",              color: "#10B981", dot: true };
-    case "recently":  return { text: "Kürzlich aktiv",     color: "#F59E0B", dot: true };
-    case "away":      return { text: "",                   color: "transparent", dot: false };
-    case "offline":   return { text: "",                   color: "transparent", dot: false };
-    default:          return { text: "",                   color: "transparent", dot: false };
-  }
 }
 
 // ────────────────────────────────────────────────────────────────
