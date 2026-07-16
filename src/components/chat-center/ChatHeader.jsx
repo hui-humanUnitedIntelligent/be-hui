@@ -8,13 +8,14 @@ import { formatPresence } from "../../lib/usePresence.js";
 
 const C = { teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.55)" };
 
-export default function ChatHeader({ conv, onBack, onOpenProfile, onCloseChat }) {
-  const name     = conv?.name   || "Gespräch";
-  const talent   = conv?.talent || conv?.type || "Kreative:r";
-  const mood     = conv?.mood   || "Gerade kreativ im Studio";
-  const avatar   = conv?.avatar_url;
-  const initials = name[0]?.toUpperCase() || "?";
-  const presence = formatPresence(conv?.other_profile?.last_seen_at || conv?.last_seen_at);
+export default function ChatHeader({ conv, onBack, onOpenProfile, onCloseChat, onRequestBooking }) {
+  const name           = conv?.name   || "Gespräch";
+  const talent         = conv?.talent || conv?.type || "Kreative:r";
+  const mood           = conv?.mood   || "Gerade kreativ im Studio";
+  const avatar         = conv?.avatar_url;
+  const initials       = name[0]?.toUpperCase() || "?";
+  const presence       = formatPresence(conv?.other_profile?.last_seen_at || conv?.last_seen_at);
+  const hasTalent      = !!(conv?.has_talent_profile);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleAvatarTap = () => {
@@ -138,13 +139,22 @@ export default function ChatHeader({ conv, onBack, onOpenProfile, onCloseChat })
               >✦ Profil ansehen</button>
             )}
             <button
-              onClick={() => setMenuOpen(false)}
+              onClick={() => {
+                if (!hasTalent) return; // deaktiviert wenn kein Talent
+                setMenuOpen(false);
+                onRequestBooking?.(conv);
+              }}
+              disabled={!hasTalent}
               style={{
                 width:"100%", padding:"13px 16px", background:"none", border:"none",
-                textAlign:"left", fontSize:14, color:C.muted, cursor:"pointer",
+                textAlign:"left", fontSize:14,
+                color:    hasTalent ? C.ink  : "rgba(150,150,150,0.55)",
+                cursor:   hasTalent ? "pointer" : "not-allowed",
+                opacity:  hasTalent ? 1 : 0.55,
                 WebkitTapHighlightColor:"transparent",
               }}
-            >🗓 Termin anfragen</button>
+              title={hasTalent ? "Termin beim Talent anfragen" : "Dieser Nutzer bietet keine Talente an"}
+            >🗓 Termin anfragen{!hasTalent && <span style={{ fontSize:11, marginLeft:6, color:"rgba(150,150,150,0.6)" }}>(nicht verfügbar)</span>}</button>
             <button
               onClick={() => { setMenuOpen(false); onCloseChat?.(); }}
               style={{

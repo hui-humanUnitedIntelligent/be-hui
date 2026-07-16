@@ -10,6 +10,7 @@ import ConversationRoom from "./ConversationRoom.jsx";
 import { useProfileLauncher } from "../home/profile/ProfileLauncher.jsx";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { useChatList, findOrCreateChat, closeChat } from "../../lib/chatContext.js";
+import TalentBookingFlow from "../talents/TalentBookingFlow.jsx";
 import { ProfileService } from '../../services/db';
 import { supabase } from "../../lib/supabaseClient.js";
 import PeopleSearch from "../discovery/PeopleSearch.jsx";
@@ -171,7 +172,9 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
     console.log("[CCO_RENDER_START]", { hasInitialRecipient: !!initialRecipient?.id });
   }
   const [activeConv,       setActiveConv]       = useState(null);
-  const [showPeopleSearch, setShowPeopleSearch] = useState(false);
+  const [showPeopleSearch,  setShowPeopleSearch]  = useState(false);
+  const [showTalentBooking, setShowTalentBooking] = useState(false);
+  const [talentForBooking,  setTalentForBooking]  = useState(null);
   const [loadingConv,      setLoadingConv]      = useState(false);
 
   const { openCreatorProfile } = useProfileLauncher();
@@ -261,11 +264,13 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
     }).then(chatRecord => {
       if (!chatRecord?.id) { setPendingRecipient(initialRecipient); return; }
       setActiveConv({
-        id:         chatRecord.id,
-        name:       initialRecipient.display_name || "Creator",
-        avatar_url: initialRecipient.avatar_url   || null,
-        talent:     initialRecipient.talent        || null,
-        online:     true,
+        id:           chatRecord.id,
+        user_id:      initialRecipient.id           || null,
+        name:         initialRecipient.display_name || "Creator",
+        avatar_url:   initialRecipient.avatar_url   || null,
+        talent:       initialRecipient.talent        || null,
+        has_talent_profile: initialRecipient.has_talent_profile || false,
+        online:       true,
       });
     }).catch(() => {
       setPendingRecipient(initialRecipient);
@@ -285,11 +290,13 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
     }).then(chatRecord => {
       if (!chatRecord?.id) return;
       setActiveConv({
-        id:         chatRecord.id,
-        name:       pendingRecipient.display_name || "Creator",
-        avatar_url: pendingRecipient.avatar_url   || null,
-        talent:     pendingRecipient.talent        || null,
-        online:     true,
+        id:           chatRecord.id,
+        user_id:      pendingRecipient.id           || null,
+        name:         pendingRecipient.display_name || "Creator",
+        avatar_url:   pendingRecipient.avatar_url   || null,
+        talent:       pendingRecipient.talent        || null,
+        has_talent_profile: pendingRecipient.has_talent_profile || false,
+        online:       true,
       });
     }).catch(err => {
       console.error("[HUI_CHAT] findOrCreateChat error:", err?.message);
@@ -303,13 +310,15 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
     if (!realId) return;
     const other = rawConv.other_profile || {};
     setActiveConv({
-      id:          realId,
-      name:        rawConv.name || other.display_name || "Gespräch",
-      avatar_url:  rawConv.avatar_url || other.avatar_url || null,
-      talent:      rawConv.talent || other.focus_type || null,
-      online:      rawConv.online ?? true,
-      last_message: rawConv.last_message,
-      other_profile: rawConv.other_profile || null,
+      id:                 realId,
+      user_id:            other.id || rawConv.user_id || null,
+      name:               rawConv.name || other.display_name || "Gespräch",
+      avatar_url:         rawConv.avatar_url || other.avatar_url || null,
+      talent:             rawConv.talent || other.focus_type || null,
+      has_talent_profile: other.has_talent_profile || rawConv.has_talent_profile || false,
+      online:             rawConv.online ?? true,
+      last_message:       rawConv.last_message,
+      other_profile:      rawConv.other_profile || null,
     });
     // Phase 8: Chat als gelesen markieren — aktualisiert unread_count + Header Badge
     if (onMarkRead) onMarkRead(realId);
@@ -346,12 +355,34 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
         conv={activeConv}
         onBack={() => setActiveConv(null)}
         onOpenProfile={(conv) => {
-          const userId = conv?.user_id || conv?.id;
+          // user_id ist die Supabase Auth UUID des Gesprächspartners
+          // conv.id ist die Chat-ID — NIEMALS als Profil-ID verwenden
+          const userId = conv?.user_id || conv?.other_profile?.id;
           if (userId) openCreatorProfile(userId, {
             display_name: conv?.name,
             avatar_url:   conv?.avatar_url,
             talent:       conv?.talent,
           });
+        }}
+        onRequestBooking={async (conv) => {
+          // Talent-Objekt aus DB laden (braucht talents.id, nicht user_id)
+          const userId = conv?.user_id || conv?.other_profile?.id;
+          if (!userId) return;
+          try {
+            const { data } = await supabase
+              .from("talents")
+              .select("id,title,price_per_hour,price_per_session,location_type,user_id,status")
+              .eq("user_id", userId)
+              .eq("status", "approved")
+              .limit(1)
+              .maybeSingle();
+            if (data?.id) {
+              setTalentForBooking(data);
+              setShowTalentBooking(true);
+            }
+          } catch (e) {
+            console.warn("[CHAT] talent lookup failed:", e?.message);
+          }
         }}
         onCloseChat={async () => {
           if (!activeConv?.id || !user?.id) {
@@ -365,6 +396,26 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
           setActiveConv(null);
         }}
       />
+    );
+  }
+
+  // ── TalentBookingFlow Overlay (aus Chat heraus) ──
+  if (showTalentBooking && talentForBooking) {
+    return (
+      <>
+        {/* ConversationRoom bleibt gerendert, BookingFlow liegt drüber */}
+        <ConversationRoom
+          conv={activeConv}
+          onBack={() => setActiveConv(null)}
+          onOpenProfile={() => {}}
+          onRequestBooking={() => {}}
+          onCloseChat={() => {}}
+        />
+        <TalentBookingFlow
+          talent={talentForBooking}
+          onClose={() => { setShowTalentBooking(false); setTalentForBooking(null); }}
+        />
+      </>
     );
   }
 
@@ -394,11 +445,13 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
             }).then(chatRecord => {
               if (!chatRecord?.id) return;
               setActiveConv({
-                id:         chatRecord.id,
-                name:       profile.display_name || "Creator",
-                avatar_url: profile.avatar_url   || null,
-                talent:     profile.talent        || null,
-                online:     true,
+                id:                 chatRecord.id,
+                user_id:            profile.id                   || null,
+                name:               profile.display_name         || "Creator",
+                avatar_url:         profile.avatar_url           || null,
+                talent:             profile.talent               || null,
+                has_talent_profile: profile.has_talent_profile   || false,
+                online:             true,
               });
             }).catch(err => {
               console.error("[HUI_CHAT] findOrCreateChat error:", err?.message);
