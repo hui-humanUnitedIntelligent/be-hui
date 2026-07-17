@@ -600,6 +600,23 @@ function GlobalBlockGuard() {
 
 
 
+// ── ScrollToTop: Jede Route-Änderung scrollt document.documentElement + alle
+// hui-scroll Container zurück auf 0. Gilt für alle Route-Wechsel außerhalb
+// der Home-Shell (z.B. /work/:id, /profile/:username, /impact nach deep-link).
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    // 1. Standard-Browser-Scroll (document.documentElement / document.body)
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    // 2. Alle internen Scroll-Container (hui-scroll, overflowY:auto Divs)
+    const containers = document.querySelectorAll('.hui-scroll, [data-scroll-container]');
+    containers.forEach(el => { el.scrollTop = 0; });
+  }, [pathname]);
+  return null; // kein UI
+}
+
 function AppRoutes() {
   // ── Route-Validierung beim Render ──────────────────────────────────
   // APP_ROUTES wurde durch createTabPage() normalisiert.
@@ -612,6 +629,7 @@ function AppRoutes() {
   return (
     // HuiSuspense wraps all lazy routes — zeigt ruhigen Ladeindikator
     <HuiSuspense>
+      <ScrollToTop />
       <Routes>
         {/* Auth — EAGER (kein lazy) */}
         <Route path="/auth/callback" element={<AuthCallback />} />

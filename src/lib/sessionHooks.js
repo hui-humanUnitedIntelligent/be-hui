@@ -26,37 +26,19 @@ export function useScrollMemory(key) {
   const ref = useRef(null);
   const savedKey = `hui_scroll_${key}`;
 
-  // Restore on mount — smooth, non-jarring
+  // Scroll-Restore DEAKTIVIERT: Jeder Tab-Wechsel startet bei 0 (UX-Anforderung).
+  // Beim Mount immer auf 0 setzen — kein Wiederherstellen alter Positionen.
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const saved = parseInt(sessionStorage.getItem(savedKey) || "0", 10);
-    if (saved > 0) {
-      // requestAnimationFrame verhindert Layout-Thrashing
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          el.scrollTop = saved;
-        });
-      });
-    }
+    sessionStorage.removeItem(savedKey); // Alte Position verwerfen
+    requestAnimationFrame(() => { el.scrollTop = 0; });
   }, [savedKey]);
 
-  // Save on scroll — throttled (16ms = 60fps)
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    let ticking = false;
-    const handler = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        sessionStorage.setItem(savedKey, String(el.scrollTop));
-        ticking = false;
-      });
-    };
-    el.addEventListener("scroll", handler, { passive: true });
-    return () => el.removeEventListener("scroll", handler);
-  }, [savedKey]);
+  // Scroll-Save DEAKTIVIERT: keine Positionen mehr speichern.
+  // (Gespeicherte Positionen waren Ursache für falsche Start-Positionen beim Tab-Wechsel)
+  // Save-on-Scroll DEAKTIVIERT — Positionen werden nicht mehr gespeichert.
+  // Jeder Tab-Wechsel und jede neue Seite beginnt bei 0.
 
   const resetScroll = useCallback(() => {
     sessionStorage.removeItem(savedKey);

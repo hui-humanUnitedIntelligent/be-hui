@@ -243,7 +243,7 @@ export default function HomeShell({ children }) {
     if (isOrbOpen) closeOrbWorld("tab-switch");
   }, [closeOrbWorld, isOrbOpen, setShowCreatorDashboard]);
 
-  /* switchTab — schließt alle Overlays + wechselt Tab */
+  /* switchTab — schließt alle Overlays + wechselt Tab + scrollt IMMER nach oben */
   const switchTab = useCallback((newTab) => {
     // GUARD: Orb is a world-layer, never a tab destination
     if (!assertValidTab(newTab)) return;
@@ -252,7 +252,12 @@ export default function HomeShell({ children }) {
     setCarryOver({ from: tab, to: newTab, timestamp: Date.now() });
     closeAllOverlays();
     _setTab(newTab);
-  }, [_setTab, tab, closeAllOverlays]);
+    // SCROLL-RESET: Jeder Tab-Wechsel beginnt immer bei Position 0
+    // (scrollTop sofort — kein rAF — damit kein Flicker)
+    if (mainScrollRef?.current) {
+      mainScrollRef.current.scrollTop = 0;
+    }
+  }, [_setTab, tab, closeAllOverlays, mainScrollRef]);
 
   /* openCreatorDashboard — kanonische Funktion zum Öffnen des Profilbereichs
    * NAV-001: Konsolidiert openOwnProfile + openCreatorDashboard (identisch gewesen).
