@@ -115,8 +115,8 @@ export function useProfileData(profileId) {
     setError(null);
 
     try {
-      // ── Gesamt-Timeout: 8s — verhindert ewigen Spinner ───────────
-      const TIMEOUT_MS = 8000;
+      // ── Gesamt-Timeout: 5s — verhindert ewigen Spinner ───────────
+      const TIMEOUT_MS = 2800;
       const timeoutGuard = new Promise((_, reject) =>
         setTimeout(() => reject(new Error("useProfileData timeout")), TIMEOUT_MS)
       );

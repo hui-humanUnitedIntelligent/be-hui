@@ -137,6 +137,23 @@ class ErrorBoundary extends React.Component {
   }
 
   static getDerivedStateFromError(error) {
+    // ChunkLoadError nach Deployment → automatisch einmalig neu laden
+    const isChunkError = (
+      error?.message?.includes("Failed to fetch dynamically imported module") ||
+      error?.message?.includes("Importing a module script failed") ||
+      error?.message?.includes("error loading dynamically imported module") ||
+      error?.name === "ChunkLoadError"
+    );
+    if (isChunkError) {
+      const reloadKey = "hui_chunk_reload_ts";
+      const lastReload = parseInt(sessionStorage.getItem(reloadKey) || "0", 10);
+      const now = Date.now();
+      if (now - lastReload > 30_000) { // max 1x alle 30s
+        sessionStorage.setItem(reloadKey, String(now));
+        window.location.reload();
+        return { hasError: false, error: null }; // kurz bevor reload kommt
+      }
+    }
     return { hasError: true, error };
   }
 

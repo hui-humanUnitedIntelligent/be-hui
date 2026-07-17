@@ -26,8 +26,7 @@ const ProjekteAllModal = lazy(() => import("../components/discover/ProjekteAllMo
 const OrteAllModal = lazy(() => import("../components/discover/OrteAllModal.jsx")); // Umkreissuche-Vereinheitlichung 2026-07-06 -- globaler Radius statt eigenem State
 import { HUIHeartIcon, HUIChatIcon } from "../design/icons/HuiInteractionIcons.jsx"; // ICON-SSOT 2026-07-08 -- ersetzt lokale Emoji-Badges (❤️/💬)
 import HuiLiveTicker from "../components/shared/HuiLiveTicker.jsx"; // LIVETICKER.1 2026-07-08 -- ersetzt LiveActivityBar (war Fake-Daten)
-import { useContentPreview } from "../context/ContentPreviewContext.jsx";
-import { useProfileLauncher } from "../components/home/profile/ProfileLauncher.jsx"; // Autor-Klick → Profil öffnen // OPEN.1 2026-07-08 -- geteilte Vorschau statt totem Tap / falschem Sprung
+import { useContentPreview } from "../context/ContentPreviewContext.jsx"; // OPEN.1 2026-07-08 -- geteilte Vorschau statt totem Tap / falschem Sprung
 import { normalizePostForPreview, normalizeProjectForPreview, normalizeWirkerForPreview } from "../lib/previewNormalizers.js";
 
 // ── Design Tokens ────────────────────────────────────────────────
@@ -457,7 +456,7 @@ const SEED_MOMENTE = [
   { id:"m6", src:"https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=280&q=75", caption:"Kreativworkshop für Kinder",                      name:"Anne K.", location:"Wien",        created_at: new Date(Date.now()-3600000*8).toISOString(),    type:"foto" },
 ];
 
-function MomentCard({ moment, delay=0, onPress, onAuthorPress }) {
+function MomentCard({ moment, delay=0, onPress }) {
   const [imgErr, setImgErr] = useState(false);
   const ago = timeAgo(moment.created_at);
 
@@ -529,12 +528,7 @@ function MomentCard({ moment, delay=0, onPress, onAuthorPress }) {
             display:"flex", alignItems:"center", justifyContent:"center",
             flexShrink:0,
           }}><HUIProfilIcon size={24} style={{opacity:0.35, color:"rgba(14,196,184,0.5)"}}/></div>
-          <span
-            role={moment.user_id ? "button" : undefined}
-            onClick={moment.user_id ? (e) => { e.stopPropagation(); onAuthorPress?.(moment.user_id); } : undefined}
-            style={{ fontSize:10.5, fontWeight:600, color:T.inkSoft, cursor:moment.user_id?"pointer":"default",
-              textDecoration:moment.user_id?"underline dotted":"none", textDecorationColor:"rgba(0,0,0,0.2)" }}
-          >{moment.name}</span>
+          <span style={{ fontSize:10.5, fontWeight:600, color:T.inkSoft }}>{moment.name}</span>
           {moment.location && (
             <span style={{ fontSize:10, color:T.inkFaint, display:"flex", alignItems:"center", gap:2 }}>
               <HUILocationIcon size={10}/>{moment.location}
@@ -552,7 +546,7 @@ function MomentCard({ moment, delay=0, onPress, onAuthorPress }) {
   );
 }
 
-function MomenteSection({ momente, loading, delay=0, view='cards', onPress, onAuthorPress = () => {}, onSectionAction }) {
+function MomenteSection({ momente, loading, delay=0, view='cards', onPress, onSectionAction }) {
   return (
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <div data-dp-momente/>
@@ -572,7 +566,7 @@ function MomenteSection({ momente, loading, delay=0, view='cards', onPress, onAu
                   <div style={{ padding:"10px 10px" }}><Skel w="80%" h={12} r={6} mb={6}/><Skel w="50%" h={10} r={6}/></div>
                 </div>
               ))
-            : momente.map((m, i) => <MomentCard key={m.id} moment={m} delay={i*35+delay} onPress={onPress} onAuthorPress={onAuthorPress} />)
+            : momente.map((m, i) => <MomentCard key={m.id} moment={m} delay={i*35+delay} onPress={onPress} />)
           }
         </div>
       ) : (
@@ -672,7 +666,7 @@ function CardLocationRow({ location, distanceKm }) {
   );
 }
 
-function TalentCard({ talent, delay=0, onPress, onAuthorPress }) {
+function TalentCard({ talent, delay=0, onPress }) {
   const [imgErr, setImgErr] = useState(false);
   const cover  = (!imgErr && talent.cover) ? talent.cover : null;
   const medCol = MEDIUM_COLOR[talent.category] || { bg:T.tealSoft, text:T.teal };
@@ -719,13 +713,7 @@ function TalentCard({ talent, delay=0, onPress, onAuthorPress }) {
 
         {/* Anbieter */}
         <div style={{ fontSize:10.5, color:T.inkFaint, fontWeight:400, marginBottom:6 }}>
-          von{" "}
-          <span
-            role={talent.user_id ? "button" : undefined}
-            onClick={talent.user_id ? (e) => { e.stopPropagation(); onAuthorPress?.(talent.user_id); } : undefined}
-            style={{ cursor:talent.user_id?"pointer":"default",
-              textDecoration:talent.user_id?"underline dotted":"none", textDecorationColor:"rgba(0,0,0,0.2)" }}
-          >{talent.author}</span>
+          von {talent.author}
         </div>
 
         {/* Standort/Ort — nimmt Platz ein oder nicht, Preis bleibt unten */}
@@ -749,7 +737,7 @@ function TalentCard({ talent, delay=0, onPress, onAuthorPress }) {
 }
 
 function TalenteSection({
-  talente, loading, delay=0, view='cards', onPress, onAuthorPress = () => {}, onSectionAction,
+  talente, loading, delay=0, view='cards', onPress, onSectionAction,
   locQuery, onLocQueryChange, locSuggest, locSearching, locActive,
   onPickLoc, onClearLoc, radiusKm, radiusStages, onRadiusChange, hiddenNoCoordsCount=0,
 }) {
@@ -835,7 +823,7 @@ function TalenteSection({
                   <div style={{ padding:"10px 11px" }}><Skel w="80%" h={12} r={6} mb={6}/><Skel w="50%" h={10} r={6}/></div>
                 </div>
               ))
-            : talente.map((t, i) => <TalentCardM key={t.id} talent={t} delay={i*35+delay} onPress={onPress} onAuthorPress={onAuthorPress} />)
+            : talente.map((t, i) => <TalentCardM key={t.id} talent={t} delay={i*35+delay} onPress={onPress} />)
           }
         </div>
       ) : (
@@ -899,7 +887,7 @@ const MEDIUM_COLOR = {
   "Text":       { bg:"rgba(100,116,139,0.12)", text:"#64748B" },
 };
 
-function WerkCard({ werk, delay=0, onPress, onAuthorPress }) {
+function WerkCard({ werk, delay=0, onPress }) {
   const [imgErr, setImgErr] = useState(false);
   const cover  = (!imgErr && werk.cover) ? werk.cover : null;
   const medCol = MEDIUM_COLOR[werk.medium] || { bg:T.tealSoft, text:T.teal };
@@ -943,13 +931,7 @@ function WerkCard({ werk, delay=0, onPress, onAuthorPress }) {
 
         {/* Autor */}
         <div style={{ fontSize:10.5, color:T.inkFaint, fontWeight:400, marginBottom:6 }}>
-          von{" "}
-          <span
-            role={werk.user_id ? "button" : undefined}
-            onClick={werk.user_id ? (e) => { e.stopPropagation(); onAuthorPress?.(werk.user_id); } : undefined}
-            style={{ cursor:werk.user_id?"pointer":"default",
-              textDecoration:werk.user_id?"underline dotted":"none", textDecorationColor:"rgba(0,0,0,0.2)" }}
-          >{werk.author}</span>
+          von {werk.author}
         </div>
 
         {/* Standort — reservierter Platz damit Preis nicht springt */}
@@ -1051,7 +1033,7 @@ function LocationRadiusRow({
 }
 
 function WerkeSection({
-  werke, loading, delay=0, view='cards', onPress, onAuthorPress = () => {}, onSectionAction,
+  werke, loading, delay=0, view='cards', onPress, onSectionAction,
   locQuery, onLocQueryChange, locSuggest, locSearching, locActive,
   onPickLoc, onClearLoc, radiusKm, radiusStages, onRadiusChange, hiddenNoCoordsCount=0,
 }) {
@@ -1081,7 +1063,7 @@ function WerkeSection({
                   <div style={{ padding:"9px 10px" }}><Skel w="75%" h={12} r={6} mb={6}/><Skel w="50%" h={10} r={5}/></div>
                 </div>
               ))
-            : werke.map((w, i) => <WerkCardM key={w.id} werk={w} delay={i*35+delay} onPress={onPress} onAuthorPress={onAuthorPress} />)
+            : werke.map((w, i) => <WerkCardM key={w.id} werk={w} delay={i*35+delay} onPress={onPress} />)
           }
         </div>
       ) : (
@@ -1335,62 +1317,59 @@ const SEED_PROJEKTE = [
 function ProjektCard({ projekt, delay=0, onPress }) {
   const [imgErr, setImgErr] = useState(false);
   const cover = (!imgErr && projekt.cover) ? projekt.cover : null;
-  const cc = projekt.catColor || { bg:"rgba(34,197,94,0.12)", text:"#16A34A" };
-  const membersStr = projekt.members != null
-    ? projekt.members.toLocaleString("de-DE") + " Mitglieder"
-    : null;
+  const cc = projekt.catColor || { bg:T.tealSoft, text:T.teal };
 
   return (
     <div className="dp-press dp-in dp-card-hover" onClick={() => onPress?.(projekt)} style={{
-      width:165, flexShrink:0,
-      borderRadius:CARD_RADIUS, overflow:"hidden",
+      width:160, flexShrink:0,
+      borderRadius:18, overflow:"hidden",
       background:T.white, boxShadow:T.cardShadow,
       border:`1px solid ${T.border}`,
       animationDelay:`${delay}ms`,
       touchAction:"manipulation",
       WebkitTapHighlightColor:"transparent",
-      display:"flex", flexDirection:"column",
     }}>
-      {/* Cover — feste Höhe, identisch zu WerkCard / TalentCard */}
-      <div style={{ width:"100%", height:120, flexShrink:0, position:"relative", overflow:"hidden", background:cover ? "#1A1A18" : cc.bg }}>
+      {/* Cover */}
+      <div style={{ width:"100%", height:90, position:"relative", overflow:"hidden", background:cover?"#000":cc.bg }}>
         {cover ? (
           <img loading="lazy" decoding="async" src={cover} alt={projekt.title} onError={() => setImgErr(true)}
-            style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
+            style={{ width:"100%", height:"100%", objectFit:"cover", display:"block", opacity:0.82 }}/>
         ) : (
-          <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:6 }}>
-            <HUIImpactIcon size={32} style={{opacity:0.3, color:"rgba(34,197,94,0.5)"}} />
+          <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <span style={{ fontSize:28, opacity:0.4 }}>🌍</span>
           </div>
         )}
-        {/* Kategorie-Badge oben links */}
-        {projekt.cat && (
-          <CardBadge pos="left" bg={cc.bg} color={cc.text} cover={cover}>
-            {projekt.cat}
-          </CardBadge>
-        )}
+        {/* Category badge */}
+        <div style={{
+          position:"absolute", top:7, left:7,
+          background:"rgba(255,255,255,0.90)", backdropFilter:"blur(6px)",
+          borderRadius:99, padding:"2px 8px",
+          fontSize:9, fontWeight:700, color:cc.text,
+        }}>
+          {projekt.cat}
+        </div>
       </div>
 
-      {/* Info — flex-column damit Footer immer unten sitzt */}
-      <div style={{ padding:"10px 11px 12px", flexGrow:1, display:"flex", flexDirection:"column" }}>
-        {/* Titel */}
-        <CardTitle>{projekt.title}</CardTitle>
-
-        {/* Beschreibung */}
-        <div style={{ fontSize:10.5, color:T.inkFaint, lineHeight:1.4, marginBottom:6,
+      {/* Info */}
+      <div style={{ padding:"10px 10px 11px" }}>
+        <div style={{
+          fontSize:12.5, fontWeight:700, color:T.ink, marginBottom:4,
+          letterSpacing:"-0.02em", lineHeight:1.25,
           overflow:"hidden", display:"-webkit-box",
-          WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>
+          WebkitLineClamp:1, WebkitBoxOrient:"vertical",
+        }}>
+          {projekt.title}
+        </div>
+        <div style={{
+          fontSize:10.5, color:T.inkSoft, lineHeight:1.4, marginBottom:9,
+          overflow:"hidden", display:"-webkit-box",
+          WebkitLineClamp:2, WebkitBoxOrient:"vertical",
+        }}>
           {projekt.desc}
         </div>
-
-        {/* Mitglieder — immer am unteren Rand */}
-        <div style={{ marginTop:"auto", paddingTop:4, display:"flex", alignItems:"center", gap:4 }}>
-          {membersStr ? (
-            <>
-              <HUIPersonenIcon size={11} style={{flexShrink:0, color:"rgba(34,197,94,0.8)"}} />
-              <span style={{ fontSize:10.5, fontWeight:600, color:"rgba(34,197,94,0.9)" }}>{membersStr}</span>
-            </>
-          ) : (
-            <span style={{ fontSize:10.5, color:T.inkFaint, fontStyle:"italic" }}>Mitmachen</span>
-          )}
+        <div style={{ display:"flex", alignItems:"center", gap:4 }}>
+          <HUIPersonenIcon size={11} style={{flexShrink:0}} />
+          <span style={{ fontSize:10.5, fontWeight:600, color:T.inkSoft }}>{projekt.members} Mitglieder</span>
         </div>
       </div>
     </div>
@@ -1464,9 +1443,9 @@ function ProjekteSection({ projekte, loading, delay=0, view='cards', onPress, on
           <div className="dp-hscroll" style={{ display:"flex", gap:10, paddingBottom:4 }}>
             {loading
               ? Array.from({length:4}).map((_,i) => (
-                  <div key={i} style={{ width:165, flexShrink:0, borderRadius:CARD_RADIUS, overflow:"hidden", background:T.white, boxShadow:T.cardShadow }}>
-                    <Skel w="100%" h={120} r={0} mb={0}/>
-                    <div style={{ padding:"10px 11px" }}><Skel w="75%" h={12} r={6} mb={6}/><Skel w="60%" h={10} r={5} mb={6}/><Skel w="50%" h={10} r={5}/></div>
+                  <div key={i} style={{ width:160, flexShrink:0, borderRadius:18, overflow:"hidden", background:T.white, boxShadow:T.cardShadow }}>
+                    <Skel w="100%" h={90} r={0} mb={0}/>
+                    <div style={{ padding:"10px 10px" }}><Skel w="75%" h={12} r={6} mb={6}/><Skel w="60%" h={10} r={5}/></div>
                   </div>
                 ))
               : rest.map((p, i) => <ProjektCard key={p.id} projekt={p} delay={i*35+delay} onPress={onPress} />)
@@ -1790,7 +1769,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         // Momente (beitraege)
         const { data: beitr } = await supabase
           .from("beitraege")
-          .select("id,src,type,caption,created_at,user_id,profiles:user_id(display_name,avatar_url)")
+          .select("id,src,type,caption,created_at,user_id")
           .order("created_at", { ascending:false })
           .limit(8);
 
@@ -1802,8 +1781,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
             caption:    safeStr(b.caption, "Ein Moment"),
             type:       safeStr(b.type, "foto"),
             created_at: b.created_at,
-            name:       safeStr(b.profiles?.display_name, "HUI Mitglied"),
-            avatar_url: b.profiles?.avatar_url || null,
+            name:       "HUI Mitglied",
             location:   "",
           })));
         }
@@ -1812,7 +1790,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         // Felder: id, title, cover_url, category, file_format, tags, status, visibility, user_id, created_at
         const { data: ws, error: wsErr } = await supabase
           .from("works")
-          .select("id,title,cover_url,category,file_format,tags,status,approval_status,visibility,price,location_text,lat,lng,user_id,created_at,profiles:user_id(display_name,avatar_url)")
+          .select("id,title,cover_url,category,file_format,tags,status,approval_status,visibility,price,location_text,lat,lng,user_id,created_at")
           .eq("status", "published")
           .eq("approval_status", "approved")
           .eq("visibility", "public")
@@ -1840,8 +1818,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
             location: safeStr(w.location_text),
             lat:      Number.isFinite(w.lat) ? w.lat : null,
             lng:      Number.isFinite(w.lng) ? w.lng : null,
-            author:   safeStr(w.profiles?.display_name || w.profiles?.username, "HUI Talent"),
-            avatar_url: w.profiles?.avatar_url || null,
+            author:   "HUI Talent",
           })));
         } else if (!wsErr) {
           // Keine Werke in DB → setWerke([]) → displayWerke fällt auf SEED zurück
@@ -2015,7 +1992,6 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   const displayMomente    = momente.length > 0 ? momente : SEED_MOMENTE;
   const navigate           = useNavigate();
   const { open: openPreview } = useContentPreview(); // OPEN.1 2026-07-08
-  const { openCreatorProfile } = useProfileLauncher(); // Autor-Klick → Profil
   const baseDisplayWerke      = werke.length > 0 ? werke : SEED_WERKE;
   const baseDisplayTalente    = talente.length > 0 ? talente : SEED_TALENTE;
   const baseDisplayErlebnisse = erlebnisse.length > 0 ? erlebnisse : SEED_ERLEBNISSE;
@@ -2062,17 +2038,12 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   // (Seed-Karten) bleibt nur die Vorschau ohne Profil-Sprung.
   const handlePersonPress = useCallback((person) => {
     const isRealId = person?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(person.id));
-    // Direkt Profil öffnen — kein Preview-Sheet für Personen (Karte zeigt schon alles)
-    if (isRealId && typeof onView === "function") {
-      onView(person.id);
-      return;
-    }
-    // Fallback: Preview für unbekannte IDs / Seed-Daten
     const item = normalizeWirkerForPreview(person);
     if (item) {
       openPreview({
         ...item,
-        canOpenFull: false, // Kein navigate — würde RefRedirect auslösen
+        canOpenFull: isRealId && !!person.username,
+        fullPath: (isRealId && person.username) ? `/${person.username}` : null,
       });
       return;
     }
@@ -2192,7 +2163,6 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         delay={80}
         view={view}
         onPress={handleMomentPress}
-        onAuthorPress={(userId) => openCreatorProfile(userId)}
         onSectionAction={() => setShowMomenteModal(true)}
       />
 
@@ -2203,7 +2173,6 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         delay={90}
         view={view}
         onPress={handleTalentPress}
-        onAuthorPress={(userId) => openCreatorProfile(userId)}
         onSectionAction={() => setShowTalenteModal(true)}
         locQuery={talentLocQuery}
         onLocQueryChange={setTalentLocQuery}
@@ -2225,7 +2194,6 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         delay={100}
         view={view}
         onPress={handleWerkPress}
-        onAuthorPress={(userId) => openCreatorProfile(userId)}
         onSectionAction={() => setShowWerkeModal(true)}
         locQuery={werkLocQuery}
         onLocQueryChange={setWerkLocQuery}

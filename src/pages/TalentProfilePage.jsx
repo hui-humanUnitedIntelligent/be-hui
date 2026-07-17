@@ -1225,14 +1225,19 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
       <div style={{
         position:"fixed", inset:0, zIndex:10500,
         background:"#F9F7F4",
-        display:"flex", alignItems:"center", justifyContent:"center",
+        display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:16,
       }}>
+        <button onClick={onClose} style={{
+          position:"absolute", top:16, left:16,
+          background:"none", border:"none", fontSize:22, cursor:"pointer", color:"#6B7280",
+        }}>←</button>
         <div style={{
           width:36, height:36, borderRadius:"50%",
           border:"3px solid rgba(13,196,181,0.15)",
           borderTopColor:"#0DC4B5",
           animation:"spin 0.75s linear infinite",
         }}/>
+        <div style={{ fontSize:12, color:"#9CA3AF" }}>Profil wird geladen…</div>
         <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
     );
