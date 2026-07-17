@@ -4,70 +4,194 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 
 const T = {
-  teal:"rgba(14,196,184,1)", white:"#FFFFFF", ink:"rgba(26,26,46,0.92)",
-  bg:"#F2F4F8", border:"rgba(22,215,197,0.14)", cardShadow:"0 2px 12px rgba(0,0,0,0.07)",
-  px:16, inkSoft:"rgba(26,26,46,0.55)", inkFaint:"rgba(26,26,46,0.35)",
-  tealSoft:"rgba(14,196,184,0.12)", tealDeep:"rgba(0,150,136,1)"
+  teal:       "rgba(14,196,184,1)",
+  tealDeep:   "rgba(0,150,136,1)",
+  tealSoft:   "rgba(14,196,184,0.09)",
+  tealMid:    "rgba(14,196,184,0.22)",
+  white:      "#FFFFFF",
+  bg:         "#F5F6F8",
+  ink:        "#1A1A2E",
+  inkSoft:    "rgba(26,26,46,0.52)",
+  inkFaint:   "rgba(26,26,46,0.32)",
+  border:     "rgba(26,26,46,0.08)",
+  borderTeal: "rgba(14,196,184,0.22)",
+  // Cards: weicher Schatten, eleganter
+  cardShadow: "0 1px 6px rgba(26,26,46,0.07), 0 4px 20px rgba(26,26,46,0.04)",
+  cardRadius: 14,
 };
 const PAGE_SIZE = 20;
-const RANK_BORDER = { 1:"2px solid #D97706", 2:"2px solid #71717A", 3:"2px solid #B45309" };
-const RANK_EMOJI  = { 1:"🥇", 2:"🥈", 3:"🥉" };
+// Rang-Indikatoren: subtil, kein lauter Rand mehr
+const RANK_BADGE = {
+  1: { bg:"linear-gradient(135deg,#F59E0B,#D97706)", label:"🥇 Platz 1" },
+  2: { bg:"linear-gradient(135deg,#94A3B8,#64748B)", label:"🥈 Platz 2" },
+  3: { bg:"linear-gradient(135deg,#A16207,#92400E)", label:"🥉 Platz 3" },
+};
 
 function ProjektCardItem({ p, onPress }) {
   const [imgErr, setImgErr] = useState(false);
   const prog = p.funding_goal > 0
     ? Math.min(100, Math.round((p.current_amount_eur || 0) / p.funding_goal * 100))
     : 0;
-  const border = RANK_BORDER[p.rank] || `1px solid ${T.border}`;
+  const rankBadge = RANK_BADGE[p.rank];
+
   return (
-    <div onClick={() => onPress?.(p)} style={{
-      background:T.white, borderRadius:16, overflow:"hidden",
-      boxShadow:T.cardShadow, border, marginBottom:10, cursor:"pointer",
-      display:"flex", flexDirection:"column",
-    }}>
-      <div style={{ height:100, background:T.tealSoft, position:"relative", overflow:"hidden" }}>
+    <div
+      onClick={() => onPress?.(p)}
+      style={{
+        background: T.white,
+        borderRadius: T.cardRadius,
+        overflow: "hidden",
+        boxShadow: T.cardShadow,
+        border: `1px solid ${T.border}`,
+        marginBottom: 10,
+        cursor: "pointer",
+        display: "flex",
+        flexDirection: "column",
+        transition: "box-shadow 0.18s",
+      }}
+    >
+      {/* ── Bild-Bereich — größer (140px) für mehr Präsenz ── */}
+      <div style={{
+        height: 140,
+        background: `linear-gradient(145deg, rgba(14,196,184,0.06) 0%, rgba(14,196,184,0.12) 100%)`,
+        position: "relative",
+        overflow: "hidden",
+      }}>
         {!imgErr && p.cover_url
-          ? <img loading="lazy" decoding="async" src={p.cover_url} alt={p.project_name}
-              onError={() => setImgErr(true)} style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-          : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:28 }}>💚</div>
+          ? <img
+              loading="lazy"
+              decoding="async"
+              src={p.cover_url}
+              alt={p.project_name}
+              onError={() => setImgErr(true)}
+              style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}
+            />
+          : <div style={{
+              width:"100%", height:"100%",
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontSize:36, opacity:0.5,
+            }}>💚</div>
         }
-        {p.rank && RANK_EMOJI[p.rank] && (
+
+        {/* Dezenter Gradient über dem Bild für bessere Text-Lesbarkeit */}
+        <div style={{
+          position:"absolute", inset:0,
+          background:"linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.28) 100%)",
+          pointerEvents:"none",
+        }}/>
+
+        {/* Rang-Badge — subtil, oben rechts */}
+        {rankBadge && (
           <div style={{
-            position:"absolute", top:8, right:8,
-            background:"rgba(0,0,0,0.55)", borderRadius:99,
-            fontSize:14, padding:"3px 8px", backdropFilter:"blur(4px)"
-          }}>{RANK_EMOJI[p.rank]} #{p.rank}</div>
+            position:"absolute", top:10, right:10,
+            background: rankBadge.bg,
+            borderRadius: 8,
+            fontSize: 10, fontWeight: 700, color:"#fff",
+            padding: "3px 9px",
+            letterSpacing: "0.02em",
+            boxShadow: "0 1px 4px rgba(0,0,0,0.18)",
+          }}>
+            {rankBadge.label}
+          </div>
         )}
+
+        {/* Kategorie-Tag — unten links, dezent */}
         {p.category && (
           <div style={{
-            position:"absolute", top:8, left:8,
-            background:T.teal, color:"#fff", borderRadius:99,
-            fontSize:9.5, fontWeight:700, padding:"2px 8px"
-          }}>{p.category}</div>
+            position:"absolute", bottom:10, left:10,
+            background:"rgba(255,255,255,0.88)",
+            backdropFilter:"blur(6px)",
+            WebkitBackdropFilter:"blur(6px)",
+            color: T.tealDeep,
+            borderRadius: 6,
+            fontSize: 9.5, fontWeight: 700,
+            padding: "2px 8px",
+            letterSpacing: "0.04em",
+            textTransform: "uppercase",
+          }}>
+            {p.category}
+          </div>
         )}
       </div>
-      <div style={{ padding:"10px 10px 10px" }}>
-        <div style={{ fontSize:14, fontWeight:800, color:T.ink, marginBottom:4,
-          overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>
+
+      {/* ── Content-Bereich ── */}
+      <div style={{ padding: "14px 14px 12px" }}>
+        {/* Projekt-Name */}
+        <div style={{
+          fontSize: 15, fontWeight: 700,
+          color: T.ink, lineHeight: 1.35,
+          marginBottom: 5,
+          overflow: "hidden",
+          display: "-webkit-box",
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: "vertical",
+          letterSpacing: "-0.01em",
+        }}>
           {p.project_name}
         </div>
+
+        {/* Beschreibung — kürzer, ruhiger */}
         {p.short_desc && (
-          <div style={{ fontSize:11.5, color:T.inkSoft, marginBottom:8,
-            overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>
+          <div style={{
+            fontSize: 12, color: T.inkSoft,
+            lineHeight: 1.55, marginBottom: 12,
+            overflow: "hidden",
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+          }}>
             {p.short_desc}
           </div>
         )}
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 }}>
-          <span style={{ fontSize:11, color:T.inkFaint }}>♡ {p.vote_count || 0} Stimmen</span>
+
+        {/* ── Stimmen + Betrag ── */}
+        <div style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: p.funding_goal > 0 ? 8 : 0,
+        }}>
+          {/* Stimmen */}
+          <span style={{
+            display:"flex", alignItems:"center", gap:4,
+            fontSize: 11.5, color: T.inkFaint, fontWeight: 500,
+          }}>
+            <span style={{ fontSize:12, opacity:0.7 }}>♡</span>
+            {p.vote_count || 0} Stimmen
+          </span>
+
+          {/* Betrag */}
           {p.funding_goal > 0 && (
-            <span style={{ fontSize:11, color:T.inkFaint }}>
-              {(p.current_amount_eur||0).toLocaleString("de-DE")} / {p.funding_goal.toLocaleString("de-DE")} €
+            <span style={{
+              fontSize: 11, color: T.inkFaint, fontWeight: 500,
+              fontVariantNumeric: "tabular-nums",
+            }}>
+              <span style={{ color: T.tealDeep, fontWeight: 600 }}>
+                {(p.current_amount_eur || 0).toLocaleString("de-DE", { maximumFractionDigits:0 })} €
+              </span>
+              {" / "}
+              {p.funding_goal.toLocaleString("de-DE")} €
             </span>
           )}
         </div>
+
+        {/* ── Fortschrittsbalken — dünn, clean ── */}
         {p.funding_goal > 0 && (
-          <div style={{ height:5, borderRadius:99, background:"rgba(0,0,0,0.08)", overflow:"hidden" }}>
-            <div style={{ width:`${prog}%`, height:"100%", background:T.teal, borderRadius:99, transition:"width .3s" }}/>
+          <div style={{
+            height: 3,
+            borderRadius: 99,
+            background: "rgba(26,26,46,0.07)",
+            overflow: "hidden",
+          }}>
+            <div style={{
+              width: `${prog}%`,
+              height: "100%",
+              background: prog >= 100
+                ? "linear-gradient(90deg,#10B981,#059669)"
+                : `linear-gradient(90deg,${T.teal},${T.tealDeep})`,
+              borderRadius: 99,
+              transition: "width 0.4s cubic-bezier(.4,0,.2,1)",
+            }}/>
           </div>
         )}
       </div>
@@ -166,7 +290,7 @@ export default function ProjekteAllModal({ isOpen, onClose, onPressItem }) {
       <div onClick={e => e.stopPropagation()} style={{
         marginTop:"env(safe-area-inset-top,44px)", maxWidth:480, width:"100%",
         height:"calc(100dvh - env(safe-area-inset-top,44px))",
-        background:T.bg, borderRadius:"20px 20px 0 0",
+        background:"#F4F5F7", borderRadius:"20px 20px 0 0",
         display:"flex", flexDirection:"column", overflow:"hidden",
       }}>
         <div style={{ padding:"16px 16px 8px", background:T.white, borderBottom:`1px solid ${T.border}`, flexShrink:0 }}>
@@ -184,11 +308,13 @@ export default function ProjekteAllModal({ isOpen, onClose, onPressItem }) {
           <div style={{ display:"flex", gap:6, marginTop:8, overflowX:"auto", paddingBottom:4 }}>
             {RANK_F.map(f => (
               <button key={f.key} onClick={() => setFR(f.key)} style={{
-                padding:"5px 12px", borderRadius:99, border:`1.5px solid ${filterRank===f.key ? T.teal : T.border}`,
-                background:filterRank===f.key ? T.tealSoft : "transparent",
-                color:filterRank===f.key ? T.tealDeep : T.inkSoft,
-                fontSize:12, fontWeight:filterRank===f.key ? 700 : 400,
-                whiteSpace:"nowrap", cursor:"pointer",
+                padding:"5px 14px", borderRadius:99,
+                border: filterRank===f.key ? `1.5px solid ${T.tealMid}` : `1px solid ${T.border}`,
+                background: filterRank===f.key ? T.tealSoft : "rgba(255,255,255,0.7)",
+                color: filterRank===f.key ? T.tealDeep : T.inkSoft,
+                fontSize:12.5, fontWeight: filterRank===f.key ? 700 : 500,
+                whiteSpace:"nowrap", cursor:"pointer", fontFamily:"inherit",
+                transition:"all 0.15s",
               }}>{f.label}</button>
             ))}
           </div>
