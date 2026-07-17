@@ -1220,17 +1220,25 @@ function ErlebnisCard({ erlebnis, delay=0, onPress }) {
         )}
 
         {/* Status-Dot */}
-        {erlebnis.statusLabel && (
-          <div style={{ display:"flex", alignItems:"center", gap:5 }}>
-            <span style={{
-              width:6, height:6, borderRadius:"50%",
-              background:statusDot, flexShrink:0, display:"inline-block",
-            }}/>
-            <span style={{ fontSize:10.5, fontWeight:600, color:statusColor }}>
-              {erlebnis.statusLabel}
+        {/* Status + Likes Row */}
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop: erlebnis.statusLabel ? 0 : 0 }}>
+          {erlebnis.statusLabel && (
+            <div style={{ display:"flex", alignItems:"center", gap:5 }}>
+              <span style={{
+                width:6, height:6, borderRadius:"50%",
+                background:statusDot, flexShrink:0, display:"inline-block",
+              }}/>
+              <span style={{ fontSize:10.5, fontWeight:600, color:statusColor }}>
+                {erlebnis.statusLabel}
+              </span>
+            </div>
+          )}
+          {erlebnis.likes > 0 && (
+            <span style={{ display:"flex", alignItems:"center", gap:3, fontSize:10.5, color:T.coral, fontWeight:700 }}>
+              <HUIHeartIcon size={11} /> {erlebnis.likes}
             </span>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
@@ -1930,7 +1938,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         // Erlebnisse — korrigierte Feldnamen: location_text, max_participants
         const { data: exps, error: expsErr } = await supabase
           .from("experiences")
-          .select("id,title,cover_url,date,duration,location_text,max_participants,status,approval_status,category,experience_type,format,lat,lng,user_id,created_at")
+          .select("id,title,cover_url,date,duration,location_text,max_participants,status,approval_status,category,experience_type,format,lat,lng,user_id,created_at,likes_count")
           .eq("status", "published")
           .eq("approval_status", "approved")
           .order("created_at", { ascending:false })
@@ -1978,6 +1986,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
               format:      safeStr(e.format),
               lat:         Number.isFinite(e.lat) ? e.lat : null,
               lng:         Number.isFinite(e.lng) ? e.lng : null,
+              likes:       e.likes_count || 0,
             };
           }));
         } else if (!expsErr) {
