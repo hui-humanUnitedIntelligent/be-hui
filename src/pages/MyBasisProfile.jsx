@@ -1324,47 +1324,57 @@ export default function MyBasisProfile({ onClose, profileId }) {
 // Rechte: alle Nutzer können Momente veröffentlichen
 // ══════════════════════════════════════════════════════════════
 function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
-  const [moments, setMoments] = React.useState([]);
-  const [loading, setLoading] = React.useState(true);
-  const [imgErrors, setImgErrors] = React.useState({});
+  const [moments, setMoments]       = React.useState([]);
+  const [loading, setLoading]       = React.useState(true);
+  const [confirmMoment, setConfirmMoment] = React.useState(null);
 
-  // Lade Momente des Users aus beitraege-Tabelle (type='moment')
+  // ── Daten laden (unverändert — beitraege-Tabelle, type='moment') ──────
   React.useEffect(() => {
     if (!profile?.id) return;
     let cancelled = false;
     setLoading(true);
-
     supabase
       .from("beitraege")
       .select("id, src, type, caption, created_at")
       .eq("user_id", profile.id)
       .eq("type", "moment")
       .order("created_at", { ascending: false })
-      .limit(18)
+      .limit(20)
       .then(({ data, error }) => {
         if (cancelled) return;
         if (!error && data) setMoments(data);
         setLoading(false);
       });
-
-    // Memory-Cleanup bei Unmount
     return () => { cancelled = true; };
   }, [profile?.id]);
 
-  const handleImgError = React.useCallback((id) => {
-    setImgErrors(prev => ({ ...prev, [id]: true }));
-  }, []);
+  // ── Löschen ──────────────────────────────────────────────────────────
+  const handleDeleteClick = (e, m) => {
+    e.stopPropagation();
+    setConfirmMoment(m);
+  };
 
+  const handleConfirmDelete = async () => {
+    const m = confirmMoment;
+    setConfirmMoment(null);
+    if (!m?.id) return;
+    try {
+      await supabase.from("beitraege").delete().eq("id", m.id);
+      setMoments(prev => prev.filter(x => x.id !== m.id));
+    } catch(e) { console.error("Moment löschen:", e); }
+  };
+
+  // ── Loading-Shimmer ──────────────────────────────────────────────────
   if (loading) {
     return (
-      <div style={{ padding:"16px 20px" }}>
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:4 }}>
-          {[1,2,3,4,5,6].map(i => (
+      <div style={{ padding:`0 ${T.px}px` }}>
+        <div style={{ fontSize:14, fontWeight:800, color:"#1A1A18", marginBottom:10 }}>Meine Momente</div>
+        <div style={{ display:"flex", gap:8, overflow:"hidden", marginBottom:8 }}>
+          {[1,2,3,4,5].map(i => (
             <div key={i} style={{
-              aspectRatio:"1", borderRadius:12,
-              background:"linear-gradient(90deg,rgba(26,26,24,0.06) 25%,rgba(26,26,24,0.12) 50%,rgba(26,26,24,0.06) 75%)",
-              backgroundSize:"200% 100%",
-              animation:"mbp-shimmer 1.4s ease-in-out infinite",
+              flexShrink:0, width:88, height:88, borderRadius:T.r12,
+              background:"linear-gradient(90deg,#ede9e2 25%,#f7f5f0 50%,#ede9e2 75%)",
+              backgroundSize:"200% 100%", animation:"mbp-shimmer 1.4s ease-in-out infinite",
             }}/>
           ))}
         </div>
@@ -1373,96 +1383,152 @@ function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
   }
 
   return (
-    <div style={{ padding:"16px 20px", paddingBottom:"calc(24px + env(safe-area-inset-bottom,0px))" }}>
-      {/* Header-Zeile mit Zähler und CTA */}
-      <div style={{
-        display:"flex", alignItems:"center", justifyContent:"space-between",
-        marginBottom:14,
-      }}>
-        <div style={{ fontSize:14, fontWeight:800, color:"#1A1A18", letterSpacing:"-0.01em" }}>
-          Meine Momente
-          {moments.length > 0 && (
-            <span style={{ fontSize:12, fontWeight:600, color:"rgba(26,26,24,0.45)", marginLeft:6 }}>
-              ({moments.length})
-            </span>
-          )}
-        </div>
-        <button
-          onClick={onOpenMomentSheet}
-          style={{
-            padding:"8px 16px", borderRadius:99,
-            background:"#0EC4B8", border:"none", color:"white",
-            fontSize:12.5, fontWeight:700, cursor:"pointer",
-            fontFamily:"inherit", touchAction:"manipulation",
-            WebkitTapHighlightColor:"transparent",
-          }}
-        >
-          + Neuer Moment
+    <>
+      {/* ── Löschen-Bestätigung (Portal, >BottomNav) ────────── */}
+      {confirmMoment && createPortal(
+        <div onClick={() => setConfirmMoment(null)}
+          style={{ position:"fixed", inset:0, zIndex:10500,
+            background:"rgba(0,0,0,0.55)", display:"flex",
+            alignItems:"center", justifyContent:"center", padding:24 }}>
+          <div onClick={e => e.stopPropagation()}
+            style={{ background:"#fff", borderRadius:16, padding:"24px 20px 20px",
+              maxWidth:320, width:"100%", boxShadow:"0 8px 40px rgba(0,0,0,0.18)" }}>
+            <div style={{ textAlign:"center", marginBottom:8, display:"flex",
+              justifyContent:"center", color:"#F59E0B", fontSize:32 }}>⚠️</div>
+            <div style={{ fontSize:16, fontWeight:700, textAlign:"center",
+              marginBottom:6, color:"#1A1A18" }}>
+              Moment löschen?
+            </div>
+            <div style={{ fontSize:13, color:"#666", textAlign:"center",
+              lineHeight:1.5, marginBottom:20 }}>
+              Dieser Moment wird unwiderruflich gelöscht.
+            </div>
+            <button onClick={handleConfirmDelete}
+              style={{ width:"100%", padding:"12px", borderRadius:99,
+                background:"#ff3b3b", border:"none", color:"#fff",
+                fontSize:14, fontWeight:700, cursor:"pointer",
+                fontFamily:"inherit", marginBottom:8 }}>
+              Ja, endgültig löschen
+            </button>
+            <button onClick={() => setConfirmMoment(null)}
+              style={{ width:"100%", padding:"12px", borderRadius:99,
+                background:"#f0f0ee", border:"none", color:"#444",
+                fontSize:14, fontWeight:600, cursor:"pointer",
+                fontFamily:"inherit" }}>Abbrechen</button>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      <div style={{ padding:`0 ${T.px}px` }}>
+        {/* ── Header ────────────────────────────────────────── */}
+        <SectionRow
+          title="Meine Momente"
+          sub={moments.length > 0
+            ? `${moments.length} ${moments.length === 1 ? "Moment" : "Momente"} geteilt`
+            : "Fotos, Gedanken oder Videos"}
+        />
+
+        {/* ── Kachel-Scroller (identisch zu Werke/Talente) ─── */}
+        {moments.length > 0 && (
+          <div style={{
+            display:"flex", gap:8, overflowX:"auto",
+            WebkitOverflowScrolling:"touch", scrollbarWidth:"none",
+            paddingBottom:4, marginBottom:8,
+          }}>
+            {moments.map((m, i) => (
+              <div key={m.id || i}
+                onClick={onOpenMomentSheet}
+                style={{
+                  flexShrink:0, width:88, height:88,
+                  borderRadius:T.r12, overflow:"hidden",
+                  background:"#e8e4de", position:"relative", cursor:"pointer",
+                  boxShadow:"0 0 0 2px #0EC4B8",
+                }}>
+                {m.src
+                  ? <img loading="lazy" decoding="async" src={m.src} alt=""
+                      style={{ width:"100%", height:"100%", objectFit:"cover" }}
+                      onError={e => e.target.style.display = "none"}/>
+                  : <div style={{ width:"100%", height:"100%", display:"flex",
+                      alignItems:"center", justifyContent:"center" }}>
+                      <HUIFotoIcon size={22} style={{color:"rgba(14,196,184,0.5)"}}/>
+                    </div>
+                }
+                {/* X-Löschen-Button oben rechts */}
+                <button
+                  onClick={(e) => handleDeleteClick(e, m)}
+                  style={{
+                    position:"absolute", top:4, right:4,
+                    width:20, height:20, borderRadius:"50%",
+                    background:"rgba(0,0,0,0.65)", border:"none",
+                    color:"#fff", fontSize:11, fontWeight:700,
+                    cursor:"pointer", display:"flex",
+                    alignItems:"center", justifyContent:"center",
+                    lineHeight:1, padding:0, zIndex:2,
+                  }}
+                >✕</button>
+                {/* Live-Badge unten */}
+                <div style={{
+                  position:"absolute", bottom:0, left:0, right:0,
+                  background:"rgba(14,196,184,0.92)",
+                  fontSize:9, fontWeight:700, color:"#fff",
+                  padding:"3px 5px", textAlign:"center", letterSpacing:"0.3px",
+                }}>
+                  ✅ Live
+                </div>
+                {/* Caption als Titel oben (wenn vorhanden) */}
+                {m.caption && (
+                  <div style={{
+                    position:"absolute", top:0, left:0, right:0,
+                    background:"rgba(0,0,0,0.45)", fontSize:9, color:"#fff",
+                    padding:"3px 22px 3px 5px", whiteSpace:"nowrap",
+                    overflow:"hidden", textOverflow:"ellipsis",
+                  }}>
+                    {m.caption}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ── Empty-State ───────────────────────────────────── */}
+        {moments.length === 0 && (
+          <button onClick={onOpenMomentSheet} style={{
+            display:"flex", flexDirection:"column", alignItems:"center", gap:8,
+            width:"100%", padding:"28px 16px", borderRadius:T.r16,
+            background:"#FFFFFF", border:`1.5px dashed ${T.borderMid}`,
+            cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
+            marginBottom:12,
+          }}>
+            <HUIFotoIcon size={28} style={{color:"rgba(14,196,184,0.5)"}} />
+            <div style={{ fontSize:13, fontWeight:700, color:"#1A1A18" }}>
+              Ersten Moment teilen
+            </div>
+            <div style={{ fontSize:12, color:"rgba(26,26,24,0.45)" }}>
+              Fotos, Gedanken oder Videos
+            </div>
+          </button>
+        )}
+
+        {/* ── "+ Moment hinzufügen" Button (identisch zu Werke/Talente) ── */}
+        <button className="mbp-press-light" onClick={onOpenMomentSheet} style={{
+          display:"flex", alignItems:"center", gap:8,
+          padding:"8px 14px", borderRadius:T.r12,
+          background:T.tealSoft, border:`1px solid ${T.tealMid}`,
+          fontSize:12.5, fontWeight:700, color:T.teal,
+          cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
+          width:"100%",
+        }}>
+          <span style={{
+            width:18, height:18, borderRadius:"50%", flexShrink:0,
+            background:T.teal, color:"#fff", fontSize:13, fontWeight:800,
+            display:"flex", alignItems:"center", justifyContent:"center", lineHeight:1,
+          }}>+</span>
+          Moment hinzufügen
         </button>
       </div>
-
-      {moments.length === 0 ? (
-        /* Empty-State — kein Off-Screen-Content */
-        <button
-          onClick={onOpenMomentSheet}
-          style={{
-            width:"100%", padding:"28px 16px", borderRadius:16,
-            background:"#FFFFFF", border:"1.5px dashed rgba(26,26,24,0.14)",
-            display:"flex", flexDirection:"column", alignItems:"center", gap:8,
-            cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
-          }}
-        >
-          <HUIFotoIcon size={28} style={{color:"rgba(14,196,184,0.5)"}} />
-          <div style={{ fontSize:14, fontWeight:700, color:"#1A1A18" }}>
-            Ersten Moment teilen
-          </div>
-          <div style={{ fontSize:12, color:"rgba(26,26,24,0.45)" }}>
-            Fotos, Gedanken oder Videos
-          </div>
-        </button>
-      ) : (
-        /* Grid — nur Bilder laden (lazy), 3-spaltig */
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:4 }}>
-          {moments.map((m, i) => (
-            <div key={m.id || i} style={{
-              aspectRatio:"1", borderRadius:12, overflow:"hidden",
-              background:"rgba(26,26,24,0.06)", position:"relative",
-            }}>
-              {m.src && !imgErrors[m.id] ? (
-                <img
-                  loading="lazy"
-                  decoding="async"
-                  src={m.src}
-                  alt=""
-                  onError={() => handleImgError(m.id)}
-                  style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}
-                />
-              ) : (
-                <div style={{
-                  width:"100%", height:"100%",
-                  display:"flex", alignItems:"center", justifyContent:"center",
-                }}>
-                  <HUIFotoIcon size={18} style={{color:"rgba(14,196,184,0.4)"}} />
-                </div>
-              )}
-            </div>
-          ))}
-          {/* Hinzufügen-Kachel — performance-safe */}
-          <button
-            onClick={onOpenMomentSheet}
-            style={{
-              aspectRatio:"1", borderRadius:12,
-              background:"#FFFFFF", border:"1.5px dashed rgba(26,26,24,0.14)",
-              display:"flex", flexDirection:"column", alignItems:"center",
-              justifyContent:"center", gap:4, cursor:"pointer",
-              touchAction:"manipulation",
-            }}
-          >
-            <span style={{ fontSize:20, color:"rgba(26,26,24,0.45)" }}>+</span>
-          </button>
-        </div>
-      )}
-    </div>
+    </>
   );
 }
 
