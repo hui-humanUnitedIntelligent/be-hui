@@ -1808,41 +1808,49 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
           })));
         }
 
-        // Werke — nur existierende DB-Felder (medium/media_url/likes_count existieren NICHT)
-        // Felder: id, title, cover_url, category, file_format, tags, status, visibility, user_id, created_at
+        // Werke — 2-Schritt-Query (kein FK von works.user_id → profiles)
+        // Schritt 1: Werke laden
         const { data: ws, error: wsErr } = await supabase
           .from("works")
-          .select("id,title,cover_url,category,file_format,tags,status,approval_status,visibility,price,location_text,lat,lng,user_id,created_at,profiles:user_id(display_name,avatar_url)")
+          .select("id,title,cover_url,category,file_format,tags,status,approval_status,visibility,price,location_text,lat,lng,user_id,created_at")
           .eq("status", "published")
           .eq("approval_status", "approved")
           .eq("visibility", "public")
           .order("created_at", { ascending:false })
           .limit(8);
 
-        if (wsErr) {
-        }
-
         if (!cancelled && ws?.length > 0) {
-          // file_format-Werte: 'original'|'druck'|'digital'
-          // Mappen auf lesbare Labels für MEDIUM_COLOR-Fallback
+          // Schritt 2: Profile für alle Autoren nachladen (public_profiles = öffentlich lesbar)
           const FILE_FORMAT_LABEL = {
             original: "Original",
             druck:    "Druck",
             digital:  "Digital Art",
           };
-          setWerke(ws.map(w => ({
-            id:       w.id,
-            user_id:  w.user_id || w.creator_id,
-            title:    safeStr(w.title, "Werk"),
-            cover:    safeStr(w.cover_url),
-            medium:   FILE_FORMAT_LABEL[w.file_format] || safeStr(w.category, "Werk"),
-            price:    w.price != null ? safeNum(w.price, 0) : null,
-            location: safeStr(w.location_text),
-            lat:      Number.isFinite(w.lat) ? w.lat : null,
-            lng:      Number.isFinite(w.lng) ? w.lng : null,
-            author:   safeStr(w.profiles?.display_name || w.profiles?.username, "HUI Talent"),
-            avatar_url: w.profiles?.avatar_url || null,
-          })));
+          const userIds = [...new Set(ws.map(w => w.user_id).filter(Boolean))];
+          let profileMap = {};
+          if (userIds.length > 0) {
+            const { data: profs } = await supabase
+              .from("public_profiles")
+              .select("id,display_name,avatar_url")
+              .in("id", userIds);
+            if (profs) profileMap = Object.fromEntries(profs.map(p => [p.id, p]));
+          }
+          setWerke(ws.map(w => {
+            const prof = profileMap[w.user_id] || {};
+            return {
+              id:        w.id,
+              user_id:   w.user_id,
+              title:     safeStr(w.title, "Werk"),
+              cover:     safeStr(w.cover_url),
+              medium:    FILE_FORMAT_LABEL[w.file_format] || safeStr(w.category, "Werk"),
+              price:     w.price != null ? safeNum(w.price, 0) : null,
+              location:  safeStr(w.location_text),
+              lat:       Number.isFinite(w.lat) ? w.lat : null,
+              lng:       Number.isFinite(w.lng) ? w.lng : null,
+              author:    safeStr(prof.display_name, "HUI Talent"),
+              avatar_url: prof.avatar_url || null,
+            };
+          }));
         } else if (!wsErr) {
           // Keine Werke in DB → setWerke([]) → displayWerke fällt auf SEED zurück
           if (!cancelled) setWerke([]);
@@ -2084,16 +2092,9 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
     const werkId = werk.id;
     const isRealId = werkId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(werkId));
     if (!isRealId) return; // Seed-Karte: nichts tun
-    // Werk via ContentPreviewSheet öffnen (Sheet hat "Vollständige Ansicht"-Button)
-    const item = normalizePostForPreview({
-      id: werk.id, type: "work",
-      title: werk.title, cover_url: werk.cover,
-      price: werk.price, user_id: werk.user_id,
-      author: werk.author, location_text: werk.location,
-    }, "work");
-    if (item) openPreview(item);
-    else navigate(`/work/${werkId}`); // Fallback
-  }, [navigate, openPreview]);
+    // Direkt zur WorkDetailPage navigieren (zuverlässiger als Sheet-Normalisierung)
+    navigate(`/work/${werkId}`);
+  }, [navigate]);
 
   // Talent-Karte: Anmeldung/Registrierung erzwingen (useAuthGate), danach Anfrage-Modal öffnen.
   // Seed-Karten (keine echte UUID) öffnen nach Login bewusst kein Modal (kein echter Anbieter dahinter).
@@ -2291,7 +2292,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
           onClose={() => setShowWerkeModal(false)}
           onPressItem={(werk) => {
             setShowWerkeModal(false);
-            openPreview({ id:werk.id, type:"werk", title:werk.title, cover:werk.cover_url, workId:werk.id });
+            navigate(`/work/${werk.id}`);
           }}
         />
         <TalenteAllModal

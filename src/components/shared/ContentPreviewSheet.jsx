@@ -40,8 +40,14 @@ const T = {
 };
 
 const TYPE_LABEL = {
-  work: "Werk", experience: "Erlebnis", moment: "Beitrag", event: "Veranstaltung",
-  project: "Impact-Projekt", recommendation: "Empfehlung", wirker: "Wirker",
+  work: "Werk", werk: "Werk",
+  experience: "Erlebnis", erlebnis: "Erlebnis",
+  moment: "Beitrag", beitrag: "Beitrag",
+  event: "Veranstaltung", veranstaltung: "Veranstaltung",
+  project: "Impact-Projekt", projekt: "Impact-Projekt",
+  recommendation: "Empfehlung",
+  wirker: "Wirker",
+  talent: "Talent-Angebot",
   connection: "Verbindung",
 };
 
