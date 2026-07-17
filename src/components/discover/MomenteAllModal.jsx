@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { useProfileLauncher } from "../home/profile/ProfileLauncher.jsx";
+import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
 
 const T = {
   teal:"rgba(14,196,184,1)", white:"#FFFFFF", ink:"rgba(26,26,46,0.92)",
@@ -21,15 +22,19 @@ const timeAgo = (iso) => {
   return `vor ${Math.floor(d/30)} Mon.`;
 };
 
-function MomentCardItem({ m, onOpenProfile }) {
+function MomentCardItem({ m, onPress, onOpenProfile }) {
   const [imgErr, setImgErr] = useState(false);
   const likes = 4 + (m.id?.charCodeAt(m.id.length-1) % 30 || 0);
   return (
-    <div style={{
-      background:T.white, borderRadius:18, overflow:"hidden",
-      boxShadow:T.cardShadow, border:`1px solid ${T.border}`,
-      display:"flex", flexDirection:"column",
-    }}>
+    <div
+      onClick={() => onPress?.(m)}
+      style={{
+        background:T.white, borderRadius:18, overflow:"hidden",
+        boxShadow:T.cardShadow, border:`1px solid ${T.border}`,
+        display:"flex", flexDirection:"column",
+        cursor:"pointer", WebkitTapHighlightColor:"transparent",
+      }}
+    >
       <div style={{ width:"100%", height:130, background:T.tealSoft, position:"relative", overflow:"hidden" }}>
         {!imgErr && m.src
           ? <img loading="lazy" decoding="async" src={m.src} alt={m.caption}
@@ -73,6 +78,7 @@ function MomentCardItem({ m, onOpenProfile }) {
 
 export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
   const { openCreatorProfile } = useProfileLauncher();
+  const { open: openPreview } = useContentPreview();
   useWizardBodyLock(isOpen);
   const [items, setItems]        = useState([]);
   const [loading, setLoading]    = useState(false);
@@ -192,7 +198,33 @@ export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
             </div>
           )}
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-            {items.map(m => <MomentCardItem key={m.id} m={m} onPress={onPressItem} onOpenProfile={openCreatorProfile}/>)}
+            {items.map(m => (
+              <MomentCardItem
+                key={m.id}
+                m={m}
+                onOpenProfile={openCreatorProfile}
+                onPress={(moment) => {
+                  onClose?.();
+                  // Normalisiertes Item für ContentPreviewContext (PostFullscreenView)
+                  openPreview({
+                    id: moment.id,
+                    type: "moment",
+                    title: moment.caption || moment._name || "Moment",
+                    text:  moment.caption || null,
+                    media: moment.src ? [{ type: moment.type === "video" ? "video" : "image", url: moment.src }] : [],
+                    author: {
+                      id:   moment.user_id || "",
+                      name: moment._name   || "HUI Mitglied",
+                      displayName: moment._name || "HUI Mitglied",
+                      avatar: null,
+                    },
+                    createdAt: moment.created_at || "",
+                    _reactions: {},
+                    _raw: moment,
+                  });
+                }}
+              />
+            ))}
           </div>
           {loading && items.length > 0 && (
             <div style={{ textAlign:"center", padding:16, color:T.inkFaint, fontSize:13 }}>Lade weitere…</div>
