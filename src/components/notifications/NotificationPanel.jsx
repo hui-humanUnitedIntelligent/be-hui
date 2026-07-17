@@ -448,20 +448,36 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
     } catch { /* silent */ }
   }
 
+  // ── Tab-Definitionen (3 Tabs): Alle / Relevant / Informativ ───────────────
+  // "Relevant" = nutzer-bezogene Ereignisse (Werke, Talente, Projekte, Interaktionen)
+  // "Informativ" = ausschließlich SADB-Broadcast-Nachrichten
+  const BROADCAST_TYPES = ["admin_broadcast", "broadcast"];
+  const RELEVANT_TYPES  = [
+    // Werke
+    "work_approved", "work_rejected", "content_rejected", "work_sensitive", "work_deleted",
+    "meldung_aufgehoben",
+    // Erlebnisse
+    "experience_approved", "experience_rejected",
+    // Projekte / Impact
+    "project_approved", "project_rejected",
+    "impact_project_approved", "impact_project_rejected",
+    // Talente
+    "talent_approved", "talent_rejected",
+    // Interaktionen
+    "new_follower", "new_booking", "support_ticket_reply", "support_ticket",
+    "like", "resonanz", "comment", "comment_reply", "save_digest",
+  ];
+
   const TAB_FILTERS = {
     all:       () => true,
-    unread:    n => !n.is_read,
-    important: n => ["work_rejected","experience_rejected","project_rejected","impact_project_rejected","impact_project_approved","support_ticket_reply"].includes(n.type),
-    relevant:  n => ["work_approved","experience_approved","project_approved","new_booking","new_follower"].includes(n.type),
-    info:      n => ["admin_broadcast","broadcast","meldung_aufgehoben","work_sensitive","work_deleted"].includes(n.type),
+    relevant:  n => RELEVANT_TYPES.includes(n.type),
+    info:      n => BROADCAST_TYPES.includes(n.type),
   };
 
   const TABS = [
-    { key:"all",       label:"Alle"      },
-    { key:"unread",    label:"Ungelesen" },
-    { key:"important", label:"Wichtig"   },
-    { key:"relevant",  label:"Relevant"  },
-    { key:"info",      label:"Informativ"},
+    { key:"all",      label:"Alle"      },
+    { key:"relevant", label:"Relevant"  },
+    { key:"info",     label:"Informativ"},
   ];
 
   const visible = notifs.filter(TAB_FILTERS[tab] || (() => true));
@@ -504,11 +520,16 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
           ))}
         </div>
 
-        {/* Alle gelesen */}
-        {unreadCount > 0 && (
+        {/* Alle gelesen — nur im Tab "Alle" + wenn ungelesene vorhanden */}
+        {tab === "all" && unreadCount > 0 && (
           <div style={{ padding:"8px 20px 0", display:"flex", justifyContent:"flex-end" }}>
-            <button onClick={markAllRead} style={{ fontSize:11, color:T.teal, background:"none", border:"none", cursor:"pointer", fontWeight:600, fontFamily:"inherit" }}>
-              Alle Nachrichten gelesen
+            <button onClick={markAllRead} style={{
+              fontSize:11, color:T.teal, background:"none", border:"none",
+              cursor:"pointer", fontWeight:600, fontFamily:"inherit",
+              padding:"4px 10px", borderRadius:99,
+              border:`1px solid ${T.tealMid}`,
+            }}>
+              Alle gelesen ✓
             </button>
           </div>
         )}

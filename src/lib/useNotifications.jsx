@@ -800,40 +800,56 @@ export function ResonanzzentrumPanel({ onClose }) {
 
 
 
-  // Tab-Counts — safeItems/safeRequests statt direkte Zugriffe
+  // Tab-Counts — 3 Tabs: alle / relevant / info
   const counts = useMemo(() => {
-    const alle = safeItems.length + safeRequests.length;
-    const wichtig = safeItems.filter(n => getMeta(n?.type).tab === "wichtig" && !n?.is_read).length
-                  + safeRequests.length;
-    const relevant = safeItems.filter(n => getMeta(n?.type).tab === "relevant" && !n?.is_read).length;
-    const info     = safeItems.filter(n => getMeta(n?.type).tab === "info"     && !n?.is_read).length;
-    return { alle, wichtig, relevant, info };
+    const alle     = safeItems.length + safeRequests.length;
+    // relevant: nutzer-bezogen (ehemalige wichtig + relevant)
+    const relevant = safeItems.filter(n => {
+      const t = getMeta(n?.type).tab;
+      return (t === "relevant" || t === "wichtig") && !n?.is_read;
+    }).length + safeRequests.length;
+    const info     = safeItems.filter(n => getMeta(n?.type).tab === "info" && !n?.is_read).length;
+    return { alle, relevant, info };
   }, [safeItems, safeRequests]);
 
-  // Items gefiltert
+  // Items gefiltert — 3 Tabs: alle / relevant / info
+  // "relevant" erfasst Typen mit tab:"wichtig" + tab:"relevant" aus META
+  // "info" erfasst Typen mit tab:"info" aus META (Broadcast-Nachrichten)
   const filteredItems = useMemo(() => {
     if (tab === "alle") return safeItems;
-    const tabKey = tab === "wichtig" ? "wichtig" : tab === "relevant" ? "relevant" : "info";
-    return safeItems.filter(n => getMeta(n?.type).tab === tabKey);
+    if (tab === "relevant") {
+      return safeItems.filter(n => {
+        const t = getMeta(n?.type).tab;
+        return t === "relevant" || t === "wichtig";
+      });
+    }
+    if (tab === "info") {
+      return safeItems.filter(n => getMeta(n?.type).tab === "info");
+    }
+    return safeItems;
   }, [safeItems, tab]);
 
-  // Gruppen für "alle" Tab
+  // Gruppen für "alle" Tab — 2 Sektionen: Relevant (wichtig+relevant) + Informativ
   const grouped = useMemo(() => {
     if (tab !== "alle") return null;
-    const w = safeItems.filter(n => getMeta(n?.type).tab === "wichtig");
-    const r = safeItems.filter(n => getMeta(n?.type).tab === "relevant");
+    const r = safeItems.filter(n => {
+      const t = getMeta(n?.type).tab;
+      return t === "relevant" || t === "wichtig";
+    });
     const i = safeItems.filter(n => getMeta(n?.type).tab === "info");
-    return { wichtig: w, relevant: r, info: i };
+    return { relevant: r, info: i };
   }, [safeItems, tab]);
 
+  // 3 Tabs: Alle / Relevant / Informativ (Wichtig entfernt per Design-Entscheidung 2026-07-17)
   const TABS = [
-    { key:"alle",     label:"Alle",        count: safeItems.length + safeRequests.length },
-    { key:"wichtig",  label:"Wichtig",     count: counts?.wichtig  ?? 0 },
-    { key:"relevant", label:"Relevant",    count: counts?.relevant ?? 0 },
-    { key:"info",     label:"Informativ",  count: counts?.info     ?? 0 },
+    { key:"alle",     label:"Alle",       count: safeItems.length + safeRequests.length },
+    { key:"relevant", label:"Relevant",   count: counts?.relevant ?? 0 },
+    { key:"info",     label:"Informativ", count: counts?.info     ?? 0 },
   ];
 
-  const isEmpty = (filteredItems?.length ?? 0) === 0 && (tab !== "alle" || safeRequests.length === 0);
+  const isEmpty = (filteredItems?.length ?? 0) === 0
+    && (tab !== "alle" || safeRequests.length === 0)
+    && (tab !== "relevant" || safeRequests.length === 0);
 
   return createPortal(
     <>
@@ -966,20 +982,22 @@ export function ResonanzzentrumPanel({ onClose }) {
               );
             })}
 
-            {/* Alle gelesen */}
-            {(notif?.unread ?? 0) > 0 && (
+            {/* "Alle gelesen" — nur sichtbar im Tab "alle" + wenn ungelesene existieren */}
+            {tab === "alle" && (notif?.unread ?? 0) > 0 && (
               <button
                 onClick={notif?.markAllRead ?? (() => {})}
                 style={{
                   marginLeft:"auto", flexShrink:0,
-                  padding:"7px 12px", borderRadius:20,
-                  background:"transparent", border:"none",
-                  color:T.teal, fontSize:12.5, fontWeight:600,
+                  padding:"6px 12px", borderRadius:20,
+                  background:"rgba(14,196,184,0.10)",
+                  border:`1px solid rgba(14,196,184,0.30)`,
+                  color:T.teal, fontSize:12, fontWeight:700,
                   cursor:"pointer", fontFamily:"inherit",
                   touchAction:"manipulation",
+                  whiteSpace:"nowrap",
                 }}
               >
-                Alle Nachrichten gelesen
+                Alle gelesen ✓
               </button>
             )}
           </div>
@@ -995,10 +1013,10 @@ export function ResonanzzentrumPanel({ onClose }) {
             WebkitOverflowScrolling:"touch",
           }}
         >
-          {/* Verbindungsanfragen — immer oben (wenn Alle oder Wichtig aktiv) */}
-          {(tab === "alle" || tab === "wichtig") && safeRequests.length > 0 && (
+          {/* Verbindungsanfragen — im "relevant" Tab separat anzeigen */}
+          {tab === "relevant" && safeRequests.length > 0 && (
             <>
-              {tab === "alle" && <SectionHeader emoji="⭐" label="Wichtig" />}
+              <SectionHeader emoji="🤝" label="VERBINDUNGSANFRAGEN" />
               {safeRequests.map(req => (
                 <ConnectionRequestItem
                   key={req.id}
@@ -1009,24 +1027,27 @@ export function ResonanzzentrumPanel({ onClose }) {
             </>
           )}
 
-          {/* Alle-Tab: gruppiert */}
+          {/* Alle-Tab: 2 Sektionen — Relevant oben, Informativ unten */}
           {tab === "alle" && grouped && (
             <>
-              {grouped.wichtig.length > 0 && (
+              {/* Verbindungsanfragen + Relevant oben */}
+              {(safeRequests.length > 0 || grouped.relevant.length > 0) && (
                 <>
-                  {safeRequests.length === 0 && <SectionHeader emoji="⭐" label="Wichtig" />}
-                  {grouped.wichtig.map(n => <NotifItem key={n.id} n={n} onRead={notif?.markRead ?? (() => {})} onDelete={notif?.deleteNotif} />)}
-                </>
-              )}
-              {grouped.relevant.length > 0 && (
-                <>
-                  <SectionHeader emoji="⭐" label="Relevant" />
+                  <SectionHeader emoji="⭐" label="RELEVANT" />
+                  {safeRequests.map(req => (
+                    <ConnectionRequestItem
+                      key={req.id}
+                      req={req}
+                      onRespond={connReqs.respond}
+                    />
+                  ))}
                   {grouped.relevant.map(n => <NotifItem key={n.id} n={n} onRead={notif?.markRead ?? (() => {})} onDelete={notif?.deleteNotif} />)}
                 </>
               )}
+              {/* Informativ unten */}
               {grouped.info.length > 0 && (
                 <>
-                  <SectionHeader emoji="⭐" label="Informativ" />
+                  <SectionHeader emoji="📢" label="INFORMATIV" />
                   {grouped.info.map(n => <NotifItem key={n.id} n={n} onRead={notif?.markRead ?? (() => {})} onDelete={notif?.deleteNotif} />)}
                 </>
               )}
