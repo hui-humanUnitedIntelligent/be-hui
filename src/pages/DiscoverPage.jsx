@@ -459,93 +459,73 @@ const SEED_MOMENTE = [
 
 function MomentCard({ moment, delay=0, onPress, onAuthorPress }) {
   const [imgErr, setImgErr] = useState(false);
-  const ago = timeAgo(moment.created_at);
+  const cover = (!imgErr && (moment.src || moment.media_url)) ? (moment.src || moment.media_url) : null;
 
   return (
     <div className="dp-press dp-in dp-card-hover" onClick={() => onPress?.(moment)} style={{
-      width:175, flexShrink:0,
-      borderRadius:18, overflow:"hidden",
-      background:T.white,
-      display:"flex", flexDirection:"column",
-      boxShadow:T.cardShadow,
+      width:165, flexShrink:0,
+      borderRadius:CARD_RADIUS, overflow:"hidden",
+      background:T.white, boxShadow:T.cardShadow,
       border:`1px solid ${T.border}`,
       animationDelay:`${delay}ms`,
       touchAction:"manipulation",
       WebkitTapHighlightColor:"transparent",
-      position:"relative",
+      display:"flex", flexDirection:"column",
     }}>
-      {/* Bildbereich — feste Höhe, kein Hintergrundleck */}
-      <div style={{ width:"100%", height:130, flexShrink:0, position:"relative", overflow:"hidden" }}>
-        {!imgErr && moment.src ? (
-          <img loading="lazy" decoding="async" src={moment.src} alt={moment.caption}
+      {/* Cover — identische Höhe wie WerkCard/ErlebnisCard */}
+      <div style={{ width:"100%", height:120, flexShrink:0, position:"relative", overflow:"hidden",
+        background: cover ? "#1A1A18" : `linear-gradient(135deg,${T.tealSoft},${T.coralSoft})` }}>
+        {cover ? (
+          <img loading="lazy" decoding="async" src={cover} alt={moment.caption || "Moment"}
             onError={() => setImgErr(true)}
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
         ) : (
-          <div style={{ width:"100%", height:"100%", background:`linear-gradient(135deg,${T.tealSoft},${T.coralSoft})`, display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
             <HUIFotoIcon size={32} style={{opacity:0.3, color:"rgba(14,196,184,0.5)"}} />
           </div>
         )}
-        {/* Gradient overlay */}
-        <div style={{ position:"absolute", inset:0, background:"linear-gradient(to bottom, rgba(0,0,0,0.0) 40%, rgba(0,0,0,0.65) 100%)" }}/>
-        {/* Time badge */}
-        <div style={{
-          position:"absolute", top:8, left:8,
-          background:"rgba(0,0,0,0.55)", backdropFilter:"blur(6px)",
-          borderRadius:99, padding:"3px 8px",
-          fontSize:10, fontWeight:600, color:"rgba(255,255,255,0.9)",
-        }}>
-          {ago}
-        </div>
-        {/* Live Badge — within image so position:absolute works correctly */}
+
+        {/* MOMENT-Badge oben links — identisch zu WERK/ERLEBNIS */}
+        <CardBadge pos="left" bg="rgba(244,115,85,0.15)" color={T.coral} cover={cover}>
+          MOMENT
+        </CardBadge>
+
+        {/* Live-Badge oben rechts (optional) */}
         {moment.isLive && (
-          <div style={{
-            position:"absolute", top:8, right:8,
-            background:"#E8573A", borderRadius:99, padding:"2px 7px",
-            fontSize:9, fontWeight:700, color:"white", letterSpacing:".04em",
-            display:"flex", alignItems:"center", gap:4,
-          }}>
-            <div className="dp-live-dot" style={{ width:5,height:5,borderRadius:"50%",background:"white" }}/>
-            Live
-          </div>
+          <CardBadge pos="right" bg="rgba(232,87,58,0.92)" color="#fff" cover={false}>
+            <span style={{ display:"flex", alignItems:"center", gap:3 }}>
+              <span className="dp-live-dot" style={{ width:5,height:5,borderRadius:"50%",background:"white",display:"inline-block" }}/>
+              Live
+            </span>
+          </CardBadge>
         )}
       </div>
 
-      {/* Content-Bereich — flexGrow:1 füllt den Rest, kein Hintergrundleck */}
-      <div style={{ flexGrow:1, display:"flex", flexDirection:"column", padding:"10px 11px 12px", background:T.white }}>
-        {/* Caption */}
-        <div style={{
-          fontSize:11.5, fontWeight:600, color:T.ink, lineHeight:1.35,
-          marginBottom:6,
-          overflow:"hidden", display:"-webkit-box",
-          WebkitLineClamp:2, WebkitBoxOrient:"vertical",
-        }}>
-          {moment.caption}
-        </div>
+      {/* Info — flexGrow:1, flex-column für marginTop:auto */}
+      <div style={{ padding:"10px 11px 12px", flexGrow:1, display:"flex", flexDirection:"column" }}>
+        {/* Titel (caption) — identisch zu CardTitle */}
+        <CardTitle>{moment.caption || moment.subject || "Moment"}</CardTitle>
+
         {/* Autor */}
-        <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:0 }}>
-          <div style={{
-            width:18, height:18, borderRadius:"50%",
-            background:T.tealSoft,
-            display:"flex", alignItems:"center", justifyContent:"center",
-            flexShrink:0,
-          }}><HUIProfilIcon size={24} style={{opacity:0.35, color:"rgba(14,196,184,0.5)"}}/></div>
+        <div style={{ fontSize:10.5, color:T.inkFaint, fontWeight:400, marginBottom:6 }}>
+          von{" "}
           <span
             role={moment.user_id ? "button" : undefined}
             onClick={moment.user_id ? (e) => { e.stopPropagation(); onAuthorPress?.(moment.user_id); } : undefined}
-            style={{ fontSize:10.5, fontWeight:600, color:T.inkSoft, cursor:moment.user_id?"pointer":"default",
+            style={{ cursor:moment.user_id?"pointer":"default",
               textDecoration:moment.user_id?"underline dotted":"none", textDecorationColor:"rgba(0,0,0,0.2)" }}
           >{moment.name}</span>
-          {moment.location && (
-            <span style={{ fontSize:10, color:T.inkFaint, display:"flex", alignItems:"center", gap:2 }}>
-              <HUILocationIcon size={10}/>{moment.location}
-            </span>
-          )}
         </div>
+
+        {/* Standort (falls vorhanden) */}
+        <div style={{ minHeight:moment.location ? "auto" : 0 }}>
+          {moment.location && <CardLocationRow location={moment.location}/>}
+        </div>
+
         {/* Engagement Row — immer am unteren Rand */}
-        <div className="dp-engage" style={{ marginTop:"auto", paddingTop:8 }}>
+        <div className="dp-engage" style={{ marginTop:"auto", paddingTop:4 }}>
           <span><HUIHeartIcon size={12} /> {moment.likes ?? Math.floor(4 + (moment.id?.charCodeAt?.(moment.id.length-1)??7) % 30)}</span>
           <span><HUIChatIcon size={12} /> {moment.comments ?? Math.floor(1 + (moment.id?.charCodeAt?.(0)??3) % 12)}</span>
-          <span style={{display:"flex",alignItems:"center",gap:2}}><HUIImpactIcon size={12}/>{moment.wirkung ?? Math.floor(1 + (moment.id?.charCodeAt?.(1)??2) % 8)}</span>
         </div>
       </div>
     </div>
