@@ -1787,25 +1787,38 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
           })));
         }
 
-        // Momente (beitraege)
+        // Momente (beitraege) — 2-Schritt-Query (kein FK beitraege.user_id → profiles)
         const { data: beitr } = await supabase
           .from("beitraege")
-          .select("id,src,type,caption,created_at,user_id,profiles:user_id(display_name,avatar_url)")
+          .select("id,src,type,caption,created_at,user_id")
           .order("created_at", { ascending:false })
           .limit(8);
 
         if (!cancelled && beitr?.length > 0) {
-          setMomente(beitr.map(b => ({
+          // Profile nachladen
+          const beitrUserIds = [...new Set(beitr.map(b => b.user_id).filter(Boolean))];
+          let beitrProfileMap = {};
+          if (beitrUserIds.length > 0) {
+            const { data: bpros } = await supabase
+              .from("public_profiles")
+              .select("id,display_name,avatar_url")
+              .in("id", beitrUserIds);
+            if (bpros) beitrProfileMap = Object.fromEntries(bpros.map(p => [p.id, p]));
+          }
+          setMomente(beitr.map(b => {
+            const bp = beitrProfileMap[b.user_id] || {};
+            return {
             id:         b.id,
             user_id:    b.user_id,
             src:        safeStr(b.src),
             caption:    safeStr(b.caption, "Ein Moment"),
             type:       safeStr(b.type, "foto"),
             created_at: b.created_at,
-            name:       safeStr(b.profiles?.display_name, "HUI Mitglied"),
-            avatar_url: b.profiles?.avatar_url || null,
+            name:       safeStr(bp.display_name, "HUI Mitglied"),
+            avatar_url: bp.avatar_url || null,
             location:   "",
-          })));
+          };
+          }));
         }
 
         // Werke — 2-Schritt-Query (kein FK von works.user_id → profiles)
