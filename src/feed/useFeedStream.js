@@ -264,9 +264,13 @@ async function fetchFeedPage(userId = null, cursors = null) {
           type:       "impact",
           title:      r.project_name || "",
           caption:    r.short_desc   || r.problem || "",
-          // Bild-Felder explizit — cover_url (Single) + media_urls (Array)
+          // IMPACT-IMG-002: Nur cover_url als Titelbild weitergeben.
+          // media_urls (Upload-Bilder) werden NICHT in item.media übernommen —
+          // verhindert Doppelbild durch BaseFeedCard.FeedMedia.
+          // media_urls bleiben via _raw zugänglich falls eine Detail-Ansicht sie braucht.
           cover_url:  r.cover_url  || null,
-          media_urls: Array.isArray(r.media_urls) && r.media_urls.length > 0 ? r.media_urls : null,
+          // media_urls bewusst weggelassen → extractMedia nimmt nur cover_url
+          _extra_media_urls: Array.isArray(r.media_urls) && r.media_urls.length > 0 ? r.media_urls : null,
         });
       } catch { return null; }
     }).filter(Boolean),

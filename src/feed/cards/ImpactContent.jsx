@@ -68,23 +68,26 @@ export default function ImpactContent({ item, onProfile, onReaction, onShare }) 
     },
   });
 
-  // IMPACT-IMG-001: Stabile Bild-Logik ohne Flackern.
-  // displayImg via useMemo → ändert sich NICHT wenn Votes/Felder aktualisiert werden.
-  // imgErr-State → wird einmalig gesetzt, kein Loop durch onError.
+  // IMPACT-IMG-002: Titelbild-Logik (cover_url hat strikte Priorität).
+  // Reihenfolge: _raw.cover_url → item.media[0] → Fallback
+  // media_urls (Upload-Bilder) werden NIEMALS als Hauptbild verwendet.
+  // displayImg via useMemo → kein Re-Render durch Votes/State-Änderungen.
+  // imgErr via useState → onError setzt einmalig, kein src-Reassign-Loop.
   const [imgErr, setImgErr] = useState(false);
   const displayImg = useMemo(() => {
     if (imgErr) return IMPACT_FALLBACK;
+    const raw = item._raw || {};
+    // 1. Titelbild: cover_url aus DB (covers/-Pfad) — immer bevorzugen
+    if (raw.cover_url) return raw.cover_url;
+    // 2. item.media — nur wenn cover_url fehlt (cover-Pfad, nie extras-Pfad)
     const media = item.media;
-    if (Array.isArray(media) && media.length > 0) {
-      return media[0]?.url || IMPACT_FALLBACK;
+    if (Array.isArray(media) && media.length > 0 && media[0]?.url) {
+      return media[0].url;
     }
     if (media && typeof media === "string") return media;
-    // Direkt aus _raw: cover_url → media_urls[0]
-    const raw = item._raw || {};
-    if (raw.cover_url) return raw.cover_url;
-    if (Array.isArray(raw.media_urls) && raw.media_urls.length > 0) return raw.media_urls[0];
+    // 3. Kein Titelbild vorhanden → Unsplash-Fallback
     return IMPACT_FALLBACK;
-  }, [item.media, item._raw, imgErr]);
+  }, [item._raw?.cover_url, item.media, imgErr]);
 
   return (
     <BaseFeedCard
