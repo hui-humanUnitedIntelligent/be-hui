@@ -982,25 +982,32 @@ export function ResonanzzentrumPanel({ onClose }) {
               );
             })}
 
-            {/* "Alle gelesen" — nur sichtbar im Tab "alle" + wenn ungelesene existieren */}
-            {tab === "alle" && (notif?.unread ?? 0) > 0 && (
+          </div>
+
+          {/* ── "Alle gelesen"-Button — eigene Zeile, UNTER den Tabs, über dem Divider ── */}
+          {/* Sichtbar NUR im Tab "Alle", solange ungelesene Nachrichten existieren       */}
+          {tab === "alle" && (notif?.unread ?? 0) > 0 && (
+            <div style={{
+              display:"flex", justifyContent:"flex-end",
+              paddingBottom:10, paddingRight:2,
+            }}>
               <button
                 onClick={notif?.markAllRead ?? (() => {})}
                 style={{
-                  marginLeft:"auto", flexShrink:0,
-                  padding:"6px 12px", borderRadius:20,
+                  padding:"6px 14px", borderRadius:20,
                   background:"rgba(14,196,184,0.10)",
                   border:`1px solid rgba(14,196,184,0.30)`,
                   color:T.teal, fontSize:12, fontWeight:700,
                   cursor:"pointer", fontFamily:"inherit",
                   touchAction:"manipulation",
                   whiteSpace:"nowrap",
+                  letterSpacing:"0.01em",
                 }}
               >
                 Alle gelesen ✓
               </button>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Divider */}
           <div style={{height:1, background:T.border, marginBottom:0}}/>
