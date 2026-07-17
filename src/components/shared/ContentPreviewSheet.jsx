@@ -240,12 +240,17 @@ export default function ContentPreviewSheet({ item, loading, onClose }) {
                 <button className="cps-btn" onClick={() => {
                   onClose();
                   if (item._onOpenFull) { item._onOpenFull(); }
-                  else { navigate(item.fullPath); }
+                  else if (item.type === "impact" || item.type === "project") {
+                    // Impact-Projekt: zu /impact navigieren mit openProjectId im State
+                    navigate("/impact", { state: { openProjectId: item.id } });
+                  } else {
+                    navigate(item.fullPath);
+                  }
                 }} style={{
                   width:"100%", marginTop:16, padding:"13px", borderRadius:14,
                   background:T.ink, color:"#fff", fontSize:14, fontWeight:700,
                 }}>
-                  {item.type === "impact" ? "Zum Herzensprojekt" :
+                  {item.type === "impact" ? "Vollständige Ansicht öffnen" :
                    item.type === "talent" ? "Talent-Profil ansehen" :
                    "Vollständige Ansicht öffnen"}
                 </button>

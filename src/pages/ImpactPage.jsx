@@ -15,6 +15,7 @@ import { HUI } from "../design/hui.design.js";
 import ImpactFlow from "../system/flows/impact/ImpactFlow.jsx";
 import ImpactProjektUpdateSheet from "../components/studio/ImpactProjektUpdateSheet.jsx";
 import { useAuth } from "../lib/AuthContext";
+import { useLocation, useNavigate } from "react-router-dom";
 import { isProfileTalent } from "../lib/profileUtils.js";
 
 // ── Helpers ──────────────────────────────────────────────────
@@ -1312,6 +1313,24 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
   const rankedProjs   = useAllApprovedByVotes();          // ← SSOT für alle Rankings
   const approvedApps  = useApprovedApplications();        // für VotePersonal projMap
   const [detailApp, setDetailApp] = React.useState(null);
+  const location = useLocation();
+
+  // ── Deep-Link aus Router-State: /impact navigieren mit state.openProjectId ──
+  React.useEffect(() => {
+    const pid = location.state?.openProjectId;
+    if (!pid) return;
+    // State sofort leeren (verhindert Re-open bei Back-Navigation)
+    window.history.replaceState({ ...window.history.state, usr: {} }, '');
+    // Projekt aus impact_applications laden und Detail öffnen
+    supabase
+      .from("impact_applications")
+      .select("id,project_name,short_desc,cover_url,funding_goal,current_amount_eur,rank,status,created_at,media_urls")
+      .eq("id", pid)
+      .single()
+      .then(({ data }) => {
+        if (data) setDetailApp(data);
+      });
+  }, [location.state?.openProjectId]);
 
   // ── Projekte: werden jetzt von useAllApprovedByVotes gehandelt ──
   // Top 3 nach Stimmen → projects State (für Kompatibilität mit bestehendem Code)

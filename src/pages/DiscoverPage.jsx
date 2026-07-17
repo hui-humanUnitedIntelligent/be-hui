@@ -2195,11 +2195,27 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   // "Vollstaendige Ansicht" fuehrt weiterhin zur Impact-Seite (keine eigene
   // Projekt-Detailroute vorhanden).
   const handleProjektPress = useCallback((projekt) => {
+    // Seed-Karten (keine echte UUID) → kein Preview
+    const isRealId = projekt?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(projekt.id));
     const item = normalizeProjectForPreview({
       id: projekt.id, name: projekt.title, description: projekt.desc,
       img_url: projekt.cover, category: projekt.cat, created_at: null,
+      // Raw-Felder für vollständigen Detail-View
+      short_desc: projekt.desc,
+      cover_url:  projekt.cover,
+      project_name: projekt.title,
+      funding_goal: projekt._raw?.funding_goal || 0,
+      current_amount_eur: projekt._raw?.current_amount_eur || 0,
+      rank:       projekt._raw?.rank || null,
+      status:     projekt._raw?.status || "approved",
+      media_urls: projekt._raw?.media_urls || [],
     });
-    if (item) openPreview(item);
+    if (item) openPreview({
+      ...item,
+      // canOpenFull: nur bei echter UUID (nicht Seed)
+      canOpenFull: isRealId,
+      type: "impact",
+    });
   }, [openPreview]);
 
   // SectionHead "Alle ansehen →" → Modal öffnen
