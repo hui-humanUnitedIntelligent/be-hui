@@ -1444,17 +1444,21 @@ function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
             WebkitOverflowScrolling:"touch", scrollbarWidth:"none",
             paddingBottom:4, marginBottom:8,
           }}>
-            {moments.map((m, i) => (
+            {moments.map((m, i) => {
+              const mediaSrc = m.src || m.media_url;
+              const isVideo  = m.type === "video" || (mediaSrc && mediaSrc.match(/\.mp4|\.mov|\.webm/i));
+              const label    = m.caption || (isVideo ? "Video" : "Foto");
+              return (
               <div key={m.id || i}
-                onClick={onOpenMomentSheet}
                 style={{
                   flexShrink:0, width:88, height:88,
                   borderRadius:T.r12, overflow:"hidden",
-                  background:"#e8e4de", position:"relative", cursor:"pointer",
+                  background:"#e8e4de", position:"relative",
                   boxShadow:"0 0 0 2px #0EC4B8",
                 }}>
-                {(m.src || m.media_url)
-                  ? <img loading="lazy" decoding="async" src={m.src || m.media_url} alt=""
+                {/* Bild / Video-Vorschau */}
+                {mediaSrc
+                  ? <img loading="lazy" decoding="async" src={mediaSrc} alt=""
                       style={{ width:"100%", height:"100%", objectFit:"cover" }}
                       onError={e => e.target.style.display = "none"}/>
                   : <div style={{ width:"100%", height:"100%", display:"flex",
@@ -1475,7 +1479,7 @@ function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
                     lineHeight:1, padding:0, zIndex:2,
                   }}
                 >✕</button>
-                {/* Live-Badge unten */}
+                {/* Live-Badge unten — identisch zu Talent-Angeboten */}
                 <div style={{
                   position:"absolute", bottom:0, left:0, right:0,
                   background:"rgba(14,196,184,0.92)",
@@ -1484,42 +1488,44 @@ function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
                 }}>
                   ✅ Live
                 </div>
-                {/* Caption als Titel oben (wenn vorhanden) */}
-                {m.caption && (
-                  <div style={{
-                    position:"absolute", top:0, left:0, right:0,
-                    background:"rgba(0,0,0,0.45)", fontSize:9, color:"#fff",
-                    padding:"3px 22px 3px 5px", whiteSpace:"nowrap",
-                    overflow:"hidden", textOverflow:"ellipsis",
-                  }}>
-                    {m.caption}
-                  </div>
-                )}
+                {/* Titel/Caption oben — identisch zu Talent-Angeboten */}
+                <div style={{
+                  position:"absolute", top:0, left:0, right:0,
+                  background:"rgba(0,0,0,0.45)", fontSize:9, color:"#fff",
+                  padding:"3px 22px 3px 5px", whiteSpace:"nowrap",
+                  overflow:"hidden", textOverflow:"ellipsis",
+                }}>
+                  {isVideo ? "🎥 " : "📷 "}{label}
+                </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
-        {/* ── Empty-State ───────────────────────────────────── */}
+        {/* ── Empty-State (nur als kleine Kachel, nicht als großer Block) ── */}
         {moments.length === 0 && (
-          <button onClick={onOpenMomentSheet} style={{
-            display:"flex", flexDirection:"column", alignItems:"center", gap:8,
-            width:"100%", padding:"28px 16px", borderRadius:T.r16,
-            background:"#FFFFFF", border:`1.5px dashed ${T.borderMid}`,
-            cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
-            marginBottom:12,
+          <div style={{
+            display:"flex", gap:8, marginBottom:8,
           }}>
-            <HUIFotoIcon size={28} style={{color:"rgba(14,196,184,0.5)"}} />
-            <div style={{ fontSize:13, fontWeight:700, color:"#1A1A18" }}>
-              Ersten Moment teilen
+            <div onClick={onOpenMomentSheet} style={{
+              flexShrink:0, width:88, height:88,
+              borderRadius:T.r12, overflow:"hidden",
+              background:"#F7F5F0", position:"relative", cursor:"pointer",
+              border:`1.5px dashed rgba(14,196,184,0.4)`,
+              display:"flex", flexDirection:"column",
+              alignItems:"center", justifyContent:"center", gap:4,
+            }}>
+              <HUIFotoIcon size={22} style={{color:"rgba(14,196,184,0.55)"}}/>
+              <div style={{ fontSize:9, fontWeight:600, color:"rgba(26,26,24,0.4)",
+                textAlign:"center", lineHeight:1.2, padding:"0 4px" }}>
+                Ersten Moment teilen
+              </div>
             </div>
-            <div style={{ fontSize:12, color:"rgba(26,26,24,0.45)" }}>
-              Fotos, Gedanken oder Videos
-            </div>
-          </button>
+          </div>
         )}
 
-        {/* ── "+ Moment hinzufügen" Button (identisch zu Werke/Talente) ── */}
+        {/* ── "+ Moment hinzufügen" Button (identisch zu Talent-Angeboten) ── */}
         <button className="mbp-press-light" onClick={onOpenMomentSheet} style={{
           display:"flex", alignItems:"center", gap:8,
           padding:"8px 14px", borderRadius:T.r12,
