@@ -9,7 +9,11 @@
 export const NAV_GEOMETRY = Object.freeze({
   TAB_H:    58,    // -6px — filigraner, weniger Fläche, mehr Feed sichtbar (vorher 64)
   MARGIN_H: 16,    // Referenz: mehr Seitenluft → Pill wirkt schwebend
-  SAFE_B:   14,
+  // SAFE_B: Fallback-Höhe wenn env(safe-area-inset-bottom)=0 (z.B. ältere Android-Geräte
+  // ohne Edge-to-Edge oder wenn Capacitor overlaysWebView noch nicht aktiv).
+  // Geräte MIT aktiver System-Nav (Android Soft-Buttons ~48px, iOS Home-Indikator ~34px)
+  // liefern via env() automatisch den korrekten Wert — SAFE_B ist nur der Minimum-Puffer.
+  SAFE_B:   16,
   ORB_D:    102,   // LOCKED — HUI Living Design System v1.0 (Durchmesser unverändert)
   GAP:      6,     // Luftfuge Orb ↔ Einbuchtungs-Spitze (bewusstes Design-Element)
   CORNER_R: 40,    // wird via min(CORNER_R, H/2) ohnehin auf volle Pill-Rundung gekappt

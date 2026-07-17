@@ -155,8 +155,18 @@
   <!-- ════════════════════════════════════════════════════════ -->
     <!-- ══ iOS Safari Global Fixes ════════════════════════════ -->
     <style>
-      /* Fix: 100dvh für iOS (vermeidet Browser-Toolbar-Overlap) */
+      /* Fix: 100dvh für iOS + Android (vermeidet Browser/System-Toolbar-Overlap) */
       :root { --app-height: 100dvh; }
+
+      /* Android Edge-to-Edge: System-NavigationBar wird transparent —
+         App füllt den gesamten Bildschirm. Die CSS-Variable
+         env(safe-area-inset-bottom) gibt die korrekte Höhe der
+         Android-Systemleiste zurück (Soft-Buttons oder Gesten-Indikator).
+         Capacitor setzt diese Variable automatisch wenn overlaysWebView=true. */
+      html, body {
+        /* Verhindert ungewolltes Scrollen hinter System-Bars auf Android */
+        overscroll-behavior: none;
+      }
 
       /* Fix: Input/Select iOS eigenes Styling entfernen */
       input, textarea, select {

@@ -1,11 +1,28 @@
 <resources>
 
+    <!-- Base application theme — Edge-to-Edge: App zeichnet hinter
+         Status- und Navigation-Bar. Safe-Area via env(safe-area-inset-*)
+         im CSS-Layer behandelt. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <!-- Customize your theme here -->
+
+        <!-- Edge-to-Edge: Status-Bar transparent -->
+        <item name="android:windowTranslucentStatus">true</item>
+
+        <!-- Edge-to-Edge: System-NavigationBar transparent -->
+        <item name="android:windowTranslucentNavigation">true</item>
+
+        <!-- Zeichne HINTER System-Bars (API 21+) -->
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+
+        <!-- Farben explizit transparent (API 21+) -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+
     </style>
 
-    <style name="AppTheme.NoActionBarLaunch" parent="Theme.AppCompat.Light.NoActionBar">
-        <!-- Customize your launch theme here -->
+    <!-- Launch-Theme: identisch mit AppTheme für konsistenten Start-Screen -->
+    <style name="AppTheme.NoActionBarLaunch" parent="AppTheme">
+        <!-- Splash-Screen hält denselben Edge-to-Edge-Kontext -->
     </style>
 
 </resources>
