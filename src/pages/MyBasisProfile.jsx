@@ -1333,11 +1333,10 @@ function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
     if (!profile?.id) return;
     supabase
       .from("beitraege")
-      .select("id, src, type, caption, created_at, media_url")
+      .select("id, src, type, caption, moment_source, created_at, media_url")
       .eq("user_id", profile.id)
-      .eq("type", "moment")
       .order("created_at", { ascending: false })
-      .limit(20)
+      .limit(50)
       .then(({ data, error }) => {
         if (!error && data) setMoments(data);
         setLoading(false);
