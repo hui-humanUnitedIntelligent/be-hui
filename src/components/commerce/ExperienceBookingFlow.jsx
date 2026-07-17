@@ -7,6 +7,7 @@
 // Keine neuen Systeme. Kein Stripe. booking_status = "pending" für Beta.
 import { HUIImpactIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState } from "react";
+import { createPortal } from "react-dom";
 import { useAuth } from "../../lib/AuthContext";
 import { bookingService } from "../../services/creatorEconomy";
 import { supabase } from "../../lib/supabaseClient";
@@ -77,7 +78,7 @@ export default function ExperienceBookingFlow({ experience, onClose }) {
     setPhase("success");
   }
 
-  return (
+  return createPortal(
     <div
       onClick={(e) => { if (e.target === e.currentTarget) onClose?.(); }}
       style={{
@@ -219,5 +220,5 @@ export default function ExperienceBookingFlow({ experience, onClose }) {
         )}
       </div>
     </div>
-  );
+  , document.body);
 }

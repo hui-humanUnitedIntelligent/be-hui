@@ -20,6 +20,7 @@
 // ══════════════════════════════════════════════════════════════════
 import { HUILocationIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
@@ -104,6 +105,9 @@ export default function ContentPreviewSheet({ item, loading, onClose }) {
   }, [item]);
 
   if (!item && !loading) return null;
+  // PORTAL.1 — muss zu document.body, sonst blockiert Stacking-Context den Footer
+  const portalTarget = typeof document !== "undefined" ? document.body : null;
+  if (!portalTarget) return null;
 
   const reactions = {
     inspired: myTypes?.has?.("inspire") ?? false,
@@ -116,12 +120,12 @@ export default function ContentPreviewSheet({ item, loading, onClose }) {
   const hero = item?.media?.[0]?.url || null;
   const extraMedia = (item?.media || []).slice(1);
 
-  return (
+  return createPortal(
     <div
       className="cps-overlay"
       onClick={onClose}
       style={{
-        position:"fixed", inset:0, zIndex:9200, background:T.overlay,
+        position:"fixed", inset:0, zIndex:10500, background:T.overlay,
         display:"flex", alignItems:"flex-end", justifyContent:"center",
       }}
     >
@@ -256,5 +260,5 @@ export default function ContentPreviewSheet({ item, loading, onClose }) {
         postId={postId} postType={postType} postAuthorId={authorId}
       />
     </div>
-  );
+  , portalTarget);
 }

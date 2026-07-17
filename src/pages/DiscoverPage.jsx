@@ -2082,16 +2082,18 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   // Werk-Karte: öffne Werk-Detailseite (nur bei echter DB-ID, nicht bei Seed-Daten)
   const handleWerkPress = useCallback((werk) => {
     const werkId = werk.id;
-    // UUID-Prüfung: echte Supabase-IDs sind UUIDs (8-4-4-4-12)
-    // Seed-IDs wie "w1","w2" sind keine UUIDs → kein Navigate
     const isRealId = werkId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(werkId));
-    if (isRealId) {
-      // Werke öffnen direkt WorkDetailPage (hat Bild, Preis, Kaufen-Button)
-      // ContentPreviewSheet ist für Beiträge/Projekte, nicht für Werke
-      navigate(`/work/${werkId}`);
-    }
-    // Seed-Karte: kein Navigate — kein "Werk nicht gefunden"
-  }, [navigate]);
+    if (!isRealId) return; // Seed-Karte: nichts tun
+    // Werk via ContentPreviewSheet öffnen (Sheet hat "Vollständige Ansicht"-Button)
+    const item = normalizePostForPreview({
+      id: werk.id, type: "work",
+      title: werk.title, cover_url: werk.cover,
+      price: werk.price, user_id: werk.user_id,
+      author: werk.author, location_text: werk.location,
+    }, "work");
+    if (item) openPreview(item);
+    else navigate(`/work/${werkId}`); // Fallback
+  }, [navigate, openPreview]);
 
   // Talent-Karte: Anmeldung/Registrierung erzwingen (useAuthGate), danach Anfrage-Modal öffnen.
   // Seed-Karten (keine echte UUID) öffnen nach Login bewusst kein Modal (kein echter Anbieter dahinter).
