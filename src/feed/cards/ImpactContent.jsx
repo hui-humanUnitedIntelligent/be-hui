@@ -99,16 +99,20 @@ export default function ImpactContent({ item, onProfile, onReaction, onShare }) 
     >
       {/* Projektbild — immer sichtbar: entweder echtes Bild oder Unsplash-Fallback.
           Kein Emoji-Platzhalter. Rang-Badge liegt oben links auf dem Bild. */}
-      {/* IMPACT-IMG-UNIFORM-002 (2026-07-17): Bildcontainer identisch zu FeedMedia
-           Exakt dieselbe Höhe (220px = T.mediaH), dieselben Margins, derselbe borderRadius (14 = T.rMedia).
-           Negativer Seitenmargin -16px hebt das children-Padding auf → volle Breite wie FeedMedia.
-           objectFit:cover, Shimmer-bg #F0EFED, boxShadow wie FeedMedia — keine Verzerrung. */}
+      {/* IMPACT-IMG-UNIFORM-003 (2026-07-17): Bildcontainer exakt identisch zu FeedMedia/Werke
+           article-Container hat overflow:hidden → negativer Margin wurde abgeschnitten.
+           Fix: width:calc(100%+32px) + marginLeft:-16px statt beidseitiger neg. Margins.
+           Breite = 100% des children-Wrappers + 2×16px Padding = volle article-Breite (wie FeedMedia).
+           Höhe: 220px (T.mediaH), borderRadius: 14 (T.rMedia), objectFit: cover. */}
       <div style={{
-        margin: "8px -16px 12px",   /* neutralisiert 16px children-Padding → gleiche Breite wie FeedMedia */
-        height: 220,                 /* T.mediaH — identisch zu allen anderen Karten */
+        width: "calc(100% + 32px)",  /* +2×T.p = volle Kartenbreite wie FeedMedia */
+        marginLeft: -16,             /* neutralisiert linkes children-Padding */
+        marginTop: 8,
+        marginBottom: 12,
+        height: 220,                 /* T.mediaH — identisch zu Werk/Talent/Erlebnis-Karten */
         borderRadius: 14,            /* T.rMedia — identisch zu FeedMedia */
         overflow: "hidden", position: "relative",
-        background: "#F0EFED",       /* Shimmer-Hintergrund wie FeedMedia */
+        background: "#F0EFED",       /* identisch zu FeedMedia-Shimmer-bg */
         boxShadow: "0 4px 20px rgba(26,26,46,0.08)",
         flexShrink: 0,
       }}>
