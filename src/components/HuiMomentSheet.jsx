@@ -101,17 +101,17 @@ function PreviewStep({ mediaURL, isVideo, text, setText, onShare, onDiscard, upl
               style={{ width:"100%",maxHeight:280,display:"block",objectFit:"contain" }}/>
         }
       </div>
-      <textarea className="hms-textarea" value={text}
-        onChange={e => setText(e.target.value.slice(0,300))}
-        placeholder="Was möchtest du zu diesem Moment teilen? (optional)"
-        rows={3} style={{ width:"100%",boxSizing:"border-box",
-          border:"1.5px solid rgba(14,196,184,0.22)",borderRadius:16,
-          background:"rgba(14,196,184,0.04)",padding:"14px 16px",
-          fontSize:15,color:D.ink,lineHeight:1.65,
+      <input className="hms-textarea" type="text" value={text}
+        onChange={e => setText(e.target.value.slice(0,80))}
+        placeholder="Titel oder Beschreibung (optional)"
+        style={{ width:"100%",boxSizing:"border-box",
+          border:"1.5px solid rgba(14,196,184,0.22)",borderRadius:14,
+          background:"rgba(14,196,184,0.04)",padding:"12px 16px",
+          fontSize:15,color:D.ink,outline:"none",
           marginBottom:text.length>0?6:16 }}/>
       {text.length > 0 && (
         <div style={{ textAlign:"right",fontSize:11,color:D.inkFaint,marginBottom:14 }}>
-          {text.length}/300
+          {text.length}/80
         </div>
       )}
       {/* Dateigröße-Warnung */}
