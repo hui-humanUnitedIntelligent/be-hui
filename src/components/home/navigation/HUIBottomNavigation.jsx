@@ -411,4 +411,4 @@ export default function HUIBottomNavigation({
 }
 
 /** Re-export geometry for consumers that need clearance values */
-export { NAV_CLEARANCE_CSS, NAV_BLOCK_HEIGHT, ORB_D, SINK } from "./navigationGeometry.js";
+export { NAV_CLEARANCE_CSS, NAV_CONTENT_SPACER_CSS, NAV_BLOCK_HEIGHT, ORB_D, SINK } from "./navigationGeometry.js";

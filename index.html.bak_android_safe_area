@@ -155,24 +155,13 @@
   <!-- ════════════════════════════════════════════════════════ -->
     <!-- ══ iOS Safari Global Fixes ════════════════════════════ -->
     <style>
-      /* Fix: 100dvh für iOS + Android (vermeidet Browser/System-Toolbar-Overlap) */
+      /* Fix: 100dvh für iOS (vermeidet Browser-Toolbar-Overlap) */
       :root { --app-height: 100dvh; }
-
-      /* Android Edge-to-Edge: System-NavigationBar wird transparent —
-         App füllt den gesamten Bildschirm. Die CSS-Variable
-         env(safe-area-inset-bottom) gibt die korrekte Höhe der
-         Android-Systemleiste zurück (Soft-Buttons oder Gesten-Indikator).
-         Capacitor setzt diese Variable automatisch wenn overlaysWebView=true. */
-      html, body {
-        /* Verhindert ungewolltes Scrollen hinter System-Bars auf Android */
-        overscroll-behavior: none;
-      }
 
       /* Fix: Input/Select iOS eigenes Styling entfernen */
       input, textarea, select {
         -webkit-appearance: none;
-        -moz-appearance: none;
-             appearance: none;
+        appearance: none;
         border-radius: 0;
       }
 
@@ -187,7 +176,7 @@
       * { -webkit-tap-highlight-color: transparent; }
 
       /* Fix: Text-Size anpassen verhindert automatische Skalierung auf iOS */
-      body { -webkit-text-size-adjust: 100%; -moz-text-size-adjust: 100%; text-size-adjust: 100%; }
+      body { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
       /* Fix: Smooth Scrolling auf iOS */
       .hui-scroll { -webkit-overflow-scrolling: touch; }
@@ -196,20 +185,16 @@
       /* (wird durch Vite/PostCSS automatisch transpiliert) */
 
       /* Fix: Images immer GPU-composited rendern */
-      img { transform: translateZ(0); }
+      img { -webkit-transform: translateZ(0); transform: translateZ(0); }
 
       /* Fix: Verhindert weißen Flash beim Laden auf iOS */
       html { background: #FDFAF5; }
       body { background: #FDFAF5; margin: 0; }
     </style>
     <!-- ════════════════════════════════════════════════════════ -->
-  <script type="module" crossorigin src="/assets/index-CtT5Ih5s.js"></script>
-  <link rel="modulepreload" crossorigin href="/assets/vendor-XdthaSSx.js">
-  <link rel="modulepreload" crossorigin href="/assets/react-vendor--If3Ji4w.js">
-  <link rel="modulepreload" crossorigin href="/assets/supabase-vendor-C7yMkX1h.js">
-  <link rel="stylesheet" crossorigin href="/assets/index-D6bf86Ih.css">
 </head>
   <body>
     <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

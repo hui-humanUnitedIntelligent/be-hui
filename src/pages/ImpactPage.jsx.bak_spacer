@@ -6,7 +6,6 @@ import { useStripeImpactPool } from '@/hooks/useStripeImpactPool';
 import { HUIImpactIcon, HUIStimmeIcon,
   HUIAwardIcon,
 } from '../design/icons/HuiSystemIcons.jsx';
-import { NAV_CONTENT_SPACER_CSS } from "../components/home/navigation/navigationGeometry.js";
 import ReactDOM from 'react-dom';
 import React from "react";
 import { ProfileService } from '../services/db';
@@ -1611,9 +1610,6 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
       {infoModal && (
         <InfoSheet modal={infoModal} onClose={() => setInfoModal(null)} />
       )}
-
-      {/* ── Orb-Clearance-Spacer — letzter Scroll-Inhalt im Impact-Tab ── */}
-      <div style={{ height: NAV_CONTENT_SPACER_CSS }} aria-hidden="true" />
     </div>
   );
 }

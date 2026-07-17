@@ -71,15 +71,6 @@ export const NAV_RESERVED_HEIGHT_CSS =
 export const NAV_SAFE_BOTTOM_CSS =
   `max(${NAV_GEOMETRY.SAFE_B}px, env(safe-area-inset-bottom, ${NAV_GEOMETRY.SAFE_B}px))`;
 
-/** CSS value for content-area bottom spacer — used as the LAST child in every
- *  scrollable tab (Feed, Discover, Impact, Momente).
- *  Guarantees the Orb never overlaps the last card:
- *    Orb-Überhang (57px) + Tabbar (58px) + safe-area + 24px design buffer
- *  All pages MUST use: <div style={{ height: NAV_CONTENT_SPACER_CSS }} aria-hidden="true" />
- *  as their very last child — never a hard-coded pixel value. */
-export const NAV_CONTENT_SPACER_CSS =
-  `calc(${NAV_BLOCK_HEIGHT}px + max(${NAV_GEOMETRY.SAFE_B}px, env(safe-area-inset-bottom, ${NAV_GEOMETRY.SAFE_B}px)) + 24px)`;
-
 /**
  * Build organic SVG tabbar path with center notch.
  * Referenz: breite, flache U-Form — kein V, keine aggressive Kurve.

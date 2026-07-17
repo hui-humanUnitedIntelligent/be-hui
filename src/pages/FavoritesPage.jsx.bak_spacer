@@ -5,7 +5,6 @@
 
 import { HUI } from "../design/hui.design.js";
 import { useHuiActions, A } from "../core/hui.actions.js";
-import { NAV_CONTENT_SPACER_CSS } from "../components/home/navigation/navigationGeometry.js";
 import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useContentPreview } from "../context/ContentPreviewContext.jsx"; // OPEN.3 2026-07-08 -- ContentPreviewSheet-Anbindung
@@ -870,9 +869,6 @@ export default function FavoritesPage({ currentUser, onView, onImpact, onDiscove
         projectCount={projectCount}
         onImpact={handleImpact}
       />
-
-      {/* ── Orb-Clearance-Spacer ── */}
-      <div style={{ height: NAV_CONTENT_SPACER_CSS }} aria-hidden="true" />
     </div>
   );
 }

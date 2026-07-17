@@ -303,12 +303,12 @@ class SectionBoundary extends React.Component {
 }
 
 /* ── Rhythm Light ─────────────────────────────────────────────── */
-// DISCOVER-IMG-UNIFORM-001 (2026-07-17): Einheitliche Bildhöhe für alle Karten
-// isRelaxed immer false → alle Karten gleich T.mediaH (220px)
-// Kein abwechselndes spacing mehr — sauberes, konsistentes Grid
+// Every 4th card is "relaxed" (340px media instead of 280px)
+// Alternating compact/relaxed spacing
+// No variable width, no repositioning
 function getCardRhythm(idx) {
-  const isRelaxed  = false;              // UNIFORM: alle Karten gleiche Höhe
-  const mbVariant  = 14;                 // einheitlicher Abstand
+  const isRelaxed  = (idx % 4 === 3);   // every 4th card
+  const mbVariant  = (idx % 2 === 0) ? 14 : 18; // alternating 14/18px gap
   return { isRelaxed, mb: mbVariant };
 }
 

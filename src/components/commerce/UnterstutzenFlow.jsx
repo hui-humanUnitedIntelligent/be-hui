@@ -429,7 +429,8 @@ export default function UnterstutzenFlow({
 
       // S10b — HTTP-Fehler oder API-Fehler
       if (!res.ok || result.error) {
-        throw new Error('[HTTP ' + res.status + '] ' + (result.error || result.message || rawText.slice(0, 200)));
+        const errDetail = result.detail ? ' (' + result.detail + (result.code ? ' [' + result.code + ']' : '') + ')' : '';
+        throw new Error('[HTTP ' + res.status + '] ' + (result.error || result.message || rawText.slice(0, 200)) + errDetail);
       }
       if (result.code === 'STRIPE_NOT_CONFIGURED') {
         throw new Error('Stripe nicht konfiguriert');

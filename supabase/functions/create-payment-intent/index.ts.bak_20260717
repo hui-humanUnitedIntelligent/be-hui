@@ -234,20 +234,14 @@ serve(async (req) => {
         commission_eur:   +(serverTotal * PLATFORM_FEE_RATE).toFixed(2),
         impact_eur:       +(serverTotal * IMPACT_RATE).toFixed(2),
         state:            'pending',
-        status:           'pending',   // Legacy-Compat: orders.status NOT NULL
         currency:         'eur',
-        cart_hash:        cartHash,    // für Idempotenz-Lookup
+        cart_hash:        cartHash,  // für Idempotenz-Lookup
       })
       .select('id')
       .single()
 
     if (orderErr || !dbOrder) {
-      console.error('[PI] Order insert failed:', orderErr?.code, orderErr?.message, orderErr?.details)
-      return new Response(JSON.stringify({
-        error:  'Order-Erstellung fehlgeschlagen',
-        detail: orderErr?.message ?? null,
-        code:   orderErr?.code   ?? null,
-      }), {
+      return new Response(JSON.stringify({ error: 'Order-Erstellung fehlgeschlagen' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
@@ -255,37 +249,28 @@ serve(async (req) => {
     createdOrderId = dbOrder.id  // für Cleanup
 
     // ── 7. Order Items ────────────────────────────────────────────
-    const itemsPayload = validatedItems.map(item => ({
-      order_id:           dbOrder.id,
-      // seller_id (Commerce 2.0 Kanonisch) + creator_id (Legacy-Compat)
-      seller_id:          item.seller_id   ?? null,
-      creator_id:         item.seller_id   ?? null,  // Legacy-Alias
-      item_type:          item.item_type   || 'work',
-      item_id:            item.item_id     ?? null,
-      work_id:            item.item_type === 'work' ? item.item_id : null, // Legacy work_id
-      snapshot:           item.snapshot    ?? {},
-      shipping_type:      item.shipping_type || 'none',
-      quantity:           Number(item.quantity) || 1,
-      unit_price_eur:     Number(item.unit_price_eur) || 0,
-      shipping_eur:       Number(item.shipping_eur)   ?? 0,
-      payout_eur:         Number(item.payout_eur)     ?? 0,
-      impact_eur:         Number(item.impact_eur)     ?? 0,
-      platform_fee_eur:   +(Number(item.unit_price_eur) * Number(item.quantity) * 0.15).toFixed(2),
-      fulfillment_status: 'new',
-      payout_status:      'held',
-    }))
-    console.log('[PI] order_items payload:', JSON.stringify(itemsPayload[0] || {}).slice(0, 200))
-
-    const { error: itemsErr } = await supabase.from('order_items').insert(itemsPayload)
+    const { error: itemsErr } = await supabase.from('order_items').insert(
+      validatedItems.map(item => ({
+        order_id:    dbOrder.id,
+        seller_id:   item.seller_id,
+        item_type:          item.item_type,
+        item_id:            item.item_id,
+        ...(item.item_type === 'work' ? { work_id: item.item_id } : {}),
+        snapshot:           item.snapshot,
+        shipping_type:      item.shipping_type,
+        quantity:           item.quantity,
+        unit_price_eur:     item.unit_price_eur,
+        shipping_eur:       item.shipping_eur,
+        payout_eur:         item.payout_eur,
+        impact_eur:         item.impact_eur,
+        fulfillment_status: 'new',
+        payout_status:      'held',
+      }))
+    )
     if (itemsErr) {
-      console.error('[PI] Order items insert failed:', itemsErr.code, itemsErr.message, itemsErr.details)
-      await supabase.from('orders').update({ state: 'aborted', status: 'aborted' }).eq('id', dbOrder.id)
-      return new Response(JSON.stringify({
-        error:  'Order-Items fehlgeschlagen',
-        detail: itemsErr.message,
-        code:   itemsErr.code,
-        hint:   itemsErr.hint ?? null,
-      }), {
+      console.error('[PI] Order items insert failed:', itemsErr.message)
+      await supabase.from('orders').update({ state: 'aborted' }).eq('id', dbOrder.id)
+      return new Response(JSON.stringify({ error: 'Order-Items fehlgeschlagen', detail: itemsErr.message }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }

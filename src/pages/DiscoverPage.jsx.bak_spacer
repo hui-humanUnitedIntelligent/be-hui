@@ -11,7 +11,6 @@ import {
 } from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
 import { useNavigate }   from "react-router-dom";
-import { NAV_CONTENT_SPACER_CSS } from "../components/home/navigation/navigationGeometry.js";
 import { supabase }      from "../lib/supabaseClient.js";
 import { formatPresence } from "../lib/usePresence.js";
 import { useAuthGate }    from "../components/auth/AuthGate.jsx";
@@ -2334,10 +2333,6 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
 
       {/* ── 8. Orte entdecken ── */}
       <OrteSection onMap={onMap} delay={160} view={view} />
-
-      {/* ── Orb-Clearance-Spacer — letzter Scroll-Inhalt vor Modals.
-           Verhindert Orb-Überlappung auf allen Geräten (Android + iOS). ── */}
-      <div style={{ height: NAV_CONTENT_SPACER_CSS }} aria-hidden="true" />
 
       {/* Talent-Anfrage-Modal (Portal, siehe .agents/rules/footer-navbar-zindex.md) */}
       {talentInquiry && (

@@ -9,11 +9,7 @@
 export const NAV_GEOMETRY = Object.freeze({
   TAB_H:    58,    // -6px — filigraner, weniger Fläche, mehr Feed sichtbar (vorher 64)
   MARGIN_H: 16,    // Referenz: mehr Seitenluft → Pill wirkt schwebend
-  // SAFE_B: Fallback-Höhe wenn env(safe-area-inset-bottom)=0 (z.B. ältere Android-Geräte
-  // ohne Edge-to-Edge oder wenn Capacitor overlaysWebView noch nicht aktiv).
-  // Geräte MIT aktiver System-Nav (Android Soft-Buttons ~48px, iOS Home-Indikator ~34px)
-  // liefern via env() automatisch den korrekten Wert — SAFE_B ist nur der Minimum-Puffer.
-  SAFE_B:   16,
+  SAFE_B:   14,
   ORB_D:    102,   // LOCKED — HUI Living Design System v1.0 (Durchmesser unverändert)
   GAP:      6,     // Luftfuge Orb ↔ Einbuchtungs-Spitze (bewusstes Design-Element)
   CORNER_R: 40,    // wird via min(CORNER_R, H/2) ohnehin auf volle Pill-Rundung gekappt
@@ -70,15 +66,6 @@ export const NAV_RESERVED_HEIGHT_CSS =
 /** CSS value for safe-area bottom padding inside nav */
 export const NAV_SAFE_BOTTOM_CSS =
   `max(${NAV_GEOMETRY.SAFE_B}px, env(safe-area-inset-bottom, ${NAV_GEOMETRY.SAFE_B}px))`;
-
-/** CSS value for content-area bottom spacer — used as the LAST child in every
- *  scrollable tab (Feed, Discover, Impact, Momente).
- *  Guarantees the Orb never overlaps the last card:
- *    Orb-Überhang (57px) + Tabbar (58px) + safe-area + 24px design buffer
- *  All pages MUST use: <div style={{ height: NAV_CONTENT_SPACER_CSS }} aria-hidden="true" />
- *  as their very last child — never a hard-coded pixel value. */
-export const NAV_CONTENT_SPACER_CSS =
-  `calc(${NAV_BLOCK_HEIGHT}px + max(${NAV_GEOMETRY.SAFE_B}px, env(safe-area-inset-bottom, ${NAV_GEOMETRY.SAFE_B}px)) + 24px)`;
 
 /**
  * Build organic SVG tabbar path with center notch.
