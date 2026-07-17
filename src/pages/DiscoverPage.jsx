@@ -1825,7 +1825,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         // Schritt 1: Werke laden
         const { data: ws, error: wsErr } = await supabase
           .from("works")
-          .select("id,title,cover_url,category,file_format,tags,status,approval_status,visibility,price,location_text,lat,lng,user_id,created_at")
+          .select("id,title,cover_url,category,file_format,tags,status,approval_status,visibility,price,location_text,lat,lng,user_id,created_at,likes_count")
           .eq("status", "published")
           .eq("approval_status", "approved")
           .eq("visibility", "public")
@@ -1862,6 +1862,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
               lng:       Number.isFinite(w.lng) ? w.lng : null,
               author:    safeStr(prof.display_name, "HUI Talent"),
               avatar_url: prof.avatar_url || null,
+              likes:     w.likes_count || 0,
             };
           }));
         } else if (!wsErr) {

@@ -21,6 +21,7 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { toast } from "../../lib/useToast.jsx";
 import { haptic } from "../../components/commerce/commerceUtils.js";
+import { useProfileLauncher } from "../home/profile/ProfileLauncher.jsx";
 import {
   getComments, createComment, updateComment, deleteComment,
   toggleCommentHeart, reportComment, subscribeComments,
