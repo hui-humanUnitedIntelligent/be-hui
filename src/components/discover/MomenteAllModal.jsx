@@ -20,7 +20,7 @@ const timeAgo = (iso) => {
   return `vor ${Math.floor(d/30)} Mon.`;
 };
 
-function MomentCardItem({ m }) {
+function MomentCardItem({ m, onOpenProfile }) {
   const [imgErr, setImgErr] = useState(false);
   const likes = 4 + (m.id?.charCodeAt(m.id.length-1) % 30 || 0);
   return (
@@ -49,13 +49,18 @@ function MomentCardItem({ m }) {
           overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>
           {m.caption || "Ein Moment"}
         </div>
-        <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:"auto" }}>
+        <button
+          onClick={(e) => { e.stopPropagation(); if (m.user_id && onOpenProfile) onOpenProfile(m.user_id); }}
+          style={{ display:"flex", alignItems:"center", gap:5, marginTop:"auto", background:"none",
+            border:"none", padding:0, cursor: m.user_id ? "pointer" : "default",
+            WebkitTapHighlightColor:"transparent" }}
+        >
           <div style={{ width:22, height:22, borderRadius:"50%", background:T.tealSoft,
             display:"flex", alignItems:"center", justifyContent:"center", fontSize:11 }}>
             {m._initials || "H"}
           </div>
           <span style={{ fontSize:11, color:T.inkFaint }}>{m._name || "HUI Mitglied"}</span>
-        </div>
+        </button>
         <div style={{ display:"flex", gap:10, marginTop:6 }}>
           <span style={{ fontSize:11, color:T.inkFaint }}>♡ {likes}</span>
           <span style={{ fontSize:11, color:T.inkFaint }}>◎ {Math.floor(likes/4)}</span>
@@ -185,7 +190,7 @@ export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
             </div>
           )}
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-            {items.map(m => <MomentCardItem key={m.id} m={m} onPress={onPressItem}/>)}
+            {items.map(m => <MomentCardItem key={m.id} m={m} onPress={onPressItem} onOpenProfile={openCreatorProfile}/>)}
           </div>
           {loading && items.length > 0 && (
             <div style={{ textAlign:"center", padding:16, color:T.inkFaint, fontSize:13 }}>Lade weitere…</div>

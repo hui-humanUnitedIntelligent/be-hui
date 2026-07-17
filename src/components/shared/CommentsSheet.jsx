@@ -83,6 +83,7 @@ function Avatar({ url, name, size = 34 }) {
 
 // ── Ein Kommentar (+ rekursiv seine Antworten) ────────────────────────
 function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdit, onDelete, onHeart, onReport, replyTargetId, onCancelReply, onSubmitReply, replyText, setReplyText, submittingReply }) {
+  const { openCreatorProfile } = useProfileLauncher();
   const [menuOpen, setMenuOpen] = useState(false);
   const [reportMenu, setReportMenu] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -112,10 +113,22 @@ function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdi
   return (
     <div style={{ marginLeft: depth * 26, padding:"10px 0" }} className={comment._justAdded ? "cs-pop" : ""}>
       <div style={{ display:"flex", gap:10 }}>
-        <Avatar url={comment._author?.avatar_url} name={authorName} size={34} />
+        <button
+          onClick={() => { if (comment.user_id && comment.user_id !== currentUserId) openCreatorProfile(comment.user_id); }}
+          style={{ background:"none", border:"none", padding:0, flexShrink:0,
+            cursor: comment.user_id !== currentUserId ? "pointer" : "default",
+            WebkitTapHighlightColor:"transparent" }}
+        >
+          <Avatar url={comment._author?.avatar_url} name={authorName} size={34} />
+        </button>
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-            <span style={{ fontSize:13, fontWeight:700, color:T.ink }}>{authorName}</span>
+            <button
+              onClick={() => { if (comment.user_id && comment.user_id !== currentUserId) openCreatorProfile(comment.user_id); }}
+              style={{ background:"none", border:"none", padding:0,
+                cursor: comment.user_id !== currentUserId ? "pointer" : "default",
+                fontSize:13, fontWeight:700, color:T.ink, WebkitTapHighlightColor:"transparent" }}
+            >{authorName}</button>
             <span style={{ fontSize:11, color:T.inkFaint }}>{fmtTime(comment.created_at)}</span>
             {comment.is_edited && <span style={{ fontSize:11, color:T.inkFaint }}>· bearbeitet</span>}
           </div>

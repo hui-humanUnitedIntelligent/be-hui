@@ -2,6 +2,7 @@ import { createPortal } from "react-dom";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
+import { useProfileLauncher } from '../home/profile/ProfileLauncher.jsx';
 
 const T = {
   teal:"rgba(14,196,184,1)", white:"#FFFFFF", ink:"rgba(26,26,46,0.92)",
@@ -14,6 +15,7 @@ const LOC_LABELS = { vor_ort:"Vor Ort", online:"Online", beides:"Vor Ort & Onlin
 
 function TalentCardItem({ t, onPress }) {
   const [imgErr, setImgErr] = useState(false);
+  const { openCreatorProfile } = useProfileLauncher();
   const cover = Array.isArray(t.images) && t.images[0]?.url ? t.images[0].url : null;
   const price = t.price_per_session != null
     ? `${Number(t.price_per_session).toLocaleString("de-DE")} €/Sitzung`
@@ -47,7 +49,14 @@ function TalentCardItem({ t, onPress }) {
           overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>
           {t.title}
         </div>
-        {t._author && <div style={{ fontSize:11, color:T.inkFaint, marginBottom:4 }}>{t._author}</div>}
+        {t._author && t.user_id && (
+          <button
+            onClick={(e) => { e.stopPropagation(); openCreatorProfile(t.user_id); }}
+            style={{ fontSize:11, color:T.inkFaint, marginBottom:4, background:"none", border:"none",
+              padding:0, cursor:"pointer", textAlign:"left", WebkitTapHighlightColor:"transparent" }}
+          >{t._author}</button>
+        )}
+        {t._author && !t.user_id && <div style={{ fontSize:11, color:T.inkFaint, marginBottom:4 }}>{t._author}</div>}
         {locLabel && (
           <div style={{ fontSize:10.5, color:T.inkSoft, marginBottom:4 }}>📍 {locLabel}</div>
         )}

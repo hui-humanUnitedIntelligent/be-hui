@@ -8,6 +8,7 @@ import { HUIEmpfehlungIcon } from '../../../design/icons/HuiSystemIcons.jsx';
 import React from "react";
 import { useContentPreview } from "../../../context/ContentPreviewContext.jsx"; // OPEN.1 2026-07-08
 import { normalizeRecommendationForPreview } from "../../../lib/previewNormalizers.js";
+import { useProfileLauncher } from '../../home/profile/ProfileLauncher.jsx';
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", ink:"#1A1A18",
@@ -112,7 +113,11 @@ export function RecommendationsSection({
               <div style={{ fontSize:13, color:T.ink, lineHeight:1.55, fontStyle:"italic", marginBottom:10 }}>
                 {rec.text || ""}
               </div>
-              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <button
+                onClick={(e) => { e.stopPropagation(); if (rec.from_user_id) openCreatorProfile(rec.from_user_id); }}
+                style={{ display:"flex", alignItems:"center", gap:8, background:"none", border:"none",
+                  padding:0, cursor:"pointer", WebkitTapHighlightColor:"transparent" }}
+              >
                 {authorAvatar && (
                   <img loading="lazy" decoding="async" src={authorAvatar} alt={authorName} style={{ width:24, height:24,
                     borderRadius:"50%", objectFit:"cover" }}/>
@@ -120,7 +125,7 @@ export function RecommendationsSection({
                 <div style={{ fontSize:11.5, color:T.inkFaint, fontWeight:600 }}>
                   — {authorName}
                 </div>
-              </div>
+              </button>
             </div>
             );
           })}
@@ -142,4 +147,5 @@ export function RecommendationsSection({
     </div>
   );
 }
-export default RecommendationsSection;
+export default RecommendationsSection;  const { openCreatorProfile } = useProfileLauncher();
+

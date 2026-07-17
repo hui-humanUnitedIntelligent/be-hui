@@ -26,6 +26,7 @@ import UnifiedFeed from "../feed/UnifiedFeed.jsx";
 import { shareContent } from "../lib/shareContent.js"; // SHARE.1 2026-07-09
 import { usePresence }             from "../lib/usePresence.js";
 import { StoryViewer }           from "../components/StoryBar.jsx";
+import { useProfileLauncher }    from "../components/home/profile/ProfileLauncher.jsx";
 import ChatCenterOverlay          from "../components/chat-center/ChatCenterOverlay.jsx";
 import { useChatList }             from "../lib/chatContext.js";
 import ConnectionCreatePage      from "../components/connection-create/ConnectionCreatePage.jsx";
@@ -133,6 +134,7 @@ function HomeInner() {
     }, 400);
   }, []);
 
+  const { openCreatorProfile } = useProfileLauncher();
   const {
     tab,
     handleTab,
@@ -811,7 +813,7 @@ function HomeInner() {
 
       {activeStory && SAFE_MODE.storyViewer && (
         <SafeRender flag="storyViewer" label="StoryViewer">
-          <StoryViewer story={activeStory} onClose={() => setActiveStory(null)}/>
+          <StoryViewer story={activeStory} onClose={() => setActiveStory(null)} onViewProfile={(story) => { if (story?.user_id) openCreatorProfile(story.user_id); }}/>
         </SafeRender>
       )}
 
