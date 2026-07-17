@@ -6,7 +6,7 @@
  * Header + Bild (via BaseFeedCard.FeedMedia) + Badge + Titel + Progress
  * Karte anklicken → ContentPreviewSheet → "Zum Herzensprojekt" → Impact-Tab
  */
-import React from "react";
+import React, { useState, useMemo } from "react";
 import BaseFeedCard from "./BaseFeedCard.jsx";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
 
@@ -14,6 +14,10 @@ const GREEN      = "rgba(34,197,94,1)";
 const GREEN_SOFT = "rgba(34,197,94,0.10)";
 const INK        = "#1A1A2E";
 const INK_SUB    = "rgba(26,26,46,0.45)";
+
+// IMPACT-IMG-001: Stabiler Unsplash-Fallback für Projekte ohne eigenes Bild.
+// Als Modul-Konstante → wird einmal evaluiert, nie neu erzeugt.
+const IMPACT_FALLBACK = "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=80";
 
 const RANK_MEDAL = { 1:"🥇", 2:"🥈", 3:"🥉" };
 const RANK_LABEL = { 1:"Top 1", 2:"Top 2", 3:"Top 3" };
@@ -64,14 +68,23 @@ export default function ImpactContent({ item, onProfile, onReaction, onShare }) 
     },
   });
 
-  // Bild-Logik: Primär aus item.media (cover_url / media_urls aus DB).
-  // Fallback: einheitliches Unsplash-Bild (identisch zu ImpactPage.jsx ApprovedProjectDetail).
-  // NIEMALS ein Emoji-Platzhalter — das wäre ein grünes Herz.
-  const hasMedia    = Array.isArray(item.media) ? item.media.length > 0 : !!item.media;
-  const mediaUrl    = hasMedia
-    ? (Array.isArray(item.media) ? item.media[0]?.url : item.media)
-    : null;
-  const displayImg  = mediaUrl || "${IMPACT_FALLBACK}";
+  // IMPACT-IMG-001: Stabile Bild-Logik ohne Flackern.
+  // displayImg via useMemo → ändert sich NICHT wenn Votes/Felder aktualisiert werden.
+  // imgErr-State → wird einmalig gesetzt, kein Loop durch onError.
+  const [imgErr, setImgErr] = useState(false);
+  const displayImg = useMemo(() => {
+    if (imgErr) return IMPACT_FALLBACK;
+    const media = item.media;
+    if (Array.isArray(media) && media.length > 0) {
+      return media[0]?.url || IMPACT_FALLBACK;
+    }
+    if (media && typeof media === "string") return media;
+    // Direkt aus _raw: cover_url → media_urls[0]
+    const raw = item._raw || {};
+    if (raw.cover_url) return raw.cover_url;
+    if (Array.isArray(raw.media_urls) && raw.media_urls.length > 0) return raw.media_urls[0];
+    return IMPACT_FALLBACK;
+  }, [item.media, item._raw, imgErr]);
 
   return (
     <BaseFeedCard
@@ -89,13 +102,16 @@ export default function ImpactContent({ item, onProfile, onReaction, onShare }) 
         overflow: "hidden", position: "relative",
         background: "rgba(26,26,46,0.05)",
       }}>
+        {/* IMPACT-IMG-001: img mit stabilem src (useMemo).
+             onError setzt imgErr=true → displayImg wechselt auf IMPACT_FALLBACK.
+             Kein direktes e.target.src-Assignment → kein Loop, kein Flackern. */}
         <img
           loading="lazy"
           decoding="async"
           src={displayImg}
           alt={title || "Herzensprojekt"}
           style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}
-          onError={e => { e.target.src = "${IMPACT_FALLBACK}"; }}
+          onError={() => { if (!imgErr) setImgErr(true); }}
         />
         {/* Rang-Badge oben links auf dem Bild */}
         {rank && RANK_MEDAL[rank] && (
