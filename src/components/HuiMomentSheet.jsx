@@ -206,6 +206,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
   const [fileObj,   setFileObj]   = useState(null);
   const [uploading, setUploading] = useState(false);
   const [shareErr,  setShareErr]  = useState(null);
+  const [momentSource, setMomentSource] = useState(null); // "foto"|"video"|"galerie"|"gedanke"
 
   const fotoRef     = useRef(null);
   const videoRef    = useRef(null);
@@ -233,6 +234,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
   }, [phase]);
 
   const handleAction = useCallback((action) => {
+    setMomentSource(action.id); // "foto"|"video"|"galerie"|"gedanke"
     if (action.id === "gedanke") { setPhase("gedanke"); return; }
     if (action.id === "foto")    { fotoRef.current?.click();    return; }
     if (action.id === "video")   { videoRef.current?.click();   return; }
@@ -265,6 +267,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
       user_id:          userId,
       src:              src     || null,
       type:             type    || "gedanke",
+      moment_source:    momentSource || null,
       caption:          caption || null,
       visibility_scope: visibilityScope,
     };
@@ -308,7 +311,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
         // Upload-Fehler wirft jetzt bei Videos (kein graceful-Fallback mehr)
       }
 
-      await _publishMoment({ src, type, caption: text.trim() });
+      await _publishMoment({ src, type, momentSource: momentSource || (isVideo ? "video" : "foto"), caption: text.trim() });
 
       if (mediaURL) URL.revokeObjectURL(mediaURL);
       setMediaURL(null);
@@ -326,7 +329,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
     if (!text.trim()) return;
     setUploading(true); setShareErr(null);
     try {
-      await _publishMoment({ src: null, type: "gedanke", caption: text.trim() });
+      await _publishMoment({ src: null, type: "gedanke", momentSource: "gedanke", caption: text.trim() });
       setPhase("done");
       setTimeout(() => doClose(), 1600);
     } catch (err) {
