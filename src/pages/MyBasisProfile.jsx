@@ -1328,25 +1328,33 @@ function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
   const [loading, setLoading]       = React.useState(true);
   const [confirmMoment, setConfirmMoment] = React.useState(null);
 
-  // ── Daten laden (unverändert — beitraege-Tabelle, type='moment') ──────
-  React.useEffect(() => {
+  // ── Daten laden (beitraege, type='moment') ────────────────────────
+  const loadMoments = React.useCallback(() => {
     if (!profile?.id) return;
-    let cancelled = false;
-    setLoading(true);
     supabase
       .from("beitraege")
-      .select("id, src, type, caption, created_at")
+      .select("id, src, type, caption, created_at, media_url")
       .eq("user_id", profile.id)
       .eq("type", "moment")
       .order("created_at", { ascending: false })
       .limit(20)
       .then(({ data, error }) => {
-        if (cancelled) return;
         if (!error && data) setMoments(data);
         setLoading(false);
       });
-    return () => { cancelled = true; };
   }, [profile?.id]);
+
+  React.useEffect(() => {
+    setLoading(true);
+    loadMoments();
+  }, [loadMoments]);
+
+  // ── Nach Upload sofort neu laden (HuiMomentSheet dispatcht "feed-refresh") ──
+  React.useEffect(() => {
+    const handler = () => { loadMoments(); };
+    window.addEventListener("feed-refresh", handler);
+    return () => window.removeEventListener("feed-refresh", handler);
+  }, [loadMoments]);
 
   // ── Löschen ──────────────────────────────────────────────────────────
   const handleDeleteClick = (e, m) => {
@@ -1445,8 +1453,8 @@ function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
                   background:"#e8e4de", position:"relative", cursor:"pointer",
                   boxShadow:"0 0 0 2px #0EC4B8",
                 }}>
-                {m.src
-                  ? <img loading="lazy" decoding="async" src={m.src} alt=""
+                {(m.src || m.media_url)
+                  ? <img loading="lazy" decoding="async" src={m.src || m.media_url} alt=""
                       style={{ width:"100%", height:"100%", objectFit:"cover" }}
                       onError={e => e.target.style.display = "none"}/>
                   : <div style={{ width:"100%", height:"100%", display:"flex",
