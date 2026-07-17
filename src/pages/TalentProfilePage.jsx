@@ -1238,6 +1238,31 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
     );
   }
 
+  // Fehler-Guard: Profil konnte nicht geladen werden
+  if (!loading && !profile) {
+    return (
+      <div style={{
+        position:"fixed", inset:0, zIndex:10500,
+        background:"#F9F7F4",
+        display:"flex", flexDirection:"column",
+        alignItems:"center", justifyContent:"center", gap:12,
+      }}>
+        <button
+          onClick={onClose}
+          style={{
+            position:"absolute", top:16, left:16,
+            background:"none", border:"none", fontSize:24, cursor:"pointer", color:"#6B7280",
+          }}
+        >←</button>
+        <div style={{ fontSize:40 }}>🔍</div>
+        <div style={{ fontSize:16, fontWeight:600, color:"#1C1C1A" }}>Profil nicht verfügbar</div>
+        <div style={{ fontSize:13, color:"#6B7280", textAlign:"center", maxWidth:260 }}>
+          Dieses Profil konnte nicht geladen werden.
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="tpp-root" style={{
       position:"fixed", top:0, left:0, right:0,

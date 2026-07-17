@@ -115,6 +115,12 @@ export function useProfileData(profileId) {
     setError(null);
 
     try {
+      // ── Gesamt-Timeout: 8s — verhindert ewigen Spinner ───────────
+      const TIMEOUT_MS = 8000;
+      const timeoutGuard = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("useProfileData timeout")), TIMEOUT_MS)
+      );
+
       // ── Alle Queries parallel ────────────────────────────────────
       const [
         profileRes,
@@ -125,7 +131,8 @@ export function useProfileData(profileId) {
         recsRes,
         momentsRes,
         fcRes,
-      ] = await Promise.all([
+      ] = await Promise.race([
+        Promise.all([
 
         // 1. profiles — ProfileService v1.0
         ProfileService.getById(profileId)
@@ -199,6 +206,8 @@ export function useProfileData(profileId) {
           .rpc("get_follow_counts", { target_id: profileId })
           .then(r => r)
           .catch(() => ({ data: null })),
+        ]),
+        timeoutGuard,
       ]);
 
       // Race-Condition-Schutz
