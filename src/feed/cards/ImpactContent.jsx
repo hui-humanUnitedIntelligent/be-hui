@@ -64,9 +64,14 @@ export default function ImpactContent({ item, onProfile, onReaction, onShare }) 
     },
   });
 
-  // Fallback-Banner wenn kein Bild vorhanden (identisch zu ContentPreviewSheet's project-Fallback)
-  const hasMedia = Array.isArray(item.media) ? item.media.length > 0 : !!item.media;
-  const projectEmoji = raw.icon || "💚";
+  // Bild-Logik: Primär aus item.media (cover_url / media_urls aus DB).
+  // Fallback: einheitliches Unsplash-Bild (identisch zu ImpactPage.jsx ApprovedProjectDetail).
+  // NIEMALS ein Emoji-Platzhalter — das wäre ein grünes Herz.
+  const hasMedia    = Array.isArray(item.media) ? item.media.length > 0 : !!item.media;
+  const mediaUrl    = hasMedia
+    ? (Array.isArray(item.media) ? item.media[0]?.url : item.media)
+    : null;
+  const displayImg  = mediaUrl || "${IMPACT_FALLBACK}";
 
   return (
     <BaseFeedCard
@@ -76,44 +81,32 @@ export default function ImpactContent({ item, onProfile, onReaction, onShare }) 
       onShare={onShare}
       onCardClick={handleCardClick}
     >
-      {/* Fallback-Banner wenn kein Bild vorhanden */}
-      {!hasMedia && (
-        <div style={{
-          margin: "0 0 12px",
-          height: 140, borderRadius: 14,
-          background: rank
-            ? (rank===1 ? "linear-gradient(135deg,rgba(251,191,36,0.18),rgba(251,191,36,0.06))"
-              : rank===2 ? "linear-gradient(135deg,rgba(156,163,175,0.18),rgba(156,163,175,0.06))"
-              : "linear-gradient(135deg,rgba(180,113,67,0.18),rgba(180,113,67,0.06))")
-            : "linear-gradient(135deg,rgba(34,197,94,0.12),rgba(34,197,94,0.04))",
-          display:"flex", alignItems:"center", justifyContent:"center",
-          position:"relative", overflow:"hidden",
-        }}>
-          {/* Dekorative Kreise im Hintergrund */}
+      {/* Projektbild — immer sichtbar: entweder echtes Bild oder Unsplash-Fallback.
+          Kein Emoji-Platzhalter. Rang-Badge liegt oben links auf dem Bild. */}
+      <div style={{
+        margin: "0 0 12px",
+        height: 140, borderRadius: 14,
+        overflow: "hidden", position: "relative",
+        background: "rgba(26,26,46,0.05)",
+      }}>
+        <img
+          loading="lazy"
+          decoding="async"
+          src={displayImg}
+          alt={title || "Herzensprojekt"}
+          style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}
+          onError={e => { e.target.src = "${IMPACT_FALLBACK}"; }}
+        />
+        {/* Rang-Badge oben links auf dem Bild */}
+        {rank && RANK_MEDAL[rank] && (
           <div style={{
-            position:"absolute", top:-20, right:-20,
-            width:100, height:100, borderRadius:"50%",
-            background:"rgba(34,197,94,0.08)",
-          }}/>
-          <div style={{
-            position:"absolute", bottom:-30, left:-10,
-            width:80, height:80, borderRadius:"50%",
-            background:"rgba(34,197,94,0.06)",
-          }}/>
-          {/* Rang-Badge */}
-          {rank && RANK_MEDAL[rank] && (
-            <div style={{
-              position:"absolute", top:10, left:10,
-              background: rank===1?"rgba(251,191,36,1)":rank===2?"rgba(156,163,175,1)":"rgba(180,113,67,1)",
-              color:"#fff", fontSize:10, fontWeight:700,
-              padding:"3px 10px", borderRadius:20,
-            }}>{RANK_MEDAL[rank]} {RANK_LABEL[rank]}</div>
-          )}
-          <span style={{ fontSize:48, filter:"drop-shadow(0 2px 8px rgba(0,0,0,0.08))" }}>
-            {projectEmoji}
-          </span>
-        </div>
-      )}
+            position:"absolute", top:10, left:10,
+            background: rank===1?"rgba(251,191,36,1)":rank===2?"rgba(156,163,175,1)":"rgba(180,113,67,1)",
+            color:"#fff", fontSize:10, fontWeight:700,
+            padding:"3px 10px", borderRadius:20,
+          }}>{RANK_MEDAL[rank]} {RANK_LABEL[rank]}</div>
+        )}
+      </div>
 
       {/* Beschreibung (optional, über Badge/Titel) */}
       {desc && (

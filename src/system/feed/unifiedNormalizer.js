@@ -108,6 +108,14 @@ function extractMedia(raw){
       return safeUrl(u)?{type:"image",url:safeUrl(u)}:null;
     }).filter(Boolean);
   }
+  // media_urls: Supabase-Array-Spalte (z.B. impact_applications, momente)
+  if(Array.isArray(raw.media_urls)&&raw.media_urls.length>0){
+    return raw.media_urls.map(u=>{
+      const su=safeUrl(u);
+      return su?{type:"image",url:su}:null;
+    }).filter(Boolean);
+  }
+  // Single-URL candidates: cover_url (impact_applications), image_url, src, ...
   const candidates=[raw.src,raw.image_url,raw.cover_url,raw.media_url,raw.expImg,raw.coverUrl,raw.thumbnail,raw.banner];
   for(const c of candidates){const u=safeUrl(c);if(u)return[{type:"image",url:u}];}
   return[];

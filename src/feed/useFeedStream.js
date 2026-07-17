@@ -256,13 +256,17 @@ async function fetchFeedPage(userId = null, cursors = null) {
       } catch { return null; }
     }).filter(Boolean),
     // FEED-GLOBAL-001: Impact-Projekte normalisieren
+    // cover_url + media_urls explizit übergeben → extractMedia findet das Bild
     ...impacts.map(r => {
       try {
         return toFeedItem({
           ...injectProfile(r),
-          type:    "impact",
-          title:   r.project_name || "",
-          caption: r.short_desc   || r.problem || "",
+          type:       "impact",
+          title:      r.project_name || "",
+          caption:    r.short_desc   || r.problem || "",
+          // Bild-Felder explizit — cover_url (Single) + media_urls (Array)
+          cover_url:  r.cover_url  || null,
+          media_urls: Array.isArray(r.media_urls) && r.media_urls.length > 0 ? r.media_urls : null,
         });
       } catch { return null; }
     }).filter(Boolean),
