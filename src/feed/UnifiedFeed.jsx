@@ -8,6 +8,7 @@
 // CSS KEYFRAMES werden nur einmal injiziert.
 // ═══════════════════════════════════════════════════════════════
 
+import { NAV_CONTENT_SPACER_CSS } from "../components/home/navigation/navigationGeometry.js";
 import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import FeedRouter              from "./cards/FeedRouter.jsx";
 import { CardSkeleton }        from "./cards/BaseFeedCard.jsx";
@@ -557,11 +558,42 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
   // Kein contentVisibility-Hack, kein position:absolute. Einfach, korrekt, schnell.
   // Bei 200 Items Cap (useFeedStream) ist kein weiteres Virtualisierung nötig.
 
+  // PAGI-001: UI-seitige Pagination — initial 10, +15 pro Klick.
+  // Komplett entkoppelt von der DB-Pagination (useFeedStream).
+  // Wenn visibleCount nahe an arr.length → loadMore() aus useFeedStream triggern.
+  const INITIAL_COUNT  = 10;
+  const LOAD_MORE_STEP = 15;
+  const [visibleCount, setVisibleCount] = useState(INITIAL_COUNT);
+
+  // arr-Wechsel (Filter/Suche/Refresh) → visibleCount zurücksetzen
+  const arrLenRef = useRef(arr.length);
+  useEffect(() => {
+    if (arr.length !== arrLenRef.current) {
+      arrLenRef.current = arr.length;
+      setVisibleCount(INITIAL_COUNT);
+    }
+  }, [arr.length]);
+
+  const visibleItems   = arr.slice(0, visibleCount);
+  // Alle sichtbaren Items sind gerendert UND DB hat keine weiteren Seiten mehr
+  const allShown       = visibleCount >= arr.length && !hasMore;
+  // Noch etwas zu zeigen (entweder mehr UI-Items oder mehr DB-Seiten)
+  const canLoadMore    = visibleCount < arr.length || hasMore;
+
+  const handleLoadMore = useCallback(() => {
+    const next = visibleCount + LOAD_MORE_STEP;
+    setVisibleCount(next);
+    // Wenn wir das geladene Ende erreichen → nächste DB-Seite vorholen
+    if (next >= arr.length - 2 && hasMore && !loadingMore) {
+      loadMore?.();
+    }
+  }, [visibleCount, arr.length, hasMore, loadingMore, loadMore]);
+
   if (arr.length === 0) return <EmptyFeed />;
 
   return (
-    <div style={{ paddingTop: 8, paddingBottom: 8 }}>
-      {arr.map((item, idx) => {
+    <div style={{ paddingTop: 8 }}>
+      {visibleItems.map((item, idx) => {
         const { isRelaxed, mb } = getCardRhythm(idx);
         const itemReactions = reactions[String(item.id)] || {};
         return (
@@ -590,46 +622,65 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
         );
       })}
 
-      {/* Feed-Ende State (wenn kein hasMore mehr) */}
-      {!hasMore && arr.length > 0 && (
+      {/* ── Mehr-laden-Button / Ende-Hinweis ─────────────────────────────
+           IMMER nach der letzten Kachel, mind. 24px Abstand zum Orb.
+           Kein loadingMore-Zustand — Button reagiert sofort (UI-seitig). ── */}
+      {canLoadMore && (
+        <div style={{
+          display:    "flex",
+          justifyContent: "center",
+          padding:    "20px 24px 8px",
+        }}>
+          <button
+            onClick={handleLoadMore}
+            disabled={loadingMore}
+            style={{
+              padding:        "11px 32px",
+              borderRadius:   24,
+              border:         "1.5px solid rgba(13,196,181,0.45)",
+              background:     "rgba(13,196,181,0.07)",
+              color:          "rgba(13,196,181,1)",
+              fontSize:       14,
+              fontWeight:     600,
+              cursor:         loadingMore ? "wait" : "pointer",
+              letterSpacing:  -0.1,
+              touchAction:    "manipulation",
+              WebkitTapHighlightColor: "transparent",
+              transition:     "opacity 0.18s, transform 0.15s",
+              opacity:        loadingMore ? 0.5 : 1,
+              minWidth:       160,
+              boxShadow:      "0 1px 8px rgba(13,196,181,0.10)",
+            }}
+          >
+            {loadingMore ? "Wird geladen …" : "Mehr laden"}
+          </button>
+        </div>
+      )}
+
+      {/* Ende-Hinweis: alle Items geladen, keine weiteren in DB */}
+      {allShown && arr.length > 0 && (
         <div style={{
           display:       "flex",
           flexDirection: "column",
           alignItems:    "center",
           textAlign:     "center",
-          padding:       "32px 24px 48px",
-          gap:           12,
+          padding:       "24px 24px 16px",
+          gap:           10,
         }}>
-          <div style={{ fontSize: 18, color: "rgba(13,196,181,0.55)", marginBottom: 4, letterSpacing: 2 }}>✦</div>
-          <div style={{ fontSize: 14, fontWeight: 600, color: "rgba(26,53,48,0.70)", letterSpacing: -0.2 }}>
-            Das war dein aktueller Feed
+          <div style={{ fontSize: 16, color: "rgba(13,196,181,0.45)", letterSpacing: 2 }}>✦</div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(26,53,48,0.55)", letterSpacing: -0.1 }}>
+            Du hast das Ende erreicht
           </div>
-          <div style={{ fontSize: 12.5, color: "rgba(26,53,48,0.40)", fontWeight: 400, lineHeight: 1.5, maxWidth: 220 }}>
-            Schau später wieder rein — neue Werke, Erlebnisse und Momente warten auf dich.
+          <div style={{ fontSize: 12, color: "rgba(26,53,48,0.35)", fontWeight: 400, lineHeight: 1.55, maxWidth: 240 }}>
+            Warte, bis neue Talente ihr Können präsentieren.
           </div>
-          {onDiscover && (
-            <button
-              onClick={onDiscover}
-              style={{
-                marginTop:   8,
-                padding:     "9px 20px",
-                borderRadius: 20,
-                border:      "1.5px solid rgba(13,196,181,0.35)",
-                background:  "transparent",
-                color:       "rgba(13,196,181,0.85)",
-                fontSize:    13,
-                fontWeight:  600,
-                cursor:      "pointer",
-                letterSpacing: -0.1,
-                touchAction: "manipulation",
-                WebkitTapHighlightColor: "transparent",
-              }}
-            >
-              Neue Talente entdecken →
-            </button>
-          )}
         </div>
       )}
+
+      {/* ── Orb-Clearance-Spacer — IMMER als letztes Element.
+           Verhindert, dass der Orb den letzten Karteninhalt überlagert.
+           Wert: ORB_OVERHANG + TAB_H + safe-area + 24px Buffer ── */}
+      <div style={{ height: NAV_CONTENT_SPACER_CSS }} aria-hidden="true" />
     </div>
   );
 }
