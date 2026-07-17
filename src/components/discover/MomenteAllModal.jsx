@@ -2,6 +2,7 @@ import { createPortal } from "react-dom";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
+import { useProfileLauncher } from "../home/profile/ProfileLauncher.jsx";
 
 const T = {
   teal:"rgba(14,196,184,1)", white:"#FFFFFF", ink:"rgba(26,26,46,0.92)",
@@ -71,6 +72,7 @@ function MomentCardItem({ m, onOpenProfile }) {
 }
 
 export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
+  const { openCreatorProfile } = useProfileLauncher();
   useWizardBodyLock(isOpen);
   const [items, setItems]        = useState([]);
   const [loading, setLoading]    = useState(false);

@@ -40,6 +40,7 @@ export function RecommendationsSection({
   onAddRec        = null,
   onShowAll       = null,
 }) {
+  const { openCreatorProfile } = useProfileLauncher();
   const { open: openPreview } = useContentPreview(); // OPEN.1 2026-07-08 -- Karten waren zuvor komplett tot (kein onClick)
   if (loading) {
     return (
@@ -147,5 +148,5 @@ export function RecommendationsSection({
     </div>
   );
 }
-export default RecommendationsSection;  const { openCreatorProfile } = useProfileLauncher();
+export default RecommendationsSection;
 
