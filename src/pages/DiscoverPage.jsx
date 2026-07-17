@@ -1325,7 +1325,7 @@ function ProjektCard({ projekt, delay=0, onPress }) {
   const cover = (!imgErr && projekt.cover) ? projekt.cover : null;
   const cc = projekt.catColor || { bg:"rgba(34,197,94,0.12)", text:"#16A34A" };
   const membersStr = projekt.members != null
-    ? projekt.members.toLocaleString("de-DE") + " Mitglieder"
+    ? (projekt.members > 0 ? projekt.members.toLocaleString("de-DE") + " Stimmen" : "Jetzt unterstützen")
     : null;
 
   return (
@@ -1435,7 +1435,7 @@ function ProjekteSection({ projekte, loading, delay=0, view='cards', onPress, on
                 </div>
                 <div style={{ display:"flex", alignItems:"center", gap:10 }}>
                   <div style={{ fontSize:11, color:"rgba(255,255,255,0.80)", display:"flex", alignItems:"center", gap:4 }}>
-                    <span style={{display:"flex",alignItems:"center",gap:4}}><HUIPersonenIcon size={14}/><span>{hero.members} Mitglieder</span></span>
+                    <span style={{display:"flex",alignItems:"center",gap:4}}><HUIPersonenIcon size={14}/><span>{hero.members > 0 ? `${hero.members} Stimmen` : "Jetzt unterstützen"}</span></span>
                   </div>
                   <div onClick={() => onPress?.(hero)} style={{
                     background:"rgba(14,196,184,0.90)", backdropFilter:"blur(8px)",
@@ -1975,13 +1975,37 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
 
         // SYS-REFACTOR-023: totes impact_pool-Query entfernt (Ergebnis 'imp' wurde nie gelesen, keine Verhaltensaenderung)
 
-        // Impact-Projekte — neueste zuerst (approved & aktiv)
-        const { data: projData } = await supabase
+        // Impact-Projekte — nach Stimmen/Rank sortiert (Projekt der Woche = #1)
+        // Spalten: project_name (nicht name), rank (Trigger aktuell via impact_votes)
+        const { data: projRaw } = await supabase
           .from("impact_applications")
-          .select("id,name,description,cover_url,category,vote_count,rank,funding_goal,current_amount_eur,status,created_at")
+          .select("id,project_name,short_desc,cover_url,location,rank,funding_goal,current_amount_eur,status,created_at")
           .eq("status","approved")
-          .order("created_at", { ascending:false })
-          .limit(6);
+          .order("rank", { ascending:true, nullsFirst:false })
+          .order("created_at", { ascending:true })
+          .limit(10);
+
+        // vote_count per Projekt via impact_votes (für Mitglieder-Anzeige)
+        let voteMap = {};
+        if (projRaw && projRaw.length > 0) {
+          const ids = projRaw.map(p => p.id);
+          const { data: voteRows } = await supabase
+            .from("impact_votes")
+            .select("project_id")
+            .in("project_id", ids);
+          if (voteRows) {
+            voteRows.forEach(v => { voteMap[v.project_id] = (voteMap[v.project_id] || 0) + 1; });
+          }
+        }
+        // null-rank Projekte ans Ende, nach votes sortieren
+        const projData = projRaw
+          ? [...projRaw].sort((a, b) => {
+              const aRank = a.rank ?? 9999;
+              const bRank = b.rank ?? 9999;
+              if (aRank !== bRank) return aRank - bRank;
+              return (voteMap[b.id] || 0) - (voteMap[a.id] || 0);
+            })
+          : null;
 
         if (!cancelled && projData?.length > 0) {
           const CAT_COLOR = {
@@ -1992,20 +2016,49 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
             bildung:  { bg:"rgba(232,87,58,0.12)",  text:"#F47355" },
             sozial:   { bg:"rgba(14,196,184,0.12)", text:"#0DC4B5" },
           };
-          setProjekte(projData.map(p => {
-            const cat = (p.category || "").toLowerCase();
-            const cc = CAT_COLOR[cat] || { bg:"rgba(14,196,184,0.12)", text:"#0DC4B5" };
+          // Kategorie aus location (Fallback: "Impact")
+          const CAT_COLOR_EXT = {
+            ...CAT_COLOR,
+            impact:   { bg:"rgba(14,196,184,0.12)", text:"#0DC4B5" },
+            sozial:   { bg:"rgba(14,196,184,0.12)", text:"#0DC4B5" },
+            gesundheit: { bg:"rgba(239,68,68,0.12)", text:"#EF4444" },
+            community: { bg:"rgba(99,102,241,0.12)", text:"#6366F1" },
+          };
+          // Fallback-Cover-Pool für Projekte ohne Bild
+          const COVER_FALLBACKS = [
+            "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=280&q=75",
+            "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=280&q=75",
+            "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=280&q=75",
+            "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=280&q=75",
+            "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=280&q=75",
+            "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=280&q=75",
+          ];
+          setProjekte(projData.map((p, idx) => {
+            // Kategorie: aus Beschreibung/Name ableiten oder "Impact" als Fallback
+            let catRaw = "";
+            const nameLower = (p.project_name || "").toLowerCase();
+            if (nameLower.includes("tier") || nameLower.includes("hund") || nameLower.includes("dog")) catRaw = "tiere";
+            else if (nameLower.includes("garten") || nameLower.includes("natur") || nameLower.includes("grün")) catRaw = "natur";
+            else if (nameLower.includes("meer") || nameLower.includes("küste") || nameLower.includes("umwelt") || nameLower.includes("klima")) catRaw = "umwelt";
+            else if (nameLower.includes("kind") || nameLower.includes("lern") || nameLower.includes("schule") || nameLower.includes("bildung")) catRaw = "bildung";
+            else if (nameLower.includes("musik") || nameLower.includes("kunst") || nameLower.includes("kultur")) catRaw = "kultur";
+            else if (nameLower.includes("sozial") || nameLower.includes("obdach") || nameLower.includes("mahlzeit") || nameLower.includes("mensch")) catRaw = "sozial";
+            else catRaw = "impact";
+            const cc = CAT_COLOR_EXT[catRaw] || { bg:"rgba(14,196,184,0.12)", text:"#0DC4B5" };
+            const catLabel = catRaw.charAt(0).toUpperCase() + catRaw.slice(1);
+            const votes = voteMap[p.id] || 0;
             return {
               id:       p.id,
-              title:    p.name || "Projekt",
-              desc:     p.description || "",
-              cat:      p.category || "Projekt",
+              title:    p.project_name || "Projekt",
+              desc:     p.short_desc || "",
+              cat:      catLabel,
               catColor: cc,
-              cover:    p.cover_url || null,
-              members:  p.vote_count || 0,
+              cover:    p.cover_url || COVER_FALLBACKS[idx % COVER_FALLBACKS.length],
+              members:  votes,
               rank:     p.rank || 0,
               funding_goal:       p.funding_goal || 0,
               current_amount_eur: p.current_amount_eur || 0,
+              _raw:     p,
             };
           }));
         }
