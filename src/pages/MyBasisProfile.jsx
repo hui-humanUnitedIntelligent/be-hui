@@ -1333,7 +1333,7 @@ function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
     if (!profile?.id) return;
     supabase
       .from("beitraege")
-      .select("id, src, type, caption, moment_source, created_at, media_url")
+      .select("id, src, type, caption, moment_source, created_at")
       .eq("user_id", profile.id)
       .order("created_at", { ascending: false })
       .limit(50)
