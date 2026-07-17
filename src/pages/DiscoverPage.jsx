@@ -2393,7 +2393,15 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
           onClose={() => setShowProjekteModal(false)}
           onPressItem={(proj) => {
             setShowProjekteModal(false);
-            openPreview({ id:proj.id, type:"projekt", title:proj.name, projectId:proj.id });
+            // Mapping auf ContentPreviewSheet-Format: cover_url → media[0], project_name → title
+            openPreview({
+              id:          proj.id,
+              type:        "projekt",
+              title:       proj.project_name,
+              description: proj.short_desc,
+              canOpenFull: true,
+              media:       proj.cover_url ? [{ url: proj.cover_url }] : [],
+            });
           }}
         />
         <OrteAllModal

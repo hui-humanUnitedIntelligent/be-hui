@@ -27,7 +27,7 @@ function ProjektCardItem({ p, onPress }) {
     }}>
       <div style={{ height:100, background:T.tealSoft, position:"relative", overflow:"hidden" }}>
         {!imgErr && p.cover_url
-          ? <img loading="lazy" decoding="async" src={p.cover_url} alt={p.name}
+          ? <img loading="lazy" decoding="async" src={p.cover_url} alt={p.project_name}
               onError={() => setImgErr(true)} style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
           : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:28 }}>💚</div>
         }
@@ -49,12 +49,12 @@ function ProjektCardItem({ p, onPress }) {
       <div style={{ padding:"10px 10px 10px" }}>
         <div style={{ fontSize:14, fontWeight:800, color:T.ink, marginBottom:4,
           overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>
-          {p.name}
+          {p.project_name}
         </div>
-        {p.description && (
+        {p.short_desc && (
           <div style={{ fontSize:11.5, color:T.inkSoft, marginBottom:8,
             overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>
-            {p.description}
+            {p.short_desc}
           </div>
         )}
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 }}>
@@ -102,25 +102,31 @@ export default function ProjekteAllModal({ isOpen, onClose, onPressItem }) {
     if (loading) return;
     setLoading(true);
     try {
-      let q = supabase.from("impact_applications")
-        .select("id,name,category,description,cover_url,created_at,vote_count,rank,status,funding_goal,current_amount_eur")
-        .eq("status","approved")
-        .order("created_at",{ ascending:false })
-        .range(pageNum * PAGE_SIZE, (pageNum+1) * PAGE_SIZE - 1);
+      // rpc_get_impact_ranking liefert alle approved-Projekte mit:
+      // id, project_name, short_desc, cover_url, funding_goal,
+      // current_amount_eur, vote_count, rank, share_pct, is_completed, category
+      const { data, error } = await supabase.rpc("rpc_get_impact_ranking");
+      if (error || !data) { setHasMore(false); return; }
 
+      // Client-seitiges Filtern (RPC gibt alle zurück, keine Pagination nötig)
+      let filtered = data;
+
+      // Suchfilter
       if (debouncedSearch) {
-        q = q.or(`name.ilike.%${debouncedSearch}%,category.ilike.%${debouncedSearch}%`);
+        const q = debouncedSearch.toLowerCase();
+        filtered = filtered.filter(p =>
+          (p.project_name || "").toLowerCase().includes(q) ||
+          (p.category     || "").toLowerCase().includes(q) ||
+          (p.short_desc   || "").toLowerCase().includes(q)
+        );
       }
 
-      const { data } = await q;
-      if (!data || data.length === 0) { setHasMore(false); return; }
+      // Rank-Filter
+      if (filterRank === "top3")     filtered = filtered.filter(p => p.rank && p.rank <= 3);
+      if (filterRank === "weitere")  filtered = filtered.filter(p => !p.rank || p.rank > 3);
 
-      let filtered = data;
-      if (filterRank === "top3") filtered = data.filter(p => p.rank && p.rank <= 3);
-      if (filterRank === "weitere") filtered = data.filter(p => !p.rank || p.rank > 3);
-
-      setItems(prev => pageNum === 0 ? filtered : [...prev, ...filtered]);
-      if (data.length < PAGE_SIZE) setHasMore(false);
+      setItems(filtered);
+      setHasMore(false); // RPC gibt alles auf einmal zurück
     } finally {
       setLoading(false);
     }

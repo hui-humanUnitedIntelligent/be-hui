@@ -169,7 +169,7 @@ export default function ContentPreviewSheet({ item, loading, onClose }) {
             {/* Titelbild */}
             {hero ? (
               <img loading="lazy" decoding="async" src={hero} alt={item.title || ""} style={{ width:"100%", maxHeight:320, objectFit:"cover", display:"block" }}/>
-            ) : item.type === "project" ? (
+            ) : item.type === "project" || item.type === "projekt" ? (
               <div style={{ width:"100%", height:140, display:"flex", alignItems:"center", justifyContent:"center",
                 background: item.color ? `${item.color}14` : "rgba(13,196,181,0.08)", fontSize:44 }}>
                 {item.icon || "🌱"}
@@ -240,7 +240,7 @@ export default function ContentPreviewSheet({ item, loading, onClose }) {
                 <button className="cps-btn" onClick={() => {
                   onClose();
                   if (item._onOpenFull) { item._onOpenFull(); }
-                  else if (item.type === "impact" || item.type === "project") {
+                  else if (item.type === "impact" || item.type === "project" || item.type === "projekt") {
                     // Impact-Projekt: zu /impact navigieren mit openProjectId im State
                     navigate("/impact", { state: { openProjectId: item.id } });
                   } else {
@@ -250,9 +250,11 @@ export default function ContentPreviewSheet({ item, loading, onClose }) {
                   width:"100%", marginTop:16, padding:"13px", borderRadius:14,
                   background:T.ink, color:"#fff", fontSize:14, fontWeight:700,
                 }}>
-                  {item.type === "impact" ? "Vollständige Ansicht öffnen" :
-                   item.type === "talent" ? "Talent-Profil ansehen" :
-                   "Vollständige Ansicht öffnen"}
+                  {item.type === "impact" || item.type === "project" || item.type === "projekt"
+                    ? "Vollständige Ansicht öffnen"
+                    : item.type === "talent"
+                    ? "Talent-Profil ansehen"
+                    : "Vollständige Ansicht öffnen"}
                 </button>
               )}
             </div>
