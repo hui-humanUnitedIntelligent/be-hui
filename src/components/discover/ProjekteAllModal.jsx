@@ -57,21 +57,15 @@ function ProjektCardItem({ p, onPress }) {
         position: "relative",
         overflow: "hidden",
       }}>
-        {!imgErr && p.cover_url
-          ? <img
-              loading="lazy"
-              decoding="async"
-              src={p.cover_url}
-              alt={p.project_name}
-              onError={() => setImgErr(true)}
-              style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}
-            />
-          : <div style={{
-              width:"100%", height:"100%",
-              display:"flex", alignItems:"center", justifyContent:"center",
-              fontSize:36, opacity:0.5,
-            }}>💚</div>
-        }
+        {/* Bild: cover_url → media_urls[0] → einheitlicher Unsplash-Fallback (kein Emoji) */}
+        <img
+          loading="lazy"
+          decoding="async"
+          src={(!imgErr && (p.cover_url || (p.media_urls && p.media_urls[0]))) || "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=90"}
+          alt={p.project_name}
+          onError={e => { e.target.src = "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=90"; }}
+          style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}
+        />
 
         {/* Dezenter Gradient über dem Bild für bessere Text-Lesbarkeit */}
         <div style={{
@@ -222,17 +216,26 @@ export default function ProjekteAllModal({ isOpen, onClose, onPressItem }) {
     setItems([]); setPage(0); setHasMore(true);
   }, [debouncedSearch, filterRank, isOpen]);
 
-  const load = useCallback(async (pageNum) => {
-    if (loading) return;
+  // In-flight-Guard via useRef — kein loading im useCallback-Dep (verhindert
+  // Race Condition: setLoading(true) → load neu erstellt → sofort wieder aufgerufen)
+  const inFlight = useRef(false);
+
+  const load = useCallback(async () => {
+    if (inFlight.current) return;
+    inFlight.current = true;
     setLoading(true);
     try {
-      // rpc_get_impact_ranking liefert alle approved-Projekte mit:
+      // rpc_get_impact_ranking: alle approved impact_applications mit
       // id, project_name, short_desc, cover_url, funding_goal,
       // current_amount_eur, vote_count, rank, share_pct, is_completed, category
       const { data, error } = await supabase.rpc("rpc_get_impact_ranking");
-      if (error || !data) { setHasMore(false); return; }
+      if (error || !data) {
+        console.warn("[ProjekteAllModal] rpc_get_impact_ranking Fehler:", error);
+        setHasMore(false);
+        return;
+      }
 
-      // Client-seitiges Filtern (RPC gibt alle zurück, keine Pagination nötig)
+      // Client-seitiges Filtern (RPC gibt alle zurück auf einmal)
       let filtered = data;
 
       // Suchfilter
@@ -246,28 +249,29 @@ export default function ProjekteAllModal({ isOpen, onClose, onPressItem }) {
       }
 
       // Rank-Filter
-      if (filterRank === "top3")     filtered = filtered.filter(p => p.rank && p.rank <= 3);
-      if (filterRank === "weitere")  filtered = filtered.filter(p => !p.rank || p.rank > 3);
+      if (filterRank === "top3")    filtered = filtered.filter(p => p.rank && p.rank <= 3);
+      if (filterRank === "weitere") filtered = filtered.filter(p => !p.rank || p.rank > 3);
 
       setItems(filtered);
       setHasMore(false); // RPC gibt alles auf einmal zurück
     } finally {
+      inFlight.current = false;
       setLoading(false);
     }
-  }, [debouncedSearch, filterRank, loading]);
+  }, [debouncedSearch, filterRank]); // kein `loading` im Dep-Array!
 
   useEffect(() => {
     if (!isOpen) return;
-    load(0);
-  }, [debouncedSearch, filterRank, isOpen]);
+    load();
+  }, [debouncedSearch, filterRank, isOpen, load]);
 
   const onScroll = useCallback(() => {
     const el = scrollRef.current;
-    if (!el || loading || !hasMore) return;
+    if (!el || inFlight.current || !hasMore) return;
     if (el.scrollHeight - el.scrollTop - el.clientHeight < 120) {
-      const next = page + 1; setPage(next); load(next);
+      load();
     }
-  }, [loading, hasMore, page, load]);
+  }, [hasMore, load]);
 
   useEffect(() => {
     if (!isOpen) return;
