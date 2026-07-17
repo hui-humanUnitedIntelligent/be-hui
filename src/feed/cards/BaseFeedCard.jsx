@@ -127,82 +127,90 @@ const CardAvatar = memo(function CardAvatar({ src, name, size = 38, isTalent = f
 // ── Story Engine — Sprint 2.6 ────────────────────────────────
 // Begegnungsgrund: natürlich, kontextsensitiv, niemals generisch.
 // Quellen: type · author.talent · author.name · item.title ·
-//          item.location · item._raw.date · item._raw.category
-// Kein neues Feld. Kein API-Call.
+// FEED-TEXT-001: Dynamische Einleitungstexte für alle Feed-Karten.
+// Regel: Texte basieren auf Content-Typ und Content-Kategorie — NIEMALS auf
+// der Profilbezeichnung (author.talent). Diese ist eine Rollenangabe (z.B.
+// "Superadmin"), keine inhaltliche Kategorie.
+//
+// Quellen pro Typ:
+//   WERK       → item._raw.category          (z.B. "Handwerk", "Kunst")
+//   ERLEBNIS   → item._raw.tags[0]           (erster Tag des Erlebnisses)
+//   TALENT     → item._raw.category          (Kategorie des Talent-Angebots)
+//   IMPACT     → kein category-Feld → fester Text
+//   MOMENT     → immer fester Text (keine Rollen-Einmischung)
+//   EVENT      → item._raw.location_text
+// Kein API-Call. Kein neues Feld. Pure Berechnung aus vorhandenen _raw-Daten.
 function getBegegnungsgrund(item) {
-  const type    = item?.type || "moment";
-  const author  = item?.author || {};
-  const first   = (author.name || "").split(/\s/)[0].trim() || null;
-  const talent  = (author.talent || "").trim() || null;
-  const cat     = (item?._raw?.category || "").trim() || null;
-  const title   = (item?.title || "").trim() || null;
-  const loc     = (item?.location || "").trim() || null;
-  const text    = item?.text || "";
+  const type   = item?.type || "moment";
+  const author = item?.author || {};
+  const raw    = item?._raw  || {};
 
-  // ── WERK ──────────────────────────────────────────────────
+  // Vorname aus display_name / name
+  const first = (author.displayName || author.name || "")
+    .split(/\s/)[0].trim() || null;
+
+  // Inhalts-Kategorie (aus Content-Feldern, NICHT aus Profil-Feldern)
+  const cat  = (raw.category || "").trim() || null;
+
+  // Erster Tag des Erlebnisses: item.tags (normalisiert) oder raw.tags
+  const _tagsArr = Array.isArray(item?.tags) && item.tags.length > 0
+    ? item.tags
+    : (Array.isArray(raw.tags) && raw.tags.length > 0 ? raw.tags : []);
+  const tag = (_tagsArr[0] || "").trim() || null;
+
+  // Ort: location_text (Experiences) oder item.location
+  const loc  = (raw.location_text || item?.location || "").trim() || null;
+
+  // ── WERK ──────────────────────────────────────────────────────────────────
   if (type === "work") {
-    // Talent + Kategorie → kontextuelle Aussage
-    if (talent && cat && first)
+    if (cat && first)
       return `${first} wirkt im Bereich ${cat} und hat ein neues Werk erschaffen.`;
-    if (talent && first)
-      return `${first} hat ein neues Werk als ${talent} erschaffen.`;
-    if (title && first)
-      return `${first} teilt heute: „${title}".`;
     if (first)
       return `${first} hat ein neues Werk veröffentlicht.`;
-    return "Hat ein neues Werk erschaffen.";
+    return "Hat ein neues Werk veröffentlicht.";
   }
 
-  // ── ERLEBNIS ──────────────────────────────────────────────
+  // ── ERLEBNIS ──────────────────────────────────────────────────────────────
   if (type === "experience") {
-    const date = item?._raw?.date || null;
-    let datePart = null;
-    if (date) {
-      try {
-        const d    = new Date(date);
-        const now  = new Date(); now.setHours(0,0,0,0);
-        const diff = Math.round((d - now) / 86400000);
-        if (diff === 0)      datePart = "heute";
-        else if (diff === 1) datePart = "morgen";
-        else if (diff > 1 && diff <= 7) datePart = "diese Woche";
-      } catch { /* ignore */ }
-    }
-    if (talent && loc && datePart && first)
-      return `${first} lädt ${datePart} zu einem gemeinsamen Erlebnis in ${loc} ein.`;
-    if (loc && datePart && first)
-      return `${first} lädt ${datePart} nach ${loc} ein.`;
-    if (talent && first)
-      return `${first} lädt zu einem Erlebnis im Bereich ${talent} ein.`;
+    if (tag && first)
+      return `${first} lädt dich zu einem Erlebnis ein im Bereich ${tag}.`;
     if (loc && first)
-      return `${first} lädt zu einem gemeinsamen Erlebnis in ${loc} ein.`;
+      return `${first} lädt zu einem gemeinsamen Erlebnis ein in ${loc}.`;
     if (first)
       return `${first} lädt zu einem gemeinsamen Erlebnis ein.`;
     return "Lädt zu einem gemeinsamen Erlebnis ein.";
   }
 
-  // ── EVENT ─────────────────────────────────────────────────
+  // ── TALENT-ANGEBOT ────────────────────────────────────────────────────────
+  if (type === "talent") {
+    if (cat && first)
+      return `${first} wirkt als Talent und bietet sein Können im Bereich ${cat} an.`;
+    if (first)
+      return `${first} bietet sein Talent an.`;
+    return "Bietet ein Talent an.";
+  }
+
+  // ── IMPACT / HERZENSPROJEKT ───────────────────────────────────────────────
+  if (type === "impact") {
+    if (first)
+      return `${first} hat ein Herzensprojekt geteilt.`;
+    return "Ein Herzensprojekt wurde geteilt.";
+  }
+
+  // ── EVENT ─────────────────────────────────────────────────────────────────
   if (type === "event") {
-    if (talent && loc && first)
-      return `${first} engagiert sich als ${talent} und organisiert ein Event in ${loc}.`;
     if (loc && first)
       return `${first} organisiert ein Event in ${loc}.`;
-    if (talent && first)
-      return `${first} engagiert sich als ${talent}.`;
     if (first)
       return `${first} organisiert ein gemeinsames Event.`;
     return "Organisiert ein gemeinsames Event.";
   }
 
-  // ── MOMENT ────────────────────────────────────────────────
-  if (talent && first)
-    return `${first} wirkt als ${talent} und teilt einen persönlichen Moment.`;
-  if (first && text.length > 120)
-    return `${first} nimmt dich heute mit in seinen Alltag.`;
-  if (first && text.length > 40)
-    return `${first} teilt heute einen persönlichen Moment.`;
+  // ── MOMENT / GEDANKE / ALLES ANDERE ───────────────────────────────────────
+  // NIEMALS Profilbezeichnung (author.talent) hier verwenden.
   if (first)
-    return `${first} hat heute etwas Persönliches geteilt.`;
-  return "Teilt heute einen persönlichen Moment.";
+    return `${first} teilt einen persönlichen Moment.`;
+  return "Teilt einen persönlichen Moment.";
 }
 
 // ── HumanHeader v3.0 — exakt nach Mockup ─────────────────────
