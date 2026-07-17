@@ -1313,6 +1313,10 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
   const rankedProjs   = useAllApprovedByVotes();          // ← SSOT für alle Rankings
   const approvedApps  = useApprovedApplications();        // für VotePersonal projMap
   const [detailApp, setDetailApp] = React.useState(null);
+  // Flag: wurde Detail per Deep-Link (aus Discover) geöffnet?
+  // → onClose navigiert dann zurück zu "/" statt nur Modal schließen
+  const _openedViaDeepLink = React.useRef(false);
+  const navigate = useNavigate();
   const location = useLocation();
 
   // ── Deep-Link aus Router-State: /impact navigieren mit state.openProjectId ──
@@ -1321,6 +1325,8 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
     if (!pid) return;
     // State sofort leeren (verhindert Re-open bei Back-Navigation)
     window.history.replaceState({ ...window.history.state, usr: {} }, '');
+    // Merken: Detail via Deep-Link geöffnet → Close = zurück zu Home
+    _openedViaDeepLink.current = true;
     // Projekt aus impact_applications laden und Detail öffnen
     supabase
       .from("impact_applications")
@@ -1331,6 +1337,16 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
         if (data) setDetailApp(data);
       });
   }, [location.state?.openProjectId]);
+
+  // ── Close-Handler: Deep-Link → zurück zu Home; normaler Klick → nur Modal schließen ──
+  const handleDetailClose = React.useCallback(() => {
+    setDetailApp(null);
+    if (_openedViaDeepLink.current) {
+      _openedViaDeepLink.current = false;
+      // Zurück zu Home (Discover) — sofort, ohne Impact-Page im Vordergrund zu lassen
+      navigate("/", { replace: true });
+    }
+  }, [navigate]);
 
   // ── Projekte: werden jetzt von useAllApprovedByVotes gehandelt ──
   // Top 3 nach Stimmen → projects State (für Kompatibilität mit bestehendem Code)
@@ -1579,7 +1595,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
       {detailApp && (
         <ApprovedProjectDetail
           app={detailApp}
-          onClose={() => setDetailApp(null)}
+          onClose={handleDetailClose}
           currentUser={currentUser}
           onVoted={(pid) => setDetailApp(prev => prev ? { ...prev, vote_count:(prev.vote_count||0)+1 } : prev)}
         />
