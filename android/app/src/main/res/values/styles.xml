@@ -1,52 +1,25 @@
-<<<<<<< HEAD
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- Base application theme — Edge-to-Edge: App zeichnet hinter
-         Status- und Navigation-Bar. Safe-Area via env(safe-area-inset-*)
-         im CSS-Layer behandelt. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-
-        <!-- Edge-to-Edge: Status-Bar transparent -->
-        <item name="android:windowTranslucentStatus">true</item>
-
-        <!-- Edge-to-Edge: System-NavigationBar transparent -->
-        <item name="android:windowTranslucentNavigation">true</item>
-
-        <!-- Zeichne HINTER System-Bars (API 21+) -->
-        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-
-        <!-- Farben explizit transparent (API 21+) -->
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@android:color/transparent</item>
-
-    </style>
-
-    <!-- Launch-Theme: identisch mit AppTheme für konsistenten Start-Screen -->
-    <style name="AppTheme.NoActionBarLaunch" parent="AppTheme">
-        <!-- Splash-Screen hält denselben Edge-to-Edge-Kontext -->
-    </style>
-
-</resources>
-=======
-<resources>
-
-    <!-- ---- App Theme ---- -->
+    <!-- App Theme -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowBackground">@color/splash_background</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowContentOverlay">@null</item>
 
-        <!-- WICHTIG: WebView Performance -->
+        <!-- WebView Performance -->
         <item name="android:hardwareAccelerated">true</item>
     </style>
 
-    <!-- ---- Launch Theme (SplashScreen) ---- -->
+    <!-- Launch Theme (SplashScreen) -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowBackground">@drawable/splash</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowFullscreen">true</item>
+
+        <!-- verhindert weißen Screen beim Übergang -->
+        <item name="android:windowIsTranslucent">false</item>
     </style>
 
 </resources>
->>>>>>> 16ac5983 (Auto-Release: Version 2.0.6)

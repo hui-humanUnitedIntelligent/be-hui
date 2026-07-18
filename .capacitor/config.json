@@ -1,0 +1,6 @@
+{
+  "appId": "com.hui.app",
+  "appName": "HUI",
+  "webDir": "dist",
+  "platforms": ["android"]
+}
