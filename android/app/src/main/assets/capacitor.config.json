@@ -1,1 +1,29 @@
-{}
+{
+	"appId": "com.hui.app",
+	"appName": "HUI",
+	"webDir": "dist",
+	"bundledWebRuntime": false,
+	"server": {
+		"androidScheme": "https",
+		"cleartext": false
+	},
+	"android": {
+		"allowMixedContent": false,
+		"captureInput": true,
+		"webContentsDebuggingEnabled": false,
+		"path": "android"
+	},
+	"plugins": {
+		"StatusBar": {
+			"style": "DEFAULT",
+			"backgroundColor": "#00000000",
+			"overlaysWebView": true
+		},
+		"SplashScreen": {
+			"launchShowDuration": 0
+		},
+		"CapacitorHttp": {
+			"enabled": true
+		}
+	}
+}
