@@ -1,0 +1,33 @@
+// ---- Capacitor Build Optimierung ----
+
+def capacitorAndroidProject = project(':capacitor-android')
+def capacitorCordovaProject = project(':capacitor-cordova-android-plugins')
+
+android {
+    // ---- Wichtig: Java 17 für AGP 8.x ----
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    // ---- WebView Performance ----
+    packagingOptions {
+        resources {
+            excludes += ['META-INF/LICENSE', 'META-INF/NOTICE']
+        }
+    }
+}
+
+dependencies {
+    // ---- Capacitor Core ----
+    implementation capacitorAndroidProject
+
+    // ---- Cordova Plugins ----
+    implementation capacitorCordovaProject
+
+    // ---- WebView Stabilität ----
+    implementation "androidx.webkit:webkit:1.11.0"
+
+    // ---- HTTP Stabilität ----
+    implementation "com.squareup.okhttp3:okhttp:4.12.0"
+}

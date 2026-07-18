@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <resources>
 
     <!-- Base application theme — Edge-to-Edge: App zeichnet hinter
@@ -26,3 +27,26 @@
     </style>
 
 </resources>
+=======
+<resources>
+
+    <!-- ---- App Theme ---- -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@color/splash_background</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+
+        <!-- WICHTIG: WebView Performance -->
+        <item name="android:hardwareAccelerated">true</item>
+    </style>
+
+    <!-- ---- Launch Theme (SplashScreen) ---- -->
+    <style name="AppTheme.NoActionBarLaunch" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@drawable/splash</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+    </style>
+
+</resources>
+>>>>>>> 16ac5983 (Auto-Release: Version 2.0.6)

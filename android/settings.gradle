@@ -1,5 +1,8 @@
-include ':app'
-include ':capacitor-cordova-android-plugins'
-project(':capacitor-cordova-android-plugins').projectDir = new File('./capacitor-cordova-android-plugins/')
+rootProject.name = "HUI"
 
-apply from: 'capacitor.settings.gradle'
+include ':app'
+include ':capacitor-android'
+include ':capacitor-cordova-android-plugins'
+
+project(':capacitor-android').projectDir = new File('../node_modules/@capacitor/android/capacitor')
+project(':capacitor-cordova-android-plugins').projectDir = new File('../capacitor-cordova-android-plugins')

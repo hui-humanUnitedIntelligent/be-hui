@@ -1,14 +1,19 @@
 package com.hui.app;
 
 import android.os.Bundle;
+<<<<<<< HEAD
 import android.view.View;
 import android.view.WindowManager;
 import androidx.core.view.WindowCompat;
+=======
+>>>>>>> 16ac5983 (Auto-Release: Version 2.0.6)
 import com.getcapacitor.BridgeActivity;
+import com.getcapacitor.Plugin;
 
 public class MainActivity extends BridgeActivity {
 
     @Override
+<<<<<<< HEAD
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
@@ -32,5 +37,33 @@ public class MainActivity extends BridgeActivity {
           | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
           | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
         );
+=======
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // ---- WebView Stabilität ----
+        getBridge().getWebView().getSettings().setDomStorageEnabled(true);
+        getBridge().getWebView().getSettings().setDatabaseEnabled(true);
+        getBridge().getWebView().getSettings().setJavaScriptEnabled(true);
+
+        // ---- Mixed Content (HTTPS + HTTP) ----
+        getBridge().getWebView().getSettings().setMixedContentMode(0); // BLOCK
+
+        // ---- Supabase / API Stabilität ----
+        getBridge().getWebView().getSettings().setAllowFileAccess(true);
+        getBridge().getWebView().getSettings().setAllowContentAccess(true);
+
+        // ---- Performance ----
+        getBridge().getWebView().getSettings().setLoadWithOverviewMode(true);
+        getBridge().getWebView().getSettings().setUseWideViewPort(true);
+
+        // ---- Plugins registrieren ----
+        registerPlugins();
+    }
+
+    private void registerPlugins() {
+        // Capacitor + Cordova Plugins werden automatisch geladen
+        // Diese Methode existiert für zukünftige Erweiterungen
+>>>>>>> 16ac5983 (Auto-Release: Version 2.0.6)
     }
 }

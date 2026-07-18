@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {
   "appId": "com.hui.app",
   "appName": "HUI",
@@ -16,3 +17,44 @@
     "webContentsDebuggingEnabled": false
   }
 }
+=======
+import { CapacitorConfig } from '@capacitor/cli';
+
+const config: CapacitorConfig = {
+  appId: 'com.hui.app',
+  appName: 'HUI',
+  webDir: 'dist',
+
+  // ---- Mobile Performance Optimierung ----
+  server: {
+    androidScheme: 'https',
+    cleartext: false,
+  },
+
+  // ---- Android Build Optimierung ----
+  android: {
+    allowMixedContent: false,
+
+    // Weniger Dateien → schnellerer Build
+    path: 'android',
+
+    // Verhindert doppelte Kopien & Sync-Probleme
+    buildOptions: {
+      keystorePath: 'android/app/release.keystore',
+      keystoreAlias: 'hui',
+    }
+  },
+
+  // ---- Plugins optimieren ----
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 0,
+    },
+    CapacitorHttp: {
+      enabled: true,
+    }
+  }
+};
+
+export default config;
+>>>>>>> 16ac5983 (Auto-Release: Version 2.0.6)
