@@ -2,19 +2,19 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.hui.app">
 
-    <!-- ---- Netzwerk & API ---- -->
+    <!-- Netzwerk & API -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <!-- ---- Supabase / File Access ---- -->
+    <!-- Supabase / File Access -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
 
-    <!-- ---- Kamera / Plugins ---- -->
+    <!-- Kamera / Plugins -->
     <uses-permission android:name="android.permission.CAMERA" />
 
-    <!-- ---- WebView Performance ---- -->
+    <!-- WebView Performance -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
@@ -27,7 +27,7 @@
         android:label="HUI"
         android:icon="@mipmap/ic_launcher">
 
-        <!-- ---- SplashScreen ---- -->
+        <!-- SplashScreen -->
         <activity
             android:name="com.hui.app.MainActivity"
             android:exported="true"
