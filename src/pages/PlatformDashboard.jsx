@@ -25,11 +25,11 @@ import {
   HUIFolgenIcon, HUISicherheitIcon,
 } from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useCallback } from "react";
-import { useAuth } from '@/lib/AuthContext';
+import { useAuth } from "../lib/AuthContext";
 import {
   getObservabilityReport, startFpsTracking, stopFpsTracking,
   realtimeHealthScore, errorSummary, costSummary, logObservabilitySnapshot,
-} from '@/lib/observability/index';
+} from '../lib/observability/index';
 
 // Stub-Funktionen — Quell-Module in Phase A entfernt:
 function getProtectionStatus() { return null; }

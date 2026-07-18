@@ -11,7 +11,7 @@ import {
 } from '../../../design/icons/HuiSystemIcons.jsx';
 import { HUIChatIcon } from '../../../design/icons/HuiInteractionIcons.jsx';
 import React, { useState, useCallback, useEffect } from "react";
-import { supabase }  from "../../../lib/supabaseClient.js";
+import { supabase } from "../../../lib/supabaseClient";
 import { useAuth }   from "../../../lib/AuthContext.jsx";
 
 // ── Design Tokens ─────────────────────────────────────────────
@@ -1009,7 +1009,7 @@ function ErgebnisNichtGeeignet({ form, onClose, onRetry, aiRes, user }) {
   useEffect(() => {
     const saveFailure = async () => {
       try {
-        const { supabase } = await import('@/lib/supabaseClient');
+       const { supabase } = await import('../../../lib/supabaseClient');
         await supabase.from('impact_score_failures').insert({
           user_id:      user?.id || null,
           project_name: (form.name || "").trim() || "Unbekannt",

@@ -2,7 +2,7 @@
 // Alle Hooks + Logik identisch — nur Reihenfolge + Präsentation neu
 // ═══════════════════════════════════════════════════════════════════
 
-import { useStripeImpactPool } from '@/hooks/useStripeImpactPool';
+import { useStripeImpactPool } from "../hooks/useStripeImpactPool";
 import { HUIImpactIcon, HUIStimmeIcon,
   HUIAwardIcon,
 } from '../design/icons/HuiSystemIcons.jsx';
