@@ -36,11 +36,11 @@ git commit -m "Auto-Release: Version ${NEXT_VERSION}"
 
 # 5. Rebase automatisch durchführen
 echo "🔄 Git Pull mit Rebase..."
-git pull --rebase || {
+git pull --rebase --no-edit --autostash || {
     echo "⚠️ Rebase-Konflikt erkannt – automatischer Fix..."
     git add .
     git commit -m "Auto-Fix während Rebase"
-    git rebase --continue
+    git rebase --continue || true
 }
 
 # 6. Pushen

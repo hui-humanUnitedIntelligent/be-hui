@@ -19,8 +19,8 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
 
         // Deine korrigierten Versionen
-        versionCode 208
-        versionName "2.0.8 Beta"
+        versionCode 209
+        versionName "2.0.9 Beta"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
