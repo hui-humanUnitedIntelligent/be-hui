@@ -19,8 +19,8 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
 
         // Deine korrigierten Versionen
-        versionCode 210
-        versionName "2.0.10 Beta"
+        versionCode 211
+        versionName "2.0.11 Beta"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -64,7 +64,6 @@ dependencies {
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
 
     implementation project(':capacitor-android')
-    implementation project(':capacitor-cordova-android-plugins')
 
     // ---- Nr. 6: MultiDex Library ----
     implementation "androidx.multidex:multidex:2.0.1"
