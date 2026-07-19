@@ -1436,12 +1436,11 @@ function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
 
       <div style={{ padding:`0 ${T.px}px` }}>
         {/* ── Header ────────────────────────────────────────── */}
-        <SectionRow
-          title="Meine Momente"
-          sub={moments.length > 0
+        <div style={{ fontSize:12, color:"#8C8C85", marginBottom:12 }}>
+          {moments.length > 0
             ? `${moments.length} ${moments.length === 1 ? "Moment" : "Momente"} geteilt`
             : "Fotos, Gedanken oder Videos"}
-        />
+        </div>
 
         {/* ── Kachel-Scroller (identisch zu Werke/Talente) ─── */}
         {moments.length > 0 && (
@@ -2254,7 +2253,7 @@ function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTalent = 
       />
     )}
     <div style={{ padding:`0 ${T.px}px` }}>
-      <SectionRow title="Talent-Angebote" sub="Deine buchbaren Leistungen & Dienstleistungen"/>
+      <div style={{ fontSize:12, color:"#8C8C85", marginBottom:12 }}>Deine buchbaren Leistungen & Dienstleistungen.</div>
       {talents.length > 0 && (
         <div style={{ display:"flex", gap:8, overflowX:"auto",
           WebkitOverflowScrolling:"touch", scrollbarWidth:"none",
@@ -2374,7 +2373,7 @@ function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
       />
     )}
     <div style={{ padding:`0 ${T.px}px` }}>
-      <SectionRow title="Meine Werke" sub="Deine veröffentlichten Kreationen."/>
+      <div style={{ fontSize:12, color:"#8C8C85", marginBottom:12 }}>Deine veröffentlichten Kreationen.</div>
       {works.length > 0 && (
         <div style={{ display:"flex", gap:8, overflowX:"auto",
           WebkitOverflowScrolling:"touch", scrollbarWidth:"none",
@@ -2530,8 +2529,7 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
       </div>
     )}
     <div style={{ padding:`0 ${T.px}px` }}>
-      <SectionRow title="Erlebnisse & Projekte"
-        sub="Momente, die mein Wirken zeigen."/>
+      <div style={{ fontSize:12, color:"#8C8C85", marginBottom:12 }}>Momente, die mein Wirken zeigen.</div>
 
       <div style={{ display:"flex", gap:8, overflowX:"auto",
         WebkitOverflowScrolling:"touch", scrollbarWidth:"none", paddingBottom:4, marginBottom:8 }}>
