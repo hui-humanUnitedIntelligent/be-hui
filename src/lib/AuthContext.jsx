@@ -252,11 +252,8 @@ export function AuthProvider({ children }) {
 
   const saveProfile = useCallback(async (updates) => {
     if (!user) return { error: "Nicht eingeloggt" };
-    const { data, error } = await withTimeout(
-      supabase.from("profiles")
-        .upsert({ id: user.id, ...updates, updated_at: new Date().toISOString() })
-        .select().single()
-    );
+    // ProfileService.update invalidiert den Cache automatisch
+    const { data, error } = await ProfileService.update(user.id, updates);
     if (data) setProfile(data);
     return { data, error };
   }, [user]);

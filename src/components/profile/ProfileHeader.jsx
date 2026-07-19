@@ -268,26 +268,28 @@ export function ProfileHeader({
                 display:"flex", alignItems:"center", gap:4,
                 marginTop:5, fontSize:12, color:T.inkSoft,
               }}>
-                <HUILocationIcon size={13} style={{flexShrink:0, color:"rgba(14,196,184,0.65)"}} />
+                <span style={{ fontSize:13, flexShrink:0 }}>📍</span>
                 <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                   {location}
                 </span>
               </div>
             )}
             {!loading && website && (
-              <div style={{ display:"flex", alignItems:"center", gap:4, marginTop:3, fontSize:12, color:T.teal }}>
-                <HUILinkIcon size={12} style={{flexShrink:0}}/>
+              <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:4, fontSize:12 }}>
+                <span style={{ fontSize:13 }}>🔗</span>
                 <a href={website.startsWith("http") ? website : "https://"+website}
                   target="_blank" rel="noopener noreferrer"
-                  style={{ color:T.teal, textDecoration:"none", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                  style={{ color:T.teal, textDecoration:"none", overflow:"hidden",
+                    textOverflow:"ellipsis", whiteSpace:"nowrap", fontWeight:500 }}>
                   {website.replace(/^https?:\/\//, "")}
                 </a>
               </div>
             )}
             {!loading && phone && (
-              <div style={{ display:"flex", alignItems:"center", gap:4, marginTop:3, fontSize:12, color:T.inkSoft }}>
-                <HUIPhoneIcon size={12} style={{flexShrink:0}}/>
-                <a href={"tel:"+phone} style={{ color:T.inkSoft, textDecoration:"none" }}>{phone}</a>
+              <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:4, fontSize:12 }}>
+                <span style={{ fontSize:13 }}>📞</span>
+                <a href={"tel:"+phone}
+                  style={{ color:T.inkSoft, textDecoration:"none" }}>{phone}</a>
               </div>
             )}
           </div>
