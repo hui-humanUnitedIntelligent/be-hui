@@ -211,8 +211,6 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
         tagline:        tagline.trim(),
         focus_type:     focusType,
         location:       locationLabel.trim(), // Sprint F.3B: schreibt profiles.location (Wahrheitsquelle)
-        location_lat:   locationLat ?? null,
-        location_lng:   locationLng ?? null,
         website:        website.trim(),
         skills:         skills,
         dna_tags:       dnaTags,

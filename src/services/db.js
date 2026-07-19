@@ -22,7 +22,7 @@ import { safeQuery, cachedQuery, clearQueryCache, FIELDS, PAGE_SIZE, buildPage }
 //   follower_count, location, is_talent, header_img, skills, dna_tags
 // Hinzugefügt: location_label, member_since, profile_views
 export const IDENTITY_CONTRACT =
-  'id,display_name,full_name,username,avatar_url,header_img,bio,location_label,location,location_lat,location_lng,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views,is_ambassador,profile_modules,phone,website,tagline,focus_type,skills,dna_tags,is_available,hourly_rate';
+  'id,display_name,full_name,username,avatar_url,header_img,bio,location_label,location,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views,is_ambassador,profile_modules,phone,website,tagline,focus_type,skills,dna_tags,is_available,hourly_rate';
 
 const F = {
   // Identity Contract — einziges kanonisches Profil-Fieldset

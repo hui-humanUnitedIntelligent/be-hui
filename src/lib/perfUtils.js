@@ -23,7 +23,7 @@ export const CACHE_TTL = {
 // Identity Contract v1.0 — hier definiert um Zirkelimport mit db.js zu vermeiden
 // db.js importiert perfUtils → perfUtils darf NICHT db.js importieren
 export const IDENTITY_CONTRACT =
-  'id,display_name,full_name,username,avatar_url,bio,location_label,location,location_lat,location_lng,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views,phone,website,tagline,focus_type,skills,dna_tags,is_available,hourly_rate';
+  'id,display_name,full_name,username,avatar_url,bio,location_label,location,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views,phone,website,tagline,focus_type,skills,dna_tags,is_available,hourly_rate';
 export const PROFILE_FIELDS = IDENTITY_CONTRACT;
 
 // ─── Legacy-FIELDS (für alte Komponenten die FIELDS.profile benutzen) ──
