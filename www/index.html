@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <!-- build: 1780508663 -->
+
+    <!-- HUI Brand — Primary Meta -->
+    <title>HUI — Human United Intelligent</title>
+    <meta name="description" content="HUI — Ein ruhiges kreatives Netzwerk für Menschen die wirken. Verbinde dich mit kreativen Talenten, buche Zusammenarbeit, gestalte Impact." />
+    <meta name="theme-color" content="#1ED8C8" />
+    <meta name="application-name" content="HUI" />
+
+    <!-- Favicon — SVG (modern browsers) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%231ED8C8'/%3E%3Cstop offset='100%25' stop-color='%23FF7A5C'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='3' y='3' width='114' height='114' rx='30' fill='url(%23g)'/%3E%3Ccircle cx='60' cy='62' r='38' fill='white' fill-opacity='0.92'/%3E%3Cpath d='M30 42 C28 50 28 62 28 62 C28 74 30 82 30 82' stroke='url(%23g)' stroke-width='9' stroke-linecap='round' fill='none'/%3E%3Cpath d='M50 42 C52 50 52 62 52 62 C52 74 50 82 50 82' stroke='url(%23g)' stroke-width='9' stroke-linecap='round' fill='none'/%3E%3Cpath d='M29 62 L51 62' stroke='url(%23g)' stroke-width='8' stroke-linecap='round' fill='none'/%3E%3Cpath d='M56 42 L56 68 C56 76 65 83 70 76 C74 69 72 42 72 42' stroke='url(%23g)' stroke-width='9' stroke-linecap='round' fill='none'/%3E%3Ccircle cx='82' cy='44' r='5.5' fill='url(%23g)'/%3E%3Cpath d='M82 54 L82 82' stroke='url(%23g)' stroke-width='9' stroke-linecap='round' fill='none'/%3E%3C/svg%3E" />
+
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" href="/hui-icon-180.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="HUI" />
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="./manifest.json" />
+
+    <!-- OpenGraph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="HUI — Human United Intelligent" />
+    <meta property="og:description" content="Ein ruhiges kreatives Netzwerk. Verbinde dich mit Menschen, die wirken." />
+    <meta property="og:image" content="/hui-og-image.png" />
+    <meta property="og:site_name" content="HUI" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="HUI — Human United Intelligent" />
+    <meta name="twitter:description" content="Ein ruhiges kreatives Netzwerk für Menschen die wirken." />
+    <meta name="twitter:image" content="/hui-og-image.png" />
+
+    <!-- Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script>
+    /* ─────────────────────────────────────────────────────────────
+       HUI Chunk Recovery v2
+       Fängt ab:
+         • MIME-Type Fehler   ("text/html is not a valid JavaScript")
+         • Chunk-Load-Fehler  ("Failed to fetch dynamically imported module")
+         • Safari-spezifisch  ("Importing a module script failed")
+         • ChunkLoadError     (Vite/Webpack chunk hash mismatch)
+       Strategie:
+         • Genau 1 controlled hard reload (sessionStorage-Flag)
+         • Loop-Schutz: nach Reload kein weiterer Trigger
+         • Nach erfolgreichem Load: Flag bereinigen
+       ───────────────────────────────────────────────────────────── */
+    (function() {
+      var RELOAD_KEY = "hui_chunk_reload";
+      var RELOAD_TS_KEY = "hui_chunk_reload_ts";
+
+      function isChunkError(msg, src) {
+        if (!msg && !src) return false;
+        var text = (msg || "") + " " + (src || "");
+        return (
+          text.indexOf("text/html is not a valid JavaScript") !== -1 ||
+          text.indexOf("MIME type") !== -1 ||
+          text.indexOf("Failed to fetch dynamically imported module") !== -1 ||
+          text.indexOf("Importing a module script failed") !== -1 ||
+          text.indexOf("ChunkLoadError") !== -1 ||
+          text.indexOf("Loading chunk") !== -1 ||
+          text.indexOf("Loading CSS chunk") !== -1 ||
+          text.indexOf("dynamically imported module") !== -1
+        );
+      }
+
+      function doReload() {
+        var now = Date.now();
+        var lastTs = parseInt(sessionStorage.getItem(RELOAD_TS_KEY) || "0", 10);
+        // Loop-Schutz: kein Reload wenn vor weniger als 10s schon einer lief
+        if (sessionStorage.getItem(RELOAD_KEY) && (now - lastTs) < 10000) {
+          sessionStorage.removeItem(RELOAD_KEY);
+          sessionStorage.removeItem(RELOAD_TS_KEY);
+          console.error("[HUI] Chunk error persists after reload — cache clear needed");
+          return;
+        }
+        sessionStorage.setItem(RELOAD_KEY, "1");
+        sessionStorage.setItem(RELOAD_TS_KEY, String(now));
+        console.warn("[HUI] Chunk/MIME error detected — controlled reload");
+        window.location.reload();
+      }
+
+      // ── window.onerror: synchrone Fehler (Safari, Firefox) ──
+      var _prevOnerror = window.onerror;
+      window.onerror = function(msg, src, line, col, err) {
+        if (isChunkError(msg, src)) { doReload(); return true; }
+        if (_prevOnerror) return _prevOnerror(msg, src, line, col, err);
+        return false;
+      };
+
+      // ── window.addEventListener error: Script-Tag Fehler ──
+      window.addEventListener("error", function(e) {
+        var msg = (e && e.message) || "";
+        var src = (e && e.filename) || "";
+        if (isChunkError(msg, src)) { doReload(); }
+      }, true); // capture phase — wichtig für Script-Load-Fehler
+
+      // ── unhandledrejection: Promise-basierte import() Fehler ──
+      window.addEventListener("unhandledrejection", function(e) {
+        var reason = e && e.reason;
+        var msg = (reason && (reason.message || String(reason))) || "";
+        if (isChunkError(msg, "")) { e.preventDefault(); doReload(); }
+      });
+
+      // ── Erfolgreicher Load: Flags bereinigen ──
+      window.addEventListener("load", function() {
+        sessionStorage.removeItem(RELOAD_KEY);
+        sessionStorage.removeItem(RELOAD_TS_KEY);
+      });
+    })();
+  </script>
+
+    <!-- ══ PWA: Service Worker + Apple Meta ══════════════════════ -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="HUI" />
+    <link rel="apple-touch-icon" href="./hui-icon-192.png" />
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("/sw.js")
+            .then(r => console.log("[HUI SW] registriert:", r.scope))
+            .catch(e => console.warn("[HUI SW] Fehler:", e));
+        });
+      }
+    </script>
+    <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- ══ ERUDA DEBUG (temporär — nur für Diagnose) ══════════ -->
+  <script>
+    // Nur laden wenn ?debug=1 in der URL oder localStorage hui_debug=1
+    if (
+      window.location.search.includes("debug=1") ||
+      localStorage.getItem("hui_debug") === "1"
+    ) {
+      var s = document.createElement("script");
+      s.src = "https://cdn.jsdelivr.net/npm/eruda";
+      s.onload = function() {
+        eruda.init();
+        console.log("🔍 ERUDA aktiv — HUI Debug Mode");
+      };
+      document.head.appendChild(s);
+    }
+  </script>
+  <!-- ════════════════════════════════════════════════════════ -->
+    <!-- ══ iOS Safari Global Fixes ════════════════════════════ -->
+    <style>
+      /* Fix: 100dvh für iOS + Android (vermeidet Browser/System-Toolbar-Overlap) */
+      :root { --app-height: 100dvh; }
+
+      /* Android Edge-to-Edge: System-NavigationBar wird transparent —
+         App füllt den gesamten Bildschirm. Die CSS-Variable
+         env(safe-area-inset-bottom) gibt die korrekte Höhe der
+         Android-Systemleiste zurück (Soft-Buttons oder Gesten-Indikator).
+         Capacitor setzt diese Variable automatisch wenn overlaysWebView=true. */
+      html, body {
+        /* Verhindert ungewolltes Scrollen hinter System-Bars auf Android */
+        overscroll-behavior: none;
+      }
+
+      /* Fix: Input/Select iOS eigenes Styling entfernen */
+      input, textarea, select {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+             appearance: none;
+        border-radius: 0;
+      }
+
+      /* Fix: overflow:hidden + border-radius auf iOS korrekt clippen */
+      /* Note: WebkitMaskImage wird nur gezielt auf Karten-Container gesetzt */
+
+      /* Fix: position:fixed Elemente sicher im safe-area Bereich */
+      .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+      .safe-top    { padding-top:    env(safe-area-inset-top,    0px); }
+
+      /* Fix: Tap-Highlight entfernen */
+      * { -webkit-tap-highlight-color: transparent; }
+
+      /* Fix: Text-Size anpassen verhindert automatische Skalierung auf iOS */
+      body { -webkit-text-size-adjust: 100%; -moz-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+      /* Fix: Smooth Scrolling auf iOS */
+      .hui-scroll { -webkit-overflow-scrolling: touch; }
+
+      /* Fix: Gap in Flexbox — Fallback für iOS <14.5 */
+      /* (wird durch Vite/PostCSS automatisch transpiliert) */
+
+      /* Fix: Images immer GPU-composited rendern */
+      img { transform: translateZ(0); }
+
+      /* Fix: Verhindert weißen Flash beim Laden auf iOS */
+      html { background: #FDFAF5; }
+      body { background: #FDFAF5; margin: 0; }
+    </style>
+    <!-- ════════════════════════════════════════════════════════ -->
+  <script type="module" crossorigin src="./assets/index-Cyy2YgC8.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/vendor-LGk-UxvC.js">
+  <link rel="stylesheet" crossorigin href="./assets/style-CT25szbh.css">
+</head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
