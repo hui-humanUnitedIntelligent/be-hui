@@ -353,11 +353,6 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
                   placeholder="Stadt, Region oder Land" maxLength={80} icon={<HUILocationIcon size={15}/>} />
               </FieldGroup>
 
-              <FieldGroup label="Website / Link">
-                <Input value={website} onChange={setWebsite}
-                  placeholder="https://deine-website.de" maxLength={200} icon={<HUILinkIcon size={15}/>} />
-              </FieldGroup>
-
               <FieldGroup label="Skills (max. 10)">
                 <TagSelect
                   options={SKILLS_OPTS} selected={skills}
@@ -400,6 +395,9 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
                   placeholder="deine@email.de" type="email" icon={<HUIMailIcon size={15}/>}
                   disabled={true}
                 />
+                <div style={{ fontSize:11, color:T.inkFaint, marginTop:4 }}>
+                  E-Mail kann nur über Sicherheit & Passwort geändert werden.
+                </div>
               </FieldGroup>
 
               <FieldGroup label="Telefonnummer">
