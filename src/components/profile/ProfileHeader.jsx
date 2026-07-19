@@ -194,64 +194,62 @@ export function ProfileHeader({
             )}
           </div>
 
-          {/* ── Name (+ Badge inline) + @username darunter ── */}
+          {/* ── Name + @username + Ort (rechter Block) ── */}
           <div style={{ flex:1, minWidth:0, paddingTop:58 }}>
 
-            {/* Name-Zeile: Name + Badge nebeneinander */}
+            {/* Name */}
             {loading ? <Sk w={130} h={22} r={6}/> : (
               <div style={{
-                display:"flex", alignItems:"center", gap:8, flexWrap:"wrap",
+                fontSize:19, fontWeight:800, color:T.ink,
+                letterSpacing:"-0.025em", lineHeight:1.2,
+                overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
               }}>
-                {/* Name */}
-                <div style={{
-                  fontSize:19, fontWeight:800, color:T.ink,
-                  letterSpacing:"-0.025em", lineHeight:1.2,
-                  overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-                  maxWidth:"calc(100% - 110px)",
-                }}>
-                  {name}
-                </div>
-                {/* Badge — direkt rechts neben dem Namen, vertikal zentriert */}
-                <div style={{
-                  display:"inline-flex", alignItems:"center", gap:4, flexShrink:0,
-                  background: isTalentResolved ? "rgba(14,196,184,0.10)" : "rgba(14,196,184,0.07)",
-                  border:`1.5px solid ${isTalentResolved ? "rgba(14,196,184,0.32)" : "rgba(14,196,184,0.18)"}`,
-                  borderRadius:99, padding:"4px 10px",
-                  fontSize:10.5, fontWeight:700, color:"#0AADA3",
-                  whiteSpace:"nowrap",
-                }}>
-                  <span style={{display:"flex",alignItems:"center"}}>
-                    {isTalentResolved ? <HUITalentIcon size={12}/> : <HUIImpactIcon size={12}/>}
-                  </span>
-                  <span>{isTalentResolved ? "HUI-Talent" : "Basis-Nutzer"}</span>
-                </div>
+                {name}
               </div>
             )}
 
-            {/* @username darunter */}
+            {/* @username */}
             {!loading && username && (
               <div style={{ fontSize:12.5, color:T.inkFaint, marginTop:3, fontWeight:400 }}>
                 @{username}
               </div>
             )}
 
-            {/* Skeleton Badge */}
-            {loading && <div style={{ marginTop:5 }}><Sk w={95} h={22} r={99}/></div>}
+            {/* Ort — direkt unter @username */}
+            {!loading && location && (
+              <div style={{
+                display:"flex", alignItems:"center", gap:4,
+                marginTop:4, fontSize:12, color:T.inkSoft,
+              }}>
+                <HUILocationIcon size={13} style={{flexShrink:0, color:"rgba(14,196,184,0.65)"}} />
+                <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                  {location}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* ── Standort ── */}
-        {!loading && location && (
-          <div style={{
-            display:"flex", alignItems:"center", gap:5,
-            marginTop:14, fontSize:13, color:T.inkSoft,
-          }}>
-            <HUILocationIcon size={14} style={{flexShrink:0, color:"rgba(14,196,184,0.65)"}} />
-            <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-              {location}
-            </span>
-          </div>
-        )}
+        {/* ── Badge unter Avatar (linksbündig, nach dem Flex-Row) ── */}
+        <div style={{ paddingLeft:0, marginTop:10 }}>
+          {loading ? (
+            <Sk w={100} h={26} r={99}/>
+          ) : (
+            <div style={{
+              display:"inline-flex", alignItems:"center", gap:5,
+              background: isTalentResolved ? "rgba(14,196,184,0.10)" : "rgba(14,196,184,0.07)",
+              border:`1.5px solid ${isTalentResolved ? "rgba(14,196,184,0.32)" : "rgba(14,196,184,0.18)"}`,
+              borderRadius:99, padding:"5px 13px",
+              fontSize:11.5, fontWeight:700, color:"#0AADA3",
+              whiteSpace:"nowrap",
+            }}>
+              <span style={{display:"flex",alignItems:"center"}}>
+                {isTalentResolved ? <HUITalentIcon size={14}/> : <HUIImpactIcon size={14}/>}
+              </span>
+              <span>{isTalentResolved ? "HUI-Talent" : "Basis-Nutzer"}</span>
+            </div>
+          )}
+        </div>
 
         {/* ── Follower-Counts ── */}
         {!loading && (followCounts.followers > 0 || followCounts.following > 0) && (
