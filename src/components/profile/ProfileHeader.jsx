@@ -152,12 +152,12 @@ export function ProfileHeader({
       <div style={{ background: T.bg, padding:"0 16px 20px" }}>
 
         <div style={{
-          display:"flex", alignItems:"flex-start", gap:14,
+          display:"flex", alignItems:"stretch", gap:14,
           marginTop:-52,
         }}>
 
           {/* ══ LINKE SPALTE: Avatar + Badge + Follower ══ */}
-          <div style={{ flexShrink:0, display:"flex", flexDirection:"column", alignItems:"flex-start", gap:0 }}>
+          <div style={{ flexShrink:0, display:"flex", flexDirection:"column", alignItems:"flex-start", gap:0, justifyContent:"space-between" }}>
 
             {/* Avatar */}
             <div style={{ position:"relative" }}>
