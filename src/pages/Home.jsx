@@ -59,6 +59,8 @@ import { IX } from "../design/hui.interaction.js";
 import ContentTypeSelector from "../content/ContentTypeSelector.jsx";
 import InvitationFlow from "../content/invitation/InvitationFlow.jsx";
 import { useContentPreview } from "../context/ContentPreviewContext.jsx";
+import { usePullToRefresh }        from '../hooks/usePullToRefresh.js';
+import { PullToRefreshIndicator }  from '../components/ui/PullToRefreshIndicator.jsx';
 const HuiMembershipFlow   = React.lazy(() => import("../components/HuiMembershipFlow.jsx"));
 const CreatorDashboard    = React.lazy(() => import("./CreatorDashboard.jsx"));
 const HuiCreateFlow       = React.lazy(() => import("../components/HuiCreateFlow.jsx"));
@@ -111,6 +113,26 @@ function HomeInner() {
     window.addEventListener("feed-refresh", handler);
     return () => window.removeEventListener("feed-refresh", handler);
   }, []);
+
+  // ── Pull-to-Refresh: Callback pro aktivem Tab ─────────────────
+  // Löst tab-spezifischen Reload aus und sendet feed-refresh-Event
+  const handlePullRefresh = React.useCallback(async () => {
+    // Feed-Tab → UnifiedFeed.reload() via feedRefreshRef
+    feedRefreshRef.current?.();
+    // Alle Tabs: feed-refresh-Event → alle Subscriber werden benachrichtigt
+    window.dispatchEvent(new CustomEvent("feed-refresh"));
+    // Kurze Pause für visuelles Feedback (min 400ms)
+    await new Promise(r => setTimeout(r, 400));
+  }, []);
+
+  // ── Pull-to-Refresh Hook ──────────────────────────────────────
+  const { pullDistance, isRefreshing, isTriggered } = usePullToRefresh({
+    onRefresh:  handlePullRefresh,
+    scrollRef:  scrollContainerRef,
+    threshold:  72,
+    maxPull:    110,
+    enabled:    true,
+  });
   // PaintRecoveryManager — tracks rAF handles, cleaned up on unmount
   const paintManager = React.useRef(new PaintRecoveryManager());
 
@@ -382,6 +404,13 @@ function HomeInner() {
             ...worldTokens.feedContainerStyle,
           }}
         >
+          {/* ── Pull-to-Refresh Indikator — oben im Scroll-Container ── */}
+          <PullToRefreshIndicator
+            pullDistance={pullDistance}
+            isRefreshing={isRefreshing}
+            isTriggered={isTriggered}
+          />
+
           <div ref={tabRefs.feed} style={keepFeed}>
             <HuiLiveTicker />
             {SAFE_MODE.homeFeed ? (

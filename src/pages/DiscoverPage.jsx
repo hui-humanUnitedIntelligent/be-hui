@@ -2072,6 +2072,17 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
     }
     load();
     return () => { cancelled = true; };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Pull-to-Refresh: feed-refresh-Event abonnieren ────────────
+  // Wenn PTR (Home.jsx) ausgelöst wird, soll auch DiscoverPage neu laden.
+  // Trick: reloadKey-Counter → useEffect-Dependency triggert Reload.
+  const [discoverReloadKey, setDiscoverReloadKey] = React.useState(0);
+
+  React.useEffect(() => {
+    const handler = () => setDiscoverReloadKey(k => k + 1);
+    window.addEventListener("feed-refresh", handler);
+    return () => window.removeEventListener("feed-refresh", handler);
   }, []);
 
   // ── People: DB oder Seed ─────────────────────────────────────
