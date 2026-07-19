@@ -1,4 +1,3 @@
-import { APP_VERSION, APP_VERSION_CODE } from "./version";
 import { HUIImpactIcon } from './design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, lazy, Suspense } from 'react'
 import { sentryCapture, Sentry } from './lib/sentry'
@@ -846,18 +845,6 @@ export default function App() {
             </AppEntryController>
 
             <ToastContainer/>
-
-            {/* ⭐ Version unten rechts */}
-            <div style={{
-              position: "fixed",
-              bottom: 10,
-              right: 10,
-              opacity: 0.6,
-              fontSize: 12,
-              zIndex: 9999
-            }}>
-              v{APP_VERSION} (Build {APP_VERSION_CODE})
-            </div>
 
           </AuthGateProvider>
         </AuthProvider>
