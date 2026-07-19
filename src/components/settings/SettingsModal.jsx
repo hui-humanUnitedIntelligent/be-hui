@@ -1,4 +1,4 @@
-import { HUIAbmeldenIcon, HUIDatenschutzIcon, HUIKalenderIcon, HUIKontaktIcon, HUIMitgliedIcon, HUIProfilIcon, HUISettingsIcon, HUISicherheitIcon, HUIVerifIcon } from '../../design/icons/HuiSystemIcons.jsx';
+import { HUIAbmeldenIcon, HUIDatenschutzIcon, HUIKalenderIcon, HUIKontaktIcon, HUIMitgliedIcon, HUIProfilIcon, HUISettingsIcon, HUISicherheitIcon, HUIVerifIcon, HUIMailIcon } from '../../design/icons/HuiSystemIcons.jsx';
 // src/components/settings/SettingsModal.jsx
 // ── HUI Einstellungs-Modal v2 ─────────────────────────────────
 // Enthält: Profil bearbeiten | Buchungen | Privatsphäre | Abmelden
@@ -245,6 +245,67 @@ function PasswordBlock() {
   );
 }
 
+// ── Block: E-Mail ändern ─────────────────────────────────────
+function EmailChangeBlock({ profile, onProfileUpdate }) {
+  const { supabase } = useAuth() || {};
+  const [oldEmail, setOldEmail] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [saving,   setSaving]   = useState(false);
+  const [saved,    setSaved]    = useState(false);
+  const [error,    setError]    = useState(null);
+
+  const save = async () => {
+    setError(null); setSaved(false);
+    const currentEmail = profile?.email || "";
+    if (!oldEmail.trim()) { setError("Bitte aktuelle E-Mail eingeben"); return; }
+    if (oldEmail.trim().toLowerCase() !== currentEmail.toLowerCase()) {
+      setError("Aktuelle E-Mail stimmt nicht überein"); return;
+    }
+    if (!newEmail.includes("@")) { setError("Ungültige neue E-Mail-Adresse"); return; }
+    if (newEmail.trim().toLowerCase() === currentEmail.toLowerCase()) {
+      setError("Neue E-Mail ist identisch mit der aktuellen"); return;
+    }
+    setSaving(true);
+    try {
+      // 1. Supabase Auth E-Mail ändern (sendet Bestätigungs-Mail)
+      const { error: authErr } = await supabase.auth.updateUser({ email: newEmail.trim() });
+      if (authErr) throw new Error(authErr.message);
+      // 2. profiles-Tabelle sofort mitziehen
+      await supabase.from("profiles")
+        .update({ email: newEmail.trim(), updated_at: new Date().toISOString() })
+        .eq("id", profile?.id);
+      // 3. UI-Zustand aktualisieren
+      onProfileUpdate?.({ ...profile, email: newEmail.trim() });
+      setSaved(true); setOldEmail(""); setNewEmail("");
+      setTimeout(() => setSaved(false), 5000);
+    } catch(e) {
+      setError(e.message || "Fehler beim Ändern der E-Mail");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Row label="Aktuelle E-Mail">
+      <input value={oldEmail} onChange={e=>setOldEmail(e.target.value)}
+        placeholder="Deine aktuelle E-Mail" type="email"
+        style={{ ...inp, marginBottom:8 }}
+        onFocus={e=>e.target.style.borderColor=T.teal}
+        onBlur={e=>e.target.style.borderColor=T.border}/>
+      <input value={newEmail} onChange={e=>setNewEmail(e.target.value)}
+        placeholder="Neue E-Mail-Adresse" type="email" style={inp}
+        onFocus={e=>e.target.style.borderColor=T.teal}
+        onBlur={e=>e.target.style.borderColor=T.border}/>
+      <SaveRow onSave={save} saving={saving} saved={saved} error={error}/>
+      {saved && (
+        <div style={{ marginTop:8, fontSize:12, color:T.teal, lineHeight:1.4 }}>
+          ✅ E-Mail geändert. Falls eine Bestätigung nötig ist, prüfe deine neue Inbox.
+        </div>
+      )}
+    </Row>
+  );
+}
+
 // ── Block: Privatsphäre ───────────────────────────────────────
 const VISIBILITY_OPTIONS = [
   { value:"public",      label:"🌍 Öffentlich",        desc:"Jeder kann dein Profil sehen" },
@@ -445,11 +506,14 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
           </>)}
 
           {/* ══ SICHERHEIT ═════════════════════════════════════ */}
-          {view === "security" && (
+          {view === "security" && (<>
             <Section title="Passwort ändern" icon={<HUISicherheitIcon size={16}/>}>
               <PasswordBlock/>
             </Section>
-          )}
+            <Section title="E-Mail ändern" icon={<HUIMailIcon size={16}/>}>
+              <EmailChangeBlock profile={profile} onProfileUpdate={onProfileUpdate}/>
+            </Section>
+          </>)}
 
           {/* ══ PRIVATSPHÄRE ═══════════════════════════════════ */}
           {view === "privacy" && (
