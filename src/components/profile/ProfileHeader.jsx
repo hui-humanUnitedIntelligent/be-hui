@@ -273,12 +273,12 @@ export function ProfileHeader({
             <div>
               {loading ? <Sk w={130} h={22} r={6}/> : (
                 <div style={{
-                  display:"flex", alignItems:"baseline", flexWrap:"wrap",
-                  gap:"0 6px", lineHeight:1.25,
+                  display:"flex", alignItems:"center", flexWrap:"wrap",
+                  gap:"0 6px",
                 }}>
                   <span style={{
                     fontSize:19, fontWeight:800, color:T.ink,
-                    letterSpacing:"-0.025em",
+                    letterSpacing:"-0.025em", lineHeight:1.2,
                     flexShrink:0,
                   }}>
                     {name}
@@ -286,7 +286,7 @@ export function ProfileHeader({
                   {username && (
                     <span style={{
                       fontSize:12.5, color:T.inkFaint, fontWeight:400,
-                      flexShrink:0,
+                      flexShrink:0, lineHeight:1,
                     }}>
                       @{username}
                     </span>
