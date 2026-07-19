@@ -558,12 +558,13 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
   // Kein contentVisibility-Hack, kein position:absolute. Einfach, korrekt, schnell.
   // Bei 200 Items Cap (useFeedStream) ist kein weiteres Virtualisierung nötig.
 
-  // PAGI-001: UI-seitige Pagination — initial 10, +15 pro Klick.
-  // Komplett entkoppelt von der DB-Pagination (useFeedStream).
-  // Wenn visibleCount nahe an arr.length → loadMore() aus useFeedStream triggern.
-  const INITIAL_COUNT  = 10;
+  // INFSCROLL-001 (2026-07-19): Infinite Scroll — kein Button mehr.
+  // Initial 15 Items, +15 automatisch sobald letzter Post sichtbar.
+  // Sentinel-div am Ende der Liste triggert IntersectionObserver → sofort nachladen.
+  const INITIAL_COUNT  = 15;
   const LOAD_MORE_STEP = 15;
   const [visibleCount, setVisibleCount] = useState(INITIAL_COUNT);
+  const sentinelRef = useRef(null);
 
   // arr-Wechsel (Filter/Suche/Refresh) → visibleCount zurücksetzen
   const arrLenRef = useRef(arr.length);
@@ -574,20 +575,29 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
     }
   }, [arr.length]);
 
-  const visibleItems   = arr.slice(0, visibleCount);
-  // Alle sichtbaren Items sind gerendert UND DB hat keine weiteren Seiten mehr
-  const allShown       = visibleCount >= arr.length && !hasMore;
-  // Noch etwas zu zeigen (entweder mehr UI-Items oder mehr DB-Seiten)
-  const canLoadMore    = visibleCount < arr.length || hasMore;
+  const visibleItems = arr.slice(0, visibleCount);
+  const allShown     = visibleCount >= arr.length && !hasMore;
+  const canLoadMore  = visibleCount < arr.length || hasMore;
 
+  // Intern: nächste 15 Items aufdecken + ggf. DB-Seite nachladen
   const handleLoadMore = useCallback(() => {
     const next = visibleCount + LOAD_MORE_STEP;
     setVisibleCount(next);
-    // Wenn wir das geladene Ende erreichen → nächste DB-Seite vorholen
     if (next >= arr.length - 2 && hasMore && !loadingMore) {
       loadMore?.();
     }
   }, [visibleCount, arr.length, hasMore, loadingMore, loadMore]);
+
+  // Sentinel-Observer: sobald letzter sichtbarer Card-Bereich viewport-nah → sofort nachladen
+  useEffect(() => {
+    if (!sentinelRef.current || !canLoadMore) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) handleLoadMore(); },
+      { rootMargin: "200px" }
+    );
+    obs.observe(sentinelRef.current);
+    return () => obs.disconnect();
+  }, [canLoadMore, handleLoadMore]);
 
   if (arr.length === 0) return <EmptyFeed />;
 
@@ -622,38 +632,20 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
         );
       })}
 
-      {/* ── Mehr-laden-Button / Ende-Hinweis ─────────────────────────────
-           IMMER nach der letzten Kachel, mind. 24px Abstand zum Orb.
-           Kein loadingMore-Zustand — Button reagiert sofort (UI-seitig). ── */}
+      {/* ── INFSCROLL-001: Sentinel — unsichtbarer Trigger am Listen-Ende ──
+           IntersectionObserver (rootMargin 200px) feuert bevor der Nutzer
+           das Ende erreicht → nächste 15 Posts erscheinen sofort, kein Button. ── */}
       {canLoadMore && (
+        <div ref={sentinelRef} aria-hidden="true" style={{ height: 1 }} />
+      )}
+      {loadingMore && (
         <div style={{
-          display:    "flex",
-          justifyContent: "center",
-          padding:    "20px 24px 8px",
+          display: "flex", justifyContent: "center",
+          padding: "12px 0 4px",
+          color: "rgba(13,196,181,0.5)",
+          fontSize: 12, fontWeight: 500, letterSpacing: 0.2,
         }}>
-          <button
-            onClick={handleLoadMore}
-            disabled={loadingMore}
-            style={{
-              padding:        "11px 32px",
-              borderRadius:   24,
-              border:         "1.5px solid rgba(13,196,181,0.45)",
-              background:     "rgba(13,196,181,0.07)",
-              color:          "rgba(13,196,181,1)",
-              fontSize:       14,
-              fontWeight:     600,
-              cursor:         loadingMore ? "wait" : "pointer",
-              letterSpacing:  -0.1,
-              touchAction:    "manipulation",
-              WebkitTapHighlightColor: "transparent",
-              transition:     "opacity 0.18s, transform 0.15s",
-              opacity:        loadingMore ? 0.5 : 1,
-              minWidth:       160,
-              boxShadow:      "0 1px 8px rgba(13,196,181,0.10)",
-            }}
-          >
-            {loadingMore ? "Wird geladen …" : "Mehr laden"}
-          </button>
+          Weitere Beiträge werden geladen …
         </div>
       )}
 
