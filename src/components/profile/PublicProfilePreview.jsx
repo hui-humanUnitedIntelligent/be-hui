@@ -3,7 +3,6 @@
 // - Kein Edit-Modus, keine Admin-Komponenten
 // - publicView=true erzwingt isOwner=false in TalentProfilePage/BasisProfilePage
 //
-import { HUIAnsichtIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { ProfileService } from '../../services/db';
@@ -67,34 +66,19 @@ export default function PublicProfilePreview({ profileId, onClose }) {
       overflowY:"auto",
       WebkitOverflowScrolling:"touch",
     }}>
-      {/* Info-Banner */}
-      <div style={{
-        position:"sticky", top:0, zIndex:10510, /* >BottomNav(10000) */
-        background:"linear-gradient(135deg,rgba(22,215,197,0.12),rgba(255,138,107,0.08))",
-        borderBottom:"1px solid rgba(22,215,197,0.15)",
-        padding:"10px 16px",
-        display:"flex", alignItems:"center", justifyContent:"space-between",
-        backdropFilter:"blur(10px)",
-      }}>
-        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          <HUIAnsichtIcon size={15} style={{flexShrink:0}} />
-          <span style={{ fontSize:12, fontWeight:700, color:"#16D7C5", letterSpacing:"0.02em" }}>
-            Öffentliche Ansicht
-          </span>
-          <span style={{ fontSize:11, color:"rgba(26,26,46,0.45)", fontWeight:400 }}>
-            So sehen andere dein Profil
-          </span>
-        </div>
-        <button
-          onClick={onClose}
-          style={{
-            padding:"6px 14px", borderRadius:20,
-            background:"rgba(26,26,46,0.08)", border:"1px solid rgba(26,26,46,0.10)",
-            fontSize:12, fontWeight:700, color:"rgba(26,26,46,0.55)",
-            cursor:"pointer", touchAction:"manipulation",
-          }}
-        >✕ Schließen</button>
-      </div>
+      {/* Floating Schließen-Button oben links */}
+      <button
+        onClick={onClose}
+        style={{
+          position:"fixed", top:16, left:16, zIndex:10520,
+          width:36, height:36, borderRadius:"50%",
+          background:"rgba(26,26,24,0.75)", border:"none",
+          backdropFilter:"blur(8px)",
+          display:"flex", alignItems:"center", justifyContent:"center",
+          cursor:"pointer", touchAction:"manipulation",
+          color:"#fff", fontSize:18, fontWeight:300, lineHeight:1,
+        }}
+      >‹</button>
 
       {/* Profil-Inhalt — OrbSignatur ist in den Profilseiten integriert */}
       <React.Suspense fallback={<Spinner />}>
