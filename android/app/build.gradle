@@ -17,8 +17,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
 
-        versionCode 214
-        versionName "2.0.14 Beta"
+        versionCode 215
+        versionName "2.0.15 Beta"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
