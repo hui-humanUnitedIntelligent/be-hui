@@ -39,7 +39,8 @@ const Admin             = lazy(() => import('./pages/Admin'))
 const DiagnosePage      = lazy(() => import('./pages/DiagnosePage'))
 const PlatformDashboard = lazy(() => import('./pages/PlatformDashboard'))
 const CreatorStudio     = lazy(() => import('./pages/CreatorStudio'))
-const WirkerProfilePage = lazy(() => import('./pages/wirker-profile/index.jsx'))
+// DARK-PROFILE-REMOVE-001: WirkerProfilePage entfernt (2026-07-19)
+// Ersetzt durch PublicProfileRouteWrapper → TalentProfilePage/BasisProfilePage
 const WorkDetailPage    = lazy(() => import('./components/WorkDetailPage'))
 
 // ── Route Factory ──────────────────────────────────────────────────────────
@@ -62,7 +63,7 @@ export const APP_ROUTES = filterValidPages([
   createTabPage({ key:'home',      route:'/Home',           component:Home,              title:'HUI',         protectedRoute:true,  preload:true  }),
   createTabPage({ key:'impact',    route:'/impact',         component:ImpactPage,        title:'Impact',      protectedRoute:true,  preload:false }),
   createTabPage({ key:'work',      route:'/work/:id',       component:WorkDetailPage,    title:'Werk',        protectedRoute:true,  preload:false }),
-  createTabPage({ key:'profile',   route:'/profile/:username', component:WirkerProfilePage, title:'Profil',  protectedRoute:true,  preload:false }),
+  // DARK-PROFILE-REMOVE-001: Route via PublicProfileRouteWrapper (helles Profil)
   createTabPage({ key:'admin',     route:'/Admin',          component:Admin,             title:'Admin',       protectedRoute:true,  preload:false }),
   createTabPage({ key:'diagnose',  route:'/diagnose',       component:DiagnosePage,      title:'Diagnose',    protectedRoute:true,  preload:false }),
   createTabPage({ key:'dashboard', route:'/dashboard',      component:PlatformDashboard, title:'Dashboard',   protectedRoute:true,  preload:false }),
@@ -499,20 +500,53 @@ function WorkDetailRouteWrapper() {
   );
 }
 
-/* ── Router Wrapper: /profile/:username → WirkerProfilePage ────────── */
-// onBook öffnet RequestSheet INNERHALB der WirkerProfilePage
-// Kein separates BookingFlow-Overlay mehr nötig
-function WirkerProfileRouteWrapper() {
+/* ── DARK-PROFILE-REMOVE-001: PublicProfileRouteWrapper (2026-07-19) ── */
+// Ersetzt WirkerProfilePage (dunkles Profil) durch TalentProfilePage/BasisProfilePage (helles Profil)
+const TalentProfilePageLazy = lazy(() => import('./pages/TalentProfilePage.jsx'));
+const BasisProfilePageLazy  = lazy(() => import('./pages/BasisProfilePage.jsx'));
+
+function PublicProfileRouteWrapper() {
   const { username } = useParams();
   const navigate     = useNavigate();
+  const [profileData, setProfileData] = React.useState(null);
+  const [loading,     setLoading]     = React.useState(true);
 
+  React.useEffect(() => {
+    if (!username) { setLoading(false); return; }
+    const timeout = setTimeout(() => setLoading(false), 8000);
+    supabase
+      .from('profiles')
+      .select('id, has_talent_profile, role')
+      .eq('username', username)
+      .maybeSingle()
+      .then(({ data }) => { clearTimeout(timeout); setProfileData(data); setLoading(false); })
+      .catch(() => { clearTimeout(timeout); setLoading(false); });
+    return () => clearTimeout(timeout);
+  }, [username]);
+
+  if (loading) return (
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', background:'#F7F5F0' }}>
+      <div style={{ width:32, height:32, borderRadius:'50%', border:'3px solid rgba(14,196,184,0.2)', borderTopColor:'#0EC4B8', animation:'spin 0.7s linear infinite' }} />
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
+  );
+  if (!profileData) return (
+    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'100vh', background:'#F7F5F0', gap:12 }}>
+      <div style={{ fontSize:18, fontWeight:700, color:'#1A1A18' }}>Profil nicht gefunden</div>
+      <button onClick={() => navigate(-1)} style={{ padding:'10px 24px', borderRadius:99, background:'#0EC4B8', color:'#fff', border:'none', fontWeight:600, cursor:'pointer' }}>Zurück</button>
+    </div>
+  );
+
+  const isTalent = profileData.has_talent_profile || profileData.role === 'talent' || profileData.role === 'wirker';
+  const Component = isTalent ? TalentProfilePageLazy : BasisProfilePageLazy;
   return (
-    <WirkerProfilePage
-      wirker={{ username }}
-      onClose={() => navigate(-1)}
-      onBook={() => { /* RequestSheet öffnet sich intern in WirkerProfilePage */ }}
-      onChat={() => { /* Chat intern als Sheet in WirkerProfilePage */ }}
-    />
+    <Suspense fallback={
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', background:'#F7F5F0' }}>
+        <div style={{ width:32, height:32, borderRadius:'50%', border:'3px solid rgba(14,196,184,0.2)', borderTopColor:'#0EC4B8', animation:'spin 0.7s linear infinite' }} />
+      </div>
+    }>
+      <Component profileId={profileData.id} onClose={() => navigate(-1)} publicView={true} />
+    </Suspense>
   );
 }
 
@@ -649,9 +683,9 @@ function AppRoutes() {
           <ProtectedRoute><WorkDetailRouteWrapper /></ProtectedRoute>
         }/>
 
-        {/* /profile/:username → WirkerProfileRouteWrapper */}
+        {/* /profile/:username → PublicProfileRouteWrapper (helles Profil, DARK-PROFILE-REMOVE-001) */}
         <Route path="/profile/:username" element={
-          <ProtectedRoute><WirkerProfileRouteWrapper /></ProtectedRoute>
+          <ProtectedRoute><PublicProfileRouteWrapper /></ProtectedRoute>
         }/>
 
         {/* /profile/me shortcut */}
