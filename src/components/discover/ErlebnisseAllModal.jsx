@@ -2,6 +2,7 @@ import { createPortal } from "react-dom";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
+import { useProfileLauncher } from "../home/profile/ProfileLauncher.jsx";
 
 const T = {
   teal:"rgba(14,196,184,1)", white:"#FFFFFF", ink:"rgba(26,26,46,0.92)",
@@ -26,7 +27,7 @@ function mapExp(e) {
   return { ...e, dayNum, monthSh, statusLabel, statusColor, typeLabel };
 }
 
-function ErlebnisCardItem({ e: ev, onPress }) {
+function ErlebnisCardItem({ e: ev, onPress, onAuthorPress }) {
   const [imgErr, setImgErr] = useState(false);
   return (
     <div onClick={() => onPress?.(ev)} style={{
@@ -62,6 +63,14 @@ function ErlebnisCardItem({ e: ev, onPress }) {
           overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>
           {ev.title}
         </div>
+        {ev._authorName && (
+          <div
+            onClick={e => { e.stopPropagation(); onAuthorPress?.(ev.user_id); }}
+            style={{ fontSize:11, color:T.tealDeep, fontWeight:600, marginBottom:4, cursor:"pointer",
+              WebkitTapHighlightColor:"transparent" }}>
+            von {ev._authorName}
+          </div>
+        )}
         {ev.location_text && (
           <div style={{ fontSize:10.5, color:T.inkSoft, marginBottom:4, display:"flex", gap:3, alignItems:"center" }}>
             <span>📍</span><span style={{ overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{ev.location_text}</span>
@@ -78,6 +87,7 @@ function ErlebnisCardItem({ e: ev, onPress }) {
 
 export default function ErlebnisseAllModal({ isOpen, onClose, onPressItem }) {
   useWizardBodyLock(isOpen);
+  const { openCreatorProfile } = useProfileLauncher();
   const [items, setItems]         = useState([]);
   const [loading, setLoading]     = useState(false);
   const [hasMore, setHasMore]     = useState(true);
@@ -122,7 +132,14 @@ export default function ErlebnisseAllModal({ isOpen, onClose, onPressItem }) {
       // Clientseitiger Status-Filter (abgeschlossen/geplant aus Datum)
       if (filterStatus === "geplant") mapped = mapped.filter(e => e.statusLabel === "Geplant");
       if (filterStatus === "abgeschlossen") mapped = mapped.filter(e => e.statusLabel === "Abgeschlossen");
-
+      // Autorname nachladen
+      const uids = [...new Set(mapped.map(e => e.user_id).filter(Boolean))];
+      if (uids.length > 0) {
+        const { data: profs } = await supabase
+          .from("profiles").select("id,display_name,username").in("id", uids);
+        const nMap = Object.fromEntries((profs||[]).map(p => [p.id, p.display_name || p.username || null]));
+        mapped = mapped.map(e => ({ ...e, _authorName: nMap[e.user_id] || null }));
+      }
       setItems(prev => pageNum === 0 ? mapped : [...prev, ...mapped]);
       if (data.length < PAGE_SIZE) setHasMore(false);
     } finally {
@@ -220,7 +237,7 @@ export default function ErlebnisseAllModal({ isOpen, onClose, onPressItem }) {
             </div>
           )}
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-            {items.map(e => <ErlebnisCardItem key={e.id} e={e} onPress={onPressItem}/>)}
+            {items.map(e => <ErlebnisCardItem key={e.id} e={e} onPress={onPressItem} onAuthorPress={e.user_id ? openCreatorProfile : null}/>)}
           </div>
           {loading && items.length > 0 && (
             <div style={{ textAlign:"center", padding:16, color:T.inkFaint, fontSize:13 }}>Lade weitere…</div>

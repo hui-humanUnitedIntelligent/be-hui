@@ -1,4 +1,5 @@
 import { createPortal } from "react-dom";
+import { useProfileLauncher } from "../home/profile/ProfileLauncher.jsx";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
@@ -27,7 +28,7 @@ const RANK_BADGE = {
   3: { bg:"linear-gradient(135deg,#A16207,#92400E)", label:"🥉 Platz 3" },
 };
 
-function ProjektCardItem({ p, onPress }) {
+function ProjektCardItem({ p, onPress, onAuthorPress }) {
   const [imgErr, setImgErr] = useState(false);
   const prog = p.funding_goal > 0
     ? Math.min(100, Math.round((p.current_amount_eur || 0) / p.funding_goal * 100))
@@ -124,6 +125,15 @@ function ProjektCardItem({ p, onPress }) {
           {p.project_name}
         </div>
 
+        {/* Initiator-Name */}
+        {p._initiatorName && (
+          <div
+            onClick={e => { e.stopPropagation(); onAuthorPress?.(p._userId); }}
+            style={{ fontSize:11, color:"rgba(14,196,184,0.9)", fontWeight:600,
+              marginBottom:4, cursor:"pointer", WebkitTapHighlightColor:"transparent" }}>
+            von {p._initiatorName}
+          </div>
+        )}
         {/* Beschreibung — kürzer, ruhiger */}
         {p.short_desc && (
           <div style={{
@@ -195,6 +205,7 @@ function ProjektCardItem({ p, onPress }) {
 
 export default function ProjekteAllModal({ isOpen, onClose, onPressItem }) {
   useWizardBodyLock(isOpen);
+  const { openCreatorProfile } = useProfileLauncher();
   const [items, setItems]        = useState([]);
   const [loading, setLoading]    = useState(false);
   const [hasMore, setHasMore]    = useState(true);
@@ -252,6 +263,25 @@ export default function ProjekteAllModal({ isOpen, onClose, onPressItem }) {
       if (filterRank === "top3")    filtered = filtered.filter(p => p.rank && p.rank <= 3);
       if (filterRank === "weitere") filtered = filtered.filter(p => !p.rank || p.rank > 3);
 
+      // Initiator-Namen nachladen aus impact_applications
+      const projIds = filtered.map(p => p.id).filter(Boolean);
+      if (projIds.length > 0) {
+        const { data: apps } = await supabase
+          .from("impact_applications").select("id,user_id").in("id", projIds);
+        const uidMap = Object.fromEntries((apps||[]).map(a => [a.id, a.user_id]));
+        const uids = [...new Set(Object.values(uidMap).filter(Boolean))];
+        let nameMap = {};
+        if (uids.length > 0) {
+          const { data: profs } = await supabase
+            .from("profiles").select("id,display_name,username").in("id", uids);
+          nameMap = Object.fromEntries((profs||[]).map(p => [p.id, p.display_name || p.username || null]));
+        }
+        filtered = filtered.map(p => ({
+          ...p,
+          _userId: uidMap[p.id] || null,
+          _initiatorName: nameMap[uidMap[p.id]] || null,
+        }));
+      }
       setItems(filtered);
       setHasMore(false); // RPC gibt alles auf einmal zurück
     } finally {
@@ -334,7 +364,7 @@ export default function ProjekteAllModal({ isOpen, onClose, onPressItem }) {
               <div style={{ fontSize:15, fontWeight:600 }}>Keine Projekte gefunden</div>
             </div>
           )}
-          {items.map(p => <ProjektCardItem key={p.id} p={p} onPress={onPressItem}/>)}
+          {items.map(p => <ProjektCardItem key={p.id} p={p} onPress={onPressItem} onAuthorPress={p._userId ? openCreatorProfile : null}/>)}
           {loading && items.length > 0 && (
             <div style={{ textAlign:"center", padding:16, color:T.inkFaint, fontSize:13 }}>Lade weitere…</div>
           )}

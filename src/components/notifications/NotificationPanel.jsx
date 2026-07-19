@@ -1,3 +1,4 @@
+import { useProfileLauncher } from "../home/profile/ProfileLauncher.jsx";
 import {
   HUIWarnIcon, HUIImpactIcon, HUISupportIcon, HUINachrichtIcon,
   HUIProfilIcon, HUIBenachrichtigungIcon,
@@ -125,6 +126,7 @@ function parseMeta(raw) {
 }
 
 function NotifCard({ n, onRead, onDelete, onAction = () => {} }) {
+  const { openCreatorProfile } = useProfileLauncher();
   const [open, setOpen] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const meta = getMeta(n.type);
@@ -255,7 +257,11 @@ function NotifCard({ n, onRead, onDelete, onAction = () => {} }) {
             background: n.is_read ? "rgba(26,26,24,0.05)" : T.tealSoft,
             border:`1px solid ${n.is_read ? T.border : T.tealMid}`,
             display:"flex", alignItems:"center", justifyContent:"center", fontSize:18,
-          }}>{meta.emoji}</div>
+            cursor: n.actor_id ? "pointer" : "default",
+            WebkitTapHighlightColor:"transparent",
+          }}
+          onClick={n.actor_id ? e => { e.stopPropagation(); openCreatorProfile(n.actor_id); } : undefined}
+          >{meta.emoji}</div>
 
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:2 }}>

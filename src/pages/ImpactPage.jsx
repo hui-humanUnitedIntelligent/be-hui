@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useStripeImpactPool } from "../hooks/useStripeImpactPool";
+import { useProfileLauncher } from "../components/home/profile/ProfileLauncher.jsx";
 import { HUIImpactIcon, HUIStimmeIcon,
   HUIAwardIcon,
 } from '../design/icons/HuiSystemIcons.jsx';
@@ -316,6 +317,7 @@ function useImpactActivities() {
         const pMap = Object.fromEntries((pRes.value?.data || []).map(p => [p.id, p]));
         setActs(votes.map(v => ({
           id:     v.id,
+          user_id: v.user_id || null,
           user:   uMap[v.user_id]?.display_name || "Jemand",
           avatar: uMap[v.user_id]?.avatar_url || null,
           proj:   pMap[v.project_id]?.name || "ein Projekt",
@@ -2751,6 +2753,7 @@ function HerzensprojektEmotional({ onPropose }) {
 // 7. LIVE-TICKER (kompakt)
 // ════════════════════════════════════════════════════════════════
 function LiveTicker({ activities }) {
+  const { openCreatorProfile } = useProfileLauncher();
   return (
     <div style={{ padding:"16px 16px 0" }}>
       <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
@@ -2781,7 +2784,13 @@ function LiveTicker({ activities }) {
             <div style={{ flex:1, minWidth:0 }}>
               <div style={{ fontSize:12, color:T.ink, lineHeight:1.4,
                 overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                <b>{act.user}</b> hat <b>{act.proj}</b> mit 1 Stimme unterstützt
+                {act.user_id
+                  ? <b
+                      onClick={e => { e.stopPropagation(); openCreatorProfile?.(act.user_id); }}
+                      style={{ cursor:"pointer", textDecoration:"none" }}
+                    >{act.user}</b>
+                  : <b>{act.user}</b>
+                } hat <b>{act.proj}</b> mit 1 Stimme unterstützt
               </div>
             </div>
             <div style={{ fontSize:10, color:T.muted, flexShrink:0 }}>{act.ago}</div>

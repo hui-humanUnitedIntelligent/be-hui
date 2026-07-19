@@ -2,6 +2,7 @@ import { createPortal } from "react-dom";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
+import { useProfileLauncher } from "../home/profile/ProfileLauncher.jsx";
 
 const T = {
   teal:"rgba(14,196,184,1)", white:"#FFFFFF", ink:"rgba(26,26,46,0.92)",
@@ -42,7 +43,16 @@ function WerkCardItem({ w, onPress }) {
           overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>
           {w.title}
         </div>
-        <div style={{ fontSize:11, color:T.inkFaint, marginBottom:4 }}>von HUI Talent</div>
+        {w._authorName ? (
+          <div
+            onClick={e => { e.stopPropagation(); onAuthorPress?.(w.user_id); }}
+            style={{ fontSize:11, color:T.tealDeep, fontWeight:600, marginBottom:4, cursor:"pointer",
+              WebkitTapHighlightColor:"transparent" }}>
+            von {w._authorName}
+          </div>
+        ) : (
+          <div style={{ fontSize:11, color:T.inkFaint, marginBottom:4 }}>von HUI Talent</div>
+        )}
         {w.location_text && (
           <div style={{ fontSize:10.5, color:T.inkSoft, display:"flex", alignItems:"center", gap:3, marginBottom:4 }}>
             <span>📍</span><span style={{ overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{w.location_text}</span>
@@ -58,6 +68,7 @@ function WerkCardItem({ w, onPress }) {
 
 export default function WerkeAllModal({ isOpen, onClose, onPressItem }) {
   useWizardBodyLock(isOpen);
+  const { openCreatorProfile } = useProfileLauncher();
   const [items, setItems]       = useState([]);
   const [loading, setLoading]   = useState(false);
   const [hasMore, setHasMore]   = useState(true);
@@ -99,7 +110,16 @@ export default function WerkeAllModal({ isOpen, onClose, onPressItem }) {
 
       const { data } = await q;
       if (!data || data.length === 0) { setHasMore(false); return; }
-      setItems(prev => pageNum === 0 ? data : [...prev, ...data]);
+      // Autorname nachladen
+      const uids = [...new Set(data.map(w => w.user_id).filter(Boolean))];
+      let nameMap = {};
+      if (uids.length > 0) {
+        const { data: profs } = await supabase
+          .from("profiles").select("id,display_name,username").in("id", uids);
+        (profs || []).forEach(p => { nameMap[p.id] = p.display_name || p.username || null; });
+      }
+      const enriched = data.map(w => ({ ...w, _authorName: nameMap[w.user_id] || null }));
+      setItems(prev => pageNum === 0 ? enriched : [...prev, ...enriched]);
       if (data.length < PAGE_SIZE) setHasMore(false);
     } finally {
       setLoading(false);
@@ -198,7 +218,7 @@ export default function WerkeAllModal({ isOpen, onClose, onPressItem }) {
             </div>
           )}
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-            {items.map(w => <WerkCardItem key={w.id} w={w} onPress={onPressItem}/>)}
+            {items.map(w => <WerkCardItem key={w.id} w={w} onPress={onPressItem} onAuthorPress={w.user_id ? openCreatorProfile : null}/>)}
           </div>
           {loading && items.length > 0 && (
             <div style={{ textAlign:"center", padding:16, color:T.inkFaint, fontSize:13 }}>Lade weitere…</div>

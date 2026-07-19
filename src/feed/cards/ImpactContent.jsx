@@ -97,24 +97,18 @@ export default function ImpactContent({ item, onProfile, onReaction, onShare }) 
       onShare={onShare}
       onCardClick={handleCardClick}
     >
-      {/* Projektbild — immer sichtbar: entweder echtes Bild oder Unsplash-Fallback.
-          Kein Emoji-Platzhalter. Rang-Badge liegt oben links auf dem Bild. */}
-      {/* IMPACT-IMG-UNIFORM-003 (2026-07-17): Bildcontainer exakt identisch zu FeedMedia/Werke
-           article-Container hat overflow:hidden → negativer Margin wurde abgeschnitten.
-           Fix: width:calc(100%+32px) + marginLeft:-16px statt beidseitiger neg. Margins.
-           Breite = 100% des children-Wrappers + 2×16px Padding = volle article-Breite (wie FeedMedia).
-           Höhe: 220px (T.mediaH), borderRadius: 14 (T.rMedia), objectFit: cover. */}
+      {/* IMPACT-IMG-UNIFORM-004 (2026-07-19): Bildcontainer exakt identisch zu FeedMedia.
+           FeedMedia: margin:"14px 16px 0", height:220, borderRadius:14, objectFit:cover.
+           Kein calc/negMargin — direkte Margin-Angleichung. */}
       <div style={{
-        width: "calc(100% + 32px)",  /* +2×T.p = volle Kartenbreite wie FeedMedia */
-        marginLeft: -16,             /* neutralisiert linkes children-Padding */
-        marginTop: 8,
-        marginBottom: 12,
-        height: 220,                 /* T.mediaH — identisch zu Werk/Talent/Erlebnis-Karten */
+        margin: "14px 16px 12px",    /* identisch zu FeedMedia: 14px top, 16px links+rechts */
+        height: 220,                 /* T.mediaH — identisch zu FeedMedia */
         borderRadius: 14,            /* T.rMedia — identisch zu FeedMedia */
         overflow: "hidden", position: "relative",
-        background: "#F0EFED",       /* identisch zu FeedMedia-Shimmer-bg */
+        background: "#F0EFED",
         boxShadow: "0 4px 20px rgba(26,26,46,0.08)",
         flexShrink: 0,
+        cursor: "pointer",
       }}>
         {/* IMPACT-IMG-001: img mit stabilem src (useMemo).
              onError setzt imgErr=true → displayImg wechselt auf IMPACT_FALLBACK.
