@@ -2035,15 +2035,16 @@ function MeinBereichMenu({
 
   return (
     <div style={{ padding:`0 ${T.px}px` }}>
+      {/* Titel außerhalb der Kachel */}
+      <div style={{ fontSize:15, fontWeight:800, color:T.ink, marginBottom:10, letterSpacing:"-0.01em" }}>
+        Mein Bereich
+      </div>
+
       <div style={{
         background:T.bgCard, borderRadius:T.r20,
         border:`1px solid ${T.border}`, boxShadow:T.card,
         padding:"18px 18px 20px",
       }}>
-        <div style={{ fontSize:15, fontWeight:800, color:T.ink, marginBottom:14, letterSpacing:"-0.01em" }}>
-          Mein Bereich
-        </div>
-
         <div style={{
           display:"grid", gridTemplateColumns:"repeat(4, 1fr)",
           rowGap:18, columnGap:4,

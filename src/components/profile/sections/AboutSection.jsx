@@ -54,6 +54,8 @@ export function AboutSection({ profile, isOwner = false, loading = false, onSave
   return (
     <div style={{ padding:`0 ${T.px}px` }}>
       <style>{`@keyframes ps-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
+
+      {/* Titel außerhalb der Kachel */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
         <div style={{ fontSize:15, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>Über dich</div>
         {isOwner && !editing && (
@@ -65,6 +67,7 @@ export function AboutSection({ profile, isOwner = false, loading = false, onSave
         )}
       </div>
 
+      {/* Kachel ohne eigenen Titel */}
       <div style={{
         background:T.bgCard, borderRadius:T.r16,
         border:`1px solid ${editing ? T.tealMid : T.border}`,
