@@ -8,6 +8,7 @@ import { createPortal } from "react-dom";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { supabase } from "../../lib/supabaseClient.js";
 import { HUILogoWordmark } from '../brand/HUILogo.jsx';
+import APP_VERSION from '../../version.ts';
 
 // ── Design Tokens ─────────────────────────────────────────────
 const T = {
@@ -381,7 +382,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
             }}>
               <HUILogoWordmark logoSize={32}/>
               <div style={{ fontSize:10.5, color:"rgba(26,26,24,0.25)", letterSpacing:"0.05em" }}>
-                Version 1.0 · Beta
+                v{APP_VERSION}
               </div>
             </div>
 
