@@ -21,7 +21,7 @@ import { supabase } from "../lib/supabaseClient.js";
 // ── Felder ────────────────────────────────────────────────────────────
 // Sprint F.7B: impact_eur + follower_count ergänzt (DB-bestätigt via SearchCommandCenter, WorkDetailPage)
 // Identity Contract v1.0: PROFILE_SELECT → CANONICAL
-const PROFILE_SELECT = "id,display_name,full_name,username,avatar_url,header_img,bio,location,location_label,member_since,role,has_talent_profile,is_ambassador,talent,membership_type,membership_active,followers_count,impact_eur,profile_views";
+const PROFILE_SELECT = "id,display_name,full_name,username,avatar_url,header_img,bio,location,location_label,location_lat,location_lng,member_since,role,has_talent_profile,is_ambassador,talent,membership_type,membership_active,followers_count,impact_eur,profile_views,phone,website,tagline,skills,is_available,hourly_rate,focus_type";
 
 const WIRKER_SELECT =
   // Sprint F.4D.1: avatar_url + header_img ENTFERNT

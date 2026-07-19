@@ -1,4 +1,5 @@
 import { HUIEuroIcon, HUILinkIcon, HUILocationIcon, HUIMailIcon, HUIPhoneIcon, HUIProfilIcon, HUITalentIcon } from '../../design/icons/HuiSystemIcons.jsx';
+import LocationAutocompleteInput from '../shared/LocationAutocompleteInput.jsx';
 // ProfilBearbeitenModal.jsx — vollständige Profil-Bearbeitung
 // ═══════════════════════════════════════════════════════════
 // Basis-Profil:   profiles (full_name, display_name, username, email, phone,
@@ -73,6 +74,9 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
   const [focusType,     setFocusType]     = useState(profile?.focus_type      || "");
   // Sprint F.3B: location aus profiles.location (location_label existiert nicht in profiles-Tabelle)
   const [locationLabel, setLocationLabel] = useState(profile?.location || profile?.location_label || "");
+  const [locationLat,   setLocationLat]   = useState(profile?.location_lat  || null);
+  const [locationLng,   setLocationLng]   = useState(profile?.location_lng  || null);
+  const [geoLoading,    setGeoLoading]    = useState(false);
   const [website,       setWebsite]       = useState(profile?.website         || "");
   const [skills,        setSkills]        = useState(profile?.skills          || []);
   const [dnaTags,       setDnaTags]       = useState(profile?.dna_tags        || []);
@@ -159,6 +163,38 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
     return () => clearTimeout(t);
   }, [username, profile?.username, profile?.id]);
 
+
+  // ── GPS-Standorterkennung ─────────────────────────────────────────
+  const handleGPSLocation = useCallback(() => {
+    if (!navigator.geolocation) return;
+    setGeoLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords }) => {
+        const { latitude: lat, longitude: lng } = coords;
+        setLocationLat(lat);
+        setLocationLng(lng);
+        // Reverse-Geocoding: Koordinaten → lesbarer Ortsname
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=de`,
+            { headers: { Accept: "application/json" } }
+          );
+          const d = await res.json();
+          const addr = d.address || {};
+          const label = [
+            addr.city || addr.town || addr.village || addr.county || addr.state_district,
+            addr.state,
+            addr.country,
+          ].filter(Boolean).join(", ");
+          if (label) setLocationLabel(label);
+        } catch {/* ignore */}
+        setGeoLoading(false);
+      },
+      () => setGeoLoading(false),
+      { timeout: 8000, maximumAge: 60000 }
+    );
+  }, []);
+
   // ── Speichern ────────────────────────────────────────────────────
   const handleSave = useCallback(async () => {
     if (saving) return;
@@ -175,6 +211,8 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
         tagline:        tagline.trim(),
         focus_type:     focusType,
         location:       locationLabel.trim(), // Sprint F.3B: schreibt profiles.location (Wahrheitsquelle)
+        location_lat:   locationLat ?? null,
+        location_lng:   locationLng ?? null,
         website:        website.trim(),
         skills:         skills,
         dna_tags:       dnaTags,
@@ -229,7 +267,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
       setSaving(false);
     }
   }, [saving, usernameErr, fullName, displayName, username, bio, tagline, focusType,
-      locationLabel, website, skills, dnaTags, isAvailable, hourlyRate, phone,
+      locationLabel, locationLat, locationLng, website, skills, dnaTags, isAvailable, hourlyRate, phone,
       isTalent, talentTitle, talentTagline, talentCats, talentSkills, talentLocation,
       talentRadius, talentRate, talentAvail, wpData, saveProfile, refreshProfile,
       profile?.id, onClose, onProfileUpdate]);
@@ -352,8 +390,41 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
               </FieldGroup>
 
               <FieldGroup label="Standort">
-                <Input value={locationLabel} onChange={setLocationLabel}
-                  placeholder="Stadt, Region oder Land" maxLength={80} icon={<HUILocationIcon size={15}/>} />
+                {/* GPS-Button + Autocomplete */}
+                <div style={{ position:"relative" }}>
+                  <LocationAutocompleteInput
+                    value={locationLabel}
+                    onChange={v => { setLocationLabel(v); setLocationLat(null); setLocationLng(null); }}
+                    onPick={place => { setLocationLabel(place.label); setLocationLat(place.lat); setLocationLng(place.lng); }}
+                    placeholder="Stadt oder Region suchen…"
+                    style={{
+                      width:"100%", fontSize:14, padding:"11px 44px 11px 38px",
+                      border:`1.5px solid ${T.border}`, borderRadius:10,
+                      background:"transparent", color:T.ink, fontFamily:T.ff, outline:"none",
+                      boxSizing:"border-box",
+                    }}
+                  />
+                  {/* Standort-Icon links */}
+                  <span style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }}>
+                    <HUILocationIcon size={15} style={{ color: locationLat ? "#0EC4B8" : "rgba(26,26,24,0.35)" }}/>
+                  </span>
+                  {/* GPS-Button rechts */}
+                  <button onClick={handleGPSLocation} disabled={geoLoading}
+                    title="Aktuellen Standort verwenden"
+                    style={{
+                      position:"absolute", right:8, top:"50%", transform:"translateY(-50%)",
+                      background:"none", border:"none", cursor:"pointer", padding:4,
+                      color: geoLoading ? "#0EC4B8" : "rgba(26,26,24,0.40)", fontSize:16,
+                      display:"flex", alignItems:"center",
+                    }}>
+                    {geoLoading ? "⏳" : "📍"}
+                  </button>
+                </div>
+                {locationLat && (
+                  <div style={{ fontSize:10.5, color:"#0EC4B8", marginTop:3 }}>
+                    ✓ Koordinaten gespeichert ({locationLat.toFixed(3)}, {locationLng.toFixed(3)})
+                  </div>
+                )}
               </FieldGroup>
 
               <FieldGroup label="Skills (max. 10)">
@@ -403,8 +474,38 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
               </FieldGroup>
 
               <FieldGroup label="Standort">
-                <Input value={locationLabel} onChange={setLocationLabel}
-                  placeholder="Stadt, Region" icon={<HUILocationIcon size={15}/>} maxLength={80} />
+                <div style={{ position:"relative" }}>
+                  <LocationAutocompleteInput
+                    value={locationLabel}
+                    onChange={v => { setLocationLabel(v); setLocationLat(null); setLocationLng(null); }}
+                    onPick={place => { setLocationLabel(place.label); setLocationLat(place.lat); setLocationLng(place.lng); }}
+                    placeholder="Stadt oder Region suchen…"
+                    style={{
+                      width:"100%", fontSize:14, padding:"11px 44px 11px 38px",
+                      border:`1.5px solid ${T.border}`, borderRadius:10,
+                      background:"transparent", color:T.ink, fontFamily:T.ff, outline:"none",
+                      boxSizing:"border-box",
+                    }}
+                  />
+                  <span style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }}>
+                    <HUILocationIcon size={15} style={{ color: locationLat ? "#0EC4B8" : "rgba(26,26,24,0.35)" }}/>
+                  </span>
+                  <button onClick={handleGPSLocation} disabled={geoLoading}
+                    title="GPS verwenden"
+                    style={{
+                      position:"absolute", right:8, top:"50%", transform:"translateY(-50%)",
+                      background:"none", border:"none", cursor:"pointer", padding:4,
+                      color: geoLoading ? "#0EC4B8" : "rgba(26,26,24,0.40)", fontSize:16,
+                      display:"flex", alignItems:"center",
+                    }}>
+                    {geoLoading ? "⏳" : "📍"}
+                  </button>
+                </div>
+                {locationLat && (
+                  <div style={{ fontSize:10.5, color:"#0EC4B8", marginTop:3 }}>
+                    ✓ Koordinaten ({locationLat.toFixed(3)}, {locationLng.toFixed(3)})
+                  </div>
+                )}
               </FieldGroup>
 
               <div style={{ height:1, background:T.border, margin:"4px 0" }}/>
