@@ -263,21 +263,27 @@ export function ProfileHeader({
           {/* ══ RECHTE SPALTE: Name + @nick + Ort ══ */}
           <div style={{ flex:1, minWidth:0, paddingTop:58, paddingLeft: isSuperadmin ? 10 : 4 }}>
 
-            {/* Name */}
+            {/* Name + @username inline — fließt dynamisch mit Namenlänge */}
             {loading ? <Sk w={130} h={22} r={6}/> : (
               <div style={{
-                fontSize:19, fontWeight:800, color:T.ink,
-                letterSpacing:"-0.025em", lineHeight:1.2,
-                overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                display:"flex", alignItems:"baseline", flexWrap:"wrap",
+                gap:"0 6px", lineHeight:1.25,
               }}>
-                {name}
-              </div>
-            )}
-
-            {/* @username */}
-            {!loading && username && (
-              <div style={{ fontSize:12.5, color:T.inkFaint, marginTop:4, fontWeight:400 }}>
-                @{username}
+                <span style={{
+                  fontSize:19, fontWeight:800, color:T.ink,
+                  letterSpacing:"-0.025em",
+                  flexShrink:0,
+                }}>
+                  {name}
+                </span>
+                {username && (
+                  <span style={{
+                    fontSize:12.5, color:T.inkFaint, fontWeight:400,
+                    flexShrink:0,
+                  }}>
+                    @{username}
+                  </span>
+                )}
               </div>
             )}
 
