@@ -260,61 +260,73 @@ export function ProfileHeader({
             )}
           </div>
 
-          {/* ══ RECHTE SPALTE: Name + @nick + Ort ══ */}
-          <div style={{ flex:1, minWidth:0, paddingTop:58, paddingLeft: isSuperadmin ? 10 : 4 }}>
+          {/* ══ RECHTE SPALTE: Name + @nick oben | Kontaktdaten unten ══ */}
+          <div style={{
+            flex:1, minWidth:0,
+            paddingTop:58, paddingLeft: isSuperadmin ? 10 : 4,
+            display:"flex", flexDirection:"column",
+            justifyContent:"space-between",
+            /* Unterkante Kontakt = Unterkante Follower auf linker Seite */
+          }}>
 
-            {/* Name + @username inline — fließt dynamisch mit Namenlänge */}
-            {loading ? <Sk w={130} h={22} r={6}/> : (
-              <div style={{
-                display:"flex", alignItems:"baseline", flexWrap:"wrap",
-                gap:"0 6px", lineHeight:1.25,
-              }}>
-                <span style={{
-                  fontSize:19, fontWeight:800, color:T.ink,
-                  letterSpacing:"-0.025em",
-                  flexShrink:0,
+            {/* Oberer Block: Name + @username */}
+            <div>
+              {loading ? <Sk w={130} h={22} r={6}/> : (
+                <div style={{
+                  display:"flex", alignItems:"baseline", flexWrap:"wrap",
+                  gap:"0 6px", lineHeight:1.25,
                 }}>
-                  {name}
-                </span>
-                {username && (
                   <span style={{
-                    fontSize:12.5, color:T.inkFaint, fontWeight:400,
+                    fontSize:19, fontWeight:800, color:T.ink,
+                    letterSpacing:"-0.025em",
                     flexShrink:0,
                   }}>
-                    @{username}
+                    {name}
                   </span>
-                )}
-              </div>
-            )}
+                  {username && (
+                    <span style={{
+                      fontSize:12.5, color:T.inkFaint, fontWeight:400,
+                      flexShrink:0,
+                    }}>
+                      @{username}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
 
-            {/* Ort */}
-            {!loading && location && (
-              <div style={{
-                display:"flex", alignItems:"center", gap:4,
-                marginTop:5, fontSize:12, color:T.inkSoft,
-              }}>
-                <span style={{ fontSize:13, flexShrink:0 }}>📍</span>
-                <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                  {location}
-                </span>
-              </div>
-            )}
-            {!loading && website && (
-              <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:4, fontSize:12 }}>
-                <span style={{ fontSize:13 }}>🔗</span>
-                <a href={website.startsWith("http") ? website : "https://"+website}
-                  target="_blank" rel="noopener noreferrer"
-                  style={{ color:T.teal, textDecoration:"none", overflow:"hidden",
-                    textOverflow:"ellipsis", whiteSpace:"nowrap", fontWeight:500 }}>
-                  {website.replace(/^https?:\/\//, "")}
-                </a>
-              </div>
-            )}
-            {!loading && phone && (
-              <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:4, fontSize:12 }}>
-                <span style={{ fontSize:13 }}>📞</span>
-                <a href={"tel:"+phone}
-                  style={{ color:T.inkSoft, textDecoration:"none" }}>{phone}</a>
+            {/* Unterer Block: Ort + Website + Telefon — bündig mit Follower-Unterkante */}
+            {!loading && (location || website || phone) && (
+              <div style={{ display:"flex", flexDirection:"column", gap:3, marginTop:6 }}>
+                {location && (
+                  <div style={{
+                    display:"flex", alignItems:"center", gap:4,
+                    fontSize:12, color:T.inkSoft,
+                  }}>
+                    <span style={{ fontSize:13, flexShrink:0 }}>📍</span>
+                    <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                      {location}
+                    </span>
+                  </div>
+                )}
+                {website && (
+                  <div style={{ display:"flex", alignItems:"center", gap:5, fontSize:12 }}>
+                    <span style={{ fontSize:13 }}>🔗</span>
+                    <a href={website.startsWith("http") ? website : "https://"+website}
+                      target="_blank" rel="noopener noreferrer"
+                      style={{ color:T.teal, textDecoration:"none", overflow:"hidden",
+                        textOverflow:"ellipsis", whiteSpace:"nowrap", fontWeight:500 }}>
+                      {website.replace(/^https?:\/\//, "")}
+                    </a>
+                  </div>
+                )}
+                {phone && (
+                  <div style={{ display:"flex", alignItems:"center", gap:5, fontSize:12 }}>
+                    <span style={{ fontSize:13 }}>📞</span>
+                    <a href={"tel:"+phone}
+                      style={{ color:T.inkSoft, textDecoration:"none" }}>{phone}</a>
+                  </div>
+                )}
               </div>
             )}
           </div>

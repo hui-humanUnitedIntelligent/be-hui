@@ -287,6 +287,59 @@ export function useProfileData(profileId) {
     load();
   }, [load]);
 
+  // ── Realtime: Follower-Counts live aktualisieren ──────────────────
+  // Subscribt auf INSERT/DELETE in der follows-Tabelle für diesen Nutzer.
+  // Bei jeder Änderung wird nur der follow-Count-RPC neu abgerufen (kein
+  // kompletter Reload) → sofortige Anzeige ohne Seitenneuladen.
+  useEffect(() => {
+    if (!profileId) return;
+
+    const refreshCounts = async () => {
+      try {
+        const { data } = await supabase
+          .rpc("get_follow_counts", { target_id: profileId });
+        setFollowCounts({
+          followers: data?.[0]?.followers ?? 0,
+          following: data?.[0]?.following ?? 0,
+        });
+      } catch (_) { /* noop */ }
+    };
+
+    // Kanal: Änderungen wenn jemand diesem Nutzer folgt oder entfolgt
+    const channel = supabase
+      .channel(`follows:profile:${profileId}`)
+      .on("postgres_changes", {
+        event: "INSERT",
+        schema: "public",
+        table: "follows",
+        filter: `followed_id=eq.${profileId}`,
+      }, refreshCounts)
+      .on("postgres_changes", {
+        event: "DELETE",
+        schema: "public",
+        table: "follows",
+        filter: `followed_id=eq.${profileId}`,
+      }, refreshCounts)
+      // Eigene Following-Zahl: wenn dieser Nutzer jemandem folgt/entfolgt
+      .on("postgres_changes", {
+        event: "INSERT",
+        schema: "public",
+        table: "follows",
+        filter: `follower_id=eq.${profileId}`,
+      }, refreshCounts)
+      .on("postgres_changes", {
+        event: "DELETE",
+        schema: "public",
+        table: "follows",
+        filter: `follower_id=eq.${profileId}`,
+      }, refreshCounts)
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [profileId]);
+
   return {
     profile,
     wirkerProfile,
