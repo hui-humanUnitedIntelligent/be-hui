@@ -346,15 +346,11 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
                 cursor:"pointer", fontSize:20, color:T.inkSoft, padding:"0 6px 0 0",
                 display:"flex", alignItems:"center" }}>‹</button>
             )}
-            <div>
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              {view==="main" && <HUISettingsIcon size={16}/>}
               <div style={{ fontSize:17, fontWeight:700, color:T.ink }}>
-                <span style={{display:"flex",alignItems:"center",gap:6}}><HUISettingsIcon size={14}/>{titles[view] || "Einstellungen"}</span>
+                {titles[view] || "Einstellungen"}
               </div>
-              {view==="main" && (
-                <div style={{ fontSize:12, color:T.inkSoft, marginTop:1 }}>
-                  {profile?.display_name || profile?.username || "Mein Konto"}
-                </div>
-              )}
             </div>
           </div>
           <button onClick={onClose} style={{ background:"rgba(26,26,24,0.07)", border:"none",
@@ -368,30 +364,27 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
           {/* ══ MAIN VIEW ══════════════════════════════════════ */}
           {view === "main" && (<>
 
-            {/* 1. Profil bearbeiten */}
+            {/* ACCOUNT: Profil bearbeiten + Abmelden */}
             <Section title="Account" icon={<HUIProfilIcon size={16}/>}>
               <NavItem icon={<HUIProfilIcon size={16}/>} label="Profil bearbeiten"
-                onClick={() => { onClose?.(); onEditProfile?.(); }} last/>
+                onClick={() => { onClose?.(); onEditProfile?.(); }}/>
+              <NavItem icon={<HUIAbmeldenIcon size={16}/>} label="Abmelden"
+                onClick={logout} danger last/>
             </Section>
 
-            {/* 2. Sicherheit & Passwort */}
+            {/* SICHERHEIT */}
             <Section title="Sicherheit" icon={<HUISicherheitIcon size={16}/>}>
               <NavItem icon={<HUISicherheitIcon size={16}/>} label="Sicherheit & Passwort"
                 onClick={() => setView("security")} last/>
             </Section>
 
-            {/* 3. Abmelden */}
-            <Section title="Account" icon={<HUIAbmeldenIcon size={16}/>}>
-              <NavItem icon={<HUIAbmeldenIcon size={16}/>} label="Abmelden" onClick={logout} danger last/>
-            </Section>
-
-            {/* ── Brand Footer: Logo + Version ──────────────── */}
+            {/* Brand Footer */}
             <div style={{
-              display: "flex", flexDirection: "column", alignItems: "center",
-              padding: "24px 0 12px", gap: 8,
+              display:"flex", flexDirection:"column", alignItems:"center",
+              padding:"28px 0 8px", gap:6,
             }}>
-              <HUILogoWordmark logoSize={36} />
-              <div style={{ fontSize: 11, color: "rgba(26,26,24,0.28)", letterSpacing: "0.05em" }}>
+              <HUILogoWordmark logoSize={32}/>
+              <div style={{ fontSize:10.5, color:"rgba(26,26,24,0.25)", letterSpacing:"0.05em" }}>
                 Version 1.0 · Beta
               </div>
             </div>
