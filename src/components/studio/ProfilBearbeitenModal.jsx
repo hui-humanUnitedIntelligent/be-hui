@@ -209,7 +209,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
         username:       username.trim().toLowerCase(),
         bio:            bio.trim(),
         tagline:        tagline.trim(),
-        focus_type:     focusType,
+        focus_type:     Array.isArray(focusType) ? focusType.join(',') : (focusType || ''),
         location:       locationLabel.trim(), // Sprint F.3B: schreibt profiles.location (Wahrheitsquelle)
         website:        website.trim(),
         skills:         skills,
@@ -265,7 +265,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
       setSaving(false);
     }
   }, [saving, usernameErr, fullName, displayName, username, bio, tagline, focusType,
-      locationLabel, locationLat, locationLng, website, skills, dnaTags, isAvailable, hourlyRate, phone,
+      locationLabel, locationLat, locationLng, website, skills, isAvailable, phone,
       isTalent, talentTitle, talentTagline, talentCats, talentSkills, talentLocation,
       talentRadius, talentRate, talentAvail, wpData, saveProfile, refreshProfile,
       profile?.id, onClose, onProfileUpdate]);
@@ -369,21 +369,19 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
                 />
               </FieldGroup>
 
-              <FieldGroup label="Bio / Über mich" hint={`${bio.length}/500`}>
+              <FieldGroup label="Bio / Über mich" hint={`${bio.length}/200`}>
                 <Textarea value={bio} onChange={setBio}
-                  placeholder="Erzähl etwas über dich…" rows={4} maxLength={500} />
-              </FieldGroup>
-
-              <FieldGroup label="Tagline (Kurzslogan)">
-                <Input value={tagline} onChange={setTagline}
-                  placeholder="Ein Satz der dich beschreibt" maxLength={100} />
+                  placeholder="Erzähl etwas über dich…" rows={4} maxLength={200} />
               </FieldGroup>
 
               <FieldGroup label="Fokus / Bereich">
                 <TagSelect
-                  options={FOCUS_TYPES} selected={focusType ? [focusType] : []}
-                  onToggle={v => setFocusType(v === focusType ? "" : v)}
-                  single
+                  options={FOCUS_TYPES}
+                  selected={Array.isArray(focusType) ? focusType : (focusType ? [focusType] : [])}
+                  onToggle={v => {
+                    const cur = Array.isArray(focusType) ? focusType : (focusType ? [focusType] : []);
+                    setFocusType(cur.includes(v) ? cur.filter(x => x !== v) : [...cur, v]);
+                  }}
                 />
               </FieldGroup>
 
@@ -397,8 +395,8 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
                     placeholder="Stadt oder Region suchen…"
                     style={{
                       width:"100%", fontSize:14, padding:"11px 44px 11px 38px",
-                      border:`1.5px solid ${T.border}`, borderRadius:10,
-                      background:"transparent", color:T.ink, fontFamily:T.ff, outline:"none",
+                      border:`1.5px solid rgba(26,26,24,0.15)`, borderRadius:T.r12,
+                      background:T.bgCard, color:T.ink, fontFamily:T.ff, outline:"none",
                       boxSizing:"border-box",
                     }}
                   />
@@ -430,20 +428,6 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
                   options={SKILLS_OPTS} selected={skills}
                   onToggle={v => toggleArr(skills, setSkills, v, 10)}
                 />
-              </FieldGroup>
-
-              <FieldGroup label="DNA-Tags (max. 8)">
-                <Input value={dnaTags.join(", ")}
-                  onChange={v => setDnaTags(v.split(",").map(s=>s.trim()).filter(Boolean).slice(0,8))}
-                  placeholder="z.B. kreativ, neugierig, nachhaltig" maxLength={200} />
-                <div style={{ fontSize:11, color:T.inkFaint, marginTop:4 }}>
-                  Kommagetrennt eingeben · max. 8 Tags
-                </div>
-              </FieldGroup>
-
-              <FieldGroup label="Stundensatz (€)">
-                <Input value={hourlyRate} onChange={setHourlyRate}
-                  placeholder="z.B. 85" type="number" icon={<HUIEuroIcon size={15}/>} />
               </FieldGroup>
 
               <FieldGroup label="Verfügbarkeit">
@@ -480,8 +464,8 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
                     placeholder="Stadt oder Region suchen…"
                     style={{
                       width:"100%", fontSize:14, padding:"11px 44px 11px 38px",
-                      border:`1.5px solid ${T.border}`, borderRadius:10,
-                      background:"transparent", color:T.ink, fontFamily:T.ff, outline:"none",
+                      border:`1.5px solid rgba(26,26,24,0.15)`, borderRadius:T.r12,
+                      background:T.bgCard, color:T.ink, fontFamily:T.ff, outline:"none",
                       boxSizing:"border-box",
                     }}
                   />
