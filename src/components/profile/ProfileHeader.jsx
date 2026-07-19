@@ -138,7 +138,9 @@ export function ProfileHeader({
       </div>
 
       {/* ── IDENTITY BLOCK ─────────────────────────────────────── */}
-      {/* AIRLY-005: Avatar links | rechts: [Name/@nick/Ort oben] + [Badge/Follower unten, näher am Avatar] */}
+      {/* AIRLY-006: Zwei Spalten
+           Links:  Avatar → Badge → Follower
+           Rechts: Name → @nick → Ort                             */}
       <div style={{ background: T.bg, padding:"0 16px 20px" }}>
 
         <div style={{
@@ -146,56 +148,97 @@ export function ProfileHeader({
           marginTop:-52,
         }}>
 
-          {/* ── Avatar links ── */}
-          <div style={{ position:"relative", flexShrink:0 }}>
-            <div style={{
-              width:100, height:100, borderRadius:"50%",
-              border:"4px solid white",
-              boxShadow:"0 4px 20px rgba(0,0,0,0.15)",
-              overflow:"hidden", background:T.bg, position:"relative",
-            }}>
-              {(loading || !avatarLoaded) && (
-                <div style={{
-                  position:"absolute", inset:0, borderRadius:"50%",
-                  background:"linear-gradient(90deg,#ede9e2 25%,#f7f5f0 50%,#ede9e2 75%)",
-                  backgroundSize:"200% 100%",
-                  animation:"ph-shimmer 1.4s ease-in-out infinite",
-                }}/>
-              )}
-              {!loading && (
-                <img
-                  src={avatar} alt={name}
-                  onLoad={() => setAvatarLoaded(true)}
-                  onError={() => setAvatarLoaded(true)}
+          {/* ══ LINKE SPALTE: Avatar + Badge + Follower ══ */}
+          <div style={{ flexShrink:0, display:"flex", flexDirection:"column", alignItems:"flex-start", gap:0 }}>
+
+            {/* Avatar */}
+            <div style={{ position:"relative" }}>
+              <div style={{
+                width:100, height:100, borderRadius:"50%",
+                border:"4px solid white",
+                boxShadow:"0 4px 20px rgba(0,0,0,0.15)",
+                overflow:"hidden", background:T.bg, position:"relative",
+              }}>
+                {(loading || !avatarLoaded) && (
+                  <div style={{
+                    position:"absolute", inset:0, borderRadius:"50%",
+                    background:"linear-gradient(90deg,#ede9e2 25%,#f7f5f0 50%,#ede9e2 75%)",
+                    backgroundSize:"200% 100%",
+                    animation:"ph-shimmer 1.4s ease-in-out infinite",
+                  }}/>
+                )}
+                {!loading && (
+                  <img
+                    src={avatar} alt={name}
+                    onLoad={() => setAvatarLoaded(true)}
+                    onError={() => setAvatarLoaded(true)}
+                    style={{
+                      width:"100%", height:"100%", objectFit:"cover",
+                      opacity: avatarLoaded ? 1 : 0, transition:"opacity .5s ease",
+                    }}
+                  />
+                )}
+              </div>
+              {/* Avatar-Kamera (Owner only) */}
+              {isOwner && !loading && (
+                <button className="ph-press" onClick={() => avatarInputRef.current?.click()}
                   style={{
-                    width:"100%", height:"100%", objectFit:"cover",
-                    opacity: avatarLoaded ? 1 : 0, transition:"opacity .5s ease",
+                    position:"absolute", bottom:4, right:4,
+                    width:28, height:28, borderRadius:"50%",
+                    background: avatarUploading ? "rgba(26,26,24,0.5)" : T.teal,
+                    border:"2.5px solid white",
+                    display:"flex", alignItems:"center", justifyContent:"center",
+                    fontSize:13, cursor:"pointer", touchAction:"manipulation",
+                    boxShadow:"0 2px 8px rgba(14,196,184,0.35)", zIndex:10,
                   }}
-                />
+                  aria-label="Avatar ändern"
+                >
+                  {avatarUploading ? "⏳" : "📷"}
+                </button>
               )}
             </div>
 
-            {/* Avatar-Kamera (Owner only) */}
-            {isOwner && !loading && (
-              <button className="ph-press" onClick={() => avatarInputRef.current?.click()}
-                style={{
-                  position:"absolute", bottom:4, right:4,
-                  width:28, height:28, borderRadius:"50%",
-                  background: avatarUploading ? "rgba(26,26,24,0.5)" : T.teal,
-                  border:"2.5px solid white",
-                  display:"flex", alignItems:"center", justifyContent:"center",
-                  fontSize:13, cursor:"pointer", touchAction:"manipulation",
-                  boxShadow:"0 2px 8px rgba(14,196,184,0.35)", zIndex:10,
-                }}
-                aria-label="Avatar ändern"
-              >
-                {avatarUploading ? "⏳" : "📷"}
-              </button>
+            {/* Badge — unter Avatar */}
+            <div style={{ marginTop:10 }}>
+              {loading ? <Sk w={96} h={26} r={99}/> : (
+                <div style={{
+                  display:"inline-flex", alignItems:"center", gap:5,
+                  background: isTalentResolved ? "rgba(14,196,184,0.10)" : "rgba(14,196,184,0.07)",
+                  border:`1.5px solid ${isTalentResolved ? "rgba(14,196,184,0.32)" : "rgba(14,196,184,0.18)"}`,
+                  borderRadius:99, padding:"5px 11px",
+                  fontSize:11, fontWeight:700, color:"#0AADA3",
+                  whiteSpace:"nowrap",
+                }}>
+                  <span style={{display:"flex",alignItems:"center"}}>
+                    {isTalentResolved ? <HUITalentIcon size={13}/> : <HUIImpactIcon size={13}/>}
+                  </span>
+                  <span>{isTalentResolved ? "HUI-Talent" : "Basis-Nutzer"}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Follower — unter Badge */}
+            {!loading && (followCounts.followers > 0 || followCounts.following > 0) && (
+              <div style={{
+                display:"flex", gap:10, marginTop:7,
+                fontSize:12, color:T.inkFaint,
+              }}>
+                <span>
+                  <strong style={{ color:T.ink, fontWeight:700 }}>
+                    {followCounts.followers}
+                  </strong>{" "}Follower
+                </span>
+                <span>
+                  <strong style={{ color:T.ink, fontWeight:700 }}>
+                    {followCounts.following}
+                  </strong>{" "}folgt
+                </span>
+              </div>
             )}
           </div>
 
-          {/* ── Rechte Spalte: Name/Nick/Ort oben + Badge/Follower unten ── */}
-          <div style={{ flex:1, minWidth:0, paddingTop:58, paddingLeft:6 }}>
+          {/* ══ RECHTE SPALTE: Name + @nick + Ort ══ */}
+          <div style={{ flex:1, minWidth:0, paddingTop:58, paddingLeft:4 }}>
 
             {/* Name */}
             {loading ? <Sk w={130} h={22} r={6}/> : (
@@ -210,60 +253,20 @@ export function ProfileHeader({
 
             {/* @username */}
             {!loading && username && (
-              <div style={{ fontSize:12.5, color:T.inkFaint, marginTop:3, fontWeight:400 }}>
+              <div style={{ fontSize:12.5, color:T.inkFaint, marginTop:4, fontWeight:400 }}>
                 @{username}
               </div>
             )}
 
-            {/* Ort — direkt unter @username */}
+            {/* Ort */}
             {!loading && location && (
               <div style={{
                 display:"flex", alignItems:"center", gap:4,
-                marginTop:4, fontSize:12, color:T.inkSoft,
+                marginTop:5, fontSize:12, color:T.inkSoft,
               }}>
                 <HUILocationIcon size={13} style={{flexShrink:0, color:"rgba(14,196,184,0.65)"}} />
                 <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                   {location}
-                </span>
-              </div>
-            )}
-
-            {/* ── Badge — näher nach oben, weniger Abstand ── */}
-            <div style={{ marginTop:8 }}>
-              {loading ? (
-                <Sk w={100} h={26} r={99}/>
-              ) : (
-                <div style={{
-                  display:"inline-flex", alignItems:"center", gap:5,
-                  background: isTalentResolved ? "rgba(14,196,184,0.10)" : "rgba(14,196,184,0.07)",
-                  border:`1.5px solid ${isTalentResolved ? "rgba(14,196,184,0.32)" : "rgba(14,196,184,0.18)"}`,
-                  borderRadius:99, padding:"5px 13px",
-                  fontSize:11.5, fontWeight:700, color:"#0AADA3",
-                  whiteSpace:"nowrap",
-                }}>
-                  <span style={{display:"flex",alignItems:"center"}}>
-                    {isTalentResolved ? <HUITalentIcon size={14}/> : <HUIImpactIcon size={14}/>}
-                  </span>
-                  <span>{isTalentResolved ? "HUI-Talent" : "Basis-Nutzer"}</span>
-                </div>
-              )}
-            </div>
-
-            {/* ── Follower — direkt unter Badge ── */}
-            {!loading && (followCounts.followers > 0 || followCounts.following > 0) && (
-              <div style={{
-                display:"flex", gap:14, marginTop:6,
-                fontSize:13, color:T.inkFaint,
-              }}>
-                <span>
-                  <strong style={{ color:T.ink, fontWeight:700, fontSize:14 }}>
-                    {followCounts.followers}
-                  </strong>{" "}Follower
-                </span>
-                <span>
-                  <strong style={{ color:T.ink, fontWeight:700, fontSize:14 }}>
-                    {followCounts.following}
-                  </strong>{" "}folgt
                 </span>
               </div>
             )}
