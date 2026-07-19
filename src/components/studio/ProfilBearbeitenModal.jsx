@@ -455,41 +455,6 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
                   placeholder="https://deine-website.de" icon={<HUILinkIcon size={15}/>} maxLength={200} />
               </FieldGroup>
 
-              <FieldGroup label="Standort">
-                <div style={{ position:"relative" }}>
-                  <LocationAutocompleteInput
-                    value={locationLabel}
-                    onChange={v => { setLocationLabel(v); setLocationLat(null); setLocationLng(null); }}
-                    onPick={place => { setLocationLabel(place.label); setLocationLat(place.lat); setLocationLng(place.lng); }}
-                    placeholder="Stadt oder Region suchen…"
-                    style={{
-                      width:"100%", fontSize:14, padding:"11px 44px 11px 38px",
-                      border:`1.5px solid rgba(26,26,24,0.15)`, borderRadius:T.r12,
-                      background:T.bgCard, color:T.ink, fontFamily:T.ff, outline:"none",
-                      boxSizing:"border-box",
-                    }}
-                  />
-                  <span style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }}>
-                    <HUILocationIcon size={15} style={{ color: locationLat ? "#0EC4B8" : "rgba(26,26,24,0.35)" }}/>
-                  </span>
-                  <button onClick={handleGPSLocation} disabled={geoLoading}
-                    title="GPS verwenden"
-                    style={{
-                      position:"absolute", right:8, top:"50%", transform:"translateY(-50%)",
-                      background:"none", border:"none", cursor:"pointer", padding:4,
-                      color: geoLoading ? "#0EC4B8" : "rgba(26,26,24,0.40)", fontSize:16,
-                      display:"flex", alignItems:"center",
-                    }}>
-                    {geoLoading ? "⏳" : "📍"}
-                  </button>
-                </div>
-                {locationLat && (
-                  <div style={{ fontSize:10.5, color:"#0EC4B8", marginTop:3 }}>
-                    ✓ Koordinaten ({locationLat.toFixed(3)}, {locationLng.toFixed(3)})
-                  </div>
-                )}
-              </FieldGroup>
-
               <div style={{ height:1, background:T.border, margin:"4px 0" }}/>
 
               <FieldGroup label="Talent-Bezeichnung (Berufsfeld)">
