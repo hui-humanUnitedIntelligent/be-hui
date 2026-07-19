@@ -137,22 +137,21 @@ export function ProfileHeader({
         )}
       </div>
 
-      {/* ── IDENTITY BLOCK ─────────────────────────────────────────── */}
-      {/* Neues Layout (2026-07-19): Avatar zentriert, Name/Badge darunter — klare Hierarchie */}
-      <div style={{ background: T.bg, paddingBottom: 24 }}>
+      {/* ── IDENTITY BLOCK ─────────────────────────────────────── */}
+      {/* Layout: Avatar links → Name + @nick + Badge rechts, luftigere Abstände */}
+      <div style={{ background: T.bg, padding:"0 16px 20px" }}>
 
-        {/* ── Avatar — zentriert, ragt über Cover hinaus ── */}
         <div style={{
-          display: "flex",
-          justifyContent: "center",
-          marginTop: -56,
-          paddingBottom: 0,
+          display:"flex", alignItems:"flex-start", gap:16,
+          marginTop:-52,
         }}>
+
+          {/* ── Avatar links ── */}
           <div style={{ position:"relative", flexShrink:0 }}>
             <div style={{
-              width:112, height:112, borderRadius:"50%",
+              width:100, height:100, borderRadius:"50%",
               border:"4px solid white",
-              boxShadow:"0 6px 28px rgba(0,0,0,0.15)",
+              boxShadow:"0 4px 20px rgba(0,0,0,0.15)",
               overflow:"hidden", background:T.bg, position:"relative",
             }}>
               {(loading || !avatarLoaded) && (
@@ -180,8 +179,8 @@ export function ProfileHeader({
             {isOwner && !loading && (
               <button className="ph-press" onClick={() => avatarInputRef.current?.click()}
                 style={{
-                  position:"absolute", bottom:6, right:6,
-                  width:30, height:30, borderRadius:"50%",
+                  position:"absolute", bottom:4, right:4,
+                  width:28, height:28, borderRadius:"50%",
                   background: avatarUploading ? "rgba(26,26,24,0.5)" : T.teal,
                   border:"2.5px solid white",
                   display:"flex", alignItems:"center", justifyContent:"center",
@@ -194,137 +193,75 @@ export function ProfileHeader({
               </button>
             )}
           </div>
-        </div>
 
-        {/* ── Name ── */}
-        <div style={{
-          textAlign: "center",
-          marginTop: 16,
-          paddingLeft: 20,
-          paddingRight: 20,
-        }}>
-          {loading ? (
-            <div style={{ display:"flex", justifyContent:"center" }}>
-              <Sk w={140} h={22} r={6}/>
-            </div>
-          ) : (
-            <div style={{
-              fontSize: 22,
-              fontWeight: 800,
-              color: T.ink,
-              letterSpacing: "-0.025em",
-              lineHeight: 1.2,
-            }}>
-              {name}
-            </div>
-          )}
-
-          {/* @username */}
-          {!loading && username && (
-            <div style={{
-              fontSize: 13,
-              color: T.inkFaint,
-              marginTop: 4,
-              fontWeight: 400,
-              letterSpacing: "0.01em",
-            }}>
-              @{username}
-            </div>
-          )}
-        </div>
-
-        {/* ── Badge ── */}
-        <div style={{
-          display: "flex",
-          justifyContent: "center",
-          marginTop: 12,
-        }}>
-          {loading ? (
-            <Sk w={100} h={28} r={99}/>
-          ) : (
-            <div style={{
-              display:"inline-flex", alignItems:"center", gap:5,
-              background: isTalentResolved ? T.tealSoft : "rgba(14,196,184,0.07)",
-              border:`1.5px solid ${isTalentResolved ? T.tealMid : "rgba(14,196,184,0.18)"}`,
-              borderRadius: 99,
-              padding: "6px 14px",
-              fontSize: 12,
-              fontWeight: 700,
-              color: "#0AADA3",
-              letterSpacing: "0.01em",
-            }}>
-              <span style={{display:"flex",alignItems:"center"}}>
-                {isTalentResolved ? <HUITalentIcon size={15}/> : <HUIImpactIcon size={15}/>}
-              </span>
-              <span>{isTalentResolved ? "HUI-Talent" : "Basis-Nutzer"}</span>
-            </div>
-          )}
-        </div>
-
-        {/* ── Trennlinie ── */}
-        <div style={{
-          height: 1,
-          background: T.border,
-          margin: "20px 20px 0",
-        }}/>
-
-        {/* ── Standort + Follower — horizontal, großzügig ── */}
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 24,
-          padding: "16px 20px 0",
-          flexWrap: "wrap",
-        }}>
-          {/* Standort */}
-          {!loading && location && (
-            <div style={{
-              display:"flex", alignItems:"center", gap:5,
-              fontSize: 13, color: T.inkSoft,
-            }}>
-              <HUILocationIcon size={14} style={{flexShrink:0, color:"rgba(14,196,184,0.7)"}} />
-              <span style={{
-                overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-                maxWidth: 180,
-              }}>
-                {location}
-              </span>
-            </div>
-          )}
-
-          {/* Follower-Zahlen */}
-          {!loading && (followCounts.followers > 0 || followCounts.following > 0) && (
-            <div style={{
-              display:"flex", gap:20,
-              fontSize: 13, color: T.inkFaint,
-            }}>
-              <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:1 }}>
-                <span style={{ fontSize:16, fontWeight:800, color:T.ink, lineHeight:1 }}>
-                  {followCounts.followers}
-                </span>
-                <span style={{ fontSize:11, color:T.inkFaint, fontWeight:500 }}>Follower</span>
-              </div>
+          {/* ── Name + @username + Badge rechts — mit Luft nach oben ── */}
+          <div style={{ flex:1, minWidth:0, paddingTop:58 }}>
+            {loading ? <Sk w={130} h={22} r={6}/> : (
               <div style={{
-                width:1, background:T.border, borderRadius:1, alignSelf:"stretch",
-              }}/>
-              <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:1 }}>
-                <span style={{ fontSize:16, fontWeight:800, color:T.ink, lineHeight:1 }}>
-                  {followCounts.following}
-                </span>
-                <span style={{ fontSize:11, color:T.inkFaint, fontWeight:500 }}>folgt</span>
+                fontSize:19, fontWeight:800, color:T.ink,
+                letterSpacing:"-0.025em", lineHeight:1.2,
+                overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+              }}>
+                {name}
               </div>
-            </div>
-          )}
-
-          {/* Skeleton für Standort+Follower */}
-          {loading && (
-            <>
-              <Sk w={100} h={14} r={6}/>
-              <Sk w={80} h={14} r={6}/>
-            </>
-          )}
+            )}
+            {!loading && username && (
+              <div style={{ fontSize:12.5, color:T.inkFaint, marginTop:3, fontWeight:400 }}>
+                @{username}
+              </div>
+            )}
+            {/* Badge — unter @username, mehr Luft */}
+            {!loading ? (
+              <div style={{
+                display:"inline-flex", alignItems:"center", gap:5, marginTop:8,
+                background: isTalentResolved ? "rgba(14,196,184,0.10)" : "rgba(14,196,184,0.07)",
+                border:`1.5px solid ${isTalentResolved ? "rgba(14,196,184,0.32)" : "rgba(14,196,184,0.18)"}`,
+                borderRadius:99, padding:"5px 12px",
+                fontSize:11.5, fontWeight:700, color:"#0AADA3",
+                whiteSpace:"nowrap",
+              }}>
+                <span style={{display:"flex",alignItems:"center"}}>
+                  {isTalentResolved ? <HUITalentIcon size={14}/> : <HUIImpactIcon size={14}/>}
+                </span>
+                <span>{isTalentResolved ? "HUI-Talent" : "Basis-Nutzer"}</span>
+              </div>
+            ) : (
+              <div style={{ marginTop:7 }}><Sk w={95} h={24} r={99}/></div>
+            )}
+          </div>
         </div>
+
+        {/* ── Standort ── */}
+        {!loading && location && (
+          <div style={{
+            display:"flex", alignItems:"center", gap:5,
+            marginTop:14, fontSize:13, color:T.inkSoft,
+          }}>
+            <HUILocationIcon size={14} style={{flexShrink:0, color:"rgba(14,196,184,0.65)"}} />
+            <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+              {location}
+            </span>
+          </div>
+        )}
+
+        {/* ── Follower-Counts ── */}
+        {!loading && (followCounts.followers > 0 || followCounts.following > 0) && (
+          <div style={{
+            display:"flex", gap:18, marginTop:10,
+            fontSize:13, color:T.inkFaint,
+          }}>
+            <span>
+              <strong style={{ color:T.ink, fontWeight:700, fontSize:14 }}>
+                {followCounts.followers}
+              </strong>{" "}Follower
+            </span>
+            <span>
+              <strong style={{ color:T.ink, fontWeight:700, fontSize:14 }}>
+                {followCounts.following}
+              </strong>{" "}folgt
+            </span>
+          </div>
+        )}
       </div>
     </>
   );
