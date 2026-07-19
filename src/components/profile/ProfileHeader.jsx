@@ -206,8 +206,8 @@ export function ProfileHeader({
               )}
             </div>
 
-            {/* Badge — unter Avatar */}
-            <div style={{ marginTop:10 }}>
+            {/* Badge — unter Avatar, immer zentriert */}
+            <div style={{ marginTop:10, display:"flex", justifyContent:"center" }}>
               {loading ? <Sk w={96} h={26} r={99}/> : (
                 <div style={{
                   display:"inline-flex", alignItems:"center", gap:5,
@@ -222,7 +222,15 @@ export function ProfileHeader({
                   color: isSuperadmin ? "#5A32C8" : "#0AADA3",
                   whiteSpace:"nowrap",
                 }}>
-                  {!isSuperadmin && (
+                  {isSuperadmin ? (
+                    /* Superadmin: kleines ✦ Symbol + Label */
+                    <span style={{
+                      display:"inline-flex", alignItems:"center", justifyContent:"center",
+                      width:14, height:14, borderRadius:"50%",
+                      background:"rgba(90,50,200,0.15)", fontSize:9, lineHeight:1,
+                      color:"#5A32C8", fontWeight:900, flexShrink:0,
+                    }}>✦</span>
+                  ) : (
                     <span style={{display:"flex",alignItems:"center"}}>
                       {isTalentResolved ? <HUITalentIcon size={13}/> : <HUIImpactIcon size={13}/>}
                     </span>
