@@ -138,11 +138,11 @@ export function ProfileHeader({
       </div>
 
       {/* ── IDENTITY BLOCK ─────────────────────────────────────── */}
-      {/* Layout: Avatar links → Name + @nick + Badge rechts, luftigere Abstände */}
+      {/* AIRLY-005: Avatar links | rechts: [Name/@nick/Ort oben] + [Badge/Follower unten, näher am Avatar] */}
       <div style={{ background: T.bg, padding:"0 16px 20px" }}>
 
         <div style={{
-          display:"flex", alignItems:"flex-start", gap:16,
+          display:"flex", alignItems:"flex-start", gap:14,
           marginTop:-52,
         }}>
 
@@ -194,8 +194,8 @@ export function ProfileHeader({
             )}
           </div>
 
-          {/* ── Name + @username + Ort (rechter Block) ── */}
-          <div style={{ flex:1, minWidth:0, paddingTop:58 }}>
+          {/* ── Rechte Spalte: Name/Nick/Ort oben + Badge/Follower unten ── */}
+          <div style={{ flex:1, minWidth:0, paddingTop:58, paddingLeft:6 }}>
 
             {/* Name */}
             {loading ? <Sk w={130} h={22} r={6}/> : (
@@ -227,48 +227,48 @@ export function ProfileHeader({
                 </span>
               </div>
             )}
-          </div>
-        </div>
 
-        {/* ── Badge unter Avatar (linksbündig, nach dem Flex-Row) ── */}
-        <div style={{ paddingLeft:0, marginTop:10 }}>
-          {loading ? (
-            <Sk w={100} h={26} r={99}/>
-          ) : (
-            <div style={{
-              display:"inline-flex", alignItems:"center", gap:5,
-              background: isTalentResolved ? "rgba(14,196,184,0.10)" : "rgba(14,196,184,0.07)",
-              border:`1.5px solid ${isTalentResolved ? "rgba(14,196,184,0.32)" : "rgba(14,196,184,0.18)"}`,
-              borderRadius:99, padding:"5px 13px",
-              fontSize:11.5, fontWeight:700, color:"#0AADA3",
-              whiteSpace:"nowrap",
-            }}>
-              <span style={{display:"flex",alignItems:"center"}}>
-                {isTalentResolved ? <HUITalentIcon size={14}/> : <HUIImpactIcon size={14}/>}
-              </span>
-              <span>{isTalentResolved ? "HUI-Talent" : "Basis-Nutzer"}</span>
+            {/* ── Badge — näher nach oben, weniger Abstand ── */}
+            <div style={{ marginTop:8 }}>
+              {loading ? (
+                <Sk w={100} h={26} r={99}/>
+              ) : (
+                <div style={{
+                  display:"inline-flex", alignItems:"center", gap:5,
+                  background: isTalentResolved ? "rgba(14,196,184,0.10)" : "rgba(14,196,184,0.07)",
+                  border:`1.5px solid ${isTalentResolved ? "rgba(14,196,184,0.32)" : "rgba(14,196,184,0.18)"}`,
+                  borderRadius:99, padding:"5px 13px",
+                  fontSize:11.5, fontWeight:700, color:"#0AADA3",
+                  whiteSpace:"nowrap",
+                }}>
+                  <span style={{display:"flex",alignItems:"center"}}>
+                    {isTalentResolved ? <HUITalentIcon size={14}/> : <HUIImpactIcon size={14}/>}
+                  </span>
+                  <span>{isTalentResolved ? "HUI-Talent" : "Basis-Nutzer"}</span>
+                </div>
+              )}
             </div>
-          )}
-        </div>
 
-        {/* ── Follower-Counts ── */}
-        {!loading && (followCounts.followers > 0 || followCounts.following > 0) && (
-          <div style={{
-            display:"flex", gap:18, marginTop:10,
-            fontSize:13, color:T.inkFaint,
-          }}>
-            <span>
-              <strong style={{ color:T.ink, fontWeight:700, fontSize:14 }}>
-                {followCounts.followers}
-              </strong>{" "}Follower
-            </span>
-            <span>
-              <strong style={{ color:T.ink, fontWeight:700, fontSize:14 }}>
-                {followCounts.following}
-              </strong>{" "}folgt
-            </span>
+            {/* ── Follower — direkt unter Badge ── */}
+            {!loading && (followCounts.followers > 0 || followCounts.following > 0) && (
+              <div style={{
+                display:"flex", gap:14, marginTop:6,
+                fontSize:13, color:T.inkFaint,
+              }}>
+                <span>
+                  <strong style={{ color:T.ink, fontWeight:700, fontSize:14 }}>
+                    {followCounts.followers}
+                  </strong>{" "}Follower
+                </span>
+                <span>
+                  <strong style={{ color:T.ink, fontWeight:700, fontSize:14 }}>
+                    {followCounts.following}
+                  </strong>{" "}folgt
+                </span>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </>
   );
