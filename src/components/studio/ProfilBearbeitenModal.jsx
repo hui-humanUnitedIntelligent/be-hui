@@ -1,4 +1,4 @@
-import { HUIEuroIcon, HUILinkIcon, HUILocationIcon, HUIMailIcon, HUIPhoneIcon, HUIProfilIcon } from '../../design/icons/HuiSystemIcons.jsx';
+import { HUIEuroIcon, HUILinkIcon, HUILocationIcon, HUIMailIcon, HUIPhoneIcon, HUIProfilIcon, HUITalentIcon } from '../../design/icons/HuiSystemIcons.jsx';
 // ProfilBearbeitenModal.jsx — vollständige Profil-Bearbeitung
 // ═══════════════════════════════════════════════════════════
 // Basis-Profil:   profiles (full_name, display_name, username, email, phone,
