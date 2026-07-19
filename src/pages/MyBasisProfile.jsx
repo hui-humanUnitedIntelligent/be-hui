@@ -1382,7 +1382,6 @@ function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
   if (loading) {
     return (
       <div style={{ padding:`0 ${T.px}px` }}>
-        <div style={{ fontSize:14, fontWeight:800, color:"#1A1A18", marginBottom:10 }}>Meine Momente</div>
         <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10, marginBottom:12 }}>
           {[1,2,3,4,5,6].map(i => (
             <div key={i} style={{
@@ -1891,7 +1890,7 @@ function DeleteTalentConfirm({ talent, onConfirm, onCancel }) {
 // Wiederverwendung vor Neuerstellung, Evolution statt Rewrite).
 // ════════════════════════════════════════════════════════════════
 
-function MeinBereichDrawer({ title, icon, onClose, children, footer = true }) {
+function MeinBereichDrawer({ title, icon, subtitle, onClose, children, footer = true }) {
   return createPortal(
     <div
       onClick={onClose}
@@ -1915,21 +1914,28 @@ function MeinBereichDrawer({ title, icon, onClose, children, footer = true }) {
         <div style={{ display:"flex", justifyContent:"center", padding:"12px 0 4px", flexShrink:0 }}>
           <div style={{ width:36, height:4, borderRadius:99, background:"rgba(26,26,24,0.12)" }} />
         </div>
-        {/* Header */}
+        {/* Header: Icon + Titel nebeneinander, Subtitle darunter, dann Trennlinie */}
         <div style={{
-          display:"flex", alignItems:"center", justifyContent:"space-between",
           padding:"8px 20px 14px", flexShrink:0,
           borderBottom:"1px solid rgba(26,26,24,0.08)",
         }}>
-          <div style={{ fontSize:17, fontWeight:800, color:"#1A1A18", letterSpacing:"-0.02em" }}>
-            <span style={{display:"flex",alignItems:"center",gap:7,color:"rgba(14,196,184,0.9)"}}>{icon}</span>{title}
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+            {/* Icon + Titel in einer Zeile */}
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <span style={{ display:"flex", alignItems:"center", color:"rgba(14,196,184,0.9)", flexShrink:0 }}>{icon}</span>
+              <span style={{ fontSize:17, fontWeight:800, color:"#1A1A18", letterSpacing:"-0.02em" }}>{title}</span>
+            </div>
+            <button onClick={onClose} style={{
+              background:"rgba(26,26,24,0.07)", border:"none", cursor:"pointer",
+              borderRadius:"50%", width:32, height:32,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontSize:16, color:"rgba(26,26,24,0.52)",
+            }}>✕</button>
           </div>
-          <button onClick={onClose} style={{
-            background:"rgba(26,26,24,0.07)", border:"none", cursor:"pointer",
-            borderRadius:"50%", width:32, height:32,
-            display:"flex", alignItems:"center", justifyContent:"center",
-            fontSize:16, color:"rgba(26,26,24,0.52)",
-          }}>✕</button>
+          {/* Subtitle direkt unter dem Titel, über der Trennlinie */}
+          {subtitle && (
+            <div style={{ fontSize:12, color:"#8C8C85", marginTop:4, paddingLeft:0 }}>{subtitle}</div>
+          )}
         </div>
         {/* Inhalt scrollbar */}
         <div style={{
@@ -2064,7 +2070,7 @@ function MeinBereichMenu({
 
       {/* ── Talent-Angebote ─────────────────────────────────── */}
       {activeDrawer === "talente" && (
-        <MeinBereichDrawer title="Talent-Angebote" icon={<HUITalentIcon size={18}/>} onClose={close} footer={false}>
+        <MeinBereichDrawer title="Talent-Angebote" icon={<HUITalentIcon size={18}/>} subtitle="Deine buchbaren Leistungen & Dienstleistungen." onClose={close} footer={false}>
           <TalentAngeboteSection
             talents={talents}
             onTalentWizard={onTalentWizard}
@@ -2075,7 +2081,7 @@ function MeinBereichMenu({
 
       {/* ── Meine Werke ──────────────────────────────────────── */}
       {activeDrawer === "werke" && (
-        <MeinBereichDrawer title="Meine Werke" icon={<HUIWerkeIcon size={18}/>} onClose={close} footer={false}>
+        <MeinBereichDrawer title="Meine Werke" icon={<HUIWerkeIcon size={18}/>} subtitle="Deine veröffentlichten Kreationen." onClose={close} footer={false}>
           <MeineWerkeSection
             works={works}
             onWerkWizard={onWerkWizard}
@@ -2086,7 +2092,7 @@ function MeinBereichMenu({
 
       {/* ── Erlebnisse & Projekte ────────────────────────────── */}
       {activeDrawer === "erlebnisse" && (
-        <MeinBereichDrawer title="Erlebnisse & Projekte" icon={<HUIErlebnisIcon size={18}/>} onClose={close} footer={false}>
+        <MeinBereichDrawer title="Erlebnisse & Projekte" icon={<HUIErlebnisIcon size={18}/>} subtitle="Deine Erlebnisse, Events und Herzensprojekte." onClose={close} footer={false}>
           {/* Tab-Switcher */}
           <div style={{ display:"flex", gap:0, margin:"0 20px 16px", background:"rgba(0,0,0,0.05)", borderRadius:12, padding:4 }}>
             {[["erlebnisse","Erlebnisse"],["impact","Impact Projekte"]].map(([key,label]) => (
@@ -2129,7 +2135,7 @@ function MeinBereichMenu({
 
       {/* ── Meine Momente ───────────────────────────────────── */}
       {activeDrawer === "momente" && (
-        <MeinBereichDrawer title="Meine Momente" icon={<HUIFotoIcon size={18}/>} onClose={close} footer={false}>
+        <MeinBereichDrawer title="Meine Momente" icon={<HUIFotoIcon size={18}/>} subtitle="Fotos, Gedanken oder Videos aus deinem Alltag." onClose={close} footer={false}>
           <MeinMomenteDrawerContent
             profile={profile}
             onOpenMomentSheet={() => {
@@ -2148,7 +2154,7 @@ function MeinBereichMenu({
 
       {/* ── Ambassador-Bereich ───────────────────────────────── */}
       {activeDrawer === "ambassador" && (
-        <MeinBereichDrawer title="Ambassador-Bereich" icon={<HUIAmbassadorIcon size={18}/>} onClose={close} footer={false}>
+        <MeinBereichDrawer title="Ambassador-Bereich" icon={<HUIAmbassadorIcon size={18}/>} subtitle="Dein Ambassador-Programm und Provisionen." onClose={close} footer={false}>
           <AmbassadorStudioSection profile={profile} />
         </MeinBereichDrawer>
       )}
@@ -2160,7 +2166,7 @@ function MeinBereichMenu({
 
       {/* ── Impact & Stimmen (Chooser + Detail-Drawer) ──────── */}
       {activeDrawer === "impact" && !impactDetail && (
-        <MeinBereichDrawer title="Impact & Stimmen" icon={<HUIImpactIcon size={18}/>} onClose={close} footer={false}>
+        <MeinBereichDrawer title="Impact & Stimmen" icon={<HUIImpactIcon size={18}/>} subtitle="Deine Wirkung und abgegebene Stimmen." onClose={close} footer={false}>
           <MeinBereichChooserRow
             icon={<HUIStimmeIcon size={18}/>} label="Impact-Stimmen"
             desc={isTalent ? "2 Stimmen / Monat" : "1 Stimme / Monat"}
@@ -2189,7 +2195,7 @@ function MeinBereichMenu({
 
       {/* ── Finanzabteilung (Chooser + Detail-Drawer) ───────── */}
       {activeDrawer === "finanzen" && !financeDetail && (
-        <MeinBereichDrawer title="Finanzabteilung" icon={<HUIFinanzIcon size={18}/>} onClose={close} footer={false}>
+        <MeinBereichDrawer title="Finanzabteilung" icon={<HUIFinanzIcon size={18}/>} subtitle="Einnahmen, Auszahlungen und Transaktionen." onClose={close} footer={false}>
           <MeinBereichChooserRow icon={<HUIEinAusIcon size={18}/>} label="Ein-/Ausgaben Übersicht" onPress={() => setFinanceDetail("ein_aus")} />
           <MeinBereichChooserRow icon={<HUIVerkaufIcon size={18}/>} label="Meine Verkäufe" onPress={() => setFinanceDetail("verkaeufe")} />
           <MeinBereichChooserRow icon={<HUIKalenderIcon size={18}/>} label="Meine Buchungen" onPress={() => setFinanceDetail("buchungen")} />
@@ -2250,7 +2256,6 @@ function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTalent = 
       />
     )}
     <div style={{ padding:`0 ${T.px}px` }}>
-      <div style={{ fontSize:12, color:"#8C8C85", marginBottom:12 }}>Deine buchbaren Leistungen & Dienstleistungen.</div>
       {talents.length > 0 && (
         <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)",
           gap:10, marginBottom:12 }}>
@@ -2369,7 +2374,6 @@ function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
       />
     )}
     <div style={{ padding:`0 ${T.px}px` }}>
-      <div style={{ fontSize:12, color:"#8C8C85", marginBottom:12 }}>Deine veröffentlichten Kreationen.</div>
       {works.length > 0 && (
         <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)",
           gap:10, marginBottom:12 }}>
