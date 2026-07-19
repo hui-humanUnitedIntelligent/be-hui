@@ -683,11 +683,12 @@ function SchwerpunktStatsBlock({ profile, works, experiences, moments, loading, 
     [profile, works, experiences]
   );
 
+  // ── Live-Stats: alle Werte kommen aus echten DB-Abfragen (kein fake Fallback) ──
   const stats = [
     { emoji:"👥", value: loading ? "–" : String(followCounts?.followers ?? 0), label:"Follower" },
-    { emoji:"🤝", value: loading ? "–" : String(Math.max(experiences.length * 3, 8)), label:"Begegnungen" },
-    { emoji:"💬", value: loading ? "–" : String(moments.length || 6), label:"Momente" },
-    { emoji:"⭐", value: loading ? "–" : String(works.length + experiences.length || 12), label:"Projekte &\nInitiativen" },
+    { emoji:"🤝", value: loading ? "–" : String(experiences.length), label:"Begegnungen" },
+    { emoji:"💬", value: loading ? "–" : String(moments.length), label:"Momente" },
+    { emoji:"⭐", value: loading ? "–" : String(works.length + experiences.length), label:"Projekte &\nInitiativen" },
     { emoji:"🌿", value: loading ? "–" : (profile?.impact_eur ?? 0) > 0 ? "€\u202f" + Math.round(profile.impact_eur) : "–", label:"Gemeinsame\nWirkung" },
   ];
 
@@ -1042,10 +1043,11 @@ const CAT_MAP = {
 // SOCIAL CONTEXT BAR — 3 Spalten: Verbindungen · Begegnungen · Momente
 // ══════════════════════════════════════════════════════════════
 function SocialContextBarTalent({ followCounts, experiences, moments, loading }) {
+  // Live-Werte: keine fake Multiplikatoren/Fallbacks
   const stats = [
-    { icon:"👥", value: loading?"–":String(followCounts?.followers??0),            label:"Verbindungen"      },
-    { icon:"❤️", value: loading?"–":String(Math.max(experiences.length*3,8)), label:"Gem. Begegnungen" },
-    { icon:"💬", value: loading?"–":String(moments.length||6), label:"Gem. Momente" },
+    { icon:"👥", value: loading?"–":String(followCounts?.followers??0), label:"Verbindungen"   },
+    { icon:"❤️", value: loading?"–":String(experiences.length),         label:"Gem. Begegnungen" },
+    { icon:"💬", value: loading?"–":String(moments.length),             label:"Gem. Momente"  },
   ];
   return (
     <div style={{
@@ -1129,13 +1131,25 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
     if (!existing) {
       ch = supabase
         .channel(topic)
+        // works: INSERT + UPDATE + DELETE → Stats immer aktuell
         .on("postgres_changes", {
-          event: "UPDATE", schema: "public", table: "works",
+          event: "*", schema: "public", table: "works",
           filter: "user_id=eq." + profileId,
         }, () => reload())
+        // experiences: INSERT + UPDATE + DELETE
         .on("postgres_changes", {
-          event: "UPDATE", schema: "public", table: "experiences",
+          event: "*", schema: "public", table: "experiences",
           filter: "user_id=eq." + profileId,
+        }, () => reload())
+        // momente: INSERT + DELETE → Momente-Zähler live
+        .on("postgres_changes", {
+          event: "*", schema: "public", table: "momente",
+          filter: "user_id=eq." + profileId,
+        }, () => reload())
+        // follower: wenn jemand folgt/entfolgt → Follower-Zähler live
+        .on("postgres_changes", {
+          event: "*", schema: "public", table: "followers",
+          filter: "following_id=eq." + profileId,
         }, () => reload())
         .subscribe();
       createdHere = true;
