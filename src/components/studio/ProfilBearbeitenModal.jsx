@@ -423,6 +423,16 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
                 )}
               </FieldGroup>
 
+              <FieldGroup label="Telefonnummer">
+                <Input value={phone} onChange={setPhone}
+                  placeholder="+49 123 456789" type="tel" icon={<HUIPhoneIcon size={15}/>} maxLength={30} />
+              </FieldGroup>
+
+              <FieldGroup label="Website / Portfolio">
+                <Input value={website} onChange={setWebsite}
+                  placeholder="https://deine-website.de" icon={<HUILinkIcon size={15}/>} maxLength={200} />
+              </FieldGroup>
+
               <FieldGroup label="Skills (max. 10)">
                 <TagSelect
                   options={SKILLS_OPTS} selected={skills}
@@ -444,16 +454,6 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
           {/* ══ TAB: TALENT-PROFIL ══ (inkl. Kontakt oben) */}
           {tab === "talent" && isTalent && (
             <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-
-              <FieldGroup label="Telefonnummer">
-                <Input value={phone} onChange={setPhone}
-                  placeholder="+49 123 456789" type="tel" icon={<HUIPhoneIcon size={15}/>} maxLength={30} />
-              </FieldGroup>
-
-              <FieldGroup label="Website / Portfolio">
-                <Input value={website} onChange={setWebsite}
-                  placeholder="https://deine-website.de" icon={<HUILinkIcon size={15}/>} maxLength={200} />
-              </FieldGroup>
 
               <div style={{ height:1, background:T.border, margin:"4px 0" }}/>
 
