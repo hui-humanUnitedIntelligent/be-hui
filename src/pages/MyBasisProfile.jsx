@@ -2048,20 +2048,20 @@ function MeinBereichMenu({
           display:"grid", gridTemplateColumns:"repeat(4, 1fr)",
           rowGap:18, columnGap:4,
         }}>
-          <MeinBereichTile icon={<HUIResonanzIcon size={22}/>} label="Meine Resonanz" onPress={onOpenResonanz} />
-          {isTalent && (
-            <MeinBereichTile icon={<HUITalentIcon size={22}/>} label="Talent-Angebote" onPress={() => setActiveDrawer("talente")} />
-          )}
           {isTalent && (
             <MeinBereichTile icon={<HUIWerkeIcon size={22}/>} label="Meine Werke" onPress={() => setActiveDrawer("werke")} />
+          )}
+          {isTalent && (
+            <MeinBereichTile icon={<HUITalentIcon size={22}/>} label="Talent-Angebote" onPress={() => setActiveDrawer("talente")} />
           )}
           {isTalent && (
             <MeinBereichTile icon={<HUIErlebnisIcon size={22}/>} label="Erlebnisse & Projekte" onPress={() => setActiveDrawer("erlebnisse")} />
           )}
           <MeinBereichTile icon={<HUIFotoIcon size={22}/>} label="Meine Momente" onPress={() => setActiveDrawer("momente")} />
-          <MeinBereichTile icon={<HUIEmpfehlungIcon size={22}/>} label="Meine Empfehlungen" onPress={() => setActiveDrawer("empfehlungen")} />
           <MeinBereichTile icon={<HUIImpactIcon size={22}/>} label="Impact & Stimmen" onPress={() => setActiveDrawer("impact")} />
           <MeinBereichTile icon={<HUIFinanzIcon size={22}/>} label="Finanzabteilung" onPress={() => setActiveDrawer("finanzen")} />
+          <MeinBereichTile icon={<HUIResonanzIcon size={22}/>} label="Meine Resonanz" onPress={onOpenResonanz} />
+          <MeinBereichTile icon={<HUIEmpfehlungIcon size={22}/>} label="Meine Empfehlungen" onPress={() => setActiveDrawer("empfehlungen")} />
         </div>
       </div>
 
