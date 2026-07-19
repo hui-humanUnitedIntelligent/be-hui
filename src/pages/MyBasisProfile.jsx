@@ -1383,10 +1383,10 @@ function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
     return (
       <div style={{ padding:`0 ${T.px}px` }}>
         <div style={{ fontSize:14, fontWeight:800, color:"#1A1A18", marginBottom:10 }}>Meine Momente</div>
-        <div style={{ display:"flex", gap:8, overflow:"hidden", marginBottom:8 }}>
-          {[1,2,3,4,5].map(i => (
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10, marginBottom:12 }}>
+          {[1,2,3,4,5,6].map(i => (
             <div key={i} style={{
-              flexShrink:0, width:88, height:88, borderRadius:T.r12,
+              width:"100%", aspectRatio:"1/1", borderRadius:T.r12,
               background:"linear-gradient(90deg,#ede9e2 25%,#f7f5f0 50%,#ede9e2 75%)",
               backgroundSize:"200% 100%", animation:"mbp-shimmer 1.4s ease-in-out infinite",
             }}/>
@@ -1442,12 +1442,11 @@ function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
             : "Fotos, Gedanken oder Videos"}
         </div>
 
-        {/* ── Kachel-Scroller (identisch zu Werke/Talente) ─── */}
+        {/* ── Kachel-Grid 3-spaltig ─── */}
         {moments.length > 0 && (
           <div style={{
-            display:"flex", gap:8, overflowX:"auto",
-            WebkitOverflowScrolling:"touch", scrollbarWidth:"none",
-            paddingBottom:4, marginBottom:8,
+            display:"grid", gridTemplateColumns:"repeat(3,1fr)",
+            gap:10, marginBottom:12,
           }}>
             {moments.map((m, i) => {
               const mediaSrc = m.src || m.media_url;
@@ -1456,7 +1455,7 @@ function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
               return (
               <div key={m.id || i}
                 style={{
-                  flexShrink:0, width:88, height:88,
+                  width:"100%", aspectRatio:"1/1",
                   borderRadius:T.r12, overflow:"hidden",
                   background:"#e8e4de", position:"relative",
                   boxShadow:"0 0 0 2px #0EC4B8",
@@ -1510,11 +1509,9 @@ function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
 
         {/* ── Empty-State (nur als kleine Kachel, nicht als großer Block) ── */}
         {moments.length === 0 && (
-          <div style={{
-            display:"flex", gap:8, marginBottom:8,
-          }}>
+          <div style={{ marginBottom:12 }}>
             <div onClick={onOpenMomentSheet} style={{
-              flexShrink:0, width:88, height:88,
+              width:"30%", aspectRatio:"1/1",
               borderRadius:T.r12, overflow:"hidden",
               background:"#F7F5F0", position:"relative", cursor:"pointer",
               border:`1.5px dashed rgba(14,196,184,0.4)`,
@@ -2255,9 +2252,8 @@ function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTalent = 
     <div style={{ padding:`0 ${T.px}px` }}>
       <div style={{ fontSize:12, color:"#8C8C85", marginBottom:12 }}>Deine buchbaren Leistungen & Dienstleistungen.</div>
       {talents.length > 0 && (
-        <div style={{ display:"flex", gap:8, overflowX:"auto",
-          WebkitOverflowScrolling:"touch", scrollbarWidth:"none",
-          paddingBottom:4, marginBottom:8 }}>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)",
+          gap:10, marginBottom:12 }}>
           {talents.map((t, i) => {
             const isApproved = t.status === "approved";
             const isPending  = t.status === "pending";
@@ -2268,7 +2264,7 @@ function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTalent = 
               <div key={t.id || i}
                 onClick={() => onTalentWizard?.(t)}
                 style={{
-                  flexShrink:0, width:88, height:88,
+                  width:"100%", aspectRatio:"1/1",
                   borderRadius:12, overflow:"hidden",
                   background:"#e8e4de", position:"relative", cursor:"pointer",
                   boxShadow: isApproved ? "0 0 0 2px #0EC4B8" : isPending ? "0 0 0 2px #D4A800" : "0 0 0 2px #ff5050",
@@ -2375,9 +2371,8 @@ function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
     <div style={{ padding:`0 ${T.px}px` }}>
       <div style={{ fontSize:12, color:"#8C8C85", marginBottom:12 }}>Deine veröffentlichten Kreationen.</div>
       {works.length > 0 && (
-        <div style={{ display:"flex", gap:8, overflowX:"auto",
-          WebkitOverflowScrolling:"touch", scrollbarWidth:"none",
-          paddingBottom:4, marginBottom:8 }}>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)",
+          gap:10, marginBottom:12 }}>
           {works.map((w, i) => {
             const isApproved = w.approval_status === "approved";
             const isPending  = w.approval_status === "pending" || w.status === "pending_review";
@@ -2387,7 +2382,7 @@ function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
               <div key={w.id || i}
                 onClick={() => onWerkWizard?.(w)}
                 style={{
-                  flexShrink:0, width:88, height:88,
+                  width:"100%", aspectRatio:"1/1",
                   borderRadius:T.r12, overflow:"hidden",
                   background:"#e8e4de", position:"relative", cursor:"pointer",
                   boxShadow: isApproved ? "0 0 0 2px #0EC4B8" : isPending ? "0 0 0 2px #D4A800" : "0 0 0 2px #ff5050",
@@ -2531,8 +2526,8 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
     <div style={{ padding:`0 ${T.px}px` }}>
       <div style={{ fontSize:12, color:"#8C8C85", marginBottom:12 }}>Momente, die mein Wirken zeigen.</div>
 
-      <div style={{ display:"flex", gap:8, overflowX:"auto",
-        WebkitOverflowScrolling:"touch", scrollbarWidth:"none", paddingBottom:4, marginBottom:8 }}>
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)",
+        gap:10, marginBottom:12 }}>
         {experiences.map((exp, i) => {
           // ── Badge-System identisch zu Meine Werke ──────────────
           const isApproved = exp.approval_status === "approved" || exp.status === "published";
@@ -2557,7 +2552,7 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
             <div key={exp.id || i}
               onClick={() => onErlebnisWizard?.(exp)}
               style={{
-                flexShrink:0, width:88, height:88,
+                width:"100%", aspectRatio:"1/1",
                 borderRadius:T.r12, overflow:"hidden",
                 background:"#e8e4de", position:"relative", cursor:"pointer",
                 boxShadow: `0 0 0 2px ${borderCol}`,
