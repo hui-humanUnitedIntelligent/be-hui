@@ -69,6 +69,10 @@ export function ProfileHeader({
   const email    = sv(profile?.email);
 
   const isTalentResolved = isTalent || profile?.is_talent === true;
+  const isSuperadmin     = profile?.role === "admin";
+
+  // Badge-Label: Superadmin > HUI-Talent > Basis-Nutzer
+  const badgeLabel = isSuperadmin ? "Superadmin" : isTalentResolved ? "HUI-Talent" : "Basis-Nutzer";
 
   const handleAvatarFile = useCallback((e) =>
     handleAvatarUpload({ event: e, profileId: profile?.id, onSuccess: onEditAvatar, setUploading: setAvatarUploading }),
@@ -207,16 +211,23 @@ export function ProfileHeader({
               {loading ? <Sk w={96} h={26} r={99}/> : (
                 <div style={{
                   display:"inline-flex", alignItems:"center", gap:5,
-                  background: isTalentResolved ? "rgba(14,196,184,0.10)" : "rgba(14,196,184,0.07)",
-                  border:`1.5px solid ${isTalentResolved ? "rgba(14,196,184,0.32)" : "rgba(14,196,184,0.18)"}`,
+                  background: isSuperadmin
+                    ? "rgba(90,50,200,0.08)"
+                    : isTalentResolved ? "rgba(14,196,184,0.10)" : "rgba(14,196,184,0.07)",
+                  border: isSuperadmin
+                    ? "1.5px solid rgba(90,50,200,0.28)"
+                    : `1.5px solid ${isTalentResolved ? "rgba(14,196,184,0.32)" : "rgba(14,196,184,0.18)"}`,
                   borderRadius:99, padding:"5px 11px",
-                  fontSize:11, fontWeight:700, color:"#0AADA3",
+                  fontSize:11, fontWeight:700,
+                  color: isSuperadmin ? "#5A32C8" : "#0AADA3",
                   whiteSpace:"nowrap",
                 }}>
-                  <span style={{display:"flex",alignItems:"center"}}>
-                    {isTalentResolved ? <HUITalentIcon size={13}/> : <HUIImpactIcon size={13}/>}
-                  </span>
-                  <span>{isTalentResolved ? "HUI-Talent" : "Basis-Nutzer"}</span>
+                  {!isSuperadmin && (
+                    <span style={{display:"flex",alignItems:"center"}}>
+                      {isTalentResolved ? <HUITalentIcon size={13}/> : <HUIImpactIcon size={13}/>}
+                    </span>
+                  )}
+                  <span>{badgeLabel}</span>
                 </div>
               )}
             </div>
@@ -242,7 +253,7 @@ export function ProfileHeader({
           </div>
 
           {/* ══ RECHTE SPALTE: Name + @nick + Ort ══ */}
-          <div style={{ flex:1, minWidth:0, paddingTop:58, paddingLeft:4 }}>
+          <div style={{ flex:1, minWidth:0, paddingTop:58, paddingLeft: isSuperadmin ? 10 : 4 }}>
 
             {/* Name */}
             {loading ? <Sk w={130} h={22} r={6}/> : (
