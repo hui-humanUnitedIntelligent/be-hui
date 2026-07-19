@@ -69,7 +69,7 @@ export function ProfileHeader({
   const email    = sv(profile?.email);
 
   const isTalentResolved = isTalent || profile?.is_talent === true;
-  const isSuperadmin     = profile?.role === "admin";
+  const isSuperadmin     = ["admin","superadmin","super_admin"].includes(profile?.role);
 
   // Badge-Label: Superadmin > HUI-Talent > Basis-Nutzer
   const badgeLabel = isSuperadmin ? "Superadmin" : isTalentResolved ? "HUI-Talent" : "Basis-Nutzer";
