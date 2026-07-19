@@ -392,21 +392,6 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
           {tab === "talent" && isTalent && (
             <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
 
-              {/* Kontakt: E-Mail als read-only Info-Zeile */}
-              <div style={{
-                display:"flex", alignItems:"center", gap:8,
-                padding:"10px 12px", borderRadius:10,
-                background:"rgba(14,196,184,0.06)", border:"1px solid rgba(14,196,184,0.15)",
-              }}>
-                <HUIMailIcon size={13} style={{ color:"rgba(14,196,184,0.7)", flexShrink:0 }}/>
-                <div>
-                  <div style={{ fontSize:13, fontWeight:600, color:T.ink }}>{email || "–"}</div>
-                  <div style={{ fontSize:11, color:T.inkFaint, marginTop:1 }}>
-                    E-Mail ändern → Einstellungen → Sicherheit
-                  </div>
-                </div>
-              </div>
-
               <FieldGroup label="Telefonnummer">
                 <Input value={phone} onChange={setPhone}
                   placeholder="+49 123 456789" type="tel" icon={<HUIPhoneIcon size={15}/>} maxLength={30} />
