@@ -5,6 +5,7 @@
 
 import {
   HUILocationIcon, HUITalentIcon, HUIImpactIcon,
+  HUILinkIcon, HUIPhoneIcon,
 } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef, useCallback } from "react";
 import {
@@ -63,6 +64,9 @@ export function ProfileHeader({
   const name     = sv(profile?.full_name || profile?.display_name || profile?.username, "–");
   const username = sv(profile?.username);
   const location = sv(profile?.location_final || profile?.location);
+  const website  = sv(profile?.website);
+  const phone    = sv(profile?.phone);
+  const email    = sv(profile?.email);
 
   const isTalentResolved = isTalent || profile?.is_talent === true;
 
@@ -268,6 +272,22 @@ export function ProfileHeader({
                 <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                   {location}
                 </span>
+              </div>
+            )}
+            {!loading && website && (
+              <div style={{ display:"flex", alignItems:"center", gap:4, marginTop:3, fontSize:12, color:T.teal }}>
+                <HUILinkIcon size={12} style={{flexShrink:0}}/>
+                <a href={website.startsWith("http") ? website : "https://"+website}
+                  target="_blank" rel="noopener noreferrer"
+                  style={{ color:T.teal, textDecoration:"none", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                  {website.replace(/^https?:\/\//, "")}
+                </a>
+              </div>
+            )}
+            {!loading && phone && (
+              <div style={{ display:"flex", alignItems:"center", gap:4, marginTop:3, fontSize:12, color:T.inkSoft }}>
+                <HUIPhoneIcon size={12} style={{flexShrink:0}}/>
+                <a href={"tel:"+phone} style={{ color:T.inkSoft, textDecoration:"none" }}>{phone}</a>
               </div>
             )}
           </div>

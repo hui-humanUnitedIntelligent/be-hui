@@ -43,7 +43,6 @@ const T = {
 // ── Tabs ───────────────────────────────────────────────────────────
 const TABS = [
   { key: "basis",   label: "Basis-Profil",   icon: <HUIProfilIcon size={14}/> },
-  { key: "kontakt", label: "Kontakt",         icon: "📬" },
   { key: "talent",  label: "Talent-Profil",   icon: "🎯" },
 ];
 
@@ -268,10 +267,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
         }}>
           <div>
             <div style={{ fontSize:18, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>
-              
-            </div>
-            <div style={{ fontSize:12, color:T.inkSoft, marginTop:2 }}>
-              {isTalent ? "Basis + Talent-Profil" : "Basis-Profil"}
+              {isTalent ? "Basis & Talent-Profil" : "Basis-Profil"}
             </div>
           </div>
           <button onClick={onClose} style={{
@@ -394,22 +390,16 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
             </div>
           )}
 
-          {/* ══ TAB: KONTAKT ══ */}
-          {tab === "kontakt" && (
+          {/* ══ TAB: TALENT-PROFIL ══ (inkl. Kontakt oben) */}
+          {tab === "talent" && isTalent && (
             <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
 
-              <InfoBox>
-                📧 E-Mail-Änderungen werden direkt in Supabase gespeichert. Für Login-E-Mail-Änderung ist ggf. eine Bestätigung per E-Mail nötig.
-              </InfoBox>
-
+              {/* Kontakt-Felder oben im Talent-Tab */}
               <FieldGroup label="E-Mail-Adresse">
                 <Input value={email} onChange={setEmail}
                   placeholder="deine@email.de" type="email" icon={<HUIMailIcon size={15}/>}
                   disabled={true}
                 />
-                <div style={{ fontSize:11, color:T.inkFaint, marginTop:4 }}>
-                  ⚠️ Login-E-Mail kann nur über Supabase Auth geändert werden.
-                </div>
               </FieldGroup>
 
               <FieldGroup label="Telefonnummer">
@@ -427,12 +417,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
                   placeholder="Stadt, Region" icon={<HUILocationIcon size={15}/>} maxLength={80} />
               </FieldGroup>
 
-            </div>
-          )}
-
-          {/* ══ TAB: TALENT-PROFIL ══ */}
-          {tab === "talent" && isTalent && (
-            <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+              <div style={{ height:1, background:T.border, margin:"4px 0" }}/>
 
               <FieldGroup label="Talent-Bezeichnung (Berufsfeld)">
                 <Input value={talentTitle} onChange={setTalentTitle}
