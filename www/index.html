@@ -158,11 +158,30 @@
       /* Fix: 100dvh für iOS + Android (vermeidet Browser/System-Toolbar-Overlap) */
       :root { --app-height: 100dvh; }
 
-      /* Android Edge-to-Edge: System-NavigationBar wird transparent —
-         App füllt den gesamten Bildschirm. Die CSS-Variable
-         env(safe-area-inset-bottom) gibt die korrekte Höhe der
-         Android-Systemleiste zurück (Soft-Buttons oder Gesten-Indikator).
-         Capacitor setzt diese Variable automatisch wenn overlaysWebView=true. */
+      /* ── Safe-Area-Insets: 3-Ebenen-Strategie ──────────────────────────
+         Level 1: --hui-safe-bottom — von Android via WindowInsetsCompat injiziert
+                  (MainActivity.java liest echte Px aus, konvertiert zu dp, setzt als CSS-Var)
+         Level 2: env(safe-area-inset-bottom) — nativ iOS/modernes Android (Capacitor)
+         Level 3: 20px — Minimum-Puffer für Geräte ohne Edge-to-Edge
+
+         :root-Default (0px) wird von MainActivity.java überschrieben sobald
+         die echten Insets vorliegen (bei onCreate). iOS setzt env() nativ. */
+      :root {
+        --hui-safe-bottom: 0px;
+        --hui-safe-top:    0px;
+        --hui-safe-left:   0px;
+        --hui-safe-right:  0px;
+      }
+
+      /* Zentrale Hilfsvariable — wird überall statt hartkodierten 72px genutzt */
+      :root {
+        --hui-nav-safe-bottom: max(
+          var(--hui-safe-bottom, 0px),
+          env(safe-area-inset-bottom, 20px),
+          20px
+        );
+      }
+
       html, body {
         /* Verhindert ungewolltes Scrollen hinter System-Bars auf Android */
         overscroll-behavior: none;
@@ -203,7 +222,7 @@
       body { background: #FDFAF5; margin: 0; }
     </style>
     <!-- ════════════════════════════════════════════════════════ -->
-  <script type="module" crossorigin src="./assets/index-C_ZkfVbd.js"></script>
+  <script type="module" crossorigin src="./assets/index-c_hmDMm-.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/vendor-LGk-UxvC.js">
   <link rel="stylesheet" crossorigin href="./assets/style-CT25szbh.css">
 </head>

@@ -13,7 +13,7 @@ export const NAV_GEOMETRY = Object.freeze({
   // ohne Edge-to-Edge oder wenn Capacitor overlaysWebView noch nicht aktiv).
   // Geräte MIT aktiver System-Nav (Android Soft-Buttons ~48px, iOS Home-Indikator ~34px)
   // liefern via env() automatisch den korrekten Wert — SAFE_B ist nur der Minimum-Puffer.
-  SAFE_B:   16,
+  SAFE_B:   20,    // erhöht: 16→20 — Minimum-Puffer für ältere Android-Geräte ohne Edge-to-Edge
   ORB_D:    102,   // LOCKED — HUI Living Design System v1.0 (Durchmesser unverändert)
   GAP:      6,     // Luftfuge Orb ↔ Einbuchtungs-Spitze (bewusstes Design-Element)
   CORNER_R: 40,    // wird via min(CORNER_R, H/2) ohnehin auf volle Pill-Rundung gekappt
@@ -46,14 +46,14 @@ export const NAV_BLOCK_HEIGHT = ORB_OVERHANG + TAB_H;   // 57 + 64 = 121px
 
 /** CSS value for feed clearance — used by scroll container and fixed overlays */
 export const NAV_CLEARANCE_CSS =
-  `calc(${NAV_BLOCK_HEIGHT}px + max(${NAV_GEOMETRY.SAFE_B}px, env(safe-area-inset-bottom, ${NAV_GEOMETRY.SAFE_B}px)))`;
+  `calc(${NAV_BLOCK_HEIGHT}px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, ${NAV_GEOMETRY.SAFE_B}px), ${NAV_GEOMETRY.SAFE_B}px))`;
 
 /** CSS value for nav container total height (Orb-Überhang + Tabbar + Safe-Area) —
  *  weiterhin exportiert für Konsumenten, die die VOLLE optische Nav-Zone
  *  brauchen (z.B. WerkeKorb-Button-Clearance), aber NICHT mehr für die
  *  eigene reservierte Layout-Box der Navigation verwendet (siehe unten). */
 export const NAV_CONTAINER_HEIGHT_CSS =
-  `calc(${NAV_BLOCK_HEIGHT}px + max(${NAV_GEOMETRY.SAFE_B}px, env(safe-area-inset-bottom, ${NAV_GEOMETRY.SAFE_B}px)))`;
+  `calc(${NAV_BLOCK_HEIGHT}px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, ${NAV_GEOMETRY.SAFE_B}px), ${NAV_GEOMETRY.SAFE_B}px))`;
 
 /** CSS value for the nav's OWN reserved flex-layout height — bewusst OHNE
  *  den Orb-Überhang. Der Überhang-Bereich war im Code zwar schon transparent,
@@ -65,11 +65,22 @@ export const NAV_CONTAINER_HEIGHT_CSS =
  *  wieder sichtbaren) Feed hinweg (siehe Orb-top-Kompensation in
  *  HUIBottomNavigation.jsx). */
 export const NAV_RESERVED_HEIGHT_CSS =
-  `calc(${TAB_H}px + max(${NAV_GEOMETRY.SAFE_B}px, env(safe-area-inset-bottom, ${NAV_GEOMETRY.SAFE_B}px)))`;
+  `calc(${TAB_H}px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, ${NAV_GEOMETRY.SAFE_B}px), ${NAV_GEOMETRY.SAFE_B}px))`;
 
-/** CSS value for safe-area bottom padding inside nav */
+/** CSS value for safe-area bottom padding inside nav.
+ *
+ * Drei-Ebenen-Fallback (sicherste Variante):
+ *   1. max(--hui-safe-bottom, env(safe-area-inset-bottom)) — größter von beiden
+ *      • --hui-safe-bottom: von MainActivity.java via WindowInsetsCompat injiziert (Android)
+ *      • env(safe-area-inset-bottom): nativ von iOS/modernes Android via Capacitor overlaysWebView
+ *   2. SAFE_B (20px) — Minimum-Puffer für ältere Geräte ohne Edge-to-Edge
+ *
+ * Auf Geräten mit Soft-Keys (~48px) dominiert --hui-safe-bottom.
+ * Auf Geräten mit Gesten-Navigation (~34-44px) dominiert env().
+ * Auf Geräten ohne Systemleiste (0px) greift der SAFE_B-Puffer.
+ */
 export const NAV_SAFE_BOTTOM_CSS =
-  `max(${NAV_GEOMETRY.SAFE_B}px, env(safe-area-inset-bottom, ${NAV_GEOMETRY.SAFE_B}px))`;
+  `max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, ${NAV_GEOMETRY.SAFE_B}px), ${NAV_GEOMETRY.SAFE_B}px)`;
 
 /** CSS value for content-area bottom spacer — used as the LAST child in every
  *  scrollable tab (Feed, Discover, Impact, Momente).
@@ -78,7 +89,7 @@ export const NAV_SAFE_BOTTOM_CSS =
  *  All pages MUST use: <div style={{ height: NAV_CONTENT_SPACER_CSS }} aria-hidden="true" />
  *  as their very last child — never a hard-coded pixel value. */
 export const NAV_CONTENT_SPACER_CSS =
-  `calc(${NAV_BLOCK_HEIGHT}px + max(${NAV_GEOMETRY.SAFE_B}px, env(safe-area-inset-bottom, ${NAV_GEOMETRY.SAFE_B}px)) + 24px)`;
+  `calc(${NAV_BLOCK_HEIGHT}px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, ${NAV_GEOMETRY.SAFE_B}px), ${NAV_GEOMETRY.SAFE_B}px) + 24px)`;
 
 /**
  * Build organic SVG tabbar path with center notch.
