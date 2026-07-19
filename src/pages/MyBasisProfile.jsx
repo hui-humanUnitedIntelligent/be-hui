@@ -458,6 +458,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
   // keine zweite Berechnung/Query.
   const { count: savedCount } = useSavedPostsContext();
   const [showSettings,    setShowSettings]    = useState(false);
+  const [showProfilEditPage, setShowProfilEditPage] = useState(false);
   const [showStudio,        setShowStudio]        = useState(false);
   const [showResonanz,      setShowResonanz]      = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -1134,13 +1135,19 @@ export default function MyBasisProfile({ onClose, profileId }) {
           }}
           onEditProfile={() => {
             setShowSettings(false);
-            // Öffne Profil-Editor falls vorhanden
-            if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("hui:openEditor"));
+            setShowProfilEditPage(true);
           }}
           onOpenBookings={() => {
             setShowSettings(false);
             if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("hui:openBookings"));
           }}
+        />
+      )}
+      {showProfilEditPage && (
+        <ProfilBearbeitenModal
+          profile={profile}
+          onClose={() => setShowProfilEditPage(false)}
+          onProfileUpdate={() => { refreshProfile?.().catch(() => {}); setShowProfilEditPage(false); }}
         />
       )}
 
@@ -2036,20 +2043,6 @@ function MeinBereichMenu({
         <div style={{ fontSize:15, fontWeight:800, color:T.ink, marginBottom:14, letterSpacing:"-0.01em" }}>
           Mein Bereich
         </div>
-
-        <button
-          onClick={() => setShowProfilEdit(true)}
-          className="mbp-press-light"
-          style={{
-            width:"100%", padding:"13px", borderRadius:T.r99,
-            background:T.tealSoft, border:`1px solid ${T.tealMid}`,
-            color:T.teal, fontSize:14, fontWeight:800, cursor:"pointer",
-            fontFamily:"inherit", marginBottom:18,
-            WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
-          }}
-        >
-          Profil bearbeiten
-        </button>
 
         <div style={{
           display:"grid", gridTemplateColumns:"repeat(4, 1fr)",

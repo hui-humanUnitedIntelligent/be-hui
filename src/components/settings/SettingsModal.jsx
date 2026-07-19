@@ -368,25 +368,19 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
           {/* ══ MAIN VIEW ══════════════════════════════════════ */}
           {view === "main" && (<>
 
-            {/* Account-Aktionen */}
+            {/* 1. Profil bearbeiten */}
             <Section title="Account" icon={<HUIProfilIcon size={16}/>}>
               <NavItem icon={<HUIProfilIcon size={16}/>} label="Profil bearbeiten"
-                onClick={() => { onClose?.(); onEditProfile?.(); }}/>
-              <NavItem icon={<HUIKalenderIcon size={16}/>} label="Meine Buchungen"
-                onClick={() => { onClose?.(); onOpenBookings?.(); }} last/>
+                onClick={() => { onClose?.(); onEditProfile?.(); }} last/>
             </Section>
 
-            {/* Einstellungen */}
-            <Section title="Einstellungen" icon={<HUISettingsIcon size={16}/>}>
-              <NavItem icon={<HUIKontaktIcon size={16}/>} label="Persönliche Daten & Kontakt"
-                onClick={() => setView("contact")}/>
+            {/* 2. Sicherheit & Passwort */}
+            <Section title="Sicherheit" icon={<HUISicherheitIcon size={16}/>}>
               <NavItem icon={<HUISicherheitIcon size={16}/>} label="Sicherheit & Passwort"
-                onClick={() => setView("security")}/>
-              <NavItem icon={<HUIDatenschutzIcon size={16}/>} label="Privatsphäre"
-                onClick={() => setView("privacy")} last/>
+                onClick={() => setView("security")} last/>
             </Section>
 
-            {/* Account löschen / Abmelden */}
+            {/* 3. Abmelden */}
             <Section title="Account" icon={<HUIAbmeldenIcon size={16}/>}>
               <NavItem icon={<HUIAbmeldenIcon size={16}/>} label="Abmelden" onClick={logout} danger last/>
             </Section>

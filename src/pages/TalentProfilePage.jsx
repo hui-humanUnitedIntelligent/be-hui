@@ -23,6 +23,7 @@ import { notifyWatcher } from "../lib/notificationService.js";
 import { useHome }       from "../components/home/HomeShell.jsx";
 import SettingsModal  from "../components/settings/SettingsModal.jsx";
 import HuiStudio      from "../components/studio/HuiStudio.jsx";
+import ProfilBearbeitenModal from "../components/studio/ProfilBearbeitenModal.jsx";
 // Sprint D: Datenlayer
 import { useProfileData } from "../hooks/useProfileData.js";
 // Sprint D: Unified Sections (Sprint C)
@@ -1100,6 +1101,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
   const [showKompassSheet,  setShowKompassSheet]  = useState(false);
   const [kompassWatchLocal, setKompassWatchLocal] = useState(null);
   const [showSettings,      setShowSettings]      = useState(false);
+  const [showProfilEdit,    setShowProfilEdit]    = useState(false);
   const [showStudio,        setShowStudio]        = useState(false);
   const kompassToggleRef = React.useRef(() => {});
 
@@ -1437,10 +1439,21 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
         <SettingsModal
           profile={profile}
           onClose={() => setShowSettings(false)}
+          onEditProfile={() => {
+            setShowSettings(false);
+            setShowProfilEdit(true);
+          }}
           onSave={(updated) => {
             reload();
             setShowSettings(false);
           }}
+        />
+      )}
+      {isOwner && showProfilEdit && (
+        <ProfilBearbeitenModal
+          profile={profile}
+          onClose={() => setShowProfilEdit(false)}
+          onProfileUpdate={() => { reload(); setShowProfilEdit(false); }}
         />
       )}
       {isOwner && showStudio && (
