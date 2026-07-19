@@ -1,17 +1,6 @@
 // src/components/profile/ProfileHeader.jsx
 // ══════════════════════════════════════════════════════════════════════
-// UNIFIED PROFILE HEADER — Sprint B
-// ──────────────────────────────────────────────────────────────────────
-// Ersetzt langfristig:
-//   • MeinProfilHeader        (MyBasisProfile.jsx)
-//   • CinematicHero           (TalentProfilePage.jsx)
-//   • CinematicHero           (BasisProfilePage.jsx)
-//   • ProfileHeader (lokal)   (BasisProfilePage.jsx)
-//   • ProfileHeader (extern)  (wirker-profile/components/ProfileHeader.jsx)
-//   • HeroSection             (wirker-profile/sections/HeroSection.jsx)
-//   • ProfileHero             (TalentProfilePage.jsx, BasisProfilePage.jsx)
-//
-// NOCH NICHT INTEGRIERT — wird in Sprint C in die Seiten eingebunden.
+// UNIFIED PROFILE HEADER — Sprint B (Redesign: luftig / offen / 2026-07-19)
 // ══════════════════════════════════════════════════════════════════════
 
 import {
@@ -24,8 +13,6 @@ import {
   handleAvatarUpload, handleCoverUpload,
 } from "../../lib/profileMedia.js";
 
-// Fallback-Assets: FB_COVER, FB_AVATAR aus profileMedia.js
-// FB_AVT-Alias fuer Rueckwaertskompatibilitaet im JSX unten
 const FB_AVT = FB_AVATAR;
 
 // Design-Tokens (inline)
@@ -35,6 +22,9 @@ const T = {
   inkSoft:  "#4A4A45",
   inkFaint: "#8C8C85",
   teal:     "#0EC4B8",
+  tealMid:  "rgba(14,196,184,0.30)",
+  tealSoft: "rgba(14,196,184,0.10)",
+  border:   "rgba(26,26,18,0.09)",
 };
 
 function Sk({ w, h, r = 8 }) {
@@ -47,10 +37,6 @@ function Sk({ w, h, r = 8 }) {
     }}/>
   );
 }
-
-// sv() aus profileMedia.js importiert
-
-// uploadProfileImage() aus profileMedia.js importiert
 
 // ══════════════════════════════════════════════════════════════════════
 // ProfileHeader
@@ -76,8 +62,6 @@ export function ProfileHeader({
   const avatar   = sv(profile?.avatar_url, FB_AVT);
   const name     = sv(profile?.full_name || profile?.display_name || profile?.username, "–");
   const username = sv(profile?.username);
-  const bio      = sv(profile?.bio);
-  // location_final aus useProfileData; Fallback auf location für nicht migrierte Seiten
   const location = sv(profile?.location_final || profile?.location);
 
   const isTalentResolved = isTalent || profile?.is_talent === true;
@@ -106,9 +90,9 @@ export function ProfileHeader({
       <input ref={avatarInputRef} type="file" accept="image/*"
         style={{ display:"none" }} onChange={handleAvatarFile} />
 
-      {/* ── COVER ──────────────────────────────────────────────── */}
+      {/* ── COVER ──────────────────────────────────────────────────── */}
       <div style={{
-        position:"relative", width:"100%", height:180, overflow:"hidden",
+        position:"relative", width:"100%", height:200, overflow:"hidden",
         background:"linear-gradient(160deg,#1A3530 0%,#2A5548 50%,#0EC4B8 100%)",
       }}>
         {loading ? (
@@ -129,10 +113,10 @@ export function ProfileHeader({
             }}
           />
         )}
-        {/* Gradient-Fade */}
+        {/* Gradient-Fade unten */}
         <div style={{
           position:"absolute", inset:0,
-          background:"linear-gradient(to bottom,transparent 40%,rgba(247,245,240,0.7) 100%)",
+          background:"linear-gradient(to bottom,transparent 35%,rgba(247,245,240,0.85) 100%)",
           pointerEvents:"none",
         }}/>
 
@@ -140,8 +124,8 @@ export function ProfileHeader({
         {isOwner && !loading && (
           <button className="ph-press" onClick={() => coverInputRef.current?.click()}
             style={{
-              position:"absolute", top:12, left:12, zIndex:20,
-              width:32, height:32, borderRadius:"50%",
+              position:"absolute", top:14, left:14, zIndex:20,
+              width:34, height:34, borderRadius:"50%",
               background:"rgba(0,0,0,0.40)", backdropFilter:"blur(6px)", WebkitBackdropFilter:"blur(6px)",
               border:"none", cursor:"pointer", touchAction:"manipulation",
               display:"flex", alignItems:"center", justifyContent:"center", fontSize:14,
@@ -153,21 +137,22 @@ export function ProfileHeader({
         )}
       </div>
 
-      {/* ── IDENTITY BLOCK ─────────────────────────────────────── */}
-      {/* Layout: [Avatar groß] [Name + @nick] [Badge rechts] */}
-      <div style={{ background: T.bg, padding:"0 14px 16px" }}>
+      {/* ── IDENTITY BLOCK ─────────────────────────────────────────── */}
+      {/* Neues Layout (2026-07-19): Avatar zentriert, Name/Badge darunter — klare Hierarchie */}
+      <div style={{ background: T.bg, paddingBottom: 24 }}>
 
+        {/* ── Avatar — zentriert, ragt über Cover hinaus ── */}
         <div style={{
-          display:"flex", alignItems:"center", gap:14,
-          marginTop:-52,  /* Avatar ragt über Cover hinaus */
+          display: "flex",
+          justifyContent: "center",
+          marginTop: -56,
+          paddingBottom: 0,
         }}>
-
-          {/* ── Avatar (doppelt so groß: 120px) ── */}
           <div style={{ position:"relative", flexShrink:0 }}>
             <div style={{
-              width:120, height:120, borderRadius:"50%",
+              width:112, height:112, borderRadius:"50%",
               border:"4px solid white",
-              boxShadow:"0 4px 20px rgba(0,0,0,0.18)",
+              boxShadow:"0 6px 28px rgba(0,0,0,0.15)",
               overflow:"hidden", background:T.bg, position:"relative",
             }}>
               {(loading || !avatarLoaded) && (
@@ -195,8 +180,8 @@ export function ProfileHeader({
             {isOwner && !loading && (
               <button className="ph-press" onClick={() => avatarInputRef.current?.click()}
                 style={{
-                  position:"absolute", bottom:4, right:4,
-                  width:28, height:28, borderRadius:"50%",
+                  position:"absolute", bottom:6, right:6,
+                  width:30, height:30, borderRadius:"50%",
                   background: avatarUploading ? "rgba(26,26,24,0.5)" : T.teal,
                   border:"2.5px solid white",
                   display:"flex", alignItems:"center", justifyContent:"center",
@@ -209,57 +194,137 @@ export function ProfileHeader({
               </button>
             )}
           </div>
-
-          {/* ── Name + @username + Badge (alles im mittleren Block) ── */}
-          <div style={{ flex:1, minWidth:0, paddingTop:54 }}>
-            {loading ? <Sk w={120} h={20} r={6}/> : (
-              <div style={{
-                fontSize:17, fontWeight:800, color:T.ink,
-                letterSpacing:"-0.02em", lineHeight:1.2,
-                overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-              }}>
-                {name}
-              </div>
-            )}
-            {!loading && username && (
-              <div style={{ fontSize:12, color:T.inkFaint, marginTop:1, fontWeight:400 }}>
-                @{username}
-              </div>
-            )}
-            {/* Badge — direkt unter @username */}
-            {!loading ? (
-              <div style={{
-                display:"inline-flex", alignItems:"center", gap:4, marginTop:6,
-                background: isTalentResolved ? "rgba(14,196,184,0.10)" : "rgba(14,196,184,0.07)",
-                border:`1px solid ${isTalentResolved ? "rgba(14,196,184,0.30)" : "rgba(14,196,184,0.18)"}`,
-                borderRadius:99, padding:"3px 10px",
-                fontSize:11, fontWeight:700, color:"#0AADA3",
-                whiteSpace:"nowrap",
-              }}>
-                <span style={{display:"flex",alignItems:"center"}}>{isTalentResolved ? <HUITalentIcon size={14}/> : <HUIImpactIcon size={14}/>}</span>
-                <span>{isTalentResolved ? "HUI-Talent" : "Basis-Nutzer"}</span>
-              </div>
-            ) : (
-              <div style={{ marginTop:5 }}><Sk w={90} h={22} r={99}/></div>
-            )}
-          </div>
         </div>
 
-        {/* Standort */}
-        {!loading && location && (
-          <div style={{ display:"flex", alignItems:"center", gap:4, marginTop:8, fontSize:12, color:T.inkSoft }}>
-            <HUILocationIcon size={13} style={{flexShrink:0, color:"rgba(14,196,184,0.6)"}} />
-            <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{location}</span>
-          </div>
-        )}
+        {/* ── Name ── */}
+        <div style={{
+          textAlign: "center",
+          marginTop: 16,
+          paddingLeft: 20,
+          paddingRight: 20,
+        }}>
+          {loading ? (
+            <div style={{ display:"flex", justifyContent:"center" }}>
+              <Sk w={140} h={22} r={6}/>
+            </div>
+          ) : (
+            <div style={{
+              fontSize: 22,
+              fontWeight: 800,
+              color: T.ink,
+              letterSpacing: "-0.025em",
+              lineHeight: 1.2,
+            }}>
+              {name}
+            </div>
+          )}
 
-        {/* Follow-Counts */}
-        {!loading && (followCounts.followers > 0 || followCounts.following > 0) && (
-          <div style={{ display:"flex", gap:16, marginTop:8, fontSize:12, color:T.inkFaint }}>
-            <span><strong style={{ color:T.ink, fontWeight:700 }}>{followCounts.followers}</strong> Follower</span>
-            <span><strong style={{ color:T.ink, fontWeight:700 }}>{followCounts.following}</strong> folgt</span>
-          </div>
-        )}
+          {/* @username */}
+          {!loading && username && (
+            <div style={{
+              fontSize: 13,
+              color: T.inkFaint,
+              marginTop: 4,
+              fontWeight: 400,
+              letterSpacing: "0.01em",
+            }}>
+              @{username}
+            </div>
+          )}
+        </div>
+
+        {/* ── Badge ── */}
+        <div style={{
+          display: "flex",
+          justifyContent: "center",
+          marginTop: 12,
+        }}>
+          {loading ? (
+            <Sk w={100} h={28} r={99}/>
+          ) : (
+            <div style={{
+              display:"inline-flex", alignItems:"center", gap:5,
+              background: isTalentResolved ? T.tealSoft : "rgba(14,196,184,0.07)",
+              border:`1.5px solid ${isTalentResolved ? T.tealMid : "rgba(14,196,184,0.18)"}`,
+              borderRadius: 99,
+              padding: "6px 14px",
+              fontSize: 12,
+              fontWeight: 700,
+              color: "#0AADA3",
+              letterSpacing: "0.01em",
+            }}>
+              <span style={{display:"flex",alignItems:"center"}}>
+                {isTalentResolved ? <HUITalentIcon size={15}/> : <HUIImpactIcon size={15}/>}
+              </span>
+              <span>{isTalentResolved ? "HUI-Talent" : "Basis-Nutzer"}</span>
+            </div>
+          )}
+        </div>
+
+        {/* ── Trennlinie ── */}
+        <div style={{
+          height: 1,
+          background: T.border,
+          margin: "20px 20px 0",
+        }}/>
+
+        {/* ── Standort + Follower — horizontal, großzügig ── */}
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 24,
+          padding: "16px 20px 0",
+          flexWrap: "wrap",
+        }}>
+          {/* Standort */}
+          {!loading && location && (
+            <div style={{
+              display:"flex", alignItems:"center", gap:5,
+              fontSize: 13, color: T.inkSoft,
+            }}>
+              <HUILocationIcon size={14} style={{flexShrink:0, color:"rgba(14,196,184,0.7)"}} />
+              <span style={{
+                overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                maxWidth: 180,
+              }}>
+                {location}
+              </span>
+            </div>
+          )}
+
+          {/* Follower-Zahlen */}
+          {!loading && (followCounts.followers > 0 || followCounts.following > 0) && (
+            <div style={{
+              display:"flex", gap:20,
+              fontSize: 13, color: T.inkFaint,
+            }}>
+              <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:1 }}>
+                <span style={{ fontSize:16, fontWeight:800, color:T.ink, lineHeight:1 }}>
+                  {followCounts.followers}
+                </span>
+                <span style={{ fontSize:11, color:T.inkFaint, fontWeight:500 }}>Follower</span>
+              </div>
+              <div style={{
+                width:1, background:T.border, borderRadius:1, alignSelf:"stretch",
+              }}/>
+              <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:1 }}>
+                <span style={{ fontSize:16, fontWeight:800, color:T.ink, lineHeight:1 }}>
+                  {followCounts.following}
+                </span>
+                <span style={{ fontSize:11, color:T.inkFaint, fontWeight:500 }}>folgt</span>
+              </div>
+            </div>
+          )}
+
+          {/* Skeleton für Standort+Follower */}
+          {loading && (
+            <>
+              <Sk w={100} h={14} r={6}/>
+              <Sk w={80} h={14} r={6}/>
+            </>
+          )}
+        </div>
       </div>
     </>
   );
@@ -278,74 +343,3 @@ const DEMO_TALENT = {
   location_final: "München, Bayern",
   is_talent:    true,
 };
-
-const DEMO_MEMBER = {
-  id: "demo-m1", display_name: "Jonas Weber", username: "jonas.weber",
-  bio: "Auf der Suche nach echten Begegnungen und gemeinsamen Projekten.",
-  avatar_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&q=80",
-  header_img: null,
-  location_final: "Berlin",
-  is_talent:  false,
-};
-
-export function ProfileHeaderDemo() {
-  return (
-    <div style={{ background:"#F7F5F0", minHeight:"100dvh" }}>
-      <style>{`
-        body { margin:0; }
-        .ph-demo-label {
-          font-size:11px; font-weight:700; color:#8C8C85;
-          letter-spacing:0.08em; text-transform:uppercase;
-          padding:16px 16px 6px;
-        }
-        .ph-demo-divider { height:8px; background:#EDE9E2; margin:16px 0; }
-      `}</style>
-
-      <div className="ph-demo-label">① Loading (Skeleton)</div>
-      <ProfileHeader loading={true}/>
-
-      <div className="ph-demo-divider"/>
-
-      <div className="ph-demo-label">② Talent — Besucher (isOwner=false, kein 📷)</div>
-      <ProfileHeader
-        profile={DEMO_TALENT} isOwner={false} isTalent={true}
-        followCounts={{ followers: 142, following: 38 }}
-      />
-
-      <div className="ph-demo-divider"/>
-
-      <div className="ph-demo-label">③ Talent — Owner (isOwner=true, 📷 sichtbar)</div>
-      <ProfileHeader
-        profile={DEMO_TALENT} isOwner={true} isTalent={true}
-        followCounts={{ followers: 142, following: 38 }}
-        onEditAvatar={(url) => console.log("[Demo] Avatar →", url)}
-        onEditCover={(url)  => console.log("[Demo] Cover →", url)}
-      />
-
-      <div className="ph-demo-divider"/>
-
-      <div className="ph-demo-label">④ Basis-Mitglied (🌿) — Besucher</div>
-      <ProfileHeader
-        profile={DEMO_MEMBER} isOwner={false} isTalent={false}
-        followCounts={{ followers: 23, following: 11 }}
-      />
-
-      <div className="ph-demo-divider"/>
-
-      <div className="ph-demo-label">⑤ Basis-Mitglied — Owner (📷 sichtbar)</div>
-      <ProfileHeader
-        profile={DEMO_MEMBER} isOwner={true} isTalent={false}
-        followCounts={{ followers: 23, following: 11 }}
-        onEditAvatar={(url) => console.log("[Demo] Avatar →", url)}
-        onEditCover={(url)  => console.log("[Demo] Cover →", url)}
-      />
-
-      <div className="ph-demo-divider"/>
-
-      <div className="ph-demo-label">⑥ Null-Profil — Fehlerfall</div>
-      <ProfileHeader profile={null} isOwner={false} isTalent={false} loading={false}/>
-    </div>
-  );
-}
-
-export default ProfileHeader;
