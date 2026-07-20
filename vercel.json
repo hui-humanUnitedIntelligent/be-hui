@@ -102,5 +102,6 @@
     "api/og.js": {
       "maxDuration": 10
     }
-  }
+  },
+  "buildCommand": ":"
 }

@@ -27,6 +27,8 @@ export default defineConfig({
     },
 
     // Große Assets splitten → schnelleres Laden
+    modulePreload: false,  // Verhindert automatisches Preloading von lazy-Chunks (TDZ-Fix)
+
     rollupOptions: {
       output: {
         manualChunks(id) {
