@@ -30,6 +30,12 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
+          // Stripe MUSS separat bleiben — hat TDZ-Fehler wenn synchron mit vendor geladen.
+          // Eigener chunk → wird NUR geladen wenn lazy-import getriggert wird.
+          if (id.includes('@stripe')) {
+            return 'stripe';
+          }
+          // Restliche node_modules → gemeinsamer vendor-chunk
           if (id.includes('node_modules')) {
             return 'vendor';
           }
