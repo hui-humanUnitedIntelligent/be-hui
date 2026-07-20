@@ -393,9 +393,9 @@ const profiles = {
     if (!userId) return null;
     try {
       const { data, error } = await supabase
-        .from('core_profiles')
-        .select('*')
-        .eq('user_id', userId)
+        .from('profiles')
+        .select('id,display_name,talent,has_talent_profile,bio,location,avatar_url')
+        .eq('id', userId)
         .maybeSingle();
 
       if (error) throw error;
@@ -440,9 +440,9 @@ const profiles = {
     if (!userIds?.length) return [];
     try {
       const { data, error } = await supabase
-        .from('core_profiles')
-        .select('user_id, dominant_pillars, orb_vitality, orb_breadth, orb_warmth')
-        .in('user_id', userIds);
+        .from('profiles')
+        .select('id,display_name,talent,has_talent_profile')
+        .in('id', userIds);
 
       if (error) throw error;
       return data ?? [];
@@ -497,10 +497,10 @@ const connections = {
 
     try {
       const { data, error } = await supabase
-        .from('core_profiles')
-        .select('user_id, dominant_pillars, orb_vitality')
-        .neq('user_id', userId)
-        .order('orb_vitality', { ascending: false })
+        .from('profiles')
+        .select('id,display_name,talent,has_talent_profile')
+        .neq('id', userId)
+        .order('created_at', { ascending: false })
         .limit(limit * 3); // Mehr holen, dann filtern
 
       if (error) throw error;

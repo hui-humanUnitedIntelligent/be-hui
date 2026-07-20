@@ -107,31 +107,20 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
   const [usernameOk,     setUsernameOk]   = useState(false);
   const [checkingUname,  setCheckingUname]= useState(false);
 
-  // ── Talent-Profil laden ──────────────────────────────────────────
+  // ── Talent-Profil laden — wirker_profiles existiert nicht mehr, Daten aus profiles ──
   useEffect(() => {
     if (!isTalent || !profile?.id) return;
-    (async () => {
-      const { data } = await supabase
-        .from("wirker_profiles")
-        .select("*")
-        .eq("user_id", profile.id)
-        .single();
-      if (data) {
-        setWpData(data);
-        setTalentTitle(data.talent      || "");
-        setTalentTagline(data.tagline   || "");
-        setTalentCats(data.categories   || []);
-        setTalentSkills(data.skills     || []);
-        setTalentLocation(data.location_label || "");
-        setTalentRadius(
-          data.radius_km === -1 ? "world"
-          : RADIUS_OPTIONS.includes(data.radius_km) ? data.radius_km
-          : DEFAULT_RADIUS_KM
-        );
-        setTalentRate(data.hourly_rate  || "");
-        setTalentAvail(data.is_available ?? true);
-      }
-    })();
+    // Talent-Daten kommen bereits aus dem profile-Objekt (via useProfileData)
+    setTalentTitle(profile?.talent      || "");
+    setTalentCats(profile?.focus_type
+      ? (typeof profile.focus_type === "string"
+          ? profile.focus_type.split(",").filter(Boolean)
+          : profile.focus_type)
+      : []);
+    setTalentSkills(profile?.skills     || []);
+    setTalentLocation(profile?.location || "");
+    setTalentRate(profile?.hourly_rate  ? String(profile.hourly_rate) : "");
+    setTalentAvail(profile?.is_available ?? true);
   }, [isTalent, profile?.id]);
 
   // ── Username-Check (debounced) ───────────────────────────────────
@@ -227,25 +216,8 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
 
       if (profErr) throw new Error(profErr.message || profErr);
 
-      // 2. Talent-Profil (wirker_profiles) wenn vorhanden
-      if (isTalent && profile?.id) {
-        const wpUpdates = {
-          talent:         talentTitle.trim(),
-          tagline:        talentTagline.trim(),
-          categories:     talentCats,
-          skills:         talentSkills,
-          location_label: talentLocation.trim(),
-          radius_km:      talentRadius === "world" ? -1 : (parseInt(talentRadius, 10) || DEFAULT_RADIUS_KM),
-          hourly_rate:    talentRate ? parseFloat(talentRate) : null,
-          is_available:   talentAvail,
-          updated_at:     new Date().toISOString(),
-        };
-        if (wpData?.id) {
-          await supabase.from("wirker_profiles").update(wpUpdates).eq("id", wpData.id);
-        } else {
-          await supabase.from("wirker_profiles").insert({ user_id: profile.id, ...wpUpdates });
-        }
-      }
+      // 2. wirker_profiles existiert nicht mehr — Talent-Daten werden über profiles gespeichert
+      // (talent, focus_type, skills, location, hourly_rate, is_available stehen in profileUpdates oben)
 
       // 3. Auth Profil neu laden → live im Admin + UI
       if (refreshProfile) await refreshProfile();

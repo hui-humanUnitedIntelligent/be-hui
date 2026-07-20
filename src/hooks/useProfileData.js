@@ -139,14 +139,8 @@ export function useProfileData(profileId) {
         ProfileService.getById(profileId)
           .catch(() => ({ data: null, error: { message: "profiles load failed" } })),
 
-        // 2. wirker_profiles — ergänzende Datenquelle
-        supabase
-          .from("wirker_profiles")
-          .select(WIRKER_SELECT)
-          .eq("user_id", profileId)
-          .maybeSingle()
-          .then(r => r)
-          .catch(() => ({ data: null })),
+        // 2. wirker_profiles — Tabelle existiert nicht mehr, Legacy-Stub
+        Promise.resolve({ data: null }),
 
         // 3. works — kein Status-Filter (Creator sieht alles, Fremdprofil filtert selbst)
         supabase
