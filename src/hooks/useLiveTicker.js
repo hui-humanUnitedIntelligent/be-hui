@@ -180,7 +180,10 @@ async function fetchProjectSupport() {
   );
   if (!rows.length) return [];
 
-  const projectIds = [...new Set(rows.map(r => r.project_id))];
+  // UUID-Validierung: nur echte UUIDs übergeben (keine Integers oder Dummy-IDs)
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const projectIds = [...new Set(rows.map(r => r.project_id).filter(id => UUID_RE.test(id)))];
+  if (!projectIds.length) return [];
   const projects = await safe(
     supabase.from("impact_projects").select("id,name").in("id", projectIds)
   );
