@@ -21,7 +21,6 @@
 import { HUILocationIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { useProfileLauncher } from '../home/profile/ProfileLauncher.jsx';
 import TalentBookingFlow from '../talents/TalentBookingFlow.jsx';
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient.js";
@@ -64,7 +63,18 @@ const CSS = `
 `;
 
 export default function ContentPreviewSheet({ item, loading, onClose }) {
-  const { openCreatorProfile } = useProfileLauncher(); // für Talent-Profil-Button
+  // TALENT-PROFIL-FIX: navigate-basiert statt useProfileLauncher (der braucht HuiActionProvider
+  // der AUSSERHALB des ContentPreviewProviders liegt → openCreatorProfile war immer noop).
+  const openTalentProfile = useCallback(async (userId) => {
+    if (!userId) return;
+    const { data } = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('id', userId)
+      .maybeSingle();
+    const username = data?.username;
+    if (username) navigate('/profile/' + username);
+  }, [navigate]);
   const [showTalentBooking, setShowTalentBooking] = useState(false);
   const navigate = useNavigate();
   const { isSaved, toggleSave } = useSavedPostsContext();
@@ -246,7 +256,7 @@ export default function ContentPreviewSheet({ item, loading, onClose }) {
                   {/* "Talent-Profil ansehen" — sekundär, KEIN onClose (würde Discover resetten) */}
                   {item.userId && (
                     <button
-                      onClick={() => openCreatorProfile(item.userId)}
+                      onClick={() => { onClose?.(); openTalentProfile(item.userId); }}
                       style={{
                         width:"100%", marginBottom:12, padding:"13px", borderRadius:14,
                         background:"rgba(26,26,46,0.92)", color:"#fff",
