@@ -304,12 +304,11 @@ export function useProfileData(profileId) {
     load();
   }, [load]);
 
-  // ── Realtime: Follower-Counts live aktualisieren ──────────────────
-  // Subscribt auf INSERT/DELETE in der follows-Tabelle für diesen Nutzer.
-  // Bei jeder Änderung wird nur der follow-Count-RPC neu abgerufen (kein
-  // kompletter Reload) → sofortige Anzeige ohne Seitenneuladen.
+  // ── Follow-Count Refresh bei eigenen Aktionen ──────────────────────
+  // Statt postgres_changes (würde Supabase-intern anonyme REST-Calls auf follows machen →
+  // 400 Bad Request wegen RLS), lauschen wir auf ein CustomEvent das toggleFollow auslöst.
   useEffect(() => {
-    if (!profileId) return;
+    if (!profileId || typeof profileId !== "string" || profileId === "null" || profileId === "undefined") return;
 
     const refreshCounts = async () => {
       try {
@@ -322,38 +321,10 @@ export function useProfileData(profileId) {
       } catch (_) { /* noop */ }
     };
 
-    // Kanal: Änderungen wenn jemand diesem Nutzer folgt oder entfolgt
-    const channel = supabase
-      .channel(`follows:profile:${profileId}`)
-      .on("postgres_changes", {
-        event: "INSERT",
-        schema: "public",
-        table: "follows",
-        filter: `followed_id=eq.${profileId}`,
-      }, refreshCounts)
-      .on("postgres_changes", {
-        event: "DELETE",
-        schema: "public",
-        table: "follows",
-        filter: `followed_id=eq.${profileId}`,
-      }, refreshCounts)
-      // Eigene Following-Zahl: wenn dieser Nutzer jemandem folgt/entfolgt
-      .on("postgres_changes", {
-        event: "INSERT",
-        schema: "public",
-        table: "follows",
-        filter: `follower_id=eq.${profileId}`,
-      }, refreshCounts)
-      .on("postgres_changes", {
-        event: "DELETE",
-        schema: "public",
-        table: "follows",
-        filter: `follower_id=eq.${profileId}`,
-      }, refreshCounts)
-      .subscribe();
-
+    // Bei eigenem Follow/Unfollow Event (von AppStateContext.toggleFollow) refreshen:
+    window.addEventListener("hui:follow:changed", refreshCounts);
     return () => {
-      supabase.removeChannel(channel);
+      window.removeEventListener("hui:follow:changed", refreshCounts);
     };
   }, [profileId]);
 

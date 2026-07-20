@@ -109,10 +109,12 @@ export function AppStateProvider({ children }) {
           .eq("follower_id", user.id)
           .eq("followed_id", targetId);
         console.log("[HUI_REALITY] relationship synced ✓ (unfollow)", targetId.slice(0,8));
+        window.dispatchEvent(new CustomEvent("hui:follow:changed", { detail: { targetId, action: "unfollow" } }));
       } else {
         await supabase.from("follows")
           .insert({ follower_id: user.id, followed_id: targetId });
         console.log("[HUI_REALITY] relationship synced ✓ (follow)", targetId.slice(0,8));
+        window.dispatchEvent(new CustomEvent("hui:follow:changed", { detail: { targetId, action: "follow" } }));
         // Notification an gefolgten User
         const { data: me } = await supabase
           .from("profiles").select("display_name").eq("id", user.id).single();
