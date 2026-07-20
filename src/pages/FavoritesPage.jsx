@@ -196,7 +196,7 @@ function HeroCard({ item, onDetails }) {
         {/* Avatare */}
         <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:12 }}>
           <div style={{ display:"flex" }}>
-            {item.avatars.map((av, i) => (
+            {(item.avatars || []).map((av, i) => (
               <img loading="lazy" decoding="async" key={i} src={av} alt=""
                 style={{ width:22, height:22, borderRadius:"50%", objectFit:"cover",
                   border:"2px solid rgba(255,255,255,0.6)", marginLeft: i>0 ? -7 : 0 }}/>
@@ -460,7 +460,7 @@ function ExperienceCard({ exp, idx, onView }) {
         <div style={{ display:"flex", alignItems:"center",
           justifyContent:"space-between" }}>
           <div style={{ display:"flex" }}>
-            {exp.avatars.map((av, k) => (
+            {(exp.avatars || []).map((av, k) => (
               <img loading="lazy" decoding="async" key={k} src={av} alt=""
                 style={{ width:18, height:18, borderRadius:"50%", objectFit:"cover",
                   border:"1.5px solid #fff", marginLeft: k>0 ? -5 : 0 }}/>
@@ -717,11 +717,18 @@ export default function FavoritesPage({ currentUser, onView, onImpact, onDiscove
           setExperiences(userExps.map(e => ({
             id:          e.id,
             title:       e.title,
+            sub:         e.description ? e.description.slice(0, 40) : (e.category || "Erlebnis"),
             creator:     profileMap[e.user_id]?.display_name || "Creator",
             category:    e.category || "Erlebnis",
             location:    e.location_text || "",
-            date:        e.date ? new Date(e.date).toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"}) : null,
+            date:        e.date ? new Date(e.date).toLocaleDateString("de-DE",{day:"numeric",month:"long"}) + (e.location_text ? ` · ${e.location_text}` : "") : null,
             price:       e.price,
+            img:         e.cover_url || "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=400&q=80",
+            badge:       e.date ? "Bald" : "Erlebnis",
+            badgeColor:  C.teal,
+            avatars:     [],
+            spots:       e.max_participants ? `${e.max_participants} Plätze` : "Offen",
+            spotsColor:  C.teal,
             cover:       e.cover_url,
             status:      e.status,
             _raw:        e,
