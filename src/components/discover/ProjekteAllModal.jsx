@@ -90,23 +90,7 @@ function ProjektCardItem({ p, onPress, onAuthorPress }) {
           </div>
         )}
 
-        {/* Kategorie-Tag — unten links, dezent */}
-        {p.category && (
-          <div style={{
-            position:"absolute", bottom:10, left:10,
-            background:"rgba(255,255,255,0.88)",
-            backdropFilter:"blur(6px)",
-            WebkitBackdropFilter:"blur(6px)",
-            color: T.tealDeep,
-            borderRadius: 6,
-            fontSize: 9.5, fontWeight: 700,
-            padding: "2px 8px",
-            letterSpacing: "0.04em",
-            textTransform: "uppercase",
-          }}>
-            {p.category}
-          </div>
-        )}
+        {/* Kategorie-Tag entfernt (2026-07-20) — kein Overlay auf Titelbild */}
       </div>
 
       {/* ── Content-Bereich ── */}
