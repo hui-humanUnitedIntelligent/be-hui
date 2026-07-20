@@ -117,7 +117,7 @@ export function useProfileData(profileId) {
 
     try {
       // ── Gesamt-Timeout: 5s — verhindert ewigen Spinner ───────────
-      const TIMEOUT_MS = 2800;
+      const TIMEOUT_MS = 4000; // Erhöht: parallele Queries brauchen bis 3s
       const timeoutGuard = new Promise((_, reject) =>
         setTimeout(() => reject(new Error("useProfileData timeout")), TIMEOUT_MS)
       );
@@ -255,7 +255,7 @@ export function useProfileData(profileId) {
       if (recsRes.error) {
         console.error("[RECOMMENDATIONS QUERY FAILED]", recsRes.error);
       }
-      // Autoren-Namen batch-laden (FK zu auth.users → kein PostgREST-JOIN möglich)
+      // Autoren-Namen batch-laden — MIT 1500ms Timeout (war vorher unbegrenzt!)
       {
         const recsRaw = (recsRes.data || []).filter(Boolean);
         if (recsRaw.length > 0 && myId === requestId.current) {
@@ -263,12 +263,19 @@ export function useProfileData(profileId) {
           let authorMap = {};
           if (authorIds.length > 0) {
             try {
-              const { data: authorProfiles } = await supabase
-                .from("profiles")
-                .select("id,display_name,avatar_url")
-                .in("id", authorIds);
+              // FIX-2026-07-20: Timeout für Author-Batch — verhindert hängenden Spinner
+              const authorTimeout = new Promise((_, rej) =>
+                setTimeout(() => rej(new Error("author-batch-timeout")), 1500)
+              );
+              const { data: authorProfiles } = await Promise.race([
+                supabase
+                  .from("profiles")
+                  .select("id,display_name,avatar_url")
+                  .in("id", authorIds),
+                authorTimeout,
+              ]);
               (authorProfiles || []).forEach(p => { authorMap[p.id] = p; });
-            } catch (_) { /* noop */ }
+            } catch (_) { /* noop — Timeout oder Fehler: keine Autorennamen */ }
           }
           setRecommendations(recsRaw.map(r => ({
             ...r,

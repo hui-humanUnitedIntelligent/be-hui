@@ -37,11 +37,14 @@ export default function PublicProfilePreview({ profileId, onClose }) {
   useEffect(() => {
     if (!profileId) { setLoading(false); return; }
     let cancelled = false;
-    // Timeout-Schutz: max 8s warten
+    // Timeout-Schutz: max 2500ms warten (war 8000ms — zu lang!)
     const timeout = setTimeout(() => {
       if (!cancelled) { setLoading(false); setProfileType("basis"); }
-    }, 8000);
-    ProfileService.getById(profileId)
+    }, 2500);
+    const timeoutGuard = new Promise((_, rej) =>
+      setTimeout(() => rej(new Error("preview-type-timeout")), 2500)
+    );
+    Promise.race([ProfileService.getById(profileId), timeoutGuard])
       .then(({ data }) => {
         if (cancelled) return;
         const isTalent = data?.has_talent_profile || data?.role === "talent" || data?.role === "wirker";

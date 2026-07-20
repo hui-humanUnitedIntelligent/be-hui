@@ -63,13 +63,22 @@ export const PAGE_SIZE = 20;
 // Query-Cache (in-memory)
 const _queryCache = new Map();
 
-export async function safeQuery(fn) {
+export async function safeQuery(fn, timeoutMs = 6000) {
   try {
     // fn kann callable (Funktion) oder direkt ein Promise/Thenable sein
-    const result = await (typeof fn === 'function' ? fn() : fn);
+    const query = typeof fn === 'function' ? fn() : fn;
+    // Globaler Timeout pro Query — verhindert ewige Hänger (war ohne Limit!)
+    const timeoutGuard = new Promise((_, rej) =>
+      setTimeout(() => rej(new Error(`safeQuery timeout after ${timeoutMs}ms`)), timeoutMs)
+    );
+    const result = await Promise.race([query, timeoutGuard]);
     return result;
   } catch (e) {
-    console.warn("[HUI safeQuery] Fehler:", e?.message);
+    if (e?.message?.includes("timeout")) {
+      console.warn("[HUI safeQuery] Timeout:", e.message);
+    } else {
+      console.warn("[HUI safeQuery] Fehler:", e?.message);
+    }
     return { data: null, error: e };
   }
 }
