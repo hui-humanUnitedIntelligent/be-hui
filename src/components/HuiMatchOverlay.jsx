@@ -380,11 +380,11 @@ export default function HuiMatchOverlay({ onClose, onView, onMoodSelect }) {
       // Experiences
       if (discType === "all" || discType === "experiences") {
         const { data } = await supabase.from("experiences")
-          .select("id,title,description,price_eur,cover_url,creator_id,date,spots_available,location")
+          .select("id,title,description,price,cover_url,user_id,date,spots_available,location_text")
           .eq("status","published").limit(8);
         queries.push(...(data||[]).map(e => ({
           ...e, type:"experience", img:e.cover_url, bio:e.description,
-          price: e.price_eur ? `ab € ${e.price_eur}` : null,
+          price: e.price ? `ab € ${e.price}` : null,
           spots: e.spots_available,
         })));
       }
@@ -419,7 +419,7 @@ export default function HuiMatchOverlay({ onClose, onView, onMoodSelect }) {
           .select("id,title,description,cover_url,price_eur,location")
           .eq("status","published").limit(8),
         supabase.from("experiences")
-          .select("id,title,description,cover_url,price_eur,date,spots_available")
+          .select("id,title,description,cover_url,price,date,spots_available")
           .eq("status","published").limit(6),
       ]);
       const pool = [

@@ -255,8 +255,7 @@ function FreigabenTab({ onPendingChange }) {
           "category","status","created_at","reviewed_at","rejected_at",
           "admin_comment","review_note","rejection_reason",
           "last_submitted_at","is_update",
-          "profiles(display_name,username,avatar_url)",
-        ].join(","))
+          ].join(","))
         .eq("status", wStatus)
         .order("created_at", { ascending: false }).limit(100),
       supabase.from("experiences")
@@ -264,7 +263,6 @@ function FreigabenTab({ onPendingChange }) {
           "id","user_id","title","description","cover_url",
           "category","experience_type","status","created_at","reviewed_at","rejected_at",
           "admin_comment","review_note","rejection_reason",
-          "profiles(display_name,username,avatar_url)",
         ].join(","))
         .eq("status", eStatus)
         .order("created_at", { ascending: false }).limit(100),
@@ -273,8 +271,7 @@ function FreigabenTab({ onPendingChange }) {
           "id","user_id","project_name","short_desc","cover_url",
           "status","submitted_at","reviewed_at","rejected_at",
           "admin_comment","review_note","rejection_reason",
-          "profiles(display_name,username,avatar_url)",
-        ].join(","))
+          ].join(","))
         .eq("status", pStatus)
         .order("submitted_at", { ascending: false }).limit(100),
     ]);
