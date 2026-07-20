@@ -3,14 +3,14 @@
 // Wenn activeConv: zeige ConversationRoom. Sonst: zeige Liste.
 // Keine opacity-Tricks, keine doppelten Layer, keine Animation-Gates.
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import ChatAtmosphere  from "./ChatAtmosphere.jsx";
 import ConversationList from "./ConversationList.jsx";
 import ConversationRoom from "./ConversationRoom.jsx";
 import { useProfileLauncher } from "../home/profile/ProfileLauncher.jsx";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { useChatList, findOrCreateChat, closeChat } from "../../lib/chatContext.js";
-import TalentBookingFlow from "../talents/TalentBookingFlow.jsx";
+const TalentBookingFlow = lazy(() => import("../talents/TalentBookingFlow.jsx"));
 import { ProfileService } from '../../services/db';
 import { supabase } from "../../lib/supabaseClient.js";
 import PeopleSearch from "../discovery/PeopleSearch.jsx";
@@ -401,15 +401,17 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
           }}
         />
 
-        {/* ── TalentBookingFlow als Portal-Overlay ÜBER dem Chat ── */}
+        {/* ── TalentBookingFlow als Portal-Overlay ÜBER dem Chat (lazy) ── */}
         {showTalentBooking && talentForBooking && (
-          <TalentBookingFlow
-            talent={talentForBooking}
-            onClose={() => {
-              setShowTalentBooking(false);
-              setTalentForBooking(null);
-            }}
-          />
+          <Suspense fallback={null}>
+            <TalentBookingFlow
+              talent={talentForBooking}
+              onClose={() => {
+                setShowTalentBooking(false);
+                setTalentForBooking(null);
+              }}
+            />
+          </Suspense>
         )}
       </>
     );

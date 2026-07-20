@@ -32,7 +32,7 @@ import { useChatList }             from "../lib/chatContext.js";
 import ConnectionCreatePage      from "../components/connection-create/ConnectionCreatePage.jsx";
 import WerkKaufFlow           from "../components/commerce/WerkKaufFlow.jsx";         // COMMERCE-01
 import WerkeKorb, { WerkeKorbButton } from "../components/commerce/WerkeKorb.jsx"; // KORB-01
-import UnterstutzenFlow                from "../components/commerce/UnterstutzenFlow.jsx"; // KORB-02
+const UnterstutzenFlow = React.lazy(() => import("../components/commerce/UnterstutzenFlow.jsx")); // KORB-02 — lazy: Stripe erst bei Bedarf
 import { clearCartAfterSuccess }        from "../components/commerce/commerceUtils.js";    // KORB-02
 import ExperienceBookingFlow  from "../components/commerce/ExperienceBookingFlow.jsx"; // COMMERCE-01
 // ── Tab-Pages: lazy → eigene Chunks, nur bei Bedarf geladen ────
@@ -607,19 +607,21 @@ function HomeInner() {
         />
       )}
 
-      {/* KORB-02: UnterstutzenFlow */}
+      {/* KORB-02: UnterstutzenFlow — lazy (Stripe erst bei Bedarf laden) */}
       {showUnterstutzenFlow && SAFE_MODE.werkFlow && (
-        <UnterstutzenFlow
-          items={cart}
-          onClose={() => { setShowUnterstutzenFlow(false); closeContentPreview(); }}
-          onUnterstuetzen={async (items, form, method) => {
-            // P1: Mock-Timeout entfernt — Stripe übernimmt Payment
-            // UnterstutzenFlow ruft create-payment-intent direkt auf
-          }}
-          onClearCart={() => { clearCartAfterSuccess(setCart); clearCartPersist?.(); }}
-          onDiscover={() => { setShowUnterstutzenFlow(false); handleTab("discover"); }}
-          onResonanzCenter={() => setShowUnterstutzenFlow(false)}
-        />
+        <Suspense fallback={null}>
+          <UnterstutzenFlow
+            items={cart}
+            onClose={() => { setShowUnterstutzenFlow(false); closeContentPreview(); }}
+            onUnterstuetzen={async (items, form, method) => {
+              // P1: Mock-Timeout entfernt — Stripe übernimmt Payment
+              // UnterstutzenFlow ruft create-payment-intent direkt auf
+            }}
+            onClearCart={() => { clearCartAfterSuccess(setCart); clearCartPersist?.(); }}
+            onDiscover={() => { setShowUnterstutzenFlow(false); handleTab("discover"); }}
+            onResonanzCenter={() => setShowUnterstutzenFlow(false)}
+          />
+        </Suspense>
       )}
 
       {/* ── Overlay Layer ──────────────────────────────────────── */}
