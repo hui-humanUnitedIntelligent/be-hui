@@ -1,8 +1,8 @@
-// HUI Service Worker — v2026-06-13
+// HUI Service Worker — v2026-07-20
 // Strategie: Network First mit Cache Fallback
 // Live-Updates: funktionieren sofort ohne App-Store-Update
 
-const CACHE_NAME = "hui-v1";
+const CACHE_NAME = "hui-v20260720";
 const STATIC_ASSETS = ["/", "/index.html", "/manifest.json",
   "/hui-icon-192.png", "/hui-icon-512.png"];
 
