@@ -21,6 +21,7 @@
 import { HUILocationIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
+import { useProfileLauncher } from '../home/profile/ProfileLauncher.jsx';
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
@@ -62,6 +63,7 @@ const CSS = `
 `;
 
 export default function ContentPreviewSheet({ item, loading, onClose }) {
+  const { openCreatorProfile } = useProfileLauncher(); // für Talent-Profil-Button
   const navigate = useNavigate();
   const { isSaved, toggleSave } = useSavedPostsContext();
 
@@ -212,6 +214,32 @@ export default function ContentPreviewSheet({ item, loading, onClose }) {
                     <span style={{ fontSize:12, color:T.inkFaint, display:"flex", alignItems:"center", gap:2 }}><HUILocationIcon size={12}/>{item.location}</span>
                   )}
                 </div>
+              )}
+
+              {/* Talent-Angebot: Preis + Profil-Button */}
+              {item.type === "talent" && (
+                <>
+                  {item.price && (
+                    <div style={{
+                      display:"inline-flex", alignItems:"center", gap:6,
+                      background:"rgba(13,196,181,0.10)", borderRadius:99,
+                      padding:"7px 16px", marginBottom:14,
+                    }}>
+                      <span style={{ fontSize:16, fontWeight:800, color:"rgba(0,150,136,1)" }}>{item.price}</span>
+                    </div>
+                  )}
+                  {item.userId && (
+                    <button
+                      onClick={() => { onClose?.(); openCreatorProfile(item.userId); }}
+                      style={{
+                        width:"100%", marginBottom:12, padding:"13px", borderRadius:14,
+                        background:"rgba(26,26,46,0.92)", color:"#fff",
+                        fontSize:14, fontWeight:700, border:"none", cursor:"pointer",
+                      }}>
+                      Talent-Profil ansehen
+                    </button>
+                  )}
+                </>
               )}
 
               {/* Weitere Medien */}

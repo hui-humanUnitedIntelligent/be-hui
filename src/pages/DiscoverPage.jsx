@@ -28,6 +28,7 @@ const OrteAllModal = lazy(() => import("../components/discover/OrteAllModal.jsx"
 import { HUIHeartIcon, HUIChatIcon } from "../design/icons/HuiInteractionIcons.jsx"; // ICON-SSOT 2026-07-08 -- ersetzt lokale Emoji-Badges (❤️/💬)
 import HuiLiveTicker from "../components/shared/HuiLiveTicker.jsx"; // LIVETICKER.1 2026-07-08 -- ersetzt LiveActivityBar (war Fake-Daten)
 import { useContentPreview } from "../context/ContentPreviewContext.jsx";
+import { normalizeTalentForPreview } from "../lib/previewNormalizers.js";
 import { useProfileLauncher } from "../components/home/profile/ProfileLauncher.jsx"; // Autor-Klick → Profil öffnen // OPEN.1 2026-07-08 -- geteilte Vorschau statt totem Tap / falschem Sprung
 import { normalizePostForPreview, normalizeProjectForPreview, normalizeWirkerForPreview } from "../lib/previewNormalizers.js";
 
@@ -2373,7 +2374,8 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
           onClose={() => setShowTalenteModal(false)}
           onPressTalent={(talent) => {
             setShowTalenteModal(false);
-            openPreview({ id:talent.id, type:"talent", title:talent.title, talentId:talent.id });
+            const normalized = normalizeTalentForPreview(talent, talent._author);
+            if (normalized) openPreview(normalized);
           }}
         />
         <ErlebnisseAllModal

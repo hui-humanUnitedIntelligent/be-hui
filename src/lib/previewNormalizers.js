@@ -83,6 +83,35 @@ export function normalizeConnectionForPreview(c) {
   };
 }
 
+// Talent-Angebote: eigener Normalizer (keine Post-Struktur)
+export function normalizeTalentForPreview(t, authorName) {
+  if (!t?.id) return null;
+  const LOC_LABELS = { vor_ort:"Vor Ort", online:"Online", beides:"Vor Ort & Online" };
+  const price = t.price_per_session != null
+    ? `${Number(t.price_per_session).toLocaleString("de-DE")} €/Sitzung`
+    : t.price_per_hour != null
+    ? `${Number(t.price_per_hour).toLocaleString("de-DE")} €/Std`
+    : null;
+  const cover = Array.isArray(t.images) && t.images[0]?.url ? t.images[0].url : null;
+  const allImages = Array.isArray(t.images)
+    ? t.images.filter(i => i?.url).map(i => ({ type:"image", url:i.url }))
+    : cover ? [{ type:"image", url:cover }] : [];
+  return {
+    id: String(t.id), type: "talent",
+    author: authorName ? { id: t.user_id, name: authorName, avatar: null } : null,
+    title: str(t.title, "Talent-Angebot"),
+    text:  str(t.description),
+    media: allImages,
+    createdAt: t.created_at || null,
+    location: LOC_LABELS[t.location_type] || str(t.location_address),
+    category: str(t.category),
+    price,
+    canOpenFull: false, fullPath: null,
+    userId: t.user_id,
+    _raw: t,
+  };
+}
+
 // Post-artige Typen (work/experience/moment/event): bestehenden
 // Normalizer 1:1 wiederverwenden, nur den Typ erzwingen falls die
 // Rohdaten (z.B. aus Discover-Karten) ihn nicht mitbringen.
