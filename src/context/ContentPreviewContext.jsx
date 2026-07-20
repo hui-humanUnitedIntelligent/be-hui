@@ -19,6 +19,8 @@ import React, { createContext, useCallback, useContext, useState } from "react";
 import { loadPreviewByRef } from "../lib/contentPreviewLoaders.js";
 import { normalizePostForPreview } from "../lib/previewNormalizers.js";
 import ContentPreviewSheet from "../components/shared/ContentPreviewSheet.jsx";
+import { lazy, Suspense } from "react";
+const TalentBookingFlow = lazy(() => import("../components/talents/TalentBookingFlow.jsx"));
 import PostFullscreenView from "../components/shared/PostFullscreenView.jsx";
 
 const ContentPreviewContext = createContext(null);
@@ -26,6 +28,7 @@ const ContentPreviewContext = createContext(null);
 export function ContentPreviewProvider({ children }) {
   const [item, setItem]       = useState(null);
   const [loading, setLoading] = useState(false);
+  const [talentBooking, setTalentBooking] = useState(null); // _raw des gebuchten Talents
 
   // open: item ist bereits vollstaendig normalisiert (Feed/Discover/
   // Empfehlungen haben ihre Datenzeile schon im Speicher).
@@ -49,6 +52,8 @@ export function ContentPreviewProvider({ children }) {
   }, []);
 
   const close = useCallback(() => setItem(null), []);
+  const openTalentBooking = useCallback((raw) => setTalentBooking(raw), []);
+  const closeTalentBooking = useCallback(() => setTalentBooking(null), []);
 
   // onOpenPost: nur von PostFullscreenView genutzt, um innerhalb der
   // Fullscreen-Ansicht direkt zu "Weitere Beitraege dieses Wirkers" zu
@@ -62,9 +67,14 @@ export function ContentPreviewProvider({ children }) {
   const isPost = item?.type === "moment";
 
   return (
-    <ContentPreviewContext.Provider value={{ open, openRef, close, item, loading }}>
+    <ContentPreviewContext.Provider value={{ open, openRef, close, item, loading, openTalentBooking }}>
       {children}
-      <ContentPreviewSheet item={isPost ? null : item} loading={loading} onClose={close} />
+      <ContentPreviewSheet item={isPost ? null : item} loading={loading} onClose={close} onBookTalent={openTalentBooking} />
+      {talentBooking && (
+        <Suspense fallback={null}>
+          <TalentBookingFlow talent={talentBooking} onClose={closeTalentBooking} />
+        </Suspense>
+      )}
       <PostFullscreenView item={isPost ? item : null} onClose={close} onOpenPost={onOpenPost} />
     </ContentPreviewContext.Provider>
   );

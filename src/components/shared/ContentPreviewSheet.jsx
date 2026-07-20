@@ -21,7 +21,6 @@
 import { HUILocationIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useCallback, useEffect, useMemo, useState, lazy, Suspense } from "react";
 import { createPortal } from "react-dom";
-const TalentBookingFlow = lazy(() => import('../talents/TalentBookingFlow.jsx'));
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
@@ -62,10 +61,9 @@ const CSS = `
   .cps-btn:active { opacity:.6; transform:scale(0.96); }
 `;
 
-export default function ContentPreviewSheet({ item, loading, onClose }) {
-  // FIX: navigate + showTalentBooking VOR useCallback deklarieren (TDZ-Bug)
+export default function ContentPreviewSheet({ item, loading, onClose, onBookTalent = () => {} }) {
+  // FIX: navigate VOR useCallback deklarieren (TDZ-Bug war: navigate nach useCallback)
   const navigate = useNavigate();
-  const [showTalentBooking, setShowTalentBooking] = useState(false);
 
   // TALENT-PROFIL-FIX: navigate-basiert statt useProfileLauncher
   const openTalentProfile = useCallback(async (userId) => {
@@ -244,7 +242,7 @@ export default function ContentPreviewSheet({ item, loading, onClose }) {
                   {/* "Talent buchen" — primärer CTA */}
                   {item._raw?.price_per_hour != null || item._raw?.price_per_session != null ? (
                     <button
-                      onClick={() => setShowTalentBooking(true)}
+                      onClick={() => onBookTalent(item._raw)}
                       style={{
                         width:"100%", marginBottom:10, padding:"14px", borderRadius:14,
                         background:"rgba(13,196,181,1)", color:"#fff",
@@ -266,15 +264,7 @@ export default function ContentPreviewSheet({ item, loading, onClose }) {
                       Talent-Profil ansehen
                     </button>
                   )}
-                  {/* TalentBookingFlow — lazy geladen (Stripe erst bei Bedarf) */}
-                  {showTalentBooking && item._raw && (
-                    <Suspense fallback={null}>
-                      <TalentBookingFlow
-                        talent={item._raw}
-                        onClose={() => setShowTalentBooking(false)}
-                      />
-                    </Suspense>
-                  )}
+
                 </>
               )}
 
