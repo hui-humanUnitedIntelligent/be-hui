@@ -269,7 +269,7 @@ export function AuthProvider({ children }) {
       + "-" + Math.random().toString(36).slice(2,6);
     const { data: wp, error: e2 } = await supabase.from("wirker_profiles")
       .upsert({ user_id:user.id, slug, talent:wirkerData.talent||"Kreativ",
-        wirker_type:wirkerData.type||"selbst", location_label:wirkerData.city||"",
+        wirker_type:wirkerData.wirker_type||"selbst", location_label:wirkerData.location_label||"",
         categories:wirkerData.categories||[] }).select().single();
     if (e2) return { error: e2.message };
     return { data: wp };

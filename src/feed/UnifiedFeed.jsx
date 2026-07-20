@@ -61,15 +61,15 @@ function useHeuteStats() {
           supabase.from("profiles").select("id", { count: "exact", head: true })
             .gte("created_at", iso),
           supabase.from("profiles")
-            .select("display_name, username, city")
+            .select("display_name, username, location_label")
             .order("created_at", { ascending: false })
             .limit(1)
-            .single(),
+            .maybeSingle(),
         ]);
 
         if (cancelled) return;
         const name = recentMember.data?.display_name || recentMember.data?.username || null;
-        const city = recentMember.data?.city || null;
+        const city = recentMember.data?.location_label || null;
         const liveText = name
           ? `${name}${city ? ` aus ${city}` : ""} ist HUI beigetreten`
           : "Neue Mitglieder entdecken die Plattform";
