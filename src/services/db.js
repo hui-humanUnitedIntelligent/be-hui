@@ -55,14 +55,14 @@ const F = {
 export const ProfileService = {
   async getById(id) {
     return cachedQuery(`profile:${id}`,
-      () => safeQuery(supabase.from('profiles').select(F.profile).eq('id', id).single()),
+      () => safeQuery(supabase.from('profiles').select(F.profile).eq('id', id).maybeSingle()),
       60_000
     );
   },
 
   async getByUsername(username) {
     return cachedQuery(`profile:@${username}`,
-      () => safeQuery(supabase.from('profiles').select(F.profile).eq('username', username).single()),
+      () => safeQuery(supabase.from('profiles').select(F.profile).eq('username', username).maybeSingle()),
       60_000
     );
   },
@@ -102,7 +102,7 @@ export const ProfileService = {
   async getMin(id) {
     return cachedQuery(`profile:min:${id}`,
       () => safeQuery(
-        supabase.from('profiles').select(F.profileMin).eq('id', id).single()
+        supabase.from('profiles').select(F.profileMin).eq('id', id).maybeSingle()
       ), 120_000
     );
   },

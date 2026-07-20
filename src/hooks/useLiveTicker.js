@@ -233,18 +233,19 @@ async function fetchWorkSales() {
 }
 
 async function fetchExperienceBookings() {
+  // talent_bookings ist die aktuelle Tabelle (bookings ist Legacy ohne experience_id)
   const rows = await safe(
-    supabase.from("experience_bookings")
-      .select("id,created_at,booking_status,experience_id,experience:experience_id(title)")
-      .in("booking_status", ["confirmed", "completed"])
+    supabase.from("talent_bookings")
+      .select("id,created_at,status,talent_id,talent:talent_id(title)")
+      .in("status", ["confirmed", "completed"])
       .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
   );
   return rows.map(b => ({
     id: `booking_${b.id}`, createdAt: b.created_at,
-    text: b.experience?.title
-      ? `Erlebnis „${esc(b.experience.title)}" wurde erfolgreich gebucht`
-      : `Ein Erlebnis wurde erfolgreich gebucht`,
-    openRef: b.experience_id ? { type:"experience", id:b.experience_id } : null,
+    text: b.talent?.title
+      ? `Talent-Angebot „${esc(b.talent.title)}" wurde erfolgreich gebucht`
+      : `Ein Angebot wurde erfolgreich gebucht`,
+    openRef: b.talent_id ? { type:"talent", id:b.talent_id } : null,
   }));
 }
 

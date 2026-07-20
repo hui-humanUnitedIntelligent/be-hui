@@ -170,16 +170,9 @@ export function useProfileData(profileId) {
           .then(r => r)
           .catch(() => ({ data: [] })),
 
-        // 4b. impact_projects (war "projects" — Tabelle existiert nicht, korrekte Tabelle: impact_projects)
-        supabase
-          .from("impact_projects")
-          .select("id,user_id,title,cover_url,category,status,approval_status,created_at")
-          .eq("user_id", profileId)
-          .not("status", "eq", "deleted")
-          .order("created_at", { ascending: false })
-          .limit(30)
-          .then(r => r)
-          .catch(() => ({ data: [] })),
+        // 4b. impact_projects — Spalten verifiziert (kein user_id/title/cover_url/approval_status in DB)
+        // impact_projects sind global, kein user_id-Filter möglich
+        Promise.resolve({ data: [] }), // Platzhalter: impact_projects ohne user_id-FK
 
         // 5. recommendations — FK: to_user_id (Sprint F.4B.2 — einzige Wahrheitsquelle)
         supabase

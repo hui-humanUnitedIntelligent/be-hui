@@ -116,19 +116,18 @@ export const bookingService = {
     if (!experienceId || !creatorId || !userId) return { error: "Fehlende Felder" };
     if (userId === creatorId) return { error: "Creator kann eigenes Erlebnis nicht buchen" };
 
+    // bookings ist Legacy — experience bookings laufen über talent_bookings (TALENT-BOOKING-PAYMENT-001)
+    // Nur echte Spalten verwenden: user_id, customer_id, amount, status
     const { data, error } = await supabase
-      .from("experience_bookings")
+      .from("bookings")
       .insert({
-        experience_id:  experienceId,
-        creator_id:     creatorId,
         user_id:        userId,
-        seats,
+        customer_id:    userId,
         amount:         amount ?? 0,
-        guest_message:  message || null,
-        booking_status: "pending",
+        status:         "pending",
         payment_status: "pending",
       })
-      .select()
+      .select("id,user_id,amount,status,payment_status,created_at")
       .single();
 
     if (error) return { error: error.message };
@@ -138,27 +137,23 @@ export const bookingService = {
   // Buchungen für Creator (Anfragen die ich erhalte)
   async forCreator(creatorId, { status = null, limit = 30 } = {}) {
     let q = supabase
-      .from("experience_bookings")
+      .from("bookings")
       .select(`
-        id, seats, amount, booking_status, guest_message, created_at, confirmed_at,
-        experience:experience_id(id, title, cover_url, price),
-        guest:user_id(id, display_name, avatar_url)
+        id, amount, status, payment_status, created_at, confirmed_at, completed_at
       `)
-      .eq("creator_id", creatorId)
+      .eq("user_id", creatorId)
       .order("created_at", { ascending: false })
       .limit(limit);
-    if (status) q = q.eq("booking_status", status);
+    if (status) q = q.eq("status", status);
     return sq(() => q, []);
   },
 
   // Buchungen des Gastes (Erlebnisse die ich gebucht habe)
   async forUser(userId, { limit = 20 } = {}) {
     return sq(() => supabase
-      .from("experience_bookings")
+      .from("bookings")
       .select(`
-        id, seats, amount, booking_status, created_at,
-        experience:experience_id(id, title, cover_url),
-        creator:creator_id(id, display_name, avatar_url)
+        id, amount, status, payment_status, created_at, confirmed_at, completed_at
       `)
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
@@ -169,15 +164,13 @@ export const bookingService = {
   // Status updaten (Creator only)
   async updateStatus(bookingId, status, { response = null } = {}) {
     const updates = {
-      booking_status:   status,
-      creator_response: response,
+      status,  // echte Spalte (booking_status existiert nicht in bookings-Tabelle)
     };
     if (status === "confirmed") updates.confirmed_at = new Date().toISOString();
-    if (status === "cancelled") updates.cancelled_at = new Date().toISOString();
     if (status === "completed") updates.completed_at = new Date().toISOString();
 
     return sq(() => supabase
-      .from("experience_bookings")
+      .from("bookings")
       .update(updates)
       .eq("id", bookingId)
       .select()

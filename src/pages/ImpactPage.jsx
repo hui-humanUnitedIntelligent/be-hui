@@ -231,13 +231,13 @@ function useLastPayout() {
       try {
         const { data:round } = await supabase
           .from("impact_rounds")
-          .select("id,month,pool_eur,distributed_at,winner_project_id")
+          .select("id,month,pool_eur,status")
           .eq("status","distributed")
-          .order("distributed_at", { ascending:false })
+          .order("month", { ascending:false })
           .limit(1)
           .single();
         if (dead || !round) { if (!dead) setS(d => ({...d, loading:false})); return; }
-        const projIds = [round.winner_project_id].filter(Boolean);
+        const projIds = []; // winner_project_id existiert nicht in impact_rounds
         const { data:winnerProjs } = projIds.length
           ? await supabase.from("impact_projects")
               .select("id,name,icon,color,img_url,awarded_eur")
@@ -247,11 +247,11 @@ function useLastPayout() {
           .from("impact_projects")
           .select("id,name,icon,awarded_eur")
           .gt("awarded_eur", 0)
-          .neq("id", round.winner_project_id || "none")
+          .neq("id", "none")
           .order("awarded_eur", { ascending:false })
           .limit(5);
         if (dead) return;
-        const wp = (winnerProjs || []).find(p => p.id === round.winner_project_id);
+        const wp = null; // winner_project_id existiert nicht in impact_rounds
         setS({
           payout: {
             month: round.month,
@@ -280,7 +280,7 @@ function useWeitereProjects() {
       try {
         const { data } = await supabase
           .from("impact_projects")
-          .select("id,name,icon,color,img_url,status,category,awarded_eur,distributed_at,impact_report,tags")
+          .select("id,name,icon,color,status,category,awarded_eur,impact_report,tags,month")
           .in("status", ["funded","finished"])
           .order("awarded_eur", { ascending:false })
           .limit(8);
@@ -416,7 +416,7 @@ function useAllApprovedByVotes() {
         color:              "#0DC4B5",
         votes:              voteMap[app.id] || 0,
         vote_count:         voteMap[app.id] || 0,
-        goal_eur:           app.funding_goal || 2000,
+        awarded_eur:           app.funding_goal || 2000,
         current_amount_eur: app.current_amount_eur || 0,
         status:             app.status,
         is_completed:       app.is_completed || false,
@@ -552,7 +552,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
     long_desc:    rawApp.long_desc    || rawApp.description || "",
     cover_url:    rawApp.cover_url    || rawApp.img          || null,
     media_urls:   rawApp.media_urls   || (rawApp.img ? [rawApp.img] : []),
-    funding_goal: rawApp.funding_goal || rawApp.goal_eur     || 0,
+    funding_goal: rawApp.funding_goal || rawApp.awarded_eur     || 0,
     applicant_name: rawApp.applicant_name || "",
     applicant_type: rawApp.applicant_type || "",
     impact_category: rawApp.impact_category || rawApp.category || "",
@@ -571,7 +571,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
 
   // ── Finanzierungs-Daten (frisch aus DB) ────────────────────
   const [fundedEur,  setFundedEur]  = React.useState(safeNum(rawApp.current_amount_eur) || 0);
-  const [goalFromDb, setGoalFromDb] = React.useState(safeNum(rawApp.funding_goal) || safeNum(rawApp.goal_eur) || 0);
+  const [goalFromDb, setGoalFromDb] = React.useState(safeNum(rawApp.funding_goal) || safeNum(rawApp.awarded_eur) || 0);
   const [milestones, setMilestones] = React.useState([]);
   const [milestonesLoading, setMilestonesLoading] = React.useState(false);
   const [detailMilestone, setDetailMilestone] = React.useState(null);
@@ -1422,18 +1422,18 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
     (async () => {
       try {
         const [poolRes, voteRes] = await Promise.allSettled([
-          // SSOT: stripe_impact_pool JOIN orders WHERE customer_id = user
-          // Gesamt-Impact des Nutzers über alle Monate (nie reset)
-          supabase.from("stripe_impact_pool")
-            .select("impact_pool_eur, orders!inner(customer_id)")
-            .eq("orders.customer_id", currentUser.id),
+          // SSOT: profiles.impact_eur — wird von rpc_process_order_fees aktualisiert
+          supabase.from("profiles")
+            .select("impact_eur")
+            .eq("id", currentUser.id)
+            .single(),
           supabase.from("impact_votes")
             .select("id,project_id").eq("voter_id", currentUser.id),
         ]);
         if (dead) return;
-        const poolRows = poolRes.status === "fulfilled" ? (poolRes.value.data || []) : [];
+        const profileData = poolRes.status === "fulfilled" ? (poolRes.value.data || null) : null;
         const votes    = voteRes.status === "fulfilled" ? (voteRes.value.data || []) : [];
-        const eur = poolRows.reduce((s, r) => s + safeNum(r.impact_pool_eur), 0);
+        const eur = safeNum(profileData?.impact_eur);
         const uniqueProj = [...new Set(votes.map(v => v.project_id))].length;
         setUserImpact({ eur, projekte:uniqueProj, loading:false });
       } catch { if (!dead) setUserImpact(p => ({ ...p, loading:false })); }
@@ -1539,7 +1539,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
                 id: a.id, name: a.project_name,
                 category: a.short_desc?.slice(0,20) || "Herzensprojekt",
                 description: a.short_desc, icon: "💚", color: "#0DC4B5",
-                votes: a.vote_count || 0, goal_eur: a.funding_goal || 0,
+                votes: a.vote_count || 0, awarded_eur: a.funding_goal || 0,
                 status: "approved",
                 img: a.cover_url || (a.media_urls && a.media_urls[0]) || null,
               }))
@@ -1848,7 +1848,7 @@ function VotingSection({ projects, userVotes, daysLeft, totalVotes, onVote, load
 function VotingCard({ project:p, rank, voted, totalVotes, onVote, onOpen }) {
   const accent = p.color || T.teal;
   const fundedEur = safeNum(p.current_amount_eur) || 0;
-  const goalEur   = safeNum(p.goal_eur) || safeNum(p.funding_goal) || 2000;
+  const goalEur   = safeNum(p.awarded_eur) || safeNum(p.funding_goal) || 2000;
   const fundPct   = goalEur > 0 ? Math.min(100, Math.round(fundedEur / goalEur * 100)) : 0;
   const [imgErr, setImgErr] = React.useState(false);
   const RANK_C = [T.teal, T.coral, T.violet];
@@ -2103,7 +2103,7 @@ function HerzensKarte({ p, idx }) {
   const [imgErr, setImgErr] = React.useState(false);
   const cfg     = HP_STATUS[p.status] || HP_STATUS.pending;
   const accent  = p.color || T.teal;
-  const goalEur = safeNum(p.goal_eur) || 0;
+  const goalEur = safeNum(p.awarded_eur) || 0;
   return (
     <div style={{
       background:T.surfaceHi, borderRadius:20,
@@ -2647,9 +2647,9 @@ function GemeinsamErmoegicht({ finanziert, transp }) {
                 <div style={{ marginBottom:4 }}>
                   <div style={{ fontSize:14, fontWeight:800, color:T.ink, lineHeight:1.3,
                     marginBottom:1 }}>{p.name}</div>
-                  {p.distributed_at && (
+                  {p.month && (
                     <div style={{ fontSize:10, color:T.muted }}>
-                      Finanziert {fmtMonth(p.distributed_at?.slice(0,7))}
+                      Finanziert {fmtMonth(p.month?.slice(0,7))}
                     </div>
                   )}
                 </div>
