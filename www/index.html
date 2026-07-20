@@ -130,7 +130,17 @@
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
           navigator.serviceWorker.register("/sw.js")
-            .then(r => console.log("[HUI SW] registriert:", r.scope))
+            .then(r => {
+              console.log("[HUI SW] registriert:", r.scope);
+              // SW-Update-Listener: wenn neuer SW aktiviert wird → Seite neu laden
+              navigator.serviceWorker.addEventListener("message", (event) => {
+                if (event.data && event.data.type === "SW_UPDATED") {
+                  console.log("[HUI SW] Update erkannt — lade Seite neu...");
+                  // Kurze Verzögerung damit SW komplett initialisiert ist
+                  setTimeout(() => window.location.reload(true), 500);
+                }
+              });
+            })
             .catch(e => console.warn("[HUI SW] Fehler:", e));
         });
       }

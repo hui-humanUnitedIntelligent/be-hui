@@ -14,14 +14,19 @@ self.addEventListener("install", (e) => {
   self.skipWaiting();
 });
 
-// Activate: alte Caches löschen
+// Activate: alte Caches löschen + Clients refreshen
 self.addEventListener("activate", (e) => {
   e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
+    caches.keys().then(async keys => {
+      // Alte Caches löschen
+      await Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)));
+      // Alle offenen Tabs übernehmen
+      await self.clients.claim();
+      // Alle Clients anweisen die Seite neu zu laden (neue Chunks aktiv)
+      const allClients = await self.clients.matchAll({ includeUncontrolled: true });
+      allClients.forEach(client => client.postMessage({ type: "SW_UPDATED", cache: CACHE_NAME }));
+    })
   );
-  self.clients.claim();
 });
 
 // Fetch: Network First — Live-Updates funktionieren immer
