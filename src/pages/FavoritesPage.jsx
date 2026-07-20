@@ -694,25 +694,33 @@ export default function FavoritesPage({ currentUser, onView, onImpact, onDiscove
         // Phase 4C: echte Experiences laden
         const { data: userExps } = await supabase
           .from("experiences")
-          .select(`
-            id, title, cover_url, category, description, price,
-            date_start, location_label, max_participants, status, creator_id,
-            profile:profiles!experiences_creator_id_fkey(
-              id, display_name, avatar_url, talent
-            )
-          `)
-          .eq("status", "open")
-          .order("date_start", { ascending: true })
+          .select("id,title,cover_url,category,description,price,date,location_text,max_participants,status,user_id,created_at")
+          .eq("status", "published")
+          .eq("approval_status", "approved")
+          .order("date", { ascending: true })
           .limit(20);
+
+        // Profil-Daten separat laden (kein FK experiences→profiles)
+        let profileMap = {};
+        if (userExps && userExps.length > 0) {
+          const uids = [...new Set(userExps.map(e => e.user_id).filter(Boolean))];
+          if (uids.length > 0) {
+            const { data: profRows } = await supabase
+              .from("profiles")
+              .select("id,display_name,avatar_url,talent")
+              .in("id", uids);
+            (profRows || []).forEach(p => { profileMap[p.id] = p; });
+          }
+        }
 
         if (userExps && userExps.length > 0) {
           setExperiences(userExps.map(e => ({
             id:          e.id,
             title:       e.title,
-            creator:     e.profile?.display_name || "Creator",
+            creator:     profileMap[e.user_id]?.display_name || "Creator",
             category:    e.category || "Erlebnis",
-            location:    e.location_label || "",
-            date:        e.date_start ? new Date(e.date_start).toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"}) : null,
+            location:    e.location_text || "",
+            date:        e.date ? new Date(e.date).toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"}) : null,
             price:       e.price,
             cover:       e.cover_url,
             status:      e.status,
