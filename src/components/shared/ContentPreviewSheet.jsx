@@ -19,9 +19,9 @@
 //                                                 Inline-Implementierung.
 // ══════════════════════════════════════════════════════════════════
 import { HUILocationIcon } from '../../design/icons/HuiSystemIcons.jsx';
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState, lazy, Suspense } from "react";
 import { createPortal } from "react-dom";
-import TalentBookingFlow from '../talents/TalentBookingFlow.jsx';
+const TalentBookingFlow = lazy(() => import('../talents/TalentBookingFlow.jsx'));
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
@@ -265,12 +265,14 @@ export default function ContentPreviewSheet({ item, loading, onClose }) {
                       Talent-Profil ansehen
                     </button>
                   )}
-                  {/* TalentBookingFlow — Portal-in-Portal (beide zu document.body) */}
+                  {/* TalentBookingFlow — lazy geladen (Stripe erst bei Bedarf) */}
                   {showTalentBooking && item._raw && (
-                    <TalentBookingFlow
-                      talent={item._raw}
-                      onClose={() => setShowTalentBooking(false)}
-                    />
+                    <Suspense fallback={null}>
+                      <TalentBookingFlow
+                        talent={item._raw}
+                        onClose={() => setShowTalentBooking(false)}
+                      />
+                    </Suspense>
                   )}
                 </>
               )}
