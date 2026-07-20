@@ -306,7 +306,7 @@ export default function ProjekteAllModal({ isOpen, onClose, onPressItem }) {
       display:"flex", alignItems:"flex-start", justifyContent:"center",
     }}>
       <div onClick={e => e.stopPropagation()} style={{
-        marginTop:"env(safe-area-inset-top,44px)", maxWidth:480, width:"100%",
+        marginTop:"env(safe-area-inset-top,44px)", width:"100%",
         height:"calc(100dvh - env(safe-area-inset-top,44px))",
         background:"#F4F5F7", borderRadius:"20px 20px 0 0",
         display:"flex", flexDirection:"column", overflow:"hidden",
