@@ -417,7 +417,7 @@ function HomeInner() {
               <SafeRender flag="homeFeed" label="Feed">
                 <UnifiedFeed
                   onRefreshBind={fn => { feedRefreshRef.current = fn; }}
-                  showEvents={true}
+                  showEvents={false}
                   currentUser={currentUser}
                   searchActive={searchState.active}
                   searchQuery={searchState.query}
