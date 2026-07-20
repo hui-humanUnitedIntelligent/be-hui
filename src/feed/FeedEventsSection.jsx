@@ -145,8 +145,8 @@ export default function FeedEventsSection({ onEventPress, onMoreEvents }) {
         .select(`
           id, title, location_text, price, format, duration,
           date, time_start, time_end,
-          cover_url, media_url, is_live,
-          creator_id, user_id
+          cover_url, media_url,
+          user_id
         `)
         // FEED.4D FIX-1 — date/time_start/time_end/creator_id/user_id ergänzt, toter JOIN entfernt
         // FEED.4B FIX-1 — Moderation-konforme Filter (identisch zu fetchFeedPage)
@@ -163,7 +163,7 @@ export default function FeedEventsSection({ onEventPress, onMoreEvents }) {
         // FEED.4D FIX-4 — time_start als echte Uhrzeit, duration als Fallback
         const timeStr = r.time_start ? r.time_start.slice(0, 5) : "";
         // FEED.4D FIX-6b — Badge aus echtem Datum
-        const badge = r.is_live ? "Live" : computeBadge(r.date);
+        const badge = false /* is_live n/a */ ? "Live" : computeBadge(r.date);
         return {
           id:         String(r.id),
           title:      r.title        || "Erlebnis",
@@ -183,7 +183,7 @@ export default function FeedEventsSection({ onEventPress, onMoreEvents }) {
                     : "#8B6FE8",  // Datum: Violett
           // FIX-7: Creator-Navigation
           user_id:    r.user_id    || null,
-          creator_id: r.creator_id || null,
+          creator_id: r.user_id || null,
         };
       });
 

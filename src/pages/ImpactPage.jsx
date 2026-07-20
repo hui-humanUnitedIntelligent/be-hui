@@ -114,7 +114,7 @@ function useHeroStats() {
           supabase.from("impact_rounds")
             .select("pool_eur")
             .eq("month", now.toISOString().slice(0,7))
-            .single(),
+            .maybeSingle(),
         ]);
         if (dead) return;
         setS({
@@ -175,12 +175,12 @@ function useTransparenz() {
           supabase.from("impact_applications")
             .select("id,status,is_completed,funding_goal,current_amount_eur,created_at,submitted_at"),
           supabase.from("impact_votes")
-            .select("id,user_id", { count:"exact" }),
+            .select("id,voter_id", { count:"exact" }),
         ]);
         if (dead) return;
         const apps  = appRes.status === "fulfilled" ? (appRes.value.data || []) : [];
         const vdata = vRes.status   === "fulfilled" ? vRes.value : { count:0, data:[] };
-        const unique = new Set((vdata.data || []).map(v => v.user_id)).size;
+        const unique = new Set((vdata.data || []).map(v => v.voter_id)).size;
 
         // Finanziert = is_completed=true (via SADB gesetzt oder Trigger)
         const funded = apps.filter(p => p.is_completed === true);
@@ -235,12 +235,12 @@ function useLastPayout() {
           .eq("status","distributed")
           .order("month", { ascending:false })
           .limit(1)
-          .single();
+          .maybeSingle();
         if (dead || !round) { if (!dead) setS(d => ({...d, loading:false})); return; }
         const projIds = []; // winner_project_id existiert nicht in impact_rounds
         const { data:winnerProjs } = projIds.length
           ? await supabase.from("impact_projects")
-              .select("id,name,icon,color,img_url,awarded_eur")
+              .select("id,name,icon,color,awarded_eur")
               .in("id", projIds)
           : { data:[] };
         const { data:others } = await supabase
@@ -300,11 +300,11 @@ function useImpactActivities() {
       try {
         const { data:votes } = await supabase
           .from("impact_votes")
-          .select("id,created_at,user_id,project_id")
+          .select("id,created_at,voter_id,project_id")
           .order("created_at", { ascending:false })
           .limit(8);
         if (dead || !votes?.length) return;
-        const uIds = [...new Set(votes.map(v => v.user_id).filter(Boolean))];
+        const uIds = [...new Set(votes.map(v => v.voter_id).filter(Boolean))];
         const pIds = [...new Set(votes.map(v => v.project_id).filter(Boolean))];
         const [uRes, pRes] = await Promise.allSettled([
           uIds.length ? ProfileService.getMany(uIds) // ProfileService v1.0
@@ -317,9 +317,9 @@ function useImpactActivities() {
         const pMap = Object.fromEntries((pRes.value?.data || []).map(p => [p.id, p]));
         setActs(votes.map(v => ({
           id:     v.id,
-          user_id: v.user_id || null,
-          user:   uMap[v.user_id]?.display_name || "Jemand",
-          avatar: uMap[v.user_id]?.avatar_url || null,
+          user_id: v.voter_id || null,
+          user:   uMap[v.voter_id]?.display_name || "Jemand",
+          avatar: uMap[v.voter_id]?.avatar_url || null,
           proj:   pMap[v.project_id]?.name || "ein Projekt",
           ago:    relTime(v.created_at),
         })));
@@ -1426,7 +1426,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
           supabase.from("profiles")
             .select("impact_eur")
             .eq("id", currentUser.id)
-            .single(),
+            .maybeSingle(),
           supabase.from("impact_votes")
             .select("id,project_id").eq("voter_id", currentUser.id),
         ]);
