@@ -64,13 +64,17 @@ export function OrbWorldProvider({ children }) {
   const closeTimerRef = useRef(null);
 
   // ── Open Orb World ─────────────────────────────────────────
-  const openOrbWorld = useCallback(({
-    source           = "orb-button",
-    originTab        = "feed",
-    worldTemperature = "calm_flowing",
-    atmosphereId     = null,
-    continuityCarry  = {},
-  } = {}) => {
+  const openOrbWorld = useCallback((opts) => {
+    // FIX-2026-07-20: null übergeben crasht Default-Destructuring → null → {} umleiten
+    const {
+      source           = "orb-button",
+      originTab        = "feed",
+      worldTemperature = "calm_flowing",
+      atmosphereId     = null,
+      continuityCarry  = {},
+    } = (opts != null ? opts : {});
+    // eslint-disable-next-line no-unused-expressions
+    void 0; // Scope-Trenner
     // Safety: never route to "orb" tab
     assertValidTab(originTab);
 

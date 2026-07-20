@@ -358,7 +358,7 @@ export function buildActions(shell) {
         return;
       }
       setShowPlusSheet?.(true);
-      openOrbWorld?.(payload?.world ?? null);
+      openOrbWorld?.(payload?.world || undefined);
     },
 
     [A.CLOSE_ORB]: () => {
@@ -398,7 +398,7 @@ export function buildActions(shell) {
     // ── WORLDS / ROOMS ────────────────────────────────────────────
     [A.OPEN_WORLD]: (payload = {}) => {
       logAction(A.OPEN_WORLD, payload);
-      openOrbWorld?.(payload?.world ?? null);
+      openOrbWorld?.(payload?.world || undefined);
       setShowPlusSheet?.(true);
     },
 
