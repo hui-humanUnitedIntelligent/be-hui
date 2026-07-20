@@ -63,8 +63,11 @@ const CSS = `
 `;
 
 export default function ContentPreviewSheet({ item, loading, onClose }) {
-  // TALENT-PROFIL-FIX: navigate-basiert statt useProfileLauncher (der braucht HuiActionProvider
-  // der AUSSERHALB des ContentPreviewProviders liegt → openCreatorProfile war immer noop).
+  // FIX: navigate + showTalentBooking VOR useCallback deklarieren (TDZ-Bug)
+  const navigate = useNavigate();
+  const [showTalentBooking, setShowTalentBooking] = useState(false);
+
+  // TALENT-PROFIL-FIX: navigate-basiert statt useProfileLauncher
   const openTalentProfile = useCallback(async (userId) => {
     if (!userId) return;
     const { data } = await supabase
@@ -75,8 +78,6 @@ export default function ContentPreviewSheet({ item, loading, onClose }) {
     const username = data?.username;
     if (username) navigate('/profile/' + username);
   }, [navigate]);
-  const [showTalentBooking, setShowTalentBooking] = useState(false);
-  const navigate = useNavigate();
   const { isSaved, toggleSave } = useSavedPostsContext();
 
   const postId    = item?.id || null;
