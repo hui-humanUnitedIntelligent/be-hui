@@ -121,7 +121,7 @@ async function fetchConnections() {
 async function fetchRecommendations() {
   const rows = await safe(
     supabase.from("recommendations")
-      .select("id,created_at,to_profile:profiles!recommendations_to_user_id_fkey(display_name)")
+      .select("id,created_at,to_user_id")
       .eq("is_public", true)
       .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
   );

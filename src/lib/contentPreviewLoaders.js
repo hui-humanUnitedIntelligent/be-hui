@@ -38,7 +38,8 @@ const LOADERS = {
   recommendation: async (id) => {
     const row = await one(
       supabase.from("recommendations")
-        .select("id,from_user_id,to_user_id,text,result_images,created_at,from_profile:profiles!recommendations_from_user_id_fkey(display_name,avatar_url),to_profile:profiles!recommendations_to_user_id_fkey(display_name)")
+        // FK referenziert auth.users (nicht profiles) → kein PostgREST-Join möglich
+        .select("id,from_user_id,to_user_id,text,result_images,created_at")
         .eq("id", id)
     );
     return row ? normalizeRecommendationForPreview(row) : null;

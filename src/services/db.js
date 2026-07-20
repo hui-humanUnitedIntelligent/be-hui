@@ -613,7 +613,7 @@ export const RecommendationService = {
   async getByUser(userId, page = 0) {
     return safeQuery(buildPage(
       supabase.from('recommendations')
-        .select(`${F.recommendation},from_profile:profiles!recommendations_from_user_id_fkey(display_name,avatar_url)`)
+        .select(`${F.recommendation}`)  // FK zu auth.users (nicht profiles) → kein PostgREST-Join
         .eq('to_user_id', userId)
         .eq('is_public', true)
         .order('created_at', { ascending: false }),

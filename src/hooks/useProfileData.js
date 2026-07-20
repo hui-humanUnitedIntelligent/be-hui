@@ -40,9 +40,10 @@ const EXPERIENCES_SELECT =
   "id,user_id,title,cover_url,category,date,status," +
   "approval_status,visibility,format,location_text,price,duration,created_at";
 
+// recommendations.from_user_id referenziert auth.users (nicht profiles) → kein PostgREST-Join möglich
+// from_profile wird separat nachgeladen wenn benötigt
 const RECOMMENDATIONS_SELECT =
-  `id,from_user_id,to_user_id,text,result_images,is_public,created_at,
-   from_profile:profiles!recommendations_from_user_id_fkey(display_name,avatar_url)`;
+  "id,from_user_id,to_user_id,text,is_public,created_at";
 
 const MOMENTS_SELECT =
   "id,user_id,src,type,caption,created_at";
@@ -169,10 +170,10 @@ export function useProfileData(profileId) {
           .then(r => r)
           .catch(() => ({ data: [] })),
 
-        // 4b. projects — approval_status für Live-Badge erforderlich
+        // 4b. impact_projects (war "projects" — Tabelle existiert nicht, korrekte Tabelle: impact_projects)
         supabase
-          .from("projects")
-          .select(EXPERIENCES_SELECT)
+          .from("impact_projects")
+          .select("id,user_id,title,cover_url,category,status,approval_status,created_at")
           .eq("user_id", profileId)
           .not("status", "eq", "deleted")
           .order("created_at", { ascending: false })
@@ -267,7 +268,29 @@ export function useProfileData(profileId) {
       if (recsRes.error) {
         console.error("[RECOMMENDATIONS QUERY FAILED]", recsRes.error);
       }
-      setRecommendations(recsRes.data || []);
+      // Autoren-Namen batch-laden (FK zu auth.users → kein PostgREST-JOIN möglich)
+      {
+        const recsRaw = (recsRes.data || []).filter(Boolean);
+        if (recsRaw.length > 0 && myId === requestId.current) {
+          const authorIds = [...new Set(recsRaw.map(r => r.from_user_id).filter(Boolean))];
+          let authorMap = {};
+          if (authorIds.length > 0) {
+            try {
+              const { data: authorProfiles } = await supabase
+                .from("profiles")
+                .select("id,display_name,avatar_url")
+                .in("id", authorIds);
+              (authorProfiles || []).forEach(p => { authorMap[p.id] = p; });
+            } catch (_) { /* noop */ }
+          }
+          setRecommendations(recsRaw.map(r => ({
+            ...r,
+            from_profile: authorMap[r.from_user_id] || null,
+          })));
+        } else {
+          setRecommendations([]);
+        }
+      }
       setMoments(momentsRes.data    || []);
       setFollowCounts({
         followers: fcRes.data?.[0]?.followers ?? 0,
