@@ -10,6 +10,8 @@
 //                 in TalentAngebotWizard.jsx, Schritt 4). Datenformat/Spalte
 //                 (available_dates, jsonb-Array von ISO-Datumsstrings) bleibt
 //                 unveraendert — rein UI-seitige Verbesserung.
+//   mode="free" — Alle nicht-vergangenen Tage sind buchbar (kein available_dates noetig),
+//                 aber belegte Tage (via rpc_get_talent_month_availability) bleiben gesperrt.
 //   mode="book" — Kunde waehlt aus den vom Anbieter freigegebenen Terminen
 //                 (TalentBookingFlow.jsx), bereits ausgebuchte Termine/Zeit-
 //                 fenster werden anhand von rpc_get_talent_month_availability
@@ -71,7 +73,7 @@ export default function AvailabilityCalendar({
 
   const selectedSet = mode === "edit" ? new Set(selectedDates) : null;
   const availableSet = mode === "book" ? new Set(availableDates) : null;
-  const fullSet = mode === "book" ? new Set(fullDates) : null;
+  const fullSet = (mode === "book" || mode === "free") ? new Set(fullDates) : null;
 
   const grid = buildGrid(viewYear, viewMonth);
   const canGoPrev = !(viewYear === Number(min.slice(0, 4)) && viewMonth === Number(min.slice(5, 7)) - 1);
@@ -128,7 +130,13 @@ export default function AvailabilityCalendar({
           let state = "muted";      // book mode default: nicht buchbar
           if (mode === "edit") {
             state = selectedSet.has(iso) ? "selected" : (isPast ? "disabled" : "pickable");
+          } else if (mode === "free") {
+            // Alle Tage wählbar außer vergangene, überschrittene und belegte
+            if (isPast || isOverMax) state = "disabled";
+            else if (fullSet.has(iso)) state = "full";
+            else state = selectedDate === iso ? "selected" : "available";
           } else {
+            // mode="book": nur vom Anbieter freigegebene Tage
             if (isPast || isOverMax) state = "disabled";
             else if (!availableSet.has(iso)) state = "muted";
             else if (fullSet.has(iso)) state = "full";
@@ -137,7 +145,7 @@ export default function AvailabilityCalendar({
 
           const clickable = !disabled && (
             (mode === "edit" && !isPast) ||
-            (mode === "book" && (state === "available" || state === "selected"))
+            ((mode === "book" || mode === "free") && (state === "available" || state === "selected"))
           );
 
           const styles = {
@@ -174,7 +182,7 @@ export default function AvailabilityCalendar({
         })}
       </div>
 
-      {mode === "book" && (
+      {(mode === "book" || mode === "free") && (
         <div style={{ display: "flex", gap: 12, marginTop: 10, flexWrap: "wrap" }}>
           <Legend swatch="rgba(14,196,184,0.10)" border="rgba(14,196,184,0.35)" label="Verfügbar" />
           <Legend swatch="rgba(232,58,58,0.06)" border="rgba(232,58,58,0.15)" label="Ausgebucht" />

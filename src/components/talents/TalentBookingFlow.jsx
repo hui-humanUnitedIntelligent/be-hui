@@ -34,14 +34,6 @@ function fmtDate(d) {
   try { return new Date(d + "T00:00:00").toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "short" }); }
   catch { return d; }
 }
-function fmtWeekday(d) {
-  try {
-    const dt = new Date(d + "T00:00:00");
-    const wd = dt.toLocaleDateString("de-DE", { weekday: "long" });
-    const full = dt.toLocaleDateString("de-DE", { day: "2-digit", month: "long", year: "numeric" });
-    return { weekday: wd, full, isWeekend: dt.getDay() === 0 || dt.getDay() === 6 };
-  } catch { return null; }
-}
 function todayIso() { return new Date().toISOString().slice(0, 10); }
 function addDaysIso(days) {
   const d = new Date(); d.setDate(d.getDate() + days); return d.toISOString().slice(0, 10);
@@ -313,71 +305,49 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                 </div>
               )}
 
-              {/* Termin / Kalender */}
+              {/* Termin / Kalender — immer als Monatskalender, niemals nur input[type=date] */}
               <div style={{ marginBottom: 18 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1A2E", marginBottom: 8 }}>
                   Termin wählen
                 </div>
-                {hasDates ? (
-                  <div style={{
-                    background: "#fff", border: "1.5px solid rgba(26,26,46,0.10)", borderRadius: 14,
-                    padding: "14px 12px",
-                  }}>
-                    <AvailabilityCalendar
-                      mode="book"
-                      availableDates={talent.available_dates}
-                      selectedDate={selectedDate}
-                      onSelectDate={(d) => { setSelectedDate(d); setSelectedSlot(null); }}
-                      fullDates={fullDates}
-                      onMonthChange={loadMonthAvailability}
-                      minDate={minDate}
-                      maxDate={maxDate}
-                    />
-                  </div>
-                ) : (
-                  <>
-                  <input
-                    type="date"
-                    value={selectedDate}
-                    min={minDate}
-                    max={maxDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    style={{
-                      width: "100%", padding: "10px 14px", borderRadius: 12,
-                      border: "1.5px solid rgba(26,26,46,0.12)", fontSize: 14,
-                      color: "#1A1A2E", background: "#fff", outline: "none", boxSizing: "border-box",
-                    }}
+                <div style={{
+                  background: "#fff", border: "1.5px solid rgba(26,26,46,0.10)", borderRadius: 14,
+                  padding: "14px 12px",
+                }}>
+                  <AvailabilityCalendar
+                    mode={hasDates ? "book" : "free"}
+                    availableDates={talent.available_dates || []}
+                    selectedDate={selectedDate}
+                    onSelectDate={(d) => { setSelectedDate(d); setSelectedSlot(null); }}
+                    fullDates={fullDates}
+                    onMonthChange={loadMonthAvailability}
+                    minDate={minDate}
+                    maxDate={maxDate}
                   />
-                  {/* Wochentag + Verfügbarkeits-Feedback nach Datumsauswahl */}
-                  {dateInfo && (
-                    <div style={{
-                      marginTop: 10, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
+                </div>
+                {/* Wochentag-Feedback unter dem Kalender nach Auswahl */}
+                {dateInfo && (
+                  <div style={{
+                    marginTop: 8, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
+                  }}>
+                    <span style={{
+                      display: "inline-flex", alignItems: "center", gap: 4,
+                      background: dateInfo.isWeekend ? "rgba(255,138,107,0.12)" : "rgba(13,196,181,0.10)",
+                      color: dateInfo.isWeekend ? "#FF8A6B" : "rgba(0,150,136,1)",
+                      borderRadius: 99, padding: "5px 12px",
+                      fontSize: 12, fontWeight: 700,
                     }}>
+                      {dateInfo.weekday}, {dateInfo.full}
+                    </span>
+                    {/* Im free-Mode: zeige ob Tag bereits ausgebucht ist */}
+                    {!hasDates && selectedDate && monthAvail[selectedDate]?.is_full && (
                       <span style={{
                         display: "inline-flex", alignItems: "center", gap: 4,
-                        background: dateInfo.isWeekend ? "rgba(255,138,107,0.12)" : "rgba(13,196,181,0.10)",
-                        color: dateInfo.isWeekend ? "#FF8A6B" : "rgba(0,150,136,1)",
-                        borderRadius: 99, padding: "5px 12px",
-                        fontSize: 13, fontWeight: 700, letterSpacing: "-0.01em",
-                      }}>
-                        {dateInfo.weekday}, {dateInfo.full}
-                      </span>
-                      {Array.isArray(talent.available_dates) && talent.available_dates.length > 0 && (
-                        talent.available_dates.includes(selectedDate)
-                          ? <span style={{
-                              display: "inline-flex", alignItems: "center", gap: 4,
-                              background: "rgba(34,197,94,0.10)", color: "rgba(21,128,61,1)",
-                              borderRadius: 99, padding: "5px 12px", fontSize: 12, fontWeight: 600,
-                            }}>✓ Verfügbar</span>
-                          : <span style={{
-                              display: "inline-flex", alignItems: "center", gap: 4,
-                              background: "rgba(232,58,58,0.08)", color: "rgba(185,28,28,1)",
-                              borderRadius: 99, padding: "5px 12px", fontSize: 12, fontWeight: 600,
-                            }}>✕ Nicht verfügbar markiert</span>
-                      )}
-                    </div>
-                  )}
-                  </>
+                        background: "rgba(232,58,58,0.08)", color: "rgba(185,28,28,1)",
+                        borderRadius: 99, padding: "5px 12px", fontSize: 12, fontWeight: 600,
+                      }}>Bereits ausgebucht</span>
+                    )}
+                  </div>
                 )}
               </div>
 
