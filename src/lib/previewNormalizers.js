@@ -102,7 +102,7 @@ export function normalizeTalentForPreview(t, authorName) {
     title: str(t.title, "Talent-Angebot"),
     text:  str(t.description),
     media: allImages,
-    createdAt: t.created_at || null,
+    createdAt: null, // Talent-Angebote zeigen kein Erstelldatum (kein Termin-Konzept)
     location: LOC_LABELS[t.location_type] || str(t.location_address),
     category: str(t.category),
     price,
