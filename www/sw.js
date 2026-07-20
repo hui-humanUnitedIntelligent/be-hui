@@ -1,49 +1,67 @@
-// HUI Service Worker — v202607201954
-// Strategie: Network First — JS/CSS Assets NIEMALS im Cache (Chunks sind hash-benannt)
-// Live-Updates: funktionieren sofort ohne App-Store-Update
+// HUI Service Worker — v202607201957
+// Strategie: Network First — JS/CSS Assets NIEMALS im SW-Cache
+// Cache-Control Headers via Vercel regeln das Browser-Caching direkt.
 
-const CACHE_NAME = "hui-v202607201954";
-// Nur wirklich statische Assets cachen (keine JS-Chunks):
-const STATIC_ASSETS = ["/hui-icon-192.png", "/hui-icon-512.png"];
+const CACHE_NAME = "hui-v202607201957";
+const ICON_ASSETS = ["/hui-icon-192.png", "/hui-icon-512.png"];
 
-// Install: nur Icons cachen — KEIN index.html, KEIN manifest.json, KEINE JS-Chunks
+// Install: Sofort übernehmen, nur Icons cachen
 self.addEventListener("install", (e) => {
   e.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS))
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(ICON_ASSETS))
+      .then(() => self.skipWaiting())
   );
-  self.skipWaiting();
 });
 
-// Activate: alle alten Caches löschen + Clients übernehmen
+// Activate: ALLE alten Caches sofort löschen + Clients übernehmen
 self.addEventListener("activate", (e) => {
   e.waitUntil(
-    caches.keys().then(async keys => {
-      await Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)));
-      await self.clients.claim();
-      // Alle Tabs anweisen die Seite neu zu laden
-      const allClients = await self.clients.matchAll({ includeUncontrolled: true });
-      allClients.forEach(client => client.postMessage({ type: "SW_UPDATED", cache: CACHE_NAME }));
-    })
+    caches.keys()
+      .then(keys => Promise.all(
+        keys.map(k => {
+          // Alle alten Caches löschen (auch alte hui-v* Caches)
+          if (k !== CACHE_NAME) {
+            console.log("[HUI SW] Alter Cache gelöscht:", k);
+            return caches.delete(k);
+          }
+        })
+      ))
+      .then(() => self.clients.claim())
+      .then(async () => {
+        // Alle offenen Tabs anweisen die Seite neu zu laden
+        const allClients = await self.clients.matchAll({ includeUncontrolled: true, type: "window" });
+        allClients.forEach(client => {
+          client.postMessage({ type: "SW_UPDATED", version: CACHE_NAME });
+        });
+      })
   );
 });
 
-// Fetch: Network First — JS/CSS/HTML IMMER frisch vom Netzwerk
+// Fetch: Network First für ALLES — kein SW-Caching von HTML/JS/CSS/JSON
 self.addEventListener("fetch", (e) => {
   const url = e.request.url;
 
-  // API-Calls (Supabase/Auth) immer direkt durchlassen:
+  // Supabase/Auth-Calls: direkt durchlassen (kein SW-Eingriff)
   if (url.includes("supabase.co") || url.includes("/rest/v1/") || url.includes("/auth/")) {
     return;
   }
 
-  // JS-Chunks, CSS, HTML, JSON → IMMER vom Netzwerk (nie aus Cache):
-  if (url.includes("/assets/") || url.endsWith(".js") || url.endsWith(".css") ||
-      url.endsWith(".html") || url.endsWith("manifest.json") || url.endsWith(".json")) {
+  // HTML, JS, CSS, JSON → IMMER vom Netzwerk, NIEMALS aus SW-Cache
+  if (
+    e.request.mode === "navigate" ||
+    url.includes("/assets/") ||
+    url.endsWith(".js") ||
+    url.endsWith(".css") ||
+    url.endsWith(".html") ||
+    url.endsWith(".json")
+  ) {
     e.respondWith(
-      fetch(e.request).catch(() => {
-        // Offline-Fallback für Navigation: index.html aus Cache (falls vorhanden)
+      fetch(e.request, { cache: "no-store" }).catch(() => {
+        // Offline: Navigation-Fallback auf gecachte index.html (falls vorhanden)
         if (e.request.mode === "navigate") {
-          return caches.match("/") || new Response("Offline", { status: 503 });
+          return caches.match("/index.html") || caches.match("/") ||
+                 new Response("HUI ist offline", { status: 503, headers: { "Content-Type": "text/plain" } });
         }
         return new Response("", { status: 503 });
       })
@@ -51,13 +69,12 @@ self.addEventListener("fetch", (e) => {
     return;
   }
 
-  // Icons + sonstige statische Binaries: Network First mit Cache-Fallback
+  // Icons + sonstige statische Binaries: Network First + Cache-Fallback
   e.respondWith(
     fetch(e.request)
       .then(res => {
         if (res && res.status === 200 && e.request.method === "GET") {
-          const clone = res.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
+          caches.open(CACHE_NAME).then(cache => cache.put(e.request, res.clone()));
         }
         return res;
       })
@@ -65,7 +82,7 @@ self.addEventListener("fetch", (e) => {
   );
 });
 
-// Push Notifications (vorbereitet)
+// Push Notifications
 self.addEventListener("push", (e) => {
   const data = e.data?.json() || { title: "HUI", body: "Neue Nachricht" };
   e.waitUntil(
