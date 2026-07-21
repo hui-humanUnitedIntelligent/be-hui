@@ -1,8 +1,8 @@
-// HUI Service Worker — v202607201957
+// HUI Service Worker — v202607211137
 // Strategie: Network First — JS/CSS Assets NIEMALS im SW-Cache
 // Cache-Control Headers via Vercel regeln das Browser-Caching direkt.
 
-const CACHE_NAME = "hui-v202607201957";
+const CACHE_NAME = "hui-v202607211137";
 const ICON_ASSETS = ["/hui-icon-192.png", "/hui-icon-512.png"];
 
 // Install: Sofort übernehmen, nur Icons cachen
@@ -69,16 +69,20 @@ self.addEventListener("fetch", (e) => {
     return;
   }
 
-  // Icons + sonstige statische Binaries: Network First + Cache-Fallback
+  // Icons + sonstige statische Binaries: Cache First (gecacht beim Install), Netzwerk als Fallback
   e.respondWith(
-    fetch(e.request)
-      .then(res => {
+    caches.match(e.request).then(cached => {
+      if (cached) return cached;
+      // Nicht im Cache: vom Netzwerk holen und korrekt klonen
+      return fetch(e.request).then(res => {
         if (res && res.status === 200 && e.request.method === "GET") {
-          caches.open(CACHE_NAME).then(cache => cache.put(e.request, res.clone()));
+          // Erst klonen, DANN den Clone in den Cache schreiben
+          const toCache = res.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(e.request, toCache));
         }
         return res;
-      })
-      .catch(() => caches.match(e.request))
+      }).catch(() => new Response("", { status: 503 }));
+    })
   );
 });
 
