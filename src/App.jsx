@@ -345,7 +345,7 @@ function HUILoader() {
         <HUILogoSplash size={84} />
         <div style={{ fontSize:12, color:"rgba(255,255,255,0.30)", fontWeight:600,
           marginTop:20, letterSpacing:"0.12em", textTransform:"uppercase" }}>
-          Human United Intelligent
+          Human United Intelligence
         </div>
       </div>
       <style>{`
