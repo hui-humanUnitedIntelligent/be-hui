@@ -17,7 +17,7 @@ import { getOptimalPageSize } from "../lib/deviceTier.js";
 import { formatPresence } from "../lib/usePresence.js";
 import { useAuthGate }    from "../components/auth/AuthGate.jsx";
 import TalentAnfrageFlow  from "../components/talents/TalentAnfrageFlow.jsx";
-const TalentBookingFlow = lazy(() => import("../components/talents/TalentBookingFlow.jsx"));
+import TalentBookingFlow from "../components/talents/TalentBookingFlow.jsx"; // direkt (nicht lazy) — buchungskritisch, verhindert "erster Klick öffnet nicht"-Bug
 import { searchPlaces, distanceKm } from "../lib/geocoding.js";
 import { useRadiusFilter, radiusLabel } from "../hooks/useRadiusFilter.js";
 const WerkeAllModal = lazy(() => import("../components/discover/WerkeAllModal.jsx"));
@@ -2413,9 +2413,9 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         <TalentAnfrageFlow talent={talentInquiry} onClose={() => setTalentInquiry(null)} />
       )}
       {talentBooking && (
-        <Suspense fallback={null}>
+        <>
           <TalentBookingFlow talent={talentBooking} onClose={() => setTalentBooking(null)} />
-        </Suspense>
+        </>
       )}
 
       {/* ── Alle-Ansehen-Modals (lazy, erst beim Öffnen geladen) ── */}
