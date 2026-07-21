@@ -11,25 +11,37 @@
   "lang": "de",
   "icons": [
     {
-      "src": "/hui-icon-192.png",
+      "src": "/favicon-32x32.png?v=2",
+      "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon-64x64.png?v=2",
+      "sizes": "64x64",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/hui-icon-192.png?v=2",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/hui-icon-192.png",
+      "src": "/hui-icon-192.png?v=2",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/hui-icon-512.png",
+      "src": "/hui-icon-512.png?v=2",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/hui-icon-512.png",
+      "src": "/hui-icon-512.png?v=2",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -49,7 +61,7 @@
       "url": "/impact",
       "icons": [
         {
-          "src": "/hui-icon-192.png",
+          "src": "/hui-icon-192.png?v=2",
           "sizes": "192x192"
         }
       ]
@@ -61,7 +73,7 @@
       "url": "/discover",
       "icons": [
         {
-          "src": "/hui-icon-192.png",
+          "src": "/hui-icon-192.png?v=2",
           "sizes": "192x192"
         }
       ]
