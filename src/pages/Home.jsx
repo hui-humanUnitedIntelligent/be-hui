@@ -156,16 +156,6 @@ function HomeInner() {
     }, 400);
   }, []);
 
-  // ── Orb-Reset bei externem PlusSheet-Close (Tab-Wechsel aus MeinHUI) ──
-  // Wenn showPlusSheet durch switchTab/closeAllOverlays auf false gesetzt wird
-  // (nicht durch closeMeinHuiCinematic), bleibt orbTransition="hidden" stecken.
-  // Dieser Effect resetzt orbTransition sofort auf "idle" wenn das passiert.
-  React.useEffect(() => {
-    if (!showPlusSheet && orbTransition !== "idle") {
-      setOrbTransition("idle");
-    }
-  }, [showPlusSheet]); // eslint-disable-line react-hooks/exhaustive-deps
-
   const { openCreatorProfile } = useProfileLauncher();
   const {
     tab,
@@ -210,6 +200,16 @@ function HomeInner() {
   } = useHome();
 
   const { close: closeContentPreview } = useContentPreview();
+
+  // ── Orb-Reset bei externem PlusSheet-Close (Tab-Wechsel aus MeinHUI) ──
+  // MUSS nach useHome() stehen, da showPlusSheet erst dort definiert wird!
+  // Wenn showPlusSheet durch switchTab/closeAllOverlays auf false gesetzt wird
+  // (nicht durch closeMeinHuiCinematic), bleibt orbTransition="hidden" stecken.
+  React.useEffect(() => {
+    if (!showPlusSheet && orbTransition !== "idle") {
+      setOrbTransition("idle");
+    }
+  }, [showPlusSheet]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── hui:navigate:tab Event → Tab wechseln (aus Feed-Karten, ContentPreviewSheet etc.) ──
   // MUSS nach useHome() stehen, da handleTab erst dort definiert wird
