@@ -663,7 +663,7 @@ export default function MeinHUI({
     // Info-Kacheln) als rein dekoratives Element erhalten -- NICHT hier auf
     // dem Root, wo er als Hintergrund-Ersatz missverstanden werden koennte.
     background: T.cream,
-    zIndex: 9000,
+    zIndex: 9800,   /* über MyBasisProfile(9500), unter Nav(10000) */
     overflowY: "auto", overflowX: "hidden",
     WebkitOverflowScrolling: "touch",
     overscrollBehavior: "contain",
