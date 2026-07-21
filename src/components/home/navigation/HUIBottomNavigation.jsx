@@ -205,7 +205,8 @@ export default function HUIBottomNavigation({
     return () => ro.disconnect();
   }, []);
 
-  const isHidden    = wizardOpen || ((orbActive && !navDrift) ?? false);
+  // Nav ist IMMER sichtbar außer bei wizardOpen (Orb-Button separat via orbTransition)
+  const isHidden    = wizardOpen;
   const isOrbActive = !creatorOpen && (tab === "orb" || orbActive);
   const actions     = useHuiActions();
 
@@ -247,6 +248,7 @@ export default function HUIBottomNavigation({
       style={{
         flexShrink: 0,
         position: "relative",
+        overflow: "visible",   /* iPad-Fix: Orb darf über Container hinausgehen */
         width: "100%",
         // NUR Tabbar + Safe-Area reserviert -- der Orb-Ueberhang darueber wird
         // NICHT mehr als Layout-Platz vom Feed abgezogen (siehe
@@ -267,6 +269,7 @@ export default function HUIBottomNavigation({
           position: "relative",
           width: "100%",
           height: "100%",
+          overflow: "visible",   /* iPad-Fix: Orb darf nach oben überstehen */
         }}
       >
         {/* NAV-BACKDROP (2026-07-05): Garantiert auf ALLEN vier Tabs
@@ -315,7 +318,7 @@ export default function HUIBottomNavigation({
             transition: "opacity 0.3s ease-in-out, transform 0.3s ease-in-out",
             width: ORB_D,
             height: ORB_D,
-            zIndex: 3,
+            zIndex: 10002,  /* über Nav(10000) und Backdrop(0), unter Modals(10500) */
             pointerEvents: orbTransition !== "idle" ? "none" : "auto",
           }}
         >

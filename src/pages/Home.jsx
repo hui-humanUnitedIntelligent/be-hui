@@ -156,6 +156,16 @@ function HomeInner() {
     }, 400);
   }, []);
 
+  // ── Orb-Reset bei externem PlusSheet-Close (Tab-Wechsel aus MeinHUI) ──
+  // Wenn showPlusSheet durch switchTab/closeAllOverlays auf false gesetzt wird
+  // (nicht durch closeMeinHuiCinematic), bleibt orbTransition="hidden" stecken.
+  // Dieser Effect resetzt orbTransition sofort auf "idle" wenn das passiert.
+  React.useEffect(() => {
+    if (!showPlusSheet && orbTransition !== "idle") {
+      setOrbTransition("idle");
+    }
+  }, [showPlusSheet]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const { openCreatorProfile } = useProfileLauncher();
   const {
     tab,
@@ -557,7 +567,7 @@ function HomeInner() {
               ? { opacity: 0, transform: "translateY(120%)",
                   transition: "opacity 0.52s cubic-bezier(0.22,1,0.36,1), transform 0.52s cubic-bezier(0.22,1,0.36,1)",
                   pointerEvents: "none" }
-              : activeSurface ? worldTokens.navStyle : {}
+              : activeSurface ? worldTokens.navStyle : null
           }
           authProfile={authProfile}
           notifCount={liveNotifCount}
