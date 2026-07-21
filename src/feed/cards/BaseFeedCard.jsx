@@ -529,7 +529,7 @@ const ACTION_ARIA = {
   kommentieren: { off: "Kommentare öffnen" },
 };
 export const ActionBtn = memo(function ActionBtn({
-  Icon, label, count, active, onClick, activeColor, variant, disabled, loading
+  Icon, label, count, active, onClick, activeColor, inactiveColor, variant, disabled, loading
 }) {
   const isResonanz = variant === "resonanz";
   const ariaSpec = ACTION_ARIA[variant];
@@ -557,13 +557,18 @@ export const ActionBtn = memo(function ActionBtn({
     onClick?.();
   }
 
-  const col = active ? (activeColor || T.teal) : T.ink3;
+  const col = active ? (activeColor || T.teal) : (inactiveColor || T.ink3);
   // Zustände — Form bleibt IMMER identisch, nur Opacity/Scale ändern sich:
   // disabled < default < hover < active.
-  const iconOpacity = disabled ? 0.28 : active ? 1 : hover ? 0.85 : 0.64;
+  const iconOpacity = disabled ? 0.28 : active ? 1 : hover ? 0.9 : (inactiveColor ? 0.72 : 0.64);
   // Sehr dezenter Hintergrund-Kreis beim Antippen (8% HUI-Tuerkis/-Koralle,
   // je nach activeColor der jeweiligen Aktion) -- kein Schatten, kein Glanz.
-  const circleBg = (activeColor === T.coral) ? "rgba(244,115,85,0.08)" : "rgba(13,196,181,0.08)";
+  const resolvedColor = active ? (activeColor || T.teal) : (inactiveColor || activeColor || T.teal);
+  const circleBg = (resolvedColor === T.coral || resolvedColor === "#F47355" || resolvedColor === "#E8573A")
+    ? "rgba(244,115,85,0.08)"
+    : (resolvedColor === "#F59E0B" || resolvedColor === "#FBBF24")
+    ? "rgba(245,158,11,0.08)"
+    : "rgba(13,196,181,0.08)";
   return (
     <button
       onClick={handleClick}
@@ -702,10 +707,10 @@ export const FeedActions = memo(function FeedActions({
                                     → Schwung-Pfeil nach Lars-Vorlage; onShare
                                     oeffnet bereits den Teilen-Flow)
               save    → Merken */}
-        <ActionBtn Icon={HUIHeartIcon}    count={r.inspireCount||null} active={r.inspired} activeColor={T.teal}  variant="resonanz"    onClick={() => { haptic(r.inspired ? "selection" : "light"); onReaction?.("inspire"); }} />
-        <ActionBtn Icon={HUIChatIcon}     count={r.touchCount||null}   active={r.touched}  activeColor={T.teal}  variant="austauschen" onClick={() => { haptic(r.touched ? "selection" : "light"); onReaction?.("touch"); }} />
-        <ActionBtn Icon={HUIShareIcon}    activeColor={T.teal}  variant="weitergeben" onClick={() => { haptic("light"); onShare?.(); }} />
-        <ActionBtn Icon={HUIBookmarkIcon} active={r.saved} activeColor={T.coral} variant="merken"      onClick={() => { haptic(r.saved ? "selection" : "light"); onReaction?.("save"); }} />
+        <ActionBtn Icon={HUIHeartIcon}    count={r.inspireCount||null} active={r.inspired} activeColor={T.coral}  inactiveColor={T.coral}  variant="resonanz"    onClick={() => { haptic(r.inspired ? "selection" : "light"); onReaction?.("inspire"); }} />
+        <ActionBtn Icon={HUIChatIcon}     count={r.touchCount||null}   active={r.touched}  activeColor={T.teal}  inactiveColor={T.teal}   variant="austauschen" onClick={() => { haptic(r.touched ? "selection" : "light"); onReaction?.("touch"); }} />
+        <ActionBtn Icon={HUIShareIcon}    activeColor={T.teal}  inactiveColor={T.teal}   variant="weitergeben" onClick={() => { haptic("light"); onShare?.(); }} />
+        <ActionBtn Icon={HUIBookmarkIcon} active={r.saved} activeColor={"#F59E0B"} inactiveColor={"#F59E0B"} variant="merken" onClick={() => { haptic(r.saved ? "selection" : "light"); onReaction?.("save"); }} />
         {extraActions || null}
       </div>
       {/* Resonanz-Zeile — "Maja und 18 weitere wurden inspiriert." */}
