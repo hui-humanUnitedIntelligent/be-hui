@@ -263,3 +263,23 @@ button, a, [role="button"] {
 .hui-story-ring {
   background: linear-gradient(135deg, var(--hui-teal) 0%, var(--hui-coral) 100%);
 }
+
+/* ── HUI Low-Performance-Modus ───────────────────────────────────────
+   Wird automatisch aktiviert wenn FPS < 30 für 3+ Sekunden.
+   Deaktiviert nicht-essentielle Animationen und Übergänge.
+   ─────────────────────────────────────────────────────────────────── */
+.hui-low-perf *,
+.hui-low-perf *::before,
+.hui-low-perf *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Ausnahmen: Spinner und Lade-Indikatoren müssen weiter laufen */
+.hui-low-perf .hui-spinner,
+.hui-low-perf .hui-loading-ring {
+  animation-duration: 1s !important;
+  animation-iteration-count: infinite !important;
+}

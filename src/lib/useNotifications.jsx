@@ -149,7 +149,16 @@ export function useNotifications() {
       createdHere = true;
     }
     subRef.current = ch;
-    return () => { if (createdHere) supabase.removeChannel(ch); };
+    // Visibility-Guard: Channel pausieren wenn Tab verborgen
+    function onVisible() {
+      if (document.visibilityState === "visible") load();
+    }
+    document.addEventListener("visibilitychange", onVisible);
+
+    return () => {
+      if (createdHere) supabase.removeChannel(ch);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, [user?.id, load]);
 
   const markRead = useCallback(async (id) => {

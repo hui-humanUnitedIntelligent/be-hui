@@ -44,8 +44,9 @@
 // ══════════════════════════════════════════════════════════════════
 import { useEffect, useRef, useState, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient.js";
+import { timedQuery } from "../lib/perfMonitor.js";
 
-const REFRESH_INTERVAL_MS = 60_000;
+const REFRESH_INTERVAL_MS = 90_000; // Optimiert: 90s statt 60s
 const PER_SOURCE_LIMIT    = 5;
 const MAX_BUFFER          = 30;
 
@@ -265,7 +266,10 @@ export function useLiveTicker() {
   const mounted   = useRef(true);
 
   const refresh = useCallback(async () => {
+    const _t = performance.now();
     const results = await Promise.all(SOURCES.map(fn => fn().catch(() => [])));
+    const _ms = Math.round(performance.now() - _t);
+    if (_ms > 300) console.warn(`[HUI PERF] 🐌 LiveTicker refresh langsam (${_ms}ms)`);
     if (!mounted.current) return;
 
     const merged = bufferRef.current;
@@ -287,9 +291,31 @@ export function useLiveTicker() {
 
   useEffect(() => {
     mounted.current = true;
-    refresh();
-    const interval = setInterval(refresh, REFRESH_INTERVAL_MS);
-    return () => { mounted.current = false; clearInterval(interval); };
+    // Nur laden wenn Tab sichtbar — kein Hintergrund-Polling
+    if (document.visibilityState === "visible") refresh();
+
+    let interval = null;
+    function startInterval() {
+      stopInterval();
+      if (document.visibilityState !== "visible") return;
+      interval = setInterval(() => {
+        if (document.visibilityState === "visible") refresh();
+      }, REFRESH_INTERVAL_MS);
+    }
+    function stopInterval() { clearInterval(interval); interval = null; }
+
+    function onVisibility() {
+      if (document.visibilityState === "visible") { refresh(); startInterval(); }
+      else stopInterval();
+    }
+
+    startInterval();
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      mounted.current = false;
+      stopInterval();
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, [refresh]);
 
   return { items, loading };

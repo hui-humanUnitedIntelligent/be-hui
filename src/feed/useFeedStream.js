@@ -537,6 +537,9 @@ export function useFeedStream() {
       realtimeRef.current = null;
     }
 
+    // Kein Realtime-Channel im Hintergrund — spart Verbindungsressourcen
+    if (document.visibilityState !== "visible") return;
+
     realtimeRef.current = supabase
       .channel("hui_feed_realtime_v4f")
       .on("postgres_changes", {
@@ -589,7 +592,17 @@ export function useFeedStream() {
         }
       });
 
+    // Visibility: Channel neu aufbauen wenn Tab zurückkehrt
+    function onVisible() {
+      if (document.visibilityState === "visible" && !realtimeRef.current && mountedRef.current) {
+        // Soft-Reload: neue Daten holen + Channel neu aufbauen
+        if (typeof softHydrate === "function") softHydrate?.();
+      }
+    }
+    document.addEventListener("visibilitychange", onVisible);
+
     return () => {
+      document.removeEventListener("visibilitychange", onVisible);
       if (realtimeRef.current) {
         supabase.removeChannel(realtimeRef.current);
         realtimeRef.current = null;

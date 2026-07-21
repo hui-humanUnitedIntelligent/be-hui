@@ -214,7 +214,7 @@ function useTransparenz() {
     };
     fetch();
     // Realtime: bei Status-Änderung in impact_applications → sofort neu laden
-    const ch = supabase.channel("transp_live_" + Date.now())
+    const ch = supabase.channel("hui_impact_transp_live")
       .on("postgres_changes", { event: "*", schema: "public", table: "impact_applications" }, () => { if (!dead) fetch(); })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "impact_votes" },   () => { if (!dead) fetch(); })
       .subscribe();

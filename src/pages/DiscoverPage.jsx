@@ -13,6 +13,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspens
 import { useNavigate }   from "react-router-dom";
 import { NAV_CONTENT_SPACER_CSS } from "../components/home/navigation/navigationGeometry.js";
 import { supabase }      from "../lib/supabaseClient.js";
+import { getOptimalPageSize } from "../lib/deviceTier.js";
 import { formatPresence } from "../lib/usePresence.js";
 import { useAuthGate }    from "../components/auth/AuthGate.jsx";
 import TalentAnfrageFlow  from "../components/talents/TalentAnfrageFlow.jsx";
@@ -1648,6 +1649,17 @@ const TalentCardM    = React.memo(TalentCard);
 const WerkCardM      = React.memo(WerkCard);
 const ErlebnisCardM  = React.memo(ErlebnisCard);
 
+
+// ── DiscoverPage: Request-Dedup + SWR-Cache (5 min TTL) ────────
+// Verhindert parallele Loads und unnötige Re-Fetches beim Tab-Wechsel.
+const DISCOVER_CACHE_TTL_MS = 5 * 60 * 1000; // 5 Minuten
+const _discoverCache = { data: null, ts: 0, loading: false };
+
+function isCacheValid() {
+  return _discoverCache.data && (Date.now() - _discoverCache.ts < DISCOVER_CACHE_TTL_MS);
+}
+// ───────────────────────────────────────────────────────────────
+
 export default function DiscoverPage({ onView, onMap, onBook }) {
   const [view, setView]         = useState("cards"); // "cards" | "list"
   const [loading, setLoading] = useState(true);
@@ -1765,6 +1777,25 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   useEffect(() => {
     let cancelled = false;
     async function load() {
+      // Stale-While-Revalidate: Cache sofort anzeigen, dann im Hintergrund aktualisieren
+      if (isCacheValid() && _discoverCache.data) {
+        const c = _discoverCache.data;
+        if (!cancelled) {
+          if (c.people)        setPeople(c.people);
+          if (c.werke)         setWerke(c.werke);
+          if (c.talente)       setTalente(c.talente);
+          if (c.erlebnisse)    setErlebnisse(c.erlebnisse);
+          if (c.projekte)      setProjekte(c.projekte);
+          if (c.momente)       setMomente(c.momente);
+          setLoading(false);
+        }
+        return; // Cache noch frisch — kein Netzwerk-Request
+      }
+
+      // Dedup: verhindert parallele Loads (z.B. durch mehrfache PTR-Events)
+      if (_discoverCache.loading) return;
+      _discoverCache.loading = true;
+
       try {
         // People
         const { data: profiles } = await supabase
@@ -1772,7 +1803,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
           .select("id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views") // Identity Contract v1.0
           .or("has_talent_profile.eq.true,is_member.eq.true,role.eq.talent,role.eq.wirker")
           .order("created_at", { ascending:false })
-          .limit(12);
+          .limit(getOptimalPageSize(12));
 
         if (!cancelled && profiles?.length > 0) {
           setPeople(profiles.map(p => ({
@@ -1792,7 +1823,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
           .from("beitraege")
           .select("id,src,type,caption,created_at,user_id")
           .order("created_at", { ascending:false })
-          .limit(8);
+          .limit(getOptimalPageSize(8));
 
         if (!cancelled && beitr?.length > 0) {
           // Profile nachladen
@@ -2078,12 +2109,28 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
       } catch (e) {
         console.warn("[DiscoverPage] load error:", e?.message);
       } finally {
+        _discoverCache.loading = false;
         if (!cancelled) setLoading(false);
       }
+    }
+
+    // Bei PTR/manuellem Reload: Cache-TTL resetten damit frische Daten geladen werden
+    function forceLoad() {
+      _discoverCache.ts = 0; // Cache invalidieren
+      load();
     }
     load();
     return () => { cancelled = true; };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── DiscoverPage Cache-Sync: schreibt geladene Daten in den SWR-Cache ──
+  // Wird nach jedem erfolgreichen Load ausgeführt und merkt sich die Daten für 5 Min.
+  React.useEffect(() => {
+    if (!loading && (people.length || werke.length || talente.length)) {
+      _discoverCache.data = { people, werke, talente, erlebnisse, projekte, momente };
+      _discoverCache.ts = Date.now();
+    }
+  }, [loading, people, werke, talente, erlebnisse, projekte, momente]);
 
   // ── Pull-to-Refresh: feed-refresh-Event abonnieren ────────────
   // Wenn PTR (Home.jsx) ausgelöst wird, soll auch DiscoverPage neu laden.
