@@ -413,6 +413,8 @@ function PeopleSection({ people, onPersonPress, loading, delay=0, view='cards', 
                   <Skel w="70%" h={10} r={6} />
                 </div>
               ))
+            : people.length === 0
+            ? <div style={{ paddingLeft:T.px, fontSize:12.5, color:T.inkFaint, fontStyle:'italic', opacity:0.75 }}>Noch keine Mitglieder gefunden.</div>
             : people.map((p, i) => (
                 <PersonCard key={p.id} person={p} onPress={onPersonPress} delay={i*40+delay} />
               ))
@@ -554,6 +556,8 @@ function MomenteSection({ momente, loading, delay=0, view='cards', onPress, onAu
                   <div style={{ padding:"10px 10px" }}><Skel w="80%" h={12} r={6} mb={6}/><Skel w="50%" h={10} r={6}/></div>
                 </div>
               ))
+            : momente.length === 0
+            ? <div style={{ paddingLeft:T.px, fontSize:12.5, color:T.inkFaint, fontStyle:'italic', opacity:0.75 }}>Noch keine Momente in deiner Nähe.</div>
             : momente.map((m, i) => <MomentCard key={m.id} moment={m} delay={i*35+delay} onPress={onPress} onAuthorPress={onAuthorPress} />)
           }
         </div>
@@ -817,6 +821,8 @@ function TalenteSection({
                   <div style={{ padding:"10px 11px" }}><Skel w="80%" h={12} r={6} mb={6}/><Skel w="50%" h={10} r={6}/></div>
                 </div>
               ))
+            : talente.length === 0
+            ? <div style={{ paddingLeft:T.px, fontSize:12.5, color:T.inkFaint, fontStyle:'italic', opacity:0.75 }}>Noch keine Talente in deiner Nähe.</div>
             : talente.map((t, i) => <TalentCardM key={t.id} talent={t} delay={i*35+delay} onPress={onPress} onAuthorPress={onAuthorPress} />)
           }
         </div>
@@ -1063,6 +1069,8 @@ function WerkeSection({
                   <div style={{ padding:"9px 10px" }}><Skel w="75%" h={12} r={6} mb={6}/><Skel w="50%" h={10} r={5}/></div>
                 </div>
               ))
+            : werke.length === 0
+            ? <div style={{ paddingLeft:T.px, fontSize:12.5, color:T.inkFaint, fontStyle:'italic', opacity:0.75 }}>Noch keine Werke in deiner Nähe.</div>
             : werke.map((w, i) => <WerkCardM key={w.id} werk={w} delay={i*35+delay} onPress={onPress} onAuthorPress={onAuthorPress} />)
           }
         </div>
@@ -1257,6 +1265,8 @@ function ErlebnisseSection({
                   <div style={{ padding:"10px 10px" }}><Skel w="80%" h={12} r={6} mb={6}/><Skel w="55%" h={10} r={5}/></div>
                 </div>
               ))
+            : erlebnisse.length === 0
+            ? <div style={{ paddingLeft:T.px, fontSize:12.5, color:T.inkFaint, fontStyle:'italic', opacity:0.75 }}>Noch keine Erlebnisse in deiner Nähe.</div>
             : erlebnisse.map((e, i) => <ErlebnisCardM key={e.id} erlebnis={e} delay={i*35+delay} onPress={onPress} />)
           }
         </div>
@@ -1388,7 +1398,7 @@ function ProjektCard({ projekt, delay=0, onPress }) {
 }
 
 function ProjekteSection({ projekte, loading, delay=0, view='cards', onPress, onSectionAction }) {
-  const allProjekte = projekte.length > 0 ? projekte : SEED_PROJEKTE;
+  const allProjekte = projekte; // nur echte Daten
   const hero = allProjekte[0];
   const rest = allProjekte.slice(1);
   return (
@@ -2086,16 +2096,16 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
     return () => window.removeEventListener("feed-refresh", handler);
   }, []);
 
-  // ── People: DB oder Seed ─────────────────────────────────────
-  const filteredPeople = people.length > 0 ? people : SEED_PEOPLE;
+  // ── People: nur echte DB-Daten (kein Seed-Fallback — verhindert Klick-Bug)
+  const filteredPeople = people;
 
-  const displayMomente    = momente.length > 0 ? momente : SEED_MOMENTE;
+  const displayMomente    = momente; // nur echte Daten
   const navigate           = useNavigate();
   const { open: openPreview } = useContentPreview(); // OPEN.1 2026-07-08
   const { openCreatorProfile } = useProfileLauncher(); // Autor-Klick → Profil
-  const baseDisplayWerke      = werke.length > 0 ? werke : SEED_WERKE;
-  const baseDisplayTalente    = talente.length > 0 ? talente : SEED_TALENTE;
-  const baseDisplayErlebnisse = erlebnisse.length > 0 ? erlebnisse : SEED_ERLEBNISSE;
+  const baseDisplayWerke      = werke; // nur echte Daten
+  const baseDisplayTalente    = talente; // nur echte Daten
+  const baseDisplayErlebnisse = erlebnisse; // nur echte Daten
 
   // Umkreisfilter: nur aktiv wenn Nutzer einen Standort ausgewaehlt hat UND
   // der globale Radius nicht "Weltweit" ist (radius.isWorldwide => kein
@@ -2130,7 +2140,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   const { list: displayErlebnisse, hidden: erlebnisHiddenCount } =
     filterByRadius(baseDisplayErlebnisse, radius, e => e.format === "online");
 
-  const displayProjekte   = projekte.length > 0 ? projekte : SEED_PROJEKTE;
+  const displayProjekte   = projekte; // nur echte Daten
 
   // Person/Wirker-Karte (OPEN.4 2026-07-08): sprang bisher IMMER direkt aufs
   // Profil ohne jede Vorschau -- echte Luecke, da "alle Wirker" explizit zur
@@ -2252,7 +2262,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
       <PeopleSection
         people={filteredPeople}
         onPersonPress={handlePersonPress}
-        loading={loading && people.length === 0}
+        loading={loading}
         delay={60}
         view={view}
         onSectionAction={makeScrollHandler("[data-dp-people]")}
@@ -2261,7 +2271,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
       {/* ── 4. Momente aus deiner Nähe ── */}
       <MomenteSection
         momente={displayMomente}
-        loading={loading && momente.length === 0}
+        loading={loading}
         delay={80}
         view={view}
         onPress={handleMomentPress}
@@ -2272,7 +2282,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
       {/* ── 4b. Talente entdecken ── */}
       <TalenteSection
         talente={displayTalente}
-        loading={loading && talente.length === 0}
+        loading={loading}
         delay={90}
         view={view}
         onPress={handleTalentPress}
@@ -2294,7 +2304,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
       {/* ── 5. Werke entdecken ── */}
       <WerkeSection
         werke={displayWerke}
-        loading={loading && werke.length === 0}
+        loading={loading}
         delay={100}
         view={view}
         onPress={handleWerkPress}
@@ -2316,7 +2326,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
       {/* ── 6. Erlebnisse für dich ── */}
       <ErlebnisseSection
         erlebnisse={displayErlebnisse}
-        loading={loading && erlebnisse.length === 0}
+        loading={loading}
         delay={120}
         view={view}
         onPress={handleErlebnisPress}
