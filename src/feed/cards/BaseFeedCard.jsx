@@ -281,27 +281,29 @@ export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
             }}
           >{name}</span>
 
-          {/* Talent · Pin-Icon · Ort */}
-          {(talent || loc) && (
-            <div style={{ display:"flex", alignItems:"center", gap:4, marginTop:3 }}>
-              {talent && (
-                <span style={{ fontSize:13, fontWeight:600, color:talentColor, lineHeight:1, whiteSpace:"nowrap" }}>
-                  {talent}
-                </span>
-              )}
-              {talent && loc && (
-                <span style={{ fontSize:12, color:"rgba(26,26,46,0.28)" }}>·</span>
-              )}
-              {loc && (
-                <div style={{ display:"flex", alignItems:"center", gap:2 }}>
-                  <svg width="9" height="12" viewBox="0 0 9 12" fill="none" style={{ flexShrink:0, marginTop:1 }}>
-                    <path d="M4.5 0C2.294 0 .5 1.794.5 4C.5 7.09 4.5 12 4.5 12S8.5 7.09 8.5 4C8.5 1.794 6.706 0 4.5 0ZM4.5 5.5C3.67 5.5 3 4.83 3 4C3 3.17 3.67 2.5 4.5 2.5C5.33 2.5 6 3.17 6 4C6 4.83 5.33 5.5 4.5 5.5Z" fill="#F47355"/>
-                  </svg>
-                  <span style={{ fontSize:13, color:"rgba(26,26,46,0.55)", fontWeight:400 }}>{loc}</span>
-                </div>
-              )}
-            </div>
-          )}
+          {/* Status (Talent/Rolle) + Ort — vertikal gestapelt (CARD-HEADER-001) */}
+          <div style={{ display:"flex", flexDirection:"column", gap:2, marginTop:3 }}>
+            {talent && (
+              <span style={{
+                fontSize:13, fontWeight:600, color:talentColor,
+                lineHeight:1.3, whiteSpace:"nowrap", overflow:"hidden",
+                textOverflow:"ellipsis",
+              }}>
+                {talent}
+              </span>
+            )}
+            {loc && (
+              <div style={{ display:"flex", alignItems:"center", gap:2 }}>
+                <svg width="9" height="12" viewBox="0 0 9 12" fill="none" style={{ flexShrink:0 }}>
+                  <path d="M4.5 0C2.294 0 .5 1.794.5 4C.5 7.09 4.5 12 4.5 12S8.5 7.09 8.5 4C8.5 1.794 6.706 0 4.5 0ZM4.5 5.5C3.67 5.5 3 4.83 3 4C3 3.17 3.67 2.5 4.5 2.5C5.33 2.5 6 3.17 6 4C6 4.83 5.33 5.5 4.5 5.5Z" fill="#F47355"/>
+                </svg>
+                <span style={{
+                  fontSize:12, color:"rgba(26,26,46,0.55)", fontWeight:400,
+                  overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                }}>{loc}</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Zeit + ⋮ */}
