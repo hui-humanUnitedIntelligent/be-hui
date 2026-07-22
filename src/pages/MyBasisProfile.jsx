@@ -548,6 +548,25 @@ export default function MyBasisProfile({ onClose, profileId }) {
         // Kein spezifisches Routing — Panel bleibt offen für Lesbarkeit
         break;
 
+      // ── Geteilter Inhalt öffnen ────────────────────────────────────────────
+      case "share": {
+        const shareMeta = n.metadata || {};
+        const shareEntityId   = shareMeta.entity_id   || n.entity_id   || null;
+        const shareEntityType = shareMeta.entity_type || n.entity_type || null;
+        const shareActionUrl  = n.action_url || null;
+        if (shareEntityId && shareEntityType) {
+          // Content-Preview öffnen (gleiche Infrastruktur wie comment-Routing)
+          openRef({ type: shareEntityType, id: shareEntityId });
+        } else if (shareActionUrl) {
+          // Fallback: action_url via navigate
+          const path = shareActionUrl.startsWith("http")
+            ? new URL(shareActionUrl).pathname
+            : shareActionUrl;
+          navigate(path);
+        }
+        break;
+      }
+
       default:
         // Unbekannter Typ — nichts tun, Panel wurde bereits geschlossen
         break;

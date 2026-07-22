@@ -380,7 +380,7 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
     try {
       const { data, error } = await supabase
         .from("notifications")
-        .select("id,type,title,body,is_read,action_url,created_at,actor_id,metadata")
+        .select("id,type,title,body,is_read,action_url,entity_id,entity_type,sender_id,created_at,actor_id,metadata")
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .limit(60);
