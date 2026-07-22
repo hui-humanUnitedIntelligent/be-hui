@@ -1,38 +1,38 @@
 {
-  "appId": "com.hui.app",
-  "appName": "HUI",
-  "webDir": "dist",
-  "bundledWebRuntime": false,
-  "server": {
-    "androidScheme": "https",
-    "cleartext": false,
-    "iosScheme": "ionic"
-  },
-  "android": {
-    "allowMixedContent": false,
-    "captureInput": true,
-    "webContentsDebuggingEnabled": false,
-    "path": "android",
-    "buildOptions": {
-      "keystorePath": "android/app/release.keystore",
-      "keystoreAlias": "hui"
-    }
-  },
-  "plugins": {
-    "StatusBar": {
-      "style": "DEFAULT",
-      "backgroundColor": "#00000000",
-      "overlaysWebView": true
-    },
-    "SplashScreen": {
-      "launchShowDuration": 0
-    },
-    "CapacitorHttp": {
-      "enabled": true
-    }
-  },
-  "ios": {
-    "allowsLinkPreview": false,
-    "scrollEnabled": true
-  }
+	"appId": "com.hui.app",
+	"appName": "HUI",
+	"webDir": "www",
+	"bundledWebRuntime": false,
+	"server": {
+		"androidScheme": "https",
+		"cleartext": false,
+		"iosScheme": "ionic"
+	},
+	"android": {
+		"allowMixedContent": false,
+		"captureInput": true,
+		"webContentsDebuggingEnabled": false,
+		"path": "android",
+		"buildOptions": {
+			"keystorePath": "android/app/release.keystore",
+			"keystoreAlias": "hui"
+		}
+	},
+	"plugins": {
+		"StatusBar": {
+			"style": "DEFAULT",
+			"backgroundColor": "#00000000",
+			"overlaysWebView": true
+		},
+		"SplashScreen": {
+			"launchShowDuration": 0
+		},
+		"CapacitorHttp": {
+			"enabled": true
+		}
+	},
+	"ios": {
+		"allowsLinkPreview": false,
+		"scrollEnabled": true
+	}
 }
