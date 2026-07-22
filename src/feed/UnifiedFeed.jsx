@@ -40,50 +40,91 @@ function getGreeting() {
   return "Hallo";
 }
 
-// ── "Heute auf HUI" — Live-Stats ────────────────────────────────
+// ── "Heute auf HUI" — Live-Stats (HEUTE.4-001) ──────────────────
+// 4 Kategorien: Werke, Talentangebote, Erlebnisse, Momente
+// Realtime: sofort aktuell wenn neues Item erscheint
 function useHeuteStats() {
-  const [stats, setStats] = React.useState({ works: 0, experiences: 0, members: 0, liveText: "" });
+  const [stats, setStats] = React.useState({
+    works: 0, talents: 0, experiences: 0, moments: 0, liveText: "", isLive: false,
+  });
+  const channelRef = React.useRef(null);
 
-  React.useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const { supabase } = await import("../lib/supabaseClient.js");
-        const today = new Date();
-        today.setHours(0,0,0,0);
-        const iso = today.toISOString();
+  const loadStats = React.useCallback(async () => {
+    try {
+      const { supabase } = await import("../lib/supabaseClient.js");
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const iso = today.toISOString();
 
-        const [worksRes, expRes, membersRes, recentMember] = await Promise.all([
-          supabase.from("works").select("id", { count: "exact", head: true })
-            .gte("created_at", iso),
-          supabase.from("experiences").select("id", { count: "exact", head: true })
-            .gte("created_at", iso),
-          supabase.from("profiles").select("id", { count: "exact", head: true })
-            .gte("created_at", iso),
-          supabase.from("profiles")
-            .select("display_name, username, location_label")
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .maybeSingle(),
-        ]);
+      // Alle 4 Kategorien parallel laden — nur Zählung (head: true)
+      const [worksRes, talentsRes, expRes, momentsRes, recentMember] = await Promise.all([
+        supabase.from("works").select("id", { count: "exact", head: true })
+          .gte("created_at", iso).eq("approval_status", "approved"),
+        supabase.from("talents").select("id", { count: "exact", head: true })
+          .gte("created_at", iso).eq("status", "approved"),
+        supabase.from("experiences").select("id", { count: "exact", head: true })
+          .gte("created_at", iso).eq("approval_status", "approved"),
+        supabase.from("beitraege").select("id", { count: "exact", head: true })
+          .gte("created_at", iso),
+        supabase.from("profiles")
+          .select("display_name, username, location_label")
+          .order("created_at", { ascending: false })
+          .limit(1).maybeSingle(),
+      ]);
 
-        if (cancelled) return;
-        const name = recentMember.data?.display_name || recentMember.data?.username || null;
-        const city = recentMember.data?.location_label || null;
-        const liveText = name
-          ? `${name}${city ? ` aus ${city}` : ""} ist HUI beigetreten`
-          : "Neue Mitglieder entdecken die Plattform";
+      const name = recentMember.data?.display_name || recentMember.data?.username || null;
+      const city = recentMember.data?.location_label || null;
+      const liveText = name
+        ? `${name}${city ? ` aus ${city}` : ""} ist HUI beigetreten`
+        : "Neue Inhalte erscheinen gerade";
 
-        setStats({
-          works:       worksRes.count  ?? 0,
-          experiences: expRes.count    ?? 0,
-          members:     membersRes.count ?? 0,
-          liveText,
-        });
-      } catch { /* silent — Platzhalter bleiben */ }
-    })();
-    return () => { cancelled = true; };
+      const w = worksRes.count   ?? 0;
+      const t = talentsRes.count ?? 0;
+      const e = expRes.count     ?? 0;
+      const m = momentsRes.count ?? 0;
+
+      setStats({
+        works: w, talents: t, experiences: e, moments: m,
+        liveText,
+        isLive: (w + t + e + m) > 0,
+      });
+    } catch { /* silent — Platzhalter bleiben */ }
   }, []);
+
+  // Initialer Load
+  React.useEffect(() => {
+    loadStats();
+  }, [loadStats]);
+
+  // Realtime: bei jedem neuen Eintrag in den 4 Tabellen neu laden
+  React.useEffect(() => {
+    let sub;
+    (async () => {
+      const { supabase } = await import("../lib/supabaseClient.js");
+      if (channelRef.current) { supabase.removeChannel(channelRef.current); }
+
+      sub = supabase
+        .channel("heute_auf_hui_live_v1")
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "works" },
+          () => loadStats())
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "talents" },
+          () => loadStats())
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "experiences" },
+          () => loadStats())
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "beitraege" },
+          () => loadStats())
+        .subscribe();
+
+      channelRef.current = sub;
+    })();
+
+    return () => {
+      (async () => {
+        const { supabase } = await import("../lib/supabaseClient.js");
+        if (channelRef.current) { supabase.removeChannel(channelRef.current); channelRef.current = null; }
+      })();
+    };
+  }, [loadStats]);
 
   return stats;
 }
@@ -184,51 +225,56 @@ function FeedWelcomeHeader({ currentUser }) {
           <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
             <div style={{
               width: 7, height: 7, borderRadius: "50%",
-              background: "#22C55E",
-              boxShadow: "0 0 0 2px rgba(34,197,94,0.25)",
-              animation: "huiPulseGreen 2s ease-in-out infinite",
+              background: stats.isLive ? "#22C55E" : "#94A3B8",
+              boxShadow: stats.isLive ? "0 0 0 2px rgba(34,197,94,0.25)" : "none",
+              animation: stats.isLive ? "huiPulseGreen 2s ease-in-out infinite" : "none",
+              transition: "background 0.4s",
             }} />
-            <span style={{ fontSize: 11, fontWeight: 600, color: "#22C55E", letterSpacing: 0.2 }}>
+            <span style={{ fontSize: 11, fontWeight: 600, color: stats.isLive ? "#22C55E" : "#94A3B8", letterSpacing: 0.2, transition: "color 0.4s" }}>
               Live
             </span>
           </div>
         </div>
 
-        {/* Stats-Zeile */}
-        <div style={{
-          display: "flex", alignItems: "stretch",
-          padding: "16px 16px 14px",
-          gap: 0,
-        }}>
+        {/* Stats: 4 Zeilen — Werke, Talentangebote, Erlebnisse, Momente (HEUTE.4-001) */}
+        <div style={{ padding: "12px 16px 14px", display: "flex", flexDirection: "column", gap: 0 }}>
           {[
-            { icon: "🌿", color: TEAL,  bg: `${TEAL}14`,  count: stats.works,       label: "neue Werke"      },
-            { icon: "🗓️", color: CORAL, bg: `${CORAL}12`, count: stats.experiences, label: "neue Erlebnisse" },
-            { icon: "👥", color: TEAL,  bg: `${TEAL}14`,  count: stats.members,     label: "neue Begegnungen"},
-          ].map((s, i) => (
+            { icon: "🌿", color: TEAL,  bg: `${TEAL}14`,  count: stats.works,       label: "neue Werke"          },
+            { icon: "⭐", color: CORAL, bg: `${CORAL}12`, count: stats.talents,     label: "neue Talentangebote" },
+            { icon: "🗓️", color: TEAL,  bg: `${TEAL}14`,  count: stats.experiences, label: "neue Erlebnisse"     },
+            { icon: "💬", color: CORAL, bg: `${CORAL}12`, count: stats.moments,     label: "neue Momente"        },
+          ].map((s, i, arr) => (
             <div key={i} style={{
-              flex: 1, display: "flex", alignItems: "center", gap: 9,
-              paddingLeft: i > 0 ? 12 : 0,
-              borderLeft: i > 0 ? "1px solid rgba(13,196,181,0.10)" : "none",
+              display: "flex", alignItems: "center", gap: 10,
+              paddingTop:    i === 0 ? 0 : 10,
+              paddingBottom: i === arr.length - 1 ? 0 : 10,
+              borderBottom: i < arr.length - 1 ? "1px solid rgba(13,196,181,0.08)" : "none",
             }}>
               <div style={{
-                width: 34, height: 34, borderRadius: 11, flexShrink: 0,
+                width: 32, height: 32, borderRadius: 10, flexShrink: 0,
                 background: s.bg,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 15,
+                fontSize: 14,
               }}>
                 {s.icon}
               </div>
-              <div>
-                <div style={{
-                  fontSize: 22, fontWeight: 800, color: INK,
-                  lineHeight: 1.1, letterSpacing: -0.8,
+              <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 7 }}>
+                <span style={{
+                  fontSize: 20, fontWeight: 800, color: INK,
+                  lineHeight: 1.1, letterSpacing: -0.6, minWidth: 22,
                 }}>
                   {s.count}
-                </div>
-                <div style={{ fontSize: 10.5, color: MUTED, fontWeight: 500, marginTop: 1 }}>
+                </span>
+                <span style={{ fontSize: 12, color: MUTED, fontWeight: 500 }}>
                   {s.label}
-                </div>
+                </span>
               </div>
+              {s.count > 0 && (
+                <div style={{
+                  width: 6, height: 6, borderRadius: "50%",
+                  background: "#22C55E", flexShrink: 0,
+                }} />
+              )}
             </div>
           ))}
         </div>
