@@ -521,24 +521,39 @@ export default function MyBasisProfile({ onClose, profileId }) {
         break;
 
       // ── Werk-Detail öffnen ──────────────────────────────────────────────
-      case "work_approved":
-        if (werkId) setShowWerkDetail(werkId);
+      case "work_approved": {
+        // _openRef vom DetailModal → ContentPreview öffnen (preferred)
+        if (n._openRef && n.entity_id) {
+          openRef({ type: n.entity_type || "work", id: n.entity_id });
+        } else if (werkId) {
+          setShowWerkDetail(werkId);
+        }
         break;
+      }
 
       // ── Kommentar/Antwort: oeffnet den kommentierten Beitrag in der
       //    bestehenden Preview/Fullscreen-Infrastruktur (KOMMENTAR.1) ───────
       case "comment":
       case "comment_reply": {
         const cmMeta = n.metadata || {};
-        if (cmMeta.post_id && cmMeta.post_type) openRef({ type: cmMeta.post_type, id: cmMeta.post_id });
+        const cmId   = cmMeta.post_id   || n.entity_id   || null;
+        const cmType = cmMeta.post_type || n.entity_type || null;
+        if (cmId && cmType) openRef({ type: cmType, id: cmId });
         break;
       }
 
       // ── Werk abgelehnt: Modal wird in NotifCard selbst geöffnet ─────────
       case "work_rejected":
-      case "content_rejected":
-        // Handled by NotifCard → RejectionModal (kein weiteres Routing nötig)
+      case "content_rejected": {
+        // _openRef vom DetailModal → Werk/Inhalt öffnen zum Überarbeiten
+        if (n._openRef && n.entity_id && n.entity_type) {
+          const rejectType = n.entity_type === "impact_project" ? "project" : n.entity_type;
+          if (["work","experience","talent"].includes(rejectType)) {
+            openRef({ type: rejectType, id: n.entity_id });
+          }
+        }
         break;
+      }
 
       // ── Admin / System / Broadcast: Detailansicht (kein externes Routing) ──
       case "admin":
@@ -550,11 +565,19 @@ export default function MyBasisProfile({ onClose, profileId }) {
         // Kein Routing — alle Infos im DetailModal
         break;
 
-      // ── Ablehnungen/Freigaben: kein weiteres Routing — Modal zeigt alles ──
-      case "experience_approved":
-      case "experience_rejected":
+      // ── Freigaben mit entity_id → _openRef-fähig ────────────────────────────
+      case "experience_approved": {
+        if (n._openRef && n.entity_id) openRef({ type: "experience", id: n.entity_id });
+        break;
+      }
+      case "experience_rejected": {
+        if (n._openRef && n.entity_id) openRef({ type: "experience", id: n.entity_id });
+        break;
+      }
       case "impact_project_approved":
       case "impact_project_rejected":
+        // Kein openRef — ImpactProject-Preview nicht via ContentPreview
+        break;
       case "content_rejected":
       case "work_deleted":
         // Kein Routing — Modal zeigt Titel + Grund vollständig

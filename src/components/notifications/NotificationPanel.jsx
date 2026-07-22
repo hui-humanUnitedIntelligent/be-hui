@@ -162,6 +162,10 @@ function DetailModal({ n, onClose, onAction }) {
         || (n.body?.match(/Grund[:：]\s*(.+)/s)?.[1]?.trim())
         || n.body || "(Kein Grund angegeben)";
       const entryTitle = md.entry_title || md.project_name || md.werk_title || `Dein ${tm.label}`;
+      // entity_type-Mapping: impact_project_rejected → "project"
+      const rejectedEntityType = n.entity_type === "impact_project" ? "project" : (n.entity_type || null);
+      // Werk/Erlebnis/Talent: nur wenn entity_type=work|experience|talent (nicht gelöscht)
+      const canPreviewRejected = rejectedEntityType && ["work","experience","talent"].includes(rejectedEntityType);
       return {
         accentColor: "#DC2626",
         headerIcon: "❌",
@@ -171,6 +175,9 @@ function DetailModal({ n, onClose, onAction }) {
           { type:"label-text", label:"Nachricht vom Admin", text: reason, color:"#DC2626", bg:"rgba(239,68,68,0.06)", border:"rgba(239,68,68,0.22)" },
           { type:"info", text: "Du kannst den Eintrag überarbeiten und erneut einreichen." },
         ],
+        entityId:   canPreviewRejected ? (n.entity_id || md.werk_id || null) : null,
+        entityType: canPreviewRejected ? rejectedEntityType : null,
+        actionLabel: canPreviewRejected ? `${tm.label} ansehen →` : null,
       };
     }
 
@@ -186,6 +193,8 @@ function DetailModal({ n, onClose, onAction }) {
       const am = approvalMap[t] || { label:"Inhalt", emoji:"✅" };
       const entryTitle = md.entry_title || md.project_name || md.werk_title || n.title || `Dein ${am.label}`;
       const msg = md.message || md.admin_note || n.body || "Herzlichen Glückwunsch!";
+      // entity_type-Mapping für openRef: impact_project_approved → "project"
+      const approvedEntityType = n.entity_type === "impact_project" ? "project" : (n.entity_type || null);
       return {
         accentColor: "#0EC4B8",
         headerIcon: "✅",
@@ -194,7 +203,10 @@ function DetailModal({ n, onClose, onAction }) {
         blocks: [
           { type:"label-text", label:"Nachricht", text: msg, color:"#0EC4B8", bg:"rgba(14,196,184,0.06)", border:"rgba(14,196,184,0.22)" },
         ],
-        actionUrl: n.action_url || md.action_url || null,
+        // entity_id aus DB (alle work/experience/impact haben sie)
+        entityId:   n.entity_id   || md.werk_id   || md.entry_id   || null,
+        entityType: approvedEntityType,
+        actionUrl:  n.action_url  || md.action_url || null,
         actionLabel: "Direkt ansehen →",
       };
     }
@@ -340,34 +352,38 @@ function DetailModal({ n, onClose, onAction }) {
 
     // Kommentar / Antwort
     if (t === "comment" || t === "comment_reply") {
+      const cmEntityId   = md.post_id   || n.entity_id   || null;
+      const cmEntityType = md.post_type || n.entity_type || null;
+      const typeLabel = { work:"Werk", moment:"Beitrag", experience:"Erlebnis" }[cmEntityType] || "Beitrag";
       return {
         accentColor: "#0EC4B8",
         headerIcon: "💬",
         headerTitle: n.title || (t === "comment_reply" ? "Antwort auf deinen Kommentar" : "Neuer Kommentar"),
-        headerSubtitle: md.post_type ? `${md.post_type}` : null,
+        headerSubtitle: cmEntityType ? `auf deinen ${typeLabel}` : null,
         blocks: [
           md.comment_text && { type:"label-text", label:"Kommentar", text: md.comment_text, color:"#0EC4B8", bg:"rgba(14,196,184,0.06)", border:"rgba(14,196,184,0.22)" },
-          !md.comment_text && { type:"label-text", label:"Details", text: n.body || "", color:"#0EC4B8", bg:"rgba(14,196,184,0.06)", border:"rgba(14,196,184,0.22)" },
+          !md.comment_text && n.body && { type:"label-text", label:"Details", text: n.body, color:"#0EC4B8", bg:"rgba(14,196,184,0.06)", border:"rgba(14,196,184,0.22)" },
         ].filter(Boolean),
-        entityId:   md.post_id   || null,
-        entityType: md.post_type || null,
-        actionLabel: "Beitrag ansehen →",
+        entityId:   cmEntityId,
+        entityType: cmEntityType,
+        actionLabel: `${typeLabel} öffnen →`,
       };
     }
 
     // Resonanz / Like
     if (t === "resonanz" || t === "like") {
+      // body enthält oft den Titel des Werks/Beitrags — als Subtitle zeigen
+      const resonanzTitle = n.body?.replace(/^["„“]+|["“”]+$/g, "").trim() || null;
+      const typeLabel = { work:"Werk", moment:"Beitrag", experience:"Erlebnis" }[n.entity_type] || "Inhalt";
       return {
         accentColor: "#0EC4B8",
         headerIcon: "♡",
         headerTitle: n.title || "Jemand mag deinen Inhalt",
-        headerSubtitle: null,
-        blocks: [
-          { type:"label-text", label:"Details", text: n.body || "Jemand hat auf deinen Inhalt reagiert.", color:"#0EC4B8", bg:"rgba(14,196,184,0.06)", border:"rgba(14,196,184,0.22)" },
-        ],
+        headerSubtitle: resonanzTitle ? `„${resonanzTitle}"` : null,
+        blocks: [],
         entityId:   n.entity_id   || md.post_id   || null,
         entityType: n.entity_type || md.post_type || null,
-        actionLabel: "Inhalt ansehen →",
+        actionLabel: `${typeLabel} öffnen →`,
       };
     }
 
