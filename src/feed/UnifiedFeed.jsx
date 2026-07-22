@@ -236,45 +236,40 @@ function FeedWelcomeHeader({ currentUser }) {
           </div>
         </div>
 
-        {/* Stats: 4 Zeilen — Werke, Talentangebote, Erlebnisse, Momente (HEUTE.4-001) */}
-        <div style={{ padding: "12px 16px 14px", display: "flex", flexDirection: "column", gap: 0 }}>
+        {/* Stats: 4 Zeilen — HEUTE.4-001 — Layout exakt nach Design */}
+        <div style={{ padding: "4px 0 0" }}>
           {[
-            { icon: "🌿", color: TEAL,  bg: `${TEAL}14`,  count: stats.works,       label: "neue Werke"          },
-            { icon: "⭐", color: CORAL, bg: `${CORAL}12`, count: stats.talents,     label: "neue Talentangebote" },
-            { icon: "🗓️", color: TEAL,  bg: `${TEAL}14`,  count: stats.experiences, label: "neue Erlebnisse"     },
-            { icon: "💬", color: CORAL, bg: `${CORAL}12`, count: stats.moments,     label: "neue Momente"        },
+            { icon: "🌿", bg: "rgba(22,215,197,0.10)",  count: stats.works,       label: "neue Werke"          },
+            { icon: "⭐", bg: "rgba(255,200,60,0.13)",   count: stats.talents,     label: "neue Talentangebote" },
+            { icon: "🗓️", bg: "rgba(100,160,255,0.12)",  count: stats.experiences, label: "neue Erlebnisse"     },
+            { icon: "💬", bg: "rgba(200,180,255,0.13)",  count: stats.moments,     label: "neue Momente"        },
           ].map((s, i, arr) => (
             <div key={i} style={{
-              display: "flex", alignItems: "center", gap: 10,
-              paddingTop:    i === 0 ? 0 : 10,
-              paddingBottom: i === arr.length - 1 ? 0 : 10,
-              borderBottom: i < arr.length - 1 ? "1px solid rgba(13,196,181,0.08)" : "none",
+              display: "flex", alignItems: "center", gap: 12,
+              padding: "11px 16px",
+              borderBottom: i < arr.length - 1 ? "1px solid rgba(26,53,48,0.06)" : "none",
             }}>
+              {/* Icon-Kachel */}
               <div style={{
-                width: 32, height: 32, borderRadius: 10, flexShrink: 0,
+                width: 44, height: 44, borderRadius: 14, flexShrink: 0,
                 background: s.bg,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 14,
+                fontSize: 20,
               }}>
                 {s.icon}
               </div>
-              <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 7 }}>
+              {/* Zahl + Label inline */}
+              <div style={{ flex: 1, display: "flex", alignItems: "baseline", gap: 8 }}>
                 <span style={{
-                  fontSize: 20, fontWeight: 800, color: INK,
-                  lineHeight: 1.1, letterSpacing: -0.6, minWidth: 22,
+                  fontSize: 22, fontWeight: 800, color: INK,
+                  lineHeight: 1, letterSpacing: -0.8,
                 }}>
                   {s.count}
                 </span>
-                <span style={{ fontSize: 12, color: MUTED, fontWeight: 500 }}>
+                <span style={{ fontSize: 13, fontWeight: 500, color: MUTED, letterSpacing: -0.1 }}>
                   {s.label}
                 </span>
               </div>
-              {s.count > 0 && (
-                <div style={{
-                  width: 6, height: 6, borderRadius: "50%",
-                  background: "#22C55E", flexShrink: 0,
-                }} />
-              )}
             </div>
           ))}
         </div>
