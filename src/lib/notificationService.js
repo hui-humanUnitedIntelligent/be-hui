@@ -67,6 +67,7 @@ const notifDefaults = {
   message:  { title: "Neue Nachricht",              body: "Du hast eine Nachricht erhalten." },
   booking:  { title: "Buchungsanfrage",             body: "Jemand möchte ein Erlebnis mit dir buchen." },
   resonanz: { title: "Resonanz auf dein Werk",      body: "Dein Werk berührt jemanden." },
+  share:    { title: "Jemand hat etwas mit dir geteilt", body: "Schau es dir an." },
   system:   { title: "HUI-Plattform",               body: "" },
   watcher:  { title: "Jemand beobachtet dein Wirken", body: "Deine Präsenz zieht Aufmerksamkeit an." },
 };

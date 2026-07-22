@@ -23,7 +23,8 @@ import HomeHeader                from "../components/home/header/HomeHeader.jsx"
 import HUIBottomNavigation       from "../components/home/navigation/HUIBottomNavigation.jsx";
 import ProfileLauncher           from "../components/home/profile/ProfileLauncher.jsx";
 import UnifiedFeed from "../feed/UnifiedFeed.jsx";
-import { shareContent } from "../lib/shareContent.js"; // SHARE.1 2026-07-09
+import { shareContent } from "../lib/shareContent.js"; // SHARE.2 2026-07-22
+import { HuiShareModal } from "../components/shared/HuiShareModal.jsx";
 import { usePresence }             from "../lib/usePresence.js";
 import { StoryViewer }           from "../components/StoryBar.jsx";
 import { useProfileLauncher }    from "../components/home/profile/ProfileLauncher.jsx";
@@ -139,6 +140,7 @@ function HomeInner() {
   // ── Orb-Kontinuität — Cinematic Opening v2 (5 Phasen)
   // "idle" | "tap" | "focus" | "exiting" | "hidden" | "entering"
   const [orbTransition, setOrbTransition] = useState("idle");
+  const [shareItem, setShareItem] = useState(null); // SHARE.2: HUI Share Modal
   // Steuert MeinHUI's eigene Exit-Choreografie: Content fadet zuerst, dann schrumpft der Orb
   const [meinHuiClosing, setMeinHuiClosing] = useState(false);
 
@@ -218,6 +220,17 @@ function HomeInner() {
     window.addEventListener("hui:navigate:tab", handler);
     return () => window.removeEventListener("hui:navigate:tab", handler);
   }, [handleTab]);
+
+  // SHARE.2: hui:share CustomEvent → HuiShareModal öffnen
+  React.useEffect(() => {
+    window.__HUI_SHARE_REGISTERED = true;
+    const handler = (e) => { if (e.detail?.item) setShareItem(e.detail.item); };
+    window.addEventListener("hui:share", handler);
+    return () => {
+      window.removeEventListener("hui:share", handler);
+      delete window.__HUI_SHARE_REGISTERED;
+    };
+  }, []);
 
   // ── Unread Message Count — live aus chatContext ────────
   const { unreadTotal, markChatRead } = useChatList("home");
@@ -904,6 +917,14 @@ function HomeInner() {
       )}
 
       
+
+      {/* SHARE.2: HUI Share Modal — via hui:share CustomEvent geöffnet */}
+      {shareItem && (
+        <HuiShareModal
+          item={shareItem}
+          onClose={() => setShareItem(null)}
+        />
+      )}
 
     </>
   );
