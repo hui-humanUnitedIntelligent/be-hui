@@ -283,3 +283,101 @@ button, a, [role="button"] {
   animation-duration: 1s !important;
   animation-iteration-count: infinite !important;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   HUI Mobile Optimization Layer — MOBILE-OPT-001
+   Gezielte Fixes für 360–430px Smartphone-Breite
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* 1. Bilder immer responsiv */
+img, video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* 2. iOS Input-Zoom verhindern (font-size < 16px triggert Auto-Zoom) */
+input, select, textarea {
+  font-size: 16px !important;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* 3. Text-Größen-Anpassung durch Browser unterbinden */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* 4. PWA Standalone — Status-Bar-Bereich korrekt behandeln */
+@media (display-mode: standalone) {
+  body {
+    /* Sicherstellen dass unter dem Safe-Area-Bereich kein Inhalt liegt */
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+}
+
+/* 5. Horizontales Overflow global blockieren */
+body, #root {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* 6. Touch-Targets: Nav + CTA-Buttons mind. 44px (WCAG 2.5.5) */
+.hui-nav-btn,
+.hui-cta-btn,
+[data-touch-target] {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* 7. Scrollbare Container: Momentum-Scrolling auf iOS */
+.hui-scroll,
+[data-scroll],
+.overflow-y-auto,
+.overflow-auto {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+/* 8. Kein Text-Overflow bei langen Wörtern/URLs */
+p, h1, h2, h3, h4, h5, h6, span, div {
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+/* 9. Fokus-Ring für Touch zugänglich aber nicht störend */
+:focus-visible {
+  outline: 2px solid var(--hui-teal, #16D7C5);
+  outline-offset: 2px;
+}
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* 10. Bilder in Karten immer vollbreite + sauber beschnitten */
+.hui-feed-card img,
+.dp-list-card img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+/* 11. Mobile-spezifische Schriftgrößen-Skala */
+@media (max-width: 430px) {
+  /* Kein Viewport-Scroll durch große Elemente */
+  .hui-feed-card,
+  .dp-list-card {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Modals: volle Breite auf kleinen Screens */
+  [role="dialog"] {
+    max-width: calc(100vw - 32px) !important;
+  }
+}
+
+/* 12. Prevent layout shift bei Lazy-loaded Images */
+img[loading="lazy"] {
+  min-height: 1px;
+}
