@@ -278,43 +278,15 @@ async function fetchFeedPage(userId = null, cursors = null) {
 
 
 
-  // FEED.13B — Upcoming Experience Relevance Ranking
-  // Ersetzt FEED.10C (+4h Boost) durch zeitliche Relevanz-Verankerung.
-  //
-  // Regel: Experience mit Termin innerhalb von 7 Tagen erhält
-  //   _sortKey = max(created_at, event_date - 48h)
-  //
-  // Effekte:
-  //   Termin morgen (24h)  → visibilityAnchor = heute       → max(base, heute)
-  //   Termin in 3 Tagen    → visibilityAnchor = übermorgen  → max(base, übermorgen)
-  //   Termin in 6 Monaten  → CAP greift        → base (created_at, kein Vorteil)
-  //   Vergangene Termine   → kein Vorteil      → base
-  //   Works / Moments      → base (unverändert)
-  //
-  // Cursor, Pagination und Analytics bleiben vollständig unberührt.
-  const _now                     = Date.now();
-  const EVENT_VISIBILITY_WINDOW_MS = 48 * 60 * 60 * 1000;  // 48 Stunden Vorlauf
-  const _WINDOW_MS                = 7  * 24 * 60 * 60 * 1000; // 7 Tage CAP (unverändert)
-
+  // SORT.STRICT-001: Strikte Sortierung nach created_at DESC
+  // Kein Experience-Boost, kein Relevanz-Ranking — reines Datum.
+  // Neuester Eintrag (egal welcher Typ) ist immer oben.
   normalized.forEach(item => {
-    const base = item._raw?.created_at ? new Date(item._raw.created_at).getTime() : 0;
-    if (item.type === "experience" && item._raw?.date) {
-      const eventMs = new Date(item._raw.date).getTime();
-      const delta   = eventMs - _now;
-      if (delta >= 0 && delta < _WINDOW_MS) {
-        // Termin in 0–7 Tagen → zeitliche Relevanz-Verankerung
-        const visibilityAnchor = eventMs - EVENT_VISIBILITY_WINDOW_MS;
-        item._sortKey = Math.max(base, visibilityAnchor);
-      } else {
-        // Vergangen oder > 7 Tage → kein Vorteil
-        item._sortKey = base;
-      }
-    } else {
-      item._sortKey = base;
-    }
+    const ts = item._raw?.created_at
+      ? new Date(item._raw.created_at).getTime()
+      : (item._raw?.updated_at ? new Date(item._raw.updated_at).getTime() : 0);
+    item._sortKey = ts;
   });
-
-  // Zeitsortiert (via _sortKey — created_at bleibt unberührt)
   normalized.sort((a, b) => (b._sortKey || 0) - (a._sortKey || 0));
 
   // FEED.2E — Cursor pro Quelle: letztes Item jeder Quelle (vor Normalisierung verfügbar)
@@ -364,12 +336,15 @@ export function useFeedStream() {
     return () => { mountedRef.current = false; };
   }, []);
 
-  // ── Rhythmisierung (nur bei items-Änderung, nicht bei pending) ────────────
+  // ── Chronologische Sortierung (SORT.STRICT-001) ─────────────────────────────
+  // Kein Rhythmus-Engine — Items bleiben in der Reihenfolge wie sie aus der DB kommen
+  // (created_at DESC). rhythmicItems = items (gleiche Referenz, kein Umordnen).
   useEffect(() => {
     if (items.length === 0) { setRhythmicItems([]); return; }
-    const rhythmic = rhythmizeFeed([...items]);
-    setRhythmicItems(rhythmic);
-    saveCache(items, cursorRef.current); // FEED.2E: cursorRef.current ist { works, exps, beitr } | null
+    // Strikte created_at-Sortierung beibehalten — Ghost-Items werden gefiltert
+    const chronological = items.filter(i => !i._isGhost);
+    setRhythmicItems(chronological);
+    saveCache(items, cursorRef.current);
   }, [items]);
 
   // ── Initial Load (mit Cache) ───────────────────────────────────────────────
@@ -435,7 +410,8 @@ export function useFeedStream() {
       setItems(prev => {
         const existingIds = new Set(prev.map(i => i.id));
         const deduped = nextItems.filter(i => !existingIds.has(i.id));
-        const merged = [...prev, ...deduped];
+        // SORT.STRICT-001: auch prefetched Items nach _sortKey sortieren
+        const merged = [...prev, ...deduped].sort((a, b) => (b._sortKey || 0) - (a._sortKey || 0));
         // VIRT-MEM-001: Hard-Cap bei 200 Items — älteste (hintere) trimmen
         return merged.length > 200 ? merged.slice(0, 200) : merged;
       });
@@ -454,7 +430,10 @@ export function useFeedStream() {
       setItems(prev => {
         const existingIds = new Set(prev.map(i => i.id));
         const deduped = nextItems.filter(i => !existingIds.has(i.id));
-        const merged = [...prev, ...deduped];
+        // SORT.STRICT-001: nach created_at DESC sortieren — mehrere Quellen können unsortiert sein
+        const merged = [...prev, ...deduped].sort(
+          (a, b) => (b._sortKey || 0) - (a._sortKey || 0)
+        );
         // VIRT-MEM-001: Hard-Cap bei 200 Items — älteste (hintere) trimmen
         return merged.length > 200 ? merged.slice(0, 200) : merged;
       });
@@ -515,13 +494,18 @@ export function useFeedStream() {
     }, SOFT_HYDRATE_DELAY);
   }, []);
 
-  // ── Soft Hydration: Items einbauen (User-Tap) ────────────────────────────
+  // ── Soft Hydration: Items einbauen (User-Tap) — SORT.STRICT-001 ───────────
   const flushPendingItems = useCallback(() => {
     if (pendingItems.length === 0) return;
     setItems(prev => {
       const existingIds = new Set(prev.map(i => i.id));
       const newOnes = pendingItems.filter(i => !existingIds.has(i.id));
-      return [...newOnes, ...prev];
+      // Gemeinsam nach created_at DESC sortieren → neues Item steht exakt an richtiger Position
+      const merged = [...newOnes, ...prev].sort(
+        (a, b) => ((b._sortKey || b._raw?.created_at ? new Date(b._raw?.created_at || 0).getTime() : 0)
+                 - (a._sortKey || a._raw?.created_at ? new Date(a._raw?.created_at || 0).getTime() : 0))
+      );
+      return merged;
     });
     setPendingItems([]);
     setPendingCount(0);
