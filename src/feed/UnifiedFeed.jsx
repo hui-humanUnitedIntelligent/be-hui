@@ -236,37 +236,45 @@ function FeedWelcomeHeader({ currentUser }) {
           </div>
         </div>
 
-        {/* Stats: 4 Zeilen — HEUTE.4-001 — Layout exakt nach Design */}
-        <div style={{ padding: "4px 0 0" }}>
+        {/* Stats: 2×2 Grid — HEUTE.4-002 */}
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 1,
+          background: "rgba(26,53,48,0.06)",
+          margin: "4px 0 0",
+          borderRadius: "0 0 18px 18px",
+          overflow: "hidden",
+        }}>
           {[
             { icon: "🌿", bg: "rgba(22,215,197,0.10)",  count: stats.works,       label: "neue Werke"          },
-            { icon: "⭐", bg: "rgba(255,200,60,0.13)",   count: stats.talents,     label: "neue Talentangebote" },
-            { icon: "🗓️", bg: "rgba(100,160,255,0.12)",  count: stats.experiences, label: "neue Erlebnisse"     },
-            { icon: "💬", bg: "rgba(200,180,255,0.13)",  count: stats.moments,     label: "neue Momente"        },
-          ].map((s, i, arr) => (
+            { icon: "⭐", bg: "rgba(255,190,30,0.13)",   count: stats.talents,     label: "neue Talentangebote" },
+            { icon: "🗓️", bg: "rgba(100,149,255,0.12)",  count: stats.experiences, label: "neue Erlebnisse"     },
+            { icon: "💬", bg: "rgba(190,160,255,0.13)",  count: stats.moments,     label: "neue Momente"        },
+          ].map((s, i) => (
             <div key={i} style={{
-              display: "flex", alignItems: "center", gap: 12,
-              padding: "11px 16px",
-              borderBottom: i < arr.length - 1 ? "1px solid rgba(26,53,48,0.06)" : "none",
+              background: "rgba(255,253,251,0.97)",
+              padding: "14px 14px 14px 12px",
+              display: "flex", alignItems: "center", gap: 10,
             }}>
               {/* Icon-Kachel */}
               <div style={{
-                width: 44, height: 44, borderRadius: 14, flexShrink: 0,
+                width: 42, height: 42, borderRadius: 13, flexShrink: 0,
                 background: s.bg,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 20,
+                fontSize: 19,
               }}>
                 {s.icon}
               </div>
-              {/* Zahl + Label inline */}
-              <div style={{ flex: 1, display: "flex", alignItems: "baseline", gap: 8 }}>
+              {/* Zahl + Label */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
                 <span style={{
-                  fontSize: 22, fontWeight: 800, color: INK,
-                  lineHeight: 1, letterSpacing: -0.8,
+                  fontSize: 21, fontWeight: 800, color: INK,
+                  lineHeight: 1, letterSpacing: -0.7,
                 }}>
                   {s.count}
                 </span>
-                <span style={{ fontSize: 13, fontWeight: 500, color: MUTED, letterSpacing: -0.1 }}>
+                <span style={{ fontSize: 11, fontWeight: 500, color: MUTED, letterSpacing: -0.1, lineHeight: 1.3 }}>
                   {s.label}
                 </span>
               </div>
