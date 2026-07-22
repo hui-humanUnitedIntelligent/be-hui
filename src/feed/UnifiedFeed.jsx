@@ -86,7 +86,7 @@ function useHeuteStats() {
       setStats({
         works: w, talents: t, experiences: e, moments: m,
         liveText,
-        isLive: (w + t + e + m) > 0,
+        isLive: true, // REGEL: alle 4 Bereiche sind immer live
       });
     } catch { /* silent — Platzhalter bleiben */ }
   }, []);
@@ -225,12 +225,12 @@ function FeedWelcomeHeader({ currentUser }) {
           <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
             <div style={{
               width: 7, height: 7, borderRadius: "50%",
-              background: stats.isLive ? "#22C55E" : "#94A3B8",
-              boxShadow: stats.isLive ? "0 0 0 2px rgba(34,197,94,0.25)" : "none",
-              animation: stats.isLive ? "huiPulseGreen 2s ease-in-out infinite" : "none",
+              background: "#22C55E",
+              boxShadow: "0 0 0 2px rgba(34,197,94,0.25)",
+              animation: "huiPulseGreen 2s ease-in-out infinite",
               transition: "background 0.4s",
             }} />
-            <span style={{ fontSize: 11, fontWeight: 600, color: stats.isLive ? "#22C55E" : "#94A3B8", letterSpacing: 0.2, transition: "color 0.4s" }}>
+            <span style={{ fontSize: 11, fontWeight: 600, color: "#22C55E", letterSpacing: 0.2 }}>
               Live
             </span>
           </div>
@@ -256,15 +256,26 @@ function FeedWelcomeHeader({ currentUser }) {
               background: "rgba(255,253,251,0.97)",
               padding: "14px 14px 14px 12px",
               display: "flex", alignItems: "center", gap: 10,
+              position: "relative",
             }}>
-              {/* Icon-Kachel */}
-              <div style={{
-                width: 42, height: 42, borderRadius: 13, flexShrink: 0,
-                background: s.bg,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 19,
-              }}>
-                {s.icon}
+              {/* Icon-Kachel mit Live-Dot */}
+              <div style={{ position: "relative", flexShrink: 0 }}>
+                <div style={{
+                  width: 42, height: 42, borderRadius: 13,
+                  background: s.bg,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 19,
+                }}>
+                  {s.icon}
+                </div>
+                {/* Live-Dot oben rechts auf Icon-Kachel */}
+                <div style={{
+                  position: "absolute", top: -2, right: -2,
+                  width: 9, height: 9, borderRadius: "50%",
+                  background: "#22C55E",
+                  border: "1.5px solid rgba(255,253,251,0.97)",
+                  animation: "huiPulseGreen 2s ease-in-out infinite",
+                }} />
               </div>
               {/* Zahl + Label */}
               <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
