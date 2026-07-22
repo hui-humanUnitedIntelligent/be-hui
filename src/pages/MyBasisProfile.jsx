@@ -540,15 +540,69 @@ export default function MyBasisProfile({ onClose, profileId }) {
         // Handled by NotifCard → RejectionModal (kein weiteres Routing nötig)
         break;
 
-      // ── Admin / System: Detailansicht ───────────────────────────────────
+      // ── Admin / System / Broadcast: Detailansicht (kein externes Routing) ──
       case "admin":
       case "admin_broadcast":
+      case "broadcast":
       case "system":
       case "info":
-        // Kein spezifisches Routing — Panel bleibt offen für Lesbarkeit
+      case "save_digest":
+        // Kein Routing — alle Infos im DetailModal
         break;
 
-      // ── Geteilter Inhalt öffnen ────────────────────────────────────────────
+      // ── Ablehnungen/Freigaben: kein weiteres Routing — Modal zeigt alles ──
+      case "experience_approved":
+      case "experience_rejected":
+      case "impact_project_approved":
+      case "impact_project_rejected":
+      case "content_rejected":
+      case "work_deleted":
+        // Kein Routing — Modal zeigt Titel + Grund vollständig
+        break;
+
+      // ── Resonanz/Like: öffnet Inhalt wenn entity_id vorhanden ─────────────
+      case "resonanz":
+      case "like": {
+        const rEntityId   = n.entity_id   || (n.metadata || {}).post_id   || null;
+        const rEntityType = n.entity_type || (n.metadata || {}).post_type || null;
+        if (n._openRef && rEntityId && rEntityType) {
+          openRef({ type: rEntityType, id: rEntityId });
+        }
+        break;
+      }
+
+      // ── Support: kein Routing — Antwort im Modal lesen ─────────────────────
+      case "support_ticket":
+      case "support_ticket_reply":
+        break;
+
+      // ── Bestellung/Zahlung — kein Routing (keine entity_id in DB) ───────────
+      case "new_order":
+      case "order_confirmed":
+        // Kein Routing — alle Daten im DetailModal sichtbar, kein Link nötig
+        break;
+
+      // ── Impact-Projekt eingereicht/gelöscht → Impact-Tab ─────────────────
+      case "impact_project_submitted":
+      case "impact_project_deleted":
+        switchTab("impact");
+        break;
+
+      // ── Inhalt gemeldet/gelöscht/freigegeben → openRef wenn entity_id da ─
+      case "work_flagged":
+      case "content_flagged":
+      case "content_deleted":
+      case "content_approved": {
+        const cMeta = n.metadata || {};
+        const cEntityId   = n.entity_id   || cMeta.entity_id   || null;
+        const cEntityType = n.entity_type || cMeta.entity_type || null;
+        if (n._openRef && cEntityId && cEntityType) {
+          openRef({ type: cEntityType, id: cEntityId });
+        }
+        break;
+      }
+
+            // ── Geteilter Inhalt öffnen ────────────────────────────────────────────
       case "share": {
         const shareMeta = n.metadata || {};
         const shareEntityId   = n._openRef ? (n.entity_id || shareMeta.entity_id) : (shareMeta.entity_id || n.entity_id);

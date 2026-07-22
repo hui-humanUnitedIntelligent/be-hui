@@ -114,7 +114,13 @@ const META = {
   // RESONANZ.3 (2026-07-16): Resonanz auf eigenen Beitrag.
   resonanz:               { emoji:<HUIHeartIcon size={18}/>,            label:"Resonanz"               },
   like:                   { emoji:"✦",  label:"Gefällt jemandem"       },
-  default:                { emoji:<HUIBenachrichtigungIcon size={18}/>, label:"Benachrichtigung"       },
+  order_confirmed:        { emoji:"✓",   label:"Unterstützung bestätigt"     },
+  impact_project_submitted:{ emoji:"💚",  label:"Herzensprojekt eingereicht"  },
+  impact_project_deleted:  { emoji:"🗑",  label:"Herzensprojekt entfernt"     },
+  work_flagged:            { emoji:"⚠️", label:"Inhalt gemeldet"              },
+  content_deleted:         { emoji:"🗑",  label:"Inhalt gelöscht"             },
+  content_approved:        { emoji:"✅",  label:"Inhalt freigegeben"          },
+    default:                { emoji:<HUIBenachrichtigungIcon size={18}/>, label:"Benachrichtigung"       },
 };
 
 function getMeta(type) { return META[type] || META.default; }
@@ -378,7 +384,100 @@ function DetailModal({ n, onClose, onAction }) {
       };
     }
 
-    // System / Info / Default
+
+    // ── Bestellung bestätigt (Käufer-Seite) ─────────────────────────────────
+    if (t === "order_confirmed") {
+      return {
+        accentColor: "#0EC4B8",
+        headerIcon: "✓",
+        headerTitle: n.title || "Unterstützung bestätigt",
+        headerSubtitle: null,
+        blocks: [
+          { type:"label-text", label:"Details", text: n.body || "Deine Zahlung war erfolgreich.", color:"#0EC4B8", bg:"rgba(14,196,184,0.06)", border:"rgba(14,196,184,0.22)" },
+        ],
+      };
+    }
+
+    // ── Impact-Projekt eingereicht ─────────────────────────────────────────
+    if (t === "impact_project_submitted") {
+      const projectName = md.project_name || md.entry_title || n.title || "Dein Projekt";
+      return {
+        accentColor: "#0EC4B8",
+        headerIcon: "💚",
+        headerTitle: "Herzensprojekt eingereicht",
+        headerSubtitle: `„${projectName}"`,
+        blocks: [
+          { type:"label-text", label:"Status", text: n.body || "Ein Admin prüft dein Projekt und meldet sich bei dir.", color:"#0EC4B8", bg:"rgba(14,196,184,0.06)", border:"rgba(14,196,184,0.22)" },
+        ],
+        actionUrl: n.action_url || "/impact",
+        actionLabel: "Zum Impactbereich →",
+      };
+    }
+
+    // ── Impact-Projekt gelöscht ────────────────────────────────────────────
+    if (t === "impact_project_deleted") {
+      const projectName = md.project_name || md.entry_title || n.title || "Dein Projekt";
+      const reason = md.reason || md.rejection_reason || n.body || "Dein Projekt wurde entfernt.";
+      return {
+        accentColor: "#DC2626",
+        headerIcon: "🗑",
+        headerTitle: "Herzensprojekt entfernt",
+        headerSubtitle: `„${projectName}"`,
+        blocks: [
+          { type:"label-text", label:"Grund", text: reason, color:"#DC2626", bg:"rgba(239,68,68,0.06)", border:"rgba(239,68,68,0.22)" },
+          { type:"info", text: "Bei Fragen wende dich bitte an den Support." },
+        ],
+      };
+    }
+
+    // ── Inhalt gemeldet (work_flagged — SADB-Meldung) ─────────────────────
+    if (t === "work_flagged" || t === "content_flagged") {
+      const entryTitle = md.entry_title || md.work_title || n.body?.match(/„(.+?)"/)?.[1] || "";
+      return {
+        accentColor: "#F59E0B",
+        headerIcon: "⚠️",
+        headerTitle: "Inhalt gemeldet",
+        headerSubtitle: entryTitle ? `„${entryTitle}"` : null,
+        blocks: [
+          { type:"label-text", label:"Details", text: n.body || "Dein Inhalt wurde gemeldet und wird geprüft.", color:"#F59E0B", bg:"rgba(245,158,11,0.06)", border:"rgba(245,158,11,0.22)" },
+        ],
+      };
+    }
+
+    // ── Inhalt gelöscht (content_deleted) ─────────────────────────────────
+    if (t === "content_deleted") {
+      const entryTitle = md.entry_title || n.body?.match(/„(.+?)"/)?.[1] || "";
+      const entityLabel = { work:"Werk", experience:"Erlebnis", talent:"Talent", moment:"Beitrag" }[n.entity_type] || "Inhalt";
+      return {
+        accentColor: "#DC2626",
+        headerIcon: "🗑",
+        headerTitle: `${entityLabel} gelöscht`,
+        headerSubtitle: entryTitle ? `„${entryTitle}"` : null,
+        blocks: [
+          { type:"label-text", label:"Details", text: md.reason || n.body || "Dein Inhalt wurde entfernt.", color:"#DC2626", bg:"rgba(239,68,68,0.06)", border:"rgba(239,68,68,0.22)" },
+        ],
+      };
+    }
+
+    // ── Inhalt freigegeben (content_approved — Generic für experience etc.) ─
+    if (t === "content_approved") {
+      const entryTitle = md.entry_title || n.body?.match(/„(.+?)"/)?.[1] || "";
+      const entityLabel = { work:"Werk", experience:"Erlebnis", talent:"Talent", moment:"Beitrag" }[n.entity_type] || "Inhalt";
+      return {
+        accentColor: "#0EC4B8",
+        headerIcon: "✅",
+        headerTitle: `${entityLabel} freigegeben`,
+        headerSubtitle: entryTitle ? `„${entryTitle}"` : null,
+        blocks: [
+          { type:"label-text", label:"Details", text: n.body || "Dein Inhalt ist jetzt live!", color:"#0EC4B8", bg:"rgba(14,196,184,0.06)", border:"rgba(14,196,184,0.22)" },
+        ],
+        entityId:   n.entity_id   || null,
+        entityType: n.entity_type || null,
+        actionLabel: "Inhalt ansehen →",
+      };
+    }
+
+        // System / Info / Default
     return {
       accentColor: "#0EC4B8",
       headerIcon: typeof meta.emoji === "string" ? meta.emoji : "✦",
