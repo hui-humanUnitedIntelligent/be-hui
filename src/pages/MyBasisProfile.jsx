@@ -551,14 +551,12 @@ export default function MyBasisProfile({ onClose, profileId }) {
       // ── Geteilter Inhalt öffnen ────────────────────────────────────────────
       case "share": {
         const shareMeta = n.metadata || {};
-        const shareEntityId   = shareMeta.entity_id   || n.entity_id   || null;
-        const shareEntityType = shareMeta.entity_type || n.entity_type || null;
-        const shareActionUrl  = n.action_url || null;
+        const shareEntityId   = n._openRef ? (n.entity_id || shareMeta.entity_id) : (shareMeta.entity_id || n.entity_id);
+        const shareEntityType = n.entity_type || shareMeta.entity_type || null;
+        const shareActionUrl  = n._openUrl || n.action_url || null;
         if (shareEntityId && shareEntityType) {
-          // Content-Preview öffnen (gleiche Infrastruktur wie comment-Routing)
           openRef({ type: shareEntityType, id: shareEntityId });
         } else if (shareActionUrl) {
-          // Fallback: action_url via navigate
           const path = shareActionUrl.startsWith("http")
             ? new URL(shareActionUrl).pathname
             : shareActionUrl;
@@ -568,7 +566,17 @@ export default function MyBasisProfile({ onClose, profileId }) {
       }
 
       default:
-        // Unbekannter Typ — nichts tun, Panel wurde bereits geschlossen
+        // _openRef: DetailModal hat einen Entity-Link → openRef öffnen
+        if (n._openRef && n.entity_id && n.entity_type) {
+          openRef({ type: n.entity_type, id: n.entity_id });
+        }
+        // _openUrl: DetailModal hat eine URL → navigate
+        else if (n._openUrl) {
+          const path = n._openUrl.startsWith("http")
+            ? new URL(n._openUrl).pathname
+            : n._openUrl;
+          navigate(path);
+        }
         break;
     }
   };
