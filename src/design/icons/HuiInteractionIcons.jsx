@@ -371,3 +371,38 @@ export default {
   HUI_ICON_SIZES,
   HUI_INTERACTIONS,
 };
+
+
+/* ── 5. Melden — HUIReportIcon (MOMENTE-REPORTS-001, 2026-07-23) ───────────
+   Stilistisch identisch zu den anderen 4 Icons: 24×24 ViewBox, Stroke 2px,
+   strokeLinecap/Join="round", currentColor, kein Fill.
+   Motiv: Flagge / Melden — klare Erkennbarkeit, kein Finger nach oben
+   (wäre zu positiv interpretierbar) — stattdessen klassisches Warn-Flag.
+   API: HUIReportIcon({ size=24, active=false, className, style }) */
+export function HUIReportIcon({ size = 24, active = false, className, style }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      style={{
+        transition: "transform 0.18s ease, opacity 0.18s ease",
+        transform: active ? "scale(1.15)" : "scale(1)",
+        opacity: active ? 1 : 0.85,
+        ...style,
+      }}
+      aria-label="Melden"
+    >
+      {/* Fahnenstange */}
+      <line x1="6" y1="3" x2="6" y2="21" />
+      {/* Flagge (gefüllt mit stroke, dreieckig ausgezogen) */}
+      <path d="M6 3 L18 7 L6 12" strokeFill="none" />
+    </svg>
+  );
+}

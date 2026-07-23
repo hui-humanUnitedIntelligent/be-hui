@@ -1,7 +1,9 @@
 // src/feed/cards/MomentContent.jsx — HUI Feed Card v2
 // Badge-Logik: Foto-Moment / Video-Moment / Bild-Moment (Galerie) / Gedanke
 // Identisches Layout zu WorkContent / ExperienceContent / TalentContent
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { supabase } from "../../lib/supabaseClient.js";
+import { HUIReportIcon } from "../../design/icons/HuiInteractionIcons.jsx";
 import BaseFeedCard from "./BaseFeedCard.jsx";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
 
@@ -62,6 +64,90 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
   const caption   = item.text || item.title || raw.caption || "";
   const badge     = getMomentBadge(raw);
 
+  // ── MOMENTE-REPORTS-001: Melden-State ─────────────────────────
+  const [reported,   setReported]   = useState(false);
+  const [reporting,  setReporting]  = useState(false);
+  const [reportDone, setReportDone] = useState(false);
+
+  // Prüfen ob dieser Nutzer den Moment bereits gemeldet hat
+  useEffect(() => {
+    if (!item?._raw?.id) return;
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      supabase
+        .from("momente_reports")
+        .select("id", { count: "exact", head: true })
+        .eq("moment_id", item._raw.id)
+        .eq("reporter_id", user.id)
+        .then(({ count }) => {
+          if ((count ?? 0) > 0) setReported(true);
+        });
+    });
+  }, [item?._raw?.id]);
+
+  const handleReport = useCallback(async () => {
+    if (reported || reporting) return;
+    const momentId = item?._raw?.id || item?.id;
+    if (!momentId) return;
+    setReporting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("report-moment", {
+        body: { moment_id: momentId, reason: "inappropriate" },
+      });
+      if (error) throw error;
+      setReported(true);
+      setReportDone(true);
+      setTimeout(() => setReportDone(false), 2500);
+    } catch (e) {
+      console.warn("[MomentReport]", e);
+    } finally {
+      setReporting(false);
+    }
+  }, [reported, reporting, item]);
+
+  // ── Melden-Button (nur für Momente) ────────────────────────
+  const reportButton = (
+    <button
+      onClick={handleReport}
+      disabled={reported || reporting}
+      title={reported ? "Bereits gemeldet" : "Diesen Moment melden"}
+      style={{
+        display:        "flex",
+        alignItems:     "center",
+        justifyContent: "center",
+        width:          44,
+        height:         44,
+        borderRadius:   12,
+        border:         "none",
+        background:     "transparent",
+        cursor:         reported ? "default" : "pointer",
+        color:          reported ? "#E8D0C8" : "#C47A65",
+        opacity:        reported ? 0.5 : 1,
+        transition:     "color 0.2s, opacity 0.2s, transform 0.15s",
+        WebkitTapHighlightColor: "transparent",
+        position: "relative",
+      }}
+    >
+      <HUIReportIcon size={22} active={reported} />
+      {/* "Gemeldet"-Feedback-Label */}
+      {reportDone && (
+        <span style={{
+          position:  "absolute",
+          bottom:    -18,
+          left:      "50%",
+          transform: "translateX(-50%)",
+          fontSize:  9,
+          fontWeight: 600,
+          color:     "#C47A65",
+          whiteSpace: "nowrap",
+          pointerEvents: "none",
+        }}>
+          Gemeldet
+        </span>
+      )}
+    </button>
+  );
+
   return (
     <BaseFeedCard
       item={item}
@@ -69,6 +155,7 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
       onReaction={onReaction}
       onShare={onShare}
       onCardClick={() => open(item)}
+      extraActions={reportButton}
     >
       {/* ── Badge · Caption ── identisch zu WorkContent/ExperienceContent */}
       <div style={{
