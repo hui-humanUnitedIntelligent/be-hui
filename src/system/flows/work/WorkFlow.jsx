@@ -192,6 +192,7 @@ export default function WorkFlow({ onClose }) {
         for_sale:    form.priceMode !== "free",
         visibility:  form.visibility   || "public",
         status:      "pending_review",
+        post_type:   "work",
         last_submitted_at: new Date().toISOString(),
         is_update: false,
         lat: creatorLat, lng: creatorLng,
