@@ -222,18 +222,6 @@ function FeedWelcomeHeader({ currentUser }) {
               Heute auf HUI
             </span>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-            <div style={{
-              width: 7, height: 7, borderRadius: "50%",
-              background: "#22C55E",
-              boxShadow: "0 0 0 2px rgba(34,197,94,0.25)",
-              animation: "huiPulseGreen 2s ease-in-out infinite",
-              transition: "background 0.4s",
-            }} />
-            <span style={{ fontSize: 11, fontWeight: 600, color: "#22C55E", letterSpacing: 0.2 }}>
-              Live
-            </span>
-          </div>
         </div>
 
         {/* Stats: 2×2 Grid — HEUTE.4-002 */}
@@ -268,14 +256,6 @@ function FeedWelcomeHeader({ currentUser }) {
                 }}>
                   {s.icon}
                 </div>
-                {/* Live-Dot oben rechts auf Icon-Kachel */}
-                <div style={{
-                  position: "absolute", top: -2, right: -2,
-                  width: 9, height: 9, borderRadius: "50%",
-                  background: "#22C55E",
-                  border: "1.5px solid rgba(255,253,251,0.97)",
-                  animation: "huiPulseGreen 2s ease-in-out infinite",
-                }} />
               </div>
               {/* Zahl + Label */}
               <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
@@ -293,31 +273,7 @@ function FeedWelcomeHeader({ currentUser }) {
           ))}
         </div>
 
-        {/* Gerade passiert */}
-        <div style={{
-          margin: "0 12px 12px",
-          background: "rgba(13,196,181,0.05)",
-          borderRadius: 12,
-          padding: "9px 12px",
-          display: "flex", alignItems: "center", gap: 8,
-          border: "1px solid rgba(13,196,181,0.09)",
-        }}>
-          <div style={{
-            width: 7, height: 7, borderRadius: "50%", flexShrink: 0,
-            background: "#22C55E",
-          }} />
-          <span style={{ fontSize: 12, color: MUTED, fontWeight: 600, flexShrink: 0 }}>
-            Gerade passiert:
-          </span>
-          <span style={{
-            fontSize: 12, color: "rgba(20,20,34,0.65)", fontWeight: 400,
-            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-          }}>
-            {stats.liveText || "Neue Inhalte werden geladen…"}
-          </span>
-        </div>
       </div>
-
     </div>
   );
 }
