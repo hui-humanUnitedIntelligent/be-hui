@@ -99,8 +99,7 @@ export default function StatistikenModal({ profile, onClose }) {
         // Content
         supabase.from("works").select("*", { count:"exact", head:true }).eq("user_id", uid),
         supabase.from("works").select("*", { count:"exact", head:true }).eq("user_id", uid).eq("approval_status","published"),
-        supabase.from("stories").select("*", { count:"exact", head:true }).eq("user_id", uid),
-        supabase.from("moments").select("*", { count:"exact", head:true }).eq("user_id", uid),
+        // stories-Tabelle existiert nicht — ausgeblendet
         supabase.from("beitraege").select("*", { count:"exact", head:true }).eq("user_id", uid),
         // Handel
         supabase.from("bookings").select("*", { count:"exact", head:true }).eq("customer_id", uid),
@@ -113,12 +112,12 @@ export default function StatistikenModal({ profile, onClose }) {
         supabase.from("recommendations").select("*", { count:"exact", head:true }).eq("from_user_id", uid),
         supabase.from("favorites").select("*", { count:"exact", head:true }).eq("user_id", uid),
         supabase.from("connections").select("*", { count:"exact", head:true }).eq("user_id", uid),
-        supabase.from("profile_relations").select("*", { count:"exact", head:true }).eq("requester_id", uid),
+        supabase.from("connections").select("*", { count:"exact", head:true }).eq("user_id", uid),
         // Zahlungen
         // Legacy-Hinweis: Diese Stelle liest aus der alten Tabelle 'payments'. Nie befuellt, kein SSOT-Mapping (SYS-LegacyMark-024). UI zeigt korrekt leer/0 an.
         supabase.from("payments").select("amount_eur,impact_eur").eq("payer_id", uid).in("state",["released","completed","paid"]),
         // Legacy-Hinweis: Diese Stelle liest aus der alten Tabelle 'payments'. Nie befuellt, kein SSOT-Mapping (SYS-LegacyMark-024). UI zeigt korrekt leer/0 an.
-        supabase.from("payments").select("payout_eur").eq("recipient_id", uid).in("state",["released","completed","paid"]),
+        supabase.from("stripe_payments").select("amount_eur").eq("recipient_id", uid).in("status",["released","completed","paid"]),
         // Profil
         supabase.from("profiles").select("profile_views,followers_count,trust_score,member_since,created_at,has_talent_profile,is_ambassador").eq("id", uid).single(), // Identity Contract v1.0
         // Project-Support Betrag
