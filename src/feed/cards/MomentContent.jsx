@@ -109,10 +109,32 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
     if (!momentId) return;
     setReporting(true);
     try {
-      const { data, error } = await supabase.functions.invoke("report-moment", {
-        body: { moment_id: momentId, reason: "inappropriate" },
-      });
-      if (error) throw error;
+      // CORS-FIX: Direkt über Supabase REST (kein Edge Function Call)
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("not_authenticated");
+
+      // 1) Meldung eintragen (UNIQUE constraint verhindert Doppelmeldung)
+      const { error: insertError } = await supabase
+        .from("momente_reports")
+        .insert({ moment_id: momentId, reporter_id: user.id, reason: "inappropriate" });
+
+      // 409 = bereits gemeldet — kein echter Fehler
+      if (insertError && insertError.code !== "23505") throw insertError;
+
+      // 2) Anzahl Meldungen prüfen (COUNT verschiedener Reporter)
+      const { count } = await supabase
+        .from("momente_reports")
+        .select("id", { count: "exact", head: true })
+        .eq("moment_id", momentId);
+
+      // 3) Bei >= 5 Meldungen → Status in beitraege auf "reported" setzen
+      if ((count ?? 0) >= 5) {
+        await supabase
+          .from("beitraege")
+          .update({ visibility_scope: "reported" })
+          .eq("id", momentId);
+      }
+
       setReported(true);
       setReportDone(true);
       setTimeout(() => setReportDone(false), 2500);
