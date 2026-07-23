@@ -17,13 +17,17 @@ const INK3       = "rgba(26,26,46,0.42)";
 // Finger-Icon: "Ich melde das" — Stroke 2px/round wie alle anderen Feed-Icons
 const CORAL = "#C47A65";
 function FingerIcon({ size = 24 }) {
+  // Zeigefinger-Icon ("Flag/Melden") — Stroke 2.1px, gleicher Stil wie Heart/Chat/Share/Bookmark
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
       stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"
       aria-label="Melden"
     >
-      <line x1="5" y1="5" x2="19" y2="19" />
-      <line x1="19" y1="5" x2="5" y2="19" />
+      {/* Hand mit ausgestrecktem Zeigefinger */}
+      <path d="M9 11V6a2 2 0 0 1 4 0v5" />
+      <path d="M13 11V8a2 2 0 0 1 4 0v3" />
+      <path d="M17 11v2a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4v-3a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2v1" />
+      <path d="M9 11V9a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2v2" />
     </svg>
   );
 }
