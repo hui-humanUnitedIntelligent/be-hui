@@ -91,6 +91,14 @@ const META = {
   work_rejected:          { emoji:"❌", label:"Werk abgelehnt"         },
   content_rejected:       { emoji:"❌", label:"Inhalt abgelehnt"       },
   experience_approved:    { emoji:"✅", label:"Erlebnis freigegeben"   },
+  moment_removed:         { emoji:"🗑", label:"Moment entfernt"         },
+  moment_reported:        { emoji:"⚠️", label:"Moment gemeldet"         },
+  moment_reported_removed:{ emoji:"🚫", label:"Moment entfernt (Meldungen)" },
+  moment_updated:         { emoji:"✏️", label:"Moment aktualisiert"     },
+  talent_updated:         { emoji:"✏️", label:"Talent aktualisiert"     },
+  experience_updated:     { emoji:"✏️", label:"Erlebnis aktualisiert"  },
+  project_approved:       { emoji:"✅", label:"Projekt freigegeben"     },
+  project_updated:        { emoji:"✏️", label:"Projekt aktualisiert"   },
   experience_rejected:    { emoji:"❌", label:"Erlebnis abgelehnt"     },
   project_approved:       { emoji:"✅", label:"Projekt freigegeben"    },
   project_rejected:       { emoji:"❌", label:"Projekt abgelehnt"      },
@@ -472,6 +480,73 @@ function DetailModal({ n, onClose, onAction }) {
         blocks: [
           { type:"label-text", label:"Details", text: md.reason || n.body || "Dein Inhalt wurde entfernt.", color:"#DC2626", bg:"rgba(239,68,68,0.06)", border:"rgba(239,68,68,0.22)" },
         ],
+      };
+    }
+
+    // ── Moment entfernt durch Admin ──────────────────────────────────────
+    if (t === "moment_removed") {
+      const reason = md.reason || n.body || "Dein Moment wurde vom Admin entfernt.";
+      const preview = md.moment_preview || md.entry_title || "";
+      return {
+        accentColor: "#DC2626",
+        headerIcon: "🗑",
+        headerTitle: "Moment entfernt",
+        headerSubtitle: preview ? `„${preview.substring(0,60)}"` : null,
+        blocks: [
+          { type:"label-text", label:"Begründung des Admins", text: reason, color:"#DC2626", bg:"rgba(239,68,68,0.06)", border:"rgba(239,68,68,0.22)" },
+          { type:"info", text: "Bei Fragen wende dich bitte an den Support." },
+        ],
+      };
+    }
+
+    // ── Moment gemeldet (1 Meldung) ──────────────────────────────────────
+    if (t === "moment_reported") {
+      const preview = md.moment_preview || md.entry_title || "";
+      return {
+        accentColor: "#F59E0B",
+        headerIcon: "⚠️",
+        headerTitle: "Moment gemeldet",
+        headerSubtitle: preview ? `„${preview.substring(0,60)}"` : null,
+        blocks: [
+          { type:"label-text", label:"Hinweis", text: n.body || "Dein Moment wurde von einem Nutzer gemeldet und wird geprüft.", color:"#F59E0B", bg:"rgba(245,158,11,0.06)", border:"rgba(245,158,11,0.22)" },
+          { type:"info", text: "Sollte dein Moment gegen keine Richtlinien verstoßen, ist keine Aktion nötig." },
+        ],
+      };
+    }
+
+    // ── Moment durch mehrfache Meldungen entfernt ──────────────────────────
+    if (t === "moment_reported_removed") {
+      const reason = md.reason || n.body || "Dein Moment wurde aufgrund mehrfacher Meldungen automatisch entfernt.";
+      const preview = md.moment_preview || md.entry_title || "";
+      return {
+        accentColor: "#DC2626",
+        headerIcon: "🚫",
+        headerTitle: "Moment entfernt (5 Meldungen)",
+        headerSubtitle: preview ? `„${preview.substring(0,60)}"` : null,
+        blocks: [
+          { type:"label-text", label:"Grund", text: reason, color:"#DC2626", bg:"rgba(239,68,68,0.06)", border:"rgba(239,68,68,0.22)" },
+          { type:"info", text: "Dein Moment wurde von 5 verschiedenen Nutzern gemeldet und automatisch entfernt." },
+        ],
+      };
+    }
+
+    // ── Moment / Talent / Erlebnis / Projekt aktualisiert ─────────────────
+    if (t === "moment_updated" || t === "talent_updated" || t === "experience_updated" || t === "project_updated") {
+      const labelMap = { moment_updated:"Moment", talent_updated:"Talent-Angebot", experience_updated:"Erlebnis", project_updated:"Projekt" };
+      const emojiMap = { moment_updated:"✏️", talent_updated:"⭐", experience_updated:"🌿", project_updated:"📌" };
+      const entityLabel = labelMap[t];
+      const entryTitle = md.entry_title || md.title || "";
+      return {
+        accentColor: "#6366F1",
+        headerIcon: emojiMap[t],
+        headerTitle: `${entityLabel} aktualisiert`,
+        headerSubtitle: entryTitle ? `„${entryTitle}"` : null,
+        blocks: [
+          { type:"label-text", label:"Details", text: md.message || n.body || `Dein ${entityLabel} wurde aktualisiert.`, color:"#6366F1", bg:"rgba(99,102,241,0.06)", border:"rgba(99,102,241,0.22)" },
+        ],
+        entityId:   n.entity_id   || null,
+        entityType: n.entity_type || null,
+        actionLabel: `${entityLabel} ansehen →`,
       };
     }
 
@@ -879,12 +954,14 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
     "work_approved", "work_rejected", "content_rejected", "work_sensitive", "work_deleted",
     "meldung_aufgehoben",
     // Erlebnisse
-    "experience_approved", "experience_rejected",
+    "experience_approved", "experience_rejected", "experience_updated",
     // Projekte / Impact
-    "project_approved", "project_rejected",
+    "project_approved", "project_rejected", "project_updated",
     "impact_project_approved", "impact_project_rejected",
     // Talente
-    "talent_approved", "talent_rejected",
+    "talent_approved", "talent_rejected", "talent_updated",
+    // Momente
+    "moment_removed", "moment_reported", "moment_reported_removed", "moment_updated",
     // Interaktionen
     "new_follower", "new_booking", "support_ticket_reply", "support_ticket",
     "like", "resonanz", "comment", "comment_reply", "save_digest",

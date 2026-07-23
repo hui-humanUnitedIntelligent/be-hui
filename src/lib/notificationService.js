@@ -24,6 +24,7 @@ export async function createNotification({
   entityId  = null,  // z.B. chat_id, booking_id, work_id
   entityType = null, // "chat" | "booking" | "work" | "experience"
   actionUrl  = null,
+  metadata   = null,
 }) {
   if (!recipientId || !type) {
     console.warn("[HUI_NOTIF] createNotification: fehlende Pflichtfelder", { recipientId, type });
@@ -44,7 +45,9 @@ export async function createNotification({
         entity_id:   entityId   || null,
         entity_type: entityType || null,
         action_url:  actionUrl  || null,
+        metadata:    metadata   || null,
         read:        false,
+        is_read:     false,
         created_at:  new Date().toISOString(),
       })
       .select("id")
@@ -145,5 +148,144 @@ export async function notifyWatcher({ watcherId, profileId, watcherName }) {
     body:        "Deine Präsenz zieht Aufmerksamkeit an.",
     entityId:    watcherId,
     entityType:  "profile",
+  });
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// RESONANZZENTRUM-HARMONISIERUNG: Momente + alle Content-Arten
+// ────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Notification: Moment gemeldet (1 Meldung) → an Initiator
+ */
+export async function notifyMomentReported({ momentOwnerId, momentId, momentPreview, reportCount = 1 }) {
+  return createNotification({
+    recipientId: momentOwnerId,
+    senderId:    null,
+    type:        "moment_reported",
+    title:       "Dein Moment wurde gemeldet",
+    body:        `Dein Moment wird geprüft. Meldungsanzahl: ${reportCount}.`,
+    entityId:    momentId,
+    entityType:  "moment",
+    metadata:    { moment_preview: momentPreview?.substring(0, 100) ?? null, report_count: reportCount },
+  });
+}
+
+/**
+ * Notification: Moment durch 5+ Meldungen entfernt → an Initiator
+ */
+export async function notifyMomentRemovedByReports({ momentOwnerId, momentId, momentPreview }) {
+  return createNotification({
+    recipientId: momentOwnerId,
+    senderId:    null,
+    type:        "moment_reported_removed",
+    title:       "Dein Moment wurde entfernt",
+    body:        "Dein Moment wurde von 5 verschiedenen Nutzern gemeldet und automatisch aus Entdecken entfernt.",
+    entityId:    momentId,
+    entityType:  "moment",
+    metadata:    { moment_preview: momentPreview?.substring(0, 100) ?? null, reason: "5 Meldungen durch verschiedene Nutzer" },
+  });
+}
+
+/**
+ * Notification: Moment durch Admin entfernt → an Initiator
+ */
+export async function notifyMomentRemovedByAdmin({ momentOwnerId, momentId, momentPreview, reason }) {
+  return createNotification({
+    recipientId: momentOwnerId,
+    senderId:    null,
+    type:        "moment_removed",
+    title:       "🗑️ Dein Moment wurde entfernt",
+    body:        momentPreview ? `„${momentPreview.substring(0,60)}" wurde entfernt. Begründung: ${reason || "Verstoß gegen Community-Richtlinien"}` : (reason || "Dein Moment wurde vom Admin entfernt."),
+    entityId:    momentId,
+    entityType:  "moment",
+    metadata:    { reason: reason || "Verstoß gegen Community-Richtlinien", moment_preview: momentPreview?.substring(0, 100) ?? null },
+  });
+}
+
+/**
+ * Notification: Talent freigegeben
+ */
+export async function notifyTalentApproved({ userId, talentId, talentTitle, adminNote }) {
+  return createNotification({
+    recipientId: userId,
+    senderId:    null,
+    type:        "talent_approved",
+    title:       "✅ Dein Talent-Angebot wurde freigegeben!",
+    body:        `„${talentTitle || "Dein Talent"}" ist jetzt öffentlich sichtbar.`,
+    entityId:    talentId,
+    entityType:  "talent",
+    metadata:    { entry_title: talentTitle, message: adminNote || "Herzlichen Glückwunsch!" },
+  });
+}
+
+/**
+ * Notification: Talent abgelehnt
+ */
+export async function notifyTalentRejected({ userId, talentId, talentTitle, reason }) {
+  return createNotification({
+    recipientId: userId,
+    senderId:    null,
+    type:        "talent_rejected",
+    title:       "❌ Dein Talent-Angebot wurde abgelehnt",
+    body:        `„${talentTitle || "Dein Talent"}" wurde abgelehnt.`,
+    entityId:    talentId,
+    entityType:  "talent",
+    metadata:    { entry_title: talentTitle, rejection_reason: reason || "(Kein Grund angegeben)" },
+  });
+}
+
+/**
+ * Notification: Projekt freigegeben
+ */
+export async function notifyProjectApproved({ userId, projectId, projectName, adminNote }) {
+  return createNotification({
+    recipientId: userId,
+    senderId:    null,
+    type:        "project_approved",
+    title:       "✅ Dein Projekt wurde freigegeben!",
+    body:        `„${projectName || "Dein Projekt"}" ist jetzt sichtbar.`,
+    entityId:    projectId,
+    entityType:  "project",
+    metadata:    { project_name: projectName, message: adminNote || "Herzlichen Glückwunsch!" },
+  });
+}
+
+/**
+ * Notification: Projekt abgelehnt
+ */
+export async function notifyProjectRejected({ userId, projectId, projectName, reason }) {
+  return createNotification({
+    recipientId: userId,
+    senderId:    null,
+    type:        "project_rejected",
+    title:       "❌ Dein Projekt wurde abgelehnt",
+    body:        `„${projectName || "Dein Projekt"}" wurde abgelehnt.`,
+    entityId:    projectId,
+    entityType:  "project",
+    metadata:    { project_name: projectName, rejection_reason: reason || "(Kein Grund angegeben)" },
+  });
+}
+
+/**
+ * Notification: Content aktualisiert (Moment / Talent / Erlebnis / Projekt)
+ */
+export async function notifyContentUpdated({ userId, entityId, entityType, entityTitle, message }) {
+  const typeConfig = {
+    moment:     { type: "moment_updated",     emoji: "✏️", label: "Moment" },
+    talent:     { type: "talent_updated",     emoji: "⭐", label: "Talent-Angebot" },
+    experience: { type: "experience_updated", emoji: "🌿", label: "Erlebnis" },
+    project:    { type: "project_updated",    emoji: "📌", label: "Projekt" },
+  };
+  const cfg = typeConfig[entityType] || { type: "content_updated", emoji: "✏️", label: "Inhalt" };
+  return createNotification({
+    recipientId: userId,
+    senderId:    null,
+    type:        cfg.type,
+    title:       `${cfg.emoji} Dein ${cfg.label} wurde aktualisiert`,
+    body:        message || `„${entityTitle || "Dein Inhalt"}" wurde aktualisiert.`,
+    entityId,
+    entityType,
+    metadata:    { entry_title: entityTitle, message },
   });
 }
