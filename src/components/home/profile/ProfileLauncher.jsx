@@ -234,14 +234,14 @@ export default function ProfileLauncher() {
   const { resolved, isTalent, role } = useProfileType(selectedProfileId);
 
   // ── ÖFFENTLICHES PROFIL (fremder User) ───────────────────────
+  // INSTANT-OPEN: Sofort rendern ohne auf DB-Query zu warten.
+  // useProfileType lädt Typ (Talent/Basis) im Hintergrund nach.
+  // BasisProfilePage wird zuerst gezeigt — bei Talent-Ergebnis
+  // wechselt ProfileComponent, was einen nahtlosen Re-Render auslöst.
   if (selectedProfileId) {
-
-    // Solange DB-Query läuft → Spinner zeigen, NICHT schon rendern
-    if (!resolved) {
-      return <Spinner />;
-    }
-
-    const ProfileComponent = isTalent ? TalentProfilePage : BasisProfilePage;
+    // Typ-Routing: Solange unresolved → BasisProfilePage (sicherer Fallback)
+    // Nach resolved: korrekte Komponente. Kein Blocking, kein Spinner.
+    const ProfileComponent = (resolved && isTalent) ? TalentProfilePage : BasisProfilePage;
 
     return (
       <ProfileErrorBoundary profileId={selectedProfileId} onClose={closeProfileById}>
