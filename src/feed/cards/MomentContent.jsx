@@ -3,8 +3,7 @@
 // Identisches Layout zu WorkContent / ExperienceContent / TalentContent
 import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
-import { HUIReportIcon } from "../../design/icons/HuiInteractionIcons.jsx";
-import BaseFeedCard from "./BaseFeedCard.jsx";
+import BaseFeedCard, { ActionBtn } from "./BaseFeedCard.jsx";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
 
 // ── Farben (identisch zu WorkContent / ExperienceContent) ────
@@ -105,47 +104,54 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
     }
   }, [reported, reporting, item]);
 
-  // ── Melden-Button (nur für Momente) ────────────────────────
+  // ── Melden-Icon: identisch zu den anderen ActionBtns ─────────
+  // SVG: Zeigefinger (pointing up) — klar erkennbar als "melden/antippen"
+  // Stroke-Stil: identisch zu HUIHeartIcon/HUIChatIcon/etc. (2px, round, currentColor)
+  function FingerIcon({ size = 24 }) {
+    return (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+        aria-label="Melden"
+      >
+        {/* Zeigefinger nach oben: typisches "tap/report"-Symbol */}
+        <path d="M9 11V6a2 2 0 1 1 4 0v5" />
+        <path d="M13 11V9a2 2 0 1 1 4 0v3" />
+        <path d="M17 12a2 2 0 1 1 4 0v3a7 7 0 0 1-14 0v-4a2 2 0 1 1 4 0v2" />
+        <path d="M9 11a2 2 0 1 0-4 0v3" />
+      </svg>
+    );
+  }
+
+  // reportButton als ActionBtn — identischer Look zu Heart/Chat/Share/Bookmark
+  const CORAL = "#C47A65";
   const reportButton = (
-    <button
-      onClick={handleReport}
-      disabled={reported || reporting}
-      title={reported ? "Bereits gemeldet" : "Diesen Moment melden"}
-      style={{
-        display:        "flex",
-        alignItems:     "center",
-        justifyContent: "center",
-        width:          44,
-        height:         44,
-        borderRadius:   12,
-        border:         "none",
-        background:     "transparent",
-        cursor:         reported ? "default" : "pointer",
-        color:          reported ? "#E8D0C8" : "#C47A65",
-        opacity:        reported ? 0.5 : 1,
-        transition:     "color 0.2s, opacity 0.2s, transform 0.15s",
-        WebkitTapHighlightColor: "transparent",
-        position: "relative",
-      }}
-    >
-      <HUIReportIcon size={22} active={reported} />
-      {/* "Gemeldet"-Feedback-Label */}
+    <div style={{ position: "relative" }}>
+      <ActionBtn
+        Icon={FingerIcon}
+        active={reported}
+        activeColor={CORAL}
+        inactiveColor={CORAL}
+        variant="melden"
+        disabled={reported || reporting}
+        onClick={handleReport}
+      />
       {reportDone && (
         <span style={{
-          position:  "absolute",
-          bottom:    -18,
-          left:      "50%",
-          transform: "translateX(-50%)",
-          fontSize:  9,
-          fontWeight: 600,
-          color:     "#C47A65",
+          position:   "absolute",
+          bottom:     -16,
+          left:       "50%",
+          transform:  "translateX(-50%)",
+          fontSize:   9,
+          fontWeight: 700,
+          color:      CORAL,
           whiteSpace: "nowrap",
           pointerEvents: "none",
+          letterSpacing: "0.2px",
         }}>
           Gemeldet
         </span>
       )}
-    </button>
+    </div>
   );
 
   return (
