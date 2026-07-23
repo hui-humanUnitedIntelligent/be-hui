@@ -13,6 +13,24 @@ const TEAL_BORD  = "rgba(13,196,181,0.22)";
 const INK        = "#1A1A2E";
 const INK3       = "rgba(26,26,46,0.42)";
 
+// ── Melden-Icon (top-level — stabile Referenz für ActionBtn) ─────────────
+// Finger-Icon: "Ich melde das" — Stroke 2px/round wie alle anderen Feed-Icons
+const CORAL = "#C47A65";
+function FingerIcon({ size = 24 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+      aria-label="Melden"
+    >
+      {/* Zeigefinger zeigt nach oben — klassisches "Ich melde das"-Symbol */}
+      <path d="M9 11V6a2 2 0 1 1 4 0v5" />
+      <path d="M13 11V9a2 2 0 1 1 4 0v3" />
+      <path d="M17 12a2 2 0 1 1 4 0v3a7 7 0 0 1-14 0v-4a2 2 0 1 1 4 0v2" />
+      <path d="M9 11a2 2 0 1 0-4 0v3" />
+    </svg>
+  );
+}
+
 // ── Badge-Mapping: type × moment_source → Label + Farbe ──────
 function getMomentBadge(raw) {
   const type   = (raw?.type         || "").toLowerCase();
@@ -104,26 +122,8 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
     }
   }, [reported, reporting, item]);
 
-  // ── Melden-Icon: identisch zu den anderen ActionBtns ─────────
-  // SVG: Zeigefinger (pointing up) — klar erkennbar als "melden/antippen"
-  // Stroke-Stil: identisch zu HUIHeartIcon/HUIChatIcon/etc. (2px, round, currentColor)
-  function FingerIcon({ size = 24 }) {
-    return (
-      <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-        aria-label="Melden"
-      >
-        {/* Zeigefinger nach oben: typisches "tap/report"-Symbol */}
-        <path d="M9 11V6a2 2 0 1 1 4 0v5" />
-        <path d="M13 11V9a2 2 0 1 1 4 0v3" />
-        <path d="M17 12a2 2 0 1 1 4 0v3a7 7 0 0 1-14 0v-4a2 2 0 1 1 4 0v2" />
-        <path d="M9 11a2 2 0 1 0-4 0v3" />
-      </svg>
-    );
-  }
-
   // reportButton als ActionBtn — identischer Look zu Heart/Chat/Share/Bookmark
-  const CORAL = "#C47A65";
+  // FingerIcon + CORAL sind top-level (stabile Referenz — verhindert Remount-Bug)
   const reportButton = (
     <div style={{ position: "relative" }}>
       <ActionBtn
