@@ -1,32 +1,35 @@
 import { HUIImpactIcon } from './design/icons/HuiSystemIcons.jsx';
-import React, { useState, useEffect, lazy, Suspense } from 'react'
-import { sentryCapture, Sentry } from './lib/sentry'
-import { RouteBoundary, OverlayBoundary } from './lib/ErrorBoundaries'
-import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams, useLocation } from 'react-router-dom'
-import { AuthProvider, useAuth } from './lib/AuthContext'
-import { AppStateProvider } from './lib/AppStateContext'
-import { WorldSurfaceProvider } from './context/WorldSurfaceContext.jsx'
-import { OrbWorldProvider } from './context/OrbWorldContext.jsx'
-import { GuidanceProvider } from './components/guidance/GuidanceContext.jsx'
-import { RadiusProvider } from './context/RadiusContext.jsx' // Umkreissuche 2026-07-06 -- globaler Radius-Zustand (Single Source of Truth)
-import { SavedPostsProvider } from './context/SavedPostsContext.jsx' // Merken 2026-07-08 -- globaler saved_posts-Zustand (Single Source of Truth)
-import { LiveTickerProvider } from './context/LiveTickerContext.jsx' // LIVETICKER.1 2026-07-08 -- eine geteilte Datenquelle statt Doppel-Polling in Home+Entdecken-Tab
-import { ContentPreviewProvider } from './context/ContentPreviewContext.jsx' // OPEN.1 2026-07-08 -- eine geteilte Vorschau fuer jede Karte app-weit
-import { useContentPreview } from './context/ContentPreviewContext.jsx' // DEEPLINK.1 2026-07-09
-import { WorkService } from './services/db.js'
-import { HUI } from './design/hui.design.js'
+import React, { useState, useEffect, lazy, Suspense } from 'react';
+import { sentryCapture, Sentry } from './lib/sentry';
+import { RouteBoundary, OverlayBoundary } from './lib/ErrorBoundaries';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams, useLocation } from 'react-router-dom';
+import { AuthProvider, useAuth } from './lib/AuthContext';
+import { AppStateProvider } from './lib/AppStateContext';
+import { WorldSurfaceProvider } from './context/WorldSurfaceContext.jsx';
+import { OrbWorldProvider } from './context/OrbWorldContext.jsx';
+import { GuidanceProvider } from './components/guidance/GuidanceContext.jsx';
+import { RadiusProvider } from './context/RadiusContext.jsx';
+import { SavedPostsProvider } from './context/SavedPostsContext.jsx';
+import { LiveTickerProvider } from './context/LiveTickerContext.jsx';
+import { ContentPreviewProvider } from './context/ContentPreviewContext.jsx';
+import { useContentPreview } from './context/ContentPreviewContext.jsx';
+import { WorkService } from './services/db.js';
+import { HUI } from './design/hui.design.js';
 
-// ── EAGER: Auth-kritische Seiten (immer sofort gebraucht) ───────
-import LoginPage    from './pages/LoginPage'
-import { AuthGateProvider } from './components/auth/AuthGate.jsx'
-import { ToastContainer } from './lib/useToast.jsx'
-import ProfileCompletionFlow from './components/auth/ProfileCompletionFlow.jsx'
-import AuthCallback from './pages/AuthCallback'
+// ── EAGER: Auth-kritische Seiten ───────
+import LoginPage from './pages/LoginPage';
+import { AuthGateProvider } from './components/auth/AuthGate.jsx';
+import { ToastContainer } from './lib/useToast.jsx';
+import ProfileCompletionFlow from './components/auth/ProfileCompletionFlow.jsx';
+import AuthCallback from './pages/AuthCallback';
 
-// WelcomeOverlay wird von AppEntryController eingebunden (Kapitel 1)
-import AppEntryController from './components/entry/AppEntryController.jsx'; // Kapitel 1
-import { supabase } from './lib/supabaseClient'
-import { detectReferral } from './lib/referralTracking.js'
+// WelcomeOverlay wird von AppEntryController eingebunden
+import AppEntryController from './components/entry/AppEntryController.jsx';
+import { supabase } from './lib/supabaseClient';
+import { detectReferral } from './lib/referralTracking.js';
+
+// ── SplashScreen (NEU) ───────
+import SplashScreen from './pages/SplashScreen.jsx';
 
 // ── LAZY: Alle anderen Routes ───────────────────────────────────
 // Erzeugen separate Chunks → schnellerer Initial-Load
@@ -664,12 +667,12 @@ function AppRoutes() {
     <HuiSuspense>
       <ScrollToTop />
       <Routes>
+        {/* Splash Screen */}
+        <Route path="/" element={<SplashScreen />} />
+
         {/* Auth — EAGER (kein lazy) */}
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/login" element={<LoginPage />} />
-
-        {/* Root redirect */}
-        <Route path="/" element={<Navigate to="/Home" replace />} />
 
         {/* Main App — LAZY */}
         <Route path="/Home" element={
