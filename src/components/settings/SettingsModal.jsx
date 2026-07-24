@@ -8,6 +8,7 @@ import { createPortal } from "react-dom";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { supabase } from "../../lib/supabaseClient.js";
 import { HUILogoWordmark } from '../brand/HUILogo.jsx';
+import SupportPage from '../../pages/studio/SupportPage.jsx';
 import APP_VERSION from '../../version.ts';
 
 // ── Design Tokens ─────────────────────────────────────────────
@@ -361,7 +362,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
   const { profile: authCtxProfile } = useAuth() || {};
   const profile = profileProp || authCtxProfile || null;
   if (!profile) return null;
-  const [view, setView] = useState("main"); // "main" | "edit" | "privacy" | "contact" | "security"
+  const [view, setView] = useState("main"); // "main" | "edit" | "privacy" | "contact" | "security" | "support"
 
   const logout = async () => {
     await supabase.auth.signOut();
@@ -432,6 +433,8 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
                 onClick={() => { onClose?.(); onEditProfile?.(); }}/>
               <NavItem icon={<HUISicherheitIcon size={16}/>} label="Sicherheit & Passwort"
                 onClick={() => setView("security")}/>
+              <NavItem icon={<HUIKontaktIcon size={16}/>} label="Support & Hilfe"
+                onClick={() => setView("support")}/>
               <NavItem icon={<HUIAbmeldenIcon size={16}/>} label="Abmelden"
                 onClick={logout} danger last/>
             </Section>
@@ -506,6 +509,15 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
           </>)}
 
           {/* ══ SICHERHEIT ═════════════════════════════════════ */}
+          {view === "support" && (
+            <SupportPage
+              onBack={() => setView("main")}
+              userId={profile?.id}
+              userEmail={profile?.email}
+              userName={profile?.display_name || profile?.full_name || ""}
+            />
+          )}
+
           {view === "security" && (<>
             <Section title="Passwort ändern" icon={<HUISicherheitIcon size={16}/>}>
               <PasswordBlock/>
