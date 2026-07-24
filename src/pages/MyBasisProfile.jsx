@@ -2108,9 +2108,9 @@ function MeinBereichTile({ icon, label, onPress }) {
       <span style={{
         fontSize:11, fontWeight:600, color:"rgba(26,26,24,0.75)",
         textAlign:"center", lineHeight:1.3, maxWidth:72,
-        wordBreak:"keep-all", overflowWrap:"break-word", hyphens:"none",
+        wordBreak:"normal", overflowWrap:"anywhere", hyphens:"auto",
         whiteSpace:"normal",
-      }}>{label}</span>
+      }} lang="de">{label}</span>
     </button>
   );
 }
@@ -2168,7 +2168,7 @@ function MeinBereichMenu({
           )}
           <MeinBereichTile icon={<HUIFotoIcon size={22}/>} label="Meine Momente" onPress={() => setActiveDrawer("momente")} />
           <MeinBereichTile icon={<HUIImpactIcon size={22}/>} label="Impact & Stimmen" onPress={() => setActiveDrawer("impact")} />
-          <MeinBereichTile icon={<HUIFinanzIcon size={22}/>} label="Finanzen" onPress={() => setActiveDrawer("finanzen")} />
+          <MeinBereichTile icon={<HUIFinanzIcon size={22}/>} label="Meine Finanzen" onPress={() => setActiveDrawer("finanzen")} />
           <MeinBereichTile icon={<HUIResonanzIcon size={22}/>} label="Meine Resonanz" onPress={onOpenResonanz} />
           <MeinBereichTile icon={<HUIEmpfehlungIcon size={22}/>} label="Empfehlungen" onPress={() => setActiveDrawer("empfehlungen")} />
         </div>
