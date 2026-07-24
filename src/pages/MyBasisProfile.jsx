@@ -34,7 +34,6 @@ import { TalentSection }         from "../components/profile/sections/TalentSect
 import { MomentsSection }        from "../components/profile/sections/MomentsSection.jsx";
 import { RecommendationsSection } from "../components/profile/sections/RecommendationsSection.jsx";
 import { AvailabilitySection }   from "../components/profile/sections/AvailabilitySection.jsx";
-import { LocationSection }       from "../components/profile/sections/LocationSection.jsx";
 import { VisibilitySection }     from "../components/profile/sections/VisibilitySection.jsx";
 const WerkWizard      = React.lazy(() => import("../components/works/WerkWizard.jsx"));
 const TalentAngebotWizard = React.lazy(() => import("../components/talents/TalentAngebotWizard.jsx"));
@@ -1052,12 +1051,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
             />
             <Gap h={16}/>
 
-            {/* T6b. Standort — kanonisch: LocationSection */}
-            <LocationSection
-              profile={profile}
-              isOwner={true}
-              onSave={handleLocationSave}
-            />
             <Gap h={24}/>
 
             {/* T7. Sichtbarkeit — kanonisch: VisibilitySection */}
