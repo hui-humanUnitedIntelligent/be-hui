@@ -9,6 +9,7 @@ import { useAuth } from "../../lib/AuthContext.jsx";
 import { supabase } from "../../lib/supabaseClient.js";
 import { HUILogoWordmark } from '../brand/HUILogo.jsx';
 import SupportPage from '../../pages/studio/SupportPage.jsx';
+import MeineTicketsPage from '../../pages/studio/MeineTicketsPage.jsx';
 import APP_VERSION from '../../version.ts';
 
 // ── Design Tokens ─────────────────────────────────────────────
@@ -362,7 +363,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
   const { profile: authCtxProfile } = useAuth() || {};
   const profile = profileProp || authCtxProfile || null;
   if (!profile) return null;
-  const [view, setView] = useState("main"); // "main" | "edit" | "privacy" | "contact" | "security" | "support"
+  const [view, setView] = useState("main"); // "main" | "edit" | "privacy" | "contact" | "security" | "support" | "tickets"
 
   const logout = async () => {
     await supabase.auth.signOut();
@@ -439,6 +440,8 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
                 onClick={() => setView("security")}/>
               <NavItem icon={<HUIKontaktIcon size={16}/>} label="Support & Hilfe"
                 onClick={() => setView("support")}/>
+              <NavItem icon={<HUIMailIcon size={16}/>} label="Meine Tickets"
+                onClick={() => setView("tickets")}/>
               <NavItem icon={<HUIAbmeldenIcon size={16}/>} label="Abmelden"
                 onClick={logout} danger last/>
             </Section>
@@ -513,6 +516,20 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
           </>)}
 
           {/* ══ SICHERHEIT ═════════════════════════════════════ */}
+          {view === "tickets" && (
+            <div style={{
+              flex: 1,
+              overflowY: "auto",
+              paddingBottom: "env(safe-area-inset-bottom, 16px)",
+            }}>
+              <MeineTicketsPage
+                onBack={() => setView("main")}
+                userId={profile?.id}
+                profile={profile}
+              />
+            </div>
+          )}
+
           {view === "support" && (
             <div style={{
               flex: 1,
