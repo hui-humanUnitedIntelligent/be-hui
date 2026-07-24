@@ -378,13 +378,17 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
   const sheet = {
     background:T.bg, borderRadius:"20px 20px 0 0",
     width:"100%", maxWidth:560,
-    maxHeight:"calc(92dvh - 64px)", overflowY:"auto",
+    maxHeight:"calc(92dvh - 64px)",
+    overflowY: view === "support" ? "hidden" : "auto",
     boxShadow:"0 -8px 40px rgba(0,0,0,0.18)",
-    paddingBottom:"env(safe-area-inset-bottom, 16px)",
+    paddingBottom: view === "support" ? 0 : "env(safe-area-inset-bottom, 16px)",
+    display: view === "support" ? "flex" : undefined,
+    flexDirection: view === "support" ? "column" : undefined,
   };
   const header = {
     display:"flex", alignItems:"center", justifyContent:"space-between",
-    padding:"18px 18px 13px", position:"sticky", top:0,
+    padding:"18px 18px 13px",
+    position: view === "support" ? "relative" : "sticky", top:0,
     background:T.bg, borderBottom:"1px solid "+T.border,
     borderRadius:"20px 20px 0 0", zIndex:1,
   };
@@ -510,12 +514,18 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
 
           {/* ══ SICHERHEIT ═════════════════════════════════════ */}
           {view === "support" && (
-            <SupportPage
-              onBack={() => setView("main")}
-              userId={profile?.id}
-              userEmail={profile?.email}
-              userName={profile?.display_name || profile?.full_name || ""}
-            />
+            <div style={{
+              flex: 1,
+              overflowY: "auto",
+              paddingBottom: "env(safe-area-inset-bottom, 16px)",
+            }}>
+              <SupportPage
+                onBack={() => setView("main")}
+                userId={profile?.id}
+                userEmail={profile?.email}
+                userName={profile?.display_name || profile?.full_name || ""}
+              />
+            </div>
           )}
 
           {view === "security" && (<>
