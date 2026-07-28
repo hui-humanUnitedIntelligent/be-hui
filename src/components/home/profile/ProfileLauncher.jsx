@@ -127,10 +127,15 @@ function lazyWithRetry(importFn) {
   );
 }
 
-// ── Lazy Page Imports ────────────────────────────────────────────
+// ── Page Imports ────────────────────────────────────────────────
 const BasisProfilePage   = lazyWithRetry(() => import("../../../pages/BasisProfilePage.jsx"));
 const TalentProfilePage  = lazyWithRetry(() => import("../../../pages/TalentProfilePage.jsx"));
 const MyBasisProfile     = lazyWithRetry(() => import("../../../pages/MyBasisProfile.jsx"));
+
+// Chunk sofort beim Modullade-Zeitpunkt pre-importieren (Top-Level)
+// → React cached lazy()-Module intern → beim ersten Tap: kein Suspense-Delay
+import("../../../pages/BasisProfilePage.jsx").catch(() => {});
+import("../../../pages/TalentProfilePage.jsx").catch(() => {});
 
 
 
