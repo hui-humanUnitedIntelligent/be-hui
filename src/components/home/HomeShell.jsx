@@ -27,7 +27,6 @@ import { WORLD_CSS } from "../../lib/intelligence/worldPolish.js";
 import { useOrbWorld } from "../../context/OrbWorldContext.jsx";
 import { assertValidTab } from "../../lib/world/orbLayer.js";
 import { FlowCtx, createFlowStore } from "../../core/hui.flow.js";
-import HuiConnectionEngine from "../../core/HuiConnectionEngine.jsx";
 import HuiContextBridge from "../../core/HuiContextBridge.jsx";
 
 /* ── Context ──────────────────────────────────────────────────── */
