@@ -1,3 +1,4 @@
+import React from "react";
 import { HUIChatIcon } from '../design/icons/HuiInteractionIcons.jsx';
 import { HUIImpactIcon, HUISettingsIcon, HUISicherheitIcon } from '../design/icons/HuiSystemIcons.jsx';
 // src/pages/BasisProfilePage.jsx — HUI BasisUser Public Profile v2
