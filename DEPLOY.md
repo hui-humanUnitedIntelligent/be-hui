@@ -1,5 +1,10 @@
 # HUI Commerce — Go-Live Checkliste
 
+> ⚠️ **SICHERHEITSHINWEIS:** Diese Datei enthält KEINE echten API-Keys oder Secrets.
+> Echte Werte werden ausschließlich über `.env.local` (lokal) oder Deployment-Umgebungsvariablen gesetzt.
+> Keys NIEMALS in diese Datei eintragen — sie ist im Git-Repository öffentlich.
+
+
 **Supabase Projekt:** `gxztrhvhcxhmunhhkfjd`
 **URL:** `https://gxztrhvhcxhmunhhkfjd.supabase.co`
 **Dashboard:** https://supabase.com/dashboard/project/gxztrhvhcxhmunhhkfjd
@@ -145,7 +150,7 @@ curl -s https://gxztrhvhcxhmunhhkfjd.supabase.co/functions/v1/create-payment-int
 **Pflicht-Vars:**
 ```
 VITE_SUPABASE_URL=https://gxztrhvhcxhmunhhkfjd.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd4enRyaHZoY3hobXVuaGhrZmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4ODI2NDIsImV4cCI6MjA5MzQ1ODY0Mn0.cq8E_NQkmeTZPIe0G0SSqEzzg6yJhyce5xpW2iwVIbk
+VITE_SUPABASE_ANON_KEY=DEIN_SUPABASE_ANON_KEY
 VITE_STRIPE_PUBLIC_KEY=pk_test_51TlUr7QygHtJtH5i...
 ```
 

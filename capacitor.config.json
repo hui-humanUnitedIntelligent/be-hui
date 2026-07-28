@@ -1,12 +1,11 @@
 {
 	"appId": "com.hui.app",
 	"appName": "HUI",
-	"webDir": "www",
-	"bundledWebRuntime": false,
+	"webDir": "dist",
 	"server": {
 		"androidScheme": "https",
 		"cleartext": false,
-		"iosScheme": "ionic"
+		"iosScheme": "https"
 	},
 	"android": {
 		"allowMixedContent": false,
