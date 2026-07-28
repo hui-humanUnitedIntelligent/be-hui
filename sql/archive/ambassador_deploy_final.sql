@@ -76,8 +76,6 @@ END;
 $$;
 GRANT EXECUTE ON FUNCTION rpc_get_all_ambassadors() TO authenticated;
 
--- 4. Mozart referral sicherstellen
-UPDATE profiles
-SET referred_by = '<REDACTED_USER_ID>'
-WHERE username = 'mozart'
-  AND (referred_by IS NULL OR referred_by != '<REDACTED_USER_ID>');
+-- 4. [ENTFERNT: 2026-07-28]
+-- Manuelles referred_by-Update war ein Test-Datensatz und ist obsolet.
+-- referred_by_ambassador_id wird jetzt via rpc_register_via_ambassador gesetzt.
