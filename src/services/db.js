@@ -12,7 +12,7 @@
 // ══════════════════════════════════════════════════════════════
 
 import { supabase } from '../lib/supabaseClient';
-import { safeQuery, cachedQuery, clearQueryCache, FIELDS, PAGE_SIZE, buildPage } from '../lib/perfUtils';
+import { safeQuery, cachedQuery, clearQueryCache, warmQueryCache, FIELDS, PAGE_SIZE, buildPage } from '../lib/perfUtils';
 
 // ─── FIELDS (vollständig, kein select *) ─────────────────────
 // ─── IDENTITY CONTRACT v1.0 ─────────────────────────────
@@ -54,6 +54,15 @@ const F = {
 
 // ─── PROFILES ────────────────────────────────────────────────
 export const ProfileService = {
+  // Prewarm: Feed-geladene Profile in Cache schreiben
+  // Aufruf aus DiscoverPage wenn Profil-Karten gerendert werden
+  prewarm(profiles = []) {
+    for (const p of profiles) {
+      if (!p?.id) continue;
+      warmQueryCache(`profile:${p.id}`, p, 60_000);
+    }
+  },
+
   async getById(id) {
     return cachedQuery(`profile:${id}`,
       () => safeQuery(supabase.from('profiles').select(F.profile).eq('id', id).maybeSingle()),

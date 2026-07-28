@@ -30,7 +30,8 @@ import { HUIHeartIcon, HUIChatIcon } from "../design/icons/HuiInteractionIcons.j
 import HuiLiveTicker from "../components/shared/HuiLiveTicker.jsx"; // LIVETICKER.1 2026-07-08 -- ersetzt LiveActivityBar (war Fake-Daten)
 import { useContentPreview } from "../context/ContentPreviewContext.jsx";
 import { normalizeTalentForPreview } from "../lib/previewNormalizers.js";
-import { useProfileLauncher } from "../components/home/profile/ProfileLauncher.jsx"; // Autor-Klick → Profil öffnen // OPEN.1 2026-07-08 -- geteilte Vorschau statt totem Tap / falschem Sprung
+import { useProfileLauncher } from "../components/home/profile/ProfileLauncher.jsx";
+import { ProfileService } from "../services/db.js"; // Autor-Klick → Profil öffnen // OPEN.1 2026-07-08 -- geteilte Vorschau statt totem Tap / falschem Sprung
 import { normalizePostForPreview, normalizeProjectForPreview, normalizeWirkerForPreview } from "../lib/previewNormalizers.js";
 
 // ── Design Tokens ────────────────────────────────────────────────
@@ -1812,6 +1813,8 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
           .limit(getOptimalPageSize(12));
 
         if (!cancelled && profiles?.length > 0) {
+          // Feed-Profile in Cache schreiben → Profil-Tap ist instant (kein DB-Request mehr)
+          ProfileService.prewarm(profiles);
           setPeople(profiles.map(p => ({
             id:           p.id,
             name:         safeStr(p.display_name || p.username) || null,

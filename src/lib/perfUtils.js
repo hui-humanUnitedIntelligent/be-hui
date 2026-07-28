@@ -94,6 +94,12 @@ export async function cachedQuery(key, fn, ttl = 30_000) {
   return result;
 }
 
+// Manuell einen Cache-Eintrag setzen (für Prewarming aus Feed-Daten)
+export function warmQueryCache(key, data, ttl = 30_000) {
+  _queryCache.set(key, { data: { data, error: null }, ts: Date.now() - (ttl - 55_000) });
+  // ts so setzen dass TTL noch ~55s übrig bleibt (verhindert sofortigen Ablauf)
+}
+
 export function clearQueryCache(keyPrefix) {
   if (!keyPrefix) { _queryCache.clear(); return; }
   for (const k of _queryCache.keys()) {

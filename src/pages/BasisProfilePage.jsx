@@ -384,7 +384,7 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
 
   const isOwner = !publicView && (!!user?.id && (resolvedId === user.id));
 
-  useEffect(()=>{ const t=setTimeout(()=>setMounted(true),30); return()=>clearTimeout(t); },[]);
+  useEffect(()=>{ const t=setTimeout(()=>setMounted(true),8); return()=>clearTimeout(t); },[]);
 
   // Lazy-Content laden sobald Phase 1 (Profil) fertig ist
   useEffect(() => {
@@ -482,8 +482,8 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
       zIndex:9500, /* <BottomNav(10000) — Root endet vor Navbar */
       display:"flex", flexDirection:"column",
       opacity:mounted?1:0,
-      transform:mounted?"none":"translateY(14px)",
-      transition:"opacity .35s ease, transform .35s cubic-bezier(.22,1,.36,1)",
+      transform:mounted?"none":"translateY(6px)",
+      transition:"opacity .18s ease, transform .18s cubic-bezier(.22,1,.36,1)",
     }}>
       <style>{CSS}</style>
 
