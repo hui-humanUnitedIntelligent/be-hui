@@ -242,7 +242,7 @@ function HomeInner() {
   // Stripe Redirect wird in UnterstutzenFlow behandelt (P1)
 
     // Preload BasisProfilePage-Chunk beim Home-Mount (liegt dann im Cache beim Profil-Tap)
-  useEffect(() => { import("./BasisProfilePage.jsx").catch(() => {}); }, []);
+  useEffect(() => { import("./BasisProfilePage.jsx").catch(() => {}); import("../components/profile/OrbSignatur.jsx").catch(() => {}); }, []);
 
   useEffect(() => {
     const pending = location?.state?.pendingWerkKauf;

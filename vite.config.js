@@ -26,8 +26,15 @@ export default defineConfig({
       },
     },
 
-    // Große Assets splitten → schnelleres Laden
-    modulePreload: false,  // Verhindert automatisches Preloading von lazy-Chunks (TDZ-Fix)
+    // modulePreload aktiviert: Vite injiziert <link rel="modulepreload"> für lazy chunks
+    // → Browser lädt BasisProfilePage + OrbSignatur im Hintergrund parallel zum Main-Bundle
+    // Stripe bleibt separater Chunk (TDZ-sicher) und wird NICHT preloaded
+    modulePreload: {
+      resolveDependencies: (filename, deps) => {
+        // Stripe-Chunk NICHT preloaden (TDZ-Bug), alles andere schon
+        return deps.filter(dep => !dep.includes('stripe'));
+      },
+    },
 
     rollupOptions: {
       output: {

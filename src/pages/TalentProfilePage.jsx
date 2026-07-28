@@ -36,7 +36,8 @@ import { AvailabilitySection }    from "../components/profile/sections/Availabil
 import { LocationSection }        from "../components/profile/sections/LocationSection.jsx";
 import { VisibilitySection }      from "../components/profile/sections/VisibilitySection.jsx";
 import { MomentsSection }         from "../components/profile/sections/MomentsSection.jsx";
-import { OrbSignatur }            from "../components/profile/OrbSignatur.jsx";
+// OrbSignatur lazy — verhindert Blockierung (89K-Chunk)
+const OrbSignatur = React.lazy(() => import("../components/profile/OrbSignatur.jsx").then(m => ({ default: m.OrbSignatur })));
 
 // ── Design Tokens (HUI-Standard, identisch zu BasisProfilePage) ─
 const T = {
@@ -1327,7 +1328,11 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
           onEditCover={handleCoverChange}
         />
 
-        {profileId && <OrbSignatur profileId={profileId} />}
+        {profileId && (
+          <React.Suspense fallback={null}>
+            <OrbSignatur profileId={profileId} />
+          </React.Suspense>
+        )}
 
         {/* ── 2. Action Buttons — nur Besucher ─────────────── */}
         {!isOwner && (

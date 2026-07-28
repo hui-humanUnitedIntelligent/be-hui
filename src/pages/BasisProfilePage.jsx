@@ -31,7 +31,8 @@ import { VisibilitySection }      from "../components/profile/sections/Visibilit
 import { MomentsSection }         from "../components/profile/sections/MomentsSection.jsx";
 import { RecommendationsSection } from "../components/profile/sections/RecommendationsSection.jsx";
 import { ProfileHeader as CanonicalProfileHeader } from "../components/profile/ProfileHeader.jsx";
-import { OrbSignatur }                             from "../components/profile/OrbSignatur.jsx";
+// OrbSignatur lazy — verhindert Blockierung des BasisProfilePage-Renders (89K-Chunk)
+const OrbSignatur = React.lazy(() => import("../components/profile/OrbSignatur.jsx").then(m => ({ default: m.OrbSignatur })));
 
 // ── Tokens ───────────────────────────────────────────────────────
 const T = {
@@ -521,7 +522,11 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
           onEditAvatar={handleAvatarChange}
           onEditCover={handleCoverChange}
         />
-        {resolvedId && <OrbSignatur profileId={resolvedId} />}
+        {resolvedId && (
+          <React.Suspense fallback={null}>
+            <OrbSignatur profileId={resolvedId} />
+          </React.Suspense>
+        )}
         <Gap h={16}/>
 
         {/* 3. Über dich — kanonisch (Sprint F.5.3) */}

@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && python3 scripts/inject_preloads.py",
     "preview": "vite preview",
     "sync": "cap sync",
     "android": "cap open android",
