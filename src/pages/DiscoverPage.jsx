@@ -61,7 +61,7 @@ const CSS = `
   .dp-press:active { transform:scale(0.94); opacity:0.80; }
   @keyframes dp-in  { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
   @keyframes dp-shim { from{background-position:-200% 0} to{background-position:200% 0} }
-  .dp-in  { animation:dp-in .45s ease both; }
+  .dp-in  { animation:dp-in .25s ease forwards; pointer-events:auto; }
   .dp-skel {
     background:linear-gradient(90deg,rgba(26,53,48,.05) 25%,rgba(26,53,48,.09) 50%,rgba(26,53,48,.05) 75%);
     background-size:200% 100%;
@@ -418,7 +418,7 @@ function PeopleSection({ people, onPersonPress, loading, delay=0, view='cards', 
             : people.length === 0
             ? <div style={{ paddingLeft:T.px, fontSize:12.5, color:T.inkFaint, fontStyle:'italic', opacity:0.75 }}>Noch keine Mitglieder gefunden.</div>
             : people.map((p, i) => (
-                <PersonCard key={p.id} person={p} onPress={onPersonPress} delay={i*40+delay} />
+                <PersonCard key={p.id} person={p} onPress={onPersonPress} delay={0} />
               ))
           }
         </div>
