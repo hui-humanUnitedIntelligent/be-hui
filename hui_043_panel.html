@@ -252,7 +252,11 @@ async function verifyAfter() {
     if (Array.isArray(data)) {
       renderPolicies(data, 'out-after');
       // Zusatz: dna_tags prüfen
-      const uid = '23301b16-5a1b-4005-82bb-b2f717e2ea71';
+      // AUDIT-FIX-006: Hardcodierte UUID entfernt (2026-07-28)
+      // uid wird aus Supabase Auth-Session geladen
+      const { data: { session } } = await supabase.auth.getSession();
+      const uid = session?.user?.id;
+      if (!uid) { document.body.innerHTML = '<p style="color:red">Nicht eingeloggt</p>'; return; }
       const r2 = await fetch(`${url}/rest/v1/profiles?id=eq.${uid}&select=id,dna_tags,updated_at`, {
         headers: { 'apikey': key, 'Authorization': `Bearer ${key}` }
       });
