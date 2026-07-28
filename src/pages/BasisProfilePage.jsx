@@ -354,11 +354,14 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
     recommendations,
     followCounts,
     loading,
+    loadingLazy,
+    loadLazy,
     reload,
   } = useProfileData(resolvedId);
 
   // Owner-spezifische States
   const [mounted,      setMounted]      = useState(false);
+  const [lazyLoaded,   setLazyLoaded]   = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showStudio,   setShowStudio]   = useState(false);
 
@@ -382,6 +385,14 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
   const isOwner = !publicView && (!!user?.id && (resolvedId === user.id));
 
   useEffect(()=>{ const t=setTimeout(()=>setMounted(true),30); return()=>clearTimeout(t); },[]);
+
+  // Lazy-Content laden sobald Phase 1 (Profil) fertig ist
+  useEffect(() => {
+    if (profile && !lazyLoaded) {
+      setLazyLoaded(true);
+      loadLazy();
+    }
+  }, [profile, lazyLoaded, loadLazy]);
 
   const handleBack = useCallback(()=>{ if(onClose) onClose(); }, [onClose]);
 
@@ -435,29 +446,9 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
     reload();
   }, [user?.id, reload]);
 
-  // Loading-Guard (nach allen Hooks — Rules of Hooks konform)
-  if (loading && !profile) {
-    return (
-      <div style={{
-        position:"fixed", inset:0, zIndex:10500,
-        background:"#F9F7F4",
-        display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:16,
-      }}>
-        <button onClick={onClose} style={{
-          position:"absolute", top:16, left:16,
-          background:"none", border:"none", fontSize:22, cursor:"pointer", color:"#6B7280",
-        }}>←</button>
-        <div style={{
-          width:36, height:36, borderRadius:"50%",
-          border:"3px solid rgba(13,196,181,0.15)",
-          borderTopColor:"#0DC4B5",
-          animation:"spin 0.75s linear infinite",
-        }}/>
-        <div style={{ fontSize:12, color:"#9CA3AF" }}>Profil wird geladen…</div>
-        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-      </div>
-    );
-  }
+  // Kein Blocking-Spinner mehr — Profil rendert sofort mit Skeleton
+  // Phase 1 (profile=null, loading=true) → CanonicalProfileHeader zeigt Skeleton
+  // Phase 2 (profile geladen) → Sections sichtbar
 
   // Fehler-Guard: Profil konnte nicht geladen werden (gelöscht, Timeout, etc.)
   if (!loading && !profile) {
@@ -550,7 +541,7 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
         <MomentsSection
           moments={moments}
           isOwner={isOwner}
-          loading={loading}
+          loading={loadingLazy}
         />
         <Gap h={28}/>
 
@@ -589,7 +580,7 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
         <RecommendationsSection
           recommendations={recommendations}
           isOwner={isOwner}
-          loading={loading}
+          loading={loadingLazy}
           onAddRec={null}
           onShowAll={null}
         />

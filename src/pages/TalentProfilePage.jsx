@@ -1094,12 +1094,15 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
     moments,
     followCounts,
     loading,
+    loadingLazy,
+    loadLazy,
     error,
     reload,
   } = useProfileData(profileId);
 
   // ── Lokale UI-States (kein Datenlayer) ──────────────────────
   const [mounted,           setMounted]           = useState(false);
+  const [lazyLoaded,        setLazyLoaded]        = useState(false);
   const [showKompassSheet,  setShowKompassSheet]  = useState(false);
   const [kompassWatchLocal, setKompassWatchLocal] = useState(null);
   const [showSettings,      setShowSettings]      = useState(false);
@@ -1114,6 +1117,14 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
     const t = setTimeout(() => setMounted(true), 30);
     return () => clearTimeout(t);
   }, []);
+
+  // Lazy-Content laden sobald Phase 1 (Profil) fertig ist
+  useEffect(() => {
+    if (profile && !lazyLoaded) {
+      setLazyLoaded(true);
+      loadLazy();
+    }
+  }, [profile, lazyLoaded, loadLazy]);
 
   // ── Sprint F.9G.4: Realtime — Admin-Freigabe (works + experiences) ──
   // Nur UPDATE: wenn Admin status → published/approved setzt, sofort sichtbar.

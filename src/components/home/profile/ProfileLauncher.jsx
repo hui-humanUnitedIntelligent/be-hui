@@ -230,23 +230,15 @@ export default function ProfileLauncher() {
     authProfile,
   } = useHome();
 
-  // ── DB-Routing für fremde öffentliche Profile ─────────────────
-  const { resolved, isTalent, role } = useProfileType(selectedProfileId);
-
   // ── ÖFFENTLICHES PROFIL (fremder User) ───────────────────────
-  // INSTANT-OPEN: Sofort rendern ohne auf DB-Query zu warten.
-  // useProfileType lädt Typ (Talent/Basis) im Hintergrund nach.
-  // BasisProfilePage wird zuerst gezeigt — bei Talent-Ergebnis
-  // wechselt ProfileComponent, was einen nahtlosen Re-Render auslöst.
+  // INSTANT-OPEN: BasisProfilePage sofort rendern — kein DB-Routing-Block.
+  // isTalent wird aus Phase-1-Profil (has_talent_profile) innerhalb von
+  // BasisProfilePage / TalentProfilePage gelesen (via useProfileData).
   if (selectedProfileId) {
-    // Typ-Routing: Solange unresolved → BasisProfilePage (sicherer Fallback)
-    // Nach resolved: korrekte Komponente. Kein Blocking, kein Spinner.
-    const ProfileComponent = (resolved && isTalent) ? TalentProfilePage : BasisProfilePage;
-
     return (
       <ProfileErrorBoundary profileId={selectedProfileId} onClose={closeProfileById}>
         <React.Suspense fallback={<Spinner />}>
-          <ProfileComponent
+          <BasisProfilePage
             profileId={selectedProfileId}
             onClose={closeProfileById}
           />
