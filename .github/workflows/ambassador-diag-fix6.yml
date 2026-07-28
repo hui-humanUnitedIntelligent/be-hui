@@ -44,4 +44,4 @@ jobs:
         run: |
           supabase db query --linked "SELECT proname, pg_get_function_identity_arguments(oid) FROM pg_proc WHERE proname IN ('rpc_get_ambassador_referrals','rpc_get_all_ambassadors');" -o json
           supabase db query --linked "SELECT COUNT(*) FROM (SELECT rpc_get_all_ambassadors()) x;" -o json
-          supabase db query --linked "SELECT COUNT(*) FROM (SELECT rpc_get_ambassador_referrals('3a291a5c-9c4c-4537-9e87-b7b137d5ec01'::uuid)) x;" -o json
+          supabase db query --linked "SELECT COUNT(*) FROM (SELECT rpc_get_ambassador_referrals('<REDACTED_USER_ID>'::uuid)) x;" -o json
