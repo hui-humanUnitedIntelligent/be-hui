@@ -578,7 +578,11 @@ function MomenteSection({ momente, loading, delay=0, view='cards', onPress, onAu
                   <div style={{ flex:1, overflow:"hidden" }}>
                     <div style={{ fontSize:13, fontWeight:600, color:T.ink, marginBottom:4, overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", lineHeight:1.35 }}>{m.caption}</div>
                     <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                      <span style={{ fontSize:11, fontWeight:600, color:T.inkSoft }}>{m.name}</span>
+                      <span
+                        role={m.user_id ? "button" : undefined}
+                        onClick={m.user_id ? (e) => { e.stopPropagation(); onAuthorPress?.(m.user_id); } : undefined}
+                        style={{ fontSize:11, fontWeight:600, color:T.inkSoft, cursor:m.user_id?"pointer":"default" }}
+                      >{m.name}</span>
                       {m.location && <span style={{ fontSize:11, color:T.inkFaint, display:"flex", alignItems:"center", gap:2 }}><HUILocationIcon size={11}/>{m.location}</span>}
                       <span style={{ fontSize:10.5, color:T.inkFaint }}>{timeAgo(m.created_at)}</span>
                     </div>
