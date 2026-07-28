@@ -241,7 +241,10 @@ function HomeInner() {
 
   // Stripe Redirect wird in UnterstutzenFlow behandelt (P1)
 
-    useEffect(() => {
+    // Preload BasisProfilePage-Chunk beim Home-Mount (liegt dann im Cache beim Profil-Tap)
+  useEffect(() => { import("./BasisProfilePage.jsx").catch(() => {}); }, []);
+
+  useEffect(() => {
     const pending = location?.state?.pendingWerkKauf;
     if (pending && setShowWerkCheckout) {
       setShowWerkCheckout(pending);

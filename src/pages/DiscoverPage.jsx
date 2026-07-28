@@ -1684,6 +1684,12 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   const [talentLocSearching, setTalentLocSearching] = useState(false);
   const talentLocDebounce = useRef(null);
 
+  // Preload BasisProfilePage-Chunk beim Discover-Mount
+  // → Chunk liegt im Browser-Cache wenn Nutzer ein Profil antippt (kein Download-Delay)
+  useEffect(() => {
+    import("./BasisProfilePage.jsx").catch(() => {});
+  }, []);
+
   useEffect(() => {
     clearTimeout(talentLocDebounce.current);
     if (talentLocQuery.trim().length < 2) { setTalentLocSuggest([]); return; }

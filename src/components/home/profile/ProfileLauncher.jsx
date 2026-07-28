@@ -132,6 +132,8 @@ const BasisProfilePage   = lazyWithRetry(() => import("../../../pages/BasisProfi
 const TalentProfilePage  = lazyWithRetry(() => import("../../../pages/TalentProfilePage.jsx"));
 const MyBasisProfile     = lazyWithRetry(() => import("../../../pages/MyBasisProfile.jsx"));
 
+
+
 // ── Spinner Fallback ─────────────────────────────────────────────
 function Spinner() {
   return (
