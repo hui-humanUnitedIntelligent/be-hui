@@ -515,12 +515,7 @@ function MomentCard({ moment, delay=0, onPress, onAuthorPress }) {
         {/* Autor */}
         <div style={{ fontSize:10.5, color:T.inkFaint, fontWeight:400, marginBottom:6 }}>
           von{" "}
-          <span
-            role={moment.user_id ? "button" : undefined}
-            onClick={moment.user_id ? (e) => { e.stopPropagation(); onAuthorPress?.(moment.user_id); } : undefined}
-            style={{ cursor:moment.user_id?"pointer":"default",
-              textDecoration:moment.user_id?"underline dotted":"none", textDecorationColor:"rgba(0,0,0,0.2)" }}
-          >{moment.name}</span>
+          <span style={{ textDecoration:"none" }}>{moment.name}</span>
         </div>
 
         {/* Standort (falls vorhanden) */}
@@ -579,9 +574,7 @@ function MomenteSection({ momente, loading, delay=0, view='cards', onPress, onAu
                     <div style={{ fontSize:13, fontWeight:600, color:T.ink, marginBottom:4, overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", lineHeight:1.35 }}>{m.caption}</div>
                     <div style={{ display:"flex", alignItems:"center", gap:6 }}>
                       <span
-                        role={m.user_id ? "button" : undefined}
-                        onClick={m.user_id ? (e) => { e.stopPropagation(); onAuthorPress?.(m.user_id); } : undefined}
-                        style={{ fontSize:11, fontWeight:600, color:T.inkSoft, cursor:m.user_id?"pointer":"default" }}
+                        style={{ fontSize:11, fontWeight:600, color:T.inkSoft }}
                       >{m.name}</span>
                       {m.location && <span style={{ fontSize:11, color:T.inkFaint, display:"flex", alignItems:"center", gap:2 }}><HUILocationIcon size={11}/>{m.location}</span>}
                       <span style={{ fontSize:10.5, color:T.inkFaint }}>{timeAgo(m.created_at)}</span>
@@ -712,12 +705,7 @@ function TalentCard({ talent, delay=0, onPress, onAuthorPress }) {
         {/* Anbieter */}
         <div style={{ fontSize:10.5, color:T.inkFaint, fontWeight:400, marginBottom:6 }}>
           von{" "}
-          <span
-            role={talent.user_id ? "button" : undefined}
-            onClick={talent.user_id ? (e) => { e.stopPropagation(); onAuthorPress?.(talent.user_id); } : undefined}
-            style={{ cursor:talent.user_id?"pointer":"default",
-              textDecoration:talent.user_id?"underline dotted":"none", textDecorationColor:"rgba(0,0,0,0.2)" }}
-          >{talent.author}</span>
+          <span style={{ textDecoration:"none" }}>{talent.author}</span>
         </div>
 
         {/* Standort/Ort — nimmt Platz ein oder nicht, Preis bleibt unten */}
@@ -938,12 +926,7 @@ function WerkCard({ werk, delay=0, onPress, onAuthorPress }) {
         {/* Autor */}
         <div style={{ fontSize:10.5, color:T.inkFaint, fontWeight:400, marginBottom:6 }}>
           von{" "}
-          <span
-            role={werk.user_id ? "button" : undefined}
-            onClick={werk.user_id ? (e) => { e.stopPropagation(); onAuthorPress?.(werk.user_id); } : undefined}
-            style={{ cursor:werk.user_id?"pointer":"default",
-              textDecoration:werk.user_id?"underline dotted":"none", textDecorationColor:"rgba(0,0,0,0.2)" }}
-          >{werk.author}</span>
+          <span style={{ textDecoration:"none" }}>{werk.author}</span>
         </div>
 
         {/* Standort — reservierter Platz damit Preis nicht springt */}
@@ -2209,22 +2192,21 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   // Ansicht" darin fuehrt zum Profil (bei echter UUID + Username), sonst
   // (Seed-Karten) bleibt nur die Vorschau ohne Profil-Sprung.
   const handlePersonPress = useCallback((person) => {
-    const isRealId = person?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(person.id));
-    // Direkt Profil öffnen — kein Preview-Sheet für Personen (Karte zeigt schon alles)
-    if (isRealId && typeof onView === "function") {
-      onView(person.id);
-      return;
-    }
-    // Fallback: Preview für unbekannte IDs / Seed-Daten
+    // NEU (2026-07-29): PersonCard öffnet ContentPreviewSheet statt direkt Profil.
+    // "Profil ansehen" Button im Sheet öffnet dann das Profil.
     const item = normalizeWirkerForPreview(person);
     if (item) {
       openPreview({
         ...item,
-        canOpenFull: false, // Kein navigate — würde RefRedirect auslösen
+        canOpenFull: false,
       });
       return;
     }
-    if (typeof onView === "function") onView(person.id || person.user_id);
+    // Fallback nur wenn keine Preview möglich
+    const isRealId = person?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(person.id));
+    if (isRealId && typeof onView === "function") {
+      onView(person.id);
+    }
   }, [openPreview, onView]);
 
   // Werk-Karte: öffne Werk-Detailseite (nur bei echter DB-ID, nicht bei Seed-Daten)

@@ -15,7 +15,7 @@ const LOC_LABELS = { vor_ort:"Vor Ort", online:"Online", beides:"Vor Ort & Onlin
 
 function TalentCardItem({ t, onPress }) {
   const [imgErr, setImgErr] = useState(false);
-  const { openCreatorProfile } = useProfileLauncher();
+  // openCreatorProfile entfernt (2026-07-29) — Autor nicht klickbar
   const cover = Array.isArray(t.images) && t.images[0]?.url ? t.images[0].url : null;
   const price = t.price_per_session != null
     ? `${Number(t.price_per_session).toLocaleString("de-DE")} €/Sitzung`
@@ -49,12 +49,8 @@ function TalentCardItem({ t, onPress }) {
           overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>
           {t.title}
         </div>
-        {t._author && t.user_id && (
-          <button
-            onClick={(e) => { e.stopPropagation(); openCreatorProfile(t.user_id); }}
-            style={{ fontSize:11, color:T.inkFaint, marginBottom:4, background:"none", border:"none",
-              padding:0, cursor:"pointer", textAlign:"left", WebkitTapHighlightColor:"transparent" }}
-          >{t._author}</button>
+        {t._author && (
+          <div style={{ fontSize:11, color:T.inkFaint, marginBottom:4 }}>{t._author}</div>
         )}
         {t._author && !t.user_id && <div style={{ fontSize:11, color:T.inkFaint, marginBottom:4 }}>{t._author}</div>}
         {locLabel && (

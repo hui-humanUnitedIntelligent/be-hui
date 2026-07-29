@@ -235,20 +235,32 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
         )}
 
         <div style={{ padding:"18px 18px 0" }}>
-          {/* 2) Autor: Profilbild / Name / Ort / Datum */}
+          {/* 2) Autor: Profilbild / Name / Ort / Datum — NICHT klickbar (2026-07-29) */}
           {mountedItem.author?.name && (
-            <div className="pfv-btn" onClick={handleOpenProfile} style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
               <div style={{ width:40, height:40, borderRadius:"50%", overflow:"hidden", flexShrink:0,
                 background:"rgba(13,196,181,0.14)" }}>
                 {mountedItem.author.avatar && <img loading="lazy" decoding="async" src={mountedItem.author.avatar} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>}
               </div>
-              <div style={{ minWidth:0 }}>
+              <div style={{ minWidth:0, flex:1 }}>
                 <div style={{ fontSize:14.5, fontWeight:700, color:T.ink }}>{mountedItem.author.name}</div>
                 <div style={{ fontSize:12, color:T.inkFaint, display:"flex", gap:8, flexWrap:"wrap" }}>
                   {mountedItem.location && <span style={{display:"flex",alignItems:"center",gap:3}}><HUILocationIcon size={12}/>{mountedItem.location}</span>}
                   {mountedItem.createdAt && <span>🕐 {mountedItem.createdAt}</span>}
                 </div>
               </div>
+              {authorId && (
+                <button
+                  className="pfv-btn"
+                  onClick={handleOpenProfile}
+                  style={{ padding:"6px 14px",
+                    background:"rgba(13,196,181,0.12)", border:"1px solid rgba(13,196,181,0.3)",
+                    borderRadius:99, fontSize:12, fontWeight:600, color:"#0DC4B5",
+                    fontFamily:"inherit", flexShrink:0 }}
+                >
+                  Profil ansehen
+                </button>
+              )}
             </div>
           )}
 
