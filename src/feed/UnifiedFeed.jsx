@@ -183,12 +183,12 @@ function FeedWelcomeHeader({ currentUser }) {
               fontSize: 14, lineHeight: 1.55,
               color: MUTED, fontWeight: 400,
             }}>
-              Entdecke heute{" "}
+              Dein Zuhause wo{" "}
               <span style={{ color: TEAL, fontWeight: 600 }}>Menschen</span>,{" "}
               <span style={{ color: TEAL, fontWeight: 600 }}>Ideen</span>{" "}
               und{" "}
-              <span style={{ color: CORAL, fontWeight: 600 }}>Erlebnisse</span>,
-              <br />die dich inspirieren.
+              <span style={{ color: CORAL, fontWeight: 600 }}>Erlebnisse</span>{" "}
+              dich inspirieren.
             </p>
           </div>
         </div>
