@@ -516,7 +516,7 @@ function HomeInner() {
   color:"rgba(20,20,34,0.40)",animation:"huiFadeIn 0.5s ease"}}>Entdecken öffnet sich…</div>}>
               <SafeRender flag="discoverFeed" label="DiscoverPage">
                 <DiscoverPage
-                    onView={(id) => { console.log("🔍 [DEBUG] DiscoverPage onView fired:", id); if(id) openProfileById(id); }}
+                    onView={(id) => { if(id) openProfileById(id); }}
                     onMap={() => setShowMap(true)}
                     onBook={(item) => {
                       // Erlebnis aus DiscoverPage → ExperienceBookingFlow

@@ -94,7 +94,6 @@ export function useChatList(instanceId = "default") {
   const realtimeRef = useRef(null);
 
   const load = useCallback(async () => {
-    console.log("[CHATLIST_LOAD_START]", { authChecked, userId: user?.id });
     if (!authChecked) return;
     if (!user?.id) {
       setChats([]);
@@ -116,13 +115,6 @@ export function useChatList(instanceId = "default") {
         // state-Filter bewusst entfernt — akzeptiere alle states
         .order("last_message_at", { ascending: false, nullsFirst: false })
         .limit(50);
-
-      console.log("[CHATLIST_QUERY]", {
-        userId: user.id,
-        rawCount: rawChats?.length ?? 0,
-        error: chatError?.message ?? null,
-        firstId: rawChats?.[0]?.id ?? null,
-      });
 
       if (chatError) {
         console.warn("[CHATLIST_ERROR]", chatError.message, chatError.code);
@@ -191,9 +183,6 @@ export function useChatList(instanceId = "default") {
         if (b.unread !== a.unread) return b.unread - a.unread;
         return new Date(b.last_message_at || 0) - new Date(a.last_message_at || 0);
       });
-
-      console.log("[CHATLIST_LOAD_DONE]", { chatCount: withUnread?.length,
-        unreadTotal: withUnread.reduce((s, c) => s + c.unread, 0) });
       setChats(withUnread);
     } catch(e) {
       console.error("[CHATLIST_LOAD_ERROR]", e?.message);

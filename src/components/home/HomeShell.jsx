@@ -274,15 +274,8 @@ export default function HomeShell({ children }) {
 
   // ── openProfileById — einziger stabiler Einstiegspunkt für alle Feed-Avatar-Klicks
   const openProfileById = React.useCallback((id) => {
-    console.log("[HUI-PROFILE] openProfileById called, id:", id);
-
-    if (!id || typeof id !== "string" || id.trim() === "") {
-      console.log("[HUI-PROFILE] openProfileById REJECTED: invalid id");
-      return;
-    }
-    const trimmed = id.trim();
-    console.log("[HUI-PROFILE] setSelectedProfileId:", trimmed);
-    setSelectedProfileId(trimmed);
+    if (!id || typeof id !== "string" || id.trim() === "") return;
+    setSelectedProfileId(id.trim());
   }, []);
 
   const closeProfileById = React.useCallback(() => {

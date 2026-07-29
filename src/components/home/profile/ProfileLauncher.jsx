@@ -237,7 +237,6 @@ export default function ProfileLauncher() {
     showCreatorDashboard, setShowCreatorDashboard,
     authProfile,
   } = useHome();
-  console.log("[HUI-PROFILE] ProfileLauncher render, selectedProfileId:", selectedProfileId);
 
   // Portal-Target: document.body (escapes ALL ancestor Stacking Contexts)
   const portalTarget = typeof document !== "undefined" ? document.body : null;
