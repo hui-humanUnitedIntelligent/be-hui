@@ -236,21 +236,7 @@ export default function ProfileLauncher() {
     showCreatorDashboard, setShowCreatorDashboard,
     authProfile,
   } = useHome();
-  console.log("🔍 [DEBUG] ProfileLauncher render, selectedProfileId:", selectedProfileId);
-  // VISIBLE DEBUG: show purple banner when ProfileLauncher renders
-  try {
-    let dbg = document.getElementById("__hui_debug_launcher__");
-    if (!dbg) {
-      dbg = document.createElement("div");
-      dbg.id = "__hui_debug_launcher__";
-      dbg.style.cssText = "position:fixed;top:80px;left:0;right:0;z-index:99999;background:#8B5CF6;color:#fff;padding:6px 16px;font-size:12px;font-family:monospace;font-weight:700;text-align:center;transition:opacity 0.3s;";
-      document.body.appendChild(dbg);
-    }
-    dbg.textContent = "🟣 ProfileLauncher: selectedProfileId=" + String(selectedProfileId || "null").slice(0,12);
-    dbg.style.opacity = "1";
-    dbg.style.display = "block";
-    setTimeout(() => { if(dbg) dbg.style.opacity = "0"; }, 3000);
-  } catch(e) {}
+
 
   // ── ÖFFENTLICHES PROFIL (fremder User) ───────────────────────
   // INSTANT-OPEN: BasisProfilePage sofort rendern — kein DB-Routing-Block.
