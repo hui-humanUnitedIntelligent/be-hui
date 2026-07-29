@@ -214,7 +214,7 @@ function DiscoverTitleBar({ view, onViewChange }) {
       {/* Title Row */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          <span style={{ fontSize:22, fontWeight:900, color:T.ink, letterSpacing:"-0.04em" }}>Entdecke HUI.</span>
+          <span style={{ fontSize:22, fontWeight:900, color:T.ink, letterSpacing:"-0.04em" }}>Entdecke HUI</span>
         </div>
         {/* View Toggle — oben rechts */}
         <ViewToggle view={view} onChange={onViewChange} />
