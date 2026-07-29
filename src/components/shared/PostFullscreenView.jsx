@@ -249,18 +249,7 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
                   {mountedItem.createdAt && <span>🕐 {mountedItem.createdAt}</span>}
                 </div>
               </div>
-              {authorId && (
-                <button
-                  className="pfv-btn"
-                  onClick={handleOpenProfile}
-                  style={{ padding:"6px 14px",
-                    background:"rgba(13,196,181,0.12)", border:"1px solid rgba(13,196,181,0.3)",
-                    borderRadius:99, fontSize:12, fontWeight:600, color:"#0DC4B5",
-                    fontFamily:"inherit", flexShrink:0 }}
-                >
-                  Profil ansehen
-                </button>
-              )}
+{/* kleiner Profil-Button entfernt — nur großer Button unten (2026-07-29) */}
             </div>
           )}
 

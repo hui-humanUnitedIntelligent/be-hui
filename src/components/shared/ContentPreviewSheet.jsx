@@ -198,22 +198,7 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                     {item.author.avatar && <img loading="lazy" decoding="async" src={item.author.avatar} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>}
                   </div>
                   <div style={{ fontSize:13.5, fontWeight:700, color:T.ink }}>{item.author.name}</div>
-                  {item.author?.id && (
-                    <button
-                      className="cps-btn"
-                      onClick={() => {
-                        if (typeof window.__HUI_OPEN_PROFILE__ === "function") {
-                          window.__HUI_OPEN_PROFILE__(item.author.id);
-                        }
-                      }}
-                      style={{ marginLeft:"auto", padding:"5px 12px",
-                        background:"rgba(13,196,181,0.12)", border:"1px solid rgba(13,196,181,0.3)",
-                        borderRadius:99, fontSize:12, fontWeight:600, color:"#0DC4B5",
-                        fontFamily:"inherit", display:"flex", alignItems:"center", gap:4 }}
-                    >
-                      Profil ansehen
-                    </button>
-                  )}
+{/* kleiner Profil-Button entfernt — nur großer Button unten (2026-07-29) */}
                 </div>
               )}
 
@@ -328,6 +313,29 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                 </button>
               )}
             </div>
+
+            {/* Großer "Profil ansehen" Button — für alle non-talent Typen (2026-07-29) */}
+            {item && item.type !== "talent" && authorId && (
+              <div style={{ padding:"0 18px" }}>
+                <button
+                  className="cps-btn"
+                  onClick={() => {
+                    if (typeof window.__HUI_OPEN_PROFILE__ === "function") {
+                      onClose?.();
+                      window.__HUI_OPEN_PROFILE__(authorId);
+                    }
+                  }}
+                  style={{
+                    width:"100%", marginTop:16, padding:"13px", borderRadius:14,
+                    background:T.ink, color:"#fff", fontSize:14, fontWeight:700,
+                    border:"none", cursor:"pointer", fontFamily:"inherit",
+                    letterSpacing:"-0.01em",
+                  }}
+                >
+                  Profil ansehen
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
