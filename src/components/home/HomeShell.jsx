@@ -275,8 +275,31 @@ export default function HomeShell({ children }) {
   // ── openProfileById — einziger stabiler Einstiegspunkt für alle Feed-Avatar-Klicks
   const openProfileById = React.useCallback((id) => {
     console.log("🔍 [DEBUG] openProfileById called with:", id);
+    // VISIBLE DEBUG: show green banner when openProfileById is called
+    try {
+      let dbg = document.getElementById("__hui_debug_banner__");
+      if (!dbg) {
+        dbg = document.createElement("div");
+        dbg.id = "__hui_debug_banner__";
+        dbg.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:99999;background:#16D7C5;color:#000;padding:8px 16px;font-size:13px;font-family:monospace;font-weight:700;text-align:center;transition:opacity 0.3s;";
+        document.body.appendChild(dbg);
+      }
+      dbg.textContent = "✅ openProfileById called: " + String(id).slice(0,8) + "...";
+      dbg.style.opacity = "1";
+      dbg.style.display = "block";
+      setTimeout(() => { if(dbg) dbg.style.opacity = "0"; }, 3000);
+    } catch(e) {}
     if (!id || typeof id !== "string" || id.trim() === "") {
       console.log("🔍 [DEBUG] openProfileById REJECTED: invalid id");
+      // VISIBLE DEBUG: show red banner for rejected id
+      try {
+        let dbg = document.getElementById("__hui_debug_banner__");
+        if (dbg) {
+          dbg.textContent = "❌ openProfileById REJECTED: id=" + JSON.stringify(id);
+          dbg.style.background = "#FF4444";
+          dbg.style.color = "#fff";
+        }
+      } catch(e) {}
       return;
     }
     const trimmed = id.trim();
