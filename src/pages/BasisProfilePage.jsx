@@ -481,7 +481,7 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
     <div className="bpp-root" style={{
       position:"fixed", top:0, left:0, right:0,
       bottom: publicView ? 0 : "calc(72px + env(safe-area-inset-bottom, 0px))",
-      zIndex:9500, /* <BottomNav(10000) — Root endet vor Navbar */
+      zIndex:10500, /* Portal-escaped: über allem (Portal Fix 2026-07-29). bottom sichert Navbar-Freiraum */
       display:"flex", flexDirection:"column",
       opacity:mounted?1:0,
       transform:mounted?"none":"translateY(6px)",
