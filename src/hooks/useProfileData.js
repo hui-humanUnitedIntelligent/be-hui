@@ -62,7 +62,7 @@ export function useProfileData(profileId, includePrivate = false) {
   const [followCounts,    setFollowCounts]    = useState({ followers: 0, following: 0 });
 
   // Phase-1 = Profil + followCounts loaded; Phase-2 = lazy content loaded
-  const [loading,         setLoading]         = useState(false);
+  const [loading,         setLoading]         = useState(!!profileId);
   const [loadingLazy,     setLoadingLazy]     = useState(false);
   const [error,           setError]           = useState(null);
 

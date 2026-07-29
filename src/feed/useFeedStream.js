@@ -170,6 +170,9 @@ async function fetchFeedPage(userId = null, cursors = null) {
       const { data: profileRows } = await ProfileService.getMany(userIds);
       if (profileRows) {
         profileRows.forEach(p => { profileMap[p.id] = p; });
+        // Prewarm: Schreibe Feed-Profile in prewarm-Cache
+        // (Separater Key — überschreibt nicht den getById-Cache)
+        ProfileService.prewarm(profileRows);
       }
     } catch (_) {
       // Profile enrichment failed — non-blocking

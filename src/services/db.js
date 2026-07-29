@@ -59,11 +59,17 @@ export const ProfileService = {
   // Prewarm: Feed-geladene Profile in Cache schreiben
   // Aufruf aus DiscoverPage wenn Profil-Karten gerendert werden
   prewarm(profiles = []) {
+    // SICHERHEIT: prewarm nutzt separaten Cache-Key ('prewarm:')
+    // Damit wird der getById-Cache ('profile:') NICHT überschrieben
+    // → getById macht immer eine echte Query mit F.profile (IDENTITY_CONTRACT)
+    // → prewarm ist nur ein optischer Optimizer für Avatar-Vorschauen
     for (const p of profiles) {
       if (!p?.id) continue;
-      warmQueryCache(`profile:${p.id}`, p, 60_000);
+      warmQueryCache(`prewarm:${p.id}`, p, 60_000);
     }
   },
+  
+
 
   async getById(id) {
     return cachedQuery(`profile:${id}`,

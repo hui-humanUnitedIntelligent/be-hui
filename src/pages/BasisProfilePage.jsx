@@ -453,6 +453,8 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
   // Phase 2 (profile geladen) → Sections sichtbar
 
   // Fehler-Guard: Profil konnte nicht geladen werden (gelöscht, Timeout, etc.)
+  // Aber nur wenn loading MAL true war (d.h. ein Load-Versuch stattfand)
+  // loading ist initial true (useProfileData) → dieser Guard feuert erst NACH dem Load
   if (!loading && !profile) {
     return (
       <div style={{
