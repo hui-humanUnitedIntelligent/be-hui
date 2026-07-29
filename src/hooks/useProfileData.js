@@ -71,12 +71,15 @@ export function useProfileData(profileId, includePrivate = false) {
 
   // ── PHASE 1: Profil + followCounts (instant) ──────────────────────
   const load = useCallback(async () => {
+    console.log("[useProfileData] load() called, profileId:", profileId);
     if (!profileId) {
+      console.log("[useProfileData] No profileId — abort");
       setLoading(false);
       return;
     }
 
     const myId = ++requestId.current;
+    console.log("[useProfileData] setLoading(true), myId:", myId);
     setLoading(true);
     setError(null);
 
@@ -106,9 +109,14 @@ export function useProfileData(profileId, includePrivate = false) {
         timeoutGuard,
       ]);
 
-      if (myId !== requestId.current) return;
+      console.log("[useProfileData] Race done. profileRes:", profileRes?.error ? "ERROR" : "OK", "data:", !!profileRes?.data, "myId:", myId, "current:", requestId.current);
+      if (myId !== requestId.current) {
+        console.log("[useProfileData] STALE — myId:", myId, "current:", requestId.current, "→ setLoading(false) SKIPPED!");
+        return;
+      }
 
       if (profileRes.error || !profileRes.data) {
+        console.log("[useProfileData] ERROR or NO DATA:", profileRes.error?.message || "no data");
         setError(profileRes.error?.message || "Profil nicht gefunden");
         setLoading(false);
         return;
@@ -136,9 +144,11 @@ export function useProfileData(profileId, includePrivate = false) {
       });
 
     } catch (err) {
+      console.log("[useProfileData] CATCH error:", err?.message, "myId:", myId);
       if (myId !== requestId.current) return;
       setError(err?.message || "Unbekannter Fehler");
     } finally {
+      console.log("[useProfileData] FINALLY — myId:", myId, "current:", requestId.current, "match:", myId === requestId.current);
       if (myId === requestId.current) setLoading(false);
     }
   }, [profileId]);

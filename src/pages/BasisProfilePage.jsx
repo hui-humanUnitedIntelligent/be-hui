@@ -346,9 +346,11 @@ function SocialContextBar({ loading, followCounts }) {
 // ROOT
 // ══════════════════════════════════════════════════════════════════
 export default function BasisProfilePage({ profileId, onClose, publicView = false }) {
+  console.log("[BasisProfilePage] RENDER — profileId:", profileId, "publicView:", publicView);
   // Sprint F.5.2: eigener Loader → useProfileData (identisch zu TalentProfilePage)
   const { user, setProfile: setAuthProfile } = useAuth();
   const resolvedId = profileId || user?.id;
+  console.log("[BasisProfilePage] resolvedId:", resolvedId, "user?.id:", user?.id);
 
   const {
     profile,
@@ -360,6 +362,7 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
     loadLazy,
     reload,
   } = useProfileData(resolvedId);
+  console.log("[BasisProfilePage] useProfileData state — loading:", loading, "profile:", !!profile, "error:", error);
 
   // Owner-spezifische States
   const [mounted,      setMounted]      = useState(false);
