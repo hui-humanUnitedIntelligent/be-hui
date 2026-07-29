@@ -451,17 +451,7 @@ function HomeInner() {
                   categoryFilters={searchState.categories}
                   radiusKm={searchState.radiusKm}
                   geo={searchState.geo}
-                  onProfile={(userId) => {
-                    if (!userId) {
-                      return;
-                    }
-                    // Visuelles Debug-Toast damit wir auf iPad sehen ob der Klick ankommt
-                    if (window.__HUI_DEBUG_PROFILE__) {
-                      window.__HUI_DEBUG_PROFILE__(userId);
-                    }
-                    console.log("🔍 [DEBUG] UnifiedFeed onProfile fired:", userId);
-                    openProfileById(userId);
-                  }}
+                  onProfile={null}  /* (2026-07-29) Autor-Name nicht klickbar — "Profil ansehen" Button im Sheet */
                   onBook={(item) => {
                     // KORB-01: Werk/Experience → Werkekorb
                     if (!item?.id) return;

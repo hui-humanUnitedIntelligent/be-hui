@@ -357,7 +357,7 @@ export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge
     <div style={{ display:"flex",alignItems:"center",gap:T.gap,padding:T.p+"px "+T.p+"px 0" }}>
       {/* Avatar → direkt vollständiges Profil öffnen */}
       <button
-        onClick={onProfile ? () => onProfile() : () => console.warn("🔴 STEP 1 — Avatar click: onProfile ist undefined (uid:", uid, ")")}
+        onClick={onProfile ? () => onProfile() : undefined}
         onTouchStart={onProfile ? () => setPressed(true)  : undefined}
         onTouchEnd={onProfile   ? () => setPressed(false) : undefined}
         onMouseDown={onProfile  ? () => setPressed(true)  : undefined}
