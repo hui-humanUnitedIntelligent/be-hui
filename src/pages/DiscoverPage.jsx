@@ -2192,22 +2192,12 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   // Ansicht" darin fuehrt zum Profil (bei echter UUID + Username), sonst
   // (Seed-Karten) bleibt nur die Vorschau ohne Profil-Sprung.
   const handlePersonPress = useCallback((person) => {
-    // NEU (2026-07-29): PersonCard öffnet ContentPreviewSheet statt direkt Profil.
-    // "Profil ansehen" Button im Sheet öffnet dann das Profil.
-    const item = normalizeWirkerForPreview(person);
-    if (item) {
-      openPreview({
-        ...item,
-        canOpenFull: false,
-      });
-      return;
-    }
-    // Fallback nur wenn keine Preview möglich
+    // (2026-07-29) PersonCard öffnet DIREKT das öffentliche Profil.
     const isRealId = person?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(person.id));
     if (isRealId && typeof onView === "function") {
       onView(person.id);
     }
-  }, [openPreview, onView]);
+  }, [onView]);
 
   // Werk-Karte: öffne Werk-Detailseite (nur bei echter DB-ID, nicht bei Seed-Daten)
   const handleWerkPress = useCallback((werk) => {
