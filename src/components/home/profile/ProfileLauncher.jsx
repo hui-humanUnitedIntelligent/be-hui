@@ -133,29 +133,69 @@ const BasisProfilePage   = lazyWithRetry(() => import("../../../pages/BasisProfi
 const TalentProfilePage  = lazyWithRetry(() => import("../../../pages/TalentProfilePage.jsx"));
 const MyBasisProfile     = lazyWithRetry(() => import("../../../pages/MyBasisProfile.jsx"));
 
-// Chunk sofort beim Modullade-Zeitpunkt pre-importieren (Top-Level)
-// → React cached lazy()-Module intern → beim ersten Tap: kein Suspense-Delay
-import("../../../pages/BasisProfilePage.jsx").catch(() => {});
-import("../../../pages/TalentProfilePage.jsx").catch(() => {});
+// Chunk-Preload: sofort beim Modul-Import starten UND nach DOM-Ready nochmal
+// → React cached lazy()-Module → kein Suspense-Spinner beim ersten Profil-Tap
+const _preloadBasis   = import("../../../pages/BasisProfilePage.jsx").catch(() => {});
+const _preloadTalent  = import("../../../pages/TalentProfilePage.jsx").catch(() => {});
+// Auch MyBasisProfile vorladen (wird bei Eigen-Profil-Tap gebraucht)
+if (typeof window !== "undefined") {
+  // Nach kurzer Idle-Zeit nochmals forcen (falls erster Import noch läuft)
+  setTimeout(() => {
+    _preloadBasis.catch(() => {});
+    _preloadTalent.catch(() => {});
+  }, 800);
+}
 
 
 
-// ── Spinner Fallback ─────────────────────────────────────────────
+// ── Profil-Skeleton Fallback — wird beim ersten Laden des Chunks gezeigt ────
+// Sieht wie ein echtes Profil aus → kein weißer Ladescreen
 function Spinner() {
   return (
     <div style={{
-      position:"fixed", inset:0, zIndex:9500, /* <BottomNav — Basis-Fallback, siehe PROFIL-NAV-FIX 2026-07-05 */
-      background:"#F7F5F0",
-      display:"flex", flexDirection:"column",
-      alignItems:"center", justifyContent:"center", gap:16,
+      position:"fixed", inset:0, zIndex:10500,
+      background:"#F7F5F0", overflowY:"auto",
     }}>
-      <div style={{
-        width:40, height:40, borderRadius:"50%",
-        border:"3px solid rgba(14,196,184,0.15)",
-        borderTop:"3px solid #0EC4B8",
-        animation:"spin 0.8s linear infinite",
-      }}/>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      <style>{`
+        @keyframes hui-skel-shimmer {
+          0%   { background-position: -300px 0 }
+          100% { background-position: 300px 0 }
+        }
+        .hui-skel-b {
+          background: linear-gradient(90deg, #e8e4de 25%, #f0ece6 50%, #e8e4de 75%);
+          background-size: 600px 100%;
+          animation: hui-skel-shimmer 1.4s infinite linear;
+          border-radius: 8px;
+        }
+      `}</style>
+
+      {/* Header-Bild Skeleton */}
+      <div className="hui-skel-b" style={{ width:"100%", height:140, borderRadius:0 }} />
+
+      {/* Avatar + Name Skeleton */}
+      <div style={{ padding:"0 20px", marginTop:-36, position:"relative" }}>
+        <div className="hui-skel-b" style={{ width:72, height:72, borderRadius:"50%", border:"3px solid #F7F5F0" }} />
+        <div style={{ marginTop:12 }}>
+          <div className="hui-skel-b" style={{ width:160, height:18, marginBottom:8 }} />
+          <div className="hui-skel-b" style={{ width:100, height:13, marginBottom:6 }} />
+          <div className="hui-skel-b" style={{ width:130, height:13 }} />
+        </div>
+        {/* Stats Skeleton */}
+        <div style={{ display:"flex", gap:24, marginTop:20 }}>
+          {[1,2,3].map(i => (
+            <div key={i}>
+              <div className="hui-skel-b" style={{ width:32, height:16, marginBottom:4 }} />
+              <div className="hui-skel-b" style={{ width:48, height:11 }} />
+            </div>
+          ))}
+        </div>
+        {/* Content Skeleton */}
+        <div style={{ marginTop:24 }}>
+          <div className="hui-skel-b" style={{ width:"100%", height:14, marginBottom:10 }} />
+          <div className="hui-skel-b" style={{ width:"85%", height:14, marginBottom:10 }} />
+          <div className="hui-skel-b" style={{ width:"70%", height:14 }} />
+        </div>
+      </div>
     </div>
   );
 }

@@ -38,7 +38,7 @@ import { clearCartAfterSuccess }        from "../components/commerce/commerceUti
 import ExperienceBookingFlow  from "../components/commerce/ExperienceBookingFlow.jsx"; // COMMERCE-01
 // ── Tab-Pages: lazy → eigene Chunks, nur bei Bedarf geladen ────
 // PHASE 17.3: ImpactPage + DiscoverPage — direkte imports (Safari-safe, kein lazy)
-const DiscoverPage  = React.lazy(() => import("./DiscoverPage.jsx"));
+import DiscoverPage from "./DiscoverPage.jsx"; // direkt (kein lazy) → kein Suspense-Spinner beim ersten Tab-Wechsel
 import HuiLiveTicker    from "../components/shared/HuiLiveTicker.jsx"; // LIVETICKER.1 2026-07-08 -- ersetzt AmbientWorldBar (war Fake-Daten)
 const ImpactPage    = React.lazy(() => import('./ImpactPage.jsx'));
 // PHASE 18: FavoritesPage direkte import (Safari-safe)
@@ -265,9 +265,7 @@ function HomeInner() {
       delete window.__HUI_OPEN_CREATOR_DASH;
       delete window.__HUI_OPEN_PROFILE__;
     };
-  }, [setShowMembership, setShowCreatorDash]);
-
-  // ─────────────────────────────────────────────────────────────
+    }, [setShowMembership, setShowCreatorDash, openProfileById]);  // ─────────────────────────────────────────────────────────────
 
   // Phase 2: Flow Memory System
   const flow = useHuiFlow();
@@ -451,7 +449,7 @@ function HomeInner() {
                   categoryFilters={searchState.categories}
                   radiusKm={searchState.radiusKm}
                   geo={searchState.geo}
-                  onProfile={null}  /* (2026-07-29) Autor-Name nicht klickbar — "Profil ansehen" Button im Sheet */
+                  onProfile={(id) => { if(id) openProfileById(id); }} /* Autor-Name klickbar → öffnet Profil direkt */
                   onBook={(item) => {
                     // KORB-01: Werk/Experience → Werkekorb
                     if (!item?.id) return;
