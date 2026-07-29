@@ -253,10 +253,15 @@ async function fetchExperienceBookings() {
   }));
 }
 
+// Nur die 6 schnellsten/wertvollsten Quellen (wirker/connections/
+// recommendations/project_support haben kaum Daten → langsam)
 const SOURCES = [
-  fetchWorks, fetchExperiences, fetchImpactProjects, fetchConnections,
-  fetchRecommendations, fetchResonance, fetchProjectSupport, fetchWirker,
-  fetchWorkSales, fetchExperienceBookings,
+  fetchWorks,
+  fetchExperiences,
+  fetchImpactProjects,
+  fetchResonance,
+  fetchWorkSales,
+  fetchExperienceBookings,
 ];
 
 export function useLiveTicker() {
@@ -267,9 +272,17 @@ export function useLiveTicker() {
 
   const refresh = useCallback(async () => {
     const _t = performance.now();
-    const results = await Promise.all(SOURCES.map(fn => fn().catch(() => [])));
+    // Timeout 1500ms pro Quelle, damit eine langsame Tabelle nicht alles blockiert
+    const results = await Promise.all(
+      SOURCES.map(fn =>
+        Promise.race([
+          fn().catch(() => []),
+          new Promise(resolve => setTimeout(() => resolve([]), 1500)),
+        ])
+      )
+    );
     const _ms = Math.round(performance.now() - _t);
-    if (_ms > 300) console.warn(`[HUI PERF] 🐌 LiveTicker refresh langsam (${_ms}ms)`);
+    if (_ms > 600) console.warn(`[HUI PERF] 🐌 LiveTicker refresh langsam (${_ms}ms)`);
     if (!mounted.current) return;
 
     const merged = bufferRef.current;
