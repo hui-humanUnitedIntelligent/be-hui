@@ -176,7 +176,7 @@ function useProfileType(profileId) {
 
     // Timeout-Schutz: nach 6s Fallback auf BasisProfilePage
     const timeoutPromise = new Promise((resolve) =>
-      setTimeout(() => resolve({ data: null, error: { message: "timeout" } }), 1200)
+      setTimeout(() => resolve({ data: null, error: { message: "timeout" } }), 2000)
     );
 
     (async () => {

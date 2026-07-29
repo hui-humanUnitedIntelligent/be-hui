@@ -669,7 +669,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
     loading:         hookLoading,
     reload,
     followCounts,
-  } = useProfileData(user?.id);
+  } = useProfileData(user?.id, true); // includePrivate=true → phone für eigenes Profil
 
   // F.9C HOTFIX: lokale Aliase erst NACH useProfileData — TDZ-Fix
   // (hooksWorks/hooksExps/hooksRecs/profile sind jetzt deklariert)

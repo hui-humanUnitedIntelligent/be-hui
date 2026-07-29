@@ -11,7 +11,10 @@ import { ProfileService } from '../services/db';
 import { supabase } from "../lib/supabaseClient.js";
 
 // ── Felder ────────────────────────────────────────────────────────────
-const PROFILE_SELECT = "id,display_name,full_name,username,avatar_url,header_img,bio,location,location_label,member_since,role,has_talent_profile,is_ambassador,talent,membership_type,membership_active,followers_count,impact_eur,profile_views,phone,website,tagline,skills,is_available,hourly_rate,focus_type";
+// SICHERHEIT: phone entfernt aus öffentlichem Profil-Load (2026-07-29)
+// PRIVAT: phone wird nur geladen wenn includePrivate=true (eigenes Profil)
+const PROFILE_SELECT_PUBLIC = "id,display_name,full_name,username,avatar_url,header_img,bio,location,location_label,member_since,role,has_talent_profile,is_ambassador,talent,membership_type,membership_active,followers_count,impact_eur,profile_views,website,tagline,skills,is_available,hourly_rate,focus_type";
+const PROFILE_SELECT_PRIVATE = PROFILE_SELECT_PUBLIC + ",phone";
 
 const WORKS_SELECT =
   "id,user_id,title,cover_url,category,status," +
@@ -49,7 +52,7 @@ function normalizeSkills(skills) {
 }
 
 // ── Main Hook ─────────────────────────────────────────────────────────
-export function useProfileData(profileId) {
+export function useProfileData(profileId, includePrivate = false) {
   const [profile,         setProfile]         = useState(null);
   const [wirkerProfile,   setWirkerProfile]   = useState(null);
   const [works,           setWorks]           = useState([]);
@@ -86,7 +89,12 @@ export function useProfileData(profileId) {
       const [profileRes, fcRes] = await Promise.race([
         Promise.all([
           // 1. profiles — via cachedQuery (60s TTL)
-          ProfileService.getById(profileId)
+          (includePrivate
+          ? supabase.from("profiles").select(PROFILE_SELECT_PRIVATE).eq("id", profileId).maybeSingle()
+              .then(r => ({ data: r.data, error: r.error }))
+              .catch(() => ({ data: null, error: { message: "profiles load failed" } }))
+          : ProfileService.getById(profileId)
+            .catch(() => ({ data: null, error: { message: "profiles load failed" } })))
             .catch(() => ({ data: null, error: { message: "profiles load failed" } })),
 
           // 2. followCounts — leichtgewichtig
