@@ -184,7 +184,7 @@ function FeedWelcomeHeader({ currentUser }) {
               color: MUTED, fontWeight: 400,
             }}>
               Dein Zuhause wo{" "}
-              <span style={{ color: TEAL, fontWeight: 600 }}>Menschen</span>,{" "}
+              <span style={{ color: "#E8722A", fontWeight: 600 }}>Menschen</span>,{" "}
               <span style={{ color: TEAL, fontWeight: 600 }}>Ideen</span>{" "}
               und{" "}
               <span style={{ color: CORAL, fontWeight: 600 }}>Erlebnisse</span>{" "}
