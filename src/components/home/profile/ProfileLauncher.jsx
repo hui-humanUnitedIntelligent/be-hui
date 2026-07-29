@@ -236,6 +236,7 @@ export default function ProfileLauncher() {
     showCreatorDashboard, setShowCreatorDashboard,
     authProfile,
   } = useHome();
+  console.log("🔍 [DEBUG] ProfileLauncher render, selectedProfileId:", selectedProfileId);
 
   // ── ÖFFENTLICHES PROFIL (fremder User) ───────────────────────
   // INSTANT-OPEN: BasisProfilePage sofort rendern — kein DB-Routing-Block.

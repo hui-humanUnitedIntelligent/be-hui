@@ -274,10 +274,13 @@ export default function HomeShell({ children }) {
 
   // ── openProfileById — einziger stabiler Einstiegspunkt für alle Feed-Avatar-Klicks
   const openProfileById = React.useCallback((id) => {
+    console.log("🔍 [DEBUG] openProfileById called with:", id);
     if (!id || typeof id !== "string" || id.trim() === "") {
+      console.log("🔍 [DEBUG] openProfileById REJECTED: invalid id");
       return;
     }
     const trimmed = id.trim();
+    console.log("🔍 [DEBUG] openProfileById setting selectedProfileId:", trimmed);
     setSelectedProfileId(trimmed);
   }, []);
 

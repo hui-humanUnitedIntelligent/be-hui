@@ -2209,7 +2209,9 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   // Ansicht" darin fuehrt zum Profil (bei echter UUID + Username), sonst
   // (Seed-Karten) bleibt nur die Vorschau ohne Profil-Sprung.
   const handlePersonPress = useCallback((person) => {
+    console.log("🔍 [DEBUG] handlePersonPress called with:", person?.id, person?.name);
     const isRealId = person?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(person.id));
+    console.log("🔍 [DEBUG] isRealId:", isRealId, "onView type:", typeof onView);
     // Direkt Profil öffnen — kein Preview-Sheet für Personen (Karte zeigt schon alles)
     if (isRealId && typeof onView === "function") {
       onView(person.id);
