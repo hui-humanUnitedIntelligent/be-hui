@@ -236,6 +236,7 @@ export default function ProfileLauncher() {
     showCreatorDashboard, setShowCreatorDashboard,
     authProfile,
   } = useHome();
+  console.log("[HUI-PROFILE] ProfileLauncher render, selectedProfileId:", selectedProfileId);
 
 
   // ── ÖFFENTLICHES PROFIL (fremder User) ───────────────────────
