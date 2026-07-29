@@ -6,6 +6,7 @@
 
 import { HUIWarnIcon } from '../../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useHome } from "../HomeShell.jsx";
 import { useHuiActions, A } from "../../../core/hui.actions.js";
 import { S } from "../../../core/hui.sources.js";
@@ -238,13 +239,16 @@ export default function ProfileLauncher() {
   } = useHome();
   console.log("[HUI-PROFILE] ProfileLauncher render, selectedProfileId:", selectedProfileId);
 
+  // Portal-Target: document.body (escapes ALL ancestor Stacking Contexts)
+  const portalTarget = typeof document !== "undefined" ? document.body : null;
+
 
   // ── ÖFFENTLICHES PROFIL (fremder User) ───────────────────────
   // INSTANT-OPEN: BasisProfilePage sofort rendern — kein DB-Routing-Block.
   // isTalent wird aus Phase-1-Profil (has_talent_profile) innerhalb von
   // BasisProfilePage / TalentProfilePage gelesen (via useProfileData).
   if (selectedProfileId) {
-    return (
+    const content = (
       <ProfileErrorBoundary profileId={selectedProfileId} onClose={closeProfileById}>
         <React.Suspense fallback={<Spinner />}>
           <BasisProfilePage
@@ -254,16 +258,18 @@ export default function ProfileLauncher() {
         </React.Suspense>
       </ProfileErrorBoundary>
     );
+    return portalTarget ? createPortal(content, portalTarget) : content;
   }
 
   // ── EIGENES PROFIL — IMMER MyBasisProfile (erweiterbar um Talent-Bereich)
   // MyBasisProfile rendert den Talent-Bereich conditional wenn isTalent===true.
   if (showCreatorDashboard) {
-    return (
+    const content = (
       <ProfileErrorBoundary profileId="own" onClose={() => setShowCreatorDashboard(false)}>
         <MyBasisProfile onClose={() => setShowCreatorDashboard(false)} />
       </ProfileErrorBoundary>
     );
+    return portalTarget ? createPortal(content, portalTarget) : content;
   }
 
   // Nichts zu zeigen
