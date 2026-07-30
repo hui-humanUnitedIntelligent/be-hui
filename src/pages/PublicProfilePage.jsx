@@ -202,12 +202,10 @@ function ProfileHero({ profile = {}, loading = false }) {
 }
 
 // ── Aktions-Sektion: Verbinden + Folgen ───────────────────────────
-function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onFollowChange }) {
+function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onFollowChange, onOpenChat }) {
   const [isFollowing,   setIsFollowing]   = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [isConnected,   setIsConnected]   = useState(false);
-  const { setShowChat, setChatRecipient } = useHome() || {};
-
   const displayName = profile?.display_name || profile?.full_name || profile?.username || "diese Person";
 
   // Prüfe ob bereits gefolgt
@@ -276,14 +274,14 @@ function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onF
     finally { setFollowLoading(false); }
   };
 
-  const handleChat = () => {
-    if (!profile?.id || !setShowChat) return;
-    setChatRecipient?.({
+  const handleChat = (e) => {
+    e?.stopPropagation();
+    if (!profile?.id) return;
+    onOpenChat?.({
       id: profile.id,
       display_name: profile.display_name || profile.username || "Mitglied",
       avatar_url: profile.avatar_url || null,
     });
-    setShowChat?.(true);
   };
 
   // Verbindungs-Label: gegenseitig folgend = verbunden
@@ -469,6 +467,19 @@ function ErrorView({ onClose = () => {} }) {
 export default function PublicProfilePage({ profileId, onClose = () => {} }) {
   const { user } = useAuth();
   const isOwnProfile = user?.id === profileId;
+  const { setShowChat, setChatRecipient } = useHome() || {};
+
+  // Öffnet Chat direkt UND schließt das Profil — Reihenfolge: erst Recipient setzen, dann Profil schließen, dann Chat öffnen
+  const handleOpenChat = useCallback((recipient) => {
+    if (!recipient?.id || !setShowChat) return;
+    setChatRecipient?.({
+      id: recipient.id,
+      display_name: recipient.display_name || "Mitglied",
+      avatar_url: recipient.avatar_url || null,
+    });
+    onClose?.();          // Profil schließen
+    setShowChat(true);    // Chat öffnen
+  }, [setChatRecipient, setShowChat, onClose]);
 
   const {
     profile, works, experiences, recommendations, moments,
@@ -577,7 +588,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
 
         {/* ── AKTIONS-BUTTONS ── */}
         {profile && !isOwnProfile && (
-          <RelationButtons profileId={profileId} currentUserId={user?.id} profile={profile} onFollowChange={handleFollowChange} />
+          <RelationButtons profileId={profileId} currentUserId={user?.id} profile={profile} onFollowChange={handleFollowChange} onOpenChat={handleOpenChat} />
         )}
         {profile && !isOwnProfile && <Gap h={14}/>}
 

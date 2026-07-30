@@ -22,6 +22,7 @@ export default function ProfileRelationButtons({
   currentUserId = "",
   profile       = {},
   onFollowChange,
+  onClose,
 }) {
   const [isFollowing,   setIsFollowing]   = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
@@ -101,7 +102,8 @@ export default function ProfileRelationButtons({
       display_name: profile.display_name || profile.username || "Mitglied",
       avatar_url: profile.avatar_url || null,
     });
-    setShowChat?.(true);
+    if (onClose) onClose();   // Profil schließen
+    setShowChat?.(true);      // Chat öffnen
   };
 
   const connected = isFollowing && isConnected;

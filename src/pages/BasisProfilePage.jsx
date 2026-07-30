@@ -400,7 +400,7 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
 
   const handleBack = useCallback(()=>{ if(onClose) onClose(); }, [onClose]);
 
-  // P3: Chat-Einstieg via ChatCenterOverlay — identisch zu TalentProfilePage
+  // P3: Chat-Einstieg — Profil schließen DANN Chat öffnen
   const { setShowChat, setChatRecipient } = useHome() || {};
   const handleOpenChat = useCallback(() => {
     if (!profile?.id || !setShowChat) return;
@@ -409,8 +409,9 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
       display_name: profile.display_name || profile.username || "Mitglied",
       avatar_url:   profile.avatar_url || null,
     });
-    setShowChat(true);
-  }, [profile, setChatRecipient, setShowChat]);
+    if (onClose) onClose();   // Profil zuerst schließen
+    setShowChat(true);        // Dann Chat öffnen
+  }, [profile, setChatRecipient, setShowChat, onClose]);
 
   // ── Sprint F.5.3 / F.9G.1: onSave-Handler + error-check ──
   const handleBioSave = useCallback(async (bio) => {
@@ -614,6 +615,7 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
             profileId={resolvedId || profile?.id}
             currentUserId={user?.id}
             profile={profile}
+            onClose={onClose}
           />
         )}
 

@@ -1182,8 +1182,9 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
       display_name: profile.display_name || profile.username || "Talent",
       avatar_url:   profile.avatar_url || null,
     });
-    setShowChat(true);
-  }, [profile, setChatRecipient, setShowChat]);
+    if (onClose) onClose();   // Profil zuerst schließen
+    setShowChat(true);        // Dann Chat öffnen
+  }, [profile, setChatRecipient, setShowChat, onClose]);
 
   // Avatar/Cover-Update → sofortiger AuthContext-Update + reload
   // Sprint F.4D.1: setAuthProfile sofort aufrufen — kein Reload nötig
@@ -1342,6 +1343,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
             profileId={profileId || profile?.id}
             currentUserId={user?.id}
             profile={profile}
+            onClose={onClose}
           />
         )}
         <Gap h={8}/>
@@ -1462,6 +1464,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
               profileId={profileId || profile?.id}
               currentUserId={user?.id}
               profile={profile}
+              onClose={onClose}
             />
           </>
         )}
