@@ -100,6 +100,17 @@ export function warmQueryCache(key, data, ttl = 30_000) {
   // ts so setzen dass TTL noch ~55s übrig bleibt (verhindert sofortigen Ablauf)
 }
 
+
+
+// Synchroner Cache-Lesezugriff (kein Network, kein Promise)
+// Nutzt prewarm: Key aus ProfileService.prewarm() für Instant-Render
+export function readCache(key) {
+  const now = Date.now();
+  const cached = _queryCache.get(key);
+  if (cached && now - cached.ts < 60_000) return cached.data;
+  return null;
+}
+
 export function clearQueryCache(keyPrefix) {
   if (!keyPrefix) { _queryCache.clear(); return; }
   for (const k of _queryCache.keys()) {

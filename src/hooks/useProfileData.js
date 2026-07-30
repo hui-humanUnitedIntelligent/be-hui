@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { ProfileService } from '../services/db';
+import { readCache } from "../lib/perfUtils.js";
 import { supabase } from "../lib/supabaseClient.js";
 
 // ── Felder ────────────────────────────────────────────────────────────
@@ -70,18 +71,41 @@ export function useProfileData(profileId, includePrivate = false) {
   const lazyRequestId = useRef(0);
 
   // ── PHASE 1: Profil + followCounts (instant) ──────────────────────
+  // INSTANT-RENDER: Prewarm-Cache synchron prüfen → Profil sofort rendern
+  // Volle Daten werden im Hintergrund nachgeladen und aktualisiert
   const load = useCallback(async () => {
     if (!profileId) {
       setLoading(false);
       return;
     }
 
+    // 1. Prewarm-Cache synchron lesen (kein Network, <1ms)
+    const prewarmData = readCache(`prewarm:${profileId}`);
+    if (prewarmData?.data) {
+      const raw = prewarmData.data;
+      const normalizedProfile = {
+        ...raw,
+        avatar_url: raw.avatar_url || null,
+        header_img: raw.header_img || null,
+        location_final: (raw.location || "").trim(),
+        skills_final: normalizeSkills(raw.skills),
+        is_talent: raw.has_talent_profile === true,
+      };
+      setProfile(normalizedProfile);
+      setFollowCounts({
+        followers: raw.followers_count ?? 0,
+        following: 0,
+      });
+      setLoading(false); // → Instant Render mit Prewarm-Daten
+    }
+
+    // 2. Volle Daten asynchron nachladen (Hintergrund)
     const myId = ++requestId.current;
-    setLoading(true);
+    if (!prewarmData?.data) setLoading(true);
     setError(null);
 
     try {
-      const TIMEOUT_MS = 3000;
+      const TIMEOUT_MS = 1500;
       const timeoutGuard = new Promise((_, reject) =>
         setTimeout(() => reject(new Error("profile timeout")), TIMEOUT_MS)
       );
@@ -111,8 +135,11 @@ export function useProfileData(profileId, includePrivate = false) {
       }
 
       if (profileRes.error || !profileRes.data) {
-        setError(profileRes.error?.message || "Profil nicht gefunden");
-        setLoading(false);
+        // Nur Fehler setzen wenn wir keine Prewarm-Daten haben
+        if (!prewarmData?.data) {
+          setError(profileRes.error?.message || "Profil nicht gefunden");
+          setLoading(false);
+        }
         return;
       }
 

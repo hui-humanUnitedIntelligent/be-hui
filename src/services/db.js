@@ -12,7 +12,7 @@
 // ══════════════════════════════════════════════════════════════
 
 import { supabase } from '../lib/supabaseClient';
-import { safeQuery, cachedQuery, clearQueryCache, warmQueryCache, FIELDS, PAGE_SIZE, buildPage } from '../lib/perfUtils';
+import { safeQuery, cachedQuery, clearQueryCache, warmQueryCache, readCache, FIELDS, PAGE_SIZE, buildPage } from '../lib/perfUtils';
 
 // ─── FIELDS (vollständig, kein select *) ─────────────────────
 // ─── IDENTITY CONTRACT v1.0 ─────────────────────────────
@@ -67,6 +67,12 @@ export const ProfileService = {
       if (!p?.id) continue;
       warmQueryCache(`prewarm:${p.id}`, p, 60_000);
     }
+  },
+
+  // Synchroner Lesezugriff auf prewarm-Cache (kein Network)
+  readPrewarm(id) {
+    if (!id) return null;
+    return readCache(`prewarm:${id}`);
   },
   
 
