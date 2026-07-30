@@ -27,15 +27,15 @@ const SettingsModal  = React.lazy(() => import("../components/settings/SettingsM
 const HuiStudio      = React.lazy(() => import("../components/studio/HuiStudio.jsx"));
 import { supabase }   from "../lib/supabaseClient.js";
 // Sprint F.5.3: kanonische Sections
-const AboutSection           = React.lazy(() => import("../components/profile/sections/AboutSection.jsx").then(m => ({ default: m.AboutSection })));
-const LocationSection        = React.lazy(() => import("../components/profile/sections/LocationSection.jsx").then(m => ({ default: m.LocationSection })));
-const AvailabilitySection    = React.lazy(() => import("../components/profile/sections/AvailabilitySection.jsx").then(m => ({ default: m.AvailabilitySection })));
-const VisibilitySection      = React.lazy(() => import("../components/profile/sections/VisibilitySection.jsx").then(m => ({ default: m.VisibilitySection })));
-const MomentsSection         = React.lazy(() => import("../components/profile/sections/MomentsSection.jsx").then(m => ({ default: m.MomentsSection })));
-const RecommendationsSection = React.lazy(() => import("../components/profile/sections/RecommendationsSection.jsx").then(m => ({ default: m.RecommendationsSection })));
+import { AboutSection }           from "../components/profile/sections/AboutSection.jsx";
+import { LocationSection }        from "../components/profile/sections/LocationSection.jsx";
+import { AvailabilitySection }    from "../components/profile/sections/AvailabilitySection.jsx";
+import { VisibilitySection }      from "../components/profile/sections/VisibilitySection.jsx";
+import { MomentsSection }         from "../components/profile/sections/MomentsSection.jsx";
+import { RecommendationsSection } from "../components/profile/sections/RecommendationsSection.jsx";
 import { ProfileHeader as CanonicalProfileHeader } from "../components/profile/ProfileHeader.jsx";
 // OrbSignatur lazy — verhindert Blockierung des BasisProfilePage-Renders (89K-Chunk)
-const OrbSignatur = React.lazy(() => import("../components/profile/OrbSignatur.jsx").then(m => ({ default: m.OrbSignatur })));
+import { OrbSignatur } from "../components/profile/OrbSignatur.jsx";
 
 // ── Tokens ───────────────────────────────────────────────────────
 const T = {

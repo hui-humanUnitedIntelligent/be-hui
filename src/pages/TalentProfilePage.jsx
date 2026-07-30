@@ -30,17 +30,17 @@ import ProfileRelationButtons from "../components/shared/ProfileRelationButtons.
 // Sprint D: Unified Sections (Sprint C)
 import { ProfileHeader }           from "../components/profile/ProfileHeader.jsx";
 import { NAV_CLEARANCE_CSS } from "../components/home/navigation/navigationGeometry.js";
-const TalentSection          = React.lazy(() => import("../components/profile/sections/TalentSection.jsx").then(m => ({ default: m.TalentSection })));
-const WorksSection           = React.lazy(() => import("../components/profile/sections/WorksSection.jsx").then(m => ({ default: m.WorksSection })));
+import { TalentSection }          from "../components/profile/sections/TalentSection.jsx";
+import { WorksSection }           from "../components/profile/sections/WorksSection.jsx";
 import { PublicTalentOffersSection } from "../components/profile/sections/PublicTalentOffersSection.jsx";
-const ExperiencesSection     = React.lazy(() => import("../components/profile/sections/ExperiencesSection.jsx").then(m => ({ default: m.ExperiencesSection })));
-const RecommendationsSection = React.lazy(() => import("../components/profile/sections/RecommendationsSection.jsx").then(m => ({ default: m.RecommendationsSection })));
-const AvailabilitySection    = React.lazy(() => import("../components/profile/sections/AvailabilitySection.jsx").then(m => ({ default: m.AvailabilitySection })));
-const LocationSection        = React.lazy(() => import("../components/profile/sections/LocationSection.jsx").then(m => ({ default: m.LocationSection })));
-const VisibilitySection      = React.lazy(() => import("../components/profile/sections/VisibilitySection.jsx").then(m => ({ default: m.VisibilitySection })));
-const MomentsSection         = React.lazy(() => import("../components/profile/sections/MomentsSection.jsx").then(m => ({ default: m.MomentsSection })));
+import { ExperiencesSection }     from "../components/profile/sections/ExperiencesSection.jsx";
+import { RecommendationsSection } from "../components/profile/sections/RecommendationsSection.jsx";
+import { AvailabilitySection }    from "../components/profile/sections/AvailabilitySection.jsx";
+import { LocationSection }        from "../components/profile/sections/LocationSection.jsx";
+import { VisibilitySection }      from "../components/profile/sections/VisibilitySection.jsx";
+import { MomentsSection }         from "../components/profile/sections/MomentsSection.jsx";
 // OrbSignatur lazy — verhindert Blockierung (89K-Chunk)
-const OrbSignatur = React.lazy(() => import("../components/profile/OrbSignatur.jsx").then(m => ({ default: m.OrbSignatur })));
+import { OrbSignatur } from "../components/profile/OrbSignatur.jsx";
 
 // ── Design Tokens (HUI-Standard, identisch zu BasisProfilePage) ─
 const T = {

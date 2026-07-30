@@ -33,25 +33,25 @@ import { useChatList }             from "../lib/chatContext.js";
 import ConnectionCreatePage      from "../components/connection-create/ConnectionCreatePage.jsx";
 import WerkKaufFlow           from "../components/commerce/WerkKaufFlow.jsx";         // COMMERCE-01
 import WerkeKorb, { WerkeKorbButton } from "../components/commerce/WerkeKorb.jsx"; // KORB-01
-const UnterstutzenFlow = React.lazy(() => import("../components/commerce/UnterstutzenFlow.jsx")); // KORB-02 — lazy: Stripe erst bei Bedarf
+import UnterstutzenFlow from "../components/commerce/UnterstutzenFlow.jsx"; // KORB-02 — eager: kein Chunk-Mismatch
 import { clearCartAfterSuccess }        from "../components/commerce/commerceUtils.js";    // KORB-02
 import ExperienceBookingFlow  from "../components/commerce/ExperienceBookingFlow.jsx"; // COMMERCE-01
 // ── Tab-Pages: lazy → eigene Chunks, nur bei Bedarf geladen ────
 // PHASE 17.3: ImpactPage + DiscoverPage — direkte imports (Safari-safe, kein lazy)
 import DiscoverPage from "./DiscoverPage.jsx"; // direkt (kein lazy) → kein Suspense-Spinner beim ersten Tab-Wechsel
 import HuiLiveTicker    from "../components/shared/HuiLiveTicker.jsx"; // LIVETICKER.1 2026-07-08 -- ersetzt AmbientWorldBar (war Fake-Daten)
-const ImpactPage    = React.lazy(() => import('./ImpactPage.jsx'));
+import ImpactPage    from './ImpactPage.jsx';
 // PHASE 18: FavoritesPage direkte import (Safari-safe)
-const FavoritesPage = React.lazy(() => import("./FavoritesPage.jsx"));
+import FavoritesPage from "./FavoritesPage.jsx";
 // ── Orb-Flows: lazy → nur bei Tap auf Orb-Node geladen ─────────
-const TeilenFlow     = React.lazy(() => import("../components/teilen/TeilenFlow.jsx"));
-const WorkFlow       = React.lazy(() => import("../system/flows/work/WorkFlow.jsx"));
-const ExperienceFlow = React.lazy(() => import("../system/flows/experience/ExperienceFlow.jsx"));
-const ImpactFlow     = React.lazy(() => import("../system/flows/impact/ImpactFlow.jsx"));
+import TeilenFlow     from "../components/teilen/TeilenFlow.jsx";
+import WorkFlow       from "../system/flows/work/WorkFlow.jsx";
+import ExperienceFlow from "../system/flows/experience/ExperienceFlow.jsx";
+import ImpactFlow     from "../system/flows/impact/ImpactFlow.jsx";
 
 // NotificationCenter deaktiviert — Resonanzzentrum übernimmt (NotificationButton.jsx)
-const LiveMapPage         = React.lazy(() => import("./LiveMapPage.jsx"));
-const HuiMatchOverlay     = React.lazy(() => import("../components/HuiMatchOverlay.jsx"));
+import LiveMapPage         from "./LiveMapPage.jsx";
+import HuiMatchOverlay     from "../components/HuiMatchOverlay.jsx";
 // PHASE 18: HuiPlusSheet direkte import (Orb immer bereit)
 // OrbCompass replaces HuiPlusSheet — Begegnungs-Kompass
 import OrbCompass from "../components/OrbCompass.jsx";
@@ -62,11 +62,11 @@ import InvitationFlow from "../content/invitation/InvitationFlow.jsx";
 import { useContentPreview } from "../context/ContentPreviewContext.jsx";
 import { usePullToRefresh }        from '../hooks/usePullToRefresh.js';
 import { PullToRefreshIndicator }  from '../components/ui/PullToRefreshIndicator.jsx';
-const HuiMembershipFlow   = React.lazy(() => import("../components/HuiMembershipFlow.jsx"));
-const CreatorDashboard    = React.lazy(() => import("./CreatorDashboard.jsx"));
-const HuiCreateFlow       = React.lazy(() => import("../components/HuiCreateFlow.jsx"));
+import HuiMembershipFlow   from "../components/HuiMembershipFlow.jsx";
+import CreatorDashboard    from "./CreatorDashboard.jsx";
+import HuiCreateFlow       from "../components/HuiCreateFlow.jsx";
 // TalentOnboarding: direct import (kein lazy — verhindert Suspense-Spinner-Bug)
-const StoryComposer       = React.lazy(() => import("../components/StoryComposer.jsx"));
+import StoryComposer       from "../components/StoryComposer.jsx";
 // ExperienceCreator.jsx / WerkPublisher.jsx: Datei komplett entfernt (2026-07-08
 // Dead-Code-Audit) -- showExperienceCreator/showWerkPublisher sind Legacy-benannte
 // State-Flags, rendern aber schon seit laengerem ExperienceFlow/WorkFlow (s.u.).
