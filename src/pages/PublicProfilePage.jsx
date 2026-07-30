@@ -406,10 +406,15 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
     followCounts, loading, loadingLazy, error, loadLazy, reload,
   } = useProfileData(profileId, false);
 
-  // Lazy-Content laden sobald Profil da ist
+  // Lazy-Content laden sobald Profil da ist — einmalig pro profileId
+  const lazyCalledRef = React.useRef(false);
+  useEffect(() => { lazyCalledRef.current = false; }, [profileId]);
   useEffect(() => {
-    if (profile && !loadingLazy) loadLazy?.();
-  }, [!!profile]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (profile && !lazyCalledRef.current) {
+      lazyCalledRef.current = true;
+      loadLazy?.();
+    }
+  }, [profile, loadLazy, profileId]);
 
   const handleBack = useCallback(() => onClose?.(), [onClose]);
 

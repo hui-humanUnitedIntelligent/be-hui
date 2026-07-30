@@ -178,9 +178,11 @@ export function useProfileData(profileId, includePrivate = false) {
 
   // ── PHASE 2: Lazy-Content (moments, recommendations, works, exp) ──
   // Wird aufgerufen wenn der Nutzer eine Section öffnet/scrollt
+  const lazyInFlight = React.useRef(false);
   const loadLazy = useCallback(async () => {
     if (!profileId) return;
-    if (loadingLazy) return; // bereits am laden
+    if (lazyInFlight.current) return; // ref-guard: kein Stale-Closure-Problem
+    lazyInFlight.current = true;
 
     const myId = ++lazyRequestId.current;
     setLoadingLazy(true);
@@ -226,11 +228,12 @@ export function useProfileData(profileId, includePrivate = false) {
             .then(r => r)
             .catch(() => ({ data: [] })),
 
-          // moments (beitraege)
+          // moments (beitraege) — nur öffentliche
           supabase
             .from("beitraege")
             .select(MOMENTS_SELECT)
             .eq("user_id", profileId)
+            .in("status", ["public"])
             .order("created_at", { ascending: false })
             .limit(16)
             .then(r => r)
@@ -270,8 +273,9 @@ export function useProfileData(profileId, includePrivate = false) {
       console.warn("[useProfileData] lazy load failed:", err?.message);
     } finally {
       if (myId === lazyRequestId.current) setLoadingLazy(false);
+      lazyInFlight.current = false;
     }
-  }, [profileId, loadingLazy]);
+  }, [profileId]); // loadingLazy excluded — lazyInFlight ref guards against double-call
 
   useEffect(() => {
     load();
@@ -282,6 +286,7 @@ export function useProfileData(profileId, includePrivate = false) {
     setRecommendations([]);
     lazyRequestId.current = 0;
     setLoadingLazy(false);
+    lazyInFlight.current = false;
   }, [profileId]); // load bewusst nicht in deps — load ist stabil via useCallback
 
   // ── Follow-Count Refresh ──────────────────────────────────────────
