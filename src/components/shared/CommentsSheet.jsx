@@ -218,7 +218,7 @@ function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdi
           replyText={replyText} setReplyText={setReplyText} submittingReply={submittingReply} />
       ))}
     </div>
-  , document.body);
+  );
 }
 
 export default function CommentsSheet({ open, onClose, postId, postType, postAuthorId, postActionUrl, highlightCommentId, mediaUrl = null, mediaType = null }) {
@@ -528,5 +528,5 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
         </div>
       </div>
     </div>
-  );
+  , document.body);
 }
