@@ -26,15 +26,10 @@ export default defineConfig({
       },
     },
 
-    // modulePreload aktiviert: Vite injiziert <link rel="modulepreload"> für lazy chunks
-    // → Browser lädt BasisProfilePage + OrbSignatur im Hintergrund parallel zum Main-Bundle
-    // Stripe bleibt separater Chunk (TDZ-sicher) und wird NICHT preloaded
-    modulePreload: {
-      resolveDependencies: (filename, deps) => {
-        // Stripe-Chunk NICHT preloaden (TDZ-Bug), alles andere schon
-        return deps.filter(dep => !dep.includes('stripe'));
-      },
-    },
+    // modulePreload DEAKTIVIERT: __vitePreload-Wrapper kann bei dynamischen
+    // Imports hängen bleiben (silent preload failure → Suspense spinner forever).
+    // Plain import() ohne Preload-Barriere ist robuster für lazy-loaded Profile.
+    modulePreload: false,
 
     rollupOptions: {
       output: {
