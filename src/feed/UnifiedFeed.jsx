@@ -24,6 +24,7 @@ import { emit }                from "../lib/events/index.js";
 import { toast }               from "../lib/useToast.jsx";
 import { usePresenceMap }      from "../lib/usePresence.jsx";
 import CommentsSheet            from "../components/shared/CommentsSheet.jsx";
+import { countComments }        from "../lib/commentsService.js";
 
 
 /* ═══════════════════════════════════════════════════════════════
@@ -444,6 +445,15 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
     authorId
   );
 
+  // COMMENT-COUNT: Lade Kommentar-Anzahl lazy wenn Karte sichtbar
+  const [commentCount, setCommentCount] = useState(null);
+  const ccLoadedRef = useRef(false);
+  useEffect(() => {
+    if (!visible || !postId || ccLoadedRef.current) return;
+    ccLoadedRef.current = true;
+    countComments(postId, postType).then(n => { if (n > 0) setCommentCount(n); });
+  }, [visible, postId, postType]); // eslint-disable-line
+
   const handleReaction = useCallback((type) => {
     // Sprechblase → CommentsSheet öffnen statt Reaction-Toggle
     if (type === "touch") {
@@ -472,6 +482,7 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
       saved:        myTypes?.has?.("save")    ?? false,
       inspireCount: counts?.inspire ?? (item._reactions?.inspireCount ?? null),
       touchCount:   counts?.like    ?? (item._reactions?.touchCount   ?? null),
+      commentCount: commentCount    ?? (item._reactions?.commentCount  ?? null),
     },
   };
 
