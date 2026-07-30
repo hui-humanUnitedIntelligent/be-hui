@@ -128,23 +128,12 @@ function lazyWithRetry(importFn) {
   );
 }
 
-// ── Page Imports ────────────────────────────────────────────────
-const PublicProfilePage  = lazyWithRetry(() => import("../../../pages/PublicProfilePage.jsx"));
-const TalentProfilePage  = lazyWithRetry(() => import("../../../pages/TalentProfilePage.jsx"));
-const MyBasisProfile     = lazyWithRetry(() => import("../../../pages/MyBasisProfile.jsx"));
-
-// Chunk-Preload: sofort beim Modul-Import starten UND nach DOM-Ready nochmal
-// → React cached lazy()-Module → kein Suspense-Spinner beim ersten Profil-Tap
-const _preloadPublic   = import("../../../pages/PublicProfilePage.jsx").catch(() => {});
-const _preloadTalent  = import("../../../pages/TalentProfilePage.jsx").catch(() => {});
-// Auch MyBasisProfile vorladen (wird bei Eigen-Profil-Tap gebraucht)
-if (typeof window !== "undefined") {
-  // Nach kurzer Idle-Zeit nochmals forcen (falls erster Import noch läuft)
-  setTimeout(() => {
-    _preloadPublic.catch(() => {});
-    _preloadTalent.catch(() => {});
-  }, 800);
-}
+// ── Page Imports — EAGER (kein React.lazy, kein Suspense, kein __vitePreload) ─
+// Root-Fix 2026-07-30: React.lazy + __vitePreload hing bei Suspense fest.
+// Eager Import bündelt PublicProfilePage in den Haupt-Chunk → kein separater
+// Chunk-Load nötig → Profil erscheint sofort.
+import PublicProfilePage  from "../../../pages/PublicProfilePage.jsx";
+import MyBasisProfile     from "../../../pages/MyBasisProfile.jsx";
 
 
 
@@ -290,12 +279,10 @@ export default function ProfileLauncher() {
 if (selectedProfileId) {
     const content = (
       <ProfileErrorBoundary profileId={selectedProfileId} onClose={closeProfileById}>
-        <React.Suspense fallback={<Spinner />}>
           <PublicProfilePage
             profileId={selectedProfileId}
             onClose={closeProfileById}
           />
-        </React.Suspense>
       </ProfileErrorBoundary>
     );
     return portalTarget ? createPortal(content, portalTarget) : content;
