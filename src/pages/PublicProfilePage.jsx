@@ -349,17 +349,17 @@ function SkillsCard({ profile = {}, loading = false }) {
     <SectionCard icon={<HUITalentIcon size={16}/>} title="Interessen & Schwerpunkte" delay={60}>
       {loading ? (
         <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
-          {[100,120,80,110,90].map((w,i) => <Skel key={i} w={w} h={32} r={T.r99}/>)}
+          {[60,70,50,65,55].map((w,i) => <Skel key={i} w={w} h={20} r={T.r99}/>)}
         </div>
       ) : (
-        <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+        <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
           {skills.map((s, i) => (
             <span key={i} style={{
-              padding:"6px 14px", borderRadius:T.r99,
+              padding:"3px 8px", borderRadius:T.r99,
               background:T.tealSoft, border:`1px solid ${T.tealMid}`,
-              fontSize:13, fontWeight:600, color:T.tealDeep,
+              fontSize:11, fontWeight:600, color:T.tealDeep,
             }}>
-              {s?.icon && <span style={{ marginRight:4 }}>{s.icon}</span>}
+              {s?.icon && <span style={{ marginRight:3 }}>{s.icon}</span>}
               {typeof s === "string" ? s : (s?.label || s?.name || "")}
             </span>
           ))}
