@@ -99,7 +99,8 @@ function CommentMenuPortal({ isOwn, menuOpen, setMenuOpen, confirmDelete, setCon
   const handleOpen = () => {
     if (btnRef.current) {
       const r = btnRef.current.getBoundingClientRect();
-      setPos({ top: r.bottom + 6, right: window.innerWidth - r.right });
+      // Dropdown OBEN-LINKS vom Button anzeigen
+      setPos({ bottom: window.innerHeight - r.top + 4, right: window.innerWidth - r.right });
     }
     setMenuOpen(v => !v);
   };
@@ -138,17 +139,17 @@ function CommentMenuPortal({ isOwn, menuOpen, setMenuOpen, confirmDelete, setCon
       </button>
 
       {menuOpen && createPortal(
-        <div style={{ position:"fixed", top: pos.top, right: pos.right,
-          background:"#fff", borderRadius:14,
-          boxShadow:"0 8px 32px rgba(26,26,46,0.22)",
-          overflow:"hidden", zIndex:99999, minWidth:180 }}>
+        <div style={{ position:"fixed", bottom: pos.bottom, right: pos.right,
+          background:"#fff", borderRadius:10,
+          boxShadow:"0 4px 16px rgba(26,26,46,0.18)",
+          overflow:"hidden", zIndex:99999, minWidth:140 }}>
           {isOwn ? (
             <>
               <button className="cs-btn" onClick={onEdit}
                 style={{ display:"flex", alignItems:"center", gap:10, width:"100%",
-                  padding:"14px 18px", fontSize:15, fontWeight:600, color:"#1A1A2E",
+                  padding:"10px 14px", fontSize:13, fontWeight:600, color:"#1A1A2E",
                   borderBottom:"1px solid rgba(26,26,46,0.08)", background:"none", cursor:"pointer" }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1A1A2E" strokeWidth="2" strokeLinecap="round">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1A1A2E" strokeWidth="2" strokeLinecap="round">
                   <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
                   <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
                 </svg>
@@ -157,9 +158,9 @@ function CommentMenuPortal({ isOwn, menuOpen, setMenuOpen, confirmDelete, setCon
               {!confirmDelete ? (
                 <button className="cs-btn" onClick={() => setConfirmDelete(true)}
                   style={{ display:"flex", alignItems:"center", gap:10, width:"100%",
-                    padding:"14px 18px", fontSize:15, fontWeight:600, color:"#E53E3E",
+                    padding:"10px 14px", fontSize:13, fontWeight:600, color:"#E53E3E",
                     background:"none", cursor:"pointer" }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E53E3E" strokeWidth="2" strokeLinecap="round">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#E53E3E" strokeWidth="2" strokeLinecap="round">
                     <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
                     <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
                   </svg>
@@ -168,7 +169,7 @@ function CommentMenuPortal({ isOwn, menuOpen, setMenuOpen, confirmDelete, setCon
               ) : (
                 <button className="cs-btn" onClick={onDelete}
                   style={{ display:"flex", alignItems:"center", gap:10, width:"100%",
-                    padding:"14px 18px", fontSize:15, fontWeight:700, color:"#fff",
+                    padding:"10px 14px", fontSize:13, fontWeight:700, color:"#fff",
                     background:"#E53E3E", cursor:"pointer" }}>
                   ⚠️ Wirklich löschen?
                 </button>
@@ -178,14 +179,14 @@ function CommentMenuPortal({ isOwn, menuOpen, setMenuOpen, confirmDelete, setCon
             !reportMenu ? (
               <button className="cs-btn" onClick={() => setReportMenu(true)}
                 style={{ display:"flex", alignItems:"center", gap:10, width:"100%",
-                  padding:"14px 18px", fontSize:15, fontWeight:600, color:"#1A1A2E",
+                  padding:"10px 14px", fontSize:13, fontWeight:600, color:"#1A1A2E",
                   background:"none", cursor:"pointer" }}>
                 🚩 Melden
               </button>
             ) : REPORT_REASONS.map(r => (
               <button key={r.key} className="cs-btn" onClick={() => onReport(r.key)}
                 style={{ display:"flex", alignItems:"center", gap:8, width:"100%",
-                  padding:"13px 18px", fontSize:14, fontWeight:500, color:"#1A1A2E",
+                  padding:"10px 14px", fontSize:13, fontWeight:500, color:"#1A1A2E",
                   borderBottom:"1px solid rgba(26,26,46,0.05)", background:"none", cursor:"pointer" }}>
                 {r.label}
               </button>
