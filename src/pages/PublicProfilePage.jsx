@@ -215,7 +215,7 @@ function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onF
     if (!profileId || !currentUserId || profileId === currentUserId) return;
     supabase
       .from("follows")
-      .select("id")
+      .select("follower_id")
       .eq("follower_id", currentUserId)
       .eq("followed_id", profileId)
       .maybeSingle()
@@ -228,7 +228,7 @@ function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onF
     if (!profileId || !currentUserId || profileId === currentUserId) return;
     supabase
       .from("follows")
-      .select("id")
+      .select("follower_id")
       .eq("follower_id", profileId)
       .eq("followed_id", currentUserId)
       .maybeSingle()
@@ -253,7 +253,7 @@ function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onF
         onFollowChange?.(-1);
       } else {
         await supabase.from("follows")
-          .insert({ follower_id: currentUserId, followed_id: profileId });
+          .upsert({ follower_id: currentUserId, followed_id: profileId }, { onConflict: "follower_id,followed_id", ignoreDuplicates: true });
         setIsFollowing(true);
         onFollowChange?.(+1);
       }

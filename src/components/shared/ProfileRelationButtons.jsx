@@ -34,17 +34,23 @@ export default function ProfileRelationButtons({
   // Prüfe ob bereits gefolgt
   useEffect(() => {
     if (!profileId || !currentUserId || profileId === currentUserId) return;
-    supabase.from("follows").select("id")
+    supabase.from("follows").select("follower_id")
       .eq("follower_id", currentUserId).eq("followed_id", profileId)
-      .maybeSingle().then(({ data }) => setIsFollowing(!!data)).catch(() => {});
+      .maybeSingle().then(({ data, error }) => {
+        if (error) { console.warn("[Follow] check error:", error.message); return; }
+        setIsFollowing(!!data);
+      }).catch(() => {});
   }, [profileId, currentUserId]);
 
   // Prüfe ob bereits verbunden (gegenseitig)
   useEffect(() => {
     if (!profileId || !currentUserId || profileId === currentUserId) return;
-    supabase.from("follows").select("id")
+    supabase.from("follows").select("follower_id")
       .eq("follower_id", profileId).eq("followed_id", currentUserId)
-      .maybeSingle().then(({ data }) => { if (data) setIsConnected(true); }).catch(() => {});
+      .maybeSingle().then(({ data, error }) => {
+        if (error) { console.warn("[Follow] connected check error:", error.message); return; }
+        if (data) setIsConnected(true);
+      }).catch(() => {});
   }, [profileId, currentUserId, isFollowing]);
 
   if (!currentUserId || profileId === currentUserId) return null;
@@ -59,7 +65,7 @@ export default function ProfileRelationButtons({
         setIsFollowing(false);
         onFollowChange?.(-1);
       } else {
-        await supabase.from("follows").insert({ follower_id: currentUserId, followed_id: profileId });
+        await supabase.from("follows").upsert({ follower_id: currentUserId, followed_id: profileId }, { onConflict: "follower_id,followed_id", ignoreDuplicates: true });
         setIsFollowing(true);
         onFollowChange?.(+1);
       }

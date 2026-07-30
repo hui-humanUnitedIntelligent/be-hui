@@ -394,7 +394,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
       // Following creator?
       if (creatorId) {
         const { data: followRow } = await supabase
-          .from("follows").select("id")
+          .from("follows").select("follower_id")
           .eq("follower_id", user.id).eq("followed_id", creatorId).maybeSingle();
         setFollowing(!!followRow);
       }
