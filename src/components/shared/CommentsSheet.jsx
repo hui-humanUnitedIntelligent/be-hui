@@ -220,7 +220,7 @@ function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdi
   );
 }
 
-export default function CommentsSheet({ open, onClose, postId, postType, postAuthorId, postActionUrl, highlightCommentId }) {
+export default function CommentsSheet({ open, onClose, postId, postType, postAuthorId, postActionUrl, highlightCommentId, mediaUrl = null, mediaType = null }) {
   const { user, profile } = useAuth();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -429,6 +429,28 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
         <div style={{ display:"flex", justifyContent:"center", paddingTop:10 }}>
           <div style={{ width:40, height:4, borderRadius:99, background:"rgba(26,26,46,0.16)" }}/>
         </div>
+
+        {/* Media Preview — Bild oder Video oben */}
+        {mediaUrl && (
+          <div style={{
+            margin:"10px 16px 0", borderRadius:16, overflow:"hidden",
+            maxHeight:220, position:"relative", flexShrink:0,
+            background:"rgba(26,26,46,0.06)",
+          }}>
+            {(mediaType === "video" || /\.mp4|\.webm|\.mov/i.test(mediaUrl)) ? (
+              <video
+                src={mediaUrl} style={{ width:"100%", maxHeight:220, objectFit:"cover", display:"block" }}
+                autoPlay muted loop playsInline
+              />
+            ) : (
+              <img
+                src={mediaUrl} alt=""
+                style={{ width:"100%", maxHeight:220, objectFit:"cover", display:"block" }}
+                loading="lazy"
+              />
+            )}
+          </div>
+        )}
 
         {/* Header */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 20px 10px" }}>

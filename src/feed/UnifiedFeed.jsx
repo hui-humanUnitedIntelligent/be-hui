@@ -23,6 +23,7 @@ import { analyticsService }    from "../services/creatorEconomy.js";
 import { emit }                from "../lib/events/index.js";
 import { toast }               from "../lib/useToast.jsx";
 import { usePresenceMap }      from "../lib/usePresence.jsx";
+import CommentsSheet            from "../components/shared/CommentsSheet.jsx";
 
 
 /* ═══════════════════════════════════════════════════════════════
@@ -382,7 +383,7 @@ class ReactionErrorBoundary extends React.Component {
   }
 }
 
-function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemIndex, onDepth }) {
+function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemIndex, onDepth, onOpenComments }) {
   // Guard: item must be valid before calling any hook
   const postId   = item?.id    || "";
   const postType = item?.type  || "post";
@@ -444,13 +445,20 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
   );
 
   const handleReaction = useCallback((type) => {
+    // Sprechblase → CommentsSheet öffnen statt Reaction-Toggle
+    if (type === "touch") {
+      const mediaUrl  = item?._raw?.media_url || item?._raw?.image_url || item?._raw?.video_url || item?.media?.url || null;
+      const mediaType = item?._raw?.type || item?.type || "beitrag";
+      onOpenComments?.(postId, postType, authorId, mediaUrl, mediaType);
+      return;
+    }
     if (!toggle) return;
     toggle(type);
     const labels       = { like:"Gefällt dir ✦", inspire:"Inspiriert dich ✨", save:"Gespeichert 🔖" };
     const removeLabels = { like:"Gefällt dir nicht mehr", inspire:"Inspiration entfernt", save:"Entfernt" };
     const wasActive    = myTypes?.has?.(type);
     toast.info(wasActive ? (removeLabels[type] || type) : (labels[type] || type), { duration: 1800 });
-  }, [toggle, myTypes]);
+  }, [toggle, myTypes, onOpenComments, postId, postType, authorId, item]);
 
   // Merge live reaction state into item
   // RESONANZ.1 (2026-07-16): inspireCount + touchCount aus Hook-State (counts),
@@ -476,12 +484,13 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
         onBook={onBook}
         onDetail={onDetail}
         onShare={onShare}
+        onOpenComments={onOpenComments}
       />
     </div>
   );
 }
 
-function ReactionCard({ item, onProfile, onBook, onDetail, onShare, itemIndex, onDepth }) {
+function ReactionCard({ item, onProfile, onBook, onDetail, onShare, itemIndex, onDepth, onOpenComments }) {
   // Absolute guard — no item = no render, log it
   if (!item?.id) {
     if (import.meta.env.DEV) console.warn("[REACTION_CARD] invalid item — skipping", item);
@@ -497,12 +506,13 @@ function ReactionCard({ item, onProfile, onBook, onDetail, onShare, itemIndex, o
         onShare={onShare}
         itemIndex={itemIndex}
         onDepth={onDepth}
+        onOpenComments={onOpenComments}
       />
     </ReactionErrorBoundary>
   );
 }
 
-function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loadMore, hasMore, loadingMore, onDiscover, scrollContainerRef = null }) {
+function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loadMore, hasMore, loadingMore, onDiscover, scrollContainerRef = null, onOpenComments }) {
   // VIRT-001 — Virtualisierter Feed mit @tanstack/react-virtual
   // Rendert nur Karten die im Viewport (+ 400px Margin) sichtbar sind.
   // Memory-Cleanup: Karten außerhalb DOM werden unmounted (overscan=3).
@@ -643,6 +653,7 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
               onShare={() => onShare?.(item)}
               itemIndex={idx}
               onDepth={onDepth}
+              onOpenComments={onOpenComments}
             />
           </div>
         );
@@ -762,6 +773,14 @@ export default function UnifiedFeed({
     }
   }, [onRefreshBind, streamRefresh]);
 
+  // ── COMMENTS SHEET STATE ────────────────────────────────────────────
+  const [commentsTarget, setCommentsTarget] = React.useState(null);
+  // commentsTarget: { postId, postType, postAuthorId, mediaUrl, mediaType }
+  const openComments = React.useCallback((postId, postType, postAuthorId, mediaUrl, mediaType) => {
+    setCommentsTarget({ postId, postType, postAuthorId, mediaUrl, mediaType });
+  }, []);
+  const closeComments = React.useCallback(() => setCommentsTarget(null), []);
+
   // ── ITEM RESOLUTION ───────────────────────────────────────────────
   // Bevorzuge prop (für Tests / externe Steuerung),
   // fallback auf eigenen Stream
@@ -876,10 +895,21 @@ export default function UnifiedFeed({
             loadingMore={loadingMore}
             onDiscover={onDiscover}
             scrollContainerRef={scrollContainerRef}
+            onOpenComments={openComments}
           />
         )}
       </SectionBoundary>
 
+      {/* ── COMMENTS SHEET ── */}
+      <CommentsSheet
+        open={!!commentsTarget}
+        onClose={closeComments}
+        postId={commentsTarget?.postId || ""}
+        postType={commentsTarget?.postType || "beitrag"}
+        postAuthorId={commentsTarget?.postAuthorId || ""}
+        mediaUrl={commentsTarget?.mediaUrl}
+        mediaType={commentsTarget?.mediaType}
+      />
     </div>
   );
 }

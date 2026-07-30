@@ -716,7 +716,7 @@ export const FeedActions = memo(function FeedActions({
                                     oeffnet bereits den Teilen-Flow)
               save    → Merken */}
         <ActionBtn Icon={HUIHeartIcon}    count={r.inspireCount||null} active={r.inspired} activeColor={T.coral}  inactiveColor={T.coral}  variant="resonanz"    onClick={() => { haptic(r.inspired ? "selection" : "light"); onReaction?.("inspire"); }} />
-        <ActionBtn Icon={HUIChatIcon}     count={r.touchCount||null}   active={r.touched}  activeColor={T.teal}  inactiveColor={T.teal}   variant="austauschen" onClick={() => { haptic(r.touched ? "selection" : "light"); onReaction?.("touch"); }} />
+        <ActionBtn Icon={HUIChatIcon}     count={r.commentCount||null} active={false}      activeColor={T.teal}  inactiveColor={T.teal}   variant="austauschen" onClick={() => { haptic("light"); onReaction?.("touch"); }} />
         <ActionBtn Icon={HUIShareIcon}    activeColor={T.teal}  inactiveColor={T.teal}   variant="weitergeben" onClick={() => { haptic("light"); onShare?.(); }} />
         <ActionBtn Icon={HUIBookmarkIcon} active={r.saved} activeColor={"#F59E0B"} inactiveColor={"#F59E0B"} variant="merken" onClick={() => { haptic(r.saved ? "selection" : "light"); onReaction?.("save"); }} />
         {extraActions || null}
