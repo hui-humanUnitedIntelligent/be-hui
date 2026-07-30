@@ -36,7 +36,7 @@ import SplashScreen from './pages/SplashScreen.jsx';
 // WirkerProfilePage (~140KB) und CreatorStudio laden nur bei Bedarf
 const Home              = lazy(() => import('./pages/Home'))
 const RefRedirect       = lazy(() => import('./pages/RefRedirect'))
-const ImpactPage = React.lazy(() => import('./pages/ImpactPage'))
+import ImpactPage from './pages/ImpactPage';
 const Admin             = lazy(() => import('./pages/Admin'))
 const DiagnosePage      = lazy(() => import('./pages/DiagnosePage'))
 const PlatformDashboard = lazy(() => import('./pages/PlatformDashboard'))
@@ -721,7 +721,7 @@ function AppRoutes() {
           <ProtectedRoute><DeepLinkOpener type="event" /></ProtectedRoute>
         }/>
 
-        {/* Impact — LAZY */}
+        {/* Impact — EAGER */}
         <Route path="/impact" element={
           <ProtectedRoute><ImpactPage /></ProtectedRoute>
         }/>
