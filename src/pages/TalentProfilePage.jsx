@@ -28,6 +28,7 @@ import ProfilBearbeitenModal from "../components/studio/ProfilBearbeitenModal.js
 import { useProfileData } from "../hooks/useProfileData.js";
 // Sprint D: Unified Sections (Sprint C)
 import { ProfileHeader }           from "../components/profile/ProfileHeader.jsx";
+import { NAV_CLEARANCE_CSS } from "../components/home/navigation/navigationGeometry.js";
 const TalentSection          = React.lazy(() => import("../components/profile/sections/TalentSection.jsx").then(m => ({ default: m.TalentSection })));
 const WorksSection           = React.lazy(() => import("../components/profile/sections/WorksSection.jsx").then(m => ({ default: m.WorksSection })));
 const ExperiencesSection     = React.lazy(() => import("../components/profile/sections/ExperiencesSection.jsx").then(m => ({ default: m.ExperiencesSection })));
@@ -1299,7 +1300,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
   return (
     <div className="tpp-root" style={{
       position:"fixed", top:0, left:0, right:0,
-      bottom: publicView ? 0 : "calc(72px + env(safe-area-inset-bottom, 0px))",
+      bottom: publicView ? 0 : NAV_CLEARANCE_CSS,
       zIndex:9500, /* <BottomNav(10000) — Root endet vor Navbar */
       display:"flex", flexDirection:"column",
       opacity:mounted?1:0,

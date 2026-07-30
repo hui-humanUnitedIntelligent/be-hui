@@ -14,6 +14,7 @@ import { HUIImpactIcon, HUISettingsIcon, HUISicherheitIcon } from '../design/ico
 //   Momente (horizontal cinematic thumbnails)
 //   Offen für Begegnungen (capsules + Weiteres)
 //   Sichtbarkeit (lock + text + "Mehr erfahren" pill)
+import { NAV_CLEARANCE_CSS } from "../components/home/navigation/navigationGeometry.js";
 //   Social context bar (Verbindungen · Begegnungen · Momente)
 // ════════════════════════════════════════════════════════════════
 
@@ -482,7 +483,7 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
   return (
     <div className="bpp-root" style={{
       position:"fixed", top:0, left:0, right:0,
-      bottom: publicView ? 0 : "calc(72px + env(safe-area-inset-bottom, 0px))",
+      bottom: publicView ? 0 : NAV_CLEARANCE_CSS,
       zIndex:10500, /* Portal-escaped: über allem (Portal Fix 2026-07-29). bottom sichert Navbar-Freiraum */
       display:"flex", flexDirection:"column",
       opacity:mounted?1:0,

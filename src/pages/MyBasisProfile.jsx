@@ -13,7 +13,7 @@ import {
   FB_AVATAR,
   handleAvatarUpload, handleCoverUpload,
 } from "../lib/profileMedia.js";
-import { NAV_RESERVED_HEIGHT_CSS } from "../components/home/navigation/navigationGeometry.js";
+import { NAV_RESERVED_HEIGHT_CSS, NAV_CLEARANCE_CSS } from "../components/home/navigation/navigationGeometry.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
 import { useHome }   from "../components/home/HomeShell.jsx";
 const GemeinschaftsFlow = React.lazy(() => import("../components/GemeinschaftsFlow.jsx"));
@@ -840,7 +840,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
     return (
       <div style={{
         position:"fixed", top:0, left:0, right:0,
-        bottom:"calc(72px + env(safe-area-inset-bottom, 0px))",
+        bottom:NAV_CLEARANCE_CSS,
         zIndex:9500, /* <BottomNav(10000) — Root endet vor Navbar */
         background:T.bg,
         display:"flex", alignItems:"center", justifyContent:"center",
@@ -859,7 +859,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
   return (
     <div className="mbp-root" style={{
       position:"fixed", top:0, left:0, right:0,
-      bottom:"calc(72px + env(safe-area-inset-bottom, 0px))",
+      bottom:NAV_CLEARANCE_CSS,
       zIndex:9500, /* <BottomNav(10000) — Root endet vor Navbar */
       display:"flex", flexDirection:"column",
     }}>
