@@ -113,12 +113,17 @@ function NavBar({ onBack = () => {}, title = "Öffentliches Profil" }) {
       padding:`14px ${T.px}px 10px`, background:T.bg,
     }}>
       <button className="ppp-press" onClick={onBack} aria-label="Zurück" style={{
-        width:36, height:36, borderRadius:"50%",
-        background:T.bgCard, border:`1px solid ${T.border}`,
-        display:"flex", alignItems:"center", justifyContent:"space-between",
-        fontSize:18, cursor:"pointer", touchAction:"manipulation",
-        boxShadow:T.card, color:T.ink, fontFamily:"sans-serif",
-      }}>‹</button>
+        width:40, height:40, borderRadius:"50%",
+        background:T.bgCard, border:`1.5px solid ${T.border}`,
+        display:"flex", alignItems:"center", justifyContent:"center",
+        cursor:"pointer", touchAction:"manipulation",
+        boxShadow:"0 2px 10px rgba(26,26,24,0.10), 0 1px 3px rgba(26,26,24,0.07)",
+        flexShrink:0, padding:0,
+      }}>
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M11 4L6 9L11 14" stroke={T.ink} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
       <div style={{ textAlign:"center" }}>
         <div style={{ fontSize:15.5, fontWeight:700, color:T.ink, letterSpacing:"-0.02em" }}>
           {title}
