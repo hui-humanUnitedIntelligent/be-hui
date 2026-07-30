@@ -931,7 +931,12 @@ export default function MyBasisProfile({ onClose, profileId }) {
           </button>
           <button
             className="mbp-press-light"
-            onClick={() => { setShowMerken(false); setShowSettings(false); setShowPublicPreview(true); }}
+            onClick={() => {
+              // Öffentliches Profil via globalem Hook öffnen — eager import, kein React.lazy
+              if (profile?.id && window.__HUI_OPEN_PROFILE__) {
+                window.__HUI_OPEN_PROFILE__(profile.id);
+              }
+            }}
             title="Profil ansehen"
             aria-label="Profil ansehen"
             style={{
