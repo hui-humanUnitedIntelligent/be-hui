@@ -107,26 +107,6 @@ class ProfileErrorBoundary extends React.Component {
   }
 }
 
-// ── Chunk-Retry: bei ChunkLoadError einmalig Hard-Reload ────────────────────
-function lazyWithRetry(importFn) {
-  return React.lazy(() =>
-    importFn().catch((err) => {
-      const isChunkError =
-        err?.message?.includes("Failed to fetch dynamically imported module") ||
-        err?.message?.includes("Importing a module script failed") ||
-        err?.name === "ChunkLoadError";
-      if (isChunkError) {
-        const reloadKey = "chunk_reload_" + importFn.toString().slice(0, 80);
-        if (!sessionStorage.getItem(reloadKey)) {
-          sessionStorage.setItem(reloadKey, "1");
-          window.location.reload();
-          return new Promise(() => {}); // Reload läuft — Promise hängen lassen
-        }
-      }
-      throw err;
-    })
-  );
-}
 
 // ── Page Imports — EAGER (kein React.lazy, kein Suspense, kein __vitePreload) ─
 // Root-Fix 2026-07-30: React.lazy + __vitePreload hing bei Suspense fest.
@@ -137,57 +117,6 @@ import MyBasisProfile     from "../../../pages/MyBasisProfile.jsx";
 
 
 
-// ── Profil-Skeleton Fallback — wird beim ersten Laden des Chunks gezeigt ────
-// Sieht wie ein echtes Profil aus → kein weißer Ladescreen
-function Spinner() {
-  return (
-    <div style={{
-      position:"fixed", inset:0, zIndex:10500,
-      background:"#F7F5F0", overflowY:"auto",
-    }}>
-      <style>{`
-        @keyframes hui-skel-shimmer {
-          0%   { background-position: -300px 0 }
-          100% { background-position: 300px 0 }
-        }
-        .hui-skel-b {
-          background: linear-gradient(90deg, #e8e4de 25%, #f0ece6 50%, #e8e4de 75%);
-          background-size: 600px 100%;
-          animation: hui-skel-shimmer 1.4s infinite linear;
-          border-radius: 8px;
-        }
-      `}</style>
-
-      {/* Header-Bild Skeleton */}
-      <div className="hui-skel-b" style={{ width:"100%", height:140, borderRadius:0 }} />
-
-      {/* Avatar + Name Skeleton */}
-      <div style={{ padding:"0 20px", marginTop:-36, position:"relative" }}>
-        <div className="hui-skel-b" style={{ width:72, height:72, borderRadius:"50%", border:"3px solid #F7F5F0" }} />
-        <div style={{ marginTop:12 }}>
-          <div className="hui-skel-b" style={{ width:160, height:18, marginBottom:8 }} />
-          <div className="hui-skel-b" style={{ width:100, height:13, marginBottom:6 }} />
-          <div className="hui-skel-b" style={{ width:130, height:13 }} />
-        </div>
-        {/* Stats Skeleton */}
-        <div style={{ display:"flex", gap:24, marginTop:20 }}>
-          {[1,2,3].map(i => (
-            <div key={i}>
-              <div className="hui-skel-b" style={{ width:32, height:16, marginBottom:4 }} />
-              <div className="hui-skel-b" style={{ width:48, height:11 }} />
-            </div>
-          ))}
-        </div>
-        {/* Content Skeleton */}
-        <div style={{ marginTop:24 }}>
-          <div className="hui-skel-b" style={{ width:"100%", height:14, marginBottom:10 }} />
-          <div className="hui-skel-b" style={{ width:"85%", height:14, marginBottom:10 }} />
-          <div className="hui-skel-b" style={{ width:"70%", height:14 }} />
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ── useProfileType — lädt role/has_talent_profile aus DB ─────────
 // Gibt zurück: { resolved: bool, isTalent: bool }
