@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:20px;font-family:monospace;font-size:13px;">
+<div id="r">Loading...</div>
+<script type="module">
+const r=document.getElementById('r');
+let h="";
+try {
+  const v=await import("/assets/vendor-C_tQ69lJ.js");
+  h+="✅ vendor OK (keys:"+Object.keys(v).length+")<br>";
+} catch(e) {
+  h+="❌ vendor: "+e.message+"<br>";
+}
+try {
+  const i=await import("/assets/index-BaQZwdLy.js");
+  h+="✅ index OK (keys:"+Object.keys(i).length+")<br>";
+} catch(e) {
+  h+="❌ index: "+e.message+"<br>";
+  h+="<br>"+(e.stack||"").slice(0,800)+"<br>";
+}
+r.innerHTML=h;
+</script>
+</body></html>
