@@ -42,7 +42,7 @@ const DiagnosePage      = lazy(() => import('./pages/DiagnosePage'))
 const PlatformDashboard = lazy(() => import('./pages/PlatformDashboard'))
 const CreatorStudio     = lazy(() => import('./pages/CreatorStudio'))
 // DARK-PROFILE-REMOVE-001: WirkerProfilePage entfernt (2026-07-19)
-// Ersetzt durch PublicProfileRouteWrapper → TalentProfilePage/BasisProfilePage
+// Ersetzt durch PublicProfileRouteWrapper → TalentProfilePage/PublicProfilePage
 const WorkDetailPage    = lazy(() => import('./components/WorkDetailPage'))
 
 // ── Route Factory ──────────────────────────────────────────────────────────
@@ -503,9 +503,9 @@ function WorkDetailRouteWrapper() {
 }
 
 /* ── DARK-PROFILE-REMOVE-001: PublicProfileRouteWrapper (2026-07-19) ── */
-// Ersetzt WirkerProfilePage (dunkles Profil) durch TalentProfilePage/BasisProfilePage (helles Profil)
+// Ersetzt WirkerProfilePage (dunkles Profil) durch TalentProfilePage/PublicProfilePage (helles Profil)
 const TalentProfilePageLazy = lazy(() => import('./pages/TalentProfilePage.jsx'));
-const BasisProfilePageLazy  = lazy(() => import('./pages/BasisProfilePage.jsx'));
+const PublicProfilePageLazy  = lazy(() => import('./pages/PublicProfilePage.jsx'));
 
 function PublicProfileRouteWrapper() {
   const { username } = useParams();
@@ -540,7 +540,7 @@ function PublicProfileRouteWrapper() {
   );
 
   const isTalent = profileData.has_talent_profile || profileData.role === 'talent' || profileData.role === 'wirker';
-  const Component = isTalent ? TalentProfilePageLazy : BasisProfilePageLazy;
+  const Component = isTalent ? TalentProfilePageLazy : PublicProfilePageLazy;
   return (
     <Suspense fallback={
       <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', background:'#F7F5F0' }}>

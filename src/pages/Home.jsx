@@ -247,7 +247,7 @@ function HomeInner() {
   // Pattern: requestIdleCallback mit setTimeout-Fallback (wie useFeedStream.js)
   useEffect(() => {
     // Phase 1: Page-Dateien sofort vorladen (klein, kritischer Pfad)
-    import("./BasisProfilePage.jsx").catch(() => {});
+    import("./PublicProfilePage.jsx").catch(() => {});
     import("../components/profile/OrbSignatur.jsx").catch(() => {});
 
     // Phase 2: Section-Chunks + abhängige Pages verzögert vorladen (idle, nicht-blockierend)

@@ -1672,10 +1672,10 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   const [talentLocSearching, setTalentLocSearching] = useState(false);
   const talentLocDebounce = useRef(null);
 
-  // Preload BasisProfilePage + OrbSignatur beim Discover-Mount
+  // Preload PublicProfilePage + OrbSignatur beim Discover-Mount
   // → beide Chunks im Browser-Cache wenn Nutzer ein Profil antippt
   useEffect(() => {
-    import("./BasisProfilePage.jsx").catch(() => {});
+    import("./PublicProfilePage.jsx").catch(() => {});
     import("../components/profile/OrbSignatur.jsx").catch(() => {});
   }, []);
 
