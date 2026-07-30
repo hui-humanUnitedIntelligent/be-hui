@@ -58,8 +58,6 @@ import {
   HUIVerkaufIcon, HUIStatistikIcon,
   HUIFotoIcon, HUIAnsichtIcon, HUISettingsIcon, HUISchreibenIcon,
 } from "../design/icons/HuiSystemIcons.jsx";
-import { NotificationBadge }    from "../lib/useNotifications.jsx";
-import { useSavedPostsContext }  from "../context/SavedPostsContext.jsx";
 import { useContentPreview } from "../context/ContentPreviewContext.jsx";
 const AmbassadorStudioSection = React.lazy(() => import("../components/ambassador/AmbassadorStudioSection.jsx"));
 const HuiMomentSheet = React.lazy(() => import("../components/HuiMomentSheet.jsx"));
@@ -455,7 +453,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
   // Einzige Stelle im Baum, die useSavedPosts() aufruft (siehe
   // MerkenSection.jsx-Kommentar) -- count kommt direkt aus saved_posts,
   // keine zweite Berechnung/Query.
-  const { count: savedCount } = useSavedPostsContext();
+  // savedCount entfernt (2026-07-30): keine rote Zahl am Bookmark-Icon
   const [showSettings,    setShowSettings]    = useState(false);
   const [showProfilEditPage, setShowProfilEditPage] = useState(false);
   const [showStudio,        setShowStudio]        = useState(false);
@@ -921,17 +919,15 @@ export default function MyBasisProfile({ onClose, profileId }) {
             className="mbp-press-light"
             onClick={() => { setShowPublicPreview(false); setShowSettings(false); setShowMerken(true); }}
             title="Gemerkt"
-            aria-label={savedCount > 0 ? `Gemerkt, ${savedCount} gespeicherte Inhalte` : "Gemerkt"}
+            aria-label="Gemerkte Inhalte"
             style={{
               width:34, height:34, borderRadius:"50%",
               background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`,
               display:"flex", alignItems:"center", justifyContent:"center",
               color:T.ink, cursor:"pointer", touchAction:"manipulation", flexShrink:0,
-              position:"relative",
             }}
           >
             <HUIBookmarkIcon size={18} />
-            <NotificationBadge count={savedCount} />
           </button>
           <button
             className="mbp-press-light"
@@ -1310,6 +1306,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           <div style={{ padding:"16px" }}>
             <React.Suspense fallback={null}>
             <MerkenSection
+              onClose={() => setShowMerken(false)}
               onOpenProfile={(id) => {
                 setShowMerken(false);
                 if (typeof window !== "undefined" && window.__HUI_OPEN_PROFILE__) {
