@@ -385,6 +385,8 @@ export function useChatThread(chatId) {
       sender_id:    user.id,
       text:         text?.trim() || "",
       message_type: msgType,   // DB-Spalte heißt "message_type", nicht "msg_type"
+      media_url:    mediaUrl  || null,
+      media_type:   mediaType || null,
       read:         false,
       created_at:   new Date().toISOString(),
     };
@@ -491,16 +493,31 @@ export function useChatThread(chatId) {
     });
   }, [sendMessage]);
 
-  // deleteMessage — UI-only (is_deleted existiert nicht in DB)
-  // Markiert message lokal als gelöscht, kein DB-Update
+  // deleteMessage — Soft-Delete in DB + lokal
   const deleteMessage = useCallback(async (messageId) => {
-    // is_deleted existiert nicht in DB — nur lokal entfernen
-    setMessages(prev => prev.filter(m => m.id !== messageId));
+    setMessages(prev => prev.map(m =>
+      m.id === messageId ? { ...m, is_deleted: true, text: "Diese Nachricht wurde gelöscht." } : m
+    ));
+    await supabase.from("messages")
+      .update({ is_deleted: true, text: "Diese Nachricht wurde gelöscht." })
+      .eq("id", messageId);
+  }, []);
+
+  // editMessage — nur Text, nur eigene Nachrichten
+  const editMessage = useCallback(async (messageId, newText) => {
+    if (!newText?.trim()) return;
+    const edited = new Date().toISOString();
+    setMessages(prev => prev.map(m =>
+      m.id === messageId ? { ...m, text: newText.trim(), edited_at: edited } : m
+    ));
+    await supabase.from("messages")
+      .update({ text: newText.trim(), edited_at: edited })
+      .eq("id", messageId);
   }, []);
 
   return {
     messages, loading, sending,
-    sendMessage, sendSystemMessage, sendBookingUpdate, shareWork, deleteMessage,
+    sendMessage, sendSystemMessage, sendBookingUpdate, shareWork, deleteMessage, editMessage,
     reload: load,
   };
 }
