@@ -178,7 +178,7 @@ export function useProfileData(profileId, includePrivate = false) {
 
   // ── PHASE 2: Lazy-Content (moments, recommendations, works, exp) ──
   // Wird aufgerufen wenn der Nutzer eine Section öffnet/scrollt
-  const lazyInFlight = React.useRef(false);
+  const lazyInFlight = useRef(false);
   const loadLazy = useCallback(async () => {
     if (!profileId) return;
     if (lazyInFlight.current) return; // ref-guard: kein Stale-Closure-Problem
