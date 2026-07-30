@@ -233,7 +233,7 @@ export function useProfileData(profileId, includePrivate = false) {
             .from("beitraege")
             .select(MOMENTS_SELECT)
             .eq("user_id", profileId)
-            .in("status", ["public"])
+            .eq("visibility_scope", "public")
             .order("created_at", { ascending: false })
             .limit(16)
             .then(r => r)
