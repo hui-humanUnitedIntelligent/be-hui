@@ -51,6 +51,10 @@ const CSS = `
     border:none; background:none; font-family:inherit; transition:opacity .14s, transform .14s; }
   .cs-btn:active { opacity:.6; transform:scale(0.96); }
   .cs-textarea::placeholder { color: rgba(26,26,46,0.38); }
+  .cs-emoji-grid { display:grid; grid-template-columns:repeat(8,1fr); gap:2px; }
+  .cs-emoji-btn { font-size:22px; padding:5px 3px; border:none; background:none; cursor:pointer; border-radius:8px; text-align:center; transition:background .12s; line-height:1; }
+  .cs-emoji-btn:hover { background:rgba(13,196,181,0.12); }
+  .cs-emoji-picker { position:absolute; bottom:62px; left:0; right:0; background:#fff; border-top:1px solid rgba(26,26,46,0.08); padding:10px 12px 8px; box-shadow:0 -4px 20px rgba(26,26,46,0.12); max-height:210px; overflow-y:auto; animation:cs-overlay-in 150ms ease; z-index:2; }
 `;
 
 function fmtTime(iso) {
@@ -234,6 +238,8 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
   const [replyTargetId, setReplyTargetId] = useState(null);
   const [replyText, setReplyText] = useState("");
   const [submittingReply, setSubmittingReply] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const inputRef = useRef(null);
   const authorCache = useRef(new Map());
 
   const decorateAuthors = useCallback(async (rows) => {
@@ -499,32 +505,60 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
         </div>
 
         {/* Eingabebereich — fixiert unten */}
-        <div style={{
-          display:"flex", gap:10, alignItems:"flex-end", padding:"10px 16px",
-          paddingBottom:"max(12px, env(safe-area-inset-bottom))",
-          borderTop:`1px solid ${T.border}`, background:"rgba(252,253,252,0.98)",
-        }}>
-          <Avatar url={profile?.avatar_url} name={profile?.display_name || profile?.username} size={32} />
-          <textarea
-            value={input} onChange={e=>setInput(e.target.value)} rows={1}
-            className="cs-textarea"
-            placeholder="Teile deine Gedanken oder gib wertschätzendes Feedback …"
-            style={{
-              flex:1, border:`1px solid ${T.border}`, borderRadius:18, padding:"9px 14px",
-              fontSize:14, fontFamily:"inherit", color:T.ink, resize:"none", boxSizing:"border-box",
-              maxHeight:100, background:"#fff",
-            }}
-            onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSubmit(); } }}
-          />
-          <button className="cs-btn" disabled={!input.trim() || submitting} onClick={handleSubmit}
-            style={{
-              width:36, height:36, borderRadius:"50%", flexShrink:0,
-              background: input.trim() ? T.teal : "rgba(26,26,46,0.08)",
-              color: input.trim() ? "#fff" : T.inkFaint,
-              display:"flex", alignItems:"center", justifyContent:"center",
-            }}>
-            <HUISendenIcon size={16} />
-          </button>
+        <div style={{ position:"relative" }}>
+          {showEmojiPicker && (
+            <div className="cs-emoji-picker">
+              <div style={{ fontSize:11, fontWeight:700, color:T.inkFaint, marginBottom:6, letterSpacing:.5 }}>EMOJIS</div>
+              <div className="cs-emoji-grid">
+                {["😊","😂","🥰","😍","🤩","😎","🥳","🙌","👍","❤️","🔥","✨","💫","🌟","💡","🎉","🎊","🙏","💬","💭","🌿","🌱","💚","💙","💜","🤝","👏","🫶","😅","😇","🤔","💪","🦋","🌸","🌺","🍀","☀️","🌙","⭐","🎯","🎨","📚","💎","🚀","🌈","🎵","🎶","✅","🔑","🌍"].map(e => (
+                  <button key={e} className="cs-emoji-btn" onClick={() => {
+                    const ta = inputRef.current;
+                    if (ta) {
+                      const start = ta.selectionStart ?? input.length;
+                      const end = ta.selectionEnd ?? input.length;
+                      const newVal = input.slice(0, start) + e + input.slice(end);
+                      setInput(newVal);
+                      setTimeout(() => { ta.focus(); ta.selectionStart = ta.selectionEnd = start + e.length; }, 0);
+                    } else { setInput(v => v + e); }
+                  }}>{e}</button>
+                ))}
+              </div>
+            </div>
+          )}
+          <div style={{
+            display:"flex", gap:8, alignItems:"flex-end", padding:"10px 16px",
+            paddingBottom:"max(12px, env(safe-area-inset-bottom))",
+            borderTop:`1px solid ${T.border}`, background:"rgba(252,253,252,0.98)",
+          }}>
+            <Avatar url={profile?.avatar_url} name={profile?.display_name || profile?.username} size={32} />
+            <button
+              className="cs-btn"
+              onClick={() => setShowEmojiPicker(v => !v)}
+              style={{ fontSize:20, lineHeight:1, padding:"6px 2px", flexShrink:0, opacity: showEmojiPicker ? 1 : 0.55 }}
+            >😊</button>
+            <textarea
+              ref={inputRef}
+              value={input} onChange={e=>setInput(e.target.value)} rows={1}
+              className="cs-textarea"
+              placeholder="Teile deine Gedanken …"
+              style={{
+                flex:1, border:`1px solid ${T.border}`, borderRadius:18, padding:"9px 14px",
+                fontSize:14, fontFamily:"inherit", color:T.ink, resize:"none", boxSizing:"border-box",
+                maxHeight:100, background:"#fff",
+              }}
+              onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); setShowEmojiPicker(false); handleSubmit(); } }}
+              onFocus={() => setShowEmojiPicker(false)}
+            />
+            <button className="cs-btn" disabled={!input.trim() || submitting} onClick={() => { setShowEmojiPicker(false); handleSubmit(); }}
+              style={{
+                width:36, height:36, borderRadius:"50%", flexShrink:0,
+                background: input.trim() ? T.teal : "rgba(26,26,46,0.08)",
+                color: input.trim() ? "#fff" : T.inkFaint,
+                display:"flex", alignItems:"center", justifyContent:"center",
+              }}>
+              <HUISendenIcon size={16} />
+            </button>
+          </div>
         </div>
       </div>
     </div>
