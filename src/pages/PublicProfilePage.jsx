@@ -527,7 +527,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
           <>
             <SectionCard icon={<HUITalentIcon size={16}/>} title="Talente & Angebote" delay={80}>
               <React.Suspense fallback={<div style={{display:"flex",flexDirection:"column",gap:8}}>{[1,2].map(i=><Skel key={i} w="100%" h={72} r={T.r12}/>)}</div>}>
-                <TalentSection profile={profile} isOwner={false} loading={loading} />
+                <TalentSection profile={profile} isOwner={false} loading={loading} noPadding />
               </React.Suspense>
             </SectionCard>
             <Gap h={12}/>

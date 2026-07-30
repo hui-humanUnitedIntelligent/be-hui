@@ -37,7 +37,7 @@ function normalizeSkills(raw) {
   return raw.map(s => typeof s === "string" ? { icon:"✨", label:s } : s).filter(s => s?.label);
 }
 
-export function TalentSection({ profile, isOwner = false, loading = false, onChange }) {
+export function TalentSection({ profile, isOwner = false, loading = false, onChange, noPadding = false }) {
   // skills_final aus useProfileData bevorzugen, Fallback auf profile.skills
   const skills = normalizeSkills(profile?.skills_final ?? profile?.skills ?? []);
   // ── SPRINT D.2 TRACE
@@ -55,7 +55,7 @@ export function TalentSection({ profile, isOwner = false, loading = false, onCha
 
   if (loading) {
     return (
-      <div style={{ padding:`0 ${T.px}px` }}>
+      <div style={{ padding: noPadding ? 0 : `0 ${T.px}px` }}>
         <style>{`@keyframes ps-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
         <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
           {[55,45,60,50,40].map((w,i) => (
@@ -69,7 +69,7 @@ export function TalentSection({ profile, isOwner = false, loading = false, onCha
   }
 
   return (
-    <div style={{ padding:`0 ${T.px}px` }}>
+    <div style={{ padding: noPadding ? 0 : `0 ${T.px}px` }}>
       <style>{`@keyframes ps-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
       {isOwner && (
         <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:8 }}>
