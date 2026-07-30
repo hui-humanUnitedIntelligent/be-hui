@@ -463,11 +463,11 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
               </div>
 
               {/* RECHTS: Ort, Website, Follower */}
-              <div style={{ display:"flex", flexDirection:"column", gap:5, alignItems:"flex-end", flexShrink:0, maxWidth:"48%", marginTop:0 }}>
+              <div style={{ display:"flex", flexDirection:"column", gap:5, alignItems:"flex-start", flexShrink:0, maxWidth:"48%", marginTop:0 }}>
                 {profile.location_final && (
                   <div style={{ display:"flex", alignItems:"center", gap:5, fontSize:12, color:T.inkSoft }}>
                     <HUILocationIcon size={12} style={{ color:T.coral, flexShrink:0 }}/>
-                    <span style={{ textAlign:"right", lineHeight:1.3 }}>{profile.location_final}</span>
+                    <span style={{ textAlign:"left", lineHeight:1.3 }}>{profile.location_final}</span>
                   </div>
                 )}
                 {profile.website && (
@@ -475,7 +475,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
                     <span style={{ fontSize:11, flexShrink:0 }}>🔗</span>
                     <a href={profile.website.startsWith("http") ? profile.website : "https://"+profile.website}
                       target="_blank" rel="noopener noreferrer"
-                      style={{ color:T.teal, fontWeight:600, textDecoration:"none", textAlign:"right" }}
+                      style={{ color:T.teal, fontWeight:600, textDecoration:"none", textAlign:"left" }}
                       onClick={e => e.stopPropagation()}>
                       {profile.website.replace(/^https?:\/\//, "")}
                     </a>
