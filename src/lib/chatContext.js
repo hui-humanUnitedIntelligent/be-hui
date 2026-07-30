@@ -294,7 +294,8 @@ export function useChatThread(chatId) {
         .from("messages")
         .select(`
           id, text, sender_id, sender_name, sender_img,
-          created_at, updated_at, read, is_read, message_type
+          created_at, updated_at, read, is_read, message_type,
+          media_url, media_type, is_deleted
         `)
         .eq("chat_id", chatId)
         .order("created_at", { ascending: true })
