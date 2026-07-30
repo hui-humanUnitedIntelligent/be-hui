@@ -115,7 +115,7 @@ function NavBar({ onBack = () => {}, title = "Öffentliches Profil" }) {
       <button className="ppp-press" onClick={onBack} aria-label="Zurück" style={{
         width:36, height:36, borderRadius:"50%",
         background:T.bgCard, border:`1px solid ${T.border}`,
-        display:"flex", alignItems:"center", justifyContent:"center",
+        display:"flex", alignItems:"center", justifyContent:"space-between",
         fontSize:18, cursor:"pointer", touchAction:"manipulation",
         boxShadow:T.card, color:T.ink, fontFamily:"sans-serif",
       }}>‹</button>
@@ -188,7 +188,7 @@ function ProfileHero({ profile = {}, loading = false }) {
         ) : (
           <div style={{
             width:"100%", height:"100%", background:T.tealSoft,
-            display:"flex", alignItems:"center", justifyContent:"center",
+            display:"flex", alignItems:"center", justifyContent:"space-between",
             fontSize:26, color:T.teal,
           }}>
             {(profile?.display_name || "?")[0]?.toUpperCase() || "?"}
@@ -256,7 +256,7 @@ function RelationButtons({ profileId = "", currentUserId = "", profile = {} }) {
         color: watching ? "#fff" : T.tealDeep,
         fontWeight:700, fontSize:14, cursor:"pointer",
         touchAction:"manipulation", fontFamily:"inherit",
-        display:"flex", alignItems:"center", justifyContent:"center", gap:7,
+        display:"flex", alignItems:"center", justifyContent:"space-between", gap:7,
         boxShadow: watching ? T.glow : "none",
         transition:"all .18s ease", opacity: watchLoading ? 0.6 : 1,
       }}>
@@ -266,7 +266,7 @@ function RelationButtons({ profileId = "", currentUserId = "", profile = {} }) {
       <button onClick={handleChat} className="ppp-press" style={{
         width:42, height:42, borderRadius:"50%",
         background:T.bgCard, border:`1.5px solid ${T.border}`,
-        display:"flex", alignItems:"center", justifyContent:"center",
+        display:"flex", alignItems:"center", justifyContent:"space-between",
         cursor:"pointer", touchAction:"manipulation",
         boxShadow:T.card, color:T.ink, flexShrink:0,
       }} aria-label="Nachricht senden">
@@ -375,7 +375,7 @@ function ErrorView({ onClose = () => {} }) {
     <div style={{
       position:"fixed", inset:0, zIndex:10500, background:T.bg,
       display:"flex", flexDirection:"column",
-      alignItems:"center", justifyContent:"center", gap:16, padding:32,
+      alignItems:"center", justifyContent:"space-between", gap:16, padding:32,
     }}>
       <span style={{ fontSize:40 }}>🔍</span>
       <p style={{ fontSize:16, fontWeight:700, color:T.ink, textAlign:"center", margin:0 }}>
@@ -464,7 +464,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
 
               {/* RECHTS: vertikal zentriert zwischen Oberkante Name und Unterkante Badge */}
               <div style={{
-                display:"flex", flexDirection:"column", justifyContent:"center",
+                display:"flex", flexDirection:"column", justifyContent:"space-between",
                 gap:5, alignItems:"flex-start",
                 flexShrink:0, width:"45%",
               }}>
