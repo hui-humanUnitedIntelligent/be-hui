@@ -59,8 +59,8 @@ export function TalentSection({ profile, isOwner = false, loading = false, onCha
         <style>{`@keyframes ps-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
         <div style={{ fontSize:15, fontWeight:800, color:T.ink, marginBottom:10 }}>Meine Talente & Angebote</div>
         <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
-          {[100,80,110,90,70].map((w,i) => (
-            <div key={i} style={{ width:w, height:32, borderRadius:T.r99,
+          {[55,45,60,50,40].map((w,i) => (
+            <div key={i} style={{ width:w, height:20, borderRadius:T.r99,
               background:"linear-gradient(90deg,#ede9e2 25%,#f7f5f0 50%,#ede9e2 75%)",
               backgroundSize:"200% 100%", animation:"ps-shimmer 1.4s ease-in-out infinite" }}/>
           ))}
@@ -78,7 +78,7 @@ export function TalentSection({ profile, isOwner = false, loading = false, onCha
         </div>
         {isOwner && (
           <button onClick={() => setShowSheet(true)}
-            style={{ background:"none", border:"none", padding:0, fontSize:12, color:T.teal,
+            style={{ background:"none", border:"none", padding:0, fontSize:11, color:T.teal,
               fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>
             Bearbeiten ›
           </button>
@@ -90,9 +90,9 @@ export function TalentSection({ profile, isOwner = false, loading = false, onCha
           isOwner ? (
             <button onClick={() => setShowSheet(true)} style={{
               display:"inline-flex", alignItems:"center", gap:6,
-              padding:"10px 16px", borderRadius:T.r99,
+              padding:"3px 8px", borderRadius:T.r99,
               background:T.bgCard, border:`1.5px dashed ${T.borderMid}`,
-              fontSize:13, fontWeight:600, color:T.inkSoft,
+              fontSize:11, fontWeight:600, color:T.inkSoft,
               cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
             }}>
               <span style={{ fontSize:16 }}>+</span> Talente hinzufügen
@@ -113,19 +113,19 @@ export function TalentSection({ profile, isOwner = false, loading = false, onCha
             {skills.slice(0,10).map((sk,i) => (
               <div key={i} style={{
                 display:"inline-flex", alignItems:"center", gap:5,
-                padding:"7px 14px", borderRadius:T.r99,
+                padding:"3px 8px", borderRadius:T.r99,
                 background:T.bgCard, border:`1px solid ${T.tealMid}`,
-                fontSize:13, fontWeight:600, color:T.ink, boxShadow:T.card,
+                fontSize:11, fontWeight:600, color:T.ink, boxShadow:T.card,
               }}>
-                <span style={{ fontSize:13 }}>{sk.icon || "✨"}</span>{sk.label}
+                <span style={{ fontSize:11 }}>{sk.icon || "✨"}</span>{sk.label}
               </div>
             ))}
             {isOwner && (
               <button onClick={() => setShowSheet(true)} style={{
                 display:"inline-flex", alignItems:"center", gap:5,
-                padding:"7px 14px", borderRadius:T.r99,
+                padding:"3px 8px", borderRadius:T.r99,
                 background:"transparent", border:`1.5px dashed ${T.borderMid}`,
-                fontSize:12.5, fontWeight:600, color:T.inkSoft,
+                fontSize:11, fontWeight:600, color:T.inkSoft,
                 cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
               }}>
                 <span style={{ fontSize:14 }}>+</span> Weiteres hinzufügen
