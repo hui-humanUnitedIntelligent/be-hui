@@ -1336,24 +1336,6 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
           </React.Suspense>
         )}
 
-        {/* ── 2. Action Buttons — nur Besucher ─────────────── */}
-        {!isOwner && (
-          <div style={{padding:`0 ${T.px}px`}}>
-            <ActionButtons
-              profile={profile}
-              currentUserId={user?.id}
-              loading={loading}
-              onOpenChat={handleOpenChat}
-              onOpenKompass={({ isWatching: iw, toggleWatch: tw }) => {
-                setKompassWatchLocal(iw);
-                kompassToggleRef.current = tw;
-                setShowKompassSheet(true);
-              }}
-            />
-          </div>
-        )}
-        <Gap h={20}/>
-
         {/* ── Verbinden + Folgen — nur für Fremdprofile ── */}
         {!isOwner && (
           <ProfileRelationButtons
@@ -1476,7 +1458,11 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
           <>
             <AbschlussBar profile={profile} loading={loading}/>
             <Gap h={16}/>
-            <AbschlussButtons profile={profile} currentUserId={user?.id} onOpenChat={handleOpenChat}/>
+            <ProfileRelationButtons
+              profileId={profileId || profile?.id}
+              currentUserId={user?.id}
+              profile={profile}
+            />
           </>
         )}
         <Gap h={40}/>
