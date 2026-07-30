@@ -26,6 +26,7 @@ const HuiStudio      = React.lazy(() => import("../components/studio/HuiStudio.j
 import ProfilBearbeitenModal from "../components/studio/ProfilBearbeitenModal.jsx";
 // Sprint D: Datenlayer
 import { useProfileData } from "../hooks/useProfileData.js";
+import ProfileRelationButtons from "../components/shared/ProfileRelationButtons.jsx";
 // Sprint D: Unified Sections (Sprint C)
 import { ProfileHeader }           from "../components/profile/ProfileHeader.jsx";
 import { NAV_CLEARANCE_CSS } from "../components/home/navigation/navigationGeometry.js";
@@ -1352,6 +1353,16 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
           </div>
         )}
         <Gap h={20}/>
+
+        {/* ── Verbinden + Folgen — nur für Fremdprofile ── */}
+        {!isOwner && (
+          <ProfileRelationButtons
+            profileId={profileId || profile?.id}
+            currentUserId={user?.id}
+            profile={profile}
+          />
+        )}
+        <Gap h={8}/>
 
         {/* ── 3. Schwerpunkt + Stats (unverändert) ─────────── */}
         <SchwerpunktStatsBlock

@@ -22,6 +22,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useProfileData } from "../hooks/useProfileData.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
 import { useHome }   from "../components/home/HomeShell.jsx";
+import ProfileRelationButtons from "../components/shared/ProfileRelationButtons.jsx";
 const SettingsModal  = React.lazy(() => import("../components/settings/SettingsModal.jsx"));
 const HuiStudio      = React.lazy(() => import("../components/studio/HuiStudio.jsx"));
 import { supabase }   from "../lib/supabaseClient.js";
@@ -606,6 +607,15 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
           />
         </React.Suspense>
         <Gap h={24}/>
+
+        {/* Verbinden + Folgen — nur für Fremdprofile */}
+        {!isOwner && (
+          <ProfileRelationButtons
+            profileId={resolvedId || profile?.id}
+            currentUserId={user?.id}
+            profile={profile}
+          />
+        )}
 
         {/* 11. Social context bar (Basis-spezifisch, followCounts) */}
         <SocialContextBar loading={loading} followCounts={followCounts}/>

@@ -274,44 +274,54 @@ function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onF
   // Verbindungs-Label: gegenseitig folgend = verbunden
   const connected = isFollowing && isConnected;
 
+  // Kurzname für Button-Labels
+  const shortName = (displayName || "").split(" ")[0] || displayName;
+
   return (
-    <div style={{ display:"flex", flexDirection:"column", gap:10, padding:`0 ${T.px}px`, marginBottom:4 }}>
-      {/* Verbinden Button */}
+    <div style={{ display:"flex", flexDirection:"row", gap:8, padding:`0 ${T.px}px`, marginBottom:4 }}>
+      {/* Verbinden Button — kompakt, teal gefüllt */}
       <button onClick={handleChat} className="ppp-press" style={{
-        width:"100%", height:48, borderRadius:T.r99,
+        flex:1, height:36, borderRadius:T.r99,
         background: connected ? T.bgCard : T.teal,
         border: connected ? `1.5px solid ${T.border}` : "none",
         color: connected ? T.inkSoft : "#fff",
-        fontWeight:700, fontSize:14, cursor:"pointer",
+        fontWeight:600, fontSize:12, cursor:"pointer",
         touchAction:"manipulation", fontFamily:"inherit",
-        display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+        display:"flex", alignItems:"center", justifyContent:"center", gap:6,
         boxShadow: connected ? T.card : T.glow,
-        transition:"all .18s ease",
+        transition:"all .18s ease", whiteSpace:"nowrap", overflow:"hidden",
+        paddingLeft:10, paddingRight:12,
       }}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0 }}>
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
         </svg>
-        {connected ? "Verbindung auflösen" : `Verbinde dich mit ${displayName}`}
+        <span style={{ overflow:"hidden", textOverflow:"ellipsis" }}>
+          {connected ? "Verbunden" : `Verbinden`}
+        </span>
       </button>
 
-      {/* Folgen Button */}
+      {/* Folgen Button — kompakt, outline */}
       <button onClick={handleFollow} disabled={followLoading} className="ppp-press" style={{
-        width:"100%", height:48, borderRadius:T.r99,
+        flex:1, height:36, borderRadius:T.r99,
         background: isFollowing ? T.bgCard : "transparent",
         border: `1.5px solid ${isFollowing ? T.border : T.tealDeep}`,
         color: isFollowing ? T.inkSoft : T.tealDeep,
-        fontWeight:700, fontSize:14, cursor:"pointer",
+        fontWeight:600, fontSize:12, cursor:"pointer",
         touchAction:"manipulation", fontFamily:"inherit",
-        display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+        display:"flex", alignItems:"center", justifyContent:"center", gap:6,
         transition:"all .18s ease", opacity: followLoading ? 0.6 : 1,
+        whiteSpace:"nowrap", overflow:"hidden",
+        paddingLeft:10, paddingRight:12,
       }}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0 }}>
           {isFollowing
             ? <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>
-            : <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></>
+            : <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></>
           }
         </svg>
-        {isFollowing ? `Du folgst ${displayName}` : `${displayName} folgen`}
+        <span style={{ overflow:"hidden", textOverflow:"ellipsis" }}>
+          {isFollowing ? `Gefolgt` : `${shortName} folgen`}
+        </span>
       </button>
     </div>
   );
