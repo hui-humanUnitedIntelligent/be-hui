@@ -2,22 +2,43 @@
 <html><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:20px;font-family:monospace;font-size:13px;">
 <div id="r">Loading...</div>
+<script>
+// Catch ALL unhandled errors
+window.addEventListener('error', function(e) {
+  document.getElementById('r').innerHTML += "<br>UNHANDLED ERROR: " + (e.error?.message || e.message) + "<br>" + ((e.error?.stack || e.error || "").toString().slice(0,800));
+});
+window.addEventListener('unhandledrejection', function(e) {
+  document.getElementById('r').innerHTML += "<br>UNHANDLED REJECTION: " + (e.reason?.message || e.reason) + "<br>" + ((e.reason?.stack || "").toString().slice(0,800));
+});
+</script>
 <script type="module">
 const r=document.getElementById('r');
-let h="";
+r.innerHTML = "Starting import test...<br>";
+
+// First test vendor
 try {
-  const v=await import("/assets/vendor-C_tQ69lJ.js");
-  h+="✅ vendor OK (keys:"+Object.keys(v).length+")<br>";
+  const v = await import("/assets/vendor-C_tQ69lJ.js");
+  r.innerHTML += "✅ vendor OK<br>";
 } catch(e) {
-  h+="❌ vendor: "+e.message+"<br>";
+  r.innerHTML += "❌ vendor: " + e.message + "<br>";
 }
-try {
-  const i=await import("/assets/index-BaQZwdLy.js");
-  h+="✅ index OK (keys:"+Object.keys(i).length+")<br>";
-} catch(e) {
-  h+="❌ index: "+e.message+"<br>";
-  h+="<br>"+(e.stack||"").slice(0,800)+"<br>";
-}
-r.innerHTML=h;
+
+// Now test index with detailed error capture
+r.innerHTML += "Importing index...<br>";
+
+// Set up a more detailed error handler for the import
+const importPromise = import("/assets/index-BaQZwdLy.js");
+
+importPromise.then(m => {
+  r.innerHTML += "✅ index OK (keys:" + Object.keys(m).length + ")<br>";
+}).catch(e => {
+  r.innerHTML += "❌ index FAILED<br>";
+  r.innerHTML += "name: " + e.name + "<br>";
+  r.innerHTML += "message: " + e.message + "<br>";
+  r.innerHTML += "stack: " + (e.stack || "none").slice(0, 800) + "<br>";
+  r.innerHTML += "cause: " + (e.cause || "none") + "<br>";
+  r.innerHTML += "typeof e: " + typeof e + "<br>";
+  r.innerHTML += "JSON: " + JSON.stringify(e, Object.getOwnPropertyNames(e)).slice(0, 800) + "<br>";
+});
 </script>
 </body></html>
