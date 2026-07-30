@@ -57,8 +57,7 @@ export function TalentSection({ profile, isOwner = false, loading = false, onCha
     return (
       <div style={{ padding:`0 ${T.px}px` }}>
         <style>{`@keyframes ps-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
-        <div style={{ fontSize:15, fontWeight:800, color:T.ink, marginBottom:10 }}>Meine Talente & Angebote</div>
-        <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+        <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
           {[55,45,60,50,40].map((w,i) => (
             <div key={i} style={{ width:w, height:20, borderRadius:T.r99,
               background:"linear-gradient(90deg,#ede9e2 25%,#f7f5f0 50%,#ede9e2 75%)",
@@ -72,20 +71,17 @@ export function TalentSection({ profile, isOwner = false, loading = false, onCha
   return (
     <div style={{ padding:`0 ${T.px}px` }}>
       <style>{`@keyframes ps-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
-        <div style={{ fontSize:15, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>
-          Meine Talente & Angebote
-        </div>
-        {isOwner && (
+      {isOwner && (
+        <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:8 }}>
           <button onClick={() => setShowSheet(true)}
             style={{ background:"none", border:"none", padding:0, fontSize:11, color:T.teal,
               fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>
             Bearbeiten ›
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
-      <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+      <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
         {skills.length === 0 ? (
           isOwner ? (
             <button onClick={() => setShowSheet(true)} style={{
