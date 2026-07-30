@@ -94,6 +94,7 @@ function Avatar({ url, name, size = 34 }) {
 function CommentMenuPortal({ isOwn, menuOpen, setMenuOpen, confirmDelete, setConfirmDelete,
     reportMenu, setReportMenu, onEdit, onDelete, onReport, T }) {
   const btnRef = useRef(null);
+  const dropdownRef = useRef(null);
   const [pos, setPos] = useState({ top:0, right:0 });
 
   const handleOpen = () => {
@@ -105,21 +106,25 @@ function CommentMenuPortal({ isOwn, menuOpen, setMenuOpen, confirmDelete, setCon
     setMenuOpen(v => !v);
   };
 
-  // Außerhalb klicken schließt Menü
+  // Außerhalb klicken schließt Menü — ABER nicht wenn ins Dropdown selbst geklickt wird
   useEffect(() => {
     if (!menuOpen) return;
     const handler = (e) => {
-      if (btnRef.current && !btnRef.current.contains(e.target)) {
+      // Prüfe BOTH: Button UND Dropdown-Portal
+      const inBtn = btnRef.current && btnRef.current.contains(e.target);
+      const inDropdown = dropdownRef.current && dropdownRef.current.contains(e.target);
+      if (!inBtn && !inDropdown) {
         setMenuOpen(false);
         setConfirmDelete(false);
         setReportMenu(false);
       }
     };
-    document.addEventListener("mousedown", handler);
-    document.addEventListener("touchstart", handler);
+    // mouseup statt mousedown — feuert NACH dem Button-Click, nicht davor
+    document.addEventListener("mouseup", handler);
+    document.addEventListener("touchend", handler);
     return () => {
-      document.removeEventListener("mousedown", handler);
-      document.removeEventListener("touchstart", handler);
+      document.removeEventListener("mouseup", handler);
+      document.removeEventListener("touchend", handler);
     };
   }, [menuOpen, setMenuOpen, setConfirmDelete, setReportMenu]);
 
@@ -139,7 +144,7 @@ function CommentMenuPortal({ isOwn, menuOpen, setMenuOpen, confirmDelete, setCon
       </button>
 
       {menuOpen && createPortal(
-        <div style={{ position:"fixed", bottom: pos.bottom, right: pos.right,
+        <div ref={dropdownRef} style={{ position:"fixed", bottom: pos.bottom, right: pos.right,
           background:"#fff", borderRadius:10,
           boxShadow:"0 4px 16px rgba(26,26,46,0.18)",
           overflow:"hidden", zIndex:99999, minWidth:140 }}>
