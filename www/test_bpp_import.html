@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>BPP Import Test</title></head>
+<body style="margin:0;padding:20px;font-family:monospace;font-size:14px;background:#fff;">
+<div id="result" style="padding:20px;">Testing import...</div>
+<div id="deps" style="padding:20px;color:blue;"></div>
+<script type="module">
+const r = document.getElementById('result');
+const d = document.getElementById('deps');
+
+// Test each dependency import
+const deps = [
+  "./vendor-C_tQ69lJ.js",
+  "./index-BaQZwdLy.js",
+  "./ProfileHeader-pD2q-QQx.js",
+  "./HuiStudio-K9E6FpwF.js",
+  "./AboutSection-DL5uawvm.js",
+  "./LocationSection-C_qMV2Dq.js",
+  "./SupportPage-BImoyfVc.js",
+  "./categories-B8ybQ6d6.js",
+];
+
+for (const dep of deps) {
+  try {
+    await import(dep);
+    d.innerHTML += `✅ ${dep}<br>`;
+  } catch (e) {
+    d.innerHTML += `❌ ${dep}: ${e.message}<br>`;
+  }
+}
+
+d.innerHTML += "<br>--- Main import ---<br>";
+
+try {
+  const mod = await import("/assets/BasisProfilePage-D_tRAfFb.js");
+  r.innerHTML = "✅ BPP IMPORT OK<br>Keys: " + Object.keys(mod).join(", ") + "<br>default type: " + typeof mod.default;
+} catch (e) {
+  r.innerHTML = "❌ BPP IMPORT FAILED<br>" + e.message + "<br><br>" + (e.stack || "").slice(0, 800);
+}
+</script>
+</body>
+</html>
