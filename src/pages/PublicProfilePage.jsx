@@ -31,13 +31,13 @@ import { notifyWatcher } from "../lib/notificationService.js";
 
 
 // Lazy Sections — alle read-only
-const TalentSection          = React.lazy(() => import("../components/profile/sections/TalentSection.jsx").then(m => ({ default: m.TalentSection })));
-const WorksSection           = React.lazy(() => import("../components/profile/sections/WorksSection.jsx").then(m => ({ default: m.WorksSection })));
-const ExperiencesSection     = React.lazy(() => import("../components/profile/sections/ExperiencesSection.jsx").then(m => ({ default: m.ExperiencesSection })));
-const MomentsSection         = React.lazy(() => import("../components/profile/sections/MomentsSection.jsx").then(m => ({ default: m.MomentsSection })));
-const RecommendationsSection = React.lazy(() => import("../components/profile/sections/RecommendationsSection.jsx").then(m => ({ default: m.RecommendationsSection })));
-const LocationSection        = React.lazy(() => import("../components/profile/sections/LocationSection.jsx").then(m => ({ default: m.LocationSection })));
-const OrbSignatur            = React.lazy(() => import("../components/profile/OrbSignatur.jsx").then(m => ({ default: m.OrbSignatur })));
+import { TalentSection }      from "../components/profile/sections/TalentSection.jsx";
+import { WorksSection }       from "../components/profile/sections/WorksSection.jsx";
+import { ExperiencesSection } from "../components/profile/sections/ExperiencesSection.jsx";
+import { MomentsSection }     from "../components/profile/sections/MomentsSection.jsx";
+import { RecommendationsSection } from "../components/profile/sections/RecommendationsSection.jsx";
+import { LocationSection }    from "../components/profile/sections/LocationSection.jsx";
+import { OrbSignatur }        from "../components/profile/OrbSignatur.jsx";
 
 // ── Design Tokens (HUI-Standard) ─────────────────────────────────
 const T = {
@@ -171,9 +171,7 @@ function ProfileHero({ profile = {}, loading = false }) {
           <img src={cover} alt="" style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} loading="lazy" />
         )}
         {!cover && (
-          <React.Suspense fallback={null}>
-            <OrbSignatur style={{ position:"absolute", inset:0 }} compact />
-          </React.Suspense>
+          <OrbSignatur style={{ position:"absolute", inset:0 }} compact />
         )}
       </div>
       <div style={{
@@ -526,9 +524,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
         {(profile?.has_talent_profile || profile?.is_talent) && (
           <>
             <SectionCard icon={<HUITalentIcon size={16}/>} title="Talente & Angebote" delay={80}>
-              <React.Suspense fallback={<div style={{display:"flex",flexDirection:"column",gap:8}}>{[1,2].map(i=><Skel key={i} w="100%" h={72} r={T.r12}/>)}</div>}>
                 <TalentSection profile={profile} isOwner={false} loading={loading} noPadding />
-              </React.Suspense>
             </SectionCard>
             <Gap h={12}/>
           </>
@@ -541,9 +537,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
               {loadingLazy ? (
                 <div style={{display:"flex",gap:10,overflowX:"auto"}}>{[1,2,3].map(i=><Skel key={i} w={120} h={120} r={T.r12}/>)}</div>
               ) : works.length > 0 ? (
-                <React.Suspense fallback={<div style={{display:"flex",gap:10,overflowX:"auto"}}>{[1,2,3].map(i=><Skel key={i} w={120} h={120} r={T.r12}/>)}</div>}>
                   <WorksSection works={works} profile={profile} isOwner={false} loading={false} />
-                </React.Suspense>
               ) : (
                 <div style={{ padding:"16px 0", textAlign:"center", color:T.inkFaint, fontSize:13 }}>
                   🎨 Noch keine Werke vorhanden
@@ -561,9 +555,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
               {loadingLazy ? (
                 <div style={{display:"flex",gap:8,overflowX:"auto"}}>{[1,2,3].map(i=><Skel key={i} w={100} h={100} r={T.r12}/>)}</div>
               ) : moments.length > 0 ? (
-                <React.Suspense fallback={<div style={{display:"flex",gap:8,overflowX:"auto"}}>{[1,2,3].map(i=><Skel key={i} w={100} h={100} r={T.r12}/>)}</div>}>
                   <MomentsSection moments={moments} isOwner={false} loading={false} />
-                </React.Suspense>
               ) : (
                 <div style={{ padding:"16px 0", textAlign:"center", color:T.inkFaint, fontSize:13 }}>
                   💬 Noch keine Momente geteilt
@@ -581,9 +573,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
               {loadingLazy ? (
                 <div style={{display:"flex",gap:10,overflowX:"auto"}}>{[1,2].map(i=><Skel key={i} w={180} h={110} r={T.r12}/>)}</div>
               ) : experiences.length > 0 ? (
-                <React.Suspense fallback={<div style={{display:"flex",gap:10,overflowX:"auto"}}>{[1,2].map(i=><Skel key={i} w={180} h={110} r={T.r12}/>)}</div>}>
                   <ExperiencesSection experiences={experiences} isOwner={false} loading={false} />
-                </React.Suspense>
               ) : (
                 <div style={{ padding:"16px 0", textAlign:"center", color:T.inkFaint, fontSize:13 }}>
                   ⭐ Noch keine Erlebnisse angeboten
@@ -598,9 +588,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
         {profile?.location_final && (
           <>
             <SectionCard icon={<HUILocationIcon size={16}/>} title="Standort" delay={160}>
-              <React.Suspense fallback={<Skel w="100%" h={80} r={T.r12}/>}>
                 <LocationSection profile={profile} isOwner={false} loading={loading} />
-              </React.Suspense>
             </SectionCard>
             <Gap h={12}/>
           </>
@@ -610,9 +598,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
         {(recommendations.length > 0 || loadingLazy) && (
           <>
             <SectionCard icon={<HUIImpactIcon size={16}/>} title="Empfehlungen" delay={180}>
-              <React.Suspense fallback={<Skel w="100%" h={60} r={T.r12}/>}>
                 <RecommendationsSection recommendations={recommendations} isOwner={false} loading={loadingLazy} />
-              </React.Suspense>
             </SectionCard>
             <Gap h={12}/>
           </>
