@@ -717,8 +717,8 @@ export const FeedActions = memo(function FeedActions({
               save    → Merken */}
         <ActionBtn Icon={HUIHeartIcon}    count={r.inspireCount||null} active={r.inspired} activeColor={T.coral}  inactiveColor={T.coral}  variant="resonanz"    onClick={() => { haptic(r.inspired ? "selection" : "light"); onReaction?.("inspire"); }} />
         <ActionBtn Icon={HUIChatIcon}     count={r.commentCount||null} active={false}      activeColor={T.teal}  inactiveColor={T.teal}   variant="austauschen" onClick={() => { haptic("light"); onReaction?.("touch"); }} />
-        <ActionBtn Icon={HUIShareIcon}    activeColor={T.teal}  inactiveColor={T.teal}   variant="weitergeben" onClick={() => { haptic("light"); onShare?.(); }} />
-        <ActionBtn Icon={HUIBookmarkIcon} active={r.saved} activeColor={"#F59E0B"} inactiveColor={"#F59E0B"} variant="merken" onClick={() => { haptic(r.saved ? "selection" : "light"); onReaction?.("save"); }} />
+        <ActionBtn Icon={HUIShareIcon}    count={r.shareCount||null} activeColor={T.teal}  inactiveColor={T.teal}   variant="weitergeben" onClick={() => { haptic("light"); onShare?.(); }} />
+        <ActionBtn Icon={HUIBookmarkIcon} count={r.saveCount||null} active={r.saved} activeColor={"#F59E0B"} inactiveColor={"#F59E0B"} variant="merken" onClick={() => { haptic(r.saved ? "selection" : "light"); onReaction?.("save"); }} />
         {extraActions || null}
       </div>
       {/* Resonanz-Zeile — "Maja und 18 weitere wurden inspiriert." */}

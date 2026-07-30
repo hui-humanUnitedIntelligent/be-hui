@@ -171,7 +171,17 @@ export function useSingleReaction(postId, postType = "post", authorId = null, po
     }
   }, [user?.id, postId, postType, authorId, postSnapshot, myTypes, loading]);
 
-  return { counts, myTypes, toggle, isLoggedIn: !!user?.id };
+  // SHARE-COUNT: einmaliges INSERT, kein Toggle (Teilen ist keine Umkehraktion)
+  const trackShare = useCallback(async () => {
+    if (!user?.id || !postId) return;
+    // Optimistic: sofort hochzählen
+    setCounts(prev => ({ ...prev, share: (prev.share || 0) + 1 }));
+    await supabase.from("post_reactions").insert(
+      { post_id: postId, post_type: postType, user_id: user.id, type: "share" }
+    );
+  }, [user?.id, postId, postType]);
+
+  return { counts, myTypes, toggle, trackShare, isLoggedIn: !!user?.id };
 }
 
 // ── useSavedPosts ─────────────────────────────────────────────

@@ -439,7 +439,7 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
   }, [visible]);
 
   // Hook-Gating: kein RPC / kein SELECT solange nicht sichtbar
-  const { toggle, myTypes, counts } = useSingleReaction(
+  const { toggle, myTypes, counts, trackShare } = useSingleReaction(
     visible ? postId : null,
     postType,
     authorId
@@ -483,6 +483,8 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
       inspireCount: counts?.inspire ?? (item._reactions?.inspireCount ?? null),
       touchCount:   counts?.like    ?? (item._reactions?.touchCount   ?? null),
       commentCount: commentCount    ?? (item._reactions?.commentCount  ?? null),
+      saveCount:    counts?.save    ?? (item._reactions?.saveCount    ?? null),
+      shareCount:   counts?.share   ?? (item._reactions?.shareCount   ?? null),
     },
   };
 
@@ -494,7 +496,7 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
         onReaction={handleReaction}
         onBook={onBook}
         onDetail={onDetail}
-        onShare={onShare}
+        onShare={() => { trackShare?.(); onShare?.(); }}
         onOpenComments={onOpenComments}
       />
     </div>
