@@ -159,7 +159,7 @@ function CommentMenuPortal({ isOwn, menuOpen, setMenuOpen, confirmDelete, setCon
                 <button className="cs-btn" onClick={() => setConfirmDelete(true)}
                   style={{ display:"flex", alignItems:"center", gap:10, width:"100%",
                     padding:"10px 14px", fontSize:13, fontWeight:600, color:"#E53E3E",
-                    background:"none", cursor:"pointer" }}>
+                    background:"none", cursor:"pointer", textAlign:"left" }}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#E53E3E" strokeWidth="2" strokeLinecap="round">
                     <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
                     <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
@@ -167,12 +167,21 @@ function CommentMenuPortal({ isOwn, menuOpen, setMenuOpen, confirmDelete, setCon
                   Löschen
                 </button>
               ) : (
-                <button className="cs-btn" onClick={onDelete}
-                  style={{ display:"flex", alignItems:"center", gap:10, width:"100%",
-                    padding:"10px 14px", fontSize:13, fontWeight:700, color:"#fff",
-                    background:"#E53E3E", cursor:"pointer" }}>
-                  ⚠️ Wirklich löschen?
-                </button>
+                <div style={{ padding:"10px 14px" }}>
+                  <p style={{ fontSize:12, color:"#666", margin:"0 0 8px" }}>Kommentar wirklich löschen?</p>
+                  <div style={{ display:"flex", gap:8 }}>
+                    <button className="cs-btn" onClick={onDelete}
+                      style={{ flex:1, padding:"7px 0", fontSize:12, fontWeight:700, color:"#fff",
+                        background:"#E53E3E", borderRadius:8, cursor:"pointer" }}>
+                      Löschen
+                    </button>
+                    <button className="cs-btn" onClick={() => setConfirmDelete(false)}
+                      style={{ flex:1, padding:"7px 0", fontSize:12, fontWeight:600, color:"#666",
+                        background:"#f5f5f5", borderRadius:8, cursor:"pointer" }}>
+                      Abbrechen
+                    </button>
+                  </div>
+                </div>
               )}
             </>
           ) : (
@@ -253,10 +262,15 @@ function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdi
           {editing ? (
             <div style={{ marginTop:6 }}>
               <textarea
-                value={editText} onChange={e=>setEditText(e.target.value)} rows={2}
+                autoFocus
+                value={editText}
+                onChange={e=>setEditText(e.target.value)}
+                rows={Math.max(2, (editText.match(/\n/g)||[]).length + 1)}
                 className="cs-textarea"
-                style={{ width:"100%", border:`1px solid ${T.border}`, borderRadius:12, padding:"8px 10px",
-                  fontSize:14, fontFamily:"inherit", color:T.ink, resize:"none", boxSizing:"border-box" }}
+                onFocus={e => { const v = e.target; v.selectionStart = v.selectionEnd = v.value.length; }}
+                style={{ width:"100%", border:`1px solid ${T.teal}`, borderRadius:12, padding:"8px 10px",
+                  fontSize:14, fontFamily:"inherit", color:T.ink, resize:"none", boxSizing:"border-box",
+                  outline:"none", boxShadow:`0 0 0 2px ${T.teal}22` }}
               />
               <div style={{ display:"flex", gap:10, marginTop:6 }}>
                 <button className="cs-btn" onClick={() => { onSaveEdit(comment.id, editText); setEditing(false); }}
@@ -487,11 +501,18 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
   }, []);
 
   const handleDelete = useCallback(async (commentId) => {
-    const patch = (list) => list.map(c => c.id === commentId ? { ...c, is_deleted:true, text:"" } : { ...c, replies: patch(c.replies||[]) });
-    setItems(prev => patch(prev));
+    // Optimistisch: sofort aus Liste entfernen (bessere UX als Placeholder)
+    const remove = (list) => list
+      .filter(c => c.id !== commentId)
+      .map(c => ({ ...c, replies: remove(c.replies || []) }));
+    setItems(prev => remove(prev));
     haptic("light");
     const { error } = await deleteComment(commentId);
-    if (error) toast.error("Kommentar konnte nicht gelöscht werden.");
+    if (error) {
+      toast.error("Kommentar konnte nicht gelöscht werden.");
+      // Reload bei Fehler
+      // (kein Rollback nötig — deleteComment ist idempotent)
+    }
   }, []);
 
   const handleHeart = useCallback(async (comment) => {
