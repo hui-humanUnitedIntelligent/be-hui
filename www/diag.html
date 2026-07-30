@@ -3,42 +3,46 @@
 <body style="margin:0;padding:20px;font-family:monospace;font-size:13px;">
 <div id="r">Loading...</div>
 <script>
-// Catch ALL unhandled errors
 window.addEventListener('error', function(e) {
-  document.getElementById('r').innerHTML += "<br>UNHANDLED ERROR: " + (e.error?.message || e.message) + "<br>" + ((e.error?.stack || e.error || "").toString().slice(0,800));
+  document.getElementById('r').innerHTML += "<br>UNHANDLED: " + (e.error?.message || e.message) + " at " + (e.filename||"") + ":" + (e.lineno||"") + "<br>" + ((e.error?.stack||"").toString().slice(0,1000));
 });
 window.addEventListener('unhandledrejection', function(e) {
-  document.getElementById('r').innerHTML += "<br>UNHANDLED REJECTION: " + (e.reason?.message || e.reason) + "<br>" + ((e.reason?.stack || "").toString().slice(0,800));
+  document.getElementById('r').innerHTML += "<br>REJECTION: " + (e.reason?.message || e.reason) + "<br>" + ((e.reason?.stack||"").toString().slice(0,1000));
 });
 </script>
 <script type="module">
 const r=document.getElementById('r');
-r.innerHTML = "Starting import test...<br>";
 
-// First test vendor
+// Step 1: Fetch the index chunk as text
+r.innerHTML = "Step 1: Fetching index chunk...<br>";
 try {
-  const v = await import("/assets/vendor-C_tQ69lJ.js");
-  r.innerHTML += "✅ vendor OK<br>";
+  const resp = await fetch("/assets/index-BaQZwdLy.js");
+  r.innerHTML += "Status: " + resp.status + "<br>";
+  r.innerHTML += "Content-Type: " + resp.headers.get("content-type") + "<br>";
+  r.innerHTML += "Content-Length: " + resp.headers.get("content-length") + "<br>";
+  
+  const text = await resp.text();
+  r.innerHTML += "Body length: " + text.length + "<br>";
+  r.innerHTML += "First 100 chars: " + text.slice(0, 100) + "<br>";
+  r.innerHTML += "Is HTML? " + text.startsWith("<!") + "<br>";
+  
+  if (text.startsWith("<!")) {
+    r.innerHTML += "❌ Got HTML instead of JS! CDN caching issue.<br>";
+  } else {
+    // Step 2: Create a blob URL and try to import
+    r.innerHTML += "<br>Step 2: Creating blob and importing...<br>";
+    const blob = new Blob([text], { type: "application/javascript" });
+    const blobUrl = URL.createObjectURL(blob);
+    try {
+      const mod = await import(blobUrl);
+      r.innerHTML += "✅ Blob import OK (keys:" + Object.keys(mod).length + ")<br>";
+    } catch(e) {
+      r.innerHTML += "❌ Blob import FAILED: " + e.message + "<br>";
+      r.innerHTML += "Stack: " + (e.stack || "").slice(0, 1000) + "<br>";
+    }
+  }
 } catch(e) {
-  r.innerHTML += "❌ vendor: " + e.message + "<br>";
+  r.innerHTML += "❌ Fetch failed: " + e.message + "<br>";
 }
-
-// Now test index with detailed error capture
-r.innerHTML += "Importing index...<br>";
-
-// Set up a more detailed error handler for the import
-const importPromise = import("/assets/index-BaQZwdLy.js");
-
-importPromise.then(m => {
-  r.innerHTML += "✅ index OK (keys:" + Object.keys(m).length + ")<br>";
-}).catch(e => {
-  r.innerHTML += "❌ index FAILED<br>";
-  r.innerHTML += "name: " + e.name + "<br>";
-  r.innerHTML += "message: " + e.message + "<br>";
-  r.innerHTML += "stack: " + (e.stack || "none").slice(0, 800) + "<br>";
-  r.innerHTML += "cause: " + (e.cause || "none") + "<br>";
-  r.innerHTML += "typeof e: " + typeof e + "<br>";
-  r.innerHTML += "JSON: " + JSON.stringify(e, Object.getOwnPropertyNames(e)).slice(0, 800) + "<br>";
-});
 </script>
 </body></html>
