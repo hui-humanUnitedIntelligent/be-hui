@@ -168,29 +168,50 @@ function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdi
               </button>
               <button className="cs-btn" onClick={() => onReply(comment)} style={{ fontSize:12, fontWeight:700, color:T.inkFaint }}>Antworten</button>
               <div style={{ position:"relative", marginLeft:"auto" }}>
-                <button className="cs-btn" onClick={() => setMenuOpen(v=>!v)} style={{ fontSize:16, color:T.inkFaint, padding:"0 4px" }}>•••</button>
+                {/* ••• Button — größer, besser sichtbar */}
+                <button className="cs-btn" onClick={() => setMenuOpen(v=>!v)}
+                  style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:3, padding:"6px 8px",
+                    borderRadius:20, background: menuOpen ? "rgba(26,26,46,0.08)" : "transparent" }}>
+                  {[0,1,2].map(i => (
+                    <span key={i} style={{ width:4, height:4, borderRadius:"50%", background:T.inkSoft, display:"block" }}/>
+                  ))}
+                </button>
                 {menuOpen && (
-                  <div style={{ position:"absolute", right:0, top:22, background:T.sheet, border:`1px solid ${T.border}`,
-                    borderRadius:12, boxShadow:"0 8px 24px rgba(26,26,46,0.14)", overflow:"hidden", zIndex:5, minWidth:150 }}>
+                  <div style={{ position:"absolute", right:0, top:32, background:"#fff",
+                    borderRadius:14, boxShadow:"0 6px 28px rgba(26,26,46,0.18)", overflow:"hidden", zIndex:10, minWidth:170 }}>
                     {isOwn ? (
                       <>
                         <button className="cs-btn" onClick={() => { setEditing(true); setMenuOpen(false); }}
-                          style={{ display:"block", width:"100%", textAlign:"left", padding:"10px 14px", fontSize:13, color:T.ink }}>Bearbeiten</button>
+                          style={{ display:"flex", alignItems:"center", gap:10, width:"100%", textAlign:"left",
+                            padding:"13px 16px", fontSize:14, fontWeight:600, color:T.ink, borderBottom:`1px solid rgba(26,26,46,0.07)` }}>
+                          <span style={{ fontSize:16 }}>✏️</span> Bearbeiten
+                        </button>
                         {!confirmDelete ? (
                           <button className="cs-btn" onClick={() => setConfirmDelete(true)}
-                            style={{ display:"block", width:"100%", textAlign:"left", padding:"10px 14px", fontSize:13, color:T.coral }}>Löschen</button>
+                            style={{ display:"flex", alignItems:"center", gap:10, width:"100%", textAlign:"left",
+                              padding:"13px 16px", fontSize:14, fontWeight:600, color:"#E53E3E" }}>
+                            <span style={{ fontSize:16 }}>🗑️</span> Löschen
+                          </button>
                         ) : (
                           <button className="cs-btn" onClick={() => { onDelete(comment.id); setMenuOpen(false); }}
-                            style={{ display:"block", width:"100%", textAlign:"left", padding:"10px 14px", fontSize:13, fontWeight:700, color:T.coral }}>Wirklich löschen?</button>
+                            style={{ display:"flex", alignItems:"center", gap:10, width:"100%", textAlign:"left",
+                              padding:"13px 16px", fontSize:14, fontWeight:700, color:"#fff", background:"#E53E3E" }}>
+                            <span style={{ fontSize:16 }}>⚠️</span> Wirklich löschen?
+                          </button>
                         )}
                       </>
                     ) : (
                       !reportMenu ? (
                         <button className="cs-btn" onClick={() => setReportMenu(true)}
-                          style={{ display:"block", width:"100%", textAlign:"left", padding:"10px 14px", fontSize:13, color:T.ink }}>Melden</button>
+                          style={{ display:"flex", alignItems:"center", gap:10, width:"100%", textAlign:"left",
+                            padding:"13px 16px", fontSize:14, fontWeight:600, color:T.ink }}>
+                          <span style={{ fontSize:16 }}>🚩</span> Melden
+                        </button>
                       ) : REPORT_REASONS.map(r => (
                         <button key={r.key} className="cs-btn" onClick={() => { onReport(comment.id, r.key); setMenuOpen(false); setReportMenu(false); }}
-                          style={{ display:"block", width:"100%", textAlign:"left", padding:"10px 14px", fontSize:13, color:T.ink }}>{r.label}</button>
+                          style={{ display:"flex", alignItems:"center", gap:8, width:"100%", textAlign:"left",
+                            padding:"12px 16px", fontSize:13, fontWeight:500, color:T.ink,
+                            borderBottom:`1px solid rgba(26,26,46,0.05)` }}>{r.label}</button>
                       ))
                     )}
                   </div>
