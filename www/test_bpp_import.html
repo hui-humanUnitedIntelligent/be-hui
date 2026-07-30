@@ -2,41 +2,42 @@
 <html>
 <head><meta charset="UTF-8"><title>BPP Import Test</title></head>
 <body style="margin:0;padding:20px;font-family:monospace;font-size:14px;background:#fff;">
-<div id="result" style="padding:20px;">Testing import...</div>
-<div id="deps" style="padding:20px;color:blue;"></div>
+<div id="result" style="padding:20px;">Testing...</div>
 <script type="module">
 const r = document.getElementById('result');
-const d = document.getElementById('deps');
+let html = "";
 
-// Test each dependency import
+// Test each dependency import with correct /assets/ path
 const deps = [
-  "./vendor-C_tQ69lJ.js",
-  "./index-BaQZwdLy.js",
-  "./ProfileHeader-pD2q-QQx.js",
-  "./HuiStudio-K9E6FpwF.js",
-  "./AboutSection-DL5uawvm.js",
-  "./LocationSection-C_qMV2Dq.js",
-  "./SupportPage-BImoyfVc.js",
-  "./categories-B8ybQ6d6.js",
+  "/assets/vendor-C_tQ69lJ.js",
+  "/assets/index-BaQZwdLy.js",
+  "/assets/ProfileHeader-pD2q-QQx.js",
+  "/assets/HuiStudio-K9E6FpwF.js",
+  "/assets/AboutSection-DL5uawvm.js",
+  "/assets/LocationSection-C_qMV2Dq.js",
+  "/assets/SupportPage-BImoyfVc.js",
+  "/assets/categories-B8ybQ6d6.js",
 ];
 
+html += "=== Dependency imports ===<br>";
 for (const dep of deps) {
   try {
-    await import(dep);
-    d.innerHTML += `✅ ${dep}<br>`;
+    const mod = await import(dep);
+    html += `✅ ${dep} (keys: ${Object.keys(mod).slice(0,5).join(",")})<br>`;
   } catch (e) {
-    d.innerHTML += `❌ ${dep}: ${e.message}<br>`;
+    html += `❌ ${dep}: ${e.message}<br>`;
   }
 }
 
-d.innerHTML += "<br>--- Main import ---<br>";
-
+html += "<br>=== Main BPP import ===<br>";
 try {
   const mod = await import("/assets/BasisProfilePage-D_tRAfFb.js");
-  r.innerHTML = "✅ BPP IMPORT OK<br>Keys: " + Object.keys(mod).join(", ") + "<br>default type: " + typeof mod.default;
+  html += `✅ BPP OK<br>Keys: ${Object.keys(mod).join(", ")}<br>default type: ${typeof mod.default}<br>default is function: ${typeof mod.default === "function"}`;
 } catch (e) {
-  r.innerHTML = "❌ BPP IMPORT FAILED<br>" + e.message + "<br><br>" + (e.stack || "").slice(0, 800);
+  html += `❌ BPP FAILED<br>${e.message}<br><br>${(e.stack || "").slice(0, 1000)}`;
 }
+
+r.innerHTML = html;
 </script>
 </body>
 </html>
