@@ -113,7 +113,7 @@ export function TalentSection({ profile, isOwner = false, loading = false, onCha
                 background:T.bgCard, border:`1px solid ${T.tealMid}`,
                 fontSize:11, fontWeight:600, color:T.ink, boxShadow:T.card,
               }}>
-                <span style={{ fontSize:11 }}>{sk.icon || "✨"}</span>{sk.label}
+                {sk.icon && <span style={{ fontSize:11 }}>{sk.icon}</span>}{sk.label}
               </div>
             ))}
             {isOwner && (

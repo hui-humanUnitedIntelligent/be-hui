@@ -55,25 +55,46 @@ export default function ProfileRelationButtons({
 
   if (!currentUserId || profileId === currentUserId) return null;
 
-  const handleFollow = async () => {
+  const handleFollow = async (e) => {
+    e?.stopPropagation();
     if (followLoading) return;
     setFollowLoading(true);
+    const prevFollowing = isFollowing;
     try {
       if (isFollowing) {
-        await supabase.from("follows").delete()
-          .eq("follower_id", currentUserId).eq("followed_id", profileId);
+        // Optimistic update
         setIsFollowing(false);
         onFollowChange?.(-1);
+        const { error } = await supabase.from("follows").delete()
+          .eq("follower_id", currentUserId).eq("followed_id", profileId);
+        if (error) {
+          // Rollback
+          console.warn("[Follow] delete error:", error.message);
+          setIsFollowing(true);
+          onFollowChange?.(+1);
+        }
       } else {
-        await supabase.from("follows").upsert({ follower_id: currentUserId, followed_id: profileId }, { onConflict: "follower_id,followed_id", ignoreDuplicates: true });
+        // Optimistic update
         setIsFollowing(true);
         onFollowChange?.(+1);
+        const { error } = await supabase.from("follows")
+          .upsert({ follower_id: currentUserId, followed_id: profileId }, { onConflict: "follower_id,followed_id", ignoreDuplicates: true });
+        if (error) {
+          // Rollback
+          console.warn("[Follow] upsert error:", error.message);
+          setIsFollowing(false);
+          onFollowChange?.(-1);
+        }
       }
-    } catch(e) {}
+    } catch(e) {
+      console.warn("[Follow] exception:", e);
+      setIsFollowing(prevFollowing);
+    }
     finally { setFollowLoading(false); }
   };
 
-  const handleChat = () => {
+  const handleChat = (e) => {
+    e?.stopPropagation();
     if (!profile?.id || !setShowChat) return;
     setChatRecipient?.({
       id: profile.id,

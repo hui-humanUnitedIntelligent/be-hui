@@ -240,24 +240,39 @@ function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onF
 
   if (!currentUserId || profileId === currentUserId) return null;
 
-  const handleFollow = async () => {
+  const handleFollow = async (e) => {
+    e?.stopPropagation();
     if (followLoading) return;
     setFollowLoading(true);
+    const prevFollowing = isFollowing;
     try {
       if (isFollowing) {
-        await supabase.from("follows")
+        setIsFollowing(false);
+        onFollowChange?.(-1);
+        const { error } = await supabase.from("follows")
           .delete()
           .eq("follower_id", currentUserId)
           .eq("followed_id", profileId);
-        setIsFollowing(false);
-        onFollowChange?.(-1);
+        if (error) {
+          console.warn("[Follow] delete error:", error.message);
+          setIsFollowing(true);
+          onFollowChange?.(+1);
+        }
       } else {
-        await supabase.from("follows")
-          .upsert({ follower_id: currentUserId, followed_id: profileId }, { onConflict: "follower_id,followed_id", ignoreDuplicates: true });
         setIsFollowing(true);
         onFollowChange?.(+1);
+        const { error } = await supabase.from("follows")
+          .upsert({ follower_id: currentUserId, followed_id: profileId }, { onConflict: "follower_id,followed_id", ignoreDuplicates: true });
+        if (error) {
+          console.warn("[Follow] upsert error:", error.message);
+          setIsFollowing(false);
+          onFollowChange?.(-1);
+        }
       }
-    } catch(e) {}
+    } catch(e) {
+      console.warn("[Follow] exception:", e);
+      setIsFollowing(prevFollowing);
+    }
     finally { setFollowLoading(false); }
   };
 
@@ -363,14 +378,16 @@ function SectionCard({ icon, title = "", children, delay = 0 }) {
       border:`1px solid ${T.border}`, boxShadow:T.card,
       overflow:"hidden",
     }}>
-      <div style={{
-        display:"flex", alignItems:"center", gap:10,
-        padding:"14px 16px 10px", borderBottom:`1px solid ${T.border}`,
-      }}>
-        <span style={{ display:"flex", color:T.teal }}>{icon}</span>
-        <span style={{ fontSize:14, fontWeight:800, color:T.ink, letterSpacing:"-0.01em" }}>{title}</span>
-      </div>
-      <div style={{ padding:"12px 16px 16px" }}>{children}</div>
+      {title && (
+        <div style={{
+          display:"flex", alignItems:"center", gap:10,
+          padding:"14px 16px 10px", borderBottom:`1px solid ${T.border}`,
+        }}>
+          <span style={{ display:"flex", color:T.teal }}>{icon}</span>
+          <span style={{ fontSize:14, fontWeight:800, color:T.ink, letterSpacing:"-0.01em" }}>{title}</span>
+        </div>
+      )}
+      <div style={{ padding: title ? "12px 16px 16px" : "14px 16px 16px" }}>{children}</div>
     </div>
   );
 }
@@ -581,7 +598,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
         {/* ── TALENT-SEKTION ── */}
         {(profile?.has_talent_profile || profile?.is_talent) && (
           <>
-            <SectionCard icon={<HUITalentIcon size={16}/>} title="Talente & Angebote" delay={80}>
+            <SectionCard icon={<HUITalentIcon size={16}/>} title="" delay={80}>
                 <TalentSection profile={profile} isOwner={false} loading={loading} noPadding />
             </SectionCard>
             <Gap h={12}/>
