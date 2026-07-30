@@ -11,6 +11,21 @@ import { ProfileService } from '../services/db';
 import { readCache } from "../lib/perfUtils.js";
 import { supabase } from "../lib/supabaseClient.js";
 
+// ── DEBUG: useProfileData diagnostics ──
+function __dbgSignal(id, msg) {
+  if (typeof document === "undefined") return;
+  let el = document.getElementById("__upd_debug__");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "__upd_debug__";
+    el.style.cssText = "position:fixed;bottom:80px;left:0;right:0;z-index:99999;background:#1a1a1a;color:#0f0;padding:8px;font-size:10px;font-family:monospace;max-height:200px;overflow-y:auto;pointer-events:none";
+    document.body.appendChild(el);
+  }
+  const ts = new Date().toISOString().slice(11, 23);
+  el.innerHTML += `<div>[${ts}] ${id}: ${msg}</div>`;
+  el.scrollTop = el.scrollHeight;
+}
+
 // ── Felder ────────────────────────────────────────────────────────────
 // SICHERHEIT: phone entfernt aus öffentlichem Profil-Load (2026-07-29)
 // PRIVAT: phone wird nur geladen wenn includePrivate=true (eigenes Profil)
@@ -74,6 +89,7 @@ export function useProfileData(profileId, includePrivate = false) {
   // INSTANT-RENDER: Prewarm-Cache synchron prüfen → Profil sofort rendern
   // Volle Daten werden im Hintergrund nachgeladen und aktualisiert
   const load = useCallback(async () => {
+    __dbgSignal("load", `profileId=${profileId} includePrivate=${includePrivate}`);
     if (!profileId) {
       setLoading(false);
       return;
@@ -100,6 +116,7 @@ export function useProfileData(profileId, includePrivate = false) {
     }
 
     // 2. Volle Daten asynchron nachladen (Hintergrund)
+    __dbgSignal("prewarm", `hit=${!!prewarmData?.data}`);
     const myId = ++requestId.current;
     if (!prewarmData?.data) setLoading(true);
     setError(null);
@@ -111,6 +128,7 @@ export function useProfileData(profileId, includePrivate = false) {
       );
 
       // Profil-Query — OHNE follow_counts (entkoppelt, fire-and-forget)
+      __dbgSignal("query", "starting Promise.race with 3s timeout");
       const profileRes = await Promise.race([
         (includePrivate
           ? supabase.from("profiles").select(PROFILE_SELECT_PRIVATE).eq("id", profileId).maybeSingle()
@@ -134,6 +152,7 @@ export function useProfileData(profileId, includePrivate = false) {
         })
         .catch(() => {});
 
+      __dbgSignal("query-done", `myId=${myId} current=${requestId.current} hasData=${!!profileRes?.data} err=${profileRes?.error?.message}`);
       if (myId !== requestId.current) {
         return;
       }
@@ -169,9 +188,11 @@ export function useProfileData(profileId, includePrivate = false) {
       }));
 
     } catch (err) {
+      __dbgSignal("catch", err?.message || String(err));
       if (myId !== requestId.current) return;
       setError(err?.message || "Unbekannter Fehler");
     } finally {
+      __dbgSignal("finally", `myId=${myId} current=${requestId.current} setting loading=false`);
       if (myId === requestId.current) setLoading(false);
     }
   }, [profileId]);
@@ -266,6 +287,7 @@ export function useProfileData(profileId, includePrivate = false) {
       }
 
     } catch (err) {
+      __dbgSignal("catch", err?.message || String(err));
       // Lazy-Fehler = kein UI-Crash, nur leere Sections
       console.warn("[useProfileData] lazy load failed:", err?.message);
     } finally {
