@@ -463,7 +463,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
               </div>
 
               {/* RECHTS: Ort, Website, Follower */}
-              <div style={{ display:"flex", flexDirection:"column", gap:5, alignItems:"flex-end", flexShrink:0, maxWidth:"48%", marginTop:2 }}>
+              <div style={{ display:"flex", flexDirection:"column", gap:5, alignItems:"flex-end", flexShrink:0, maxWidth:"48%", marginTop:0 }}>
                 {profile.location_final && (
                   <div style={{ display:"flex", alignItems:"center", gap:5, fontSize:12, color:T.inkSoft }}>
                     <HUILocationIcon size={12} style={{ color:T.coral, flexShrink:0 }}/>
