@@ -88,6 +88,116 @@ function Avatar({ url, name, size = 34 }) {
 }
 
 // ── Ein Kommentar (+ rekursiv seine Antworten) ────────────────────────
+// ── CommentMenuPortal ─────────────────────────────────────────────────────
+// Rendert das ••• Dropdown direkt auf document.body via Portal,
+// damit Sheet-Overflow/clip-path den Dropdown nicht versteckt.
+function CommentMenuPortal({ isOwn, menuOpen, setMenuOpen, confirmDelete, setConfirmDelete,
+    reportMenu, setReportMenu, onEdit, onDelete, onReport, T }) {
+  const btnRef = useRef(null);
+  const [pos, setPos] = useState({ top:0, right:0 });
+
+  const handleOpen = () => {
+    if (btnRef.current) {
+      const r = btnRef.current.getBoundingClientRect();
+      setPos({ top: r.bottom + 6, right: window.innerWidth - r.right });
+    }
+    setMenuOpen(v => !v);
+  };
+
+  // Außerhalb klicken schließt Menü
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handler = (e) => {
+      if (btnRef.current && !btnRef.current.contains(e.target)) {
+        setMenuOpen(false);
+        setConfirmDelete(false);
+        setReportMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    document.addEventListener("touchstart", handler);
+    return () => {
+      document.removeEventListener("mousedown", handler);
+      document.removeEventListener("touchstart", handler);
+    };
+  }, [menuOpen, setMenuOpen, setConfirmDelete, setReportMenu]);
+
+  return (
+    <>
+      <button
+        ref={btnRef}
+        className="cs-btn"
+        onClick={handleOpen}
+        style={{ display:"flex", alignItems:"center", justifyContent:"center",
+          gap:3, padding:"6px 8px", borderRadius:20,
+          background: menuOpen ? "rgba(26,26,46,0.08)" : "transparent" }}>
+        {[0,1,2].map(i => (
+          <span key={i} style={{ width:4, height:4, borderRadius:"50%",
+            background:"rgba(26,26,46,0.45)", display:"block" }}/>
+        ))}
+      </button>
+
+      {menuOpen && createPortal(
+        <div style={{ position:"fixed", top: pos.top, right: pos.right,
+          background:"#fff", borderRadius:14,
+          boxShadow:"0 8px 32px rgba(26,26,46,0.22)",
+          overflow:"hidden", zIndex:99999, minWidth:180 }}>
+          {isOwn ? (
+            <>
+              <button className="cs-btn" onClick={onEdit}
+                style={{ display:"flex", alignItems:"center", gap:10, width:"100%",
+                  padding:"14px 18px", fontSize:15, fontWeight:600, color:"#1A1A2E",
+                  borderBottom:"1px solid rgba(26,26,46,0.08)", background:"none", cursor:"pointer" }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1A1A2E" strokeWidth="2" strokeLinecap="round">
+                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+                Bearbeiten
+              </button>
+              {!confirmDelete ? (
+                <button className="cs-btn" onClick={() => setConfirmDelete(true)}
+                  style={{ display:"flex", alignItems:"center", gap:10, width:"100%",
+                    padding:"14px 18px", fontSize:15, fontWeight:600, color:"#E53E3E",
+                    background:"none", cursor:"pointer" }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E53E3E" strokeWidth="2" strokeLinecap="round">
+                    <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                    <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+                  </svg>
+                  Löschen
+                </button>
+              ) : (
+                <button className="cs-btn" onClick={onDelete}
+                  style={{ display:"flex", alignItems:"center", gap:10, width:"100%",
+                    padding:"14px 18px", fontSize:15, fontWeight:700, color:"#fff",
+                    background:"#E53E3E", cursor:"pointer" }}>
+                  ⚠️ Wirklich löschen?
+                </button>
+              )}
+            </>
+          ) : (
+            !reportMenu ? (
+              <button className="cs-btn" onClick={() => setReportMenu(true)}
+                style={{ display:"flex", alignItems:"center", gap:10, width:"100%",
+                  padding:"14px 18px", fontSize:15, fontWeight:600, color:"#1A1A2E",
+                  background:"none", cursor:"pointer" }}>
+                🚩 Melden
+              </button>
+            ) : REPORT_REASONS.map(r => (
+              <button key={r.key} className="cs-btn" onClick={() => onReport(r.key)}
+                style={{ display:"flex", alignItems:"center", gap:8, width:"100%",
+                  padding:"13px 18px", fontSize:14, fontWeight:500, color:"#1A1A2E",
+                  borderBottom:"1px solid rgba(26,26,46,0.05)", background:"none", cursor:"pointer" }}>
+                {r.label}
+              </button>
+            ))
+          )}
+        </div>,
+        document.body
+      )}
+    </>
+  );
+}
+
 function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdit, onDelete, onHeart, onReport, replyTargetId, onCancelReply, onSubmitReply, replyText, setReplyText, submittingReply }) {
   const { openCreatorProfile } = useProfileLauncher();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -167,55 +277,21 @@ function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdi
                 {comment.heart_count > 0 && <span style={{ fontSize:12, color: comment.hearted_by_me ? T.coral : T.inkFaint, fontWeight:600 }}>{comment.heart_count}</span>}
               </button>
               <button className="cs-btn" onClick={() => onReply(comment)} style={{ fontSize:12, fontWeight:700, color:T.inkFaint }}>Antworten</button>
-              <div style={{ position:"relative", marginLeft:"auto" }}>
-                {/* ••• Button — größer, besser sichtbar */}
-                <button className="cs-btn" onClick={() => setMenuOpen(v=>!v)}
-                  style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:3, padding:"6px 8px",
-                    borderRadius:20, background: menuOpen ? "rgba(26,26,46,0.08)" : "transparent" }}>
-                  {[0,1,2].map(i => (
-                    <span key={i} style={{ width:4, height:4, borderRadius:"50%", background:T.inkSoft, display:"block" }}/>
-                  ))}
-                </button>
-                {menuOpen && (
-                  <div style={{ position:"absolute", right:0, top:32, background:"#fff",
-                    borderRadius:14, boxShadow:"0 6px 28px rgba(26,26,46,0.18)", overflow:"hidden", zIndex:10, minWidth:170 }}>
-                    {isOwn ? (
-                      <>
-                        <button className="cs-btn" onClick={() => { setEditing(true); setMenuOpen(false); }}
-                          style={{ display:"flex", alignItems:"center", gap:10, width:"100%", textAlign:"left",
-                            padding:"13px 16px", fontSize:14, fontWeight:600, color:T.ink, borderBottom:`1px solid rgba(26,26,46,0.07)` }}>
-                          <span style={{ fontSize:16 }}>✏️</span> Bearbeiten
-                        </button>
-                        {!confirmDelete ? (
-                          <button className="cs-btn" onClick={() => setConfirmDelete(true)}
-                            style={{ display:"flex", alignItems:"center", gap:10, width:"100%", textAlign:"left",
-                              padding:"13px 16px", fontSize:14, fontWeight:600, color:"#E53E3E" }}>
-                            <span style={{ fontSize:16 }}>🗑️</span> Löschen
-                          </button>
-                        ) : (
-                          <button className="cs-btn" onClick={() => { onDelete(comment.id); setMenuOpen(false); }}
-                            style={{ display:"flex", alignItems:"center", gap:10, width:"100%", textAlign:"left",
-                              padding:"13px 16px", fontSize:14, fontWeight:700, color:"#fff", background:"#E53E3E" }}>
-                            <span style={{ fontSize:16 }}>⚠️</span> Wirklich löschen?
-                          </button>
-                        )}
-                      </>
-                    ) : (
-                      !reportMenu ? (
-                        <button className="cs-btn" onClick={() => setReportMenu(true)}
-                          style={{ display:"flex", alignItems:"center", gap:10, width:"100%", textAlign:"left",
-                            padding:"13px 16px", fontSize:14, fontWeight:600, color:T.ink }}>
-                          <span style={{ fontSize:16 }}>🚩</span> Melden
-                        </button>
-                      ) : REPORT_REASONS.map(r => (
-                        <button key={r.key} className="cs-btn" onClick={() => { onReport(comment.id, r.key); setMenuOpen(false); setReportMenu(false); }}
-                          style={{ display:"flex", alignItems:"center", gap:8, width:"100%", textAlign:"left",
-                            padding:"12px 16px", fontSize:13, fontWeight:500, color:T.ink,
-                            borderBottom:`1px solid rgba(26,26,46,0.05)` }}>{r.label}</button>
-                      ))
-                    )}
-                  </div>
-                )}
+              {/* ••• Button + Portal-Dropdown */}
+              <div style={{ marginLeft:"auto" }}>
+                <CommentMenuPortal
+                  isOwn={isOwn}
+                  menuOpen={menuOpen}
+                  setMenuOpen={setMenuOpen}
+                  confirmDelete={confirmDelete}
+                  setConfirmDelete={setConfirmDelete}
+                  reportMenu={reportMenu}
+                  setReportMenu={setReportMenu}
+                  onEdit={() => { setEditing(true); setMenuOpen(false); }}
+                  onDelete={() => { onDelete(comment.id); setMenuOpen(false); }}
+                  onReport={(reason) => { onReport(comment.id, reason); setMenuOpen(false); setReportMenu(false); }}
+                  T={T}
+                />
               </div>
             </div>
           )}
