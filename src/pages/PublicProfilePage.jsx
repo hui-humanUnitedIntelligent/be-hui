@@ -36,7 +36,6 @@ import { WorksSection }       from "../components/profile/sections/WorksSection.
 import { ExperiencesSection } from "../components/profile/sections/ExperiencesSection.jsx";
 import { MomentsSection }     from "../components/profile/sections/MomentsSection.jsx";
 import { RecommendationsSection } from "../components/profile/sections/RecommendationsSection.jsx";
-import { LocationSection }    from "../components/profile/sections/LocationSection.jsx";
 import { OrbSignatur }        from "../components/profile/OrbSignatur.jsx";
 
 // ── Design Tokens (HUI-Standard) ─────────────────────────────────
@@ -202,42 +201,64 @@ function ProfileHero({ profile = {}, loading = false }) {
   );
 }
 
-// ── Beziehungs-Buttons: Im Blick behalten + Nachricht ─────────────
-function RelationButtons({ profileId = "", currentUserId = "", profile = {} }) {
-  const [watching,     setWatching]    = useState(false);
-  const [watchLoading, setWatchLoad]  = useState(false);
+// ── Aktions-Sektion: Verbinden + Folgen ───────────────────────────
+function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onFollowChange }) {
+  const [isFollowing,   setIsFollowing]   = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
+  const [isConnected,   setIsConnected]   = useState(false);
   const { setShowChat, setChatRecipient } = useHome() || {};
 
+  const displayName = profile?.display_name || profile?.full_name || profile?.username || "diese Person";
+
+  // Prüfe ob bereits gefolgt
   useEffect(() => {
     if (!profileId || !currentUserId || profileId === currentUserId) return;
     supabase
-      .from("profile_watchlist")
+      .from("follows")
       .select("id")
-      .eq("watcher_id", currentUserId)
-      .eq("profile_id", profileId)
+      .eq("follower_id", currentUserId)
+      .eq("followed_id", profileId)
       .maybeSingle()
-      .then(({ data }) => setWatching(!!data))
+      .then(({ data }) => setIsFollowing(!!data))
       .catch(() => {});
   }, [profileId, currentUserId]);
 
+  // Prüfe ob bereits verbunden (gegenseitig folgend = Verbindung)
+  useEffect(() => {
+    if (!profileId || !currentUserId || profileId === currentUserId) return;
+    supabase
+      .from("follows")
+      .select("id")
+      .eq("follower_id", profileId)
+      .eq("followed_id", currentUserId)
+      .maybeSingle()
+      .then(({ data: theyFollow }) => {
+        if (theyFollow) setIsConnected(true);
+      })
+      .catch(() => {});
+  }, [profileId, currentUserId, isFollowing]);
+
   if (!currentUserId || profileId === currentUserId) return null;
 
-  const handleWatch = async () => {
-    if (watchLoading) return;
-    setWatchLoad(true);
+  const handleFollow = async () => {
+    if (followLoading) return;
+    setFollowLoading(true);
     try {
-      if (watching) {
-        await supabase.from("profile_watchlist")
-          .delete().eq("watcher_id", currentUserId).eq("profile_id", profileId);
-        setWatching(false);
+      if (isFollowing) {
+        await supabase.from("follows")
+          .delete()
+          .eq("follower_id", currentUserId)
+          .eq("followed_id", profileId);
+        setIsFollowing(false);
+        onFollowChange?.(-1);
       } else {
-        await supabase.from("profile_watchlist")
-          .insert({ watcher_id: currentUserId, profile_id: profileId });
-        setWatching(true);
-        await notifyWatcher(profileId, currentUserId).catch(() => {});
+        await supabase.from("follows")
+          .insert({ follower_id: currentUserId, followed_id: profileId });
+        setIsFollowing(true);
+        onFollowChange?.(+1);
       }
-    } catch(e) { /* Realtime/Reload gleicht ab */ }
-    finally { setWatchLoad(false); }
+    } catch(e) {}
+    finally { setFollowLoading(false); }
   };
 
   const handleChat = () => {
@@ -250,30 +271,47 @@ function RelationButtons({ profileId = "", currentUserId = "", profile = {} }) {
     setShowChat?.(true);
   };
 
+  // Verbindungs-Label: gegenseitig folgend = verbunden
+  const connected = isFollowing && isConnected;
+
   return (
-    <div style={{ display:"flex", gap:10, padding:`0 ${T.px}px`, marginBottom:4 }}>
-      <button onClick={handleWatch} disabled={watchLoading} className="ppp-press" style={{
-        flex:1, height:42, borderRadius:T.r99,
-        background: watching ? T.teal : "transparent",
-        border: `1.5px solid ${watching ? T.teal : T.tealDeep}`,
-        color: watching ? "#fff" : T.tealDeep,
+    <div style={{ display:"flex", flexDirection:"column", gap:10, padding:`0 ${T.px}px`, marginBottom:4 }}>
+      {/* Verbinden Button */}
+      <button onClick={handleChat} className="ppp-press" style={{
+        width:"100%", height:48, borderRadius:T.r99,
+        background: connected ? T.bgCard : T.teal,
+        border: connected ? `1.5px solid ${T.border}` : "none",
+        color: connected ? T.inkSoft : "#fff",
         fontWeight:700, fontSize:14, cursor:"pointer",
         touchAction:"manipulation", fontFamily:"inherit",
-        display:"flex", alignItems:"center", justifyContent:"space-between", gap:7,
-        boxShadow: watching ? T.glow : "none",
-        transition:"all .18s ease", opacity: watchLoading ? 0.6 : 1,
+        display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+        boxShadow: connected ? T.card : T.glow,
+        transition:"all .18s ease",
       }}>
-        <span style={{ fontSize:16 }}>🔭</span>
-        {watching ? "Im Blick" : "Im Blick behalten"}
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        {connected ? "Verbindung auflösen" : `Verbinde dich mit ${displayName}`}
       </button>
-      <button onClick={handleChat} className="ppp-press" style={{
-        width:42, height:42, borderRadius:"50%",
-        background:T.bgCard, border:`1.5px solid ${T.border}`,
-        display:"flex", alignItems:"center", justifyContent:"space-between",
-        cursor:"pointer", touchAction:"manipulation",
-        boxShadow:T.card, color:T.ink, flexShrink:0,
-      }} aria-label="Nachricht senden">
-        <HUIChatIcon size={18}/>
+
+      {/* Folgen Button */}
+      <button onClick={handleFollow} disabled={followLoading} className="ppp-press" style={{
+        width:"100%", height:48, borderRadius:T.r99,
+        background: isFollowing ? T.bgCard : "transparent",
+        border: `1.5px solid ${isFollowing ? T.border : T.tealDeep}`,
+        color: isFollowing ? T.inkSoft : T.tealDeep,
+        fontWeight:700, fontSize:14, cursor:"pointer",
+        touchAction:"manipulation", fontFamily:"inherit",
+        display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+        transition:"all .18s ease", opacity: followLoading ? 0.6 : 1,
+      }}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          {isFollowing
+            ? <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>
+            : <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></>
+          }
+        </svg>
+        {isFollowing ? `Du folgst ${displayName}` : `${displayName} folgen`}
       </button>
     </div>
   );
@@ -410,6 +448,11 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
     followCounts, loading, loadingLazy, error, loadLazy, reload,
   } = useProfileData(profileId, false);
 
+  // Live-Follower-Delta für sofortige UI-Reaktion
+  const [followerDelta, setFollowerDelta] = useState(0);
+  useEffect(() => { setFollowerDelta(0); }, [profileId]);
+  const handleFollowChange = useCallback((delta) => setFollowerDelta(d => d + delta), []);
+
   // Lazy-Content laden sobald Profil da ist — einmalig pro profileId
   const lazyCalledRef = React.useRef(false);
   useEffect(() => { lazyCalledRef.current = false; }, [profileId]);
@@ -495,7 +538,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
                   </div>
                 )}
                 <div style={{ display:"flex", gap:10, fontSize:12, color:T.inkSoft }}>
-                  <span><strong style={{ color:T.ink }}>{followCounts?.followers ?? 0}</strong> Follower</span>
+                  <span><strong style={{ color:T.ink }}>{(followCounts?.followers ?? 0) + followerDelta}</strong> Follower</span>
                   <span><strong style={{ color:T.ink }}>{followCounts?.following ?? 0}</strong> folgt</span>
                 </div>
               </div>
@@ -507,13 +550,13 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
 
         {/* ── AKTIONS-BUTTONS ── */}
         {profile && !isOwnProfile && (
-          <RelationButtons profileId={profileId} currentUserId={user?.id} profile={profile} />
+          <RelationButtons profileId={profileId} currentUserId={user?.id} profile={profile} onFollowChange={handleFollowChange} />
         )}
         {profile && !isOwnProfile && <Gap h={14}/>}
 
         {/* ── QUICK STATS ── */}
         {profile && (
-          <QuickStats followCounts={followCounts} works={works} experiences={experiences} moments={moments} />
+          <QuickStats followCounts={{ ...followCounts, followers: (followCounts?.followers ?? 0) + followerDelta }} works={works} experiences={experiences} moments={moments} />
         )}
         <Gap h={16}/>
 
@@ -590,14 +633,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
         )}
 
         {/* ── STANDORT ── */}
-        {profile?.location_final && (
-          <>
-            <SectionCard icon={<HUILocationIcon size={16}/>} title="Standort" delay={160}>
-                <LocationSection profile={profile} isOwner={false} loading={loading} />
-            </SectionCard>
-            <Gap h={12}/>
-          </>
-        )}
+
 
         {/* ── EMPFEHLUNGEN ── */}
         {(recommendations.length > 0 || loadingLazy) && (
