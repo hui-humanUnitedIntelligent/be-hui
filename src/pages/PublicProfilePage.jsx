@@ -86,15 +86,17 @@ function Skel({ w, h=14, r=8 }) {
 
 // ── Rollen-Badge ──────────────────────────────────────────────────
 const ROLE_MAP = {
-  superadmin:  { label:"Superadmin",  bg:"#1A1A2E", color:"#fff"  },
-  super_admin: { label:"Superadmin",  bg:"#1A1A2E", color:"#fff"  },
+  superadmin:  { label:"Superadmin",  bg:"rgba(120,60,200,0.15)", color:"#7B3FC4" },
+  super_admin: { label:"Superadmin",  bg:"rgba(120,60,200,0.15)", color:"#7B3FC4" },
   admin:       { label:"Admin",       bg:"#1A1A2E", color:"#fff"  },
   talent:      { label:"Talent",      bg:"rgba(14,196,184,0.15)", color:"#0AADA3" },
   ambassador:  { label:"Ambassador",  bg:"rgba(255,107,82,0.12)", color:"#E55A3A" },
   basis:       { label:"Mitglied",    bg:"rgba(26,26,24,0.07)",   color:"rgba(26,26,24,0.55)" },
 };
 function RoleBadge({ role, isAmbassador }) {
-  const key  = isAmbassador ? "ambassador" : (role || "basis");
+  // Superadmin hat immer Vorrang — unabhängig von is_ambassador
+  const isSuperAdmin = role === "superadmin" || role === "super_admin" || role === "admin";
+  const key  = isSuperAdmin ? role : (isAmbassador ? "ambassador" : (role || "basis"));
   const conf = ROLE_MAP[key] || ROLE_MAP.basis;
   return (
     <span className="ppp-badge" style={{ background:conf.bg, color:conf.color }}>
@@ -432,7 +434,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
         paddingBottom: isOwnProfile ? NAV_CLEARANCE_CSS : "calc(88px + env(safe-area-inset-bottom, 0px))",
         overflowY:"auto",
       }}>
-        <NavBar onBack={handleBack} title={displayName || "Öffentliches Profil"} />
+        <NavBar onBack={handleBack} title="Öffentliches Profil" />
 
         {loading && !profile && <ProfileSkeleton/>}
         {(profile || loading) && <ProfileHero profile={profile} loading={loading}/>}
@@ -445,49 +447,47 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
               <Skel w={180} h={20}/><Skel w={110} h={14}/>
             </div>
           ) : profile ? (
-            <div>
-              <div style={{ fontSize:20, fontWeight:800, color:T.ink, letterSpacing:"-0.025em", lineHeight:1.2 }}>
-                {profile.display_name || profile.full_name || profile.username || "Unbekannt"}
+            /* ── 2-Spalten: Links Name+Badge, Rechts Ort+Website+Follower ── */
+            <div style={{ display:"flex", alignItems:"flex-start", gap:12 }}>
+              {/* LINKS */}
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontSize:20, fontWeight:800, color:T.ink, letterSpacing:"-0.025em", lineHeight:1.2 }}>
+                  {profile.display_name || profile.full_name || profile.username || "Unbekannt"}
+                </div>
+                {profile.username && (
+                  <div style={{ fontSize:13, color:T.inkSoft, marginTop:3 }}>@{profile.username}</div>
+                )}
+                <div style={{ marginTop:7 }}>
+                  <RoleBadge role={profile.role} isAmbassador={profile.is_ambassador}/>
+                </div>
               </div>
-              {profile.username && (
-                <div style={{ fontSize:13, color:T.inkSoft, marginTop:3 }}>@{profile.username}</div>
-              )}
+
+              {/* RECHTS: Ort, Website, Follower */}
+              <div style={{ display:"flex", flexDirection:"column", gap:5, alignItems:"flex-end", flexShrink:0, maxWidth:"48%", marginTop:2 }}>
+                {profile.location_final && (
+                  <div style={{ display:"flex", alignItems:"center", gap:5, fontSize:12, color:T.inkSoft }}>
+                    <HUILocationIcon size={12} style={{ color:T.coral, flexShrink:0 }}/>
+                    <span style={{ textAlign:"right", lineHeight:1.3 }}>{profile.location_final}</span>
+                  </div>
+                )}
+                {profile.website && (
+                  <div style={{ display:"flex", alignItems:"center", gap:5, fontSize:12 }}>
+                    <span style={{ fontSize:11, flexShrink:0 }}>🔗</span>
+                    <a href={profile.website.startsWith("http") ? profile.website : "https://"+profile.website}
+                      target="_blank" rel="noopener noreferrer"
+                      style={{ color:T.teal, fontWeight:600, textDecoration:"none", textAlign:"right" }}
+                      onClick={e => e.stopPropagation()}>
+                      {profile.website.replace(/^https?:\/\//, "")}
+                    </a>
+                  </div>
+                )}
+                <div style={{ display:"flex", gap:10, fontSize:12, color:T.inkSoft, marginTop:2 }}>
+                  <span><strong style={{ color:T.ink }}>{followCounts?.followers ?? 0}</strong> Follower</span>
+                  <span><strong style={{ color:T.ink }}>{followCounts?.following ?? 0}</strong> folgt</span>
+                </div>
+              </div>
             </div>
           ) : null}
-
-          <Gap h={8}/>
-          {profile && <RoleBadge role={profile.role} isAmbassador={profile.is_ambassador}/>}
-          <Gap h={8}/>
-
-          {profile && (profile.location_final || profile.website) && (
-            <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
-              {profile.location_final && (
-                <div style={{ display:"flex", alignItems:"center", gap:6, fontSize:13, color:T.inkSoft }}>
-                  <HUILocationIcon size={13} style={{ color:T.coral, flexShrink:0 }}/>
-                  {profile.location_final}
-                </div>
-              )}
-              {profile.website && (
-                <div style={{ display:"flex", alignItems:"center", gap:6, fontSize:13 }}>
-                  <span style={{ fontSize:12 }}>🔗</span>
-                  <a href={profile.website.startsWith("http") ? profile.website : "https://"+profile.website}
-                    target="_blank" rel="noopener noreferrer"
-                    style={{ color:T.teal, fontWeight:600, textDecoration:"none" }}
-                    onClick={e => e.stopPropagation()}>
-                    {profile.website.replace(/^https?:\/\//, "")}
-                  </a>
-                </div>
-              )}
-            </div>
-          )}
-
-          <Gap h={4}/>
-          {profile && (
-            <div style={{ display:"flex", gap:16, fontSize:13, color:T.inkSoft }}>
-              <span><strong style={{ color:T.ink }}>{followCounts?.followers ?? 0}</strong> Follower</span>
-              <span><strong style={{ color:T.ink }}>{followCounts?.following ?? 0}</strong> folgt</span>
-            </div>
-          )}
         </div>
 
         <Gap h={14}/>
@@ -524,37 +524,61 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
           </>
         )}
 
-        {/* ── WERKE ── */}
-        {(works.length > 0 || loadingLazy) && (
+        {/* ── WERKE ── immer anzeigen, Platzhalter wenn leer */}
+        {profile && (
           <>
             <SectionCard icon={<HUIWerkeIcon size={16}/>} title="Werke" delay={100}>
-              <React.Suspense fallback={<div style={{display:"flex",gap:10,overflowX:"auto"}}>{[1,2,3].map(i=><Skel key={i} w={120} h={120} r={T.r12}/>)}</div>}>
-                <WorksSection works={works} profile={profile} isOwner={false} loading={loadingLazy} />
-              </React.Suspense>
+              {loadingLazy ? (
+                <div style={{display:"flex",gap:10,overflowX:"auto"}}>{[1,2,3].map(i=><Skel key={i} w={120} h={120} r={T.r12}/>)}</div>
+              ) : works.length > 0 ? (
+                <React.Suspense fallback={<div style={{display:"flex",gap:10,overflowX:"auto"}}>{[1,2,3].map(i=><Skel key={i} w={120} h={120} r={T.r12}/>)}</div>}>
+                  <WorksSection works={works} profile={profile} isOwner={false} loading={false} />
+                </React.Suspense>
+              ) : (
+                <div style={{ padding:"16px 0", textAlign:"center", color:T.inkFaint, fontSize:13 }}>
+                  🎨 Noch keine Werke vorhanden
+                </div>
+              )}
             </SectionCard>
             <Gap h={12}/>
           </>
         )}
 
-        {/* ── MOMENTE ── */}
-        {(moments.length > 0 || loadingLazy) && (
+        {/* ── MOMENTE ── immer anzeigen, Platzhalter wenn leer */}
+        {profile && (
           <>
             <SectionCard icon={<span style={{ fontSize:16 }}>💬</span>} title="Momente" delay={120}>
-              <React.Suspense fallback={<div style={{display:"flex",gap:8,overflowX:"auto"}}>{[1,2,3].map(i=><Skel key={i} w={100} h={100} r={T.r12}/>)}</div>}>
-                <MomentsSection moments={moments} isOwner={false} loading={loadingLazy} />
-              </React.Suspense>
+              {loadingLazy ? (
+                <div style={{display:"flex",gap:8,overflowX:"auto"}}>{[1,2,3].map(i=><Skel key={i} w={100} h={100} r={T.r12}/>)}</div>
+              ) : moments.length > 0 ? (
+                <React.Suspense fallback={<div style={{display:"flex",gap:8,overflowX:"auto"}}>{[1,2,3].map(i=><Skel key={i} w={100} h={100} r={T.r12}/>)}</div>}>
+                  <MomentsSection moments={moments} isOwner={false} loading={false} />
+                </React.Suspense>
+              ) : (
+                <div style={{ padding:"16px 0", textAlign:"center", color:T.inkFaint, fontSize:13 }}>
+                  💬 Noch keine Momente geteilt
+                </div>
+              )}
             </SectionCard>
             <Gap h={12}/>
           </>
         )}
 
-        {/* ── ERLEBNISSE ── */}
-        {(experiences.length > 0 || loadingLazy) && (
+        {/* ── ERLEBNISSE ── immer anzeigen, Platzhalter wenn leer */}
+        {profile && (
           <>
             <SectionCard icon={<HUIErlebnisIcon size={16}/>} title="Erlebnisse" delay={140}>
-              <React.Suspense fallback={<div style={{display:"flex",gap:10,overflowX:"auto"}}>{[1,2].map(i=><Skel key={i} w={180} h={110} r={T.r12}/>)}</div>}>
-                <ExperiencesSection experiences={experiences} isOwner={false} loading={loadingLazy} />
-              </React.Suspense>
+              {loadingLazy ? (
+                <div style={{display:"flex",gap:10,overflowX:"auto"}}>{[1,2].map(i=><Skel key={i} w={180} h={110} r={T.r12}/>)}</div>
+              ) : experiences.length > 0 ? (
+                <React.Suspense fallback={<div style={{display:"flex",gap:10,overflowX:"auto"}}>{[1,2].map(i=><Skel key={i} w={180} h={110} r={T.r12}/>)}</div>}>
+                  <ExperiencesSection experiences={experiences} isOwner={false} loading={false} />
+                </React.Suspense>
+              ) : (
+                <div style={{ padding:"16px 0", textAlign:"center", color:T.inkFaint, fontSize:13 }}>
+                  ⭐ Noch keine Erlebnisse angeboten
+                </div>
+              )}
             </SectionCard>
             <Gap h={12}/>
           </>
@@ -584,11 +608,10 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
           </>
         )}
 
-        {/* ── LEER-STATE ── */}
+        {/* ── LEER-STATE — nur noch wenn KEINE Empfehlungen und kein Talent (alles andere hat eigenen Platzhalter) ── */}
         {!loading && !loadingLazy && profile &&
-          works.length === 0 && moments.length === 0 &&
-          experiences.length === 0 && recommendations.length === 0 &&
-          !profile.has_talent_profile && (
+          recommendations.length === 0 &&
+          !profile.has_talent_profile && !profile.is_talent && (
           <div style={{
             margin:`0 ${T.px}px`, padding:"24px 16px",
             background:T.bgCard, borderRadius:T.r16,
