@@ -1,6 +1,19 @@
 <!doctype html>
 <html lang="de">
   <head>
+  <script>
+    // ── DEBUG: vite:preloadError listener ──
+    window.__preloadErrors = [];
+    window.addEventListener("vite:preloadError", function(e) {
+      window.__preloadErrors.push(e.payload?.message || String(e.payload));
+      var d = document.createElement("div");
+      d.id = "__preload_error__";
+      d.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:99999;background:#cc0000;color:white;padding:10px;font-size:12px;font-family:monospace";
+      d.textContent = "PRELOAD ERROR: " + (e.payload?.message || e.payload);
+      document.body ? document.body.appendChild(d) : document.documentElement.appendChild(d);
+    });
+  </script>
+
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="format-detection" content="telephone=no, date=no, address=no, email=no" />
@@ -241,17 +254,10 @@
       body { background: #FDFAF5; margin: 0; }
     </style>
     <!-- ════════════════════════════════════════════════════════ -->
-  <script type="module" crossorigin src="./assets/index-BM2D6naN.js"></script>
+  <script type="module" crossorigin src="./assets/index-Ds6GuX24.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/vendor-C_tQ69lJ.js">
   <link rel="stylesheet" crossorigin href="./assets/style-BDcVdJfJ.css">
-
-    <!-- HUI-PRELOAD-START -->
-  <link rel="modulepreload" crossorigin href="./assets/BasisProfilePage-DvEbh7tG.js">
-  <link rel="modulepreload" crossorigin href="./assets/OrbSignatur-CVmm1k3t.js">
-  <link rel="modulepreload" crossorigin href="./assets/ProfileHeader-C7U4tpUd.js">
-  <link rel="modulepreload" crossorigin href="./assets/TalentProfilePage-DWZSH2F0.js">
-    <!-- HUI-PRELOAD-END -->
-  </head>
+</head>
   <body>
     <div id="root"></div>
   </body>

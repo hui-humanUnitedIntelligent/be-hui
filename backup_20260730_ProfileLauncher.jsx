@@ -1,6 +1,6 @@
 // src/components/home/profile/ProfileLauncher.jsx v8 — DB-basiertes Routing
 // ROUTING:
-//   selectedProfileId → DB-Query → role/has_talent_profile → TalentProfilePage | PublicProfilePage
+//   selectedProfileId → DB-Query → role/has_talent_profile → TalentProfilePage | BasisProfilePage
 //   showCreatorDashboard → MyBasisProfile (eigenes Profil — Talent-UI via isTalent)
 // ROUTING-ENTSCHEIDUNG: aus Datenbank, NICHT aus flow.state (war immer undefined)
 
@@ -129,19 +129,19 @@ function lazyWithRetry(importFn) {
 }
 
 // ── Page Imports ────────────────────────────────────────────────
-const PublicProfilePage  = lazyWithRetry(() => import("../../../pages/PublicProfilePage.jsx"));
+const BasisProfilePage   = lazyWithRetry(() => import("../../../pages/BasisProfilePage.jsx"));
 const TalentProfilePage  = lazyWithRetry(() => import("../../../pages/TalentProfilePage.jsx"));
 const MyBasisProfile     = lazyWithRetry(() => import("../../../pages/MyBasisProfile.jsx"));
 
 // Chunk-Preload: sofort beim Modul-Import starten UND nach DOM-Ready nochmal
 // → React cached lazy()-Module → kein Suspense-Spinner beim ersten Profil-Tap
-const _preloadPublic   = import("../../../pages/PublicProfilePage.jsx").catch(() => {});
+const _preloadBasis   = import("../../../pages/BasisProfilePage.jsx").catch(() => {});
 const _preloadTalent  = import("../../../pages/TalentProfilePage.jsx").catch(() => {});
 // Auch MyBasisProfile vorladen (wird bei Eigen-Profil-Tap gebraucht)
 if (typeof window !== "undefined") {
   // Nach kurzer Idle-Zeit nochmals forcen (falls erster Import noch läuft)
   setTimeout(() => {
-    _preloadPublic.catch(() => {});
+    _preloadBasis.catch(() => {});
     _preloadTalent.catch(() => {});
   }, 800);
 }
@@ -214,7 +214,7 @@ function useProfileType(profileId) {
 
     let cancelled = false;
 
-    // Timeout-Schutz: nach 6s Fallback auf PublicProfilePage
+    // Timeout-Schutz: nach 6s Fallback auf BasisProfilePage
     const timeoutPromise = new Promise((resolve) =>
       setTimeout(() => resolve({ data: null, error: { message: "timeout" } }), 2000)
     );
@@ -228,7 +228,7 @@ function useProfileType(profileId) {
         if (cancelled) return;
 
         if (error) {
-          // Bei Timeout oder DB-Fehler: Fallback PublicProfilePage (sicher)
+          // Bei Timeout oder DB-Fehler: Fallback BasisProfilePage (sicher)
           setState({ resolved: true, isTalent: false, role: "error" });
           return;
         }
@@ -283,38 +283,14 @@ export default function ProfileLauncher() {
 
 
   // ── ÖFFENTLICHES PROFIL (fremder User) ───────────────────────
-  // INSTANT-OPEN: PublicProfilePage sofort rendern — kein DB-Routing-Block.
+  // INSTANT-OPEN: BasisProfilePage sofort rendern — kein DB-Routing-Block.
   // isTalent wird aus Phase-1-Profil (has_talent_profile) innerhalb von
-  // PublicProfilePage / TalentProfilePage gelesen (via useProfileData).
-  
-  // ── DEBUG: Timeout checker for PPP module loading ──
-  React.useEffect(() => {
-    if (selectedProfileId) {
-      const timer = setTimeout(() => {
-        if (!document.getElementById("__ppp_module_loaded__")) {
-          const d = document.createElement("div");
-          d.id = "__ppp_timeout__";
-          d.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:99999;background:red;color:white;padding:10px;font-size:12px;font-family:monospace";
-          d.textContent = "PPP TIMEOUT — chunk did not load in 5s. preloadErrors: " + JSON.stringify(window.__preloadErrors || []);
-          document.body.appendChild(d);
-        } else {
-          const d = document.createElement("div");
-          d.id = "__ppp_loaded_ok__";
-          d.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:99999;background:green;color:white;padding:10px;font-size:12px;font-family:monospace";
-          d.textContent = "PPP MODULE LOADED OK";
-          document.body.appendChild(d);
-          setTimeout(() => d.remove(), 3000);
-        }
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [selectedProfileId]);
-
-if (selectedProfileId) {
+  // BasisProfilePage / TalentProfilePage gelesen (via useProfileData).
+  if (selectedProfileId) {
     const content = (
       <ProfileErrorBoundary profileId={selectedProfileId} onClose={closeProfileById}>
         <React.Suspense fallback={<Spinner />}>
-          <PublicProfilePage
+          <BasisProfilePage
             profileId={selectedProfileId}
             onClose={closeProfileById}
           />
