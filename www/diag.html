@@ -1,50 +1,62 @@
 <!DOCTYPE html>
 <html><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:20px;font-family:monospace;font-size:13px;">
-<div id="r">Loading...</div>
-<script>
-window.addEventListener('error', function(e) {
-  document.getElementById('r').innerHTML += "<br>UNHANDLED: " + (e.error?.message || e.message) + " at line " + (e.lineno||"") + ":" + (e.colno||"") + "<br>" + ((e.error?.stack||"").toString().slice(0,1500));
-});
-</script>
+<div id="r">Testing...</div>
 <script type="module">
 const r = document.getElementById('r');
-r.innerHTML = "Fetching chunks...<br>";
+let h = "";
 
-// Fetch both vendor and index
-const [vendorResp, indexResp] = await Promise.all([
-  fetch("/assets/vendor-C_tQ69lJ.js"),
-  fetch("/assets/index-BaQZwdLy.js")
-]);
-
-const vendorText = await vendorResp.text();
-const indexText = await indexResp.text();
-r.innerHTML += "vendor: " + vendorText.length + " chars<br>";
-r.innerHTML += "index: " + indexText.length + " chars<br>";
-
-// Create blob URLs for both, and rewrite the import in index to use the blob URL
-const vendorBlob = new Blob([vendorText], { type: "application/javascript" });
-const vendorUrl = URL.createObjectURL(vendorBlob);
-
-// Replace the relative import in index with the blob URL
-let modifiedIndex = indexText.replace(
-  /from"\.\/vendor-C_tQ69lJ\.js"/g,
-  'from"' + vendorUrl + '"'
-);
-
-r.innerHTML += "Modified index: " + modifiedIndex.length + " chars<br>";
-r.innerHTML += "Replaced imports: " + (indexText.match(/from"\.\/vendor/g) || []).length + "<br>";
-
-const indexBlob = new Blob([modifiedIndex], { type: "application/javascript" });
-const indexUrl = URL.createObjectURL(indexBlob);
-
-r.innerHTML += "Importing modified index...<br>";
+// Test 1: Simple inline import
+h += "Test 1: Simple dynamic import<br>";
 try {
-  const mod = await import(indexUrl);
-  r.innerHTML += "✅ Index import OK (keys: " + Object.keys(mod).length + ")<br>";
+  const blob = new Blob(["export const x = 42;"], { type: "application/javascript" });
+  const url = URL.createObjectURL(blob);
+  const mod = await import(url);
+  h += "✅ Simple import OK: " + mod.x + "<br>";
 } catch(e) {
-  r.innerHTML += "❌ Index import FAILED: " + e.message + "<br>";
-  r.innerHTML += "Stack: " + (e.stack || "").slice(0, 1500) + "<br>";
+  h += "❌ Simple import: " + e.message + "<br>";
 }
+
+// Test 2: Import vendor
+h += "<br>Test 2: Import vendor<br>";
+try {
+  const mod = await import("/assets/vendor-C_tQ69lJ.js");
+  h += "✅ Vendor OK (keys:" + Object.keys(mod).length + ")<br>";
+} catch(e) {
+  h += "❌ Vendor: " + e.message + "<br>";
+}
+
+// Test 3: Import index directly
+h += "<br>Test 3: Import index<br>";
+try {
+  const mod = await import("/assets/index-BaQZwdLy.js");
+  h += "✅ Index OK (keys:" + Object.keys(mod).length + ")<br>";
+} catch(e) {
+  h += "❌ Index: " + e.message + "<br>";
+}
+
+// Test 4: Create a script tag that loads the index chunk
+h += "<br>Test 4: Script tag approach<br>";
+const script = document.createElement('script');
+script.type = 'module';
+script.textContent = `
+  window.__indexResult = "loading";
+  try {
+    const mod = await import("/assets/index-BaQZwdLy.js");
+    window.__indexResult = "ok:" + Object.keys(mod).length;
+  } catch(e) {
+    window.__indexResult = "error:" + e.message;
+    window.__indexError = e;
+  }
+`;
+document.head.appendChild(script);
+await new Promise(resolve => setTimeout(resolve, 5000));
+h += "Script result: " + window.__indexResult + "<br>";
+if (window.__indexError) {
+  h += "Error details: " + window.__indexError.message + "<br>";
+  h += "Stack: " + (window.__indexError.stack || "").slice(0, 1000) + "<br>";
+}
+
+r.innerHTML = h;
 </script>
 </body></html>
