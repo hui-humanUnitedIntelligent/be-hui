@@ -17,6 +17,7 @@
 import { HUISendenIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import { HUIHeartIcon, HUIChatIcon } from '../../design/icons/HuiInteractionIcons.jsx';
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { toast } from "../../lib/useToast.jsx";
@@ -217,7 +218,7 @@ function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdi
           replyText={replyText} setReplyText={setReplyText} submittingReply={submittingReply} />
       ))}
     </div>
-  );
+  , document.body);
 }
 
 export default function CommentsSheet({ open, onClose, postId, postType, postAuthorId, postActionUrl, highlightCommentId, mediaUrl = null, mediaType = null }) {
@@ -409,10 +410,10 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
 
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div
       onClick={e => e.stopPropagation()}
-      style={{ position:"fixed", inset:0, zIndex:20000 }}
+      style={{ position:"fixed", inset:0, zIndex:10500 }}
     >
       <style>{CSS}</style>
       <div className="cs-overlay" onClick={onClose} style={{
