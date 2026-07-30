@@ -235,28 +235,6 @@ export default function ChatInput({ onSend, sending = false, placeholder = "Schr
 
       <div style={{ display:"flex", alignItems:"flex-end", gap:8 }}>
 
-        {/* Bild/Video Icon — nur wenn nicht recording */}
-        {!recording && (
-          <>
-            <button onClick={() => fileRef.current?.click()} disabled={isBusy} style={{
-              width:36, height:36, borderRadius:"50%",
-              background:"rgba(255,255,255,0.75)", border:"1px solid rgba(0,0,0,0.07)",
-              display:"flex", alignItems:"center", justifyContent:"center",
-              cursor:"pointer", flexShrink:0, opacity:isBusy ? 0.5 : 1,
-              boxShadow:"0 2px 6px rgba(0,0,0,0.06)",
-              WebkitTapHighlightColor:"transparent", marginBottom:4,
-            }} title="Bild oder Video senden">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
-                <rect x="2" y="3" width="20" height="15" rx="3" stroke={C.teal} strokeWidth="1.7"/>
-                <circle cx="8" cy="8.5" r="1.8" stroke={C.teal} strokeWidth="1.4"/>
-                <path d="M2 15l5-5 4 4 3-3 6 5" stroke={C.teal} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
-            <input ref={fileRef} type="file" accept="image/*,video/*"
-              style={{ display:"none" }} onChange={handleFileChange}/>
-          </>
-        )}
-
         {/* Composer Box */}
         <div style={{
           flex:1, background: focused ? "rgba(255,255,255,0.88)" : "rgba(255,255,255,0.72)",
@@ -314,6 +292,27 @@ export default function ChatInput({ onSend, sending = false, placeholder = "Schr
             />
           )}
         </div>
+
+        {/* Bild-Upload Icon — zwischen Textfeld und Voice/Send */}
+        {/* fileRef immer im DOM damit handleFileChange jederzeit aufrufbar */}
+        <input ref={fileRef} type="file" accept="image/*,video/*"
+          style={{ display:"none" }} onChange={handleFileChange}/>
+        {!recording && !text.trim() && !mediaFile && (
+          <button onClick={() => fileRef.current?.click()} disabled={isBusy} style={{
+            width:40, height:40, borderRadius:"50%",
+            background:"rgba(255,255,255,0.75)", border:"1px solid rgba(0,0,0,0.07)",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            cursor:"pointer", flexShrink:0, opacity:isBusy ? 0.5 : 1,
+            boxShadow:"0 2px 6px rgba(0,0,0,0.06)",
+            WebkitTapHighlightColor:"transparent",
+          }} title="Bild oder Video senden">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <rect x="2" y="3" width="20" height="15" rx="3" stroke={C.teal} strokeWidth="1.7"/>
+              <circle cx="8" cy="8.5" r="1.8" stroke={C.teal} strokeWidth="1.4"/>
+              <path d="M2 15l5-5 4 4 3-3 6 5" stroke={C.teal} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        )}
 
         {/* Rechter Button */}
         {recording ? (
