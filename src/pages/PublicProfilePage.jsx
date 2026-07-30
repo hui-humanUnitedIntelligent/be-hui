@@ -37,6 +37,7 @@ import { ExperiencesSection } from "../components/profile/sections/ExperiencesSe
 import { MomentsSection }     from "../components/profile/sections/MomentsSection.jsx";
 import { RecommendationsSection } from "../components/profile/sections/RecommendationsSection.jsx";
 import { OrbSignatur }        from "../components/profile/OrbSignatur.jsx";
+import { PublicTalentOffersSection } from "../components/profile/sections/PublicTalentOffersSection.jsx";
 
 // ── Design Tokens (HUI-Standard) ─────────────────────────────────
 const T = {
@@ -606,11 +607,21 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
         <SkillsCard profile={profile} loading={loading}/>
         <Gap h={12}/>
 
-        {/* ── TALENT-SEKTION ── */}
+        {/* ── TALENT-SEKTION (Skills-Chips) ── */}
         {(profile?.has_talent_profile || profile?.is_talent) && (
           <>
             <SectionCard icon={<HUITalentIcon size={16}/>} title="" delay={80}>
                 <TalentSection profile={profile} isOwner={false} loading={loading} noPadding />
+            </SectionCard>
+            <Gap h={12}/>
+          </>
+        )}
+
+        {/* ── TALENT-ANGEBOTE (aus talents-Tabelle, nur approved) ── */}
+        {(profile?.has_talent_profile || profile?.is_talent) && profileId && (
+          <>
+            <SectionCard icon={<HUITalentIcon size={16}/>} title="Talent-Angebote" delay={90}>
+              <PublicTalentOffersSection profileId={profileId}/>
             </SectionCard>
             <Gap h={12}/>
           </>

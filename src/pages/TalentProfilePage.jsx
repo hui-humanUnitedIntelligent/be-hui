@@ -32,6 +32,7 @@ import { ProfileHeader }           from "../components/profile/ProfileHeader.jsx
 import { NAV_CLEARANCE_CSS } from "../components/home/navigation/navigationGeometry.js";
 const TalentSection          = React.lazy(() => import("../components/profile/sections/TalentSection.jsx").then(m => ({ default: m.TalentSection })));
 const WorksSection           = React.lazy(() => import("../components/profile/sections/WorksSection.jsx").then(m => ({ default: m.WorksSection })));
+import { PublicTalentOffersSection } from "../components/profile/sections/PublicTalentOffersSection.jsx";
 const ExperiencesSection     = React.lazy(() => import("../components/profile/sections/ExperiencesSection.jsx").then(m => ({ default: m.ExperiencesSection })));
 const RecommendationsSection = React.lazy(() => import("../components/profile/sections/RecommendationsSection.jsx").then(m => ({ default: m.RecommendationsSection })));
 const AvailabilitySection    = React.lazy(() => import("../components/profile/sections/AvailabilitySection.jsx").then(m => ({ default: m.AvailabilitySection })));
@@ -1358,7 +1359,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
         {/* ── 5. Nächste Erlebnisse (unverändert) ──────────── */}
         <NaechsteErlebnisseSection experiences={experiences} loading={loading}/>
         <Gap h={28}/>
-        {/* ── 7. Talente & Angebote → TalentSection ────────── */}
+        {/* ── 7. Talente & Angebote → TalentSection (Skills-Chips) ── */}
         <React.Suspense fallback={null}>
           <TalentSection
             profile={profile}
@@ -1367,6 +1368,21 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
             onChange={handleSkillsChange}
           />
         </React.Suspense>
+        <Gap h={16}/>
+
+        {/* ── 7b. Talent-Angebote (talents-Tabelle, approved) ── */}
+        {(profile?.has_talent_profile || profile?.is_talent) && profileId && (
+          <>
+            <div style={{ padding:"0 16px", marginBottom:8 }}>
+              <div style={{ fontSize:15, fontWeight:700, color:"#1A1A18", letterSpacing:"-0.01em" }}>
+                Talent-Angebote
+              </div>
+            </div>
+            <div style={{ padding:"0 16px" }}>
+              <PublicTalentOffersSection profileId={profileId}/>
+            </div>
+          </>
+        )}
         <Gap h={28}/>
 
         {/* ── 8. Werke → WorksSection ──────────────────────── */}
