@@ -355,11 +355,12 @@ function SkillsCard({ profile = {}, loading = false }) {
         <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
           {skills.map((s, i) => (
             <span key={i} style={{
+              display:"inline-flex", alignItems:"center", gap:4,
               padding:"3px 8px", borderRadius:T.r99,
-              background:T.tealSoft, border:`1px solid ${T.tealMid}`,
-              fontSize:11, fontWeight:600, color:T.tealDeep,
+              background:T.bgCard, border:`1px solid ${T.tealMid}`,
+              fontSize:11, fontWeight:600, color:T.ink, boxShadow:T.card,
             }}>
-              {s?.icon && <span style={{ marginRight:3 }}>{s.icon}</span>}
+              {s?.icon && <span style={{ fontSize:11 }}>{s.icon}</span>}
               {typeof s === "string" ? s : (s?.label || s?.name || "")}
             </span>
           ))}
