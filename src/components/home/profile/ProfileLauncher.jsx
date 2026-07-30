@@ -287,29 +287,6 @@ export default function ProfileLauncher() {
   // isTalent wird aus Phase-1-Profil (has_talent_profile) innerhalb von
   // PublicProfilePage / TalentProfilePage gelesen (via useProfileData).
   
-  // ── DEBUG: Timeout checker for PPP module loading ──
-  React.useEffect(() => {
-    if (selectedProfileId) {
-      const timer = setTimeout(() => {
-        if (!document.getElementById("__ppp_module_loaded__")) {
-          const d = document.createElement("div");
-          d.id = "__ppp_timeout__";
-          d.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:99999;background:red;color:white;padding:10px;font-size:12px;font-family:monospace";
-          d.textContent = "PPP TIMEOUT — chunk did not load in 5s. preloadErrors: " + JSON.stringify(window.__preloadErrors || []);
-          document.body.appendChild(d);
-        } else {
-          const d = document.createElement("div");
-          d.id = "__ppp_loaded_ok__";
-          d.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:99999;background:green;color:white;padding:10px;font-size:12px;font-family:monospace";
-          d.textContent = "PPP MODULE LOADED OK";
-          document.body.appendChild(d);
-          setTimeout(() => d.remove(), 3000);
-        }
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [selectedProfileId]);
-
 if (selectedProfileId) {
     const content = (
       <ProfileErrorBoundary profileId={selectedProfileId} onClose={closeProfileById}>

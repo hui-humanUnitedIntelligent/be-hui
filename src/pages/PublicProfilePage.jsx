@@ -29,15 +29,6 @@ import { HUIChatIcon, HUIBookmarkIcon } from '../design/icons/HuiInteractionIcon
 import { ProfileHeader } from "../components/profile/ProfileHeader.jsx";
 import { notifyWatcher } from "../lib/notificationService.js";
 
-// ── DEBUG: Module loaded signal ──
-if (typeof document !== "undefined") {
-  const __d = document.createElement("div");
-  __d.id = "__ppp_module_loaded__";
-  __d.style.display = "none";
-  __d.textContent = "PPP_MODULE_LOADED";
-  document.body.appendChild(__d);
-}
-
 
 // Lazy Sections — alle read-only
 const TalentSection          = React.lazy(() => import("../components/profile/sections/TalentSection.jsx").then(m => ({ default: m.TalentSection })));
