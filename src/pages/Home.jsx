@@ -241,8 +241,34 @@ function HomeInner() {
 
   // Stripe Redirect wird in UnterstutzenFlow behandelt (P1)
 
-    // Preload BasisProfilePage-Chunk beim Home-Mount (liegt dann im Cache beim Profil-Tap)
-  useEffect(() => { import("./BasisProfilePage.jsx").catch(() => {}); import("../components/profile/OrbSignatur.jsx").catch(() => {}); }, []);
+    // Preload Profil-Chunks beim Home-Mount (liegen dann im Cache beim ersten Profil-Tap)
+  // Page-Dateien sofort laden; Section-Chunks verzögert im Idle-Callback,
+  // damit der initiale Home-Feed-Load nicht durch zusätzliche Netzwerklast verlangsamt wird.
+  // Pattern: requestIdleCallback mit setTimeout-Fallback (wie useFeedStream.js)
+  useEffect(() => {
+    // Phase 1: Page-Dateien sofort vorladen (klein, kritischer Pfad)
+    import("./BasisProfilePage.jsx").catch(() => {});
+    import("../components/profile/OrbSignatur.jsx").catch(() => {});
+
+    // Phase 2: Section-Chunks + abhängige Pages verzögert vorladen (idle, nicht-blockierend)
+    const prefetchSections = () => {
+      import("../components/profile/sections/AboutSection.jsx").catch(() => {});
+      import("../components/profile/sections/LocationSection.jsx").catch(() => {});
+      import("../components/profile/sections/AvailabilitySection.jsx").catch(() => {});
+      import("../components/profile/sections/VisibilitySection.jsx").catch(() => {});
+      import("../components/profile/sections/MomentsSection.jsx").catch(() => {});
+      import("../components/profile/sections/RecommendationsSection.jsx").catch(() => {});
+      import("./MyBasisProfile.jsx").catch(() => {});
+      import("./TalentProfilePage.jsx").catch(() => {});
+      import("../components/settings/SettingsModal.jsx").catch(() => {});
+    };
+
+    if (typeof requestIdleCallback !== "undefined") {
+      requestIdleCallback(prefetchSections, { timeout: 3000 });
+    } else {
+      setTimeout(prefetchSections, 1500);
+    }
+  }, []);
 
   useEffect(() => {
     const pending = location?.state?.pendingWerkKauf;
