@@ -322,7 +322,7 @@ function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdi
   );
 }
 
-export default function CommentsSheet({ open, onClose, postId, postType, postAuthorId, postActionUrl, highlightCommentId, mediaUrl = null, mediaType = null }) {
+export default function CommentsSheet({ open, onClose, postId, postType, postAuthorId, postActionUrl, highlightCommentId, mediaUrl = null, mediaType = null, postTitle = null }) {
   const { user, profile } = useAuth();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -423,7 +423,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
     setInput("");
     const { data, error } = await createComment({
       postId, postType, userId: user.id, text, postAuthorId,
-      senderName: profile?.display_name || profile?.username, postActionUrl,
+      senderName: profile?.display_name || profile?.username, postActionUrl, postTitle,
     });
     setSubmitting(false);
     if (error || !data) {
@@ -463,7 +463,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
 
     const { data, error } = await createComment({
       postId, postType, userId: user.id, text, parentCommentId: parentId,
-      parentAuthorId, senderName: profile?.display_name || profile?.username, postActionUrl,
+      parentAuthorId, senderName: profile?.display_name || profile?.username, postActionUrl, postTitle,
     });
     setSubmittingReply(false);
     if (error || !data) {

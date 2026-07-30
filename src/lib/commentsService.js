@@ -101,7 +101,7 @@ export async function countComments(postId, postType) {
 }
 
 // ── Kommentar/Antwort erstellen ───────────────────────────────────────
-export async function createComment({ postId, postType, userId, text, parentCommentId = null, parentAuthorId = null, postAuthorId = null, senderName = null }) {
+export async function createComment({ postId, postType, userId, text, parentCommentId = null, parentAuthorId = null, postAuthorId = null, senderName = null, postTitle = null }) {
   const { data, error } = await supabase.from(TABLE).insert({
     post_id: postId, post_type: postType, user_id: userId, text, parent_comment_id: parentCommentId,
   }).select().single();
@@ -114,11 +114,19 @@ export async function createComment({ postId, postType, userId, text, parentComm
   if (recipientId && recipientId !== userId) {
     const type = parentCommentId ? "comment_reply" : "comment";
     const body = text.length > 140 ? `${text.slice(0, 137)}…` : text;
+    const postTitleShort = postTitle ? `"${postTitle.slice(0, 60)}"` : null;
     supabase.from("notifications").insert({
       user_id: recipientId, type,
-      title: parentCommentId ? `${senderName || "Jemand"} hat auf deinen Kommentar geantwortet` : `${senderName || "Jemand"} hat kommentiert`,
-      body, is_read: false, actor_id: userId,
-      metadata: { post_id: postId, post_type: postType, comment_id: data.id },
+      sender_id: userId,
+      title: parentCommentId
+        ? `${senderName || "Jemand"} hat auf deinen Kommentar geantwortet`
+        : `${senderName || "Jemand"} hat kommentiert`,
+      body: postTitleShort ? `${postTitleShort}\n${body}` : body,
+      is_read: false,
+      actor_id: userId,
+      entity_id: postId,
+      entity_type: postType,
+      metadata: { post_id: postId, post_type: postType, comment_id: data.id, comment_text: body.slice(0, 120) },
       created_at: new Date().toISOString(),
     }).then(() => {}).catch(() => {});
   }

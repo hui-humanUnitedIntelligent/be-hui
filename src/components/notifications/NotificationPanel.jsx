@@ -122,6 +122,9 @@ const META = {
   // RESONANZ.3 (2026-07-16): Resonanz auf eigenen Beitrag.
   resonanz:               { emoji:<HUIHeartIcon size={18}/>,            label:"Resonanz"               },
   like:                   { emoji:"✦",  label:"Gefällt jemandem"       },
+  // RESONANZ.5 (2026-07-30): Save + Share Notifications
+  save:                   { emoji:"🔖", label:"Beitrag gespeichert"    },
+  share:                  { emoji:"↗",  label:"Beitrag geteilt"        },
   order_confirmed:        { emoji:"✓",   label:"Unterstützung bestätigt"     },
   impact_project_submitted:{ emoji:"💚",  label:"Herzensprojekt eingereicht"  },
   impact_project_deleted:  { emoji:"🗑",  label:"Herzensprojekt entfernt"     },
@@ -252,13 +255,30 @@ function DetailModal({ n, onClose, onAction }) {
 
     // HUI Share (interne Weiterleitungen)
     if (t === "share") {
-      const senderName = md.sender_name || n.title?.replace(" möchte dir was zeigen","") || "Jemand";
-      const contentTitle = md.entity_title || n.body || "Einen Inhalt";
-      const contentType = md.entity_type || n.entity_type || "";
-      const typeLabel = {
-        work:"Werk", talent:"Talent-Angebot", moment:"Beitrag",
+      const sharePost  = md.post_title || md.entity_title || null;
+      const shareType  = md.post_type || md.entity_type || n.entity_type || "";
+      const typeLabel  = {
+        work:"Werk", talent:"Talent-Angebot", moment:"Beitrag", beitrag:"Beitrag",
         experience:"Erlebnis", project:"Impact-Projekt", event:"Veranstaltung",
-      }[contentType] || contentType || "Inhalt";
+      }[shareType] || "Inhalt";
+      // Unterscheide: hat diese Notif entity_id? → Autor-Sicht (Beitrag geteilt)
+      //               ohne entity_id → Empfänger-Sicht (jemand schickt dir was)
+      const isAuthorView = !!(n.entity_id || md.post_id);
+      if (isAuthorView) {
+        return {
+          accentColor: "#0EC4B8",
+          headerIcon: "↗",
+          headerTitle: n.title || "Jemand hat deinen Beitrag geteilt",
+          headerSubtitle: sharePost ? `„${sharePost}"` : null,
+          blocks: [],
+          entityId:   n.entity_id || md.post_id || null,
+          entityType: n.entity_type || md.post_type || null,
+          actionLabel: `${typeLabel} öffnen →`,
+        };
+      }
+      // Legacy: Empfänger-Sicht
+      const senderName = md.sender_name || "Jemand";
+      const contentTitle = sharePost || n.body || "Einen Inhalt";
       return {
         accentColor: "#0EC4B8",
         headerIcon: "↗",
@@ -270,7 +290,7 @@ function DetailModal({ n, onClose, onAction }) {
         actionUrl: n.action_url || md.entity_url || null,
         actionLabel: `${typeLabel || "Inhalt"} ansehen →`,
         entityId:   n.entity_id   || md.entity_id   || null,
-        entityType: n.entity_type || md.entity_type || contentType || null,
+        entityType: n.entity_type || md.entity_type || shareType || null,
       };
     }
 
@@ -396,6 +416,23 @@ function DetailModal({ n, onClose, onAction }) {
     }
 
     // Merken-Digest
+    // Beitrag gespeichert (RESONANZ.5 — Autor bekommt Notification wenn jemand speichert)
+    if (t === "save") {
+      const saveTitle  = md.post_title || n.body?.replace(/^[""]+|[""]+$/g,"").trim() || null;
+      const saveType   = md.post_type || n.entity_type || null;
+      const typeLabel  = { work:"Werk", moment:"Beitrag", experience:"Erlebnis", beitrag:"Beitrag" }[saveType] || "Beitrag";
+      return {
+        accentColor: "#F59E0B",
+        headerIcon: "🔖",
+        headerTitle: n.title || "Jemand hat deinen Beitrag gespeichert",
+        headerSubtitle: saveTitle ? `„${saveTitle}"` : null,
+        blocks: [],
+        entityId:   n.entity_id || md.post_id || null,
+        entityType: n.entity_type || md.post_type || null,
+        actionLabel: `${typeLabel} öffnen →`,
+      };
+    }
+
     if (t === "save_digest") {
       return {
         accentColor: "#0EC4B8",
@@ -964,7 +1001,7 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
     "moment_removed", "moment_reported", "moment_reported_removed", "moment_updated",
     // Interaktionen
     "new_follower", "new_booking", "support_ticket_reply", "support_ticket",
-    "like", "resonanz", "comment", "comment_reply", "save_digest",
+    "like", "resonanz", "comment", "comment_reply", "save", "save_digest", "share",
   ];
 
   const TAB_FILTERS = {

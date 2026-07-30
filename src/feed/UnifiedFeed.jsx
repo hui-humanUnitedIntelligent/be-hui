@@ -459,7 +459,7 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
     if (type === "touch") {
       const mediaUrl  = item?._raw?.media_url || item?._raw?.image_url || item?._raw?.video_url || item?.media?.url || null;
       const mediaType = item?._raw?.type || item?.type || "beitrag";
-      onOpenComments?.(postId, postType, authorId, mediaUrl, mediaType);
+      onOpenComments?.(postId, postType, authorId, mediaUrl, mediaType, item?._raw?.title || item?._raw?.caption || item?.title || null);
       return;
     }
     if (!toggle) return;
@@ -788,9 +788,9 @@ export default function UnifiedFeed({
 
   // ── COMMENTS SHEET STATE ────────────────────────────────────────────
   const [commentsTarget, setCommentsTarget] = React.useState(null);
-  // commentsTarget: { postId, postType, postAuthorId, mediaUrl, mediaType }
-  const openComments = React.useCallback((postId, postType, postAuthorId, mediaUrl, mediaType) => {
-    setCommentsTarget({ postId, postType, postAuthorId, mediaUrl, mediaType });
+  // commentsTarget: { postId, postType, postAuthorId, mediaUrl, mediaType, postTitle }
+  const openComments = React.useCallback((postId, postType, postAuthorId, mediaUrl, mediaType, postTitle = null) => {
+    setCommentsTarget({ postId, postType, postAuthorId, mediaUrl, mediaType, postTitle });
   }, []);
   const closeComments = React.useCallback(() => setCommentsTarget(null), []);
 
@@ -922,6 +922,7 @@ export default function UnifiedFeed({
         postAuthorId={commentsTarget?.postAuthorId || ""}
         mediaUrl={commentsTarget?.mediaUrl}
         mediaType={commentsTarget?.mediaType}
+        postTitle={commentsTarget?.postTitle}
       />
     </div>
   );

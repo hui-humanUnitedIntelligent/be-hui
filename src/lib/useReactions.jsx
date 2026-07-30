@@ -139,19 +139,47 @@ export function useSingleReaction(postId, postType = "post", authorId = null, po
         // Merken-Digests laufen separat als taeglicher/woechentlicher
         // Batch-Job (siehe save_digest_batch()-RPC + Superagent-Automation),
         // NICHT pro einzelnem Toggle hier.
-        if (authorId && authorId !== user.id && type !== "save") {
-          // RESONANZ.4 (2026-07-16): Beitragstitel aus postSnapshot für aussagekräftigen Body.
+        if (authorId && authorId !== user.id) {
+          // RESONANZ.4 + RESONANZ.5 (2026-07-30): Notifications für inspire, like, save
           const _title = postSnapshot?.title || postSnapshot?.caption || null;
-          createNotification({
-            recipientId: authorId,
-            senderId:    user.id,
-            type:        type === "inspire" ? "resonanz" : "like",
-            title:       type === "inspire" ? "Jemand lässt sich von dir inspirieren" :
-                                              "Jemandem gefällt dein Beitrag",
-            body:        _title ? `"${_title.slice(0, 80)}"` : undefined,
-            entityId:    postId,
-            entityType:  postType,
-          }).catch(() => {});
+          const _body  = _title ? `"${_title.slice(0, 80)}"` : undefined;
+
+          if (type === "inspire") {
+            createNotification({
+              recipientId: authorId,
+              senderId:    user.id,
+              type:        "resonanz",
+              title:       "Jemand lässt sich von dir inspirieren",
+              body:        _body,
+              entityId:    postId,
+              entityType:  postType,
+              metadata:    { post_id: postId, post_type: postType, post_title: _title },
+            }).catch(() => {});
+          } else if (type === "save") {
+            // RESONANZ.5 (2026-07-30): Save-Notification — Lars-Vorgabe aufgehoben auf
+            // Wunsch von Michael: Beitrags-Autor bekommt Notif wenn jemand seinen Beitrag speichert.
+            createNotification({
+              recipientId: authorId,
+              senderId:    user.id,
+              type:        "save",
+              title:       "Jemand hat deinen Beitrag gespeichert",
+              body:        _body,
+              entityId:    postId,
+              entityType:  postType,
+              metadata:    { post_id: postId, post_type: postType, post_title: _title },
+            }).catch(() => {});
+          } else if (type === "like") {
+            createNotification({
+              recipientId: authorId,
+              senderId:    user.id,
+              type:        "like",
+              title:       "Jemand resoniert mit deinem Beitrag",
+              body:        _body,
+              entityId:    postId,
+              entityType:  postType,
+              metadata:    { post_id: postId, post_type: postType, post_title: _title },
+            }).catch(() => {});
+          }
         }
       }
     } catch {
@@ -179,7 +207,21 @@ export function useSingleReaction(postId, postType = "post", authorId = null, po
     await supabase.from("post_reactions").insert(
       { post_id: postId, post_type: postType, user_id: user.id, type: "share" }
     );
-  }, [user?.id, postId, postType]);
+    // Notification an Autor (RESONANZ.5, 2026-07-30)
+    if (authorId && authorId !== user.id) {
+      const _title = postSnapshot?.title || postSnapshot?.caption || null;
+      createNotification({
+        recipientId: authorId,
+        senderId:    user.id,
+        type:        "share",
+        title:       "Jemand hat deinen Beitrag geteilt",
+        body:        _title ? `"${_title.slice(0, 80)}"` : undefined,
+        entityId:    postId,
+        entityType:  postType,
+        metadata:    { post_id: postId, post_type: postType, post_title: _title },
+      }).catch(() => {});
+    }
+  }, [user?.id, postId, postType, authorId, postSnapshot]);
 
   return { counts, myTypes, toggle, trackShare, isLoggedIn: !!user?.id };
 }
