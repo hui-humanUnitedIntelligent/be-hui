@@ -19,7 +19,7 @@ import { useHome }   from "../components/home/HomeShell.jsx";
 const GemeinschaftsFlow = React.lazy(() => import("../components/GemeinschaftsFlow.jsx"));
 const NotificationPanel = React.lazy(() => import("../components/notifications/NotificationPanel.jsx"));
 import AmbassadorModal from "../components/ambassador/AmbassadorModal.jsx";
-const SettingsModal  = React.lazy(() => import("../components/settings/SettingsModal.jsx"));
+import SettingsModal  from "../components/settings/SettingsModal.jsx";
 import { useAmbassador } from "../hooks/useAmbassador.js";
 import { useProfileData } from "../hooks/useProfileData.js";
 const HuiStudio              = React.lazy(() => import("../components/studio/HuiStudio.jsx"));
@@ -28,13 +28,13 @@ import PublicProfilePreview   from "../components/profile/PublicProfilePreview.j
 import { OrbSignatur }        from "../components/profile/OrbSignatur.jsx";
 import MerkenSection          from "../components/profile/MerkenSection.jsx";
 // Sprint F.7D Phase 4: Kanonische Sections
-const AboutSection          = React.lazy(() => import("../components/profile/sections/AboutSection.jsx").then(m => ({ default: m.AboutSection })));
+import { AboutSection }          from "../components/profile/sections/AboutSection.jsx";
 import { ProfileHeader as CanonicalProfileHeader } from "../components/profile/ProfileHeader.jsx";
-const TalentSection         = React.lazy(() => import("../components/profile/sections/TalentSection.jsx").then(m => ({ default: m.TalentSection })));
-const MomentsSection        = React.lazy(() => import("../components/profile/sections/MomentsSection.jsx").then(m => ({ default: m.MomentsSection })));
-const RecommendationsSection = React.lazy(() => import("../components/profile/sections/RecommendationsSection.jsx").then(m => ({ default: m.RecommendationsSection })));
-const AvailabilitySection   = React.lazy(() => import("../components/profile/sections/AvailabilitySection.jsx").then(m => ({ default: m.AvailabilitySection })));
-const VisibilitySection     = React.lazy(() => import("../components/profile/sections/VisibilitySection.jsx").then(m => ({ default: m.VisibilitySection })));
+import { TalentSection }         from "../components/profile/sections/TalentSection.jsx";
+import { MomentsSection }        from "../components/profile/sections/MomentsSection.jsx";
+import { RecommendationsSection } from "../components/profile/sections/RecommendationsSection.jsx";
+import { AvailabilitySection }   from "../components/profile/sections/AvailabilitySection.jsx";
+import { VisibilitySection }     from "../components/profile/sections/VisibilitySection.jsx";
 const WerkWizard      = React.lazy(() => import("../components/works/WerkWizard.jsx"));
 const TalentAngebotWizard = React.lazy(() => import("../components/talents/TalentAngebotWizard.jsx"));
 import { useTalents, deleteTalent } from "../hooks/useTalents.js";
@@ -1224,23 +1224,21 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
       {/* SETTINGS MODAL */}
       {showSettings && (
-        <React.Suspense fallback={null}>
-          <SettingsModal
-            profile={profile}
-            onClose={() => setShowSettings(false)}
-            onProfileUpdate={(updated) => {
-              refreshProfile?.().catch(() => {});
-            }}
-            onEditProfile={() => {
-              setShowSettings(false);
-              setShowProfilEditPage(true);
-            }}
-            onOpenBookings={() => {
-              setShowSettings(false);
-              if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("hui:openBookings"));
-            }}
-          />
-        </React.Suspense>
+        <SettingsModal
+          profile={profile}
+          onClose={() => setShowSettings(false)}
+          onProfileUpdate={(updated) => {
+            refreshProfile?.().catch(() => {});
+          }}
+          onEditProfile={() => {
+            setShowSettings(false);
+            setShowProfilEditPage(true);
+          }}
+          onOpenBookings={() => {
+            setShowSettings(false);
+            if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("hui:openBookings"));
+          }}
+        />
       )}
       {showProfilEditPage && (
         <ProfilBearbeitenModal

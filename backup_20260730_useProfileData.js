@@ -105,34 +105,30 @@ export function useProfileData(profileId, includePrivate = false) {
     setError(null);
 
     try {
-      const TIMEOUT_MS = 3000;
+      const TIMEOUT_MS = 1500;
       const timeoutGuard = new Promise((_, reject) =>
         setTimeout(() => reject(new Error("profile timeout")), TIMEOUT_MS)
       );
 
-      // Profil-Query — OHNE follow_counts (entkoppelt, fire-and-forget)
-      const profileRes = await Promise.race([
-        (includePrivate
+      const [profileRes, fcRes] = await Promise.race([
+        Promise.all([
+          // 1. profiles — via cachedQuery (60s TTL)
+          (includePrivate
           ? supabase.from("profiles").select(PROFILE_SELECT_PRIVATE).eq("id", profileId).maybeSingle()
               .then(r => ({ data: r.data, error: r.error }))
               .catch(() => ({ data: null, error: { message: "profiles load failed" } }))
           : ProfileService.getById(profileId)
-            .catch(() => ({ data: null, error: { message: "profiles load failed" } }))),
+            .catch(() => ({ data: null, error: { message: "profiles load failed" } })))
+            .catch(() => ({ data: null, error: { message: "profiles load failed" } })),
+
+          // 2. followCounts — leichtgewichtig
+          supabase
+            .rpc("get_follow_counts", { target_id: profileId })
+            .then(r => r)
+            .catch(() => ({ data: null })),
+        ]),
         timeoutGuard,
       ]);
-
-      // follow_counts — fire-and-forget, blockiert niemals das Profil-Rendering
-      supabase
-        .rpc("get_follow_counts", { target_id: profileId })
-        .then(r => {
-          if (r?.data?.[0]) {
-            setFollowCounts(prev => ({
-              followers: r.data[0].followers ?? prev.followers ?? 0,
-              following: r.data[0].following ?? prev.following ?? 0,
-            }));
-          }
-        })
-        .catch(() => {});
 
       if (myId !== requestId.current) {
         return;
@@ -163,10 +159,10 @@ export function useProfileData(profileId, includePrivate = false) {
 
       setProfile(normalizedProfile);
       setWirkerProfile(null); // wirker_profiles = Legacy-Stub
-      setFollowCounts(prev => ({
-        followers: raw.followers_count ?? prev.followers ?? 0,
-        following: prev.following ?? 0,
-      }));
+      setFollowCounts({
+        followers: fcRes.data?.[0]?.followers ?? 0,
+        following: fcRes.data?.[0]?.following ?? 0,
+      });
 
     } catch (err) {
       if (myId !== requestId.current) return;

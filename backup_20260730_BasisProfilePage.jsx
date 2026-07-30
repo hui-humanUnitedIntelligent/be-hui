@@ -21,16 +21,16 @@ import { useState, useEffect, useCallback } from 'react';
 import { useProfileData } from "../hooks/useProfileData.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
 import { useHome }   from "../components/home/HomeShell.jsx";
-const SettingsModal  = React.lazy(() => import("../components/settings/SettingsModal.jsx"));
-const HuiStudio      = React.lazy(() => import("../components/studio/HuiStudio.jsx"));
+import SettingsModal  from "../components/settings/SettingsModal.jsx";
+import HuiStudio      from "../components/studio/HuiStudio.jsx";
 import { supabase }   from "../lib/supabaseClient.js";
 // Sprint F.5.3: kanonische Sections
-const AboutSection           = React.lazy(() => import("../components/profile/sections/AboutSection.jsx").then(m => ({ default: m.AboutSection })));
-const LocationSection        = React.lazy(() => import("../components/profile/sections/LocationSection.jsx").then(m => ({ default: m.LocationSection })));
-const AvailabilitySection    = React.lazy(() => import("../components/profile/sections/AvailabilitySection.jsx").then(m => ({ default: m.AvailabilitySection })));
-const VisibilitySection      = React.lazy(() => import("../components/profile/sections/VisibilitySection.jsx").then(m => ({ default: m.VisibilitySection })));
-const MomentsSection         = React.lazy(() => import("../components/profile/sections/MomentsSection.jsx").then(m => ({ default: m.MomentsSection })));
-const RecommendationsSection = React.lazy(() => import("../components/profile/sections/RecommendationsSection.jsx").then(m => ({ default: m.RecommendationsSection })));
+import { AboutSection }           from "../components/profile/sections/AboutSection.jsx";
+import { LocationSection }        from "../components/profile/sections/LocationSection.jsx";
+import { AvailabilitySection }    from "../components/profile/sections/AvailabilitySection.jsx";
+import { VisibilitySection }      from "../components/profile/sections/VisibilitySection.jsx";
+import { MomentsSection }         from "../components/profile/sections/MomentsSection.jsx";
+import { RecommendationsSection } from "../components/profile/sections/RecommendationsSection.jsx";
 import { ProfileHeader as CanonicalProfileHeader } from "../components/profile/ProfileHeader.jsx";
 // OrbSignatur lazy — verhindert Blockierung des BasisProfilePage-Renders (89K-Chunk)
 const OrbSignatur = React.lazy(() => import("../components/profile/OrbSignatur.jsx").then(m => ({ default: m.OrbSignatur })));
@@ -533,14 +533,12 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
         <Gap h={16}/>
 
         {/* 3. Über dich — kanonisch (Sprint F.5.3) */}
-        <React.Suspense fallback={null}>
-          <AboutSection
-            profile={profile}
-            isOwner={isOwner}
-            loading={loading}
-            onSave={handleBioSave}
-          />
-        </React.Suspense>
+        <AboutSection
+          profile={profile}
+          isOwner={isOwner}
+          loading={loading}
+          onSave={handleBioSave}
+        />
         <Gap h={24}/>
 
         {/* 4. Interessen-Grid (Basis-spezifisch, skills als Display-Tags) */}
@@ -548,13 +546,11 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
         <Gap h={28}/>
 
         {/* 5. Momente — kanonisch MomentsSection (Sprint F.5.3) */}
-        <React.Suspense fallback={null}>
-          <MomentsSection
-            moments={moments}
-            isOwner={isOwner}
-            loading={loadingLazy}
-          />
-        </React.Suspense>
+        <MomentsSection
+          moments={moments}
+          isOwner={isOwner}
+          loading={loadingLazy}
+        />
         <Gap h={28}/>
 
         {/* 6. Offen für Begegnungen (Basis-spezifisch, hardcoded Tags) */}
@@ -562,48 +558,40 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
         <Gap h={28}/>
 
         {/* 7. Verfügbarkeit — kanonisch (Sprint F.5.3) */}
-        <React.Suspense fallback={null}>
-          <AvailabilitySection
-            profile={profile}
-            isOwner={isOwner}
-            loading={loading}
-            onSave={handleAvailabilitySave}
-          />
-        </React.Suspense>
+        <AvailabilitySection
+          profile={profile}
+          isOwner={isOwner}
+          loading={loading}
+          onSave={handleAvailabilitySave}
+        />
         <Gap h={20}/>
 
         {/* 8. Standort — kanonisch (Sprint F.5.3) */}
-        <React.Suspense fallback={null}>
-          <LocationSection
-            profile={profile}
-            isOwner={isOwner}
-            loading={loading}
-            onSave={handleLocationSave}
-          />
-        </React.Suspense>
+        <LocationSection
+          profile={profile}
+          isOwner={isOwner}
+          loading={loading}
+          onSave={handleLocationSave}
+        />
         <Gap h={20}/>
 
         {/* 9. Sichtbarkeit — kanonisch VisibilitySection (Sprint F.9G.1: onSave) */}
-        <React.Suspense fallback={null}>
-          <VisibilitySection
-            profile={profile}
-            isOwner={isOwner}
-            loading={loading}
-            onSave={handleVisibilitySave}
-          />
-        </React.Suspense>
+        <VisibilitySection
+          profile={profile}
+          isOwner={isOwner}
+          loading={loading}
+          onSave={handleVisibilitySave}
+        />
         <Gap h={24}/>
 
         {/* 10. Kundenstimmen — kanonisch (Sprint F.5.3) */}
-        <React.Suspense fallback={null}>
-          <RecommendationsSection
-            recommendations={recommendations}
-            isOwner={isOwner}
-            loading={loadingLazy}
-            onAddRec={null}
-            onShowAll={null}
-          />
-        </React.Suspense>
+        <RecommendationsSection
+          recommendations={recommendations}
+          isOwner={isOwner}
+          loading={loadingLazy}
+          onAddRec={null}
+          onShowAll={null}
+        />
         <Gap h={24}/>
 
         {/* 11. Social context bar (Basis-spezifisch, followCounts) */}
@@ -687,24 +675,20 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
 
       {/* ── Modals (nur Owner) ─────────────────────────────────── */}
       {isOwner && showSettings && (
-        <React.Suspense fallback={null}>
-          <SettingsModal
-            profile={profile}
-            onClose={() => setShowSettings(false)}
-            onSave={(updated) => {
-              reload();           // Sprint F.5.2: reload statt lokales setProfile
-              setShowSettings(false);
-            }}
-          />
-        </React.Suspense>
+        <SettingsModal
+          profile={profile}
+          onClose={() => setShowSettings(false)}
+          onSave={(updated) => {
+            reload();           // Sprint F.5.2: reload statt lokales setProfile
+            setShowSettings(false);
+          }}
+        />
       )}
       {isOwner && showStudio && (
-        <React.Suspense fallback={null}>
-          <HuiStudio
-            profile={profile}
-            onClose={() => setShowStudio(false)}
-          />
-        </React.Suspense>
+        <HuiStudio
+          profile={profile}
+          onClose={() => setShowStudio(false)}
+        />
       )}
     </div>
   );

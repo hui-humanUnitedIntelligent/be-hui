@@ -15,7 +15,6 @@ import {
   HUIHeartIcon, HUIChatIcon, HUIBookmarkIcon, HUIShareIcon,
 } from "../../design/icons/HuiInteractionIcons.jsx";
 import { haptic } from "../../components/commerce/commerceUtils.js";
-import { prefetchProfile } from "../../lib/perfUtils.js";
 
 const T = {
   bgCard:   "#FFFFFF",
@@ -219,7 +218,6 @@ function getBegegnungsgrund(item) {
 // Zeile 2: Talent (farbig) · Pin-SVG · Ort
 // Zeile 3: " (groß, orange) + Story-Satz
 export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
-  const _uid = item?.author?.id || item?.user_id || item?.creator_id || null;
   const author   = item?.author || {};
   // ── TRACE STEP 8 ──────────────────────────────────────
   if (!window.__HUI_STEP8_DONE__ && item?.type === "work") {
@@ -360,8 +358,6 @@ export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge
       {/* Avatar → direkt vollständiges Profil öffnen */}
       <button
         onClick={onProfile ? () => onProfile() : undefined}
-        onPointerDown={uid ? () => prefetchProfile(uid) : undefined}
-        onMouseEnter={uid ? () => prefetchProfile(uid) : undefined}
         onTouchStart={onProfile ? () => setPressed(true)  : undefined}
         onTouchEnd={onProfile   ? () => setPressed(false) : undefined}
         onMouseDown={onProfile  ? () => setPressed(true)  : undefined}
@@ -388,8 +384,6 @@ export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge
         <div style={{ display:"flex",alignItems:"center",gap:5 }}>
           <span
             onClick={onProfile ? () => onProfile() : undefined}
-            onPointerDown={uid ? () => prefetchProfile(uid) : undefined}
-            onMouseEnter={uid ? () => prefetchProfile(uid) : undefined}
             style={{ fontSize:13.5,fontWeight:700,color:T.ink,letterSpacing:-0.2,
               overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",
               cursor: onProfile ? "pointer" : "default",

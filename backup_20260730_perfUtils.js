@@ -111,26 +111,6 @@ export function readCache(key) {
   return null;
 }
 
-
-
-// Prefetch-on-Intent: Befüllt den prewarm-Cache für ein fremdes Profil
-// Wird bei onPointerDown/onMouseEnter auf klickbaren Profil-Verweisen aufgerufen
-// Bevor die Navigation startet → Cache ist warm wenn useProfileData liest
-
-export async function prefetchProfile(profileId) {
-  if (!profileId || typeof profileId !== "string") return;
-  // Wenn Cache bereits warm → kein Duplicate Request
-  const cached = readCache(`prewarm:${profileId}`);
-  if (cached?.data) return;
-  // Dynamic import — vermeidet Zirkelimport (db.js → perfUtils.js)
-  const { ProfileService } = await import("../services/db.js");
-  ProfileService.getById(profileId)
-    .then(({ data }) => {
-      if (data) ProfileService.prewarm([data]);
-    })
-    .catch(() => {});
-}
-
 export function clearQueryCache(keyPrefix) {
   if (!keyPrefix) { _queryCache.clear(); return; }
   for (const k of _queryCache.keys()) {
