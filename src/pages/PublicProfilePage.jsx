@@ -448,7 +448,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
             </div>
           ) : profile ? (
             /* ── 2-Spalten: Links Name+Badge, Rechts Ort+Website+Follower ── */
-            <div style={{ display:"flex", alignItems:"flex-start", gap:12 }}>
+            <div style={{ display:"flex", alignItems:"stretch", gap:12 }}>
               {/* LINKS */}
               <div style={{ flex:1, minWidth:0 }}>
                 <div style={{ fontSize:20, fontWeight:800, color:T.ink, letterSpacing:"-0.025em", lineHeight:1.2 }}>
@@ -462,12 +462,16 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
                 </div>
               </div>
 
-              {/* RECHTS: Ort, Website, Follower */}
-              <div style={{ display:"flex", flexDirection:"column", gap:5, alignItems:"flex-start", flexShrink:0, maxWidth:"48%", marginTop:0 }}>
+              {/* RECHTS: vertikal zentriert zwischen Oberkante Name und Unterkante Badge */}
+              <div style={{
+                display:"flex", flexDirection:"column", justifyContent:"center",
+                gap:5, alignItems:"flex-start",
+                flexShrink:0, width:"45%",
+              }}>
                 {profile.location_final && (
                   <div style={{ display:"flex", alignItems:"center", gap:5, fontSize:12, color:T.inkSoft }}>
                     <HUILocationIcon size={12} style={{ color:T.coral, flexShrink:0 }}/>
-                    <span style={{ textAlign:"left", lineHeight:1.3 }}>{profile.location_final}</span>
+                    <span style={{ lineHeight:1.3 }}>{profile.location_final}</span>
                   </div>
                 )}
                 {profile.website && (
@@ -475,13 +479,13 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
                     <span style={{ fontSize:11, flexShrink:0 }}>🔗</span>
                     <a href={profile.website.startsWith("http") ? profile.website : "https://"+profile.website}
                       target="_blank" rel="noopener noreferrer"
-                      style={{ color:T.teal, fontWeight:600, textDecoration:"none", textAlign:"left" }}
+                      style={{ color:T.teal, fontWeight:600, textDecoration:"none" }}
                       onClick={e => e.stopPropagation()}>
                       {profile.website.replace(/^https?:\/\//, "")}
                     </a>
                   </div>
                 )}
-                <div style={{ display:"flex", gap:10, fontSize:12, color:T.inkSoft, marginTop:2 }}>
+                <div style={{ display:"flex", gap:10, fontSize:12, color:T.inkSoft }}>
                   <span><strong style={{ color:T.ink }}>{followCounts?.followers ?? 0}</strong> Follower</span>
                   <span><strong style={{ color:T.ink }}>{followCounts?.following ?? 0}</strong> folgt</span>
                 </div>
