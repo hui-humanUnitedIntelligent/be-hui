@@ -1,24 +1,10 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import IntroVideoScreen from "../components/entry/IntroVideoScreen.jsx";
 
 export default function SplashScreen() {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      navigate("/Home", { replace: true });
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  return (
-    <div className="flex items-center justify-center h-screen bg-white">
-      <img
-        src="/assets/hui-logo.png"
-        alt="HUI Logo"
-        className="w-40 h-40 animate-splash"
-      />
-    </div>
-  );
+  // SplashScreen ist jetzt nur noch der Router-Einstiegspunkt.
+  // IntroVideoScreen übernimmt das Video-Playback und leitet danach zu /login weiter.
+  // Wenn das Video schon abgespielt wurde (first-launch mode), leitet IntroVideoScreen
+  // sofort zu /login weiter — kein pulsierendes Logo mehr.
+  return <IntroVideoScreen />;
 }

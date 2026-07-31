@@ -23,6 +23,8 @@ import { analyticsService }    from "../services/creatorEconomy.js";
 import { emit }                from "../lib/events/index.js";
 import { toast }               from "../lib/useToast.jsx";
 import { usePresenceMap }      from "../lib/usePresence.jsx";
+import CommentsSheet            from "../components/shared/CommentsSheet.jsx";
+import { countComments }        from "../lib/commentsService.js";
 
 
 /* ═══════════════════════════════════════════════════════════════
@@ -183,12 +185,12 @@ function FeedWelcomeHeader({ currentUser }) {
               fontSize: 14, lineHeight: 1.55,
               color: MUTED, fontWeight: 400,
             }}>
-              Entdecke heute{" "}
-              <span style={{ color: TEAL, fontWeight: 600 }}>Menschen</span>,{" "}
+              Dein Zuhause wo{" "}
+              <span style={{ color: "#F5A623", fontWeight: 600 }}>Menschen</span>,{" "}
               <span style={{ color: TEAL, fontWeight: 600 }}>Ideen</span>{" "}
               und{" "}
-              <span style={{ color: CORAL, fontWeight: 600 }}>Erlebnisse</span>,
-              <br />die dich inspirieren.
+              <span style={{ color: CORAL, fontWeight: 600 }}>Erlebnisse</span>{" "}
+              dich inspirieren.
             </p>
           </div>
         </div>
@@ -220,18 +222,6 @@ function FeedWelcomeHeader({ currentUser }) {
             }}>📈</div>
             <span style={{ fontSize: 14, fontWeight: 700, color: INK, letterSpacing: -0.2 }}>
               Heute auf HUI
-            </span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-            <div style={{
-              width: 7, height: 7, borderRadius: "50%",
-              background: "#22C55E",
-              boxShadow: "0 0 0 2px rgba(34,197,94,0.25)",
-              animation: "huiPulseGreen 2s ease-in-out infinite",
-              transition: "background 0.4s",
-            }} />
-            <span style={{ fontSize: 11, fontWeight: 600, color: "#22C55E", letterSpacing: 0.2 }}>
-              Live
             </span>
           </div>
         </div>
@@ -268,14 +258,6 @@ function FeedWelcomeHeader({ currentUser }) {
                 }}>
                   {s.icon}
                 </div>
-                {/* Live-Dot oben rechts auf Icon-Kachel */}
-                <div style={{
-                  position: "absolute", top: -2, right: -2,
-                  width: 9, height: 9, borderRadius: "50%",
-                  background: "#22C55E",
-                  border: "1.5px solid rgba(255,253,251,0.97)",
-                  animation: "huiPulseGreen 2s ease-in-out infinite",
-                }} />
               </div>
               {/* Zahl + Label */}
               <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
@@ -293,31 +275,7 @@ function FeedWelcomeHeader({ currentUser }) {
           ))}
         </div>
 
-        {/* Gerade passiert */}
-        <div style={{
-          margin: "0 12px 12px",
-          background: "rgba(13,196,181,0.05)",
-          borderRadius: 12,
-          padding: "9px 12px",
-          display: "flex", alignItems: "center", gap: 8,
-          border: "1px solid rgba(13,196,181,0.09)",
-        }}>
-          <div style={{
-            width: 7, height: 7, borderRadius: "50%", flexShrink: 0,
-            background: "#22C55E",
-          }} />
-          <span style={{ fontSize: 12, color: MUTED, fontWeight: 600, flexShrink: 0 }}>
-            Gerade passiert:
-          </span>
-          <span style={{
-            fontSize: 12, color: "rgba(20,20,34,0.65)", fontWeight: 400,
-            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-          }}>
-            {stats.liveText || "Neue Inhalte werden geladen…"}
-          </span>
-        </div>
       </div>
-
     </div>
   );
 }
@@ -426,7 +384,7 @@ class ReactionErrorBoundary extends React.Component {
   }
 }
 
-function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemIndex, onDepth }) {
+function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemIndex, onDepth, onOpenComments }) {
   // Guard: item must be valid before calling any hook
   const postId   = item?.id    || "";
   const postType = item?.type  || "post";
@@ -481,20 +439,36 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
   }, [visible]);
 
   // Hook-Gating: kein RPC / kein SELECT solange nicht sichtbar
-  const { toggle, myTypes, counts } = useSingleReaction(
+  const { toggle, myTypes, counts, trackShare } = useSingleReaction(
     visible ? postId : null,
     postType,
     authorId
   );
 
+  // COMMENT-COUNT: Lade Kommentar-Anzahl lazy wenn Karte sichtbar
+  const [commentCount, setCommentCount] = useState(null);
+  const ccLoadedRef = useRef(false);
+  useEffect(() => {
+    if (!visible || !postId || ccLoadedRef.current) return;
+    ccLoadedRef.current = true;
+    countComments(postId, postType).then(n => { if (n > 0) setCommentCount(n); });
+  }, [visible, postId, postType]); // eslint-disable-line
+
   const handleReaction = useCallback((type) => {
+    // Sprechblase → CommentsSheet öffnen statt Reaction-Toggle
+    if (type === "touch") {
+      const mediaUrl  = item?._raw?.media_url || item?._raw?.image_url || item?._raw?.video_url || item?.media?.url || null;
+      const mediaType = item?._raw?.type || item?.type || "beitrag";
+      onOpenComments?.(postId, postType, authorId, mediaUrl, mediaType, item?._raw?.title || item?._raw?.caption || item?.title || null);
+      return;
+    }
     if (!toggle) return;
     toggle(type);
     const labels       = { like:"Gefällt dir ✦", inspire:"Inspiriert dich ✨", save:"Gespeichert 🔖" };
     const removeLabels = { like:"Gefällt dir nicht mehr", inspire:"Inspiration entfernt", save:"Entfernt" };
     const wasActive    = myTypes?.has?.(type);
     toast.info(wasActive ? (removeLabels[type] || type) : (labels[type] || type), { duration: 1800 });
-  }, [toggle, myTypes]);
+  }, [toggle, myTypes, onOpenComments, postId, postType, authorId, item]);
 
   // Merge live reaction state into item
   // RESONANZ.1 (2026-07-16): inspireCount + touchCount aus Hook-State (counts),
@@ -508,6 +482,9 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
       saved:        myTypes?.has?.("save")    ?? false,
       inspireCount: counts?.inspire ?? (item._reactions?.inspireCount ?? null),
       touchCount:   counts?.like    ?? (item._reactions?.touchCount   ?? null),
+      commentCount: commentCount    ?? (item._reactions?.commentCount  ?? null),
+      saveCount:    counts?.save    ?? (item._reactions?.saveCount    ?? null),
+      shareCount:   counts?.share   ?? (item._reactions?.shareCount   ?? null),
     },
   };
 
@@ -519,13 +496,14 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
         onReaction={handleReaction}
         onBook={onBook}
         onDetail={onDetail}
-        onShare={onShare}
+        onShare={() => { trackShare?.(); onShare?.(); }}
+        onOpenComments={onOpenComments}
       />
     </div>
   );
 }
 
-function ReactionCard({ item, onProfile, onBook, onDetail, onShare, itemIndex, onDepth }) {
+function ReactionCard({ item, onProfile, onBook, onDetail, onShare, itemIndex, onDepth, onOpenComments }) {
   // Absolute guard — no item = no render, log it
   if (!item?.id) {
     if (import.meta.env.DEV) console.warn("[REACTION_CARD] invalid item — skipping", item);
@@ -541,12 +519,13 @@ function ReactionCard({ item, onProfile, onBook, onDetail, onShare, itemIndex, o
         onShare={onShare}
         itemIndex={itemIndex}
         onDepth={onDepth}
+        onOpenComments={onOpenComments}
       />
     </ReactionErrorBoundary>
   );
 }
 
-function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loadMore, hasMore, loadingMore, onDiscover, scrollContainerRef = null }) {
+function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loadMore, hasMore, loadingMore, onDiscover, scrollContainerRef = null, onOpenComments }) {
   // VIRT-001 — Virtualisierter Feed mit @tanstack/react-virtual
   // Rendert nur Karten die im Viewport (+ 400px Margin) sichtbar sind.
   // Memory-Cleanup: Karten außerhalb DOM werden unmounted (overscan=3).
@@ -687,6 +666,7 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
               onShare={() => onShare?.(item)}
               itemIndex={idx}
               onDepth={onDepth}
+              onOpenComments={onOpenComments}
             />
           </div>
         );
@@ -806,6 +786,14 @@ export default function UnifiedFeed({
     }
   }, [onRefreshBind, streamRefresh]);
 
+  // ── COMMENTS SHEET STATE ────────────────────────────────────────────
+  const [commentsTarget, setCommentsTarget] = React.useState(null);
+  // commentsTarget: { postId, postType, postAuthorId, mediaUrl, mediaType, postTitle }
+  const openComments = React.useCallback((postId, postType, postAuthorId, mediaUrl, mediaType, postTitle = null) => {
+    setCommentsTarget({ postId, postType, postAuthorId, mediaUrl, mediaType, postTitle });
+  }, []);
+  const closeComments = React.useCallback(() => setCommentsTarget(null), []);
+
   // ── ITEM RESOLUTION ───────────────────────────────────────────────
   // Bevorzuge prop (für Tests / externe Steuerung),
   // fallback auf eigenen Stream
@@ -920,10 +908,22 @@ export default function UnifiedFeed({
             loadingMore={loadingMore}
             onDiscover={onDiscover}
             scrollContainerRef={scrollContainerRef}
+            onOpenComments={openComments}
           />
         )}
       </SectionBoundary>
 
+      {/* ── COMMENTS SHEET ── */}
+      <CommentsSheet
+        open={!!commentsTarget}
+        onClose={closeComments}
+        postId={commentsTarget?.postId || ""}
+        postType={commentsTarget?.postType || "beitrag"}
+        postAuthorId={commentsTarget?.postAuthorId || ""}
+        mediaUrl={commentsTarget?.mediaUrl}
+        mediaType={commentsTarget?.mediaType}
+        postTitle={commentsTarget?.postTitle}
+      />
     </div>
   );
 }

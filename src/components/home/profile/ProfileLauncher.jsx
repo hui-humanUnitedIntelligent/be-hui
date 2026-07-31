@@ -1,11 +1,12 @@
 // src/components/home/profile/ProfileLauncher.jsx v8 — DB-basiertes Routing
 // ROUTING:
-//   selectedProfileId → DB-Query → role/has_talent_profile → TalentProfilePage | BasisProfilePage
+//   selectedProfileId → DB-Query → role/has_talent_profile → TalentProfilePage | PublicProfilePage
 //   showCreatorDashboard → MyBasisProfile (eigenes Profil — Talent-UI via isTalent)
 // ROUTING-ENTSCHEIDUNG: aus Datenbank, NICHT aus flow.state (war immer undefined)
 
 import { HUIWarnIcon } from '../../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useHome } from "../HomeShell.jsx";
 import { useHuiActions, A } from "../../../core/hui.actions.js";
 import { S } from "../../../core/hui.sources.js";
@@ -127,27 +128,63 @@ function lazyWithRetry(importFn) {
   );
 }
 
-// ── Lazy Page Imports ────────────────────────────────────────────
-const BasisProfilePage   = lazyWithRetry(() => import("../../../pages/BasisProfilePage.jsx"));
-const TalentProfilePage  = lazyWithRetry(() => import("../../../pages/TalentProfilePage.jsx"));
-const MyBasisProfile     = lazyWithRetry(() => import("../../../pages/MyBasisProfile.jsx"));
+// ── Page Imports — EAGER (kein React.lazy, kein Suspense, kein __vitePreload) ─
+// Root-Fix 2026-07-30: React.lazy + __vitePreload hing bei Suspense fest.
+// Eager Import bündelt PublicProfilePage in den Haupt-Chunk → kein separater
+// Chunk-Load nötig → Profil erscheint sofort.
+import PublicProfilePage  from "../../../pages/PublicProfilePage.jsx";
+import MyBasisProfile     from "../../../pages/MyBasisProfile.jsx";
 
-// ── Spinner Fallback ─────────────────────────────────────────────
+
+
+// ── Profil-Skeleton Fallback — wird beim ersten Laden des Chunks gezeigt ────
+// Sieht wie ein echtes Profil aus → kein weißer Ladescreen
 function Spinner() {
   return (
     <div style={{
-      position:"fixed", inset:0, zIndex:9500, /* <BottomNav — Basis-Fallback, siehe PROFIL-NAV-FIX 2026-07-05 */
-      background:"#F7F5F0",
-      display:"flex", flexDirection:"column",
-      alignItems:"center", justifyContent:"center", gap:16,
+      position:"fixed", inset:0, zIndex:10500,
+      background:"#F7F5F0", overflowY:"auto",
     }}>
-      <div style={{
-        width:40, height:40, borderRadius:"50%",
-        border:"3px solid rgba(14,196,184,0.15)",
-        borderTop:"3px solid #0EC4B8",
-        animation:"spin 0.8s linear infinite",
-      }}/>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      <style>{`
+        @keyframes hui-skel-shimmer {
+          0%   { background-position: -300px 0 }
+          100% { background-position: 300px 0 }
+        }
+        .hui-skel-b {
+          background: linear-gradient(90deg, #e8e4de 25%, #f0ece6 50%, #e8e4de 75%);
+          background-size: 600px 100%;
+          animation: hui-skel-shimmer 1.4s infinite linear;
+          border-radius: 8px;
+        }
+      `}</style>
+
+      {/* Header-Bild Skeleton */}
+      <div className="hui-skel-b" style={{ width:"100%", height:140, borderRadius:0 }} />
+
+      {/* Avatar + Name Skeleton */}
+      <div style={{ padding:"0 20px", marginTop:-36, position:"relative" }}>
+        <div className="hui-skel-b" style={{ width:72, height:72, borderRadius:"50%", border:"3px solid #F7F5F0" }} />
+        <div style={{ marginTop:12 }}>
+          <div className="hui-skel-b" style={{ width:160, height:18, marginBottom:8 }} />
+          <div className="hui-skel-b" style={{ width:100, height:13, marginBottom:6 }} />
+          <div className="hui-skel-b" style={{ width:130, height:13 }} />
+        </div>
+        {/* Stats Skeleton */}
+        <div style={{ display:"flex", gap:24, marginTop:20 }}>
+          {[1,2,3].map(i => (
+            <div key={i}>
+              <div className="hui-skel-b" style={{ width:32, height:16, marginBottom:4 }} />
+              <div className="hui-skel-b" style={{ width:48, height:11 }} />
+            </div>
+          ))}
+        </div>
+        {/* Content Skeleton */}
+        <div style={{ marginTop:24 }}>
+          <div className="hui-skel-b" style={{ width:"100%", height:14, marginBottom:10 }} />
+          <div className="hui-skel-b" style={{ width:"85%", height:14, marginBottom:10 }} />
+          <div className="hui-skel-b" style={{ width:"70%", height:14 }} />
+        </div>
+      </div>
     </div>
   );
 }
@@ -166,9 +203,9 @@ function useProfileType(profileId) {
 
     let cancelled = false;
 
-    // Timeout-Schutz: nach 6s Fallback auf BasisProfilePage
+    // Timeout-Schutz: nach 6s Fallback auf PublicProfilePage
     const timeoutPromise = new Promise((resolve) =>
-      setTimeout(() => resolve({ data: null, error: { message: "timeout" } }), 1200)
+      setTimeout(() => resolve({ data: null, error: { message: "timeout" } }), 2000)
     );
 
     (async () => {
@@ -180,7 +217,7 @@ function useProfileType(profileId) {
         if (cancelled) return;
 
         if (error) {
-          // Bei Timeout oder DB-Fehler: Fallback BasisProfilePage (sicher)
+          // Bei Timeout oder DB-Fehler: Fallback PublicProfilePage (sicher)
           setState({ resolved: true, isTalent: false, role: "error" });
           return;
         }
@@ -230,39 +267,36 @@ export default function ProfileLauncher() {
     authProfile,
   } = useHome();
 
-  // ── DB-Routing für fremde öffentliche Profile ─────────────────
-  const { resolved, isTalent, role } = useProfileType(selectedProfileId);
+  // Portal-Target: document.body (escapes ALL ancestor Stacking Contexts)
+  const portalTarget = typeof document !== "undefined" ? document.body : null;
+
 
   // ── ÖFFENTLICHES PROFIL (fremder User) ───────────────────────
-  // INSTANT-OPEN: Sofort rendern ohne auf DB-Query zu warten.
-  // useProfileType lädt Typ (Talent/Basis) im Hintergrund nach.
-  // BasisProfilePage wird zuerst gezeigt — bei Talent-Ergebnis
-  // wechselt ProfileComponent, was einen nahtlosen Re-Render auslöst.
-  if (selectedProfileId) {
-    // Typ-Routing: Solange unresolved → BasisProfilePage (sicherer Fallback)
-    // Nach resolved: korrekte Komponente. Kein Blocking, kein Spinner.
-    const ProfileComponent = (resolved && isTalent) ? TalentProfilePage : BasisProfilePage;
-
-    return (
+  // INSTANT-OPEN: PublicProfilePage sofort rendern — kein DB-Routing-Block.
+  // isTalent wird aus Phase-1-Profil (has_talent_profile) innerhalb von
+  // PublicProfilePage / TalentProfilePage gelesen (via useProfileData).
+  
+if (selectedProfileId) {
+    const content = (
       <ProfileErrorBoundary profileId={selectedProfileId} onClose={closeProfileById}>
-        <React.Suspense fallback={<Spinner />}>
-          <ProfileComponent
+          <PublicProfilePage
             profileId={selectedProfileId}
             onClose={closeProfileById}
           />
-        </React.Suspense>
       </ProfileErrorBoundary>
     );
+    return portalTarget ? createPortal(content, portalTarget) : content;
   }
 
   // ── EIGENES PROFIL — IMMER MyBasisProfile (erweiterbar um Talent-Bereich)
   // MyBasisProfile rendert den Talent-Bereich conditional wenn isTalent===true.
   if (showCreatorDashboard) {
-    return (
+    const content = (
       <ProfileErrorBoundary profileId="own" onClose={() => setShowCreatorDashboard(false)}>
         <MyBasisProfile onClose={() => setShowCreatorDashboard(false)} />
       </ProfileErrorBoundary>
     );
+    return portalTarget ? createPortal(content, portalTarget) : content;
   }
 
   // Nichts zu zeigen

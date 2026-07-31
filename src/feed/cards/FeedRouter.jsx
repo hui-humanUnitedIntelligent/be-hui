@@ -1,15 +1,16 @@
 // src/feed/cards/FeedRouter.jsx — HUI FEED ROUTER (Phase 1)
 import { HUIImpactIcon } from '../../design/icons/HuiSystemIcons.jsx';
-import React, { Suspense, lazy } from "react";
+import React, { Suspense } from "react";
 import { toFeedItem } from "../../system/feed/unifiedNormalizer.js";
 
-const MomentContent     = lazy(() => import("./MomentContent.jsx"));
-const ExperienceContent = lazy(() => import("./ExperienceContent.jsx"));
-const WorkContent       = lazy(() => import("./WorkContent.jsx"));
-const EventContent      = lazy(() => import("./EventContent.jsx"));
+// EAGER imports — kein React.lazy → kein Chunk-Mismatch nach Deployments
+import MomentContent     from "./MomentContent.jsx";
+import ExperienceContent from "./ExperienceContent.jsx";
+import WorkContent       from "./WorkContent.jsx";
+import EventContent      from "./EventContent.jsx";
 // FEED-GLOBAL-001: Talente + Impact-Projekte
-const TalentContent     = lazy(() => import("./TalentContent.jsx"));
-const ImpactContent     = lazy(() => import("./ImpactContent.jsx"));
+import TalentContent     from "./TalentContent.jsx";
+import ImpactContent     from "./ImpactContent.jsx";
 
 function CardSkeleton() {
   return (
