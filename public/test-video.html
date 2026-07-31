@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Video Test</title>
+<style>
+body { margin:0; background:#000; }
+video { width:100vw; height:100vh; object-fit:cover; }
+#log { position:fixed; top:0; left:0; right:0; z-index:999; color:#0f0; font:12px monospace; padding:8px; background:rgba(0,0,0,0.7); }
+</style>
+</head>
+<body>
+<div id="log">Loading...</div>
+<video id="v" src="/assets/intro-video.mp4" autoplay muted playsinline preload="auto"></video>
+<script>
+const v = document.getElementById('v');
+const log = document.getElementById('log');
+const events = [];
+function addLog(msg) {
+  events.push(`${Date.now()} — ${msg}`);
+  log.textContent = events.join('\n');
+}
+v.addEventListener('loadstart', () => addLog('loadstart'));
+v.addEventListener('canplay', () => addLog('canplay — paused=' + v.paused + ' currentTime=' + v.currentTime));
+v.addEventListener('playing', () => addLog('PLAYING — currentTime=' + v.currentTime + ' duration=' + v.duration));
+v.addEventListener('timeupdate', () => addLog('timeupdate — ct=' + v.currentTime.toFixed(2) + ' dur=' + v.duration));
+v.addEventListener('ended', () => addLog('ENDED — ct=' + v.currentTime));
+v.addEventListener('error', () => addLog('ERROR — code=' + v.error?.code + ' msg=' + v.error?.message));
+v.addEventListener('stalled', () => addLog('stalled'));
+v.addEventListener('waiting', () => addLog('waiting'));
+setTimeout(() => {
+  addLog('100ms check — paused=' + v.paused + ' readyState=' + v.readyState);
+  if (v.paused) {
+    v.muted = true;
+    v.play().then(() => addLog('manual play OK')).catch(e => addLog('manual play FAIL: ' + e.message));
+  }
+}, 100);
+setTimeout(() => addLog('3s check — paused=' + v.paused + ' ct=' + v.currentTime), 3000);
+setTimeout(() => addLog('5s check — paused=' + v.paused + ' ct=' + v.currentTime), 5000);
+setTimeout(() => addLog('10s check — paused=' + v.paused + ' ct=' + v.currentTime), 10000);
+</script>
+</body>
+</html>
