@@ -1,12 +1,13 @@
 // src/components/entry/IntroVideoScreen.jsx
+// Intro-Video beim App-Start. Falls Autoplay blockiert wird → CSS-Animation als Fallback.
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
 const VIDEO_PATH = "/assets/intro-video.mp4";
 const POSTER_PATH = "/assets/intro-poster.jpg";
 const FADE_DURATION = 800;
-const VIDEO_TIMEOUT = 3000;
-const FALLBACK_DURATION = 2500;
+const VIDEO_TIMEOUT = 3000;   // Wenn Video nach 3s nicht startet → Fallback
+const FALLBACK_DURATION = 2500; // Fallback-Anzeige Dauer
 
 export default function IntroVideoScreen() {
   const navigate = useNavigate();
@@ -14,49 +15,41 @@ export default function IntroVideoScreen() {
   const [fading, setFading] = useState(false);
   const [done, setDone] = useState(false);
   const [showFallback, setShowFallback] = useState(false);
-  const [diag, setDiag] = useState(["mount"]);
-  const startedRef = useRef(false);
   const finishedRef = useRef(false);
   const videoStartedRef = useRef(false);
-
-  const addDiag = useCallback((m) => {
-    const t = new Date().toISOString().substr(14, 9);
-    setDiag(p => [...p.slice(-12), `${t} ${m}`]);
-  }, []);
 
   const finish = useCallback((reason) => {
     if (finishedRef.current) return;
     finishedRef.current = true;
-    addDiag(`FINISH(${reason})`);
     setFading(true);
     setTimeout(() => {
       setDone(true);
       navigate("/login", { replace: true });
     }, FADE_DURATION);
-  }, [navigate, addDiag]);
+  }, [navigate]);
 
   useEffect(() => {
-    addDiag("effect1 start");
     const video = videoRef.current;
-    if (!video) { finish("no-video-ref"); return; }
-    addDiag(`video OK — paused=${video.paused} rs=${video.readyState}`);
+    if (!video) { finish("no-ref"); return; }
 
+    // Video laden
     video.src = VIDEO_PATH;
     video.load();
-    addDiag("src+load done");
 
+    // Timer: Wenn Video nach VIDEO_TIMEOUT nicht gestartet ist → Fallback
     const fallbackTimer = setTimeout(() => {
       if (!videoStartedRef.current && !finishedRef.current) {
-        addDiag("fallback timer fired");
         setShowFallback(true);
         setTimeout(() => finish("fallback"), FALLBACK_DURATION);
       }
     }, VIDEO_TIMEOUT);
 
+    // Safety: Nach 12s definitiv finish
     const safetyTimer = setTimeout(() => {
       if (!finishedRef.current) finish("safety");
     }, 12000);
 
+    // Visibility handling
     const handleVisibility = () => {
       if (document.hidden) video?.pause();
       else if (!finishedRef.current && videoStartedRef.current) video?.play().catch(() => {});
@@ -68,8 +61,9 @@ export default function IntroVideoScreen() {
       clearTimeout(safetyTimer);
       document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [finish, addDiag]);
+  }, [finish]);
 
+  // Versuche play() nach kurzer Verzögerung
   useEffect(() => {
     if (showFallback || done) return;
     const video = videoRef.current;
@@ -77,21 +71,19 @@ export default function IntroVideoScreen() {
 
     const tryPlay = async () => {
       if (videoStartedRef.current || finishedRef.current) return;
-      addDiag(`tryPlay — paused=${video.paused} rs=${video.readyState}`);
       try {
         video.muted = true;
         video.defaultMuted = true;
         await video.play();
-        addDiag(`play() resolved`);
       } catch (err) {
-        addDiag(`play() fail: ${err?.name}`);
+        // Autoplay blockiert — Fallback übernimmt
       }
     };
 
     const t1 = setTimeout(tryPlay, 200);
     const t2 = setTimeout(tryPlay, 1200);
     return () => { clearTimeout(t1); clearTimeout(t2); };
-  }, [showFallback, done, addDiag]);
+  }, [showFallback, done]);
 
   if (done) return null;
 
@@ -108,9 +100,9 @@ export default function IntroVideoScreen() {
         playsInline
         preload="auto"
         poster={POSTER_PATH}
-        onPlaying={() => { videoStartedRef.current = true; setShowFallback(false); addDiag("PLAYING"); }}
-        onEnded={() => { addDiag("ENDED"); finish("ended"); }}
-        onError={(e) => { addDiag(`ERROR code=${e.currentTarget.error?.code}`); setShowFallback(true); }}
+        onPlaying={() => { videoStartedRef.current = true; setShowFallback(false); }}
+        onEnded={() => finish("ended")}
+        onError={() => setShowFallback(true)}
         style={{
           width: "100%", height: "100%", objectFit: "cover", objectPosition: "center",
           opacity: showFallback ? 0 : 1,
@@ -148,15 +140,6 @@ export default function IntroVideoScreen() {
           `}</style>
         </div>
       )}
-      {/* Diagnose-Overlay */}
-      <div style={{
-        position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
-        color: "#0f0", font: "10px monospace", padding: "8px",
-        background: "rgba(0,0,0,0.85)", zIndex: 100,
-        pointerEvents: "none", whiteSpace: "pre-wrap", overflow: "auto",
-      }}>
-        {diag.map((d, i) => <div key={i}>{d}</div>)}
-      </div>
     </div>
   );
 }
