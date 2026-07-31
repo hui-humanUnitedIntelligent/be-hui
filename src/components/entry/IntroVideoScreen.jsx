@@ -1,8 +1,7 @@
 // src/components/entry/IntroVideoScreen.jsx
 // HUI Intro Video Screen — ersetzt das pulsierende Splash-Logo
-// Spielt ein lokales Video im 9:16 Format ab, danach -> Login/AuthGate
+// Spielt ein lokales stummes Video ab, danach -> Login/AuthGate
 // Unterstützt: Web (HTML5 video) + Capacitor (iOS/Android via same element)
-// Lifecycle: Cold Start, AppState resume, sessionStorage-Flag
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
@@ -16,6 +15,7 @@ const PLAY_MODE = "every-launch";
 
 const STORAGE_KEY = "hui_intro_video_played";
 const FADE_DURATION = 600; // ms — sanfter Fade-Out
+const SAFETY_TIMEOUT = 4000; // ms — falls Video hängt, skip zu Login
 
 export default function IntroVideoScreen() {
   const navigate = useNavigate();
@@ -43,7 +43,7 @@ export default function IntroVideoScreen() {
     if (PLAY_MODE === "first-launch") {
       try {
         const played = localStorage.getItem(STORAGE_KEY);
-        if (played) return false; // schon abgespielt -> skip
+        if (played) return false;
       } catch (e) {}
     }
     return true;
@@ -62,26 +62,27 @@ export default function IntroVideoScreen() {
       return;
     }
 
-    video.load();
+    // Safety Timeout — falls Video nicht startet, skip zu Login
+    const safetyTimer = setTimeout(() => {
+      if (!startedRef.current) {
+        console.warn("[IntroVideo] Safety timeout — Video startete nicht rechtzeitig");
+        finish();
+      }
+    }, SAFETY_TIMEOUT);
 
-    const tryPlay = async () => {
+    // Video laden und abspielen — immer muted (kein Audio im Video)
+    video.load();
+    const playTimer = setTimeout(async () => {
       try {
-        video.muted = false;
+        video.muted = true;
+        video.setAttribute("muted", "true");
         await video.play();
       } catch (err) {
-        try {
-          video.muted = true;
-          video.setAttribute("muted", "true");
-          await video.play();
-        } catch (err2) {
-          console.warn("[IntroVideo] Autoplay blockiert:", err2?.message);
-          setVideoError(true);
-          finish();
-        }
+        console.warn("[IntroVideo] Autoplay blockiert:", err?.message);
+        setVideoError(true);
+        finish();
       }
-    };
-
-    const playTimer = setTimeout(tryPlay, 100);
+    }, 100);
 
     // ── AppState Handling (document visibility) ───────────────────────────
     const handleVisibilityChange = () => {
@@ -108,6 +109,7 @@ export default function IntroVideoScreen() {
     }
 
     return () => {
+      clearTimeout(safetyTimer);
       clearTimeout(playTimer);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       if (cleanupCapacitor) cleanupCapacitor();
@@ -158,13 +160,12 @@ export default function IntroVideoScreen() {
           console.warn("[IntroVideo] Video konnte nicht geladen werden:", VIDEO_PATH);
           setVideoError(true);
         }}
-        onLoadedData={() => {
+        onCanPlay={() => {
+          // Sobald genug Daten gepuffert sind, sofort abspielen
           const v = videoRef.current;
           if (v && v.paused) {
-            v.play().catch(() => {
-              v.muted = true;
-              v.play().catch(() => setVideoError(true));
-            });
+            v.muted = true;
+            v.play().catch(() => {});
           }
         }}
         style={{
