@@ -1,35 +1,26 @@
-// src/components/entry/IntroVideoScreen.jsx
-// HUI Intro Video Screen — ersetzt das pulsierende Splash-Logo
-// Spielt ein lokales stummes Video ab, danach -> Login/AuthGate
-// Unterstützt: Web (HTML5 video) + Capacitor (iOS/Android via same element)
-
+// src/components/entry/IntroVideoScreen.jsx — DIAGNOSE VERSION
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
-// ── Konfiguration ──────────────────────────────────────────────────────────
 const VIDEO_PATH = "/assets/intro-video.mp4";
-
-// Modus: "first-launch" = nur beim ersten App-Start (localStorage Flag)
-//        "every-launch"  = bei jedem App-Start
 const PLAY_MODE = "every-launch";
-
 const STORAGE_KEY = "hui_intro_video_played";
-const FADE_DURATION = 600; // ms — sanfter Fade-Out
-const SAFETY_TIMEOUT = 4000; // ms — falls Video hängt, skip zu Login
+const FADE_DURATION = 600;
+const SAFETY_TIMEOUT = 4000;
 
 export default function IntroVideoScreen() {
   const navigate = useNavigate();
   const videoRef = useRef(null);
-  const containerRef = useRef(null);
   const [fading, setFading] = useState(false);
   const [done, setDone] = useState(false);
   const [videoError, setVideoError] = useState(false);
+  const [diag, setDiag] = useState("init");
   const startedRef = useRef(false);
 
-  // ── Transition to Login ──────────────────────────────────────────────────
   const finish = useCallback(() => {
-    if (startedRef.current) return; // Guard — nur einmal
+    if (startedRef.current) return;
     startedRef.current = true;
+    setDiag("FINISH called");
     setFading(true);
     setTimeout(() => {
       setDone(true);
@@ -37,86 +28,63 @@ export default function IntroVideoScreen() {
     }, FADE_DURATION);
   }, [navigate]);
 
-  // ── Soll das Video abgespielt werden? ────────────────────────────────────
   const shouldPlay = useCallback(() => {
     if (PLAY_MODE === "every-launch") return true;
     if (PLAY_MODE === "first-launch") {
       try {
-        const played = localStorage.getItem(STORAGE_KEY);
-        if (played) return false;
+        if (localStorage.getItem(STORAGE_KEY)) return false;
       } catch (e) {}
     }
     return true;
   }, []);
 
-  // ── Video-Start + Lifecycle ──────────────────────────────────────────────
   useEffect(() => {
     if (!shouldPlay()) {
       navigate("/login", { replace: true });
       return;
     }
-
     const video = videoRef.current;
-    if (!video) {
-      finish();
-      return;
-    }
+    if (!video) { finish(); return; }
 
-    // Safety Timeout — falls Video nicht startet, skip zu Login
+    setDiag("useEffect — video ref OK");
+
     const safetyTimer = setTimeout(() => {
       if (!startedRef.current) {
-        console.warn("[IntroVideo] Safety timeout — Video startete nicht rechtzeitig");
+        setDiag("SAFETY TIMEOUT");
         finish();
       }
     }, SAFETY_TIMEOUT);
 
-    // Video laden und abspielen — immer muted (kein Audio im Video)
     video.load();
+    setDiag("video.load() called");
+
     const playTimer = setTimeout(async () => {
       try {
         video.muted = true;
         video.setAttribute("muted", "true");
+        setDiag("tryPlay — calling play()...");
         await video.play();
+        setDiag("tryPlay — play() OK! ct=" + video.currentTime + " dur=" + video.duration);
       } catch (err) {
-        console.warn("[IntroVideo] Autoplay blockiert:", err?.message);
+        setDiag("tryPlay FAIL: " + (err?.message || "unknown"));
         setVideoError(true);
         finish();
       }
     }, 100);
 
-    // ── AppState Handling (document visibility) ───────────────────────────
     const handleVisibilityChange = () => {
-      if (document.hidden) {
-        video?.pause();
-      } else if (!done && !fading && !videoError) {
-        video?.play().catch(() => {});
-      }
+      if (document.hidden) video?.pause();
+      else if (!done && !fading && !videoError) video?.play().catch(() => {});
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    // ── Capacitor AppState Plugin (falls vorhanden) ────────────────────────
-    let cleanupCapacitor = null;
-    if (window.Capacitor?.Plugins?.App) {
-      const { App: CapApp } = window.Capacitor.Plugins;
-      const listenerPromise = CapApp.addListener("appStateChange", (state) => {
-        if (state.isActive && !done && !fading && !videoError) {
-          video?.play().catch(() => {});
-        } else if (!state.isActive) {
-          video?.pause();
-        }
-      });
-      cleanupCapacitor = () => listenerPromise.then((l) => l.remove());
-    }
 
     return () => {
       clearTimeout(safetyTimer);
       clearTimeout(playTimer);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
-      if (cleanupCapacitor) cleanupCapacitor();
     };
   }, [shouldPlay, navigate, finish, done, fading, videoError]);
 
-  // ── Video Error Fallback -> direkt weiter ────────────────────────────────
   useEffect(() => {
     if (videoError) {
       const t = setTimeout(() => finish(), 200);
@@ -125,20 +93,12 @@ export default function IntroVideoScreen() {
   }, [videoError, finish]);
 
   if (done) return null;
-  if (videoError) return null;
 
   return (
     <div
-      ref={containerRef}
       style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 99999,
+        position: "fixed", inset: 0, zIndex: 99999,
         background: "#000",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        overflow: "hidden",
         opacity: fading ? 0 : 1,
         transition: `opacity ${FADE_DURATION}ms ease-out`,
       }}
@@ -146,35 +106,38 @@ export default function IntroVideoScreen() {
       <video
         ref={videoRef}
         src={VIDEO_PATH}
-        autoPlay
-        muted
-        playsInline
-        preload="auto"
+        autoPlay muted playsInline preload="auto"
         onEnded={() => {
+          setDiag("ENDED — ct=" + videoRef.current?.currentTime);
           if (PLAY_MODE === "first-launch") {
             try { localStorage.setItem(STORAGE_KEY, "1"); } catch (e) {}
           }
           finish();
         }}
         onError={() => {
-          console.warn("[IntroVideo] Video konnte nicht geladen werden:", VIDEO_PATH);
+          const v = videoRef.current;
+          setDiag("ERROR — code=" + v?.error?.code + " msg=" + v?.error?.message);
           setVideoError(true);
         }}
         onCanPlay={() => {
-          // Sobald genug Daten gepuffert sind, sofort abspielen
           const v = videoRef.current;
+          setDiag("canPlay — paused=" + v?.paused + " ct=" + v?.currentTime + " dur=" + v?.duration);
           if (v && v.paused) {
             v.muted = true;
-            v.play().catch(() => {});
+            v.play().then(() => setDiag("canPlay play() OK")).catch(e => setDiag("canPlay play() FAIL: " + e.message));
           }
         }}
-        style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          objectPosition: "center",
-        }}
+        onPlaying={() => setDiag("PLAYING — ct=" + videoRef.current?.currentTime)}
+        style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }}
       />
+      <div style={{
+        position: "absolute", top: 0, left: 0, right: 0,
+        color: "#0f0", font: "14px monospace", padding: "8px",
+        background: "rgba(0,0,0,0.7)", zIndex: 100,
+        pointerEvents: "none", whiteSpace: "pre-wrap",
+      }}>
+        DIAG: {diag}
+      </div>
     </div>
   );
 }
