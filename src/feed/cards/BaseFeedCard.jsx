@@ -15,7 +15,6 @@ import {
   HUIHeartIcon, HUIChatIcon, HUIBookmarkIcon, HUIShareIcon,
 } from "../../design/icons/HuiInteractionIcons.jsx";
 import { haptic } from "../../components/commerce/commerceUtils.js";
-import { prefetchProfile } from "../../lib/perfUtils.js";
 
 const T = {
   bgCard:   "#FFFFFF",
@@ -219,7 +218,6 @@ function getBegegnungsgrund(item) {
 // Zeile 2: Talent (farbig) · Pin-SVG · Ort
 // Zeile 3: " (groß, orange) + Story-Satz
 export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
-  const _uid = item?.author?.id || item?.user_id || item?.creator_id || null;
   const author   = item?.author || {};
   // ── TRACE STEP 8 ──────────────────────────────────────
   if (!window.__HUI_STEP8_DONE__ && item?.type === "work") {
@@ -359,9 +357,7 @@ export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge
     <div style={{ display:"flex",alignItems:"center",gap:T.gap,padding:T.p+"px "+T.p+"px 0" }}>
       {/* Avatar → direkt vollständiges Profil öffnen */}
       <button
-        onClick={onProfile ? () => onProfile() : undefined}
-        onPointerDown={uid ? () => prefetchProfile(uid) : undefined}
-        onMouseEnter={uid ? () => prefetchProfile(uid) : undefined}
+        onClick={onProfile ? () => onProfile() : () => console.warn("🔴 STEP 1 — Avatar click: onProfile ist undefined (uid:", uid, ")")}
         onTouchStart={onProfile ? () => setPressed(true)  : undefined}
         onTouchEnd={onProfile   ? () => setPressed(false) : undefined}
         onMouseDown={onProfile  ? () => setPressed(true)  : undefined}
@@ -388,8 +384,6 @@ export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge
         <div style={{ display:"flex",alignItems:"center",gap:5 }}>
           <span
             onClick={onProfile ? () => onProfile() : undefined}
-            onPointerDown={uid ? () => prefetchProfile(uid) : undefined}
-            onMouseEnter={uid ? () => prefetchProfile(uid) : undefined}
             style={{ fontSize:13.5,fontWeight:700,color:T.ink,letterSpacing:-0.2,
               overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",
               cursor: onProfile ? "pointer" : "default",
@@ -716,9 +710,9 @@ export const FeedActions = memo(function FeedActions({
                                     oeffnet bereits den Teilen-Flow)
               save    → Merken */}
         <ActionBtn Icon={HUIHeartIcon}    count={r.inspireCount||null} active={r.inspired} activeColor={T.coral}  inactiveColor={T.coral}  variant="resonanz"    onClick={() => { haptic(r.inspired ? "selection" : "light"); onReaction?.("inspire"); }} />
-        <ActionBtn Icon={HUIChatIcon}     count={r.commentCount||null} active={false}      activeColor={T.teal}  inactiveColor={T.teal}   variant="austauschen" onClick={() => { haptic("light"); onReaction?.("touch"); }} />
-        <ActionBtn Icon={HUIShareIcon}    count={r.shareCount||null} activeColor={T.teal}  inactiveColor={T.teal}   variant="weitergeben" onClick={() => { haptic("light"); onShare?.(); }} />
-        <ActionBtn Icon={HUIBookmarkIcon} count={r.saveCount||null} active={r.saved} activeColor={"#F59E0B"} inactiveColor={"#F59E0B"} variant="merken" onClick={() => { haptic(r.saved ? "selection" : "light"); onReaction?.("save"); }} />
+        <ActionBtn Icon={HUIChatIcon}     count={r.touchCount||null}   active={r.touched}  activeColor={T.teal}  inactiveColor={T.teal}   variant="austauschen" onClick={() => { haptic(r.touched ? "selection" : "light"); onReaction?.("touch"); }} />
+        <ActionBtn Icon={HUIShareIcon}    activeColor={T.teal}  inactiveColor={T.teal}   variant="weitergeben" onClick={() => { haptic("light"); onShare?.(); }} />
+        <ActionBtn Icon={HUIBookmarkIcon} active={r.saved} activeColor={"#F59E0B"} inactiveColor={"#F59E0B"} variant="merken" onClick={() => { haptic(r.saved ? "selection" : "light"); onReaction?.("save"); }} />
         {extraActions || null}
       </div>
       {/* Resonanz-Zeile — "Maja und 18 weitere wurden inspiriert." */}

@@ -36,18 +36,18 @@ import SplashScreen from './pages/SplashScreen.jsx';
 // WirkerProfilePage (~140KB) und CreatorStudio laden nur bei Bedarf
 const Home              = lazy(() => import('./pages/Home'))
 const RefRedirect       = lazy(() => import('./pages/RefRedirect'))
-import ImpactPage from './pages/ImpactPage';
+const ImpactPage = React.lazy(() => import('./pages/ImpactPage'))
 const Admin             = lazy(() => import('./pages/Admin'))
 const DiagnosePage      = lazy(() => import('./pages/DiagnosePage'))
 const PlatformDashboard = lazy(() => import('./pages/PlatformDashboard'))
 const CreatorStudio     = lazy(() => import('./pages/CreatorStudio'))
 // DARK-PROFILE-REMOVE-001: WirkerProfilePage entfernt (2026-07-19)
-// Ersetzt durch PublicProfileRouteWrapper → TalentProfilePage/PublicProfilePage
+// Ersetzt durch PublicProfileRouteWrapper → TalentProfilePage/BasisProfilePage
 const WorkDetailPage    = lazy(() => import('./components/WorkDetailPage'))
 
 // ── Route Factory ──────────────────────────────────────────────────────────
 import { createTabPage, filterValidPages } from './lib/factories/createTabPage.js'
-// HUILogoSplash entfernt — IntroVideoScreen ersetzt Splash
+import { HUILogoSplash } from './components/brand/HUILogo.jsx'
 
 // ── APP_ROUTES: ÜBERGANGSSTRUKTUR (NAV-001B) ─────────────────────────────────
 // APP_ROUTES ist die Tab-Registry der Home-Shell — KEIN vollständiges Route-Register.
@@ -300,8 +300,6 @@ class ErrorBoundary extends React.Component {
 
 
 function HUILoader() {
-  // Stiller Ladebildschirm — kein pulsierendes Logo, keine Animation
-  // Nur ein ruhiger dunkler Hintergrund während der Auth-Check läuft
   const [timedOut, setTimedOut] = React.useState(false);
   React.useEffect(() => {
     const t = setTimeout(() => setTimedOut(true), 25000);
@@ -313,8 +311,9 @@ function HUILoader() {
       alignItems:"center", justifyContent:"center", padding:32,
       background:"linear-gradient(160deg,#0D1412 0%,#12100E 100%)",
       fontFamily:"Inter,-apple-system,sans-serif" }}>
+      <HUILogoSplash size={64} />
       <div style={{ fontWeight:800, fontSize:18, color:"rgba(255,255,255,0.90)",
-        marginTop:0, marginBottom:8 }}>
+        marginTop:20, marginBottom:8 }}>
         Verbindung dauert länger als erwartet
       </div>
       <div style={{ fontSize:13, color:"rgba(255,255,255,0.45)", textAlign:"center",
@@ -339,9 +338,26 @@ function HUILoader() {
 
   return (
     <div style={{
-      minHeight:"100dvh",
+      minHeight:"100dvh", display:"flex", flexDirection:"column",
+      alignItems:"center", justifyContent:"center",
       background:"linear-gradient(160deg,#0A1210 0%,#0E1612 55%,#0D0B09 100%)",
-    }} />
+      fontFamily:"Inter,-apple-system,sans-serif",
+    }}>
+      <div style={{ display:"flex", flexDirection:"column", alignItems:"center",
+        animation:"hui-splash-fade 0.6s ease both" }}>
+        <HUILogoSplash size={84} />
+        <div style={{ fontSize:12, color:"rgba(255,255,255,0.30)", fontWeight:600,
+          marginTop:20, letterSpacing:"0.12em", textTransform:"uppercase" }}>
+          Human United Intelligence
+        </div>
+      </div>
+      <style>{`
+        @keyframes hui-splash-fade {
+          from { opacity:0; transform:translateY(14px); }
+          to   { opacity:1; transform:translateY(0); }
+        }
+      `}</style>
+    </div>
   );
 }
 
@@ -487,9 +503,9 @@ function WorkDetailRouteWrapper() {
 }
 
 /* ── DARK-PROFILE-REMOVE-001: PublicProfileRouteWrapper (2026-07-19) ── */
-// Ersetzt WirkerProfilePage (dunkles Profil) durch TalentProfilePage/PublicProfilePage (helles Profil)
+// Ersetzt WirkerProfilePage (dunkles Profil) durch TalentProfilePage/BasisProfilePage (helles Profil)
 const TalentProfilePageLazy = lazy(() => import('./pages/TalentProfilePage.jsx'));
-const PublicProfilePageLazy  = lazy(() => import('./pages/PublicProfilePage.jsx'));
+const BasisProfilePageLazy  = lazy(() => import('./pages/BasisProfilePage.jsx'));
 
 function PublicProfileRouteWrapper() {
   const { username } = useParams();
@@ -524,7 +540,7 @@ function PublicProfileRouteWrapper() {
   );
 
   const isTalent = profileData.has_talent_profile || profileData.role === 'talent' || profileData.role === 'wirker';
-  const Component = isTalent ? TalentProfilePageLazy : PublicProfilePageLazy;
+  const Component = isTalent ? TalentProfilePageLazy : BasisProfilePageLazy;
   return (
     <Suspense fallback={
       <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', background:'#F7F5F0' }}>
@@ -705,7 +721,7 @@ function AppRoutes() {
           <ProtectedRoute><DeepLinkOpener type="event" /></ProtectedRoute>
         }/>
 
-        {/* Impact — EAGER */}
+        {/* Impact — LAZY */}
         <Route path="/impact" element={
           <ProtectedRoute><ImpactPage /></ProtectedRoute>
         }/>

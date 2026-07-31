@@ -394,7 +394,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
       // Following creator?
       if (creatorId) {
         const { data: followRow } = await supabase
-          .from("follows").select("follower_id")
+          .from("follows").select("id")
           .eq("follower_id", user.id).eq("followed_id", creatorId).maybeSingle();
         setFollowing(!!followRow);
       }
@@ -616,13 +616,15 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
           </h1>
         </div>
 
-        {/* ── Creator Section — NICHT klickbar (2026-07-29). Button öffnet Profil. ── */}
-        <div
+        {/* ── Creator Section ── */}
+        <div onClick={() => onViewCreator ? onViewCreator(normalizeProfileInput(creator)) : navigate(`/profile/${username}`)}
+          className="wd-tap"
           style={{ margin:"16px 20px 0", padding:"14px 16px",
             background:C.card, borderRadius:18,
             border:`1px solid ${C.border}`,
             boxShadow:"0 2px 12px rgba(0,0,0,0.05)",
-            display:"flex", alignItems:"center", gap:12 }}>
+            display:"flex", alignItems:"center", gap:12,
+            cursor:"pointer" }}>
           <Avatar url={avatarUrl} name={displayName} size={46}/>
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:2 }}>
@@ -645,21 +647,6 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
             )}
           </div>
           <div style={{ display:"flex", gap:8, flexShrink:0, alignItems:"center" }}>
-            {creator?.id && (
-              <button
-                onClick={() => {
-                  if (typeof window.__HUI_OPEN_PROFILE__ === "function") {
-                    window.__HUI_OPEN_PROFILE__(creator.id);
-                  } else {
-                    navigate(`/profile/${username}`);
-                  }
-                }}
-                style={{ padding:"7px 14px",
-                  background:"rgba(13,196,181,0.12)", border:"1px solid rgba(13,196,181,0.3)",
-                  borderRadius:50, fontSize:12, fontWeight:700, color:"#0DC4B5",
-                  cursor:"pointer", fontFamily:"inherit" }}
-              >Profil ansehen</button>
-            )}
             {user?.id && creator?.id && user.id !== creator.id && (
               <button onClick={handleFollow}
                 style={{ padding:"7px 14px",

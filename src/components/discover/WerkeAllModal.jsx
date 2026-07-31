@@ -45,7 +45,9 @@ function WerkCardItem({ w, onPress }) {
         </div>
         {w._authorName ? (
           <div
-            style={{ fontSize:11, color:T.tealDeep, fontWeight:600, marginBottom:4 }}>
+            onClick={e => { e.stopPropagation(); onAuthorPress?.(w.user_id); }}
+            style={{ fontSize:11, color:T.tealDeep, fontWeight:600, marginBottom:4, cursor:"pointer",
+              WebkitTapHighlightColor:"transparent" }}>
             von {w._authorName}
           </div>
         ) : (
@@ -66,7 +68,7 @@ function WerkCardItem({ w, onPress }) {
 
 export default function WerkeAllModal({ isOpen, onClose, onPressItem }) {
   useWizardBodyLock(isOpen);
-  // openCreatorProfile entfernt (2026-07-29) — Autor-Namen nicht mehr klickbar
+  const { openCreatorProfile } = useProfileLauncher();
   const [items, setItems]       = useState([]);
   const [loading, setLoading]   = useState(false);
   const [hasMore, setHasMore]   = useState(true);
@@ -216,7 +218,7 @@ export default function WerkeAllModal({ isOpen, onClose, onPressItem }) {
             </div>
           )}
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-            {items.map(w => <WerkCardItem key={w.id} w={w} onPress={onPressItem} onAuthorPress={null}/>)}
+            {items.map(w => <WerkCardItem key={w.id} w={w} onPress={onPressItem} onAuthorPress={w.user_id ? openCreatorProfile : null}/>)}
           </div>
           {loading && items.length > 0 && (
             <div style={{ textAlign:"center", padding:16, color:T.inkFaint, fontSize:13 }}>Lade weitere…</div>

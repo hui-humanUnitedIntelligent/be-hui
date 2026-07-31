@@ -55,15 +55,18 @@ function MomentCardItem({ m, onPress, onOpenProfile }) {
           overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>
           {m.caption || "Ein Moment"}
         </div>
-        <div
-          style={{ display:"flex", alignItems:"center", gap:5, marginTop:"auto" }}
+        <button
+          onClick={(e) => { e.stopPropagation(); if (m.user_id && onOpenProfile) onOpenProfile(m.user_id); }}
+          style={{ display:"flex", alignItems:"center", gap:5, marginTop:"auto", background:"none",
+            border:"none", padding:0, cursor: m.user_id ? "pointer" : "default",
+            WebkitTapHighlightColor:"transparent" }}
         >
           <div style={{ width:22, height:22, borderRadius:"50%", background:T.tealSoft,
             display:"flex", alignItems:"center", justifyContent:"center", fontSize:11 }}>
             {m._initials || "H"}
           </div>
           <span style={{ fontSize:11, color:T.inkFaint }}>{m._name || "HUI Mitglied"}</span>
-        </div>
+        </button>
         <div style={{ display:"flex", gap:10, marginTop:6 }}>
           <span style={{ fontSize:11, color:T.inkFaint }}>♡ {likes}</span>
           <span style={{ fontSize:11, color:T.inkFaint }}>◎ {Math.floor(likes/4)}</span>
@@ -74,7 +77,7 @@ function MomentCardItem({ m, onPress, onOpenProfile }) {
 }
 
 export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
-  // openCreatorProfile entfernt (2026-07-29) — Autor nicht klickbar
+  const { openCreatorProfile } = useProfileLauncher();
   const { open: openPreview } = useContentPreview();
   useWizardBodyLock(isOpen);
   const [items, setItems]        = useState([]);
@@ -199,7 +202,7 @@ export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
               <MomentCardItem
                 key={m.id}
                 m={m}
-                onOpenProfile={null}
+                onOpenProfile={openCreatorProfile}
                 onPress={(moment) => {
                   onClose?.();
                   // Normalisiertes Item für ContentPreviewContext (PostFullscreenView)

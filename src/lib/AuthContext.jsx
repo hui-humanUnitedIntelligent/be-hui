@@ -26,6 +26,7 @@ async function withTimeout(promise, ms = 4000) {
 //   3. loadingAuth bleibt true bis einer der beiden Wege settled hat
 //   4. ProtectedRoute wartet auf loadingAuth=false bevor redirect
 export function AuthProvider({ children }) {
+  console.log("[AUTH] PROVIDER_MOUNT");
   const [user,            setUser]            = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loadingAuth,     setLoadingAuth]     = useState(true);
@@ -79,6 +80,7 @@ export function AuthProvider({ children }) {
 
   // ── Auth-State setzen (zentralisiert, idempotent) ─────────────────
   const applySession = useCallback((session) => {
+    console.log("[AUTH] APPLY_SESSION", !!session, session?.user?.id || null);
     const u = session?.user ?? null;
     setUser(u);
     setIsAuthenticated(!!u);
@@ -119,9 +121,17 @@ export function AuthProvider({ children }) {
     // Supabase feuert INITIAL_SESSION synchron (wenn Session im localStorage)
     // oder kurz async (bei Token-Refresh). Wir verlassen uns darauf als
     // primäre Quelle.
+    console.log("[AUTH] REGISTER_LISTENER");
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       // AUFGABE 1: erweitertes Event-Logging
+      console.log("[AUTH_EVENT]", event, {
+        hasSession: !!session,
+        userId: session?.user?.id || null,
+        expires_at: session?.expires_at || null,
+        now: Math.floor(Date.now() / 1000),
+      });
       if (!session) {
+        console.warn("[AUTH_NULL_SESSION]", event);
       }
 
       // AUFGABE 3: TOKEN_REFRESH_FAILED — erst Retry, dann Logout
@@ -130,22 +140,33 @@ export function AuthProvider({ children }) {
         try {
           const { data } = await supabase.auth.refreshSession();
           if (data?.session) {
+            console.log("[AUTH_REFRESH_RECOVERED]");
+            console.log("[AUTH_APPLY]", { event, hasSession: true, userId: data.session?.user?.id || null });
             applySession(data.session);
             return;
           }
         } catch (err) {
           console.error("[AUTH_REFRESH_RECOVERY_FAILED]", err);
         }
+        console.warn("[AUTH_FORCE_LOGOUT]");
+        console.warn("[AUTH_LOGOUT_REASON]", event);
         applySession(null);
         return;
       }
 
       // AUFGABE 5: Logout-Grund sichtbar machen
       if (!session) {
+        console.warn("[AUTH_LOGOUT_REASON]", event);
       }
 
       // AUFGABE 1: Log vor applySession
+      console.log("[AUTH_APPLY]", {
+        event,
+        hasSession: !!session,
+        userId: session?.user?.id || null,
+      });
       if (!session) {
+        console.warn("[AUTH_APPLY_NULL]", event);
       }
 
       const u = applySession(session);
@@ -170,18 +191,25 @@ export function AuthProvider({ children }) {
       if (authSettledRef.current) return;  // onAuthStateChange war schneller
 
       // getSession Sicherheitsnetz aktiv
+      console.log("[AUTH_GET_SESSION_START]");
       try {
         const { data: { session } } = await withTimeout(
           supabase.auth.getSession(),
           4000
         );
+        console.log("[AUTH_GET_SESSION_DONE]", {
+          hasSession: !!session,
+          userId: session?.user?.id || null,
+        });
         if (authSettledRef.current) return;  // onAuthStateChange hat zwischenzeitlich gefeuert
-        if (!session) { applySession(null); return; }
+        console.log("[AUTH_APPLY]", { event: "sessionFallback", hasSession: !!session, userId: session?.user?.id || null });
+        if (!session) console.warn("[AUTH_APPLY_NULL]", "sessionFallback");
         const u = applySession(session);
         if (u && !profileLoadingRef.current) loadProfile(u.id);
       } catch (e) {
         console.error("[AUTH_GET_SESSION_ERROR]", e);
         if (!authSettledRef.current) {
+          console.warn("[AUTH_LOGOUT_REASON]", "sessionFallback_error");
           applySession(null);
         }
       }
@@ -191,6 +219,8 @@ export function AuthProvider({ children }) {
     // ── C) Absoluter Fallback nach 5s (offline/netzwerkfehler) ───────
     const absoluteFallback = setTimeout(() => {
       if (!authSettledRef.current) {
+        console.warn("[AUTH] ABSOLUTE_FALLBACK");
+        console.warn("[AUTH_LOGOUT_REASON]", "absoluteFallback");
         console.warn("[HUI Auth] Absoluter Fallback nach 5s — kein Auth-Event");
         applySession(null);
       }

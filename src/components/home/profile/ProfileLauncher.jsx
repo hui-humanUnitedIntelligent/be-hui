@@ -1,12 +1,11 @@
 // src/components/home/profile/ProfileLauncher.jsx v8 — DB-basiertes Routing
 // ROUTING:
-//   selectedProfileId → DB-Query → role/has_talent_profile → TalentProfilePage | PublicProfilePage
+//   selectedProfileId → DB-Query → role/has_talent_profile → TalentProfilePage | BasisProfilePage
 //   showCreatorDashboard → MyBasisProfile (eigenes Profil — Talent-UI via isTalent)
 // ROUTING-ENTSCHEIDUNG: aus Datenbank, NICHT aus flow.state (war immer undefined)
 
 import { HUIWarnIcon } from '../../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useCallback } from "react";
-import { createPortal } from "react-dom";
 import { useHome } from "../HomeShell.jsx";
 import { useHuiActions, A } from "../../../core/hui.actions.js";
 import { S } from "../../../core/hui.sources.js";
@@ -107,16 +106,51 @@ class ProfileErrorBoundary extends React.Component {
   }
 }
 
+// ── Chunk-Retry: bei ChunkLoadError einmalig Hard-Reload ────────────────────
+function lazyWithRetry(importFn) {
+  return React.lazy(() =>
+    importFn().catch((err) => {
+      const isChunkError =
+        err?.message?.includes("Failed to fetch dynamically imported module") ||
+        err?.message?.includes("Importing a module script failed") ||
+        err?.name === "ChunkLoadError";
+      if (isChunkError) {
+        const reloadKey = "chunk_reload_" + importFn.toString().slice(0, 80);
+        if (!sessionStorage.getItem(reloadKey)) {
+          sessionStorage.setItem(reloadKey, "1");
+          window.location.reload();
+          return new Promise(() => {}); // Reload läuft — Promise hängen lassen
+        }
+      }
+      throw err;
+    })
+  );
+}
 
-// ── Page Imports — EAGER (kein React.lazy, kein Suspense, kein __vitePreload) ─
-// Root-Fix 2026-07-30: React.lazy + __vitePreload hing bei Suspense fest.
-// Eager Import bündelt PublicProfilePage in den Haupt-Chunk → kein separater
-// Chunk-Load nötig → Profil erscheint sofort.
-import PublicProfilePage  from "../../../pages/PublicProfilePage.jsx";
-import MyBasisProfile     from "../../../pages/MyBasisProfile.jsx";
+// ── Lazy Page Imports ────────────────────────────────────────────
+const BasisProfilePage   = lazyWithRetry(() => import("../../../pages/BasisProfilePage.jsx"));
+const TalentProfilePage  = lazyWithRetry(() => import("../../../pages/TalentProfilePage.jsx"));
+const MyBasisProfile     = lazyWithRetry(() => import("../../../pages/MyBasisProfile.jsx"));
 
-
-
+// ── Spinner Fallback ─────────────────────────────────────────────
+function Spinner() {
+  return (
+    <div style={{
+      position:"fixed", inset:0, zIndex:9500, /* <BottomNav — Basis-Fallback, siehe PROFIL-NAV-FIX 2026-07-05 */
+      background:"#F7F5F0",
+      display:"flex", flexDirection:"column",
+      alignItems:"center", justifyContent:"center", gap:16,
+    }}>
+      <div style={{
+        width:40, height:40, borderRadius:"50%",
+        border:"3px solid rgba(14,196,184,0.15)",
+        borderTop:"3px solid #0EC4B8",
+        animation:"spin 0.8s linear infinite",
+      }}/>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
+  );
+}
 
 // ── useProfileType — lädt role/has_talent_profile aus DB ─────────
 // Gibt zurück: { resolved: bool, isTalent: bool }
@@ -132,9 +166,9 @@ function useProfileType(profileId) {
 
     let cancelled = false;
 
-    // Timeout-Schutz: nach 6s Fallback auf PublicProfilePage
+    // Timeout-Schutz: nach 6s Fallback auf BasisProfilePage
     const timeoutPromise = new Promise((resolve) =>
-      setTimeout(() => resolve({ data: null, error: { message: "timeout" } }), 2000)
+      setTimeout(() => resolve({ data: null, error: { message: "timeout" } }), 1200)
     );
 
     (async () => {
@@ -146,7 +180,7 @@ function useProfileType(profileId) {
         if (cancelled) return;
 
         if (error) {
-          // Bei Timeout oder DB-Fehler: Fallback PublicProfilePage (sicher)
+          // Bei Timeout oder DB-Fehler: Fallback BasisProfilePage (sicher)
           setState({ resolved: true, isTalent: false, role: "error" });
           return;
         }
@@ -196,36 +230,39 @@ export default function ProfileLauncher() {
     authProfile,
   } = useHome();
 
-  // Portal-Target: document.body (escapes ALL ancestor Stacking Contexts)
-  const portalTarget = typeof document !== "undefined" ? document.body : null;
-
+  // ── DB-Routing für fremde öffentliche Profile ─────────────────
+  const { resolved, isTalent, role } = useProfileType(selectedProfileId);
 
   // ── ÖFFENTLICHES PROFIL (fremder User) ───────────────────────
-  // INSTANT-OPEN: PublicProfilePage sofort rendern — kein DB-Routing-Block.
-  // isTalent wird aus Phase-1-Profil (has_talent_profile) innerhalb von
-  // PublicProfilePage / TalentProfilePage gelesen (via useProfileData).
-  
-if (selectedProfileId) {
-    const content = (
+  // INSTANT-OPEN: Sofort rendern ohne auf DB-Query zu warten.
+  // useProfileType lädt Typ (Talent/Basis) im Hintergrund nach.
+  // BasisProfilePage wird zuerst gezeigt — bei Talent-Ergebnis
+  // wechselt ProfileComponent, was einen nahtlosen Re-Render auslöst.
+  if (selectedProfileId) {
+    // Typ-Routing: Solange unresolved → BasisProfilePage (sicherer Fallback)
+    // Nach resolved: korrekte Komponente. Kein Blocking, kein Spinner.
+    const ProfileComponent = (resolved && isTalent) ? TalentProfilePage : BasisProfilePage;
+
+    return (
       <ProfileErrorBoundary profileId={selectedProfileId} onClose={closeProfileById}>
-          <PublicProfilePage
+        <React.Suspense fallback={<Spinner />}>
+          <ProfileComponent
             profileId={selectedProfileId}
             onClose={closeProfileById}
           />
+        </React.Suspense>
       </ProfileErrorBoundary>
     );
-    return portalTarget ? createPortal(content, portalTarget) : content;
   }
 
   // ── EIGENES PROFIL — IMMER MyBasisProfile (erweiterbar um Talent-Bereich)
   // MyBasisProfile rendert den Talent-Bereich conditional wenn isTalent===true.
   if (showCreatorDashboard) {
-    const content = (
+    return (
       <ProfileErrorBoundary profileId="own" onClose={() => setShowCreatorDashboard(false)}>
         <MyBasisProfile onClose={() => setShowCreatorDashboard(false)} />
       </ProfileErrorBoundary>
     );
-    return portalTarget ? createPortal(content, portalTarget) : content;
   }
 
   // Nichts zu zeigen

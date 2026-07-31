@@ -21,26 +21,22 @@ import { supabase } from "../lib/supabaseClient.js";
 import { useAuth }  from "../lib/AuthContext.jsx";
 import { notifyWatcher } from "../lib/notificationService.js";
 import { useHome }       from "../components/home/HomeShell.jsx";
-const SettingsModal  = React.lazy(() => import("../components/settings/SettingsModal.jsx"));
-const HuiStudio      = React.lazy(() => import("../components/studio/HuiStudio.jsx"));
+import SettingsModal  from "../components/settings/SettingsModal.jsx";
+import HuiStudio      from "../components/studio/HuiStudio.jsx";
 import ProfilBearbeitenModal from "../components/studio/ProfilBearbeitenModal.jsx";
 // Sprint D: Datenlayer
 import { useProfileData } from "../hooks/useProfileData.js";
-import ProfileRelationButtons from "../components/shared/ProfileRelationButtons.jsx";
 // Sprint D: Unified Sections (Sprint C)
 import { ProfileHeader }           from "../components/profile/ProfileHeader.jsx";
-import { NAV_CLEARANCE_CSS } from "../components/home/navigation/navigationGeometry.js";
 import { TalentSection }          from "../components/profile/sections/TalentSection.jsx";
 import { WorksSection }           from "../components/profile/sections/WorksSection.jsx";
-import { PublicTalentOffersSection } from "../components/profile/sections/PublicTalentOffersSection.jsx";
 import { ExperiencesSection }     from "../components/profile/sections/ExperiencesSection.jsx";
 import { RecommendationsSection } from "../components/profile/sections/RecommendationsSection.jsx";
 import { AvailabilitySection }    from "../components/profile/sections/AvailabilitySection.jsx";
 import { LocationSection }        from "../components/profile/sections/LocationSection.jsx";
 import { VisibilitySection }      from "../components/profile/sections/VisibilitySection.jsx";
 import { MomentsSection }         from "../components/profile/sections/MomentsSection.jsx";
-// OrbSignatur lazy — verhindert Blockierung (89K-Chunk)
-import { OrbSignatur } from "../components/profile/OrbSignatur.jsx";
+import { OrbSignatur }            from "../components/profile/OrbSignatur.jsx";
 
 // ── Design Tokens (HUI-Standard, identisch zu BasisProfilePage) ─
 const T = {
@@ -1098,15 +1094,12 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
     moments,
     followCounts,
     loading,
-    loadingLazy,
-    loadLazy,
     error,
     reload,
   } = useProfileData(profileId);
 
   // ── Lokale UI-States (kein Datenlayer) ──────────────────────
   const [mounted,           setMounted]           = useState(false);
-  const [lazyLoaded,        setLazyLoaded]        = useState(false);
   const [showKompassSheet,  setShowKompassSheet]  = useState(false);
   const [kompassWatchLocal, setKompassWatchLocal] = useState(null);
   const [showSettings,      setShowSettings]      = useState(false);
@@ -1121,14 +1114,6 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
     const t = setTimeout(() => setMounted(true), 30);
     return () => clearTimeout(t);
   }, []);
-
-  // Lazy-Content laden sobald Phase 1 (Profil) fertig ist
-  useEffect(() => {
-    if (profile && !lazyLoaded) {
-      setLazyLoaded(true);
-      loadLazy();
-    }
-  }, [profile, lazyLoaded, loadLazy]);
 
   // ── Sprint F.9G.4: Realtime — Admin-Freigabe (works + experiences) ──
   // Nur UPDATE: wenn Admin status → published/approved setzt, sofort sichtbar.
@@ -1183,9 +1168,8 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
       display_name: profile.display_name || profile.username || "Talent",
       avatar_url:   profile.avatar_url || null,
     });
-    if (onClose) onClose();   // Profil zuerst schließen
-    setShowChat(true);        // Dann Chat öffnen
-  }, [profile, setChatRecipient, setShowChat, onClose]);
+    setShowChat(true);
+  }, [profile, setChatRecipient, setShowChat]);
 
   // Avatar/Cover-Update → sofortiger AuthContext-Update + reload
   // Sprint F.4D.1: setAuthProfile sofort aufrufen — kein Reload nötig
@@ -1303,7 +1287,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
   return (
     <div className="tpp-root" style={{
       position:"fixed", top:0, left:0, right:0,
-      bottom: publicView ? 0 : NAV_CLEARANCE_CSS,
+      bottom: publicView ? 0 : "calc(72px + env(safe-area-inset-bottom, 0px))",
       zIndex:9500, /* <BottomNav(10000) — Root endet vor Navbar */
       display:"flex", flexDirection:"column",
       opacity:mounted?1:0,
@@ -1332,22 +1316,25 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
           onEditCover={handleCoverChange}
         />
 
-        {profileId && (
-          <React.Suspense fallback={null}>
-            <OrbSignatur profileId={profileId} />
-          </React.Suspense>
-        )}
+        {profileId && <OrbSignatur profileId={profileId} />}
 
-        {/* ── Verbinden + Folgen — nur für Fremdprofile ── */}
+        {/* ── 2. Action Buttons — nur Besucher ─────────────── */}
         {!isOwner && (
-          <ProfileRelationButtons
-            profileId={profileId || profile?.id}
-            currentUserId={user?.id}
-            profile={profile}
-            onClose={onClose}
-          />
+          <div style={{padding:`0 ${T.px}px`}}>
+            <ActionButtons
+              profile={profile}
+              currentUserId={user?.id}
+              loading={loading}
+              onOpenChat={handleOpenChat}
+              onOpenKompass={({ isWatching: iw, toggleWatch: tw }) => {
+                setKompassWatchLocal(iw);
+                kompassToggleRef.current = tw;
+                setShowKompassSheet(true);
+              }}
+            />
+          </div>
         )}
-        <Gap h={8}/>
+        <Gap h={20}/>
 
         {/* ── 3. Schwerpunkt + Stats (unverändert) ─────────── */}
         <SchwerpunktStatsBlock
@@ -1359,107 +1346,76 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
         {/* ── 5. Nächste Erlebnisse (unverändert) ──────────── */}
         <NaechsteErlebnisseSection experiences={experiences} loading={loading}/>
         <Gap h={28}/>
-        {/* ── 7. Talente & Angebote → TalentSection (Skills-Chips) ── */}
-        <React.Suspense fallback={null}>
-          <TalentSection
-            profile={profile}
-            isOwner={isOwner}
-            loading={loading}
-            onChange={handleSkillsChange}
-          />
-        </React.Suspense>
-        <Gap h={16}/>
-
-        {/* ── 7b. Talent-Angebote (talents-Tabelle, approved) ── */}
-        {(profile?.has_talent_profile || profile?.is_talent) && profileId && (
-          <>
-            <div style={{ padding:"0 16px", marginBottom:8 }}>
-              <div style={{ fontSize:15, fontWeight:700, color:"#1A1A18", letterSpacing:"-0.01em" }}>
-                Talent-Angebote
-              </div>
-            </div>
-            <div style={{ padding:"0 16px" }}>
-              <PublicTalentOffersSection profileId={profileId}/>
-            </div>
-          </>
-        )}
+        {/* ── 7. Talente & Angebote → TalentSection ────────── */}
+        <TalentSection
+          profile={profile}
+          isOwner={isOwner}
+          loading={loading}
+          onChange={handleSkillsChange}
+        />
         <Gap h={28}/>
 
         {/* ── 8. Werke → WorksSection ──────────────────────── */}
-        <React.Suspense fallback={null}>
-          <WorksSection
-            works={works}
-            profile={profile}
-            isOwner={isOwner}
-            loading={loading}
-            onShowAll={() => {}}
-          />
-        </React.Suspense>
+        <WorksSection
+          works={works}
+          profile={profile}
+          isOwner={isOwner}
+          loading={loading}
+          onShowAll={() => {}}
+        />
         <Gap h={28}/>
 
         {/* ── 9. Erlebnisse → ExperiencesSection ───────────── */}
-        <React.Suspense fallback={null}>
-          <ExperiencesSection
-            experiences={experiences}
-            isOwner={isOwner}
-            loading={loading}
-            onShowAll={() => {}}
-          />
-        </React.Suspense>
+        <ExperiencesSection
+          experiences={experiences}
+          isOwner={isOwner}
+          loading={loading}
+          onShowAll={() => {}}
+        />
         <Gap h={28}/>
 
         {/* ── 10. Kundenstimmen → RecommendationsSection ───── */}
-        <React.Suspense fallback={null}>
-          <RecommendationsSection
-            recommendations={recommendations}
-            isOwner={isOwner}
-            loading={loading}
-            onShowAll={() => {}}
-          />
-        </React.Suspense>
+        <RecommendationsSection
+          recommendations={recommendations}
+          isOwner={isOwner}
+          loading={loading}
+          onShowAll={() => {}}
+        />
         <Gap h={28}/>
 
         {/* ── 11. Verfügbarkeit → AvailabilitySection ──────── */}
-        <React.Suspense fallback={null}>
-          <AvailabilitySection
-            profile={profile}
-            isOwner={isOwner}
-            loading={loading}
-            onSave={handleAvailabilityChange}
-          />
-        </React.Suspense>
+        <AvailabilitySection
+          profile={profile}
+          isOwner={isOwner}
+          loading={loading}
+          onSave={handleAvailabilityChange}
+        />
         <Gap h={12}/>
 
         {/* ── 12. Standort → LocationSection ───────────────── */}
-        <React.Suspense fallback={null}>
-          <LocationSection
-            profile={profile}
-            isOwner={isOwner}
-            loading={loading}
-            onSave={handleLocationChange}
-          />
-        </React.Suspense>
+        <LocationSection
+          profile={profile}
+          isOwner={isOwner}
+          loading={loading}
+          onSave={handleLocationChange}
+        />
         <Gap h={12}/>
 
         {/* ── 13. Sichtbarkeit → VisibilitySection ─────────── */}
-        <React.Suspense fallback={null}>
-          <VisibilitySection
-            profile={profile}
-            isOwner={isOwner}
-            loading={loading}
-            onSave={handleVisibilityChange}
-          />
-        </React.Suspense>
+        <VisibilitySection
+          profile={profile}
+          isOwner={isOwner}
+          loading={loading}
+          onSave={handleVisibilityChange}
+        />
         <Gap h={24}/>
 
         {/* ── 14. Momente → MomentsSection (Sprint C) ──────── */}
-        <React.Suspense fallback={null}>
-          <MomentsSection
-            moments={moments}
-            isOwner={isOwner}
-            loading={loading}
-          />
-        </React.Suspense>
+        <MomentsSection
+          moments={moments}
+          isOwner={isOwner}
+          loading={loading}
+        />
         <Gap h={24}/>
 
         {/* ── 15. Social Context Bar (unverändert) ─────────── */}
@@ -1476,12 +1432,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
           <>
             <AbschlussBar profile={profile} loading={loading}/>
             <Gap h={16}/>
-            <ProfileRelationButtons
-              profileId={profileId || profile?.id}
-              currentUserId={user?.id}
-              profile={profile}
-              onClose={onClose}
-            />
+            <AbschlussButtons profile={profile} currentUserId={user?.id} onOpenChat={handleOpenChat}/>
           </>
         )}
         <Gap h={40}/>
@@ -1499,20 +1450,18 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
 
       {/* ── Owner Modals ─────────────────────────────────────── */}
       {isOwner && showSettings && (
-        <React.Suspense fallback={null}>
-          <SettingsModal
-            profile={profile}
-            onClose={() => setShowSettings(false)}
-            onEditProfile={() => {
-              setShowSettings(false);
-              setShowProfilEdit(true);
-            }}
-            onSave={(updated) => {
-              reload();
-              setShowSettings(false);
-            }}
-          />
-        </React.Suspense>
+        <SettingsModal
+          profile={profile}
+          onClose={() => setShowSettings(false)}
+          onEditProfile={() => {
+            setShowSettings(false);
+            setShowProfilEdit(true);
+          }}
+          onSave={(updated) => {
+            reload();
+            setShowSettings(false);
+          }}
+        />
       )}
       {isOwner && showProfilEdit && (
         <ProfilBearbeitenModal
@@ -1522,12 +1471,10 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
         />
       )}
       {isOwner && showStudio && (
-        <React.Suspense fallback={null}>
-          <HuiStudio
-            profile={profile}
-            onClose={() => setShowStudio(false)}
-          />
-        </React.Suspense>
+        <HuiStudio
+          profile={profile}
+          onClose={() => setShowStudio(false)}
+        />
       )}
     </div>
   );

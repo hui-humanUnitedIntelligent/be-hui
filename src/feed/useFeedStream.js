@@ -159,8 +159,28 @@ async function fetchFeedPage(userId = null, cursors = null) {
   }
 
   // ── Step 2: Profile-Enrichment — optional, nie blockierend ─────────────
+  // ── TRACE STEP 1: erstes Work-Item ─────────────────────────
+  if (works && works.length > 0) {
+    const w0 = works[0];
+    if (import.meta.env.DEV) {
+      console.group("🔍 STEP 1 - WORK[0]");
+      if (import.meta.env.DEV) { console.log("raw row:", w0); }
+      if (import.meta.env.DEV) { console.log("id:", w0.id); }
+      if (import.meta.env.DEV) { console.log("user_id:", w0.user_id); }
+      if (import.meta.env.DEV) { console.log("creator_id:", w0.creator_id); }
+      if (import.meta.env.DEV) { console.groupEnd(); }
+    }
+  }
+
   const allRows = [...works, ...exps, ...beitr, ...invs, ...talents, ...impacts];
   const userIds = [...new Set(allRows.map(r => r.user_id || r.creator_id).filter(Boolean))];
+  // ── TRACE STEP 2: userIds ───────────────────────────────────
+  if (import.meta.env.DEV) {
+    console.group("🔍 STEP 2 - USER IDS");
+    if (import.meta.env.DEV) { console.log("userIds:", userIds); }
+    if (import.meta.env.DEV) { console.log("works[0].user_id in userIds:", works[0] ? userIds.includes(works[0].user_id) : "no works"); }
+    if (import.meta.env.DEV) { console.groupEnd(); }
+  }
 
   let profileMap = {};
 
@@ -168,22 +188,58 @@ async function fetchFeedPage(userId = null, cursors = null) {
     try {
       // ProfileService v1.0
       const { data: profileRows } = await ProfileService.getMany(userIds);
+      // ── TRACE STEP 3: Supabase Profile Query Result ──────────
+      if (import.meta.env.DEV) {
+        console.group("🔍 STEP 3 - PROFILE QUERY");
+        if (import.meta.env.DEV) { console.log("profileRows:", profileRows); }
+        if (import.meta.env.DEV) { console.log("count:", profileRows?.length); }
+        if (profileRows && profileRows.length > 0) {
+          if (import.meta.env.DEV) { console.log("profileRows[0] fields:", Object.keys(profileRows[0])); }
+          if (import.meta.env.DEV) { console.log("avatar_url:", profileRows[0].avatar_url); }
+          if (import.meta.env.DEV) { console.log("display_name:", profileRows[0].display_name); }
+          if (import.meta.env.DEV) { console.log("full_name:", profileRows[0].full_name); }
+        }
+        if (import.meta.env.DEV) { console.groupEnd(); }
+      }
+
       if (profileRows) {
         profileRows.forEach(p => { profileMap[p.id] = p; });
-        // Prewarm: Schreibe Feed-Profile in prewarm-Cache
-        // (Separater Key — überschreibt nicht den getById-Cache)
-        ProfileService.prewarm(profileRows);
       }
     } catch (_) {
-      // Profile enrichment failed — non-blocking
+      if (import.meta.env.DEV) { console.warn("[HUI_STREAM] Profile enrichment failed:", _?.message || _); }
     }
+
+  // ── TRACE STEP 4: profileMap ──────────────────────────────
+  const _w0uid = works[0] ? (works[0].user_id || works[0].creator_id) : null;
+  if (import.meta.env.DEV) {
+    console.group("🔍 STEP 4 - PROFILE MAP");
+    if (import.meta.env.DEV) { console.log("profileMap keys:", Object.keys(profileMap)); }
+    if (import.meta.env.DEV) { console.log("works[0] uid:", _w0uid); }
+    if (import.meta.env.DEV) { console.log("profileMap[uid]:", _w0uid ? profileMap[_w0uid] : "no uid"); }
+    if (import.meta.env.DEV) { console.groupEnd(); }
+  }
   }
 
   // ── Step 3: Normalisieren (mit injiziertem profile aus profileMap) ──────
+  let _step5Done = false; // nur erstes Work tracen
   function injectProfile(row) {
     const uid = row.user_id || row.creator_id || null;
     const p   = (uid && profileMap[uid]) ? profileMap[uid] : null;
     const result = { ...row, profile: p || { id: uid } };
+    // ── TRACE STEP 5 (nur erstes Work) ────────────────────
+    if (!_step5Done && row.title !== undefined) {
+      _step5Done = true;
+      if (import.meta.env.DEV) {
+        console.group("🔍 STEP 5 - injectProfile (first work)");
+        if (import.meta.env.DEV) { console.log("uid:", uid); }
+        if (import.meta.env.DEV) { console.log("profileMap[uid]:", profileMap[uid]); }
+        if (import.meta.env.DEV) { console.log("row.id:", row.id, "row.title:", row.title); }
+        if (import.meta.env.DEV) { console.log("result.profile:", result.profile); }
+        if (import.meta.env.DEV) { console.log("result.profile.avatar_url:", result.profile?.avatar_url); }
+        if (import.meta.env.DEV) { console.log("result.profile.display_name:", result.profile?.display_name); }
+        if (import.meta.env.DEV) { console.groupEnd(); }
+      }
+    }
     return result;
   }
 
@@ -516,6 +572,7 @@ export function useFeedStream() {
       })
       .subscribe((status) => {
         if (status === "CHANNEL_ERROR") {
+          if (import.meta.env.DEV) { console.warn("[HUI_STREAM] Realtime Channel Error — Feed läuft ohne Live-Updates weiter"); }
         }
       });
 

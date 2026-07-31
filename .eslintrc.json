@@ -1,0 +1,27 @@
+{
+  "extends": [
+    "react-app",
+    "react-app/jest",
+    "plugin:react-hooks/recommended"
+  ],
+  "plugins": ["react-hooks", "import"],
+  "rules": {
+    "react-hooks/rules-of-hooks":    "error",
+    "react-hooks/exhaustive-deps":   "warn",
+    "no-redeclare":                  "error",
+    "import/no-duplicates":          "error",
+    "no-undef":                      "error",
+    "no-unused-vars": ["warn", {
+      "varsIgnorePattern": "^_",
+      "argsIgnorePattern": "^_"
+    }]
+  },
+  "settings": {
+    "import/resolver": {
+      "alias": {
+        "map": [["@", "./src"]],
+        "extensions": [".js", ".jsx", ".ts", ".tsx"]
+      }
+    }
+  }
+}

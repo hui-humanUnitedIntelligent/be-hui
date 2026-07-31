@@ -56,7 +56,7 @@ jobs:
               -H "apikey: $SUPABASE_SERVICE_KEY" \
               -H "Authorization: Bearer $SUPABASE_SERVICE_KEY" \
               -H "Content-Type: application/json" \
-              -d '{"p_ambassador_id":"<REDACTED_USER_ID>"}')
+              -d '{"p_ambassador_id":"3a291a5c-9c4c-4537-9e87-b7b137d5ec01"}')
             echo "$fn: HTTP $result"
             [ "$result" != "404" ] && echo "✅ $fn" || (echo "❌ $fn FEHLT" && exit 1)
           done

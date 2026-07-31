@@ -1,5 +1,4 @@
-// chat-center/ConversationRoom.jsx v2
-// Voice + Media + Delete + Edit support
+// chat-center/ConversationRoom.jsx
 
 import React, { useCallback } from "react";
 import ChatHeader     from "./ChatHeader.jsx";
@@ -20,7 +19,7 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile, onCloseC
   const isFakeId   = typeof rawId === "string" && rawId.startsWith("direct_");
   const realChatId = (rawId && !isFakeId) ? rawId : null;
 
-  const { messages: liveMessages, sendMessage, deleteMessage, editMessage, sending, loading } =
+  const { messages: liveMessages, sendMessage, sending, loading } =
     useChatThread(realChatId);
 
   const messages = (liveMessages || []).filter(m => m?.id).map(m => ({
@@ -30,69 +29,50 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile, onCloseC
     sender_name: conv?.name,
   }));
 
-  // Send: Text oder Media (von ChatInput v4)
-  const handleSend = useCallback(async (payload) => {
-    if (!realChatId || !sendMessage) return;
-    // payload kann string (legacy) oder { text, msgType, mediaUrl, mediaType } sein
-    if (typeof payload === "string") {
-      await sendMessage({ text: payload, msgType: "text" });
-    } else {
-      await sendMessage(payload);
-    }
+  const handleSend = useCallback(async (text) => {
+    if (!text?.trim() || !realChatId || !sendMessage) return;
+    await sendMessage({ text: text.trim(), msgType: "text" });
   }, [sendMessage, realChatId]);
-
-  const handleDelete = useCallback(async (msgId) => {
-    await deleteMessage?.(msgId);
-  }, [deleteMessage]);
-
-  const handleEdit = useCallback(async (msgId, newText) => {
-    await editMessage?.(msgId, newText);
-  }, [editMessage]);
 
   const showEmpty = !loading && messages.length === 0 && !!realChatId;
 
   return (
     <div style={{
-      position:"fixed", inset:0, zIndex:10002,
-      display:"flex", flexDirection:"column",
-      fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
-      background:"#F2F4F8",
+      position: "fixed", inset: 0, zIndex: 10002,
+      display: "flex", flexDirection: "column",
+      fontFamily: "-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
+      background: "#F2F4F8",
     }}>
       <style>{CSS}</style>
-      <ChatHeader conv={conv} onBack={onBack} onOpenProfile={onOpenProfile}
-        onCloseChat={onCloseChat} onRequestBooking={onRequestBooking}/>
+      <ChatHeader conv={conv} onBack={onBack} onOpenProfile={onOpenProfile} onCloseChat={onCloseChat} onRequestBooking={onRequestBooking}/>
 
-      {showEmpty ? (
-        <div style={{
-          flex:1, display:"flex", alignItems:"center", justifyContent:"center",
-          flexDirection:"column", gap:14, padding:"40px 32px",
-        }}>
+      {showEmpty
+        ? (
           <div style={{
-            width:56, height:56, borderRadius:"50%",
-            background:"linear-gradient(135deg,rgba(22,215,197,0.12),rgba(255,138,107,0.08))",
-            display:"flex", alignItems:"center", justifyContent:"center", fontSize:24,
-          }}>✦</div>
-          <div style={{
-            fontSize:14, textAlign:"center", lineHeight:1.7,
-            color:"rgba(80,80,80,0.42)", maxWidth:220,
+            flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
+            flexDirection: "column", gap: 14, padding: "40px 32px",
           }}>
-            Erste Worte.<br/>
-            <span style={{ color:"rgba(22,215,197,0.65)", fontWeight:600 }}>
-              Schreib etwas Echtes.
-            </span>
+            <div style={{
+              width: 56, height: 56, borderRadius: "50%",
+              background: "linear-gradient(135deg,rgba(22,215,197,0.12),rgba(255,138,107,0.08))",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 24,
+            }}>✦</div>
+            <div style={{
+              fontSize: 14, textAlign: "center", lineHeight: 1.7,
+              color: "rgba(80,80,80,0.42)", maxWidth: 220,
+            }}>
+              Erste Worte.<br/>
+              <span style={{ color: "rgba(22,215,197,0.65)", fontWeight: 600 }}>
+                Schreib etwas Echtes.
+              </span>
+            </div>
           </div>
-        </div>
-      ) : (
-        <ChatMessages
-          messages={messages}
-          typing={false}
-          event={null}
-          onDelete={handleDelete}
-          onEdit={handleEdit}
-        />
-      )}
+        )
+        : <ChatMessages messages={messages} typing={false} event={null}/>
+      }
 
-      <div style={{ flexShrink:0 }}>
+      <div style={{ flexShrink: 0 }}>
         <ChatInput onSend={handleSend} sending={sending}/>
       </div>
     </div>

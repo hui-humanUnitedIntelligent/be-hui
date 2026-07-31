@@ -17,7 +17,6 @@
 import { HUISendenIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import { HUIHeartIcon, HUIChatIcon } from '../../design/icons/HuiInteractionIcons.jsx';
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { toast } from "../../lib/useToast.jsx";
@@ -51,10 +50,6 @@ const CSS = `
     border:none; background:none; font-family:inherit; transition:opacity .14s, transform .14s; }
   .cs-btn:active { opacity:.6; transform:scale(0.96); }
   .cs-textarea::placeholder { color: rgba(26,26,46,0.38); }
-  .cs-emoji-grid { display:grid; grid-template-columns:repeat(8,1fr); gap:2px; }
-  .cs-emoji-btn { font-size:22px; padding:5px 3px; border:none; background:none; cursor:pointer; border-radius:8px; text-align:center; transition:background .12s; line-height:1; }
-  .cs-emoji-btn:hover { background:rgba(13,196,181,0.12); }
-  .cs-emoji-picker { position:absolute; bottom:62px; left:0; right:0; background:#fff; border-top:1px solid rgba(26,26,46,0.08); padding:10px 12px 8px; box-shadow:0 -4px 20px rgba(26,26,46,0.12); max-height:210px; overflow-y:auto; animation:cs-overlay-in 150ms ease; z-index:2; }
 `;
 
 function fmtTime(iso) {
@@ -88,131 +83,6 @@ function Avatar({ url, name, size = 34 }) {
 }
 
 // ── Ein Kommentar (+ rekursiv seine Antworten) ────────────────────────
-// ── CommentMenuPortal ─────────────────────────────────────────────────────
-// Rendert das ••• Dropdown direkt auf document.body via Portal,
-// damit Sheet-Overflow/clip-path den Dropdown nicht versteckt.
-function CommentMenuPortal({ isOwn, menuOpen, setMenuOpen, confirmDelete, setConfirmDelete,
-    reportMenu, setReportMenu, onEdit, onDelete, onReport, T }) {
-  const btnRef = useRef(null);
-  const dropdownRef = useRef(null);
-  const [pos, setPos] = useState({ top:0, right:0 });
-
-  const handleOpen = () => {
-    if (btnRef.current) {
-      const r = btnRef.current.getBoundingClientRect();
-      // Dropdown OBEN-LINKS vom Button anzeigen
-      setPos({ bottom: window.innerHeight - r.top + 4, right: window.innerWidth - r.right });
-    }
-    setMenuOpen(v => !v);
-  };
-
-  // Außerhalb klicken schließt Menü — ABER nicht wenn ins Dropdown selbst geklickt wird
-  useEffect(() => {
-    if (!menuOpen) return;
-    const handler = (e) => {
-      // Prüfe BOTH: Button UND Dropdown-Portal
-      const inBtn = btnRef.current && btnRef.current.contains(e.target);
-      const inDropdown = dropdownRef.current && dropdownRef.current.contains(e.target);
-      if (!inBtn && !inDropdown) {
-        setMenuOpen(false);
-        setConfirmDelete(false);
-        setReportMenu(false);
-      }
-    };
-    // mouseup statt mousedown — feuert NACH dem Button-Click, nicht davor
-    document.addEventListener("mouseup", handler);
-    document.addEventListener("touchend", handler);
-    return () => {
-      document.removeEventListener("mouseup", handler);
-      document.removeEventListener("touchend", handler);
-    };
-  }, [menuOpen, setMenuOpen, setConfirmDelete, setReportMenu]);
-
-  return (
-    <>
-      <button
-        ref={btnRef}
-        className="cs-btn"
-        onClick={handleOpen}
-        style={{ display:"flex", alignItems:"center", justifyContent:"center",
-          gap:3, padding:"6px 8px", borderRadius:20,
-          background: menuOpen ? "rgba(26,26,46,0.08)" : "transparent" }}>
-        {[0,1,2].map(i => (
-          <span key={i} style={{ width:4, height:4, borderRadius:"50%",
-            background:"rgba(26,26,46,0.45)", display:"block" }}/>
-        ))}
-      </button>
-
-      {menuOpen && createPortal(
-        <div ref={dropdownRef} style={{ position:"fixed", bottom: pos.bottom, right: pos.right,
-          background:"#fff", borderRadius:10,
-          boxShadow:"0 4px 16px rgba(26,26,46,0.18)",
-          overflow:"hidden", zIndex:99999, minWidth:140 }}>
-          {isOwn ? (
-            <>
-              <button className="cs-btn" onClick={onEdit}
-                style={{ display:"flex", alignItems:"center", gap:10, width:"100%",
-                  padding:"10px 14px", fontSize:13, fontWeight:600, color:"#1A1A2E",
-                  borderBottom:"1px solid rgba(26,26,46,0.08)", background:"none", cursor:"pointer" }}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1A1A2E" strokeWidth="2" strokeLinecap="round">
-                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-                  <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                </svg>
-                Bearbeiten
-              </button>
-              {!confirmDelete ? (
-                <button className="cs-btn" onClick={() => setConfirmDelete(true)}
-                  style={{ display:"flex", alignItems:"center", gap:10, width:"100%",
-                    padding:"10px 14px", fontSize:13, fontWeight:600, color:"#E53E3E",
-                    background:"none", cursor:"pointer", textAlign:"left" }}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#E53E3E" strokeWidth="2" strokeLinecap="round">
-                    <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
-                    <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
-                  </svg>
-                  Löschen
-                </button>
-              ) : (
-                <div style={{ padding:"10px 14px" }}>
-                  <p style={{ fontSize:12, color:"#666", margin:"0 0 8px" }}>Kommentar wirklich löschen?</p>
-                  <div style={{ display:"flex", gap:8 }}>
-                    <button className="cs-btn" onClick={onDelete}
-                      style={{ flex:1, padding:"7px 0", fontSize:12, fontWeight:700, color:"#fff",
-                        background:"#E53E3E", borderRadius:8, cursor:"pointer" }}>
-                      Löschen
-                    </button>
-                    <button className="cs-btn" onClick={() => setConfirmDelete(false)}
-                      style={{ flex:1, padding:"7px 0", fontSize:12, fontWeight:600, color:"#666",
-                        background:"#f5f5f5", borderRadius:8, cursor:"pointer" }}>
-                      Abbrechen
-                    </button>
-                  </div>
-                </div>
-              )}
-            </>
-          ) : (
-            !reportMenu ? (
-              <button className="cs-btn" onClick={() => setReportMenu(true)}
-                style={{ display:"flex", alignItems:"center", gap:10, width:"100%",
-                  padding:"10px 14px", fontSize:13, fontWeight:600, color:"#1A1A2E",
-                  background:"none", cursor:"pointer" }}>
-                🚩 Melden
-              </button>
-            ) : REPORT_REASONS.map(r => (
-              <button key={r.key} className="cs-btn" onClick={() => onReport(r.key)}
-                style={{ display:"flex", alignItems:"center", gap:8, width:"100%",
-                  padding:"10px 14px", fontSize:13, fontWeight:500, color:"#1A1A2E",
-                  borderBottom:"1px solid rgba(26,26,46,0.05)", background:"none", cursor:"pointer" }}>
-                {r.label}
-              </button>
-            ))
-          )}
-        </div>,
-        document.body
-      )}
-    </>
-  );
-}
-
 function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdit, onDelete, onHeart, onReport, replyTargetId, onCancelReply, onSubmitReply, replyText, setReplyText, submittingReply }) {
   const { openCreatorProfile } = useProfileLauncher();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -267,15 +137,10 @@ function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdi
           {editing ? (
             <div style={{ marginTop:6 }}>
               <textarea
-                autoFocus
-                value={editText}
-                onChange={e=>setEditText(e.target.value)}
-                rows={Math.max(2, (editText.match(/\n/g)||[]).length + 1)}
+                value={editText} onChange={e=>setEditText(e.target.value)} rows={2}
                 className="cs-textarea"
-                onFocus={e => { const v = e.target; v.selectionStart = v.selectionEnd = v.value.length; }}
-                style={{ width:"100%", border:`1px solid ${T.teal}`, borderRadius:12, padding:"8px 10px",
-                  fontSize:14, fontFamily:"inherit", color:T.ink, resize:"none", boxSizing:"border-box",
-                  outline:"none", boxShadow:`0 0 0 2px ${T.teal}22` }}
+                style={{ width:"100%", border:`1px solid ${T.border}`, borderRadius:12, padding:"8px 10px",
+                  fontSize:14, fontFamily:"inherit", color:T.ink, resize:"none", boxSizing:"border-box" }}
               />
               <div style={{ display:"flex", gap:10, marginTop:6 }}>
                 <button className="cs-btn" onClick={() => { onSaveEdit(comment.id, editText); setEditing(false); }}
@@ -297,21 +162,34 @@ function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdi
                 {comment.heart_count > 0 && <span style={{ fontSize:12, color: comment.hearted_by_me ? T.coral : T.inkFaint, fontWeight:600 }}>{comment.heart_count}</span>}
               </button>
               <button className="cs-btn" onClick={() => onReply(comment)} style={{ fontSize:12, fontWeight:700, color:T.inkFaint }}>Antworten</button>
-              {/* ••• Button + Portal-Dropdown */}
-              <div style={{ marginLeft:"auto" }}>
-                <CommentMenuPortal
-                  isOwn={isOwn}
-                  menuOpen={menuOpen}
-                  setMenuOpen={setMenuOpen}
-                  confirmDelete={confirmDelete}
-                  setConfirmDelete={setConfirmDelete}
-                  reportMenu={reportMenu}
-                  setReportMenu={setReportMenu}
-                  onEdit={() => { setEditing(true); setMenuOpen(false); }}
-                  onDelete={() => { onDelete(comment.id); setMenuOpen(false); }}
-                  onReport={(reason) => { onReport(comment.id, reason); setMenuOpen(false); setReportMenu(false); }}
-                  T={T}
-                />
+              <div style={{ position:"relative", marginLeft:"auto" }}>
+                <button className="cs-btn" onClick={() => setMenuOpen(v=>!v)} style={{ fontSize:16, color:T.inkFaint, padding:"0 4px" }}>•••</button>
+                {menuOpen && (
+                  <div style={{ position:"absolute", right:0, top:22, background:T.sheet, border:`1px solid ${T.border}`,
+                    borderRadius:12, boxShadow:"0 8px 24px rgba(26,26,46,0.14)", overflow:"hidden", zIndex:5, minWidth:150 }}>
+                    {isOwn ? (
+                      <>
+                        <button className="cs-btn" onClick={() => { setEditing(true); setMenuOpen(false); }}
+                          style={{ display:"block", width:"100%", textAlign:"left", padding:"10px 14px", fontSize:13, color:T.ink }}>Bearbeiten</button>
+                        {!confirmDelete ? (
+                          <button className="cs-btn" onClick={() => setConfirmDelete(true)}
+                            style={{ display:"block", width:"100%", textAlign:"left", padding:"10px 14px", fontSize:13, color:T.coral }}>Löschen</button>
+                        ) : (
+                          <button className="cs-btn" onClick={() => { onDelete(comment.id); setMenuOpen(false); }}
+                            style={{ display:"block", width:"100%", textAlign:"left", padding:"10px 14px", fontSize:13, fontWeight:700, color:T.coral }}>Wirklich löschen?</button>
+                        )}
+                      </>
+                    ) : (
+                      !reportMenu ? (
+                        <button className="cs-btn" onClick={() => setReportMenu(true)}
+                          style={{ display:"block", width:"100%", textAlign:"left", padding:"10px 14px", fontSize:13, color:T.ink }}>Melden</button>
+                      ) : REPORT_REASONS.map(r => (
+                        <button key={r.key} className="cs-btn" onClick={() => { onReport(comment.id, r.key); setMenuOpen(false); setReportMenu(false); }}
+                          style={{ display:"block", width:"100%", textAlign:"left", padding:"10px 14px", fontSize:13, color:T.ink }}>{r.label}</button>
+                      ))
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -342,7 +220,7 @@ function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdi
   );
 }
 
-export default function CommentsSheet({ open, onClose, postId, postType, postAuthorId, postActionUrl, highlightCommentId, mediaUrl = null, mediaType = null, postTitle = null }) {
+export default function CommentsSheet({ open, onClose, postId, postType, postAuthorId, postActionUrl, highlightCommentId }) {
   const { user, profile } = useAuth();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -355,8 +233,6 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
   const [replyTargetId, setReplyTargetId] = useState(null);
   const [replyText, setReplyText] = useState("");
   const [submittingReply, setSubmittingReply] = useState(false);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const inputRef = useRef(null);
   const authorCache = useRef(new Map());
 
   const decorateAuthors = useCallback(async (rows) => {
@@ -443,7 +319,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
     setInput("");
     const { data, error } = await createComment({
       postId, postType, userId: user.id, text, postAuthorId,
-      senderName: profile?.display_name || profile?.username, postActionUrl, postTitle,
+      senderName: profile?.display_name || profile?.username, postActionUrl,
     });
     setSubmitting(false);
     if (error || !data) {
@@ -483,7 +359,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
 
     const { data, error } = await createComment({
       postId, postType, userId: user.id, text, parentCommentId: parentId,
-      parentAuthorId, senderName: profile?.display_name || profile?.username, postActionUrl, postTitle,
+      parentAuthorId, senderName: profile?.display_name || profile?.username, postActionUrl,
     });
     setSubmittingReply(false);
     if (error || !data) {
@@ -506,18 +382,11 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
   }, []);
 
   const handleDelete = useCallback(async (commentId) => {
-    // Optimistisch: sofort aus Liste entfernen (bessere UX als Placeholder)
-    const remove = (list) => list
-      .filter(c => c.id !== commentId)
-      .map(c => ({ ...c, replies: remove(c.replies || []) }));
-    setItems(prev => remove(prev));
+    const patch = (list) => list.map(c => c.id === commentId ? { ...c, is_deleted:true, text:"" } : { ...c, replies: patch(c.replies||[]) });
+    setItems(prev => patch(prev));
     haptic("light");
     const { error } = await deleteComment(commentId);
-    if (error) {
-      toast.error("Kommentar konnte nicht gelöscht werden.");
-      // Reload bei Fehler
-      // (kein Rollback nötig — deleteComment ist idempotent)
-    }
+    if (error) toast.error("Kommentar konnte nicht gelöscht werden.");
   }, []);
 
   const handleHeart = useCallback(async (comment) => {
@@ -540,10 +409,10 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
 
   if (!open) return null;
 
-  return createPortal(
+  return (
     <div
       onClick={e => e.stopPropagation()}
-      style={{ position:"fixed", inset:0, zIndex:10500 }}
+      style={{ position:"fixed", inset:0, zIndex:20000 }}
     >
       <style>{CSS}</style>
       <div className="cs-overlay" onClick={onClose} style={{
@@ -560,28 +429,6 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
         <div style={{ display:"flex", justifyContent:"center", paddingTop:10 }}>
           <div style={{ width:40, height:4, borderRadius:99, background:"rgba(26,26,46,0.16)" }}/>
         </div>
-
-        {/* Media Preview — Bild oder Video oben */}
-        {mediaUrl && (
-          <div style={{
-            margin:"10px 16px 0", borderRadius:16, overflow:"hidden",
-            maxHeight:220, position:"relative", flexShrink:0,
-            background:"rgba(26,26,46,0.06)",
-          }}>
-            {(mediaType === "video" || /\.mp4|\.webm|\.mov/i.test(mediaUrl)) ? (
-              <video
-                src={mediaUrl} style={{ width:"100%", maxHeight:220, objectFit:"cover", display:"block" }}
-                autoPlay muted loop playsInline
-              />
-            ) : (
-              <img
-                src={mediaUrl} alt=""
-                style={{ width:"100%", maxHeight:220, objectFit:"cover", display:"block" }}
-                loading="lazy"
-              />
-            )}
-          </div>
-        )}
 
         {/* Header */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 20px 10px" }}>
@@ -629,62 +476,34 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
         </div>
 
         {/* Eingabebereich — fixiert unten */}
-        <div style={{ position:"relative" }}>
-          {showEmojiPicker && (
-            <div className="cs-emoji-picker">
-              <div style={{ fontSize:11, fontWeight:700, color:T.inkFaint, marginBottom:6, letterSpacing:.5 }}>EMOJIS</div>
-              <div className="cs-emoji-grid">
-                {["😊","😂","🥰","😍","🤩","😎","🥳","🙌","👍","❤️","🔥","✨","💫","🌟","💡","🎉","🎊","🙏","💬","💭","🌿","🌱","💚","💙","💜","🤝","👏","🫶","😅","😇","🤔","💪","🦋","🌸","🌺","🍀","☀️","🌙","⭐","🎯","🎨","📚","💎","🚀","🌈","🎵","🎶","✅","🔑","🌍"].map(e => (
-                  <button key={e} className="cs-emoji-btn" onClick={() => {
-                    const ta = inputRef.current;
-                    if (ta) {
-                      const start = ta.selectionStart ?? input.length;
-                      const end = ta.selectionEnd ?? input.length;
-                      const newVal = input.slice(0, start) + e + input.slice(end);
-                      setInput(newVal);
-                      setTimeout(() => { ta.focus(); ta.selectionStart = ta.selectionEnd = start + e.length; }, 0);
-                    } else { setInput(v => v + e); }
-                  }}>{e}</button>
-                ))}
-              </div>
-            </div>
-          )}
-          <div style={{
-            display:"flex", gap:8, alignItems:"flex-end", padding:"10px 16px",
-            paddingBottom:"max(12px, env(safe-area-inset-bottom))",
-            borderTop:`1px solid ${T.border}`, background:"rgba(252,253,252,0.98)",
-          }}>
-            <Avatar url={profile?.avatar_url} name={profile?.display_name || profile?.username} size={32} />
-            <button
-              className="cs-btn"
-              onClick={() => setShowEmojiPicker(v => !v)}
-              style={{ fontSize:20, lineHeight:1, padding:"6px 2px", flexShrink:0, opacity: showEmojiPicker ? 1 : 0.55 }}
-            >😊</button>
-            <textarea
-              ref={inputRef}
-              value={input} onChange={e=>setInput(e.target.value)} rows={1}
-              className="cs-textarea"
-              placeholder="Teile deine Gedanken …"
-              style={{
-                flex:1, border:`1px solid ${T.border}`, borderRadius:18, padding:"9px 14px",
-                fontSize:14, fontFamily:"inherit", color:T.ink, resize:"none", boxSizing:"border-box",
-                maxHeight:100, background:"#fff",
-              }}
-              onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); setShowEmojiPicker(false); handleSubmit(); } }}
-              onFocus={() => setShowEmojiPicker(false)}
-            />
-            <button className="cs-btn" disabled={!input.trim() || submitting} onClick={() => { setShowEmojiPicker(false); handleSubmit(); }}
-              style={{
-                width:36, height:36, borderRadius:"50%", flexShrink:0,
-                background: input.trim() ? T.teal : "rgba(26,26,46,0.08)",
-                color: input.trim() ? "#fff" : T.inkFaint,
-                display:"flex", alignItems:"center", justifyContent:"center",
-              }}>
-              <HUISendenIcon size={16} />
-            </button>
-          </div>
+        <div style={{
+          display:"flex", gap:10, alignItems:"flex-end", padding:"10px 16px",
+          paddingBottom:"max(12px, env(safe-area-inset-bottom))",
+          borderTop:`1px solid ${T.border}`, background:"rgba(252,253,252,0.98)",
+        }}>
+          <Avatar url={profile?.avatar_url} name={profile?.display_name || profile?.username} size={32} />
+          <textarea
+            value={input} onChange={e=>setInput(e.target.value)} rows={1}
+            className="cs-textarea"
+            placeholder="Teile deine Gedanken oder gib wertschätzendes Feedback …"
+            style={{
+              flex:1, border:`1px solid ${T.border}`, borderRadius:18, padding:"9px 14px",
+              fontSize:14, fontFamily:"inherit", color:T.ink, resize:"none", boxSizing:"border-box",
+              maxHeight:100, background:"#fff",
+            }}
+            onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSubmit(); } }}
+          />
+          <button className="cs-btn" disabled={!input.trim() || submitting} onClick={handleSubmit}
+            style={{
+              width:36, height:36, borderRadius:"50%", flexShrink:0,
+              background: input.trim() ? T.teal : "rgba(26,26,46,0.08)",
+              color: input.trim() ? "#fff" : T.inkFaint,
+              display:"flex", alignItems:"center", justifyContent:"center",
+            }}>
+            <HUISendenIcon size={16} />
+          </button>
         </div>
       </div>
     </div>
-  , document.body);
+  );
 }

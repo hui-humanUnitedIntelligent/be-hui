@@ -1,47 +1,102 @@
-# HUI Query Rules
+# HUI Query Rules — NEVER BREAK THESE
 
-**Status:** Richtlinie (nicht maschinell durchgesetzt)  
-**Letzte Aktualisierung:** 2026-07-28
-
----
-
-## Aktueller Stand (verifiziert)
-
-Diese Regeln beschreiben den **Zielzustand**, nicht den aktuellen Implementierungsstand.
-
-| Regel | Ziel | Aktueller Stand |
-|-------|------|-----------------|
-| Rule 1: Kein direkter `fetch()` zu Supabase REST | Alle Queries über SDK | ⚠️ Einige Legacy-Stellen nutzen direkten fetch |
-| Rule 2: RLS immer aktiv | Keine `service_role` ohne Grund | ✅ Aktiv |
-| Rule 3: Kein `select('*')` in Produktion | Explizite Spalten-Selektion | ⚠️ Einige Stellen nutzen select('*') |
-| Rule 4: Queries über `/services/db.js` | Zentraler Query-Layer | ❌ Nicht implementiert — direkter Supabase-Aufruf |
-| Rule 5: Sensible Felder via RPC (SECURITY DEFINER) | trust_score etc. nie direkt | ✅ Seit Audit-Fix 007 via rpc_get_public_profile() |
-
----
-
-## Durchsetzung
-
-Aktuell: **keine automatische Durchsetzung** (kein Linter-Plugin, kein Pre-Commit-Hook).
-
-Vor Public Beta implementieren:
-- ESLint-Regel für `select('*')`
-- Import-Restriction für direkte Supabase-Aufrufe außerhalb von Hooks
-- Pre-commit-Hook der `services/db.js`-Nutzung prüft
-
----
-
-## Kanonische Query-Muster
+## Rule 1: Pure async/await ONLY for Supabase queries
 
 ```js
-// ✅ RICHTIG — explizite Felder
-const { data } = await supabase
+// ✅ CORRECT
+const { data, error } = await supabase
   .from('works')
-  .select('id, title, status, user_id, created_at')
-  .eq('status', 'published');
+  .select('id,title,price')
+  .eq('status', 'published')
+  .order('created_at', { ascending: false })
+  .limit(20);
 
-// ❌ FALSCH — nie in Produktion
-const { data } = await supabase.from('works').select('*');
+// ❌ WRONG — .then() mixed with query builder
+supabase.from('works').select('*').then(r => r.data);
 
-// ✅ RICHTIG — sensitive Daten via RPC
-const { data } = await supabase.rpc('rpc_get_public_profile', { p_username: username });
+// ❌ WRONG — query builder methods inside .then() callback
+supabase.from('works').select('*').then(({ data }).limit(20) => {});
+
+// ❌ WRONG — nested .then() chains
+supabase.from('a').select('*').then(({ data }) => {
+  supabase.from('b').select('*').then(({ data: d2 }) => { ... });
+});
+```
+
+## Rule 2: Parallel queries → Promise.all with await
+
+```js
+// ✅ CORRECT — pure async/await parallel
+const [profileRes, worksRes] = await Promise.all([
+  supabase.from('profiles').select('id,display_name').eq('id', uid).single(),
+  supabase.from('works').select('id,title,price').eq('user_id', uid).limit(20),
+]);
+const profile = profileRes.data;
+const works   = worksRes.data || [];
+
+// ❌ WRONG — mixing await Promise.all with .then() inside
+const [a, b] = await Promise.all([
+  supabase.from('profiles').select('*').then(r => r.data),  // ← forbidden
+  supabase.from('works').select('*').then(r => r.data),     // ← forbidden
+]);
+```
+
+## Rule 3: useEffect with async → use async IIFE
+
+```js
+// ✅ CORRECT
+useEffect(() => {
+  if (!userId) return;
+  (async () => {
+    const { data } = await supabase.from('profiles').select('id,name').eq('id', userId).single();
+    setProfile(data);
+  })();
+}, [userId]);
+
+// ❌ WRONG — async directly on useEffect callback
+useEffect(async () => {   // React ignores the returned Promise
+  const { data } = await supabase.from('profiles').select('*').eq('id', userId).single();
+}, [userId]);
+```
+
+## Rule 4: All queries go through /services/db.js
+
+```js
+// ✅ CORRECT — use service layer
+import { ProfileService } from '../services/db';
+const { data } = await ProfileService.getById(userId);
+
+// ❌ WRONG — direct supabase in component
+const { data } = await supabase.from('profiles').select('*').eq('id', userId).single();
+```
+
+## Rule 5: No select("*") — always explicit fields
+
+```js
+// ✅ CORRECT
+.select('id,title,price,category,status,created_at')
+
+// ❌ WRONG
+.select('*')
+```
+
+## Rule 6: Always add .limit() to list queries
+
+```js
+// ✅ CORRECT
+.select('id,title').order('created_at', {ascending:false}).limit(50)
+
+// ❌ WRONG — no limit = unbounded query
+.select('id,title').order('created_at', {ascending:false})
+```
+
+## Rule 7: Always handle errors
+
+```js
+// ✅ CORRECT
+const { data, error } = await supabase.from('works').select('id,title').limit(20);
+if (error) { console.error('[HUI]', error.message); return; }
+
+// ❌ WRONG — silent failure
+const { data } = await supabase.from('works').select('id,title');
 ```

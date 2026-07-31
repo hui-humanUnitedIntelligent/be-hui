@@ -416,8 +416,7 @@ export function buildActions(shell) {
 
     [A.OPEN_COMMUNITY]: (payload = {}) => {
       logAction(A.OPEN_COMMUNITY, payload);
-      // "community" Tab existiert nicht — leitet auf "feed" (Community-Stream) um
-      switchTab?.("feed");
+      switchTab?.("community");
     },
 
     // ── CREATOR TOOLS ─────────────────────────────────────────────

@@ -21,15 +21,13 @@ export default defineConfig({
     // Kleinere JS-Bundles
     terserOptions: {
       compress: {
-        drop_console: false,
+        drop_console: true,
         drop_debugger: true,
       },
     },
 
-    // modulePreload DEAKTIVIERT: __vitePreload-Wrapper kann bei dynamischen
-    // Imports hängen bleiben (silent preload failure → Suspense spinner forever).
-    // Plain import() ohne Preload-Barriere ist robuster für lazy-loaded Profile.
-    modulePreload: false,
+    // Große Assets splitten → schnelleres Laden
+    modulePreload: false,  // Verhindert automatisches Preloading von lazy-Chunks (TDZ-Fix)
 
     rollupOptions: {
       output: {

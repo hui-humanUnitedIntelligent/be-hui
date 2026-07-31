@@ -64,7 +64,7 @@ const FILTERS = [
   { key: "project",    label: "Projekte",   types: ["project"] },
 ];
 
-export default function MerkenSection({ onOpenProfile, onOpenDiscover, onClose }) {
+export default function MerkenSection({ onOpenProfile, onOpenDiscover }) {
   const { user }          = useAuth();
   const { openRef }       = useContentPreview();
   const [items,    setItems]    = React.useState([]);
@@ -209,11 +209,7 @@ export default function MerkenSection({ onOpenProfile, onOpenDiscover, onClose }
     // oeffnet ab jetzt dieselbe ContentPreviewSheet wie Feed/Discover/Suche/
     // Profil. openRef laedt die aktuellen Live-Daten per (type,id), da hier
     // nur der post_data-Snapshot im Speicher liegt (siehe contentPreviewLoaders.js).
-    // FIX 2026-07-30: Panel zuerst schliessen, damit ContentPreviewSheet/
-    // PostFullscreenView nicht hinter dem Merken-Panel (gleicher zIndex)
-    // verborgen bleibt.
     if (item.post_id && item.post_type) {
-      onClose?.();
       openRef({ type: item.post_type, id: item.post_id });
       return;
     }

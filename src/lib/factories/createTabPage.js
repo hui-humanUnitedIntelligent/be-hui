@@ -53,10 +53,7 @@ export const createTabPage = ({
     return null;
   }
 
-  // React.lazy() gibt typeof === 'object' mit $$typeof === Symbol(react.lazy) zurück.
-  // Beide Fälle sind gültige React-Komponenten.
-  const isReactLazy = component && typeof component === 'object' && component.$$typeof != null;
-  if (typeof component !== 'function' && !isReactLazy) {
+  if (typeof component !== 'function') {
     console.warn('[HUI INVALID COMPONENT] Komponente muss eine Function sein:', key, typeof component);
     return null;
   }

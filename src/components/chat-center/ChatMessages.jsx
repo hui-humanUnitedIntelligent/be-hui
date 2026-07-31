@@ -61,7 +61,7 @@ function EventPreviewCard({ event }) {
   );
 }
 
-export default function ChatMessages({ messages, typing, event, onDelete, onEdit }) {
+export default function ChatMessages({ messages, typing, event }) {
   const rootRef = useRef(null);
 
   useEffect(() => {
@@ -97,7 +97,7 @@ export default function ChatMessages({ messages, typing, event, onDelete, onEdit
       {groups.map((g, i) =>
         g.type === "date"
           ? <DateDivider key={`d-${i}`} label={g.label}/>
-          : <MessageBubble key={g.msg.id || i} msg={g.msg} onDelete={onDelete} onEdit={onEdit}/>
+          : <MessageBubble key={g.msg.id || i} msg={g.msg}/>
       )}
 
       {typing && <TypingBubble/>}

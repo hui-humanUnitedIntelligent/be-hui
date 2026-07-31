@@ -167,6 +167,19 @@ export default function ChatHeader({ conv, onBack, onOpenProfile, onCloseChat, o
         )}
       </div>
 
+      {/* Telefon */}
+      <button style={{
+        width:34, height:34, borderRadius:"50%",
+        background:"rgba(255,255,255,0.65)", border:"1px solid rgba(0,0,0,0.07)",
+        display:"flex", alignItems:"center", justifyContent:"center",
+        cursor:"pointer", flexShrink:0,
+        WebkitTapHighlightColor:"transparent",
+      }}>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.44 2 2 0 0 1 3.59 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.56a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"
+            stroke={C.teal} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
     </div>
   );
 }

@@ -34,6 +34,17 @@ function relTime(ts){
 function extractAuthor(raw){
   const p=raw.profile||raw.creator||raw.author||raw.user||{};
   // ── TRACE STEP 7 (nur erstes Work, DEV only) ────────────────────
+  if (import.meta.env.DEV && !window.__HUI_STEP7_DONE__ && (raw.type === "work" || raw.title !== undefined)) {
+    window.__HUI_STEP7_DONE__ = true;
+    console.group("🔍 STEP 7 - extractAuthor");
+    console.log("raw.profile:", raw.profile);
+    console.log("p (resolved):", p);
+    console.log("p.display_name:", p.display_name);
+    console.log("p.full_name:", p.full_name);
+    console.log("p.username:", p.username);
+    console.log("p.avatar_url:", p.avatar_url);
+    console.groupEnd();
+  }
   // Namens-Priorität (4-stufig):
   // 1. profile.display_name  2. profile.full_name  3. profile.name/username
   // 4. raw-Felder (beitraege etc. haben keinen profile-Join)
@@ -72,7 +83,15 @@ function extractAuthor(raw){
     membershipActive: !!(p.membership_active),
     isTalent: isProfileTalent(p), // Sprint F.4C: einzige Wahrheitsquelle
   };
-
+  if (import.meta.env.DEV && window.__HUI_STEP7_DONE__ && !window.__HUI_STEP7b_DONE__) {
+    window.__HUI_STEP7b_DONE__ = true;
+    console.group("🔍 STEP 7b - author result");
+    console.log("author.name:", _authorResult.name);
+    console.log("author.avatar:", _authorResult.avatar);
+    console.log("author.displayName:", _authorResult.displayName);
+    console.log("full author:", _authorResult);
+    console.groupEnd();
+  }
   return _authorResult;
 }
 
@@ -119,6 +138,15 @@ export function toFeedItem(raw){
   try{
     const type  =normalizeType(raw);
     // ── TRACE STEP 6 (nur erstes Work, DEV only) ────────────────────
+    if (import.meta.env.DEV && type === "work" && !window.__HUI_STEP6_DONE__) {
+      window.__HUI_STEP6_DONE__ = true;
+      console.group("🔍 STEP 6 - normalizeWorkRow → toFeedItem");
+      console.log("raw:", raw);
+      console.log("raw.profile:", raw.profile);
+      console.log("raw.profile?.avatar_url:", raw.profile?.avatar_url);
+      console.log("raw.profile?.display_name:", raw.profile?.display_name);
+      console.groupEnd();
+    }
     const author=extractAuthor(raw);
     const media =extractMedia(raw);
     const text  =safeStr(raw.caption||raw.description||raw.story||raw.text);

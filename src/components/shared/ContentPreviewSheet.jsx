@@ -190,7 +190,7 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
             ) : null}
 
             <div style={{ padding:"18px 18px 0" }}>
-              {/* Autor — NICHT klickbar (2026-07-29). "Profil ansehen" Button statt dessen. */}
+              {/* Autor */}
               {item.author?.name && (
                 <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:12 }}>
                   <div style={{ width:32, height:32, borderRadius:"50%", overflow:"hidden", flexShrink:0,
@@ -198,7 +198,6 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                     {item.author.avatar && <img loading="lazy" decoding="async" src={item.author.avatar} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>}
                   </div>
                   <div style={{ fontSize:13.5, fontWeight:700, color:T.ink }}>{item.author.name}</div>
-{/* kleiner Profil-Button entfernt — nur großer Button unten (2026-07-29) */}
                 </div>
               )}
 
@@ -313,29 +312,6 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                 </button>
               )}
             </div>
-
-            {/* Großer "Profil ansehen" Button — für alle non-talent Typen (2026-07-29) */}
-            {item && item.type !== "talent" && authorId && (
-              <div style={{ padding:"0 18px" }}>
-                <button
-                  className="cps-btn"
-                  onClick={() => {
-                    if (typeof window.__HUI_OPEN_PROFILE__ === "function") {
-                      onClose?.();
-                      window.__HUI_OPEN_PROFILE__(authorId);
-                    }
-                  }}
-                  style={{
-                    width:"100%", marginTop:16, padding:"13px", borderRadius:14,
-                    background:T.ink, color:"#fff", fontSize:14, fontWeight:700,
-                    border:"none", cursor:"pointer", fontFamily:"inherit",
-                    letterSpacing:"-0.01em",
-                  }}
-                >
-                  Profil ansehen
-                </button>
-              </div>
-            )}
           </div>
         )}
       </div>

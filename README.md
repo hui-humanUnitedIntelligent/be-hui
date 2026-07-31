@@ -1,62 +1,42 @@
-# HUI — Human United Intelligence
+**Welcome to your Base44 project** 
 
-**HUI** ist eine mobile-first Web-Applikation für Kreative, Talente und Wirkende.
+**About**
 
-## Tech Stack
+View and Edit  your app on [Base44.com](http://Base44.com) 
 
-- **Frontend:** React 18 + Vite + Tailwind CSS
-- **Backend:** Supabase (Postgres + Auth + Realtime + Storage)
-- **Payments:** Stripe (Commerce 2.0, Balanced Growth Model)
-- **Mobile:** Capacitor 6 (Android APK)
-- **Deployment:** Vercel (Web) + GitHub Actions
+This project contains everything you need to run your app locally.
 
-## Lokale Entwicklung
+**Edit the code in your local development environment**
 
-```bash
-npm install
-npm run dev          # Vite Dev-Server → http://localhost:5173
-npm run build        # Produktions-Build → dist/
-npm run preview      # Build lokal testen
-```
+Any change pushed to the repo will also be reflected in the Base44 Builder.
 
-## Android Build
+**Prerequisites:** 
 
-```bash
-npm run build        # 1. Vite-Build erstellen
-npm run sync         # 2. dist/ → Android Assets syncen
-npm run android      # 3. Android Studio öffnen
-```
-
-## Umgebungsvariablen
-
-Erstelle `.env.local` basierend auf `.env.example`:
+1. Clone the repository using the project's Git URL 
+2. Navigate to the project directory
+3. Install dependencies: `npm install`
+4. Create an `.env.local` file and set the right environment variables
 
 ```
-VITE_SUPABASE_URL=https://<project>.supabase.co
-VITE_SUPABASE_ANON_KEY=<anon-key>
-VITE_STRIPE_PUBLIC_KEY=pk_...
+VITE_BASE44_APP_ID=your_app_id
+VITE_BASE44_APP_BASE_URL=your_backend_url
+
+e.g.
+VITE_BASE44_APP_ID=cbef744a8545c389ef439ea6
+VITE_BASE44_APP_BASE_URL=https://my-to-do-list-81bfaad7.base44.app
 ```
 
-> ⚠️ Niemals echte Keys in `.env.local` committen oder in öffentlichen Dateien ablegen.
+Run the app: `npm run dev`
 
-## Architektur
+**Publish your changes**
 
-```
-hui.actions.js (Dispatcher)
-    ↓
-HomeShell.jsx (State-Management, 22+ Overlays)
-    ↓
-Home.jsx (Render-Gate via SafeRender + ErrorBoundary)
-```
+Open [Base44.com](http://Base44.com) and click on Publish.
 
-Dokumentation: `docs/` | SQL-Migrationen: `sql/` | Audit-Fixes: `sql/audit_fix_*.sql`
+**Docs & Support**
 
-## Branches
+Documentation: [https://docs.base44.com/Integrations/Using-GitHub](https://docs.base44.com/Integrations/Using-GitHub)
 
-- `main` — produktiver Stand, direkt deployed
-- `cursor/*` — Feature-Branches (Cursor AI)
+Support: [https://app.base44.com/support](https://app.base44.com/support)
 
-## Team
+<!-- deploy trigger 1777973743 -->
 
-Superadmins: Sascha, Lars, Michael  
-Support: support@hui.community
