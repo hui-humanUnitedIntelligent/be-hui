@@ -8,6 +8,8 @@ import { createPortal } from "react-dom";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { supabase } from "../../lib/supabaseClient.js";
 import { HUILogoWordmark } from '../brand/HUILogo.jsx';
+import SupportPage from '../../pages/studio/SupportPage.jsx';
+import MeineTicketsPage from '../../pages/studio/MeineTicketsPage.jsx';
 import APP_VERSION from '../../version.ts';
 
 // ── Design Tokens ─────────────────────────────────────────────
@@ -361,7 +363,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
   const { profile: authCtxProfile } = useAuth() || {};
   const profile = profileProp || authCtxProfile || null;
   if (!profile) return null;
-  const [view, setView] = useState("main"); // "main" | "edit" | "privacy" | "contact" | "security"
+  const [view, setView] = useState("main"); // "main" | "edit" | "privacy" | "contact" | "security" | "support" | "tickets"
 
   const logout = async () => {
     await supabase.auth.signOut();
@@ -377,13 +379,17 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
   const sheet = {
     background:T.bg, borderRadius:"20px 20px 0 0",
     width:"100%", maxWidth:560,
-    maxHeight:"calc(92dvh - 64px)", overflowY:"auto",
+    maxHeight:"calc(92dvh - 64px)",
+    overflowY: view === "support" ? "hidden" : "auto",
     boxShadow:"0 -8px 40px rgba(0,0,0,0.18)",
-    paddingBottom:"env(safe-area-inset-bottom, 16px)",
+    paddingBottom: view === "support" ? 0 : "env(safe-area-inset-bottom, 16px)",
+    display: view === "support" ? "flex" : undefined,
+    flexDirection: view === "support" ? "column" : undefined,
   };
   const header = {
     display:"flex", alignItems:"center", justifyContent:"space-between",
-    padding:"18px 18px 13px", position:"sticky", top:0,
+    padding:"18px 18px 13px",
+    position: view === "support" ? "relative" : "sticky", top:0,
     background:T.bg, borderBottom:"1px solid "+T.border,
     borderRadius:"20px 20px 0 0", zIndex:1,
   };
@@ -432,6 +438,10 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
                 onClick={() => { onClose?.(); onEditProfile?.(); }}/>
               <NavItem icon={<HUISicherheitIcon size={16}/>} label="Sicherheit & Passwort"
                 onClick={() => setView("security")}/>
+              <NavItem icon={<HUIKontaktIcon size={16}/>} label="Support & Hilfe"
+                onClick={() => setView("support")}/>
+              <NavItem icon={<HUIMailIcon size={16}/>} label="Meine Tickets"
+                onClick={() => setView("tickets")}/>
               <NavItem icon={<HUIAbmeldenIcon size={16}/>} label="Abmelden"
                 onClick={logout} danger last/>
             </Section>
@@ -506,6 +516,35 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
           </>)}
 
           {/* ══ SICHERHEIT ═════════════════════════════════════ */}
+          {view === "tickets" && (
+            <div style={{
+              flex: 1,
+              overflowY: "auto",
+              paddingBottom: "env(safe-area-inset-bottom, 16px)",
+            }}>
+              <MeineTicketsPage
+                onBack={() => setView("main")}
+                userId={profile?.id}
+                profile={profile}
+              />
+            </div>
+          )}
+
+          {view === "support" && (
+            <div style={{
+              flex: 1,
+              overflowY: "auto",
+              paddingBottom: "env(safe-area-inset-bottom, 16px)",
+            }}>
+              <SupportPage
+                onBack={() => setView("main")}
+                userId={profile?.id}
+                userEmail={profile?.email}
+                userName={profile?.display_name || profile?.full_name || ""}
+              />
+            </div>
+          )}
+
           {view === "security" && (<>
             <Section title="Passwort ändern" icon={<HUISicherheitIcon size={16}/>}>
               <PasswordBlock/>

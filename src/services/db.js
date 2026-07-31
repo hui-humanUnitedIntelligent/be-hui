@@ -12,7 +12,7 @@
 // ══════════════════════════════════════════════════════════════
 
 import { supabase } from '../lib/supabaseClient';
-import { safeQuery, cachedQuery, clearQueryCache, FIELDS, PAGE_SIZE, buildPage } from '../lib/perfUtils';
+import { safeQuery, cachedQuery, clearQueryCache, warmQueryCache, readCache, FIELDS, PAGE_SIZE, buildPage } from '../lib/perfUtils';
 
 // ─── FIELDS (vollständig, kein select *) ─────────────────────
 // ─── IDENTITY CONTRACT v1.0 ─────────────────────────────
@@ -23,7 +23,9 @@ import { safeQuery, cachedQuery, clearQueryCache, FIELDS, PAGE_SIZE, buildPage }
 //   follower_count, location, is_talent, header_img, skills, dna_tags
 // Hinzugefügt: location_label, member_since, profile_views
 export const IDENTITY_CONTRACT =
-  'id,display_name,full_name,username,avatar_url,header_img,bio,location_label,location,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views,is_ambassador,profile_modules,phone,website,tagline,focus_type,skills,dna_tags,is_available,hourly_rate';
+  'id,display_name,full_name,username,avatar_url,header_img,bio,location_label,location,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views,is_ambassador,profile_modules,website,tagline,focus_type,skills,dna_tags,is_available,hourly_rate';
+  // SICHERHEIT: phone aus öffentlichem Fieldset entfernt (2026-07-29)
+  // phone wird nur im privaten MyBasisProfile via separate Query geladen
 
 const F = {
   // Identity Contract — einziges kanonisches Profil-Fieldset
@@ -54,6 +56,27 @@ const F = {
 
 // ─── PROFILES ────────────────────────────────────────────────
 export const ProfileService = {
+  // Prewarm: Feed-geladene Profile in Cache schreiben
+  // Aufruf aus DiscoverPage wenn Profil-Karten gerendert werden
+  prewarm(profiles = []) {
+    // SICHERHEIT: prewarm nutzt separaten Cache-Key ('prewarm:')
+    // Damit wird der getById-Cache ('profile:') NICHT überschrieben
+    // → getById macht immer eine echte Query mit F.profile (IDENTITY_CONTRACT)
+    // → prewarm ist nur ein optischer Optimizer für Avatar-Vorschauen
+    for (const p of profiles) {
+      if (!p?.id) continue;
+      warmQueryCache(`prewarm:${p.id}`, p, 60_000);
+    }
+  },
+
+  // Synchroner Lesezugriff auf prewarm-Cache (kein Network)
+  readPrewarm(id) {
+    if (!id) return null;
+    return readCache(`prewarm:${id}`);
+  },
+  
+
+
   async getById(id) {
     return cachedQuery(`profile:${id}`,
       () => safeQuery(supabase.from('profiles').select(F.profile).eq('id', id).maybeSingle()),

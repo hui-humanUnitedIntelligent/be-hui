@@ -1,3 +1,4 @@
+import React from "react";
 import { HUIChatIcon } from '../design/icons/HuiInteractionIcons.jsx';
 import { HUIImpactIcon, HUISettingsIcon, HUISicherheitIcon } from '../design/icons/HuiSystemIcons.jsx';
 // src/pages/BasisProfilePage.jsx — HUI BasisUser Public Profile v2
@@ -13,6 +14,7 @@ import { HUIImpactIcon, HUISettingsIcon, HUISicherheitIcon } from '../design/ico
 //   Momente (horizontal cinematic thumbnails)
 //   Offen für Begegnungen (capsules + Weiteres)
 //   Sichtbarkeit (lock + text + "Mehr erfahren" pill)
+import { NAV_CLEARANCE_CSS } from "../components/home/navigation/navigationGeometry.js";
 //   Social context bar (Verbindungen · Begegnungen · Momente)
 // ════════════════════════════════════════════════════════════════
 
@@ -20,8 +22,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { useProfileData } from "../hooks/useProfileData.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
 import { useHome }   from "../components/home/HomeShell.jsx";
-import SettingsModal  from "../components/settings/SettingsModal.jsx";
-import HuiStudio      from "../components/studio/HuiStudio.jsx";
+import ProfileRelationButtons from "../components/shared/ProfileRelationButtons.jsx";
+const SettingsModal  = React.lazy(() => import("../components/settings/SettingsModal.jsx"));
+const HuiStudio      = React.lazy(() => import("../components/studio/HuiStudio.jsx"));
 import { supabase }   from "../lib/supabaseClient.js";
 // Sprint F.5.3: kanonische Sections
 import { AboutSection }           from "../components/profile/sections/AboutSection.jsx";
@@ -31,7 +34,8 @@ import { VisibilitySection }      from "../components/profile/sections/Visibilit
 import { MomentsSection }         from "../components/profile/sections/MomentsSection.jsx";
 import { RecommendationsSection } from "../components/profile/sections/RecommendationsSection.jsx";
 import { ProfileHeader as CanonicalProfileHeader } from "../components/profile/ProfileHeader.jsx";
-import { OrbSignatur }                             from "../components/profile/OrbSignatur.jsx";
+// OrbSignatur lazy — verhindert Blockierung des BasisProfilePage-Renders (89K-Chunk)
+import { OrbSignatur } from "../components/profile/OrbSignatur.jsx";
 
 // ── Tokens ───────────────────────────────────────────────────────
 const T = {
@@ -354,11 +358,14 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
     recommendations,
     followCounts,
     loading,
+    loadingLazy,
+    loadLazy,
     reload,
   } = useProfileData(resolvedId);
 
   // Owner-spezifische States
   const [mounted,      setMounted]      = useState(false);
+  const [lazyLoaded,   setLazyLoaded]   = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showStudio,   setShowStudio]   = useState(false);
 
@@ -381,11 +388,19 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
 
   const isOwner = !publicView && (!!user?.id && (resolvedId === user.id));
 
-  useEffect(()=>{ const t=setTimeout(()=>setMounted(true),30); return()=>clearTimeout(t); },[]);
+  useEffect(()=>{ const t=setTimeout(()=>setMounted(true),8); return()=>clearTimeout(t); },[]);
+
+  // Lazy-Content laden sobald Phase 1 (Profil) fertig ist
+  useEffect(() => {
+    if (profile && !lazyLoaded) {
+      setLazyLoaded(true);
+      loadLazy();
+    }
+  }, [profile, lazyLoaded, loadLazy]);
 
   const handleBack = useCallback(()=>{ if(onClose) onClose(); }, [onClose]);
 
-  // P3: Chat-Einstieg via ChatCenterOverlay — identisch zu TalentProfilePage
+  // P3: Chat-Einstieg — Profil schließen DANN Chat öffnen
   const { setShowChat, setChatRecipient } = useHome() || {};
   const handleOpenChat = useCallback(() => {
     if (!profile?.id || !setShowChat) return;
@@ -394,8 +409,9 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
       display_name: profile.display_name || profile.username || "Mitglied",
       avatar_url:   profile.avatar_url || null,
     });
-    setShowChat(true);
-  }, [profile, setChatRecipient, setShowChat]);
+    if (onClose) onClose();   // Profil zuerst schließen
+    setShowChat(true);        // Dann Chat öffnen
+  }, [profile, setChatRecipient, setShowChat, onClose]);
 
   // ── Sprint F.5.3 / F.9G.1: onSave-Handler + error-check ──
   const handleBioSave = useCallback(async (bio) => {
@@ -435,31 +451,13 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
     reload();
   }, [user?.id, reload]);
 
-  // Loading-Guard (nach allen Hooks — Rules of Hooks konform)
-  if (loading && !profile) {
-    return (
-      <div style={{
-        position:"fixed", inset:0, zIndex:10500,
-        background:"#F9F7F4",
-        display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:16,
-      }}>
-        <button onClick={onClose} style={{
-          position:"absolute", top:16, left:16,
-          background:"none", border:"none", fontSize:22, cursor:"pointer", color:"#6B7280",
-        }}>←</button>
-        <div style={{
-          width:36, height:36, borderRadius:"50%",
-          border:"3px solid rgba(13,196,181,0.15)",
-          borderTopColor:"#0DC4B5",
-          animation:"spin 0.75s linear infinite",
-        }}/>
-        <div style={{ fontSize:12, color:"#9CA3AF" }}>Profil wird geladen…</div>
-        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-      </div>
-    );
-  }
+  // Kein Blocking-Spinner mehr — Profil rendert sofort mit Skeleton
+  // Phase 1 (profile=null, loading=true) → CanonicalProfileHeader zeigt Skeleton
+  // Phase 2 (profile geladen) → Sections sichtbar
 
   // Fehler-Guard: Profil konnte nicht geladen werden (gelöscht, Timeout, etc.)
+  // Aber nur wenn loading MAL true war (d.h. ein Load-Versuch stattfand)
+  // loading ist initial true (useProfileData) → dieser Guard feuert erst NACH dem Load
   if (!loading && !profile) {
     return (
       <div style={{
@@ -487,12 +485,12 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
   return (
     <div className="bpp-root" style={{
       position:"fixed", top:0, left:0, right:0,
-      bottom: publicView ? 0 : "calc(72px + env(safe-area-inset-bottom, 0px))",
-      zIndex:9500, /* <BottomNav(10000) — Root endet vor Navbar */
+      bottom: publicView ? 0 : NAV_CLEARANCE_CSS,
+      zIndex:10500, /* Portal-escaped: über allem (Portal Fix 2026-07-29). bottom sichert Navbar-Freiraum */
       display:"flex", flexDirection:"column",
       opacity:mounted?1:0,
-      transform:mounted?"none":"translateY(14px)",
-      transition:"opacity .35s ease, transform .35s cubic-bezier(.22,1,.36,1)",
+      transform:mounted?"none":"translateY(6px)",
+      transition:"opacity .18s ease, transform .18s cubic-bezier(.22,1,.36,1)",
     }}>
       <style>{CSS}</style>
 
@@ -530,16 +528,22 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
           onEditAvatar={handleAvatarChange}
           onEditCover={handleCoverChange}
         />
-        {resolvedId && <OrbSignatur profileId={resolvedId} />}
+        {resolvedId && (
+          <React.Suspense fallback={null}>
+            <OrbSignatur profileId={resolvedId} />
+          </React.Suspense>
+        )}
         <Gap h={16}/>
 
         {/* 3. Über dich — kanonisch (Sprint F.5.3) */}
-        <AboutSection
-          profile={profile}
-          isOwner={isOwner}
-          loading={loading}
-          onSave={handleBioSave}
-        />
+        <React.Suspense fallback={null}>
+          <AboutSection
+            profile={profile}
+            isOwner={isOwner}
+            loading={loading}
+            onSave={handleBioSave}
+          />
+        </React.Suspense>
         <Gap h={24}/>
 
         {/* 4. Interessen-Grid (Basis-spezifisch, skills als Display-Tags) */}
@@ -547,11 +551,13 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
         <Gap h={28}/>
 
         {/* 5. Momente — kanonisch MomentsSection (Sprint F.5.3) */}
-        <MomentsSection
-          moments={moments}
-          isOwner={isOwner}
-          loading={loading}
-        />
+        <React.Suspense fallback={null}>
+          <MomentsSection
+            moments={moments}
+            isOwner={isOwner}
+            loading={loadingLazy}
+          />
+        </React.Suspense>
         <Gap h={28}/>
 
         {/* 6. Offen für Begegnungen (Basis-spezifisch, hardcoded Tags) */}
@@ -559,41 +565,59 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
         <Gap h={28}/>
 
         {/* 7. Verfügbarkeit — kanonisch (Sprint F.5.3) */}
-        <AvailabilitySection
-          profile={profile}
-          isOwner={isOwner}
-          loading={loading}
-          onSave={handleAvailabilitySave}
-        />
+        <React.Suspense fallback={null}>
+          <AvailabilitySection
+            profile={profile}
+            isOwner={isOwner}
+            loading={loading}
+            onSave={handleAvailabilitySave}
+          />
+        </React.Suspense>
         <Gap h={20}/>
 
         {/* 8. Standort — kanonisch (Sprint F.5.3) */}
-        <LocationSection
-          profile={profile}
-          isOwner={isOwner}
-          loading={loading}
-          onSave={handleLocationSave}
-        />
+        <React.Suspense fallback={null}>
+          <LocationSection
+            profile={profile}
+            isOwner={isOwner}
+            loading={loading}
+            onSave={handleLocationSave}
+          />
+        </React.Suspense>
         <Gap h={20}/>
 
         {/* 9. Sichtbarkeit — kanonisch VisibilitySection (Sprint F.9G.1: onSave) */}
-        <VisibilitySection
-          profile={profile}
-          isOwner={isOwner}
-          loading={loading}
-          onSave={handleVisibilitySave}
-        />
+        <React.Suspense fallback={null}>
+          <VisibilitySection
+            profile={profile}
+            isOwner={isOwner}
+            loading={loading}
+            onSave={handleVisibilitySave}
+          />
+        </React.Suspense>
         <Gap h={24}/>
 
         {/* 10. Kundenstimmen — kanonisch (Sprint F.5.3) */}
-        <RecommendationsSection
-          recommendations={recommendations}
-          isOwner={isOwner}
-          loading={loading}
-          onAddRec={null}
-          onShowAll={null}
-        />
+        <React.Suspense fallback={null}>
+          <RecommendationsSection
+            recommendations={recommendations}
+            isOwner={isOwner}
+            loading={loadingLazy}
+            onAddRec={null}
+            onShowAll={null}
+          />
+        </React.Suspense>
         <Gap h={24}/>
+
+        {/* Verbinden + Folgen — nur für Fremdprofile */}
+        {!isOwner && (
+          <ProfileRelationButtons
+            profileId={resolvedId || profile?.id}
+            currentUserId={user?.id}
+            profile={profile}
+            onClose={onClose}
+          />
+        )}
 
         {/* 11. Social context bar (Basis-spezifisch, followCounts) */}
         <SocialContextBar loading={loading} followCounts={followCounts}/>
@@ -676,20 +700,24 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
 
       {/* ── Modals (nur Owner) ─────────────────────────────────── */}
       {isOwner && showSettings && (
-        <SettingsModal
-          profile={profile}
-          onClose={() => setShowSettings(false)}
-          onSave={(updated) => {
-            reload();           // Sprint F.5.2: reload statt lokales setProfile
-            setShowSettings(false);
-          }}
-        />
+        <React.Suspense fallback={null}>
+          <SettingsModal
+            profile={profile}
+            onClose={() => setShowSettings(false)}
+            onSave={(updated) => {
+              reload();           // Sprint F.5.2: reload statt lokales setProfile
+              setShowSettings(false);
+            }}
+          />
+        </React.Suspense>
       )}
       {isOwner && showStudio && (
-        <HuiStudio
-          profile={profile}
-          onClose={() => setShowStudio(false)}
-        />
+        <React.Suspense fallback={null}>
+          <HuiStudio
+            profile={profile}
+            onClose={() => setShowStudio(false)}
+          />
+        </React.Suspense>
       )}
     </div>
   );

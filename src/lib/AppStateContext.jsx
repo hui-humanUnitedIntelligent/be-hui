@@ -52,14 +52,11 @@ export function AppStateProvider({ children }) {
   const fetchNotifCount = useCallback(async () => {
     if (!user?.id) return;
     try {
-      console.log("[BADGE USER]", user?.id);
-      const { count, error } = await supabase
+      const { count } = await supabase
         .from("notifications")
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id)
         .eq("is_read", false);
-      console.log("[BADGE COUNT]", count);
-      console.log("[BADGE ERROR]", error);
       setUnreadNotifCount(count || 0);
     } catch {
       // silent — kein crash

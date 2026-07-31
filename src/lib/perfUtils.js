@@ -94,6 +94,43 @@ export async function cachedQuery(key, fn, ttl = 30_000) {
   return result;
 }
 
+// Manuell einen Cache-Eintrag setzen (für Prewarming aus Feed-Daten)
+export function warmQueryCache(key, data, ttl = 30_000) {
+  _queryCache.set(key, { data: { data, error: null }, ts: Date.now() - (ttl - 55_000) });
+  // ts so setzen dass TTL noch ~55s übrig bleibt (verhindert sofortigen Ablauf)
+}
+
+
+
+// Synchroner Cache-Lesezugriff (kein Network, kein Promise)
+// Nutzt prewarm: Key aus ProfileService.prewarm() für Instant-Render
+export function readCache(key) {
+  const now = Date.now();
+  const cached = _queryCache.get(key);
+  if (cached && now - cached.ts < 60_000) return cached.data;
+  return null;
+}
+
+
+
+// Prefetch-on-Intent: Befüllt den prewarm-Cache für ein fremdes Profil
+// Wird bei onPointerDown/onMouseEnter auf klickbaren Profil-Verweisen aufgerufen
+// Bevor die Navigation startet → Cache ist warm wenn useProfileData liest
+
+export async function prefetchProfile(profileId) {
+  if (!profileId || typeof profileId !== "string") return;
+  // Wenn Cache bereits warm → kein Duplicate Request
+  const cached = readCache(`prewarm:${profileId}`);
+  if (cached?.data) return;
+  // Dynamic import — vermeidet Zirkelimport (db.js → perfUtils.js)
+  const { ProfileService } = await import("../services/db.js");
+  ProfileService.getById(profileId)
+    .then(({ data }) => {
+      if (data) ProfileService.prewarm([data]);
+    })
+    .catch(() => {});
+}
+
 export function clearQueryCache(keyPrefix) {
   if (!keyPrefix) { _queryCache.clear(); return; }
   for (const k of _queryCache.keys()) {

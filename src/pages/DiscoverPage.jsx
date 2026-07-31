@@ -30,7 +30,8 @@ import { HUIHeartIcon, HUIChatIcon } from "../design/icons/HuiInteractionIcons.j
 import HuiLiveTicker from "../components/shared/HuiLiveTicker.jsx"; // LIVETICKER.1 2026-07-08 -- ersetzt LiveActivityBar (war Fake-Daten)
 import { useContentPreview } from "../context/ContentPreviewContext.jsx";
 import { normalizeTalentForPreview } from "../lib/previewNormalizers.js";
-import { useProfileLauncher } from "../components/home/profile/ProfileLauncher.jsx"; // Autor-Klick → Profil öffnen // OPEN.1 2026-07-08 -- geteilte Vorschau statt totem Tap / falschem Sprung
+import { useProfileLauncher } from "../components/home/profile/ProfileLauncher.jsx";
+import { ProfileService } from "../services/db.js"; // Autor-Klick → Profil öffnen // OPEN.1 2026-07-08 -- geteilte Vorschau statt totem Tap / falschem Sprung
 import { normalizePostForPreview, normalizeProjectForPreview, normalizeWirkerForPreview } from "../lib/previewNormalizers.js";
 
 // ── Design Tokens ────────────────────────────────────────────────
@@ -60,7 +61,7 @@ const CSS = `
   .dp-press:active { transform:scale(0.94); opacity:0.80; }
   @keyframes dp-in  { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
   @keyframes dp-shim { from{background-position:-200% 0} to{background-position:200% 0} }
-  .dp-in  { animation:dp-in .45s ease both; }
+  .dp-in  { animation:dp-in .25s ease forwards; pointer-events:auto; }
   .dp-skel {
     background:linear-gradient(90deg,rgba(26,53,48,.05) 25%,rgba(26,53,48,.09) 50%,rgba(26,53,48,.05) 75%);
     background-size:200% 100%;
@@ -213,13 +214,13 @@ function DiscoverTitleBar({ view, onViewChange }) {
       {/* Title Row */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          <span style={{ fontSize:22, fontWeight:900, color:T.ink, letterSpacing:"-0.04em" }}>Dein Zuhause auf HUI</span>
+          <span style={{ fontSize:22, fontWeight:900, color:T.ink, letterSpacing:"-0.04em" }}>Entdecke HUI</span>
         </div>
         {/* View Toggle — oben rechts */}
         <ViewToggle view={view} onChange={onViewChange} />
       </div>
       <div style={{ fontSize:12.5, color:T.inkFaint, marginTop:2, fontWeight:400 }}>
-        Der Ort, an dem deine Ideen, Begegnungen und Wirkung zusammenkommen.
+        Menschen, Ideen, Werke und Erlebnisse — alles auf einen Blick.
       </div>
     </div>
   );
@@ -417,7 +418,7 @@ function PeopleSection({ people, onPersonPress, loading, delay=0, view='cards', 
             : people.length === 0
             ? <div style={{ paddingLeft:T.px, fontSize:12.5, color:T.inkFaint, fontStyle:'italic', opacity:0.75 }}>Noch keine Mitglieder gefunden.</div>
             : people.map((p, i) => (
-                <PersonCard key={p.id} person={p} onPress={onPersonPress} delay={i*40+delay} />
+                <PersonCard key={p.id} person={p} onPress={onPersonPress} delay={0} />
               ))
           }
         </div>
@@ -514,12 +515,7 @@ function MomentCard({ moment, delay=0, onPress, onAuthorPress }) {
         {/* Autor */}
         <div style={{ fontSize:10.5, color:T.inkFaint, fontWeight:400, marginBottom:6 }}>
           von{" "}
-          <span
-            role={moment.user_id ? "button" : undefined}
-            onClick={moment.user_id ? (e) => { e.stopPropagation(); onAuthorPress?.(moment.user_id); } : undefined}
-            style={{ cursor:moment.user_id?"pointer":"default",
-              textDecoration:moment.user_id?"underline dotted":"none", textDecorationColor:"rgba(0,0,0,0.2)" }}
-          >{moment.name}</span>
+          <span style={{ textDecoration:"none" }}>{moment.name}</span>
         </div>
 
         {/* Standort (falls vorhanden) */}
@@ -577,7 +573,9 @@ function MomenteSection({ momente, loading, delay=0, view='cards', onPress, onAu
                   <div style={{ flex:1, overflow:"hidden" }}>
                     <div style={{ fontSize:13, fontWeight:600, color:T.ink, marginBottom:4, overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", lineHeight:1.35 }}>{m.caption}</div>
                     <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                      <span style={{ fontSize:11, fontWeight:600, color:T.inkSoft }}>{m.name}</span>
+                      <span
+                        style={{ fontSize:11, fontWeight:600, color:T.inkSoft }}
+                      >{m.name}</span>
                       {m.location && <span style={{ fontSize:11, color:T.inkFaint, display:"flex", alignItems:"center", gap:2 }}><HUILocationIcon size={11}/>{m.location}</span>}
                       <span style={{ fontSize:10.5, color:T.inkFaint }}>{timeAgo(m.created_at)}</span>
                     </div>
@@ -707,12 +705,7 @@ function TalentCard({ talent, delay=0, onPress, onAuthorPress }) {
         {/* Anbieter */}
         <div style={{ fontSize:10.5, color:T.inkFaint, fontWeight:400, marginBottom:6 }}>
           von{" "}
-          <span
-            role={talent.user_id ? "button" : undefined}
-            onClick={talent.user_id ? (e) => { e.stopPropagation(); onAuthorPress?.(talent.user_id); } : undefined}
-            style={{ cursor:talent.user_id?"pointer":"default",
-              textDecoration:talent.user_id?"underline dotted":"none", textDecorationColor:"rgba(0,0,0,0.2)" }}
-          >{talent.author}</span>
+          <span style={{ textDecoration:"none" }}>{talent.author}</span>
         </div>
 
         {/* Standort/Ort — nimmt Platz ein oder nicht, Preis bleibt unten */}
@@ -933,12 +926,7 @@ function WerkCard({ werk, delay=0, onPress, onAuthorPress }) {
         {/* Autor */}
         <div style={{ fontSize:10.5, color:T.inkFaint, fontWeight:400, marginBottom:6 }}>
           von{" "}
-          <span
-            role={werk.user_id ? "button" : undefined}
-            onClick={werk.user_id ? (e) => { e.stopPropagation(); onAuthorPress?.(werk.user_id); } : undefined}
-            style={{ cursor:werk.user_id?"pointer":"default",
-              textDecoration:werk.user_id?"underline dotted":"none", textDecorationColor:"rgba(0,0,0,0.2)" }}
-          >{werk.author}</span>
+          <span style={{ textDecoration:"none" }}>{werk.author}</span>
         </div>
 
         {/* Standort — reservierter Platz damit Preis nicht springt */}
@@ -1684,6 +1672,13 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   const [talentLocSearching, setTalentLocSearching] = useState(false);
   const talentLocDebounce = useRef(null);
 
+  // Preload PublicProfilePage + OrbSignatur beim Discover-Mount
+  // → beide Chunks im Browser-Cache wenn Nutzer ein Profil antippt
+  useEffect(() => {
+    import("./PublicProfilePage.jsx").catch(() => {});
+    import("../components/profile/OrbSignatur.jsx").catch(() => {});
+  }, []);
+
   useEffect(() => {
     clearTimeout(talentLocDebounce.current);
     if (talentLocQuery.trim().length < 2) { setTalentLocSuggest([]); return; }
@@ -1806,6 +1801,8 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
           .limit(getOptimalPageSize(12));
 
         if (!cancelled && profiles?.length > 0) {
+          // Feed-Profile in Cache schreiben → Profil-Tap ist instant (kein DB-Request mehr)
+          ProfileService.prewarm(profiles);
           setPeople(profiles.map(p => ({
             id:           p.id,
             name:         safeStr(p.display_name || p.username) || null,
@@ -2195,23 +2192,12 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   // Ansicht" darin fuehrt zum Profil (bei echter UUID + Username), sonst
   // (Seed-Karten) bleibt nur die Vorschau ohne Profil-Sprung.
   const handlePersonPress = useCallback((person) => {
+    // (2026-07-29) PersonCard öffnet DIREKT das öffentliche Profil.
     const isRealId = person?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(person.id));
-    // Direkt Profil öffnen — kein Preview-Sheet für Personen (Karte zeigt schon alles)
     if (isRealId && typeof onView === "function") {
       onView(person.id);
-      return;
     }
-    // Fallback: Preview für unbekannte IDs / Seed-Daten
-    const item = normalizeWirkerForPreview(person);
-    if (item) {
-      openPreview({
-        ...item,
-        canOpenFull: false, // Kein navigate — würde RefRedirect auslösen
-      });
-      return;
-    }
-    if (typeof onView === "function") onView(person.id || person.user_id);
-  }, [openPreview, onView]);
+  }, [onView]);
 
   // Werk-Karte: öffne Werk-Detailseite (nur bei echter DB-ID, nicht bei Seed-Daten)
   const handleWerkPress = useCallback((werk) => {

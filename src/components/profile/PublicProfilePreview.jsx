@@ -1,7 +1,7 @@
 // PublicProfilePreview — zeigt das eigene Profil exakt so, wie andere es sehen
 // MERKEN.1A: öffentliche Profilansicht aus Mein HUI heraus
 // - Kein Edit-Modus, keine Admin-Komponenten
-// - publicView=true erzwingt isOwner=false in TalentProfilePage/BasisProfilePage
+// - publicView=true erzwingt isOwner=false in TalentProfilePage/PublicProfilePage
 //
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
@@ -9,7 +9,7 @@ import { ProfileService } from '../../services/db';
 
 // Lazy imports — kein Blocking
 const TalentProfilePage = React.lazy(() => import("../../pages/TalentProfilePage.jsx"));
-const BasisProfilePage  = React.lazy(() => import("../../pages/BasisProfilePage.jsx"));
+const PublicProfilePage  = React.lazy(() => import("../../pages/PublicProfilePage.jsx"));
 
 function Spinner() {
   return createPortal(
@@ -60,7 +60,7 @@ export default function PublicProfilePreview({ profileId, onClose }) {
 
   if (loading) return <Spinner />;
 
-  const ProfileComponent = profileType === "talent" ? TalentProfilePage : BasisProfilePage;
+  const ProfileComponent = profileType === "talent" ? TalentProfilePage : PublicProfilePage;
 
   return createPortal(
     <div style={{

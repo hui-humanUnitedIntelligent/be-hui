@@ -27,7 +27,6 @@ import { WORLD_CSS } from "../../lib/intelligence/worldPolish.js";
 import { useOrbWorld } from "../../context/OrbWorldContext.jsx";
 import { assertValidTab } from "../../lib/world/orbLayer.js";
 import { FlowCtx, createFlowStore } from "../../core/hui.flow.js";
-import HuiConnectionEngine from "../../core/HuiConnectionEngine.jsx";
 import HuiContextBridge from "../../core/HuiContextBridge.jsx";
 
 /* ── Context ──────────────────────────────────────────────────── */
@@ -129,6 +128,8 @@ export default function HomeShell({ children }) {
   const [showWirker,             setShowWirker]            = useState(null);
   // NEU: ID-basierter Profile-Open (radikale Vereinfachung)
   const [selectedProfileId,      setSelectedProfileId]     = useState(null);
+  // Race-Condition-Guard: verhindert dass closeAllOverlays das Profil sofort schließt
+  const profileOpenTimeRef = React.useRef(0);
   // ── Creator / Profile State ────────────────────────────────────
   // showCreatorDashboard: startet immer false (AppEntryController steuert den Einstieg).
   // sessionStorage-Key "hui_mein_hui_open" wird beim Öffnen/Schließen sync gehalten
@@ -210,7 +211,10 @@ export default function HomeShell({ children }) {
   /* closeAllOverlays — schließt sämtliche Overlay-States (P1-01/P1-03) */
   const closeAllOverlays = useCallback(() => {
     setShowWirker(null);
-    setSelectedProfileId(null);
+    // Race-Condition-Guard: Profil nicht schließen wenn gerade erst geöffnet (< 800ms)
+    if (Date.now() - profileOpenTimeRef.current > 800) {
+      setSelectedProfileId(null);
+    }
     setShowWerkDetail(null);
     setShowWerkCheckout(null);
     setShowBookingFlow(null);
@@ -275,14 +279,13 @@ export default function HomeShell({ children }) {
 
   // ── openProfileById — einziger stabiler Einstiegspunkt für alle Feed-Avatar-Klicks
   const openProfileById = React.useCallback((id) => {
-    if (!id || typeof id !== "string" || id.trim() === "") {
-      return;
-    }
-    const trimmed = id.trim();
-    setSelectedProfileId(trimmed);
+    if (!id || typeof id !== "string" || id.trim() === "") return;
+    profileOpenTimeRef.current = Date.now();
+    setSelectedProfileId(id.trim());
   }, []);
 
   const closeProfileById = React.useCallback(() => {
+    profileOpenTimeRef.current = 0;  // Guard zurücksetzen — explizites Schließen immer erlaubt
     setSelectedProfileId(null);
   }, []);
 

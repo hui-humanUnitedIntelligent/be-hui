@@ -94,7 +94,6 @@ export function useChatList(instanceId = "default") {
   const realtimeRef = useRef(null);
 
   const load = useCallback(async () => {
-    console.log("[CHATLIST_LOAD_START]", { authChecked, userId: user?.id });
     if (!authChecked) return;
     if (!user?.id) {
       setChats([]);
@@ -116,13 +115,6 @@ export function useChatList(instanceId = "default") {
         // state-Filter bewusst entfernt — akzeptiere alle states
         .order("last_message_at", { ascending: false, nullsFirst: false })
         .limit(50);
-
-      console.log("[CHATLIST_QUERY]", {
-        userId: user.id,
-        rawCount: rawChats?.length ?? 0,
-        error: chatError?.message ?? null,
-        firstId: rawChats?.[0]?.id ?? null,
-      });
 
       if (chatError) {
         console.warn("[CHATLIST_ERROR]", chatError.message, chatError.code);
@@ -191,9 +183,6 @@ export function useChatList(instanceId = "default") {
         if (b.unread !== a.unread) return b.unread - a.unread;
         return new Date(b.last_message_at || 0) - new Date(a.last_message_at || 0);
       });
-
-      console.log("[CHATLIST_LOAD_DONE]", { chatCount: withUnread?.length,
-        unreadTotal: withUnread.reduce((s, c) => s + c.unread, 0) });
       setChats(withUnread);
     } catch(e) {
       console.error("[CHATLIST_LOAD_ERROR]", e?.message);
@@ -305,7 +294,8 @@ export function useChatThread(chatId) {
         .from("messages")
         .select(`
           id, text, sender_id, sender_name, sender_img,
-          created_at, updated_at, read, is_read, message_type
+          created_at, updated_at, read, is_read, message_type,
+          media_url, media_type, is_deleted
         `)
         .eq("chat_id", chatId)
         .order("created_at", { ascending: true })
@@ -396,6 +386,8 @@ export function useChatThread(chatId) {
       sender_id:    user.id,
       text:         text?.trim() || "",
       message_type: msgType,   // DB-Spalte heißt "message_type", nicht "msg_type"
+      media_url:    mediaUrl  || null,
+      media_type:   mediaType || null,
       read:         false,
       created_at:   new Date().toISOString(),
     };
@@ -502,16 +494,31 @@ export function useChatThread(chatId) {
     });
   }, [sendMessage]);
 
-  // deleteMessage — UI-only (is_deleted existiert nicht in DB)
-  // Markiert message lokal als gelöscht, kein DB-Update
+  // deleteMessage — Soft-Delete in DB + lokal
   const deleteMessage = useCallback(async (messageId) => {
-    // is_deleted existiert nicht in DB — nur lokal entfernen
-    setMessages(prev => prev.filter(m => m.id !== messageId));
+    setMessages(prev => prev.map(m =>
+      m.id === messageId ? { ...m, is_deleted: true, text: "Diese Nachricht wurde gelöscht." } : m
+    ));
+    await supabase.from("messages")
+      .update({ is_deleted: true, text: "Diese Nachricht wurde gelöscht." })
+      .eq("id", messageId);
+  }, []);
+
+  // editMessage — nur Text, nur eigene Nachrichten
+  const editMessage = useCallback(async (messageId, newText) => {
+    if (!newText?.trim()) return;
+    const edited = new Date().toISOString();
+    setMessages(prev => prev.map(m =>
+      m.id === messageId ? { ...m, text: newText.trim(), edited_at: edited } : m
+    ));
+    await supabase.from("messages")
+      .update({ text: newText.trim(), edited_at: edited })
+      .eq("id", messageId);
   }, []);
 
   return {
     messages, loading, sending,
-    sendMessage, sendSystemMessage, sendBookingUpdate, shareWork, deleteMessage,
+    sendMessage, sendSystemMessage, sendBookingUpdate, shareWork, deleteMessage, editMessage,
     reload: load,
   };
 }
