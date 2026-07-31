@@ -25,7 +25,7 @@ Consumer = Dateien die nur lesen (via Props, Context, Hook-Return).
 | **Bookings (Creator)** | `lib/bookingContext.js` → `useCreatorBookings()` | ✅ bookingContext only | via `useCreatorBookings()` |
 | **Works** | `lib/AppStateContext.jsx` → `services/db.js` | ✅ AppState + Create-Flows (akzeptiert) | via `useOwnWorks()` |
 | **Experiences** | `services/db.js` | ✅ Service Layer | via direktem Fetch in WirkerProfilePage |
-| **Stories** | `lib/sessionHooks.js` (storyRefreshKey) | ✅ Create-Flows direkt (akzeptiert) | via storyRefreshKey |
+| **Stories** | `services/db.js` → `StoryService` | ✅ StoryService + Create-Flows (akzeptiert) | `StoryBar` via `StoryService`; `storyRefreshKey` |
 | **Trust / Reputation** | `lib/trustContext.js` | ✅ trustContext only | via `useReputation()` |
 | **Follows** | `lib/AppStateContext.jsx` | ✅ AppState + WorkDetailPage (❗) | via `useFollowStatus()` |
 | **Work Interactions** | `lib/AppStateContext.jsx` | ✅ AppState + WorkDetailPage (❗) | via `useWorkInteraction()` |
@@ -47,7 +47,7 @@ Consumer = Dateien die nur lesen (via Props, Context, Hook-Return).
 | `components/WorkDetailPage.jsx` | work_likes, work_saves, follows | INSERT/DELETE |
 | `components/WirkerProfileDashboard.jsx` | bookings (confirm/decline), works | UPDATE |
 | `components/MeinHUI_SubPages.jsx` | messages, availability_slots, impact_votes | INSERT/DELETE |
-| `components/StoryBar.jsx` | story_views, messages | UPSERT/INSERT |
+| `components/StoryBar.jsx` (StoryViewer) | story_views, messages | UPSERT/INSERT |
 | `components/WirkerProfilePage.jsx` | chats (INSERT!) | INSERT |
 
 ### 2. DOPPELTE STATE-OWNER

@@ -10,7 +10,7 @@
 | Metrik | Wert |
 |---|---|
 | Dateien total | 297 |
-| Codezeilen total | 104,635 |
+| Codezeilen total | 104,647 |
 | Domains | 12 |
 | Komponenten | 676 |
 | Hooks | 109 |
@@ -19,10 +19,10 @@
 | DB Tabellen | 75 |
 | Direkte DB-Writes in UI | 69 |
 | Duplicate Owners | 17 |
-| Verstöße gesamt | **629** |
+| Verstöße gesamt | **627** |
 | CRITICAL | 🔴 42 |
 | HIGH | 🟠 112 |
-| MEDIUM | 🟡 185 |
+| MEDIUM | 🟡 183 |
 | LOW | 🔵 23 |
 | INFO | ⚪ 267 |
 
@@ -42,13 +42,13 @@
 |---|---|---|---|---|---|---|---|
 | UNKNOWN | 2 | 738 | 12 | 0 | 1 | 0 | 2 |
 | Architecture | 8 | 1832 | 1 | 0 | 0 | 0 | 0 |
-| Components | 106 | 38535 | 333 | 10 | 97 | 42 | 266 |
+| Components | 106 | 38521 | 333 | 10 | 95 | 42 | 264 |
 | Features | 10 | 2994 | 11 | 7 | 4 | 3 | 18 |
 | Context | 2 | 346 | 1 | 2 | 0 | 0 | 2 |
 | Core | 15 | 3778 | 3 | 10 | 12 | 4 | 17 |
 | System | 47 | 12844 | 115 | 5 | 10 | 7 | 51 |
 | Hooks | 6 | 1311 | 0 | 12 | 11 | 2 | 19 |
-| Services | 75 | 20544 | 13 | 47 | 119 | 90 | 88 |
+| Services | 75 | 20570 | 13 | 47 | 121 | 90 | 88 |
 | Pages | 24 | 20149 | 187 | 16 | 73 | 24 | 147 |
 | Registry | 1 | 812 | 0 | 0 | 0 | 0 | 1 |
 | Routes | 1 | 752 | 0 | 0 | 0 | 0 | 1 |
