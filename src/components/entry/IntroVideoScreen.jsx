@@ -1,15 +1,12 @@
 // src/components/entry/IntroVideoScreen.jsx
-// Intro-Video beim App-Start. Falls Autoplay blockiert wird → CSS-Animation als Fallback.
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
 const VIDEO_PATH = "/assets/intro-video.mp4";
 const POSTER_PATH = "/assets/intro-poster.jpg";
-const PLAY_MODE = "every-launch";
-const STORAGE_KEY = "hui_intro_video_played";
 const FADE_DURATION = 800;
-const VIDEO_TIMEOUT = 3000; // Wenn Video nach 3s nicht startet → Fallback
-const FALLBACK_DURATION = 2500; // Fallback-Anzeige Dauer
+const VIDEO_TIMEOUT = 3000;
+const FALLBACK_DURATION = 2500;
 
 export default function IntroVideoScreen() {
   const navigate = useNavigate();
@@ -17,59 +14,49 @@ export default function IntroVideoScreen() {
   const [fading, setFading] = useState(false);
   const [done, setDone] = useState(false);
   const [showFallback, setShowFallback] = useState(false);
+  const [diag, setDiag] = useState(["mount"]);
   const startedRef = useRef(false);
   const finishedRef = useRef(false);
   const videoStartedRef = useRef(false);
 
-  const finish = useCallback(() => {
+  const addDiag = useCallback((m) => {
+    const t = new Date().toISOString().substr(14, 9);
+    setDiag(p => [...p.slice(-12), `${t} ${m}`]);
+  }, []);
+
+  const finish = useCallback((reason) => {
     if (finishedRef.current) return;
     finishedRef.current = true;
+    addDiag(`FINISH(${reason})`);
     setFading(true);
     setTimeout(() => {
       setDone(true);
       navigate("/login", { replace: true });
     }, FADE_DURATION);
-  }, [navigate]);
-
-  // Prüfe ob Video abgespielt werden soll
-  const shouldPlay = useCallback(() => {
-    if (PLAY_MODE === "every-launch") return true;
-    if (PLAY_MODE === "first-launch") {
-      try {
-        if (localStorage.getItem(STORAGE_KEY)) return false;
-      } catch (e) {}
-    }
-    return true;
-  }, []);
+  }, [navigate, addDiag]);
 
   useEffect(() => {
-    if (!shouldPlay()) {
-      navigate("/login", { replace: true });
-      return;
-    }
-
+    addDiag("effect1 start");
     const video = videoRef.current;
-    if (!video) { finish(); return; }
+    if (!video) { finish("no-video-ref"); return; }
+    addDiag(`video OK — paused=${video.paused} rs=${video.readyState}`);
 
-    // Video laden
     video.src = VIDEO_PATH;
     video.load();
+    addDiag("src+load done");
 
-    // Timer: Wenn Video nach VIDEO_TIMEOUT nicht gestartet ist → Fallback
     const fallbackTimer = setTimeout(() => {
       if (!videoStartedRef.current && !finishedRef.current) {
+        addDiag("fallback timer fired");
         setShowFallback(true);
-        // Nach Fallback → finish
-        setTimeout(() => finish(), FALLBACK_DURATION);
+        setTimeout(() => finish("fallback"), FALLBACK_DURATION);
       }
     }, VIDEO_TIMEOUT);
 
-    // Safety: Nach 12s definitiv finish
     const safetyTimer = setTimeout(() => {
-      if (!finishedRef.current) finish();
+      if (!finishedRef.current) finish("safety");
     }, 12000);
 
-    // Visibility handling
     const handleVisibility = () => {
       if (document.hidden) video?.pause();
       else if (!finishedRef.current && videoStartedRef.current) video?.play().catch(() => {});
@@ -81,22 +68,8 @@ export default function IntroVideoScreen() {
       clearTimeout(safetyTimer);
       document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [shouldPlay, navigate, finish]);
+  }, [finish, addDiag]);
 
-  // Video-Event Handler
-  const handlePlaying = useCallback(() => {
-    videoStartedRef.current = true;
-    setShowFallback(false);
-  }, []);
-
-  const handleEnded = useCallback(() => {
-    if (PLAY_MODE === "first-launch") {
-      try { localStorage.setItem(STORAGE_KEY, "1"); } catch (e) {}
-    }
-    finish();
-  }, [finish]);
-
-  // Versuche play() nach kurzer Verzögerung
   useEffect(() => {
     if (showFallback || done) return;
     const video = videoRef.current;
@@ -104,100 +77,68 @@ export default function IntroVideoScreen() {
 
     const tryPlay = async () => {
       if (videoStartedRef.current || finishedRef.current) return;
+      addDiag(`tryPlay — paused=${video.paused} rs=${video.readyState}`);
       try {
         video.muted = true;
         video.defaultMuted = true;
         await video.play();
-        // play() resolved — aber erst als "started" markieren wenn onPlaying feuert
+        addDiag(`play() resolved`);
       } catch (err) {
-        // Autoplay blockiert — Fallback übernimmt
+        addDiag(`play() fail: ${err?.name}`);
       }
     };
 
     const t1 = setTimeout(tryPlay, 200);
     const t2 = setTimeout(tryPlay, 1200);
-    return () => clearTimeout(t1), clearTimeout(t2);
-  }, [showFallback, done]);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [showFallback, done, addDiag]);
 
   if (done) return null;
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 99999,
-        background: "#000",
-        opacity: fading ? 0 : 1,
-        transition: `opacity ${FADE_DURATION}ms ease-out`,
-      }}
-    >
-      {/* Video Element — immer im DOM, auch wenn Fallback zeigt */}
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 99999,
+      background: "#000",
+      opacity: fading ? 0 : 1,
+      transition: `opacity ${FADE_DURATION}ms ease-out`,
+    }}>
       <video
         ref={videoRef}
         muted
         playsInline
         preload="auto"
         poster={POSTER_PATH}
-        onPlaying={handlePlaying}
-        onEnded={handleEnded}
-        onError={() => setShowFallback(true)}
+        onPlaying={() => { videoStartedRef.current = true; setShowFallback(false); addDiag("PLAYING"); }}
+        onEnded={() => { addDiag("ENDED"); finish("ended"); }}
+        onError={(e) => { addDiag(`ERROR code=${e.currentTarget.error?.code}`); setShowFallback(true); }}
         style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          objectPosition: "center",
+          width: "100%", height: "100%", objectFit: "cover", objectPosition: "center",
           opacity: showFallback ? 0 : 1,
           transition: "opacity 400ms ease-out",
         }}
       />
-
-      {/* CSS Fallback — pulsierendes HUI-Logo */}
       {showFallback && (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexDirection: "column",
-            gap: "24px",
-          }}
-        >
-          <div
-            style={{
-              width: "80px",
-              height: "80px",
-              borderRadius: "50%",
-              background: "linear-gradient(135deg, #00D4B1, #00A89A)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "36px",
-              fontWeight: 800,
-              color: "#fff",
-              animation: "introPulse 1.2s ease-in-out infinite",
-              boxShadow: "0 0 40px rgba(0, 212, 177, 0.4)",
-            }}
-          >
-            H
-          </div>
-          <div
-            style={{
-              color: "rgba(255,255,255,0.9)",
-              fontSize: "14px",
-              fontWeight: 600,
-              letterSpacing: "2px",
-              textTransform: "uppercase",
-              animation: "introFadeIn 800ms ease-out",
-            }}
-          >
-            HUI
-          </div>
+        <div style={{
+          position: "absolute", inset: 0,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          flexDirection: "column", gap: "24px",
+        }}>
+          <div style={{
+            width: "80px", height: "80px", borderRadius: "50%",
+            background: "linear-gradient(135deg, #00D4B1, #00A89A)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: "36px", fontWeight: 800, color: "#fff",
+            animation: "introPulse 1.2s ease-in-out infinite",
+            boxShadow: "0 0 40px rgba(0, 212, 177, 0.4)",
+          }}>H</div>
+          <div style={{
+            color: "rgba(255,255,255,0.9)", fontSize: "14px", fontWeight: 600,
+            letterSpacing: "2px", textTransform: "uppercase",
+            animation: "introFadeIn 800ms ease-out",
+          }}>HUI</div>
           <style>{`
             @keyframes introPulse {
-              0%, 100% { transform: scale(1); opacity: 0.85; }
+              0%,100% { transform: scale(1); opacity: 0.85; }
               50% { transform: scale(1.12); opacity: 1; }
             }
             @keyframes introFadeIn {
@@ -207,6 +148,15 @@ export default function IntroVideoScreen() {
           `}</style>
         </div>
       )}
+      {/* Diagnose-Overlay */}
+      <div style={{
+        position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
+        color: "#0f0", font: "10px monospace", padding: "8px",
+        background: "rgba(0,0,0,0.85)", zIndex: 100,
+        pointerEvents: "none", whiteSpace: "pre-wrap", overflow: "auto",
+      }}>
+        {diag.map((d, i) => <div key={i}>{d}</div>)}
+      </div>
     </div>
   );
 }
