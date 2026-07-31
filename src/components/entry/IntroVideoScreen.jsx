@@ -6,8 +6,8 @@ import { useNavigate } from "react-router-dom";
 const VIDEO_PATH = "/assets/intro-video.mp4";
 const POSTER_PATH = "/assets/intro-poster.jpg";
 const FADE_DURATION = 800;
-const VIDEO_TIMEOUT = 3000;   // Wenn Video nach 3s nicht startet → Fallback
-const FALLBACK_DURATION = 2500; // Fallback-Anzeige Dauer
+const VIDEO_TIMEOUT = 2500;   // Wenn Video nach 2.5s nicht startet → Fallback
+const FALLBACK_DURATION = 1500; // Fallback-Anzeige Dauer
 
 export default function IntroVideoScreen() {
   const navigate = useNavigate();
