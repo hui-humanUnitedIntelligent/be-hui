@@ -446,12 +446,12 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
   );
 
   // COMMENT-COUNT: Lade Kommentar-Anzahl lazy wenn Karte sichtbar
-  const [commentCount, setCommentCount] = useState(null);
+  const [commentCount, setCommentCount] = useState(item?._reactions?.commentCount ?? null);
   const ccLoadedRef = useRef(false);
   useEffect(() => {
     if (!visible || !postId || ccLoadedRef.current) return;
     ccLoadedRef.current = true;
-    countComments(postId, postType).then(n => { if (n > 0) setCommentCount(n); });
+    countComments(postId, postType).then(n => { setCommentCount(n); });
   }, [visible, postId, postType]); // eslint-disable-line
 
   const handleReaction = useCallback((type) => {
