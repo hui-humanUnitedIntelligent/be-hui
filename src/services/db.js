@@ -489,10 +489,22 @@ export const ImpactService = {
   async getCurrentRound() {
     const month = this.currentMonth();
     return cachedQuery(`impact:round:${month}`,
-      () => safeQuery(
-        supabase.from('impact_rounds').select(F.impactRound)
-          .eq('month', month).eq('status', 'active').single()
-      ), 60_000
+      async () => {
+        const res = await safeQuery(
+          supabase.from('impact_rounds').select(F.impactRound)
+            .eq('month', month).eq('status', 'active').maybeSingle()
+        );
+        // Auto-create: Falls keine aktive Runde für diesen Monat existiert
+        if (!res.data) {
+          await supabase.from('impact_rounds')
+            .upsert({ month, status: 'active', pool_eur: 0 }, { onConflict: 'month' });
+          return safeQuery(
+            supabase.from('impact_rounds').select(F.impactRound)
+              .eq('month', month).eq('status', 'active').maybeSingle()
+          );
+        }
+        return res;
+      }, 60_000
     );
   },
 
