@@ -3188,17 +3188,18 @@ function InfoSheet({ modal, onClose }) {
         {c.body}
       </div>
 
-      {/* Sticky Footer — "Verstanden" über der Navbar */}
+      {/* Sticky Footer — "Verstanden" zentriert über der Navbar */}
       <div style={{
         position:"sticky", bottom:0,
-        padding:"12px 22px calc(80px + env(safe-area-inset-bottom, 0px))",
+        padding:"12px 32px calc(80px + env(safe-area-inset-bottom, 0px))",
         borderTop:`1px solid ${T.line}`,
         background:T.surfaceHi,
         flexShrink:0,
-        display:"flex", gap:10,
+        display:"flex", justifyContent:"center",
       }}>
         <button onClick={onClose} className="ip-p" style={{
-          flex:1,
+          width:"100%",
+          maxWidth:280,
           background:`linear-gradient(135deg,${T.teal},${T.tealL})`,
           border:"none", borderRadius:16, padding:"14px 0",
           color:"white", fontSize:14, fontWeight:750,
@@ -3208,28 +3209,7 @@ function InfoSheet({ modal, onClose }) {
         }}
         onMouseEnter={e => e.currentTarget.style.opacity = "0.88"}
         onMouseLeave={e => e.currentTarget.style.opacity = "1"}
-        >Verstanden ✓</button>
-
-        {modal === "leeraus" && (
-          <button onClick={onClose} className="ip-p" style={{
-            flex:1,
-            background:"none",
-            border:`1.5px solid ${T.teal}38`,
-            borderRadius:16, padding:"14px 0",
-            color:T.teal, fontSize:14, fontWeight:700,
-            cursor:"pointer",
-            transition:"all 0.15s",
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.background = `${T.teal}10`;
-            e.currentTarget.style.borderColor = `${T.teal}60`;
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.background = "none";
-            e.currentTarget.style.borderColor = `${T.teal}38`;
-          }}
-          >Impact Pool entdecken</button>
-        )}
+        >Verstanden</button>
       </div>
     </div>,
     document.body
