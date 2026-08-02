@@ -1,8 +1,8 @@
-import { HUIEuroIcon, HUILinkIcon, HUILocationIcon, HUIMailIcon, HUIPhoneIcon, HUIProfilIcon, HUITalentIcon } from '../../design/icons/HuiSystemIcons.jsx';
+import { HUIEuroIcon, HUILinkIcon, HUILocationIcon, HUIMailIcon, HUIProfilIcon, HUITalentIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import LocationAutocompleteInput from '../shared/LocationAutocompleteInput.jsx';
 // ProfilBearbeitenModal.jsx — vollständige Profil-Bearbeitung
 // ═══════════════════════════════════════════════════════════
-// Basis-Profil:   profiles (full_name, display_name, username, email, phone,
+// Basis-Profil:   profiles (full_name, display_name, username, email,
 //                           bio, tagline, location_label, website, skills,
 //                           dna_tags, focus_type, is_available, hourly_rate)
 // Talent-Profil:  wirker_profiles (talent, tagline, categories, skills,
@@ -85,7 +85,6 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
 
   // ── State: Kontakt-Felder ────────────────────────────────────────
   const [email,         setEmail]         = useState(profile?.email           || "");
-  const [phone,         setPhone]         = useState(profile?.phone           || "");
 
   // ── State: Talent-Profil (wirker_profiles) ───────────────────────
   const [wpData,         setWpData]       = useState(null);  // aktueller DB-Stand
@@ -205,7 +204,6 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
         dna_tags:       dnaTags,
         is_available:   isAvailable,
         hourly_rate:    hourlyRate ? parseFloat(hourlyRate) : null,
-        phone:          phone.trim(),
       };
 
       const { error: profErr } = await (saveProfile
@@ -237,7 +235,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
       setSaving(false);
     }
   }, [saving, usernameErr, fullName, displayName, username, bio, tagline, focusType,
-      locationLabel, locationLat, locationLng, website, skills, isAvailable, phone,
+      locationLabel, locationLat, locationLng, website, skills, isAvailable,
       isTalent, talentTitle, talentTagline, talentCats, talentSkills, talentLocation,
       talentRadius, talentRate, talentAvail, wpData, saveProfile, refreshProfile,
       profile?.id, onClose, onProfileUpdate]);
@@ -395,10 +393,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
                 )}
               </FieldGroup>
 
-              <FieldGroup label="Telefonnummer">
-                <Input value={phone} onChange={setPhone}
-                  placeholder="+49 123 456789" type="tel" icon={<HUIPhoneIcon size={15}/>} maxLength={30} />
-              </FieldGroup>
+
 
               <FieldGroup label="Website / Portfolio">
                 <Input value={website} onChange={setWebsite}

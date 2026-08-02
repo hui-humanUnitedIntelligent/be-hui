@@ -2,7 +2,7 @@ import { HUIAbmeldenIcon, HUIDatenschutzIcon, HUIKalenderIcon, HUIKontaktIcon, H
 // src/components/settings/SettingsModal.jsx
 // ── HUI Einstellungs-Modal v2 ─────────────────────────────────
 // Enthält: Profil bearbeiten | Buchungen | Privatsphäre | Abmelden
-// + Name | E-Mail | Telefon | Passwort ändern
+// + Name | E-Mail | Passwort ändern
 import { useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "../../lib/AuthContext.jsx";
@@ -175,41 +175,6 @@ function EmailBlock({ profile, onProfileUpdate }) {
   );
 }
 
-// ── Block: Telefon ────────────────────────────────────────────
-function PhoneBlock({ profile, onProfileUpdate }) {
-  const [phone, setPhone] = useState(
-    profile?.phone || profile?.profile_modules?.phone || ""
-  );
-  const [saving, setSaving] = useState(false);
-  const [saved,  setSaved]  = useState(false);
-  const [error,  setError]  = useState(null);
-
-  const save = async () => {
-    setSaving(true); setError(null); setSaved(false);
-    if (!/^[+\d\s\-()\s]*$/.test(phone)) {
-      setError("Ungültige Telefonnummer"); setSaving(false); return;
-    }
-    const pm = profile?.profile_modules || {};
-    const { error:err } = await supabase.from("profiles").update({
-      phone:phone.trim(),
-      profile_modules:{ ...pm, phone:phone.trim() },
-    }).eq("id", profile.id);
-    setSaving(false);
-    if (err) { setError(err.message); return; }
-    setSaved(true); setTimeout(()=>setSaved(false),2500);
-    onProfileUpdate?.({ ...profile, phone:phone.trim() });
-  };
-
-  return (
-    <Row label="Telefonnummer" last>
-      <input value={phone} onChange={e=>setPhone(e.target.value)}
-        placeholder="+49 123 456789" type="tel" style={inp}
-        onFocus={e=>e.target.style.borderColor=T.teal}
-        onBlur={e=>e.target.style.borderColor=T.border}/>
-      <SaveRow onSave={save} saving={saving} saved={saved} error={error}/>
-    </Row>
-  );
-}
 
 // ── Block: Passwort ───────────────────────────────────────────
 function PasswordBlock() {
@@ -511,7 +476,6 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
             </Section>
             <Section title="Kontakt" icon={<HUIKontaktIcon size={16}/>}>
               <EmailBlock profile={profile} onProfileUpdate={onProfileUpdate}/>
-              <PhoneBlock profile={profile} onProfileUpdate={onProfileUpdate}/>
             </Section>
           </>)}
 

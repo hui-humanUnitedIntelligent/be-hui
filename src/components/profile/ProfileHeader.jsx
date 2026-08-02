@@ -5,7 +5,7 @@
 
 import {
   HUILocationIcon, HUITalentIcon, HUIImpactIcon,
-  HUILinkIcon, HUIPhoneIcon,
+  HUILinkIcon,
 } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef, useCallback } from "react";
 import {
@@ -65,7 +65,6 @@ export function ProfileHeader({
   const username = sv(profile?.username);
   const location = sv(profile?.location_final || profile?.location);
   const website  = sv(profile?.website);
-  const phone    = sv(profile?.phone);
   const email    = sv(profile?.email);
 
   const isTalentResolved = isTalent || profile?.is_talent === true;
@@ -296,7 +295,7 @@ export function ProfileHeader({
             </div>
 
             {/* Unterer Block: Ort + Website + Telefon — bündig mit Follower-Unterkante */}
-            {!loading && (location || website || phone) && (
+            {!loading && (location || website) && (
               <div style={{ display:"flex", flexDirection:"column", gap:3, marginTop:6 }}>
                 {location && (
                   <div style={{
@@ -320,13 +319,7 @@ export function ProfileHeader({
                     </a>
                   </div>
                 )}
-                {phone && (
-                  <div style={{ display:"flex", alignItems:"center", gap:5, fontSize:12 }}>
-                    <span style={{ fontSize:13 }}>📞</span>
-                    <a href={"tel:"+phone}
-                      style={{ color:T.inkSoft, textDecoration:"none" }}>{phone}</a>
-                  </div>
-                )}
+                
               </div>
             )}
           </div>

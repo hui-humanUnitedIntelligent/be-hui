@@ -1174,18 +1174,7 @@ function ProjectInfoModal({ app, onClose }) {
               </div>
             </div>
           )}
-          {a.contact_phone && (
-            <div style={{ display:"flex", alignItems:"flex-start", gap:10, padding:"9px 0" }}>
-              <span style={{ fontSize:15, flexShrink:0, marginTop:1 }}>📞</span>
-              <div style={{ flex:1 }}>
-                <div style={{ fontSize:10, color:"#0DC4B5", fontWeight:800,
-                  textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:2 }}>Telefon</div>
-                <a href={`tel:${a.contact_phone}`}
-                  style={{ fontSize:13, color:"#0DC4B5", textDecoration:"none" }}>
-                  {a.contact_phone}</a>
-              </div>
-            </div>
-          )}
+
         </div>
 
         {/* ── Problem ── */}
