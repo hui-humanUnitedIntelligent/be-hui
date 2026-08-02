@@ -399,7 +399,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
             {/* Ein Block: Profil bearbeiten / Sicherheit / Abmelden */}
             <Section title="Account & Sicherheit" icon={<HUIProfilIcon size={16}/>}>
               <NavItem icon={<HUIProfilIcon size={16}/>} label="Profil bearbeiten"
-                onClick={() => { onClose?.(); onEditProfile?.(); }}/>
+                onClick={() => onEditProfile?.()}/>
               <NavItem icon={<HUISicherheitIcon size={16}/>} label="Email & Passwort"
                 onClick={() => setView("security")}/>
               <NavItem icon={<HUIKontaktIcon size={16}/>} label="Support & Hilfe"

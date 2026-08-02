@@ -376,7 +376,8 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
   // Owner-spezifische States
   const [mounted,      setMounted]      = useState(false);
   const [lazyLoaded,   setLazyLoaded]   = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
+  const [showSettings,    setShowSettings]    = useState(false);
+  const [showProfilEdit, setShowProfilEdit]   = useState(false);
   const [showStudio,   setShowStudio]   = useState(false);
 
   // isOwner: true wenn das eigene Profil angesehen wird
@@ -693,12 +694,23 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
         <SettingsModal
             profile={profile}
             onClose={() => setShowSettings(false)}
+            onEditProfile={() => {
+              setShowSettings(false);
+              setShowProfilEdit(true);
+            }}
             onSave={(updated) => {
               reload();           // Sprint F.5.2: reload statt lokales setProfile
               setShowSettings(false);
             }}
           />
         )}
+            {isOwner && showProfilEdit && (
+        <ProfilBearbeitenModal
+          profile={profile}
+          onClose={() => setShowProfilEdit(false)}
+          onProfileUpdate={() => { reload(); setShowProfilEdit(false); }}
+        />
+      )}
       {isOwner && showStudio && (
         <HuiStudio
             profile={profile}

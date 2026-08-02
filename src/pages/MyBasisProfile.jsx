@@ -1245,8 +1245,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
             }}
             onEditProfile={() => {
               setShowSettings(false);
-              // kleines Delay: SettingsModal erst vollständig unmounten lassen
-              setTimeout(() => setShowProfilEditPage(true), 50);
+              setShowProfilEditPage(true);
             }}
             onOpenBookings={() => {
               setShowSettings(false);
