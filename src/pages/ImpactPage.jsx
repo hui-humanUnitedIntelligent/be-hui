@@ -1879,13 +1879,7 @@ function VotingCard({ project:p, rank, voted, totalVotes, onVote, onOpen }) {
           borderRadius:"50%", background:rc, display:"flex", alignItems:"center",
           justifyContent:"center", fontSize:14, fontWeight:900, color:"white",
           boxShadow:`0 2px 10px ${rc}55` }}>{rank+1}</div>
-        {/* Kategorie */}
-        <div style={{ position:"absolute", top:14, right:14,
-          background:"rgba(255,252,248,0.92)", backdropFilter:"blur(10px)",
-          border:"1px solid rgba(255,255,255,0.85)", borderRadius:99, padding:"4px 11px" }}>
-          <span style={{ fontSize:9, color:T.ink2, fontWeight:750,
-            letterSpacing:"0.08em", textTransform:"uppercase" }}>{p.category}</span>
-        </div>
+
         {/* Gradient nach unten */}
         <div style={{ position:"absolute", inset:0,
           background:"linear-gradient(to top,rgba(255,255,255,0.9) 0%,transparent 46%)",
