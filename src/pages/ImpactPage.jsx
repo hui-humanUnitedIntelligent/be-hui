@@ -3122,136 +3122,117 @@ function InfoSheet({ modal, onClose }) {
 
   const c = CONTENT[modal] || CONTENT.cycle;
 
-  return (
+  // Portal zu document.body — escaped alle Stacking-Context-Fallen
+  return ReactDOM.createPortal(
     <div
       role="dialog"
       aria-modal="true"
       aria-label={c.title}
       style={{
-        position:"fixed", inset:0, zIndex:10500, /* >BottomNav(10000) */
-        background:"rgba(14,14,24,0.52)",
-        backdropFilter:"blur(8px)",
-        WebkitBackdropFilter:"blur(8px)",
+        position:"fixed", inset:0, zIndex:10500,
         display:"flex",
-        alignItems:"center",
-        justifyContent:"center",
-        padding:"16px",
-        animation:"ipFadeIn 0.18s ease both",
+        flexDirection:"column",
+        background:T.surfaceHi,
+        animation:"ipFadeIn 0.22s ease both",
+        // Kein Backdrop — das Sheet füllt den ganzen Screen
       }}
-      onClick={onClose}
     >
-      {/* Modal-Container — zentriert, max-width 640px */}
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          width:"90%",
-          maxWidth:640,
-          background:T.surfaceHi,
-          borderRadius:24,
-          boxShadow:"0 24px 80px rgba(0,0,0,0.22), 0 4px 16px rgba(0,0,0,0.10)",
-          maxHeight:"88vh",
-          display:"flex",
-          flexDirection:"column",
-          overflow:"hidden",
-          animation:"ipModalIn 0.24s cubic-bezier(0.22,1,0.36,1) both",
-        }}
-      >
-        {/* Sticky Header */}
-        <div style={{
-          padding:"20px 22px 16px",
-          borderBottom:`1px solid ${T.line}`,
-          background:T.surfaceHi,
-          flexShrink:0,
-          position:"relative",
+      {/* Sticky Header mit Close */}
+      <div style={{
+        padding:"56px 22px 16px", /* 56px = Status-Bar-Platz */
+        borderBottom:`1px solid ${T.line}`,
+        background:T.surfaceHi,
+        flexShrink:0,
+        position:"relative",
+      }}>
+        {/* Close-X */}
+        <button
+          onClick={onClose}
+          className="ip-p"
+          aria-label="Schließen"
+          style={{
+            position:"absolute", top:16, right:16,
+            width:36, height:36, borderRadius:"50%",
+            background:"rgba(0,0,0,0.07)",
+            border:"none", cursor:"pointer",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            fontSize:18, color:T.muted,
+            transition:"background 0.15s",
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = "rgba(0,0,0,0.14)"}
+          onMouseLeave={e => e.currentTarget.style.background = "rgba(0,0,0,0.07)"}
+        >✕</button>
+
+        <h3 style={{
+          margin:"0 44px 0 0",
+          fontSize:18, fontWeight:900,
+          color:T.ink, letterSpacing:"-0.022em", lineHeight:1.25,
         }}>
-          {/* Close-X */}
-          <button
-            onClick={onClose}
-            className="ip-p"
-            aria-label="Schließen"
-            style={{
-              position:"absolute", top:16, right:16,
-              width:32, height:32, borderRadius:"50%",
-              background:"rgba(0,0,0,0.06)",
-              border:"none", cursor:"pointer",
-              display:"flex", alignItems:"center", justifyContent:"center",
-              fontSize:16, color:T.muted,
-              transition:"background 0.15s",
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = "rgba(0,0,0,0.12)"}
-            onMouseLeave={e => e.currentTarget.style.background = "rgba(0,0,0,0.06)"}
-          >✕</button>
+          {c.title}
+        </h3>
+        {c.subtitle && (
+          <p style={{ margin:"6px 0 0", fontSize:13, color:T.ink2, lineHeight:1.6 }}>
+            {c.subtitle}
+          </p>
+        )}
+      </div>
 
-          <h3 style={{
-            margin:"0 40px 0 0",
-            fontSize:18, fontWeight:900,
-            color:T.ink, letterSpacing:"-0.022em", lineHeight:1.25,
-          }}>
-            {c.title}
-          </h3>
-          {c.subtitle && (
-            <p style={{ margin:"6px 0 0", fontSize:13, color:T.ink2, lineHeight:1.6 }}>
-              {c.subtitle}
-            </p>
-          )}
-        </div>
+      {/* Scrollbarer Inhalt — der SCREEN scrollt, nicht ein inneres Div */}
+      <div style={{
+        flex:1,
+        overflowY:"auto",
+        WebkitOverflowScrolling:"touch",
+        padding:"20px 22px",
+        paddingBottom:"calc(96px + env(safe-area-inset-bottom, 0px))",
+      }}>
+        {c.body}
+      </div>
 
-        {/* Scrollbarer Body */}
-        <div style={{
+      {/* Sticky Footer — "Verstanden" über der Navbar */}
+      <div style={{
+        position:"sticky", bottom:0,
+        padding:"12px 22px calc(80px + env(safe-area-inset-bottom, 0px))",
+        borderTop:`1px solid ${T.line}`,
+        background:T.surfaceHi,
+        flexShrink:0,
+        display:"flex", gap:10,
+      }}>
+        <button onClick={onClose} className="ip-p" style={{
           flex:1,
-          overflowY:"auto",
-          padding:"20px 22px",
-          WebkitOverflowScrolling:"touch",
-        }}>
-          {c.body}
-        </div>
+          background:`linear-gradient(135deg,${T.teal},${T.tealL})`,
+          border:"none", borderRadius:16, padding:"14px 0",
+          color:"white", fontSize:14, fontWeight:750,
+          cursor:"pointer",
+          boxShadow:`0 4px 16px ${T.teal}38`,
+          transition:"opacity 0.15s",
+        }}
+        onMouseEnter={e => e.currentTarget.style.opacity = "0.88"}
+        onMouseLeave={e => e.currentTarget.style.opacity = "1"}
+        >Verstanden ✓</button>
 
-        {/* Sticky Footer Buttons */}
-        <div style={{
-          padding:"14px 22px 20px",
-          borderTop:`1px solid ${T.line}`,
-          background:T.surfaceHi,
-          flexShrink:0,
-          display:"flex", gap:10,
-        }}>
-          {/* Primär: Verstanden */}
+        {modal === "leeraus" && (
           <button onClick={onClose} className="ip-p" style={{
             flex:1,
-            background:`linear-gradient(135deg,${T.teal},${T.tealL})`,
-            border:"none", borderRadius:16, padding:"13px 0",
-            color:"white", fontSize:14, fontWeight:750,
+            background:"none",
+            border:`1.5px solid ${T.teal}38`,
+            borderRadius:16, padding:"14px 0",
+            color:T.teal, fontSize:14, fontWeight:700,
             cursor:"pointer",
-            boxShadow:`0 4px 16px ${T.teal}38`,
-            transition:"opacity 0.15s",
+            transition:"all 0.15s",
           }}
-          onMouseEnter={e => e.currentTarget.style.opacity = "0.88"}
-          onMouseLeave={e => e.currentTarget.style.opacity = "1"}
-          >Verstanden ✓</button>
-
-          {/* Sekundär: Impact Pool entdecken (scrollt nach oben) */}
-          {modal === "leeraus" && (
-            <button onClick={onClose} className="ip-p" style={{
-              flex:1,
-              background:"none",
-              border:`1.5px solid ${T.teal}38`,
-              borderRadius:16, padding:"13px 0",
-              color:T.teal, fontSize:14, fontWeight:700,
-              cursor:"pointer",
-              transition:"all 0.15s",
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = `${T.teal}10`;
-              e.currentTarget.style.borderColor = `${T.teal}60`;
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = "none";
-              e.currentTarget.style.borderColor = `${T.teal}38`;
-            }}
-            >Impact Pool entdecken</button>
-          )}
-        </div>
+          onMouseEnter={e => {
+            e.currentTarget.style.background = `${T.teal}10`;
+            e.currentTarget.style.borderColor = `${T.teal}60`;
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = "none";
+            e.currentTarget.style.borderColor = `${T.teal}38`;
+          }}
+          >Impact Pool entdecken</button>
+        )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
