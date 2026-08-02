@@ -993,7 +993,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           onEditCover={handleCoverChange}
         />
         {(profile?.id ?? user?.id) && (
-        <OrbSignatur profileId={profile?.id ?? user?.id} />
+        <Suspense fallback={null}><OrbSignatur profileId={profile?.id ?? user?.id} /></Suspense>
         )}
         <Gap h={28}/>
 
@@ -1003,11 +1003,11 @@ export default function MyBasisProfile({ onClose, profileId }) {
         {profile?.is_talent ? (
           <>
             {/* T1. Über mich — kanonisch: AboutSection */}
-        <AboutSection
+        <Suspense fallback={null}><AboutSection
                 profile={profile}
                 isOwner={true}
                 onSave={(bio) => handleBioSave(bio)}
-              />
+              /></Suspense>
         <Gap h={24}/>
 
             {/* T2. Talente (TalentSection, Skill-Tag-Pillen "Meine Talente & Angebote")
@@ -1017,11 +1017,11 @@ export default function MyBasisProfile({ onClose, profileId }) {
                 (siehe Memory #528 "vertagt"). Bleibt auf TalentProfilePage.jsx bestehen,
                 dort nicht Teil dieser Anfrage. */}
             {/*
-            <TalentSection
+            <Suspense fallback={null}><TalentSection
               profile={profile}
               isOwner={true}
               onChange={handleSkillsSave}
-            />
+            /></Suspense>
             <Gap h={24}/>
             */}
 
@@ -1052,28 +1052,28 @@ export default function MyBasisProfile({ onClose, profileId }) {
             <Gap h={20}/>
 
             {/* T5. Kundenstimmen — kanonisch: RecommendationsSection */}
-        <RecommendationsSection
+        <Suspense fallback={null}><RecommendationsSection
                 recommendations={recommendations}
                 isOwner={true}
-              />
+              /></Suspense>
         <Gap h={24}/>
 
             {/* T6a. Verfügbarkeit — kanonisch: AvailabilitySection */}
-        <AvailabilitySection
+        <Suspense fallback={null}><AvailabilitySection
                 profile={profile}
                 isOwner={true}
                 onSave={handleAvailabilitySave}
-              />
+              /></Suspense>
         <Gap h={16}/>
 
             <Gap h={24}/>
 
             {/* T7. Sichtbarkeit — kanonisch: VisibilitySection */}
-        <VisibilitySection
+        <Suspense fallback={null}><VisibilitySection
                 profile={profile}
                 isOwner={true}
                 onSave={handleVisibilitySave}
-              />
+              /></Suspense>
         <Gap h={28}/>
 
             {/* T8. Ambassador-Balken — nur sichtbar wenn is_ambassador=true */}
@@ -1088,11 +1088,11 @@ export default function MyBasisProfile({ onClose, profileId }) {
           <>
             {/* ══ BASIS-PROFIL-LAYOUT ══════════════════════════════ */}
             {/* B1. Über mich — kanonisch: AboutSection */}
-        <AboutSection
+        <Suspense fallback={null}><AboutSection
                 profile={profile}
                 isOwner={true}
                 onSave={(bio) => handleBioSave(bio)}
-              />
+              /></Suspense>
         <Gap h={24}/>
 
             {/* B1c. TALENT WERDEN — Einladungskarte für Basis-User */}
@@ -1130,11 +1130,11 @@ export default function MyBasisProfile({ onClose, profileId }) {
             <Gap h={24}/>
 
             {/* B3. Momente — kanonisch: MomentsSection */}
-        <MomentsSection
+        <Suspense fallback={null}><MomentsSection
                 moments={moments}
                 isOwner={true}
                 onAddMoment={(newMoments) => handleMomentsSave(newMoments)}
-              />
+              /></Suspense>
         <Gap h={24}/>
 
             {/* B4. Offen für Begegnungen — OffenFuerSection bleibt (Basis-spezifisch) */}
@@ -1142,11 +1142,11 @@ export default function MyBasisProfile({ onClose, profileId }) {
             <Gap h={24}/>
 
             {/* B5. Sichtbarkeit — kanonisch: VisibilitySection */}
-        <VisibilitySection
+        <Suspense fallback={null}><VisibilitySection
                 profile={profile}
                 isOwner={true}
                 onSave={handleVisibilitySave}
-              />
+              /></Suspense>
         <Gap h={28}/>
 
 
@@ -1219,7 +1219,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
             </div>
             {/* AmbassadorStudioSection direkt — kein lazy/Suspense nötig */}
             <AmbassadorErrorBoundary>
-        <AmbassadorStudioSection profile={profile} />
+        <Suspense fallback={null}><AmbassadorStudioSection profile={profile} /></Suspense>
         </AmbassadorErrorBoundary>
           </div>
         </div>,
@@ -1228,6 +1228,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
       {/* GEMEINSCHAFT FLOW MODAL */}
       {showGemeinschaft && (
+        <Suspense fallback={null}>
         <GemeinschaftsFlow
           onClose={() => setShowGemeinschaft(false)}
           onComplete={() => {
@@ -1237,10 +1238,12 @@ export default function MyBasisProfile({ onClose, profileId }) {
             reload();
           }}
         />
+        </Suspense>
       )}
 
-      {/* SETTINGS MODAL */}
+      {/* SETTINGS MODAL — eigenes Suspense, damit die Seite beim Laden nicht blank geht */}
       {showSettings && (
+        <Suspense fallback={null}>
           <SettingsModal
             profile={profile}
             onClose={() => setShowSettings(false)}
@@ -1256,14 +1259,17 @@ export default function MyBasisProfile({ onClose, profileId }) {
               if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("hui:openBookings"));
             }}
           />
+        </Suspense>
       )}
       {showProfilEditPage && (
-        <ProfilBearbeitenModal
+        <Suspense fallback={null}>
+          <ProfilBearbeitenModal
             profile={profile}
             onClose={() => setShowProfilEditPage(false)}
             onProfileUpdate={() => { refreshProfile?.().catch(() => {}); setShowProfilEditPage(false); }}
           />
-        )}
+        </Suspense>
+      )}
 
       {/* GEMERKTE INHALTE — Portal pflicht (liegt sonst hinter BottomNav durch mbp-root Stacking Context) */}
       {showMerken && createPortal(
@@ -1320,14 +1326,17 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
       {/* 👁️ ÖFFENTLICHE PROFILANSICHT */}
       {showPublicPreview && profile?.id && (
+        <Suspense fallback={null}>
         <PublicProfilePreview
             profileId={profile.id}
             onClose={() => setShowPublicPreview(false)}
           />
+        </Suspense>
         )}
 
       {/* HUI STUDIO MODAL */}
       {showStudio && (
+        <Suspense fallback={null}>
         <HuiStudio
           profile={profile}
           onClose={() => setShowStudio(false)}
@@ -1338,20 +1347,24 @@ export default function MyBasisProfile({ onClose, profileId }) {
             reload();
           }}
         />
+        </Suspense>
       )}
 
       {/* ❤️ MEINE RESONANZ */}
       {showResonanz && (
+        <Suspense fallback={null}>
         <MeineResonanz
           onClose={() => setShowResonanz(false)}
           onNavigate={(type, navId) => {
             setShowResonanz(false);
           }}
         />
+        </Suspense>
       )}
 
       {/* AMBASSADOR BEWERBUNGS-MODAL */}
       {showAmbModal && profile?.id && (
+        <Suspense fallback={null}>
         <AmbassadorModal
             userId={profile.id}
             onClose={() => setShowAmbModal(false)}
@@ -1360,21 +1373,25 @@ export default function MyBasisProfile({ onClose, profileId }) {
               refreshProfile?.().catch(() => {});
             }}
           />
+        </Suspense>
         )}
 
       {/* NOTIFICATION PANEL */}
       {showNotifications && profile?.id && (
+        <Suspense fallback={null}>
         <NotificationPanel
           userId={profile.id}
           onClose={() => setShowNotifications(false)}
           onUnreadChange={setUnreadCount}
           onAction={handleNotifAction}
         />
+        </Suspense>
       )}
 
 
       {/* WERK WIZARD */}
       {showWerkWizard && profile?.id && (
+        <Suspense fallback={null}>
         <WerkWizard
           userId={profile.id}
           existingWork={editingWerk}
@@ -1389,6 +1406,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
             });
           }}
         />
+        </Suspense>
       )}
 
       {/* TALENT WERDEN — Onboarding Flow */}
@@ -1405,16 +1423,19 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
       {/* TALENT-ANGEBOT WIZARD */}
       {showTalentWizard && profile?.id && (
+        <Suspense fallback={null}>
         <TalentAngebotWizard
           userId={profile.id}
           existingTalent={editingTalent}
           onClose={() => { setShowTalentWizard(false); setEditingTalent(null); }}
           onSaved={() => { setShowTalentWizard(false); setEditingTalent(null); reloadTalents(); }}
         />
+        </Suspense>
       )}
 
       {/* EXPERIENCE WIZARD */}
       {showExpWizard && profile?.id && (
+        <Suspense fallback={null}>
         <ExperienceWizard
           userId={profile.id}
           existingExp={editingExp}
@@ -1429,6 +1450,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
             });
           }}
         />
+        </Suspense>
       )}
     </div>
     </Suspense>
@@ -2241,12 +2263,14 @@ function MeinBereichMenu({
           )}
 
           {showUpdateSheet && updateTargetProject && (
+        <Suspense fallback={null}>
         <ImpactUpdateSheet
                 project={updateTargetProject}
                 currentUser={profile}
                 onClose={() => { setShowUpdateSheet(false); setUpdateTargetProject(null); }}
                 onSuccess={() => { /* optional: refetch */ }}
               />
+        </Suspense>
         )}
         </MeinBereichDrawer>
       )}
@@ -2273,13 +2297,15 @@ function MeinBereichMenu({
       {/* ── Ambassador-Bereich ───────────────────────────────── */}
       {activeDrawer === "ambassador" && (
         <MeinBereichDrawer title="Ambassador-Bereich" icon={<HUIAmbassadorIcon size={18}/>} subtitle="Dein Ambassador-Programm und Provisionen." onClose={close} footer={false}>
-          <AmbassadorStudioSection profile={profile} />
+          <Suspense fallback={null}><AmbassadorStudioSection profile={profile} /></Suspense>
         </MeinBereichDrawer>
       )}
 
       {/* ── Meine Empfehlungen (bereits eigenstaendiger Drawer) ─ */}
       {activeDrawer === "empfehlungen" && (
+        <Suspense fallback={null}>
         <MyRecommendationsModal userId={profile?.id} onClose={close} />
+        </Suspense>
         )}
 
       {/* ── Impact & Stimmen (Chooser + Detail-Drawer) ──────── */}
@@ -2297,18 +2323,22 @@ function MeinBereichMenu({
         </MeinBereichDrawer>
       )}
       {activeDrawer === "impact" && impactDetail === "stimmen" && (
+        <Suspense fallback={null}>
         <ImpactStimmenModal
             profile={profile}
             onClose={() => setImpactDetail(null)}
             switchTab={switchTab}
           />
+        </Suspense>
         )}
       {activeDrawer === "impact" && impactDetail === "projekte" && (
+        <Suspense fallback={null}>
         <MeineProjekteModal
             profile={profile}
             onClose={() => setImpactDetail(null)}
             switchTab={switchTab}
           />
+        </Suspense>
         )}
 
       {/* ── Finanzabteilung (Chooser + Detail-Drawer) ───────── */}
@@ -2321,16 +2351,24 @@ function MeinBereichMenu({
         </MeinBereichDrawer>
       )}
       {activeDrawer === "finanzen" && financeDetail === "ein_aus" && (
+        <Suspense fallback={null}>
         <EinAusgabenModal profile={profile} onClose={() => setFinanceDetail(null)} />
+        </Suspense>
         )}
       {activeDrawer === "finanzen" && financeDetail === "verkaeufe" && (
+        <Suspense fallback={null}>
         <MeineVerkaeufeModal profile={profile} onClose={() => setFinanceDetail(null)} />
+        </Suspense>
         )}
       {activeDrawer === "finanzen" && financeDetail === "buchungen" && (
+        <Suspense fallback={null}>
         <MeineBuchungenModal profile={profile} onClose={() => setFinanceDetail(null)} />
+        </Suspense>
         )}
       {activeDrawer === "finanzen" && financeDetail === "statistiken" && (
+        <Suspense fallback={null}>
         <StatistikenModal profile={profile} onClose={() => setFinanceDetail(null)} />
+        </Suspense>
         )}
 
       {/* ── Profil bearbeiten ───────────────────────────────── */}
