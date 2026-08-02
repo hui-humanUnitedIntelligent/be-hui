@@ -1472,9 +1472,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
           alert("Abstimmung fehlgeschlagen. Bitte lade die Seite neu und versuche es erneut.");
         }
       } else {
-        const proj = projects.find(p => p.id === projectId);
-        if (proj) FeedService.createActivity(currentUser.id, "impact_vote",
-          `hat das Projekt „${proj.name}" unterstützt`, {}).catch(() => {});
+        // Feed-Activity wird via Datenbankfunktion erzeugt — kein Client-Side-Insert nötig
       }
     } catch (e) {
       // Verbindungsfehler — UI zurücksetzen + Hinweis

@@ -489,22 +489,10 @@ export const ImpactService = {
   async getCurrentRound() {
     const month = this.currentMonth();
     return cachedQuery(`impact:round:${month}`,
-      async () => {
-        const res = await safeQuery(
-          supabase.from('impact_rounds').select(F.impactRound)
-            .eq('month', month).eq('status', 'active').maybeSingle()
-        );
-        // Auto-create: Falls keine aktive Runde für diesen Monat existiert
-        if (!res.data) {
-          await supabase.from('impact_rounds')
-            .upsert({ month, status: 'active', pool_eur: 0 }, { onConflict: 'month' });
-          return safeQuery(
-            supabase.from('impact_rounds').select(F.impactRound)
-              .eq('month', month).eq('status', 'active').maybeSingle()
-          );
-        }
-        return res;
-      }, 60_000
+      () => safeQuery(
+        supabase.from('impact_rounds').select(F.impactRound)
+          .eq('month', month).eq('status', 'active').maybeSingle()
+      ), 60_000
     );
   },
 
@@ -548,11 +536,13 @@ export const ImpactService = {
     }
 
     // Session-Refresh vor dem Insert — verhindert RLS-Fehler bei abgelaufenen JWTs
-    const { error: refreshError } = await supabase.auth.refreshSession();
-    if (refreshError) {
-      console.warn('[castVote] Session refresh failed:', refreshError.message);
-      // Trotzdem versuchen — User könnte einen gültigen anon-Token haben
-    }
+    try {
+      const { error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError) {
+        // 400 = RefreshToken abgelaufen → getUser nochmal versuchen (Token kann noch gültig sein)
+        console.warn('[castVote] Session refresh skipped:', refreshError.message);
+      }
+    } catch (_) { /* ignorieren — Token könnte noch gültig sein */ }
 
     return safeQuery(
       supabase.from('impact_votes').insert({
