@@ -1048,227 +1048,239 @@ function ProjectInfoModal({ app, onClose }) {
 
   // Escape-Key
   React.useEffect(() => {
-    const fn = (e) => { if (e.key === "Escape") onClose(); };
+    const fn = (e) => { if (e.key === "Escape") onClose?.(); };
     document.addEventListener("keydown", fn);
     return () => document.removeEventListener("keydown", fn);
   }, [onClose]);
 
-  // Media-Typen unterscheiden
-  const isVideo = (url) => /\.(mp4|mov|webm|avi|mkv)$/i.test(url);
-  const isImage = (url) => /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(url);
-  const isPdf   = (url) => /\.pdf$/i.test(url);
-
-  // Sektion-Block
-  const Section = ({ label, children }) => (
-    <div style={{ marginBottom:24 }}>
-      <div style={{ fontSize:10, fontWeight:800, color:"#0DC4B5", letterSpacing:"0.1em",
-        textTransform:"uppercase", marginBottom:10, paddingBottom:6,
-        borderBottom:"1px solid rgba(13,196,181,0.15)" }}>{label}</div>
-      <div style={{ fontSize:14, color:"#333", lineHeight:1.75 }}>{children}</div>
-    </div>
-  );
+  // Helpers
+  const isVideo = (url) => /\.(mp4|mov|webm|avi|mkv)$/i.test(url || "");
+  const isImage = (url) => /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(url || "");
+  const isPdf   = (url) => /\.pdf$/i.test(url || "");
 
   const hasCover  = !!a.cover_url;
-  const mediaList = Array.isArray(a.media_urls) ? a.media_urls : [];
+  const mediaList = Array.isArray(a.media_urls) ? a.media_urls.filter(Boolean) : [];
+
+  // Alle Felder die vom Initiator kommen
+  const fields = [
+    { label: "Kurzbeschreibung", value: a.short_desc },
+    { label: "Das Problem",      value: a.problem },
+    { label: "Vision & Umsetzung", value: a.vision },
+    { label: "Mittelverwendung", value: a.funding_use && a.funding_use !== a.vision ? a.funding_use : null },
+    { label: "Kategorie",        value: a.impact_category || a.category || a.kategorie },
+    { label: "Standort",         value: a.location },
+  ].filter(f => f.value);
+
+  // Kontaktdaten
+  const hasContact = a.contact_name || a.contact_email || a.contact_phone;
 
   return (
     <div style={{
-      position:"fixed", inset:0, zIndex:10600,
-      display:"flex", flexDirection:"column",
-      background:"#FAFAF8",
-      animation:"ipFadeIn 0.22s ease both",
+      position: "fixed", inset: 0, zIndex: 10600,
+      background: "#FAFAF8",
+      overflowY: "auto",
+      WebkitOverflowScrolling: "touch",
     }}>
-      {/* Header mit Cover */}
-      <div style={{ position:"relative", flexShrink:0 }}>
-        {hasCover ? (
-          <div style={{ height:220, overflow:"hidden" }}>
-            <img src={a.cover_url} alt={a.project_name}
-              style={{ width:"100%", height:"100%", objectFit:"cover" }}
-              onError={e => { e.target.style.display="none"; }}
-            />
-            {/* Gradient */}
-            <div style={{ position:"absolute", inset:0,
-              background:"linear-gradient(to bottom,rgba(0,0,0,0.35) 0%,rgba(0,0,0,0) 50%,rgba(250,250,248,0.92) 100%)" }}/>
-          </div>
-        ) : (
-          <div style={{ height:80, background:"linear-gradient(135deg,#0DC4B518,#0DC4B508)" }}/>
-        )}
-
-        {/* Close-Button */}
-        <button onClick={onClose} style={{
-          position:"absolute", top:16, right:16,
-          width:36, height:36, borderRadius:"50%",
-          background:"rgba(0,0,0,0.45)", border:"none",
-          color:"#fff", fontSize:18, cursor:"pointer",
-          display:"flex", alignItems:"center", justifyContent:"center",
-          backdropFilter:"blur(6px)", zIndex:2,
-          transition:"background 0.15s",
-        }}
-        onMouseEnter={e => e.currentTarget.style.background = "rgba(0,0,0,0.65)"}
-        onMouseLeave={e => e.currentTarget.style.background = "rgba(0,0,0,0.45)"}
-        >✕</button>
-
-        {/* Titel über Cover */}
-        {hasCover && (
-          <div style={{
-            position:"absolute", bottom:16, left:20, right:56,
-            fontSize:22, fontWeight:900, color:"#fff",
-            letterSpacing:"-0.022em", lineHeight:1.2,
-            textShadow:"0 2px 8px rgba(0,0,0,0.4)",
-          }}>{a.project_name}</div>
-        )}
-      </div>
-
-      {/* Scrollbarer Body */}
+      {/* Sticky Header */}
       <div style={{
-        flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch",
-        padding:"20px 20px calc(80px + env(safe-area-inset-bottom,0px))",
+        position: "sticky", top: 0, zIndex: 2,
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "14px 20px",
+        background: "rgba(250,250,248,0.95)",
+        backdropFilter: "blur(10px)",
+        borderBottom: "1px solid rgba(0,0,0,0.07)",
       }}>
-        {/* Titel (wenn kein Cover) */}
-        {!hasCover && (
-          <h2 style={{ margin:"0 0 4px", fontSize:22, fontWeight:900, color:"#141422",
-            letterSpacing:"-0.022em" }}>{a.project_name}</h2>
-        )}
-
-        {/* Location Badge */}
-        {a.location && (
-          <div style={{ display:"inline-flex", alignItems:"center", gap:5,
-            background:"rgba(13,196,181,0.09)", borderRadius:99, padding:"4px 12px",
-            fontSize:11, color:"#0DC4B5", fontWeight:700, marginBottom:18 }}>
-            <span>📍</span> {a.location}
-          </div>
-        )}
-
-        {/* Kurzbeschreibung */}
-        {a.short_desc && (
-          <Section label="Über das Projekt">
-            <p style={{ margin:0, fontSize:15, fontStyle:"italic", color:"#555",
-              lineHeight:1.7 }}>„{a.short_desc}"</p>
-          </Section>
-        )}
-
-        {/* Problem */}
-        {a.problem && (
-          <Section label="Das Problem">
-            <p style={{ margin:0 }}>{a.problem}</p>
-          </Section>
-        )}
-
-        {/* Vision / Umsetzung */}
-        {a.vision && (
-          <Section label="Unsere Vision & Umsetzung">
-            <p style={{ margin:0 }}>{a.vision}</p>
-          </Section>
-        )}
-
-        {/* Mittelverwendung */}
-        {a.funding_use && a.funding_use !== a.vision && (
-          <Section label="Wofür wird das Geld verwendet?">
-            <p style={{ margin:0 }}>{a.funding_use}</p>
-          </Section>
-        )}
-
-        {/* Medien (Bilder + Videos) */}
-        {mediaList.length > 0 && (
-          <Section label={`Fotos & Videos (${mediaList.length})`}>
-            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-              {mediaList.map((url, i) => {
-                if (isVideo(url)) return (
-                  <video key={i} controls playsInline
-                    style={{ width:"100%", borderRadius:14, background:"#000",
-                      maxHeight:260, objectFit:"cover" }}>
-                    <source src={url} />
-                  </video>
-                );
-                if (isImage(url)) return (
-                  <a key={i} href={url} target="_blank" rel="noreferrer">
-                    <img src={url} alt={`Foto ${i+1}`}
-                      style={{ width:"100%", borderRadius:14, objectFit:"cover",
-                        maxHeight:260, display:"block",
-                        border:"1px solid rgba(0,0,0,0.07)" }} />
-                  </a>
-                );
-                if (isPdf(url)) return (
-                  <a key={i} href={url} target="_blank" rel="noreferrer"
-                    style={{ display:"flex", alignItems:"center", gap:10,
-                      background:"rgba(239,68,68,0.07)", border:"1px solid rgba(239,68,68,0.18)",
-                      borderRadius:12, padding:"12px 16px",
-                      color:"#dc2626", fontSize:13, fontWeight:600, textDecoration:"none" }}>
-                    📄 PDF-Dokument ansehen
-                  </a>
-                );
-                return (
-                  <a key={i} href={url} target="_blank" rel="noreferrer"
-                    style={{ display:"flex", alignItems:"center", gap:10,
-                      background:"rgba(13,196,181,0.08)", border:"1px solid rgba(13,196,181,0.20)",
-                      borderRadius:12, padding:"12px 16px",
-                      color:"#0DC4B5", fontSize:13, fontWeight:600, textDecoration:"none" }}>
-                    📎 Datei ansehen
-                  </a>
-                );
-              })}
-            </div>
-          </Section>
-        )}
-
-        {/* Kontakt */}
-        {(a.contact_name || a.contact_email) && (
-          <Section label="Kontakt & Initiator">
-            <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
-              {a.contact_name && (
-                <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                  <span style={{ fontSize:16 }}>👤</span>
-                  <span style={{ fontWeight:700, color:"#141422" }}>{a.contact_name}</span>
-                </div>
-              )}
-              {a.contact_email && (
-                <a href={`mailto:${a.contact_email}`}
-                  style={{ display:"flex", alignItems:"center", gap:8,
-                    color:"#0DC4B5", textDecoration:"none", fontSize:13 }}>
-                  <span style={{ fontSize:16 }}>✉️</span>
-                  {a.contact_email}
-                </a>
-              )}
-            </div>
-          </Section>
-        )}
-
-        {/* Footer-Zitat */}
-        <div style={{
-          textAlign:"center", padding:"20px 0 8px",
-          borderTop:"1px solid rgba(13,196,181,0.12)",
-          marginTop:8,
-        }}>
-          <div style={{ fontSize:13, color:"#aaa", lineHeight:1.6 }}>
-            Dieses Projekt ist von der HUI-Community nominiert<br/>
-            und wird durch den monatlichen Impact Pool unterstützt.
-          </div>
-          <div style={{ marginTop:12, fontSize:18 }}>💚</div>
+        <div style={{ fontSize: 16, fontWeight: 900, color: "#141422",
+          letterSpacing: "-0.02em", flex: 1, marginRight: 12,
+          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {a.project_name}
         </div>
+        <button onClick={onClose} style={{
+          width: 36, height: 36, borderRadius: "50%",
+          background: "rgba(0,0,0,0.08)", border: "none",
+          fontSize: 18, cursor: "pointer", flexShrink: 0,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          color: "#333",
+        }}>✕</button>
       </div>
 
-      {/* Footer-Button */}
+      {/* Content — alles untereinander, kein internes Scroll */}
+      <div style={{ padding: "0 0 calc(32px + env(safe-area-inset-bottom,0px))" }}>
+
+        {/* Cover-Bild */}
+        {hasCover && (
+          <div style={{ position: "relative", marginBottom: 0 }}>
+            <img
+              src={a.cover_url}
+              alt={a.project_name}
+              style={{ width: "100%", maxHeight: 320, objectFit: "cover", display: "block" }}
+              onError={e => { e.target.style.display = "none"; }}
+            />
+          </div>
+        )}
+
+        <div style={{ padding: "20px 20px 0" }}>
+
+          {/* Initiator Badge */}
+          {(a.contact_name || a.applicant_name) && (
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 6,
+              background: "rgba(13,196,181,0.09)", borderRadius: 99,
+              padding: "5px 14px", marginBottom: 20,
+              fontSize: 12, color: "#0DC4B5", fontWeight: 700,
+            }}>
+              👤 {a.contact_name || a.applicant_name}
+              {a.location ? ` · ${a.location}` : ""}
+            </div>
+          )}
+
+          {/* Alle Textfelder */}
+          {fields.map((f, i) => (
+            <div key={i} style={{ marginBottom: 24 }}>
+              <div style={{
+                fontSize: 10, fontWeight: 800, color: "#0DC4B5",
+                letterSpacing: "0.1em", textTransform: "uppercase",
+                marginBottom: 8, paddingBottom: 6,
+                borderBottom: "1px solid rgba(13,196,181,0.15)",
+              }}>{f.label}</div>
+              <div style={{ fontSize: 14, color: "#333", lineHeight: 1.8, whiteSpace: "pre-wrap" }}>
+                {f.label === "Kurzbeschreibung"
+                  ? `„${f.value}"`
+                  : f.value}
+              </div>
+            </div>
+          ))}
+
+          {/* Medien — alle ohne interne Scroll-Box */}
+          {mediaList.length > 0 && (
+            <div style={{ marginBottom: 24 }}>
+              <div style={{
+                fontSize: 10, fontWeight: 800, color: "#0DC4B5",
+                letterSpacing: "0.1em", textTransform: "uppercase",
+                marginBottom: 8, paddingBottom: 6,
+                borderBottom: "1px solid rgba(13,196,181,0.15)",
+              }}>Fotos & Videos ({mediaList.length})</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                {mediaList.map((url, i) => {
+                  if (isVideo(url)) return (
+                    <video key={i} controls playsInline
+                      style={{ width: "100%", borderRadius: 14,
+                        background: "#000", display: "block" }}>
+                      <source src={url} />
+                    </video>
+                  );
+                  if (isImage(url)) return (
+                    <a key={i} href={url} target="_blank" rel="noreferrer"
+                      style={{ display: "block" }}>
+                      <img src={url} alt={`Foto ${i+1}`}
+                        style={{ width: "100%", borderRadius: 14,
+                          objectFit: "cover", display: "block",
+                          border: "1px solid rgba(0,0,0,0.07)" }}
+                        onError={e => { e.target.style.display = "none"; }}
+                      />
+                    </a>
+                  );
+                  if (isPdf(url)) return (
+                    <a key={i} href={url} target="_blank" rel="noreferrer"
+                      style={{
+                        display: "flex", alignItems: "center", gap: 10,
+                        background: "rgba(239,68,68,0.07)",
+                        border: "1px solid rgba(239,68,68,0.18)",
+                        borderRadius: 12, padding: "14px 16px",
+                        color: "#dc2626", fontSize: 13,
+                        fontWeight: 600, textDecoration: "none",
+                      }}>
+                      📄 PDF-Dokument ansehen
+                    </a>
+                  );
+                  return (
+                    <a key={i} href={url} target="_blank" rel="noreferrer"
+                      style={{
+                        display: "flex", alignItems: "center", gap: 10,
+                        background: "rgba(13,196,181,0.08)",
+                        border: "1px solid rgba(13,196,181,0.20)",
+                        borderRadius: 12, padding: "14px 16px",
+                        color: "#0DC4B5", fontSize: 13,
+                        fontWeight: 600, textDecoration: "none",
+                      }}>
+                      📎 Datei ansehen
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Kontakt */}
+          {hasContact && (
+            <div style={{ marginBottom: 24 }}>
+              <div style={{
+                fontSize: 10, fontWeight: 800, color: "#0DC4B5",
+                letterSpacing: "0.1em", textTransform: "uppercase",
+                marginBottom: 8, paddingBottom: 6,
+                borderBottom: "1px solid rgba(13,196,181,0.15)",
+              }}>Kontakt</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {a.contact_name && (
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#141422" }}>
+                    {a.contact_name}
+                  </div>
+                )}
+                {a.contact_email && (
+                  <a href={`mailto:${a.contact_email}`}
+                    style={{ fontSize: 13, color: "#0DC4B5",
+                      textDecoration: "none", display: "flex",
+                      alignItems: "center", gap: 6 }}>
+                    ✉️ {a.contact_email}
+                  </a>
+                )}
+                {a.contact_phone && (
+                  <a href={`tel:${a.contact_phone}`}
+                    style={{ fontSize: 13, color: "#0DC4B5",
+                      textDecoration: "none", display: "flex",
+                      alignItems: "center", gap: 6 }}>
+                    📞 {a.contact_phone}
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Footer-Hinweis */}
+          <div style={{
+            textAlign: "center", padding: "24px 0 8px",
+            borderTop: "1px solid rgba(13,196,181,0.12)",
+            marginTop: 8,
+          }}>
+            <div style={{ fontSize: 12, color: "#aaa", lineHeight: 1.65 }}>
+              Dieses Projekt ist von der HUI-Community nominiert<br/>
+              und wird durch den monatlichen Impact Pool unterstützt.
+            </div>
+          </div>
+
+        </div>{/* /padding-wrapper */}
+      </div>{/* /content */}
+
+      {/* Schließen-Button — sticky unten */}
       <div style={{
-        position:"sticky", bottom:0,
-        padding:"12px 20px calc(72px + env(safe-area-inset-bottom,0px))",
-        background:"#FAFAF8", borderTop:"1px solid rgba(0,0,0,0.06)",
-        display:"flex", justifyContent:"center",
+        position: "sticky", bottom: 0,
+        padding: "12px 20px calc(env(safe-area-inset-bottom,0px) + 12px)",
+        background: "rgba(250,250,248,0.97)",
+        borderTop: "1px solid rgba(0,0,0,0.06)",
+        backdropFilter: "blur(8px)",
       }}>
         <button onClick={onClose} style={{
-          width:"100%", maxWidth:300,
-          borderRadius:16, padding:"13px 0",
-          background:"linear-gradient(135deg,#0DC4B5,#09A89D)",
-          border:"none", color:"#fff", fontSize:14, fontWeight:750,
-          cursor:"pointer", boxShadow:"0 4px 16px rgba(13,196,181,0.35)",
-          transition:"opacity 0.15s",
-        }}
-        onMouseEnter={e => e.currentTarget.style.opacity="0.88"}
-        onMouseLeave={e => e.currentTarget.style.opacity="1"}
-        >Schließen</button>
+          width: "100%", borderRadius: 16, padding: "14px 0",
+          background: "linear-gradient(135deg,#0DC4B5,#09A89D)",
+          border: "none", color: "#fff", fontSize: 15, fontWeight: 750,
+          cursor: "pointer",
+          boxShadow: "0 4px 16px rgba(13,196,181,0.35)",
+        }}>Schließen</button>
       </div>
     </div>
   );
 }
+
 
 // ── MilestoneCard (inline in ImpactPage) ─────────────────────────
 function MilestoneCard({ milestone, index, onViewProgress }) {
