@@ -64,7 +64,7 @@ const FILTERS = [
   { key: "project",    label: "Projekte",   types: ["project"] },
 ];
 
-export default function MerkenSection({ onOpenProfile, onOpenDiscover, onClose }) {
+export default function MerkenSection({ onOpenProfile = () => {}, onOpenDiscover = () => {}, onClose = () => {} }) {
   const { user }          = useAuth();
   const { openRef }       = useContentPreview();
   const [items,    setItems]    = React.useState([]);

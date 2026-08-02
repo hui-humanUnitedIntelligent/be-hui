@@ -30,14 +30,14 @@ import { useHome }   from "../components/home/HomeShell.jsx";
 const GemeinschaftsFlow = React.lazy(() => import("../components/GemeinschaftsFlow.jsx").catch(chunkReload));
 const NotificationPanel = React.lazy(() => import("../components/notifications/NotificationPanel.jsx").catch(chunkReload));
 const AmbassadorModal = React.lazy(() => import("../components/ambassador/AmbassadorModal.jsx").catch(chunkReload));
-const SettingsModal = React.lazy(() => import("../components/settings/SettingsModal.jsx").catch(chunkReload));
+import SettingsModal from "../components/settings/SettingsModal.jsx";
 import { useAmbassador } from "../hooks/useAmbassador.js";
 import { useProfileData } from "../hooks/useProfileData.js";
 const HuiStudio = React.lazy(() => import("../components/studio/HuiStudio.jsx").catch(chunkReload));
 const MeineResonanz = React.lazy(() => import("./studio/MeineResonanz.jsx").catch(chunkReload));
 const PublicProfilePreview = React.lazy(() => import("../components/profile/PublicProfilePreview.jsx").catch(chunkReload));
 const OrbSignatur = React.lazy(() => import("../components/profile/OrbSignatur.jsx").then(m => ({ default: m.OrbSignatur })).catch(chunkReload));
-const MerkenSection = React.lazy(() => import("../components/profile/MerkenSection.jsx").catch(chunkReload));
+import MerkenSection from "../components/profile/MerkenSection.jsx";
 // Sprint F.7D Phase 4: Kanonische Sections
 const AboutSection = React.lazy(() => import("../components/profile/sections/AboutSection.jsx").then(m => ({ default: m.AboutSection })).catch(chunkReload));
 import { ProfileHeader as CanonicalProfileHeader } from "../components/profile/ProfileHeader.jsx";
@@ -1243,7 +1243,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
       {/* SETTINGS MODAL — eigenes Suspense, damit die Seite beim Laden nicht blank geht */}
       {showSettings && (
-        <Suspense fallback={null}>
           <SettingsModal
             profile={profile}
             onClose={() => setShowSettings(false)}
@@ -1259,7 +1258,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
               if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("hui:openBookings"));
             }}
           />
-        </Suspense>
       )}
       {showProfilEditPage && (
         <Suspense fallback={null}>

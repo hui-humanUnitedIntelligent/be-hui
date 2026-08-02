@@ -336,7 +336,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
   };
 
   const overlay = {
-    position:"fixed", inset:0, zIndex:10200,
+    position:"fixed", inset:0, zIndex:10500,
     background:"rgba(10,10,8,0.55)", backdropFilter:"blur(4px)",
     display:"flex", alignItems:"flex-end", justifyContent:"center",
     paddingBottom:64, // Navbar-Höhe — Sheet endet über der Navbar
