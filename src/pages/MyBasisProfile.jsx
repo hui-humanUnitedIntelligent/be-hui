@@ -673,6 +673,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
     moments:         hooksMoments,
     loading:         hookLoading,
     reload,
+    loadLazy,
     followCounts,
   } = useProfileData(user?.id, true); // includePrivate=true → phone für eigenes Profil
 
@@ -684,6 +685,11 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const works          = localWorks       ?? hooksWorks ?? [];
   const experiences    = localExperiences ?? hooksExps  ?? [];
   const recommendations = hooksRecs ?? [];
+
+  // Lazy-Content laden (recommendations, works, experiences, moments) — fehlte zuvor
+  useEffect(() => {
+    if (profile?.id) loadLazy?.();
+  }, [profile?.id, loadLazy]);
   const [showWerkWizard, setShowWerkWizard] = useState(false);
   const [showExpWizard,  setShowExpWizard]  = useState(false);
   const [editingWerk,   setEditingWerk]   = useState(null);
