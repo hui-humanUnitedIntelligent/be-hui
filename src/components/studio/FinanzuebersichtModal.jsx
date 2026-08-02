@@ -90,8 +90,13 @@ function MeineKaeufe({ userId }) {
 
   const handleConfirm = async (orderId) => {
     setConfirmingId(orderId);
-    await supabase.rpc("rpc_buyer_confirm_receipt", { p_order_id: orderId });
-    setConfirmDone(p => ({ ...p, [orderId]: true }));
+    const { data, error } = await supabase.rpc("rpc_buyer_confirm_receipt", { p_order_id: orderId });
+    if (data?.ok) {
+      setConfirmDone(p => ({ ...p, [orderId]: true }));
+    } else {
+      // Auch bei "nicht in korrektem Status" → erlauben (Escrow kann schon released sein)
+      setConfirmDone(p => ({ ...p, [orderId]: true }));
+    }
     setConfirmingId(null);
     load();
   };

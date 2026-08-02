@@ -249,24 +249,28 @@ export function useProfileData(profileId, includePrivate = false) {
       setExperiences(Array.isArray(expsRes.data) ? expsRes.data : []);
       setMoments(momentsRes.data || []);
 
-      // Recommendations: from_profile nachladen
+      // Recommendations: SOFORT setzen (ohne from_profile), dann enrichment
       const recsRaw = Array.isArray(recsRes.data) ? recsRes.data : [];
+      // Phase 2a: sofort setzen — garantiert sichtbar auch wenn enrichment fehlschlägt
+      setRecommendations(recsRaw.map(r => ({ ...r, from_profile: null })));
+
+      // Phase 2b: from_profile nachladen (non-blocking, überschreibt nicht die Recommendation selbst)
       if (recsRaw.length > 0) {
         const fromIds = [...new Set(recsRaw.map(r => r.from_user_id).filter(Boolean))];
-        const { data: authorProfiles } = await supabase
+        supabase
           .from("profiles")
           .select("id,display_name,username,avatar_url")
           .in("id", fromIds.slice(0, 20))
-          .catch(() => ({ data: [] }));
-
-        const authorMap = {};
-        (authorProfiles || []).forEach(p => { authorMap[p.id] = p; });
-        setRecommendations(recsRaw.map(r => ({
-          ...r,
-          from_profile: authorMap[r.from_user_id] || null,
-        })));
-      } else {
-        setRecommendations([]);
+          .then(({ data: authorProfiles }) => {
+            if (myId !== lazyRequestId.current) return;
+            const authorMap = {};
+            (authorProfiles || []).forEach(p => { authorMap[p.id] = p; });
+            setRecommendations(prev => prev.map(r => ({
+              ...r,
+              from_profile: authorMap[r.from_user_id] || r.from_profile || null,
+            })));
+          })
+          .catch(() => {});
       }
 
     } catch (err) {
