@@ -43,7 +43,7 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
   const [step,      setStep]      = useState("form"); // form | success
   const [category,  setCategory]  = useState(null);
   const [form,      setForm]      = useState({
-    name: userName || "", email: userEmail || "", phone: "",
+    name: userName || "", email: userEmail || "",
     subject: "", message: "",
   });
   const [files,    setFiles]    = useState([]);
@@ -103,7 +103,6 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
         ticket_number: tn,
         name:          form.name.trim(),
         email:         form.email.trim(),
-        phone:         form.phone.trim(),
         category,
         priority:      PRIORITY_MAP[category] ?? "normal",
         subject:       form.subject.trim(),
@@ -194,13 +193,20 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
   }
 
   // ── Formular ──
+  // Embedded-Mode wenn onBack übergeben (läuft innerhalb SettingsModal)
+  const embedded = !!onBack;
   return (
-    <div style={{ position:"fixed", inset:0, background:C.cream, display:"flex",
-      flexDirection:"column", fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif" }}>
+    <div style={{
+      position: embedded ? "relative" : "fixed",
+      ...(embedded ? {} : { inset:0 }),
+      background:C.cream, display:"flex",
+      flexDirection:"column",
+      height: embedded ? "auto" : "100%",
+      fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif" }}>
 
       {/* Header */}
       <div style={{ display:"flex", alignItems:"center", gap:12,
-        padding:"max(52px,env(safe-area-inset-top,52px)) 20px 16px",
+        padding: embedded ? "16px 20px" : "max(52px,env(safe-area-inset-top,52px)) 20px 16px",
         background:"white", borderBottom:`1px solid ${C.border}` }}>
         <button onClick={onBack} style={{ width:36, height:36, borderRadius:10,
           background:"rgba(0,0,0,0.05)", border:"none",
@@ -213,7 +219,7 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
       </div>
 
       {/* Scroll-Content */}
-      <div style={{ flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch",
+      <div style={{ flex:1, overflowY: embedded ? "visible" : "auto", WebkitOverflowScrolling:"touch",
         padding:"20px 20px 48px" }}>
 
         {/* Kontaktdaten */}
@@ -238,9 +244,7 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
             </div>
           </div>
           <div style={{ marginTop:10 }}>
-            <label style={labelStyle}>Telefon (optional)</label>
-            <input value={form.phone} onChange={inp("phone")} placeholder="+41 79 000 00 00"
-              type="tel" style={inputStyle} />
+
           </div>
         </div>
 
