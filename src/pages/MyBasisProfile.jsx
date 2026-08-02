@@ -851,8 +851,8 @@ export default function MyBasisProfile({ onClose, profileId }) {
     return (
       <div style={{
         position:"fixed", top:0, left:0, right:0,
-        bottom:NAV_CLEARANCE_CSS,
-        zIndex:9500, /* <BottomNav(10000) — Root endet vor Navbar */
+        bottom:NAV_RESERVED_HEIGHT_CSS,
+        zIndex:9500, /* <BottomNav(10000) — Root endet auf Tabbar-Unterkante */
         background:T.bg,
         display:"flex", alignItems:"center", justifyContent:"center",
       }}>
@@ -871,8 +871,8 @@ export default function MyBasisProfile({ onClose, profileId }) {
     <Suspense fallback={null}>
     <div className="mbp-root" style={{
       position:"fixed", top:0, left:0, right:0,
-      bottom:NAV_CLEARANCE_CSS,
-      zIndex:9500, /* <BottomNav(10000) — Root endet vor Navbar */
+      bottom:NAV_RESERVED_HEIGHT_CSS,
+      zIndex:9500, /* <BottomNav(10000) — Root endet auf Tabbar-Unterkante */
       display:"flex", flexDirection:"column",
     }}>
 
