@@ -56,10 +56,6 @@ const ExperienceWizard = React.lazy(() => import("../components/experiences/Expe
 // ImpactStimmenModal direkt importiert
 // MeineProjekteModal direkt importiert
 // ImpactUpdateSheet direkt importiert
-// EinAusgabenModal direkt importiert
-// MeineVerkaeufeModal direkt importiert
-// MeineBuchungenModal direkt importiert
-// StatistikenModal direkt importiert
 import ProfilBearbeitenModal from "../components/studio/ProfilBearbeitenModal.jsx";
 import { HUIBookmarkIcon }      from "../design/icons/HuiInteractionIcons.jsx";
 import {
@@ -76,10 +72,8 @@ const MyRecommendationsModal = React.lazy(() => import("../components/studio/MyR
 const ImpactStimmenModal = React.lazy(() => import("../components/studio/ImpactStimmenModal.jsx").catch(chunkReload));
 const MeineProjekteModal = React.lazy(() => import("../components/studio/MeineProjekteModal.jsx").catch(chunkReload));
 const ImpactUpdateSheet = React.lazy(() => import("../components/studio/ImpactUpdateSheet.jsx").catch(chunkReload));
-const EinAusgabenModal = React.lazy(() => import("../components/studio/EinAusgabenModal.jsx").catch(chunkReload));
-const MeineVerkaeufeModal = React.lazy(() => import("../components/studio/MeineVerkaeufeModal.jsx").catch(chunkReload));
-const MeineBuchungenModal = React.lazy(() => import("../components/studio/MeineBuchungenModal.jsx").catch(chunkReload));
-const StatistikenModal = React.lazy(() => import("../components/studio/StatistikenModal.jsx").catch(chunkReload));
+// FinanzuebersichtModal — ersetzt 4 separate Finanz-Modals (eager, kein Lazy-Bug)
+import FinanzuebersichtModal from "../components/studio/FinanzuebersichtModal.jsx";
 // ── Design Tokens ────────────────────────────────────────────────
 
 // ── Ambassador ErrorBoundary ─────────────────────────────────────
@@ -2159,7 +2153,7 @@ function MeinBereichMenu({
     console.warn("[MeinBereichMenu] openMomentSheet aufgerufen ohne Parent-Prop");
   });
   const [impactDetail, setImpactDetail] = useState(null); // stimmen|projekte
-  const [financeDetail, setFinanceDetail] = useState(null); // ein_aus|verkaeufe|buchungen|statistiken
+  const [showFinanzModal, setShowFinanzModal] = useState(false); // Finanzübersicht Modal
   const [activeTab, setActiveTab] = useState("erlebnisse"); // erlebnisse | impact
   const [showUpdateSheet, setShowUpdateSheet] = useState(false);
   const [updateTargetProject, setUpdateTargetProject] = useState(null);
@@ -2194,7 +2188,7 @@ function MeinBereichMenu({
           )}
           <MeinBereichTile icon={<HUIFotoIcon size={22}/>} label="Meine Momente" onPress={() => setActiveDrawer("momente")} />
           <MeinBereichTile icon={<HUIImpactIcon size={22}/>} label="Impact & Stimmen" onPress={() => setActiveDrawer("impact")} />
-          <MeinBereichTile icon={<HUIFinanzIcon size={22}/>} label="Meine Finanzen" onPress={() => setActiveDrawer("finanzen")} />
+          <MeinBereichTile icon={<HUIFinanzIcon size={22}/>} label="Meine Finanzen" onPress={() => setShowFinanzModal(true)} />
           <MeinBereichTile icon={<HUIResonanzIcon size={22}/>} label="Meine Resonanz" onPress={onOpenResonanz} />
           <MeinBereichTile icon={<HUIEmpfehlungIcon size={22}/>} label="Empfehlungen" onPress={() => setActiveDrawer("empfehlungen")} />
         </div>
@@ -2333,35 +2327,10 @@ function MeinBereichMenu({
         </Suspense>
         )}
 
-      {/* ── Finanzabteilung (Chooser + Detail-Drawer) ───────── */}
-      {activeDrawer === "finanzen" && !financeDetail && (
-        <MeinBereichDrawer title="Finanzabteilung" icon={<HUIFinanzIcon size={18}/>} subtitle="Einnahmen, Auszahlungen und Transaktionen." onClose={close} footer={false}>
-          <MeinBereichChooserRow icon={<HUIEinAusIcon size={18}/>} label="Ein-/Ausgaben Übersicht" onPress={() => setFinanceDetail("ein_aus")} />
-          <MeinBereichChooserRow icon={<HUIVerkaufIcon size={18}/>} label="Meine Verkäufe" onPress={() => setFinanceDetail("verkaeufe")} />
-          <MeinBereichChooserRow icon={<HUIKalenderIcon size={18}/>} label="Meine Buchungen" onPress={() => setFinanceDetail("buchungen")} />
-          <MeinBereichChooserRow icon={<HUIStatistikIcon size={18}/>} label="Statistiken" onPress={() => setFinanceDetail("statistiken")} />
-        </MeinBereichDrawer>
+      {/* ── Finanzübersicht (neues Unified-Modal) ───────── */}
+      {showFinanzModal && (
+        <FinanzuebersichtModal profile={profile} onClose={() => setShowFinanzModal(false)} />
       )}
-      {activeDrawer === "finanzen" && financeDetail === "ein_aus" && (
-        <Suspense fallback={null}>
-        <EinAusgabenModal profile={profile} onClose={() => setFinanceDetail(null)} />
-        </Suspense>
-        )}
-      {activeDrawer === "finanzen" && financeDetail === "verkaeufe" && (
-        <Suspense fallback={null}>
-        <MeineVerkaeufeModal profile={profile} onClose={() => setFinanceDetail(null)} />
-        </Suspense>
-        )}
-      {activeDrawer === "finanzen" && financeDetail === "buchungen" && (
-        <Suspense fallback={null}>
-        <MeineBuchungenModal profile={profile} onClose={() => setFinanceDetail(null)} />
-        </Suspense>
-        )}
-      {activeDrawer === "finanzen" && financeDetail === "statistiken" && (
-        <Suspense fallback={null}>
-        <StatistikenModal profile={profile} onClose={() => setFinanceDetail(null)} />
-        </Suspense>
-        )}
 
       {/* ── Profil bearbeiten ───────────────────────────────── */}
       {showProfilEdit && (
