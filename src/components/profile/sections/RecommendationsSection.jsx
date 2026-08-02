@@ -117,8 +117,33 @@ export function RecommendationsSection({
     );
   }
 
-  // Visitor + keine Empfehlungen → nicht anzeigen
-  if (!isOwner && recommendations.length === 0) return null;
+  // Visitor + keine Empfehlungen → Platzhalter anzeigen (nicht null)
+  if (!isOwner && recommendations.length === 0) {
+    return (
+      <div>
+        <style>{`@keyframes ps-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
+        {/* Header */}
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
+          padding:`0 ${T.px}px`, marginBottom:12 }}>
+          <div style={{ fontSize:15, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>
+            Kundenstimmen
+          </div>
+        </div>
+        <div style={{ margin:`0 ${T.px}px` }}>
+          <div style={{ padding:"16px", borderRadius:T.r16,
+            background:T.bgCard, border:`1px solid ${T.border}`, textAlign:"center" }}>
+            <div style={{ fontSize:22, color:T.teal, marginBottom:6 }}>❝</div>
+            <div style={{ fontSize:13, color:T.inkFaint, fontStyle:"italic", marginBottom:6 }}>
+              Noch keine Empfehlungen vorhanden.
+            </div>
+            <div style={{ fontSize:11, color:T.inkSoft, lineHeight:1.5 }}>
+              Empfehlungen entstehen, wenn andere Mitglieder nach einem Kauf oder einer Buchung ihre Erfahrung teilen.
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>

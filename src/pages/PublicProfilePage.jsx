@@ -603,6 +603,12 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
         <BioCard profile={profile} loading={loading}/>
         {profile?.bio && <Gap h={12}/>}
 
+        {/* ── EMPFEHLUNGEN / KUNDENSTIMMEN — direkt unter Bio, immer sichtbar ── */}
+        <SectionCard icon={<HUIImpactIcon size={16}/>} title="Empfehlungen" delay={60}>
+            <RecommendationsSection recommendations={recommendations} isOwner={false} loading={loadingLazy} profileOwnerId={profileId || ""} profileOwnerName={profile?.display_name || profile?.nickname || ""} />
+        </SectionCard>
+        <Gap h={12}/>
+
         {/* ── SKILLS ── */}
         <SkillsCard profile={profile} loading={loading}/>
         <Gap h={12}/>
@@ -684,15 +690,6 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
         {/* ── STANDORT ── */}
 
 
-        {/* ── EMPFEHLUNGEN ── */}
-        {(recommendations.length > 0 || loadingLazy) && (
-          <>
-            <SectionCard icon={<HUIImpactIcon size={16}/>} title="Empfehlungen" delay={180}>
-                <RecommendationsSection recommendations={recommendations} isOwner={false} loading={loadingLazy} profileOwnerId={profileId || ""} profileOwnerName={profile?.display_name || profile?.nickname || ""} />
-            </SectionCard>
-            <Gap h={12}/>
-          </>
-        )}
 
         {/* ── LEER-STATE — nur noch wenn KEINE Empfehlungen und kein Talent (alles andere hat eigenen Platzhalter) ── */}
         {!loading && !loadingLazy && profile &&

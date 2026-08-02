@@ -1085,6 +1085,15 @@ export default function MyBasisProfile({ onClose, profileId }) {
               /></Suspense>
         <Gap h={24}/>
 
+            {/* B1a. Kundenstimmen — kanonisch: RecommendationsSection (auch für Basis-User) */}
+        <Suspense fallback={null}><RecommendationsSection
+                recommendations={recommendations}
+                isOwner={true}
+                profileOwnerId={profile?.id || ""}
+                profileOwnerName={profile?.display_name || profile?.nickname || ""}
+              /></Suspense>
+        <Gap h={24}/>
+
             {/* B1c. TALENT WERDEN — Einladungskarte für Basis-User */}
             {!profile?.is_talent && (
               <TalentWerdenBanner onStart={() => setShowTalentOnboarding(true)} />
@@ -2153,6 +2162,7 @@ function MeinBereichMenu({
     console.warn("[MeinBereichMenu] openMomentSheet aufgerufen ohne Parent-Prop");
   });
   const [impactDetail, setImpactDetail] = useState(null); // stimmen|projekte
+  const [empfehlungDetail, setEmpfehlungDetail] = useState(null); // incoming|outgoing
   const [showFinanzModal, setShowFinanzModal] = useState(false); // Finanzübersicht Modal
   const [activeTab, setActiveTab] = useState("erlebnisse"); // erlebnisse | impact
   const [showUpdateSheet, setShowUpdateSheet] = useState(false);
@@ -2287,12 +2297,36 @@ function MeinBereichMenu({
         </MeinBereichDrawer>
       )}
 
-      {/* ── Meine Empfehlungen (bereits eigenstaendiger Drawer) ─ */}
-      {activeDrawer === "empfehlungen" && (
+      {/* ── Empfehlungen — Chooser: Kundenstimmen + Meine Empfehlungen ─ */}
+      {activeDrawer === "empfehlungen" && !empfehlungDetail && (
+        <MeinBereichDrawer title="Empfehlungen" icon={<HUIEmpfehlungIcon size={18}/>} subtitle="Erhaltene und gegebene Empfehlungen." onClose={close} footer={false}>
+          <MeinBereichChooserRow
+            icon={<HUIEmpfehlungIcon size={18}/>} label="Kundenstimmen"
+            desc="Empfehlungen, die du erhalten hast"
+            onPress={() => setEmpfehlungDetail("incoming")}
+          />
+          <MeinBereichChooserRow
+            icon={<HUIEmpfehlungIcon size={18}/>} label="Meine Empfehlungen"
+            desc="Empfehlungen, die du gegeben hast"
+            onPress={() => setEmpfehlungDetail("outgoing")}
+          />
+        </MeinBereichDrawer>
+      )}
+      {activeDrawer === "empfehlungen" && empfehlungDetail === "incoming" && (
+        <MeinBereichDrawer title="Kundenstimmen" icon={<HUIEmpfehlungIcon size={18}/>} subtitle="Empfehlungen, die du erhalten hast." onClose={() => setEmpfehlungDetail(null)} footer={false}>
+          <RecommendationsSection
+            recommendations={recommendations}
+            isOwner={true}
+            profileOwnerId={profile?.id || ""}
+            profileOwnerName={profile?.display_name || profile?.nickname || ""}
+          />
+        </MeinBereichDrawer>
+      )}
+      {activeDrawer === "empfehlungen" && empfehlungDetail === "outgoing" && (
         <Suspense fallback={null}>
-        <MyRecommendationsModal userId={profile?.id} onClose={close} />
+        <MyRecommendationsModal userId={profile?.id} onClose={() => setEmpfehlungDetail(null)} />
         </Suspense>
-        )}
+      )}
 
       {/* ── Impact & Stimmen (Chooser + Detail-Drawer) ──────── */}
       {activeDrawer === "impact" && !impactDetail && (
