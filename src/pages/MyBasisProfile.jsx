@@ -60,7 +60,7 @@ const ExperienceWizard = React.lazy(() => import("../components/experiences/Expe
 // MeineVerkaeufeModal direkt importiert
 // MeineBuchungenModal direkt importiert
 // StatistikenModal direkt importiert
-const ProfilBearbeitenModal = React.lazy(() => import("../components/studio/ProfilBearbeitenModal.jsx").catch(chunkReload));
+import ProfilBearbeitenModal from "../components/studio/ProfilBearbeitenModal.jsx";
 import { HUIBookmarkIcon }      from "../design/icons/HuiInteractionIcons.jsx";
 import {
   HUIResonanzIcon, HUITalentIcon, HUIWerkeIcon, HUIErlebnisIcon,
@@ -1251,7 +1251,8 @@ export default function MyBasisProfile({ onClose, profileId }) {
             }}
             onEditProfile={() => {
               setShowSettings(false);
-              setShowProfilEditPage(true);
+              // kleines Delay: SettingsModal erst vollständig unmounten lassen
+              setTimeout(() => setShowProfilEditPage(true), 50);
             }}
             onOpenBookings={() => {
               setShowSettings(false);
@@ -1260,13 +1261,11 @@ export default function MyBasisProfile({ onClose, profileId }) {
           />
       )}
       {showProfilEditPage && (
-        <Suspense fallback={null}>
           <ProfilBearbeitenModal
             profile={profile}
             onClose={() => setShowProfilEditPage(false)}
             onProfileUpdate={() => { refreshProfile?.().catch(() => {}); setShowProfilEditPage(false); }}
           />
-        </Suspense>
       )}
 
       {/* GEMERKTE INHALTE — Portal pflicht (liegt sonst hinter BottomNav durch mbp-root Stacking Context) */}
