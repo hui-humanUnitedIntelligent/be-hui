@@ -23,8 +23,8 @@ import { useProfileData } from "../hooks/useProfileData.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
 import { useHome }   from "../components/home/HomeShell.jsx";
 import ProfileRelationButtons from "../components/shared/ProfileRelationButtons.jsx";
-const SettingsModal  = React.lazy(() => import("../components/settings/SettingsModal.jsx"));
-const HuiStudio      = React.lazy(() => import("../components/studio/HuiStudio.jsx"));
+import SettingsModal from "../components/settings/SettingsModal.jsx";
+import HuiStudio from "../components/studio/HuiStudio.jsx";
 import { supabase }   from "../lib/supabaseClient.js";
 // Sprint F.5.3: kanonische Sections
 import { AboutSection }           from "../components/profile/sections/AboutSection.jsx";
@@ -529,21 +529,17 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
           onEditCover={handleCoverChange}
         />
         {resolvedId && (
-          <React.Suspense fallback={null}>
-            <OrbSignatur profileId={resolvedId} />
-          </React.Suspense>
+        <OrbSignatur profileId={resolvedId} />
         )}
         <Gap h={16}/>
 
         {/* 3. Über dich — kanonisch (Sprint F.5.3) */}
-        <React.Suspense fallback={null}>
-          <AboutSection
+        <AboutSection
             profile={profile}
             isOwner={isOwner}
             loading={loading}
             onSave={handleBioSave}
           />
-        </React.Suspense>
         <Gap h={24}/>
 
         {/* 4. Interessen-Grid (Basis-spezifisch, skills als Display-Tags) */}
@@ -551,13 +547,11 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
         <Gap h={28}/>
 
         {/* 5. Momente — kanonisch MomentsSection (Sprint F.5.3) */}
-        <React.Suspense fallback={null}>
-          <MomentsSection
+        <MomentsSection
             moments={moments}
             isOwner={isOwner}
             loading={loadingLazy}
           />
-        </React.Suspense>
         <Gap h={28}/>
 
         {/* 6. Offen für Begegnungen (Basis-spezifisch, hardcoded Tags) */}
@@ -565,48 +559,40 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
         <Gap h={28}/>
 
         {/* 7. Verfügbarkeit — kanonisch (Sprint F.5.3) */}
-        <React.Suspense fallback={null}>
-          <AvailabilitySection
+        <AvailabilitySection
             profile={profile}
             isOwner={isOwner}
             loading={loading}
             onSave={handleAvailabilitySave}
           />
-        </React.Suspense>
         <Gap h={20}/>
 
         {/* 8. Standort — kanonisch (Sprint F.5.3) */}
-        <React.Suspense fallback={null}>
-          <LocationSection
+        <LocationSection
             profile={profile}
             isOwner={isOwner}
             loading={loading}
             onSave={handleLocationSave}
           />
-        </React.Suspense>
         <Gap h={20}/>
 
         {/* 9. Sichtbarkeit — kanonisch VisibilitySection (Sprint F.9G.1: onSave) */}
-        <React.Suspense fallback={null}>
-          <VisibilitySection
+        <VisibilitySection
             profile={profile}
             isOwner={isOwner}
             loading={loading}
             onSave={handleVisibilitySave}
           />
-        </React.Suspense>
         <Gap h={24}/>
 
         {/* 10. Kundenstimmen — kanonisch (Sprint F.5.3) */}
-        <React.Suspense fallback={null}>
-          <RecommendationsSection
+        <RecommendationsSection
             recommendations={recommendations}
             isOwner={isOwner}
             loading={loadingLazy}
             onAddRec={null}
             onShowAll={null}
           />
-        </React.Suspense>
         <Gap h={24}/>
 
         {/* Verbinden + Folgen — nur für Fremdprofile */}
@@ -700,8 +686,7 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
 
       {/* ── Modals (nur Owner) ─────────────────────────────────── */}
       {isOwner && showSettings && (
-        <React.Suspense fallback={null}>
-          <SettingsModal
+        <SettingsModal
             profile={profile}
             onClose={() => setShowSettings(false)}
             onSave={(updated) => {
@@ -709,16 +694,13 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
               setShowSettings(false);
             }}
           />
-        </React.Suspense>
-      )}
+        )}
       {isOwner && showStudio && (
-        <React.Suspense fallback={null}>
-          <HuiStudio
+        <HuiStudio
             profile={profile}
             onClose={() => setShowStudio(false)}
           />
-        </React.Suspense>
-      )}
+        )}
     </div>
   );
 }
