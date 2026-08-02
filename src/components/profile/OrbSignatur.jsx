@@ -1,12 +1,10 @@
 // OrbSignatur — Blatt + "Wirkt besonders durch"
 // Einheitlich auf allen Profilseiten (eigenes, öffentliches, Vorschau).
-import React, { Suspense } from "react";
+import React from "react";
 import { dominantPillarLabels } from "../../core/hui.pillars.js";
 import { useCoreProfile } from "../../hooks/useCoreEngine.js";
 
-const OrbLeaf = React.lazy(() =>
-  import("../orb/OrbLeaf.jsx").catch(() => ({ default: () => null }))
-);
+import { OrbLeaf } from "../orb/OrbLeaf.jsx";
 
 export function OrbSignatur({ profileId }) {
   const { dominantPillars, isLoading } = useCoreProfile(profileId);
@@ -24,14 +22,12 @@ export function OrbSignatur({ profileId }) {
       alignItems: "center",
       gap: 10,
     }}>
-      <Suspense fallback={null}>
-        <OrbLeaf
+      <OrbLeaf
           userId={profileId}
           size={40}
           variant="public"
           animate={false}
         />
-      </Suspense>
 
       <div style={{ textAlign: "center" }}>
         <p style={{

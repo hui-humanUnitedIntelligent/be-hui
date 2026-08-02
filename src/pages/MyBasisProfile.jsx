@@ -3090,7 +3090,7 @@ function TalentWerdenBanner({ onStart = () => {} }) {
 // Lädt TalentOnboarding (aus Home.jsx bekannt) lazy,
 // wrapped in createPortal + zIndex:10500 (Pflicht-Regel)
 // ══════════════════════════════════════════════════════════════
-const LazyTalentOnboarding = React.lazy(() => import('../components/TalentOnboarding.jsx'));
+import LazyTalentOnboarding from '../components/TalentOnboarding.jsx';
 
 function TalentOnboardingModal({ onClose = () => {}, onSuccess = () => {} }) {
   return createPortal(

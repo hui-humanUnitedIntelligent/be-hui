@@ -8,8 +8,8 @@ import { createPortal } from "react-dom";
 import { ProfileService } from '../../services/db';
 
 // Lazy imports — kein Blocking
-const TalentProfilePage = React.lazy(() => import("../../pages/TalentProfilePage.jsx"));
-const PublicProfilePage  = React.lazy(() => import("../../pages/PublicProfilePage.jsx"));
+import TalentProfilePage from "../../pages/TalentProfilePage.jsx";
+import PublicProfilePage from "../../pages/PublicProfilePage.jsx";
 
 function Spinner() {
   return createPortal(
@@ -84,13 +84,12 @@ export default function PublicProfilePreview({ profileId, onClose }) {
       >‹</button>
 
       {/* Profil-Inhalt — OrbSignatur ist in den Profilseiten integriert */}
-      <React.Suspense fallback={<Spinner />}>
+      }>
         <ProfileComponent
           profileId={profileId}
           onClose={onClose}
           publicView={true}
         />
-      </React.Suspense>
     </div>,
     document.body
   );
