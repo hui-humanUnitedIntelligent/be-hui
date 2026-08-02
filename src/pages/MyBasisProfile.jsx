@@ -1035,6 +1035,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
               talents={talents}
               works={works}
               experiences={experiences}
+              recommendations={recommendations}
               onTalentWizard={(t) => { setEditingTalent(t || null); setShowTalentWizard(true); }}
               onDeleteTalent={() => reloadTalents()}
               onWerkWizard={(w) => { setEditingWerk(w || null); setShowWerkWizard(true); }}
@@ -1114,6 +1115,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
               talents={talents}
               works={works}
               experiences={experiences}
+              recommendations={recommendations}
               onTalentWizard={(t) => { setEditingTalent(t || null); setShowTalentWizard(true); }}
               onDeleteTalent={() => reloadTalents()}
               onWerkWizard={(w) => { setEditingWerk(w || null); setShowWerkWizard(true); }}
@@ -2152,7 +2154,7 @@ function MeinBereichTile({ icon, label, onPress }) {
 
 function MeinBereichMenu({
   profile, isTalent,
-  talents, works, experiences,
+  talents, works, experiences, recommendations = [],
   onTalentWizard, onDeleteTalent,
   onWerkWizard, onDeleteWerk,
   onErlebnisWizard, onDeleteErlebnis,
