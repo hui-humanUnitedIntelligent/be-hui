@@ -505,11 +505,11 @@ export default function FinanzuebersichtModal({ profile, onClose = () => {} }) {
               key={t.id}
               onClick={() => setTab(t.id)}
               style={{
-                flexShrink: 0, padding: "7px 14px",
+                flexShrink: 0, padding: "3px 8px",
                 borderRadius: T.r99, border: "none",
                 background: tab === t.id ? T.teal : T.bgCard,
                 color: tab === t.id ? "white" : T.inkSoft,
-                fontSize: 12, fontWeight: tab === t.id ? 700 : 500,
+                fontSize: 10, fontWeight: tab === t.id ? 700 : 500,
                 cursor: "pointer", fontFamily: T.ff,
                 border: tab === t.id ? "none" : `1px solid ${T.border}`,
                 transition: "all .15s ease",
