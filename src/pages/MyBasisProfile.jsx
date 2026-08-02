@@ -6,6 +6,17 @@
 // ════════════════════════════════════════════════════════════════
 
 import React, { useState, useEffect, useRef, useCallback, Suspense } from "react";
+
+// Chunk-Mismatch Recovery: lädt Seite neu wenn ein alter Chunk nicht gefunden wird
+const chunkReload = () => {
+  if (!sessionStorage.getItem('__hui_chunk_reload')) {
+    sessionStorage.setItem('__hui_chunk_reload', '1');
+    location.reload();
+    return Promise.resolve({ default: () => null });
+  }
+  sessionStorage.removeItem('__hui_chunk_reload');
+  return Promise.resolve({ default: () => null });
+};
 import { useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
 import { supabase } from "../lib/supabaseClient.js";
@@ -857,6 +868,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
   }
 
   return (
+    <Suspense fallback={null}>
     <div className="mbp-root" style={{
       position:"fixed", top:0, left:0, right:0,
       bottom:NAV_CLEARANCE_CSS,
@@ -1419,6 +1431,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
         />
       )}
     </div>
+    </Suspense>
   );
 }
 
@@ -3092,23 +3105,16 @@ function TalentWerdenBanner({ onStart = () => {} }) {
 const LazyTalentOnboarding = React.lazy(() => import('../components/TalentOnboarding.jsx').catch(chunkReload));
 
 
-// Chunk-Mismatch Recovery: lädt Seite neu wenn ein alter Chunk nicht gefunden wird
-const chunkReload = () => {
-  if (!sessionStorage.getItem('__hui_chunk_reload')) {
-    sessionStorage.setItem('__hui_chunk_reload', '1');
-    location.reload();
-    return Promise.resolve({ default: () => null });
-  }
-  sessionStorage.removeItem('__hui_chunk_reload');
-  return Promise.resolve({ default: () => null });
-};
+
 
 function TalentOnboardingModal({ onClose = () => {}, onSuccess = () => {} }) {
   return createPortal(
-      <LazyTalentOnboarding
-        onClose={onClose}
-        onActivate={onSuccess}
-      />,
+      <Suspense fallback={null}>
+        <LazyTalentOnboarding
+          onClose={onClose}
+          onActivate={onSuccess}
+        />
+      </Suspense>,
     document.body
   );
 }

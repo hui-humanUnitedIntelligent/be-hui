@@ -1310,8 +1310,9 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
     );
   }
 
-  return (
-    <div className="tpp-root" style={{
+    return (
+    <Suspense fallback={null}>
+        <div className="tpp-root" style={{
       position:"fixed", top:0, left:0, right:0,
       bottom: publicView ? 0 : NAV_CLEARANCE_CSS,
       zIndex:9500, /* <BottomNav(10000) — Root endet vor Navbar */
@@ -1518,5 +1519,6 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
           />
         )}
     </div>
+    </Suspense>
   );
 }

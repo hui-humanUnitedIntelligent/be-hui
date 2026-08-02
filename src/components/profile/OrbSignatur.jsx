@@ -22,12 +22,12 @@ export function OrbSignatur({ profileId }) {
       alignItems: "center",
       gap: 10,
     }}>
-      <OrbLeaf
+      <Suspense fallback={null}><OrbLeaf
           userId={profileId}
           size={40}
           variant="public"
           animate={false}
-        />
+        /></Suspense>
 
       <div style={{ textAlign: "center" }}>
         <p style={{

@@ -492,8 +492,9 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
     );
   }
 
-  return (
-    <div className="bpp-root" style={{
+    return (
+    <Suspense fallback={null}>
+        <div className="bpp-root" style={{
       position:"fixed", top:0, left:0, right:0,
       bottom: publicView ? 0 : NAV_CLEARANCE_CSS,
       zIndex:10500, /* Portal-escaped: über allem (Portal Fix 2026-07-29). bottom sichert Navbar-Freiraum */
@@ -712,5 +713,6 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
           />
         )}
     </div>
+    </Suspense>
   );
 }

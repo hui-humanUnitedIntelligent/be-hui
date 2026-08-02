@@ -94,12 +94,13 @@ export default function PublicProfilePreview({ profileId, onClose }) {
       >‹</button>
 
       {/* Profil-Inhalt — OrbSignatur ist in den Profilseiten integriert */}
-      }>
+      <Suspense fallback={null}>
         <ProfileComponent
           profileId={profileId}
           onClose={onClose}
           publicView={true}
         />
+      </Suspense>
     </div>,
     document.body
   );
