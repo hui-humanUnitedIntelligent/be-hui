@@ -27,7 +27,7 @@ const EXPERIENCES_SELECT =
   "approval_status,visibility,format,location_text,price,duration,created_at";
 
 const RECOMMENDATIONS_SELECT =
-  "id,from_user_id,to_user_id,text,is_public,created_at";
+  "id,from_user_id,to_user_id,text,is_public,order_id,booking_id,deleted_at,created_at";
 
 const MOMENTS_SELECT =
   "id,user_id,src,type,caption,created_at";
@@ -223,6 +223,7 @@ export function useProfileData(profileId, includePrivate = false) {
             .select(RECOMMENDATIONS_SELECT)
             .eq("to_user_id", profileId)
             .eq("is_public", true)
+            .is("deleted_at", null)
             .order("created_at", { ascending: false })
             .limit(20)
             .then(r => r)

@@ -5,10 +5,14 @@
 // Visitor: Sterne-Rating + work_title. Empty-State statt null.
 // ══════════════════════════════════════════════════════════════════════
 import { HUIEmpfehlungIcon } from '../../../design/icons/HuiSystemIcons.jsx';
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useContentPreview } from "../../../context/ContentPreviewContext.jsx"; // OPEN.1 2026-07-08
 import { normalizeRecommendationForPreview } from "../../../lib/previewNormalizers.js";
 import { useProfileLauncher } from '../../home/profile/ProfileLauncher.jsx';
+import RecommendModal from "../RecommendModal.jsx";
+import { RecommendationService } from "../../../services/db";
+import { supabase } from "../../../lib/supabaseClient";
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", ink:"#1A1A18",
@@ -34,14 +38,69 @@ function Stars({ rating }) {
 }
 
 export function RecommendationsSection({
-  recommendations = [],
-  isOwner         = false,
-  loading         = false,
-  onAddRec        = null,
-  onShowAll       = null,
+  recommendations   = [],
+  isOwner          = false,
+  loading          = false,
+  onAddRec         = null,
+  onShowAll        = null,
+  profileOwnerId   = "",
+  profileOwnerName = "",
 }) {
   const { openCreatorProfile } = useProfileLauncher();
-  const { open: openPreview } = useContentPreview(); // OPEN.1 2026-07-08 -- Karten waren zuvor komplett tot (kein onClick)
+  const { open: openPreview } = useContentPreview();
+
+  // ── Empfehlung schreiben (Visitor, nach Kauf/Buchung) ──
+  const [showRecommendModal, setShowRecommendModal] = useState(false);
+  const [canRec, setCanRec]       = useState(false);
+  const [hasRecd, setHasRecd]     = useState(false);
+  const [recContext, setRecContext] = useState({ orderId: null, bookingId: null });
+  const [currentUid, setCurrentUid] = useState("");
+
+  useEffect(() => {
+    if (!profileOwnerId || isOwner) return;
+    let mounted = true;
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      if (!mounted || !data?.user?.id) return;
+      setCurrentUid(data.user.id);
+      const [eligible, already] = await Promise.all([
+        RecommendationService.canRecommend(data.user.id, profileOwnerId),
+        RecommendationService.hasRecommended(data.user.id, profileOwnerId),
+      ]);
+      if (!mounted) return;
+      setCanRec(eligible.eligible);
+      setHasRecd(already);
+      setRecContext({ orderId: eligible.orderId, bookingId: eligible.bookingId });
+    })();
+    return () => { mounted = false; };
+  }, [profileOwnerId, isOwner]);
+
+  // ── Melden-Dialog (Owner) ──
+  const [reportingId, setReportingId]     = useState(null);
+  const [reportReason, setReportReason]   = useState("");
+  const [reportSubmitting, setReportSubmitting] = useState(false);
+  const [reported, setReported]           = useState({}); // rec.id → true
+
+  const handleReport = async () => {
+    if (!reportingId || !profileOwnerId || reportReason.trim().length < 3) return;
+    setReportSubmitting(true);
+    try {
+      // rec-Daten holen für offender_id + message
+      const rec = recommendations.find(r => r.id === reportingId);
+      const result = await RecommendationService.reportRecommendation(reportingId, profileOwnerId, {
+        reason: reportReason.trim(),
+        offenderId: rec?.from_user_id || null,
+        message: rec?.text || '',
+      });
+      if (result.error) throw result.error;
+      setReported(prev => ({ ...prev, [reportingId]: true }));
+      setReportingId(null);
+      setReportReason("");
+    } catch (e) {
+      console.warn("[RecommendationsSection] report error:", e);
+    }
+    setReportSubmitting(false);
+  };
   if (loading) {
     return (
       <div>
@@ -127,9 +186,58 @@ export function RecommendationsSection({
                   — {authorName}
                 </div>
               </button>
+              {/* Melden-Button — nur Owner, nur wenn nicht schon gemeldet */}
+              {isOwner && !reported[rec.id] && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setReportingId(rec.id); }}
+                  style={{
+                    position: "absolute", top: 10, right: 10,
+                    background: "rgba(26,26,24,0.04)",
+                    border: "none", borderRadius: T.r99,
+                    padding: "4px 8px", fontSize: 10, fontWeight: 600,
+                    color: T.inkFaint, cursor: "pointer", fontFamily: T.ff,
+                  }}
+                >
+                  ⚠ Melden
+                </button>
+              )}
+              {isOwner && reported[rec.id] && (
+                <span
+                  style={{
+                    position: "absolute", top: 10, right: 10,
+                    fontSize: 10, fontWeight: 600, color: T.teal,
+                  }}
+                >
+                  ✓ Gemeldet
+                </span>
+              )}
             </div>
             );
           })}
+
+          {/* Empfehlen — Visitor (nicht Owner, nach Kauf/Buchung) */}
+          {!isOwner && canRec && !hasRecd && (
+            <div className="rs-press" onClick={() => setShowRecommendModal(true)} style={{
+              flexShrink: 0, display: "flex", alignItems: "center", gap: 6,
+              padding: "10px 16px", borderRadius: T.r16,
+              background: T.bgCard, border: `1.5px solid ${T.teal}`,
+              fontSize: 12.5, fontWeight: 600, color: T.teal,
+              cursor: "pointer", whiteSpace: "nowrap",
+              fontFamily: T.ff,
+            }}>
+              + Empfehlen
+            </div>
+          )}
+          {!isOwner && canRec && hasRecd && (
+            <div style={{
+              flexShrink: 0, padding: "10px 16px", borderRadius: T.r16,
+              background: T.bgCard, border: `1px solid ${T.border}`,
+              fontSize: 12, fontWeight: 500, color: T.inkFaint,
+              whiteSpace: "nowrap", fontFamily: T.ff,
+            }}>
+              ✓ Empfohlen
+            </div>
+          )}
 
           {/* Hinzufügen — Owner */}
           {isOwner && (
@@ -145,6 +253,72 @@ export function RecommendationsSection({
           )}
         </div>
       )}
+
+      {/* ── Modals (Portal zu document.body) ── */}
+
+      {/* RecommendModal — Visitor kann Empfehlung schreiben */}
+      {showRecommendModal && profileOwnerId && (
+        <RecommendModal
+          toUserId={profileOwnerId}
+          toUserName={profileOwnerName}
+          orderId={recContext.orderId}
+          bookingId={recContext.bookingId}
+          onClose={() => setShowRecommendModal(false)}
+          onSubmitted={() => { setHasRecd(true); setShowRecommendModal(false); }}
+        />
+      )}
+
+      {/* Melden-Dialog — Owner kann Empfehlung melden */}
+      {reportingId && createPortal(
+        <div
+          onClick={(e) => { if (e.target === e.currentTarget) { setReportingId(null); setReportReason(""); } }}
+          style={{ position: "fixed", inset: 0, zIndex: 10550, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "flex-end" }}
+        >
+          <div style={{
+            width: "100%", background: T.bg,
+            borderRadius: "16px 16px 0 0",
+            padding: "20px 20px calc(88px + env(safe-area-inset-bottom, 0px))",
+            display: "flex", flexDirection: "column", gap: 14, fontFamily: T.ff,
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ fontSize: 16, fontWeight: 800, color: T.ink }}>Empfehlung melden</div>
+              <button onClick={() => { setReportingId(null); setReportReason(""); }}
+                style={{ background: "rgba(26,26,24,0.07)", border: "none", borderRadius: 99, width: 30, height: 30, fontSize: 16, color: T.inkSoft, cursor: "pointer" }}>✕</button>
+            </div>
+            <div style={{ fontSize: 12, color: T.inkSoft, lineHeight: 1.5 }}>
+              Nur du kannst Empfehlungen auf deinem Profil melden. Gib einen Grund an.
+            </div>
+            <textarea
+              value={reportReason}
+              onChange={(e) => setReportReason(e.target.value)}
+              placeholder="Warum möchtest du diese Empfehlung melden?"
+              maxLength={300}
+              style={{
+                width: "100%", minHeight: 80, padding: "12px 14px",
+                borderRadius: 12, border: `1px solid ${T.border}`,
+                background: T.bgCard, fontSize: 14, lineHeight: 1.5,
+                color: T.ink, fontFamily: T.ff, resize: "none", outline: "none",
+                boxSizing: "border-box",
+              }}
+            />
+            <button
+              onClick={handleReport}
+              disabled={reportReason.trim().length < 3 || reportSubmitting}
+              style={{
+                padding: "13px 24px", borderRadius: 99, border: "none",
+                background: reportReason.trim().length < 3 ? "rgba(26,26,24,0.08)" : "#DC2626",
+                color: reportReason.trim().length < 3 ? T.inkFaint : "white",
+                fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: T.ff,
+                opacity: reportSubmitting ? 0.6 : 1,
+              }}
+            >
+              {reportSubmitting ? "Wird gesendet…" : "Meldung senden"}
+            </button>
+          </div>
+        </div>,
+        document.body
+      )}
+
     </div>
   );
 }

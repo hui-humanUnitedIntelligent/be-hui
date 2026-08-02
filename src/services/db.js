@@ -49,7 +49,7 @@ const F = {
   impactProject:'id,name,category,description,icon,color,votes,status,awarded_eur,month,website,tags,contact_name',
   impactRound:  'id,month,status,pool_eur,awarded_eur,closed_at,created_at',
   impactVote:   'id,voter_id,project_id,pool_month,weight,created_at',
-  recommendation:'id,from_user_id,to_user_id,text,result_images,is_public,created_at',
+  recommendation:'id,from_user_id,to_user_id,text,result_images,is_public,order_id,booking_id,created_at',
   membership:   'id,user_id,membership_type,status,vote_weight,started_at,expires_at',
   matchScore:   'id,user_id,target_user_id,score,categories,updated_at',
 };
@@ -652,13 +652,88 @@ export const RecommendationService = {
     return this.getByUser(userId, page);
   },
 
-  async create(fromUserId, toUserId, text, bookingId = null) {
+  async create(fromUserId, toUserId, text, { bookingId = null, orderId = null } = {}) {
+    const payload = { from_user_id: fromUserId, to_user_id: toUserId, text, is_public: true };
+    if (bookingId) payload.booking_id = bookingId;
+    if (orderId)   payload.order_id   = orderId;
     return safeQuery(
       supabase.from('recommendations')
-        .insert({ from_user_id: fromUserId, to_user_id: toUserId, text, booking_id: bookingId, is_public: true })
+        .insert(payload)
         .select(F.recommendation)
         .single()
     );
+  },
+
+  // Prüft ob ein Nutzer eine Empfehlung schreiben darf (hat etwas gekauft/gebucht)
+  async canRecommend(fromUserId, toUserId) {
+    if (!fromUserId || !toUserId || fromUserId === toUserId) return { eligible: false };
+    // 1. Werk-Käufe: orders → order_items.seller_id
+    const { data: orders } = await safeQuery(
+      supabase.from('order_items')
+        .select('id, order_id, seller_id, fulfillment_status')
+        .eq('seller_id', toUserId)
+        .in('fulfillment_status', ['delivered', 'completed', 'released', null])
+    );
+    let eligibleOrders = [];
+    if (orders && orders.length) {
+      const orderIds = [...new Set(orders.map(o => o.order_id))];
+      const { data: myOrders } = await safeQuery(
+        supabase.from('orders')
+          .select('id, state')
+          .in('id', orderIds)
+          .in('state', ['paid', 'completed', 'delivered'])
+      );
+      eligibleOrders = (myOrders || []).map(o => o.id);
+    }
+    // 2. Talent-Buchungen: talent_bookings → talents.user_id
+    const { data: talents } = await safeQuery(
+      supabase.from('talents')
+        .select('id')
+        .eq('user_id', toUserId)
+    );
+    let eligibleBookings = [];
+    if (talents && talents.length) {
+      const talentIds = talents.map(t => t.id);
+      const { data: bookings } = await safeQuery(
+        supabase.from('talent_bookings')
+          .select('id, status')
+          .in('talent_id', talentIds)
+          .eq('buyer_id', fromUserId)
+          .in('status', ['completed', 'confirmed'])
+      );
+      eligibleBookings = (bookings || []).map(b => b.id);
+    }
+    const eligible = eligibleOrders.length > 0 || eligibleBookings.length > 0;
+    return { eligible, orderId: eligibleOrders[0] || null, bookingId: eligibleBookings[0] || null };
+  },
+
+  // Meldet eine Empfehlung (nur Empfänger kann melden)
+  // offender_id = Empfehlender, message = Empfehlungstext (für SADB denormalisiert)
+  async reportRecommendation(recommendationId, reporterId, { reason = '', offenderId = null, message = '' } = {}) {
+    const payload = {
+      recommendation_id: recommendationId,
+      reporter_id: reporterId,
+      reason, message, status: 'new',
+    };
+    if (offenderId) payload.offender_id = offenderId;
+    return safeQuery(
+      supabase.from('recommendation_reports')
+        .insert(payload)
+        .select('id')
+        .single()
+    );
+  },
+
+  // Hat der Nutzer diese Person bereits empfohlen?
+  async hasRecommended(fromUserId, toUserId) {
+    const { data } = await safeQuery(
+      supabase.from('recommendations')
+        .select('id')
+        .eq('from_user_id', fromUserId)
+        .eq('to_user_id', toUserId)
+        .limit(1)
+    );
+    return (data && data.length > 0);
   },
 };
 

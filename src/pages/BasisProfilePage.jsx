@@ -597,6 +597,8 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
             loading={loadingLazy}
             onAddRec={null}
             onShowAll={null}
+            profileOwnerId={profile?.id || ""}
+            profileOwnerName={profile?.display_name || profile?.nickname || ""}
           />
         <Gap h={24}/>
 

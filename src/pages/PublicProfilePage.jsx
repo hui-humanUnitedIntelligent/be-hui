@@ -688,7 +688,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
         {(recommendations.length > 0 || loadingLazy) && (
           <>
             <SectionCard icon={<HUIImpactIcon size={16}/>} title="Empfehlungen" delay={180}>
-                <RecommendationsSection recommendations={recommendations} isOwner={false} loading={loadingLazy} />
+                <RecommendationsSection recommendations={recommendations} isOwner={false} loading={loadingLazy} profileOwnerId={profileId || ""} profileOwnerName={profile?.display_name || profile?.nickname || ""} />
             </SectionCard>
             <Gap h={12}/>
           </>

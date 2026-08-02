@@ -1417,6 +1417,8 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
             isOwner={isOwner}
             loading={loading}
             onShowAll={() => {}}
+            profileOwnerId={profile?.id || ""}
+            profileOwnerName={profile?.display_name || profile?.nickname || ""}
           />
         <Gap h={28}/>
 

@@ -1055,6 +1055,8 @@ export default function MyBasisProfile({ onClose, profileId }) {
         <Suspense fallback={null}><RecommendationsSection
                 recommendations={recommendations}
                 isOwner={true}
+                profileOwnerId={profile?.id || ""}
+                profileOwnerName={profile?.display_name || profile?.nickname || ""}
               /></Suspense>
         <Gap h={24}/>
 
