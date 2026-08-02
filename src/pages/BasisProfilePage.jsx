@@ -569,14 +569,7 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
         <OffenFuerSection profile={profile} loading={loading}/>
         <Gap h={28}/>
 
-        {/* 7. Verfügbarkeit — kanonisch (Sprint F.5.3) */}
-        <AvailabilitySection
-            profile={profile}
-            isOwner={isOwner}
-            loading={loading}
-            onSave={handleAvailabilitySave}
-          />
-        <Gap h={20}/>
+
 
         {/* 8. Standort — kanonisch (Sprint F.5.3) */}
         <LocationSection

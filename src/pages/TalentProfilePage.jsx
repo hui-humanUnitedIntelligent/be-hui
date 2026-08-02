@@ -1420,14 +1420,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
           />
         <Gap h={28}/>
 
-        {/* ── 11. Verfügbarkeit → AvailabilitySection ──────── */}
-        <AvailabilitySection
-            profile={profile}
-            isOwner={isOwner}
-            loading={loading}
-            onSave={handleAvailabilityChange}
-          />
-        <Gap h={12}/>
+
 
         {/* ── 12. Standort → LocationSection ───────────────── */}
         <LocationSection

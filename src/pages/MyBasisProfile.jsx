@@ -1058,13 +1058,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
               /></Suspense>
         <Gap h={24}/>
 
-            {/* T6a. Verfügbarkeit — kanonisch: AvailabilitySection */}
-        <Suspense fallback={null}><AvailabilitySection
-                profile={profile}
-                isOwner={true}
-                onSave={handleAvailabilitySave}
-              /></Suspense>
-        <Gap h={16}/>
+
 
             <Gap h={24}/>
 
