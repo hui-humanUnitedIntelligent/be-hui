@@ -35,15 +35,27 @@ import SplashScreen from './pages/SplashScreen.tsx';
 // Erzeugen separate Chunks → schnellerer Initial-Load
 // WirkerProfilePage (~140KB) und CreatorStudio laden nur bei Bedarf
 import Home              from './pages/Home';
-const RefRedirect       = lazy(() => import('./pages/RefRedirect'))
+
+// Chunk-Mismatch Recovery
+const chunkReload = () => {
+  if (!sessionStorage.getItem('__hui_chunk_reload')) {
+    sessionStorage.setItem('__hui_chunk_reload', '1');
+    location.reload();
+    return Promise.resolve({ default: () => null });
+  }
+  sessionStorage.removeItem('__hui_chunk_reload');
+  return Promise.resolve({ default: () => null });
+};
+
+const RefRedirect       = lazy(() => import('./pages/RefRedirect').catch(chunkReload))
 import ImpactPage from './pages/ImpactPage';
-const Admin             = lazy(() => import('./pages/Admin'))
-const DiagnosePage      = lazy(() => import('./pages/DiagnosePage'))
-const PlatformDashboard = lazy(() => import('./pages/PlatformDashboard'))
-const CreatorStudio     = lazy(() => import('./pages/CreatorStudio'))
+const Admin             = lazy(() => import('./pages/Admin').catch(chunkReload))
+const DiagnosePage      = lazy(() => import('./pages/DiagnosePage').catch(chunkReload))
+const PlatformDashboard = lazy(() => import('./pages/PlatformDashboard').catch(chunkReload))
+const CreatorStudio     = lazy(() => import('./pages/CreatorStudio').catch(chunkReload))
 // DARK-PROFILE-REMOVE-001: WirkerProfilePage entfernt (2026-07-19)
 // Ersetzt durch PublicProfileRouteWrapper → TalentProfilePage/PublicProfilePage
-const WorkDetailPage    = lazy(() => import('./components/WorkDetailPage'))
+const WorkDetailPage    = lazy(() => import('./components/WorkDetailPage').catch(chunkReload))
 
 // ── Route Factory ──────────────────────────────────────────────────────────
 import { createTabPage, filterValidPages } from './lib/factories/createTabPage.js'
@@ -488,8 +500,8 @@ function WorkDetailRouteWrapper() {
 
 /* ── DARK-PROFILE-REMOVE-001: PublicProfileRouteWrapper (2026-07-19) ── */
 // Ersetzt WirkerProfilePage (dunkles Profil) durch TalentProfilePage/PublicProfilePage (helles Profil)
-const TalentProfilePageLazy = lazy(() => import('./pages/TalentProfilePage.jsx'));
-const PublicProfilePageLazy  = lazy(() => import('./pages/PublicProfilePage.jsx'));
+const TalentProfilePageLazy = lazy(() => import('./pages/TalentProfilePage.jsx').catch(chunkReload));
+const PublicProfilePageLazy  = lazy(() => import('./pages/PublicProfilePage.jsx').catch(chunkReload));
 
 function PublicProfileRouteWrapper() {
   const { username } = useParams();
