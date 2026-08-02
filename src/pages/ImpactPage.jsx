@@ -2693,12 +2693,6 @@ function HerzensprojektEmotional({ onPropose }) {
         borderRadius:28, padding:"32px 24px", textAlign:"center",
         position:"relative", overflow:"hidden",
       }}>
-        {/* Dekorative Emojis */}
-        <div style={{ position:"absolute", top:18, left:18, fontSize:22,
-          animation:"ipFloat 7s ease-in-out 0s infinite", opacity:0.5 }}>🌱</div>
-        <div style={{ position:"absolute", top:22, right:22, fontSize:20,
-          animation:"ipFloat 9s ease-in-out 1.5s infinite", opacity:0.4 }}>✨</div>
-
         <div style={{ fontSize:44, marginBottom:16,
           filter:"drop-shadow(0 4px 16px rgba(13,196,181,0.3))",
           animation:"ipBreath 5s ease-in-out infinite" }}>💚</div>
