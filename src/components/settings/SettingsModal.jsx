@@ -362,7 +362,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
   const titles = {
     main:     "Einstellungen",
     contact:  "📬 Persönliche Daten",
-    security: "Sicherheit",
+    security: "Email & Passwort",
     privacy:  "🕵️ Privatsphäre",
   };
 
@@ -400,7 +400,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
             <Section title="Account & Sicherheit" icon={<HUIProfilIcon size={16}/>}>
               <NavItem icon={<HUIProfilIcon size={16}/>} label="Profil bearbeiten"
                 onClick={() => { onClose?.(); onEditProfile?.(); }}/>
-              <NavItem icon={<HUISicherheitIcon size={16}/>} label="Sicherheit & Passwort"
+              <NavItem icon={<HUISicherheitIcon size={16}/>} label="Email & Passwort"
                 onClick={() => setView("security")}/>
               <NavItem icon={<HUIKontaktIcon size={16}/>} label="Support & Hilfe"
                 onClick={() => setView("support")}/>
