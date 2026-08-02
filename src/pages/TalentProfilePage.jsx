@@ -1363,6 +1363,17 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
           profile={profile} works={works} experiences={experiences}
           moments={moments} loading={loading} followCounts={followCounts}
         />
+        <Gap h={16}/>
+
+        {/* ── Kundenstimmen — direkt unter Bio/Stats ── */}
+        <RecommendationsSection
+            recommendations={recommendations}
+            isOwner={isOwner}
+            loading={loading}
+            onShowAll={() => {}}
+            profileOwnerId={profile?.id || ""}
+            profileOwnerName={profile?.display_name || profile?.nickname || ""}
+          />
         <Gap h={28}/>
 
         {/* ── 5. Nächste Erlebnisse (unverändert) ──────────── */}
@@ -1411,16 +1422,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
           />
         <Gap h={28}/>
 
-        {/* ── 10. Kundenstimmen → RecommendationsSection ───── */}
-        <RecommendationsSection
-            recommendations={recommendations}
-            isOwner={isOwner}
-            loading={loading}
-            onShowAll={() => {}}
-            profileOwnerId={profile?.id || ""}
-            profileOwnerName={profile?.display_name || profile?.nickname || ""}
-          />
-        <Gap h={28}/>
+
 
 
 

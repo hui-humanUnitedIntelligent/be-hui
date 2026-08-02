@@ -117,6 +117,9 @@ export function RecommendationsSection({
     );
   }
 
+  // Visitor + keine Empfehlungen → nicht anzeigen
+  if (!isOwner && recommendations.length === 0) return null;
+
   return (
     <div>
       <style>{`@keyframes ps-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}.rs-hscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}.rs-hscroll::-webkit-scrollbar{display:none}.rs-press{-webkit-tap-highlight-color:transparent;transition:opacity .12s ease}.rs-press:active{opacity:.65}`}</style>
@@ -148,15 +151,7 @@ export function RecommendationsSection({
               </div>
             </div>
           </div>
-        ) : (
-          <div style={{ margin:`0 ${T.px}px`, padding:"20px 16px", borderRadius:T.r16,
-            background:T.bgCard, border:`1px solid ${T.border}`, textAlign:"center" }}>
-            <div style={{marginBottom:6, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)"}}><HUIEmpfehlungIcon size={20}/></div>
-            <div style={{ fontSize:13, color:T.inkFaint, fontStyle:"italic" }}>
-              Dieses Talent hat noch keine Kundenstimmen erhalten.
-            </div>
-          </div>
-        )
+        ) : null
       ) : (
         <div className="rs-hscroll" style={{ display:"flex", gap:12, padding:`0 ${T.px}px 4px` }}>
           {recommendations.slice(0,5).map((rec,i) => {

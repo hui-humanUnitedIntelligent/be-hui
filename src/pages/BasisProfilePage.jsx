@@ -552,6 +552,18 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
             loading={loading}
             onSave={handleBioSave}
           />
+        <Gap h={16}/>
+
+        {/* Kundenstimmen — direkt unter Bio */}
+        <RecommendationsSection
+            recommendations={recommendations}
+            isOwner={isOwner}
+            loading={loadingLazy}
+            onAddRec={null}
+            onShowAll={null}
+            profileOwnerId={profile?.id || ""}
+            profileOwnerName={profile?.display_name || profile?.nickname || ""}
+          />
         <Gap h={24}/>
 
         {/* 4. Interessen-Grid (Basis-spezifisch, skills als Display-Tags) */}
@@ -590,17 +602,7 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
           />
         <Gap h={24}/>
 
-        {/* 10. Kundenstimmen — kanonisch (Sprint F.5.3) */}
-        <RecommendationsSection
-            recommendations={recommendations}
-            isOwner={isOwner}
-            loading={loadingLazy}
-            onAddRec={null}
-            onShowAll={null}
-            profileOwnerId={profile?.id || ""}
-            profileOwnerName={profile?.display_name || profile?.nickname || ""}
-          />
-        <Gap h={24}/>
+
 
         {/* Verbinden + Folgen — nur für Fremdprofile */}
         {!isOwner && (
