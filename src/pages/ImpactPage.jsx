@@ -575,6 +575,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
   const [milestones, setMilestones] = React.useState([]);
   const [milestonesLoading, setMilestonesLoading] = React.useState(false);
   const [detailMilestone, setDetailMilestone] = React.useState(null);
+  const [showInfoModal, setShowInfoModal] = React.useState(false);
   const fundPct = goalFromDb > 0 ? Math.min(100, Math.round(fundedEur / goalFromDb * 100)) : 0;
 
   const img = app.cover_url
@@ -831,6 +832,23 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
               €{fundedEur.toLocaleString('de-DE')} von €{goalFromDb.toLocaleString('de-DE')} finanziert
             </div>
           </div>
+          {/* Entdecke das Projekt Button */}
+          <button
+            onClick={() => setShowInfoModal(true)}
+            style={{
+              width:"100%", borderRadius:16,
+              padding:"13px 0", marginBottom:18,
+              background:"none",
+              border:"1.5px solid #0DC4B5",
+              color:"#0DC4B5", fontSize:14, fontWeight:700,
+              cursor:"pointer", letterSpacing:"-0.01em",
+              display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+            }}
+          >
+            <span style={{ fontSize:16 }}>🔍</span>
+            Entdecke das Projekt
+          </button>
+
           {/* Stimmen-Counter — NUR Counter, kein Balken */}
           <div style={{ fontSize:13, color:"#888", marginBottom:16, display:"flex", alignItems:"center", gap:4 }}><HUIStimmeIcon size={13}/>{voteCount} Stimmen bisher</div>
 
