@@ -19,7 +19,7 @@ import { useHome }   from "../components/home/HomeShell.jsx";
 const GemeinschaftsFlow = React.lazy(() => import("../components/GemeinschaftsFlow.jsx"));
 const NotificationPanel = React.lazy(() => import("../components/notifications/NotificationPanel.jsx"));
 const AmbassadorModal = React.lazy(() => import("../components/ambassador/AmbassadorModal.jsx"));
-const SettingsModal  = React.lazy(() => import("../components/settings/SettingsModal.jsx"));
+import SettingsModal from "../components/settings/SettingsModal.jsx";
 import { useAmbassador } from "../hooks/useAmbassador.js";
 import { useProfileData } from "../hooks/useProfileData.js";
 const HuiStudio              = React.lazy(() => import("../components/studio/HuiStudio.jsx"));
@@ -1249,7 +1249,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
       {/* SETTINGS MODAL */}
       {showSettings && (
-        <React.Suspense fallback={null}>
           <SettingsModal
             profile={profile}
             onClose={() => setShowSettings(false)}
@@ -1265,7 +1264,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
               if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("hui:openBookings"));
             }}
           />
-        </React.Suspense>
       )}
       {showProfilEditPage && (
         <React.Suspense fallback={null}>
