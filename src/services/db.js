@@ -681,6 +681,7 @@ export const RecommendationService = {
         supabase.from('orders')
           .select('id, state')
           .in('id', orderIds)
+          .eq('customer_id', fromUserId)
           .in('state', ['paid', 'completed', 'delivered'])
       );
       eligibleOrders = (myOrders || []).map(o => o.id);
@@ -698,7 +699,7 @@ export const RecommendationService = {
         supabase.from('talent_bookings')
           .select('id, status')
           .in('talent_id', talentIds)
-          .eq('buyer_id', fromUserId)
+          .eq("customer_id", fromUserId)
           .in('status', ['completed', 'confirmed'])
       );
       eligibleBookings = (bookings || []).map(b => b.id);

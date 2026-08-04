@@ -145,6 +145,7 @@ const CSS = `
   .mbp-sheet { animation:mbp-slide-up .28s cubic-bezier(.22,1,.36,1) both; }
   .mbp-file-input { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; z-index:10; }
   @keyframes mbp-upload-spin { to{transform:rotate(360deg)} }
+  @keyframes spin { to{transform:rotate(360deg)} }
   .mbp-uploading { animation:mbp-upload-spin .7s linear infinite; display:inline-block; }
 `;
 
