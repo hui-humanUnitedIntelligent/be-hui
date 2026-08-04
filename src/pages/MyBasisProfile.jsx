@@ -26,7 +26,7 @@ import SettingsModal from "../components/settings/SettingsModal.jsx";
 import { useAmbassador } from "../hooks/useAmbassador.js";
 import { useProfileData } from "../hooks/useProfileData.js";
 const HuiStudio = React.lazy(() => import("../components/studio/HuiStudio.jsx").catch(makeChunkReload("MyBasisProfile:HuiStudio")));
-const MeineResonanz = React.lazy(() => import("./studio/MeineResonanz.jsx").catch(makeChunkReload("MyBasisProfile:MeineResonanz")));
+import MeineResonanz from "./studio/MeineResonanz.jsx";
 const PublicProfilePreview = React.lazy(() => import("../components/profile/PublicProfilePreview.jsx").catch(makeChunkReload("MyBasisProfile:PublicProfilePreview")));
 const OrbSignatur = React.lazy(() => import("../components/profile/OrbSignatur.jsx").then(m => ({ default: m.OrbSignatur })).catch(makeChunkReload("MyBasisProfile:OrbSignatur")));
 import MerkenSection from "../components/profile/MerkenSection.jsx";
@@ -1355,14 +1355,12 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
       {/* ❤️ MEINE RESONANZ */}
       {showResonanz && (
-        <Suspense fallback={null}>
         <MeineResonanz
           onClose={() => setShowResonanz(false)}
           onNavigate={(type, navId) => {
             setShowResonanz(false);
           }}
         />
-        </Suspense>
       )}
 
       {/* AMBASSADOR BEWERBUNGS-MODAL */}

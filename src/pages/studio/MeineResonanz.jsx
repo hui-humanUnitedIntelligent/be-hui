@@ -12,6 +12,7 @@ import {
 } from '../../design/icons/HuiSystemIcons.jsx';
 import { HUIHeartIcon } from '../../design/icons/HuiInteractionIcons.jsx';
 import React from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useAuth }  from "../../lib/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
@@ -489,7 +490,7 @@ export default function MeineResonanz({ onClose, onNavigate }) {
     else if (entry.type === "support")  onNavigate("support",  entry.navId);
   }
 
-  return (
+  return createPortal(
     <div style={{
       position:"fixed", inset:0, zIndex:12000,
       background:T.page, display:"flex", flexDirection:"column",
@@ -578,6 +579,7 @@ export default function MeineResonanz({ onClose, onNavigate }) {
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
