@@ -25,6 +25,8 @@ import { notifyWatcher } from "../lib/notificationService.js";
 import { useHome }       from "../components/home/HomeShell.jsx";
 const SettingsModal = React.lazy(() => import("../components/settings/SettingsModal.jsx").catch(makeChunkReload("TalentProfilePage:SettingsModal")));
 const HuiStudio = React.lazy(() => import("../components/studio/HuiStudio.jsx").catch(makeChunkReload("TalentProfilePage:HuiStudio")));
+const WerkWizard = React.lazy(() => import("../components/works/WerkWizard.jsx").catch(makeChunkReload("TalentProfilePage:WerkWizard")));
+const ExperienceWizard = React.lazy(() => import("../components/experiences/ExperienceWizard.jsx").catch(makeChunkReload("TalentProfilePage:ExperienceWizard")));
 import ProfilBearbeitenModal from "../components/studio/ProfilBearbeitenModal.jsx";
 // Sprint D: Datenlayer
 import { useProfileData } from "../hooks/useProfileData.js";
@@ -1114,6 +1116,10 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
   const [showSettings,      setShowSettings]      = useState(false);
   const [showProfilEdit,    setShowProfilEdit]    = useState(false);
   const [showStudio,        setShowStudio]        = useState(false);
+  const [showWerkWizard,   setShowWerkWizard]   = useState(false);
+  const [editingWerk,     setEditingWerk]     = useState(null);
+  const [showExpWizard,   setShowExpWizard]   = useState(false);
+  const [editingExp,      setEditingExp]      = useState(null);
   const kompassToggleRef = React.useRef(() => {});
 
   const isOwner = !publicView && (!!user?.id && (profileId === user.id || (!profileId && !!user.id)));
@@ -1402,6 +1408,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
             isOwner={isOwner}
             loading={loading}
             onShowAll={() => {}}
+            onAddWork={isOwner ? () => { setEditingWerk(null); setShowWerkWizard(true); } : null}
           />
         <Gap h={28}/>
 
@@ -1411,6 +1418,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
             isOwner={isOwner}
             loading={loading}
             onShowAll={() => {}}
+            onAddExperience={isOwner ? () => { setEditingExp(null); setShowExpWizard(true); } : null}
           />
         <Gap h={28}/>
 
@@ -1507,6 +1515,36 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
             onClose={() => setShowStudio(false)}
           />
         )}
+
+      {/* WERK WIZARD */}
+      {isOwner && showWerkWizard && profile?.id && (
+        <Suspense fallback={null}>
+        <WerkWizard
+          userId={profile.id}
+          existingWork={editingWerk}
+          onClose={() => { setShowWerkWizard(false); setEditingWerk(null); }}
+          onSaved={(werk) => {
+            setShowWerkWizard(false); setEditingWerk(null);
+            reload();
+          }}
+        />
+        </Suspense>
+      )}
+
+      {/* EXPERIENCE WIZARD */}
+      {isOwner && showExpWizard && profile?.id && (
+        <Suspense fallback={null}>
+        <ExperienceWizard
+          userId={profile.id}
+          existingExp={editingExp}
+          onClose={() => { setShowExpWizard(false); setEditingExp(null); }}
+          onSaved={(exp) => {
+            setShowExpWizard(false); setEditingExp(null);
+            reload();
+          }}
+        />
+        </Suspense>
+      )}
     </div>
     </Suspense>
   );
