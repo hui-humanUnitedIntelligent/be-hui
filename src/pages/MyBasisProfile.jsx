@@ -6,17 +6,9 @@
 // ════════════════════════════════════════════════════════════════
 
 import React, { useState, useEffect, useRef, useCallback, Suspense } from "react";
+import { makeChunkReload } from "../lib/chunkReload.js";
 
 // Chunk-Mismatch Recovery: lädt Seite neu wenn ein alter Chunk nicht gefunden wird
-const chunkReload = () => {
-  if (!sessionStorage.getItem('__hui_chunk_reload')) {
-    sessionStorage.setItem('__hui_chunk_reload', '1');
-    location.reload();
-    return Promise.resolve({ default: () => null });
-  }
-  sessionStorage.removeItem('__hui_chunk_reload');
-  return Promise.resolve({ default: () => null });
-};
 import { useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
 import { supabase } from "../lib/supabaseClient.js";
@@ -27,29 +19,29 @@ import {
 import { NAV_RESERVED_HEIGHT_CSS, NAV_CLEARANCE_CSS } from "../components/home/navigation/navigationGeometry.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
 import { useHome }   from "../components/home/HomeShell.jsx";
-const GemeinschaftsFlow = React.lazy(() => import("../components/GemeinschaftsFlow.jsx").catch(chunkReload));
-const NotificationPanel = React.lazy(() => import("../components/notifications/NotificationPanel.jsx").catch(chunkReload));
-const AmbassadorModal = React.lazy(() => import("../components/ambassador/AmbassadorModal.jsx").catch(chunkReload));
+const GemeinschaftsFlow = React.lazy(() => import("../components/GemeinschaftsFlow.jsx").catch(makeChunkReload("MyBasisProfile:GemeinschaftsFlow")));
+const NotificationPanel = React.lazy(() => import("../components/notifications/NotificationPanel.jsx").catch(makeChunkReload("MyBasisProfile:NotificationPanel")));
+const AmbassadorModal = React.lazy(() => import("../components/ambassador/AmbassadorModal.jsx").catch(makeChunkReload("MyBasisProfile:AmbassadorModal")));
 import SettingsModal from "../components/settings/SettingsModal.jsx";
 import { useAmbassador } from "../hooks/useAmbassador.js";
 import { useProfileData } from "../hooks/useProfileData.js";
-const HuiStudio = React.lazy(() => import("../components/studio/HuiStudio.jsx").catch(chunkReload));
-const MeineResonanz = React.lazy(() => import("./studio/MeineResonanz.jsx").catch(chunkReload));
-const PublicProfilePreview = React.lazy(() => import("../components/profile/PublicProfilePreview.jsx").catch(chunkReload));
-const OrbSignatur = React.lazy(() => import("../components/profile/OrbSignatur.jsx").then(m => ({ default: m.OrbSignatur })).catch(chunkReload));
+const HuiStudio = React.lazy(() => import("../components/studio/HuiStudio.jsx").catch(makeChunkReload("MyBasisProfile:HuiStudio")));
+const MeineResonanz = React.lazy(() => import("./studio/MeineResonanz.jsx").catch(makeChunkReload("MyBasisProfile:MeineResonanz")));
+const PublicProfilePreview = React.lazy(() => import("../components/profile/PublicProfilePreview.jsx").catch(makeChunkReload("MyBasisProfile:PublicProfilePreview")));
+const OrbSignatur = React.lazy(() => import("../components/profile/OrbSignatur.jsx").then(m => ({ default: m.OrbSignatur })).catch(makeChunkReload("MyBasisProfile:OrbSignatur")));
 import MerkenSection from "../components/profile/MerkenSection.jsx";
 // Sprint F.7D Phase 4: Kanonische Sections
-const AboutSection = React.lazy(() => import("../components/profile/sections/AboutSection.jsx").then(m => ({ default: m.AboutSection })).catch(chunkReload));
+const AboutSection = React.lazy(() => import("../components/profile/sections/AboutSection.jsx").then(m => ({ default: m.AboutSection })).catch(makeChunkReload("MyBasisProfile:AboutSection")));
 import { ProfileHeader as CanonicalProfileHeader } from "../components/profile/ProfileHeader.jsx";
-const TalentSection = React.lazy(() => import("../components/profile/sections/TalentSection.jsx").then(m => ({ default: m.TalentSection })).catch(chunkReload));
-const MomentsSection = React.lazy(() => import("../components/profile/sections/MomentsSection.jsx").then(m => ({ default: m.MomentsSection })).catch(chunkReload));
-const RecommendationsSection = React.lazy(() => import("../components/profile/sections/RecommendationsSection.jsx").then(m => ({ default: m.RecommendationsSection })).catch(chunkReload));
-const AvailabilitySection = React.lazy(() => import("../components/profile/sections/AvailabilitySection.jsx").then(m => ({ default: m.AvailabilitySection })).catch(chunkReload));
-const VisibilitySection = React.lazy(() => import("../components/profile/sections/VisibilitySection.jsx").then(m => ({ default: m.VisibilitySection })).catch(chunkReload));
-const WerkWizard = React.lazy(() => import("../components/works/WerkWizard.jsx").catch(chunkReload));
-const TalentAngebotWizard = React.lazy(() => import("../components/talents/TalentAngebotWizard.jsx").catch(chunkReload));
+const TalentSection = React.lazy(() => import("../components/profile/sections/TalentSection.jsx").then(m => ({ default: m.TalentSection })).catch(makeChunkReload("MyBasisProfile:TalentSection")));
+const MomentsSection = React.lazy(() => import("../components/profile/sections/MomentsSection.jsx").then(m => ({ default: m.MomentsSection })).catch(makeChunkReload("MyBasisProfile:MomentsSection")));
+const RecommendationsSection = React.lazy(() => import("../components/profile/sections/RecommendationsSection.jsx").then(m => ({ default: m.RecommendationsSection })).catch(makeChunkReload("MyBasisProfile:RecommendationsSection")));
+const AvailabilitySection = React.lazy(() => import("../components/profile/sections/AvailabilitySection.jsx").then(m => ({ default: m.AvailabilitySection })).catch(makeChunkReload("MyBasisProfile:AvailabilitySection")));
+const VisibilitySection = React.lazy(() => import("../components/profile/sections/VisibilitySection.jsx").then(m => ({ default: m.VisibilitySection })).catch(makeChunkReload("MyBasisProfile:VisibilitySection")));
+const WerkWizard = React.lazy(() => import("../components/works/WerkWizard.jsx").catch(makeChunkReload("MyBasisProfile:WerkWizard")));
+const TalentAngebotWizard = React.lazy(() => import("../components/talents/TalentAngebotWizard.jsx").catch(makeChunkReload("MyBasisProfile:TalentAngebotWizard")));
 import { useTalents, deleteTalent } from "../hooks/useTalents.js";
-const ExperienceWizard = React.lazy(() => import("../components/experiences/ExperienceWizard.jsx").catch(chunkReload));
+const ExperienceWizard = React.lazy(() => import("../components/experiences/ExperienceWizard.jsx").catch(makeChunkReload("MyBasisProfile:ExperienceWizard")));
 // AmbassadorStudioSection wird direkt importiert (kein lazy → kein Suspense-Hänger)
 // HuiMomentSheet direkt importiert (kein lazy — verhindert ewigen Suspense-Spinner)
 // MyRecommendationsModal direkt importiert
@@ -66,12 +58,12 @@ import {
   HUIFotoIcon, HUIAnsichtIcon, HUISettingsIcon, HUISchreibenIcon,
 } from "../design/icons/HuiSystemIcons.jsx";
 import { useContentPreview } from "../context/ContentPreviewContext.jsx";
-const AmbassadorStudioSection = React.lazy(() => import("../components/ambassador/AmbassadorStudioSection.jsx").catch(chunkReload));
-const HuiMomentSheet = React.lazy(() => import("../components/HuiMomentSheet.jsx").catch(chunkReload));
-const MyRecommendationsModal = React.lazy(() => import("../components/studio/MyRecommendationsModal.jsx").catch(chunkReload));
-const ImpactStimmenModal = React.lazy(() => import("../components/studio/ImpactStimmenModal.jsx").catch(chunkReload));
-const MeineProjekteModal = React.lazy(() => import("../components/studio/MeineProjekteModal.jsx").catch(chunkReload));
-const ImpactUpdateSheet = React.lazy(() => import("../components/studio/ImpactUpdateSheet.jsx").catch(chunkReload));
+const AmbassadorStudioSection = React.lazy(() => import("../components/ambassador/AmbassadorStudioSection.jsx").catch(makeChunkReload("MyBasisProfile:AmbassadorStudioSection")));
+const HuiMomentSheet = React.lazy(() => import("../components/HuiMomentSheet.jsx").catch(makeChunkReload("MyBasisProfile:HuiMomentSheet")));
+const MyRecommendationsModal = React.lazy(() => import("../components/studio/MyRecommendationsModal.jsx").catch(makeChunkReload("MyBasisProfile:MyRecommendationsModal")));
+const ImpactStimmenModal = React.lazy(() => import("../components/studio/ImpactStimmenModal.jsx").catch(makeChunkReload("MyBasisProfile:ImpactStimmenModal")));
+const MeineProjekteModal = React.lazy(() => import("../components/studio/MeineProjekteModal.jsx").catch(makeChunkReload("MyBasisProfile:MeineProjekteModal")));
+const ImpactUpdateSheet = React.lazy(() => import("../components/studio/ImpactUpdateSheet.jsx").catch(makeChunkReload("MyBasisProfile:ImpactUpdateSheet")));
 // FinanzuebersichtModal — ersetzt 4 separate Finanz-Modals (eager, kein Lazy-Bug)
 import FinanzuebersichtModal from "../components/studio/FinanzuebersichtModal.jsx";
 // ── Design Tokens ────────────────────────────────────────────────
@@ -3143,7 +3135,7 @@ function TalentWerdenBanner({ onStart = () => {} }) {
 // Lädt TalentOnboarding (aus Home.jsx bekannt) lazy,
 // wrapped in createPortal + zIndex:10500 (Pflicht-Regel)
 // ══════════════════════════════════════════════════════════════
-const LazyTalentOnboarding = React.lazy(() => import('../components/TalentOnboarding.jsx').catch(chunkReload));
+const LazyTalentOnboarding = React.lazy(() => import('../components/TalentOnboarding.jsx').catch(makeChunkReload("MyBasisProfile:LazyTalentOnboarding")));
 
 
 

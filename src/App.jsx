@@ -1,4 +1,5 @@
 import { HUIImpactIcon } from './design/icons/HuiSystemIcons.jsx';
+import { makeChunkReload } from "./lib/chunkReload.js";
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { sentryCapture, Sentry } from './lib/sentry';
 import { RouteBoundary, OverlayBoundary } from './lib/ErrorBoundaries';
@@ -37,25 +38,16 @@ import SplashScreen from './pages/SplashScreen.tsx';
 import Home              from './pages/Home';
 
 // Chunk-Mismatch Recovery
-const chunkReload = () => {
-  if (!sessionStorage.getItem('__hui_chunk_reload')) {
-    sessionStorage.setItem('__hui_chunk_reload', '1');
-    location.reload();
-    return Promise.resolve({ default: () => null });
-  }
-  sessionStorage.removeItem('__hui_chunk_reload');
-  return Promise.resolve({ default: () => null });
-};
 
-const RefRedirect       = lazy(() => import('./pages/RefRedirect').catch(chunkReload))
+const RefRedirect       = lazy(() => import('./pages/RefRedirect').catch(makeChunkReload("App:RefRedirect")))
 import ImpactPage from './pages/ImpactPage';
-const Admin             = lazy(() => import('./pages/Admin').catch(chunkReload))
-const DiagnosePage      = lazy(() => import('./pages/DiagnosePage').catch(chunkReload))
-const PlatformDashboard = lazy(() => import('./pages/PlatformDashboard').catch(chunkReload))
-const CreatorStudio     = lazy(() => import('./pages/CreatorStudio').catch(chunkReload))
+const Admin             = lazy(() => import('./pages/Admin').catch(makeChunkReload("App:Admin")))
+const DiagnosePage      = lazy(() => import('./pages/DiagnosePage').catch(makeChunkReload("App:DiagnosePage")))
+const PlatformDashboard = lazy(() => import('./pages/PlatformDashboard').catch(makeChunkReload("App:PlatformDashboard")))
+const CreatorStudio     = lazy(() => import('./pages/CreatorStudio').catch(makeChunkReload("App:CreatorStudio")))
 // DARK-PROFILE-REMOVE-001: WirkerProfilePage entfernt (2026-07-19)
 // Ersetzt durch PublicProfileRouteWrapper → TalentProfilePage/PublicProfilePage
-const WorkDetailPage    = lazy(() => import('./components/WorkDetailPage').catch(chunkReload))
+const WorkDetailPage    = lazy(() => import('./components/WorkDetailPage').catch(makeChunkReload("App:WorkDetailPage")))
 
 // ── Route Factory ──────────────────────────────────────────────────────────
 import { createTabPage, filterValidPages } from './lib/factories/createTabPage.js'
@@ -500,8 +492,8 @@ function WorkDetailRouteWrapper() {
 
 /* ── DARK-PROFILE-REMOVE-001: PublicProfileRouteWrapper (2026-07-19) ── */
 // Ersetzt WirkerProfilePage (dunkles Profil) durch TalentProfilePage/PublicProfilePage (helles Profil)
-const TalentProfilePageLazy = lazy(() => import('./pages/TalentProfilePage.jsx').catch(chunkReload));
-const PublicProfilePageLazy  = lazy(() => import('./pages/PublicProfilePage.jsx').catch(chunkReload));
+const TalentProfilePageLazy = lazy(() => import('./pages/TalentProfilePage.jsx').catch(makeChunkReload("App:TalentProfilePageLazy")));
+const PublicProfilePageLazy  = lazy(() => import('./pages/PublicProfilePage.jsx').catch(makeChunkReload("App:PublicProfilePageLazy")));
 
 function PublicProfileRouteWrapper() {
   const { username } = useParams();

@@ -4,22 +4,14 @@
 // - publicView=true erzwingt isOwner=false in TalentProfilePage/PublicProfilePage
 //
 import React, { useState, useEffect, Suspense } from "react";
+import { makeChunkReload } from "../../lib/chunkReload.js";
 
-const chunkReload = () => {
-  if (!sessionStorage.getItem('__hui_chunk_reload')) {
-    sessionStorage.setItem('__hui_chunk_reload', '1');
-    location.reload();
-    return Promise.resolve({ default: () => null });
-  }
-  sessionStorage.removeItem('__hui_chunk_reload');
-  return Promise.resolve({ default: () => null });
-};
 import { createPortal } from "react-dom";
 import { ProfileService } from '../../services/db';
 
 // Lazy imports — kein Blocking
-const TalentProfilePage = React.lazy(() => import("../../pages/TalentProfilePage.jsx").catch(chunkReload));
-const PublicProfilePage = React.lazy(() => import("../../pages/PublicProfilePage.jsx").catch(chunkReload));
+const TalentProfilePage = React.lazy(() => import("../../pages/TalentProfilePage.jsx").catch(makeChunkReload("PublicProfilePreview:TalentProfilePage")));
+const PublicProfilePage = React.lazy(() => import("../../pages/PublicProfilePage.jsx").catch(makeChunkReload("PublicProfilePreview:PublicProfilePage")));
 
 function Spinner() {
   return createPortal(

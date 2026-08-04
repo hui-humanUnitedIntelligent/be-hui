@@ -1,14 +1,6 @@
 import React, { Suspense } from "react";
+import { makeChunkReload } from "../lib/chunkReload.js";
 
-const chunkReload = () => {
-  if (!sessionStorage.getItem('__hui_chunk_reload')) {
-    sessionStorage.setItem('__hui_chunk_reload', '1');
-    location.reload();
-    return Promise.resolve({ default: () => null });
-  }
-  sessionStorage.removeItem('__hui_chunk_reload');
-  return Promise.resolve({ default: () => null });
-};
 import { HUIChatIcon } from '../design/icons/HuiInteractionIcons.jsx';
 import { HUIImpactIcon, HUISettingsIcon, HUISicherheitIcon } from '../design/icons/HuiSystemIcons.jsx';
 // src/pages/BasisProfilePage.jsx — HUI BasisUser Public Profile v2
@@ -33,8 +25,8 @@ import { useProfileData } from "../hooks/useProfileData.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
 import { useHome }   from "../components/home/HomeShell.jsx";
 import ProfileRelationButtons from "../components/shared/ProfileRelationButtons.jsx";
-const SettingsModal = React.lazy(() => import("../components/settings/SettingsModal.jsx").catch(chunkReload));
-const HuiStudio = React.lazy(() => import("../components/studio/HuiStudio.jsx").catch(chunkReload));
+const SettingsModal = React.lazy(() => import("../components/settings/SettingsModal.jsx").catch(makeChunkReload("BasisProfilePage:SettingsModal")));
+const HuiStudio = React.lazy(() => import("../components/studio/HuiStudio.jsx").catch(makeChunkReload("BasisProfilePage:HuiStudio")));
 import { supabase }   from "../lib/supabaseClient.js";
 // Sprint F.5.3: kanonische Sections
 import { AboutSection }           from "../components/profile/sections/AboutSection.jsx";

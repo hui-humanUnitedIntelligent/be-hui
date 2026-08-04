@@ -11,28 +11,20 @@
 //  10. AbschlussBar (Verbinden, Nachricht, Einladung)
 // ════════════════════════════════════════════════════════════════
 
+import { makeChunkReload } from "../lib/chunkReload.js";
 import {
   HUIWerkeIcon, HUIErlebnisIcon, HUIImpactIcon, HUITalentIcon, HUIKalenderIcon,
   HUILocationIcon,
 } from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useCallback, useMemo, Suspense } from "react";
 
-const chunkReload = () => {
-  if (!sessionStorage.getItem('__hui_chunk_reload')) {
-    sessionStorage.setItem('__hui_chunk_reload', '1');
-    location.reload();
-    return Promise.resolve({ default: () => null });
-  }
-  sessionStorage.removeItem('__hui_chunk_reload');
-  return Promise.resolve({ default: () => null });
-};
 import { createPortal } from "react-dom";
 import { supabase } from "../lib/supabaseClient.js";
 import { useAuth }  from "../lib/AuthContext.jsx";
 import { notifyWatcher } from "../lib/notificationService.js";
 import { useHome }       from "../components/home/HomeShell.jsx";
-const SettingsModal = React.lazy(() => import("../components/settings/SettingsModal.jsx").catch(chunkReload));
-const HuiStudio = React.lazy(() => import("../components/studio/HuiStudio.jsx").catch(chunkReload));
+const SettingsModal = React.lazy(() => import("../components/settings/SettingsModal.jsx").catch(makeChunkReload("TalentProfilePage:SettingsModal")));
+const HuiStudio = React.lazy(() => import("../components/studio/HuiStudio.jsx").catch(makeChunkReload("TalentProfilePage:HuiStudio")));
 import ProfilBearbeitenModal from "../components/studio/ProfilBearbeitenModal.jsx";
 // Sprint D: Datenlayer
 import { useProfileData } from "../hooks/useProfileData.js";
