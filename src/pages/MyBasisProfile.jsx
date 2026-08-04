@@ -45,10 +45,10 @@ const WIZARD_LOADING = (
   </div>
 );
 
-const WerkWizard = React.lazy(() => import("../components/works/WerkWizard.jsx").catch(makeChunkReload("MyBasisProfile:WerkWizard")));
-const TalentAngebotWizard = React.lazy(() => import("../components/talents/TalentAngebotWizard.jsx").catch(makeChunkReload("MyBasisProfile:TalentAngebotWizard")));
+import WerkWizard from "../components/works/WerkWizard.jsx";
+import TalentAngebotWizard from "../components/talents/TalentAngebotWizard.jsx";
 import { useTalents, deleteTalent } from "../hooks/useTalents.js";
-const ExperienceWizard = React.lazy(() => import("../components/experiences/ExperienceWizard.jsx").catch(makeChunkReload("MyBasisProfile:ExperienceWizard")));
+import ExperienceWizard from "../components/experiences/ExperienceWizard.jsx";
 // AmbassadorStudioSection wird direkt importiert (kein lazy → kein Suspense-Hänger)
 // HuiMomentSheet direkt importiert (kein lazy — verhindert ewigen Suspense-Spinner)
 // MyRecommendationsModal direkt importiert
@@ -1394,7 +1394,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
       {/* WERK WIZARD */}
       {showWerkWizard && profile?.id && (
-        <Suspense fallback={WIZARD_LOADING}>
         <WerkWizard
           userId={profile.id}
           existingWork={editingWerk}
@@ -1409,7 +1408,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
             });
           }}
         />
-        </Suspense>
       )}
 
       {/* TALENT WERDEN — Onboarding Flow */}
@@ -1426,19 +1424,16 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
       {/* TALENT-ANGEBOT WIZARD */}
       {showTalentWizard && profile?.id && (
-        <Suspense fallback={WIZARD_LOADING}>
         <TalentAngebotWizard
           userId={profile.id}
           existingTalent={editingTalent}
           onClose={() => { setShowTalentWizard(false); setEditingTalent(null); }}
           onSaved={() => { setShowTalentWizard(false); setEditingTalent(null); reloadTalents(); }}
         />
-        </Suspense>
       )}
 
       {/* EXPERIENCE WIZARD */}
       {showExpWizard && profile?.id && (
-        <Suspense fallback={WIZARD_LOADING}>
         <ExperienceWizard
           userId={profile.id}
           existingExp={editingExp}
@@ -1453,7 +1448,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
             });
           }}
         />
-        </Suspense>
       )}
     </div>
     </Suspense>

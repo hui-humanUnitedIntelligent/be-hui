@@ -32,8 +32,8 @@ const WIZARD_LOADING = (
   </div>
 );
 
-const WerkWizard = React.lazy(() => import("../components/works/WerkWizard.jsx").catch(makeChunkReload("TalentProfilePage:WerkWizard")));
-const ExperienceWizard = React.lazy(() => import("../components/experiences/ExperienceWizard.jsx").catch(makeChunkReload("TalentProfilePage:ExperienceWizard")));
+import WerkWizard from "../components/works/WerkWizard.jsx";
+import ExperienceWizard from "../components/experiences/ExperienceWizard.jsx";
 import ProfilBearbeitenModal from "../components/studio/ProfilBearbeitenModal.jsx";
 // Sprint D: Datenlayer
 import { useProfileData } from "../hooks/useProfileData.js";
@@ -1533,7 +1533,6 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
 
       {/* WERK WIZARD */}
       {isOwner && showWerkWizard && profile?.id && (
-        <Suspense fallback={WIZARD_LOADING}>
         <WerkWizard
           userId={profile.id}
           existingWork={editingWerk}
@@ -1543,12 +1542,10 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
             reload();
           }}
         />
-        </Suspense>
       )}
 
       {/* EXPERIENCE WIZARD */}
       {isOwner && showExpWizard && profile?.id && (
-        <Suspense fallback={WIZARD_LOADING}>
         <ExperienceWizard
           userId={profile.id}
           existingExp={editingExp}
@@ -1558,7 +1555,6 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
             reload();
           }}
         />
-        </Suspense>
       )}
     </div>
     </Suspense>
