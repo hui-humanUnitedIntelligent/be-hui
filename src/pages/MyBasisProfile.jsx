@@ -68,9 +68,9 @@ import { useContentPreview } from "../context/ContentPreviewContext.jsx";
 const AmbassadorStudioSection = React.lazy(() => import("../components/ambassador/AmbassadorStudioSection.jsx").catch(makeChunkReload("MyBasisProfile:AmbassadorStudioSection")));
 const HuiMomentSheet = React.lazy(() => import("../components/HuiMomentSheet.jsx").catch(makeChunkReload("MyBasisProfile:HuiMomentSheet")));
 const MyRecommendationsModal = React.lazy(() => import("../components/studio/MyRecommendationsModal.jsx").catch(makeChunkReload("MyBasisProfile:MyRecommendationsModal")));
-const ImpactStimmenModal = React.lazy(() => import("../components/studio/ImpactStimmenModal.jsx").catch(makeChunkReload("MyBasisProfile:ImpactStimmenModal")));
-const MeineProjekteModal = React.lazy(() => import("../components/studio/MeineProjekteModal.jsx").catch(makeChunkReload("MyBasisProfile:MeineProjekteModal")));
-const ImpactUpdateSheet = React.lazy(() => import("../components/studio/ImpactUpdateSheet.jsx").catch(makeChunkReload("MyBasisProfile:ImpactUpdateSheet")));
+import ImpactStimmenModal from "../components/studio/ImpactStimmenModal.jsx";
+import MeineProjekteModal from "../components/studio/MeineProjekteModal.jsx";
+import ImpactUpdateSheet from "../components/studio/ImpactUpdateSheet.jsx";
 // FinanzuebersichtModal — ersetzt 4 separate Finanz-Modals (eager, kein Lazy-Bug)
 import FinanzuebersichtModal from "../components/studio/FinanzuebersichtModal.jsx";
 // ── Design Tokens ────────────────────────────────────────────────
@@ -2357,22 +2357,18 @@ function MeinBereichMenu({
         </MeinBereichDrawer>
       )}
       {activeDrawer === "impact" && impactDetail === "stimmen" && (
-        <Suspense fallback={null}>
         <ImpactStimmenModal
             profile={profile}
             onClose={() => setImpactDetail(null)}
             switchTab={switchTab}
           />
-        </Suspense>
         )}
       {activeDrawer === "impact" && impactDetail === "projekte" && (
-        <Suspense fallback={null}>
         <MeineProjekteModal
             profile={profile}
             onClose={() => setImpactDetail(null)}
             switchTab={switchTab}
           />
-        </Suspense>
         )}
 
       {/* ── Finanzübersicht (neues Unified-Modal) ───────── */}
