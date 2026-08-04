@@ -750,11 +750,19 @@ export default React.memo(function BaseFeedCard({
   // FIX B (2026-07-16): Primitive Dependencies statt Objekt-Referenz.
   // Vorher: [item?.id] — reagierte nie auf asynchron nachgeladene Counts
   // (inspireCount/touchCount kommen aus useSingleReaction nach dem Mount).
-  // Jetzt: drei primitive Werte — React vergleicht mit === statt Referenz.
+  // FIX C (2026-08-04): commentCount fehlte in den Dependencies — die
+  // Kommentar-Anzahl wird in UnifiedFeed.jsx lazy per RPC nachgeladen
+  // (countComments, erst nach visible+Mount). Da inspireCount/touchCount
+  // oft schon vor commentCount stabil sind, feuerte dieser Effect nie
+  // erneut wenn NUR commentCount sich aenderte -> localReactions blieb
+  // auf dem Mount-Wert (meist null) eingefroren -> Sprechblase zeigte
+  // zufaellig mal die korrekte Zahl (falls ein anderer Count sich zufaellig
+  // mitaenderte), mal keine Zahl -- vom Nutzer als "mal 7 mal 0" gemeldet.
+  // Jetzt: vier primitive Werte — React vergleicht mit === statt Referenz.
   React.useEffect(() => {
     setLocalReactions(item?._reactions || {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [item?.id, item?._reactions?.inspireCount, item?._reactions?.touchCount]);
+  }, [item?.id, item?._reactions?.inspireCount, item?._reactions?.touchCount, item?._reactions?.commentCount]);
 
   if (!item?.id) return null;
 

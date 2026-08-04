@@ -93,11 +93,19 @@ export async function getComments(postId, postType, { offset = 0, limit = 20, cu
 }
 
 // ── Schnelle Zaehlung (RPC, kein Volltransfer) — fuer Feed-/Preview-Badges
+// FIX (2026-08-04): Bei echten (transienten) Fehlern NICHT mehr 0
+// zurueckgeben — das ueberschreibt in UnifiedFeed.jsx einen bereits
+// bekannten korrekten Wert (z.B. 7) mit einer falschen 0, weil
+// `commentCount ?? item._reactions?.commentCount` bei commentCount=0
+// NICHT auf den Fallback zurueckfaellt (0 ist kein null/undefined).
+// Nur bei "Tabelle fehlt" (Migration noch nicht ausgerollt) ist 0
+// tatsaechlich korrekt. Bei jedem anderen Fehler: null zurueckgeben,
+// damit der Aufrufer den vorherigen/bekannten Wert beibehaelt.
 export async function countComments(postId, postType) {
   const { data, error } = await supabase.rpc("count_comments", { p_post_id: postId, p_post_type: postType });
   if (isMissingTableError(error)) return 0;
-  if (error) return 0;
-  return typeof data === "number" ? data : 0;
+  if (error) return null;
+  return typeof data === "number" ? data : null;
 }
 
 // ── Kommentar/Antwort erstellen ───────────────────────────────────────
