@@ -38,6 +38,13 @@ const MomentsSection = React.lazy(() => import("../components/profile/sections/M
 const RecommendationsSection = React.lazy(() => import("../components/profile/sections/RecommendationsSection.jsx").then(m => ({ default: m.RecommendationsSection })).catch(makeChunkReload("MyBasisProfile:RecommendationsSection")));
 const AvailabilitySection = React.lazy(() => import("../components/profile/sections/AvailabilitySection.jsx").then(m => ({ default: m.AvailabilitySection })).catch(makeChunkReload("MyBasisProfile:AvailabilitySection")));
 const VisibilitySection = React.lazy(() => import("../components/profile/sections/VisibilitySection.jsx").then(m => ({ default: m.VisibilitySection })).catch(makeChunkReload("MyBasisProfile:VisibilitySection")));
+// Shared loading spinner for wizard Suspense fallbacks
+const WIZARD_LOADING = (
+  <div style={{position:"fixed",inset:0,zIndex:10500,background:"rgba(26,26,24,0.5)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+    <div style={{width:36,height:36,border:"3px solid rgba(255,255,255,0.3)",borderTopColor:"#0EC4B8",borderRadius:"50%",animation:"spin 0.8s linear infinite"}} />
+  </div>
+);
+
 const WerkWizard = React.lazy(() => import("../components/works/WerkWizard.jsx").catch(makeChunkReload("MyBasisProfile:WerkWizard")));
 const TalentAngebotWizard = React.lazy(() => import("../components/talents/TalentAngebotWizard.jsx").catch(makeChunkReload("MyBasisProfile:TalentAngebotWizard")));
 import { useTalents, deleteTalent } from "../hooks/useTalents.js";
@@ -1386,7 +1393,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
       {/* WERK WIZARD */}
       {showWerkWizard && profile?.id && (
-        <Suspense fallback={null}>
+        <Suspense fallback={WIZARD_LOADING}>
         <WerkWizard
           userId={profile.id}
           existingWork={editingWerk}
@@ -1418,7 +1425,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
       {/* TALENT-ANGEBOT WIZARD */}
       {showTalentWizard && profile?.id && (
-        <Suspense fallback={null}>
+        <Suspense fallback={WIZARD_LOADING}>
         <TalentAngebotWizard
           userId={profile.id}
           existingTalent={editingTalent}
@@ -1430,7 +1437,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
       {/* EXPERIENCE WIZARD */}
       {showExpWizard && profile?.id && (
-        <Suspense fallback={null}>
+        <Suspense fallback={WIZARD_LOADING}>
         <ExperienceWizard
           userId={profile.id}
           existingExp={editingExp}
@@ -2156,6 +2163,18 @@ function MeinBereichMenu({
 }) {
   const { switchTab } = useHome();
   const [activeDrawer, setActiveDrawer] = useState(null); // talente|werke|erlebnisse|momente|ambassador|empfehlungen|impact|finanzen
+
+  // PRELOAD: Wenn ein Drawer geöffnet wird, sofort die zugehörigen Wizard-Chunks
+  // preloaden, damit der "Hinzufügen"-Button instant reagiert.
+  useEffect(() => {
+    if (activeDrawer === "werke") {
+      import("../components/works/WerkWizard.jsx").catch(() => {});
+    } else if (activeDrawer === "erlebnisse") {
+      import("../components/experiences/ExperienceWizard.jsx").catch(() => {});
+    } else if (activeDrawer === "talente") {
+      import("../components/talents/TalentAngebotWizard.jsx").catch(() => {});
+    }
+  }, [activeDrawer]);
   // openMomentSheet: delegiert immer an Parent (onOpenMomentSheetProp)
   // Falls kein Prop: fallback auf leere Funktion (sollte nie passieren)
   const openMomentSheet = onOpenMomentSheetProp ?? (() => {

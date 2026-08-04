@@ -25,6 +25,13 @@ import { notifyWatcher } from "../lib/notificationService.js";
 import { useHome }       from "../components/home/HomeShell.jsx";
 const SettingsModal = React.lazy(() => import("../components/settings/SettingsModal.jsx").catch(makeChunkReload("TalentProfilePage:SettingsModal")));
 const HuiStudio = React.lazy(() => import("../components/studio/HuiStudio.jsx").catch(makeChunkReload("TalentProfilePage:HuiStudio")));
+// Shared loading spinner for wizard Suspense fallbacks
+const WIZARD_LOADING = (
+  <div style={{position:"fixed",inset:0,zIndex:10500,background:"rgba(26,26,24,0.5)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+    <div style={{width:36,height:36,border:"3px solid rgba(255,255,255,0.3)",borderTopColor:"#0EC4B8",borderRadius:"50%",animation:"spin 0.8s linear infinite"}} />
+  </div>
+);
+
 const WerkWizard = React.lazy(() => import("../components/works/WerkWizard.jsx").catch(makeChunkReload("TalentProfilePage:WerkWizard")));
 const ExperienceWizard = React.lazy(() => import("../components/experiences/ExperienceWizard.jsx").catch(makeChunkReload("TalentProfilePage:ExperienceWizard")));
 import ProfilBearbeitenModal from "../components/studio/ProfilBearbeitenModal.jsx";
@@ -1117,6 +1124,14 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
   const [showProfilEdit,    setShowProfilEdit]    = useState(false);
   const [showStudio,        setShowStudio]        = useState(false);
   const [showWerkWizard,   setShowWerkWizard]   = useState(false);
+
+  // PRELOAD: Wizard-Chunks preloaden sobald Owner das Profil öffnet
+  useEffect(() => {
+    if (isOwner) {
+      import("../components/works/WerkWizard.jsx").catch(() => {});
+      import("../components/experiences/ExperienceWizard.jsx").catch(() => {});
+    }
+  }, [isOwner]);
   const [editingWerk,     setEditingWerk]     = useState(null);
   const [showExpWizard,   setShowExpWizard]   = useState(false);
   const [editingExp,      setEditingExp]      = useState(null);
@@ -1518,7 +1533,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
 
       {/* WERK WIZARD */}
       {isOwner && showWerkWizard && profile?.id && (
-        <Suspense fallback={null}>
+        <Suspense fallback={WIZARD_LOADING}>
         <WerkWizard
           userId={profile.id}
           existingWork={editingWerk}
@@ -1533,7 +1548,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
 
       {/* EXPERIENCE WIZARD */}
       {isOwner && showExpWizard && profile?.id && (
-        <Suspense fallback={null}>
+        <Suspense fallback={WIZARD_LOADING}>
         <ExperienceWizard
           userId={profile.id}
           existingExp={editingExp}
