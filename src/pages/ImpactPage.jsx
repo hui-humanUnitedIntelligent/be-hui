@@ -578,6 +578,12 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
   const [milestones, setMilestones] = React.useState([]);
   const [milestonesLoading, setMilestonesLoading] = React.useState(false);
   const [detailMilestone, setDetailMilestone] = React.useState(null);
+  // Übergebene Karten-Objekte (Top-3/Ranking-Karten) enthalten oft nur ein
+  // einzelnes 'img'-Feld statt des vollen media_urls-Arrays (siehe
+  // useAllApprovedByVotes/monthlyTop3-Normalisierung). Frisch aus DB laden,
+  // damit im Detail immer ALLE hochgeladenen Fotos/Dokumente sichtbar sind.
+  const [freshMediaUrls, setFreshMediaUrls] = React.useState(null); // null = noch nicht frisch geladen
+  const displayMediaUrls = freshMediaUrls !== null ? freshMediaUrls : app.media_urls;
   const fundPct = goalFromDb > 0 ? Math.min(100, Math.round(fundedEur / goalFromDb * 100)) : 0;
 
   const img = app.cover_url
@@ -647,15 +653,17 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
     let dead = false;
     (async () => {
       try {
-        // 1. Aktuelles current_amount_eur + funding_goal aus DB
+        // 1. Aktuelles current_amount_eur + funding_goal + volle media_urls aus DB
+        // (übergebene Karten-Objekte haben oft nur 'img' statt media_urls[])
         const { data: fundData } = await supabase
           .from("impact_applications")
-          .select("current_amount_eur, funding_goal")
+          .select("current_amount_eur, funding_goal, media_urls")
           .eq("id", app.id)
           .single();
         if (!dead && fundData) {
           setFundedEur(safeNum(fundData.current_amount_eur) || 0);
           setGoalFromDb(safeNum(fundData.funding_goal) || 0);
+          setFreshMediaUrls(fundData.media_urls || []);
         }
         // 2. Meilensteine laden (mit Updates)
         setMilestonesLoading(true);
@@ -839,13 +847,13 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
           <div style={{ fontSize:13, color:"#888", marginBottom:16, display:"flex", alignItems:"center", gap:4 }}><HUIStimmeIcon size={13}/>{voteCount} Stimmen bisher</div>
 
           {/* Zusatzmaterial */}
-          {app.media_urls && app.media_urls.length > 0 && (
+          {displayMediaUrls && displayMediaUrls.length > 0 && (
             <div style={{ marginBottom:16 }}>
               <div style={{ fontSize:10, fontWeight:700, color:"#999", textTransform:"uppercase", letterSpacing:"0.6px", marginBottom:8 }}>
-                Zusatzmaterial ({app.media_urls.length} Datei{app.media_urls.length !== 1 ? "en" : ""})
+                Zusatzmaterial ({displayMediaUrls.length} Datei{displayMediaUrls.length !== 1 ? "en" : ""})
               </div>
               <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
-                {app.media_urls.map((url, idx) => {
+                {displayMediaUrls.map((url, idx) => {
                   const isImg = /\.(jpg|jpeg|png|webp|gif)$/i.test(url);
                   return isImg ? (
                     <a key={idx} href={url} target="_blank" rel="noreferrer">
