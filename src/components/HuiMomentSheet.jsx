@@ -199,7 +199,7 @@ async function uploadToMedia(file, userId) {
 
 // ════════════════════════════════════════════════════════════════
 export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'public' }) {
-  const [phase,     setPhase]     = useState("hidden");
+  const [phase,     setPhase]     = useState(visible ? "open" : "hidden");
   const [text,      setText]      = useState("");
   const [mediaURL,  setMediaURL]  = useState(null);
   const [isVideo,   setIsVideo]   = useState(false);

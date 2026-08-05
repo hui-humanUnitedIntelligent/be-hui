@@ -2288,9 +2288,7 @@ function MeinBereichMenu({
             profile={profile}
             onOpenMomentSheet={() => {
               close();
-              // openMomentSheet: nutzt onOpenMomentSheetProp (Parent) wenn vorhanden,
-              // sonst internen showMomentSheet State
-              setTimeout(() => openMomentSheet(), 80);
+              openMomentSheet();
             }}
           />
         </MeinBereichDrawer>
