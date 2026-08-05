@@ -1,13 +1,16 @@
-import { HUIEmpfehlungIcon, HUIProfilIcon, HUIWerkeIcon, HUIErlebnisIcon, HUIImpactIcon } from '../../design/icons/HuiSystemIcons.jsx';
-import { HUIChatIcon } from '../../design/icons/HuiInteractionIcons.jsx';
+import { HUIEmpfehlungIcon } from '../../design/icons/HuiSystemIcons.jsx';
 // src/components/studio/MyRecommendationsModal.jsx
 // ══════════════════════════════════════════════════════════
-// "Meine Empfehlungen" — Empfehlungen/Verbindungen die der Nutzer hat.
-// Liest aus `user_recommendations WHERE user_id = currentUser`.
+// "Meine Empfehlungen" — Empfehlungen (Textbewertungen), die der
+// Nutzer FÜR ANDERE geschrieben hat. Liest aus `recommendations`
+// WHERE from_user_id = currentUser (Gegenstück zu RecommendationsSection,
+// die to_user_id = currentUser liest, d.h. erhaltene "Kundenstimmen").
 //
-// Fix 2026-08-05 (v2): Zurück auf user_recommendations (hat echte Daten:
-// follows + project_support). Bei Klick auf einen Profil-Eintrag wird
-// der CHAT mit der Person geöffnet (nicht das öffentliche Profil).
+// Fix 2026-08-05 (v3, final): Vorherige Versionen lasen fälschlich aus
+// `user_recommendations` (Follows/Projekt-Support) und öffneten bei Klick
+// den Chat. Michael hat klargestellt: Es soll der geschriebene
+// Empfehlungs-TEXT angezeigt werden; Klick öffnet das öffentliche Profil
+// des Empfängers — kein Chat.
 // ══════════════════════════════════════════════════════════
 
 import { useState, useEffect } from "react";
@@ -28,22 +31,11 @@ function timeAgo(iso) {
   return `vor ${d} Tag${d !== 1 ? "en" : ""}`;
 }
 
-const TYPE_META = {
-  profile:    { label: "Profil",     icon: "👤" },
-  project:    { label: "Projekt",    icon: "❤️" },
-  work:       { label: "Werk",       icon: "🎨" },
-  experience: { label: "Erlebnis",   icon: "✨" },
-  event:      { label: "Event",      icon: "🗓️" },
-};
-
-const FILTER_KEYS = ["all", "profile", "project", "work", "experience"];
-
-function MyRecommendationsModal({ userId, onClose = () => {}, setChatRecipient, setShowChat }) {
+function MyRecommendationsModal({ userId, onClose = () => {} }) {
   const { openProfileById } = useHome() || {};
-  const [items, setItems]           = useState([]);
-  const [enrichment, setEnrichment] = useState({}); // item_id → meta
-  const [loading, setLoading]       = useState(true);
-  const [activeFilter, setActiveFilter] = useState("all");
+  const [items, setItems]     = useState([]);
+  const [profiles, setProfiles] = useState({}); // to_user_id → profile meta
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!userId) return;
@@ -51,70 +43,28 @@ function MyRecommendationsModal({ userId, onClose = () => {}, setChatRecipient, 
       setLoading(true);
       try {
         const { data, error } = await supabase
-          .from("user_recommendations")
-          .select("*")
-          .eq("user_id", userId)
+          .from("recommendations")
+          .select("id,from_user_id,to_user_id,text,is_public,created_at")
+          .eq("from_user_id", userId)
           .order("created_at", { ascending: false });
 
         if (error) throw error;
         const rows = data || [];
         setItems(rows);
 
-        // Anreicherung: Profile + Projekte + Werke + Erlebnisse batchen
-        const meta = {};
-
-        // Profile
-        const profileIds = [...new Set(rows.filter(r => r.item_type === "profile").map(r => r.item_id))];
-        if (profileIds.length) {
-          const { data: profs } = await ProfileService.getMany(profileIds.slice(0, 50));
+        const toIds = [...new Set(rows.map(r => r.to_user_id).filter(Boolean))];
+        if (toIds.length) {
+          const { data: profs } = await ProfileService.getMany(toIds.slice(0, 100));
+          const meta = {};
           (profs || []).forEach(p => {
             meta[p.id] = {
-              title: p.display_name || p.username || "Mitglied",
-              subtitle: p.username ? "@" + p.username : "",
-              image: p.avatar_url || null,
-              profileId: p.id,
-              username: p.username,
+              name: p.display_name || p.username || p.nickname || "Mitglied",
+              avatar: p.avatar_url || null,
+              username: p.username || null,
             };
           });
+          setProfiles(meta);
         }
-
-        // Projekte
-        const projectIds = [...new Set(rows.filter(r => r.item_type === "project").map(r => r.item_id))];
-        if (projectIds.length) {
-          const { data: projects } = await supabase
-            .from("impact_projects")
-            .select("id, name, icon, category")
-            .in("id", projectIds);
-          (projects || []).forEach(p => {
-            meta[p.id] = { title: p.name || "Projekt", subtitle: p.category || "", image: null, icon: p.icon || "🌱" };
-          });
-        }
-
-        // Werke
-        const workIds = [...new Set(rows.filter(r => r.item_type === "work").map(r => r.item_id))];
-        if (workIds.length) {
-          const { data: works } = await supabase
-            .from("works")
-            .select("id, title, cover_url, category")
-            .in("id", workIds);
-          (works || []).forEach(w => {
-            meta[w.id] = { title: w.title || "Werk", subtitle: w.category || "", image: w.cover_url || null };
-          });
-        }
-
-        // Erlebnisse
-        const expIds = [...new Set(rows.filter(r => r.item_type === "experience").map(r => r.item_id))];
-        if (expIds.length) {
-          const { data: exps } = await supabase
-            .from("experiences")
-            .select("id, title, cover_url, category")
-            .in("id", expIds);
-          (exps || []).forEach(e => {
-            meta[e.id] = { title: e.title || "Erlebnis", subtitle: e.category || "", image: e.cover_url || null };
-          });
-        }
-
-        setEnrichment(meta);
       } catch (e) {
         console.warn("[MyRec] Fehler:", e);
       }
@@ -123,50 +73,16 @@ function MyRecommendationsModal({ userId, onClose = () => {}, setChatRecipient, 
     load();
   }, [userId]);
 
-  const filtered = activeFilter === "all"
-    ? items
-    : items.filter(i => i.item_type === activeFilter);
-
   const handleClick = (item) => {
-    const meta = enrichment[item.item_id] || {};
-    const type = item.item_type;
-
-    if (type === "profile") {
-      // Chat öffnen statt öffentliches Profil
-      const profileId = meta.profileId || item.item_id;
-      const username = meta.username || null;
-      if (profileId) {
-        setChatRecipient?.({
-          id: profileId,
-          display_name: meta.title || "Mitglied",
-          avatar_url: meta.image || null,
-        });
-        setShowChat?.(true);
-        onClose();
-      } else if (username) {
-        // Fallback: Profil über Username
-        onClose();
-        window.history.pushState({}, "", `/profile/${username}`);
-        window.dispatchEvent(new PopStateEvent("popstate"));
-      }
-    } else if (type === "work") {
-      onClose();
-      window.history.pushState({}, "", `/work/${item.item_id}`);
-      window.dispatchEvent(new PopStateEvent("popstate"));
-    } else if (type === "experience") {
-      onClose();
-      window.history.pushState({}, "", `/erlebnis/${item.item_id}`);
-      window.dispatchEvent(new PopStateEvent("popstate"));
-    } else if (type === "project") {
-      onClose();
-      window.history.pushState({}, "", "/impact");
-      window.dispatchEvent(new PopStateEvent("popstate"));
+    if (!item.to_user_id) return;
+    onClose();
+    if (typeof openProfileById === "function") {
+      openProfileById(item.to_user_id);
+    } else {
+      // Fallback falls useHome() nicht verfügbar ist
+      window.dispatchEvent(new CustomEvent("hui:open-profile", { detail: { id: item.to_user_id } }));
     }
   };
-
-  const counts = {};
-  items.forEach(i => { counts[i.item_type] = (counts[i.item_type] || 0) + 1; });
-  const activeFilters = FILTER_KEYS.filter(k => k === "all" || counts[k] > 0);
 
   return createPortal(
     <div style={{
@@ -190,7 +106,7 @@ function MyRecommendationsModal({ userId, onClose = () => {}, setChatRecipient, 
               Meine Empfehlungen
             </div>
             <div style={{ fontSize:12, color:"rgba(26,26,24,0.45)", marginTop:2 }}>
-              {items.length === 0 ? "Noch keine Empfehlungen" : `${items.length} Empfehlung${items.length !== 1 ? "en" : ""}`}
+              {items.length === 0 ? "Noch keine Empfehlungen geschrieben" : `${items.length} Empfehlung${items.length !== 1 ? "en" : ""} geschrieben`}
             </div>
           </div>
           <button onClick={onClose} style={{
@@ -200,37 +116,13 @@ function MyRecommendationsModal({ userId, onClose = () => {}, setChatRecipient, 
           }}>✕</button>
         </div>
 
-        {/* Filter-Tabs */}
-        {activeFilters.length > 1 && (
-          <div style={{
-            display:"flex", gap:8, padding:"12px 16px",
-            overflowX:"auto", flexShrink:0,
-            borderBottom:"1px solid rgba(26,26,24,0.06)",
-          }}>
-            {activeFilters.map(k => (
-              <button
-                key={k}
-                onClick={() => setActiveFilter(k)}
-                style={{
-                  padding:"6px 14px", borderRadius:20, border:"none",
-                  cursor:"pointer", fontSize:12, fontWeight:500, flexShrink:0,
-                  background: activeFilter === k ? "#0EC4B8" : "rgba(26,26,24,0.07)",
-                  color: activeFilter === k ? "#fff" : "#1A1A18",
-                }}
-              >
-                {k === "all" ? `Alle (${items.length})` : `${TYPE_META[k]?.label || k} (${counts[k] || 0})`}
-              </button>
-            ))}
-          </div>
-        )}
-
         {/* Liste */}
         <div style={{ overflowY:"auto", WebkitOverflowScrolling:"touch", flex:1, padding:"12px 16px" }}>
           {loading ? (
             <div style={{ textAlign:"center", padding:"40px 0", color:"rgba(26,26,24,0.4)", fontSize:13 }}>
               Lade Empfehlungen…
             </div>
-          ) : filtered.length === 0 ? (
+          ) : items.length === 0 ? (
             <div style={{ textAlign:"center", padding:"50px 20px" }}>
               <div style={{marginBottom:12, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)"}}>
                 <HUIEmpfehlungIcon size={36}/>
@@ -239,84 +131,55 @@ function MyRecommendationsModal({ userId, onClose = () => {}, setChatRecipient, 
                 Noch keine Empfehlungen
               </div>
               <div style={{ fontSize:13, color:"rgba(26,26,24,0.45)", lineHeight:1.5 }}>
-                Verbinde dich mit anderen Nutzern oder unterstütze Projekte, um Empfehlungen zu sammeln.
+                Nach einem Kauf oder einer Buchung kannst du dem Anbieter eine Empfehlung schreiben.
               </div>
             </div>
           ) : (
             <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-              {filtered.map(item => {
-                const meta = enrichment[item.item_id] || {};
-                const typeInfo = TYPE_META[item.item_type] || { label: item.item_type, icon: "📌" };
-                const title = meta.title || typeInfo.label;
-                const subtitle = meta.subtitle || "";
-                const image = meta.image || null;
-
+              {items.map(item => {
+                const p = profiles[item.to_user_id] || {};
                 return (
                   <div
                     key={item.id}
                     onClick={() => handleClick(item)}
                     style={{
+                      display:"flex", gap:12, padding:"12px 14px",
                       background:"#fff", borderRadius:14,
-                      border:"1px solid rgba(26,26,24,0.08)",
-                      padding:"14px 16px",
-                      display:"flex", alignItems:"center", gap:14,
-                      boxShadow:"0 1px 4px rgba(26,26,24,0.05)",
+                      border:"1px solid rgba(26,26,24,0.06)",
                       cursor:"pointer",
-                      transition:"transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease",
-                    }}
-                    onMouseEnter={e => {
-                      e.currentTarget.style.transform = "scale(1.01)";
-                      e.currentTarget.style.boxShadow = "0 4px 16px rgba(14,196,184,0.15)";
-                      e.currentTarget.style.borderColor = "rgba(14,196,184,0.30)";
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.transform = "scale(1)";
-                      e.currentTarget.style.boxShadow = "0 1px 4px rgba(26,26,24,0.05)";
-                      e.currentTarget.style.borderColor = "rgba(26,26,24,0.08)";
                     }}
                   >
-                    {/* Avatar / Icon */}
-                    <div style={{
-                      width:42, height:42, borderRadius:"50%",
-                      background:"rgba(14,196,184,0.10)", flexShrink:0,
-                      display:"flex", alignItems:"center", justifyContent:"center",
-                      overflow:"hidden",
-                    }}>
-                      {image
-                        ? <img loading="lazy" decoding="async" src={image} alt={title} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-                        : <span style={{ fontSize:18 }}>{typeInfo.icon}</span>
-                      }
-                    </div>
-                    {/* Content */}
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontSize:14, fontWeight:600, color:"#1A1A18", marginBottom:2 }}>
-                        {title}
-                      </div>
-                      {subtitle && (
-                        <div style={{ fontSize:12, color:"rgba(26,26,24,0.45)", marginBottom:2 }}>
-                          {subtitle}
-                        </div>
-                      )}
-                      <div style={{ fontSize:11, color:"rgba(26,26,24,0.35)" }}>
-                        {typeInfo.label} · {timeAgo(item.created_at)}
-                      </div>
-                    </div>
-                    {/* Chat-Icon bei Profilen */}
-                    {item.item_type === "profile" && (
+                    {p.avatar ? (
+                      <img src={p.avatar} alt="" style={{
+                        width:40, height:40, borderRadius:"50%", objectFit:"cover", flexShrink:0,
+                      }}/>
+                    ) : (
                       <div style={{
-                        flexShrink:0, width:32, height:32, borderRadius:"50%",
-                        background:"rgba(14,196,184,0.10)",
+                        width:40, height:40, borderRadius:"50%", flexShrink:0,
+                        background:"rgba(14,196,184,0.12)", color:"#0EC4B8",
                         display:"flex", alignItems:"center", justifyContent:"center",
+                        fontSize:15, fontWeight:700,
                       }}>
-                        <HUIChatIcon size={16} />
+                        {(p.name || "?").charAt(0).toUpperCase()}
                       </div>
                     )}
-                    {/* Pfeil bei anderen Typen */}
-                    {item.item_type !== "profile" && (
-                      <div style={{ flexShrink:0, paddingTop:8 }}>
-                        <span style={{ fontSize:16, color:"rgba(14,196,184,0.55)", fontWeight:600 }}>›</span>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ display:"flex", alignItems:"baseline", justifyContent:"space-between", gap:8 }}>
+                        <div style={{ fontSize:14, fontWeight:600, color:"#1A1A18" }}>
+                          {p.name || "Mitglied"}
+                        </div>
+                        <div style={{ fontSize:11, color:"rgba(26,26,24,0.4)", flexShrink:0 }}>
+                          {timeAgo(item.created_at)}
+                        </div>
                       </div>
-                    )}
+                      <div style={{
+                        fontSize:13, color:"rgba(26,26,24,0.7)", marginTop:4,
+                        lineHeight:1.4, display:"-webkit-box",
+                        WebkitLineClamp:3, WebkitBoxOrient:"vertical", overflow:"hidden",
+                      }}>
+                        {item.text || "—"}
+                      </div>
+                    </div>
                   </div>
                 );
               })}

@@ -2157,7 +2157,7 @@ function MeinBereichMenu({
   onOpenMomentSheet: onOpenMomentSheetProp = null,
   onProfileUpdate = () => {},
 }) {
-  const { switchTab, setChatRecipient, setShowChat } = useHome();
+  const { switchTab } = useHome();
   const [activeDrawer, setActiveDrawer] = useState(null); // talente|werke|erlebnisse|momente|ambassador|empfehlungen|impact|finanzen
 
   // PRELOAD: Wenn ein Drawer geöffnet wird, sofort die zugehörigen Wizard-Chunks
@@ -2334,7 +2334,7 @@ function MeinBereichMenu({
         </MeinBereichDrawer>
       )}
       {activeDrawer === "empfehlungen" && empfehlungDetail === "outgoing" && (
-        <MyRecommendationsModal userId={profile?.id} onClose={() => setEmpfehlungDetail(null)} setChatRecipient={setChatRecipient} setShowChat={setShowChat} />
+        <MyRecommendationsModal userId={profile?.id} onClose={() => setEmpfehlungDetail(null)} />
       )}
 
       {/* ── Impact & Stimmen (Chooser + Detail-Drawer) ──────── */}
