@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../lib/AuthContext';
 import { HUI } from "../design/hui.design.js";
 import { HUILogoWordmark } from '../components/brand/HUILogo.jsx';
+import { getAuthRedirectUrl } from '../lib/platform.js';
 
 // ── Design Tokens ───────────────────────────────────────────────
 const T = {
@@ -615,7 +616,7 @@ export default function LoginPage() {
     if (!email) { setErr('Bitte gib deine E-Mail-Adresse ein.'); return; }
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/callback`,
+      redirectTo: getAuthRedirectUrl(),
     });
     if (error) {
       setErr(translateError(error.message));
@@ -630,7 +631,7 @@ export default function LoginPage() {
     if (mode === 'register') await persistManualRefLinkToStorage();
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: getAuthRedirectUrl() },
     });
   }
 
@@ -639,7 +640,7 @@ export default function LoginPage() {
     if (mode === 'register') await persistManualRefLinkToStorage();
     await supabase.auth.signInWithOAuth({
       provider: 'apple',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: getAuthRedirectUrl() },
     });
   }
 
