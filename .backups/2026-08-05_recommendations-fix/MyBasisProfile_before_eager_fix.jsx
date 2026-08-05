@@ -67,7 +67,7 @@ import {
 import { useContentPreview } from "../context/ContentPreviewContext.jsx";
 const AmbassadorStudioSection = React.lazy(() => import("../components/ambassador/AmbassadorStudioSection.jsx").catch(makeChunkReload("MyBasisProfile:AmbassadorStudioSection")));
 import HuiMomentSheet from "../components/HuiMomentSheet.jsx";
-import MyRecommendationsModal from "../components/studio/MyRecommendationsModal.jsx";
+const MyRecommendationsModal = React.lazy(() => import("../components/studio/MyRecommendationsModal.jsx").catch(makeChunkReload("MyBasisProfile:MyRecommendationsModal")));
 import ImpactStimmenModal from "../components/studio/ImpactStimmenModal.jsx";
 import MeineProjekteModal from "../components/studio/MeineProjekteModal.jsx";
 import ImpactUpdateSheet from "../components/studio/ImpactUpdateSheet.jsx";
@@ -2334,7 +2334,9 @@ function MeinBereichMenu({
         </MeinBereichDrawer>
       )}
       {activeDrawer === "empfehlungen" && empfehlungDetail === "outgoing" && (
+        <Suspense fallback={null}>
         <MyRecommendationsModal userId={profile?.id} onClose={() => setEmpfehlungDetail(null)} setChatRecipient={setChatRecipient} setShowChat={setShowChat} />
+        </Suspense>
       )}
 
       {/* ── Impact & Stimmen (Chooser + Detail-Drawer) ──────── */}
