@@ -75,6 +75,7 @@ const CreatorStudio    = lazy(() => import('./pages/CreatorStudio'));
 
 // ── Desktop Shell ───────────────────────────────────────────────────────────
 import DesktopShell from './components/desktop/DesktopShell.jsx';
+import DesktopHome from './components/desktop/DesktopHome.jsx';
 
 // ── Suspense Fallback ────────────────────────────────────────────────────────
 function WebSuspense({ children }) {
@@ -116,7 +117,7 @@ export default function WebApp() {
 
                             {/* ── App-Routen (mit DesktopShell) ────────────── */}
                             <Route element={<DesktopShell />}>
-                              <Route path="/Home" element={<UnifiedFeed />} />
+                              <Route path="/Home" element={<DesktopHome />} />
                               <Route path="/discover" element={<DiscoverPage />} />
                               <Route path="/impact" element={<ImpactPage />} />
                               <Route path="/work/:id" element={<WorkDetailPage />} />
