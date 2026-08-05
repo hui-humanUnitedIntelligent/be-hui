@@ -27,7 +27,7 @@ import CommentsSheet            from "../components/shared/CommentsSheet.jsx";
 import { countComments }        from "../lib/commentsService.js";
 
 // TEMP PERF — no-op on mobile (window.__HUI_PERF__ not set)
-import { PerfProfiler, usePerfMountPerceived as usePerfMount, feedMark } from "../components/desktop/perf-instrument.js";
+import { PerfProfiler, usePerfMount, feedMark } from "../components/desktop/perf-instrument.js";
 
 
 /* ═══════════════════════════════════════════════════════════════

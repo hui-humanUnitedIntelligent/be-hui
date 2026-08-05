@@ -1,5 +1,5 @@
 // ══════════════════════════════════════════════════════════════════════════════
-import { PerfProfiler, usePerfMountPerceived as usePerfMount, markRightPanelReady } from './perf-instrument.js';
+import { PerfProfiler, usePerfMount } from './perf-instrument.js';
 // DesktopRightPanel.jsx — HUI Desktop V3 — Mein Wirkungsraum
 // ══════════════════════════════════════════════════════════════════════════════
 //
@@ -34,7 +34,6 @@ function formatDate(iso) {
 
 export default function DesktopRightPanel() {
   usePerfMount('DesktopRightPanel');
-  useEffect(() => { markRightPanelReady(); }, [])
   const navigate = useNavigate();
   const { impact, activity, discover, bookings } = useDesktopData();
 

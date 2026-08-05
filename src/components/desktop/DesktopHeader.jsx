@@ -12,7 +12,7 @@
 // ══════════════════════════════════════════════════════════════════════════════
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { PerfProfiler, usePerfMountPerceived as usePerfMount } from './perf-instrument.js';
+import { PerfProfiler, usePerfMount } from './perf-instrument.js';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../lib/AuthContext.jsx';
 import { useNotifCount } from '../../lib/AppStateContext.jsx';
