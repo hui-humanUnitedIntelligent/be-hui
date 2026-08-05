@@ -656,10 +656,10 @@
   line-height: 1.5;
 }
 
-/* ═══ HOME (Briefing + Strom) ═════════════════════════════════════════════════ */
+/* ═══ HOME (Begrüßung + Hero + Strom) ═════════════════════════════════════════ */
 #web-root .hui-home { max-width: 760px; }
 
-#web-root .home-greeting { margin-bottom: 36px; }
+#web-root .home-greeting { margin-bottom: 28px; }
 #web-root .home-greeting h1 {
   font-family: var(--v3-font-display);
   font-size: 30px;
@@ -676,46 +676,259 @@
   margin: 0;
 }
 
-#web-root .brief { margin-bottom: 48px; }
-#web-root .brief-line {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 16px 0;
-  border-top: 1px solid var(--v3-border-soft);
+/* ── Hero-Bereich ───────────────────────────────────────────────────────────── */
+#web-root .hero-wrap {
+  margin-bottom: 40px;
+  opacity: 0;
+  transform: translateY(12px);
   transition: opacity var(--v3-anim-slow) var(--v3-anim-ease), transform var(--v3-anim-slow) var(--v3-anim-ease);
 }
-#web-root .brief-line:first-child { border-top: none; padding-top: 0; }
-#web-root .brief-label {
+#web-root .hero-wrap.hero-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+#web-root .hero-card {
+  position: relative;
+  border-radius: var(--v3-radius-xl);
+  overflow: hidden;
+  cursor: pointer;
+  border: 1px solid var(--v3-border);
+  box-shadow: var(--v3-shadow-md);
+  background: var(--v3-surface);
+  transition: box-shadow var(--v3-anim-normal) var(--v3-anim-ease), transform var(--v3-anim-normal) var(--v3-anim-ease);
+  display: flex;
+  flex-direction: column;
+}
+#web-root .hero-card:hover {
+  box-shadow: var(--v3-shadow-lift);
+  transform: translateY(-2px);
+}
+
+/* Werk Hero (Bild oben, Text unten) */
+#web-root .hero-img-wrap {
+  position: relative;
+  height: 320px;
+  overflow: hidden;
+}
+#web-root .hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--v3-anim-slow) var(--v3-anim-ease);
+}
+#web-root .hero-card:hover .hero-img {
+  transform: scale(1.03);
+}
+#web-root .hero-img-fallback {
+  background: linear-gradient(135deg, var(--v3-surface-alt) 0%, var(--v3-primary-soft) 100%);
+}
+#web-root .hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(20,20,34,0.5) 0%, transparent 50%);
+}
+
+/* Talent Hero (Avatar-Visual links, Text rechts) */
+#web-root .hero-card-talent {
+  flex-direction: row;
+  min-height: 280px;
+}
+#web-root .hero-talent-visual {
+  width: 40%;
+  min-width: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--v3-primary-soft) 0%, var(--v3-surface-alt) 100%);
+}
+#web-root .hero-talent-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid var(--v3-surface);
+  box-shadow: var(--v3-shadow-md);
+}
+#web-root .hero-talent-avatar-fallback {
+  background: var(--v3-primary-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--v3-primary);
+  font-size: 42px;
+  font-weight: 700;
+}
+
+/* Resonanz Hero (Orb-Visual) */
+#web-root .hero-card-resonanz {
+  flex-direction: row;
+  min-height: 240px;
+}
+#web-root .hero-resonanz-visual {
+  width: 35%;
+  min-width: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--v3-coral-soft) 0%, var(--v3-surface-alt) 100%);
+}
+#web-root .hero-resonanz-orb {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--v3-primary);
+  opacity: 0.4;
+  animation: v3Breathe 3s infinite ease-in-out;
+}
+
+/* Impact Hero (Glow-Visual) */
+#web-root .hero-card-impact {
+  flex-direction: row;
+  min-height: 240px;
+}
+#web-root .hero-impact-visual {
+  width: 35%;
+  min-width: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--v3-primary-soft) 0%, var(--v3-surface-alt) 100%);
+}
+#web-root .hero-impact-glow {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--v3-primary) 0%, transparent 70%);
+  opacity: 0.5;
+  animation: v3Breathe 4s infinite ease-in-out;
+}
+
+/* Hero Body (Text unten bzw. rechts) */
+#web-root .hero-body {
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+#web-root .hero-card-talent .hero-body,
+#web-root .hero-card-resonanz .hero-body,
+#web-root .hero-card-impact .hero-body {
+  justify-content: center;
+  padding: 32px 36px;
+}
+#web-root .hero-tag {
   font-size: 11px;
   font-weight: 600;
-  color: var(--v3-muted);
+  color: var(--v3-primary);
   text-transform: uppercase;
   letter-spacing: 1.4px;
 }
-#web-root .brief-content { display: flex; flex-direction: column; gap: 6px; }
-#web-root .brief-item {
-  border: none;
-  background: none;
-  cursor: pointer;
-  font-family: var(--v3-font-body);
-  font-size: 16px;
-  color: var(--v3-ink-soft);
-  text-align: left;
-  padding: 0;
-  line-height: 1.5;
-  transition: color var(--v3-anim-fast) var(--v3-anim-ease);
-}
-#web-root .brief-item:hover { color: var(--v3-primary); }
-#web-root .brief-item-static { font-size: 16px; color: var(--v3-ink-soft); line-height: 1.5; }
-#web-root .brief-impact-value {
+#web-root .hero-title {
   font-family: var(--v3-font-display);
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
+  color: var(--v3-ink);
+  letter-spacing: -0.3px;
+  margin: 0;
+  line-height: 1.25;
+}
+#web-root .hero-card-resonanz .hero-title {
+  font-size: 18px;
+  font-weight: 600;
+  font-family: var(--v3-font-body);
+  line-height: 1.5;
+  color: var(--v3-ink-soft);
+}
+#web-root .hero-impact-value {
+  font-size: 32px;
   color: var(--v3-primary);
-  letter-spacing: -0.4px;
+}
+#web-root .hero-meta {
+  font-size: 14px;
+  color: var(--v3-muted);
+}
+#web-root .hero-desc {
+  font-size: 14px;
+  color: var(--v3-ink-soft);
+  line-height: 1.6;
+  margin: 4px 0 0;
+}
+#web-root .hero-location {
+  font-size: 12px;
+  color: var(--v3-muted);
+  margin-top: 2px;
+}
+#web-root .hero-action {
+  margin-top: 16px;
+}
+#web-root .hero-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 20px;
+  height: 40px;
+  border: none;
+  border-radius: var(--v3-radius-pill);
+  background: var(--v3-primary);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--v3-font-body);
+  cursor: pointer;
+  box-shadow: var(--v3-shadow-glow);
+  transition: all var(--v3-anim-fast) var(--v3-anim-ease);
+}
+#web-root .hero-btn:hover {
+  background: var(--v3-primary-deep);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px var(--v3-primary-glow);
+}
+#web-root .hero-btn:active {
+  transform: translateY(0) scale(0.98);
 }
 
+/* Hero Skeleton */
+#web-root .hero-skeleton {
+  min-height: 320px;
+}
+#web-root .hero-skeleton-img {
+  height: 240px;
+  background: var(--v3-surface-alt);
+  animation: v3Shimmer 1.5s infinite;
+}
+#web-root .hero-skeleton-text {
+  padding: 24px 28px;
+}
+
+/* Hero Dots (Rotation Indicator) */
+#web-root .hero-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 16px;
+}
+#web-root .hero-dot {
+  width: 6px;
+  height: 6px;
+  border: none;
+  border-radius: 50%;
+  background: var(--v3-border);
+  cursor: pointer;
+  padding: 0;
+  transition: all var(--v3-anim-fast) var(--v3-anim-ease);
+}
+#web-root .hero-dot.active {
+  width: 20px;
+  border-radius: 3px;
+  background: var(--v3-primary);
+}
+#web-root .hero-dot:hover {
+  background: var(--v3-muted);
+}
+
+/* ── Der Strom (Feed Header) ───────────────────────────────────────────────── */
 #web-root .stream-header { margin-bottom: 24px; }
 #web-root .stream-header h2 {
   font-family: var(--v3-font-display);
@@ -726,7 +939,42 @@
   margin: 0;
 }
 
-#web-root .hui-feed > * { margin-bottom: 24px; }
+/* ── Desktop Feed Overrides (Mobile-Karten für Desktop neu komponiert) ──────── */
+#web-root .hui-feed > * { margin-bottom: 20px; }
+
+/* Feed-Karten: breiter, mehr Luft, Hover-Lift */
+#web-root .hui-feed article {
+  border-radius: var(--v3-radius-lg) !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  margin-bottom: 20px !important;
+  box-shadow: var(--v3-shadow-md) !important;
+  border: 1px solid var(--v3-border) !important;
+  transition: box-shadow var(--v3-anim-normal) var(--v3-anim-ease),
+              transform var(--v3-anim-normal) var(--v3-anim-ease) !important;
+}
+#web-root .hui-feed article:hover {
+  box-shadow: var(--v3-shadow-hover) !important;
+  transform: translateY(-3px) !important;
+}
+
+/* Feed-Karten Bilder: größer, atmosphärischer */
+#web-root .hui-feed article img {
+  transition: transform var(--v3-anim-slow) var(--v3-anim-ease) !important;
+}
+#web-root .hui-feed article:hover img {
+  transform: scale(1.02) !important;
+}
+
+/* Feed-Karten Innenabstand: mehr Raum zum Atmen */
+#web-root .hui-feed article > div:first-child {
+  padding: 16px 20px !important;
+}
+
+/* FeedWelcomeHeader (Mobile-Begrüßung): ausgeblendet — Desktop hat eigene Begrüßung */
+#web-root .hui-feed > div > div:first-child {
+  display: none !important;
+}
 
 /* ═══ FLYOUT / BACKDROP (shared) ══════════════════════════════════════════════ */
 #web-root .fly-backdrop {
