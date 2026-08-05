@@ -30,6 +30,7 @@ import './index.css';    // Shared Design System (Tailwind, CSS Variables, Reset
 import './web.css';      // Web-spezifische Styles (unter #web-root scope)
 import './components/desktop/desktopFoundation.css';  // Desktop Foundation (Tokens, Layout, Breakpoints, Interactions)
 import './components/desktop/desktopPhase1.css';  // Desktop Phase 1 (Mission Control, Panels, Sidebar, Header)
+import './components/desktop/desktopPhase2.css';  // Desktop Phase 2 (Chat, Notifications, Command Palette, Profiles)
 
 // ── Sentry ────────────────────────────────────────────────────────────────────
 import { initSentry, sentryCapture } from './lib/sentry.js';

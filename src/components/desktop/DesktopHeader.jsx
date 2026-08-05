@@ -1,20 +1,19 @@
 // ══════════════════════════════════════════════════════════════════════════════
-// DesktopHeader.jsx — HUI Desktop Header (Phase 1)
+// DesktopHeader.jsx — HUI Desktop Header (Phase 2)
 // ══════════════════════════════════════════════════════════════════════════════
 //
-// PHASE 1:
-//   ✓ Funktionierende Suche (via SearchService)
-//   ✓ Avatar-Dropdown (Profil, Studio, Einstellungen, Abmelden)
-//   ✓ Notifications als Platzhalter-Panel
-//   ✓ Messages als Platzhalter-Panel
+// PHASE 2:
+//   ✓ Chat-Panel (Slide-In, Master-Detail)
+//   ✓ Notification-Flyout (420px, useNotifications)
+//   ✓ Avatar-Dropdown (Profil, Studio, Impact, Abmelden)
+//   ✓ Command Palette (Ctrl+K)
 //   ✓ ESC schließt alle Panels
-//   ✓ Outside-Click schließt Dropdown
+//   ✓ Outside Click schließt
 //
 // DATEN:
 //   - SearchService.search() aus services/db.js (shared)
 //   - useNotifCount() aus AppStateContext (shared)
 //   - useAuth() für Profile + Logout (shared)
-//   - Kein eigener Supabase-Aufruf — SearchService kapselt alles
 // ══════════════════════════════════════════════════════════════════════════════
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
@@ -23,6 +22,8 @@ import { useAuth } from '../../lib/AuthContext.jsx';
 import { useNotifCount } from '../../lib/AppStateContext.jsx';
 import { SearchService } from '../../services/db.js';
 import { useEscapeKey } from './hooks/useEscapeKey.js';
+import DesktopChatPanel from './DesktopChatPanel.jsx';
+import DesktopNotificationFlyout from './DesktopNotificationFlyout.jsx';
 
 // ── Avatar Dropdown ──────────────────────────────────────────────────────────
 function AvatarDropdown({ profile, onNavigate, onLogout, onClose }) {
@@ -78,10 +79,8 @@ function SearchDropdown({ results, loading, onSelect, onClose }) {
       </>
     );
   }
-
-  const hasResults = (results.profiles?.length || 0) + (results.works?.length || 0) + (results.experiences?.length || 0) > 0;
-
-  if (!hasResults) {
+  const total = (results.profiles?.length || 0) + (results.works?.length || 0) + (results.experiences?.length || 0);
+  if (!total) {
     return (
       <>
         <div className="desktop-dropdown-backdrop" onClick={onClose} />
@@ -91,7 +90,6 @@ function SearchDropdown({ results, loading, onSelect, onClose }) {
       </>
     );
   }
-
   return (
     <>
       <div className="desktop-dropdown-backdrop" onClick={onClose} />
@@ -121,13 +119,8 @@ function SearchDropdown({ results, loading, onSelect, onClose }) {
             <div className="search-dropdown-label">Werke</div>
             {results.works.map(w => (
               <button key={w.id} className="search-dropdown-item" onClick={() => onSelect('work', w)}>
-                <div className="search-item-icon">
-                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="14" height="14" rx="2" /><path d="M3 13l4-4 5 5M13 9l4 4" /></svg>
-                </div>
-                <div>
-                  <div className="search-item-title">{w.title}</div>
-                  {w.category && <div className="search-item-sub">{w.category}</div>}
-                </div>
+                <div className="search-item-icon"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="14" height="14" rx="2" /></svg></div>
+                <div><div className="search-item-title">{w.title}</div></div>
               </button>
             ))}
           </div>
@@ -137,13 +130,8 @@ function SearchDropdown({ results, loading, onSelect, onClose }) {
             <div className="search-dropdown-label">Erlebnisse</div>
             {results.experiences.map(e => (
               <button key={e.id} className="search-dropdown-item" onClick={() => onSelect('experience', e)}>
-                <div className="search-item-icon">
-                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="10" cy="10" r="7" /><path d="M10 6v4l2 2" /></svg>
-                </div>
-                <div>
-                  <div className="search-item-title">{e.title}</div>
-                  {e.category && <div className="search-item-sub">{e.category}</div>}
-                </div>
+                <div className="search-item-icon"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="10" cy="10" r="7" /></svg></div>
+                <div><div className="search-item-title">{e.title}</div></div>
               </button>
             ))}
           </div>
@@ -153,28 +141,8 @@ function SearchDropdown({ results, loading, onSelect, onClose }) {
   );
 }
 
-// ── Placeholder Panel (Notifications / Messages) ──────────────────────────────
-function PlaceholderPanel({ title, message, onClose }) {
-  return (
-    <>
-      <div className="desktop-dropdown-backdrop" onClick={onClose} />
-      <div className="desktop-placeholder-panel">
-        <div className="placeholder-panel-header">
-          <h3>{title}</h3>
-          <button className="placeholder-panel-close" onClick={onClose} aria-label="Schließen">
-            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 5l10 10M15 5L5 15" /></svg>
-          </button>
-        </div>
-        <div className="placeholder-panel-body">
-          <p>{message}</p>
-        </div>
-      </div>
-    </>
-  );
-}
-
 // ── Hauptkomponente ──────────────────────────────────────────────────────────
-export default function DesktopHeader() {
+export default function DesktopHeader({ onCommandPalette }) {
   const navigate = useNavigate();
   const { profile, logout } = useAuth();
   const notifCount = useNotifCount();
@@ -183,21 +151,19 @@ export default function DesktopHeader() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [showAvatar, setShowAvatar] = useState(false);
-  const [showNotifPanel, setShowNotifPanel] = useState(false);
-  const [showMsgPanel, setShowMsgPanel] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [showNotif, setShowNotif] = useState(false);
 
   const searchTimer = useRef(null);
-  const searchRef = useRef(null);
 
-  // ESC schließt alles
   useEscapeKey(() => {
     setShowSearch(false);
     setShowAvatar(false);
-    setShowNotifPanel(false);
-    setShowMsgPanel(false);
+    setShowChat(false);
+    setShowNotif(false);
   });
 
-  // ── Search (debounced, via SearchService) ────────────────────────────────────
+  // Search (debounced)
   useEffect(() => {
     if (searchTimer.current) clearTimeout(searchTimer.current);
     if (searchValue.trim().length < 2) {
@@ -205,7 +171,6 @@ export default function DesktopHeader() {
       setShowSearch(false);
       return;
     }
-
     setSearchLoading(true);
     setShowSearch(true);
     searchTimer.current = setTimeout(async () => {
@@ -218,20 +183,17 @@ export default function DesktopHeader() {
       } finally {
         setSearchLoading(false);
       }
-    }, 300); // 300ms debounce
-
+    }, 300);
   }, [searchValue]);
 
-  // ── Search Result Navigation ────────────────────────────────────────────────
   const handleSearchSelect = useCallback((type, item) => {
     setShowSearch(false);
     setSearchValue('');
     if (type === 'profile') navigate(`/profile/${item.username || item.id}`);
     else if (type === 'work') navigate(`/work/${item.id}`);
-    else if (type === 'experience') navigate(`/discover`);
+    else if (type === 'experience') navigate('/discover');
   }, [navigate]);
 
-  // ── Logout ────────────────────────────────────────────────────────────────
   async function handleLogout() {
     try { await logout(); navigate('/login', { replace: true }); }
     catch (e) { console.error('[HUI Web] Logout:', e); }
@@ -241,8 +203,8 @@ export default function DesktopHeader() {
     <header className="desktop-header">
       <div className="header-inner">
 
-        {/* ── Search ─────────────────────────────────────────────── */}
-        <div className="header-search-container" ref={searchRef}>
+        {/* Search */}
+        <div className="header-search-container">
           <span className="header-search-icon">
             <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="9" cy="9" r="6" /><path d="M17 17l-3.5-3.5" />
@@ -256,6 +218,7 @@ export default function DesktopHeader() {
             aria-label="Suche"
             className="header-search-input"
           />
+          <kbd className="header-search-kbd" onClick={onCommandPalette}>⌘K</kbd>
           {showSearch && (
             <SearchDropdown
               results={searchResults}
@@ -266,13 +229,12 @@ export default function DesktopHeader() {
           )}
         </div>
 
-        {/* ── Action Buttons ───────────────────────────────────────── */}
+        {/* Actions */}
         <div className="header-actions">
-
           {/* Notifications */}
           <button
             className="header-icon-btn"
-            onClick={() => { setShowNotifPanel(true); setShowAvatar(false); setShowMsgPanel(false); }}
+            onClick={() => { setShowNotif(true); setShowAvatar(false); setShowChat(false); }}
             aria-label="Benachrichtigungen"
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -284,7 +246,7 @@ export default function DesktopHeader() {
           {/* Messages */}
           <button
             className="header-icon-btn"
-            onClick={() => { setShowMsgPanel(true); setShowAvatar(false); setShowNotifPanel(false); }}
+            onClick={() => { setShowChat(true); setShowAvatar(false); setShowNotif(false); }}
             aria-label="Nachrichten"
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -299,12 +261,12 @@ export default function DesktopHeader() {
                 className="header-avatar"
                 src={profile.avatar_url}
                 alt="Profil"
-                onClick={() => { setShowAvatar(!showAvatar); setShowNotifPanel(false); setShowMsgPanel(false); }}
+                onClick={() => { setShowAvatar(!showAvatar); setShowNotif(false); setShowChat(false); }}
               />
             ) : (
               <button
                 className="header-avatar header-avatar-fallback"
-                onClick={() => { setShowAvatar(!showAvatar); setShowNotifPanel(false); setShowMsgPanel(false); }}
+                onClick={() => { setShowAvatar(!showAvatar); setShowNotif(false); setShowChat(false); }}
                 aria-label="Mein Profil"
               >
                 {(profile?.display_name || profile?.username || '?').charAt(0).toUpperCase()}
@@ -320,23 +282,11 @@ export default function DesktopHeader() {
             )}
           </div>
         </div>
-
-        {/* ── Placeholder Panels ──────────────────────────────────── */}
-        {showNotifPanel && (
-          <PlaceholderPanel
-            title="Benachrichtigungen"
-            message="Benachrichtigungen werden in Phase 2 als Dropdown-Panel integriert."
-            onClose={() => setShowNotifPanel(false)}
-          />
-        )}
-        {showMsgPanel && (
-          <PlaceholderPanel
-            title="Nachrichten"
-            message="Nachrichten werden in Phase 2 als Master-Detail-Panel integriert."
-            onClose={() => setShowMsgPanel(false)}
-          />
-        )}
       </div>
+
+      {/* ── Panels ─────────────────────────────────────────────────────────── */}
+      {showNotif && <DesktopNotificationFlyout onClose={() => setShowNotif(false)} />}
+      {showChat && <DesktopChatPanel onClose={() => setShowChat(false)} />}
     </header>
   );
 }

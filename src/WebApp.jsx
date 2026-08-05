@@ -76,6 +76,9 @@ const CreatorStudio    = lazy(() => import('./pages/CreatorStudio'));
 // ── Desktop Shell ───────────────────────────────────────────────────────────
 import DesktopShell from './components/desktop/DesktopShell.jsx';
 import DesktopHome from './components/desktop/DesktopHome.jsx';
+import DesktopProfile from './components/desktop/DesktopProfile.jsx';
+import DesktopDiscover from './components/desktop/DesktopDiscover.jsx';
+import DesktopStudio from './components/desktop/DesktopStudio.jsx';
 
 // ── Suspense Fallback ────────────────────────────────────────────────────────
 function WebSuspense({ children }) {
@@ -118,12 +121,12 @@ export default function WebApp() {
                             {/* ── App-Routen (mit DesktopShell) ────────────── */}
                             <Route element={<DesktopShell />}>
                               <Route path="/Home" element={<DesktopHome />} />
-                              <Route path="/discover" element={<DiscoverPage />} />
+                              <Route path="/discover" element={<DesktopDiscover />} />
                               <Route path="/impact" element={<ImpactPage />} />
                               <Route path="/work/:id" element={<WorkDetailPage />} />
-                              <Route path="/profile/me" element={<MyBasisProfile />} />
-                              <Route path="/profile/:username" element={<PublicProfilePage />} />
-                              <Route path="/studio" element={<CreatorStudio />} />
+                              <Route path="/profile/me" element={<DesktopProfile />} />
+                              <Route path="/profile/:username" element={<DesktopProfile />} />
+                              <Route path="/studio" element={<DesktopStudio />} />
 
                               {/* ── Redirects ────────────────────────────── */}
                               <Route path="/" element={<Navigate to="/Home" replace />} />
