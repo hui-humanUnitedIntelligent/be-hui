@@ -29,6 +29,11 @@ window.addEventListener('error', (event) => {
   sentryCapture(event.error, { source: 'window.onerror', href: window.location.href });
 });
 
+// ── Performance Instrumentation (TEMPORARY — desktop only) ──────────────────
+window.__HUI_PERF__ = true;
+import { initPerf } from './components/desktop/perf-instrument.js';
+initPerf();
+
 // ── Render ────────────────────────────────────────────────────────────────────
 ReactDOM.createRoot(document.getElementById('web-root')).render(
   <React.StrictMode>

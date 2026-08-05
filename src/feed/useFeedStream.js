@@ -18,6 +18,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { ProfileService } from '../services/db';
 import { supabase }        from "../lib/supabaseClient.js";
 import { useAuth }         from "../lib/AuthContext.jsx";
+import { feedMark, feedQueryTime } from "../components/desktop/perf-instrument.js";
 import { rhythmizeFeed }   from "./feedRhythmEngine.js";
 import {
   normalizeMomentRow     as normalizeBeitragRow,
@@ -84,6 +85,8 @@ async function fetchFeedPage(userId = null, cursors = null) {
   const filterImpacts = (q) => impactsCursor ? q.lt("created_at", impactsCursor) : q;
 
   // ── Step 1: Plain queries — kein JOIN ──────────────────────────────────
+  feedMark('fetchStart');
+  const queryStart = performance.now();
   const [worksRes, expsRes, beitrRes, invRes, talentsRes, impactRes] = await Promise.allSettled([
     filterWorks(
       supabase.from("works")
@@ -133,6 +136,9 @@ async function fetchFeedPage(userId = null, cursors = null) {
     ),
   ]);
 
+  feedMark('fetchEnd');
+  feedQueryTime('all-queries', queryStart);
+
   const works   = worksRes.status   === "fulfilled" ? (worksRes.value?.data   || []) : [];
   const exps    = expsRes.status    === "fulfilled" ? (expsRes.value?.data    || []) : [];
   const beitr   = beitrRes.status   === "fulfilled" ? (beitrRes.value?.data   || []) : [];
@@ -159,6 +165,7 @@ async function fetchFeedPage(userId = null, cursors = null) {
   }
 
   // ── Step 2: Profile-Enrichment — optional, nie blockierend ─────────────
+  feedMark('mergeStart');
   const allRows = [...works, ...exps, ...beitr, ...invs, ...talents, ...impacts];
   const userIds = [...new Set(allRows.map(r => r.user_id || r.creator_id).filter(Boolean))];
 
@@ -179,6 +186,7 @@ async function fetchFeedPage(userId = null, cursors = null) {
     }
   }
 
+  feedMark('mergeEnd');
   // ── Step 3: Normalisieren (mit injiziertem profile aus profileMap) ──────
   function injectProfile(row) {
     const uid = row.user_id || row.creator_id || null;
@@ -222,6 +230,7 @@ async function fetchFeedPage(userId = null, cursors = null) {
 
 
 
+  feedMark('sortStart');
   // SORT.STRICT-001: Strikte Sortierung nach created_at DESC
   // Kein Experience-Boost, kein Relevanz-Ranking — reines Datum.
   // Neuester Eintrag (egal welcher Typ) ist immer oben.
@@ -248,6 +257,7 @@ async function fetchFeedPage(userId = null, cursors = null) {
                   beitr.length   >= limit || talents.length >= limit ||
                   impacts.length >= limit;
 
+  feedMark('sortEnd');
   return { items: normalized, nextCursors, hasMore };
 }
 

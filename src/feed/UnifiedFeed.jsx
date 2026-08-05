@@ -26,6 +26,9 @@ import { usePresenceMap }      from "../lib/usePresence.jsx";
 import CommentsSheet            from "../components/shared/CommentsSheet.jsx";
 import { countComments }        from "../lib/commentsService.js";
 
+// TEMP PERF — no-op on mobile (window.__HUI_PERF__ not set)
+import { PerfProfiler, usePerfMount, feedMark } from "../components/desktop/perf-instrument.js";
+
 
 /* ═══════════════════════════════════════════════════════════════
    FeedWelcomeHeader — Kapitel 2, Sprint 2.1
@@ -735,7 +738,7 @@ const LazyCard = React.memo(function LazyCard({ raw, ...handlers }) {
   return (
     <div ref={ref} style={{ minHeight: visible ? undefined : 280 }}>
       {visible
-        ? <FeedRouter item={raw} {...handlers} />
+        ? <PerfProfiler id={`FeedCard:${raw.id}`}><FeedRouter item={raw} {...handlers} /></PerfProfiler>
         : <CardSkeleton />}
     </div>
   );
@@ -764,6 +767,7 @@ export default function UnifiedFeed({
   // Scroll-Container-Ref (von Home.jsx übergeben) — für Virtualisierung
   scrollContainerRef = null,
 }) {
+  usePerfMount('UnifiedFeed');
   useEffect(() => {
     injectFeedCSS();
   }, []); // eslint-disable-line
@@ -832,6 +836,7 @@ export default function UnifiedFeed({
   // Sections are directly imported — no lazy load needed
 
   return (
+    <PerfProfiler id="UnifiedFeed">
     <div style={{
       width: "100%",
       overflowX: "hidden",
@@ -926,6 +931,7 @@ export default function UnifiedFeed({
         postTitle={commentsTarget?.postTitle}
       />
     </div>
+    </PerfProfiler>
   );
 }
 

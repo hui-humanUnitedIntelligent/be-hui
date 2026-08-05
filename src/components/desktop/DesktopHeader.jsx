@@ -12,6 +12,7 @@
 // ══════════════════════════════════════════════════════════════════════════════
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { PerfProfiler, usePerfMount } from './perf-instrument.js';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../lib/AuthContext.jsx';
 import { useNotifCount } from '../../lib/AppStateContext.jsx';
@@ -119,6 +120,7 @@ function CalendarIcon() {
 
 // ── Hauptkomponente ──────────────────────────────────────────────────────────
 export default function DesktopHeader({ onCommandPalette, chatOpen, onChatChange, chatUnread = 0 }) {
+  usePerfMount('DesktopHeader');
   const navigate = useNavigate();
   const { profile, logout } = useAuth();
   const notifCount = useNotifCount();
@@ -178,6 +180,7 @@ export default function DesktopHeader({ onCommandPalette, chatOpen, onChatChange
   }
 
   return (
+    <PerfProfiler id="DesktopHeader">
     <header className="hui-header">
       {/* Search */}
       <div className="hd-search-wrap">
@@ -229,5 +232,6 @@ export default function DesktopHeader({ onCommandPalette, chatOpen, onChatChange
       {showNotif && <DesktopNotificationFlyout onClose={() => setShowNotif(false)} />}
       {showKalender && <DesktopKalenderFlyout onClose={() => setShowKalender(false)} />}
     </header>
+    </PerfProfiler>
   );
 }
