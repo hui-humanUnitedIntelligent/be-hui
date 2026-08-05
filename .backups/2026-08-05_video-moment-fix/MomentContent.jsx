@@ -31,12 +31,7 @@ function XIcon({ size = 24 }) {
 
 // ── Badge-Mapping: type × moment_source → Label + Farbe ──────
 function getMomentBadge(raw) {
-  // moment_type: der ursprüngliche beitraege.type (video/foto/gedanke) —
-  // raw.type ist nach der Feed-Normalisierung immer "moment" (Top-Level-
-  // Klassifizierung für die Card-Auswahl), siehe normalizeMomentRow() in
-  // unifiedNormalizer.js. moment_type als Fallback falls type noch den
-  // Rohwert trägt (z.B. ältere/gecachte Items).
-  const type   = (raw?.moment_type || raw?.type || "").toLowerCase();
+  const type   = (raw?.type         || "").toLowerCase();
   const source = (raw?.moment_source || "").toLowerCase();
 
   // Galerie-Quelle → "Bild-Moment" (unabhängig von type)

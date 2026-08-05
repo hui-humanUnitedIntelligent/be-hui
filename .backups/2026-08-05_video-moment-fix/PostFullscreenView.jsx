@@ -230,9 +230,8 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
         </div>
 
         {/* 1) Grosses Bild/Video */}
-        {hero && (mountedItem.media?.[0]?.type === "video" || /\.(mp4|webm|mov|m4v|ogv)(\?|#|$)/i.test(hero)
-          ? <video src={hero} controls playsInline preload="metadata" style={{ width:"100%", maxHeight:"62vh", objectFit:"cover", display:"block", marginTop:8, background:"#000" }}/>
-          : <img loading="lazy" decoding="async" src={hero} alt={mountedItem.title || ""} style={{ width:"100%", maxHeight:"62vh", objectFit:"cover", display:"block", marginTop:8 }}/>
+        {hero && (
+          <img loading="lazy" decoding="async" src={hero} alt={mountedItem.title || ""} style={{ width:"100%", maxHeight:"62vh", objectFit:"cover", display:"block", marginTop:8 }}/>
         )}
 
         <div style={{ padding:"18px 18px 0" }}>
@@ -265,9 +264,7 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
           {extraMedia.length > 0 && (
             <div className="pfv-strip" style={{ display:"flex", gap:8, overflowX:"auto", marginBottom:16 }}>
               {extraMedia.map((m, i) => (
-                m.type === "video"
-                  ? <video key={i} src={m.url} muted playsInline preload="metadata" style={{ width:110, height:110, borderRadius:12, objectFit:"cover", flexShrink:0 }}/>
-                  : <img loading="lazy" decoding="async" key={i} src={m.url} alt="" style={{ width:110, height:110, borderRadius:12, objectFit:"cover", flexShrink:0 }}/>
+                <img loading="lazy" decoding="async" key={i} src={m.url} alt="" style={{ width:110, height:110, borderRadius:12, objectFit:"cover", flexShrink:0 }}/>
               ))}
             </div>
           )}
@@ -312,9 +309,7 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
                     width:96, height:96, borderRadius:12, overflow:"hidden", flexShrink:0,
                     background:"rgba(26,26,46,0.05)",
                   }}>
-                    {row.src && (row.type === "video"
-                      ? <video src={row.src} muted playsInline preload="metadata" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-                      : <img loading="lazy" decoding="async" src={row.src} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>)}
+                    {row.src && <img loading="lazy" decoding="async" src={row.src} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>}
                   </div>
                 ))}
               </div>

@@ -103,7 +103,7 @@ async function fetchFeedPage(userId = null, cursors = null) {
     ),
     filterBeitr(
       supabase.from("beitraege")
-        .select("id,user_id,src,type,moment_source,caption,created_at")
+        .select("id,user_id,src,type,caption,created_at")
         .order("created_at", { ascending: false })
         .limit(limit)
     ),

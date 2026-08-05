@@ -436,17 +436,12 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
   injectCardCSS();
 
   let url = null;
-  let isVideo = false;
   if (Array.isArray(media) && media.length > 0) {
     const f = media[0];
     url = f?.url || (typeof f === "string" ? f : null);
-    isVideo = !!(f && typeof f === "object" && f.type === "video");
   } else if (typeof media === "string" && media.length > 0) {
     url = media;
   }
-  // Fallback: Video an Datei-Endung erkennen, falls der type-Hint fehlt
-  // (z.B. Alt-Daten ohne moment_type) — verhindert kaputtes <img> bei .mp4.
-  if (url && !isVideo) isVideo = /\.(mp4|webm|mov|m4v|ogv)(\?|#|$)/i.test(url);
 
   if (!url || err) return null;
 
@@ -491,42 +486,20 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
         }} />
       )}
 
-      {isVideo ? (
-        <video
-          src={url}
-          muted
-          loop
-          playsInline
-          autoPlay
-          controls
-          preload="metadata"
-          onLoadedData={() => setLoaded(true)}
-          onError={() => setErr(true)}
-          className="hui-card-img"
-          style={{
-            width: "100%", height: "100%", objectFit: "cover", display: "block",
-            opacity: loaded ? 1 : 0,
-            transition: "opacity 0.3s ease",
-            willChange: "opacity, transform",
-            background: "#000",
-          }}
-        />
-      ) : (
-        <img
-          src={url}
-          alt={alt || ""}
-          loading="lazy"
-          onLoad={() => setLoaded(true)}
-          onError={() => setErr(true)}
-          className="hui-card-img"
-          style={{
-            width: "100%", height: "100%", objectFit: "cover", display: "block",
-            opacity: loaded ? 1 : 0,
-            transition: "opacity 0.3s ease",
-            willChange: "opacity, transform",
-          }}
-        />
-      )}
+      <img
+        src={url}
+        alt={alt || ""}
+        loading="lazy"
+        onLoad={() => setLoaded(true)}
+        onError={() => setErr(true)}
+        className="hui-card-img"
+        style={{
+          width: "100%", height: "100%", objectFit: "cover", display: "block",
+          opacity: loaded ? 1 : 0,
+          transition: "opacity 0.3s ease",
+          willChange: "opacity, transform",
+        }}
+      />
 
       {/* Heart burst on double-tap */}
       {heartPos && (

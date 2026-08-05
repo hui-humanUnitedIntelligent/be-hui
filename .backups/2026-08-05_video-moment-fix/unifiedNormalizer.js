@@ -15,7 +15,6 @@ const safeStr=(v,fb)=>{if(v==null||v==="")return fb!==undefined?fb:"";return Str
 const safeNum=(v,fb)=>{const n=Number(v);return isNaN(n)?(fb!==undefined?fb:0):n;};
 const safeBool=(v)=>Boolean(v);
 const safeUrl=(v)=>(typeof v==="string"&&v.startsWith("http"))?v:null;
-const isVideoUrl=(v)=>typeof v==="string"&&/\.(mp4|webm|mov|m4v|ogv)(\?|#|$)/i.test(v);
 
 function relTime(ts){
   if(!ts)return"";
@@ -78,38 +77,28 @@ function extractAuthor(raw){
 }
 
 function extractMedia(raw){
-  // mk(): baut ein Media-Objekt und erkennt Video anhand der Datei-Endung
-  // (mp4/webm/mov/m4v/ogv) ODER anhand eines expliziten explicitType-Hints
-  // (z.B. raw.type==="video" bei beitraege-Rows) — verhindert dass Videos
-  // fälschlich als <img> gerendert werden (Root Cause: Video-Moment zeigte
-  // nichts im Feed, weil FeedMedia nur <img> kannte und type immer "image" war).
-  const mk=(u,explicitType)=>{
-    const su=safeUrl(u);
-    if(!su)return null;
-    const type=explicitType==="video"||isVideoUrl(su) ? "video" : "image";
-    return{type,url:su};
-  };
   if(Array.isArray(raw.images)&&raw.images.length>0){
     return raw.images.map(img=>{
       const u=typeof img==="string"?img:(img&&img.url)?img.url:null;
-      return mk(u);
+      return safeUrl(u)?{type:"image",url:safeUrl(u)}:null;
     }).filter(Boolean);
   }
   if(Array.isArray(raw.media)&&raw.media.length>0){
     return raw.media.map(img=>{
       const u=typeof img==="string"?img:(img&&img.url)?img.url:null;
-      return mk(u);
+      return safeUrl(u)?{type:"image",url:safeUrl(u)}:null;
     }).filter(Boolean);
   }
   // media_urls: Supabase-Array-Spalte (z.B. impact_applications, momente)
   if(Array.isArray(raw.media_urls)&&raw.media_urls.length>0){
-    return raw.media_urls.map(u=>mk(u)).filter(Boolean);
+    return raw.media_urls.map(u=>{
+      const su=safeUrl(u);
+      return su?{type:"image",url:su}:null;
+    }).filter(Boolean);
   }
   // Single-URL candidates: cover_url (impact_applications), image_url, src, ...
-  // raw.moment_type trägt bei beitraege-Rows den ursprünglichen DB-Typ
-  // (video/foto/gedanke) — siehe normalizeMomentRow weiter unten.
   const candidates=[raw.src,raw.image_url,raw.cover_url,raw.media_url,raw.expImg,raw.coverUrl,raw.thumbnail,raw.banner];
-  for(const c of candidates){const m=mk(c, raw.moment_type);if(m)return[m];}
+  for(const c of candidates){const u=safeUrl(c);if(u)return[{type:"image",url:u}];}
   return[];
 }
 
@@ -171,7 +160,7 @@ export function toFeedItems(arr){
   return arr.map(toFeedItem).filter(Boolean);
 }
 
-export const normalizeMomentRow    =(raw)=>toFeedItem({...raw,moment_type:raw.type,type:"moment"});
+export const normalizeMomentRow    =(raw)=>toFeedItem({...raw,type:"moment"});
 export const normalizeExperienceRow=(raw)=>toFeedItem({...raw,type:"experience"});
 export const normalizeWorkRow      =(raw)=>toFeedItem({...raw,type:"work"});
 export const normalizeEventRow     =(raw)=>toFeedItem({...raw,type:"event"});

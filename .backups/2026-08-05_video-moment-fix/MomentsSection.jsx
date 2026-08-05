@@ -100,12 +100,9 @@ export function MomentsSection({
                 boxShadow:T.card, position:"relative",
               }}>
               {m.src || m.media_url
-                ? (m.type === "video"
-                  ? <video src={m.src||m.media_url} muted playsInline preload="metadata"
-                      style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-                  : <img loading="lazy" decoding="async" src={m.src||m.media_url} alt=""
-                      style={{ width:"100%", height:"100%", objectFit:"cover" }}
-                      onError={e=>e.target.style.display="none"}/>)
+                ? <img loading="lazy" decoding="async" src={m.src||m.media_url} alt=""
+                    style={{ width:"100%", height:"100%", objectFit:"cover" }}
+                    onError={e=>e.target.style.display="none"}/>
                 : <div style={{ width:"100%", height:"100%", display:"flex",
                     alignItems:"center", justifyContent:"center" }}>
                     <HUIFotoIcon size={24} style={{color:"rgba(14,196,184,0.4)"}}/>

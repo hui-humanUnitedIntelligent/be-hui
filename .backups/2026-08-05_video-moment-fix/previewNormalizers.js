@@ -117,14 +117,7 @@ export function normalizeTalentForPreview(t, authorName) {
 // Rohdaten (z.B. aus Discover-Karten) ihn nicht mitbringen.
 export function normalizePostForPreview(raw, forcedType) {
   if (!raw?.id) return null;
-  // moment_type: bewahrt den ursprünglichen beitraege.type (video/foto/gedanke)
-  // BEVOR forcedType="moment" ihn überschreibt — sonst zeigt getMomentBadge()
-  // (MomentContent.jsx) fälschlich immer "Gedanke" und Videos rendern nicht.
-  // Analog zu normalizeMomentRow() in unifiedNormalizer.js.
-  const merged = forcedType
-    ? { ...raw, moment_type: forcedType === "moment" ? raw.type : raw.moment_type, type: forcedType }
-    : raw;
-  const item = toFeedItem(merged);
+  const item = toFeedItem(forcedType ? { ...raw, type: forcedType } : raw);
   if (!item) return null;
   const fullPath = item.type === "work" ? `/work/${item.id}` : null;
   return { ...item, canOpenFull: !!fullPath, fullPath };

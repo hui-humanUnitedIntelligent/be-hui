@@ -36,7 +36,10 @@ function MomentCardItem({ m, onPress, onOpenProfile }) {
       }}
     >
       <div style={{ width:"100%", height:130, background:T.tealSoft, position:"relative", overflow:"hidden" }}>
-        {!imgErr && m.src
+        {!imgErr && m.src && m.type === "video"
+          ? <video src={m.src} muted playsInline preload="metadata"
+              onError={() => setImgErr(true)} style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+          : !imgErr && m.src
           ? <img loading="lazy" decoding="async" src={m.src} alt={m.caption}
               onError={() => setImgErr(true)} style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
           : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:28 }}>📸</div>
@@ -102,7 +105,7 @@ export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
     setLoading(true);
     try {
       let q = supabase.from("beitraege")
-        .select("id,src,type,caption,created_at,user_id")
+        .select("id,src,type,moment_source,caption,created_at,user_id")
         .order("created_at",{ ascending:false })
         .range(pageNum * PAGE_SIZE, (pageNum+1) * PAGE_SIZE - 1);
 
