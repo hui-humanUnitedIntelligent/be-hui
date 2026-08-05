@@ -2820,6 +2820,11 @@ function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
   const [selected, setSelected] = React.useState(null);
   const [updates, setUpdates] = React.useState([]);
   const [updatesLoading, setUpdatesLoading] = React.useState(false);
+  const [editingUpdateId, setEditingUpdateId] = React.useState(null);
+  const [editTitle, setEditTitle] = React.useState("");
+  const [editContent, setEditContent] = React.useState("");
+  const [savingEdit, setSavingEdit] = React.useState(false);
+  const [editError, setEditError] = React.useState(null);
 
   // impact_applications nutzt 'user_id' als User-Feld
   const userField = "user_id";
@@ -2837,8 +2842,44 @@ function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
     setUpdatesLoading(false);
   }, [supabase]);
 
+  const startEditUpdate = (u) => {
+    setEditingUpdateId(u.id);
+    setEditTitle(u.title || "");
+    setEditContent(u.content || "");
+    setEditError(null);
+  };
+
+  const cancelEditUpdate = () => {
+    setEditingUpdateId(null);
+    setEditTitle("");
+    setEditContent("");
+    setEditError(null);
+  };
+
+  const saveEditUpdate = async (updateId) => {
+    if (!editTitle.trim()) { setEditError("Überschrift darf nicht leer sein."); return; }
+    setSavingEdit(true);
+    setEditError(null);
+    const { error } = await supabase
+      .from("impact_project_updates")
+      .update({ title: editTitle.trim(), content: editContent.trim() || null })
+      .eq("id", updateId);
+    setSavingEdit(false);
+    if (error) {
+      console.error("[ImpactProjekteTab] update edit error:", error);
+      setEditError("Speichern fehlgeschlagen. Bitte erneut versuchen.");
+      return;
+    }
+    // Lokal aktualisieren (optimistic) + Live-Refresh-Event für andere offene Views (z.B. ImpactPage)
+    setUpdates(prev => prev.map(u => u.id === updateId ? { ...u, title: editTitle.trim(), content: editContent.trim() || null } : u));
+    window.dispatchEvent(new Event("hui:impact-update-added"));
+    cancelEditUpdate();
+  };
+
   React.useEffect(() => {
     loadUpdatesFor(selected?.id);
+    setEditingUpdateId(null);
+    setEditError(null);
   }, [selected?.id, loadUpdatesFor]);
 
   React.useEffect(() => {
@@ -3002,6 +3043,7 @@ function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
                   };
                   const tc = typeColors[u.update_type] || typeColors["Neuigkeit"];
                   const fmtD = u.created_at ? new Date(u.created_at).toLocaleDateString("de-DE", { day:"2-digit", month:"short", year:"numeric" }) : "";
+                  const isEditing = editingUpdateId === u.id;
                   return (
                     <div key={u.id} style={{
                       background:"#f8f8f6", border:"1px solid rgba(0,0,0,0.06)",
@@ -3009,19 +3051,96 @@ function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
                     }}>
                       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:4, gap:6 }}>
                         <span style={{ fontSize:10, fontWeight:700, color:tc.c, background:tc.bg, padding:"2px 6px", borderRadius:99, flexShrink:0 }}>{u.update_type || "Update"}</span>
-                        <span style={{ fontSize:10, color:"#999", flexShrink:0 }}>{fmtD}</span>
-                      </div>
-                      <div style={{ fontSize:13, fontWeight:700, color:"#1A1A1A", marginBottom:2 }}>{u.title}</div>
-                      {u.content && <div style={{ fontSize:12, color:"#666", lineHeight:1.4 }}>{u.content}</div>}
-                      {u.media_urls && u.media_urls.length > 0 && (
-                        <div style={{ display:"flex", flexWrap:"wrap", gap:4, marginTop:6 }}>
-                          {u.media_urls.map((url, idx) => (
-                            <a key={idx} href={url} target="_blank" rel="noreferrer">
-                              <img loading="lazy" decoding="async" src={url} alt=""
-                                style={{ width:50, height:50, objectFit:"cover", borderRadius:6, border:"1px solid rgba(0,0,0,0.08)" }} />
-                            </a>
-                          ))}
+                        <div style={{ display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
+                          <span style={{ fontSize:10, color:"#999" }}>{fmtD}</span>
+                          {!isEditing && (
+                            <button
+                              onClick={() => startEditUpdate(u)}
+                              aria-label="Update bearbeiten"
+                              style={{
+                                background:"none", border:"none", padding:2, cursor:"pointer",
+                                display:"flex", alignItems:"center", color:"#999",
+                              }}
+                            >
+                              <HUISchreibenIcon size={14} />
+                            </button>
+                          )}
                         </div>
+                      </div>
+
+                      {isEditing ? (
+                        <div>
+                          <input
+                            type="text"
+                            value={editTitle}
+                            onChange={e => setEditTitle(e.target.value)}
+                            maxLength={120}
+                            placeholder="Überschrift"
+                            style={{
+                              width:"100%", padding:"7px 10px", marginBottom:6,
+                              borderRadius:8, border:"1px solid rgba(0,0,0,0.12)",
+                              fontSize:13, fontWeight:700, fontFamily:"inherit", color:"#1A1A1A",
+                              outline:"none", boxSizing:"border-box",
+                            }}
+                          />
+                          <textarea
+                            value={editContent}
+                            onChange={e => setEditContent(e.target.value)}
+                            maxLength={2000}
+                            rows={3}
+                            placeholder="Beschreibung (optional)"
+                            style={{
+                              width:"100%", padding:"7px 10px", marginBottom:8,
+                              borderRadius:8, border:"1px solid rgba(0,0,0,0.12)",
+                              fontSize:12, fontFamily:"inherit", color:"#333",
+                              outline:"none", resize:"vertical", boxSizing:"border-box", lineHeight:1.4,
+                            }}
+                          />
+                          {editError && (
+                            <div style={{ fontSize:11, color:"#e74c3c", marginBottom:6 }}>{editError}</div>
+                          )}
+                          <div style={{ display:"flex", gap:8 }}>
+                            <button
+                              onClick={() => saveEditUpdate(u.id)}
+                              disabled={savingEdit}
+                              style={{
+                                flex:1, padding:"7px 0", borderRadius:8, border:"none",
+                                background: savingEdit ? "#9fd8d2" : "#0DC4B5", color:"#fff",
+                                fontSize:12, fontWeight:700, cursor: savingEdit ? "default" : "pointer",
+                                fontFamily:"inherit",
+                              }}
+                            >
+                              {savingEdit ? "Speichert…" : "Speichern"}
+                            </button>
+                            <button
+                              onClick={cancelEditUpdate}
+                              disabled={savingEdit}
+                              style={{
+                                flex:1, padding:"7px 0", borderRadius:8,
+                                border:"1px solid rgba(0,0,0,0.12)", background:"#fff", color:"#666",
+                                fontSize:12, fontWeight:600, cursor: savingEdit ? "default" : "pointer",
+                                fontFamily:"inherit",
+                              }}
+                            >
+                              Abbrechen
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div style={{ fontSize:13, fontWeight:700, color:"#1A1A1A", marginBottom:2 }}>{u.title}</div>
+                          {u.content && <div style={{ fontSize:12, color:"#666", lineHeight:1.4 }}>{u.content}</div>}
+                          {u.media_urls && u.media_urls.length > 0 && (
+                            <div style={{ display:"flex", flexWrap:"wrap", gap:4, marginTop:6 }}>
+                              {u.media_urls.map((url, idx) => (
+                                <a key={idx} href={url} target="_blank" rel="noreferrer">
+                                  <img loading="lazy" decoding="async" src={url} alt=""
+                                    style={{ width:50, height:50, objectFit:"cover", borderRadius:6, border:"1px solid rgba(0,0,0,0.08)" }} />
+                                </a>
+                              ))}
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
                   );
