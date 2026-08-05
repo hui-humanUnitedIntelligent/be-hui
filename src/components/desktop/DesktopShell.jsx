@@ -33,7 +33,7 @@ import DesktopRightPanel from './DesktopRightPanel.jsx';
 import DesktopCommandPalette from './DesktopCommandPalette.jsx';
 import DesktopChatPanel from './DesktopChatPanel.jsx';
 import { DesktopDataProvider } from './DesktopDataContext.jsx';
-import { PerfProfiler, usePerfMount } from './perf-instrument.js';
+import { PerfProfiler, usePerfMountPerceived as usePerfMount } from './perf-instrument.js';
 
 function LoadingScreen() {
   return (

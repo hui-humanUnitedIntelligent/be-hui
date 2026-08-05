@@ -17,7 +17,7 @@
 // ══════════════════════════════════════════════════════════════════════════════
 
 import React, { useState } from 'react';
-import { PerfProfiler, usePerfMount } from './perf-instrument.js';
+import { PerfProfiler, usePerfMountPerceived as usePerfMount } from './perf-instrument.js';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { HUILogo } from '../brand/HUILogo.jsx';
 import { useAuth } from '../../lib/AuthContext.jsx';

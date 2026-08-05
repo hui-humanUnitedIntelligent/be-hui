@@ -61,6 +61,23 @@ const store = {
     totalEvents: 0,
     duplicateCount: 0,
   },
+  // ─── User Perceived Performance ───
+  perceived: {
+    appBoot: null,           // performance.now() at initPerf()
+    fmp: null,               // First Meaningful Paint — Sidebar+Header+Hero all visible
+    tti: null,               // Time to Interactive — Search+Sidebar+Feed usable
+    feedReady: null,         // 5 cards rendered + images decoded
+    rightPanelReady: null,  // Right panel visible + interactive
+    heroReady: null,         // Hero image loaded + decoded
+    idleTime: null,          // First moment with no long tasks for 1s
+    cpuBusyTime: 0,          // Sum of all long tasks until TTI
+    feedCardImagesDecoded: 0,
+    _idleTimer: null,
+    _mountedComponents: new Set(),
+    _feedCardImagesLoaded: 0,
+    _heroImgDecoded: false,
+    _rightPanelInteractive: false,
+  },
 };
 
 // ─── Performance Marks ──────────────────────────────────────────────────────
@@ -162,8 +179,8 @@ export function feedMark(phase) {
   if (phase === 'mergeEnd') store.feed.mergeEnd = performance.now();
   if (phase === 'sortStart') store.feed.sortStart = performance.now();
   if (phase === 'sortEnd') store.feed.sortEnd = performance.now();
-  if (phase === 'firstVisible') store.feed.firstVisible = performance.now();
-  if (phase === 'allVisible') store.feed.allVisible = performance.now();
+  if (phase === 'firstVisible') { store.feed.firstVisible = performance.now(); checkTTI(); }
+  if (phase === 'allVisible') { store.feed.allVisible = performance.now(); checkFeedReady(); }
 }
 
 export function feedQueryTime(table, startTime) {
@@ -179,8 +196,8 @@ export function heroMark(phase) {
   switch (phase) {
     case 'dataLoad':     store.hero.dataLoad = now; break;
     case 'imgLoadStart': store.hero.imgLoadStart = now; break;
-    case 'imgLoadEnd':   store.hero.imgLoadEnd = now; break;
-    case 'imgDecode':    store.hero.imgDecode = now; break;
+    case 'imgLoadEnd':   store.hero.imgLoadEnd = now; checkHeroReady(); break;
+    case 'imgDecode':    store.hero.imgDecode = now; store.perceived._heroImgDecoded = true; break;
     case 'render':       store.hero.render = now; break;
     case 'rotation':     store.hero.rotation = now; break;
   }
@@ -308,6 +325,11 @@ function setupImageDetailTracker() {
   document.addEventListener('load', (e) => {
     const target = e.target;
     if (target && target.tagName === 'IMG' && target.src) {
+      // Check if this is a feed card image
+      const feedCard = target.closest('[data-feed-card], .feed-card, .ffc-wrap, [class*="feed-card"]');
+      if (feedCard) {
+        trackFeedCardImageDecoded();
+      }
       const entry = store.images.find(img => target.src.includes(img.src)) || {};
       entry.naturalW = target.naturalWidth;
       entry.naturalH = target.naturalHeight;
@@ -320,6 +342,11 @@ function setupImageDetailTracker() {
         const decodeStart = performance.now();
         target.decode().then(() => {
           entry.decodeMs = performance.now() - decodeStart;
+          // Check if this is the hero image
+          if (target.closest('.hero-wrap, .hero-card, [class*="hero"]')) {
+            heroMark('imgDecode');
+            checkHeroReady();
+          }
         }).catch(_idle);
       }
     }
@@ -545,6 +572,151 @@ async function setupRealtimeTracker() {
   }
 }
 
+
+// ─── User Perceived Performance Trackers ────────────────────────────────────
+
+// Track component mounts for FMP detection
+const _origUsePerfMount = usePerfMount;
+export function usePerfMountPerceived(name) {
+  const startRef = useRef(0);
+  if (PERF && !startRef.current) startRef.current = performance.now();
+
+  useEffect(() => {
+    if (!PERF) return;
+    const end = performance.now();
+    const duration = end - startRef.current;
+    store.mounts[name] = { start: startRef.current, end, duration };
+    store.perceived._mountedComponents.add(name);
+
+    console.groupCollapsed(`[PERF MOUNT] ${name} — ${duration.toFixed(1)}ms`);
+    console.log(`  Mount Start: ${startRef.current.toFixed(1)}ms`);
+    console.log(`  Mount Ende:  ${end.toFixed(1)}ms`);
+    console.log(`  Dauer:       ${duration.toFixed(1)}ms`);
+    console.groupEnd();
+
+    checkFMP();
+    checkTTI();
+  }, [name]);
+}
+
+// Check First Meaningful Paint: Sidebar + Header + Hero all mounted
+function checkFMP() {
+  if (!PERF || store.perceived.fmp) return;
+  const required = ['DesktopSidebar', 'DesktopHeader', 'DesktopHome'];
+  const allMounted = required.every(c => store.perceived._mountedComponents.has(c));
+  if (allMounted) {
+    // FMP = latest mount end time of the three
+    const times = required.map(c => store.mounts[c]?.end || 0);
+    store.perceived.fmp = Math.max(...times);
+    console.log(`[PERF PERCEIVED] First Meaningful Paint @ ${store.perceived.fmp.toFixed(0)}ms`);
+  }
+}
+
+// Check Time to Interactive: Search (header) + Sidebar + Feed first card
+function checkTTI() {
+  if (!PERF || store.perceived.tti) return;
+  const sidebarMounted = store.perceived._mountedComponents.has('DesktopSidebar');
+  const headerMounted = store.perceived._mountedComponents.has('DesktopHeader');
+  const feedHasCards = store.feed.firstVisible !== null;
+
+  if (sidebarMounted && headerMounted && feedHasCards) {
+    store.perceived.tti = Math.max(
+      store.mounts['DesktopSidebar']?.end || 0,
+      store.mounts['DesktopHeader']?.end || 0,
+      store.feed.firstVisible || 0
+    );
+    console.log(`[PERF PERCEIVED] Time to Interactive @ ${store.perceived.tti.toFixed(0)}ms`);
+
+    // Calculate CPU busy time (sum of long tasks until TTI)
+    store.perceived.cpuBusyTime = store.longTasks
+      .filter(t => t.startTime < store.perceived.tti)
+      .reduce((s, t) => s + t.duration, 0);
+    console.log(`[PERF PERCEIVED] CPU Busy Time (until TTI): ${store.perceived.cpuBusyTime.toFixed(0)}ms`);
+  }
+}
+
+// Track feed card images decoded for Feed Ready
+export function trackFeedCardImageDecoded() {
+  if (!PERF) return;
+  store.perceived._feedCardImagesLoaded++;
+  checkFeedReady();
+}
+
+// Check Feed Ready: 5 cards rendered + images decoded
+function checkFeedReady() {
+  if (!PERF || store.perceived.feedReady) return;
+  if (store.feed.cardCount >= 5 && store.perceived._feedCardImagesLoaded >= 5) {
+    store.perceived.feedReady = performance.now();
+    console.log(`[PERF PERCEIVED] Feed Ready (5 cards + images) @ ${store.perceived.feedReady.toFixed(0)}ms`);
+  }
+}
+
+// Mark right panel as interactive
+export function markRightPanelReady() {
+  if (!PERF || store.perceived.rightPanelReady) return;
+  store.perceived.rightPanelReady = performance.now();
+  store.perceived._rightPanelInteractive = true;
+  console.log(`[PERF PERCEIVED] Right Panel Ready @ ${store.perceived.rightPanelReady.toFixed(0)}ms`);
+}
+
+// Check Hero Ready: image loaded + decoded
+function checkHeroReady() {
+  if (!PERF || store.perceived.heroReady) return;
+  if (store.hero.imgLoadEnd && store.hero.imgDecode) {
+    store.perceived.heroReady = Math.max(store.hero.imgLoadEnd, store.hero.imgDecode);
+    console.log(`[PERF PERCEIVED] Hero Ready @ ${store.perceived.heroReady.toFixed(0)}ms`);
+  } else if (store.hero.imgLoadEnd && !store.perceived._heroImgDecoded) {
+    // If decode wasn't explicitly tracked, use load end as proxy
+    store.perceived.heroReady = store.hero.imgLoadEnd;
+    console.log(`[PERF PERCEIVED] Hero Ready (image loaded, decode untracked) @ ${store.perceived.heroReady.toFixed(0)}ms`);
+  }
+}
+
+// Idle Time: no long tasks for 1 second
+function setupIdleTracker() {
+  if (!PERF) return;
+
+  const checkIdle = () => {
+    if (store.perceived.idleTime) return;
+
+    const lastLongTask = store.longTasks.length > 0
+      ? store.longTasks[store.longTasks.length - 1]
+      : null;
+    const lastTaskEnd = lastLongTask ? lastLongTask.startTime + lastLongTask.duration : 0;
+    const now = performance.now();
+
+    if (now - lastTaskEnd > 1000) {
+      store.perceived.idleTime = lastTaskEnd > 0 ? lastTaskEnd : now;
+      console.log(`[PERF PERCEIVED] Idle Time @ ${store.perceived.idleTime.toFixed(0)}ms (no long tasks for 1s)`);
+    } else {
+      // Re-check in 200ms
+      setTimeout(checkIdle, 200);
+    }
+  };
+
+  // Start checking after 2s
+  setTimeout(checkIdle, 2000);
+}
+
+// Periodic re-check for perceived metrics (catches async events)
+function setupPerceivedRechecker() {
+  if (!PERF) return;
+  const recheck = () => {
+    checkFMP();
+    checkTTI();
+    checkFeedReady();
+    checkHeroReady();
+  };
+  // Re-check every 500ms for 20 seconds
+  let count = 0;
+  const interval = setInterval(() => {
+    recheck();
+    count++;
+    if (count >= 40) clearInterval(interval);
+  }, 500);
+}
+
+
 // ─── Init ──────────────────────────────────────────────────────────────────
 export function initPerf() {
   if (!PERF) return;
@@ -559,6 +731,11 @@ export function initPerf() {
   setupQueryTracker();
   setupImageDetailTracker();
   setupRealtimeTracker();
+  setupIdleTracker();
+  setupPerceivedRechecker();
+
+  // Record app boot time
+  store.perceived.appBoot = performance.now();
 
   // DOM snapshot after first paint
   requestAnimationFrame(() => {
@@ -1002,6 +1179,362 @@ export function perfReport() {
   }
   console.groupEnd();
 }
+
+  // ═══ 14. USER PERCEIVED PERFORMANCE ═══
+  console.groupCollapsed('%c14. User Perceived Performance', 'font-weight:bold;color:#E8876A;font-size:13px');
+  const p = store.perceived;
+  const bootTime = p.appBoot || 0;
+
+  const perceivedTable = [];
+  if (bootTime) perceivedTable.push({ Metric: 'Boot Time (initPerf)', 'ms': bootTime.toFixed(0), 'rel (ms)': '0' });
+  if (p.fmp) perceivedTable.push({ Metric: 'First Meaningful Paint', 'ms': p.fmp.toFixed(0), 'rel (ms)': (p.fmp - bootTime).toFixed(0) });
+  if (p.heroReady) perceivedTable.push({ Metric: 'Hero Ready (img + decode)', 'ms': p.heroReady.toFixed(0), 'rel (ms)': (p.heroReady - bootTime).toFixed(0) });
+  if (p.feedReady) perceivedTable.push({ Metric: 'Feed Ready (5 cards + imgs)', 'ms': p.feedReady.toFixed(0), 'rel (ms)': (p.feedReady - bootTime).toFixed(0) });
+  if (p.rightPanelReady) perceivedTable.push({ Metric: 'Right Panel Ready', 'ms': p.rightPanelReady.toFixed(0), 'rel (ms)': (p.rightPanelReady - bootTime).toFixed(0) });
+  if (p.tti) perceivedTable.push({ Metric: 'Time to Interactive', 'ms': p.tti.toFixed(0), 'rel (ms)': (p.tti - bootTime).toFixed(0) });
+  if (p.cpuBusyTime) perceivedTable.push({ Metric: 'CPU Busy Time (long tasks until TTI)', 'ms': p.cpuBusyTime.toFixed(0), 'rel (ms)': (p.cpuBusyTime).toFixed(0) });
+  if (p.idleTime) perceivedTable.push({ Metric: 'Idle Time (no long tasks for 1s)', 'ms': p.idleTime.toFixed(0), 'rel (ms)': (p.idleTime - bootTime).toFixed(0) });
+
+  if (perceivedTable.length > 0) {
+    console.table(perceivedTable);
+  } else {
+    console.log('No perceived performance data yet');
+  }
+
+  // Detail breakdown
+  console.log('Detail:');
+  console.table({
+    'Mounted Components': Array.from(p._mountedComponents).join(', ') || 'none',
+    'Feed Card Count': store.feed.cardCount,
+    'Feed Card Images Decoded': p._feedCardImagesLoaded,
+    'Hero Image Decoded': p._heroImgDecoded ? 'yes' : 'no',
+    'Right Panel Interactive': p._rightPanelInteractive ? 'yes' : 'no',
+    'Long Tasks (total)': store.longTasks.length,
+    'Long Tasks (until TTI)': p.tti ? store.longTasks.filter(t => t.startTime < p.tti).length : 'n/a',
+  });
+  console.groupEnd();
+
+  // ═══ 15. WATERFALL TIMELINE ═══
+  console.groupCollapsed('%c15. Waterfall Timeline', 'font-weight:bold;color:#0DC4B5;font-size:13px');
+  const waterfall = [];
+
+  // Collect all timing events
+  if (store.mounts['DesktopShell']) {
+    waterfall.push({ Stage: 'DesktopShell', Start: store.mounts['DesktopShell'].start, End: store.mounts['DesktopShell'].end, Dauer: store.mounts['DesktopShell'].duration });
+  }
+  if (store.mounts['DesktopSidebar']) {
+    waterfall.push({ Stage: 'Sidebar', Start: store.mounts['DesktopSidebar'].start, End: store.mounts['DesktopSidebar'].end, Dauer: store.mounts['DesktopSidebar'].duration });
+  }
+  if (store.mounts['DesktopHeader']) {
+    waterfall.push({ Stage: 'Header', Start: store.mounts['DesktopHeader'].start, End: store.mounts['DesktopHeader'].end, Dauer: store.mounts['DesktopHeader'].duration });
+  }
+  if (store.hero.render) {
+    const heroStart = store.mounts['DesktopHome']?.start || store.hero.render;
+    const heroEnd = store.hero.imgDecode || store.hero.imgLoadEnd || store.hero.render;
+    waterfall.push({ Stage: 'Hero', Start: heroStart, End: heroEnd, Dauer: heroEnd - heroStart });
+  }
+  if (store.feed.fetchStart) {
+    const feedEnd = store.feed.allVisible || store.feed.firstVisible || store.feed.sortEnd || store.feed.fetchEnd;
+    waterfall.push({ Stage: 'Feed', Start: store.feed.fetchStart, End: feedEnd, Dauer: feedEnd - store.feed.fetchStart });
+  }
+  // Feed Images: from first image download to last decoded
+  const feedImages = store.images.filter(img => !img.src?.includes('hero'));
+  if (feedImages.length > 0) {
+    const imgStart = Math.min(...feedImages.map(i => i.downloadStart));
+    const imgEnd = Math.max(...feedImages.map(i => i.downloadEnd || (i.downloadStart + i.duration)));
+    waterfall.push({ Stage: 'Feed Images', Start: imgStart, End: imgEnd, Dauer: imgEnd - imgStart });
+  }
+  if (store.mounts['DesktopRightPanel']) {
+    const rpEnd = p.rightPanelReady || store.mounts['DesktopRightPanel'].end;
+    waterfall.push({ Stage: 'Right Panel', Start: store.mounts['DesktopRightPanel'].start, End: rpEnd, Dauer: rpEnd - store.mounts['DesktopRightPanel'].start });
+  }
+  // Chat: approximate from header mount (chat is in header)
+  if (store.mounts['DesktopHeader']) {
+    waterfall.push({ Stage: 'Chat', Start: store.mounts['DesktopHeader'].start, End: store.mounts['DesktopHeader'].end, Dauer: store.mounts['DesktopHeader'].duration });
+  }
+  // Notifications: approximate from header mount
+  if (store.mounts['DesktopHeader']) {
+    waterfall.push({ Stage: 'Notifications', Start: store.mounts['DesktopHeader'].start, End: store.mounts['DesktopHeader'].end, Dauer: store.mounts['DesktopHeader'].duration });
+  }
+
+  // Sort by start time
+  waterfall.sort((a, b) => a.Start - b.Start);
+
+  if (waterfall.length > 0) {
+    // Format for display
+    const wfDisplay = waterfall.map(w => ({
+      Stage: w.Stage,
+      'Start (ms)': w.Start.toFixed(1),
+      'Ende (ms)': w.End.toFixed(1),
+      'Dauer (ms)': w.Dauer.toFixed(1),
+    }));
+    console.table(wfDisplay);
+
+    // ASCII waterfall
+    const minStart = Math.min(...waterfall.map(w => w.Start));
+    const maxEnd = Math.max(...waterfall.map(w => w.End));
+    const totalSpan = maxEnd - minStart;
+    const BAR_WIDTH = 40;
+
+    if (totalSpan > 0) {
+      console.log('ASCII Waterfall (each █ ≈ ' + (totalSpan / BAR_WIDTH).toFixed(0) + 'ms):');
+      let ascii = '';
+      for (const w of waterfall) {
+        const offset = Math.round((w.Start - minStart) / totalSpan * BAR_WIDTH);
+        const length = Math.max(1, Math.round(w.Dauer / totalSpan * BAR_WIDTH));
+        const pad = ' '.repeat(offset);
+        const bar = '█'.repeat(length);
+        ascii += `${w.Stage.padEnd(16)} ${pad}${bar} ${w.Dauer.toFixed(0)}ms\n`;
+      }
+      console.log(ascii);
+    }
+  } else {
+    console.log('No waterfall data');
+  }
+  console.groupEnd();
+
+  // ═══ 16. CRITICAL PATH ═══
+  console.groupCollapsed('%c16. Critical Path', 'font-weight:bold;color:#E8876A;font-size:13px');
+  const cpStages = [];
+
+  // Build critical path stages with dependencies
+  const shellMount = store.mounts['DesktopShell'];
+  const sidebarMount = store.mounts['DesktopSidebar'];
+  const headerMount = store.mounts['DesktopHeader'];
+  const homeMount = store.mounts['DesktopHome'];
+  const feedFetch = store.feed.fetchStart;
+  const feedFirstCard = store.feed.firstVisible;
+  const feedReady = p.feedReady;
+  const heroRender = store.hero.render;
+  const heroImg = store.hero.imgLoadEnd;
+  const tti = p.tti;
+
+  if (shellMount) cpStages.push({
+    Stage: '1. DesktopShell Mount',
+    Start: shellMount.start, End: shellMount.end, Dauer: shellMount.duration,
+    Type: 'blockierend',
+    Blocks: 'Sidebar, Header, Home, Feed',
+    Note: 'Root component — alles wartet auf Shell',
+  });
+
+  if (sidebarMount) cpStages.push({
+    Stage: '2a. Sidebar Mount',
+    Start: sidebarMount.start, End: sidebarMount.end, Dauer: sidebarMount.duration,
+    Type: shellMount && sidebarMount.start < shellMount.end ? 'blockierend' : 'parallel',
+    Blocks: 'Navigation',
+    Note: 'Parallel mit Header',
+  });
+
+  if (headerMount) cpStages.push({
+    Stage: '2b. Header Mount',
+    Start: headerMount.start, End: headerMount.end, Dauer: headerMount.duration,
+    Type: shellMount && headerMount.start < shellMount.end ? 'blockierend' : 'parallel',
+    Blocks: 'Search, Chat, Notifications',
+    Note: 'Parallel mit Sidebar',
+  });
+
+  if (homeMount) cpStages.push({
+    Stage: '2c. Home Mount',
+    Start: homeMount.start, End: homeMount.end, Dauer: homeMount.duration,
+    Type: shellMount && homeMount.start < shellMount.end ? 'blockierend' : 'parallel',
+    Blocks: 'Hero, Feed',
+    Note: 'Parallel mit Sidebar/Header',
+  });
+
+  if (heroRender) cpStages.push({
+    Stage: '3a. Hero Render',
+    Start: homeMount?.end || heroRender, End: heroRender,
+    Dauer: heroRender - (homeMount?.end || heroRender),
+    Type: 'nachgelagert',
+    Blocks: 'Hero visibility',
+    Note: 'Nach Home Mount',
+  });
+
+  if (heroImg) cpStages.push({
+    Stage: '3b. Hero Image Load',
+    Start: store.hero.imgLoadStart || heroRender || 0, End: heroImg,
+    Dauer: heroImg - (store.hero.imgLoadStart || heroRender || 0),
+    Type: 'nachgelagert',
+    Blocks: 'Hero Ready',
+    Note: 'Netzwerk-abhängig',
+  });
+
+  if (feedFetch) cpStages.push({
+    Stage: '3c. Feed Fetch',
+    Start: feedFetch, End: store.feed.fetchEnd || feedFetch,
+    Dauer: (store.feed.fetchEnd || feedFetch) - feedFetch,
+    Type: 'nachgelagert',
+    Blocks: 'Feed cards',
+    Note: 'Nach Home Mount — 6 Supabase Queries parallel',
+  });
+
+  if (feedFirstCard) cpStages.push({
+    Stage: '4. Feed First Card',
+    Start: store.feed.fetchEnd || feedFetch || 0, End: feedFirstCard,
+    Dauer: feedFirstCard - (store.feed.fetchEnd || feedFetch || 0),
+    Type: 'nachgelagert',
+    Blocks: 'TTI',
+    Note: 'Nach Fetch + Merge + Sort + Render',
+  });
+
+  if (feedReady) cpStages.push({
+    Stage: '5. Feed Ready (5 cards+imgs)',
+    Start: feedFirstCard || feedFetch || 0, End: feedReady,
+    Dauer: feedReady - (feedFirstCard || feedFetch || 0),
+    Type: 'nachgelagert',
+    Blocks: 'Full feed interaction',
+    Note: 'Warten auf Bild-Dekodierung',
+  });
+
+  if (tti) cpStages.push({
+    Stage: '6. Time to Interactive',
+    Start: bootTime, End: tti,
+    Dauer: tti - bootTime,
+    Type: 'blockierend',
+    Blocks: 'User interaction',
+    Note: 'Kritischer Pfad Endpunkt',
+  });
+
+  if (cpStages.length > 0) {
+    console.table(cpStages.map(s => ({
+      Stage: s.Stage,
+      'Start (ms)': s.Start.toFixed(1),
+      'Ende (ms)': s.End.toFixed(1),
+      'Dauer (ms)': s.Dauer.toFixed(1),
+      Typ: s.Type,
+      Blockiert: s.Blocks,
+      Notiz: s.Note,
+    })));
+
+    // Determine the actual critical path (longest sequential chain)
+    const blockingStages = cpStages.filter(s => s.Type === 'blockierend');
+    const criticalChain = blockingStages.map(s => s.Stage);
+    console.log('Kritische Kette (blockierende Stufen):');
+    console.log('  ' + criticalChain.join(' → '));
+
+    // Total critical path duration
+    const critDur = blockingStages.reduce((s, st) => s + st.Dauer, 0);
+    console.log(`Kritische Pfad Dauer: ${critDur.toFixed(0)}ms`);
+
+    // Parallel stages
+    const parallelStages = cpStages.filter(s => s.Type === 'parallel');
+    if (parallelStages.length > 0) {
+      console.log('Parallele Stufen:');
+      parallelStages.forEach(s => console.log(`  ${s.Stage}: ${s.Dauer.toFixed(0)}ms`));
+    }
+
+    // Downstream stages
+    const downstreamStages = cpStages.filter(s => s.Type === 'nachgelagert');
+    if (downstreamStages.length > 0) {
+      console.log('Nachgelagerte Stufen:');
+      downstreamStages.forEach(s => console.log(`  ${s.Stage}: ${s.Dauer.toFixed(0)}ms`));
+    }
+  } else {
+    console.log('No critical path data');
+  }
+  console.groupEnd();
+
+  // ═══ 17. GESAMTBEWERTUNG ═══
+  console.groupCollapsed('%c17. Gesamtbewertung', 'font-weight:bold;color:#E8876A;font-size:14px');
+
+  const assessment = {
+    'Boot Time': bootTime ? bootTime.toFixed(0) + 'ms' : 'n/a',
+    'First Meaningful Paint': p.fmp ? p.fmp.toFixed(0) + 'ms' : 'n/a',
+    'Hero Ready': p.heroReady ? p.heroReady.toFixed(0) + 'ms' : 'n/a',
+    'Feed Ready': p.feedReady ? p.feedReady.toFixed(0) + 'ms' : 'n/a',
+    'Interactive (TTI)': p.tti ? p.tti.toFixed(0) + 'ms' : 'n/a',
+    'Idle Time': p.idleTime ? p.idleTime.toFixed(0) + 'ms' : 'n/a',
+  };
+  console.table(assessment);
+
+  // Determine the biggest bottleneck
+  const bottlenecks = [];
+
+  // Find the longest stage in the waterfall
+  if (waterfall.length > 0) {
+    const longest = waterfall.reduce((a, b) => a.Dauer > b.Dauer ? a : b);
+    bottlenecks.push({
+      Stage: longest.Stage,
+      Dauer: longest.Dauer.toFixed(0) + 'ms',
+      Issue: 'Längste Stage im Waterfall',
+    });
+  }
+
+  // Check FMP delay
+  if (p.fmp && bootTime && (p.fmp - bootTime) > 2000) {
+    bottlenecks.push({
+      Stage: 'First Meaningful Paint',
+      Dauer: (p.fmp - bootTime).toFixed(0) + 'ms',
+      Issue: 'FMP > 2s — Shell/Header/Hero zu langsam',
+    });
+  }
+
+  // Check Hero image load
+  if (store.hero.imgLoadStart && store.hero.imgLoadEnd) {
+    const heroImgDur = store.hero.imgLoadEnd - store.hero.imgLoadStart;
+    if (heroImgDur > 1500) {
+      bottlenecks.push({
+        Stage: 'Hero Image',
+        Dauer: heroImgDur.toFixed(0) + 'ms',
+        Issue: 'Bildladezeit > 1.5s — zu groß oder CDN langsam',
+      });
+    }
+  }
+
+  // Check Feed fetch
+  if (store.feed.fetchStart && store.feed.fetchEnd) {
+    const fetchDur = store.feed.fetchEnd - store.feed.fetchStart;
+    if (fetchDur > 1000) {
+      bottlenecks.push({
+        Stage: 'Feed Fetch',
+        Dauer: fetchDur.toFixed(0) + 'ms',
+        Issue: 'Supabase Queries > 1s — zu viele parallele Requests',
+      });
+    }
+  }
+
+  // Check Feed ready (image decode)
+  if (p.feedReady && p.fmp) {
+    const feedDur = p.feedReady - p.fmp;
+    if (feedDur > 3000) {
+      bottlenecks.push({
+        Stage: 'Feed Ready',
+        Dauer: feedDur.toFixed(0) + 'ms',
+        Issue: 'Feed + Bilder > 3s nach FMP — Bild-Optimierung nötig',
+      });
+    }
+  }
+
+  // Check CPU busy time
+  if (p.cpuBusyTime > 500) {
+    bottlenecks.push({
+      Stage: 'CPU Busy',
+      Dauer: p.cpuBusyTime.toFixed(0) + 'ms',
+      Issue: 'Summe Long Tasks > 500ms — JS-Blockierung',
+    });
+  }
+
+  // Check idle time
+  if (p.idleTime && p.tti && (p.idleTime - p.tti) > 3000) {
+    bottlenecks.push({
+      Stage: 'Idle Time',
+      Dauer: (p.idleTime - p.tti).toFixed(0) + 'ms nach TTI',
+      Issue: 'Main Thread bleibt nach TTI > 3s belegt',
+    });
+  }
+
+  // Sort by duration (longest first)
+  bottlenecks.sort((a, b) => parseFloat(b.Dauer) - parseFloat(a.Dauer));
+
+  if (bottlenecks.length > 0) {
+    console.log('Größte Flaschenhälse (sortiert nach Dauer):');
+    console.table(bottlenecks);
+    console.log(`>>> GRÖßTER FLASCHENHALS: ${bottlenecks[0].Stage} — ${bottlenecks[0].Dauer} — ${bottlenecks[0].Issue}`);
+  } else {
+    console.log('Keine signifikanten Flaschenhälse erkannt.');
+  }
+  console.groupEnd();
+
 
 // ─── Export store for debugging ─────────────────────────────────────────────
 window.__HUI_PERF_STORE__ = store;

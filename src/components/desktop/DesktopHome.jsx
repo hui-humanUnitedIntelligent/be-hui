@@ -17,7 +17,7 @@
 // ══════════════════════════════════════════════════════════════════════════════
 
 import React, { Suspense, lazy, useState, useEffect, useMemo } from 'react';
-import { PerfProfiler, usePerfMount, heroMark } from './perf-instrument.js';
+import { PerfProfiler, usePerfMountPerceived as usePerfMount, heroMark } from './perf-instrument.js';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../lib/AuthContext.jsx';
 import { useDesktopData } from './DesktopDataContext.jsx';
