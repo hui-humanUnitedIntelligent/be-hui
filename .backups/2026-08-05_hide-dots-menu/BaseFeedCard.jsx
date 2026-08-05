@@ -315,9 +315,10 @@ export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
               {timeStr}
             </span>
           )}
-          {/* 3-Punkte-Menü: auf Wunsch unsichtbar/entfernt (2026-08-05) — kein onClick-Handler vorhanden, war rein dekorativ */}
-          <button aria-hidden="true" tabIndex={-1} style={{
-            display:"none",
+          <button style={{
+            background:"none", border:"none", padding:"1px 4px",
+            cursor:"pointer", color:"rgba(26,26,46,0.38)", fontSize:20, lineHeight:1,
+            WebkitTapHighlightColor:"transparent",
           }}>⋮</button>
         </div>
       </div>
