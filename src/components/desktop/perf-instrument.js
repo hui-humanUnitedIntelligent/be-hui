@@ -55,6 +55,12 @@ const store = {
   clsValue: 0,
   clsEntries: [],
   observers: [],
+  realtime: {
+    channels: [],       // [{ name, creationTime, subscribedTime, timeToSubscribed, tables: [], eventTypes: [], eventCount, events: [], unsubscribedTime, lifetime, status, duplicate }]
+    activeCount: 0,
+    totalEvents: 0,
+    duplicateCount: 0,
+  },
 };
 
 // ─── Performance Marks ──────────────────────────────────────────────────────
@@ -395,6 +401,150 @@ export function logConcurrentImages() {
   return { totalImages: store.images.length, maxConcurrent };
 }
 
+
+// ─── Realtime Subscription Tracker ───────────────────────────────────────────
+// Patcht supabase.channel() um alle Realtime-Subscriptions abzufangen.
+// Erfasst: Erstellung, SUBSCRIBED-Status, Events, Event-Typen, Lifetime, Duplicates.
+async function setupRealtimeTracker() {
+  if (!PERF) return;
+
+  try {
+    const { supabase } = await import('../../lib/supabaseClient.js');
+    if (!supabase || !supabase.channel) {
+      console.warn('[PERF RT] supabase.channel not found — realtime tracking disabled');
+      return;
+    }
+
+    const originalChannel = supabase.channel.bind(supabase);
+    const originalRemoveChannel = supabase.removeChannel ? supabase.removeChannel.bind(supabase) : null;
+
+    supabase.channel = function(name, options) {
+      const channel = originalChannel(name, options);
+      const creationTime = performance.now();
+
+      const channelInfo = {
+        name: name || 'unnamed',
+        creationTime,
+        subscribeCallTime: null,
+        subscribedTime: null,
+        timeToSubscribed: null,
+        tables: [],
+        eventTypes: [],
+        eventCount: 0,
+        events: [],
+        unsubscribedTime: null,
+        lifetime: null,
+        status: 'created',
+        duplicate: false,
+      };
+
+      // Duplicate detection: same channel name already exists
+      const existing = store.realtime.channels.find(c => c.name === channelInfo.name);
+      if (existing) {
+        channelInfo.duplicate = true;
+        existing.duplicate = true;
+        store.realtime.duplicateCount = store.realtime.channels.filter(c =>
+          c.duplicate || store.realtime.channels.filter(o => o.name === c.name).length > 1
+        ).length;
+      }
+      store.realtime.channels.push(channelInfo);
+      store.realtime.activeCount = store.realtime.channels.filter(c => c.status !== 'unsubscribed').length;
+
+      // Wrap .on(type, filter, callback)
+      const originalOn = channel.on ? channel.on.bind(channel) : null;
+      if (originalOn) {
+        channel.on = function(type, filter, callback) {
+          // Track postgres_changes events
+          if (type === 'postgres_changes') {
+            const tableName = filter?.table || 'unknown';
+            const eventType = filter?.event || 'any';
+            if (!channelInfo.tables.includes(tableName)) channelInfo.tables.push(tableName);
+            if (!channelInfo.eventTypes.includes(eventType)) channelInfo.eventTypes.push(eventType);
+          } else {
+            if (!channelInfo.eventTypes.includes(type)) channelInfo.eventTypes.push(type);
+          }
+
+          // Wrap callback to count events
+          const wrappedCallback = function(payload) {
+            channelInfo.eventCount++;
+            store.realtime.totalEvents++;
+            const evtType = payload?.eventType || type || 'unknown';
+            const evtTable = payload?.table || (filter?.table) || 'unknown';
+            channelInfo.events.push({
+              time: performance.now(),
+              type: evtType,
+              table: evtTable,
+            });
+            // Keep only last 50 events per channel to avoid memory bloat
+            if (channelInfo.events.length > 50) channelInfo.events.shift();
+            if (callback) return callback(payload);
+          };
+          return originalOn(type, filter, wrappedCallback);
+        };
+      }
+
+      // Wrap .subscribe(callback)
+      const originalSubscribe = channel.subscribe ? channel.subscribe.bind(channel) : null;
+      if (originalSubscribe) {
+        channel.subscribe = function(callback) {
+          channelInfo.subscribeCallTime = performance.now();
+          channelInfo.status = 'connecting';
+
+          const wrappedCallback = function(status, error) {
+            if (status === 'SUBSCRIBED') {
+              channelInfo.subscribedTime = performance.now();
+              channelInfo.timeToSubscribed = channelInfo.subscribedTime - channelInfo.subscribeCallTime;
+              channelInfo.status = 'subscribed';
+              console.log(`[PERF RT] Channel "${channelInfo.name}" SUBSCRIBED in ${channelInfo.timeToSubscribed.toFixed(0)}ms`);
+            } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+              channelInfo.status = status.toLowerCase();
+              console.warn(`[PERF RT] Channel "${channelInfo.name}" status: ${status}`);
+            }
+            if (callback) return callback(status, error);
+          };
+          return originalSubscribe(wrappedCallback);
+        };
+      }
+
+      // Wrap .unsubscribe()
+      const originalUnsubscribe = channel.unsubscribe ? channel.unsubscribe.bind(channel) : null;
+      if (originalUnsubscribe) {
+        channel.unsubscribe = function() {
+          channelInfo.unsubscribedTime = performance.now();
+          channelInfo.lifetime = channelInfo.unsubscribedTime - channelInfo.creationTime;
+          channelInfo.status = 'unsubscribed';
+          store.realtime.activeCount = store.realtime.channels.filter(c => c.status !== 'unsubscribed').length;
+          console.log(`[PERF RT] Channel "${channelInfo.name}" UNSUBSCRIBED — lifetime ${channelInfo.lifetime?.toFixed(0)}ms, ${channelInfo.eventCount} events`);
+          return originalUnsubscribe();
+        };
+      }
+
+      console.log(`[PERF RT] Channel "${channelInfo.name}" created @ ${creationTime.toFixed(1)}ms — tables: ${channelInfo.tables.join(', ') || 'pending'}`);
+      return channel;
+    };
+
+    // Wrap removeChannel to detect cleanup
+    if (originalRemoveChannel) {
+      supabase.removeChannel = function(channel) {
+        if (channel) {
+          const info = store.realtime.channels.find(c => c.name === (channel?.name || channel?.topic));
+          if (info && info.status !== 'unsubscribed') {
+            info.unsubscribedTime = performance.now();
+            info.lifetime = info.unsubscribedTime - info.creationTime;
+            info.status = 'removed';
+          }
+        }
+        store.realtime.activeCount = store.realtime.channels.filter(c => c.status !== 'unsubscribed' && c.status !== 'removed').length;
+        return originalRemoveChannel(channel);
+      };
+    }
+
+    console.log('[PERF RT] Realtime tracker active — supabase.channel() patched');
+  } catch (e) {
+    console.warn('[PERF RT] Could not setup realtime tracker:', e.message);
+  }
+}
+
 // ─── Init ──────────────────────────────────────────────────────────────────
 export function initPerf() {
   if (!PERF) return;
@@ -408,6 +558,7 @@ export function initPerf() {
   setupLongTaskTracker();
   setupQueryTracker();
   setupImageDetailTracker();
+  setupRealtimeTracker();
 
   // DOM snapshot after first paint
   requestAnimationFrame(() => {
@@ -638,6 +789,62 @@ export function perfReport() {
   else console.log('No hero data');
   console.groupEnd();
 
+
+  // ═══ 13. REALTIME SUBSCRIPTIONS ═══
+  console.groupCollapsed('%c13. Realtime Subscriptions', 'font-weight:bold;color:#0DC4B5');
+  const rt = store.realtime;
+  const channels = rt.channels;
+
+  if (channels.length > 0) {
+    // Main table: Channel | Status | Events | Lifetime | Duplicate
+    console.table(channels.map(c => ({
+      'Channel': c.name,
+      'Status': c.status,
+      'Events': c.eventCount,
+      'Lifetime (ms)': c.lifetime ? c.lifetime.toFixed(0) : (c.status === 'unsubscribed' || c.status === 'removed' ? 'n/a' : 'active'),
+      'Duplicate': c.duplicate ? 'YES' : 'no',
+    })));
+
+    // Detail table: creation, subscribe time, time to SUBSCRIBED, tables, event types
+    console.table(channels.map(c => ({
+      'Channel': c.name,
+      'Created (ms)': c.creationTime.toFixed(1),
+      'Subscribed (ms)': c.subscribedTime ? c.subscribedTime.toFixed(1) : 'n/a',
+      'Time to SUBSCRIBED (ms)': c.timeToSubscribed ? c.timeToSubscribed.toFixed(0) : 'n/a',
+      'Tables': c.tables.join(', ') || 'none',
+      'Event Types': c.eventTypes.join(', ') || 'none',
+    })));
+
+    // Event log per channel (first 5 events each)
+    for (const c of channels) {
+      if (c.events.length > 0) {
+        console.log(`Events for "${c.name}" (${c.eventCount} total, showing first 5):`);
+        console.table(c.events.slice(0, 5).map(e => ({
+          'Time (ms)': e.time.toFixed(1),
+          'Type': e.type,
+          'Table': e.table,
+        })));
+      }
+    }
+
+    // Duplicate analysis
+    const nameCounts = {};
+    for (const c of channels) {
+      nameCounts[c.name] = (nameCounts[c.name] || 0) + 1;
+    }
+    const duplicates = Object.entries(nameCounts).filter(([_, count]) => count > 1);
+    if (duplicates.length > 0) {
+      console.warn('Duplicate channels detected:');
+      console.table(duplicates.map(([name, count]) => ({
+        'Channel': name,
+        'Instances': count,
+      })));
+    }
+  } else {
+    console.log('No realtime channels tracked');
+  }
+  console.groupEnd();
+
   // ═══ 12. FINAL SUMMARY — Top 10 Performance Bremsen ═══
   console.groupCollapsed('%c12. Top-10 Performance Bremsen', 'font-weight:bold;color:#E8876A;font-size:13px');
   const blockers = [];
@@ -692,6 +899,25 @@ export function perfReport() {
     });
   }
 
+  // Realtime overhead
+  for (const c of store.realtime.channels) {
+    if (c.eventCount > 20) {
+      blockers.push({
+        Quelle: `RT Channel: ${c.name}`,
+        Typ: 'Realtime',
+        'Kosten (ms)': c.eventCount * 0.5, // estimated 0.5ms per event handler
+        'Detail': `${c.eventCount} events, ${c.tables.join(', ')}`,
+      });
+    }
+    if (c.timeToSubscribed && c.timeToSubscribed > 2000) {
+      blockers.push({
+        Quelle: `RT Subscribe: ${c.name}`,
+        Typ: 'Realtime',
+        'Kosten (ms)': c.timeToSubscribed,
+        'Detail': `Slow subscribe: ${c.timeToSubscribed.toFixed(0)}ms`,
+      });
+    }
+  }
   blockers.sort((a, b) => b['Kosten (ms)'] - a['Kosten (ms)']);
   console.table(blockers.slice(0, 10));
   console.groupEnd();
@@ -708,7 +934,72 @@ export function perfReport() {
     'Feed Cards': store.domSnapshot?.feedCards || 'n/a',
     'Components Tracked': Object.keys(store.renders).length,
     'Total Render Time (ms)': Object.values(store.renders).reduce((s, r) => s + r.totalActual, 0).toFixed(1),
+    'RT Channels (total)': store.realtime.channels.length,
+    'RT Channels (active)': store.realtime.activeCount,
+    'RT Events (total)': store.realtime.totalEvents,
+    'RT Duplicates': store.realtime.duplicateCount,
   });
+  console.groupEnd();
+
+  // ═══ REALTIME EMPFEHLUNG ═══
+  console.groupCollapsed('%c═══ REALTIME ZUSAMMENFASSUNG ═══', 'font-weight:bold;color:#E8876A;font-size:13px');
+  const rtSummary = store.realtime;
+  const allChannels = rtSummary.channels;
+  const activeChannels = allChannels.filter(c => c.status === 'subscribed' || c.status === 'connecting');
+  const unsubscribedChannels = allChannels.filter(c => c.status === 'unsubscribed' || c.status === 'removed');
+  const nameMap = {};
+  for (const c of allChannels) {
+    if (!nameMap[c.name]) nameMap[c.name] = [];
+    nameMap[c.name].push(c);
+  }
+  const dupes = Object.entries(nameMap).filter(([_, arr]) => arr.length > 1);
+
+  console.table({
+    'Aktiver Channels': activeChannels.length,
+    'Insgesamt erstellt': allChannels.length,
+    'Abbestellt': unsubscribedChannels.length,
+    'Empfangene Events': rtSummary.totalEvents,
+    'Doppelte Channels': dupes.length,
+  });
+
+  if (dupes.length > 0) {
+    console.warn('Doppelte Channels gefunden:');
+    console.table(dupes.map(([name, arr]) => ({
+      'Channel': name,
+      'Instanzen': arr.length,
+      'Tables': arr.map(c => c.tables.join(', ')).join(' | '),
+      'Events': arr.reduce((s, c) => s + c.eventCount, 0),
+    })));
+  }
+
+  // Empfehlung
+  const recommendations = [];
+  if (dupes.length > 0) {
+    recommendations.push(`${dupes.length} doppelte Channel(s) — zusammenführen um ${dupes.reduce((s, [_, arr]) => s + (arr.length - 1), 0)} WebSocket-Verbindung(en) zu sparen.`);
+  }
+  if (activeChannels.length > 5) {
+    recommendations.push(`${activeChannels.length} aktive Channels — prüfen ob alle benötigt werden (z.B. bei Tab-Wechsel pausieren).`);
+  }
+  if (rtSummary.totalEvents === 0) {
+    recommendations.push('Keine Realtime-Events empfangen — Channels evtl. nicht korrekt subscribed.');
+  }
+  // Slow subscribe detection
+  const slowChannels = allChannels.filter(c => c.timeToSubscribed && c.timeToSubscribed > 2000);
+  if (slowChannels.length > 0) {
+    recommendations.push(`${slowChannels.length} Channel(s) mit langsamer Subscribe-Zeit (>2s): ${slowChannels.map(c => c.name).join(', ')}`);
+  }
+  // High event rate
+  const highEventChannels = allChannels.filter(c => c.eventCount > 50);
+  if (highEventChannels.length > 0) {
+    recommendations.push(`${highEventChannels.length} Channel(s) mit hoher Event-Rate (>50 events): ${highEventChannels.map(c => `${c.name}(${c.eventCount})`).join(', ')}`);
+  }
+
+  if (recommendations.length > 0) {
+    console.log('Empfehlungen zur Reduzierung:');
+    recommendations.forEach((r, i) => console.log(`  ${i + 1}. ${r}`));
+  } else {
+    console.log('Keine Optimierung empfohlen — Realtime-Konfiguration sieht gut aus.');
+  }
   console.groupEnd();
 }
 
