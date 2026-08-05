@@ -107,7 +107,7 @@
       "maxDuration": 10
     }
   },
-  "buildCommand": ":",
+  "buildCommand": "npm run build",
   "headers": [
     {
       "source": "/hui-icon-512.png",
