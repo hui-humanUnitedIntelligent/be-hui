@@ -109,13 +109,13 @@ function SearchDropdown({ results, loading, onSelect, onClose }) {
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 function BellIcon() {
-  return <svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a4 4 0 0 1 8 0v3l1.5 2H4.5L6 11V8z" /><path d="M8 15a2 2 0 0 0 4 0" /></svg>;
+  return <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a4 4 0 0 1 8 0v3l1.5 2H4.5L6 11V8z" /><path d="M8 15a2 2 0 0 0 4 0" /></svg>;
 }
 function ChatIcon() {
-  return <svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 5.5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H8l-3.2 3v-3H5a2 2 0 0 1-2-2v-7z" /></svg>;
+  return <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 5.5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H8l-3.2 3v-3H5a2 2 0 0 1-2-2v-7z" /></svg>;
 }
 function CalendarIcon() {
-  return <svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="14" height="12" rx="2.5" /><path d="M3 9h14M7 3v3M13 3v3" /></svg>;
+  return <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="14" height="12" rx="2.5" /><path d="M3 9h14M7 3v3M13 3v3" /></svg>;
 }
 
 // ── Hauptkomponente ──────────────────────────────────────────────────────────
@@ -182,7 +182,7 @@ export default function DesktopHeader({ onCommandPalette, chatOpen, onChatChange
     <header className="hui-header">
       {/* Search */}
       <div className="hd-search-wrap">
-        <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="hd-search-icon">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="hd-search-icon">
           <circle cx="9" cy="9" r="6" /><path d="M17 17l-3.5-3.5" />
         </svg>
         <input

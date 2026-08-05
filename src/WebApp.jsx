@@ -127,6 +127,7 @@ export default function WebApp() {
                               <Route path="/profile/me" element={<DesktopProfile />} />
                               <Route path="/profile/:username" element={<DesktopProfile />} />
                               <Route path="/studio" element={<DesktopStudio />} />
+                              <Route path="/studio/:section" element={<DesktopStudio />} />
 
                               {/* ── Redirects ────────────────────────────── */}
                               <Route path="/" element={<Navigate to="/Home" replace />} />

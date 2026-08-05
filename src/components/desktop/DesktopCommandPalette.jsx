@@ -87,7 +87,7 @@ export default function DesktopCommandPalette({ onClose }) {
       <div className="cmdk-backdrop" onClick={onClose} />
       <div className="cmdk">
         <div className="cmdk-input-row">
-          <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="9" r="6" /><path d="M17 17l-3.5-3.5" /></svg>
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="9" r="6" /><path d="M17 17l-3.5-3.5" /></svg>
           <input ref={inputRef} type="text" placeholder="Suche oder navigiere…" value={query} onChange={(e) => setQuery(e.target.value)} />
           <kbd>ESC</kbd>
         </div>

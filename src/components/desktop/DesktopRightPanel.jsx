@@ -23,7 +23,7 @@ function Divider() {
 }
 
 function Shimmer({ w = '60%' }) {
-  return <div className="wr-shimmer" style={{ width: w }} />;
+  return <div className="v3-shimmer" style={{ width: w }} />;
 }
 
 function formatDate(iso) {

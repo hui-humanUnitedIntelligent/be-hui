@@ -48,11 +48,11 @@ export default function DesktopKalenderFlyout({ onClose }) {
         <div className="fly-list">
           {loading ? (
             <div className="fly-loading">
-              <div className="fly-shimmer" style={{ width: '70%' }} />
-              <div className="fly-shimmer" style={{ width: '50%' }} />
+              <div className="v3-shimmer" style={{ width: '70%' }} />
+              <div className="v3-shimmer" style={{ width: '50%' }} />
             </div>
           ) : upcoming.length === 0 ? (
-            <div className="fly-empty"><p>Keine anstehenden Termine.</p></div>
+            <div className="v3-empty"><p>Keine anstehenden Termine.</p></div>
           ) : (
             upcoming.map((b, i) => (
               <div key={b.id || i} className="fly-item">

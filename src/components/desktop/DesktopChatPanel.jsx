@@ -17,12 +17,12 @@ function ChatList({ chats, activeChatId, onSelect, loading }) {
   if (loading) {
     return (
       <div className="chat-list-loading">
-        <div className="chat-shimmer" style={{ width: '80%' }} />
-        <div className="chat-shimmer" style={{ width: '60%' }} />
+        <div className="v3-shimmer" style={{ width: '80%' }} />
+        <div className="v3-shimmer" style={{ width: '60%' }} />
       </div>
     );
   }
-  if (!chats?.length) return <div className="chat-list-empty"><p>Keine Konversationen.</p></div>;
+  if (!chats?.length) return <div className="v3-empty"><p>Keine Konversationen.</p></div>;
 
   return (
     <div className="chat-list">
@@ -71,7 +71,7 @@ function ChatThread({ chatId, chat }) {
   const name = other?.display_name || chat?.booking_title || 'Unterhaltung';
 
   if (!chatId) {
-    return <div className="chat-empty-state"><p>Wähle eine Konversation.</p></div>;
+    return <div className="v3-empty"><p>Wähle eine Konversation.</p></div>;
   }
 
   return (
@@ -86,9 +86,9 @@ function ChatThread({ chatId, chat }) {
         </div>
       </div>
       <div className="chat-messages" ref={scrollRef}>
-        {loading ? <div className="chat-shimmer" style={{ width: '50%', margin: '20px' }} /> : (
+        {loading ? <div className="v3-shimmer" style={{ width: '50%', margin: '20px' }} /> : (
           messages.filter(m => !m.is_deleted).length === 0 ? (
-            <p className="chat-empty-state">Noch keine Nachrichten. Starte das Gespräch.</p>
+            <p className="v3-empty">Noch keine Nachrichten. Starte das Gespräch.</p>
           ) : (
             messages.filter(m => !m.is_deleted).map(msg => {
               const isMine = msg.sender_id === user?.id;

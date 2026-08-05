@@ -31,7 +31,7 @@ const PATHS = {
   messages:    <path d="M3 5.5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H8l-3.2 3v-3H5a2 2 0 0 1-2-2v-7z" />,
   impact:      <path d="M10 2.5v5.5l3.5 1.7L10 17.5v-5.5L6.5 10.2 10 2.5z" />,
   events:      <><rect x="3" y="5" width="14" height="12" rx="2.5" /><path d="M3 9h14M7 3v3M13 3v3" /></>,
-  project:     <><rect x="3" y="3.5" width="14" height="13" rx="2" /><path d="M6.5 10l2.2 2.2L14 7.5" /></>,
+  project:     <><rect x="3" y="3.5" width="14" height="14" rx="2" /><path d="M6.5 10l2.2 2.2L14 7.5" /></>,
   supported:   <path d="M10 17s-6-3.8-6-8.4A3.6 3.6 0 0 1 10 6a3.6 3.6 0 0 1 6 2.6C16 13.2 10 17 10 17z" />,
   recommend:   <><path d="M10 3l1.9 4 4.4.6-3.2 3.1.8 4.3L10 12.9l-3.9 2.1.8-4.3-3.2-3.1 4.4-.6L10 3z" /></>,
   profile:     <><circle cx="10" cy="7" r="3.2" /><path d="M3.8 17c0-3.4 2.8-6 6.2-6s6.2 2.6 6.2 6" /></>,

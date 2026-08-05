@@ -27,7 +27,7 @@ function NotifIcon({ type }) {
   const cfg = NOTIF_STYLE[type] || NOTIF_STYLE.system;
   return (
     <span className="notif-icon" style={{ color: cfg.color }}>
-      <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">{cfg.icon}</svg>
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">{cfg.icon}</svg>
     </span>
   );
 }
@@ -56,9 +56,9 @@ export default function DesktopNotificationFlyout({ onClose }) {
         </div>
         <div className="fly-list">
           {loading ? (
-            <div className="notif-loading"><div className="fly-shimmer" style={{ width: '70%' }} /><div className="fly-shimmer" style={{ width: '50%' }} /></div>
+            <div className="notif-loading"><div className="v3-shimmer" style={{ width: '70%' }} /><div className="v3-shimmer" style={{ width: '50%' }} /></div>
           ) : items.length === 0 ? (
-            <div className="fly-empty"><p>Alles gelesen — keine offenen Benachrichtigungen.</p></div>
+            <div className="v3-empty"><p>Alles gelesen — keine offenen Benachrichtigungen.</p></div>
           ) : (
             items.slice(0, 30).map(item => (
               <div key={item.id} className={`notif-item ${!item.is_read ? 'unread' : ''}`} onClick={() => handleClick(item)}>
@@ -69,7 +69,7 @@ export default function DesktopNotificationFlyout({ onClose }) {
                   <span className="notif-time">{item.time_ago || ''}</span>
                 </div>
                 <button className="notif-delete" onClick={(e) => { e.stopPropagation(); deleteNotif(item.id); }} aria-label="Löschen">
-                  <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 5l10 10M15 5L5 15" /></svg>
+                  <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 5l10 10M15 5L5 15" /></svg>
                 </button>
               </div>
             ))

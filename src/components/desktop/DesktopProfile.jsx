@@ -130,15 +130,15 @@ export default function DesktopProfile() {
           {profile.has_talent_profile && <section><PublicTalentOffersSection profileId={profileId} /></section>}
           <section>
             <h2 className="prof-section-title">Werke</h2>
-            {publicWorks.length > 0 ? <WorksSection works={publicWorks} profile={profile} isOwner={isOwner} loading={loading} /> : <p className="prof-empty">Noch keine Werke vorhanden.</p>}
+            {publicWorks.length > 0 ? <WorksSection works={publicWorks} profile={profile} isOwner={isOwner} loading={loading} /> : <p className="v3-empty">Noch keine Werke vorhanden.</p>}
           </section>
           <section>
             <h2 className="prof-section-title">Momente</h2>
-            {moments.length > 0 ? <MomentsSection moments={moments} isOwner={isOwner} loading={loadingLazy} /> : <p className="prof-empty">Noch keine Momente geteilt.</p>}
+            {moments.length > 0 ? <MomentsSection moments={moments} isOwner={isOwner} loading={loadingLazy} /> : <p className="v3-empty">Noch keine Momente geteilt.</p>}
           </section>
           <section>
             <h2 className="prof-section-title">Erlebnisse</h2>
-            {experiences.length > 0 ? <ExperiencesSection experiences={experiences} isOwner={isOwner} loading={loadingLazy} /> : <p className="prof-empty">Noch keine Erlebnisse angeboten.</p>}
+            {experiences.length > 0 ? <ExperiencesSection experiences={experiences} isOwner={isOwner} loading={loadingLazy} /> : <p className="v3-empty">Noch keine Erlebnisse angeboten.</p>}
           </section>
           <section>
             <h2 className="prof-section-title">Empfehlungen</h2>
