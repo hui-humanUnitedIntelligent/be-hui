@@ -664,21 +664,19 @@ export const RecommendationService = {
     );
   },
 
-  // Prüft ob ein Nutzer eine Empfehlung schreiben darf.
-  // Bedingung: hat etwas vom Profilinhaber gekauft/gebucht ODER an ihn verkauft.
+  // Prüft ob ein Nutzer eine Empfehlung schreiben darf (hat etwas gekauft/gebucht)
   async canRecommend(fromUserId, toUserId) {
     if (!fromUserId || !toUserId || fromUserId === toUserId) return { eligible: false };
-
-    // 1A. Werk-Käufe: fromUserId hat von toUserId gekauft (orders → order_items.seller_id)
-    const { data: ordersBought } = await safeQuery(
+    // 1. Werk-Käufe: orders → order_items.seller_id
+    const { data: orders } = await safeQuery(
       supabase.from('order_items')
         .select('id, order_id, seller_id, fulfillment_status')
         .eq('seller_id', toUserId)
         .in('fulfillment_status', ['delivered', 'completed', 'released', null])
     );
-    let eligibleOrdersBought = [];
-    if (ordersBought && ordersBought.length) {
-      const orderIds = [...new Set(ordersBought.map(o => o.order_id))];
+    let eligibleOrders = [];
+    if (orders && orders.length) {
+      const orderIds = [...new Set(orders.map(o => o.order_id))];
       const { data: myOrders } = await safeQuery(
         supabase.from('orders')
           .select('id, state')
@@ -686,32 +684,9 @@ export const RecommendationService = {
           .eq('customer_id', fromUserId)
           .in('state', ['paid', 'completed', 'delivered'])
       );
-      eligibleOrdersBought = (myOrders || []).map(o => o.id);
+      eligibleOrders = (myOrders || []).map(o => o.id);
     }
-
-    // 1B. Werk-Verkäufe: fromUserId hat an toUserId verkauft (order_items.seller_id = fromUserId, orders.customer_id = toUserId)
-    const { data: ordersSold } = await safeQuery(
-      supabase.from('order_items')
-        .select('id, order_id, seller_id, fulfillment_status')
-        .eq('seller_id', fromUserId)
-        .in('fulfillment_status', ['delivered', 'completed', 'released', null])
-    );
-    let eligibleOrdersSold = [];
-    if (ordersSold && ordersSold.length) {
-      const orderIds = [...new Set(ordersSold.map(o => o.order_id))];
-      const { data: theirOrders } = await safeQuery(
-        supabase.from('orders')
-          .select('id, state')
-          .in('id', orderIds)
-          .eq('customer_id', toUserId)
-          .in('state', ['paid', 'completed', 'delivered'])
-      );
-      eligibleOrdersSold = (theirOrders || []).map(o => o.id);
-    }
-
-    const eligibleOrders = [...eligibleOrdersBought, ...eligibleOrdersSold];
-
-    // 2A. Talent-Buchungen: fromUserId hat Talent von toUserId gebucht
+    // 2. Talent-Buchungen: talent_bookings → talents.user_id
     const { data: talents } = await safeQuery(
       supabase.from('talents')
         .select('id')
@@ -729,27 +704,6 @@ export const RecommendationService = {
       );
       eligibleBookings = (bookings || []).map(b => b.id);
     }
-
-    // 2B. Talent-Buchungen: toUserId hat Talent von fromUserId gebucht (Verkäufer-Perspektive)
-    const { data: myTalents } = await safeQuery(
-      supabase.from('talents')
-        .select('id')
-        .eq('user_id', fromUserId)
-    );
-    if (myTalents && myTalents.length) {
-      const myTalentIds = myTalents.map(t => t.id);
-      const { data: theirBookings } = await safeQuery(
-        supabase.from('talent_bookings')
-          .select('id, status')
-          .in('talent_id', myTalentIds)
-          .eq("customer_id", toUserId)
-          .in('status', ['completed', 'confirmed'])
-      );
-      if (theirBookings && theirBookings.length) {
-        eligibleBookings = [...eligibleBookings, ...theirBookings.map(b => b.id)];
-      }
-    }
-
     const eligible = eligibleOrders.length > 0 || eligibleBookings.length > 0;
     return { eligible, orderId: eligibleOrders[0] || null, bookingId: eligibleBookings[0] || null };
   },
