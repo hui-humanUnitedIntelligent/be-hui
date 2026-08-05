@@ -547,6 +547,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
   // Normalisierung: Akzeptiert sowohl impact_applications-Format als auch VotingCard-Format
   const app = React.useMemo(() => ({
     id:           rawApp.id,
+    user_id:      rawApp.user_id || null,
     project_name: rawApp.project_name || rawApp.name || "",
     short_desc:   rawApp.short_desc   || rawApp.description || "",
     long_desc:    rawApp.long_desc    || rawApp.description || "",
@@ -558,6 +559,8 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
     impact_category: rawApp.impact_category || rawApp.category || "",
     application_date: rawApp.application_date || rawApp.created_at || null,
   }), [rawApp]);
+
+  const isProjectOwner = !!(currentUser?.id && app.user_id && currentUser.id === app.user_id);
 
   const [voted,        setVoted]        = React.useState(false);
   const [voteCount,    setVoteCount]    = React.useState(0);
@@ -622,21 +625,22 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
   }, [app.id, currentUser?.id]);
 
   // ── Projekt-Updates laden ────────────────────────────────────
-  React.useEffect(() => {
-    let dead = false;
-    (async () => {
-      try {
-        const { data: updData } = await supabase
-          .from("impact_project_updates")
-          .select("id,title,content,update_type,media_urls,created_at,author_id")
-          .eq("project_id", app.id)
-          .order("created_at", { ascending: false });
-        if (!dead) setUpdates(updData || []);
-      } catch { /* silent */ }
-      if (!dead) setUpdatesLoading(false);
-    })();
-    return () => { dead = true; };
+  const loadUpdates = React.useCallback(async () => {
+    try {
+      const { data: updData } = await supabase
+        .from("impact_project_updates")
+        .select("id,title,content,update_type,media_urls,created_at,author_id")
+        .eq("project_id", app.id)
+        .order("created_at", { ascending: false });
+      setUpdates(updData || []);
+    } catch { /* silent */ }
+    setUpdatesLoading(false);
   }, [app.id]);
+
+  React.useEffect(() => {
+    setUpdatesLoading(true);
+    loadUpdates();
+  }, [loadUpdates]);
 
   // ── Finanzierungs-Daten + Meilensteine frisch laden ──────────
   React.useEffect(() => {
@@ -867,6 +871,69 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
             </div>
           )}
 
+          {/* ── Projekt-Updates / Neuigkeiten ── */}
+          <div style={{ marginTop: 20, marginBottom: 20 }}>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
+              <div style={{ fontSize: 15, fontWeight: 800, color: '#141422' }}>📰 Neuigkeiten</div>
+              {isProjectOwner && (
+                <button onClick={() => setShowUpdateSheet(true)} style={{
+                  padding:"6px 12px", borderRadius:99, border:"1.5px dashed #0DC4B5",
+                  background:"transparent", color:"#0DC4B5", fontSize:12, fontWeight:700,
+                  cursor:"pointer", fontFamily:"inherit",
+                }}>
+                  + Update hinzufügen
+                </button>
+              )}
+            </div>
+            {updatesLoading ? (
+              <div style={{ color:'#888', fontSize:13 }}>Laden...</div>
+            ) : updates.length === 0 ? (
+              <div style={{ color:'#888', fontSize:13 }}>Noch keine Neuigkeiten von der Projektleitung.</div>
+            ) : (
+              <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                {updates.map((u) => {
+                  const typeColors = {
+                    "Meilenstein": { c:"#F59E0B", bg:"rgba(245,158,11,0.10)" },
+                    "Fortschritt": { c:"#0EC4B8", bg:"rgba(14,196,184,0.10)" },
+                    "Neuigkeit":   { c:"#7C3AED", bg:"rgba(124,58,237,0.10)" },
+                    "Geplant":     { c:"#10B981", bg:"rgba(16,185,129,0.10)" },
+                    "Proof of Work": { c:"#0EC4B8", bg:"rgba(14,196,184,0.10)" },
+                  };
+                  const tc = typeColors[u.update_type] || typeColors["Neuigkeit"];
+                  return (
+                    <div key={u.id} style={{
+                      background:"#fff", border:"1px solid rgba(0,0,0,0.08)",
+                      borderRadius:14, padding:14,
+                    }}>
+                      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:6, gap:8 }}>
+                        <span style={{
+                          fontSize:10, fontWeight:700, color:tc.c, background:tc.bg,
+                          padding:"3px 8px", borderRadius:99, flexShrink:0,
+                        }}>{u.update_type || "Update"}</span>
+                        <span style={{ fontSize:11, color:"#999", flexShrink:0 }}>{fmtDate(u.created_at)}</span>
+                      </div>
+                      <div style={{ fontSize:14, fontWeight:800, color:"#141422", marginBottom:4 }}>{u.title}</div>
+                      {u.content && (
+                        <div style={{ fontSize:13, color:"#555", lineHeight:1.5, marginBottom: (u.media_urls?.length ? 8 : 0) }}>{u.content}</div>
+                      )}
+                      {u.media_urls && u.media_urls.length > 0 && (
+                        <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+                          {u.media_urls.map((url, idx) => (
+                            <a key={idx} href={url} target="_blank" rel="noreferrer">
+                              <img loading="lazy" decoding="async" src={url} alt=""
+                                style={{ width:60, height:60, objectFit:"cover", borderRadius:8,
+                                  border:"1px solid rgba(0,0,0,0.10)" }} />
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           {/* ── Meilensteine ── */}
           <div style={{ marginTop: 20, marginBottom: 20 }}>
             <div style={{ fontSize: 15, fontWeight: 800, color: '#141422', marginBottom: 12 }}>🏁 Meilensteine</div>
@@ -1009,7 +1076,15 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
         />
       )}
 
-
+      {/* ── Projekt-Update-Sheet (nur Projekt-Initiator) ── */}
+      {showUpdateSheet && isProjectOwner && (
+        <ImpactProjektUpdateSheet
+          projectId={app.id}
+          authorId={currentUser?.id}
+          onClose={() => setShowUpdateSheet(false)}
+          onSubmitted={() => { setShowUpdateSheet(false); loadUpdates(); }}
+        />
+      )}
 
     </>
   );

@@ -2271,14 +2271,12 @@ function MeinBereichMenu({
           )}
 
           {showUpdateSheet && updateTargetProject && (
-        <Suspense fallback={null}>
         <ImpactUpdateSheet
                 project={updateTargetProject}
                 currentUser={profile}
                 onClose={() => { setShowUpdateSheet(false); setUpdateTargetProject(null); }}
-                onSuccess={() => { /* optional: refetch */ }}
+                onSuccess={() => { window.dispatchEvent(new Event("hui:impact-update-added")); }}
               />
-        </Suspense>
         )}
         </MeinBereichDrawer>
       )}
@@ -2820,9 +2818,34 @@ function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
   const [projects, setProjects] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [selected, setSelected] = React.useState(null);
+  const [updates, setUpdates] = React.useState([]);
+  const [updatesLoading, setUpdatesLoading] = React.useState(false);
 
   // impact_applications nutzt 'user_id' als User-Feld
   const userField = "user_id";
+
+  const loadUpdatesFor = React.useCallback(async (projectId) => {
+    if (!projectId) { setUpdates([]); return; }
+    setUpdatesLoading(true);
+    const { data, error } = await supabase
+      .from("impact_project_updates")
+      .select("id,title,content,update_type,media_urls,created_at")
+      .eq("project_id", projectId)
+      .order("created_at", { ascending: false });
+    if (error) console.error("[ImpactProjekteTab] updates query error:", error);
+    setUpdates(data || []);
+    setUpdatesLoading(false);
+  }, [supabase]);
+
+  React.useEffect(() => {
+    loadUpdatesFor(selected?.id);
+  }, [selected?.id, loadUpdatesFor]);
+
+  React.useEffect(() => {
+    const handler = () => { if (selected?.id) loadUpdatesFor(selected.id); };
+    window.addEventListener("hui:impact-update-added", handler);
+    return () => window.removeEventListener("hui:impact-update-added", handler);
+  }, [selected?.id, loadUpdatesFor]);
 
   React.useEffect(() => {
     if (!profile?.user_id && !profile?.id) return;
@@ -2960,6 +2983,53 @@ function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
               </>
             );
           })()}
+          {/* ── Neuigkeiten / Projekt-Updates ── */}
+          <div style={{ marginBottom:14 }}>
+            <div style={{ fontSize:14, fontWeight:800, color:"#1A1A1A", marginBottom:8 }}>📰 Neuigkeiten</div>
+            {updatesLoading ? (
+              <div style={{ fontSize:12, color:"#888" }}>Laden...</div>
+            ) : updates.length === 0 ? (
+              <div style={{ fontSize:12, color:"#888" }}>Noch keine Neuigkeiten.</div>
+            ) : (
+              <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                {updates.map((u) => {
+                  const typeColors = {
+                    "Meilenstein": { c:"#F59E0B", bg:"rgba(245,158,11,0.10)" },
+                    "Fortschritt": { c:"#0EC4B8", bg:"rgba(14,196,184,0.10)" },
+                    "Neuigkeit":   { c:"#7C3AED", bg:"rgba(124,58,237,0.10)" },
+                    "Geplant":     { c:"#10B981", bg:"rgba(16,185,129,0.10)" },
+                    "Proof of Work": { c:"#0EC4B8", bg:"rgba(14,196,184,0.10)" },
+                  };
+                  const tc = typeColors[u.update_type] || typeColors["Neuigkeit"];
+                  const fmtD = u.created_at ? new Date(u.created_at).toLocaleDateString("de-DE", { day:"2-digit", month:"short", year:"numeric" }) : "";
+                  return (
+                    <div key={u.id} style={{
+                      background:"#f8f8f6", border:"1px solid rgba(0,0,0,0.06)",
+                      borderRadius:12, padding:12,
+                    }}>
+                      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:4, gap:6 }}>
+                        <span style={{ fontSize:10, fontWeight:700, color:tc.c, background:tc.bg, padding:"2px 6px", borderRadius:99, flexShrink:0 }}>{u.update_type || "Update"}</span>
+                        <span style={{ fontSize:10, color:"#999", flexShrink:0 }}>{fmtD}</span>
+                      </div>
+                      <div style={{ fontSize:13, fontWeight:700, color:"#1A1A1A", marginBottom:2 }}>{u.title}</div>
+                      {u.content && <div style={{ fontSize:12, color:"#666", lineHeight:1.4 }}>{u.content}</div>}
+                      {u.media_urls && u.media_urls.length > 0 && (
+                        <div style={{ display:"flex", flexWrap:"wrap", gap:4, marginTop:6 }}>
+                          {u.media_urls.map((url, idx) => (
+                            <a key={idx} href={url} target="_blank" rel="noreferrer">
+                              <img loading="lazy" decoding="async" src={url} alt=""
+                                style={{ width:50, height:50, objectFit:"cover", borderRadius:6, border:"1px solid rgba(0,0,0,0.08)" }} />
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           {selected.status === "approved" && (
             <button
               onClick={() => { onUpdateClick(selected); setSelected(null); }}
