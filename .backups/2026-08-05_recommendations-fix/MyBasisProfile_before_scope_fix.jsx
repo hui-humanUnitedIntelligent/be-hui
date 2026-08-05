@@ -2157,7 +2157,7 @@ function MeinBereichMenu({
   onOpenMomentSheet: onOpenMomentSheetProp = null,
   onProfileUpdate = () => {},
 }) {
-  const { switchTab, setChatRecipient, setShowChat } = useHome();
+  const { switchTab } = useHome();
   const [activeDrawer, setActiveDrawer] = useState(null); // talente|werke|erlebnisse|momente|ambassador|empfehlungen|impact|finanzen
 
   // PRELOAD: Wenn ein Drawer geöffnet wird, sofort die zugehörigen Wizard-Chunks
