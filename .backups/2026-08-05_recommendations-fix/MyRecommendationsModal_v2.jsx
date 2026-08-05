@@ -38,8 +38,8 @@ const TYPE_META = {
 
 const FILTER_KEYS = ["all", "profile", "project", "work", "experience"];
 
-function MyRecommendationsModal({ userId, onClose = () => {}, setChatRecipient, setShowChat }) {
-  const { openProfileById } = useHome() || {};
+function MyRecommendationsModal({ userId, onClose = () => {} }) {
+  const { setChatRecipient, setShowChat, openProfileById } = useHome() || {};
   const [items, setItems]           = useState([]);
   const [enrichment, setEnrichment] = useState({}); // item_id → meta
   const [loading, setLoading]       = useState(true);

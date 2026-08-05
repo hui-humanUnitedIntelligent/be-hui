@@ -2335,7 +2335,7 @@ function MeinBereichMenu({
       )}
       {activeDrawer === "empfehlungen" && empfehlungDetail === "outgoing" && (
         <Suspense fallback={null}>
-        <MyRecommendationsModal userId={profile?.id} onClose={() => setEmpfehlungDetail(null)} />
+        <MyRecommendationsModal userId={profile?.id} onClose={() => setEmpfehlungDetail(null)} setChatRecipient={setChatRecipient} setShowChat={setShowChat} />
         </Suspense>
       )}
 
