@@ -2819,6 +2819,7 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
 function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
   const [projects, setProjects] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
+  const [selected, setSelected] = React.useState(null);
 
   // impact_applications nutzt 'user_id' als User-Feld
   const userField = "user_id";
@@ -2828,7 +2829,7 @@ function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
     const uid = profile.user_id || profile.id;
     supabase
       .from("impact_applications")
-      .select("id,project_name,short_desc,funding_goal,current_amount_eur,status,rank,is_completed,created_at")
+      .select("id,project_name,short_desc,funding_goal,current_amount_eur,status,rank,is_completed,created_at,cover_url")
       .eq(userField, uid)
       .order("created_at", { ascending: false })
       .then(({ data, error }) => {
@@ -2863,110 +2864,126 @@ function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
   }
 
   return (
-    <div style={{ padding: "0 20px" }}>
-      {projects.map((proj) => {
-        const funded = proj.current_amount_eur || 0;
-        const goal = proj.funding_goal || 0;
-        const pct = goal > 0 ? Math.min(100, Math.round((funded / goal) * 100)) : 0;
-        const statusColor =
-          proj.status === "approved" ? "#0DC4B5" :
-          proj.status === "rejected" ? "#e74c3c" : "#f39c12";
-        const statusLabel =
-          proj.status === "approved" ? "✅ Bewilligt" :
-          proj.status === "rejected" ? "❌ Abgelehnt" : "⏳ In Prüfung";
-        return (
-          <div
-            key={proj.id}
-            style={{
-              background: "#F5FBF8",
-              borderRadius: 16,
-              padding: 16,
-              marginBottom: 12,
-              border: "1px solid rgba(13,196,181,0.15)",
-            }}
-          >
-            <div
+    <>
+    {/* Kachel-Grid — identisch zum Muster von Meine Werke/Erlebnisse (3-spaltig, aspect-ratio 1/1) */}
+    <div style={{ padding: `0 ${T.px}px` }}>
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)",
+        gap:10, marginBottom:12 }}>
+        {projects.map((proj, i) => {
+          const isApproved = proj.status === "approved";
+          const isRejected = proj.status === "rejected";
+          const badgeBg = isApproved ? "rgba(14,196,184,0.92)" : isRejected ? "rgba(255,80,80,0.92)" : "rgba(234,179,8,0.92)";
+          const badgeText = isApproved ? "✅ Bewilligt" : isRejected ? "❌ Abgelehnt" : "⏳ Prüfung";
+          const borderCol = isApproved ? "#0EC4B8" : isRejected ? "#ff5050" : "#D4A800";
+          return (
+            <div key={proj.id || i}
+              onClick={() => setSelected(proj)}
               style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-                marginBottom: 6,
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 15,
-                  fontWeight: 800,
-                  color: "#1A1A1A",
-                  flex: 1,
-                  marginRight: 8,
-                }}
-              >
-                {proj.project_name}
+                width:"100%", aspectRatio:"1/1",
+                borderRadius:T.r12, overflow:"hidden",
+                background:"#e8f7f4", position:"relative", cursor:"pointer",
+                boxShadow: `0 0 0 2px ${borderCol}`,
+              }}>
+              {proj.cover_url
+                ? <img loading="lazy" decoding="async" src={proj.cover_url} alt={proj.project_name||""}
+                    style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+                : <div style={{ width:"100%", height:"100%", display:"flex",
+                    alignItems:"center", justifyContent:"center", fontSize:24 }}>💚</div>
+              }
+              {/* Status-Badge unten */}
+              <div style={{
+                position:"absolute", bottom:0, left:0, right:0,
+                background: badgeBg,
+                fontSize:9, fontWeight:700, color:"#fff",
+                padding:"3px 5px", textAlign:"center", letterSpacing:"0.3px",
+              }}>
+                {badgeText}
               </div>
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: statusColor,
-                  background: statusColor + "15",
-                  padding: "3px 8px",
-                  borderRadius: 99,
-                  flexShrink: 0,
-                }}
-              >
-                {statusLabel}
-              </span>
+              {/* Titel oben */}
+              {proj.project_name && (
+                <div style={{
+                  position:"absolute", top:0, left:0, right:0,
+                  background:"rgba(0,0,0,0.45)", fontSize:9, color:"#fff",
+                  padding:"3px 5px", whiteSpace:"nowrap",
+                  overflow:"hidden", textOverflow:"ellipsis",
+                }}>
+                  {proj.project_name}
+                </div>
+              )}
             </div>
-            {proj.short_desc && (
-              <div style={{ fontSize: 12, color: "#666", marginBottom: 8, lineHeight: 1.4 }}>
-                {proj.short_desc}
-              </div>
-            )}
-            <div style={{ fontSize: 12, color: "#666", marginBottom: 6 }}>
-              €{funded.toLocaleString("de-DE")} von €{goal.toLocaleString("de-DE")} finanziert
-            </div>
-            <div
-              style={{
-                height: 6,
-                borderRadius: 99,
-                background: "rgba(0,0,0,0.08)",
-                overflow: "hidden",
-                marginBottom: 12,
-              }}
-            >
-              <div
-                style={{
-                  height: "100%",
-                  borderRadius: 99,
-                  width: `${pct}%`,
-                  background: "linear-gradient(90deg,#0DC4B5,#09A89D)",
-                }}
-              />
-            </div>
-            {proj.status === "approved" && (
-              <button
-                onClick={() => onUpdateClick(proj)}
-                style={{
-                  width: "100%",
-                  padding: "10px 0",
-                  borderRadius: 12,
-                  border: "1.5px dashed #0DC4B5",
-                  background: "transparent",
-                  color: "#0DC4B5",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                }}
-              >
-                + Update hinzufügen
-              </button>
-            )}
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
+
+    {/* Detail-Overlay — Beschreibung, Fortschritt, Update-Button (per Tap auf Kachel) */}
+    {selected && (
+      <div style={{
+        position:"fixed", inset:0, zIndex:10500,
+        background:"rgba(0,0,0,0.55)", display:"flex",
+        alignItems:"center", justifyContent:"center", padding:"24px",
+      }} onClick={() => setSelected(null)}>
+        <div onClick={e => e.stopPropagation()} style={{
+          background:"#fff", borderRadius:20, padding:"20px",
+          maxWidth:360, width:"100%", maxHeight:"80vh", overflowY:"auto",
+          boxShadow:"0 8px 40px rgba(0,0,0,0.18)",
+        }}>
+          {selected.cover_url && (
+            <img src={selected.cover_url} alt={selected.project_name||""}
+              style={{ width:"100%", height:160, objectFit:"cover", borderRadius:14, marginBottom:14 }} />
+          )}
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6, gap:8 }}>
+            <div style={{ fontSize:16, fontWeight:800, color:"#1A1A1A", flex:1 }}>{selected.project_name}</div>
+            <span style={{
+              fontSize:11, fontWeight:700, flexShrink:0, padding:"3px 8px", borderRadius:99,
+              color: selected.status==="approved" ? "#0DC4B5" : selected.status==="rejected" ? "#e74c3c" : "#f39c12",
+              background: (selected.status==="approved" ? "#0DC4B5" : selected.status==="rejected" ? "#e74c3c" : "#f39c12") + "15",
+            }}>
+              {selected.status==="approved" ? "✅ Bewilligt" : selected.status==="rejected" ? "❌ Abgelehnt" : "⏳ In Prüfung"}
+            </span>
+          </div>
+          {selected.short_desc && (
+            <div style={{ fontSize:13, color:"#666", marginBottom:12, lineHeight:1.5 }}>{selected.short_desc}</div>
+          )}
+          {(() => {
+            const funded = selected.current_amount_eur || 0;
+            const goal = selected.funding_goal || 0;
+            const pct = goal > 0 ? Math.min(100, Math.round((funded / goal) * 100)) : 0;
+            return (
+              <>
+                <div style={{ fontSize:12, color:"#666", marginBottom:6 }}>
+                  €{funded.toLocaleString("de-DE")} von €{goal.toLocaleString("de-DE")} finanziert
+                </div>
+                <div style={{ height:6, borderRadius:99, background:"rgba(0,0,0,0.08)", overflow:"hidden", marginBottom:16 }}>
+                  <div style={{ height:"100%", borderRadius:99, width:`${pct}%`, background:"linear-gradient(90deg,#0DC4B5,#09A89D)" }} />
+                </div>
+              </>
+            );
+          })()}
+          {selected.status === "approved" && (
+            <button
+              onClick={() => { onUpdateClick(selected); setSelected(null); }}
+              style={{
+                width:"100%", padding:"10px 0", borderRadius:12,
+                border:"1.5px dashed #0DC4B5", background:"transparent",
+                color:"#0DC4B5", fontSize:13, fontWeight:700,
+                cursor:"pointer", fontFamily:"inherit", marginBottom:8,
+              }}
+            >
+              + Update hinzufügen
+            </button>
+          )}
+          <button onClick={() => setSelected(null)} style={{
+            width:"100%", padding:"10px 0", borderRadius:12,
+            background:"#f0f0ee", border:"none", color:"#444",
+            fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit",
+          }}>
+            Schließen
+          </button>
+        </div>
+      </div>
+    )}
+    </>
   );
 }
 
