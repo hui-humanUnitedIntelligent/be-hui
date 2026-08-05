@@ -1,15 +1,11 @@
 // ══════════════════════════════════════════════════════════════════════════════
-// DesktopChatPanel.jsx — HUI Desktop Chat (Phase 3 — Verbessert)
+// DesktopChatPanel.jsx — HUI Desktop V3 — Nachrichten (Slide-In, Master-Detail)
 // ══════════════════════════════════════════════════════════════════════════════
 //
-// PHASE 3:
-//   ✓ Nutzt other_profile für Avatar, Name
-//   ✓ Booking-Kontext (booking_title)
-//   ✓ Online-Status (wenn verfügbar)
-//   ✓ Letzter Kontakt (last_message_at)
-//   ✓ feels like Messenger
+// Slide-In von rechts, über dem Wirkungsraum. Feed bleibt sichtbar.
+// Konversationsliste links, Unterhaltung rechts. Nutzt other_profile.
 //
-// Business-Logik: useChatList + useChatThread (unverändert)
+// DATEN: useChatList, useChatThread (unverändert, bestehende Business-Logik)
 // ══════════════════════════════════════════════════════════════════════════════
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
@@ -17,52 +13,33 @@ import { useAuth } from '../../lib/AuthContext.jsx';
 import { useChatList, useChatThread, formatChatTime } from '../../lib/chatContext.js';
 import { useEscapeKey } from './hooks/useEscapeKey.js';
 
-// ── Chat-Liste (Master) ──────────────────────────────────────────────────────
 function ChatList({ chats, activeChatId, onSelect, loading }) {
   if (loading) {
     return (
-      <div className="dcp-list-loading">
-        <div className="dcp-shimmer" style={{ width: '80%' }} />
-        <div className="dcp-shimmer" style={{ width: '60%' }} />
-        <div className="dcp-shimmer" style={{ width: '70%' }} />
+      <div className="chat-list-loading">
+        <div className="chat-shimmer" style={{ width: '80%' }} />
+        <div className="chat-shimmer" style={{ width: '60%' }} />
       </div>
     );
   }
-  if (!chats || chats.length === 0) {
-    return <div className="dcp-list-empty"><p>Keine Konversationen.</p></div>;
-  }
+  if (!chats?.length) return <div className="chat-list-empty"><p>Keine Konversationen.</p></div>;
 
   return (
-    <div className="dcp-list">
+    <div className="chat-list">
       {chats.map(chat => {
         const other = chat.other_profile;
-        const displayName = other?.display_name || chat.booking_title || 'Konversation';
+        const name = other?.display_name || chat.booking_title || 'Konversation';
         return (
-          <button
-            key={chat.id}
-            className={`dcp-list-item ${activeChatId === chat.id ? 'active' : ''}`}
-            onClick={() => onSelect(chat)}
-          >
-            <div className="dcp-list-avatar">
-              {other?.avatar_url ? (
-                <img src={other.avatar_url} alt="" className="dcp-list-avatar-img" />
-              ) : (
-                displayName.charAt(0).toUpperCase()
-              )}
+          <button key={chat.id} className={`chat-list-item ${activeChatId === chat.id ? 'active' : ''}`} onClick={() => onSelect(chat)}>
+            <div className="chat-avatar">
+              {other?.avatar_url ? <img src={other.avatar_url} alt="" /> : name.charAt(0).toUpperCase()}
             </div>
-            <div className="dcp-list-content">
-              <div className="dcp-list-header">
-                <span className="dcp-list-title">{displayName}</span>
-                {chat.last_message_at && (
-                  <span className="dcp-list-time">{formatChatTime(chat.last_message_at)}</span>
-                )}
+            <div className="chat-list-content">
+              <div className="chat-list-row">
+                <span className="chat-list-name">{name}</span>
+                {chat.last_message_at && <span className="chat-list-time">{formatChatTime(chat.last_message_at)}</span>}
               </div>
-              {chat.last_message && (
-                <span className="dcp-list-preview">{chat.last_message}</span>
-              )}
-              {chat.booking_title && other?.display_name && (
-                <span className="dcp-list-context">{chat.booking_title}</span>
-              )}
+              {chat.last_message && <span className="chat-list-preview">{chat.last_message}</span>}
             </div>
           </button>
         );
@@ -71,16 +48,13 @@ function ChatList({ chats, activeChatId, onSelect, loading }) {
   );
 }
 
-// ── Chat-Thread (Detail) ─────────────────────────────────────────────────────
 function ChatThread({ chatId, chat }) {
   const { user } = useAuth();
   const { messages, loading, sending, sendMessage } = useChatThread(chatId);
   const [input, setInput] = useState('');
   const scrollRef = useRef(null);
 
-  useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-  }, [messages]);
+  useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [messages]);
 
   const handleSend = useCallback(async () => {
     if (!input.trim() || sending) return;
@@ -94,97 +68,58 @@ function ChatThread({ chatId, chat }) {
   }, [handleSend]);
 
   const other = chat?.other_profile;
-  const displayName = other?.display_name || chat?.booking_title || 'Unterhaltung';
+  const name = other?.display_name || chat?.booking_title || 'Unterhaltung';
 
   if (!chatId) {
-    return (
-      <div className="dcp-thread-empty">
-        <div className="dcp-thread-empty-icon">
-          <svg width="32" height="32" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.2">
-            <path d="M3 5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H8l-3 3v-3H5a2 2 0 0 1-2-2V5z" />
-          </svg>
-        </div>
-        <p>Wähle eine Konversation</p>
-      </div>
-    );
+    return <div className="chat-empty-state"><p>Wähle eine Konversation.</p></div>;
   }
 
   return (
-    <div className="dcp-thread">
-      {/* Header with other_profile */}
-      <div className="dcp-thread-header">
-        <div className="dcp-thread-header-info">
-          {other?.avatar_url ? (
-            <img src={other.avatar_url} alt="" className="dcp-thread-avatar" />
-          ) : (
-            <div className="dcp-thread-avatar dcp-thread-avatar-fallback">
-              {displayName.charAt(0).toUpperCase()}
-            </div>
-          )}
-          <div>
-            <span className="dcp-thread-title">{displayName}</span>
-            {chat?.booking_title && other?.display_name && (
-              <span className="dcp-thread-context">{chat.booking_title}</span>
-            )}
-          </div>
+    <div className="chat-thread">
+      <div className="chat-thread-header">
+        {other?.avatar_url ? <img src={other.avatar_url} alt="" className="chat-thread-avatar" /> : (
+          <div className="chat-thread-avatar chat-avatar-fallback">{name.charAt(0).toUpperCase()}</div>
+        )}
+        <div>
+          <span className="chat-thread-name">{name}</span>
+          {chat?.booking_title && other?.display_name && <span className="chat-thread-context">{chat.booking_title}</span>}
         </div>
       </div>
-
-      {/* Messages */}
-      <div className="dcp-thread-messages" ref={scrollRef}>
-        {loading ? (
-          <div className="dcp-thread-loading"><div className="dcp-shimmer" style={{ width: '60%' }} /></div>
-        ) : messages.length === 0 ? (
-          <div className="dcp-thread-nomessages"><p>Noch keine Nachrichten. Starte das Gespräch.</p></div>
-        ) : (
-          messages.filter(m => !m.is_deleted).map(msg => {
-            const isMine = msg.sender_id === user?.id;
-            return (
-              <div key={msg.id} className={`dcp-msg ${isMine ? 'mine' : 'theirs'}`}>
-                {!isMine && other?.avatar_url && (
-                  <img src={other.avatar_url} alt="" className="dcp-msg-avatar" />
-                )}
-                <div className="dcp-msg-bubble">
-                  {msg.text && <span className="dcp-msg-text">{msg.text}</span>}
-                  {msg.media_url && msg.message_type !== 'text' && (
-                    <img src={msg.media_url} alt="" className="dcp-msg-media" />
-                  )}
-                  <span className="dcp-msg-time">
-                    {new Date(msg.created_at).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}
-                  </span>
+      <div className="chat-messages" ref={scrollRef}>
+        {loading ? <div className="chat-shimmer" style={{ width: '50%', margin: '20px' }} /> : (
+          messages.filter(m => !m.is_deleted).length === 0 ? (
+            <p className="chat-empty-state">Noch keine Nachrichten. Starte das Gespräch.</p>
+          ) : (
+            messages.filter(m => !m.is_deleted).map(msg => {
+              const isMine = msg.sender_id === user?.id;
+              return (
+                <div key={msg.id} className={`chat-msg ${isMine ? 'mine' : ''}`}>
+                  <div className="chat-bubble">
+                    {msg.text && <span>{msg.text}</span>}
+                    <span className="chat-msg-time">{new Date(msg.created_at).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
                 </div>
-              </div>
-            );
-          })
+              );
+            })
+          )
         )}
       </div>
-
-      {/* Input */}
-      <div className="dcp-thread-input">
+      <div className="chat-input-row">
         <input
           type="text"
           placeholder="Nachricht schreiben…"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          aria-label="Nachricht"
         />
-        <button
-          className="dcp-send-btn"
-          onClick={handleSend}
-          disabled={!input.trim() || sending}
-          aria-label="Senden"
-        >
-          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-            <path d="M3 10l14-7-5 14-2-6-7-1z" />
-          </svg>
+        <button className="chat-send" onClick={handleSend} disabled={!input.trim() || sending} aria-label="Senden">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M3 10l14-7-5 14-2-6-7-1z" /></svg>
         </button>
       </div>
     </div>
   );
 }
 
-// ── Hauptkomponente ─═══════════════════════════════════════════════════════════
 export default function DesktopChatPanel({ onClose }) {
   const { chats, loading, unreadTotal } = useChatList('desktop');
   const [activeChat, setActiveChat] = useState(null);
@@ -193,26 +128,19 @@ export default function DesktopChatPanel({ onClose }) {
 
   return (
     <>
-      <div className="dcp-backdrop" onClick={onClose} />
-      <div className="dcp-panel">
-        <div className="dcp-master">
-          <div className="dcp-master-header">
+      <div className="fly-backdrop" onClick={onClose} />
+      <div className="chat-panel">
+        <div className="chat-master">
+          <div className="chat-master-header">
             <h3>Nachrichten</h3>
-            {unreadTotal > 0 && <span className="dcp-unread-badge">{unreadTotal}</span>}
-            <button className="dcp-close-btn" onClick={onClose} aria-label="Schließen">
-              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M5 5l10 10M15 5L5 15" />
-              </svg>
+            {unreadTotal > 0 && <span className="chat-unread">{unreadTotal}</span>}
+            <button className="fly-close" onClick={onClose} aria-label="Schließen">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 5l10 10M15 5L5 15" /></svg>
             </button>
           </div>
-          <ChatList
-            chats={chats}
-            activeChatId={activeChat?.id}
-            onSelect={(chat) => setActiveChat(chat)}
-            loading={loading}
-          />
+          <ChatList chats={chats} activeChatId={activeChat?.id} onSelect={setActiveChat} loading={loading} />
         </div>
-        <div className="dcp-detail">
+        <div className="chat-detail">
           <ChatThread chatId={activeChat?.id} chat={activeChat} />
         </div>
       </div>

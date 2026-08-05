@@ -1,180 +1,138 @@
 // ══════════════════════════════════════════════════════════════════════════════
-// DesktopRightPanel.jsx — HUI Desktop Wirkungsraum (v2.0)
+// DesktopRightPanel.jsx — HUI Desktop V3 — Mein Wirkungsraum
 // ══════════════════════════════════════════════════════════════════════════════
 //
-// DESIGN v2.0:
-//   Keine Boxen. Kein Dashboard. Ein ruhiger Begleiter.
-//   Vertikale Sektionen, getrennt durch Weißraum und feine Linien.
-//   Warm. Menschlich. Organisch.
+// KEINE Widget-Sammlung. KEINE Kästen. Nur Typografie, Linien, Weißraum.
 //
-//   Sektionen:
-//     Mein Impact — große Zahl, warm
-//     Resonanz — was lebt (live items)
-//     Heute möglich — was entstanden ist
-//     Nächste Termine — was kommt
-//     Wirkungsentwicklung — wie es wächst (history)
-//     Persönlicher Puls — wie du stehst
+// Aufbau:
+//   MEIN IMPACT — Zahl + Veränderung
+//   AKTUELLE RESONANZ — letzte Aktivitäten
+//   HEUTE MÖGLICH — Vorschau (Werke/Erlebnisse)
+//   TERMINE — bevorstehende Buchungen
+//   PERSÖNLICHER PULS — ruhiger Statussatz
+//
+// DATEN: useDesktopData() — bereits geladen, keine neuen Queries.
 // ══════════════════════════════════════════════════════════════════════════════
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDesktopData } from './DesktopDataContext.jsx';
 
-// ── Ruhige Sektion ────────────────────────────────────────────────────────────
-function PanelSection({ title, children, delay = 0 }) {
-  const [visible, setVisible] = React.useState(false);
-  React.useEffect(() => {
-    const t = setTimeout(() => setVisible(true), delay);
-    return () => clearTimeout(t);
-  }, [delay]);
-
-  return (
-    <section
-      className="rp-section"
-      style={{
-        opacity: visible ? 1 : 0,
-        transform: visible ? 'translateY(0)' : 'translateY(6px)',
-        transition: 'opacity 400ms cubic-bezier(0.16,1,0.30,1), transform 400ms cubic-bezier(0.16,1,0.30,1)',
-      }}
-    >
-      <h4 className="rp-label">{title}</h4>
-      <div className="rp-body">{children}</div>
-    </section>
-  );
+function Divider() {
+  return <div className="wr-divider" />;
 }
 
-// ── Shimmer ──────────────────────────────────────────────────────────────────
-function Shimmer({ w = '70%' }) {
-  return <div className="rp-shimmer" style={{ width: w }} />;
+function Shimmer({ w = '60%' }) {
+  return <div className="wr-shimmer" style={{ width: w }} />;
 }
 
-// ── Hauptkomponente ──────────────────────────────────────────────────────────
+function formatDate(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'short' });
+}
+
 export default function DesktopRightPanel() {
   const navigate = useNavigate();
-  const { impact, activity, bookings, discover, notifCount } = useDesktopData();
+  const { impact, activity, discover, bookings } = useDesktopData();
 
-  // ── Bevorstehende Termine ──────────────────────────────────────────────────
-  const upcoming = (bookings.asCustomer || [])
-    .filter(b => b.status === 'confirmed' || b.status === 'pending')
-    .filter(b => {
-      if (!b.selected_date) return false;
-      const d = new Date(b.selected_date);
-      return d >= new Date() && d <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-    })
+  const upcoming = [...(bookings.asCustomer || []), ...(bookings.asSeller || [])]
+    .filter(b => (b.status === 'confirmed' || b.status === 'pending' || b.status === 'accepted'))
+    .filter(b => b.selected_date && new Date(b.selected_date) >= new Date())
+    .sort((a, b) => new Date(a.selected_date) - new Date(b.selected_date))
     .slice(0, 3);
 
-  // ── Wirkungsentwicklung (aus impact.history) ───────────────────────────────
-  const historyItems = (impact.history || []).slice(0, 4).reverse();
-  const hasGrowth = historyItems.length >= 2;
+  const recentItems = (activity.items || []).slice(0, 3);
+  const previewWorks = (discover.works || []).slice(0, 3);
 
-  // ── Persönlicher Puls ──────────────────────────────────────────────────────
-  const pulseParts = [];
-  if (notifCount > 0) pulseParts.push(`${notifCount} Benachrichtigung${notifCount > 1 ? 'en' : ''}`);
-  if (upcoming.length > 0) pulseParts.push(`${upcoming.length} Termin${upcoming.length > 1 ? 'e' : ''}`);
-  if ((activity.items || []).length > 0) pulseParts.push(`${(activity.items || []).length} Aktivitäten`);
-  const pulseText = pulseParts.length > 0
-    ? pulseParts.join(' · ')
-    : 'Alles ruhig — nichts Offenes.';
+  // Persönlicher Puls — ehrlich formuliert, nur aus echten Daten
+  const openCount = upcoming.length + (bookings.asCustomer || []).filter(b => b.status === 'pending').length;
+  const pulseText = openCount === 0
+    ? 'Alles ruhig.'
+    : openCount === 1
+      ? 'Heute steht eine Sache an.'
+      : `Heute stehen ${openCount} Dinge an.`;
 
   return (
-    <aside className="desktop-right-panel" aria-label="Wirkungsraum">
-      <div className="rp-inner">
+    <aside className="hui-rightpanel">
+      <div className="wr-inner">
 
-        {/* ── Mein Impact ─────────────────────────────────────────────── */}
-        <PanelSection title="Mein Impact" delay={0}>
+        {/* ── Mein Impact ──────────────────────────────────────────── */}
+        <section className="wr-section">
+          <h4 className="wr-label">Mein Impact</h4>
           {impact.loading ? <Shimmer w="50%" /> : (
             <>
-              <div className="rp-impact-value">{impact.fmtTotal || '€0.00'}</div>
-              <div className="rp-impact-label">Beitrag zum Impact-Pool diesen Monat</div>
+              <div className="wr-impact-value">{impact.fmtTotal || '€0.00'}</div>
+              <p className="wr-impact-sub">Gemeinsam bewegt.</p>
             </>
           )}
-          <button className="rp-link" onClick={() => navigate('/impact')}>Impact ansehen →</button>
-        </PanelSection>
+          <button className="wr-link" onClick={() => navigate('/impact')}>Impact ansehen →</button>
+        </section>
 
-        {/* ── Resonanz ────────────────────────────────────────────────── */}
-        <PanelSection title="Resonanz" delay={80}>
-          {activity.loading ? <><Shimmer /><Shimmer w="60%" /></> : (
-            (activity.items || []).length > 0 ? (
-              <div className="rp-resonance-list">
-                {(activity.items || []).slice(0, 4).map((item, i) => (
-                  <div key={i} className="rp-resonance-item">
-                    <span className="rp-dot" />
-                    <div className="rp-resonance-text">
-                      <span className="rp-text">{item.label || item.title || 'Aktivität'}</span>
-                      {item.time_ago && <span className="rp-time">{item.time_ago}</span>}
-                    </div>
-                  </div>
+        <Divider />
+
+        {/* ── Aktuelle Resonanz ────────────────────────────────────── */}
+        <section className="wr-section">
+          <h4 className="wr-label">Aktuelle Resonanz</h4>
+          {activity.loading ? <><Shimmer /><Shimmer w="70%" /></> : (
+            recentItems.length > 0 ? (
+              <div className="wr-list">
+                {recentItems.map((item, i) => (
+                  <p key={i} className="wr-text">{item.label || item.title || 'Neue Aktivität'}</p>
                 ))}
               </div>
-            ) : (
-              <p className="rp-empty">Noch keine Resonanz heute.</p>
-            )
+            ) : <p className="wr-empty">Noch keine Resonanz heute.</p>
           )}
-        </PanelSection>
+        </section>
 
-        {/* ── Heute möglich ───────────────────────────────────────────── */}
-        <PanelSection title="Heute möglich" delay={160}>
+        <Divider />
+
+        {/* ── Heute möglich ────────────────────────────────────────── */}
+        <section className="wr-section">
+          <h4 className="wr-label">Heute möglich</h4>
           {discover.loading ? <Shimmer /> : (
-            (discover.works || []).length > 0 ? (
-              <div className="rp-discover-list">
-                {(discover.works || []).slice(0, 2).map((w, i) => (
-                  <button key={i} className="rp-discover-item" onClick={() => navigate(`/work/${w.id}`)}>
-                    <span className="rp-discover-title">{w.title || 'Werk'}</span>
-                    {w.display_name && <span className="rp-discover-sub">{w.display_name}</span>}
+            previewWorks.length > 0 ? (
+              <div className="wr-preview-row">
+                {previewWorks.map((w, i) => (
+                  <button key={i} className="wr-preview-thumb" onClick={() => navigate(`/work/${w.id}`)}>
+                    {w.image_url || w.cover_url ? (
+                      <img src={w.image_url || w.cover_url} alt="" />
+                    ) : (
+                      <div className="wr-preview-thumb-fallback" />
+                    )}
                   </button>
                 ))}
               </div>
-            ) : (
-              <p className="rp-empty">Aktuell keine neuen Werke.</p>
-            )
+            ) : <p className="wr-empty">Aktuell nichts Neues.</p>
           )}
-        </PanelSection>
+          <button className="wr-link" onClick={() => navigate('/discover')}>Mehr entdecken →</button>
+        </section>
 
-        {/* ── Nächste Termine ──────────────────────────────────────────── */}
-        <PanelSection title="Nächste Termine" delay={240}>
+        <Divider />
+
+        {/* ── Termine ──────────────────────────────────────────────── */}
+        <section className="wr-section">
+          <h4 className="wr-label">Termine</h4>
           {bookings.loading ? <Shimmer /> : (
             upcoming.length > 0 ? (
-              <div className="rp-booking-list">
+              <div className="wr-list">
                 {upcoming.map((b, i) => (
-                  <div key={i} className="rp-booking-item">
-                    <div className="rp-booking-date">
-                      {b.selected_date && new Date(b.selected_date).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' })}
-                    </div>
-                    <div className="rp-booking-info">
-                      <span className="rp-booking-title">{b.talents?.title || 'Buchung'}</span>
-                      {b.selected_time_slot && <span className="rp-booking-time">{b.selected_time_slot}</span>}
-                    </div>
+                  <div key={i} className="wr-term-item">
+                    <span className="wr-term-date">{formatDate(b.selected_date)}</span>
+                    <span className="wr-term-title">{b.talents?.title || b.title || 'Erlebnis'}</span>
                   </div>
                 ))}
               </div>
-            ) : (
-              <p className="rp-empty">Keine Termine in den nächsten 4 Wochen.</p>
-            )
+            ) : <p className="wr-empty">Keine anstehenden Termine.</p>
           )}
-        </PanelSection>
+        </section>
 
-        {/* ── Wirkungsentwicklung ──────────────────────────────────────── */}
-        {hasGrowth && (
-          <PanelSection title="Wirkungsentwicklung" delay={320}>
-            <div className="rp-growth-list">
-              {historyItems.map((h, i) => (
-                <div key={i} className="rp-growth-item">
-                  <span className="rp-growth-month">
-                    {h.month ? new Date(h.month + '-01').toLocaleDateString('de-DE', { month: 'short', year: '2-digit' }) : ''}
-                  </span>
-                  <span className="rp-growth-value">
-                    €{((h.total_inflow_eur ?? 0)).toFixed(2)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </PanelSection>
-        )}
+        <Divider />
 
-        {/* ── Persönlicher Puls ────────────────────────────────────────── */}
-        <PanelSection title="Persönlicher Puls" delay={400}>
-          <p className="rp-pulse">{pulseText}</p>
-        </PanelSection>
+        {/* ── Persönlicher Puls ────────────────────────────────────── */}
+        <section className="wr-section">
+          <h4 className="wr-label">Persönlicher Puls</h4>
+          <p className="wr-pulse">{pulseText}</p>
+        </section>
 
       </div>
     </aside>

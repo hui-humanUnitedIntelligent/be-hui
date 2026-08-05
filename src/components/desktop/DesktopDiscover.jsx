@@ -1,13 +1,10 @@
 // ══════════════════════════════════════════════════════════════════════════════
-// DesktopDiscover.jsx — HUI Desktop Discover Wrapper (Phase 2)
+// DesktopDiscover.jsx — HUI Desktop V3 — Galerie
 // ══════════════════════════════════════════════════════════════════════════════
 //
-// Wrappt die bestehende Discover-Seite in ein Desktop-Grid-Layout.
-// Keine horizontalen Slider — Desktop nutzt CSS Grid für die Galerie.
-//
-// Die bestehende DiscoverPage wird 1:1 gerendert, aber mit Desktop-CSS
-// überschrieben: horizontale Slider werden zu Grids, mehr Weißraum,
-// größere Karten.
+// Keine horizontalen Slider. Grid mit variablen Kartengrößen, mehr Luft.
+// Wrappt die bestehende DiscoverPage — Business-Logik unverändert,
+// nur Desktop-CSS überschreibt horizontale Container zu einem Grid.
 // ══════════════════════════════════════════════════════════════════════════════
 
 import React from 'react';
@@ -16,8 +13,8 @@ const DiscoverPage = React.lazy(() => import('../../pages/DiscoverPage.jsx'));
 
 export default function DesktopDiscover() {
   return (
-    <div className="desktop-discover">
-      <React.Suspense fallback={<div className="dd-loading">Entdecken wird geladen…</div>}>
+    <div className="disc-page">
+      <React.Suspense fallback={<div className="disc-loading">Entdecken wird geladen…</div>}>
         <DiscoverPage />
       </React.Suspense>
     </div>

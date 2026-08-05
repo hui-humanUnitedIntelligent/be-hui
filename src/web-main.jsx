@@ -1,37 +1,15 @@
 // ══════════════════════════════════════════════════════════════════════════════
-// web-main.jsx — HUI Web Entry Point
-// ══════════════════════════════════════════════════════════════════════════════
-//
-// ZWECK:
-//   Einstiegspunkt für die HUI Web-Version (Browser/Desktop).
-//   Wird von web.html geladen: <script src="/src/web-main.jsx" />
-//   Rendert WebApp in den #web-root Container.
-//
-// UNTERSCHIED ZU main.jsx (Mobile-App):
-//   - Importiert WebApp (statt App)
-//   - Importiert web.css zusätzlich zu index.css
-//   - Kein appPerformance.js (Mobile-spezifisch)
-//   - Kein Contract Inspector (Dev-Tool für Mobile)
-//   - Rendert in #web-root (statt #root)
-//
-// GEMEINSAM MIT main.jsx:
-//   - Sentry Initialisierung (Error Monitoring)
-//   - Global Error Handlers (unhandledrejection, error)
-//   - index.css (Shared Design System, Tailwind, CSS Variables)
-//   - React.StrictMode
+// web-main.jsx — HUI Web Entry Point (Desktop V3)
 // ══════════════════════════════════════════════════════════════════════════════
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import WebApp from './WebApp.jsx';
 
-// ── Shared Styles ────────────────────────────────────────────────────────────
-import './index.css';    // Shared Design System (Tailwind, CSS Variables, Reset)
-import './web.css';      // Web-spezifische Styles (unter #web-root scope)
-import './components/desktop/desktopFoundation.css';  // Desktop Foundation (Tokens, Layout, Breakpoints, Interactions)
-import './components/desktop/desktopPhase1.css';  // Desktop Phase 1 (Mission Control, Panels, Sidebar, Header)
-import './components/desktop/desktopPhase2.css';  // Desktop Phase 2 (Chat, Notifications, Command Palette, Profiles)
-import './components/desktop/desktopPhase3.css';  // Desktop Phase 3 (Profile, Studio, Feed, Polish)
+// ── Styles ────────────────────────────────────────────────────────────────────
+import './index.css';                       // Shared Design System (Tailwind, CSS Variables)
+import './web.css';                         // Web-spezifische Styles
+import './components/desktop/desktopV3.css'; // Desktop V3 (komplettes Design-System)
 
 // ── Sentry ────────────────────────────────────────────────────────────────────
 import { initSentry, sentryCapture } from './lib/sentry.js';
