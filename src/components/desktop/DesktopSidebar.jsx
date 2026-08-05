@@ -1,23 +1,23 @@
 // ══════════════════════════════════════════════════════════════════════════════
-// DesktopSidebar.jsx — HUI Desktop Navigation (Phase 1)
+// DesktopSidebar.jsx — HUI Desktop Navigation (v2.0)
 // ══════════════════════════════════════════════════════════════════════════════
 //
-// PHASE 1 ERWEITERUNGEN:
-//   ✓ Badges (unread count) — leise Punkte, keine roten Alarmfarben
-//   ✓ Active States — dezente HUI-Teal-Tönung
-//   ✓ Hover — sanfte Transition
-//   ✓ Tooltips bei kompakter Ansicht (Icon-only)
-//   ✓ Erstellen-Button — primärer CTA
-//   ✓ Orb-Integration — Orb Icon in Sidebar
-//   ✓ Ruhige Animationen
+// DESIGN v2.0:
+//   Wärmer. Mehr Charakter. Mehr HUI.
+//   - Orb als sanft leuchtender Kreis (kein Icon)
+//   - Profilbereich großzügiger, mit warmer Aura
+//   - Hover: sanfte Opazität statt harten Hintergrund
+//   - Active: dezenter Teal-Glow statt Block
+//   - Bessere Abstände, mehr Luft
+//   - Erstellen-Button: weicher, runder, kein harten Shadow
 //
 // DATEN:
-//   - useNotifCount() aus AppStateContext (shared)
-//   - useAuth() für Profile + Logout (shared)
-//   - Kein eigener Supabase-Aufruf
+//   useNotifCount() aus AppStateContext (shared)
+//   useAuth() für Profile + Logout (shared)
+//   Kein eigener Supabase-Aufruf
 // ══════════════════════════════════════════════════════════════════════════════
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { HUILogo } from '../brand/HUILogo.jsx';
 import { useAuth } from '../../lib/AuthContext.jsx';
@@ -34,7 +34,6 @@ const ICON_PATHS = {
   profile:  <><circle cx="10" cy="7" r="3" /><path d="M4 17c0-3 3-5 6-5s6 2 6 5" /></>,
   settings: <><circle cx="10" cy="10" r="2.5" /><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.2 4.2l1.4 1.4M14.4 14.4l1.4 1.4M4.2 15.8l1.4-1.4M14.4 5.6l1.4-1.4" /></>,
   create:   <path d="M10 4v12M4 10h12" />,
-  orb:      <><circle cx="10" cy="10" r="4" /><circle cx="10" cy="10" r="7" opacity="0.4" /></>,
   logout:   <path d="M7 4H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3M14 7l3 3-3 3M17 10H8" />,
 };
 
@@ -48,15 +47,13 @@ function NavIcon({ name, size = 20 }) {
   );
 }
 
-// ── Tooltip für kompakte Ansicht ──────────────────────────────────────────────
-function SidebarTooltip({ label, show }) {
+// ── Tooltip ──────────────────────────────────────────────────────────────────
+function Tooltip({ label, show }) {
   if (!show) return null;
-  return (
-    <span className="sidebar-tooltip">{label}</span>
-  );
+  return <span className="sidebar-tooltip">{label}</span>;
 }
 
-// ── Sidebar-Item mit Badge und Hover ──────────────────────────────────────────
+// ── Sidebar-Item ──────────────────────────────────────────────────────────────
 function SidebarItem({ item, isActive, onClick, badge, compact }) {
   const [hovered, setHovered] = useState(false);
   return (
@@ -73,30 +70,24 @@ function SidebarItem({ item, isActive, onClick, badge, compact }) {
       >
         <NavIcon name={item.icon} />
         <span className="sidebar-item-label">{item.label}</span>
-        {badge > 0 && (
-          <span className="sidebar-badge">{badge > 99 ? '99+' : badge}</span>
-        )}
+        {badge > 0 && <span className="sidebar-badge">{badge > 99 ? '99+' : badge}</span>}
       </button>
-      {compact && <SidebarTooltip label={item.label} show={hovered} />}
+      {compact && <Tooltip label={item.label} show={hovered} />}
     </div>
   );
 }
 
 // ── Erstellen-Button ──────────────────────────────────────────────────────────
-function CreateButton({ onClick, compact }) {
+function CreateButton({ onClick }) {
   return (
-    <button
-      className="sidebar-create-btn"
-      onClick={onClick}
-      aria-label="Erstellen"
-    >
+    <button className="sidebar-create-btn" onClick={onClick} aria-label="Erstellen">
       <NavIcon name="create" size={18} />
       <span className="sidebar-item-label">Erstellen</span>
     </button>
   );
 }
 
-// ── Orb-Button ────────────────────────────────────────────────────────────────
+// ── Orb (sanft leuchtender Kreis) ────────────────────────────────────────────
 function OrbButton({ onClick, compact }) {
   const [hovered, setHovered] = useState(false);
   return (
@@ -105,16 +96,12 @@ function OrbButton({ onClick, compact }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <button
-        className="sidebar-item sidebar-orb-btn"
-        onClick={onClick}
-        aria-label="Mein HUI — Wirkungsraum"
-      >
-        <span className="sidebar-orb-pulse" />
-        <NavIcon name="orb" />
+      <button className="sidebar-orb-btn" onClick={onClick} aria-label="Mein HUI — Wirkungsraum">
+        <span className="sidebar-orb-glow" />
+        <span className="sidebar-orb-core" />
         <span className="sidebar-item-label">Mein HUI</span>
       </button>
-      {compact && <SidebarTooltip label="Mein HUI" show={hovered} />}
+      {compact && <Tooltip label="Mein HUI" show={hovered} />}
     </div>
   );
 }
@@ -126,7 +113,6 @@ export default function DesktopSidebar() {
   const { profile, logout } = useAuth();
   const notifCount = useNotifCount();
 
-  // Compact detection (CSS-driven: 1024–1279px = icon-only)
   const [compact, setCompact] = useState(false);
   useEffect(() => {
     function check() { setCompact(window.innerWidth >= 1024 && window.innerWidth < 1280); }
@@ -137,13 +123,8 @@ export default function DesktopSidebar() {
 
   function isItemActive(route) {
     if (location.pathname === route) return true;
-    if (route === '/profile/me' && location.pathname === '/profile/me') return true;
     if (route === '/Home' && (location.pathname === '/' || location.pathname === '/app/' || location.pathname === '/app')) return true;
     return false;
-  }
-
-  function handleNavClick(route) {
-    navigate(route);
   }
 
   async function handleLogout() {
@@ -151,41 +132,35 @@ export default function DesktopSidebar() {
     catch (e) { console.error('[HUI Web] Logout error:', e); }
   }
 
-  // Badge-Map: welche Items bekommen Badges?
-  const badgeMap = {
-    messages: 0,   // Placeholder — Chat badge via ChatContext (Phase 2)
-    home: notifCount, // Notifications badge auf Home
-  };
+  const badgeMap = { home: notifCount };
 
   return (
     <aside className="desktop-sidebar">
       {/* ── Logo ─────────────────────────────────────────────────── */}
       <div className="sidebar-logo" onClick={() => navigate('/Home')} role="button" tabIndex={0}>
-        <HUILogo size={32} />
+        <HUILogo size={30} />
         <span className="sidebar-item-label sidebar-logo-text">HUI</span>
       </div>
 
-      {/* ── Erstellen-Button ────────────────────────────────────────── */}
-      <CreateButton onClick={() => navigate('/studio')} compact={compact} />
+      {/* ── Erstellen ────────────────────────────────────────────── */}
+      <CreateButton onClick={() => navigate('/studio')} />
 
       {/* ── Orb ────────────────────────────────────────────────────── */}
-      <OrbButton onClick={() => { /* Phase 2: DesktopOrbPanel */ }} compact={compact} />
+      <OrbButton onClick={() => {}} compact={compact} />
 
-      {/* ── Divider ─────────────────────────────────────────────────── */}
+      {/* ── Trenner ─────────────────────────────────────────────────── */}
       <div className="sidebar-divider" />
 
-      {/* ── Navigation Sections ──────────────────────────────────────── */}
+      {/* ── Navigation ──────────────────────────────────────────────── */}
       {DESKTOP_NAV_SECTIONS.map((section) => (
         <div key={section.id} className="sidebar-section">
-          {section.label && (
-            <div className="sidebar-section-label">{section.label}</div>
-          )}
+          {section.label && <div className="sidebar-section-label">{section.label}</div>}
           {section.items.map((item) => (
             <SidebarItem
               key={item.key}
               item={item}
               isActive={isItemActive(item.route)}
-              onClick={() => handleNavClick(item.route)}
+              onClick={() => navigate(item.route)}
               badge={badgeMap[item.key] || 0}
               compact={compact}
             />
@@ -196,36 +171,34 @@ export default function DesktopSidebar() {
       {/* ── Spacer ─────────────────────────────────────────────────── */}
       <div style={{ flex: 1 }} />
 
-      {/* ── User Info & Logout ──────────────────────────────────────── */}
-      <div className="sidebar-user">
+      {/* ── Profilbereich ──────────────────────────────────────────── */}
+      <div className="sidebar-profile">
         <div
-          className="sidebar-user-info"
+          className="sidebar-profile-card"
           onClick={() => navigate('/profile/me')}
           role="button"
           tabIndex={0}
           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/profile/me'); } }}
         >
           {profile?.avatar_url ? (
-            <img className="sidebar-user-avatar" src={profile.avatar_url} alt="" />
+            <img className="sidebar-profile-avatar" src={profile.avatar_url} alt="" />
           ) : (
-            <div className="sidebar-user-avatar sidebar-user-avatar-fallback">
+            <div className="sidebar-profile-avatar sidebar-profile-avatar-fallback">
               {(profile?.display_name || profile?.username || '?').charAt(0).toUpperCase()}
             </div>
           )}
-          <div style={{ overflow: 'hidden', minWidth: 0 }}>
-            <div className="sidebar-user-name">
-              {profile?.display_name || profile?.username || 'HUI Mitglied'}
-            </div>
-            <div className="sidebar-user-handle">
-              {profile?.username ? `@${profile.username}` : 'Profil ansehen'}
-            </div>
+          <div className="sidebar-profile-info">
+            <div className="sidebar-profile-name">{profile?.display_name || profile?.username || 'HUI Mitglied'}</div>
+            <div className="sidebar-profile-handle">{profile?.username ? `@${profile.username}` : 'Profil ansehen'}</div>
           </div>
+          <button
+            className="sidebar-logout"
+            onClick={(e) => { e.stopPropagation(); handleLogout(); }}
+            aria-label="Abmelden"
+          >
+            <NavIcon name="logout" size={16} />
+          </button>
         </div>
-
-        <button className="sidebar-item" onClick={handleLogout} style={{ marginTop: 4 }}>
-          <NavIcon name="logout" />
-          <span className="sidebar-item-label">Abmelden</span>
-        </button>
       </div>
     </aside>
   );
