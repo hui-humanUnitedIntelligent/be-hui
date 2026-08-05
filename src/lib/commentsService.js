@@ -46,14 +46,28 @@ async function attachHearts(flatRows, currentUserId) {
   });
 }
 
+// Gelöschte Kommentare werden NIE gerendert (kein "Kommentar gelöscht"-
+// Platzhalter mehr, siehe COMMENTS-NO-PLACEHOLDER-Fix 2026-08-05). Damit
+// dabei keine noch existierenden (nicht-geloeschten) Antworten "verloren"
+// gehen, werden sie beim naechsten sichtbaren (nicht geloeschten) Vorfahren
+// eingehaengt -- notfalls direkt als Root, wenn die ganze Kette geloescht ist.
 function buildTree(rootRows, replyRows) {
   const byId = new Map();
   [...rootRows, ...replyRows].forEach(r => byId.set(r.id, r));
+
+  const extraRoots = [];
   replyRows.forEach(r => {
-    const parent = byId.get(r.parent_comment_id);
+    let parentId = r.parent_comment_id;
+    let parent = byId.get(parentId);
+    while (parent && parent.is_deleted) {
+      parentId = parent.parent_comment_id;
+      parent = parentId ? byId.get(parentId) : null;
+    }
     if (parent) parent.replies.push(r);
+    else if (!r.is_deleted) extraRoots.push(r); // ganze Elternkette geloescht -> als Root zeigen
   });
-  return rootRows;
+
+  return [...rootRows, ...extraRoots].filter(r => !r.is_deleted);
 }
 
 // ── Kommentare laden (Root-Seite + alle Antworten dieser Roots) ───────
@@ -89,7 +103,25 @@ export async function getComments(postId, postType, { offset = 0, limit = 20, cu
   const tree = buildTree(rootShaped, replyShaped);
 
   const totalRoots = count ?? (offset + roots.length);
-  return { items: tree, hasMore: offset + roots.length < totalRoots, nextOffset: offset + roots.length, totalRoots, error: null };
+
+  // Sichtbarer Header-Zaehler ("N Kommentare") soll NUR nicht-geloeschte
+  // Root-Kommentare zaehlen -- totalRoots (oben) bleibt fuer die
+  // Pagination-Arithmetik (hasMore) unveraendert auf Basis der Rohdaten.
+  const { count: visibleCount } = await supabase
+    .from(TABLE)
+    .select("id", { count: "exact", head: true })
+    .eq("post_id", postId).eq("post_type", postType)
+    .is("parent_comment_id", null)
+    .is("deleted_at", null);
+
+  return {
+    items: tree,
+    hasMore: offset + roots.length < totalRoots,
+    nextOffset: offset + roots.length,
+    totalRoots,
+    visibleTotal: visibleCount ?? tree.length,
+    error: null,
+  };
 }
 
 // ── Schnelle Zaehlung (RPC, kein Volltransfer) — fuer Feed-/Preview-Badges

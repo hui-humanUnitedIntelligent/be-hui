@@ -224,22 +224,11 @@ function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdi
   const isOwn = currentUserId && comment.user_id === currentUserId;
   const authorName = comment._author?.display_name || comment._author?.username || "HUI-Mitglied";
 
-  if (comment.is_deleted) {
-    return (
-      <div style={{ marginLeft: depth * 26, padding:"8px 0" }}>
-        <div style={{ display:"flex", gap:10 }}>
-          <Avatar url={null} name="—" size={30} />
-          <div style={{ fontSize:13, color:T.inkFaint, fontStyle:"italic", paddingTop:6 }}>Kommentar gelöscht</div>
-        </div>
-        {comment.replies?.map(r => (
-          <CommentRow key={r.id} comment={r} depth={depth+1} currentUserId={currentUserId} isAdmin={isAdmin}
-            onReply={onReply} onSaveEdit={onSaveEdit} onDelete={onDelete} onHeart={onHeart} onReport={onReport}
-            replyTargetId={replyTargetId} onCancelReply={onCancelReply} onSubmitReply={onSubmitReply}
-            replyText={replyText} setReplyText={setReplyText} submittingReply={submittingReply} />
-        ))}
-      </div>
-    );
-  }
+  // HINWEIS (COMMENTS-NO-PLACEHOLDER-Fix 2026-08-05): Gelöschte Kommentare
+  // erreichen diese Komponente ueberhaupt nicht mehr -- buildTree()
+  // (commentsService.js) filtert sie serverseitig aus dem Baum heraus und
+  // haengt noch lebende Antworten beim naechsten sichtbaren Vorfahren ein.
+  // Kein "Kommentar gelöscht"-Platzhalter mehr.
 
   return (
     <div style={{ marginLeft: depth * 26, padding:"10px 0" }} className={comment._justAdded ? "cs-pop" : ""}>
@@ -380,7 +369,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
     setItems(prev => reset ? decorated : [...decorated, ...prev]); // aeltere Seite wird oben angehaengt
     setHasMore(res.hasMore);
     setOffset(res.nextOffset);
-    setTotal(res.totalRoots || 0);
+    setTotal(res.visibleTotal ?? res.totalRoots ?? 0);
     setLoading(false);
   }, [postId, postType, user?.id, offset, decorateAuthors]);
 
@@ -410,17 +399,48 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
         });
       },
       onUpdate: (row) => {
+        if (row.deleted_at) {
+          // COMMENTS-NO-PLACEHOLDER-Fix: bei Soft-Delete durch einen anderen
+          // Client den Kommentar komplett entfernen (kein Platzhalter) --
+          // noch lebende Antworten werden beim Elternknoten "hochgereicht",
+          // damit sie nicht mitverschwinden.
+          const removeAndReparent = (list) => {
+            const out = [];
+            for (const c of list) {
+              if (c.id === row.id) {
+                out.push(...removeAndReparent(c.replies || []));
+              } else {
+                out.push({ ...c, replies: removeAndReparent(c.replies || []) });
+              }
+            }
+            return out;
+          };
+          setItems(prev => removeAndReparent(prev));
+          setTotal(t => row.parent_comment_id ? t : Math.max(0, t - 1));
+          return;
+        }
         const patch = (list) => list.map(c => c.id === row.id
-          ? { ...c, text: row.text, is_deleted: !!row.deleted_at, is_edited: !!row.updated_at }
+          ? { ...c, text: row.text, is_edited: !!row.updated_at }
           : { ...c, replies: patch(c.replies || []) });
         setItems(prev => patch(prev));
       },
       onDelete: (row) => {
         // DELETE-Events liefern per RLS nur die id (siehe MERKEN.3-Lehre) --
         // wir nutzen ausschliesslich Soft-Delete (UPDATE), physisches DELETE
-        // kommt hier praktisch nicht vor; defensiv trotzdem behandelt.
-        const patch = (list) => list.map(c => c.id === row.id ? { ...c, is_deleted:true, text:"" } : { ...c, replies: patch(c.replies || []) });
-        setItems(prev => patch(prev));
+        // kommt hier praktisch nicht vor; defensiv trotzdem behandelt (komplett
+        // entfernen, kein Platzhalter, Antworten hochreichen).
+        const removeAndReparent = (list) => {
+          const out = [];
+          for (const c of list) {
+            if (c.id === row.id) {
+              out.push(...removeAndReparent(c.replies || []));
+            } else {
+              out.push({ ...c, replies: removeAndReparent(c.replies || []) });
+            }
+          }
+          return out;
+        };
+        setItems(prev => removeAndReparent(prev));
       },
     });
     return unsubscribe;
