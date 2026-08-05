@@ -7,7 +7,7 @@ import React from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 
-const UPDATE_TYPES = ["Meilenstein", "Fortschritt", "Neuigkeit", "Geplant", "Proof of Work"];
+const UPDATE_TYPES = ["Meilenstein", "Fortschritt", "Neuigkeit", "Geplant"];
 
 export default function ImpactUpdateSheet({ project, currentUser, onClose, onSuccess }) {
   const [title, setTitle] = React.useState("");
