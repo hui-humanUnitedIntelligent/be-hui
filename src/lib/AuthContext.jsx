@@ -3,6 +3,7 @@ import { ProfileService } from '../services/db';
 import { supabase } from "./supabaseClient";
 import { isProfileTalent } from './profileUtils.js';
 import { clearMemoryStore } from "./intelligence/persistence/interactionMemoryStore.js";
+import { getAuthRedirectUrl } from "./platform.js";
 import { FIELDS, PROFILE_FIELDS } from "./perfUtils";
 
 const AuthContext = createContext(null);
@@ -274,7 +275,7 @@ export function AuthProvider({ children }) {
     try {
       return await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: window.location.origin + '/auth/callback' },
+        options: { redirectTo: getAuthRedirectUrl() },
       });
     } catch (err) {
       console.warn('[HUI Auth] Google OAuth Fehler:', err?.message);
@@ -289,7 +290,7 @@ export function AuthProvider({ children }) {
     try {
       return await supabase.auth.signInWithOAuth({
         provider: 'apple',
-        options: { redirectTo: window.location.origin + '/auth/callback' },
+        options: { redirectTo: getAuthRedirectUrl() },
       });
     } catch (err) {
       console.warn('[HUI Auth] Apple OAuth Fehler:', err?.message);
@@ -304,7 +305,7 @@ export function AuthProvider({ children }) {
     try {
       return await supabase.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: window.location.origin + '/auth/callback' },
+        options: { emailRedirectTo: getAuthRedirectUrl() },
       });
     } catch (err) {
       console.warn('[HUI Auth] Magic Link Fehler:', err?.message);
@@ -318,7 +319,7 @@ export function AuthProvider({ children }) {
     }
     try {
       return await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/auth/callback',
+        redirectTo: getAuthRedirectUrl(),
       });
     } catch (err) {
       console.warn('[HUI Auth] Password Reset Fehler:', err?.message);

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { processStoredReferralForUser } from '../lib/referralTracking.js'
+import { platformPath } from '../lib/platform.js'
 
 const BG = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=85'
 
@@ -22,18 +23,18 @@ export default function AuthCallback() {
             // Hard-Reload nach Login — verhindert Stale-Asset-Fehler nach Deployments
             try {
               const v = Date.now();
-              window.location.replace('/Home?v=' + v);
+              window.location.replace(platformPath('/Home') + '?v=' + v);
             } catch (_) {
-              window.location.href = '/Home';
+              window.location.href = platformPath('/Home');
             }
           }, 800)
         } else {
           setStatus('error')
-          setTimeout(() => { window.location.href = '/login' }, 1500)
+          setTimeout(() => { window.location.href = platformPath('/login') }, 1500)
         }
       } catch {
         setStatus('error')
-        setTimeout(() => { window.location.href = '/login' }, 1500)
+        setTimeout(() => { window.location.href = platformPath('/login') }, 1500)
       }
     })()
   }, [])

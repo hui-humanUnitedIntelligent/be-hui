@@ -85,7 +85,7 @@ function WebSuspense({ children }) {
 // ── WebApp Root ──────────────────────────────────────────────────────────────
 export default function WebApp() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/app">
       <AuthProvider>
         <AppStateProvider>
           <WorldSurfaceProvider>

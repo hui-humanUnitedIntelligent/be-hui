@@ -1,3 +1,4 @@
+import { platformPath } from '../../lib/platform.js';
 import { HUIAbmeldenIcon, HUIDatenschutzIcon, HUIKalenderIcon, HUIKontaktIcon, HUIMitgliedIcon, HUIProfilIcon, HUISettingsIcon, HUISicherheitIcon, HUIVerifIcon, HUIMailIcon } from '../../design/icons/HuiSystemIcons.jsx';
 // src/components/settings/SettingsModal.jsx
 // ── HUI Einstellungs-Modal v2 ─────────────────────────────────
@@ -332,7 +333,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
 
   const logout = async () => {
     await supabase.auth.signOut();
-    window.location.href = "/login";
+    window.location.href = platformPath("/login");
   };
 
   const overlay = {
