@@ -15,7 +15,7 @@
 // intern gerendert wird. Keine neue Navigations-/Oeffnen-Logik fuer die
 // Konsumenten (Feed, Discover, Liveticker etc. rufen weiterhin exakt
 // dieselben Funktionen wie vorher auf).
-import React, { createContext, useCallback, useContext, useState } from "react";
+import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
 import { loadPreviewByRef } from "../lib/contentPreviewLoaders.js";
 import { normalizePostForPreview } from "../lib/previewNormalizers.js";
 import ContentPreviewSheet from "../components/shared/ContentPreviewSheet.jsx";
@@ -67,7 +67,7 @@ export function ContentPreviewProvider({ children }) {
   const isPost = item?.type === "moment";
 
   return (
-    <ContentPreviewContext.Provider value={{ open, openRef, close, item, loading, openTalentBooking }}>
+    <ContentPreviewContext.Provider value={useMemo(() => ({ open, openRef, close, item, loading, openTalentBooking }), [open, openRef, close, item, loading, openTalentBooking])}>
       {children}
       <ContentPreviewSheet item={isPost ? null : item} loading={loading} onClose={close} onBookTalent={openTalentBooking} />
       {talentBooking && (

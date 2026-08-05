@@ -126,7 +126,8 @@ export function AppStateProvider({ children }) {
   }, [user?.id, followedIds]);
 
   // ── Context Value ──────────────────────────────────────────────
-  const value = {
+  // useMemo verhindert unnötige Re-renders aller Consumer bei jedem Provider-Render
+  const value = useMemo(() => ({
     // UI State
     activeTab, setActiveTab,
     isMobile,
@@ -147,7 +148,7 @@ export function AppStateProvider({ children }) {
     resonanceMap:    {},
     giveResonance:   async () => {},
     removeResonance: async () => {},
-  };
+  }), [activeTab, isMobile, unreadNotifCount, fetchNotifCount, followedIds, toggleFollow]);
 
   return (
     <AppStateContext.Provider value={value}>

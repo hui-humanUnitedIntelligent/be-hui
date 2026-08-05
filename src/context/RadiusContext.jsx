@@ -22,7 +22,7 @@
 // denselben radiusKm/geo-Zustand.
 // ══════════════════════════════════════════════════════════════════════
 
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback, useMemo } from "react";
 import { searchPlaces, distanceKm } from "../lib/geocoding.js";
 
 // ── ZENTRALE RADIUS-KONFIGURATION (2026-07-06, UX-Vereinfachung) ──────────
@@ -112,12 +112,12 @@ export function RadiusProvider({ children }) {
 
   const clearLocation = useCallback(() => setGeo(null), [setGeo]);
 
-  const value = {
+  const value = useMemo(() => ({
     radiusKm, setRadiusKm, stages: RADIUS_OPTIONS, defaultRadiusKm: DEFAULT_RADIUS_KM,
     geo, setGeo, status, requestBrowserLocation, setManualPlace, clearLocation,
     isWorldwide: radiusKm === "world",
     distanceKm,
-  };
+  }), [radiusKm, setRadiusKm, geo, setGeo, status, requestBrowserLocation, setManualPlace, clearLocation, distanceKm]);
 
   return <RadiusCtx.Provider value={value}>{children}</RadiusCtx.Provider>;
 }

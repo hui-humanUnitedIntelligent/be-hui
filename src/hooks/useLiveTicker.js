@@ -43,6 +43,7 @@
 // ressourcenschonender (Performance-Pflicht).
 // ══════════════════════════════════════════════════════════════════
 import { useEffect, useRef, useState, useCallback } from "react";
+import { useAuth } from "../lib/AuthContext.jsx";
 import { supabase } from "../lib/supabaseClient.js";
 import { timedQuery } from "../lib/perfMonitor.js";
 
@@ -265,6 +266,7 @@ const SOURCES = [
 ];
 
 export function useLiveTicker() {
+  const { user } = useAuth();
   const [items, setItems]     = useState([]);
   const [loading, setLoading] = useState(true);
   const bufferRef = useRef(new Map()); // id -> item, für Dedupe über Refreshes hinweg
@@ -303,6 +305,9 @@ export function useLiveTicker() {
   }, []);
 
   useEffect(() => {
+    // Auth-Gate: LiveTicker nicht laden vor Login (verhindert 6-7 Queries auf /login)
+    if (!user?.id) return;
+
     mounted.current = true;
     // Nur laden wenn Tab sichtbar — kein Hintergrund-Polling
     if (document.visibilityState === "visible") refresh();
@@ -329,7 +334,7 @@ export function useLiveTicker() {
       stopInterval();
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [refresh]);
+  }, [refresh, user?.id]);
 
   return { items, loading };
 }
