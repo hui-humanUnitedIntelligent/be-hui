@@ -1,0 +1,504 @@
+/* ═══════════════════════════════════════════════════════════════════════════════
+   desktopFoundation.css — HUI Desktop Platform Foundation
+   ═══════════════════════════════════════════════════════════════════════════════
+
+   SCOPE: Alle Regeln unter #web-root → kein Konflikt mit Mobile (#root).
+
+   ENTHÄLT:
+     1. CSS Custom Properties (spiegeln desktopTokens.js)
+     2. Layout-System (3-Zonen: Sidebar + Content + RightPanel)
+     3. Desktop Breakpoints (Tablet → Ultrawide)
+     4. Interaction Layer (Hover, Focus, Keyboard, Scrollbar)
+     5. Animation Keyframes
+     6. Dark Mode Variablen
+
+   REGEL:
+     Diese Datei ist das Fundament. Alle Desktop-Komponenten bauen darauf auf.
+     Keine Magic Numbers in Desktop-Komponenten — nur CSS-Variablen.
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   1. CSS CUSTOM PROPERTIES — Design Tokens
+   ═══════════════════════════════════════════════════════════════════════════════ */
+#web-root {
+  /* ── Layout ─────────────────────────────────────────────────── */
+  --desktop-sidebar-width:        260px;
+  --desktop-sidebar-compact:      72px;
+  --desktop-sidebar-mini:         56px;
+  --desktop-content-min:           640px;
+  --desktop-content-max:           1100px;
+  --desktop-content-padding:       32px;
+  --desktop-content-padding-lg:    48px;
+  --desktop-panel-width:           340px;
+  --desktop-panel-width-wide:      380px;
+  --desktop-panel-min:             320px;
+  --desktop-header-height:        64px;
+  --desktop-gap-section:           24px;
+  --desktop-gap-card:              16px;
+  --desktop-gap-item:              8px;
+
+  /* ── Modal ─────────────────────────────────────────────────── */
+  --desktop-modal-width:           480px;
+  --desktop-modal-max-width:       90vw;
+  --desktop-modal-radius:          20px;
+  --desktop-modal-padding:         32px;
+  --desktop-modal-backdrop-opacity: 0.4;
+  --desktop-modal-backdrop-blur:   8px;
+
+  /* ── Spacing ───────────────────────────────────────────────── */
+  --desktop-space-xs:    4px;
+  --desktop-space-sm:    8px;
+  --desktop-space-md:    16px;
+  --desktop-space-lg:    24px;
+  --desktop-space-xl:    32px;
+  --desktop-space-xxl:   48px;
+  --desktop-space-xxxl:   64px;
+
+  /* ── Radius ────────────────────────────────────────────────── */
+  --desktop-radius-sm:    8px;
+  --desktop-radius-md:    12px;
+  --desktop-radius-lg:    16px;
+  --desktop-radius-xl:    20px;
+  --desktop-radius-xxl:   28px;
+
+  /* ── Shadows ───────────────────────────────────────────────── */
+  --desktop-shadow-sm:    0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03);
+  --desktop-shadow-md:    0 4px 12px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.04);
+  --desktop-shadow-lg:    0 8px 24px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.04);
+  --desktop-shadow-xl:    0 16px 48px rgba(0,0,0,0.10), 0 8px 16px rgba(0,0,0,0.06);
+  --desktop-shadow-hover: 0 8px 24px rgba(14,196,181,0.10), 0 4px 8px rgba(0,0,0,0.05);
+  --desktop-shadow-focus: 0 0 0 3px rgba(14,196,181,0.18);
+
+  /* ── Animation ─────────────────────────────────────────────── */
+  --desktop-anim-fast:      150ms;
+  --desktop-anim-normal:    250ms;
+  --desktop-anim-slow:      350ms;
+  --desktop-anim-page:      400ms;
+  --desktop-anim-easing:    cubic-bezier(0.16, 1, 0.30, 1);
+  --desktop-anim-easing-out: cubic-bezier(0.0, 0, 0.2, 1);
+  --desktop-anim-easing-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── Z-Index ───────────────────────────────────────────────── */
+  --desktop-z-content:        10;
+  --desktop-z-sidebar:        50;
+  --desktop-z-header:         100;
+  --desktop-z-sticky:         200;
+  --desktop-z-dropdown:       500;
+  --desktop-z-popover:        700;
+  --desktop-z-modal-backdrop:  999;
+  --desktop-z-modal:          1000;
+  --desktop-z-command:        1100;
+  --desktop-z-tooltip:        1200;
+  --desktop-z-context:        1300;
+
+  /* ── Colors (Desktop-spezifisch, von HUI Design System abgeleitet) ─── */
+  --desktop-bg:           #FAF7F2;
+  --desktop-surface:      #FDFBF8;
+  --desktop-surface-alt:  #F5F0E8;
+  --desktop-ink:          #141422;
+  --desktop-ink-soft:     #3A3A55;
+  --desktop-muted:        #8A8A9E;
+  --desktop-border:       rgba(0, 0, 0, 0.06);
+  --desktop-border-strong: rgba(0, 0, 0, 0.12);
+  --desktop-primary:      #0EC4B8;
+  --desktop-primary-soft: rgba(14, 196, 181, 0.10);
+  --desktop-primary-mid:  rgba(14, 196, 181, 0.18);
+  --desktop-coral:        #F47355;
+  --desktop-coral-soft:   rgba(244, 115, 85, 0.10);
+
+  /* ── Modal Colors ──────────────────────────────────────────── */
+  --desktop-modal-bg:     #FDFBF8;
+  --desktop-modal-header: #F5F0E8;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   2. LAYOUT SYSTEM — 3-Zonen (Sidebar + Content + RightPanel)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+#web-root .desktop-shell {
+  display: flex;
+  min-height: 100vh;
+  background: var(--desktop-bg);
+  width: 100%;
+  overflow: hidden;
+}
+
+#web-root .desktop-sidebar {
+  width: var(--desktop-sidebar-width);
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  background: var(--desktop-surface);
+  border-right: 1px solid var(--desktop-border);
+  z-index: var(--desktop-z-sidebar);
+  transition: width var(--desktop-anim-normal) var(--desktop-anim-easing);
+}
+
+#web-root .desktop-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+#web-root .desktop-header {
+  height: var(--desktop-header-height);
+  position: sticky;
+  top: 0;
+  z-index: var(--desktop-z-header);
+  background: rgba(253, 251, 248, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--desktop-border);
+  flex-shrink: 0;
+}
+
+#web-root .desktop-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--desktop-content-padding);
+  scroll-behavior: smooth;
+}
+
+#web-root .desktop-content-inner {
+  max-width: var(--desktop-content-max);
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ── Right Panel (Wirkungsraum) ─────────────────────────────── */
+#web-root .desktop-right-panel {
+  width: var(--desktop-panel-width);
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  background: var(--desktop-surface);
+  border-left: 1px solid var(--desktop-border);
+  z-index: var(--desktop-z-sidebar);
+  transition: width var(--desktop-anim-normal) var(--desktop-anim-easing);
+}
+
+#web-root .desktop-right-panel-inner {
+  padding: var(--desktop-space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--desktop-gap-section);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   3. DESKTOP BREAKPOINTS
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Ultrawide (≥1920px) — volle 3-Zonen, breiter Content ──── */
+@media (min-width: 1920px) {
+  #web-root {
+    --desktop-sidebar-width: 280px;
+    --desktop-panel-width: 380px;
+    --desktop-content-max: 1200px;
+    --desktop-content-padding: 48px;
+  }
+}
+
+/* ── Large Desktop (1536–1919px) — volle 3-Zonen ──────────── */
+@media (min-width: 1536px) and (max-width: 1919px) {
+  #web-root {
+    --desktop-panel-width: 360px;
+    --desktop-content-padding: 40px;
+  }
+}
+
+/* ── Standard Desktop (1280–1535px) — volle 3-Zonen ────────── */
+/* Default — keine Override nötig */
+
+/* ── Laptop (1024–1279px) — Compact Sidebar, kein Right Panel ─ */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  #web-root {
+    --desktop-sidebar-width: var(--desktop-sidebar-compact);
+  }
+  #web-root .desktop-sidebar .sidebar-section-label,
+  #web-root .desktop-sidebar .sidebar-item-label,
+  #web-root .desktop-sidebar .sidebar-user-name,
+  #web-root .desktop-sidebar .sidebar-user-handle {
+    display: none;
+  }
+  #web-root .desktop-sidebar .sidebar-item {
+    justify-content: center;
+    padding: 12px;
+  }
+  #web-root .desktop-sidebar .sidebar-user-info {
+    justify-content: center;
+  }
+  #web-root .desktop-right-panel {
+    display: none;
+  }
+}
+
+/* ── Tablet (768–1023px) — Mini Sidebar, kein Right Panel ──── */
+@media (min-width: 768px) and (max-width: 1023px) {
+  #web-root {
+    --desktop-sidebar-width: var(--desktop-sidebar-mini);
+    --desktop-content-padding: 20px;
+  }
+  #web-root .desktop-sidebar .sidebar-section-label,
+  #web-root .desktop-sidebar .sidebar-item-label,
+  #web-root .desktop-sidebar .sidebar-user-name,
+  #web-root .desktop-sidebar .sidebar-user-handle {
+    display: none;
+  }
+  #web-root .desktop-sidebar .sidebar-item {
+    justify-content: center;
+    padding: 12px;
+  }
+  #web-root .desktop-sidebar .sidebar-user-info {
+    justify-content: center;
+  }
+  #web-root .desktop-right-panel {
+    display: none;
+  }
+}
+
+/* ── Mobile (<768px) — Desktop wird nicht angezeigt (Mobile App) ─ */
+/* Diese Media Query existiert zur Dokumentation — die Web-Version wird
+   auf mobilen Geräten nicht geladen. Die Mobile-App (index.html) ist
+   das Referenzprodukt für Smartphones. */
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   4. INTERACTION LAYER — Globale Desktop-Regeln
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Hover States — Standard Card-Lift ─────────────────────── */
+#web-root .desktop-hover-card {
+  transition:
+    transform var(--desktop-anim-fast) var(--desktop-anim-easing),
+    box-shadow var(--desktop-anim-fast) var(--desktop-anim-easing),
+    border-color var(--desktop-anim-fast) var(--desktop-anim-easing);
+  cursor: pointer;
+}
+#web-root .desktop-hover-card:hover {
+  box-shadow: var(--desktop-shadow-hover);
+  transform: translateY(-2px);
+}
+
+/* ── Focus States — Sichtbare Focus-Ring ───────────────────── */
+#web-root *:focus-visible {
+  outline: none;
+  box-shadow: var(--desktop-shadow-focus);
+  border-radius: var(--desktop-radius-sm);
+  transition: box-shadow var(--desktop-anim-fast) var(--desktop-anim-easing);
+}
+
+/* ── Button Focus (spezifisch) ─────────────────────────────── */
+#web-root button:focus-visible,
+#web-root [role="button"]:focus-visible {
+  outline: none;
+  box-shadow: var(--desktop-shadow-focus);
+}
+
+/* ── Link Focus ─────────────────────────────────────────────── */
+#web-root a:focus-visible {
+  outline: none;
+  box-shadow: var(--desktop-shadow-focus);
+  border-radius: 4px;
+}
+
+/* ── Input Focus ───────────────────────────────────────────── */
+#web-root input:focus-visible,
+#web-root textarea:focus-visible,
+#web-root select:focus-visible {
+  outline: none;
+  border-color: var(--desktop-primary);
+  box-shadow: var(--desktop-shadow-focus);
+}
+
+/* ── Scrollbar (Desktop-Style, dezent) ──────────────────────── */
+#web-root ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+#web-root ::-webkit-scrollbar-track {
+  background: transparent;
+}
+#web-root ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 4px;
+  transition: background var(--desktop-anim-fast) var(--desktop-anim-easing);
+}
+#web-root ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+#web-root {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.12) transparent;
+}
+
+/* ── Selection ─────────────────────────────────────────────── */
+#web-root ::selection {
+  background: var(--desktop-primary-mid);
+  color: var(--desktop-ink);
+}
+
+/* ── Text Select Prevention (UI Elements) ────────────────── */
+#web-root button,
+#web-root [role="button"],
+#web-root nav,
+#web-root .sidebar-item {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ── Desktop Cursor für klickbare Elemente ─────────────────── */
+#web-root .sidebar-item,
+#web-root .desktop-modal-close,
+#web-root button[role="button"],
+#web-root [data-clickable] {
+  cursor: pointer;
+}
+
+/* ── Modal Close Button Hover ──────────────────────────────── */
+#web-root .desktop-modal-close:hover {
+  background: var(--desktop-surface-alt);
+  color: var(--desktop-ink);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   5. ANIMATION KEYFRAMES
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+@keyframes desktopFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes desktopFadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+@keyframes desktopSlideInRight {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes desktopSlideInLeft {
+  from { opacity: 0; transform: translateX(-24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes desktopSlideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes desktopScaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ── Utility Animation Classes ─────────────────────────────── */
+#web-root .desktop-anim-fade-in   { animation: desktopFadeIn    var(--desktop-anim-normal) var(--desktop-anim-easing); }
+#web-root .desktop-anim-slide-up   { animation: desktopSlideUp    var(--desktop-anim-normal) var(--desktop-anim-easing); }
+#web-root .desktop-anim-slide-right { animation: desktopSlideInRight var(--desktop-anim-normal) var(--desktop-anim-easing); }
+#web-root .desktop-anim-scale-in   { animation: desktopScaleIn   var(--desktop-anim-normal) var(--desktop-anim-easing); }
+
+/* ── Page Transition ───────────────────────────────────────── */
+#web-root .desktop-page-enter {
+  animation: desktopFadeIn var(--desktop-anim-page) var(--desktop-anim-easing);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   6. DARK MODE (vorbereitet — aktiviert via [data-theme="dark"] auf #web-root)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+#web-root[data-theme="dark"] {
+  --desktop-bg:           #0D1117;
+  --desktop-surface:      #161B22;
+  --desktop-surface-alt:  #1C2230;
+  --desktop-ink:          #F0F6FC;
+  --desktop-ink-soft:     #C9D1D9;
+  --desktop-muted:        #8B949E;
+  --desktop-border:       rgba(255, 255, 255, 0.08);
+  --desktop-border-strong: rgba(255, 255, 255, 0.16);
+  --desktop-primary-soft: rgba(14, 196, 181, 0.15);
+  --desktop-primary-mid:  rgba(14, 196, 181, 0.25);
+
+  --desktop-modal-bg:     #161B22;
+  --desktop-modal-header: #1C2230;
+
+  --desktop-shadow-sm:    0 1px 3px rgba(0,0,0,0.20), 0 1px 2px rgba(0,0,0,0.15);
+  --desktop-shadow-md:    0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.20);
+  --desktop-shadow-lg:    0 8px 24px rgba(0,0,0,0.30), 0 4px 8px rgba(0,0,0,0.20);
+  --desktop-shadow-xl:    0 16px 48px rgba(0,0,0,0.35), 0 8px 16px rgba(0,0,0,0.25);
+
+  --desktop-shadow-hover: 0 8px 24px rgba(14,196,181,0.15), 0 4px 8px rgba(0,0,0,0.20);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   7. FEED WRAPPER — Flexible Feed-Architektur
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* Der Feed-Wrapper passt sich an den verfügbaren Platz an.
+   Standard: Single-Column für maximale Lesbarkeit.
+   Später: CSS kann auf Multi-Column erweitert werden, ohne React-Änderung. */
+
+#web-root .desktop-feed-wrapper {
+  width: 100%;
+  max-width: var(--desktop-content-max);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--desktop-gap-card);
+}
+
+/* ── Feed Cards — Desktop Hover Enhancement ────────────────── */
+#web-root .desktop-feed-wrapper .desktop-feed-card {
+  transition:
+    box-shadow var(--desktop-anim-fast) var(--desktop-anim-easing),
+    transform var(--desktop-anim-fast) var(--desktop-anim-easing);
+  border-radius: var(--desktop-radius-lg);
+  background: var(--desktop-surface);
+}
+
+#web-root .desktop-feed-wrapper .desktop-feed-card:hover {
+  box-shadow: var(--desktop-shadow-hover);
+}
+
+/* ── Feed Header (sticky, sortiert) ────────────────────────── */
+#web-root .desktop-feed-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--desktop-z-sticky);
+  background: rgba(250, 247, 242, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: var(--desktop-space-md) 0;
+  border-bottom: 1px solid var(--desktop-border);
+}
+
+/* ── Vorbereitet: Multi-Column (aktiviert via data-feed-columns) ─ */
+#web-root [data-feed-columns="2"] .desktop-feed-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--desktop-gap-card);
+}
+
+#web-root [data-feed-columns="3"] .desktop-feed-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--desktop-gap-card);
+}
+
+/* Multi-Column nur ab Desktop-Breite */
+@media (max-width: 1279px) {
+  #web-root [data-feed-columns="2"] .desktop-feed-wrapper,
+  #web-root [data-feed-columns="3"] .desktop-feed-wrapper {
+    display: flex;
+    flex-direction: column;
+  }
+}

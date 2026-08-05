@@ -1,35 +1,43 @@
 // ══════════════════════════════════════════════════════════════════════════════
-// DesktopShell.jsx — HUI Web Desktop Shell
+// DesktopShell.jsx — HUI Desktop Platform Shell (Phase 0)
 // ══════════════════════════════════════════════════════════════════════════════
 //
 // ZWECK:
-//   Zentrale Layout-Komponente für die HUI Web-Version.
-//   Stellt die Desktop-Shell dar: Sidebar + Header + Content Area.
+//   Zentrale Layout-Komponente für die HUI Desktop-Plattform.
+//   3-Zonen-Layout: Sidebar + Content + RightPanel (Wirkungsraum).
 //   Prüft Auth und leitet zu /login um, wenn nicht authentifiziert.
-//   Ersetzt die mobile HomeShell für Desktop-Bildschirme.
 //
 // ARCHITEKTUR:
 //   DesktopShell ist ein React Router Layout-Element.
-//   Es nutzt <Outlet /> um die aktuell geroutete Seite im
-//   Content-Bereich zu rendern. Alle Kind-Routen (definiert in
-//   WebApp.jsx) erscheinen automatisch im Content-Bereich.
+//   Es nutzt <Outlet /> für die aktuell geroutete Seite.
+//   DesktopRightPanel wird außerhalb des Outlet gerendert —
+//   es ist auf jeder Seite sichtbar (≥1280px).
+//
+// 3-ZONEN-LAYOUT:
+//   ┌─────────┬──────────────────────┬─────────┐
+//   │ Sidebar │   Header            │         │
+//   │ (260px) ├──────────────────────┤ Right   │
+//   │         │   Content (Outlet)   │ Panel   │
+//   │         │   max 1100px         │ (340px) │
+//   │         │                      │         │
+//   └─────────┴──────────────────────┴─────────┘
+//
+// RESPONSIVE:
+//   ≥1280px: 3-Zonen (Sidebar + Content + RightPanel)
+//   1024–1279: 2-Zonen (Compact Sidebar + Content) — RightPanel hidden
+//   768–1023: 2-Zonen (Mini Sidebar + Content) — RightPanel hidden
 //
 // WIEDERVERWENDUNG:
-//   - useAuth:           Gemeinsamer AuthContext
-//   - DesktopSidebar:    Desktop-Navigation (neu, nutzt HUILogo aus Mobile-App)
-//   - DesktopHeader:     Desktop-Header (neu, nutzt useNotifCount aus Mobile-App)
-//   - Alle Pages:        Wiederverwendet aus der Mobile-App (UnifiedFeed, etc.)
+//   - useAuth:          Gemeinsamer AuthContext (shared)
+//   - DesktopSidebar:   Desktop-Navigation (Desktop-only)
+//   - DesktopHeader:    Desktop-Header (Desktop-only)
+//   - DesktopRightPanel: Wirkungsraum (Desktop-only, Phase 0: Shell)
+//   - Alle Pages:       Wiederverwendet aus der shared Schicht
 //
-// SICHERHEIT:
-//   - loadingAuth → Ladebildschirm
-//   - !isAuthenticated → Redirect zu /login
-//   - isAuthenticated → Shell mit Sidebar + Header + Content
-//
-// ZUKUNFT:
-//   - ProfileCompletionFlow (bei unvollständigem Profil)
-//   - Conditional Admin-Sektion (role=admin)
-//   - Organisation-spezifische Sidebar-Items
-//   - Mehrsprachigkeit (Sprachschalter)
+// DESIGN TOKENS:
+//   Alle Breiten, Höhen, Abstände, Schatten und Z-Index-Werte
+//   kommen aus desktopFoundation.css (CSS Custom Properties).
+//   Keine Magic Numbers in dieser Datei.
 // ══════════════════════════════════════════════════════════════════════════════
 
 import React from 'react';
@@ -37,13 +45,16 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../../lib/AuthContext.jsx';
 import DesktopSidebar from './DesktopSidebar.jsx';
 import DesktopHeader from './DesktopHeader.jsx';
+import DesktopRightPanel from './DesktopRightPanel.jsx';
 
 // ── Loading Screen ───────────────────────────────────────────────────────────
 function LoadingScreen() {
   return (
     <div className="web-loading">
       <div className="web-loading-spinner" />
-      <p style={{ fontSize: 13, color: '#8A8A9E' }}>HUI wird geladen…</p>
+      <p style={{ fontSize: 13, color: 'var(--desktop-muted, #8A8A9E)' }}>
+        HUI wird geladen…
+      </p>
     </div>
   );
 }
@@ -61,13 +72,13 @@ export default function DesktopShell() {
     return <Navigate to="/login" replace />;
   }
 
-  // ── Shell Layout ──────────────────────────────────────────────────────────
+  // ── 3-Zonen Shell Layout ──────────────────────────────────────────────────
   return (
     <div className="desktop-shell">
-      {/* Linke Navigationsleiste */}
+      {/* ── Zone 1: Linke Navigation ─────────────────────────────── */}
       <DesktopSidebar />
 
-      {/* Hauptbereich: Header + Content */}
+      {/* ── Zone 2: Hauptbereich (Header + Content) ───────────────── */}
       <div className="desktop-main">
         <DesktopHeader />
 
@@ -78,6 +89,10 @@ export default function DesktopShell() {
           </div>
         </main>
       </div>
+
+      {/* ── Zone 3: Wirkungsraum (Right Panel) ────────────────────── */}
+      {/* Phase 0: Leere Shell. Später: Impact, Resonanz, Möglichkeiten. */}
+      <DesktopRightPanel />
     </div>
   );
 }

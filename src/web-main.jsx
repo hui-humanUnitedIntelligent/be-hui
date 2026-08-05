@@ -28,6 +28,7 @@ import WebApp from './WebApp.jsx';
 // ── Shared Styles ────────────────────────────────────────────────────────────
 import './index.css';    // Shared Design System (Tailwind, CSS Variables, Reset)
 import './web.css';      // Web-spezifische Styles (unter #web-root scope)
+import './components/desktop/desktopFoundation.css';  // Desktop Foundation (Tokens, Layout, Breakpoints, Interactions)
 
 // ── Sentry ────────────────────────────────────────────────────────────────────
 import { initSentry, sentryCapture } from './lib/sentry.js';

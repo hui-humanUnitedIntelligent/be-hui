@@ -343,30 +343,6 @@
   background: rgba(0, 0, 0, 0.2);
 }
 
-/* ── Responsive: Compact Sidebar < 1280px ─────────────────────────────────── */
-@media (max-width: 1279px) {
-  #web-root .desktop-sidebar {
-    width: 64px;
-  }
-
-  #web-root .sidebar-section-label,
-  #web-root .sidebar-item-label,
-  #web-root .sidebar-user-name,
-  #web-root .sidebar-user-handle {
-    display: none;
-  }
-
-  #web-root .sidebar-item {
-    justify-content: center;
-    padding: 12px;
-  }
-
-  #web-root .sidebar-user-info {
-    justify-content: center;
-  }
-}
-
-/* ── Future: Mobile Redirect < 1024px ──────────────────────────────────────── */
 /* Wenn die Web-Version auf einem mobilen Gerät geöffnet wird,
    könnte hier ein Redirect zur App oder ein Mobile-Hinweis erfolgen.
    Für Phase 1 wird die Desktop-Shell auch auf schmalen Bildschirmen gerendert. */
