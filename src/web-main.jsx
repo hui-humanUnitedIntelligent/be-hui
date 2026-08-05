@@ -31,6 +31,7 @@ import './web.css';      // Web-spezifische Styles (unter #web-root scope)
 import './components/desktop/desktopFoundation.css';  // Desktop Foundation (Tokens, Layout, Breakpoints, Interactions)
 import './components/desktop/desktopPhase1.css';  // Desktop Phase 1 (Mission Control, Panels, Sidebar, Header)
 import './components/desktop/desktopPhase2.css';  // Desktop Phase 2 (Chat, Notifications, Command Palette, Profiles)
+import './components/desktop/desktopPhase3.css';  // Desktop Phase 3 (Profile, Studio, Feed, Polish)
 
 // ── Sentry ────────────────────────────────────────────────────────────────────
 import { initSentry, sentryCapture } from './lib/sentry.js';

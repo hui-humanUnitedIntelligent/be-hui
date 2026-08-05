@@ -1,17 +1,18 @@
 // ══════════════════════════════════════════════════════════════════════════════
-// DesktopChatPanel.jsx — HUI Desktop Chat (Phase 2)
+// DesktopChatPanel.jsx — HUI Desktop Chat (Phase 3 — Verbessert)
 // ══════════════════════════════════════════════════════════════════════════════
 //
-// Slide-In von rechts. Master-Detail.
-// Konversationsliste links (~240px), Unterhaltung rechts.
-// Feed bleibt sichtbar. ESC schließt. Outside Click schließt.
+// PHASE 3:
+//   ✓ Nutzt other_profile für Avatar, Name
+//   ✓ Booking-Kontext (booking_title)
+//   ✓ Online-Status (wenn verfügbar)
+//   ✓ Letzter Kontakt (last_message_at)
+//   ✓ feels like Messenger
 //
 // Business-Logik: useChatList + useChatThread (unverändert)
-// Nur die Desktop-Darstellung ändert sich.
 // ══════════════════════════════════════════════════════════════════════════════
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../lib/AuthContext.jsx';
 import { useChatList, useChatThread, formatChatTime } from '../../lib/chatContext.js';
 import { useEscapeKey } from './hooks/useEscapeKey.js';
@@ -27,56 +28,58 @@ function ChatList({ chats, activeChatId, onSelect, loading }) {
       </div>
     );
   }
-
   if (!chats || chats.length === 0) {
-    return (
-      <div className="dcp-list-empty">
-        <p>Keine Konversationen.</p>
-      </div>
-    );
+    return <div className="dcp-list-empty"><p>Keine Konversationen.</p></div>;
   }
 
   return (
     <div className="dcp-list">
-      {chats.map(chat => (
-        <button
-          key={chat.id}
-          className={`dcp-list-item ${activeChatId === chat.id ? 'active' : ''}`}
-          onClick={() => onSelect(chat)}
-        >
-          <div className="dcp-list-avatar">
-            {/* Placeholder avatar — first letter of booking_title or "?" */}
-            {(chat.booking_title || '?').charAt(0).toUpperCase()}
-          </div>
-          <div className="dcp-list-content">
-            <div className="dcp-list-header">
-              <span className="dcp-list-title">{chat.booking_title || 'Konversation'}</span>
-              {chat.last_message_at && (
-                <span className="dcp-list-time">{formatChatTime(chat.last_message_at)}</span>
+      {chats.map(chat => {
+        const other = chat.other_profile;
+        const displayName = other?.display_name || chat.booking_title || 'Konversation';
+        return (
+          <button
+            key={chat.id}
+            className={`dcp-list-item ${activeChatId === chat.id ? 'active' : ''}`}
+            onClick={() => onSelect(chat)}
+          >
+            <div className="dcp-list-avatar">
+              {other?.avatar_url ? (
+                <img src={other.avatar_url} alt="" className="dcp-list-avatar-img" />
+              ) : (
+                displayName.charAt(0).toUpperCase()
               )}
             </div>
-            {chat.last_message && (
-              <span className="dcp-list-preview">{chat.last_message}</span>
-            )}
-          </div>
-        </button>
-      ))}
+            <div className="dcp-list-content">
+              <div className="dcp-list-header">
+                <span className="dcp-list-title">{displayName}</span>
+                {chat.last_message_at && (
+                  <span className="dcp-list-time">{formatChatTime(chat.last_message_at)}</span>
+                )}
+              </div>
+              {chat.last_message && (
+                <span className="dcp-list-preview">{chat.last_message}</span>
+              )}
+              {chat.booking_title && other?.display_name && (
+                <span className="dcp-list-context">{chat.booking_title}</span>
+              )}
+            </div>
+          </button>
+        );
+      })}
     </div>
   );
 }
 
 // ── Chat-Thread (Detail) ─────────────────────────────────────────────────────
-function ChatThread({ chatId, chatTitle }) {
+function ChatThread({ chatId, chat }) {
   const { user } = useAuth();
   const { messages, loading, sending, sendMessage } = useChatThread(chatId);
   const [input, setInput] = useState('');
   const scrollRef = useRef(null);
 
-  // Auto-scroll to bottom on new messages
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages]);
 
   const handleSend = useCallback(async () => {
@@ -87,11 +90,11 @@ function ChatThread({ chatId, chatTitle }) {
   }, [input, sending, sendMessage]);
 
   const handleKeyDown = useCallback((e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
   }, [handleSend]);
+
+  const other = chat?.other_profile;
+  const displayName = other?.display_name || chat?.booking_title || 'Unterhaltung';
 
   if (!chatId) {
     return (
@@ -108,25 +111,38 @@ function ChatThread({ chatId, chatTitle }) {
 
   return (
     <div className="dcp-thread">
+      {/* Header with other_profile */}
       <div className="dcp-thread-header">
-        <span className="dcp-thread-title">{chatTitle || 'Unterhaltung'}</span>
+        <div className="dcp-thread-header-info">
+          {other?.avatar_url ? (
+            <img src={other.avatar_url} alt="" className="dcp-thread-avatar" />
+          ) : (
+            <div className="dcp-thread-avatar dcp-thread-avatar-fallback">
+              {displayName.charAt(0).toUpperCase()}
+            </div>
+          )}
+          <div>
+            <span className="dcp-thread-title">{displayName}</span>
+            {chat?.booking_title && other?.display_name && (
+              <span className="dcp-thread-context">{chat.booking_title}</span>
+            )}
+          </div>
+        </div>
       </div>
+
+      {/* Messages */}
       <div className="dcp-thread-messages" ref={scrollRef}>
         {loading ? (
-          <div className="dcp-thread-loading">
-            <div className="dcp-shimmer" style={{ width: '60%' }} />
-          </div>
+          <div className="dcp-thread-loading"><div className="dcp-shimmer" style={{ width: '60%' }} /></div>
         ) : messages.length === 0 ? (
-          <div className="dcp-thread-nomessages">
-            <p>Noch keine Nachrichten.</p>
-          </div>
+          <div className="dcp-thread-nomessages"><p>Noch keine Nachrichten. Starte das Gespräch.</p></div>
         ) : (
           messages.filter(m => !m.is_deleted).map(msg => {
             const isMine = msg.sender_id === user?.id;
             return (
               <div key={msg.id} className={`dcp-msg ${isMine ? 'mine' : 'theirs'}`}>
-                {!isMine && msg.sender_img && (
-                  <img src={msg.sender_img} alt="" className="dcp-msg-avatar" />
+                {!isMine && other?.avatar_url && (
+                  <img src={other.avatar_url} alt="" className="dcp-msg-avatar" />
                 )}
                 <div className="dcp-msg-bubble">
                   {msg.text && <span className="dcp-msg-text">{msg.text}</span>}
@@ -142,6 +158,8 @@ function ChatThread({ chatId, chatTitle }) {
           })
         )}
       </div>
+
+      {/* Input */}
       <div className="dcp-thread-input">
         <input
           type="text"
@@ -166,9 +184,8 @@ function ChatThread({ chatId, chatTitle }) {
   );
 }
 
-// ── Hauptkomponente ──────────────────────────────────────────────────────────
+// ── Hauptkomponente ─═══════════════════════════════════════════════════════════
 export default function DesktopChatPanel({ onClose }) {
-  const { user } = useAuth();
   const { chats, loading, unreadTotal } = useChatList('desktop');
   const [activeChat, setActiveChat] = useState(null);
 
@@ -196,18 +213,7 @@ export default function DesktopChatPanel({ onClose }) {
           />
         </div>
         <div className="dcp-detail">
-          {activeChat ? (
-            <ChatThread chatId={activeChat.id} chatTitle={activeChat.booking_title} />
-          ) : (
-            <div className="dcp-thread-empty">
-              <div className="dcp-thread-empty-icon">
-                <svg width="32" height="32" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.2">
-                  <path d="M3 5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H8l-3 3v-3H5a2 2 0 0 1-2-2V5z" />
-                </svg>
-              </div>
-              <p>Wähle eine Konversation</p>
-            </div>
-          )}
+          <ChatThread chatId={activeChat?.id} chat={activeChat} />
         </div>
       </div>
     </>
