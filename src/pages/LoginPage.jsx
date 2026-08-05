@@ -339,7 +339,7 @@ export default function LoginPage() {
 
   const { isAuthenticated, loadingAuth } = useAuth();
 
-  // Modes: 'splash' | 'login' | 'register' | 'magic' | 'forgot' | 'onboarding'
+  // Modes: 'splash' | 'login' | 'register' | 'forgot' | 'onboarding'
   const [mode,       setMode]       = useState('splash');
   const [email,      setEmail]      = useState('');
   const [pw,         setPw]         = useState('');
@@ -610,22 +610,6 @@ export default function LoginPage() {
     }
   }
 
-  async function handleMagicLink(e) {
-    e.preventDefault(); clearMessages();
-    if (!email) { setErr('Bitte gib deine E-Mail-Adresse ein.'); return; }
-    if (mode === 'register') await persistManualRefLinkToStorage();
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithOtp({ email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
-    });
-    if (error) {
-      setErr(translateError(error.message));
-    } else {
-      setSuccess('Dein ruhiger Zugang ist unterwegs. Bitte prüf dein Postfach.');
-    }
-    setLoading(false);
-  }
-
   async function handleForgot(e) {
     e.preventDefault(); clearMessages();
     if (!email) { setErr('Bitte gib deine E-Mail-Adresse ein.'); return; }
@@ -720,14 +704,6 @@ export default function LoginPage() {
           </GhostBtn>
         </div>
 
-        <div style={{ marginTop: 24, textAlign: 'center' }}>
-          <button type="button" onClick={() => setMode('magic')}
-            style={{ background: 'none', border: 'none', cursor: 'pointer',
-              fontSize: 13, color: T.muted, fontFamily: 'inherit',
-              textDecoration: 'underline', textDecorationColor: 'rgba(255,255,255,0.25)' }}>
-            Per Magic Link anmelden
-          </button>
-        </div>
       </div>
     </div>
   );
@@ -760,13 +736,6 @@ export default function LoginPage() {
       switch:   'Bereits dabei? Einloggen →',
       switchMode: 'login',
     },
-    magic: {
-      headline: 'Ruhiger Zugang\nper E-Mail.',
-      sub:      'Kein Passwort nötig — wir senden dir einen sicheren Link.',
-      cta:      'Magic Link senden',
-      switch:   'Lieber mit Passwort einloggen →',
-      switchMode: 'login',
-    },
     forgot: {
       headline: 'Manchmal hilft\nein neuer Anfang.',
       sub:      'Wir senden dir einen Link zum Zurücksetzen.',
@@ -780,7 +749,6 @@ export default function LoginPage() {
 
   const handleSubmit = mode === 'login'   ? handleLogin
                      : mode === 'register' ? handleRegister
-                     : mode === 'magic'    ? handleMagicLink
                      :                       handleForgot;
 
   return (
@@ -978,28 +946,6 @@ export default function LoginPage() {
               </div>
             )}
 
-            {}
-            {(mode === 'login' || mode === 'register') && (
-              <>
-                <Divider label="oder" />
-                <button type="button" onClick={() => { clearMessages(); setMode('magic'); }}
-                  style={{
-                    width: '100%', padding: '14px',
-                    background: T.glass, backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
-                    border: `1.5px solid ${T.glassBorder}`, borderRadius: 14,
-                    color: T.muted, fontSize: 14, fontWeight: 500,
-                    cursor: 'pointer', fontFamily: 'inherit',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                    transition: 'background 200ms ease',
-                    WebkitTapHighlightColor: 'transparent',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.10)'}
-                  onMouseLeave={e => e.currentTarget.style.background = T.glass}
-                >
-                  ✉️ &nbsp;Per Magic Link anmelden
-                </button>
-              </>
-            )}
           </form>
 
           {}
