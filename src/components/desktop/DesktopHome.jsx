@@ -240,7 +240,7 @@ export default function DesktopHome() {
       </div>
       <div className="hui-feed">
         <Suspense fallback={<div className="feed-loading"><div className="feed-loading-spinner" /></div>}>
-          <UnifiedFeed />
+          <UnifiedFeed skipWelcome />
         </Suspense>
       </div>
     </div>

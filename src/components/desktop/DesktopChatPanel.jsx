@@ -5,12 +5,12 @@
 // Slide-In von rechts, über dem Wirkungsraum. Feed bleibt sichtbar.
 // Konversationsliste links, Unterhaltung rechts. Nutzt other_profile.
 //
-// DATEN: useChatList, useChatThread (unverändert, bestehende Business-Logik)
+// DATEN: useChatThread (unverändert). Chat-Liste kommt als Props von DesktopShell (P0: zentrale useChatList).
 // ══════════════════════════════════════════════════════════════════════════════
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '../../lib/AuthContext.jsx';
-import { useChatList, useChatThread, formatChatTime } from '../../lib/chatContext.js';
+import { useChatThread, formatChatTime } from '../../lib/chatContext.js';
 import { useEscapeKey } from './hooks/useEscapeKey.js';
 
 function ChatList({ chats, activeChatId, onSelect, loading }) {
@@ -120,8 +120,7 @@ function ChatThread({ chatId, chat }) {
   );
 }
 
-export default function DesktopChatPanel({ onClose }) {
-  const { chats, loading, unreadTotal } = useChatList('desktop');
+export default function DesktopChatPanel({ onClose, chats = [], chatLoading = false, chatUnread = 0 }) {
   const [activeChat, setActiveChat] = useState(null);
 
   useEscapeKey(onClose);
@@ -133,12 +132,12 @@ export default function DesktopChatPanel({ onClose }) {
         <div className="chat-master">
           <div className="chat-master-header">
             <h3>Nachrichten</h3>
-            {unreadTotal > 0 && <span className="chat-unread">{unreadTotal}</span>}
+            {chatUnread > 0 && <span className="chat-unread">{chatUnread}</span>}
             <button className="fly-close" onClick={onClose} aria-label="Schließen">
               <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 5l10 10M15 5L5 15" /></svg>
             </button>
           </div>
-          <ChatList chats={chats} activeChatId={activeChat?.id} onSelect={setActiveChat} loading={loading} />
+          <ChatList chats={chats} activeChatId={activeChat?.id} onSelect={setActiveChat} loading={chatLoading} />
         </div>
         <div className="chat-detail">
           <ChatThread chatId={activeChat?.id} chat={activeChat} />

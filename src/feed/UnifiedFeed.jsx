@@ -747,6 +747,7 @@ export default function UnifiedFeed({
   items: itemsProp = null,
   // Section visibility
   showEvents   = true,
+  skipWelcome  = false,
   // Handlers
   onProfile    = null,
   onBook       = null,
@@ -839,7 +840,7 @@ export default function UnifiedFeed({
     }}>
 
       {/* ── FEED WELCOME HEADER — Kapitel 2 Sprint 2.1 ── */}
-      <FeedWelcomeHeader currentUser={currentUser} />
+      {!skipWelcome && <FeedWelcomeHeader currentUser={currentUser} />}
 
       {/* Stories entfernt — HUI-Momente sind die Stories */}
 

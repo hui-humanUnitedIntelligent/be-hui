@@ -4,15 +4,17 @@
 //
 // ZWECK:
 //   Zeigt bevorstehende Termine (Buchungen) als Flyout — kein Fullscreen,
-//   keine neue Seite. Nutzt useTalentBookings (bestehender Hook, unverändert).
+//   keine neue Seite.
 //
-// Es wird KEIN neuer Kalender gebaut — nur eine kompakte Ansicht bestehender
-// Buchungsdaten (asCustomer + asSeller).
+// P0-OPTIMIERUNG (2026-08-05):
+//   Nutzt useDesktopData() statt useTalentBookings() direkt.
+//   DesktopDataContext lädt Buchungen bereits — kein doppelter Query.
+//   Vorher: 2 Queries (customer + seller) zusätzlich zu DesktopDataContext.
+//   Nachher: 0 zusätzliche Queries (daten kommen aus Context).
 // ══════════════════════════════════════════════════════════════════════════════
 
 import React from 'react';
-import { useAuth } from '../../lib/AuthContext.jsx';
-import { useTalentBookings } from '../../hooks/useTalentBookings.js';
+import { useDesktopData } from './DesktopDataContext.jsx';
 import { useEscapeKey } from './hooks/useEscapeKey.js';
 
 function formatDate(iso) {
@@ -22,8 +24,9 @@ function formatDate(iso) {
 }
 
 export default function DesktopKalenderFlyout({ onClose }) {
-  const { user } = useAuth();
-  const { asCustomer, asSeller, loading } = useTalentBookings(user?.id);
+  // P0: Buchungen aus DesktopDataContext (bereits geladen, kein doppelter Query)
+  const { bookings } = useDesktopData();
+  const { asCustomer, asSeller, loading } = bookings;
 
   useEscapeKey(onClose);
 

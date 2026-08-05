@@ -21,7 +21,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { HUILogo } from '../brand/HUILogo.jsx';
 import { useAuth } from '../../lib/AuthContext.jsx';
 import { useNotifCount } from '../../lib/AppStateContext.jsx';
-import { useChatList } from '../../lib/chatContext.js';
 
 // ── Icons — konsistent 1.5px outline ─────────────────────────────────────────
 const PATHS = {
@@ -87,12 +86,12 @@ function NavItem({ item, active, badge, onClick }) {
 }
 
 // ── Hauptkomponente ──────────────────────────────────────────────────────────
-export default function DesktopSidebar({ onOpenChat }) {
+export default function DesktopSidebar({ onOpenChat, chatUnread = 0 }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { profile, logout } = useAuth();
   const notifCount = useNotifCount();
-  const { unreadTotal } = useChatList('sidebar');
+  // P0: chatUnread kommt als Prop von DesktopShell (zentrale useChatList)
 
   function isActive(route) {
     if (!route) return false;
@@ -137,7 +136,7 @@ export default function DesktopSidebar({ onOpenChat }) {
             key={item.key}
             item={item}
             active={isActive(item.route)}
-            badge={item.key === 'messages' ? unreadTotal : (item.key === 'home' ? 0 : 0)}
+            badge={item.key === 'messages' ? chatUnread : (item.key === 'home' ? 0 : 0)}
             onClick={() => handleClick(item)}
           />
         ))}

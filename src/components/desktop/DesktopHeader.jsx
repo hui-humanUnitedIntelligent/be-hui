@@ -15,7 +15,6 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../lib/AuthContext.jsx';
 import { useNotifCount } from '../../lib/AppStateContext.jsx';
-import { useChatList } from '../../lib/chatContext.js';
 import { SearchService } from '../../services/db.js';
 import { useEscapeKey } from './hooks/useEscapeKey.js';
 import DesktopNotificationFlyout from './DesktopNotificationFlyout.jsx';
@@ -119,11 +118,11 @@ function CalendarIcon() {
 }
 
 // ── Hauptkomponente ──────────────────────────────────────────────────────────
-export default function DesktopHeader({ onCommandPalette, chatOpen, onChatChange }) {
+export default function DesktopHeader({ onCommandPalette, chatOpen, onChatChange, chatUnread = 0 }) {
   const navigate = useNavigate();
   const { profile, logout } = useAuth();
   const notifCount = useNotifCount();
-  const { unreadTotal } = useChatList('header');
+  // P0: chatUnread kommt als Prop von DesktopShell (zentrale useChatList)
 
   const [searchValue, setSearchValue] = useState('');
   const [searchResults, setSearchResults] = useState({ profiles: [], works: [], experiences: [] });
@@ -207,7 +206,7 @@ export default function DesktopHeader({ onCommandPalette, chatOpen, onChatChange
         </button>
         <button className="hd-icon-btn" onClick={() => onChatChange?.(!chatOpen)} aria-label="Nachrichten">
           <ChatIcon />
-          {unreadTotal > 0 && <span className="hd-badge">{unreadTotal > 9 ? '9+' : unreadTotal}</span>}
+          {chatUnread > 0 && <span className="hd-badge">{chatUnread > 9 ? '9+' : chatUnread}</span>}
         </button>
         <button className="hd-icon-btn" onClick={() => { setShowKalender(true); setShowAvatar(false); setShowNotif(false); }} aria-label="Kalender">
           <CalendarIcon />
