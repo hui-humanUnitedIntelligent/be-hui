@@ -38,6 +38,7 @@ import { MomentsSection }     from "../components/profile/sections/MomentsSectio
 import { RecommendationsSection } from "../components/profile/sections/RecommendationsSection.jsx";
 import { OrbSignatur }        from "../components/profile/OrbSignatur.jsx";
 import { PublicTalentOffersSection } from "../components/profile/sections/PublicTalentOffersSection.jsx";
+import { useModalRegistration } from "../hooks/useModalRegistration.js";
 
 // ── Design Tokens (HUI-Standard) ─────────────────────────────────
 const T = {
@@ -466,6 +467,7 @@ function ErrorView({ onClose = () => {} }) {
 // HAUPT-KOMPONENTE
 // ══════════════════════════════════════════════════════════════════
 export default function PublicProfilePage({ profileId, onClose = () => {} }) {
+  useModalRegistration(true, () => onClose?.(), "PublicProfilePage");
   const { user } = useAuth();
   const isOwnProfile = user?.id === profileId;
   const { setShowChat, setChatRecipient } = useHome() || {};

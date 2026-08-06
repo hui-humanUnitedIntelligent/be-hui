@@ -11,10 +11,12 @@ import { createPortal } from "react-dom";
 import { useAuth } from "../../lib/AuthContext";
 import { bookingService } from "../../services/creatorEconomy";
 import { supabase } from "../../lib/supabaseClient";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 const TEAL = "#16D7C5";
 
 export default function ExperienceBookingFlow({ experience, onClose }) {
+  useModalRegistration(true, () => onClose?.(), "ExperienceBookingFlow");
   const { user } = useAuth();
   const [message, setMessage] = useState("");
   const [phase,   setPhase]   = useState("form"); // form | loading | success | error

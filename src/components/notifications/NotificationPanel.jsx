@@ -6,6 +6,7 @@ import {
 import { HUIHeartIcon } from '../../design/icons/HuiInteractionIcons.jsx';
 import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 // ══════════════════════════════════════════════════════════════
 // NOTIFICATION PANEL  — Side-Drawer, alle Modals inline (kein createPortal)
@@ -898,6 +899,7 @@ function NotifCard({ n, onRead, onDelete, onAction = () => {} }) {
 
 // ── NotificationPanel (Side-Drawer) ────────────────────────────────────────
 export default function NotificationPanel({ userId, onClose, onUnreadChange, onAction = () => {} }) {
+  useModalRegistration(true, () => onClose?.(), "NotificationPanel");
   const [notifs,  setNotifs]  = useState([]);
   const [loading, setLoading] = useState(true);
   const [tab,     setTab]     = useState("all");

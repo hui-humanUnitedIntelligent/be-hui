@@ -11,6 +11,7 @@ import { HUIAwardIcon, HUIFortschrittIcon, HUIKalenderIcon, HUINachrichtIcon } f
 import { useState, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 // ── Design Tokens ─────────────────────────────────────────────────
 const T = {
@@ -57,6 +58,7 @@ function fmtDisplayDate(iso) {
 
 // ── Komponente ────────────────────────────────────────────────────
 export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose, onSubmitted = () => {} }) {
+  useModalRegistration(true, () => onClose?.(), "ImpactProjektUpdateSheet");
   const [title,       setTitle]       = useState("");
   const [content,     setContent]     = useState("");
   const [updateType,  setUpdateType]  = useState("Neuigkeit");

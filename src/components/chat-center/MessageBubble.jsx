@@ -6,6 +6,7 @@ import React, { useState, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { HUI } from "../../design/hui.design.js";
 import { useImageGallery } from "../../context/ImageGalleryContext.jsx";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 const C = { teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, coral:HUI.COLOR.coral, ink:HUI.COLOR.ink };
 
@@ -45,6 +46,7 @@ export function TypingBubble() {
 
 // ── Action Modal (Bearbeiten / Löschen) ──
 function MessageActionModal({ msg, position, onEdit, onDelete, onClose }) {
+  useModalRegistration(true, () => onClose?.(), "MessageActionModal");
   const [editMode, setEditMode] = useState(false);
   const [editText, setEditText] = useState(msg.text || "");
   const own = msg.own === true;

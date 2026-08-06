@@ -52,6 +52,7 @@ import { VisibilitySection }      from "../components/profile/sections/Visibilit
 import { MomentsSection }         from "../components/profile/sections/MomentsSection.jsx";
 // OrbSignatur lazy — verhindert Blockierung (89K-Chunk)
 import { OrbSignatur } from "../components/profile/OrbSignatur.jsx";
+import { useModalRegistration } from "../hooks/useModalRegistration.js";
 
 // ── Design Tokens (HUI-Standard, identisch zu BasisProfilePage) ─
 const T = {
@@ -523,6 +524,7 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat, onOpenKomp
   const rel = useRelationship(profile?.id, currentUserId);
   const { authProfile } = useAuth();
   const [showVerbindungsDialog, setShowVerbindungsDialog] = React.useState(false);
+  useModalRegistration(showVerbindungsDialog, () => setShowVerbindungsDialog(false), "TalentProfilePage-VerbindungsDialog");
   const [watchingLocal,         setWatchingLocal]         = React.useState(null);
   const isWatching = watchingLocal !== null ? watchingLocal : rel.watching;
   const _toggleRunning = React.useRef(false);
@@ -1097,6 +1099,7 @@ function SocialContextBarTalent({ followCounts, experiences, moments, loading })
 // Sections: gemeinsame Sprint-C-Komponenten
 // ══════════════════════════════════════════════════════════════
 export default function TalentProfilePage({ profileId, onClose, publicView = false }) {
+  useModalRegistration(true, () => onClose?.(), "TalentProfilePage");
   const { user, setProfile: setAuthProfile } = useAuth();
 
   // ── Sprint D: Datenlayer via useProfileData ─────────────────
@@ -1119,6 +1122,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
   const [mounted,           setMounted]           = useState(false);
   const [lazyLoaded,        setLazyLoaded]        = useState(false);
   const [showKompassSheet,  setShowKompassSheet]  = useState(false);
+  useModalRegistration(showKompassSheet, () => setShowKompassSheet(false), "TalentProfilePage-Kompass");
   const [kompassWatchLocal, setKompassWatchLocal] = useState(null);
   const [showSettings,      setShowSettings]      = useState(false);
   const [showProfilEdit,    setShowProfilEdit]    = useState(false);

@@ -13,6 +13,7 @@
 import { useState, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 // ── Design Tokens (konsistent mit HUI Design) ─────────────────────
 const T = {
@@ -44,6 +45,7 @@ const STATUS_OPTIONS = [
 
 // ── Komponente ────────────────────────────────────────────────────
 export default function MilestoneUpdateSheet({ milestone, projectId, authorId, onClose, onSubmitted = () => {} }) {
+  useModalRegistration(true, () => onClose?.(), "MilestoneUpdateSheet");
   const [content,        setContent]        = useState("");
   const [statusUpdate,   setStatusUpdate]   = useState("in_progress");
   const [mediaFiles,     setMediaFiles]     = useState([]);

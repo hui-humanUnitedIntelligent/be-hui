@@ -8,6 +8,7 @@ import { HUIAnsichtIcon, HUIDatenschutzIcon } from '../../design/icons/HuiSystem
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 const T = {
   bg:       "#F7F5F0",
@@ -50,6 +51,7 @@ function pwStrength(pw) {
 }
 
 export default function SicherheitPasswortModal({ profile, onClose }) {
+  useModalRegistration(true, () => onClose?.(), "SicherheitPasswortModal");
   // Passwort-Ändern
   const [newPw,     setNewPw]     = useState("");
   const [confirmPw, setConfirmPw] = useState("");

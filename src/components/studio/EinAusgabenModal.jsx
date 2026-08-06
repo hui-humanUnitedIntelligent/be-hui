@@ -10,6 +10,7 @@ import { HUIFinanzIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 // ── Design Tokens ──────────────────────────────────────────────────
 const T = {
@@ -89,6 +90,7 @@ function getStatus(s) {
 
 // ── Haupt-Komponente ───────────────────────────────────────────────
 export default function EinAusgabenModal({ profile, onClose }) {
+  useModalRegistration(true, () => onClose?.(), "EinAusgabenModal");
   const [tab,      setTab]      = useState("ausgaben"); // "ausgaben" | "einnahmen"
   const [filter,   setFilter]   = useState("all");      // "all" | typ-key
   const [ausgaben, setAusgaben] = useState([]);

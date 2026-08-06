@@ -16,6 +16,7 @@ import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useAuth }  from "../../lib/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 // ── Design Tokens ─────────────────────────────────────────────────
 const T = {
@@ -444,6 +445,7 @@ function EmptyState({ filter }) {
 
 // ── Hauptkomponente ────────────────────────────────────────────────
 export default function MeineResonanz({ onClose, onNavigate }) {
+  useModalRegistration(true, () => onClose?.(), "MeineResonanz");
   const { user, profile } = useAuth();
   const [entries, setEntries] = React.useState([]);
   const [loading, setLoading] = React.useState(true);

@@ -15,6 +15,7 @@ import { HUIKalenderIcon, HUIWarnIcon } from '../../design/icons/HuiSystemIcons.
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useTalentBookings } from "../../hooks/useTalentBookings.js";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 // ── Design Tokens (identisch zu den anderen Studio-Modals) ─────────
 const T = {
@@ -107,6 +108,7 @@ function BookingRow({ b, forSeller, onCancelClick }) {
 }
 
 export default function MeineBuchungenModal({ profile, onClose }) {
+  useModalRegistration(true, () => onClose?.(), "MeineBuchungenModal");
   const { asCustomer: myBookings, asSeller: bookingRequests, cancelBooking, loading } = useTalentBookings(profile?.id);
 
   const [confirmBooking, setConfirmBooking] = useState(null); // { id, title }

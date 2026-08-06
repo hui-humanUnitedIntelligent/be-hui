@@ -484,6 +484,18 @@ export default function MyBasisProfile({ onClose, profileId }) {
   useModalRegistration(!!empfehlungDetail, () => setEmpfehlungDetail(null), "MyBasisProfile-EmpfehlungDetail");
   useModalRegistration(showFinanzModal, () => setShowFinanzModal(false), "MyBasisProfile-FinanzModal");
 
+  // ── Back-Button: Weitere Modals/Overlays registrieren ────────────
+  useModalRegistration(showGemeinschaft, () => setShowGemeinschaft(false), "MyBasisProfile-Gemeinschaft");
+  useModalRegistration(showAmbModal, () => setShowAmbModal(false), "MyBasisProfile-AmbModal");
+  useModalRegistration(showAmbDrawer, () => setShowAmbDrawer(false), "MyBasisProfile-AmbDrawer");
+  useModalRegistration(showMomentSheet, () => setShowMomentSheet(false), "MyBasisProfile-MomentSheet");
+  useModalRegistration(showPublicPreview, () => setShowPublicPreview(false), "MyBasisProfile-PublicPreview");
+  useModalRegistration(showMerken, () => setShowMerken(false), "MyBasisProfile-Merken");
+  useModalRegistration(showProfilEditPage, () => setShowProfilEditPage(false), "MyBasisProfile-ProfilEditPage");
+  useModalRegistration(showStudio, () => setShowStudio(false), "MyBasisProfile-Studio");
+  useModalRegistration(showResonanz, () => setShowResonanz(false), "MyBasisProfile-Resonanz");
+  useModalRegistration(showNotifications, () => setShowNotifications(false), "MyBasisProfile-Notifications");
+
 const handleNotifAction = (n) => {
     // 1. action_url hat Vorrang
     if (n.action_url) {
@@ -2192,6 +2204,12 @@ function MeinBereichMenu({
   const [showUpdateSheet, setShowUpdateSheet] = useState(false);
   const [updateTargetProject, setUpdateTargetProject] = useState(null);
   const [showProfilEdit, setShowProfilEdit] = useState(false);
+
+  // ── Back-Button: MeinBereichMenu Sub-Modals registrieren ────────
+  useModalRegistration(!!impactDetail, () => setImpactDetail(null), "MeinBereichMenu-ImpactDetail");
+  useModalRegistration(showFinanzModal, () => setShowFinanzModal(false), "MeinBereichMenu-FinanzModal");
+  useModalRegistration(showUpdateSheet, () => setShowUpdateSheet(false), "MeinBereichMenu-UpdateSheet");
+  useModalRegistration(showProfilEdit, () => setShowProfilEdit(false), "MeinBereichMenu-ProfilEdit");
 
   const close = () => setActiveDrawer(null);
 

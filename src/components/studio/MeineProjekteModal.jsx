@@ -12,6 +12,7 @@ import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import ImpactProjektUpdateSheet from "./ImpactProjektUpdateSheet.jsx";
 import MilestoneUpdateSheet from "./MilestoneUpdateSheet.jsx";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 // ── Design Tokens (identisch zu HuiStudio) ────────────────────────
 const T = {
@@ -68,6 +69,7 @@ function projectStatus(proj) {
 
 // ── Komponente ────────────────────────────────────────────────────
 export default function MeineProjekteModal({ profile, onClose, switchTab = null }) {
+  useModalRegistration(true, () => onClose?.(), "MeineProjekteModal");
   const [tab,          setTab]          = useState("unterstuetzt"); // "unterstuetzt" | "stimmen"
   const [supports,     setSupports]     = useState([]);  // project_support records
   const [votes,        setVotes]        = useState([]);  // impact_votes records

@@ -9,6 +9,7 @@ import { supabase } from '../../lib/supabaseClient.js'
 const TEAL = '#16D7C5'
 
 export default function BuyerConfirmSheet({ item, onClose = () => {}, onSuccess = () => {} }) {
+  useModalRegistration(true, () => onClose?.(), "BuyerConfirmSheet");
   useWizardBodyLock()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')

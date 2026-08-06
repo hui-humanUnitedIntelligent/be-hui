@@ -9,6 +9,7 @@ import { HUIAmbassadorIcon, HUIAnsichtIcon, HUIBenachrichtigungIcon, HUIEmpfehlu
 import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 // ── Design Tokens ──────────────────────────────────────────────────
 const T = {
@@ -52,6 +53,7 @@ const CATEGORIES = [
 
 // ── Haupt-Komponente ───────────────────────────────────────────────
 export default function StatistikenModal({ profile, onClose }) {
+  useModalRegistration(true, () => onClose?.(), "StatistikenModal");
   const [stats,      setStats]      = useState(null);
   const [loading,    setLoading]    = useState(true);
   const [exporting,  setExporting]  = useState(false);

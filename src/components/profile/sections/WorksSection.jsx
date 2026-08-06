@@ -11,6 +11,7 @@ import { supabase } from "../../../lib/supabaseClient.js";
 import { createPortal } from "react-dom";
 import { useContentPreview } from "../../../context/ContentPreviewContext.jsx"; // OPEN.2 2026-07-08
 import { normalizePostForPreview } from "../../../lib/previewNormalizers.js";
+import { useModalRegistration } from "../../../hooks/useModalRegistration.js";
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", ink:"#1A1A18",
@@ -63,6 +64,7 @@ export function WorksSection({
   onShowAll  = null,   // () => void
 }) {
   const [confirmWork, setConfirmWork] = useState(null);
+  useModalRegistration(!!confirmWork, () => setConfirmWork(null), "WorksSection-DeleteConfirm");
   const { open: openPreview } = useContentPreview();
   // Visitor: nur freigegebene Werke
   const visible = isOwner

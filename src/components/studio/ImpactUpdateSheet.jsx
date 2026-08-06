@@ -6,10 +6,12 @@ import { HUINachrichtIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 const UPDATE_TYPES = ["Meilenstein", "Fortschritt", "Neuigkeit", "Geplant"];
 
 export default function ImpactUpdateSheet({ project, currentUser, onClose, onSuccess }) {
+  useModalRegistration(true, () => onClose?.(), "ImpactUpdateSheet");
   const [title, setTitle] = React.useState("");
   const [content, setContent] = React.useState("");
   const [updateType, setUpdateType] = React.useState("Neuigkeit");

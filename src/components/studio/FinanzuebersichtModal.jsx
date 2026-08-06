@@ -9,6 +9,7 @@ import { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import RecommendModal from "../profile/RecommendModal.jsx";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 const T = {
   bg:       "#F7F5F0",
@@ -449,6 +450,7 @@ const TABS = [
 // HAUPT-EXPORT
 // ──────────────────────────────────────────────────────────────────────
 export default function FinanzuebersichtModal({ profile, onClose = () => {} }) {
+  useModalRegistration(true, onClose, "FinanzuebersichtModal");
   const [tab, setTab] = useState("kaeufe");
   const userId = profile?.id;
 

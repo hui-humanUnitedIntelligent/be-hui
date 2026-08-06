@@ -13,6 +13,7 @@ import { useProfileLauncher } from '../../home/profile/ProfileLauncher.jsx';
 import RecommendModal from "../RecommendModal.jsx";
 import { RecommendationService } from "../../../services/db";
 import { supabase } from "../../../lib/supabaseClient";
+import { useModalRegistration } from "../../../hooks/useModalRegistration.js";
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", ink:"#1A1A18",
@@ -77,6 +78,7 @@ export function RecommendationsSection({
 
   // ── Melden-Dialog (Owner) ──
   const [reportingId, setReportingId]     = useState(null);
+  useModalRegistration(!!reportingId, () => setReportingId(null), "RecommendationsSection-Reporting");
   const [reportReason, setReportReason]   = useState("");
   const [reportSubmitting, setReportSubmitting] = useState(false);
   const [reported, setReported]           = useState({}); // rec.id → true

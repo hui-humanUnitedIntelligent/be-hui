@@ -10,6 +10,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import { createPortal } from "react-dom";
 import { supabase } from "./supabaseClient.js";
 import { useAuth }  from "./AuthContext.jsx";
+import { useModalRegistration } from "../hooks/useModalRegistration.js";
 
 // ── Design Tokens ─────────────────────────────────────────────
 const T = {
@@ -792,6 +793,7 @@ function injectCSS() {
 // RESONANZZENTRUM PANEL
 // ══════════════════════════════════════════════════════════════
 export function ResonanzzentrumPanel({ onClose }) {
+  useModalRegistration(true, () => onClose?.(), "ResonanzzentrumPanel");
   // DOM-Mutation NIEMALS im Render-Body — immer in useEffect
   useEffect(() => { injectCSS(); }, []);
 
@@ -1124,5 +1126,6 @@ export function NotificationBadge({ count }) {
 
 // Legacy-Export für alte NotificationInbox-Aufrufe (Backwards Compat)
 export function NotificationInbox({ onClose }) {
+  useModalRegistration(true, () => onClose?.(), "NotificationInbox");
   return <ResonanzzentrumPanel onClose={onClose} />;
 }

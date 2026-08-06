@@ -19,6 +19,7 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { isProfileTalent } from "../../lib/profileUtils.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { RADIUS_OPTIONS, DEFAULT_RADIUS_KM, radiusLabel } from "../../context/RadiusContext.jsx";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 // ── Design Tokens ──────────────────────────────────────────────────
 const T = {
@@ -61,6 +62,7 @@ const SKILLS_OPTS  = ["Gitarre","Klavier","Gesang","Fotografie","Videoschnitt","
 
 // ── Haupt-Komponente ───────────────────────────────────────────────
 export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdate }) {
+  useModalRegistration(true, () => onClose?.(), "ProfilBearbeitenModal");
   const { saveProfile, refreshProfile, user } = useAuth() || {};
   // Sprint F.4C: einzige Wahrheitsquelle
   const isTalent = isProfileTalent(profile);

@@ -9,6 +9,7 @@ import { createPortal } from "react-dom";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth }  from "../lib/AuthContext";
 import { HUI } from "../design/hui.design.js";
+import { useModalRegistration } from "../hooks/useModalRegistration.js";
 
 /* ── Design Tokens ──────────────────────────────────────────────────── */
 const T = {
@@ -356,6 +357,7 @@ function SuccessView({ onDone }) {
    MAIN
 ══════════════════════════════════════════════════════════════════════ */
 export default function TalentOnboarding({ onClose, onActivate }) {
+  useModalRegistration(true, () => onClose?.(), "TalentOnboarding");
   const { user, profile, setProfile } = useAuth();
   const [step,    setStep]    = useState(0);
   const [title,   setTitle]   = useState("");

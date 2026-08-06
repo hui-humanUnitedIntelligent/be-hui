@@ -8,6 +8,7 @@
 import { HUITalentIcon } from '../../../design/icons/HuiSystemIcons.jsx';
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
+import { useModalRegistration } from "../../../hooks/useModalRegistration.js";
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", ink:"#1A1A18",
@@ -43,6 +44,7 @@ export function TalentSection({ profile, isOwner = false, loading = false, onCha
   // ── SPRINT D.2 TRACE
   // ── END TRACE
   const [showSheet, setShowSheet] = useState(false);
+  useModalRegistration(showSheet, () => setShowSheet(false), "TalentSection-Sheet");
 
   const currentLabels = skills.map(s => s.label);
 

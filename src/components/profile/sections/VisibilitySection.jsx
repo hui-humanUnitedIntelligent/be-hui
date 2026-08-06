@@ -10,6 +10,7 @@ import {
 } from '../../../design/icons/HuiSystemIcons.jsx';
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
+import { useModalRegistration } from "../../../hooks/useModalRegistration.js";
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", bgSheet:"#FDFCFB",
@@ -34,6 +35,7 @@ export function VisibilitySection({
   onSave     = null,   // (visibility: string) => void
 }) {
   const [showSheet, setShowSheet] = useState(false);
+  useModalRegistration(showSheet, () => setShowSheet(false), "VisibilitySection-Sheet");
   const [saving,    setSaving]    = useState(false);
 
   const current = profile?.visibility || profile?.focus_type || "connections";

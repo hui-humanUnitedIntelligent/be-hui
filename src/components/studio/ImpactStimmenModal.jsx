@@ -13,6 +13,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { isProfileTalent } from '../../lib/profileUtils.js';
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 // ── Design Tokens (identisch mit HuiStudio) ────────────────────────────────
 const T = {
@@ -90,6 +91,7 @@ function VoteButton({ index, used, loading, onClick }) {
 
 // ── Haupt-Modal ─────────────────────────────────────────────────────────────
 export default function ImpactStimmenModal({ profile, onClose, switchTab = null }) {
+  useModalRegistration(true, () => onClose?.(), "ImpactStimmenModal");
   // Sprint F.4C: einzige Wahrheitsquelle
   const isTalent  = isProfileTalent(profile);
   const maxVotes  = isTalent ? 2 : 1;

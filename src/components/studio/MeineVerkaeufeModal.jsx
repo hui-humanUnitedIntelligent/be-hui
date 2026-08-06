@@ -14,6 +14,7 @@ import { useMySales } from "../../hooks/useMySales.js";
 import { useState } from "react";
 import EscrowStatusBadge from "../commerce/EscrowStatusBadge.jsx";
 import SellerPayoutRequestSheet from "../commerce/SellerPayoutRequestSheet.jsx";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 // ── Design Tokens (identisch zu den anderen Studio-Modals) ─────────
 const T = {
@@ -37,6 +38,7 @@ function fmtDate(iso) {
 }
 
 export default function MeineVerkaeufeModal({ profile, onClose = () => {} }) {
+  useModalRegistration(true, onClose, "MeineVerkaeufeModal");
   const { sales, totalEarned, loading } = useMySales(profile?.id);
   const [payoutItem, setPayoutItem] = useState(null);
 

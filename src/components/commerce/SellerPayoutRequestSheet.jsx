@@ -10,6 +10,7 @@ import { supabase } from '../../lib/supabaseClient.js'
 const CORAL = '#FF8A6B'
 
 export default function SellerPayoutRequestSheet({ item, onClose = () => {}, onSuccess = () => {} }) {
+  useModalRegistration(true, () => onClose?.(), "SellerPayoutRequestSheet");
   useWizardBodyLock()
   const [note, setNote] = useState('')
   const [loading, setLoading] = useState(false)

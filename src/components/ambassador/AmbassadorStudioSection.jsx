@@ -14,6 +14,7 @@ import { useHome } from "../home/HomeShell.jsx";
 import { supabase } from "../../lib/supabaseClient.js";
 import AmbassadorModal from "./AmbassadorModal.jsx";
 import AmbassadorPayoutPanel from "./AmbassadorPayoutPanel.jsx";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 // ── Design Tokens (identisch zu HuiStudio.jsx) ─────────────────────
 const T = {
@@ -208,6 +209,12 @@ function AmbassadorStudioSection({ profile }) {
   const [showLevel,     setShowLevel]     = useState(false);
   const [showEinladungen, setShowEinladungen] = useState(false);
   const [applyOpen,  setApplyOpen]  = useState(false);
+
+  // ── Back-Button: Ambassador-Overlays registrieren ──
+  useModalRegistration(!!showList, () => setShowList(null), "AmbassadorStudio-List");
+  useModalRegistration(showLevel, () => setShowLevel(false), "AmbassadorStudio-Level");
+  useModalRegistration(showEinladungen, () => setShowEinladungen(false), "AmbassadorStudio-Einladungen");
+  useModalRegistration(applyOpen, () => setApplyOpen(false), "AmbassadorStudio-Apply");
 
   // isAmb: primär aus eigenem Query (ambModule), Fallback auf profile-Prop
   // — robuster als nur profile?.is_ambassador (kann beim ersten Load fehlen)

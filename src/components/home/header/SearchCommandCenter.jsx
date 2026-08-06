@@ -21,6 +21,7 @@ import { toast }                 from "../../../lib/useToast.jsx";
 import { FEATURED_CATEGORIES, searchCategories } from "../../../lib/categories.js";
 import { NAV_RESERVED_HEIGHT_CSS } from "../navigation/navigationGeometry.js";
 import { useRadiusFilter, radiusLabel } from "../../../hooks/useRadiusFilter.js";
+import { useModalRegistration } from "../../../hooks/useModalRegistration.js";
 
 // ─────────────────────────────────────────────────────────────
 // DESIGN TOKENS
@@ -444,6 +445,11 @@ export default function SearchCommandCenter({
   const [typeFilter, setTypeFilter] = useState(null);    // null | "work" | "experience"
   const [showKi,     setShowKi]     = useState(false);
   const radius = useRadiusFilter(); // Umkreissuche 2026-07-06 -- geteilter Radius-Zustand
+
+  // ── Back-Button: Such-Overlays registrieren ──
+  useModalRegistration(open, () => setOpen(false), "SearchCommandCenter-Search");
+  useModalRegistration(showAllCategories, () => setShowAllCategories(false), "SearchCommandCenter-Categories");
+  useModalRegistration(showKi, () => setShowKi(false), "SearchCommandCenter-Ki");
 
   // "Alle Kategorien"-Feature (2026-07-06): ausgewaehlte Kategorie (Objekt aus
   // src/lib/categories.js) + Bottom-Sheet-Sichtbarkeit + eigenes Suchfeld

@@ -8,6 +8,7 @@ import { makeChunkReload } from "../../lib/chunkReload.js";
 
 import { createPortal } from "react-dom";
 import { ProfileService } from '../../services/db';
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 // Lazy imports — kein Blocking
 const TalentProfilePage = React.lazy(() => import("../../pages/TalentProfilePage.jsx").catch(makeChunkReload("PublicProfilePreview:TalentProfilePage")));
@@ -33,6 +34,7 @@ function Spinner() {
 }
 
 export default function PublicProfilePreview({ profileId, onClose }) {
+  useModalRegistration(true, () => onClose?.(), "PublicProfilePreview");
   const [profileType, setProfileType] = useState(null); // "talent" | "basis" | null
   const [loading,     setLoading]     = useState(true);
 

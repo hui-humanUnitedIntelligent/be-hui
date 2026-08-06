@@ -20,6 +20,7 @@ import { useAuth } from "../lib/AuthContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import { isProfileTalent } from "../lib/profileUtils.js";
 import { useImageGallery } from "../context/ImageGalleryContext.jsx";
+import { useModalRegistration } from "../hooks/useModalRegistration.js";
 
 // ── Helpers ──────────────────────────────────────────────────
 const safeArr = (v) => Array.isArray(v) ? v : [];
@@ -1410,6 +1411,11 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
   const rankedProjs   = useAllApprovedByVotes();          // ← SSOT für alle Rankings
   const approvedApps  = useApprovedApplications();        // für VotePersonal projMap
   const [detailApp, setDetailApp] = React.useState(null);
+
+  // ── Back-Button: Impact-Detail-Overlays registrieren ──
+  useModalRegistration(!!detailApp, () => setDetailApp(null), "ImpactPage-DetailApp");
+  useModalRegistration(!!detailMilestone, () => setDetailMilestone(null), "ImpactPage-DetailMilestone");
+  useModalRegistration(showUpdateSheet, () => setShowUpdateSheet(false), "ImpactPage-UpdateSheet");
   // Flag: wurde Detail per Deep-Link (aus Discover) geöffnet?
   // → onClose navigiert dann zurück zu "/" statt nur Modal schließen
   const _openedViaDeepLink = React.useRef(false);

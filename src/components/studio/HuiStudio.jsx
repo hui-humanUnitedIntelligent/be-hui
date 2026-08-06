@@ -17,6 +17,7 @@ import SicherheitPasswortModal  from "./SicherheitPasswortModal.jsx";
 import SupportPage             from "../../pages/studio/SupportPage.jsx";
 import MeineTicketsPage        from "../../pages/studio/MeineTicketsPage.jsx";
 import SettingsModal    from "../settings/SettingsModal.jsx";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 // ── Design Tokens ─────────────────────────────────────────────────
 const T = {
@@ -103,6 +104,7 @@ function StudioRow({ icon, label, badge, onPress, last = false, labelColor }) {
 }
 
 export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
+  useModalRegistration(true, () => onClose?.(), "HuiStudio");
   const { signOut } = useAuth() || {};
   const [mounted,      setMounted]      = useState(false);
   const [showSettings, setShowSettings] = useState(false);

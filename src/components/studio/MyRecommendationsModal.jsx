@@ -18,6 +18,7 @@ import { createPortal } from "react-dom";
 import { useHome } from "../home/HomeShell.jsx";
 import { supabase } from "../../lib/supabaseClient.js";
 import { ProfileService } from "../../services/db";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 function timeAgo(iso) {
   if (!iso) return "";
@@ -32,6 +33,7 @@ function timeAgo(iso) {
 }
 
 function MyRecommendationsModal({ userId, onClose = () => {} }) {
+  useModalRegistration(true, onClose, "MyRecommendationsModal");
   const { openProfileById } = useHome() || {};
   const [items, setItems]     = useState([]);
   const [profiles, setProfiles] = useState({}); // to_user_id → profile meta
