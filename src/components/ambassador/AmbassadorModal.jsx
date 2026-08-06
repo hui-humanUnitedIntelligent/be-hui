@@ -3,6 +3,7 @@ import { HUIAmbassadorIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useAmbassadorApplication } from "../../hooks/useAmbassador.js";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 const T = {
   teal:    "#0EC4B8",
@@ -53,6 +54,9 @@ const MAX_VIDEOS = 2;
 
 export default function AmbassadorModal({ userId, onClose, onSuccess }) {
   const { submit, loading, error } = useAmbassadorApplication();
+
+  // Back-Button Registration
+  useModalRegistration(true, onClose, "AmbassadorModal");
   const fileInputRef = useRef(null);
 
   const [form, setForm] = useState({

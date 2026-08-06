@@ -10,6 +10,7 @@ import {
 import React, { useState, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { searchPlaces, geocodeWithFallback } from "../../lib/geocoding.js";
 import LocationAutocompleteInput from "../shared/LocationAutocompleteInput.jsx";
@@ -789,6 +790,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
   // classList.add/remove — verhindert Race Conditions mit anderen
   // gleichzeitig offenen Wizards (Werk/Erlebnis/Talent-Angebot).
   useWizardBodyLock();
+  useModalRegistration(true, onClose, "ExperienceWizard");
 
   // ── body-scroll sperren (rein lokal, kein geteilter Zustand) ──
   React.useLayoutEffect(() => {

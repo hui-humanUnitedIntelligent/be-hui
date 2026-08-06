@@ -2,6 +2,7 @@ import { createPortal } from "react-dom";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useProfileLauncher } from "../home/profile/ProfileLauncher.jsx";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
 
@@ -80,6 +81,7 @@ export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
   // openCreatorProfile entfernt (2026-07-29) — Autor nicht klickbar
   const { open: openPreview } = useContentPreview();
   useWizardBodyLock(isOpen);
+  useModalRegistration(isOpen, onClose, "MomenteAllModal");
   const [items, setItems]        = useState([]);
   const [loading, setLoading]    = useState(false);
   const [hasMore, setHasMore]    = useState(true);

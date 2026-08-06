@@ -19,6 +19,7 @@ import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "../../lib/AuthContext";
 import { supabase } from "../../lib/supabaseClient.js";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 
 const TEAL = "#16D7C5";
@@ -30,6 +31,7 @@ export default function TalentAnfrageFlow({ talent, onClose }) {
   const [errMsg,  setErrMsg]  = useState("");
 
   useWizardBodyLock();
+  useModalRegistration(true, onClose, "TalentAnfrageFlow");
 
   if (!talent) return null;
 

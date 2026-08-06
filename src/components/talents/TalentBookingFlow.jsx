@@ -18,6 +18,7 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "../../lib/AuthContext";
 import { supabase } from "../../lib/supabaseClient.js";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { getStripe } from "../../lib/stripe.js";
 import { Elements } from "@stripe/react-stripe-js";
@@ -42,6 +43,7 @@ function addDaysIso(days) {
 export default function TalentBookingFlow({ talent, onClose = () => {} }) {
   const { user } = useAuth();
   useWizardBodyLock();
+  useModalRegistration(true, onClose, "TalentBookingFlow");
 
   const [step,        setStep]        = useState("select"); // select | payment | success | error
   const [selectedDate, setSelectedDate] = useState(talent?.available_dates?.[0] || "");

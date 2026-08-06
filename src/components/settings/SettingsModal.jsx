@@ -12,6 +12,7 @@ import { HUILogoWordmark } from '../brand/HUILogo.jsx';
 import SupportPage from '../../pages/studio/SupportPage.jsx';
 import MeineTicketsPage from '../../pages/studio/MeineTicketsPage.jsx';
 import { APP_VERSION } from '../../version.ts';
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 // ── Design Tokens ─────────────────────────────────────────────
 const T = {
@@ -45,6 +46,7 @@ const btnPrimary = {
 function Section({ title, icon, children }) {
   return (
     <div style={{ marginBottom:24 }}>
+
       <div style={{ fontSize:11, fontWeight:700, color:T.inkSoft,
         textTransform:"uppercase", letterSpacing:0.8, marginBottom:10,
         display:"flex", alignItems:"center", gap:6, padding:"0 4px" }}>
@@ -325,6 +327,7 @@ function PrivacyBlock({ profile, onProfileUpdate }) {
 
 // ── Haupt-Komponente ─────────────────────────────────────────
 export default function SettingsModal({ profile: profileProp, onClose, onProfileUpdate, onOpenBookings, onEditProfile }) {
+  useModalRegistration(true, onClose, "SettingsModal");
   // Profil aus prop ODER direkt aus AuthContext (Fallback wenn prop noch null)
   const { profile: authCtxProfile } = useAuth() || {};
   const profile = profileProp || authCtxProfile || null;

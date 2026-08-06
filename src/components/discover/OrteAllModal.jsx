@@ -1,6 +1,7 @@
 import { createPortal } from "react-dom";
 import { useState, useEffect } from "react";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 const T = {
   teal:"rgba(14,196,184,1)", white:"#FFFFFF", ink:"rgba(26,26,46,0.92)",
@@ -67,6 +68,7 @@ function OrtCardItem({ ort }) {
 
 export default function OrteAllModal({ isOpen, onClose }) {
   useWizardBodyLock(isOpen);
+  useModalRegistration(isOpen, onClose, "OrteAllModal");
   const [search, setSearch] = useState("");
 
   useEffect(() => {

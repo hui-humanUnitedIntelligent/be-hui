@@ -3,6 +3,7 @@ import { makeChunkReload } from "./lib/chunkReload.js";
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { sentryCapture, Sentry } from './lib/sentry';
 import { RouteBoundary, OverlayBoundary } from './lib/ErrorBoundaries';
+import { AndroidBackButtonHandler } from './components/AndroidBackButtonHandler.jsx';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './lib/AuthContext';
 import { AppStateProvider } from './lib/AppStateContext';
@@ -651,7 +652,8 @@ function AppRoutes() {
   }
 
   return (
-    // HuiSuspense wraps all lazy routes — zeigt ruhigen Ladeindikator
+    <AndroidBackButtonHandler>
+    {/* HuiSuspense wraps all lazy routes — zeigt ruhigen Ladeindikator */}
     <HuiSuspense>
       <ScrollToTop />
       <Routes>
@@ -752,6 +754,7 @@ function AppRoutes() {
         <Route path="*" element={<SmartNotFound />} />
       </Routes>
     </HuiSuspense>
+    </AndroidBackButtonHandler>
   );
 }
 

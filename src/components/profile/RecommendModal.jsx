@@ -10,6 +10,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { RecommendationService } from "../../services/db";
 import { supabase } from "../../lib/supabaseClient";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 const T = {
   bg:       "#F7F5F0",
@@ -33,7 +34,9 @@ export default function RecommendModal({
   bookingId     = null,
   onClose       = () => {},
   onSubmitted   = () => {},
+
 }) {
+  useModalRegistration(true, onClose, "RecommendModal");
   const [text, setText]              = useState("");
   const [submitting, setSubmitting]  = useState(false);
   const [error, setError]            = useState("");

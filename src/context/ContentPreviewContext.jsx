@@ -22,6 +22,7 @@ import ContentPreviewSheet from "../components/shared/ContentPreviewSheet.jsx";
 import { lazy, Suspense } from "react";
 const TalentBookingFlow = lazy(() => import("../components/talents/TalentBookingFlow.jsx"));
 import PostFullscreenView from "../components/shared/PostFullscreenView.jsx";
+import { useModalRegistration } from "../hooks/useModalRegistration.js";
 
 const ContentPreviewContext = createContext(null);
 
@@ -51,7 +52,10 @@ export function ContentPreviewProvider({ children }) {
     return false;
   }, []);
 
-  const close = useCallback(() => setItem(null), []);
+    const close = useCallback(() => setItem(null), []);
+  // Back-Button: Content-Preview registrieren
+  useModalRegistration(!!item, close, "ContentPreview");
+  useModalRegistration(!!talentBooking, closeTalentBooking, "TalentBooking-Flow");
   const openTalentBooking = useCallback((raw) => setTalentBooking(raw), []);
   const closeTalentBooking = useCallback(() => setTalentBooking(null), []);
 

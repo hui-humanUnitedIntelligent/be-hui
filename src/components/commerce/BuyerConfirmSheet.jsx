@@ -2,7 +2,8 @@
 // PFLICHT: createPortal + zIndex:10500 + useWizardBodyLock + sticky button
 import React, { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useWizardBodyLock } from '../../lib/wizardBodyLock.js'
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { useWizardBodyLock from '../../lib/wizardBodyLock.js'
 import { supabase } from '../../lib/supabaseClient.js'
 
 const TEAL = '#16D7C5'

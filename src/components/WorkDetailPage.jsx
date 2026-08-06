@@ -14,6 +14,7 @@ import { HUI } from "../design/hui.design.js";
 import {
   HUIHeartIcon, HUIChatIcon, HUIBookmarkIcon, HUIShareIcon,
 } from "../design/icons/HuiInteractionIcons.jsx";
+import { useModalRegistration } from "../hooks/useModalRegistration.js";
 import { useSingleReaction } from "../lib/useReactions.jsx";
 import { useSavedPostsContext } from "../context/SavedPostsContext.jsx";
 import { haptic } from "./commerce/commerceUtils.js";
@@ -356,6 +357,8 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
   // als Auf/Zu-Flag fuer denselben "Austauschen"-Button erhalten.
   const [commentCount, setCommentCount] = useState(0);
   const [showComments, setShowComments] = useState(false);
+  // Back-Button: Comments registrieren
+  useModalRegistration(showComments, () => setShowComments(false), "WorkDetail-Comments");
 
   // Resonanz/Merken -- EIN zentraler Mechanismus, identisch zum Feed
   // (post_reactions/reaction_counts, siehe BaseFeedCard.jsx). Ersetzt die

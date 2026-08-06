@@ -2,6 +2,7 @@ import { createPortal } from "react-dom";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useProfileLauncher } from '../home/profile/ProfileLauncher.jsx';
 
 const T = {
@@ -66,6 +67,7 @@ function TalentCardItem({ t, onPress }) {
 
 export default function TalenteAllModal({ isOpen, onClose, onPressTalent }) {
   useWizardBodyLock(isOpen);
+  useModalRegistration(isOpen, onClose, "TalenteAllModal");
   const [items, setItems]       = useState([]);
   const [loading, setLoading]   = useState(false);
   const [hasMore, setHasMore]   = useState(true);

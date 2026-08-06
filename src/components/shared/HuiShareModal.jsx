@@ -15,6 +15,7 @@ import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient";
 import { useUserSearch } from "../../features/discovery/userSearch";
 import { toast } from "../../lib/useToast.jsx";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 // ── Design Tokens (identisch BaseFeedCard) ──────────────────────
 const T = {
@@ -138,6 +139,7 @@ function Avatar({ user, size = 36 }) {
   if (user.avatar_url) {
     return (
       <img src={user.avatar_url} alt="" style={{
+
         width: size, height: size, borderRadius: "50%", objectFit: "cover",
         border: `1.5px solid ${T.tealLine}`, flexShrink: 0,
       }} />
@@ -160,6 +162,7 @@ function Avatar({ user, size = 36 }) {
 // HAUPT-KOMPONENTE
 // ══════════════════════════════════════════════════════════════════
 export function HuiShareModal({ item, onClose }) {
+  useModalRegistration(true, onClose, "HuiShareModal");
   const [tab, setTab]                 = useState("intern"); // "intern" | "extern"
   const [selectedUser, setSelectedUser] = useState(null);
   const [message, setMessage]         = useState("");

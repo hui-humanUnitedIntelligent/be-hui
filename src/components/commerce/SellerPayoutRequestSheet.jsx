@@ -3,7 +3,8 @@
 import { HUIDateiIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useWizardBodyLock } from '../../lib/wizardBodyLock.js'
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { useWizardBodyLock from '../../lib/wizardBodyLock.js'
 import { supabase } from '../../lib/supabaseClient.js'
 
 const CORAL = '#FF8A6B'

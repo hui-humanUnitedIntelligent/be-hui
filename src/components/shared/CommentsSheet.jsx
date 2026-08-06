@@ -27,6 +27,7 @@ import {
   getComments, createComment, updateComment, deleteComment,
   toggleCommentHeart, reportComment, subscribeComments,
 } from "../../lib/commentsService.js";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 const T = {
   ink: "#1A1A2E", inkSoft: "rgba(26,26,46,0.60)", inkFaint: "rgba(26,26,46,0.38)",
@@ -77,6 +78,7 @@ function initials(name) {
 function Avatar({ url, name, size = 34 }) {
   return url ? (
     <img loading="lazy" decoding="async" src={url} alt={name||""} style={{ width:size, height:size, borderRadius:"50%", objectFit:"cover", flexShrink:0 }} />
+
   ) : (
     <div style={{
       width:size, height:size, borderRadius:"50%", flexShrink:0,
@@ -333,6 +335,8 @@ function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdi
 
 export default function CommentsSheet({ open, onClose, postId, postType, postAuthorId, postActionUrl, highlightCommentId, mediaUrl = null, mediaType = null, postTitle = null }) {
   const { user, profile } = useAuth();
+  // Back-Button Registration
+  useModalRegistration(open, onClose, "CommentsSheet");
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [migrationPending, setMigrationPending] = useState(false);

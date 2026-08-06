@@ -13,6 +13,7 @@
 // ══════════════════════════════════════════════════════════════════════
 import React, { useState, useRef } from "react";
 import { createPortal } from "react-dom";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import {
   createTalent, updateTalent, uploadTalentImage, TALENT_KATEGORIEN,
@@ -171,6 +172,7 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
   // Referenzgezählter Body-Lock (Memory #531: verhindert Race Condition bei
   // ueberlappend offenen Wizards) statt eigener document.body.classList-Logik.
   useWizardBodyLock();
+  useModalRegistration(true, onClose, "TalentAngebotWizard");
 
   async function handleUpload(e) {
     const files = Array.from(e.target.files || []);

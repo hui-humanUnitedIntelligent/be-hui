@@ -28,6 +28,7 @@ import { useOrbWorld } from "../../context/OrbWorldContext.jsx";
 import { assertValidTab } from "../../lib/world/orbLayer.js";
 import { FlowCtx, createFlowStore } from "../../core/hui.flow.js";
 import HuiContextBridge from "../../core/HuiContextBridge.jsx";
+import { registerModal } from "../../lib/backButtonRegistry.js";
 
 /* ── Context ──────────────────────────────────────────────────── */
 const HomeCtx = createContext(null);
@@ -246,6 +247,34 @@ export default function HomeShell({ children }) {
     setShowTalentFlow(false);
     if (isOrbOpen) closeOrbWorld("tab-switch");
   }, [closeOrbWorld, isOrbOpen, setShowCreatorDashboard]);
+
+  /* ── Back-Button Registry: Alle HomeShell-Overlays registrieren ─── */
+  // Wenn ein Overlay offen ist, registriert es sich im globalen Back-Button-Stack.
+  // Der AndroidBackButtonHandler schließt das oberste Overlay bei Back-Button.
+  // LIFO: das zuletzt geöffnete Overlay wird zuerst geschlossen.
+  const anyOverlayOpen = !!(
+    showWirker || selectedProfileId || showCreatorDashboard ||
+    showChat || showNotifs || showMap || showMatch || showMembership ||
+    showPlusSheet || showCreateFlow || showConnect || showTeilen ||
+    showTalentFlow || showStoryComposer || showWerkPublisher ||
+    showExperienceCreator || showImpactFlow || showContentSelector ||
+    showInvitationFlow || showCreatorDash ||
+    showWerkDetail || showWerkCheckout || showWerkeKorb ||
+    showUnterstutzenFlow || showBookingFlow ||
+    activeStory || isOrbOpen
+  );
+
+  useEffect(() => {
+    if (!anyOverlayOpen) return;
+    // Register closeAllOverlays as the close function
+    const unregister = registerModal(() => {
+      closeAllOverlays();
+      setShowChat(false);
+      closeOrbWorld("back-button");
+    }, "HomeShell-Overlays");
+    return () => unregister();
+  }, [anyOverlayOpen, closeAllOverlays, closeOrbWorld, setShowChat]);
+
 
   /* switchTab — schließt alle Overlays + wechselt Tab + scrollt IMMER nach oben */
   const switchTab = useCallback((newTab) => {

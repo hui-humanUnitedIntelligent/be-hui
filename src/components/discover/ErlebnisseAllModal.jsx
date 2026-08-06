@@ -2,6 +2,7 @@ import { createPortal } from "react-dom";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useProfileLauncher } from "../home/profile/ProfileLauncher.jsx";
 
 const T = {
@@ -87,6 +88,7 @@ function ErlebnisCardItem({ e: ev, onPress, onAuthorPress }) {
 
 export default function ErlebnisseAllModal({ isOpen, onClose, onPressItem }) {
   useWizardBodyLock(isOpen);
+  useModalRegistration(isOpen, onClose, "ErlebnisseAllModal");
   const { openCreatorProfile } = useProfileLauncher();
   const [items, setItems]         = useState([]);
   const [loading, setLoading]     = useState(false);

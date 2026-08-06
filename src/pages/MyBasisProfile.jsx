@@ -73,6 +73,7 @@ import MeineProjekteModal from "../components/studio/MeineProjekteModal.jsx";
 import ImpactUpdateSheet from "../components/studio/ImpactUpdateSheet.jsx";
 // FinanzuebersichtModal — ersetzt 4 separate Finanz-Modals (eager, kein Lazy-Bug)
 import FinanzuebersichtModal from "../components/studio/FinanzuebersichtModal.jsx";
+import { useModalRegistration } from "../hooks/useModalRegistration.js";
 // ── Design Tokens ────────────────────────────────────────────────
 
 // ── Ambassador ErrorBoundary ─────────────────────────────────────
@@ -475,7 +476,14 @@ export default function MyBasisProfile({ onClose, profileId }) {
   } = useHome?.() || {};
   const { openRef } = useContentPreview();
 
-  const handleNotifAction = (n) => {
+  
+  // ── Back-Button: Sub-Modals registrieren ─────────────────────────
+  useModalRegistration(showSettings, () => setShowSettings(false), "MyBasisProfile-Settings");
+  useModalRegistration(!!activeDrawer, () => setActiveDrawer(null), "MyBasisProfile-Drawer");
+  useModalRegistration(!!empfehlungDetail, () => setEmpfehlungDetail(null), "MyBasisProfile-EmpfehlungDetail");
+  useModalRegistration(showFinanzModal, () => setShowFinanzModal(false), "MyBasisProfile-FinanzModal");
+
+const handleNotifAction = (n) => {
     // 1. action_url hat Vorrang
     if (n.action_url) {
       setShowNotifications(false);

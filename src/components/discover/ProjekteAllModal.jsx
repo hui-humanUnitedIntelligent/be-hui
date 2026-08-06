@@ -3,6 +3,7 @@ import { useProfileLauncher } from "../home/profile/ProfileLauncher.jsx";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 const T = {
   teal:       "rgba(14,196,184,1)",
@@ -189,6 +190,7 @@ function ProjektCardItem({ p, onPress, onAuthorPress }) {
 
 export default function ProjekteAllModal({ isOpen, onClose, onPressItem }) {
   useWizardBodyLock(isOpen);
+  useModalRegistration(isOpen, onClose, "ProjekteAllModal");
   const { openCreatorProfile } = useProfileLauncher();
   const [items, setItems]        = useState([]);
   const [loading, setLoading]    = useState(false);
