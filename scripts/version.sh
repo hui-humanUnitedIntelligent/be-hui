@@ -10,18 +10,16 @@
 #   bash scripts/version.sh 1.0.5           → Manuelle Version
 #   bash scripts/version.sh 1.0.5 7         → Manuelle Version + versionCode
 #
-# package.json = einzige Quelle der Wahrheit.
-# version.ts liest dynamisch — wird NICHT von hier geschrieben.
+# Windows-kompatibel: NUR relative Pfade, KEINE absoluten Pfade an Node.
 # =============================================================================
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT_DIR"
 
-BUILD_GRADLE="${ROOT_DIR}/android/app/build.gradle"
-PACKAGE_JSON="${ROOT_DIR}/package.json"
-STRINGS_XML="${ROOT_DIR}/android/app/src/main/res/values/strings.xml"
+BUILD_GRADLE="android/app/build.gradle"
+STRINGS_XML="android/app/src/main/res/values/strings.xml"
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
 info()    { echo -e "${BLUE}[VERSION]${NC} $*"; }
@@ -29,10 +27,10 @@ success() { echo -e "${GREEN}[VERSION]${NC} ✅ $*"; }
 error()   { echo -e "${RED}[VERSION]${NC} ❌ $*"; exit 1; }
 
 [[ -f "$BUILD_GRADLE" ]] || error "build.gradle nicht gefunden"
-[[ -f "$PACKAGE_JSON" ]] || error "package.json nicht gefunden"
+[[ -f "package.json" ]] || error "package.json nicht gefunden"
 
-# ── Hilfsfunktionen ──────────────────────────────────────────────────────────
-get_version()  { node -p "require('$PACKAGE_JSON').version"; }
+# ── Hilfsfunktionen (ALLE mit relativen Pfaden) ──────────────────────────────
+get_version()  { node -p "require('./package.json').version"; }
 get_code()     { grep -oP 'versionCode\s+\K[0-9]+' "$BUILD_GRADLE" || echo "1"; }
 
 validate_version() {
@@ -57,7 +55,7 @@ bump_version() {
 
 write_package_json() {
   npm version "$1" --no-git-tag-version --silent 2>/dev/null || {
-    sed -i.bak "s/\"version\": \".*\"/\"version\": \"$1\"/" "$PACKAGE_JSON"; rm -f "${PACKAGE_JSON}.bak"
+    sed -i.bak "s/\"version\": \".*\"/\"version\": \"$1\"/" package.json; rm -f package.json.bak
   }
 }
 

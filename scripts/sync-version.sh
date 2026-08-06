@@ -4,19 +4,21 @@
 # =============================================================================
 # npm hat package.json bereits aktualisiert.
 # Dieses Script synct build.gradle + strings.xml.
-# version.ts braucht NICHT aktualisiert zu werden (liest dynamisch).
+# Windows-kompatibel: NUR relative Pfade, KEINE absoluten Pfade an Node.
 # =============================================================================
 
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-BUILD_GRADLE="${ROOT_DIR}/android/app/build.gradle"
-PACKAGE_JSON="${ROOT_DIR}/package.json"
-STRINGS_XML="${ROOT_DIR}/android/app/src/main/res/values/strings.xml"
+cd "$ROOT_DIR"
 
-NEW_VERSION=$(node -p "require('$PACKAGE_JSON').version")
+BUILD_GRADLE="android/app/build.gradle"
+STRINGS_XML="android/app/src/main/res/values/strings.xml"
 
-# Validierung: NIE "minor"/"patch"/"major" als Versionstext
+# Version lesen — relativer Pfad, KEIN pwd -W
+NEW_VERSION=$(node -p "require('./package.json').version")
+
+# Validierung
 [[ "$NEW_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
   echo "❌ Ungültige Version: '$NEW_VERSION'"
   exit 1
@@ -36,4 +38,4 @@ rm -f "${BUILD_GRADLE}.bak"
 
 echo "✅ postversion sync: $NEW_VERSION (Code $NEW_CODE)"
 
-git add "$BUILD_GRADLE" "$PACKAGE_JSON" "$STRINGS_XML" 2>/dev/null || true
+git add "$BUILD_GRADLE" "package.json" "$STRINGS_XML" 2>/dev/null || true
