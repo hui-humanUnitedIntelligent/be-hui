@@ -114,49 +114,7 @@ const timeAgo = (dateStr) => {
   return "vor " + Math.round(diff/24) + " Tagen";
 };
 
-// ── View Toggle ──────────────────────────────────────────────────
-function ViewToggle({ view, onChange }) {
-  return (
-    <div style={{
-      display:"flex", alignItems:"center", gap:2,
-      background:"rgba(26,53,48,0.06)",
-      borderRadius:12, padding:3,
-      backdropFilter:"blur(8px)",
-    }}>
-      {[
-        { key:"cards", icon:(
-          <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
-            <rect x="1" y="1" width="6" height="6" rx="2" stroke="currentColor" strokeWidth="1.5"/>
-            <rect x="9" y="1" width="6" height="6" rx="2" stroke="currentColor" strokeWidth="1.5"/>
-            <rect x="1" y="9" width="6" height="6" rx="2" stroke="currentColor" strokeWidth="1.5"/>
-            <rect x="9" y="9" width="6" height="6" rx="2" stroke="currentColor" strokeWidth="1.5"/>
-          </svg>
-        )},
-        { key:"list", icon:(
-          <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
-            <path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-          </svg>
-        )},
-      ].map(btn => {
-        const active = view === btn.key;
-        return (
-          <button key={btn.key} onClick={() => onChange(btn.key)} style={{
-            width:30, height:28, borderRadius:9, border:"none", cursor:"pointer",
-            display:"flex", alignItems:"center", justifyContent:"center",
-            background: active ? "white" : "transparent",
-            color: active ? "#0EC4B8" : "rgba(26,53,48,0.45)",
-            boxShadow: active ? "0 1px 6px rgba(26,53,48,0.10), 0 0 0 1px rgba(14,196,184,0.18)" : "none",
-            transition:"background .16s, color .16s, box-shadow .16s",
-            WebkitTapHighlightColor:"transparent",
-            touchAction:"manipulation",
-          }}>
-            {btn.icon}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
+// (ViewToggle-Buttons entfernt 2026-08-06 — Auflistungs-/Listenansicht-Umschaltung auf Wunsch entfernt, Ansicht ist fest auf 'cards'.)
 
 // ── Skeleton ─────────────────────────────────────────────────────
 function Skel({ w="100%", h=14, r=10, mb=0 }) {
@@ -206,19 +164,15 @@ function SectionHead({ title, sub, action, onAction, delay=0 }) {
 // Layout-Eingriff. KEIN Bezug auf Tageszeiten (kein "Guten Morgen").
 // Komponentenname 'DiscoverTitleBar' bewusst technisch beibehalten (reines
 // Implementierungsdetail, keine sichtbare Aenderung durch Umbenennung noetig).
-function DiscoverTitleBar({ view, onViewChange }) {
+function DiscoverTitleBar() {
   return (
     <div style={{
       padding:`12px ${T.px}px 14px`,
       background:T.bg,
     }}>
       {/* Title Row */}
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          <span style={{ fontSize:22, fontWeight:900, color:T.ink, letterSpacing:"-0.04em" }}>Entdecke HUI</span>
-        </div>
-        {/* View Toggle — oben rechts */}
-        <ViewToggle view={view} onChange={onViewChange} />
+      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+        <span style={{ fontSize:22, fontWeight:900, color:T.ink, letterSpacing:"-0.04em" }}>Entdecke HUI</span>
       </div>
       <div style={{ fontSize:12.5, color:T.inkFaint, marginTop:2, fontWeight:400 }}>
         Menschen, Ideen, Werke und Erlebnisse — alles auf einen Blick.
@@ -1650,7 +1604,7 @@ function isCacheValid() {
 // ───────────────────────────────────────────────────────────────
 
 export default function DiscoverPage({ onView, onMap, onBook }) {
-  const [view, setView]         = useState("cards"); // "cards" | "list"
+  const view = "cards"; // Fest auf Kacheln — Listenansicht-Umschaltung 2026-08-06 entfernt (Buttons raus)
   const [loading, setLoading] = useState(true);
   const [people, setPeople]           = useState([]);
   const [momente, setMomente]         = useState([]);
@@ -2285,7 +2239,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
       <style>{CSS}</style>
 
       {/* ── 1. Titelbereich ── */}
-      <DiscoverTitleBar view={view} onViewChange={setView} />
+      <DiscoverTitleBar />
 
       {/* ── 1b. Live Activity Bar ── */}
       <div style={{ marginBottom:8 }}>
