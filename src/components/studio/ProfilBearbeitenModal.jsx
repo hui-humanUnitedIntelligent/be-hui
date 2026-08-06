@@ -1,24 +1,46 @@
-import { HUIEuroIcon, HUILinkIcon, HUILocationIcon, HUIMailIcon, HUIProfilIcon, HUITalentIcon } from '../../design/icons/HuiSystemIcons.jsx';
+import { HUIEuroIcon, HUILinkIcon, HUILocationIcon, HUIProfilIcon, HUITalentIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import LocationAutocompleteInput from '../shared/LocationAutocompleteInput.jsx';
 // ProfilBearbeitenModal.jsx — vollständige Profil-Bearbeitung
 // ═══════════════════════════════════════════════════════════
+// WICHTIG (2026-08-06, Fakten-Check gegen Live-DB + Live-Code):
+// - "Fokus / Bereich" (focus_type) und Basis-"Skills" (skills) wurden aus
+//   diesem Modal ENTFERNT, weil beide Spalten inzwischen von anderen,
+//   bereits produktiv genutzten Editoren mit ANDERER Bedeutung belegt sind:
+//     • profiles.focus_type = "Sichtbarkeit" (Sprint F.9G.1,
+//       handleVisibilityChange in TalentProfilePage.jsx) — Live-Wert z.B.
+//       "hybrid", NICHT die alten FOCUS_TYPES-Kategorien.
+//     • profiles.skills = "Interessen & Werte" (InteressenSection.jsx,
+//       MyBasisProfile.jsx) für Basis-User BZW. "Professionelle Skills"
+//       (handleSkillsChange, TalentProfilePage.jsx, Sprint F.3C — einzige
+//       Wahrheitsquelle) für Talent-User. Ein Speichern hier hätte die
+//       jeweils andere Bedeutung stillschweigend überschrieben.
+// - Talent-Tab: "Kategorien" und "Mein Angebotsradius" wurden entfernt —
+//   es existiert keine profiles.categories / profiles.radius_km Spalte;
+//   das sind Attribute einzelner Talent-ANGEBOTE (Tabelle `talents`,
+//   TalentAngebotWizard.jsx), nicht des Profils.
+// - Talent-Tab: "Professionelle Skills", "Standort (Talent)",
+//   "Verfügbarkeit (Talent)" wurden entfernt — Duplikate der bereits
+//   live funktionierenden Editoren auf TalentProfilePage.jsx
+//   (handleSkillsChange / handleLocationChange / handleAvailabilityChange).
+// - Talent-Bezeichnung / Talent-Slogan lasen zuvor die falsche/nicht
+//   existierende Spalte `talent` — korrigiert auf die echten Spalten
+//   `talent_title` / `talent_description` (siehe TalentOnboarding.jsx) und
+//   werden jetzt tatsächlich beim Speichern mitgeschrieben (vorher: nie).
+// - `tagline` und `dna_tags` hatten keine UI zum Bearbeiten und werden von
+//   keiner Ansicht angezeigt — als totes Passthrough aus dem Save entfernt.
+// ═══════════════════════════════════════════════════════════
 // Basis-Profil:   profiles (full_name, display_name, username, email,
-//                           bio, tagline, location_label, website, skills,
-//                           dna_tags, focus_type, is_available, hourly_rate)
-// Talent-Profil:  wirker_profiles (talent, tagline, categories, skills,
-//                                  location_label, radius_km, hourly_rate,
-//                                  is_available)
-// Speichern via:  saveProfile() aus AuthContext + supabase wirker_profiles update
+//                           bio, location, website, is_available)
+// Talent-Profil:  profiles (talent_title, talent_description, hourly_rate)
+// Speichern via:  saveProfile() aus AuthContext (supabase.profiles.update)
 // Nach Speichern: refreshProfile() → live im Admin Dashboard sichtbar
 // ═══════════════════════════════════════════════════════════
 
 import { useState, useEffect, useCallback } from "react";
-import { getFlowCategoryOptions } from "../../lib/categories.js";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { isProfileTalent } from "../../lib/profileUtils.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
-import { RADIUS_OPTIONS, DEFAULT_RADIUS_KM, radiusLabel } from "../../context/RadiusContext.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 // ── Design Tokens ──────────────────────────────────────────────────
@@ -49,16 +71,8 @@ const TABS = [
 ];
 
 // Fixe Optionen
-const FOCUS_TYPES  = ["Kreativ","Sozial","Technisch","Bildung","Bewegung","Handel","Gastro","Beratung","Sonstiges"];
-// Kategorien-Architektur vereinheitlicht (2026-07-06, Lars) -- zentrale
-// Single Source of Truth statt hartcodierter lokaler Liste. Liefert exakt
-// dieselben 16 Werte in derselben Reihenfolge wie zuvor (siehe
-// src/lib/categories.js, FLOW_ORDER.profile) -- keine sichtbare Aenderung
-// fuer Nutzer, kein Datenformat-Wechsel fuer wirker_profiles.categories.
-const CATEGORIES   = getFlowCategoryOptions("profile");
-const SKILLS_OPTS  = ["Gitarre","Klavier","Gesang","Fotografie","Videoschnitt","Grafikdesign","Illustration",
-                       "Webdesign","Programmierung","Coaching","Yoga","Meditation","Kochen","Backen",
-                       "Schreiben","Übersetzen","Social Media","Marketing","Beratung","Sonstiges"];
+// (FOCUS_TYPES / CATEGORIES / SKILLS_OPTS entfernt 2026-08-06 — die Felder,
+// die sie befüllten, wurden aus diesem Modal entfernt, siehe Kommentar oben.)
 
 // ── Haupt-Komponente ───────────────────────────────────────────────
 export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdate }) {
@@ -72,32 +86,25 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
   const [displayName,   setDisplayName]   = useState(profile?.display_name   || "");
   const [username,      setUsername]      = useState(profile?.username        || "");
   const [bio,           setBio]           = useState(profile?.bio             || "");
-  const [tagline,       setTagline]       = useState(profile?.tagline         || "");
-  const [focusType,     setFocusType]     = useState(profile?.focus_type      || "");
   // Sprint F.3B: location aus profiles.location (location_label existiert nicht in profiles-Tabelle)
   const [locationLabel, setLocationLabel] = useState(profile?.location || profile?.location_label || "");
   const [locationLat,   setLocationLat]   = useState(profile?.location_lat  || null);
   const [locationLng,   setLocationLng]   = useState(profile?.location_lng  || null);
   const [geoLoading,    setGeoLoading]    = useState(false);
   const [website,       setWebsite]       = useState(profile?.website         || "");
-  const [skills,        setSkills]        = useState(profile?.skills          || []);
-  const [dnaTags,       setDnaTags]       = useState(profile?.dna_tags        || []);
   const [isAvailable,   setIsAvailable]   = useState(profile?.is_available    ?? true);
-  const [hourlyRate,    setHourlyRate]    = useState(profile?.hourly_rate     || "");
 
   // ── State: Kontakt-Felder ────────────────────────────────────────
   const [email,         setEmail]         = useState(profile?.email           || "");
 
   // ── State: Talent-Profil (wirker_profiles) ───────────────────────
-  const [wpData,         setWpData]       = useState(null);  // aktueller DB-Stand
-  const [talentTitle,    setTalentTitle]  = useState("");
-  const [talentTagline,  setTalentTagline]= useState("");
-  const [talentCats,     setTalentCats]   = useState([]);
-  const [talentSkills,   setTalentSkills] = useState([]);
-  const [talentLocation, setTalentLocation]=useState("");
-  const [talentRadius,   setTalentRadius] = useState("");
-  const [talentRate,     setTalentRate]   = useState("");
-  const [talentAvail,    setTalentAvail]  = useState(true);
+  // Sprint 2026-08-06: nur echte, kollisionsfreie profiles-Spalten.
+  // talent_title/talent_description existieren real (siehe TalentOnboarding.jsx);
+  // Kategorien/Skills/Standort/Radius/Verfügbarkeit haben eigene, bereits
+  // live funktionierende Editoren (siehe Kopf-Kommentar) und wurden entfernt.
+  const [talentTitle,       setTalentTitle]       = useState("");
+  const [talentDescription, setTalentDescription] = useState("");
+  const [talentRate,        setTalentRate]        = useState("");
 
   // ── State: UI ────────────────────────────────────────────────────
   const [tab,            setTab]          = useState("basis");
@@ -108,20 +115,12 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
   const [usernameOk,     setUsernameOk]   = useState(false);
   const [checkingUname,  setCheckingUname]= useState(false);
 
-  // ── Talent-Profil laden — wirker_profiles existiert nicht mehr, Daten aus profiles ──
+  // ── Talent-Profil laden — echte Spalten aus profiles (Fakten-Check 2026-08-06) ──
   useEffect(() => {
     if (!isTalent || !profile?.id) return;
-    // Talent-Daten kommen bereits aus dem profile-Objekt (via useProfileData)
-    setTalentTitle(profile?.talent      || "");
-    setTalentCats(profile?.focus_type
-      ? (typeof profile.focus_type === "string"
-          ? profile.focus_type.split(",").filter(Boolean)
-          : profile.focus_type)
-      : []);
-    setTalentSkills(profile?.skills     || []);
-    setTalentLocation(profile?.location || "");
-    setTalentRate(profile?.hourly_rate  ? String(profile.hourly_rate) : "");
-    setTalentAvail(profile?.is_available ?? true);
+    setTalentTitle(profile?.talent_title || "");
+    setTalentDescription(profile?.talent_description || "");
+    setTalentRate(profile?.hourly_rate ? String(profile.hourly_rate) : "");
   }, [isTalent, profile?.id]);
 
   // ── Username-Check (debounced) ───────────────────────────────────
@@ -192,21 +191,26 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
     setSaving(true); setSaveErr(""); setSaveOk(false);
 
     try {
-      // 1. profiles update via saveProfile (AuthContext)
+      // 1. Basis-Profil-Felder (immer)
       const profileUpdates = {
         full_name:      fullName.trim(),
         display_name:   displayName.trim() || fullName.trim(),
         username:       username.trim().toLowerCase(),
         bio:            bio.trim(),
-        tagline:        tagline.trim(),
-        focus_type:     Array.isArray(focusType) ? focusType.join(',') : (focusType || ''),
         location:       locationLabel.trim(), // Sprint F.3B: schreibt profiles.location (Wahrheitsquelle)
         website:        website.trim(),
-        skills:         skills,
-        dna_tags:       dnaTags,
         is_available:   isAvailable,
-        hourly_rate:    hourlyRate ? parseFloat(hourlyRate) : null,
       };
+
+      // 2. Talent-Felder NUR mitschreiben, wenn Talent-User (echte, kollisionsfreie
+      //    Spalten: talent_title / talent_description / hourly_rate — Fakten-Check
+      //    2026-08-06, siehe Kopf-Kommentar. Kategorien/Skills/Standort/Radius/
+      //    Verfügbarkeit(Talent) haben eigene Editoren und werden hier NICHT berührt.)
+      if (isTalent) {
+        profileUpdates.talent_title       = talentTitle.trim();
+        profileUpdates.talent_description = talentDescription.trim();
+        profileUpdates.hourly_rate        = talentRate ? parseFloat(talentRate) : null;
+      }
 
       const { error: profErr } = await (saveProfile
         ? saveProfile(profileUpdates)
@@ -215,9 +219,6 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
             .eq("id", profile?.id));
 
       if (profErr) throw new Error(profErr.message || profErr);
-
-      // 2. wirker_profiles existiert nicht mehr — Talent-Daten werden über profiles gespeichert
-      // (talent, focus_type, skills, location, hourly_rate, is_available stehen in profileUpdates oben)
 
       // 3. Auth Profil neu laden → live im Admin + UI
       if (refreshProfile) await refreshProfile();
@@ -236,17 +237,10 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
     } finally {
       setSaving(false);
     }
-  }, [saving, usernameErr, fullName, displayName, username, bio, tagline, focusType,
-      locationLabel, locationLat, locationLng, website, skills, isAvailable,
-      isTalent, talentTitle, talentTagline, talentCats, talentSkills, talentLocation,
-      talentRadius, talentRate, talentAvail, wpData, saveProfile, refreshProfile,
-      profile?.id, onClose, onProfileUpdate]);
-
-  // ── Tag-Toggle Helper ────────────────────────────────────────────
-  const toggleArr = (arr, setArr, val, max = 10) => {
-    if (arr.includes(val)) setArr(arr.filter(v => v !== val));
-    else if (arr.length < max) setArr([...arr, val]);
-  };
+  }, [saving, usernameErr, fullName, displayName, username, bio,
+      locationLabel, locationLat, locationLng, website, isAvailable,
+      isTalent, talentTitle, talentDescription, talentRate,
+      saveProfile, refreshProfile, profile?.id, onClose, onProfileUpdate]);
 
   // ── Modal ─────────────────────────────────────────────────────────
   const modal = (
@@ -346,16 +340,9 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
                   placeholder="Erzähl etwas über dich…" rows={4} maxLength={200} />
               </FieldGroup>
 
-              <FieldGroup label="Fokus / Bereich">
-                <TagSelect
-                  options={FOCUS_TYPES}
-                  selected={Array.isArray(focusType) ? focusType : (focusType ? [focusType] : [])}
-                  onToggle={v => {
-                    const cur = Array.isArray(focusType) ? focusType : (focusType ? [focusType] : []);
-                    setFocusType(cur.includes(v) ? cur.filter(x => x !== v) : [...cur, v]);
-                  }}
-                />
-              </FieldGroup>
+              {/* "Fokus / Bereich" entfernt 2026-08-06 — profiles.focus_type ist
+                  live die Sichtbarkeits-Einstellung (Sprint F.9G.1), keine Kategorie
+                  mehr. Speichern hier hätte die Sichtbarkeit überschrieben. */}
 
               <FieldGroup label="Standort">
                 {/* GPS-Button + Autocomplete */}
@@ -402,12 +389,9 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
                   placeholder="https://deine-website.de" icon={<HUILinkIcon size={15}/>} maxLength={200} />
               </FieldGroup>
 
-              <FieldGroup label="Skills (max. 10)">
-                <TagSelect
-                  options={SKILLS_OPTS} selected={skills}
-                  onToggle={v => toggleArr(skills, setSkills, v, 10)}
-                />
-              </FieldGroup>
+              {/* "Skills" (Basis) entfernt 2026-08-06 — profiles.skills ist live
+                  die "Interessen & Werte"-Sektion (InteressenSection.jsx). Bearbeitung
+                  dort im eigenen Profil, nicht hier. */}
 
               <FieldGroup label="Verfügbarkeit">
                 <ToggleSwitch
@@ -420,75 +404,34 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
             </div>
           )}
 
-          {/* ══ TAB: TALENT-PROFIL ══ (inkl. Kontakt oben) */}
+          {/* ══ TAB: TALENT-PROFIL ══ — nur echte, kollisionsfreie profiles-Spalten.
+              Kategorien / Professionelle Skills / Standort / Angebotsradius /
+              Verfügbarkeit(Talent) wurden entfernt: sie haben bereits eigene, live
+              funktionierende Editoren auf dem Talent-Profil selbst (siehe Kopf-
+              Kommentar) — hier hätten sie diese stillschweigend überschrieben. */}
           {tab === "talent" && isTalent && (
             <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
 
               <div style={{ height:1, background:T.border, margin:"4px 0" }}/>
+
+              <InfoBox>
+                Kategorien, Skills, Standort und Verfügbarkeit für dein Talent
+                bearbeitest du direkt auf deinem Talent-Profil.
+              </InfoBox>
 
               <FieldGroup label="Talent-Bezeichnung (Berufsfeld)">
                 <Input value={talentTitle} onChange={setTalentTitle}
                   placeholder="z.B. Fotograf, Musiker, Coach" maxLength={80} />
               </FieldGroup>
 
-              <FieldGroup label="Talent-Slogan">
-                <Input value={talentTagline} onChange={setTalentTagline}
-                  placeholder="Dein professioneller Kurzslogan" maxLength={120} />
-              </FieldGroup>
-
-              <FieldGroup label="Kategorien (max. 5)">
-                <TagSelect
-                  options={CATEGORIES} selected={talentCats}
-                  onToggle={v => toggleArr(talentCats, setTalentCats, v, 5)}
-                />
-              </FieldGroup>
-
-              <FieldGroup label="Professionelle Skills (max. 10)">
-                <TagSelect
-                  options={SKILLS_OPTS} selected={talentSkills}
-                  onToggle={v => toggleArr(talentSkills, setTalentSkills, v, 10)}
-                />
-              </FieldGroup>
-
-              <FieldGroup label="Standort (Talent)">
-                <Input value={talentLocation} onChange={setTalentLocation}
-                  placeholder="Stadt oder Region" icon={<HUILocationIcon size={15}/>} maxLength={80} />
-              </FieldGroup>
-
-              <FieldGroup label="Mein Angebotsradius">
-                <div style={{ fontSize:12.5, color:T.inkSoft, marginBottom:8, lineHeight:1.4 }}>
-                  Lege fest, in welchem Umkreis dein Talent für andere Nutzer sichtbar sein soll.
-                  Nur Nutzer innerhalb dieses Umkreises können dein Talent finden.
-                </div>
-                <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
-                  {RADIUS_OPTIONS.map(stage => (
-                    <button key={stage} type="button"
-                      onClick={() => setTalentRadius(stage)}
-                      style={{
-                        padding:"7px 13px", borderRadius:T.r99, fontSize:13, fontWeight:600,
-                        cursor:"pointer",
-                        border: talentRadius === stage ? "none" : `1px solid ${T.border}`,
-                        background: talentRadius === stage ? T.teal : "none",
-                        color: talentRadius === stage ? "#fff" : T.inkSoft,
-                        whiteSpace:"nowrap",
-                      }}>
-                      {radiusLabel(stage)}
-                    </button>
-                  ))}
-                </div>
+              <FieldGroup label="Talent-Kurzbeschreibung">
+                <Input value={talentDescription} onChange={setTalentDescription}
+                  placeholder="Was macht dich aus? Was bietest du an?" maxLength={120} />
               </FieldGroup>
 
               <FieldGroup label="Stundensatz (€)">
                 <Input value={talentRate} onChange={setTalentRate}
                   placeholder="z.B. 120" type="number" icon={<HUIEuroIcon size={15}/>} />
-              </FieldGroup>
-
-              <FieldGroup label="Verfügbarkeit (Talent)">
-                <ToggleSwitch
-                  value={talentAvail} onChange={setTalentAvail}
-                  labelOn="Für Buchungen verfügbar"
-                  labelOff="Aktuell nicht buchbar"
-                />
               </FieldGroup>
 
             </div>
@@ -616,29 +559,6 @@ function Textarea({ value, onChange, placeholder, rows, maxLength }) {
         background:T.bgCard, lineHeight:1.6,
       }}
     />
-  );
-}
-
-function TagSelect({ options, selected, onToggle, single }) {
-  return (
-    <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
-      {options.map(opt => {
-        const active = selected.includes(opt);
-        return (
-          <button key={opt} onClick={() => onToggle(opt)} style={{
-            padding:"5px 12px", borderRadius:T.r99, fontFamily:T.ff,
-            border: active ? `1.5px solid ${T.teal}` : `1px solid ${T.border}`,
-            background: active ? T.tealSoft : T.bgCard,
-            color: active ? T.teal : T.inkSoft,
-            fontSize:12, fontWeight: active ? 700 : 500,
-            cursor:"pointer", transition:"all .12s",
-            WebkitTapHighlightColor:"transparent",
-          }}>
-            {opt}
-          </button>
-        );
-      })}
-    </div>
   );
 }
 
