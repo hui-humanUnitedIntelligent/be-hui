@@ -983,10 +983,10 @@
   padding: 2px 16px 2px !important;
 }
 
-/* FeedWelcomeHeader (Mobile-Begrüßung): ausgeblendet — Desktop hat eigene Begrüßung */
-#web-root .hui-feed > div > div:first-child {
-  display: none !important;
-}
+/* FeedWelcomeHeader (Mobile-Begrüßung): bereits via skipWelcome={true} verhindert.
+   Die frühere display:none-Regel war zu breit und hat bei leerer FeedEventsSection
+   versehentlich die gesamte FeedList versteckt (Firefox: Race Condition, wenn
+   Events-Query leer/langsamer als Feed-Queries). Entfernt — skipWelcome reicht. */
 
 /* ═══ FLYOUT / BACKDROP (shared) ══════════════════════════════════════════════ */
 #web-root .fly-backdrop {
