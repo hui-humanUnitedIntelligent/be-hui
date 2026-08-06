@@ -53,11 +53,11 @@ export function ContentPreviewProvider({ children }) {
   }, []);
 
     const close = useCallback(() => setItem(null), []);
+  const openTalentBooking = useCallback((raw) => setTalentBooking(raw), []);
+  const closeTalentBooking = useCallback(() => setTalentBooking(null), []);
   // Back-Button: Content-Preview registrieren
   useModalRegistration(!!item, close, "ContentPreview");
   useModalRegistration(!!talentBooking, closeTalentBooking, "TalentBooking-Flow");
-  const openTalentBooking = useCallback((raw) => setTalentBooking(raw), []);
-  const closeTalentBooking = useCallback(() => setTalentBooking(null), []);
 
   // onOpenPost: nur von PostFullscreenView genutzt, um innerhalb der
   // Fullscreen-Ansicht direkt zu "Weitere Beitraege dieses Wirkers" zu
