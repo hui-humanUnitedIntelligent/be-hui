@@ -19,13 +19,13 @@ import {
 import { NAV_RESERVED_HEIGHT_CSS, NAV_CLEARANCE_CSS } from "../components/home/navigation/navigationGeometry.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
 import { useHome }   from "../components/home/HomeShell.jsx";
-const GemeinschaftsFlow = React.lazy(() => import("../components/GemeinschaftsFlow.jsx").catch(makeChunkReload("MyBasisProfile:GemeinschaftsFlow")));
-const NotificationPanel = React.lazy(() => import("../components/notifications/NotificationPanel.jsx").catch(makeChunkReload("MyBasisProfile:NotificationPanel")));
-const AmbassadorModal = React.lazy(() => import("../components/ambassador/AmbassadorModal.jsx").catch(makeChunkReload("MyBasisProfile:AmbassadorModal")));
+// GemeinschaftsFlow direkt importiert (kein lazy/Suspense — verhindert Klick-ohne-Reaktion-Bug)
+// NotificationPanel direkt importiert (kein lazy/Suspense)
+// AmbassadorModal direkt importiert (kein lazy/Suspense)
 import SettingsModal from "../components/settings/SettingsModal.jsx";
 import { useAmbassador } from "../hooks/useAmbassador.js";
 import { useProfileData } from "../hooks/useProfileData.js";
-const HuiStudio = React.lazy(() => import("../components/studio/HuiStudio.jsx").catch(makeChunkReload("MyBasisProfile:HuiStudio")));
+// HuiStudio direkt importiert (kein lazy/Suspense)
 import MeineResonanz from "./studio/MeineResonanz.jsx";
 const PublicProfilePreview = React.lazy(() => import("../components/profile/PublicProfilePreview.jsx").catch(makeChunkReload("MyBasisProfile:PublicProfilePreview")));
 const OrbSignatur = React.lazy(() => import("../components/profile/OrbSignatur.jsx").then(m => ({ default: m.OrbSignatur })).catch(makeChunkReload("MyBasisProfile:OrbSignatur")));
@@ -66,12 +66,17 @@ import {
 } from "../design/icons/HuiSystemIcons.jsx";
 import { HUILogo } from '../components/brand/HUILogo.jsx';
 import { useContentPreview } from "../context/ContentPreviewContext.jsx";
-const AmbassadorStudioSection = React.lazy(() => import("../components/ambassador/AmbassadorStudioSection.jsx").catch(makeChunkReload("MyBasisProfile:AmbassadorStudioSection")));
+// AmbassadorStudioSection direkt importiert (kein lazy/Suspense)
 import HuiMomentSheet from "../components/HuiMomentSheet.jsx";
 import MyRecommendationsModal from "../components/studio/MyRecommendationsModal.jsx";
 import ImpactStimmenModal from "../components/studio/ImpactStimmenModal.jsx";
 import MeineProjekteModal from "../components/studio/MeineProjekteModal.jsx";
 import TalentOnboarding from "../components/TalentOnboarding.jsx";
+import GemeinschaftsFlow from "../components/GemeinschaftsFlow.jsx";
+import NotificationPanel from "../components/notifications/NotificationPanel.jsx";
+import AmbassadorModal from "../components/ambassador/AmbassadorModal.jsx";
+import HuiStudio from "../components/studio/HuiStudio.jsx";
+import AmbassadorStudioSection from "../components/ambassador/AmbassadorStudioSection.jsx";
 import ImpactUpdateSheet from "../components/studio/ImpactUpdateSheet.jsx";
 // FinanzuebersichtModal — ersetzt 4 separate Finanz-Modals (eager, kein Lazy-Bug)
 import FinanzuebersichtModal from "../components/studio/FinanzuebersichtModal.jsx";
@@ -1247,7 +1252,7 @@ const handleNotifAction = (n) => {
             </div>
             {/* AmbassadorStudioSection direkt — kein lazy/Suspense nötig */}
             <AmbassadorErrorBoundary>
-        <Suspense fallback={null}><AmbassadorStudioSection profile={profile} /></Suspense>
+        <AmbassadorStudioSection profile={profile} />
         </AmbassadorErrorBoundary>
           </div>
         </div>,
@@ -1256,7 +1261,6 @@ const handleNotifAction = (n) => {
 
       {/* GEMEINSCHAFT FLOW MODAL */}
       {showGemeinschaft && (
-        <Suspense fallback={null}>
         <GemeinschaftsFlow
           onClose={() => setShowGemeinschaft(false)}
           onComplete={() => {
@@ -1266,7 +1270,6 @@ const handleNotifAction = (n) => {
             reload();
           }}
         />
-        </Suspense>
       )}
 
       {/* SETTINGS MODAL — eigenes Suspense, damit die Seite beim Laden nicht blank geht */}
@@ -1360,7 +1363,6 @@ const handleNotifAction = (n) => {
 
       {/* HUI STUDIO MODAL */}
       {showStudio && (
-        <Suspense fallback={null}>
         <HuiStudio
           profile={profile}
           onClose={() => setShowStudio(false)}
@@ -1371,7 +1373,6 @@ const handleNotifAction = (n) => {
             reload();
           }}
         />
-        </Suspense>
       )}
 
       {/* ❤️ MEINE RESONANZ */}
@@ -1386,7 +1387,6 @@ const handleNotifAction = (n) => {
 
       {/* AMBASSADOR BEWERBUNGS-MODAL */}
       {showAmbModal && profile?.id && (
-        <Suspense fallback={null}>
         <AmbassadorModal
             userId={profile.id}
             onClose={() => setShowAmbModal(false)}
@@ -1395,19 +1395,16 @@ const handleNotifAction = (n) => {
               refreshProfile?.().catch(() => {});
             }}
           />
-        </Suspense>
         )}
 
       {/* NOTIFICATION PANEL */}
       {showNotifications && profile?.id && (
-        <Suspense fallback={null}>
         <NotificationPanel
           userId={profile.id}
           onClose={() => setShowNotifications(false)}
           onUnreadChange={setUnreadCount}
           onAction={handleNotifAction}
         />
-        </Suspense>
       )}
 
 
@@ -2331,7 +2328,7 @@ function MeinBereichMenu({
       {/* ── Ambassador-Bereich ───────────────────────────────── */}
       {activeDrawer === "ambassador" && (
         <MeinBereichDrawer title="Ambassador-Bereich" icon={<HUIAmbassadorIcon size={18}/>} subtitle="Dein Ambassador-Programm und Provisionen." onClose={close} footer={false}>
-          <Suspense fallback={null}><AmbassadorStudioSection profile={profile} /></Suspense>
+          <AmbassadorStudioSection profile={profile} />
         </MeinBereichDrawer>
       )}
 
@@ -3302,16 +3299,8 @@ function TalentWerdenBanner({ onStart = () => {} }) {
           pointerEvents: 'none',
         }}/>
 
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, position: 'relative' }}>
-          {/* Icon */}
-          <div style={{
-            width: 46, height: 46, borderRadius: 14, flexShrink: 0,
-            background: 'linear-gradient(135deg, #FF8A6B, #FF6B47)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 22, boxShadow: '0 4px 14px rgba(255,138,107,0.30)',
-          }}>✦</div>
-
-          <div style={{ flex: 1 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', position: 'relative' }}>
+          <div style={{ width: '100%' }}>
             <div style={{
               fontSize: 11, fontWeight: 700, color: '#FF8A6B',
               textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4,
@@ -3333,13 +3322,13 @@ function TalentWerdenBanner({ onStart = () => {} }) {
             </div>
 
             {/* Feature-Punkte */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 18 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, marginBottom: 18 }}>
               {[
                 { icon: '🎯', text: 'Eigenes Talent-Profil erstellen' },
                 { icon: '💼', text: 'Dienstleistungen & Angebote anbieten' },
                 { icon: '💰', text: '80% der Einnahmen direkt erhalten' },
               ].map(item => (
-                <div key={item.text} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'rgba(26,26,24,0.72)' }}>
+                <div key={item.text} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 13, color: 'rgba(26,26,24,0.72)' }}>
                   <span style={{ fontSize: 15 }}>{item.icon}</span>
                   {item.text}
                 </div>

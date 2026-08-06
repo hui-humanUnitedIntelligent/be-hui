@@ -23,8 +23,8 @@ import { supabase } from "../lib/supabaseClient.js";
 import { useAuth }  from "../lib/AuthContext.jsx";
 import { notifyWatcher } from "../lib/notificationService.js";
 import { useHome }       from "../components/home/HomeShell.jsx";
-const SettingsModal = React.lazy(() => import("../components/settings/SettingsModal.jsx").catch(makeChunkReload("TalentProfilePage:SettingsModal")));
-const HuiStudio = React.lazy(() => import("../components/studio/HuiStudio.jsx").catch(makeChunkReload("TalentProfilePage:HuiStudio")));
+// SettingsModal direkt importiert (kein lazy/Suspense — verhindert Blank-Page/Klick-Bug)
+// HuiStudio direkt importiert (kein lazy/Suspense)
 // Shared loading spinner for wizard Suspense fallbacks
 const WIZARD_LOADING = (
   <div style={{position:"fixed",inset:0,zIndex:10500,background:"rgba(26,26,24,0.5)",display:"flex",alignItems:"center",justifyContent:"center"}}>
@@ -33,6 +33,8 @@ const WIZARD_LOADING = (
 );
 
 import WerkWizard from "../components/works/WerkWizard.jsx";
+import SettingsModal from "../components/settings/SettingsModal.jsx";
+import HuiStudio from "../components/studio/HuiStudio.jsx";
 import ExperienceWizard from "../components/experiences/ExperienceWizard.jsx";
 import ProfilBearbeitenModal from "../components/studio/ProfilBearbeitenModal.jsx";
 // Sprint D: Datenlayer

@@ -25,8 +25,8 @@ import { useProfileData } from "../hooks/useProfileData.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
 import { useHome }   from "../components/home/HomeShell.jsx";
 import ProfileRelationButtons from "../components/shared/ProfileRelationButtons.jsx";
-const SettingsModal = React.lazy(() => import("../components/settings/SettingsModal.jsx").catch(makeChunkReload("BasisProfilePage:SettingsModal")));
-const HuiStudio = React.lazy(() => import("../components/studio/HuiStudio.jsx").catch(makeChunkReload("BasisProfilePage:HuiStudio")));
+// SettingsModal direkt importiert (kein lazy/Suspense — verhindert Blank-Page/Klick-Bug)
+// HuiStudio direkt importiert (kein lazy/Suspense)
 import { supabase }   from "../lib/supabaseClient.js";
 // Sprint F.5.3: kanonische Sections
 import { AboutSection }           from "../components/profile/sections/AboutSection.jsx";
@@ -38,6 +38,8 @@ import { RecommendationsSection } from "../components/profile/sections/Recommend
 import { ProfileHeader as CanonicalProfileHeader } from "../components/profile/ProfileHeader.jsx";
 // OrbSignatur lazy — verhindert Blockierung des BasisProfilePage-Renders (89K-Chunk)
 import { OrbSignatur } from "../components/profile/OrbSignatur.jsx";
+import SettingsModal from "../components/settings/SettingsModal.jsx";
+import HuiStudio from "../components/studio/HuiStudio.jsx";
 
 // ── Tokens ───────────────────────────────────────────────────────
 const T = {
