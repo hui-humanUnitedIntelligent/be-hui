@@ -34,7 +34,21 @@ export async function createNotification({
   if (recipientId === senderId) return null;
 
   try {
-    const { data, error } = await supabase
+    // NOTIF-403-FIX (2026-08-06): KEIN .select() nach dem Insert!
+    // RLS-Policy 'notifications_owner_select' erlaubt SELECT nur dem
+    // Empfänger (auth.uid() = user_id). Ein Insert mit angehängtem
+    // .select() lässt PostgREST intern ein "INSERT ... RETURNING"
+    // ausführen, das derselben SELECT-RLS-Prüfung unterliegt — der
+    // sendende Nutzer (z.B. Basis-User beim Liken) ist aber NICHT der
+    // Empfänger und bekam dadurch systemweit ein 403 (Forbidden) auf
+    // JEDE Notification an einen anderen Nutzer (Like/Inspire/Save/
+    // Follow/Comment/Share usw.), sichtbar in der Konsole (F12).
+    // Verifiziert direkt gegen die Produktions-DB (pg_policies).
+    // Der Insert selbst war durch 'notifications_sender_insert'
+    // (sender_id = auth.uid() OR sender_id IS NULL) immer erlaubt —
+    // nur das Zurücklesen der ID war das Problem. Die ID wird von
+    // keinem Aufrufer benötigt (siehe Grep-Check vor diesem Fix).
+    const { error } = await supabase
       .from("notifications")
       .insert({
         user_id:     recipientId,
@@ -49,16 +63,14 @@ export async function createNotification({
         read:        false,
         is_read:     false,
         created_at:  new Date().toISOString(),
-      })
-      .select("id")
-      .single();
+      });
 
     if (error) {
       console.warn("[HUI_NOTIF] INSERT failed:", error.code, error.message);
       return null;
     }
-    console.log("[HUI_REALITY] notification created ✓", { type, recipientId: recipientId.slice(0,8)+"…", id: data?.id });
-    return data;
+    console.log("[HUI_REALITY] notification created ✓", { type, recipientId: recipientId.slice(0,8)+"…" });
+    return true;
   } catch(err) {
     console.warn("[HUI_NOTIF] Exception:", err?.message);
     return null;
