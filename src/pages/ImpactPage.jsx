@@ -589,6 +589,10 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
   const displayMediaUrls = freshMediaUrls !== null ? freshMediaUrls : app.media_urls;
   const fundPct = goalFromDb > 0 ? Math.min(100, Math.round(fundedEur / goalFromDb * 100)) : 0;
 
+  // ── Back-Button: Detail-Overlays innerhalb ApprovedProjectDetail registrieren ──
+  useModalRegistration(!!detailMilestone, () => setDetailMilestone(null), "ApprovedProjectDetail-DetailMilestone");
+  useModalRegistration(showUpdateSheet, () => setShowUpdateSheet(false), "ApprovedProjectDetail-UpdateSheet");
+
   const img = app.cover_url
     || (app.media_urls && app.media_urls[0])
     || "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=90";
@@ -1414,8 +1418,6 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
 
   // ── Back-Button: Impact-Detail-Overlays registrieren ──
   useModalRegistration(!!detailApp, () => setDetailApp(null), "ImpactPage-DetailApp");
-  useModalRegistration(!!detailMilestone, () => setDetailMilestone(null), "ImpactPage-DetailMilestone");
-  useModalRegistration(showUpdateSheet, () => setShowUpdateSheet(false), "ImpactPage-UpdateSheet");
   // Flag: wurde Detail per Deep-Link (aus Discover) geöffnet?
   // → onClose navigiert dann zurück zu "/" statt nur Modal schließen
   const _openedViaDeepLink = React.useRef(false);
