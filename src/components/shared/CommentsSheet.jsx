@@ -45,8 +45,8 @@ const CSS = `
   @keyframes cs-overlay-in { from{opacity:0} to{opacity:1} }
   @keyframes cs-sheet-in   { from{transform:translateY(100%)} to{transform:translateY(0)} }
   @keyframes cs-pop        { 0%{transform:scale(.92);opacity:0} 100%{transform:scale(1);opacity:1} }
-  .cs-overlay { animation: cs-overlay-in 200ms ease; }
-  .cs-sheet   { animation: cs-sheet-in 240ms cubic-bezier(.22,1,.36,1); }
+  .cs-overlay { animation: cs-overlay-in 0ms ease; }
+  .cs-sheet   { animation: cs-sheet-in 0ms cubic-bezier(.22,1,.36,1); }
   .cs-pop     { animation: cs-pop 260ms cubic-bezier(.22,1,.36,1); }
   .cs-btn { cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent;
     border:none; background:none; font-family:inherit; transition:opacity .14s, transform .14s; }
@@ -571,11 +571,11 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
     >
       <style>{CSS}</style>
       <div className="cs-overlay" onClick={onClose} style={{
-        position:"absolute", inset:0, background:T.overlay, backdropFilter:"blur(6px)", WebkitBackdropFilter:"blur(6px)",
+        position:"absolute", inset:0, background:T.overlay,
       }}/>
       <div className="cs-sheet" style={{
         position:"absolute", left:0, right:0, bottom:0, maxHeight:"86vh",
-        background:"rgba(252,253,252,0.92)", backdropFilter:"blur(20px)", WebkitBackdropFilter:"blur(20px)",
+        background:"rgba(252,253,252,0.96)",
         borderTopLeftRadius:28, borderTopRightRadius:28,
         boxShadow:"0 -12px 48px rgba(26,26,46,0.22)",
         display:"flex", flexDirection:"column", overflow:"hidden",
