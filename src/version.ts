@@ -2,11 +2,11 @@
 // src/version.ts — Zentrale App-Versions-Quelle (SSOT)
 // ══════════════════════════════════════════════════════════
 // Liest die Version DYNAMISCH aus package.json zur Build-Zeit.
-// Keine hardcodierte Version mehr — Vite resolved den Import
-// beim Bauen automatisch.
+// Vite resolved den Import beim Bauen automatisch.
 //
-// version.sh setzt nur noch build.gradle + package.json.
-// version.ts folgt automatisch — kein manuelles Schreiben nötig.
+// package.json = einzige Quelle der Wahrheit.
+// version.sh / release.sh synct build.gradle + strings.xml.
+// version.ts braucht NICHT manuell aktualisiert zu werden.
 // ══════════════════════════════════════════════════════════
 
 import { version } from '../package.json';
@@ -14,7 +14,7 @@ import { version } from '../package.json';
 export const APP_VERSION: string = version;
 
 /**
- * Android versionCode — wird aus build.gradle von version.sh gesetzt.
+ * Android versionCode — wird von release.sh aus build.gradle synchronisiert.
  * Im Web-Kontext irrelevant, aber für Capacitor/Android-Sync.
  */
 export const APP_VERSION_CODE: number = 2;

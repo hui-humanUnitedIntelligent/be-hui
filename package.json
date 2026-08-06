@@ -11,7 +11,11 @@
     "android": "cap open android",
     "bump": "node ./scripts/bump-version.js",
     "postversion": "bash scripts/sync-version.sh",
-    "sync-version": "bash scripts/version.sh sync"
+    "sync-version": "bash scripts/version.sh sync",
+    "release": "bash release.sh",
+    "release:patch": "bash release.sh patch",
+    "release:minor": "bash release.sh minor",
+    "release:major": "bash release.sh major"
   },
   "dependencies": {
     "@capacitor/android": "^6.2.1",
