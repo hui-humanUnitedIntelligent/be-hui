@@ -1280,7 +1280,7 @@
 #web-root .chat-input-row {
   display: flex;
   gap: 10px;
-  padding: 18px 24px calc(20px + env(safe-area-inset-bottom, 0px));
+  padding: 18px 24px 20px;
   border-top: 1px solid var(--v3-border);
   flex-shrink: 0;
   background: var(--v3-surface);
