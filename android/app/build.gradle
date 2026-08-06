@@ -12,15 +12,28 @@ android {
         versionName "1.4.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
-             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
-             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+            // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+
+    // ── Signing Config für Release-Builds ────────────────────────────────────
+    // release.keystore muss in android/app/ liegen (wird nicht committed)
+    signingConfigs {
+        release {
+            storeFile file("release.keystore")
+            storePassword "MEIN_PASSWORT"
+            keyAlias "hui-release-key"
+            keyPassword "MEIN_PASSWORT"
         }
     }
 
     buildTypes {
         release {
+            signingConfig signingConfigs.release
             minifyEnabled false
+            shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
@@ -35,7 +48,7 @@ android {
         abortOnError false
     }
 
-    // Java 17 Kompatibilität (auch in capacitor.build.gradle, aber hier explizit für Klarheit)
+    // Java 17 Kompatibilität
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
@@ -43,7 +56,7 @@ android {
 }
 
 repositories {
-    flatDir{
+    flatDir {
         dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
     }
 }
@@ -60,15 +73,15 @@ dependencies {
     implementation project(':capacitor-cordova-android-plugins')
 }
 
+// Capacitor build.gradle (Plugin-Registrierungen, native Module)
 apply from: 'capacitor.build.gradle'
 
-// Google Services Plugin (Firebase Cloud Messaging)
-// Wird nur angewendet wenn google-services.json existiert und Inhalt hat
+// Firebase google-services Plugin — nur laden wenn google-services.json existiert und Inhalt hat
 try {
     def servicesJSON = file('google-services.json')
     if (servicesJSON.text) {
         apply plugin: 'com.google.gms.google-services'
     }
-} catch(Exception e) {
+} catch (Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
 }
