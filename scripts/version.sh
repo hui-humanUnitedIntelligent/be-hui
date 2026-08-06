@@ -10,12 +10,13 @@
 #   bash scripts/version.sh 1.0.5           → Manuelle Version
 #   bash scripts/version.sh 1.0.5 7         → Manuelle Version + versionCode
 #
-# Windows-kompatibel: NUR relative Pfade, KEINE absoluten Pfade an Node.
+# Windows-kompatibel: NUR relative Pfade, KEINE require() für JSON.
+# Node v24-kompatibel: fs.readFileSync + JSON.parse statt require().
 # =============================================================================
 
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/.."
 cd "$ROOT_DIR"
 
 BUILD_GRADLE="android/app/build.gradle"
@@ -29,9 +30,14 @@ error()   { echo -e "${RED}[VERSION]${NC} ❌ $*"; exit 1; }
 [[ -f "$BUILD_GRADLE" ]] || error "build.gradle nicht gefunden"
 [[ -f "package.json" ]] || error "package.json nicht gefunden"
 
-# ── Hilfsfunktionen (ALLE mit relativen Pfaden) ──────────────────────────────
-get_version()  { node -p "require('./package.json').version"; }
-get_code()     { grep -oP 'versionCode\s+\K[0-9]+' "$BUILD_GRADLE" || echo "1"; }
+# ── Hilfsfunktionen ──────────────────────────────────────────────────────────
+# Node v24-kompatibel: KEIN require() für JSON — fs.readFileSync + JSON.parse
+get_version() {
+  node -p "JSON.parse(require('fs').readFileSync('./package.json','utf8')).version"
+}
+get_code() {
+  grep -oP 'versionCode\s+\K[0-9]+' "$BUILD_GRADLE" || echo "1"
+}
 
 validate_version() {
   local v="$1"
