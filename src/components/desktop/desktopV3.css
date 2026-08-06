@@ -939,15 +939,17 @@
   margin: 0;
 }
 
-/* ── Desktop Feed Overrides (Mobile-Karten für Desktop neu komponiert) ──────── */
-#web-root .hui-feed > * { margin-bottom: 20px; }
+/* ── Desktop Feed Overrides (Feed UX Redesign 2026-08-06) ─────────────────── */
+/* Mehr Weißraum, ruhigeres Layout, harmonischere Proportionen          */
+/* Medien sind der Mittelpunkt — Header kompakter, Actions näher am Bild */
+#web-root .hui-feed > * { margin-bottom: 24px; }
 
-/* Feed-Karten: breiter, mehr Luft, Hover-Lift */
+/* Feed-Karten: breiter, mehr Luft, dezenter Hover-Lift */
 #web-root .hui-feed article {
   border-radius: var(--v3-radius-lg) !important;
   margin-left: 0 !important;
   margin-right: 0 !important;
-  margin-bottom: 20px !important;
+  margin-bottom: 24px !important;
   box-shadow: var(--v3-shadow-md) !important;
   border: 1px solid var(--v3-border) !important;
   transition: box-shadow var(--v3-anim-normal) var(--v3-anim-ease),
@@ -955,20 +957,30 @@
 }
 #web-root .hui-feed article:hover {
   box-shadow: var(--v3-shadow-hover) !important;
-  transform: translateY(-3px) !important;
+  transform: translateY(-2px) !important;
 }
 
-/* Feed-Karten Bilder: größer, atmosphärischer */
+/* Feed-Karten Bilder: sanfter Hover, subtiler Scale */
 #web-root .hui-feed article img {
   transition: transform var(--v3-anim-slow) var(--v3-anim-ease) !important;
 }
 #web-root .hui-feed article:hover img {
-  transform: scale(1.02) !important;
+  transform: scale(1.015) !important;
 }
 
-/* Feed-Karten Innenabstand: mehr Raum zum Atmen */
+/* Feed-Karten Header: kompakter auf Desktop */
 #web-root .hui-feed article > div:first-child {
-  padding: 16px 20px !important;
+  padding: 12px 20px 0 !important;
+}
+
+/* Feed-Karten Content-Bereich: großzügiger Seitenabstand */
+#web-root .hui-feed article > div:nth-child(3) > div:first-child {
+  padding: 0 20px 6px !important;
+}
+
+/* Feed-Karten Action-Bar: näher am Bild, flacher */
+#web-root .hui-feed article > div:last-child > div:first-child {
+  padding: 2px 16px 2px !important;
 }
 
 /* FeedWelcomeHeader (Mobile-Begrüßung): ausgeblendet — Desktop hat eigene Begrüßung */

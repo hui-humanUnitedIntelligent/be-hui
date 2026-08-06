@@ -7,7 +7,7 @@
  * Karte anklicken → ContentPreviewSheet → "Zum Herzensprojekt" → Impact-Tab
  */
 import React, { useState, useMemo } from "react";
-import BaseFeedCard from "./BaseFeedCard.jsx";
+import BaseFeedCard, { getAdaptiveMediaHeight } from "./BaseFeedCard.jsx";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
 
 const GREEN      = "rgba(34,197,94,1)";
@@ -46,6 +46,24 @@ function ProgressBar({ current, goal }) {
 
 export default function ImpactContent({ item, onProfile, onReaction, onShare }) {
   if (!item) return null;
+
+  // ── Adaptive Media Height (Feed UX Redesign 2026-08-06) ──
+  const _containerRef = React.useRef(null);
+  const [_aspect, _setAspect] = React.useState(null);
+  const [_containerW, _setContainerW] = React.useState(0);
+
+  React.useEffect(() => {
+    if (!_containerRef.current) return;
+    const update = () => {
+      if (_containerRef.current) _setContainerW(_containerRef.current.offsetWidth);
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(_containerRef.current);
+    return () => ro.disconnect();
+  }, []);
+
+  const _adaptiveH = getAdaptiveMediaHeight(_aspect, _containerW, false);
 
   const raw   = item._raw || {};
   const title = item.title || raw.project_name || raw.name || "";
@@ -100,10 +118,10 @@ export default function ImpactContent({ item, onProfile, onReaction, onShare }) 
       {/* IMPACT-IMG-UNIFORM-004 (2026-07-19): Bildcontainer exakt identisch zu FeedMedia.
            FeedMedia: margin:"14px 16px 0", height:220, borderRadius:14, objectFit:cover.
            Kein calc/negMargin — direkte Margin-Angleichung. */}
-      <div style={{
-        margin: "14px 16px 12px",    /* identisch zu FeedMedia: 14px top, 16px links+rechts */
-        height: 220,                 /* T.mediaH — identisch zu FeedMedia */
-        borderRadius: 14,            /* T.rMedia — identisch zu FeedMedia */
+      <div ref={_containerRef} style={{
+        margin: "10px 16px 12px",
+        height: _adaptiveH,
+        borderRadius: 14,
         overflow: "hidden", position: "relative",
         background: "#F0EFED",
         boxShadow: "0 4px 20px rgba(26,26,46,0.08)",
@@ -119,6 +137,12 @@ export default function ImpactContent({ item, onProfile, onReaction, onShare }) 
           src={displayImg}
           alt={title || "Herzensprojekt"}
           style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}
+          onLoad={(e) => {
+            const img = e.target;
+            if (img.naturalWidth && img.naturalHeight) {
+              _setAspect(img.naturalWidth / img.naturalHeight);
+            }
+          }}
           onError={() => { if (!imgErr) setImgErr(true); }}
         />
         {/* Rang-Badge oben links auf dem Bild */}

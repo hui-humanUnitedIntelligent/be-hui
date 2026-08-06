@@ -5,7 +5,7 @@
 // Shimmer skeleton · Lazy image loading · Scale press states
 // GPU-accelerated animations via transform
 // ══════════════════════════════════════════════════════════════
-import React, { useState, useRef, useCallback, memo } from "react";
+import React, { useState, useRef, useCallback, useEffect, memo } from "react";
 import { PresenceDot } from "../../lib/usePresence.jsx";
 import { MembershipLabel } from "../../components/ui/TalentBadge.jsx";
 // HUI Interaction Language v1.0 (2026-07-05) — Single Source of Truth fuer
@@ -31,6 +31,43 @@ const T = {
   border:   "rgba(26,26,46,0.07)",
   r: 16, rMedia: 14, rAvatar: 99, p: 16, gap: 12, mediaH: 220,
 };
+
+// ── Adaptive Media Height (Feed UX Redesign 2026-08-06) ──────
+// Statt fester 220px für alle Bilder: Höhe orientiert sich am
+// natürlichen Seitenverhältnis. Querformat → moderat, Hochformat →
+// großzügig, Square → mittig. Min/Max-Caps verhindern Extreme.
+// object-fit: cover bleibt, aber durch die adaptive Höhe wird kaum
+// noch beschnitten — das Bild füllt den Container nahezu 1:1.
+//
+// ENTFERNUNG: Komplett in BaseFeedCard.jsx + ImpactContent.jsx.
+// Revert auf `const h = relaxed ? 340 : T.mediaH;` + height: 220.
+const MEDIA = {
+  placeholderH: 300,   // vor onLoad (Shimmer)
+  landscapeH:  360,    // Querformat (aspect >= 1.2)
+  squareH:     380,    // Square (0.85 ≤ aspect < 1.2)
+  portraitMax: 560,    // Hochformat cap (aspect < 0.85)
+  portraitMin: 380,    // Hochformat floor
+  relaxedBoost: 60,    // +60px wenn relaxed=true (zukünftig nutzbar)
+};
+
+export function getAdaptiveMediaHeight(aspect, containerWidth, relaxed) {
+  if (!aspect || !containerWidth) return MEDIA.placeholderH;
+  const boost = relaxed ? MEDIA.relaxedBoost : 0;
+
+  if (aspect >= 1.2) {
+    // Querformat: containerWidth / aspect → natürliche Höhe
+    const natural = containerWidth / aspect;
+    return Math.min(Math.max(natural, 260), MEDIA.landscapeH + boost);
+  }
+  if (aspect >= 0.85) {
+    // Square
+    const natural = containerWidth / aspect;
+    return Math.min(Math.max(natural, 320), MEDIA.squareH + boost);
+  }
+  // Hochformat: großzügig, aber gecapped
+  const natural = containerWidth / aspect;
+  return Math.min(Math.max(natural, MEDIA.portraitMin), MEDIA.portraitMax + boost);
+}
 
 // ── CSS injection (once) ──────────────────────────────────────
 const CARD_CSS = `
@@ -247,7 +284,7 @@ export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
     : (mType === "ambassador" ? "#F47355" : "rgba(26,26,46,0.52)");
 
   return (
-    <div style={{ padding: "14px 14px 0" }}>
+    <div style={{ padding: "12px 16px 0" }}>
 
       {/* Zeile 1: Avatar · Name+Talent+Ort · Zeit · ⋮ */}
       <div style={{ display:"flex", alignItems:"flex-start", gap:11 }}>
@@ -324,7 +361,7 @@ export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
 
       {/* Großes " + Story-Satz */}
       {grund && (
-        <div style={{ display:"flex", alignItems:"flex-start", gap:7, marginTop:11, marginBottom:12 }}>
+        <div style={{ display:"flex", alignItems:"flex-start", gap:7, marginTop:9, marginBottom:10 }}>
           <span style={{
             fontSize:30, fontWeight:900, color:"#F47355",
             lineHeight:0.7, flexShrink:0, marginTop:5,
@@ -427,12 +464,27 @@ export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge
 
 // ── Media (lazy + fade-in + double-tap like) ──────────────────
 export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDoubleTap }) {
-  const [err,     setErr]     = useState(false);
-  const [loaded,  setLoaded]  = useState(false);
-  const [heartPos,setHeartPos]= useState(null);
+  const [err,       setErr]      = useState(false);
+  const [loaded,    setLoaded]   = useState(false);
+  const [aspect,    setAspect]   = useState(null);
+  const [heartPos,  setHeartPos] = useState(null);
   const tapRef = useRef({ t: 0, x: 0, y: 0 });
+  const containerRef = useRef(null);
+  const [containerW, setContainerW] = useState(0);
 
   injectCardCSS();
+
+  // Container-Breite messen für adaptive Höhenberechnung
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const update = () => {
+      if (containerRef.current) setContainerW(containerRef.current.offsetWidth);
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(containerRef.current);
+    return () => ro.disconnect();
+  }, []);
 
   let url = null;
   let isVideo = false;
@@ -449,7 +501,7 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
 
   if (!url || err) return null;
 
-  const h = relaxed ? 340 : T.mediaH;
+  const h = getAdaptiveMediaHeight(aspect, containerW, relaxed);
 
   function handleTap(e) {
     const now = Date.now();
@@ -468,8 +520,9 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
 
   return (
     <div
+      ref={containerRef}
       style={{
-        margin: "14px " + T.p + "px 0",
+        margin: "10px " + T.p + "px 0",
         height: h, borderRadius: T.rMedia,
         overflow: "hidden", background: "#F0EFED",
         flexShrink: 0, position: "relative",
@@ -515,7 +568,13 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
           src={url}
           alt={alt || ""}
           loading="lazy"
-          onLoad={() => setLoaded(true)}
+          onLoad={(e) => {
+            const img = e.target;
+            if (img.naturalWidth && img.naturalHeight) {
+              setAspect(img.naturalWidth / img.naturalHeight);
+            }
+            setLoaded(true);
+          }}
           onError={() => setErr(true)}
           className="hui-card-img"
           style={{
@@ -712,7 +771,7 @@ export const FeedActions = memo(function FeedActions({
   return (
     <div style={{
       borderTop: "1px solid rgba(26,26,46,0.045)",
-      marginTop: 4,
+      marginTop: 0,
       background: T.bgCard,
       borderBottomLeftRadius: T.r,
       borderBottomRightRadius: T.r,
