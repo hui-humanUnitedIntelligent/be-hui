@@ -5,6 +5,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import BaseFeedCard, { ActionBtn } from "./BaseFeedCard.jsx";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
+import ReportReasonModal from "../../components/shared/ReportReasonModal.jsx";
 
 // ── Farben (identisch zu WorkContent / ExperienceContent) ────
 const TEAL       = "#0DC4B5";
@@ -88,6 +89,7 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
   const [reported,   setReported]   = useState(false);
   const [reporting,  setReporting]  = useState(false);
   const [reportDone, setReportDone] = useState(false);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
 
   // Prüfen ob dieser Nutzer den Moment bereits gemeldet hat
   useEffect(() => {
@@ -105,7 +107,7 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
     });
   }, [item?._raw?.id]);
 
-  const handleReport = useCallback(async () => {
+  const handleReport = useCallback(async (reason = "inappropriate") => {
     if (reported || reporting) return;
     const momentId = item?._raw?.id || item?.id;
     if (!momentId) return;
@@ -116,9 +118,11 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
       if (!user) throw new Error("not_authenticated");
 
       // 1) Meldung eintragen (UNIQUE constraint verhindert Doppelmeldung)
+      // MELDE-FLOW-002: reason kommt jetzt aus der Kategorie-Auswahl im
+      // ReportReasonModal statt hartkodiert "inappropriate".
       const { error: insertError } = await supabase
         .from("momente_reports")
-        .insert({ moment_id: momentId, reporter_id: user.id, reason: "inappropriate" });
+        .insert({ moment_id: momentId, reporter_id: user.id, reason });
 
       // 409 = bereits gemeldet — kein echter Fehler
       if (insertError && insertError.code !== "23505") throw insertError;
@@ -139,6 +143,7 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
 
       setReported(true);
       setReportDone(true);
+      setReportModalOpen(false);
       setTimeout(() => setReportDone(false), 2500);
     } catch (e) {
       console.warn("[MomentReport]", e);
@@ -158,7 +163,13 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
         inactiveColor={CORAL}
         variant="melden"
         disabled={reported || reporting}
-        onClick={handleReport}
+        onClick={() => setReportModalOpen(true)}
+      />
+      <ReportReasonModal
+        open={reportModalOpen}
+        onClose={() => setReportModalOpen(false)}
+        onSubmit={(reasonKey) => handleReport(reasonKey)}
+        submitting={reporting}
       />
       {reportDone && (
         <span style={{
