@@ -1,17 +1,20 @@
 #!/usr/bin/env bash
 # =============================================================================
-# scripts/version.sh — HUI Version Management + Auto-Increment
+# scripts/version.sh — HUI Version Management
 # =============================================================================
-# Usage:
-#   ./scripts/version.sh                 → Sync build.gradle → package.json
-#   ./scripts/version.sh bump            → Auto-increment patch (1.0.1 → 1.0.2)
-#   ./scripts/version.sh bump-minor      → Auto-increment minor (1.0.1 → 1.1.0)
-#   ./scripts/version.sh bump-major      → Auto-increment major (1.0.1 → 2.0.0)
-#   ./scripts/version.sh 1.0.5 6         → Manual set (version + code)
+# SSOT: package.json ist die einzige Quelle für die Version.
+# Dieses Script liest aus package.json und synct build.gradle + strings.xml.
 #
-# WICHTIG: version.ts wird NICHT mehr von diesem Script geschrieben.
+# Usage:
+#   ./scripts/version.sh                  → Sync build.gradle + strings.xml aus package.json
+#   ./scripts/version.sh patch            → patch bump (1.0.1 → 1.0.2)
+#   ./scripts/version.sh minor            → minor bump (1.0.1 → 1.1.0)
+#   ./scripts/version.sh major            → major bump (1.0.1 → 2.0.0)
+#   ./scripts/version.sh 1.0.5            → Manuelle Version setzen
+#   ./scripts/version.sh 1.0.5 7          → Manuelle Version + versionCode
+#
 # version.ts liest die Version dynamisch aus package.json zur Build-Zeit.
-# Dieses Script aktualisiert nur noch build.gradle + package.json.
+# Dieses Script schreibt NICHT in version.ts.
 # =============================================================================
 
 set -euo pipefail
@@ -21,6 +24,7 @@ ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 BUILD_GRADLE="${ROOT_DIR}/android/app/build.gradle"
 PACKAGE_JSON="${ROOT_DIR}/package.json"
+STRINGS_XML="${ROOT_DIR}/android/app/src/main/res/values/strings.xml"
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
 info()    { echo -e "${BLUE}[VERSION]${NC} $*"; }
@@ -31,60 +35,119 @@ error()   { echo -e "${RED}[VERSION]${NC} ❌ $*"; exit 1; }
 [[ -f "$BUILD_GRADLE" ]] || error "build.gradle nicht gefunden"
 [[ -f "$PACKAGE_JSON" ]] || error "package.json nicht gefunden"
 
-# ── Aktuelle Werte lesen ─────────────────────────────────────────────────────
-VERSION_NAME=$(grep -oP 'versionName\s*"\K[^"]+' "$BUILD_GRADLE")
-VERSION_CODE=$(grep -oP 'versionCode\s*\K[0-9]+' "$BUILD_GRADLE")
-[[ -n "$VERSION_CODE" ]] || VERSION_CODE=1
-
-# ── Auto-Increment Logik ─────────────────────────────────────────────────────
-increment_version() {
-  local mode="$1" v="$VERSION_NAME"
-  local major=$(echo "$v" | cut -d'.' -f1)
-  local minor=$(echo "$v" | cut -d'.' -f2)
-  local patch=$(echo "$v" | cut -d'.' -f3)
-  case "$mode" in
-    bump)      patch=$((patch + 1)) ;;
-    bump-minor) major=$((major + 1)); minor=0; patch=0 ;;
-    bump-major) major=$((major + 1)); minor=0; patch=0 ;;
-    *) error "Unbekannter bump-Modus: $mode" ;;
-  esac
-  VERSION_NAME="${major}.${minor}.${patch}"
-  VERSION_CODE=$((VERSION_CODE + 1))
+# ── Aktuelle Version aus package.json lesen (SSOT) ───────────────────────────
+read_current_version() {
+  node -p "require('$PACKAGE_JSON').version"
 }
 
-# ── Parameter auswerten ───────────────────────────────────────────────────────
-MODE="${1:-}"
-if [[ "$MODE" =~ ^bump|bump-minor|bump-major$ ]]; then
-  info "Auto-Increment ($MODE)…"
-  increment_version "$MODE"
-  success "Neue Version: $VERSION_NAME (Code $VERSION_CODE)"
-elif [[ -n "$MODE" ]]; then
-  VERSION_NAME="$MODE"
-  [[ -n "${2:-}" ]] && VERSION_CODE="$2"
-fi
+# ── Aktuellen versionCode aus build.gradle lesen ─────────────────────────────
+read_current_code() {
+  grep -oP 'versionCode\s+\K[0-9]+' "$BUILD_GRADLE" || echo "1"
+}
+
+# ── Version bump Logic ───────────────────────────────────────────────────────
+bump_version() {
+  local mode="$1"
+  local v="$2"
+  local major minor patch
+
+  IFS='.' read -r major minor patch <<< "$v"
+
+  # Validate: alle drei Teile müssen Zahlen sein
+  [[ "$major" =~ ^[0-9]+$ ]] || error "Ungültige Version: $v"
+  [[ "$minor" =~ ^[0-9]+$ ]] || error "Ungültige Version: $v"
+  [[ "$patch" =~ ^[0-9]+$ ]] || error "Ungültige Version: $v"
+
+  case "$mode" in
+    patch)
+      patch=$((patch + 1))
+      ;;
+    minor)
+      minor=$((minor + 1))
+      patch=0
+      ;;
+    major)
+      major=$((major + 1))
+      minor=0
+      patch=0
+      ;;
+    *)
+      error "Unbekannter bump-Modus: $mode (erwartet: patch|minor|major)"
+      ;;
+  esac
+
+  NEW_VERSION="${major}.${minor}.${patch}"
+}
+
+# ── package.json aktualisieren ───────────────────────────────────────────────
+write_package_json() {
+  local ver="$1"
+  npm version "$ver" --no-git-tag-version --silent 2>/dev/null || {
+    sed -i.bak "s/\"version\": \".*\"/\"version\": \"$ver\"/" "$PACKAGE_JSON"
+    rm -f "${PACKAGE_JSON}.bak"
+  }
+}
 
 # ── build.gradle aktualisieren ───────────────────────────────────────────────
-sed -i.bak "s/versionName \".*\"/versionName \"${VERSION_NAME}\"/" "$BUILD_GRADLE"
-sed -i.bak "s/versionCode [0-9]\+/versionCode ${VERSION_CODE}/" "$BUILD_GRADLE"
-rm -f "${BUILD_GRADLE}.bak"
-success "build.gradle: versionName=${VERSION_NAME}, versionCode=${VERSION_CODE}"
+write_build_gradle() {
+  local ver="$1"
+  local code="$2"
+  sed -i.bak "s/versionName \".*\"/versionName \"${ver}\"/" "$BUILD_GRADLE"
+  sed -i.bak "s/versionCode [0-9]\+/versionCode ${code}/" "$BUILD_GRADLE"
+  rm -f "${BUILD_GRADLE}.bak"
+}
 
-# ── package.json synchronisieren ─────────────────────────────────────────────
-sed -i.bak "s/\"version\": \".*\"/\"version\": \"$VERSION_NAME\"/" "$PACKAGE_JSON"
-rm -f "${PACKAGE_JSON}.bak"
-success "package.json: version=\"${VERSION_NAME}\""
+# ── strings.xml aktualisieren (App-Name) ─────────────────────────────────────
+write_strings_xml() {
+  local ver="$1"
+  [[ -f "$STRINGS_XML" ]] || return 0
+  local appname="HUI v${ver}"
+  sed -i.bak "s|<string name=\"app_name\">.*</string>|<string name=\"app_name\">${appname}</string>|" "$STRINGS_XML"
+  rm -f "${STRINGS_XML}.bak"
+}
 
-# ── version.ts wird NICHT mehr geschrieben — liest dynamisch aus package.json
+# ── Parameter auswerten ──────────────────────────────────────────────────────
+CURRENT_VERSION=$(read_current_version)
+CURRENT_CODE=$(read_current_code)
 
-# ── Build + Sync ─────────────────────────────────────────────────────────────
-info "Starte Web-Build…"
-npm run build --silent || warn "Web-Build fehlgeschlagen"
-info "Starte Capacitor Sync…"
-npx cap sync android || warn "Capacitor Sync fehlgeschlagen"
+info "Aktuelle Version: $CURRENT_VERSION (Code $CURRENT_CODE)"
 
-echo -e "${GREEN}══════════════════════════════════════════${NC}"
-echo -e "${GREEN} Version Sync abgeschlossen${NC}"
-echo -e "  package.json       → ${YELLOW}${VERSION_NAME}${NC}"
-echo -e "  build.gradle       → ${YELLOW}${VERSION_NAME} (Code ${VERSION_CODE})${NC}"
-echo -e "  version.ts         → ${YELLOW}dynamisch aus package.json${NC}"
-echo -e "${GREEN}══════════════════════════════════════════${NC}"
+MODE="${1:-sync}"
+
+case "$MODE" in
+  sync)
+    NEW_VERSION="$CURRENT_VERSION"
+    NEW_CODE="$CURRENT_CODE"
+    ;;
+  patch|minor|major)
+    info "Bump: $MODE"
+    bump_version "$MODE" "$CURRENT_VERSION"
+    NEW_CODE=$((CURRENT_CODE + 1))
+    info "Neue Version: $NEW_VERSION (Code $NEW_CODE)"
+    ;;
+  *)
+    if [[ "$MODE" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+      NEW_VERSION="$MODE"
+      if [[ -n "${2:-}" && "$2" =~ ^[0-9]+$ ]]; then
+        NEW_CODE="$2"
+      else
+        NEW_CODE=$((CURRENT_CODE + 1))
+      fi
+      info "Manuelle Version: $NEW_VERSION (Code $NEW_CODE)"
+    else
+      error "Unbekannter Parameter: $MODE
+Usage: $0 [sync|patch|minor|major|<version>] [versionCode]"
+    fi
+    ;;
+esac
+
+# ── Schreiben ────────────────────────────────────────────────────────────────
+write_package_json "$NEW_VERSION"
+write_build_gradle "$NEW_VERSION" "$NEW_CODE"
+write_strings_xml "$NEW_VERSION"
+
+success "Sync abgeschlossen:"
+echo "  package.json  → $NEW_VERSION"
+echo "  build.gradle  → $NEW_VERSION (Code $NEW_CODE)"
+echo "  strings.xml   → HUI v$NEW_VERSION"
+echo "  version.ts    → dynamisch aus package.json (kein Schreiben nötig)"

@@ -9,7 +9,9 @@
     "preview": "vite preview",
     "sync": "cap sync",
     "android": "cap open android",
-    "bump": "node ./scripts/bump-version.js"
+    "bump": "node ./scripts/bump-version.js",
+    "postversion": "bash scripts/sync-version.sh",
+    "sync-version": "bash scripts/version.sh sync"
   },
   "dependencies": {
     "@capacitor/android": "^6.2.1",
