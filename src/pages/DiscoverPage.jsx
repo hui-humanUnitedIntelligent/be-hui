@@ -219,21 +219,14 @@ const SEED_PEOPLE = [
   { id:"p6", name:"Felix Braun",   bio:"Tierheim-Aktivist & Hundefreund",  location:"Leipzig", avatar:"https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&q=80", impact:2800 },
 ];
 
-// Interesse-Tags pro Person — deterministisch aus index
-const INTEREST_POOLS = ["Natur","Musik","Kunst","Gemeinschaft","Spiritualität","Nachhaltigkeit","Fotografie","Design","Bildung","Umwelt"];
-function personTags(person, max=2) {
-  if (person.interests?.length) return person.interests.slice(0,max);
-  // deterministisch aus Name-Hashcode
-  const code = String(person.name||"").split("").reduce((a,c)=>a+c.charCodeAt(0),0);
-  const start = code % INTEREST_POOLS.length;
-  return [INTEREST_POOLS[start % INTEREST_POOLS.length], INTEREST_POOLS[(start+3) % INTEREST_POOLS.length]];
-}
+// (Fake-Interesse-Tags entfernt 2026-08-06 — INTEREST_POOLS/personTags waren erfundene
+//  Platzhalter-Tags, deterministisch aus dem Namen gehasht. Keine echten Nutzerdaten.
+//  dna_tags/skills sind nicht im Identity Contract v1.0 enthalten.)
 
 function PersonCard({ person, onPress, delay=0 }) {
   const [imgErr, setImgErr] = useState(false);
   const av = (!imgErr && person.avatar) ? person.avatar : null;
   const presence = formatPresence(person.last_seen_at);
-  const tags = personTags(person, 2);
 
   return (
     <div className="dp-press dp-in dp-card-hover" onClick={() => onPress?.(person)} style={{
@@ -309,15 +302,6 @@ function PersonCard({ person, onPress, delay=0 }) {
           {presence.label}
         </div>
       )}
-
-      {/* Interesse-Tags */}
-      <div style={{ display:"flex", gap:4, flexWrap:"wrap", justifyContent:"center", marginBottom:8 }}>
-        {tags.map(t => (
-          <span key={t} className="dp-tag" style={{ background:"rgba(14,196,184,0.09)", color:T.teal }}>
-            {t}
-          </span>
-        ))}
-      </div>
 
       {/* Location */}
       {person.location && (
