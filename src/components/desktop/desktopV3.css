@@ -1127,14 +1127,21 @@
 #web-root .notif-loading { padding: 20px; }
 
 /* ═══ CHAT PANEL ══════════════════════════════════════════════════════════════ */
+/* Override: chat-panel braucht flex-direction: row (Master-Detail nebeneinander),
+   nicht column (wie fly-panel). Die shared Rule oben setzt column — hier korrigiert. */
 #web-root .chat-panel {
   width: 720px;
   max-width: 95vw;
   height: 100vh;
+  flex-direction: row;
 }
+
+/* chat-master braucht eine Höhe, damit chat-list scrollen kann.
+   In row-Layout bekommt es height: 100% vom Parent (100vh). */
 #web-root .chat-master {
   width: 280px;
   flex-shrink: 0;
+  height: 100%;
   border-right: 1px solid var(--v3-border);
   display: flex;
   flex-direction: column;
