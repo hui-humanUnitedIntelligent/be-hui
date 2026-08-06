@@ -46,6 +46,7 @@ const CSS = `
   @keyframes cs-sheet-in   { from{transform:translateY(100%)} to{transform:translateY(0)} }
   @keyframes cs-pop        { 0%{transform:scale(.92);opacity:0} 100%{transform:scale(1);opacity:1} }
   .cs-overlay { animation: cs-overlay-in 0ms ease; }
+  @keyframes spin { to { transform: rotate(360deg); } }
   .cs-sheet   { animation: cs-sheet-in 0ms cubic-bezier(.22,1,.36,1); }
   .cs-pop     { animation: cs-pop 260ms cubic-bezier(.22,1,.36,1); }
   .cs-btn { cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent;
@@ -369,12 +370,23 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
     const nextOffset = reset ? 0 : offset;
     const res = await getComments(postId, postType, { offset: nextOffset, limit: 20, currentUserId: user?.id });
     if (res.error === "MIGRATION_PENDING") { setMigrationPending(true); setLoading(false); return; }
-    const decorated = await decorateAuthors(res.items);
-    setItems(prev => reset ? decorated : [...decorated, ...prev]); // aeltere Seite wird oben angehaengt
+    // Sofort anzeigen (ohne Autor-Info) — der Nutzer sieht die Kommentare instant
+    const undecorated = res.items;
+    setItems(prev => reset ? undecorated : [...undecorated, ...prev]);
     setHasMore(res.hasMore);
     setOffset(res.nextOffset);
     setTotal(res.visibleTotal ?? res.totalRoots ?? 0);
     setLoading(false);
+    // Autor-Profile im Hintergrund nachladen und items patchen
+    if (undecorated.length) {
+      decorateAuthors(undecorated).then(decorated => {
+        setItems(prev => {
+          if (reset) return decorated;
+          // Bei "Mehr laden": neue Items vorne einfügen, alte behalten
+          return [...decorated, ...prev.slice(undecorated.length)];
+        });
+      }).catch(() => {});
+    }
   }, [postId, postType, user?.id, offset, decorateAuthors]);
 
   useEffect(() => {
@@ -640,6 +652,18 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
               <div style={{ marginBottom:10, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)" }}><HUIChatIcon size={34}/></div>
               <div style={{ fontSize:14, fontWeight:700, color:T.ink }}>Noch keine Kommentare.</div>
               <div style={{ fontSize:13, color:T.inkFaint, marginTop:4 }}>Sei der Erste und teile deine Gedanken.</div>
+            </div>
+          )}
+
+          {loading && items.length === 0 && !migrationPending && (
+            <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"40px 20px", gap:12 }}>
+              <div style={{
+                width:28, height:28, borderRadius:"50%",
+                border:"3px solid rgba(13,196,181,0.15)",
+                borderTopColor:"#0DC4B5",
+                animation:"spin 0.7s linear infinite",
+              }}/>
+              <div style={{ fontSize:13, color:"rgba(26,26,46,0.45)", fontWeight:600 }}>Kommentare werden geladen …</div>
             </div>
           )}
 
