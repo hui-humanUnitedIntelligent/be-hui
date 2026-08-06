@@ -34,6 +34,9 @@ window.__HUI_PERF__ = true;
 import { initPerf } from './components/desktop/perf-instrument.js';
 initPerf();
 
+// ── Developer Console (Dev/Admin Mode only — zero overhead in production) ────
+import './components/desktop/devconsole/init.js';
+
 // ── Render ────────────────────────────────────────────────────────────────────
 ReactDOM.createRoot(document.getElementById('web-root')).render(
   <React.StrictMode>
