@@ -1,0 +1,2118 @@
+{
+  "version": "ARCH-005-v1",
+  "generatedAt": "2026-06-30T15:46:17.416Z",
+  "totalFiles": 298,
+  "domainDefinitions": {
+    "KERNEL": "Platform Kernel & Governance",
+    "IDENTITY": "Identity & Membership",
+    "CONNECTION": "Connection & Community",
+    "CREATION": "Creation & Publishing",
+    "COMMERCE": "Commerce & Transactions",
+    "COMMUNICATION": "Communication & Notifications",
+    "DISCOVERY": "Discovery & Feed",
+    "IMPACT": "Impact & Stewardship",
+    "WIRKUNG": "Wirkung, Resonance & Orb",
+    "TRUST": "Trust & Reputation",
+    "PRESENCE": "Presence & Session",
+    "INTELLIGENCE": "Assistive Intelligence",
+    "WORLD": "World & Atmosphere",
+    "STUDIO": "Creator Studio & Operations"
+  },
+  "stats": {
+    "KERNEL": 64,
+    "PRESENCE": 5,
+    "CREATION": 30,
+    "CONNECTION": 20,
+    "IDENTITY": 44,
+    "WIRKUNG": 26,
+    "COMMUNICATION": 17,
+    "STUDIO": 14,
+    "COMMERCE": 13,
+    "DISCOVERY": 21,
+    "INTELLIGENCE": 20,
+    "WORLD": 13,
+    "IMPACT": 9,
+    "TRUST": 2
+  },
+  "unassigned": [],
+  "multiDomainFiles": [
+    "components/home/AmbientWorldBar.jsx",
+    "components/home/HomeShell.jsx",
+    "components/home/header/HomeHeader.jsx",
+    "components/home/header/MoodOrbButton.jsx",
+    "components/home/header/SearchCommandCenter.jsx",
+    "components/home/mood/MoodSelector.jsx",
+    "components/home/mood/MoodSheet.jsx",
+    "components/home/mood/moodConfig.js",
+    "components/home/navigation/BottomNav.jsx",
+    "components/home/navigation/NavItem.jsx",
+    "components/home/navigation/navConfig.js",
+    "components/profile/ProfileHeader.jsx",
+    "components/profile/PublicProfilePreview.jsx",
+    "components/studio/EinAusgabenModal.jsx",
+    "components/studio/MeineProjekteModal.jsx",
+    "components/studio/ProfilBearbeitenModal.jsx",
+    "components/studio/StatistikenModal.jsx",
+    "core/HuiConnectionEngine.jsx",
+    "feed/cards/FeedRouter.jsx",
+    "feed/feedRhythmEngine.js",
+    "feed/useFeedStream.js",
+    "lib/AppStateContext.jsx",
+    "lib/intelligence/discoverWorld.js",
+    "lib/intelligence/relationshipMemory.js",
+    "lib/intelligence/resonanceSpaces.js",
+    "lib/world/orbLayer.js",
+    "pages/Home.jsx",
+    "pages/MeinHUI.jsx",
+    "pages/MyCreatorDashboard.jsx",
+    "pages/studio/MeineResonanz.jsx",
+    "pages/studio/StudioSubPages.jsx",
+    "services/content.js",
+    "services/db.js",
+    "system/orb/MemberOrbHome.jsx"
+  ],
+  "files": {
+    "App.jsx": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "architecture/scanner/cli.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "architecture/scanner/domains.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "architecture/scanner/fileScanner.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "architecture/scanner/graphBuilder.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "architecture/scanner/index.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "architecture/scanner/metricsCalculator.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "architecture/scanner/reportGenerator.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "architecture/scanner/violationDetector.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/CreatorPresence.jsx": {
+      "primaryDomain": "PRESENCE",
+      "label": "Presence & Session",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/EmptyState.jsx": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/ErrorBoundary.jsx": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/ExperienceCreator.jsx": {
+      "primaryDomain": "CREATION",
+      "label": "Creation & Publishing",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/GemeinschaftsFlow.jsx": {
+      "primaryDomain": "CONNECTION",
+      "label": "Connection & Community",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/HuiCreateFlow.jsx": {
+      "primaryDomain": "CREATION",
+      "label": "Creation & Publishing",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/HuiMatchOverlay.jsx": {
+      "primaryDomain": "CONNECTION",
+      "label": "Connection & Community",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/HuiMembershipFlow.jsx": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/HuiMomentSheet.jsx": {
+      "primaryDomain": "CREATION",
+      "label": "Creation & Publishing",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/HuiPlusSheet.jsx": {
+      "primaryDomain": "WIRKUNG",
+      "label": "Wirkung, Resonance & Orb",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/LazyImage.jsx": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/NotificationCenter.jsx": {
+      "primaryDomain": "COMMUNICATION",
+      "label": "Communication & Notifications",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/OrbCompass.jsx": {
+      "primaryDomain": "WIRKUNG",
+      "label": "Wirkung, Resonance & Orb",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/ProtectedRoute.jsx": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/StoryBar.jsx": {
+      "primaryDomain": "CREATION",
+      "label": "Creation & Publishing",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/StoryComposer.jsx": {
+      "primaryDomain": "CREATION",
+      "label": "Creation & Publishing",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/SupportSheet.jsx": {
+      "primaryDomain": "STUDIO",
+      "label": "Creator Studio & Operations",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/TalentOnboarding.jsx": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/UserNotRegisteredError.jsx": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/WerkPublisher.jsx": {
+      "primaryDomain": "CREATION",
+      "label": "Creation & Publishing",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/WorkDetailPage.jsx": {
+      "primaryDomain": "CREATION",
+      "label": "Creation & Publishing",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/ambassador/AmbassadorModal.jsx": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/ambassador/AmbassadorSection.jsx": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/auth/AuthGate.jsx": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/auth/ProfileCompletionFlow.jsx": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/chat-center/ChatAtmosphere.jsx": {
+      "primaryDomain": "COMMUNICATION",
+      "label": "Communication & Notifications",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/chat-center/ChatCenterOverlay.jsx": {
+      "primaryDomain": "COMMUNICATION",
+      "label": "Communication & Notifications",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/chat-center/ChatHeader.jsx": {
+      "primaryDomain": "COMMUNICATION",
+      "label": "Communication & Notifications",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/chat-center/ChatInput.jsx": {
+      "primaryDomain": "COMMUNICATION",
+      "label": "Communication & Notifications",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/chat-center/ChatMessages.jsx": {
+      "primaryDomain": "COMMUNICATION",
+      "label": "Communication & Notifications",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/chat-center/ConversationCard.jsx": {
+      "primaryDomain": "COMMUNICATION",
+      "label": "Communication & Notifications",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/chat-center/ConversationList.jsx": {
+      "primaryDomain": "COMMUNICATION",
+      "label": "Communication & Notifications",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/chat-center/ConversationRoom.jsx": {
+      "primaryDomain": "COMMUNICATION",
+      "label": "Communication & Notifications",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/chat-center/MessageBubble.jsx": {
+      "primaryDomain": "COMMUNICATION",
+      "label": "Communication & Notifications",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/commerce/ExperienceBookingFlow.jsx": {
+      "primaryDomain": "COMMERCE",
+      "label": "Commerce & Transactions",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/commerce/StripePaymentStep.jsx": {
+      "primaryDomain": "COMMERCE",
+      "label": "Commerce & Transactions",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/commerce/UnterstutzenFlow.jsx": {
+      "primaryDomain": "COMMERCE",
+      "label": "Commerce & Transactions",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/commerce/WerkKaufFlow.jsx": {
+      "primaryDomain": "COMMERCE",
+      "label": "Commerce & Transactions",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/commerce/WerkeKorb.jsx": {
+      "primaryDomain": "COMMERCE",
+      "label": "Commerce & Transactions",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/commerce/commerceUtils.js": {
+      "primaryDomain": "COMMERCE",
+      "label": "Commerce & Transactions",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/connection-create/ConnectionCreatePage.jsx": {
+      "primaryDomain": "CONNECTION",
+      "label": "Connection & Community",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/connection-create/ConnectionForm.jsx": {
+      "primaryDomain": "CONNECTION",
+      "label": "Connection & Community",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/connection-create/ConnectionPreviewCard.jsx": {
+      "primaryDomain": "CONNECTION",
+      "label": "Connection & Community",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/connection-create/ConnectionTypeSidebar.jsx": {
+      "primaryDomain": "CONNECTION",
+      "label": "Connection & Community",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/connection-create/Selectors.jsx": {
+      "primaryDomain": "CONNECTION",
+      "label": "Connection & Community",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/connection-create/StepOneTypeSelection.jsx": {
+      "primaryDomain": "CONNECTION",
+      "label": "Connection & Community",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/connection-create/StepProgressBar.jsx": {
+      "primaryDomain": "CONNECTION",
+      "label": "Connection & Community",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/connection-create/StepThreePreview.jsx": {
+      "primaryDomain": "CONNECTION",
+      "label": "Connection & Community",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/connection-create/StepTwoConnectionDetails.jsx": {
+      "primaryDomain": "CONNECTION",
+      "label": "Connection & Community",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/connection-create/Widgets.jsx": {
+      "primaryDomain": "CONNECTION",
+      "label": "Connection & Community",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/discovery/PeopleSearch.jsx": {
+      "primaryDomain": "DISCOVERY",
+      "label": "Discovery & Feed",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/economy/SupportFlow.jsx": {
+      "primaryDomain": "COMMERCE",
+      "label": "Commerce & Transactions",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/entry/AppEntryController.jsx": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/experiences/ExperienceWizard.jsx": {
+      "primaryDomain": "CREATION",
+      "label": "Creation & Publishing",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/guidance/GuidanceContext.jsx": {
+      "primaryDomain": "INTELLIGENCE",
+      "label": "Assistive Intelligence",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/guidance/GuidanceFooter.jsx": {
+      "primaryDomain": "INTELLIGENCE",
+      "label": "Assistive Intelligence",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/guidance/GuidanceLayer.jsx": {
+      "primaryDomain": "INTELLIGENCE",
+      "label": "Assistive Intelligence",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/guidance/guidanceTokens.js": {
+      "primaryDomain": "INTELLIGENCE",
+      "label": "Assistive Intelligence",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/home/AmbientWorldBar.jsx": {
+      "primaryDomain": "WORLD",
+      "label": "World & Atmosphere",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "WIRKUNG",
+          "label": "Wirkung, Resonance & Orb"
+        }
+      ]
+    },
+    "components/home/HomeShell.jsx": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "DISCOVERY",
+          "label": "Discovery & Feed"
+        },
+        {
+          "id": "WORLD",
+          "label": "World & Atmosphere"
+        }
+      ]
+    },
+    "components/home/header/HomeHeader.jsx": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "DISCOVERY",
+          "label": "Discovery & Feed"
+        },
+        {
+          "id": "WORLD",
+          "label": "World & Atmosphere"
+        }
+      ]
+    },
+    "components/home/header/MatchBar.jsx": {
+      "primaryDomain": "CONNECTION",
+      "label": "Connection & Community",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/home/header/MessageButton.jsx": {
+      "primaryDomain": "COMMUNICATION",
+      "label": "Communication & Notifications",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/home/header/MoodOrbButton.jsx": {
+      "primaryDomain": "WORLD",
+      "label": "World & Atmosphere",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "WIRKUNG",
+          "label": "Wirkung, Resonance & Orb"
+        }
+      ]
+    },
+    "components/home/header/NotificationButton.jsx": {
+      "primaryDomain": "COMMUNICATION",
+      "label": "Communication & Notifications",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/home/header/SearchCommandCenter.jsx": {
+      "primaryDomain": "DISCOVERY",
+      "label": "Discovery & Feed",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "IDENTITY",
+          "label": "Identity & Membership"
+        },
+        {
+          "id": "CONNECTION",
+          "label": "Connection & Community"
+        }
+      ]
+    },
+    "components/home/mood/MoodSelector.jsx": {
+      "primaryDomain": "WORLD",
+      "label": "World & Atmosphere",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "WIRKUNG",
+          "label": "Wirkung, Resonance & Orb"
+        }
+      ]
+    },
+    "components/home/mood/MoodSheet.jsx": {
+      "primaryDomain": "WORLD",
+      "label": "World & Atmosphere",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "WIRKUNG",
+          "label": "Wirkung, Resonance & Orb"
+        }
+      ]
+    },
+    "components/home/mood/moodConfig.js": {
+      "primaryDomain": "WORLD",
+      "label": "World & Atmosphere",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "WIRKUNG",
+          "label": "Wirkung, Resonance & Orb"
+        }
+      ]
+    },
+    "components/home/navigation/BottomNav.jsx": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "DISCOVERY",
+          "label": "Discovery & Feed"
+        },
+        {
+          "id": "WORLD",
+          "label": "World & Atmosphere"
+        }
+      ]
+    },
+    "components/home/navigation/NavItem.jsx": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "DISCOVERY",
+          "label": "Discovery & Feed"
+        },
+        {
+          "id": "WORLD",
+          "label": "World & Atmosphere"
+        }
+      ]
+    },
+    "components/home/navigation/navConfig.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "DISCOVERY",
+          "label": "Discovery & Feed"
+        },
+        {
+          "id": "WORLD",
+          "label": "World & Atmosphere"
+        }
+      ]
+    },
+    "components/home/profile/ProfileLauncher.jsx": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/notifications/NotificationPanel.jsx": {
+      "primaryDomain": "COMMUNICATION",
+      "label": "Communication & Notifications",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/orb/OrbLeaf.jsx": {
+      "primaryDomain": "WIRKUNG",
+      "label": "Wirkung, Resonance & Orb",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/profile/MerkenSection.jsx": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/profile/OrbSignatur.jsx": {
+      "primaryDomain": "WIRKUNG",
+      "label": "Wirkung, Resonance & Orb",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/profile/ProfileHeader.jsx": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "PRESENCE",
+          "label": "Presence & Session"
+        }
+      ]
+    },
+    "components/profile/PublicProfilePreview.jsx": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "WIRKUNG",
+          "label": "Wirkung, Resonance & Orb"
+        }
+      ]
+    },
+    "components/profile/sections/AboutSection.jsx": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/profile/sections/AvailabilitySection.jsx": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/profile/sections/ExperiencesSection.jsx": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/profile/sections/LocationSection.jsx": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/profile/sections/MomentsSection.jsx": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/profile/sections/RecommendationsSection.jsx": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/profile/sections/TalentSection.jsx": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/profile/sections/VisibilitySection.jsx": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/profile/sections/WorksSection.jsx": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/profile/sections/index.js": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/publishing/PublishExperienceFlow.jsx": {
+      "primaryDomain": "CREATION",
+      "label": "Creation & Publishing",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/publishing/PublishWorkFlow.jsx": {
+      "primaryDomain": "CREATION",
+      "label": "Creation & Publishing",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/publishing/PublishingHub.jsx": {
+      "primaryDomain": "CREATION",
+      "label": "Creation & Publishing",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/settings/SettingsModal.jsx": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/shared/ConnectionFlowCard.jsx": {
+      "primaryDomain": "CONNECTION",
+      "label": "Connection & Community",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/studio/EinAusgabenModal.jsx": {
+      "primaryDomain": "COMMERCE",
+      "label": "Commerce & Transactions",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "STUDIO",
+          "label": "Creator Studio & Operations"
+        }
+      ]
+    },
+    "components/studio/HuiStudio.jsx": {
+      "primaryDomain": "STUDIO",
+      "label": "Creator Studio & Operations",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/studio/ImpactStimmenModal.jsx": {
+      "primaryDomain": "IMPACT",
+      "label": "Impact & Stewardship",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/studio/MeineProjekteModal.jsx": {
+      "primaryDomain": "CREATION",
+      "label": "Creation & Publishing",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "STUDIO",
+          "label": "Creator Studio & Operations"
+        }
+      ]
+    },
+    "components/studio/ProfilBearbeitenModal.jsx": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "STUDIO",
+          "label": "Creator Studio & Operations"
+        }
+      ]
+    },
+    "components/studio/SicherheitPasswortModal.jsx": {
+      "primaryDomain": "STUDIO",
+      "label": "Creator Studio & Operations",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/studio/StatistikenModal.jsx": {
+      "primaryDomain": "COMMERCE",
+      "label": "Commerce & Transactions",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "STUDIO",
+          "label": "Creator Studio & Operations"
+        }
+      ]
+    },
+    "components/teilen/TeilenFlow.jsx": {
+      "primaryDomain": "CREATION",
+      "label": "Creation & Publishing",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/ui/EmptyState.jsx": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/ui/TalentBadge.jsx": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/welcome/WelcomeOverlay.jsx": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "components/works/WerkWizard.jsx": {
+      "primaryDomain": "CREATION",
+      "label": "Creation & Publishing",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "config/SafeRender.jsx": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "config/safeMode.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "content/ContentTypeSelector.jsx": {
+      "primaryDomain": "CREATION",
+      "label": "Creation & Publishing",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "content/invitation/InvitationCard.jsx": {
+      "primaryDomain": "CONNECTION",
+      "label": "Connection & Community",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "content/invitation/InvitationFlow.jsx": {
+      "primaryDomain": "CONNECTION",
+      "label": "Connection & Community",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "content/invitation/useInvitationResponse.js": {
+      "primaryDomain": "CONNECTION",
+      "label": "Connection & Community",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "context/OrbWorldContext.jsx": {
+      "primaryDomain": "WORLD",
+      "label": "World & Atmosphere",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "context/WorldSurfaceContext.jsx": {
+      "primaryDomain": "WORLD",
+      "label": "World & Atmosphere",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "core/HuiActionProvider.jsx": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "core/HuiConnectionEngine.jsx": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "CONNECTION",
+          "label": "Connection & Community"
+        }
+      ]
+    },
+    "core/HuiContextBridge.jsx": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "core/coreEngine.js": {
+      "primaryDomain": "WIRKUNG",
+      "label": "Wirkung, Resonance & Orb",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "core/hui.actions.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "core/hui.contracts.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "core/hui.flow.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "core/hui.flow.states.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "core/hui.navigator.jsx": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "core/hui.pillars.js": {
+      "primaryDomain": "WIRKUNG",
+      "label": "Wirkung, Resonance & Orb",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "core/hui.safePayload.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "core/hui.semantics.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "core/hui.sources.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "core/orbEngine.js": {
+      "primaryDomain": "WIRKUNG",
+      "label": "Wirkung, Resonance & Orb",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "core/resonanceEngine.js": {
+      "primaryDomain": "WIRKUNG",
+      "label": "Wirkung, Resonance & Orb",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "design/hui.design.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "design/hui.hooks.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "design/hui.interaction.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "features/discovery/userSearch.js": {
+      "primaryDomain": "DISCOVERY",
+      "label": "Discovery & Feed",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "feed/FeedEventsSection.jsx": {
+      "primaryDomain": "DISCOVERY",
+      "label": "Discovery & Feed",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "feed/FeedScrollSentinel.jsx": {
+      "primaryDomain": "DISCOVERY",
+      "label": "Discovery & Feed",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "feed/FeedSoftHydrationBadge.jsx": {
+      "primaryDomain": "DISCOVERY",
+      "label": "Discovery & Feed",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "feed/FeedStoriesBar.jsx": {
+      "primaryDomain": "CREATION",
+      "label": "Creation & Publishing",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "feed/StoryCreator.jsx": {
+      "primaryDomain": "CREATION",
+      "label": "Creation & Publishing",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "feed/StoryReactionTray.jsx": {
+      "primaryDomain": "CREATION",
+      "label": "Creation & Publishing",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "feed/StoryViewer.jsx": {
+      "primaryDomain": "CREATION",
+      "label": "Creation & Publishing",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "feed/UnifiedFeed.jsx": {
+      "primaryDomain": "DISCOVERY",
+      "label": "Discovery & Feed",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "feed/cards/BaseFeedCard.jsx": {
+      "primaryDomain": "DISCOVERY",
+      "label": "Discovery & Feed",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "feed/cards/EventContent.jsx": {
+      "primaryDomain": "DISCOVERY",
+      "label": "Discovery & Feed",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "feed/cards/ExperienceContent.jsx": {
+      "primaryDomain": "DISCOVERY",
+      "label": "Discovery & Feed",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "feed/cards/FeedRouter.jsx": {
+      "primaryDomain": "DISCOVERY",
+      "label": "Discovery & Feed",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "CREATION",
+          "label": "Creation & Publishing"
+        }
+      ]
+    },
+    "feed/cards/MomentContent.jsx": {
+      "primaryDomain": "DISCOVERY",
+      "label": "Discovery & Feed",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "feed/cards/WorkContent.jsx": {
+      "primaryDomain": "DISCOVERY",
+      "label": "Discovery & Feed",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "feed/feedRhythmEngine.js": {
+      "primaryDomain": "DISCOVERY",
+      "label": "Discovery & Feed",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "WIRKUNG",
+          "label": "Wirkung, Resonance & Orb"
+        }
+      ]
+    },
+    "feed/useFeedStream.js": {
+      "primaryDomain": "DISCOVERY",
+      "label": "Discovery & Feed",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "WIRKUNG",
+          "label": "Wirkung, Resonance & Orb"
+        }
+      ]
+    },
+    "hooks/useAmbassador.js": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "hooks/useCartPersistence.js": {
+      "primaryDomain": "COMMERCE",
+      "label": "Commerce & Transactions",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "hooks/useCoreEngine.js": {
+      "primaryDomain": "WIRKUNG",
+      "label": "Wirkung, Resonance & Orb",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "hooks/useProfileData.js": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "hooks/useProfileId.js": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "hooks/useTalentActivation.js": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/AppStateContext.jsx": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "IDENTITY",
+          "label": "Identity & Membership"
+        },
+        {
+          "id": "COMMERCE",
+          "label": "Commerce & Transactions"
+        },
+        {
+          "id": "COMMUNICATION",
+          "label": "Communication & Notifications"
+        },
+        {
+          "id": "CONNECTION",
+          "label": "Connection & Community"
+        },
+        {
+          "id": "CREATION",
+          "label": "Creation & Publishing"
+        }
+      ]
+    },
+    "lib/AuthContext.jsx": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/BUILD_VERSION.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/ErrorBoundaries.jsx": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/ambassadorUtils.js": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/bookingContext.js": {
+      "primaryDomain": "COMMERCE",
+      "label": "Commerce & Transactions",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/chatContext.js": {
+      "primaryDomain": "COMMUNICATION",
+      "label": "Communication & Notifications",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/cleanup/cleanupOrbEnvironment.js": {
+      "primaryDomain": "WORLD",
+      "label": "World & Atmosphere",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/community/index.js": {
+      "primaryDomain": "CONNECTION",
+      "label": "Connection & Community",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/community/local.js": {
+      "primaryDomain": "CONNECTION",
+      "label": "Connection & Community",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/creativeJourney/index.js": {
+      "primaryDomain": "WIRKUNG",
+      "label": "Wirkung, Resonance & Orb",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/debugCollector.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/discovery/index.js": {
+      "primaryDomain": "DISCOVERY",
+      "label": "Discovery & Feed",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/ds.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/errors/index.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/events/index.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/factories/createFeedItem.js": {
+      "primaryDomain": "CREATION",
+      "label": "Creation & Publishing",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/factories/createNavItem.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/factories/createProfileItem.js": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/factories/createTabPage.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/factories/experienceContract.js": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/feedback/index.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/guidance/focusSystem.js": {
+      "primaryDomain": "INTELLIGENCE",
+      "label": "Assistive Intelligence",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/guidance/readabilityEngine.js": {
+      "primaryDomain": "INTELLIGENCE",
+      "label": "Assistive Intelligence",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/guidance/visualPriority.js": {
+      "primaryDomain": "INTELLIGENCE",
+      "label": "Assistive Intelligence",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/intelligence/discoverWorld.js": {
+      "primaryDomain": "INTELLIGENCE",
+      "label": "Assistive Intelligence",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "DISCOVERY",
+          "label": "Discovery & Feed"
+        }
+      ]
+    },
+    "lib/intelligence/emotionalIdentity.js": {
+      "primaryDomain": "INTELLIGENCE",
+      "label": "Assistive Intelligence",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/intelligence/index.js": {
+      "primaryDomain": "INTELLIGENCE",
+      "label": "Assistive Intelligence",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/intelligence/interactionStore.js": {
+      "primaryDomain": "INTELLIGENCE",
+      "label": "Assistive Intelligence",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/intelligence/persistence/interactionMemoryStore.js": {
+      "primaryDomain": "INTELLIGENCE",
+      "label": "Assistive Intelligence",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/intelligence/persistence/memoryTokens.js": {
+      "primaryDomain": "INTELLIGENCE",
+      "label": "Assistive Intelligence",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/intelligence/persistence/useLivingMemory.js": {
+      "primaryDomain": "INTELLIGENCE",
+      "label": "Assistive Intelligence",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/intelligence/persistence/viewerContext.js": {
+      "primaryDomain": "INTELLIGENCE",
+      "label": "Assistive Intelligence",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/intelligence/relationshipMemory.js": {
+      "primaryDomain": "INTELLIGENCE",
+      "label": "Assistive Intelligence",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "CONNECTION",
+          "label": "Connection & Community"
+        }
+      ]
+    },
+    "lib/intelligence/resonanceSpaces.js": {
+      "primaryDomain": "INTELLIGENCE",
+      "label": "Assistive Intelligence",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "WIRKUNG",
+          "label": "Wirkung, Resonance & Orb"
+        }
+      ]
+    },
+    "lib/intelligence/sharedAtmosphere.js": {
+      "primaryDomain": "INTELLIGENCE",
+      "label": "Assistive Intelligence",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/intelligence/worldContinuity.js": {
+      "primaryDomain": "INTELLIGENCE",
+      "label": "Assistive Intelligence",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/intelligence/worldPolish.js": {
+      "primaryDomain": "INTELLIGENCE",
+      "label": "Assistive Intelligence",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/journeyContext.js": {
+      "primaryDomain": "WIRKUNG",
+      "label": "Wirkung, Resonance & Orb",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/moodUtils.js": {
+      "primaryDomain": "WORLD",
+      "label": "World & Atmosphere",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/notificationService.js": {
+      "primaryDomain": "COMMUNICATION",
+      "label": "Communication & Notifications",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/observability/index.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/perfUtils.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/points/index.js": {
+      "primaryDomain": "WIRKUNG",
+      "label": "Wirkung, Resonance & Orb",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/presence/index.js": {
+      "primaryDomain": "PRESENCE",
+      "label": "Presence & Session",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/profileMedia.js": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/profileUtils.js": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/referralTracking.js": {
+      "primaryDomain": "CONNECTION",
+      "label": "Connection & Community",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/reliability/index.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/resonance/index.js": {
+      "primaryDomain": "WIRKUNG",
+      "label": "Wirkung, Resonance & Orb",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/roles/index.js": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/safeQuery.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/security/index.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/sentry.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/sessionHooks.js": {
+      "primaryDomain": "PRESENCE",
+      "label": "Presence & Session",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/supabaseClient.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/trust/index.js": {
+      "primaryDomain": "TRUST",
+      "label": "Trust & Reputation",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/trustContext.js": {
+      "primaryDomain": "TRUST",
+      "label": "Trust & Reputation",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/useNotifications.jsx": {
+      "primaryDomain": "COMMUNICATION",
+      "label": "Communication & Notifications",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/usePresence.js": {
+      "primaryDomain": "PRESENCE",
+      "label": "Presence & Session",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/usePresence.jsx": {
+      "primaryDomain": "PRESENCE",
+      "label": "Presence & Session",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/useReactions.jsx": {
+      "primaryDomain": "COMMUNICATION",
+      "label": "Communication & Notifications",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/useToast.jsx": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/useUsernameCheck.jsx": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/utils.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/validation/index.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/welcomePersistence.js": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/world/orbLayer.js": {
+      "primaryDomain": "WORLD",
+      "label": "World & Atmosphere",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "WIRKUNG",
+          "label": "Wirkung, Resonance & Orb"
+        }
+      ]
+    },
+    "lib/world/safariPaintRecovery.js": {
+      "primaryDomain": "WORLD",
+      "label": "World & Atmosphere",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/world/tabVisibilityController.js": {
+      "primaryDomain": "WORLD",
+      "label": "World & Atmosphere",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "lib/world/worldSurfaceController.js": {
+      "primaryDomain": "WORLD",
+      "label": "World & Atmosphere",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "main.jsx": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "orb/ContentTypeSelector.jsx": {
+      "primaryDomain": "WIRKUNG",
+      "label": "Wirkung, Resonance & Orb",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "orb/OrbAtmosphere.jsx": {
+      "primaryDomain": "WIRKUNG",
+      "label": "Wirkung, Resonance & Orb",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "orb/OrbMotionSystem.js": {
+      "primaryDomain": "WIRKUNG",
+      "label": "Wirkung, Resonance & Orb",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "orb/OrbPortal.jsx": {
+      "primaryDomain": "WIRKUNG",
+      "label": "Wirkung, Resonance & Orb",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "pages/Admin.jsx": {
+      "primaryDomain": "STUDIO",
+      "label": "Creator Studio & Operations",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "pages/AuthCallback.jsx": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "pages/BasisProfilePage.jsx": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "pages/CreatorDashboard.jsx": {
+      "primaryDomain": "STUDIO",
+      "label": "Creator Studio & Operations",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "pages/CreatorStudio.jsx": {
+      "primaryDomain": "STUDIO",
+      "label": "Creator Studio & Operations",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "pages/DiagnosePage.jsx": {
+      "primaryDomain": "STUDIO",
+      "label": "Creator Studio & Operations",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "pages/DiscoverPage.jsx": {
+      "primaryDomain": "DISCOVERY",
+      "label": "Discovery & Feed",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "pages/FavoritesPage.jsx": {
+      "primaryDomain": "DISCOVERY",
+      "label": "Discovery & Feed",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "pages/Home.jsx": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "DISCOVERY",
+          "label": "Discovery & Feed"
+        },
+        {
+          "id": "WORLD",
+          "label": "World & Atmosphere"
+        },
+        {
+          "id": "WIRKUNG",
+          "label": "Wirkung, Resonance & Orb"
+        },
+        {
+          "id": "COMMUNICATION",
+          "label": "Communication & Notifications"
+        }
+      ]
+    },
+    "pages/ImpactPage.jsx": {
+      "primaryDomain": "IMPACT",
+      "label": "Impact & Stewardship",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "pages/LiveMapPage.jsx": {
+      "primaryDomain": "DISCOVERY",
+      "label": "Discovery & Feed",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "pages/LoginPage.jsx": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "pages/MeinHUI.jsx": {
+      "primaryDomain": "STUDIO",
+      "label": "Creator Studio & Operations",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "IDENTITY",
+          "label": "Identity & Membership"
+        }
+      ]
+    },
+    "pages/MyBasisProfile.jsx": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "pages/MyCreatorDashboard.jsx": {
+      "primaryDomain": "STUDIO",
+      "label": "Creator Studio & Operations",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "COMMERCE",
+          "label": "Commerce & Transactions"
+        }
+      ]
+    },
+    "pages/PlatformDashboard.jsx": {
+      "primaryDomain": "STUDIO",
+      "label": "Creator Studio & Operations",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "pages/ProfileDebugPage.jsx": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "pages/RefRedirect.jsx": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "pages/TalentProfilePage.jsx": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "pages/studio/MeineResonanz.jsx": {
+      "primaryDomain": "STUDIO",
+      "label": "Creator Studio & Operations",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "WIRKUNG",
+          "label": "Wirkung, Resonance & Orb"
+        }
+      ]
+    },
+    "pages/studio/MeineTicketsPage.jsx": {
+      "primaryDomain": "STUDIO",
+      "label": "Creator Studio & Operations",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "pages/studio/StudioSubPages.jsx": {
+      "primaryDomain": "STUDIO",
+      "label": "Creator Studio & Operations",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "COMMUNICATION",
+          "label": "Communication & Notifications"
+        },
+        {
+          "id": "COMMERCE",
+          "label": "Commerce & Transactions"
+        },
+        {
+          "id": "CREATION",
+          "label": "Creation & Publishing"
+        }
+      ]
+    },
+    "pages/studio/SupportPage.jsx": {
+      "primaryDomain": "STUDIO",
+      "label": "Creator Studio & Operations",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "pages/wirker-profile/index.jsx": {
+      "primaryDomain": "IDENTITY",
+      "label": "Identity & Membership",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "registry/HuiRegistry.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "routes/registry.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "services/commerceEngine.js": {
+      "primaryDomain": "COMMERCE",
+      "label": "Commerce & Transactions",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "services/content.js": {
+      "primaryDomain": "DISCOVERY",
+      "label": "Discovery & Feed",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "CREATION",
+          "label": "Creation & Publishing"
+        }
+      ]
+    },
+    "services/creatorEconomy.js": {
+      "primaryDomain": "COMMERCE",
+      "label": "Commerce & Transactions",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "services/db.js": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "IDENTITY",
+          "label": "Identity & Membership"
+        },
+        {
+          "id": "CREATION",
+          "label": "Creation & Publishing"
+        },
+        {
+          "id": "COMMERCE",
+          "label": "Commerce & Transactions"
+        },
+        {
+          "id": "COMMUNICATION",
+          "label": "Communication & Notifications"
+        },
+        {
+          "id": "DISCOVERY",
+          "label": "Discovery & Feed"
+        },
+        {
+          "id": "IMPACT",
+          "label": "Impact & Stewardship"
+        },
+        {
+          "id": "CONNECTION",
+          "label": "Connection & Community"
+        }
+      ]
+    },
+    "system/feed/unifiedNormalizer.js": {
+      "primaryDomain": "DISCOVERY",
+      "label": "Discovery & Feed",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "system/flows/experience/ExperienceCreateStep.jsx": {
+      "primaryDomain": "CREATION",
+      "label": "Creation & Publishing",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "system/flows/experience/ExperienceDetailsStep.jsx": {
+      "primaryDomain": "CREATION",
+      "label": "Creation & Publishing",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "system/flows/experience/ExperienceFlow.jsx": {
+      "primaryDomain": "CREATION",
+      "label": "Creation & Publishing",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "system/flows/experience/ExperiencePublishStep.jsx": {
+      "primaryDomain": "CREATION",
+      "label": "Creation & Publishing",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "system/flows/experience/ExperienceTokens.js": {
+      "primaryDomain": "CREATION",
+      "label": "Creation & Publishing",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "system/flows/impact/ImpactFlow.jsx": {
+      "primaryDomain": "IMPACT",
+      "label": "Impact & Stewardship",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "system/flows/impact/ImpactStep1Projekt.jsx": {
+      "primaryDomain": "IMPACT",
+      "label": "Impact & Stewardship",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "system/flows/impact/ImpactStep2Vision.jsx": {
+      "primaryDomain": "IMPACT",
+      "label": "Impact & Stewardship",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "system/flows/impact/ImpactStep3Kontakt.jsx": {
+      "primaryDomain": "IMPACT",
+      "label": "Impact & Stewardship",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "system/flows/impact/ImpactStep4Review.jsx": {
+      "primaryDomain": "IMPACT",
+      "label": "Impact & Stewardship",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "system/flows/impact/ImpactTokens.js": {
+      "primaryDomain": "IMPACT",
+      "label": "Impact & Stewardship",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "system/flows/impact/ImpactTokens.jsx": {
+      "primaryDomain": "IMPACT",
+      "label": "Impact & Stewardship",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "system/flows/work/WorkDetailsStep.jsx": {
+      "primaryDomain": "CREATION",
+      "label": "Creation & Publishing",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "system/flows/work/WorkFlow.jsx": {
+      "primaryDomain": "CREATION",
+      "label": "Creation & Publishing",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "system/flows/work/WorkMediaStep.jsx": {
+      "primaryDomain": "CREATION",
+      "label": "Creation & Publishing",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "system/flows/work/WorkPublishStep.jsx": {
+      "primaryDomain": "CREATION",
+      "label": "Creation & Publishing",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "system/flows/work/WorkTokens.js": {
+      "primaryDomain": "CREATION",
+      "label": "Creation & Publishing",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "system/orb/MemberOrbHome.jsx": {
+      "primaryDomain": "WIRKUNG",
+      "label": "Wirkung, Resonance & Orb",
+      "multiDomain": true,
+      "alsoDomains": [
+        {
+          "id": "WORLD",
+          "label": "World & Atmosphere"
+        }
+      ]
+    },
+    "system/orb/OrbAnimations.js": {
+      "primaryDomain": "WIRKUNG",
+      "label": "Wirkung, Resonance & Orb",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "system/orb/OrbAtmosphere.jsx": {
+      "primaryDomain": "WIRKUNG",
+      "label": "Wirkung, Resonance & Orb",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "system/orb/OrbCenter.jsx": {
+      "primaryDomain": "WIRKUNG",
+      "label": "Wirkung, Resonance & Orb",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "system/orb/OrbConfig.js": {
+      "primaryDomain": "WIRKUNG",
+      "label": "Wirkung, Resonance & Orb",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "system/orb/OrbHintCard.jsx": {
+      "primaryDomain": "WIRKUNG",
+      "label": "Wirkung, Resonance & Orb",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "system/orb/OrbNode.jsx": {
+      "primaryDomain": "WIRKUNG",
+      "label": "Wirkung, Resonance & Orb",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "system/orb/OrbState.js": {
+      "primaryDomain": "WIRKUNG",
+      "label": "Wirkung, Resonance & Orb",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "system/orb/OrbSystem.jsx": {
+      "primaryDomain": "WIRKUNG",
+      "label": "Wirkung, Resonance & Orb",
+      "multiDomain": false,
+      "alsoDomains": []
+    },
+    "utils/index.ts": {
+      "primaryDomain": "KERNEL",
+      "label": "Platform Kernel & Governance",
+      "multiDomain": false,
+      "alsoDomains": []
+    }
+  }
+}
