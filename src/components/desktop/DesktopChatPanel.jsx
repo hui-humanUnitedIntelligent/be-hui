@@ -122,45 +122,13 @@ function ChatThread({ chatId, chat }) {
 
 export default function DesktopChatPanel({ onClose, chats = [], chatLoading = false, chatUnread = 0 }) {
   const [activeChat, setActiveChat] = useState(null);
-  const panelRef = useRef(null);
 
   useEscapeKey(onClose);
-
-  // ── iPad Safari Keyboard-Resize Fix (2026-08-06) ──
-  // position: fixed + 100dvh funktioniert auf iPad Safari nicht zuverlässig,
-  // wenn das Keyboard / die Eingabehilfen-Leiste erscheint.
-  // visualViewport.height liefert die korrekte sichtbare Höhe in Pixeln.
-  // Wir setzen die Panel-Höhe direkt via JS — CSS 100dvh bleibt als Fallback.
-  useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv) return; // Desktop-Browser ohne visualViewport → CSS-Fallback greift
-
-    const update = () => {
-      const panel = panelRef.current;
-      if (!panel) return;
-      // visualViewport.height = sichtbare Höhe (ohne Keyboard)
-      // visualViewport.offsetTop = Verschiebung des sichtbaren Bereichs
-      panel.style.height = vv.height + 'px';
-      panel.style.top = vv.offsetTop + 'px';
-    };
-
-    update();
-    vv.addEventListener('resize', update);
-    vv.addEventListener('scroll', update);
-
-    return () => {
-      vv.removeEventListener('resize', update);
-      vv.removeEventListener('scroll', update);
-      // Reset beim Schließen — CSS-Regeln übernehmen wieder
-      const panel = panelRef.current;
-      if (panel) { panel.style.height = ''; panel.style.top = ''; }
-    };
-  }, []);
 
   return (
     <>
       <div className="fly-backdrop" onClick={onClose} />
-      <div className="chat-panel" ref={panelRef}>
+      <div className="chat-panel">
         <div className="chat-master">
           <div className="chat-master-header">
             <h3>Nachrichten</h3>
