@@ -71,6 +71,7 @@ import HuiMomentSheet from "../components/HuiMomentSheet.jsx";
 import MyRecommendationsModal from "../components/studio/MyRecommendationsModal.jsx";
 import ImpactStimmenModal from "../components/studio/ImpactStimmenModal.jsx";
 import MeineProjekteModal from "../components/studio/MeineProjekteModal.jsx";
+import TalentOnboarding from "../components/TalentOnboarding.jsx";
 import ImpactUpdateSheet from "../components/studio/ImpactUpdateSheet.jsx";
 // FinanzuebersichtModal — ersetzt 4 separate Finanz-Modals (eager, kein Lazy-Bug)
 import FinanzuebersichtModal from "../components/studio/FinanzuebersichtModal.jsx";
@@ -3375,19 +3376,17 @@ function TalentWerdenBanner({ onStart = () => {} }) {
 // Lädt TalentOnboarding (aus Home.jsx bekannt) lazy,
 // wrapped in createPortal + zIndex:10500 (Pflicht-Regel)
 // ══════════════════════════════════════════════════════════════
-const LazyTalentOnboarding = React.lazy(() => import('../components/TalentOnboarding.jsx').catch(makeChunkReload("MyBasisProfile:LazyTalentOnboarding")));
+// TalentOnboarding wird jetzt eager importiert (siehe Import-Block oben) — kein React.lazy mehr, um den Suspense-fallback={null}-Hang-Bug zu vermeiden (analog zu MyRecommendationsModal/ImpactStimmenModal).
 
 
 
 
 function TalentOnboardingModal({ onClose = () => {}, onSuccess = () => {} }) {
   return createPortal(
-      <Suspense fallback={null}>
-        <LazyTalentOnboarding
-          onClose={onClose}
-          onActivate={onSuccess}
-        />
-      </Suspense>,
+      <TalentOnboarding
+        onClose={onClose}
+        onActivate={onSuccess}
+      />,
     document.body
   );
 }

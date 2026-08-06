@@ -356,7 +356,7 @@ function SuccessView({ onDone }) {
 /* ══════════════════════════════════════════════════════════════════════
    MAIN
 ══════════════════════════════════════════════════════════════════════ */
-export default function TalentOnboarding({ onClose, onActivate }) {
+export default function TalentOnboarding({ onClose = () => {}, onActivate = () => {} }) {
   useModalRegistration(true, () => onClose?.(), "TalentOnboarding");
   const { user, profile, setProfile } = useAuth();
   const [step,    setStep]    = useState(0);
