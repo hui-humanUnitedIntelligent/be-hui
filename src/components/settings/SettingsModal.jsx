@@ -10,6 +10,7 @@ import { useAuth } from "../../lib/AuthContext.jsx";
 import { supabase } from "../../lib/supabaseClient.js";
 import { HUILogoWordmark } from '../brand/HUILogo.jsx';
 import SupportPage from '../../pages/studio/SupportPage.jsx';
+import PushNotificationBlock from './PushNotificationBlock.jsx';
 import MeineTicketsPage from '../../pages/studio/MeineTicketsPage.jsx';
 import { APP_VERSION } from '../../version.ts';
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
@@ -335,6 +336,8 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
   const [view, setView] = useState("main"); // "main" | "edit" | "privacy" | "contact" | "security" | "support" | "tickets"
 
   const logout = async () => {
+    // Push-Tokens invalidieren vor dem Logout
+    try { await import("../../lib/pushNotificationService.js").then(m => m.invalidateTokensOnLogout()); } catch(e) {}
     await supabase.auth.signOut();
     window.location.href = platformPath("/login");
   };
@@ -399,6 +402,11 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
 
           {/* ══ MAIN VIEW ══════════════════════════════════════ */}
           {view === "main" && (<>
+
+            {/* Push-Notifications */}
+            <Section title="Benachrichtigungen" icon={<HUISettingsIcon size={16}/>}>
+              <PushNotificationBlock/>
+            </Section>
 
             {/* Ein Block: Profil bearbeiten / Sicherheit / Abmelden */}
             <Section title="Account & Sicherheit" icon={<HUIProfilIcon size={16}/>}>

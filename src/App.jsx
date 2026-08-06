@@ -53,6 +53,9 @@ const WorkDetailPage    = lazy(() => import('./components/WorkDetailPage').catch
 
 // ── Route Factory ──────────────────────────────────────────────────────────
 import { createTabPage, filterValidPages } from './lib/factories/createTabPage.js'
+import { loadPushSettings, initPushNotifications, invalidateTokensOnLogout } from "./lib/pushNotificationService.js";
+import { setupPushDeepLinkHandler } from "./lib/pushDeepLinkHandler.js";
+import InAppNotificationBanner from "./components/notifications/InAppNotificationBanner.jsx";
 // HUILogoSplash entfernt — IntroVideoScreen ersetzt Splash
 
 // ── APP_ROUTES: ÜBERGANGSSTRUKTUR (NAV-001B) ─────────────────────────────────
@@ -644,6 +647,58 @@ function ScrollToTop() {
 }
 
 function AppRoutes() {
+  const navigate = useNavigate();
+
+  // ── Push Deep-Link Handler ──────────────────────────────────────────
+  useEffect(() => {
+    const handler = (e) => {
+      const { entity_type, entity_id, action_url, data } = e.detail || {};
+      console.log("[HUI_PUSH_DEEPLINK]", { entity_type, entity_id, action_url });
+
+      // 1. action_url hat Priorität
+      if (action_url && typeof action_url === "string" && action_url.startsWith("/")) {
+        navigate(action_url);
+        return;
+      }
+
+      // 2. entity_type → Route
+      switch (entity_type) {
+        case "chat":
+          if (entity_id) navigate("/Home", { state: { openChatId: entity_id } });
+          else navigate("/Home");
+          break;
+        case "profile":
+        case "connection":
+          if (data?.sender_id) window.__HUI_OPEN_PROFILE__?.(data.sender_id);
+          else if (entity_id) window.__HUI_OPEN_PROFILE__?.(entity_id);
+          else navigate("/Home");
+          break;
+        case "booking":
+          navigate("/Home", { state: { openBookings: true } });
+          break;
+        case "work":
+        case "experience":
+        case "talent":
+        case "project":
+        case "moment":
+          if (entity_id) navigate("/Home", { state: { highlightId: entity_id, highlightType: entity_type } });
+          else navigate("/Home");
+          break;
+        case "order":
+        case "purchase":
+          navigate("/Home", { state: { openFinances: true } });
+          break;
+        case "impact":
+          navigate("/Home", { state: { openImpact: true } });
+          break;
+        default:
+          navigate("/Home");
+      }
+    };
+    window.addEventListener("hui:push:navigate", handler);
+    return () => window.removeEventListener("hui:push:navigate", handler);
+  }, [navigate]);
+
   // ── Route-Validierung beim Render ──────────────────────────────────
   // APP_ROUTES wurde durch createTabPage() normalisiert.
   // Ungültige Einträge (null) wurden durch filterValidPages() entfernt.
@@ -653,6 +708,8 @@ function AppRoutes() {
   }
 
   return (
+    <>
+    <InAppNotificationBanner />
     <AndroidBackButtonHandler>
     {/* HuiSuspense wraps all lazy routes — zeigt ruhigen Ladeindikator */}
     <HuiSuspense>
@@ -756,6 +813,7 @@ function AppRoutes() {
       </Routes>
     </HuiSuspense>
     </AndroidBackButtonHandler>
+    </>
   );
 }
 
@@ -810,6 +868,14 @@ function ProfileCompletionTrigger() {
 
 
 export default function App() {
+  // ── Push-Notifications initialisieren ──
+  useEffect(() => {
+    (async () => {
+      await loadPushSettings();
+      await initPushNotifications();
+    })();
+  }, []);
+
   return (
     <ErrorBoundary>
       <BrowserRouter>

@@ -1,0 +1,169 @@
+// src/lib/pushNotificationService.js
+// Push-Notification-System für HUI
+// Verwaltet: Token-Registrierung, Vordergrund/Betrieb, Einstellungen
+
+import { Capacitor } from "@capacitor/core";
+import { PushNotifications } from "@capacitor/push-notifications";
+import { supabase } from "./supabaseClient";
+
+// ── State ──────────────────────────────────────────────────────────────────
+let _initialized = false;
+let _pushEnabled = false;
+let _currentToken = null;
+let _foregroundListeners = false;
+
+// ── Public API ──────────────────────────────────────────────────────────────
+
+/**
+ * Lädt die aktuellen Push-Einstellungen vom Server.
+ */
+export async function loadPushSettings() {
+  try {
+    const { data, error } = await supabase.rpc("rpc_get_push_settings");
+    if (error) {
+      console.warn("[HUI_PUSH] loadPushSettings error:", error.message);
+      _pushEnabled = false;
+      return false;
+    }
+    _pushEnabled = data?.[0]?.push_enabled ?? false;
+    console.log("[HUI_PUSH] push_enabled =", _pushEnabled);
+    return _pushEnabled;
+  } catch (e) {
+    console.warn("[HUI_PUSH] loadPushSettings exception:", e?.message);
+    _pushEnabled = false;
+    return false;
+  }
+}
+
+/**
+ * Aktiviert oder deaktiviert Push-Notifications.
+ */
+export async function setPushEnabled(enabled) {
+  try {
+    const { error } = await supabase.rpc("rpc_set_push_enabled", { p_enabled: enabled });
+    if (error) {
+      console.warn("[HUI_PUSH] setPushEnabled error:", error.message);
+      return false;
+    }
+    _pushEnabled = enabled;
+    if (enabled) {
+      await registerDevice();
+    } else {
+      _currentToken = null;
+    }
+    console.log("[HUI_PUSH] setPushEnabled =", enabled);
+    return true;
+  } catch (e) {
+    console.warn("[HUI_PUSH] setPushEnabled exception:", e?.message);
+    return false;
+  }
+}
+
+/**
+ * Initialisiert das Push-Notification-System beim App-Start.
+ */
+export async function initPushNotifications() {
+  if (_initialized) {
+    console.log("[HUI_PUSH] already initialized");
+    return;
+  }
+  _initialized = true;
+
+  if (!Capacitor.isNativePlatform()) {
+    console.log("[HUI_PUSH] Web platform — push skipped (native only)");
+    return;
+  }
+
+  if (!_foregroundListeners) {
+    _foregroundListeners = true;
+
+    PushNotifications.addListener("registrationError", (err) => {
+      console.error("[HUI_PUSH] Registration error:", err);
+    });
+
+    PushNotifications.addListener("registration", async (token) => {
+      _currentToken = token.value;
+      console.log("[HUI_PUSH] FCM Token:", token.value?.substring(0, 20) + "…");
+      await saveTokenToServer(token.value);
+    });
+
+    PushNotifications.addListener("pushNotificationReceived", (notification) => {
+      console.log("[HUI_PUSH] Vordergrund:", notification);
+      window.dispatchEvent(new CustomEvent("hui:push:foreground", {
+        detail: {
+          title: notification.title || "HUI",
+          body: notification.body || "",
+          data: notification.data || {},
+        }
+      }));
+    });
+
+    PushNotifications.addListener("pushNotificationActionPerformed", (action) => {
+      const data = action.notification?.data || {};
+      console.log("[HUI_PUSH] Action:", data);
+      window.dispatchEvent(new CustomEvent("hui:push:navigate", {
+        detail: {
+          entity_type: data.entity_type || data.notificationType,
+          entity_id: data.entity_id,
+          action_url: data.action_url,
+          data,
+        }
+      }));
+    });
+  }
+
+  if (_pushEnabled) {
+    await registerDevice();
+  }
+}
+
+async function registerDevice() {
+  if (!Capacitor.isNativePlatform()) return;
+  try {
+    let permStatus = await PushNotifications.checkPermissions();
+    if (permStatus.receive === "prompt") {
+      permStatus = await PushNotifications.requestPermissions();
+    }
+    if (permStatus.receive !== "granted") {
+      console.warn("[HUI_PUSH] Berechtigung nicht gewährt");
+      return;
+    }
+    await PushNotifications.register();
+    console.log("[HUI_PUSH] register() aufgerufen");
+  } catch (e) {
+    console.error("[HUI_PUSH] registerDevice exception:", e?.message);
+  }
+}
+
+async function saveTokenToServer(token) {
+  if (!token) return;
+  try {
+    const platform = Capacitor.getPlatform();
+    const { error } = await supabase.rpc("rpc_register_device_token", {
+      p_token: token,
+      p_platform: platform,
+    });
+    if (error) {
+      console.warn("[HUI_PUSH] saveToken error:", error.message);
+    } else {
+      console.log("[HUI_PUSH] Token gespeichert ✓");
+    }
+  } catch (e) {
+    console.warn("[HUI_PUSH] saveTokenToServer exception:", e?.message);
+  }
+}
+
+export async function invalidateTokensOnLogout() {
+  try {
+    await supabase.rpc("rpc_invalidate_device_tokens");
+    _currentToken = null;
+    _pushEnabled = false;
+    console.log("[HUI_PUSH] Tokens invalidiert (logout)");
+  } catch (e) {
+    console.warn("[HUI_PUSH] invalidateTokens exception:", e?.message);
+  }
+}
+
+export function isPushEnabled() {
+  return _pushEnabled;
+}
