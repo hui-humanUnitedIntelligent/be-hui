@@ -107,7 +107,7 @@ export default function WelcomeOverlay({ onDone }) {
           display:        "flex",
           alignItems:     "center",
           justifyContent: "center",
-          padding:        "8px 8px 0",
+          padding:        "16px 16px 0",
         }}
       >
         {/* ── Card ───────────────────────────────────────────────── */}
@@ -117,7 +117,7 @@ export default function WelcomeOverlay({ onDone }) {
             position:        "relative",
             width:           "100%",
             maxWidth:        420,
-            maxHeight:       "calc(100dvh - 8px)",
+            maxHeight:       "calc(100dvh - 16px)",
             borderRadius:    "28px 28px 0 0",
             overflow:        "hidden",
             display:         "flex",
@@ -151,18 +151,18 @@ export default function WelcomeOverlay({ onDone }) {
               overflowX:  "hidden",
               position:   "relative",
               zIndex:     1,
-              padding:    "16px 18px 6px",
+              padding:    "36px 24px 24px",
             }}
           >
             {/* ── Logo + Headline ─────────────────────────────────── */}
-            <div style={{ textAlign: "center", marginBottom: 6 }}>
+            <div style={{ textAlign: "center", marginBottom: 24 }}>
               <HUILogo
-                size={44}
-                style={{ margin: "0 auto 6px" }}
+                size={90}
+                style={{ margin: "0 auto 16px" }}
               />
               <h1 style={{
                 margin:       0,
-                fontSize:     20,
+                fontSize:     26,
                 fontWeight:   800,
                 color:        INK,
                 letterSpacing: "-0.025em",
@@ -177,20 +177,20 @@ export default function WelcomeOverlay({ onDone }) {
                 display:    "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                gap:        5,
-                margin:     "6px 0 0",
+                gap:        8,
+                margin:     "14px 0 0",
               }}>
-                <div style={{ height: 1, width: 36, background: "rgba(13,196,181,0.22)", borderRadius: 1 }} />
-                <span style={{ fontSize: 12, lineHeight: 1 }}>🌿</span>
-                <div style={{ height: 1, width: 36, background: "rgba(13,196,181,0.22)", borderRadius: 1 }} />
+                <div style={{ height: 1, width: 48, background: "rgba(13,196,181,0.22)", borderRadius: 1 }} />
+                <span style={{ fontSize: 14, lineHeight: 1 }}>🌿</span>
+                <div style={{ height: 1, width: 48, background: "rgba(13,196,181,0.22)", borderRadius: 1 }} />
               </div>
             </div>
 
             {/* ── Einleitungstext ──────────────────────────────────── */}
-            <div style={{ textAlign: "center", marginBottom: 4 }}>
+            <div style={{ textAlign: "center", marginBottom: 22 }}>
               <p style={{
-                margin:     "0 0 4px",
-                fontSize:   13,
+                margin:     "0 0 8px",
+                fontSize:   15,
                 fontWeight: 700,
                 color:      INK,
                 letterSpacing: "-0.01em",
@@ -198,11 +198,11 @@ export default function WelcomeOverlay({ onDone }) {
                 Schön, dass du da bist.
               </p>
               <p style={{
-                fontSize:     12,
+                fontSize:     14,
                 color:        INK2,
-                lineHeight:   1.25,
+                lineHeight:   1.65,
                 letterSpacing: "-0.006em",
-                maxWidth:     270,
+                maxWidth:     300,
                 margin:       "0 auto",
               }}>
                 HUI ist ein Ort für Menschen, die gemeinsam Werte schaffen,
@@ -211,7 +211,7 @@ export default function WelcomeOverlay({ onDone }) {
             </div>
 
             {/* ── Feature-Liste ─────────────────────────────────────── */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 3, marginBottom: 6 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 24 }}>
               {FEATURES.map((f, i) => (
                 <div
                   key={i}
@@ -219,9 +219,9 @@ export default function WelcomeOverlay({ onDone }) {
                   style={{
                     display:       "flex",
                     alignItems:    "center",
-                    gap:           7,
-                    padding:       "4px 9px",
-                    borderRadius:  11,
+                    gap:           14,
+                    padding:       "12px 14px",
+                    borderRadius:  16,
                     background:    "rgba(250,247,242,0.9)",
                     border:        "1px solid rgba(13,196,181,0.10)",
                     transition:    "background 0.2s",
@@ -230,14 +230,14 @@ export default function WelcomeOverlay({ onDone }) {
                 >
                   {/* Icon-Badge */}
                   <div style={{
-                    width:         23,
-                    height:        23,
-                    borderRadius:  7,
+                    width:         44,
+                    height:        44,
+                    borderRadius:  12,
                     background:    f.bg,
                     display:       "flex",
                     alignItems:    "center",
                     justifyContent:"center",
-                    fontSize:      12,
+                    fontSize:      22,
                     flexShrink:    0,
                   }}>
                     {f.icon}
@@ -246,19 +246,18 @@ export default function WelcomeOverlay({ onDone }) {
                   {/* Text */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{
-                      fontSize:      11,
+                      fontSize:      14,
                       fontWeight:    700,
                       color:         INK,
                       letterSpacing: "-0.01em",
-                      marginBottom:  0,
-                      lineHeight:    1.15,
+                      marginBottom:  2,
                     }}>
                       {f.title}
                     </div>
                     <div style={{
-                      fontSize:  9.5,
+                      fontSize:  12,
                       color:     "rgba(58,58,85,0.65)",
-                      lineHeight: 1.2,
+                      lineHeight: 1.4,
                     }}>
                       {f.sub}
                     </div>
@@ -266,7 +265,7 @@ export default function WelcomeOverlay({ onDone }) {
 
                   {/* Chevron */}
                   <div style={{
-                    fontSize:  12,
+                    fontSize:  13,
                     color:     "rgba(13,196,181,0.50)",
                     flexShrink: 0,
                     fontWeight: 700,
@@ -278,26 +277,26 @@ export default function WelcomeOverlay({ onDone }) {
             </div>
 
             {/* ── Abschluss-Zitat ──────────────────────────────────── */}
-            <div style={{ textAlign: "center", marginBottom: 0 }}>
-              <div style={{ fontSize: 12, marginBottom: 2, opacity: 0.6 }}>♡</div>
+            <div style={{ textAlign: "center", marginBottom: 8 }}>
+              <div style={{ fontSize: 18, marginBottom: 8, opacity: 0.6 }}>♡</div>
               <p style={{
                 margin:       0,
-                fontSize:     11,
+                fontSize:     13,
                 color:        "rgba(58,58,85,0.55)",
-                lineHeight:   1.4,
+                lineHeight:   1.6,
                 letterSpacing: "-0.005em",
               }}>
                 Jede Begegnung kann etwas verändern.
               </p>
               <p style={{
-                margin:       "0",
-                fontSize:     11,
+                margin:       "2px 0 0",
+                fontSize:     14,
                 fontWeight:   600,
                 color:        TEAL2,
                 letterSpacing: "-0.008em",
               }}>
                 Vielleicht beginnt deine genau heute.{" "}
-                <span style={{ fontSize: 11 }}>🌿</span>
+                <span style={{ fontSize: 13 }}>🌿</span>
               </p>
             </div>
           </div>
@@ -306,7 +305,7 @@ export default function WelcomeOverlay({ onDone }) {
           <div style={{
             position:   "relative",
             zIndex:     2,
-            padding:    "8px 20px 16px",
+            padding:    "16px 24px 32px",
             background: "rgba(253,252,250,0.98)",
             borderTop:  "1px solid rgba(13,196,181,0.08)",
           }}>
@@ -319,12 +318,12 @@ export default function WelcomeOverlay({ onDone }) {
                 justifyContent: "center",
                 gap:            8,
                 width:          "100%",
-                padding:        "12px 22px",
-                borderRadius:   15,
+                padding:        "16px 24px",
+                borderRadius:   18,
                 border:         "none",
                 background:     `linear-gradient(135deg, ${TEAL} 0%, ${TEAL2} 100%)`,
                 color:          "#fff",
-                fontSize:       14.5,
+                fontSize:       16,
                 fontWeight:     700,
                 letterSpacing:  "-0.01em",
                 cursor:         "pointer",
@@ -334,7 +333,7 @@ export default function WelcomeOverlay({ onDone }) {
                 WebkitTapHighlightColor: "transparent",
               }}
             >
-              <span style={{ fontSize: 15 }}>✨</span>
+              <span style={{ fontSize: 17 }}>✨</span>
               HUI entdecken
             </button>
           </div>
