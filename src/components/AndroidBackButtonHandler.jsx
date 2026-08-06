@@ -9,12 +9,22 @@
 //   d) Auf Root-Route (/Home)? → Exit-Bestätigungs-Dialog
 //
 // PFLICHT: Muss INSIDE BrowserRouter leben (braucht useNavigate/useLocation)
+//
+// WICHTIG: @capacitor/app wird NICHT importiert (weder top-level noch dynamic).
+// Stattdessen registerPlugin("App", {}) aus @capacitor/core —
+// genau das, was @capacitor/app intern tut. Das erzeugt einen Proxy
+// der auf Android/iOS das native Plugin anspricht, auf Web ein No-Op ist.
+// Dadurch gibt es KEINEN Rollup-Resolve-Fehler beim Web-Build.
 // ══════════════════════════════════════════════════════════════════════
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
+import { Capacitor, registerPlugin } from "@capacitor/core";
 import { hasOpenModal, closeTopmostModal, getModalCount } from "../lib/backButtonRegistry.js";
+
+// ── Plugin Proxy (läuft auf allen Plattformen, No-Op auf Web) ────────────────
+const App = registerPlugin("App", {});
 
 // ─── Exit-Confirm Dialog ─────────────────────────────────────────────
 function ExitConfirmDialog({ onConfirm, onCancel }) {
@@ -128,14 +138,13 @@ export function AndroidBackButtonHandler({ children }) {
       setShowExitConfirm(true);
     };
 
-    // ── Capacitor App Plugin ──────────────────────────────────────────
+    // ── Capacitor App Plugin (nur auf nativen Plattformen) ─────────────
     const setup = async () => {
+      if (!Capacitor.isNativePlatform()) return;
       try {
-        const { App } = await import("@capacitor/app");
         listenerPromise = App.addListener("backButton", handleBack);
       } catch (e) {
-        // Web/Fallback — kein Capacitor verfügbar (z.B. Browser)
-        //console.log("[BackButton] Capacitor not available, running in browser");
+        // Fallback — Plugin nicht verfügbar
       }
     };
 
@@ -152,8 +161,11 @@ export function AndroidBackButtonHandler({ children }) {
   // ── Exit Confirm Handlers ───────────────────────────────────────────
   const handleConfirmExit = useCallback(async () => {
     setShowExitConfirm(false);
+    if (!Capacitor.isNativePlatform()) {
+      window.close();
+      return;
+    }
     try {
-      const { App } = await import("@capacitor/app");
       App.exitApp();
     } catch (e) {
       // Browser fallback — kann App nicht schließen
