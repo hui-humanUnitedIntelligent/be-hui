@@ -64,6 +64,7 @@ import {
   HUIVerkaufIcon, HUIStatistikIcon,
   HUIFotoIcon, HUIAnsichtIcon, HUISettingsIcon, HUISchreibenIcon,
 } from "../design/icons/HuiSystemIcons.jsx";
+import { HUILogo } from '../components/brand/HUILogo.jsx';
 import { useContentPreview } from "../context/ContentPreviewContext.jsx";
 const AmbassadorStudioSection = React.lazy(() => import("../components/ambassador/AmbassadorStudioSection.jsx").catch(makeChunkReload("MyBasisProfile:AmbassadorStudioSection")));
 import HuiMomentSheet from "../components/HuiMomentSheet.jsx";
@@ -331,7 +332,7 @@ function MomentThumb({ m, onRemove }) {
         <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column",
           alignItems:"center", justifyContent:"center",
           background:"rgba(26,26,24,0.06)", gap:4 }}>
-          <HUIFotoIcon size={22} style={{color:"rgba(26,26,24,0.35)"}} />
+          <HUILogo size={32} style={{opacity:0.55}} />
           <span style={{fontSize:9, color:"rgba(26,26,24,0.35)", textAlign:"center",
             padding:"0 6px", lineHeight:1.4}}>Bild nicht verfügbar</span>
         </div>
@@ -1621,7 +1622,7 @@ function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
                         onError={e => e.target.style.display = "none"}/>)
                   : <div style={{ width:"100%", height:"100%", display:"flex",
                       alignItems:"center", justifyContent:"center" }}>
-                      <HUIFotoIcon size={22} style={{color:"rgba(14,196,184,0.5)"}}/>
+                      <HUILogo size={32} style={{opacity:0.5}}/>
                     </div>
                 }
                 {/* X-Löschen-Button oben rechts */}

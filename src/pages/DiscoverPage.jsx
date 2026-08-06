@@ -9,6 +9,7 @@ import {
   HUIWerkeIcon, HUIAnsichtIcon,
   HUIKalenderIcon, HUIPersonenIcon,
 } from '../design/icons/HuiSystemIcons.jsx';
+import { HUILogo } from '../components/brand/HUILogo.jsx';
 import React, { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
 import { useNavigate }   from "react-router-dom";
 import { NAV_CONTENT_SPACER_CSS } from "../components/home/navigation/navigationGeometry.js";
@@ -487,7 +488,7 @@ function MomentCard({ moment, delay=0, onPress, onAuthorPress }) {
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
         ) : (
           <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <HUIFotoIcon size={32} style={{opacity:0.3, color:"rgba(14,196,184,0.5)"}} />
+            <HUILogo size={44} style={{opacity:0.5}} />
           </div>
         )}
 
@@ -568,7 +569,7 @@ function MomenteSection({ momente, loading, delay=0, view='cards', onPress, onAu
                 <div key={m.id} className="dp-list-card" onClick={() => onPress?.(m)} style={{cursor:"pointer"}}>
                   {m.src
                     ? <img loading="lazy" decoding="async" src={m.src} alt={m.caption} className="dp-list-thumb" onError={e => e.target.style.display='none'} style={{ objectFit:"cover" }}/>
-                    : <div className="dp-list-thumb-placeholder" style={{display:"flex",alignItems:"center",justifyContent:"center"}}><HUIFotoIcon size={24} style={{opacity:0.3, color:"rgba(14,196,184,0.5)"}}/></div>
+                    : <div className="dp-list-thumb-placeholder" style={{display:"flex",alignItems:"center",justifyContent:"center"}}><HUILogo size={34} style={{opacity:0.5}}/></div>
                   }
                   <div style={{ flex:1, overflow:"hidden" }}>
                     <div style={{ fontSize:13, fontWeight:600, color:T.ink, marginBottom:4, overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", lineHeight:1.35 }}>{m.caption}</div>

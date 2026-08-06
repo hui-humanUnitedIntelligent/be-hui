@@ -3,6 +3,7 @@
 // MOMENTS SECTION — Horizontaler Slider (wie WorksSection)
 // ══════════════════════════════════════════════════════════════════════
 import { HUIFotoIcon } from '../../../design/icons/HuiSystemIcons.jsx';
+import { HUILogo } from '../../brand/HUILogo.jsx';
 import React from "react";
 import { useContentPreview } from "../../../context/ContentPreviewContext.jsx";
 import { normalizePostForPreview } from "../../../lib/previewNormalizers.js";
@@ -108,7 +109,7 @@ export function MomentsSection({
                       onError={e=>e.target.style.display="none"}/>)
                 : <div style={{ width:"100%", height:"100%", display:"flex",
                     alignItems:"center", justifyContent:"center" }}>
-                    <HUIFotoIcon size={24} style={{color:"rgba(14,196,184,0.4)"}}/>
+                    <HUILogo size={34} style={{opacity:0.5}}/>
                   </div>
               }
             </div>
