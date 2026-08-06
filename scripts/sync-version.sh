@@ -16,7 +16,7 @@ BUILD_GRADLE="android/app/build.gradle"
 STRINGS_XML="android/app/src/main/res/values/strings.xml"
 
 # Version lesen — relativer Pfad, KEIN pwd -W
-NEW_VERSION=$(node -p "require('./package.json').version")
+NEW_VERSION=$(node -p "JSON.parse(require('fs').readFileSync('./package.json','utf8')).version")
 
 # Validierung
 [[ "$NEW_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
