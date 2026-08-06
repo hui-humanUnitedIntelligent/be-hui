@@ -21,6 +21,7 @@ import TalentAnfrageFlow  from "../components/talents/TalentAnfrageFlow.jsx";
 import TalentBookingFlow from "../components/talents/TalentBookingFlow.jsx"; // direkt (nicht lazy) — buchungskritisch, verhindert "erster Klick öffnet nicht"-Bug
 import { searchPlaces, distanceKm } from "../lib/geocoding.js";
 import { useRadiusFilter, radiusLabel } from "../hooks/useRadiusFilter.js";
+const MenschenAllModal = lazy(() => import("../components/discover/MenschenAllModal.jsx"));
 const WerkeAllModal = lazy(() => import("../components/discover/WerkeAllModal.jsx"));
 const TalenteAllModal = lazy(() => import("../components/discover/TalenteAllModal.jsx"));
 const ErlebnisseAllModal = lazy(() => import("../components/discover/ErlebnisseAllModal.jsx"));
@@ -2214,13 +2215,12 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
     navigate("/impact", { state: { openProjectId: projekt.id } });
   }, [navigate]);
 
-  // SectionHead "Alle ansehen →" → Modal öffnen
-  const makeScrollHandler = useCallback((selector) => () => {
-    const el = document.querySelector(selector);
-    if (el) el.scrollIntoView({ behavior:"smooth", block:"start" });
-  }, []);
+  // (makeScrollHandler entfernt 2026-08-06 — letzter Aufrufer war der 'Alle anzeigen'-Button der
+  //  Menschen-Sektion, der zuvor sinnlos zur eigenen Sektion zurückscrollte statt ein echtes
+  //  Modal zu öffnen. Ersetzt durch MenschenAllModal, siehe showMenschenModal.)
 
   // Modal-States (lazy — erst beim Öffnen initialisiert)
+  const [showMenschenModal,   setShowMenschenModal]   = useState(false);
   const [showWerkeModal,      setShowWerkeModal]      = useState(false);
   const [showTalenteModal,    setShowTalenteModal]     = useState(false);
   const [showErlebnisseModal, setShowErlebnisseModal]  = useState(false);
@@ -2253,7 +2253,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         loading={loading}
         delay={60}
         view={view}
-        onSectionAction={makeScrollHandler("[data-dp-people]")}
+        onSectionAction={() => setShowMenschenModal(true)}
       />
 
       {/* ── 4. Momente aus deiner Nähe ── */}
@@ -2384,6 +2384,14 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
           onPressItem={(exp) => {
             setShowErlebnisseModal(false);
             openPreview({ id:exp.id, type:"erlebnis", title:exp.title, experienceId:exp.id });
+          }}
+        />
+        <MenschenAllModal
+          isOpen={showMenschenModal}
+          onClose={() => setShowMenschenModal(false)}
+          onPressPerson={(person) => {
+            setShowMenschenModal(false);
+            if (person?.id && typeof onView === "function") onView(person.id);
           }}
         />
         <MomenteAllModal
