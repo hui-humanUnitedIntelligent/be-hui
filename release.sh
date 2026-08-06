@@ -10,16 +10,17 @@
 #   bash release.sh major         → Major-Release (1.0.1 → 2.0.0)
 #
 # Macht automatisch:
-#   1. Version erhöhen (npm version patch/minor/major)
-#   2. versionCode inkrementieren
-#   3. build.gradle aktualisieren
-#   4. strings.xml aktualisieren
+#   1. Pre-Flight Checks (node_modules, native plugins)
+#   2. Version erhöhen (npm version patch/minor/major)
+#   3. versionCode inkrementieren
+#   4. build.gradle + strings.xml aktualisieren
 #   5. version.ts (dynamisch — liest aus package.json)
 #   6. Web-Build (npm run build)
 #   7. Capacitor Sync (npx cap sync android)
-#   8. Git commit + push
-#   9. Gradle assembleRelease
-#  10. APK umbenennen → android/app/release/HUI-v<version>.apk
+#   8. Plugin-Verifikation nach Sync
+#   9. Git commit + push
+#  10. Gradle assembleRelease
+#  11. APK umbenennen → android/app/release/HUI-v<version>.apk
 #
 # =============================================================================
 
@@ -67,6 +68,28 @@ echo -e "\n${CYAN}${BOLD}╔═════════════════�
 echo -e "${CYAN}${BOLD}║   HUI RELEASE SYSTEM  —  Mode: ${MODE}              ║${NC}"
 echo -e "${CYAN}${BOLD}╚══════════════════════════════════════════════╝${NC}"
 
+# ── 0. Pre-Flight: Native Plugin Checks ───────────────────────────────────────
+step 0 "Pre-Flight: Native Plugins prüfen"
+
+REQUIRED_PLUGINS=(
+  "@capacitor/app"
+  "@capacitor/push-notifications"
+)
+
+PLUGINS_OK=true
+for plugin in "${REQUIRED_PLUGINS[@]}"; do
+  if [[ ! -d "node_modules/${plugin}/android" ]]; then
+    error "Native Plugin ${plugin} fehlt in node_modules — führe 'npm install' aus"
+    PLUGINS_OK=false
+  elif [[ ! -f "node_modules/${plugin}/android/build.gradle" ]]; then
+    error "Native build.gradle für ${plugin} fehlt — führe 'npm install' aus"
+    PLUGINS_OK=false
+  else
+    success "${plugin}: native android/ OK"
+  fi
+done
+[[ "$PLUGINS_OK" == "true" ]] || exit 1
+
 # ── Aktuelle Version anzeigen ─────────────────────────────────────────────────
 CURRENT_VERSION=$(node -p "require('./package.json').version")
 info "Aktuelle Version: $CURRENT_VERSION"
@@ -113,15 +136,51 @@ step 4 "Capacitor Sync"
 npx cap sync android || error "Capacitor Sync fehlgeschlagen"
 success "Capacitor Sync fertig"
 
+# ── 4b. Plugin-Verifikation nach Sync ─────────────────────────────────────────
+step "4b" "Plugin-Registrierung verifizieren"
+
+PLUGINS_JSON="android/app/src/main/assets/capacitor.plugins.json"
+SYNC_OK=true
+
+for plugin in "${REQUIRED_PLUGINS[@]}"; do
+  if grep -q "$plugin" "$PLUGINS_JSON" 2>/dev/null; then
+    success "$plugin in capacitor.plugins.json ✓"
+  else
+    warn "$plugin FEHLT in capacitor.plugins.json — re-run cap update"
+    npx cap update android 2>/dev/null || true
+    if grep -q "$plugin" "$PLUGINS_JSON" 2>/dev/null; then
+      success "$plugin nach cap update registriert ✓"
+    else
+      error "$plugin konnte nicht registriert werden — 'npm install' prüfen"
+    fi
+  fi
+done
+
+# capacitor.build.gradle prüfen
+if grep -q "capacitor-app" android/app/capacitor.build.gradle 2>/dev/null; then
+  success "capacitor.build.gradle: Plugin-Einträge OK"
+else
+  warn "capacitor.build.gradle leer — re-run cap update"
+  npx cap update android 2>/dev/null || true
+  if grep -q "capacitor-app" android/app/capacitor.build.gradle 2>/dev/null; then
+    success "capacitor.build.gradle nach cap update repariert ✓"
+  else
+    error "capacitor.build.gradle konnte nicht repariert werden"
+  fi
+fi
+
 # ── 5. Git Commit + Push ──────────────────────────────────────────────────────
 step 5 "Git Commit + Push"
 
 git add package.json android/app/build.gradle android/app/src/main/res/values/strings.xml \
        src/version.ts www/ android/app/src/main/assets/ android/capacitor.settings.gradle \
-       android/app/capacitor.build.gradle 2>/dev/null || true
+       android/app/capacitor.build.gradle android/app/src/main/assets/capacitor.plugins.json 2>/dev/null || true
 
 # Alle www/ Änderungen stagen
 git add www/ 2>/dev/null || true
+
+# Alle android/ Änderungen stagen (cap sync kann files ändern)
+git add android/ 2>/dev/null || true
 
 COMMIT_MSG="release: v${NEW_VERSION} (${MODE} bump)"
 git commit -m "$COMMIT_MSG" 2>/dev/null || {
@@ -134,7 +193,8 @@ success "Git: committed + pushed ($COMMIT_MSG)"
 # ── 6. Gradle Release Build ──────────────────────────────────────────────────
 step 6 "Gradle assembleRelease"
 cd "$ROOT_DIR/android"
-./gradlew assembleRelease --no-daemon 2>&1 | tail -5 || {
+./gradlew clean --no-daemon 2>/dev/null || warn "clean failed (nicht kritisch)"
+./gradlew assembleRelease --no-daemon 2>&1 | tail -10 || {
   warn "Gradle Release Build fehlgeschlagen — versuche Debug"
   ./gradlew assembleDebug --no-daemon 2>&1 | tail -5 || error "Gradle Build komplett fehlgeschlagen"
 }
