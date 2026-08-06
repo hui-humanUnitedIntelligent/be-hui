@@ -37,7 +37,7 @@ done
 [[ -n "$SOURCE_APK" ]] || error "Keine APK gefunden. Gradle Build vorher ausführen."
 
 # Version lesen — relativer Pfad, kein pwd -W
-VERSION=$(node -p "require('./package.json').version")
+VERSION=$(node -p "JSON.parse(require('fs').readFileSync('./package.json','utf8')).version")
 VERSION_CODE=$(grep -oP 'versionCode\s+\K[0-9]+' android/app/build.gradle)
 
 DEST_APK="${RELEASE_DIR}/HUI-v${VERSION}-code${VERSION_CODE}.apk"

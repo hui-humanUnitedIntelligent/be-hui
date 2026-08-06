@@ -57,7 +57,7 @@ echo -e "\n${CYAN}${BOLD}╔═════════════════�
 echo -e "${CYAN}${BOLD}║   HUI RELEASE SYSTEM  —  Mode: ${MODE}              ║${NC}"
 echo -e "${CYAN}${BOLD}╚══════════════════════════════════════════════╝${NC}"
 
-CURRENT_VERSION=$(node -p "require('./package.json').version")
+CURRENT_VERSION=$(node -p "JSON.parse(require('fs').readFileSync('./package.json','utf8')).version")
 info "Aktuelle Version: $CURRENT_VERSION"
 
 # ── 1. Version erhöhen ────────────────────────────────────────────────────────
@@ -65,7 +65,7 @@ step 1 "Version erhöhen ($MODE)"
 bash scripts/version.sh "$MODE"
 
 # Neue Version lesen (mit relativen Pfaden — KEIN pwd -W)
-NEW_VERSION=$(node -p "require('./package.json').version")
+NEW_VERSION=$(node -p "JSON.parse(require('fs').readFileSync('./package.json','utf8')).version")
 if ! [[ "$NEW_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   error "Version ist ungültig: '$NEW_VERSION'"
 fi
@@ -145,7 +145,7 @@ done
 [[ -n "$APK_SOURCE" ]] || error "Keine APK gefunden. Gradle Build vorher ausführen."
 
 # Version und Code lesen — NUR relative Pfade, KEIN pwd -W
-APK_VERSION=$(node -p "require('./package.json').version")
+APK_VERSION=$(node -p "JSON.parse(require('fs').readFileSync('./package.json','utf8')).version")
 APK_CODE=$(grep -oP 'versionCode\s+\K[0-9]+' android/app/build.gradle)
 
 APK_TARGET="${RELEASE_DIR}/HUI-v${APK_VERSION}-code${APK_CODE}.apk"
