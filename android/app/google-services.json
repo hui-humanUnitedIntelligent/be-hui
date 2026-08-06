@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "230871831227",
+    "project_id": "hui-human-united-intelligence",
+    "storage_bucket": "hui-human-united-intelligence.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:230871831227:android:11e38e8889f465e476cf9e",
+        "android_client_info": {
+          "package_name": "com.hui.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBwNwmvczsLZRLjJhenQT3aztcp6rT35wo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
