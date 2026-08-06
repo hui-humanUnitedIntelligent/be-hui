@@ -11,6 +11,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import * as Sentry from '@sentry/react';
+import { APP_VERSION } from '../version.js';
 
 // ── Initialisierung ─────────────────────────────────────────────
 // Wird einmalig in main.jsx aufgerufen.
@@ -26,7 +27,7 @@ export function initSentry() {
   Sentry.init({
     dsn,
     environment: import.meta.env.MODE || 'production',
-    release:     import.meta.env.VITE_APP_VERSION || 'hui@unknown',
+    release:     `hui@${APP_VERSION}`,
 
     // ── Performance Tracing ──────────────────────────────────
     // 10% aller Sessions tracen — nicht 100% um Quota zu schonen

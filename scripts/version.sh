@@ -3,11 +3,15 @@
 # scripts/version.sh — HUI Version Management + Auto-Increment
 # =============================================================================
 # Usage:
-#   ./scripts/version.sh                 → Sync only
-#   ./scripts/version.sh bump            → Auto-increment patch (hui.1.02 → hui.1.03)
-#   ./scripts/version.sh bump-minor      → Auto-increment minor (hui.1.02 → hui.1.10)
-#   ./scripts/version.sh bump-major      → Auto-increment major (hui.1.02 → hui.2.0)
-#   ./scripts/version.sh hui.1.03 4      → Manual set
+#   ./scripts/version.sh                 → Sync build.gradle → package.json
+#   ./scripts/version.sh bump            → Auto-increment patch (1.0.1 → 1.0.2)
+#   ./scripts/version.sh bump-minor      → Auto-increment minor (1.0.1 → 1.1.0)
+#   ./scripts/version.sh bump-major      → Auto-increment major (1.0.1 → 2.0.0)
+#   ./scripts/version.sh 1.0.5 6         → Manual set (version + code)
+#
+# WICHTIG: version.ts wird NICHT mehr von diesem Script geschrieben.
+# version.ts liest die Version dynamisch aus package.json zur Build-Zeit.
+# Dieses Script aktualisiert nur noch build.gradle + package.json.
 # =============================================================================
 
 set -euo pipefail
@@ -16,7 +20,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 BUILD_GRADLE="${ROOT_DIR}/android/app/build.gradle"
-VERSION_TS="${ROOT_DIR}/src/version.ts"
 PACKAGE_JSON="${ROOT_DIR}/package.json"
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
@@ -26,103 +29,62 @@ warn()    { echo -e "${YELLOW}[VERSION]${NC} ⚠️  $*"; }
 error()   { echo -e "${RED}[VERSION]${NC} ❌ $*"; exit 1; }
 
 [[ -f "$BUILD_GRADLE" ]] || error "build.gradle nicht gefunden"
-[[ -d "${ROOT_DIR}/src" ]] || error "src/ nicht gefunden"
+[[ -f "$PACKAGE_JSON" ]] || error "package.json nicht gefunden"
 
 # ── Aktuelle Werte lesen ─────────────────────────────────────────────────────
 VERSION_NAME=$(grep -oP 'versionName\s*"\K[^"]+' "$BUILD_GRADLE")
 VERSION_CODE=$(grep -oP 'versionCode\s*\K[0-9]+' "$BUILD_GRADLE")
-
 [[ -n "$VERSION_CODE" ]] || VERSION_CODE=1
 
 # ── Auto-Increment Logik ─────────────────────────────────────────────────────
 increment_version() {
-  local mode="$1"
-  local v="$VERSION_NAME"
-
-  # Format: hui.X.YY
-  local prefix="${v%%.*}"       # hui
-  local major=$(echo "$v" | cut -d'.' -f2)
-  local minor=$(echo "$v" | cut -d'.' -f3)
-
+  local mode="$1" v="$VERSION_NAME"
+  local major=$(echo "$v" | cut -d'.' -f1)
+  local minor=$(echo "$v" | cut -d'.' -f2)
+  local patch=$(echo "$v" | cut -d'.' -f3)
   case "$mode" in
-    bump)
-      minor=$((minor + 1))
-      ;;
-    bump-minor)
-      major=$((major + 1))
-      minor=0
-      ;;
-    bump-major)
-      major=$((major + 1))
-      minor=0
-      ;;
-    *)
-      error "Unbekannter bump-Modus: $mode"
-      ;;
+    bump)      patch=$((patch + 1)) ;;
+    bump-minor) major=$((major + 1)); minor=0; patch=0 ;;
+    bump-major) major=$((major + 1)); minor=0; patch=0 ;;
+    *) error "Unbekannter bump-Modus: $mode" ;;
   esac
-
-  VERSION_NAME="${prefix}.${major}.${minor}"
+  VERSION_NAME="${major}.${minor}.${patch}"
   VERSION_CODE=$((VERSION_CODE + 1))
 }
 
 # ── Parameter auswerten ───────────────────────────────────────────────────────
 MODE="${1:-}"
-
 if [[ "$MODE" =~ ^bump|bump-minor|bump-major$ ]]; then
   info "Auto-Increment ($MODE)…"
   increment_version "$MODE"
   success "Neue Version: $VERSION_NAME (Code $VERSION_CODE)"
-
 elif [[ -n "$MODE" ]]; then
-  NEW_VERSION="$MODE"
-  NEW_CODE="${2:-}"
-
-  info "Setze versionName = \"$NEW_VERSION\""
-sed -i.bak "s/versionName \".*\"/versionName \"${NEW_VERSION}\"/" "$BUILD_GRADLE"
-rm -f "${BUILD_GRADLE}.bak"
-
-if [[ -n "$NEW_CODE" ]]; then
-  info "Setze versionCode = $NEW_CODE"
-  sed -i.bak "s/versionCode [0-9]\+/versionCode ${NEW_CODE}/" "$BUILD_GRADLE"
-  rm -f "${BUILD_GRADLE}.bak"
-fi
-
-  VERSION_NAME="$NEW_VERSION"
-  VERSION_CODE="$NEW_CODE"
+  VERSION_NAME="$MODE"
+  [[ -n "${2:-}" ]] && VERSION_CODE="$2"
 fi
 
 # ── build.gradle aktualisieren ───────────────────────────────────────────────
 sed -i.bak "s/versionName \".*\"/versionName \"${VERSION_NAME}\"/" "$BUILD_GRADLE"
 sed -i.bak "s/versionCode [0-9]\+/versionCode ${VERSION_CODE}/" "$BUILD_GRADLE"
 rm -f "${BUILD_GRADLE}.bak"
-
-# ── version.ts schreiben ─────────────────────────────────────────────────────
-cat > "$VERSION_TS" << TSEOF
-export const APP_VERSION = "${VERSION_NAME}";
-export const APP_VERSION_CODE = ${VERSION_CODE};
-
-export default APP_VERSION;
-TSEOF
-
-success "src/version.ts aktualisiert"
+success "build.gradle: versionName=${VERSION_NAME}, versionCode=${VERSION_CODE}"
 
 # ── package.json synchronisieren ─────────────────────────────────────────────
-SEMVER=$(echo "$VERSION_NAME" | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?')
-if [[ -n "$SEMVER" ]]; then
-  sed -i.bak "s/\"version\": \".*\"/\"version\": \"$SEMVER\"/" "$PACKAGE_JSON"
-  rm -f "${PACKAGE_JSON}.bak"
-  success "package.json version = \"$SEMVER\""
-fi
+sed -i.bak "s/\"version\": \".*\"/\"version\": \"$VERSION_NAME\"/" "$PACKAGE_JSON"
+rm -f "${PACKAGE_JSON}.bak"
+success "package.json: version=\"${VERSION_NAME}\""
+
+# ── version.ts wird NICHT mehr geschrieben — liest dynamisch aus package.json
 
 # ── Build + Sync ─────────────────────────────────────────────────────────────
 info "Starte Web-Build…"
 npm run build --silent || warn "Web-Build fehlgeschlagen"
-
 info "Starte Capacitor Sync…"
 npx cap sync android || warn "Capacitor Sync fehlgeschlagen"
 
 echo -e "${GREEN}══════════════════════════════════════════${NC}"
 echo -e "${GREEN} Version Sync abgeschlossen${NC}"
-echo -e "  APP_VERSION       → ${YELLOW}${VERSION_NAME}${NC}"
-echo -e "  APP_VERSION_CODE  → ${YELLOW}${VERSION_CODE}${NC}"
+echo -e "  package.json       → ${YELLOW}${VERSION_NAME}${NC}"
+echo -e "  build.gradle       → ${YELLOW}${VERSION_NAME} (Code ${VERSION_CODE})${NC}"
+echo -e "  version.ts         → ${YELLOW}dynamisch aus package.json${NC}"
 echo -e "${GREEN}══════════════════════════════════════════${NC}"

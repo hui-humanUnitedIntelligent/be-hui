@@ -11,7 +11,7 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { HUILogoWordmark } from '../brand/HUILogo.jsx';
 import SupportPage from '../../pages/studio/SupportPage.jsx';
 import MeineTicketsPage from '../../pages/studio/MeineTicketsPage.jsx';
-import APP_VERSION from '../../version.ts';
+import { APP_VERSION } from '../../version.ts';
 
 // ── Design Tokens ─────────────────────────────────────────────
 const T = {
