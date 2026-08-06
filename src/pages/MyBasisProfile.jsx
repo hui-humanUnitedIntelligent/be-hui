@@ -34,7 +34,6 @@ import MerkenSection from "../components/profile/MerkenSection.jsx";
 const AboutSection = React.lazy(() => import("../components/profile/sections/AboutSection.jsx").then(m => ({ default: m.AboutSection })).catch(makeChunkReload("MyBasisProfile:AboutSection")));
 import { ProfileHeader as CanonicalProfileHeader } from "../components/profile/ProfileHeader.jsx";
 const TalentSection = React.lazy(() => import("../components/profile/sections/TalentSection.jsx").then(m => ({ default: m.TalentSection })).catch(makeChunkReload("MyBasisProfile:TalentSection")));
-const MomentsSection = React.lazy(() => import("../components/profile/sections/MomentsSection.jsx").then(m => ({ default: m.MomentsSection })).catch(makeChunkReload("MyBasisProfile:MomentsSection")));
 const RecommendationsSection = React.lazy(() => import("../components/profile/sections/RecommendationsSection.jsx").then(m => ({ default: m.RecommendationsSection })).catch(makeChunkReload("MyBasisProfile:RecommendationsSection")));
 const AvailabilitySection = React.lazy(() => import("../components/profile/sections/AvailabilitySection.jsx").then(m => ({ default: m.AvailabilitySection })).catch(makeChunkReload("MyBasisProfile:AvailabilitySection")));
 const VisibilitySection = React.lazy(() => import("../components/profile/sections/VisibilitySection.jsx").then(m => ({ default: m.VisibilitySection })).catch(makeChunkReload("MyBasisProfile:VisibilitySection")));
@@ -448,7 +447,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
   const [interests,  setInterests]  = useState([]);
   const [openFor,    setOpenFor]    = useState([]);
-  const [moments,    setMoments]    = useState([]);
   const [visibility, setVisibility] = useState("connections"); // lokal — kein DB-Write
   const [saving,     setSaving]     = useState(false);
   const [saveOk,     setSaveOk]     = useState(false);
@@ -696,7 +694,6 @@ const handleNotifAction = (n) => {
     works:           hooksWorks,
     experiences:     hooksExps,
     recommendations: hooksRecs,
-    moments:         hooksMoments,
     loading:         hookLoading,
     reload,
     loadLazy,
@@ -815,13 +812,6 @@ const handleNotifAction = (n) => {
     _save({ skills: v });
   }, [_save]);
   const handleInterestsChange = handleSkillsSave; // Alias
-
-  const handleMomentsSave = useCallback((newItems) => {
-    setMoments(newItems);
-    const urls = newItems.map(m => m.img).filter(Boolean);
-    _save({ dna_tags: urls });
-  }, [_save]);
-  const handleMomentsChange = handleMomentsSave; // Alias
 
   const handleVisibilitySave = useCallback((v) => {
     setVisibility(v);
@@ -1161,14 +1151,6 @@ const handleNotifAction = (n) => {
             {/* B2. Interessen & Werte — InteressenSection bleibt (Basis-spezifisch) */}
             <InteressenSection interests={interests} onChange={handleInterestsChange}/>
             <Gap h={24}/>
-
-            {/* B3. Momente — kanonisch: MomentsSection */}
-        <Suspense fallback={null}><MomentsSection
-                moments={moments}
-                isOwner={true}
-                onAddMoment={(newMoments) => handleMomentsSave(newMoments)}
-              /></Suspense>
-        <Gap h={24}/>
 
             {/* B4. Offen für Begegnungen — OffenFuerSection bleibt (Basis-spezifisch) */}
             <OffenFuerSection openFor={openFor} onChange={handleOpenForChange}/>
