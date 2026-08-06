@@ -1,9 +1,12 @@
 // src/lib/pushNotificationService.js
 // Push-Notification-System für HUI
 // Verwaltet: Token-Registrierung, Vordergrund/Betrieb, Einstellungen
+//
+// WICHTIG: @capacitor/push-notifications ist ein natives Plugin (keine Web-Impl).
+// Daher wird es DYNAMISCH importiert — nur auf nativen Plattformen zur Laufzeit.
+// Der Web-Build bundelt es nicht (kein Rollup-Resolve-Fehler).
 
 import { Capacitor } from "@capacitor/core";
-import { PushNotifications } from "@capacitor/push-notifications";
 import { supabase } from "./supabaseClient";
 
 // ── State ──────────────────────────────────────────────────────────────────
@@ -11,6 +14,21 @@ let _initialized = false;
 let _pushEnabled = false;
 let _currentToken = null;
 let _foregroundListeners = false;
+let _PushNotifications = null;
+
+// ── Lazy loader for native plugin ──────────────────────────────────────────
+async function getPushNotifications() {
+  if (_PushNotifications) return _PushNotifications;
+  if (!Capacitor.isNativePlatform()) return null;
+  try {
+    const mod = await import("@capacitor/push-notifications");
+    _PushNotifications = mod.PushNotifications;
+    return _PushNotifications;
+  } catch (e) {
+    console.warn("[HUI_PUSH] Plugin nicht verfügbar:", e?.message);
+    return null;
+  }
+}
 
 // ── Public API ──────────────────────────────────────────────────────────────
 
@@ -74,6 +92,12 @@ export async function initPushNotifications() {
     return;
   }
 
+  const PushNotifications = await getPushNotifications();
+  if (!PushNotifications) {
+    console.warn("[HUI_PUSH] Plugin konnte nicht geladen werden");
+    return;
+  }
+
   if (!_foregroundListeners) {
     _foregroundListeners = true;
 
@@ -120,6 +144,9 @@ export async function initPushNotifications() {
 async function registerDevice() {
   if (!Capacitor.isNativePlatform()) return;
   try {
+    const PushNotifications = await getPushNotifications();
+    if (!PushNotifications) return;
+
     let permStatus = await PushNotifications.checkPermissions();
     if (permStatus.receive === "prompt") {
       permStatus = await PushNotifications.requestPermissions();
