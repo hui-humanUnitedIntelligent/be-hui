@@ -3311,7 +3311,7 @@ function TalentWerdenBanner({ onStart = () => {} }) {
               fontSize: 17, fontWeight: 800, color: '#1A1A18',
               lineHeight: 1.3, letterSpacing: '-0.02em', marginBottom: 6,
             }}>
-              Werde HUI-Talent ✨
+              Werde HUI-Talent
             </div>
             <div style={{
               fontSize: 13, color: 'rgba(26,26,24,0.58)',
@@ -3351,7 +3351,7 @@ function TalentWerdenBanner({ onStart = () => {} }) {
               onTouchStart={e => { e.currentTarget.style.transform = 'scale(0.97)'; }}
               onTouchEnd={e => { e.currentTarget.style.transform = 'scale(1)'; }}
             >
-              ✦ Jetzt Talent werden
+              Jetzt Talent werden
             </button>
           </div>
         </div>
