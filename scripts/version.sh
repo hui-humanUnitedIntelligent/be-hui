@@ -1,104 +1,32 @@
-#!/usr/bin/env bash
-# =============================================================================
-# scripts/version.sh — HUI Version Management (SSOT: package.json)
-# =============================================================================
-# Usage:
-#   bash scripts/version.sh                → Sync build.gradle + strings.xml
-#   bash scripts/version.sh patch           → 1.0.1 → 1.0.2
-#   bash scripts/version.sh minor           → 1.0.1 → 1.1.0
-#   bash scripts/version.sh major           → 1.0.1 → 2.0.0
-#   bash scripts/version.sh 1.0.5           → Manuelle Version
-#   bash scripts/version.sh 1.0.5 7         → Manuelle Version + versionCode
-#
-# package.json = einzige Quelle der Wahrheit.
-# version.ts liest dynamisch — wird NICHT von hier geschrieben.
-# =============================================================================
+#!/bin/bash
 
-set -euo pipefail
+set -e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+# Windows-kompatiblen Pfad holen
+WIN_PATH=$(pwd -W)
 
-BUILD_GRADLE="${ROOT_DIR}/android/app/build.gradle"
-PACKAGE_JSON="${ROOT_DIR}/package.json"
-STRINGS_XML="${ROOT_DIR}/android/app/src/main/res/values/strings.xml"
+# Version aus package.json lesen
+VERSION=$(node -e "console.log(require('$WIN_PATH/package.json').version)")
 
-RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
-info()    { echo -e "${BLUE}[VERSION]${NC} $*"; }
-success() { echo -e "${GREEN}[VERSION]${NC} ✅ $*"; }
-error()   { echo -e "${RED}[VERSION]${NC} ❌ $*"; exit 1; }
+# Version Code aus version.ts lesen
+VERSION_CODE=$(node -e "console.log(require('$WIN_PATH/src/version.ts').APP_VERSION_CODE)")
 
-[[ -f "$BUILD_GRADLE" ]] || error "build.gradle nicht gefunden"
-[[ -f "$PACKAGE_JSON" ]] || error "package.json nicht gefunden"
+echo "Aktuelle Version: $VERSION ($VERSION_CODE)"
 
-# ── Hilfsfunktionen ──────────────────────────────────────────────────────────
-get_version()  { node -p "require('$PACKAGE_JSON').version"; }
-get_code()     { grep -oP 'versionCode\s+\K[0-9]+' "$BUILD_GRADLE" || echo "1"; }
+# Minor-Version erhöhen
+IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+NEW_MINOR=$((MINOR + 1))
+NEW_VERSION="$MAJOR.$NEW_MINOR.$PATCH"
 
-validate_version() {
-  local v="$1"
-  [[ "$v" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || error "Ungültige Version: '$v' (erwartet X.Y.Z)"
-}
+echo "Neue Version: $NEW_VERSION"
 
-bump_version() {
-  local mode="$1" v="$2"
-  local major minor patch
-  IFS='.' read -r major minor patch <<< "$v"
-  validate_version "$v"
+# package.json aktualisieren
+node -e "
+const fs = require('fs');
+const pkgPath = '$WIN_PATH/package.json';
+const pkg = require(pkgPath);
+pkg.version = '$NEW_VERSION';
+fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2));
+"
 
-  case "$mode" in
-    patch)  patch=$((patch + 1)) ;;
-    minor)  minor=$((minor + 1)); patch=0 ;;
-    major)  major=$((major + 1)); minor=0; patch=0 ;;
-    *)      error "Unbekannter Modus: $mode" ;;
-  esac
-  NEW_VERSION="${major}.${minor}.${patch}"
-}
-
-write_package_json() {
-  npm version "$1" --no-git-tag-version --silent 2>/dev/null || {
-    sed -i.bak "s/\"version\": \".*\"/\"version\": \"$1\"/" "$PACKAGE_JSON"; rm -f "${PACKAGE_JSON}.bak"
-  }
-}
-
-write_build_gradle() {
-  sed -i.bak "s/versionName \".*\"/versionName \"$1\"/" "$BUILD_GRADLE"
-  sed -i.bak "s/versionCode [0-9]\+/versionCode $2/" "$BUILD_GRADLE"
-  rm -f "${BUILD_GRADLE}.bak"
-}
-
-write_strings_xml() {
-  [[ -f "$STRINGS_XML" ]] || return 0
-  sed -i.bak "s|<string name=\"app_name\">.*</string>|<string name=\"app_name\">HUI v$1</string>|" "$STRINGS_XML"
-  rm -f "${STRINGS_XML}.bak"
-}
-
-# ── Hauptlogik ───────────────────────────────────────────────────────────────
-CURRENT_VERSION=$(get_version)
-CURRENT_CODE=$(get_code)
-validate_version "$CURRENT_VERSION"
-
-info "Aktuell: $CURRENT_VERSION (Code $CURRENT_CODE)"
-
-MODE="${1:-sync}"
-
-case "$MODE" in
-  sync)
-    NEW_VERSION="$CURRENT_VERSION"; NEW_CODE="$CURRENT_CODE" ;;
-  patch|minor|major)
-    info "Bump: $MODE"
-    bump_version "$MODE" "$CURRENT_VERSION"
-    NEW_CODE=$((CURRENT_CODE + 1))
-    info "Neu: $NEW_VERSION (Code $NEW_CODE)" ;;
-  *)
-    validate_version "$MODE"
-    NEW_VERSION="$MODE"
-    NEW_CODE="${2:-$((CURRENT_CODE + 1))}"
-    info "Manuell: $NEW_VERSION (Code $NEW_CODE)" ;;
-esac
-
-write_package_json "$NEW_VERSION"
-write_build_gradle "$NEW_VERSION" "$NEW_CODE"
-write_strings_xml "$NEW_VERSION"
-
-success "Sync: pkg=$NEW_VERSION gradle=$NEW_VERSION/$NEW_CODE strings=HUI v$NEW_VERSION"
+echo "Version erfolgreich erhöht."
