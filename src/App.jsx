@@ -14,6 +14,7 @@ import { RadiusProvider } from './context/RadiusContext.jsx';
 import { SavedPostsProvider } from './context/SavedPostsContext.jsx';
 import { LiveTickerProvider } from './context/LiveTickerContext.jsx';
 import { ContentPreviewProvider } from './context/ContentPreviewContext.jsx';
+import { ImageGalleryProvider } from './context/ImageGalleryContext.jsx';
 import { useContentPreview } from './context/ContentPreviewContext.jsx';
 import { WorkService } from './services/db.js';
 import { HUI } from './design/hui.design.js';
@@ -824,11 +825,13 @@ export default function App() {
                       <SavedPostsProvider>
                         <LiveTickerProvider>
                           <ContentPreviewProvider>
-                            <GuidanceProvider>
-                              <ErrorBoundary>
-                                <AppRoutes />
-                              </ErrorBoundary>
-                            </GuidanceProvider>
+                            <ImageGalleryProvider>
+                              <GuidanceProvider>
+                                <ErrorBoundary>
+                                  <AppRoutes />
+                                </ErrorBoundary>
+                              </GuidanceProvider>
+                            </ImageGalleryProvider>
                           </ContentPreviewProvider>
                         </LiveTickerProvider>
                       </SavedPostsProvider>

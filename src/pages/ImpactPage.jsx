@@ -19,6 +19,7 @@ import ImpactProjektUpdateSheet from "../components/studio/ImpactProjektUpdateSh
 import { useAuth } from "../lib/AuthContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import { isProfileTalent } from "../lib/profileUtils.js";
+import { useImageGallery } from "../context/ImageGalleryContext.jsx";
 
 // ── Helpers ──────────────────────────────────────────────────
 const safeArr = (v) => Array.isArray(v) ? v : [];
@@ -544,6 +545,7 @@ function useMonthlyVoteRanking(approvedApps) {
 
 // ── Detailseite für bewilligte Anträge ──────────────────────────
 function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = () => {} }) {
+  const { openGallery } = useImageGallery();
   // Normalisierung: Akzeptiert sowohl impact_applications-Format als auch VotingCard-Format
   const app = React.useMemo(() => ({
     id:           rawApp.id,
@@ -855,12 +857,13 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
               <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
                 {displayMediaUrls.map((url, idx) => {
                   const isImg = /\.(jpg|jpeg|png|webp|gif)$/i.test(url);
+                  const imgUrls = displayMediaUrls.filter(u => /\.(jpg|jpeg|png|webp|gif)$/i.test(u));
                   return isImg ? (
-                    <a key={idx} href={url} target="_blank" rel="noreferrer">
+                    <div key={idx} onClick={() => openGallery(imgUrls, imgUrls.indexOf(url))} style={{ cursor:"pointer" }}>
                       <img loading="lazy" decoding="async" src={url} alt={`Datei ${idx+1}`}
                         style={{ width:72, height:72, objectFit:"cover", borderRadius:10,
                           border:"1px solid rgba(0,0,0,0.10)" }} />
-                    </a>
+                    </div>
                   ) : (
                     <a key={idx} href={url} target="_blank" rel="noreferrer"
                       style={{
@@ -927,11 +930,11 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
                       {u.media_urls && u.media_urls.length > 0 && (
                         <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
                           {u.media_urls.map((url, idx) => (
-                            <a key={idx} href={url} target="_blank" rel="noreferrer">
+                            <div key={idx} onClick={() => openGallery(u.media_urls, idx)} style={{ cursor:"pointer" }}>
                               <img loading="lazy" decoding="async" src={url} alt=""
                                 style={{ width:60, height:60, objectFit:"cover", borderRadius:8,
                                   border:"1px solid rgba(0,0,0,0.10)" }} />
-                            </a>
+                            </div>
                           ))}
                         </div>
                       )}
@@ -1167,6 +1170,7 @@ function MilestoneCard({ milestone, index, onViewProgress }) {
 
 // ── MilestoneDetailSheet ─────────────────────────────────────────
 function MilestoneDetailSheet({ milestone, onClose }) {
+  const { openGallery } = useImageGallery();
   const m = milestone;
   const updates = m.impact_milestone_updates || [];
   const sortedUpdates = [...updates].sort((a, b) =>
@@ -1278,12 +1282,13 @@ function MilestoneDetailSheet({ milestone, onClose }) {
                     {u.media_urls.map((url, mi) => {
                       const isImg = /\.(jpg|jpeg|png|webp|gif)$/i.test(url);
                       const isVid = /\.(mp4|webm|mov|avi)$/i.test(url);
+                      const imgUrls = u.media_urls.filter(mu => /\.(jpg|jpeg|png|webp|gif)$/i.test(mu));
                       return isImg ? (
-                        <a key={mi} href={url} target="_blank" rel="noreferrer">
+                        <div key={mi} onClick={() => openGallery(imgUrls, imgUrls.indexOf(url))} style={{ cursor:"pointer" }}>
                           <img loading="lazy" decoding="async" src={url} alt={`Bild ${mi+1}`}
                             style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 10,
                               border: "1px solid rgba(0,0,0,0.10)" }} />
-                        </a>
+                        </div>
                       ) : isVid ? (
                         <a key={mi} href={url} target="_blank" rel="noreferrer"
                           style={{

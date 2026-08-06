@@ -74,6 +74,7 @@ import ImpactUpdateSheet from "../components/studio/ImpactUpdateSheet.jsx";
 // FinanzuebersichtModal — ersetzt 4 separate Finanz-Modals (eager, kein Lazy-Bug)
 import FinanzuebersichtModal from "../components/studio/FinanzuebersichtModal.jsx";
 import { useModalRegistration } from "../hooks/useModalRegistration.js";
+import { useImageGallery } from "../context/ImageGalleryContext.jsx";
 // ── Design Tokens ────────────────────────────────────────────────
 
 // ── Ambassador ErrorBoundary ─────────────────────────────────────
@@ -2822,6 +2823,7 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
 // Für bewilligte Projekte: "+ Update hinzufügen" Button.
 // ══════════════════════════════════════════════════════════════
 function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
+  const { openGallery } = useImageGallery();
   const [projects, setProjects] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [selected, setSelected] = React.useState(null);
@@ -3140,10 +3142,10 @@ function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
                           {u.media_urls && u.media_urls.length > 0 && (
                             <div style={{ display:"flex", flexWrap:"wrap", gap:4, marginTop:6 }}>
                               {u.media_urls.map((url, idx) => (
-                                <a key={idx} href={url} target="_blank" rel="noreferrer">
+                                <div key={idx} onClick={() => openGallery(u.media_urls, idx)} style={{ cursor:"pointer" }}>
                                   <img loading="lazy" decoding="async" src={url} alt=""
                                     style={{ width:50, height:50, objectFit:"cover", borderRadius:6, border:"1px solid rgba(0,0,0,0.08)" }} />
-                                </a>
+                                </div>
                               ))}
                             </div>
                           )}

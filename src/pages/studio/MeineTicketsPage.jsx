@@ -2,6 +2,7 @@
 // Support-Tickets als E-Mail-Thread-Verlauf
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
+import { useImageGallery } from "../../context/ImageGalleryContext.jsx";
 
 const C = {
   teal:   "#16D7C5",
@@ -212,6 +213,7 @@ function ReplySheet({ ticketNumber, subject, adminReply, userId, userEmail, user
 
 // ── Thread-Nachricht Bubble ───────────────────────────────────────────────────
 function MessageBubble({ role, text, time, attachments }) {
+  const { openGallery } = useImageGallery();
   const isUser    = role === "user";
   const isSupport = role === "support";
   return (
@@ -244,17 +246,31 @@ function MessageBubble({ role, text, time, attachments }) {
         {/* Anhänge */}
         {attachments?.length > 0 && (
           <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginTop:8 }}>
-            {attachments.map((a, i) => (
-              <a key={i} href={a.url} target="_blank" rel="noreferrer"
-                style={{ display:"flex", alignItems:"center", gap:5,
-                  padding:"4px 8px", borderRadius:6, border:`1px solid ${C.border}`,
-                  textDecoration:"none", color:C.ink, fontSize:11,
-                  background:"rgba(0,0,0,0.03)" }}>
-                <span>{a.type?.startsWith("image") ? "🖼" : "📄"}</span>
-                <span style={{ maxWidth:100, overflow:"hidden",
-                  textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{a.name}</span>
-              </a>
-            ))}
+            {attachments.map((a, i) => {
+              const isImg = a.type?.startsWith("image") || /\.(jpg|jpeg|png|webp|gif)$/i.test(a.url || "");
+              const imgUrls = attachments.filter(at => at.type?.startsWith("image") || /\.(jpg|jpeg|png|webp|gif)$/i.test(at.url || "")).map(at => at.url);
+              return isImg ? (
+                <div key={i} onClick={() => openGallery(imgUrls, imgUrls.indexOf(a.url))}
+                  style={{ display:"flex", alignItems:"center", gap:5,
+                    padding:"4px 8px", borderRadius:6, border:`1px solid ${C.border}`,
+                    textDecoration:"none", color:C.ink, fontSize:11, cursor:"pointer",
+                    background:"rgba(0,0,0,0.03)" }}>
+                  <span>🖼</span>
+                  <span style={{ maxWidth:100, overflow:"hidden",
+                    textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{a.name}</span>
+                </div>
+              ) : (
+                <a key={i} href={a.url} target="_blank" rel="noreferrer"
+                  style={{ display:"flex", alignItems:"center", gap:5,
+                    padding:"4px 8px", borderRadius:6, border:`1px solid ${C.border}`,
+                    textDecoration:"none", color:C.ink, fontSize:11,
+                    background:"rgba(0,0,0,0.03)" }}>
+                  <span>📄</span>
+                  <span style={{ maxWidth:100, overflow:"hidden",
+                    textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{a.name}</span>
+                </a>
+              );
+            })}
           </div>
         )}
       </div>

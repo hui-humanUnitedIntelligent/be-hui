@@ -5,6 +5,7 @@
 import React, { useState, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { HUI } from "../../design/hui.design.js";
+import { useImageGallery } from "../../context/ImageGalleryContext.jsx";
 
 const C = { teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, coral:HUI.COLOR.coral, ink:HUI.COLOR.ink };
 
@@ -179,22 +180,28 @@ function MessageActionModal({ msg, position, onEdit, onDelete, onClose }) {
 }
 
 // ── Media Content ──
+// Bild im Chat — öffnet die zentrale ImageGallery statt window.open
+function ImageThumb({ msg }) {
+  const { openGallery } = useImageGallery();
+  return (
+    <img
+      src={msg.media_url} alt="Bild"
+      style={{
+        maxWidth:"100%", maxHeight:260, borderRadius:12,
+        display:"block", objectFit:"cover",
+        cursor:"pointer",
+      }}
+      onClick={() => openGallery(msg.media_url)}
+    />
+  );
+}
+
 function MediaContent({ msg, own }) {
   const type = msg.media_type || msg.message_type;
   if (!msg.media_url) return null;
 
   if (type === "image") {
-    return (
-      <img
-        src={msg.media_url} alt="Bild"
-        style={{
-          maxWidth:"100%", maxHeight:260, borderRadius:12,
-          display:"block", objectFit:"cover",
-          cursor:"pointer",
-        }}
-        onClick={() => window.open(msg.media_url, "_blank")}
-      />
-    );
+    return <ImageThumb msg={msg} />;
   }
   if (type === "video") {
     return (
