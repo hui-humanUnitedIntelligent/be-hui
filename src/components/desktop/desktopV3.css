@@ -992,6 +992,8 @@
 #web-root .fly-backdrop {
   position: fixed;
   inset: 0;
+  height: 100vh;
+  height: 100dvh;
   background: rgba(20,20,34,0.25);
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
@@ -1047,6 +1049,10 @@
   display: flex;
   flex-direction: column;
   animation: v3SlideInRight var(--v3-anim-normal) var(--v3-anim-ease);
+  /* 100dvh: passt sich an iPad-Safari-Browserleiste / Eingabehilfen an.
+     Fallback 100vh für Browser ohne dvh-Unterstützung. */
+  height: 100vh;
+  height: 100dvh;
 }
 @keyframes v3SlideInRight {
   from { transform: translateX(100%); }
@@ -1056,6 +1062,7 @@
   width: 380px;
   max-width: 90vw;
   height: 100vh;
+  height: 100dvh;
 }
 
 /* ═══ NOTIFICATION FLYOUT ═════════════════════════════════════════════════════ */
@@ -1135,6 +1142,7 @@
   width: 800px;
   max-width: 95vw;
   height: 100vh;
+  height: 100dvh;
   flex-direction: row;
 }
 @media (min-width: 1280px) {
@@ -1272,7 +1280,7 @@
 #web-root .chat-input-row {
   display: flex;
   gap: 10px;
-  padding: 18px 24px 20px;
+  padding: 18px 24px calc(20px + env(safe-area-inset-bottom, 0px));
   border-top: 1px solid var(--v3-border);
   flex-shrink: 0;
   background: var(--v3-surface);
