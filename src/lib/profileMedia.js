@@ -6,6 +6,23 @@
 //   • Datenbank-Write nach Upload
 //   • Fallback-Auflösung (location, displayName)
 //
+// UPLOAD-SPEED-041 (2026-08-06): Zwei Probleme behoben, die den Avatar-/
+// Cover-Upload "sehr lange" wirken ließen:
+//   1. KEIN Instant-Feedback — das UI zeigte nur einen Spinner und wartete
+//      auf den KOMPLETTEN Roundtrip (Upload + DB-Write), bis das neue Bild
+//      überhaupt sichtbar wurde.
+//   2. KEINE Kompression — Handyfotos direkt aus der Kamera (oft 3-10 MB,
+//      3000-4000px) wurden 1:1 hochgeladen, was auf Mobilfunknetzen lange
+//      dauert.
+// Fix: (1) Lokale Blob-URL wird SOFORT (0ms) an onSuccess gemeldet, bevor
+// Kompression/Upload überhaupt starten → Bild ist augenblicklich sichtbar.
+// (2) Bild wird client-seitig per Canvas auf sinnvolle Zielgröße verkleinert
+// und als JPEG (Qualität 0.82) komprimiert, bevor es hochgeladen wird —
+// reduziert die Upload-Größe typischerweise von mehreren MB auf 50-250KB.
+// Sobald der echte Upload fertig ist, ersetzt die persistente CDN-URL die
+// lokale Blob-URL (zweiter onSuccess-Aufruf) — für den Nutzer unsichtbar,
+// da das Bild bereits angezeigt wird.
+//
 // Consumer:
 //   • src/components/profile/ProfileHeader.jsx   (canonical)
 //   • src/pages/MyBasisProfile.jsx               (MeinProfilHeader)
@@ -18,6 +35,16 @@ import { clearQueryCache } from "./perfUtils.js";
 // ── Fallback-Assets ──────────────────────────────────────────────────
 export const FB_COVER  = "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=1200&q=80";
 export const FB_AVATAR = "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=300&q=80";
+
+// ── Kompressions-Zielgrößen ──────────────────────────────────────────
+// Avatar wird nur als kleiner Kreis (~150-300px, max. Retina 2x) angezeigt.
+// Cover ist volle Breite bei 200px Höhe — 1600px reicht auch für Retina-Displays.
+const AVATAR_MAX_DIM = 640;
+const COVER_MAX_DIM  = 1600;
+const JPEG_QUALITY    = 0.82;
+// Unterhalb dieser Dateigröße lohnt sich eine Neukompression nicht (Qualitätsverlust
+// ohne nennenswerten Geschwindigkeitsgewinn) — Original wird 1:1 verwendet.
+const SKIP_COMPRESSION_UNDER_BYTES = 300 * 1024; // 300 KB
 
 // ── String-Safe Helper ───────────────────────────────────────────────
 /**
@@ -44,17 +71,101 @@ export function resolveLocation(profile, fallback = "") {
   return sv(profile?.location_final || profile?.location, fallback);
 }
 
+// ── Client-seitige Bildkompression ────────────────────────────────────
+/**
+ * Prueft ob eine Datei fuer eine Canvas-Kompression geeignet ist.
+ * GIFs (Animation würde verloren gehen) und SVGs (Vektor, keine Rasterung
+ * nötig) werden unverändert durchgereicht.
+ */
+function isCompressible(file) {
+  return !!file?.type
+    && file.type.startsWith("image/")
+    && file.type !== "image/gif"
+    && file.type !== "image/svg+xml";
+}
+
+/**
+ * Laedt eine Bilddatei als ImageBitmap/HTMLImageElement, bevorzugt
+ * createImageBitmap (schneller, off-main-thread-faehig), mit Fallback
+ * auf klassisches Image()-Element fuer aeltere Browser/WebViews.
+ */
+async function loadDrawableSource(file) {
+  if (typeof createImageBitmap === "function") {
+    try {
+      return { source: await createImageBitmap(file), revoke: null };
+    } catch {
+      // Fallback unten versuchen
+    }
+  }
+  return new Promise((resolve, reject) => {
+    const objUrl = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload  = () => resolve({ source: img, revoke: () => URL.revokeObjectURL(objUrl) });
+    img.onerror = (e) => { URL.revokeObjectURL(objUrl); reject(e); };
+    img.src = objUrl;
+  });
+}
+
+/**
+ * Verkleinert + komprimiert ein Bild client-seitig auf maxDim (längste Seite)
+ * als JPEG. Gibt bei jedem Fehler oder wenn die Kompression keinen Vorteil
+ * bringt (z.B. Original bereits klein) die Original-Datei zurueck — niemals
+ * ein kaputtes Ergebnis.
+ */
+async function compressImageForUpload(file, maxDim, quality = JPEG_QUALITY) {
+  if (!isCompressible(file)) return file;
+  if (file.size <= SKIP_COMPRESSION_UNDER_BYTES) return file;
+  if (typeof document === "undefined") return file; // SSR-Safety
+
+  let revoke = null;
+  try {
+    const loaded = await loadDrawableSource(file);
+    const src = loaded.source;
+    revoke = loaded.revoke;
+
+    let width  = src.width  || src.naturalWidth;
+    let height = src.height || src.naturalHeight;
+    if (!width || !height) return file;
+
+    if (width > maxDim || height > maxDim) {
+      if (width > height) { height = Math.round(height * (maxDim / width)); width = maxDim; }
+      else                { width  = Math.round(width  * (maxDim / height)); height = maxDim; }
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width; canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return file;
+    ctx.drawImage(src, 0, 0, width, height);
+
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", quality));
+    if (!blob) return file;
+    // Nur verwenden wenn tatsaechlich eine Verbesserung erzielt wurde
+    return blob.size < file.size ? blob : file;
+  } catch (err) {
+    console.warn("[profileMedia] Bildkompression fehlgeschlagen, nutze Original:", err?.message);
+    return file;
+  } finally {
+    revoke?.();
+  }
+}
+
 // ── Bild-Upload ──────────────────────────────────────────────────────
 /**
- * Laedt ein Bild in den Supabase Storage "media"-Bucket hoch.
- * Gibt die oeffentliche URL zurueck.
+ * Komprimiert (falls sinnvoll) und laedt ein Bild in den Supabase Storage
+ * "media"-Bucket hoch. Gibt die oeffentliche URL zurueck.
  */
-export async function uploadProfileImage(file, userId, folder) {
-  const ext  = file.name.split(".").pop() || "jpg";
+export async function uploadProfileImage(file, userId, folder, maxDim = COVER_MAX_DIM, quality = JPEG_QUALITY) {
+  const uploadBlob = await compressImageForUpload(file, maxDim, quality);
+  const wasCompressed = uploadBlob !== file;
+  const ext  = wasCompressed ? "jpg" : (file.name.split(".").pop() || "jpg");
   const path = `${folder}/${userId}/${Date.now()}.${ext}`;
   const { error } = await supabase.storage
     .from("media")
-    .upload(path, file, { contentType: file.type, upsert: true });
+    .upload(path, uploadBlob, {
+      contentType: wasCompressed ? "image/jpeg" : file.type,
+      upsert: true,
+    });
   if (error) throw error;
   const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
   return publicUrl;
@@ -65,11 +176,26 @@ export async function uploadProfileImage(file, userId, folder) {
  * Laedt Avatar hoch + schreibt avatar_url in profiles.
  * Vereinheitlicht aus ProfileHeader.jsx + MeinProfilHeader (MyBasisProfile.jsx).
  *
+ * UPLOAD-SPEED-041: onSuccess wird ZWEIMAL aufgerufen —
+ *   1. sofort (0ms) mit einer lokalen Blob-URL → instant sichtbar im UI
+ *   2. nach Abschluss des echten Uploads mit der persistenten CDN-URL
+ * Beide Aufrufe sind fuer bestehende Consumer (setLocalAvatar etc.) sicher,
+ * da sie einfach den Anzeige-State ueberschreiben.
+ *
  * @param {{ event, profileId, onSuccess, setUploading }} opts
  */
 export async function handleAvatarUpload({ event, profileId, onSuccess, setUploading }) {
   const file = event.target.files?.[0];
   if (!file) return;
+
+  // Sofort-Vorschau: lokale Blob-URL, 0ms Delay — noch bevor Kompression/
+  // Upload ueberhaupt starten.
+  let previewUrl = null;
+  try {
+    previewUrl = URL.createObjectURL(file);
+    onSuccess?.(previewUrl);
+  } catch { /* noop — faellt einfach auf normalen Flow zurueck */ }
+
   setUploading(true);
   try {
     let uid = profileId;
@@ -78,16 +204,19 @@ export async function handleAvatarUpload({ event, profileId, onSuccess, setUploa
       uid = user?.id;
     }
     if (!uid) { console.warn("[profileMedia] Avatar upload: kein userId"); return; }
-    const url = await uploadProfileImage(file, uid, "avatars");
+    const url = await uploadProfileImage(file, uid, "avatars", AVATAR_MAX_DIM, JPEG_QUALITY);
     const { error: dbErr } = await supabase.from("profiles")
       .update({ avatar_url: url })
       .eq("id", uid);
     if (dbErr) throw dbErr;
     // Cache invalidieren — damit reload() frische Daten holt
     clearQueryCache(`profile:${uid}`);
-    onSuccess?.(url);
+    onSuccess?.(url); // ersetzt lokale Blob-URL durch persistente CDN-URL
+    if (previewUrl) URL.revokeObjectURL(previewUrl); // nur bei Erfolg freigeben
   } catch (err) {
     console.error("[HUI-AVATAR-ERROR]", err?.message, err?.statusCode, err?.status, JSON.stringify(err));
+    // Bei Fehler: lokale Vorschau NICHT revoken — bleibt sichtbar bis Reload,
+    // besser als ein kaputtes <img> zu zeigen.
   } finally {
     setUploading(false);
     event.target.value = "";
@@ -103,6 +232,13 @@ export async function handleAvatarUpload({ event, profileId, onSuccess, setUploa
 export async function handleCoverUpload({ event, profileId, onSuccess, setUploading }) {
   const file = event.target.files?.[0];
   if (!file) return;
+
+  let previewUrl = null;
+  try {
+    previewUrl = URL.createObjectURL(file);
+    onSuccess?.(previewUrl);
+  } catch { /* noop */ }
+
   setUploading(true);
   try {
     let uid = profileId;
@@ -111,7 +247,7 @@ export async function handleCoverUpload({ event, profileId, onSuccess, setUpload
       uid = user?.id;
     }
     if (!uid) { console.warn("[profileMedia] Cover upload: kein userId"); return; }
-    const url = await uploadProfileImage(file, uid, "covers");
+    const url = await uploadProfileImage(file, uid, "covers", COVER_MAX_DIM, JPEG_QUALITY);
     const { error: dbErr } = await supabase.from("profiles")
       .update({ header_img: url })
       .eq("id", uid);
@@ -119,6 +255,7 @@ export async function handleCoverUpload({ event, profileId, onSuccess, setUpload
     // Cache invalidieren — damit reload() frische Daten holt
     clearQueryCache(`profile:${uid}`);
     onSuccess?.(url);
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
   } catch (err) {
     console.error("[profileMedia] Cover upload error:", err?.message, err?.statusCode || err?.status, JSON.stringify(err));
   } finally {
