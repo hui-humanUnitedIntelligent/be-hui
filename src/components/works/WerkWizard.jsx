@@ -4,6 +4,7 @@ import { HUIPrivatIcon, HUIVersandIcon, HUIWarnIcon } from '../../design/icons/H
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
+import { compressImageForUpload, JPEG_QUALITY, COVER_MAX_DIM } from "../../lib/profileMedia.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { searchPlaces, geocodeWithFallback } from "../../lib/geocoding.js";
@@ -171,18 +172,36 @@ function S1({ data, onChange, userId, onNext }) {
   async function upload(e) {
     const files = Array.from(e.target.files||[]);
     if (!userId||!files.length) return;
-    setUpl(true);
+    // Instant-Preview: lokale Blob-URLs SOFORT anzeigen, noch vor Kompression/Upload
     const next=[...imgs];
+    const previews = [];
     for (const file of files.slice(0,10-next.length)) {
-      const ext=file.name.split(".").pop().toLowerCase();
-      const path=`works/${userId}/${Date.now()}_${Math.random().toString(36).slice(2,6)}.${ext}`;
-      const { error }=await supabase.storage.from("media").upload(path,file,{ upsert:true });
-      if (!error) {
-        const { data:u }=supabase.storage.from("media").getPublicUrl(path);
-        next.push({ url:u.publicUrl, path });
+      const previewUrl = URL.createObjectURL(file);
+      next.push({ url: previewUrl, path: null, _preview: true });
+      previews.push({ file, previewUrl, idx: next.length - 1 });
+    }
+    onChange({ images: next }); // Bild ist sofort sichtbar
+    // Kompression + Upload im Hintergrund
+    setUpl(true);
+    for (const { file, previewUrl, idx } of previews) {
+      try {
+        const blob = await compressImageForUpload(file, COVER_MAX_DIM, JPEG_QUALITY);
+        const wasCompressed = blob !== file;
+        const ext = wasCompressed ? "jpg" : file.name.split(".").pop().toLowerCase();
+        const path=`works/${userId}/${Date.now()}_${Math.random().toString(36).slice(2,6)}.${ext}`;
+        const { error }=await supabase.storage.from("media").upload(path, blob, { upsert:true, contentType: wasCompressed ? "image/jpeg" : file.type });
+        if (!error) {
+          const { data:u }=supabase.storage.from("media").getPublicUrl(path);
+          // CDN-URL ersetzt lokale Vorschau
+          next[idx] = { url: u.publicUrl, path };
+          onChange({ images: [...next] });
+        }
+        URL.revokeObjectURL(previewUrl);
+      } catch (err) {
+        console.error("[WerkWizard] Upload-Fehler:", err?.message);
+        // Vorschau bleibt sichtbar bei Fehler (besser als kaputtes Bild)
       }
     }
-    onChange({ images:next });
     setUpl(false);
     if (ref.current) ref.current.value="";
   }

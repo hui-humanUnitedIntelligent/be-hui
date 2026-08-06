@@ -39,9 +39,9 @@ export const FB_AVATAR = "https://images.unsplash.com/photo-1531746020798-e6953c
 // ── Kompressions-Zielgrößen ──────────────────────────────────────────
 // Avatar wird nur als kleiner Kreis (~150-300px, max. Retina 2x) angezeigt.
 // Cover ist volle Breite bei 200px Höhe — 1600px reicht auch für Retina-Displays.
-const AVATAR_MAX_DIM = 640;
-const COVER_MAX_DIM  = 1600;
-const JPEG_QUALITY    = 0.82;
+export const AVATAR_MAX_DIM = 640;
+export const COVER_MAX_DIM  = 1600;
+export const JPEG_QUALITY    = 0.82;
 // Unterhalb dieser Dateigröße lohnt sich eine Neukompression nicht (Qualitätsverlust
 // ohne nennenswerten Geschwindigkeitsgewinn) — Original wird 1:1 verwendet.
 const SKIP_COMPRESSION_UNDER_BYTES = 300 * 1024; // 300 KB
@@ -112,7 +112,7 @@ async function loadDrawableSource(file) {
  * bringt (z.B. Original bereits klein) die Original-Datei zurueck — niemals
  * ein kaputtes Ergebnis.
  */
-async function compressImageForUpload(file, maxDim, quality = JPEG_QUALITY) {
+export async function compressImageForUpload(file, maxDim, quality = JPEG_QUALITY) {
   if (!isCompressible(file)) return file;
   if (file.size <= SKIP_COMPRESSION_UNDER_BYTES) return file;
   if (typeof document === "undefined") return file; // SSR-Safety
