@@ -1307,7 +1307,11 @@
   padding: 0 20px;
   height: 48px;
   font-family: var(--v3-font-body);
-  font-size: 15px;
+  /* 16px ist die Mindestgröße, unter der iOS Safari beim Fokussieren
+     automatisch in die Seite hineinzoomt (Standard-Browserverhalten,
+     kein CSS-Bug). Das Zoomen verschiebt das gesamte Fenster und lässt
+     am unteren Rand eine Lücke entstehen. */
+  font-size: 16px;
   color: var(--v3-ink);
   outline: none;
   transition: border-color var(--v3-anim-fast) var(--v3-anim-ease),
