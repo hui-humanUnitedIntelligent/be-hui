@@ -41,3 +41,4 @@ android/app/src/main/assets/public/   # generierter Web-Snapshot, wird per `npx 
 .vercel
 *.bak
 *.bak_*
+.backups/

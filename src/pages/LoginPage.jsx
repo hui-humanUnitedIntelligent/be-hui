@@ -550,7 +550,7 @@ export default function LoginPage() {
       options: {
         data: {
           full_name:    combinedName,
-          display_name: uname,
+          display_name: fullName.trim(),
           username:     uname,
         },
       },
@@ -566,7 +566,7 @@ export default function LoginPage() {
       const profileData = {
         id:           signUpData.user.id,
         full_name:    combinedName,
-        display_name: uname,
+        display_name: fullName.trim(),
         username:     uname,
         email:        email,
         updated_at:   new Date().toISOString(),
