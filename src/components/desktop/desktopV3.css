@@ -999,6 +999,10 @@
   -webkit-backdrop-filter: blur(3px);
   z-index: 998;
   animation: v3FadeIn var(--v3-anim-fast) var(--v3-anim-ease);
+  /* Stabiler Compositing-Layer: verhindert Desync zwischen Backdrop-Blur
+     und Chat-Panel während des Scrollens auf Safari/iPad. */
+  will-change: backdrop-filter;
+  transform: translateZ(0);
 }
 
 #web-root .fly-header {
@@ -1053,6 +1057,15 @@
      Fallback 100vh für Browser ohne dvh-Unterstützung. */
   height: 100vh;
   height: 100dvh;
+  /* Stabiler Compositing-Layer: verhindert Desync zwischen Backdrop und
+     Panel während des Scrollens auf Safari/iPad. translateZ(0) zwingt
+     Safari, das Panel auf einem eigenen GPU-Layer zu halten, statt es
+     während des Scrollens neu zu compositen. */
+  will-change: transform;
+  transform: translateZ(0);
+  /* Backface verhindert Safari-Layer-Flicker beim Scrollen. */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 @keyframes v3SlideInRight {
   from { transform: translateX(100%); }
