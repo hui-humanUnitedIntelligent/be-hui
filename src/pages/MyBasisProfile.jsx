@@ -480,11 +480,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
   
   // ── Back-Button: Sub-Modals registrieren ─────────────────────────
   useModalRegistration(showSettings, () => setShowSettings(false), "MyBasisProfile-Settings");
-  useModalRegistration(!!activeDrawer, () => setActiveDrawer(null), "MyBasisProfile-Drawer");
-  useModalRegistration(!!empfehlungDetail, () => setEmpfehlungDetail(null), "MyBasisProfile-EmpfehlungDetail");
-  useModalRegistration(showFinanzModal, () => setShowFinanzModal(false), "MyBasisProfile-FinanzModal");
-
   // ── Back-Button: Weitere Modals/Overlays registrieren ────────────
+  // NOTE: activeDrawer/empfehlungDetail/showFinanzModal werden in MeinBereichMenu
+  // registriert (separate Komponente) — hier entfernt da TDZ-Crash im Bundle.
   useModalRegistration(showGemeinschaft, () => setShowGemeinschaft(false), "MyBasisProfile-Gemeinschaft");
   useModalRegistration(showAmbModal, () => setShowAmbModal(false), "MyBasisProfile-AmbModal");
   useModalRegistration(showAmbDrawer, () => setShowAmbDrawer(false), "MyBasisProfile-AmbDrawer");

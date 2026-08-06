@@ -446,11 +446,6 @@ export default function SearchCommandCenter({
   const [showKi,     setShowKi]     = useState(false);
   const radius = useRadiusFilter(); // Umkreissuche 2026-07-06 -- geteilter Radius-Zustand
 
-  // ── Back-Button: Such-Overlays registrieren ──
-  useModalRegistration(open, () => setOpen(false), "SearchCommandCenter-Search");
-  useModalRegistration(showAllCategories, () => setShowAllCategories(false), "SearchCommandCenter-Categories");
-  useModalRegistration(showKi, () => setShowKi(false), "SearchCommandCenter-Ki");
-
   // "Alle Kategorien"-Feature (2026-07-06): ausgewaehlte Kategorie (Objekt aus
   // src/lib/categories.js) + Bottom-Sheet-Sichtbarkeit + eigenes Suchfeld
   // innerhalb des Sheets (rein clientseitige Filterung der Kategorie-Liste).
@@ -462,6 +457,13 @@ export default function SearchCommandCenter({
   const [sheetPhase,         setSheetPhase]          = useState("hidden"); // hidden|entering|visible|leaving
   const sheetTimerRef = useRef(null);
   const sheetRef       = useRef(null);
+
+  // ── Back-Button: Such-Overlays registrieren ──
+  // WICHTIG: useModalRegistration muss NACH den useState-Deklarationen stehen,
+  // sonst TDZ-Verletzung (Cannot access 'x' before initialization)
+  useModalRegistration(open, () => setOpen(false), "SearchCommandCenter-Search");
+  useModalRegistration(showAllCategories, () => setShowAllCategories(false), "SearchCommandCenter-Categories");
+  useModalRegistration(showKi, () => setShowKi(false), "SearchCommandCenter-Ki");
 
   // Visual Polish Pass -- Panel-Phase fuer weiches Ein-/Ausblenden statt
   // hartem Mount/Unmount-Sprung (Vorgabe Punkt 8: 180ms Fade beim Verschwinden,
