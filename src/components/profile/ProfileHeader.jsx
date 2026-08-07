@@ -7,7 +7,7 @@ import {
   HUILocationIcon, HUITalentIcon, HUIImpactIcon,
   HUILinkIcon,
 } from '../../design/icons/HuiSystemIcons.jsx';
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react";
 import {
   FB_COVER, FB_AVATAR,
   sv,
@@ -53,6 +53,8 @@ export function ProfileHeader({
 }) {
   const [coverLoaded,     setCoverLoaded]     = useState(false);
   const [avatarLoaded,    setAvatarLoaded]    = useState(false);
+  const coverImgRef  = useRef(null);
+  const avatarImgRef = useRef(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [coverUploading,  setCoverUploading]  = useState(false);
 
@@ -61,6 +63,56 @@ export function ProfileHeader({
 
   const cover    = sv(profile?.header_img, FB_COVER);
   const avatar   = sv(profile?.avatar_url, FB_AVT);
+
+  // ── HEADER-IMG-DELAY-FIX (2026-08-07) ─────────────────────────────
+  // Root Cause: Cover/Avatar starteten immer bei opacity:0 und faded
+  // über 1,1s (Cover) / 0,5s (Avatar) ein — dadurch war der dunkelgrün/
+  // türkise Gradient-Hintergrund des Cover-Containers bis zu 1-1,5s lang
+  // sichtbar, selbst wenn das Bild bereits im Browser-Cache lag (z.B.
+  // bei jedem erneuten Öffnen desselben Profils).
+  // Fix: (1) Browser-Preload-Hint für Cover+Avatar sobald die URL bekannt
+  // ist -> Bild ist meist schon im Cache bevor <img> überhaupt gerendert
+  // wird. (2) Beim Mount/Update wird img.complete synchron geprüft
+  // (useLayoutEffect) -> wenn bereits geladen (Cache-Hit), wird der
+  // Loaded-State SOFORT ohne Fade-Transition gesetzt. (3) Die Fade-Dauer
+  // für echte Netzwerk-Ladevorgänge wurde von 1,1s/0,5s auf 0,25s/0,2s
+  // reduziert -- lang genug für einen sanften Übergang, kurz genug um
+  // nicht mehr als "Verzögerung" wahrgenommen zu werden.
+  useEffect(() => {
+    if (!cover) return;
+    const link = document.createElement("link");
+    link.rel = "preload";
+    link.as  = "image";
+    link.href = cover;
+    document.head.appendChild(link);
+    return () => { document.head.removeChild(link); };
+  }, [cover]);
+
+  useEffect(() => {
+    if (!avatar) return;
+    const link = document.createElement("link");
+    link.rel = "preload";
+    link.as  = "image";
+    link.href = avatar;
+    document.head.appendChild(link);
+    return () => { document.head.removeChild(link); };
+  }, [avatar]);
+
+  // Cache-Hit-Erkennung: wenn das <img>-Element bereits vollständig
+  // geladen ist (naturalWidth>0), sofort ohne Fade anzeigen -- das
+  // onLoad-Event feuert bei bereits gecachten Bildern oft zu spät oder
+  // inkonsistent zwischen Browsern, was die gefühlte Verzögerung erklärt.
+  useLayoutEffect(() => {
+    if (coverImgRef.current?.complete && coverImgRef.current?.naturalWidth > 0) {
+      setCoverLoaded(true);
+    }
+  }, [cover]);
+
+  useLayoutEffect(() => {
+    if (avatarImgRef.current?.complete && avatarImgRef.current?.naturalWidth > 0) {
+      setAvatarLoaded(true);
+    }
+  }, [avatar]);
   const name     = sv(profile?.full_name || profile?.display_name || profile?.username, "–");
   const username = sv(profile?.username);
   const location = sv(profile?.location_final || profile?.location);
@@ -111,12 +163,13 @@ export function ProfileHeader({
           }}/>
         ) : (
           <img
-            src={cover} alt=""
+            ref={coverImgRef}
+            src={cover} alt="" loading="eager" decoding="async" fetchpriority="high"
             onLoad={() => setCoverLoaded(true)}
             onError={() => setCoverLoaded(true)}
             style={{
               width:"100%", height:"100%", objectFit:"cover", display:"block",
-              opacity: coverLoaded ? 0.88 : 0, transition:"opacity 1.1s ease",
+              opacity: coverLoaded ? 0.88 : 0, transition:"opacity 0.25s ease",
             }}
           />
         )}
@@ -176,12 +229,13 @@ export function ProfileHeader({
                 )}
                 {!loading && (
                   <img
-                    src={avatar} alt={name}
+                    ref={avatarImgRef}
+                    src={avatar} alt={name} loading="eager" decoding="async" fetchpriority="high"
                     onLoad={() => setAvatarLoaded(true)}
                     onError={() => setAvatarLoaded(true)}
                     style={{
                       width:"100%", height:"100%", objectFit:"cover",
-                      opacity: avatarLoaded ? 1 : 0, transition:"opacity .5s ease",
+                      opacity: avatarLoaded ? 1 : 0, transition:"opacity 0.2s ease",
                     }}
                   />
                 )}
