@@ -1247,7 +1247,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
   const handleLocationChange = useCallback(async (locationStr) => {
     if (!user?.id) return;
     const { error } = await supabase.from("profiles")
-      .update({ location: locationStr, updated_at: new Date().toISOString() })
+      .update({ location: locationStr, location_label: locationStr, updated_at: new Date().toISOString() })
       .eq("id", user.id);
     if (error) { console.error("handleLocationChange:", error.message); return; }
     reload();

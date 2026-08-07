@@ -197,7 +197,10 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
         display_name:   displayName.trim() || fullName.trim(),
         username:       username.trim().toLowerCase(),
         bio:            bio.trim(),
-        location:       locationLabel.trim(), // Sprint F.3B: schreibt profiles.location (Wahrheitsquelle)
+        location:       locationLabel.trim(), // SSOT: profiles.location
+        location_label: locationLabel.trim(), // Sync: alle Anzeige-Stellen (Feed, Discover, Karten) lesen location_label
+        ...(locationLat != null ? { location_lat: locationLat } : {}),
+        ...(locationLng != null ? { location_lng: locationLng } : {}),
         website:        website.trim(),
         is_available:   isAvailable,
       };

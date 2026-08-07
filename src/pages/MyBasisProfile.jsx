@@ -827,7 +827,7 @@ const handleNotifAction = (n) => {
   const handleOpenForChange = handleAvailabilitySave; // Alias
 
   const handleLocationSave = useCallback((locationStr) => {
-    _save({ location: locationStr });
+    _save({ location: locationStr, location_label: locationStr });
   }, [_save]);
 
   // Sofortige lokale Anzeige + globaler AuthContext-Update nach Upload
