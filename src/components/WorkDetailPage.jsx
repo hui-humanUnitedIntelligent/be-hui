@@ -409,7 +409,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
       setCommentCount(n);
 
       // Increment view count
-      await supabase.rpc("increment_work_views", { work_id: werkId }).catch(() => {});
+      try { await supabase.rpc("increment_work_views", { work_id: werkId }); } catch {}
     } catch(e) {
       console.error("[WorkDetail] loadSocial:", e.message);
     }

@@ -137,12 +137,9 @@ export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
 
       // Echte Like-/Kommentar-Zahlen laden — gleiche SSOT wie DiscoverPage
       const engResults = await Promise.all(data.map(async (m) => {
-        const [rcRes, ccRes] = await Promise.all([
-          supabase.rpc("reaction_counts", { p_post_id: m.id }).catch(() => ({ data: null })),
-          supabase.rpc("count_comments", { p_post_id: m.id, p_post_type: "moment" }).catch(() => ({ data: null })),
-        ]);
-        const rc = rcRes?.data;
-        const cc = ccRes?.data;
+        let rc = null, cc = null;
+        try { rc = (await supabase.rpc("reaction_counts", { p_post_id: m.id }))?.data; } catch {}
+        try { cc = (await supabase.rpc("count_comments", { p_post_id: m.id, p_post_type: "moment" }))?.data; } catch {}
         return { id: m.id, likes: rc?.inspire ?? 0, comments: typeof cc === "number" ? cc : 0 };
       }));
       const engMap = Object.fromEntries(engResults.map(e => [e.id, e]));

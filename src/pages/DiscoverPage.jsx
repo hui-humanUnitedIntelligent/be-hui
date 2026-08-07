@@ -1544,7 +1544,6 @@ function isCacheValid() {
 export default function DiscoverPage({ onView, onMap, onBook }) {
   const view = "cards"; // Fest auf Kacheln — Listenansicht-Umschaltung 2026-08-06 entfernt (Buttons raus)
   const [loading, setLoading] = useState(true);
-  const [__debugLoadError, __setDebugLoadError] = useState(null); // TEMP DIAGNOSTIC — remove after fix
   const [people, setPeople]           = useState([]);
   const [momente, setMomente]         = useState([]);
   const [werke, setWerke]             = useState([]);
@@ -1735,12 +1734,10 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
           // count_comments(post_id, 'moment') fuer die Sprechblase. Vorher wurden
           // hier deterministische Fake-Zahlen aus der charCodeAt der ID erzeugt.
           const beitrEngagement = await Promise.all(beitr.map(async (b) => {
-            const [rcRes, ccRes] = await Promise.all([
-              supabase.rpc("reaction_counts", { p_post_id: b.id }).catch(() => ({ data: null })),
-              supabase.rpc("count_comments", { p_post_id: b.id, p_post_type: "moment" }).catch(() => ({ data: null })),
-            ]);
-            const rc = rcRes?.data;
-            const cc = ccRes?.data;
+            // Supabase JS v2 .rpc() hat keine .catch() Methode — try/await statt .catch()
+            let rc = null, cc = null;
+            try { rc = (await supabase.rpc("reaction_counts", { p_post_id: b.id }))?.data; } catch {}
+            try { cc = (await supabase.rpc("count_comments", { p_post_id: b.id, p_post_type: "moment" }))?.data; } catch {}
             return { id: b.id, likes: rc?.inspire ?? 0, comments: typeof cc === "number" ? cc : 0 };
           }));
           const beitrEngagementMap = Object.fromEntries(beitrEngagement.map(e => [e.id, e]));
@@ -2033,7 +2030,6 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
 
       } catch (e) {
         console.warn("[DiscoverPage] load error:", e?.message);
-        __setDebugLoadError(String(e?.stack || e?.message || e)); // TEMP DIAGNOSTIC — remove after fix
       } finally {
         _discoverCache.loading = false;
         if (!cancelled) setLoading(false);
@@ -2215,11 +2211,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
 
       {/* ── 1. Titelbereich ── */}
       <DiscoverTitleBar />
-      {__debugLoadError && (
-        <div style={{ padding:"8px 18px", background:"#fee", color:"#c00", fontSize:11, fontFamily:"monospace", whiteSpace:"pre-wrap", maxHeight:200, overflow:"auto" }}>
-          DEBUG LOAD ERROR: {__debugLoadError}
-        </div>
-      )}
+
 
       {/* ── 1b. Live Activity Bar ── */}
       <div style={{ marginBottom:8 }}>
