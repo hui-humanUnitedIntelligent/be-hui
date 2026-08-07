@@ -1,0 +1,49 @@
+name: Activate Membership (lars)
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: activate-membership-lars
+  cancel-in-progress: false
+
+jobs:
+  activate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        run: |
+          curl -fsSL https://github.com/supabase/cli/releases/download/v2.108.0/supabase_linux_amd64.tar.gz | tar -xz -C /tmp
+          sudo mv /tmp/supabase /usr/local/bin/supabase
+          supabase --version
+
+      - name: Link Supabase project
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase link --project-ref gxztrhvhcxhmunhhkfjd --yes
+
+      - name: Read profile BEFORE update
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+          echo "=== BEFORE ==="
+          supabase db query --linked "SELECT id, display_name, username, membership_active, membership_type, is_member, is_talent, role, has_talent_profile FROM public.profiles WHERE username = 'lars';"
+
+      - name: Update ONLY membership_active = true
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+          supabase db query --linked "UPDATE public.profiles SET membership_active = true, updated_at = NOW() WHERE username = 'lars' AND membership_active = false;"
+          echo "✅ membership_active set to true"
+
+      - name: Read profile AFTER update
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+          echo "=== AFTER ==="
+          supabase db query --linked "SELECT id, display_name, username, membership_active, membership_type, is_member, is_talent, role, has_talent_profile FROM public.profiles WHERE username = 'lars';"
