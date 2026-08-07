@@ -15,7 +15,7 @@
 import { HUIAmbassadorIcon,
   HUISicherheitIcon,
 } from '../design/icons/HuiSystemIcons.jsx';
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { cleanupOrbEnvironment } from "../lib/cleanup/cleanupOrbEnvironment.js";
 import { useAuth } from "../lib/AuthContext";
 
@@ -223,43 +223,9 @@ function ProgressDots({ total, current }) {
   );
 }
 
-// ─── Feature Grid Card ────────────────────────────────────────
-function FeatureGridItem({ icon, label, color = T.teal, delay = 0 }) {
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    const t = setTimeout(() => setVisible(true), delay);
-    return () => clearTimeout(t);
-  }, [delay]);
-  return (
-    <div style={{
-      display:"flex", flexDirection:"column", alignItems:"center",
-      gap:10, padding:"18px 12px",
-      borderRadius:20,
-      background:"rgba(255,255,255,0.05)",
-      border:`1px solid rgba(255,255,255,0.09)`,
-      backdropFilter:"blur(12px)",
-      WebkitBackdropFilter:"blur(12px)",
-      opacity: visible ? 1 : 0,
-      transform: visible ? "translateY(0) scale(1)" : "translateY(14px) scale(0.95)",
-      transition:"opacity 0.45s ease, transform 0.45s cubic-bezier(0.22,1,0.36,1)",
-    }}>
-      <div style={{
-        width:44, height:44, borderRadius:14,
-        background:`rgba(22,215,197,0.10)`,
-        border:`1px solid rgba(22,215,197,0.18)`,
-        display:"flex", alignItems:"center", justifyContent:"center",
-        fontSize:20,
-      }}>{icon}</div>
-      <span style={{
-        fontSize:12.5, fontWeight:600, color:T.soft,
-        textAlign:"center", lineHeight:1.35,
-      }}>{label}</span>
-    </div>
-  );
-}
 
 // ─── Value Pill ───────────────────────────────────────────────
-function ValuePill({ icon, label, color = T.teal, delay = 0 }) {
+function ValuePill({ icon, label, delay = 0 }) {
   const [v, setV] = useState(false);
   useEffect(() => { const t = setTimeout(() => setV(true), delay); return () => clearTimeout(t); }, [delay]);
   return (
@@ -1159,7 +1125,7 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
     setError(null);
     setLoading(true);
     try {
-      console.log("[MEMBERSHIP] activate_talent RPC wird aufgerufen...");
+      console.log("[MEMBERSHIP] activate_membership wird aufgerufen...");
       const result = await activateMembership?.();
       if (result?.error) {
         console.warn("[MEMBERSHIP] Fehler:", result.error);
@@ -1167,16 +1133,8 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
         setLoading(false);
         return;
       }
-      // Phase 4C: sofort localStorage syncen — Orb flippt ohne Reload
-      localStorage.setItem("hui_talent", "1");
-      localStorage.setItem("hui_membership_type", "talent");
-      localStorage.setItem("hui_is_member", "1");
-      console.log("[MEMBERSHIP]", {
-        membership_type:   "talent",
-        membership_active: true,
-        isTalent:          true,
-        canCreate:         true,
-      });
+      // V7.5: Membership aktiviert — NUR membership_active, kein is_talent
+      console.log("[MEMBERSHIP] membership activated — membership_active = true");
       // Profile refreshen damit isTalent sofort flippt
       await refreshProfile?.().catch(() => {});
       setDir(1);

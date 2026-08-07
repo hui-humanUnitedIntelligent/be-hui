@@ -127,7 +127,7 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
       if (error) throw error;
       setTicketNr(tn);
       setStep("success");
-    } catch(err) {
+    } catch {
       setErrors({ submit: "Fehler beim Senden. Bitte versuche es erneut." });
     } finally {
       setLoading(false);

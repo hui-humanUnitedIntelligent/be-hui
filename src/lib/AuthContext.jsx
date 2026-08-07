@@ -339,15 +339,15 @@ export function AuthProvider({ children }) {
     await loadProfile(user.id);
   }, [user?.id, loadProfile]);
 
-  // Phase 4C: activateMembership — erweitert um membership_active + talent_activated_at
-  // ─── Der Gemeinschaft beitreten: setzt is_talent=true + talent_since ──
+  // V7.5: activateMembership — Mitgliedschaft und Talent sauber trennen
+  // ─── Der Gemeinschaft beitreten: setzt NUR membership_active=true ──
+  // Talent-Verantwortung wird separat über TalentOnboarding (Antrag-Modus) aktiviert.
   const activateMembership = useCallback(async () => {
     if (!user?.id) return { error: "Nicht eingeloggt" };
     try {
-      const now = new Date().toISOString();
       const { data: updated, error } = await supabase
         .from("profiles")
-        .update({ is_talent: true, talent_since: now })
+        .update({ membership_active: true })
         .eq("id", user.id)
         .select("id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views") // Identity Contract v1.0
         .single();

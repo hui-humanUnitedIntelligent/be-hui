@@ -12,16 +12,15 @@
 //   Impact/Veranstaltungen → WIRKUNG (Projekte, Unterstützte Projekte,
 //   Empfehlungen) → KONTO (Mein Profil, Einstellungen) → Profilbereich unten
 //
-// DATEN: useAuth() (profile, logout), useNotifCount(), useChatList() (unread)
+// DATEN: useAuth() (profile, logout), useChatList() (unread)
 // Keine neue Business-Logik — nur bestehende Hooks.
 // ══════════════════════════════════════════════════════════════════════════════
 
-import React, { useState } from 'react';
+import React from 'react';
 import { PerfProfiler, usePerfMount } from './perf-instrument.js';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { HUILogo } from '../brand/HUILogo.jsx';
 import { useAuth } from '../../lib/AuthContext.jsx';
-import { useNotifCount } from '../../lib/AppStateContext.jsx';
 
 // ── Icons — konsistent 1.5px outline ─────────────────────────────────────────
 const PATHS = {
@@ -92,7 +91,6 @@ export default function DesktopSidebar({ onOpenChat, chatUnread = 0 }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { profile, logout } = useAuth();
-  const notifCount = useNotifCount();
   // P0: chatUnread kommt als Prop von DesktopShell (zentrale useChatList)
 
   function isActive(route) {
@@ -126,15 +124,19 @@ export default function DesktopSidebar({ onOpenChat, chatUnread = 0 }) {
         <span className="sb-logo-text">HUI</span>
       </button>
 
-      {/* ── Erstellen ────────────────────────────────────────────── */}
-      <button className="sb-create" onClick={() => navigate('/studio')}>
-        <Icon name="create" size={17} />
-        <span>Erstellen</span>
-      </button>
+      {/* ── Erstellen (V7.5: nur für Mitglieder) ─────────────────── */}
+      {profile?.membership_active === true && (
+        <button className="sb-create" onClick={() => navigate('/studio')}>
+          <Icon name="create" size={17} />
+          <span>Erstellen</span>
+        </button>
+      )}
 
-      {/* ── Haupt-Navigation ─────────────────────────────────────── */}
+      {/* ── Haupt-Navigation (V7.5: Studio nur für Mitglieder) ──── */}
       <nav className="sb-nav">
-        {MAIN_ITEMS.map(item => (
+        {MAIN_ITEMS
+          .filter(item => item.key !== 'studio' || profile?.membership_active === true)
+          .map(item => (
           <NavItem
             key={item.key}
             item={item}

@@ -42,3 +42,8 @@ android/app/src/main/assets/public/   # generierter Web-Snapshot, wird per `npx 
 *.bak
 *.bak_*
 .backups/
+
+# Build output (Vite → www/, Vercel baut selbst)
+www/assets/
+www/index.html
+www/web.html
