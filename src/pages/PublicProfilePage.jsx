@@ -39,6 +39,7 @@ import { RecommendationsSection } from "../components/profile/sections/Recommend
 import { OrbSignatur }        from "../components/profile/OrbSignatur.jsx";
 import { PublicTalentOffersSection } from "../components/profile/sections/PublicTalentOffersSection.jsx";
 import { useModalRegistration } from "../hooks/useModalRegistration.js";
+import SupportFlow from "../components/economy/SupportFlow.jsx";
 
 // ── Design Tokens (HUI-Standard) ─────────────────────────────────
 const T = {
@@ -491,6 +492,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
 
   // Live-Follower-Delta für sofortige UI-Reaktion
   const [followerDelta, setFollowerDelta] = useState(0);
+  const [showSupport,   setShowSupport]   = useState(false);
   useEffect(() => { setFollowerDelta(0); }, [profileId]);
   const handleFollowChange = useCallback((delta) => setFollowerDelta(d => d + delta), []);
 
@@ -593,7 +595,34 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
         {profile && !isOwnProfile && (
           <RelationButtons profileId={profileId} currentUserId={user?.id} profile={profile} onFollowChange={handleFollowChange} onOpenChat={handleOpenChat} />
         )}
+        {profile && !isOwnProfile && (
+          <button onClick={() => setShowSupport(true)} className="ppp-press" style={{
+            width:"100%", height:36, borderRadius:T.r99,
+            background:"rgba(255,138,107,0.08)",
+            border:`1.5px solid rgba(255,138,107,0.22)`,
+            color:"#FF6F61", fontWeight:600, fontSize:12, cursor:"pointer",
+            touchAction:"manipulation", fontFamily:"inherit",
+            display:"flex", alignItems:"center", justifyContent:"center", gap:6,
+            marginTop:8, whiteSpace:"nowrap",
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+            Unterstützen
+          </button>
+        )}
         {profile && !isOwnProfile && <Gap h={14}/>}
+
+        {/* ── SUPPORT FLOW ── */}
+        {showSupport && profile?.id && (
+          <SupportFlow
+            creator={profile}
+            visible={showSupport}
+            onClose={() => setShowSupport(false)}
+            sourceType="profile"
+            sourceId={profile.id}
+          />
+        )}}
 
         {/* ── QUICK STATS ── */}
         {profile && (
