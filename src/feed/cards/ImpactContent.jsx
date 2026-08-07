@@ -7,7 +7,7 @@
  * Karte anklicken → ContentPreviewSheet → "Zum Herzensprojekt" → Impact-Tab
  */
 import React, { useState, useMemo } from "react";
-import BaseFeedCard, { getAdaptiveMediaHeight } from "./BaseFeedCard.jsx";
+import BaseFeedCard from "./BaseFeedCard.jsx";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
 
 const GREEN      = "rgba(34,197,94,1)";
@@ -47,23 +47,12 @@ function ProgressBar({ current, goal }) {
 export default function ImpactContent({ item, onProfile, onReaction, onShare }) {
   if (!item) return null;
 
-  // ── Adaptive Media Height (Feed UX Redesign 2026-08-06) ──
+  // FEED-UNIFORM-FIX (2026-08-07): Adaptive Media Height (06.08) rückgängig
+  // gemacht — siehe identischer Fix + Begründung in BaseFeedCard.jsx.
+  // Alle Feed-Karten (Werke, Momente, Erlebnisse, Talente, Impact-Projekte)
+  // nutzen jetzt dieselbe feste Höhe von 220px, unabhängig vom Bild-Seitenverhältnis.
   const _containerRef = React.useRef(null);
-  const [_aspect, _setAspect] = React.useState(null);
-  const [_containerW, _setContainerW] = React.useState(0);
-
-  React.useEffect(() => {
-    if (!_containerRef.current) return;
-    const update = () => {
-      if (_containerRef.current) _setContainerW(_containerRef.current.offsetWidth);
-    };
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(_containerRef.current);
-    return () => ro.disconnect();
-  }, []);
-
-  const _adaptiveH = getAdaptiveMediaHeight(_aspect, _containerW, false);
+  const _adaptiveH = 220;
 
   const raw   = item._raw || {};
   const title = item.title || raw.project_name || raw.name || "";
@@ -137,12 +126,7 @@ export default function ImpactContent({ item, onProfile, onReaction, onShare }) 
           src={displayImg}
           alt={title || "Herzensprojekt"}
           style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}
-          onLoad={(e) => {
-            const img = e.target;
-            if (img.naturalWidth && img.naturalHeight) {
-              _setAspect(img.naturalWidth / img.naturalHeight);
-            }
-          }}
+          onLoad={() => {}}
           onError={() => { if (!imgErr) setImgErr(true); }}
         />
         {/* Rang-Badge oben links auf dem Bild */}

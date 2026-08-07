@@ -501,7 +501,14 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
 
   if (!url || err) return null;
 
-  const h = getAdaptiveMediaHeight(aspect, containerW, relaxed);
+  // FEED-UNIFORM-FIX (2026-08-07): Adaptive Media Height (06.08) rückgängig
+  // gemacht — sie widersprach der bereits bestehenden UNIFORM-Vorgabe in
+  // UnifiedFeed.jsx (isRelaxed ist dort hart auf false gesetzt: "alle Karten
+  // gleiche Höhe"). Hochformat-Bilder wurden bis zu 560px hoch gerendert,
+  // wodurch fremde Posts (Erlebnisse/Werke/Talente) optisch größer wirkten
+  // als eigene Momente. Fix: exakt der im Kommentar oben dokumentierte
+  // Revert-Pfad — feste Höhe für ALLE Karten, unabhängig vom Seitenverhältnis.
+  const h = relaxed ? 340 : T.mediaH;
 
   function handleTap(e) {
     const now = Date.now();
