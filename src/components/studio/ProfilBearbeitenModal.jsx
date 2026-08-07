@@ -199,8 +199,6 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
         bio:            bio.trim(),
         location:       locationLabel.trim(), // SSOT: profiles.location
         location_label: locationLabel.trim(), // Sync: alle Anzeige-Stellen (Feed, Discover, Karten) lesen location_label
-        ...(locationLat != null ? { location_lat: locationLat } : {}),
-        ...(locationLng != null ? { location_lng: locationLng } : {}),
         website:        website.trim(),
         is_available:   isAvailable,
       };
@@ -222,6 +220,17 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
             .eq("id", profile?.id));
 
       if (profErr) throw new Error(profErr.message || profErr);
+
+      // 2b. GPS-Koordinaten separat speichern (Spalten evtl. noch nicht in Produktion —
+      //     Migration 081 muss manuell im Supabase SQL Editor ausgeführt werden).
+      //     Fehler hierbei dürfen NICHT den gesamten Save blockieren.
+      if (locationLat != null && locationLng != null) {
+        try {
+          await supabase.from("profiles")
+            .update({ location_lat: locationLat, location_lng: locationLng })
+            .eq("id", profile?.id);
+        } catch {/* Spalte existiert noch nicht — Migration 081 ausstehen */}
+      }
 
       // 3. Auth Profil neu laden → live im Admin + UI
       if (refreshProfile) await refreshProfile();
