@@ -72,6 +72,18 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
     setErrMsg("");
 
     try {
+      // ── Sichtbarkeit-Gate: Verbindungen/Privat-Profile sind nicht kaufbar
+      // (server-seitig ohnehin über commerce_price_authority-View geblockt,
+      // hier nur für eine klare, verständliche Fehlermeldung statt generischem
+      // "Item nicht verfügbar") ──
+      const { data: sellerProfile } = await supabase
+        .from("profiles").select("focus_type").eq("id", creatorId).maybeSingle();
+      if (sellerProfile && sellerProfile.focus_type && sellerProfile.focus_type !== "public") {
+        setErrMsg("Dieses Profil ist nicht öffentlich — Käufe sind aktuell deaktiviert.");
+        setPhase("error");
+        return;
+      }
+
       // ── Stripe PaymentIntent über Edge Function erstellen ──
       const { data: { session } } = await supabase.auth.getSession();
       const accessToken = session?.access_token;
