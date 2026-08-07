@@ -1,6 +1,7 @@
 import { createPortal } from "react-dom";
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
+import { getPlaceImage } from "../../lib/placeImage.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
@@ -12,17 +13,33 @@ const T = {
 };
 
 function PlaceCard({ place, onPress }) {
+  const [sightUrl, setSightUrl] = useState(null);
+  const [imgErr, setImgErr]     = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    getPlaceImage(place.place_key).then(url => { if (!cancelled) setSightUrl(url); });
+    return () => { cancelled = true; };
+  }, [place.place_key]);
+
+  const cover = (!imgErr && sightUrl) ? sightUrl : null;
+
   return (
     <div onClick={() => onPress?.(place.place_key)} style={{
-      background:T.white, borderRadius:14, overflow:"hidden",
+      background:T.white, borderRadius:16, overflow:"hidden",
       boxShadow:T.cardShadow, border:`1px solid ${T.border}`,
       display:"flex", flexDirection:"column", cursor:"pointer",
       transition:"transform .14s ease",
     }}>
-      <div style={{ height:80, background:T.tealSoft, position:"relative", display:"flex", alignItems:"center", justifyContent:"center" }}>
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" style={{opacity:0.45}}>
-          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 010-5 2.5 2.5 0 010 5z" fill="rgba(14,196,184,0.6)"/>
-        </svg>
+      <div style={{ height:120, background:cover ? "#1A1A18" : T.tealSoft, position:"relative", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden" }}>
+        {cover ? (
+          <img loading="lazy" decoding="async" src={cover} alt={place.place_key} onError={() => setImgErr(true)}
+            style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
+        ) : (
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" style={{opacity:0.45}}>
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 010-5 2.5 2.5 0 010 5z" fill="rgba(14,196,184,0.6)"/>
+          </svg>
+        )}
         <div style={{
           position:"absolute", top:6, right:6,
           background:"rgba(255,255,255,0.92)", borderRadius:99,

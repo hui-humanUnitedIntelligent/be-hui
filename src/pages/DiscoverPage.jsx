@@ -13,6 +13,7 @@ import { HUILogo } from '../components/brand/HUILogo.jsx';
 import React, { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
 import { useNavigate }   from "react-router-dom";
 import { NAV_CONTENT_SPACER_CSS } from "../components/home/navigation/navigationGeometry.js";
+import { getPlaceImage } from "../lib/placeImage.js";
 import { supabase }      from "../lib/supabaseClient.js";
 import { getOptimalPageSize } from "../lib/deviceTier.js";
 import { formatPresence } from "../lib/usePresence.js";
@@ -1459,10 +1460,10 @@ function OrteSection({ orte=[], loading, onSectionAction, onPressOrt, delay=0 })
       <div className="dp-hscroll" style={{ display:"flex", gap:8, paddingLeft:T.px, paddingRight:T.px, paddingBottom:4 }}>
         {loading
           ? Array.from({length:4}).map((_,i) => (
-              <div key={i} style={{ width:110, flexShrink:0, borderRadius:14, overflow:"hidden", background:T.white, boxShadow:T.cardShadow }}>
-                <Skel w="100%" h={68} r={0} />
-                <div style={{ padding:"7px 8px 9px" }}>
-                  <Skel w="80%" h={10} r={6} mb={4} />
+              <div key={i} style={{ width:165, flexShrink:0, borderRadius:CARD_RADIUS, overflow:"hidden", background:T.white, boxShadow:T.cardShadow }}>
+                <Skel w="100%" h={120} r={0} />
+                <div style={{ padding:"10px 11px 12px" }}>
+                  <Skel w="80%" h={12} r={6} mb={6} />
                   <Skel w="50%" h={9} r={6} />
                 </div>
               </div>
@@ -1477,35 +1478,52 @@ function OrteSection({ orte=[], loading, onSectionAction, onPressOrt, delay=0 })
 }
 
 function OrtCard({ ort, delay=0, onPress }) {
+  const [sightUrl, setSightUrl] = useState(null);
+  const [imgErr, setImgErr]     = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    getPlaceImage(ort.place_key).then(url => { if (!cancelled) setSightUrl(url); });
+    return () => { cancelled = true; };
+  }, [ort.place_key]);
+
+  const cover = (!imgErr && sightUrl) ? sightUrl : null;
+
   return (
     <div className="dp-press dp-in dp-card-hover" onClick={onPress} style={{
-      width:110, flexShrink:0,
-      borderRadius:14, overflow:"hidden",
+      width:165, flexShrink:0,
+      borderRadius:CARD_RADIUS, overflow:"hidden",
       background:T.white, boxShadow:T.cardShadow,
       border:`1px solid ${T.border}`,
       animationDelay:`${delay}ms`,
       touchAction:"manipulation",
+      display:"flex", flexDirection:"column",
     }}>
-      <div style={{ width:"100%", height:68, overflow:"hidden", position:"relative", background:T.tealSoft, display:"flex", alignItems:"center", justifyContent:"center" }}>
-        <HUILocationIcon size={24} style={{opacity:0.4, color:"rgba(14,196,184,0.5)"}} />
+      <div style={{ width:"100%", height:120, flexShrink:0, overflow:"hidden", position:"relative", background:cover ? "#1A1A18" : T.tealSoft, display:"flex", alignItems:"center", justifyContent:"center" }}>
+        {cover ? (
+          <img loading="lazy" decoding="async" src={cover} alt={ort.place_key} onError={() => setImgErr(true)}
+            style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
+        ) : (
+          <HUILocationIcon size={28} style={{opacity:0.4, color:"rgba(14,196,184,0.5)"}} />
+        )}
         <div style={{
-          position:"absolute", top:5, right:5,
+          position:"absolute", top:6, right:6,
           background:"rgba(255,255,255,0.90)", backdropFilter:"blur(6px)",
-          borderRadius:99, padding:"1px 6px",
-          fontSize:9, fontWeight:700, color:T.tealDeep,
+          borderRadius:99, padding:"1px 7px",
+          fontSize:9.5, fontWeight:700, color:T.tealDeep,
         }}>
           {ort.total_count}
         </div>
       </div>
-      <div style={{ padding:"7px 8px 9px" }}>
-        <div style={{ fontSize:11, fontWeight:700, color:T.ink, marginBottom:4, lineHeight:1.25,
+      <div style={{ padding:"10px 11px 12px", display:"flex", flexDirection:"column", flexGrow:1 }}>
+        <div style={{ fontSize:13, fontWeight:700, color:T.ink, marginBottom:5, lineHeight:1.25,
           overflow:"hidden", display:"-webkit-box", WebkitLineClamp:1, WebkitBoxOrient:"vertical" }}>
           {ort.place_key}
         </div>
-        <div style={{ display:"flex", alignItems:"center", gap:5, fontSize:9, color:T.inkFaint, fontWeight:600 }}>
-          {ort.people_count > 0 && <span>👥{ort.people_count}</span>}
-          {ort.works_count > 0 && <span>🎨{ort.works_count}</span>}
-          {ort.experiences_count > 0 && <span>🎉{ort.experiences_count}</span>}
+        <div style={{ marginTop:"auto", display:"flex", alignItems:"center", gap:6, fontSize:10, color:T.inkFaint, fontWeight:600, flexWrap:"wrap" }}>
+          {ort.people_count > 0 && <span>👥 {ort.people_count}</span>}
+          {ort.works_count > 0 && <span>🎨 {ort.works_count}</span>}
+          {ort.experiences_count > 0 && <span>🎉 {ort.experiences_count}</span>}
         </div>
       </div>
     </div>
