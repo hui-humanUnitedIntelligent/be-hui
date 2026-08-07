@@ -1504,7 +1504,8 @@ function OrtCard({ ort, delay=0, onPress }) {
           <img loading="lazy" decoding="async" src={cover} alt={ort.place_key} onError={() => setImgErr(true)}
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
         ) : (
-          <HUILocationIcon size={28} style={{opacity:0.4, color:"rgba(14,196,184,0.5)"}} />
+          <img src="/assets/brand/hui-logo.png" alt="HUI" loading="lazy"
+            style={{ width:40, height:40, objectFit:"contain", opacity:0.55 }}/>
         )}
         <div style={{
           position:"absolute", top:6, right:6,

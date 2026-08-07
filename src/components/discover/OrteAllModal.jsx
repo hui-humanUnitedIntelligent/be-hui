@@ -36,9 +36,8 @@ function PlaceCard({ place, onPress }) {
           <img loading="lazy" decoding="async" src={cover} alt={place.place_key} onError={() => setImgErr(true)}
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
         ) : (
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" style={{opacity:0.45}}>
-            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 010-5 2.5 2.5 0 010 5z" fill="rgba(14,196,184,0.6)"/>
-          </svg>
+          <img src="/assets/brand/hui-logo.png" alt="HUI" loading="lazy"
+            style={{ width:44, height:44, objectFit:"contain", opacity:0.55 }}/>
         )}
         <div style={{
           position:"absolute", top:6, right:6,
