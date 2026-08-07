@@ -1709,7 +1709,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
           ProfileService.prewarm(profiles);
           setPeople(profiles.map(p => ({
             id:           p.id,
-            name:         safeStr(p.display_name || p.username) || null,
+            name:         safeStr(p.full_name || p.display_name || p.username) || null,
             bio:          safeStr(p.bio),
             location:     safeStr(p.location_label), // Identity Contract v1.0
             avatar:       safeStr(p.avatar_url),
@@ -1735,7 +1735,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
           if (beitrUserIds.length > 0) {
             const { data: bpros } = await supabase
               .from("public_profiles")
-              .select("id,display_name,avatar_url")
+              .select("id,display_name,full_name,avatar_url")
               .in("id", beitrUserIds);
             if (bpros) beitrProfileMap = Object.fromEntries(bpros.map(p => [p.id, p]));
           }
@@ -1764,7 +1764,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
             caption:    safeStr(b.caption, "Ein Moment"),
             type:       safeStr(b.type, "foto"),
             created_at: b.created_at,
-            name:       safeStr(bp.display_name, "HUI Mitglied"),
+            name:       safeStr(bp.full_name || bp.display_name, "HUI Mitglied"),
             avatar_url: bp.avatar_url || null,
             location:   "",
             likes:      eng.likes,
@@ -1797,7 +1797,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
           if (userIds.length > 0) {
             const { data: profs } = await supabase
               .from("public_profiles")
-              .select("id,display_name,avatar_url")
+              .select("id,display_name,full_name,avatar_url")
               .in("id", userIds);
             if (profs) profileMap = Object.fromEntries(profs.map(p => [p.id, p]));
           }
@@ -1813,7 +1813,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
               location:  safeStr(w.location_text),
               lat:       Number.isFinite(w.lat) ? w.lat : null,
               lng:       Number.isFinite(w.lng) ? w.lng : null,
-              author:    safeStr(prof.display_name, "HUI Talent"),
+              author:    safeStr(prof.full_name || prof.display_name, "HUI Talent"),
               avatar_url: prof.avatar_url || null,
               likes:     w.likes_count || 0,
               views:     w.views_count || 0,
@@ -1843,9 +1843,9 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
           if (providerIds.length > 0) {
             const { data: provs } = await supabase
               .from("profiles")
-              .select("id,display_name,username")
+              .select("id,display_name,full_name,username")
               .in("id", providerIds);
-            providerMap = Object.fromEntries((provs || []).map(p => [p.id, safeStr(p.display_name || p.username, "HUI Talent")]));
+            providerMap = Object.fromEntries((provs || []).map(p => [p.id, safeStr(p.full_name || p.display_name || p.username, "HUI Talent")]));
           }
           if (!cancelled) {
             setTalente(tal.map(t => ({

@@ -1,4 +1,4 @@
-import { isProfileTalent } from "../../lib/profileUtils.js";
+import { isProfileTalent, getFullDisplayName, getProfileRoleLabel } from "../../lib/profileUtils.js";
 import { OrbEngine } from "../../core/orbEngine.js";
 // HUI Pillars: dezente Grundpfeiler-Zuordnung für Feed-Items
 // Lazy-Import um keine Circular Dependencies zu erzeugen
@@ -34,18 +34,21 @@ function relTime(ts){
 
 function extractAuthor(raw){
   const p=raw.profile||raw.creator||raw.author||raw.user||{};
-  // ── TRACE STEP 7 (nur erstes Work, DEV only) ────────────────────
-  // Namens-Priorität (4-stufig):
-  // 1. profile.display_name  2. profile.full_name  3. profile.name/username
-  // 4. raw-Felder (beitraege etc. haben keinen profile-Join)
+  // ── NAME-DISPLAY-FIX (2026-08-07) ────────────────────────────────
+  // Namens-Priorität (jetzt full_name ZUERST — SSOT: getFullDisplayName()):
+  // 1. profile.full_name (Vor+Nachname — MUSS immer angezeigt werden)
+  // 2. profile.display_name (Spitzname, nur wenn kein full_name gepflegt)
+  // 3. profile.name/username  4. raw-Felder (beitraege ohne profile-Join)
   // 5. letzter Fallback — KEIN "Human"
-  const _n1 = safeStr(p.display_name);
-  const _n2 = safeStr(p.full_name);
-  const _n3 = safeStr(p.name);
-  const _n4 = safeStr(p.username||p.handle);
-  // Stufe 5: raw-eigene Namensfelder (für beitraege ohne profile-Objekt)
-  const _n5 = safeStr(raw.display_name||raw.full_name||raw.username);
-  const name = _n1||_n2||_n3||_n4||_n5||"Mitglied";
+  // Vorher hatte display_name (Spitzname, z.B. "Linda") fälschlich Vorrang
+  // vor full_name (echter Name, z.B. "Linda Mathis") → Fremdnutzer wurden
+  // nur mit Vor- oder Spitznamen angezeigt statt Vor- UND Nachname.
+  const _n1 = safeStr(getFullDisplayName(p, ""));
+  const _n2 = safeStr(p.name);
+  const _n3 = safeStr(p.username||p.handle);
+  // Stufe 4: raw-eigene Namensfelder (für beitraege ohne profile-Objekt)
+  const _n4 = safeStr(getFullDisplayName(raw, "")||raw.username);
+  const name = _n1||_n2||_n3||_n4||"Mitglied";
   // authorId: profile.id hat Priorität, rawItem.user_id als Fallback
   const authorId=safeStr(p.id||p.user_id||raw.user_id||raw.creator_id||raw.author_id);
   // avatar: ausschließlich aus Profildaten — niemals Werkbilder
@@ -60,7 +63,7 @@ function extractAuthor(raw){
     name, displayName:name,
     avatar:avatarUrl,
     username:safeStr(p.username||p.handle)||null,
-    talent:safeStr(p.talent)||null,
+    talent:getProfileRoleLabel(p),  // NAME-DISPLAY-FIX (2026-08-07): Fallback "Talent" wenn p.talent leer aber isProfileTalent(p)===true
     // Kapitel 2.3: Standort für HumanHeader
     location_label:safeStr(p.location_label||p.city||p.location)||null,
     // Kapitel 2.4: Bio + Mitglied-seit für Story Engine

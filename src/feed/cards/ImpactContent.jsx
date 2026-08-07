@@ -6,7 +6,7 @@
  * Header + Bild (via BaseFeedCard.FeedMedia) + Badge + Titel + Progress
  * Karte anklicken → ContentPreviewSheet → "Zum Herzensprojekt" → Impact-Tab
  */
-import React, { useState, useMemo } from "react";
+import React from "react";
 import BaseFeedCard from "./BaseFeedCard.jsx";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
 
@@ -17,7 +17,7 @@ const INK_SUB    = "rgba(26,26,46,0.45)";
 
 // IMPACT-IMG-001: Stabiler Unsplash-Fallback für Projekte ohne eigenes Bild.
 // Als Modul-Konstante → wird einmal evaluiert, nie neu erzeugt.
-const IMPACT_FALLBACK = "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=80";
+// IMPACT_FALLBACK removed — FeedMedia in BaseFeedCard handles image rendering now
 
 const RANK_MEDAL = { 1:"🥇", 2:"🥈", 3:"🥉" };
 const RANK_LABEL = { 1:"Top 1", 2:"Top 2", 3:"Top 3" };
@@ -47,14 +47,7 @@ function ProgressBar({ current, goal }) {
 export default function ImpactContent({ item, onProfile, onReaction, onShare }) {
   if (!item) return null;
 
-  // FEED-UNIFORM-FIX (2026-08-07): Adaptive Media Height (06.08) rückgängig
-  // gemacht — siehe identischer Fix + Begründung in BaseFeedCard.jsx.
-  // Alle Feed-Karten (Werke, Momente, Erlebnisse, Talente, Impact-Projekte)
-  // nutzen jetzt dieselbe feste Höhe von 220px, unabhängig vom Bild-Seitenverhältnis.
-  const _containerRef = React.useRef(null);
-  const _adaptiveH = 220;
-
-  const raw   = item._raw || {};
+const raw   = item._raw || {};
   const title = item.title || raw.project_name || raw.name || "";
   const desc  = item.text  || raw.short_desc   || raw.problem || raw.description || "";
   const rank  = raw.rank   || null;
@@ -75,28 +68,7 @@ export default function ImpactContent({ item, onProfile, onReaction, onShare }) 
     },
   });
 
-  // IMPACT-IMG-002: Titelbild-Logik (cover_url hat strikte Priorität).
-  // Reihenfolge: _raw.cover_url → item.media[0] → Fallback
-  // media_urls (Upload-Bilder) werden NIEMALS als Hauptbild verwendet.
-  // displayImg via useMemo → kein Re-Render durch Votes/State-Änderungen.
-  // imgErr via useState → onError setzt einmalig, kein src-Reassign-Loop.
-  const [imgErr, setImgErr] = useState(false);
-  const displayImg = useMemo(() => {
-    if (imgErr) return IMPACT_FALLBACK;
-    const raw = item._raw || {};
-    // 1. Titelbild: cover_url aus DB (covers/-Pfad) — immer bevorzugen
-    if (raw.cover_url) return raw.cover_url;
-    // 2. item.media — nur wenn cover_url fehlt (cover-Pfad, nie extras-Pfad)
-    const media = item.media;
-    if (Array.isArray(media) && media.length > 0 && media[0]?.url) {
-      return media[0].url;
-    }
-    if (media && typeof media === "string") return media;
-    // 3. Kein Titelbild vorhanden → Unsplash-Fallback
-    return IMPACT_FALLBACK;
-  }, [item._raw?.cover_url, item.media, imgErr]);
-
-  return (
+return (
     <BaseFeedCard
       item={item}
       onProfile={onProfile}
@@ -104,48 +76,12 @@ export default function ImpactContent({ item, onProfile, onReaction, onShare }) 
       onShare={onShare}
       onCardClick={handleCardClick}
     >
-      {/* IMPACT-IMG-UNIFORM-004 (2026-07-19): Bildcontainer exakt identisch zu FeedMedia.
-           FeedMedia: margin:"14px 16px 0", height:220, borderRadius:14, objectFit:cover.
-           Kein calc/negMargin — direkte Margin-Angleichung. */}
-      <div ref={_containerRef} style={{
-        margin: "10px 16px 12px",
-        height: _adaptiveH,
-        borderRadius: 14,
-        overflow: "hidden", position: "relative",
-        background: "#F0EFED",
-        boxShadow: "0 4px 20px rgba(26,26,46,0.08)",
-        flexShrink: 0,
-        cursor: "pointer",
-      }}>
-        {/* IMPACT-IMG-001: img mit stabilem src (useMemo).
-             onError setzt imgErr=true → displayImg wechselt auf IMPACT_FALLBACK.
-             Kein direktes e.target.src-Assignment → kein Loop, kein Flackern. */}
-        <img
-          loading="lazy"
-          decoding="async"
-          src={displayImg}
-          alt={title || "Herzensprojekt"}
-          style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}
-          onLoad={() => {}}
-          onError={() => { if (!imgErr) setImgErr(true); }}
-        />
-        {/* Rang-Badge oben links auf dem Bild */}
-        {rank && RANK_MEDAL[rank] && (
-          <div style={{
-            position:"absolute", top:10, left:10,
-            background: rank===1?"rgba(251,191,36,1)":rank===2?"rgba(156,163,175,1)":"rgba(180,113,67,1)",
-            color:"#fff", fontSize:10, fontWeight:700,
-            padding:"3px 10px", borderRadius:20,
-          }}>{RANK_MEDAL[rank]} {RANK_LABEL[rank]}</div>
-        )}
-      </div>
-
       {/* Beschreibung (optional, über Badge/Titel) */}
       {desc && (
         <p style={{ margin:"0 0 10px", fontSize:13.5, fontWeight:400,
           color:"rgba(26,26,46,0.65)", lineHeight:1.55,
           overflow:"hidden", display:"-webkit-box",
-          WebkitLineClamp:3, WebkitBoxOrient:"vertical" }}>
+          WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>
           {desc}
         </p>
       )}

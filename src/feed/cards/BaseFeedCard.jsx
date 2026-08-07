@@ -937,16 +937,12 @@ export default React.memo(function BaseFeedCard({
         style={onCardClick ? { cursor:"pointer", WebkitTapHighlightColor:"transparent" } : undefined}
       >
         <div style={{ padding: "0 " + T.p + "px 4px" }}>{children}</div>
-        {/* IMPACT-IMG-002: Impact-Karten rendern ihr Bild selbst in ImpactContent.
-             FeedMedia hier skippen → kein Doppelbild (cover_url ≠ media_urls Konflikt) */}
-        {item.type !== "impact" && (
-          <FeedMedia
-            media={item.media}
-            alt={item.title || item.text}
-            relaxed={!!(item._reactions?._relaxed)}
-            onDoubleTap={onCardClick ? (e) => { /* double-tap → detail, kein like-trigger */ } : handleDoubleTap}
-          />
-        )}
+        <FeedMedia
+          media={item.media}
+          alt={item.title || item.text}
+          relaxed={!!(item._reactions?._relaxed)}
+          onDoubleTap={onCardClick ? (e) => { /* double-tap → detail, kein like-trigger */ } : handleDoubleTap}
+        />
       </div>
       <FeedActions
         reactions={localReactions}

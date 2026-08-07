@@ -73,12 +73,12 @@ function useHeuteStats() {
         supabase.from("beitraege").select("id", { count: "exact", head: true })
           .gte("created_at", iso),
         supabase.from("profiles")
-          .select("display_name, username, location_label")
+          .select("full_name, display_name, username, location_label")
           .order("created_at", { ascending: false })
           .limit(1).maybeSingle(),
       ]);
 
-      const name = recentMember.data?.display_name || recentMember.data?.username || null;
+      const name = recentMember.data?.full_name || recentMember.data?.display_name || recentMember.data?.username || null;
       const city = recentMember.data?.location_label || null;
       const liveText = name
         ? `${name}${city ? ` aus ${city}` : ""} ist HUI beigetreten`

@@ -628,7 +628,7 @@ export default function FavoritesPage({ currentUser, onView, onImpact, onDiscove
     const t = item?.type || "work_upload";
     if (t === "profile" || t === "talent" || item?.talent) {
       const preview = normalizeWirkerForPreview({
-        id: item?.id || item?.user_id, name: item?.name, full_name: item?.full_name,
+        id: item?.id || item?.user_id, name: item?.full_name || item?.name, full_name: item?.full_name,
         img: item?.img, bio: item?.bio, talent: item?.talent, location: item?.location,
         user_id: item?.user_id || item?.id, created_at: item?.created_at,
       });
@@ -707,7 +707,7 @@ export default function FavoritesPage({ currentUser, onView, onImpact, onDiscove
           if (uids.length > 0) {
             const { data: profRows } = await supabase
               .from("profiles")
-              .select("id,display_name,avatar_url,talent")
+              .select("id,display_name,full_name,avatar_url,talent")
               .in("id", uids);
             (profRows || []).forEach(p => { profileMap[p.id] = p; });
           }
@@ -718,7 +718,7 @@ export default function FavoritesPage({ currentUser, onView, onImpact, onDiscove
             id:          e.id,
             title:       e.title,
             sub:         e.description ? e.description.slice(0, 40) : (e.category || "Erlebnis"),
-            creator:     profileMap[e.user_id]?.display_name || "Creator",
+            creator:     profileMap[e.user_id]?.full_name || profileMap[e.user_id]?.display_name || "Creator",
             category:    e.category || "Erlebnis",
             location:    e.location_text || "",
             date:        e.date ? new Date(e.date).toLocaleDateString("de-DE",{day:"numeric",month:"long"}) + (e.location_text ? ` · ${e.location_text}` : "") : null,

@@ -239,7 +239,7 @@ function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdi
   const [editText, setEditText] = useState(comment.text);
 
   const isOwn = currentUserId && comment.user_id === currentUserId;
-  const authorName = comment._author?.display_name || comment._author?.username || "HUI-Mitglied";
+  const authorName = comment._author?.full_name || comment._author?.display_name || comment._author?.username || "HUI-Mitglied";
 
   // HINWEIS (COMMENTS-NO-PLACEHOLDER-Fix 2026-08-05): Gelöschte Kommentare
   // erreichen diese Komponente ueberhaupt nicht mehr -- buildTree()
@@ -379,7 +379,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
     const flat = flatten(rows);
     const ids = [...new Set(flat.map(c => c.user_id))].filter(id => !authorCache.current.has(id));
     if (ids.length) {
-      const { data } = await supabase.from("profiles").select("id,display_name,username,avatar_url").in("id", ids);
+      const { data } = await supabase.from("profiles").select("id,display_name,full_name,username,avatar_url").in("id", ids);
       (data || []).forEach(p => authorCache.current.set(p.id, p));
     }
     const attach = (list) => list.map(c => ({ ...c, _author: authorCache.current.get(c.user_id) || null, replies: attach(c.replies || []) }));
@@ -542,7 +542,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
       id: `tmp_${Date.now()}`, post_id: postId, post_type: postType, user_id: user.id,
       parent_comment_id: null, text, created_at: new Date().toISOString(),
       is_deleted:false, is_edited:false, heart_count:0, hearted_by_me:false, replies:[],
-      _author: { id:user.id, display_name: profile?.display_name, username: profile?.username, avatar_url: profile?.avatar_url },
+      _author: { id:user.id, full_name: profile?.full_name, display_name: profile?.display_name, username: profile?.username, avatar_url: profile?.avatar_url },
       _justAdded: true,
     };
     setItems(prev => [...prev, optimistic]);
@@ -550,7 +550,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
     setInput("");
     const { data, error } = await createComment({
       postId, postType, userId: user.id, text, postAuthorId,
-      senderName: profile?.display_name || profile?.username, postActionUrl, postTitle,
+      senderName: profile?.full_name || profile?.display_name || profile?.username, postActionUrl, postTitle,
     });
     setSubmitting(false);
     if (error || !data) {
@@ -582,7 +582,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
       id: `tmp_${Date.now()}`, post_id: postId, post_type: postType, user_id: user.id,
       parent_comment_id: parentId, text, created_at: new Date().toISOString(),
       is_deleted:false, is_edited:false, heart_count:0, hearted_by_me:false, replies:[],
-      _author: { id:user.id, display_name: profile?.display_name, username: profile?.username, avatar_url: profile?.avatar_url },
+      _author: { id:user.id, full_name: profile?.full_name, display_name: profile?.display_name, username: profile?.username, avatar_url: profile?.avatar_url },
       _justAdded: true,
     };
     const insertOptim = (list) => list.map(c => c.id === parentId ? { ...c, replies:[...c.replies, optimistic] } : { ...c, replies: insertOptim(c.replies||[]) });
@@ -591,7 +591,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
 
     const { data, error } = await createComment({
       postId, postType, userId: user.id, text, parentCommentId: parentId,
-      parentAuthorId, senderName: profile?.display_name || profile?.username, postActionUrl, postTitle,
+      parentAuthorId, senderName: profile?.full_name || profile?.display_name || profile?.username, postActionUrl, postTitle,
     });
     setSubmittingReply(false);
     if (error || !data) {
@@ -785,7 +785,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
             paddingBottom:"max(12px, env(safe-area-inset-bottom))",
             borderTop:`1px solid ${T.border}`, background:"rgba(252,253,252,0.98)",
           }}>
-            <Avatar url={profile?.avatar_url} name={profile?.display_name || profile?.username} size={32} />
+            <Avatar url={profile?.avatar_url} name={profile?.full_name || profile?.display_name || profile?.username} size={32} />
             <button
               className="cs-btn"
               onClick={() => setShowEmojiPicker(v => !v)}
