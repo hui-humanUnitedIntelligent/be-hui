@@ -259,10 +259,15 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                       <span style={{ fontSize:16, fontWeight:800, color:"rgba(0,150,136,1)" }}>{item.price}</span>
                     </div>
                   )}
-                  {/* "Talent buchen" — primärer CTA */}
+                  {/* "Talent buchen" — primärer CTA.
+                      TALENT-BUCHEN-ANCHOR-FIX (2026-08-07): Sheet schliesst
+                      sich jetzt beim Klick (onClose), statt "zu stark
+                      verankert" hinter dem TalentBookingFlow-Sheet stehen
+                      zu bleiben — identisches Muster wie "Talent-Profil
+                      ansehen" direkt darunter. */}
                   {item._raw?.price_per_hour != null || item._raw?.price_per_session != null ? (
                     <button
-                      onClick={() => onBookTalent(item._raw)}
+                      onClick={() => { onClose?.(); onBookTalent(item._raw); }}
                       style={{
                         width:"100%", marginBottom:10, padding:"14px", borderRadius:14,
                         background:"rgba(13,196,181,1)", color:"#fff",

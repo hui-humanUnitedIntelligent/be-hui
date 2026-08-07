@@ -19,8 +19,17 @@ import React, { createContext, useCallback, useContext, useMemo, useState } from
 import { loadPreviewByRef } from "../lib/contentPreviewLoaders.js";
 import { normalizePostForPreview } from "../lib/previewNormalizers.js";
 import ContentPreviewSheet from "../components/shared/ContentPreviewSheet.jsx";
-import { lazy, Suspense } from "react";
-const TalentBookingFlow = lazy(() => import("../components/talents/TalentBookingFlow.jsx"));
+// BOOKING-DELAY-FIX (2026-08-07): TalentBookingFlow war React.lazy() +
+// <Suspense fallback={null}> — derselbe Bug wie bei WerkWizard/
+// ImpactStimmenModal/SettingsModal (siehe Memory #807, #936): waehrend
+// der Lazy-Chunk laedt, zeigt fallback={null} GAR NICHTS an. Das darunter
+// liegende ContentPreviewSheet ("Talent-Angebot"-Vorschau mit "Talent
+// buchen"-Button) blieb daher sichtbar/"verankert" -- der Kalender
+// ("Termin waehlen") erschien erst, wenn der Chunk fertig geladen war
+// (oft erst nach Schliessen/Wiederoeffnen des ersten Sheets bemerkt).
+// Fix: eager (statischer) Import -- Chunk ist Teil des Haupt-Bundles,
+// kein Netzwerk-Ladevorgang beim Oeffnen mehr noetig.
+import TalentBookingFlow from "../components/talents/TalentBookingFlow.jsx";
 import PostFullscreenView from "../components/shared/PostFullscreenView.jsx";
 import { useModalRegistration } from "../hooks/useModalRegistration.js";
 
@@ -75,9 +84,7 @@ export function ContentPreviewProvider({ children }) {
       {children}
       <ContentPreviewSheet item={isPost ? null : item} loading={loading} onClose={close} onBookTalent={openTalentBooking} />
       {talentBooking && (
-        <Suspense fallback={null}>
-          <TalentBookingFlow talent={talentBooking} onClose={closeTalentBooking} />
-        </Suspense>
+        <TalentBookingFlow talent={talentBooking} onClose={closeTalentBooking} />
       )}
       <PostFullscreenView item={isPost ? item : null} onClose={close} onOpenPost={onOpenPost} />
     </ContentPreviewContext.Provider>
