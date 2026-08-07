@@ -248,7 +248,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
       setSaving(false);
     }
   }, [saving, usernameErr, fullName, displayName, username, bio,
-      locationLabel, locationLat, locationLng, website, isAvailable,
+      locationLabel, locationLat, locationLng, website,
       isTalent, talentTitle, talentDescription, talentRate,
       saveProfile, refreshProfile, profile?.id, onClose, onProfileUpdate]);
 
