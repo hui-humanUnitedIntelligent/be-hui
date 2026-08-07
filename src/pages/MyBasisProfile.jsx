@@ -1148,13 +1148,14 @@ const handleNotifAction = (n) => {
             />
             <Gap h={20}/>
 
-            {/* B2. Interessen & Werte — InteressenSection bleibt (Basis-spezifisch) */}
-            <InteressenSection interests={interests} onChange={handleInterestsChange}/>
-            <Gap h={24}/>
-
-            {/* B4. Offen für Begegnungen — OffenFuerSection bleibt (Basis-spezifisch) */}
-            <OffenFuerSection openFor={openFor} onChange={handleOpenForChange}/>
-            <Gap h={24}/>
+            {/* B2+B4. Interessen & Werte + Offen für Begegnungen — auf Nutzerwunsch
+                (2026-08-07) aus dem Basis-Profil entfernt. Bewusst NICHT geloescht
+                (nur auskommentiert), Komponenten InteressenSection/OffenFuerSection
+                bleiben im Code fuer den Fall einer spaeteren Reaktivierung. Die
+                zugrundeliegenden DB-Spalten profiles.skills / profiles.is_available
+                bleiben unangetastet (skills hat fuer Talent-User in
+                TalentProfilePage.jsx eine andere, weiterhin aktive Bedeutung
+                "Professionelle Skills" — siehe ProfilBearbeitenModal.jsx Kommentar). */}
 
             {/* B5. Sichtbarkeit — kanonisch: VisibilitySection */}
         <Suspense fallback={null}><VisibilitySection
