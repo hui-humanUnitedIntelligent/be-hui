@@ -10,6 +10,11 @@ const T = {
   tealSoft:"rgba(14,196,184,0.12)", tealDeep:"rgba(0,150,136,1)"
 };
 
+const SORT_OPTIONS = [
+  { key:"alpha",   label:"A–Z", icon:"🔤" },
+  { key:"activ", label:"Aktivste", icon:"🟢" },
+];
+
 const SEED_ORTE = [
   { id:"o1", name:"Waldlichtung",     city:"München",   dist:"0,3 km", cover:"", actives:8,  nextEvent:"übermorgen" },
   { id:"o2", name:"Community Garten", city:"Hamburg",   dist:"1,2 km", cover:"", actives:12, nextEvent:"" },
@@ -70,6 +75,7 @@ export default function OrteAllModal({ isOpen, onClose }) {
   useWizardBodyLock(isOpen);
   useModalRegistration(isOpen, onClose, "OrteAllModal");
   const [search, setSearch] = useState("");
+  const [sort, setSort] = useState("alpha"); // alpha (static seed data)
 
   useEffect(() => {
     if (!isOpen) return;
@@ -82,7 +88,10 @@ export default function OrteAllModal({ isOpen, onClose }) {
 
   const filtered = SEED_ORTE.filter(o =>
     !search || o.name.toLowerCase().includes(search.toLowerCase()) || o.city.toLowerCase().includes(search.toLowerCase())
-  );
+  ).sort((a, b) => {
+    if (sort === "activ") return (b.actives||0) - (a.actives||0);
+    return (a.name||"").localeCompare(b.name||"");
+  });
 
   return createPortal(
     <div onClick={onClose} style={{
@@ -106,7 +115,20 @@ export default function OrteAllModal({ isOpen, onClose }) {
           <input value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Orte suchen…"
             style={{ width:"100%", padding:"9px 14px", borderRadius:12, border:`1px solid ${T.border}`,
-              background:"#f8fafc", fontSize:14, color:T.ink, outline:"none", boxSizing:"border-box" }}/>
+              background:"#f8fafc", fontSize:14, color:T.ink, outline:"none", boxSizing:"border-box", marginBottom:10 }}/>
+          <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:6 }}>
+            {SORT_OPTIONS.map(opt => (
+              <button key={opt.key} onClick={() => setSort(opt.key)} style={{
+                flexShrink:0, padding:"6px 12px", borderRadius:99, fontSize:12, fontWeight:700,
+                border:`1px solid ${sort === opt.key ? T.teal : T.border}`,
+                background: sort === opt.key ? "rgba(14,196,184,0.12)" : T.white,
+                color: sort === opt.key ? T.tealDeep : T.inkSoft,
+                cursor:"pointer", whiteSpace:"nowrap",
+              }}>
+                {opt.icon} {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
         <div style={{ flex:1, overflowY:"auto", padding:"12px 12px 0" }}>
           {filtered.length === 0 && (

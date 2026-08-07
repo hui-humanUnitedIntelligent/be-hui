@@ -22,6 +22,11 @@ const T = {
   cardRadius: 14,
 };
 const PAGE_SIZE = 20;
+const SORT_OPTIONS = [
+  { key:"votes",   label:"Stimmen",    icon:"❤️" },
+  { key:"funding", label:"Finanziert", icon:"💰" },
+  { key:"alpha",   label:"A–Z",    icon:"🔤" },
+];
 // Rang-Indikatoren: subtil, kein lauter Rand mehr
 const RANK_BADGE = {
   1: { bg:"linear-gradient(135deg,#F59E0B,#D97706)", label:"🥇 Platz 1" },
@@ -197,6 +202,7 @@ export default function ProjekteAllModal({ isOpen, onClose, onPressItem }) {
   const [hasMore, setHasMore]    = useState(true);
   const [search, setSearch]      = useState("");
   const [filterRank, setFR]      = useState("alle");
+  const [sort, setSort]          = useState("votes"); // votes | funding | alpha
   const [page, setPage]          = useState(0);
   const scrollRef                = useRef(null);
   const searchTimer              = useRef(null);
@@ -211,7 +217,7 @@ export default function ProjekteAllModal({ isOpen, onClose, onPressItem }) {
   useEffect(() => {
     if (!isOpen) return;
     setItems([]); setPage(0); setHasMore(true);
-  }, [debouncedSearch, filterRank, isOpen]);
+  }, [debouncedSearch, filterRank, sort, isOpen]);
 
   // In-flight-Guard via useRef — kein loading im useCallback-Dep (verhindert
   // Race Condition: setLoading(true) → load neu erstellt → sofort wieder aufgerufen)
@@ -249,6 +255,11 @@ export default function ProjekteAllModal({ isOpen, onClose, onPressItem }) {
       if (filterRank === "top3")    filtered = filtered.filter(p => p.rank && p.rank <= 3);
       if (filterRank === "weitere") filtered = filtered.filter(p => !p.rank || p.rank > 3);
 
+      // Sortierung
+      if (sort === "votes")   filtered.sort((a,b) => (b.vote_count||0) - (a.vote_count||0));
+      if (sort === "funding") filtered.sort((a,b) => (b.current_amount_eur||0) - (a.current_amount_eur||0));
+      if (sort === "alpha")   filtered.sort((a,b) => (a.project_name||"").localeCompare(b.project_name||""));
+
       // Initiator-Namen nachladen aus impact_applications
       const projIds = filtered.map(p => p.id).filter(Boolean);
       if (projIds.length > 0) {
@@ -274,12 +285,12 @@ export default function ProjekteAllModal({ isOpen, onClose, onPressItem }) {
       inFlight.current = false;
       setLoading(false);
     }
-  }, [debouncedSearch, filterRank]); // kein `loading` im Dep-Array!
+  }, [debouncedSearch, filterRank, sort]); // kein `loading` im Dep-Array!
 
   useEffect(() => {
     if (!isOpen) return;
     load();
-  }, [debouncedSearch, filterRank, isOpen, load]);
+  }, [debouncedSearch, filterRank, sort, isOpen, load]);
 
   const onScroll = useCallback(() => {
     const el = scrollRef.current;
@@ -324,7 +335,20 @@ export default function ProjekteAllModal({ isOpen, onClose, onPressItem }) {
           <input value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Projekte suchen…"
             style={{ width:"100%", padding:"9px 14px", borderRadius:12, border:`1px solid ${T.border}`,
-              background:"#f8fafc", fontSize:14, color:T.ink, outline:"none", boxSizing:"border-box" }}/>
+              background:"#f8fafc", fontSize:14, color:T.ink, outline:"none", boxSizing:"border-box", marginBottom:10 }}/>
+          <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:6 }}>
+            {SORT_OPTIONS.map(opt => (
+              <button key={opt.key} onClick={() => setSort(opt.key)} style={{
+                flexShrink:0, padding:"6px 12px", borderRadius:99, fontSize:12, fontWeight:700,
+                border:`1px solid ${sort === opt.key ? T.teal : T.border}`,
+                background: sort === opt.key ? "rgba(14,196,184,0.12)" : T.white,
+                color: sort === opt.key ? T.tealDeep : T.inkSoft,
+                cursor:"pointer", whiteSpace:"nowrap",
+              }}>
+                {opt.icon} {opt.label}
+              </button>
+            ))}
+          </div>
           <div style={{ display:"flex", gap:6, marginTop:8, overflowX:"auto", paddingBottom:4 }}>
             {RANK_F.map(f => (
               <button key={f.key} onClick={() => setFR(f.key)} style={{
