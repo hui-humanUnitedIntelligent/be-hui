@@ -1582,6 +1582,11 @@ export default function HuiCreateFlow({ onClose, onSuccess, initialType = null }
         const w = payload.werkData;
         const { error:e } = await supabase.from("works").insert({
           ...base,
+          // WERK-CREATOR-ID-FIX (2026-08-07): "works" hat zusätzlich zur
+          // gemeinsamen "base" (user_id) eine eigene NOT-NULL-Spalte
+          // creator_id (FK auf auth.users) — in "stories" existiert diese
+          // Spalte NICHT, daher hier gezielt statt in "base" ergänzt.
+          creator_id:         user.id,
           cover_url:          publicUrl,
           title:              w.title || "Mein Werk",
           description:        w.desc,

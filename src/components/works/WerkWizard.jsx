@@ -545,6 +545,12 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
     // NICHT in DB: media_url, size, condition → entfernt
     const payload = {
       user_id:      userId,
+      // WERK-CREATOR-ID-FIX (2026-08-07): DB-Spalte "creator_id" ist NOT NULL
+      // (FK auf auth.users, identisch zu user_id in allen Bestandsdaten) und
+      // wurde hier nie gesetzt → "null value in column creator_id" Fehler bei
+      // JEDEM Speichern (Entwurf + Einreichen). Fix: creator_id = userId,
+      // exakt wie in allen bisherigen DB-Zeilen (user_id === creator_id).
+      creator_id:   userId,
       title:        form.title        || "",
       description:  form.description  || null,
       caption:      form.shortDesc    || null,
