@@ -30,7 +30,8 @@ import { FeedActions, ActionBtn } from "../../feed/cards/BaseFeedCard.jsx";
 import { toast } from "../../lib/useToast.jsx";
 import { shareContent } from "../../lib/shareContent.js";
 import { HUICommentIcon } from "../../design/icons/HuiInteractionIcons.jsx";
-import { countComments } from "../../lib/commentsService.js";
+import { countComments, getComments } from "../../lib/commentsService.js";
+import { prefetchComments } from "../../lib/commentsPrefetchCache.js";
 import CommentsSheet from "./CommentsSheet.jsx";
 
 const T = {
@@ -64,6 +65,7 @@ const CSS = `
 export default function ContentPreviewSheet({ item, loading, onClose, onBookTalent = () => {} }) {
   // FIX: navigate VOR useCallback deklarieren (TDZ-Bug war: navigate nach useCallback)
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   // TALENT-PROFIL-FIX: navigate-basiert statt useProfileLauncher
   const openTalentProfile = useCallback(async (userId) => {
@@ -110,7 +112,24 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
     if (!postId) return;
     let cancelled = false;
     countComments(postId, postType).then(n => { if (!cancelled) setCommentCount(n); });
+    // INSTANT-COMMENTS.1 (2026-08-07): Kommentare im Hintergrund vorladen.
+    prefetchComments(postId, postType, user?.id, getComments);
     return () => { cancelled = true; };
+  }, [postId, postType, user?.id]);
+
+  // LIVE-COMMENT-COUNT.1 (2026-08-07): Kommentare in CommentsSheet aktualisieren
+  // sofort den Zähler hier — ohne dieses Event blieb die Zahl bis zum nächsten
+  // Öffnen/Reload auf dem alten Wert stehen.
+  useEffect(() => {
+    if (!postId) return;
+    function onChanged(e) {
+      const d = e?.detail;
+      if (!d || d.postId !== postId) return;
+      if (d.postType && postType && d.postType !== postType) return;
+      countComments(postId, postType).then(n => { if (n != null) setCommentCount(n); });
+    }
+    window.addEventListener("hui:comments:changed", onChanged);
+    return () => window.removeEventListener("hui:comments:changed", onChanged);
   }, [postId, postType]);
 
   // Body-Scroll sperren solange offen (Konvention aus wizardBodyLock.js
@@ -240,10 +259,15 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                       <span style={{ fontSize:16, fontWeight:800, color:"rgba(0,150,136,1)" }}>{item.price}</span>
                     </div>
                   )}
-                  {/* "Talent buchen" — primärer CTA */}
+                  {/* "Talent buchen" — primärer CTA.
+                      TALENT-BUCHEN-ANCHOR-FIX (2026-08-07): Sheet schliesst
+                      sich jetzt beim Klick (onClose), statt "zu stark
+                      verankert" hinter dem TalentBookingFlow-Sheet stehen
+                      zu bleiben — identisches Muster wie "Talent-Profil
+                      ansehen" direkt darunter. */}
                   {item._raw?.price_per_hour != null || item._raw?.price_per_session != null ? (
                     <button
-                      onClick={() => onBookTalent(item._raw)}
+                      onClick={() => { onClose?.(); onBookTalent(item._raw); }}
                       style={{
                         width:"100%", marginBottom:10, padding:"14px", borderRadius:14,
                         background:"rgba(13,196,181,1)", color:"#fff",

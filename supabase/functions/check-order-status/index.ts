@@ -52,7 +52,7 @@ serve(async (req) => {
       `)
       .eq('id', orderId)
       .eq('customer_id', user.id)
-      .single()
+      .maybeSingle()
 
     if (orderErr || !order) {
       return new Response(JSON.stringify({ error: 'Order nicht gefunden', state: 'not_found' }), {

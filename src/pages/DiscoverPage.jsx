@@ -5,14 +5,14 @@
 // KEINE Kategorie-Pills (HUI-Orb übernimmt Themennavigation)
 // ══════════════════════════════════════════════════════════════════
 import {
-  HUIProfilIcon, HUILocationIcon, HUIFotoIcon, HUIImpactIcon,
-  HUIWerkeIcon, HUIAnsichtIcon,
-  HUIKalenderIcon, HUIPersonenIcon,
+  HUIProfilIcon, HUILocationIcon, HUIFotoIcon,
+  HUIAnsichtIcon, HUIPersonenIcon,
 } from '../design/icons/HuiSystemIcons.jsx';
 import { HUILogo } from '../components/brand/HUILogo.jsx';
 import React, { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
 import { useNavigate }   from "react-router-dom";
 import { NAV_CONTENT_SPACER_CSS } from "../components/home/navigation/navigationGeometry.js";
+import { getPlaceImage } from "../lib/placeImage.js";
 import { supabase }      from "../lib/supabaseClient.js";
 import { getOptimalPageSize } from "../lib/deviceTier.js";
 import { formatPresence } from "../lib/usePresence.js";
@@ -57,6 +57,12 @@ const T = {
 // ── Global CSS ───────────────────────────────────────────────────
 const CSS = `
   .dp-root * { box-sizing:border-box; }
+  /* Große Bildschirme (Desktop-Web-Preview >900px): Inhalt zentrieren + Breite kappen,
+     statt randlos über die volle Fensterbreite zu laufen (mobiles Layout bleibt exakt
+     unveraendert, betrifft nur Viewports die deutlich groesser als ein Handy sind). */
+  @media (min-width:900px) {
+    .dp-root { max-width:600px !important; margin:0 auto !important; box-shadow:0 0 40px rgba(26,53,48,0.06); }
+  }
   .dp-hscroll { overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; overscroll-behavior-x:none; }
   .dp-hscroll::-webkit-scrollbar { display:none; }
   .dp-press { transition:transform .14s cubic-bezier(.22,1,.36,1),opacity .14s ease; cursor:pointer; }
@@ -210,20 +216,13 @@ function DiscoverTitleBar() {
 // ════════════════════════════════════════════════════════════════
 // 3. MENSCHEN ENTDECKEN
 // ════════════════════════════════════════════════════════════════
-const SEED_PEOPLE = [
-  { id:"p1", name:"Mia Waldmann",  bio:"Naturpädagogin & Waldcoach",       location:"München", avatar:"https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=200&q=80", impact:4200 },
-  { id:"p2", name:"Jonas Kreuz",   bio:"Musiker & Community Builder",      location:"Berlin",  avatar:"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80", impact:6800 },
-  { id:"p3", name:"Lena Stern",    bio:"Meditationslehrerin & Heilerin",   location:"Hamburg", avatar:"https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&q=80", impact:6100 },
-  { id:"p4", name:"Timo Berger",   bio:"Permakultur & Saatgut Hüter",      location:"Freiburg",avatar:"https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&q=80", impact:7200 },
-  { id:"p5", name:"Anna Kowalski", bio:"Künstlerin & Kreativraum Kuratorin",location:"Wien",   avatar:"https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&q=80", impact:6500 },
-  { id:"p6", name:"Felix Braun",   bio:"Tierheim-Aktivist & Hundefreund",  location:"Leipzig", avatar:"https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&q=80", impact:2800 },
-];
+// SEED_PEOPLE entfernt — war Dead Code (nie referenziert).
 
 // (Fake-Interesse-Tags entfernt 2026-08-06 — INTEREST_POOLS/personTags waren erfundene
 //  Platzhalter-Tags, deterministisch aus dem Namen gehasht. Keine echten Nutzerdaten.
 //  dna_tags/skills sind nicht im Identity Contract v1.0 enthalten.)
 
-function PersonCard({ person, onPress, delay=0 }) {
+function PersonCard({ person, onPress, delay=0, followers=0, likes=0 }) {
   const [imgErr, setImgErr] = useState(false);
   const av = (!imgErr && person.avatar) ? person.avatar : null;
   const presence = formatPresence(person.last_seen_at);
@@ -268,63 +267,62 @@ function PersonCard({ person, onPress, delay=0 }) {
         }} className={presence?.online ? "dp-online-pulse" : ""}/>
       </div>
 
-      {/* Name */}
+      {/* Name — fixe Höhe für 2 Zeilen, garantiert gleiche Kartenhöhe */}
       <div style={{
         fontSize:12.5, fontWeight:700, color:T.ink, textAlign:"center",
         letterSpacing:"-0.02em", lineHeight:1.25, marginBottom:3,
+        minHeight:31.25, width:"100%",
         overflow:"hidden", display:"-webkit-box",
         WebkitLineClamp:2, WebkitBoxOrient:"vertical",
       }}>
         {person.name}
       </div>
 
-      {/* Bio */}
+      {/* Bio — immer 2 Zeilen Platz reserviert, auch wenn leer */}
       <div style={{
         fontSize:10.5, color:T.inkSoft, textAlign:"center", lineHeight:1.4,
-        marginBottom:6, fontWeight:400,
+        marginBottom:6, fontWeight:400, minHeight:29.4, width:"100%",
         overflow:"hidden", display:"-webkit-box",
         WebkitLineClamp:2, WebkitBoxOrient:"vertical",
       }}>
-        {person.bio}
+        {person.bio || ""}
       </div>
 
-      {/* Online-Status Text */}
-      {presence && (
-        <div style={{
-          fontSize:10, fontWeight:600, marginBottom:6,
-          color: presence.online ? "#22c55e" : "rgba(26,53,48,0.42)",
-          display:"flex", alignItems:"center", gap:4,
-        }}>
-          <span style={{
-            display:"inline-block", width:6, height:6, borderRadius:"50%",
-            background:presence.dot, flexShrink:0,
-          }}/>
-          {presence.label}
-        </div>
-      )}
+      {/* Ort — immer 1 Zeile Platz reserviert, auch wenn leer */}
+      <div style={{
+        display:"flex", alignItems:"center", justifyContent:"center", gap:3,
+        fontSize:10, color:T.inkFaint, marginBottom:8, minHeight:13, width:"100%",
+      }}>
+        {person.location && (
+          <>
+            <HUILocationIcon size={9} style={{flexShrink:0}} />
+            <span style={{ fontWeight:500, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{person.location}</span>
+          </>
+        )}
+      </div>
 
-      {/* Location */}
-      {person.location && (
+      {/* Follower + Likes — immer nebeneinander in 1 Zeile, IMMER am unteren Kartenrand
+          (marginTop:auto schiebt die Zeile nach unten; da .dp-hscroll ein Flex-Row mit
+          Default-align-items:stretch ist, haben alle Karten in der Reihe bereits dieselbe
+          Höhe — die Badges docken so bei jeder Karte exakt an der gleichen Y-Position an,
+          unabhängig davon ob Bio/Ort kürzer sind) */}
+      <div style={{ display:"flex", gap:4, flexWrap:"nowrap", justifyContent:"center", marginTop:"auto", paddingTop:4, width:"100%" }}>
         <div style={{
           display:"flex", alignItems:"center", gap:3,
-          fontSize:10, color:T.inkFaint, marginBottom:8,
+          background:"rgba(14,196,184,0.08)", borderRadius:99, padding:"3px 8px",
+          border:"1px solid rgba(14,196,184,0.12)",
         }}>
-          <HUILocationIcon size={9} style={{flexShrink:0}} />
-          <span style={{ fontWeight:500 }}>{person.location}</span>
+          <span style={{ fontSize:10 }}>👥</span>
+          <span style={{ fontSize:10.5, fontWeight:700, color:T.tealDeep }}>{followers}</span>
         </div>
-      )}
-
-      {/* Impact — stärker hervorgehoben */}
-      <div style={{
-        display:"flex", alignItems:"center", gap:4,
-        background:`linear-gradient(135deg,rgba(14,196,184,0.12),rgba(14,196,184,0.06))`,
-        borderRadius:99, padding:"4px 10px",
-        border:"1px solid rgba(14,196,184,0.18)",
-      }}>
-        <span style={{ fontSize:11 }}>⚡</span>
-        <span style={{ fontSize:11.5, fontWeight:800, color:T.teal, letterSpacing:"-0.02em" }}>
-          {fmtImpact(person.impact)} Wirkung
-        </span>
+        <div style={{
+          display:"flex", alignItems:"center", gap:3,
+          background:"rgba(239,68,68,0.08)", borderRadius:99, padding:"3px 8px",
+          border:"1px solid rgba(239,68,68,0.12)",
+        }}>
+          <span style={{ fontSize:10 }}>❤️</span>
+          <span style={{ fontSize:10.5, fontWeight:700, color:"#e04050" }}>{likes}</span>
+        </div>
       </div>
     </div>
   );
@@ -358,7 +356,7 @@ function PeopleSection({ people, onPersonPress, loading, delay=0, view='cards', 
             : people.length === 0
             ? <div style={{ paddingLeft:T.px, fontSize:12.5, color:T.inkFaint, fontStyle:'italic', opacity:0.75 }}>Noch keine Mitglieder gefunden.</div>
             : people.map((p, i) => (
-                <PersonCard key={p.id} person={p} onPress={onPersonPress} delay={0} />
+                <PersonCard key={p.id} person={p} onPress={onPersonPress} delay={0} followers={p.followers || 0} likes={p.likes || 0} />
               ))
           }
         </div>
@@ -394,14 +392,7 @@ function PeopleSection({ people, onPersonPress, loading, delay=0, view='cards', 
 // ════════════════════════════════════════════════════════════════
 // 4. MOMENTE AUS DEINER NÄHE
 // ════════════════════════════════════════════════════════════════
-const SEED_MOMENTE = [
-  { id:"m1", src:"https://images.unsplash.com/photo-1448375240586-882707db888b?w=280&q=75", caption:"Waldspaziergang & Waldbaden im Englischen Garten", name:"Mia W.", location:"München",     created_at: new Date(Date.now()-3600000*1).toISOString(),    type:"foto" },
-  { id:"m2", src:"https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=280&q=75", caption:"Stille Morgenrunde beim Café Lichtblick",          name:"Lena S.", location:"Hamburg",    created_at: new Date(Date.now()-3600000*2).toISOString(),    type:"foto" },
-  { id:"m3", src:"https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=280&q=75", caption:"Akustik Abend im Kiez — alle sind willkommen",     name:"Jonas K.", location:"Berlin",    created_at: new Date(Date.now()-3600000*3).toISOString(),    type:"foto" },
-  { id:"m4", src:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=280&q=75", caption:"Sonnenaufgang Meditation",                         name:"Lena S.", location:"Hamburg",    created_at: new Date(Date.now()-3600000*5).toISOString(),    type:"foto" },
-  { id:"m5", src:"https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=280&q=75", caption:"Tierheim Besuchstag – helfen macht glücklich",       name:"Felix B.", location:"Leipzig",    created_at: new Date(Date.now()-3600000*6).toISOString(),    type:"foto" },
-  { id:"m6", src:"https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=280&q=75", caption:"Kreativworkshop für Kinder",                      name:"Anne K.", location:"Wien",        created_at: new Date(Date.now()-3600000*8).toISOString(),    type:"foto" },
-];
+// SEED_MOMENTE entfernt — war Dead Code (nie referenziert).
 
 function MomentCard({ moment, delay=0, onPress, onAuthorPress }) {
   const [imgErr, setImgErr] = useState(false);
@@ -465,8 +456,9 @@ function MomentCard({ moment, delay=0, onPress, onAuthorPress }) {
 
         {/* Engagement Row — immer am unteren Rand */}
         <div className="dp-engage" style={{ marginTop:"auto", paddingTop:4 }}>
-          <span><HUIHeartIcon size={12} /> {moment.likes ?? Math.floor(4 + (moment.id?.charCodeAt?.(moment.id.length-1)??7) % 30)}</span>
-          <span><HUIChatIcon size={12} /> {moment.comments ?? Math.floor(1 + (moment.id?.charCodeAt?.(0)??3) % 12)}</span>
+          <span><HUIHeartIcon size={12} /> {moment.likes ?? 0}</span>
+          <span><HUIChatIcon size={12} /> {moment.comments ?? 0}</span>
+          <span style={{display:"flex",alignItems:"center",gap:2}}><HUIAnsichtIcon size={12}/>{moment.views ?? 0}</span>
         </div>
       </div>
     </div>
@@ -536,10 +528,7 @@ function MomenteSection({ momente, loading, delay=0, view='cards', onPress, onAu
 // "Werke entdecken" (WerkCard/WerkeSection), bewusst als eigene, additive
 // Komponente — kein Umbau der bestehenden Werke-Sektion.
 // ════════════════════════════════════════════════════════════════
-const SEED_TALENTE = [
-  { id:"t1", title:"Gitarrenunterricht für Anfänger", category:"Musik & Klang", cover:"https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=280&q=75", author:"Jonas K.", price_per_hour:35, currency:"EUR", location_type:"online" },
-  { id:"t2", title:"Personal Yoga Coaching",           category:"Fitness & Bewegung", cover:"https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=280&q=75", author:"Lena S.", price_per_session:60, currency:"EUR", location_type:"vor_ort" },
-];
+// SEED_TALENTE entfernt — war Dead Code (nie referenziert).
 
 const TALENT_LOCATION_LABEL = { online:"Online", vor_ort:"Vor Ort", hybrid:"Online & Vor Ort" };
 
@@ -625,8 +614,8 @@ function TalentCard({ talent, delay=0, onPress, onAuthorPress }) {
           <img loading="lazy" decoding="async" src={cover} alt={talent.title} onError={() => setImgErr(true)}
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
         ) : (
-          <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:6 }}>
-            <HUIImpactIcon size={32} style={{opacity:0.3, color:"rgba(14,196,184,0.5)"}} />
+          <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <HUILogo size={40} style={{opacity:0.55}} />
           </div>
         )}
         {/* Kategorie-Badge oben links */}
@@ -654,14 +643,20 @@ function TalentCard({ talent, delay=0, onPress, onAuthorPress }) {
         </div>
 
         {/* Preis — immer am unteren Rand */}
-        <div style={{ marginTop:"auto", paddingTop:4, display:"flex", alignItems:"center" }}>
-          {priceStr ? (
-            <div style={{ fontSize:14, fontWeight:800, color:T.teal, letterSpacing:"-0.02em" }}>
-              {priceStr}
-            </div>
-          ) : (
-            <div style={{ fontSize:10.5, color:T.inkFaint, fontStyle:"italic" }}>Preis auf Anfrage</div>
-          )}
+        <div style={{ marginTop:"auto", paddingTop:4 }}>
+          <div style={{ display:"flex", alignItems:"center", marginBottom:6 }}>
+            {priceStr ? (
+              <div style={{ fontSize:14, fontWeight:800, color:T.teal, letterSpacing:"-0.02em" }}>
+                {priceStr}
+              </div>
+            ) : (
+              <div style={{ fontSize:10.5, color:T.inkFaint, fontStyle:"italic" }}>Preis auf Anfrage</div>
+            )}
+          </div>
+          {/* Views */}
+          <div className="dp-engage">
+            <span style={{display:"flex",alignItems:"center",gap:2}}><HUIAnsichtIcon size={12}/>{talent.views ?? 0}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -777,7 +772,7 @@ function TalenteSection({
                   <div key={t.id} className="dp-list-card" onClick={() => onPress?.(t)}>
                     {t.cover
                       ? <img loading="lazy" decoding="async" src={t.cover} alt={t.title} className="dp-list-thumb" onError={e => e.target.style.display='none'} style={{ objectFit:"cover" }}/>
-                      : <div className="dp-list-thumb-placeholder" style={{display:"flex",alignItems:"center",justifyContent:"center"}}><HUIImpactIcon size={24} style={{opacity:0.3, color:"rgba(14,196,184,0.5)"}}/></div>
+                      : <div className="dp-list-thumb-placeholder" style={{display:"flex",alignItems:"center",justifyContent:"center"}}><HUILogo size={24} style={{opacity:0.5}}/></div>
                     }
                     <div style={{ flex:1, overflow:"hidden" }}>
                       <div style={{ fontSize:13, fontWeight:600, color:T.ink, marginBottom:4, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{t.title}</div>
@@ -803,14 +798,7 @@ function TalenteSection({
 // ════════════════════════════════════════════════════════════════
 // 5. WERKE ENTDECKEN
 // ════════════════════════════════════════════════════════════════
-const SEED_WERKE = [
-  { id:"w1", title:"Farben der Stille",   medium:"Malerei",   cover:"https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=280&q=75",   author:"Anna K.", likes:128 },
-  { id:"w2", title:"Seelenklang",          medium:"Musik",     cover:"https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=280&q=75",  author:"Jonas K.", likes:96  },
-  { id:"w3", title:"Küstenrauschen",       medium:"Fotografie",cover:"https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=280&q=75",  author:"Timo B.", likes:87  },
-  { id:"w4", title:"Freiheitsvogel",       medium:"Illustration",cover:"https://images.unsplash.com/photo-1567359781514-3b964e2b04d6?w=280&q=75",author:"Mia W.", likes:64  },
-  { id:"w5", title:"Verbunden",            medium:"Skulptur",  cover:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=280&q=75",     author:"Lena S.", likes:63  },
-  { id:"w6", title:"Kleiner Moment",       medium:"Text",      cover:null,                                                                          author:"Felix B.", likes:42  },
-];
+// SEED_WERKE entfernt — war Dead Code (nie referenziert).
 
 const MEDIUM_COLOR = {
   "Malerei":    { bg:"rgba(147,51,234,0.12)",  text:"#9333EA" },
@@ -846,8 +834,8 @@ function WerkCard({ werk, delay=0, onPress, onAuthorPress }) {
           <img loading="lazy" decoding="async" src={cover} alt={werk.title} onError={() => setImgErr(true)}
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
         ) : (
-          <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:6 }}>
-            <HUIWerkeIcon size={32} style={{opacity:0.3, color:"rgba(14,196,184,0.5)"}} />
+          <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <HUILogo size={40} style={{opacity:0.55}} />
           </div>
         )}
         {/* Kategorie-Badge oben links */}
@@ -887,8 +875,8 @@ function WerkCard({ werk, delay=0, onPress, onAuthorPress }) {
           </div>
           {/* Likes + Views */}
           <div className="dp-engage">
-            <span><HUIHeartIcon size={12} /> {werk.likes ?? Math.floor(5 + (werk.id?.charCodeAt?.(werk.id.length-1)??9) % 40)}</span>
-            <span style={{display:"flex",alignItems:"center",gap:2}}><HUIAnsichtIcon size={12}/>{werk.views ?? Math.floor(50 + (werk.id?.charCodeAt?.(0)??5) % 400)}</span>
+            <span><HUIHeartIcon size={12} /> {werk.likes ?? 0}</span>
+            <span style={{display:"flex",alignItems:"center",gap:2}}><HUIAnsichtIcon size={12}/>{werk.views ?? 0}</span>
           </div>
         </div>
       </div>
@@ -1054,14 +1042,7 @@ function WerkeSection({
 // ════════════════════════════════════════════════════════════════
 // 6. ERLEBNISSE FÜR DICH
 // ════════════════════════════════════════════════════════════════
-const SEED_ERLEBNISSE = [
-  { id:"e1", title:"Yoga im Park",              date:"30", month:"Mai",  dayLabel:"Heute",  time:"18:00", location:"München",  spots:12, cover:"https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=280&q=75" },
-  { id:"e2", title:"Urban Gardening Workshop",  date:"31", month:"Mai",  dayLabel:"Morgen", time:"10:00", location:"Hamburg",  spots:8,  cover:"https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=280&q=75" },
-  { id:"e3", title:"Gitarre für Anfänger",      date:"02", month:"Jun",  dayLabel:"Mo",     time:"19:00", location:"Berlin",   spots:6,  cover:"https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=280&q=75" },
-  { id:"e4", title:"Acryl Malen für Einsteiger",date:"04", month:"Jun",  dayLabel:"Mi",     time:"17:00", location:"Leipzig",  spots:7,  cover:"https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=280&q=75" },
-  { id:"e5", title:"Sonnenaufgang Wanderung",   date:"06", month:"Jun",  dayLabel:"Fr",     time:"05:00", location:"Freiburg", spots:10, cover:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=280&q=75" },
-  { id:"e6", title:"Tierheim Helfer Tag",       date:"07", month:"Jun",  dayLabel:"Sa",     time:"11:00", location:"Leipzig",  spots:9,  cover:"https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=280&q=75" },
-];
+// SEED_ERLEBNISSE entfernt — war Dead Code (nie referenziert).
 
 function ErlebnisCard({ erlebnis, delay=0, onPress }) {
   const [imgErr, setImgErr] = useState(false);
@@ -1093,7 +1074,7 @@ function ErlebnisCard({ erlebnis, delay=0, onPress }) {
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block", opacity:0.88 }}/>
         ) : (
           <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <HUIKalenderIcon size={36} style={{opacity:0.35, color:"rgba(14,196,184,0.5)"}} />
+            <HUILogo size={40} style={{opacity:0.55}} />
           </div>
         )}
 
@@ -1152,11 +1133,16 @@ function ErlebnisCard({ erlebnis, delay=0, onPress }) {
               </span>
             </div>
           )}
-          {erlebnis.likes > 0 && (
-            <span style={{ display:"flex", alignItems:"center", gap:3, fontSize:10.5, color:T.coral, fontWeight:700 }}>
-              <HUIHeartIcon size={11} /> {erlebnis.likes}
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            {erlebnis.likes > 0 && (
+              <span style={{ display:"flex", alignItems:"center", gap:3, fontSize:10.5, color:T.coral, fontWeight:700 }}>
+                <HUIHeartIcon size={11} /> {erlebnis.likes}
+              </span>
+            )}
+            <span style={{ display:"flex", alignItems:"center", gap:3, fontSize:10.5, color:T.inkFaint, fontWeight:600 }}>
+              <HUIAnsichtIcon size={11} /> {erlebnis.views ?? 0}
             </span>
-          )}
+          </div>
         </div>
       </div>
     </div>
@@ -1214,7 +1200,7 @@ function ErlebnisseSection({
                     <div className="dp-list-thumb-placeholder" style={{ background: e.cover ? "#1A1A18" : T.tealSoft, position:"relative", overflow:"hidden" }}>
                       {e.cover
                         ? <img loading="lazy" decoding="async" src={e.cover} alt={e.title} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} onError={ev => ev.currentTarget.style.display="none"}/>
-                        : <HUIKalenderIcon size={20} style={{color:"rgba(14,196,184,0.5)"}} />
+                        : <HUILogo size={22} style={{opacity:0.5}} />
                       }
                       {e.date && (
                         <div style={{ position:"absolute", bottom:3, left:0, right:0, textAlign:"center",
@@ -1252,14 +1238,7 @@ function ErlebnisseSection({
 // ════════════════════════════════════════════════════════════════
 // 7. PROJEKTE & INITIATIVEN
 // ════════════════════════════════════════════════════════════════
-const SEED_PROJEKTE = [
-  { id:"pr1", title:"Stadtgarten Netz",    desc:"Gemeinschaftliche Gärten in 12 Städten",              members:47, cat:"Natur",     cover:"https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=280&q=75", catColor:{ bg:"rgba(22,163,74,0.12)", text:"#16A34A" } },
-  { id:"pr2", title:"Tierheim Netzwerk",   desc:"Moralische Unterstützung & Vermittlung",               members:133,cat:"Tiere",     cover:"https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=280&q=75", catColor:{ bg:"rgba(217,119,6,0.12)", text:"#D97706" } },
-  { id:"pr3", title:"Küsten Cleanup",      desc:"Kostenlose Aktionen für unsere Meere",                members:89, cat:"Umwelt",    cover:"https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=280&q=75", catColor:{ bg:"rgba(14,196,184,0.12)", text:T.teal    } },
-  { id:"pr4", title:"Musik für alle",      desc:"Kostenlose Konzerte in Parks",                        members:63, cat:"Kultur",    cover:"https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=280&q=75", catColor:{ bg:"rgba(99,102,241,0.12)", text:"#6366F1" } },
-  { id:"pr5", title:"Kunst für Kinder",    desc:"Kreativworkshops für Kinder & Jugendliche",            members:76, cat:"Bildung",   cover:"https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=280&q=75", catColor:{ bg:"rgba(232,87,58,0.12)", text:T.coral   } },
-  { id:"pr6", title:"Klima Zukunft",       desc:"Bildung & Aktionen für eine bessere Welt",            members:54, cat:"Klima",     cover:"https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=280&q=75", catColor:{ bg:"rgba(22,163,74,0.12)", text:"#16A34A" } },
-];
+// SEED_PROJEKTE entfernt — war Dead Code (nie referenziert).
 
 function ProjektCard({ projekt, delay=0, onPress }) {
   const [imgErr, setImgErr] = useState(false);
@@ -1286,8 +1265,8 @@ function ProjektCard({ projekt, delay=0, onPress }) {
           <img loading="lazy" decoding="async" src={cover} alt={projekt.title} onError={() => setImgErr(true)}
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
         ) : (
-          <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:6 }}>
-            <HUIImpactIcon size={32} style={{opacity:0.3, color:"rgba(34,197,94,0.5)"}} />
+          <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <HUILogo size={40} style={{opacity:0.55}} />
           </div>
         )}
         {/* Kategorie-Badge oben links */}
@@ -1437,102 +1416,88 @@ function ProjekteSection({ projekte, loading, delay=0, view='cards', onPress, on
 }
 
 // ════════════════════════════════════════════════════════════════
-// 8. ORTE ENTDECKEN
+// 8. ORTE ENTDECKEN — echte Orte aus rpc_discover_places (Profile/Werke/
+// Erlebnisse-Standorte gruppiert), KEINE Seed-/Fake-Daten mehr.
 // ════════════════════════════════════════════════════════════════
-const SEED_ORTE = [
-  { id:"o1", name:"Waldlichtung",      city:"München",  dist:"0,3 km",  active:8,  nextEvent:null,           cover:"https://images.unsplash.com/photo-1448375240586-882707db888b?w=200&q=75"  },
-  { id:"o2", name:"Community Garten",  city:"Hamburg",  dist:"1,2 km",  active:12, nextEvent:null,           cover:"https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=200&q=75"  },
-  { id:"o3", name:"Atelier Raum",      city:"Berlin",   dist:"2,7 km",  active:9,  nextEvent:null,           cover:"https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=200&q=75"  },
-  { id:"o4", name:"Meditationsraum",   city:"Freiburg", dist:"3,1 km",  active:7,  nextEvent:"morgen",       cover:"https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=200&q=75"     },
-  { id:"o5", name:"Tierheim Treffpunkt",city:"Leipzig", dist:"4,0 km",  active:6,  nextEvent:"Heute 3 Begegnungen", cover:"https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=200&q=75"},
-  { id:"o6", name:"Kreativwerkstatt",  city:"Wien",     dist:"4,5 km",  active:9,  nextEvent:null,           cover:"https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=200&q=75"  },
-];
 
-function OrteSection({ onMap, delay=0, view='cards' }) {
+function OrteSection({ orte=[], loading, onSectionAction, onPressOrt, delay=0 }) {
   return (
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <SectionHead
         title="Orte entdecken"
-        sub="Besondere HUI-Räume, Parks & Begegnungsorte."
+        sub="Echte Orte aus HUI-Profilen, Werken & Erlebnissen."
         action="Alle Orte"
-        onAction={() => setShowOrteModal(true)}
+        onAction={onSectionAction}
         delay={delay}
       />
-      {view === "cards" ? (
-        <div className="dp-hscroll" style={{ display:"flex", gap:8, paddingLeft:T.px, paddingRight:T.px, paddingBottom:4 }}>
-          {SEED_ORTE.map((ort, i) => <OrtCard key={ort.id} ort={ort} delay={i*30+delay} onMap={onMap} />)}
-        </div>
-      ) : (
-        <div className="dp-list-section dp-toggle-in">
-          {SEED_ORTE.map((ort) => (
-            <div key={ort.id} className="dp-list-card" onClick={onMap}>
-              <div className="dp-list-thumb-placeholder" style={{ position:"relative", overflow:"hidden" }}>
-                {ort.cover
-                  ? <img loading="lazy" decoding="async" src={ort.cover} alt={ort.name} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} onError={e => e.target.style.display='none'}/>
-                  : <HUILocationIcon size={11} style={{flexShrink:0}} />
-                }
-              </div>
-              <div style={{ flex:1 }}>
-                <div style={{ fontSize:13.5, fontWeight:700, color:T.ink, marginBottom:2, letterSpacing:"-0.02em" }}>{ort.name}</div>
-                <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                  <span style={{ fontSize:11.5, color:T.inkFaint, display:"flex", alignItems:"center", gap:2 }}><HUILocationIcon size={11}/>{ort.city}</span>
-                  {ort.dist !== "—" && <span style={{ fontSize:11, background:T.tealSoft, color:T.teal, borderRadius:99, padding:"1px 7px", fontWeight:600 }}>{ort.dist}</span>}
+      <div className="dp-hscroll" style={{ display:"flex", gap:8, paddingLeft:T.px, paddingRight:T.px, paddingBottom:4 }}>
+        {loading
+          ? Array.from({length:4}).map((_,i) => (
+              <div key={i} style={{ width:165, flexShrink:0, borderRadius:CARD_RADIUS, overflow:"hidden", background:T.white, boxShadow:T.cardShadow }}>
+                <Skel w="100%" h={120} r={0} />
+                <div style={{ padding:"10px 11px 12px" }}>
+                  <Skel w="80%" h={12} r={6} mb={6} />
+                  <Skel w="50%" h={9} r={6} />
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))
+          : orte.length === 0
+          ? <div style={{ paddingLeft:T.px, fontSize:12.5, color:T.inkFaint, fontStyle:'italic', opacity:0.75 }}>Noch keine Orte gefunden.</div>
+          : orte.map((ort, i) => <OrtCard key={ort.place_key} ort={ort} delay={i*30+delay} onPress={() => onPressOrt?.(ort.place_key)} />)
+        }
+      </div>
     </div>
   );
 }
 
-function OrtCard({ ort, delay=0, onMap }) {
-  const [imgErr, setImgErr] = useState(false);
+function OrtCard({ ort, delay=0, onPress }) {
+  const [sightUrl, setSightUrl] = useState(null);
+  const [imgErr, setImgErr]     = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    getPlaceImage(ort.place_key).then(url => { if (!cancelled) setSightUrl(url); });
+    return () => { cancelled = true; };
+  }, [ort.place_key]);
+
+  const cover = (!imgErr && sightUrl) ? sightUrl : null;
+
   return (
-    <div className="dp-press dp-in dp-card-hover" onClick={onMap} style={{
-      width:110, flexShrink:0,
-      borderRadius:14, overflow:"hidden",
+    <div className="dp-press dp-in dp-card-hover" onClick={onPress} style={{
+      width:165, flexShrink:0,
+      borderRadius:CARD_RADIUS, overflow:"hidden",
       background:T.white, boxShadow:T.cardShadow,
       border:`1px solid ${T.border}`,
       animationDelay:`${delay}ms`,
       touchAction:"manipulation",
+      display:"flex", flexDirection:"column",
     }}>
-      <div style={{ width:"100%", height:68, overflow:"hidden", position:"relative", background:T.tealSoft }}>
-        {!imgErr && ort.cover ? (
-          <img loading="lazy" decoding="async" src={ort.cover} alt={ort.name} onError={() => setImgErr(true)}
+      <div style={{ width:"100%", height:120, flexShrink:0, overflow:"hidden", position:"relative", background:cover ? "#1A1A18" : T.tealSoft, display:"flex", alignItems:"center", justifyContent:"center" }}>
+        {cover ? (
+          <img loading="lazy" decoding="async" src={cover} alt={ort.place_key} onError={() => setImgErr(true)}
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
         ) : (
-          <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <HUILocationIcon size={24} style={{opacity:0.4, color:"rgba(14,196,184,0.5)"}} />
-          </div>
+          <HUILogo size={40} style={{opacity:0.55}} />
         )}
-        {ort.dist !== "—" && (
-          <div style={{
-            position:"absolute", top:5, left:5,
-            background:"rgba(255,255,255,0.90)", backdropFilter:"blur(6px)",
-            borderRadius:99, padding:"1px 6px",
-            fontSize:9, fontWeight:700, color:T.teal,
-          }}>
-            {ort.dist}
-          </div>
-        )}
-      </div>
-      <div style={{ padding:"7px 8px 9px" }}>
-        <div style={{ fontSize:11, fontWeight:700, color:T.ink, marginBottom:2, lineHeight:1.25,
-          overflow:"hidden", display:"-webkit-box", WebkitLineClamp:1, WebkitBoxOrient:"vertical" }}>
-          {ort.name}
+        <div style={{
+          position:"absolute", top:6, right:6,
+          background:"rgba(255,255,255,0.90)", backdropFilter:"blur(6px)",
+          borderRadius:99, padding:"1px 7px",
+          fontSize:9.5, fontWeight:700, color:T.tealDeep,
+        }}>
+          {ort.total_count}
         </div>
-        <div style={{ fontSize:9.5, color:T.inkFaint, fontWeight:500, marginBottom:4 }}>{ort.city}</div>
-        {/* Aktivität */}
-        {ort.nextEvent ? (
-          <div style={{ fontSize:9, color:"#D97706", fontWeight:600, display:"flex", alignItems:"center", gap:2 }}><HUIKalenderIcon size={9}/>{ort.nextEvent}</div>
-        ) : ort.active ? (
-          <div style={{ display:"flex", alignItems:"center", gap:3, fontSize:9.5, color:"#22c55e", fontWeight:700 }}>
-            <span style={{ display:"inline-block",width:6,height:6,borderRadius:"50%",background:"#22c55e" }}/>
-            {ort.active} aktiv
-          </div>
-        ) : null}
+      </div>
+      <div style={{ padding:"10px 11px 12px", display:"flex", flexDirection:"column", flexGrow:1 }}>
+        <div style={{ fontSize:13, fontWeight:700, color:T.ink, marginBottom:5, lineHeight:1.25,
+          overflow:"hidden", display:"-webkit-box", WebkitLineClamp:1, WebkitBoxOrient:"vertical" }}>
+          {ort.place_key}
+        </div>
+        <div style={{ marginTop:"auto", display:"flex", alignItems:"center", gap:6, fontSize:10, color:T.inkFaint, fontWeight:600, flexWrap:"wrap" }}>
+          {ort.people_count > 0 && <span>👥 {ort.people_count}</span>}
+          {ort.works_count > 0 && <span>🎨 {ort.works_count}</span>}
+          {ort.experiences_count > 0 && <span>🎉 {ort.experiences_count}</span>}
+        </div>
       </div>
     </div>
   );
@@ -1704,6 +1669,8 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
 
   const [erlebnisse, setErlebnisse]   = useState([]);
   const [projekte, setProjekte]       = useState([]);
+  const [orte, setOrte]               = useState([]); // echte Orte via rpc_discover_places
+  const [orteInitialPlace, setOrteInitialPlace] = useState(null); // Deep-Link in OrteAllModal (z.B. Klick auf Teaser-Karte)
   const [talentInquiry, setTalentInquiry] = useState(null);
   const [talentBooking, setTalentBooking] = useState(null); // ausgewaehltes Talent fuer Anfrage-Modal
   const { requireAuth } = useAuthGate();
@@ -1722,6 +1689,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
           if (c.erlebnisse)    setErlebnisse(c.erlebnisse);
           if (c.projekte)      setProjekte(c.projekte);
           if (c.momente)       setMomente(c.momente);
+          if (c.orte)          setOrte(c.orte);
           setLoading(false);
         }
         return; // Cache noch frisch — kein Netzwerk-Request
@@ -1732,24 +1700,22 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
       _discoverCache.loading = true;
 
       try {
-        // People
+        // People — sortiert nach Beliebtheit (Follower + Likes kombiniert) via RPC
         const { data: profiles } = await supabase
-          .from("profiles")
-          .select("id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views") // Identity Contract v1.0
-          .or("has_talent_profile.eq.true,is_member.eq.true,role.eq.talent,role.eq.wirker")
-          .order("created_at", { ascending:false })
-          .limit(getOptimalPageSize(12));
+          .rpc("rpc_discover_people", { p_sort: "popular", p_limit: getOptimalPageSize(12), p_offset: 0 });
 
         if (!cancelled && profiles?.length > 0) {
           // Feed-Profile in Cache schreiben → Profil-Tap ist instant (kein DB-Request mehr)
           ProfileService.prewarm(profiles);
           setPeople(profiles.map(p => ({
             id:           p.id,
-            name:         safeStr(p.display_name || p.username) || null,
+            name:         safeStr(p.full_name || p.display_name || p.username) || null,
             bio:          safeStr(p.bio),
             location:     safeStr(p.location_label), // Identity Contract v1.0
             avatar:       safeStr(p.avatar_url),
             impact:       safeNum(p.impact_eur, 0),
+            followers:    safeNum(p.followers_count, 0),
+            likes:        safeNum(p.total_likes, 0),
             last_seen_at: null, // last_seen_at nicht im Identity Contract
             interests:    [], // dna_tags/skills nicht im Identity Contract
           })));
@@ -1758,7 +1724,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         // Momente (beitraege) — 2-Schritt-Query (kein FK beitraege.user_id → profiles)
         const { data: beitr } = await supabase
           .from("beitraege")
-          .select("id,src,type,moment_source,caption,created_at,user_id")
+          .select("id,src,type,moment_source,caption,created_at,user_id,views_count")
           .order("created_at", { ascending:false })
           .limit(getOptimalPageSize(8));
 
@@ -1769,12 +1735,28 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
           if (beitrUserIds.length > 0) {
             const { data: bpros } = await supabase
               .from("public_profiles")
-              .select("id,display_name,avatar_url")
+              .select("id,display_name,full_name,avatar_url")
               .in("id", beitrUserIds);
             if (bpros) beitrProfileMap = Object.fromEntries(bpros.map(p => [p.id, p]));
           }
-          setMomente(beitr.map(b => {
+          // Echte Like-/Kommentar-Zahlen nachladen — dieselbe SSOT wie ueberall
+          // sonst im System: reaction_counts(post_id).inspire fuer das Herz-Icon
+          // (identisch zum likes_count-Trigger auf works/experiences, siehe
+          // BaseFeedCard.jsx ActionBtn Icon={HUIHeartIcon} count={inspireCount}),
+          // count_comments(post_id, 'moment') fuer die Sprechblase. Vorher wurden
+          // hier deterministische Fake-Zahlen aus der charCodeAt der ID erzeugt.
+          const beitrEngagement = await Promise.all(beitr.map(async (b) => {
+            // Supabase JS v2 .rpc() hat keine .catch() Methode — try/await statt .catch()
+            let rc = null, cc = null;
+            try { rc = (await supabase.rpc("reaction_counts", { p_post_id: b.id }))?.data; } catch {}
+            try { cc = (await supabase.rpc("count_comments", { p_post_id: b.id, p_post_type: "moment" }))?.data; } catch {}
+            return { id: b.id, likes: rc?.inspire ?? 0, comments: typeof cc === "number" ? cc : 0 };
+          }));
+          const beitrEngagementMap = Object.fromEntries(beitrEngagement.map(e => [e.id, e]));
+
+          if (!cancelled) setMomente(beitr.map(b => {
             const bp = beitrProfileMap[b.user_id] || {};
+            const eng = beitrEngagementMap[b.id] || { likes:0, comments:0 };
             return {
             id:         b.id,
             user_id:    b.user_id,
@@ -1782,9 +1764,12 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
             caption:    safeStr(b.caption, "Ein Moment"),
             type:       safeStr(b.type, "foto"),
             created_at: b.created_at,
-            name:       safeStr(bp.display_name, "HUI Mitglied"),
+            name:       safeStr(bp.full_name || bp.display_name, "HUI Mitglied"),
             avatar_url: bp.avatar_url || null,
             location:   "",
+            likes:      eng.likes,
+            comments:   eng.comments,
+            views:      b.views_count || 0,
           };
           }));
         }
@@ -1793,11 +1778,11 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         // Schritt 1: Werke laden
         const { data: ws, error: wsErr } = await supabase
           .from("works")
-          .select("id,title,cover_url,category,file_format,tags,status,approval_status,visibility,price,location_text,lat,lng,user_id,created_at,likes_count")
+          .select("id,title,cover_url,category,file_format,tags,status,approval_status,visibility,price,location_text,lat,lng,user_id,created_at,likes_count,views_count")
           .eq("status", "published")
           .eq("approval_status", "approved")
           .eq("visibility", "public")
-          .order("created_at", { ascending:false })
+          .order("likes_count", { ascending:false })
           .limit(8);
 
         if (!cancelled && ws?.length > 0) {
@@ -1812,7 +1797,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
           if (userIds.length > 0) {
             const { data: profs } = await supabase
               .from("public_profiles")
-              .select("id,display_name,avatar_url")
+              .select("id,display_name,full_name,avatar_url")
               .in("id", userIds);
             if (profs) profileMap = Object.fromEntries(profs.map(p => [p.id, p]));
           }
@@ -1828,9 +1813,10 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
               location:  safeStr(w.location_text),
               lat:       Number.isFinite(w.lat) ? w.lat : null,
               lng:       Number.isFinite(w.lng) ? w.lng : null,
-              author:    safeStr(prof.display_name, "HUI Talent"),
+              author:    safeStr(prof.full_name || prof.display_name, "HUI Talent"),
               avatar_url: prof.avatar_url || null,
               likes:     w.likes_count || 0,
+              views:     w.views_count || 0,
             };
           }));
         } else if (!wsErr) {
@@ -1842,7 +1828,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         // Oeffentlich sichtbar nur status='approved' (RLS deckt das zusaetzlich ab)
         const { data: tal, error: talErr } = await supabase
           .from("talents")
-          .select("id,title,description,category,images,price_per_hour,price_per_session,currency,location_type,location_address,location_notes,map_link,lat,lng,user_id,created_at,available_dates,available_time_slots,recurring,duration_minutes,max_participants,min_participants,booking_type,booking_window_start,booking_window_end")
+          .select("id,title,description,category,images,price_per_hour,price_per_session,currency,location_type,location_address,location_notes,map_link,lat,lng,user_id,created_at,available_dates,available_time_slots,recurring,duration_minutes,max_participants,min_participants,booking_type,booking_window_start,booking_window_end,views_count")
           .eq("status", "approved")
           .order("created_at", { ascending:false })
           .limit(8);
@@ -1857,9 +1843,9 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
           if (providerIds.length > 0) {
             const { data: provs } = await supabase
               .from("profiles")
-              .select("id,display_name,username")
+              .select("id,display_name,full_name,username")
               .in("id", providerIds);
-            providerMap = Object.fromEntries((provs || []).map(p => [p.id, safeStr(p.display_name || p.username, "HUI Talent")]));
+            providerMap = Object.fromEntries((provs || []).map(p => [p.id, safeStr(p.full_name || p.display_name || p.username, "HUI Talent")]));
           }
           if (!cancelled) {
             setTalente(tal.map(t => ({
@@ -1889,6 +1875,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
               booking_type:          safeStr(t.booking_type, "einzel"),
               booking_window_start:  safeStr(t.booking_window_start),
               booking_window_end:    safeStr(t.booking_window_end),
+              views:                 t.views_count || 0,
             })));
           }
         } else if (!talErr) {
@@ -1898,10 +1885,10 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         // Erlebnisse — korrigierte Feldnamen: location_text, max_participants
         const { data: exps, error: expsErr } = await supabase
           .from("experiences")
-          .select("id,title,cover_url,date,duration,location_text,max_participants,status,approval_status,category,experience_type,format,lat,lng,user_id,created_at,likes_count")
+          .select("id,title,cover_url,date,duration,location_text,max_participants,status,approval_status,category,experience_type,format,lat,lng,user_id,created_at,likes_count,views_count")
           .eq("status", "published")
           .eq("approval_status", "approved")
-          .order("created_at", { ascending:false })
+          .order("likes_count", { ascending:false })
           .limit(8);
 
         if (expsErr) {
@@ -1947,6 +1934,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
               lat:         Number.isFinite(e.lat) ? e.lat : null,
               lng:         Number.isFinite(e.lng) ? e.lng : null,
               likes:       e.likes_count || 0,
+              views:       e.views_count || 0,
             };
           }));
         } else if (!expsErr) {
@@ -2043,6 +2031,19 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
           }));
         }
 
+        // Orte — echte Standort-Gruppen aus Profilen/Werken/Erlebnissen (rpc_discover_places)
+        const { data: placesData } = await supabase
+          .rpc("rpc_discover_places", { p_sort: "active", p_limit: 8, p_offset: 0 });
+        if (!cancelled && placesData) {
+          setOrte(placesData.map(p => ({
+            place_key:         p.place_key,
+            people_count:      p.people_count || 0,
+            works_count:       p.works_count || 0,
+            experiences_count: p.experiences_count || 0,
+            total_count:       p.total_count || 0,
+          })));
+        }
+
       } catch (e) {
         console.warn("[DiscoverPage] load error:", e?.message);
       } finally {
@@ -2064,10 +2065,10 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   // Wird nach jedem erfolgreichen Load ausgeführt und merkt sich die Daten für 5 Min.
   React.useEffect(() => {
     if (!loading && (people.length || werke.length || talente.length)) {
-      _discoverCache.data = { people, werke, talente, erlebnisse, projekte, momente };
+      _discoverCache.data = { people, werke, talente, erlebnisse, projekte, momente, orte };
       _discoverCache.ts = Date.now();
     }
-  }, [loading, people, werke, talente, erlebnisse, projekte, momente]);
+  }, [loading, people, werke, talente, erlebnisse, projekte, momente, orte]);
 
   // ── Pull-to-Refresh: feed-refresh-Event abonnieren ────────────
   // Wenn PTR (Home.jsx) ausgelöst wird, soll auch DiscoverPage neu laden.
@@ -2082,6 +2083,8 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
 
   // ── People: nur echte DB-Daten (kein Seed-Fallback — verhindert Klick-Bug)
   const filteredPeople = people;
+
+
 
   const displayMomente    = momente; // nur echte Daten
   const navigate           = useNavigate();
@@ -2153,9 +2156,8 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   const handleTalentPress = useCallback((talent) => {
     const talentId = talent.id;
     const isRealId = talentId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(talentId));
-    // Hat das Angebot einen Preis (TALENT-SERVICES-001)? -> echte Buchung+Zahlung.
-    // Sonst (kein Preis hinterlegt) -> Fallback auf die einfache Anfrage-Maske.
     const hasPrice = talent.price_per_hour != null || talent.price_per_session != null;
+    if (isRealId) { try { supabase.rpc("increment_talent_views", { talent_id: talentId }); } catch {} }
     requireAuth(hasPrice ? "ein Talent zu buchen" : "ein Talent zu kontaktieren", () => {
       if (!isRealId) return;
       if (hasPrice) setTalentBooking(talent);
@@ -2168,6 +2170,8 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   // Weg (Profil des Erstellers) ist ohne eigenen Moment-Detail-View durch
   // die Vorschau ersetzt, die Titelbild/Text/Datum des Moments zeigt.
   const handleMomentPress = useCallback((moment) => {
+    const isRealId = moment?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(moment.id));
+    if (isRealId) { try { supabase.rpc("increment_moment_views", { moment_id: moment.id }); } catch {} }
     const item = normalizePostForPreview({ ...moment, title: moment.caption }, "moment");
     if (item) openPreview(item);
   }, [openPreview]);
@@ -2175,12 +2179,10 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   // Erlebnis-Karte: öffne ExperienceBookingFlow (Detail + Buchen)
   const handleErlebnisPress = useCallback((erlebnis) => {
     const isRealId = erlebnis?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(erlebnis.id));
+    if (isRealId) { try { supabase.rpc("increment_experience_views", { experience_id: erlebnis.id }); } catch {} }
     if (isRealId) {
-      // Erlebnisse direkt mit ExperienceBookingFlow öffnen (hat Bild, Beschreibung, Buchungs-Button)
-      // ContentPreviewSheet ist für Beiträge/Projekte, nicht für buchbare Erlebnisse
       if (typeof onBook === "function") { onBook(erlebnis); return; }
     }
-    // Seed-Karte oder kein onBook: Fallback auf Profil
     const profileId = erlebnis.user_id;
     if (profileId && typeof onView === "function") onView(profileId);
   }, [onBook, onView]);
@@ -2224,6 +2226,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
 
       {/* ── 1. Titelbereich ── */}
       <DiscoverTitleBar />
+
 
       {/* ── 1b. Live Activity Bar ── */}
       <div style={{ marginBottom:8 }}>
@@ -2327,7 +2330,13 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
       />
 
       {/* ── 8. Orte entdecken ── */}
-      <OrteSection onMap={onMap} delay={160} view={view} />
+      <OrteSection
+        orte={orte}
+        loading={loading}
+        delay={160}
+        onSectionAction={() => { setOrteInitialPlace(null); setShowOrteModal(true); }}
+        onPressOrt={(placeKey) => { setOrteInitialPlace(placeKey); setShowOrteModal(true); }}
+      />
 
       {/* ── Orb-Clearance-Spacer — letzter Scroll-Inhalt vor Modals.
            Verhindert Orb-Überlappung auf allen Geräten (Android + iOS). ── */}
@@ -2397,6 +2406,19 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         <OrteAllModal
           isOpen={showOrteModal}
           onClose={() => setShowOrteModal(false)}
+          initialPlace={orteInitialPlace}
+          onPressPerson={(id) => {
+            setShowOrteModal(false);
+            if (id && typeof onView === "function") onView(id);
+          }}
+          onPressWork={(workId) => {
+            setShowOrteModal(false);
+            navigate(`/work/${workId}`);
+          }}
+          onPressExperience={(exp) => {
+            setShowOrteModal(false);
+            openPreview({ id:exp.id, type:"erlebnis", title:exp.title, experienceId:exp.id });
+          }}
         />
       </Suspense>
     </div>

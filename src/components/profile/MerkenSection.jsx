@@ -44,7 +44,7 @@ const T = {
 // aktiv speichert -- MerkenSection muss sie nur sauber darstellen koennen.
 const TYPE_LABEL = {
   work: "Werk", experience: "Erlebnis", post: "Beitrag", beitrag: "Beitrag",
-  event: "Veranstaltung", wirker: "Wirker", project: "Projekt",
+  event: "Veranstaltung", wirker: "Wirker", project: "Projekt", talent: "Talent-Angebot",
 };
 const TYPE_ICON_COMPONENT = (type) => {
   if (type === "work")       return <HUIWerkeIcon size={32} style={{opacity:0.7, color:"rgba(14,196,184,0.7)"}} />;
@@ -52,6 +52,7 @@ const TYPE_ICON_COMPONENT = (type) => {
   if (type === "event")      return <HUIKalenderIcon size={32} style={{opacity:0.7, color:"rgba(14,196,184,0.7)"}} />;
   if (type === "wirker")     return <HUIProfilIcon size={32} style={{opacity:0.7, color:"rgba(14,196,184,0.7)"}} />;
   if (type === "project")    return <HUIImpactIcon size={32} style={{opacity:0.7, color:"rgba(14,196,184,0.7)"}} />;
+  if (type === "talent")     return <HUIWerkeIcon size={32} style={{opacity:0.7, color:"rgba(14,196,184,0.7)"}} />;
   return <HUIImpactIcon size={32} style={{opacity:0.5, color:"rgba(14,196,184,0.5)"}} />;
 };
 
@@ -61,6 +62,7 @@ const FILTERS = [
   { key: "post",       label: "Beiträge",   types: ["post", "beitrag"] },
   { key: "work",       label: "Werke",      types: ["work"] },
   { key: "experience", label: "Erlebnisse", types: ["experience", "event"] },
+  { key: "talent",     label: "Talente",    types: ["talent"] },
   { key: "project",    label: "Projekte",   types: ["project"] },
 ];
 
@@ -133,12 +135,13 @@ export default function MerkenSection({ onOpenProfile = () => {}, onOpenDiscover
     if (items.length === 0) { setOriginalCovers(new Map()); return; }
     let cancelled = false;
 
-    const ids = { work: [], experience: [], beitrag: [], project: [] };
+    const ids = { work: [], experience: [], beitrag: [], project: [], talent: [] };
     for (const it of items) {
       if (it.post_type === "work") ids.work.push(it.post_id);
       else if (it.post_type === "experience" || it.post_type === "event") ids.experience.push(it.post_id);
       else if (it.post_type === "post" || it.post_type === "beitrag") ids.beitrag.push(it.post_id);
       else if (it.post_type === "project") ids.project.push(it.post_id);
+      else if (it.post_type === "talent") ids.talent.push(it.post_id);
     }
 
     (async () => {
@@ -171,6 +174,17 @@ export default function MerkenSection({ onOpenProfile = () => {}, onOpenDiscover
         if (error) console.warn("[Merkliste] Cover-Load beitraege:", error.message);
         (data || []).forEach(row => {
           const url = normalizeMomentRow(row)?.media?.[0]?.url;
+          if (url) map.set(row.id, url);
+        });
+      }
+      if (ids.talent.length) {
+        // talents.images ist ein JSONB-Array [{url,...}] -- gleiches Muster
+        // wie DiscoverPage.jsx (Talente-Mapping) und normalizeTalentForPreview.
+        const { data, error } = await supabase.from("talents")
+          .select("id,images").in("id", ids.talent);
+        if (error) console.warn("[Merkliste] Cover-Load talents:", error.message);
+        (data || []).forEach(row => {
+          const url = Array.isArray(row.images) && row.images[0]?.url ? row.images[0].url : null;
           if (url) map.set(row.id, url);
         });
       }

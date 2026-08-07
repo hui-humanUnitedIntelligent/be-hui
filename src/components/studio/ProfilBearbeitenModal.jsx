@@ -92,7 +92,6 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
   const [locationLng,   setLocationLng]   = useState(profile?.location_lng  || null);
   const [geoLoading,    setGeoLoading]    = useState(false);
   const [website,       setWebsite]       = useState(profile?.website         || "");
-  const [isAvailable,   setIsAvailable]   = useState(profile?.is_available    ?? true);
 
   // ── State: Kontakt-Felder ────────────────────────────────────────
   const [email,         setEmail]         = useState(profile?.email           || "");
@@ -197,9 +196,9 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
         display_name:   displayName.trim() || fullName.trim(),
         username:       username.trim().toLowerCase(),
         bio:            bio.trim(),
-        location:       locationLabel.trim(), // Sprint F.3B: schreibt profiles.location (Wahrheitsquelle)
+        location:       locationLabel.trim(), // SSOT: profiles.location
+        location_label: locationLabel.trim(), // Sync: alle Anzeige-Stellen (Feed, Discover, Karten) lesen location_label
         website:        website.trim(),
-        is_available:   isAvailable,
       };
 
       // 2. Talent-Felder NUR mitschreiben, wenn Talent-User (echte, kollisionsfreie
@@ -220,6 +219,17 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
 
       if (profErr) throw new Error(profErr.message || profErr);
 
+      // 2b. GPS-Koordinaten separat speichern (Spalten evtl. noch nicht in Produktion —
+      //     Migration 081 muss manuell im Supabase SQL Editor ausgeführt werden).
+      //     Fehler hierbei dürfen NICHT den gesamten Save blockieren.
+      if (locationLat != null && locationLng != null) {
+        try {
+          await supabase.from("profiles")
+            .update({ location_lat: locationLat, location_lng: locationLng })
+            .eq("id", profile?.id);
+        } catch {/* Spalte existiert noch nicht — Migration 081 ausstehen */}
+      }
+
       // 3. Auth Profil neu laden → live im Admin + UI
       if (refreshProfile) await refreshProfile();
 
@@ -238,7 +248,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
       setSaving(false);
     }
   }, [saving, usernameErr, fullName, displayName, username, bio,
-      locationLabel, locationLat, locationLng, website, isAvailable,
+      locationLabel, locationLat, locationLng, website,
       isTalent, talentTitle, talentDescription, talentRate,
       saveProfile, refreshProfile, profile?.id, onClose, onProfileUpdate]);
 
@@ -393,13 +403,11 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
                   die "Interessen & Werte"-Sektion (InteressenSection.jsx). Bearbeitung
                   dort im eigenen Profil, nicht hier. */}
 
-              <FieldGroup label="Verfügbarkeit">
-                <ToggleSwitch
-                  value={isAvailable} onChange={setIsAvailable}
-                  labelOn="Verfügbar für Anfragen"
-                  labelOff="Aktuell nicht verfügbar"
-                />
-              </FieldGroup>
+              {/* "Verfügbarkeit" entfernt 2026-08-07 — Duplikat der bereits live
+                  funktionierenden AvailabilitySection.jsx (profiles.is_available),
+                  direkt im eigenen Profil (MyBasisProfile.jsx/TalentProfilePage.jsx)
+                  editierbar. Ein Speichern hier hätte denselben Wert nur redundant
+                  überschrieben — gleiches Muster wie Fokus/Bereich und Skills oben. */}
 
             </div>
           )}

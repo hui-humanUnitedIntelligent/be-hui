@@ -7,9 +7,11 @@ let stripePromise = null;
 
 export function getStripe() {
   if (!stripePromise) {
-    const key = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+    // Fallback-Kette: VITE_STRIPE_PUBLIC_KEY (kanonisch) → VITE_STRIPE_PUBLISHABLE_KEY (Legacy)
+    const key = import.meta.env.VITE_STRIPE_PUBLIC_KEY
+      || import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
     if (!key) {
-      console.error('[Stripe] VITE_STRIPE_PUBLISHABLE_KEY nicht gesetzt');
+      console.error('[Stripe] Weder VITE_STRIPE_PUBLIC_KEY noch VITE_STRIPE_PUBLISHABLE_KEY ist gesetzt');
       return null;
     }
     stripePromise = loadStripe(key);

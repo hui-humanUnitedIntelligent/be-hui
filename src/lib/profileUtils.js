@@ -75,3 +75,58 @@ export function isMembershipActive(profile) {
   if (profile.is_member === true) return true;
   return false;
 }
+
+/**
+ * getFullDisplayName — SSOT für die Namensanzeige fremder Nutzer
+ * (NAME-DISPLAY-FIX, 2026-08-07)
+ *
+ * Problem: An mehreren Stellen wurde profile.display_name (frei wählbarer
+ * Spitzname, z.B. "Linda") mit höherer Priorität als profile.full_name
+ * (echter Vor- und Nachname, z.B. "Linda Mathis") angezeigt oder
+ * display_name war die EINZIGE Quelle ohne full_name-Fallback. Das führte
+ * dazu, dass reale Nutzer nur mit Vornamen/Spitznamen in Feed-Karten,
+ * Kommentaren und Discover-Kacheln auftauchten.
+ *
+ * Regel (explizite Vorgabe): Vor- und Nachname soll IMMER angezeigt werden.
+ * full_name hat daher Vorrang vor display_name.
+ *
+ * Prioritätskette: full_name → display_name → username → fallback
+ *
+ * @param {object|null} profile - Profil-Objekt aus Supabase (oder Teilobjekt)
+ * @param {string} fallback - Rückgabewert wenn nichts vorhanden ist
+ * @returns {string}
+ */
+export function getFullDisplayName(profile, fallback = "Mitglied") {
+  if (!profile) return fallback;
+  const full = typeof profile.full_name === "string" ? profile.full_name.trim() : "";
+  if (full) return full;
+  const disp = typeof profile.display_name === "string" ? profile.display_name.trim() : "";
+  if (disp) return disp;
+  const uname = typeof profile.username === "string" ? profile.username.trim() : "";
+  if (uname) return uname;
+  return fallback;
+}
+
+/**
+ * getProfileRoleLabel — Rollen-/Status-Text unter dem Namen (Feed-Header etc.)
+ * (NAME-DISPLAY-FIX, 2026-08-07)
+ *
+ * Problem: Das freie Textfeld profile.talent wird manuell gepflegt (z.B.
+ * "Superadmin" bei Admins) und ist bei echten Talent-Nutzern oft NULL,
+ * obwohl isProfileTalent(profile) bereits true liefert — die Zeile blieb
+ * dann komplett leer statt "Talent" anzuzeigen.
+ *
+ * Priorität: profile.talent (gepflegter Freitext) → "Talent" (wenn
+ * isProfileTalent) → null (keine Zeile)
+ *
+ * @param {object|null} profile
+ * @returns {string|null}
+ */
+export function getProfileRoleLabel(profile) {
+  if (!profile) return null;
+  const custom = typeof profile.talent === "string" ? profile.talent.trim() : "";
+  if (custom) return custom;
+  if (isProfileTalent(profile)) return "Talent";
+  return null;
+}
+

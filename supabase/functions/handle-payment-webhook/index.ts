@@ -72,7 +72,7 @@ serve(async (req) => {
       .from('webhook_events')
       .select('id, status')
       .eq('stripe_event_id', event.id)
-      .single()
+      .maybeSingle()
 
     if (existingEvent) {
       console.log('[WEBHOOK] Event bereits verarbeitet:', event.id)
@@ -107,7 +107,7 @@ serve(async (req) => {
         .select('id, customer_id, total_eur, state')
         .eq('stripe_payment_intent', pi.id)
         .eq('state', 'pending')
-        .single()
+        .maybeSingle()
       order = orderByPi.data
       orderErr = orderByPi.error
 
@@ -117,7 +117,7 @@ serve(async (req) => {
           .select('id, customer_id, total_eur, state')
           .eq('id', pi.metadata.hui_order_id)
           .eq('state', 'pending')
-          .single()
+          .maybeSingle()
         order = orderByMeta.data
         orderErr = orderByMeta.error
       }
@@ -129,7 +129,7 @@ serve(async (req) => {
           .select('id, customer_id, seller_id, amount_eur, status')
           .eq('stripe_payment_intent', pi.id)
           .eq('status', 'pending_payment')
-          .single()
+          .maybeSingle()
 
         if (tBooking) {
           const expectedBookingCents = Math.round(Number(tBooking.amount_eur) * 100)
@@ -167,6 +167,74 @@ serve(async (req) => {
           return new Response(JSON.stringify({ received: true, talent_booking: true }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           })
+        }
+
+        // ── Support-Zahlung? (payment_type='support' → stripe_payments) ──
+        if (pi.metadata?.payment_type === 'support') {
+          const { data: supportPayment } = await supabase
+            .from('stripe_payments')
+            .select('id, user_id, ambassador_id, amount, ambassador_share, impact_pool_share')
+            .eq('stripe_payment_id', pi.id)
+            .eq('status', 'pending')
+            .maybeSingle()
+
+          if (supportPayment) {
+            // Amount-Verification
+            const expectedSupportCents = Math.round(Number(supportPayment.amount) * 100)
+            if (Math.abs(pi.amount - expectedSupportCents) > 1) {
+              console.error(`[WEBHOOK] Support Amount-Mismatch: stripe=${pi.amount} erwartet=${expectedSupportCents} payment=${supportPayment.id}`)
+              await supabase.from('stripe_payments').update({ status: 'failed' })
+                .eq('id', supportPayment.id).eq('status', 'pending')
+              await supabase.from('webhook_events').update({ status: 'failed' }).eq('stripe_event_id', event.id)
+              return new Response('ok', { headers: corsHeaders })
+            }
+
+            // Status → succeeded
+            await supabase.from('stripe_payments').update({
+              status: 'succeeded',
+              updated_at: new Date().toISOString(),
+            }).eq('id', supportPayment.id).eq('status', 'pending')
+
+            // Impact-Pool aktualisieren
+            const impactEur = Number(supportPayment.impact_pool_share) || 0
+            if (impactEur > 0) {
+              const { data: currentRound } = await supabase
+                .from('impact_rounds')
+                .select('id, pool_eur')
+                .eq('status', 'active')
+                .maybeSingle()
+              if (currentRound) {
+                await supabase.from('impact_rounds').update({
+                  pool_eur: Number(currentRound.pool_eur) + impactEur
+                }).eq('id', currentRound.id)
+              }
+            }
+
+            // Creator benachrichtigen
+            await supabase.from('notifications').insert({
+              user_id: supportPayment.ambassador_id,
+              type:    'support_received',
+              title:   'Unterstützung erhalten ✦',
+              body:    `${Number(supportPayment.amount).toFixed(2).replace('.', ',')} € Unterstützung ist eingegangen.`,
+              data:    { payment_id: supportPayment.id, amount: supportPayment.amount },
+              read:    false,
+            })
+
+            // Supporter benachrichtigen
+            await supabase.from('notifications').insert({
+              user_id: supportPayment.user_id,
+              type:    'support_succeeded',
+              title:   'Unterstützung gesendet ✓',
+              body:    `Deine Unterstützung von ${Number(supportPayment.amount).toFixed(2).replace('.', ',')} € war erfolgreich.`,
+              data:    { payment_id: supportPayment.id, creator_id: supportPayment.ambassador_id },
+              read:    false,
+            })
+
+            await supabase.from('webhook_events').update({ status: 'processed' }).eq('stripe_event_id', event.id)
+            return new Response(JSON.stringify({ received: true, support: true }), {
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            })
+          }
         }
 
         console.warn('[WEBHOOK] Order nicht gefunden oder nicht pending:', orderErr?.message, 'PI:', pi.id, 'meta:', pi.metadata?.hui_order_id)
@@ -257,7 +325,7 @@ serve(async (req) => {
           .from('impact_rounds')
           .select('id, pool_eur')
           .eq('status', 'active')
-          .single()
+          .maybeSingle()
 
         if (currentRound) {
           await supabase.from('impact_rounds').update({
@@ -291,6 +359,12 @@ serve(async (req) => {
         .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
         .eq('stripe_payment_intent', pi.id)
         .eq('status', 'pending_payment')
+
+      // Support-Zahlung: bei fehlgeschlagener Zahlung auf failed setzen
+      await supabase.from('stripe_payments')
+        .update({ status: 'failed', updated_at: new Date().toISOString() })
+        .eq('stripe_payment_id', pi.id)
+        .eq('status', 'pending')
 
       const { error: failedEventErr } = await supabase.from('commerce_events').insert({
         event_type: 'payment_failed',

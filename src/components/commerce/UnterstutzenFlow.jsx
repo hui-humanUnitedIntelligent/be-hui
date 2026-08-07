@@ -27,6 +27,9 @@ import StripePaymentStep from "./StripePaymentStep.jsx";
 import { resolveShippingStrategy, orderService } from "../../services/commerceEngine.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { supabase } from "../../lib/supabaseClient.js";
+import { useHuiActions, A } from "../../core/hui.actions.js";
+import { S } from "../../core/hui.sources.js";
+import { toast } from "../../lib/useToast.jsx";
 
 // ─────────────────────────────────────────────────────────────────
 // ImpactKarte — kompakt, oberhalb des Stripe Elements
@@ -141,6 +144,19 @@ function TealPartikel() {
 function DankeScreen({ items, impact, total, huiTotal = 0, onDiscover, onResonanz }) {
   const pCount = uniquePeople(items);
   const [visible, setVisible] = useState(false);
+  const [showChatCTA, setShowChatCTA] = useState(true);
+  const [hasChatted, setHasChatted] = useState(false);
+  const actions = useHuiActions();
+
+  // Ersten Verkäufer aus Items extrahieren
+  const firstItem = items?.[0];
+  const seller = firstItem?.author?.id
+    ? {
+        id: firstItem.author.id,
+        name: firstItem.author.name || firstItem.author.displayName || "Verkäufer",
+        avatar: firstItem.author.avatar || null,
+      }
+    : null;
 
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 80);
@@ -152,6 +168,30 @@ function DankeScreen({ items, impact, total, huiTotal = 0, onDiscover, onResonan
     transform: visible ? "translateY(0)" : "translateY(10px)",
     transition: `opacity 500ms ${delay} ease, transform 500ms ${delay} ease`,
   });
+
+  function handleChat() {
+    if (!seller) return;
+    haptic("light");
+    setHasChatted(true);
+    setShowChatCTA(false);
+    actions[A.OPEN_CHAT]?.({
+      recipient: {
+        id: seller.id,
+        display_name: seller.name,
+        avatar_url: seller.avatar,
+      },
+      source: S.SYSTEM,
+    });
+  }
+
+  function wrapClose(originalCb) {
+    return () => {
+      if (!hasChatted) {
+        toast.info("Du findest den Verkäufer unter 'Mein Bereich' \u2192 'Käufe/Verkäufe' in deinem Profil.");
+      }
+      originalCb?.();
+    };
+  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%",
@@ -216,9 +256,53 @@ function DankeScreen({ items, impact, total, huiTotal = 0, onDiscover, onResonan
         </div>
 
         {/* Impact */}
-        <div style={{ width: "100%", marginBottom: 32, ...fade("400ms") }}>
+        <div style={{ width: "100%", marginBottom: 20, ...fade("400ms") }}>
           <ImpactKarte impactEur={impact} huiEur={huiTotal} />
         </div>
+
+        {/* Chat CTA — dismissable */}
+        {showChatCTA && seller && (
+          <div style={{
+            width: "100%", marginBottom: 20,
+            padding: "16px 18px", borderRadius: 16,
+            background: "rgba(14,196,184,0.06)",
+            border: `1.5px solid rgba(14,196,184,0.20)`,
+            display: "flex", alignItems: "center", gap: 12,
+            ...fade("450ms"),
+          }}>
+            <div style={{ flex: 1, textAlign: "left" }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: C.ink, marginBottom: 2 }}>
+                Mit Verkäufer schreiben
+              </div>
+              <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.5 }}>
+                Tausch dich mit {seller.name} aus.
+              </div>
+            </div>
+            <button
+              onClick={handleChat}
+              style={{
+                padding: "10px 18px", borderRadius: 12,
+                background: C.teal, color: "#fff",
+                fontSize: 13, fontWeight: 700, border: "none",
+                cursor: "pointer", flexShrink: 0,
+                WebkitTapHighlightColor: "transparent",
+              }}
+            >
+              Chat
+            </button>
+            <button
+              onClick={() => setShowChatCTA(false)}
+              style={{
+                width: 28, height: 28, borderRadius: "50%",
+                border: "none", background: "rgba(20,20,34,0.06)",
+                color: "rgba(20,20,34,0.45)", fontSize: 14,
+                cursor: "pointer", flexShrink: 0,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                WebkitTapHighlightColor: "transparent",
+              }}
+            >\u2715</button>
+          </div>
+        )}
       </div>
 
       {/* Footer */}
@@ -227,8 +311,8 @@ function DankeScreen({ items, impact, total, huiTotal = 0, onDiscover, onResonan
         paddingBottom: `calc(16px + max(0px, env(safe-area-inset-bottom, 0px)))`,
         flexShrink: 0, ...fade("500ms"),
       }}>
-        <PrimaryButton label="Weiter entdecken" onClick={onDiscover} />
-        <button onClick={onResonanz} style={{
+        <PrimaryButton label="Weiter entdecken" onClick={wrapClose(onDiscover)} />
+        <button onClick={wrapClose(onResonanz)} style={{
           width: "100%", marginTop: 10, padding: "14px 0",
           borderRadius: 14, border: "1.5px solid rgba(20,20,34,0.10)",
           background: "transparent", color: C.inkMid,

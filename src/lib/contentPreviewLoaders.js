@@ -11,7 +11,7 @@ import { supabase } from "./supabaseClient.js";
 import {
   normalizePostForPreview, normalizeProjectForPreview,
   normalizeRecommendationForPreview, normalizeWirkerForPreview,
-  normalizeConnectionForPreview,
+  normalizeConnectionForPreview, normalizeTalentForPreview,
 } from "./previewNormalizers.js";
 
 async function one(query) {
@@ -51,6 +51,21 @@ const LOADERS = {
   connection: async (id) => {
     const row = await one(supabase.from("connections").select("*").eq("id", id));
     return row ? normalizeConnectionForPreview(row) : null;
+  },
+  // MERKLISTE.3 (2026-08-07): Talent-Angebote hatten keinen Loader -- Klick
+  // auf "Öffnen" in der Merkliste tat bisher nichts (openRef fand keine fn).
+  // Anbietername separat nachladen (talents hat kein FK-Embed auf profiles,
+  // gleiches Muster wie ueberall sonst im System, siehe DiscoverPage.jsx).
+  talent: async (id) => {
+    const row = await one(supabase.from("talents").select("*").eq("id", id));
+    if (!row) return null;
+    let authorName = null;
+    if (row.user_id) {
+      const { data: prof } = await supabase.from("profiles")
+        .select("display_name,username").eq("id", row.user_id).maybeSingle();
+      authorName = prof?.display_name || prof?.username || null;
+    }
+    return normalizeTalentForPreview(row, authorName);
   },
   // OPEN.2 2026-07-08 -- Event/Moment/Post/Beitrag kommen alle aus derselben
   // "beitraege"-Tabelle (siehe useFeedStream.js), unterschieden nur durch

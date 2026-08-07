@@ -97,7 +97,7 @@ serve(async (req) => {
       .eq('cart_hash', cartHash)
       .order('created_at', { ascending: false })
       .limit(1)
-      .single()
+      .maybeSingle()
 
     if (existingOrder?.stripe_payment_intent) {
       // Bestehenden PI reaktivieren statt neuen erstellen
@@ -234,7 +234,6 @@ serve(async (req) => {
         commission_eur:   +(serverTotal * PLATFORM_FEE_RATE).toFixed(2),
         impact_eur:       +(serverTotal * IMPACT_RATE).toFixed(2),
         state:            'pending',
-        status:           'pending',   // Legacy-Compat: orders.status NOT NULL
         currency:         'eur',
         cart_hash:        cartHash,    // für Idempotenz-Lookup
       })
@@ -257,9 +256,8 @@ serve(async (req) => {
     // ── 7. Order Items ────────────────────────────────────────────
     const itemsPayload = validatedItems.map(item => ({
       order_id:           dbOrder.id,
-      // seller_id (Commerce 2.0 Kanonisch) + creator_id (Legacy-Compat)
+      // seller_id (Commerce 2.0 Kanonisch) — 'creator_id'/'platform_fee_eur' entfernt, Spalten existieren nicht in order_items
       seller_id:          item.seller_id   ?? null,
-      creator_id:         item.seller_id   ?? null,  // Legacy-Alias
       item_type:          item.item_type   || 'work',
       item_id:            item.item_id     ?? null,
       work_id:            item.item_type === 'work' ? item.item_id : null, // Legacy work_id
@@ -270,7 +268,6 @@ serve(async (req) => {
       shipping_eur:       Number(item.shipping_eur)   ?? 0,
       payout_eur:         Number(item.payout_eur)     ?? 0,
       impact_eur:         Number(item.impact_eur)     ?? 0,
-      platform_fee_eur:   +(Number(item.unit_price_eur) * Number(item.quantity) * 0.15).toFixed(2),
       fulfillment_status: 'new',
       payout_status:      'held',
     }))
@@ -279,7 +276,7 @@ serve(async (req) => {
     const { error: itemsErr } = await supabase.from('order_items').insert(itemsPayload)
     if (itemsErr) {
       console.error('[PI] Order items insert failed:', itemsErr.code, itemsErr.message, itemsErr.details)
-      await supabase.from('orders').update({ state: 'aborted', status: 'aborted' }).eq('id', dbOrder.id)
+      await supabase.from('orders').update({ state: 'aborted' }).eq('id', dbOrder.id)
       return new Response(JSON.stringify({
         error:  'Order-Items fehlgeschlagen',
         detail: itemsErr.message,

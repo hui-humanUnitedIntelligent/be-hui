@@ -1,15 +1,34 @@
 // src/components/commerce/WerkKaufFlow.jsx
 // ═══════════════════════════════════════════════════════════════════
-// LEGACY — SUPERSEDED BY COMMERCE 2.0 — REMOVE AFTER PHASE 5
-// Kanonischer Checkout: WerkeKorb → UnterstuetzenFlow → StripePaymentStep
+// HUI Commerce 2.0 — Werk Kaufen (Single-Item Stripe Checkout)
 // ═══════════════════════════════════════════════════════════════════
-// Bottom-Sheet: Werk kaufen → salesService.createSale() → Notification → Bestätigung
-// Keine neuen Systeme. Kein Stripe. payment_status bleibt "pending" für Beta.
-import React, { useState } from "react";
+// Ersetzt das Legacy salesService.createSale() (kein Stripe) durch
+// einen echten Stripe PaymentIntent über die create-payment-intent
+// Edge Function + StripePaymentStep.
+//
+// Ablauf:
+//   1. confirm → User sieht Werk + Preis, klickt "Kaufen"
+//   2. loading → create-payment-intent Edge Function → clientSecret
+//   3. payment → StripePaymentStep (Stripe Elements)
+//   4. success → Bestätigung + Notification an Creator
+//   5. error → Fehlermeldung
+//
+// PFLICHT: createPortal → document.body, zIndex >= 10500
+// ═══════════════════════════════════════════════════════════════════
+
+import React, { useState, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { useAuth } from "../../lib/AuthContext";
-import { salesService } from "../../services/creatorEconomy";
 import { supabase } from "../../lib/supabaseClient";
-// HUI Core Engine v2.0: Resonanz aufzeichnen wenn Werk gekauft wird
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
+import { getStripe } from "../../lib/stripe.js";
+import { Elements } from "@stripe/react-stripe-js";
+import StripePaymentStep from "./StripePaymentStep.jsx";
+import { useHuiActions, A } from "../../core/hui.actions.js";
+import { S } from "../../core/hui.sources.js";
+import { toast } from "../../lib/useToast.jsx";
+
 let _resonanceHelpers = null;
 async function getResonanceHelpers() {
   if (_resonanceHelpers) return _resonanceHelpers;
@@ -17,17 +36,26 @@ async function getResonanceHelpers() {
   catch { return null; }
 }
 
-const CORAL = "#FF8A6B";
 const TEAL  = "#16D7C5";
+const CORAL = "#FF8A6B";
 
-export default function WerkKaufFlow({ werk, onClose }) {
+export default function WerkKaufFlow({ werk, onClose = () => {} }) {
   const { user } = useAuth();
-  const [phase,   setPhase]   = useState("confirm"); // confirm | loading | success | error
-  const [errMsg,  setErrMsg]  = useState("");
+  useModalRegistration(true, onClose, "WerkKaufFlow");
+  useWizardBodyLock();
+
+  const [phase, setPhase] = useState("confirm"); // confirm | loading | payment | success | error
+  const [errMsg, setErrMsg] = useState("");
+  const [clientSecret, setClientSecret] = useState(null);
+  const [publishableKey, setPublishableKey] = useState(null);
+  const [orderId, setOrderId] = useState(null);
+  const [hasChatted, setHasChatted] = useState(false);
+  const actions = useHuiActions();
+
+  const stripePromise = useMemo(() => getStripe(), []);
 
   if (!werk) return null;
 
-  // Normalisiere Werk-Daten aus verschiedenen Feed-Shapes
   const workId    = werk.id || werk._raw?.id;
   const creatorId = werk.author?.id || werk._raw?.user_id || werk._raw?.creator_id || werk.creator_id || werk.user_id;
   const title     = werk.title || werk._raw?.title || werk.name || "Werk";
@@ -43,49 +71,105 @@ export default function WerkKaufFlow({ werk, onClose }) {
     if (!workId)      { setErrMsg("Werk-ID fehlt."); setPhase("error"); return; }
     if (!creatorId)   { setErrMsg("Creator-ID fehlt."); setPhase("error"); return; }
     if (user.id === creatorId) { setErrMsg("Du kannst dein eigenes Werk nicht kaufen."); setPhase("error"); return; }
+    if (amount <= 0)  { setErrMsg("Dieses Werk hat keinen Preis."); setPhase("error"); return; }
 
     setPhase("loading");
     setErrMsg("");
 
-    const { data, error } = await salesService.createSale({
-      workId,
-      creatorId,
-      buyerId: user.id,
-      amount:  amount > 0 ? amount : 0,
-    });
+    try {
+      // ── Sichtbarkeit-Gate: Verbindungen/Privat-Profile sind nicht kaufbar
+      // (server-seitig ohnehin über commerce_price_authority-View geblockt,
+      // hier nur für eine klare, verständliche Fehlermeldung statt generischem
+      // "Item nicht verfügbar") ──
+      const { data: sellerProfile } = await supabase
+        .from("profiles").select("focus_type").eq("id", creatorId).maybeSingle();
+      if (sellerProfile && sellerProfile.focus_type && sellerProfile.focus_type !== "public") {
+        setErrMsg("Dieses Profil ist nicht öffentlich — Käufe sind aktuell deaktiviert.");
+        setPhase("error");
+        return;
+      }
 
-    if (error) {
-      setErrMsg(error);
+      // ── Stripe PaymentIntent über Edge Function erstellen ──
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      if (!accessToken) { setErrMsg("Sitzung abgelaufen — bitte neu anmelden."); setPhase("error"); return; }
+
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const efUrl = `${supabaseUrl}/functions/v1/create-payment-intent`;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      const res = await fetch(efUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${accessToken}`,
+          "apikey": supabaseAnonKey ?? "",
+        },
+        body: JSON.stringify({
+          orderItems: [{
+            item_id: workId,
+            item_type: "work",
+            quantity: 1,
+          }],
+        }),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok || result.error) {
+        const msg = result.code === "STRIPE_NOT_CONFIGURED"
+          ? "Stripe ist noch nicht konfiguriert. Bitte später versuchen."
+          : (result.error || "Zahlung konnte nicht gestartet werden.");
+        setErrMsg(msg);
+        setPhase("error");
+        return;
+      }
+
+      if (!result.clientSecret) {
+        setErrMsg("Zahlungsgeheimnis fehlt.");
+        setPhase("error");
+        return;
+      }
+
+      setClientSecret(result.clientSecret);
+      setPublishableKey(result.publishableKey ?? null);
+      setOrderId(result.orderId ?? null);
+      setPhase("payment");
+    } catch (e) {
+      setErrMsg(e?.message || "Verbindungsfehler beim Starten der Zahlung.");
       setPhase("error");
-      return;
     }
+  }
 
+  async function handleStripeSuccess({ orderId: oid, paymentIntentId }) {
     // Notification an Creator
     await supabase.from("notifications").insert({
       user_id:    creatorId,
       type:       "work_sold",
-      text:       `Dein Werk "${title}" wurde angefragt.`,
+      text:       `Dein Werk "${title}" wurde gekauft.`,
       read:       false,
       actor_id:   user.id,
       created_at: new Date().toISOString(),
+      entity_id:  workId,
+      entity_type: "work",
     }).catch(() => {});
 
-    setPhase("success");
-    // HUI Core Engine: Kauf-Resonanz aufzeichnen (Ebene 2 — Reaktion)
-    // Beeinflusst den Orb des Creators wenn genug Resonanz entsteht
-    if (user?.id && creatorId && werk?.id) {
+    // HUI Core Engine: Kauf-Resonanz aufzeichnen
+    if (user?.id && creatorId && workId) {
       getResonanceHelpers()
-        .then(rh => rh?.onWorkPurchased?.(user.id, creatorId, werk.id))
+        .then(rh => rh?.onWorkPurchased?.(user.id, creatorId, workId))
         .catch(() => {});
     }
+
+    setPhase("success");
   }
 
-  // ── Overlay-Backdrop ────────────────────────────────────────────
-  return (
+  // ── Render ──────────────────────────────────────────────────────
+  return createPortal(
     <div
       onClick={(e) => { if (e.target === e.currentTarget) onClose?.(); }}
       style={{
-        position: "fixed", inset: 0, zIndex: 10500, /* >BottomNav(10000) — Footer-Overlap-Fix 2026-07-05 */
+        position: "fixed", inset: 0, zIndex: 10500,
         background: "rgba(0,0,0,0.45)",
         display: "flex", alignItems: "flex-end", justifyContent: "center",
       }}
@@ -96,134 +180,178 @@ export default function WerkKaufFlow({ werk, onClose }) {
         padding: "28px 24px 40px",
         boxShadow: "0 -8px 40px rgba(26,26,46,0.18)",
         animation: "wkfSlideUp 0.28s cubic-bezier(.32,1.2,.55,1) both",
+        maxHeight: "92dvh", overflowY: "auto",
       }}>
-        <style>{`
-          @keyframes wkfSlideUp {
-            from { transform: translateY(100%); opacity: 0; }
-            to   { transform: translateY(0);    opacity: 1; }
-          }
-        `}</style>
+        <style>{`@keyframes wkfSlideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }`}</style>
 
         {/* Handle */}
-        <div style={{ width: 40, height: 4, borderRadius: 2, background: "rgba(26,26,46,0.12)",
-          margin: "0 auto 24px" }} />
+        <div style={{ width: 40, height: 4, borderRadius: 2, background: "rgba(26,26,46,0.12)", margin: "0 auto 24px" }} />
 
-        {phase === "success" ? (
-          /* ── Bestätigung ── */
-          <div style={{ textAlign: "center", padding: "16px 0 8px" }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: "#1A1A2E", marginBottom: 8 }}>
-              Anfrage gesendet
+        {/* ── CONFIRM ── */}
+        {phase === "confirm" && (
+          <>
+            {/* Cover */}
+            {coverUrl && (
+              <div style={{ width: "100%", aspectRatio: "1", borderRadius: 16, overflow: "hidden", marginBottom: 16 }}>
+                <img src={coverUrl} alt={title} style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  onError={(e) => { e.target.style.display = "none"; }} />
+              </div>
+            )}
+            <div style={{ fontSize: 18, fontWeight: 700, color: "#1A1A2E", marginBottom: 6 }}>{title}</div>
+            {priceStr && (
+              <div style={{ fontSize: 22, fontWeight: 800, color: TEAL, marginBottom: 20 }}>{priceStr}</div>
+            )}
+
+            <div style={{
+              background: "rgba(22,215,197,0.06)", borderRadius: 12, padding: "14px 16px",
+              marginBottom: 24, fontSize: 13, color: "rgba(26,26,46,0.65)", lineHeight: 1.6,
+            }}>
+              Deine Zahlung ist sicher bei HUI hinterlegt. Sobald du das Werk erhältst,
+              bestätige den Erhalt in deinem Profil — erst dann erhält der Creator seine Auszahlung.
             </div>
-            <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)", marginBottom: 28, lineHeight: 1.5 }}>
+
+            <button
+              onClick={handleKauf}
+              style={{
+                width: "100%", padding: "16px", borderRadius: 14, border: "none",
+                background: TEAL, color: "#fff", fontSize: 16, fontWeight: 700,
+                cursor: "pointer", transition: "opacity 0.2s",
+              }}
+            >
+              {priceStr ? `Kaufen für ${priceStr}` : "Kaufen"}
+            </button>
+          </>
+        )}
+
+        {/* ── LOADING ── */}
+        {phase === "loading" && (
+          <div style={{ textAlign: "center", padding: "40px 0" }}>
+            <div style={{ width: 44, height: 44, border: `3px solid ${TEAL}33`, borderTopColor: TEAL,
+              borderRadius: "50%", animation: "wkfSpin 0.8s linear infinite", margin: "0 auto 16px" }} />
+            <style>{`@keyframes wkfSpin { to { transform: rotate(360deg); } }`}</style>
+            <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)" }}>Zahlung wird vorbereitet…</div>
+          </div>
+        )}
+
+        {/* ── PAYMENT (Stripe) ── */}
+        {phase === "payment" && clientSecret && (
+          <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: "stripe" } }}>
+            <StripePaymentStep
+              total={amount}
+              impact={amount * 0.0225}
+              orderId={orderId}
+              onSuccess={handleStripeSuccess}
+              onError={() => setPhase("error")}
+            />
+          </Elements>
+        )}
+
+        {/* ── SUCCESS ── */}
+        {phase === "success" && (
+          <div style={{ textAlign: "center", padding: "16px 0 8px" }}>
+            <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(22,215,197,0.12)",
+              display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+              <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                <path d="M7 14L12 19L21 9" stroke={TEAL} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: "#1A1A2E", marginBottom: 8 }}>Kauf erfolgreich</div>
+            <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)", marginBottom: 20, lineHeight: 1.5 }}>
               Deine Zahlung ist sicher bei HUI hinterlegt. Sobald du das Werk erhalten hast,
               bestätige den Erhalt in deinem Profil — erst dann erhält der Creator seine Auszahlung.
             </div>
-            <div style={{ fontSize: 12, color: "rgba(26,26,46,0.45)", marginBottom: 20, lineHeight: 1.5,
-              padding: "10px 14px", borderRadius: 12, background: "rgba(22,215,197,0.07)",
-              border: "1px solid rgba(22,215,197,0.15)" }}>
-              💡 Gehe zu <strong>Mein Profil → Studio → Meine Verkäufe</strong>, um den Erhalt zu bestätigen.
-            </div>
-            <button onClick={onClose} style={{
-              background: TEAL, color: "#fff", border: "none",
-              borderRadius: 14, padding: "12px 32px",
-              fontSize: 15, fontWeight: 700, cursor: "pointer",
-            }}>
-              Schließen
+
+            {/* Chat CTA */}
+            {creatorId && user?.id && creatorId !== user.id && (
+              <div style={{
+                marginBottom: 20, padding: "14px 16px", borderRadius: 14,
+                background: "rgba(22,215,197,0.06)",
+                border: "1.5px solid rgba(22,215,197,0.20)",
+                display: "flex", alignItems: "center", gap: 12,
+              }}>
+                <div style={{ flex: 1, textAlign: "left" }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#1A1A2E", marginBottom: 2 }}>
+                    Mit Verkäufer schreiben
+                  </div>
+                  <div style={{ fontSize: 12, color: "rgba(26,26,46,0.55)", lineHeight: 1.5 }}>
+                    Tausch dich über das Werk aus.
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setHasChatted(true);
+                    actions[A.OPEN_CHAT]?.({
+                      recipient: {
+                        id: creatorId,
+                        display_name: werk.author?.name || werk.author?.displayName || "Verkäufer",
+                        avatar_url: werk.author?.avatar || null,
+                      },
+                      source: S.SYSTEM,
+                    });
+                  }}
+                  style={{
+                    padding: "10px 18px", borderRadius: 12,
+                    background: TEAL, color: "#fff",
+                    fontSize: 13, fontWeight: 700, border: "none",
+                    cursor: "pointer", flexShrink: 0,
+                    WebkitTapHighlightColor: "transparent",
+                  }}
+                >
+                  Chat
+                </button>
+              </div>
+            )}
+
+            <button
+              onClick={() => {
+                if (!hasChatted) {
+                  toast.info("Du findest den Verkäufer unter 'Mein Bereich' \u2192 'Käufe/Verkäufe' in deinem Profil.");
+                }
+                onClose();
+              }}
+              style={{
+                width: "100%", padding: "14px", borderRadius: 14, border: "none",
+                background: TEAL, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer",
+              }}
+            >
+              Fertig
             </button>
           </div>
-        ) : (
-          <>
-            {/* ── Header ── */}
-            <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 22 }}>
-              {coverUrl && (
-                <img loading="lazy" decoding="async" src={coverUrl} alt={title} style={{
-                  width: 56, height: 56, borderRadius: 14,
-                  objectFit: "cover", flexShrink: 0,
-                  border: "1px solid rgba(26,26,46,0.08)",
-                }} />
-              )}
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 600, color: CORAL,
-                  textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>
-                  Werk kaufen
-                </div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: "#1A1A2E", lineHeight: 1.3 }}>
-                  {title}
-                </div>
-              </div>
+        )}
+
+        {/* ── ERROR ── */}
+        {phase === "error" && (
+          <div style={{ textAlign: "center", padding: "16px 0 8px" }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: "#FF5B5B", marginBottom: 8 }}>Fehler</div>
+            <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)", marginBottom: 28, lineHeight: 1.5 }}>
+              {errMsg || "Etwas ist schiefgegangen."}
             </div>
+            <button
+              onClick={() => { setErrMsg(""); setPhase("confirm"); }}
+              style={{
+                width: "100%", padding: "14px", borderRadius: 14, border: "none",
+                background: "rgba(26,26,46,0.08)", color: "#1A1A2E", fontSize: 15, fontWeight: 600, cursor: "pointer",
+              }}
+            >
+              Erneut versuchen
+            </button>
+          </div>
+        )}
 
-            {/* ── Preis ── */}
-            {priceStr && (
-              <div style={{
-                background: "rgba(255,138,107,0.08)",
-                border: "1px solid rgba(255,138,107,0.18)",
-                borderRadius: 14, padding: "12px 16px",
-                marginBottom: 20,
-                display: "flex", justifyContent: "space-between", alignItems: "center",
-              }}>
-                <span style={{ fontSize: 13, color: "rgba(26,26,46,0.55)" }}>Preis</span>
-                <span style={{ fontSize: 20, fontWeight: 800, color: CORAL }}>{priceStr}</span>
-              </div>
-            )}
-
-            {/* ── Beta-Hinweis ── */}
-            <div style={{
-              fontSize: 12, color: "rgba(26,26,46,0.45)",
-              marginBottom: 20, lineHeight: 1.5,
-              padding: "10px 12px",
-              background: "rgba(22,215,197,0.06)",
-              borderRadius: 10,
-              border: "1px solid rgba(22,215,197,0.15)",
-            }}>
-              🌱 Beta: Deine Anfrage wird direkt an den Creator übermittelt.
-              Die Zahlung wird separat abgewickelt.
-            </div>
-
-            {/* ── Fehler ── */}
-            {phase === "error" && errMsg && (
-              <div style={{
-                fontSize: 13, color: "#E83A3A", marginBottom: 16,
-                padding: "10px 12px", borderRadius: 10,
-                background: "rgba(232,58,58,0.07)",
-              }}>
-                {errMsg}
-              </div>
-            )}
-
-            {/* ── Buttons ── */}
-            <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={onClose} style={{
-                flex: 1, background: "transparent",
-                border: "1.5px solid rgba(26,26,46,0.15)",
-                borderRadius: 14, padding: "12px 0",
-                fontSize: 14, fontWeight: 600, color: "rgba(26,26,46,0.55)",
-                cursor: "pointer",
-              }}>
-                Abbrechen
-              </button>
-              <button
-                onClick={handleKauf}
-                disabled={phase === "loading"}
-                style={{
-                  flex: 2,
-                  background: phase === "loading"
-                    ? "rgba(255,138,107,0.4)"
-                    : "linear-gradient(135deg,#FF8A6B,#E8613A)",
-                  color: "#fff", border: "none",
-                  borderRadius: 14, padding: "12px 0",
-                  fontSize: 15, fontWeight: 700,
-                  cursor: phase === "loading" ? "not-allowed" : "pointer",
-                  touchAction: "manipulation",
-                }}
-              >
-                {phase === "loading" ? "Wird gesendet…" : `Anfrage senden${priceStr ? ` · ${priceStr}` : ""}`}
-              </button>
-            </div>
-          </>
+        {/* Close button (nicht im Payment/Loading-Step) */}
+        {phase !== "payment" && phase !== "loading" && (
+          <button
+            onClick={onClose}
+            style={{
+              position: "absolute", top: 16, right: 16,
+              width: 32, height: 32, borderRadius: "50%", border: "none",
+              background: "rgba(26,26,46,0.06)", color: "rgba(26,26,46,0.45)",
+              fontSize: 16, cursor: "pointer", lineHeight: 1,
+            }}
+          >✕</button>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

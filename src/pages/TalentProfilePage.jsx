@@ -55,6 +55,7 @@ import { MomentsSection }         from "../components/profile/sections/MomentsSe
 // OrbSignatur lazy — verhindert Blockierung (89K-Chunk)
 import { OrbSignatur } from "../components/profile/OrbSignatur.jsx";
 import { useModalRegistration } from "../hooks/useModalRegistration.js";
+import SupportFlow from "../components/economy/SupportFlow.jsx";
 
 // ── Design Tokens (HUI-Standard, identisch zu BasisProfilePage) ─
 const T = {
@@ -446,7 +447,7 @@ function Header({ onBack, isOwner, onSettings }) {
 // ══════════════════════════════════════════════════════════════
 // KOMPASS ACTION SHEET
 // ══════════════════════════════════════════════════════════════
-function KompassActionSheet({ profile, isWatching, onWatch, onClose }) {
+function KompassActionSheet({ profile, isWatching, onWatch, onClose, onSupport = () => {} }) {
   return createPortal(
     <div
       onClick={onClose}
@@ -498,6 +499,27 @@ function KompassActionSheet({ profile, isWatching, onWatch, onClose }) {
               {isWatching
                 ? "Aus deiner Beobachtungsliste entfernen"
                 : "Werde benachrichtigt wenn sich etwas tut"}
+            </div>
+          </div>
+        </button>
+        <button
+          onClick={() => { onSupport?.(); onClose(); }}
+          style={{
+            width:"100%", padding:"15px 18px",
+            background:"rgba(255,138,107,0.07)",
+            border:"1.5px solid rgba(255,138,107,0.22)",
+            borderRadius:14, cursor:"pointer", fontFamily:"inherit",
+            display:"flex", alignItems:"center", gap:12,
+            marginBottom:10, touchAction:"manipulation",
+          }}
+        >
+          <span style={{fontSize:20}}>{"\u2764"}</span>
+          <div style={{textAlign:"left"}}>
+            <div style={{fontSize:14, fontWeight:700, color:"#1a1a18"}}>
+              Unterst\u00fctzen
+            </div>
+            <div style={{fontSize:12, color:"rgba(26,26,24,0.45)", marginTop:1}}>
+              Mit einer Spende unterst\u00fctzen
             </div>
           </div>
         </button>
@@ -1125,6 +1147,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
   const [lazyLoaded,        setLazyLoaded]        = useState(false);
   const [showKompassSheet,  setShowKompassSheet]  = useState(false);
   useModalRegistration(showKompassSheet, () => setShowKompassSheet(false), "TalentProfilePage-Kompass");
+  const [showSupport,       setShowSupport]       = useState(false);
   const [kompassWatchLocal, setKompassWatchLocal] = useState(null);
   const [showSettings,      setShowSettings]      = useState(false);
   const [showProfilEdit,    setShowProfilEdit]    = useState(false);
@@ -1247,7 +1270,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
   const handleLocationChange = useCallback(async (locationStr) => {
     if (!user?.id) return;
     const { error } = await supabase.from("profiles")
-      .update({ location: locationStr, updated_at: new Date().toISOString() })
+      .update({ location: locationStr, location_label: locationStr, updated_at: new Date().toISOString() })
       .eq("id", user.id);
     if (error) { console.error("handleLocationChange:", error.message); return; }
     reload();
@@ -1505,6 +1528,18 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
           isWatching={kompassWatchLocal}
           onWatch={kompassToggleRef.current}
           onClose={() => setShowKompassSheet(false)}
+          onSupport={() => setShowSupport(true)}
+        />
+      )}
+
+      {/* ── Support Flow ─────────────────────────────────────── */}
+      {showSupport && profile?.id && (
+        <SupportFlow
+          creator={profile}
+          visible={showSupport}
+          onClose={() => setShowSupport(false)}
+          sourceType="profile"
+          sourceId={profile.id}
         />
       )}
 

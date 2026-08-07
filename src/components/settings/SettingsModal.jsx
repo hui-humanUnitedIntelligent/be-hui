@@ -113,22 +113,26 @@ function NavItem({ icon, label, onClick, danger, last }) {
 
 // ── Block: Name ───────────────────────────────────────────────
 function NameBlock({ profile, onProfileUpdate }) {
-  const [first, setFirst] = useState(profile?.first_name || "");
-  const [last,  setLast]  = useState(profile?.last_name  || "");
+  // profiles-Tabelle hat keine first_name/last_name — nur full_name + display_name.
+  // Wir splitten full_name beim Laden und schreiben beim Speichern beides zurück.
+  const _parts = (profile?.full_name || profile?.display_name || "").split(" ");
+  const [first, setFirst] = useState(_parts[0] || "");
+  const [last,  setLast]  = useState(_parts.slice(1).join(" ") || "");
   const [saving, setSaving] = useState(false);
   const [saved,  setSaved]  = useState(false);
   const [error,  setError]  = useState(null);
 
   const save = async () => {
     setSaving(true); setError(null); setSaved(false);
-    const display_name = [first.trim(), last.trim()].filter(Boolean).join(" ");
+    const full_name = [first.trim(), last.trim()].filter(Boolean).join(" ");
+    const display_name = full_name;
     const { error:err } = await supabase.from("profiles").update({
-      first_name:first.trim(), last_name:last.trim(), display_name,
+      full_name, display_name, updated_at: new Date().toISOString(),
     }).eq("id", profile.id);
     setSaving(false);
     if (err) { setError(err.message); return; }
     setSaved(true); setTimeout(() => setSaved(false), 2500);
-    onProfileUpdate?.({ ...profile, first_name:first.trim(), last_name:last.trim(), display_name });
+    onProfileUpdate?.({ ...profile, full_name, display_name });
   };
 
   return (
@@ -151,7 +155,7 @@ function NameBlock({ profile, onProfileUpdate }) {
 // ── Block: E-Mail ─────────────────────────────────────────────
 function EmailBlock({ profile, onProfileUpdate }) {
   // email direkt aus Supabase Auth holen
-  const [email, setEmail] = useState(authCtxProfile?.email || profile?.email || "");
+  const [email, setEmail] = useState(profile?.email || "");
   const [saving, setSaving] = useState(false);
   const [saved,  setSaved]  = useState(false);
   const [error,  setError]  = useState(null);
@@ -218,7 +222,7 @@ function PasswordBlock() {
 
 // ── Block: E-Mail ändern ─────────────────────────────────────
 function EmailChangeBlock({ profile, onProfileUpdate }) {
-  const { supabase } = useAuth() || {};
+  // supabase ist modul-importiert (oben in Datei), nicht aus useAuth
   const [oldEmail, setOldEmail] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [saving,   setSaving]   = useState(false);

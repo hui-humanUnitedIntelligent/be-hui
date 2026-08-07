@@ -23,7 +23,7 @@ import { useProfileData } from "../hooks/useProfileData.js";
 import { NAV_CLEARANCE_CSS } from "../components/home/navigation/navigationGeometry.js";
 import {
   HUIWerkeIcon, HUIErlebnisIcon, HUIImpactIcon, HUITalentIcon,
-  HUIKalenderIcon, HUILocationIcon, HUISettingsIcon,
+  HUIKalenderIcon, HUISettingsIcon,
 } from '../design/icons/HuiSystemIcons.jsx';
 import { HUIChatIcon, HUIBookmarkIcon } from '../design/icons/HuiInteractionIcons.jsx';
 import { ProfileHeader } from "../components/profile/ProfileHeader.jsx";
@@ -36,9 +36,9 @@ import { WorksSection }       from "../components/profile/sections/WorksSection.
 import { ExperiencesSection } from "../components/profile/sections/ExperiencesSection.jsx";
 import { MomentsSection }     from "../components/profile/sections/MomentsSection.jsx";
 import { RecommendationsSection } from "../components/profile/sections/RecommendationsSection.jsx";
-import { OrbSignatur }        from "../components/profile/OrbSignatur.jsx";
 import { PublicTalentOffersSection } from "../components/profile/sections/PublicTalentOffersSection.jsx";
 import { useModalRegistration } from "../hooks/useModalRegistration.js";
+import SupportFlow from "../components/economy/SupportFlow.jsx";
 
 // ── Design Tokens (HUI-Standard) ─────────────────────────────────
 const T = {
@@ -86,26 +86,6 @@ function Skel({ w, h=14, r=8 }) {
 }
 
 // ── Rollen-Badge ──────────────────────────────────────────────────
-const ROLE_MAP = {
-  superadmin:  { label:"Superadmin",  bg:"rgba(120,60,200,0.15)", color:"#7B3FC4" },
-  super_admin: { label:"Superadmin",  bg:"rgba(120,60,200,0.15)", color:"#7B3FC4" },
-  admin:       { label:"Admin",       bg:"#1A1A2E", color:"#fff"  },
-  talent:      { label:"Talent",      bg:"rgba(14,196,184,0.15)", color:"#0AADA3" },
-  ambassador:  { label:"Ambassador",  bg:"rgba(255,107,82,0.12)", color:"#E55A3A" },
-  basis:       { label:"Mitglied",    bg:"rgba(26,26,24,0.07)",   color:"rgba(26,26,24,0.55)" },
-};
-function RoleBadge({ role, isAmbassador }) {
-  // Superadmin hat immer Vorrang — unabhängig von is_ambassador
-  const isSuperAdmin = role === "superadmin" || role === "super_admin" || role === "admin";
-  const key  = isSuperAdmin ? role : (isAmbassador ? "ambassador" : (role || "basis"));
-  const conf = ROLE_MAP[key] || ROLE_MAP.basis;
-  return (
-    <span className="ppp-badge" style={{ background:conf.bg, color:conf.color }}>
-      <span style={{ fontSize:10 }}>✦</span>{conf.label}
-    </span>
-  );
-}
-
 // ── NavBar ────────────────────────────────────────────────────────
 function NavBar({ onBack = () => {}, title = "Öffentliches Profil" }) {
   return (
@@ -135,70 +115,6 @@ function NavBar({ onBack = () => {}, title = "Öffentliches Profil" }) {
       </div>
       {/* Platzhalter rechts für Symmetrie */}
       <div style={{ width:36 }}/>
-    </div>
-  );
-}
-
-// ── Profil-Skeleton ────────────────────────────────────────────────
-function ProfileSkeleton() {
-  return (
-    <div style={{ background:T.bg }}>
-      <div className="ppp-skel" style={{ width:"100%", height:140, borderRadius:0 }}/>
-      <div style={{ padding:"0 20px", marginTop:-36 }}>
-        <div className="ppp-skel" style={{ width:72, height:72, borderRadius:"50%", border:"3px solid "+T.bg }}/>
-        <div style={{ marginTop:12, display:"flex", flexDirection:"column", gap:8 }}>
-          <Skel w={160} h={18}/>
-          <Skel w={100} h={13}/>
-          <Skel w={130} h={13}/>
-        </div>
-        <div style={{ display:"flex", gap:24, marginTop:20 }}>
-          {[80,80,80].map((w,i) => <div key={i}><Skel w={w} h={16}/></div>)}
-        </div>
-        <div style={{ marginTop:24, display:"flex", flexDirection:"column", gap:10 }}>
-          <Skel w="100%" h={14}/><Skel w="85%" h={14}/><Skel w="70%" h={14}/>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Cover + Avatar ─────────────────────────────────────────────────
-function ProfileHero({ profile = {}, loading = false }) {
-  const cover  = profile?.header_img || null;
-  const avatar = profile?.avatar_url || null;
-  return (
-    <div style={{ position:"relative" }}>
-      <div style={{
-        width:"100%", height:140, overflow:"hidden",
-        background:"linear-gradient(135deg,#0EC4B8 0%,#0AADA3 60%,rgba(26,26,24,0.15) 100%)",
-        position:"relative",
-      }}>
-        {cover && (
-          <img src={cover} alt="" style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} loading="lazy" />
-        )}
-        {!cover && (
-          <OrbSignatur style={{ position:"absolute", inset:0 }} compact />
-        )}
-      </div>
-      <div style={{
-        position:"absolute", bottom:-32, left:T.px,
-        width:68, height:68, borderRadius:"50%",
-        border:`3px solid ${T.bg}`,
-        background:T.bgCard,
-        boxShadow:T.card, overflow:"hidden",
-      }}>
-        {avatar ? (
-          <img src={avatar} alt="Avatar" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-        ) : (
-          <div style={{
-            width:"100%", height:"100%", background:T.tealSoft,
-            display:"flex", alignItems:"center", justifyContent:"space-between",
-            fontSize:26, color:T.teal,
-          }}>
-            {(profile?.display_name || "?")[0]?.toUpperCase() || "?"}
-          </div>
-        )}
-      </div>
     </div>
   );
 }
@@ -491,6 +407,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
 
   // Live-Follower-Delta für sofortige UI-Reaktion
   const [followerDelta, setFollowerDelta] = useState(0);
+  const [showSupport,   setShowSupport]   = useState(false);
   useEffect(() => { setFollowerDelta(0); }, [profileId]);
   const handleFollowChange = useCallback((delta) => setFollowerDelta(d => d + delta), []);
 
@@ -529,63 +446,19 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
       }}>
         <NavBar onBack={handleBack} title="Öffentliches Profil" />
 
-        {loading && !profile && <ProfileSkeleton/>}
-        {(profile || loading) && <ProfileHero profile={profile} loading={loading}/>}
-        <Gap h={40}/>
-
-        {/* ── PROFIL-INFOS ── */}
-        <div style={{ padding:`0 ${T.px}px` }}>
-          {loading && !profile ? (
-            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-              <Skel w={180} h={20}/><Skel w={110} h={14}/>
-            </div>
-          ) : profile ? (
-            /* ── 2-Spalten: Links Name+Badge, Rechts Ort+Website+Follower ── */
-            <div style={{ display:"flex", alignItems:"stretch", gap:12 }}>
-              {/* LINKS */}
-              <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontSize:20, fontWeight:800, color:T.ink, letterSpacing:"-0.025em", lineHeight:1.2 }}>
-                  {profile.display_name || profile.full_name || profile.username || "Unbekannt"}
-                </div>
-                {profile.username && (
-                  <div style={{ fontSize:13, color:T.inkSoft, marginTop:3 }}>@{profile.username}</div>
-                )}
-                <div style={{ marginTop:7 }}>
-                  <RoleBadge role={profile.role} isAmbassador={profile.is_ambassador}/>
-                </div>
-              </div>
-
-              {/* RECHTS: vertikal zentriert zwischen Oberkante Name und Unterkante Badge */}
-              <div style={{
-                display:"flex", flexDirection:"column", justifyContent:"space-between",
-                gap:5, alignItems:"flex-start",
-                flexShrink:0, width:"45%",
-              }}>
-                {profile.location_final && (
-                  <div style={{ display:"flex", alignItems:"center", gap:5, fontSize:12, color:T.inkSoft }}>
-                    <HUILocationIcon size={12} style={{ color:T.coral, flexShrink:0 }}/>
-                    <span style={{ lineHeight:1.3 }}>{profile.location_final}</span>
-                  </div>
-                )}
-                {profile.website && (
-                  <div style={{ display:"flex", alignItems:"center", gap:5, fontSize:12 }}>
-                    <span style={{ fontSize:11, flexShrink:0 }}>🔗</span>
-                    <a href={profile.website.startsWith("http") ? profile.website : "https://"+profile.website}
-                      target="_blank" rel="noopener noreferrer"
-                      style={{ color:T.teal, fontWeight:600, textDecoration:"none" }}
-                      onClick={e => e.stopPropagation()}>
-                      {profile.website.replace(/^https?:\/\//, "")}
-                    </a>
-                  </div>
-                )}
-                <div style={{ display:"flex", gap:10, fontSize:12, color:T.inkSoft }}>
-                  <span><strong style={{ color:T.ink }}>{(followCounts?.followers ?? 0) + followerDelta}</strong> Follower</span>
-                  <span><strong style={{ color:T.ink }}>{followCounts?.following ?? 0}</strong> folgt</span>
-                </div>
-              </div>
-            </div>
-          ) : null}
-        </div>
+        {/* ── Kanonischer ProfileHeader (SSOT) — ersetzt Legacy-ProfileHero + Duplikat-Identity-Block ── */}
+        {(profile || loading) && (
+          <ProfileHeader
+            profile={profile}
+            isOwner={false}
+            isTalent={profile?.is_talent === true}
+            loading={loading}
+            followCounts={{
+              followers: (followCounts?.followers ?? 0) + followerDelta,
+              following: followCounts?.following ?? 0,
+            }}
+          />
+        )}
 
         <Gap h={14}/>
 
@@ -593,7 +466,34 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
         {profile && !isOwnProfile && (
           <RelationButtons profileId={profileId} currentUserId={user?.id} profile={profile} onFollowChange={handleFollowChange} onOpenChat={handleOpenChat} />
         )}
+        {profile && !isOwnProfile && (
+          <button onClick={() => setShowSupport(true)} className="ppp-press" style={{
+            width:"100%", height:36, borderRadius:T.r99,
+            background:"rgba(255,138,107,0.08)",
+            border:`1.5px solid rgba(255,138,107,0.22)`,
+            color:"#FF6F61", fontWeight:600, fontSize:12, cursor:"pointer",
+            touchAction:"manipulation", fontFamily:"inherit",
+            display:"flex", alignItems:"center", justifyContent:"center", gap:6,
+            marginTop:8, whiteSpace:"nowrap",
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+            Unterstützen
+          </button>
+        )}
         {profile && !isOwnProfile && <Gap h={14}/>}
+
+        {/* ── SUPPORT FLOW ── */}
+        {showSupport && profile?.id && (
+          <SupportFlow
+            creator={profile}
+            visible={showSupport}
+            onClose={() => setShowSupport(false)}
+            sourceType="profile"
+            sourceId={profile.id}
+          />
+        )}
 
         {/* ── QUICK STATS ── */}
         {profile && (

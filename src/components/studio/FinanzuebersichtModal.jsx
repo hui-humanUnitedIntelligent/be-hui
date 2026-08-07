@@ -10,6 +10,8 @@ import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import RecommendModal from "../profile/RecommendModal.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { useHuiActions, A } from "../../core/hui.actions.js";
+import { S } from "../../core/hui.sources.js";
 
 const T = {
   bg:       "#F7F5F0",
@@ -73,6 +75,8 @@ function MeineKaeufe({ userId }) {
   const [confirmingId, setConfirmingId] = useState(null);
   const [confirmDone, setConfirmDone] = useState({});
   const [recModal, setRecModal] = useState(null); // { sellerId, sellerName, orderId }
+  const [sellerMap, setSellerMap] = useState({});
+  const actions = useHuiActions();
 
   const load = useCallback(async () => {
     if (!userId) return;
@@ -84,6 +88,20 @@ function MeineKaeufe({ userId }) {
       .in("state", ["paid", "completed"])
       .order("created_at", { ascending: false });
     setOrders(data || []);
+
+    // Seller-Profile nachladen für Chat
+    const sellerIds = [...new Set((data || []).map(o => o.order_items?.[0]?.seller_id).filter(Boolean))];
+    if (sellerIds.length) {
+      const { data: profs } = await supabase.from("profiles")
+        .select("id, display_name, username, img, avatar_url")
+        .in("id", sellerIds);
+      const map = {};
+      (profs || []).forEach(p => {
+        map[p.id] = { name: p.display_name || p.username || "Verkäufer", avatar: p.img || p.avatar_url || null };
+      });
+      setSellerMap(map);
+    }
+
     setLoading(false);
   }, [userId]);
 
@@ -119,9 +137,24 @@ function MeineKaeufe({ userId }) {
         return (
           <Card key={o.id}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: T.ink, marginBottom: 4 }}>{title}</div>
+              <div style={{ flex: 1, cursor: sellerId ? "pointer" : "default" }}
+                onClick={() => {
+                  if (!sellerId) return;
+                  const sInfo = sellerMap[sellerId];
+                  if (!sInfo) return;
+                  actions[A.OPEN_CHAT]?.({
+                    recipient: { id: sellerId, display_name: sInfo.name, avatar_url: sInfo.avatar },
+                    source: S.SYSTEM,
+                  });
+                }}
+              >
+                <div style={{ fontSize: 13, fontWeight: 700, color: sellerId ? T.teal : T.ink, marginBottom: 4 }}>{title}</div>
                 <div style={{ fontSize: 11, color: T.inkFaint }}>{dt(o.created_at)}</div>
+                {sellerId && sellerMap[sellerId] && (
+                  <div style={{ fontSize: 10, color: T.teal, marginTop: 2, fontWeight: 600 }}>
+                    Tippe für Chat mit {sellerMap[sellerId].name}
+                  </div>
+                )}
               </div>
               <div style={{ textAlign: "right" }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: T.ink }}>{eur(o.total_eur)}</div>
@@ -440,11 +473,138 @@ function MiniStat({ label, value, color = T.ink }) {
 // TABS-CONFIG
 // ──────────────────────────────────────────────────────────────────────
 const TABS = [
-  { id: "kaeufe",   label: "Meine Käufe" },
-  { id: "verkaeufe",label: "Meine Verkäufe" },
-  { id: "buchungen",label: "Meine Buchungen" },
-  { id: "gebucht",  label: "Ich wurde gebucht" },
+  { id: "kaeufe",   label: "Käufe" },
+  { id: "verkaeufe",label: "Verkäufe" },
+  { id: "buchungen",label: "Buchungen" },
+  { id: "gebucht",  label: "Gebucht" },
+  { id: "support",  label: "Support" },
 ];
+
+
+// ──────────────────────────────────────────────────────────────────────
+// TAB 5: Support — Gegebene und erhaltene Unterstützungen
+// ──────────────────────────────────────────────────────────────────────
+function MeineSupports({ userId }) {
+  const [given, setGiven]     = useState([]);
+  const [received, setReceived] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [view, setView]       = useState("given"); // given | received
+
+  const load = useCallback(async () => {
+    if (!userId) return;
+    setLoading(true);
+    const [g, r] = await Promise.all([
+      supabase.from("stripe_payments")
+        .select("id, ambassador_id, amount, status, payment_type, description, metadata, created_at")
+        .eq("user_id", userId)
+        .eq("payment_type", "support")
+        .order("created_at", { ascending: false })
+        .limit(50),
+      supabase.from("stripe_payments")
+        .select("id, user_id, amount, status, payment_type, description, metadata, created_at")
+        .eq("ambassador_id", userId)
+        .eq("payment_type", "support")
+        .order("created_at", { ascending: false })
+        .limit(50),
+    ]);
+    setGiven(g.data || []);
+    setReceived(r.data || []);
+    setLoading(false);
+  }, [userId]);
+
+  useEffect(() => { load(); }, [load]);
+
+  if (loading) return <LoadingPlaceholder />;
+  if (!given.length && !received.length)
+    return <EmptyState text="Noch keine Unterstützungen gegeben oder erhalten." />;
+
+  const items = view === "given" ? given : received;
+  const otherIdKey = view === "given" ? "ambassador_id" : "user_id";
+
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+        <button onClick={() => setView("given")}
+          style={{
+            flex: 1, padding: "8px", borderRadius: T.r12, border: "none",
+            background: view === "given" ? T.teal : T.bgCard, color: view === "given" ? "white" : T.inkSoft,
+            fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: T.ff,
+            border: view === "given" ? "none" : `1px solid ${T.border}`,
+          }}>
+          Gegeben ({given.length})
+        </button>
+        <button onClick={() => setView("received")}
+          style={{
+            flex: 1, padding: "8px", borderRadius: T.r12, border: "none",
+            background: view === "received" ? T.teal : T.bgCard, color: view === "received" ? "white" : T.inkSoft,
+            fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: T.ff,
+            border: view === "received" ? "none" : `1px solid ${T.border}`,
+          }}>
+          Erhalten ({received.length})
+        </button>
+      </div>
+
+      {!items.length && (
+        <EmptyState text={view === "given" ? "Du hast noch niemanden unterstützt." : "Du hast noch keine Unterstützungen erhalten."} />
+      )}
+
+      {items.map((item) => {
+        const otherId = item[otherIdKey];
+        const meta = item.metadata || {};
+        const msg = meta.message || meta.support_message || null;
+        return (
+          <Card key={item.id}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: T.ink }}>
+                {eur(item.amount)}
+              </div>
+              <StatusChip
+                label={item.status === "succeeded" ? "Erfolgreich" : item.status === "pending" ? "Ausstehend" : item.status === "failed" ? "Fehlgeschlagen" : item.status}
+                color={item.status === "succeeded" ? T.green : item.status === "pending" ? T.amber : T.red}
+                bg={item.status === "succeeded" ? T.greenSoft : item.status === "pending" ? T.amberSoft : T.redSoft}
+              />
+            </div>
+            {item.description && (
+              <div style={{ fontSize: 12, color: T.inkSoft, marginBottom: 4 }}>
+                {item.description}
+              </div>
+            )}
+            {msg && (
+              <div style={{
+                fontSize: 13, color: T.inkSoft, marginTop: 8,
+                background: T.bg, borderRadius: T.r8, padding: "8px 10px",
+                fontStyle: "italic", lineHeight: 1.5,
+              }}>
+                „{typeof msg === "string" ? msg.slice(0, 200) : ""}"
+              </div>
+            )}
+            <div style={{ fontSize: 11, color: T.inkFaint, marginTop: 8 }}>
+              {dt(item.created_at)}
+            </div>
+          </Card>
+        );
+      })}
+
+      {/* Summary */}
+      {items.length > 0 && (
+        <div style={{
+          marginTop: 12, padding: "12px 16px", borderRadius: T.r12,
+          background: T.tealSoft, border: `1px solid ${T.tealMid}`,
+        }}>
+          <div style={{ fontSize: 12, color: T.inkSoft, marginBottom: 4 }}>
+            {view === "given" ? "Insgesamt gegeben" : "Insgesamt erhalten"}
+          </div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: T.teal }}>
+            {eur(items.filter(i => i.status === "succeeded").reduce((sum, i) => sum + Number(i.amount), 0))}
+          </div>
+          <div style={{ fontSize: 11, color: T.inkFaint, marginTop: 2 }}>
+            {items.filter(i => i.status === "succeeded").length} erfolgreiche Unterstützung(en)
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ──────────────────────────────────────────────────────────────────────
 // HAUPT-EXPORT
@@ -486,10 +646,10 @@ export default function FinanzuebersichtModal({ profile, onClose = () => {} }) {
         }}>
           <div>
             <div style={{ fontSize: 17, fontWeight: 800, color: T.ink, letterSpacing: "-0.02em" }}>
-              Meine Finanzen
+              Käufe/Verkäufe
             </div>
             <div style={{ fontSize: 12, color: T.inkFaint, marginTop: 2 }}>
-              Käufe, Verkäufe & Buchungen
+              Käufe, Verkäufe, Buchungen & Support
             </div>
           </div>
           <button onClick={onClose} style={{
@@ -537,6 +697,7 @@ export default function FinanzuebersichtModal({ profile, onClose = () => {} }) {
           {tab === "verkaeufe" && <MeineVerkaeufe userId={userId} />}
           {tab === "buchungen" && <MeineBuchungen userId={userId} />}
           {tab === "gebucht"   && <WerHatMichGebucht userId={userId} />}
+          {tab === "support"   && <MeineSupports userId={userId} />}
         </div>
       </div>
     </div>

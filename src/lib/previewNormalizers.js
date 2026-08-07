@@ -36,8 +36,8 @@ export function normalizeProjectForPreview(p) {
 
 export function normalizeRecommendationForPreview(r) {
   if (!r?.id) return null;
-  const fromName = r.from_profile?.display_name || "Ein Mitglied";
-  const toName   = r.to_profile?.display_name   || null;
+  const fromName = r.from_profile?.full_name || r.from_profile?.display_name || "Ein Mitglied";
+  const toName   = r.to_profile?.full_name   || r.to_profile?.display_name   || null;
   return {
     id: String(r.id), type: "recommendation",
     author: r.from_profile
@@ -57,8 +57,8 @@ export function normalizeWirkerForPreview(w) {
   if (!w?.id) return null;
   return {
     id: String(w.id), type: "wirker",
-    author: { id: w.user_id || w.id, name: w.name || w.full_name, avatar: w.img },
-    title: w.name || w.full_name || "Wirker",
+    author: { id: w.user_id || w.id, name: w.full_name || w.name, avatar: w.img },
+    title: w.full_name || w.name || "Wirker",
     text:  str(w.bio) || (w.talent ? `Talent: ${w.talent}` : null),
     media: w.img ? [{ type:"image", url:w.img }] : [],
     createdAt: w.created_at || null,

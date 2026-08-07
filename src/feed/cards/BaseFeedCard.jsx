@@ -501,7 +501,14 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
 
   if (!url || err) return null;
 
-  const h = getAdaptiveMediaHeight(aspect, containerW, relaxed);
+  // FEED-UNIFORM-FIX (2026-08-07): Adaptive Media Height (06.08) rückgängig
+  // gemacht — sie widersprach der bereits bestehenden UNIFORM-Vorgabe in
+  // UnifiedFeed.jsx (isRelaxed ist dort hart auf false gesetzt: "alle Karten
+  // gleiche Höhe"). Hochformat-Bilder wurden bis zu 560px hoch gerendert,
+  // wodurch fremde Posts (Erlebnisse/Werke/Talente) optisch größer wirkten
+  // als eigene Momente. Fix: exakt der im Kommentar oben dokumentierte
+  // Revert-Pfad — feste Höhe für ALLE Karten, unabhängig vom Seitenverhältnis.
+  const h = relaxed ? 340 : T.mediaH;
 
   function handleTap(e) {
     const now = Date.now();
@@ -847,7 +854,14 @@ export default React.memo(function BaseFeedCard({
   React.useEffect(() => {
     setLocalReactions(item?._reactions || {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [item?.id, item?._reactions?.inspireCount, item?._reactions?.touchCount, item?._reactions?.commentCount]);
+  }, [item?.id, item?._reactions?.inspireCount, item?._reactions?.touchCount, item?._reactions?.commentCount,
+      // FIX D (2026-08-07): saveCount/saved fehlten hier -- ein Klick auf
+      // "Merken" aktualisierte die Herzchen/Sprechblase sofort (siehe
+      // FIX C), aber der Bookmark-Zaehler/-Zustand blieb bis zum naechsten
+      // Aendern von inspireCount/touchCount/commentCount (oder Reload)
+      // auf dem alten Wert stehen, weil dieser Effect fuer save-Aenderungen
+      // gar nicht erneut lief.
+      item?._reactions?.saveCount, item?._reactions?.saved]);
 
   if (!item?.id) return null;
 
@@ -862,7 +876,12 @@ export default React.memo(function BaseFeedCard({
         next.touched = !prev.touched;
         next.touchCount = (prev.touchCount || 0) + (next.touched ? 1 : -1);
       } else if (type === "save") {
+        // FIX D (2026-08-07): saveCount wurde nie mitgezaehlt -- der
+        // Zaehler neben dem Bookmark-Icon aenderte sich beim Klick nicht
+        // sofort (nur "saved"/Icon-Zustand), sondern erst nachdem der
+        // obige Sync-Effect aus einem anderen Grund erneut lief.
         next.saved = !prev.saved;
+        next.saveCount = Math.max(0, (prev.saveCount || 0) + (next.saved ? 1 : -1));
       }
       return next;
     });
@@ -918,16 +937,12 @@ export default React.memo(function BaseFeedCard({
         style={onCardClick ? { cursor:"pointer", WebkitTapHighlightColor:"transparent" } : undefined}
       >
         <div style={{ padding: "0 " + T.p + "px 4px" }}>{children}</div>
-        {/* IMPACT-IMG-002: Impact-Karten rendern ihr Bild selbst in ImpactContent.
-             FeedMedia hier skippen → kein Doppelbild (cover_url ≠ media_urls Konflikt) */}
-        {item.type !== "impact" && (
-          <FeedMedia
-            media={item.media}
-            alt={item.title || item.text}
-            relaxed={!!(item._reactions?._relaxed)}
-            onDoubleTap={onCardClick ? (e) => { /* double-tap → detail, kein like-trigger */ } : handleDoubleTap}
-          />
-        )}
+        <FeedMedia
+          media={item.media}
+          alt={item.title || item.text}
+          relaxed={!!(item._reactions?._relaxed)}
+          onDoubleTap={onCardClick ? (e) => { /* double-tap → detail, kein like-trigger */ } : handleDoubleTap}
+        />
       </div>
       <FeedActions
         reactions={localReactions}

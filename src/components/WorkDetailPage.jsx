@@ -20,7 +20,8 @@ import { useSavedPostsContext } from "../context/SavedPostsContext.jsx";
 import { haptic } from "./commerce/commerceUtils.js";
 import { toast } from "../lib/useToast.jsx";
 import { shareContent } from "../lib/shareContent.js";
-import { countComments } from "../lib/commentsService.js";
+import { countComments, getComments } from "../lib/commentsService.js";
+import { prefetchComments } from "../lib/commentsPrefetchCache.js";
 import CommentsSheet from "./shared/CommentsSheet.jsx";
 
 /* ── Design Tokens ─────────────────────────────────────────────────── */
@@ -386,6 +387,22 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
   const { isSaved, toggleSave } = useSavedPostsContext();
   const saved = isSaved(id);
 
+  // LIVE-COMMENT-COUNT.1 (2026-08-07): analog zu UnifiedFeed.jsx -- ohne
+  // dieses Event blieb die Kommentar-Zahl neben dem "Austauschen"-Button
+  // nach Schreiben/Loeschen eines Kommentars in der CommentsSheet bis zum
+  // naechsten Reload auf dem alten Wert stehen.
+  useEffect(() => {
+    if (!id) return;
+    function onChanged(e) {
+      const d = e?.detail;
+      if (!d || d.postId !== id) return;
+      if (d.postType && d.postType !== "work") return;
+      countComments(id, "work").then(n => { if (n != null) setCommentCount(n); });
+    }
+    window.addEventListener("hui:comments:changed", onChanged);
+    return () => window.removeEventListener("hui:comments:changed", onChanged);
+  }, [id]);
+
 
   /* ── Load Social State ──────────────────────────────────────────── */
   const loadSocial = useCallback(async (werkId, creatorId) => {
@@ -407,9 +424,11 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
       // CommentsSheet bei Bedarf selbst.
       const n = await countComments(werkId, "work");
       setCommentCount(n);
+      // INSTANT-COMMENTS.1 (2026-08-07): Kommentare im Hintergrund vorladen.
+      prefetchComments(werkId, "work", user?.id, getComments);
 
       // Increment view count
-      await supabase.rpc("increment_work_views", { work_id: werkId }).catch(() => {});
+      try { await supabase.rpc("increment_work_views", { work_id: werkId }); } catch {}
     } catch(e) {
       console.error("[WorkDetail] loadSocial:", e.message);
     }
@@ -812,13 +831,13 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
         borderTop:`1px solid ${C.border}`,
         display:"flex", gap:10, zIndex:10500 }}>
         <button
-          onClick={() => onAddToKorb ? onAddToKorb({...werk, img: images[0], price: priceStr}) : null}
+          onClick={handleSave}
           className="wd-tap"
           style={{ flex:1, padding:"14px",
             background:"none", border:`1.5px solid ${C.coral}55`,
             borderRadius:16, color:C.coral, fontSize:14,
             fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>
-          In den Korb
+          {saved ? "Gemerkt ✓" : "Merken"}
         </button>
         <button
           onClick={() => onBuyWerk ? onBuyWerk({...werk, img: images[0], price: priceStr}) : onBuyWerk?.({...werk, img: images[0], price: priceStr})}

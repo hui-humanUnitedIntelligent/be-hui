@@ -243,7 +243,11 @@ function S2({ data, onChange, onNext }) {
     <div>
       <div style={{ fontSize:20, fontWeight:800, color:C.ink, marginBottom:16 }}>Basisinformationen</div>
       <FI label="Titel des Werks" req value={data.title||""} onChange={v=>onChange({title:v})} placeholder="z. B. Wellen der Ruhe" maxLen={80}/>
-      <FTA label="Kurzbeschreibung" req value={data.shortDesc||""} onChange={v=>onChange({shortDesc:v})} placeholder="Ein abstraktes Acrylbild, inspiriert von der Kraft des Ozeans." maxLen={120} rows={2}/>
+      {/* KURZBESCHREIBUNG-REMOVED-FIX (2026-08-07): Feld auf Nutzerwunsch entfernt --
+          Titel + Detaillierte Beschreibung reichen aus. `data.shortDesc` bleibt im
+          Formular-State/Payload erhalten (mappt weiterhin auf DB-Spalte "caption"),
+          damit bestehende Werke mit vorhandenem caption-Wert beim Bearbeiten NICHT
+          stillschweigend geloescht werden -- lediglich das Eingabefeld verschwindet. */}
       <FTA label="Detaillierte Beschreibung" value={data.description||""} onChange={v=>onChange({description:v})} placeholder="Dieses Werk steht für Bewegung, Freiheit und innere Balance…" maxLen={1000} rows={4}/>
       <FSel label="Kategorie" req value={data.category||""} onChange={v=>onChange({category:v})} options={KATEGORIEN}/>
       <div style={{ marginBottom:14 }}>
@@ -545,6 +549,12 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
     // NICHT in DB: media_url, size, condition → entfernt
     const payload = {
       user_id:      userId,
+      // WERK-CREATOR-ID-FIX (2026-08-07): DB-Spalte "creator_id" ist NOT NULL
+      // (FK auf auth.users, identisch zu user_id in allen Bestandsdaten) und
+      // wurde hier nie gesetzt → "null value in column creator_id" Fehler bei
+      // JEDEM Speichern (Entwurf + Einreichen). Fix: creator_id = userId,
+      // exakt wie in allen bisherigen DB-Zeilen (user_id === creator_id).
+      creator_id:   userId,
       title:        form.title        || "",
       description:  form.description  || null,
       caption:      form.shortDesc    || null,

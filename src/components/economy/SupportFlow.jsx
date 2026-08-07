@@ -1,13 +1,29 @@
 // src/components/economy/SupportFlow.jsx
 // ═══════════════════════════════════════════════════════════════════
-// LEGACY — SUPERSEDED BY COMMERCE 2.0 — REMOVE AFTER PHASE 5
-// Kanonischer Checkout: WerkeKorb → UnterstuetzenFlow → StripePaymentStep
+// HUI Commerce 2.0 — Talent Unterstützen (Stripe Checkout)
 // ═══════════════════════════════════════════════════════════════════
-// HUI Phase 4D
-// "Talent unterstützen" — keine Donation-Energie, eine menschliche Geste
-import React, { useState, useCallback, useEffect } from "react";
+// Ersetzt das Legacy supportService (kein Stripe) durch echten
+// Stripe PaymentIntent über die create-support-payment Edge Function
+// + StripePaymentStep.
+//
+// Ablauf:
+//   1. form → User wählt Betrag + optionale Nachricht
+//   2. loading → create-support-payment Edge Function → clientSecret
+//   3. payment → StripePaymentStep (Stripe Elements)
+//   4. success → Bestätigung + Notification an Creator
+//   5. error → Fehlermeldung
+//
+// PFLICHT: createPortal → document.body, zIndex >= 10500
+// ═══════════════════════════════════════════════════════════════════
+
+import React, { useState, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { useAuth } from "../../lib/AuthContext";
-import { supportService } from "../../services/creatorEconomy.js";
+import { supabase } from "../../lib/supabaseClient";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { getStripe } from "../../lib/stripe.js";
+import { Elements } from "@stripe/react-stripe-js";
+import StripePaymentStep from "../commerce/StripePaymentStep.jsx";
 
 const T = {
   bg:"#FAFAF8", ink:"#1A1A2E", soft:"rgba(26,26,46,0.55)",
@@ -28,150 +44,306 @@ function injectCSS() {
   document.head.appendChild(s);
 }
 
-function SuccessView({ creator, amount, onDone }) {
-  useEffect(() => { const t = setTimeout(onDone, 2800); return () => clearTimeout(t); }, [onDone]);
-  return (
-    <div style={{display:"flex",flexDirection:"column",alignItems:"center",
-      justifyContent:"center",padding:"48px 32px",
-      animation:"sf-success 0.5s cubic-bezier(0.34,1.4,0.64,1) both"}}>
-      <div style={{width:88,height:88,borderRadius:"50%",
-        background:`radial-gradient(circle at 38% 35%, ${T.teal}, ${T.coral})`,
-        display:"flex",alignItems:"center",justifyContent:"center",
-        marginBottom:24,animation:"sf-glow 2s ease infinite",
-        boxShadow:"0 0 48px rgba(22,215,197,0.40)",fontSize:36}}>✦</div>
-      <div style={{fontSize:22,fontWeight:800,color:T.ink,textAlign:"center",marginBottom:10}}>
-        Deine Geste ist angekommen
-      </div>
-      <div style={{fontSize:15,color:T.soft,textAlign:"center",lineHeight:1.6}}>
-        {amount}€ gehen direkt an<br/>
-        <strong style={{color:T.ink}}>{creator?.display_name || "dieses Talent"}</strong>
-      </div>
-    </div>
-  );
-}
-
 export default function SupportFlow({ creator, visible, onClose, sourceType="profile", sourceId=null }) {
   injectCSS();
   const { user } = useAuth();
-  const [amount,  setAmount]  = useState(5);
-  const [custom,  setCustom]  = useState("");
+  const [amount, setAmount] = useState(5);
+  const [custom, setCustom] = useState("");
   const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [done,    setDone]    = useState(false);
-  const [error,   setError]   = useState(null);
+  const [phase, setPhase] = useState("form"); // form | loading | payment | success | error
+  const [errMsg, setErrMsg] = useState("");
+  const [clientSecret, setClientSecret] = useState(null);
+  const [publishableKey, setPublishableKey] = useState(null);
+  const [paymentIntentId, setPaymentIntentId] = useState(null);
 
-  const finalAmount = custom ? parseFloat(custom) : amount;
+  const stripePromise = useMemo(() => getStripe(), []);
 
-  const handleSend = useCallback(async () => {
-    if (!user?.id || !creator?.id) return;
-    if (!finalAmount || finalAmount < 1) { setError("Mindestbetrag: 1€"); return; }
-    setError(null); setLoading(true);
-    const result = await supportService.send({
-      supporterId: user.id, creatorId: creator.id,
-      amount: finalAmount, message: message.trim(), sourceType, sourceId,
-    });
-    setLoading(false);
-    if (result.error) { setError("Konnte nicht gesendet werden. Bitte nochmal versuchen."); return; }
-    setDone(true);
-  }, [user, creator, finalAmount, message, sourceType, sourceId]);
+  if (!visible || !creator) return null;
 
-  if (!visible) return null;
+  const creatorId = creator.id || creator.user_id;
+  const creatorName = creator.display_name || creator.name || "dieses Talent";
+  const finalAmount = custom ? parseFloat(custom.replace(",", ".")) : amount;
 
-  return (
-    <div style={{position:"fixed",inset:0,zIndex:10500,
-      background:"rgba(6,10,20,0.65)",
-      backdropFilter:"blur(18px)",WebkitBackdropFilter:"blur(18px)",
-      display:"flex",alignItems:"flex-end",justifyContent:"center"}}
-      onClick={e => { if (e.target === e.currentTarget) onClose?.(); }}>
-      <div style={{width:"100%",maxWidth:480,background:T.bg,
-        borderRadius:"28px 28px 0 0",
-        padding:`0 0 max(24px, env(safe-area-inset-bottom, 24px))`,
-        animation:"sf-rise 0.38s cubic-bezier(0.22,1,0.36,1) both",overflow:"hidden"}}>
-        <div style={{display:"flex",justifyContent:"center",padding:"14px 0 0"}}>
-          <div style={{width:36,height:4,borderRadius:2,background:"rgba(26,26,46,0.12)"}}/>
-        </div>
-        {done ? (
-          <SuccessView creator={creator} amount={finalAmount} onDone={onClose}/>
-        ) : (
-          <div style={{padding:"20px 24px 0"}}>
-            {/* Creator Header */}
-            <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:20}}>
-              <div style={{width:44,height:44,borderRadius:14,overflow:"hidden",
-                background:"rgba(22,215,197,0.10)",border:`2px solid ${T.teal}`,
-                display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                {creator?.avatar_url
-                  ? <img loading="lazy" decoding="async" src={creator.avatar_url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
-                  : <span style={{fontSize:18,fontWeight:700,color:T.teal}}>
-                      {(creator?.display_name||"T")[0].toUpperCase()}
-                    </span>}
-              </div>
-              <div>
-                <div style={{fontSize:16,fontWeight:700,color:T.ink}}>
-                  {creator?.display_name||"Dieses Talent"} unterstützen
-                </div>
-                <div style={{fontSize:12,color:T.soft,marginTop:2}}>Deine Geste fließt direkt zu ihnen ✦</div>
-              </div>
+  async function handleSupport() {
+    if (!user?.id)    { setErrMsg("Nicht eingeloggt."); setPhase("error"); return; }
+    if (!creatorId)   { setErrMsg("Creator-ID fehlt."); setPhase("error"); return; }
+    if (user.id === creatorId) { setErrMsg("Du kannst dich nicht selbst unterstützen."); setPhase("error"); return; }
+    if (!finalAmount || finalAmount < 0.50) { setErrMsg("Mindestbetrag 0,50 €."); setPhase("error"); return; }
+
+    setPhase("loading");
+    setErrMsg("");
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      if (!accessToken) { setErrMsg("Sitzung abgelaufen — bitte neu anmelden."); setPhase("error"); return; }
+
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const efUrl = `${supabaseUrl}/functions/v1/create-support-payment`;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      const res = await fetch(efUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${accessToken}`,
+          "apikey": supabaseAnonKey ?? "",
+        },
+        body: JSON.stringify({
+          creator_id: creatorId,
+          amount_eur: finalAmount,
+          message: message.trim() || null,
+        }),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok || result.error) {
+        const msg = result.code === "STRIPE_NOT_CONFIGURED"
+          ? "Stripe ist noch nicht konfiguriert. Bitte später versuchen."
+          : (result.error || "Zahlung konnte nicht gestartet werden.");
+        setErrMsg(msg);
+        setPhase("error");
+        return;
+      }
+
+      if (!result.clientSecret) {
+        setErrMsg("Zahlungsgeheimnis fehlt.");
+        setPhase("error");
+        return;
+      }
+
+      setClientSecret(result.clientSecret);
+      setPublishableKey(result.publishableKey ?? null);
+      setPaymentIntentId(result.paymentIntentId ?? null);
+      setPhase("payment");
+    } catch (e) {
+      setErrMsg(e?.message || "Verbindungsfehler beim Starten der Zahlung.");
+      setPhase("error");
+    }
+  }
+
+  async function handleStripeSuccess({ paymentIntentId: piId }) {
+    // Notification an Creator
+    await supabase.from("notifications").insert({
+      user_id:    creatorId,
+      type:       "support_received",
+      text:       `${finalAmount.toFixed(2).replace(".", ",")} € Unterstützung von ${user?.display_name || "einem Mitglied"}`,
+      read:       false,
+      actor_id:   user.id,
+      created_at: new Date().toISOString(),
+      entity_id:  sourceId || null,
+      entity_type: sourceType || null,
+      ...(message.trim() ? { metadata: { message: message.trim().slice(0, 500) } } : {}),
+    }).catch(() => {});
+
+    setPhase("success");
+  }
+
+  // ── Render ──────────────────────────────────────────────────────
+  return createPortal(
+    <div
+      onClick={(e) => { if (e.target === e.currentTarget) onClose?.(); }}
+      style={{
+        position: "fixed", inset: 0, zIndex: 10500,
+        background: "rgba(0,0,0,0.45)",
+        display: "flex", alignItems: "flex-end", justifyContent: "center",
+      }}
+    >
+      <div style={{
+        background: T.bg, borderRadius: "24px 24px 0 0",
+        width: "100%", maxWidth: 480,
+        padding: "28px 24px 40px",
+        boxShadow: "0 -8px 40px rgba(26,26,46,0.18)",
+        animation: "sf-rise 0.3s cubic-bezier(.32,1.2,.55,1) both",
+        maxHeight: "92dvh", overflowY: "auto",
+      }}>
+        {/* Handle */}
+        <div style={{ width: 40, height: 4, borderRadius: 2, background: "rgba(26,26,46,0.12)", margin: "0 auto 24px" }} />
+
+        {/* ── FORM ── */}
+        {phase === "form" && (
+          <>
+            <div style={{ fontSize: 20, fontWeight: 800, color: T.ink, marginBottom: 4, textAlign: "center" }}>
+              {creatorName} unterstützen
             </div>
-            {/* Amount Pills */}
-            <div style={{marginBottom:14}}>
-              <div style={{fontSize:11,fontWeight:600,color:T.soft,letterSpacing:0.5,marginBottom:9}}>
-                BETRAG WÄHLEN
-              </div>
-              <div style={{display:"flex",gap:8}}>
-                {QUICK_AMOUNTS.map(v => (
-                  <button key={v} className="sf-tap" onClick={() => { setAmount(v); setCustom(""); setError(null); }}
-                    style={{flex:1,padding:"12px 0",borderRadius:14,
-                      border: !custom && amount===v ? "none" : `1.5px solid ${T.border}`,
-                      background: !custom && amount===v
-                        ? `linear-gradient(135deg,${T.teal},${T.coral})`
-                        : "white",
-                      color: !custom && amount===v ? "white" : T.ink,
-                      fontSize:15,fontWeight: !custom&&amount===v ? 700:500,
-                      cursor:"pointer",fontFamily:"inherit",
-                      boxShadow: !custom&&amount===v ? "0 4px 16px rgba(22,215,197,0.28)":"none",
-                      transition:"all 0.18s ease"}}>
-                    {v}€
-                  </button>
-                ))}
-              </div>
+            <div style={{ fontSize: 14, color: T.soft, textAlign: "center", marginBottom: 24 }}>
+              Eine menschliche Geste — nicht spenden, unterstützen.
             </div>
-            {/* Custom */}
-            <div style={{marginBottom:14,display:"flex",alignItems:"center",gap:8,
-              padding:"12px 16px",borderRadius:14,
-              border:`1.5px solid ${custom ? T.teal : T.border}`,
-              background:"white",transition:"border-color 0.2s"}}>
-              <span style={{fontSize:16,color:T.soft}}>€</span>
-              <input type="number" placeholder="Eigener Betrag" value={custom}
-                onChange={e => { setCustom(e.target.value); setError(null); }} min={1}
-                style={{flex:1,border:"none",outline:"none",background:"transparent",
-                  fontSize:15,color:T.ink,fontFamily:"inherit"}}/>
+
+            {/* Quick Amounts */}
+            <div style={{ display: "flex", gap: 8, marginBottom: 16, justifyContent: "center", flexWrap: "wrap" }}>
+              {QUICK_AMOUNTS.map((amt) => (
+                <button
+                  key={amt}
+                  onClick={() => { setAmount(amt); setCustom(""); }}
+                  className="sf-tap"
+                  style={{
+                    padding: "10px 20px", borderRadius: 14, border: "none",
+                    background: amount === amt && !custom ? T.teal : "rgba(26,26,46,0.06)",
+                    color: amount === amt && !custom ? "#fff" : T.ink,
+                    fontSize: 16, fontWeight: 700, cursor: "pointer",
+                    transition: "all 0.2s",
+                  }}
+                >
+                  {amt}€
+                </button>
+              ))}
             </div>
+
+            {/* Custom Amount */}
+            <div style={{ marginBottom: 16 }}>
+              <input
+                type="text"
+                value={custom}
+                onChange={(e) => {
+                  setCustom(e.target.value);
+                  if (e.target.value) setAmount(0);
+                }}
+                placeholder="Anderer Betrag (€)"
+                style={{
+                  width: "100%", padding: "12px 14px", borderRadius: 12,
+                  border: `1px solid ${T.border}`, fontSize: 16,
+                  textAlign: "center", outline: "none", boxSizing: "border-box",
+                  fontFamily: "inherit",
+                }}
+              />
+            </div>
+
             {/* Message */}
-            <textarea placeholder="Eine kleine Nachricht (optional) ✦"
-              value={message} onChange={e => setMessage(e.target.value)}
-              maxLength={200} rows={2}
-              style={{width:"100%",borderRadius:14,border:`1.5px solid ${T.border}`,
-                background:"white",padding:"12px 16px",fontSize:14,color:T.ink,
-                lineHeight:1.6,fontFamily:"inherit",resize:"none",outline:"none",
-                boxSizing:"border-box",marginBottom:16}}/>
-            {error && (
-              <div style={{marginBottom:14,padding:"10px 14px",borderRadius:12,
-                background:"rgba(255,138,107,0.10)",border:"1px solid rgba(255,138,107,0.25)",
-                fontSize:13,color:T.coral}}>{error}</div>
-            )}
-            {/* CTA */}
-            <button className="sf-tap" onClick={handleSend} disabled={loading||!finalAmount}
-              style={{width:"100%",padding:"17px",borderRadius:18,border:"none",
-                background: loading ? "rgba(22,215,197,0.5)"
-                  : `linear-gradient(135deg,${T.teal},${T.coral})`,
-                color:"white",fontSize:16,fontWeight:700,cursor:loading?"default":"pointer",
-                boxShadow:"0 6px 24px rgba(22,215,197,0.30)",fontFamily:"inherit",
-                transition:"all 0.2s ease"}}>
-              {loading ? "Wird gesendet…" : `${finalAmount || "…"}€ senden ✦`}
+            <div style={{ marginBottom: 24 }}>
+              <textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Persönliche Nachricht (optional)…"
+                maxLength={300}
+                style={{
+                  width: "100%", minHeight: 70, padding: "12px 14px",
+                  borderRadius: 12, border: `1px solid ${T.border}`,
+                  fontSize: 14, fontFamily: "inherit", resize: "none",
+                  outline: "none", boxSizing: "border-box",
+                }}
+              />
+            </div>
+
+            {/* Impact Info */}
+            <div style={{
+              background: "rgba(22,215,197,0.06)", borderRadius: 12, padding: "14px 16px",
+              marginBottom: 24, fontSize: 13, color: T.soft, lineHeight: 1.6,
+            }}>
+              <strong style={{ color: T.ink }}>
+                {(finalAmount || 0).toFixed(2).replace(".", ",")} €
+              </strong> gehen an {creatorName}.
+              15% Gebühr für HUI-Plattform, davon fließt ein Teil in den Impact-Pool.
+            </div>
+
+            <button
+              onClick={handleSupport}
+              className="sf-tap"
+              style={{
+                width: "100%", padding: "16px", borderRadius: 14, border: "none",
+                background: `linear-gradient(135deg, ${T.teal}, ${T.coral})`,
+                color: "#fff", fontSize: 16, fontWeight: 700,
+                cursor: "pointer", transition: "opacity 0.2s",
+                animation: "sf-glow 2.5s ease infinite",
+              }}
+            >
+              {(finalAmount || 0).toFixed(2).replace(".", ",")} € unterstützen
+            </button>
+          </>
+        )}
+
+        {/* ── LOADING ── */}
+        {phase === "loading" && (
+          <div style={{ textAlign: "center", padding: "40px 0" }}>
+            <div style={{ width: 44, height: 44, border: `3px solid ${T.teal}33`, borderTopColor: T.teal,
+              borderRadius: "50%", animation: "wkfSpin 0.8s linear infinite", margin: "0 auto 16px" }} />
+            <style>{`@keyframes wkfSpin { to { transform: rotate(360deg); } }`}</style>
+            <div style={{ fontSize: 14, color: T.soft }}>Zahlung wird vorbereitet…</div>
+          </div>
+        )}
+
+        {/* ── PAYMENT (Stripe) ── */}
+        {phase === "payment" && clientSecret && (
+          <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: "stripe" } }}>
+            <StripePaymentStep
+              total={finalAmount}
+              impact={finalAmount * 0.0225}
+              orderId={paymentIntentId}
+              onSuccess={handleStripeSuccess}
+              onError={() => setPhase("error")}
+            />
+          </Elements>
+        )}
+
+        {/* ── SUCCESS ── */}
+        {phase === "success" && (
+          <div style={{
+            display: "flex", flexDirection: "column", alignItems: "center",
+            justifyContent: "center", padding: "48px 32px",
+            animation: "sf-success 0.5s cubic-bezier(0.34,1.4,0.64,1) both",
+          }}>
+            <div style={{
+              width: 88, height: 88, borderRadius: "50%",
+              background: `radial-gradient(circle at 38% 35%, ${T.teal}, ${T.coral})`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              marginBottom: 24, animation: "sf-glow 2s ease infinite",
+              boxShadow: "0 0 48px rgba(22,215,197,0.40)", fontSize: 36,
+            }}>✦</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: T.ink, textAlign: "center", marginBottom: 10 }}>
+              Deine Geste ist angekommen
+            </div>
+            <div style={{ fontSize: 15, color: T.soft, textAlign: "center", lineHeight: 1.6 }}>
+              {finalAmount.toFixed(2).replace(".", ",")}€ gehen an<br />
+              <strong style={{ color: T.ink }}>{creatorName}</strong>
+            </div>
+            <button
+              onClick={onClose}
+              className="sf-tap"
+              style={{
+                marginTop: 28, padding: "12px 32px", borderRadius: 14, border: "none",
+                background: T.teal, color: "#fff", fontSize: 15, fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              Fertig
             </button>
           </div>
         )}
+
+        {/* ── ERROR ── */}
+        {phase === "error" && (
+          <div style={{ textAlign: "center", padding: "16px 0 8px" }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: "#FF5B5B", marginBottom: 8 }}>Fehler</div>
+            <div style={{ fontSize: 14, color: T.soft, marginBottom: 28, lineHeight: 1.5 }}>
+              {errMsg || "Etwas ist schiefgegangen."}
+            </div>
+            <button
+              onClick={() => { setErrMsg(""); setPhase("form"); }}
+              style={{
+                width: "100%", padding: "14px", borderRadius: 14, border: "none",
+                background: "rgba(26,26,46,0.08)", color: T.ink, fontSize: 15, fontWeight: 600, cursor: "pointer",
+              }}
+            >
+              Erneut versuchen
+            </button>
+          </div>
+        )}
+
+        {/* Close button */}
+        {phase !== "payment" && phase !== "loading" && (
+          <button
+            onClick={onClose}
+            style={{
+              position: "absolute", top: 16, right: 16,
+              width: 32, height: 32, borderRadius: "50%", border: "none",
+              background: "rgba(26,26,46,0.06)", color: "rgba(26,26,46,0.45)",
+              fontSize: 16, cursor: "pointer", lineHeight: 1,
+            }}
+          >✕</button>
+        )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -38,7 +38,7 @@ export function VisibilitySection({
   useModalRegistration(showSheet, () => setShowSheet(false), "VisibilitySection-Sheet");
   const [saving,    setSaving]    = useState(false);
 
-  const current = profile?.visibility || profile?.focus_type || "connections";
+  const current = profile?.visibility || profile?.focus_type || "public";
 
   const handleSelect = async (key) => {
     setSaving(true);

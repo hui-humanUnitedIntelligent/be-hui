@@ -251,7 +251,7 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
           fontWeight: 400,
           letterSpacing: "-0.01em",
           display: "-webkit-box",
-          WebkitLineClamp: 3,
+          WebkitLineClamp: 2,
           WebkitBoxOrient: "vertical",
           overflow: "hidden",
         }}>

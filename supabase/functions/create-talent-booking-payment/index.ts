@@ -34,6 +34,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   cannot_book_own_offer: 'Du kannst dein eigenes Angebot nicht buchen.',
   no_price_configured:   'Für dieses Angebot ist kein Preis hinterlegt.',
   no_seats_available:    'Keine Plätze mehr verfügbar für diesen Termin.',
+  seller_not_public:     'Dieses Profil ist nicht öffentlich — Buchungen sind aktuell deaktiviert.',
   invalid_participants:  'Ungültige Teilnehmerzahl.',
   not_authenticated:     'Bitte melde dich an.',
 }

@@ -24,6 +24,7 @@ import { getStripe } from "../../lib/stripe.js";
 import { Elements } from "@stripe/react-stripe-js";
 import StripePaymentStep from "../commerce/StripePaymentStep.jsx";
 import AvailabilityCalendar from "./AvailabilityCalendar.jsx";
+import { useSavedPostsContext } from "../../context/SavedPostsContext.jsx";
 
 const TEAL  = "#16D7C5";
 const CORAL = "#FF8A6B";
@@ -44,6 +45,12 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
   const { user } = useAuth();
   useWizardBodyLock();
   useModalRegistration(true, onClose, "TalentBookingFlow");
+  const { isSaved, toggleSave } = useSavedPostsContext();
+  const saved = isSaved(talent?.id);
+  const handleSave = useCallback(() => {
+    if (!talent?.id) return;
+    toggleSave(talent.id, "talent", { title: talent?.title, cover_url: talent?.cover, author_name: talent?.author });
+  }, [talent?.id, talent?.title, talent?.cover, talent?.author, toggleSave]);
 
   const [step,        setStep]        = useState("select"); // select | payment | success | error
   const [selectedDate, setSelectedDate] = useState(talent?.available_dates?.[0] || "");
@@ -459,12 +466,12 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
               display: "flex",
               gap: 10,
             }}>
-              <button onClick={onClose} style={{
+              <button onClick={handleSave} style={{
                 flex: 1, background: "transparent", border: "1.5px solid rgba(26,26,46,0.15)",
                 borderRadius: 14, padding: "13px 0", fontSize: 14, fontWeight: 600,
                 color: "rgba(26,26,46,0.55)", cursor: "pointer", touchAction: "manipulation",
               }}>
-                Abbrechen
+                {saved ? "Gemerkt ✓" : "Merken"}
               </button>
               <button
                 onClick={handleBuchen}
@@ -478,7 +485,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                   touchAction: "manipulation",
                 }}
               >
-                {submitting ? "Wird vorbereitet…" : (isFull ? "Ausgebucht" : "Weiter zur Zahlung")}
+                {submitting ? "Wird vorbereitet…" : (isFull ? "Ausgebucht" : "Buchen")}
               </button>
             </div>
           </>

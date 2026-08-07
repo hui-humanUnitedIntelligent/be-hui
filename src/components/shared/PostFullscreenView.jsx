@@ -47,7 +47,9 @@ import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { toast } from "../../lib/useToast.jsx";
 import { shareContent } from "../../lib/shareContent.js";
 import { HUICommentIcon } from "../../design/icons/HuiInteractionIcons.jsx";
-import { countComments } from "../../lib/commentsService.js";
+import { countComments, getComments } from "../../lib/commentsService.js";
+import { useAuth } from "../../lib/AuthContext.jsx";
+import { prefetchComments } from "../../lib/commentsPrefetchCache.js";
 import CommentsSheet from "./CommentsSheet.jsx";
 
 const T = {
@@ -85,6 +87,7 @@ function useMoreFromAuthor(authorId, excludeId) {
 }
 
 export default function PostFullscreenView({ item, onClose, onOpenPost }) {
+  const { user } = useAuth();
   const { isSaved, toggleSave } = useSavedPostsContext();
 
   // ── Enter/Exit-Animation: eigener "mountedItem"-State entkoppelt vom
@@ -156,7 +159,24 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
     if (!postId) return;
     let cancelled = false;
     countComments(postId, postType).then(n => { if (!cancelled) setCommentCount(n); });
+    // INSTANT-COMMENTS.1 (2026-08-07): Kommentare im Hintergrund vorladen.
+    prefetchComments(postId, postType, user?.id, getComments);
     return () => { cancelled = true; };
+  }, [postId, postType, user?.id]);
+
+  // LIVE-COMMENT-COUNT.1 (2026-08-07): Kommentare in CommentsSheet aktualisieren
+  // sofort den Zähler hier — ohne dieses Event blieb die Zahl bis zum nächsten
+  // Öffnen/Reload auf dem alten Wert stehen.
+  useEffect(() => {
+    if (!postId) return;
+    function onChanged(e) {
+      const d = e?.detail;
+      if (!d || d.postId !== postId) return;
+      if (d.postType && postType && d.postType !== postType) return;
+      countComments(postId, postType).then(n => { if (n != null) setCommentCount(n); });
+    }
+    window.addEventListener("hui:comments:changed", onChanged);
+    return () => window.removeEventListener("hui:comments:changed", onChanged);
   }, [postId, postType]);
 
   const handleOpenProfile = useCallback(() => {
@@ -321,13 +341,22 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
             </div>
           )}
 
-          {/* 8) Profil ansehen */}
-          <button className="pfv-btn" onClick={handleOpenProfile} style={{
-            width:"100%", marginTop:22, padding:"13px", borderRadius:14,
-            background:T.ink, color:"#fff", fontSize:14, fontWeight:700,
-          }}>
-            Profil ansehen
-          </button>
+          {/* 8) Merken + Profil ansehen */}
+          <div style={{ display:"flex", gap:10, marginTop:22 }}>
+            <button className="pfv-btn" onClick={() => handleReaction("save")} style={{
+              flex:1, padding:"13px", borderRadius:14,
+              background:"transparent", border:`1.5px solid ${T.ink}26`,
+              color:T.ink, fontSize:14, fontWeight:700,
+            }}>
+              {saved ? "Gemerkt ✓" : "Merken"}
+            </button>
+            <button className="pfv-btn" onClick={handleOpenProfile} style={{
+              flex:2, padding:"13px", borderRadius:14,
+              background:T.ink, color:"#fff", fontSize:14, fontWeight:700,
+            }}>
+              Profil ansehen
+            </button>
+          </div>
 
           {/* Bottom-Spacer: verhindert Abschneiden hinter Navbar */}
           <div style={{ height:"calc(88px + env(safe-area-inset-bottom, 0px))" }}/>

@@ -57,7 +57,7 @@ export default function TalentContent({ item, onProfile, onReaction, onShare }) 
         <p style={{ margin:"0 0 10px", fontSize:13.5, fontWeight:400,
           color:"rgba(26,26,46,0.65)", lineHeight:1.55,
           overflow:"hidden", display:"-webkit-box",
-          WebkitLineClamp:3, WebkitBoxOrient:"vertical" }}>
+          WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>
           {desc}
         </p>
       )}
