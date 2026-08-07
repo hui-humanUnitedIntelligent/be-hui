@@ -1,0 +1,89 @@
+name: Run Migration 085 (V7.5 Wallet Trigger)
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: run-migration-085
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        run: |
+          curl -fsSL https://github.com/supabase/cli/releases/download/v2.108.0/supabase_linux_amd64.tar.gz | tar -xz -C /tmp
+          sudo mv /tmp/supabase /usr/local/bin/supabase
+          supabase --version
+
+      - name: Link Supabase project
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase link --project-ref gxztrhvhcxhmunhhkfjd --yes
+
+      - name: Run migration 085
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+          supabase db query --linked -f supabase/migrations/20260807_085_wallet_trigger_is_talent.sql
+          echo "✅ Migration 085 executed"
+
+      - name: Verify function exists
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+          RESULT=$(supabase db query --linked "SELECT proname FROM pg_proc WHERE proname = 'auto_create_creator_wallet' AND pronamespace = 'public'::regnamespace;")
+          echo "$RESULT"
+          if echo "$RESULT" | grep -q "auto_create_creator_wallet"; then
+            echo "✅ Function auto_create_creator_wallet exists"
+          else
+            echo "❌ Function auto_create_creator_wallet NOT found"
+            exit 1
+          fi
+
+      - name: Verify trigger exists
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+          RESULT=$(supabase db query --linked "SELECT tgname FROM pg_trigger WHERE tgname = 'trg_auto_wallet';")
+          echo "$RESULT"
+          if echo "$RESULT" | grep -q "trg_auto_wallet"; then
+            echo "✅ Trigger trg_auto_wallet exists"
+          else
+            echo "❌ Trigger trg_auto_wallet NOT found"
+            exit 1
+          fi
+
+      - name: Verify trigger fires on is_talent
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+          RESULT=$(supabase db query --linked "SELECT t.tgname, string_agg(a.attname, ', ') AS columns FROM pg_trigger t JOIN pg_attribute a ON a.attrelid = t.tgrelid AND a.attnum = ANY(t.tgattr) WHERE t.tgname = 'trg_auto_wallet' GROUP BY t.tgname;")
+          echo "$RESULT"
+          if echo "$RESULT" | grep -q "is_talent"; then
+            echo "✅ Trigger fires on is_talent"
+          else
+            echo "❌ Trigger does NOT fire on is_talent"
+            exit 1
+          fi
+
+      - name: Verify legacy fallback (membership_type)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+          RESULT=$(supabase db query --linked "SELECT pg_get_functiondef(oid) FROM pg_proc WHERE proname = 'auto_create_creator_wallet';")
+          echo "$RESULT"
+          if echo "$RESULT" | grep -q "membership_type"; then
+            echo "✅ Legacy fallback on membership_type present"
+          else
+            echo "❌ Legacy fallback on membership_type NOT found"
+            exit 1
+          fi
