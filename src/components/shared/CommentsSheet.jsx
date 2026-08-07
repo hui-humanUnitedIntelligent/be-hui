@@ -27,6 +27,19 @@ import {
   getComments, createComment, updateComment, deleteComment,
   toggleCommentHeart, reportComment, subscribeComments,
 } from "../../lib/commentsService.js";
+
+// LIVE-COMMENT-COUNT.1 (2026-08-07): Feed-/Detail-Karten (UnifiedFeed.jsx,
+// WorkDetailPage.jsx etc.) zeigen die Kommentar-Anzahl aus einem eigenen,
+// separat geladenen State -- CommentsSheet ist ein Geschwister-Element,
+// kein Kind. Ohne dieses Signal blieb die Zahl auf der Karte nach einem
+// neuen/geloeschten Kommentar bis zum naechsten Reload stehen. Globales
+// Event statt Prop-Callback, damit JEDER Aufrufer (Feed, Werk-Detail,
+// Erlebnis-Detail, ...) ohne eigene Verdrahtung profitiert.
+function notifyCommentsChanged(postId, postType) {
+  try {
+    window.dispatchEvent(new CustomEvent("hui:comments:changed", { detail: { postId, postType } }));
+  } catch { /* silent */ }
+}
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 const T = {
@@ -489,6 +502,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
       return;
     }
     setItems(prev => prev.map(c => c.id === optimistic.id ? { ...optimistic, id: data.id, created_at: data.created_at } : c));
+    notifyCommentsChanged(postId, postType);
   }, [input, user?.id, postId, postType, postAuthorId, postActionUrl, profile]);
 
   const handleReply = useCallback((comment) => { setReplyTargetId(comment.id); setReplyText(""); }, []);
@@ -530,6 +544,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
     }
     const patchId = (list) => list.map(c => c.id === optimistic.id ? { ...optimistic, id: data.id, created_at: data.created_at } : { ...c, replies: patchId(c.replies||[]) });
     setItems(prev => patchId(prev));
+    notifyCommentsChanged(postId, postType);
   }, [replyText, replyTargetId, user?.id, postId, postType, postActionUrl, profile, items]);
 
   const handleSaveEdit = useCallback(async (commentId, text) => {
@@ -553,8 +568,10 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
       toast.error("Kommentar konnte nicht gelöscht werden.");
       // Reload bei Fehler
       // (kein Rollback nötig — deleteComment ist idempotent)
+      return;
     }
-  }, []);
+    notifyCommentsChanged(postId, postType);
+  }, [postId, postType]);
 
   const handleHeart = useCallback(async (comment) => {
     if (!user?.id) return;

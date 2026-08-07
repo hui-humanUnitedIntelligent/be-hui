@@ -159,6 +159,21 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
     return () => { cancelled = true; };
   }, [postId, postType]);
 
+  // LIVE-COMMENT-COUNT.1 (2026-08-07): Kommentare in CommentsSheet aktualisieren
+  // sofort den Zähler hier — ohne dieses Event blieb die Zahl bis zum nächsten
+  // Öffnen/Reload auf dem alten Wert stehen.
+  useEffect(() => {
+    if (!postId) return;
+    function onChanged(e) {
+      const d = e?.detail;
+      if (!d || d.postId !== postId) return;
+      if (d.postType && postType && d.postType !== postType) return;
+      countComments(postId, postType).then(n => { if (n != null) setCommentCount(n); });
+    }
+    window.addEventListener("hui:comments:changed", onChanged);
+    return () => window.removeEventListener("hui:comments:changed", onChanged);
+  }, [postId, postType]);
+
   const handleOpenProfile = useCallback(() => {
     if (authorId && typeof window.__HUI_OPEN_PROFILE__ === "function") {
       onClose();

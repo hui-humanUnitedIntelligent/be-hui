@@ -847,7 +847,14 @@ export default React.memo(function BaseFeedCard({
   React.useEffect(() => {
     setLocalReactions(item?._reactions || {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [item?.id, item?._reactions?.inspireCount, item?._reactions?.touchCount, item?._reactions?.commentCount]);
+  }, [item?.id, item?._reactions?.inspireCount, item?._reactions?.touchCount, item?._reactions?.commentCount,
+      // FIX D (2026-08-07): saveCount/saved fehlten hier -- ein Klick auf
+      // "Merken" aktualisierte die Herzchen/Sprechblase sofort (siehe
+      // FIX C), aber der Bookmark-Zaehler/-Zustand blieb bis zum naechsten
+      // Aendern von inspireCount/touchCount/commentCount (oder Reload)
+      // auf dem alten Wert stehen, weil dieser Effect fuer save-Aenderungen
+      // gar nicht erneut lief.
+      item?._reactions?.saveCount, item?._reactions?.saved]);
 
   if (!item?.id) return null;
 
@@ -862,7 +869,12 @@ export default React.memo(function BaseFeedCard({
         next.touched = !prev.touched;
         next.touchCount = (prev.touchCount || 0) + (next.touched ? 1 : -1);
       } else if (type === "save") {
+        // FIX D (2026-08-07): saveCount wurde nie mitgezaehlt -- der
+        // Zaehler neben dem Bookmark-Icon aenderte sich beim Klick nicht
+        // sofort (nur "saved"/Icon-Zustand), sondern erst nachdem der
+        // obige Sync-Effect aus einem anderen Grund erneut lief.
         next.saved = !prev.saved;
+        next.saveCount = Math.max(0, (prev.saveCount || 0) + (next.saved ? 1 : -1));
       }
       return next;
     });

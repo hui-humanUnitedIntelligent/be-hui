@@ -386,6 +386,22 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
   const { isSaved, toggleSave } = useSavedPostsContext();
   const saved = isSaved(id);
 
+  // LIVE-COMMENT-COUNT.1 (2026-08-07): analog zu UnifiedFeed.jsx -- ohne
+  // dieses Event blieb die Kommentar-Zahl neben dem "Austauschen"-Button
+  // nach Schreiben/Loeschen eines Kommentars in der CommentsSheet bis zum
+  // naechsten Reload auf dem alten Wert stehen.
+  useEffect(() => {
+    if (!id) return;
+    function onChanged(e) {
+      const d = e?.detail;
+      if (!d || d.postId !== id) return;
+      if (d.postType && d.postType !== "work") return;
+      countComments(id, "work").then(n => { if (n != null) setCommentCount(n); });
+    }
+    window.addEventListener("hui:comments:changed", onChanged);
+    return () => window.removeEventListener("hui:comments:changed", onChanged);
+  }, [id]);
+
 
   /* ── Load Social State ──────────────────────────────────────────── */
   const loadSocial = useCallback(async (werkId, creatorId) => {

@@ -457,6 +457,27 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
     countComments(postId, postType).then(n => { setCommentCount(n); });
   }, [visible, postId, postType]); // eslint-disable-line
 
+  // LIVE-COMMENT-COUNT.1 (2026-08-07): CommentsSheet ist ein separates
+  // Geschwister-Element (einmalig in UnifiedFeed gemountet, siehe unten),
+  // kein Kind dieser Karte -- ein neu geschriebener/geloeschter Kommentar
+  // aenderte die Sprechblasen-Zahl auf der Karte bisher NICHT, weil
+  // ccLoadedRef das erneute Laden blockierte und niemand die Karte davon
+  // informierte. Fix: CommentsSheet feuert bei jeder erfolgreichen
+  // Aenderung ein globales "hui:comments:changed"-Event mit {postId,
+  // postType} -- diese Karte lauscht darauf und laedt bei Treffer den
+  // echten Server-Wert frisch nach (kein Delta-Raten, keine Doppelzaehlung).
+  useEffect(() => {
+    if (!postId) return;
+    function onChanged(e) {
+      const d = e?.detail;
+      if (!d || d.postId !== postId) return;
+      if (d.postType && postType && d.postType !== postType) return;
+      countComments(postId, postType).then(n => { if (n != null) setCommentCount(n); });
+    }
+    window.addEventListener("hui:comments:changed", onChanged);
+    return () => window.removeEventListener("hui:comments:changed", onChanged);
+  }, [postId, postType]);
+
   const handleReaction = useCallback((type) => {
     // Sprechblase → CommentsSheet öffnen statt Reaction-Toggle
     if (type === "touch") {
