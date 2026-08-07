@@ -13,7 +13,7 @@ const PLATFORM_FEE_RATE = 0.15
 const CREATOR_SHARE     = 0.85
 const IMPACT_RATE       = 0.0225
 const MIN_AMOUNT_CENTS  = 50
-const MAX_AMOUNT_CENTS  = 100000
+const MAX_AMOUNT_CENTS  = 500000
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
@@ -58,7 +58,7 @@ serve(async (req) => {
 
     const amountCents = Math.round(amount * 100)
     if (amountCents > MAX_AMOUNT_CENTS) {
-      return new Response(JSON.stringify({ error: 'Maximalbetrag 1.000 €' }), {
+      return new Response(JSON.stringify({ error: 'Maximalbetrag 5.000 €' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }

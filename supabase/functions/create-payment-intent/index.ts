@@ -97,7 +97,7 @@ serve(async (req) => {
       .eq('cart_hash', cartHash)
       .order('created_at', { ascending: false })
       .limit(1)
-      .single()
+      .maybeSingle()
 
     if (existingOrder?.stripe_payment_intent) {
       // Bestehenden PI reaktivieren statt neuen erstellen

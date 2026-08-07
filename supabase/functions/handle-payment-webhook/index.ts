@@ -72,7 +72,7 @@ serve(async (req) => {
       .from('webhook_events')
       .select('id, status')
       .eq('stripe_event_id', event.id)
-      .single()
+      .maybeSingle()
 
     if (existingEvent) {
       console.log('[WEBHOOK] Event bereits verarbeitet:', event.id)
@@ -107,7 +107,7 @@ serve(async (req) => {
         .select('id, customer_id, total_eur, state')
         .eq('stripe_payment_intent', pi.id)
         .eq('state', 'pending')
-        .single()
+        .maybeSingle()
       order = orderByPi.data
       orderErr = orderByPi.error
 
@@ -117,7 +117,7 @@ serve(async (req) => {
           .select('id, customer_id, total_eur, state')
           .eq('id', pi.metadata.hui_order_id)
           .eq('state', 'pending')
-          .single()
+          .maybeSingle()
         order = orderByMeta.data
         orderErr = orderByMeta.error
       }
@@ -129,7 +129,7 @@ serve(async (req) => {
           .select('id, customer_id, seller_id, amount_eur, status')
           .eq('stripe_payment_intent', pi.id)
           .eq('status', 'pending_payment')
-          .single()
+          .maybeSingle()
 
         if (tBooking) {
           const expectedBookingCents = Math.round(Number(tBooking.amount_eur) * 100)
@@ -176,7 +176,7 @@ serve(async (req) => {
             .select('id, user_id, ambassador_id, amount, ambassador_share, impact_pool_share')
             .eq('stripe_payment_id', pi.id)
             .eq('status', 'pending')
-            .single()
+            .maybeSingle()
 
           if (supportPayment) {
             // Amount-Verification
@@ -325,7 +325,7 @@ serve(async (req) => {
           .from('impact_rounds')
           .select('id, pool_eur')
           .eq('status', 'active')
-          .single()
+          .maybeSingle()
 
         if (currentRound) {
           await supabase.from('impact_rounds').update({
