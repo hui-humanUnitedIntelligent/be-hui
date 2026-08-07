@@ -12,6 +12,11 @@ const T = {
   tealSoft:"rgba(14,196,184,0.12)", tealDeep:"rgba(0,150,136,1)"
 };
 const PAGE_SIZE = 20;
+const SORT_OPTIONS = [
+  { key:"popular", label:"Beliebt",  icon:"✨" },
+  { key:"newest",  label:"Neueste",  icon:"🕐" },
+  { key:"alpha",   label:"A–Z", icon:"🔤" },
+];
 const FORMAT_LABEL = { original:"Original", druck:"Druck", digital:"Digital Art" };
 const FORMAT_BADGE = { original:"#7C3AED", druck:"#0891B2", digital:"#D97706" };
 
@@ -74,6 +79,7 @@ export default function WerkeAllModal({ isOpen, onClose, onPressItem }) {
   const [hasMore, setHasMore]   = useState(true);
   const [search, setSearch]     = useState("");
   const [filter, setFilter]     = useState("alle");
+  const [sort, setSort]           = useState("popular"); // popular | newest | alpha
   const [page, setPage]         = useState(0);
   const scrollRef                = useRef(null);
   const searchTimer              = useRef(null);
@@ -90,7 +96,7 @@ export default function WerkeAllModal({ isOpen, onClose, onPressItem }) {
   useEffect(() => {
     if (!isOpen) return;
     setItems([]); setPage(0); setHasMore(true);
-  }, [debouncedSearch, filter, isOpen]);
+  }, [debouncedSearch, filter, sort, isOpen]);
 
   // Laden
   const load = useCallback(async (pageNum) => {
@@ -98,9 +104,10 @@ export default function WerkeAllModal({ isOpen, onClose, onPressItem }) {
     setLoading(true);
     try {
       let q = supabase.from("works")
-        .select("id,title,cover_url,category,file_format,price,location_text,user_id,created_at")
+        .select("id,title,cover_url,category,file_format,price,location_text,user_id,created_at,likes_count")
         .eq("status","published").eq("approval_status","approved").eq("visibility","public")
-        .order("created_at",{ ascending:false })
+        .order(sort === "alpha" ? "title" : sort === "popular" ? "likes_count" : "created_at",
+                { ascending: sort === "alpha" })
         .range(pageNum * PAGE_SIZE, (pageNum+1) * PAGE_SIZE - 1);
 
       if (debouncedSearch) {
@@ -124,12 +131,12 @@ export default function WerkeAllModal({ isOpen, onClose, onPressItem }) {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, filter, loading]);
+  }, [debouncedSearch, filter, sort, loading]);
 
   useEffect(() => {
     if (!isOpen) return;
     load(0);
-  }, [debouncedSearch, filter, isOpen]);
+  }, [debouncedSearch, filter, sort, isOpen]);
 
   // Infinite Scroll
   const onScroll = useCallback(() => {
@@ -185,8 +192,21 @@ export default function WerkeAllModal({ isOpen, onClose, onPressItem }) {
             value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Werke suchen…"
             style={{ width:"100%", padding:"9px 14px", borderRadius:12, border:`1px solid ${T.border}`,
-              background:"#f8fafc", fontSize:14, color:T.ink, outline:"none", boxSizing:"border-box" }}
+              background:"#f8fafc", fontSize:14, color:T.ink, outline:"none", boxSizing:"border-box", marginBottom:10 }}
           />
+          <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:6 }}>
+            {SORT_OPTIONS.map(opt => (
+              <button key={opt.key} onClick={() => setSort(opt.key)} style={{
+                flexShrink:0, padding:"6px 12px", borderRadius:99, fontSize:12, fontWeight:700,
+                border:`1px solid ${sort === opt.key ? T.teal : T.border}`,
+                background: sort === opt.key ? "rgba(14,196,184,0.12)" : T.white,
+                color: sort === opt.key ? T.tealDeep : T.inkSoft,
+                cursor:"pointer", whiteSpace:"nowrap",
+              }}>
+                {opt.icon} {opt.label}
+              </button>
+            ))}
+          </div>
           <div style={{ display:"flex", gap:6, marginTop:8, overflowX:"auto", paddingBottom:4 }}>
             {FILTERS.map(f => (
               <button key={f.key} onClick={() => setFilter(f.key)} style={{

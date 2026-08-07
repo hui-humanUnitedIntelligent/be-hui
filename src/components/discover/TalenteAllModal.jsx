@@ -12,6 +12,10 @@ const T = {
   tealSoft:"rgba(14,196,184,0.12)", tealDeep:"rgba(0,150,136,1)"
 };
 const PAGE_SIZE = 20;
+const SORT_OPTIONS = [
+  { key:"newest",  label:"Neueste",  icon:"🕐" },
+  { key:"alpha",   label:"A–Z", icon:"🔤" },
+];
 const LOC_LABELS = { vor_ort:"Vor Ort", online:"Online", beides:"Vor Ort & Online" };
 
 function TalentCardItem({ t, onPress }) {
@@ -73,6 +77,7 @@ export default function TalenteAllModal({ isOpen, onClose, onPressTalent }) {
   const [hasMore, setHasMore]   = useState(true);
   const [search, setSearch]     = useState("");
   const [filterLoc, setFilterLoc] = useState("alle");
+  const [sort, setSort]           = useState("newest"); // newest | alpha (no likes_count on talents)
   const [page, setPage]         = useState(0);
   const scrollRef               = useRef(null);
   const searchTimer             = useRef(null);
@@ -87,7 +92,7 @@ export default function TalenteAllModal({ isOpen, onClose, onPressTalent }) {
   useEffect(() => {
     if (!isOpen) return;
     setItems([]); setPage(0); setHasMore(true);
-  }, [debouncedSearch, filterLoc, isOpen]);
+  }, [debouncedSearch, filterLoc, sort, isOpen]);
 
   const load = useCallback(async (pageNum) => {
     if (loading) return;
@@ -96,7 +101,7 @@ export default function TalenteAllModal({ isOpen, onClose, onPressTalent }) {
       let q = supabase.from("talents")
         .select("id,title,description,category,images,price_per_hour,price_per_session,currency,location_type,location_address,user_id,created_at")
         .eq("status","approved")
-        .order("created_at",{ ascending:false })
+        .order(sort === "alpha" ? "title" : "created_at", { ascending: sort === "alpha" })
         .range(pageNum * PAGE_SIZE, (pageNum+1) * PAGE_SIZE - 1);
 
       if (debouncedSearch) {
@@ -122,12 +127,12 @@ export default function TalenteAllModal({ isOpen, onClose, onPressTalent }) {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, filterLoc, loading]);
+  }, [debouncedSearch, filterLoc, sort, loading]);
 
   useEffect(() => {
     if (!isOpen) return;
     load(0);
-  }, [debouncedSearch, filterLoc, isOpen]);
+  }, [debouncedSearch, filterLoc, sort, isOpen]);
 
   const onScroll = useCallback(() => {
     const el = scrollRef.current;
@@ -175,7 +180,20 @@ export default function TalenteAllModal({ isOpen, onClose, onPressTalent }) {
           <input value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Talente suchen…"
             style={{ width:"100%", padding:"9px 14px", borderRadius:12, border:`1px solid ${T.border}`,
-              background:"#f8fafc", fontSize:14, color:T.ink, outline:"none", boxSizing:"border-box" }}/>
+              background:"#f8fafc", fontSize:14, color:T.ink, outline:"none", boxSizing:"border-box", marginBottom:10 }}/>
+          <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:6 }}>
+            {SORT_OPTIONS.map(opt => (
+              <button key={opt.key} onClick={() => setSort(opt.key)} style={{
+                flexShrink:0, padding:"6px 12px", borderRadius:99, fontSize:12, fontWeight:700,
+                border:`1px solid ${sort === opt.key ? T.teal : T.border}`,
+                background: sort === opt.key ? "rgba(14,196,184,0.12)" : T.white,
+                color: sort === opt.key ? T.tealDeep : T.inkSoft,
+                cursor:"pointer", whiteSpace:"nowrap",
+              }}>
+                {opt.icon} {opt.label}
+              </button>
+            ))}
+          </div>
           <div style={{ display:"flex", gap:6, marginTop:8, overflowX:"auto", paddingBottom:4 }}>
             {LOC_FILTERS.map(f => (
               <button key={f.key} onClick={() => setFilterLoc(f.key)} style={{

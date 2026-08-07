@@ -13,6 +13,10 @@ const T = {
   tealSoft:"rgba(14,196,184,0.12)", tealDeep:"rgba(0,150,136,1)"
 };
 const PAGE_SIZE = 20;
+const SORT_OPTIONS = [
+  { key:"newest",  label:"Neueste",  icon:"🕐" },
+  { key:"alpha",   label:"A–Z", icon:"🔤" },
+];
 const timeAgo = (iso) => {
   if (!iso) return "";
   const d = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
@@ -90,6 +94,7 @@ export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
   const scrollRef                = useRef(null);
   const searchTimer              = useRef(null);
   const [debouncedSearch, setDS] = useState("");
+  const [sort, setSort]               = useState("newest"); // newest | alpha (no likes_count on beitraege)
 
   useEffect(() => {
     clearTimeout(searchTimer.current);
@@ -100,7 +105,7 @@ export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
   useEffect(() => {
     if (!isOpen) return;
     setItems([]); setPage(0); setHasMore(true);
-  }, [debouncedSearch, isOpen]);
+  }, [debouncedSearch, sort, isOpen]);
 
   const load = useCallback(async (pageNum) => {
     if (loading) return;
@@ -108,7 +113,7 @@ export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
     try {
       let q = supabase.from("beitraege")
         .select("id,src,type,moment_source,caption,created_at,user_id")
-        .order("created_at",{ ascending:false })
+        .order(sort === "alpha" ? "caption" : "created_at", { ascending: sort === "alpha" })
         .range(pageNum * PAGE_SIZE, (pageNum+1) * PAGE_SIZE - 1);
 
       if (debouncedSearch) q = q.ilike("caption", `%${debouncedSearch}%`);
@@ -138,12 +143,12 @@ export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, loading]);
+  }, [debouncedSearch, sort, loading]);
 
   useEffect(() => {
     if (!isOpen) return;
     load(0);
-  }, [debouncedSearch, isOpen]);
+  }, [debouncedSearch, sort, isOpen]);
 
   const onScroll = useCallback(() => {
     const el = scrollRef.current;
@@ -184,7 +189,20 @@ export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
           <input value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Momente suchen…"
             style={{ width:"100%", padding:"9px 14px", borderRadius:12, border:`1px solid ${T.border}`,
-              background:"#f8fafc", fontSize:14, color:T.ink, outline:"none", boxSizing:"border-box" }}/>
+              background:"#f8fafc", fontSize:14, color:T.ink, outline:"none", boxSizing:"border-box", marginBottom:10 }}/>
+          <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:6 }}>
+            {SORT_OPTIONS.map(opt => (
+              <button key={opt.key} onClick={() => setSort(opt.key)} style={{
+                flexShrink:0, padding:"6px 12px", borderRadius:99, fontSize:12, fontWeight:700,
+                border:`1px solid ${sort === opt.key ? T.teal : T.border}`,
+                background: sort === opt.key ? "rgba(14,196,184,0.12)" : T.white,
+                color: sort === opt.key ? T.tealDeep : T.inkSoft,
+                cursor:"pointer", whiteSpace:"nowrap",
+              }}>
+                {opt.icon} {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
         <div ref={scrollRef} onScroll={onScroll}
           style={{ flex:1, overflowY:"auto", padding:"12px 12px 0" }}>

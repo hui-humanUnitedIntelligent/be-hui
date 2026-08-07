@@ -1819,7 +1819,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
           .eq("status", "published")
           .eq("approval_status", "approved")
           .eq("visibility", "public")
-          .order("created_at", { ascending:false })
+          .order("likes_count", { ascending:false })
           .limit(8);
 
         if (!cancelled && ws?.length > 0) {
@@ -1923,7 +1923,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
           .select("id,title,cover_url,date,duration,location_text,max_participants,status,approval_status,category,experience_type,format,lat,lng,user_id,created_at,likes_count")
           .eq("status", "published")
           .eq("approval_status", "approved")
-          .order("created_at", { ascending:false })
+          .order("likes_count", { ascending:false })
           .limit(8);
 
         if (expsErr) {
