@@ -57,6 +57,12 @@ const T = {
 // ── Global CSS ───────────────────────────────────────────────────
 const CSS = `
   .dp-root * { box-sizing:border-box; }
+  /* Große Bildschirme (Desktop-Web-Preview >900px): Inhalt zentrieren + Breite kappen,
+     statt randlos über die volle Fensterbreite zu laufen (mobiles Layout bleibt exakt
+     unveraendert, betrifft nur Viewports die deutlich groesser als ein Handy sind). */
+  @media (min-width:900px) {
+    .dp-root { max-width:600px !important; margin:0 auto !important; box-shadow:0 0 40px rgba(26,53,48,0.06); }
+  }
   .dp-hscroll { overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; overscroll-behavior-x:none; }
   .dp-hscroll::-webkit-scrollbar { display:none; }
   .dp-press { transition:transform .14s cubic-bezier(.22,1,.36,1),opacity .14s ease; cursor:pointer; }
@@ -1436,60 +1442,43 @@ function ProjekteSection({ projekte, loading, delay=0, view='cards', onPress, on
 }
 
 // ════════════════════════════════════════════════════════════════
-// 8. ORTE ENTDECKEN
+// 8. ORTE ENTDECKEN — echte Orte aus rpc_discover_places (Profile/Werke/
+// Erlebnisse-Standorte gruppiert), KEINE Seed-/Fake-Daten mehr.
 // ════════════════════════════════════════════════════════════════
-const SEED_ORTE = [
-  { id:"o1", name:"Waldlichtung",      city:"München",  dist:"0,3 km",  active:8,  nextEvent:null,           cover:"https://images.unsplash.com/photo-1448375240586-882707db888b?w=200&q=75"  },
-  { id:"o2", name:"Community Garten",  city:"Hamburg",  dist:"1,2 km",  active:12, nextEvent:null,           cover:"https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=200&q=75"  },
-  { id:"o3", name:"Atelier Raum",      city:"Berlin",   dist:"2,7 km",  active:9,  nextEvent:null,           cover:"https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=200&q=75"  },
-  { id:"o4", name:"Meditationsraum",   city:"Freiburg", dist:"3,1 km",  active:7,  nextEvent:"morgen",       cover:"https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=200&q=75"     },
-  { id:"o5", name:"Tierheim Treffpunkt",city:"Leipzig", dist:"4,0 km",  active:6,  nextEvent:"Heute 3 Begegnungen", cover:"https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=200&q=75"},
-  { id:"o6", name:"Kreativwerkstatt",  city:"Wien",     dist:"4,5 km",  active:9,  nextEvent:null,           cover:"https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=200&q=75"  },
-];
 
-function OrteSection({ onMap, delay=0, view='cards' }) {
+function OrteSection({ orte=[], loading, onSectionAction, onPressOrt, delay=0 }) {
   return (
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <SectionHead
         title="Orte entdecken"
-        sub="Besondere HUI-Räume, Parks & Begegnungsorte."
+        sub="Echte Orte aus HUI-Profilen, Werken & Erlebnissen."
         action="Alle Orte"
-        onAction={() => setShowOrteModal(true)}
+        onAction={onSectionAction}
         delay={delay}
       />
-      {view === "cards" ? (
-        <div className="dp-hscroll" style={{ display:"flex", gap:8, paddingLeft:T.px, paddingRight:T.px, paddingBottom:4 }}>
-          {SEED_ORTE.map((ort, i) => <OrtCard key={ort.id} ort={ort} delay={i*30+delay} onMap={onMap} />)}
-        </div>
-      ) : (
-        <div className="dp-list-section dp-toggle-in">
-          {SEED_ORTE.map((ort) => (
-            <div key={ort.id} className="dp-list-card" onClick={onMap}>
-              <div className="dp-list-thumb-placeholder" style={{ position:"relative", overflow:"hidden" }}>
-                {ort.cover
-                  ? <img loading="lazy" decoding="async" src={ort.cover} alt={ort.name} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} onError={e => e.target.style.display='none'}/>
-                  : <HUILocationIcon size={11} style={{flexShrink:0}} />
-                }
-              </div>
-              <div style={{ flex:1 }}>
-                <div style={{ fontSize:13.5, fontWeight:700, color:T.ink, marginBottom:2, letterSpacing:"-0.02em" }}>{ort.name}</div>
-                <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                  <span style={{ fontSize:11.5, color:T.inkFaint, display:"flex", alignItems:"center", gap:2 }}><HUILocationIcon size={11}/>{ort.city}</span>
-                  {ort.dist !== "—" && <span style={{ fontSize:11, background:T.tealSoft, color:T.teal, borderRadius:99, padding:"1px 7px", fontWeight:600 }}>{ort.dist}</span>}
+      <div className="dp-hscroll" style={{ display:"flex", gap:8, paddingLeft:T.px, paddingRight:T.px, paddingBottom:4 }}>
+        {loading
+          ? Array.from({length:4}).map((_,i) => (
+              <div key={i} style={{ width:110, flexShrink:0, borderRadius:14, overflow:"hidden", background:T.white, boxShadow:T.cardShadow }}>
+                <Skel w="100%" h={68} r={0} />
+                <div style={{ padding:"7px 8px 9px" }}>
+                  <Skel w="80%" h={10} r={6} mb={4} />
+                  <Skel w="50%" h={9} r={6} />
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))
+          : orte.length === 0
+          ? <div style={{ paddingLeft:T.px, fontSize:12.5, color:T.inkFaint, fontStyle:'italic', opacity:0.75 }}>Noch keine Orte gefunden.</div>
+          : orte.map((ort, i) => <OrtCard key={ort.place_key} ort={ort} delay={i*30+delay} onPress={() => onPressOrt?.(ort.place_key)} />)
+        }
+      </div>
     </div>
   );
 }
 
-function OrtCard({ ort, delay=0, onMap }) {
-  const [imgErr, setImgErr] = useState(false);
+function OrtCard({ ort, delay=0, onPress }) {
   return (
-    <div className="dp-press dp-in dp-card-hover" onClick={onMap} style={{
+    <div className="dp-press dp-in dp-card-hover" onClick={onPress} style={{
       width:110, flexShrink:0,
       borderRadius:14, overflow:"hidden",
       background:T.white, boxShadow:T.cardShadow,
@@ -1497,41 +1486,27 @@ function OrtCard({ ort, delay=0, onMap }) {
       animationDelay:`${delay}ms`,
       touchAction:"manipulation",
     }}>
-      <div style={{ width:"100%", height:68, overflow:"hidden", position:"relative", background:T.tealSoft }}>
-        {!imgErr && ort.cover ? (
-          <img loading="lazy" decoding="async" src={ort.cover} alt={ort.name} onError={() => setImgErr(true)}
-            style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
-        ) : (
-          <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <HUILocationIcon size={24} style={{opacity:0.4, color:"rgba(14,196,184,0.5)"}} />
-          </div>
-        )}
-        {ort.dist !== "—" && (
-          <div style={{
-            position:"absolute", top:5, left:5,
-            background:"rgba(255,255,255,0.90)", backdropFilter:"blur(6px)",
-            borderRadius:99, padding:"1px 6px",
-            fontSize:9, fontWeight:700, color:T.teal,
-          }}>
-            {ort.dist}
-          </div>
-        )}
+      <div style={{ width:"100%", height:68, overflow:"hidden", position:"relative", background:T.tealSoft, display:"flex", alignItems:"center", justifyContent:"center" }}>
+        <HUILocationIcon size={24} style={{opacity:0.4, color:"rgba(14,196,184,0.5)"}} />
+        <div style={{
+          position:"absolute", top:5, right:5,
+          background:"rgba(255,255,255,0.90)", backdropFilter:"blur(6px)",
+          borderRadius:99, padding:"1px 6px",
+          fontSize:9, fontWeight:700, color:T.tealDeep,
+        }}>
+          {ort.total_count}
+        </div>
       </div>
       <div style={{ padding:"7px 8px 9px" }}>
-        <div style={{ fontSize:11, fontWeight:700, color:T.ink, marginBottom:2, lineHeight:1.25,
+        <div style={{ fontSize:11, fontWeight:700, color:T.ink, marginBottom:4, lineHeight:1.25,
           overflow:"hidden", display:"-webkit-box", WebkitLineClamp:1, WebkitBoxOrient:"vertical" }}>
-          {ort.name}
+          {ort.place_key}
         </div>
-        <div style={{ fontSize:9.5, color:T.inkFaint, fontWeight:500, marginBottom:4 }}>{ort.city}</div>
-        {/* Aktivität */}
-        {ort.nextEvent ? (
-          <div style={{ fontSize:9, color:"#D97706", fontWeight:600, display:"flex", alignItems:"center", gap:2 }}><HUIKalenderIcon size={9}/>{ort.nextEvent}</div>
-        ) : ort.active ? (
-          <div style={{ display:"flex", alignItems:"center", gap:3, fontSize:9.5, color:"#22c55e", fontWeight:700 }}>
-            <span style={{ display:"inline-block",width:6,height:6,borderRadius:"50%",background:"#22c55e" }}/>
-            {ort.active} aktiv
-          </div>
-        ) : null}
+        <div style={{ display:"flex", alignItems:"center", gap:5, fontSize:9, color:T.inkFaint, fontWeight:600 }}>
+          {ort.people_count > 0 && <span>👥{ort.people_count}</span>}
+          {ort.works_count > 0 && <span>🎨{ort.works_count}</span>}
+          {ort.experiences_count > 0 && <span>🎉{ort.experiences_count}</span>}
+        </div>
       </div>
     </div>
   );
@@ -1703,6 +1678,8 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
 
   const [erlebnisse, setErlebnisse]   = useState([]);
   const [projekte, setProjekte]       = useState([]);
+  const [orte, setOrte]               = useState([]); // echte Orte via rpc_discover_places
+  const [orteInitialPlace, setOrteInitialPlace] = useState(null); // Deep-Link in OrteAllModal (z.B. Klick auf Teaser-Karte)
   const [talentInquiry, setTalentInquiry] = useState(null);
   const [talentBooking, setTalentBooking] = useState(null); // ausgewaehltes Talent fuer Anfrage-Modal
   const { requireAuth } = useAuthGate();
@@ -1721,6 +1698,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
           if (c.erlebnisse)    setErlebnisse(c.erlebnisse);
           if (c.projekte)      setProjekte(c.projekte);
           if (c.momente)       setMomente(c.momente);
+          if (c.orte)          setOrte(c.orte);
           setLoading(false);
         }
         return; // Cache noch frisch — kein Netzwerk-Request
@@ -2040,6 +2018,19 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
           }));
         }
 
+        // Orte — echte Standort-Gruppen aus Profilen/Werken/Erlebnissen (rpc_discover_places)
+        const { data: placesData } = await supabase
+          .rpc("rpc_discover_places", { p_sort: "active", p_limit: 8, p_offset: 0 });
+        if (!cancelled && placesData) {
+          setOrte(placesData.map(p => ({
+            place_key:         p.place_key,
+            people_count:      p.people_count || 0,
+            works_count:       p.works_count || 0,
+            experiences_count: p.experiences_count || 0,
+            total_count:       p.total_count || 0,
+          })));
+        }
+
       } catch (e) {
         console.warn("[DiscoverPage] load error:", e?.message);
       } finally {
@@ -2061,10 +2052,10 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   // Wird nach jedem erfolgreichen Load ausgeführt und merkt sich die Daten für 5 Min.
   React.useEffect(() => {
     if (!loading && (people.length || werke.length || talente.length)) {
-      _discoverCache.data = { people, werke, talente, erlebnisse, projekte, momente };
+      _discoverCache.data = { people, werke, talente, erlebnisse, projekte, momente, orte };
       _discoverCache.ts = Date.now();
     }
-  }, [loading, people, werke, talente, erlebnisse, projekte, momente]);
+  }, [loading, people, werke, talente, erlebnisse, projekte, momente, orte]);
 
   // ── Pull-to-Refresh: feed-refresh-Event abonnieren ────────────
   // Wenn PTR (Home.jsx) ausgelöst wird, soll auch DiscoverPage neu laden.
@@ -2326,7 +2317,13 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
       />
 
       {/* ── 8. Orte entdecken ── */}
-      <OrteSection onMap={onMap} delay={160} view={view} />
+      <OrteSection
+        orte={orte}
+        loading={loading}
+        delay={160}
+        onSectionAction={() => { setOrteInitialPlace(null); setShowOrteModal(true); }}
+        onPressOrt={(placeKey) => { setOrteInitialPlace(placeKey); setShowOrteModal(true); }}
+      />
 
       {/* ── Orb-Clearance-Spacer — letzter Scroll-Inhalt vor Modals.
            Verhindert Orb-Überlappung auf allen Geräten (Android + iOS). ── */}
@@ -2396,6 +2393,19 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         <OrteAllModal
           isOpen={showOrteModal}
           onClose={() => setShowOrteModal(false)}
+          initialPlace={orteInitialPlace}
+          onPressPerson={(id) => {
+            setShowOrteModal(false);
+            if (id && typeof onView === "function") onView(id);
+          }}
+          onPressWork={(workId) => {
+            setShowOrteModal(false);
+            navigate(`/work/${workId}`);
+          }}
+          onPressExperience={(exp) => {
+            setShowOrteModal(false);
+            openPreview({ id:exp.id, type:"erlebnis", title:exp.title, experienceId:exp.id });
+          }}
         />
       </Suspense>
     </div>
