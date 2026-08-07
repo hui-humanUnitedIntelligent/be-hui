@@ -1,34 +1,52 @@
 // src/components/commerce/ExperienceBookingFlow.jsx
 // ═══════════════════════════════════════════════════════════════════
-// LEGACY — SUPERSEDED BY COMMERCE 2.0 — REMOVE AFTER PHASE 5
-// Kanonischer Checkout: WerkeKorb → UnterstuetzenFlow → StripePaymentStep
+// HUI Commerce 2.0 — Erlebnis Buchen (Single-Item Stripe Checkout)
 // ═══════════════════════════════════════════════════════════════════
-// Bottom-Sheet: Erlebnis buchen → bookingService.create() → Notification → Bestätigung
-// Keine neuen Systeme. Kein Stripe. booking_status = "pending" für Beta.
-import { HUIImpactIcon } from '../../design/icons/HuiSystemIcons.jsx';
-import React, { useState } from "react";
+// Ersetzt das Legacy bookingService.create() (kein Stripe) durch
+// einen echten Stripe PaymentIntent über die create-payment-intent
+// Edge Function + StripePaymentStep.
+//
+// Ablauf:
+//   1. form → User sieht Erlebnis + Preis, schreibt optionale Nachricht, klickt "Buchen"
+//   2. loading → create-payment-intent Edge Function → clientSecret
+//   3. payment → StripePaymentStep (Stripe Elements)
+//   4. success → Bestätigung + Notification an Creator
+//   5. error → Fehlermeldung
+//
+// PFLICHT: createPortal → document.body, zIndex >= 10500
+// ═══════════════════════════════════════════════════════════════════
+
+import React, { useState, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "../../lib/AuthContext";
-import { bookingService } from "../../services/creatorEconomy";
 import { supabase } from "../../lib/supabaseClient";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
+import { getStripe } from "../../lib/stripe.js";
+import { Elements } from "@stripe/react-stripe-js";
+import StripePaymentStep from "./StripePaymentStep.jsx";
 import { useSavedPostsContext } from "../../context/SavedPostsContext.jsx";
 
 const TEAL = "#16D7C5";
 
-export default function ExperienceBookingFlow({ experience, onClose }) {
-  useModalRegistration(true, () => onClose?.(), "ExperienceBookingFlow");
+export default function ExperienceBookingFlow({ experience, onClose = () => {} }) {
   const { user } = useAuth();
-  const [message, setMessage] = useState("");
-  const [phase,   setPhase]   = useState("form"); // form | loading | success | error
-  const [errMsg,  setErrMsg]  = useState("");
+  useModalRegistration(true, onClose, "ExperienceBookingFlow");
+  useWizardBodyLock();
   const { isSaved, toggleSave } = useSavedPostsContext();
+
+  const [message, setMessage] = useState("");
+  const [phase, setPhase] = useState("form"); // form | loading | payment | success | error
+  const [errMsg, setErrMsg] = useState("");
+  const [clientSecret, setClientSecret] = useState(null);
+  const [publishableKey, setPublishableKey] = useState(null);
+  const [orderId, setOrderId] = useState(null);
+
+  const stripePromise = useMemo(() => getStripe(), []);
 
   if (!experience) return null;
 
   // Normalisiere Experience-Daten aus Feed- und HuiAction-Shapes
-  // Shape A (Feed): experience = unified feed item { id, title, author, _raw }
-  // Shape B (Action): experience = { experience: {...}, creator: {...} }
   const expObj    = experience?.experience || experience;
   const crObj     = experience?.creator    || experience?.author || null;
 
@@ -44,49 +62,112 @@ export default function ExperienceBookingFlow({ experience, onClose }) {
                     ? parseFloat(rawPrice.replace(/[^0-9.,]/g,"").replace(",","."))
                     : 0;
   const priceStr  = amount > 0 ? `${amount.toFixed(2).replace(".",",")} €` : null;
+  const coverUrl  = expObj?._raw?.cover_url || expObj?.cover_url || expObj?.img;
+
+  const saved = isSaved(expId);
+  const handleSave = () => {
+    if (!expId) return;
+    toggleSave(expId, "experience", { title, cover_url: coverUrl, author_name: creatorName });
+  };
 
   async function handleBuchen() {
-    if (!user?.id)    return setErrMsg("Nicht eingeloggt.");
-    if (!expId)       return setErrMsg("Erlebnis-ID fehlt.");
-    if (!creatorId)   return setErrMsg("Creator-ID fehlt.");
-    if (user.id === creatorId) return setErrMsg("Du kannst dein eigenes Erlebnis nicht buchen.");
+    if (!user?.id)    { setErrMsg("Nicht eingeloggt."); setPhase("error"); return; }
+    if (!expId)       { setErrMsg("Erlebnis-ID fehlt."); setPhase("error"); return; }
+    if (!creatorId)   { setErrMsg("Creator-ID fehlt."); setPhase("error"); return; }
+    if (user.id === creatorId) { setErrMsg("Du kannst dein eigenes Erlebnis nicht buchen."); setPhase("error"); return; }
+    if (amount <= 0)  { setErrMsg("Dieses Erlebnis hat keinen Preis."); setPhase("error"); return; }
 
     setPhase("loading");
     setErrMsg("");
 
-    const { data, error } = await bookingService.create({
-      experienceId: expId,
-      creatorId,
-      userId:   user.id,
-      seats:    1,
-      amount:   amount > 0 ? amount : 0,
-      message:  message.trim() || "",
-    });
+    try {
+      // ── Stripe PaymentIntent über Edge Function ──
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      if (!accessToken) { setErrMsg("Sitzung abgelaufen — bitte neu anmelden."); setPhase("error"); return; }
 
-    if (error) {
-      setErrMsg(error);
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const efUrl = `${supabaseUrl}/functions/v1/create-payment-intent`;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      const res = await fetch(efUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${accessToken}`,
+          "apikey": supabaseAnonKey ?? "",
+        },
+        body: JSON.stringify({
+          orderItems: [{
+            item_id: expId,
+            item_type: "experience",
+            quantity: 1,
+          }],
+        }),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok || result.error) {
+        const msg = result.code === "STRIPE_NOT_CONFIGURED"
+          ? "Stripe ist noch nicht konfiguriert. Bitte später versuchen."
+          : (result.error || "Zahlung konnte nicht gestartet werden.");
+        setErrMsg(msg);
+        setPhase("error");
+        return;
+      }
+
+      if (!result.clientSecret) {
+        setErrMsg("Zahlungsgeheimnis fehlt.");
+        setPhase("error");
+        return;
+      }
+
+      setClientSecret(result.clientSecret);
+      setPublishableKey(result.publishableKey ?? null);
+      setOrderId(result.orderId ?? null);
+      setPhase("payment");
+    } catch (e) {
+      setErrMsg(e?.message || "Verbindungsfehler beim Starten der Zahlung.");
       setPhase("error");
-      return;
     }
+  }
 
+  async function handleStripeSuccess({ orderId: oid, paymentIntentId }) {
     // Notification an Creator
-    await supabase.from("notifications").insert({
-      user_id:    creatorId,
-      type:       "booking_request",
-      text:       `Neue Buchungsanfrage für "${title}".`,
-      read:       false,
-      actor_id:   user.id,
-      created_at: new Date().toISOString(),
-    }).catch(() => {});
+    if (message.trim()) {
+      await supabase.from("notifications").insert({
+        user_id:    creatorId,
+        type:       "experience_booked",
+        text:       `Erlebnis "${title}" wurde gebucht. Nachricht: ${message.trim().slice(0, 100)}`,
+        read:       false,
+        actor_id:   user.id,
+        created_at: new Date().toISOString(),
+        entity_id:  expId,
+        entity_type: "experience",
+      }).catch(() => {});
+    } else {
+      await supabase.from("notifications").insert({
+        user_id:    creatorId,
+        type:       "experience_booked",
+        text:       `Dein Erlebnis "${title}" wurde gebucht.`,
+        read:       false,
+        actor_id:   user.id,
+        created_at: new Date().toISOString(),
+        entity_id:  expId,
+        entity_type: "experience",
+      }).catch(() => {});
+    }
 
     setPhase("success");
   }
 
+  // ── Render ──────────────────────────────────────────────────────
   return createPortal(
     <div
       onClick={(e) => { if (e.target === e.currentTarget) onClose?.(); }}
       style={{
-        position: "fixed", inset: 0, zIndex: 10500, /* >BottomNav(10000) — Footer-Overlap-Fix 2026-07-05 */
+        position: "fixed", inset: 0, zIndex: 10500,
         background: "rgba(0,0,0,0.45)",
         display: "flex", alignItems: "flex-end", justifyContent: "center",
       }}
@@ -97,132 +178,151 @@ export default function ExperienceBookingFlow({ experience, onClose }) {
         padding: "28px 24px 40px",
         boxShadow: "0 -8px 40px rgba(26,26,46,0.18)",
         animation: "ebfSlideUp 0.28s cubic-bezier(.32,1.2,.55,1) both",
+        maxHeight: "92dvh", overflowY: "auto",
       }}>
-        <style>{`
-          @keyframes ebfSlideUp {
-            from { transform: translateY(100%); opacity: 0; }
-            to   { transform: translateY(0);    opacity: 1; }
-          }
-        `}</style>
+        <style>{`@keyframes ebfSlideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }`}</style>
 
         {/* Handle */}
-        <div style={{ width: 40, height: 4, borderRadius: 2, background: "rgba(26,26,46,0.12)",
-          margin: "0 auto 24px" }} />
+        <div style={{ width: 40, height: 4, borderRadius: 2, background: "rgba(26,26,46,0.12)", margin: "0 auto 24px" }} />
 
-        {phase === "success" ? (
-          /* ── Bestätigung ── */
-          <div style={{ textAlign: "center", padding: "16px 0 8px" }}>
-            <div style={{ marginBottom:12, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.7)" }}><HUIImpactIcon size={48}/></div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: "#1A1A2E", marginBottom: 8 }}>
-              Anfrage gesendet
-            </div>
-            <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)", marginBottom: 8, lineHeight: 1.5 }}>
-              {creatorName} wurde benachrichtigt und meldet sich bei dir.
-            </div>
-            <div style={{ fontSize: 12, color: "rgba(26,26,46,0.38)", marginBottom: 28 }}>
-              Status: Ausstehend
-            </div>
-            <button onClick={onClose} style={{
-              background: TEAL, color: "#fff", border: "none",
-              borderRadius: 14, padding: "12px 32px",
-              fontSize: 15, fontWeight: 700, cursor: "pointer",
-            }}>
-              Schließen
-            </button>
-          </div>
-        ) : (
+        {/* ── FORM ── */}
+        {phase === "form" && (
           <>
-            {/* ── Header ── */}
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: TEAL,
-                textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
-                Erlebnis anfragen
+            {/* Cover */}
+            {coverUrl && (
+              <div style={{ width: "100%", aspectRatio: "16/9", borderRadius: 16, overflow: "hidden", marginBottom: 16 }}>
+                <img src={coverUrl} alt={title} style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  onError={(e) => { e.target.style.display = "none"; }} />
               </div>
-              <div style={{ fontSize: 17, fontWeight: 700, color: "#1A1A2E", lineHeight: 1.3 }}>
-                {title}
-              </div>
-              {creatorName && (
-                <div style={{ fontSize: 13, color: "rgba(26,26,46,0.45)", marginTop: 3 }}>
-                  bei {creatorName}
-                </div>
-              )}
-            </div>
-
-            {/* ── Preis ── */}
+            )}
+            <div style={{ fontSize: 18, fontWeight: 700, color: "#1A1A2E", marginBottom: 4 }}>{title}</div>
+            <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 16 }}>von {creatorName}</div>
             {priceStr && (
-              <div style={{
-                background: "rgba(22,215,197,0.08)",
-                border: "1px solid rgba(22,215,197,0.18)",
-                borderRadius: 14, padding: "10px 16px",
-                marginBottom: 18,
-                display: "flex", justifyContent: "space-between", alignItems: "center",
-              }}>
-                <span style={{ fontSize: 13, color: "rgba(26,26,46,0.55)" }}>Preis</span>
-                <span style={{ fontSize: 18, fontWeight: 800, color: TEAL }}>{priceStr}</span>
-              </div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: TEAL, marginBottom: 20 }}>{priceStr}</div>
             )}
 
-            {/* ── Nachricht ── */}
-            <textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Deine Nachricht (optional) — z.B. Wunschtermin, Fragen…"
-              rows={3}
-              style={{
-                width: "100%", resize: "none",
-                border: "1.5px solid rgba(26,26,46,0.12)",
-                borderRadius: 14, padding: "12px 14px",
-                fontSize: 14, color: "#1A1A2E",
-                background: "#fff",
-                outline: "none", marginBottom: 16,
-                fontFamily: "inherit", lineHeight: 1.5,
-                boxSizing: "border-box",
-              }}
-            />
-
-            {/* ── Fehler ── */}
-            {phase === "error" && errMsg && (
-              <div style={{
-                fontSize: 13, color: "#E83A3A", marginBottom: 14,
-                padding: "10px 12px", borderRadius: 10,
-                background: "rgba(232,58,58,0.07)",
-              }}>
-                {errMsg}
+            {/* Nachricht an Creator */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1A2E", marginBottom: 8 }}>
+                Nachricht an {creatorName} (optional)
               </div>
-            )}
-
-            {/* ── Buttons ── */}
-            <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={() => toggleSave(expId, "experience", { title, cover_url: expObj?.cover_url || expObj?._raw?.cover_url, author_name: creatorName })} style={{
-                flex: 1, background: "transparent",
-                border: "1.5px solid rgba(26,26,46,0.15)",
-                borderRadius: 14, padding: "12px 0",
-                fontSize: 14, fontWeight: 600, color: "rgba(26,26,46,0.55)",
-                cursor: "pointer",
-              }}>
-                {isSaved(expId) ? "Gemerkt ✓" : "Merken"}
-              </button>
-              <button
-                onClick={handleBuchen}
-                disabled={phase === "loading"}
+              <textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="z.B. Terminwünsche, Fragen zum Erlebnis…"
+                maxLength={500}
                 style={{
-                  flex: 2,
-                  background: phase === "loading"
-                    ? "rgba(22,215,197,0.4)"
-                    : `linear-gradient(135deg,${TEAL},#0AB8B2)`,
-                  color: "#fff", border: "none",
-                  borderRadius: 14, padding: "12px 0",
-                  fontSize: 15, fontWeight: 700,
-                  cursor: phase === "loading" ? "not-allowed" : "pointer",
-                  touchAction: "manipulation",
+                  width: "100%", minHeight: 80, padding: "12px 14px",
+                  borderRadius: 12, border: "1px solid rgba(26,26,46,0.12)",
+                  fontSize: 14, fontFamily: "inherit", resize: "none",
+                  outline: "none", boxSizing: "border-box",
                 }}
-              >
-                {phase === "loading" ? "Wird gesendet…" : "Anfrage senden"}
-              </button>
+              />
             </div>
+
+            <div style={{
+              background: "rgba(22,215,197,0.06)", borderRadius: 12, padding: "14px 16px",
+              marginBottom: 24, fontSize: 13, color: "rgba(26,26,46,0.65)", lineHeight: 1.6,
+            }}>
+              Deine Zahlung ist sicher bei HUI hinterlegt. Nach dem Erlebnis bestätigst du
+              den Erhalt in deinem Profil — erst dann erhält der Creator die Auszahlung.
+            </div>
+
+            <button
+              onClick={handleBuchen}
+              style={{
+                width: "100%", padding: "16px", borderRadius: 14, border: "none",
+                background: TEAL, color: "#fff", fontSize: 16, fontWeight: 700,
+                cursor: "pointer", transition: "opacity 0.2s",
+              }}
+            >
+              {priceStr ? `Buchen für ${priceStr}` : "Buchen"}
+            </button>
           </>
         )}
+
+        {/* ── LOADING ── */}
+        {phase === "loading" && (
+          <div style={{ textAlign: "center", padding: "40px 0" }}>
+            <div style={{ width: 44, height: 44, border: `3px solid ${TEAL}33`, borderTopColor: TEAL,
+              borderRadius: "50%", animation: "ebfSpin 0.8s linear infinite", margin: "0 auto 16px" }} />
+            <style>{`@keyframes ebfSpin { to { transform: rotate(360deg); } }`}</style>
+            <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)" }}>Zahlung wird vorbereitet…</div>
+          </div>
+        )}
+
+        {/* ── PAYMENT (Stripe) ── */}
+        {phase === "payment" && clientSecret && (
+          <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: "stripe" } }}>
+            <StripePaymentStep
+              total={amount}
+              impact={amount * 0.0225}
+              orderId={orderId}
+              onSuccess={handleStripeSuccess}
+              onError={() => setPhase("error")}
+            />
+          </Elements>
+        )}
+
+        {/* ── SUCCESS ── */}
+        {phase === "success" && (
+          <div style={{ textAlign: "center", padding: "16px 0 8px" }}>
+            <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(22,215,197,0.12)",
+              display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+              <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                <path d="M7 14L12 19L21 9" stroke={TEAL} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: "#1A1A2E", marginBottom: 8 }}>Buchung erfolgreich</div>
+            <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)", marginBottom: 28, lineHeight: 1.5 }}>
+              Deine Zahlung für "{title}" ist sicher bei HUI hinterlegt.
+              {creatorName} wurde über deine Buchung informiert.
+            </div>
+            <button
+              onClick={onClose}
+              style={{
+                width: "100%", padding: "14px", borderRadius: 14, border: "none",
+                background: TEAL, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer",
+              }}
+            >
+              Fertig
+            </button>
+          </div>
+        )}
+
+        {/* ── ERROR ── */}
+        {phase === "error" && (
+          <div style={{ textAlign: "center", padding: "16px 0 8px" }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: "#FF5B5B", marginBottom: 8 }}>Fehler</div>
+            <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)", marginBottom: 28, lineHeight: 1.5 }}>
+              {errMsg || "Etwas ist schiefgegangen."}
+            </div>
+            <button
+              onClick={() => { setErrMsg(""); setPhase("form"); }}
+              style={{
+                width: "100%", padding: "14px", borderRadius: 14, border: "none",
+                background: "rgba(26,26,46,0.08)", color: "#1A1A2E", fontSize: 15, fontWeight: 600, cursor: "pointer",
+              }}
+            >
+              Erneut versuchen
+            </button>
+          </div>
+        )}
+
+        {/* Close button */}
+        {phase !== "payment" && phase !== "loading" && (
+          <button
+            onClick={onClose}
+            style={{
+              position: "absolute", top: 16, right: 16,
+              width: 32, height: 32, borderRadius: "50%", border: "none",
+              background: "rgba(26,26,46,0.06)", color: "rgba(26,26,46,0.45)",
+              fontSize: 16, cursor: "pointer", lineHeight: 1,
+            }}
+          >✕</button>
+        )}
       </div>
-    </div>
-  , document.body);
+    </div>,
+    document.body
+  );
 }
