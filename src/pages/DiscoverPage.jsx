@@ -1544,6 +1544,7 @@ function isCacheValid() {
 export default function DiscoverPage({ onView, onMap, onBook }) {
   const view = "cards"; // Fest auf Kacheln — Listenansicht-Umschaltung 2026-08-06 entfernt (Buttons raus)
   const [loading, setLoading] = useState(true);
+  const [__debugLoadError, __setDebugLoadError] = useState(null); // TEMP DIAGNOSTIC — remove after fix
   const [people, setPeople]           = useState([]);
   const [momente, setMomente]         = useState([]);
   const [werke, setWerke]             = useState([]);
@@ -2032,6 +2033,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
 
       } catch (e) {
         console.warn("[DiscoverPage] load error:", e?.message);
+        __setDebugLoadError(String(e?.stack || e?.message || e)); // TEMP DIAGNOSTIC — remove after fix
       } finally {
         _discoverCache.loading = false;
         if (!cancelled) setLoading(false);
@@ -2213,6 +2215,11 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
 
       {/* ── 1. Titelbereich ── */}
       <DiscoverTitleBar />
+      {__debugLoadError && (
+        <div style={{ padding:"8px 18px", background:"#fee", color:"#c00", fontSize:11, fontFamily:"monospace", whiteSpace:"pre-wrap", maxHeight:200, overflow:"auto" }}>
+          DEBUG LOAD ERROR: {__debugLoadError}
+        </div>
+      )}
 
       {/* ── 1b. Live Activity Bar ── */}
       <div style={{ marginBottom:8 }}>
