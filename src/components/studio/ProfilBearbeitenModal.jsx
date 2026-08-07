@@ -92,7 +92,6 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
   const [locationLng,   setLocationLng]   = useState(profile?.location_lng  || null);
   const [geoLoading,    setGeoLoading]    = useState(false);
   const [website,       setWebsite]       = useState(profile?.website         || "");
-  const [isAvailable,   setIsAvailable]   = useState(profile?.is_available    ?? true);
 
   // ── State: Kontakt-Felder ────────────────────────────────────────
   const [email,         setEmail]         = useState(profile?.email           || "");
@@ -200,7 +199,6 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
         location:       locationLabel.trim(), // SSOT: profiles.location
         location_label: locationLabel.trim(), // Sync: alle Anzeige-Stellen (Feed, Discover, Karten) lesen location_label
         website:        website.trim(),
-        is_available:   isAvailable,
       };
 
       // 2. Talent-Felder NUR mitschreiben, wenn Talent-User (echte, kollisionsfreie
@@ -405,13 +403,11 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
                   die "Interessen & Werte"-Sektion (InteressenSection.jsx). Bearbeitung
                   dort im eigenen Profil, nicht hier. */}
 
-              <FieldGroup label="Verfügbarkeit">
-                <ToggleSwitch
-                  value={isAvailable} onChange={setIsAvailable}
-                  labelOn="Verfügbar für Anfragen"
-                  labelOff="Aktuell nicht verfügbar"
-                />
-              </FieldGroup>
+              {/* "Verfügbarkeit" entfernt 2026-08-07 — Duplikat der bereits live
+                  funktionierenden AvailabilitySection.jsx (profiles.is_available),
+                  direkt im eigenen Profil (MyBasisProfile.jsx/TalentProfilePage.jsx)
+                  editierbar. Ein Speichern hier hätte denselben Wert nur redundant
+                  überschrieben — gleiches Muster wie Fokus/Bereich und Skills oben. */}
 
             </div>
           )}
