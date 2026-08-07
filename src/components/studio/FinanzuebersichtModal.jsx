@@ -440,11 +440,138 @@ function MiniStat({ label, value, color = T.ink }) {
 // TABS-CONFIG
 // ──────────────────────────────────────────────────────────────────────
 const TABS = [
-  { id: "kaeufe",   label: "Meine Käufe" },
-  { id: "verkaeufe",label: "Meine Verkäufe" },
-  { id: "buchungen",label: "Meine Buchungen" },
-  { id: "gebucht",  label: "Ich wurde gebucht" },
+  { id: "kaeufe",   label: "Käufe" },
+  { id: "verkaeufe",label: "Verkäufe" },
+  { id: "buchungen",label: "Buchungen" },
+  { id: "gebucht",  label: "Gebucht" },
+  { id: "support",  label: "Support" },
 ];
+
+
+// ──────────────────────────────────────────────────────────────────────
+// TAB 5: Support — Gegebene und erhaltene Unterstützungen
+// ──────────────────────────────────────────────────────────────────────
+function MeineSupports({ userId }) {
+  const [given, setGiven]     = useState([]);
+  const [received, setReceived] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [view, setView]       = useState("given"); // given | received
+
+  const load = useCallback(async () => {
+    if (!userId) return;
+    setLoading(true);
+    const [g, r] = await Promise.all([
+      supabase.from("stripe_payments")
+        .select("id, ambassador_id, amount, status, payment_type, description, metadata, created_at")
+        .eq("user_id", userId)
+        .eq("payment_type", "support")
+        .order("created_at", { ascending: false })
+        .limit(50),
+      supabase.from("stripe_payments")
+        .select("id, user_id, amount, status, payment_type, description, metadata, created_at")
+        .eq("ambassador_id", userId)
+        .eq("payment_type", "support")
+        .order("created_at", { ascending: false })
+        .limit(50),
+    ]);
+    setGiven(g.data || []);
+    setReceived(r.data || []);
+    setLoading(false);
+  }, [userId]);
+
+  useEffect(() => { load(); }, [load]);
+
+  if (loading) return <LoadingPlaceholder />;
+  if (!given.length && !received.length)
+    return <EmptyState text="Noch keine Unterstützungen gegeben oder erhalten." />;
+
+  const items = view === "given" ? given : received;
+  const otherIdKey = view === "given" ? "ambassador_id" : "user_id";
+
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+        <button onClick={() => setView("given")}
+          style={{
+            flex: 1, padding: "8px", borderRadius: T.r12, border: "none",
+            background: view === "given" ? T.teal : T.bgCard, color: view === "given" ? "white" : T.inkSoft,
+            fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: T.ff,
+            border: view === "given" ? "none" : `1px solid ${T.border}`,
+          }}>
+          Gegeben ({given.length})
+        </button>
+        <button onClick={() => setView("received")}
+          style={{
+            flex: 1, padding: "8px", borderRadius: T.r12, border: "none",
+            background: view === "received" ? T.teal : T.bgCard, color: view === "received" ? "white" : T.inkSoft,
+            fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: T.ff,
+            border: view === "received" ? "none" : `1px solid ${T.border}`,
+          }}>
+          Erhalten ({received.length})
+        </button>
+      </div>
+
+      {!items.length && (
+        <EmptyState text={view === "given" ? "Du hast noch niemanden unterstützt." : "Du hast noch keine Unterstützungen erhalten."} />
+      )}
+
+      {items.map((item) => {
+        const otherId = item[otherIdKey];
+        const meta = item.metadata || {};
+        const msg = meta.message || meta.support_message || null;
+        return (
+          <Card key={item.id}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: T.ink }}>
+                {eur(item.amount)}
+              </div>
+              <StatusChip
+                label={item.status === "succeeded" ? "Erfolgreich" : item.status === "pending" ? "Ausstehend" : item.status === "failed" ? "Fehlgeschlagen" : item.status}
+                color={item.status === "succeeded" ? T.green : item.status === "pending" ? T.amber : T.red}
+                bg={item.status === "succeeded" ? T.greenSoft : item.status === "pending" ? T.amberSoft : T.redSoft}
+              />
+            </div>
+            {item.description && (
+              <div style={{ fontSize: 12, color: T.inkSoft, marginBottom: 4 }}>
+                {item.description}
+              </div>
+            )}
+            {msg && (
+              <div style={{
+                fontSize: 13, color: T.inkSoft, marginTop: 8,
+                background: T.bg, borderRadius: T.r8, padding: "8px 10px",
+                fontStyle: "italic", lineHeight: 1.5,
+              }}>
+                „{typeof msg === "string" ? msg.slice(0, 200) : ""}"
+              </div>
+            )}
+            <div style={{ fontSize: 11, color: T.inkFaint, marginTop: 8 }}>
+              {dt(item.created_at)}
+            </div>
+          </Card>
+        );
+      })}
+
+      {/* Summary */}
+      {items.length > 0 && (
+        <div style={{
+          marginTop: 12, padding: "12px 16px", borderRadius: T.r12,
+          background: T.tealSoft, border: `1px solid ${T.tealMid}`,
+        }}>
+          <div style={{ fontSize: 12, color: T.inkSoft, marginBottom: 4 }}>
+            {view === "given" ? "Insgesamt gegeben" : "Insgesamt erhalten"}
+          </div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: T.teal }}>
+            {eur(items.filter(i => i.status === "succeeded").reduce((sum, i) => sum + Number(i.amount), 0))}
+          </div>
+          <div style={{ fontSize: 11, color: T.inkFaint, marginTop: 2 }}>
+            {items.filter(i => i.status === "succeeded").length} erfolgreiche Unterstützung(en)
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ──────────────────────────────────────────────────────────────────────
 // HAUPT-EXPORT
@@ -489,7 +616,7 @@ export default function FinanzuebersichtModal({ profile, onClose = () => {} }) {
               Meine Finanzen
             </div>
             <div style={{ fontSize: 12, color: T.inkFaint, marginTop: 2 }}>
-              Käufe, Verkäufe & Buchungen
+              Käufe, Verkäufe, Buchungen & Support
             </div>
           </div>
           <button onClick={onClose} style={{
@@ -537,6 +664,7 @@ export default function FinanzuebersichtModal({ profile, onClose = () => {} }) {
           {tab === "verkaeufe" && <MeineVerkaeufe userId={userId} />}
           {tab === "buchungen" && <MeineBuchungen userId={userId} />}
           {tab === "gebucht"   && <WerHatMichGebucht userId={userId} />}
+          {tab === "support"   && <MeineSupports userId={userId} />}
         </div>
       </div>
     </div>
