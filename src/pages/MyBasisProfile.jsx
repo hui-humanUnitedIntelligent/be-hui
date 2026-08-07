@@ -2220,7 +2220,7 @@ function MeinBereichMenu({
           )}
           <MeinBereichTile icon={<HUIFotoIcon size={22}/>} label="Meine Momente" onPress={() => setActiveDrawer("momente")} />
           <MeinBereichTile icon={<HUIImpactIcon size={22}/>} label="Impact & Stimmen" onPress={() => setActiveDrawer("impact")} />
-          <MeinBereichTile icon={<HUIFinanzIcon size={22}/>} label="Meine Finanzen" onPress={() => setShowFinanzModal(true)} />
+          <MeinBereichTile icon={<HUIFinanzIcon size={22}/>} label="Käufe/Verkäufe" onPress={() => setShowFinanzModal(true)} />
           <MeinBereichTile icon={<HUIResonanzIcon size={22}/>} label="Meine Resonanz" onPress={onOpenResonanz} />
           <MeinBereichTile icon={<HUIEmpfehlungIcon size={22}/>} label="Empfehlungen" onPress={() => setActiveDrawer("empfehlungen")} />
         </div>

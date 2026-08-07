@@ -10,6 +10,8 @@ import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import RecommendModal from "../profile/RecommendModal.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { useHuiActions, A } from "../../core/hui.actions.js";
+import { S } from "../../core/hui.sources.js";
 
 const T = {
   bg:       "#F7F5F0",
@@ -73,6 +75,8 @@ function MeineKaeufe({ userId }) {
   const [confirmingId, setConfirmingId] = useState(null);
   const [confirmDone, setConfirmDone] = useState({});
   const [recModal, setRecModal] = useState(null); // { sellerId, sellerName, orderId }
+  const [sellerMap, setSellerMap] = useState({});
+  const actions = useHuiActions();
 
   const load = useCallback(async () => {
     if (!userId) return;
@@ -84,6 +88,20 @@ function MeineKaeufe({ userId }) {
       .in("state", ["paid", "completed"])
       .order("created_at", { ascending: false });
     setOrders(data || []);
+
+    // Seller-Profile nachladen für Chat
+    const sellerIds = [...new Set((data || []).map(o => o.order_items?.[0]?.seller_id).filter(Boolean))];
+    if (sellerIds.length) {
+      const { data: profs } = await supabase.from("profiles")
+        .select("id, display_name, username, img, avatar_url")
+        .in("id", sellerIds);
+      const map = {};
+      (profs || []).forEach(p => {
+        map[p.id] = { name: p.display_name || p.username || "Verkäufer", avatar: p.img || p.avatar_url || null };
+      });
+      setSellerMap(map);
+    }
+
     setLoading(false);
   }, [userId]);
 
@@ -119,9 +137,24 @@ function MeineKaeufe({ userId }) {
         return (
           <Card key={o.id}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: T.ink, marginBottom: 4 }}>{title}</div>
+              <div style={{ flex: 1, cursor: sellerId ? "pointer" : "default" }}
+                onClick={() => {
+                  if (!sellerId) return;
+                  const sInfo = sellerMap[sellerId];
+                  if (!sInfo) return;
+                  actions[A.OPEN_CHAT]?.({
+                    recipient: { id: sellerId, display_name: sInfo.name, avatar_url: sInfo.avatar },
+                    source: S.SYSTEM,
+                  });
+                }}
+              >
+                <div style={{ fontSize: 13, fontWeight: 700, color: sellerId ? T.teal : T.ink, marginBottom: 4 }}>{title}</div>
                 <div style={{ fontSize: 11, color: T.inkFaint }}>{dt(o.created_at)}</div>
+                {sellerId && sellerMap[sellerId] && (
+                  <div style={{ fontSize: 10, color: T.teal, marginTop: 2, fontWeight: 600 }}>
+                    Tippe für Chat mit {sellerMap[sellerId].name}
+                  </div>
+                )}
               </div>
               <div style={{ textAlign: "right" }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: T.ink }}>{eur(o.total_eur)}</div>
@@ -613,7 +646,7 @@ export default function FinanzuebersichtModal({ profile, onClose = () => {} }) {
         }}>
           <div>
             <div style={{ fontSize: 17, fontWeight: 800, color: T.ink, letterSpacing: "-0.02em" }}>
-              Meine Finanzen
+              Käufe/Verkäufe
             </div>
             <div style={{ fontSize: 12, color: T.inkFaint, marginTop: 2 }}>
               Käufe, Verkäufe, Buchungen & Support

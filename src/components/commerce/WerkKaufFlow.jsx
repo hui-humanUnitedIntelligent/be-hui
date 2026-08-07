@@ -25,6 +25,9 @@ import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { getStripe } from "../../lib/stripe.js";
 import { Elements } from "@stripe/react-stripe-js";
 import StripePaymentStep from "./StripePaymentStep.jsx";
+import { useHuiActions, A } from "../../core/hui.actions.js";
+import { S } from "../../core/hui.sources.js";
+import { toast } from "../../lib/useToast.jsx";
 
 let _resonanceHelpers = null;
 async function getResonanceHelpers() {
@@ -46,6 +49,8 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
   const [clientSecret, setClientSecret] = useState(null);
   const [publishableKey, setPublishableKey] = useState(null);
   const [orderId, setOrderId] = useState(null);
+  const [hasChatted, setHasChatted] = useState(false);
+  const actions = useHuiActions();
 
   const stripePromise = useMemo(() => getStripe(), []);
 
@@ -251,12 +256,59 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
               </svg>
             </div>
             <div style={{ fontSize: 18, fontWeight: 700, color: "#1A1A2E", marginBottom: 8 }}>Kauf erfolgreich</div>
-            <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)", marginBottom: 28, lineHeight: 1.5 }}>
+            <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)", marginBottom: 20, lineHeight: 1.5 }}>
               Deine Zahlung ist sicher bei HUI hinterlegt. Sobald du das Werk erhalten hast,
               bestätige den Erhalt in deinem Profil — erst dann erhält der Creator seine Auszahlung.
             </div>
+
+            {/* Chat CTA */}
+            {creatorId && user?.id && creatorId !== user.id && (
+              <div style={{
+                marginBottom: 20, padding: "14px 16px", borderRadius: 14,
+                background: "rgba(22,215,197,0.06)",
+                border: "1.5px solid rgba(22,215,197,0.20)",
+                display: "flex", alignItems: "center", gap: 12,
+              }}>
+                <div style={{ flex: 1, textAlign: "left" }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#1A1A2E", marginBottom: 2 }}>
+                    Mit Verkäufer schreiben
+                  </div>
+                  <div style={{ fontSize: 12, color: "rgba(26,26,46,0.55)", lineHeight: 1.5 }}>
+                    Tausch dich über das Werk aus.
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setHasChatted(true);
+                    actions[A.OPEN_CHAT]?.({
+                      recipient: {
+                        id: creatorId,
+                        display_name: werk.author?.name || werk.author?.displayName || "Verkäufer",
+                        avatar_url: werk.author?.avatar || null,
+                      },
+                      source: S.SYSTEM,
+                    });
+                  }}
+                  style={{
+                    padding: "10px 18px", borderRadius: 12,
+                    background: TEAL, color: "#fff",
+                    fontSize: 13, fontWeight: 700, border: "none",
+                    cursor: "pointer", flexShrink: 0,
+                    WebkitTapHighlightColor: "transparent",
+                  }}
+                >
+                  Chat
+                </button>
+              </div>
+            )}
+
             <button
-              onClick={onClose}
+              onClick={() => {
+                if (!hasChatted) {
+                  toast.info("Du findest den Verkäufer unter 'Mein Bereich' \u2192 'Käufe/Verkäufe' in deinem Profil.");
+                }
+                onClose();
+              }}
               style={{
                 width: "100%", padding: "14px", borderRadius: 14, border: "none",
                 background: TEAL, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer",
