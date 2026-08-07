@@ -27,6 +27,7 @@ import {
   getComments, createComment, updateComment, deleteComment,
   toggleCommentHeart, reportComment, subscribeComments,
 } from "../../lib/commentsService.js";
+import { getCachedComments, setCachedComments } from "../../lib/commentsPrefetchCache.js";
 
 // LIVE-COMMENT-COUNT.1 (2026-08-07): Feed-/Detail-Karten (UnifiedFeed.jsx,
 // WorkDetailPage.jsx etc.) zeigen die Kommentar-Anzahl aus einem eigenen,
@@ -365,6 +366,13 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const inputRef = useRef(null);
   const authorCache = useRef(new Map());
+  // INSTANT-COMMENTS.1 (2026-08-07): merkt sich, für welchen postId der
+  // aktuelle `items`-State tatsächlich schon einmal real geladen wurde
+  // (Cache-Hit ODER Netzwerk-Fetch) -- verhindert, dass der reaktive
+  // Cache-Sync-Effect beim allerersten Render für einen neuen Post (mit
+  // noch alten/leeren Default-Werten) fälschlich einen falschen Zustand
+  // in den Cache schreibt, bevor load() überhaupt gelaufen ist.
+  const loadedForRef = useRef(null);
 
   const decorateAuthors = useCallback(async (rows) => {
     const flatten = (list) => list.flatMap(c => [c, ...flatten(c.replies || [])]);
@@ -379,12 +387,45 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
   }, []);
 
   const load = useCallback(async (reset = true) => {
+    // INSTANT-COMMENTS.1 (2026-08-07): beim ersten Öffnen (reset=true)
+    // zuerst den Prefetch-Cache prüfen (commentsPrefetchCache.js) — der
+    // wird bereits gefüllt, sobald die zugehörige Karte im Feed/Detail
+    // sichtbar wird, lange bevor der Nutzer auf das Icon tippt. Bei
+    // Cache-Hit: KEIN Loading-Spinner, Kommentare erscheinen sofort.
+    // Trotzdem läuft im Hintergrund ein stiller Refresh (kein setLoading),
+    // damit inzwischen von anderen Nutzern geschriebene Kommentare (die
+    // die Realtime-Subscription verpasst hat, weil die Sheet noch
+    // geschlossen war) nachgezogen werden — ohne dass der Nutzer davon
+    // je etwas als "Ladezustand" sieht.
+    const cached = reset ? getCachedComments(postId, postType) : null;
+    if (cached) {
+      loadedForRef.current = postId;
+      setItems(cached.items);
+      setHasMore(cached.hasMore);
+      setOffset(cached.offset);
+      setTotal(cached.total);
+      setLoading(false);
+      if (cached.items.length) {
+        decorateAuthors(cached.items).then(decorated => setItems(decorated)).catch(() => {});
+      }
+      getComments(postId, postType, { offset: 0, limit: 20, currentUserId: user?.id }).then(async (res) => {
+        if (res.error) return;
+        const decorated = res.items.length ? await decorateAuthors(res.items) : res.items;
+        setItems(decorated);
+        setHasMore(res.hasMore);
+        setOffset(res.nextOffset);
+        setTotal(res.visibleTotal ?? res.totalRoots ?? 0);
+      }).catch(() => {});
+      return;
+    }
+
     setLoading(true);
     const nextOffset = reset ? 0 : offset;
     const res = await getComments(postId, postType, { offset: nextOffset, limit: 20, currentUserId: user?.id });
     if (res.error === "MIGRATION_PENDING") { setMigrationPending(true); setLoading(false); return; }
     // Sofort anzeigen (ohne Autor-Info) — der Nutzer sieht die Kommentare instant
     const undecorated = res.items;
+    if (reset) loadedForRef.current = postId;
     setItems(prev => reset ? undecorated : [...undecorated, ...prev]);
     setHasMore(res.hasMore);
     setOffset(res.nextOffset);
@@ -401,6 +442,23 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
       }).catch(() => {});
     }
   }, [postId, postType, user?.id, offset, decorateAuthors]);
+
+  // INSTANT-COMMENTS.1 (2026-08-07): hält den Prefetch-Cache reaktiv mit dem
+  // aktuell gerenderten Zustand synchron — jede Änderung (Optimistic-Update,
+  // Realtime-Insert/Delete, Autor-Dekoration, stiller Hintergrund-Refresh)
+  // landet automatisch im Cache. So ist ein erneutes Öffnen desselben Posts
+  // (oder das Öffnen durch eine andere Karte, die denselben Post zeigt)
+  // sofort korrekt und aktuell, ohne einen einzigen zusätzlichen Call-Site.
+  useEffect(() => {
+    if (!open || !postId || loading) return;
+    // Erst cachen, wenn für DIESEN postId tatsächlich schon geladen wurde
+    // (siehe loadedForRef oben) -- verhindert das Schreiben von Default-/
+    // Alt-Zustand in den Cache vor dem ersten echten load().
+    if (loadedForRef.current !== postId) return;
+    // Zusätzlicher Schutz gegen Cross-Contamination beim Post-Wechsel.
+    if (items.length && items[0]?.post_id && items[0].post_id !== postId) return;
+    setCachedComments(postId, postType, { items, total, hasMore, offset });
+  }, [open, postId, postType, items, total, hasMore, offset, loading]);
 
   useEffect(() => {
     if (!open || !postId) return;
@@ -672,15 +730,23 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
             </div>
           )}
 
+          {/* INSTANT-COMMENTS.1 (2026-08-07): kein "Kommentare werden geladen …"-
+              Text/Spinner mehr -- dank Prefetch-Cache ist das ohnehin fast nie
+              sichtbar. Für den seltenen Cache-Miss-Fall (Sheet wird geöffnet,
+              bevor der Hintergrund-Prefetch fertig ist) zeigen wir stattdessen
+              ein stilles Skeleton, das optisch wie leere Kommentarzeilen wirkt
+              -- kein "Laden"-Vokabular, kein Spinner. */}
           {loading && items.length === 0 && !migrationPending && (
-            <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"40px 20px", gap:12 }}>
-              <div style={{
-                width:28, height:28, borderRadius:"50%",
-                border:"3px solid rgba(13,196,181,0.15)",
-                borderTopColor:"#0DC4B5",
-                animation:"spin 0.7s linear infinite",
-              }}/>
-              <div style={{ fontSize:13, color:"rgba(26,26,46,0.45)", fontWeight:600 }}>Kommentare werden geladen …</div>
+            <div style={{ padding:"4px 0" }}>
+              {[0, 1].map(i => (
+                <div key={i} style={{ display:"flex", gap:10, padding:"10px 0", opacity: i === 0 ? 0.5 : 0.3 }}>
+                  <div style={{ width:32, height:32, borderRadius:"50%", background:"rgba(26,26,46,0.06)", flexShrink:0 }} />
+                  <div style={{ flex:1, paddingTop:2 }}>
+                    <div style={{ width:"38%", height:9, borderRadius:5, background:"rgba(26,26,46,0.06)", marginBottom:7 }} />
+                    <div style={{ width:"82%", height:9, borderRadius:5, background:"rgba(26,26,46,0.06)" }} />
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 

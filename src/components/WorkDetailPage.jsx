@@ -20,7 +20,8 @@ import { useSavedPostsContext } from "../context/SavedPostsContext.jsx";
 import { haptic } from "./commerce/commerceUtils.js";
 import { toast } from "../lib/useToast.jsx";
 import { shareContent } from "../lib/shareContent.js";
-import { countComments } from "../lib/commentsService.js";
+import { countComments, getComments } from "../lib/commentsService.js";
+import { prefetchComments } from "../lib/commentsPrefetchCache.js";
 import CommentsSheet from "./shared/CommentsSheet.jsx";
 
 /* ── Design Tokens ─────────────────────────────────────────────────── */
@@ -423,6 +424,8 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
       // CommentsSheet bei Bedarf selbst.
       const n = await countComments(werkId, "work");
       setCommentCount(n);
+      // INSTANT-COMMENTS.1 (2026-08-07): Kommentare im Hintergrund vorladen.
+      prefetchComments(werkId, "work", user?.id, getComments);
 
       // Increment view count
       try { await supabase.rpc("increment_work_views", { work_id: werkId }); } catch {}

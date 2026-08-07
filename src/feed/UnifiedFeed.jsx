@@ -24,7 +24,8 @@ import { emit }                from "../lib/events/index.js";
 import { toast }               from "../lib/useToast.jsx";
 import { usePresenceMap }      from "../lib/usePresence.jsx";
 import CommentsSheet            from "../components/shared/CommentsSheet.jsx";
-import { countComments }        from "../lib/commentsService.js";
+import { countComments, getComments } from "../lib/commentsService.js";
+import { prefetchComments } from "../lib/commentsPrefetchCache.js";
 
 // TEMP PERF — no-op on mobile (window.__HUI_PERF__ not set)
 import { PerfProfiler, usePerfMount, feedMark } from "../components/desktop/perf-instrument.js";
@@ -455,7 +456,12 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
     if (!visible || !postId || ccLoadedRef.current) return;
     ccLoadedRef.current = true;
     countComments(postId, postType).then(n => { setCommentCount(n); });
-  }, [visible, postId, postType]); // eslint-disable-line
+    // INSTANT-COMMENTS.1 (2026-08-07): Kommentare bereits jetzt im
+    // Hintergrund vorladen, solange die Karte nur sichtbar ist -- lange
+    // bevor der Nutzer auf das Sprechblasen-Icon tippt. Damit zeigt
+    // CommentsSheet beim Öffnen sofort Inhalte, ohne "wird geladen".
+    prefetchComments(postId, postType, user?.id, getComments);
+  }, [visible, postId, postType, user?.id]); // eslint-disable-line
 
   // LIVE-COMMENT-COUNT.1 (2026-08-07): CommentsSheet ist ein separates
   // Geschwister-Element (einmalig in UnifiedFeed gemountet, siehe unten),

@@ -47,7 +47,9 @@ import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { toast } from "../../lib/useToast.jsx";
 import { shareContent } from "../../lib/shareContent.js";
 import { HUICommentIcon } from "../../design/icons/HuiInteractionIcons.jsx";
-import { countComments } from "../../lib/commentsService.js";
+import { countComments, getComments } from "../../lib/commentsService.js";
+import { useAuth } from "../../lib/AuthContext.jsx";
+import { prefetchComments } from "../../lib/commentsPrefetchCache.js";
 import CommentsSheet from "./CommentsSheet.jsx";
 
 const T = {
@@ -85,6 +87,7 @@ function useMoreFromAuthor(authorId, excludeId) {
 }
 
 export default function PostFullscreenView({ item, onClose, onOpenPost }) {
+  const { user } = useAuth();
   const { isSaved, toggleSave } = useSavedPostsContext();
 
   // ── Enter/Exit-Animation: eigener "mountedItem"-State entkoppelt vom
@@ -156,8 +159,10 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
     if (!postId) return;
     let cancelled = false;
     countComments(postId, postType).then(n => { if (!cancelled) setCommentCount(n); });
+    // INSTANT-COMMENTS.1 (2026-08-07): Kommentare im Hintergrund vorladen.
+    prefetchComments(postId, postType, user?.id, getComments);
     return () => { cancelled = true; };
-  }, [postId, postType]);
+  }, [postId, postType, user?.id]);
 
   // LIVE-COMMENT-COUNT.1 (2026-08-07): Kommentare in CommentsSheet aktualisieren
   // sofort den Zähler hier — ohne dieses Event blieb die Zahl bis zum nächsten
