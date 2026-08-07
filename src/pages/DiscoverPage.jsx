@@ -302,8 +302,12 @@ function PersonCard({ person, onPress, delay=0, followers=0, likes=0 }) {
         )}
       </div>
 
-      {/* Follower + Likes — immer nebeneinander in 1 Zeile, gleiche Reihenfolge */}
-      <div style={{ display:"flex", gap:4, flexWrap:"nowrap", justifyContent:"center" }}>
+      {/* Follower + Likes — immer nebeneinander in 1 Zeile, IMMER am unteren Kartenrand
+          (marginTop:auto schiebt die Zeile nach unten; da .dp-hscroll ein Flex-Row mit
+          Default-align-items:stretch ist, haben alle Karten in der Reihe bereits dieselbe
+          Höhe — die Badges docken so bei jeder Karte exakt an der gleichen Y-Position an,
+          unabhängig davon ob Bio/Ort kürzer sind) */}
+      <div style={{ display:"flex", gap:4, flexWrap:"nowrap", justifyContent:"center", marginTop:"auto", paddingTop:4, width:"100%" }}>
         <div style={{
           display:"flex", alignItems:"center", gap:3,
           background:"rgba(14,196,184,0.08)", borderRadius:99, padding:"3px 8px",
