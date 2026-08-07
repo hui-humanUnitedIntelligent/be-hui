@@ -39,7 +39,7 @@ const fmtImpact = (n) => {
   return v >= 1000 ? `${(v/1000).toFixed(1)}k` : String(v);
 };
 
-function PersonCardItem({ p, onPress }) {
+function PersonCardItem({ p, onPress, followers=0, likes=0 }) {
   const [imgErr, setImgErr] = useState(false);
   const av = (!imgErr && p.avatar_url) ? p.avatar_url : null;
   const name = p.display_name || p.username || "HUI Mitglied";
@@ -84,15 +84,39 @@ function PersonCardItem({ p, onPress }) {
           <span style={{ fontWeight:500 }}>{p.location_label}</span>
         </div>
       )}
-      <div style={{
-        display:"flex", alignItems:"center", gap:4, marginTop:"auto",
-        background:`linear-gradient(135deg,rgba(14,196,184,0.12),rgba(14,196,184,0.06))`,
-        borderRadius:99, padding:"3px 9px", border:"1px solid rgba(14,196,184,0.18)",
-      }}>
-        <span style={{ fontSize:10 }}>⚡</span>
-        <span style={{ fontSize:10.5, fontWeight:800, color:T.teal, letterSpacing:"-0.02em" }}>
-          {fmtImpact(p.impact_eur)} Wirkung
-        </span>
+      <div style={{ display:"flex", gap:4, flexWrap:"wrap", justifyContent:"center", marginTop:"auto" }}>
+        {followers > 0 && (
+          <div style={{
+            display:"flex", alignItems:"center", gap:3,
+            background:"rgba(14,196,184,0.08)", borderRadius:99, padding:"3px 8px",
+            border:"1px solid rgba(14,196,184,0.12)",
+          }}>
+            <span style={{ fontSize:10 }}>👥</span>
+            <span style={{ fontSize:10.5, fontWeight:700, color:T.tealDeep }}>{followers}</span>
+          </div>
+        )}
+        {likes > 0 && (
+          <div style={{
+            display:"flex", alignItems:"center", gap:3,
+            background:"rgba(239,68,68,0.08)", borderRadius:99, padding:"3px 8px",
+            border:"1px solid rgba(239,68,68,0.12)",
+          }}>
+            <span style={{ fontSize:10 }}>❤️</span>
+            <span style={{ fontSize:10.5, fontWeight:700, color:"#e04050" }}>{likes}</span>
+          </div>
+        )}
+        {p.impact_eur > 0 && (
+          <div style={{
+            display:"flex", alignItems:"center", gap:3,
+            background:"linear-gradient(135deg,rgba(14,196,184,0.12),rgba(14,196,184,0.06))",
+            borderRadius:99, padding:"3px 8px", border:"1px solid rgba(14,196,184,0.18)",
+          }}>
+            <span style={{ fontSize:10 }}>⚡</span>
+            <span style={{ fontSize:10.5, fontWeight:800, color:T.teal, letterSpacing:"-0.02em" }}>
+              {fmtImpact(p.impact_eur)}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -109,6 +133,7 @@ export default function MenschenAllModal({ isOpen, onClose, onPressPerson }) {
   const scrollRef               = useRef(null);
   const searchTimer             = useRef(null);
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [likesMap, setLikesMap] = useState({});
 
   useEffect(() => {
     clearTimeout(searchTimer.current);
@@ -129,7 +154,7 @@ export default function MenschenAllModal({ isOpen, onClose, onPressPerson }) {
       // Contract v1.0 Felder) — "Alle anzeigen" zeigt dieselbe Zielgruppe
       // vollständig, statt nur die ersten 12.
       let q = supabase.from("profiles")
-        .select("id,display_name,username,avatar_url,bio,location_label,impact_eur")
+        .select("id,display_name,username,avatar_url,bio,location_label,impact_eur,followers_count")
         .or("has_talent_profile.eq.true,is_member.eq.true,role.eq.talent,role.eq.wirker")
         .order("created_at", { ascending:false })
         .range(pageNum * PAGE_SIZE, (pageNum+1) * PAGE_SIZE - 1);
@@ -143,6 +168,16 @@ export default function MenschenAllModal({ isOpen, onClose, onPressPerson }) {
 
       setItems(prev => pageNum === 0 ? data : [...prev, ...data]);
       if (data.length < PAGE_SIZE) setHasMore(false);
+
+      // Likes für diese Seite batch-laden
+      const pageIds = data.map(d => d.id).filter(Boolean);
+      if (pageIds.length > 0) {
+        supabase.rpc("rpc_get_profile_likes", { p_user_ids: pageIds })
+          .then(({ data: ld }) => {
+            if (!ld) return;
+            setLikesMap(prev => ({ ...prev, ...Object.fromEntries(ld.map(r => [r.user_id, Number(r.total_likes) || 0])) }));
+          }).catch(() => {});
+      }
     } finally {
       setLoading(false);
     }
@@ -209,7 +244,7 @@ export default function MenschenAllModal({ isOpen, onClose, onPressPerson }) {
             </div>
           )}
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-            {items.map(p => <PersonCardItem key={p.id} p={p} onPress={onPressPerson}/>)}
+            {items.map(p => <PersonCardItem key={p.id} p={p} onPress={onPressPerson} followers={p.followers_count || 0} likes={likesMap[p.id] || 0} />)}
           </div>
           {loading && items.length > 0 && (
             <div style={{ textAlign:"center", padding:16, color:T.inkFaint, fontSize:13 }}>Lade weitere…</div>

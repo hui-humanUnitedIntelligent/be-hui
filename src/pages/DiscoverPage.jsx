@@ -223,7 +223,7 @@ const SEED_PEOPLE = [
 //  Platzhalter-Tags, deterministisch aus dem Namen gehasht. Keine echten Nutzerdaten.
 //  dna_tags/skills sind nicht im Identity Contract v1.0 enthalten.)
 
-function PersonCard({ person, onPress, delay=0 }) {
+function PersonCard({ person, onPress, delay=0, followers=0, likes=0 }) {
   const [imgErr, setImgErr] = useState(false);
   const av = (!imgErr && person.avatar) ? person.avatar : null;
   const presence = formatPresence(person.last_seen_at);
@@ -314,23 +314,47 @@ function PersonCard({ person, onPress, delay=0 }) {
         </div>
       )}
 
-      {/* Impact — stärker hervorgehoben */}
-      <div style={{
-        display:"flex", alignItems:"center", gap:4,
-        background:`linear-gradient(135deg,rgba(14,196,184,0.12),rgba(14,196,184,0.06))`,
-        borderRadius:99, padding:"4px 10px",
-        border:"1px solid rgba(14,196,184,0.18)",
-      }}>
-        <span style={{ fontSize:11 }}>⚡</span>
-        <span style={{ fontSize:11.5, fontWeight:800, color:T.teal, letterSpacing:"-0.02em" }}>
-          {fmtImpact(person.impact)} Wirkung
-        </span>
+      {/* Echte Metriken: Followers + Likes + Impact */}
+      <div style={{ display:"flex", gap:4, flexWrap:"wrap", justifyContent:"center" }}>
+        {followers > 0 && (
+          <div style={{
+            display:"flex", alignItems:"center", gap:3,
+            background:"rgba(14,196,184,0.08)", borderRadius:99, padding:"3px 8px",
+            border:"1px solid rgba(14,196,184,0.12)",
+          }}>
+            <span style={{ fontSize:10 }}>👥</span>
+            <span style={{ fontSize:10.5, fontWeight:700, color:T.tealDeep }}>{followers}</span>
+          </div>
+        )}
+        {likes > 0 && (
+          <div style={{
+            display:"flex", alignItems:"center", gap:3,
+            background:"rgba(239,68,68,0.08)", borderRadius:99, padding:"3px 8px",
+            border:"1px solid rgba(239,68,68,0.12)",
+          }}>
+            <span style={{ fontSize:10 }}>❤️</span>
+            <span style={{ fontSize:10.5, fontWeight:700, color:"#e04050" }}>{likes}</span>
+          </div>
+        )}
+        {person.impact > 0 && (
+          <div style={{
+            display:"flex", alignItems:"center", gap:3,
+            background:"linear-gradient(135deg,rgba(14,196,184,0.12),rgba(14,196,184,0.06))",
+            borderRadius:99, padding:"3px 8px",
+            border:"1px solid rgba(14,196,184,0.18)",
+          }}>
+            <span style={{ fontSize:10 }}>⚡</span>
+            <span style={{ fontSize:10.5, fontWeight:800, color:T.teal, letterSpacing:"-0.02em" }}>
+              {fmtImpact(person.impact)}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-function PeopleSection({ people, onPersonPress, loading, delay=0, view='cards', onSectionAction }) {
+function PeopleSection({ people, onPersonPress, loading, delay=0, view='cards', onSectionAction, likesMap={} }) {
   return (
     <div className="dp-in" style={{ animationDelay:`${delay}ms`, marginTop:10 }}>
       <div data-dp-people/>
@@ -358,7 +382,7 @@ function PeopleSection({ people, onPersonPress, loading, delay=0, view='cards', 
             : people.length === 0
             ? <div style={{ paddingLeft:T.px, fontSize:12.5, color:T.inkFaint, fontStyle:'italic', opacity:0.75 }}>Noch keine Mitglieder gefunden.</div>
             : people.map((p, i) => (
-                <PersonCard key={p.id} person={p} onPress={onPersonPress} delay={0} />
+                <PersonCard key={p.id} person={p} onPress={onPersonPress} delay={0} followers={p.followers_count || 0} likes={likesMap[p.id] || 0} />
               ))
           }
         </div>
@@ -2083,6 +2107,22 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   // ── People: nur echte DB-Daten (kein Seed-Fallback — verhindert Klick-Bug)
   const filteredPeople = people;
 
+  // ── Profile Likes: Batch-Load via RPC (echte Reaktionen aus works/experiences/moments)
+  const [likesMap, setLikesMap] = useState({});
+  useEffect(() => {
+    if (!people.length) return;
+    const ids = people.map(p => p.id).filter(Boolean);
+    if (!ids.length) return;
+    let cancelled = false;
+    supabase.rpc("rpc_get_profile_likes", { p_user_ids: ids })
+      .then(({ data }) => {
+        if (cancelled || !data) return;
+        setLikesMap(Object.fromEntries(data.map(r => [r.user_id, Number(r.total_likes) || 0])));
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [people]);
+
   const displayMomente    = momente; // nur echte Daten
   const navigate           = useNavigate();
   const { open: openPreview } = useContentPreview(); // OPEN.1 2026-07-08
@@ -2238,6 +2278,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         delay={60}
         view={view}
         onSectionAction={() => setShowMenschenModal(true)}
+        likesMap={likesMap}
       />
 
       {/* ── 4. Momente aus deiner Nähe ── */}
