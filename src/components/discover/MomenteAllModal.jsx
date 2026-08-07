@@ -30,7 +30,8 @@ const timeAgo = (iso) => {
 
 function MomentCardItem({ m, onPress, onOpenProfile }) {
   const [imgErr, setImgErr] = useState(false);
-  const likes = 4 + (m.id?.charCodeAt(m.id.length-1) % 30 || 0);
+  const likes = m.likes ?? 0;
+  const comments = m.comments ?? 0;
   return (
     <div
       onClick={() => onPress?.(m)}
@@ -75,7 +76,7 @@ function MomentCardItem({ m, onPress, onOpenProfile }) {
         </div>
         <div style={{ display:"flex", gap:10, marginTop:6 }}>
           <span style={{ fontSize:11, color:T.inkFaint }}>♡ {likes}</span>
-          <span style={{ fontSize:11, color:T.inkFaint }}>◎ {Math.floor(likes/4)}</span>
+          <span style={{ fontSize:11, color:T.inkFaint }}>◎ {comments}</span>
         </div>
       </div>
     </div>
@@ -95,7 +96,7 @@ export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
   const scrollRef                = useRef(null);
   const searchTimer              = useRef(null);
   const [debouncedSearch, setDS] = useState("");
-  const [sort, setSort]               = useState("newest"); // newest | alpha (no likes_count on beitraege)
+  const [sort, setSort]               = useState("newest"); // newest | alpha
 
   useEffect(() => {
     clearTimeout(searchTimer.current);
@@ -134,8 +135,22 @@ export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
         }]));
       }
 
+      // Echte Like-/Kommentar-Zahlen laden — gleiche SSOT wie DiscoverPage
+      const engResults = await Promise.all(data.map(async (m) => {
+        const [rcRes, ccRes] = await Promise.all([
+          supabase.rpc("reaction_counts", { p_post_id: m.id }).catch(() => ({ data: null })),
+          supabase.rpc("count_comments", { p_post_id: m.id, p_post_type: "moment" }).catch(() => ({ data: null })),
+        ]);
+        const rc = rcRes?.data;
+        const cc = ccRes?.data;
+        return { id: m.id, likes: rc?.inspire ?? 0, comments: typeof cc === "number" ? cc : 0 };
+      }));
+      const engMap = Object.fromEntries(engResults.map(e => [e.id, e]));
+
       const enriched = data.map(m => ({
         ...m,
+        likes: engMap[m.id]?.likes ?? 0,
+        comments: engMap[m.id]?.comments ?? 0,
         _name: pMap[m.user_id]?.name || "HUI Mitglied",
         _initials: pMap[m.user_id]?.initials || "H"
       }));
