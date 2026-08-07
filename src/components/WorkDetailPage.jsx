@@ -812,13 +812,13 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
         borderTop:`1px solid ${C.border}`,
         display:"flex", gap:10, zIndex:10500 }}>
         <button
-          onClick={() => onAddToKorb ? onAddToKorb({...werk, img: images[0], price: priceStr}) : null}
+          onClick={handleSave}
           className="wd-tap"
           style={{ flex:1, padding:"14px",
             background:"none", border:`1.5px solid ${C.coral}55`,
             borderRadius:16, color:C.coral, fontSize:14,
             fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>
-          In den Korb
+          {saved ? "Gemerkt ✓" : "Merken"}
         </button>
         <button
           onClick={() => onBuyWerk ? onBuyWerk({...werk, img: images[0], price: priceStr}) : onBuyWerk?.({...werk, img: images[0], price: priceStr})}

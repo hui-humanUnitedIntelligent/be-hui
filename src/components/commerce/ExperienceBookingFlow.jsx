@@ -12,6 +12,7 @@ import { useAuth } from "../../lib/AuthContext";
 import { bookingService } from "../../services/creatorEconomy";
 import { supabase } from "../../lib/supabaseClient";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { useSavedPostsContext } from "../../context/SavedPostsContext.jsx";
 
 const TEAL = "#16D7C5";
 
@@ -21,6 +22,7 @@ export default function ExperienceBookingFlow({ experience, onClose }) {
   const [message, setMessage] = useState("");
   const [phase,   setPhase]   = useState("form"); // form | loading | success | error
   const [errMsg,  setErrMsg]  = useState("");
+  const { isSaved, toggleSave } = useSavedPostsContext();
 
   if (!experience) return null;
 
@@ -191,14 +193,14 @@ export default function ExperienceBookingFlow({ experience, onClose }) {
 
             {/* ── Buttons ── */}
             <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={onClose} style={{
+              <button onClick={() => toggleSave(expId, "erlebnis", { title, cover_url: expObj?.cover_url || expObj?._raw?.cover_url, author: creatorName })} style={{
                 flex: 1, background: "transparent",
                 border: "1.5px solid rgba(26,26,46,0.15)",
                 borderRadius: 14, padding: "12px 0",
                 fontSize: 14, fontWeight: 600, color: "rgba(26,26,46,0.55)",
                 cursor: "pointer",
               }}>
-                Abbrechen
+                {isSaved(expId) ? "Gemerkt ✓" : "Merken"}
               </button>
               <button
                 onClick={handleBuchen}

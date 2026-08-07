@@ -21,6 +21,7 @@ import { useAuth } from "../../lib/AuthContext";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
+import { useSavedPostsContext } from "../../context/SavedPostsContext.jsx";
 
 const TEAL = "#16D7C5";
 
@@ -32,8 +33,14 @@ export default function TalentAnfrageFlow({ talent, onClose }) {
 
   useWizardBodyLock();
   useModalRegistration(true, onClose, "TalentAnfrageFlow");
+  const { isSaved, toggleSave } = useSavedPostsContext();
 
   if (!talent) return null;
+
+  const savedTalent = isSaved(talent.id);
+  const handleMerken = () => {
+    toggleSave(talent.id, "talent", { title: talent?.title, cover_url: talent?.cover_url, author: talent?.author });
+  };
 
   const title       = talent.title || "Talent-Angebot";
   const providerId  = talent.user_id;
@@ -184,14 +191,14 @@ export default function TalentAnfrageFlow({ talent, onClose }) {
 
             {/* ── Buttons ── */}
             <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={onClose} style={{
+              <button onClick={handleMerken} style={{
                 flex: 1, background: "transparent",
                 border: "1.5px solid rgba(26,26,46,0.15)",
                 borderRadius: 14, padding: "12px 0",
                 fontSize: 14, fontWeight: 600, color: "rgba(26,26,46,0.55)",
                 cursor: "pointer", touchAction: "manipulation",
               }}>
-                Abbrechen
+                {savedTalent ? "Gemerkt ✓" : "Merken"}
               </button>
               <button
                 onClick={handleSenden}

@@ -458,6 +458,7 @@ function MomentCard({ moment, delay=0, onPress, onAuthorPress }) {
         <div className="dp-engage" style={{ marginTop:"auto", paddingTop:4 }}>
           <span><HUIHeartIcon size={12} /> {moment.likes ?? 0}</span>
           <span><HUIChatIcon size={12} /> {moment.comments ?? 0}</span>
+          <span style={{display:"flex",alignItems:"center",gap:2}}><HUIAnsichtIcon size={12}/>{moment.views ?? 0}</span>
         </div>
       </div>
     </div>
@@ -642,14 +643,20 @@ function TalentCard({ talent, delay=0, onPress, onAuthorPress }) {
         </div>
 
         {/* Preis — immer am unteren Rand */}
-        <div style={{ marginTop:"auto", paddingTop:4, display:"flex", alignItems:"center" }}>
-          {priceStr ? (
-            <div style={{ fontSize:14, fontWeight:800, color:T.teal, letterSpacing:"-0.02em" }}>
-              {priceStr}
-            </div>
-          ) : (
-            <div style={{ fontSize:10.5, color:T.inkFaint, fontStyle:"italic" }}>Preis auf Anfrage</div>
-          )}
+        <div style={{ marginTop:"auto", paddingTop:4 }}>
+          <div style={{ display:"flex", alignItems:"center", marginBottom:6 }}>
+            {priceStr ? (
+              <div style={{ fontSize:14, fontWeight:800, color:T.teal, letterSpacing:"-0.02em" }}>
+                {priceStr}
+              </div>
+            ) : (
+              <div style={{ fontSize:10.5, color:T.inkFaint, fontStyle:"italic" }}>Preis auf Anfrage</div>
+            )}
+          </div>
+          {/* Views */}
+          <div className="dp-engage">
+            <span style={{display:"flex",alignItems:"center",gap:2}}><HUIAnsichtIcon size={12}/>{talent.views ?? 0}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -1126,11 +1133,16 @@ function ErlebnisCard({ erlebnis, delay=0, onPress }) {
               </span>
             </div>
           )}
-          {erlebnis.likes > 0 && (
-            <span style={{ display:"flex", alignItems:"center", gap:3, fontSize:10.5, color:T.coral, fontWeight:700 }}>
-              <HUIHeartIcon size={11} /> {erlebnis.likes}
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            {erlebnis.likes > 0 && (
+              <span style={{ display:"flex", alignItems:"center", gap:3, fontSize:10.5, color:T.coral, fontWeight:700 }}>
+                <HUIHeartIcon size={11} /> {erlebnis.likes}
+              </span>
+            )}
+            <span style={{ display:"flex", alignItems:"center", gap:3, fontSize:10.5, color:T.inkFaint, fontWeight:600 }}>
+              <HUIAnsichtIcon size={11} /> {erlebnis.views ?? 0}
             </span>
-          )}
+          </div>
         </div>
       </div>
     </div>
@@ -1712,7 +1724,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         // Momente (beitraege) — 2-Schritt-Query (kein FK beitraege.user_id → profiles)
         const { data: beitr } = await supabase
           .from("beitraege")
-          .select("id,src,type,moment_source,caption,created_at,user_id")
+          .select("id,src,type,moment_source,caption,created_at,user_id,views_count")
           .order("created_at", { ascending:false })
           .limit(getOptimalPageSize(8));
 
@@ -1757,6 +1769,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
             location:   "",
             likes:      eng.likes,
             comments:   eng.comments,
+            views:      b.views_count || 0,
           };
           }));
         }
@@ -1765,7 +1778,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         // Schritt 1: Werke laden
         const { data: ws, error: wsErr } = await supabase
           .from("works")
-          .select("id,title,cover_url,category,file_format,tags,status,approval_status,visibility,price,location_text,lat,lng,user_id,created_at,likes_count")
+          .select("id,title,cover_url,category,file_format,tags,status,approval_status,visibility,price,location_text,lat,lng,user_id,created_at,likes_count,views_count")
           .eq("status", "published")
           .eq("approval_status", "approved")
           .eq("visibility", "public")
@@ -1803,6 +1816,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
               author:    safeStr(prof.display_name, "HUI Talent"),
               avatar_url: prof.avatar_url || null,
               likes:     w.likes_count || 0,
+              views:     w.views_count || 0,
             };
           }));
         } else if (!wsErr) {
@@ -1814,7 +1828,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         // Oeffentlich sichtbar nur status='approved' (RLS deckt das zusaetzlich ab)
         const { data: tal, error: talErr } = await supabase
           .from("talents")
-          .select("id,title,description,category,images,price_per_hour,price_per_session,currency,location_type,location_address,location_notes,map_link,lat,lng,user_id,created_at,available_dates,available_time_slots,recurring,duration_minutes,max_participants,min_participants,booking_type,booking_window_start,booking_window_end")
+          .select("id,title,description,category,images,price_per_hour,price_per_session,currency,location_type,location_address,location_notes,map_link,lat,lng,user_id,created_at,available_dates,available_time_slots,recurring,duration_minutes,max_participants,min_participants,booking_type,booking_window_start,booking_window_end,views_count")
           .eq("status", "approved")
           .order("created_at", { ascending:false })
           .limit(8);
@@ -1861,6 +1875,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
               booking_type:          safeStr(t.booking_type, "einzel"),
               booking_window_start:  safeStr(t.booking_window_start),
               booking_window_end:    safeStr(t.booking_window_end),
+              views:                 t.views_count || 0,
             })));
           }
         } else if (!talErr) {
@@ -1870,7 +1885,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         // Erlebnisse — korrigierte Feldnamen: location_text, max_participants
         const { data: exps, error: expsErr } = await supabase
           .from("experiences")
-          .select("id,title,cover_url,date,duration,location_text,max_participants,status,approval_status,category,experience_type,format,lat,lng,user_id,created_at,likes_count")
+          .select("id,title,cover_url,date,duration,location_text,max_participants,status,approval_status,category,experience_type,format,lat,lng,user_id,created_at,likes_count,views_count")
           .eq("status", "published")
           .eq("approval_status", "approved")
           .order("likes_count", { ascending:false })
@@ -1919,6 +1934,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
               lat:         Number.isFinite(e.lat) ? e.lat : null,
               lng:         Number.isFinite(e.lng) ? e.lng : null,
               likes:       e.likes_count || 0,
+              views:       e.views_count || 0,
             };
           }));
         } else if (!expsErr) {
@@ -2140,9 +2156,8 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   const handleTalentPress = useCallback((talent) => {
     const talentId = talent.id;
     const isRealId = talentId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(talentId));
-    // Hat das Angebot einen Preis (TALENT-SERVICES-001)? -> echte Buchung+Zahlung.
-    // Sonst (kein Preis hinterlegt) -> Fallback auf die einfache Anfrage-Maske.
     const hasPrice = talent.price_per_hour != null || talent.price_per_session != null;
+    if (isRealId) { try { supabase.rpc("increment_talent_views", { talent_id: talentId }); } catch {} }
     requireAuth(hasPrice ? "ein Talent zu buchen" : "ein Talent zu kontaktieren", () => {
       if (!isRealId) return;
       if (hasPrice) setTalentBooking(talent);
@@ -2155,6 +2170,8 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   // Weg (Profil des Erstellers) ist ohne eigenen Moment-Detail-View durch
   // die Vorschau ersetzt, die Titelbild/Text/Datum des Moments zeigt.
   const handleMomentPress = useCallback((moment) => {
+    const isRealId = moment?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(moment.id));
+    if (isRealId) { try { supabase.rpc("increment_moment_views", { moment_id: moment.id }); } catch {} }
     const item = normalizePostForPreview({ ...moment, title: moment.caption }, "moment");
     if (item) openPreview(item);
   }, [openPreview]);
@@ -2162,12 +2179,10 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   // Erlebnis-Karte: öffne ExperienceBookingFlow (Detail + Buchen)
   const handleErlebnisPress = useCallback((erlebnis) => {
     const isRealId = erlebnis?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(erlebnis.id));
+    if (isRealId) { try { supabase.rpc("increment_experience_views", { experience_id: erlebnis.id }); } catch {} }
     if (isRealId) {
-      // Erlebnisse direkt mit ExperienceBookingFlow öffnen (hat Bild, Beschreibung, Buchungs-Button)
-      // ContentPreviewSheet ist für Beiträge/Projekte, nicht für buchbare Erlebnisse
       if (typeof onBook === "function") { onBook(erlebnis); return; }
     }
-    // Seed-Karte oder kein onBook: Fallback auf Profil
     const profileId = erlebnis.user_id;
     if (profileId && typeof onView === "function") onView(profileId);
   }, [onBook, onView]);

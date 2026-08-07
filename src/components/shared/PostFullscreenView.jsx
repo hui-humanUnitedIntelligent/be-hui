@@ -321,13 +321,22 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
             </div>
           )}
 
-          {/* 8) Profil ansehen */}
-          <button className="pfv-btn" onClick={handleOpenProfile} style={{
-            width:"100%", marginTop:22, padding:"13px", borderRadius:14,
-            background:T.ink, color:"#fff", fontSize:14, fontWeight:700,
-          }}>
-            Profil ansehen
-          </button>
+          {/* 8) Merken + Profil ansehen */}
+          <div style={{ display:"flex", gap:10, marginTop:22 }}>
+            <button className="pfv-btn" onClick={() => handleReaction("save")} style={{
+              flex:1, padding:"13px", borderRadius:14,
+              background:"transparent", border:`1.5px solid ${T.ink}26`,
+              color:T.ink, fontSize:14, fontWeight:700,
+            }}>
+              {saved ? "Gemerkt ✓" : "Merken"}
+            </button>
+            <button className="pfv-btn" onClick={handleOpenProfile} style={{
+              flex:2, padding:"13px", borderRadius:14,
+              background:T.ink, color:"#fff", fontSize:14, fontWeight:700,
+            }}>
+              Profil ansehen
+            </button>
+          </div>
 
           {/* Bottom-Spacer: verhindert Abschneiden hinter Navbar */}
           <div style={{ height:"calc(88px + env(safe-area-inset-bottom, 0px))" }}/>
