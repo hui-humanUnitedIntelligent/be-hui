@@ -268,87 +268,58 @@ function PersonCard({ person, onPress, delay=0, followers=0, likes=0 }) {
         }} className={presence?.online ? "dp-online-pulse" : ""}/>
       </div>
 
-      {/* Name */}
+      {/* Name — fixe Höhe für 2 Zeilen, garantiert gleiche Kartenhöhe */}
       <div style={{
         fontSize:12.5, fontWeight:700, color:T.ink, textAlign:"center",
         letterSpacing:"-0.02em", lineHeight:1.25, marginBottom:3,
+        minHeight:31.25, width:"100%",
         overflow:"hidden", display:"-webkit-box",
         WebkitLineClamp:2, WebkitBoxOrient:"vertical",
       }}>
         {person.name}
       </div>
 
-      {/* Bio */}
+      {/* Bio — immer 2 Zeilen Platz reserviert, auch wenn leer */}
       <div style={{
         fontSize:10.5, color:T.inkSoft, textAlign:"center", lineHeight:1.4,
-        marginBottom:6, fontWeight:400,
+        marginBottom:6, fontWeight:400, minHeight:29.4, width:"100%",
         overflow:"hidden", display:"-webkit-box",
         WebkitLineClamp:2, WebkitBoxOrient:"vertical",
       }}>
-        {person.bio}
+        {person.bio || ""}
       </div>
 
-      {/* Online-Status Text */}
-      {presence && (
-        <div style={{
-          fontSize:10, fontWeight:600, marginBottom:6,
-          color: presence.online ? "#22c55e" : "rgba(26,53,48,0.42)",
-          display:"flex", alignItems:"center", gap:4,
-        }}>
-          <span style={{
-            display:"inline-block", width:6, height:6, borderRadius:"50%",
-            background:presence.dot, flexShrink:0,
-          }}/>
-          {presence.label}
-        </div>
-      )}
+      {/* Ort — immer 1 Zeile Platz reserviert, auch wenn leer */}
+      <div style={{
+        display:"flex", alignItems:"center", justifyContent:"center", gap:3,
+        fontSize:10, color:T.inkFaint, marginBottom:8, minHeight:13, width:"100%",
+      }}>
+        {person.location && (
+          <>
+            <HUILocationIcon size={9} style={{flexShrink:0}} />
+            <span style={{ fontWeight:500, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{person.location}</span>
+          </>
+        )}
+      </div>
 
-      {/* Location */}
-      {person.location && (
+      {/* Follower + Likes — immer nebeneinander in 1 Zeile, gleiche Reihenfolge */}
+      <div style={{ display:"flex", gap:4, flexWrap:"nowrap", justifyContent:"center" }}>
         <div style={{
           display:"flex", alignItems:"center", gap:3,
-          fontSize:10, color:T.inkFaint, marginBottom:8,
+          background:"rgba(14,196,184,0.08)", borderRadius:99, padding:"3px 8px",
+          border:"1px solid rgba(14,196,184,0.12)",
         }}>
-          <HUILocationIcon size={9} style={{flexShrink:0}} />
-          <span style={{ fontWeight:500 }}>{person.location}</span>
+          <span style={{ fontSize:10 }}>👥</span>
+          <span style={{ fontSize:10.5, fontWeight:700, color:T.tealDeep }}>{followers}</span>
         </div>
-      )}
-
-      {/* Echte Metriken: Followers + Likes + Impact */}
-      <div style={{ display:"flex", gap:4, flexWrap:"wrap", justifyContent:"center" }}>
-        {followers > 0 && (
-          <div style={{
-            display:"flex", alignItems:"center", gap:3,
-            background:"rgba(14,196,184,0.08)", borderRadius:99, padding:"3px 8px",
-            border:"1px solid rgba(14,196,184,0.12)",
-          }}>
-            <span style={{ fontSize:10 }}>👥</span>
-            <span style={{ fontSize:10.5, fontWeight:700, color:T.tealDeep }}>{followers}</span>
-          </div>
-        )}
-        {likes > 0 && (
-          <div style={{
-            display:"flex", alignItems:"center", gap:3,
-            background:"rgba(239,68,68,0.08)", borderRadius:99, padding:"3px 8px",
-            border:"1px solid rgba(239,68,68,0.12)",
-          }}>
-            <span style={{ fontSize:10 }}>❤️</span>
-            <span style={{ fontSize:10.5, fontWeight:700, color:"#e04050" }}>{likes}</span>
-          </div>
-        )}
-        {person.impact > 0 && (
-          <div style={{
-            display:"flex", alignItems:"center", gap:3,
-            background:"linear-gradient(135deg,rgba(14,196,184,0.12),rgba(14,196,184,0.06))",
-            borderRadius:99, padding:"3px 8px",
-            border:"1px solid rgba(14,196,184,0.18)",
-          }}>
-            <span style={{ fontSize:10 }}>⚡</span>
-            <span style={{ fontSize:10.5, fontWeight:800, color:T.teal, letterSpacing:"-0.02em" }}>
-              {fmtImpact(person.impact)}
-            </span>
-          </div>
-        )}
+        <div style={{
+          display:"flex", alignItems:"center", gap:3,
+          background:"rgba(239,68,68,0.08)", borderRadius:99, padding:"3px 8px",
+          border:"1px solid rgba(239,68,68,0.12)",
+        }}>
+          <span style={{ fontSize:10 }}>❤️</span>
+          <span style={{ fontSize:10.5, fontWeight:700, color:"#e04050" }}>{likes}</span>
+        </div>
       </div>
     </div>
   );

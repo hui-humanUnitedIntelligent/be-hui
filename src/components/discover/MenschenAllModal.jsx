@@ -40,11 +40,6 @@ const SORT_OPTIONS = [
   { key:"alpha",     label:"A–Z",   icon:"🔤" },
 ];
 
-const fmtImpact = (n) => {
-  const v = typeof n === "number" && isFinite(n) ? n : 0;
-  return v >= 1000 ? `${(v/1000).toFixed(1)}k` : String(v);
-};
-
 function PersonCardItem({ p, onPress, followers=0, likes=0 }) {
   const [imgErr, setImgErr] = useState(false);
   const av = (!imgErr && p.avatar_url) ? p.avatar_url : null;
@@ -71,58 +66,46 @@ function PersonCardItem({ p, onPress, followers=0, likes=0 }) {
       </div>
       <div style={{
         fontSize:13, fontWeight:700, color:T.ink, textAlign:"center", marginBottom:4,
+        minHeight:16.25, width:"100%",
         overflow:"hidden", display:"-webkit-box", WebkitLineClamp:1, WebkitBoxOrient:"vertical",
-        width:"100%",
       }}>
         {name}
       </div>
-      {p.bio && (
+      {/* Bio — immer 2 Zeilen Platz reserviert, auch wenn leer */}
+      <div style={{
+        fontSize:11, color:T.inkSoft, textAlign:"center", marginBottom:6, lineHeight:1.4,
+        minHeight:30.8, width:"100%",
+        overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical",
+      }}>
+        {p.bio || ""}
+      </div>
+      {/* Ort — immer 1 Zeile Platz reserviert, auch wenn leer */}
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:3, fontSize:10, color:T.inkFaint, marginBottom:6, minHeight:13, width:"100%" }}>
+        {p.location_label && (
+          <>
+            <HUILocationIcon size={9} style={{flexShrink:0}} />
+            <span style={{ fontWeight:500, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{p.location_label}</span>
+          </>
+        )}
+      </div>
+      {/* Follower + Likes — immer nebeneinander in 1 Zeile */}
+      <div style={{ display:"flex", gap:4, flexWrap:"nowrap", justifyContent:"center", marginTop:"auto" }}>
         <div style={{
-          fontSize:11, color:T.inkSoft, textAlign:"center", marginBottom:6, lineHeight:1.4,
-          overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical",
+          display:"flex", alignItems:"center", gap:3,
+          background:"rgba(14,196,184,0.08)", borderRadius:99, padding:"3px 8px",
+          border:"1px solid rgba(14,196,184,0.12)",
         }}>
-          {p.bio}
+          <span style={{ fontSize:10 }}>👥</span>
+          <span style={{ fontSize:10.5, fontWeight:700, color:T.tealDeep }}>{followers}</span>
         </div>
-      )}
-      {p.location_label && (
-        <div style={{ display:"flex", alignItems:"center", gap:3, fontSize:10, color:T.inkFaint, marginBottom:6 }}>
-          <HUILocationIcon size={9} style={{flexShrink:0}} />
-          <span style={{ fontWeight:500 }}>{p.location_label}</span>
+        <div style={{
+          display:"flex", alignItems:"center", gap:3,
+          background:"rgba(239,68,68,0.08)", borderRadius:99, padding:"3px 8px",
+          border:"1px solid rgba(239,68,68,0.12)",
+        }}>
+          <span style={{ fontSize:10 }}>❤️</span>
+          <span style={{ fontSize:10.5, fontWeight:700, color:"#e04050" }}>{likes}</span>
         </div>
-      )}
-      <div style={{ display:"flex", gap:4, flexWrap:"wrap", justifyContent:"center", marginTop:"auto" }}>
-        {followers > 0 && (
-          <div style={{
-            display:"flex", alignItems:"center", gap:3,
-            background:"rgba(14,196,184,0.08)", borderRadius:99, padding:"3px 8px",
-            border:"1px solid rgba(14,196,184,0.12)",
-          }}>
-            <span style={{ fontSize:10 }}>👥</span>
-            <span style={{ fontSize:10.5, fontWeight:700, color:T.tealDeep }}>{followers}</span>
-          </div>
-        )}
-        {likes > 0 && (
-          <div style={{
-            display:"flex", alignItems:"center", gap:3,
-            background:"rgba(239,68,68,0.08)", borderRadius:99, padding:"3px 8px",
-            border:"1px solid rgba(239,68,68,0.12)",
-          }}>
-            <span style={{ fontSize:10 }}>❤️</span>
-            <span style={{ fontSize:10.5, fontWeight:700, color:"#e04050" }}>{likes}</span>
-          </div>
-        )}
-        {p.impact_eur > 0 && (
-          <div style={{
-            display:"flex", alignItems:"center", gap:3,
-            background:"linear-gradient(135deg,rgba(14,196,184,0.12),rgba(14,196,184,0.06))",
-            borderRadius:99, padding:"3px 8px", border:"1px solid rgba(14,196,184,0.18)",
-          }}>
-            <span style={{ fontSize:10 }}>⚡</span>
-            <span style={{ fontSize:10.5, fontWeight:800, color:T.teal, letterSpacing:"-0.02em" }}>
-              {fmtImpact(p.impact_eur)}
-            </span>
-          </div>
-        )}
       </div>
     </div>
   );
