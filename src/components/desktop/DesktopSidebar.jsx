@@ -93,12 +93,6 @@ export default function DesktopSidebar({ onOpenChat, chatUnread = 0 }) {
   const { profile, logout } = useAuth();
   // P0: chatUnread kommt als Prop von DesktopShell (zentrale useChatList)
 
-  // ═══ DEBUG LOGGING — temporär, nach Diagnose entfernen ═══
-  console.log("DesktopSidebar profile", profile);
-  console.log("membership_active", profile?.membership_active);
-  console.log("membership_type", profile?.membership_type);
-  console.log("MAIN_ITEMS", MAIN_ITEMS);
-
   function isActive(route) {
     if (!route) return false;
     if (location.pathname === route) return true;

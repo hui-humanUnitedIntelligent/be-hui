@@ -112,7 +112,7 @@ export default function DesktopEntwicklungszentrum() {
       </aside>
 
       {/* Workspace */}
-      <div style={{ flex: 1, overflowY: 'auto' }}>
+      <div style={{ flex: 1, overflowY: 'auto', minWidth: 0 }}>
         {activeTab === 'overview'   && <EntwicklungszentrumOverview onNavigate={setActiveTab} />}
         {activeTab === 'freigaben'  && <StudioFreigaben />}
         {activeTab === 'begleitung' && <StudioBegleitung />}

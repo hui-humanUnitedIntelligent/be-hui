@@ -156,7 +156,7 @@ function renderSubPage(activeTool, handleBack, onNavigate) {
 export default function DesktopStudio() {
   const navigate = useNavigate();
   const { section } = useParams();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const isTalent = isProfileTalent(profile);
   const isTeam = profile?.role === 'admin' || profile?.role === 'superadmin';
   const { grouped: bookingGroups } = useCreatorBookings();
@@ -189,7 +189,7 @@ export default function DesktopStudio() {
   function handleBack() { setActiveTool(null); navigate('/studio'); }
 
   return (
-    <div className="studio-page">
+    <div className="studio-page" style={activeTool === 'entwicklung' ? { maxWidth: 'none', width: 'calc(100% + 96px)', margin: '-40px -48px -80px' } : undefined}>
       <aside className="studio-nav">
         <div className="studio-nav-sticky">
           <h2 className="studio-title">Studio</h2>
@@ -213,7 +213,7 @@ export default function DesktopStudio() {
           ))}
         </div>
       </aside>
-      <div className="studio-workspace">
+      <div className="studio-workspace" style={activeTool === 'entwicklung' ? { padding: 0, maxWidth: 'none' } : undefined}>
         {activeTool === 'overview' || activeTool === 'community'
         ? renderSubPage(activeTool, handleBack, (k) => { setActiveTool(k); if (k !== 'overview') navigate('/studio/' + k); else navigate('/studio'); })
         : activeTool && activeTool !== 'content'

@@ -2,6 +2,7 @@
 // HUI Creator Studio — Sub-Page-Stubs
 import React from "react";
 import { supabase } from "../../lib/supabaseClient.js";
+import { useAuth } from "../../lib/AuthContext.jsx";
 
 const C = {
   teal:   "#16D7C5",
@@ -60,7 +61,9 @@ const STATUS_CFG = {
 };
 
 /* ── Werke & Inhalte ── */
-export function MeineInhaltePage({ onBack, userId }) {
+export function MeineInhaltePage({ onBack }) {
+  const { user } = useAuth();
+  const userId = user?.id;
   const [works,    setWorks]    = React.useState([]);
   const [exps,     setExps]     = React.useState([]);
   const [loading,  setLoading]  = React.useState(true);
