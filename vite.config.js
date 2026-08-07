@@ -12,7 +12,7 @@ export default defineConfig({
     sourcemap: false,
     terserOptions: {
       compress: {
-        drop_console: true,
+        drop_console: false,  // TEMP DEBUG: nach Diagnose zurück auf true
         drop_debugger: true,
       },
     },

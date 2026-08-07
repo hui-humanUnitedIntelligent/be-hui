@@ -34,7 +34,7 @@ const PATHS = {
   supported:   <path d="M10 17s-6-3.8-6-8.4A3.6 3.6 0 0 1 10 6a3.6 3.6 0 0 1 6 2.6C16 13.2 10 17 10 17z" />,
   recommend:   <><path d="M10 3l1.9 4 4.4.6-3.2 3.1.8 4.3L10 12.9l-3.9 2.1.8-4.3-3.2-3.1 4.4-.6L10 3z" /></>,
   profile:     <><circle cx="10" cy="7" r="3.2" /><path d="M3.8 17c0-3.4 2.8-6 6.2-6s6.2 2.6 6.2 6" /></>,
-  settings:    <><circle cx="10" cy="10" r="2.6" /><path d="M10 3.5v2M10 14.5v2M16.5 10h-2M5.5 10h-2M14.6 5.4l-1.4 1.4M6.8 13.2l-1.4 1.4M14.6 14.6l-1.4-1.4M6.8 6.8L5.4 5.4" /></>,
+  settings:    <><circle cx="10" cy="10" r="2.6" /><path d="M10 3.5v2M10 14.5v2M16.5 10h-2M5.5 10h-2M14.6 5.4l-1.4 1.4M6.8 13.2l-1.4 1.4M14.6 14.6l-1.4-1.4M6.8 6.8l5.4-5.4" /></>,
   create:      <path d="M10 4v12M4 10h12" />,
   logout:      <path d="M7.2 3.6H4.4a1.2 1.2 0 0 0-1.2 1.2v10.4a1.2 1.2 0 0 0 1.2 1.2h2.8M13.5 6.8l3.2 3.2-3.2 3.2M16.3 10H8" />,
 };
@@ -92,6 +92,12 @@ export default function DesktopSidebar({ onOpenChat, chatUnread = 0 }) {
   const location = useLocation();
   const { profile, logout } = useAuth();
   // P0: chatUnread kommt als Prop von DesktopShell (zentrale useChatList)
+
+  // ═══ DEBUG LOGGING — temporär, nach Diagnose entfernen ═══
+  console.log("DesktopSidebar profile", profile);
+  console.log("membership_active", profile?.membership_active);
+  console.log("membership_type", profile?.membership_type);
+  console.log("MAIN_ITEMS", MAIN_ITEMS);
 
   function isActive(route) {
     if (!route) return false;
