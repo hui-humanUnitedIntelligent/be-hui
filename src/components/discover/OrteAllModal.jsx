@@ -1,4 +1,5 @@
 import { createPortal } from "react-dom";
+import { HUILogo } from "../brand/HUILogo.jsx";
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { getPlaceImage } from "../../lib/placeImage.js";
@@ -36,8 +37,7 @@ function PlaceCard({ place, onPress }) {
           <img loading="lazy" decoding="async" src={cover} alt={place.place_key} onError={() => setImgErr(true)}
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
         ) : (
-          <img src="/assets/brand/hui-logo.png" alt="HUI" loading="lazy"
-            style={{ width:44, height:44, objectFit:"contain", opacity:0.55 }}/>
+          <HUILogo size={44} style={{opacity:0.55}} />
         )}
         <div style={{
           position:"absolute", top:6, right:6,

@@ -1,4 +1,5 @@
 import { createPortal } from "react-dom";
+import { HUILogo } from "../brand/HUILogo.jsx";
 import { useProfileLauncher } from "../home/profile/ProfileLauncher.jsx";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
@@ -64,15 +65,23 @@ function ProjektCardItem({ p, onPress, onAuthorPress }) {
         position: "relative",
         overflow: "hidden",
       }}>
-        {/* Bild: cover_url → media_urls[0] → einheitlicher Unsplash-Fallback (kein Emoji) */}
-        <img
-          loading="lazy"
-          decoding="async"
-          src={(!imgErr && (p.cover_url || (p.media_urls && p.media_urls[0]))) || "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=90"}
-          alt={p.project_name}
-          onError={e => { e.target.src = "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=90"; }}
-          style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}
-        />
+        {/* Bild: cover_url → media_urls[0] → HUI-Logo-Platzhalter (kein fremdes
+            Stockfoto mehr — das taeuschte echten Projektinhalt vor, der nicht
+            existiert; siehe Bild-Platzhalter-Regel, .agents/rules/) */}
+        {(!imgErr && (p.cover_url || (p.media_urls && p.media_urls[0]))) ? (
+          <img
+            loading="lazy"
+            decoding="async"
+            src={p.cover_url || p.media_urls[0]}
+            alt={p.project_name}
+            onError={() => setImgErr(true)}
+            style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}
+          />
+        ) : (
+          <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <HUILogo size={40} style={{opacity:0.5}} />
+          </div>
+        )}
 
         {/* Dezenter Gradient über dem Bild für bessere Text-Lesbarkeit */}
         <div style={{

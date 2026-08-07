@@ -5,9 +5,8 @@
 // KEINE Kategorie-Pills (HUI-Orb übernimmt Themennavigation)
 // ══════════════════════════════════════════════════════════════════
 import {
-  HUIProfilIcon, HUILocationIcon, HUIFotoIcon, HUIImpactIcon,
-  HUIWerkeIcon, HUIAnsichtIcon,
-  HUIKalenderIcon, HUIPersonenIcon,
+  HUIProfilIcon, HUILocationIcon, HUIFotoIcon,
+  HUIAnsichtIcon, HUIPersonenIcon,
 } from '../design/icons/HuiSystemIcons.jsx';
 import { HUILogo } from '../components/brand/HUILogo.jsx';
 import React, { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
@@ -471,8 +470,8 @@ function MomentCard({ moment, delay=0, onPress, onAuthorPress }) {
 
         {/* Engagement Row — immer am unteren Rand */}
         <div className="dp-engage" style={{ marginTop:"auto", paddingTop:4 }}>
-          <span><HUIHeartIcon size={12} /> {moment.likes ?? Math.floor(4 + (moment.id?.charCodeAt?.(moment.id.length-1)??7) % 30)}</span>
-          <span><HUIChatIcon size={12} /> {moment.comments ?? Math.floor(1 + (moment.id?.charCodeAt?.(0)??3) % 12)}</span>
+          <span><HUIHeartIcon size={12} /> {moment.likes ?? 0}</span>
+          <span><HUIChatIcon size={12} /> {moment.comments ?? 0}</span>
         </div>
       </div>
     </div>
@@ -631,8 +630,8 @@ function TalentCard({ talent, delay=0, onPress, onAuthorPress }) {
           <img loading="lazy" decoding="async" src={cover} alt={talent.title} onError={() => setImgErr(true)}
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
         ) : (
-          <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:6 }}>
-            <HUIImpactIcon size={32} style={{opacity:0.3, color:"rgba(14,196,184,0.5)"}} />
+          <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <HUILogo size={40} style={{opacity:0.55}} />
           </div>
         )}
         {/* Kategorie-Badge oben links */}
@@ -783,7 +782,7 @@ function TalenteSection({
                   <div key={t.id} className="dp-list-card" onClick={() => onPress?.(t)}>
                     {t.cover
                       ? <img loading="lazy" decoding="async" src={t.cover} alt={t.title} className="dp-list-thumb" onError={e => e.target.style.display='none'} style={{ objectFit:"cover" }}/>
-                      : <div className="dp-list-thumb-placeholder" style={{display:"flex",alignItems:"center",justifyContent:"center"}}><HUIImpactIcon size={24} style={{opacity:0.3, color:"rgba(14,196,184,0.5)"}}/></div>
+                      : <div className="dp-list-thumb-placeholder" style={{display:"flex",alignItems:"center",justifyContent:"center"}}><HUILogo size={24} style={{opacity:0.5}}/></div>
                     }
                     <div style={{ flex:1, overflow:"hidden" }}>
                       <div style={{ fontSize:13, fontWeight:600, color:T.ink, marginBottom:4, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{t.title}</div>
@@ -852,8 +851,8 @@ function WerkCard({ werk, delay=0, onPress, onAuthorPress }) {
           <img loading="lazy" decoding="async" src={cover} alt={werk.title} onError={() => setImgErr(true)}
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
         ) : (
-          <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:6 }}>
-            <HUIWerkeIcon size={32} style={{opacity:0.3, color:"rgba(14,196,184,0.5)"}} />
+          <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <HUILogo size={40} style={{opacity:0.55}} />
           </div>
         )}
         {/* Kategorie-Badge oben links */}
@@ -1099,7 +1098,7 @@ function ErlebnisCard({ erlebnis, delay=0, onPress }) {
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block", opacity:0.88 }}/>
         ) : (
           <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <HUIKalenderIcon size={36} style={{opacity:0.35, color:"rgba(14,196,184,0.5)"}} />
+            <HUILogo size={40} style={{opacity:0.55}} />
           </div>
         )}
 
@@ -1220,7 +1219,7 @@ function ErlebnisseSection({
                     <div className="dp-list-thumb-placeholder" style={{ background: e.cover ? "#1A1A18" : T.tealSoft, position:"relative", overflow:"hidden" }}>
                       {e.cover
                         ? <img loading="lazy" decoding="async" src={e.cover} alt={e.title} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} onError={ev => ev.currentTarget.style.display="none"}/>
-                        : <HUIKalenderIcon size={20} style={{color:"rgba(14,196,184,0.5)"}} />
+                        : <HUILogo size={22} style={{opacity:0.5}} />
                       }
                       {e.date && (
                         <div style={{ position:"absolute", bottom:3, left:0, right:0, textAlign:"center",
@@ -1292,8 +1291,8 @@ function ProjektCard({ projekt, delay=0, onPress }) {
           <img loading="lazy" decoding="async" src={cover} alt={projekt.title} onError={() => setImgErr(true)}
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
         ) : (
-          <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:6 }}>
-            <HUIImpactIcon size={32} style={{opacity:0.3, color:"rgba(34,197,94,0.5)"}} />
+          <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <HUILogo size={40} style={{opacity:0.55}} />
           </div>
         )}
         {/* Kategorie-Badge oben links */}
@@ -1504,8 +1503,7 @@ function OrtCard({ ort, delay=0, onPress }) {
           <img loading="lazy" decoding="async" src={cover} alt={ort.place_key} onError={() => setImgErr(true)}
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
         ) : (
-          <img src="/assets/brand/hui-logo.png" alt="HUI" loading="lazy"
-            style={{ width:40, height:40, objectFit:"contain", opacity:0.55 }}/>
+          <HUILogo size={40} style={{opacity:0.55}} />
         )}
         <div style={{
           position:"absolute", top:6, right:6,
@@ -1767,8 +1765,26 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
               .in("id", beitrUserIds);
             if (bpros) beitrProfileMap = Object.fromEntries(bpros.map(p => [p.id, p]));
           }
-          setMomente(beitr.map(b => {
+          // Echte Like-/Kommentar-Zahlen nachladen — dieselbe SSOT wie ueberall
+          // sonst im System: reaction_counts(post_id).inspire fuer das Herz-Icon
+          // (identisch zum likes_count-Trigger auf works/experiences, siehe
+          // BaseFeedCard.jsx ActionBtn Icon={HUIHeartIcon} count={inspireCount}),
+          // count_comments(post_id, 'moment') fuer die Sprechblase. Vorher wurden
+          // hier deterministische Fake-Zahlen aus der charCodeAt der ID erzeugt.
+          const beitrEngagement = await Promise.all(beitr.map(async (b) => {
+            const [rcRes, ccRes] = await Promise.all([
+              supabase.rpc("reaction_counts", { p_post_id: b.id }).catch(() => ({ data: null })),
+              supabase.rpc("count_comments", { p_post_id: b.id, p_post_type: "moment" }).catch(() => ({ data: null })),
+            ]);
+            const rc = rcRes?.data;
+            const cc = ccRes?.data;
+            return { id: b.id, likes: rc?.inspire ?? 0, comments: typeof cc === "number" ? cc : 0 };
+          }));
+          const beitrEngagementMap = Object.fromEntries(beitrEngagement.map(e => [e.id, e]));
+
+          if (!cancelled) setMomente(beitr.map(b => {
             const bp = beitrProfileMap[b.user_id] || {};
+            const eng = beitrEngagementMap[b.id] || { likes:0, comments:0 };
             return {
             id:         b.id,
             user_id:    b.user_id,
@@ -1779,6 +1795,8 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
             name:       safeStr(bp.display_name, "HUI Mitglied"),
             avatar_url: bp.avatar_url || null,
             location:   "",
+            likes:      eng.likes,
+            comments:   eng.comments,
           };
           }));
         }

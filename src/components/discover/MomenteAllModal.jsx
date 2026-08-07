@@ -1,4 +1,5 @@
 import { createPortal } from "react-dom";
+import { HUILogo } from "../brand/HUILogo.jsx";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
@@ -47,7 +48,7 @@ function MomentCardItem({ m, onPress, onOpenProfile }) {
           : !imgErr && m.src
           ? <img loading="lazy" decoding="async" src={m.src} alt={m.caption}
               onError={() => setImgErr(true)} style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-          : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:28 }}>📸</div>
+          : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}><HUILogo size={36} style={{opacity:0.5}} /></div>
         }
         {m.created_at && (
           <div style={{
