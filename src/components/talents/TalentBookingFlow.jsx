@@ -49,8 +49,8 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
   const saved = isSaved(talent?.id);
   const handleSave = useCallback(() => {
     if (!talent?.id) return;
-    toggleSave(talent.id, "talent", { title: talent?.title, cover_url: talent?.cover_url, author: talent?.author_name || talent?.provider_name });
-  }, [talent?.id, talent?.title, talent?.cover_url, talent?.author_name, talent?.provider_name, toggleSave]);
+    toggleSave(talent.id, "talent", { title: talent?.title, cover_url: talent?.cover, author_name: talent?.author });
+  }, [talent?.id, talent?.title, talent?.cover, talent?.author, toggleSave]);
 
   const [step,        setStep]        = useState("select"); // select | payment | success | error
   const [selectedDate, setSelectedDate] = useState(talent?.available_dates?.[0] || "");

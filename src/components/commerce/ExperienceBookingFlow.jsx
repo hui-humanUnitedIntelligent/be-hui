@@ -193,7 +193,7 @@ export default function ExperienceBookingFlow({ experience, onClose }) {
 
             {/* ── Buttons ── */}
             <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={() => toggleSave(expId, "erlebnis", { title, cover_url: expObj?.cover_url || expObj?._raw?.cover_url, author: creatorName })} style={{
+              <button onClick={() => toggleSave(expId, "experience", { title, cover_url: expObj?.cover_url || expObj?._raw?.cover_url, author_name: creatorName })} style={{
                 flex: 1, background: "transparent",
                 border: "1.5px solid rgba(26,26,46,0.15)",
                 borderRadius: 14, padding: "12px 0",

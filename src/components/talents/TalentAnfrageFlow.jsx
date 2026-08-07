@@ -39,7 +39,7 @@ export default function TalentAnfrageFlow({ talent, onClose }) {
 
   const savedTalent = isSaved(talent.id);
   const handleMerken = () => {
-    toggleSave(talent.id, "talent", { title: talent?.title, cover_url: talent?.cover_url, author: talent?.author });
+    toggleSave(talent.id, "talent", { title: talent?.title, cover_url: talent?.cover, author_name: talent?.author });
   };
 
   const title       = talent.title || "Talent-Angebot";
