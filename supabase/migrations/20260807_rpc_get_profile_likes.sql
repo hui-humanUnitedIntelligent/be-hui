@@ -1,3 +1,7 @@
+-- DEPRECATED (2026-08-07): Ersetzt durch rpc_discover_people (20260807_rpc_discover_people.sql).
+-- Diese Funktion wurde in Produktion per DROP FUNCTION entfernt — keine Referenzen mehr im Code.
+-- Datei bleibt nur zur historischen Nachvollziehbarkeit im Repo.
+
 -- rpc_get_profile_likes: Batch-Abfrage der gesamten Likes eines Users
 -- Summiert: works.likes_count + experiences.likes_count + post_reactions auf beitraege
 -- Rückgabe: { user_id, total_likes } pro übergebenem User

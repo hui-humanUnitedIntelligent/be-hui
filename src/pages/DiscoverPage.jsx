@@ -354,7 +354,7 @@ function PersonCard({ person, onPress, delay=0, followers=0, likes=0 }) {
   );
 }
 
-function PeopleSection({ people, onPersonPress, loading, delay=0, view='cards', onSectionAction, likesMap={} }) {
+function PeopleSection({ people, onPersonPress, loading, delay=0, view='cards', onSectionAction }) {
   return (
     <div className="dp-in" style={{ animationDelay:`${delay}ms`, marginTop:10 }}>
       <div data-dp-people/>
@@ -382,7 +382,7 @@ function PeopleSection({ people, onPersonPress, loading, delay=0, view='cards', 
             : people.length === 0
             ? <div style={{ paddingLeft:T.px, fontSize:12.5, color:T.inkFaint, fontStyle:'italic', opacity:0.75 }}>Noch keine Mitglieder gefunden.</div>
             : people.map((p, i) => (
-                <PersonCard key={p.id} person={p} onPress={onPersonPress} delay={0} followers={p.followers_count || 0} likes={likesMap[p.id] || 0} />
+                <PersonCard key={p.id} person={p} onPress={onPersonPress} delay={0} followers={p.followers || 0} likes={p.likes || 0} />
               ))
           }
         </div>
@@ -1756,13 +1756,9 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
       _discoverCache.loading = true;
 
       try {
-        // People
+        // People — sortiert nach Beliebtheit (Follower + Likes kombiniert) via RPC
         const { data: profiles } = await supabase
-          .from("profiles")
-          .select("id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views") // Identity Contract v1.0
-          .or("has_talent_profile.eq.true,is_member.eq.true,role.eq.talent,role.eq.wirker")
-          .order("created_at", { ascending:false })
-          .limit(getOptimalPageSize(12));
+          .rpc("rpc_discover_people", { p_sort: "popular", p_limit: getOptimalPageSize(12), p_offset: 0 });
 
         if (!cancelled && profiles?.length > 0) {
           // Feed-Profile in Cache schreiben → Profil-Tap ist instant (kein DB-Request mehr)
@@ -1774,6 +1770,8 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
             location:     safeStr(p.location_label), // Identity Contract v1.0
             avatar:       safeStr(p.avatar_url),
             impact:       safeNum(p.impact_eur, 0),
+            followers:    safeNum(p.followers_count, 0),
+            likes:        safeNum(p.total_likes, 0),
             last_seen_at: null, // last_seen_at nicht im Identity Contract
             interests:    [], // dna_tags/skills nicht im Identity Contract
           })));
@@ -2107,21 +2105,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   // ── People: nur echte DB-Daten (kein Seed-Fallback — verhindert Klick-Bug)
   const filteredPeople = people;
 
-  // ── Profile Likes: Batch-Load via RPC (echte Reaktionen aus works/experiences/moments)
-  const [likesMap, setLikesMap] = useState({});
-  useEffect(() => {
-    if (!people.length) return;
-    const ids = people.map(p => p.id).filter(Boolean);
-    if (!ids.length) return;
-    let cancelled = false;
-    supabase.rpc("rpc_get_profile_likes", { p_user_ids: ids })
-      .then(({ data }) => {
-        if (cancelled || !data) return;
-        setLikesMap(Object.fromEntries(data.map(r => [r.user_id, Number(r.total_likes) || 0])));
-      })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, [people]);
+
 
   const displayMomente    = momente; // nur echte Daten
   const navigate           = useNavigate();
@@ -2278,7 +2262,6 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
         delay={60}
         view={view}
         onSectionAction={() => setShowMenschenModal(true)}
-        likesMap={likesMap}
       />
 
       {/* ── 4. Momente aus deiner Nähe ── */}

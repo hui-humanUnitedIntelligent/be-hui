@@ -33,6 +33,12 @@ const T = {
   tealSoft:"rgba(14,196,184,0.12)", tealDeep:"rgba(0,150,136,1)"
 };
 const PAGE_SIZE = 20;
+const SORT_OPTIONS = [
+  { key:"popular",   label:"Beliebt",    icon:"✨" },
+  { key:"followers", label:"Follower",   icon:"👥" },
+  { key:"likes",     label:"Likes",      icon:"❤️" },
+  { key:"alpha",     label:"A–Z",   icon:"🔤" },
+];
 
 const fmtImpact = (n) => {
   const v = typeof n === "number" && isFinite(n) ? n : 0;
@@ -133,7 +139,7 @@ export default function MenschenAllModal({ isOpen, onClose, onPressPerson }) {
   const scrollRef               = useRef(null);
   const searchTimer             = useRef(null);
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [likesMap, setLikesMap] = useState({});
+  const [sort, setSort] = useState("popular"); // popular | followers | likes | alpha
 
   useEffect(() => {
     clearTimeout(searchTimer.current);
@@ -144,49 +150,35 @@ export default function MenschenAllModal({ isOpen, onClose, onPressPerson }) {
   useEffect(() => {
     if (!isOpen) return;
     setItems([]); setPage(0); setHasMore(true);
-  }, [debouncedSearch, isOpen]);
+  }, [debouncedSearch, sort, isOpen]);
 
   const load = useCallback(async (pageNum) => {
     if (loading) return;
     setLoading(true);
     try {
-      // Gleicher Filter wie der Teaser in DiscoverPage.jsx (Identity
-      // Contract v1.0 Felder) — "Alle anzeigen" zeigt dieselbe Zielgruppe
-      // vollständig, statt nur die ersten 12.
-      let q = supabase.from("profiles")
-        .select("id,display_name,username,avatar_url,bio,location_label,impact_eur,followers_count")
-        .or("has_talent_profile.eq.true,is_member.eq.true,role.eq.talent,role.eq.wirker")
-        .order("created_at", { ascending:false })
-        .range(pageNum * PAGE_SIZE, (pageNum+1) * PAGE_SIZE - 1);
-
-      if (debouncedSearch) {
-        q = q.or(`display_name.ilike.%${debouncedSearch}%,username.ilike.%${debouncedSearch}%,bio.ilike.%${debouncedSearch}%`);
-      }
-
-      const { data } = await q;
+      // Serverseitige Sortierung + Suche via RPC (gleicher Zielgruppen-Filter
+      // wie der Teaser in DiscoverPage.jsx). Client-seitiges Sortieren würde
+      // bei Pagination brechen (jede Seite müsste neu einsortiert werden) —
+      // daher übernimmt die DB Sortierung + Likes-Berechnung in einem Call.
+      const { data } = await supabase.rpc("rpc_discover_people", {
+        p_search: debouncedSearch || null,
+        p_sort: sort,
+        p_limit: PAGE_SIZE,
+        p_offset: pageNum * PAGE_SIZE,
+      });
       if (!data || data.length === 0) { setHasMore(false); return; }
 
       setItems(prev => pageNum === 0 ? data : [...prev, ...data]);
       if (data.length < PAGE_SIZE) setHasMore(false);
-
-      // Likes für diese Seite batch-laden
-      const pageIds = data.map(d => d.id).filter(Boolean);
-      if (pageIds.length > 0) {
-        supabase.rpc("rpc_get_profile_likes", { p_user_ids: pageIds })
-          .then(({ data: ld }) => {
-            if (!ld) return;
-            setLikesMap(prev => ({ ...prev, ...Object.fromEntries(ld.map(r => [r.user_id, Number(r.total_likes) || 0])) }));
-          }).catch(() => {});
-      }
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, loading]);
+  }, [debouncedSearch, sort, loading]);
 
   useEffect(() => {
     if (!isOpen) return;
     load(0);
-  }, [debouncedSearch, isOpen]);
+  }, [debouncedSearch, sort, isOpen]);
 
   const onScroll = useCallback(() => {
     const el = scrollRef.current;
@@ -227,7 +219,20 @@ export default function MenschenAllModal({ isOpen, onClose, onPressPerson }) {
           <input value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Menschen suchen…"
             style={{ width:"100%", padding:"9px 14px", borderRadius:12, border:`1px solid ${T.border}`,
-              background:"#f8fafc", fontSize:14, color:T.ink, outline:"none", boxSizing:"border-box" }}/>
+              background:"#f8fafc", fontSize:14, color:T.ink, outline:"none", boxSizing:"border-box", marginBottom:10 }}/>
+          <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:2 }}>
+            {SORT_OPTIONS.map(opt => (
+              <button key={opt.key} onClick={() => setSort(opt.key)} style={{
+                flexShrink:0, padding:"6px 12px", borderRadius:99, fontSize:12, fontWeight:700,
+                border:`1px solid ${sort === opt.key ? T.teal : T.border}`,
+                background: sort === opt.key ? "rgba(14,196,184,0.12)" : T.white,
+                color: sort === opt.key ? T.tealDeep : T.inkSoft,
+                cursor:"pointer", whiteSpace:"nowrap",
+              }}>
+                {opt.icon} {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div ref={scrollRef} onScroll={onScroll}
@@ -244,7 +249,7 @@ export default function MenschenAllModal({ isOpen, onClose, onPressPerson }) {
             </div>
           )}
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-            {items.map(p => <PersonCardItem key={p.id} p={p} onPress={onPressPerson} followers={p.followers_count || 0} likes={likesMap[p.id] || 0} />)}
+            {items.map(p => <PersonCardItem key={p.id} p={p} onPress={onPressPerson} followers={p.followers_count || 0} likes={p.total_likes || 0} />)}
           </div>
           {loading && items.length > 0 && (
             <div style={{ textAlign:"center", padding:16, color:T.inkFaint, fontSize:13 }}>Lade weitere…</div>
