@@ -72,7 +72,7 @@ serve(async (req) => {
     }
 
     const { data: existingCustomer } = await supabase
-      .from('stripe_customers').select('stripe_customer_id').eq('user_id', user.id).single()
+      .from('stripe_customers').select('stripe_customer_id').eq('user_id', user.id).maybeSingle()
 
     const stripe = new Stripe(stripeKey, { apiVersion: '2024-06-20' })
     let stripeCustomerId = existingCustomer?.stripe_customer_id
