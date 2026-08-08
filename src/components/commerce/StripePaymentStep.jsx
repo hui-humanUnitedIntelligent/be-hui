@@ -260,8 +260,16 @@ export default function StripePaymentStep({
         alignItems: "center", justifyContent: "center", padding: "40px 24px",
       }}>
         <div style={{ fontSize: 14, color: C.coral, textAlign: "center", lineHeight: 1.6 }}>
-          Stripe Publishable Key fehlt. Bitte VITE_STRIPE_PUBLIC_KEY in Vercel setzen.
+          Zahlung momentan nicht verfügbar. Bitte App auf die neueste Version aktualisieren
+          oder neu installieren.
         </div>
+        {import.meta.env.DEV && (
+          <div style={{ fontSize: 11, color: C.coral, opacity: 0.7, textAlign: "center", marginTop: 8 }}>
+            [DEV] Stripe Publishable Key fehlt. Diese APK/Build wurde ohne gültigen
+            VITE_STRIPE_PUBLIC_KEY in .env.local erzeugt (Vite baeckt Env-Vars zur Build-Zeit
+            fest ein — Vercel-Einstellungen wirken sich NICHT auf lokale APK-Builds aus).
+          </div>
+        )}
       </div>
     );
   }

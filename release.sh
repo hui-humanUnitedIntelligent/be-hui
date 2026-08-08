@@ -53,6 +53,32 @@ for plugin in "@capacitor/app" "@capacitor/push-notifications"; do
   fi
 done
 
+# ── KRITISCHER ENV-PREFLIGHT (2026-08-08) ────────────────────────────────────
+# ROOT CAUSE eines echten Produktionsbugs: .env.local ist in .gitignore (nicht
+# versioniert). Wenn eine APK auf einer Maschine/zu einem Zeitpunkt gebaut
+# wurde, an dem .env.local fehlte oder den Platzhalter-Key enthielt, wird der
+# fehlende Stripe-Key FEST in die APK eingebacken (Capacitor bündelt lokale
+# Assets, es gibt KEINE Remote-URL — kein server.url in capacitor.config).
+# Das Resultat: zwei baugleiche Handys mit unterschiedlichen APK-Builds zeigen
+# unterschiedliches Verhalten, weil eine APK aeltere/fehlerhafte Bundle-Werte
+# hat. Dieser Check bricht den Release-Prozess HART ab, bevor eine kaputte
+# APK gebaut werden kann.
+ENV_FILE=".env.local"
+[[ -f "$ENV_FILE" ]] || error "$ENV_FILE fehlt! Ohne diese Datei fehlen kritische Keys (Stripe/Supabase) in der APK. Datei aus sicherer Quelle wiederherstellen, bevor gebaut wird."
+
+REQUIRED_KEYS=("VITE_STRIPE_PUBLIC_KEY" "VITE_SUPABASE_URL" "VITE_SUPABASE_ANON_KEY")
+for key in "${REQUIRED_KEYS[@]}"; do
+  VALUE=$(grep -E "^${key}=" "$ENV_FILE" | head -1 | cut -d'=' -f2-)
+  if [[ -z "$VALUE" ]]; then
+    error "$key ist in $ENV_FILE nicht gesetzt (leer). APK-Build abgebrochen."
+  fi
+  if [[ "$VALUE" == *"REPLACE_WITH"* ]] || [[ "$VALUE" == *"YOUR_KEY"* ]] || [[ "$VALUE" == *"xxx"* ]]; then
+    error "$key in $ENV_FILE ist noch ein Platzhalter-Wert ('$VALUE'). Echten Key eintragen, bevor gebaut wird."
+  fi
+done
+success "ENV-Preflight bestanden — Stripe/Supabase-Keys sind gesetzt und keine Platzhalter."
+
+
 echo -e "\n${CYAN}${BOLD}╔══════════════════════════════════════════════╗${NC}"
 echo -e "${CYAN}${BOLD}║   HUI RELEASE SYSTEM  —  Mode: ${MODE}              ║${NC}"
 echo -e "${CYAN}${BOLD}╚══════════════════════════════════════════════╝${NC}"
