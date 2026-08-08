@@ -553,7 +553,6 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
             recommendations={recommendations}
             isOwner={isOwner}
             loading={loadingLazy}
-            onAddRec={null}
             onShowAll={null}
             profileOwnerId={profile?.id || ""}
             profileOwnerName={profile?.display_name || profile?.nickname || ""}

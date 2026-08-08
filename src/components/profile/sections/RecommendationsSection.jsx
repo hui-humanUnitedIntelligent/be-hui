@@ -4,7 +4,6 @@
 // Owner: + Weitere hinzufügen. Empty-State mit Hinweis.
 // Visitor: Sterne-Rating + work_title. Empty-State statt null.
 // ══════════════════════════════════════════════════════════════════════
-import { HUIEmpfehlungIcon } from '../../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useContentPreview } from "../../../context/ContentPreviewContext.jsx"; // OPEN.1 2026-07-08
@@ -42,7 +41,6 @@ export function RecommendationsSection({
   recommendations   = [],
   isOwner          = false,
   loading          = false,
-  onAddRec         = null,
   onShowAll        = null,
   profileOwnerId   = "",
   profileOwnerName = "",
@@ -190,7 +188,7 @@ export function RecommendationsSection({
               onClick={() => { const item = normalizeRecommendationForPreview(rec); if (item) openPreview(item); }}
               style={{ flexShrink:0, width:210, cursor:"pointer",
               background:T.bgCard, borderRadius:T.r16,
-              border:`1px solid ${T.border}`, padding:"14px 16px", boxShadow:T.card }}>
+              border:`1px solid ${T.border}`, padding:"14px 16px", boxShadow:T.card, position:"relative" }}>
               <div style={{ fontSize:22, color:T.teal, marginBottom:6 }}>❝</div>
               <div style={{ fontSize:13, color:T.ink, lineHeight:1.55, fontStyle:"italic", marginBottom:10 }}>
                 {rec.text || ""}
@@ -261,18 +259,7 @@ export function RecommendationsSection({
             </div>
           )}
 
-          {/* Hinzufügen — Owner */}
-          {isOwner && (
-            <div className="rs-press" onClick={onAddRec} style={{
-              flexShrink:0, display:"flex", alignItems:"center", gap:6,
-              padding:"10px 16px", borderRadius:T.r16,
-              background:T.bgCard, border:`1.5px dashed ${T.borderMid}`,
-              fontSize:12.5, fontWeight:600, color:T.inkSoft,
-              cursor:"pointer", touchAction:"manipulation", alignSelf:"flex-start",
-            }}>
-              <span style={{ fontSize:16 }}>+</span> Weitere hinzufügen
-            </div>
-          )}
+
         </div>
       )}
 
