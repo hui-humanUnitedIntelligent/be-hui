@@ -38,11 +38,20 @@ export default function TalentContent({ item, onProfile, onReaction, onShare }) 
   const locType  = raw.location_type || null;
   const price    = fmtPrice(raw.price_per_hour, raw.price_per_session, raw.currency);
 
-  const { open } = useContentPreview();
+  const { open, openTalentBooking } = useContentPreview();
   const handleCardClick = () => open({
     ...item,
     canOpenFull: false,
   });
+
+  // TALENT-FEED-BUCHEN-001 (2026-08-08): "Buchen"-Button direkt in der
+  // Feed-Karte, analog zu "Kaufen" (Werk) und "Teilnehmen" (Erlebnis).
+  // Öffnet TalentBookingFlow direkt mit den rohen Talent-Daten — kein
+  // Umweg über die Vorschau nötig, exakt dasselbe Muster wie onBuyWerk.
+  const handleBookClick = (e) => {
+    e.stopPropagation();
+    openTalentBooking(raw);
+  };
 
   return (
     <BaseFeedCard
@@ -85,12 +94,25 @@ export default function TalentContent({ item, onProfile, onReaction, onShare }) 
             }}>{title}</span>
           )}
         </div>
-        {price && (
-          <span style={{
+        {/* Rechts: Buchen-Button — analog "Kaufen" (Werk) / "Teilnehmen" (Erlebnis) */}
+        <button
+          onClick={handleBookClick}
+          style={{
             flexShrink:0,
-            fontSize:12, fontWeight:700, color:PURPLE,
-          }}>{price}</span>
-        )}
+            display:"flex", alignItems:"center", gap:7,
+            background:"linear-gradient(135deg,#8B5CF6,#7C3AED)",
+            color:"#fff", border:"none", borderRadius:99,
+            padding:"9px 18px", fontSize:13, fontWeight:700,
+            cursor:"pointer", touchAction:"manipulation",
+            boxShadow:"0 3px 10px rgba(139,92,246,0.35)",
+            whiteSpace:"nowrap",
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M7 1C4 1 1.5 3.5 1.5 7C1.5 10.5 4 13 7 13C10 13 12.5 10.5 12.5 7C12.5 3.5 10 1 7 1ZM6 10L3.5 7.5L4.5 6.5L6 8L9.5 4.5L10.5 5.5L6 10Z" fill="white"/>
+          </svg>
+          {price ? `${price}  Buchen` : "Buchen"}
+        </button>
       </div>
 
       {/* Meta: Ort + Kategorie */}

@@ -121,7 +121,7 @@ async function fetchFeedPage(userId = null, cursors = null) {
     // FEED-GLOBAL-001: Talente (approved) — chronologisch
     filterTalents(
       supabase.from("talents")
-        .select("id,user_id,title,description,category,images,price_per_hour,price_per_session,currency,location_type,location_address,lat,lng,created_at")
+        .select("id,user_id,title,description,category,images,price_per_hour,price_per_session,currency,location_type,location_address,location_notes,map_link,lat,lng,created_at,available_dates,available_time_slots,recurring,duration_minutes,booking_type,min_participants,max_participants,booking_window_start,booking_window_end")
         .eq("status", "approved")
         .order("created_at", { ascending: false })
         .limit(limit)
