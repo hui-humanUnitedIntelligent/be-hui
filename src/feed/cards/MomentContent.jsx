@@ -6,6 +6,7 @@ import { supabase } from "../../lib/supabaseClient.js";
 import BaseFeedCard, { ActionBtn } from "./BaseFeedCard.jsx";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
 import ReportReasonModal from "../../components/shared/ReportReasonModal.jsx";
+import { useAuth } from "../../lib/AuthContext.jsx";
 
 // ── Farben (identisch zu WorkContent / ExperienceContent) ────
 const TEAL       = "#0DC4B5";
@@ -81,6 +82,14 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
   if (!item) return null;
 
   const { open }  = useContentPreview();
+  const { user }  = useAuth(); // FIX (2026-08-08): AuthContext-SSOT statt eigenem
+  // supabase.auth.getUser()-Aufruf — jede Feed-Karte rief das vorher einzeln
+  // beim Mount auf. Bei mehreren gleichzeitig gerenderten Momente-Karten
+  // (Feed-Virtualisierung hält mehrere im DOM) führte das zu N redundanten
+  // Netzwerk-Requests an /auth/v1/user, die in der Konsole als 403-Fehler
+  // auftauchten (Screenshot Michael, 2026-08-08 — 6x identischer 403 beim
+  // Öffnen des Talent-Buchungs-Modals, verursacht von im Hintergrund noch
+  // gemounteten Momente-Karten im Feed, nicht vom Modal selbst).
   const raw       = item._raw || {};
   const caption   = item.text || item.title || raw.caption || "";
   const badge     = getMomentBadge(raw);
@@ -93,19 +102,16 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
 
   // Prüfen ob dieser Nutzer den Moment bereits gemeldet hat
   useEffect(() => {
-    if (!item?._raw?.id) return;
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) return;
-      supabase
-        .from("momente_reports")
-        .select("id", { count: "exact", head: true })
-        .eq("moment_id", item._raw.id)
-        .eq("reporter_id", user.id)
-        .then(({ count }) => {
-          if ((count ?? 0) > 0) setReported(true);
-        });
-    });
-  }, [item?._raw?.id]);
+    if (!item?._raw?.id || !user?.id) return;
+    supabase
+      .from("momente_reports")
+      .select("id", { count: "exact", head: true })
+      .eq("moment_id", item._raw.id)
+      .eq("reporter_id", user.id)
+      .then(({ count }) => {
+        if ((count ?? 0) > 0) setReported(true);
+      });
+  }, [item?._raw?.id, user?.id]);
 
   const handleReport = useCallback(async (reason = "inappropriate") => {
     if (reported || reporting) return;
@@ -114,7 +120,7 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
     setReporting(true);
     try {
       // CORS-FIX: Direkt über Supabase REST (kein Edge Function Call)
-      const { data: { user } } = await supabase.auth.getUser();
+      // FIX (2026-08-08): AuthContext-User statt eigenem getUser()-Netzwerkcall.
       if (!user) throw new Error("not_authenticated");
 
       // 1) Meldung eintragen (UNIQUE constraint verhindert Doppelmeldung)
@@ -150,7 +156,7 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
     } finally {
       setReporting(false);
     }
-  }, [reported, reporting, item]);
+  }, [reported, reporting, item, user]);
 
   // reportButton als ActionBtn — identischer Look zu Heart/Chat/Share/Bookmark
   // FingerIcon + CORAL sind top-level (stabile Referenz — verhindert Remount-Bug)
