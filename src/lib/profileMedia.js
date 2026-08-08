@@ -31,6 +31,7 @@
 
 import { supabase } from "./supabaseClient.js";
 import { clearQueryCache } from "./perfUtils.js";
+import heic2any from "heic2any";
 
 // ── Fallback-Assets ──────────────────────────────────────────────────
 export const FB_COVER  = "/assets/brand/fallback-cover.svg";
@@ -77,6 +78,43 @@ export function resolveLocation(profile, fallback = "") {
  * GIFs (Animation würde verloren gehen) und SVGs (Vektor, keine Rasterung
  * nötig) werden unverändert durchgereicht.
  */
+// ── HEIC/HEIF-Konvertierung (2026-08-08) ─────────────────────────────
+// WARUM: iPhone-Kameras speichern Fotos standardmaessig im HEIC-Format.
+// Chromium/Android-WebView (also die gesamte HUI-App) kann HEIC NICHT
+// dekodieren -- weder in <canvas> noch in <img src="...">. Bisher fiel
+// die Kompression bei HEIC-Dateien lautlos auf das Original zurueck
+// (isCompressible() liess "image/heic" durch, aber createImageBitmap/
+// Image() konnten die Datei nicht laden), die Original-HEIC-Datei wurde
+// unkonvertiert zu Supabase Storage hochgeladen -- und jedes <img> das
+// diese URL laedt (Header/Cover, Avatar, Werk-/Erlebnis-Bilder) feuert
+// sofort onError und faellt auf den Platzhalter zurueck. Symptom fuer
+// den Nutzer: "Profilbild ist zu gross" (HEIC-Originale sind oft 3-8MB)
+// "und der Header zeigt es nicht an" (Bild laedt schlicht nie).
+// Fix: HEIC/HEIF wird VOR jeder anderen Verarbeitung client-seitig via
+// heic2any (reines JS, keine native Abhaengigkeit) zu JPEG konvertiert
+// -- danach durchlaeuft die Datei ganz normal die bestehende Resize-/
+// Kompressions-Pipeline. Betrifft ALLE Consumer dieser Datei: Avatar,
+// Cover/Header, Werk-Bilder (WerkWizard), Erlebnis-Bilder (ExperienceWizard).
+function isHeic(file) {
+  const type = (file?.type || "").toLowerCase();
+  const name = (file?.name || "").toLowerCase();
+  return type === "image/heic" || type === "image/heif"
+    || type === "image/heic-sequence" || type === "image/heif-sequence"
+    || name.endsWith(".heic") || name.endsWith(".heif");
+}
+
+async function convertHeicToJpeg(file) {
+  try {
+    const result = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.9 });
+    const blob = Array.isArray(result) ? result[0] : result;
+    const baseName = (file.name || "image").replace(/\.(heic|heif)$/i, "");
+    return new File([blob], `${baseName}.jpg`, { type: "image/jpeg" });
+  } catch (err) {
+    console.warn("[profileMedia] HEIC-Konvertierung fehlgeschlagen, nutze Original:", err?.message);
+    return file; // niemals werfen — Original durchreichen ist besser als ein kompletter Abbruch
+  }
+}
+
 function isCompressible(file) {
   return !!file?.type
     && file.type.startsWith("image/")
@@ -113,6 +151,11 @@ async function loadDrawableSource(file) {
  * ein kaputtes Ergebnis.
  */
 export async function compressImageForUpload(file, maxDim, quality = JPEG_QUALITY) {
+  // HEIC/HEIF IMMER zuerst konvertieren — unabhaengig von Dateigroesse,
+  // da Chromium/Android diese Formate gar nicht darstellen kann.
+  if (isHeic(file)) {
+    file = await convertHeicToJpeg(file);
+  }
   if (!isCompressible(file)) return file;
   if (file.size <= SKIP_COMPRESSION_UNDER_BYTES) return file;
   if (typeof document === "undefined") return file; // SSR-Safety
