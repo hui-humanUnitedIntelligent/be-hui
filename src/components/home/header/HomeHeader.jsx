@@ -93,7 +93,7 @@ export default function HomeHeader({
                   isOpen={showMood}
                   onToggle={() => setShowMood(p => !p)}
                 />
-                <NotificationButton count={notifCount} onPress={onNotif}/>
+                <NotificationButton count={notifCount} userId={currentUser?.id || ""}/>
                 <MessageButton count={msgCount} onPress={handleChat}/>
               </>
             }
