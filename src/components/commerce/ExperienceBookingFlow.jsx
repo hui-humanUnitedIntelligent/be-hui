@@ -26,6 +26,8 @@ import { getStripe } from "../../lib/stripe.js";
 import { Elements } from "@stripe/react-stripe-js";
 import StripePaymentStep from "./StripePaymentStep.jsx";
 import { useSavedPostsContext } from "../../context/SavedPostsContext.jsx";
+import { useHuiActions, A } from "../../core/hui.actions.js";
+import { S } from "../../core/hui.sources.js";
 
 const TEAL = "#16D7C5";
 
@@ -41,6 +43,8 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
   const [clientSecret, setClientSecret] = useState(null);
   const [publishableKey, setPublishableKey] = useState(null);
   const [orderId, setOrderId] = useState(null);
+  const [showChatConfirm, setShowChatConfirm] = useState(false);
+  const actions = useHuiActions();
 
   const stripePromise = useMemo(() => getStripe(), []);
 
@@ -298,6 +302,81 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
             >
               Fertig
             </button>
+            {creatorId && (
+              <button
+                onClick={() => setShowChatConfirm(true)}
+                style={{
+                  width: "100%", marginTop: 10, padding: "14px 0",
+                  borderRadius: 14, border: "1.5px solid rgba(20,20,34,0.10)",
+                  background: "transparent", color: "rgba(26,26,46,0.65)",
+                  fontSize: 15, fontWeight: 600, cursor: "pointer",
+                  outline: "none", WebkitTapHighlightColor: "transparent",
+                }}
+              >
+                Verkäufer kontaktieren
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Ja/Nein-Bestätigung für Chat mit dem Anbieter */}
+        {showChatConfirm && creatorId && (
+          <div style={{
+            position: "fixed", inset: 0, zIndex: 10600,
+            background: "rgba(20,20,34,0.55)",
+            backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <div style={{
+              width: "88%", maxWidth: 320,
+              background: "#FDFCFA", borderRadius: 20,
+              padding: "24px 20px", textAlign: "center",
+              boxShadow: "0 12px 48px rgba(20,20,34,0.25)",
+            }}>
+              <div style={{ fontSize: 17, fontWeight: 700, color: "#1A1A2E", marginBottom: 8 }}>
+                Mit {creatorName} chatten?
+              </div>
+              <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)", lineHeight: 1.5, marginBottom: 20 }}>
+                Möchtest du wirklich eine Unterhaltung mit dem Verkäufer starten?
+              </div>
+              <div style={{ display: "flex", gap: 10 }}>
+                <button
+                  onClick={() => setShowChatConfirm(false)}
+                  style={{
+                    flex: 1, padding: "14px 0", borderRadius: 13,
+                    border: "1.5px solid rgba(20,20,34,0.10)",
+                    background: "transparent", color: "rgba(26,26,46,0.65)",
+                    fontSize: 15, fontWeight: 600, cursor: "pointer",
+                    outline: "none", WebkitTapHighlightColor: "transparent",
+                  }}
+                >
+                  Nein
+                </button>
+                <button
+                  onClick={() => {
+                    setShowChatConfirm(false);
+                    actions[A.OPEN_CHAT]?.({
+                      recipient: {
+                        id: creatorId,
+                        display_name: creatorName,
+                        avatar_url: crObj?.avatar_url || crObj?.avatar || null,
+                      },
+                      source: S.SYSTEM,
+                    });
+                    onClose();
+                  }}
+                  style={{
+                    flex: 1, padding: "14px 0", borderRadius: 13,
+                    border: "none",
+                    background: TEAL, color: "#fff",
+                    fontSize: 15, fontWeight: 700, cursor: "pointer",
+                    outline: "none", WebkitTapHighlightColor: "transparent",
+                  }}
+                >
+                  Ja
+                </button>
+              </div>
+            </div>
           </div>
         )}
 

@@ -20,11 +20,11 @@ import { useAuth } from "../../lib/AuthContext";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
-import { getStripe } from "../../lib/stripe.js";
-import { Elements } from "@stripe/react-stripe-js";
 import StripePaymentStep from "../commerce/StripePaymentStep.jsx";
 import AvailabilityCalendar from "./AvailabilityCalendar.jsx";
 import { useSavedPostsContext } from "../../context/SavedPostsContext.jsx";
+import { useHuiActions, A } from "../../core/hui.actions.js";
+import { S } from "../../core/hui.sources.js";
 
 const TEAL  = "#16D7C5";
 const CORAL = "#FF8A6B";
@@ -46,6 +46,8 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
   useWizardBodyLock();
   useModalRegistration(true, onClose, "TalentBookingFlow");
   const { isSaved, toggleSave } = useSavedPostsContext();
+  const actions = useHuiActions();
+  const [showChatConfirm, setShowChatConfirm] = useState(false);
   const saved = isSaved(talent?.id);
   const handleSave = useCallback(() => {
     if (!talent?.id) return;
@@ -187,7 +189,6 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
     // Fehler wird bereits innerhalb von StripePaymentStep angezeigt
   }, []);
 
-  const stripePromise = useMemo(() => (step === "payment" ? getStripe() : null), [step]);
 
   if (!talent) return null;
 
@@ -257,22 +258,101 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
             }}>
               Schließen
             </button>
+            {talent.user_id && (
+              <button
+                onClick={() => setShowChatConfirm(true)}
+                style={{
+                  width: "100%", marginTop: 10, padding: "14px 0",
+                  borderRadius: 14, border: "1.5px solid rgba(20,20,34,0.10)",
+                  background: "transparent", color: "rgba(26,26,46,0.65)",
+                  fontSize: 15, fontWeight: 600, cursor: "pointer",
+                  outline: "none", WebkitTapHighlightColor: "transparent",
+                }}
+              >
+                Verkäufer kontaktieren
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Ja/Nein-Bestätigung für Chat mit dem Anbieter */}
+        {showChatConfirm && talent.user_id && (
+          <div style={{
+            position: "fixed", inset: 0, zIndex: 10600,
+            background: "rgba(20,20,34,0.55)",
+            backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <div style={{
+              width: "88%", maxWidth: 320,
+              background: "#FDFCFA", borderRadius: 20,
+              padding: "24px 20px", textAlign: "center",
+              boxShadow: "0 12px 48px rgba(20,20,34,0.25)",
+            }}>
+              <div style={{ fontSize: 17, fontWeight: 700, color: "#1A1A2E", marginBottom: 8 }}>
+                Mit {talent.author || "dem Verkäufer"} chatten?
+              </div>
+              <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)", lineHeight: 1.5, marginBottom: 20 }}>
+                Möchtest du wirklich eine Unterhaltung mit dem Verkäufer starten?
+              </div>
+              <div style={{ display: "flex", gap: 10 }}>
+                <button
+                  onClick={() => setShowChatConfirm(false)}
+                  style={{
+                    flex: 1, padding: "14px 0", borderRadius: 13,
+                    border: "1.5px solid rgba(20,20,34,0.10)",
+                    background: "transparent", color: "rgba(26,26,46,0.65)",
+                    fontSize: 15, fontWeight: 600, cursor: "pointer",
+                    outline: "none", WebkitTapHighlightColor: "transparent",
+                  }}
+                >
+                  Nein
+                </button>
+                <button
+                  onClick={() => {
+                    setShowChatConfirm(false);
+                    actions[A.OPEN_CHAT]?.({
+                      recipient: {
+                        id: talent.user_id,
+                        display_name: talent.author || "Verkäufer",
+                        avatar_url: null,
+                      },
+                      source: S.SYSTEM,
+                    });
+                    onClose?.();
+                  }}
+                  style={{
+                    flex: 1, padding: "14px 0", borderRadius: 13,
+                    border: "none",
+                    background: TEAL, color: "#fff",
+                    fontSize: 15, fontWeight: 700, cursor: "pointer",
+                    outline: "none", WebkitTapHighlightColor: "transparent",
+                  }}
+                >
+                  Ja
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
         {/* ── PAYMENT ── */}
-        {step === "payment" && clientSecret && stripePromise && (
+        {/* BUGFIX: StripePaymentStep erwartet Prop "total" (nicht "amountEur") und */}
+        {/* verwaltet seinen eigenen <Elements>-Kontext intern — die äußere <Elements> */}
+        {/* hier war redundant und wurde entfernt (führte zu 0,00€-Anzeige, da "total" */}
+        {/* nie gesetzt wurde und auf den Default 0 zurückfiel). */}
+        {step === "payment" && clientSecret && (
           <div style={{ flex: 1, overflowY: "auto", padding: "16px 0 0" }}>
-            <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: "stripe" } }}>
-              <StripePaymentStep
-                clientSecret={clientSecret}
-                amountEur={amountEur}
-                bookingId={bookingId}
-                onSuccess={handleStripeSuccess}
-                onError={handleStripeError}
-                onBack={() => setStep("select")}
-              />
-            </Elements>
+            <StripePaymentStep
+              clientSecret={clientSecret}
+              publishableKey={publishableKey}
+              total={amountEur}
+              impact={Math.round(amountEur * 0.0225 * 100) / 100}
+              orderId={bookingId}
+              onSuccess={handleStripeSuccess}
+              onError={handleStripeError}
+              onBack={() => setStep("select")}
+            />
           </div>
         )}
 
