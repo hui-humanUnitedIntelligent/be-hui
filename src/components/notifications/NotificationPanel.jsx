@@ -6,6 +6,7 @@ import {
 import { HUIHeartIcon } from '../../design/icons/HuiInteractionIcons.jsx';
 import React, { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
+import { generateReceipt } from "../../lib/generateReceipt.js";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
@@ -347,8 +348,9 @@ function DetailModal({ n, onClose, onAction }) {
       };
     }
 
-    // ── RESONANZ-BUCHUNG-001 (2026-08-08): Strukturiertes Buchungsdetail ──
-    // Talent-Buchung ODER Erlebnis-Buchung: wer / was / wann / wo + Chat-Button.
+    // ── RESONANZ-BUCHUNG-001 + QUITTUNG-001 (2026-08-08): Strukturiertes
+//    Buchungsdetail mit echten Daten, Link zum Angebot, Kontaktdaten
+//    (E-Mail/Webseite wenn vorhanden), Chat-Option + Quittung-Download ──
     if (["talent_booking_paid","talent_booking_confirmed","experience_booking_paid","experience_booking_confirmed"].includes(t)) {
       const isSellerView = t === "talent_booking_paid" || t === "experience_booking_paid";
       const isTalent = t.startsWith("talent_booking");
@@ -361,6 +363,12 @@ function DetailModal({ n, onClose, onAction }) {
         ? new Date(md.date).toLocaleDateString("de-DE", { weekday:"short", day:"numeric", month:"long" })
         : null;
 
+      // QUITTUNG-001: Kontaktdaten nur in der Kaeufer-Sicht anzeigen
+      const sellerEmail = !isSellerView ? (md.seller_email || null) : null;
+      const sellerWebsite = !isSellerView ? (md.seller_website || null) : null;
+      const offerId = md.offer_id || null;
+      const offerType = md.offer_type || (isTalent ? "talent" : "experience");
+
       return {
         accentColor: "#22C55E",
         headerIcon: isTalent ? "📅" : "🌿",
@@ -372,8 +380,30 @@ function DetailModal({ n, onClose, onAction }) {
           dateStr && { type:"stat", label:"Wann", value: md.time ? `${dateStr}, ${md.time} Uhr` : dateStr },
           md.location && { type:"stat", label:"Wo", value: md.location },
           md.amount_eur != null && { type:"stat", label:"Betrag", value: `${Number(md.amount_eur).toFixed(2).replace(".", ",")} €` },
+          md.participants > 1 && { type:"stat", label:"Teilnehmer", value: String(md.participants) },
+          // Kontaktdaten (nur Kaeufer-Sicht, nur wenn vorhanden)
+          sellerEmail && { type:"label-text", label:"E-Mail", text: sellerEmail, color:"#0EC4B8", bg:"rgba(14,196,184,0.06)", border:"rgba(14,196,184,0.22)" },
+          sellerWebsite && { type:"label-text", label:"Webseite", text: sellerWebsite, color:"#0EC4B8", bg:"rgba(14,196,184,0.06)", border:"rgba(14,196,184,0.22)" },
         ].filter(Boolean),
         chatUserId: otherUserId,
+        // QUITTUNG-001: Quittungs-Button nur in der Kaeufer-Sicht
+        receiptData: !isSellerView ? {
+          offerTitle,
+          sellerName: md.seller_name || null,
+          sellerEmail,
+          sellerWebsite,
+          date: md.date || null,
+          time: md.time || null,
+          location: md.location || null,
+          amountEur: md.amount_eur || null,
+          participants: md.participants || null,
+          bookingId: md.booking_id || n.entity_id || null,
+          offerId,
+          offerType,
+        } : null,
+        // Link zum Angebot (nur Kaeufer-Sicht)
+        offerLinkId: !isSellerView ? offerId : null,
+        offerLinkType: !isSellerView ? offerType : null,
         actionLabel: null,
       };
     }
@@ -791,6 +821,50 @@ function DetailModal({ n, onClose, onAction }) {
             💬 Mit Nutzer chatten
           </button>
         )}
+
+        {/* ── QUITTUNG-001: Link zum Angebot ── */}
+        {cfg.offerLinkId && cfg.offerLinkType && (
+          <button
+            onClick={() => {
+              onClose();
+              onAction({ ...n, _openRef: true, _refType: cfg.offerLinkType, _refId: cfg.offerLinkId });
+            }}
+            style={{
+              width:"100%", padding:"13px", borderRadius:99,
+              background:"rgba(14,196,184,0.08)",
+              border:`1.5px solid rgba(14,196,184,0.35)`,
+              color:"#0EC4B8", fontSize:14, fontWeight:700,
+              cursor:"pointer", fontFamily:"inherit",
+              marginBottom:10,
+            }}
+          >
+            Angebot ansehen →
+          </button>
+        )}
+
+        {/* ── QUITTUNG-001: Quittung herunterladen ── */}
+        {cfg.receiptData && (
+          <button
+            onClick={async () => {
+              try {
+                await generateReceipt(cfg.receiptData);
+              } catch (e) {
+                console.warn("Receipt generation failed:", e);
+              }
+            }}
+            style={{
+              width:"100%", padding:"13px", borderRadius:99,
+              background:"rgba(34,197,94,0.08)",
+              border:`1.5px solid rgba(34,197,94,0.35)`,
+              color:"#22C55E", fontSize:14, fontWeight:700,
+              cursor:"pointer", fontFamily:"inherit",
+              marginBottom:10,
+            }}
+          >
+            📄 Quittung herunterladen
+          </button>
+        )}
+
 
         {/* ── Schließen ── */}
         <button

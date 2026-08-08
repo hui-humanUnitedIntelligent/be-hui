@@ -12,6 +12,7 @@ import RecommendModal from "../profile/RecommendModal.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useHuiActions, A } from "../../core/hui.actions.js";
 import { S } from "../../core/hui.sources.js";
+import { generateReceipt } from "../../lib/generateReceipt.js";
 
 const T = {
   bg:       "#F7F5F0",
@@ -329,7 +330,7 @@ function MeineBuchungen({ userId }) {
     setLoading(true);
     const { data } = await supabase
       .from("talent_bookings")
-      .select("id, talent_id, seller_id, selected_date, selected_time_slot, participants, status, amount_eur, created_at, cancelled_at, talents(title, images, category)")
+      .select("id, talent_id, seller_id, selected_date, selected_time_slot, participants, status, amount_eur, created_at, cancelled_at, talents(title, images, category, location_type, location_address)")
       .eq("customer_id", userId)
       .order("selected_date", { ascending: false });
 
@@ -337,10 +338,10 @@ function MeineBuchungen({ userId }) {
     const sellerIds = [...new Set((data || []).map(b => b.seller_id).filter(Boolean))];
     let nameMap = {};
     if (sellerIds.length) {
-      const { data: profs } = await supabase.from("profiles").select("id, display_name, username").in("id", sellerIds);
-      nameMap = Object.fromEntries((profs || []).map(p => [p.id, p.display_name || p.username || "Anbieter"]));
+      const { data: profs } = await supabase.from("profiles").select("id, display_name, username, email, website").in("id", sellerIds);
+      nameMap = Object.fromEntries((profs || []).map(p => [p.id, { name: p.display_name || p.username || "Anbieter", email: p.email || null, website: p.website || null }]));
     }
-    setBookings((data || []).map(b => ({ ...b, seller_name: nameMap[b.seller_id] || "Anbieter" })));
+    setBookings((data || []).map(b => { const sm = nameMap[b.seller_id] || { name: "Anbieter" }; return { ...b, seller_name: sm.name || "Anbieter", seller_email: sm.email || null, seller_website: sm.website || null }; }));
     setLoading(false);
   }, [userId]);
 
@@ -386,6 +387,36 @@ function MeineBuchungen({ userId }) {
                 }}
               >
                 Anbieter kontaktieren
+              </button>
+            )}
+            {b.status !== "cancelled" && (
+              <button
+                onClick={async () => {
+                  try {
+                    await generateReceipt({
+                      offerTitle: b.talents?.title || "Talent-Angebot",
+                      sellerName: b.seller_name,
+                      sellerEmail: b.seller_email || null,
+                      sellerWebsite: b.seller_website || null,
+                      date: b.selected_date,
+                      time: b.selected_time_slot?.start ? b.selected_time_slot.start + (b.selected_time_slot.end ? " – " + b.selected_time_slot.end : "") : null,
+                      location: b.talents?.location_type === "online" ? "Online" : (b.talents?.location_address || null),
+                      amountEur: b.amount_eur,
+                      participants: b.participants,
+                      bookingId: b.id,
+                      offerId: b.talent_id,
+                      offerType: "talent",
+                    });
+                  } catch (e) { console.warn("Receipt failed:", e); }
+                }}
+                style={{
+                  marginTop: 6, width: "100%", padding: "9px 0",
+                  borderRadius: T.r99, border: `1.5px solid rgba(34,197,94,0.35)`,
+                  background: T.bgCard, color: "#22C55E",
+                  fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: T.ff,
+                }}
+              >
+                📄 Quittung herunterladen
               </button>
             )}
             {canRec && !confirmDone[b.id] && (

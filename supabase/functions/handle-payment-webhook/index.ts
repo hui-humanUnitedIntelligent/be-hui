@@ -163,7 +163,7 @@ serve(async (req) => {
             .maybeSingle()
           const { data: tSellerProfile } = await supabase
             .from('profiles')
-            .select('display_name, full_name, username')
+            .select('display_name, full_name, username, email, website')
             .eq('id', tBooking.seller_id)
             .maybeSingle()
 
@@ -175,11 +175,18 @@ serve(async (req) => {
             : null
           const tLocation   = tOffer?.location_type === 'online' ? 'Online' : (tOffer?.location_address || null)
 
+          // QUITTUNG-001 (2026-08-08): offer_id (Link zum Angebot) + seller_email/
+          // seller_website (Kontaktdaten des Anbieters, "wenn vorhanden anzeigen")
+          // fuer Buchungsdetail-Modal + PDF-Quittung ergaenzt.
           const tBookingMeta = {
             booking_id:    tBooking.id,
+            offer_id:      tBooking.talent_id,
+            offer_type:    'talent',
             offer_title:   tOfferTitle,
             buyer_name:    tBuyerName,
             seller_name:   tSellerName,
+            seller_email:  tSellerProfile?.email || null,
+            seller_website: tSellerProfile?.website || null,
             date:          tBooking.selected_date,
             time:          tTimeSlot,
             location:      tLocation,
@@ -466,8 +473,34 @@ serve(async (req) => {
         const firstExpItemId = expTitles[0]?.snapshot?.item_id
         const exp = firstExpItemId ? expDetailsById[firstExpItemId] : null
         const expTitleList = expTitles.map((i: any) => i.snapshot?.title || 'ein Erlebnis')
+        // QUITTUNG-001 (2026-08-08): Kaeufer-Bestaetigung hatte bisher KEINE
+        // Veranstalter-Info (weder seller_name noch other_user_id) -- Chat-Button
+        // und "Gebucht bei" im Buchungsdetail-Modal liefen ins Leere. Seller-Id
+        // steckt bereits auf dem order_item (siehe sellerTypeGroups oben), daher
+        // hier direkt aus expTitles[0] lesbar -- keine Zusatzabfrage noetig.
+        const expSellerId = expTitles[0]?.seller_id || null
+        let expSellerName = 'Der Veranstalter'
+        let expSellerEmail: string | null = null
+        let expSellerWebsite: string | null = null
+        if (expSellerId) {
+          const { data: expSellerProfile } = await supabase
+            .from('profiles')
+            .select('display_name, full_name, username, email, website')
+            .eq('id', expSellerId)
+            .maybeSingle()
+          expSellerName    = expSellerProfile?.display_name || expSellerProfile?.full_name || expSellerProfile?.username || 'Der Veranstalter'
+          expSellerEmail   = expSellerProfile?.email || null
+          expSellerWebsite = expSellerProfile?.website || null
+        }
         const buyerExpMeta = {
           order_id: order.id, item_titles: expTitleList,
+          offer_id: exp?.id || null,
+          offer_type: 'experience',
+          offer_title: expTitleList.join(', '),
+          seller_name: expSellerName,
+          seller_email: expSellerEmail,
+          seller_website: expSellerWebsite,
+          other_user_id: expSellerId,
           date: exp?.date || null,
           time: (exp?.time_start ? `${exp.time_start}${exp.time_end ? ' – ' + exp.time_end : ''}` : null),
           location: exp?.location_text || exp?.meeting_point || null,
