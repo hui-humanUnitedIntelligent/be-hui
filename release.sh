@@ -64,7 +64,15 @@ done
 # hat. Dieser Check bricht den Release-Prozess HART ab, bevor eine kaputte
 # APK gebaut werden kann.
 ENV_FILE=".env.local"
-[[ -f "$ENV_FILE" ]] || error "$ENV_FILE fehlt! Ohne diese Datei fehlen kritische Keys (Stripe/Supabase) in der APK. Datei aus sicherer Quelle wiederherstellen, bevor gebaut wird."
+if [[ ! -f "$ENV_FILE" ]]; then
+  # Auto-Restore aus .env.example (Safety-Net, 2026-08-08)
+  if [[ -f ".env.example" ]]; then
+    cp .env.example .env.local
+    warn ".env.local fehlte — automatisch aus .env.example wiederhergestellt"
+  else
+    error "$ENV_FILE fehlt und kein .env.example Template gefunden! Ohne diese Datei fehlen kritische Keys (Stripe/Supabase) in der APK."
+  fi
+fi
 
 REQUIRED_KEYS=("VITE_STRIPE_PUBLIC_KEY" "VITE_SUPABASE_URL" "VITE_SUPABASE_ANON_KEY")
 for key in "${REQUIRED_KEYS[@]}"; do
