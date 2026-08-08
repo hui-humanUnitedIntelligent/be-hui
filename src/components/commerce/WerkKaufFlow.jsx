@@ -257,9 +257,23 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
               </svg>
             </div>
             <div style={{ fontSize: 18, fontWeight: 700, color: "#1A1A2E", marginBottom: 8 }}>Kauf erfolgreich</div>
-            <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)", marginBottom: 20, lineHeight: 1.5 }}>
-              Deine Zahlung ist sicher bei HUI hinterlegt. Sobald du das Werk erhalten hast,
-              bestätige den Erhalt in deinem Profil — erst dann erhält der Creator seine Auszahlung.
+            {/* Detaillierte Kaufinfo */}
+            <div style={{
+              background: "rgba(22,215,197,0.06)", border: "1px solid rgba(22,215,197,0.15)",
+              borderRadius: 14, padding: "14px 16px", marginBottom: 20, textAlign: "left",
+            }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "#1A1A2E", marginBottom: 10 }}>{title}</div>
+              <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
+                <span style={{ fontWeight: 600 }}>Verkäufer:</span> {werk.author?.name || werk.author?.displayName || "Creator"}
+              </div>
+              {amount > 0 && (
+                <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
+                  <span style={{ fontWeight: 600 }}>Betrag:</span> {amount.toFixed(2).replace(".", ",")} €
+                </div>
+              )}
+              <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginTop: 8, paddingTop: 8, borderTop: "1px solid rgba(22,215,197,0.12)" }}>
+                Deine Zahlung ist sicher bei HUI hinterlegt. Bestätige den Erhalt in deinem Profil.
+              </div>
             </div>
 
             {/* Chat CTA — mit Ja/Nein-Bestätigung */}

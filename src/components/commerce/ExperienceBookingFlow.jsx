@@ -289,9 +289,28 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
               </svg>
             </div>
             <div style={{ fontSize: 18, fontWeight: 700, color: "#1A1A2E", marginBottom: 8 }}>Buchung erfolgreich</div>
-            <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)", marginBottom: 28, lineHeight: 1.5 }}>
-              Deine Zahlung für "{title}" ist sicher bei HUI hinterlegt.
-              {creatorName} wurde über deine Buchung informiert.
+            {/* Detaillierte Buchungsinfo */}
+            <div style={{
+              background: "rgba(22,215,197,0.06)", border: "1px solid rgba(22,215,197,0.15)",
+              borderRadius: 14, padding: "14px 16px", marginBottom: 20, textAlign: "left",
+            }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "#1A1A2E", marginBottom: 10 }}>{title}</div>
+              <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
+                <span style={{ fontWeight: 600 }}>Anbieter:</span> {creatorName}
+              </div>
+              {amount > 0 && (
+                <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
+                  <span style={{ fontWeight: 600 }}>Betrag:</span> {amount.toFixed(2).replace(".", ",")} €
+                </div>
+              )}
+              {message.trim() && (
+                <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
+                  <span style={{ fontWeight: 600 }}>Nachricht:</span> {message.trim().length > 80 ? message.trim().slice(0, 80) + "…" : message.trim()}
+                </div>
+              )}
+              <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginTop: 8, paddingTop: 8, borderTop: "1px solid rgba(22,215,197,0.12)" }}>
+                Deine Zahlung ist sicher bei HUI hinterlegt. {creatorName} wurde benachrichtigt.
+              </div>
             </div>
             <button
               onClick={onClose}

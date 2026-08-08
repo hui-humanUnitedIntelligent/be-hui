@@ -246,10 +246,47 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
             <div style={{ fontSize: 18, fontWeight: 700, color: "#1A1A2E", marginBottom: 8 }}>
               Buchung bestätigt!
             </div>
-            <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)", lineHeight: 1.5, marginBottom: 24 }}>
-              Deine Buchung für <strong>{talent.title}</strong>
-              {selectedDate ? ` am ${fmtDate(selectedDate)}` : ""} wurde erfolgreich gebucht.
-              Der Anbieter wird dich in Kürze kontaktieren.
+            {/* Detaillierte Buchungsinfo */}
+            <div style={{
+              background: "rgba(22,215,197,0.06)", border: "1px solid rgba(22,215,197,0.15)",
+              borderRadius: 14, padding: "14px 16px", marginBottom: 20, textAlign: "left",
+            }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "#1A1A2E", marginBottom: 10 }}>
+                {talent.title}
+              </div>
+              {talent.author && (
+                <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
+                  <span style={{ fontWeight: 600 }}>Anbieter:</span> {talent.author}
+                </div>
+              )}
+              {selectedDate && (
+                <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
+                  <span style={{ fontWeight: 600 }}>Datum:</span> {fmtDate(selectedDate)}
+                </div>
+              )}
+              {selectedSlot && (
+                <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
+                  <span style={{ fontWeight: 600 }}>Uhrzeit:</span> {selectedSlot.start}–{selectedSlot.end}
+                </div>
+              )}
+              {participants > 1 && (
+                <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
+                  <span style={{ fontWeight: 600 }}>Teilnehmer:</span> {participants}
+                </div>
+              )}
+              {amountEur > 0 && (
+                <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
+                  <span style={{ fontWeight: 600 }}>Betrag:</span> {fmtEur(amountEur)}
+                </div>
+              )}
+              {note.trim() && (
+                <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
+                  <span style={{ fontWeight: 600 }}>Notiz:</span> {note.trim()}
+                </div>
+              )}
+              <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginTop: 8, paddingTop: 8, borderTop: "1px solid rgba(22,215,197,0.12)" }}>
+                Der Anbieter wurde benachrichtigt und wird dich kontaktieren.
+              </div>
             </div>
             <button onClick={onClose} style={{
               width: "100%", background: `linear-gradient(135deg,${TEAL},#0AB8B2)`,

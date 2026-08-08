@@ -216,17 +216,32 @@ function MeineKaeufe({ userId }) {
 function MeineVerkaeufe({ userId }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [buyerMap, setBuyerMap] = useState({});
+  const actions = useHuiActions();
 
   const load = useCallback(async () => {
     if (!userId) return;
     setLoading(true);
     const { data } = await supabase
       .from("order_items")
-      .select("id, order_id, snapshot, unit_price_eur, payout_eur, fulfillment_status, created_at, orders!inner(id, state, total_eur, escrow_status, delivery_status, buyer_confirmed_at, payout_requested_at, auto_confirm_at)")
+      .select("id, order_id, snapshot, unit_price_eur, payout_eur, fulfillment_status, created_at, orders!inner(id, state, total_eur, customer_id, escrow_status, delivery_status, buyer_confirmed_at, payout_requested_at, auto_confirm_at)")
       .eq("seller_id", userId)
       .eq("orders.state", "paid")
       .order("created_at", { ascending: false });
     setItems(data || []);
+
+    // Buyer-Profile nachladen für Chat
+    const buyerIds = [...new Set((data || []).map(i => i.orders?.customer_id).filter(Boolean))];
+    if (buyerIds.length) {
+      const { data: profs } = await supabase.from("profiles")
+        .select("id, display_name, username, img, avatar_url")
+        .in("id", buyerIds);
+      const map = {};
+      (profs || []).forEach(p => {
+        map[p.id] = { name: p.display_name || p.username || "Käufer", avatar: p.img || p.avatar_url || null };
+      });
+      setBuyerMap(map);
+    }
     setLoading(false);
   }, [userId]);
 
@@ -270,6 +285,27 @@ function MeineVerkaeufe({ userId }) {
               {escrow === "disputed" && <StatusChip label="Dispute offen" color={T.red} bg={T.redSoft} />}
               {s.orders?.buyer_confirmed_at && <StatusChip label="Käufer bestätigt" color={T.teal} bg={T.tealSoft} />}
             </div>
+            {(() => {
+              const buyerId = s.orders?.customer_id;
+              const bInfo = buyerId ? buyerMap[buyerId] : null;
+              if (!buyerId || !bInfo) return null;
+              return (
+                <button
+                  onClick={() => actions[A.OPEN_CHAT]?.({
+                    recipient: { id: buyerId, display_name: bInfo.name, avatar_url: bInfo.avatar },
+                    source: S.SYSTEM,
+                  })}
+                  style={{
+                    marginTop: 10, width: "100%", padding: "9px 0",
+                    borderRadius: T.r99, border: `1.5px solid ${T.teal}`,
+                    background: T.bgCard, color: T.teal,
+                    fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: T.ff,
+                  }}
+                >
+                  Käufer kontaktieren
+                </button>
+              );
+            })()}
           </Card>
         );
       })}
@@ -285,6 +321,8 @@ function MeineBuchungen({ userId }) {
   const [loading, setLoading] = useState(true);
   const [confirmDone, setConfirmDone] = useState({});
   const [recModal, setRecModal] = useState(null);
+  const [showChatConfirm, setShowChatConfirm] = useState(null); // bookingId or null
+  const actions = useHuiActions();
 
   const load = useCallback(async () => {
     if (!userId) return;
@@ -337,9 +375,9 @@ function MeineBuchungen({ userId }) {
               {b.status === "completed"        && <StatusChip label="Abgeschlossen ✓" color={T.green} bg={T.greenSoft} />}
               {b.status === "cancelled"        && <StatusChip label="Storniert" color={T.red} bg={T.redSoft} />}
             </div>
-            {canRec && !confirmDone[b.id] && (
+            {b.seller_id && b.status !== "cancelled" && (
               <button
-                onClick={() => { setConfirmDone(p => ({ ...p, [b.id]: true })); setRecModal({ sellerId: b.seller_id, sellerName: b.seller_name, bookingId: b.id }); }}
+                onClick={() => setShowChatConfirm(b.id)}
                 style={{
                   marginTop: 10, width: "100%", padding: "9px 0",
                   borderRadius: T.r99, border: `1.5px solid ${T.teal}`,
@@ -347,8 +385,45 @@ function MeineBuchungen({ userId }) {
                   fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: T.ff,
                 }}
               >
+                Anbieter kontaktieren
+              </button>
+            )}
+            {canRec && !confirmDone[b.id] && (
+              <button
+                onClick={() => { setConfirmDone(p => ({ ...p, [b.id]: true })); setRecModal({ sellerId: b.seller_id, sellerName: b.seller_name, bookingId: b.id }); }}
+                style={{
+                  marginTop: 6, width: "100%", padding: "9px 0",
+                  borderRadius: T.r99, border: `1.5px solid ${T.teal}`,
+                  background: T.bgCard, color: T.teal,
+                  fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: T.ff,
+                }}
+              >
                 + Empfehlung schreiben
               </button>
+            )}
+            {/* Ja/Nein Chat-Bestätigung */}
+            {showChatConfirm === b.id && (
+              <div style={{
+                position: "fixed", inset: 0, zIndex: 10600,
+                background: "rgba(20,20,34,0.55)",
+                backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <div style={{ width: "88%", maxWidth: 320, background: T.bgCard, borderRadius: 20, padding: "24px 20px", textAlign: "center", boxShadow: "0 12px 48px rgba(20,20,34,0.25)" }}>
+                  <div style={{ fontSize: 17, fontWeight: 700, color: T.ink, marginBottom: 8 }}>Mit {b.seller_name} chatten?</div>
+                  <div style={{ fontSize: 14, color: T.inkSoft, lineHeight: 1.5, marginBottom: 20 }}>Möchtest du wirklich eine Unterhaltung mit dem Anbieter starten?</div>
+                  <div style={{ display: "flex", gap: 10 }}>
+                    <button onClick={() => setShowChatConfirm(null)} style={{ flex: 1, padding: "14px 0", borderRadius: 13, border: `1.5px solid ${T.border}`, background: "transparent", color: T.inkSoft, fontSize: 15, fontWeight: 600, cursor: "pointer" }}>Nein</button>
+                    <button
+                      onClick={() => {
+                        setShowChatConfirm(null);
+                        actions[A.OPEN_CHAT]?.({ recipient: { id: b.seller_id, display_name: b.seller_name, avatar_url: null }, source: S.SYSTEM });
+                      }}
+                      style={{ flex: 1, padding: "14px 0", borderRadius: 13, border: "none", background: T.teal, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}
+                    >Ja</button>
+                  </div>
+                </div>
+              </div>
             )}
           </Card>
         );
@@ -372,6 +447,8 @@ function MeineBuchungen({ userId }) {
 function WerHatMichGebucht({ userId }) {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showChatConfirm, setShowChatConfirm] = useState(null);
+  const actions = useHuiActions();
 
   const load = useCallback(async () => {
     if (!userId) return;
@@ -421,6 +498,42 @@ function WerHatMichGebucht({ userId }) {
               {b.status === "completed"        && <StatusChip label="Abgeschlossen ✓" color={T.green} bg={T.greenSoft} />}
               {b.status === "cancelled"        && <StatusChip label="Storniert" color={T.red} bg={T.redSoft} />}
             </div>
+            {b.customer_id && b.status !== "cancelled" && (
+              <button
+                onClick={() => setShowChatConfirm(b.id)}
+                style={{
+                  marginTop: 10, width: "100%", padding: "9px 0",
+                  borderRadius: T.r99, border: `1.5px solid ${T.teal}`,
+                  background: T.bgCard, color: T.teal,
+                  fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: T.ff,
+                }}
+              >
+                Käufer kontaktieren
+              </button>
+            )}
+            {showChatConfirm === b.id && (
+              <div style={{
+                position: "fixed", inset: 0, zIndex: 10600,
+                background: "rgba(20,20,34,0.55)",
+                backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <div style={{ width: "88%", maxWidth: 320, background: T.bgCard, borderRadius: 20, padding: "24px 20px", textAlign: "center", boxShadow: "0 12px 48px rgba(20,20,34,0.25)" }}>
+                  <div style={{ fontSize: 17, fontWeight: 700, color: T.ink, marginBottom: 8 }}>Mit {b.customer_name} chatten?</div>
+                  <div style={{ fontSize: 14, color: T.inkSoft, lineHeight: 1.5, marginBottom: 20 }}>Möchtest du wirklich eine Unterhaltung mit dem Käufer starten?</div>
+                  <div style={{ display: "flex", gap: 10 }}>
+                    <button onClick={() => setShowChatConfirm(null)} style={{ flex: 1, padding: "14px 0", borderRadius: 13, border: `1.5px solid ${T.border}`, background: "transparent", color: T.inkSoft, fontSize: 15, fontWeight: 600, cursor: "pointer" }}>Nein</button>
+                    <button
+                      onClick={() => {
+                        setShowChatConfirm(null);
+                        actions[A.OPEN_CHAT]?.({ recipient: { id: b.customer_id, display_name: b.customer_name, avatar_url: null }, source: S.SYSTEM });
+                      }}
+                      style={{ flex: 1, padding: "14px 0", borderRadius: 13, border: "none", background: T.teal, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}
+                    >Ja</button>
+                  </div>
+                </div>
+              </div>
+            )}
           </Card>
         );
       })}
