@@ -926,8 +926,15 @@ export default React.memo(function BaseFeedCard({
       // gar nicht erneut lief.
       item?._reactions?.saveCount, item?._reactions?.saved]);
 
-  if (!item?.id) return null;
-
+  // HOOK-ORDER-FIX (2026-08-08): handleReaction/handleDoubleTap muessen
+  // VOR dem fruehen "return null" stehen. Vorher standen sie danach --
+  // sobald item?.id einmal falsy war (z.B. waehrend eines Re-Renders im
+  // Feed-Stream), ueberspreng React diese beiden useCallback-Aufrufe fuer
+  // diesen Render, wich damit von der Hook-Reihenfolge des vorherigen
+  // Renders ab und crashte mit "Minified React error #310"
+  // (Rendered fewer/more hooks than during the previous render) --
+  // reproduzierbar beim Antippen eines Bildes, weil das Oeffnen der
+  // Lightbox einen Re-Render dieser Karte ausloeste.
   const handleReaction = useCallback((type) => {
     // Optimistic update
     setLocalReactions(prev => {
@@ -957,6 +964,8 @@ export default React.memo(function BaseFeedCard({
       handleReaction("touch");
     }
   }, [localReactions.touched, handleReaction]);
+
+  if (!item?.id) return null;
 
   return (
     <article

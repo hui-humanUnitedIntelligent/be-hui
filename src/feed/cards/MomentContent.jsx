@@ -79,8 +79,15 @@ function getMomentBadge(raw) {
 }
 
 export default function MomentContent({ item, onProfile, onReaction, onShare }) {
-  if (!item) return null;
-
+  // HOOK-ORDER-FIX (2026-08-08): ALLE Hooks (useContentPreview, useAuth,
+  // useState x4, useEffect, useCallback) standen vorher NACH
+  // "if (!item) return null" -- sobald item kurzzeitig null/undefined war
+  // (z.B. waehrend Feed-Virtualisierung ein Item aus dem Cache entfernt),
+  // ueberspreng React ALLE diese Hooks fuer diesen Render. Beim naechsten
+  // Render mit gueltigem item wichen die Hook-Reihenfolgen voneinander ab
+  // -> "Minified React error #310" ("Kurzer Aussetzer"-Screen), reproduzierbar
+  // beim Antippen eines Moment-Bildes im Feed. Jetzt: alle Hooks vor dem
+  // fruehen return.
   const { open }  = useContentPreview();
   const { user }  = useAuth(); // FIX (2026-08-08): AuthContext-SSOT statt eigenem
   // supabase.auth.getUser()-Aufruf — jede Feed-Karte rief das vorher einzeln
@@ -90,9 +97,6 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
   // auftauchten (Screenshot Michael, 2026-08-08 — 6x identischer 403 beim
   // Öffnen des Talent-Buchungs-Modals, verursacht von im Hintergrund noch
   // gemounteten Momente-Karten im Feed, nicht vom Modal selbst).
-  const raw       = item._raw || {};
-  const caption   = item.text || item.title || raw.caption || "";
-  const badge     = getMomentBadge(raw);
 
   // ── MOMENTE-REPORTS-001: Melden-State ─────────────────────────
   const [reported,   setReported]   = useState(false);
@@ -157,6 +161,12 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
       setReporting(false);
     }
   }, [reported, reporting, item, user]);
+
+  if (!item) return null;
+
+  const raw       = item._raw || {};
+  const caption   = item.text || item.title || raw.caption || "";
+  const badge     = getMomentBadge(raw);
 
   // reportButton als ActionBtn — identischer Look zu Heart/Chat/Share/Bookmark
   // FingerIcon + CORAL sind top-level (stabile Referenz — verhindert Remount-Bug)

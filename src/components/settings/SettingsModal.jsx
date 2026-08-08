@@ -338,9 +338,14 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
   // Profil aus prop ODER direkt aus AuthContext (Fallback wenn prop noch null)
   const { profile: authCtxProfile } = useAuth() || {};
   const profile = profileProp || authCtxProfile || null;
+  // HOOK-ORDER-FIX (2026-08-08): useState/useKeyboardInset standen vorher
+  // NACH "if (!profile) return null" -- sobald profile kurzzeitig null war
+  // (z.B. wenn authCtxProfile noch nicht geladen), ueberspreng React diese
+  // Hooks fuer den Render, was beim naechsten Render (profile vorhanden)
+  // zu einer anderen Hook-Reihenfolge fuehrte -> "Minified React error #310".
+  const [view, setView] = useState("main"); // "main" | "edit" | "privacy" | "contact" | "security" | "support" | "tickets"
+  const kbdInset = useKeyboardInset();
   if (!profile) return null;
-  const [view, setView] = useState("main");
-  const kbdInset = useKeyboardInset(); // "main" | "edit" | "privacy" | "contact" | "security" | "support" | "tickets"
 
   const logout = async () => {
     // Push-Tokens invalidieren vor dem Logout

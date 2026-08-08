@@ -155,8 +155,11 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
     return () => { document.body.style.overflow = prev; };
   }, [item]);
 
-  if (!item && !loading) return null;
-  // PORTAL.1 — muss zu document.body, sonst blockiert Stacking-Context den Footer
+  // HOOK-ORDER-FIX (2026-08-08): Drag-to-Dismiss useCallback-Hooks standen
+  // vorher NACH "if (!item && !loading) return null" -- fuehrte beim
+  // Antippen eines Bildes (item kurzzeitig null waehrend des Ladens) zu
+  // "Minified React error #310" durch inkonsistente Hook-Reihenfolge
+  // zwischen Renders. Jetzt: alle Hooks vor jedem fruehen return.
   // ── Drag-to-Dismiss Handlers ──
   const handleDragStart = useCallback((e) => {
     if (e.touches && e.touches[0]) {
@@ -177,6 +180,9 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
     setDragY(0);
     dragRef.current = { startY: 0, dy: 0, dragging: false };
   }, [onClose]);
+
+  if (!item && !loading) return null;
+  // PORTAL.1 — muss zu document.body, sonst blockiert Stacking-Context den Footer
 
   const portalTarget = typeof document !== "undefined" ? document.body : null;
   if (!portalTarget) return null;
