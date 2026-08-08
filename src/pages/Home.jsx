@@ -1,7 +1,7 @@
 // src/pages/Home.jsx — HUI Home Orchestrator v9
 // Layout: Header → Feed (scroll) → HUIBottomNavigation (in-flow)
 
-import React, { Suspense, useEffect, useRef, useCallback, useState } from "react";
+import React, { Suspense, lazy, useEffect, useRef, useCallback, useState } from "react";
 import { makeChunkReload } from "../lib/chunkReload.js";
 import { useLocation, useNavigate } from "react-router-dom"; // COMMERCE-01
 import { useOrbWorld } from "../context/OrbWorldContext.jsx";
@@ -33,17 +33,16 @@ import ChatCenterOverlay          from "../components/chat-center/ChatCenterOver
 import { useChatList }             from "../lib/chatContext.js";
 import ConnectionCreatePage      from "../components/connection-create/ConnectionCreatePage.jsx";
 import WerkKaufFlow           from "../components/commerce/WerkKaufFlow.jsx";         // COMMERCE-01
-import { WerkeKorbButton } from "../components/commerce/WerkeKorb.jsx"; // KORB-01 — Button stays eager (tab bar)
+import { WerkeKorbButton } from "../components/commerce/WerkeKorb.jsx";
 const WerkeKorb = lazy(() => import("../components/commerce/WerkeKorb.jsx").then(m => m.default).catch(makeChunkReload("Home:WerkeKorb")));
 import UnterstutzenFlow from "../components/commerce/UnterstutzenFlow.jsx"; // KORB-02 — eager: kein Chunk-Mismatch
 import { clearCartAfterSuccess }        from "../components/commerce/commerceUtils.js";    // KORB-02
 import ExperienceBookingFlow  from "../components/commerce/ExperienceBookingFlow.jsx"; // COMMERCE-01
 // ── Tab-Pages: lazy → eigene Chunks, nur bei Bedarf geladen ────
 // PHASE 17.3: ImpactPage + DiscoverPage — direkte imports (Safari-safe, kein lazy)
-// DiscoverPage: lazy → 86KB nur bei "Entdecken"-Tab
-const DiscoverPage = lazy(() => import("./DiscoverPage.jsx").catch(makeChunkReload("Home:DiscoverPage")));
+import DiscoverPage from "./DiscoverPage.jsx"; // direkt (kein lazy) → kein Suspense-Spinner beim ersten Tab-Wechsel
 import HuiLiveTicker    from "../components/shared/HuiLiveTicker.jsx"; // LIVETICKER.1 2026-07-08 -- ersetzt AmbientWorldBar (war Fake-Daten)
-const ImpactPage = lazy(() => import('./ImpactPage.jsx').catch(makeChunkReload('Home:ImpactPage')));
+import ImpactPage    from './ImpactPage.jsx';
 // PHASE 18: FavoritesPage direkte import (Safari-safe)
 import FavoritesPage from "./FavoritesPage.jsx";
 // ── Orb-Flows: lazy → nur bei Tap auf Orb-Node geladen ─────────
@@ -542,23 +541,23 @@ function HomeInner() {
       <Suspense fallback={<div style={{padding:"40px 20px",textAlign:"center",opacity:0.6,fontSize:13,
   color:"rgba(20,20,34,0.40)",animation:"huiFadeIn 0.5s ease"}}>Entdecken öffnet sich…</div>}>
               <SafeRender flag="discoverFeed" label="DiscoverPage">
-                <Suspense fallback={null}><DiscoverPage
+                <DiscoverPage
                     onView={(id) => { if(id) openProfileById(id); }}
                     onMap={() => setShowMap(true)}
                     onBook={(item) => {
                       // Erlebnis aus DiscoverPage → ExperienceBookingFlow
                       setShowBookingFlow(item);
                     }}
-                  /></Suspense>
+                  />
               </SafeRender>
-          </Suspense>
+            </Suspense>
           </div>
 
           <div ref={tabRefs.impact} style={keepImpact}>
             <Suspense fallback={<div style={{padding:"40px 20px",textAlign:"center",opacity:0.6,fontSize:13,
   color:"rgba(20,20,34,0.40)",animation:"huiFadeIn 0.5s ease"}}>Impact-Raum öffnet sich…</div>}>
               <SafeRender flag="impactPage" label="ImpactPage">
-                <Suspense fallback={null}><ImpactPage currentUser={currentUser}/></Suspense>
+                <ImpactPage currentUser={currentUser}/>
               </SafeRender>
             </Suspense>
           </div>
@@ -634,8 +633,7 @@ function HomeInner() {
 
       {/* KORB-01: Werkekorb Bottom Sheet */}
       {showWerkeKorb && SAFE_MODE.werkFlow && (
-        <Suspense fallback={null}>
-        <WerkeKorb
+        <Suspense fallback={null}><WerkeKorb
           items={cart}
           onClose={() => setShowWerkeKorb(false)}
           onRemove={(item) => setCart(prev => prev.filter(x => x.id !== item.id))}
@@ -649,8 +647,7 @@ function HomeInner() {
           }}
           onDiscover={() => { setShowWerkeKorb(false); handleTab("discover"); }}
           onChat={null}
-        />
-        </Suspense>
+        /></Suspense>
       )}
 
       {/* KORB-02: UnterstutzenFlow — lazy (Stripe erst bei Bedarf laden) */}
@@ -707,8 +704,7 @@ function HomeInner() {
 
       {/* ── Teilen Flow — STATIC IMPORT, ALWAYS IN DOM ── */}
       {/* visible prop steuert Sichtbarkeit — KEIN lazy, KEIN SafeRender, KEIN conditional */}
-      <Suspense fallback={null}>
-      <TeilenFlow
+      <Suspense fallback={null}><TeilenFlow
         visible={showTeilen}
         onClose={() => {
           setShowTeilen(false);
@@ -716,8 +712,7 @@ function HomeInner() {
         onPublished={(result) => {
           setShowTeilen(false);
         }}
-      />
-      </Suspense>
+      /></Suspense>
 
       {/* ── HUI Resonanz Center ─────────────────────────────────── */}
       {showChat && SAFE_MODE.chatCenter && (
