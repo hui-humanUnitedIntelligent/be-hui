@@ -1184,9 +1184,9 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
       {/* Drawer */}
       <div style={{
         position:"fixed", top:0, right:0, bottom:0,
-        width:"min(420px, 100vw)", zIndex:10500,
+        width:"100vw", zIndex:10500,
         display:"flex", flexDirection:"column",
-        background:T.bg, boxShadow:"-4px 0 32px rgba(0,0,0,0.18)",
+        background:T.bg,
       }}>
         {/* Header */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"16px 20px 12px", borderBottom:`1px solid ${T.border}`, background:T.bgCard }}>
