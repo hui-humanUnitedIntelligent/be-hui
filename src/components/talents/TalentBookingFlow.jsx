@@ -25,6 +25,9 @@ import AvailabilityCalendar from "./AvailabilityCalendar.jsx";
 import { useSavedPostsContext } from "../../context/SavedPostsContext.jsx";
 import { useHuiActions, A } from "../../core/hui.actions.js";
 import { S } from "../../core/hui.sources.js";
+import {
+  expandTalentAvailableDates, describeRecurring, TALENT_LOCATION_LABELS, formatDuration,
+} from "../../lib/talentAvailability.js";
 
 const TEAL  = "#16D7C5";
 const CORAL = "#FF8A6B";
@@ -55,7 +58,8 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
   }, [talent?.id, talent?.title, talent?.cover, talent?.author, toggleSave]);
 
   const [step,        setStep]        = useState("select"); // select | payment | success | error
-  const [selectedDate, setSelectedDate] = useState(talent?.available_dates?.[0] || "");
+  // Initial-Datum wird unten per useEffect gesetzt, sobald expandedDates bereit
+  const [selectedDate, setSelectedDate] = useState("");
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [participants, setParticipants] = useState(talent?.min_participants || 1);
   const [note,         setNote]         = useState("");
@@ -80,10 +84,29 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
   }, [talent?.id]);
 
   const isGruppe   = talent?.booking_type === "gruppe";
-  const hasDates    = Array.isArray(talent?.available_dates) && talent.available_dates.length > 0;
   const hasSlots    = Array.isArray(talent?.available_time_slots) && talent.available_time_slots.length > 0;
   const minDate     = talent?.booking_window_start || todayIso();
-  const maxDate     = talent?.booking_window_end || addDaysIso(90);
+  const maxDate     = talent?.booking_window_end || addDaysIso(365);
+
+  // TALENT-BOOKING-RECURRING-001 (2026-08-08): available_dates wird bei
+  // gesetztem `recurring` (wöchentlich/monatlich) gemäß des gewählten
+  // Musters auf alle konkret buchbaren Tage im Buchungsfenster
+  // hochgerechnet. Ohne recurring gelten die Anker-Tage literal.
+  // SSOT: src/lib/talentAvailability.js — expandTalentAvailableDates().
+  const expandedDates = useMemo(
+    () => expandTalentAvailableDates(talent, { windowStart: minDate, windowEnd: maxDate }),
+    [talent, minDate, maxDate]
+  );
+  const hasDates = expandedDates.length > 0;
+  const recurringDesc = useMemo(() => describeRecurring(talent), [talent]);
+
+  // Sobald expandedDates bereit ist, das initiale Datum auf den ersten
+  // buchbaren Tag setzen (falls noch keins gewählt).
+  useEffect(() => {
+    if (!selectedDate && expandedDates.length > 0) {
+      setSelectedDate(expandedDates[0]);
+    }
+  }, [expandedDates, selectedDate]);
 
   const fullDates = useMemo(
     () => Object.keys(monthAvail).filter(d => monthAvail[d]?.is_full),
@@ -419,6 +442,80 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                 )}
               </div>
 
+              {/* ── Angebots-Details (Pflicht ab 2026-08-08): alle Daten die
+                  der Initiator im Wizard eingibt müssen für den Buchenden
+                  sichtbar sein, damit er entscheiden kann. ── */}
+              <div style={{
+                background: "rgba(22,215,197,0.05)", border: "1px solid rgba(22,215,197,0.12)",
+                borderRadius: 14, padding: "12px 14px", marginBottom: 14,
+              }}>
+                {talent.description && (
+                  <div style={{ fontSize: 13.5, color: "rgba(26,26,46,0.65)", lineHeight: 1.6, marginBottom: 10 }}>
+                    {talent.description}
+                  </div>
+                )}
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  {/* Kategorie */}
+                  {talent.category && (
+                    <span style={{ fontSize: 11.5, fontWeight: 600, color: TEAL,
+                      background: "rgba(22,215,197,0.10)", borderRadius: 8, padding: "4px 10px" }}>
+                      {talent.category}
+                    </span>
+                  )}
+                  {/* Ort */}
+                  {TALENT_LOCATION_LABELS[talent.location_type] && (
+                    <span style={{ fontSize: 11.5, fontWeight: 600, color: "rgba(26,26,46,0.55)",
+                      background: "rgba(26,26,46,0.05)", borderRadius: 8, padding: "4px 10px" }}>
+                      {TALENT_LOCATION_LABELS[talent.location_type]}
+                    </span>
+                  )}
+                  {/* Dauer */}
+                  {formatDuration(talent.duration_minutes) && (
+                    <span style={{ fontSize: 11.5, fontWeight: 600, color: "rgba(26,26,46,0.55)",
+                      background: "rgba(26,26,46,0.05)", borderRadius: 8, padding: "4px 10px" }}>
+                      {formatDuration(talent.duration_minutes)}
+                    </span>
+                  )}
+                  {/* Buchungsart */}
+                  {talent.booking_type === "gruppe" && (
+                    <span style={{ fontSize: 11.5, fontWeight: 600, color: "rgba(26,26,46,0.55)",
+                      background: "rgba(26,26,46,0.05)", borderRadius: 8, padding: "4px 10px" }}>
+                      {talent.min_participants > 1 ? `Gruppe ab ${talent.min_participants}` : "Gruppenangebot"}
+                      {talent.max_participants > 0 ? ` · max ${talent.max_participants}` : ""}
+                    </span>
+                  )}
+                  {/* Zeitfenster */}
+                  {hasSlots && (
+                    <span style={{ fontSize: 11.5, fontWeight: 600, color: "rgba(26,26,46,0.55)",
+                      background: "rgba(26,26,46,0.05)", borderRadius: 8, padding: "4px 10px" }}>
+                      {talent.available_time_slots.map(s => `${s.start}–${s.end}`).join(", ")}
+                    </span>
+                  )}
+                  {/* Wiederholung */}
+                  {recurringDesc && (
+                    <span style={{ fontSize: 11.5, fontWeight: 600, color: "rgba(22,215,197,1)",
+                      background: "rgba(22,215,197,0.08)", borderRadius: 8, padding: "4px 10px",
+                      border: "1px solid rgba(22,215,197,0.15)" }}>
+                      {recurringDesc}
+                    </span>
+                  )}
+                  {/* Adresse bei Vor-Ort/Hybrid */}
+                  {talent.location_address && talent.location_type !== "online" && (
+                    <span style={{ fontSize: 11.5, fontWeight: 500, color: "rgba(26,26,46,0.45)",
+                      background: "rgba(26,26,46,0.03)", borderRadius: 8, padding: "4px 10px" }}>
+                      {talent.location_address}
+                    </span>
+                  )}
+                  {/* Standort-Hinweis */}
+                  {talent.location_notes && (
+                    <span style={{ fontSize: 11.5, fontWeight: 500, color: "rgba(26,26,46,0.45)",
+                      background: "rgba(26,26,46,0.03)", borderRadius: 8, padding: "4px 10px" }}>
+                      {talent.location_notes}
+                    </span>
+                  )}
+                </div>
+              </div>
+
               {/* Preis */}
               {priceStr && (
                 <div style={{
@@ -442,7 +539,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                 }}>
                   <AvailabilityCalendar
                     mode={hasDates ? "book" : "free"}
-                    availableDates={talent.available_dates || []}
+                    availableDates={expandedDates}
                     selectedDate={selectedDate}
                     onSelectDate={(d) => { setSelectedDate(d); setSelectedSlot(null); }}
                     fullDates={fullDates}

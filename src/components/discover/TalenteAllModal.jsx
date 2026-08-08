@@ -100,7 +100,7 @@ export default function TalenteAllModal({ isOpen, onClose, onPressTalent }) {
     setLoading(true);
     try {
       let q = supabase.from("talents")
-        .select("id,title,description,category,images,price_per_hour,price_per_session,currency,location_type,location_address,user_id,created_at")
+        .select("id,title,description,category,images,price_per_hour,price_per_session,currency,location_type,location_address,location_notes,map_link,lat,lng,user_id,created_at,available_dates,available_time_slots,recurring,duration_minutes,booking_type,min_participants,max_participants,booking_window_start,booking_window_end,views_count")
         .eq("status","approved")
         .order(sort === "alpha" ? "title" : "created_at", { ascending: sort === "alpha" })
         .range(pageNum * PAGE_SIZE, (pageNum+1) * PAGE_SIZE - 1);

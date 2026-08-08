@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../../lib/supabaseClient.js";
+import { HUILogo } from "../../brand/HUILogo.jsx";
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", ink:"#1A1A18",
@@ -258,7 +259,7 @@ export function PublicTalentOffersSection({ profileId }) {
     let cancelled = false;
     supabase
       .from("talents")
-      .select("id,title,description,category,images,status,price_per_hour,price_per_session,currency,location_type,location_address,duration_minutes,max_participants,booking_type")
+      .select("id,title,description,category,images,status,price_per_hour,price_per_session,currency,location_type,location_address,location_notes,map_link,duration_minutes,max_participants,min_participants,booking_type,available_dates,available_time_slots,recurring,booking_window_start,booking_window_end,user_id")
       .eq("user_id", profileId)
       .eq("status", "approved")   // nur freigegebene Angebote
       .order("created_at", { ascending: false })

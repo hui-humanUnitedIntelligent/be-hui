@@ -375,7 +375,7 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
             try {
               const { data } = await supabase
                 .from("talents")
-                .select("id,title,price_per_hour,price_per_session,location_type,user_id,status")
+                .select("id,title,description,price_per_hour,price_per_session,location_type,location_address,location_notes,user_id,status,available_dates,available_time_slots,recurring,duration_minutes,booking_type,min_participants,max_participants,booking_window_start,booking_window_end,category,images")
                 .eq("user_id", userId)
                 .eq("status", "approved")
                 .limit(1)
