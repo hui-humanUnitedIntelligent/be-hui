@@ -89,7 +89,8 @@ export default function IntroVideoScreen() {
 
   return (
     <div style={{
-      position: "fixed", inset: 0, zIndex: 99999,
+      position: "fixed", top: 0, left: 0, width: "100vw", height: "100dvh",
+      zIndex: 99999,
       background: "#000",
       opacity: fading ? 0 : 1,
       transition: `opacity ${FADE_DURATION}ms ease-out`,
@@ -104,14 +105,15 @@ export default function IntroVideoScreen() {
         onEnded={() => finish("ended")}
         onError={() => setShowFallback(true)}
         style={{
-          width: "100%", height: "100%", objectFit: "cover", objectPosition: "center",
+          width: "100vw", height: "100dvh", objectFit: "cover", objectPosition: "center",
+          display: "block",
           opacity: showFallback ? 0 : 1,
           transition: "opacity 400ms ease-out",
         }}
       />
       {showFallback && (
         <div style={{
-          position: "absolute", inset: 0,
+          position: "absolute", top: 0, left: 0, width: "100vw", height: "100dvh",
           display: "flex", alignItems: "center", justifyContent: "center",
           flexDirection: "column", gap: "24px",
         }}>
