@@ -47,3 +47,5 @@ android/app/src/main/assets/public/   # generierter Web-Snapshot, wird per `npx 
 www/assets/
 www/index.html
 www/web.html
+www/bundle.zip
+www/app-version.json

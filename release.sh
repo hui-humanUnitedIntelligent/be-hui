@@ -127,6 +127,12 @@ step 3 "Web-Build"
 npm run build || error "Web-Build fehlgeschlagen"
 success "Web-Build fertig"
 
+# OTA-Bundle aus www/ entfernen — es darf NICHT in die APK gepackt werden.
+# bundle.zip (11MB) ist ein redundantes ZIP derselben www/-Inhalte die schon
+# als loose Files in die APK kommen. Wird nur für Vercel/OTA deployt.
+rm -f www/bundle.zip www/app-version.json
+echo "[RELEASE] OTA-Bundle aus www/ entfernt (nicht in APK)"
+
 # ── 4. Capacitor Sync ─────────────────────────────────────────────────────────
 step 4 "Capacitor Sync"
 npx cap sync android || error "Capacitor Sync fehlgeschlagen"
