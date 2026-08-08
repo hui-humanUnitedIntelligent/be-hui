@@ -41,12 +41,23 @@ export default function RecommendModal({
   const [submitting, setSubmitting]  = useState(false);
   const [error, setError]            = useState("");
   const [currentUserId, setCurrentUserId] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (data?.user?.id) setCurrentUserId(data.user.id);
     });
   }, []);
+
+  // 3-Sekunden Success-Popup, dann schließen
+  useEffect(() => {
+    if (!showSuccess) return;
+    const timer = setTimeout(() => {
+      onSubmitted?.();
+      onClose?.();
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [showSuccess]);
 
   const canSubmit = text.trim().length >= 10 && currentUserId && !submitting;
 
@@ -62,13 +73,82 @@ export default function RecommendModal({
         { orderId, bookingId }
       );
       if (result.error) throw result.error;
-      onSubmitted?.();
-      onClose?.();
+      setSubmitting(false);
+      setShowSuccess(true);
     } catch (e) {
       setError(e.message || "Empfehlung konnte nicht gesendet werden.");
       setSubmitting(false);
     }
   };
+
+  // ── Success-Popup (3 Sekunden) ──
+  if (showSuccess) {
+    return createPortal(
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 10600,
+          background: "rgba(0,0,0,0.45)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div
+          style={{
+            background: T.bgCard,
+            borderRadius: 20,
+            padding: "36px 28px",
+            textAlign: "center",
+            boxShadow: "0 12px 48px rgba(20,20,34,0.25)",
+            animation: "recPopIn 0.35s ease",
+            maxWidth: 320,
+            width: "85%",
+          }}
+        >
+          {/* Checkmark Circle */}
+          <div
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: "50%",
+              background: `linear-gradient(135deg, ${T.teal}, ${T.tealDark})`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              margin: "0 auto 18px",
+            }}
+          >
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M5 13l4 4L19 7"
+                stroke="white"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+
+          <div style={{ fontSize: 18, fontWeight: 800, color: T.ink, marginBottom: 6, letterSpacing: "-0.02em" }}>
+            Empfehlung gesendet
+          </div>
+          <div style={{ fontSize: 14, color: T.inkSoft, lineHeight: 1.5 }}>
+            Danke! Deine Empfehlung ist jetzt im Profil von {toUserName || "diesem Mitglied"} sichtbar.
+          </div>
+        </div>
+
+        <style>{`
+          @keyframes recPopIn {
+            0% { opacity: 0; transform: scale(0.85); }
+            100% { opacity: 1; transform: scale(1); }
+          }
+        `}</style>
+      </div>,
+      document.body
+    );
+  }
 
   return createPortal(
     <div
