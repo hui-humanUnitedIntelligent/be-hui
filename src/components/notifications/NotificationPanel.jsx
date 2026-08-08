@@ -5,11 +5,16 @@ import {
 } from '../../design/icons/HuiSystemIcons.jsx';
 import { HUIHeartIcon } from '../../design/icons/HuiInteractionIcons.jsx';
 import React, { useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 // ══════════════════════════════════════════════════════════════
-// NOTIFICATION PANEL  — Side-Drawer, alle Modals inline (kein createPortal)
+// NOTIFICATION PANEL  — Side-Drawer, via createPortal(document.body) gerendert
+// RESONANZ-001 (2026-08-08): Portal-Pflicht (siehe footer-navbar-zindex.md) —
+// vorher fehlte createPortal, wodurch das Panel in einem Ancestor-Stacking-
+// Context der Kopfzeile gefangen war (Bug: Panel erschien als kleine Box
+// statt Vollbild-Drawer, kein sichtbares Backdrop).
 // ══════════════════════════════════════════════════════════════
 
 // ── Design-Tokens ─────────────────────────────────────────────
@@ -1080,15 +1085,15 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
     TABS.map(({ key }) => [key, notifs.filter(n => !n.is_read && (TAB_FILTERS[key]?.(n) ?? true)).length])
   );
 
-  return (
+  return createPortal(
     <>
       {/* Backdrop */}
-      <div onClick={onClose} style={{ position:"fixed", inset:0, zIndex:10000, background:"rgba(0,0,0,0.35)" }} />
+      <div onClick={onClose} style={{ position:"fixed", inset:0, zIndex:10490, background:"rgba(0,0,0,0.35)" }} />
 
       {/* Drawer */}
       <div style={{
         position:"fixed", top:0, right:0, bottom:0,
-        width:"min(420px, 100vw)", zIndex:10001,
+        width:"min(420px, 100vw)", zIndex:10500,
         display:"flex", flexDirection:"column",
         background:T.bg, boxShadow:"-4px 0 32px rgba(0,0,0,0.18)",
       }}>
@@ -1158,6 +1163,7 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
           )}
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 }
