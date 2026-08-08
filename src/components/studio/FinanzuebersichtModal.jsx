@@ -1,18 +1,26 @@
 // src/components/studio/FinanzuebersichtModal.jsx
 // ══════════════════════════════════════════════════════════════════════
 // FINANZÜBERSICHT — Alles in einem Modal, kein verschachteltes Portal.
-// Tabs: Meine Käufe | Meine Verkäufe | Meine Buchungen | Wer hat mich gebucht
+// Tabs: Meine Käufe | Meine Verkäufe | Meine Buchungen | Wer hat mich gebucht | Support
 // Pflicht: createPortal → document.body, zIndex:10500
+//
+// DETAIL-001 (2026-08-08): Listen-Karten wurden radikal vereinfacht
+// (nur Titel/Datum/Preis/Status) — Klick auf eine Karte öffnet das
+// gemeinsame TransactionDetailSheet mit ALLEN Details + Aktionen (Chat,
+// Quittung, Empfehlung, Ware bestätigen, Profil ansehen). Vorher waren
+// bis zu 4 Buttons direkt auf jeder Karte gestapelt ("unübersichtlich").
 // ══════════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import RecommendModal from "../profile/RecommendModal.jsx";
+import TransactionDetailSheet from "./TransactionDetailSheet.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useHuiActions, A } from "../../core/hui.actions.js";
 import { S } from "../../core/hui.sources.js";
 import { generateReceipt } from "../../lib/generateReceipt.js";
+import { HUILogo } from "../brand/HUILogo.jsx";
 
 const T = {
   bg:       "#F7F5F0",
@@ -55,14 +63,50 @@ function StatusChip({ label, color = T.inkFaint, bg = T.border }) {
   );
 }
 
-function Card({ children, style }) {
+// ── Vereinfachte, klickbare Listen-Karte (DETAIL-001) ───────────────────
+// Nur: Thumbnail (falls vorhanden) · Titel · Datum · Preis · Status-Chips.
+// Alle Aktionen leben im TransactionDetailSheet nach Klick auf die Karte.
+function TxCard({ image, title, subtitle, dateLabel, amount, amountColor = T.ink, statusChips, onClick, needsAction }) {
   return (
-    <div style={{
-      background: T.bgCard, borderRadius: T.r12,
-      border: `1px solid ${T.border}`, padding: "14px 16px",
-      marginBottom: 10, ...style,
-    }}>
-      {children}
+    <div
+      onClick={onClick}
+      style={{
+        background: T.bgCard, borderRadius: T.r12,
+        border: `1px solid ${T.border}`, padding: "13px 14px",
+        marginBottom: 10, cursor: "pointer",
+        display: "flex", alignItems: "center", gap: 12,
+        WebkitTapHighlightColor: "transparent",
+      }}
+    >
+      <div style={{
+        width: 44, height: 44, borderRadius: T.r8, overflow: "hidden", flexShrink: 0,
+        background: T.tealSoft, display: "flex", alignItems: "center", justifyContent: "center",
+      }}>
+        {image
+          ? <img src={image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          : <HUILogo size={20} style={{ opacity: 0.5 }} />}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 13.5, fontWeight: 700, color: T.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {title}
+        </div>
+        {subtitle && (
+          <div style={{ fontSize: 11, color: T.inkFaint, marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {subtitle}
+          </div>
+        )}
+        <div style={{ fontSize: 11, color: T.inkFaint, marginTop: 1 }}>{dateLabel}</div>
+        {Array.isArray(statusChips) && statusChips.length > 0 && (
+          <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginTop: 5 }}>
+            {statusChips.map((c, i) => <StatusChip key={i} {...c} />)}
+            {needsAction && <StatusChip label="Aktion nötig" color={T.teal} bg={T.tealSoft} />}
+          </div>
+        )}
+      </div>
+      <div style={{ textAlign: "right", flexShrink: 0 }}>
+        <div style={{ fontSize: 14, fontWeight: 800, color: amountColor }}>{eur(amount)}</div>
+        <div style={{ fontSize: 16, color: T.inkFaint, marginTop: 2 }}>›</div>
+      </div>
     </div>
   );
 }
@@ -77,6 +121,7 @@ function MeineKaeufe({ userId }) {
   const [confirmDone, setConfirmDone] = useState({});
   const [recModal, setRecModal] = useState(null); // { sellerId, sellerName, orderId }
   const [sellerMap, setSellerMap] = useState({});
+  const [detail, setDetail] = useState(null);
   const actions = useHuiActions();
 
   const load = useCallback(async () => {
@@ -118,7 +163,58 @@ function MeineKaeufe({ userId }) {
       setConfirmDone(p => ({ ...p, [orderId]: true }));
     }
     setConfirmingId(null);
+    setDetail(null);
     load();
+  };
+
+  const buildTx = (o) => {
+    const item = o.order_items?.[0];
+    const title = item?.snapshot?.title || item?.snapshot?.name || "Werk";
+    const image = item?.snapshot?.cover_url || null;
+    const confirmed = confirmDone[o.id] || !!o.buyer_confirmed_at;
+    const needsConfirm = o.escrow_status === "holding" && !confirmed;
+    const sellerId = item?.seller_id;
+    const sInfo = sellerId ? sellerMap[sellerId] : null;
+
+    const statusChips = [];
+    if (o.escrow_status === "released") statusChips.push({ label: "Zahlung freigegeben", color: T.green, bg: T.greenSoft });
+    if (o.escrow_status === "holding") statusChips.push({ label: "In Escrow", color: T.amber, bg: T.amberSoft });
+    if (confirmed) statusChips.push({ label: "Ware bestätigt ✓", color: T.teal, bg: T.tealSoft });
+
+    const breakdown = [];
+    if (item?.snapshot?.price_eur != null) breakdown.push({ label: "Werk-Preis", value: eur(item.snapshot.price_eur) });
+    if (item?.snapshot?.impact_eur != null) breakdown.push({ label: "Impact-Anteil", value: eur(item.snapshot.impact_eur) });
+    breakdown.push({ label: "Gesamt bezahlt", value: eur(o.total_eur) });
+
+    return {
+      id: o.id, kindLabel: "Kauf", title, image,
+      amount: o.total_eur, amountLabel: "Bezahlt",
+      dateLabel: dt(o.created_at), statusChips, breakdown, needsConfirm,
+      person: sInfo ? { name: sInfo.name, avatar: sInfo.avatar, email: sInfo.email, website: sInfo.website, roleLabel: "Verkäufer" } : null,
+      actions: {
+        onConfirmReceipt: needsConfirm ? () => handleConfirm(o.id) : null,
+        confirmingReceipt: confirmingId === o.id,
+        receiptConfirmed: confirmed,
+        onChat: (sellerId && sInfo) ? () => actions[A.OPEN_CHAT]?.({ recipient: { id: sellerId, display_name: sInfo.name, avatar_url: sInfo.avatar }, source: S.SYSTEM }) : null,
+        canRecommend: !!(confirmed && sellerId),
+        onRecommend: (confirmed && sellerId) ? () => { setDetail(null); setRecModal({ sellerId, sellerName: o.contact_name || "Verkäufer", orderId: o.id }); } : null,
+        onDownloadReceipt: async () => {
+          try {
+            await generateReceipt({
+              offerTitle: title,
+              sellerName: sInfo?.name || "Verkäufer",
+              sellerEmail: sInfo?.email || null,
+              sellerWebsite: sInfo?.website || null,
+              amountEur: o.total_eur,
+              bookingId: o.id,
+              offerId: item?.work_id || null,
+              offerType: "werk",
+            });
+          } catch (e) { console.warn("Receipt failed:", e); }
+        },
+        onViewProfile: sellerId ? () => window.__HUI_OPEN_PROFILE__?.(sellerId) : null,
+      },
+    };
   };
 
   if (loading) return <LoadingPlaceholder />;
@@ -132,96 +228,27 @@ function MeineKaeufe({ userId }) {
       {orders.map(o => {
         const item = o.order_items?.[0];
         const title = item?.snapshot?.title || item?.snapshot?.name || "Werk";
+        const image = item?.snapshot?.cover_url || null;
         const confirmed = confirmDone[o.id] || !!o.buyer_confirmed_at;
         const needsConfirm = o.escrow_status === "holding" && !confirmed;
-        const sellerId = item?.seller_id;
+        const statusChips = [];
+        if (o.escrow_status === "released") statusChips.push({ label: "Zahlung freigegeben", color: T.green, bg: T.greenSoft });
+        if (o.escrow_status === "holding") statusChips.push({ label: "In Escrow", color: T.amber, bg: T.amberSoft });
         return (
-          <Card key={o.id}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-              <div style={{ flex: 1, cursor: sellerId ? "pointer" : "default" }}
-                onClick={() => {
-                  if (!sellerId) return;
-                  const sInfo = sellerMap[sellerId];
-                  if (!sInfo) return;
-                  actions[A.OPEN_CHAT]?.({
-                    recipient: { id: sellerId, display_name: sInfo.name, avatar_url: sInfo.avatar },
-                    source: S.SYSTEM,
-                  });
-                }}
-              >
-                <div style={{ fontSize: 13, fontWeight: 700, color: sellerId ? T.teal : T.ink, marginBottom: 4 }}>{title}</div>
-                <div style={{ fontSize: 11, color: T.inkFaint }}>{dt(o.created_at)}</div>
-                {sellerId && sellerMap[sellerId] && (
-                  <div style={{ fontSize: 10, color: T.teal, marginTop: 2, fontWeight: 600 }}>
-                    Tippe für Chat mit {sellerMap[sellerId].name}
-                  </div>
-                )}
-              </div>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: T.ink }}>{eur(o.total_eur)}</div>
-                {o.escrow_status === "released" && <StatusChip label="Zahlung freigegeben" color={T.green} bg={T.greenSoft} />}
-                {o.escrow_status === "holding" && <StatusChip label="In Escrow" color={T.amber} bg={T.amberSoft} />}
-              </div>
-            </div>
-
-            {/* Ware erhalten Button */}
-            {needsConfirm && (
-              <button
-                onClick={() => handleConfirm(o.id)}
-                disabled={confirmingId === o.id}
-                style={{
-                  marginTop: 12, width: "100%", padding: "10px 0",
-                  borderRadius: T.r99, border: "none",
-                  background: `linear-gradient(135deg, ${T.teal}, #0DBBAF)`,
-                  color: "white", fontSize: 13, fontWeight: 700,
-                  cursor: "pointer", fontFamily: T.ff,
-                  opacity: confirmingId === o.id ? 0.6 : 1,
-                }}
-              >
-                {confirmingId === o.id ? "Wird bestätigt…" : "✓ Ware erhalten"}
-              </button>
-            )}
-            {confirmed && sellerId && (
-              <button
-                onClick={() => setRecModal({ sellerId, sellerName: o.contact_name || "Verkäufer", orderId: o.id })}
-                style={{
-                  marginTop: 10, width: "100%", padding: "9px 0",
-                  borderRadius: T.r99, border: `1.5px solid ${T.teal}`,
-                  background: T.bgCard, color: T.teal,
-                  fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: T.ff,
-                }}
-              >
-                + Empfehlung schreiben
-              </button>
-            )}
-            <button
-              onClick={async () => {
-                try {
-                  const sInfo = sellerMap[sellerId];
-                  await generateReceipt({
-                    offerTitle: title,
-                    sellerName: sInfo?.name || "Verkäufer",
-                    sellerEmail: sInfo?.email || null,
-                    sellerWebsite: sInfo?.website || null,
-                    amountEur: o.total_eur,
-                    bookingId: o.id,
-                    offerId: item?.work_id || null,
-                    offerType: "werk",
-                  });
-                } catch (e) { console.warn("Receipt failed:", e); }
-              }}
-              style={{
-                marginTop: 6, width: "100%", padding: "9px 0",
-                borderRadius: T.r99, border: "1.5px solid rgba(34,197,94,0.35)",
-                background: T.bgCard, color: "#22C55E",
-                fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: T.ff,
-              }}
-            >
-              Quittung herunterladen
-            </button>
-          </Card>
+          <TxCard
+            key={o.id}
+            image={image}
+            title={title}
+            dateLabel={dt(o.created_at)}
+            amount={o.total_eur}
+            statusChips={statusChips}
+            needsAction={needsConfirm}
+            onClick={() => setDetail(buildTx(o))}
+          />
         );
       })}
+
+      <TransactionDetailSheet tx={detail} onClose={() => setDetail(null)} />
 
       {recModal && (
         <RecommendModal
@@ -243,6 +270,7 @@ function MeineVerkaeufe({ userId }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [buyerMap, setBuyerMap] = useState({});
+  const [detail, setDetail] = useState(null);
   const actions = useHuiActions();
 
   const load = useCallback(async () => {
@@ -273,6 +301,39 @@ function MeineVerkaeufe({ userId }) {
 
   useEffect(() => { load(); }, [load]);
 
+  const buildTx = (s) => {
+    const title = s.snapshot?.title || s.snapshot?.name || "Werk";
+    const image = s.snapshot?.cover_url || null;
+    const escrow = s.orders?.escrow_status;
+    const payoutReq = !!s.orders?.payout_requested_at;
+    const buyerId = s.orders?.customer_id;
+    const bInfo = buyerId ? buyerMap[buyerId] : null;
+
+    const statusChips = [];
+    if (escrow === "holding" && !payoutReq) statusChips.push({ label: "Zahlung offen", color: T.amber, bg: T.amberSoft });
+    if (escrow === "holding" && payoutReq) statusChips.push({ label: "Auszahlung beantragt", color: T.teal, bg: T.tealSoft });
+    if (escrow === "released") statusChips.push({ label: "Zahlung erhalten ✓", color: T.green, bg: T.greenSoft });
+    if (escrow === "disputed") statusChips.push({ label: "Dispute offen", color: T.red, bg: T.redSoft });
+    if (s.orders?.buyer_confirmed_at) statusChips.push({ label: "Käufer bestätigt", color: T.teal, bg: T.tealSoft });
+
+    const impact = (s.unit_price_eur || 0) - (s.payout_eur || 0);
+    return {
+      id: s.id, kindLabel: "Verkauf", title, image,
+      amount: s.payout_eur, amountLabel: "Verdient",
+      dateLabel: dt(s.created_at), statusChips,
+      breakdown: [
+        { label: "Verkaufspreis", value: eur(s.unit_price_eur) },
+        { label: "Impact-Pool-Anteil", value: eur(impact) },
+        { label: "Deine Auszahlung", value: eur(s.payout_eur) },
+      ],
+      person: (buyerId && bInfo) ? { name: bInfo.name, avatar: bInfo.avatar, roleLabel: "Käufer" } : null,
+      actions: {
+        onChat: (buyerId && bInfo) ? () => actions[A.OPEN_CHAT]?.({ recipient: { id: buyerId, display_name: bInfo.name, avatar_url: bInfo.avatar }, source: S.SYSTEM }) : null,
+        onViewProfile: buyerId ? () => window.__HUI_OPEN_PROFILE__?.(buyerId) : null,
+      },
+    };
+  };
+
   if (loading) return <LoadingPlaceholder />;
   if (!items.length) return <EmptyState text="Noch keine Verkäufe vorhanden." />;
 
@@ -290,51 +351,29 @@ function MeineVerkaeufe({ userId }) {
       </div>
       {items.map(s => {
         const title = s.snapshot?.title || s.snapshot?.name || "Werk";
+        const image = s.snapshot?.cover_url || null;
         const escrow = s.orders?.escrow_status;
         const payoutReq = !!s.orders?.payout_requested_at;
+        const statusChips = [];
+        if (escrow === "holding" && !payoutReq) statusChips.push({ label: "Zahlung offen", color: T.amber, bg: T.amberSoft });
+        if (escrow === "holding" && payoutReq) statusChips.push({ label: "Auszahlung beantragt", color: T.teal, bg: T.tealSoft });
+        if (escrow === "released") statusChips.push({ label: "Zahlung erhalten ✓", color: T.green, bg: T.greenSoft });
+        if (escrow === "disputed") statusChips.push({ label: "Dispute offen", color: T.red, bg: T.redSoft });
         return (
-          <Card key={s.id}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: T.ink, marginBottom: 3 }}>{title}</div>
-                <div style={{ fontSize: 11, color: T.inkFaint }}>{dt(s.created_at)}</div>
-              </div>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: T.green }}>{eur(s.payout_eur)}</div>
-                <div style={{ fontSize: 10, color: T.inkFaint }}>Impact: {eur((s.unit_price_eur || 0) - (s.payout_eur || 0))}</div>
-              </div>
-            </div>
-            <div style={{ marginTop: 8, display: "flex", gap: 6, flexWrap: "wrap" }}>
-              {escrow === "holding" && !payoutReq && <StatusChip label="Zahlung offen" color={T.amber} bg={T.amberSoft} />}
-              {escrow === "holding" && payoutReq && <StatusChip label="Auszahlung beantragt" color={T.teal} bg={T.tealSoft} />}
-              {escrow === "released" && <StatusChip label="Zahlung erhalten ✓" color={T.green} bg={T.greenSoft} />}
-              {escrow === "disputed" && <StatusChip label="Dispute offen" color={T.red} bg={T.redSoft} />}
-              {s.orders?.buyer_confirmed_at && <StatusChip label="Käufer bestätigt" color={T.teal} bg={T.tealSoft} />}
-            </div>
-            {(() => {
-              const buyerId = s.orders?.customer_id;
-              const bInfo = buyerId ? buyerMap[buyerId] : null;
-              if (!buyerId || !bInfo) return null;
-              return (
-                <button
-                  onClick={() => actions[A.OPEN_CHAT]?.({
-                    recipient: { id: buyerId, display_name: bInfo.name, avatar_url: bInfo.avatar },
-                    source: S.SYSTEM,
-                  })}
-                  style={{
-                    marginTop: 10, width: "100%", padding: "9px 0",
-                    borderRadius: T.r99, border: `1.5px solid ${T.teal}`,
-                    background: T.bgCard, color: T.teal,
-                    fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: T.ff,
-                  }}
-                >
-                  Käufer kontaktieren
-                </button>
-              );
-            })()}
-          </Card>
+          <TxCard
+            key={s.id}
+            image={image}
+            title={title}
+            dateLabel={dt(s.created_at)}
+            amount={s.payout_eur}
+            amountColor={T.green}
+            statusChips={statusChips}
+            onClick={() => setDetail(buildTx(s))}
+          />
         );
       })}
+
+      <TransactionDetailSheet tx={detail} onClose={() => setDetail(null)} />
     </div>
   );
 }
@@ -348,6 +387,7 @@ function MeineBuchungen({ userId }) {
   const [confirmDone, setConfirmDone] = useState({});
   const [recModal, setRecModal] = useState(null);
   const [showChatConfirm, setShowChatConfirm] = useState(null); // bookingId or null
+  const [detail, setDetail] = useState(null);
   const actions = useHuiActions();
 
   const load = useCallback(async () => {
@@ -372,6 +412,59 @@ function MeineBuchungen({ userId }) {
 
   useEffect(() => { load(); }, [load]);
 
+  const buildTx = (b) => {
+    const title = b.talents?.title || "Talent-Angebot";
+    const image = Array.isArray(b.talents?.images) && b.talents.images[0]?.url ? b.talents.images[0].url : null;
+    const done = b.status === "completed" || b.status === "confirmed";
+    const canRec = done && b.seller_id;
+    const location = b.talents?.location_type === "online" ? "Online" : (b.talents?.location_address || null);
+    const timeStr = b.selected_time_slot?.start ? b.selected_time_slot.start + (b.selected_time_slot.end ? " – " + b.selected_time_slot.end : "") : null;
+
+    const statusChips = [];
+    if (b.status === "pending_payment") statusChips.push({ label: "Zahlung ausstehend", color: T.amber, bg: T.amberSoft });
+    if (b.status === "confirmed") statusChips.push({ label: "Bestätigt ✓", color: T.green, bg: T.greenSoft });
+    if (b.status === "completed") statusChips.push({ label: "Abgeschlossen ✓", color: T.green, bg: T.greenSoft });
+    if (b.status === "cancelled") statusChips.push({ label: "Storniert", color: T.red, bg: T.redSoft });
+
+    return {
+      id: b.id, kindLabel: "Buchung", title, image,
+      amount: b.amount_eur, amountLabel: "Gebucht für",
+      dateLabel: dt(b.selected_date), statusChips,
+      meta: [
+        { label: "Datum", value: dt(b.selected_date) },
+        { label: "Uhrzeit", value: timeStr },
+        { label: "Ort", value: location },
+        { label: "Teilnehmer", value: b.participants || null },
+        { label: "Kategorie", value: b.talents?.category || null },
+      ],
+      person: { name: b.seller_name, email: b.seller_email, website: b.seller_website, roleLabel: "Anbieter" },
+      actions: {
+        onChat: (b.seller_id && b.status !== "cancelled") ? () => setShowChatConfirm(b.id) : null,
+        canRecommend: !!(canRec && !confirmDone[b.id]),
+        onRecommend: (canRec && !confirmDone[b.id]) ? () => { setConfirmDone(p => ({ ...p, [b.id]: true })); setDetail(null); setRecModal({ sellerId: b.seller_id, sellerName: b.seller_name, bookingId: b.id }); } : null,
+        onDownloadReceipt: b.status !== "cancelled" ? async () => {
+          try {
+            await generateReceipt({
+              offerTitle: title,
+              sellerName: b.seller_name,
+              sellerEmail: b.seller_email || null,
+              sellerWebsite: b.seller_website || null,
+              date: b.selected_date,
+              time: timeStr,
+              location,
+              amountEur: b.amount_eur,
+              participants: b.participants,
+              bookingId: b.id,
+              offerId: b.talent_id,
+              offerType: "talent",
+            });
+          } catch (e) { console.warn("Receipt failed:", e); }
+        } : null,
+        onViewProfile: b.talent_id ? () => window.__HUI_OPEN_PROFILE__?.(b.seller_id) : null,
+      },
+    };
+  };
+
   if (loading) return <LoadingPlaceholder />;
   if (!bookings.length) return <EmptyState text="Du hast noch keine Termine gebucht." />;
 
@@ -382,127 +475,28 @@ function MeineBuchungen({ userId }) {
       <SummaryRow label="Gesamt gebucht" value={eur(total)} />
       {bookings.map(b => {
         const title = b.talents?.title || "Talent-Angebot";
-        const done = b.status === "completed" || b.status === "confirmed";
-        const canRec = done && b.seller_id;
+        const image = Array.isArray(b.talents?.images) && b.talents.images[0]?.url ? b.talents.images[0].url : null;
+        const statusChips = [];
+        if (b.status === "pending_payment") statusChips.push({ label: "Zahlung ausstehend", color: T.amber, bg: T.amberSoft });
+        if (b.status === "confirmed") statusChips.push({ label: "Bestätigt ✓", color: T.green, bg: T.greenSoft });
+        if (b.status === "completed") statusChips.push({ label: "Abgeschlossen ✓", color: T.green, bg: T.greenSoft });
+        if (b.status === "cancelled") statusChips.push({ label: "Storniert", color: T.red, bg: T.redSoft });
         return (
-          <Card key={b.id}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: T.ink, marginBottom: 3 }}>{title}</div>
-                {b.seller_email && <div style={{ fontSize: 10, color: T.teal, marginTop: 2 }}>✉ {b.seller_email}</div>}
-                {b.seller_website && <div style={{ fontSize: 10, color: T.teal, marginTop: 1 }}>🔗 {b.seller_website}</div>}
-                <div style={{ fontSize: 11, color: T.inkFaint }}>{b.seller_name} · {dt(b.selected_date)}</div>
-              </div>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: T.ink }}>{eur(b.amount_eur)}</div>
-              </div>
-            </div>
-            <div style={{ marginTop: 8, display: "flex", gap: 6, flexWrap: "wrap" }}>
-              {b.status === "pending_payment" && <StatusChip label="Zahlung ausstehend" color={T.amber} bg={T.amberSoft} />}
-              {b.status === "confirmed"        && <StatusChip label="Bestätigt ✓" color={T.green} bg={T.greenSoft} />}
-              {b.status === "completed"        && <StatusChip label="Abgeschlossen ✓" color={T.green} bg={T.greenSoft} />}
-              {b.status === "cancelled"        && <StatusChip label="Storniert" color={T.red} bg={T.redSoft} />}
-            </div>
-            {b.seller_id && b.status !== "cancelled" && (
-              <button
-                onClick={() => setShowChatConfirm(b.id)}
-                style={{
-                  marginTop: 10, width: "100%", padding: "9px 0",
-                  borderRadius: T.r99, border: `1.5px solid ${T.teal}`,
-                  background: T.bgCard, color: T.teal,
-                  fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: T.ff,
-                }}
-              >
-                Anbieter kontaktieren
-              </button>
-            )}
-            {b.status !== "cancelled" && (<>
-              <button
-                onClick={async () => {
-                  try {
-                    await generateReceipt({
-                      offerTitle: b.talents?.title || "Talent-Angebot",
-                      sellerName: b.seller_name,
-                      sellerEmail: b.seller_email || null,
-                      sellerWebsite: b.seller_website || null,
-                      date: b.selected_date,
-                      time: b.selected_time_slot?.start ? b.selected_time_slot.start + (b.selected_time_slot.end ? " – " + b.selected_time_slot.end : "") : null,
-                      location: b.talents?.location_type === "online" ? "Online" : (b.talents?.location_address || null),
-                      amountEur: b.amount_eur,
-                      participants: b.participants,
-                      bookingId: b.id,
-                      offerId: b.talent_id,
-                      offerType: "talent",
-                    });
-                  } catch (e) { console.warn("Receipt failed:", e); }
-                }}
-                style={{
-                  marginTop: 6, width: "100%", padding: "9px 0",
-                  borderRadius: T.r99, border: `1.5px solid rgba(34,197,94,0.35)`,
-                  background: T.bgCard, color: "#22C55E",
-                  fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: T.ff,
-                }}
-              >
-                Quittung herunterladen
-              </button>
-            {b.talent_id && (
-              <button
-                onClick={() => {
-                  if (window.__HUI_OPEN_PROFILE__) {
-                    window.__HUI_OPEN_PROFILE__(b.seller_id);
-                  }
-                }}
-                style={{
-                  marginTop: 6, width: "100%", padding: "9px 0",
-                  borderRadius: T.r99, border: `1px solid ${T.border}`,
-                  background: T.bgCard, color: T.inkSoft,
-                  fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: T.ff,
-                }}
-              >
-                Anbieter-Profil ansehen
-              </button>
-            )}
-            </>)}
-            {canRec && !confirmDone[b.id] && (
-              <button
-                onClick={() => { setConfirmDone(p => ({ ...p, [b.id]: true })); setRecModal({ sellerId: b.seller_id, sellerName: b.seller_name, bookingId: b.id }); }}
-                style={{
-                  marginTop: 6, width: "100%", padding: "9px 0",
-                  borderRadius: T.r99, border: `1.5px solid ${T.teal}`,
-                  background: T.bgCard, color: T.teal,
-                  fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: T.ff,
-                }}
-              >
-                + Empfehlung schreiben
-              </button>
-            )}
-            {/* Ja/Nein Chat-Bestätigung */}
-            {showChatConfirm === b.id && (
-              <div style={{
-                position: "fixed", inset: 0, zIndex: 10600,
-                background: "rgba(20,20,34,0.55)",
-                backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <div style={{ width: "88%", maxWidth: 320, background: T.bgCard, borderRadius: 20, padding: "24px 20px", textAlign: "center", boxShadow: "0 12px 48px rgba(20,20,34,0.25)" }}>
-                  <div style={{ fontSize: 17, fontWeight: 700, color: T.ink, marginBottom: 8 }}>Mit {b.seller_name} chatten?</div>
-                  <div style={{ fontSize: 14, color: T.inkSoft, lineHeight: 1.5, marginBottom: 20 }}>Möchtest du wirklich eine Unterhaltung mit dem Anbieter starten?</div>
-                  <div style={{ display: "flex", gap: 10 }}>
-                    <button onClick={() => setShowChatConfirm(null)} style={{ flex: 1, padding: "14px 0", borderRadius: 13, border: `1.5px solid ${T.border}`, background: "transparent", color: T.inkSoft, fontSize: 15, fontWeight: 600, cursor: "pointer" }}>Nein</button>
-                    <button
-                      onClick={() => {
-                        setShowChatConfirm(null);
-                        actions[A.OPEN_CHAT]?.({ recipient: { id: b.seller_id, display_name: b.seller_name, avatar_url: null }, source: S.SYSTEM });
-                      }}
-                      style={{ flex: 1, padding: "14px 0", borderRadius: 13, border: "none", background: T.teal, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}
-                    >Ja</button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </Card>
+          <TxCard
+            key={b.id}
+            image={image}
+            title={title}
+            subtitle={b.seller_name}
+            dateLabel={dt(b.selected_date)}
+            amount={b.amount_eur}
+            statusChips={statusChips}
+            onClick={() => setDetail(buildTx(b))}
+          />
         );
       })}
+
+      <TransactionDetailSheet tx={detail} onClose={() => setDetail(null)} />
+
       {recModal && (
         <RecommendModal
           toUserId={recModal.sellerId}
@@ -512,6 +506,36 @@ function MeineBuchungen({ userId }) {
           onSubmitted={() => setRecModal(null)}
         />
       )}
+
+      {/* Ja/Nein Chat-Bestätigung */}
+      {showChatConfirm && (() => {
+        const b = bookings.find(x => x.id === showChatConfirm);
+        if (!b) return null;
+        return (
+          <div style={{
+            position: "fixed", inset: 0, zIndex: 10650,
+            background: "rgba(20,20,34,0.55)",
+            backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <div style={{ width: "88%", maxWidth: 320, background: T.bgCard, borderRadius: 20, padding: "24px 20px", textAlign: "center", boxShadow: "0 12px 48px rgba(20,20,34,0.25)" }}>
+              <div style={{ fontSize: 17, fontWeight: 700, color: T.ink, marginBottom: 8 }}>Mit {b.seller_name} chatten?</div>
+              <div style={{ fontSize: 14, color: T.inkSoft, lineHeight: 1.5, marginBottom: 20 }}>Möchtest du wirklich eine Unterhaltung mit dem Anbieter starten?</div>
+              <div style={{ display: "flex", gap: 10 }}>
+                <button onClick={() => setShowChatConfirm(null)} style={{ flex: 1, padding: "14px 0", borderRadius: 13, border: `1.5px solid ${T.border}`, background: "transparent", color: T.inkSoft, fontSize: 15, fontWeight: 600, cursor: "pointer" }}>Nein</button>
+                <button
+                  onClick={() => {
+                    setShowChatConfirm(null);
+                    setDetail(null);
+                    actions[A.OPEN_CHAT]?.({ recipient: { id: b.seller_id, display_name: b.seller_name, avatar_url: null }, source: S.SYSTEM });
+                  }}
+                  style={{ flex: 1, padding: "14px 0", borderRadius: 13, border: "none", background: T.teal, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}
+                >Ja</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
@@ -523,6 +547,7 @@ function WerHatMichGebucht({ userId }) {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showChatConfirm, setShowChatConfirm] = useState(null);
+  const [detail, setDetail] = useState(null);
   const actions = useHuiActions();
 
   const load = useCallback(async () => {
@@ -546,6 +571,35 @@ function WerHatMichGebucht({ userId }) {
 
   useEffect(() => { load(); }, [load]);
 
+  const buildTx = (b) => {
+    const title = b.talents?.title || "Talent-Angebot";
+    const image = Array.isArray(b.talents?.images) && b.talents.images[0]?.url ? b.talents.images[0].url : null;
+    const timeStr = b.selected_time_slot?.start ? b.selected_time_slot.start + (b.selected_time_slot.end ? " – " + b.selected_time_slot.end : "") : null;
+
+    const statusChips = [];
+    if (b.status === "pending_payment") statusChips.push({ label: "Zahlung ausstehend", color: T.amber, bg: T.amberSoft });
+    if (b.status === "confirmed") statusChips.push({ label: "Bestätigt ✓", color: T.green, bg: T.greenSoft });
+    if (b.status === "completed") statusChips.push({ label: "Abgeschlossen ✓", color: T.green, bg: T.greenSoft });
+    if (b.status === "cancelled") statusChips.push({ label: "Storniert", color: T.red, bg: T.redSoft });
+
+    return {
+      id: b.id, kindLabel: "Gebucht", title, image,
+      amount: b.amount_eur, amountLabel: "Einnahme",
+      dateLabel: dt(b.selected_date), statusChips,
+      meta: [
+        { label: "Datum", value: dt(b.selected_date) },
+        { label: "Uhrzeit", value: timeStr },
+        { label: "Teilnehmer", value: b.participants || null },
+        { label: "Kategorie", value: b.talents?.category || null },
+      ],
+      person: { name: b.customer_name, roleLabel: "Kunde" },
+      actions: {
+        onChat: (b.customer_id && b.status !== "cancelled") ? () => setShowChatConfirm(b.id) : null,
+        onViewProfile: b.customer_id ? () => window.__HUI_OPEN_PROFILE__?.(b.customer_id) : null,
+      },
+    };
+  };
+
   if (loading) return <LoadingPlaceholder />;
   if (!bookings.length) return <EmptyState text="Noch keine Buchungen für dein Talent-Angebot." />;
 
@@ -556,62 +610,57 @@ function WerHatMichGebucht({ userId }) {
       <SummaryRow label="Gesamteinnahmen" value={eur(totalEarned)} color={T.green} />
       {bookings.map(b => {
         const title = b.talents?.title || "Talent-Angebot";
+        const image = Array.isArray(b.talents?.images) && b.talents.images[0]?.url ? b.talents.images[0].url : null;
+        const statusChips = [];
+        if (b.status === "pending_payment") statusChips.push({ label: "Zahlung ausstehend", color: T.amber, bg: T.amberSoft });
+        if (b.status === "confirmed") statusChips.push({ label: "Bestätigt ✓", color: T.green, bg: T.greenSoft });
+        if (b.status === "completed") statusChips.push({ label: "Abgeschlossen ✓", color: T.green, bg: T.greenSoft });
+        if (b.status === "cancelled") statusChips.push({ label: "Storniert", color: T.red, bg: T.redSoft });
         return (
-          <Card key={b.id}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: T.ink, marginBottom: 3 }}>{title}</div>
-                <div style={{ fontSize: 11, color: T.inkFaint }}>{b.customer_name} · {dt(b.selected_date)}</div>
-              </div>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: T.green }}>{eur(b.amount_eur)}</div>
-              </div>
-            </div>
-            <div style={{ marginTop: 8, display: "flex", gap: 6, flexWrap: "wrap" }}>
-              {b.status === "pending_payment" && <StatusChip label="Zahlung ausstehend" color={T.amber} bg={T.amberSoft} />}
-              {b.status === "confirmed"        && <StatusChip label="Bestätigt ✓" color={T.green} bg={T.greenSoft} />}
-              {b.status === "completed"        && <StatusChip label="Abgeschlossen ✓" color={T.green} bg={T.greenSoft} />}
-              {b.status === "cancelled"        && <StatusChip label="Storniert" color={T.red} bg={T.redSoft} />}
-            </div>
-            {b.customer_id && b.status !== "cancelled" && (
-              <button
-                onClick={() => setShowChatConfirm(b.id)}
-                style={{
-                  marginTop: 10, width: "100%", padding: "9px 0",
-                  borderRadius: T.r99, border: `1.5px solid ${T.teal}`,
-                  background: T.bgCard, color: T.teal,
-                  fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: T.ff,
-                }}
-              >
-                Käufer kontaktieren
-              </button>
-            )}
-            {showChatConfirm === b.id && (
-              <div style={{
-                position: "fixed", inset: 0, zIndex: 10600,
-                background: "rgba(20,20,34,0.55)",
-                backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <div style={{ width: "88%", maxWidth: 320, background: T.bgCard, borderRadius: 20, padding: "24px 20px", textAlign: "center", boxShadow: "0 12px 48px rgba(20,20,34,0.25)" }}>
-                  <div style={{ fontSize: 17, fontWeight: 700, color: T.ink, marginBottom: 8 }}>Mit {b.customer_name} chatten?</div>
-                  <div style={{ fontSize: 14, color: T.inkSoft, lineHeight: 1.5, marginBottom: 20 }}>Möchtest du wirklich eine Unterhaltung mit dem Käufer starten?</div>
-                  <div style={{ display: "flex", gap: 10 }}>
-                    <button onClick={() => setShowChatConfirm(null)} style={{ flex: 1, padding: "14px 0", borderRadius: 13, border: `1.5px solid ${T.border}`, background: "transparent", color: T.inkSoft, fontSize: 15, fontWeight: 600, cursor: "pointer" }}>Nein</button>
-                    <button
-                      onClick={() => {
-                        setShowChatConfirm(null);
-                        actions[A.OPEN_CHAT]?.({ recipient: { id: b.customer_id, display_name: b.customer_name, avatar_url: null }, source: S.SYSTEM });
-                      }}
-                      style={{ flex: 1, padding: "14px 0", borderRadius: 13, border: "none", background: T.teal, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}
-                    >Ja</button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </Card>
+          <TxCard
+            key={b.id}
+            image={image}
+            title={title}
+            subtitle={b.customer_name}
+            dateLabel={dt(b.selected_date)}
+            amount={b.amount_eur}
+            amountColor={T.green}
+            statusChips={statusChips}
+            onClick={() => setDetail(buildTx(b))}
+          />
         );
       })}
+
+      <TransactionDetailSheet tx={detail} onClose={() => setDetail(null)} />
+
+      {showChatConfirm && (() => {
+        const b = bookings.find(x => x.id === showChatConfirm);
+        if (!b) return null;
+        return (
+          <div style={{
+            position: "fixed", inset: 0, zIndex: 10650,
+            background: "rgba(20,20,34,0.55)",
+            backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <div style={{ width: "88%", maxWidth: 320, background: T.bgCard, borderRadius: 20, padding: "24px 20px", textAlign: "center", boxShadow: "0 12px 48px rgba(20,20,34,0.25)" }}>
+              <div style={{ fontSize: 17, fontWeight: 700, color: T.ink, marginBottom: 8 }}>Mit {b.customer_name} chatten?</div>
+              <div style={{ fontSize: 14, color: T.inkSoft, lineHeight: 1.5, marginBottom: 20 }}>Möchtest du wirklich eine Unterhaltung mit dem Käufer starten?</div>
+              <div style={{ display: "flex", gap: 10 }}>
+                <button onClick={() => setShowChatConfirm(null)} style={{ flex: 1, padding: "14px 0", borderRadius: 13, border: `1.5px solid ${T.border}`, background: "transparent", color: T.inkSoft, fontSize: 15, fontWeight: 600, cursor: "pointer" }}>Nein</button>
+                <button
+                  onClick={() => {
+                    setShowChatConfirm(null);
+                    setDetail(null);
+                    actions[A.OPEN_CHAT]?.({ recipient: { id: b.customer_id, display_name: b.customer_name, avatar_url: null }, source: S.SYSTEM });
+                  }}
+                  style={{ flex: 1, padding: "14px 0", borderRadius: 13, border: "none", background: T.teal, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}
+                >Ja</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
@@ -677,6 +726,7 @@ function MeineSupports({ userId }) {
   const [received, setReceived] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView]       = useState("given"); // given | received
+  const [detail, setDetail]   = useState(null);
 
   const load = useCallback(async () => {
     if (!userId) return;
@@ -701,6 +751,25 @@ function MeineSupports({ userId }) {
   }, [userId]);
 
   useEffect(() => { load(); }, [load]);
+
+  const buildTx = (item, otherIdKey) => {
+    const meta = item.metadata || {};
+    const msg = meta.message || meta.support_message || null;
+    const statusLabel = item.status === "succeeded" ? "Erfolgreich" : item.status === "pending" ? "Ausstehend" : item.status === "failed" ? "Fehlgeschlagen" : item.status;
+    const statusColor = item.status === "succeeded" ? T.green : item.status === "pending" ? T.amber : T.red;
+    const statusBg    = item.status === "succeeded" ? T.greenSoft : item.status === "pending" ? T.amberSoft : T.redSoft;
+    return {
+      id: item.id, kindLabel: view === "given" ? "Support gegeben" : "Support erhalten",
+      title: item.description || "Unterstützung",
+      image: null,
+      amount: item.amount, amountLabel: "Betrag",
+      dateLabel: dt(item.created_at),
+      statusChips: [{ label: statusLabel, color: statusColor, bg: statusBg }],
+      description: typeof msg === "string" ? msg : null,
+      person: null,
+      actions: {},
+    };
+  };
 
   if (loading) return <LoadingPlaceholder />;
   if (!given.length && !received.length)
@@ -737,41 +806,23 @@ function MeineSupports({ userId }) {
       )}
 
       {items.map((item) => {
-        const otherId = item[otherIdKey];
-        const meta = item.metadata || {};
-        const msg = meta.message || meta.support_message || null;
+        const statusLabel = item.status === "succeeded" ? "Erfolgreich" : item.status === "pending" ? "Ausstehend" : item.status === "failed" ? "Fehlgeschlagen" : item.status;
+        const statusColor = item.status === "succeeded" ? T.green : item.status === "pending" ? T.amber : T.red;
+        const statusBg    = item.status === "succeeded" ? T.greenSoft : item.status === "pending" ? T.amberSoft : T.redSoft;
         return (
-          <Card key={item.id}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: T.ink }}>
-                {eur(item.amount)}
-              </div>
-              <StatusChip
-                label={item.status === "succeeded" ? "Erfolgreich" : item.status === "pending" ? "Ausstehend" : item.status === "failed" ? "Fehlgeschlagen" : item.status}
-                color={item.status === "succeeded" ? T.green : item.status === "pending" ? T.amber : T.red}
-                bg={item.status === "succeeded" ? T.greenSoft : item.status === "pending" ? T.amberSoft : T.redSoft}
-              />
-            </div>
-            {item.description && (
-              <div style={{ fontSize: 12, color: T.inkSoft, marginBottom: 4 }}>
-                {item.description}
-              </div>
-            )}
-            {msg && (
-              <div style={{
-                fontSize: 13, color: T.inkSoft, marginTop: 8,
-                background: T.bg, borderRadius: T.r8, padding: "8px 10px",
-                fontStyle: "italic", lineHeight: 1.5,
-              }}>
-                „{typeof msg === "string" ? msg.slice(0, 200) : ""}"
-              </div>
-            )}
-            <div style={{ fontSize: 11, color: T.inkFaint, marginTop: 8 }}>
-              {dt(item.created_at)}
-            </div>
-          </Card>
+          <TxCard
+            key={item.id}
+            image={null}
+            title={item.description || "Unterstützung"}
+            dateLabel={dt(item.created_at)}
+            amount={item.amount}
+            statusChips={[{ label: statusLabel, color: statusColor, bg: statusBg }]}
+            onClick={() => setDetail(buildTx(item, otherIdKey))}
+          />
         );
       })}
+
+      <TransactionDetailSheet tx={detail} onClose={() => setDetail(null)} />
 
       {/* Summary */}
       {items.length > 0 && (
