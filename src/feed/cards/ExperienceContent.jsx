@@ -64,7 +64,7 @@ export default function ExperienceContent({ item, onProfile, onReaction, onShare
 
       {/* Teilnehmen-Button — eigene Zeile, rechtsbündig */}
       {onBook && (
-        <div style={{ display:"flex", justifyContent:"flex-end", marginBottom: metaParts.length > 0 ? 6 : 0 }}>
+        <div style={{ display:"flex", justifyContent:"center", marginBottom: metaParts.length > 0 ? 6 : 0 }}>
           <button
             onClick={(e) => { e.stopPropagation(); onBook(item); }}
             style={{

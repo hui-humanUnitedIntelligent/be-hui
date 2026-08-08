@@ -99,7 +99,7 @@ export default function TalentContent({ item, onProfile, onReaction, onShare }) 
       </div>
 
       {/* Buchen-Button — eigene Zeile, rechtsbündig (analog "Kaufen"/"Teilnehmen") */}
-      <div style={{ display:"flex", justifyContent:"flex-end", marginBottom: (locType || category) ? 6 : 0 }}>
+      <div style={{ display:"flex", justifyContent:"center", marginBottom: (locType || category) ? 6 : 0 }}>
         <button
           onClick={handleBookClick}
           style={{

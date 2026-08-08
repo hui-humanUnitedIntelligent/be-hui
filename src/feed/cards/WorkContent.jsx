@@ -82,7 +82,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
 
       {/* CTA-Zeile — rechtsbündig, eigene Zeile */}
       {((onBuyWerk && isBuyable) || (onBuyWerk && !isBuyable && priceStr)) && (
-        <div style={{ display:"flex", justifyContent:"flex-end", marginBottom: category || priceStr ? 6 : 0 }}>
+        <div style={{ display:"flex", justifyContent:"center", marginBottom: category || priceStr ? 6 : 0 }}>
           {onBuyWerk && isBuyable && (
             <button
               onClick={(e) => { e.stopPropagation(); onBuyWerk(item); }}
