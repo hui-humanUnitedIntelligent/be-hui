@@ -30,6 +30,7 @@ import {
   expandTalentAvailableDates, describeRecurring, TALENT_LOCATION_LABELS, formatDuration,
   todayIsoLocal,
 } from "../../lib/talentAvailability.js";
+import { generateReceipt } from "../../lib/generateReceipt.js";
 
 const TEAL  = "#16D7C5";
 const CORAL = "#FF8A6B";
@@ -361,6 +362,37 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
               fontSize: 15, fontWeight: 700, cursor: "pointer", touchAction: "manipulation",
             }}>
               Schließen
+            </button>
+            <button
+              onClick={async () => {
+                try {
+                  const { data: prof } = await supabase.from("profiles")
+                    .select("email, website").eq("id", talent.user_id).maybeSingle();
+                  await generateReceipt({
+                    offerTitle: talent.title || "Talent-Angebot",
+                    sellerName: talent.author || "Anbieter",
+                    sellerEmail: prof?.email || null,
+                    sellerWebsite: prof?.website || null,
+                    date: selectedDate,
+                    time: selectedSlot ? selectedSlot.start + (selectedSlot.end ? " – " + selectedSlot.end : "") : null,
+                    location: talent.location_type === "online" ? "Online" : (talent.location_address || null),
+                    amountEur: amountEur,
+                    participants: participants,
+                    bookingId: bookingId,
+                    offerId: talent.id,
+                    offerType: "talent",
+                  });
+                } catch (e) { console.warn("Receipt failed:", e); }
+              }}
+              style={{
+                width: "100%", marginTop: 10, padding: "14px 0",
+                borderRadius: 14, border: "1.5px solid rgba(34,197,94,0.35)",
+                background: "transparent", color: "#22C55E",
+                fontSize: 15, fontWeight: 700, cursor: "pointer",
+                WebkitTapHighlightColor: "transparent",
+              }}
+            >
+              Quittung herunterladen
             </button>
             {talent.user_id && (
               <button

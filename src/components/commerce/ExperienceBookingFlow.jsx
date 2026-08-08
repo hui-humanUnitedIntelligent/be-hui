@@ -29,6 +29,7 @@ import StripePaymentStep from "./StripePaymentStep.jsx";
 import { useSavedPostsContext } from "../../context/SavedPostsContext.jsx";
 import { useHuiActions, A } from "../../core/hui.actions.js";
 import { S } from "../../core/hui.sources.js";
+import { generateReceipt } from "../../lib/generateReceipt.js";
 
 const TEAL = "#16D7C5";
 
@@ -321,6 +322,33 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
               }}
             >
               Fertig
+            </button>
+            <button
+              onClick={async () => {
+                try {
+                  const { data: prof } = await supabase.from("profiles")
+                    .select("email, website").eq("id", creatorId).maybeSingle();
+                  await generateReceipt({
+                    offerTitle: title || "Erlebnis",
+                    sellerName: creatorName || "Anbieter",
+                    sellerEmail: prof?.email || null,
+                    sellerWebsite: prof?.website || null,
+                    amountEur: amount,
+                    bookingId: null,
+                    offerId: expId || null,
+                    offerType: "experience",
+                  });
+                } catch (e) { console.warn("Receipt failed:", e); }
+              }}
+              style={{
+                width: "100%", marginTop: 10, padding: "14px 0",
+                borderRadius: 14, border: "1.5px solid rgba(34,197,94,0.35)",
+                background: "transparent", color: "#22C55E",
+                fontSize: 15, fontWeight: 700, cursor: "pointer",
+                WebkitTapHighlightColor: "transparent",
+              }}
+            >
+              Quittung herunterladen
             </button>
             {creatorId && (
               <button

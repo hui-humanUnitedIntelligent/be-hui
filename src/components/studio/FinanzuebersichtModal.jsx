@@ -94,11 +94,11 @@ function MeineKaeufe({ userId }) {
     const sellerIds = [...new Set((data || []).map(o => o.order_items?.[0]?.seller_id).filter(Boolean))];
     if (sellerIds.length) {
       const { data: profs } = await supabase.from("profiles")
-        .select("id, display_name, username, img, avatar_url")
+        .select("id, display_name, username, img, avatar_url, email, website")
         .in("id", sellerIds);
       const map = {};
       (profs || []).forEach(p => {
-        map[p.id] = { name: p.display_name || p.username || "Verkäufer", avatar: p.img || p.avatar_url || null };
+        map[p.id] = { name: p.display_name || p.username || "Verkäufer", avatar: p.img || p.avatar_url || null, email: p.email || null, website: p.website || null };
       });
       setSellerMap(map);
     }
@@ -194,6 +194,31 @@ function MeineKaeufe({ userId }) {
                 + Empfehlung schreiben
               </button>
             )}
+            <button
+              onClick={async () => {
+                try {
+                  const sInfo = sellerMap[sellerId];
+                  await generateReceipt({
+                    offerTitle: title,
+                    sellerName: sInfo?.name || "Verkäufer",
+                    sellerEmail: sInfo?.email || null,
+                    sellerWebsite: sInfo?.website || null,
+                    amountEur: o.total_eur,
+                    bookingId: o.id,
+                    offerId: item?.work_id || null,
+                    offerType: "werk",
+                  });
+                } catch (e) { console.warn("Receipt failed:", e); }
+              }}
+              style={{
+                marginTop: 6, width: "100%", padding: "9px 0",
+                borderRadius: T.r99, border: "1.5px solid rgba(34,197,94,0.35)",
+                background: T.bgCard, color: "#22C55E",
+                fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: T.ff,
+              }}
+            >
+              Quittung herunterladen
+            </button>
           </Card>
         );
       })}
@@ -235,7 +260,7 @@ function MeineVerkaeufe({ userId }) {
     const buyerIds = [...new Set((data || []).map(i => i.orders?.customer_id).filter(Boolean))];
     if (buyerIds.length) {
       const { data: profs } = await supabase.from("profiles")
-        .select("id, display_name, username, img, avatar_url")
+        .select("id, display_name, username, img, avatar_url, email, website")
         .in("id", buyerIds);
       const map = {};
       (profs || []).forEach(p => {
@@ -364,6 +389,8 @@ function MeineBuchungen({ userId }) {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: T.ink, marginBottom: 3 }}>{title}</div>
+                {b.seller_email && <div style={{ fontSize: 10, color: T.teal, marginTop: 2 }}>✉ {b.seller_email}</div>}
+                {b.seller_website && <div style={{ fontSize: 10, color: T.teal, marginTop: 1 }}>🔗 {b.seller_website}</div>}
                 <div style={{ fontSize: 11, color: T.inkFaint }}>{b.seller_name} · {dt(b.selected_date)}</div>
               </div>
               <div style={{ textAlign: "right" }}>
@@ -389,7 +416,7 @@ function MeineBuchungen({ userId }) {
                 Anbieter kontaktieren
               </button>
             )}
-            {b.status !== "cancelled" && (
+            {b.status !== "cancelled" && (<>
               <button
                 onClick={async () => {
                   try {
@@ -416,9 +443,26 @@ function MeineBuchungen({ userId }) {
                   fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: T.ff,
                 }}
               >
-                📄 Quittung herunterladen
+                Quittung herunterladen
+              </button>
+            {b.talent_id && (
+              <button
+                onClick={() => {
+                  if (window.__HUI_OPEN_PROFILE__) {
+                    window.__HUI_OPEN_PROFILE__(b.seller_id);
+                  }
+                }}
+                style={{
+                  marginTop: 6, width: "100%", padding: "9px 0",
+                  borderRadius: T.r99, border: `1px solid ${T.border}`,
+                  background: T.bgCard, color: T.inkSoft,
+                  fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: T.ff,
+                }}
+              >
+                Anbieter-Profil ansehen
               </button>
             )}
+            </>)}
             {canRec && !confirmDone[b.id] && (
               <button
                 onClick={() => { setConfirmDone(p => ({ ...p, [b.id]: true })); setRecModal({ sellerId: b.seller_id, sellerName: b.seller_name, bookingId: b.id }); }}

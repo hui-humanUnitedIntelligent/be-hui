@@ -1,5 +1,5 @@
 // src/lib/generateReceipt.js — QUITTUNG-001 (2026-08-08)
-// Generiert eine PDF-Quittung fuer Talent-Buchungen und Erlebnis-Buchungen.
+// Generiert eine PDF-Quittung fuer Talent-Buchungen, Erlebnis-Buchungen und Werk-Kaeufe.
 // Nutzung: generateReceipt(bookingData) -> laedt jsPDF lazy -> oeffnet PDF.
 
 export async function generateReceipt(data) {
@@ -40,15 +40,16 @@ export async function generateReceipt(data) {
   const dateStr = now.toLocaleDateString("de-DE", { day: "2-digit", month: "long", year: "numeric" });
   doc.text("Erstellt am: " + dateStr, M, y);
   if (data.bookingId) {
-    doc.text("Buchungs-ID: " + data.bookingId.substring(0, 8) + "\u2026", W - M - 50, y);
+    doc.text("Buchungs-ID: " + String(data.bookingId).substring(0, 8) + "\u2026", W - M - 50, y);
   }
   y += 12;
 
-  // Gebucht bei
+  // Gebucht bei / Verkauft von
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
   doc.setTextColor(26, 26, 24);
-  doc.text("Gebucht bei:", M, y);
+  var sellerLabel = data.offerType === "werk" ? "Verkauft von:" : "Gebucht bei:";
+  doc.text(sellerLabel, M, y);
   y += 6;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(12);
@@ -68,11 +69,12 @@ export async function generateReceipt(data) {
   }
   y += 6;
 
-  // Gebuchtes Angebot
+  // Gebuchtes Angebot / Gekauftes Werk
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
   doc.setTextColor(26, 26, 24);
-  doc.text("Gebuchtes Angebot:", M, y);
+  var offerLabel = data.offerType === "werk" ? "Gekauftes Werk:" : "Gebuchtes Angebot:";
+  doc.text(offerLabel, M, y);
   y += 6;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(12);
@@ -83,12 +85,15 @@ export async function generateReceipt(data) {
   // Angebotstyp
   doc.setFontSize(9);
   doc.setTextColor(120, 120, 120);
-  var typeLabel = data.offerType === "talent" ? "Talent-Angebot" : data.offerType === "experience" ? "Erlebnis" : "Angebot";
+  var typeLabel = data.offerType === "talent" ? "Talent-Angebot"
+    : data.offerType === "experience" ? "Erlebnis"
+    : data.offerType === "werk" ? "Werk"
+    : "Angebot";
   doc.text("Typ: " + typeLabel, M, y);
   y += 8;
 
-  // Termin
-  if (data.date || data.time) {
+  // Termin (nur fuer Buchungen, nicht fuer Werk-Kauf)
+  if (data.offerType !== "werk" && (data.date || data.time)) {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
     doc.setTextColor(26, 26, 24);
@@ -143,7 +148,11 @@ export async function generateReceipt(data) {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     doc.setTextColor(14, 196, 184);
-    var offerUrl = "https://be-hui.vercel.app/" + (data.offerType === "talent" ? "talent" : "erlebnis") + "?id=" + data.offerId;
+    var offerPath = data.offerType === "talent" ? "talent"
+      : data.offerType === "experience" ? "erlebnis"
+      : data.offerType === "werk" ? "werk"
+      : "angebot";
+    var offerUrl = "https://be-hui.vercel.app/" + offerPath + "?id=" + data.offerId;
     doc.text(offerUrl, M, y);
     y += 8;
   }
@@ -177,8 +186,18 @@ export async function generateReceipt(data) {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.setTextColor(14, 196, 184);
-  doc.text("\u2713 Zahlung bestaetigt \u2014 Termin reserviert", M, y);
+  var statusText = data.offerType === "werk"
+    ? "\u2713 Zahlung bestaetigt \u2014 Werk erworben"
+    : "\u2713 Zahlung bestaetigt \u2014 Termin reserviert";
+  doc.text(statusText, M, y);
   y += 10;
+
+  // Chat-Hinweis
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(120, 120, 120);
+  doc.text("Du kannst den Anbieter uber HUI kontaktieren – in der App unter Finanzübersicht > Buchungen.", M, y);
+  y += 6;
 
   // Footer
   doc.setDrawColor(200, 200, 200);
