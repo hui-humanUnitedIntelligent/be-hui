@@ -21,6 +21,7 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import StripePaymentStep from "../commerce/StripePaymentStep.jsx";
+import { IMPACT_RATE } from "../commerce/commerceUtils.js";
 import AvailabilityCalendar from "./AvailabilityCalendar.jsx";
 import { useSavedPostsContext } from "../../context/SavedPostsContext.jsx";
 import { useHuiActions, A } from "../../core/hui.actions.js";
@@ -450,7 +451,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
               clientSecret={clientSecret}
               publishableKey={publishableKey}
               total={amountEur}
-              impact={Math.round(amountEur * 0.0225 * 100) / 100}
+              impact={Math.round(amountEur * IMPACT_RATE * 100) / 100}
               orderId={bookingId}
               onSuccess={handleStripeSuccess}
               onError={handleStripeError}

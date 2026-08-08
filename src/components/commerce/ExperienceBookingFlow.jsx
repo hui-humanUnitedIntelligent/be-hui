@@ -21,6 +21,7 @@ import { createPortal } from "react-dom";
 import { useAuth } from "../../lib/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { IMPACT_RATE } from "./commerceUtils.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { getStripe } from "../../lib/stripe.js";
 import { Elements } from "@stripe/react-stripe-js";
@@ -271,7 +272,7 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
           <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: "stripe" } }}>
             <StripePaymentStep
               total={amount}
-              impact={amount * 0.0225}
+              impact={+(amount * IMPACT_RATE).toFixed(2)}
               orderId={orderId}
               onSuccess={handleStripeSuccess}
               onError={() => setPhase("error")}

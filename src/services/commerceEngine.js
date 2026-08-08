@@ -152,7 +152,7 @@ export function buildItemSnapshot(item) {
     shipping_cost:    raw.shipping_cost || 0,
 
     // Impact
-    impact_rate:      0.0225, // COM-MIGRATION-015.3: 2.25% statt 7%
+    impact_rate:      0.06, // Balanced Growth v1: 30% von 20% HUI-Anteil (vorher 0.0225 / COM-MIGRATION-015.3, veraltet)
 
     // Varianten (vorbereitet)
     variant:          raw.selected_variant || null,
@@ -445,8 +445,8 @@ export const STRIPE_APPEARANCE = {
 // ═══════════════════════════════════════════════════════════════════
 
 export const COMMERCE_CONFIG = {
-  PLATFORM_FEE_RATE:   0.15,   // COM-MIGRATION-015.3: 15% HUI Plattformgebühr (vorher 10%)
-  IMPACT_RATE:         0.0225, // COM-MIGRATION-015.3: 2.25% Impact Pool = 15% der Gebühr (vorher 7%)
+  PLATFORM_FEE_RATE:   0.20,   // Balanced Growth v1: 20% HUI-Anteil (vorher 0.15 / COM-MIGRATION-015.3, veraltet)
+  IMPACT_RATE:         0.06,   // Balanced Growth v1: 30% von 20% HUI-Anteil = 6% Impact Pool (vorher 0.0225, veraltet)
   CREATOR_PAYOUT_RATE: 0.80,   // Balanced Growth v1: 80% an Talent/Creator
   CURRENCY:            "eur",
   PAYOUT_DELAY_DAYS:   14,     // Auszahlungsfrist nach Lieferung

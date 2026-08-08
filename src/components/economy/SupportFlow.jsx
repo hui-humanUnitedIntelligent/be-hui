@@ -24,6 +24,7 @@ import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { getStripe } from "../../lib/stripe.js";
 import { Elements } from "@stripe/react-stripe-js";
 import StripePaymentStep from "../commerce/StripePaymentStep.jsx";
+import { IMPACT_RATE } from "../commerce/commerceUtils.js";
 
 const T = {
   bg:"#FAFAF8", ink:"#1A1A2E", soft:"rgba(26,26,46,0.55)",
@@ -268,7 +269,7 @@ export default function SupportFlow({ creator, visible, onClose, sourceType="pro
           <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: "stripe" } }}>
             <StripePaymentStep
               total={finalAmount}
-              impact={finalAmount * 0.0225}
+              impact={+(finalAmount * IMPACT_RATE).toFixed(2)}
               orderId={paymentIntentId}
               onSuccess={handleStripeSuccess}
               onError={() => setPhase("error")}
