@@ -4,6 +4,7 @@
 // Keine opacity-Tricks, keine doppelten Layer, keine Animation-Gates.
 
 import React, { useState, useEffect, lazy, Suspense } from "react";
+import { createPortal } from "react-dom";
 import ChatAtmosphere  from "./ChatAtmosphere.jsx";
 import ConversationList from "./ConversationList.jsx";
 import ConversationRoom from "./ConversationRoom.jsx";
@@ -61,7 +62,7 @@ function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose
   }
   return (
     <div style={{
-      position: "fixed", inset: 0, zIndex: 10001,
+      position: "fixed", inset: 0, zIndex: 10500,
       display: "flex", flexDirection: "column",
       background: "rgba(242,244,248,1)",
       fontFamily: "-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
@@ -328,7 +329,7 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
   if (loadingConv && !activeConv) {
     return (
       <div style={{
-        position: "fixed", inset: 0, zIndex: 10001,
+        position: "fixed", inset: 0, zIndex: 10500,
         display: "flex", alignItems: "center", justifyContent: "center",
         background: "rgba(249,247,244,0.98)",
         fontFamily: "-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
@@ -350,7 +351,7 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
 
   // ── ConversationRoom ──
   if (activeConv) {
-    return (
+    return createPortal(
       <>
         <ConversationRoom
           conv={activeConv}
@@ -413,12 +414,13 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
             />
           </Suspense>
         )}
-      </>
+      </>,
+      document.body
     );
   }
 
   // ── Liste + People Search ──
-  return (
+  return createPortal(
     <>
       {showPeopleSearch ? (
         <PeopleSearch
@@ -471,6 +473,7 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
           connections={connections}
         />
       )}
-    </>
+    </>,
+    document.body
   );
 }

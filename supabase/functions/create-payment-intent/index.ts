@@ -133,6 +133,21 @@ serve(async (req) => {
       })
     }
 
+    // ── 4b. Selbstkauf-Schutz (server-side) ──────────────────────
+    // Ein Nutzer darf nicht seine eigenen Werke/Dienstleistungen kaufen
+    const selfPurchaseItems = (authorityRows || []).filter((r: any) => r.creator_id === user.id)
+    if (selfPurchaseItems.length > 0) {
+      const titles = selfPurchaseItems.map((r: any) => r.title || 'unbekannt').join(', ')
+      console.warn('[PI] Self-purchase blocked for user:', user.id, 'items:', titles)
+      return new Response(JSON.stringify({
+        error: 'Du kannst dich nicht selbst unterst\u00fctzen.',
+        detail: `Eigene Werke k\u00f6nnen nicht gekauft werden: ${titles}`,
+        code:   'SELF_PURCHASE_BLOCKED',
+      }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
     // Fallback: Items die published-Filter nicht bestanden haben —
     // Creator kann eigene nicht-published Werke kaufen (z.B. pending_review beim Testen)
     const foundIds = new Set((authorityRows || []).map((r: any) => r.item_id))

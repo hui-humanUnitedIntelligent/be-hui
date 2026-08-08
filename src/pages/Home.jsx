@@ -660,7 +660,6 @@ function HomeInner() {
             }}
             onClearCart={() => { clearCartAfterSuccess(setCart); clearCartPersist?.(); }}
             onDiscover={() => { setShowUnterstutzenFlow(false); handleTab("discover"); }}
-            onResonanzCenter={() => setShowUnterstutzenFlow(false)}
           />
         </Suspense>
       )}

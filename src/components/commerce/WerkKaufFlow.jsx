@@ -50,6 +50,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
   const [publishableKey, setPublishableKey] = useState(null);
   const [orderId, setOrderId] = useState(null);
   const [hasChatted, setHasChatted] = useState(false);
+  const [showChatConfirm, setShowChatConfirm] = useState(false);
   const actions = useHuiActions();
 
   const stripePromise = useMemo(() => getStripe(), []);
@@ -261,7 +262,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
               bestätige den Erhalt in deinem Profil — erst dann erhält der Creator seine Auszahlung.
             </div>
 
-            {/* Chat CTA */}
+            {/* Chat CTA — mit Ja/Nein-Bestätigung */}
             {creatorId && user?.id && creatorId !== user.id && (
               <div style={{
                 marginBottom: 20, padding: "14px 16px", borderRadius: 14,
@@ -278,17 +279,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
                   </div>
                 </div>
                 <button
-                  onClick={() => {
-                    setHasChatted(true);
-                    actions[A.OPEN_CHAT]?.({
-                      recipient: {
-                        id: creatorId,
-                        display_name: werk.author?.name || werk.author?.displayName || "Verkäufer",
-                        avatar_url: werk.author?.avatar || null,
-                      },
-                      source: S.SYSTEM,
-                    });
-                  }}
+                  onClick={() => setShowChatConfirm(true)}
                   style={{
                     padding: "10px 18px", borderRadius: 12,
                     background: TEAL, color: "#fff",
@@ -299,6 +290,68 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
                 >
                   Chat
                 </button>
+              </div>
+            )}
+
+            {/* Ja/Nein-Bestätigung für Chat */}
+            {showChatConfirm && creatorId && (
+              <div style={{
+                position: "fixed", inset: 0, zIndex: 10600,
+                background: "rgba(20,20,34,0.55)",
+                backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <div style={{
+                  width: "88%", maxWidth: 320,
+                  background: "#FAF9F7", borderRadius: 20,
+                  padding: "24px 20px", textAlign: "center",
+                  boxShadow: "0 12px 48px rgba(20,20,34,0.25)",
+                }}>
+                  <div style={{ fontSize: 17, fontWeight: 700, color: "#1A1A2E", marginBottom: 8 }}>
+                    Mit {werk.author?.name || werk.author?.displayName || "Verkäufer"} chatten?
+                  </div>
+                  <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)", lineHeight: 1.5, marginBottom: 20 }}>
+                    Möchtest du eine Unterhaltung mit dem Verkäufer starten?
+                  </div>
+                  <div style={{ display: "flex", gap: 10 }}>
+                    <button
+                      onClick={() => setShowChatConfirm(false)}
+                      style={{
+                        flex: 1, padding: "14px 0", borderRadius: 13,
+                        border: "1.5px solid rgba(20,20,34,0.10)",
+                        background: "transparent", color: "rgba(26,26,46,0.65)",
+                        fontSize: 15, fontWeight: 600, cursor: "pointer",
+                        outline: "none", WebkitTapHighlightColor: "transparent",
+                      }}
+                    >
+                      Nein
+                    </button>
+                    <button
+                      onClick={() => {
+                        setHasChatted(true);
+                        setShowChatConfirm(false);
+                        actions[A.OPEN_CHAT]?.({
+                          recipient: {
+                            id: creatorId,
+                            display_name: werk.author?.name || werk.author?.displayName || "Verkäufer",
+                            avatar_url: werk.author?.avatar || null,
+                          },
+                          source: S.SYSTEM,
+                        });
+                        onClose();
+                      }}
+                      style={{
+                        flex: 1, padding: "14px 0", borderRadius: 13,
+                        border: "none",
+                        background: TEAL, color: "#fff",
+                        fontSize: 15, fontWeight: 700, cursor: "pointer",
+                        outline: "none", WebkitTapHighlightColor: "transparent",
+                      }}
+                    >
+                      Ja
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
 
