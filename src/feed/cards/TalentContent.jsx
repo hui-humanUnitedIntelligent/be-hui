@@ -65,22 +65,14 @@ export default function TalentContent({ item, onProfile, onReaction, onShare }) 
       onShare={onShare}
       onCardClick={handleCardClick}
     >
-      {/* Beschreibung */}
-      {desc && (
-        <p style={{ margin:"0 0 10px", fontSize:13.5, fontWeight:400,
-          color:"rgba(26,26,46,0.65)", lineHeight:1.55,
-          overflow:"hidden", display:"-webkit-box",
-          WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>
-          {desc}
-        </p>
-      )}
-
       {/* Badge + Titel — eigene volle Zeile (FIX 2026-08-08: Titel wurde durch
           den Buchen-Button rechts abgeschnitten — nowrap+ellipsis+flex:1 ließ
           lange Titel wie "Massage bieten" oder "lerne Armbänder zu knüpfen"
           hinter dem Button verschwinden. Jetzt umbrechend, immer komplett
-          sichtbar; Button auf eigener Zeile darunter. ── */}
-      <div style={{ display:"flex", alignItems:"flex-start", gap:8, marginBottom:10 }}>
+          sichtbar; Button auf eigener Zeile darunter.
+          REIHENFOLGE-FIX (2026-08-08, Michael-Vorgabe): Titel steht jetzt
+          ÜBER der Beschreibung, nicht mehr darunter. ── */}
+      <div style={{ display:"flex", alignItems:"flex-start", gap:8, marginBottom:8 }}>
         <span style={{
           flexShrink:0, marginTop:2,
           fontSize:10.5, fontWeight:700, color:PURPLE,
@@ -97,6 +89,16 @@ export default function TalentContent({ item, onProfile, onReaction, onShare }) 
           }}>{title}</span>
         )}
       </div>
+
+      {/* Beschreibung */}
+      {desc && (
+        <p style={{ margin:"0 0 10px", fontSize:13.5, fontWeight:400,
+          color:"rgba(26,26,46,0.65)", lineHeight:1.55,
+          overflow:"hidden", display:"-webkit-box",
+          WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>
+          {desc}
+        </p>
+      )}
 
       {/* Buchen-Button — eigene Zeile, rechtsbündig (analog "Kaufen"/"Teilnehmen") */}
       <div style={{ display:"flex", justifyContent:"center", marginBottom: (locType || category) ? 6 : 0 }}>
@@ -129,10 +131,12 @@ export default function TalentContent({ item, onProfile, onReaction, onShare }) 
             </span>
           )}
           {locType && category && (
-            <span style={{ fontSize:12, color:"rgba(26,26,46,0.28)" }}>·</span>
+            <span style={{ color:INK_SUB, fontSize:12 }}>·</span>
           )}
           {category && (
-            <span style={{ fontSize:12.5, color:INK_SUB }}>{category}</span>
+            <span style={{ fontSize:12.5, color:INK_SUB, fontWeight:500 }}>
+              {category}
+            </span>
           )}
         </div>
       )}
