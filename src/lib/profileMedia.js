@@ -33,8 +33,8 @@ import { supabase } from "./supabaseClient.js";
 import { clearQueryCache } from "./perfUtils.js";
 
 // ── Fallback-Assets ──────────────────────────────────────────────────
-export const FB_COVER  = "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=1200&q=80";
-export const FB_AVATAR = "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=300&q=80";
+export const FB_COVER  = "/assets/brand/fallback-cover.svg";
+export const FB_AVATAR = "/assets/brand/fallback-avatar.svg";
 
 // ── Kompressions-Zielgrößen ──────────────────────────────────────────
 // Avatar wird nur als kleiner Kreis (~150-300px, max. Retina 2x) angezeigt.

@@ -22,6 +22,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { APP_VERSION } from "../version";
+import { optimizeAvatar } from "../lib/perfUtils.js";
 
 // ─────────────────────────────────────────────────────────────────
 // DESIGN TOKENS
@@ -143,7 +144,7 @@ function ProfileHeader({ profile, onNotif, onSettings, delay }) {
         boxShadow: `0 2px 10px rgba(13,196,181,0.22), 0 1px 4px rgba(0,0,0,0.08)`,
       }}>
         {profile?.avatar_url
-          ? <img loading="lazy" decoding="async" src={profile.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+          ? <img loading="lazy" decoding="async" src={optimizeAvatar(profile.avatar_url)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
           : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: T.white, fontSize: 17, fontWeight: 700, fontFamily: FONT }}>
               {name ? name[0].toUpperCase() : "H"}
             </div>

@@ -13,6 +13,7 @@ import {
   sv,
   handleAvatarUpload, handleCoverUpload,
 } from "../../lib/profileMedia.js";
+import { optimizeCover, optimizeAvatar } from "../../lib/perfUtils.js";
 
 const FB_AVT = FB_AVATAR;
 
@@ -61,8 +62,8 @@ export function ProfileHeader({
   const avatarInputRef = useRef(null);
   const coverInputRef  = useRef(null);
 
-  const cover    = sv(profile?.header_img, FB_COVER);
-  const avatar   = sv(profile?.avatar_url, FB_AVT);
+  const cover    = optimizeCover(sv(profile?.header_img, FB_COVER));
+  const avatar   = optimizeAvatar(sv(profile?.avatar_url, FB_AVT));
 
   // ── HEADER-IMG-DELAY-FIX (2026-08-07) ─────────────────────────────
   // Root Cause: Cover/Avatar starteten immer bei opacity:0 und faded

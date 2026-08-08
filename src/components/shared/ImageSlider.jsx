@@ -11,6 +11,7 @@
 //   objectFit: string               — Default "cover"
 //   onImageTap: function(index)     — optional, ueberschreibt Lightbox-Oeffnen
 import React, { useState, useCallback, useRef, useEffect, memo } from "react";
+import { optimizeCard } from "../../lib/perfUtils.js";
 
 const T = {
   teal: "#0DC4B5",
@@ -95,7 +96,7 @@ function ImageSlider({ images, height, borderRadius, showDots, objectFit, onImag
             style: { width:"100%", height:"100%", objectFit: fit, display:"block" }
           })
         : React.createElement("img", {
-            src: url, alt: (m && m.alt) || "", loading: "lazy", decoding: "async",
+            src: optimizeCard(url), alt: (m && m.alt) || "", loading: "lazy", decoding: "async",
             style: { width:"100%", height:"100%", objectFit: fit, display:"block" }
           })
     );
@@ -142,7 +143,7 @@ function ImageSlider({ images, height, borderRadius, showDots, objectFit, onImag
                 style: { width:"100%", height:"100%", objectFit: fit, display:"block" }
               })
             : React.createElement("img", {
-                src: iurl, alt: (m && m.alt) || "", loading: "lazy", decoding: "async",
+                src: optimizeCard(iurl), alt: (m && m.alt) || "", loading: "lazy", decoding: "async",
                 style: { width:"100%", height:"100%", objectFit: fit, display:"block" }
               })
         );

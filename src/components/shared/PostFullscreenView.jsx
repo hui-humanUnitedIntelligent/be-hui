@@ -41,6 +41,7 @@ import { HUILocationIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import ImageSlider from './ImageSlider.jsx';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
+import { optimizeAvatar, optimizeCard } from "../../lib/perfUtils.js";
 import { useSingleReaction } from "../../lib/useReactions.jsx";
 import { useSavedPostsContext } from "../../context/SavedPostsContext.jsx";
 import { FeedActions } from "../../feed/cards/BaseFeedCard.jsx";
@@ -282,7 +283,7 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
               <div style={{ width:40, height:40, borderRadius:"50%", overflow:"hidden", flexShrink:0,
                 background:"rgba(13,196,181,0.14)" }}>
-                {mountedItem.author.avatar && <img loading="lazy" decoding="async" src={mountedItem.author.avatar} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>}
+                {mountedItem.author.avatar && <img loading="lazy" decoding="async" src={optimizeAvatar(mountedItem.author.avatar)} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>}
               </div>
               <div style={{ minWidth:0, flex:1 }}>
                 <div style={{ fontSize:14.5, fontWeight:700, color:T.ink }}>{mountedItem.author.name}</div>
@@ -345,7 +346,7 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
                   }}>
                     {row.src && (row.type === "video"
                       ? <video src={row.src} muted playsInline preload="metadata" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-                      : <img loading="lazy" decoding="async" src={row.src} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>)}
+                      : <img loading="lazy" decoding="async" src={optimizeCard(row.src)} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>)}
                   </div>
                 ))}
               </div>

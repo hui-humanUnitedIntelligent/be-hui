@@ -15,7 +15,7 @@ import {
   HUIHeartIcon, HUIChatIcon, HUIBookmarkIcon, HUIShareIcon,
 } from "../../design/icons/HuiInteractionIcons.jsx";
 import { haptic } from "../../components/commerce/commerceUtils.js";
-import { prefetchProfile } from "../../lib/perfUtils.js";
+import { prefetchProfile, optimizeAvatar, optimizeCard } from "../../lib/perfUtils.js";
 // LIGHTBOX+SLIDER.1 (2026-08-08): Wiederverwendbare Komponenten fuer
 // Bild-Lightbox (Full-Screen Zoom) und Multi-Image Slider.
 import ImageSlider from "../../components/shared/ImageSlider.jsx";
@@ -158,7 +158,7 @@ const CardAvatar = memo(function CardAvatar({ src, name, size = 38, isTalent = f
       fontSize:size*0.38,fontWeight:700,color:T.teal,
     }}>
       {src && !err
-        ? <img loading="lazy" decoding="async" src={src} alt={name||""} onError={() => setErr(true)}
+        ? <img loading="lazy" decoding="async" src={optimizeAvatar(src)} alt={name||""} onError={() => setErr(true)}
             style={{ width:"100%",height:"100%",objectFit:"cover" }} />
         : letter}
     </div>

@@ -15,6 +15,7 @@ import { NAV_CONTENT_SPACER_CSS } from "../components/home/navigation/navigation
 import { getPlaceImage } from "../lib/placeImage.js";
 import { supabase }      from "../lib/supabaseClient.js";
 import { getOptimalPageSize } from "../lib/deviceTier.js";
+import { optimizeCard, optimizeAvatar } from "../lib/perfUtils.js";
 import { formatPresence } from "../lib/usePresence.js";
 import { useAuthGate }    from "../components/auth/AuthGate.jsx";
 import TalentAnfrageFlow  from "../components/talents/TalentAnfrageFlow.jsx";
@@ -251,7 +252,7 @@ function PersonCard({ person, onPress, delay=0, followers=0, likes=0 }) {
           display:"flex", alignItems:"center", justifyContent:"center",
         }}>
           {av ? (
-            <img loading="lazy" decoding="async" src={av} alt={person.name} onError={() => setImgErr(true)}
+            <img loading="lazy" decoding="async" src={optimizeAvatar(av)} alt={person.name} onError={() => setImgErr(true)}
               style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
           ) : (
             <HUIProfilIcon size={26} style={{opacity:0.4, color:"rgba(14,196,184,0.6)"}} />
@@ -369,7 +370,7 @@ function PeopleSection({ people, onPersonPress, loading, delay=0, view='cards', 
             : people.map((p, i) => (
                 <div key={p.id} className="dp-list-card" onClick={() => onPersonPress?.(p)}>
                   {p.avatar
-                    ? <img loading="lazy" decoding="async" src={p.avatar} alt={p.name} className="dp-list-thumb" onError={e => e.target.style.display='none'}/>
+                    ? <img loading="lazy" decoding="async" src={optimizeAvatar(p.avatar)} alt={p.name} className="dp-list-thumb" onError={e => e.target.style.display='none'}/>
                     : <div className="dp-list-thumb-placeholder" style={{display:"flex",alignItems:"center",justifyContent:"center"}}><HUIProfilIcon size={24} style={{opacity:0.35, color:"rgba(14,196,184,0.5)"}}/></div>
                   }
                   <div style={{ flex:1, overflow:"hidden" }}>
@@ -413,7 +414,7 @@ function MomentCard({ moment, delay=0, onPress, onAuthorPress }) {
       <div style={{ width:"100%", height:120, flexShrink:0, position:"relative", overflow:"hidden",
         background: cover ? "#1A1A18" : `linear-gradient(135deg,${T.tealSoft},${T.coralSoft})` }}>
         {cover ? (
-          <img loading="lazy" decoding="async" src={cover} alt={moment.caption || "Moment"}
+          <img loading="lazy" decoding="async" src={optimizeCard(cover)} alt={moment.caption || "Moment"}
             onError={() => setImgErr(true)}
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
         ) : (
@@ -611,7 +612,7 @@ function TalentCard({ talent, delay=0, onPress, onAuthorPress }) {
       {/* Cover */}
       <div style={{ width:"100%", height:120, position:"relative", overflow:"hidden", background:cover ? "#1A1A18" : medCol.bg }}>
         {cover ? (
-          <img loading="lazy" decoding="async" src={cover} alt={talent.title} onError={() => setImgErr(true)}
+          <img loading="lazy" decoding="async" src={optimizeCard(cover)} alt={talent.title} onError={() => setImgErr(true)}
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
         ) : (
           <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
@@ -831,7 +832,7 @@ function WerkCard({ werk, delay=0, onPress, onAuthorPress }) {
       {/* Cover — feste Höhe, nie gestaucht */}
       <div style={{ width:"100%", height:120, flexShrink:0, position:"relative", overflow:"hidden", background:cover ? "#1A1A18" : medCol.bg }}>
         {cover ? (
-          <img loading="lazy" decoding="async" src={cover} alt={werk.title} onError={() => setImgErr(true)}
+          <img loading="lazy" decoding="async" src={optimizeCard(cover)} alt={werk.title} onError={() => setImgErr(true)}
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
         ) : (
           <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
@@ -1070,7 +1071,7 @@ function ErlebnisCard({ erlebnis, delay=0, onPress }) {
       {/* Cover */}
       <div style={{ width:"100%", height:120, position:"relative", overflow:"hidden", background:cover ? "#1A1A18" : T.tealSoft }}>
         {cover ? (
-          <img loading="lazy" decoding="async" src={cover} alt={erlebnis.title} onError={() => setImgErr(true)}
+          <img loading="lazy" decoding="async" src={optimizeCard(cover)} alt={erlebnis.title} onError={() => setImgErr(true)}
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block", opacity:0.88 }}/>
         ) : (
           <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
@@ -1262,7 +1263,7 @@ function ProjektCard({ projekt, delay=0, onPress }) {
       {/* Cover — feste Höhe, identisch zu WerkCard / TalentCard */}
       <div style={{ width:"100%", height:120, flexShrink:0, position:"relative", overflow:"hidden", background:cover ? "#1A1A18" : cc.bg }}>
         {cover ? (
-          <img loading="lazy" decoding="async" src={cover} alt={projekt.title} onError={() => setImgErr(true)}
+          <img loading="lazy" decoding="async" src={optimizeCard(cover)} alt={projekt.title} onError={() => setImgErr(true)}
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
         ) : (
           <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
@@ -1474,7 +1475,7 @@ function OrtCard({ ort, delay=0, onPress }) {
     }}>
       <div style={{ width:"100%", height:120, flexShrink:0, overflow:"hidden", position:"relative", background:cover ? "#1A1A18" : T.tealSoft, display:"flex", alignItems:"center", justifyContent:"center" }}>
         {cover ? (
-          <img loading="lazy" decoding="async" src={cover} alt={ort.place_key} onError={() => setImgErr(true)}
+          <img loading="lazy" decoding="async" src={optimizeCard(cover)} alt={ort.place_key} onError={() => setImgErr(true)}
             style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
         ) : (
           <HUILogo size={40} style={{opacity:0.55}} />

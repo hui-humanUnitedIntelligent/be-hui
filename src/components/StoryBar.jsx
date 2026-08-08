@@ -8,6 +8,7 @@ import { HUIAnsichtIcon, HUIAwardIcon,
   HUILocationIcon,
 } from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { optimizeAvatar, optimizeCard } from '../lib/perfUtils.js';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../lib/AuthContext';
 import { HUI } from "../design/hui.design.js";
@@ -121,9 +122,9 @@ export function StoryBar({ onStoryClick }) {
                   <div style={{ width:'100%', height:'100%', borderRadius:'50%',
                     overflow:'hidden', border:'2.5px solid white', background: C.cream }}>
                     {cover?.avatar_url ? (
-                      <img loading="eager" decoding="async" src={cover.avatar_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                      <img loading="eager" decoding="async" src={optimizeAvatar(cover.avatar_url)} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                     ) : cover?.media_url ? (
-                      <img loading="eager" decoding="async" src={cover.media_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                      <img loading="eager" decoding="async" src={optimizeCard(cover.media_url)} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                     ) : (
                       <div style={{ width:'100%', height:'100%', background:`linear-gradient(135deg,${C.teal}22,${C.coral}22)`,
                         display:'flex', alignItems:'center', justifyContent:'center', fontSize:22 }}>✦</div>
@@ -388,7 +389,7 @@ export function StoryViewer({ data: initData, onClose, onViewProfile }) {
           <div style={{ width:'100%', height:'100%', borderRadius:'50%',
             overflow:'hidden', background:'#222' }}>
             {current.avatar_url
-              ? <img loading="eager" src={current.avatar_url} alt=""
+              ? <img loading="eager" src={optimizeAvatar(current.avatar_url)} alt=""
                   style={{ width:'100%', height:'100%', objectFit:'cover' }} />
               : <div style={{ width:'100%', height:'100%',
                   display:'flex', alignItems:'center', justifyContent:'center',
@@ -712,7 +713,7 @@ export function HighlightsRow({ userId }) {
                 <div style={{ width:'100%', height:'100%', borderRadius:'50%',
                   overflow:'hidden', border:'2px solid white', background:'#eee' }}>
                   {h.media_url
-                    ? <img loading="eager" decoding="async" src={h.media_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                    ? <img loading="eager" decoding="async" src={optimizeCard(h.media_url)} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                     : <div style={{ width:'100%', height:'100%', background:`linear-gradient(135deg,${C.gold}44,${C.coral}44)`,
                         display:"flex", alignItems:"center", justifyContent:"center" }}><HUIAwardIcon size={20} style={{color:"rgba(245,158,11,0.8)"}}/></div>}
                 </div>

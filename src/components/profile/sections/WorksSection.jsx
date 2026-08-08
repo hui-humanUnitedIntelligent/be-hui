@@ -8,6 +8,7 @@
 import { HUIWerkeIcon, HUIWarnIcon } from '../../../design/icons/HuiSystemIcons.jsx';
 import React, { useState } from "react";
 import { supabase } from "../../../lib/supabaseClient.js";
+import { optimizeCard } from "../../../lib/perfUtils.js";
 import { createPortal } from "react-dom";
 import { useContentPreview } from "../../../context/ContentPreviewContext.jsx"; // OPEN.2 2026-07-08
 import { normalizePostForPreview } from "../../../lib/previewNormalizers.js";
@@ -172,7 +173,7 @@ export function WorksSection({
                   <div style={{ width:100, height:100, borderRadius:T.r16, overflow:"hidden",
                     background:"linear-gradient(135deg,#2C3B2D,#4A6741)", boxShadow:T.card }}>
                     {w.cover_url
-                      ? <img loading="lazy" decoding="async" src={w.cover_url} alt={w.title||""} style={{ width:"100%",height:"100%",objectFit:"cover" }}
+                      ? <img loading="lazy" decoding="async" src={optimizeCard(w.cover_url)} alt={w.title||""} style={{ width:"100%",height:"100%",objectFit:"cover" }}
                           onError={e=>e.target.style.display="none"}/>
                       : <div style={{ width:"100%",height:"100%",display:"flex",alignItems:"center",
                           justifyContent:"center" }}><HUIWerkeIcon size={24} style={{color:"rgba(14,196,184,0.5)"}}/></div>}

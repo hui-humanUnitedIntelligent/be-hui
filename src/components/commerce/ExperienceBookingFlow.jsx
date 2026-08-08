@@ -29,6 +29,7 @@ import { useSavedPostsContext } from "../../context/SavedPostsContext.jsx";
 import { useHuiActions, A } from "../../core/hui.actions.js";
 import { S } from "../../core/hui.sources.js";
 import { generateReceipt } from "../../lib/generateReceipt.js";
+import { optimizeCard } from "../../lib/perfUtils.js";
 
 const TEAL = "#16D7C5";
 
@@ -205,7 +206,7 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
             {/* Cover */}
             {coverUrl && (
               <div style={{ width: "100%", aspectRatio: "16/9", borderRadius: 16, overflow: "hidden", marginBottom: 16 }}>
-                <img src={coverUrl} alt={title} style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                <img src={optimizeCard(coverUrl)} alt={title} style={{ width: "100%", height: "100%", objectFit: "cover" }}
                   onError={(e) => { e.target.style.display = "none"; }} />
               </div>
             )}

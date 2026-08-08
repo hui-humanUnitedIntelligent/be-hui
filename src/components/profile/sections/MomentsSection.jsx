@@ -104,7 +104,7 @@ export function MomentsSection({
                 ? (m.type === "video"
                   ? <video src={m.src||m.media_url} muted playsInline preload="metadata"
                       style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-                  : <img loading="lazy" decoding="async" src={m.src||m.media_url} alt=""
+                  : <img loading="lazy" decoding="async" src={optimizeCard(m.src||m.media_url)} alt=""
                       style={{ width:"100%", height:"100%", objectFit:"cover" }}
                       onError={e=>e.target.style.display="none"}/>)
                 : <div style={{ width:"100%", height:"100%", display:"flex",

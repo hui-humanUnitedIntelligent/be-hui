@@ -151,12 +151,35 @@ export async function batchQueries(queries) {
   return results.map(r => r.status === 'fulfilled' ? r.value : { data: null, error: r.reason });
 }
 
+// ── Supabase Image Optimization ────────────────────────────────
+// SUPABASE_IMG_OPT (2026-08-08): Nutzt Supabase Image Resizing API um
+// Thumbnails on-the-fly zu generieren — reduziert Download-Größe drastisch.
+// Avatar: 200px (Retina: 400px), Cover: 800px, Card: 400px.
+// Fallback: Original-URL wenn Render-API nicht verfügbar.
+const SUPABASE_HOST = (import.meta.env.VITE_SUPABASE_URL || '').replace(/^https?:\/\//, '');
+
 export function optimizeImg(url, width = 400) {
-  if (!url) return url;
+  if (!url || typeof url !== 'string') return url;
+  // SVG und lokale Assets nicht optimieren
+  if (url.endsWith('.svg') || url.startsWith('/assets/') || url.startsWith('./')) return url;
+  // Unsplash mit Size-Param
   if (url.includes('unsplash.com')) return `${url}&w=${width}&q=80&auto=format`;
-  if (url.includes('supabase')) return url; // Supabase hat eigene Optimierung
+  // Supabase Image Resizing API
+  if (SUPABASE_HOST && url.includes(SUPABASE_HOST)) {
+    // Pattern: https://host/storage/v1/object/public/bucket/path → /storage/v1/render/image/public/bucket/path?width=W&quality=75
+    if (url.includes('/storage/v1/object/public/')) {
+      return url.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/') + `?width=${width}&quality=75&format=webp`;
+    }
+    // Wenn bereits eine signed URL oder andere Form, nicht verändern
+  }
   return url;
 }
+
+// Spezifische Optimierungs-Funktionen für verschiedene Kontexte
+export function optimizeAvatar(url)  { return optimizeImg(url, 200); }
+export function optimizeCover(url)   { return optimizeImg(url, 800); }
+export function optimizeCard(url)    { return optimizeImg(url, 400); }
+export function optimizeThumbnail(url) { return optimizeImg(url, 150); }
 
 export function normalizeProfileInput(raw) {
   return normalizeProfile(raw);

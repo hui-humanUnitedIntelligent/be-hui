@@ -24,6 +24,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState, lazy, Suspens
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient.js";
+import { optimizeAvatar, optimizeCard } from "../../lib/perfUtils.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { useSingleReaction } from "../../lib/useReactions.jsx";
 import { useSavedPostsContext } from "../../context/SavedPostsContext.jsx";
@@ -272,7 +273,7 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                 <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:12 }}>
                   <div style={{ width:32, height:32, borderRadius:"50%", overflow:"hidden", flexShrink:0,
                     background:"rgba(13,196,181,0.14)" }}>
-                    {item.author.avatar && <img loading="lazy" decoding="async" src={item.author.avatar} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>}
+                    {item.author.avatar && <img loading="lazy" decoding="async" src={optimizeAvatar(item.author.avatar)} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>}
                   </div>
                   <div style={{ fontSize:13.5, fontWeight:700, color:T.ink }}>{item.author.name}</div>
 {/* kleiner Profil-Button entfernt — nur großer Button unten (2026-07-29) */}
@@ -355,7 +356,7 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
               {extraMedia.length > 0 && (
                 <div style={{ display:"flex", gap:8, overflowX:"auto", marginBottom:14 }}>
                   {extraMedia.map((m, i) => (
-                    <img loading="lazy" decoding="async" key={i} src={m.url} alt="" style={{ width:96, height:96, borderRadius:12, objectFit:"cover", flexShrink:0 }}/>
+                    <img loading="lazy" decoding="async" key={i} src={optimizeCard(m.url)} alt="" style={{ width:96, height:96, borderRadius:12, objectFit:"cover", flexShrink:0 }}/>
                   ))}
                 </div>
               )}

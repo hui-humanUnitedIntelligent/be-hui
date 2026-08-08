@@ -2453,7 +2453,7 @@ function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTalent = 
                   boxShadow: isApproved ? "0 0 0 2px #0EC4B8" : isPending ? "0 0 0 2px #D4A800" : "0 0 0 2px #ff5050",
                 }}>
                 {cover
-                  ? <img loading="lazy" decoding="async" src={cover} alt={t.title||""}
+                  ? <img loading="lazy" decoding="async" src={optimizeCard(cover)} alt={t.title||""}
                       style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
                   : <div style={{ width:"100%", height:"100%", display:"flex",
                       alignItems:"center", justifyContent:"center", fontSize:24 }}>💼</div>
@@ -2570,7 +2570,7 @@ function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
                   boxShadow: isApproved ? "0 0 0 2px #0EC4B8" : isPending ? "0 0 0 2px #D4A800" : "0 0 0 2px #ff5050",
                 }}>
                 {w.cover_url
-                  ? <img loading="lazy" decoding="async" src={w.cover_url} alt={w.title||""}
+                  ? <img loading="lazy" decoding="async" src={optimizeCard(w.cover_url)} alt={w.title||""}
                       style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
                   : <div style={{ width:"100%", height:"100%", display:"flex",
                       alignItems:"center", justifyContent:"center", fontSize:24 }}>🎨</div>
@@ -2740,7 +2740,7 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
                 boxShadow: `0 0 0 2px ${borderCol}`,
               }}>
               {exp.cover_url
-                ? <img loading="lazy" decoding="async" src={exp.cover_url} alt={exp.title||""}
+                ? <img loading="lazy" decoding="async" src={optimizeCard(exp.cover_url)} alt={exp.title||""}
                     style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
                 : <div style={{ width:"100%", height:"100%", display:"flex",
                     alignItems:"center", justifyContent:"center", fontSize:24 }}>🎟</div>
@@ -2971,7 +2971,7 @@ function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
                 boxShadow: `0 0 0 2px ${borderCol}`,
               }}>
               {proj.cover_url
-                ? <img loading="lazy" decoding="async" src={proj.cover_url} alt={proj.project_name||""}
+                ? <img loading="lazy" decoding="async" src={optimizeCard(proj.cover_url)} alt={proj.project_name||""}
                     style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
                 : <div style={{ width:"100%", height:"100%", display:"flex",
                     alignItems:"center", justifyContent:"center", fontSize:24 }}>💚</div>
@@ -3015,7 +3015,7 @@ function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
           boxShadow:"0 8px 40px rgba(0,0,0,0.18)",
         }}>
           {selected.cover_url && (
-            <img src={selected.cover_url} alt={selected.project_name||""}
+            <img src={optimizeCard(selected.cover_url)} alt={selected.project_name||""}
               style={{ width:"100%", height:160, objectFit:"cover", borderRadius:14, marginBottom:14 }} />
           )}
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6, gap:8 }}>
