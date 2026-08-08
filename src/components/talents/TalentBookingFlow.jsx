@@ -27,6 +27,7 @@ import { useHuiActions, A } from "../../core/hui.actions.js";
 import { S } from "../../core/hui.sources.js";
 import {
   expandTalentAvailableDates, describeRecurring, TALENT_LOCATION_LABELS, formatDuration,
+  todayIsoLocal,
 } from "../../lib/talentAvailability.js";
 
 const TEAL  = "#16D7C5";
@@ -39,7 +40,10 @@ function fmtDate(d) {
   try { return new Date(d + "T00:00:00").toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "short" }); }
   catch { return d; }
 }
-function todayIso() { return new Date().toISOString().slice(0, 10); }
+// TIME-LOCK-001 (2026-08-08): delegiert an die lokale SSOT (talentAvailability.js)
+// statt eigener UTC-basierter Berechnung — sonst könnte "heute" um Mitternacht
+// herum vom tatsächlichen lokalen Datum abweichen.
+function todayIso() { return todayIsoLocal(); }
 function addDaysIso(days) {
   const d = new Date(); d.setDate(d.getDate() + days); return d.toISOString().slice(0, 10);
 }
@@ -67,6 +71,29 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
   const [availLoading, setAvailLoading] = useState(false);
   const [errMsg,        setErrMsg]      = useState("");
   const [submitting,    setSubmitting]  = useState(false);
+
+  // TIME-LOCK-001 (2026-08-08): Michael-Vorgabe — ein Termin für HEUTE, dessen
+  // Startzeit bereits vergangen ist (aktuelle Uhrzeit > Slot-Start), darf
+  // nicht mehr gebucht werden. Bsp: Slot 10:00–11:00, aktuell 10:10 Uhr →
+  // heute nicht mehr buchbar. Tick alle 30s, damit die Sperre auch greift,
+  // falls das Sheet über die Startzeit hinweg offen bleibt.
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNowTick(Date.now()), 30000);
+    return () => clearInterval(id);
+  }, []);
+  const nowMinutes = useMemo(() => {
+    const d = new Date(nowTick);
+    return d.getHours() * 60 + d.getMinutes();
+  }, [nowTick]);
+  function slotStartMinutes(slot) {
+    const [h, m] = String(slot?.start || "").split(":").map(Number);
+    return (h || 0) * 60 + (m || 0);
+  }
+  function isSlotPastToday(slot, dateIso) {
+    if (!slot || dateIso !== todayIso()) return false;
+    return slotStartMinutes(slot) <= nowMinutes;
+  }
 
   // Stripe-Zahlungsdaten (nach erfolgreicher Buchungs-Anlage)
   const [clientSecret,    setClientSecret]    = useState(null);
@@ -114,6 +141,21 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
   );
   const slotAvailability = selectedDate ? monthAvail[selectedDate]?.slots : null;
 
+  const isSelectedToday = selectedDate === todayIso();
+
+  // TIME-LOCK-001: wird der gewählte Slot durch Zeitablauf (nowTick-Tick)
+  // ungültig, automatisch abwählen — verhindert eine stehengebliebene
+  // Auswahl, die der Nutzer nicht mehr buchen könnte.
+  useEffect(() => {
+    if (selectedSlot && isSlotPastToday(selectedSlot, selectedDate)) {
+      setSelectedSlot(null);
+    }
+  }, [nowMinutes, selectedDate]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Alle Zeitfenster des Angebots für "heute" bereits vergangen?
+  const allSlotsPastToday = hasSlots && isSelectedToday
+    && talent.available_time_slots.every(s => isSlotPastToday(s, selectedDate));
+
   // Wochentag-Info für gewähltes Datum (für Feedback unter dem Datum-Input)
   const dateInfo = useMemo(() => {
     if (!selectedDate) return null;
@@ -157,6 +199,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
 
   const canSubmit = !!selectedDate
     && (!hasSlots || !!selectedSlot)
+    && !(selectedSlot && isSlotPastToday(selectedSlot, selectedDate)) // TIME-LOCK-001
     && participants >= (talent?.min_participants || 1)
     && (!isGruppe || remaining === null || remaining === Infinity || participants <= remaining)
     && !isFull
@@ -442,91 +485,87 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                 )}
               </div>
 
-              {/* ── Angebots-Details (Pflicht ab 2026-08-08): alle Daten die
-                  der Initiator im Wizard eingibt müssen für den Buchenden
-                  sichtbar sein, damit er entscheiden kann. ── */}
+              {/* ── Angebots-Details, kompakt (2026-08-08 Redesign): Chips im
+                  systemweiten 11px/3px-8px-Chip-Standard (siehe
+                  Interessen-Chips PublicProfilePage.jsx), Wiederholung +
+                  Ort-Zusatz als eine schlanke Meta-Zeile statt eigener
+                  breiter Pills, Preis direkt in dieselbe Karte integriert
+                  statt separater Box darunter — deutlich weniger Höhe. ── */}
               <div style={{
-                background: "rgba(22,215,197,0.05)", border: "1px solid rgba(22,215,197,0.12)",
-                borderRadius: 14, padding: "12px 14px", marginBottom: 14,
+                background: "#fff", border: "1px solid rgba(26,26,46,0.08)",
+                borderRadius: 16, padding: "13px 15px", marginBottom: 16,
               }}>
                 {talent.description && (
-                  <div style={{ fontSize: 13.5, color: "rgba(26,26,46,0.65)", lineHeight: 1.6, marginBottom: 10 }}>
+                  <div style={{
+                    fontSize: 13, color: "rgba(26,26,46,0.62)", lineHeight: 1.5, marginBottom: 9,
+                    overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical",
+                  }}>
                     {talent.description}
                   </div>
                 )}
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                  {/* Kategorie */}
+
+                {/* Kompakte Chip-Reihe — 11px / 3px-8px Padding (SSOT-Chip-Standard) */}
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
                   {talent.category && (
-                    <span style={{ fontSize: 11.5, fontWeight: 600, color: TEAL,
-                      background: "rgba(22,215,197,0.10)", borderRadius: 8, padding: "4px 10px" }}>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: "#1A1A2E",
+                      background: "#fff", border: `1px solid rgba(22,215,197,0.35)`,
+                      borderRadius: 99, padding: "3px 8px" }}>
                       {talent.category}
                     </span>
                   )}
-                  {/* Ort */}
                   {TALENT_LOCATION_LABELS[talent.location_type] && (
-                    <span style={{ fontSize: 11.5, fontWeight: 600, color: "rgba(26,26,46,0.55)",
-                      background: "rgba(26,26,46,0.05)", borderRadius: 8, padding: "4px 10px" }}>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: "#1A1A2E",
+                      background: "#fff", border: "1px solid rgba(26,26,46,0.12)",
+                      borderRadius: 99, padding: "3px 8px" }}>
                       {TALENT_LOCATION_LABELS[talent.location_type]}
                     </span>
                   )}
-                  {/* Dauer */}
                   {formatDuration(talent.duration_minutes) && (
-                    <span style={{ fontSize: 11.5, fontWeight: 600, color: "rgba(26,26,46,0.55)",
-                      background: "rgba(26,26,46,0.05)", borderRadius: 8, padding: "4px 10px" }}>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: "#1A1A2E",
+                      background: "#fff", border: "1px solid rgba(26,26,46,0.12)",
+                      borderRadius: 99, padding: "3px 8px" }}>
                       {formatDuration(talent.duration_minutes)}
                     </span>
                   )}
-                  {/* Buchungsart */}
                   {talent.booking_type === "gruppe" && (
-                    <span style={{ fontSize: 11.5, fontWeight: 600, color: "rgba(26,26,46,0.55)",
-                      background: "rgba(26,26,46,0.05)", borderRadius: 8, padding: "4px 10px" }}>
-                      {talent.min_participants > 1 ? `Gruppe ab ${talent.min_participants}` : "Gruppenangebot"}
+                    <span style={{ fontSize: 11, fontWeight: 600, color: "#1A1A2E",
+                      background: "#fff", border: "1px solid rgba(26,26,46,0.12)",
+                      borderRadius: 99, padding: "3px 8px" }}>
+                      {talent.min_participants > 1 ? `Gruppe ab ${talent.min_participants}` : "Gruppe"}
                       {talent.max_participants > 0 ? ` · max ${talent.max_participants}` : ""}
                     </span>
                   )}
-                  {/* Zeitfenster */}
                   {hasSlots && (
-                    <span style={{ fontSize: 11.5, fontWeight: 600, color: "rgba(26,26,46,0.55)",
-                      background: "rgba(26,26,46,0.05)", borderRadius: 8, padding: "4px 10px" }}>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: "#1A1A2E",
+                      background: "#fff", border: "1px solid rgba(26,26,46,0.12)",
+                      borderRadius: 99, padding: "3px 8px" }}>
                       {talent.available_time_slots.map(s => `${s.start}–${s.end}`).join(", ")}
                     </span>
                   )}
-                  {/* Wiederholung */}
-                  {recurringDesc && (
-                    <span style={{ fontSize: 11.5, fontWeight: 600, color: "rgba(22,215,197,1)",
-                      background: "rgba(22,215,197,0.08)", borderRadius: 8, padding: "4px 10px",
-                      border: "1px solid rgba(22,215,197,0.15)" }}>
-                      {recurringDesc}
-                    </span>
-                  )}
-                  {/* Adresse bei Vor-Ort/Hybrid */}
-                  {talent.location_address && talent.location_type !== "online" && (
-                    <span style={{ fontSize: 11.5, fontWeight: 500, color: "rgba(26,26,46,0.45)",
-                      background: "rgba(26,26,46,0.03)", borderRadius: 8, padding: "4px 10px" }}>
-                      {talent.location_address}
-                    </span>
-                  )}
-                  {/* Standort-Hinweis */}
-                  {talent.location_notes && (
-                    <span style={{ fontSize: 11.5, fontWeight: 500, color: "rgba(26,26,46,0.45)",
-                      background: "rgba(26,26,46,0.03)", borderRadius: 8, padding: "4px 10px" }}>
-                      {talent.location_notes}
-                    </span>
-                  )}
                 </div>
-              </div>
 
-              {/* Preis */}
-              {priceStr && (
-                <div style={{
-                  background: "rgba(22,215,197,0.08)", border: "1px solid rgba(22,215,197,0.18)",
-                  borderRadius: 14, padding: "10px 16px", marginBottom: 18,
-                  display: "flex", justifyContent: "space-between", alignItems: "center",
-                }}>
-                  <span style={{ fontSize: 13, color: "rgba(26,26,46,0.55)" }}>Preis</span>
-                  <span style={{ fontSize: 18, fontWeight: 800, color: TEAL }}>{priceStr}</span>
-                </div>
-              )}
+                {/* Eine schlanke Meta-Zeile statt separater breiter Pills */}
+                {(recurringDesc || (talent.location_address && talent.location_type !== "online") || talent.location_notes) && (
+                  <div style={{ fontSize: 11.5, color: "rgba(26,26,46,0.5)", marginTop: 8, lineHeight: 1.5 }}>
+                    {[
+                      recurringDesc,
+                      talent.location_type !== "online" ? talent.location_address : null,
+                      talent.location_notes,
+                    ].filter(Boolean).join("  ·  ")}
+                  </div>
+                )}
+
+                {/* Preis — direkt in derselben Karte, kein eigener Block mehr */}
+                {priceStr && (
+                  <div style={{
+                    display: "flex", justifyContent: "space-between", alignItems: "center",
+                    marginTop: 10, paddingTop: 10, borderTop: "1px solid rgba(26,26,46,0.07)",
+                  }}>
+                    <span style={{ fontSize: 12.5, color: "rgba(26,26,46,0.5)" }}>Preis</span>
+                    <span style={{ fontSize: 17, fontWeight: 800, color: TEAL }}>{priceStr}</span>
+                  </div>
+                )}
+              </div>
 
               {/* Termin / Kalender — immer als Monatskalender, niemals nur input[type=date] */}
               <div style={{ marginBottom: 18 }}>
@@ -583,20 +622,34 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                       const active = selectedSlot && selectedSlot.start === s.start && selectedSlot.end === s.end;
                       const slotInfo = slotAvailability?.find(x => x.start === s.start && x.end === s.end);
                       const full = slotInfo?.is_full === true;
+                      // TIME-LOCK-001: heutiger Termin, dessen Startzeit bereits
+                      // vergangen ist, gilt ebenfalls als nicht buchbar.
+                      const past = isSlotPastToday(s, selectedDate);
+                      const blocked = full || past;
+                      const label = full ? "belegt" : past ? "vorbei" : "";
                       return (
-                        <button key={i} type="button" onClick={() => !full && setSelectedSlot(s)} disabled={full} style={{
+                        <button key={i} type="button" onClick={() => !blocked && setSelectedSlot(s)} disabled={blocked} style={{
                           padding: "8px 14px", borderRadius: 10,
-                          border: `1.5px solid ${full ? "rgba(232,58,58,0.2)" : active ? TEAL : "rgba(26,26,46,0.12)"}`,
-                          background: full ? "rgba(232,58,58,0.05)" : active ? "rgba(22,215,197,0.1)" : "#fff",
-                          color: full ? "rgba(232,58,58,0.55)" : active ? TEAL : "rgba(26,26,46,0.7)",
-                          fontSize: 13, fontWeight: 600, cursor: full ? "default" : "pointer", touchAction: "manipulation",
-                          textDecoration: full ? "line-through" : "none",
+                          border: `1.5px solid ${blocked ? "rgba(232,58,58,0.2)" : active ? TEAL : "rgba(26,26,46,0.12)"}`,
+                          background: blocked ? "rgba(232,58,58,0.05)" : active ? "rgba(22,215,197,0.1)" : "#fff",
+                          color: blocked ? "rgba(232,58,58,0.55)" : active ? TEAL : "rgba(26,26,46,0.7)",
+                          fontSize: 13, fontWeight: 600, cursor: blocked ? "default" : "pointer", touchAction: "manipulation",
+                          textDecoration: blocked ? "line-through" : "none",
                         }}>
-                          {s.start}–{s.end}{full ? " · belegt" : ""}
+                          {s.start}–{s.end}{label ? ` · ${label}` : ""}
                         </button>
                       );
                     })}
                   </div>
+                  {/* Hinweis, wenn heute keine Zeit mehr buchbar ist */}
+                  {allSlotsPastToday && (
+                    <div style={{
+                      marginTop: 8, fontSize: 12.5, color: "rgba(232,58,58,0.85)",
+                      background: "rgba(232,58,58,0.06)", borderRadius: 10, padding: "8px 12px",
+                    }}>
+                      Für heute sind alle Zeiten bereits vorbei — bitte wähle einen anderen Tag.
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -631,6 +684,14 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                       </span>
                     )}
                   </div>
+                  {/* Uhrzeit direkt bei Teilnehmer sichtbar (Michael-Vorgabe 2026-08-08) */}
+                  {selectedDate && (
+                    <div style={{ fontSize: 12.5, color: "rgba(26,26,46,0.5)", marginTop: 8 }}>
+                      Uhrzeit: {hasSlots
+                        ? (selectedSlot ? `${selectedSlot.start}–${selectedSlot.end} Uhr` : "bitte oben wählen")
+                        : "flexibel / ganztägig"}
+                    </div>
+                  )}
                 </div>
               )}
 

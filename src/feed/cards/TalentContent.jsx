@@ -23,8 +23,12 @@ function fmtPrice(ph, ps, currency = "EUR") {
 }
 
 function locLabel(t) {
+  // FIX (2026-08-08): DB-Wert ist "vor_ort" (siehe useTalents.js
+  // TALENT_LOCATION_TYPES), nicht "local" — Vor-Ort-Angebote fielen bisher
+  // fälschlich auf "Flexibel" zurück.
   if (t === "online")   return "Online";
-  if (t === "local")    return "Vor Ort";
+  if (t === "vor_ort")  return "Vor Ort";
+  if (t === "hybrid")   return "Hybrid";
   return "Flexibel";
 }
 
