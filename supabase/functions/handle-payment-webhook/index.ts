@@ -150,16 +150,60 @@ serve(async (req) => {
           })
           if (feeErr) console.error('[WEBHOOK] rpc_process_talent_booking_fees failed:', feeErr.message)
 
+          // ── RESONANZ-BUCHUNG-001: Buchungsdetails anreichern (wer/was/wann/wo) ──
+          const { data: tOffer } = await supabase
+            .from('talents')
+            .select('title, location_type, location_address, duration_minutes')
+            .eq('id', tBooking.talent_id)
+            .maybeSingle()
+          const { data: tBuyerProfile } = await supabase
+            .from('profiles')
+            .select('display_name, full_name, username')
+            .eq('id', tBooking.customer_id)
+            .maybeSingle()
+          const { data: tSellerProfile } = await supabase
+            .from('profiles')
+            .select('display_name, full_name, username')
+            .eq('id', tBooking.seller_id)
+            .maybeSingle()
+
+          const tBuyerName  = tBuyerProfile?.display_name || tBuyerProfile?.full_name || tBuyerProfile?.username || 'Jemand'
+          const tSellerName = tSellerProfile?.display_name || tSellerProfile?.full_name || tSellerProfile?.username || 'Der Anbieter'
+          const tOfferTitle = tOffer?.title || 'dein Talent-Angebot'
+          const tTimeSlot   = tBooking.selected_time_slot && tBooking.selected_time_slot.start
+            ? `${tBooking.selected_time_slot.start} – ${tBooking.selected_time_slot.end || ''}`.trim()
+            : null
+          const tLocation   = tOffer?.location_type === 'online' ? 'Online' : (tOffer?.location_address || null)
+
+          const tBookingMeta = {
+            booking_id:    tBooking.id,
+            offer_title:   tOfferTitle,
+            buyer_name:    tBuyerName,
+            seller_name:   tSellerName,
+            date:          tBooking.selected_date,
+            time:          tTimeSlot,
+            location:      tLocation,
+            amount_eur:    tBooking.amount_eur,
+            participants:  tBooking.participants,
+            other_user_id: null, // wird pro Notification unten gesetzt
+          }
+
           await supabase.from('notifications').insert([
             {
               user_id: tBooking.seller_id, type: 'talent_booking_paid',
-              title: 'Neue Buchung 🎉', body: 'Jemand hat dein Talent-Angebot gebucht und bezahlt.',
-              data: { booking_id: tBooking.id }, read: false,
+              title: 'Neue Buchung 🎉', body: `${tBuyerName} hat „${tOfferTitle}" gebucht und bezahlt.`,
+              data: { ...tBookingMeta, other_user_id: tBooking.customer_id },
+              metadata: { ...tBookingMeta, other_user_id: tBooking.customer_id },
+              entity_id: tBooking.id, entity_type: 'talent_booking',
+              read: false, is_read: false,
             },
             {
               user_id: tBooking.customer_id, type: 'talent_booking_confirmed',
-              title: 'Buchung bestätigt ✓', body: 'Deine Zahlung war erfolgreich, der Termin ist reserviert.',
-              data: { booking_id: tBooking.id }, read: false,
+              title: 'Buchung bestätigt ✓', body: `Deine Buchung „${tOfferTitle}" bei ${tSellerName} ist bestätigt.`,
+              data: { ...tBookingMeta, other_user_id: tBooking.seller_id },
+              metadata: { ...tBookingMeta, other_user_id: tBooking.seller_id },
+              entity_id: tBooking.id, entity_type: 'talent_booking',
+              read: false, is_read: false,
             },
           ])
 
@@ -245,7 +289,7 @@ serve(async (req) => {
 
       const { data: orderItems } = await supabase
         .from('order_items')
-        .select('id, seller_id')
+        .select('id, seller_id, item_type, work_id, snapshot')
         .eq('order_id', order.id)
 
       // ── Amount-Verification ──────────────────────────────────
@@ -279,20 +323,86 @@ serve(async (req) => {
       })
       if (confirmEventErr) console.warn('[WEBHOOK] commerce_events insert failed:', confirmEventErr.message)
 
-      // ── Creator Notifications ─────────────────────────────────
-      const creatorIds = [...new Set(
-        (orderItems || []).map((i: any) => i.seller_id).filter(Boolean)
+      // ── Creator Notifications (RESONANZ-BUCHUNG-001: Werk vs. Erlebnis unterscheiden,
+      //    mit Titel/Käufer/Termin/Ort angereichert statt generischer Body-Text) ──
+      const { data: orderBuyerProfile } = await supabase
+        .from('profiles')
+        .select('display_name, full_name, username')
+        .eq('id', order.customer_id)
+        .maybeSingle()
+      const orderBuyerName = orderBuyerProfile?.display_name || orderBuyerProfile?.full_name || orderBuyerProfile?.username || 'Jemand'
+
+      // Experience-Detaildaten vorab laden (fuer alle betroffenen Erlebnisse)
+      const expItemIds = [...new Set(
+        (orderItems || [])
+          .filter((i: any) => i.item_type === 'experience')
+          .map((i: any) => i.snapshot?.item_id)
+          .filter(Boolean)
       )]
-      for (const creatorId of creatorIds) {
-        const { error: notifErr } = await supabase.from('notifications').insert({
-          user_id: creatorId,
-          type:    'new_order',
-          title:   'Neue Bestellung 🎉',
-          body:    'Jemand hat dein Werk unterstützt.',
-          data:    { order_id: order.id },
-          read:    false,
-        })
-        if (notifErr) console.warn('[NOTIF]', notifErr.message)
+      let expDetailsById: Record<string, any> = {}
+      if (expItemIds.length > 0) {
+        const { data: expRows } = await supabase
+          .from('experiences')
+          .select('id, title, date, time_start, time_end, location_text, meeting_point')
+          .in('id', expItemIds)
+        for (const row of (expRows || [])) expDetailsById[row.id] = row
+      }
+
+      // Je Verkäufer × Item-Typ (Werk / Erlebnis) EINE Notification, mit Titel(n) der Artikel
+      const sellerTypeGroups = new Map<string, { sellerId: string; itemType: string; titles: string[]; expDetail?: any }>()
+      for (const item of (orderItems || [])) {
+        if (!item.seller_id) continue
+        const key = `${item.seller_id}__${item.item_type}`
+        const title = item.snapshot?.title || (item.item_type === 'experience' ? 'ein Erlebnis' : 'ein Werk')
+        if (!sellerTypeGroups.has(key)) {
+          sellerTypeGroups.set(key, {
+            sellerId: item.seller_id, itemType: item.item_type, titles: [title],
+            expDetail: item.item_type === 'experience' ? expDetailsById[item.snapshot?.item_id] : undefined,
+          })
+        } else {
+          sellerTypeGroups.get(key)!.titles.push(title)
+        }
+      }
+
+      for (const group of sellerTypeGroups.values()) {
+        const titleList = group.titles.join(', ')
+        if (group.itemType === 'experience') {
+          const exp = group.expDetail
+          const expMeta = {
+            order_id: order.id, item_titles: group.titles,
+            buyer_name: orderBuyerName, seller_name: null,
+            date: exp?.date || null,
+            time: (exp?.time_start ? `${exp.time_start}${exp.time_end ? ' – ' + exp.time_end : ''}` : null),
+            location: exp?.location_text || exp?.meeting_point || null,
+            other_user_id: order.customer_id,
+          }
+          const { error: notifErr } = await supabase.from('notifications').insert({
+            user_id: group.sellerId,
+            type:    'experience_booking_paid',
+            title:   'Neue Buchung 🎉',
+            body:    `${orderBuyerName} hat „${titleList}" gebucht und bezahlt.`,
+            data:     expMeta, metadata: expMeta,
+            entity_id: exp?.id || null, entity_type: 'experience',
+            read: false, is_read: false,
+          })
+          if (notifErr) console.warn('[NOTIF]', notifErr.message)
+        } else {
+          const workMeta = {
+            order_id: order.id, item_titles: group.titles,
+            buyer_name: orderBuyerName, other_user_id: order.customer_id,
+          }
+          const { error: notifErr } = await supabase.from('notifications').insert({
+            user_id: group.sellerId,
+            type:    'new_order',
+            title:   'Neue Bestellung 🎉',
+            body:    `${orderBuyerName} hat „${titleList}" gekauft.`,
+            data:     workMeta, metadata: workMeta,
+            entity_id: (orderItems || []).find((i: any) => i.seller_id === group.sellerId && i.item_type === 'work')?.work_id || null,
+            entity_type: 'work',
+            read: false, is_read: false,
+          })
+          if (notifErr) console.warn('[NOTIF]', notifErr.message)
+        }
       }
 
       // ── COM-MIGRATION-015.3: 15%-Gebuehrenmodell + Ambassador-Provision ──
@@ -334,16 +444,45 @@ serve(async (req) => {
         }
       }
 
-      // Buyer-Bestätigung
-      const { error: buyerNotifErr } = await supabase.from('notifications').insert({
-        user_id: order.customer_id,
-        type:    'order_confirmed',
-        title:   'Unterstützung bestätigt ✓',
-        body:    'Deine Zahlung war erfolgreich.',
-        data:    { order_id: order.id },
-        read:    false,
-      })
-      if (buyerNotifErr) console.warn('[NOTIF]', buyerNotifErr.message)
+      // Buyer-Bestätigung — getrennt nach Werk-Kauf vs. Erlebnis-Buchung (RESONANZ-BUCHUNG-001)
+      const workTitles = (orderItems || []).filter((i: any) => i.item_type !== 'experience').map((i: any) => i.snapshot?.title || 'ein Werk')
+      const expTitles  = (orderItems || []).filter((i: any) => i.item_type === 'experience')
+
+      if (workTitles.length > 0) {
+        const { error: buyerNotifErr } = await supabase.from('notifications').insert({
+          user_id: order.customer_id,
+          type:    'order_confirmed',
+          title:   'Unterstützung bestätigt ✓',
+          body:    `Deine Zahlung für „${workTitles.join(', ')}" war erfolgreich.`,
+          data:    { order_id: order.id, item_titles: workTitles },
+          metadata:{ order_id: order.id, item_titles: workTitles },
+          read:    false, is_read: false,
+        })
+        if (buyerNotifErr) console.warn('[NOTIF]', buyerNotifErr.message)
+      }
+
+      if (expTitles.length > 0) {
+        // Ein zusammengefasstes Erlebnis-Detail (bei mehreren Erlebnissen im selben Order: erstes fuer Termin/Ort)
+        const firstExpItemId = expTitles[0]?.snapshot?.item_id
+        const exp = firstExpItemId ? expDetailsById[firstExpItemId] : null
+        const expTitleList = expTitles.map((i: any) => i.snapshot?.title || 'ein Erlebnis')
+        const buyerExpMeta = {
+          order_id: order.id, item_titles: expTitleList,
+          date: exp?.date || null,
+          time: (exp?.time_start ? `${exp.time_start}${exp.time_end ? ' – ' + exp.time_end : ''}` : null),
+          location: exp?.location_text || exp?.meeting_point || null,
+        }
+        const { error: expNotifErr } = await supabase.from('notifications').insert({
+          user_id: order.customer_id,
+          type:    'experience_booking_confirmed',
+          title:   'Buchung bestätigt ✓',
+          body:    `Deine Buchung für „${expTitleList.join(', ')}" ist bestätigt.`,
+          data:     buyerExpMeta, metadata: buyerExpMeta,
+          entity_id: exp?.id || null, entity_type: 'experience',
+          read: false, is_read: false,
+        })
+        if (expNotifErr) console.warn('[NOTIF]', expNotifErr.message)
+      }
     }
 
     else if (event.type === 'payment_intent.payment_failed') {

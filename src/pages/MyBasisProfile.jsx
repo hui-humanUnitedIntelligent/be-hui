@@ -511,7 +511,24 @@ const handleNotifAction = (n) => {
 
     setShowNotifications(false); // Panel schließen
 
+    // ── RESONANZ-BUCHUNG-001 (2026-08-08): "Mit Nutzer chatten" aus dem
+    //    Buchungsdetail-Modal — typunabhängig, hat Vorrang vor dem Switch ──
+    if (n._openChat) {
+      setChatRecipient(n._openChat);
+      setShowChat(true);
+      return;
+    }
+
     switch (n.type) {
+      // ── Buchungen (Talent + Erlebnis): Detail wird bereits im DetailModal
+      //    selbst vollständig angezeigt (wer/was/wann/wo), kein Routing nötig ──
+      case "talent_booking_paid":
+      case "talent_booking_confirmed":
+      case "talent_booking_cancelled":
+      case "experience_booking_paid":
+      case "experience_booking_confirmed":
+      case "experience_booking_cancelled":
+        break;
       // ── Profil öffnen ───────────────────────────────────────────────────
       case "follow":
       case "follow_request":

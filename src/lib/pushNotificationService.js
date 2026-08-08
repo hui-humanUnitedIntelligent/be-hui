@@ -47,6 +47,49 @@ export async function loadPushSettings() {
 }
 
 /**
+ * RESONANZ-BUCHUNG-001 (2026-08-08): Lädt alle Push-Einstellungen inkl.
+ * der 3 Kategorie-Schalter (Buchungen / Kauf & Verkauf / Informativ).
+ * Rückgabe: { push_enabled, push_buchungen, push_kauf_verkauf, push_informativ }
+ */
+export async function loadPushSettingsFull() {
+  try {
+    const { data, error } = await supabase.rpc("rpc_get_push_settings");
+    if (error) {
+      console.warn("[HUI_PUSH] loadPushSettingsFull error:", error.message);
+      return { push_enabled: false, push_buchungen: true, push_kauf_verkauf: true, push_informativ: true };
+    }
+    const row = data?.[0] || {};
+    return {
+      push_enabled:      row.push_enabled ?? false,
+      push_buchungen:    row.push_buchungen ?? true,
+      push_kauf_verkauf: row.push_kauf_verkauf ?? true,
+      push_informativ:   row.push_informativ ?? true,
+    };
+  } catch (e) {
+    console.warn("[HUI_PUSH] loadPushSettingsFull exception:", e?.message);
+    return { push_enabled: false, push_buchungen: true, push_kauf_verkauf: true, push_informativ: true };
+  }
+}
+
+/**
+ * RESONANZ-BUCHUNG-001 (2026-08-08): Aktiviert/deaktiviert eine einzelne
+ * Push-Kategorie ("buchungen" | "kauf_verkauf" | "informativ").
+ */
+export async function setPushCategory(category, enabled) {
+  try {
+    const { error } = await supabase.rpc("rpc_set_push_category", { p_category: category, p_enabled: enabled });
+    if (error) {
+      console.warn("[HUI_PUSH] setPushCategory error:", error.message);
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.warn("[HUI_PUSH] setPushCategory exception:", e?.message);
+    return false;
+  }
+}
+
+/**
  * Aktiviert oder deaktiviert Push-Notifications.
  */
 export async function setPushEnabled(enabled) {

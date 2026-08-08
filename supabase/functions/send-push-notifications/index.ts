@@ -147,7 +147,7 @@ Deno.serve(async (req) => {
     // 1. Pending notifications aus outbox holen (max 50 pro Durchlauf)
     const { data: pending, error: fetchErr } = await supabase
       .from("notifications_outbox")
-      .select("id, user_id, type, title, body, data, retry_count")
+      .select("id, user_id, type, title, body, data, retry_count, category")
       .eq("status", "pending")
       .order("created_at", { ascending: true })
       .limit(50);
@@ -165,15 +165,24 @@ Deno.serve(async (req) => {
     let failed = 0;
 
     for (const entry of pending) {
-      // 2. Prüfen ob push_enabled = true
+      // 2. Pruefen ob push_enabled = true UND die Kategorie dieser Notification
+      //    individuell aktiviert ist (RESONANZ-BUCHUNG-001: Buchungen / Kauf & Verkauf /
+      //    Informativ einzeln deaktivierbar). entry.category wird bereits beim Insert
+      //    in notifications_outbox durch fn_notification_category() gesetzt (SSOT).
       const { data: settings } = await supabase
         .from("user_notification_settings")
-        .select("push_enabled")
+        .select("push_enabled, push_buchungen, push_kauf_verkauf, push_informativ")
         .eq("user_id", entry.user_id)
         .single();
 
-      if (!settings?.push_enabled) {
-        // Skip — push ist deaktiviert
+      const categoryFlag = entry.category === "buchungen"
+        ? settings?.push_buchungen
+        : entry.category === "kauf_verkauf"
+        ? settings?.push_kauf_verkauf
+        : settings?.push_informativ;
+
+      if (!settings?.push_enabled || categoryFlag === false) {
+        // Skip — push ist deaktiviert (global oder fuer diese Kategorie)
         await supabase
           .from("notifications_outbox")
           .update({ status: "skipped", sent_at: new Date().toISOString() })

@@ -29,49 +29,67 @@ const T = {
   r20:      20,
 };
 
-// ── Kategorie-Regeln ──────────────────────────────────────────
+// ── Kategorie-Regeln (RESONANZ-BUCHUNG-001, 2026-08-08) ────────────────
 // type → { tab, icon, color }
+// tab ∈ "buchungen" | "kauf_verkauf" | "informativ" — SSOT-Spiegel von
+// fn_notification_category() in der DB (muss synchron gehalten werden!)
 const TYPE_META = {
-  // WICHTIG
-  order:          { tab:"wichtig", icon:"🎨", color:"#FF8A6B", label:"Bestellung" },
-  booking:        { tab:"wichtig", icon:"📅", color:"#22C55E", label:"Buchung" },
-  connection_req: { tab:"wichtig", icon:"🤝", color:T.teal,   label:"Verbindungsanfrage" },
-  message:        { tab:"wichtig", icon:"💬", color:T.teal,   label:"Nachricht" },
-  booking_change: { tab:"wichtig", icon:"⚠️", color:"#F59E0B", label:"Buchungsänderung" },
-  experience_soon:{ tab:"wichtig", icon:"📅", color:"#22C55E", label:"Erlebnis morgen" },
-  // RELEVANT
-  resonanz:       { tab:"relevant", icon:"✦",  color:T.teal,   label:"Resonanz" },
-  like:           { tab:"relevant", icon:"❤️", color:"#EF4444", label:"Favorisiert" },
-  save:           { tab:"relevant", icon:"⭐", color:"#F59E0B", label:"Gespeichert" },
-  profile_visit:  { tab:"relevant", icon:"👀", color:"#8B5CF6", label:"Profilbesuch" },
-  participant:    { tab:"relevant", icon:"🙌", color:T.teal,   label:"Neue Teilnehmer" },
-  watcher:        { tab:"relevant", icon:"🌱", color:"#22C55E", label:"Neue Beobachter" },
-  interest:       { tab:"relevant", icon:"🎯", color:T.coral,  label:"Interesse" },
-  follow:         { tab:"relevant", icon:"👤", color:T.teal,   label:"Neuer Follower" },
-  // INFORMATIV
-  milestone:      { tab:"info", icon:"📈", color:T.teal,   label:"Meilenstein" },
-  impact:         { tab:"info", icon:"🌿", color:"#22C55E", label:"Neue Wirkung" },
-  share:          { tab:"info", icon:"🎨", color:"#8B5CF6", label:"Werk geteilt" },
-  connection_new: { tab:"info", icon:"🤝", color:T.teal,   label:"Neue Verbindung" },
-  achievement:    { tab:"info", icon:"🏆", color:"#F59E0B", label:"Meilenstein" },
-  admin_broadcast:{ tab:"info", icon:"📣", color:"#8B5CF6", label:"HUI Team" },
-  referral_joined:{ tab:"info", icon:"🎉", color:"#22C55E", label:"Empfehlung" },
+  // ── BUCHUNGEN (Termine — Talent-Buchungen + Erlebnis-Buchungen) ────────
+  talent_booking_paid:        { tab:"buchungen", icon:"📅", color:"#22C55E", label:"Neue Buchung" },
+  talent_booking_confirmed:   { tab:"buchungen", icon:"📅", color:"#22C55E", label:"Buchung bestätigt" },
+  talent_booking_cancelled:   { tab:"buchungen", icon:"⚠️", color:"#F59E0B", label:"Buchung storniert" },
+  experience_booking_paid:      { tab:"buchungen", icon:"🌿", color:"#22C55E", label:"Neue Buchung" },
+  experience_booking_confirmed: { tab:"buchungen", icon:"🌿", color:"#22C55E", label:"Buchung bestätigt" },
+  experience_booking_cancelled: { tab:"buchungen", icon:"⚠️", color:"#F59E0B", label:"Buchung storniert" },
+  booking:        { tab:"buchungen", icon:"📅", color:"#22C55E", label:"Buchung" },
+  booking_change: { tab:"buchungen", icon:"⚠️", color:"#F59E0B", label:"Buchungsänderung" },
+  experience_soon:{ tab:"buchungen", icon:"📅", color:"#22C55E", label:"Erlebnis morgen" },
+  // ── KAUF & VERKAUF (Werke + Support/Zahlungen) ─────────────────────────
+  order:          { tab:"kauf_verkauf", icon:"🎨", color:"#FF8A6B", label:"Bestellung" },
+  new_order:      { tab:"kauf_verkauf", icon:"🎨", color:"#FF8A6B", label:"Neue Bestellung" },
+  order_confirmed:{ tab:"kauf_verkauf", icon:"✓",  color:T.teal,   label:"Bestellung bestätigt" },
+  support_received:{ tab:"kauf_verkauf", icon:"✦", color:T.teal,   label:"Unterstützung erhalten" },
+  support_succeeded:{ tab:"kauf_verkauf", icon:"✓", color:T.teal,   label:"Unterstützung gesendet" },
+  // ── INFORMATIV (alles Sonstige: Interaktionen, Freigaben, System) ──────
+  connection_req: { tab:"informativ", icon:"🤝", color:T.teal,   label:"Verbindungsanfrage" },
+  message:        { tab:"informativ", icon:"💬", color:T.teal,   label:"Nachricht" },
+  resonanz:       { tab:"informativ", icon:"✦",  color:T.teal,   label:"Resonanz" },
+  like:           { tab:"informativ", icon:"❤️", color:"#EF4444", label:"Favorisiert" },
+  save:           { tab:"informativ", icon:"⭐", color:"#F59E0B", label:"Gespeichert" },
+  profile_visit:  { tab:"informativ", icon:"👀", color:"#8B5CF6", label:"Profilbesuch" },
+  participant:    { tab:"informativ", icon:"🙌", color:T.teal,   label:"Neue Teilnehmer" },
+  watcher:        { tab:"informativ", icon:"🌱", color:"#22C55E", label:"Neue Beobachter" },
+  interest:       { tab:"informativ", icon:"🎯", color:T.coral,  label:"Interesse" },
+  follow:         { tab:"informativ", icon:"👤", color:T.teal,   label:"Neuer Follower" },
+  new_follower:   { tab:"informativ", icon:"👤", color:T.teal,   label:"Neuer Follower" },
+  comment:        { tab:"informativ", icon:"💬", color:T.teal,   label:"Neuer Kommentar" },
+  comment_reply:  { tab:"informativ", icon:"💬", color:T.teal,   label:"Antwort auf Kommentar" },
+  milestone:      { tab:"informativ", icon:"📈", color:T.teal,   label:"Meilenstein" },
+  impact:         { tab:"informativ", icon:"🌿", color:"#22C55E", label:"Neue Wirkung" },
+  share:          { tab:"informativ", icon:"🎨", color:"#8B5CF6", label:"Werk geteilt" },
+  connection_new: { tab:"informativ", icon:"🤝", color:T.teal,   label:"Neue Verbindung" },
+  achievement:    { tab:"informativ", icon:"🏆", color:"#F59E0B", label:"Meilenstein" },
+  admin_broadcast:{ tab:"informativ", icon:"📣", color:"#8B5CF6", label:"HUI Team" },
+  broadcast:      { tab:"informativ", icon:"📣", color:"#8B5CF6", label:"HUI Team" },
+  referral_joined:{ tab:"informativ", icon:"🎉", color:"#22C55E", label:"Empfehlung" },
+  support_ticket: { tab:"informativ", icon:"🎧", color:T.teal,   label:"Support-Nachricht" },
+  support_ticket_reply:{ tab:"informativ", icon:"🎧", color:T.teal, label:"Support-Antwort" },
   // FREIGABEN — Werke
-  work_approved:       { tab:"info", icon:"✅", color:"#22C55E", label:"Werk freigegeben" },
-  work_rejected:       { tab:"info", icon:"❌", color:"#EF4444", label:"Werk abgelehnt" },
-  talent_approved:     { tab:"info", icon:"✅", color:"#22C55E", label:"Talent freigegeben" },
-  talent_rejected:     { tab:"info", icon:"❌", color:"#EF4444", label:"Talent abgelehnt" },
-  impact_project_rejected:  { tab:"info", icon:"📋", color:"#EF4444", label:"Herzensprojekt abgelehnt" },
-  content_approved:    { tab:"info", icon:"✅", color:"#22C55E", label:"Inhalt freigegeben" },
-  content_rejected:    { tab:"info", icon:"❌", color:"#EF4444", label:"Inhalt abgelehnt" },
+  work_approved:       { tab:"informativ", icon:"✅", color:"#22C55E", label:"Werk freigegeben" },
+  work_rejected:       { tab:"informativ", icon:"❌", color:"#EF4444", label:"Werk abgelehnt" },
+  talent_approved:     { tab:"informativ", icon:"✅", color:"#22C55E", label:"Talent freigegeben" },
+  talent_rejected:     { tab:"informativ", icon:"❌", color:"#EF4444", label:"Talent abgelehnt" },
+  impact_project_rejected:  { tab:"informativ", icon:"📋", color:"#EF4444", label:"Herzensprojekt abgelehnt" },
+  content_approved:    { tab:"informativ", icon:"✅", color:"#22C55E", label:"Inhalt freigegeben" },
+  content_rejected:    { tab:"informativ", icon:"❌", color:"#EF4444", label:"Inhalt abgelehnt" },
   // FREIGABEN — Erlebnisse
-  experience_approved: { tab:"info", icon:"✅", color:"#22C55E", label:"Erlebnis freigegeben" },
-  experience_rejected: { tab:"info", icon:"❌", color:"#EF4444", label:"Erlebnis abgelehnt" },
+  experience_approved: { tab:"informativ", icon:"✅", color:"#22C55E", label:"Erlebnis freigegeben" },
+  experience_rejected: { tab:"informativ", icon:"❌", color:"#EF4444", label:"Erlebnis abgelehnt" },
   // FREIGABEN — Projekte
-  project_approved:    { tab:"info", icon:"✅", color:"#22C55E", label:"Projekt freigegeben" },
-  project_rejected:    { tab:"info", icon:"❌", color:"#EF4444", label:"Projekt abgelehnt" },
+  project_approved:    { tab:"informativ", icon:"✅", color:"#22C55E", label:"Projekt freigegeben" },
+  project_rejected:    { tab:"informativ", icon:"❌", color:"#EF4444", label:"Projekt abgelehnt" },
   // Default
-  default:        { tab:"info", icon:"✦",  color:T.teal,   label:"Aktivität" },
+  default:        { tab:"informativ", icon:"✦",  color:T.teal,   label:"Aktivität" },
 };
 
 function getMeta(type) {

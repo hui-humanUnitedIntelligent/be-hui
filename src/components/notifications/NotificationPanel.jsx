@@ -114,6 +114,14 @@ const META = {
   meldung_aufgehoben:     { emoji:"✅", label:"Meldung aufgehoben"     },
   new_follower:           { emoji:<HUIProfilIcon size={18}/>, label:"Neuer Follower"         },
   new_booking:            { emoji:"📅", label:"Neue Buchung"           },
+  // RESONANZ-BUCHUNG-001 (2026-08-08): Talent- + Erlebnis-Buchungen
+  talent_booking_paid:        { emoji:"📅", label:"Neue Buchung"        },
+  talent_booking_confirmed:   { emoji:"📅", label:"Buchung bestätigt"   },
+  talent_booking_cancelled:   { emoji:"⚠️", label:"Buchung storniert"   },
+  experience_booking_paid:      { emoji:"🌿", label:"Neue Buchung"      },
+  experience_booking_confirmed: { emoji:"🌿", label:"Buchung bestätigt" },
+  experience_booking_cancelled: { emoji:"⚠️", label:"Buchung storniert" },
+  new_order:              { emoji:"🎨", label:"Neue Bestellung"        },
   // MERKEN.6 (2026-07-08): zusammengefasste Merken-Digests (taeglich/
   // woechentlich), NIE eine Notification pro einzelnem Speichervorgang.
   save_digest:            { emoji:"🔖", label:"Gemerkt-Zusammenfassung" },
@@ -331,6 +339,37 @@ function DetailModal({ n, onClose, onAction }) {
         blocks: [
           { type:"label-text", label:"Grund", text: md.reason || n.body || "Dein Werk wurde entfernt.", color:"#DC2626", bg:"rgba(239,68,68,0.06)", border:"rgba(239,68,68,0.22)" },
         ],
+      };
+    }
+
+    // ── RESONANZ-BUCHUNG-001 (2026-08-08): Strukturiertes Buchungsdetail ──
+    // Talent-Buchung ODER Erlebnis-Buchung: wer / was / wann / wo + Chat-Button.
+    if (["talent_booking_paid","talent_booking_confirmed","experience_booking_paid","experience_booking_confirmed"].includes(t)) {
+      const isSellerView = t === "talent_booking_paid" || t === "experience_booking_paid";
+      const isTalent = t.startsWith("talent_booking");
+      const otherUserId = md.other_user_id || null;
+      const otherUserLabel = isSellerView
+        ? (md.buyer_name || "Der Kunde")
+        : (md.seller_name || "Der Anbieter");
+      const offerTitle = md.offer_title || (md.item_titles || []).join(", ") || "dein Angebot";
+      const dateStr = md.date
+        ? new Date(md.date).toLocaleDateString("de-DE", { weekday:"short", day:"numeric", month:"long" })
+        : null;
+
+      return {
+        accentColor: "#22C55E",
+        headerIcon: isTalent ? "📅" : "🌿",
+        headerTitle: isSellerView ? "Neue Buchung 🎉" : "Buchung bestätigt ✓",
+        headerSubtitle: `„${offerTitle}"`,
+        blocks: [
+          { type:"stat", label: isSellerView ? "Gebucht von" : "Gebucht bei", value: otherUserLabel },
+          { type:"stat", label:"Was", value: offerTitle },
+          dateStr && { type:"stat", label:"Wann", value: md.time ? `${dateStr}, ${md.time} Uhr` : dateStr },
+          md.location && { type:"stat", label:"Wo", value: md.location },
+          md.amount_eur != null && { type:"stat", label:"Betrag", value: `${Number(md.amount_eur).toFixed(2).replace(".", ",")} €` },
+        ].filter(Boolean),
+        chatUserId: otherUserId,
+        actionLabel: null,
       };
     }
 
@@ -727,6 +766,27 @@ function DetailModal({ n, onClose, onAction }) {
           </button>
         )}
 
+        {/* ── Chat-Button (Buchungsdetail: "Mit Nutzer chatten") ── */}
+        {cfg.chatUserId && (
+          <button
+            onClick={() => {
+              onClose();
+              onAction({ ...n, _openChat: cfg.chatUserId });
+            }}
+            style={{
+              width:"100%", padding:"13px", borderRadius:99,
+              background:"rgba(14,196,184,0.08)",
+              border:`1.5px solid rgba(14,196,184,0.35)`,
+              color:"#0EC4B8", fontSize:14, fontWeight:700,
+              cursor:"pointer", fontFamily:"inherit",
+              marginBottom:10,
+              display:"flex", alignItems:"center", justifyContent:"center", gap:6,
+            }}
+          >
+            💬 Mit Nutzer chatten
+          </button>
+        )}
+
         {/* ── Schließen ── */}
         <button
           onClick={onClose}
@@ -984,42 +1044,41 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
     } catch { /* silent */ }
   }
 
-  // ── Tab-Definitionen (3 Tabs): Alle / Relevant / Informativ ───────────────
-  // "Relevant" = nutzer-bezogene Ereignisse (Werke, Talente, Projekte, Interaktionen)
-  // "Informativ" = ausschließlich SADB-Broadcast-Nachrichten
-  const BROADCAST_TYPES = ["admin_broadcast", "broadcast"];
-  const RELEVANT_TYPES  = [
-    // Werke
-    "work_approved", "work_rejected", "content_rejected", "work_sensitive", "work_deleted",
-    "meldung_aufgehoben",
-    // Erlebnisse
-    "experience_approved", "experience_rejected", "experience_updated",
-    // Projekte / Impact
-    "project_approved", "project_rejected", "project_updated",
-    "impact_project_approved", "impact_project_rejected",
-    // Talente
-    "talent_approved", "talent_rejected", "talent_updated",
-    // Momente
-    "moment_removed", "moment_reported", "moment_reported_removed", "moment_updated",
-    // Interaktionen
-    "new_follower", "new_booking", "support_ticket_reply", "support_ticket",
-    "like", "resonanz", "comment", "comment_reply", "save", "save_digest", "share",
+  // ── Tab-Definitionen (4 Tabs, RESONANZ-BUCHUNG-001 2026-08-08) ────────────
+  // Alle / Buchungen / Kauf & Verkauf / Informativ.
+  // SSOT-Spiegel von fn_notification_category() in der DB (muss synchron
+  // gehalten werden, siehe auch TYPE_META in useNotifications.jsx).
+  const BUCHUNGEN_TYPES = [
+    "talent_booking_paid", "talent_booking_confirmed", "talent_booking_cancelled",
+    "experience_booking_paid", "experience_booking_confirmed", "experience_booking_cancelled",
+    "booking", "booking_change", "experience_soon", "new_booking",
+  ];
+  const KAUF_VERKAUF_TYPES = [
+    "new_order", "order_confirmed", "order", "purchase",
+    "support_received", "support_succeeded",
   ];
 
   const TAB_FILTERS = {
-    all:       () => true,
-    relevant:  n => RELEVANT_TYPES.includes(n.type),
-    info:      n => BROADCAST_TYPES.includes(n.type),
+    all:          () => true,
+    buchungen:    n => BUCHUNGEN_TYPES.includes(n.type),
+    kauf_verkauf: n => KAUF_VERKAUF_TYPES.includes(n.type),
+    // Informativ = alles was nicht explizit Buchung oder Kauf/Verkauf ist
+    informativ:   n => !BUCHUNGEN_TYPES.includes(n.type) && !KAUF_VERKAUF_TYPES.includes(n.type),
   };
 
   const TABS = [
-    { key:"all",      label:"Alle"      },
-    { key:"relevant", label:"Relevant"  },
-    { key:"info",     label:"Informativ"},
+    { key:"all",          label:"Alle"          },
+    { key:"buchungen",    label:"Buchungen"     },
+    { key:"kauf_verkauf", label:"Kauf & Verkauf"},
+    { key:"informativ",   label:"Informativ"    },
   ];
 
   const visible = notifs.filter(TAB_FILTERS[tab] || (() => true));
   const unreadCount = notifs.filter(n => !n.is_read).length;
+  // Live-Zähler pro Tab (verschwindet automatisch, sobald 0 = alles gelesen)
+  const unreadByTab = Object.fromEntries(
+    TABS.map(({ key }) => [key, notifs.filter(n => !n.is_read && (TAB_FILTERS[key]?.(n) ?? true)).length])
+  );
 
   return (
     <>
@@ -1054,7 +1113,18 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
               color: tab === key ? T.teal : T.inkSoft,
               borderBottom: tab === key ? `2px solid ${T.teal}` : "2px solid transparent",
               whiteSpace:"nowrap",
-            }}>{label}</button>
+              display:"flex", alignItems:"center", gap:5,
+            }}>
+              {label}
+              {unreadByTab[key] > 0 && (
+                <span style={{
+                  background: tab === key ? T.teal : "rgba(26,26,24,0.15)",
+                  color: tab === key ? "#fff" : T.inkSoft,
+                  borderRadius:99, padding:"1px 6px", fontSize:10, fontWeight:700,
+                  minWidth:16, textAlign:"center", lineHeight:1.5,
+                }}>{unreadByTab[key]}</span>
+              )}
+            </button>
           ))}
         </div>
 
