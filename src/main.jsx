@@ -6,7 +6,7 @@ import App from './App'
 import './index.css'
 import { initSentry, sentryCapture } from './lib/sentry'
 import { initAppPerformance } from './lib/appPerformance.js'
-import { initOTA } from './lib/otaUpdate.js'
+import { initOTA, autoCheckOTA } from './lib/otaUpdate.js'
 
 initSentry()
 initAppPerformance();
@@ -17,6 +17,9 @@ initAppPerformance();
 initOTA().then((res) => {
   if (res?.error) console.warn('[OTA] Init warning:', res.error);
 }).catch((err) => console.warn('[OTA] Init error:', err));
+
+// OTA v2: Background-Check nach 3s (nicht blockierend, nur wenn serverVersion > APP_VERSION)
+autoCheckOTA().catch((err) => console.warn('[OTA] Auto-check error:', err));
 
 // ── DEV: Contract Inspector ──────────────────────────────────────
 // In DevTools: window.__HUI_CONTRACTS?.()
