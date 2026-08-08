@@ -107,7 +107,6 @@ const META = {
   project_approved:       { emoji:"✅", label:"Projekt freigegeben"     },
   project_updated:        { emoji:"✏️", label:"Projekt aktualisiert"   },
   experience_rejected:    { emoji:"❌", label:"Erlebnis abgelehnt"     },
-  project_approved:       { emoji:"✅", label:"Projekt freigegeben"    },
   project_rejected:       { emoji:"❌", label:"Projekt abgelehnt"      },
   impact_project_approved:{ emoji:"💚", label:"Herzensprojekt angenommen" },
   impact_project_rejected:{ emoji:"💔", label:"Herzensprojekt abgelehnt" },
@@ -176,12 +175,7 @@ function DetailModal({ n, onClose, onAction }) {
     // Ablehnungen
     if (t.includes("_rejected") || t === "content_rejected") {
       const typeMap = {
-        work_rejected:           { label:"Werk",             emoji:"🎨" },
-        content_rejected:        { label:"Inhalt",           emoji:"📝" },
         talent_rejected:         { label:"Talent",           emoji:"⭐" },
-        experience_rejected:     { label:"Erlebnis",         emoji:"🌿" },
-        project_rejected:        { label:"Projekt",          emoji:"📌" },
-        impact_project_rejected: { label:"Herzensprojekt",   emoji:"💚" },
       };
       const tm = typeMap[t] || { label:"Eintrag", emoji:"📋" };
       const reason = md.rejection_reason || md.reason
@@ -210,11 +204,7 @@ function DetailModal({ n, onClose, onAction }) {
     // Freigaben / Annahmen
     if (t.includes("_approved")) {
       const approvalMap = {
-        work_approved:           { label:"Werk",           emoji:"🎨" },
         talent_approved:         { label:"Talent",         emoji:"⭐" },
-        experience_approved:     { label:"Erlebnis",       emoji:"🌿" },
-        project_approved:        { label:"Projekt",        emoji:"📌" },
-        impact_project_approved: { label:"Herzensprojekt", emoji:"💚" },
       };
       const am = approvalMap[t] || { label:"Inhalt", emoji:"✅" };
       const entryTitle = md.entry_title || md.project_name || md.werk_title || n.title || `Dein ${am.label}`;
@@ -1228,7 +1218,7 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
         {tab === "all" && unreadCount > 0 && (
           <div style={{ padding:"8px 20px 0", display:"flex", justifyContent:"flex-end" }}>
             <button onClick={markAllRead} style={{
-              fontSize:11, color:T.teal, background:"none", border:"none",
+              fontSize:11, color:T.teal, background:"none",
               cursor:"pointer", fontWeight:600, fontFamily:"inherit",
               padding:"4px 10px", borderRadius:99,
               border:`1px solid ${T.tealMid}`,

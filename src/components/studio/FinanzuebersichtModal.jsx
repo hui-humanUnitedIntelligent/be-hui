@@ -783,7 +783,7 @@ function MeineSupports({ userId }) {
       <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
         <button onClick={() => setView("given")}
           style={{
-            flex: 1, padding: "8px", borderRadius: T.r12, border: "none",
+            flex: 1, padding: "8px", borderRadius: T.r12,
             background: view === "given" ? T.teal : T.bgCard, color: view === "given" ? "white" : T.inkSoft,
             fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: T.ff,
             border: view === "given" ? "none" : `1px solid ${T.border}`,
@@ -792,7 +792,7 @@ function MeineSupports({ userId }) {
         </button>
         <button onClick={() => setView("received")}
           style={{
-            flex: 1, padding: "8px", borderRadius: T.r12, border: "none",
+            flex: 1, padding: "8px", borderRadius: T.r12,
             background: view === "received" ? T.teal : T.bgCard, color: view === "received" ? "white" : T.inkSoft,
             fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: T.ff,
             border: view === "received" ? "none" : `1px solid ${T.border}`,
@@ -912,7 +912,7 @@ export default function FinanzuebersichtModal({ profile, onClose = () => {} }) {
               onClick={() => setTab(t.id)}
               style={{
                 flexShrink: 0, padding: "3px 8px",
-                borderRadius: T.r99, border: "none",
+                borderRadius: T.r99,
                 background: tab === t.id ? T.teal : T.bgCard,
                 color: tab === t.id ? "white" : T.inkSoft,
                 fontSize: 10, fontWeight: tab === t.id ? 700 : 500,

@@ -842,7 +842,6 @@ export default function LiveMapPage({ onView, onClose, fullscreen }) {
           position:"absolute", bottom: selected ? "auto" : 24,
           top: selected ? "auto" : "auto",
           left:0, right: selected ? "min(320px,48%)" : 0,
-          bottom:24,
           display:"flex", gap:8, padding:"0 16px",
           overflowX:"auto", zIndex:20,
           transition:"right .3s ease",

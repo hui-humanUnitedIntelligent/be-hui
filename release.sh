@@ -156,9 +156,9 @@ success "Git: committed + pushed"
 step 6 "Gradle assembleRelease"
 cd "$ROOT_DIR/android"
 ./gradlew clean --no-daemon 2>/dev/null || warn "clean failed (nicht kritisch)"
-./gradlew assembleRelease --no-daemon 2>&1 | tail -10 || {
+./gradlew assembleRelease --no-daemon 2>&1 | tail -50 || {
   warn "Gradle Release Build fehlgeschlagen — versuche Debug"
-  ./gradlew assembleDebug --no-daemon 2>&1 | tail -5 || error "Gradle Build komplett fehlgeschlagen"
+  ./gradlew assembleDebug --no-daemon 2>&1 | tail -30 || error "Gradle Build komplett fehlgeschlagen"
 }
 cd "$ROOT_DIR"
 success "Gradle Build fertig"

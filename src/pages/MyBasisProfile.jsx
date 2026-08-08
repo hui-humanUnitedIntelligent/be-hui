@@ -620,7 +620,6 @@ const handleNotifAction = (n) => {
       case "impact_project_rejected":
         // Kein openRef — ImpactProject-Preview nicht via ContentPreview
         break;
-      case "content_rejected":
       case "work_deleted":
         // Kein Routing — Modal zeigt Titel + Grund vollständig
         break;
@@ -628,9 +627,8 @@ const handleNotifAction = (n) => {
       // ── Resonanz/Like: öffnet Inhalt wenn entity_id vorhanden ─────────────
       case "resonanz":
       case "like":
-      case "save":
-      case "share": {
-        // RESONANZ.5 (2026-07-30): save + share → direkt zum Beitrag navigieren
+      case "save": {
+        // RESONANZ.5 (2026-07-30): save → direkt zum Beitrag navigieren
         const rEntityId   = n.entity_id   || (n.metadata || {}).post_id   || null;
         const rEntityType = n.entity_type || (n.metadata || {}).post_type || null;
         if (n._openRef && rEntityId && rEntityType) {
