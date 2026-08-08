@@ -20,7 +20,7 @@
 // ══════════════════════════════════════════════════════════════════
 import { HUILocationIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import ImageSlider from './ImageSlider.jsx';
-import React, { useCallback, useEffect, useMemo, useState, lazy, Suspense } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient.js";
@@ -116,6 +116,11 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
   // nicht mehr nur type="work" (siehe post_comments-Generalisierung).
   const [commentCount, setCommentCount] = useState(0);
   const [showComments, setShowComments] = useState(false);
+
+  // DRAG-TO-DISMISS (2026-08-08): Sheet kann nach unten weggezogen werden.
+  // Dasselbe Muster wie PostFullscreenView. Drag-Handle am oberen Rand.
+  const dragRef = useRef({ startY: 0, dy: 0, dragging: false });
+  const [dragY, setDragY] = useState(0);
   useEffect(() => {
     if (!postId) return;
     let cancelled = false;
@@ -152,6 +157,27 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
 
   if (!item && !loading) return null;
   // PORTAL.1 — muss zu document.body, sonst blockiert Stacking-Context den Footer
+  // ── Drag-to-Dismiss Handlers ──
+  const handleDragStart = useCallback((e) => {
+    if (e.touches && e.touches[0]) {
+      dragRef.current = { startY: e.touches[0].clientY, dy: 0, dragging: true };
+    }
+  }, []);
+
+  const handleDragMove = useCallback((e) => {
+    if (!dragRef.current.dragging) return;
+    const dy = e.touches[0].clientY - dragRef.current.startY;
+    if (dy > 0) { dragRef.current.dy = dy; setDragY(dy); }
+  }, []);
+
+  const handleDragEnd = useCallback(() => {
+    if (!dragRef.current.dragging) return;
+    dragRef.current.dragging = false;
+    if (dragRef.current.dy > 110) { onClose?.(); }
+    setDragY(0);
+    dragRef.current = { startY: 0, dy: 0, dragging: false };
+  }, [onClose]);
+
   const portalTarget = typeof document !== "undefined" ? document.body : null;
   if (!portalTarget) return null;
 
@@ -185,12 +211,17 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
       <div
         className="cps-sheet"
         onClick={e => e.stopPropagation()}
+        onTouchStart={handleDragStart}
+        onTouchMove={handleDragMove}
+        onTouchEnd={handleDragEnd}
         style={{
           width:"100%", maxWidth:560,
           maxHeight:"calc(92dvh - env(safe-area-inset-top, 44px))",
           overflowY:"auto",
           background:T.sheet, borderTopLeftRadius:24, borderTopRightRadius:24,
           boxShadow:"0 -8px 40px rgba(20,24,22,0.25)",
+          transform: "translateY(" + Math.max(0, dragY) + "px)",
+          transition: dragRef.current.dragging ? "none" : "transform 0.25s cubic-bezier(.4,0,.2,1)",
         }}
       >
         {/* Griff + Close */}

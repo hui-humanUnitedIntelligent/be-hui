@@ -86,6 +86,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
           {onBuyWerk && isBuyable && (
             <button
               onClick={(e) => { e.stopPropagation(); onBuyWerk(item); }}
+              onTouchEnd={(e) => { e.stopPropagation(); }}
               style={{
                 flexShrink:0,
                 display:"flex", alignItems:"center", gap:7,

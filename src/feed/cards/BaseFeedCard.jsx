@@ -470,7 +470,7 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
   const [err,       setErr]      = useState(false);
   const [loaded,    setLoaded]   = useState(false);
   const [heartPos,  setHeartPos] = useState(null);
-  const tapRef = useRef({ t: 0, x: 0, y: 0 });
+  const tapRef = useRef({ t: 0, x: 0, y: 0, startY: 0, startX: 0, moved: false });
   const lightboxTimerRef = useRef(null);
   const containerRef = useRef(null);
   const [containerW, setContainerW] = useState(0);
@@ -513,7 +513,31 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
   // FEED-UNIFORM-FIX (2026-08-07): Feste Hoehe fuer alle Karten.
   const h = relaxed ? 340 : T.mediaH;
 
+  function handleTouchStart(e) {
+    if (e.touches && e.touches[0]) {
+      tapRef.current.startX = e.touches[0].clientX;
+      tapRef.current.startY = e.touches[0].clientY;
+      tapRef.current.moved = false;
+    }
+  }
+
+  function handleTouchMove(e) {
+    if (e.touches && e.touches[0] && !tapRef.current.moved) {
+      const dx = Math.abs(e.touches[0].clientX - tapRef.current.startX);
+      const dy = Math.abs(e.touches[0].clientY - tapRef.current.startY);
+      if (dx > 10 || dy > 10) {
+        tapRef.current.moved = true;
+        if (lightboxTimerRef.current) { clearTimeout(lightboxTimerRef.current); lightboxTimerRef.current = null; }
+      }
+    }
+  }
+
   function handleTap(e) {
+    // SCROLL-GUARD: Wenn der Finger beim Beruehren bewegt wurde → kein Tap
+    if (tapRef.current.moved) {
+      tapRef.current = { t: 0, startX: 0, startY: 0, moved: false };
+      return;
+    }
     const now = Date.now();
     const dt  = now - tapRef.current.t;
     if (dt < 320 && dt > 60) {
@@ -525,10 +549,10 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
       setHeartPos({ x: cx, y: cy });
       onDoubleTap?.();
       setTimeout(() => setHeartPos(null), 750);
-      tapRef.current = { t: 0 };
+      tapRef.current = { t: 0, startX: 0, startY: 0, moved: false };
     } else {
       // Single tap → start timer for lightbox (wird cancelled bei double-tap)
-      tapRef.current = { t: now };
+      tapRef.current = { t: now, startX: tapRef.current.startX, startY: tapRef.current.startY, moved: false };
       if (lightboxTimerRef.current) clearTimeout(lightboxTimerRef.current);
       lightboxTimerRef.current = setTimeout(() => {
         if (typeof window !== "undefined" && window.__HUI_LIGHTBOX__) {
@@ -596,6 +620,8 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
         cursor: "pointer",
         boxShadow: "0 4px 20px rgba(26,26,46,0.08)",
       }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
       onTouchEnd={handleTap}
       onDoubleClick={handleTap}
     >

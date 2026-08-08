@@ -21,7 +21,7 @@ function ImageSlider({ images, height, borderRadius, showDots, objectFit, onImag
   const [dragX, setDragX] = useState(0);
   const containerRef = useRef(null);
   const [containerW, setContainerW] = useState(0);
-  const dragRef = useRef({ startX: 0, dragging: false });
+  const dragRef = useRef({ startX: 0, startY: 0, dragging: false, moved: false });
 
   const h = height || 220;
   const br = borderRadius != null ? borderRadius : 14;
@@ -41,12 +41,14 @@ function ImageSlider({ images, height, borderRadius, showDots, objectFit, onImag
   }, []);
 
   var onTouchStart = useCallback(function(e) {
-    dragRef.current = { startX: e.touches[0].clientX, dragging: true };
+    dragRef.current = { startX: e.touches[0].clientX, startY: e.touches[0].clientY, dragging: true, moved: false };
   }, []);
 
   var onTouchMove = useCallback(function(e) {
     if (!dragRef.current.dragging) return;
     var dx = e.touches[0].clientX - dragRef.current.startX;
+    var dy = Math.abs(e.touches[0].clientY - dragRef.current.startY);
+    if (dy > 10) { dragRef.current.moved = true; }
     setDragX(dx);
   }, []);
 
@@ -61,8 +63,9 @@ function ImageSlider({ images, height, borderRadius, showDots, objectFit, onImag
   }, [dragX, current, imgs.length]);
 
   var handleClick = useCallback(function(e, idx) {
-    // If this was a drag (not a tap), skip
+    // If this was a drag or scroll (not a tap), skip
     if (Math.abs(dragX) > 10) return;
+    if (dragRef.current.moved) return;
     if (onImageTap) {
       onImageTap(idx);
     } else if (typeof window !== "undefined" && window.__HUI_LIGHTBOX__) {

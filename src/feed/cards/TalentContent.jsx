@@ -104,6 +104,7 @@ export default function TalentContent({ item, onProfile, onReaction, onShare }) 
       <div style={{ display:"flex", justifyContent:"center", marginBottom: (locType || category) ? 6 : 0 }}>
         <button
           onClick={handleBookClick}
+          onTouchEnd={(e) => { e.stopPropagation(); }}
           style={{
             flexShrink:0,
             display:"flex", alignItems:"center", gap:7,

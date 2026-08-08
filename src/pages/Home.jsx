@@ -477,13 +477,13 @@ function HomeInner() {
                   geo={searchState.geo}
                   onProfile={(id) => { if(id) openProfileById(id); }} /* Autor-Name klickbar → öffnet Profil direkt */
                   onBook={(item) => {
-                    // KORB-01: Werk/Experience → Werkekorb
+                    // COMMERCE-DIRECT (2026-08-08): "Kaufen" im Feed öffnet
+                    // DIREKT den WerkKaufFlow — nicht erst einen unsichtbaren
+                    // Werkekorb. Nutzer sollen sofort sehen was passiert.
                     if (!item?.id) return;
-                    setCart(prev => {
-                      if (prev.some(x => x.id === item.id)) return prev;
-                      return [...prev, item];
-                    });
-                    setShowWerkeKorb(false); // kurzer Glow, kein Auto-Open
+                    // Werk: direkt WerkKaufFlow öffnen
+                    const werkData = item._raw || item;
+                    setShowWerkCheckout(werkData);
                   }}
                   onDetail={(item) => {
                     const werkId = item?.id || item?._raw?.id;
