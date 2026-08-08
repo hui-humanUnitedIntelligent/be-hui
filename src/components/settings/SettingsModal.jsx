@@ -4,7 +4,7 @@ import { HUIAbmeldenIcon, HUIDatenschutzIcon, HUIKalenderIcon, HUIKontaktIcon, H
 // ── HUI Einstellungs-Modal v2 ─────────────────────────────────
 // Enthält: Profil bearbeiten | Buchungen | Privatsphäre | Abmelden
 // + Name | E-Mail | Passwort ändern
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { supabase } from "../../lib/supabaseClient.js";
@@ -426,6 +426,9 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
                 onClick={logout} danger last/>
             </Section>
 
+            {/* OTA Update-Check (2026-08-08) */}
+            <OTAUpdateSection/>
+
             {/* Brand Footer */}
             <div style={{
               display:"flex", flexDirection:"column", alignItems:"center",
@@ -538,5 +541,80 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
       </div>
     </div>,
     document.body
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// OTAUpdateSection — "Nach Updates suchen" Button (2026-08-08)
+// ═══════════════════════════════════════════════════════════════
+function OTAUpdateSection() {
+  const [checking, setChecking] = useState(false);
+  const [result, setResult] = useState(null);
+  const [status, setStatus] = useState(null);
+
+  useEffect(() => {
+    getOTAStatus().then(s => setStatus(s)).catch(() => {});
+  }, []);
+
+  const handleCheck = async () => {
+    setChecking(true);
+    setResult(null);
+    try {
+      const res = await checkForUpdate();
+      setResult(res);
+    } catch (err) {
+      setResult({ available: false, error: err?.message || "Fehler" });
+    }
+    setChecking(false);
+  };
+
+  if (status && !status.native) return null; // Web — keine OTA-Updates
+
+  return (
+    <div style={{ padding: "12px 16px 0" }}>
+      <button
+        onClick={handleCheck}
+        disabled={checking}
+        style={{
+          width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
+          gap: 8, padding: "12px 16px", borderRadius: 12,
+          background: checking ? "rgba(13,196,181,0.06)" : "rgba(13,196,181,0.10)",
+          border: "1px solid rgba(13,196,181,0.18)",
+          color: "#0DC4B5", fontSize: 13, fontWeight: 600,
+          cursor: checking ? "wait" : "pointer",
+          opacity: checking ? 0.6 : 1,
+          transition: "opacity .15s",
+        }}
+      >
+        {checking ? "Suche nach Updates…" : "Nach Updates suchen"}
+      </button>
+      {result?.available && (
+        <div style={{
+          marginTop: 10, padding: "10px 14px", borderRadius: 10,
+          background: "rgba(13,196,181,0.08)", fontSize: 12,
+          color: "#0DC4B5", lineHeight: 1.5, textAlign: "center",
+        }}>
+          {result.message || ("Update v" + result.latest + " verfügbar — wird beim nächsten Start aktiv.")}
+        </div>
+      )}
+      {result && !result.available && !result.error && (
+        <div style={{
+          marginTop: 10, padding: "10px 14px", borderRadius: 10,
+          background: "rgba(26,26,24,0.04)", fontSize: 12,
+          color: "rgba(26,26,24,0.45)", textAlign: "center",
+        }}>
+          Aktuellste Version installiert (v{result.current})
+        </div>
+      )}
+      {result?.error && (
+        <div style={{
+          marginTop: 10, padding: "10px 14px", borderRadius: 10,
+          background: "rgba(244,115,85,0.06)", fontSize: 12,
+          color: "#F47355", textAlign: "center",
+        }}>
+          Update-Check fehlgeschlagen: {result.error}
+        </div>
+      )}
+    </div>
   );
 }

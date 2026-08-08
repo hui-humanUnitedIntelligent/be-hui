@@ -15,13 +15,15 @@
     "release": "bash release.sh",
     "release:patch": "bash release.sh patch",
     "release:minor": "bash release.sh minor",
-    "release:major": "bash release.sh major"
+    "release:major": "bash release.sh major",
+    "postbuild": "bash scripts/generate-ota-bundle.sh www"
   },
   "dependencies": {
     "@capacitor/android": "^6.2.1",
     "@capacitor/app": "^6.0.3",
     "@capacitor/core": "^6.2.1",
     "@capacitor/push-notifications": "^6.0.5",
+    "@capgo/capacitor-updater": "^6.50.2",
     "@sentry/react": "^8.28.0",
     "@stripe/react-stripe-js": "^3.0.0",
     "@stripe/stripe-js": "^5.2.0",

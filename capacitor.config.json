@@ -29,6 +29,13 @@
 		},
 		"CapacitorHttp": {
 			"enabled": true
+		},
+		"CapacitorUpdater": {
+			"updateUrl": "https://be-hui.vercel.app/app-version.json",
+			"autoUpdate": true,
+			"resetWhenUpdate": true,
+			"autoDeleteFailed": true,
+			"backgroundThrottle": false
 		}
 	},
 	"ios": {

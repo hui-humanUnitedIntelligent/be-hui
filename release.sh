@@ -47,7 +47,7 @@ esac
 [[ -f "android/app/build.gradle" ]] || error "Android-Projekt nicht gefunden"
 
 # Native Plugin Check
-for plugin in "@capacitor/app" "@capacitor/push-notifications"; do
+for plugin in "@capacitor/app" "@capacitor/push-notifications" "@capgo/capacitor-updater"; do
   if [[ ! -f "node_modules/${plugin}/android/build.gradle" ]]; then
     error "Native Plugin ${plugin} fehlt — führe 'npm install' aus"
   fi
@@ -125,7 +125,7 @@ npx cap sync android || error "Capacitor Sync fehlgeschlagen"
 
 # Plugin-Verifikation nach Sync
 PLUGINS_JSON="android/app/src/main/assets/capacitor.plugins.json"
-for plugin in "@capacitor/app" "@capacitor/push-notifications"; do
+for plugin in "@capacitor/app" "@capacitor/push-notifications" "@capgo/capacitor-updater"; do
   if grep -q "$plugin" "$PLUGINS_JSON" 2>/dev/null; then
     success "$plugin registriert ✓"
   else

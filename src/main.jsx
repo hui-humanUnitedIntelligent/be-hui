@@ -6,9 +6,17 @@ import App from './App'
 import './index.css'
 import { initSentry, sentryCapture } from './lib/sentry'
 import { initAppPerformance } from './lib/appPerformance.js'
+import { initOTA } from './lib/otaUpdate.js'
 
 initSentry()
 initAppPerformance();
+
+// OTA (2026-08-08): Over-the-Air Updates — lädt neue Web-Bundles automatisch.
+// notifyAppReady MUSS innerhalb ~10s nach Start gerufen werden, sonst rollt
+// das Plugin nach 3 Crashes zum letzten stabilen Bundle zurück.
+initOTA().then((res) => {
+  if (res?.error) console.warn('[OTA] Init warning:', res.error);
+}).catch((err) => console.warn('[OTA] Init error:', err));
 
 // ── DEV: Contract Inspector ──────────────────────────────────────
 // In DevTools: window.__HUI_CONTRACTS?.()
