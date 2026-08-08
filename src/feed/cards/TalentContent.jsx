@@ -122,7 +122,7 @@ export default function TalentContent({ item, onProfile, onReaction, onShare }) 
 
       {/* Meta: Ort + Kategorie */}
       {(locType || category) && (
-        <div style={{ display:"flex", alignItems:"center", gap:5, flexWrap:"wrap" }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:5, flexWrap:"wrap" }}>
           {locType && (
             <span style={{ fontSize:12.5, fontWeight:600, color:"rgba(139,92,246,0.8)" }}>
               📍 {locLabel(locType)}

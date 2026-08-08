@@ -88,7 +88,7 @@ export default function ExperienceContent({ item, onProfile, onReaction, onShare
 
       {/* Meta: Kategorie · Datum · Ort */}
       {metaParts.length > 0 && (
-        <div style={{ display:"flex", alignItems:"center", gap:5, flexWrap:"wrap" }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:5, flexWrap:"wrap" }}>
           {metaParts.map((m, i) => (
             <React.Fragment key={i}>
               {i > 0 && <span style={{ fontSize:12, color:"rgba(26,26,46,0.28)" }}>·</span>}

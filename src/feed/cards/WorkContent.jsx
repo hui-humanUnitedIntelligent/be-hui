@@ -120,7 +120,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
 
       {/* Kategorie + Preis (Metazeile) */}
       {(category || priceStr) && !(onBuyWerk && isBuyable) && (
-        <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:2 }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:6, marginBottom:2 }}>
           {category && <span style={{ fontSize:12.5, fontWeight:600, color:CORAL }}>{category}</span>}
 
           {priceStr && <span style={{ fontSize:12.5, fontWeight:600, color:INK3 }}>{priceStr}</span>}
@@ -128,7 +128,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
       )}
       {/* Metazeile wenn Button vorhanden */}
       {(category || priceStr) && onBuyWerk && isBuyable && (
-        <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:2 }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:6, marginBottom:2 }}>
           {category && <span style={{ fontSize:12.5, fontWeight:600, color:CORAL }}>{category}</span>}
 
           {priceStr && <span style={{ fontSize:12.5, color:INK3 }}>{priceStr}</span>}
