@@ -4,7 +4,7 @@ import { HUIAbmeldenIcon, HUIDatenschutzIcon, HUIKalenderIcon, HUIKontaktIcon, H
 // ── HUI Einstellungs-Modal v2 ─────────────────────────────────
 // Enthält: Profil bearbeiten | Buchungen | Privatsphäre | Abmelden
 // + Name | E-Mail | Passwort ändern
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { supabase } from "../../lib/supabaseClient.js";
@@ -14,8 +14,6 @@ import PushNotificationBlock from './PushNotificationBlock.jsx';
 import MeineTicketsPage from '../../pages/studio/MeineTicketsPage.jsx';
 import { APP_VERSION } from '../../version.ts';
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
-import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
-import { getOTAStatus, checkForUpdate } from "../../lib/otaUpdate.js";
 
 // ── Design Tokens ─────────────────────────────────────────────
 const T = {
@@ -339,8 +337,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
   const { profile: authCtxProfile } = useAuth() || {};
   const profile = profileProp || authCtxProfile || null;
   if (!profile) return null;
-  const [view, setView] = useState("main");
-  const kbdInset = useKeyboardInset(); // "main" | "edit" | "privacy" | "contact" | "security" | "support" | "tickets"
+  const [view, setView] = useState("main"); // "main" | "edit" | "privacy" | "contact" | "security" | "support" | "tickets"
 
   const logout = async () => {
     // Push-Tokens invalidieren vor dem Logout
@@ -353,12 +350,12 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
     position:"fixed", inset:0, zIndex:10500,
     background:"rgba(10,10,8,0.55)", backdropFilter:"blur(4px)",
     display:"flex", alignItems:"flex-end", justifyContent:"center",
-    paddingBottom:"calc(64px + var(--hui-keyboard-inset, 0px))",
+    paddingBottom:64, // Navbar-Höhe — Sheet endet über der Navbar
   };
   const sheet = {
     background:T.bg, borderRadius:"20px 20px 0 0",
     width:"100%", maxWidth:560,
-    maxHeight:"calc(92dvh - 64px - var(--hui-keyboard-inset, 0px))",
+    maxHeight:"calc(92dvh - 64px)",
     overflowY: "auto",
     boxShadow:"0 -8px 40px rgba(0,0,0,0.18)",
     paddingBottom: "env(safe-area-inset-bottom, 16px)",
@@ -428,9 +425,6 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
               <NavItem icon={<HUIAbmeldenIcon size={16}/>} label="Abmelden"
                 onClick={logout} danger last/>
             </Section>
-
-            {/* OTA Update-Check (2026-08-08) */}
-            <OTAUpdateSection/>
 
             {/* Brand Footer */}
             <div style={{
@@ -544,80 +538,5 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
       </div>
     </div>,
     document.body
-  );
-}
-
-// ═══════════════════════════════════════════════════════════════
-// OTAUpdateSection — "Nach Updates suchen" Button (2026-08-08)
-// ═══════════════════════════════════════════════════════════════
-function OTAUpdateSection() {
-  const [checking, setChecking] = useState(false);
-  const [result, setResult] = useState(null);
-  const [status, setStatus] = useState(null);
-
-  useEffect(() => {
-    getOTAStatus().then(s => setStatus(s)).catch(() => {});
-  }, []);
-
-  const handleCheck = async () => {
-    setChecking(true);
-    setResult(null);
-    try {
-      const res = await checkForUpdate();
-      setResult(res);
-    } catch (err) {
-      setResult({ available: false, error: err?.message || "Fehler" });
-    }
-    setChecking(false);
-  };
-
-  if (status && !status.native) return null; // Web — keine OTA-Updates
-
-  return (
-    <div style={{ padding: "12px 16px 0" }}>
-      <button
-        onClick={handleCheck}
-        disabled={checking}
-        style={{
-          width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
-          gap: 8, padding: "12px 16px", borderRadius: 12,
-          background: checking ? "rgba(13,196,181,0.06)" : "rgba(13,196,181,0.10)",
-          border: "1px solid rgba(13,196,181,0.18)",
-          color: "#0DC4B5", fontSize: 13, fontWeight: 600,
-          cursor: checking ? "wait" : "pointer",
-          opacity: checking ? 0.6 : 1,
-          transition: "opacity .15s",
-        }}
-      >
-        {checking ? "Suche nach Updates…" : "Nach Updates suchen"}
-      </button>
-      {result?.available && (
-        <div style={{
-          marginTop: 10, padding: "10px 14px", borderRadius: 10,
-          background: "rgba(13,196,181,0.08)", fontSize: 12,
-          color: "#0DC4B5", lineHeight: 1.5, textAlign: "center",
-        }}>
-          {result.message || ("Update v" + result.latest + " verfügbar — wird beim nächsten Start aktiv.")}
-        </div>
-      )}
-      {result && !result.available && !result.error && (
-        <div style={{
-          marginTop: 10, padding: "10px 14px", borderRadius: 10,
-          background: "rgba(26,26,24,0.04)", fontSize: 12,
-          color: "rgba(26,26,24,0.45)", textAlign: "center",
-        }}>
-          Aktuellste Version installiert (v{result.current})
-        </div>
-      )}
-      {result?.error && (
-        <div style={{
-          marginTop: 10, padding: "10px 14px", borderRadius: 10,
-          background: "rgba(244,115,85,0.06)", fontSize: 12,
-          color: "#F47355", textAlign: "center",
-        }}>
-          Update-Check fehlgeschlagen: {result.error}
-        </div>
-      )}
-    </div>
   );
 }

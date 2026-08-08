@@ -47,10 +47,10 @@
     <meta name="twitter:description" content="Ein ruhiges kreatives Netzwerk für Menschen die wirken." />
     <meta name="twitter:image" content="/hui-og-image.png" />
 
-    <!-- Fonts: Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <!-- Fonts: Inter -- lokal gebündelt in src/index.css (@font-face),
+         Dateien in public/fonts/. KEIN Google-Fonts-CDN mehr (2026-08-08):
+         Netzwerk-Abhängigkeit für Text-Rendering in der nativen APK entfernt. -->
+    <link rel="preload" href="/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
     <script>
     /* ─────────────────────────────────────────────────────────────
        HUI Chunk Recovery v2

@@ -16,13 +16,11 @@
 // PFLICHT: createPortal → document.body, zIndex >= 10500
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "../../lib/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
-import { getStripe } from "../../lib/stripe.js";
-import { Elements } from "@stripe/react-stripe-js";
 import StripePaymentStep from "../commerce/StripePaymentStep.jsx";
 import { IMPACT_RATE } from "../commerce/commerceUtils.js";
 
@@ -56,8 +54,6 @@ export default function SupportFlow({ creator, visible, onClose, sourceType="pro
   const [clientSecret, setClientSecret] = useState(null);
   const [publishableKey, setPublishableKey] = useState(null);
   const [paymentIntentId, setPaymentIntentId] = useState(null);
-
-  const stripePromise = useMemo(() => getStripe(), []);
 
   if (!visible || !creator) return null;
 
@@ -265,16 +261,22 @@ export default function SupportFlow({ creator, visible, onClose, sourceType="pro
         )}
 
         {/* ── PAYMENT (Stripe) ── */}
+        {/* StripePaymentStep verwaltet seinen eigenen <Elements>-Kontext intern
+            (siehe UnterstutzenFlow.jsx/TalentBookingFlow.jsx) — hier NICHT nochmal
+            in <Elements> wrappen, das erzeugte einen doppelten/leeren Stripe-
+            Kontext und einen Hook-Order-Crash (React #310). */}
         {phase === "payment" && clientSecret && (
-          <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: "stripe" } }}>
-            <StripePaymentStep
-              total={finalAmount}
-              impact={+(finalAmount * IMPACT_RATE).toFixed(2)}
-              orderId={paymentIntentId}
-              onSuccess={handleStripeSuccess}
-              onError={() => setPhase("error")}
-            />
-          </Elements>
+          <StripePaymentStep
+            total={finalAmount}
+            impact={+(finalAmount * IMPACT_RATE).toFixed(2)}
+            clientSecret={clientSecret}
+            publishableKey={publishableKey}
+            orderId={paymentIntentId}
+            hideHeader
+            onSuccess={handleStripeSuccess}
+            onError={() => setPhase("error")}
+            onBack={() => setPhase("confirm")}
+          />
         )}
 
         {/* ── SUCCESS ── */}

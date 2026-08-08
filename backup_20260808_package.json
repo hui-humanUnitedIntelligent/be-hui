@@ -1,0 +1,52 @@
+{
+  "name": "base44-app",
+  "version": "1.4.5",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "sync": "cap sync",
+    "android": "cap open android",
+    "bump": "node ./scripts/bump-version.js",
+    "postversion": "bash scripts/sync-version.sh",
+    "sync-version": "bash scripts/version.sh sync",
+    "release": "bash release.sh",
+    "release:patch": "bash release.sh patch",
+    "release:minor": "bash release.sh minor",
+    "release:major": "bash release.sh major"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.2.1",
+    "@capacitor/app": "^6.0.3",
+    "@capacitor/core": "^6.2.1",
+    "@capacitor/push-notifications": "^6.0.5",
+    "@sentry/react": "^8.28.0",
+    "@stripe/react-stripe-js": "^3.0.0",
+    "@stripe/stripe-js": "^5.2.0",
+    "@supabase/supabase-js": "^2.105.3",
+    "@tanstack/react-virtual": "^3.10.9",
+    "jspdf": "^4.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.26.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.2.1",
+    "@eslint/js": "^9.19.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.19.0",
+    "eslint-plugin-react": "^7.37.4",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-unused-imports": "^4.3.0",
+    "globals": "^15.14.0",
+    "postcss": "^8.5.3",
+    "stripe": "^14.25.0",
+    "tailwindcss": "^3.4.17",
+    "tailwindcss-animate": "^1.0.7",
+    "terser": "^5.49.0",
+    "vite": "^6.4.1"
+  }
+}

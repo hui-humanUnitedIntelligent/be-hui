@@ -16,7 +16,7 @@
 // PFLICHT: createPortal → document.body, zIndex >= 10500
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "../../lib/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
@@ -24,8 +24,6 @@ import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { IMPACT_RATE } from "./commerceUtils.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
-import { getStripe } from "../../lib/stripe.js";
-import { Elements } from "@stripe/react-stripe-js";
 import StripePaymentStep from "./StripePaymentStep.jsx";
 import { useSavedPostsContext } from "../../context/SavedPostsContext.jsx";
 import { useHuiActions, A } from "../../core/hui.actions.js";
@@ -48,8 +46,6 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
   const [orderId, setOrderId] = useState(null);
   const [showChatConfirm, setShowChatConfirm] = useState(false);
   const actions = useHuiActions();
-
-  const stripePromise = useMemo(() => getStripe(), []);
 
   if (!experience) return null;
 
@@ -270,16 +266,22 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
         )}
 
         {/* ── PAYMENT (Stripe) ── */}
+        {/* StripePaymentStep verwaltet seinen eigenen <Elements>-Kontext intern
+            (siehe UnterstutzenFlow.jsx/TalentBookingFlow.jsx) — hier NICHT nochmal
+            in <Elements> wrappen, das erzeugte einen doppelten/leeren Stripe-
+            Kontext und einen Hook-Order-Crash (React #310). */}
         {phase === "payment" && clientSecret && (
-          <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: "stripe" } }}>
             <StripePaymentStep
               total={amount}
               impact={+(amount * IMPACT_RATE).toFixed(2)}
+              clientSecret={clientSecret}
+              publishableKey={publishableKey}
               orderId={orderId}
+              hideHeader
               onSuccess={handleStripeSuccess}
               onError={() => setPhase("error")}
+              onBack={() => setPhase("confirm")}
             />
-          </Elements>
         )}
 
         {/* ── SUCCESS ── */}
