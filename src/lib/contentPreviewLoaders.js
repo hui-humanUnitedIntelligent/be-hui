@@ -8,6 +8,7 @@
 // OHNE hierueber zu gehen (Lazy Loading nur wo tatsaechlich noetig).
 // ══════════════════════════════════════════════════════════════════
 import { supabase } from "./supabaseClient.js";
+import { ProfileService } from "../services/db.js";
 import {
   normalizePostForPreview, normalizeProjectForPreview,
   normalizeRecommendationForPreview, normalizeWirkerForPreview,
@@ -22,14 +23,39 @@ async function one(query) {
   } catch { return null; }
 }
 
+// AUTOR-NAME-FIX (2026-08-08, Nutzer-Feedback: "Beitrag öffnen" aus dem
+// Resonanzzentrum zeigte "Mitglied" statt dem echten Namen): toFeedItem()
+// (unifiedNormalizer.js) liest den Autor über raw.profile/raw.creator/
+// raw.author/raw.user -- im normalen Feed wird das per useFeedStream.js
+// injectProfile() vorher eingespeist. Die schlanken openRef-Loader hier
+// machten das bisher NICHT, sondern gaben die Roh-Zeile 1:1 durch --
+// raw.profile war immer undefined -> leerer Name -> Fallback "Mitglied".
+// Fix: analog zum bestehenden talent-Loader (siehe unten) das Autor-Profil
+// per ProfileService.getMin() (gecacht, minimal: id/display_name/username/
+// avatar_url) nachladen und als row.profile injizieren, BEVOR normalisiert
+// wird -- exakt dasselbe Datenformat wie im Haupt-Feed.
+async function injectAuthorProfile(row) {
+  if (!row) return row;
+  const uid = row.user_id || row.creator_id || null;
+  if (!uid) return row;
+  try {
+    const { data: prof } = await ProfileService.getMin(uid);
+    return { ...row, profile: prof || { id: uid } };
+  } catch {
+    return { ...row, profile: { id: uid } };
+  }
+}
+
 const LOADERS = {
   work: async (id) => {
     const row = await one(supabase.from("works").select("*").eq("id", id));
-    return row ? normalizePostForPreview(row, "work") : null;
+    if (!row) return null;
+    return normalizePostForPreview(await injectAuthorProfile(row), "work");
   },
   experience: async (id) => {
     const row = await one(supabase.from("experiences").select("*").eq("id", id));
-    return row ? normalizePostForPreview(row, "experience") : null;
+    if (!row) return null;
+    return normalizePostForPreview(await injectAuthorProfile(row), "experience");
   },
   project: async (id) => {
     const row = await one(supabase.from("impact_projects").select("*").eq("id", id));
@@ -72,19 +98,23 @@ const LOADERS = {
   // row.type -- toFeedItem() in normalizePostForPreview loest das bereits auf.
   event: async (id) => {
     const row = await one(supabase.from("beitraege").select("*").eq("id", id));
-    return row ? normalizePostForPreview(row, "event") : null;
+    if (!row) return null;
+    return normalizePostForPreview(await injectAuthorProfile(row), "event");
   },
   moment: async (id) => {
     const row = await one(supabase.from("beitraege").select("*").eq("id", id));
-    return row ? normalizePostForPreview(row, "moment") : null;
+    if (!row) return null;
+    return normalizePostForPreview(await injectAuthorProfile(row), "moment");
   },
   post: async (id) => {
     const row = await one(supabase.from("beitraege").select("*").eq("id", id));
-    return row ? normalizePostForPreview(row, "moment") : null;
+    if (!row) return null;
+    return normalizePostForPreview(await injectAuthorProfile(row), "moment");
   },
   beitrag: async (id) => {
     const row = await one(supabase.from("beitraege").select("*").eq("id", id));
-    return row ? normalizePostForPreview(row, "moment") : null;
+    if (!row) return null;
+    return normalizePostForPreview(await injectAuthorProfile(row), "moment");
   },
 };
 
