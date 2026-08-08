@@ -16,6 +16,9 @@ import {
 } from "../../design/icons/HuiInteractionIcons.jsx";
 import { haptic } from "../../components/commerce/commerceUtils.js";
 import { prefetchProfile } from "../../lib/perfUtils.js";
+// LIGHTBOX+SLIDER.1 (2026-08-08): Wiederverwendbare Komponenten fuer
+// Bild-Lightbox (Full-Screen Zoom) und Multi-Image Slider.
+import ImageSlider from "../../components/shared/ImageSlider.jsx";
 
 const T = {
   bgCard:   "#FFFFFF",
@@ -466,15 +469,15 @@ export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge
 export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDoubleTap }) {
   const [err,       setErr]      = useState(false);
   const [loaded,    setLoaded]   = useState(false);
-  const [aspect,    setAspect]   = useState(null);
   const [heartPos,  setHeartPos] = useState(null);
   const tapRef = useRef({ t: 0, x: 0, y: 0 });
+  const lightboxTimerRef = useRef(null);
   const containerRef = useRef(null);
   const [containerW, setContainerW] = useState(0);
 
   injectCardCSS();
 
-  // Container-Breite messen für adaptive Höhenberechnung
+  // Container-Breite messen
   useEffect(() => {
     if (!containerRef.current) return;
     const update = () => {
@@ -486,73 +489,78 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
     return () => ro.disconnect();
   }, []);
 
-  let url = null;
-  let isVideo = false;
+  // ── Medien normalisieren ──
+  let imgs = [];
   if (Array.isArray(media) && media.length > 0) {
-    const f = media[0];
-    url = f?.url || (typeof f === "string" ? f : null);
-    isVideo = !!(f && typeof f === "object" && f.type === "video");
+    imgs = media;
   } else if (typeof media === "string" && media.length > 0) {
-    url = media;
+    imgs = [{ url: media, type: "image" }];
   }
-  // Fallback: Video an Datei-Endung erkennen, falls der type-Hint fehlt
-  // (z.B. Alt-Daten ohne moment_type) — verhindert kaputtes <img> bei .mp4.
-  if (url && !isVideo) isVideo = /\.(mp4|webm|mov|m4v|ogv)(\?|#|$)/i.test(url);
+  // Video-Erkennung
+  imgs = imgs.map(m => {
+    const u = typeof m === "string" ? m : m?.url;
+    if (!u) return null;
+    let isVid = !!(typeof m === "object" && m.type === "video");
+    if (!isVid) isVid = /\.(mp4|webm|mov|m4v|ogv)(\?|#|$)/i.test(u);
+    return { url: u, type: isVid ? "video" : "image", alt: (typeof m === "object" && m.alt) || alt || "" };
+  }).filter(Boolean);
 
-  if (!url || err) return null;
+  if (!imgs.length || err) return null;
 
-  // FEED-UNIFORM-FIX (2026-08-07): Adaptive Media Height (06.08) rückgängig
-  // gemacht — sie widersprach der bereits bestehenden UNIFORM-Vorgabe in
-  // UnifiedFeed.jsx (isRelaxed ist dort hart auf false gesetzt: "alle Karten
-  // gleiche Höhe"). Hochformat-Bilder wurden bis zu 560px hoch gerendert,
-  // wodurch fremde Posts (Erlebnisse/Werke/Talente) optisch größer wirkten
-  // als eigene Momente. Fix: exakt der im Kommentar oben dokumentierte
-  // Revert-Pfad — feste Höhe für ALLE Karten, unabhängig vom Seitenverhältnis.
+  const firstUrl = imgs[0].url;
+  const isVideo = imgs[0].type === "video";
+
+  // FEED-UNIFORM-FIX (2026-08-07): Feste Hoehe fuer alle Karten.
   const h = relaxed ? 340 : T.mediaH;
 
   function handleTap(e) {
     const now = Date.now();
     const dt  = now - tapRef.current.t;
     if (dt < 320 && dt > 60) {
-      // Double tap
+      // Double tap → Like (heart burst)
+      if (lightboxTimerRef.current) { clearTimeout(lightboxTimerRef.current); lightboxTimerRef.current = null; }
       const rect = e.currentTarget.getBoundingClientRect();
       const cx = (e.touches?.[0]?.clientX || e.clientX) - rect.left;
       const cy = (e.touches?.[0]?.clientY || e.clientY) - rect.top;
       setHeartPos({ x: cx, y: cy });
       onDoubleTap?.();
       setTimeout(() => setHeartPos(null), 750);
+      tapRef.current = { t: 0 };
+    } else {
+      // Single tap → start timer for lightbox (wird cancelled bei double-tap)
+      tapRef.current = { t: now };
+      if (lightboxTimerRef.current) clearTimeout(lightboxTimerRef.current);
+      lightboxTimerRef.current = setTimeout(() => {
+        if (typeof window !== "undefined" && window.__HUI_LIGHTBOX__) {
+          window.__HUI_LIGHTBOX__.open(imgs, 0);
+        }
+      }, 300);
     }
-    tapRef.current = { t: now };
   }
 
-  return (
-    <div
-      ref={containerRef}
-      style={{
-        margin: "10px " + T.p + "px 0",
-        height: h, borderRadius: T.rMedia,
-        overflow: "hidden", background: "#F0EFED",
-        flexShrink: 0, position: "relative",
-        cursor: "pointer",
-        // Soft shadow under media
-        boxShadow: "0 4px 20px rgba(26,26,46,0.08)",
-      }}
-      onTouchEnd={handleTap}
-      onDoubleClick={handleTap}
-    >
-      {/* Blur placeholder while loading */}
-      {!loaded && (
-        <div style={{
-          position: "absolute", inset: 0,
-          background: "linear-gradient(135deg,rgba(22,215,197,0.07),rgba(255,138,107,0.07))",
-          animation: "huiShimmer 1.6s ease-in-out infinite",
-          backgroundSize: "200% 100%",
-        }} />
-      )}
-
-      {isVideo ? (
+  // ── Single video: keep video with controls (no lightbox needed) ──
+  if (isVideo && imgs.length === 1) {
+    return (
+      <div
+        ref={containerRef}
+        style={{
+          margin: "10px " + T.p + "px 0",
+          height: h, borderRadius: T.rMedia,
+          overflow: "hidden", background: "#F0EFED",
+          flexShrink: 0, position: "relative",
+          boxShadow: "0 4px 20px rgba(26,26,46,0.08)",
+        }}
+      >
+        {!loaded && (
+          <div style={{
+            position: "absolute", inset: 0,
+            background: "linear-gradient(135deg,rgba(22,215,197,0.07),rgba(255,138,107,0.07))",
+            animation: "huiShimmer 1.6s ease-in-out infinite",
+            backgroundSize: "200% 100%",
+          }} />
+        )}
         <video
-          src={url}
+          src={firstUrl}
           muted
           loop
           playsInline
@@ -570,28 +578,57 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
             background: "#000",
           }}
         />
-      ) : (
-        <img
-          src={url}
-          alt={alt || ""}
-          loading="lazy"
-          onLoad={(e) => {
-            const img = e.target;
-            if (img.naturalWidth && img.naturalHeight) {
-              setAspect(img.naturalWidth / img.naturalHeight);
-            }
-            setLoaded(true);
-          }}
-          onError={() => setErr(true)}
-          className="hui-card-img"
-          style={{
-            width: "100%", height: "100%", objectFit: "cover", display: "block",
-            opacity: loaded ? 1 : 0,
-            transition: "opacity 0.3s ease",
-            willChange: "opacity, transform",
-          }}
-        />
+      </div>
+    );
+  }
+
+  // ── 2+ images: use ImageSlider with lightbox on tap ──
+  // ── 1 image: clickable to open lightbox ──
+  // Both cases handled by ImageSlider (single-image = no dots, just tappable)
+  return (
+    <div
+      ref={containerRef}
+      style={{
+        margin: "10px " + T.p + "px 0",
+        height: h, borderRadius: T.rMedia,
+        overflow: "hidden", background: "#F0EFED",
+        flexShrink: 0, position: "relative",
+        cursor: "pointer",
+        boxShadow: "0 4px 20px rgba(26,26,46,0.08)",
+      }}
+      onTouchEnd={handleTap}
+      onDoubleClick={handleTap}
+    >
+      {/* Blur placeholder while loading (nur fuer erstes Bild) */}
+      {!loaded && (
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "linear-gradient(135deg,rgba(22,215,197,0.07),rgba(255,138,107,0.07))",
+          animation: "huiShimmer 1.6s ease-in-out infinite",
+          backgroundSize: "200% 100%",
+          zIndex: 0,
+        }} />
       )}
+
+      <div style={{ position: "relative", zIndex: 1, height: "100%" }}>
+        <ImageSlider
+          images={imgs}
+          height={h}
+          borderRadius={0}
+          showDots={imgs.length > 1}
+          objectFit="cover"
+          onImageTap={null /* use global lightbox via window.__HUI_LIGHTBOX__ */}
+        />
+        {/* onLoad tracking for first image shimmer */}
+        <img
+          src={firstUrl}
+          alt=""
+          loading="lazy"
+          style={{ display: "none" }}
+          onLoad={() => setLoaded(true)}
+          onError={() => setErr(true)}
+        />
+      </div>
 
       {/* Heart burst on double-tap */}
       {heartPos && (

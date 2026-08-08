@@ -56,6 +56,7 @@ import { createTabPage, filterValidPages } from './lib/factories/createTabPage.j
 import { loadPushSettings, initPushNotifications, invalidateTokensOnLogout } from "./lib/pushNotificationService.js";
 import { setupPushDeepLinkHandler } from "./lib/pushDeepLinkHandler.js";
 import InAppNotificationBanner from "./components/notifications/InAppNotificationBanner.jsx";
+import ImageLightbox from "./components/shared/ImageLightbox.jsx";
 // HUILogoSplash entfernt — IntroVideoScreen ersetzt Splash
 
 // ── APP_ROUTES: ÜBERGANGSSTRUKTUR (NAV-001B) ─────────────────────────────────
@@ -899,6 +900,7 @@ export default function App() {
                               </GuidanceProvider>
                             </ImageGalleryProvider>
                           </ContentPreviewProvider>
+                          <ImageLightbox />
                         </LiveTickerProvider>
                       </SavedPostsProvider>
                     </RadiusProvider>

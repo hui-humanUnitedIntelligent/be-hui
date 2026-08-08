@@ -151,7 +151,13 @@ function ImageGallery({ images, title }) {
       {/* Image */}
       {img ? (
         <img loading="lazy" decoding="async" key={idx} src={img} alt={`${title} ${idx+1}`}
+          onClick={() => {
+            if (typeof window !== "undefined" && window.__HUI_LIGHTBOX__) {
+              window.__HUI_LIGHTBOX__.open(images.map(function(u) { return { url: u, type: "image" }; }), idx);
+            }
+          }}
           style={{ width:"100%", height:"100%", objectFit:"cover",
+            cursor:"pointer",
             animation:"wdFadeUp 0.35s both",
             filter:"brightness(0.88) saturate(1.1)" }}/>
       ) : (

@@ -19,6 +19,7 @@
 //                                                 Inline-Implementierung.
 // ══════════════════════════════════════════════════════════════════
 import { HUILocationIcon } from '../../design/icons/HuiSystemIcons.jsx';
+import ImageSlider from './ImageSlider.jsx';
 import React, { useCallback, useEffect, useMemo, useState, lazy, Suspense } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
@@ -198,9 +199,16 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
 
         {item && (
           <div style={{ padding:"0 0 8px" }}>
-            {/* Titelbild */}
-            {hero ? (
-              <img loading="lazy" decoding="async" src={hero} alt={item.title || ""} style={{ width:"100%", maxHeight:320, objectFit:"cover", display:"block" }}/>
+            {/* Titelbild - LIGHTBOX+SLIDER.1 (2026-08-08):
+                Bei 2+ Bildern horizontaler Slider. Tappbar -> Full-Screen Lightbox. */}
+            {(item?.media || []).length > 0 ? (
+              <ImageSlider
+                images={item.media}
+                height={320}
+                borderRadius={0}
+                showDots={true}
+                objectFit="cover"
+              />
             ) : item.type === "project" || item.type === "projekt" ? (
               <div style={{ width:"100%", height:140, display:"flex", alignItems:"center", justifyContent:"center",
                 background: item.color ? `${item.color}14` : "rgba(13,196,181,0.08)", fontSize:44 }}>

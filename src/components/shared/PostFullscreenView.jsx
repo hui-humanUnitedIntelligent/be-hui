@@ -38,6 +38,7 @@
 //     angebunden -- dieselbe CommentsSheet-Komponente wie ContentPreviewSheet.
 // ══════════════════════════════════════════════════════════════════
 import { HUILocationIcon } from '../../design/icons/HuiSystemIcons.jsx';
+import ImageSlider from './ImageSlider.jsx';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useSingleReaction } from "../../lib/useReactions.jsx";
@@ -249,11 +250,17 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
           </div>
         </div>
 
-        {/* 1) Grosses Bild/Video */}
-        {hero && (mountedItem.media?.[0]?.type === "video" || /\.(mp4|webm|mov|m4v|ogv)(\?|#|$)/i.test(hero)
-          ? <video src={hero} controls playsInline preload="metadata" style={{ width:"100%", maxHeight:"62vh", objectFit:"cover", display:"block", marginTop:8, background:"#000" }}/>
-          : <img loading="lazy" decoding="async" src={hero} alt={mountedItem.title || ""} style={{ width:"100%", maxHeight:"62vh", objectFit:"cover", display:"block", marginTop:8 }}/>
-        )}
+        {/* 1) Grosses Bild/Video — LIGHTBOX+SLIDER.1 (2026-08-08):
+            Bei 2+ Bildern Slider. Tappbar -> Full-Screen Lightbox. */}
+        {(mountedItem.media || []).length > 0 ? (
+          <ImageSlider
+            images={mountedItem.media}
+            height={Math.round(window.innerHeight * 0.62)}
+            borderRadius={0}
+            showDots={true}
+            objectFit="cover"
+          />
+        ) : null}
 
         <div style={{ padding:"18px 18px 0" }}>
           {/* 2) Autor: Profilbild / Name / Ort / Datum — NICHT klickbar (2026-07-29) */}
@@ -281,16 +288,7 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
             </div>
           )}
 
-          {/* Weitere Medien */}
-          {extraMedia.length > 0 && (
-            <div className="pfv-strip" style={{ display:"flex", gap:8, overflowX:"auto", marginBottom:16 }}>
-              {extraMedia.map((m, i) => (
-                m.type === "video"
-                  ? <video key={i} src={m.url} muted playsInline preload="metadata" style={{ width:110, height:110, borderRadius:12, objectFit:"cover", flexShrink:0 }}/>
-                  : <img loading="lazy" decoding="async" key={i} src={m.url} alt="" style={{ width:110, height:110, borderRadius:12, objectFit:"cover", flexShrink:0 }}/>
-              ))}
-            </div>
-          )}
+          {/* Weitere Medien — entfallen, Slider oben zeigt alle Bilder (LIGHTBOX+SLIDER.1) */}
 
           {/* 4) Eingebettete Inhalte (Werke/Erlebnisse/Projekte/Veranstaltungen) --
               vorbereitet, rendert nur bei vorhandenen Daten. Aktuell existiert
