@@ -218,7 +218,7 @@ export default function ChatInput({ onSend, sending = false, placeholder = "Schr
 
   return (
     <div style={{
-      padding:"8px 14px max(20px, env(safe-area-inset-bottom, 20px))",
+      padding:"8px 14px max(20px, calc(env(safe-area-inset-bottom, 20px) + var(--hui-keyboard-inset, 0px)))",
       background:"rgba(242,244,248,0.90)",
       backdropFilter:"blur(24px)", WebkitBackdropFilter:"blur(24px)",
       borderTop:"1px solid rgba(22,215,197,0.10)",

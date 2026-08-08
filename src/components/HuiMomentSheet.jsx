@@ -15,6 +15,7 @@
 // ════════════════════════════════════════════════════════════════
 import { HUIWarnIcon } from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useKeyboardInset } from "../hooks/useKeyboardInset.js";
 import { supabase } from "../lib/supabaseClient.js";
 
 const D = {
@@ -374,7 +375,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
         padding:`0 0 max(32px,calc(24px + env(safe-area-inset-bottom,0px)))`,
         boxShadow:"0 -8px 48px rgba(15,30,26,0.18),0 -2px 12px rgba(15,30,26,0.08)",
         backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",
-        maxHeight:"92vh",overflowY:"auto", WebkitOverflowScrolling:"touch",
+        maxHeight:"calc(92dvh - var(--hui-keyboard-inset, 0px))",overflowY:"auto", WebkitOverflowScrolling:"touch",
         animation:isClosing
           ?"hms-sheet-out .28s cubic-bezier(.4,0,1,1) both"
           :"hms-sheet-in  .34s cubic-bezier(.22,1,.36,1) both",

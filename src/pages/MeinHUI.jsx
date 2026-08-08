@@ -157,7 +157,7 @@ function ProfileHeader({ profile, onNotif, onSettings, delay }) {
         </div>
         <div style={{ fontFamily: FONT, fontSize: 17, fontWeight: 700, color: T.ink, lineHeight: 1.2, display: "flex", alignItems: "center", gap: 5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {name || "Mein HUI"}
-          <span style={{ fontSize: 13 }}>🌿</span>
+          <span style={{ fontSize: 13 }}><span className="hui-emoji">🌿</span></span>
         </div>
       </div>
 

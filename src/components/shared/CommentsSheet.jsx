@@ -42,6 +42,7 @@ function notifyCommentsChanged(postId, postType) {
   } catch { /* silent */ }
 }
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 
 const T = {
   ink: "#1A1A2E", inkSoft: "rgba(26,26,46,0.60)", inkFaint: "rgba(26,26,46,0.38)",
@@ -364,6 +365,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
   const [replyText, setReplyText] = useState("");
   const [submittingReply, setSubmittingReply] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const kbdInset = useKeyboardInset();
   const inputRef = useRef(null);
   const authorCache = useRef(new Map());
   // INSTANT-COMMENTS.1 (2026-08-07): merkt sich, für welchen postId der
@@ -661,7 +663,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
         position:"absolute", inset:0, background:T.overlay,
       }}/>
       <div className="cs-sheet" style={{
-        position:"absolute", left:0, right:0, bottom:0, maxHeight:"86vh",
+        position:"absolute", left:0, right:0, bottom:0, maxHeight:"calc(86dvh - var(--hui-keyboard-inset, 0px))",
         background:"rgba(252,253,252,0.96)",
         borderTopLeftRadius:28, borderTopRightRadius:28,
         boxShadow:"0 -12px 48px rgba(26,26,46,0.22)",
@@ -782,7 +784,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
           )}
           <div style={{
             display:"flex", gap:8, alignItems:"flex-end", padding:"10px 16px",
-            paddingBottom:"max(12px, env(safe-area-inset-bottom))",
+            paddingBottom:"max(12px, calc(env(safe-area-inset-bottom, 0px) + var(--hui-keyboard-inset, 0px)))",
             borderTop:`1px solid ${T.border}`, background:"rgba(252,253,252,0.98)",
           }}>
             <Avatar url={profile?.avatar_url} name={profile?.full_name || profile?.display_name || profile?.username} size={32} />

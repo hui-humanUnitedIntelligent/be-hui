@@ -6,6 +6,7 @@
 
 import { HUIAnsichtIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef, useCallback } from "react";
+import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { useAuth } from "../../lib/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
 import { HUI } from "../../design/hui.design.js";

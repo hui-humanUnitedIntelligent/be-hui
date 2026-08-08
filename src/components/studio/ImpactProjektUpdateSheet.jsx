@@ -12,6 +12,7 @@ import { useState, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 
 // ── Design Tokens ─────────────────────────────────────────────────
 const T = {
@@ -172,7 +173,7 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
       <div style={{
         width: "100%", maxWidth: 480, margin: "0 auto",
         background: T.bg, borderRadius: "24px 24px 0 0",
-        maxHeight: "92vh", overflow: "hidden",
+        maxHeight:"calc(92dvh - var(--hui-keyboard-inset, 0px))", overflow: "hidden",
         display: "flex", flexDirection: "column",
         boxShadow: "0 -4px 32px rgba(26,26,24,0.18)",
         animation: "ipuSlideUp 0.28s cubic-bezier(0.22,1,0.36,1) both",

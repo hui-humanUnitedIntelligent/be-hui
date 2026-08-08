@@ -4,6 +4,7 @@ import { HUISettingsIcon,
   HUIWarnIcon,
 } from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { useKeyboardInset } from "../hooks/useKeyboardInset.js";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth }  from "../lib/AuthContext";
 import { HUI } from "../design/hui.design.js";

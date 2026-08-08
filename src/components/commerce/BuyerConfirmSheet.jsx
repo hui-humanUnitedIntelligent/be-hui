@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { useWizardBodyLock from '../../lib/wizardBodyLock.js'
 import { supabase } from '../../lib/supabaseClient.js'
 

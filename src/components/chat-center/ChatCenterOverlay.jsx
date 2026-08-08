@@ -4,6 +4,7 @@
 // Keine opacity-Tricks, keine doppelten Layer, keine Animation-Gates.
 
 import React, { useState, useEffect, lazy, Suspense } from "react";
+import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { createPortal } from "react-dom";
 import ChatAtmosphere  from "./ChatAtmosphere.jsx";
 import ConversationList from "./ConversationList.jsx";

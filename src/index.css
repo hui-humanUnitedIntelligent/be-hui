@@ -391,3 +391,87 @@ img[loading="lazy"] {
 .animate-splash {
   animation: ds-ken-burns 3s var(--hui-ease) forwards;
 }
+
+/* ═══ Keyboard-Aware Layout (2026-08-08) ══════════════════════
+   Wenn die Tastatur aufgeht, passt sich das Layout über die
+   --hui-keyboard-inset CSS-Variable an (gesetzt durch useKeyboardInset.js).
+   Modals/Bottom-Sheets nutzen diese Utilities. */
+
+/* Modal-Container: Höhe reduziert sich bei geöffneter Tastatur */
+.hui-kbd-aware {
+  height: calc(100dvh - var(--hui-keyboard-inset, 0px));
+  transition: height 0.1s ease-out;
+}
+
+/* Bottom-Sheet: rutscht über die Tastatur */
+.hui-kbd-bottom-sheet {
+  max-height: calc(100dvh - var(--hui-keyboard-inset, 0px));
+  transition: max-height 0.15s ease-out;
+}
+
+/* Input-Fokus: sicherstellen dass Input sichtbar bleibt */
+.hui-kbd-input:focus {
+  scroll-margin-bottom: calc(var(--hui-keyboard-inset, 0px) + 20px);
+}
+
+/* ═══ Tablet Optimierung (2026-08-08) ═════════════════════════
+   Tablets (768px+) erhalten ein breiteres Layout mit
+   zentrierten Cards und größeren Touch-Targets */
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* Hauptcontainer: max-width statt vollbreite */
+  .hui-tab-container {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  /* Feed-Cards: breiter auf Tablet */
+  .hui-feed-card {
+    max-width: 680px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  /* Touch-Targets: größer auf Tablet */
+  .hui-touch-target {
+    min-height: 48px;
+    min-width: 48px;
+  }
+}
+
+@media (min-width: 1024px) {
+  /* Desktop/Tablet-Landscape: noch breiter */
+  .hui-tab-container {
+    max-width: 840px;
+    margin: 0 auto;
+  }
+  .hui-feed-card {
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+/* ═══ Emoji Rendering (2026-08-08) ════════════════════════════
+   Sorgt für konsistentes Emoji-Rendering auf allen Geräten.
+   iOS nutzt Apple Color Emoji, Android nutzt Noto Color Emoji.
+   Die font-family Cascade stellt sicher dass Emojis immer mit
+   der besten verfügbaren Emoji-Font gerendert werden. */
+
+/* Emoji-spezifische Klasse für UI-Emojis (System/Labels) */
+.hui-emoji {
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", 
+               "Noto Emoji", "Android Emoji", sans-serif;
+  font-variant-emoji: emoji;
+  -webkit-font-feature-settings: "liga" 1;
+  font-feature-settings: "liga" 1;
+}
+
+/* Global: Emoji-Font als Fallback in der gesamten App */
+* {
+  font-variant-emoji: emoji;
+}
+
+/* Variation-Selector Fix: Sicherstellen dass VS16 (FE0F) gerendert wird */
+[data-emoji] {
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", 
+               "Android Emoji", sans-serif;
+}

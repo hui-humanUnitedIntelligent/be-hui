@@ -17,6 +17,7 @@ import {
   HUIWerkeIcon, HUIErlebnisIcon, HUIImpactIcon, HUIGemeinschaftIcon, HUIPrivatIcon,
 } from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef, useCallback, useEffect } from "react";
+import { useKeyboardInset } from "../hooks/useKeyboardInset.js";
 import { publishExperience } from "../lib/factories/experienceContract.js";
 import { supabase }  from "../lib/supabaseClient";
 import { useAuth }   from "../lib/AuthContext";

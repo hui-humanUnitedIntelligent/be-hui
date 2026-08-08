@@ -238,7 +238,7 @@ function VerbindungsDialog({ profile, currentUserId, onClose, onSuccess }) {
         {sent ? (
           // Bestätigung
           <div style={{textAlign:"center",padding:"20px 0 8px"}}>
-            <div style={{fontSize:44,marginBottom:14}}>🤝</div>
+            <div style={{fontSize:44,marginBottom:14}}><span className="hui-emoji">🤝</span></div>
             <div style={{fontSize:18,fontWeight:800,color:"#1A1A18",letterSpacing:"-0.03em",marginBottom:8}}>
               Anfrage gesendet
             </div>
@@ -626,7 +626,7 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat, onOpenKomp
               fontFamily:"inherit", cursor:"default",
               display:"flex", alignItems:"center", justifyContent:"center", gap:7,
             }}>
-              🌿 Anfrage gesendet
+              <span className="hui-emoji">🌿</span> Anfrage gesendet
             </button>
 
           ) : isDeclined ? (
@@ -652,7 +652,7 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat, onOpenKomp
               display:"flex", alignItems:"center", justifyContent:"center", gap:7,
               touchAction:"manipulation",
             }}>
-              🤝 Verbinden
+              <span className="hui-emoji">🤝</span> Verbinden
             </button>
 
           ) : (
@@ -666,7 +666,7 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat, onOpenKomp
               display:"flex", alignItems:"center", justifyContent:"center", gap:7,
               touchAction:"manipulation",
             }}>
-              🌱 Im Blick behalten
+              <span className="hui-emoji">🌱</span> Im Blick behalten
             </button>
           )}
 
@@ -891,7 +891,7 @@ function AbschlussBar({ profile, loading }) {
         background:"rgba(255,255,255,0.22)",
         display:"flex",alignItems:"center",justifyContent:"center",
         fontSize:24,flexShrink:0,
-      }}>🤝</div>
+      }}><span className="hui-emoji">🤝</span></div>
       <div style={{flex:1}}>
         <div style={{fontSize:14,fontWeight:800,color:"#fff",marginBottom:4,lineHeight:1.3}}>
           Lass uns gemeinsam die Welt ein Stück besser machen.
@@ -976,7 +976,7 @@ function AbschlussButtons({ profile, currentUserId, onOpenChat }) {
             fontFamily:"inherit", cursor:"default",
             display:"flex", alignItems:"center", justifyContent:"center", gap:7,
           }}>
-            🌿 Anfrage gesendet
+            <span className="hui-emoji">🌿</span> Anfrage gesendet
           </button>
 
         ) : isDeclined ? (
@@ -1002,7 +1002,7 @@ function AbschlussButtons({ profile, currentUserId, onOpenChat }) {
             display:"flex", alignItems:"center", justifyContent:"center", gap:7,
             touchAction:"manipulation",
           }}>
-            🤝 Verbinden
+            <span className="hui-emoji">🤝</span> Verbinden
           </button>
 
         ) : (
@@ -1016,7 +1016,7 @@ function AbschlussButtons({ profile, currentUserId, onOpenChat }) {
             display:"flex", alignItems:"center", justifyContent:"center", gap:7,
             touchAction:"manipulation",
           }}>
-            🌱 Im Blick behalten
+            <span className="hui-emoji">🌱</span> Im Blick behalten
           </button>
         )}
 

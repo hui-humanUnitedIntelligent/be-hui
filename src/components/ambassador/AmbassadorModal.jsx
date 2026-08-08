@@ -3,6 +3,7 @@ import { HUIAmbassadorIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useAmbassadorApplication } from "../../hooks/useAmbassador.js";
+import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 const T = {

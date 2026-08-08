@@ -7,6 +7,7 @@ import React from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 
 const UPDATE_TYPES = ["Meilenstein", "Fortschritt", "Neuigkeit", "Geplant"];
 
@@ -80,7 +81,7 @@ export default function ImpactUpdateSheet({ project, currentUser, onClose, onSuc
           zIndex: 10500,
           background: "#FDFAF5",
           borderRadius: "24px 24px 0 0",
-          maxHeight: "90vh",
+          maxHeight:"calc(90dvh - var(--hui-keyboard-inset, 0px))",
           display: "flex",
           flexDirection: "column",
           boxShadow: "0 -8px 40px rgba(0,0,0,0.2)",

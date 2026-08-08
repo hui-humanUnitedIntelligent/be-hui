@@ -937,7 +937,7 @@ function NotifCard({ n, onRead, onDelete, onAction = () => {} }) {
           }}
           onClick={n.actor_id ? e => { e.stopPropagation(); openCreatorProfile(n.actor_id); } : undefined}
           >
-            {meta.emoji}
+            <span className="hui-emoji" style={{fontFamily:'"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Android Emoji", sans-serif'}}>{meta.emoji}</span>
           </div>
 
           {/* Inhalt */}

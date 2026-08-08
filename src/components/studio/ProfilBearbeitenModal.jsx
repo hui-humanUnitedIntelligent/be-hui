@@ -42,6 +42,7 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { isProfileTalent } from "../../lib/profileUtils.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 
 // ── Design Tokens ──────────────────────────────────────────────────
 const T = {
@@ -262,7 +263,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
       <div style={{
         width:"100%", maxWidth:480, margin:"0 auto",
         background:T.bg, borderRadius:"24px 24px 0 0",
-        maxHeight:"94vh", overflow:"hidden",
+        maxHeight:"calc(94dvh - var(--hui-keyboard-inset, 0px))", overflow:"hidden",
         display:"flex", flexDirection:"column",
         boxShadow:"0 -4px 32px rgba(26,26,24,0.20)",
         fontFamily:T.ff,

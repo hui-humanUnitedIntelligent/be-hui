@@ -1818,7 +1818,7 @@ function TalentErweiterung({ profile, onProfileUpdate }) {
         color: "#fff",
       }}>
         <div style={{ fontSize: 22, fontWeight: 800, marginBottom: 4 }}>
-          🌱 Du bist Teil der Gemeinschaft
+          <span className="hui-emoji">🌱</span> Du bist Teil der Gemeinschaft
         </div>
         <div style={{ fontSize: 13, opacity: 0.85 }}>
           Gestalte dein Profil und werde sichtbar.
@@ -1965,7 +1965,7 @@ function DeleteWerkConfirm({ werk, onConfirm, onCancel }) {
         background:"#fff", borderRadius:16, padding:"24px 20px 20px",
         maxWidth:320, width:"100%", boxShadow:"0 8px 40px rgba(0,0,0,0.18)",
       }}>
-        <div style={{ fontSize:36, textAlign:"center", marginBottom:8 }}>🗑️</div>
+        <div style={{ fontSize:36, textAlign:"center", marginBottom:8 }}><span className="hui-emoji">🗑</span>️</div>
         <div style={{ fontSize:16, fontWeight:700, textAlign:"center", marginBottom:6, color:"#1a1a18" }}>
           Werk unwiderruflich löschen?
         </div>
@@ -2004,7 +2004,7 @@ function DeleteTalentConfirm({ talent, onConfirm, onCancel }) {
         background:"#fff", borderRadius:16, padding:"24px 20px 20px",
         maxWidth:320, width:"100%", boxShadow:"0 8px 40px rgba(0,0,0,0.18)",
       }}>
-        <div style={{ fontSize:36, textAlign:"center", marginBottom:8 }}>🗑️</div>
+        <div style={{ fontSize:36, textAlign:"center", marginBottom:8 }}><span className="hui-emoji">🗑</span>️</div>
         <div style={{ fontSize:16, fontWeight:700, textAlign:"center", marginBottom:6, color:"#1a1a18" }}>
           Talent-Angebot unwiderruflich löschen?
         </div>
@@ -2681,7 +2681,7 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
           background:"#fff", borderRadius:16, padding:"24px 20px 20px",
           maxWidth:320, width:"100%", boxShadow:"0 8px 40px rgba(0,0,0,0.18)",
         }}>
-          <div style={{ fontSize:36, textAlign:"center", marginBottom:8 }}>🗑️</div>
+          <div style={{ fontSize:36, textAlign:"center", marginBottom:8 }}><span className="hui-emoji">🗑</span>️</div>
           <div style={{ fontSize:16, fontWeight:700, textAlign:"center", marginBottom:6, color:"#1a1a18" }}>
             Erlebnis unwiderruflich löschen?
           </div>
@@ -3260,7 +3260,7 @@ function GemeinschaftsKarte({ onJoin }) {
           onTouchStart={e => { e.currentTarget.style.transform="scale(0.97)"; }}
           onTouchEnd={e => { e.currentTarget.style.transform="scale(1)"; }}
         >
-          🤝 Der Gemeinschaft beitreten
+          <span className="hui-emoji">🤝</span> Der Gemeinschaft beitreten
         </button>
       </div>
     </div>

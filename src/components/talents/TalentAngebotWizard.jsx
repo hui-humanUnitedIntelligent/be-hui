@@ -14,6 +14,7 @@
 import React, { useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import {
   createTalent, updateTalent, uploadTalentImage, TALENT_KATEGORIEN,

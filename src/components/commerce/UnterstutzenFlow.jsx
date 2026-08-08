@@ -30,6 +30,7 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { useHuiActions, A } from "../../core/hui.actions.js";
 import { S } from "../../core/hui.sources.js";
 import { toast } from "../../lib/useToast.jsx";
+import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 
 // ─────────────────────────────────────────────────────────────────
 // ImpactKarte — kompakt, oberhalb des Stripe Elements

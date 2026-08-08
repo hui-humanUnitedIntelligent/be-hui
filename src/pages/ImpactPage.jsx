@@ -1040,7 +1040,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
                   border:"1px solid rgba(239,68,68,0.20)",
                 }}>
                   <div style={{ fontSize:13, fontWeight:600, color:"#ef4444" }}>
-                    🗳 Keine Stimmen mehr diesen Monat
+                    <span className="hui-emoji">🗳</span> Keine Stimmen mehr diesen Monat
                   </div>
                   <div style={{ fontSize:11, color:"#888", marginTop:4 }}>
                     Deine Stimmen werden am 1. des nächsten Monats erneuert.
@@ -2232,7 +2232,7 @@ function HerzensKarte({ p, idx }) {
           {/* Stimmen-Counter */}
           <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:5 }}>
             <span style={{ fontSize:10, color:T.muted }}>
-              🗳 {safeNum(p.vote_count || p.votes)} {safeNum(p.vote_count || p.votes) === 1 ? "Stimme" : "Stimmen"}
+              <span className="hui-emoji">🗳</span> {safeNum(p.vote_count || p.votes)} {safeNum(p.vote_count || p.votes) === 1 ? "Stimme" : "Stimmen"}
             </span>
           </div>
           {/* Finanzierungsbalken */}
@@ -2279,7 +2279,7 @@ function WeitereHerzensprojekte({ data, loading }) {
           justifyContent:"space-between", marginBottom:4 }}>
           <h2 style={{ margin:0, fontSize:20, fontWeight:900, color:T.ink,
             letterSpacing:"-0.022em" }}>
-            🌱 Weitere Herzensprojekte
+            <span className="hui-emoji">🌱</span> Weitere Herzensprojekte
           </h2>
           {!loading && list.length > 4 && !expanded && (
             <button onClick={() => setExpanded(true)} className="ip-p"
@@ -2480,7 +2480,7 @@ function ApprovedAppCardCompact({ app, rank, onOpen }) {
             border:"1px solid rgba(34,197,94,0.20)" }}>✅ Bewilligt</span>
           <span style={{ fontSize:11, color: app.vote_count > 0 ? T.teal : "#aaa", fontWeight:700,
             transition:"color 0.3s ease" }}>
-            🗳 {app.vote_count || 0} {app.vote_count === 1 ? "Stimme" : "Stimmen"}
+            <span className="hui-emoji">🗳</span> {app.vote_count || 0} {app.vote_count === 1 ? "Stimme" : "Stimmen"}
           </span>
         </div>
       </div>

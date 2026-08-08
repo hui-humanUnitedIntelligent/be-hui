@@ -14,6 +14,7 @@ import PushNotificationBlock from './PushNotificationBlock.jsx';
 import MeineTicketsPage from '../../pages/studio/MeineTicketsPage.jsx';
 import { APP_VERSION } from '../../version.ts';
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 
 // ── Design Tokens ─────────────────────────────────────────────
 const T = {
@@ -337,7 +338,8 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
   const { profile: authCtxProfile } = useAuth() || {};
   const profile = profileProp || authCtxProfile || null;
   if (!profile) return null;
-  const [view, setView] = useState("main"); // "main" | "edit" | "privacy" | "contact" | "security" | "support" | "tickets"
+  const [view, setView] = useState("main");
+  const kbdInset = useKeyboardInset(); // "main" | "edit" | "privacy" | "contact" | "security" | "support" | "tickets"
 
   const logout = async () => {
     // Push-Tokens invalidieren vor dem Logout
@@ -350,12 +352,12 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
     position:"fixed", inset:0, zIndex:10500,
     background:"rgba(10,10,8,0.55)", backdropFilter:"blur(4px)",
     display:"flex", alignItems:"flex-end", justifyContent:"center",
-    paddingBottom:64, // Navbar-Höhe — Sheet endet über der Navbar
+    paddingBottom:"calc(64px + var(--hui-keyboard-inset, 0px))",
   };
   const sheet = {
     background:T.bg, borderRadius:"20px 20px 0 0",
     width:"100%", maxWidth:560,
-    maxHeight:"calc(92dvh - 64px)",
+    maxHeight:"calc(92dvh - 64px - var(--hui-keyboard-inset, 0px))",
     overflowY: "auto",
     boxShadow:"0 -8px 40px rgba(0,0,0,0.18)",
     paddingBottom: "env(safe-area-inset-bottom, 16px)",

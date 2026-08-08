@@ -13,6 +13,7 @@
 // ══════════════════════════════════════════════════════════════
 import { HUIMailIcon, HUIVerifIcon, HUIWarnIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, createContext, useContext, useCallback } from "react";
+import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../lib/AuthContext.jsx";
 

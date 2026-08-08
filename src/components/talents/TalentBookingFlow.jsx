@@ -19,6 +19,7 @@ import { createPortal } from "react-dom";
 import { useAuth } from "../../lib/AuthContext";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import StripePaymentStep from "../commerce/StripePaymentStep.jsx";
 import { IMPACT_RATE } from "../commerce/commerceUtils.js";

@@ -12,6 +12,7 @@ import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { compressImageForUpload, JPEG_QUALITY, COVER_MAX_DIM } from "../../lib/profileMedia.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { searchPlaces, geocodeWithFallback } from "../../lib/geocoding.js";
 import LocationAutocompleteInput from "../shared/LocationAutocompleteInput.jsx";

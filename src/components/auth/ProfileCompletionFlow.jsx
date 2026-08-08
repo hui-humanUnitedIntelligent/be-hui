@@ -6,6 +6,7 @@ import React, { useState, useRef, useCallback } from "react";
 import { supabase }           from "../../lib/supabaseClient.js";
 import { useAuth }            from "../../lib/AuthContext.jsx";
 import { UsernameInput, validateUsername } from "../../lib/useUsernameCheck.jsx";
+import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 
 const TEAL  = "#16D7C5";
 const CORAL = "#FF8A6B";
