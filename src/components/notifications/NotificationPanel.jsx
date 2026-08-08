@@ -829,6 +829,14 @@ function NotifCard({ n, onRead, onDelete, onAction = () => {} }) {
     onAction(notif);
   };
 
+  // KOMPAKT.1 (2026-08-08, Nutzer-Feedback): Wenn die kleine Kategorie-
+  // Kennung (meta.label, z.B. "Buchung bestätigt") inhaltlich identisch mit
+  // dem fett gedruckten Titel ist (z.B. n.title === "Buchung bestätigt ✓"),
+  // wuerde derselbe Text zweimal untereinander stehen -- "einmal reicht".
+  // Vergleich ignoriert Häkchen/Satzzeichen am Ende sowie Groß-/Kleinschreibung.
+  const normLabel = (s) => (s || "").replace(/[✓✔️.!]+$/g, "").trim().toLowerCase();
+  const labelDuplicatesTitle = !!(n.title && meta.label && normLabel(n.title) === normLabel(meta.label));
+
   return (
     <>
       {open && <DetailModal n={n} onClose={() => setOpen(false)} onAction={handleAction} />}
@@ -836,20 +844,20 @@ function NotifCard({ n, onRead, onDelete, onAction = () => {} }) {
       <div
         onClick={handleOpen}
         style={{
-          borderRadius:T.r12, marginBottom:8, overflow:"hidden",
+          borderRadius:T.r12, marginBottom:6, overflow:"hidden",
           background: n.is_read ? T.bgCard : T.tealSoft,
           border:`1px solid ${n.is_read ? T.border : T.tealMid}`,
           cursor:"pointer", transition:"background .15s",
           WebkitTapHighlightColor:"transparent",
         }}
       >
-        <div style={{ display:"flex", alignItems:"flex-start", gap:12, padding:"12px 14px" }}>
+        <div style={{ display:"flex", alignItems:"flex-start", gap:10, padding:"9px 11px" }}>
           {/* Avatar / Icon */}
           <div style={{
-            width:38, height:38, borderRadius:"50%", flexShrink:0,
+            width:32, height:32, borderRadius:"50%", flexShrink:0,
             background: n.is_read ? "rgba(26,26,24,0.05)" : T.tealSoft,
             border:`1px solid ${n.is_read ? T.border : T.tealMid}`,
-            display:"flex", alignItems:"center", justifyContent:"center", fontSize:18,
+            display:"flex", alignItems:"center", justifyContent:"center", fontSize:15,
             cursor: n.actor_id ? "pointer" : "default",
             WebkitTapHighlightColor:"transparent",
           }}
@@ -860,22 +868,30 @@ function NotifCard({ n, onRead, onDelete, onAction = () => {} }) {
 
           {/* Inhalt */}
           <div style={{ flex:1, minWidth:0 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:2 }}>
-              <span style={{ fontSize:11, fontWeight:700, color: n.is_read ? T.inkFaint : T.teal }}>
-                {meta.label}
-              </span>
-              {!n.is_read && (
-                <span style={{ width:6, height:6, borderRadius:"50%", background:T.teal, display:"inline-block" }}/>
-              )}
-            </div>
+            {/* KOMPAKT.1: Kategorie-Zeile nur wenn sie NICHT dasselbe sagt wie der Titel */}
+            {!labelDuplicatesTitle && (
+              <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:1 }}>
+                <span style={{ fontSize:10.5, fontWeight:700, color: n.is_read ? T.inkFaint : T.teal }}>
+                  {meta.label}
+                </span>
+                {!n.is_read && (
+                  <span style={{ width:6, height:6, borderRadius:"50%", background:T.teal, display:"inline-block" }}/>
+                )}
+              </div>
+            )}
             {n.title && (
-              <div style={{ fontSize:13, fontWeight: n.is_read ? 500 : 700, color:T.ink, marginBottom:2, lineHeight:1.4 }}>
-                {n.title}
+              <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:1 }}>
+                <div style={{ fontSize:13, fontWeight: n.is_read ? 500 : 700, color:T.ink, lineHeight:1.35 }}>
+                  {n.title}
+                </div>
+                {labelDuplicatesTitle && !n.is_read && (
+                  <span style={{ width:6, height:6, borderRadius:"50%", background:T.teal, display:"inline-block", flexShrink:0 }}/>
+                )}
               </div>
             )}
             {n.body && (
               <div style={{
-                fontSize:12, lineHeight:1.55,
+                fontSize:12, lineHeight:1.42,
                 color: n.type?.includes("_rejected") ? "#DC2626" : T.inkSoft,
                 overflow:"hidden", display:"-webkit-box",
                 WebkitLineClamp:2, WebkitBoxOrient:"vertical", wordBreak:"break-word",
@@ -888,7 +904,7 @@ function NotifCard({ n, onRead, onDelete, onAction = () => {} }) {
             {n.type?.includes("_rejected") && (
               <span style={{
                 display:"inline-flex", alignItems:"center", gap:4,
-                marginTop:6, padding:"4px 10px", borderRadius:99,
+                marginTop:5, padding:"3px 9px", borderRadius:99,
                 background:"rgba(239,68,68,0.08)", border:"1.5px solid rgba(239,68,68,0.35)",
                 color:"#DC2626", fontSize:11, fontWeight:700,
               }}>
@@ -896,31 +912,32 @@ function NotifCard({ n, onRead, onDelete, onAction = () => {} }) {
               </span>
             )}
 
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:6 }}>
-              <span style={{ fontSize:11, color:T.inkFaint }}>{fmtTime(n.created_at)}</span>
-              {/* Pfeil-Indikator */}
-              <span style={{ fontSize:14, color: n.is_read ? T.inkFaint : T.teal, opacity:0.6 }}>›</span>
+            {/* KOMPAKT.1: Löschen-Button in dieselbe Fußzeile wie Zeitstempel
+                verschoben (spart eine ganze Zeile pro Karte, statt eigener
+                Reihe darunter). */}
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:5 }}>
+              <span style={{ fontSize:10.5, color:T.inkFaint }}>{fmtTime(n.created_at)}</span>
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                {onDelete && (
+                  <button
+                    onClick={e => { e.stopPropagation(); setShowDeleteConfirm(true); }}
+                    style={{
+                      padding:"2px 8px", borderRadius:99,
+                      background:"rgba(239,68,68,0.07)", border:"1px solid rgba(239,68,68,0.20)",
+                      color:"#DC2626", fontSize:10, fontWeight:600,
+                      cursor:"pointer", fontFamily:"inherit",
+                      display:"inline-flex", alignItems:"center", gap:3,
+                    }}
+                  >
+                    ✕ Löschen
+                  </button>
+                )}
+                {/* Pfeil-Indikator */}
+                <span style={{ fontSize:13, color: n.is_read ? T.inkFaint : T.teal, opacity:0.6 }}>›</span>
+              </div>
             </div>
           </div>
         </div>
-
-        {/* Löschen-Button */}
-        {onDelete && (
-          <div style={{ paddingLeft:64, paddingRight:14, paddingBottom:10 }}>
-            <button
-              onClick={e => { e.stopPropagation(); setShowDeleteConfirm(true); }}
-              style={{
-                padding:"3px 10px", borderRadius:99,
-                background:"rgba(239,68,68,0.07)", border:"1px solid rgba(239,68,68,0.20)",
-                color:"#DC2626", fontSize:11, fontWeight:600,
-                cursor:"pointer", fontFamily:"inherit",
-                display:"inline-flex", alignItems:"center", gap:4,
-              }}
-            >
-              ✕ Löschen
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Löschen-Bestätigung */}
