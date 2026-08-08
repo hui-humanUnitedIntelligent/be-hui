@@ -7,6 +7,7 @@ export default defineConfig({
   build: {
     target: 'es2018',
     outDir: 'www',
+    emptyOutDir: true,
     cssCodeSplit: false,
     minify: 'terser',
     sourcemap: false,

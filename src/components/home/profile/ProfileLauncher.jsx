@@ -59,7 +59,7 @@ class ProfileErrorBoundary extends React.Component {
             justifyContent:"center", gap:12, padding:24,
           }}>
             <div style={{fontSize:32}}>🔄</div>
-            <p style={{color:"#1a1a18", fontSize:15, fontFamily:"sans-serif", textAlign:"center", margin:0}}>
+            <p style={{color:"#1a1a18", fontSize:15, fontFamily:"Inter, sans-serif", textAlign:"center", margin:0}}>
               Wird neu geladen…
             </p>
           </div>
@@ -74,7 +74,7 @@ class ProfileErrorBoundary extends React.Component {
           padding:24,
         }}>
           <div style={{display:"flex",justifyContent:"center",color:"#F59E0B"}}><HUIWarnIcon size={32}/></div>
-          <p style={{color:"#FF6B6B", fontSize:15, fontFamily:"sans-serif", textAlign:"center", margin:0}}>
+          <p style={{color:"#FF6B6B", fontSize:15, fontFamily:"Inter, sans-serif", textAlign:"center", margin:0}}>
             Profil konnte nicht geladen werden
           </p>
           <p style={{color:"rgba(255,255,255,0.4)", fontSize:11, fontFamily:"monospace", textAlign:"center"}}>

@@ -592,7 +592,7 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
                 }}>
                   <span style={{
                     fontSize: ctrD * 0.30, fontWeight: 900, color: "white",
-                    fontFamily: "system-ui", letterSpacing: "-0.05em",
+                    fontFamily: "Inter, system-ui", letterSpacing: "-0.05em",
                   }}>hui</span>
                 </div>
               )}

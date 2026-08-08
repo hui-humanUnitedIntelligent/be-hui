@@ -322,7 +322,7 @@ function HUILoader() {
     <div style={{ minHeight:"100dvh", display:"flex", flexDirection:"column",
       alignItems:"center", justifyContent:"center", padding:32,
       background:"linear-gradient(160deg,#0D1412 0%,#12100E 100%)",
-      fontFamily:"Inter,Inter,sans-serif" }}>
+      fontFamily:"Inter,sans-serif" }}>
       <div style={{ fontWeight:800, fontSize:18, color:"rgba(255,255,255,0.90)",
         marginTop:0, marginBottom:8 }}>
         Verbindung dauert länger als erwartet
