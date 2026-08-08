@@ -86,11 +86,34 @@ export default function ChatMessages({ messages, typing, event, onDelete, onEdit
 
   return (
     <div ref={rootRef} className="hui-scroll" style={{
+      // SCROLL-FIX (2026-08-08): "flex:1, minHeight:0, overflowY:auto" +
+      // "justifyContent:flex-end" ist ein bekannter WebKit-Bug (iOS Safari /
+      // Capacitor-WebView) -- sobald der Inhalt den Container ueberragt,
+      // berechnet WebKit den scrollbaren Bereich falsch und der Chat laesst
+      // sich NICHT mehr nach oben scrollen (aeltere Nachrichten bleiben
+      // unerreichbar abgeschnitten). Nutzer-Feedback (2026-08-08, Screenshot):
+      // "chat lässt sich nicht scrollen" bei einer laengeren Konversation mit
+      // hohen Bild-Bubbles. Standard-Workaround: justifyContent NICHT auf
+      // flex-end setzen (bricht Overflow-Scroll in WebKit), sondern stattdessen
+      // einen wachsenden Spacer als ERSTES Kind einfuegen (siehe unten) -- der
+      // uebernimmt den "am unteren Rand ausgerichtet, wenn Inhalt kurz ist"-
+      // Effekt ohne den Overflow-Bug. Der bestehende Auto-Scroll-zum-Ende-
+      // Mechanismus (scrollTop=scrollHeight oben) bleibt unveraendert bestehen
+      // und funktioniert unabhaengig vom Spacer weiterhin normal.
       flex:1, minHeight:0, overflowY:"auto", overflowX:"hidden",
-      display:"flex", flexDirection:"column", justifyContent:"flex-end",
+      display:"flex", flexDirection:"column",
+      overscrollBehavior:"contain",
       paddingBottom:8,
     }}>
       <style>{CSS}</style>
+
+      {/* Wachsender Spacer statt justifyContent:flex-end -- siehe Kommentar
+          oben. flex:"1 0 auto" nimmt den kompletten Leerraum auf, wenn die
+          Nachrichten kuerzer als der sichtbare Bereich sind (Chat wirkt am
+          unteren Rand "angedockt"), verschwindet aber vollstaendig sobald
+          der Inhalt ueberlaeuft -- dann verhaelt sich overflowY:auto exakt
+          wie ein normaler, ungebrochener Scroll-Container. */}
+      <div style={{ flex:"1 0 auto" }} aria-hidden="true" />
 
       <EventPreviewCard event={event}/>
 
