@@ -43,11 +43,10 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { supabase } from "../../lib/supabaseClient.js";
 import { useSingleReaction } from "../../lib/useReactions.jsx";
 import { useSavedPostsContext } from "../../context/SavedPostsContext.jsx";
-import { FeedActions, ActionBtn } from "../../feed/cards/BaseFeedCard.jsx";
+import { FeedActions } from "../../feed/cards/BaseFeedCard.jsx";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { toast } from "../../lib/useToast.jsx";
 import { shareContent } from "../../lib/shareContent.js";
-import { HUICommentIcon } from "../../design/icons/HuiInteractionIcons.jsx";
 import { countComments, getComments } from "../../lib/commentsService.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { prefetchComments } from "../../lib/commentsPrefetchCache.js";
@@ -142,6 +141,15 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
 
   const handleReaction = useCallback((type) => {
     if (!postId) return;
+    // SSOT-Parität mit UnifiedFeed.jsx (ReactionCardInner.handleReaction):
+    // Die Sprechblase ("Austauschen"/touch) oeffnet ueberall in der App die
+    // Kommentare statt eine Reaction zu toggeln -- identisches Verhalten
+    // wie auf der Hauptseite (2026-08-08, Nutzer-Feedback: Icons/Kommentare
+    // in der Fullscreen-Post-Ansicht funktionierten nicht wie im Feed).
+    if (type === "touch") {
+      setShowComments(true);
+      return;
+    }
     if (type === "save") {
       toggleSave(postId, postType, snapshot);
       toast.info(saved ? "Aus Merkliste entfernt" : "Gespeichert", { duration:1800 });
@@ -213,6 +221,12 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
     saved,
     inspireCount: counts?.inspire || null,
     touchCount:   counts?.like    || null,
+    // SSOT-Parität mit UnifiedFeed.jsx: commentCount an die Sprechblase
+    // ("Austauschen"-Icon) haengen -- dort steht der echte Kommentar-Zaehler,
+    // nicht an einem separaten 5. Icon (das gab es auf der Hauptseite nie).
+    commentCount: commentCount || null,
+    saveCount:    counts?.save  || null,
+    shareCount:   counts?.share || null,
   };
 
   const hero      = mountedItem.media?.[0]?.url || null;
@@ -307,14 +321,13 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
           )}
         </div>
 
-        {/* 5) Interaktionsleiste — identisch zum Feed + 5. Aktion
-            "Kommentieren" (extraActions-Slot, KOMMENTAR.1) */}
+        {/* 5) Interaktionsleiste — 1:1 identisch zur Hauptseite
+            (UnifiedFeed.jsx ReactionCardInner): 4 Standard-Icons, die
+            Sprechblase ("Austauschen") oeffnet die Kommentare und zeigt
+            den echten Kommentar-Zaehler. Kein separates 5. Icon mehr
+            (Fix 2026-08-08, siehe handleReaction oben). */}
         <FeedActions
           reactions={reactions} onReaction={handleReaction} onShare={handleShare}
-          extraActions={
-            <ActionBtn Icon={HUICommentIcon} count={commentCount || null} variant="kommentieren"
-              activeColor={T.teal} onClick={() => setShowComments(true)} />
-          }
         />
 
         <div style={{ padding:"0 18px 24px" }}>

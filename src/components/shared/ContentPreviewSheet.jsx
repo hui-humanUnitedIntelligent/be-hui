@@ -27,10 +27,9 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { useSingleReaction } from "../../lib/useReactions.jsx";
 import { useSavedPostsContext } from "../../context/SavedPostsContext.jsx";
-import { FeedActions, ActionBtn } from "../../feed/cards/BaseFeedCard.jsx";
+import { FeedActions } from "../../feed/cards/BaseFeedCard.jsx";
 import { toast } from "../../lib/useToast.jsx";
 import { shareContent } from "../../lib/shareContent.js";
-import { HUICommentIcon } from "../../design/icons/HuiInteractionIcons.jsx";
 import { countComments, getComments } from "../../lib/commentsService.js";
 import { prefetchComments } from "../../lib/commentsPrefetchCache.js";
 import CommentsSheet from "./CommentsSheet.jsx";
@@ -93,6 +92,14 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
 
   const handleReaction = useCallback((type) => {
     if (!postId) return;
+    // SSOT-Paritaet mit UnifiedFeed.jsx (ReactionCardInner.handleReaction) +
+    // PostFullscreenView-Fix (2026-08-08): Die Sprechblase ("Austauschen"/
+    // touch) oeffnet ueberall in der App die Kommentare statt eine Reaction
+    // zu toggeln.
+    if (type === "touch") {
+      setShowComments(true);
+      return;
+    }
     if (type === "save") {
       toggleSave(postId, postType, snapshot);
       toast.info(saved ? "Aus Merkliste entfernt" : "Gespeichert", { duration:1800 });
@@ -154,6 +161,12 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
     saved,
     inspireCount: counts?.inspire || null,
     touchCount:   counts?.like    || null,
+    // SSOT-Paritaet mit UnifiedFeed.jsx: commentCount an die Sprechblase
+    // haengen -- dort steht der echte Kommentar-Zaehler, kein separates
+    // 5. Icon mehr (Fix 2026-08-08).
+    commentCount: commentCount || null,
+    saveCount:    counts?.save  || null,
+    shareCount:   counts?.share || null,
   };
 
   const hero = item?.media?.[0]?.url || null;
@@ -311,14 +324,12 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
               )}
             </div>
 
-            {/* Action-Bar — identisch zum Feed (Resonanz/Austauschen/Weitergeben/
-                Merken) + 5. Aktion "Kommentieren" (extraActions-Slot, KOMMENTAR.1) */}
+            {/* Action-Bar — 1:1 identisch zur Hauptseite (UnifiedFeed.jsx
+                ReactionCardInner): 4 Standard-Icons, die Sprechblase
+                ("Austauschen") oeffnet die Kommentare und zeigt den echten
+                Kommentar-Zaehler. Kein separates 5. Icon mehr (Fix 2026-08-08). */}
             <FeedActions
               reactions={reactions} onReaction={handleReaction} onShare={handleShare}
-              extraActions={
-                <ActionBtn Icon={HUICommentIcon} count={commentCount || null} variant="kommentieren"
-                  activeColor={T.teal} onClick={() => setShowComments(true)} />
-              }
             />
 
             <div style={{ padding:"0 18px" }}>
