@@ -41,31 +41,30 @@ export default function ExperienceContent({ item, onProfile, onReaction, onShare
         </p>
       )}
 
-      {/* ── Badge · Titel · CTA — nach Mockup ─────────────── */}
-      <div style={{
-        display:"flex", alignItems:"center", justifyContent:"space-between",
-        gap:10, flexWrap:"nowrap", marginBottom: metaParts.length > 0 ? 6 : 0,
-      }}>
-        {/* Links: Badge + Titel */}
-        <div style={{ display:"flex", alignItems:"center", gap:8, minWidth:0, flex:1 }}>
+      {/* ── Badge · Titel — eigene volle Zeile (FIX 2026-08-08: Titel wurde
+          durch den Teilnehmen-Button rechts abgeschnitten, siehe Screenshot
+          "vielleicht können wi…"). Button jetzt auf eigener Zeile darunter. ── */}
+      <div style={{ display:"flex", alignItems:"flex-start", gap:8, marginBottom:10 }}>
+        <span style={{
+          flexShrink:0, marginTop:2,
+          fontSize:10.5, fontWeight:700, color:TEAL,
+          background:"rgba(13,196,181,0.10)",
+          border:"1px solid rgba(13,196,181,0.22)",
+          borderRadius:99, padding:"3px 9px",
+          letterSpacing:0.2, whiteSpace:"nowrap",
+        }}>ERLEBNIS</span>
+        {title ? (
           <span style={{
-            flexShrink:0,
-            fontSize:10.5, fontWeight:700, color:TEAL,
-            background:"rgba(13,196,181,0.10)",
-            border:"1px solid rgba(13,196,181,0.22)",
-            borderRadius:99, padding:"3px 9px",
-            letterSpacing:0.2, whiteSpace:"nowrap",
-          }}>ERLEBNIS</span>
-          {title ? (
-            <span style={{
-              fontSize:15, fontWeight:700, color:INK,
-              lineHeight:1.3, letterSpacing:"-0.02em",
-              overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-            }}>{title}</span>
-          ) : null}
-        </div>
-        {/* Rechts: Teilnehmen-Button */}
-        {onBook && (
+            fontSize:15, fontWeight:700, color:INK,
+            lineHeight:1.3, letterSpacing:"-0.02em",
+            whiteSpace:"normal", wordBreak:"break-word",
+          }}>{title}</span>
+        ) : null}
+      </div>
+
+      {/* Teilnehmen-Button — eigene Zeile, rechtsbündig */}
+      {onBook && (
+        <div style={{ display:"flex", justifyContent:"flex-end", marginBottom: metaParts.length > 0 ? 6 : 0 }}>
           <button
             onClick={(e) => { e.stopPropagation(); onBook(item); }}
             style={{
@@ -84,8 +83,8 @@ export default function ExperienceContent({ item, onProfile, onReaction, onShare
             </svg>
             Teilnehmen
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Meta: Kategorie · Datum · Ort */}
       {metaParts.length > 0 && (

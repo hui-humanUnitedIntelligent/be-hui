@@ -75,30 +75,31 @@ export default function TalentContent({ item, onProfile, onReaction, onShare }) 
         </p>
       )}
 
-      {/* Badge + Titel + Preis — identische Struktur wie Work/Experience */}
-      <div style={{
-        display:"flex", alignItems:"center", justifyContent:"space-between",
-        gap:10, flexWrap:"nowrap",
-        marginBottom: (locType || category) ? 6 : 0,
-      }}>
-        <div style={{ display:"flex", alignItems:"center", gap:8, minWidth:0, flex:1 }}>
+      {/* Badge + Titel — eigene volle Zeile (FIX 2026-08-08: Titel wurde durch
+          den Buchen-Button rechts abgeschnitten — nowrap+ellipsis+flex:1 ließ
+          lange Titel wie "Massage bieten" oder "lerne Armbänder zu knüpfen"
+          hinter dem Button verschwinden. Jetzt umbrechend, immer komplett
+          sichtbar; Button auf eigener Zeile darunter. ── */}
+      <div style={{ display:"flex", alignItems:"flex-start", gap:8, marginBottom:10 }}>
+        <span style={{
+          flexShrink:0, marginTop:2,
+          fontSize:10.5, fontWeight:700, color:PURPLE,
+          background:PURPLE_SOFT,
+          border:`1px solid rgba(139,92,246,0.22)`,
+          borderRadius:99, padding:"3px 9px",
+          letterSpacing:0.2, whiteSpace:"nowrap",
+        }}>TALENT</span>
+        {title && (
           <span style={{
-            flexShrink:0,
-            fontSize:10.5, fontWeight:700, color:PURPLE,
-            background:PURPLE_SOFT,
-            border:`1px solid rgba(139,92,246,0.22)`,
-            borderRadius:99, padding:"3px 9px",
-            letterSpacing:0.2, whiteSpace:"nowrap",
-          }}>TALENT</span>
-          {title && (
-            <span style={{
-              fontSize:15, fontWeight:700, color:INK,
-              lineHeight:1.3, letterSpacing:"-0.02em",
-              overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-            }}>{title}</span>
-          )}
-        </div>
-        {/* Rechts: Buchen-Button — analog "Kaufen" (Werk) / "Teilnehmen" (Erlebnis) */}
+            fontSize:15, fontWeight:700, color:INK,
+            lineHeight:1.3, letterSpacing:"-0.02em",
+            whiteSpace:"normal", wordBreak:"break-word",
+          }}>{title}</span>
+        )}
+      </div>
+
+      {/* Buchen-Button — eigene Zeile, rechtsbündig (analog "Kaufen"/"Teilnehmen") */}
+      <div style={{ display:"flex", justifyContent:"flex-end", marginBottom: (locType || category) ? 6 : 0 }}>
         <button
           onClick={handleBookClick}
           style={{
