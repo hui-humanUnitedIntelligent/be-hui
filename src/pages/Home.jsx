@@ -2,6 +2,7 @@
 // Layout: Header → Feed (scroll) → HUIBottomNavigation (in-flow)
 
 import React, { Suspense, useEffect, useRef, useCallback, useState } from "react";
+import { makeChunkReload } from "../lib/chunkReload.js";
 import { useLocation, useNavigate } from "react-router-dom"; // COMMERCE-01
 import { useOrbWorld } from "../context/OrbWorldContext.jsx";
 import { useWorldSurface } from "../context/WorldSurfaceContext.jsx";
@@ -32,25 +33,27 @@ import ChatCenterOverlay          from "../components/chat-center/ChatCenterOver
 import { useChatList }             from "../lib/chatContext.js";
 import ConnectionCreatePage      from "../components/connection-create/ConnectionCreatePage.jsx";
 import WerkKaufFlow           from "../components/commerce/WerkKaufFlow.jsx";         // COMMERCE-01
-import WerkeKorb, { WerkeKorbButton } from "../components/commerce/WerkeKorb.jsx"; // KORB-01
+import { WerkeKorbButton } from "../components/commerce/WerkeKorb.jsx"; // KORB-01 — Button stays eager (tab bar)
+const WerkeKorb = lazy(() => import("../components/commerce/WerkeKorb.jsx").then(m => m.default).catch(makeChunkReload("Home:WerkeKorb")));
 import UnterstutzenFlow from "../components/commerce/UnterstutzenFlow.jsx"; // KORB-02 — eager: kein Chunk-Mismatch
 import { clearCartAfterSuccess }        from "../components/commerce/commerceUtils.js";    // KORB-02
 import ExperienceBookingFlow  from "../components/commerce/ExperienceBookingFlow.jsx"; // COMMERCE-01
 // ── Tab-Pages: lazy → eigene Chunks, nur bei Bedarf geladen ────
 // PHASE 17.3: ImpactPage + DiscoverPage — direkte imports (Safari-safe, kein lazy)
-import DiscoverPage from "./DiscoverPage.jsx"; // direkt (kein lazy) → kein Suspense-Spinner beim ersten Tab-Wechsel
+// DiscoverPage: lazy → 86KB nur bei "Entdecken"-Tab
+const DiscoverPage = lazy(() => import("./DiscoverPage.jsx").catch(makeChunkReload("Home:DiscoverPage")));
 import HuiLiveTicker    from "../components/shared/HuiLiveTicker.jsx"; // LIVETICKER.1 2026-07-08 -- ersetzt AmbientWorldBar (war Fake-Daten)
-import ImpactPage    from './ImpactPage.jsx';
+const ImpactPage = lazy(() => import('./ImpactPage.jsx').catch(makeChunkReload('Home:ImpactPage')));
 // PHASE 18: FavoritesPage direkte import (Safari-safe)
 import FavoritesPage from "./FavoritesPage.jsx";
 // ── Orb-Flows: lazy → nur bei Tap auf Orb-Node geladen ─────────
-import TeilenFlow     from "../components/teilen/TeilenFlow.jsx";
+const TeilenFlow = lazy(() => import("../components/teilen/TeilenFlow.jsx").catch(makeChunkReload("Home:TeilenFlow")));
 import WorkFlow       from "../system/flows/work/WorkFlow.jsx";
 import ExperienceFlow from "../system/flows/experience/ExperienceFlow.jsx";
-import ImpactFlow     from "../system/flows/impact/ImpactFlow.jsx";
+const ImpactFlow = lazy(() => import("../system/flows/impact/ImpactFlow.jsx").catch(makeChunkReload("Home:ImpactFlow")));
 
 // NotificationCenter deaktiviert — Resonanzzentrum übernimmt (NotificationButton.jsx)
-import LiveMapPage         from "./LiveMapPage.jsx";
+const LiveMapPage = lazy(() => import("./LiveMapPage.jsx").catch(makeChunkReload("Home:LiveMapPage")));
 import HuiMatchOverlay     from "../components/HuiMatchOverlay.jsx";
 // PHASE 18: HuiPlusSheet direkte import (Orb immer bereit)
 // OrbCompass replaces HuiPlusSheet — Begegnungs-Kompass
@@ -62,9 +65,9 @@ import InvitationFlow from "../content/invitation/InvitationFlow.jsx";
 import { useContentPreview } from "../context/ContentPreviewContext.jsx";
 import { usePullToRefresh }        from '../hooks/usePullToRefresh.js';
 import { PullToRefreshIndicator }  from '../components/ui/PullToRefreshIndicator.jsx';
-import HuiMembershipFlow   from "../components/HuiMembershipFlow.jsx";
-import CreatorDashboard    from "./CreatorDashboard.jsx";
-import HuiCreateFlow       from "../components/HuiCreateFlow.jsx";
+const HuiMembershipFlow = lazy(() => import("../components/HuiMembershipFlow.jsx").catch(makeChunkReload("Home:HuiMembershipFlow")));
+const CreatorDashboard = lazy(() => import("./CreatorDashboard.jsx").catch(makeChunkReload("Home:CreatorDashboard")));
+const HuiCreateFlow = lazy(() => import("../components/HuiCreateFlow.jsx").catch(makeChunkReload("Home:HuiCreateFlow")));
 // TalentOnboarding: direct import (kein lazy — verhindert Suspense-Spinner-Bug)
 import StoryComposer       from "../components/StoryComposer.jsx";
 // ExperienceCreator.jsx / WerkPublisher.jsx: Datei komplett entfernt (2026-07-08
@@ -539,23 +542,23 @@ function HomeInner() {
       <Suspense fallback={<div style={{padding:"40px 20px",textAlign:"center",opacity:0.6,fontSize:13,
   color:"rgba(20,20,34,0.40)",animation:"huiFadeIn 0.5s ease"}}>Entdecken öffnet sich…</div>}>
               <SafeRender flag="discoverFeed" label="DiscoverPage">
-                <DiscoverPage
+                <Suspense fallback={null}><DiscoverPage
                     onView={(id) => { if(id) openProfileById(id); }}
                     onMap={() => setShowMap(true)}
                     onBook={(item) => {
                       // Erlebnis aus DiscoverPage → ExperienceBookingFlow
                       setShowBookingFlow(item);
                     }}
-                  />
+                  /></Suspense>
               </SafeRender>
-            </Suspense>
+          </Suspense>
           </div>
 
           <div ref={tabRefs.impact} style={keepImpact}>
             <Suspense fallback={<div style={{padding:"40px 20px",textAlign:"center",opacity:0.6,fontSize:13,
   color:"rgba(20,20,34,0.40)",animation:"huiFadeIn 0.5s ease"}}>Impact-Raum öffnet sich…</div>}>
               <SafeRender flag="impactPage" label="ImpactPage">
-                <ImpactPage currentUser={currentUser}/>
+                <Suspense fallback={null}><ImpactPage currentUser={currentUser}/></Suspense>
               </SafeRender>
             </Suspense>
           </div>
@@ -631,6 +634,7 @@ function HomeInner() {
 
       {/* KORB-01: Werkekorb Bottom Sheet */}
       {showWerkeKorb && SAFE_MODE.werkFlow && (
+        <Suspense fallback={null}>
         <WerkeKorb
           items={cart}
           onClose={() => setShowWerkeKorb(false)}
@@ -646,6 +650,7 @@ function HomeInner() {
           onDiscover={() => { setShowWerkeKorb(false); handleTab("discover"); }}
           onChat={null}
         />
+        </Suspense>
       )}
 
       {/* KORB-02: UnterstutzenFlow — lazy (Stripe erst bei Bedarf laden) */}
@@ -702,6 +707,7 @@ function HomeInner() {
 
       {/* ── Teilen Flow — STATIC IMPORT, ALWAYS IN DOM ── */}
       {/* visible prop steuert Sichtbarkeit — KEIN lazy, KEIN SafeRender, KEIN conditional */}
+      <Suspense fallback={null}>
       <TeilenFlow
         visible={showTeilen}
         onClose={() => {
@@ -711,6 +717,7 @@ function HomeInner() {
           setShowTeilen(false);
         }}
       />
+      </Suspense>
 
       {/* ── HUI Resonanz Center ─────────────────────────────────── */}
       {showChat && SAFE_MODE.chatCenter && (
@@ -754,11 +761,11 @@ function HomeInner() {
         </div>}>
         {showMap && SAFE_MODE.liveMap && (
           <SafeRender flag="liveMap" label="LiveMapPage">
-            <LiveMapPage
+            <Suspense fallback={null}><LiveMapPage
               onView={w => { const id=w?.id||w?.user_id; if(id) openProfileById(id); setShowMap(false); }}
               onMatch={() => { setShowMatch(true); setShowMap(false); }}
               onClose={() => setShowMap(false)}
-            />
+            /></Suspense>
           </SafeRender>
         )}
         {showMatch && SAFE_MODE.matchOverlay && (
@@ -809,7 +816,7 @@ function HomeInner() {
              showNotifs / setShowNotifs bleiben im State für spätere Entfernung. */}
         {showMembership && SAFE_MODE.membership && (
           <SafeRender flag="membership" label="HuiMembershipFlow">
-            <HuiMembershipFlow
+            <Suspense fallback={null}><HuiMembershipFlow
               onClose={() => {
                 try { cleanupOrbEnvironment({ reason: "membership-close" }); } catch {}
                 setShowMembership(false);
@@ -822,7 +829,7 @@ function HomeInner() {
                 // isTalent will flip live via useMemo (authProfile.is_member→true)
                 // → HUIBottomNavigation orb will automatically show CreatorOrb on next tap
               }}
-            />
+            /></Suspense>
           </SafeRender>
         )}
         {/* Phase 4D: Creator Dashboard */}
@@ -841,14 +848,14 @@ function HomeInner() {
         )}
         {showCreateFlow && SAFE_MODE.createFlow && (
           <SafeRender flag="createFlow" label="HuiCreateFlow">
-            <HuiCreateFlow onClose={() => setShowCreateFlow(false)}/>
+            <Suspense fallback={null}><HuiCreateFlow onClose={() => setShowCreateFlow(false)}/></Suspense>
           </SafeRender>
         )}
         {showImpactFlow && SAFE_MODE.impactFlow && (
           <SafeRender flag="impactFlow" label="ImpactFlow">
-            <ImpactFlow
+            <Suspense fallback={null}><ImpactFlow
               onClose={() => setShowImpactFlow(false)}
-            />
+            /></Suspense>
           </SafeRender>
         )}
       </Suspense>

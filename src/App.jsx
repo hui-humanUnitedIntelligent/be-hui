@@ -42,7 +42,7 @@ import Home              from './pages/Home';
 // Chunk-Mismatch Recovery
 
 const RefRedirect       = lazy(() => import('./pages/RefRedirect').catch(makeChunkReload("App:RefRedirect")))
-import ImpactPage from './pages/ImpactPage';
+const ImpactPage = lazy(() => import('./pages/ImpactPage').catch(makeChunkReload('App:ImpactPage')));
 const Admin             = lazy(() => import('./pages/Admin').catch(makeChunkReload("App:Admin")))
 const DiagnosePage      = lazy(() => import('./pages/DiagnosePage').catch(makeChunkReload("App:DiagnosePage")))
 const PlatformDashboard = lazy(() => import('./pages/PlatformDashboard').catch(makeChunkReload("App:PlatformDashboard")))
@@ -772,7 +772,7 @@ function AppRoutes() {
 
         {/* Impact — EAGER */}
         <Route path="/impact" element={
-          <ProtectedRoute><ImpactPage /></ProtectedRoute>
+          <ProtectedRoute><Suspense fallback={null}><ImpactPage /></Suspense></ProtectedRoute>
         }/>
 
         {/* Legacy redirect */}
