@@ -838,7 +838,7 @@ export default function SearchCommandCenter({
         }
         .dc-input {
           outline:none; border:none; background:none; width:100%;
-          font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;
+          font-family:Inter,sans-serif;
           font-size:15px; font-weight:500; letter-spacing:-0.01em; color:#1A3530;
         }
         .dc-input::placeholder { color:rgba(26,53,48,0.28); }

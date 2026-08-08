@@ -945,7 +945,7 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
       zIndex:10100,   /* über BottomNav (9999) */
       background:C.bg,
       display:"flex", flexDirection:"column",
-      fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
+      fontFamily:"Inter,sans-serif",
       animation:"tf-in .24s cubic-bezier(.22,1,.36,1) both",
       overflow:"clip",
     }}>

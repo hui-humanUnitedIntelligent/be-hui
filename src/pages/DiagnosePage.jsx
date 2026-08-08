@@ -155,7 +155,7 @@ export default function DiagnosePage() {
 
   useEffect(() => { runAudit(); }, []);
 
-  const S = { fontFamily:'monospace,-apple-system', fontSize:11 };
+  const S = { fontFamily:'monospace,Inter', fontSize:11 };
 
   const Tag = ({ ok, children }) => (
     <span style={{

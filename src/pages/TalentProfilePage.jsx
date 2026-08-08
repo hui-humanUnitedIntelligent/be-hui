@@ -81,7 +81,7 @@ const T = {
 };
 
 const CSS = `
-  .tpp-root{background:${T.bg};font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif;color:${T.ink};}
+  .tpp-root{background:${T.bg};font-family:Inter,sans-serif;color:${T.ink};}
   .tpp-scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
   .tpp-scroll::-webkit-scrollbar{display:none;}
   .tpp-hscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px;}
@@ -466,7 +466,7 @@ function KompassActionSheet({ profile, isWatching, onWatch, onClose, onSupport =
           borderRadius:"22px 22px 0 0",
           padding:"24px 20px max(28px,calc(16px + env(safe-area-inset-bottom,0px)))",
           boxShadow:"0 -8px 40px rgba(26,26,24,0.18)",
-          fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
+          fontFamily:"Inter,sans-serif",
         }}
       >
         <div style={{

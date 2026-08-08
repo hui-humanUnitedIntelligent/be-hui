@@ -331,7 +331,7 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
       background:C.cream,
       display:"flex", flexDirection:"column",
       alignItems:"center", justifyContent:"center",
-      fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
+      fontFamily:"Inter,sans-serif",
       animation:"page-in 0.26s cubic-bezier(0.22,1,0.36,1) both",
       padding:"40px 32px",
       textAlign:"center",
@@ -379,7 +379,7 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
       background:C.cream,
       display:"flex", flexDirection:"column",
       overflow:"clip",   /* iOS-Fix: kein neuer stacking context */
-      fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
+      fontFamily:"Inter,sans-serif",
       animation:"page-in 0.26s cubic-bezier(0.22,1,0.36,1) both",
     }}>
       <style>{CSS}</style>

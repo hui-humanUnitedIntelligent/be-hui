@@ -243,7 +243,7 @@ class ErrorBoundary extends React.Component {
     if (this.state.hasError) return (
       <div style={{ minHeight:"100dvh", display:"flex", flexDirection:"column",
         alignItems:"center", justifyContent:"center", padding:32,
-        background:"#F9F7F4", fontFamily:"-apple-system,sans-serif" }}>
+        background:"#F9F7F4", fontFamily:"Inter,sans-serif" }}>
         <div style={{ fontSize:48, marginBottom:16 }}>⚡️</div>
         <div style={{ fontWeight:800, fontSize:20, color:"#1A1A1A", marginBottom:8 }}>
           Kurzer Aussetzer
@@ -322,7 +322,7 @@ function HUILoader() {
     <div style={{ minHeight:"100dvh", display:"flex", flexDirection:"column",
       alignItems:"center", justifyContent:"center", padding:32,
       background:"linear-gradient(160deg,#0D1412 0%,#12100E 100%)",
-      fontFamily:"Inter,-apple-system,sans-serif" }}>
+      fontFamily:"Inter,Inter,sans-serif" }}>
       <div style={{ fontWeight:800, fontSize:18, color:"rgba(255,255,255,0.90)",
         marginTop:0, marginBottom:8 }}>
         Verbindung dauert länger als erwartet
@@ -575,7 +575,7 @@ function OwnProfileRedirect() {
   return (
     <div style={{ position:'fixed', inset:0, display:'flex',
       alignItems:'center', justifyContent:'center',
-      background:'#F9F6F2', fontFamily:"-apple-system,sans-serif" }}>
+      background:'#F9F6F2', fontFamily:"Inter,sans-serif" }}>
       <div style={{ textAlign:'center' }}>
         <div style={{ fontSize:32, marginBottom:12,
           animation:'spin 1.2s linear infinite',

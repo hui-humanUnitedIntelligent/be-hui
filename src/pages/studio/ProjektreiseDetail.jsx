@@ -101,7 +101,7 @@ export default function ProjektreiseDetail({ project, onBack }) {
   return (
     <div style={{
       padding: '40px 32px', maxWidth: 680,
-      fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
+      fontFamily: "Inter, sans-serif",
     }}>
       {/* Zurück */}
       <button

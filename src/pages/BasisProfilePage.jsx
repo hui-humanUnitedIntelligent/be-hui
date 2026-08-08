@@ -61,7 +61,7 @@ const T = {
 };
 
 const CSS = `
-  .bpp-root { background:${T.bg}; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif; color:${T.ink}; }
+  .bpp-root { background:${T.bg}; font-family:Inter,sans-serif; color:${T.ink}; }
   .bpp-scroll { overflow-y:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
   .bpp-scroll::-webkit-scrollbar { display:none; }
   .bpp-hscroll { overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
@@ -281,7 +281,7 @@ function OffenFuerSection({ profile, loading }) {
         <Sheet onClose={()=>setShowMore(false)}>
           <div style={{ fontSize:16, fontWeight:800, color:T.ink, marginBottom:6 }}>☕ Offen für Begegnungen</div>
           <div style={{ fontSize:13.5, color:T.inkSoft, marginBottom:20, lineHeight:1.65,
-            fontFamily:"-apple-system,'Georgia',serif", fontStyle:"italic" }}>
+            fontFamily:"Georgia,serif", fontStyle:"italic" }}>
             Diese Person freut sich über echte Begegnungen in diesen Bereichen.
           </div>
           <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>

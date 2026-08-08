@@ -75,7 +75,7 @@ export default function DesktopEntwicklungszentrum() {
     <div style={{
       display: 'flex', minHeight: '100%',
       background: C.cream,
-      fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
+      fontFamily: "Inter, sans-serif",
     }}>
       {/* Sub-Navigation */}
       <aside style={{

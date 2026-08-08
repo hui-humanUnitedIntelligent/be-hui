@@ -32,7 +32,7 @@ const T = {
   red:      "#DC2626",
   redSoft:  "rgba(220,38,38,0.08)",
   r16: 16, r12: 12, r8: 8, r99: 99,
-  ff: "-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif",
+  ff: "Inter,sans-serif",
 };
 
 function eur(val) {

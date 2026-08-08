@@ -1161,7 +1161,7 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
     <div style={{
       position:"fixed", inset:0, zIndex:10500, /* >BottomNav(10000) */
       background:T.bg,
-      fontFamily:"-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif",
+      fontFamily:"Inter, sans-serif",
       WebkitFontSmoothing:"antialiased",
       contain:"layout paint",
       overflow:"hidden",

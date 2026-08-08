@@ -92,7 +92,7 @@ export default function StudioBegleitung() {
   return (
     <div style={{
       padding: '40px 32px', maxWidth: 680,
-      fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
+      fontFamily: "Inter, sans-serif",
     }}>
       <h2 style={{ fontSize: 24, fontWeight: 700, color: C.ink, marginBottom: 8 }}>Begleitung</h2>
       <p style={{ fontSize: 15, color: C.muted, marginBottom: 20 }}>

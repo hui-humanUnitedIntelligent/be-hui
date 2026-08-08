@@ -337,7 +337,7 @@ function TicketThread({ ticketNumber, subject, allTickets, profile, onBack }) {
   return (
     <div style={{ position:"fixed", inset:0, background:C.cream, display:"flex",
       flexDirection:"column",
-      fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
+      fontFamily:"Inter,sans-serif",
       zIndex:10 }}>
 
       {/* Header */}
@@ -545,7 +545,7 @@ export default function MeineTicketsPage({ onBack, userId, profile }) {
   return (
     <div style={{ position:"fixed", inset:0, background:C.cream, display:"flex",
       flexDirection:"column",
-      fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif" }}>
+      fontFamily:"Inter,sans-serif" }}>
 
       {/* Header */}
       <div style={{ display:"flex", alignItems:"center", gap:12,

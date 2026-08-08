@@ -52,7 +52,7 @@ const T = {
   white:      "#FFFFFF",
 };
 
-const FONT = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
+const FONT = "'Inter', Inter, sans-serif";
 const EASE = "ease-in-out";
 
 // ── Choreografie: 70ms Abstand pro Block, nur opacity + translateY ──

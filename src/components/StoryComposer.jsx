@@ -218,7 +218,7 @@ export default function StoryComposer({ onClose, onSuccess }) {
   return (
     <div style={{position:"fixed",inset:0,zIndex:10500,background:T.ink,
       display:"flex",flexDirection:"column",animation:"scIn .2s both",
-      fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif"}}>
+      fontFamily:"Inter,sans-serif"}}>
       <style>{CSS}</style>
       <input ref={fileRef} type="file" accept="image/*,video/*"
         style={{display:"none"}} onChange={pickFile}

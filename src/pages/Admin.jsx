@@ -1155,7 +1155,7 @@ export default function Admin() {
     .reduce((s,p)=>s+(p.impact_eur||0),0);
 
   const s    = {minHeight:"100vh",background:C.bg,color:C.text,
-                 fontFamily:"-apple-system,sans-serif",padding:24};
+                 fontFamily:"Inter,sans-serif",padding:24};
   const card = {background:C.card,borderRadius:16,padding:20,
                  border:`1px solid ${C.border}`,marginBottom:16};
   const tabBtn = (active,badge) => ({

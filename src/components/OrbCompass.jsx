@@ -327,7 +327,7 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
             letterSpacing: "-0.046em",
             lineHeight:    1.16,
             margin:        "0 0 10px",
-            fontFamily:    "-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
+            fontFamily:    "Inter,sans-serif",
             // Subtle text depth
             textShadow:    "0 1px 0 rgba(255,255,255,0.60)",
           }}>

@@ -64,7 +64,7 @@ const T = {
   muted:     "#898998",
   faint:     "#C2C2D0",
   line:      "rgba(0,0,0,0.045)",
-  ff:        HUI?.FONT?.family || "-apple-system,'SF Pro Display',sans-serif",
+  ff:        HUI?.FONT?.family || "Inter,sans-serif",
 };
 
 const S = {

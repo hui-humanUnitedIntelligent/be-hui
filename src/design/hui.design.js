@@ -145,7 +145,7 @@ const SHADOW = {
 
 const FONT = {
   // Font-Stack — systembasiert, kein FOUT
-  family: "-apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif",
+  family: "Inter, sans-serif",
   familyMono: "'SF Mono', 'Fira Code', monospace",
 
   // Display / Hero Headlines — cinematic, groß

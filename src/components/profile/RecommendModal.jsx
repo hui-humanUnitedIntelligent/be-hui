@@ -24,7 +24,7 @@ const T = {
   r16:      16,
   r12:      12,
   r99:      99,
-  ff:       "-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif",
+  ff:       "Inter,sans-serif",
 };
 
 export default function RecommendModal({

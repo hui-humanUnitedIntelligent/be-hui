@@ -19,7 +19,7 @@ function SubPageShell({ title, emoji, onBack, children }) {
       position:"fixed", inset:0,
       background:C.cream,
       display:"flex", flexDirection:"column",
-      fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
+      fontFamily:"Inter,sans-serif",
     }}>
       <div style={{
         display:"flex", alignItems:"center", gap:12,

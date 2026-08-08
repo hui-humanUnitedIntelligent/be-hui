@@ -29,7 +29,7 @@ const T = {
   border:   "rgba(26,26,24,0.08)",
   r16: 16, r12: 12, r99: 99,
   card: "0 1px 6px rgba(26,26,24,0.07)",
-  ff: "-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif",
+  ff: "Inter,sans-serif",
 };
 
 function fmtDate(d) {

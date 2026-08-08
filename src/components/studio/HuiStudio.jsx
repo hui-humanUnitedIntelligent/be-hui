@@ -41,7 +41,7 @@ const CSS = `
     overflow-y:auto;
     -webkit-overflow-scrolling:touch;
     scrollbar-width:none;
-    font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif;
+    font-family:Inter,sans-serif;
     -webkit-font-smoothing:antialiased;
   }
   .studio-scroll::-webkit-scrollbar { display:none; }
@@ -147,7 +147,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
       position:"fixed", inset:0, zIndex:10500,
       display:"flex", flexDirection:"column",
       background:T.bg,
-      fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif",
+      fontFamily:"Inter,sans-serif",
       WebkitFontSmoothing:"antialiased",
       opacity:   mounted ? 1 : 0,
       transform: mounted ? "none" : "translateY(24px)",
@@ -258,7 +258,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
             position:"fixed", inset:0, zIndex:10600,
             background:"rgba(26,26,24,0.55)",
             display:"flex", alignItems:"flex-end", justifyContent:"center",
-            fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif",
+            fontFamily:"Inter,sans-serif",
           }}
         >
           <div
@@ -363,7 +363,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
             position:"fixed", inset:0, zIndex:10600,
             background:"rgba(26,26,24,0.55)",
             display:"flex", alignItems:"flex-end", justifyContent:"center",
-            fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif",
+            fontFamily:"Inter,sans-serif",
           }}
         >
           <div
@@ -467,7 +467,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
             background:"rgba(26,26,24,0.60)",
             display:"flex", alignItems:"center", justifyContent:"center",
             padding:"0 24px",
-            fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif",
+            fontFamily:"Inter,sans-serif",
           }}
         >
           <div

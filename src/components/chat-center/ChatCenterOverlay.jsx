@@ -66,7 +66,7 @@ function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose
       position: "fixed", inset: 0, zIndex: 10500,
       display: "flex", flexDirection: "column",
       background: "rgba(242,244,248,1)",
-      fontFamily: "-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
+      fontFamily: "Inter,sans-serif",
     }}>
       <style>{CSS}</style>
       <ChatAtmosphere dark={false}/>
@@ -333,7 +333,7 @@ export default function ChatCenterOverlay({ onClose, initialRecipient = null, on
         position: "fixed", inset: 0, zIndex: 10500,
         display: "flex", alignItems: "center", justifyContent: "center",
         background: "rgba(249,247,244,0.98)",
-        fontFamily: "-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
+        fontFamily: "Inter,sans-serif",
       }}>
         <div style={{ textAlign: "center" }}>
           <div style={{

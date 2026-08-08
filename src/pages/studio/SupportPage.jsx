@@ -152,7 +152,7 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
     return (
       <div style={{ position:"fixed", inset:0, background:C.cream, display:"flex",
         flexDirection:"column", alignItems:"center", justifyContent:"center",
-        fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
+        fontFamily:"Inter,sans-serif",
         padding:24, textAlign:"center" }}>
         <div style={{ width:80, height:80, borderRadius:40,
           background:"rgba(22,215,197,0.12)", display:"flex",
@@ -202,7 +202,7 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
       background:C.cream, display:"flex",
       flexDirection:"column",
       height: embedded ? "auto" : "100%",
-      fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif" }}>
+      fontFamily:"Inter,sans-serif" }}>
 
       {/* Header */}
       <div style={{ display:"flex", alignItems:"center", gap:12,

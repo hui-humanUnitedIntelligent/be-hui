@@ -71,7 +71,7 @@ export default function EntwicklungszentrumOverview({ onNavigate }) {
   return (
     <div style={{
       padding: '40px 32px', maxWidth: 680,
-      fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
+      fontFamily: "Inter, sans-serif",
     }}>
       <h1 style={{ fontSize: 28, fontWeight: 700, color: C.ink, marginBottom: 8, lineHeight: 1.3 }}>
         Entwicklungszentrum

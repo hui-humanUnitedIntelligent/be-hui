@@ -104,7 +104,7 @@ export function AboutSection({ profile, isOwner = false, loading = false, onSave
           </>
         ) : bio ? (
           <p style={{ fontSize:14, lineHeight:1.68, color:T.inkSoft, margin:0,
-            fontFamily:"-apple-system,'Georgia',serif", fontStyle:"italic" }}>
+            fontFamily:"Georgia,serif", fontStyle:"italic" }}>
             {bio}
           </p>
         ) : isOwner ? (

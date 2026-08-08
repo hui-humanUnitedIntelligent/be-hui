@@ -51,7 +51,7 @@ export default function StudioOverviewPage({ onNavigate }) {
     <div style={{
       padding: '40px 32px',
       maxWidth: 680,
-      fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
+      fontFamily: "Inter, sans-serif",
     }}>
       {/* Begrüßung */}
       <h1 style={{

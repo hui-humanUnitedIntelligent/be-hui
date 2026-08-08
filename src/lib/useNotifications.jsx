@@ -904,7 +904,7 @@ export function ResonanzzentrumPanel({ onClose }) {
           width: Math.min(420, typeof window !== 'undefined' ? window.innerWidth : 420),
           background:T.cream,
           display:"flex", flexDirection:"column",
-          fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
+          fontFamily:"Inter,sans-serif",
           boxShadow:"-4px 0 40px rgba(26,26,24,0.16)",
         }}
       >

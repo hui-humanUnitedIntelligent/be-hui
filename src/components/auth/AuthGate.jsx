@@ -137,7 +137,7 @@ function AuthModal({ action, onClose, onConfirm }) {
         borderRadius:"28px 28px 0 0",
         padding:"28px 24px calc(env(safe-area-inset-bottom,16px) + 28px)",
         animation:"agIn 0.3s cubic-bezier(.22,1,.36,1) both",
-        fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
+        fontFamily:"Inter,sans-serif",
       }}>
         {/* Handle */}
         <div style={{

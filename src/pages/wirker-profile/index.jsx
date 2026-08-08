@@ -575,7 +575,7 @@ function WirkungSection({ profile, wirkerProfile, followerCount = 0 }) {
           </div>
           <p style={{
             fontSize:12,color:"rgba(30,30,30,.65)",lineHeight:1.65,
-            margin:"0 0 12px",fontFamily:"-apple-system,BlinkMacSystemFont,'Georgia',serif",
+            margin:"0 0 12px",fontFamily:"Georgia,serif",
           }}>{bio}</p>
           <button
             onClick={() => aboutActions[A.OPEN_WORLD]?.({ section: "reise" })}
@@ -876,7 +876,7 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profi
         position:"fixed",inset:0,zIndex:_zIndex,
         background:C.cream,display:"flex",
         alignItems:"center",justifyContent:"center",
-        fontFamily:"-apple-system,sans-serif",
+        fontFamily:"Inter,sans-serif",
       }}>
         <div style={{textAlign:"center",padding:32}}>
           <div style={{fontSize:32,marginBottom:12}}>✦</div>
@@ -902,7 +902,7 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profi
       overflowY:"auto", overflowX:"hidden",
       background:"transparent",
       /* animation removed for Safari stability */
-      fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',sans-serif",
+      fontFamily:"Inter,sans-serif",
       WebkitOverflowScrolling:"touch",
       paddingBottom:"max(120px, calc(100px + env(safe-area-inset-bottom,0px)))",
     }}>

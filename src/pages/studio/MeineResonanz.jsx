@@ -28,7 +28,7 @@ const T = {
   border:    "rgba(26,26,24,0.07)",
   teal:      "#0EC4B8",
   tealSoft:  "rgba(14,196,184,0.10)",
-  ff:        "-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif",
+  ff:        "Inter,sans-serif",
   px:        20,
 };
 

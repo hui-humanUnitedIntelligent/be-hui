@@ -199,7 +199,7 @@ export default function WirkungPage() {
 
   if (loading) {
     return (
-      <div style={{ padding: '40px 32px', maxWidth: 680, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif" }}>
+      <div style={{ padding: '40px 32px', maxWidth: 680, fontFamily: "Inter, sans-serif" }}>
         <p style={{ color: C.muted, fontSize: 14 }}>Spiegelt deine Wirkung…</p>
       </div>
     );
@@ -210,7 +210,7 @@ export default function WirkungPage() {
   return (
     <div style={{
       padding: '40px 32px', maxWidth: 680,
-      fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
+      fontFamily: "Inter, sans-serif",
     }}>
       {/* Einleitung */}
       <h2 style={{ fontSize: 24, fontWeight: 700, color: C.ink, marginBottom: 8 }}>

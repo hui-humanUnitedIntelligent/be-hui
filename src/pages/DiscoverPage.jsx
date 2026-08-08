@@ -2218,7 +2218,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
   return (
     <div className="dp-root" style={{
       width:"100%", background:T.bg,
-      fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',sans-serif",
+      fontFamily:"Inter,sans-serif",
       color:T.ink,
       overscrollBehavior:"none",
     }}>

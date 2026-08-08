@@ -140,7 +140,7 @@ export default function CreatorStudio() {
     const SubPage = subPageMap[activeTool];
     if (SubPage) return (
       <div style={{ position:"fixed", inset:0, zIndex:10500, background:C.cream,
-        overflowY:"auto", fontFamily:"-apple-system,'SF Pro Display',system-ui,sans-serif",
+        overflowY:"auto", fontFamily:"Inter,system-ui,sans-serif",
         animation:`studioCardIn ${TRANSITIONS.normal} ${TRANSITIONS.overlay} both` }}>
         <style>{CSS}</style>
         <SubPage />
@@ -153,7 +153,7 @@ export default function CreatorStudio() {
   return (
     <div style={{ position:"fixed", inset:0, zIndex:10500, background:C.cream,
       overflowY:"auto", WebkitOverflowScrolling:"touch",
-      fontFamily:"-apple-system,'SF Pro Display',system-ui,sans-serif" }}>
+      fontFamily:"Inter,system-ui,sans-serif" }}>
       <style>{CSS}</style>
 
       {/* ── Atmosphärischer Header ──────────────────────────── */}

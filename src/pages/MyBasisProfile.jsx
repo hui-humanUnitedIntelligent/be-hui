@@ -131,7 +131,7 @@ const T = {
 
 // ── CSS ──────────────────────────────────────────────────────────
 const CSS = `
-  .mbp-root { background:#F9F7F4; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif; color:${T.ink}; }
+  .mbp-root { background:#F9F7F4; font-family:Inter,sans-serif; color:${T.ink}; }
   .mbp-scroll { overflow-y:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
   .mbp-scroll::-webkit-scrollbar { display:none; }
   .mbp-hscroll { overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
@@ -2050,7 +2050,7 @@ function MeinBereichDrawer({ title, icon, subtitle, onClose, children, footer = 
         position:"fixed", inset:0, zIndex:10500,
         background:"rgba(26,26,24,0.55)",
         display:"flex", alignItems:"flex-end", justifyContent:"center",
-        fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif",
+        fontFamily:"Inter,sans-serif",
       }}
     >
       <div

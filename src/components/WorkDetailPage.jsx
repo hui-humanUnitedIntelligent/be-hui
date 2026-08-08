@@ -561,7 +561,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
     <div style={{ minHeight:"100vh", background:C.warm,
       display:"flex", flexDirection:"column",
       alignItems:"center", justifyContent:"center",
-      padding:32, fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif" }}>
+      padding:32, fontFamily:"Inter,sans-serif" }}>
       <style>{CSS}</style>
       <div style={{ fontSize:52, marginBottom:16 }}>😕</div>
       <div style={{ fontWeight:800, fontSize:20, color:C.ink, marginBottom:8 }}>
@@ -595,7 +595,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
       height:"100dvh", overflowY:"auto", overflowX:"hidden",
       WebkitOverflowScrolling:"touch",
       background:C.warm,
-      fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
+      fontFamily:"Inter,sans-serif",
       paddingBottom:"calc(90px + env(safe-area-inset-bottom, 0px))" }}>
       <style>{CSS}</style>
       <div style={{ maxWidth:680, margin:"0 auto", minHeight:"100%" }}>

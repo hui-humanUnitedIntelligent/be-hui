@@ -55,7 +55,7 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile, onCloseC
     <div style={{
       position:"fixed", inset:0, zIndex:10002,
       display:"flex", flexDirection:"column",
-      fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif",
+      fontFamily:"Inter,sans-serif",
       background:"#F2F4F8",
     }}>
       <style>{CSS}</style>

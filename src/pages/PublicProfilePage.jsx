@@ -64,7 +64,7 @@ const T = {
 };
 
 const CSS = `
-  .ppp-root{background:${T.bg};font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif;color:${T.ink};}
+  .ppp-root{background:${T.bg};font-family:Inter,sans-serif;color:${T.ink};}
   .ppp-scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
   .ppp-scroll::-webkit-scrollbar{display:none;}
   @keyframes ppp-fade-up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
