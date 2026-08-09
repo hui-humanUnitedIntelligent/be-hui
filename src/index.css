@@ -598,10 +598,15 @@ img[loading="lazy"] {
   font-feature-settings: "liga" 1;
 }
 
-/* Global: Emoji-Font als Fallback in der gesamten App */
-* {
-  font-variant-emoji: emoji;
-}
+/* ROOT-CAUSE-FIX (2026-08-09): Die vorherige globale Regel `* { font-variant-emoji: emoji; }`
+   zwang JEDES Element (inkl. aller Zahlen/Geldbeträge!) zur Emoji-Font-Darstellung.
+   Ziffern 0-9 gehören zur Unicode-Emoji-Menge (wegen Keycap-Sequenzen wie 2️⃣) und wurden
+   dadurch teilweise mit Noto Color Emoji statt Inter gerendert -> inkonsistente Zeichen-
+   breiten -> die seit Wochen gesuchten "Lücken" in Beträgen. Live verifiziert per Remote-
+   Debugging (Xiaomi HyperOS WebView): Rendered Fonts zeigte "Inter SemiBold: 4 glyphs" +
+   "Noto Color Emoji: 7 glyphs" fuer denselben Betrags-Span.
+   FIX: Emoji-Variant-Forcing nur noch gezielt auf echte Emoji-Elemente (.hui-emoji,
+   [data-emoji], EmojiIcon.jsx) anwenden -- NIE global auf *. */
 
 /* Variation-Selector Fix: Sicherstellen dass VS16 (FE0F) gerendert wird */
 [data-emoji] {
