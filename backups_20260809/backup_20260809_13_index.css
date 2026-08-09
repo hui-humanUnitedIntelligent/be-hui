@@ -159,20 +159,11 @@ body {
      entfernt — DAS war die Regression, die den Bug wieder zurückgebracht hat. */
   font-synthesis: none;
   -webkit-font-synthesis: none;
-  /* FIX (2026-08-09, ROOT CAUSE Ziffern-Luecken): Inter nutzt standardmaessig
-     PROPORTIONALE Ziffern (pnum) — '1' ist 833 Units breit, '0' ist 1292 Units
-     (35% schmaler!). Das erzeugt optische Luecken zwischen schmalen und breiten
-     Ziffern. tabular-nums (tnum) erzwingt gleiche Breite fuer alle Ziffern.
-     Wurde frueher irrtuemlich entfernt — war die Loesung, nicht das Problem. */
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum" on;
 }
 
 html, :host {
   font-synthesis: none;
   -webkit-font-synthesis: none;
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum" on;
 }
 
 /* Override Tailwind preflight html font-family — Inter must be primary everywhere */
