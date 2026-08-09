@@ -31,7 +31,6 @@
 
 import { supabase } from "./supabaseClient.js";
 import { clearQueryCache } from "./perfUtils.js";
-import heic2any from "heic2any";
 
 // ── Fallback-Assets ──────────────────────────────────────────────────
 export const FB_COVER  = "/assets/brand/fallback-cover.svg";
@@ -105,6 +104,10 @@ function isHeic(file) {
 
 async function convertHeicToJpeg(file) {
   try {
+    // Dynamischer Import: heic2any nur laden wenn wirklich ein HEIC-File kommt.
+    // Verhindert dass die ~200KB Library in den Vendor-Chunk gepackt wird
+    // und bei JEDEM App-Start mitgeladen wird.
+    const heic2any = (await import("heic2any")).default;
     const result = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.9 });
     const blob = Array.isArray(result) ? result[0] : result;
     const baseName = (file.name || "image").replace(/\.(heic|heif)$/i, "");
