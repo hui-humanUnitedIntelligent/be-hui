@@ -59,6 +59,29 @@
   src: url('/fonts/Inter-Black.woff2') format('woff2');
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   ZIFFERN-FIX (2026-08-09): Nach ausfuehrlicher Diagnose steht fest, dass die
+   Breiten-Vereinheitlichung (tabular-nums + hmtx-Patch) das Problem NICHT
+   geloest hat -- die Diagnose-Tabelle auf dem Geraet zeigt bereits 100%
+   einheitliche Breite (398px bei allen Weights), trotzdem meldet der Nutzer
+   weiterhin sichtbare Luecken NUR bei Ziffern (Buchstaben rendern normal).
+   Das deutet auf ein Rendering-/Rasterizer-Problem der Inter-Ziffern-Glyphen
+   selbst auf diesem Android-Chrome hin (nicht auf Metrik/Breite).
+   FIX: Unicode-Range-Font-Override -- Ziffern, Satzzeichen (,.) und das
+   Euro-Zeichen werden ueber denselben Font-Family-Namen 'Inter' auf die
+   System-Schriftart umgeleitet (die garantiert korrekt auf Android rendert),
+   waehrend Buchstaben weiterhin echtes Inter nutzen. Chrome waehlt pro
+   Unicode-Bereich automatisch die passende @font-face-Regel aus.
+   ═══════════════════════════════════════════════════════════════════════════ */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: local('Roboto'), local('Noto Sans'), local('Arial'), local('Helvetica');
+  unicode-range: U+0030-0039, U+002C, U+002E, U+20AC;
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════════
    HUI Design System v1.0 — Global Styles
    Apple Vision Pro × Headspace × A24 × Nothing Phone
