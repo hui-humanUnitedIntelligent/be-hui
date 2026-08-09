@@ -1,3 +1,64 @@
+/* ═══ HUI Inter Static Fonts — local bundled, no network dependency ═══ */
+/* public/fonts/ → copied as-is to www/fonts/ by Vite */
+/* Each weight is a separate STATIC font file (not variable font) */
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 200;
+  font-display: block;
+  src: url('/fonts/Inter-ExtraLight.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 300;
+  font-display: block;
+  src: url('/fonts/Inter-Light.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/Inter-Regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: block;
+  src: url('/fonts/Inter-Medium.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: block;
+  src: url('/fonts/Inter-SemiBold.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/Inter-Bold.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 800;
+  font-display: block;
+  src: url('/fonts/Inter-ExtraBold.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 900;
+  font-display: block;
+  src: url('/fonts/Inter-Black.woff2') format('woff2');
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════════
    HUI Design System v1.0 — Global Styles
    Apple Vision Pro × Headspace × A24 × Nothing Phone
@@ -83,13 +144,17 @@ html {
 body {
   margin: 0;
   padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display',
-               'Helvetica Neue', 'Inter', system-ui, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background: var(--hui-cream);
   color: #1A1A1A;
   overscroll-behavior: none;
+}
+
+/* Override Tailwind preflight html font-family — Inter must be primary everywhere */
+html, :host {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 /* ── Scrollbar Hide — global ───────────────────────────────────────────────── */
