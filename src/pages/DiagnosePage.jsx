@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { formatNumberDE } from "../lib/formatters.js";
+import CanvasAmount from "../components/shared/CanvasAmount.jsx";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -465,6 +466,85 @@ export default function DiagnosePage() {
           {' '}einfügen und ausführen. Danach diese Seite neu laden.
         </div>
       </div>
+
+      {/* ═══ FONT WEIGHT DIAGNOSTIC ═══ */}
+      <div style={{ marginTop:24, padding:16, borderRadius:12, background:'#fff', border:'1px solid #e5e7eb' }}>
+        <div style={{ fontSize:14, fontWeight:700, marginBottom:12, color:'#1a1a1a' }}>
+          Font-Weight Render Test (Xiaomi WebView Bug)
+        </div>
+        
+        <div style={{ fontSize:11, color:'#999', marginBottom:16 }}>
+          Wenn Lücken zwischen Ziffern/Buchstaben auftreten → WebView Bug bei diesem Weight.<br/>
+          Fix: @font-face mappt 700/800/900 → SemiBold(600) Datei.
+        </div>
+
+        {/* Test: Weight 400 */}
+        <div style={{ marginBottom:12, padding:8, borderRadius:8, background:'#f9fafb' }}>
+          <div style={{ fontSize:10, color:'#999', marginBottom:4 }}>Weight 400 (Regular) — sollte OK sein:</div>
+          <div style={{ fontFamily:'Inter', fontSize:15, fontWeight:400 }}>
+            22.745,50 € — Office zu verkaufen
+          </div>
+        </div>
+
+        {/* Test: Weight 500 */}
+        <div style={{ marginBottom:12, padding:8, borderRadius:8, background:'#f9fafb' }}>
+          <div style={{ fontSize:10, color:'#999', marginBottom:4 }}>Weight 500 (Medium) — sollte OK sein:</div>
+          <div style={{ fontFamily:'Inter', fontSize:15, fontWeight:500 }}>
+            22.745,50 € — Office zu verkaufen
+          </div>
+        </div>
+
+        {/* Test: Weight 600 */}
+        <div style={{ marginBottom:12, padding:8, borderRadius:8, background:'#f9fafb' }}>
+          <div style={{ fontSize:10, color:'#999', marginBottom:4 }}>Weight 600 (SemiBold) — sollte OK sein:</div>
+          <div style={{ fontFamily:'Inter', fontSize:15, fontWeight:600 }}>
+            22.745,50 € — Office zu verkaufen
+          </div>
+        </div>
+
+        {/* Test: Weight 700 (now mapped to 600) */}
+        <div style={{ marginBottom:12, padding:8, borderRadius:8, background:'#fff4e0', border:'1px solid #f0c060' }}>
+          <div style={{ fontSize:10, color:'#b8860b', marginBottom:4 }}>Weight 700 (Bold) → gemappt auf SemiBold:</div>
+          <div style={{ fontFamily:'Inter', fontSize:15, fontWeight:700 }}>
+            22.745,50 € — Office zu verkaufen
+          </div>
+        </div>
+
+        {/* Test: Weight 800 (now mapped to 600) */}
+        <div style={{ marginBottom:12, padding:8, borderRadius:8, background:'#e0f7fa', border:'1px solid #40c0d0' }}>
+          <div style={{ fontSize:10, color:'#088', marginBottom:4 }}>Weight 800 (ExtraBold) → gemappt auf SemiBold:</div>
+          <div style={{ fontFamily:'Inter', fontSize:15, fontWeight:800 }}>
+            22.745,50 € — Office zu verkaufen
+          </div>
+        </div>
+
+        {/* Test: Weight 900 (now mapped to 600) */}
+        <div style={{ marginBottom:12, padding:8, borderRadius:8, background:'#f0e0fa', border:'1px solid #a040d0' }}>
+          <div style={{ fontSize:10, color:'#608', marginBottom:4 }}>Weight 900 (Black) → gemappt auf SemiBold:</div>
+          <div style={{ fontFamily:'Inter', fontSize:15, fontWeight:900 }}>
+            22.745,50 € — Office zu verkaufen
+          </div>
+        </div>
+
+        {/* System font comparison */}
+        <div style={{ marginBottom:12, padding:8, borderRadius:8, background:'#f9fafb' }}>
+          <div style={{ fontSize:10, color:'#999', marginBottom:4 }}>System sans-serif Weight 800 (Vergleich):</div>
+          <div style={{ fontFamily:'sans-serif', fontSize:15, fontWeight:800 }}>
+            22.745,50 € — Office zu verkaufen
+          </div>
+        </div>
+
+        {/* Canvas test */}
+        <div style={{ marginBottom:12, padding:8, borderRadius:8, background:'#f9fafb' }}>
+          <div style={{ fontSize:10, color:'#999', marginBottom:4 }}>Canvas 800 (sollte jetzt auch OK sein):</div>
+          <CanvasAmount value="22.745,50 €" fontSize={15} fontWeight={800} color="#1a1a1a" />
+        </div>
+
+        <div style={{ fontSize:10, color:'#999', marginTop:8, lineHeight:1.6 }}>
+          userAgent: <span id="hua" style={{ wordBreak:'break-all' }}>{navigator.userAgent}</span>
+        </div>
+      </div>
+
     </div>
   );
 }

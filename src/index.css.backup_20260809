@@ -42,26 +42,21 @@
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  /* FIX 2026-08-09: Xiaomi HyperOS WebView rendert fontWeight>=700 mit Lücken zwischen
-     jeder Ziffer/Buchstabe. Mapping 700->SemiBold(600) umgeht den Bug.
-     Visueller Unterschied minimal, aber Lücken verschwinden. */
-  src: url('/fonts/Inter-SemiBold.woff2') format('woff2');
+  src: url('/fonts/Inter-Bold.woff2') format('woff2');
 }
 @font-face {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 800;
   font-display: swap;
-  /* FIX 2026-08-09: Gleicher Xiaomi WebView Bug — 800->SemiBold(600) */
-  src: url('/fonts/Inter-SemiBold.woff2') format('woff2');
+  src: url('/fonts/Inter-ExtraBold.woff2') format('woff2');
 }
 @font-face {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 900;
   font-display: swap;
-  /* FIX 2026-08-09: Gleicher Xiaomi WebView Bug — 900->SemiBold(600) */
-  src: url('/fonts/Inter-SemiBold.woff2') format('woff2');
+  src: url('/fonts/Inter-Black.woff2') format('woff2');
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════

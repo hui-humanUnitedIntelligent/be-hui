@@ -73,7 +73,7 @@ export default function CanvasAmount({
         display: "inline-block",
         verticalAlign: "middle",
         // DEBUG: roter Rahmen damit man sieht ob der Canvas da ist
-        border: "1px solid red",
+        
         ...style,
       }}
     />
