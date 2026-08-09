@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { formatNumberDE } from "../lib/formatters.js";
-import CanvasAmount from "../components/shared/CanvasAmount.jsx";
+
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -537,7 +537,7 @@ export default function DiagnosePage() {
         {/* Canvas test */}
         <div style={{ marginBottom:12, padding:8, borderRadius:8, background:'#f9fafb' }}>
           <div style={{ fontSize:10, color:'#999', marginBottom:4 }}>Canvas 800 (sollte jetzt auch OK sein):</div>
-          <CanvasAmount value="22.745,50 €" fontSize={15} fontWeight={800} color="#1a1a1a" />
+          <span style={{ fontSize: 15, fontWeight: 800, color: "#1a1a1a", whiteSpace: "nowrap" }}>22.745,50 €</span>
         </div>
 
         <div style={{ fontSize:10, color:'#999', marginTop:8, lineHeight:1.6 }}>

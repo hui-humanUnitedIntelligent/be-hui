@@ -21,7 +21,6 @@ import { useHuiActions, A } from "../../core/hui.actions.js";
 import { S } from "../../core/hui.sources.js";
 import { generateReceipt } from "../../lib/generateReceipt.js";
 import { HUILogo } from "../brand/HUILogo.jsx";
-import CanvasAmount from "../shared/CanvasAmount.jsx";
 import { formatDateDE, formatEUR } from "../../lib/formatters.js";
 
 const T = {
@@ -106,7 +105,7 @@ function TxCard({ image, title, subtitle, dateLabel, amount, amountColor = T.ink
         )}
       </div>
       <div style={{ textAlign: "right", flexShrink: 0 }}>
-        <CanvasAmount value={eur(amount)} fontSize={14} fontWeight={800} color={amountColor} />
+        <span style={{ fontSize: 14, fontWeight: 800, color: amountColor, whiteSpace: "nowrap" }}>{eur(amount)}</span>
         <div style={{ fontSize: 16, color: T.inkFaint, marginTop: 2 }}>›</div>
       </div>
     </div>
@@ -692,7 +691,7 @@ function SummaryRow({ label, value, color = T.ink }) {
       border: `1px solid ${T.border}`, marginBottom: 14,
     }}>
       <span style={{ fontSize: 12, fontWeight: 600, color: T.inkSoft }}>{label}</span>
-      <CanvasAmount value={value} fontSize={15} fontWeight={800} color={color} />
+      <span style={{ fontSize: 15, fontWeight: 800, color: color, whiteSpace: "nowrap" }}>{value}</span>
     </div>
   );
 }
@@ -703,7 +702,7 @@ function MiniStat({ label, value, color = T.ink }) {
       border: `1px solid ${T.border}`,
     }}>
       <div style={{ fontSize: 10, fontWeight: 600, color: T.inkFaint, marginBottom: 4 }}>{label}</div>
-      <CanvasAmount value={value} fontSize={14} fontWeight={800} color={color} />
+      <span style={{ fontSize: 14, fontWeight: 800, color: color, whiteSpace: "nowrap" }}>{value}</span>
     </div>
   );
 }
@@ -835,10 +834,9 @@ function MeineSupports({ userId }) {
           <div style={{ fontSize: 12, color: T.inkSoft, marginBottom: 4 }}>
             {view === "given" ? "Insgesamt gegeben" : "Insgesamt erhalten"}
           </div>
-          <CanvasAmount
-            value={eur(items.filter(i => i.status === "succeeded").reduce((sum, i) => sum + Number(i.amount), 0))}
-            fontSize={20} fontWeight={800} color={T.teal}
-          />
+          <span style={{ fontSize: 20, fontWeight: 800, color: T.teal, whiteSpace: "nowrap" }}>
+            {eur(items.filter(i => i.status === "succeeded").reduce((sum, i) => sum + Number(i.amount), 0))}
+          </span>
           <div style={{ fontSize: 11, color: T.inkFaint, marginTop: 2 }}>
             {items.filter(i => i.status === "succeeded").length} erfolgreiche Unterstützung(en)
           </div>
