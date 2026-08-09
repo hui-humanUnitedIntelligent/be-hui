@@ -386,45 +386,12 @@ export default function DiagnosePage() {
           <div style={{fontSize:10,color:C.muted,marginTop:4,marginBottom:8}}>
             "loaded" = Font-Loading-API kann Font laden - "true" = Browser hält Font für verfügbar
           </div>
-          {/* ── V3 DIAGNOSE: Multiple Font-Varianten Side-by-Side ── */}
-          <div style={{ marginTop:12, padding:'16px', background:'rgba(255,0,0,.15)', borderRadius:8, border:'2px solid #ff4444' }}>
-            <div style={{ fontSize:16, fontWeight:900, color:'#ff4444', marginBottom:8 }}>
-              🔴 VERSION 3 — wenn du diesen roten Kasten siehst, ist die neue Version geladen
-            </div>
-          </div>
-          <div style={{ marginTop:8, padding:'12px', background:'rgba(255,255,255,.05)', borderRadius:8 }}>
-            <div style={{ fontSize:11, color:C.muted, marginBottom:6 }}>A) Inter Bold 32px:</div>
+          <div style={{ marginTop:12, padding:'12px', background:'rgba(255,255,255,.05)', borderRadius:8 }}>
             <div style={{ fontSize:32, fontWeight:700, fontFamily:'Inter, sans-serif' }}>
               1.234.567,89 €
             </div>
-          </div>
-          <div style={{ marginTop:8, padding:'12px', background:'rgba(255,255,255,.05)', borderRadius:8 }}>
-            <div style={{ fontSize:11, color:C.muted, marginBottom:6 }}>B) System-UI Bold 32px:</div>
-            <div style={{ fontSize:32, fontWeight:700, fontFamily:'system-ui, sans-serif' }}>
-              1.234.567,89 €
-            </div>
-          </div>
-          <div style={{ marginTop:8, padding:'12px', background:'rgba(255,255,255,.05)', borderRadius:8 }}>
-            <div style={{ fontSize:11, color:C.muted, marginBottom:6 }}>C) Roboto Bold 32px:</div>
-            <div style={{ fontSize:32, fontWeight:700, fontFamily:'Roboto, sans-serif' }}>
-              1.234.567,89 €
-            </div>
-          </div>
-          <div style={{ marginTop:8, padding:'12px', background:'rgba(255,255,255,.05)', borderRadius:8 }}>
-            <div style={{ fontSize:11, color:C.muted, marginBottom:6 }}>D) Monospace 32px:</div>
-            <div style={{ fontSize:32, fontWeight:700, fontFamily:'monospace' }}>
-              1.234.567,89 €
-            </div>
-          </div>
-          <div style={{ marginTop:8, padding:'12px', background:'rgba(255,255,255,.05)', borderRadius:8 }}>
-            <div style={{ fontSize:11, color:C.muted, marginBottom:6 }}>E) Inter — nur Buchstaben (sollte normal sein):</div>
-            <div style={{ fontSize:32, fontWeight:700, fontFamily:'Inter, sans-serif' }}>
-              Hallo Welt
-            </div>
-          </div>
-          <div style={{ marginTop:8, padding:'12px', background:'rgba(0,255,0,.1)', borderRadius:8, border:'1px solid #22ff22' }}>
-            <div style={{ fontSize:14, fontWeight:700, color:'#22ff22' }}>
-              👇 Bitte vergleiche A-D: Bei welcher Schriftart siehst du Lücken, bei welcher nicht?
+            <div style={{ fontSize:14, color:C.muted, marginTop:4 }}>
+              ↑ Test-Zeile mit formatEUR — siehst du Lücken?
             </div>
           </div>
         </>}
