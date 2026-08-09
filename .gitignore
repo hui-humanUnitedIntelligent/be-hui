@@ -51,3 +51,6 @@ www/bundle.zip
 www/app-version.json
 backups/
 backups/
+release.keystore
+android/app/release.keystore
+*.backup_20260809

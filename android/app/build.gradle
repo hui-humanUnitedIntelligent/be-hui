@@ -23,9 +23,9 @@ android {
     signingConfigs {
         release {
             storeFile file("release.keystore")
-            storePassword "MEIN_PASSWORT"
+            storePassword "hui123"
             keyAlias "hui-release-key"
-            keyPassword "MEIN_PASSWORT"
+            keyPassword "hui123"
         }
     }
 
