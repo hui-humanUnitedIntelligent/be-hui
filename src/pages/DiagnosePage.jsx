@@ -47,6 +47,72 @@ export default function DiagnosePage() {
   const [results, setResults]   = useState({});
   const [schema,  setSchema]    = useState({});
   const [running, setRunning]   = useState(false);
+  const [fontInfo, setFontInfo] = useState(null);
+
+  function runFontCheck() {
+    // Create a test element with digits
+    const el = document.createElement('span');
+    el.textContent = '1234567890';
+    el.style.cssText = 'position:absolute;left:-9999px;font-size:32px;font-weight:700;';
+    document.body.appendChild(el);
+    const cs = getComputedStyle(el);
+    const rect = el.getBoundingClientRect();
+    
+    // Also check what fonts are loaded
+    let loadedFonts = [];
+    if (document.fonts) {
+      document.fonts.forEach(f => {
+        loadedFonts.push(`${f.family} ${f.weight} (${f.status})`);
+      });
+    }
+    
+    // Check if Google Fonts stylesheet loaded
+    let gfLoaded = false;
+    let gfHref = '';
+    document.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
+      if (link.href.includes('fonts.googleapis.com')) {
+        gfLoaded = true;
+        gfHref = link.href;
+      }
+    });
+    
+    // Check font loads
+    let fontLoadStatus = 'unknown';
+    try {
+      Promise.all([
+        document.fonts.load('700 32px Inter'),
+        document.fonts.load('400 32px Inter'),
+      ]).then(([bold, regular]) => {
+        setFontInfo(prev => ({
+          ...prev,
+          fontLoadCheck: {
+            bold700: bold.length > 0 ? 'loaded' : 'NOT loaded',
+            regular400: regular.length > 0 ? 'loaded' : 'NOT loaded',
+          }
+        }));
+      });
+    } catch(e) {}
+
+    setFontInfo({
+      userAgent: navigator.userAgent.slice(0, 120),
+      platform: navigator.platform,
+      computedFontFamily: cs.fontFamily,
+      computedFontSize: cs.fontSize,
+      computedFontWeight: cs.fontWeight,
+      computedLetterSpacing: cs.letterSpacing,
+      computedFontFeatureSettings: cs.fontFeatureSettings,
+      computedFontSynthesis: cs.fontSynthesis,
+      renderedWidth: Math.round(rect.width) + 'px',
+      renderedHeight: Math.round(rect.height) + 'px',
+      googleFontsLink: gfLoaded ? 'YES' : 'NO',
+      googleFontsHref: gfHref.slice(0, 80),
+      loadedFontsCount: loadedFonts.length,
+      loadedFonts: loadedFonts.slice(0, 15),
+      fontDisplay: cs.fontDisplay,
+    });
+    
+    document.body.removeChild(el);
+  }
 
   async function runAudit() {
     setRunning(true);
@@ -251,6 +317,47 @@ export default function DiagnosePage() {
             )}
           </div>
         ))}
+      </Section>
+
+      <Section title="🔤 Font-Diagnose">
+        <button onClick={runFontCheck}
+          style={{ padding:'10px 20px', borderRadius:8, background:'#16D7C5',
+            border:'none', color:'#0f172a', fontWeight:800, fontSize:12,
+            cursor:'pointer', fontFamily:'inherit', marginBottom:12 }}>
+          Font-Check ausführen
+        </button>
+        {fontInfo && <>
+          <Row label="User-Agent" value={fontInfo.userAgent} />
+          <Row label="Platform" value={fontInfo.platform} />
+          <Row label="Computed font-family" value={fontInfo.computedFontFamily} />
+          <Row label="Computed font-size" value={fontInfo.computedFontSize} />
+          <Row label="Computed font-weight" value={fontInfo.computedFontWeight} />
+          <Row label="Computed letter-spacing" value={fontInfo.computedLetterSpacing} />
+          <Row label="Computed font-feature-settings" value={fontInfo.computedFontFeatureSettings} />
+          <Row label="Computed font-synthesis" value={fontInfo.computedFontSynthesis} />
+          <Row label="Google Fonts <link> loaded" value={fontInfo.googleFontsLink} />
+          {fontInfo.googleFontsHref && <Row label="GF href" value={fontInfo.googleFontsHref} />}
+          <Row label="Rendered width (10 digits)" value={fontInfo.renderedWidth} />
+          <Row label="Rendered height" value={fontInfo.renderedHeight} />
+          <Row label="Loaded fonts (document.fonts)" value={`${fontInfo.loadedFontsCount} fonts`} />
+          {fontInfo.loadedFonts?.map((f, i) => (
+            <Row key={i} label={`  ${i+1}`} value={f} />
+          ))}
+          {fontInfo.fontLoadCheck && <>
+            <Row label="Inter 700 loaded?" value={fontInfo.fontLoadCheck.bold700} 
+              ok={fontInfo.fontLoadCheck.bold700 === 'loaded'} />
+            <Row label="Inter 400 loaded?" value={fontInfo.fontLoadCheck.regular400}
+              ok={fontInfo.fontLoadCheck.regular400 === 'loaded'} />
+          </>}
+          <div style={{ marginTop:12, padding:'12px', background:'rgba(255,255,255,.05)', borderRadius:8 }}>
+            <div style={{ fontSize:32, fontWeight:700, fontFamily:'Inter, sans-serif' }}>
+              1.234.567,89 €
+            </div>
+            <div style={{ fontSize:14, color:C.muted, marginTop:4 }}>
+              ↑ Test-Zeile mit formatEUR — siehst du Lücken?
+            </div>
+          </div>
+        </>}
       </Section>
 
       <button onClick={runAudit} disabled={running}
