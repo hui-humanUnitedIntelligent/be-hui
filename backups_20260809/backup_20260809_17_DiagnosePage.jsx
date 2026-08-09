@@ -432,18 +432,9 @@ export default function DiagnosePage() {
             </div>
           </div>
           <div style={{ marginTop:8, padding:'12px', background:'rgba(255,255,255,.05)', borderRadius:8 }}>
-            <div style={{ fontSize:11, color:C.muted, marginBottom:6 }}>F) Inter Bold 32px MIT hui-num-nowrap-Fix (nowrap only):</div>
+            <div style={{ fontSize:11, color:C.muted, marginBottom:6 }}>F) Inter Bold 32px MIT hui-num-nowrap-Fix:</div>
             <div className="hui-num-nowrap" style={{ fontSize:32, fontWeight:700, fontFamily:'Inter, sans-serif' }}>
               1.234.567,89 €
-            </div>
-          </div>
-          <div style={{ marginTop:8, padding:'12px', background:'rgba(255,0,255,.08)', borderRadius:8, border:'1px solid #ff44ff' }}>
-            <div style={{ fontSize:11, color:'#ff44ff', marginBottom:6, fontWeight:700 }}>G) ZWEITER FIX — kleine Zahl OHNE tabular-nums (wie im echten Kaeufe-Modal):</div>
-            <div style={{ fontSize:20, fontWeight:800 }}>
-              22.745,50 €
-            </div>
-            <div style={{ fontSize:10, color:C.muted, marginTop:4 }}>
-              ↑ Wenn hier KEINE Luecke nach jeder Ziffer ist: tabular-nums war der 2. Bug
             </div>
           </div>
         </>}

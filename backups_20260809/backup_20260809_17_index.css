@@ -182,29 +182,20 @@ body {
      entfernt — DAS war die Regression, die den Bug wieder zurückgebracht hat. */
   font-synthesis: none;
   -webkit-font-synthesis: none;
-  /* WIDERRUF (2026-08-09, zweiter Root-Cause-Fund am selben Tag): Die obige
-     Theorie ("tabular-nums behebt Breiten-Differenz zwischen Ziffern") war
-     FALSCH und ist selbst der Bug. Beweis per Live-Screenshot: Im echten
-     Kaeufe/Verkaeufe-Modal steht "22.745,50 €" auf EINER Zeile (kein
-     Wortumbruch), zeigt aber sichtbare Luecke nach JEDER Ziffer — exakt
-     seit tabular-nums global aktiv ist. `font-variant-numeric: tabular-nums`
-     fordert vom Font alternative Tabellen-Ziffern-Glyphen (OpenType-Feature
-     "tnum") an. Auf diesem Android-10-System-WebView (Chrome/151 Mobile,
-     aeltere/OEM-Engine) fuehrt diese Feature-Anfrage zu einem Advance-Width-
-     Rendering-Fehler: es wird Platz fuer eine tabellarische Alternativ-Glyphe
-     reserviert, aber die eigentliche Glyphe bleibt an der proportionalen
-     Position stehen -> sichtbare Luecke. Das erklaert auch, warum der A-D
-     Schriftart-Vergleichstest (Inter/system-ui/Roboto/monospace) auf der
-     Diagnose-Seite bei ALLEN Schriftarten identisch aussah: tabular-nums
-     wurde ueber body/html vererbt und wirkte in jeder Test-Zeile gleich,
-     unabhaengig von font-family. FIX: tabular-nums global entfernt, Inters
-     native proportionale Ziffern (Standard-Design, keine Feature-Anfrage)
-     werden jetzt normal gerendert. */
+  /* FIX (2026-08-09, ROOT CAUSE Ziffern-Luecken): Inter nutzt standardmaessig
+     PROPORTIONALE Ziffern (pnum) — '1' ist 833 Units breit, '0' ist 1292 Units
+     (35% schmaler!). Das erzeugt optische Luecken zwischen schmalen und breiten
+     Ziffern. tabular-nums (tnum) erzwingt gleiche Breite fuer alle Ziffern.
+     Wurde frueher irrtuemlich entfernt — war die Loesung, nicht das Problem. */
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" on;
 }
 
 html, :host {
   font-synthesis: none;
   -webkit-font-synthesis: none;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" on;
 }
 
 /* Override Tailwind preflight html font-family — Inter must be primary everywhere */
@@ -505,6 +496,7 @@ p, h1, h2, h3, h4, h5, h6, span, div {
 /* Geld-/Zahlen-Anzeigen: NIEMALS mitten in der Ziffernfolge umbrechen */
 .hui-num-nowrap {
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 :focus-visible {
