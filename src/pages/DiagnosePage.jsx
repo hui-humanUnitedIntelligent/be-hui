@@ -272,8 +272,9 @@ export default function DiagnosePage() {
   );
 
   return (
-    <div style={{ minHeight:'100vh', background:C.bg, color:C.text,
-      padding:'20px 16px 80px', ...S }}>
+    <div style={{ minHeight:'100vh', maxHeight:'100vh', overflowY:'auto',
+      WebkitOverflowScrolling:'touch', background:C.bg, color:C.text,
+      padding:'20px 16px 80px', ...S }>
 
       <div style={{ marginBottom:20 }}>
         <div style={{ fontSize:18, fontWeight:900, letterSpacing:'-.5px', marginBottom:4 }}>
