@@ -180,7 +180,7 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
             borderRadius: 12, padding: '12px 14px',
           }}>
             <div style={{ fontSize: 11, color: inkFaint, fontWeight: 600, marginBottom: 4 }}>{k.label}</div>
-            <div className="hui-num-nowrap" style={{ fontSize: 20, fontWeight: 800, color: k.color }}>{k.val}</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: k.color }}>{k.val}</div>
           </div>
         ))}
       </div>

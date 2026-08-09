@@ -462,41 +462,9 @@ body, #root {
   overscroll-behavior-y: contain;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   ECHTER ROOT CAUSE der "Ziffern-Luecken" (gefunden 2026-08-09, nach Tagen
-   Font-Debugging): Diese globale Regel wendete `word-break: break-word` auf
-   JEDES div/span/p/h1-6 in der GANZEN APP an. `word-break: break-word` ist
-   ein sehr aggressiver Legacy-Modus (Chrome behandelt ihn wie
-   `overflow-wrap: anywhere`) -- er bricht Text an JEDER Zeichenposition um,
-   sobald ein Element zu schmal ist. Bei grossen, fett formatierten Zahlen
-   (z.B. "22.745,50 EUR" bei fontSize:32 in schmalen Mobile-Containern) hat
-   das die Zahl MITTEN IN DER ZIFFERNFOLGE umgebrochen -- genau das sah
-   Michael als "Luecken zwischen jeder Ziffer" (der Zeilenumbruch selbst
-   erzeugte den optischen Abstand). Alle Font-Fixes (tabular-nums,
-   font-synthesis, hmtx-Patch, Unicode-Range-Override) waren wirkungslos,
-   weil das Problem nie eine Font-Eigenschaft war, sondern ein globaler
-   Layout-/Umbruch-Fehler. Beweis: Auf der Diagnose-Seite (V3) brach die
-   Testzeile bei ALLEN 4 getesteten Schriftarten (Inter, system-ui, Roboto,
-   monospace) an EXAKT derselben Stelle um -- ein Font-Bug haette nicht
-   schriftartuebergreifend identisch ausgesehen.
-   FIX: `word-break: break-word` entfernt (zu aggressiv). Nur das mildere
-   `overflow-wrap: break-word` bleibt -- bricht nur als allerletzten Ausweg,
-   wenn ein einzelnes Wort/Token wirklich nirgendwo hinpasst (z.B. sehr lange
-   URLs), nicht aber bei normal grossen Zahlen/Woertern die eigentlich Platz
-   haben. Zusaetzlich wurden alle Geld-/Zahlen-Anzeigen mit `white-space:
-   nowrap` abgesichert (siehe MeineResonanz.jsx, FinanzuebersichtModal.jsx,
-   AmbassadorPayoutPanel.jsx), damit Zahlen NIE mitten in der Ziffernfolge
-   umbrechen koennen -- lieber zur Not clippen/skalieren als haesslich
-   umbrechen.
-   ═══════════════════════════════════════════════════════════════════════════ */
 p, h1, h2, h3, h4, h5, h6, span, div {
+  word-break: break-word;
   overflow-wrap: break-word;
-}
-
-/* Geld-/Zahlen-Anzeigen: NIEMALS mitten in der Ziffernfolge umbrechen */
-.hui-num-nowrap {
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
 }
 
 :focus-visible {

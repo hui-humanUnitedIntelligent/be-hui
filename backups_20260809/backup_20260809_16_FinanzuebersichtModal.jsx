@@ -691,7 +691,7 @@ function SummaryRow({ label, value, color = T.ink }) {
       border: `1px solid ${T.border}`, marginBottom: 14,
     }}>
       <span style={{ fontSize: 12, fontWeight: 600, color: T.inkSoft }}>{label}</span>
-      <span className="hui-num-nowrap" style={{ fontSize: 15, fontWeight: 800, color }}>{value}</span>
+      <span style={{ fontSize: 15, fontWeight: 800, color }}>{value}</span>
     </div>
   );
 }
@@ -702,7 +702,7 @@ function MiniStat({ label, value, color = T.ink }) {
       border: `1px solid ${T.border}`,
     }}>
       <div style={{ fontSize: 10, fontWeight: 600, color: T.inkFaint, marginBottom: 4 }}>{label}</div>
-      <div className="hui-num-nowrap" style={{ fontSize: 14, fontWeight: 800, color }}>{value}</div>
+      <div style={{ fontSize: 14, fontWeight: 800, color }}>{value}</div>
     </div>
   );
 }
@@ -834,7 +834,7 @@ function MeineSupports({ userId }) {
           <div style={{ fontSize: 12, color: T.inkSoft, marginBottom: 4 }}>
             {view === "given" ? "Insgesamt gegeben" : "Insgesamt erhalten"}
           </div>
-          <div className="hui-num-nowrap" style={{ fontSize: 20, fontWeight: 800, color: T.teal }}>
+          <div style={{ fontSize: 20, fontWeight: 800, color: T.teal }}>
             {eur(items.filter(i => i.status === "succeeded").reduce((sum, i) => sum + Number(i.amount), 0))}
           </div>
           <div style={{ fontSize: 11, color: T.inkFaint, marginTop: 2 }}>

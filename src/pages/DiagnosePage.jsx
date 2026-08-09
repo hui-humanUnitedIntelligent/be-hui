@@ -424,7 +424,17 @@ export default function DiagnosePage() {
           </div>
           <div style={{ marginTop:8, padding:'12px', background:'rgba(0,255,0,.1)', borderRadius:8, border:'1px solid #22ff22' }}>
             <div style={{ fontSize:14, fontWeight:700, color:'#22ff22' }}>
-              👇 Bitte vergleiche A-D: Bei welcher Schriftart siehst du Lücken, bei welcher nicht?
+              ✅ ROOT CAUSE GEFUNDEN: globales CSS `word-break: break-word` auf
+              jedem div/span brach lange Zahlen mitten in der Ziffernfolge um
+              (nicht Font-bedingt — bei ALLEN 4 Schriftarten identisch umgebrochen).
+              Fix: Regel entschärft + `.hui-num-nowrap` (white-space:nowrap) auf
+              allen Geld-Anzeigen. Test F unten beweist es:
+            </div>
+          </div>
+          <div style={{ marginTop:8, padding:'12px', background:'rgba(255,255,255,.05)', borderRadius:8 }}>
+            <div style={{ fontSize:11, color:C.muted, marginBottom:6 }}>F) Inter Bold 32px MIT hui-num-nowrap-Fix:</div>
+            <div className="hui-num-nowrap" style={{ fontSize:32, fontWeight:700, fontFamily:'Inter, sans-serif' }}>
+              1.234.567,89 €
             </div>
           </div>
         </>}

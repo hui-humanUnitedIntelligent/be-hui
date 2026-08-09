@@ -294,7 +294,7 @@ function ResonanzSummary({ entries }) {
           <div style={{ fontSize:12, color:T.inkSoft, letterSpacing:"0.05em", textTransform:"uppercase", marginBottom:4 }}>
             Gesamte Resonanz
           </div>
-          <div className="hui-num-nowrap" style={{ fontSize:32, fontWeight:800, color:T.ink, letterSpacing:"-0.04em", lineHeight:1 }}>
+          <div style={{ fontSize:32, fontWeight:800, color:T.ink, letterSpacing:"-0.04em", lineHeight:1 }}>
             {formatEUR(t.eur, { minimumFractionDigits: t.eur%1===0?0:2 })}
           </div>
           <div style={{ fontSize:12, color:T.inkSoft, marginTop:6 }}>
@@ -403,7 +403,7 @@ function ResonanzEntry({ entry, animIndex, onTap }) {
         {/* Footer */}
         <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
           {entry.amount > 0 && (
-            <span className="hui-num-nowrap" style={{ fontSize:14, fontWeight:700, color:T.ink, letterSpacing:"-0.02em" }}>
+            <span style={{ fontSize:14, fontWeight:700, color:T.ink, letterSpacing:"-0.02em" }}>
               {formatEUR(entry.amount, { minimumFractionDigits: entry.amount%1===0?0:2 })}
             </span>
           )}
