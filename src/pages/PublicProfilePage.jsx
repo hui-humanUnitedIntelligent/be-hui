@@ -75,7 +75,7 @@ const CSS = `
   .ppp-press-light{transition:transform .14s ease,opacity .14s ease;}
   .ppp-press-light:active{transform:scale(0.97);opacity:0.82;}
   .ppp-in{animation:ppp-fade-up .45s ease both;}
-  .ppp-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:99px;font-size:12px;font-weight:700;}
+  .ppp-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:99px;font-size:12px;font-weight:600;}
   .ppp-stat{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;}
 `;
 

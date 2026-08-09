@@ -432,7 +432,7 @@ function Step4({ form, update, onNext, onBack, onClose }) {
                   transition:"all 0.15s ease",
                 }}>
                 <span style={{ fontSize:22 }}>{k.emoji}</span>
-                <span style={{ fontSize:14, fontWeight: sel ? 800 : 600,
+                <span style={{ fontSize:14, fontWeight: sel ? 600 : 600,
                   color: sel ? T.teal : T.ink, lineHeight:1.2 }}>{k.label}</span>
               </button>
             );
@@ -792,7 +792,7 @@ function AIPruefung({ form, onResult }) {
               fontSize:11, color:"#fff", fontWeight: 600,
               transition:"background 0.3s ease", flexShrink:0 }}>
               {phase > i ? "✓" : i+1}</div>
-            <span style={{ fontSize:13, fontWeight: phase > i ? 700 : 400,
+            <span style={{ fontSize:13, fontWeight: phase > i ? 600 : 400,
               color: phase > i ? T.ink : T.ink3 }}>{k}</span>
           </div>
         ))}

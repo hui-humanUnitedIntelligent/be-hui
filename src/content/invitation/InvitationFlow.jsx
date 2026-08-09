@@ -130,7 +130,7 @@ function WasStep({ data, onChange, onNext }) {
                 background: data.vibe === v.k ? V.violetL : "rgba(248,247,255,0.80)",
                 cursor:     "pointer",
                 fontSize:   13,
-                fontWeight: data.vibe === v.k ? 700 : 400,
+                fontWeight: data.vibe === v.k ? 600 : 400,
                 color:      data.vibe === v.k ? V.violet : V.ink2,
                 transition: "all .14s ease",
               }}
@@ -223,7 +223,7 @@ function WoWannStep({ data, onChange, onNext, onBack }) {
                 background: data.max_participants === n ? V.violetL : "rgba(248,247,255,0.80)",
                 cursor:     "pointer",
                 fontSize:   13,
-                fontWeight: data.max_participants === n ? 700 : 400,
+                fontWeight: data.max_participants === n ? 600 : 400,
                 color:      data.max_participants === n ? V.violet : V.ink2,
               }}
             >{n === null ? "Offen" : `Max. ${n}`}</button>

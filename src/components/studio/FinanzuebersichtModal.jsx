@@ -916,7 +916,7 @@ export default function FinanzuebersichtModal({ profile, onClose = () => {} }) {
                 borderRadius: T.r99,
                 background: tab === t.id ? T.teal : T.bgCard,
                 color: tab === t.id ? "white" : T.inkSoft,
-                fontSize: 10, fontWeight: tab === t.id ? 700 : 500,
+                fontSize: 10, fontWeight: tab === t.id ? 600 : 500,
                 cursor: "pointer", fontFamily: T.ff,
                 border: tab === t.id ? "none" : `1px solid ${T.border}`,
                 transition: "all .15s ease",

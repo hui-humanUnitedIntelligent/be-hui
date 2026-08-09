@@ -796,7 +796,7 @@ export const ActionBtn = memo(function ActionBtn({
       {(count != null || label) && (
         <span style={{
           fontSize: 12.5, color: col,
-          fontWeight: active ? 700 : 400,
+          fontWeight: active ? 600 : 400,
           transition: "color 0.18s ease",
         }}>
           {count != null ? count : label}

@@ -155,10 +155,10 @@ const FONT = {
   displaySm: { fontSize: 28, fontWeight: 600, letterSpacing: "-0.026em", lineHeight: 1.10 },
 
   // Seiten-Headlines
-  h1: { fontSize: 24, fontWeight: 820, letterSpacing: "-0.022em", lineHeight: 1.18 },
+  h1: { fontSize: 24, fontWeight: 600, letterSpacing: "-0.022em", lineHeight: 1.18 },
   h2: { fontSize: 20, fontWeight: 600, letterSpacing: "-0.018em", lineHeight: 1.22 },
-  h3: { fontSize: 17, fontWeight: 760, letterSpacing: "-0.014em", lineHeight: 1.26 },
-  h4: { fontSize: 15, fontWeight: 720, letterSpacing: "-0.010em", lineHeight: 1.30 },
+  h3: { fontSize: 17, fontWeight: 600, letterSpacing: "-0.014em", lineHeight: 1.26 },
+  h4: { fontSize: 15, fontWeight: 600, letterSpacing: "-0.010em", lineHeight: 1.30 },
 
   // Body — ruhig, hochlesbar
   bodyLg: { fontSize: 16, fontWeight: 400, letterSpacing: "-0.010em", lineHeight: 1.78 },

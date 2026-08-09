@@ -365,7 +365,7 @@ export default function ProjekteAllModal({ isOpen, onClose, onPressItem }) {
                 border: filterRank===f.key ? `1.5px solid ${T.tealMid}` : `1px solid ${T.border}`,
                 background: filterRank===f.key ? T.tealSoft : "rgba(255,255,255,0.7)",
                 color: filterRank===f.key ? T.tealDeep : T.inkSoft,
-                fontSize:12.5, fontWeight: filterRank===f.key ? 700 : 500,
+                fontSize:12.5, fontWeight: filterRank===f.key ? 600 : 500,
                 whiteSpace:"nowrap", cursor:"pointer", fontFamily:"inherit",
                 transition:"all 0.15s",
               }}>{f.label}</button>

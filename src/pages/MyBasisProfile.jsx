@@ -2275,7 +2275,7 @@ function MeinBereichMenu({
                 flex:1, padding:"8px 4px", borderRadius:10, border:"none",
                 background: activeTab===key ? "white" : "transparent",
                 color: activeTab===key ? "#0DC4B5" : "#666",
-                fontSize:13, fontWeight: activeTab===key ? 800 : 600,
+                fontSize:13, fontWeight: activeTab===key ? 600 : 600,
                 cursor:"pointer", fontFamily:"inherit",
                 boxShadow: activeTab===key ? "0 1px 4px rgba(0,0,0,0.1)" : "none",
                 transition:"all 0.2s"

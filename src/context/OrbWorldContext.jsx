@@ -121,7 +121,7 @@ export function OrbWorldProvider({ children }) {
 
     // Phase 15.2: run environment cleanup AFTER close animation (900ms)
     // This catches any stray body locks / overlays the orb may have set
-    cleanupOrbEnvironment({ reason, afterMs: 900 });
+    cleanupOrbEnvironment({ reason, afterMs: 600 });
   }, []);
 
   // ── Derived tokens (memoized) ──────────────────────────────

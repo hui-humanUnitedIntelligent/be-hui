@@ -229,7 +229,7 @@ export default function ErlebnisseAllModal({ isOpen, onClose, onPressItem }) {
                 padding:"4px 10px", borderRadius:99, border:`1.5px solid ${filterType===f.key ? T.teal : T.border}`,
                 background:filterType===f.key ? T.tealSoft : "transparent",
                 color:filterType===f.key ? T.tealDeep : T.inkSoft,
-                fontSize:11.5, fontWeight:filterType===f.key ? 700 : 400,
+                fontSize:11.5, fontWeight:filterType===f.key ? 600 : 400,
                 whiteSpace:"nowrap", cursor:"pointer",
               }}>{f.label}</button>
             ))}
@@ -240,7 +240,7 @@ export default function ErlebnisseAllModal({ isOpen, onClose, onPressItem }) {
                 padding:"4px 10px", borderRadius:99, border:`1.5px solid ${filterStatus===f.key ? "#D97706" : T.border}`,
                 background:filterStatus===f.key ? "rgba(217,119,6,0.1)" : "transparent",
                 color:filterStatus===f.key ? "#D97706" : T.inkSoft,
-                fontSize:11.5, fontWeight:filterStatus===f.key ? 700 : 400,
+                fontSize:11.5, fontWeight:filterStatus===f.key ? 600 : 400,
                 whiteSpace:"nowrap", cursor:"pointer",
               }}>{f.label}</button>
             ))}

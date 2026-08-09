@@ -358,7 +358,7 @@ export default function CreatorDashboard({ visible, onClose, onOpenProfile }) {
                 ? `linear-gradient(135deg,${T.teal},${T.coral})`
                 : "rgba(26,26,46,0.07)",
               color: tab===t.id ? "white" : T.soft,
-              fontSize:13,fontWeight: tab===t.id ? 700:500,
+              fontSize:13,fontWeight: tab===t.id ? 600:500,
               cursor:"pointer",fontFamily:"inherit",
               transition:"all 0.18s ease",
               whiteSpace:"nowrap",

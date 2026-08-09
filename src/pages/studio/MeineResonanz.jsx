@@ -538,7 +538,7 @@ export default function MeineResonanz({ onClose, onNavigate }) {
                 background: active ? T.ink : T.card,
                 border: active ? "none" : "1px solid " + T.border,
                 color: active ? "#FFFFFF" : T.inkSoft,
-                fontSize:13, fontWeight: active ? 700 : 500,
+                fontSize:13, fontWeight: active ? 600 : 500,
                 whiteSpace:"nowrap", flexShrink:0,
                 boxShadow: active ? "0 2px 10px rgba(26,26,24,0.2)" : "none",
               }}>

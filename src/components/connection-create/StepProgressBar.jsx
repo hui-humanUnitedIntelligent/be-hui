@@ -53,7 +53,7 @@ export default function StepProgressBar({ step }) {
                 animation: active ? "spb-glow 2.5s ease-in-out infinite" : "none",
               }}/>
               <span style={{
-                fontSize:11, fontWeight: active ? 700 : 500,
+                fontSize:11, fontWeight: active ? 600 : 500,
                 color: active ? C.violet : C.muted,
                 letterSpacing:0.1,
                 transition:"color 0.3s",

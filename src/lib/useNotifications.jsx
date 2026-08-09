@@ -434,7 +434,7 @@ function NotifItem({ n, onRead, onDelete }) {
         {/* Text */}
         <div style={{flex:1, minWidth:0}}>
           <div style={{
-            fontSize:13.5, fontWeight: n.is_read ? 500 : 700,
+            fontSize:13.5, fontWeight: n.is_read ? 500 : 600,
             color: n.is_read ? T.inkSoft : T.ink,
             lineHeight:1.4, marginBottom:2,
           }}>
@@ -989,7 +989,7 @@ export function ResonanzzentrumPanel({ onClose }) {
                       ? `linear-gradient(135deg,${T.teal},${T.tealDeep})`
                       : "rgba(26,26,24,0.07)",
                     color: active ? "#fff" : T.inkSoft,
-                    fontSize:13, fontWeight: active ? 800 : 600,
+                    fontSize:13, fontWeight: active ? 600 : 600,
                     cursor:"pointer", flexShrink:0,
                     fontFamily:"inherit",
                     touchAction:"manipulation",

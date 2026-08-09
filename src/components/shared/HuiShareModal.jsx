@@ -353,7 +353,7 @@ export function HuiShareModal({ item, onClose }) {
               onClick={() => setTab(t.key)}
               style={{
                 flex: 1, padding: "12px 0", background: "none", border: "none",
-                fontSize: 14, fontWeight: tab === t.key ? 700 : 500,
+                fontSize: 14, fontWeight: tab === t.key ? 600 : 500,
                 color: tab === t.key ? T.teal : T.ink3,
                 borderBottom: tab === t.key ? `2.5px solid ${T.teal}` : "2.5px solid transparent",
                 cursor: "pointer", transition: "all 0.18s ease",

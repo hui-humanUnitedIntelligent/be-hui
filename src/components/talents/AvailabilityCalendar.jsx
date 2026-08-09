@@ -149,8 +149,8 @@ export default function AvailabilityCalendar({
           );
 
           const styles = {
-            selected:  { bg: "#0EC4B8", color: "#fff", border: "#0EC4B8", fw: 800 },
-            available: { bg: "rgba(14,196,184,0.10)", color: "#0EC4B8", border: "rgba(14,196,184,0.35)", fw: 700 },
+            selected:  { bg: "#0EC4B8", color: "#fff", border: "#0EC4B8", fw: 600 },
+            available: { bg: "rgba(14,196,184,0.10)", color: "#0EC4B8", border: "rgba(14,196,184,0.35)", fw: 600 },
             pickable:  { bg: "#fff", color: "#1A1A18", border: "rgba(26,26,24,0.12)", fw: 500 },
             full:      { bg: "rgba(232,58,58,0.06)", color: "rgba(232,58,58,0.55)", border: "rgba(232,58,58,0.15)", fw: 500, strike: true },
             muted:     { bg: "transparent", color: "rgba(26,26,24,0.20)", border: "transparent", fw: 400 },

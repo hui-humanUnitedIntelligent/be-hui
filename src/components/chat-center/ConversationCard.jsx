@@ -89,7 +89,7 @@ export default function ConversationCard({ conv, onPress, isActive }) {
           alignItems:"baseline", marginBottom:3,
         }}>
           <span style={{
-            fontSize:14.5, fontWeight: unread ? 800 : 600, color:C.ink,
+            fontSize:14.5, fontWeight: unread ? 600 : 600, color:C.ink,
             overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth:155,
           }}>{name}</span>
           <span style={{ fontSize:11, color:C.muted, flexShrink:0, marginLeft:6 }}>

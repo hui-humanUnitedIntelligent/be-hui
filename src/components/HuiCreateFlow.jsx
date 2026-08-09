@@ -94,7 +94,7 @@ const CSS = `
   .hcf2-field:focus-within { border-color:#16D7C5; }
 
   .hcf2-field-label {
-    font-size:10.5px; font-weight:700; color:rgba(60,60,60,0.45);
+    font-size:10.5px; font-weight:600; color:rgba(60,60,60,0.45);
     letter-spacing:0.6px; text-transform:uppercase;
     margin-bottom:5px; line-height:1;
   }
@@ -136,7 +136,7 @@ const CSS = `
 
   .hcf2-publish-btn {
     width:100%; padding:16px; border-radius:18px; border:none;
-    font-family:inherit; font-size:16px; font-weight:800;
+    font-family:inherit; font-size:16px; font-weight:600;
     cursor:pointer; -webkit-tap-highlight-color:transparent;
     letter-spacing:-0.2px; transition:all .25s ease;
   }

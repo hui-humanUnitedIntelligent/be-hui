@@ -85,7 +85,7 @@ function ProgressBar({ step }) {
               transition: "background .3s",
             }}/>
             <span style={{
-              fontSize: 10.5, fontWeight: active || done ? 700 : 500,
+              fontSize: 10.5, fontWeight: active || done ? 600 : 500,
               color: active ? C.violet : done ? C.teal : C.muted,
               transition: "color .3s",
             }}>{l}</span>

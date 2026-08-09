@@ -137,7 +137,7 @@ export default function ConversationList({ chats, loading, onOpen, onDiscover, c
               background: on ? `linear-gradient(135deg,${C.teal},${C.teal2})` : "rgba(255,255,255,0.75)",
               border: on ? "none" : "1.5px solid rgba(0,0,0,0.08)",
               color: on ? "white" : C.muted,
-              fontSize:13, fontWeight: on ? 700 : 500,
+              fontSize:13, fontWeight: on ? 600 : 500,
               cursor:"pointer", boxShadow: on ? "0 3px 10px rgba(22,215,197,0.25)" : "none",
               transition:"all 0.16s ease",
               WebkitTapHighlightColor:"transparent",

@@ -132,7 +132,7 @@ export function StoryBar({ onStoryClick }) {
                   </div>
                 </div>
                 {/* Name */}
-                <span style={{ fontSize:11, fontWeight: hasUnread ? 700 : 500,
+                <span style={{ fontSize:11, fontWeight: hasUnread ? 600 : 500,
                   color: hasUnread ? C.ink : C.muted,
                   maxWidth:68, textAlign:'center',
                   overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>

@@ -946,7 +946,7 @@ function NotifCard({ n, onRead, onDelete, onAction = () => {} }) {
             )}
             {n.title && (
               <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:1 }}>
-                <div style={{ fontSize:13, fontWeight: n.is_read ? 500 : 700, color:T.ink, lineHeight:1.35 }}>
+                <div style={{ fontSize:13, fontWeight: n.is_read ? 500 : 600, color:T.ink, lineHeight:1.35 }}>
                   {n.title}
                 </div>
                 {labelDuplicatesTitle && !n.is_read && (
@@ -1196,7 +1196,7 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
           {TABS.map(({ key, label }) => (
             <button key={key} onClick={() => setTab(key)} style={{
               padding:"10px 14px", border:"none", background:"none", cursor:"pointer",
-              fontSize:12, fontWeight: tab === key ? 700 : 500,
+              fontSize:12, fontWeight: tab === key ? 600 : 500,
               color: tab === key ? T.teal : T.inkSoft,
               borderBottom: tab === key ? `2px solid ${T.teal}` : "2px solid transparent",
               whiteSpace:"nowrap",

@@ -651,7 +651,7 @@ function Card2({ onNext, onBack, dir }) {
       icon:"🤝", label:"Menschen verbinden",
       sub:"Baue echte Verbindungen\nund wachse gemeinsam.",
       iconBg:"linear-gradient(135deg, rgba(245,166,35,0.30) 0%, rgba(245,200,80,0.15) 100%)",
-      floatAnim:"hmf5-float-d", delay:700,
+      floatAnim:"hmf5-float-d", delay:600,
       // lower-left
       style:{ top:"52%", left:"4%" },
     },

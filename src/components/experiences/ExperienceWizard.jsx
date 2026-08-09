@@ -148,7 +148,7 @@ function TypChip({ active, icon, label, onClick }) {
       }}
     >
       <span style={{ fontSize: 16 }}>{icon}</span>
-      <span style={{ fontSize: 13, fontWeight: active ? 700 : 600, color: active ? C.teal : C.ink }}>
+      <span style={{ fontSize: 13, fontWeight: active ? 600 : 600, color: active ? C.teal : C.ink }}>
         {label}
       </span>
     </div>
@@ -169,7 +169,7 @@ function FormatPill({ active, label, icon, onClick }) {
       }}
     >
       <span style={{ fontSize: 18 }}>{icon}</span>
-      <span style={{ fontSize: 14, fontWeight: active ? 700 : 600, color: active ? C.teal : C.ink }}>
+      <span style={{ fontSize: 14, fontWeight: active ? 600 : 600, color: active ? C.teal : C.ink }}>
         {label}
       </span>
     </div>
@@ -284,7 +284,7 @@ function ProgressBar({ step, total }) {
                 {done ? "✓" : n}
               </div>
               <div style={{
-                fontSize: 10, fontWeight: cur ? 700 : 500,
+                fontSize: 10, fontWeight: cur ? 600 : 500,
                 color: cur ? C.teal : C.inkFade,
                 textAlign: "center", lineHeight: 1.2,
                 whiteSpace: "nowrap",

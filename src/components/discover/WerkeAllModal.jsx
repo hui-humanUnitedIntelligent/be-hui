@@ -215,7 +215,7 @@ export default function WerkeAllModal({ isOpen, onClose, onPressItem }) {
                 padding:"5px 12px", borderRadius:99, border:`1.5px solid ${filter===f.key ? T.teal : T.border}`,
                 background: filter===f.key ? T.tealSoft : "transparent",
                 color: filter===f.key ? T.tealDeep : T.inkSoft,
-                fontSize:12, fontWeight:filter===f.key ? 700 : 400,
+                fontSize:12, fontWeight:filter===f.key ? 600 : 400,
                 whiteSpace:"nowrap", cursor:"pointer",
               }}>{f.label}</button>
             ))}

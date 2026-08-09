@@ -106,7 +106,7 @@ export default function ConnectionTypeSidebar({ active, onChange }) {
 
             <div style={{ minWidth:0 }}>
               <div style={{
-                fontSize:14, fontWeight: on ? 800 : 700,
+                fontSize:14, fontWeight: on ? 600 : 600,
                 color: on ? C.violet : C.ink,
                 marginBottom:3, lineHeight:1.2,
               }}>{t.label}</div>

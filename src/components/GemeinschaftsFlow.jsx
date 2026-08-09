@@ -67,7 +67,7 @@ const CSS = `
     width:100%; padding:18px 24px;
     background:linear-gradient(135deg,${T.teal},#0AADA3);
     color:#fff; border:none; border-radius:${T.r99}px;
-    font-size:17px; font-weight:800; letter-spacing:0.01em;
+    font-size:17px; font-weight:600; letter-spacing:0.01em;
     cursor:pointer; font-family:inherit;
     box-shadow:0 4px 18px ${T.tealGlow};
     touch-action:manipulation;

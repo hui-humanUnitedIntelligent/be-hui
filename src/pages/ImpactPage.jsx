@@ -1987,7 +1987,7 @@ function VotingCard({ project:p, rank, voted, totalVotes, onVote, onOpen }) {
 
       {/* Body */}
       <div style={{ padding:"16px 20px 20px" }}>
-        <h3 style={{ margin:"0 0 8px", fontSize:19, fontWeight:820, color:T.ink,
+        <h3 style={{ margin:"0 0 8px", fontSize:19, fontWeight: 600, color:T.ink,
           letterSpacing:"-0.02em", lineHeight:1.2 }}>{p.name}</h3>
 
         {p.description && (
@@ -2073,7 +2073,7 @@ function VotingCard({ project:p, rank, voted, totalVotes, onVote, onOpen }) {
               : `linear-gradient(135deg,${accent},${accent}CC)`,
             color: voted ? accent : "white",
             border: voted ? `1.5px solid ${accent}30` : "none",
-            fontSize:14, fontWeight:750, letterSpacing:"-0.01em",
+            fontSize:14, fontWeight: 600, letterSpacing:"-0.01em",
             boxShadow: voted ? "none" : S.btn(accent),
             display:"flex", alignItems:"center", justifyContent:"center", gap:8,
             transition:"all 0.22s ease",
@@ -2669,7 +2669,7 @@ function HerzensprojektEmotional({ onPropose }) {
         <button onClick={onPropose} className="ip-p" style={{
           background:`linear-gradient(135deg,${T.teal},${T.tealL})`,
           border:"none", borderRadius:20, padding:"15px 32px",
-          fontSize:15, fontWeight:750, color:"white",
+          fontSize:15, fontWeight: 600, color:"white",
           cursor:"pointer", boxShadow:S.btn(T.teal),
           display:"inline-flex", alignItems:"center", gap:9,
           letterSpacing:"-0.01em",
@@ -3091,7 +3091,7 @@ function InfoSheet({ modal, onClose }) {
           maxWidth:280,
           background:`linear-gradient(135deg,${T.teal},${T.tealL})`,
           border:"none", borderRadius:16, padding:"14px 0",
-          color:"white", fontSize:14, fontWeight:750,
+          color:"white", fontSize:14, fontWeight: 600,
           cursor:"pointer",
           boxShadow:`0 4px 16px ${T.teal}38`,
           transition:"opacity 0.15s",

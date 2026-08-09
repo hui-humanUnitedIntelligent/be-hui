@@ -856,7 +856,7 @@ export default function FavoritesPage({ currentUser, onView, onImpact, onDiscove
                 boxShadow: active
                   ? `0 3px 12px ${C.tealGlow}`
                   : "0 1px 5px rgba(0,0,0,0.07)",
-                fontWeight: active ? 700 : 500,
+                fontWeight: active ? 600 : 500,
                 transform: active ? "scale(1.03)" : "scale(1)",
                 display:"flex", alignItems:"center", gap:6,
               }}

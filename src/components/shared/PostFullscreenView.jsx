@@ -234,7 +234,7 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
   const extraMedia = (mountedItem.media || []).slice(1);
   const hasEmbedded = Array.isArray(mountedItem.embeddedRefs) && mountedItem.embeddedRefs.length > 0;
 
-  const translate = visible ? Math.max(0, dragY) : (typeof window !== "undefined" ? window.innerHeight : 800);
+  const translate = visible ? Math.max(0, dragY) : (typeof window !== "undefined" ? window.innerHeight : 600);
 
   return (
     <div style={{

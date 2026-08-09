@@ -47,7 +47,7 @@ const CSS = `
 
   .s2v3-label {
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 600;
     color: rgba(60,60,60,0.70);
     margin-bottom: 8px;
     display: block;
@@ -304,7 +304,7 @@ function CostRow({ value, onChange }) {
                 ? "1.5px solid rgba(139,92,246,0.40)"
                 : `1.5px solid ${C.border}`,
               color:      on ? C.violet : C.muted,
-              fontSize:   14, fontWeight: on ? 700 : 500,
+              fontSize:   14, fontWeight: on ? 600 : 500,
               cursor:     "pointer",
               boxShadow:  on ? "0 0 0 3px rgba(139,92,246,0.10)" : "none",
               transition: "all 0.16s ease",
@@ -363,7 +363,7 @@ function MoodRow({ value, onChange }) {
           }}>
             <span style={{ fontSize:22 }}>{m.icon}</span>
             <span style={{
-              fontSize:12, fontWeight: on ? 700 : 500,
+              fontSize:12, fontWeight: on ? 600 : 500,
               color: on ? C.violet : C.muted,
             }}>{m.label}</span>
           </button>
@@ -403,7 +403,7 @@ function VisibilityRow({ value, onChange }) {
           }}>
             <span style={{ fontSize:20 }}>{v.icon}</span>
             <span style={{
-              fontSize:12.5, fontWeight: on ? 700 : 600,
+              fontSize:12.5, fontWeight: on ? 600 : 600,
               color: on ? C.violet : C.ink,
             }}>{v.label}</span>
             <span style={{
@@ -454,7 +454,7 @@ function OpennessRow({ value, onChange }) {
           }}>
             <div style={{ flex:1 }}>
               <div style={{
-                fontSize:13.5, fontWeight: on ? 800 : 700,
+                fontSize:13.5, fontWeight: on ? 600 : 600,
                 color: on ? C.violet : C.ink, marginBottom:5, lineHeight:1.2,
               }}>{o.label}</div>
               <div style={{

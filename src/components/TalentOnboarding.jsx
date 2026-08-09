@@ -128,7 +128,7 @@ function Step1({ title, setTitle, desc, setDesc, onNext }) {
                 background: title===ex ? T.tealBg : "rgba(0,0,0,0.04)",
                 border:`1.5px solid ${title===ex ? T.teal : "transparent"}`,
                 color: title===ex ? T.teal : T.ink3,
-                fontWeight: title===ex ? 700 : 500,
+                fontWeight: title===ex ? 600 : 500,
                 fontSize:12, cursor:"pointer",
                 transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */
               }}>
