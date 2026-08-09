@@ -47,91 +47,6 @@ export default function DiagnosePage() {
   const [results, setResults]   = useState({});
   const [schema,  setSchema]    = useState({});
   const [running, setRunning]   = useState(false);
-  const [fontInfo, setFontInfo] = useState(null);
-
-  async function runFontCheck() {
-    // Test ALL 8 weights — measure digit width for each
-    const weights = [200, 300, 400, 500, 600, 700, 800, 900];
-    const weightResults = {};
-    const elements = [];
-
-    for (const w of weights) {
-      const el = document.createElement('span');
-      el.textContent = '1234567890';
-      el.style.cssText = `position:absolute;left:-9999px;font-size:32px;font-weight:${w};font-family:'Inter',sans-serif;`;
-      document.body.appendChild(el);
-      elements.push(el);
-      const cs = getComputedStyle(el);
-      const rect = el.getBoundingClientRect();
-      weightResults[w] = {
-        width: Math.round(rect.width) + 'px',
-        height: Math.round(rect.height) + 'px',
-        fontWeight: cs.fontWeight,
-        fontFamily: cs.fontFamily,
-      };
-    }
-
-    // Force load ALL weights and check which succeed
-    const loadChecks = {};
-    for (const w of weights) {
-      try {
-        const result = await document.fonts.load(`${w} 32px Inter`);
-        loadChecks[w] = result.length > 0 ? 'loaded' : 'NOT loaded';
-      } catch(e) {
-        loadChecks[w] = `error: ${e.message}`;
-      }
-    }
-
-    // Also check document.fonts.check (does NOT trigger load, just checks current status)
-    const checkResults = {};
-    for (const w of weights) {
-      checkResults[w] = document.fonts.check(`${w} 32px Inter`) ? 'true' : 'false';
-    }
-
-    // Get the main test element (700 weight) for computed styles
-    const cs700 = getComputedStyle(elements[5]); // index 5 = weight 700
-
-    // List all registered fonts
-    let loadedFonts = [];
-    if (document.fonts) {
-      document.fonts.forEach(f => {
-        loadedFonts.push(`${f.family} ${f.weight} (${f.status})`);
-      });
-    }
-
-    // Check if Google Fonts stylesheet loaded
-    let gfLoaded = false;
-    let gfHref = '';
-    document.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
-      if (link.href.includes('fonts.googleapis.com')) {
-        gfLoaded = true;
-        gfHref = link.href;
-      }
-    });
-
-    setFontInfo({
-      userAgent: navigator.userAgent.slice(0, 150),
-      platform: navigator.platform,
-      computedFontFamily: cs700.fontFamily,
-      computedFontSize: cs700.fontSize,
-      computedFontWeight: cs700.fontWeight,
-      computedLetterSpacing: cs700.letterSpacing,
-      computedFontFeatureSettings: cs700.fontFeatureSettings,
-      computedFontSynthesis: cs700.fontSynthesis,
-      renderedWidth: weightResults[700].width,
-      renderedHeight: weightResults[700].height,
-      googleFontsLink: gfLoaded ? 'YES' : 'NO',
-      googleFontsHref: gfHref.slice(0, 80),
-      loadedFontsCount: loadedFonts.length,
-      loadedFonts: loadedFonts.slice(0, 20),
-      fontDisplay: cs700.fontDisplay,
-      weightResults,
-      loadChecks,
-      checkResults,
-    });
-
-    elements.forEach(el => document.body.removeChild(el));
-  }
 
   async function runAudit() {
     setRunning(true);
@@ -272,8 +187,7 @@ export default function DiagnosePage() {
   );
 
   return (
-    <div style={{ minHeight:'100vh', maxHeight:'100vh', overflowY:'auto',
-      WebkitOverflowScrolling:'touch', background:C.bg, color:C.text,
+    <div style={{ minHeight:'100vh', background:C.bg, color:C.text,
       padding:'20px 16px 80px', ...S }}>
 
       <div style={{ marginBottom:20 }}>
@@ -337,64 +251,6 @@ export default function DiagnosePage() {
             )}
           </div>
         ))}
-      </Section>
-
-      <Section title="🔤 Font-Diagnose">
-        <button onClick={runFontCheck}
-          style={{ padding:'10px 20px', borderRadius:8, background:'#16D7C5',
-            border:'none', color:'#0f172a', fontWeight:800, fontSize:12,
-            cursor:'pointer', fontFamily:'inherit', marginBottom:12 }}>
-          Font-Check ausführen
-        </button>
-        {fontInfo && <>
-          <Row label="User-Agent" value={fontInfo.userAgent} />
-          <Row label="Platform" value={fontInfo.platform} />
-          <Row label="Computed font-family" value={fontInfo.computedFontFamily} />
-          <Row label="Computed font-size" value={fontInfo.computedFontSize} />
-          <Row label="Computed font-weight" value={fontInfo.computedFontWeight} />
-          <Row label="Computed letter-spacing" value={fontInfo.computedLetterSpacing} />
-          <Row label="Computed font-feature-settings" value={fontInfo.computedFontFeatureSettings} />
-          <Row label="Computed font-synthesis" value={fontInfo.computedFontSynthesis} />
-          <Row label="Google Fonts <link> loaded" value={fontInfo.googleFontsLink} />
-          <Row label="Loaded fonts (document.fonts)" value={`${fontInfo.loadedFontsCount} fonts`} />
-          {fontInfo.loadedFonts?.map((f, i) => (
-            <Row key={i} label={`  ${i+1}`} value={f} />
-          ))}
-          <div style={{marginTop:12,marginBottom:8,fontWeight:800,color:C.warn,fontSize:11}}>
-            WEIGHT-BY-WEIGHT TEST (10 digits "1234567890"):
-          </div>
-          <div style={{display:'grid',gridTemplateColumns:'60px 80px 80px 80px',gap:2,fontSize:10,marginBottom:8}}>
-            <div style={{fontWeight:800,color:C.text}}>W</div>
-            <div style={{fontWeight:800,color:C.text}}>Width</div>
-            <div style={{fontWeight:800,color:C.text}}>Load()</div>
-            <div style={{fontWeight:800,color:C.text}}>Check()</div>
-            {[200,300,400,500,600,700,800,900].map(w => (
-              <React.Fragment key={w}>
-                <div style={{color:C.muted}}>{w}</div>
-                <div style={{color: fontInfo.weightResults?.[w]?.width?.startsWith('1') ? C.ok : C.err}}>
-                  {fontInfo.weightResults?.[w]?.width || '-'}
-                </div>
-                <div style={{color: fontInfo.loadChecks?.[w] === 'loaded' ? C.ok : C.err}}>
-                  {fontInfo.loadChecks?.[w] || '-'}
-                </div>
-                <div style={{color: fontInfo.checkResults?.[w] === 'true' ? C.ok : C.err}}>
-                  {fontInfo.checkResults?.[w] || '-'}
-                </div>
-              </React.Fragment>
-            ))}
-          </div>
-          <div style={{fontSize:10,color:C.muted,marginTop:4,marginBottom:8}}>
-            "loaded" = Font-Loading-API kann Font laden - "true" = Browser hält Font für verfügbar
-          </div>
-          <div style={{ marginTop:12, padding:'12px', background:'rgba(255,255,255,.05)', borderRadius:8 }}>
-            <div style={{ fontSize:32, fontWeight:700, fontFamily:'Inter, sans-serif' }}>
-              1.234.567,89 €
-            </div>
-            <div style={{ fontSize:14, color:C.muted, marginTop:4 }}>
-              ↑ Test-Zeile mit formatEUR — siehst du Lücken?
-            </div>
-          </div>
-        </>}
       </Section>
 
       <button onClick={runAudit} disabled={running}

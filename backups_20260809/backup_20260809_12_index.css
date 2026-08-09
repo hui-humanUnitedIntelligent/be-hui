@@ -150,20 +150,6 @@ body {
   background: var(--hui-cream);
   color: #1A1A1A;
   overscroll-behavior: none;
-  /* FIX (2026-08-09, ROOT CAUSE v1.5.0-Regression behoben): font-synthesis:none
-     verhindert, dass der Browser/Android-WebView bei fehlendem oder verzögert
-     geladenem Font-Weight eine Faux-Bold/Faux-Italic-Synthese durchfuehrt, die
-     bei Ziffern (Kerning/Advance-Width) zu sichtbaren Luecken fuehrt.
-     War in v1.4.26 eingefuehrt, wurde beim radikalen Font-Rewrite auf
-     v1.5.0 (Commit 10665a44, statische public/fonts/ Umstellung) versehentlich
-     entfernt — DAS war die Regression, die den Bug wieder zurückgebracht hat. */
-  font-synthesis: none;
-  -webkit-font-synthesis: none;
-}
-
-html, :host {
-  font-synthesis: none;
-  -webkit-font-synthesis: none;
 }
 
 /* Override Tailwind preflight html font-family — Inter must be primary everywhere */

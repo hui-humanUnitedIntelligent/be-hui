@@ -1,73 +1,64 @@
-/* ═══ HUI Inter Static Fonts — local bundled, no network dependency ═══ */
-/* public/fonts/ → copied as-is to www/fonts/ by Vite */
-/* Each weight is a separate STATIC font file (not variable font) */
-
-@font-face {
-  font-family: 'Inter';
-  font-style: normal;
-  font-weight: 200;
-  font-display: block;
-  src: url('/fonts/Inter-ExtraLight.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Inter';
-  font-style: normal;
-  font-weight: 300;
-  font-display: block;
-  src: url('/fonts/Inter-Light.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Inter';
-  font-style: normal;
-  font-weight: 400;
-  font-display: block;
-  src: url('/fonts/Inter-Regular.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Inter';
-  font-style: normal;
-  font-weight: 500;
-  font-display: block;
-  src: url('/fonts/Inter-Medium.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Inter';
-  font-style: normal;
-  font-weight: 600;
-  font-display: block;
-  src: url('/fonts/Inter-SemiBold.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Inter';
-  font-style: normal;
-  font-weight: 700;
-  font-display: block;
-  src: url('/fonts/Inter-Bold.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Inter';
-  font-style: normal;
-  font-weight: 800;
-  font-display: block;
-  src: url('/fonts/Inter-ExtraBold.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Inter';
-  font-style: normal;
-  font-weight: 900;
-  font-display: block;
-  src: url('/fonts/Inter-Black.woff2') format('woff2');
-}
-
 /* ═══════════════════════════════════════════════════════════════════════════════
    HUI Design System v1.0 — Global Styles
    Apple Vision Pro × Headspace × A24 × Nothing Phone
    Emotional, human, cinematic — kein SaaS, kein Dashboard
    ═══════════════════════════════════════════════════════════════════════════════ */
 
+/* ── Inter (lokal gebündelt, 2026-08-09) ──────────────────────────────────────
+   Statische Weight-Dateien statt Variable Font (2026-08-09).
+   Variable Font woff2 hatte auf manchen Android-Geräten Rendering-Probleme
+   bei — Zahlen fielen auf System-Schrift
+   zurück. Statische Dateien enthalten das tnum-Feature zuverlässig. ── */
+/* Statische Font-Dateien statt Variable Font (Android WebView Kompatibilität)
+   Jede Weight-Datei einzeln — inkl. tnum (tabular-nums) OpenType Feature.
+   Variable Font woff2 hatte auf manchen Android-Geräten Rendering-Probleme. */
+@font-face {
+  font-family: 'Inter'; font-style: normal; font-display: swap; font-weight: 400;
+  src: url('./fonts/Inter-Regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter'; font-style: normal; font-display: swap; font-weight: 500;
+  src: url('./fonts/Inter-Medium.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter'; font-style: normal; font-display: swap; font-weight: 600;
+  src: url('./fonts/Inter-SemiBold.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter'; font-style: normal; font-display: swap; font-weight: 700;
+  src: url('./fonts/Inter-Bold.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter'; font-style: normal; font-display: swap; font-weight: 800;
+  src: url('./fonts/Inter-ExtraBold.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter'; font-style: normal; font-display: swap; font-weight: 900;
+  src: url('./fonts/Inter-Black.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter'; font-style: normal; font-display: swap; font-weight: 300;
+  src: url('./fonts/Inter-Light.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter'; font-style: normal; font-display: swap; font-weight: 200;
+  src: url('./fonts/Inter-ExtraLight.woff2') format('woff2');
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ── Override Tailwind base reset ────────────────────────────────────────────
+   Tailwind setzt html{font-family:ui-sans-serif,system-ui,sans-serif;...}
+   Das überschreibt unseren Inter-Font auf Root-Ebene. Zahlen die
+   nutzen fielen so auf die System-Schrift
+   zurück. Fix: html explizit auf Inter setzen + font-feature-settings
+   NICHT auf normal setzen (damit font-variant-numeric wirkt). ── */
+html {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display',
+               'Helvetica Neue', system-ui, sans-serif;
+}
 
 /* ── CSS Custom Properties ─────────────────────────────────────────────────── */
 :root {
@@ -144,31 +135,13 @@ html {
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display',
+               'Helvetica Neue', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background: var(--hui-cream);
   color: #1A1A1A;
   overscroll-behavior: none;
-  /* FIX (2026-08-09, ROOT CAUSE v1.5.0-Regression behoben): font-synthesis:none
-     verhindert, dass der Browser/Android-WebView bei fehlendem oder verzögert
-     geladenem Font-Weight eine Faux-Bold/Faux-Italic-Synthese durchfuehrt, die
-     bei Ziffern (Kerning/Advance-Width) zu sichtbaren Luecken fuehrt.
-     War in v1.4.26 eingefuehrt, wurde beim radikalen Font-Rewrite auf
-     v1.5.0 (Commit 10665a44, statische public/fonts/ Umstellung) versehentlich
-     entfernt — DAS war die Regression, die den Bug wieder zurückgebracht hat. */
-  font-synthesis: none;
-  -webkit-font-synthesis: none;
-}
-
-html, :host {
-  font-synthesis: none;
-  -webkit-font-synthesis: none;
-}
-
-/* Override Tailwind preflight html font-family — Inter must be primary everywhere */
-html, :host {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 /* ── Scrollbar Hide — global ───────────────────────────────────────────────── */

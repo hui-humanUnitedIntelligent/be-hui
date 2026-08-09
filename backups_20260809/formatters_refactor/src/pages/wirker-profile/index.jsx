@@ -1,0 +1,934 @@
+import { HUIChatIcon } from '../../design/icons/HuiInteractionIcons.jsx';
+// src/pages/wirker-profile/index.jsx — Phase 24 VISITOR VIEW
+// "Entering another human's creative universe"
+// Layout: Hero → Stats Strip → ExperiencesSection → WirkungSection → MomentsSection → Community → Footer Values
+
+import { HUITicketIcon } from '../../design/icons/HuiSystemIcons.jsx';
+import React, {
+  useState, useEffect, useRef, useCallback,
+} from "react";
+import { S } from "../../core/hui.sources.js";
+import { HUI } from "../../design/hui.design.js";
+// Sprint F.7B: createProfileItem nicht mehr für Root-Profil nötig
+// Kommentiert — Phase 4 prüft Restnutzung
+// import { createProfileItem } from "../../lib/factories/createProfileItem.js";
+import { useHuiActions, A } from "../../core/hui.actions.js";
+// Sprint F.7B: useWirkerProfile → useProfileData + useProfileId (F.8A: Hook gelöscht)
+import { useProfileData } from "../../hooks/useProfileData.js";
+import { useProfileId } from "../../hooks/useProfileId.js";
+import SupportFlow from "../../components/economy/SupportFlow.jsx";
+import { supabase } from "../../lib/supabaseClient.js";
+import { useAuth } from "../../lib/AuthContext.jsx";
+
+import { ExperiencesSection } from "../../components/profile/sections/ExperiencesSection.jsx";
+import { MomentsSection } from "../../components/profile/sections/MomentsSection.jsx";
+const C  = HUI.COLOR;
+const Sh = HUI.SHADOW;
+const R  = HUI.RADIUS;
+
+// ─── safe helpers ────────────────────────────────────────────────
+const safeStr = (v, fb = "") => (v && typeof v === "string" ? v : fb);
+const safeNum = (v, fb = 0)  => (typeof v === "number" && isFinite(v) ? v : fb);
+const safeArr = (v)           => Array.isArray(v) ? v : [];
+
+// ─── scroll-entry ─────────────────────────────────────────────────
+function useEntry(delay = 0) {
+  const ref = useRef(null);
+  const [vis, setVis] = useState(false);
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setVis(true); obs.disconnect(); } },
+      { threshold: 0.04 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return {
+    ref,
+    style: {
+      opacity: vis ? 1 : 0,
+      transform: vis ? "none" : "translateY(12px)",
+      transition: `opacity .6s ease ${delay}ms, transform .6s ease ${delay}ms`,
+    },
+  };
+}
+
+// ─── press ────────────────────────────────────────────────────────
+function usePress() {
+  const [p, setP] = useState(false);
+  return {
+    pressed: p,
+    bind: {
+      onPointerDown:   () => setP(true),
+      onPointerUp:     () => setP(false),
+      onPointerLeave:  () => setP(false),
+      onPointerCancel: () => setP(false),
+    },
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 1. HERO — cinematic, dark, atmospheric
+// ═══════════════════════════════════════════════════════════════
+const HERO_IMG_FB = "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=1200&q=85";
+const AVATAR_FB   = "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=200&q=80";
+const DEFAULT_TAGS = [
+  { icon: "🌿", label: "Atelier"      },
+  { icon: "🌱", label: "Natur"        },
+  { icon: "💡", label: "Kreativität"  },
+  { icon: "✈️", label: "Reisen"       },
+  { icon: "👥", label: "Gemeinschaft" },
+];
+const LIVE_AVATARS = [
+  "https://i.pravatar.cc/32?img=5",
+  "https://i.pravatar.cc/32?img=10",
+  "https://i.pravatar.cc/32?img=14",
+  "https://i.pravatar.cc/32?img=22",
+];
+
+function BookBtn({ onBook }) {
+  const { pressed, bind } = usePress();
+  return (
+    <button {...bind} onClick={onBook} style={{
+      display:"flex",alignItems:"center",gap:7,
+      background: pressed ? C.tealDeep : C.teal,
+      border:"none",borderRadius:99,
+      padding:"11px 22px",
+      color:"white",fontSize:13,fontWeight:700,
+      cursor:"pointer",touchAction:"manipulation",
+      boxShadow:`0 4px 18px ${C.tealGlow}`,
+      transition:"background .15s ease",
+    }}>
+      <span style={{display:"flex",alignItems:"center",gap:4}}><HUITicketIcon size={15}/> Erlebnis buchen</span>
+    </button>
+  );
+}
+function MsgBtn({ onChat }) {
+  const { pressed, bind } = usePress();
+  return (
+    <button {...bind} onClick={onChat} style={{
+      display:"flex",alignItems:"center",gap:7,
+      background: pressed ? "rgba(255,255,255,.18)" : "rgba(255,255,255,.10)",
+      border:"1.5px solid rgba(255,255,255,.32)",
+      borderRadius:99,padding:"10px 18px",
+      color:"white",fontSize:13,fontWeight:600,
+      cursor:"pointer",touchAction:"manipulation",
+      transition:"background .15s ease",
+    }}>
+      <span style={{display:"flex",alignItems:"center",gap:4}}><HUIChatIcon size={14}/> Nachricht senden</span>
+    </button>
+  );
+}
+// ── useWatchlist: echte DB-Persistenz (Sprint F.9A) ─────────────────
+function useWatchlist(profileId, currentUserId) {
+  const [watching,    setWatching]    = React.useState(false);
+  const [loading,     setLoading]     = React.useState(true);
+  const [running,     setRunning]     = React.useState(false);
+
+  React.useEffect(() => {
+    if (!profileId || !currentUserId || profileId === currentUserId) {
+      setWatching(false); setLoading(false); return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from("profile_watchlist")
+          .select("id")
+          .eq("watcher_id", currentUserId)
+          .eq("profile_id", profileId)
+          .maybeSingle();
+        if (!cancelled) setWatching(!!data);
+      } catch (e) {
+        console.warn("[useWatchlist] load error:", e);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [profileId, currentUserId]);
+
+  const toggle = React.useCallback(async () => {
+    if (!profileId || !currentUserId || running) return;
+    setRunning(true);
+    const next = !watching;
+    setWatching(next);
+    try {
+      if (next) {
+        await supabase.from("profile_watchlist")
+          .insert({ watcher_id: currentUserId, profile_id: profileId });
+      } else {
+        await supabase.from("profile_watchlist")
+          .delete()
+          .eq("watcher_id", currentUserId)
+          .eq("profile_id", profileId);
+      }
+    } catch (e) {
+      console.warn("[useWatchlist] toggle error:", e);
+      setWatching(!next);
+    } finally {
+      setRunning(false);
+    }
+  }, [profileId, currentUserId, watching, running]);
+
+  return { watching, loading, toggle };
+}
+
+function FollowBtn({ followed, onFollow }) {
+  const { pressed, bind } = usePress();
+  return (
+    <button {...bind} onClick={onFollow} style={{
+      display:"flex",alignItems:"center",gap:7,
+      background: followed
+        ? "rgba(255,255,255,.18)"
+        : pressed ? "rgba(255,255,255,.14)" : "rgba(255,255,255,.08)",
+      border:"1.5px solid rgba(255,255,255,.28)",
+      borderRadius:99,padding:"10px 18px",
+      color:"white",fontSize:13,fontWeight:600,
+      cursor:"pointer",touchAction:"manipulation",
+      transition:"background .15s ease",
+    }}>
+      <span style={{fontSize:14}}>🤍</span> {followed ? "Gefolgt" : "Folgen"}
+    </button>
+  );
+}
+
+function SupportBtn({ onSupport }) {
+  const { pressed, bind } = usePress();
+  return (
+    <button {...bind} onClick={onSupport} style={{
+      display:"flex",alignItems:"center",gap:7,
+      background: pressed ? "rgba(22,215,197,0.30)" : "rgba(22,215,197,0.18)",
+      border:"1.5px solid rgba(22,215,197,0.50)",
+      borderRadius:99,padding:"10px 18px",
+      color:"white",fontSize:13,fontWeight:700,
+      cursor:"pointer",touchAction:"manipulation",
+      transition:"background .15s ease",
+    }}>
+      <span style={{fontSize:14}}>✦</span> Unterstützen
+    </button>
+  );
+}
+
+function VisitorHero({ profile, onClose, onBook, onChat, onSupport, currentUserId }) {
+  const heroActions = useHuiActions();
+  const [mounted, setMounted] = useState(false);
+  // Sprint F.9A: useWatchlist ersetzt useState(false)
+  const { watching: followed, toggle: toggleFollow } = useWatchlist(profile?.id, currentUserId);
+  useEffect(() => { const t = setTimeout(() => setMounted(true), 60); return () => clearTimeout(t); }, []);
+
+  const heroImg  = safeStr(profile?.header_img, HERO_IMG_FB);
+  const avatar   = safeStr(profile?.img || profile?.avatar_url, AVATAR_FB);
+  const name     = safeStr(profile?.display_name || profile?.name || profile?.username);
+  const phil     = safeStr(profile?.bio);
+  const tags     = safeArr(profile?.dna_tags || profile?.interests).length
+    ? safeArr(profile?.interests || profile?.dna_tags).slice(0,5).map(t => ({ icon:"✦", label: typeof t === "string" ? t : t?.label || t }))
+    : DEFAULT_TAGS;
+  const verified = !!profile?.verified;
+  const liveCount = 31;
+  const currentWork = safeStr(profile?.current_work);
+
+  return (
+    <div style={{
+      position:"relative",width:"100%",
+      minHeight:340,
+      overflow:"hidden",
+      background:C.ink,
+    }}>
+      <style>{`
+        /* keyframe animations removed for Safari GPU stability */
+      `}</style>
+
+      {/* BG cinematic */}
+      <div style={{
+        position:"absolute",inset:0,
+        backgroundImage:`url(${heroImg})`,
+        backgroundSize:"cover",backgroundPosition:"center 25%",
+        opacity:.42,
+      }}/>
+      {/* gradient — left dark */}
+      <div style={{
+        position:"absolute",inset:0,
+        background:"linear-gradient(105deg,rgba(6,14,14,.97) 0%,rgba(6,14,14,.82) 42%,rgba(6,14,14,.18) 100%)",
+      }}/>
+      {/* bottom fade */}
+      <div style={{
+        position:"absolute",bottom:0,left:0,right:0,height:90,
+        background:"linear-gradient(to top,rgba(6,14,14,.85),transparent)",
+      }}/>
+
+      {/* ambient blobs */}
+      {[
+        {top:"-15%",left:"60%",size:200,color:"rgba(13,196,181,.07)"},
+        {top:"50%", left:"2%", size:140,color:"rgba(244,115,85,.05)"},
+      ].map((b,i)=>(
+        <div key={i} style={{
+          position:"absolute",top:b.top,left:b.left,
+          width:b.size,height:b.size,borderRadius:"50%",
+          background:b.color,
+          pointerEvents:"none",
+        }}/>
+      ))}
+
+      {/* particles removed for Safari GPU stability */}
+
+      {/* Top nav */}
+      <div style={{
+        position:"absolute",top:0,left:0,right:0,
+        display:"flex",justifyContent:"space-between",alignItems:"center",
+        padding:"16px 18px",zIndex:10,
+      }}>
+        <button onClick={onClose} style={{
+          background:"rgba(255,255,255,.10)",border:"1px solid rgba(255,255,255,.18)",
+          width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",
+          cursor:"pointer",color:"white",fontSize:17,touchAction:"manipulation",
+        }}>←</button>
+        <div style={{display:"flex",gap:8}}>
+          {["⬆️","···"].map((ic,i)=>(
+            <button key={i} style={{
+              background:"rgba(255,255,255,.10)",border:"1px solid rgba(255,255,255,.18)",
+              width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",
+              cursor:"pointer",color:"white",fontSize:13,touchAction:"manipulation",
+            }}>{ic}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* Main content */}
+      <div style={{
+        position:"relative",zIndex:5,
+        padding:"70px 18px 24px",
+        display:"flex",flexDirection:"column",gap:0,
+        opacity:mounted?1:0,
+        transform:mounted?"none":"translateY(8px)",
+        transition:"opacity .55s ease,transform .55s ease",
+      }}>
+
+        {/* Identity row */}
+        <div style={{display:"flex",alignItems:"flex-start",gap:14,marginBottom:12}}>
+          {/* LEFT — avatar + name block */}
+          <div style={{flex:"1 1 0",minWidth:0}}>
+            {/* Creator badge + presence */}
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+              <div style={{
+                background:"rgba(244,115,85,.22)",border:"1px solid rgba(244,115,85,.45)",
+                padding:"3px 10px",color:C.coralLight,fontSize:9,fontWeight:800,letterSpacing:".05em",
+              }}>✦ CREATOR</div>
+              <div style={{display:"flex",alignItems:"center",gap:5,color:"rgba(255,255,255,.75)",fontSize:10,fontWeight:600}}>
+                <div style={{width:7,height:7,borderRadius:"50%",background:"#22C55E",/* no animation */}}/>
+                Gerade im Atelier
+              </div>
+            </div>
+
+            {/* Avatar + name */}
+            <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:6}}>
+              <div style={{position:"relative",flexShrink:0}}>
+                <img loading="lazy" decoding="async" src={avatar} alt={name}
+                  style={{width:72,height:72,borderRadius:"50%",objectFit:"cover",
+                    border:"3px solid rgba(255,255,255,.55)",
+                    boxShadow:"0 4px 20px rgba(0,0,0,.4)"
+                  }}
+                  onError={e=>{e.target.src=AVATAR_FB;}}/>
+                {verified && (
+                  <div style={{
+                    position:"absolute",bottom:2,right:2,
+                    width:18,height:18,borderRadius:"50%",
+                    background:C.teal,border:"2px solid white",
+                    display:"flex",alignItems:"center",justifyContent:"center",
+                    fontSize:9,color:"white",fontWeight:800,
+                  }}>✓</div>
+                )}
+              </div>
+              <div>
+                <h1 style={{
+                  fontSize:"clamp(26px,7vw,38px)",fontWeight:900,
+                  color:"white",lineHeight:1.05,letterSpacing:"-.03em",
+                  margin:0,textShadow:"0 2px 20px rgba(0,0,0,.5)",
+                }}>{name}</h1>
+              </div>
+            </div>
+
+            {phil ? (
+              <p style={{
+                fontSize:12.5,color:"rgba(255,255,255,.62)",
+                margin:"0 0 12px",lineHeight:1.5,
+                fontStyle:"italic",maxWidth:280,
+              }}>{phil}</p>
+            ) : (
+              <p style={{
+                fontSize:12,color:"rgba(255,255,255,.30)",
+                margin:"0 0 12px",lineHeight:1.5,
+                fontStyle:"italic",maxWidth:280,
+              }}>Bio noch nicht hinzugefügt…</p>
+            )}
+
+            {/* Tags */}
+            <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:14}}>
+              {tags.length === 0 ? (
+                <span style={{
+                  fontSize:10,color:"rgba(255,255,255,.28)",
+                  fontStyle:"italic",
+                }}>Noch keine Interessen</span>
+              ) : tags.map((t,i)=>(
+                <span key={i} style={{
+                  background:"rgba(255,255,255,.09)",border:"1px solid rgba(255,255,255,.17)",
+                  padding:"4px 11px",color:"rgba(255,255,255,.75)",
+                  fontSize:10,fontWeight:600,display:"flex",alignItems:"center",gap:5,
+                }}><span style={{fontSize:11}}>{t.icon}</span>{t.label}</span>
+              ))}
+            </div>
+
+            {/* CTAs */}
+            <div style={{display:"flex",flexWrap:"wrap",gap:8,alignItems:"center"}}>
+              <BookBtn onBook={onBook}/>
+              <MsgBtn onChat={onChat}/>
+              <SupportBtn onSupport={onSupport}/>
+              <FollowBtn followed={followed} onFollow={toggleFollow}/>
+            </div>
+          </div>
+
+          {/* RIGHT — Live Atelier card */}
+          <div style={{
+            flexShrink:0,width:170,
+            background:"rgba(10,22,22,.85)",
+            border:"1px solid rgba(255,255,255,.12)",
+            borderRadius:R.lg,padding:"14px",
+            boxShadow:"0 8px 32px rgba(0,0,0,.45)",
+            alignSelf:"flex-start",
+            marginTop:8,
+          }}>
+            <div style={{
+              fontSize:12,fontWeight:800,color:"white",
+              marginBottom:7,letterSpacing:"-.01em",
+            }}>Heute im Atelier</div>
+            <div style={{fontSize:11,color:"rgba(255,255,255,.65)",lineHeight:1.45,marginBottom:10}}>
+              Neues Werk entsteht<br/>
+              <em style={{color:C.tealLight,fontStyle:"italic"}}>„{currentWork}"</em>
+            </div>
+            {/* Live avatars */}
+            <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
+              <div style={{display:"flex"}}>
+                {LIVE_AVATARS.map((av,i)=>(
+                  <img loading="lazy" decoding="async" key={i} src={av} alt=""
+                    style={{
+                      width:24,height:24,borderRadius:"50%",
+                      border:"2px solid rgba(10,22,22,.9)",
+                      objectFit:"cover",marginLeft:i===0?0:-7,
+                    }}
+                    onError={e=>{e.target.style.display="none";}}/>
+                ))}
+              </div>
+              <span style={{fontSize:10,color:"rgba(255,255,255,.55)",fontWeight:600}}>
+                {liveCount} dabei
+              </span>
+            </div>
+            <button
+              onClick={() => heroActions[A.OPEN_ROOM]?.({ creatorId: profile?.id || profile?.user_id })}
+              style={{
+                background:"none",border:"none",padding:0,width:"100%",textAlign:"left",
+                fontSize:10,color:C.tealLight,fontWeight:700,cursor:"pointer",
+                paddingTop:6,borderTop:"1px solid rgba(255,255,255,.09)",
+                touchAction:"manipulation",fontFamily:"inherit",
+              }}>
+              Atelier live betreten →
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 2. STATS STRIP
+// ═══════════════════════════════════════════════════════════════
+const STAT_DEFS = [
+  { icon:"✨",  label:"Erlebnisse\ngeteilt",      key:"bookings",    suffix:"",  prefix:""  },
+  { icon:"👥",  label:"Menschen\nresonieren",     key:"followers",   suffix:"",  prefix:""  },
+  { icon:"⭐",  label:"Resonanz\nBewertung",      key:"rating",      suffix:"",  prefix:""  },
+  { icon:"🌿",  label:"Spuren\nhinterlassen",     key:"traces",      suffix:"K", prefix:""  },
+  { icon:"€",   label:"Gemeinsame\nWirkung",      key:"impact_eur",  suffix:"",  prefix:"€" },
+];
+
+function AnimCounter({ target, prefix="", suffix="" }) {
+  const [v, setV] = useState(0);
+  const done = useRef(false);
+  const el   = useRef(null);
+  useEffect(() => {
+    const node = el.current; if (!node) return;
+    const obs = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting && !done.current) {
+        done.current = true;
+        const t = typeof target === "number" && isFinite(target) ? target : 0;
+        if (!t) { setV(t); return; }
+        let cur = 0; const step = t / 38;
+        const timer = setInterval(() => {
+          cur = Math.min(cur + step, t); setV(parseFloat(cur.toFixed(1)));
+          if (cur >= t) clearInterval(timer);
+        }, 24);
+      }
+    }, { threshold: 0.1 });
+    obs.observe(node);
+    return () => obs.disconnect();
+  }, [target]);
+  return <span ref={el}>{prefix}{typeof v === "number" && v % 1 !== 0 ? v.toFixed(1) : Math.round(v)}{suffix}</span>;
+}
+
+function StatsStrip({ profile, wirkerProfile, followerCount = 0 }) {
+  // Sprint F.9A: echte Daten statt Hardcoded Fallbacks (24, 4.8, 8950)
+  const vals = {
+    bookings:   safeNum(wirkerProfile?.booking_count, 0),
+    followers:  followerCount > 0 ? followerCount : safeNum(profile?.follower_count || profile?.followers, 0),
+    rating:     safeNum(wirkerProfile?.rating_avg, 0),
+    traces:     0,
+    impact_eur: safeNum(profile?.impact_eur, 0),
+  };
+  const { ref, style } = useEntry(0);
+  return (
+    <div ref={ref} style={{
+      ...style,
+      width:"100%",background:"white",
+      padding:"18px 12px",
+      borderBottom:"1px solid rgba(0,0,0,.05)",
+    }}>
+      <div style={{
+        display:"flex",justifyContent:"space-between",alignItems:"flex-start",
+        gap:4,
+      }}>
+        {STAT_DEFS.map((s,i) => (
+          <div key={i} style={{
+            flex:"1 1 0",display:"flex",flexDirection:"column",alignItems:"center",
+            gap:4,textAlign:"center",
+            borderRight:i<STAT_DEFS.length-1?"1px solid rgba(0,0,0,.06)":"none",
+            padding:"0 4px",
+          }}>
+            <div style={{fontSize:17,lineHeight:1}}>{s.icon}</div>
+            <div style={{
+              fontSize:"clamp(14px,4vw,20px)",fontWeight:800,
+              color:C.ink,letterSpacing:"-.04em",lineHeight:1,
+            }}>
+              <AnimCounter target={vals[s.key]} prefix={s.prefix} suffix={s.suffix}/>
+            </div>
+            <div style={{
+              fontSize:8.5,color:C.muted,fontWeight:500,
+              lineHeight:1.3,whiteSpace:"pre-line",
+            }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 4. WIRKUNG — Creator Impact + Bio (WirkungSection)
+// ═══════════════════════════════════════════════════════════════
+function Sparkline({ vals = [], color = C.teal }) {
+  const safe = vals.filter(n => typeof n === "number" && isFinite(n));
+  if (safe.length < 2) return null;
+  const max = Math.max(...safe, 1);
+  const w = 130, h = 50;
+  const pts = safe.map((v, i) =>
+    `${(i / (safe.length - 1)) * w},${h - (v / max) * (h - 4)}`
+  ).join(" ");
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{display:"block",overflow:"visible"}}>
+      <defs>
+        <linearGradient id="sg" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor={color} stopOpacity=".4"/>
+          <stop offset="100%" stopColor={color} stopOpacity=".9"/>
+        </linearGradient>
+      </defs>
+      <polyline points={pts} fill="none" stroke="url(#sg)" strokeWidth="2.5"
+        strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+function WirkungSection({ profile, wirkerProfile, followerCount = 0 }) {
+  const aboutActions = useHuiActions();
+  const { ref, style } = useEntry(40);
+  const name      = safeStr(profile?.display_name || profile?.name || profile?.username);
+  const bio       = safeStr(profile?.bio);
+  // Sprint F.9A: echte Felder statt Hardcoded Fallbacks
+  const impact    = safeNum(profile?.impact_eur, 0);
+  const projects  = safeNum(wirkerProfile?.booking_count, 0);
+  const humans    = followerCount > 0 ? followerCount : safeNum(profile?.follower_count || profile?.followers, 0);
+  const rating    = safeNum(wirkerProfile?.rating_avg, 0);
+  const spark     = [300,520,440,810,700,980,760,1200,940,1350,1100,impact];
+  const vidImg    = safeStr(profile?.header_img);
+
+  return (
+    <div ref={ref} style={{
+      ...style,
+      width:"100%",background:C.cream,
+      padding:"22px 18px",
+    }}>
+      <div style={{display:"grid",gridTemplateColumns:"1fr auto 1fr",gap:14,alignItems:"start"}}>
+
+        {/* LEFT: story */}
+        <div>
+          <div style={{fontSize:15,fontWeight:800,color:C.ink,letterSpacing:"-.025em",marginBottom:10}}>
+            Über {name}.
+          </div>
+          <p style={{
+            fontSize:12,color:"rgba(30,30,30,.65)",lineHeight:1.65,
+            margin:"0 0 12px",fontFamily:"Georgia,serif",
+          }}>{bio}</p>
+          <button
+            onClick={() => aboutActions[A.OPEN_WORLD]?.({ section: "reise" })}
+            style={{
+              background:"none",border:"none",padding:0,
+              fontSize:11,fontWeight:700,color:C.teal,cursor:"pointer",touchAction:"manipulation",
+              fontFamily:"inherit",
+            }}>Mehr über meine Reise →</button>
+        </div>
+
+        {/* CENTER: cinematic image */}
+        <div style={{
+          width:110,flexShrink:0,borderRadius:R.md,overflow:"hidden",
+          boxShadow:Sh.md,position:"relative",background:C.creamDeep,
+        }}>
+          <img loading="lazy" decoding="async" src={vidImg} alt="Creator"
+            style={{width:"100%",height:150,objectFit:"cover",display:"block"}}
+            onError={e=>{e.target.style.display="none";}}/>
+          <div style={{
+            position:"absolute",inset:0,
+            display:"flex",alignItems:"center",justifyContent:"center",
+            background:"rgba(0,0,0,.18)",
+          }}>
+            <div style={{
+              width:36,height:36,borderRadius:"50%",
+              background:"rgba(255,255,255,.88)",
+              display:"flex",alignItems:"center",justifyContent:"center",
+              fontSize:14,boxShadow:Sh.md,
+            }}>▶</div>
+          </div>
+        </div>
+
+        {/* RIGHT: Wirkung */}
+        <div>
+          <div style={{fontSize:14,fontWeight:800,color:C.ink,letterSpacing:"-.02em",marginBottom:12}}>
+            Wirkung, die wir gemeinsam schaffen
+          </div>
+          {[
+            {icon:"€",  label:"Gemeinsame Wirkung", val:`€${impact.toLocaleString("de-DE")}`},
+            {icon:"✦",  label:"Unterstützte Projekte", val:projects},
+            {icon:"👥", label:"Menschen begleitet",    val:humans},
+            {icon:"⭐", label:"Resonanz Bewertung",    val:rating},
+          ].map((m,i)=>(
+            <div key={i} style={{
+              display:"flex",alignItems:"center",gap:8,
+              marginBottom:i<3?9:0,
+            }}>
+              <span style={{
+                width:22,height:22,borderRadius:"50%",
+                background:`${C.teal}14`,
+                display:"flex",alignItems:"center",justifyContent:"center",
+                fontSize:11,flexShrink:0,
+              }}>{m.icon}</span>
+              <div style={{flex:1}}>
+                <div style={{fontSize:10,color:C.muted,lineHeight:1}}>{m.label}</div>
+              </div>
+              <span style={{fontSize:13,fontWeight:800,color:C.ink}}>{m.val}</span>
+            </div>
+          ))}
+          <div style={{marginTop:10}}>
+            <Sparkline vals={spark} color={C.teal}/>
+          </div>
+          <button style={{
+            background:"none",border:"none",padding:"8px 0 0",
+            fontSize:11,fontWeight:700,color:C.teal,cursor:"pointer",touchAction:"manipulation",display:"block",
+          }}
+            onClick={() => aboutActions[A.GO_IMPACT]?.()}
+          >Mehr Wirkung ansehen →</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 6. COMMUNITY / RESONANCE — "Menschen in Resonanz"
+// ═══════════════════════════════════════════════════════════════
+const SEED_COMMUNITY = [
+  {id:"c1",name:"Mara",   role:"Hat am Atelier Workshop teilgenommen", time:"Gerade aktiv", dot:"#22C55E",av:"https://i.pravatar.cc/40?img=1"},
+  {id:"c2",name:"Jonas",  role:"1:1 Mentoring gebucht",               time:"Vor 12 Min.",  dot:C.teal,   av:"https://i.pravatar.cc/40?img=3"},
+  {id:"c3",name:"Lea",    role:"Hat diesen Moment geliebt",           time:"Vor 1 Std.",   dot:C.coral,  av:"https://i.pravatar.cc/40?img=5"},
+  {id:"c4",name:"Timo",   role:"Im Natur Retreat dabei",              time:"Heute",        dot:"#8B5CF6",av:"https://i.pravatar.cc/40?img=8"},
+  {id:"c5",name:"Anna",   role:"Neuer Follower",                      time:"Heute",        dot:"#F59E0B",av:"https://i.pravatar.cc/40?img=12"},
+];
+
+function ResonanceRow({ m }) {
+  const rowActions = useHuiActions();
+  return (
+    <button
+      onClick={() => rowActions[A.OPEN_PROFILE]?.({ creatorId: m?.id, creator: m, source: S.VISITOR_PROFILE })}
+      style={{
+        display:"flex",alignItems:"center",gap:10,
+        padding:"10px 0",borderBottom:"1px solid rgba(0,0,0,.045)",
+        background:"none",border:"none",width:"100%",textAlign:"left",
+        cursor:"pointer",touchAction:"manipulation",fontFamily:"inherit",
+      }}>
+      <div style={{position:"relative",flexShrink:0}}>
+        <img loading="lazy" decoding="async" src={m.av} alt={m.name}
+          style={{width:38,height:38,borderRadius:"50%",objectFit:"cover",background:C.creamDeep}}
+          onError={e=>{e.target.style.display="none";}}/>
+        <div style={{
+          position:"absolute",bottom:1,right:1,
+          width:9,height:9,borderRadius:"50%",
+          background:m.dot,border:"1.5px solid white",
+        }}/>
+      </div>
+      <div style={{flex:1,minWidth:0}}>
+        <div style={{fontSize:12,fontWeight:700,color:C.ink,letterSpacing:"-.015em"}}>{m.name}</div>
+        <div style={{fontSize:10,color:C.muted,marginTop:1,
+          whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"
+        }}>{m.role}</div>
+      </div>
+      <div style={{fontSize:9,color:C.muted,fontWeight:500,flexShrink:0,whiteSpace:"nowrap"}}>{m.time}</div>
+    </button>
+  );
+}
+
+function ResonanceCommunity({ community }) {
+  const communityActions = useHuiActions();
+  const { ref, style } = useEntry(80);
+  const members = safeArr(community).length ? safeArr(community) : SEED_COMMUNITY;
+  return (
+    <div ref={ref} style={{ ...style, width:"100%", background:C.cream, padding:"22px 18px 24px" }}>
+      <div style={{
+        display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:14,
+      }}>
+        <div style={{fontSize:16,fontWeight:800,color:C.ink,letterSpacing:"-.025em"}}>
+          Menschen in Resonanz
+        </div>
+        <button
+          onClick={() => communityActions[A.OPEN_COMMUNITY]?.({ view: "alle" })}
+          style={{
+            background:"none",border:"none",padding:0,
+            fontSize:11,color:C.teal,fontWeight:700,cursor:"pointer",
+            touchAction:"manipulation",fontFamily:"inherit",
+          }}>
+          Alle Menschen ansehen →
+        </button>
+      </div>
+      <div style={{
+        background:"white",borderRadius:R.md,
+        padding:"2px 14px",
+        boxShadow:Sh.xs,border:"1px solid rgba(0,0,0,.04)",
+      }}>
+        {members.map(m=><ResonanceRow key={m.id} m={m}/>)}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 7. FOOTER VALUES
+// ═══════════════════════════════════════════════════════════════
+const VALUES = [
+  {icon:"🌿",label:"Authentisch",sub:"Echt & transparent"},
+  {icon:"✨",label:"Inspirierend",sub:"Kreativität wecken"},
+  {icon:"👥",label:"Verbindend", sub:"Gemeinschaft leben"},
+  {icon:"🤍",label:"Achtsam",    sub:"Mit Herz & Seele"},
+];
+
+function FooterValues() {
+  const { ref, style } = useEntry(0);
+  return (
+    <div ref={ref} style={{
+      ...style,
+      width:"100%",background:"white",
+      borderTop:"1px solid rgba(0,0,0,.05)",
+      padding:"20px 12px 28px",
+    }}>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:6}}>
+        {VALUES.map((v,i)=>(
+          <div key={i} style={{textAlign:"center",padding:"10px 4px"}}>
+            <div style={{fontSize:22,marginBottom:4}}>{v.icon}</div>
+            <div style={{fontSize:10,fontWeight:700,color:C.ink,letterSpacing:"-.01em"}}>{v.label}</div>
+            <div style={{fontSize:8.5,color:C.muted,marginTop:2,lineHeight:1.3}}>{v.sub}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FLOATING BOOK CTA — sticky bottom
+// ═══════════════════════════════════════════════════════════════
+function FloatingBookCTA({ onBook, profileName }) {
+  const { pressed, bind } = usePress();
+  return (
+    <div style={{
+      position:"fixed",
+      bottom:"max(80px, calc(72px + env(safe-area-inset-bottom,0px)))",
+      left:18,right:18,zIndex:9100,
+      display:"flex",gap:10,alignItems:"center",
+    }}>
+      <button {...bind} onClick={onBook} style={{
+        flex:1,
+        background: pressed
+          ? `linear-gradient(135deg,${C.tealDeep},${C.teal})`
+          : `linear-gradient(135deg,${C.teal},${C.tealLight})`,
+        border:"none",borderRadius:99,
+        padding:"14px 24px",
+        color:"white",fontSize:14,fontWeight:700,
+        cursor:"pointer",touchAction:"manipulation",
+        boxShadow:`0 6px 22px ${C.tealGlow}`,
+        transition:"background .15s ease,transform .15s ease",
+        opacity:pressed?0.82:1,
+      }}>
+        Erlebnis mit {profileName || "Creator"} buchen
+      </button>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ROOT — WirkerProfilePage (VISITOR)
+// ═══════════════════════════════════════════════════════════════
+// ── Sprint F.7B: Einheitliche Datenpipeline ────────────────────────────────
+// NEU: useProfileId(rawId)  → profileId auflösen
+//      useProfileData(profileId) → eine Datenquelle für alle Profile
+// ────────────────────────────────────────────────────────────────────────────
+export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profileIdProp, onClose, onBook, onChat, _zIndex = 9500 }) {
+  // Phase 4D: Support Flow State — MUSS VOR ALLEM ANDEREN STEHEN (Rules of Hooks)
+  const [showSupport, setShowSupport] = React.useState(false);
+
+  // ── SCHRITT 1: rawId bestimmen ────────────────────────────────
+  // Priorität: profileIdProp (UUID direkt) > wirkerProp.id > wirkerProp.username
+  const rawId = profileIdProp || wirkerProp?.id || wirkerProp?.user_id || wirkerProp?.username || null;
+
+  // ── SCHRITT 2: profileId auflösen (UUID garantiert) ──────────
+  // useProfileId: wenn rawId bereits UUID → kein DB-Lookup; sonst username→id
+  const { profileId, loading: idLoading, error: idError } = useProfileId(rawId);
+
+  const actions = useHuiActions();
+  // Sprint F.9A: currentUserId für echtes Follow-System
+  const { user: authUser } = useAuth();
+  const currentUserId = authUser?.id ?? null;
+
+  // ── SCHRITT 3: Daten laden via useProfileData ─────────────────
+  // Sprint F.9G.1: Profil-Daten laden — isOwner wird danach berechnet
+  const {
+    profile,
+    wirkerProfile,
+    works,
+    experiences,
+    recommendations,
+    moments,
+    followCounts,
+    loading: dataLoading,
+  } = useProfileData(profileId);
+
+  // Kombiniertes Loading-State
+  const loading = idLoading || dataLoading;
+
+  // Sprint F.9G.1: isOwner korrekt berechnen — authUser vs. geladenes Profil
+  const isOwner = !!authUser?.id && !!profile?.id && authUser.id === profile.id;
+
+  // Profil-Felder mit Fallbacks für UI-Stabilität
+  const name = safeStr(profile?.display_name || profile?.name || profile?.username);
+
+  const handleClose = useCallback(() => { onClose?.(); }, [onClose]);
+
+  // Route through Action Engine — falls back to prop callbacks for non-HomeShell contexts
+  const handleBook = useCallback((exp) => {
+    if (actions[A.BOOK_EXPERIENCE]) {
+      actions[A.BOOK_EXPERIENCE]({ experience: exp, creator: profile, source: S.VISITOR_PROFILE });
+    } else {
+      onBook?.(profile, exp);
+    }
+  }, [actions, profile, onBook]);
+
+  const handleChat = useCallback(() => {
+    if (actions[A.OPEN_CHAT]) {
+      // PHASE 2C: source + vollständiges recipient-Objekt
+      // normalizeRecipient() läuft in OPEN_CHAT — hier rohe Daten ok
+      actions[A.OPEN_CHAT]({
+        recipient: {
+          id:           profile?.id || profile?.user_id,
+          display_name: profile?.display_name || profile?.name || "Creator",
+          avatar_url:   profile?.img || profile?.avatar_url || null,
+          talent:       profile?.talent || null,
+        },
+        source: S.VISITOR_PROFILE,  // LOOP 1: Return zum Profil nach Chat-Close
+      });
+    } else {
+      onChat?.(profile);
+    }
+  }, [actions, profile, onChat]);
+
+  // Phase 4D: Support Handler
+  const handleSupport = React.useCallback(() => {
+    setShowSupport(true);
+  }, []);
+
+  // Guard: kein rawId oder profileId-Fehler → "Profil nicht gefunden"
+  if (!rawId || (!loading && !profile?.id && idError)) {
+    return (
+      <div style={{
+        position:"fixed",inset:0,zIndex:_zIndex,
+        background:C.cream,display:"flex",
+        alignItems:"center",justifyContent:"center",
+        fontFamily:"Inter,sans-serif",
+      }}>
+        <div style={{textAlign:"center",padding:32}}>
+          <div style={{fontSize:32,marginBottom:12}}>✦</div>
+          <div style={{fontSize:15,fontWeight:600,color:"#1A1A2E",marginBottom:6}}>
+            Profil nicht gefunden
+          </div>
+          <div style={{fontSize:13,color:"rgba(26,26,46,0.5)",marginBottom:20}}>
+            Dieser Creator ist gerade nicht erreichbar.
+          </div>
+          <button onClick={handleClose} style={{
+            padding:"10px 22px",borderRadius:14,
+            background:"#16D7C5",color:"white",
+            border:"none",fontWeight:700,fontSize:13,cursor:"pointer",
+          }}>Zurück</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      position:"fixed", inset:0, zIndex:_zIndex,
+      overflowY:"auto", overflowX:"hidden",
+      background:"transparent",
+      /* animation removed for Safari stability */
+      fontFamily:"Inter,sans-serif",
+      WebkitOverflowScrolling:"touch",
+      paddingBottom:"max(120px, calc(100px + env(safe-area-inset-bottom,0px)))",
+    }}>
+      <style>{HUI.KEYFRAMES}</style>
+      {/* @keyframes removed for Safari GPU stability */}
+      <style>{`
+        *{box-sizing:border-box;-webkit-font-smoothing:antialiased}
+        ::-webkit-scrollbar{display:none}
+      `}</style>
+
+      <VisitorHero   profile={profile} onClose={handleClose} onBook={handleBook} onChat={handleChat} onSupport={handleSupport} currentUserId={currentUserId}/>
+      <StatsStrip    profile={profile} wirkerProfile={wirkerProfile} followerCount={followCounts?.followers ?? 0}/>
+      <ExperiencesSection experiences={experiences || []} isOwner={isOwner} loading={loading}/>
+      <WirkungSection  profile={profile} wirkerProfile={wirkerProfile} followerCount={followCounts?.followers ?? 0}/>
+      <MomentsSection moments={moments || []} loading={loading} isOwner={isOwner}/>
+      <ResonanceCommunity community={null}/>
+      <FooterValues/>
+      <FloatingBookCTA onBook={handleBook} profileName={name}/>
+      {/* Phase 4D: Support Flow */}
+      <SupportFlow
+        creator={profile}
+        visible={showSupport}
+        onClose={() => setShowSupport(false)}
+        sourceType="profile"
+        sourceId={profile?.id||null}
+      />
+    </div>
+  );
+}
