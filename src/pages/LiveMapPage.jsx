@@ -506,7 +506,7 @@ function InfoCard({ pin, onClose, onView }) {
         <div style={{
           position:"absolute", top:12, left:12,
           background:col, color:"#fff",
-          fontSize:10, fontWeight:700, letterSpacing:0.5,
+          fontSize:10, fontWeight: 600, letterSpacing:0.5,
           padding:"3px 8px", borderRadius:20,
         }}>{TYPE_LABEL[pin.type]}</div>
         {/* Schließen */}
@@ -534,7 +534,7 @@ function InfoCard({ pin, onClose, onView }) {
 
       {/* Inhalt */}
       <div style={{ flex:1, overflowY:"auto", padding:"32px 16px 16px" }} className="lm-scroll">
-        <div style={{ fontSize:15, fontWeight:800, color:C.ink, marginBottom:2 }}>{pin.name}</div>
+        <div style={{ fontSize:15, fontWeight: 600, color:C.ink, marginBottom:2 }}>{pin.name}</div>
         {(pin.talent || pin.creator) && (
           <div style={{ fontSize:12, color:col, fontWeight:600, marginBottom:4 }}>
             {pin.talent || pin.creator}
@@ -553,16 +553,16 @@ function InfoCard({ pin, onClose, onView }) {
         {isW && (
           <div style={{ display:"flex", gap:12, marginBottom:12 }}>
             <div style={{ textAlign:"center" }}>
-              <div style={{ fontSize:16, fontWeight:800, color:C.ink }}>{pin.recs}</div>
+              <div style={{ fontSize:16, fontWeight: 600, color:C.ink }}>{pin.recs}</div>
               <div style={{ fontSize:10, color:"rgba(26,26,46,0.45)" }}>Empfehlungen</div>
             </div>
             <div style={{ textAlign:"center" }}>
-              <div style={{ fontSize:16, fontWeight:800, color:C.ink }}>{pin.hourly} €/h</div>
+              <div style={{ fontSize:16, fontWeight: 600, color:C.ink }}>{pin.hourly} €/h</div>
               <div style={{ fontSize:10, color:"rgba(26,26,46,0.45)" }}>Stundensatz</div>
             </div>
             <div style={{ textAlign:"center" }}>
               <div style={{
-                fontSize:11, fontWeight:700,
+                fontSize:11, fontWeight: 600,
                 color: pin.available ? C.green : "rgba(26,26,46,0.35)",
                 background: pin.available ? "rgba(61,184,122,0.1)" : "rgba(0,0,0,0.05)",
                 padding:"4px 8px", borderRadius:8,
@@ -574,7 +574,7 @@ function InfoCard({ pin, onClose, onView }) {
           <div style={{ display:"flex", gap:8, alignItems:"center", marginBottom:12, flexWrap:"wrap" }}>
             <div style={{
               background:col, color:"#fff",
-              fontSize:14, fontWeight:800,
+              fontSize:14, fontWeight: 600,
               padding:"4px 10px", borderRadius:10,
             }}>{pin.price} €</div>
             {pin.duration && (
@@ -590,7 +590,7 @@ function InfoCard({ pin, onClose, onView }) {
         {isI && (
           <div style={{ marginBottom:12 }}>
             <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
-              <span style={{ fontSize:12, fontWeight:700, color:C.ink }}>{pin.raised?.toLocaleString("de")} €</span>
+              <span style={{ fontSize:12, fontWeight: 600, color:C.ink }}>{pin.raised?.toLocaleString("de")} €</span>
               <span style={{ fontSize:12, color:"rgba(26,26,46,0.4)" }}>Ziel: {pin.goal?.toLocaleString("de")} €</span>
             </div>
             <div style={{ height:6, borderRadius:3, background:"rgba(0,0,0,0.07)", overflow:"hidden" }}>
@@ -612,7 +612,7 @@ function InfoCard({ pin, onClose, onView }) {
           style={{
             width:"100%", padding:"11px", borderRadius:14,
             background:col, border:"none", color:"#fff",
-            fontSize:14, fontWeight:700, cursor:"pointer",
+            fontSize:14, fontWeight: 600, cursor:"pointer",
           }}
         >
           {isW ? "Profil ansehen" : isE ? "Erlebnis buchen" : isWk ? "Werk ansehen" : "Projekt ansehen"}
@@ -820,7 +820,7 @@ export default function LiveMapPage({ onView, onClose, fullscreen }) {
           zIndex:20, transition:"right .3s ease",
         }}>
           <div>
-            <div style={{ fontSize:16, fontWeight:800, color:"#fff", letterSpacing:-0.3 }}>
+            <div style={{ fontSize:16, fontWeight: 600, color:"#fff", letterSpacing:-0.3 }}>
               HUI Welt
             </div>
             <div style={{ fontSize:11, color:"rgba(255,255,255,0.5)" }}>

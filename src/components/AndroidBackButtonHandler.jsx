@@ -42,7 +42,7 @@ function ExitConfirmDialog({ onConfirm, onCancel }) {
         boxShadow: "0 8px 32px rgba(26,26,24,0.25)",
       }}>
         <div style={{
-          fontSize: 20, fontWeight: 800, color: "#1A1A18",
+          fontSize: 20, fontWeight: 600, color: "#1A1A18",
           letterSpacing: "-0.02em", marginBottom: 8,
         }}>
           App wirklich schließen?
@@ -60,7 +60,7 @@ function ExitConfirmDialog({ onConfirm, onCancel }) {
               flex: 1, padding: "12px 0", borderRadius: 99,
               border: "1.5px solid rgba(26,26,24,0.12)",
               background: "transparent", color: "#1A1A18",
-              fontSize: 14, fontWeight: 700, cursor: "pointer",
+              fontSize: 14, fontWeight: 600, cursor: "pointer",
               fontFamily: "inherit",
             }}
           >
@@ -72,7 +72,7 @@ function ExitConfirmDialog({ onConfirm, onCancel }) {
               flex: 1, padding: "12px 0", borderRadius: 99,
               border: "none",
               background: "linear-gradient(135deg, #0EC4B8, #0DBBAF)",
-              color: "white", fontSize: 14, fontWeight: 700,
+              color: "white", fontSize: 14, fontWeight: 600,
               cursor: "pointer", fontFamily: "inherit",
             }}
           >

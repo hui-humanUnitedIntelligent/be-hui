@@ -130,7 +130,7 @@ export function HUILogoWordmark({ logoSize = 44, style }) {
       <HUILogo size={logoSize} />
       <div>
         <div style={{
-          fontWeight:    800,
+          fontWeight: 600,
           fontSize:      Math.round(logoSize * 0.52),
           color:         '#1C4A3E',
           letterSpacing: '-0.02em',

@@ -86,7 +86,7 @@ export default function ReportReasonModal({
         {step === "confirm" && (
           <>
             <h2 style={{
-              fontSize: 18, fontWeight: 700, color: INK,
+              fontSize: 18, fontWeight: 600, color: INK,
               margin: "0 0 8px", textAlign: "center",
             }}>
               Beitrag wirklich melden?
@@ -104,7 +104,7 @@ export default function ReportReasonModal({
                 style={{
                   width: "100%", padding: "14px 0", borderRadius: 14,
                   border: "none", background: CORAL, color: "#FFFFFF",
-                  fontSize: 15, fontWeight: 700, cursor: "pointer",
+                  fontSize: 15, fontWeight: 600, cursor: "pointer",
                 }}
               >
                 Ja, melden
@@ -126,7 +126,7 @@ export default function ReportReasonModal({
         {step === "categories" && (
           <>
             <h2 style={{
-              fontSize: 18, fontWeight: 700, color: INK,
+              fontSize: 18, fontWeight: 600, color: INK,
               margin: "0 0 4px", textAlign: "center",
             }}>
               Worum geht es?

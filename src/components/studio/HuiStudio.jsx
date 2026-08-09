@@ -63,7 +63,7 @@ function Gap({ h }) { return <div style={{ height: h }} />; }
 function StudioSection({ label, children }) {
   return (
     <div style={{ padding:`0 ${T.px}px` }}>
-      <div style={{ fontSize:13, fontWeight:700, color:T.ink, marginBottom:10, letterSpacing:"-0.01em" }}>
+      <div style={{ fontSize:13, fontWeight: 600, color:T.ink, marginBottom:10, letterSpacing:"-0.01em" }}>
         {label}
       </div>
       <div style={{
@@ -95,7 +95,7 @@ function StudioRow({ icon, label, badge, onPress, last = false, labelColor }) {
         <span style={{
           padding:"2px 9px", borderRadius:99,
           background:T.tealSoft, border:`1px solid ${T.tealMid}`,
-          fontSize:11, fontWeight:700, color:T.teal, flexShrink:0,
+          fontSize:11, fontWeight: 600, color:T.teal, flexShrink:0,
         }}>{badge}</span>
       )}
       <span style={{ fontSize:15, color:T.inkFaint, flexShrink:0 }}>›</span>
@@ -171,7 +171,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
           fontFamily:"inherit", touchAction:"manipulation",
           display:"flex", alignItems:"center", gap:4,
         }}>‹ Zurück</button>
-        <div style={{ fontSize:24, fontWeight:900, color:T.ink, letterSpacing:"-0.04em" }}>
+        <div style={{ fontSize:24, fontWeight: 600, color:T.ink, letterSpacing:"-0.04em" }}>
           EINSTELLUNGEN.
         </div>
         <div style={{ fontSize:13, color:T.inkFaint, marginTop:2 }}>HUI-Account.</div>
@@ -191,10 +191,10 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
             border:`1px solid ${T.border}`, padding:"18px 20px",
             boxShadow:T.card, marginBottom:20,
           }}>
-            <div style={{ fontSize:12, fontWeight:700, color:T.teal, letterSpacing:"0.06em", marginBottom:10 }}>
+            <div style={{ fontSize:12, fontWeight: 600, color:T.teal, letterSpacing:"0.06em", marginBottom:10 }}>
               EINSTELLUNGEN – Nur für dich
             </div>
-            <div style={{ fontSize:18, fontWeight:800, color:T.ink, lineHeight:1.25, marginBottom:6 }}>
+            <div style={{ fontSize:18, fontWeight: 600, color:T.ink, lineHeight:1.25, marginBottom:6 }}>
               Deine Einstellungen<br/>und dein HUI-Account
             </div>
             <div style={{ fontSize:13, color:T.inkSoft, lineHeight:1.6 }}>
@@ -236,7 +236,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
           }}>
             <HUISicherheitIcon size={22} style={{flexShrink:0}} />
             <div>
-              <div style={{ fontSize:13, fontWeight:700, color:T.ink }}>Dein Studio ist privat.</div>
+              <div style={{ fontSize:13, fontWeight: 600, color:T.ink }}>Dein Studio ist privat.</div>
               <div style={{ fontSize:12, color:T.inkSoft, marginTop:2 }}>Nur du hast hier Zugriff.</div>
             </div>
           </div>
@@ -308,14 +308,14 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
 
               {/* COMING SOON */}
               <div style={{
-                fontSize:11, fontWeight:800, letterSpacing:"0.18em",
+                fontSize:11, fontWeight: 600, letterSpacing:"0.18em",
                 color:"#F59E0B", marginBottom:10, position:"relative",
               }}>
                 COMING SOON
               </div>
 
               <div style={{
-                fontSize:22, fontWeight:800, color:"#FFFFFF",
+                fontSize:22, fontWeight: 600, color:"#FFFFFF",
                 letterSpacing:"-0.02em", marginBottom:8, position:"relative",
               }}>
                 Verifizierung
@@ -344,7 +344,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
                   borderRadius:14, border:"none", cursor:"pointer",
                   background:"rgba(26,26,24,0.08)",
                   color:"rgba(26,26,24,0.55)",
-                  fontSize:14, fontWeight:700,
+                  fontSize:14, fontWeight: 600,
                   fontFamily:"inherit",
                   WebkitTapHighlightColor:"transparent",
                 }}
@@ -403,11 +403,11 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
                 fontSize:36, position:"relative",
               }}>🚧</div>
               <div style={{
-                fontSize:11, fontWeight:800, letterSpacing:"0.18em",
+                fontSize:11, fontWeight: 600, letterSpacing:"0.18em",
                 color:"#F59E0B", marginBottom:10, position:"relative",
               }}>COMING SOON</div>
               <div style={{
-                fontSize:22, fontWeight:800, color:"#FFFFFF",
+                fontSize:22, fontWeight: 600, color:"#FFFFFF",
                 letterSpacing:"-0.02em", marginBottom:8, position:"relative",
               }}>Mitgliedschaft</div>
               <div style={{
@@ -427,7 +427,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
                 style={{
                   width:"100%", padding:"13px", borderRadius:14, border:"none",
                   cursor:"pointer", background:"rgba(26,26,24,0.08)",
-                  color:"rgba(26,26,24,0.55)", fontSize:14, fontWeight:700,
+                  color:"rgba(26,26,24,0.55)", fontSize:14, fontWeight: 600,
                   fontFamily:"inherit", WebkitTapHighlightColor:"transparent",
                 }}
               >Schließen</button>
@@ -489,7 +489,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
             }}>🚪</div>
 
             <div style={{
-              fontSize:17, fontWeight:800, color:"#1A1A18",
+              fontSize:17, fontWeight: 600, color:"#1A1A18",
               letterSpacing:"-0.02em", marginBottom:8,
             }}>
               Abmelden?
@@ -506,7 +506,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
                 width:"100%", padding:"13px", borderRadius:12, border:"none",
                 cursor: loggingOut ? "wait" : "pointer",
                 background: loggingOut ? "rgba(220,38,38,0.4)" : "#DC2626",
-                color:"#fff", fontSize:14, fontWeight:800,
+                color:"#fff", fontSize:14, fontWeight: 600,
                 fontFamily:"inherit", marginBottom:10,
                 display:"flex", alignItems:"center", justifyContent:"center", gap:8,
                 transition:"background .15s",
@@ -524,7 +524,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
                 width:"100%", padding:"13px", borderRadius:12,
                 border:"1px solid rgba(26,26,24,0.10)", cursor:"pointer",
                 background:"rgba(26,26,24,0.04)",
-                color:"rgba(26,26,24,0.55)", fontSize:14, fontWeight:700,
+                color:"rgba(26,26,24,0.55)", fontSize:14, fontWeight: 600,
                 fontFamily:"inherit",
               }}
             >

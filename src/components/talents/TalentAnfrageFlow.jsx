@@ -111,7 +111,7 @@ export default function TalentAnfrageFlow({ talent, onClose }) {
           /* ── Bestätigung ── */
           <div style={{ textAlign: "center", padding: "16px 0 8px" }}>
             <div style={{ fontSize: 48, marginBottom: 12 }}>✨</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: "#1A1A2E", marginBottom: 8 }}>
+            <div style={{ fontSize: 18, fontWeight: 600, color: "#1A1A2E", marginBottom: 8 }}>
               Anfrage gesendet
             </div>
             <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)", marginBottom: 8, lineHeight: 1.5 }}>
@@ -123,7 +123,7 @@ export default function TalentAnfrageFlow({ talent, onClose }) {
             <button onClick={onClose} style={{
               background: TEAL, color: "#fff", border: "none",
               borderRadius: 14, padding: "12px 32px",
-              fontSize: 15, fontWeight: 700, cursor: "pointer",
+              fontSize: 15, fontWeight: 600, cursor: "pointer",
               touchAction: "manipulation",
             }}>
               Schließen
@@ -137,7 +137,7 @@ export default function TalentAnfrageFlow({ talent, onClose }) {
                 textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
                 Talent anfragen
               </div>
-              <div style={{ fontSize: 17, fontWeight: 700, color: "#1A1A2E", lineHeight: 1.3 }}>
+              <div style={{ fontSize: 17, fontWeight: 600, color: "#1A1A2E", lineHeight: 1.3 }}>
                 {title}
               </div>
               {providerName && (
@@ -157,7 +157,7 @@ export default function TalentAnfrageFlow({ talent, onClose }) {
                 display: "flex", justifyContent: "space-between", alignItems: "center",
               }}>
                 <span style={{ fontSize: 13, color: "rgba(26,26,46,0.55)" }}>Preis</span>
-                <span style={{ fontSize: 18, fontWeight: 800, color: TEAL }}>{priceStr}</span>
+                <span style={{ fontSize: 18, fontWeight: 600, color: TEAL }}>{priceStr}</span>
               </div>
             )}
 
@@ -211,7 +211,7 @@ export default function TalentAnfrageFlow({ talent, onClose }) {
                     : `linear-gradient(135deg,${TEAL},#0AB8B2)`,
                   color: "#fff", border: "none",
                   borderRadius: 14, padding: "12px 0",
-                  fontSize: 15, fontWeight: 700,
+                  fontSize: 15, fontWeight: 600,
                   cursor: phase === "loading" ? "not-allowed" : "pointer",
                   touchAction: "manipulation",
                 }}

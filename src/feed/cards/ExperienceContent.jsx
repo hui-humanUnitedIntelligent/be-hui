@@ -48,7 +48,7 @@ export default function ExperienceContent({ item, onProfile, onReaction, onShare
       <div style={{ display:"flex", alignItems:"flex-start", gap:8, marginBottom:10 }}>
         <span style={{
           flexShrink:0, marginTop:2,
-          fontSize:10.5, fontWeight:700, color:TEAL,
+          fontSize:10.5, fontWeight: 600, color:TEAL,
           background:"rgba(13,196,181,0.10)",
           border:"1px solid rgba(13,196,181,0.22)",
           borderRadius:99, padding:"3px 9px",
@@ -56,7 +56,7 @@ export default function ExperienceContent({ item, onProfile, onReaction, onShare
         }}>ERLEBNIS</span>
         {title ? (
           <span style={{
-            fontSize:15, fontWeight:700, color:INK,
+            fontSize:15, fontWeight: 600, color:INK,
             lineHeight:1.3, letterSpacing:"-0.02em",
             whiteSpace:"normal", wordBreak:"break-word",
           }}>{title}</span>
@@ -73,7 +73,7 @@ export default function ExperienceContent({ item, onProfile, onReaction, onShare
               display:"flex", alignItems:"center", gap:7,
               background:"linear-gradient(135deg,#0DC4B5,#09A89A)",
               color:"#fff", border:"none", borderRadius:99,
-              padding:"9px 18px", fontSize:13, fontWeight:700,
+              padding:"9px 18px", fontSize:13, fontWeight: 600,
               cursor:"pointer", touchAction:"manipulation",
               boxShadow:"0 3px 10px rgba(13,196,181,0.30)",
               whiteSpace:"nowrap",

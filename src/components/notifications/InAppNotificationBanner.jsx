@@ -82,7 +82,7 @@ export default function InAppNotificationBanner() {
       {/* Text */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
-          fontSize: 13, fontWeight: 700, color: "#FFFFFF",
+          fontSize: 13, fontWeight: 600, color: "#FFFFFF",
           overflow: "hidden", textOverflow: "ellipsis",
           whiteSpace: "nowrap",
         }}>

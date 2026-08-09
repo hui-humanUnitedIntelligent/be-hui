@@ -184,7 +184,7 @@ export default function CreatorStudio() {
               display:"flex", alignItems:"center", justifyContent:"center",
               color:"rgba(255,255,255,0.75)", fontSize:16 }}>←</button>
           <div style={{ flex:1 }}>
-            <div style={{ fontSize:10, fontWeight:700, color:"rgba(22,215,197,0.70)",
+            <div style={{ fontSize:10, fontWeight: 600, color:"rgba(22,215,197,0.70)",
               letterSpacing:2, textTransform:"uppercase", marginBottom:3 }}>
               Dein Studio
             </div>
@@ -202,7 +202,7 @@ export default function CreatorStudio() {
 
         {/* Ambient Greeting */}
         <div style={{ position:"relative", marginBottom:24 }}>
-          <div style={{ fontSize:26, fontWeight:900, color:"white",
+          <div style={{ fontSize:26, fontWeight: 600, color:"white",
             letterSpacing:-.5, lineHeight:1.2, marginBottom:6 }}>
             {greetingData ? greetingData.greeting : `${firstName},`}
           </div>
@@ -224,7 +224,7 @@ export default function CreatorStudio() {
                 cursor:"pointer" }}
                 onClick={() => openTool("orders")}>
                 <HUIDateiIcon size={12} style={{flexShrink:0}} />
-                <span style={{ fontSize:12, fontWeight:700, color:"rgba(245,166,35,0.90)" }}>
+                <span style={{ fontSize:12, fontWeight: 600, color:"rgba(245,166,35,0.90)" }}>
                   {pendingCount} offene Anfrage{pendingCount > 1 ? "n" : ""}
                 </span>
               </div>
@@ -235,7 +235,7 @@ export default function CreatorStudio() {
                 background:"rgba(22,215,197,0.12)",
                 border:"1px solid rgba(22,215,197,0.25)" }}>
                 <span style={{ fontSize:12 }}>🤝</span>
-                <span style={{ fontSize:12, fontWeight:700, color:"rgba(22,215,197,0.85)" }}>
+                <span style={{ fontSize:12, fontWeight: 600, color:"rgba(22,215,197,0.85)" }}>
                   {activeCount} aktiv{activeCount > 1 ? "e Projekte" : "s Projekt"}
                 </span>
               </div>
@@ -258,7 +258,7 @@ export default function CreatorStudio() {
               style={{ width:36, height:36, borderRadius:"50%", objectFit:"cover" }} />
           )}
           <div style={{ flex:1, textAlign:"left" }}>
-            <div style={{ fontSize:13, fontWeight:700, color:C.ink }}>
+            <div style={{ fontSize:13, fontWeight: 600, color:C.ink }}>
               Öffentliches Profil ansehen
             </div>
             <div style={{ fontSize:11, color:C.muted, marginTop:1 }}>
@@ -275,7 +275,7 @@ export default function CreatorStudio() {
           <div key={group.label}
             style={{ marginBottom:24,
               animation:`studioFadeUp ${TRANSITIONS.normal} ${0.08 + gi * 0.06}s ${TRANSITIONS.overlay} both` }}>
-            <div style={{ fontSize:11, fontWeight:700, color:C.muted2,
+            <div style={{ fontSize:11, fontWeight: 600, color:C.muted2,
               letterSpacing:1.2, textTransform:"uppercase",
               marginBottom:10, paddingLeft:2 }}>
               {group.label}
@@ -311,7 +311,7 @@ export default function CreatorStudio() {
 
                     {/* Label */}
                     <div style={{ flex:1, textAlign:"left" }}>
-                      <div style={{ fontSize:14, fontWeight:700, color:C.ink,
+                      <div style={{ fontSize:14, fontWeight: 600, color:C.ink,
                         marginBottom:2 }}>
                         {tool.label}
                       </div>
@@ -325,7 +325,7 @@ export default function CreatorStudio() {
                       <div style={{ minWidth:22, height:22, borderRadius:11,
                         background:`linear-gradient(135deg,${C.coral},#FF5F5F)`,
                         display:"flex", alignItems:"center", justifyContent:"center",
-                        fontSize:11, fontWeight:800, color:"white",
+                        fontSize:11, fontWeight: 600, color:"white",
                         padding:"0 5px" }}>
                         {badge}
                       </div>

@@ -248,7 +248,7 @@ export default function WorkFlow({ onClose }) {
           fontSize:64,
           animation:"wfPop 0.55s cubic-bezier(0.34,1.4,0.64,1) both",
         }}>✨</div>
-        <div style={{ fontSize:22, fontWeight:900, color:"#fff",
+        <div style={{ fontSize:22, fontWeight: 600, color:"#fff",
           letterSpacing:-0.5 }}>Werk veröffentlicht!</div>
         <div style={{ fontSize:14, color:"rgba(255,255,255,0.75)" }}>
           Deine Community sieht es jetzt.

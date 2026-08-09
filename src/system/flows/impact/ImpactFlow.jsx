@@ -289,7 +289,7 @@ function StepWrap({ step, total, onBack, onClose, label, children }) {
           display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0,
         }}>‹</button>
         <div style={{ flex:1 }}>
-          <div style={{ fontSize:11, fontWeight:700, color:T.teal,
+          <div style={{ fontSize:11, fontWeight: 600, color:T.teal,
             letterSpacing:"0.07em", textTransform:"uppercase", marginBottom:5 }}>
             {label}
           </div>
@@ -321,7 +321,7 @@ function NextBtn({ label="Weiter →", onClick, disabled, loading }) {
         background: disabled || loading ? "rgba(20,20,34,0.08)"
           : `linear-gradient(135deg,${T.teal},${T.tealL})`,
         color: disabled || loading ? T.ink4 : "#fff",
-        fontSize:16, fontWeight:800,
+        fontSize:16, fontWeight: 600,
         cursor: disabled || loading ? "default" : "pointer",
         boxShadow: disabled || loading ? "none" : S.btn(T.teal),
         transition:"all 0.2s ease",
@@ -344,7 +344,7 @@ function Step1({ form, update, onNext, onBack, onClose }) {
     <StepWrap step={0} total={7} onBack={onBack} onClose={onClose} label="Schritt 1 von 7">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{ marginBottom:10, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)" }}><HUIImpactIcon size={28}/></div>
-        <h2 style={{ margin:"0 0 8px", fontSize:24, fontWeight:900, color:T.ink,
+        <h2 style={{ margin:"0 0 8px", fontSize:24, fontWeight: 600, color:T.ink,
           letterSpacing:"-0.025em", lineHeight:1.2 }}>Wie heißt dein Projekt?</h2>
         <p style={{ margin:"0 0 28px", fontSize:14, color:T.ink2, lineHeight:1.65 }}>
           Gib deinem Herzensprojekt einen Namen. Der Name ist das Erste, was die Community sieht.
@@ -367,7 +367,7 @@ function Step2({ form, update, onNext, onBack, onClose }) {
     <StepWrap step={1} total={7} onBack={onBack} onClose={onClose} label="Schritt 2 von 7">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{marginBottom:10, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)"}}><HUIChatIcon size={28}/></div>
-        <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight:900, color:T.ink,
+        <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight: 600, color:T.ink,
           letterSpacing:"-0.022em", lineHeight:1.2 }}>Beschreibe dein Projekt in einem Satz.</h2>
         <p style={{ margin:"0 0 28px", fontSize:14, color:T.ink2, lineHeight:1.65 }}>
           Was ist die Kernidee? Klar und verständlich — als würdest du es einem Freund erklären.
@@ -390,7 +390,7 @@ function Step3({ form, update, onNext, onBack, onClose }) {
     <StepWrap step={2} total={7} onBack={onBack} onClose={onClose} label="Schritt 3 von 7">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{ fontSize:28, marginBottom:10 }}>🎯</div>
-        <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight:900, color:T.ink,
+        <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight: 600, color:T.ink,
           letterSpacing:"-0.022em", lineHeight:1.2 }}>Welches Problem löst dein Projekt?</h2>
         <p style={{ margin:"0 0 28px", fontSize:14, color:T.ink2, lineHeight:1.65 }}>
           Was ist die eigentliche Herausforderung, die dein Projekt angeht?
@@ -413,7 +413,7 @@ function Step4({ form, update, onNext, onBack, onClose }) {
     <StepWrap step={3} total={7} onBack={onBack} onClose={onClose} label="Schritt 4 von 7">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{ fontSize:28, marginBottom:10 }}>🤝</div>
-        <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight:900, color:T.ink,
+        <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight: 600, color:T.ink,
           letterSpacing:"-0.022em", lineHeight:1.2 }}>Wer profitiert davon?</h2>
         <p style={{ margin:"0 0 24px", fontSize:14, color:T.ink2, lineHeight:1.65 }}>
           Wähle den Bereich, der am besten zu deinem Projekt passt.
@@ -450,7 +450,7 @@ function Step5({ form, update, onNext, onBack, onClose }) {
     <StepWrap step={4} total={7} onBack={onBack} onClose={onClose} label="Schritt 5 von 7">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{ fontSize:28, marginBottom:10 }}>🚀</div>
-        <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight:900, color:T.ink,
+        <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight: 600, color:T.ink,
           letterSpacing:"-0.022em", lineHeight:1.2 }}>Was wird konkret umgesetzt?</h2>
         <p style={{ margin:"0 0 28px", fontSize:14, color:T.ink2, lineHeight:1.65 }}>
           Was würde konkret mit der Förderung passieren? Je konkreter, desto besser.
@@ -530,7 +530,7 @@ function Step5b({ milestones, setMilestones, onNext, onBack, onClose, userId }) 
     <StepWrap step={5} total={7} onBack={onBack} onClose={onClose} label="Schritt 6 von 7">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{ fontSize:28, marginBottom:10 }}>🏁</div>
-        <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight:900, color:T.ink,
+        <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight: 600, color:T.ink,
           letterSpacing:"-0.022em", lineHeight:1.2 }}>Meilensteine definieren</h2>
         <p style={{ margin:"0 0 20px", fontSize:14, color:T.ink2, lineHeight:1.65 }}>
           Welche konkreten Etappen planst du? Lege mindestens einen Meilenstein an (maximal 5).
@@ -547,7 +547,7 @@ function Step5b({ milestones, setMilestones, onNext, onBack, onClose, userId }) 
                 <div style={{ width:22, height:22, borderRadius:"50%",
                   background:T.teal, color:"white", display:"flex",
                   alignItems:"center", justifyContent:"center",
-                  fontSize:11, fontWeight:800, flexShrink:0 }}>{i + 1}</div>
+                  fontSize:11, fontWeight: 600, flexShrink:0 }}>{i + 1}</div>
                 <input
                   className="hui-input"
                   placeholder={`Meilenstein ${i + 1} — Titel (Pflichtfeld)`}
@@ -580,7 +580,7 @@ function Step5b({ milestones, setMilestones, onNext, onBack, onClose, userId }) 
 
               {/* Zeile 3: Geplante Umsetzung (Monatsauswahl) */}
               <div style={{ marginBottom:10 }}>
-                <div style={{ fontSize:11, fontWeight:700, color:T.teal,
+                <div style={{ fontSize:11, fontWeight: 600, color:T.teal,
                   letterSpacing:"0.06em", textTransform:"uppercase", marginBottom:4 }}>
                   Geplante Umsetzung
                 </div>
@@ -595,7 +595,7 @@ function Step5b({ milestones, setMilestones, onNext, onBack, onClose, userId }) 
 
               {/* Zeile 4: Bild/Video Upload (optional, max 2) */}
               <div>
-                <div style={{ fontSize:11, fontWeight:700, color:T.ink3,
+                <div style={{ fontSize:11, fontWeight: 600, color:T.ink3,
                   letterSpacing:"0.06em", textTransform:"uppercase", marginBottom:4 }}>
                   Bild / Video <span style={{ color:T.ink4, fontWeight:400 }}>(optional, max. 2)</span>
                 </div>
@@ -640,7 +640,7 @@ function Step5b({ milestones, setMilestones, onNext, onBack, onClose, userId }) 
                         border:"1.5px dashed rgba(114,100,214,0.40)",
                         background:"rgba(114,100,214,0.04)",
                         cursor: uploadingIdx === i ? "default" : "pointer",
-                        color:T.violet, fontSize:12, fontWeight:700, fontFamily:"inherit",
+                        color:T.violet, fontSize:12, fontWeight: 600, fontFamily:"inherit",
                         display:"flex", alignItems:"center", justifyContent:"center", gap:6,
                       }}
                     >
@@ -665,7 +665,7 @@ function Step5b({ milestones, setMilestones, onNext, onBack, onClose, userId }) 
             style={{ width:"100%", padding:"10px", borderRadius:12,
               border:"1.5px dashed rgba(13,196,181,0.5)",
               background:"transparent", color:T.teal,
-              fontSize:13, fontWeight:700, cursor:"pointer", marginBottom:16,
+              fontSize:13, fontWeight: 600, cursor:"pointer", marginBottom:16,
               fontFamily:"inherit" }}>
             + Meilenstein hinzufügen
           </button>
@@ -697,18 +697,18 @@ function Step6({ form, update, onNext, onBack, onClose }) {
     <StepWrap step={6} total={7} onBack={onBack} onClose={onClose} label="Schritt 7 von 7">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{ fontSize:28, marginBottom:10 }}>💶</div>
-        <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight:900, color:T.ink,
+        <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight: 600, color:T.ink,
           letterSpacing:"-0.022em", lineHeight:1.2 }}>Welche Fördersumme wünschst du dir?</h2>
         <p style={{ margin:"0 0 28px", fontSize:14, color:T.ink2, lineHeight:1.65 }}>
           Wie viel Euro würde dein Projekt benötigen, um vollständig umgesetzt zu werden?
         </p>
         <div style={{ position:"relative", marginBottom:10 }}>
           <span style={{ position:"absolute", left:18, top:"50%", transform:"translateY(-50%)",
-            fontSize:20, fontWeight:700, color:T.teal, pointerEvents:"none" }}>€</span>
+            fontSize:20, fontWeight: 600, color:T.teal, pointerEvents:"none" }}>€</span>
           <input className="hui-input" type="text" inputMode="numeric" placeholder="2.000"
             value={fmtDisplay(form.foerder || "")}
             onChange={e => update({ foerder: e.target.value.replace(/\D/g,"") })}
-            style={{ paddingLeft:38, fontSize:22, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }} />
+            style={{ paddingLeft:38, fontSize:22, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }} />
         </div>
         {(form.foerder && !ok) && (
           <div style={{ fontSize:12, color:T.coral, marginBottom:12 }}>
@@ -720,7 +720,7 @@ function Step6({ form, update, onNext, onBack, onClose }) {
             <button key={v} className="hui-chip" onClick={() => update({ foerder: String(v) })}
               style={{ padding:"7px 14px", borderRadius:99, border:"none",
                 background: val===v ? T.teal : `${T.teal}12`,
-                color: val===v ? "#fff" : T.teal, fontSize:13, fontWeight:700, cursor:"pointer" }}>
+                color: val===v ? "#fff" : T.teal, fontSize:13, fontWeight: 600, cursor:"pointer" }}>
               €{formatNumberDE(v)}</button>
           ))}
         </div>
@@ -767,7 +767,7 @@ function AIPruefung({ form, onResult }) {
         fontSize:32, marginBottom:28,
         boxShadow:`0 0 0 12px ${T.teal}12`,
         animation:"ifGlow 2s ease-in-out infinite" }}>🧠</div>
-      <h3 style={{ margin:"0 0 6px", fontSize:20, fontWeight:900, color:T.ink,
+      <h3 style={{ margin:"0 0 6px", fontSize:20, fontWeight: 600, color:T.ink,
         letterSpacing:"-0.02em" }}>HUI-KI prüft dein Projekt</h3>
       <p style={{ margin:"0 0 28px", fontSize:13, color:T.ink2 }}>Einen Moment bitte …</p>
       <div style={{ width:"100%", maxWidth:280, height:5, borderRadius:99,
@@ -777,7 +777,7 @@ function AIPruefung({ form, onResult }) {
           transition:"width 0.5s ease" }}/>
       </div>
       <div style={{ display:"flex", alignItems:"center", gap:8,
-        fontSize:14, color:T.teal, fontWeight:700, minHeight:28 }}>
+        fontSize:14, color:T.teal, fontWeight: 600, minHeight:28 }}>
         <span>{PHASEN[phase].icon}</span>
         <span>{PHASEN[phase].text}</span>
       </div>
@@ -789,7 +789,7 @@ function AIPruefung({ form, onResult }) {
             <div style={{ width:20, height:20, borderRadius:"50%",
               background: phase > i ? T.teal : T.line,
               display:"flex", alignItems:"center", justifyContent:"center",
-              fontSize:11, color:"#fff", fontWeight:800,
+              fontSize:11, color:"#fff", fontWeight: 600,
               transition:"background 0.3s ease", flexShrink:0 }}>
               {phase > i ? "✓" : i+1}</div>
             <span style={{ fontSize:13, fontWeight: phase > i ? 700 : 400,
@@ -810,9 +810,9 @@ function FitScoreBar({ score }) {
       borderRadius:16, padding:"14px 16px", marginBottom:16 }}>
       <div style={{ display:"flex", justifyContent:"space-between",
         alignItems:"center", marginBottom:8 }}>
-        <span style={{ fontSize:12, fontWeight:700, color:T.ink }}>HUI-Fit-Score</span>
+        <span style={{ fontSize:12, fontWeight: 600, color:T.ink }}>HUI-Fit-Score</span>
         <div style={{ display:"flex", alignItems:"baseline", gap:4 }}>
-          <span style={{ fontSize:22, fontWeight:900, color }}>{score}</span>
+          <span style={{ fontSize:22, fontWeight: 600, color }}>{score}</span>
           <span style={{ fontSize:12, color:T.ink3 }}>/100</span>
         </div>
       </div>
@@ -825,7 +825,7 @@ function FitScoreBar({ score }) {
       </div>
       <div style={{ display:"flex", justifyContent:"space-between",
         fontSize:11, color }}>
-        <span style={{ fontWeight:700 }}>{label}</span>
+        <span style={{ fontWeight: 600 }}>{label}</span>
         {score >= 80 && <span>→ Direkte Weiterleitung</span>}
         {score >= 60 && score < 80 && <span>→ Manuelle Prüfung</span>}
       </div>
@@ -848,7 +848,7 @@ function WirkungsnetzScreen({ checks, onToggle, onConfirm, onClose }) {
       {/* Header */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
         padding:"16px 20px 14px", flexShrink:0, borderBottom:`1px solid ${T.line}` }}>
-        <div style={{ fontSize:14, fontWeight:800, color:T.ink }}>
+        <div style={{ fontSize:14, fontWeight: 600, color:T.ink }}>
           Teil des HUI-Wirkungsnetzwerks
         </div>
         <button onClick={onClose} style={{ width:32, height:32, borderRadius:"50%",
@@ -866,7 +866,7 @@ function WirkungsnetzScreen({ checks, onToggle, onConfirm, onClose }) {
           borderRadius:18, padding:"18px 18px", marginBottom:22,
         }}>
           <div style={{ fontSize:18, marginBottom:10 }}>🌍</div>
-          <div style={{ fontSize:15, fontWeight:900, color:T.ink,
+          <div style={{ fontSize:15, fontWeight: 600, color:T.ink,
             marginBottom:8, letterSpacing:"-0.018em" }}>
             Gemeinsam Wirkung sichtbar machen
           </div>
@@ -918,7 +918,7 @@ function WirkungsnetzScreen({ checks, onToggle, onConfirm, onClose }) {
               ? `linear-gradient(135deg,${T.teal},${T.tealL})`
               : "rgba(20,20,34,0.08)",
             color: allChecked ? "#fff" : T.ink4,
-            fontSize:15, fontWeight:800, cursor: allChecked ? "pointer" : "default",
+            fontSize:15, fontWeight: 600, cursor: allChecked ? "pointer" : "default",
             boxShadow: allChecked ? S.btn(T.teal) : "none",
             opacity: allChecked ? 1 : 0.6,
             transition:"all 0.2s ease",
@@ -948,12 +948,12 @@ function ErgebnisGeeignet({ form, aiRes, onNetworkConfirm, onClose }) {
           display:"inline-block",
           background: isManual ? `${T.gold}15` : `${T.teal}15`,
           border:`1px solid ${isManual ? T.gold+"40" : T.teal+"40"}`,
-          borderRadius:99, padding:"5px 16px", fontSize:11, fontWeight:800,
+          borderRadius:99, padding:"5px 16px", fontSize:11, fontWeight: 600,
           color: isManual ? T.gold : T.teal, letterSpacing:"0.07em", marginBottom:12,
         }}>
           {isManual ? "MANUELLE PRÜFUNG" : "DIREKTE WEITERLEITUNG"}
         </div>
-        <h2 style={{ margin:"0 0 8px", fontSize:21, fontWeight:900, color:T.ink,
+        <h2 style={{ margin:"0 0 8px", fontSize:21, fontWeight: 600, color:T.ink,
           letterSpacing:"-0.022em", lineHeight:1.25 }}>
           Dein Projekt sieht vielversprechend aus! 🎉
         </h2>
@@ -971,7 +971,7 @@ function ErgebnisGeeignet({ form, aiRes, onNetworkConfirm, onClose }) {
       {/* Zusammenfassung */}
       <div style={{ background:`${T.teal}07`, border:`1px solid ${T.teal}16`,
         borderRadius:16, padding:"14px 16px", marginBottom:20 }}>
-        <div style={{ fontSize:11, fontWeight:700, color:T.teal,
+        <div style={{ fontSize:11, fontWeight: 600, color:T.teal,
           letterSpacing:"0.06em", textTransform:"uppercase", marginBottom:10 }}>
           Deine Bewerbung
         </div>
@@ -984,7 +984,7 @@ function ErgebnisGeeignet({ form, aiRes, onNetworkConfirm, onClose }) {
           <div key={i} style={{ display:"flex", gap:10, padding:"6px 0",
             borderBottom: i < 3 ? `1px solid ${T.teal}10` : "none" }}>
             <span style={{ fontSize:12, color:T.ink3, width:88, flexShrink:0 }}>{r.label}</span>
-            <span style={{ fontSize:12, fontWeight:700, color:T.ink, lineHeight:1.4, flex:1 }}>{r.val}</span>
+            <span style={{ fontSize:12, fontWeight: 600, color:T.ink, lineHeight:1.4, flex:1 }}>{r.val}</span>
           </div>
         ))}
       </div>
@@ -992,7 +992,7 @@ function ErgebnisGeeignet({ form, aiRes, onNetworkConfirm, onClose }) {
       <button onClick={onNetworkConfirm} className="hui-next" style={{
         width:"100%", height:54, borderRadius:18, border:"none",
         background:`linear-gradient(135deg,${T.teal},${T.tealL})`,
-        color:"#fff", fontSize:15, fontWeight:800, cursor:"pointer",
+        color:"#fff", fontSize:15, fontWeight: 600, cursor:"pointer",
         boxShadow:S.btn(T.teal), marginBottom:8,
       }}>Weiter → Wirkungsnetzwerk</button>
       <button onClick={onClose} style={{ background:"none", border:"none",
@@ -1094,11 +1094,11 @@ function ErgebnisNichtGeeignet({ form, onClose, onRetry, aiRes, user }) {
         <div style={{ fontSize:48, marginBottom:12 }}>{t.emoji || "🔍"}</div>
         <div style={{ display:"inline-block", background:`${T.coral}12`,
           border:`1px solid ${T.coral}28`, borderRadius:99,
-          padding:"5px 16px", fontSize:11, fontWeight:800,
+          padding:"5px 16px", fontSize:11, fontWeight: 600,
           color:T.coral, letterSpacing:"0.07em", marginBottom:12 }}>
           {t.badge || "NICHT GEEIGNET FÜR HUI"}
         </div>
-        <h2 style={{ margin:"0 0 10px", fontSize:19, fontWeight:900, color:T.ink,
+        <h2 style={{ margin:"0 0 10px", fontSize:19, fontWeight: 600, color:T.ink,
           letterSpacing:"-0.02em", lineHeight:1.3 }}>{t.titel}</h2>
         <p style={{ margin:"0 0 8px", fontSize:13, color:T.ink2, lineHeight:1.7 }}>{t.erkl}</p>
         <p style={{ margin:"0 0 8px", fontSize:13, color:T.ink2, lineHeight:1.7 }}>{t.hinweis}</p>
@@ -1116,7 +1116,7 @@ function ErgebnisNichtGeeignet({ form, onClose, onRetry, aiRes, user }) {
 
       <div style={{ background:`${T.teal}07`, border:`1px solid ${T.teal}16`,
         borderRadius:14, padding:"14px 16px", marginBottom:20 }}>
-        <div style={{ fontSize:12, fontWeight:700, color:T.teal, marginBottom:8 }}>
+        <div style={{ fontSize:12, fontWeight: 600, color:T.teal, marginBottom:8 }}>
           Was zu HUI passt:
         </div>
         {["📚 Bildungsinitiativen & Wissensprojekte",
@@ -1134,7 +1134,7 @@ function ErgebnisNichtGeeignet({ form, onClose, onRetry, aiRes, user }) {
       <button onClick={onRetry} className="hui-next" style={{
         width:"100%", height:52, borderRadius:16, border:"none",
         background:`linear-gradient(135deg,${T.teal},${T.tealL})`,
-        color:"#fff", fontSize:15, fontWeight:800, cursor:"pointer",
+        color:"#fff", fontSize:15, fontWeight: 600, cursor:"pointer",
         boxShadow:S.btn(T.teal), marginBottom:8,
       }}>Nochmal versuchen</button>
       <button onClick={onClose} style={{ background:"none", border:"none",
@@ -1152,7 +1152,7 @@ function SuccessScreen({ onClose }) {
       background:`linear-gradient(160deg,${T.teal}12,${T.teal}04,#fff)` }}>
       <div style={{ fontSize:60, marginBottom:20,
         filter:`drop-shadow(0 4px 20px ${T.teal}50)` }}>💚</div>
-      <h2 style={{ margin:"0 0 10px", fontSize:24, fontWeight:900,
+      <h2 style={{ margin:"0 0 10px", fontSize:24, fontWeight: 600,
         color:T.ink, letterSpacing:"-0.025em" }}>Bewerbung eingereicht!</h2>
       <p style={{ margin:"0 0 28px", fontSize:15, color:T.ink2,
         lineHeight:1.7, maxWidth:300 }}>
@@ -1164,12 +1164,12 @@ function SuccessScreen({ onClose }) {
         {["✓ Bewerbung erhalten","✓ KI-Prüfung bestanden",
           "✓ HUI-Team wurde informiert","✓ Teil des HUI-Wirkungsnetzwerks 🌍",
         ].map((line,i) => (
-          <div key={i} style={{ fontSize:13, fontWeight:700, color:T.teal, padding:"3px 0" }}>{line}</div>
+          <div key={i} style={{ fontSize:13, fontWeight: 600, color:T.teal, padding:"3px 0" }}>{line}</div>
         ))}
       </div>
       <button onClick={onClose} style={{ padding:"14px 36px", borderRadius:18,
         border:"none", background:`linear-gradient(135deg,${T.teal},${T.tealL})`,
-        color:"#fff", fontSize:15, fontWeight:800, cursor:"pointer",
+        color:"#fff", fontSize:15, fontWeight: 600, cursor:"pointer",
         boxShadow:S.btn(T.teal) }}>Super ✓</button>
     </div>
   );
@@ -1207,7 +1207,7 @@ function PersoenlicheAngaben({ onWeiter, onClose, kontakt, setKontakt }) {
       {/* Header */}
       <div style={{ textAlign:"center", marginBottom:24 }}>
         <div style={{ marginBottom:8, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)" }}><HUIDateiIcon size={36}/></div>
-        <div style={{ fontSize:20, fontWeight:800, color:T.ink, marginBottom:6 }}>
+        <div style={{ fontSize:20, fontWeight: 600, color:T.ink, marginBottom:6 }}>
           Persönliche Angaben
         </div>
         <div style={{ fontSize:13, color:T.ink3, lineHeight:1.5 }}>
@@ -1221,7 +1221,7 @@ function PersoenlicheAngaben({ onWeiter, onClose, kontakt, setKontakt }) {
         {fields.map(f => (
           <div key={f.key}>
             <div style={{
-              fontSize:11, fontWeight:700, color:T.teal,
+              fontSize:11, fontWeight: 600, color:T.teal,
               letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:6,
             }}>{f.label}</div>
             <input
@@ -1249,7 +1249,7 @@ function PersoenlicheAngaben({ onWeiter, onClose, kontakt, setKontakt }) {
       <button onClick={handleWeiter} className="hui-next" style={{
         width:"100%", height:54, borderRadius:18, border:"none",
         background:`linear-gradient(135deg,${T.teal},${T.tealL})`,
-        color:"#fff", fontSize:15, fontWeight:800, cursor:"pointer",
+        color:"#fff", fontSize:15, fontWeight: 600, cursor:"pointer",
         boxShadow:`0 6px 24px ${T.teal}40`, marginBottom:8,
       }}>Weiter → Wirkungsnetzwerk</button>
       <button onClick={onClose} style={{ background:"none", border:"none",
@@ -1336,7 +1336,7 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
         flexShrink:0,
       }}>
         <div>
-          <div style={{ fontSize:22, fontWeight:900, color:T.ink, lineHeight:1.1 }}>
+          <div style={{ fontSize:22, fontWeight: 600, color:T.ink, lineHeight:1.1 }}>
             
           </div>
           <div style={{ fontSize:12.5, color:T.ink3, marginTop:3 }}>
@@ -1355,7 +1355,7 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
 
         {/* ── Titelbild ─────────────────────────────────── */}
         <div style={{ marginBottom:20 }}>
-          <div style={{ fontSize:12, fontWeight:700, color:T.ink3, marginBottom:4, letterSpacing:0.3 }}>
+          <div style={{ fontSize:12, fontWeight: 600, color:T.ink3, marginBottom:4, letterSpacing:0.3 }}>
             TITELBILD <span style={{ color:T.coral }}>*</span>
           </div>
           <div style={{ fontSize:11.5, color:T.ink3, marginBottom:10, lineHeight:1.5 }}>
@@ -1375,7 +1375,7 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
               <div style={{
                 position:"absolute", bottom:8, left:8,
                 background:"rgba(13,196,181,0.90)", borderRadius:99,
-                padding:"3px 10px", fontSize:11, fontWeight:700, color:"#fff",
+                padding:"3px 10px", fontSize:11, fontWeight: 600, color:"#fff",
               }}>✅ Titelbild gespeichert</div>
             </div>
           ) : (
@@ -1392,7 +1392,7 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
               <div style={{ fontSize:32, marginBottom:8 }}>
                 {coverUploading ? "…" : <HUIFotoIcon size={18}/>}
               </div>
-              <div style={{ fontSize:13, fontWeight:700, color: coverUploading ? T.ink3 : T.teal }}>
+              <div style={{ fontSize:13, fontWeight: 600, color: coverUploading ? T.ink3 : T.teal }}>
                 {coverUploading ? "Wird hochgeladen…" : "Titelbild auswählen"}
               </div>
               <div style={{ fontSize:11, color:T.ink3, marginTop:4 }}>
@@ -1409,7 +1409,7 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
 
         {/* ── Zusatzmaterial ────────────────────────────── */}
         <div style={{ marginBottom:16 }}>
-          <div style={{ fontSize:12, fontWeight:700, color:T.ink3, marginBottom:4, letterSpacing:0.3 }}>
+          <div style={{ fontSize:12, fontWeight: 600, color:T.ink3, marginBottom:4, letterSpacing:0.3 }}>
             ZUSATZMATERIAL <span style={{ color:T.ink4, fontWeight:400 }}>(optional)</span>
           </div>
           <div style={{ fontSize:11.5, color:T.ink3, marginBottom:10, lineHeight:1.5 }}>
@@ -1425,7 +1425,7 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
               borderRadius:14, background:"rgba(114,100,214,0.04)",
               cursor: extrasUploading ? "default" : "pointer",
               display:"flex", alignItems:"center", justifyContent:"center", gap:8,
-              color:T.violet, fontSize:13, fontWeight:700, fontFamily:"inherit",
+              color:T.violet, fontSize:13, fontWeight: 600, fontFamily:"inherit",
             }}
           >
             {extrasUploading ? "⏳ Lädt hoch…" : "📎 Dateien hinzufügen (Mehrfach möglich)"}
@@ -1455,7 +1455,7 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
                     }}>{getFileIcon(att.type)}</div>
                   )}
                   <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontSize:12, fontWeight:700, color:T.ink,
+                    <div style={{ fontSize:12, fontWeight: 600, color:T.ink,
                       overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                       {att.name}
                     </div>
@@ -1494,7 +1494,7 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
               : "rgba(20,20,34,0.12)",
             border:"none", borderRadius:99,
             color: canContinue ? "#fff" : T.ink3,
-            fontSize:15, fontWeight:800, cursor: canContinue ? "pointer" : "not-allowed",
+            fontSize:15, fontWeight: 600, cursor: canContinue ? "pointer" : "not-allowed",
             fontFamily:"inherit",
             boxShadow: canContinue ? S.btn(T.teal) : "none",
             transition:"all 0.2s",

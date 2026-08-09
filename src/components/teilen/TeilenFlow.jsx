@@ -128,7 +128,7 @@ function StepWhere({ value, onSelect, onNext }) {
     }}>
       {/* Headline */}
       <div style={{ textAlign:"center", marginBottom:32, animation:"tf-in .22s ease both" }}>
-        <div style={{ fontSize:26, fontWeight:900, color:C.ink, letterSpacing:-.7, marginBottom:8 }}>
+        <div style={{ fontSize:26, fontWeight: 600, color:C.ink, letterSpacing:-.7, marginBottom:8 }}>
           Was m\u00f6chtest du teilen?
         </div>
         <div style={{ fontSize:14.5, color:C.muted, lineHeight:1.6 }}>
@@ -181,7 +181,7 @@ function StepWhere({ value, onSelect, onNext }) {
               {/* Text */}
               <div style={{ flex:1, minWidth:0 }}>
                 <div style={{
-                  fontSize:17, fontWeight:800,
+                  fontSize:17, fontWeight: 600,
                   color: on ? (c.key==="feed" ? C.teal : C.violet) : C.ink,
                   marginBottom:4, letterSpacing:-.25, transition:"color .15s",
                 }}>{c.label}</div>
@@ -217,7 +217,7 @@ function StepWhere({ value, onSelect, onNext }) {
               : "rgba(139,92,246,.13)",
             border:"none",
             color: value ? "white" : "rgba(139,92,246,.38)",
-            fontSize:17, fontWeight:800, letterSpacing:-.2,
+            fontSize:17, fontWeight: 600, letterSpacing:-.2,
             display:"flex", alignItems:"center", justifyContent:"center", gap:8,
             transition:"background .18s, color .18s",
             animation: value ? "tf-pulse 3.6s ease-in-out infinite" : "none",
@@ -254,7 +254,7 @@ function StepCreate({ mode, data, onChange }) {
     }}>
       {/* Headline */}
       <div style={{ textAlign:"center", marginBottom:24, animation:"tf-in .20s ease both" }}>
-        <div style={{ fontSize:24, fontWeight:900, color:C.ink, letterSpacing:-.6, marginBottom:6 }}>
+        <div style={{ fontSize:24, fontWeight: 600, color:C.ink, letterSpacing:-.6, marginBottom:6 }}>
           Dein Moment
         </div>
         <div style={{ fontSize:14, color:C.muted }}>
@@ -340,7 +340,7 @@ function StepCreate({ mode, data, onChange }) {
                     border:`1.5px solid ${i===0?"rgba(10,191,184,.25)":i===1?"rgba(139,92,246,.22)":"rgba(251,146,60,.22)"}`,
                     boxShadow:"0 2px 12px rgba(0,0,0,.05)",
                     display:"flex", alignItems:"center", justifyContent:"center", gap:10,
-                    fontSize:14.5, fontWeight:700,
+                    fontSize:14.5, fontWeight: 600,
                     color: i===0 ? C.teal : i===1 ? C.violet : C.peach,
                     animation:`tf-in ${.10 + i*.07}s ease both`,
                   }}
@@ -417,7 +417,7 @@ function StepCreate({ mode, data, onChange }) {
                         : "rgba(255,255,255,.88)",
                       border: on ? "none" : "1.5px solid rgba(139,92,246,.16)",
                       color: on ? "white" : C.muted,
-                      fontSize:13, fontWeight:700,
+                      fontSize:13, fontWeight: 600,
                       display:"flex", alignItems:"center", gap:5,
                       transition:"all .15s",
                     }}
@@ -452,7 +452,7 @@ function StepPreview({ mode, data, profile, onPublish, publishing }) {
     }}>
       {/* Headline */}
       <div style={{ textAlign:"center", marginBottom:24, animation:"tf-in .20s ease both" }}>
-        <div style={{ fontSize:22, fontWeight:900, color:C.ink, letterSpacing:-.5, marginBottom:5 }}>
+        <div style={{ fontSize:22, fontWeight: 600, color:C.ink, letterSpacing:-.5, marginBottom:5 }}>
           Vorschau
         </div>
         <div style={{ fontSize:13.5, color:C.muted }}>So erscheint dein Beitrag.</div>
@@ -493,7 +493,7 @@ function StepPreview({ mode, data, profile, onPublish, publishing }) {
           {data.text && (
             <div style={{
               position:"absolute", bottom:60, left:20, right:20,
-              color:"white", fontSize:18, fontWeight:700, lineHeight:1.4,
+              color:"white", fontSize:18, fontWeight: 600, lineHeight:1.4,
             }}>{data.text}</div>
           )}
           {/* Author */}
@@ -505,7 +505,7 @@ function StepPreview({ mode, data, profile, onPublish, publishing }) {
               width:34, height:34, borderRadius:"50%",
               background:`linear-gradient(135deg,${C.teal},${C.violet})`,
               display:"flex", alignItems:"center", justifyContent:"center",
-              color:"white", fontSize:13, fontWeight:800,
+              color:"white", fontSize:13, fontWeight: 600,
               border:"2px solid white",
               overflow:"hidden",
             }}>
@@ -514,7 +514,7 @@ function StepPreview({ mode, data, profile, onPublish, publishing }) {
                 : name[0]?.toUpperCase()
               }
             </div>
-            <span style={{ color:"white", fontSize:13, fontWeight:700 }}>{name}</span>
+            <span style={{ color:"white", fontSize:13, fontWeight: 600 }}>{name}</span>
           </div>
         </div>
       ) : (
@@ -534,7 +534,7 @@ function StepPreview({ mode, data, profile, onPublish, publishing }) {
               width:40, height:40, borderRadius:"50%",
               background:`linear-gradient(135deg,${C.teal},${C.violet})`,
               display:"flex", alignItems:"center", justifyContent:"center",
-              color:"white", fontSize:15, fontWeight:800,
+              color:"white", fontSize:15, fontWeight: 600,
               overflow:"hidden", flexShrink:0,
             }}>
               {avatar
@@ -543,7 +543,7 @@ function StepPreview({ mode, data, profile, onPublish, publishing }) {
               }
             </div>
             <div>
-              <div style={{ fontSize:14, fontWeight:800, color:C.ink }}>{name}</div>
+              <div style={{ fontSize:14, fontWeight: 600, color:C.ink }}>{name}</div>
               <div style={{ fontSize:12, color:C.muted }}>
                 {now}
                 {data.location && <> · 📍 {data.location}</>}
@@ -551,7 +551,7 @@ function StepPreview({ mode, data, profile, onPublish, publishing }) {
             </div>
             {data.mood && (
               <div style={{
-                marginLeft:"auto", fontSize:12, fontWeight:700,
+                marginLeft:"auto", fontSize:12, fontWeight: 600,
                 color:C.violet,
                 background:"rgba(139,92,246,.08)",
                 padding:"4px 10px", borderRadius:99,
@@ -615,7 +615,7 @@ function StepPreview({ mode, data, profile, onPublish, publishing }) {
             width:"100%", height:56, borderRadius:99,
             background: `linear-gradient(135deg,${C.teal} 0%,${C.violet} 100%)`,
             border:"none", color:"white",
-            fontSize:18, fontWeight:800, letterSpacing:-.2,
+            fontSize:18, fontWeight: 600, letterSpacing:-.2,
             display:"flex", alignItems:"center", justifyContent:"center", gap:8,
             boxShadow:"0 8px 28px rgba(139,92,246,.30)",
             animation: publishing ? "none" : "tf-pulse 3.6s ease-in-out infinite",
@@ -982,7 +982,7 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
 
           {/* Title */}
           <div style={{ textAlign:"center" }}>
-            <div style={{ fontSize:15.5, fontWeight:800, color:C.ink, letterSpacing:-.3 }}>
+            <div style={{ fontSize:15.5, fontWeight: 600, color:C.ink, letterSpacing:-.3 }}>
               <span style={{ marginRight:5 }}>{meta.emoji}</span>Teilen
             </div>
             <div style={{ fontSize:11.5, color:C.muted, marginTop:1 }}>{meta.hint}</div>
@@ -998,7 +998,7 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
                 height:34, paddingInline:14, borderRadius:99,
                 background:"rgba(255,255,255,.80)",
                 border:"1px solid rgba(139,92,246,.16)",
-                color:C.muted, fontSize:13.5, fontWeight:700,
+                color:C.muted, fontSize:13.5, fontWeight: 600,
               }}
             >\u2190</button>
           ) : (
@@ -1048,7 +1048,7 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
                   background:"rgba(239,68,68,0.12)",
                   border:"1.5px solid rgba(239,68,68,0.35)",
                   color:"rgba(239,68,68,0.9)",
-                  fontSize:12, fontWeight:700, letterSpacing:0.3,
+                  fontSize:12, fontWeight: 600, letterSpacing:0.3,
                   cursor:"pointer", fontFamily:"monospace",
                 }}
               >
@@ -1083,7 +1083,7 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
               width:"100%", height:50, borderRadius:99,
               background:`linear-gradient(135deg,${C.violet} 0%,${C.violet2} 100%)`,
               border:"none", color:"white",
-              fontSize:16, fontWeight:800, letterSpacing:-.2,
+              fontSize:16, fontWeight: 600, letterSpacing:-.2,
               display:"flex", alignItems:"center", justifyContent:"center", gap:8,
               boxShadow:"0 6px 20px rgba(139,92,246,.28)",
               animation:"tf-pulse 3.6s ease-in-out infinite",

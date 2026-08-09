@@ -901,7 +901,7 @@ function HomeInner() {
           border:"1px solid rgba(255,255,255,0.15)",
           minWidth:200,
         }}>
-          <div style={{ color:"#16D7C5", fontWeight:700, marginBottom:3, fontSize:11 }}>
+          <div style={{ color:"#16D7C5", fontWeight: 600, marginBottom:3, fontSize:11 }}>
             🌍 World Surface
           </div>
           <div>surface: <b style={{color: activeSurface ? "#FF8A6B":"#aaa"}}>
@@ -918,7 +918,7 @@ function HomeInner() {
           </b></div>
 
           <div style={{ borderTop:"1px solid rgba(255,255,255,0.12)", margin:"5px 0 3px" }} />
-          <div style={{ color:"#a8d8cf", fontWeight:700, marginBottom:2 }}>Tabs</div>
+          <div style={{ color:"#a8d8cf", fontWeight: 600, marginBottom:2 }}>Tabs</div>
           <div>activeTab: <b style={{color:"#16D7C5"}}>{tab}</b></div>
           <div>feed op: <b style={{color: keepFeed?.opacity === 1 ? "#16D7C5":"#FF8A6B"}}>
             {keepFeed?.opacity ?? "?"}

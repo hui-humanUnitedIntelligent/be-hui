@@ -65,7 +65,7 @@ function StatCard({ label, value, sub, icon, color, delay=0, onClick }) {
     onTouchStart={e => { if(onClick) e.currentTarget.style.transform="scale(0.97)"; }}
     onTouchEnd={e => { if(onClick) e.currentTarget.style.transform="scale(1)"; }}>
       <div style={{fontSize:22,marginBottom:8}}>{icon}</div>
-      <div style={{fontSize:22,fontWeight:800,color:color||T.ink,letterSpacing:-0.5,lineHeight:1.1}}>
+      <div style={{fontSize:22,fontWeight: 600,color:color||T.ink,letterSpacing:-0.5,lineHeight:1.1}}>
         {value}
       </div>
       <div style={{fontSize:11,fontWeight:600,color:T.muted,letterSpacing:0.4,marginTop:5,
@@ -95,19 +95,19 @@ function WalletHero({ wallet }) {
       <div style={{position:"relative"}}>
         <div style={{fontSize:12,fontWeight:600,color:"rgba(255,255,255,0.45)",
           letterSpacing:1.2,marginBottom:6}}>DEIN GUTHABEN</div>
-        <div style={{fontSize:42,fontWeight:800,color:"white",letterSpacing:-1.5,lineHeight:1}}>
+        <div style={{fontSize:42,fontWeight: 600,color:"white",letterSpacing:-1.5,lineHeight:1}}>
           {fmt(wallet?.balance)}
         </div>
         <div style={{display:"flex",gap:24,marginTop:18}}>
           <div>
             <div style={{fontSize:11,color:"rgba(255,255,255,0.40)",letterSpacing:0.4}}>OFFEN</div>
-            <div style={{fontSize:16,fontWeight:700,color:"rgba(22,215,197,0.85)"}}>
+            <div style={{fontSize:16,fontWeight: 600,color:"rgba(22,215,197,0.85)"}}>
               {fmt(wallet?.pending_balance)}
             </div>
           </div>
           <div>
             <div style={{fontSize:11,color:"rgba(255,255,255,0.40)",letterSpacing:0.4}}>GESAMT</div>
-            <div style={{fontSize:16,fontWeight:700,color:"rgba(255,138,107,0.85)"}}>
+            <div style={{fontSize:16,fontWeight: 600,color:"rgba(255,138,107,0.85)"}}>
               {fmt(wallet?.total_earned)}
             </div>
           </div>
@@ -144,13 +144,13 @@ function BookingCard({ booking, onUpdate }) {
         <div style={{width:38,height:38,borderRadius:12,overflow:"hidden",
           background:"rgba(22,215,197,0.10)",flexShrink:0,
           display:"flex",alignItems:"center",justifyContent:"center",
-          fontSize:16,fontWeight:700,color:T.teal}}>
+          fontSize:16,fontWeight: 600,color:T.teal}}>
           {booking?.guest?.avatar_url
             ? <img loading="lazy" decoding="async" src={booking.guest.avatar_url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
             : (booking?.guest?.display_name||"G")[0].toUpperCase()}
         </div>
         <div style={{flex:1,minWidth:0}}>
-          <div style={{fontSize:13.5,fontWeight:700,color:T.ink,
+          <div style={{fontSize:13.5,fontWeight: 600,color:T.ink,
             overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
             {booking?.guest?.display_name || "Gast"}
           </div>
@@ -159,12 +159,12 @@ function BookingCard({ booking, onUpdate }) {
           </div>
         </div>
         <div style={{padding:"4px 10px",borderRadius:20,background:statusColor,
-          fontSize:10,fontWeight:700,color:T.ink,letterSpacing:0.3}}>
+          fontSize:10,fontWeight: 600,color:T.ink,letterSpacing:0.3}}>
           {statusText}
         </div>
       </div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <div style={{fontSize:17,fontWeight:800,color:T.teal}}>
+        <div style={{fontSize:17,fontWeight: 600,color:T.teal}}>
           € {parseFloat(booking?.amount||0).toFixed(2)}
         </div>
         {status === "pending" && (
@@ -172,7 +172,7 @@ function BookingCard({ booking, onUpdate }) {
             <button className="cd-tap" disabled={loading} onClick={() => handle("confirmed")}
               style={{padding:"7px 14px",borderRadius:12,border:"none",
                 background:`linear-gradient(135deg,${T.teal},${T.coral})`,
-                color:"white",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
+                color:"white",fontSize:12,fontWeight: 600,cursor:"pointer",fontFamily:"inherit"}}>
               Bestätigen
             </button>
             <button className="cd-tap" disabled={loading} onClick={() => handle("cancelled")}
@@ -187,7 +187,7 @@ function BookingCard({ booking, onUpdate }) {
           <button className="cd-tap" disabled={loading} onClick={() => handle("completed")}
             style={{padding:"7px 14px",borderRadius:12,border:"none",
               background:"rgba(22,215,197,0.12)",color:T.teal,
-              fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
+              fontSize:12,fontWeight: 600,cursor:"pointer",fontFamily:"inherit"}}>
             Abschließen
           </button>
         )}
@@ -212,13 +212,13 @@ function SupportCard({ support }) {
       <div style={{width:38,height:38,borderRadius:12,overflow:"hidden",
         background:"rgba(255,138,107,0.10)",flexShrink:0,
         display:"flex",alignItems:"center",justifyContent:"center",
-        fontSize:15,fontWeight:700,color:T.coral}}>
+        fontSize:15,fontWeight: 600,color:T.coral}}>
         {support?.supporter?.avatar_url
           ? <img loading="lazy" decoding="async" src={support.supporter.avatar_url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
           : (support?.supporter?.display_name||"S")[0].toUpperCase()}
       </div>
       <div style={{flex:1,minWidth:0}}>
-        <div style={{fontSize:13.5,fontWeight:700,color:T.ink}}>
+        <div style={{fontSize:13.5,fontWeight: 600,color:T.ink}}>
           {support?.supporter?.display_name || "Jemand"}
         </div>
         {support?.message && (
@@ -228,7 +228,7 @@ function SupportCard({ support }) {
           </div>
         )}
       </div>
-      <div style={{fontSize:16,fontWeight:800,color:T.coral,flexShrink:0}}>
+      <div style={{fontSize:16,fontWeight: 600,color:T.coral,flexShrink:0}}>
         +€ {parseFloat(support?.amount||0).toFixed(2)}
       </div>
     </div>
@@ -254,7 +254,7 @@ function AnalyticsView({ analytics }) {
           <div style={{flex:1}}>
             <div style={{fontSize:13.5,fontWeight:600,color:T.ink}}>{it.label}</div>
           </div>
-          <div style={{fontSize:20,fontWeight:800,color:it.color}}>{it.value}</div>
+          <div style={{fontSize:20,fontWeight: 600,color:it.color}}>{it.value}</div>
         </div>
       ))}
       <div style={{marginTop:20,padding:"16px",borderRadius:18,
@@ -275,7 +275,7 @@ function EmptyState({ icon, title, sub }) {
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",
       justifyContent:"center",padding:"48px 32px",textAlign:"center"}}>
       <div style={{fontSize:40,marginBottom:16,animation:"cd-pulse 3s ease infinite"}}>{icon}</div>
-      <div style={{fontSize:16,fontWeight:700,color:T.ink,marginBottom:8}}>{title}</div>
+      <div style={{fontSize:16,fontWeight: 600,color:T.ink,marginBottom:8}}>{title}</div>
       <div style={{fontSize:13,color:T.soft,lineHeight:1.6}}>{sub}</div>
     </div>
   );
@@ -335,7 +335,7 @@ export default function CreatorDashboard({ visible, onClose, onOpenProfile }) {
       }}>
         <div>
           <div style={{fontSize:11,fontWeight:600,color:T.soft,letterSpacing:0.8}}>TALENT STUDIO</div>
-          <div style={{fontSize:22,fontWeight:800,color:T.ink,letterSpacing:-0.5}}>
+          <div style={{fontSize:22,fontWeight: 600,color:T.ink,letterSpacing:-0.5}}>
             Dein kreativer Raum
           </div>
         </div>
@@ -400,7 +400,7 @@ export default function CreatorDashboard({ visible, onClose, onOpenProfile }) {
                 {/* Analytics Preview */}
                 <div style={{margin:"0 16px",background:T.card,borderRadius:T.r,
                   border:`1px solid ${T.border}`,boxShadow:T.shadow,padding:"16px"}}>
-                  <div style={{fontSize:13,fontWeight:700,color:T.ink,marginBottom:14}}>
+                  <div style={{fontSize:13,fontWeight: 600,color:T.ink,marginBottom:14}}>
                     📊 Einblicke — letzte 7 Tage
                   </div>
                   <div style={{display:"flex",gap:16}}>
@@ -411,7 +411,7 @@ export default function CreatorDashboard({ visible, onClose, onOpenProfile }) {
                     ].map(it => (
                       <div key={it.label} style={{flex:1,textAlign:"center",
                         padding:"12px 8px",borderRadius:16,background:"rgba(26,26,46,0.04)"}}>
-                        <div style={{fontSize:22,fontWeight:800,color:it.c}}>{it.v}</div>
+                        <div style={{fontSize:22,fontWeight: 600,color:it.c}}>{it.v}</div>
                         <div style={{fontSize:10,color:T.muted,letterSpacing:0.3,marginTop:4}}>
                           {it.label.toUpperCase()}
                         </div>
@@ -468,7 +468,7 @@ export default function CreatorDashboard({ visible, onClose, onOpenProfile }) {
                               justifyContent:"center",fontSize:16}}>🎨</div>}
                       </div>
                       <div style={{flex:1,minWidth:0}}>
-                        <div style={{fontSize:13.5,fontWeight:700,color:T.ink,
+                        <div style={{fontSize:13.5,fontWeight: 600,color:T.ink,
                           overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
                           {s?.work?.title||"Werk"}
                         </div>
@@ -476,7 +476,7 @@ export default function CreatorDashboard({ visible, onClose, onOpenProfile }) {
                           von {s?.buyer?.display_name||"Käufer:in"}
                         </div>
                       </div>
-                      <div style={{fontSize:16,fontWeight:800,color:T.teal,flexShrink:0}}>
+                      <div style={{fontSize:16,fontWeight: 600,color:T.teal,flexShrink:0}}>
                         +€ {parseFloat(s?.amount||0).toFixed(2)}
                       </div>
                     </div>

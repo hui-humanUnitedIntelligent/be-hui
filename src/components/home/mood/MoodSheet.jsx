@@ -51,7 +51,7 @@ export default function MoodSheet({ activeMood, onSelect, onClose }) {
         }}
       >
         <div style={{
-          fontSize:11, fontWeight:700, letterSpacing:1.1,
+          fontSize:11, fontWeight: 600, letterSpacing:1.1,
           color:"rgba(30,30,30,0.38)", textTransform:"uppercase",
           marginBottom:14, textAlign:"center",
         }}>

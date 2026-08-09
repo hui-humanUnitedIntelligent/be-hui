@@ -54,19 +54,19 @@ function ErlebnisCardItem({ e: ev, onPress, onAuthorPress }) {
             borderRadius:10, padding:"4px 8px", textAlign:"center",
             backdropFilter:"blur(4px)"
           }}>
-            <div style={{ fontSize:15, fontWeight:800, color:T.ink, lineHeight:1 }}>{ev.dayNum}</div>
-            <div style={{ fontSize:8.5, fontWeight:700, color:T.inkSoft, letterSpacing:".04em" }}>{ev.monthSh}</div>
+            <div style={{ fontSize:15, fontWeight: 600, color:T.ink, lineHeight:1 }}>{ev.dayNum}</div>
+            <div style={{ fontSize:8.5, fontWeight: 600, color:T.inkSoft, letterSpacing:".04em" }}>{ev.monthSh}</div>
           </div>
         )}
         {ev.typeLabel && (
           <div style={{
             position:"absolute", top:8, right:8, background:T.teal, color:"#fff",
-            borderRadius:99, fontSize:9.5, fontWeight:700, padding:"2px 8px"
+            borderRadius:99, fontSize:9.5, fontWeight: 600, padding:"2px 8px"
           }}>{ev.typeLabel}</div>
         )}
       </div>
       <div style={{ padding:"10px 10px 8px", display:"flex", flexDirection:"column", flex:1 }}>
-        <div style={{ fontSize:13, fontWeight:700, color:T.ink, marginBottom:3,
+        <div style={{ fontSize:13, fontWeight: 600, color:T.ink, marginBottom:3,
           overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>
           {ev.title}
         </div>
@@ -201,7 +201,7 @@ export default function ErlebnisseAllModal({ isOpen, onClose, onPressItem }) {
         <div style={{ padding:"16px 16px 8px", background:T.white, borderBottom:`1px solid ${T.border}`, flexShrink:0 }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
             <div>
-              <div style={{ fontSize:17, fontWeight:800, color:T.ink }}>Erlebnisse für dich</div>
+              <div style={{ fontSize:17, fontWeight: 600, color:T.ink }}>Erlebnisse für dich</div>
               <div style={{ fontSize:11.5, color:T.inkFaint }}>Workshops, Treffen, Kurse & mehr</div>
             </div>
             <button onClick={onClose} style={{ background:"none", border:"none", fontSize:22, cursor:"pointer", color:T.inkSoft, padding:4 }}>✕</button>
@@ -213,7 +213,7 @@ export default function ErlebnisseAllModal({ isOpen, onClose, onPressItem }) {
           <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:6 }}>
             {SORT_OPTIONS.map(opt => (
               <button key={opt.key} onClick={() => setSort(opt.key)} style={{
-                flexShrink:0, padding:"6px 12px", borderRadius:99, fontSize:12, fontWeight:700,
+                flexShrink:0, padding:"6px 12px", borderRadius:99, fontSize:12, fontWeight: 600,
                 border:`1px solid ${sort === opt.key ? T.teal : T.border}`,
                 background: sort === opt.key ? "rgba(14,196,184,0.12)" : T.white,
                 color: sort === opt.key ? T.tealDeep : T.inkSoft,

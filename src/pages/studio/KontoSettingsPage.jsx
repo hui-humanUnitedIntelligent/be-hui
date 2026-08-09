@@ -132,7 +132,7 @@ export default function KontoSettingsPage() {
       padding: '40px 32px', maxWidth: 680,
       fontFamily: "Inter, sans-serif",
     }}>
-      <h2 style={{ fontSize: 24, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
+      <h2 style={{ fontSize: 24, fontWeight: 600, color: C.ink, marginBottom: 8 }}>
         Dein Raum
       </h2>
       <p style={{ fontSize: 15, color: C.muted, marginBottom: 40, lineHeight: 1.7 }}>

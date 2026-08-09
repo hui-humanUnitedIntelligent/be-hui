@@ -131,7 +131,7 @@ export default function RecommendModal({
             </svg>
           </div>
 
-          <div style={{ fontSize: 18, fontWeight: 800, color: T.ink, marginBottom: 6, letterSpacing: "-0.02em" }}>
+          <div style={{ fontSize: 18, fontWeight: 600, color: T.ink, marginBottom: 6, letterSpacing: "-0.02em" }}>
             Empfehlung gesendet
           </div>
           <div style={{ fontSize: 14, color: T.inkSoft, lineHeight: 1.5 }}>
@@ -178,7 +178,7 @@ export default function RecommendModal({
       >
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ fontSize: 17, fontWeight: 800, color: T.ink, letterSpacing: "-0.02em" }}>
+          <div style={{ fontSize: 17, fontWeight: 600, color: T.ink, letterSpacing: "-0.02em" }}>
             Empfehlung schreiben
           </div>
           <button
@@ -230,7 +230,7 @@ export default function RecommendModal({
             ❝
           </div>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: T.ink }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: T.ink }}>
               Empfehlung für {toUserName || "dieses Mitglied"}
             </div>
             <div style={{ fontSize: 11, color: T.inkFaint, marginTop: 2 }}>
@@ -282,7 +282,7 @@ export default function RecommendModal({
             background: canSubmit ? `linear-gradient(135deg, ${T.teal}, ${T.tealDark})` : "rgba(26,26,24,0.08)",
             color: canSubmit ? "white" : T.inkFaint,
             fontSize: 15,
-            fontWeight: 700,
+            fontWeight: 600,
             cursor: canSubmit ? "pointer" : "default",
             fontFamily: T.ff,
             transition: "opacity .15s ease",

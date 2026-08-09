@@ -101,7 +101,7 @@ function Avatar({ url, name, size = 34 }) {
       width:size, height:size, borderRadius:"50%", flexShrink:0,
       background:"rgba(13,196,181,0.14)", color:T.teal,
       display:"flex", alignItems:"center", justifyContent:"center",
-      fontSize:size*0.38, fontWeight:800,
+      fontSize:size*0.38, fontWeight: 600,
     }}>{initials(name)}</div>
   );
 }
@@ -195,7 +195,7 @@ function CommentMenuPortal({ isOwn, menuOpen, setMenuOpen, confirmDelete, setCon
                   <p style={{ fontSize:12, color:"#666", margin:"0 0 8px" }}>Kommentar wirklich löschen?</p>
                   <div style={{ display:"flex", gap:8 }}>
                     <button className="cs-btn" onClick={onDelete}
-                      style={{ flex:1, padding:"7px 0", fontSize:12, fontWeight:700, color:"#fff",
+                      style={{ flex:1, padding:"7px 0", fontSize:12, fontWeight: 600, color:"#fff",
                         background:"#E53E3E", borderRadius:8, cursor:"pointer" }}>
                       Löschen
                     </button>
@@ -266,7 +266,7 @@ function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdi
               onClick={() => { if (comment.user_id && comment.user_id !== currentUserId) openCreatorProfile(comment.user_id); }}
               style={{ background:"none", border:"none", padding:0,
                 cursor: comment.user_id !== currentUserId ? "pointer" : "default",
-                fontSize:13, fontWeight:700, color:T.ink, WebkitTapHighlightColor:"transparent" }}
+                fontSize:13, fontWeight: 600, color:T.ink, WebkitTapHighlightColor:"transparent" }}
             >{authorName}</button>
             <span style={{ fontSize:11, color:T.inkFaint }}>{fmtTime(comment.created_at)}</span>
             {comment.is_edited && <span style={{ fontSize:11, color:T.inkFaint }}>· bearbeitet</span>}
@@ -287,7 +287,7 @@ function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdi
               />
               <div style={{ display:"flex", gap:10, marginTop:6 }}>
                 <button className="cs-btn" onClick={() => { onSaveEdit(comment.id, editText); setEditing(false); }}
-                  style={{ fontSize:12, fontWeight:700, color:T.teal }}>Speichern</button>
+                  style={{ fontSize:12, fontWeight: 600, color:T.teal }}>Speichern</button>
                 <button className="cs-btn" onClick={() => { setEditing(false); setEditText(comment.text); }}
                   style={{ fontSize:12, fontWeight:600, color:T.inkFaint }}>Abbrechen</button>
               </div>
@@ -304,7 +304,7 @@ function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdi
                 <HUIHeartIcon size={15} active={comment.hearted_by_me} style={{color: comment.hearted_by_me ? T.coral : T.inkFaint}} />
                 {comment.heart_count > 0 && <span style={{ fontSize:12, color: comment.hearted_by_me ? T.coral : T.inkFaint, fontWeight:600 }}>{comment.heart_count}</span>}
               </button>
-              <button className="cs-btn" onClick={() => onReply(comment)} style={{ fontSize:12, fontWeight:700, color:T.inkFaint }}>Antworten</button>
+              <button className="cs-btn" onClick={() => onReply(comment)} style={{ fontSize:12, fontWeight: 600, color:T.inkFaint }}>Antworten</button>
               {/* ••• Button + Portal-Dropdown */}
               <div style={{ marginLeft:"auto" }}>
                 <CommentMenuPortal
@@ -333,7 +333,7 @@ function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdi
                   fontSize:13, fontFamily:"inherit", color:T.ink, resize:"none", boxSizing:"border-box" }}
               />
               <button className="cs-btn" disabled={!replyText.trim() || submittingReply} onClick={onSubmitReply}
-                style={{ fontSize:12, fontWeight:700, color: replyText.trim() ? T.teal : T.inkFaint, padding:"8px 4px" }}>Senden</button>
+                style={{ fontSize:12, fontWeight: 600, color: replyText.trim() ? T.teal : T.inkFaint, padding:"8px 4px" }}>Senden</button>
               <button className="cs-btn" onClick={onCancelReply} style={{ fontSize:12, color:T.inkFaint, padding:"8px 4px" }}>✕</button>
             </div>
           )}
@@ -700,7 +700,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
         {/* Header */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 20px 10px" }}>
           <div>
-            <div style={{ fontSize:17, fontWeight:800, color:T.ink, display:"flex", alignItems:"center", gap:6 }}><HUIChatIcon size={17}/>Kommentare</div>
+            <div style={{ fontSize:17, fontWeight: 600, color:T.ink, display:"flex", alignItems:"center", gap:6 }}><HUIChatIcon size={17}/>Kommentare</div>
             <div style={{ fontSize:12, color:T.inkFaint, marginTop:2 }}>
               {total > 0 ? `${total} ${total === 1 ? "Kommentar" : "Kommentare"}` : "Noch keine Kommentare"}
             </div>
@@ -719,7 +719,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
           {!migrationPending && hasMore && (
             <div style={{ textAlign:"center", padding:"6px 0 14px" }}>
               <button className="cs-btn" onClick={() => load(false)} disabled={loading}
-                style={{ fontSize:12, fontWeight:700, color:T.teal }}>
+                style={{ fontSize:12, fontWeight: 600, color:T.teal }}>
                 {loading ? "Lädt …" : "Mehr laden"}
               </button>
             </div>
@@ -728,7 +728,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
           {!migrationPending && !loading && total === 0 && (
             <div style={{ textAlign:"center", padding:"48px 20px" }}>
               <div style={{ marginBottom:10, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)" }}><HUIChatIcon size={34}/></div>
-              <div style={{ fontSize:14, fontWeight:700, color:T.ink }}>Noch keine Kommentare.</div>
+              <div style={{ fontSize:14, fontWeight: 600, color:T.ink }}>Noch keine Kommentare.</div>
               <div style={{ fontSize:13, color:T.inkFaint, marginTop:4 }}>Sei der Erste und teile deine Gedanken.</div>
             </div>
           )}
@@ -766,7 +766,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
         <div style={{ position:"relative" }}>
           {showEmojiPicker && (
             <div className="cs-emoji-picker">
-              <div style={{ fontSize:11, fontWeight:700, color:T.inkFaint, marginBottom:6, letterSpacing:.5 }}>EMOJIS</div>
+              <div style={{ fontSize:11, fontWeight: 600, color:T.inkFaint, marginBottom:6, letterSpacing:.5 }}>EMOJIS</div>
               <div className="cs-emoji-grid">
                 {["😊","😂","🥰","😍","🤩","😎","🥳","🙌","👍","❤️","🔥","✨","💫","🌟","💡","🎉","🎊","🙏","💬","💭","🌿","🌱","💚","💙","💜","🤝","👏","🫶","😅","😇","🤔","💪","🦋","🌸","🌺","🍀","☀️","🌙","⭐","🎯","🎨","📚","💎","🚀","🌈","🎵","🎶","✅","🔑","🌍"].map(e => (
                   <button key={e} className="cs-emoji-btn" onClick={() => {

@@ -79,7 +79,7 @@ function ActionCard({ action, onSelect, delay }) {
         {action.icon}
       </div>
       <div style={{ textAlign:"center" }}>
-        <div style={{ fontSize:13.5,fontWeight:800,color:D.ink,letterSpacing:"-0.02em",
+        <div style={{ fontSize:13.5,fontWeight: 600,color:D.ink,letterSpacing:"-0.02em",
           lineHeight:1.25,marginBottom:4 }}>{action.label}</div>
         <div style={{ fontSize:12,color:D.inkSoft,fontWeight:400 }}>{action.sub}</div>
       </div>
@@ -131,7 +131,7 @@ function PreviewStep({ mediaURL, isVideo, text, setText, onShare, onDiscard, upl
       <button className="hms-btn-primary" onClick={onShare} disabled={uploading || fileSize > 100*1024*1024} style={{
         width:"100%",padding:"16px",borderRadius:18,
         background:`linear-gradient(135deg,${D.teal} 0%,${D.tealDeep} 100%)`,
-        color:"white",fontSize:15.5,fontWeight:800,letterSpacing:"-0.02em",
+        color:"white",fontSize:15.5,fontWeight: 600,letterSpacing:"-0.02em",
         boxShadow:`0 6px 24px rgba(14,196,184,0.40)`,marginBottom:10,
         display:"flex",alignItems:"center",justifyContent:"center",gap:10,
         opacity:(uploading||fileSize>100*1024*1024)?0.72:1,
@@ -391,7 +391,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
           <div style={{ textAlign:"center",marginBottom:22,animation:"hms-content-in .34s ease .06s both" }}>
             <div style={{ display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:7 }}>
               <span style={{ fontSize:18,color:D.teal,filter:"drop-shadow(0 0 4px rgba(14,196,184,0.50))" }}>✦</span>
-              <h2 style={{ fontSize:21,fontWeight:900,color:D.ink,letterSpacing:"-0.035em",margin:0,lineHeight:1.2 }}>
+              <h2 style={{ fontSize:21,fontWeight: 600,color:D.ink,letterSpacing:"-0.035em",margin:0,lineHeight:1.2 }}>
                 HUI-Moment teilen
               </h2>
             </div>
@@ -410,7 +410,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
             }}>
               <HUIWarnIcon size={18} style={{flexShrink:0, color:"rgba(245,158,11,0.8)"}} />
               <div style={{ flex:1,minWidth:0 }}>
-                <div style={{ fontSize:13.5,fontWeight:700,color:D.coral }}>Fehler beim Teilen</div>
+                <div style={{ fontSize:13.5,fontWeight: 600,color:D.coral }}>Fehler beim Teilen</div>
                 <div style={{ fontSize:12,color:D.inkSoft,marginTop:2,wordBreak:"break-word" }}>{shareErr}</div>
               </div>
               <button className="hms-btn-ghost" onClick={() => setShareErr(null)}
@@ -428,7 +428,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
                 display:"flex",alignItems:"center",justifyContent:"center",
                 fontSize:32,color:"white",boxShadow:`0 8px 28px rgba(14,196,184,0.40)` }}>✓</div>
               <div style={{ textAlign:"center" }}>
-                <div style={{ fontSize:17,fontWeight:800,color:D.ink,marginBottom:4 }}>Moment geteilt!</div>
+                <div style={{ fontSize:17,fontWeight: 600,color:D.ink,marginBottom:4 }}>Moment geteilt!</div>
                 <div style={{ fontSize:13.5,color:D.inkSoft }}>Erscheint jetzt in deinem Feed.</div>
               </div>
             </div>
@@ -462,7 +462,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
                   width:"100%",padding:"16px",borderRadius:18,
                   background:text.trim()?`linear-gradient(135deg,${D.teal},${D.tealDeep})`:"rgba(26,53,48,0.08)",
                   color:text.trim()?"white":D.inkFaint,
-                  fontSize:15.5,fontWeight:800,letterSpacing:"-0.02em",
+                  fontSize:15.5,fontWeight: 600,letterSpacing:"-0.02em",
                   boxShadow:text.trim()?`0 6px 24px rgba(14,196,184,0.38)`:"none",
                   transition:"all .20s ease",marginBottom:4,
                   display:"flex",alignItems:"center",justifyContent:"center",gap:10,

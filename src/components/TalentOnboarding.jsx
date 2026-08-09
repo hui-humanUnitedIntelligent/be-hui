@@ -73,7 +73,7 @@ function Step1({ title, setTitle, desc, setDesc, onNext }) {
     <div style={{ animation:"toUp .4s both" }}>
       <div style={{ textAlign:"center", marginBottom:28 }}>
         <div style={{ fontSize:46, marginBottom:14, animation:"toFloat 3s ease-in-out infinite" }}>✦</div>
-        <h2 style={{ margin:"0 0 10px", fontSize:26, fontWeight:900,
+        <h2 style={{ margin:"0 0 10px", fontSize:26, fontWeight: 600,
           color:T.ink, letterSpacing:"-0.6px", lineHeight:1.2 }}>
           Was ist<br/>dein Talent?
         </h2>
@@ -144,7 +144,7 @@ function Step1({ title, setTitle, desc, setDesc, onNext }) {
           borderRadius:18, border:"none",
           background: valid ? `linear-gradient(135deg,${T.teal},${T.coral})` : "rgba(0,0,0,0.07)",
           color: valid ? "white" : T.muted,
-          fontWeight:900, fontSize:15, cursor: valid ? "pointer" : "not-allowed",
+          fontWeight: 600, fontSize:15, cursor: valid ? "pointer" : "not-allowed",
           boxShadow: valid ? `0 8px 28px ${T.tealGlow}` : "none",
           transition:"all .25s"
         }}>
@@ -174,7 +174,7 @@ function Step2({ modules, onToggle, onNext, onBack }) {
     <div style={{ animation:"toSlide .35s both" }}>
       <div style={{ textAlign:"center", marginBottom:24 }}>
         <div style={{ marginBottom:12, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.7)" }}><HUITalentIcon size={40}/></div>
-        <h2 style={{ margin:"0 0 8px", fontSize:24, fontWeight:900,
+        <h2 style={{ margin:"0 0 8px", fontSize:24, fontWeight: 600,
           color:T.ink, letterSpacing:"-0.5px" }}>
           Wie möchtest du<br/>sichtbar sein?
         </h2>
@@ -201,7 +201,7 @@ function Step2({ modules, onToggle, onNext, onBack }) {
               }}>
               <span style={{ fontSize:24, width:34, textAlign:"center" }}>{m.emoji}</span>
               <div style={{ flex:1 }}>
-                <div style={{ fontWeight:700, fontSize:14, color: on ? m.color : T.ink }}>
+                <div style={{ fontWeight: 600, fontSize:14, color: on ? m.color : T.ink }}>
                   {m.label}
                 </div>
                 <div style={{ fontSize:11, color:T.muted, marginTop:2 }}>{m.sub}</div>
@@ -229,14 +229,14 @@ function Step2({ modules, onToggle, onNext, onBack }) {
         <button onClick={onBack} className="t-tap"
           style={{ padding:"15px 18px", borderRadius:16,
             background:T.card, border:`1.5px solid ${T.border}`,
-            color:T.muted, fontWeight:700, fontSize:14, cursor:"pointer" }}>‹</button>
+            color:T.muted, fontWeight: 600, fontSize:14, cursor:"pointer" }}>‹</button>
         <button onClick={onNext} disabled={activeCount===0} className="t-tap"
           style={{
             flex:1, padding:"15px", borderRadius:16, border:"none",
             background: activeCount>0
               ? `linear-gradient(135deg,${T.teal},${T.coral})` : "rgba(0,0,0,0.07)",
             color: activeCount>0 ? "white" : T.muted,
-            fontWeight:900, fontSize:15, cursor: activeCount>0 ? "pointer" : "not-allowed",
+            fontWeight: 600, fontSize:15, cursor: activeCount>0 ? "pointer" : "not-allowed",
             boxShadow: activeCount>0 ? `0 6px 24px ${T.tealGlow}` : "none",
             transition:"all .2s"
           }}>
@@ -253,7 +253,7 @@ function Step3({ intro, setIntro, onFinish, onBack, saving, error }) {
     <div style={{ animation:"toSlide .35s both" }}>
       <div style={{ textAlign:"center", marginBottom:24 }}>
         <div style={{ fontSize:40, marginBottom:12 }}>🎭</div>
-        <h2 style={{ margin:"0 0 8px", fontSize:24, fontWeight:900,
+        <h2 style={{ margin:"0 0 8px", fontSize:24, fontWeight: 600,
           color:T.ink, letterSpacing:"-0.5px" }}>
           Gestalte dein Profil
         </h2>
@@ -264,7 +264,7 @@ function Step3({ intro, setIntro, onFinish, onBack, saving, error }) {
 
       <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
         <div>
-          <label style={{ fontSize:11, fontWeight:700, color:T.muted,
+          <label style={{ fontSize:11, fontWeight: 600, color:T.muted,
             letterSpacing:.5, display:"block", marginBottom:8 }}>
             INTRO-SATZ (optional)
           </label>
@@ -303,12 +303,12 @@ function Step3({ intro, setIntro, onFinish, onBack, saving, error }) {
         <button onClick={onBack} className="t-tap"
           style={{ padding:"15px 18px", borderRadius:16,
             background:T.card, border:`1.5px solid ${T.border}`,
-            color:T.muted, fontWeight:700, fontSize:14, cursor:"pointer" }}>‹</button>
+            color:T.muted, fontWeight: 600, fontSize:14, cursor:"pointer" }}>‹</button>
         <button onClick={onFinish} disabled={saving} className="t-tap"
           style={{
             flex:1, padding:"15px", borderRadius:16, border:"none",
             background:`linear-gradient(135deg,${T.teal},${T.coral})`,
-            color:"white", fontWeight:900, fontSize:15, cursor:"pointer",
+            color:"white", fontWeight: 600, fontSize:15, cursor:"pointer",
             boxShadow:`0 6px 24px ${T.tealGlow}`,
             opacity: saving ? .7 : 1, transition:"all .2s",
             display:"flex", alignItems:"center", justifyContent:"center", gap:8
@@ -343,7 +343,7 @@ function SuccessView({ onDone }) {
         fontSize:34, boxShadow:`0 12px 40px ${T.tealGlow}`,
         animation:"toPop .5s cubic-bezier(.34,1.4,.64,1) both"
       }}>✦</div>
-      <h2 style={{ margin:"0 0 10px", fontSize:26, fontWeight:900,
+      <h2 style={{ margin:"0 0 10px", fontSize:26, fontWeight: 600,
         color:T.ink, letterSpacing:"-0.5px" }}>Dein Talent ist live!</h2>
       <p style={{ margin:0, fontSize:14, color:T.ink3, lineHeight:1.7 }}>
         Willkommen in deiner kreativen Welt.<br/>

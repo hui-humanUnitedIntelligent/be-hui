@@ -249,14 +249,14 @@ export default function DiagnosePage() {
       display:'inline-block', padding:'2px 8px', borderRadius:6,
       background: ok === true ? 'rgba(74,222,128,.15)' : ok === false ? 'rgba(248,113,113,.15)' : 'rgba(251,191,36,.1)',
       color:       ok === true ? C.ok                  : ok === false ? C.err                   : C.warn,
-      fontWeight:700, fontSize:10, marginRight:4, marginBottom:3,
+      fontWeight: 600, fontSize:10, marginRight:4, marginBottom:3,
     }}>{children}</span>
   );
 
   const Section = ({ title, children }) => (
     <div style={{ marginBottom:16, background:C.card, borderRadius:12,
       border:`1px solid ${C.border}`, padding:16 }}>
-      <div style={{ fontSize:10, fontWeight:800, color:C.muted, textTransform:'uppercase',
+      <div style={{ fontSize:10, fontWeight: 600, color:C.muted, textTransform:'uppercase',
         letterSpacing:1.2, marginBottom:12 }}>{title}</div>
       {children}
     </div>
@@ -278,7 +278,7 @@ export default function DiagnosePage() {
       padding:'20px 16px 80px', ...S }}>
 
       <div style={{ marginBottom:20 }}>
-        <div style={{ fontSize:18, fontWeight:900, letterSpacing:'-.5px', marginBottom:4 }}>
+        <div style={{ fontSize:18, fontWeight: 600, letterSpacing:'-.5px', marginBottom:4 }}>
           🔬 HUI Schema-Diagnose
         </div>
         <div style={{ fontSize:11, color:C.muted }}>
@@ -318,7 +318,7 @@ export default function DiagnosePage() {
       <Section title="Schema-Audit — Fehlende Spalten">
         {Object.entries(schema).map(([table, { present, missing }]) => (
           <div key={table} style={{ marginBottom:12 }}>
-            <div style={{ fontWeight:800, color: missing.length ? C.warn : C.ok,
+            <div style={{ fontWeight: 600, color: missing.length ? C.warn : C.ok,
               fontSize:11, marginBottom:4 }}>
               {missing.length ? '⚠' : '✓'} {table}
               <span style={{ color:C.muted, fontWeight:400, marginLeft:8 }}>
@@ -327,7 +327,7 @@ export default function DiagnosePage() {
             </div>
             {missing.length > 0 && (
               <div style={{ marginLeft:16 }}>
-                <span style={{ color:C.err, fontSize:10, fontWeight:700 }}>FEHLT: </span>
+                <span style={{ color:C.err, fontSize:10, fontWeight: 600 }}>FEHLT: </span>
                 {missing.map(f => <Tag key={f} ok={false}>{f}</Tag>)}
               </div>
             )}
@@ -343,7 +343,7 @@ export default function DiagnosePage() {
       <Section title="🔤 Font-Diagnose">
         <button onClick={runFontCheck}
           style={{ padding:'10px 20px', borderRadius:8, background:'#16D7C5',
-            border:'none', color:'#0f172a', fontWeight:800, fontSize:12,
+            border:'none', color:'#0f172a', fontWeight: 600, fontSize:12,
             cursor:'pointer', fontFamily:'inherit', marginBottom:12 }}>
           Font-Check ausführen
         </button>
@@ -361,14 +361,14 @@ export default function DiagnosePage() {
           {fontInfo.loadedFonts?.map((f, i) => (
             <Row key={i} label={`  ${i+1}`} value={f} />
           ))}
-          <div style={{marginTop:12,marginBottom:8,fontWeight:800,color:C.warn,fontSize:11}}>
+          <div style={{marginTop:12,marginBottom:8,fontWeight: 600,color:C.warn,fontSize:11}}>
             WEIGHT-BY-WEIGHT TEST (10 digits "1234567890"):
           </div>
           <div style={{display:'grid',gridTemplateColumns:'60px 80px 80px 80px',gap:2,fontSize:10,marginBottom:8}}>
-            <div style={{fontWeight:800,color:C.text}}>W</div>
-            <div style={{fontWeight:800,color:C.text}}>Width</div>
-            <div style={{fontWeight:800,color:C.text}}>Load()</div>
-            <div style={{fontWeight:800,color:C.text}}>Check()</div>
+            <div style={{fontWeight: 600,color:C.text}}>W</div>
+            <div style={{fontWeight: 600,color:C.text}}>Width</div>
+            <div style={{fontWeight: 600,color:C.text}}>Load()</div>
+            <div style={{fontWeight: 600,color:C.text}}>Check()</div>
             {[200,300,400,500,600,700,800,900].map(w => (
               <React.Fragment key={w}>
                 <div style={{color:C.muted}}>{w}</div>
@@ -389,42 +389,42 @@ export default function DiagnosePage() {
           </div>
           {/* ── V3 DIAGNOSE: Multiple Font-Varianten Side-by-Side ── */}
           <div style={{ marginTop:12, padding:'16px', background:'rgba(255,0,0,.15)', borderRadius:8, border:'2px solid #ff4444' }}>
-            <div style={{ fontSize:16, fontWeight:900, color:'#ff4444', marginBottom:8 }}>
+            <div style={{ fontSize:16, fontWeight: 600, color:'#ff4444', marginBottom:8 }}>
               🔴 VERSION 3 — wenn du diesen roten Kasten siehst, ist die neue Version geladen
             </div>
           </div>
           <div style={{ marginTop:8, padding:'12px', background:'rgba(255,255,255,.05)', borderRadius:8 }}>
             <div style={{ fontSize:11, color:C.muted, marginBottom:6 }}>A) Inter Bold 32px:</div>
-            <div style={{ fontSize:32, fontWeight:700, fontFamily:'Inter, sans-serif' }}>
+            <div style={{ fontSize:32, fontWeight: 600, fontFamily:'Inter, sans-serif' }}>
               1.234.567,89 €
             </div>
           </div>
           <div style={{ marginTop:8, padding:'12px', background:'rgba(255,255,255,.05)', borderRadius:8 }}>
             <div style={{ fontSize:11, color:C.muted, marginBottom:6 }}>B) System-UI Bold 32px:</div>
-            <div style={{ fontSize:32, fontWeight:700, fontFamily:'system-ui, sans-serif' }}>
+            <div style={{ fontSize:32, fontWeight: 600, fontFamily:'system-ui, sans-serif' }}>
               1.234.567,89 €
             </div>
           </div>
           <div style={{ marginTop:8, padding:'12px', background:'rgba(255,255,255,.05)', borderRadius:8 }}>
             <div style={{ fontSize:11, color:C.muted, marginBottom:6 }}>C) Roboto Bold 32px:</div>
-            <div style={{ fontSize:32, fontWeight:700, fontFamily:'Roboto, sans-serif' }}>
+            <div style={{ fontSize:32, fontWeight: 600, fontFamily:'Roboto, sans-serif' }}>
               1.234.567,89 €
             </div>
           </div>
           <div style={{ marginTop:8, padding:'12px', background:'rgba(255,255,255,.05)', borderRadius:8 }}>
             <div style={{ fontSize:11, color:C.muted, marginBottom:6 }}>D) Monospace 32px:</div>
-            <div style={{ fontSize:32, fontWeight:700, fontFamily:'monospace' }}>
+            <div style={{ fontSize:32, fontWeight: 600, fontFamily:'monospace' }}>
               1.234.567,89 €
             </div>
           </div>
           <div style={{ marginTop:8, padding:'12px', background:'rgba(255,255,255,.05)', borderRadius:8 }}>
             <div style={{ fontSize:11, color:C.muted, marginBottom:6 }}>E) Inter — nur Buchstaben (sollte normal sein):</div>
-            <div style={{ fontSize:32, fontWeight:700, fontFamily:'Inter, sans-serif' }}>
+            <div style={{ fontSize:32, fontWeight: 600, fontFamily:'Inter, sans-serif' }}>
               Hallo Welt
             </div>
           </div>
           <div style={{ marginTop:8, padding:'12px', background:'rgba(0,255,0,.1)', borderRadius:8, border:'1px solid #22ff22' }}>
-            <div style={{ fontSize:14, fontWeight:700, color:'#22ff22' }}>
+            <div style={{ fontSize:14, fontWeight: 600, color:'#22ff22' }}>
               ✅ ROOT CAUSE GEFUNDEN: globales CSS `word-break: break-word` auf
               jedem div/span brach lange Zahlen mitten in der Ziffernfolge um
               (nicht Font-bedingt — bei ALLEN 4 Schriftarten identisch umgebrochen).
@@ -434,13 +434,13 @@ export default function DiagnosePage() {
           </div>
           <div style={{ marginTop:8, padding:'12px', background:'rgba(255,255,255,.05)', borderRadius:8 }}>
             <div style={{ fontSize:11, color:C.muted, marginBottom:6 }}>F) Inter Bold 32px MIT hui-num-nowrap-Fix (nowrap only):</div>
-            <div className="hui-num-nowrap" style={{ fontSize:32, fontWeight:700, fontFamily:'Inter, sans-serif' }}>
+            <div className="hui-num-nowrap" style={{ fontSize:32, fontWeight: 600, fontFamily:'Inter, sans-serif' }}>
               1.234.567,89 €
             </div>
           </div>
           <div style={{ marginTop:8, padding:'12px', background:'rgba(255,0,255,.08)', borderRadius:8, border:'1px solid #ff44ff' }}>
-            <div style={{ fontSize:11, color:'#ff44ff', marginBottom:6, fontWeight:700 }}>G) ZWEITER FIX — kleine Zahl OHNE tabular-nums (wie im echten Kaeufe-Modal):</div>
-            <div style={{ fontSize:20, fontWeight:800 }}>
+            <div style={{ fontSize:11, color:'#ff44ff', marginBottom:6, fontWeight: 600 }}>G) ZWEITER FIX — kleine Zahl OHNE tabular-nums (wie im echten Kaeufe-Modal):</div>
+            <div style={{ fontSize:20, fontWeight: 600 }}>
               22.745,50 €
             </div>
             <div style={{ fontSize:10, color:C.muted, marginTop:4 }}>
@@ -452,7 +452,7 @@ export default function DiagnosePage() {
 
       <button onClick={runAudit} disabled={running}
         style={{ padding:'12px 24px', borderRadius:10, background:'#16D7C5',
-          border:'none', color:'#0f172a', fontWeight:800, fontSize:13,
+          border:'none', color:'#0f172a', fontWeight: 600, fontSize:13,
           cursor: running?'default':'pointer', fontFamily:'inherit' }}>
         {running ? 'Audit läuft…' : '🔄 Audit nochmal ausführen'}
       </button>
@@ -469,7 +469,7 @@ export default function DiagnosePage() {
 
       {/* ═══ FONT WEIGHT DIAGNOSTIC ═══ */}
       <div style={{ marginTop:24, padding:16, borderRadius:12, background:'#fff', border:'1px solid #e5e7eb' }}>
-        <div style={{ fontSize:14, fontWeight:700, marginBottom:12, color:'#1a1a1a' }}>
+        <div style={{ fontSize:14, fontWeight: 600, marginBottom:12, color:'#1a1a1a' }}>
           Font-Weight Render Test (Xiaomi WebView Bug)
         </div>
         
@@ -505,7 +505,7 @@ export default function DiagnosePage() {
         {/* Test: Weight 700 (now mapped to 600) */}
         <div style={{ marginBottom:12, padding:8, borderRadius:8, background:'#fff4e0', border:'1px solid #f0c060' }}>
           <div style={{ fontSize:10, color:'#b8860b', marginBottom:4 }}>Weight 700 (Bold) → gemappt auf SemiBold:</div>
-          <div style={{ fontFamily:'Inter', fontSize:15, fontWeight:700 }}>
+          <div style={{ fontFamily:'Inter', fontSize:15, fontWeight: 600 }}>
             22.745,50 € — Office zu verkaufen
           </div>
         </div>
@@ -513,7 +513,7 @@ export default function DiagnosePage() {
         {/* Test: Weight 800 (now mapped to 600) */}
         <div style={{ marginBottom:12, padding:8, borderRadius:8, background:'#e0f7fa', border:'1px solid #40c0d0' }}>
           <div style={{ fontSize:10, color:'#088', marginBottom:4 }}>Weight 800 (ExtraBold) → gemappt auf SemiBold:</div>
-          <div style={{ fontFamily:'Inter', fontSize:15, fontWeight:800 }}>
+          <div style={{ fontFamily:'Inter', fontSize:15, fontWeight: 600 }}>
             22.745,50 € — Office zu verkaufen
           </div>
         </div>
@@ -521,7 +521,7 @@ export default function DiagnosePage() {
         {/* Test: Weight 900 (now mapped to 600) */}
         <div style={{ marginBottom:12, padding:8, borderRadius:8, background:'#f0e0fa', border:'1px solid #a040d0' }}>
           <div style={{ fontSize:10, color:'#608', marginBottom:4 }}>Weight 900 (Black) → gemappt auf SemiBold:</div>
-          <div style={{ fontFamily:'Inter', fontSize:15, fontWeight:900 }}>
+          <div style={{ fontFamily:'Inter', fontSize:15, fontWeight: 600 }}>
             22.745,50 € — Office zu verkaufen
           </div>
         </div>
@@ -529,7 +529,7 @@ export default function DiagnosePage() {
         {/* System font comparison */}
         <div style={{ marginBottom:12, padding:8, borderRadius:8, background:'#f9fafb' }}>
           <div style={{ fontSize:10, color:'#999', marginBottom:4 }}>System sans-serif Weight 800 (Vergleich):</div>
-          <div style={{ fontFamily:'sans-serif', fontSize:15, fontWeight:800 }}>
+          <div style={{ fontFamily:'sans-serif', fontSize:15, fontWeight: 600 }}>
             22.745,50 € — Office zu verkaufen
           </div>
         </div>
@@ -537,7 +537,7 @@ export default function DiagnosePage() {
         {/* Canvas test */}
         <div style={{ marginBottom:12, padding:8, borderRadius:8, background:'#f9fafb' }}>
           <div style={{ fontSize:10, color:'#999', marginBottom:4 }}>Canvas 800 (sollte jetzt auch OK sein):</div>
-          <span style={{ fontSize: 15, fontWeight: 800, color: "#1a1a1a", whiteSpace: "nowrap" }}>22.745,50 €</span>
+          <span style={{ fontSize: 15, fontWeight: 600, color: "#1a1a1a", whiteSpace: "nowrap" }}>22.745,50 €</span>
         </div>
 
         <div style={{ fontSize:10, color:'#999', marginTop:8, lineHeight:1.6 }}>

@@ -210,7 +210,7 @@ export default function ProfileCompletionFlow({ onComplete }) {
       }}>
         <div style={{textAlign:"center",animation:"pcfIn 0.4s ease both"}}>
           <div style={{fontSize:64,marginBottom:16}}>✦</div>
-          <div style={{fontSize:24,fontWeight:800,color:INK,marginBottom:8}}>Willkommen bei HUI</div>
+          <div style={{fontSize:24,fontWeight: 600,color:INK,marginBottom:8}}>Willkommen bei HUI</div>
           <div style={{fontSize:15,color:"rgba(26,26,46,0.5)"}}>Dein Profil ist bereit.</div>
         </div>
       </div>
@@ -231,9 +231,9 @@ export default function ProfileCompletionFlow({ onComplete }) {
         animation:"pcfIn 0.32s cubic-bezier(.22,1,.36,1) both",
       }}>
         <div style={{textAlign:"center",marginBottom:8}}>
-          <div style={{fontSize:13,fontWeight:700,color:TEAL,letterSpacing:1.5,
+          <div style={{fontSize:13,fontWeight: 600,color:TEAL,letterSpacing:1.5,
             textTransform:"uppercase",marginBottom:6}}>Profil einrichten</div>
-          <div style={{fontSize:22,fontWeight:800,color:INK,letterSpacing:-0.5}}>
+          <div style={{fontSize:22,fontWeight: 600,color:INK,letterSpacing:-0.5}}>
             {["Dein Name","Über dich","Dein Gesicht","Deine Welt"][step]}
           </div>
         </div>
@@ -320,7 +320,7 @@ export default function ProfileCompletionFlow({ onComplete }) {
           <button onClick={nextStep} disabled={saving} style={{
             width:"100%",padding:"16px",borderRadius:20,border:"none",
             background: saving ? "rgba(22,215,197,0.35)" : "linear-gradient(135deg,#16D7C5,#0FC4B2)",
-            color:"#fff",fontSize:16,fontWeight:800,
+            color:"#fff",fontSize:16,fontWeight: 600,
             cursor:saving?"default":"pointer",touchAction:"manipulation",
             boxShadow: saving ? "none" : "0 4px 20px rgba(22,215,197,0.35)",
           }}>

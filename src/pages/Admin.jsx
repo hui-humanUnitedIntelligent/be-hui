@@ -93,7 +93,7 @@ function StatusBadge({ status }) {
     <span style={{
       padding:"2px 8px", borderRadius:99,
       background:s.bg, color:s.color,
-      fontSize:10, fontWeight:700,
+      fontSize:10, fontWeight: 600,
     }}>{s.label}</span>
   );
 }
@@ -178,7 +178,7 @@ function KommentarMeldungenTab({ onCountChange }) {
 
   return (
     <div style={card}>
-      <div style={{ fontWeight:700, marginBottom:14 }}>🚩 Gemeldete Kommentare ({rows.length})</div>
+      <div style={{ fontWeight: 600, marginBottom:14 }}>🚩 Gemeldete Kommentare ({rows.length})</div>
       {rows.length === 0 ? (
         <div style={{ color:C.sub, fontSize:13 }}>Keine offenen Meldungen.</div>
       ) : rows.map(row => (
@@ -411,7 +411,7 @@ function FreigabenTab({ onPendingChange }) {
           position:"fixed", top:20, left:"50%", transform:"translateX(-50%)",
           zIndex:9999, padding:"11px 22px", borderRadius:99,
           background:toast.ok?C.green:C.red, color:"#fff",
-          fontSize:13, fontWeight:700, boxShadow:"0 4px 20px rgba(0,0,0,0.4)",
+          fontSize:13, fontWeight: 600, boxShadow:"0 4px 20px rgba(0,0,0,0.4)",
           pointerEvents:"none",
         }}>{toast.msg}</div>
       )}
@@ -423,7 +423,7 @@ function FreigabenTab({ onPendingChange }) {
           display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
           <div style={{background:C.card,borderRadius:20,padding:24,
             width:"100%",maxWidth:460,border:`1px solid ${C.border}`}}>
-            <div style={{fontSize:16,fontWeight:800,color:C.text,marginBottom:4}}>
+            <div style={{fontSize:16,fontWeight: 600,color:C.text,marginBottom:4}}>
               ❌ {TYPE_CFG[rejectDlg._type]?.label} ablehnen
             </div>
             <div style={{fontSize:12,color:C.sub,marginBottom:14}}>„{rejectDlg._title}"</div>
@@ -448,7 +448,7 @@ function FreigabenTab({ onPendingChange }) {
               </button>
               <button onClick={rejectConfirm}
                 style={{flex:2,padding:"10px",borderRadius:10,border:"none",
-                  background:C.red,color:"#fff",fontSize:12,fontWeight:700,cursor:"pointer"}}>
+                  background:C.red,color:"#fff",fontSize:12,fontWeight: 600,cursor:"pointer"}}>
                 ✕ Ablehnen & benachrichtigen
               </button>
             </div>
@@ -463,7 +463,7 @@ function FreigabenTab({ onPendingChange }) {
           display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
           <div style={{background:C.card,borderRadius:20,padding:24,
             width:"100%",maxWidth:460,border:`1px solid ${C.border}`}}>
-            <div style={{fontSize:16,fontWeight:800,color:C.text,marginBottom:4}}>
+            <div style={{fontSize:16,fontWeight: 600,color:C.text,marginBottom:4}}>
               💬 Admin-Kommentar
             </div>
             <div style={{fontSize:12,color:C.sub,marginBottom:14}}>„{commentDlg._title}"</div>
@@ -482,7 +482,7 @@ function FreigabenTab({ onPendingChange }) {
               </button>
               <button onClick={saveComment}
                 style={{flex:2,padding:"10px",borderRadius:10,border:"none",
-                  background:C.teal,color:"#fff",fontSize:12,fontWeight:700,cursor:"pointer"}}>
+                  background:C.teal,color:"#fff",fontSize:12,fontWeight: 600,cursor:"pointer"}}>
                 💬 Speichern
               </button>
             </div>
@@ -497,7 +497,7 @@ function FreigabenTab({ onPendingChange }) {
           display:"flex", alignItems:"center", gap:10}}>
           <HUIWarnIcon size={20} style={{color:'#F59E0B'}} />
           <div>
-            <div style={{fontSize:13,fontWeight:700,color:C.yellow}}>
+            <div style={{fontSize:13,fontWeight: 600,color:C.yellow}}>
               {items.filter(x=>x._type==="werk").length} Werk{items.filter(x=>x._type==="werk").length!==1?"e":""} wartet{items.filter(x=>x._type==="werk").length===1?"":"en"} auf Freigabe
             </div>
             <div style={{fontSize:11,color:C.sub,marginTop:1}}>
@@ -584,7 +584,7 @@ function FreigabenTab({ onPendingChange }) {
                 }
                 <div style={{position:"absolute",top:5,left:5,
                   padding:"2px 6px",borderRadius:99,background:cfg.badgeBg,
-                  fontSize:8,fontWeight:800,color:"#fff",letterSpacing:0.4}}>
+                  fontSize:8,fontWeight: 600,color:"#fff",letterSpacing:0.4}}>
                   {cfg.label}
                 </div>
               </div>
@@ -608,14 +608,14 @@ function FreigabenTab({ onPendingChange }) {
                 </div>
 
                 {/* Titel + NEU/AKTUALISIERT Badge */}
-                <div style={{fontSize:13,fontWeight:800,color:C.text,
+                <div style={{fontSize:13,fontWeight: 600,color:C.text,
                   marginBottom:3,lineHeight:1.3,display:"flex",alignItems:"center",gap:5,flexWrap:"wrap"}}>
                   <span>{item._title||item.title||"Kein Titel"}</span>
                   {item._type==="werk" && subTab==="pending" && (
                     item.is_update
-                      ? <span style={{padding:"1px 6px",borderRadius:99,fontSize:8,fontWeight:800,
+                      ? <span style={{padding:"1px 6px",borderRadius:99,fontSize:8,fontWeight: 600,
                           background:"rgba(168,139,250,0.20)",color:"#A78BFA",flexShrink:0}}>AKTUALISIERT</span>
-                      : <span style={{padding:"1px 6px",borderRadius:99,fontSize:8,fontWeight:800,
+                      : <span style={{padding:"1px 6px",borderRadius:99,fontSize:8,fontWeight: 600,
                           background:"rgba(42,191,172,0.20)",color:"#2ABFAC",flexShrink:0}}>NEU</span>
                   )}
                 </div>
@@ -667,7 +667,7 @@ function FreigabenTab({ onPendingChange }) {
                       onClick={()=>approve(item)}
                       style={{flex:2,padding:"7px 0",borderRadius:8,border:"none",
                         background:acting?"rgba(16,185,129,0.28)":C.green,
-                        color:"#fff",fontSize:11.5,fontWeight:700,
+                        color:"#fff",fontSize:11.5,fontWeight: 600,
                         cursor:acting?"not-allowed":"pointer"}}>
                       {acting?"…":"✓ Freigeben"}
                     </button>
@@ -743,7 +743,7 @@ function ErlebnisseProjekteTab() {
         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:4}}>
           <HUIImpactIcon size={22} style={{color:'rgba(14,196,184,0.7)'}} />
           <div>
-            <div style={{fontSize:16,fontWeight:800,color:C.text}}>
+            <div style={{fontSize:16,fontWeight: 600,color:C.text}}>
               Erlebnisse & Projekte
             </div>
             <div style={{fontSize:12,color:C.sub,marginTop:2}}>
@@ -753,7 +753,7 @@ function ErlebnisseProjekteTab() {
           <div style={{
             marginLeft:"auto", padding:"4px 10px", borderRadius:99,
             background:"rgba(251,191,36,0.15)", border:"1px solid rgba(251,191,36,0.30)",
-            color:C.yellow, fontSize:10, fontWeight:800, letterSpacing:"0.08em",
+            color:C.yellow, fontSize:10, fontWeight: 600, letterSpacing:"0.08em",
           }}>COMING SOON</div>
         </div>
       </div>
@@ -769,7 +769,7 @@ function ErlebnisseProjekteTab() {
             border:`1px solid ${C.border}`, textAlign:"center",
           }}>
             <div style={{fontSize:20,marginBottom:4}}>{s.icon}</div>
-            <div style={{fontSize:20,fontWeight:800,color:s.color}}>{s.value}</div>
+            <div style={{fontSize:20,fontWeight: 600,color:s.color}}>{s.value}</div>
             <div style={{fontSize:11,color:C.sub,marginTop:2}}>{s.label}</div>
           </div>
         ))}
@@ -806,7 +806,7 @@ function ErlebnisseProjekteTab() {
           background:C.card2,
         }}>
           {["Titel","Kategorie","Status","Preis / Wert","Engagement","Erstellt","Aktionen"].map(h => (
-            <div key={h} style={{fontSize:11,fontWeight:700,color:C.sub,
+            <div key={h} style={{fontSize:11,fontWeight: 600,color:C.sub,
               letterSpacing:"0.06em",textTransform:"uppercase"}}>{h}</div>
           ))}
         </div>
@@ -814,7 +814,7 @@ function ErlebnisseProjekteTab() {
         {/* Leerer Zustand */}
         <div style={{textAlign:"center",padding:"60px 20px",color:C.sub}}>
           <div style={{marginBottom:12, display:'flex', justifyContent:'center'}}><HUIImpactIcon size={40} style={{color:'rgba(14,196,184,0.5)'}} /></div>
-          <div style={{fontSize:15,fontWeight:700,color:C.text,marginBottom:6}}>
+          <div style={{fontSize:15,fontWeight: 600,color:C.text,marginBottom:6}}>
             Noch keine Daten
           </div>
           <div style={{fontSize:12,color:C.sub,maxWidth:320,margin:"0 auto",lineHeight:1.6}}>
@@ -952,7 +952,7 @@ function FeedAnalyticsTab() {
     <div>
       {/* ── Impressions ── */}
       <div style={{...card}}>
-        <div style={{fontWeight:700,marginBottom:14,fontSize:15,display:'flex',alignItems:'center',gap:6}}><HUIAnalyticsIcon size={16}/>Feed-Impressions</div>
+        <div style={{fontWeight: 600,marginBottom:14,fontSize:15,display:'flex',alignItems:'center',gap:6}}><HUIAnalyticsIcon size={16}/>Feed-Impressions</div>
         <div style={kpiGrid}>
           {[
             { label:"Gesamt",             value: impress.total, color: C.teal,   icon:"👁" },
@@ -963,7 +963,7 @@ function FeedAnalyticsTab() {
             <div key={kpi.label} style={{background:C.card2,borderRadius:12,padding:14,
               border:`1px solid ${C.border}`}}>
               <div style={{fontSize:20,marginBottom:4}}>{kpi.icon}</div>
-              <div style={{fontSize:22,fontWeight:800,color:kpi.color}}>{kpi.value}</div>
+              <div style={{fontSize:22,fontWeight: 600,color:kpi.color}}>{kpi.value}</div>
               <div style={{fontSize:11,color:C.sub,marginTop:2}}>{kpi.label}</div>
             </div>
           ))}
@@ -976,7 +976,7 @@ function FeedAnalyticsTab() {
 
       {/* ── Scroll-Tiefe / Feed-Funnel ── */}
       <div style={card}>
-        <div style={{fontWeight:700,marginBottom:14,fontSize:15}}>📉 Scroll-Tiefe (eigener Account)</div>
+        <div style={{fontWeight: 600,marginBottom:14,fontSize:15}}>📉 Scroll-Tiefe (eigener Account)</div>
         {depth.sessions === 1 && depth.d5 === 0 ? (
           <div style={{color:C.sub,fontSize:13,padding:"12px 0"}}>
             Noch keine Scroll-Tiefe-Daten vorhanden.
@@ -994,7 +994,7 @@ function FeedAnalyticsTab() {
                 <div style={{display:"flex",justifyContent:"space-between",
                   fontSize:12,marginBottom:4}}>
                   <span style={{color:C.sub}}>{row.label}</span>
-                  <span style={{color:row.color,fontWeight:700}}>
+                  <span style={{color:row.color,fontWeight: 600}}>
                     {row.value}× ({pct(row.value, row.base)}%)
                   </span>
                 </div>
@@ -1012,12 +1012,12 @@ function FeedAnalyticsTab() {
       {/* ── Top Works ── */}
       {impress.topWorks.length > 0 && (
         <div style={card}>
-          <div style={{fontWeight:700,marginBottom:12,fontSize:15,display:'flex',alignItems:'center',gap:6}}><HUIWerkeIcon size={16}/>Top Works (nach Impressions)</div>
+          <div style={{fontWeight: 600,marginBottom:12,fontSize:15,display:'flex',alignItems:'center',gap:6}}><HUIWerkeIcon size={16}/>Top Works (nach Impressions)</div>
           {impress.topWorks.map((w,i) => (
             <div key={w.id} style={{display:"flex",justifyContent:"space-between",
               padding:"8px 0",borderBottom:`1px solid ${C.border}`}}>
               <span style={{color:C.sub,fontSize:12}}>#{i+1} {w.id.slice(0,8)}…</span>
-              <span style={{color:C.teal,fontWeight:700,fontSize:13}}>{w.count}×</span>
+              <span style={{color:C.teal,fontWeight: 600,fontSize:13}}>{w.count}×</span>
             </div>
           ))}
         </div>
@@ -1026,12 +1026,12 @@ function FeedAnalyticsTab() {
       {/* ── Top Experiences ── */}
       {impress.topExps.length > 0 && (
         <div style={card}>
-          <div style={{fontWeight:700,marginBottom:12,fontSize:15}}>🗓 Top Experiences (nach Impressions)</div>
+          <div style={{fontWeight: 600,marginBottom:12,fontSize:15}}>🗓 Top Experiences (nach Impressions)</div>
           {impress.topExps.map((e,i) => (
             <div key={e.id} style={{display:"flex",justifyContent:"space-between",
               padding:"8px 0",borderBottom:`1px solid ${C.border}`}}>
               <span style={{color:C.sub,fontSize:12}}>#{i+1} {e.id.slice(0,8)}…</span>
-              <span style={{color:C.orange,fontWeight:700,fontSize:13}}>{e.count}×</span>
+              <span style={{color:C.orange,fontWeight: 600,fontSize:13}}>{e.count}×</span>
             </div>
           ))}
         </div>
@@ -1040,7 +1040,7 @@ function FeedAnalyticsTab() {
       {/* ── Unsichtbare Inhalte ── */}
       {(invisible.works.length > 0 || invisible.exps.length > 0) && (
         <div style={card}>
-          <div style={{fontWeight:700,marginBottom:12,fontSize:15}}>
+          <div style={{fontWeight: 600,marginBottom:12,fontSize:15}}>
             👻 Unsichtbare Inhalte ({invisible.works.length + invisible.exps.length})
           </div>
           <div style={{fontSize:12,color:C.muted,marginBottom:12}}>
@@ -1065,7 +1065,7 @@ function FeedAnalyticsTab() {
 
       {/* ── SQL-Referenz ── */}
       <div style={{...card,background:C.bg}}>
-        <div style={{fontWeight:700,marginBottom:10,fontSize:13,color:C.sub}}>
+        <div style={{fontWeight: 600,marginBottom:10,fontSize:13,color:C.sub}}>
           📋 SQL-Referenz (für Service-Role RPC)
         </div>
         {[
@@ -1087,7 +1087,7 @@ LEFT JOIN creator_analytics ca
 WHERE w.status='published' AND ca.id IS NULL`],
         ].map(([label, sql]) => (
           <div key={label} style={{marginBottom:12}}>
-            <div style={{color:C.teal,fontSize:11,fontWeight:700,marginBottom:4}}>{label}</div>
+            <div style={{color:C.teal,fontSize:11,fontWeight: 600,marginBottom:4}}>{label}</div>
             <pre style={{background:C.card2,borderRadius:8,padding:"8px 12px",
               fontSize:10,color:C.sub,overflowX:"auto",margin:0,whiteSpace:"pre-wrap"}}>
               {sql}
@@ -1178,7 +1178,7 @@ export default function Admin() {
   return (
     <div style={s}>
       <div style={{marginBottom:24}}>
-        <h1 style={{margin:0,fontSize:22,fontWeight:800}}>
+        <h1 style={{margin:0,fontSize:22,fontWeight: 600}}>
           HUI Admin <span style={{color:C.teal}}>Dashboard</span>
         </h1>
         <div style={{color:C.sub,fontSize:13,marginTop:4}}>Echtzeit-Daten aus Supabase</div>
@@ -1202,7 +1202,7 @@ export default function Admin() {
               <span style={{position:"absolute",top:-6,right:-6,
                 minWidth:18,height:18,borderRadius:99,
                 background:C.coral,color:"#fff",
-                fontSize:10,fontWeight:800,
+                fontSize:10,fontWeight: 600,
                 display:"flex",alignItems:"center",justifyContent:"center",
                 padding:"0 4px"}}>{badge}</span>
             )}
@@ -1225,13 +1225,13 @@ export default function Admin() {
               <div key={kpi.label} onClick={kpi.onClick||undefined}
                 style={{...card,marginBottom:0,cursor:kpi.onClick?"pointer":"default"}}>
                 <div style={{fontSize:24,marginBottom:6}}>{kpi.icon}</div>
-                <div style={{fontSize:22,fontWeight:800,color:kpi.color}}>{kpi.value}</div>
+                <div style={{fontSize:22,fontWeight: 600,color:kpi.color}}>{kpi.value}</div>
                 <div style={{fontSize:12,color:C.sub}}>{kpi.label}</div>
               </div>
             ))}
           </div>
           <div style={card}>
-            <div style={{fontWeight:700,marginBottom:12}}>🌍 Impact Projekte ({projects.length})</div>
+            <div style={{fontWeight: 600,marginBottom:12}}>🌍 Impact Projekte ({projects.length})</div>
             {projects.slice(0,3).map(p=>(
               <div key={p.id} style={{display:"flex",justifyContent:"space-between",
                 padding:"8px 0",borderBottom:`1px solid ${C.border}`}}>
@@ -1252,7 +1252,7 @@ export default function Admin() {
 
       {tab==="wirker" && (
         <div style={card}>
-          <div style={{fontWeight:700,marginBottom:12}}>✨ Alle Wirker ({wirker.length})</div>
+          <div style={{fontWeight: 600,marginBottom:12}}>✨ Alle Wirker ({wirker.length})</div>
           {(wirker||[]).filter(w=>w&&typeof w==="object").map(w=>(
             <div key={w.id} style={{display:"flex",alignItems:"center",gap:12,
               padding:"10px 0",borderBottom:`1px solid ${C.border}`}}>
@@ -1263,7 +1263,7 @@ export default function Admin() {
                 <div style={{fontWeight:600,fontSize:14}}>{w.name}</div>
                 <div style={{color:C.sub,fontSize:12}}>{w.talent} · {w.location}</div>
               </div>
-              <div style={{marginLeft:"auto",color:C.gold,fontSize:13,fontWeight:700}}>
+              <div style={{marginLeft:"auto",color:C.gold,fontSize:13,fontWeight: 600}}>
                 {w.hourly_rate} €/h
               </div>
             </div>
@@ -1273,13 +1273,13 @@ export default function Admin() {
 
       {tab==="payments" && (
         <div style={card}>
-          <div style={{fontWeight:700,marginBottom:12}}>💳 Buchungen ({payments.length})</div>
+          <div style={{fontWeight: 600,marginBottom:12}}>💳 Buchungen ({payments.length})</div>
           {(payments||[]).filter(p=>p&&typeof p==="object").map(p=>(
             <div key={p.id} style={{padding:"10px 0",borderBottom:`1px solid ${C.border}`}}>
               <div style={{display:"flex",justifyContent:"space-between"}}>
                 <span style={{fontSize:13,fontWeight:600}}>{p.wirker_name||p.item_name}</span>
                 <span style={{color:p.payment_status==="paid"?C.green:C.orange,
-                  fontSize:12,fontWeight:700}}>{p.payment_status}</span>
+                  fontSize:12,fontWeight: 600}}>{p.payment_status}</span>
               </div>
               <div style={{color:C.sub,fontSize:12,marginTop:2}}>
                 {p.amount_eur} € · Impact: {p.impact_eur} €
@@ -1291,7 +1291,7 @@ export default function Admin() {
 
       {tab==="projekte" && (
         <div style={card}>
-          <div style={{fontWeight:700,marginBottom:12}}>🌍 Impact Projekte ({projects.length})</div>
+          <div style={{fontWeight: 600,marginBottom:12}}>🌍 Impact Projekte ({projects.length})</div>
           {(projects||[]).filter(p=>p&&typeof p==="object").map(p=>(
             <div key={p.id} style={{padding:"10px 0",borderBottom:`1px solid ${C.border}`}}>
               <div style={{fontWeight:600,fontSize:14}}>{p.name||p.title}</div>

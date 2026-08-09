@@ -29,7 +29,7 @@ function ProgressBar({ current, goal }) {
     <div style={{ marginTop:8 }}>
       <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
         <span style={{ fontSize:11, color:INK_SUB }}>Gesammelt</span>
-        <span style={{ fontSize:11, color:GREEN, fontWeight:700 }}>
+        <span style={{ fontSize:11, color:GREEN, fontWeight: 600 }}>
           {pct.toFixed(0)}% · €{formatNumberDE((current || 0))}
         </span>
       </div>
@@ -94,7 +94,7 @@ return (
       }}>
         <span style={{
           flexShrink:0,
-          fontSize:10.5, fontWeight:700, color:GREEN,
+          fontSize:10.5, fontWeight: 600, color:GREEN,
           background:GREEN_SOFT,
           border:`1px solid rgba(34,197,94,0.22)`,
           borderRadius:99, padding:"3px 9px",
@@ -102,7 +102,7 @@ return (
         }}>💚 {badgeText}</span>
         {title && (
           <span style={{
-            fontSize:15, fontWeight:700, color:INK,
+            fontSize:15, fontWeight: 600, color:INK,
             lineHeight:1.3, letterSpacing:"-0.02em",
             overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
             flex:1, minWidth:0,

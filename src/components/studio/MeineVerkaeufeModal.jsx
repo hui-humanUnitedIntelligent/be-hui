@@ -70,7 +70,7 @@ export default function MeineVerkaeufeModal({ profile, onClose = () => {} }) {
           padding: "10px 20px 14px",
         }}>
           <div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: T.ink, letterSpacing: "-0.02em" }}>
+            <div style={{ fontSize: 18, fontWeight: 600, color: T.ink, letterSpacing: "-0.02em" }}>
               
             </div>
             <div style={{ fontSize: 12, color: T.inkSoft, marginTop: 2 }}>
@@ -107,7 +107,7 @@ export default function MeineVerkaeufeModal({ profile, onClose = () => {} }) {
                   display: "flex", justifyContent: "space-between", alignItems: "center",
                 }}>
                   <div style={{ fontSize: 12, color: T.inkSoft }}>Gesamt verdient</div>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: T.teal }}>
+                  <div style={{ fontSize: 18, fontWeight: 600, color: T.teal }}>
                     {totalEarned.toFixed(2)}€
                   </div>
                 </div>
@@ -134,7 +134,7 @@ export default function MeineVerkaeufeModal({ profile, onClose = () => {} }) {
                           }
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 13, fontWeight: 700, color: T.ink, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: T.ink, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                             {title}
                           </div>
                           <div style={{ fontSize: 11, color: T.inkFaint, marginTop: 1 }}>
@@ -142,7 +142,7 @@ export default function MeineVerkaeufeModal({ profile, onClose = () => {} }) {
                           </div>
                         </div>
                         <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:4, flexShrink:0 }}>
-                          <div style={{ fontSize: 13, fontWeight: 800, color: T.teal }}>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: T.teal }}>
                             +{Number(s.payout_eur || 0).toFixed(2)}€
                           </div>
                           {s.orders?.escrow_status === 'holding' && (
@@ -155,7 +155,7 @@ export default function MeineVerkaeufeModal({ profile, onClose = () => {} }) {
                           {s.orders?.escrow_status === 'holding' && !s.orders?.payout_requested_at && (
                             <button
                               onClick={() => setPayoutItem({ id: s.orders.id, type: 'order', title: s.snapshot?.title })}
-                              style={{ fontSize:10, fontWeight:700, color:'#FF8A6B', background:'rgba(255,138,107,0.1)',
+                              style={{ fontSize:10, fontWeight: 600, color:'#FF8A6B', background:'rgba(255,138,107,0.1)',
                                 border:'1px solid rgba(255,138,107,0.25)', borderRadius:8, padding:'3px 8px',
                                 cursor:'pointer', whiteSpace:'nowrap', touchAction:'manipulation' }}>
                               Auszahlung beantragen

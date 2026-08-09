@@ -84,7 +84,7 @@ export default function TalentAntragPage() {
         padding: '40px 32px', maxWidth: 680,
         fontFamily: "Inter, sans-serif",
       }}>
-        <h2 style={{ fontSize: 24, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
+        <h2 style={{ fontSize: 24, fontWeight: 600, color: C.ink, marginBottom: 8 }}>
           Du trägst bereits Verantwortung
         </h2>
         <p style={{ fontSize: 15, color: C.muted }}>
@@ -161,7 +161,7 @@ export default function TalentAntragPage() {
     }}>
       {/* Einleitung */}
       <div style={{ marginBottom: 40 }}>
-        <h2 style={{ fontSize: 26, fontWeight: 700, color: C.ink, marginBottom: 12, lineHeight: 1.3 }}>
+        <h2 style={{ fontSize: 26, fontWeight: 600, color: C.ink, marginBottom: 12, lineHeight: 1.3 }}>
           Verantwortung übernehmen
         </h2>
         <p style={{ fontSize: 15, color: C.muted, lineHeight: 1.7, marginBottom: 0 }}>

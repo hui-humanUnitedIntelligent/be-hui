@@ -106,7 +106,7 @@ function NavBar({ onBack = () => {}, title = "Öffentliches Profil" }) {
         </svg>
       </button>
       <div style={{ textAlign:"center" }}>
-        <div style={{ fontSize:15.5, fontWeight:700, color:T.ink, letterSpacing:"-0.02em" }}>
+        <div style={{ fontSize:15.5, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>
           {title}
         </div>
         <div style={{ fontSize:11, color:T.inkFaint, marginTop:1 }}>
@@ -276,7 +276,7 @@ function QuickStats({ followCounts = {}, works = [], experiences = [], moments =
       {stats.map((s, i) => (
         <div key={i} className="ppp-stat">
           <span style={{ fontSize:18 }}>{s.icon}</span>
-          <span style={{ fontSize:17, fontWeight:800, color:T.ink }}>{s.val}</span>
+          <span style={{ fontSize:17, fontWeight: 600, color:T.ink }}>{s.val}</span>
           <span style={{ fontSize:10.5, color:T.inkFaint, fontWeight:500 }}>{s.label}</span>
         </div>
       ))}
@@ -300,7 +300,7 @@ function SectionCard({ icon, title = "", children, delay = 0 }) {
           padding:"14px 16px 10px", borderBottom:`1px solid ${T.border}`,
         }}>
           <span style={{ display:"flex", color:T.teal }}>{icon}</span>
-          <span style={{ fontSize:14, fontWeight:800, color:T.ink, letterSpacing:"-0.01em" }}>{title}</span>
+          <span style={{ fontSize:14, fontWeight: 600, color:T.ink, letterSpacing:"-0.01em" }}>{title}</span>
         </div>
       )}
       <div style={{ padding: title ? "12px 16px 16px" : "14px 16px 16px" }}>{children}</div>
@@ -363,7 +363,7 @@ function ErrorView({ onClose = () => {} }) {
       alignItems:"center", justifyContent:"space-between", gap:16, padding:32,
     }}>
       <span style={{ fontSize:40 }}>🔍</span>
-      <p style={{ fontSize:16, fontWeight:700, color:T.ink, textAlign:"center", margin:0 }}>
+      <p style={{ fontSize:16, fontWeight: 600, color:T.ink, textAlign:"center", margin:0 }}>
         Profil nicht gefunden
       </p>
       <p style={{ fontSize:13, color:T.inkSoft, textAlign:"center", margin:0 }}>
@@ -372,7 +372,7 @@ function ErrorView({ onClose = () => {} }) {
       <button onClick={onClose} className="ppp-press" style={{
         marginTop:8, padding:"12px 32px", borderRadius:T.r99,
         background:T.teal, border:"none", color:"#fff",
-        fontWeight:700, fontSize:14, cursor:"pointer",
+        fontWeight: 600, fontSize:14, cursor:"pointer",
         boxShadow:T.glow, fontFamily:"inherit",
       }}>Zurück</button>
     </div>

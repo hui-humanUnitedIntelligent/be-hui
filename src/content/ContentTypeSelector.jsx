@@ -131,7 +131,7 @@ function TypeCard({ type, idx, onSelect }) {
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
           fontSize:   16,
-          fontWeight: 700,
+          fontWeight: 600,
           color:      T.ink,
           letterSpacing: -0.3,
           marginBottom: 2,
@@ -246,7 +246,7 @@ export default function ContentTypeSelector({ onSelect, onClose, visible = true 
           }}>
             <div style={{
               fontSize:     21,
-              fontWeight:   800,
+              fontWeight: 600,
               color:        T.ink,
               letterSpacing: -0.5,
               lineHeight:   1.15,

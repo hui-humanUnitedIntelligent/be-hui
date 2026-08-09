@@ -77,7 +77,7 @@ function Avatar({ url, name, size = 40 }) {
     <div style={{ width:size, height:size, borderRadius:"50%",
       background:"linear-gradient(135deg,#16D7C5,#FF8A6B)",
       display:"flex", alignItems:"center", justifyContent:"center",
-      fontSize:size*0.34, fontWeight:900, color:"white",
+      fontSize:size*0.34, fontWeight: 600, color:"white",
       border:"2px solid white", boxShadow:"0 2px 10px rgba(0,0,0,0.15)",
       flexShrink:0, letterSpacing:-0.5 }}>
       {initials}
@@ -224,7 +224,7 @@ function ImageGallery({ images, title }) {
         <div style={{ position:"absolute", top:16, right:16,
           background:"rgba(0,0,0,0.45)", backdropFilter:"blur(8px)",
           borderRadius:999, padding:"3px 10px",
-          fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.88)" }}>
+          fontSize:11, fontWeight: 600, color:"rgba(255,255,255,0.88)" }}>
           {idx+1} / {images.length}
         </div>
       )}
@@ -258,13 +258,13 @@ function RelatedCard({ werk, onClick }) {
         {werk.price != null && (
           <div style={{ position:"absolute", bottom:8, left:8,
             background:"rgba(255,255,255,0.92)", borderRadius:999,
-            padding:"2px 8px", fontSize:10, fontWeight:900, color:C.ink }}>
+            padding:"2px 8px", fontSize:10, fontWeight: 600, color:C.ink }}>
             {fmtPrice(werk.price)}
           </div>
         )}
       </div>
       <div style={{ padding:"6px 2px 0" }}>
-        <div style={{ fontSize:11.5, fontWeight:700, color:C.ink,
+        <div style={{ fontSize:11.5, fontWeight: 600, color:C.ink,
           lineHeight:1.3, overflow:"hidden", textOverflow:"ellipsis",
           whiteSpace:"nowrap" }}>{werk.title || "Werk"}</div>
         <div style={{ fontSize:10, color:C.muted, marginTop:2 }}>
@@ -565,7 +565,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
       padding:32, fontFamily:"Inter,sans-serif" }}>
       <style>{CSS}</style>
       <div style={{ fontSize:52, marginBottom:16 }}>😕</div>
-      <div style={{ fontWeight:800, fontSize:20, color:C.ink, marginBottom:8 }}>
+      <div style={{ fontWeight: 600, fontSize:20, color:C.ink, marginBottom:8 }}>
         Werk nicht gefunden
       </div>
       <div style={{ fontSize:13, color:C.muted, textAlign:"center",
@@ -575,7 +575,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
       <button onClick={() => navigate(-1)} className="wd-tap"
         style={{ padding:"13px 28px", borderRadius:16,
           background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
-          color:"white", border:"none", fontWeight:800,
+          color:"white", border:"none", fontWeight: 600,
           fontSize:14, cursor:"pointer",
           boxShadow:`0 4px 18px ${C.tealGlow}` }}>
         Zurück
@@ -625,12 +625,12 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
           display:"flex", alignItems:"center", justifyContent:"space-between" }}>
           <div style={{ background:C.coralPale, border:`1px solid ${C.coral}33`,
             borderRadius:999, padding:"4px 12px",
-            fontSize:11, fontWeight:800, color:C.coral,
+            fontSize:11, fontWeight: 600, color:C.coral,
             letterSpacing:1.2, textTransform:"uppercase" }}>
             {werk.category || "Werk"}
           </div>
           {priceStr && (
-            <div style={{ fontSize:26, fontWeight:900, color:C.ink,
+            <div style={{ fontSize:26, fontWeight: 600, color:C.ink,
               letterSpacing:-0.5 }}>
               {priceStr}
             </div>
@@ -640,7 +640,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
         {/* Title */}
         <div style={{ padding:"12px 20px 0" }}>
           <h1 style={{ margin:0, fontSize:"clamp(20px,2.2rem,30px)",
-            fontWeight:900, color:C.ink, letterSpacing:-0.8, lineHeight:1.15 }}>
+            fontWeight: 600, color:C.ink, letterSpacing:-0.8, lineHeight:1.15 }}>
             {werk.title || "Unbekanntes Werk"}
           </h1>
         </div>
@@ -655,7 +655,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
           <Avatar url={avatarUrl} name={displayName} size={46}/>
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:2 }}>
-              <span style={{ fontWeight:800, fontSize:15, color:C.ink,
+              <span style={{ fontWeight: 600, fontSize:15, color:C.ink,
                 overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                 {displayName}
               </span>
@@ -685,7 +685,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
                 }}
                 style={{ padding:"7px 14px",
                   background:"rgba(13,196,181,0.12)", border:"1px solid rgba(13,196,181,0.3)",
-                  borderRadius:50, fontSize:12, fontWeight:700, color:"#0DC4B5",
+                  borderRadius:50, fontSize:12, fontWeight: 600, color:"#0DC4B5",
                   cursor:"pointer", fontFamily:"inherit" }}
               >Profil ansehen</button>
             )}
@@ -696,7 +696,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
                     ? "rgba(0,0,0,0.06)"
                     : "linear-gradient(135deg,#16D7C5,#11C5B7)",
                   border:"none", borderRadius:50,
-                  fontSize:12, fontWeight:700,
+                  fontSize:12, fontWeight: 600,
                   color: following ? "#888" : "white",
                   cursor:"pointer", fontFamily:"inherit",
                   transition:"all .2s" }}>
@@ -764,7 +764,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
         {werk.description && (
           <div style={{ margin:"16px 20px 0", padding:"18px",
             background:C.card, borderRadius:18, border:`1px solid ${C.border}` }}>
-            <div style={{ fontSize:11, fontWeight:800, color:C.muted,
+            <div style={{ fontSize:11, fontWeight: 600, color:C.muted,
               letterSpacing:1.4, textTransform:"uppercase", marginBottom:10 }}>
               Beschreibung
             </div>
@@ -781,11 +781,11 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
           {werk.category && (
             <div style={{ padding:"14px 16px", background:C.card,
               borderRadius:16, border:`1px solid ${C.border}` }}>
-              <div style={{ fontSize:10, fontWeight:800, color:C.muted,
+              <div style={{ fontSize:10, fontWeight: 600, color:C.muted,
                 letterSpacing:1.2, textTransform:"uppercase", marginBottom:4 }}>
                 Kategorie
               </div>
-              <div style={{ fontSize:14, fontWeight:700, color:C.ink }}>
+              <div style={{ fontSize:14, fontWeight: 600, color:C.ink }}>
                 {werk.category}
               </div>
             </div>
@@ -793,11 +793,11 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
           {werk.created_at && (
             <div style={{ padding:"14px 16px", background:C.card,
               borderRadius:16, border:`1px solid ${C.border}` }}>
-              <div style={{ fontSize:10, fontWeight:800, color:C.muted,
+              <div style={{ fontSize:10, fontWeight: 600, color:C.muted,
                 letterSpacing:1.2, textTransform:"uppercase", marginBottom:4 }}>
                 Erstellt
               </div>
-              <div style={{ fontSize:14, fontWeight:700, color:C.ink }}>
+              <div style={{ fontSize:14, fontWeight: 600, color:C.ink }}>
                 {formatDateDE(new Date(werk.created_at), { day:"numeric", month:"long", year:"numeric" })}
               </div>
             </div>
@@ -809,7 +809,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
           <div style={{ margin:"24px 0 0" }}>
             <div style={{ padding:"0 20px 14px",
               display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-              <div style={{ fontWeight:800, fontSize:15, color:C.ink }}>
+              <div style={{ fontWeight: 600, fontSize:15, color:C.ink }}>
                 Ähnliche Werke
               </div>
               <div style={{ fontSize:11, color:C.muted, fontWeight:600 }}>
@@ -842,7 +842,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
           style={{ flex:1, padding:"14px",
             background:"none", border:`1.5px solid ${C.coral}55`,
             borderRadius:16, color:C.coral, fontSize:14,
-            fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>
+            fontWeight: 600, cursor:"pointer", fontFamily:"inherit" }}>
           {saved ? "Gemerkt ✓" : "Merken"}
         </button>
         <button
@@ -851,7 +851,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
           style={{ flex:2, padding:"14px",
             background:`linear-gradient(135deg,${C.coral},${C.coral2})`,
             border:"none", borderRadius:16, color:"white",
-            fontSize:14, fontWeight:800, cursor:"pointer",
+            fontSize:14, fontWeight: 600, cursor:"pointer",
             fontFamily:"inherit",
             boxShadow:`0 4px 18px ${C.coralGlow}` }}>
           Jetzt kaufen ✦

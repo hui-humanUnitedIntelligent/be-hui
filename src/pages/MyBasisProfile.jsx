@@ -102,7 +102,7 @@ class AmbassadorErrorBoundary extends React.Component {
             style={{
               marginTop:12, padding:"8px 18px", borderRadius:99,
               background:"rgba(14,196,184,0.12)", border:"1px solid rgba(14,196,184,0.3)",
-              color:"#0A9E94", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"inherit",
+              color:"#0A9E94", fontSize:12, fontWeight: 600, cursor:"pointer", fontFamily:"inherit",
             }}
           >Nochmal versuchen</button>
         </div>
@@ -204,13 +204,13 @@ function SectionRow({ title, sub, onEdit }) {
   return (
     <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:`0 ${T.px}px 10px` }}>
       <div>
-        <div style={{ fontSize:15, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>{title}</div>
+        <div style={{ fontSize:15, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>{title}</div>
         {sub && <div style={{ fontSize:11, color:T.inkFaint, marginTop:2, fontWeight:400 }}>{sub}</div>}
       </div>
       {onEdit && (
         <button className="mbp-press-light" onClick={onEdit} style={{
           background:"none", border:"none", padding:0,
-          fontSize:12, color:T.teal, fontWeight:700,
+          fontSize:12, color:T.teal, fontWeight: 600,
           cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
           display:"flex", alignItems:"center", gap:3,
         }}>Bearbeiten ›</button>
@@ -301,7 +301,7 @@ function InteressenSection({ interests, onChange }) {
 
       {showEdit && (
         <Sheet onClose={()=>setShowEdit(false)}>
-          <div style={{ fontSize:16, fontWeight:800, color:T.ink, marginBottom:4 }}>Interessen & Werte</div>
+          <div style={{ fontSize:16, fontWeight: 600, color:T.ink, marginBottom:4 }}>Interessen & Werte</div>
           <div style={{ fontSize:12, color:T.inkFaint, marginBottom:16 }}>Wähle, was dich bewegt.</div>
           <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:20 }}>
             {ALL_INTERESTS.map((t,i)=>(
@@ -313,7 +313,7 @@ function InteressenSection({ interests, onChange }) {
           <button className="mbp-press" onClick={()=>setShowEdit(false)} style={{
             width:"100%", padding:"14px", borderRadius:T.r99, border:"none",
             background:`linear-gradient(135deg,${T.teal},#0DBBAF)`,
-            color:"white", fontSize:15, fontWeight:700,
+            color:"white", fontSize:15, fontWeight: 600,
             cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
             boxShadow:T.glowTeal,
           }}>Fertig</button>
@@ -402,7 +402,7 @@ function OffenFuerSection({ openFor, onChange }) {
 
       {showEdit && (
         <Sheet onClose={()=>setShowEdit(false)}>
-          <div style={{ fontSize:16, fontWeight:800, color:T.ink, marginBottom:4 }}>Offen für Begegnungen</div>
+          <div style={{ fontSize:16, fontWeight: 600, color:T.ink, marginBottom:4 }}>Offen für Begegnungen</div>
           <div style={{ fontSize:12, color:T.inkFaint, marginBottom:16 }}>Was interessiert dich gerade?</div>
           <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:20 }}>
             {OPEN_FOR_ALL.map((t,i)=>(
@@ -414,7 +414,7 @@ function OffenFuerSection({ openFor, onChange }) {
           <button className="mbp-press" onClick={()=>setShowEdit(false)} style={{
             width:"100%", padding:"14px", borderRadius:T.r99, border:"none",
             background:`linear-gradient(135deg,${T.teal},#0DBBAF)`,
-            color:"white", fontSize:15, fontWeight:700,
+            color:"white", fontSize:15, fontWeight: 600,
             cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
             boxShadow:T.glowTeal,
           }}>Fertig</button>
@@ -918,7 +918,7 @@ const handleNotifAction = (n) => {
           position:"fixed", top:16, left:"50%", transform:"translateX(-50%)",
           zIndex:9999, padding:"10px 18px", borderRadius:99,
           background:"rgba(200,40,40,0.95)", color:"white",
-          fontSize:12, fontWeight:700, maxWidth:"88vw",
+          fontSize:12, fontWeight: 600, maxWidth:"88vw",
           boxShadow:"0 4px 20px rgba(0,0,0,0.3)",
           textAlign:"center", lineHeight:1.5,
         }}>
@@ -950,7 +950,7 @@ const handleNotifAction = (n) => {
         position:"relative", zIndex:2,   /* über mbp-scroll (overflow=auto erzeugt Stacking Context) */
       }}>
         <div>
-          <div style={{ fontSize:24, fontWeight:900, color:T.ink, letterSpacing:"-0.04em",
+          <div style={{ fontSize:24, fontWeight: 600, color:T.ink, letterSpacing:"-0.04em",
             lineHeight:1.15 }}>
             {profile?.is_talent ? "Mein Talent-Profil ✨" : "Mein Profil 🌿"}
           </div>
@@ -1242,7 +1242,7 @@ const handleNotifAction = (n) => {
             }}>
               <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                 <HUIAmbassadorIcon size={18} style={{color:"rgba(255,193,7,0.9)"}}/>
-                <span style={{ fontSize:16, fontWeight:800, color:"#1A1A18" }}>Ambassador-Bereich</span>
+                <span style={{ fontSize:16, fontWeight: 600, color:"#1A1A18" }}>Ambassador-Bereich</span>
               </div>
               <button onClick={() => setShowAmbDrawer(false)} style={{
                 background:"none", border:"none", cursor:"pointer",
@@ -1317,7 +1317,7 @@ const handleNotifAction = (n) => {
           }}>
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
               <span style={{ display:"flex", color:"#1A1A2E" }}><HUIBookmarkIcon size={18} /></span>
-              <span style={{ fontSize:15, fontWeight:800, color:"#1A1A2E", letterSpacing:"-0.02em" }}>
+              <span style={{ fontSize:15, fontWeight: 600, color:"#1A1A2E", letterSpacing:"-0.02em" }}>
                 Gemerkte Inhalte
               </span>
             </div>
@@ -1326,7 +1326,7 @@ const handleNotifAction = (n) => {
               style={{
                 padding:"6px 14px", borderRadius:20,
                 background:"rgba(26,26,46,0.08)", border:"1px solid rgba(26,26,46,0.10)",
-                fontSize:12, fontWeight:700, color:"rgba(26,26,46,0.55)",
+                fontSize:12, fontWeight: 600, color:"rgba(26,26,46,0.55)",
                 cursor:"pointer", touchAction:"manipulation",
               }}
             >✕ Schließen</button>
@@ -1559,7 +1559,7 @@ function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
               maxWidth:320, width:"100%", boxShadow:"0 8px 40px rgba(0,0,0,0.18)" }}>
             <div style={{ textAlign:"center", marginBottom:8, display:"flex",
               justifyContent:"center", color:"#F59E0B", fontSize:32 }}>⚠️</div>
-            <div style={{ fontSize:16, fontWeight:700, textAlign:"center",
+            <div style={{ fontSize:16, fontWeight: 600, textAlign:"center",
               marginBottom:6, color:"#1A1A18" }}>
               Moment löschen?
             </div>
@@ -1570,7 +1570,7 @@ function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
             <button onClick={handleConfirmDelete}
               style={{ width:"100%", padding:"12px", borderRadius:99,
                 background:"#ff3b3b", border:"none", color:"#fff",
-                fontSize:14, fontWeight:700, cursor:"pointer",
+                fontSize:14, fontWeight: 600, cursor:"pointer",
                 fontFamily:"inherit", marginBottom:8 }}>
               Ja, endgültig löschen
             </button>
@@ -1630,7 +1630,7 @@ function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
                     position:"absolute", top:4, right:4,
                     width:20, height:20, borderRadius:"50%",
                     background:"rgba(0,0,0,0.65)", border:"none",
-                    color:"#fff", fontSize:11, fontWeight:700,
+                    color:"#fff", fontSize:11, fontWeight: 600,
                     cursor:"pointer", display:"flex",
                     alignItems:"center", justifyContent:"center",
                     lineHeight:1, padding:0, zIndex:2,
@@ -1640,7 +1640,7 @@ function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
                 <div style={{
                   position:"absolute", bottom:0, left:0, right:0,
                   background:"rgba(14,196,184,0.92)",
-                  fontSize:9, fontWeight:700, color:"#fff",
+                  fontSize:9, fontWeight: 600, color:"#fff",
                   padding:"3px 5px", textAlign:"center", letterSpacing:"0.3px",
                 }}>
                   ✅ Live
@@ -1685,13 +1685,13 @@ function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
           display:"flex", alignItems:"center", gap:8,
           padding:"8px 14px", borderRadius:T.r12,
           background:T.tealSoft, border:`1px solid ${T.tealMid}`,
-          fontSize:12.5, fontWeight:700, color:T.teal,
+          fontSize:12.5, fontWeight: 600, color:T.teal,
           cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
           width:"100%",
         }}>
           <span style={{
             width:18, height:18, borderRadius:"50%", flexShrink:0,
-            background:T.teal, color:"#fff", fontSize:13, fontWeight:800,
+            background:T.teal, color:"#fff", fontSize:13, fontWeight: 600,
             display:"flex", alignItems:"center", justifyContent:"center", lineHeight:1,
           }}>+</span>
           Moment hinzufügen
@@ -1739,7 +1739,7 @@ function AmbassadorProfilSection({ profile, ambState, onApply }) {
           display:"inline-flex", alignItems:"center", gap:5,
           background:"rgba(14,196,184,0.08)", borderRadius:T2.r99,
           border:`1px solid ${T2.tealMid}`, padding:"3px 10px",
-          fontSize:11, fontWeight:700, color:T2.teal,
+          fontSize:11, fontWeight: 600, color:T2.teal,
         }}>
           ✅ Aktiv
         </div>
@@ -1760,7 +1760,7 @@ function AmbassadorProfilSection({ profile, ambState, onApply }) {
             textAlign:"center", boxShadow:T2.card,
           }}>
             <div style={{fontSize:20, marginBottom:4}}>{emoji}</div>
-            <div style={{fontSize:18, fontWeight:800, color:T2.teal}}>{value}</div>
+            <div style={{fontSize:18, fontWeight: 600, color:T2.teal}}>{value}</div>
             <div style={{fontSize:11, color:T2.inkFaint}}>{label}</div>
           </div>
         ))}
@@ -1773,7 +1773,7 @@ function AmbassadorProfilSection({ profile, ambState, onApply }) {
           border:`1px solid ${T2.tealMid}`, padding:"12px 14px",
           marginBottom:10,
         }}>
-          <div style={{fontSize:11, fontWeight:700, color:T2.teal, marginBottom:4}}>
+          <div style={{fontSize:11, fontWeight: 600, color:T2.teal, marginBottom:4}}>
             🔗 Dein Einladungslink
           </div>
           <div style={{
@@ -1785,7 +1785,7 @@ function AmbassadorProfilSection({ profile, ambState, onApply }) {
           <button onClick={copyLink} style={{
             padding:"6px 14px", borderRadius:T2.r99,
             background:T2.teal, border:"none", color:"white",
-            fontSize:11, fontWeight:700, cursor:"pointer", fontFamily:"inherit",
+            fontSize:11, fontWeight: 600, cursor:"pointer", fontFamily:"inherit",
             touchAction:"manipulation",
           }}>
             Link kopieren
@@ -1817,7 +1817,7 @@ function TalentErweiterung({ profile, onProfileUpdate }) {
         marginBottom: 20,
         color: "#fff",
       }}>
-        <div style={{ fontSize: 22, fontWeight: 800, marginBottom: 4 }}>
+        <div style={{ fontSize: 22, fontWeight: 600, marginBottom: 4 }}>
           <span className="hui-emoji">🌱</span> Du bist Teil der Gemeinschaft
         </div>
         <div style={{ fontSize: 13, opacity: 0.85 }}>
@@ -1827,7 +1827,7 @@ function TalentErweiterung({ profile, onProfileUpdate }) {
 
 
       {/* Meine Werke */}
-      <div style={{ fontSize: 13, fontWeight: 700, color: T.inkSoft, marginBottom: 12, letterSpacing: "0.05em" }}>
+      <div style={{ fontSize: 13, fontWeight: 600, color: T.inkSoft, marginBottom: 12, letterSpacing: "0.05em" }}>
         MEINE WERKE
       </div>
       <div style={{
@@ -1841,14 +1841,14 @@ function TalentErweiterung({ profile, onProfileUpdate }) {
         <button style={{
           marginTop: 12, padding: "8px 16px", borderRadius: 99,
           background: "#0EC4B8", border: "none", cursor: "pointer",
-          fontSize: 13, fontWeight: 700, color: "#fff",
+          fontSize: 13, fontWeight: 600, color: "#fff",
         }}>
           + Werk hinzufügen
         </button>
       </div>
 
       {/* Meine Erlebnisse */}
-      <div style={{ fontSize: 13, fontWeight: 700, color: T.inkSoft, marginBottom: 12, letterSpacing: "0.05em" }}>
+      <div style={{ fontSize: 13, fontWeight: 600, color: T.inkSoft, marginBottom: 12, letterSpacing: "0.05em" }}>
         MEINE ERLEBNISSE
       </div>
       <div style={{
@@ -1862,7 +1862,7 @@ function TalentErweiterung({ profile, onProfileUpdate }) {
         <button style={{
           marginTop: 12, padding: "8px 16px", borderRadius: 99,
           background: "#0EC4B8", border: "none", cursor: "pointer",
-          fontSize: 13, fontWeight: 700, color: "#fff",
+          fontSize: 13, fontWeight: 600, color: "#fff",
         }}>
           + Erlebnis hinzufügen
         </button>
@@ -1905,7 +1905,7 @@ function AmbassadorBanner({ profile, ambState, onPress }) {
 
         {/* Text */}
         <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ fontSize:13, fontWeight:800, color:T.ink, marginBottom:1 }}>
+          <div style={{ fontSize:13, fontWeight: 600, color:T.ink, marginBottom:1 }}>
             HUI Ambassador
           </div>
           <div style={{ fontSize:11.5, color:T.inkSoft, lineHeight:1.4 }}>
@@ -1923,7 +1923,7 @@ function AmbassadorBanner({ profile, ambState, onPress }) {
             background:"rgba(255,193,7,0.18)",
             border:"1.5px solid rgba(255,193,7,0.35)",
             color:"#9A7000",
-            fontSize:12, fontWeight:700,
+            fontSize:12, fontWeight: 600,
             cursor:"pointer", touchAction:"manipulation",
             fontFamily:"inherit",
             whiteSpace:"nowrap",
@@ -1966,7 +1966,7 @@ function DeleteWerkConfirm({ werk, onConfirm, onCancel }) {
         maxWidth:320, width:"100%", boxShadow:"0 8px 40px rgba(0,0,0,0.18)",
       }}>
         <div style={{ fontSize:36, textAlign:"center", marginBottom:8 }}><span className="hui-emoji">🗑</span>️</div>
-        <div style={{ fontSize:16, fontWeight:700, textAlign:"center", marginBottom:6, color:"#1a1a18" }}>
+        <div style={{ fontSize:16, fontWeight: 600, textAlign:"center", marginBottom:6, color:"#1a1a18" }}>
           Werk unwiderruflich löschen?
         </div>
         <div style={{ fontSize:13, color:"#666", textAlign:"center", lineHeight:1.5, marginBottom:20 }}>
@@ -1975,7 +1975,7 @@ function DeleteWerkConfirm({ werk, onConfirm, onCancel }) {
         <button onClick={onConfirm} style={{
           width:"100%", padding:"12px", borderRadius:99,
           background:"#ff3b3b", border:"none", color:"#fff",
-          fontSize:14, fontWeight:700, cursor:"pointer",
+          fontSize:14, fontWeight: 600, cursor:"pointer",
           fontFamily:"inherit", marginBottom:8,
         }}>
           Ja, endgültig löschen
@@ -2005,7 +2005,7 @@ function DeleteTalentConfirm({ talent, onConfirm, onCancel }) {
         maxWidth:320, width:"100%", boxShadow:"0 8px 40px rgba(0,0,0,0.18)",
       }}>
         <div style={{ fontSize:36, textAlign:"center", marginBottom:8 }}><span className="hui-emoji">🗑</span>️</div>
-        <div style={{ fontSize:16, fontWeight:700, textAlign:"center", marginBottom:6, color:"#1a1a18" }}>
+        <div style={{ fontSize:16, fontWeight: 600, textAlign:"center", marginBottom:6, color:"#1a1a18" }}>
           Talent-Angebot unwiderruflich löschen?
         </div>
         <div style={{ fontSize:13, color:"#666", textAlign:"center", lineHeight:1.5, marginBottom:20 }}>
@@ -2014,7 +2014,7 @@ function DeleteTalentConfirm({ talent, onConfirm, onCancel }) {
         <button onClick={onConfirm} style={{
           width:"100%", padding:"12px", borderRadius:99,
           background:"#ff3b3b", border:"none", color:"#fff",
-          fontSize:14, fontWeight:700, cursor:"pointer",
+          fontSize:14, fontWeight: 600, cursor:"pointer",
           fontFamily:"inherit", marginBottom:8,
         }}>
           Ja, endgültig löschen
@@ -2077,7 +2077,7 @@ function MeinBereichDrawer({ title, icon, subtitle, onClose, children, footer = 
             {/* Icon + Titel in einer Zeile */}
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
               <span style={{ display:"flex", alignItems:"center", color:"rgba(14,196,184,0.9)", flexShrink:0 }}>{icon}</span>
-              <span style={{ fontSize:17, fontWeight:800, color:"#1A1A18", letterSpacing:"-0.02em" }}>{title}</span>
+              <span style={{ fontSize:17, fontWeight: 600, color:"#1A1A18", letterSpacing:"-0.02em" }}>{title}</span>
             </div>
             <button onClick={onClose} style={{
               background:"rgba(26,26,24,0.07)", border:"none", cursor:"pointer",
@@ -2104,7 +2104,7 @@ function MeinBereichDrawer({ title, icon, subtitle, onClose, children, footer = 
             <button onClick={onClose} style={{
               width:"100%", padding:"13px", borderRadius:14, border:"none",
               cursor:"pointer", background:"rgba(26,26,24,0.08)",
-              color:"rgba(26,26,24,0.52)", fontSize:14, fontWeight:700,
+              color:"rgba(26,26,24,0.52)", fontSize:14, fontWeight: 600,
               fontFamily:"inherit", WebkitTapHighlightColor:"transparent",
             }}>Schließen</button>
           </div>
@@ -2130,7 +2130,7 @@ function MeinBereichChooserRow({ icon, label, desc, onPress }) {
         color:"rgba(14,196,184,0.85)",
       }}>{icon}</span>
       <div style={{ flex:1, minWidth:0 }}>
-        <div style={{ fontSize:14, fontWeight:700, color:"#1A1A18" }}>{label}</div>
+        <div style={{ fontSize:14, fontWeight: 600, color:"#1A1A18" }}>{label}</div>
         {desc && <div style={{ fontSize:12, color:"rgba(26,26,24,0.5)", marginTop:1 }}>{desc}</div>}
       </div>
       <span style={{ color:"rgba(26,26,24,0.32)", fontSize:17 }}>›</span>
@@ -2213,7 +2213,7 @@ function MeinBereichMenu({
   return (
     <div style={{ padding:`0 ${T.px}px` }}>
       {/* Titel außerhalb der Kachel */}
-      <div style={{ fontSize:15, fontWeight:800, color:T.ink, marginBottom:10, letterSpacing:"-0.01em" }}>
+      <div style={{ fontSize:15, fontWeight: 600, color:T.ink, marginBottom:10, letterSpacing:"-0.01em" }}>
         Mein Bereich
       </div>
 
@@ -2466,7 +2466,7 @@ function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTalent = 
                     position:"absolute", top:4, right:4,
                     width:20, height:20, borderRadius:"50%",
                     background:"rgba(0,0,0,0.65)", border:"none",
-                    color:"#fff", fontSize:11, fontWeight:700,
+                    color:"#fff", fontSize:11, fontWeight: 600,
                     cursor:"pointer", display:"flex",
                     alignItems:"center", justifyContent:"center",
                     lineHeight:1, padding:0, zIndex:2,
@@ -2475,7 +2475,7 @@ function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTalent = 
                 <div style={{
                   position:"absolute", bottom:0, left:0, right:0,
                   background: badgeBg,
-                  fontSize:9, fontWeight:700, color:"#fff",
+                  fontSize:9, fontWeight: 600, color:"#fff",
                   padding:"3px 5px", textAlign:"center", letterSpacing:"0.3px",
                 }}>
                   {badgeText}
@@ -2510,13 +2510,13 @@ function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTalent = 
         display:"flex", alignItems:"center", gap:8,
         padding:"8px 14px", borderRadius:T.r12,
         background:T.tealSoft, border:`1px solid ${T.tealMid}`,
-        fontSize:12.5, fontWeight:700, color:T.teal,
+        fontSize:12.5, fontWeight: 600, color:T.teal,
         cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
         width:"100%",
       }}>
         <span style={{
           width:18, height:18, borderRadius:"50%", flexShrink:0,
-          background:T.teal, color:"#fff", fontSize:13, fontWeight:800,
+          background:T.teal, color:"#fff", fontSize:13, fontWeight: 600,
           display:"flex", alignItems:"center", justifyContent:"center", lineHeight:1,
         }}>+</span>
         Talent-Angebot hinzufügen
@@ -2584,7 +2584,7 @@ function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
                     position:"absolute", top:4, right:4,
                     width:20, height:20, borderRadius:"50%",
                     background:"rgba(0,0,0,0.65)", border:"none",
-                    color:"#fff", fontSize:11, fontWeight:700,
+                    color:"#fff", fontSize:11, fontWeight: 600,
                     cursor:"pointer", display:"flex",
                     alignItems:"center", justifyContent:"center",
                     lineHeight:1, padding:0, zIndex:2,
@@ -2594,7 +2594,7 @@ function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
                 <div style={{
                   position:"absolute", bottom:0, left:0, right:0,
                   background: badgeBg,
-                  fontSize:9, fontWeight:700, color:"#fff",
+                  fontSize:9, fontWeight: 600, color:"#fff",
                   padding:"3px 5px", textAlign:"center", letterSpacing:"0.3px",
                 }}>
                   {badgeText}
@@ -2619,13 +2619,13 @@ function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
         display:"flex", alignItems:"center", gap:8,
         padding:"8px 14px", borderRadius:T.r12,
         background:T.tealSoft, border:`1px solid ${T.tealMid}`,
-        fontSize:12.5, fontWeight:700, color:T.teal,
+        fontSize:12.5, fontWeight: 600, color:T.teal,
         cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
         width:"100%",
       }}>
         <span style={{
           width:18, height:18, borderRadius:"50%", flexShrink:0,
-          background:T.teal, color:"#fff", fontSize:13, fontWeight:800,
+          background:T.teal, color:"#fff", fontSize:13, fontWeight: 600,
           display:"flex", alignItems:"center", justifyContent:"center", lineHeight:1,
         }}>+</span>
         Werk hinzufügen
@@ -2682,7 +2682,7 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
           maxWidth:320, width:"100%", boxShadow:"0 8px 40px rgba(0,0,0,0.18)",
         }}>
           <div style={{ fontSize:36, textAlign:"center", marginBottom:8 }}><span className="hui-emoji">🗑</span>️</div>
-          <div style={{ fontSize:16, fontWeight:700, textAlign:"center", marginBottom:6, color:"#1a1a18" }}>
+          <div style={{ fontSize:16, fontWeight: 600, textAlign:"center", marginBottom:6, color:"#1a1a18" }}>
             Erlebnis unwiderruflich löschen?
           </div>
           <div style={{ fontSize:13, color:"#666", textAlign:"center", lineHeight:1.5, marginBottom:20 }}>
@@ -2691,7 +2691,7 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
           <button onClick={handleConfirmDelete} style={{
             width:"100%", padding:"12px", borderRadius:99,
             background:"#ff3b3b", border:"none", color:"#fff",
-            fontSize:14, fontWeight:700, cursor:"pointer",
+            fontSize:14, fontWeight: 600, cursor:"pointer",
             fontFamily:"inherit", marginBottom:8,
           }}>
             Ja, endgültig löschen
@@ -2754,7 +2754,7 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
                   position:"absolute", top:4, right:4,
                   width:20, height:20, borderRadius:"50%",
                   background:"rgba(0,0,0,0.65)", border:"none",
-                  color:"#fff", fontSize:11, fontWeight:700,
+                  color:"#fff", fontSize:11, fontWeight: 600,
                   cursor:"pointer", display:"flex",
                   alignItems:"center", justifyContent:"center",
                   lineHeight:1, padding:0, zIndex:2,
@@ -2764,7 +2764,7 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
               <div style={{
                 position:"absolute", bottom:0, left:0, right:0,
                 background: badgeBg,
-                fontSize:9, fontWeight:700, color:"#fff",
+                fontSize:9, fontWeight: 600, color:"#fff",
                 padding:"3px 5px", textAlign:"center", letterSpacing:"0.3px",
               }}>
                 {badgeText}
@@ -2798,7 +2798,7 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
                 }}>
                   <span style={{
                     background:"rgba(0,0,0,0.72)", color:"#fff",
-                    fontSize:8, fontWeight:700, padding:"2px 7px",
+                    fontSize:8, fontWeight: 600, padding:"2px 7px",
                     borderRadius:20, letterSpacing:"0.3px",
                   }}>Anpassen</span>
                 </div>
@@ -2814,13 +2814,13 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
         display:"flex", alignItems:"center", gap:8,
         padding:"8px 14px", borderRadius:T.r12,
         background:T.tealSoft, border:`1px solid ${T.tealMid}`,
-        fontSize:12.5, fontWeight:700, color:T.teal,
+        fontSize:12.5, fontWeight: 600, color:T.teal,
         cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
         width:"100%",
       }}>
         <span style={{
           width:18, height:18, borderRadius:"50%", flexShrink:0,
-          background:T.teal, color:"#fff", fontSize:13, fontWeight:800,
+          background:T.teal, color:"#fff", fontSize:13, fontWeight: 600,
           display:"flex", alignItems:"center", justifyContent:"center", lineHeight:1,
         }}>+</span>
         Erlebnis &amp; Projekte hinzufügen
@@ -2941,7 +2941,7 @@ function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
     return (
       <div style={{ padding: "24px 20px", textAlign: "center" }}>
         <div style={{ fontSize: 32, marginBottom: 12 }}>💚</div>
-        <div style={{ fontSize: 15, fontWeight: 700, color: "#1A1A1A", marginBottom: 8 }}>
+        <div style={{ fontSize: 15, fontWeight: 600, color: "#1A1A1A", marginBottom: 8 }}>
           Noch kein Impact-Projekt
         </div>
         <div style={{ fontSize: 13, color: "#666" }}>
@@ -2982,7 +2982,7 @@ function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
               <div style={{
                 position:"absolute", bottom:0, left:0, right:0,
                 background: badgeBg,
-                fontSize:9, fontWeight:700, color:"#fff",
+                fontSize:9, fontWeight: 600, color:"#fff",
                 padding:"3px 5px", textAlign:"center", letterSpacing:"0.3px",
               }}>
                 {badgeText}
@@ -3021,9 +3021,9 @@ function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
               style={{ width:"100%", height:160, objectFit:"cover", borderRadius:14, marginBottom:14 }} />
           )}
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6, gap:8 }}>
-            <div style={{ fontSize:16, fontWeight:800, color:"#1A1A1A", flex:1 }}>{selected.project_name}</div>
+            <div style={{ fontSize:16, fontWeight: 600, color:"#1A1A1A", flex:1 }}>{selected.project_name}</div>
             <span style={{
-              fontSize:11, fontWeight:700, flexShrink:0, padding:"3px 8px", borderRadius:99,
+              fontSize:11, fontWeight: 600, flexShrink:0, padding:"3px 8px", borderRadius:99,
               color: selected.status==="approved" ? "#0DC4B5" : selected.status==="rejected" ? "#e74c3c" : "#f39c12",
               background: (selected.status==="approved" ? "#0DC4B5" : selected.status==="rejected" ? "#e74c3c" : "#f39c12") + "15",
             }}>
@@ -3050,7 +3050,7 @@ function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
           })()}
           {/* ── Neuigkeiten / Projekt-Updates ── */}
           <div style={{ marginBottom:14 }}>
-            <div style={{ fontSize:14, fontWeight:800, color:"#1A1A1A", marginBottom:8 }}>📰 Neuigkeiten</div>
+            <div style={{ fontSize:14, fontWeight: 600, color:"#1A1A1A", marginBottom:8 }}>📰 Neuigkeiten</div>
             {updatesLoading ? (
               <div style={{ fontSize:12, color:"#888" }}>Laden...</div>
             ) : updates.length === 0 ? (
@@ -3074,7 +3074,7 @@ function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
                       borderRadius:12, padding:12,
                     }}>
                       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:4, gap:6 }}>
-                        <span style={{ fontSize:10, fontWeight:700, color:tc.c, background:tc.bg, padding:"2px 6px", borderRadius:99, flexShrink:0 }}>{u.update_type || "Update"}</span>
+                        <span style={{ fontSize:10, fontWeight: 600, color:tc.c, background:tc.bg, padding:"2px 6px", borderRadius:99, flexShrink:0 }}>{u.update_type || "Update"}</span>
                         <div style={{ display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
                           <span style={{ fontSize:10, color:"#999" }}>{fmtD}</span>
                           {!isEditing && (
@@ -3103,7 +3103,7 @@ function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
                             style={{
                               width:"100%", padding:"7px 10px", marginBottom:6,
                               borderRadius:8, border:"1px solid rgba(0,0,0,0.12)",
-                              fontSize:13, fontWeight:700, fontFamily:"inherit", color:"#1A1A1A",
+                              fontSize:13, fontWeight: 600, fontFamily:"inherit", color:"#1A1A1A",
                               outline:"none", boxSizing:"border-box",
                             }}
                           />
@@ -3130,7 +3130,7 @@ function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
                               style={{
                                 flex:1, padding:"7px 0", borderRadius:8, border:"none",
                                 background: savingEdit ? "#9fd8d2" : "#0DC4B5", color:"#fff",
-                                fontSize:12, fontWeight:700, cursor: savingEdit ? "default" : "pointer",
+                                fontSize:12, fontWeight: 600, cursor: savingEdit ? "default" : "pointer",
                                 fontFamily:"inherit",
                               }}
                             >
@@ -3152,7 +3152,7 @@ function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
                         </div>
                       ) : (
                         <>
-                          <div style={{ fontSize:13, fontWeight:700, color:"#1A1A1A", marginBottom:2 }}>{u.title}</div>
+                          <div style={{ fontSize:13, fontWeight: 600, color:"#1A1A1A", marginBottom:2 }}>{u.title}</div>
                           {u.content && <div style={{ fontSize:12, color:"#666", lineHeight:1.4 }}>{u.content}</div>}
                           {u.media_urls && u.media_urls.length > 0 && (
                             <div style={{ display:"flex", flexWrap:"wrap", gap:4, marginTop:6 }}>
@@ -3179,7 +3179,7 @@ function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
               style={{
                 width:"100%", padding:"10px 0", borderRadius:12,
                 border:"1.5px dashed #0DC4B5", background:"transparent",
-                color:"#0DC4B5", fontSize:13, fontWeight:700,
+                color:"#0DC4B5", fontSize:13, fontWeight: 600,
                 cursor:"pointer", fontFamily:"inherit", marginBottom:8,
               }}
             >
@@ -3226,7 +3226,7 @@ function GemeinschaftsKarte({ onJoin }) {
         }}/>
 
         <h3 style={{
-          fontSize:22, fontWeight:800, color:"#1A1A18",
+          fontSize:22, fontWeight: 600, color:"#1A1A18",
           letterSpacing:"-0.03em", lineHeight:1.25,
           margin:"0 0 10px",
         }}>
@@ -3249,7 +3249,7 @@ function GemeinschaftsKarte({ onJoin }) {
             padding:"14px 22px",
             background:"linear-gradient(135deg,#0EC4B8,#0AADA3)",
             color:"#fff", border:"none", borderRadius:99,
-            fontSize:15, fontWeight:800,
+            fontSize:15, fontWeight: 600,
             cursor:"pointer", fontFamily:"inherit",
             boxShadow:"0 4px 16px rgba(14,196,184,0.30)",
             touchAction:"manipulation",
@@ -3302,13 +3302,13 @@ function TalentWerdenBanner({ onStart = () => {} }) {
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', position: 'relative' }}>
           <div style={{ width: '100%' }}>
             <div style={{
-              fontSize: 11, fontWeight: 700, color: '#FF8A6B',
+              fontSize: 11, fontWeight: 600, color: '#FF8A6B',
               textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4,
             }}>
               Dein nächster Schritt
             </div>
             <div style={{
-              fontSize: 17, fontWeight: 800, color: '#1A1A18',
+              fontSize: 17, fontWeight: 600, color: '#1A1A18',
               lineHeight: 1.3, letterSpacing: '-0.02em', marginBottom: 6,
             }}>
               Werde HUI-Talent
@@ -3342,7 +3342,7 @@ function TalentWerdenBanner({ onStart = () => {} }) {
                 padding: '13px 24px',
                 background: 'linear-gradient(135deg, #FF8A6B, #FF6B47)',
                 color: '#fff', border: 'none', borderRadius: 99,
-                fontSize: 15, fontWeight: 800,
+                fontSize: 15, fontWeight: 600,
                 cursor: 'pointer', fontFamily: 'inherit',
                 boxShadow: '0 4px 16px rgba(255,138,107,0.35)',
                 touchAction: 'manipulation',

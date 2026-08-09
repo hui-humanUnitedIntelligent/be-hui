@@ -156,7 +156,7 @@ function NavBar({ onBack, isOwner = false, onSettings }) {
 
       {/* Title */}
       <div style={{ textAlign:"center" }}>
-        <div style={{ fontSize:16, fontWeight:700, color:T.ink, letterSpacing:"-0.02em",
+        <div style={{ fontSize:16, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em",
           display:"flex", alignItems:"center", gap:6, justifyContent:"center" }}>
           <span style={{display:"flex",alignItems:"center",gap:5}}>Öffentliches Profil<HUIImpactIcon size={15} style={{color:"rgba(14,196,184,0.7)"}}/></span>
         </div>
@@ -238,10 +238,10 @@ function OffenFuerSection({ profile, loading }) {
     <div style={{ padding:`0 ${T.px}px` }}>
       {/* Section header */}
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
-        <div style={{ fontSize:15, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>Offen für Begegnungen</div>
+        <div style={{ fontSize:15, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>Offen für Begegnungen</div>
         <button className="bpp-press-light" onClick={()=>setShowMore(true)} style={{
           background:"none", border:"none", padding:0,
-          fontSize:12, color:T.teal, fontWeight:700,
+          fontSize:12, color:T.teal, fontWeight: 600,
           cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
           display:"flex", alignItems:"center", gap:3,
         }}>Mehr erfahren ›</button>
@@ -279,7 +279,7 @@ function OffenFuerSection({ profile, loading }) {
 
       {showMore && (
         <Sheet onClose={()=>setShowMore(false)}>
-          <div style={{ fontSize:16, fontWeight:800, color:T.ink, marginBottom:6 }}>☕ Offen für Begegnungen</div>
+          <div style={{ fontSize:16, fontWeight: 600, color:T.ink, marginBottom:6 }}>☕ Offen für Begegnungen</div>
           <div style={{ fontSize:13.5, color:T.inkSoft, marginBottom:20, lineHeight:1.65,
             fontFamily:"Georgia,serif", fontStyle:"italic" }}>
             Diese Person freut sich über echte Begegnungen in diesen Bereichen.
@@ -335,7 +335,7 @@ function SocialContextBar({ loading, followCounts }) {
             <>
               <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:4 }}>
                 <span style={{ fontSize:16 }}>{st.icon}</span>
-                <span style={{ fontSize:18, fontWeight:800, color:T.ink, letterSpacing:"-0.03em" }}>{st.value}</span>
+                <span style={{ fontSize:18, fontWeight: 600, color:T.ink, letterSpacing:"-0.03em" }}>{st.value}</span>
               </div>
               <span style={{ fontSize:10.5, color:T.inkFaint, textAlign:"center", lineHeight:1.35, fontWeight:400 }}>
                 {st.label}
@@ -630,7 +630,7 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
               <div style={{ display:"flex", alignItems:"center", gap:10 }}>
                 <HUIImpactIcon size={22} style={{opacity:0.5, color:"rgba(14,196,184,0.6)"}} />
                 <div>
-                  <div style={{ fontSize:15, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>
+                  <div style={{ fontSize:15, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>
                     Mein HUI
                   </div>
                   <div style={{ fontSize:11.5, color:T.inkFaint, marginTop:1 }}>
@@ -651,7 +651,7 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
                   boxShadow:"0 4px 14px rgba(14,196,184,0.25)",
                 }}>
                   <HUISettingsIcon size={20} />
-                  <span style={{ fontSize:11.5, fontWeight:700, color:"white" }}>Einstellungen</span>
+                  <span style={{ fontSize:11.5, fontWeight: 600, color:"white" }}>Einstellungen</span>
                 </button>
 
                 {/* HUI Studio */}
@@ -664,7 +664,7 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
                   boxShadow:T.card,
                 }}>
                   <span style={{ fontSize:20 }}>🎛️</span>
-                  <span style={{ fontSize:11.5, fontWeight:700, color:T.ink }}>HUI Studio</span>
+                  <span style={{ fontSize:11.5, fontWeight: 600, color:T.ink }}>HUI Studio</span>
                 </button>
               </div>
 

@@ -33,7 +33,7 @@ function VisibilityCard({ icon, label, sub, active, onClick }) {
         display:"flex", alignItems:"center", justifyContent:"center",
         fontSize:18,
       }}>{icon}</div>
-      <div style={{ fontSize:12.5, fontWeight:800, color:WT.ink,
+      <div style={{ fontSize:12.5, fontWeight: 600, color:WT.ink,
         textAlign:"center" }}>{label}</div>
       <div style={{ fontSize:10.5, color:WT.ink3, textAlign:"center",
         lineHeight:1.3 }}>{sub}</div>
@@ -104,11 +104,11 @@ function WorkPreviewCard({ form, mediaFiles, profile }) {
         {/* Titel + Preis */}
         <div style={{ display:"flex", justifyContent:"space-between",
           alignItems:"flex-start", gap:8, marginBottom:6 }}>
-          <div style={{ fontSize:15, fontWeight:800, color:WT.ink,
+          <div style={{ fontSize:15, fontWeight: 600, color:WT.ink,
             lineHeight:1.25, flex:1 }}>
             {form.title || "Titel des Werkes"}
           </div>
-          <div style={{ fontSize:15, fontWeight:800, color:priceColor,
+          <div style={{ fontSize:15, fontWeight: 600, color:priceColor,
             flexShrink:0 }}>{price}</div>
         </div>
 
@@ -162,7 +162,7 @@ export function WorkPublishStep({ form, mediaFiles, profile, onFormChange,
 
       {/* ── Überschrift ── */}
       <div style={{ marginBottom:20 }}>
-        <h1 style={{ fontSize:22, fontWeight:900, color:WT.ink,
+        <h1 style={{ fontSize:22, fontWeight: 600, color:WT.ink,
           letterSpacing:-0.5, margin:0 }}>
           Veröffentlichung<span style={{ color:WT.teal, marginLeft:3 }}>·</span>
         </h1>
@@ -192,7 +192,7 @@ export function WorkPublishStep({ form, mediaFiles, profile, onFormChange,
 
       {/* ── Live-Vorschau ── */}
       <div style={{ marginBottom:20 }}>
-        <div style={{ fontSize:13, fontWeight:800, color:WT.ink,
+        <div style={{ fontSize:13, fontWeight: 600, color:WT.ink,
           marginBottom:12 }}>Vorschau</div>
         <WorkPreviewCard form={form} mediaFiles={mediaFiles} profile={profile} />
       </div>
@@ -221,7 +221,7 @@ export function WorkPublishStep({ form, mediaFiles, profile, onFormChange,
             ? "rgba(26,26,46,0.10)"
             : `linear-gradient(135deg, ${WT.coral} 0%, #F97316 100%)`,
           color: saving ? WT.ink3 : "#fff",
-          fontSize:16, fontWeight:900,
+          fontSize:16, fontWeight: 600,
           cursor: saving ? "default" : "pointer",
           boxShadow: saving ? "none" : "0 10px 28px rgba(251,146,60,0.32)",
           transition:"all 0.22s ease",

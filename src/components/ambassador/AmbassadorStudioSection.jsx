@@ -88,7 +88,7 @@ function LevelInfoPopup({ onClose }) {
         padding:"24px 22px", boxShadow:"0 8px 40px rgba(0,0,0,0.18)",
       }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
-          <div style={{ fontSize:17, fontWeight:900, color:T.ink }}>Ambassador-Level</div>
+          <div style={{ fontSize:17, fontWeight: 600, color:T.ink }}>Ambassador-Level</div>
           <button onClick={onClose} style={{
             background:"rgba(26,26,24,0.07)", border:"none", borderRadius:"50%",
             width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center",
@@ -108,11 +108,11 @@ function LevelInfoPopup({ onClose }) {
             }}>
               <span style={{ fontSize:20, flexShrink:0 }}>{emoji}</span>
               <div style={{ flex:1 }}>
-                <div style={{ fontSize:13, fontWeight:700, color:lc.color }}>{name}</div>
+                <div style={{ fontSize:13, fontWeight: 600, color:lc.color }}>{name}</div>
                 <div style={{ fontSize:11, color:T.inkFaint, marginTop:1 }}>{from}</div>
               </div>
               <div style={{
-                fontSize:15, fontWeight:900, color:lc.color,
+                fontSize:15, fontWeight: 600, color:lc.color,
                 background:"white", padding:"3px 10px", borderRadius:99,
                 border:`1px solid ${lc.border}`,
               }}>{rate}</div>
@@ -144,7 +144,7 @@ function UserListModal({ title, users, onClose }) {
           display:"flex", alignItems:"center", justifyContent:"space-between",
           flexShrink:0,
         }}>
-          <span style={{ fontSize:15, fontWeight:800, color:T.ink }}>{title}</span>
+          <span style={{ fontSize:15, fontWeight: 600, color:T.ink }}>{title}</span>
           <button onClick={onClose} style={{
             background:"none", border:"none", fontSize:18, cursor:"pointer",
             color:T.inkFaint, touchAction:"manipulation",
@@ -166,7 +166,7 @@ function UserListModal({ title, users, onClose }) {
                   width:36, height:36, borderRadius:"50%",
                   background:T.tealSoft, border:`1px solid ${T.tealMid}`,
                   display:"flex", alignItems:"center", justifyContent:"center",
-                  fontSize:14, fontWeight:700, color:T.teal, flexShrink:0,
+                  fontSize:14, fontWeight: 600, color:T.teal, flexShrink:0,
                 }}>
                   {(u.display_name||u.username||"?")[0].toUpperCase()}
                 </div>
@@ -183,7 +183,7 @@ function UserListModal({ title, users, onClose }) {
                 </div>
                 {u.first_transaction_at && (
                   <span style={{
-                    fontSize:10, fontWeight:700, color:T.teal,
+                    fontSize:10, fontWeight: 600, color:T.teal,
                     background:T.tealSoft, border:`1px solid ${T.tealMid}`,
                     padding:"2px 7px", borderRadius:99,
                   }}>Aktiv</span>
@@ -373,7 +373,7 @@ function AmbassadorStudioSection({ profile }) {
           <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
             <HUIVerifIcon size={22} style={{color:"rgba(245,158,11,0.8)"}} />
             <div>
-              <div style={{ fontSize:15, fontWeight:800, color:T.ink }}>Ambassador werden</div>
+              <div style={{ fontSize:15, fontWeight: 600, color:T.ink }}>Ambassador werden</div>
               <div style={{ fontSize:12, color:T.inkFaint }}>Empfehle HUI weiter und verdiene mit</div>
             </div>
           </div>
@@ -383,7 +383,7 @@ function AmbassadorStudioSection({ profile }) {
           <button onClick={() => setApplyOpen(true)} style={{
             padding:"10px 22px", borderRadius:T.r99,
             background:T.teal, border:"none", color:"white",
-            fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"inherit",
+            fontSize:13, fontWeight: 600, cursor:"pointer", fontFamily:"inherit",
             touchAction:"manipulation",
           }}>Jetzt bewerben</button>
         </div>
@@ -410,7 +410,7 @@ function AmbassadorStudioSection({ profile }) {
         <div style={{ display:"flex", alignItems:"center", gap:10 }}>
           <span style={{ fontSize:22 }}>{levelEmoji(level)}</span>
           <div>
-            <div style={{ fontSize:15, fontWeight:800, color:T.ink }}>Ambassador-Bereich</div>
+            <div style={{ fontSize:15, fontWeight: 600, color:T.ink }}>Ambassador-Bereich</div>
             <div style={{ fontSize:12, color:T.teal, fontWeight:600 }}>{level}-Level</div>
           </div>
         </div>
@@ -418,7 +418,7 @@ function AmbassadorStudioSection({ profile }) {
         <button onClick={() => setShowLevel(true)} className="studio-press" style={{
           padding:"5px 13px", borderRadius:T.r99,
           background:lc.bg, border:`1px solid ${lc.border}`,
-          fontSize:12, fontWeight:700, color:lc.color,
+          fontSize:12, fontWeight: 600, color:lc.color,
           display:"flex", alignItems:"center", gap:5,
           cursor:"pointer", fontFamily:"inherit", touchAction:"manipulation",
         }}>
@@ -453,7 +453,7 @@ function AmbassadorStudioSection({ profile }) {
               display:"flex", flexDirection:"column", alignItems:"center", gap:4,
             }}>
               <span style={{ fontSize:18 }}>{emoji}</span>
-              <div style={{ fontSize:20, fontWeight:900, color:T.ink, lineHeight:1 }}>
+              <div style={{ fontSize:20, fontWeight: 600, color:T.ink, lineHeight:1 }}>
                 {count}
                 <span style={{ fontSize:14, color:T.teal, marginLeft:3 }}>+</span>
               </div>
@@ -476,7 +476,7 @@ function AmbassadorStudioSection({ profile }) {
           <div style={{ fontSize:11, color:T.inkFaint, fontWeight:600, marginBottom:2 }}>
             Mein Anteil (Umsatz)
           </div>
-          <div style={{ fontSize:20, fontWeight:900, color:T.ink }}>
+          <div style={{ fontSize:20, fontWeight: 600, color:T.ink }}>
             {Number(earnings).toFixed(2)} €
           </div>
         </div>
@@ -520,7 +520,7 @@ function AmbassadorStudioSection({ profile }) {
             padding:"7px 14px", borderRadius:T.r99, flexShrink:0,
             background: copying ? "#16A34A" : T.teal,
             border:"none", color:"white",
-            fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"inherit",
+            fontSize:12, fontWeight: 600, cursor:"pointer", fontFamily:"inherit",
             touchAction:"manipulation", transition:"background .2s",
           }}>
             {copying ? "✓ Kopiert" : "Link kopieren"}
@@ -651,7 +651,7 @@ function EinladungenModal({ ambassadorId, username, onClose }) {
           flexShrink:0,
         }}>
           <div>
-            <div style={{ fontSize:18, fontWeight:700, color:"#1A1A18", letterSpacing:"-0.02em" }}>
+            <div style={{ fontSize:18, fontWeight: 600, color:"#1A1A18", letterSpacing:"-0.02em" }}>
               ✉️ Einladungen verwalten
             </div>
             <div style={{ fontSize:12, color:"rgba(26,26,24,0.45)", marginTop:2 }}>
@@ -725,7 +725,7 @@ function EinladungenModal({ ambassadorId, username, onClose }) {
                       background:"rgba(14,196,184,0.12)",
                       border:"2px solid rgba(14,196,184,0.25)",
                       display:"flex", alignItems:"center", justifyContent:"center",
-                      overflow:"hidden", fontSize:15, fontWeight:700, color:"#0EC4B8",
+                      overflow:"hidden", fontSize:15, fontWeight: 600, color:"#0EC4B8",
                       flexShrink:0,
                     }}>
                       {u.avatar_url

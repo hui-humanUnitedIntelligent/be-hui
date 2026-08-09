@@ -74,7 +74,7 @@ function ScoreBadge({ score, label, size = 'normal' }) {
   return (
     <div style={{ textAlign: 'center' }}>
       <div style={{
-        fontSize: fs, fontWeight: 800, color,
+        fontSize: fs, fontWeight: 600, color,
         }}>
         {pct}<span style={{ fontSize: fs * 0.5, opacity: 0.6 }}>%</span>
       </div>
@@ -90,7 +90,7 @@ function MetricRow({ label, value, unit = '', warn, ok }) {
     <div style={{ display: 'flex', justifyContent: 'space-between',
       padding: '7px 0', borderBottom: `1px solid ${C.border}`, alignItems: 'center' }}>
       <span style={{ fontSize: 13, color: C.muted }}>{label}</span>
-      <span style={{ fontSize: 13, fontWeight: 700, color, }}>
+      <span style={{ fontSize: 13, fontWeight: 600, color, }}>
         {value ?? '–'}{unit && value != null ? unit : ''}
       </span>
     </div>
@@ -106,7 +106,7 @@ function Section({ title, icon, children, accent = C.teal }) {
       borderTop: `3px solid ${accent}`,
       padding: 20, marginBottom: 16,
     }}>
-      <div style={{ fontSize: 13, fontWeight: 700, color: C.ink,
+      <div style={{ fontSize: 13, fontWeight: 600, color: C.ink,
         marginBottom: 14, display: 'flex', gap: 8, alignItems: 'center' }}>
         <span>{icon}</span> {title}
       </div>
@@ -135,7 +135,7 @@ function Pill({ label, level }) {
   return (
     <span style={{
       display: 'inline-block', padding: '3px 10px', borderRadius: 999,
-      background: bg, color: fg, fontSize: 11, fontWeight: 700,
+      background: bg, color: fg, fontSize: 11, fontWeight: 600,
       textTransform: 'uppercase', letterSpacing: '0.05em',
     }}>{label ?? level}</span>
   );
@@ -200,7 +200,7 @@ export default function PlatformDashboard() {
           letterSpacing: '0.1em', marginBottom: 6 }}>
           INTERN — Platform Health
         </div>
-        <div style={{ fontSize: 22, fontWeight: 800, color: C.ink }}>
+        <div style={{ fontSize: 22, fontWeight: 600, color: C.ink }}>
           HUI Dashboard
         </div>
         <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>
@@ -424,12 +424,12 @@ function FlagSection() {
         <button onClick={killAll} style={{
           background: '#FFEBEE', border: `1px solid ${C.red}`, borderRadius: 8,
           padding: '6px 14px', cursor: 'pointer', fontSize: 12,
-          color: C.red, fontWeight: 700,
+          color: C.red, fontWeight: 600,
           display:"flex", alignItems:"center", gap:6}}><HUIWarnIcon size={14}/>Emergency Downgrade</button>
         <button onClick={recover} style={{
           background: '#E8F5E9', border: `1px solid ${C.green}`, borderRadius: 8,
           padding: '6px 14px', cursor: 'pointer', fontSize: 12,
-          color: C.green, fontWeight: 700,
+          color: C.green, fontWeight: 600,
         }}>✓ Recover All</button>
       </div>
       <MetricRow label="Total Flags"    value={status.summary.total} />
@@ -448,7 +448,7 @@ function FlagSection() {
           <button onClick={() => toggle(key)} style={{
             background: f.active ? '#E8F5E9' : '#FFEBEE',
             border: 'none', borderRadius: 999, padding: '3px 10px',
-            cursor: 'pointer', fontSize: 11, fontWeight: 700,
+            cursor: 'pointer', fontSize: 11, fontWeight: 600,
             color: f.active ? C.green : C.red,
           }}>{f.active ? 'ON' : 'OFF'}</button>
         </div>
@@ -512,7 +512,7 @@ function RecoverySection() {
         ))}
         <button onClick={() => recover('all')} style={{
           background: '#E6FAF8', border: `1px solid ${C.teal}`, borderRadius: 8,
-          padding: '5px 12px', cursor: 'pointer', fontSize: 11, color: C.teal, fontWeight: 700,
+          padding: '5px 12px', cursor: 'pointer', fontSize: 11, color: C.teal, fontWeight: 600,
         }}>↺ All</button>
       </div>
       <MetricRow label="Recovery Events" value={status.totalEvents} />
@@ -545,7 +545,7 @@ function PreflightSection() {
         background: running ? C.border : '#E6FAF8',
         border: `1px solid ${C.teal}`, borderRadius: 8,
         padding: '7px 16px', cursor: running ? 'wait' : 'pointer',
-        fontSize: 12, color: C.teal, fontWeight: 700, marginBottom: 12,
+        fontSize: 12, color: C.teal, fontWeight: 600, marginBottom: 12,
       }}>{running ? 'Prüfe…' : '▶ Preflight starten'}</button>
 
       {result && (

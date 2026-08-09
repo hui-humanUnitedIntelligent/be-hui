@@ -76,7 +76,7 @@ export default function ConversationCard({ conv, onPress, isActive }) {
           border:"2px solid rgba(255,255,255,0.90)",
           boxShadow:"0 3px 10px rgba(0,0,0,0.10)",
           display:"flex", alignItems:"center", justifyContent:"center",
-          fontSize:18, color:"white", fontWeight:700,
+          fontSize:18, color:"white", fontWeight: 600,
         }}>{!avatar && initials}</div>
         {/* Kein Online-Status-Dot — kein Presence-Druck */}
       </div>
@@ -138,7 +138,7 @@ export default function ConversationCard({ conv, onPress, isActive }) {
           flexShrink:0, minWidth:20, height:20, borderRadius:10,
           background:`linear-gradient(135deg,${C.teal},#11C5B7)`,
           display:"flex", alignItems:"center", justifyContent:"center",
-          fontSize:10.5, fontWeight:800, color:"white", padding:"0 5px",
+          fontSize:10.5, fontWeight: 600, color:"white", padding:"0 5px",
           boxShadow:`0 2px 6px rgba(22,215,197,0.45)`,
         }}>{unread > 9 ? "9+" : unread}</div>
       ) : conv.pending ? (

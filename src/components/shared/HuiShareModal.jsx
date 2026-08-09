@@ -151,7 +151,7 @@ function Avatar({ user, size = 36 }) {
       width: size, height: size, borderRadius: "50%",
       background: T.teal, color: "#fff",
       display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: size * 0.4, fontWeight: 700, flexShrink: 0,
+      fontSize: size * 0.4, fontWeight: 600, flexShrink: 0,
     }}>
       {initials}
     </div>
@@ -301,9 +301,9 @@ export function HuiShareModal({ item, onClose }) {
             <div style={{
               width: 28, height: 28, borderRadius: "50%",
               background: T.teal, display: "flex", alignItems: "center",
-              justifyContent: "center", fontSize: 13, fontWeight: 800, color: "#fff",
+              justifyContent: "center", fontSize: 13, fontWeight: 600, color: "#fff",
             }}>H</div>
-            <span style={{ fontSize: 16, fontWeight: 700, color: T.ink, letterSpacing: -0.3 }}>
+            <span style={{ fontSize: 16, fontWeight: 600, color: T.ink, letterSpacing: -0.3 }}>
               HUI Share
             </span>
           </div>
@@ -330,7 +330,7 @@ export function HuiShareModal({ item, onClose }) {
             }} />
           )}
           <div style={{ overflow: "hidden" }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: T.teal, letterSpacing: 0.5, textTransform: "uppercase" }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: T.teal, letterSpacing: 0.5, textTransform: "uppercase" }}>
               {meta.emoji} {meta.label}
             </div>
             <div style={{
@@ -370,7 +370,7 @@ export function HuiShareModal({ item, onClose }) {
 
             {/* Nutzer-Suche */}
             <div style={{ marginBottom: 14 }}>
-              <label style={{ fontSize: 11, fontWeight: 700, color: T.ink3, letterSpacing: 0.4, display: "block", marginBottom: 6 }}>
+              <label style={{ fontSize: 11, fontWeight: 600, color: T.ink3, letterSpacing: 0.4, display: "block", marginBottom: 6 }}>
                 EMPFÄNGER SUCHEN
               </label>
               <div style={{ position: "relative" }}>
@@ -463,7 +463,7 @@ export function HuiShareModal({ item, onClose }) {
             {/* Optionale Nachricht */}
             {selectedUser && (
               <div style={{ marginBottom: 16 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: T.ink3, letterSpacing: 0.4, display: "block", marginBottom: 6 }}>
+                <label style={{ fontSize: 11, fontWeight: 600, color: T.ink3, letterSpacing: 0.4, display: "block", marginBottom: 6 }}>
                   NACHRICHT (OPTIONAL)
                 </label>
                 <textarea
@@ -495,7 +495,7 @@ export function HuiShareModal({ item, onClose }) {
                 width: "100%", padding: "13px 0",
                 borderRadius: 12, border: "none",
                 background: sent ? "#22C55E" : selectedUser ? T.teal : T.border,
-                color: "#fff", fontSize: 15, fontWeight: 700,
+                color: "#fff", fontSize: 15, fontWeight: 600,
                 cursor: selectedUser && !sending && !sent ? "pointer" : "default",
                 transition: "background 0.2s",
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
@@ -531,7 +531,7 @@ export function HuiShareModal({ item, onClose }) {
                 onClick={() => handleExternalShare({ id: "native", build: null })}
                 style={{
                   width: "100%", padding: "13px 0", borderRadius: 12, border: "none",
-                  background: T.teal, color: "#fff", fontSize: 14, fontWeight: 700,
+                  background: T.teal, color: "#fff", fontSize: 14, fontWeight: 600,
                   cursor: "pointer", marginBottom: 14,
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                 }}
@@ -545,7 +545,7 @@ export function HuiShareModal({ item, onClose }) {
             )}
 
             {/* App-Raster */}
-            <div style={{ fontSize: 11, fontWeight: 700, color: T.ink3, letterSpacing: 0.4, marginBottom: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: T.ink3, letterSpacing: 0.4, marginBottom: 10 }}>
               DIREKT TEILEN
             </div>
             <div style={{
@@ -588,7 +588,7 @@ export function HuiShareModal({ item, onClose }) {
               padding: "10px 14px", borderRadius: 10,
               background: T.bg, border: `1px solid ${T.border}`,
             }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: T.ink3, letterSpacing: 0.4, marginBottom: 4 }}>
+              <div style={{ fontSize: 10, fontWeight: 600, color: T.ink3, letterSpacing: 0.4, marginBottom: 4 }}>
                 ÖFFENTLICHER LINK
               </div>
               <div style={{

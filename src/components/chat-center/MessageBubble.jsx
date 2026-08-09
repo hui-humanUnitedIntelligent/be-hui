@@ -169,7 +169,7 @@ function MessageActionModal({ msg, position, onEdit, onDelete, onClose }) {
                   flex:1, padding:"9px",
                   border:"none", borderRadius:9,
                   background:"linear-gradient(135deg," + C.teal + "," + C.teal2 + ")",
-                  color:"white", cursor:"pointer", fontSize:13, fontWeight:700,
+                  color:"white", cursor:"pointer", fontSize:13, fontWeight: 600,
                   WebkitTapHighlightColor:"transparent",
                 }}
               >Speichern</button>
@@ -285,7 +285,7 @@ export default function MessageBubble({ msg, onDelete, onEdit }) {
           background:"linear-gradient(135deg," + C.teal + "70," + C.teal2 + "50)",
           border:"1.5px solid rgba(255,255,255,0.8)",
           display:"flex", alignItems:"center", justifyContent:"center",
-          fontSize:12, color:"white", fontWeight:700, marginBottom:2,
+          fontSize:12, color:"white", fontWeight: 600, marginBottom:2,
         }}>{(msg.sender_name||"?")[0].toUpperCase()}</div>
       )}
 

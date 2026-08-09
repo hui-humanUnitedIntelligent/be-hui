@@ -159,7 +159,7 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
           alignItems:"center", justifyContent:"center", fontSize:36, marginBottom:20 }}>
           ✅
         </div>
-        <h2 style={{ fontSize:22, fontWeight:700, color:C.ink, margin:"0 0 10px" }}>
+        <h2 style={{ fontSize:22, fontWeight: 600, color:C.ink, margin:"0 0 10px" }}>
           Ticket erstellt!
         </h2>
         <p style={{ fontSize:15, color:C.muted, margin:"0 0 20px", lineHeight:1.5 }}>
@@ -169,7 +169,7 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
         <div style={{ background:"white", border:`1px solid ${C.border}`,
           borderRadius:12, padding:"14px 24px", marginBottom:28 }}>
           <p style={{ margin:0, fontSize:12, color:C.muted }}>Deine Ticket-Nummer</p>
-          <p style={{ margin:"4px 0 0", fontSize:20, fontWeight:700,
+          <p style={{ margin:"4px 0 0", fontSize:20, fontWeight: 600,
             color:C.teal, fontFamily:"monospace", letterSpacing:1 }}>
             {ticketNr}
           </p>
@@ -184,7 +184,7 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
         </p>
         <button onClick={onBack}
           style={{ padding:"13px 32px", borderRadius:12, border:"none",
-            background:C.teal, color:"white", fontSize:15, fontWeight:700,
+            background:C.teal, color:"white", fontSize:15, fontWeight: 600,
             cursor:"pointer" }}>
           Zurück zum Studio
         </button>
@@ -213,7 +213,7 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
           display:"flex", alignItems:"center", justifyContent:"center",
           cursor:"pointer", fontSize:16 }}>←</button>
         <div>
-          <p style={{ margin:0, fontSize:17, fontWeight:700, color:C.ink }}>Support</p>
+          <p style={{ margin:0, fontSize:17, fontWeight: 600, color:C.ink }}>Support</p>
           <p style={{ margin:0, fontSize:12, color:C.muted }}>Wir helfen dir gerne weiter</p>
         </div>
       </div>
@@ -225,7 +225,7 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
         {/* Kontaktdaten */}
         <div style={{ background:"white", borderRadius:14, padding:"18px 16px",
           border:`1px solid ${C.border}`, marginBottom:14 }}>
-          <p style={{ margin:"0 0 14px", fontSize:14, fontWeight:700, color:C.ink }}>
+          <p style={{ margin:"0 0 14px", fontSize:14, fontWeight: 600, color:C.ink }}>
             📋 Kontaktdaten
           </p>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
@@ -251,7 +251,7 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
         {/* Kategorie */}
         <div style={{ background:"white", borderRadius:14, padding:"18px 16px",
           border:`1px solid ${errors.category ? C.red : C.border}`, marginBottom:14 }}>
-          <p style={{ margin:"0 0 14px", fontSize:14, fontWeight:700, color:C.ink }}>
+          <p style={{ margin:"0 0 14px", fontSize:14, fontWeight: 600, color:C.ink }}>
             🏷️ Problem-Kategorie *
           </p>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
@@ -273,7 +273,7 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
         {/* Betreff & Nachricht */}
         <div style={{ background:"white", borderRadius:14, padding:"18px 16px",
           border:`1px solid ${C.border}`, marginBottom:14 }}>
-          <p style={{ margin:"0 0 14px", fontSize:14, fontWeight:700, color:C.ink }}>
+          <p style={{ margin:"0 0 14px", fontSize:14, fontWeight: 600, color:C.ink }}>
             ✍️ Dein Anliegen
           </p>
           <div style={{ marginBottom:10 }}>
@@ -299,7 +299,7 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
         {/* Datei-Upload */}
         <div style={{ background:"white", borderRadius:14, padding:"18px 16px",
           border:`1px solid ${C.border}`, marginBottom:20 }}>
-          <p style={{ margin:"0 0 6px", fontSize:14, fontWeight:700, color:C.ink }}>
+          <p style={{ margin:"0 0 6px", fontSize:14, fontWeight: 600, color:C.ink }}>
             📎 Anhänge <span style={{color:C.muted,fontWeight:400,fontSize:12}}>(optional, max. 5 Dateien, je 10MB)</span>
           </p>
           <p style={{ margin:"0 0 12px", fontSize:12, color:C.muted }}>
@@ -349,7 +349,7 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
         <button onClick={handleSubmit} disabled={loading}
           style={{ width:"100%", padding:"15px", borderRadius:12, border:"none",
             background: loading ? "rgba(22,215,197,0.5)" : C.teal,
-            color:"white", fontSize:16, fontWeight:700,
+            color:"white", fontSize:16, fontWeight: 600,
             cursor: loading ? "default" : "pointer",
             letterSpacing:0.3 }}>
           {loading ? "⏳ Ticket wird erstellt…" : "📨 Support-Ticket senden"}

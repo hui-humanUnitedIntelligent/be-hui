@@ -145,7 +145,7 @@ function ProfileHeader({ profile, onNotif, onSettings, delay }) {
       }}>
         {profile?.avatar_url
           ? <img loading="lazy" decoding="async" src={optimizeAvatar(profile.avatar_url)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-          : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: T.white, fontSize: 17, fontWeight: 700, fontFamily: FONT }}>
+          : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: T.white, fontSize: 17, fontWeight: 600, fontFamily: FONT }}>
               {name ? name[0].toUpperCase() : "H"}
             </div>
         }
@@ -156,7 +156,7 @@ function ProfileHeader({ profile, onNotif, onSettings, delay }) {
         <div style={{ fontFamily: FONT, fontSize: 11.5, color: T.inkSoft, fontWeight: 400, lineHeight: 1.3 }}>
           {greeting},
         </div>
-        <div style={{ fontFamily: FONT, fontSize: 17, fontWeight: 700, color: T.ink, lineHeight: 1.2, display: "flex", alignItems: "center", gap: 5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        <div style={{ fontFamily: FONT, fontSize: 17, fontWeight: 600, color: T.ink, lineHeight: 1.2, display: "flex", alignItems: "center", gap: 5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {name || "Mein HUI"}
           <span style={{ fontSize: 13 }}><span className="hui-emoji">🌿</span></span>
         </div>
@@ -338,7 +338,7 @@ function OrbHero({ profile, coreDelay, infoDelay }) {
             }}>
               <span style={{ fontSize: 13, lineHeight: 1 }}>{s.icon}</span>
               <div>
-                <div style={{ fontFamily: FONT, fontSize: 10.5, fontWeight: 700, color: T.ink, lineHeight: 1.2 }}>{s.label}</div>
+                <div style={{ fontFamily: FONT, fontSize: 10.5, fontWeight: 600, color: T.ink, lineHeight: 1.2 }}>{s.label}</div>
                 <div style={{ fontFamily: FONT, fontSize: 9.5, color: T.inkSoft, lineHeight: 1.2 }}>{s.sub}</div>
               </div>
             </div>
@@ -440,7 +440,7 @@ function PillarCard({ pillar, index, baseDelay }) {
         </div>
 
         <div style={{
-          fontFamily: FONT, fontSize: 13.5, fontWeight: 700,
+          fontFamily: FONT, fontSize: 13.5, fontWeight: 600,
           color: pillar.accent, marginBottom: 5, lineHeight: 1.2,
           letterSpacing: "-0.01em",
         }}>
@@ -474,7 +474,7 @@ function Pillars({ delay }) {
           display: "flex", alignItems: "baseline", justifyContent: "space-between",
           paddingRight: 20, marginBottom: 14,
         }}>
-          <div style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: T.ink, letterSpacing: "-0.015em" }}>
+          <div style={{ fontFamily: FONT, fontSize: 16, fontWeight: 600, color: T.ink, letterSpacing: "-0.015em" }}>
             Deine Grundpfeiler
           </div>
         </div>
@@ -508,7 +508,7 @@ function Journey({ delay }) {
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14,
         }}>
-          <div style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: T.ink, letterSpacing: "-0.015em" }}>
+          <div style={{ fontFamily: FONT, fontSize: 16, fontWeight: 600, color: T.ink, letterSpacing: "-0.015em" }}>
             Deine Reise
           </div>
           <button style={{
@@ -538,7 +538,7 @@ function Journey({ delay }) {
               }}>
                 <span style={{ fontSize: 24 }}>{j.emoji}</span>
               </div>
-              <div style={{ fontFamily: FONT, fontSize: 12, fontWeight: 700, color: T.ink, marginBottom: 4, lineHeight: 1.2 }}>
+              <div style={{ fontFamily: FONT, fontSize: 12, fontWeight: 600, color: T.ink, marginBottom: 4, lineHeight: 1.2 }}>
                 {j.label}
               </div>
               <div style={{ fontFamily: FONT, fontSize: 11, color: T.inkSoft, lineHeight: 1.45 }}>
@@ -569,7 +569,7 @@ function ImpactMoments({ delay }) {
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14,
         }}>
-          <div style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, color: T.ink, letterSpacing: "-0.015em" }}>
+          <div style={{ fontFamily: FONT, fontSize: 16, fontWeight: 600, color: T.ink, letterSpacing: "-0.015em" }}>
             Deine Impact-Momente
           </div>
           <button style={{

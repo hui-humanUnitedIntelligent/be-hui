@@ -205,7 +205,7 @@ export default function StoryComposer({ onClose, onSuccess }) {
       <style>{CSS}</style>
       <div style={{textAlign:"center",color:"white",padding:"24px"}}>
         <div style={{fontSize:64,marginBottom:16,animation:"scPop .5s both"}}>⚡️</div>
-        <h2 style={{margin:"0 0 8px",fontSize:28,fontWeight:900,letterSpacing:"-.5px"}}>
+        <h2 style={{margin:"0 0 8px",fontSize:28,fontWeight: 600,letterSpacing:"-.5px"}}>
           Story ist live!
         </h2>
         <p style={{margin:0,opacity:.85,fontSize:15}}>
@@ -270,7 +270,7 @@ export default function StoryComposer({ onClose, onSuccess }) {
             left:0,right:0,
             padding:mediaPreview?"16px 32px":"16px 32px 0",
             background:"transparent",border:"none",outline:"none",
-            color:"white",fontSize:mediaPreview?22:20,fontWeight:800,
+            color:"white",fontSize:mediaPreview?22:20,fontWeight: 600,
             textAlign:"center",
             textShadow:mediaPreview?"0 2px 12px rgba(0,0,0,.5)":"none",
             resize:"none",fontFamily:"inherit",lineHeight:1.35,
@@ -319,7 +319,7 @@ export default function StoryComposer({ onClose, onSuccess }) {
               style={{flexShrink:0,padding:"6px 12px",borderRadius:999,
                 border:`1.5px solid ${mood===m.k?"white":"rgba(255,255,255,.3)"}`,
                 background:mood===m.k?"rgba(255,255,255,.25)":"rgba(0,0,0,.3)",
-                color:"white",fontSize:12,fontWeight:700,cursor:"pointer",
+                color:"white",fontSize:12,fontWeight: 600,cursor:"pointer",
                 backdropFilter:"blur(8px)",display:"flex",alignItems:"center",
                 gap:5,transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */}}>
               <span>{m.e}</span><span>{m.l}</span>
@@ -335,7 +335,7 @@ export default function StoryComposer({ onClose, onSuccess }) {
 
         {panel==="settings" ? (
           <div style={{animation:"scUp .2s both"}}>
-            <p style={{margin:"0 0 12px",fontSize:11,fontWeight:700,
+            <p style={{margin:"0 0 12px",fontSize:11,fontWeight: 600,
               color:T.muted,letterSpacing:.6}}>EINSTELLUNGEN</p>
 
             {/* Visibility */}
@@ -347,7 +347,7 @@ export default function StoryComposer({ onClose, onSuccess }) {
                     background:visibility===opt.v
                       ?`linear-gradient(135deg,${T.teal},${T.coral})`
                       :"rgba(255,255,255,.08)",
-                    color:"white",fontSize:12,fontWeight:700,
+                    color:"white",fontSize:12,fontWeight: 600,
                     cursor:"pointer",transition:"all 220ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.color */}}>
                   {opt.l}
                 </button>
@@ -413,12 +413,12 @@ export default function StoryComposer({ onClose, onSuccess }) {
               <div style={{padding:"12px 14px",borderRadius:14,
                 background:"rgba(255,80,80,.12)",border:"1px solid rgba(255,80,80,.3)",
                 fontSize:13,color:"#FF8A8A",lineHeight:1.5}}>
-                <div style={{fontWeight:700,marginBottom:4, display:"flex", alignItems:"center", gap:4}}><HUIWarnIcon size={16}/>Ups.</div>
+                <div style={{fontWeight: 600,marginBottom:4, display:"flex", alignItems:"center", gap:4}}><HUIWarnIcon size={16}/>Ups.</div>
                 <div>{error}</div>
                 <button className="sc-tap" onClick={publish}
                   style={{marginTop:8,padding:"6px 14px",borderRadius:10,border:"none",
                     background:"rgba(255,255,255,.15)",color:"white",
-                    fontSize:12,fontWeight:700,cursor:"pointer"}}>
+                    fontSize:12,fontWeight: 600,cursor:"pointer"}}>
                   Nochmal versuchen
                 </button>
               </div>
@@ -432,7 +432,7 @@ export default function StoryComposer({ onClose, onSuccess }) {
                   ?`linear-gradient(135deg,${T.teal},${T.coral})`
                   :"rgba(255,255,255,.1)",
                 color:canPublish?"white":"rgba(255,255,255,.3)",
-                fontWeight:900,fontSize:15,
+                fontWeight: 600,fontSize:15,
                 cursor:canPublish?"pointer":"not-allowed",
                 boxShadow:canPublish?`0 6px 24px ${T.tealGlow}`:"none",
                 display:"flex",alignItems:"center",justifyContent:"center",gap:8,

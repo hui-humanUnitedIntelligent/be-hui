@@ -103,7 +103,7 @@ function PrimaryBtn({ children, onClick, type = 'button', disabled, loading }) {
         border: 'none',
         borderRadius: 16,
         fontSize: 17,
-        fontWeight: 800,
+        fontWeight: 600,
         cursor: disabled ? 'not-allowed' : 'pointer',
         fontFamily: 'inherit',
         letterSpacing: -0.2,
@@ -686,7 +686,7 @@ export default function LoginPage() {
       {}
       <div style={{ position: 'relative', zIndex: 1, padding: '0 28px max(48px,env(safe-area-inset-bottom,48px))' }}>
         <div style={{ marginBottom: 36 }}>
-          <div style={{ fontWeight: 900, fontSize: 42, color: T.white, letterSpacing: -1.8,
+          <div style={{ fontWeight: 600, fontSize: 42, color: T.white, letterSpacing: -1.8,
             lineHeight: 1.1, marginBottom: 16 }}>
             Verbinde dich<br/>mit Menschen,<br/>
             <span style={{ color: T.teal }}>die wirken.</span>
@@ -781,7 +781,7 @@ export default function LoginPage() {
           </div>
 
           <div style={{ marginBottom: 14 }}>
-            <div style={{ fontWeight: 900, fontSize: 20, color: T.white, letterSpacing: -0.5,
+            <div style={{ fontWeight: 600, fontSize: 20, color: T.white, letterSpacing: -0.5,
               lineHeight: 1.2, marginBottom: 6, whiteSpace: 'pre-line' }}>
               {copy.headline}
             </div>
@@ -855,7 +855,7 @@ export default function LoginPage() {
                   rightSlot={
                     username.trim().length >= 3 ? (
                       <span style={{
-                        fontSize: 11, fontWeight: 700,
+                        fontSize: 11, fontWeight: 600,
                         color: /^[a-z0-9_]{3,30}$/.test(username) ? '#0EC4B8' : 'rgba(255,138,107,0.9)',
                       }}>
                         {/^[a-z0-9_]{3,30}$/.test(username) ? '✓' : '✗'}
@@ -913,7 +913,7 @@ export default function LoginPage() {
                   rightSlot={
                     refLink.trim() ? (
                       <span style={{
-                        fontSize: 11, fontWeight: 700, letterSpacing: '0.04em',
+                        fontSize: 11, fontWeight: 600, letterSpacing: '0.04em',
                         color: /^[a-z0-9._-]{2,40}$/i.test(refLink.trim())
                           ? '#0EC4B8' : 'rgba(255,138,107,0.9)',
                       }}>

@@ -239,7 +239,7 @@ function VerbindungsDialog({ profile, currentUserId, onClose, onSuccess }) {
           // Bestätigung
           <div style={{textAlign:"center",padding:"20px 0 8px"}}>
             <div style={{fontSize:44,marginBottom:14}}><span className="hui-emoji">🤝</span></div>
-            <div style={{fontSize:18,fontWeight:800,color:"#1A1A18",letterSpacing:"-0.03em",marginBottom:8}}>
+            <div style={{fontSize:18,fontWeight: 600,color:"#1A1A18",letterSpacing:"-0.03em",marginBottom:8}}>
               Anfrage gesendet
             </div>
             <div style={{fontSize:14,color:"rgba(26,26,24,0.52)",lineHeight:1.55,maxWidth:260,margin:"0 auto"}}>
@@ -250,7 +250,7 @@ function VerbindungsDialog({ profile, currentUserId, onClose, onSuccess }) {
           <>
             {/* Titel */}
             <div style={{marginBottom:20}}>
-              <div style={{fontSize:17,fontWeight:800,color:"#1A1A18",letterSpacing:"-0.03em",marginBottom:6}}>
+              <div style={{fontSize:17,fontWeight: 600,color:"#1A1A18",letterSpacing:"-0.03em",marginBottom:6}}>
                 Warum möchtest du dich verbinden?
               </div>
               <div style={{fontSize:13,color:"rgba(26,26,24,0.50)",lineHeight:1.5}}>
@@ -303,7 +303,7 @@ function VerbindungsDialog({ profile, currentUserId, onClose, onSuccess }) {
                   : "rgba(26,26,24,0.08)",
                 color: intention ? "#fff" : "rgba(26,26,24,0.30)",
                 border:"none", borderRadius:99,
-                fontSize:15, fontWeight:800,
+                fontSize:15, fontWeight: 600,
                 cursor: intention ? "pointer" : "not-allowed",
                 fontFamily:"inherit",
                 boxShadow: intention ? "0 4px 18px rgba(14,196,184,0.28)" : "none",
@@ -388,7 +388,7 @@ function SectionHead({ icon, title, subtitle, cta, onCta }) {
     <div style={{padding:`0 ${T.px}px`,marginBottom:12}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
         <div>
-          <div style={{fontSize:15,fontWeight:800,color:T.ink,letterSpacing:"-0.02em",display:"flex",alignItems:"center",gap:6}}>
+          <div style={{fontSize:15,fontWeight: 600,color:T.ink,letterSpacing:"-0.02em",display:"flex",alignItems:"center",gap:6}}>
             {icon && <span style={{fontSize:15}}>{icon}</span>}
             {title}
           </div>
@@ -398,7 +398,7 @@ function SectionHead({ icon, title, subtitle, cta, onCta }) {
         </div>
         {cta && (
           <button className="tpp-press-light" onClick={onCta}
-            style={{background:"none",border:"none",padding:0,fontSize:12,color:T.teal,fontWeight:700,cursor:"pointer",touchAction:"manipulation",fontFamily:"inherit",flexShrink:0,marginLeft:8}}>
+            style={{background:"none",border:"none",padding:0,fontSize:12,color:T.teal,fontWeight: 600,cursor:"pointer",touchAction:"manipulation",fontFamily:"inherit",flexShrink:0,marginLeft:8}}>
             {cta} ›
           </button>
         )}
@@ -418,7 +418,7 @@ function Header({ onBack, isOwner, onSettings }) {
         ‹
       </button>
       <div style={{textAlign:"center"}}>
-        <div style={{fontSize:15,fontWeight:700,color:T.ink,letterSpacing:"-0.02em",display:"flex",alignItems:"center",gap:6,justifyContent:"center"}}>
+        <div style={{fontSize:15,fontWeight: 600,color:T.ink,letterSpacing:"-0.02em",display:"flex",alignItems:"center",gap:6,justifyContent:"center"}}>
           Öffentliches Talent-Profil <span style={{fontSize:14}}>✨</span>
         </div>
         <div style={{fontSize:11.5,color:T.inkFaint,fontWeight:400,marginTop:1}}>
@@ -474,7 +474,7 @@ function KompassActionSheet({ profile, isWatching, onWatch, onClose, onSupport =
           background:"rgba(26,26,24,0.12)",
           margin:"0 auto 18px",
         }}/>
-        <div style={{fontSize:15, fontWeight:700, color:"rgba(26,26,24,0.55)", marginBottom:18, textAlign:"center"}}>
+        <div style={{fontSize:15, fontWeight: 600, color:"rgba(26,26,24,0.55)", marginBottom:18, textAlign:"center"}}>
           {profile?.display_name || "Creator"}
         </div>
         <button
@@ -492,7 +492,7 @@ function KompassActionSheet({ profile, isWatching, onWatch, onClose, onSupport =
         >
           <span style={{fontSize:20}}>{isWatching ? "\uD83D\uDC41" : "\uD83C\uDF31"}</span>
           <div style={{textAlign:"left"}}>
-            <div style={{fontSize:14, fontWeight:700, color:"#1a1a18"}}>
+            <div style={{fontSize:14, fontWeight: 600, color:"#1a1a18"}}>
               {isWatching ? "Nicht mehr beobachten" : "Im Blick behalten"}
             </div>
             <div style={{fontSize:12, color:"rgba(26,26,24,0.45)", marginTop:1}}>
@@ -515,7 +515,7 @@ function KompassActionSheet({ profile, isWatching, onWatch, onClose, onSupport =
         >
           <span style={{fontSize:20}}>{"\u2764"}</span>
           <div style={{textAlign:"left"}}>
-            <div style={{fontSize:14, fontWeight:700, color:"#1a1a18"}}>
+            <div style={{fontSize:14, fontWeight: 600, color:"#1a1a18"}}>
               Unterst\u00fctzen
             </div>
             <div style={{fontSize:12, color:"rgba(26,26,24,0.45)", marginTop:1}}>
@@ -609,7 +609,7 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat, onOpenKomp
               flex:1, padding:"13px 16px",
               background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
               color:"#fff", border:"none", borderRadius:T.r99,
-              fontSize:14, fontWeight:800, cursor:"pointer",
+              fontSize:14, fontWeight: 600, cursor:"pointer",
               fontFamily:"inherit", boxShadow:T.glow,
               display:"flex", alignItems:"center", justifyContent:"center", gap:7,
               touchAction:"manipulation",
@@ -622,7 +622,7 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat, onOpenKomp
               flex:1, padding:"13px 16px",
               background:"rgba(14,196,184,0.10)",
               color:T.teal, border:`1.5px solid ${T.teal}`,
-              borderRadius:T.r99, fontSize:14, fontWeight:700,
+              borderRadius:T.r99, fontSize:14, fontWeight: 600,
               fontFamily:"inherit", cursor:"default",
               display:"flex", alignItems:"center", justifyContent:"center", gap:7,
             }}>
@@ -647,7 +647,7 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat, onOpenKomp
               flex:1, padding:"13px 16px",
               background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
               color:"#fff", border:"none", borderRadius:T.r99,
-              fontSize:14, fontWeight:800, cursor:"pointer",
+              fontSize:14, fontWeight: 600, cursor:"pointer",
               fontFamily:"inherit", boxShadow:T.glow,
               display:"flex", alignItems:"center", justifyContent:"center", gap:7,
               touchAction:"manipulation",
@@ -661,7 +661,7 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat, onOpenKomp
               flex:1, padding:"13px 16px",
               background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
               color:"#fff", border:"none", borderRadius:T.r99,
-              fontSize:14, fontWeight:800, cursor:"pointer",
+              fontSize:14, fontWeight: 600, cursor:"pointer",
               fontFamily:"inherit", boxShadow:T.glow,
               display:"flex", alignItems:"center", justifyContent:"center", gap:7,
               touchAction:"manipulation",
@@ -759,7 +759,7 @@ function SchwerpunktStatsBlock({ profile, works, experiences, moments, loading, 
           {loading
             ? <><Sk w={150} h={16} r={5} style={{marginBottom:6}}/><Sk w="100%" h={12} r={4}/></>
             : <>
-                <div style={{fontSize:14,fontWeight:800,color:T.ink,letterSpacing:"-0.02em",marginBottom:4}}>{sp.title}</div>
+                <div style={{fontSize:14,fontWeight: 600,color:T.ink,letterSpacing:"-0.02em",marginBottom:4}}>{sp.title}</div>
                 <div style={{fontSize:12.5,lineHeight:1.55,color:T.inkSoft}}>{sp.desc}</div>
               </>
           }
@@ -771,7 +771,7 @@ function SchwerpunktStatsBlock({ profile, works, experiences, moments, loading, 
         {stats.map((st, i) => (
           <div key={i} className="tpp-stat-item">
             <div style={{fontSize:13,marginBottom:1}}>{st.emoji}</div>
-            <div style={{fontSize:16,fontWeight:800,color:T.ink,letterSpacing:"-0.03em"}}>{st.value}</div>
+            <div style={{fontSize:16,fontWeight: 600,color:T.ink,letterSpacing:"-0.03em"}}>{st.value}</div>
             <div style={{fontSize:10,color:T.inkFaint,lineHeight:1.35,textAlign:"center"}}>{st.label}</div>
           </div>
         ))}
@@ -838,12 +838,12 @@ function NaechsteErlebnisseSection({ experiences, loading }) {
                     width:44,minWidth:44,background:T.tealSoft,borderRadius:10,
                     padding:"6px 4px",textAlign:"center",
                   }}>
-                    <div style={{fontSize:9,fontWeight:800,color:T.teal,letterSpacing:"0.08em"}}>{dt.month}</div>
-                    <div style={{fontSize:20,fontWeight:800,color:T.ink,lineHeight:1.1}}>{dt.day}</div>
+                    <div style={{fontSize:9,fontWeight: 600,color:T.teal,letterSpacing:"0.08em"}}>{dt.month}</div>
+                    <div style={{fontSize:20,fontWeight: 600,color:T.ink,lineHeight:1.1}}>{dt.day}</div>
                   </div>
                   {/* Info */}
                   <div style={{flex:1,minWidth:0}}>
-                    <div style={{fontSize:13.5,fontWeight:800,color:T.ink,letterSpacing:"-0.02em",marginBottom:4,
+                    <div style={{fontSize:13.5,fontWeight: 600,color:T.ink,letterSpacing:"-0.02em",marginBottom:4,
                       overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
                       {s(exp.title, "Erlebnis")}
                     </div>
@@ -893,7 +893,7 @@ function AbschlussBar({ profile, loading }) {
         fontSize:24,flexShrink:0,
       }}><span className="hui-emoji">🤝</span></div>
       <div style={{flex:1}}>
-        <div style={{fontSize:14,fontWeight:800,color:"#fff",marginBottom:4,lineHeight:1.3}}>
+        <div style={{fontSize:14,fontWeight: 600,color:"#fff",marginBottom:4,lineHeight:1.3}}>
           Lass uns gemeinsam die Welt ein Stück besser machen.
         </div>
         <div style={{fontSize:12,color:"rgba(255,255,255,0.80)"}}>
@@ -959,7 +959,7 @@ function AbschlussButtons({ profile, currentUserId, onOpenChat }) {
             width:"100%", padding:"14px 16px",
             background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
             color:"#fff", border:"none", borderRadius:T.r99,
-            fontSize:14.5, fontWeight:800, cursor:"pointer",
+            fontSize:14.5, fontWeight: 600, cursor:"pointer",
             fontFamily:"inherit", boxShadow:T.glow,
             display:"flex", alignItems:"center", justifyContent:"center", gap:7,
             touchAction:"manipulation",
@@ -972,7 +972,7 @@ function AbschlussButtons({ profile, currentUserId, onOpenChat }) {
             width:"100%", padding:"14px 16px",
             background:"rgba(14,196,184,0.10)",
             color:T.teal, border:`1.5px solid ${T.teal}`,
-            borderRadius:T.r99, fontSize:14, fontWeight:700,
+            borderRadius:T.r99, fontSize:14, fontWeight: 600,
             fontFamily:"inherit", cursor:"default",
             display:"flex", alignItems:"center", justifyContent:"center", gap:7,
           }}>
@@ -997,7 +997,7 @@ function AbschlussButtons({ profile, currentUserId, onOpenChat }) {
             width:"100%", padding:"14px 16px",
             background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
             color:"#fff", border:"none", borderRadius:T.r99,
-            fontSize:14.5, fontWeight:800, cursor:"pointer",
+            fontSize:14.5, fontWeight: 600, cursor:"pointer",
             fontFamily:"inherit", boxShadow:T.glow,
             display:"flex", alignItems:"center", justifyContent:"center", gap:7,
             touchAction:"manipulation",
@@ -1011,7 +1011,7 @@ function AbschlussButtons({ profile, currentUserId, onOpenChat }) {
             width:"100%", padding:"14px 16px",
             background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
             color:"#fff", border:"none", borderRadius:T.r99,
-            fontSize:14.5, fontWeight:800, cursor:"pointer",
+            fontSize:14.5, fontWeight: 600, cursor:"pointer",
             fontFamily:"inherit", boxShadow:T.glow,
             display:"flex", alignItems:"center", justifyContent:"center", gap:7,
             touchAction:"manipulation",
@@ -1105,7 +1105,7 @@ function SocialContextBarTalent({ followCounts, experiences, moments, loading })
         }}>
           <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:4}}>
             <span style={{fontSize:16}}>{st.icon}</span>
-            <span style={{fontSize:18,fontWeight:800,color:T.ink,letterSpacing:"-0.03em"}}>{st.value}</span>
+            <span style={{fontSize:18,fontWeight: 600,color:T.ink,letterSpacing:"-0.03em"}}>{st.value}</span>
           </div>
           <span style={{fontSize:10.5,color:T.inkFaint,lineHeight:1.35,textAlign:"center"}}>{st.label}</span>
         </div>
@@ -1434,7 +1434,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
         {(profile?.has_talent_profile || profile?.is_talent) && profileId && (
           <>
             <div style={{ padding:"0 16px", marginBottom:8 }}>
-              <div style={{ fontSize:15, fontWeight:700, color:"#1A1A18", letterSpacing:"-0.01em" }}>
+              <div style={{ fontSize:15, fontWeight: 600, color:"#1A1A18", letterSpacing:"-0.01em" }}>
                 Talent-Angebote
               </div>
             </div>

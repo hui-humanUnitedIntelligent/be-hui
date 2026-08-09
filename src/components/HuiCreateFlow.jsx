@@ -215,7 +215,7 @@ function CollapseSection({ title, icon, defaultOpen = false, children, accent = 
       <button className="hcf2-section-header" onClick={() => setOpen(o => !o)}>
         <div style={{ display:"flex", alignItems:"center", gap:9 }}>
           <span style={{ fontSize:17 }}>{icon}</span>
-          <span style={{ fontSize:14, fontWeight:700, color:C.ink2 }}>{title}</span>
+          <span style={{ fontSize:14, fontWeight: 600, color:C.ink2 }}>{title}</span>
         </div>
         <div style={{
           width:24, height:24, borderRadius:"50%",
@@ -365,7 +365,7 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
           boxShadow:`0 12px 40px rgba(22,215,197,0.35)`,
         }}>✨</div>
         <div style={{ textAlign:"center", animation:"hcf2-fade .4s .3s both" }}>
-          <div style={{ fontSize:22, fontWeight:900, color:C.ink, marginBottom:6 }}>
+          <div style={{ fontSize:22, fontWeight: 600, color:C.ink, marginBottom:6 }}>
             Dein Moment ist live!
           </div>
           <div style={{ fontSize:14, color:C.muted }}>
@@ -399,7 +399,7 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
           <span style={{ fontSize:18 }}>
             {forcedType === "werk" ? <HUIWerkeIcon size={18}/> : forcedType === "erlebnis" ? <HUIErlebnisIcon size={18}/> : <HUIImpactIcon size={18}/>}
           </span>
-          <span style={{ fontWeight:900, fontSize:16, color:C.ink, letterSpacing:-.3 }}>
+          <span style={{ fontWeight: 600, fontSize:16, color:C.ink, letterSpacing:-.3 }}>
             {forcedType === "werk" ? "Bild für dein Werk"
               : forcedType === "erlebnis" ? "Bild für dein Erlebnis"
               : "Moment"}
@@ -475,7 +475,7 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
                       }}
                     >
                       <span>{btn.icon}</span>
-                      <span style={{ fontSize:11, fontWeight:700 }}>{btn.title}</span>
+                      <span style={{ fontSize:11, fontWeight: 600 }}>{btn.title}</span>
                     </button>
                   ))}
                 </div>
@@ -514,7 +514,7 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
                 </svg>
               </div>
               <div style={{ textAlign:"center" }}>
-                <div style={{ fontSize:15.5, fontWeight:700, color:C.ink2 }}>
+                <div style={{ fontSize:15.5, fontWeight: 600, color:C.ink2 }}>
                   Foto oder Video
                 </div>
                 <div style={{ fontSize:12.5, color:C.muted, marginTop:4 }}>
@@ -536,7 +536,7 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
                       fontSize:12, color:btn.color,
                       background:"rgba(22,215,197,0.09)",
                       border:"1.5px solid rgba(22,215,197,0.22)",
-                      padding:"5px 13px", borderRadius:99, fontWeight:700,
+                      padding:"5px 13px", borderRadius:99, fontWeight: 600,
                       cursor:"pointer", fontFamily:"inherit",
                       WebkitTapHighlightColor:"transparent",
                       transition:"all 150ms cubic-bezier(0.25,0.46,0.45,0.94)" /* T.card */,
@@ -583,7 +583,7 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
         {/* ── Mood Tags ── */}
         <div className="hcf2-animate" style={{ animationDelay:".08s", marginBottom:16 }}>
           <div style={{
-            fontSize:11.5, fontWeight:700, color:C.muted,
+            fontSize:11.5, fontWeight: 600, color:C.muted,
             textTransform:"uppercase", letterSpacing:.8, marginBottom:9,
           }}>
             Stimmung
@@ -695,7 +695,7 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
               : "rgba(0,0,0,0.07)",
             color:     canPost ? "white" : "rgba(120,120,120,0.6)",
             boxShadow: canPost ? "0 6px 28px rgba(22,215,197,0.35)" : "none",
-            fontSize:16, fontWeight:900, letterSpacing:-.2,
+            fontSize:16, fontWeight: 600, letterSpacing:-.2,
             display:"flex", alignItems:"center", justifyContent:"center", gap:8,
           }}>
           {loading
@@ -726,7 +726,7 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
               }}
               style={{
                 background:"none", border:"none", color:C.teal,
-                fontWeight:700, fontSize:12.5, cursor:"pointer", fontFamily:"inherit",
+                fontWeight: 600, fontSize:12.5, cursor:"pointer", fontFamily:"inherit",
               }}>
               Als Werk oder Erlebnis →
             </button>
@@ -794,7 +794,7 @@ function ScreenSuggestion({ media, onBack, onPublishDirect, onDeepen }) {
           </svg>
         </button>
         <div>
-          <div style={{ fontSize:17, fontWeight:800, color:C.ink, letterSpacing:-.3 }}>
+          <div style={{ fontSize:17, fontWeight: 600, color:C.ink, letterSpacing:-.3 }}>
             Was soll daraus werden?
           </div>
           <div style={{ fontSize:12.5, color:C.muted, marginTop:1 }}>
@@ -846,7 +846,7 @@ function ScreenSuggestion({ media, onBack, onPublishDirect, onDeepen }) {
                 fontSize:28,
                 animation: suggestion === t.key ? "hcf2-pop .5s cubic-bezier(0.34,1.4,0.64,1) .2s both" : "none",
               }}>{t.emoji}</div>
-              <div style={{ fontSize:13, fontWeight:800, color:C.ink, letterSpacing:-.1 }}>
+              <div style={{ fontSize:13, fontWeight: 600, color:C.ink, letterSpacing:-.1 }}>
                 {t.title}
               </div>
               <div style={{ fontSize:11, color:C.muted, textAlign:"center", lineHeight:1.4 }}>
@@ -857,7 +857,7 @@ function ScreenSuggestion({ media, onBack, onPublishDirect, onDeepen }) {
                 padding:"6px 10px", borderRadius:999,
                 background:`${t.color}14`,
                 border:`1.5px solid ${t.color}30`,
-                fontSize:11.5, fontWeight:700, color:t.color,
+                fontSize:11.5, fontWeight: 600, color:t.color,
               }}>
                 {t.action}
               </div>
@@ -939,7 +939,7 @@ function ScreenWerk({ media, onBack, onPublish, loading, error }) {
           </svg>
         </button>
         <div>
-          <div style={{ fontSize:17, fontWeight:800, color:C.ink, letterSpacing:-.3 }}>
+          <div style={{ fontSize:17, fontWeight: 600, color:C.ink, letterSpacing:-.3 }}>
             🎨 Dein Werk
           </div>
           <div style={{ fontSize:12.5, color:C.muted, marginTop:1 }}>
@@ -997,7 +997,7 @@ function ScreenWerk({ media, onBack, onPublish, loading, error }) {
                 value={desc}
                 onChange={e => setDesc(e.target.value)}/>
             </div>
-            <div style={{ fontSize:12, fontWeight:700, color:C.muted, marginBottom:8,
+            <div style={{ fontSize:12, fontWeight: 600, color:C.muted, marginBottom:8,
               textTransform:"uppercase", letterSpacing:0.5 }}>Kategorie</div>
             <div className="hcf2-pill-row">
               {(WERK_CATS || []).filter(Boolean).map(c => (
@@ -1034,7 +1034,7 @@ function ScreenWerk({ media, onBack, onPublish, loading, error }) {
 
           <CollapseSection title="Atmosphäre & Stimmung" icon={<HUIStimmungIcon size={16}/>} accent={C.purple}>
             <div style={{ marginBottom:12 }}>
-              <div style={{ fontSize:12, fontWeight:700, color:C.muted, marginBottom:8,
+              <div style={{ fontSize:12, fontWeight: 600, color:C.muted, marginBottom:8,
                 textTransform:"uppercase", letterSpacing:0.5 }}>Mood Tags</div>
               <div className="hcf2-pill-row">
                 {(MOOD_TAG_OPTIONS||[]).slice(0,10).map(m => (
@@ -1047,7 +1047,7 @@ function ScreenWerk({ media, onBack, onPublish, loading, error }) {
             </div>
             {ENERGY_LEVELS?.length > 0 && (
               <div>
-                <div style={{ fontSize:12, fontWeight:700, color:C.muted, marginBottom:8,
+                <div style={{ fontSize:12, fontWeight: 600, color:C.muted, marginBottom:8,
                   textTransform:"uppercase", letterSpacing:0.5 }}>Energie</div>
                 <div className="hcf2-pill-row">
                   {(ENERGY_LEVELS||[]).filter(e=>e&&e.key).map(e => (
@@ -1161,7 +1161,7 @@ function ScreenErlebnis({ media, onBack, onPublish, loading, error }) {
           </svg>
         </button>
         <div>
-          <div style={{ fontSize:17, fontWeight:800, color:C.ink, letterSpacing:-.3 }}>
+          <div style={{ fontSize:17, fontWeight: 600, color:C.ink, letterSpacing:-.3 }}>
             
           </div>
           <div style={{ fontSize:12.5, color:C.muted, marginTop:1 }}>
@@ -1189,7 +1189,7 @@ function ScreenErlebnis({ media, onBack, onPublish, loading, error }) {
 
         {/* Format */}
         <div style={{ marginBottom:12 }}>
-          <div style={{ fontSize:12, fontWeight:700, color:C.muted, marginBottom:8,
+          <div style={{ fontSize:12, fontWeight: 600, color:C.muted, marginBottom:8,
             textTransform:"uppercase", letterSpacing:0.5 }}>Format</div>
           <div className="hcf2-pill-row">
             {[
@@ -1234,7 +1234,7 @@ function ScreenErlebnis({ media, onBack, onPublish, loading, error }) {
               value={desc}
               onChange={e => setDesc(e.target.value)}/>
           </div>
-          <div style={{ fontSize:12, fontWeight:700, color:C.muted, marginBottom:8,
+          <div style={{ fontSize:12, fontWeight: 600, color:C.muted, marginBottom:8,
             textTransform:"uppercase", letterSpacing:0.5 }}>Kategorie</div>
           <div className="hcf2-pill-row">
             {(ERLE_CATS || []).filter(Boolean).map(c => (
@@ -1283,7 +1283,7 @@ function ScreenErlebnis({ media, onBack, onPublish, loading, error }) {
 
         <CollapseSection title="Atmosphäre & Stimmung" icon={<HUIStimmungIcon size={16}/>} accent={C.purple}>
           <div style={{ marginBottom:12 }}>
-            <div style={{ fontSize:12, fontWeight:700, color:C.muted, marginBottom:8,
+            <div style={{ fontSize:12, fontWeight: 600, color:C.muted, marginBottom:8,
               textTransform:"uppercase", letterSpacing:0.5 }}>Mood Tags</div>
             <div className="hcf2-pill-row">
               {(MOOD_TAG_OPTIONS||[]).slice(0,10).map(m => (
@@ -1296,7 +1296,7 @@ function ScreenErlebnis({ media, onBack, onPublish, loading, error }) {
           </div>
           {SOCIAL_ENERGY_OPTIONS?.length > 0 && (
             <div>
-              <div style={{ fontSize:12, fontWeight:700, color:C.muted, marginBottom:8,
+              <div style={{ fontSize:12, fontWeight: 600, color:C.muted, marginBottom:8,
                 textTransform:"uppercase", letterSpacing:0.5 }}>Soziale Energie</div>
               <div className="hcf2-pill-row">
                 {(SOCIAL_ENERGY_OPTIONS||[]).filter(s=>s&&s.key).map(s => (
@@ -1363,7 +1363,7 @@ function ScreenDone({ type }) {
       <div style={{ animation:"hcf2-pop .55s cubic-bezier(0.34,1.4,0.64,1) both", fontSize:64, marginBottom:20 }}>
         {d.emoji}
       </div>
-      <div style={{ fontSize:22, fontWeight:900, color:C.ink, letterSpacing:-.5, marginBottom:8 }}>
+      <div style={{ fontSize:22, fontWeight: 600, color:C.ink, letterSpacing:-.5, marginBottom:8 }}>
         {d.title}
       </div>
       <div style={{ fontSize:14.5, color:C.muted, textAlign:"center", lineHeight:1.6 }}>
@@ -1437,7 +1437,7 @@ function ScreenTypeSelector({ onClose, onSelect }) {
           </svg>
         </button>
         <div style={{ textAlign:"center" }}>
-          <div style={{ fontWeight:900, fontSize:17, color:C.ink, letterSpacing:-.4 }}>
+          <div style={{ fontWeight: 600, fontSize:17, color:C.ink, letterSpacing:-.4 }}>
             Was möchtest du teilen?
           </div>
         </div>
@@ -1496,7 +1496,7 @@ function ScreenTypeSelector({ onClose, onSelect }) {
               {/* Text */}
               <div style={{ flex:1 }}>
                 <div style={{
-                  fontSize:16.5, fontWeight:800, color:C.ink,
+                  fontSize:16.5, fontWeight: 600, color:C.ink,
                   letterSpacing:-.3, marginBottom:3,
                 }}>
                   {t.label}

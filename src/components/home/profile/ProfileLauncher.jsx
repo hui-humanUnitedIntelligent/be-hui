@@ -85,7 +85,7 @@ class ProfileErrorBoundary extends React.Component {
             style={{
               marginTop:8, padding:"10px 24px", borderRadius:20,
               background:"#0DC4B5", border:"none", color:"#000",
-              fontWeight:700, fontSize:14, cursor:"pointer",
+              fontWeight: 600, fontSize:14, cursor:"pointer",
             }}
           >
             🔄 Seite neu laden

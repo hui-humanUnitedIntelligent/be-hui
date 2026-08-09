@@ -104,7 +104,7 @@ function MyRecommendationsModal({ userId, onClose = () => {} }) {
           flexShrink:0,
         }}>
           <div>
-            <div style={{ fontSize:18, fontWeight:700, color:"#1A1A18", letterSpacing:"-0.02em" }}>
+            <div style={{ fontSize:18, fontWeight: 600, color:"#1A1A18", letterSpacing:"-0.02em" }}>
               Meine Empfehlungen
             </div>
             <div style={{ fontSize:12, color:"rgba(26,26,24,0.45)", marginTop:2 }}>
@@ -160,7 +160,7 @@ function MyRecommendationsModal({ userId, onClose = () => {} }) {
                         width:40, height:40, borderRadius:"50%", flexShrink:0,
                         background:"rgba(14,196,184,0.12)", color:"#0EC4B8",
                         display:"flex", alignItems:"center", justifyContent:"center",
-                        fontSize:15, fontWeight:700,
+                        fontSize:15, fontWeight: 600,
                       }}>
                         {(p.name || "?").charAt(0).toUpperCase()}
                       </div>

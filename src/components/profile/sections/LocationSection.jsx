@@ -81,11 +81,11 @@ export function LocationSection({
         padding:"14px", boxShadow:T.card, transition:"border-color .2s ease" }}>
 
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8 }}>
-          <div style={{ fontSize:13, fontWeight:800, color:T.ink }}>Standort{locations.length > 1 ? "e" : ""}</div>
+          <div style={{ fontSize:13, fontWeight: 600, color:T.ink }}>Standort{locations.length > 1 ? "e" : ""}</div>
           {isOwner && !adding && (
             <button onClick={() => { setAdding(true); setErr(""); }} className="ls-press"
               style={{ background:"none", border:"none", padding:0, fontSize:11,
-                color:T.teal, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>
+                color:T.teal, fontWeight: 600, cursor:"pointer", fontFamily:"inherit" }}>
               + Hinzufügen
             </button>
           )}
@@ -103,7 +103,7 @@ export function LocationSection({
                   {loc.label}
                 </span>
                 {loc.is_primary && locations.length > 1 && (
-                  <span style={{ fontSize:9, fontWeight:700, color:T.teal, background:T.tealSoft,
+                  <span style={{ fontSize:9, fontWeight: 600, color:T.teal, background:T.tealSoft,
                     padding:"2px 6px", borderRadius:T.r99, flexShrink:0 }}>Primär</span>
                 )}
                 {isOwner && (
@@ -111,7 +111,7 @@ export function LocationSection({
                     <div style={{ display:"flex", gap:4, flexShrink:0 }}>
                       <button onClick={() => handleDelete(loc.id)} disabled={saving} className="ls-press"
                         style={{ background:T.coral, border:"none", borderRadius:T.r99, color:"#fff",
-                          fontSize:10, fontWeight:700, padding:"3px 8px", cursor:"pointer", fontFamily:"inherit" }}>
+                          fontSize:10, fontWeight: 600, padding:"3px 8px", cursor:"pointer", fontFamily:"inherit" }}>
                         Löschen
                       </button>
                       <button onClick={() => setConfirmDelete(null)} className="ls-press"
