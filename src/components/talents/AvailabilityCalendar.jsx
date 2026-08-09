@@ -100,21 +100,21 @@ export default function AvailabilityCalendar({
         <button type="button" onClick={goPrev} disabled={!canGoPrev || disabled} style={{
           width: 30, height: 30, borderRadius: 9, border: "1.5px solid rgba(26,26,24,0.10)",
           background: "#fff", color: canGoPrev ? "#1A1A18" : "rgba(26,26,24,0.25)",
-          fontSize: 15, fontWeight: 600, cursor: canGoPrev ? "pointer" : "default", touchAction: "manipulation",
+          fontSize: 15, fontWeight: 700, cursor: canGoPrev ? "pointer" : "default", touchAction: "manipulation",
         }}>‹</button>
-        <div style={{ fontSize: 13.5, fontWeight: 600, color: "#1A1A18" }}>
+        <div style={{ fontSize: 13.5, fontWeight: 700, color: "#1A1A18" }}>
           {MONTH_NAMES[viewMonth]} {viewYear}
         </div>
         <button type="button" onClick={goNext} disabled={!canGoNext || disabled} style={{
           width: 30, height: 30, borderRadius: 9, border: "1.5px solid rgba(26,26,24,0.10)",
           background: "#fff", color: canGoNext ? "#1A1A18" : "rgba(26,26,24,0.25)",
-          fontSize: 15, fontWeight: 600, cursor: canGoNext ? "pointer" : "default", touchAction: "manipulation",
+          fontSize: 15, fontWeight: 700, cursor: canGoNext ? "pointer" : "default", touchAction: "manipulation",
         }}>›</button>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 3, marginBottom: 4 }}>
         {WEEKDAYS.map(w => (
-          <div key={w} style={{ textAlign: "center", fontSize: 10.5, fontWeight: 600, color: "rgba(26,26,24,0.35)" }}>
+          <div key={w} style={{ textAlign: "center", fontSize: 10.5, fontWeight: 700, color: "rgba(26,26,24,0.35)" }}>
             {w}
           </div>
         ))}

@@ -198,9 +198,9 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
                   onError={(e) => { e.target.style.display = "none"; }} />
               </div>
             )}
-            <div style={{ fontSize: 18, fontWeight: 600, color: "#1A1A2E", marginBottom: 6 }}>{title}</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: "#1A1A2E", marginBottom: 6 }}>{title}</div>
             {priceStr && (
-              <div style={{ fontSize: 22, fontWeight: 600, color: TEAL, marginBottom: 20 }}>{priceStr}</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: TEAL, marginBottom: 20 }}>{priceStr}</div>
             )}
 
             <div style={{
@@ -215,7 +215,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
               onClick={handleKauf}
               style={{
                 width: "100%", padding: "16px", borderRadius: 14, border: "none",
-                background: TEAL, color: "#fff", fontSize: 16, fontWeight: 600,
+                background: TEAL, color: "#fff", fontSize: 16, fontWeight: 700,
                 cursor: "pointer", transition: "opacity 0.2s",
               }}
             >
@@ -262,13 +262,13 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
                 <path d="M7 14L12 19L21 9" stroke={TEAL} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <div style={{ fontSize: 18, fontWeight: 600, color: "#1A1A2E", marginBottom: 8 }}>Kauf erfolgreich</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: "#1A1A2E", marginBottom: 8 }}>Kauf erfolgreich</div>
             {/* Detaillierte Kaufinfo */}
             <div style={{
               background: "rgba(22,215,197,0.06)", border: "1px solid rgba(22,215,197,0.15)",
               borderRadius: 14, padding: "14px 16px", marginBottom: 20, textAlign: "left",
             }}>
-              <div style={{ fontSize: 15, fontWeight: 600, color: "#1A1A2E", marginBottom: 10 }}>{title}</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "#1A1A2E", marginBottom: 10 }}>{title}</div>
               <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
                 <span style={{ fontWeight: 600 }}>Verkäufer:</span> {werk.author?.name || werk.author?.displayName || "Creator"}
               </div>
@@ -291,7 +291,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
                 display: "flex", alignItems: "center", gap: 12,
               }}>
                 <div style={{ flex: 1, textAlign: "left" }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: "#1A1A2E", marginBottom: 2 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#1A1A2E", marginBottom: 2 }}>
                     Mit Verkäufer schreiben
                   </div>
                   <div style={{ fontSize: 12, color: "rgba(26,26,46,0.55)", lineHeight: 1.5 }}>
@@ -303,7 +303,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
                   style={{
                     padding: "10px 18px", borderRadius: 12,
                     background: TEAL, color: "#fff",
-                    fontSize: 13, fontWeight: 600, border: "none",
+                    fontSize: 13, fontWeight: 700, border: "none",
                     cursor: "pointer", flexShrink: 0,
                     WebkitTapHighlightColor: "transparent",
                   }}
@@ -327,7 +327,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
                   padding: "24px 20px", textAlign: "center",
                   boxShadow: "0 12px 48px rgba(20,20,34,0.25)",
                 }}>
-                  <div style={{ fontSize: 17, fontWeight: 600, color: "#1A1A2E", marginBottom: 8 }}>
+                  <div style={{ fontSize: 17, fontWeight: 700, color: "#1A1A2E", marginBottom: 8 }}>
                     Mit {werk.author?.name || werk.author?.displayName || "Verkäufer"} chatten?
                   </div>
                   <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)", lineHeight: 1.5, marginBottom: 20 }}>
@@ -364,7 +364,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
                         flex: 1, padding: "14px 0", borderRadius: 13,
                         border: "none",
                         background: TEAL, color: "#fff",
-                        fontSize: 15, fontWeight: 600, cursor: "pointer",
+                        fontSize: 15, fontWeight: 700, cursor: "pointer",
                         outline: "none", WebkitTapHighlightColor: "transparent",
                       }}
                     >
@@ -384,7 +384,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
               }}
               style={{
                 width: "100%", padding: "14px", borderRadius: 14, border: "none",
-                background: TEAL, color: "#fff", fontSize: 15, fontWeight: 600, cursor: "pointer",
+                background: TEAL, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer",
               }}
             >
               Fertig
@@ -410,7 +410,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
                 width: "100%", marginTop: 10, padding: "14px 0",
                 borderRadius: 14, border: "1.5px solid rgba(34,197,94,0.35)",
                 background: "transparent", color: "#22C55E",
-                fontSize: 15, fontWeight: 600, cursor: "pointer",
+                fontSize: 15, fontWeight: 700, cursor: "pointer",
                 WebkitTapHighlightColor: "transparent",
               }}
             >
@@ -422,7 +422,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
         {/* ── ERROR ── */}
         {phase === "error" && (
           <div style={{ textAlign: "center", padding: "16px 0 8px" }}>
-            <div style={{ fontSize: 18, fontWeight: 600, color: "#FF5B5B", marginBottom: 8 }}>Fehler</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: "#FF5B5B", marginBottom: 8 }}>Fehler</div>
             <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)", marginBottom: 28, lineHeight: 1.5 }}>
               {errMsg || "Etwas ist schiefgegangen."}
             </div>

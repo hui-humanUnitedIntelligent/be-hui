@@ -342,11 +342,11 @@ function RejectionDetailModal({ n, onClose }) {
       >
         <div style={{fontSize:28, textAlign:"center", marginBottom:8}}>{tm.emoji}</div>
         <div style={{
-          fontSize:16, fontWeight: 600, color:"#1a1a18",
+          fontSize:16, fontWeight:700, color:"#1a1a18",
           textAlign:"center", marginBottom:4,
         }}>{entryTitle}</div>
         <div style={{
-          fontSize:11, fontWeight: 600, letterSpacing:1,
+          fontSize:11, fontWeight:700, letterSpacing:1,
           color:"rgba(26,26,24,0.35)", textAlign:"center",
           marginBottom:16, textTransform:"uppercase",
         }}>NACHRICHT VOM ADMIN — {tm.label} ABGELEHNT</div>
@@ -368,7 +368,7 @@ function RejectionDetailModal({ n, onClose }) {
           style={{
             width:"100%", padding:"12px 0", borderRadius:99,
             background:"#0DC4B5", border:"none", color:"#fff",
-            fontWeight: 600, fontSize:14, cursor:"pointer",
+            fontWeight:700, fontSize:14, cursor:"pointer",
             fontFamily:"inherit",
           }}
         >Verstanden</button>
@@ -460,7 +460,7 @@ function NotifItem({ n, onRead, onDelete }) {
                 border:"1.5px solid rgba(239,68,68,0.35)",
                 background:"rgba(239,68,68,0.07)",
                 color:"#DC2626",
-                fontSize:11, fontWeight: 600,
+                fontSize:11, fontWeight:700,
                 cursor:"pointer", fontFamily:"inherit",
                 display:"inline-flex", alignItems:"center", gap:4,
               }}
@@ -520,7 +520,7 @@ function NotifItem({ n, onRead, onDelete }) {
               boxShadow:"0 20px 60px rgba(0,0,0,0.25)",
             }}
           >
-            <div style={{fontSize:16, fontWeight: 600, color:"#1a1a18", marginBottom:8}}>Nachricht löschen?</div>
+            <div style={{fontSize:16, fontWeight:800, color:"#1a1a18", marginBottom:8}}>Nachricht löschen?</div>
             <div style={{fontSize:13, color:"#888", marginBottom:20, lineHeight:1.5}}>
               Diese Benachrichtigung wird dauerhaft entfernt.
             </div>
@@ -541,7 +541,7 @@ function NotifItem({ n, onRead, onDelete }) {
                 style={{
                   flex:1, padding:"12px", borderRadius:99,
                   background:"#DC2626", border:"none",
-                  color:"#fff", fontSize:13, fontWeight: 600,
+                  color:"#fff", fontSize:13, fontWeight:700,
                   cursor:"pointer", fontFamily:"inherit",
                 }}
               >
@@ -601,7 +601,7 @@ function ConnectionRequestItem({ req, onRespond }) {
           🤝
         </div>
         <div style={{flex:1}}>
-          <div style={{fontSize:13.5, fontWeight: 600, color:T.ink, lineHeight:1.4}}>
+          <div style={{fontSize:13.5, fontWeight:700, color:T.ink, lineHeight:1.4}}>
             {name} möchte sich verbinden
           </div>
           {req.intention && (
@@ -634,7 +634,7 @@ function ConnectionRequestItem({ req, onRespond }) {
             flex:1, padding:"10px 0",
             background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
             color:"#fff", border:"none", borderRadius:10,
-            fontSize:13, fontWeight: 600, cursor:"pointer",
+            fontSize:13, fontWeight:700, cursor:"pointer",
             fontFamily:"inherit", touchAction:"manipulation",
           }}>
           Annehmen
@@ -672,7 +672,7 @@ function SectionHeader({ emoji, label }) {
     <div style={{
       display:"flex", alignItems:"center", gap:6,
       padding:"14px 16px 6px",
-      fontSize:11, fontWeight: 600,
+      fontSize:11, fontWeight:800,
       color:"rgba(26,26,24,0.40)",
       letterSpacing:"0.07em",
       textTransform:"uppercase",
@@ -709,7 +709,7 @@ function WeekStats({ userId }) {
           color:"rgba(14,196,184,0.5)",
         }}><HUIStatistikIcon size={24}/></div>
         <span style={{
-          fontSize:11, fontWeight: 600,
+          fontSize:11, fontWeight:800,
           color:"rgba(26,26,24,0.40)",
           letterSpacing:"0.07em", textTransform:"uppercase",
         }}>
@@ -729,7 +729,7 @@ function WeekStats({ userId }) {
           }}>
             <div style={{fontSize:20, marginBottom:4}}>{it.emoji}</div>
             <div style={{
-              fontSize:22, fontWeight: 600,
+              fontSize:22, fontWeight:900,
               color: stats ? it.color : "rgba(26,26,24,0.20)",
               letterSpacing:"-0.04em", lineHeight:1,
             }}>
@@ -924,7 +924,7 @@ export function ResonanzzentrumPanel({ onClose }) {
               <HUIBenachrichtigungIcon size={24} style={{color:"rgba(14,196,184,0.5)"}} />
               <div>
                 <div style={{
-                  fontSize:20, fontWeight: 600, color:T.ink,
+                  fontSize:20, fontWeight:900, color:T.ink,
                   letterSpacing:"-0.03em", lineHeight:1.1,
                   display:"flex", alignItems:"center", gap:8,
                 }}>
@@ -932,7 +932,7 @@ export function ResonanzzentrumPanel({ onClose }) {
                   {(notif?.unread ?? 0) > 0 && (
                     <span style={{
                       background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
-                      color:"#fff", fontSize:12, fontWeight: 600,
+                      color:"#fff", fontSize:12, fontWeight:800,
                       padding:"2px 8px", borderRadius:20,
                       minWidth:20, textAlign:"center",
                     }}>
@@ -1001,7 +1001,7 @@ export function ResonanzzentrumPanel({ onClose }) {
                     <span style={{
                       background: active ? "rgba(255,255,255,0.25)" : T.teal,
                       color: "#fff",
-                      fontSize:10.5, fontWeight: 600,
+                      fontSize:10.5, fontWeight:800,
                       padding:"1px 6px", borderRadius:12,
                     }}>
                       {t.count}
@@ -1026,7 +1026,7 @@ export function ResonanzzentrumPanel({ onClose }) {
                   padding:"6px 14px", borderRadius:20,
                   background:"rgba(14,196,184,0.10)",
                   border:`1px solid rgba(14,196,184,0.30)`,
-                  color:T.teal, fontSize:12, fontWeight: 600,
+                  color:T.teal, fontSize:12, fontWeight:700,
                   cursor:"pointer", fontFamily:"inherit",
                   touchAction:"manipulation",
                   whiteSpace:"nowrap",
@@ -1133,7 +1133,7 @@ export function NotificationBadge({ count }) {
       background:"linear-gradient(135deg,#FF8A6B,#FF6B4A)",
       borderRadius:10,
       display:"flex", alignItems:"center", justifyContent:"center",
-      fontSize:10, fontWeight: 600, color:"#fff",
+      fontSize:10, fontWeight:800, color:"#fff",
       border:"2px solid #fff", padding:"0 4px",
       lineHeight:1, pointerEvents:"none",
     }}>

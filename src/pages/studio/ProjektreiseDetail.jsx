@@ -114,7 +114,7 @@ export default function ProjektreiseDetail({ project, onBack }) {
       >← Alle Reisen</button>
 
       {/* Projekt-Titel */}
-      <h2 style={{ fontSize: 26, fontWeight: 600, color: C.ink, marginBottom: 8, lineHeight: 1.3 }}>
+      <h2 style={{ fontSize: 26, fontWeight: 700, color: C.ink, marginBottom: 8, lineHeight: 1.3 }}>
         {project.name || 'Ohne Titel'}
       </h2>
       {project.description && (
@@ -210,7 +210,7 @@ function MilestoneChapter({ milestone, chapterNumber, statusColor, statusLabel, 
         paddingBottom: 12, borderBottom: `1px solid ${C.border}`,
       }}>
         <span style={{
-          fontSize: 12, fontWeight: 600, color: C.muted, letterSpacing: 1,
+          fontSize: 12, fontWeight: 700, color: C.muted, letterSpacing: 1,
         }}>KAPITEL {String(chapterNumber).padStart(2, '0')}</span>
         <span style={{
           fontSize: 11, fontWeight: 500, color: statusColor,

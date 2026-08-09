@@ -75,7 +75,7 @@ export default function TalentContent({ item, onProfile, onReaction, onShare }) 
       <div style={{ display:"flex", alignItems:"flex-start", gap:8, marginBottom:8 }}>
         <span style={{
           flexShrink:0, marginTop:2,
-          fontSize:10.5, fontWeight: 600, color:PURPLE,
+          fontSize:10.5, fontWeight:700, color:PURPLE,
           background:PURPLE_SOFT,
           border:`1px solid rgba(139,92,246,0.22)`,
           borderRadius:99, padding:"3px 9px",
@@ -83,7 +83,7 @@ export default function TalentContent({ item, onProfile, onReaction, onShare }) 
         }}>TALENT</span>
         {title && (
           <span style={{
-            fontSize:15, fontWeight: 600, color:INK,
+            fontSize:15, fontWeight:700, color:INK,
             lineHeight:1.3, letterSpacing:"-0.02em",
             whiteSpace:"normal", wordBreak:"break-word",
           }}>{title}</span>
@@ -110,7 +110,7 @@ export default function TalentContent({ item, onProfile, onReaction, onShare }) 
             display:"flex", alignItems:"center", gap:7,
             background:"linear-gradient(135deg,#8B5CF6,#7C3AED)",
             color:"#fff", border:"none", borderRadius:99,
-            padding:"9px 18px", fontSize:13, fontWeight: 600,
+            padding:"9px 18px", fontSize:13, fontWeight:700,
             cursor:"pointer", touchAction:"manipulation",
             boxShadow:"0 3px 10px rgba(139,92,246,0.35)",
             whiteSpace:"nowrap",

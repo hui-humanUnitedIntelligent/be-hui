@@ -76,7 +76,7 @@ export default function StepOneTypeSelection({ value, onSelect, onAdvance }) {
         animation: "s1-card-in 0.20s ease both",
       }}>
         <div style={{
-          fontSize: 26, fontWeight: 600, color: INK,
+          fontSize: 26, fontWeight: 900, color: INK,
           letterSpacing: -0.7, lineHeight: 1.2, marginBottom: 10,
         }}>
           Was m\u00f6chtest du erschaffen?
@@ -143,7 +143,7 @@ export default function StepOneTypeSelection({ value, onSelect, onAdvance }) {
               {/* Text */}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
-                  fontSize: 15.5, fontWeight: 600,
+                  fontSize: 15.5, fontWeight: 800,
                   color: on ? V : INK,
                   marginBottom: 3, letterSpacing: -0.25,
                   transition: "color 0.14s",
@@ -200,7 +200,7 @@ export default function StepOneTypeSelection({ value, onSelect, onAdvance }) {
             border: "none",
             color: hasSelection ? "white" : "rgba(139,92,246,0.40)",
             fontSize: 17,
-            fontWeight: 600,
+            fontWeight: 800,
             letterSpacing: -0.2,
             display: "flex",
             alignItems: "center",

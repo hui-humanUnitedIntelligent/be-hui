@@ -268,7 +268,7 @@ export default function MerkenSection({ onOpenProfile = () => {}, onOpenDiscover
         display:"flex", flexDirection:"column", alignItems:"center", gap:12,
       }}>
         <div style={{ display:"flex", color:T.muted }}><HUIBookmarkIcon size={36} /></div>
-        <div style={{ fontSize:16, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>
+        <div style={{ fontSize:16, fontWeight:700, color:T.ink, letterSpacing:"-0.02em" }}>
           Noch nichts gemerkt
         </div>
         <div style={{ fontSize:13, color:T.soft, maxWidth:260, lineHeight:1.6 }}>
@@ -280,7 +280,7 @@ export default function MerkenSection({ onOpenProfile = () => {}, onOpenDiscover
             style={{
               marginTop:8, padding:"10px 20px", borderRadius:T.r,
               background:`linear-gradient(135deg,${T.teal},${T.coral})`,
-              color:"#fff", fontSize:13, fontWeight: 600,
+              color:"#fff", fontSize:13, fontWeight:700,
               border:"none", cursor:"pointer", touchAction:"manipulation",
             }}
           >
@@ -309,7 +309,7 @@ export default function MerkenSection({ onOpenProfile = () => {}, onOpenDiscover
                   background: active ? T.teal : "rgba(26,26,46,0.05)",
                   border: `1px solid ${active ? T.teal : T.border}`,
                   color: active ? "#fff" : T.soft,
-                  fontSize:12.5, fontWeight: 600, cursor:"pointer",
+                  fontSize:12.5, fontWeight:700, cursor:"pointer",
                   touchAction:"manipulation", whiteSpace:"nowrap",
                 }}
               >{f.label}</button>
@@ -382,13 +382,13 @@ function MerkenCard({ item, cover, title, creator, label, date, onOpen, onRemove
       <div style={{ flex:1, minWidth:0, display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
         <div>
           <div style={{
-            fontSize:15, fontWeight: 600, color:T.ink, lineHeight:1.32,
+            fontSize:15, fontWeight:700, color:T.ink, lineHeight:1.32,
             display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical",
             overflow:"hidden",
           }}>{title}</div>
           <div style={{ display:"flex", gap:6, alignItems:"center", marginTop:6, flexWrap:"wrap" }}>
             <span style={{
-              fontSize:10.5, fontWeight: 600, color:T.teal,
+              fontSize:10.5, fontWeight:700, color:T.teal,
               background:`${T.teal}15`, borderRadius:6, padding:"2px 7px",
             }}>{label}</span>
             {creator && (
@@ -409,7 +409,7 @@ function MerkenCard({ item, cover, title, creator, label, date, onOpen, onRemove
             style={{
               padding:"6px 14px", borderRadius:10,
               background:`${T.teal}15`, border:`1px solid ${T.teal}30`,
-              color:T.teal, fontSize:12, fontWeight: 600, cursor:"pointer",
+              color:T.teal, fontSize:12, fontWeight:700, cursor:"pointer",
               whiteSpace:"nowrap", touchAction:"manipulation",
             }}
           >Öffnen</button>

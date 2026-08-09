@@ -107,7 +107,7 @@ export function RecommendationsSection({
         <style>{`@keyframes ps-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}.rs-hscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}.rs-hscroll::-webkit-scrollbar{display:none}`}</style>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
           padding:`0 ${T.px}px`, marginBottom:12 }}>
-          <div style={{ fontSize:15, fontWeight: 600, color:T.ink }}>Kundenstimmen</div>
+          <div style={{ fontSize:15, fontWeight:800, color:T.ink }}>Kundenstimmen</div>
         </div>
         <div className="rs-hscroll" style={{ display:"flex", gap:12, padding:`0 ${T.px}px 4px` }}>
           <Sk w={210} h={110} r={T.r16}/>
@@ -125,7 +125,7 @@ export function RecommendationsSection({
         {/* Header */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
           padding:`0 ${T.px}px`, marginBottom:12 }}>
-          <div style={{ fontSize:15, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>
+          <div style={{ fontSize:15, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>
             Kundenstimmen
           </div>
         </div>
@@ -152,7 +152,7 @@ export function RecommendationsSection({
       {/* Header */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
         padding:`0 ${T.px}px`, marginBottom:12 }}>
-        <div style={{ fontSize:15, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>
+        <div style={{ fontSize:15, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>
           Kundenstimmen
         </div>
         {recommendations.length > 0 && onShowAll && (
@@ -290,7 +290,7 @@ export function RecommendationsSection({
             display: "flex", flexDirection: "column", gap: 14, fontFamily: T.ff,
           }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ fontSize: 16, fontWeight: 600, color: T.ink }}>Empfehlung melden</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: T.ink }}>Empfehlung melden</div>
               <button onClick={() => { setReportingId(null); setReportReason(""); }}
                 style={{ background: "rgba(26,26,24,0.07)", border: "none", borderRadius: 99, width: 30, height: 30, fontSize: 16, color: T.inkSoft, cursor: "pointer" }}>✕</button>
             </div>
@@ -317,7 +317,7 @@ export function RecommendationsSection({
                 padding: "13px 24px", borderRadius: 99, border: "none",
                 background: reportReason.trim().length < 3 ? "rgba(26,26,24,0.08)" : "#DC2626",
                 color: reportReason.trim().length < 3 ? T.inkFaint : "white",
-                fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: T.ff,
+                fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: T.ff,
                 opacity: reportSubmitting ? 0.6 : 1,
               }}
             >

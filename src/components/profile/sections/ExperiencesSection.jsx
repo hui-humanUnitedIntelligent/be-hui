@@ -61,7 +61,7 @@ export function ExperiencesSection({
         <style>{`@keyframes ps-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}.es-hscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}.es-hscroll::-webkit-scrollbar{display:none}`}</style>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
           padding:`0 ${T.px}px`, marginBottom:12 }}>
-          <div style={{ fontSize:15, fontWeight: 600, color:T.ink }}>Erlebnisse & Projekte</div>
+          <div style={{ fontSize:15, fontWeight:800, color:T.ink }}>Erlebnisse & Projekte</div>
         </div>
         <div className="es-hscroll" style={{ display:"flex", gap:10, padding:`0 ${T.px}px 4px` }}>
           {[1,2,3,4].map(i => <Sk key={i} w={110} h={130} r={T.r16}/>)}
@@ -77,7 +77,7 @@ export function ExperiencesSection({
       {/* Header */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
         padding:`0 ${T.px}px`, marginBottom:12 }}>
-        <div style={{ fontSize:15, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>
+        <div style={{ fontSize:15, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>
           Erlebnisse & Projekte
         </div>
         {visible.length > 0 && onShowAll && (
@@ -98,7 +98,7 @@ export function ExperiencesSection({
               cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
             }}>
               <span style={{ fontSize:24 }}>🎟</span>
-              <div style={{ fontSize:13, fontWeight: 600, color:T.ink }}>Erstes Erlebnis erstellen</div>
+              <div style={{ fontSize:13, fontWeight:700, color:T.ink }}>Erstes Erlebnis erstellen</div>
               <div style={{ fontSize:12, color:T.inkFaint }}>Workshops, Events, Begegnungen</div>
             </button>
           </div>
@@ -125,7 +125,7 @@ export function ExperiencesSection({
                   : <div style={{ width:"100%",height:"100%",display:"flex",alignItems:"center",
                       justifyContent:"center",fontSize:28 }}>🎭</div>}
               </div>
-              <div style={{ fontSize:11.5, fontWeight: 600, color:T.ink, lineHeight:1.3,
+              <div style={{ fontSize:11.5, fontWeight:700, color:T.ink, lineHeight:1.3,
                 marginBottom:2, overflow:"hidden", display:"-webkit-box",
                 WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>
                 {ex.title || "Erlebnis"}

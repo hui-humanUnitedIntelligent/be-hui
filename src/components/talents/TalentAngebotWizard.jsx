@@ -41,7 +41,7 @@ const INP = {
 function Lbl({ text, req, hint }) {
   return (
     <div style={{ marginBottom: 6 }}>
-      <span style={{ fontSize: 12, fontWeight: 600, color: C.inkMid }}>
+      <span style={{ fontSize: 12, fontWeight: 700, color: C.inkMid }}>
         {text}{req && <span style={{ color: C.teal, marginLeft: 2 }}>*</span>}
       </span>
       {hint && <div style={{ fontSize: 11, color: C.inkFade, marginTop: 2 }}>{hint}</div>}
@@ -61,7 +61,7 @@ function ProgressBar({ step, total }) {
               background: (done || cur) ? C.teal : "rgba(26,26,24,0.09)",
               border: cur ? `2.5px solid ${C.teal}` : "none",
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: cur ? 11 : 9, fontWeight: 600,
+              fontSize: cur ? 11 : 9, fontWeight: 700,
               color: (done || cur) ? "#fff" : C.inkFade, flexShrink: 0, transition: "all .22s",
               boxShadow: cur ? "0 0 0 4px rgba(14,196,184,0.18)" : "none",
             }}>{done ? "✓" : n}</div>
@@ -78,7 +78,7 @@ function TopBar({ onClose, step, total, isEdit }) {
     <div style={{ padding: "max(14px, env(safe-area-inset-top, 14px)) 20px 12px", background: "#fff", borderBottom: `1px solid ${C.border}` }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
         <button onClick={onClose} style={{ background: "none", border: "none", padding: 0, fontSize: 13, fontWeight: 600, color: C.inkMid, cursor: "pointer", touchAction: "manipulation" }}>Abbrechen</button>
-        <div style={{ fontSize: 13, fontWeight: 600, color: C.ink }}>{isEdit ? "Angebot bearbeiten" : "Neues Talent-Angebot"} · {STEP_TITLES[step - 1]}</div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: C.ink }}>{isEdit ? "Angebot bearbeiten" : "Neues Talent-Angebot"} · {STEP_TITLES[step - 1]}</div>
         <button onClick={onClose} style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(26,26,24,0.07)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", touchAction: "manipulation" }}>
           <span style={{ fontSize: 14, color: C.ink }}>×</span>
         </button>
@@ -92,7 +92,7 @@ function PBtn({ label, onClick, disabled, loading }) {
   return (
     <button onClick={onClick} disabled={disabled || loading} style={{
       width: "100%", padding: "15px", background: (disabled || loading) ? "rgba(14,196,184,0.32)" : `linear-gradient(135deg,${C.teal},${C.tealD})`,
-      border: "none", borderRadius: 14, color: "#fff", fontSize: 15, fontWeight: 600,
+      border: "none", borderRadius: 14, color: "#fff", fontSize: 15, fontWeight: 700,
       cursor: (disabled || loading) ? "not-allowed" : "pointer", fontFamily: "inherit", touchAction: "manipulation",
     }}>{loading ? "Wird gespeichert…" : label}</button>
   );
@@ -409,7 +409,7 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
                   <span key={d} style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 10px",
                     borderRadius: 99, background: "rgba(14,196,184,0.10)", fontSize: 12, color: C.teal, fontWeight: 600 }}>
                     {d}
-                    {!locked && <span onClick={() => removeDate(d)} style={{ cursor: "pointer", fontWeight: 600 }}>×</span>}
+                    {!locked && <span onClick={() => removeDate(d)} style={{ cursor: "pointer", fontWeight: 800 }}>×</span>}
                   </span>
                 ))}
               </div>
@@ -423,7 +423,7 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
                 style={{ ...INP, flex: 1, background: locked ? "#f5f5f3" : "#fff" }}/>
               <button type="button" onClick={addSlot} disabled={locked || !slotStart || !slotEnd} style={{
                 padding: "0 18px", borderRadius: 12, border: "none", background: C.teal, color: "#fff",
-                fontWeight: 600, cursor: locked ? "default" : "pointer",
+                fontWeight: 700, cursor: locked ? "default" : "pointer",
               }}>+</button>
             </div>
             {timeSlots.length > 0 && (
@@ -432,7 +432,7 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
                   <span key={i} style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 10px",
                     borderRadius: 99, background: "rgba(14,196,184,0.10)", fontSize: 12, color: C.teal, fontWeight: 600 }}>
                     {s.start}–{s.end}
-                    {!locked && <span onClick={() => removeSlot(i)} style={{ cursor: "pointer", fontWeight: 600 }}>×</span>}
+                    {!locked && <span onClick={() => removeSlot(i)} style={{ cursor: "pointer", fontWeight: 800 }}>×</span>}
                   </span>
                 ))}
               </div>

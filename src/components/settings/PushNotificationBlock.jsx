@@ -101,7 +101,7 @@ export default function PushNotificationBlock() {
         gap: 12,
       }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: "#1A1A18" }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#1A1A18" }}>
             Push-Benachrichtigungen
           </div>
           <div style={{
@@ -150,7 +150,7 @@ export default function PushNotificationBlock() {
           wenn Push grundsätzlich aktiv ist (sonst irrelevant, alles ist stumm). */}
       {isNative && enabled && !loading && (
         <div style={{ marginTop: 10, paddingTop: 6, borderTop: "1px solid rgba(26,26,24,0.06)" }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: "#999", textTransform: "uppercase", letterSpacing: "0.4px", marginBottom: 2 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#999", textTransform: "uppercase", letterSpacing: "0.4px", marginBottom: 2 }}>
             Einzeln steuerbar
           </div>
           {CATEGORIES.map(cat => (

@@ -65,7 +65,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
         {/* WERK-Badge */}
         <span style={{
           flexShrink:0, marginTop:2,
-          fontSize:10.5, fontWeight: 600, color:CORAL,
+          fontSize:10.5, fontWeight:700, color:CORAL,
           background:"rgba(244,115,85,0.10)",
           border:"1px solid rgba(244,115,85,0.22)",
           borderRadius:99, padding:"3px 9px",
@@ -74,7 +74,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
         {/* Titel */}
         {title ? (
           <span style={{
-            fontSize:15, fontWeight: 600, color:INK,
+            fontSize:15, fontWeight:700, color:INK,
             lineHeight:1.3, letterSpacing:"-0.02em",
             whiteSpace:"normal", wordBreak:"break-word",
           }}>{title}</span>
@@ -93,7 +93,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
                 display:"flex", alignItems:"center", gap:7,
                 background:"linear-gradient(135deg,#F47355,#F05A28)",
                 color:"#fff", border:"none", borderRadius:99,
-                padding:"9px 18px", fontSize:13, fontWeight: 600,
+                padding:"9px 18px", fontSize:13, fontWeight:700,
                 cursor:"pointer", touchAction:"manipulation",
                 boxShadow:"0 3px 10px rgba(240,90,40,0.35)",
                 whiteSpace:"nowrap",
@@ -110,7 +110,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
           {onBuyWerk && !isBuyable && priceStr && (
             <span style={{
               flexShrink:0,
-              fontSize:10.5, fontWeight: 600, color:"rgba(26,26,46,0.35)",
+              fontSize:10.5, fontWeight:700, color:"rgba(26,26,46,0.35)",
               background:"rgba(26,26,46,0.06)",
               border:"1px solid rgba(26,26,46,0.12)",
               borderRadius:99, padding:"5px 12px",

@@ -296,7 +296,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
           padding: "14px 20px 10px",
         }}>
           <div>
-            <div style={{ fontSize: 20, fontWeight: 600, color: T.ink, letterSpacing: "-0.02em" }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: T.ink, letterSpacing: "-0.02em" }}>
               
             </div>
             <div style={{ fontSize: 12, color: T.inkSoft, marginTop: 2 }}>
@@ -333,10 +333,10 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
               width: 80, height: 80, borderRadius: "50%",
               background: "rgba(255,255,255,0.07)",
             }} />
-            <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.75)", marginBottom: 6 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.75)", marginBottom: 6 }}>
               • HUI IMPACT POOL
             </div>
-            <div style={{ fontSize: 22, fontWeight: 600, color: "#fff", lineHeight: 1.2, marginBottom: 6 }}>
+            <div style={{ fontSize: 22, fontWeight: 900, color: "#fff", lineHeight: 1.2, marginBottom: 6 }}>
               Deine Stimme<br />zählt.
             </div>
             <div style={{ fontSize: 13, color: "rgba(255,255,255,0.82)", lineHeight: 1.45 }}>
@@ -351,7 +351,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
             border: `1px solid ${T.border}`, padding: "18px",
             marginBottom: 16, boxShadow: T.card,
           }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: T.ink, marginBottom: 14 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: T.ink, marginBottom: 14 }}>
               Deine Stimmen diesen Monat
             </div>
 
@@ -379,7 +379,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
                     background: "rgba(26,26,24,0.04)", borderRadius: T.r12,
                     padding: "10px 14px",
                   }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: T.ink }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: T.ink }}>
                       Alle Stimmen eingesetzt.
                     </div>
                     <div style={{ fontSize: 11, color: T.inkSoft, marginTop: 3 }}>
@@ -391,7 +391,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
                     background: T.tealSoft, borderRadius: T.r12,
                     border: `1px solid ${T.tealMid}`, padding: "10px 14px",
                   }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: T.teal }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: T.teal }}>
                       {freeCount} Stimme{freeCount !== 1 ? "n" : ""} verfügbar
                     </div>
                     <div style={{ fontSize: 11, color: T.inkSoft, marginTop: 3 }}>
@@ -411,7 +411,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
               }}>
                 <HUIAwardIcon size={18} style={{flexShrink:0, color:"rgba(245,158,11,0.8)"}} />
                 <div>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: "#92700A" }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#92700A" }}>
                     Mit Mitgliedschaft auf 2 Stimmen
                   </div>
                   <div style={{ fontSize: 11, color: T.inkSoft, marginTop: 2 }}>
@@ -429,7 +429,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
               border: `1px solid ${T.border}`, padding: "18px",
               marginBottom: 16, boxShadow: T.card,
             }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: T.ink, marginBottom: 14 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: T.ink, marginBottom: 14 }}>
                 Deine Stimme{votedProjects.length > 1 ? "n" : ""} diesen Monat
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -442,7 +442,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
                   >
                     <ProjectIcon project={proj} onClick={goToProject} size={48} />
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: T.ink }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: T.ink }}>
                         {proj.name}
                       </div>
                       <div style={{ fontSize: 12, color: T.inkSoft, marginTop: 2 }}>
@@ -492,7 +492,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
                   fontSize: 16, color: T.inkSoft, flexShrink: 0,
                 }}>‹</button>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: T.ink }}>{detailProj.name}</div>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: T.ink }}>{detailProj.name}</div>
                   {detailProj.category && (
                     <div style={{ fontSize: 11, color: T.inkSoft, marginTop: 1 }}>{detailProj.category}</div>
                   )}
@@ -560,7 +560,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
                     <div style={{ display: "flex", justifyContent: "space-between",
                       fontSize: 12, color: T.inkSoft, marginBottom: 6 }}>
                       <span>Finanzierungsfortschritt</span>
-                      <span style={{ fontWeight: 600, color: T.teal }}>{pct}%</span>
+                      <span style={{ fontWeight: 800, color: T.teal }}>{pct}%</span>
                     </div>
                     <div style={{ height: 8, borderRadius: 99, background: "rgba(0,0,0,0.08)",
                       overflow: "hidden", marginBottom: 8 }}>
@@ -568,7 +568,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
                         background: `linear-gradient(90deg, ${T.teal}, ${T.tealDeep})`,
                         transition: "width 1.2s ease", minWidth: pct > 0 ? 6 : 0 }} />
                     </div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: T.ink }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: T.ink }}>
                       €{formatNumberDE(funded, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} von €{formatNumberDE(goal)} finanziert
                     </div>
                   </div>
@@ -583,7 +583,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
                   flex: 1, background: T.tealSoft, borderRadius: T.r12,
                   border: `1px solid ${T.tealMid}`, padding: "10px 12px", textAlign: "center",
                 }}>
-                  <div style={{ fontSize: 18, fontWeight: 600, color: T.teal }}>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: T.teal }}>
                     {detailProj.votes ?? 0}
                   </div>
                   <div style={{ fontSize: 11, color: T.inkSoft, marginTop: 2 }}>Stimmen</div>
@@ -609,7 +609,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
                     flex: 1, padding: "12px 10px", borderRadius: T.r12,
                     background: "rgba(26,26,24,0.06)",
                     border: `1px solid ${T.border}`,
-                    cursor: "pointer", fontSize: 13, fontWeight: 600,
+                    cursor: "pointer", fontSize: 13, fontWeight: 700,
                     color: T.ink, fontFamily: "inherit",
                     WebkitTapHighlightColor: "transparent",
                   }}
@@ -632,7 +632,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
                     flex: 1, padding: "12px 10px", borderRadius: T.r12,
                     background: `linear-gradient(135deg, ${T.teal}, ${T.tealDeep})`,
                     border: "none", cursor: voting ? "not-allowed" : "pointer",
-                    fontSize: 13, fontWeight: 600, color: "#fff",
+                    fontSize: 13, fontWeight: 800, color: "#fff",
                     fontFamily: "inherit",
                     boxShadow: "0 3px 10px rgba(14,196,184,0.30)",
                     WebkitTapHighlightColor: "transparent",
@@ -656,7 +656,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
                 display: "flex", justifyContent: "space-between", alignItems: "center",
                 marginBottom: 14,
               }}>
-                <div style={{ fontSize: 14, fontWeight: 600, color: T.ink }}>
+                <div style={{ fontSize: 14, fontWeight: 800, color: T.ink }}>
                   Für welches Projekt?
                 </div>
                 <button onClick={() => setShowPicker(false)} style={{
@@ -686,7 +686,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
 
                     {/* Name + Stimmen */}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: T.ink,
+                      <div style={{ fontSize: 14, fontWeight: 700, color: T.ink,
                         whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                         {proj.name}
                       </div>
@@ -719,7 +719,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
                         padding: "5px 12px", borderRadius: 99,
                         background: T.tealSoft,
                         border: `1px solid ${T.tealMid}`,
-                        fontSize: 12, fontWeight: 600, color: T.teal,
+                        fontSize: 12, fontWeight: 700, color: T.teal,
                         cursor: voting ? "not-allowed" : "pointer",
                         fontFamily: "inherit", flexShrink: 0,
                         WebkitTapHighlightColor: "transparent",
@@ -745,7 +745,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
               width: "100%", padding: "16px", borderRadius: T.r16,
               background: `linear-gradient(135deg, ${T.teal}, ${T.tealDeep})`,
               border: "none", cursor: "pointer",
-              fontSize: 15, fontWeight: 600, color: "#fff",
+              fontSize: 15, fontWeight: 800, color: "#fff",
               letterSpacing: "-0.01em",
               boxShadow: "0 4px 16px rgba(14,196,184,0.30)",
               fontFamily: "inherit",

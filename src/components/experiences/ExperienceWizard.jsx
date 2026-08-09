@@ -77,7 +77,7 @@ const INP_BASE = {
 function Label({ text, req, hint }) {
   return (
     <div style={{ marginBottom: 7 }}>
-      <span style={{ fontSize: 13, fontWeight: 600, color: C.inkMid }}>{text}</span>
+      <span style={{ fontSize: 13, fontWeight: 700, color: C.inkMid }}>{text}</span>
       {req && <span style={{ color: C.teal, marginLeft: 3, fontSize: 13 }}>*</span>}
       {hint && <span style={{ fontSize: 11.5, color: C.inkFade, marginLeft: 8 }}>{hint}</span>}
     </div>
@@ -200,7 +200,7 @@ function PreisProCard({ active, item, onClick }) {
         {active && <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#fff" }}/>}
       </div>
       <div>
-        <div style={{ fontSize: 14, fontWeight: 600, color: active ? C.teal : C.ink }}>{item.label}</div>
+        <div style={{ fontSize: 14, fontWeight: 700, color: active ? C.teal : C.ink }}>{item.label}</div>
         <div style={{ fontSize: 11.5, color: C.inkMid, marginTop: 1 }}>{item.sub}</div>
       </div>
     </div>
@@ -230,7 +230,7 @@ function SichtCard({ active, item, onClick }) {
       </div>
       <div style={{ fontSize: 20, flexShrink: 0 }}>{item.icon}</div>
       <div>
-        <div style={{ fontSize: 14, fontWeight: 600, color: active ? C.teal : C.ink }}>{item.label}</div>
+        <div style={{ fontSize: 14, fontWeight: 700, color: active ? C.teal : C.ink }}>{item.label}</div>
         <div style={{ fontSize: 12, color: C.inkMid, marginTop: 2 }}>{item.sub}</div>
       </div>
     </div>
@@ -247,7 +247,7 @@ function JaNeinPill({ value, onChange }) {
           onClick={() => onChange(v)}
           style={{
             flex: 1, textAlign: "center", padding: "13px",
-            borderRadius: 12, fontSize: 14, fontWeight: 600,
+            borderRadius: 12, fontSize: 14, fontWeight: 700,
             border: value === v ? `2px solid ${C.teal}` : `1.5px solid ${C.border}`,
             background: value === v ? C.tealSoft : C.white,
             color: value === v ? C.teal : C.ink,
@@ -276,7 +276,7 @@ function ProgressBar({ step, total }) {
                 background: (done || cur) ? C.teal : "rgba(26,26,24,0.09)",
                 border: cur ? `2.5px solid ${C.teal}` : "none",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: cur ? 13 : 11, fontWeight: 600,
+                fontSize: cur ? 13 : 11, fontWeight: 700,
                 color: (done || cur) ? "#fff" : C.inkFade,
                 flexShrink: 0, transition: "all .22s",
                 boxShadow: cur ? `0 0 0 4px rgba(14,196,184,0.18)` : "none",
@@ -314,7 +314,7 @@ function TopBar({ onClose, step, total, isEdit }) {
         <button onClick={onClose} style={{ background: "none", border: "none", padding: 0, fontSize: 13, fontWeight: 600, color: C.inkMid, cursor: "pointer", touchAction: "manipulation" }}>
           Abbrechen
         </button>
-        <div style={{ fontSize: 15, fontWeight: 600, color: C.ink }}>
+        <div style={{ fontSize: 15, fontWeight: 800, color: C.ink }}>
           {isEdit ? "Erlebnis bearbeiten" : "Erlebnis erstellen"}
         </div>
         <button onClick={onClose} style={{ width: 30, height: 30, borderRadius: "50%", background: "rgba(26,26,24,0.07)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", touchAction: "manipulation" }}>
@@ -378,7 +378,7 @@ function S1({ data, onChange, userId }) {
 
   return (
     <div>
-      <div style={{ fontSize: 22, fontWeight: 600, color: C.ink, marginBottom: 4 }}>Basis</div>
+      <div style={{ fontSize: 22, fontWeight: 800, color: C.ink, marginBottom: 4 }}>Basis</div>
       <div style={{ fontSize: 13, color: C.inkMid, marginBottom: 24, lineHeight: 1.5 }}>Erzähl kurz, worum es geht.</div>
 
       {/* Titel */}
@@ -431,7 +431,7 @@ function S1({ data, onChange, userId }) {
             <div style={{
               position: "absolute", bottom: 10, left: 10,
               background: "rgba(14,196,184,0.90)", borderRadius: 8,
-              padding: "3px 10px", fontSize: 10, fontWeight: 600, color: "#fff",
+              padding: "3px 10px", fontSize: 10, fontWeight: 700, color: "#fff",
             }}>TITELBILD</div>
           </div>
         ) : (
@@ -452,7 +452,7 @@ function S1({ data, onChange, userId }) {
             ) : (
               <>
                 <div style={{ fontSize: 28, color: C.teal, lineHeight: 1 }}>📷</div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: C.teal }}>Bild hochladen</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: C.teal }}>Bild hochladen</div>
                 <div style={{ fontSize: 11.5, color: C.inkFade }}>Tippe um ein Foto auszuwählen</div>
               </>
             )}
@@ -471,7 +471,7 @@ function S1({ data, onChange, userId }) {
 function S2({ data, onChange, onPickLocation }) {
   return (
     <div>
-      <div style={{ fontSize: 22, fontWeight: 600, color: C.ink, marginBottom: 4 }}>Wann & Wo</div>
+      <div style={{ fontSize: 22, fontWeight: 800, color: C.ink, marginBottom: 4 }}>Wann & Wo</div>
       <div style={{ fontSize: 13, color: C.inkMid, marginBottom: 24, lineHeight: 1.5 }}>Wann und wo findet das Erlebnis statt?</div>
 
       {/* Datum */}
@@ -551,7 +551,7 @@ function S3({ data, onChange }) {
 
   return (
     <div>
-      <div style={{ fontSize: 22, fontWeight: 600, color: C.ink, marginBottom: 4 }}>Teilnahme</div>
+      <div style={{ fontSize: 22, fontWeight: 800, color: C.ink, marginBottom: 4 }}>Teilnahme</div>
       <div style={{ fontSize: 13, color: C.inkMid, marginBottom: 24, lineHeight: 1.5 }}>Details zur Teilnahme und zum Preis.</div>
 
       {/* Preis — großer Input */}
@@ -559,7 +559,7 @@ function S3({ data, onChange }) {
         <div style={{ position: "relative" }}>
           <span style={{
             position: "absolute", left: 18, top: "50%", transform: "translateY(-50%)",
-            fontSize: 22, fontWeight: 600, color: "rgba(14,196,184,0.60)",
+            fontSize: 22, fontWeight: 700, color: "rgba(14,196,184,0.60)",
             pointerEvents: "none", userSelect: "none",
           }}>€</span>
           <input
@@ -571,7 +571,7 @@ function S3({ data, onChange }) {
             style={{
               ...INP_BASE,
               paddingLeft: 52,
-              fontSize: 28, fontWeight: 600,
+              fontSize: 28, fontWeight: 800,
               border: `2px solid ${data.price ? C.teal : C.border}`,
               letterSpacing: 0.5, transition: "border-color .15s",
             }}
@@ -610,7 +610,7 @@ function S3({ data, onChange }) {
           <div style={{
             marginTop: 12, padding: "10px 14px", borderRadius: 10,
             background: C.tealSoft, border: `1.5px solid ${C.tealBdr}`,
-            fontSize: 13, fontWeight: 600, color: C.teal,
+            fontSize: 13, fontWeight: 700, color: C.teal,
           }}>
             {parseFloat(data.price).toFixed(2).replace(".", ",")} {data.currency || "EUR"} pro {data.price_per}
           </div>
@@ -627,7 +627,7 @@ function S3({ data, onChange }) {
             value={data.max_participants || ""}
             onChange={e => onChange({ max_participants: e.target.value })}
             placeholder="12"
-            style={{ ...INP_BASE, paddingLeft: 46, fontSize: 20, fontWeight: 600 }}
+            style={{ ...INP_BASE, paddingLeft: 46, fontSize: 20, fontWeight: 700 }}
           />
         </div>
       </Field>
@@ -683,7 +683,7 @@ function S4({ data, onChange, saving }) {
 
   return (
     <div>
-      <div style={{ fontSize: 22, fontWeight: 600, color: C.ink, marginBottom: 4 }}>Veröffentlichen</div>
+      <div style={{ fontSize: 22, fontWeight: 800, color: C.ink, marginBottom: 4 }}>Veröffentlichen</div>
       <div style={{ fontSize: 13, color: C.inkMid, marginBottom: 20, lineHeight: 1.5 }}>Fast geschafft! Prüfe deine Angaben.</div>
 
       {/* Summary-Karte */}
@@ -700,12 +700,12 @@ function S4({ data, onChange, saving }) {
         <div style={{ padding: "16px 18px" }}>
           {/* Typ-Badge */}
           {typeObj && (
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "4px 10px", borderRadius: 99, background: C.tealSoft, border: `1.5px solid ${C.tealBdr}`, fontSize: 11, fontWeight: 600, color: C.teal, marginBottom: 8 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "4px 10px", borderRadius: 99, background: C.tealSoft, border: `1.5px solid ${C.tealBdr}`, fontSize: 11, fontWeight: 700, color: C.teal, marginBottom: 8 }}>
               {typeObj.icon} {typeObj.label}
             </div>
           )}
           {/* Titel */}
-          <div style={{ fontSize: 18, fontWeight: 600, color: C.ink, lineHeight: 1.3, marginBottom: 12 }}>
+          <div style={{ fontSize: 18, fontWeight: 800, color: C.ink, lineHeight: 1.3, marginBottom: 12 }}>
             {data.title || "Kein Titel"}
           </div>
           {/* Summary-Rows */}
@@ -969,7 +969,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
         }}>
           <HUISchreibenIcon size={16} style={{flexShrink:0, color:"rgba(14,196,184,0.6)"}} />
           <div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: "#DC2626", marginBottom: 2 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#DC2626", marginBottom: 2 }}>
               Du passt ein abgelehntes Erlebnis an
             </div>
             {existingExp.rejection_reason && (
@@ -1026,7 +1026,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
           <button onClick={back} style={{
             flex: 1, padding: "16px",
             background: "rgba(26,26,24,0.06)", border: "none",
-            borderRadius: 14, fontSize: 15, fontWeight: 600,
+            borderRadius: 14, fontSize: 15, fontWeight: 700,
             color: C.inkMid, cursor: "pointer",
             fontFamily: "inherit", touchAction: "manipulation",
           }}>← Zurück</button>
@@ -1034,7 +1034,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
           <button onClick={onClose} style={{
             flex: 1, padding: "16px",
             background: "rgba(26,26,24,0.06)", border: "none",
-            borderRadius: 14, fontSize: 15, fontWeight: 600,
+            borderRadius: 14, fontSize: 15, fontWeight: 700,
             color: C.inkMid, cursor: "pointer",
             fontFamily: "inherit", touchAction: "manipulation",
           }}>Abbrechen</button>
@@ -1048,7 +1048,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
               ? `linear-gradient(135deg, ${C.teal}, ${C.tealD})`
               : "rgba(14,196,184,0.30)",
             border: "none", borderRadius: 14,
-            color: "#fff", fontSize: 16, fontWeight: 600,
+            color: "#fff", fontSize: 16, fontWeight: 700,
             cursor: canContinue() ? "pointer" : "not-allowed",
             fontFamily: "inherit", touchAction: "manipulation",
             transition: "background .18s",
@@ -1078,7 +1078,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
                   ? "rgba(14,196,184,0.30)"
                   : `linear-gradient(135deg, ${C.teal}, ${C.tealD})`,
                 border: "none", borderRadius: 14,
-                color: "#fff", fontSize: 15, fontWeight: 600,
+                color: "#fff", fontSize: 15, fontWeight: 800,
                 cursor: (saving || !form.title?.trim()) ? "not-allowed" : "pointer",
                 fontFamily: "inherit", touchAction: "manipulation",
                 letterSpacing: 0.2,

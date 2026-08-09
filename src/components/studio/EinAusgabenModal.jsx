@@ -339,7 +339,7 @@ export default function EinAusgabenModal({ profile, onClose }) {
           padding:"10px 20px 14px",
         }}>
           <div>
-            <div style={{ fontSize:18, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>
+            <div style={{ fontSize:18, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>
               💶 Ein-/Ausgaben
             </div>
             <div style={{ fontSize:12, color:T.inkSoft, marginTop:2 }}>
@@ -361,10 +361,10 @@ export default function EinAusgabenModal({ profile, onClose }) {
             flex:1, background:T.greenSoft, borderRadius:T.r12,
             border:`1px solid ${T.greenMid}`, padding:"12px 14px",
           }}>
-            <div style={{ fontSize:10, fontWeight: 600, color:T.green, letterSpacing:"0.04em", marginBottom:4 }}>
+            <div style={{ fontSize:10, fontWeight:700, color:T.green, letterSpacing:"0.04em", marginBottom:4 }}>
               ↑ EINNAHMEN
             </div>
-            <div style={{ fontSize:18, fontWeight: 600, color:T.green }}>
+            <div style={{ fontSize:18, fontWeight:800, color:T.green }}>
               {fmtEur(totalEinnahmen)}
             </div>
             <div style={{ fontSize:11, color:T.inkSoft, marginTop:2 }}>
@@ -377,10 +377,10 @@ export default function EinAusgabenModal({ profile, onClose }) {
             flex:1, background:T.coralSoft, borderRadius:T.r12,
             border:`1px solid ${T.coralMid}`, padding:"12px 14px",
           }}>
-            <div style={{ fontSize:10, fontWeight: 600, color:T.coral, letterSpacing:"0.04em", marginBottom:4 }}>
+            <div style={{ fontSize:10, fontWeight:700, color:T.coral, letterSpacing:"0.04em", marginBottom:4 }}>
               ↓ AUSGABEN
             </div>
-            <div style={{ fontSize:18, fontWeight: 600, color:T.coral }}>
+            <div style={{ fontSize:18, fontWeight:800, color:T.coral }}>
               {fmtEur(totalAusgaben)}
             </div>
             <div style={{ fontSize:11, color:T.inkSoft, marginTop:2 }}>
@@ -397,12 +397,12 @@ export default function EinAusgabenModal({ profile, onClose }) {
             padding:"12px 14px",
           }}>
             <div style={{
-              fontSize:10, fontWeight: 600, letterSpacing:"0.04em", marginBottom:4,
+              fontSize:10, fontWeight:700, letterSpacing:"0.04em", marginBottom:4,
               color: saldo >= 0 ? T.teal : T.coral,
             }}>
               ⚖ SALDO
             </div>
-            <div style={{ fontSize:18, fontWeight: 600, color: saldo >= 0 ? T.teal : T.coral }}>
+            <div style={{ fontSize:18, fontWeight:800, color: saldo >= 0 ? T.teal : T.coral }}>
               {saldo >= 0 ? "+" : ""}{fmtEur(saldo)}
             </div>
             <div style={{ fontSize:11, color:T.inkSoft, marginTop:2 }}>
@@ -423,7 +423,7 @@ export default function EinAusgabenModal({ profile, onClose }) {
             <button key={t.key} onClick={() => { setTab(t.key); setFilter("all"); setExpanded(null); }} style={{
               flex:1, padding:"8px 0", borderRadius:T.r12-2,
               border:"none", cursor:"pointer", fontFamily:T.ff,
-              fontSize:13, fontWeight: 600,
+              fontSize:13, fontWeight:700,
               background: tab===t.key ? T.bgCard : "transparent",
               color: tab===t.key ? t.color : T.inkSoft,
               boxShadow: tab===t.key ? "0 1px 4px rgba(26,26,24,0.10)" : "none",
@@ -547,7 +547,7 @@ function TransactionRow({ item, isIncome, isExpanded, onToggle }) {
         {/* Titel + Datum */}
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{
-            fontSize:14, fontWeight: 600, color:T.ink,
+            fontSize:14, fontWeight:700, color:T.ink,
             whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis",
           }}>
             {item.title}
@@ -555,7 +555,7 @@ function TransactionRow({ item, isIncome, isExpanded, onToggle }) {
           <div style={{ fontSize:11, color:T.inkSoft, marginTop:2, display:"flex", gap:6, alignItems:"center" }}>
             <span>{fmtDate(item.date)}</span>
             <span style={{
-              fontSize:10, fontWeight: 600,
+              fontSize:10, fontWeight:700,
               color:typeMeta.color,
               background:`${typeMeta.color}12`,
               borderRadius:T.r99, padding:"1px 7px",
@@ -568,13 +568,13 @@ function TransactionRow({ item, isIncome, isExpanded, onToggle }) {
         {/* Betrag + Status */}
         <div style={{ textAlign:"right", flexShrink:0 }}>
           <div style={{
-            fontSize:15, fontWeight: 600,
+            fontSize:15, fontWeight:800,
             color: isIncome ? T.green : T.coral,
           }}>
             {isIncome ? "+" : "−"}{fmtEur(item.betrag)}
           </div>
           <div style={{
-            fontSize:10, fontWeight: 600,
+            fontSize:10, fontWeight:700,
             color:statusMeta.color, background:statusMeta.bg,
             borderRadius:T.r99, padding:"2px 7px", marginTop:3,
           }}>
@@ -652,7 +652,7 @@ function TransactionRow({ item, isIncome, isExpanded, onToggle }) {
                   flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:6,
                   padding:"10px 14px", borderRadius:T.r12,
                   background:T.tealSoft, border:`1px solid ${T.tealMid}`,
-                  fontSize:13, fontWeight: 600, color:T.teal,
+                  fontSize:13, fontWeight:700, color:T.teal,
                   textDecoration:"none", fontFamily:T.ff,
                   WebkitTapHighlightColor:"transparent",
                 }}
@@ -699,7 +699,7 @@ function EmptyState({ icon, title, desc }) {
   return (
     <div style={{ textAlign:"center", padding:"40px 20px" }}>
       <div style={{ fontSize:40, marginBottom:12 }}>{icon}</div>
-      <div style={{ fontSize:15, fontWeight: 600, color:T.ink, marginBottom:6 }}>{title}</div>
+      <div style={{ fontSize:15, fontWeight:700, color:T.ink, marginBottom:6 }}>{title}</div>
       <div style={{ fontSize:13, color:T.inkSoft, lineHeight:1.55 }}>{desc}</div>
     </div>
   );

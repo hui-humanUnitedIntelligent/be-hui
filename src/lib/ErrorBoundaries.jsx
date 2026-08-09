@@ -73,7 +73,7 @@ export class GlobalAppBoundary extends React.Component {
         <div style={{ fontSize: 40, marginBottom: 16 }}>
           {isFatal ? '✦' : '○'}
         </div>
-        <div style={{ fontSize: 20, fontWeight: 600, color: C.ink, marginBottom: 8, textAlign: 'center' }}>
+        <div style={{ fontSize: 20, fontWeight: 800, color: C.ink, marginBottom: 8, textAlign: 'center' }}>
           {isFatal ? 'HUI muss neu gestartet werden' : 'Etwas ist schiefgelaufen'}
         </div>
         <div style={{ fontSize: 14, color: C.muted, marginBottom: 28, textAlign: 'center', maxWidth: 300, lineHeight: 1.6 }}>
@@ -83,14 +83,14 @@ export class GlobalAppBoundary extends React.Component {
           <button
             onClick={() => window.location.reload()}
             style={{ padding: '12px 28px', background: C.teal, border: 'none',
-              borderRadius: 14, color: 'white', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
+              borderRadius: 14, color: 'white', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>
             App neu starten
           </button>
         ) : (
           <button
             onClick={this.handleRetry}
             style={{ padding: '12px 28px', background: C.teal, border: 'none',
-              borderRadius: 14, color: 'white', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
+              borderRadius: 14, color: 'white', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>
             Erneut versuchen
           </button>
         )}
@@ -128,7 +128,7 @@ export class RouteBoundary extends React.Component {
         minHeight: '40vh', padding: 24, gap: 12,
       }}>
         <div style={{ fontSize: 28 }}>○</div>
-        <div style={{ fontSize: 16, fontWeight: 600, color: C.ink }}>
+        <div style={{ fontSize: 16, fontWeight: 700, color: C.ink }}>
           {this.props.fallbackTitle || 'Seite konnte nicht geladen werden'}
         </div>
         <button

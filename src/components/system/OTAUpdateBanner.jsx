@@ -62,7 +62,7 @@ export default function OTAUpdateBanner() {
     >
       <span style={{ fontSize: 18, flexShrink: 0 }}>⬆️</span>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.25 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.25 }}>
           Update v{update.version} bereit
         </div>
         <div style={{ fontSize: 11.5, opacity: 0.7, lineHeight: 1.3 }}>
@@ -79,7 +79,7 @@ export default function OTAUpdateBanner() {
           border: "none",
           borderRadius: 10,
           padding: "8px 12px",
-          fontSize: 12.5, fontWeight: 600,
+          fontSize: 12.5, fontWeight: 800,
           cursor: reloading ? "default" : "pointer",
           opacity: reloading ? 0.6 : 1,
         }}

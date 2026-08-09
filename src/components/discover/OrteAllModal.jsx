@@ -43,12 +43,12 @@ function PlaceCard({ place, onPress }) {
         <div style={{
           position:"absolute", top:6, right:6,
           background:"rgba(255,255,255,0.92)", borderRadius:99,
-          fontSize:10, fontWeight: 600, color:T.tealDeep, padding:"2px 9px",
+          fontSize:10, fontWeight:800, color:T.tealDeep, padding:"2px 9px",
           backdropFilter:"blur(4px)"
         }}>{place.total_count}</div>
       </div>
       <div style={{ padding:"8px 10px 10px", display:"flex", flexDirection:"column", flex:1 }}>
-        <div style={{ fontSize:13.5, fontWeight: 600, color:T.ink, marginBottom:5, letterSpacing:"-0.02em" }}>{place.place_key}</div>
+        <div style={{ fontSize:13.5, fontWeight:800, color:T.ink, marginBottom:5, letterSpacing:"-0.02em" }}>{place.place_key}</div>
         <div style={{ marginTop:"auto", display:"flex", alignItems:"center", gap:7, fontSize:10.5, fontWeight:600 }}>
           {place.people_count > 0 && (
             <span style={{ color:T.tealDeep, display:"flex", alignItems:"center", gap:2 }}>
@@ -111,12 +111,12 @@ function DetailItem({ item, onPressPerson, onPressWork, onPressExperience }) {
         )}
       </div>
       <div style={{ flex:1, minWidth:0 }}>
-        <div style={{ fontSize:13.5, fontWeight: 600, color:T.ink, marginBottom:2,
+        <div style={{ fontSize:13.5, fontWeight:700, color:T.ink, marginBottom:2,
           overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
           {item.title}
         </div>
         <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>
-          <span style={{ fontSize:10, fontWeight: 600, color:typeBadge.text, background:typeBadge.bg, borderRadius:99, padding:"1px 7px" }}>
+          <span style={{ fontSize:10, fontWeight:700, color:typeBadge.text, background:typeBadge.bg, borderRadius:99, padding:"1px 7px" }}>
             {typeBadge.label}
           </span>
           {item.location && (
@@ -125,7 +125,7 @@ function DetailItem({ item, onPressPerson, onPressWork, onPressExperience }) {
             </span>
           )}
           {isWork && item.price != null && Number(item.price) > 0 && (
-            <span style={{ fontSize:10.5, color:T.tealDeep, fontWeight: 600 }}>
+            <span style={{ fontSize:10.5, color:T.tealDeep, fontWeight:700 }}>
               {formatNumberDE(Number(item.price))} €
             </span>
           )}
@@ -220,7 +220,7 @@ export default function OrteAllModal({ isOpen, onClose, initialPlace, onPressPer
                 </button>
               )}
               <div>
-                <div style={{ fontSize:17, fontWeight: 600, color:T.ink }}>
+                <div style={{ fontSize:17, fontWeight:800, color:T.ink }}>
                   {showDetail ? selectedPlace : "Orte entdecken"}
                 </div>
                 <div style={{ fontSize:11.5, color:T.inkFaint }}>

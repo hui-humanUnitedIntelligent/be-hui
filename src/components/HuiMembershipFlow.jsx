@@ -308,7 +308,7 @@ function CtaBtn({ label, onClick, disabled, loading, icon, variant = "teal" }) {
       style={{
         width:"100%", height:58,
         borderRadius:18, border:"none",
-        fontFamily:"inherit", fontSize:17, fontWeight: 600,
+        fontFamily:"inherit", fontSize:17, fontWeight:700,
         letterSpacing:"-0.02em",
         display:"flex", alignItems:"center", justifyContent:"center", gap:10,
         cursor: (disabled || loading) ? "not-allowed" : "pointer",
@@ -385,7 +385,7 @@ function Card1({ onNext, dir }) {
         {/* Headline */}
         <div style={{ animation:"hmf5-rise 0.55s 0.12s ease both" }}>
           <h1 style={{
-            fontWeight: 600, fontSize:"clamp(30px,8vw,38px)",
+            fontWeight:800, fontSize:"clamp(30px,8vw,38px)",
             color:T.text, margin:"0 0 14px",
             letterSpacing:-1.2, lineHeight:1.13,
           }}>
@@ -463,7 +463,7 @@ function LightCard({ icon, label, sub, iconBg, style = {}, delay = 0, floatAnim 
       {/* Text */}
       <div style={{ flex:1, minWidth:0 }}>
         <div style={{
-          fontSize:13, fontWeight: 600,
+          fontSize:13, fontWeight:700,
           color:"#1a2e3a",
           letterSpacing:"-0.01em", lineHeight:1.25,
           marginBottom:4,
@@ -705,7 +705,7 @@ function Card2({ onNext, onBack, dir }) {
         opacity: ready ? 1 : 0, transition:"opacity 0.5s ease",
       }}>
         <ProgressDots total={4} current={1} />
-        <div style={{ marginTop:5, fontSize:11, fontWeight: 600, color:"rgba(22,215,197,0.70)", letterSpacing:"0.10em" }}>2 / 4</div>
+        <div style={{ marginTop:5, fontSize:11, fontWeight:700, color:"rgba(22,215,197,0.70)", letterSpacing:"0.10em" }}>2 / 4</div>
       </div>
 
       {/* Orb zone — orb centered, cards positioned around it */}
@@ -740,7 +740,7 @@ function Card2({ onNext, onBack, dir }) {
       }}>
         {/* Headline — dark, large, "kreativer" in teal */}
         <h1 style={{
-          fontWeight: 600,
+          fontWeight:800,
           fontSize:"clamp(26px, 6.5vw, 40px)",
           color:"#1a2e3a",
           margin:"0 0 10px",
@@ -776,7 +776,7 @@ function Card2({ onNext, onBack, dir }) {
               ? "linear-gradient(135deg, #1AE8D8 0%, #12BDB0 100%)"
               : "linear-gradient(135deg, #16D7C5 0%, #0FB8AA 100%)",
             fontFamily:"inherit",
-            fontSize:16, fontWeight: 600,
+            fontSize:16, fontWeight:700,
             color:"#ffffff",
             letterSpacing:-0.1, cursor:"pointer",
             width:"100%", maxWidth:380,
@@ -845,11 +845,11 @@ function Card3({ onNext, onBack, dir }) {
           <ProgressDots total={4} current={2} />
           {sp(18)}
           <div style={{
-            fontSize:11, fontWeight: 600, color:T.teal,
+            fontSize:11, fontWeight:700, color:T.teal,
             letterSpacing:"0.12em", textTransform:"uppercase", marginBottom:10,
           }}>3 / 4</div>
           <h1 style={{
-            fontWeight: 600, fontSize:"clamp(26px,7vw,34px)",
+            fontWeight:800, fontSize:"clamp(26px,7vw,34px)",
             color:T.text, margin:"0 0 14px",
             letterSpacing:-1, lineHeight:1.15,
           }}>HUI ist mehr als<br/>eine Plattform</h1>
@@ -940,11 +940,11 @@ function Card4({ onFinish, onBack, dir, loading, error }) {
               animation:"hmf5-pop 0.5s 0.1s cubic-bezier(0.34,1.4,0.64,1) both",
             }}>❤️</div>
             <div style={{
-              fontSize:11, fontWeight: 600, color:T.teal,
+              fontSize:11, fontWeight:700, color:T.teal,
               letterSpacing:"0.12em", textTransform:"uppercase", marginBottom:10,
             }}>4 / 4</div>
             <h1 style={{
-              fontWeight: 600, fontSize:"clamp(24px,7vw,32px)",
+              fontWeight:800, fontSize:"clamp(24px,7vw,32px)",
               color:T.text, margin:"0 0 10px",
               letterSpacing:-0.9, lineHeight:1.15,
             }}>Willkommen in der<br/>Gemeinschaft</h1>
@@ -1049,7 +1049,7 @@ function SuccessScreen({ onDone }) {
       </div>
 
       <h1 style={{
-        fontWeight: 600, fontSize:36, color:T.text,
+        fontWeight:800, fontSize:36, color:T.text,
         letterSpacing:-1.2, lineHeight:1.13,
         textAlign:"center", margin:"0 0 14px",
         animation:"hmf5-rise 0.55s 0.15s ease both",

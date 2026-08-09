@@ -19,7 +19,7 @@ const MAX_BIO = 220;
 function SectionTitle({ title }) {
   return (
     <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
-      <div style={{ fontSize:15, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>{title}</div>
+      <div style={{ fontSize:15, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>{title}</div>
     </div>
   );
 }
@@ -57,11 +57,11 @@ export function AboutSection({ profile, isOwner = false, loading = false, onSave
 
       {/* Titel außerhalb der Kachel */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
-        <div style={{ fontSize:15, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>Über dich</div>
+        <div style={{ fontSize:15, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>Über dich</div>
         {isOwner && !editing && (
           <button onClick={() => { setDraft(bio); setEditing(true); }}
             style={{ background:"none", border:"none", padding:0, fontSize:12, color:T.teal,
-              fontWeight: 600, cursor:"pointer", fontFamily:"inherit" }}>
+              fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>
             Bearbeiten ›
           </button>
         )}
@@ -97,7 +97,7 @@ export function AboutSection({ profile, isOwner = false, loading = false, onSave
                 <button onClick={handleSave}
                   style={{ padding:"6px 16px", borderRadius:T.r99, border:"none",
                     background:`linear-gradient(135deg,${T.teal},#0DBBAF)`,
-                    fontSize:12, fontWeight: 600, color:"white",
+                    fontSize:12, fontWeight:700, color:"white",
                     cursor:"pointer", fontFamily:"inherit", boxShadow:T.glowTeal }}>Speichern</button>
               </div>
             </div>
@@ -114,7 +114,7 @@ export function AboutSection({ profile, isOwner = false, loading = false, onSave
             <p style={{ fontSize:14, lineHeight:1.68, color:T.inkFaint, margin:0, fontStyle:"italic" }}>
               Erzähl etwas über dich — was dich antreibt, was du liebst.
             </p>
-            <div style={{ fontSize:12, color:T.teal, fontWeight: 600, marginTop:6 }}>
+            <div style={{ fontSize:12, color:T.teal, fontWeight:700, marginTop:6 }}>
               Jetzt hinzufügen ›
             </div>
           </button>

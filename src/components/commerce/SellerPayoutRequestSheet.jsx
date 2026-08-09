@@ -58,7 +58,7 @@ export default function SellerPayoutRequestSheet({ item, onClose = () => {}, onS
           {done ? (
             <div style={{ textAlign: 'center', padding: '20px 0' }}>
               <div style={{ display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.7)" }}><HUIDateiIcon size={48}/></div>
-              <div style={{ fontSize: 18, fontWeight: 600, color: '#1A1A2E', marginTop: 12 }}>Antrag gestellt</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: '#1A1A2E', marginTop: 12 }}>Antrag gestellt</div>
               <div style={{ fontSize: 14, color: 'rgba(26,26,46,0.55)', marginTop: 8, lineHeight: 1.6 }}>
                 HUI pr\u00fcft deinen Antrag und meldet sich bei dir. Die Auszahlung erfolgt nach Pr\u00fcfung.
               </div>
@@ -67,7 +67,7 @@ export default function SellerPayoutRequestSheet({ item, onClose = () => {}, onS
             <>
               <div style={{ fontSize: 11, fontWeight: 600, color: CORAL, textTransform: 'uppercase',
                 letterSpacing: '0.06em', marginBottom: 6 }}>Auszahlung beantragen</div>
-              <div style={{ fontSize: 17, fontWeight: 600, color: '#1A1A2E', marginBottom: 8 }}>
+              <div style={{ fontSize: 17, fontWeight: 700, color: '#1A1A2E', marginBottom: 8 }}>
                 {item.title || item.work_title || item.talent_title || 'Transaktion'}
               </div>
               <div style={{ fontSize: 14, color: 'rgba(26,26,46,0.6)', lineHeight: 1.6, marginBottom: 16 }}>
@@ -107,7 +107,7 @@ export default function SellerPayoutRequestSheet({ item, onClose = () => {}, onS
             <button onClick={handleRequest} disabled={loading || !note.trim()}
               style={{ flex: 2, background: (loading || !note.trim()) ? 'rgba(255,138,107,0.35)' : CORAL,
                 color: '#fff', border: 'none', borderRadius: 14, padding: '13px 0',
-                fontSize: 15, fontWeight: 600,
+                fontSize: 15, fontWeight: 700,
                 cursor: (loading || !note.trim()) ? 'not-allowed' : 'pointer',
                 touchAction: 'manipulation' }}>
               {loading ? 'Wird gesendet…' : 'Auszahlung beantragen'}

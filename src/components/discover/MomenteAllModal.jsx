@@ -194,7 +194,7 @@ export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
         <div style={{ padding:"16px 16px 8px", background:T.white, borderBottom:`1px solid ${T.border}`, flexShrink:0 }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
             <div>
-              <div style={{ fontSize:17, fontWeight: 600, color:T.ink }}>Momente aus deiner Nähe</div>
+              <div style={{ fontSize:17, fontWeight:800, color:T.ink }}>Momente aus deiner Nähe</div>
               <div style={{ fontSize:11.5, color:T.inkFaint }}>Echte Geschichten, gerade jetzt</div>
             </div>
             <button onClick={onClose} style={{ background:"none", border:"none", fontSize:22, cursor:"pointer", color:T.inkSoft, padding:4 }}>✕</button>
@@ -206,7 +206,7 @@ export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
           <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:6 }}>
             {SORT_OPTIONS.map(opt => (
               <button key={opt.key} onClick={() => setSort(opt.key)} style={{
-                flexShrink:0, padding:"6px 12px", borderRadius:99, fontSize:12, fontWeight: 600,
+                flexShrink:0, padding:"6px 12px", borderRadius:99, fontSize:12, fontWeight:700,
                 border:`1px solid ${sort === opt.key ? T.teal : T.border}`,
                 background: sort === opt.key ? "rgba(14,196,184,0.12)" : T.white,
                 color: sort === opt.key ? T.tealDeep : T.inkSoft,

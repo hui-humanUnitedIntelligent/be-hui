@@ -351,7 +351,7 @@ class ImpactErrorBoundary extends React.Component {
         minHeight:"50vh", display:"flex", flexDirection:"column",
         alignItems:"center", justifyContent:"center", background:T.page }}>
         <div style={{ marginBottom:12, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)" }}><HUIImpactIcon size={36}/></div>
-        <div style={{ fontSize:16, fontWeight: 600, color:T.ink, marginBottom:8 }}>
+        <div style={{ fontSize:16, fontWeight:700, color:T.ink, marginBottom:8 }}>
           Etwas ist schiefgelaufen
         </div>
         <div style={{ fontSize:13, marginBottom:20, maxWidth:280, color:T.muted }}>
@@ -777,13 +777,13 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
           <div style={{
             position:"absolute", bottom:12, left:12,
             background:"rgba(13,196,181,0.92)", borderRadius:99,
-            padding:"4px 12px", fontSize:11, fontWeight: 600, color:"#fff",
+            padding:"4px 12px", fontSize:11, fontWeight:700, color:"#fff",
           }}>✅ Bewilligt</div>
         </div>
 
         {/* Inhalt */}
         <div style={{ padding:"20px 20px 28px" }}>
-          <h2 style={{ margin:"0 0 8px", fontSize:20, fontWeight: 600, color:"#141422" }}>
+          <h2 style={{ margin:"0 0 8px", fontSize:20, fontWeight:900, color:"#141422" }}>
             {app.project_name}
           </h2>
           <p style={{ margin:"0 0 16px", fontSize:13.5, color:"#555", lineHeight:1.6 }}>
@@ -792,19 +792,19 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
 
           {app.problem && (
             <div style={{ marginBottom:12 }}>
-              <div style={{ fontSize:10, fontWeight: 600, color:"#999", textTransform:"uppercase", letterSpacing:"0.6px", marginBottom:4 }}>Das Problem</div>
+              <div style={{ fontSize:10, fontWeight:700, color:"#999", textTransform:"uppercase", letterSpacing:"0.6px", marginBottom:4 }}>Das Problem</div>
               <p style={{ margin:0, fontSize:13, color:"#333", lineHeight:1.6 }}>{app.problem}</p>
             </div>
           )}
           {app.vision && (
             <div style={{ marginBottom:12 }}>
-              <div style={{ fontSize:10, fontWeight: 600, color:"#999", textTransform:"uppercase", letterSpacing:"0.6px", marginBottom:4 }}>Vision & Lösung</div>
+              <div style={{ fontSize:10, fontWeight:700, color:"#999", textTransform:"uppercase", letterSpacing:"0.6px", marginBottom:4 }}>Vision & Lösung</div>
               <p style={{ margin:0, fontSize:13, color:"#333", lineHeight:1.6 }}>{app.vision}</p>
             </div>
           )}
           {app.why_support && (
             <div style={{ marginBottom:12 }}>
-              <div style={{ fontSize:10, fontWeight: 600, color:"#999", textTransform:"uppercase", letterSpacing:"0.6px", marginBottom:4 }}>Warum fördern?</div>
+              <div style={{ fontSize:10, fontWeight:700, color:"#999", textTransform:"uppercase", letterSpacing:"0.6px", marginBottom:4 }}>Warum fördern?</div>
               <p style={{ margin:0, fontSize:13, color:"#333", lineHeight:1.6 }}>{app.why_support}</p>
             </div>
           )}
@@ -816,24 +816,24 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
             background:"rgba(13,196,181,0.07)", borderRadius:14, padding:14,
           }}>
             <div>
-              <div style={{ fontSize:10, color:"#999", fontWeight: 600, textTransform:"uppercase" }}>Förderbetrag</div>
-              <div style={{ fontSize:18, fontWeight: 600, color:"#0DC4B5" }}>
+              <div style={{ fontSize:10, color:"#999", fontWeight:700, textTransform:"uppercase" }}>Förderbetrag</div>
+              <div style={{ fontSize:18, fontWeight:900, color:"#0DC4B5" }}>
                 € {formatNumberDE((app.funding_goal || 0))}
               </div>
             </div>
             <div>
-              <div style={{ fontSize:10, color:"#999", fontWeight: 600, textTransform:"uppercase" }}>Eingereicht</div>
-              <div style={{ fontSize:14, fontWeight: 600, color:"#141422" }}>{fmtDate(app.created_at)}</div>
+              <div style={{ fontSize:10, color:"#999", fontWeight:700, textTransform:"uppercase" }}>Eingereicht</div>
+              <div style={{ fontSize:14, fontWeight:700, color:"#141422" }}>{fmtDate(app.created_at)}</div>
             </div>
             <div>
-              <div style={{ fontSize:10, color:"#999", fontWeight: 600, textTransform:"uppercase" }}>Stimmen</div>
-              <div style={{ fontSize:16, fontWeight: 600, color:"#0DC4B5" }}>
+              <div style={{ fontSize:10, color:"#999", fontWeight:700, textTransform:"uppercase" }}>Stimmen</div>
+              <div style={{ fontSize:16, fontWeight:900, color:"#0DC4B5" }}>
                 {checking ? "…" : `${voteCount} 🗳`}
               </div>
             </div>
             <div>
-              <div style={{ fontSize:10, color:"#999", fontWeight: 600, textTransform:"uppercase" }}>Status</div>
-              <div style={{ fontSize:12, fontWeight: 600, color:"#22c55e" }}>✅ Bewilligt</div>
+              <div style={{ fontSize:10, color:"#999", fontWeight:700, textTransform:"uppercase" }}>Status</div>
+              <div style={{ fontSize:12, fontWeight:700, color:"#22c55e" }}>✅ Bewilligt</div>
             </div>
           </div>
 
@@ -841,13 +841,13 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
           <div style={{ background:'rgba(13,196,181,0.06)', borderRadius:16, padding:'16px', marginBottom:16 }}>
             <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, color:'#666', marginBottom:6 }}>
               <span>Finanzierungsfortschritt</span>
-              <span style={{ fontWeight: 600, color:'#0DC4B5' }}>{fundPct}%</span>
+              <span style={{ fontWeight:700, color:'#0DC4B5' }}>{fundPct}%</span>
             </div>
             <div style={{ height:8, borderRadius:99, background:'rgba(0,0,0,0.08)', overflow:'hidden', marginBottom:8 }}>
               <div style={{ height:'100%', borderRadius:99, width:`${fundPct}%`,
                 background:'linear-gradient(90deg,#0DC4B5,#09A89D)', transition:'width 1.2s ease' }}/>
             </div>
-            <div style={{ fontSize:13, fontWeight: 600, color:'#1A1A1A' }}>
+            <div style={{ fontSize:13, fontWeight:700, color:'#1A1A1A' }}>
               €{formatNumberDE(fundedEur)} von €{formatNumberDE(goalFromDb)} finanziert
             </div>
           </div>
@@ -857,7 +857,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
           {/* Zusatzmaterial */}
           {displayMediaUrls && displayMediaUrls.length > 0 && (
             <div style={{ marginBottom:16 }}>
-              <div style={{ fontSize:10, fontWeight: 600, color:"#999", textTransform:"uppercase", letterSpacing:"0.6px", marginBottom:8 }}>
+              <div style={{ fontSize:10, fontWeight:700, color:"#999", textTransform:"uppercase", letterSpacing:"0.6px", marginBottom:8 }}>
                 Zusatzmaterial ({displayMediaUrls.length} Datei{displayMediaUrls.length !== 1 ? "en" : ""})
               </div>
               <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
@@ -891,11 +891,11 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
           {/* ── Projekt-Updates / Neuigkeiten ── */}
           <div style={{ marginTop: 20, marginBottom: 20 }}>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
-              <div style={{ fontSize: 15, fontWeight: 600, color: '#141422' }}>📰 Neuigkeiten</div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: '#141422' }}>📰 Neuigkeiten</div>
               {isProjectOwner && (
                 <button onClick={() => setShowUpdateSheet(true)} style={{
                   padding:"6px 12px", borderRadius:99, border:"1.5px dashed #0DC4B5",
-                  background:"transparent", color:"#0DC4B5", fontSize:12, fontWeight: 600,
+                  background:"transparent", color:"#0DC4B5", fontSize:12, fontWeight:700,
                   cursor:"pointer", fontFamily:"inherit",
                 }}>
                   + Update hinzufügen
@@ -924,12 +924,12 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
                     }}>
                       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:6, gap:8 }}>
                         <span style={{
-                          fontSize:10, fontWeight: 600, color:tc.c, background:tc.bg,
+                          fontSize:10, fontWeight:700, color:tc.c, background:tc.bg,
                           padding:"3px 8px", borderRadius:99, flexShrink:0,
                         }}>{u.update_type || "Update"}</span>
                         <span style={{ fontSize:11, color:"#999", flexShrink:0 }}>{fmtDate(u.created_at)}</span>
                       </div>
-                      <div style={{ fontSize:14, fontWeight: 600, color:"#141422", marginBottom:4 }}>{u.title}</div>
+                      <div style={{ fontSize:14, fontWeight:800, color:"#141422", marginBottom:4 }}>{u.title}</div>
                       {u.content && (
                         <div style={{ fontSize:13, color:"#555", lineHeight:1.5, marginBottom: (u.media_urls?.length ? 8 : 0) }}>{u.content}</div>
                       )}
@@ -953,7 +953,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
 
           {/* ── Meilensteine ── */}
           <div style={{ marginTop: 20, marginBottom: 20 }}>
-            <div style={{ fontSize: 15, fontWeight: 600, color: '#141422', marginBottom: 12 }}>🏁 Meilensteine</div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: '#141422', marginBottom: 12 }}>🏁 Meilensteine</div>
             {milestonesLoading ? (
               <div style={{ color: '#888', fontSize: 13 }}>Laden...</div>
             ) : milestones.length === 0 ? (
@@ -975,7 +975,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
             }}>
               <div style={{ display:"flex", alignItems:"center", gap:6 }}>
                 <HUIStimmeIcon size={20} />
-                <span style={{ fontSize:15, fontWeight: 600, color:"#141422" }}>
+                <span style={{ fontSize:15, fontWeight:800, color:"#141422" }}>
                   {checking ? "…" : voteCount}
                 </span>
                 <span style={{ fontSize:12, color:"#888" }}>
@@ -984,7 +984,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
               </div>
               {currentUser?.id && userVotesLeft !== null && !voted && (
                 <div style={{
-                  fontSize:11, fontWeight: 600,
+                  fontSize:11, fontWeight:700,
                   background: userVotesLeft > 0 ? "rgba(13,196,181,0.10)" : "rgba(239,68,68,0.10)",
                   color:      userVotesLeft > 0 ? "#0DC4B5" : "#ef4444",
                   border:     `1px solid ${userVotesLeft > 0 ? "rgba(13,196,181,0.25)" : "rgba(239,68,68,0.25)"}`,
@@ -1029,7 +1029,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
                   border:"1px solid rgba(34,197,94,0.25)",
                 }}>
                   <div style={{ fontSize:22, marginBottom:4 }}>💚</div>
-                  <div style={{ fontSize:14, fontWeight: 600, color:"#22c55e" }}>Deine Stimme zählt!</div>
+                  <div style={{ fontSize:14, fontWeight:700, color:"#22c55e" }}>Deine Stimme zählt!</div>
                   <div style={{ fontSize:12, color:"#666", marginTop:2 }}>
                     Du hast für „{app.project_name}" gestimmt.
                   </div>
@@ -1057,7 +1057,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
                       ? "rgba(13,196,181,0.50)"
                       : "linear-gradient(135deg,#0DC4B5,#22DDD0)",
                     border:"none", borderRadius:99, color:"#fff",
-                    fontSize:15, fontWeight: 600,
+                    fontSize:15, fontWeight:800,
                     cursor: (loading || checking) ? "not-allowed" : "pointer",
                     boxShadow:"0 4px 18px rgba(13,196,181,0.35)",
                     transition:"all 0.2s",
@@ -1140,16 +1140,16 @@ function MilestoneCard({ milestone, index, onViewProgress }) {
       <div style={{
         width: 28, height: 28, borderRadius: '50%', background: '#0DC4B5', color: '#fff',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 12, fontWeight: 600, flexShrink: 0,
+        fontSize: 12, fontWeight: 800, flexShrink: 0,
       }}>
         {index + 1}
       </div>
       {/* Content */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 14, fontWeight: 600, color: '#141422' }}>{m.title}</span>
+          <span style={{ fontSize: 14, fontWeight: 700, color: '#141422' }}>{m.title}</span>
           <span style={{
-            fontSize: 10, fontWeight: 600, color: sc.color,
+            fontSize: 10, fontWeight: 700, color: sc.color,
             background: sc.bg, borderRadius: 99, padding: '2px 8px',
           }}>{sc.label}</span>
         </div>
@@ -1164,7 +1164,7 @@ function MilestoneCard({ milestone, index, onViewProgress }) {
           style={{
             padding: '6px 14px', borderRadius: 99, border: '1px solid rgba(13,196,181,0.25)',
             background: 'rgba(13,196,181,0.08)', color: '#0DC4B5',
-            fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+            fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
           }}
         >
           📊 Fortschritt ansehen
@@ -1219,7 +1219,7 @@ function MilestoneDetailSheet({ milestone, onClose }) {
           padding: "10px 20px 14px", flexShrink: 0,
         }}>
           <div>
-            <div style={{ fontSize: 18, fontWeight: 600, color: "#141422" }}>🏁 Meilenstein-Fortschritt</div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "#141422" }}>🏁 Meilenstein-Fortschritt</div>
             <div style={{ fontSize: 13, color: "#666", marginTop: 2 }}>{m.title}</div>
           </div>
           <button onClick={onClose} style={{
@@ -1236,12 +1236,12 @@ function MilestoneDetailSheet({ milestone, onClose }) {
           {/* Meta */}
           <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
             <span style={{
-              fontSize: 11, fontWeight: 600, color: sc.color,
+              fontSize: 11, fontWeight: 700, color: sc.color,
               background: sc.bg, borderRadius: 99, padding: "4px 10px",
             }}>{sc.label}</span>
             {plannedDate && (
               <span style={{
-                fontSize: 11, fontWeight: 600, color: "#888",
+                fontSize: 11, fontWeight: 700, color: "#888",
                 background: "rgba(0,0,0,0.05)", borderRadius: 99, padding: "4px 10px",
               }}>🎯 {fmtD(plannedDate)}</span>
             )}
@@ -1254,7 +1254,7 @@ function MilestoneDetailSheet({ milestone, onClose }) {
             }}>{m.description}</div>
           )}
           {/* Updates */}
-          <div style={{ fontSize: 13, fontWeight: 600, color: "#141422", marginBottom: 12 }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: "#141422", marginBottom: 12 }}>
             📋 Updates ({sortedUpdates.length})
           </div>
           {sortedUpdates.length === 0 ? (
@@ -1273,7 +1273,7 @@ function MilestoneDetailSheet({ milestone, onClose }) {
                   </span>
                   {u.status_update && statusConfig[u.status_update] && (
                     <span style={{
-                      fontSize: 10, fontWeight: 600,
+                      fontSize: 10, fontWeight: 700,
                       color: statusConfig[u.status_update].color,
                       background: statusConfig[u.status_update].bg,
                       borderRadius: 99, padding: "2px 8px",
@@ -1360,12 +1360,12 @@ function ApprovedAppCard({ app, onOpen }) {
         <div style={{
           position:"absolute", top:10, right:10,
           background:"rgba(13,196,181,0.90)", borderRadius:99,
-          padding:"3px 10px", fontSize:10, fontWeight: 600, color:"#fff",
+          padding:"3px 10px", fontSize:10, fontWeight:700, color:"#fff",
         }}>✅ Bewilligt</div>
       </div>
       {/* Text */}
       <div style={{ padding:"14px 16px 16px" }}>
-        <h3 style={{ margin:"0 0 6px", fontSize:15, fontWeight: 600, color:"#141422", lineHeight:1.3 }}>
+        <h3 style={{ margin:"0 0 6px", fontSize:15, fontWeight:800, color:"#141422", lineHeight:1.3 }}>
           💚 {app.project_name}
         </h3>
         <p style={{
@@ -1375,11 +1375,11 @@ function ApprovedAppCard({ app, onOpen }) {
           {app.short_desc}
         </p>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-          <span style={{ fontSize:13, fontWeight: 600, color:"#0DC4B5" }}>
+          <span style={{ fontSize:13, fontWeight:800, color:"#0DC4B5" }}>
             🔥 € {formatNumberDE((app.funding_goal || 0))}
           </span>
           <span style={{
-            fontSize:11, fontWeight: 600, color:"#0DC4B5",
+            fontSize:11, fontWeight:700, color:"#0DC4B5",
             background:"rgba(13,196,181,0.10)", borderRadius:99, padding:"4px 10px",
             border:"1px solid rgba(13,196,181,0.25)",
           }}>
@@ -1753,12 +1753,12 @@ function BigHero({ pool }) {
           borderRadius:99, padding:"5px 13px", marginBottom:18 }}>
           <div style={{ width:6, height:6, borderRadius:"50%", background:T.teal,
             animation:"ipPulse 2s ease-in-out infinite" }}/>
-          <span style={{ fontSize:10, fontWeight: 600, color:T.teal,
+          <span style={{ fontSize:10, fontWeight:800, color:T.teal,
             letterSpacing:"0.14em", textTransform:"uppercase" }}>HUI Impact Pool</span>
         </div>
 
         {/* Headline — groß + emotional */}
-        <h1 style={{ margin:"0 0 14px", fontSize:30, fontWeight: 600,
+        <h1 style={{ margin:"0 0 14px", fontSize:30, fontWeight:900,
           lineHeight:1.15, letterSpacing:"-0.028em", color:T.ink }}>
           Gemeinsam<br/>
           <span style={{ color:T.teal }}>Wirkung</span> schaffen.
@@ -1768,7 +1768,7 @@ function BigHero({ pool }) {
           Jede Buchung auf HUI hilft dabei, echte Herzensprojekte möglich zu machen.
         </p>
 
-        <p style={{ margin:"0 0 28px", fontSize:14, fontWeight: 600, color:T.teal }}>
+        <p style={{ margin:"0 0 28px", fontSize:14, fontWeight:700, color:T.teal }}>
           Kein Projekt geht leer aus.
         </p>
 
@@ -1783,7 +1783,7 @@ function BigHero({ pool }) {
           pointerEvents:"none",
         }}>
           Deine Entscheidungen<br/>
-          <span style={{ fontWeight: 600, color:T.ink }}>bewegen echte Projekte.</span>
+          <span style={{ fontWeight:700, color:T.ink }}>bewegen echte Projekte.</span>
           <div style={{
             marginTop:4, borderBottom:`1.5px solid ${T.teal}`,
             width:80, margin:"8px auto 0",
@@ -1802,7 +1802,7 @@ function BigHero({ pool }) {
         <div style={{ display:"flex", alignItems:"center", gap:5, flexShrink:0 }}>
           <div style={{ width:6, height:6, borderRadius:"50%", background:T.teal,
             animation:"ipPulse 1.4s ease-in-out infinite" }}/>
-          <span style={{ fontSize:10, fontWeight: 600, color:T.teal, letterSpacing:"0.1em" }}>LIVE</span>
+          <span style={{ fontSize:10, fontWeight:800, color:T.teal, letterSpacing:"0.1em" }}>LIVE</span>
         </div>
         <span style={{ fontSize:12, color:T.ink2 }}>
           Der Impact Pool wächst gerade durch neue Buchungen
@@ -1830,12 +1830,12 @@ function PoolCard({ pool, userImpact }) {
           <div>
             <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
               <span style={{ fontSize:18 }}>❤️</span>
-              <span style={{ fontSize:11, fontWeight: 600, color:T.teal,
+              <span style={{ fontSize:11, fontWeight:700, color:T.teal,
                 letterSpacing:"0.06em", textTransform:"uppercase" }}>
                 Diesen Monat im Impact Pool
               </span>
             </div>
-            <div style={{ fontSize:36, fontWeight: 600, color:T.teal,
+            <div style={{ fontSize:36, fontWeight:900, color:T.teal,
               letterSpacing:"-0.035em", lineHeight:1 }}>
               {pool.loading ? "—" : fmtEur(pool.pool)}
             </div>
@@ -1858,17 +1858,17 @@ function PoolCard({ pool, userImpact }) {
           }}>
             <div style={{ display:"flex", alignItems:"center", gap:6 }}>
               <span style={{ fontSize:13 }}>💚</span>
-              <span style={{ fontSize:11, fontWeight: 600, color:T.teal }}>Deine Wirkung</span>
+              <span style={{ fontSize:11, fontWeight:700, color:T.teal }}>Deine Wirkung</span>
             </div>
             <div style={{ display:"flex", gap:18 }}>
               <div style={{ textAlign:"right" }}>
-                <div style={{ fontSize:13, fontWeight: 600, color:T.teal, lineHeight:1 }}>
+                <div style={{ fontSize:13, fontWeight:900, color:T.teal, lineHeight:1 }}>
                   {userImpact.eur > 0 ? fmtEur(userImpact.eur) : "0 €"}
                 </div>
                 <div style={{ fontSize:9, color:T.muted, marginTop:2 }}>eingebracht</div>
               </div>
               <div style={{ textAlign:"right" }}>
-                <div style={{ fontSize:13, fontWeight: 600, color:T.teal, lineHeight:1 }}>
+                <div style={{ fontSize:13, fontWeight:900, color:T.teal, lineHeight:1 }}>
                   {userImpact.projekte}
                 </div>
                 <div style={{ fontSize:9, color:T.muted, marginTop:2 }}>
@@ -1895,10 +1895,10 @@ function VotingSection({ projects, userVotes, daysLeft, totalVotes, onVote, load
         <div style={{ display:"flex", alignItems:"baseline",
           justifyContent:"space-between", flexWrap:"wrap", gap:6 }}>
           <div>
-            <h2 style={{ margin:"0 0 4px", fontSize:20, fontWeight: 600, color:T.ink,
+            <h2 style={{ margin:"0 0 4px", fontSize:20, fontWeight:900, color:T.ink,
               letterSpacing:"-0.022em" }}>Aktuelle Abstimmung</h2>
             {daysLeft !== null && (
-              <span style={{ fontSize:12, color:T.coral, fontWeight: 600 }}>
+              <span style={{ fontSize:12, color:T.coral, fontWeight:700 }}>
                 Noch {daysLeft} Tag{daysLeft !== 1 ? "e" : ""} — stimme jetzt ab
               </span>
             )}
@@ -1908,7 +1908,7 @@ function VotingSection({ projects, userVotes, daysLeft, totalVotes, onVote, load
             border:`1px solid ${T.teal}38`,
             borderRadius:99,
             padding:"7px 15px",
-            fontSize:11, fontWeight: 600, color:T.teal, cursor:"pointer",
+            fontSize:11, fontWeight:700, color:T.teal, cursor:"pointer",
             transition:"all 0.18s ease",
             boxShadow:`0 0 0 0 ${T.teal}00`,
           }}
@@ -1976,7 +1976,7 @@ function VotingCard({ project:p, rank, voted, totalVotes, onVote, onOpen }) {
         {/* Rang-Badge */}
         <div style={{ position:"absolute", top:14, left:14, width:30, height:30,
           borderRadius:"50%", background:rc, display:"flex", alignItems:"center",
-          justifyContent:"center", fontSize:14, fontWeight: 600, color:"white",
+          justifyContent:"center", fontSize:14, fontWeight:900, color:"white",
           boxShadow:`0 2px 10px ${rc}55` }}>{rank+1}</div>
 
         {/* Gradient nach unten */}
@@ -2056,7 +2056,7 @@ function VotingCard({ project:p, rank, voted, totalVotes, onVote, onOpen }) {
               flex:1, padding:"9px 8px", textAlign:"center",
               borderRight: si < 2 ? `1px solid ${accent}15` : "none",
             }}>
-              <div style={{ fontSize:11, fontWeight: 600, color:T.ink,
+              <div style={{ fontSize:11, fontWeight:800, color:T.ink,
                 lineHeight:1.25, marginBottom:2 }}>{stat.top}</div>
               <div style={{ fontSize:9, color:T.muted, lineHeight:1.3 }}>{stat.bot}</div>
             </div>
@@ -2099,7 +2099,7 @@ function VotePersonal({ usedVotes, maxVotes, remainVotes, isMem, userVotes, proj
         boxShadow:S.card, border:`1px solid ${T.line}`,
       }}>
         {/* Emotionaler Titel */}
-        <h3 style={{ margin:"0 0 6px", fontSize:17, fontWeight: 600, color:T.ink,
+        <h3 style={{ margin:"0 0 6px", fontSize:17, fontWeight:900, color:T.ink,
           letterSpacing:"-0.018em" }}>Deine Stimme zählt.</h3>
         <p style={{ margin:"0 0 18px", fontSize:13, color:T.ink2, lineHeight:1.6 }}>
           {remainVotes > 0
@@ -2148,14 +2148,14 @@ function VotePersonal({ usedVotes, maxVotes, remainVotes, isMem, userVotes, proj
 
         {/* Mitglied-Hinweis */}
         {isMem ? (
-          <div style={{ fontSize:11, color:T.teal, fontWeight: 600 }}>
+          <div style={{ fontSize:11, color:T.teal, fontWeight:700 }}>
             🏅 Als Mitglied oder Talent hast du 2 Stimmen pro Monat
           </div>
         ) : (
           <div style={{ padding:"12px 14px",
             background:`${T.gold}10`, border:`1px solid ${T.gold}25`,
             borderRadius:14 }}>
-            <div style={{ fontSize:12, fontWeight: 600, color:T.gold, marginBottom:3 }}>
+            <div style={{ fontSize:12, fontWeight:700, color:T.gold, marginBottom:3 }}>
               ⭐ Mit Mitgliedschaft auf 2 Stimmen
             </div>
             <div style={{ fontSize:11, color:T.ink2 }}>
@@ -2217,10 +2217,10 @@ function HerzensKarte({ p, idx }) {
             background:`${cfg.color}14`, border:`1px solid ${cfg.color}28`,
             borderRadius:99, padding:"2px 8px", marginBottom:5 }}>
             <span style={{ fontSize:10 }}>{cfg.icon}</span>
-            <span style={{ fontSize:9, fontWeight: 600, color:cfg.color,
+            <span style={{ fontSize:9, fontWeight:800, color:cfg.color,
               letterSpacing:"0.05em", textTransform:"uppercase" }}>{cfg.label}</span>
           </div>
-          <div style={{ fontSize:14, fontWeight: 600, color:T.ink, lineHeight:1.3,
+          <div style={{ fontSize:14, fontWeight:800, color:T.ink, lineHeight:1.3,
             whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis",
             marginBottom: p.description ? 3 : 0 }}>{p.name}</div>
           {p.description && (
@@ -2247,7 +2247,7 @@ function HerzensKarte({ p, idx }) {
                   <span style={{ fontSize:9.5, color:T.ink2, fontWeight:600 }}>
                     {fmtEur(curr)} von {fmtEur(goalEur)} finanziert
                   </span>
-                  <span style={{ fontSize:9, color:accent, fontWeight: 600 }}>
+                  <span style={{ fontSize:9, color:accent, fontWeight:800 }}>
                     {Math.round(pct)}%
                   </span>
                 </div>
@@ -2278,14 +2278,14 @@ function WeitereHerzensprojekte({ data, loading }) {
       <div style={{ marginBottom:14 }}>
         <div style={{ display:"flex", alignItems:"baseline",
           justifyContent:"space-between", marginBottom:4 }}>
-          <h2 style={{ margin:0, fontSize:20, fontWeight: 600, color:T.ink,
+          <h2 style={{ margin:0, fontSize:20, fontWeight:900, color:T.ink,
             letterSpacing:"-0.022em" }}>
             <span className="hui-emoji">🌱</span> Weitere Herzensprojekte
           </h2>
           {!loading && list.length > 4 && !expanded && (
             <button onClick={() => setExpanded(true)} className="ip-p"
               style={{ background:"none", border:"none", padding:0, cursor:"pointer",
-                fontSize:11, fontWeight: 600, color:T.teal, flexShrink:0, marginLeft:8 }}>
+                fontSize:11, fontWeight:700, color:T.teal, flexShrink:0, marginLeft:8 }}>
               Alle {list.length} anzeigen →
             </button>
           )}
@@ -2308,7 +2308,7 @@ function WeitereHerzensprojekte({ data, loading }) {
             <button onClick={() => setExpanded(e => !e)} className="ip-p"
               style={{ width:"100%", marginTop:12, background:"none",
                 border:`1px solid ${T.teal}30`, borderRadius:14, padding:"11px 0",
-                fontSize:12, fontWeight: 600, color:T.teal, cursor:"pointer",
+                fontSize:12, fontWeight:700, color:T.teal, cursor:"pointer",
                 transition:"all 0.18s ease",
                 display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}
               onMouseEnter={e => { e.currentTarget.style.background=`${T.teal}08`; e.currentTarget.style.borderColor=`${T.teal}50`; }}
@@ -2370,7 +2370,7 @@ function EmptyImpactState({ type = "voting" }) {
       borderRadius:20, margin:"0 16px",
     }}>
       <div style={{ fontSize:36, marginBottom:12 }}>{cfg.icon}</div>
-      <div style={{ fontSize:15, fontWeight: 600, color:T.ink, marginBottom:8 }}>
+      <div style={{ fontSize:15, fontWeight:800, color:T.ink, marginBottom:8 }}>
         {cfg.title}
       </div>
       <div style={{ fontSize:13, color:T.ink2, lineHeight:1.6 }}>
@@ -2396,10 +2396,10 @@ function WeitereHerzensSection({ apps, loadingApps, seedData, seedLoading, onOpe
     <div style={{ marginTop:24, padding:"0 16px" }}>
       <div style={{ marginBottom:14 }}>
         <div style={{ display:"flex", alignItems:"baseline", justifyContent:"space-between", marginBottom:4 }}>
-          <h2 style={{ margin:0, fontSize:20, fontWeight: 600, color:T.ink, letterSpacing:"-0.022em", display:"flex", alignItems:"center", gap:6 }}><HUIImpactIcon size={18}/>Weitere Herzensprojekte</h2>
+          <h2 style={{ margin:0, fontSize:20, fontWeight:900, color:T.ink, letterSpacing:"-0.022em", display:"flex", alignItems:"center", gap:6 }}><HUIImpactIcon size={18}/>Weitere Herzensprojekte</h2>
           {!isLoading && rawList.length > 4 && !expanded && (
             <button onClick={() => setExpanded(true)} className="ip-p"
-              style={{ background:"none", border:"none", padding:0, cursor:"pointer", fontSize:11, fontWeight: 600, color:T.teal, flexShrink:0, marginLeft:8 }}>
+              style={{ background:"none", border:"none", padding:0, cursor:"pointer", fontSize:11, fontWeight:700, color:T.teal, flexShrink:0, marginLeft:8 }}>
               Alle {rawList.length} anzeigen →
             </button>
           )}
@@ -2425,7 +2425,7 @@ function WeitereHerzensSection({ apps, loadingApps, seedData, seedLoading, onOpe
             <button onClick={() => setExpanded(e => !e)} className="ip-p"
               style={{ width:"100%", marginTop:12, background:"none",
                 border:`1px solid ${T.teal}30`, borderRadius:14, padding:"11px 0",
-                fontSize:12, fontWeight: 600, color:T.teal, cursor:"pointer",
+                fontSize:12, fontWeight:700, color:T.teal, cursor:"pointer",
                 display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
               {expanded ? <span>▲ Weniger</span> : <span>▼ Alle {rawList.length} Projekte</span>}
             </button>
@@ -2456,7 +2456,7 @@ function ApprovedAppCardCompact({ app, rank, onOpen }) {
         border:"1px solid rgba(13,196,181,0.10)", cursor:"pointer" }}>
       <div style={{ width:26, height:26, borderRadius:"50%", flexShrink:0,
         background:"rgba(13,196,181,0.12)", display:"flex", alignItems:"center",
-        justifyContent:"center", fontSize:11, fontWeight: 600, color:T.teal }}>
+        justifyContent:"center", fontSize:11, fontWeight:900, color:T.teal }}>
         {rank}
       </div>
       <div style={{ width:56, height:56, borderRadius:12, overflow:"hidden", flexShrink:0 }}>
@@ -2465,7 +2465,7 @@ function ApprovedAppCardCompact({ app, rank, onOpen }) {
           onError={e => { e.target.src = "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=90"; }} />
       </div>
       <div style={{ flex:1, minWidth:0 }}>
-        <div style={{ fontSize:13, fontWeight: 600, color:"#141422",
+        <div style={{ fontSize:13, fontWeight:800, color:"#141422",
           overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
           maxWidth:"100%" }}>
           💚 {app.project_name}
@@ -2476,17 +2476,17 @@ function ApprovedAppCardCompact({ app, rank, onOpen }) {
           {app.short_desc}
         </div>
         <div style={{ display:"flex", alignItems:"center", gap:8, marginTop:4 }}>
-          <span style={{ fontSize:10, fontWeight: 600, color:"#22c55e",
+          <span style={{ fontSize:10, fontWeight:700, color:"#22c55e",
             background:"rgba(34,197,94,0.10)", borderRadius:99, padding:"2px 8px",
             border:"1px solid rgba(34,197,94,0.20)" }}>✅ Bewilligt</span>
-          <span style={{ fontSize:11, color: app.vote_count > 0 ? T.teal : "#aaa", fontWeight: 600,
+          <span style={{ fontSize:11, color: app.vote_count > 0 ? T.teal : "#aaa", fontWeight:700,
             transition:"color 0.3s ease" }}>
             <span className="hui-emoji">🗳</span> {app.vote_count || 0} {app.vote_count === 1 ? "Stimme" : "Stimmen"}
           </span>
         </div>
       </div>
       <div style={{ flexShrink:0, textAlign:"right" }}>
-        <div style={{ fontSize:12, fontWeight: 600, color:T.teal }}>€ {formatNumberDE((app.funding_goal||0))}</div>
+        <div style={{ fontSize:12, fontWeight:800, color:T.teal }}>€ {formatNumberDE((app.funding_goal||0))}</div>
         <div style={{ fontSize:10, color:"#999" }}>Ziel</div>
       </div>
     </div>
@@ -2502,10 +2502,10 @@ function GemeinsamErmoegicht({ finanziert, transp }) {
       {/* Titel + Link */}
       <div style={{ display:"flex", alignItems:"baseline",
         justifyContent:"space-between", marginBottom:4 }}>
-        <h2 style={{ margin:0, fontSize:18, fontWeight: 600, color:T.ink,
+        <h2 style={{ margin:0, fontSize:18, fontWeight:900, color:T.ink,
           letterSpacing:"-0.02em" }}>Gemeinsam ermöglicht</h2>
         {finanziert.length > 0 && (
-          <span style={{ fontSize:11, color:T.teal, fontWeight: 600, cursor:"pointer",
+          <span style={{ fontSize:11, color:T.teal, fontWeight:700, cursor:"pointer",
             flexShrink:0, marginLeft:8 }}>
             Alle {finanziert.length} ansehen →
           </span>
@@ -2529,7 +2529,7 @@ function GemeinsamErmoegicht({ finanziert, transp }) {
               boxShadow:S.card, border:`1px solid ${T.line}`, textAlign:"center",
             }}>
               <div style={{ fontSize:18, marginBottom:4 }}>{st.emoji}</div>
-              <div style={{ fontSize:16, fontWeight: 600, color:T.teal,
+              <div style={{ fontSize:16, fontWeight:900, color:T.teal,
                 letterSpacing:"-0.02em" }}>{st.val}</div>
               <div style={{ fontSize:9, color:T.muted, marginTop:3, lineHeight:1.3 }}>{st.label}</div>
             </div>
@@ -2545,7 +2545,7 @@ function GemeinsamErmoegicht({ finanziert, transp }) {
           borderRadius:20, padding:"24px 20px",
         }}>
           <div style={{ fontSize:32, marginBottom:10, textAlign:"center" }}>💚</div>
-          <div style={{ fontSize:14, fontWeight: 600, color:T.ink, marginBottom:10, textAlign:"center" }}>
+          <div style={{ fontSize:14, fontWeight:800, color:T.ink, marginBottom:10, textAlign:"center" }}>
             Die ersten Projekte werden bald gemeinsam finanziert.
           </div>
           {/* Beispiel-Wirkungskarten (Vorschau wie es aussehen wird) */}
@@ -2563,7 +2563,7 @@ function GemeinsamErmoegicht({ finanziert, transp }) {
               <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
                 <span style={{ fontSize:20 }}>{ex.icon}</span>
                 <div>
-                  <div style={{ fontSize:13, fontWeight: 600, color:T.ink }}>{ex.name}</div>
+                  <div style={{ fontSize:13, fontWeight:800, color:T.ink }}>{ex.name}</div>
                   <div style={{ fontSize:10, color:T.muted }}>Finanziert im {ex.month} · Beispiel</div>
                 </div>
               </div>
@@ -2602,7 +2602,7 @@ function GemeinsamErmoegicht({ finanziert, transp }) {
               <div style={{ flex:1, padding:"12px 16px" }}>
                 {/* Titel + Datum */}
                 <div style={{ marginBottom:4 }}>
-                  <div style={{ fontSize:14, fontWeight: 600, color:T.ink, lineHeight:1.3,
+                  <div style={{ fontSize:14, fontWeight:800, color:T.ink, lineHeight:1.3,
                     marginBottom:1 }}>{p.name}</div>
                   {p.month && (
                     <div style={{ fontSize:10, color:T.muted }}>
@@ -2620,7 +2620,7 @@ function GemeinsamErmoegicht({ finanziert, transp }) {
                     </div>
                   ))
                   : (
-                    <div style={{ fontSize:12, fontWeight: 600, color:T.teal, lineHeight:1.4 }}>
+                    <div style={{ fontSize:12, fontWeight:700, color:T.teal, lineHeight:1.4 }}>
                       Gemeinsam ermöglicht
                       {p.awarded_eur > 0 && (
                         <span style={{ fontSize:10, color:T.muted, fontWeight:500,
@@ -2656,7 +2656,7 @@ function HerzensprojektEmotional({ onPropose }) {
           filter:"drop-shadow(0 4px 16px rgba(13,196,181,0.3))",
           animation:"ipBreath 5s ease-in-out infinite" }}>💚</div>
 
-        <h2 style={{ margin:"0 0 10px", fontSize:22, fontWeight: 600, color:T.ink,
+        <h2 style={{ margin:"0 0 10px", fontSize:22, fontWeight:900, color:T.ink,
           letterSpacing:"-0.022em" }}>Hast du ein Herzensprojekt?</h2>
 
         <p style={{ fontSize:14, color:T.ink2, lineHeight:1.7, maxWidth:300, margin:"0 auto 8px" }}>
@@ -2710,7 +2710,7 @@ function LiveTicker({ activities }) {
       <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
         <div style={{ width:7, height:7, borderRadius:"50%", background:T.teal,
           animation:"ipPulse 1.4s ease-in-out infinite" }}/>
-        <h3 style={{ margin:0, fontSize:14, fontWeight: 600, color:T.ink,
+        <h3 style={{ margin:0, fontSize:14, fontWeight:800, color:T.ink,
           letterSpacing:"-0.01em" }}>Live-Aktivitäten im Impact Pool</h3>
       </div>
 
@@ -2758,7 +2758,7 @@ function LiveTicker({ activities }) {
 function FondsAufteilungKompakt({ pool }) {
   return (
     <div style={{ padding:"28px 16px 0" }}>
-      <h3 style={{ margin:"0 0 14px", fontSize:15, fontWeight: 600, color:T.ink,
+      <h3 style={{ margin:"0 0 14px", fontSize:15, fontWeight:800, color:T.ink,
         letterSpacing:"-0.015em" }}>So wird der Pool genutzt</h3>
 
       <div style={{ background:T.surfaceHi, borderRadius:20, overflow:"hidden",
@@ -2771,12 +2771,12 @@ function FondsAufteilungKompakt({ pool }) {
             <div style={{ width:8, height:8, borderRadius:2,
               background:sl.color, flexShrink:0 }}/>
             <div style={{ flex:1 }}>
-              <span style={{ fontSize:13, fontWeight: 600, color:T.ink }}>
+              <span style={{ fontSize:13, fontWeight:700, color:T.ink }}>
                 {sl.pct}% {sl.label}
               </span>
             </div>
             {!pool.loading && (
-              <span style={{ fontSize:13, fontWeight: 600, color:sl.color,
+              <span style={{ fontSize:13, fontWeight:900, color:sl.color,
                 letterSpacing:"-0.01em" }}>
                 {fmtEur(Math.round(pool.pool * [0.70,0.30,0.20,0.10][i]))}
               </span>
@@ -2796,7 +2796,7 @@ function LetzteAuszahlung({ payout, others }) {
 
   return (
     <div style={{ padding:"28px 16px 0" }}>
-      <h3 style={{ margin:"0 0 14px", fontSize:15, fontWeight: 600, color:T.ink,
+      <h3 style={{ margin:"0 0 14px", fontSize:15, fontWeight:800, color:T.ink,
         letterSpacing:"-0.015em" }}>Letzte Auszahlung</h3>
 
       <div style={{ background:T.surfaceHi, borderRadius:20, padding:"16px 16px",
@@ -2807,15 +2807,15 @@ function LetzteAuszahlung({ payout, others }) {
           borderRadius:14, border:`1px solid ${T.gold}22` }}>
           <HUIAwardIcon size={22} style={{color:"rgba(245,158,11,0.8)"}} />
           <div style={{ flex:1, minWidth:0 }}>
-            <div style={{ fontSize:9, color:T.gold, fontWeight: 600,
+            <div style={{ fontSize:9, color:T.gold, fontWeight:700,
               letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:2 }}>
               GEWINNER {fmtMonth(payout.month)}
             </div>
-            <div style={{ fontSize:14, fontWeight: 600, color:T.ink,
+            <div style={{ fontSize:14, fontWeight:800, color:T.ink,
               overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
               {payout.project.name}
             </div>
-            <div style={{ fontSize:13, color:T.teal, fontWeight: 600 }}>
+            <div style={{ fontSize:13, color:T.teal, fontWeight:700 }}>
               {fmtEur(payout.winnerAmount)} wurden ausgezahlt
             </div>
           </div>
@@ -2824,7 +2824,7 @@ function LetzteAuszahlung({ payout, others }) {
         {/* Weitere Verteilungen */}
         {others.length > 0 && (
           <div>
-            <div style={{ fontSize:10, fontWeight: 600, color:T.muted,
+            <div style={{ fontSize:10, fontWeight:700, color:T.muted,
               letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:8 }}>
               Zusätzlich verteilt
             </div>
@@ -2833,7 +2833,7 @@ function LetzteAuszahlung({ payout, others }) {
                 alignItems:"center", padding:"6px 0",
                 borderBottom: i < Math.min(others.length,4)-1 ? `1px solid ${T.line}` : "none" }}>
                 <span style={{ fontSize:12, color:T.ink2 }}>{o.name}</span>
-                <span style={{ fontSize:12, fontWeight: 600, color:T.teal }}>
+                <span style={{ fontSize:12, fontWeight:700, color:T.teal }}>
                   +{fmtEur(o.awarded_eur)}
                 </span>
               </div>
@@ -2878,7 +2878,7 @@ function InfoSheet({ modal, onClose }) {
     }}>
       <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:10 }}>
         <span style={{ fontSize:20 }}>{icon}</span>
-        <span style={{ fontSize:14, fontWeight: 600, color:T.ink,
+        <span style={{ fontSize:14, fontWeight:800, color:T.ink,
           letterSpacing:"-0.015em" }}>{title}</span>
       </div>
       <div style={{ fontSize:13, color:T.ink2, lineHeight:1.7 }}>{children}</div>
@@ -2891,7 +2891,7 @@ function InfoSheet({ modal, onClose }) {
       {items.map((item, i) => (
         <li key={i} style={{ display:"flex", alignItems:"flex-start", gap:8,
           marginBottom:4, fontSize:13, color:T.ink2 }}>
-          <span style={{ color:T.teal, fontWeight: 600, flexShrink:0 }}>•</span>
+          <span style={{ color:T.teal, fontWeight:700, flexShrink:0 }}>•</span>
           <span>{item}</span>
         </li>
       ))}
@@ -2934,7 +2934,7 @@ function InfoSheet({ modal, onClose }) {
                 borderBottom: i < 2 ? `1px solid ${T.teal}14` : "none",
               }}>
                 <span style={{ fontSize:20, flexShrink:0 }}>{item.icon}</span>
-                <span style={{ fontSize:14, fontWeight: 600, color:T.ink, lineHeight:1.4 }}>
+                <span style={{ fontSize:14, fontWeight:700, color:T.ink, lineHeight:1.4 }}>
                   {item.text}
                 </span>
               </div>
@@ -2952,7 +2952,7 @@ function InfoSheet({ modal, onClose }) {
               Deshalb gilt bei HUI:
             </p>
             <div style={{
-              fontSize:17, fontWeight: 600, color:T.teal,
+              fontSize:17, fontWeight:900, color:T.teal,
               letterSpacing:"-0.018em", lineHeight:1.3,
             }}>
               "Kein Projekt geht leer aus."
@@ -3054,7 +3054,7 @@ function InfoSheet({ modal, onClose }) {
 
         <h3 style={{
           margin:"0 44px 0 0",
-          fontSize:18, fontWeight: 600,
+          fontSize:18, fontWeight:900,
           color:T.ink, letterSpacing:"-0.022em", lineHeight:1.25,
         }}>
           {c.title}

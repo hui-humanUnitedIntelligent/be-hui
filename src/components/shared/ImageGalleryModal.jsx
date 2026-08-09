@@ -181,7 +181,7 @@ export default function ImageGalleryModal({ images, startIndex = 0, onClose = ()
         <div style={{
           position: "absolute", top: "calc(20px + env(safe-area-inset-top, 0px))", left: "50%",
           transform: "translateX(-50%)", zIndex: GALLERY_Z + 10,
-          color: "rgba(255,255,255,0.88)", fontSize: 13, fontWeight: 600,
+          color: "rgba(255,255,255,0.88)", fontSize: 13, fontWeight: 700,
           background: "rgba(255,255,255,0.12)", borderRadius: 99, padding: "4px 12px",
           fontFamily: "inherit",
         }}>{idx + 1} / {total}</div>

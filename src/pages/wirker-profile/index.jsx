@@ -96,7 +96,7 @@ function BookBtn({ onBook }) {
       background: pressed ? C.tealDeep : C.teal,
       border:"none",borderRadius:99,
       padding:"11px 22px",
-      color:"white",fontSize:13,fontWeight: 600,
+      color:"white",fontSize:13,fontWeight:700,
       cursor:"pointer",touchAction:"manipulation",
       boxShadow:`0 4px 18px ${C.tealGlow}`,
       transition:"background .15s ease",
@@ -204,7 +204,7 @@ function SupportBtn({ onSupport }) {
       background: pressed ? "rgba(22,215,197,0.30)" : "rgba(22,215,197,0.18)",
       border:"1.5px solid rgba(22,215,197,0.50)",
       borderRadius:99,padding:"10px 18px",
-      color:"white",fontSize:13,fontWeight: 600,
+      color:"white",fontSize:13,fontWeight:700,
       cursor:"pointer",touchAction:"manipulation",
       transition:"background .15s ease",
     }}>
@@ -315,7 +315,7 @@ function VisitorHero({ profile, onClose, onBook, onChat, onSupport, currentUserI
             <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
               <div style={{
                 background:"rgba(244,115,85,.22)",border:"1px solid rgba(244,115,85,.45)",
-                padding:"3px 10px",color:C.coralLight,fontSize:9,fontWeight: 600,letterSpacing:".05em",
+                padding:"3px 10px",color:C.coralLight,fontSize:9,fontWeight:800,letterSpacing:".05em",
               }}>✦ CREATOR</div>
               <div style={{display:"flex",alignItems:"center",gap:5,color:"rgba(255,255,255,.75)",fontSize:10,fontWeight:600}}>
                 <div style={{width:7,height:7,borderRadius:"50%",background:"#22C55E",/* no animation */}}/>
@@ -338,13 +338,13 @@ function VisitorHero({ profile, onClose, onBook, onChat, onSupport, currentUserI
                     width:18,height:18,borderRadius:"50%",
                     background:C.teal,border:"2px solid white",
                     display:"flex",alignItems:"center",justifyContent:"center",
-                    fontSize:9,color:"white",fontWeight: 600,
+                    fontSize:9,color:"white",fontWeight:800,
                   }}>✓</div>
                 )}
               </div>
               <div>
                 <h1 style={{
-                  fontSize:"clamp(26px,7vw,38px)",fontWeight: 600,
+                  fontSize:"clamp(26px,7vw,38px)",fontWeight:900,
                   color:"white",lineHeight:1.05,letterSpacing:"-.03em",
                   margin:0,textShadow:"0 2px 20px rgba(0,0,0,.5)",
                 }}>{name}</h1>
@@ -401,7 +401,7 @@ function VisitorHero({ profile, onClose, onBook, onChat, onSupport, currentUserI
             marginTop:8,
           }}>
             <div style={{
-              fontSize:12,fontWeight: 600,color:"white",
+              fontSize:12,fontWeight:800,color:"white",
               marginBottom:7,letterSpacing:"-.01em",
             }}>Heute im Atelier</div>
             <div style={{fontSize:11,color:"rgba(255,255,255,.65)",lineHeight:1.45,marginBottom:10}}>
@@ -429,7 +429,7 @@ function VisitorHero({ profile, onClose, onBook, onChat, onSupport, currentUserI
               onClick={() => heroActions[A.OPEN_ROOM]?.({ creatorId: profile?.id || profile?.user_id })}
               style={{
                 background:"none",border:"none",padding:0,width:"100%",textAlign:"left",
-                fontSize:10,color:C.tealLight,fontWeight: 600,cursor:"pointer",
+                fontSize:10,color:C.tealLight,fontWeight:700,cursor:"pointer",
                 paddingTop:6,borderTop:"1px solid rgba(255,255,255,.09)",
                 touchAction:"manipulation",fontFamily:"inherit",
               }}>
@@ -507,7 +507,7 @@ function StatsStrip({ profile, wirkerProfile, followerCount = 0 }) {
           }}>
             <div style={{fontSize:17,lineHeight:1}}>{s.icon}</div>
             <div style={{
-              fontSize:"clamp(14px,4vw,20px)",fontWeight: 600,
+              fontSize:"clamp(14px,4vw,20px)",fontWeight:800,
               color:C.ink,letterSpacing:"-.04em",lineHeight:1,
             }}>
               <AnimCounter target={vals[s.key]} prefix={s.prefix} suffix={s.suffix}/>
@@ -571,7 +571,7 @@ function WirkungSection({ profile, wirkerProfile, followerCount = 0 }) {
 
         {/* LEFT: story */}
         <div>
-          <div style={{fontSize:15,fontWeight: 600,color:C.ink,letterSpacing:"-.025em",marginBottom:10}}>
+          <div style={{fontSize:15,fontWeight:800,color:C.ink,letterSpacing:"-.025em",marginBottom:10}}>
             Über {name}.
           </div>
           <p style={{
@@ -582,7 +582,7 @@ function WirkungSection({ profile, wirkerProfile, followerCount = 0 }) {
             onClick={() => aboutActions[A.OPEN_WORLD]?.({ section: "reise" })}
             style={{
               background:"none",border:"none",padding:0,
-              fontSize:11,fontWeight: 600,color:C.teal,cursor:"pointer",touchAction:"manipulation",
+              fontSize:11,fontWeight:700,color:C.teal,cursor:"pointer",touchAction:"manipulation",
               fontFamily:"inherit",
             }}>Mehr über meine Reise →</button>
         </div>
@@ -611,7 +611,7 @@ function WirkungSection({ profile, wirkerProfile, followerCount = 0 }) {
 
         {/* RIGHT: Wirkung */}
         <div>
-          <div style={{fontSize:14,fontWeight: 600,color:C.ink,letterSpacing:"-.02em",marginBottom:12}}>
+          <div style={{fontSize:14,fontWeight:800,color:C.ink,letterSpacing:"-.02em",marginBottom:12}}>
             Wirkung, die wir gemeinsam schaffen
           </div>
           {[
@@ -633,7 +633,7 @@ function WirkungSection({ profile, wirkerProfile, followerCount = 0 }) {
               <div style={{flex:1}}>
                 <div style={{fontSize:10,color:C.muted,lineHeight:1}}>{m.label}</div>
               </div>
-              <span style={{fontSize:13,fontWeight: 600,color:C.ink}}>{m.val}</span>
+              <span style={{fontSize:13,fontWeight:800,color:C.ink}}>{m.val}</span>
             </div>
           ))}
           <div style={{marginTop:10}}>
@@ -641,7 +641,7 @@ function WirkungSection({ profile, wirkerProfile, followerCount = 0 }) {
           </div>
           <button style={{
             background:"none",border:"none",padding:"8px 0 0",
-            fontSize:11,fontWeight: 600,color:C.teal,cursor:"pointer",touchAction:"manipulation",display:"block",
+            fontSize:11,fontWeight:700,color:C.teal,cursor:"pointer",touchAction:"manipulation",display:"block",
           }}
             onClick={() => aboutActions[A.GO_IMPACT]?.()}
           >Mehr Wirkung ansehen →</button>
@@ -684,7 +684,7 @@ function ResonanceRow({ m }) {
         }}/>
       </div>
       <div style={{flex:1,minWidth:0}}>
-        <div style={{fontSize:12,fontWeight: 600,color:C.ink,letterSpacing:"-.015em"}}>{m.name}</div>
+        <div style={{fontSize:12,fontWeight:700,color:C.ink,letterSpacing:"-.015em"}}>{m.name}</div>
         <div style={{fontSize:10,color:C.muted,marginTop:1,
           whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"
         }}>{m.role}</div>
@@ -703,14 +703,14 @@ function ResonanceCommunity({ community }) {
       <div style={{
         display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:14,
       }}>
-        <div style={{fontSize:16,fontWeight: 600,color:C.ink,letterSpacing:"-.025em"}}>
+        <div style={{fontSize:16,fontWeight:800,color:C.ink,letterSpacing:"-.025em"}}>
           Menschen in Resonanz
         </div>
         <button
           onClick={() => communityActions[A.OPEN_COMMUNITY]?.({ view: "alle" })}
           style={{
             background:"none",border:"none",padding:0,
-            fontSize:11,color:C.teal,fontWeight: 600,cursor:"pointer",
+            fontSize:11,color:C.teal,fontWeight:700,cursor:"pointer",
             touchAction:"manipulation",fontFamily:"inherit",
           }}>
           Alle Menschen ansehen →
@@ -750,7 +750,7 @@ function FooterValues() {
         {VALUES.map((v,i)=>(
           <div key={i} style={{textAlign:"center",padding:"10px 4px"}}>
             <div style={{fontSize:22,marginBottom:4}}>{v.icon}</div>
-            <div style={{fontSize:10,fontWeight: 600,color:C.ink,letterSpacing:"-.01em"}}>{v.label}</div>
+            <div style={{fontSize:10,fontWeight:700,color:C.ink,letterSpacing:"-.01em"}}>{v.label}</div>
             <div style={{fontSize:8.5,color:C.muted,marginTop:2,lineHeight:1.3}}>{v.sub}</div>
           </div>
         ))}
@@ -778,7 +778,7 @@ function FloatingBookCTA({ onBook, profileName }) {
           : `linear-gradient(135deg,${C.teal},${C.tealLight})`,
         border:"none",borderRadius:99,
         padding:"14px 24px",
-        color:"white",fontSize:14,fontWeight: 600,
+        color:"white",fontSize:14,fontWeight:700,
         cursor:"pointer",touchAction:"manipulation",
         boxShadow:`0 6px 22px ${C.tealGlow}`,
         transition:"background .15s ease,transform .15s ease",
@@ -890,7 +890,7 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profi
           <button onClick={handleClose} style={{
             padding:"10px 22px",borderRadius:14,
             background:"#16D7C5",color:"white",
-            border:"none",fontWeight: 600,fontSize:13,cursor:"pointer",
+            border:"none",fontWeight:700,fontSize:13,cursor:"pointer",
           }}>Zurück</button>
         </div>
       </div>

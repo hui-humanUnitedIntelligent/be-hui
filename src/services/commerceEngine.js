@@ -391,7 +391,7 @@ export const STRIPE_APPEARANCE = {
     fontSizeBase:         "15px",
     fontWeightNormal:     "450",
     fontWeightMedium:     "600",
-    fontWeightBold:       "600",
+    fontWeightBold:       "700",
   },
   rules: {
     ".Input": {

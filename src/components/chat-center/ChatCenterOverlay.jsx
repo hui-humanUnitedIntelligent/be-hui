@@ -88,7 +88,7 @@ function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose
             WebkitTapHighlightColor: "transparent", touchAction: "manipulation",
           }}>←</button>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 22, fontWeight: 600, color: C.ink, letterSpacing: -0.5 }}>
+            <div style={{ fontSize: 22, fontWeight: 900, color: C.ink, letterSpacing: -0.5 }}>
               Nachrichten
             </div>
             <div style={{ fontSize: 12, color: C.muted, marginTop: 1 }}>
@@ -140,12 +140,12 @@ function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose
                 ? `url(${pendingRecipient.avatar_url}) center/cover no-repeat`
                 : "linear-gradient(135deg,#16D7C5,#0ea3c2)",
               display:"flex", alignItems:"center", justifyContent:"center",
-              fontSize:17, color:"white", fontWeight: 600,
+              fontSize:17, color:"white", fontWeight:700,
             }}>
               {!pendingRecipient.avatar_url && (pendingRecipient.display_name?.[0] || "?")}
             </div>
             <div style={{ flex:1 }}>
-              <div style={{ fontSize:13.5, fontWeight: 600, color:"#1a1a18" }}>
+              <div style={{ fontSize:13.5, fontWeight:700, color:"#1a1a18" }}>
                 Gespräch mit {pendingRecipient.display_name || "diesem Talent"} beginnen
               </div>
               <div style={{ fontSize:12, color:"rgba(80,80,80,0.6)", marginTop:2 }}>

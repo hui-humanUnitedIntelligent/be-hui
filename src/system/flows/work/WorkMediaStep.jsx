@@ -143,7 +143,7 @@ export function WorkMediaStep({ form, mediaFiles, onFormChange, onMediaChange, o
 
       {/* ── Überschrift ── */}
       <div style={{ marginBottom:24 }}>
-        <h1 style={{ fontSize:24, fontWeight: 600, color:WT.ink,
+        <h1 style={{ fontSize:24, fontWeight:900, color:WT.ink,
           letterSpacing:-0.6, margin:0, lineHeight:1.15 }}>
           Werk erschaffen<span style={{ color:WT.teal, marginLeft:3 }}>·</span>
         </h1>
@@ -155,7 +155,7 @@ export function WorkMediaStep({ form, mediaFiles, onFormChange, onMediaChange, o
 
       {/* ── Titel ── */}
       <div style={{ marginBottom:16 }}>
-        <label style={{ fontSize:12, fontWeight: 600, color:WT.ink3,
+        <label style={{ fontSize:12, fontWeight:700, color:WT.ink3,
           letterSpacing:0.3, display:"block", marginBottom:6 }}>
           Titel des Werkes
         </label>
@@ -170,7 +170,7 @@ export function WorkMediaStep({ form, mediaFiles, onFormChange, onMediaChange, o
 
       {/* ── Beschreibung ── */}
       <div style={{ marginBottom:24 }}>
-        <label style={{ fontSize:12, fontWeight: 600, color:WT.ink3,
+        <label style={{ fontSize:12, fontWeight:700, color:WT.ink3,
           letterSpacing:0.3, display:"block", marginBottom:6 }}>
           Beschreibung
         </label>
@@ -197,7 +197,7 @@ export function WorkMediaStep({ form, mediaFiles, onFormChange, onMediaChange, o
 
       {/* ── Medien ── */}
       <div style={{ marginBottom:20 }}>
-        <div style={{ fontSize:14, fontWeight: 600, color:WT.ink,
+        <div style={{ fontSize:14, fontWeight:800, color:WT.ink,
           marginBottom:12 }}>Medien hinzufügen</div>
 
         {/* Upload-Buttons */}
@@ -254,7 +254,7 @@ export function WorkMediaStep({ form, mediaFiles, onFormChange, onMediaChange, o
             ? `linear-gradient(135deg, ${WT.teal} 0%, #06B6D4 100%)`
             : "rgba(26,26,46,0.08)",
           color: canNext ? "#fff" : WT.ink4,
-          fontSize:16, fontWeight: 600,
+          fontSize:16, fontWeight:800,
           cursor: canNext ? "pointer" : "default",
           transition:"all 0.22s ease",
           boxShadow: canNext ? "0 8px 24px rgba(10,191,184,0.28)" : "none",

@@ -44,7 +44,7 @@ function eur(val) {
 function StatusChip({ label, color = T.inkFaint, bg = T.border }) {
   return (
     <span style={{
-      fontSize: 11, fontWeight: 600, padding: "3px 10px",
+      fontSize: 11, fontWeight: 700, padding: "3px 10px",
       borderRadius: T.r99, background: bg, color, letterSpacing: "0.02em",
     }}>
       {label}
@@ -57,7 +57,7 @@ function Section({ title, children }) {
   return (
     <div style={{ marginBottom: 18 }}>
       {title && (
-        <div style={{ fontSize: 11, fontWeight: 600, color: T.inkFaint, textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 8 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: T.inkFaint, textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 8 }}>
           {title}
         </div>
       )}
@@ -90,7 +90,7 @@ function ActionButton({ children, onClick, variant = "outline", disabled, loadin
       disabled={disabled || loading}
       style={{
         width: "100%", padding: "13px 0", borderRadius: T.r99,
-        fontSize: 14, fontWeight: 600, cursor: disabled ? "default" : "pointer",
+        fontSize: 14, fontWeight: 700, cursor: disabled ? "default" : "pointer",
         fontFamily: T.ff, marginBottom: 10, opacity: disabled || loading ? 0.55 : 1,
         transition: "opacity .15s ease",
         ...styles[variant],
@@ -187,13 +187,13 @@ export default function TransactionDetailSheet({ tx, onClose }) {
         }}>
           <div style={{ minWidth: 0 }}>
             <div style={{
-              fontSize: 10.5, fontWeight: 600, color: T.teal, textTransform: "uppercase",
+              fontSize: 10.5, fontWeight: 700, color: T.teal, textTransform: "uppercase",
               letterSpacing: "0.04em", marginBottom: 3,
             }}>
               {tx.kindLabel}
             </div>
             <div style={{
-              fontSize: 17, fontWeight: 600, color: T.ink, letterSpacing: "-0.02em",
+              fontSize: 17, fontWeight: 800, color: T.ink, letterSpacing: "-0.02em",
               overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
             }}>
               {tx.title}
@@ -222,7 +222,7 @@ export default function TransactionDetailSheet({ tx, onClose }) {
           }}>
             <div>
               <div style={{ fontSize: 11, color: T.inkFaint, fontWeight: 600, marginBottom: 2 }}>{tx.amountLabel || "Betrag"}</div>
-              <div style={{ fontSize: 26, fontWeight: 600, color: T.ink, letterSpacing: "-0.02em" }}>{eur(tx.amount)}</div>
+              <div style={{ fontSize: 26, fontWeight: 800, color: T.ink, letterSpacing: "-0.02em" }}>{eur(tx.amount)}</div>
             </div>
             {tx.dateLabel && (
               <div style={{ textAlign: "right", fontSize: 12, color: T.inkFaint, fontWeight: 600, paddingTop: 4 }}>
@@ -278,10 +278,10 @@ export default function TransactionDetailSheet({ tx, onClose }) {
                 }}>
                   {tx.person.avatar
                     ? <img src={tx.person.avatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    : <span style={{ fontSize: 16, fontWeight: 600, color: T.teal }}>{(tx.person.name || "?").slice(0, 1).toUpperCase()}</span>}
+                    : <span style={{ fontSize: 16, fontWeight: 700, color: T.teal }}>{(tx.person.name || "?").slice(0, 1).toUpperCase()}</span>}
                 </div>
                 <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: T.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: T.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {tx.person.name}
                   </div>
                   {tx.person.email && <div style={{ fontSize: 11, color: T.teal, marginTop: 2 }}>✉ {tx.person.email}</div>}
@@ -327,7 +327,7 @@ export default function TransactionDetailSheet({ tx, onClose }) {
               style={{
                 width: "100%", padding: "14px 0", borderRadius: T.r99,
                 background: T.ink, color: "#fff", border: "none",
-                fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: T.ff,
+                fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: T.ff,
               }}
             >
               Profil ansehen

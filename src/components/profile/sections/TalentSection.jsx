@@ -77,7 +77,7 @@ export function TalentSection({ profile, isOwner = false, loading = false, onCha
         <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:8 }}>
           <button onClick={() => setShowSheet(true)}
             style={{ background:"none", border:"none", padding:0, fontSize:11, color:T.teal,
-              fontWeight: 600, cursor:"pointer", fontFamily:"inherit" }}>
+              fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>
             Bearbeiten ›
           </button>
         </div>
@@ -147,7 +147,7 @@ export function TalentSection({ profile, isOwner = false, loading = false, onCha
           }}>
             <div style={{ width:36, height:4, borderRadius:99,
               background:"rgba(26,26,24,0.12)", margin:"0 auto 20px" }}/>
-            <div style={{ fontSize:16, fontWeight: 600, color:T.ink, marginBottom:4 }}>
+            <div style={{ fontSize:16, fontWeight:800, color:T.ink, marginBottom:4 }}>
               Meine Talente & Angebote
             </div>
             <div style={{ fontSize:12, color:T.inkFaint, marginBottom:16 }}>
@@ -175,7 +175,7 @@ export function TalentSection({ profile, isOwner = false, loading = false, onCha
             <button onClick={() => setShowSheet(false)} style={{
               width:"100%", padding:"14px", borderRadius:T.r99, border:"none",
               background:`linear-gradient(135deg,${T.teal},#0DBBAF)`,
-              color:"white", fontSize:15, fontWeight: 600,
+              color:"white", fontSize:15, fontWeight:700,
               cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
             }}>Fertig</button>
           </div>

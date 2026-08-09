@@ -35,14 +35,14 @@ function DeleteConfirm({ werk, onConfirm, onCancel }) {
       <div onClick={e=>e.stopPropagation()} style={{ background:"#fff", borderRadius:16,
         padding:"24px 20px 20px", maxWidth:320, width:"100%", boxShadow:"0 8px 40px rgba(0,0,0,0.18)" }}>
         <div style={{ textAlign:"center", marginBottom:8, display:"flex", justifyContent:"center", color:"#F59E0B" }}><HUIWarnIcon size={36}/></div>
-        <div style={{ fontSize:16, fontWeight: 600, textAlign:"center", marginBottom:6, color:T.ink }}>
+        <div style={{ fontSize:16, fontWeight:700, textAlign:"center", marginBottom:6, color:T.ink }}>
           Werk unwiderruflich löschen?
         </div>
         <div style={{ fontSize:13, color:"#666", textAlign:"center", lineHeight:1.5, marginBottom:20 }}>
           <strong>„{werk.title || "Dieses Werk"}"</strong> wird dauerhaft gelöscht.
         </div>
         <button onClick={onConfirm} style={{ width:"100%", padding:"12px", borderRadius:99,
-          background:"#ff3b3b", border:"none", color:"#fff", fontSize:14, fontWeight: 600,
+          background:"#ff3b3b", border:"none", color:"#fff", fontSize:14, fontWeight:700,
           cursor:"pointer", fontFamily:"inherit", marginBottom:8 }}>
           Ja, endgültig löschen
         </button>
@@ -88,7 +88,7 @@ export function WorksSection({
         <style>{`@keyframes ps-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}.ws-hscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}.ws-hscroll::-webkit-scrollbar{display:none}`}</style>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
           padding:`0 ${T.px}px`, marginBottom:12 }}>
-          <div style={{ fontSize:15, fontWeight: 600, color:T.ink }}>Meine Werke</div>
+          <div style={{ fontSize:15, fontWeight:800, color:T.ink }}>Meine Werke</div>
         </div>
         <div className="ws-hscroll" style={{ display:"flex", gap:10, padding:`0 ${T.px}px 4px` }}>
           {[1,2,3,4,5].map(i => <Sk key={i} w={100} h={100} r={T.r16}/>)}
@@ -109,7 +109,7 @@ export function WorksSection({
         {/* Header */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
           padding:`0 ${T.px}px`, marginBottom:12 }}>
-          <div style={{ fontSize:15, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>
+          <div style={{ fontSize:15, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>
             Meine Werke
           </div>
           {visible.length > 0 && onShowAll && (
@@ -132,7 +132,7 @@ export function WorksSection({
                 cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
               }}>
                 <HUIWerkeIcon size={24} style={{color:"rgba(14,196,184,0.6)"}} />
-                <div style={{ fontSize:13, fontWeight: 600, color:T.ink }}>Erstes Werk veröffentlichen</div>
+                <div style={{ fontSize:13, fontWeight:700, color:T.ink }}>Erstes Werk veröffentlichen</div>
                 <div style={{ fontSize:12, color:T.inkFaint }}>Teile deine Arbeit mit der Gemeinschaft</div>
               </button>
             </div>
@@ -183,7 +183,7 @@ export function WorksSection({
                   {isOwner && (
                     <div style={{ position:"absolute", top:4, left:4,
                       background:badgeBg, color:"white",
-                      fontSize:9, fontWeight: 600, padding:"2px 6px", borderRadius:99,
+                      fontSize:9, fontWeight:700, padding:"2px 6px", borderRadius:99,
                       backdropFilter:"blur(4px)" }}>
                       {badgeLabel}
                     </div>

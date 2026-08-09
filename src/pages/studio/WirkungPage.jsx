@@ -214,7 +214,7 @@ export default function WirkungPage() {
       fontFamily: "Inter, sans-serif",
     }}>
       {/* Einleitung */}
-      <h2 style={{ fontSize: 24, fontWeight: 600, color: C.ink, marginBottom: 8 }}>
+      <h2 style={{ fontSize: 24, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
         Deine Wirkung
       </h2>
       <p style={{ fontSize: 15, color: C.muted, marginBottom: 40, lineHeight: 1.7 }}>
@@ -348,7 +348,7 @@ function WirkungsSatz({ zahl, satz, detail }) {
       <p style={{
         fontSize: 15, color: C.ink, lineHeight: 1.5, marginBottom: 0,
       }}>
-        <span style={{ fontWeight: 600, color: C.teal, fontSize: 18 }}>{zahl}</span>{' '}
+        <span style={{ fontWeight: 700, color: C.teal, fontSize: 18 }}>{zahl}</span>{' '}
         {satz}
       </p>
       <p style={{

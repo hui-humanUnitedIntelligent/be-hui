@@ -47,7 +47,7 @@ const CSS = `
 
   .s2v3-label {
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
     color: rgba(60,60,60,0.70);
     margin-bottom: 8px;
     display: block;
@@ -257,12 +257,12 @@ function ParticipantRow({ value, onChange }) {
             width:32, height:32, borderRadius:8,
             background:"rgba(139,92,246,0.09)",
             border:"1.5px solid rgba(139,92,246,0.18)",
-            color:C.violet, fontSize:18, fontWeight: 600,
+            color:C.violet, fontSize:18, fontWeight:700,
             display:"flex", alignItems:"center", justifyContent:"center",
             cursor:"pointer", WebkitTapHighlightColor:"transparent",
           }}>−</button>
         <span style={{
-          fontSize:17, fontWeight: 600, color:C.ink,
+          fontSize:17, fontWeight:800, color:C.ink,
           minWidth:28, textAlign:"center",
         }}>{value}</span>
         <button
@@ -271,7 +271,7 @@ function ParticipantRow({ value, onChange }) {
             width:32, height:32, borderRadius:8,
             background:"rgba(139,92,246,0.09)",
             border:"1.5px solid rgba(139,92,246,0.18)",
-            color:C.violet, fontSize:18, fontWeight: 600,
+            color:C.violet, fontSize:18, fontWeight:700,
             display:"flex", alignItems:"center", justifyContent:"center",
             cursor:"pointer", WebkitTapHighlightColor:"transparent",
           }}>+</button>
@@ -531,7 +531,7 @@ export default function StepTwoConnectionDetails({ data, onChange }) {
         {/* ── Header ── */}
         <div style={{ textAlign:"center", marginBottom:28 }}>
           <div style={{
-            fontSize:22, fontWeight: 600, color:C.ink,
+            fontSize:22, fontWeight:900, color:C.ink,
             letterSpacing:-0.6, lineHeight:1.2, marginBottom:6,
           }}>Neue Verbindung erstellen</div>
           <div style={{ fontSize:13.5, color:C.muted, lineHeight:1.55 }}>

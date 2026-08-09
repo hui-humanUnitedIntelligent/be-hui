@@ -139,7 +139,7 @@ function SectionHead({ title, sub, action, onAction, delay=0 }) {
       animationDelay:`${delay}ms`,
     }}>
       <div>
-        <div style={{ fontSize:17, fontWeight: 600, color:T.ink, letterSpacing:"-0.03em", lineHeight:1.2 }}>
+        <div style={{ fontSize:17, fontWeight:800, color:T.ink, letterSpacing:"-0.03em", lineHeight:1.2 }}>
           {title}
         </div>
         {sub && <div style={{ fontSize:12, color:T.inkFaint, marginTop:3, fontWeight:400 }}>{sub}</div>}
@@ -181,7 +181,7 @@ function DiscoverTitleBar() {
     }}>
       {/* Title Row */}
       <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-        <span style={{ fontSize:22, fontWeight: 600, color:T.ink, letterSpacing:"-0.04em" }}>Entdecke HUI</span>
+        <span style={{ fontSize:22, fontWeight:900, color:T.ink, letterSpacing:"-0.04em" }}>Entdecke HUI</span>
       </div>
       <div style={{ fontSize:12.5, color:T.inkFaint, marginTop:2, fontWeight:400 }}>
         Menschen, Ideen, Werke und Erlebnisse — alles auf einen Blick.
@@ -271,7 +271,7 @@ function PersonCard({ person, onPress, delay=0, followers=0, likes=0 }) {
 
       {/* Name — fixe Höhe für 2 Zeilen, garantiert gleiche Kartenhöhe */}
       <div style={{
-        fontSize:12.5, fontWeight: 600, color:T.ink, textAlign:"center",
+        fontSize:12.5, fontWeight:700, color:T.ink, textAlign:"center",
         letterSpacing:"-0.02em", lineHeight:1.25, marginBottom:3,
         minHeight:31.25, width:"100%",
         overflow:"hidden", display:"-webkit-box",
@@ -315,7 +315,7 @@ function PersonCard({ person, onPress, delay=0, followers=0, likes=0 }) {
           border:"1px solid rgba(14,196,184,0.12)",
         }}>
           <span style={{ fontSize:10 }}>👥</span>
-          <span style={{ fontSize:10.5, fontWeight: 600, color:T.tealDeep }}>{followers}</span>
+          <span style={{ fontSize:10.5, fontWeight:700, color:T.tealDeep }}>{followers}</span>
         </div>
         <div style={{
           display:"flex", alignItems:"center", gap:3,
@@ -323,7 +323,7 @@ function PersonCard({ person, onPress, delay=0, followers=0, likes=0 }) {
           border:"1px solid rgba(239,68,68,0.12)",
         }}>
           <span style={{ fontSize:10 }}>❤️</span>
-          <span style={{ fontSize:10.5, fontWeight: 600, color:"#e04050" }}>{likes}</span>
+          <span style={{ fontSize:10.5, fontWeight:700, color:"#e04050" }}>{likes}</span>
         </div>
       </div>
     </div>
@@ -375,7 +375,7 @@ function PeopleSection({ people, onPersonPress, loading, delay=0, view='cards', 
                     : <div className="dp-list-thumb-placeholder" style={{display:"flex",alignItems:"center",justifyContent:"center"}}><HUIProfilIcon size={24} style={{opacity:0.35, color:"rgba(14,196,184,0.5)"}}/></div>
                   }
                   <div style={{ flex:1, overflow:"hidden" }}>
-                    <div style={{ fontSize:13.5, fontWeight: 600, color:T.ink, marginBottom:3, letterSpacing:"-0.02em" }}>{p.name}</div>
+                    <div style={{ fontSize:13.5, fontWeight:700, color:T.ink, marginBottom:3, letterSpacing:"-0.02em" }}>{p.name}</div>
                     <div style={{ fontSize:11.5, color:T.inkSoft, marginBottom:5, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{p.bio}</div>
                     <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                       {p.location && <span style={{ fontSize:11, color:T.inkFaint, display:"flex", alignItems:"center", gap:2 }}><HUILocationIcon size={11}/>{p.location}</span>}
@@ -550,7 +550,7 @@ function CardBadge({ pos="left", bg, color, cover, children }) {
       background: cover ? "rgba(0,0,0,0.54)" : bg,
       backdropFilter: "none",
       borderRadius:99, padding:"2px 9px",
-      fontSize:9, fontWeight: 600,
+      fontSize:9, fontWeight:700,
       color: cover ? "rgba(255,255,255,0.92)" : color,
       letterSpacing:".03em",
     }}>
@@ -562,7 +562,7 @@ function CardBadge({ pos="left", bg, color, cover, children }) {
 function CardTitle({ children }) {
   return (
     <div style={{
-      fontSize:13, fontWeight: 600, color:T.ink,
+      fontSize:13, fontWeight:700, color:T.ink,
       marginBottom:3, letterSpacing:"-0.02em", lineHeight:1.25,
       overflow:"hidden", display:"-webkit-box",
       WebkitLineClamp:2, WebkitBoxOrient:"vertical",
@@ -648,7 +648,7 @@ function TalentCard({ talent, delay=0, onPress, onAuthorPress }) {
         <div style={{ marginTop:"auto", paddingTop:4 }}>
           <div style={{ display:"flex", alignItems:"center", marginBottom:6 }}>
             {priceStr ? (
-              <div style={{ fontSize:14, fontWeight: 600, color:T.teal, letterSpacing:"-0.02em" }}>
+              <div style={{ fontSize:14, fontWeight:800, color:T.teal, letterSpacing:"-0.02em" }}>
                 {priceStr}
               </div>
             ) : (
@@ -704,7 +704,7 @@ function TalenteSection({
             <div style={{ display:"flex", gap:5, overflowX:"auto", WebkitOverflowScrolling:"touch", scrollbarWidth:"none" }}>
               {radiusStages.map(stage => (
                 <button key={String(stage)} onClick={() => onRadiusChange(stage)}
-                  style={{ flexShrink:0, padding:"5px 10px", borderRadius:99, fontSize:10.5, fontWeight: 600,
+                  style={{ flexShrink:0, padding:"5px 10px", borderRadius:99, fontSize:10.5, fontWeight:700,
                     cursor:"pointer", border: radiusKm===stage ? "none" : `1px solid ${T.border}`,
                     background: radiusKm===stage ? T.ink : "none",
                     color: radiusKm===stage ? "#fff" : T.inkFaint, whiteSpace:"nowrap" }}>
@@ -783,7 +783,7 @@ function TalenteSection({
                           <span style={{ fontSize:10.5, background:medCol.bg, color:medCol.text, borderRadius:99, padding:"2px 8px", fontWeight:600 }}>{t.category}</span>
                         )}
                         {priceStr && (
-                          <span style={{ fontSize:12, fontWeight: 600, color:T.teal }}>{priceStr}</span>
+                          <span style={{ fontSize:12, fontWeight:800, color:T.teal }}>{priceStr}</span>
                         )}
                       </div>
                     </div>
@@ -868,7 +868,7 @@ function WerkCard({ werk, delay=0, onPress, onAuthorPress }) {
         <div style={{ marginTop:"auto", paddingTop:4 }}>
           <div style={{ display:"flex", alignItems:"center", marginBottom:6 }}>
             {priceStr ? (
-              <div style={{ fontSize:14, fontWeight: 600, color:T.teal, letterSpacing:"-0.02em" }}>
+              <div style={{ fontSize:14, fontWeight:800, color:T.teal, letterSpacing:"-0.02em" }}>
                 {priceStr}
               </div>
             ) : (
@@ -915,7 +915,7 @@ function LocationRadiusRow({
           <div style={{ display:"flex", gap:5, overflowX:"auto", WebkitOverflowScrolling:"touch", scrollbarWidth:"none" }}>
             {(radiusStages || [10,25,50,100]).map(stage => (
               <button key={String(stage)} onClick={() => onRadiusChange(stage)}
-                style={{ flexShrink:0, padding:"5px 10px", borderRadius:99, fontSize:10.5, fontWeight: 600,
+                style={{ flexShrink:0, padding:"5px 10px", borderRadius:99, fontSize:10.5, fontWeight:700,
                   cursor:"pointer", border: radiusKm===stage ? "none" : `1px solid ${T.border}`,
                   background: radiusKm===stage ? T.ink : "none",
                   color: radiusKm===stage ? "#fff" : T.inkFaint, whiteSpace:"nowrap" }}>
@@ -1013,7 +1013,7 @@ function WerkeSection({
                       }
                     </div>
                     <div style={{ flex:1, overflow:"hidden" }}>
-                      <div style={{ fontSize:13.5, fontWeight: 600, color:T.ink, marginBottom:2, letterSpacing:"-0.02em",
+                      <div style={{ fontSize:13.5, fontWeight:700, color:T.ink, marginBottom:2, letterSpacing:"-0.02em",
                         overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{w.title}</div>
                       <div style={{ fontSize:11.5, color:T.inkFaint, marginBottom:4 }}>von {w.author}</div>
                       {w.location && (
@@ -1027,7 +1027,7 @@ function WerkeSection({
                           <span style={{ fontSize:10.5, background:medCol.bg, color:medCol.text, borderRadius:99, padding:"2px 8px", fontWeight:600 }}>{w.medium}</span>
                         )}
                         {priceStr && (
-                          <span style={{ fontSize:12, fontWeight: 600, color:T.teal }}>{priceStr}</span>
+                          <span style={{ fontSize:12, fontWeight:800, color:T.teal }}>{priceStr}</span>
                         )}
                       </div>
                     </div>
@@ -1087,11 +1087,11 @@ function ErlebnisCard({ erlebnis, delay=0, onPress }) {
             background:"rgba(255,255,255,0.94)", backdropFilter:"blur(8px)",
             borderRadius:10, padding:"5px 9px", textAlign:"center", minWidth:36,
           }}>
-            <div style={{ fontSize:16, fontWeight: 600, color:T.ink, lineHeight:1 }}>
+            <div style={{ fontSize:16, fontWeight:900, color:T.ink, lineHeight:1 }}>
               {erlebnis.date}
             </div>
             {erlebnis.month && (
-              <div style={{ fontSize:8.5, fontWeight: 600, color:T.inkSoft, textTransform:"uppercase", letterSpacing:".04em", marginTop:1 }}>
+              <div style={{ fontSize:8.5, fontWeight:700, color:T.inkSoft, textTransform:"uppercase", letterSpacing:".04em", marginTop:1 }}>
                 {erlebnis.month}
               </div>
             )}
@@ -1137,7 +1137,7 @@ function ErlebnisCard({ erlebnis, delay=0, onPress }) {
           )}
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
             {erlebnis.likes > 0 && (
-              <span style={{ display:"flex", alignItems:"center", gap:3, fontSize:10.5, color:T.coral, fontWeight: 600 }}>
+              <span style={{ display:"flex", alignItems:"center", gap:3, fontSize:10.5, color:T.coral, fontWeight:700 }}>
                 <HUIHeartIcon size={11} /> {erlebnis.likes}
               </span>
             )}
@@ -1207,12 +1207,12 @@ function ErlebnisseSection({
                       {e.date && (
                         <div style={{ position:"absolute", bottom:3, left:0, right:0, textAlign:"center",
                           background:"rgba(0,0,0,0.45)", padding:"1px 0" }}>
-                          <span style={{ fontSize:9, fontWeight: 600, color:"white" }}>{e.date} {e.month}</span>
+                          <span style={{ fontSize:9, fontWeight:800, color:"white" }}>{e.date} {e.month}</span>
                         </div>
                       )}
                     </div>
                     <div style={{ flex:1, overflow:"hidden" }}>
-                      <div style={{ fontSize:13.5, fontWeight: 600, color:T.ink, marginBottom:2, letterSpacing:"-0.02em",
+                      <div style={{ fontSize:13.5, fontWeight:700, color:T.ink, marginBottom:2, letterSpacing:"-0.02em",
                         overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{e.title}</div>
                       {e.typeLabel && (
                         <div style={{ fontSize:11, color:T.teal, fontWeight:600, marginBottom:3 }}>{e.typeLabel}</div>
@@ -1344,12 +1344,12 @@ function ProjekteSection({ projekte, loading, delay=0, view='cards', onPress, on
               <div style={{
                 position:"absolute",top:12,left:12,
                 background:"#D97706", borderRadius:99,
-                padding:"3px 10px", fontSize:9.5, fontWeight: 600,
+                padding:"3px 10px", fontSize:9.5, fontWeight:800,
                 color:"white", letterSpacing:".04em",
               }}>🔥 Projekt der Woche</div>
               {/* Content */}
               <div style={{ position:"absolute",bottom:14,left:14,right:14 }}>
-                <div style={{ fontSize:17, fontWeight: 600, color:"white", letterSpacing:"-0.03em", marginBottom:4, lineHeight:1.2 }}>
+                <div style={{ fontSize:17, fontWeight:900, color:"white", letterSpacing:"-0.03em", marginBottom:4, lineHeight:1.2 }}>
                   {hero.title}
                 </div>
                 <div style={{ fontSize:11, color:"rgba(255,255,255,0.72)", marginBottom:10, lineHeight:1.4 }}>
@@ -1362,7 +1362,7 @@ function ProjekteSection({ projekte, loading, delay=0, view='cards', onPress, on
                   <div onClick={() => onPress?.(hero)} style={{
                     background:"rgba(14,196,184,0.90)", backdropFilter:"blur(8px)",
                     borderRadius:99, padding:"5px 14px",
-                    fontSize:11, fontWeight: 600, color:"white",
+                    fontSize:11, fontWeight:700, color:"white",
                     cursor:"pointer", touchAction:"manipulation",
                     WebkitTapHighlightColor:"transparent",
                   }}>Projekt ansehen →</div>
@@ -1400,7 +1400,7 @@ function ProjekteSection({ projekte, loading, delay=0, view='cards', onPress, on
                       }
                     </div>
                     <div style={{ flex:1, overflow:"hidden" }}>
-                      <div style={{ fontSize:13.5, fontWeight: 600, color:T.ink, marginBottom:2, letterSpacing:"-0.02em" }}>{p.title}</div>
+                      <div style={{ fontSize:13.5, fontWeight:700, color:T.ink, marginBottom:2, letterSpacing:"-0.02em" }}>{p.title}</div>
                       <div style={{ fontSize:11.5, color:T.inkSoft, marginBottom:5, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{p.desc}</div>
                       <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                         <span style={{ fontSize:11, background:cc.bg, color:cc.text, borderRadius:99, padding:"1px 7px", fontWeight:600 }}>{p.cat}</span>
@@ -1485,13 +1485,13 @@ function OrtCard({ ort, delay=0, onPress }) {
           position:"absolute", top:6, right:6,
           background:"rgba(255,255,255,0.90)", backdropFilter:"blur(6px)",
           borderRadius:99, padding:"1px 7px",
-          fontSize:9.5, fontWeight: 600, color:T.tealDeep,
+          fontSize:9.5, fontWeight:700, color:T.tealDeep,
         }}>
           {ort.total_count}
         </div>
       </div>
       <div style={{ padding:"10px 11px 12px", display:"flex", flexDirection:"column", flexGrow:1 }}>
-        <div style={{ fontSize:13, fontWeight: 600, color:T.ink, marginBottom:5, lineHeight:1.25,
+        <div style={{ fontSize:13, fontWeight:700, color:T.ink, marginBottom:5, lineHeight:1.25,
           overflow:"hidden", display:"-webkit-box", WebkitLineClamp:1, WebkitBoxOrient:"vertical" }}>
           {ort.place_key}
         </div>

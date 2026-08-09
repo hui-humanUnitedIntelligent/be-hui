@@ -259,7 +259,7 @@ function MonthDivider({ label }) {
   return (
     <div style={{ display:"flex", alignItems:"center", gap:12, padding:"28px 0 4px" }}>
       <div style={{ flex:1, height:1, background:T.border }} />
-      <span style={{ fontSize:11, fontWeight: 600, color:T.inkFaint, letterSpacing:"0.07em", textTransform:"uppercase" }}>{label}</span>
+      <span style={{ fontSize:11, fontWeight:700, color:T.inkFaint, letterSpacing:"0.07em", textTransform:"uppercase" }}>{label}</span>
       <div style={{ flex:1, height:1, background:T.border }} />
     </div>
   );
@@ -294,7 +294,7 @@ function ResonanzSummary({ entries }) {
           <div style={{ fontSize:12, color:T.inkSoft, letterSpacing:"0.05em", textTransform:"uppercase", marginBottom:4 }}>
             Gesamte Resonanz
           </div>
-          <div className="hui-num-nowrap" style={{ fontSize:32, fontWeight: 600, color:T.ink, letterSpacing:"-0.04em", lineHeight:1 }}>
+          <div className="hui-num-nowrap" style={{ fontSize:32, fontWeight:800, color:T.ink, letterSpacing:"-0.04em", lineHeight:1 }}>
             {formatEUR(t.eur, { minimumFractionDigits: t.eur%1===0?0:2 })}
           </div>
           <div style={{ fontSize:12, color:T.inkSoft, marginTop:6 }}>
@@ -310,7 +310,7 @@ function ResonanzSummary({ entries }) {
               padding:"10px 14px", textAlign:"center", minWidth:64,
             }}>
               <div style={{ fontSize:22, marginBottom:2 }}>{s.icon}</div>
-              <div style={{ fontSize:18, fontWeight: 600, color:T.ink, lineHeight:1 }}>{s.val}</div>
+              <div style={{ fontSize:18, fontWeight:800, color:T.ink, lineHeight:1 }}>{s.val}</div>
               <div style={{ fontSize:11, color:T.inkSoft, marginTop:2 }}>{s.label}</div>
             </div>
           ))}
@@ -371,7 +371,7 @@ function ResonanzEntry({ entry, animIndex, onTap }) {
       <div style={{ flex:1, minWidth:0 }}>
         {/* Typ + Datum */}
         <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:4 }}>
-          <span style={{ fontSize:11, fontWeight: 600, color:cfg.color, letterSpacing:"0.04em", textTransform:"uppercase" }}>
+          <span style={{ fontSize:11, fontWeight:700, color:cfg.color, letterSpacing:"0.04em", textTransform:"uppercase" }}>
             {cfg.label}
           </span>
           <span style={{ fontSize:11, color:T.inkFaint }}>·</span>
@@ -403,7 +403,7 @@ function ResonanzEntry({ entry, animIndex, onTap }) {
         {/* Footer */}
         <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
           {entry.amount > 0 && (
-            <span className="hui-num-nowrap" style={{ fontSize:14, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>
+            <span className="hui-num-nowrap" style={{ fontSize:14, fontWeight:700, color:T.ink, letterSpacing:"-0.02em" }}>
               {formatEUR(entry.amount, { minimumFractionDigits: entry.amount%1===0?0:2 })}
             </span>
           )}
@@ -432,7 +432,7 @@ function EmptyState({ filter }) {
   return (
     <div style={{ textAlign:"center", padding:"72px 32px 48px" }}>
       <div style={{ marginBottom:18, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)" }}>{cfg?.icon || <HUIResonanzIcon size={48}/>}</div>
-      <div style={{ fontSize:18, fontWeight: 600, color:T.ink, marginBottom:10, letterSpacing:"-0.02em" }}>
+      <div style={{ fontSize:18, fontWeight:700, color:T.ink, marginBottom:10, letterSpacing:"-0.02em" }}>
         {filter==="all" ? "Deine Geschichte beginnt hier" : "Noch keine " + (cfg?.label||"Aktivitäten")}
       </div>
       <div style={{ fontSize:14, color:T.inkSoft, lineHeight:"1.65", maxWidth:260, margin:"0 auto" }}>
@@ -518,7 +518,7 @@ export default function MeineResonanz({ onClose, onNavigate }) {
             }}>‹</button>
           )}
           <div style={{ flex:1 }}>
-            <div style={{ fontSize:24, fontWeight: 600, color:T.ink, letterSpacing:"-0.03em", lineHeight:1.1 }}>
+            <div style={{ fontSize:24, fontWeight:800, color:T.ink, letterSpacing:"-0.03em", lineHeight:1.1 }}>
               Meine Resonanz
             </div>
             <div style={{ fontSize:13, color:T.inkSoft, marginTop:3, lineHeight:"1.4" }}>

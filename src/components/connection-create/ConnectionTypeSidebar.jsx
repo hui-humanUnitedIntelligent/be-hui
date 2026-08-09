@@ -59,7 +59,7 @@ export default function ConnectionTypeSidebar({ active, onChange }) {
       <style>{CSS}</style>
 
       <div style={{
-        fontSize:13.5, fontWeight: 600, color:C.muted,
+        fontSize:13.5, fontWeight:700, color:C.muted,
         marginBottom:4, letterSpacing:0.1,
       }}>Was m\u00f6chtest du erstellen?</div>
 
@@ -130,7 +130,7 @@ export default function ConnectionTypeSidebar({ active, onChange }) {
           display:"flex", alignItems:"center", gap:6, marginBottom:5,
         }}>
           <HUISupportIcon size={14} style={{flexShrink:0}} />
-          <span style={{ fontSize:13, fontWeight: 600, color:"#92400E" }}>Tipp</span>
+          <span style={{ fontSize:13, fontWeight:700, color:"#92400E" }}>Tipp</span>
         </div>
         <div style={{ fontSize:12, color:"rgba(120,80,20,0.75)", lineHeight:1.55 }}>
           Je mehr Infos du teilst, desto mehr passende Menschen erreichen dich.

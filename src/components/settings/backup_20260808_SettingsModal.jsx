@@ -48,7 +48,7 @@ function Section({ title, icon, children }) {
   return (
     <div style={{ marginBottom:24 }}>
 
-      <div style={{ fontSize:11, fontWeight: 600, color:T.inkSoft,
+      <div style={{ fontSize:11, fontWeight:700, color:T.inkSoft,
         textTransform:"uppercase", letterSpacing:0.8, marginBottom:10,
         display:"flex", alignItems:"center", gap:6, padding:"0 4px" }}>
         <span>{icon}</span>{title}
@@ -391,7 +391,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
             )}
             <div style={{display:"flex",alignItems:"center",gap:8}}>
               {view==="main" && <HUISettingsIcon size={16}/>}
-              <div style={{ fontSize:17, fontWeight: 600, color:T.ink }}>
+              <div style={{ fontSize:17, fontWeight:700, color:T.ink }}>
                 {titles[view] || "Einstellungen"}
               </div>
             </div>
@@ -467,8 +467,8 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
                   background:"rgba(14,196,184,0.07)", border:"1px solid rgba(14,196,184,0.15)",
                   marginBottom:12,
                 }}>
-                  <div style={{fontSize:11,fontWeight: 600,color:"#0EC4B8",marginBottom:4}}>Status</div>
-                  <div style={{fontSize:14,fontWeight: 600,color:"#1A1A18"}}>
+                  <div style={{fontSize:11,fontWeight:700,color:"#0EC4B8",marginBottom:4}}>Status</div>
+                  <div style={{fontSize:14,fontWeight:800,color:"#1A1A18"}}>
                     {profile?.is_talent ? "✨ HUI-Talent" : "🌿 HUI-Mitglied"}
                   </div>
                   {profile?.talent_since && (

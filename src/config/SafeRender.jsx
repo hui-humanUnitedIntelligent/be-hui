@@ -85,7 +85,7 @@ class SafeBoundary extends React.Component {
               style={{
                 marginTop: 4, padding: '3px 10px', borderRadius: 99,
                 background: 'rgba(22,215,197,0.12)', border: 'none',
-                color: '#16D7C5', fontSize: 11, fontWeight: 600,
+                color: '#16D7C5', fontSize: 11, fontWeight: 700,
                 cursor: 'pointer', fontFamily: 'inherit',
               }}>
               Wiederholen
@@ -127,7 +127,7 @@ class SafeBoundary extends React.Component {
             style={{
               padding: '10px 24px', borderRadius: 14,
               background: 'linear-gradient(135deg,#16D7C5,#FF8A6B)',
-              border: 'none', color: 'white', fontWeight: 600,
+              border: 'none', color: 'white', fontWeight: 700,
               fontSize: 13, cursor: 'pointer', fontFamily: 'inherit',
               boxShadow: '0 4px 14px rgba(22,215,197,0.25)',
             }}>
@@ -136,7 +136,7 @@ class SafeBoundary extends React.Component {
         </div>
         {/* Crash details — always visible for debugging */}
         <details style={{ fontSize: 10, color: '#aaa', padding: '0 4px' }} open>
-          <summary style={{ cursor: 'pointer', color: '#FF8A6B', fontWeight: 600 }}>
+          <summary style={{ cursor: 'pointer', color: '#FF8A6B', fontWeight: 700 }}>
             ⚠ Crash: {label}
           </summary>
           <pre style={{ overflow: 'auto', marginTop: 4, fontSize: 10, color: '#ff9999',

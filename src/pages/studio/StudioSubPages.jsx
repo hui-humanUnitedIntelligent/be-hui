@@ -35,7 +35,7 @@ function SubPageShell({ title, emoji, onBack, children }) {
           cursor:"pointer", fontSize:16,
         }}>←</button>
         <span style={{ fontSize:18 }}>{emoji}</span>
-        <span style={{ fontSize:17, fontWeight: 600, color:C.ink }}>{title}</span>
+        <span style={{ fontSize:17, fontWeight:700, color:C.ink }}>{title}</span>
       </div>
       <div style={{
         flex:1, overflowY:"auto",
@@ -131,7 +131,7 @@ export function MeineInhaltePage({ onBack }) {
           position:"fixed", top:20, left:"50%", transform:"translateX(-50%)",
           zIndex:9999, padding:"10px 20px", borderRadius:99,
           background:toast.ok?"#10B981":"#EF4444", color:"#fff",
-          fontSize:13, fontWeight: 600, pointerEvents:"none",
+          fontSize:13, fontWeight:700, pointerEvents:"none",
           boxShadow:"0 4px 16px rgba(0,0,0,0.2)",
         }}>{toast.msg}</div>
       )}
@@ -148,7 +148,7 @@ export function MeineInhaltePage({ onBack }) {
             width:"100%", maxWidth:400,
             boxShadow:"0 20px 60px rgba(0,0,0,0.2)",
           }}>
-            <div style={{ fontSize:16, fontWeight: 600, marginBottom:8 }}>
+            <div style={{ fontSize:16, fontWeight:800, marginBottom:8 }}>
               🔄 Erneut einreichen?
             </div>
             <div style={{ fontSize:13, color:"#555", marginBottom:20 }}>
@@ -163,7 +163,7 @@ export function MeineInhaltePage({ onBack }) {
               <button onClick={() => resubmit(resubDlg.type, resubDlg.id)} style={{
                 flex:2, padding:"11px", borderRadius:12, border:"none",
                 background:"#0EC4B8", color:"#fff",
-                fontSize:13, fontWeight: 600, cursor:"pointer",
+                fontSize:13, fontWeight:700, cursor:"pointer",
               }}>✅ Einreichen</button>
             </div>
           </div>
@@ -222,14 +222,14 @@ export function MeineInhaltePage({ onBack }) {
                   justifyContent:"space-between", gap:8, marginBottom:4,
                 }}>
                   <div style={{
-                    fontSize:13.5, fontWeight: 600, color:"#1A1A18", lineHeight:1.3,
+                    fontSize:13.5, fontWeight:700, color:"#1A1A18", lineHeight:1.3,
                   }}>
                     {item.title || "Kein Titel"}
                   </div>
                   <span style={{
                     flexShrink:0, padding:"2px 8px", borderRadius:99,
                     background:st.bg, color:st.color,
-                    fontSize:9.5, fontWeight: 600, whiteSpace:"nowrap",
+                    fontSize:9.5, fontWeight:700, whiteSpace:"nowrap",
                   }}>
                     {st.icon} {st.label}
                   </span>
@@ -284,7 +284,7 @@ export function MeineInhaltePage({ onBack }) {
                     style={{
                       padding:"6px 14px", borderRadius:99, border:"none",
                       background:"#0EC4B8", color:"#fff",
-                      fontSize:11.5, fontWeight: 600, cursor:"pointer",
+                      fontSize:11.5, fontWeight:700, cursor:"pointer",
                     }}>
                     🔄 Erneut einreichen
                   </button>

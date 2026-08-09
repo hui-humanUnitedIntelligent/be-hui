@@ -56,7 +56,7 @@ export default function MessageButton({ count=0, onPress }) {
           background:"linear-gradient(135deg,#FF4757,#E8353F)",
           color:"white",
           fontSize: count > 9 ? 8 : 9,
-          fontWeight: 600,
+          fontWeight:800,
           display:"flex", alignItems:"center", justifyContent:"center",
           padding:"0 3px",
           border:"1.5px solid rgba(255,251,248,0.97)",

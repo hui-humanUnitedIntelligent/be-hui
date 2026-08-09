@@ -172,9 +172,9 @@ function StripeForm({ total, impact, orderId, onSuccess, onError }) {
             display: "flex", justifyContent: "space-between",
             paddingTop: 8, borderTop: "1px solid rgba(20,20,34,0.06)",
           }}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: C.ink }}>Gesamt</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: C.ink }}>Gesamt</span>
             <span style={{
-              fontSize: 16, fontWeight: 600, color: C.ink,
+              fontSize: 16, fontWeight: 800, color: C.ink,
               letterSpacing: -0.3,
             }}>
               {total.toFixed(2).replace(".", ",")} €
@@ -211,7 +211,7 @@ function StripeForm({ total, impact, orderId, onSuccess, onError }) {
               ? "rgba(20,20,34,0.07)"
               : `linear-gradient(135deg, ${C.teal} 0%, #14CEC2 100%)`,
             color:     processing ? C.muted : "#fff",
-            fontWeight: 600, fontSize: 16, letterSpacing: -0.2,
+            fontWeight: 700, fontSize: 16, letterSpacing: -0.2,
             cursor:    processing ? "default" : "pointer",
             outline:   "none",
             boxShadow: processing ? "none" : "0 4px 16px rgba(13,196,181,0.18)",
@@ -315,7 +315,7 @@ export default function StripePaymentStep({
             ← Zurück
           </button>
           <div style={{
-            fontSize: 24, fontWeight: 600, color: C.ink,
+            fontSize: 24, fontWeight: 800, color: C.ink,
             letterSpacing: -0.5, lineHeight: 1.2, marginBottom: 6,
           }}>
             Zahlung

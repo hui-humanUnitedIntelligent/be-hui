@@ -24,7 +24,7 @@ function SectionHead({ title, onMore }) {
       display:"flex", justifyContent:"space-between", alignItems:"center",
       padding:"18px 0 10px",
     }}>
-      <span style={{ fontSize:15, fontWeight: 600, color:C.ink }}>{title}</span>
+      <span style={{ fontSize:15, fontWeight:800, color:C.ink }}>{title}</span>
       {onMore && (
         <button onClick={onMore} style={{
           border:"none", background:"none", color:C.teal,
@@ -54,7 +54,7 @@ function ConnectionBubbles({ people }) {
             border:"2px solid rgba(255,255,255,0.9)",
             boxShadow:"0 3px 10px rgba(0,0,0,0.09)",
             display:"flex", alignItems:"center", justifyContent:"center",
-            fontSize:18, color:"white", fontWeight: 600,
+            fontSize:18, color:"white", fontWeight:700,
           }}>{!p.avatar_url && (p.name?.[0] || "?")}</div>
           <span style={{ fontSize:11.5, color:C.ink, fontWeight:500,
             whiteSpace:"nowrap" }}>{p.name}</span>
@@ -78,7 +78,7 @@ function ImpactCard() {
       marginBottom:24,
     }}>
       <div style={{ flex:1 }}>
-        <div style={{ fontSize:16, fontWeight: 600, color:C.ink, marginBottom:6 }}>
+        <div style={{ fontSize:16, fontWeight:800, color:C.ink, marginBottom:6 }}>
           Gemeinsam Wirkung schaffen
         </div>
         <div style={{ fontSize:13, color:C.muted, lineHeight:1.6, marginBottom:14 }}>
@@ -87,7 +87,7 @@ function ImpactCard() {
         <button onClick={() => onDiscover?.()} style={{
           padding:"9px 18px", borderRadius:99,
           background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
-          border:"none", color:"white", fontSize:13, fontWeight: 600,
+          border:"none", color:"white", fontSize:13, fontWeight:700,
           cursor:"pointer",
           boxShadow:`0 4px 12px rgba(22,215,197,0.30)`,
           WebkitTapHighlightColor:"transparent",

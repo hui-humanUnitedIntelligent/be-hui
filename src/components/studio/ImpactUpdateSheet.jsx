@@ -116,7 +116,7 @@ export default function ImpactUpdateSheet({ project, currentUser, onClose, onSuc
             flexShrink: 0,
           }}
         >
-          <div style={{ fontSize: 18, fontWeight: 600, display:"flex", alignItems:"center", gap:6 }}><HUINachrichtIcon size={18}/>Projekt-Update</div>
+          <div style={{ fontSize: 18, fontWeight: 800, display:"flex", alignItems:"center", gap:6 }}><HUINachrichtIcon size={18}/>Projekt-Update</div>
           <button
             onClick={onClose}
             style={{
@@ -152,7 +152,7 @@ export default function ImpactUpdateSheet({ project, currentUser, onClose, onSuc
             <div
               style={{
                 fontSize: 12,
-                fontWeight: 600,
+                fontWeight: 700,
                 color: "#444",
                 marginBottom: 8,
               }}
@@ -172,7 +172,7 @@ export default function ImpactUpdateSheet({ project, currentUser, onClose, onSuc
                     background: updateType === t ? "#0DC4B515" : "transparent",
                     color: updateType === t ? "#0DC4B5" : "#666",
                     fontSize: 12,
-                    fontWeight: 600,
+                    fontWeight: 700,
                     cursor: "pointer",
                     fontFamily: "inherit",
                   }}
@@ -188,7 +188,7 @@ export default function ImpactUpdateSheet({ project, currentUser, onClose, onSuc
             <div
               style={{
                 fontSize: 12,
-                fontWeight: 600,
+                fontWeight: 700,
                 color: "#444",
                 marginBottom: 8,
               }}
@@ -217,7 +217,7 @@ export default function ImpactUpdateSheet({ project, currentUser, onClose, onSuc
             <div
               style={{
                 fontSize: 12,
-                fontWeight: 600,
+                fontWeight: 700,
                 color: "#444",
                 marginBottom: 8,
               }}
@@ -272,7 +272,7 @@ export default function ImpactUpdateSheet({ project, currentUser, onClose, onSuc
                 : "linear-gradient(135deg,#0DC4B5,#09A89D)",
               color: "white",
               fontSize: 15,
-              fontWeight: 600,
+              fontWeight: 800,
               cursor: saving ? "not-allowed" : "pointer",
               fontFamily: "inherit",
             }}

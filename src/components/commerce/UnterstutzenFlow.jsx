@@ -58,7 +58,7 @@ function ImpactKarte({ impactEur, huiEur }) {
         <path d="M14 24V14" stroke="#6BAE8F" strokeWidth="1.4" strokeLinecap="round"/>
       </svg>
       <div>
-        <div style={{ fontSize: 13, fontWeight: 600, color: C.sage, marginBottom: 3 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: C.sage, marginBottom: 3 }}>
           Gemeinsam Wirkung schaffen
         </div>
         <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.6 }}>
@@ -90,7 +90,7 @@ function PrimaryButton({ label, onClick, loading = false, disabled = false }) {
           ? "rgba(20,20,34,0.07)"
           : `linear-gradient(130deg, ${C.teal} 0%, #1ADDD0 55%, ${C.coral} 150%)`,
         color:        (disabled || loading) ? C.muted : "#fff",
-        fontWeight: 600,
+        fontWeight:   700,
         fontSize:     17,
         letterSpacing: 0.1,
         cursor:       (disabled || loading) ? "default" : "pointer",
@@ -230,7 +230,7 @@ function DankeScreen({ items, impact, total, huiTotal = 0, onDiscover, onClose }
 
         {/* Headline — kompakter */}
         <div style={{
-          fontSize: 32, fontWeight: 600, color: C.ink,
+          fontSize: 32, fontWeight: 800, color: C.ink,
           letterSpacing: -1, lineHeight: 1.1, marginBottom: 8,
           ...fade("100ms"),
         }}>
@@ -253,7 +253,7 @@ function DankeScreen({ items, impact, total, huiTotal = 0, onDiscover, onClose }
           ...fade("300ms"),
         }}>
           <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.6 }}>Du hast heute</div>
-          <div style={{ fontSize: 16, fontWeight: 600, color: C.ink,
+          <div style={{ fontSize: 16, fontWeight: 800, color: C.ink,
             letterSpacing: -0.3, lineHeight: 1.3, marginTop: 2 }}>
             {pCount} {pCount === 1 ? "Menschen" : "Menschen"}
           </div>
@@ -281,7 +281,7 @@ function DankeScreen({ items, impact, total, huiTotal = 0, onDiscover, onClose }
             ...fade("450ms"),
           }}>
             <div style={{ flex: 1, textAlign: "left" }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: C.ink, marginBottom: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: C.ink, marginBottom: 1 }}>
                 Mit Verkäufer schreiben
               </div>
               <div style={{ fontSize: 11, color: C.muted, lineHeight: 1.4 }}>
@@ -293,7 +293,7 @@ function DankeScreen({ items, impact, total, huiTotal = 0, onDiscover, onClose }
               style={{
                 padding: "9px 16px", borderRadius: 11,
                 background: C.teal, color: "#fff",
-                fontSize: 13, fontWeight: 600, border: "none",
+                fontSize: 13, fontWeight: 700, border: "none",
                 cursor: "pointer", flexShrink: 0,
                 WebkitTapHighlightColor: "transparent",
               }}
@@ -338,7 +338,7 @@ function DankeScreen({ items, impact, total, huiTotal = 0, onDiscover, onClose }
             padding: "24px 20px", textAlign: "center",
             boxShadow: "0 12px 48px rgba(20,20,34,0.25)",
           }}>
-            <div style={{ fontSize: 17, fontWeight: 600, color: C.ink, marginBottom: 8 }}>
+            <div style={{ fontSize: 17, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
               Mit {seller.name} chatten?
             </div>
             <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.5, marginBottom: 20 }}>
@@ -363,7 +363,7 @@ function DankeScreen({ items, impact, total, huiTotal = 0, onDiscover, onClose }
                   flex: 1, padding: "14px 0", borderRadius: 13,
                   border: "none",
                   background: C.teal, color: "#fff",
-                  fontSize: 15, fontWeight: 600, cursor: "pointer",
+                  fontSize: 15, fontWeight: 700, cursor: "pointer",
                   outline: "none", WebkitTapHighlightColor: "transparent",
                 }}
               >
@@ -674,7 +674,7 @@ export default function UnterstutzenFlow({
             <div style={{ width: 36 }} />
 
             {/* Titel */}
-            <div style={{ fontSize: 15, fontWeight: 600, color: C.inkMid, letterSpacing: -0.2 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: C.inkMid, letterSpacing: -0.2 }}>
               Zahlung
             </div>
 

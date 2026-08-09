@@ -322,7 +322,7 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
         }}>
           <h1 style={{
             fontSize:      Math.min(34, vw * 0.084),
-            fontWeight: 600,
+            fontWeight:    900,
             color:         D.inkTeal,
             letterSpacing: "-0.046em",
             lineHeight:    1.16,
@@ -507,7 +507,7 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
 
                 <span style={{
                   fontSize: Math.min(13, vw * 0.033),
-                  fontWeight: 600,
+                  fontWeight: 700,
                   color: D.ink,
                   letterSpacing: "-0.01em",
                   whiteSpace: "nowrap",
@@ -591,7 +591,7 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
                   <span style={{
-                    fontSize: ctrD * 0.30, fontWeight: 600, color: "white",
+                    fontSize: ctrD * 0.30, fontWeight: 900, color: "white",
                     fontFamily: "Inter, system-ui", letterSpacing: "-0.05em",
                   }}>hui</span>
                 </div>
@@ -634,7 +634,7 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
             margin: 0, fontWeight: 400,
           }}>
             In die Mitte tippen,<br/>um einen<br/>
-            <strong style={{ color: D.teal, fontWeight: 600 }}>HUI-Moment</strong><br/>
+            <strong style={{ color: D.teal, fontWeight: 800 }}>HUI-Moment</strong><br/>
             zu teilen
           </p>
         </div>
@@ -742,7 +742,7 @@ function OrbLockedDialog({ onJoin, onClose }) {
         {/* Titel */}
         <h3 style={{
           fontSize: 20,
-          fontWeight: 600,
+          fontWeight: 800,
           color: "#1A3530",
           letterSpacing: "-0.03em",
           lineHeight: 1.25,
@@ -777,7 +777,7 @@ function OrbLockedDialog({ onJoin, onClose }) {
             border: "none",
             borderRadius: 99,
             fontSize: 15.5,
-            fontWeight: 600,
+            fontWeight: 800,
             cursor: "pointer",
             fontFamily: "inherit",
             boxShadow: "0 4px 18px rgba(14,196,184,0.30)",

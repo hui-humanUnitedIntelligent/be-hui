@@ -138,7 +138,7 @@ function HeroCard({ typeInfo, title, coverImage }) {
         padding:"6px 14px", borderRadius:99,
         background:"rgba(255,255,255,0.90)",
         backdropFilter:"blur(10px)",
-        fontSize:13, fontWeight: 600, color:C.violet,
+        fontSize:13, fontWeight:700, color:C.violet,
         boxShadow:"0 2px 10px rgba(0,0,0,0.12)",
       }}>
         <span>{typeInfo.icon}</span>
@@ -162,7 +162,7 @@ function HeroCard({ typeInfo, title, coverImage }) {
       }}>
         {title ? (
           <div style={{
-            fontSize:18, fontWeight: 600, color:"white",
+            fontSize:18, fontWeight:800, color:"white",
             letterSpacing:-0.4, lineHeight:1.25,
             textShadow:"0 2px 8px rgba(0,0,0,0.30)",
           }}>{title}</div>
@@ -225,7 +225,7 @@ function ParticipantBubbles({ count }) {
         border:"2.5px solid white",
         marginLeft:-10, zIndex:0, position:"relative",
         display:"flex", alignItems:"center", justifyContent:"center",
-        fontSize:11, fontWeight: 600, color:C.violet,
+        fontSize:11, fontWeight:800, color:C.violet,
         animation:`s3-avatar-in 0.25s 0.30s ease both`,
       }}>+{count || 7}</div>
     </div>
@@ -246,7 +246,7 @@ function PublishActions({ onPublish, onEdit, onDraft, publishing }) {
             ? "rgba(139,92,246,0.55)"
             : `linear-gradient(135deg,${C.violet} 0%,${C.violet3} 100%)`,
           border:"none", borderRadius:99,
-          color:"white", fontSize:17, fontWeight: 600,
+          color:"white", fontSize:17, fontWeight:800,
           cursor: publishing ? "default" : "pointer",
           letterSpacing:-0.3,
           animation: publishing ? "none" : "s3-pub-glow 3s ease-in-out infinite",
@@ -350,12 +350,12 @@ export default function StepThreePreview({ data, onPublish, onBack, publishing }
         animation:"s3-in 0.24s ease both",
       }}>
         <div style={{
-          fontSize:12, fontWeight: 600, color:C.violet,
+          fontSize:12, fontWeight:700, color:C.violet,
           letterSpacing:0.5, textTransform:"uppercase",
           marginBottom:8,
         }}>Schritt 3 von 3</div>
         <div style={{
-          fontSize:24, fontWeight: 600, color:C.ink,
+          fontSize:24, fontWeight:900, color:C.ink,
           letterSpacing:-0.7, lineHeight:1.20, marginBottom:7,
         }}>
           So wird deine Verbindung wirken
@@ -387,14 +387,14 @@ export default function StepThreePreview({ data, onPublish, onBack, publishing }
           {/* Titel unter Hero (groß, grau wenn leer) */}
           {!title && (
             <div style={{
-              fontSize:20, fontWeight: 600, color:"rgba(80,80,80,0.28)",
+              fontSize:20, fontWeight:900, color:"rgba(80,80,80,0.28)",
               fontStyle:"italic", letterSpacing:-0.4, marginBottom:16,
               lineHeight:1.25,
             }}>Titel der Verbindung…</div>
           )}
           {title && (
             <div style={{
-              fontSize:20, fontWeight: 600, color:C.ink,
+              fontSize:20, fontWeight:900, color:C.ink,
               letterSpacing:-0.5, marginBottom:4, lineHeight:1.25,
             }}>{title}</div>
           )}
@@ -443,7 +443,7 @@ export default function StepThreePreview({ data, onPublish, onBack, publishing }
             width:"100%", height:50,
             background:`linear-gradient(135deg,${C.violet},${C.violet3})`,
             border:"none", borderRadius:99,
-            color:"white", fontSize:16, fontWeight: 600,
+            color:"white", fontSize:16, fontWeight:800,
             cursor:"pointer", letterSpacing:-0.2,
             boxShadow:`0 6px 20px rgba(139,92,246,0.34)`,
             WebkitTapHighlightColor:"transparent",

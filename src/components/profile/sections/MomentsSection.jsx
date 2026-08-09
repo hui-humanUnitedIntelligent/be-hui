@@ -45,7 +45,7 @@ export function MomentsSection({
         <style>{CSS}</style>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
           padding:`0 ${T.px}px`, marginBottom:12 }}>
-          <div style={{ fontSize:15, fontWeight: 600, color:T.ink }}>Momente</div>
+          <div style={{ fontSize:15, fontWeight:800, color:T.ink }}>Momente</div>
         </div>
         <div className="ms-hscroll" style={{ display:"flex", gap:10, padding:`0 ${T.px}px 4px` }}>
           {[1,2,3,4,5].map(i => <Sk key={i} w={100} h={100} r={T.r16}/>)}
@@ -61,10 +61,10 @@ export function MomentsSection({
       {/* Header */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
         padding:`0 ${T.px}px`, marginBottom:12 }}>
-        <div style={{ fontSize:15, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>Momente</div>
+        <div style={{ fontSize:15, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>Momente</div>
         {isOwner && (
           <button onClick={onAddMoment} style={{ background:"none", border:"none", padding:0,
-            fontSize:12, color:T.teal, fontWeight: 600, cursor:"pointer", fontFamily:"inherit" }}>
+            fontSize:12, color:T.teal, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>
             Hinzufügen ›
           </button>
         )}
@@ -81,7 +81,7 @@ export function MomentsSection({
               cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
             }}>
               <HUIFotoIcon size={24} style={{color:"rgba(14,196,184,0.6)"}} />
-              <div style={{ fontSize:13, fontWeight: 600, color:T.ink }}>Ersten Moment teilen</div>
+              <div style={{ fontSize:13, fontWeight:700, color:T.ink }}>Ersten Moment teilen</div>
               <div style={{ fontSize:12, color:T.inkFaint }}>Bilder, die dein Wirken zeigen</div>
             </button>
           </div>

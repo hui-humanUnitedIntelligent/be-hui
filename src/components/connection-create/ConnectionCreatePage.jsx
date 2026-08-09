@@ -147,7 +147,7 @@ function FloatingNav({ step, canNext, onBack, onNext, isLast, publishing = false
             : `linear-gradient(135deg,${C.violet} 0%,${C.violet2} 100%)`,
           border:"none",
           color: canNext ? "white" : "rgba(139,92,246,0.50)",
-          fontSize:16, fontWeight: 600,
+          fontSize:16, fontWeight:800,
           cursor: (!canNext || publishing) ? "default" : "pointer",
           transition:"all 0.2s",
           boxShadow: (!canNext || publishing) ? "none" : "0 6px 20px rgba(139,92,246,0.30)",
@@ -347,7 +347,7 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
       }}>✓</div>
       {/* Titel */}
       <div style={{
-        fontSize:22, fontWeight: 600, color:C.ink,
+        fontSize:22, fontWeight:800, color:C.ink,
         letterSpacing:-0.5, marginBottom:10,
       }}>Verbindung veröffentlicht</div>
       {/* Subtext */}
@@ -363,7 +363,7 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
         style={{
           padding:"14px 36px", borderRadius:16,
           background:"linear-gradient(135deg,#16D7C5,#8B5CF6)",
-          color:"#fff", fontSize:15, fontWeight: 600,
+          color:"#fff", fontSize:15, fontWeight:700,
           border:"none", cursor:"pointer",
           touchAction:"manipulation",
           WebkitTapHighlightColor:"transparent",
@@ -412,7 +412,7 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
           {/* Title */}
           <div style={{ textAlign:"center" }}>
             <div style={{
-              fontSize:15.5, fontWeight: 600, color:C.ink, letterSpacing:-0.3,
+              fontSize:15.5, fontWeight:800, color:C.ink, letterSpacing:-0.3,
             }}>
               <span style={{ marginRight:5 }}>{meta.emoji}</span>
               Neue Verbindung

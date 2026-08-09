@@ -83,7 +83,7 @@ function TalentCard({ talent, onClick }) {
             position:"absolute", top:5, right:5,
             background:"rgba(14,196,184,0.92)", backdropFilter:"blur(4px)",
             borderRadius:6, padding:"2px 5px",
-            fontSize:9, fontWeight: 600, color:"#fff",
+            fontSize:9, fontWeight:700, color:"#fff",
             letterSpacing:"0.2px",
           }}>{price}</div>
         )}
@@ -172,13 +172,13 @@ function TalentDetailModal({ talent, onClose }) {
               <div style={{
                 display:"inline-block", background:T.tealSoft,
                 borderRadius:99, padding:"3px 10px",
-                fontSize:11, fontWeight: 600, color:T.teal,
+                fontSize:11, fontWeight:700, color:T.teal,
                 marginBottom:8,
               }}>{talent.category}</div>
             )}
 
             {/* Titel */}
-            <div style={{ fontSize:19, fontWeight: 600, color:T.ink, lineHeight:1.3, marginBottom:8 }}>
+            <div style={{ fontSize:19, fontWeight:800, color:T.ink, lineHeight:1.3, marginBottom:8 }}>
               {talent.title}
             </div>
 
@@ -187,7 +187,7 @@ function TalentDetailModal({ talent, onClose }) {
               {price && (
                 <div style={{
                   background:"rgba(14,196,184,0.10)", borderRadius:8,
-                  padding:"5px 12px", fontSize:13, fontWeight: 600, color:T.teal,
+                  padding:"5px 12px", fontSize:13, fontWeight:700, color:T.teal,
                   border:"1px solid rgba(14,196,184,0.22)",
                 }}>{price}</div>
               )}

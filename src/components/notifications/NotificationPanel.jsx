@@ -71,7 +71,7 @@ function InlineModal({ onClose, icon, title, subtitle, accentColor = "#0EC4B8", 
       >
         <div style={{ textAlign:"center", marginBottom:16 }}>
           <div style={{ fontSize:40, marginBottom:8, lineHeight:1 }}>{icon}</div>
-          <div style={{ fontSize:17, fontWeight: 600, color:"#1a1a18" }}>{title}</div>
+          <div style={{ fontSize:17, fontWeight:800, color:"#1a1a18" }}>{title}</div>
           {subtitle && (
             <div style={{ fontSize:12, fontWeight:600, color:accentColor, marginTop:4 }}>{subtitle}</div>
           )}
@@ -82,7 +82,7 @@ function InlineModal({ onClose, icon, title, subtitle, accentColor = "#0EC4B8", 
           style={{
             width:"100%", padding:"14px", borderRadius:99,
             background:accentColor, border:"none", color:"#fff",
-            fontSize:15, fontWeight: 600, cursor:"pointer",
+            fontSize:15, fontWeight:700, cursor:"pointer",
             fontFamily:"inherit", marginTop:4,
           }}
         >
@@ -719,7 +719,7 @@ function DetailModal({ n, onClose, onAction }) {
           }}>
             {cfg.headerIcon}
           </div>
-          <div style={{ fontSize:17, fontWeight: 600, color:"#1a1a18", lineHeight:1.3, marginBottom:cfg.headerSubtitle ? 4 : 0 }}>
+          <div style={{ fontSize:17, fontWeight:800, color:"#1a1a18", lineHeight:1.3, marginBottom:cfg.headerSubtitle ? 4 : 0 }}>
             {cfg.headerTitle}
           </div>
           {cfg.headerSubtitle && (
@@ -739,7 +739,7 @@ function DetailModal({ n, onClose, onAction }) {
           if (!block) return null;
           if (block.type === "label-text") return (
             <div key={i} style={{ marginBottom:14 }}>
-              <div style={{ fontSize:11, fontWeight: 600, color: block.color, textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:6 }}>
+              <div style={{ fontSize:11, fontWeight:700, color: block.color, textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:6 }}>
                 {block.label}
               </div>
               <div style={{
@@ -756,7 +756,7 @@ function DetailModal({ n, onClose, onAction }) {
           if (block.type === "stat") return (
             <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 14px", background:"rgba(14,196,184,0.05)", borderRadius:10, marginBottom:10 }}>
               <span style={{ fontSize:12, color:"#888", fontWeight:600 }}>{block.label}</span>
-              <span style={{ fontSize:16, fontWeight: 600, color:"#1a1a18" }}>{block.value}</span>
+              <span style={{ fontSize:16, fontWeight:800, color:"#1a1a18" }}>{block.value}</span>
             </div>
           );
           if (block.type === "info") return (
@@ -783,7 +783,7 @@ function DetailModal({ n, onClose, onAction }) {
               width:"100%", padding:"13px", borderRadius:99,
               background:"rgba(14,196,184,0.08)",
               border:`1.5px solid rgba(14,196,184,0.35)`,
-              color:"#0EC4B8", fontSize:14, fontWeight: 600,
+              color:"#0EC4B8", fontSize:14, fontWeight:700,
               cursor:"pointer", fontFamily:"inherit",
               marginBottom:10,
             }}
@@ -803,7 +803,7 @@ function DetailModal({ n, onClose, onAction }) {
               width:"100%", padding:"13px", borderRadius:99,
               background:"rgba(14,196,184,0.08)",
               border:`1.5px solid rgba(14,196,184,0.35)`,
-              color:"#0EC4B8", fontSize:14, fontWeight: 600,
+              color:"#0EC4B8", fontSize:14, fontWeight:700,
               cursor:"pointer", fontFamily:"inherit",
               marginBottom:10,
               display:"flex", alignItems:"center", justifyContent:"center", gap:6,
@@ -824,7 +824,7 @@ function DetailModal({ n, onClose, onAction }) {
               width:"100%", padding:"13px", borderRadius:99,
               background:"rgba(14,196,184,0.08)",
               border:`1.5px solid rgba(14,196,184,0.35)`,
-              color:"#0EC4B8", fontSize:14, fontWeight: 600,
+              color:"#0EC4B8", fontSize:14, fontWeight:700,
               cursor:"pointer", fontFamily:"inherit",
               marginBottom:10,
             }}
@@ -847,7 +847,7 @@ function DetailModal({ n, onClose, onAction }) {
               width:"100%", padding:"13px", borderRadius:99,
               background:"rgba(34,197,94,0.08)",
               border:`1.5px solid rgba(34,197,94,0.35)`,
-              color:"#22C55E", fontSize:14, fontWeight: 600,
+              color:"#22C55E", fontSize:14, fontWeight:700,
               cursor:"pointer", fontFamily:"inherit",
               marginBottom:10,
             }}
@@ -863,7 +863,7 @@ function DetailModal({ n, onClose, onAction }) {
           style={{
             width:"100%", padding:"13px", borderRadius:99,
             background: cfg.accentColor, border:"none",
-            color:"#fff", fontSize:15, fontWeight: 600,
+            color:"#fff", fontSize:15, fontWeight:700,
             cursor:"pointer", fontFamily:"inherit",
           }}
         >
@@ -936,7 +936,7 @@ function NotifCard({ n, onRead, onDelete, onAction = () => {} }) {
             {/* KOMPAKT.1: Kategorie-Zeile nur wenn sie NICHT dasselbe sagt wie der Titel */}
             {!labelDuplicatesTitle && (
               <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:1 }}>
-                <span style={{ fontSize:10.5, fontWeight: 600, color: n.is_read ? T.inkFaint : T.teal }}>
+                <span style={{ fontSize:10.5, fontWeight:700, color: n.is_read ? T.inkFaint : T.teal }}>
                   {meta.label}
                 </span>
                 {!n.is_read && (
@@ -971,7 +971,7 @@ function NotifCard({ n, onRead, onDelete, onAction = () => {} }) {
                 display:"inline-flex", alignItems:"center", gap:4,
                 marginTop:5, padding:"3px 9px", borderRadius:99,
                 background:"rgba(239,68,68,0.08)", border:"1.5px solid rgba(239,68,68,0.35)",
-                color:"#DC2626", fontSize:11, fontWeight: 600,
+                color:"#DC2626", fontSize:11, fontWeight:700,
               }}>
                 📋 Grund lesen
               </span>
@@ -1023,7 +1023,7 @@ function NotifCard({ n, onRead, onDelete, onAction = () => {} }) {
               boxShadow:"0 20px 60px rgba(0,0,0,0.25)",
             }}
           >
-            <div style={{ fontSize:16, fontWeight: 600, color:"#1a1a18", marginBottom:8 }}>Nachricht löschen?</div>
+            <div style={{ fontSize:16, fontWeight:800, color:"#1a1a18", marginBottom:8 }}>Nachricht löschen?</div>
             <div style={{ fontSize:13, color:"#888", marginBottom:20, lineHeight:1.5 }}>
               Diese Benachrichtigung wird dauerhaft entfernt.
             </div>
@@ -1034,7 +1034,7 @@ function NotifCard({ n, onRead, onDelete, onAction = () => {} }) {
               >Abbrechen</button>
               <button
                 onClick={() => { setShowDeleteConfirm(false); onDelete?.(n.id); }}
-                style={{ flex:1, padding:"12px", borderRadius:99, background:"#DC2626", border:"none", color:"#fff", fontSize:13, fontWeight: 600, cursor:"pointer", fontFamily:"inherit" }}
+                style={{ flex:1, padding:"12px", borderRadius:99, background:"#DC2626", border:"none", color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}
               >Löschen</button>
             </div>
           </div>
@@ -1183,9 +1183,9 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"16px 20px 12px", borderBottom:`1px solid ${T.border}`, background:T.bgCard }}>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
             <HUIBenachrichtigungIcon size={20} />
-            <span style={{ fontSize:17, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>Resonanzzentrum</span>
+            <span style={{ fontSize:17, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>Resonanzzentrum</span>
             {unreadCount > 0 && (
-              <span style={{ background:T.teal, color:"white", borderRadius:T.r99, padding:"2px 8px", fontSize:11, fontWeight: 600 }}>{unreadCount}</span>
+              <span style={{ background:T.teal, color:"white", borderRadius:T.r99, padding:"2px 8px", fontSize:11, fontWeight:700 }}>{unreadCount}</span>
             )}
           </div>
           <button onClick={onClose} style={{ width:32, height:32, borderRadius:"50%", background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`, fontSize:16, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
@@ -1207,7 +1207,7 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
                 <span style={{
                   background: tab === key ? T.teal : "rgba(26,26,24,0.15)",
                   color: tab === key ? "#fff" : T.inkSoft,
-                  borderRadius:99, padding:"1px 6px", fontSize:10, fontWeight: 600,
+                  borderRadius:99, padding:"1px 6px", fontSize:10, fontWeight:700,
                   minWidth:16, textAlign:"center", lineHeight:1.5,
                 }}>{unreadByTab[key]}</span>
               )}

@@ -123,7 +123,7 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
               padding: '7px 14px', borderRadius: 8,
               background: hasBankDetails ? 'transparent' : amber,
               border: hasBankDetails ? `1px solid ${border}` : 'none',
-              color: hasBankDetails ? ink : '#fff', fontWeight: 600, fontSize: 12, cursor: 'pointer',
+              color: hasBankDetails ? ink : '#fff', fontWeight: 700, fontSize: 12, cursor: 'pointer',
               whiteSpace: 'nowrap',
             }}>
               {hasBankDetails ? 'Ändern' : 'Bankdaten hinterlegen'}
@@ -131,7 +131,7 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: amber }}>Bankverbindung {hasBankDetails ? 'ändern' : 'hinterlegen'}</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: amber }}>Bankverbindung {hasBankDetails ? 'ändern' : 'hinterlegen'}</div>
             <input value={holderInput} onChange={e => setHolderInput(e.target.value)} placeholder="Kontoinhaber (Vor- und Nachname)"
               style={inputStyle} />
             <input value={ibanInput} onChange={e => setIbanInput(e.target.value.toUpperCase())} placeholder="IBAN (z.B. DE89 3704 0044 0532 0130 00)"
@@ -155,7 +155,7 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
                 padding: '8px 18px', borderRadius: 8,
                 background: (savingBank || !ibanInput || !holderInput) ? 'rgba(26,26,24,0.12)' : green,
                 border: 'none', color: (savingBank || !ibanInput || !holderInput) ? inkFaint : '#fff',
-                fontWeight: 600, fontSize: 12, cursor: (savingBank || !ibanInput || !holderInput) ? 'not-allowed' : 'pointer',
+                fontWeight: 700, fontSize: 12, cursor: (savingBank || !ibanInput || !holderInput) ? 'not-allowed' : 'pointer',
               }}>
                 {savingBank ? '…' : 'Speichern'}
               </button>
@@ -180,7 +180,7 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
             borderRadius: 12, padding: '12px 14px',
           }}>
             <div style={{ fontSize: 11, color: inkFaint, fontWeight: 600, marginBottom: 4 }}>{k.label}</div>
-            <div className="hui-num-nowrap" style={{ fontSize: 20, fontWeight: 600, color: k.color }}>{k.val}</div>
+            <div className="hui-num-nowrap" style={{ fontSize: 20, fontWeight: 800, color: k.color }}>{k.val}</div>
           </div>
         ))}
       </div>
@@ -190,7 +190,7 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
         background: bgCard, border: `1px solid ${border}`,
         borderRadius: 12, padding: '14px 16px',
       }}>
-        <div style={{ fontSize: 12, fontWeight: 600, color: ink, marginBottom: 8 }}>Auszahlung anfordern</div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: ink, marginBottom: 8 }}>Auszahlung anfordern</div>
         {!hasBankDetails ? (
           <div style={{ fontSize: 12, color: inkFaint }}>
             Bitte zuerst oben deine Bankverbindung hinterlegen.
@@ -226,7 +226,7 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
                 padding: '9px 20px', borderRadius: 8,
                 background: amountValid ? green : 'rgba(26,26,24,0.10)',
                 border: 'none', color: amountValid ? '#fff' : inkFaint,
-                fontWeight: 600, fontSize: 13, cursor: amountValid ? 'pointer' : 'not-allowed',
+                fontWeight: 700, fontSize: 13, cursor: amountValid ? 'pointer' : 'not-allowed',
               }}>
                 {eur(amountNum)} auszahlen →
               </button>
@@ -235,7 +235,7 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
                 <span style={{ fontSize: 12, color: inkSoft }}>Sicher? {eur(amountNum)} werden beantragt.</span>
                 <button onClick={handleRequest} disabled={requesting} style={{
                   padding: '7px 16px', borderRadius: 8, background: green,
-                  border: 'none', color: '#fff', fontWeight: 600, fontSize: 12, cursor: 'pointer',
+                  border: 'none', color: '#fff', fontWeight: 700, fontSize: 12, cursor: 'pointer',
                 }}>
                   {requesting ? '…' : 'Ja, anfordern'}
                 </button>
@@ -284,7 +284,7 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
       {/* Letzte Auszahlungen */}
       {payouts.length > 0 && (
         <div>
-          <div style={{ fontSize: 11, fontWeight: 600, color: inkFaint, textTransform: 'uppercase',
+          <div style={{ fontSize: 11, fontWeight: 700, color: inkFaint, textTransform: 'uppercase',
             letterSpacing: '0.07em', marginBottom: 10 }}>Letzte Auszahlungen</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {payouts.slice(0, 5).map(p => {
@@ -296,11 +296,11 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
                   background: bgCard, border: `1px solid ${border}`, borderRadius: 10, padding: '10px 12px',
                 }}>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: ink }}>{eur(p.amount_eur)}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: ink }}>{eur(p.amount_eur)}</div>
                     <div style={{ fontSize: 10, color: inkFaint }}>{fmtDate(p.requested_at)}</div>
                   </div>
                   <span style={{
-                    fontSize: 10, fontWeight: 600, padding: '3px 10px', borderRadius: 20,
+                    fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 20,
                     background: `${sc}1A`, color: sc,
                   }}>{label}</span>
                 </div>

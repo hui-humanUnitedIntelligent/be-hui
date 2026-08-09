@@ -51,11 +51,11 @@ export function AvailabilitySection({
       <div style={{ background:T.bgCard, borderRadius:T.r16,
         border:`1px solid ${T.border}`, padding:"14px", boxShadow:T.card }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6 }}>
-          <div style={{ fontSize:13, fontWeight: 600, color:T.ink }}>Verfügbarkeit</div>
+          <div style={{ fontSize:13, fontWeight:800, color:T.ink }}>Verfügbarkeit</div>
           {isOwner && (
             <button onClick={handleToggle} disabled={saving}
               style={{ background:"none", border:"none", padding:0, fontSize:11,
-                color: saving ? T.inkFaint : T.teal, fontWeight: 600,
+                color: saving ? T.inkFaint : T.teal, fontWeight:700,
                 cursor: saving ? "default" : "pointer", fontFamily:"inherit" }}>
               {saving ? "Speichert…" : isOpen ? "Als ausgelastet markieren ›" : "Als offen markieren ›"}
             </button>
@@ -71,7 +71,7 @@ export function AvailabilitySection({
             background: isOpen ? T.teal : T.inkFaint,
             display:"inline-block", flexShrink:0 }}/>
           <div>
-            <div style={{ fontSize:11, fontWeight: 600, color: isOpen ? T.teal : T.inkSoft }}>
+            <div style={{ fontSize:11, fontWeight:700, color: isOpen ? T.teal : T.inkSoft }}>
               {isOpen ? "Offen für neue Anfragen" : "Momentan ausgelastet"}
             </div>
             <div style={{ fontSize:10, color:T.inkFaint }}>Antwortzeit: innerhalb von 24h</div>

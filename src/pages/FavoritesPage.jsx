@@ -152,7 +152,7 @@ function HeroCard({ item, onDetails }) {
         backdropFilter:"blur(8px)",
         borderRadius:999, padding:"4px 10px",
         border:"1px solid rgba(32,211,194,0.30)",
-        fontSize:11, fontWeight: 600, color:C.teal,
+        fontSize:11, fontWeight:700, color:C.teal,
       }}>
         {item.badge}
       </div>
@@ -176,7 +176,7 @@ function HeroCard({ item, onDetails }) {
 
       {/* Content */}
       <div style={{ position:"absolute", bottom:16, left:16, right:60 }}>
-        <div style={{ fontSize:18, fontWeight: 600, color:"#fff",
+        <div style={{ fontSize:18, fontWeight:900, color:"#fff",
           letterSpacing:-0.4, lineHeight:1.2, marginBottom:2 }}>
           {item.title}
         </div>
@@ -213,7 +213,7 @@ function HeroCard({ item, onDetails }) {
             backdropFilter:"blur(8px)",
             border:"1.5px solid rgba(255,255,255,0.35)",
             borderRadius:12, padding:"7px 14px",
-            fontSize:12.5, fontWeight: 600, color:"#fff",
+            fontSize:12.5, fontWeight:700, color:"#fff",
             display:"flex", alignItems:"center", gap:5,
           }}>
           Details ansehen {"\u2192"}
@@ -295,7 +295,7 @@ function CreatorCard({ person, idx, onView }) {
       </div>
       {/* Info */}
       <div style={{ padding:"9px 10px 11px" }}>
-        <div style={{ fontSize:13, fontWeight: 600, color:C.ink,
+        <div style={{ fontSize:13, fontWeight:800, color:C.ink,
           letterSpacing:-0.2, marginBottom:2 }}>
           {person.name}
         </div>
@@ -351,7 +351,7 @@ function WorkCard({ work, idx, onView }) {
           background:"rgba(255,255,255,0.92)",
           backdropFilter:"blur(6px)",
           borderRadius:999, padding:"3px 9px",
-          fontSize:11.5, fontWeight: 600, color:C.ink,
+          fontSize:11.5, fontWeight:700, color:C.ink,
           boxShadow:"0 1px 5px rgba(0,0,0,0.12)",
         }}>
           {"\u20AC"} {work.price}
@@ -374,7 +374,7 @@ function WorkCard({ work, idx, onView }) {
         </button>
       </div>
       <div style={{ padding:"8px 10px 10px" }}>
-        <div style={{ fontSize:12.5, fontWeight: 600, color:C.ink,
+        <div style={{ fontSize:12.5, fontWeight:700, color:C.ink,
           overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
           marginBottom:2 }}>
           {work.title}
@@ -429,7 +429,7 @@ function ExperienceCard({ exp, idx, onView }) {
           position:"absolute", top:8, left:8,
           background:exp.badgeColor || C.teal,
           borderRadius:999, padding:"3px 9px",
-          fontSize:10.5, fontWeight: 600, color:"#fff",
+          fontSize:10.5, fontWeight:700, color:"#fff",
         }}>
           {exp.badge}
         </div>
@@ -451,7 +451,7 @@ function ExperienceCard({ exp, idx, onView }) {
       </div>
       {/* Info */}
       <div style={{ padding:"10px 11px 12px" }}>
-        <div style={{ fontSize:13.5, fontWeight: 600, color:C.ink,
+        <div style={{ fontSize:13.5, fontWeight:800, color:C.ink,
           letterSpacing:-0.2, marginBottom:2 }}>
           {exp.title}
         </div>
@@ -468,7 +468,7 @@ function ExperienceCard({ exp, idx, onView }) {
             ))}
           </div>
           <span style={{
-            fontSize:10.5, fontWeight: 600,
+            fontSize:10.5, fontWeight:700,
             color: exp.spotsColor || C.teal,
           }}>
             {exp.spots}
@@ -497,7 +497,7 @@ function ImpactFooter({ impactEur = 2.25, projectCount = 3, onImpact }) {
       <div style={{ fontSize:42, flexShrink:0, opacity:0.80 }}>{"🌿"}</div>
       {/* Text */}
       <div style={{ flex:1 }}>
-        <div style={{ fontSize:13.5, fontWeight: 600, color:C.ink,
+        <div style={{ fontSize:13.5, fontWeight:800, color:C.ink,
           marginBottom:4, lineHeight:1.35 }}>
           Durch deine Inspiration entsteht Wirkung.
         </div>
@@ -508,7 +508,7 @@ function ImpactFooter({ impactEur = 2.25, projectCount = 3, onImpact }) {
       {/* Stats */}
       <div style={{ display:"flex", gap:14, flexShrink:0, alignItems:"center" }}>
         <div style={{ textAlign:"center" }}>
-          <div style={{ fontSize:16, fontWeight: 600, color:C.teal,
+          <div style={{ fontSize:16, fontWeight:900, color:C.teal,
             letterSpacing:-0.5 }}>
             {"\u20AC"}{impactEur.toFixed(2)}
           </div>
@@ -518,7 +518,7 @@ function ImpactFooter({ impactEur = 2.25, projectCount = 3, onImpact }) {
         </div>
         <div style={{ fontSize:20, color:C.coral, opacity:0.8 }}>{"♡"}</div>
         <div style={{ textAlign:"center" }}>
-          <div style={{ fontSize:16, fontWeight: 600, color:C.ink }}>
+          <div style={{ fontSize:16, fontWeight:900, color:C.ink }}>
             {projectCount}
           </div>
           <div style={{ fontSize:9.5, color:C.muted, lineHeight:1.3, maxWidth:60 }}>
@@ -529,7 +529,7 @@ function ImpactFooter({ impactEur = 2.25, projectCount = 3, onImpact }) {
         <button className="fr-tap" onClick={onImpact} style={{
           background:`linear-gradient(135deg, ${C.teal} 0%, ${C.teal2} 100%)`,
           color:"#fff", border:"none", borderRadius:14,
-          padding:"9px 14px", fontSize:12, fontWeight: 600,
+          padding:"9px 14px", fontSize:12, fontWeight:700,
           cursor:"pointer", flexShrink:0,
           boxShadow:`0 4px 12px ${C.tealGlow}`,
           display:"flex", alignItems:"center", gap:5,
@@ -552,13 +552,13 @@ function SectionHeader({ title, onAll }) {
       padding:"20px 20px 10px",
     }}>
       <div style={{ display:"flex", alignItems:"center", gap:5,
-        fontSize:16, fontWeight: 600, color:C.ink, letterSpacing:-0.3 }}>
+        fontSize:16, fontWeight:800, color:C.ink, letterSpacing:-0.3 }}>
         {title}
         <span style={{ fontSize:13, color:C.muted2 }}>{">"}</span>
       </div>
       <button className="fr-tap" onClick={onAll} style={{
         background:"none", border:"none",
-        fontSize:13, fontWeight: 600, color:C.teal, cursor:"pointer",
+        fontSize:13, fontWeight:700, color:C.teal, cursor:"pointer",
       }}>
         Alle anzeigen
       </button>
@@ -589,7 +589,7 @@ function EmptyState({ onDiscover }) {
         fontSize:38, marginBottom:20,
         boxShadow:`0 8px 28px ${C.tealGlow}`,
       }}>{"🌿"}</div>
-      <div style={{ fontSize:18, fontWeight: 600, color:C.ink,
+      <div style={{ fontSize:18, fontWeight:800, color:C.ink,
         letterSpacing:-0.4, marginBottom:8 }}>
         Dein Raum wartet.
       </div>
@@ -600,7 +600,7 @@ function EmptyState({ onDiscover }) {
       <button onClick={handleEmptyDiscover} className="fr-tap" style={{
         background:`linear-gradient(135deg, ${C.teal} 0%, ${C.teal2} 100%)`,
         color:"#fff", border:"none", borderRadius:16,
-        padding:"13px 28px", fontSize:14, fontWeight: 600,
+        padding:"13px 28px", fontSize:14, fontWeight:700,
         cursor:"pointer",
         boxShadow:`0 6px 18px ${C.tealGlow}`,
       }}>
@@ -784,7 +784,7 @@ export default function FavoritesPage({ currentUser, onView, onImpact, onDiscove
           justifyContent:"space-between", gap:12 }}>
           {/* Titel */}
           <div>
-            <div style={{ fontSize:26, fontWeight: 600, color:C.ink,
+            <div style={{ fontSize:26, fontWeight:900, color:C.ink,
               letterSpacing:-0.8, lineHeight:1.1 }}>
               {"Dein Raum"}<span style={{ color:C.teal }}>{"·"}</span>
             </div>
@@ -856,7 +856,7 @@ export default function FavoritesPage({ currentUser, onView, onImpact, onDiscove
                 boxShadow: active
                   ? `0 3px 12px ${C.tealGlow}`
                   : "0 1px 5px rgba(0,0,0,0.07)",
-                fontWeight: active ? 600 : 500,
+                fontWeight: active ? 700 : 500,
                 transform: active ? "scale(1.03)" : "scale(1)",
                 display:"flex", alignItems:"center", gap:6,
               }}
@@ -866,7 +866,7 @@ export default function FavoritesPage({ currentUser, onView, onImpact, onDiscove
                   width:18, height:18, borderRadius:9,
                   background: active ? "rgba(255,255,255,0.28)" : C.teal,
                   display:"inline-flex", alignItems:"center", justifyContent:"center",
-                  fontSize:11, color:"#fff", fontWeight: 600,
+                  fontSize:11, color:"#fff", fontWeight:800,
                 }}>{"★"}</span>
               )}
               {pill}

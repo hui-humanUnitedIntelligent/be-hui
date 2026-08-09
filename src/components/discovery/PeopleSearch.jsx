@@ -55,7 +55,7 @@ function PersonCard({ person, onOpenProfile, onOpenChat }) {
             width: 48, height: 48, borderRadius: "50%",
             background: `linear-gradient(135deg,${C.teal}55,${C.coral}44)`,
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 17, fontWeight: 600, color: "white",
+            fontSize: 17, fontWeight: 800, color: "white",
             border: "2px solid rgba(255,255,255,0.85)",
             boxShadow: "0 2px 8px rgba(0,0,0,0.10)",
           }}>{initials}</div>
@@ -72,12 +72,12 @@ function PersonCard({ person, onOpenProfile, onOpenChat }) {
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
           <span style={{
-            fontSize: 15, fontWeight: 600, color: C.ink,
+            fontSize: 15, fontWeight: 700, color: C.ink,
             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
           }}>{person.display_name}</span>
           {person.is_wirker && (
             <span style={{
-              fontSize: 10, fontWeight: 600, color: C.teal,
+              fontSize: 10, fontWeight: 700, color: C.teal,
               background: "rgba(22,215,197,0.10)", borderRadius: 6,
               padding: "1px 5px", flexShrink: 0, letterSpacing: 0.3,
             }}>WIRKER</span>
@@ -206,7 +206,7 @@ export default function PeopleSearch({ onClose, onOpenProfile, onOpenChat }) {
             WebkitTapHighlightColor: "transparent", touchAction: "manipulation",
           }}>←</button>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 20, fontWeight: 600, color: C.ink, letterSpacing: -0.4 }}>
+            <div style={{ fontSize: 20, fontWeight: 900, color: C.ink, letterSpacing: -0.4 }}>
               Menschen finden
             </div>
             <div style={{ fontSize: 12, color: "rgba(80,80,80,0.45)", marginTop: 1 }}>
@@ -248,7 +248,7 @@ export default function PeopleSearch({ onClose, onOpenProfile, onOpenChat }) {
 
         {!showResults && (
           <div style={{
-            fontSize: 11, fontWeight: 600, letterSpacing: 0.8,
+            fontSize: 11, fontWeight: 700, letterSpacing: 0.8,
             color: "rgba(80,80,80,0.35)", textTransform: "uppercase",
             marginBottom: 10,
           }}>Aktive Creator</div>

@@ -41,7 +41,7 @@ function ProgressBar({ step, total }) {
               background:(done||cur)?C.teal:"rgba(26,26,24,0.09)",
               border:cur?`2.5px solid ${C.teal}`:"none",
               display:"flex", alignItems:"center", justifyContent:"center",
-              fontSize:cur?12:10, fontWeight: 600,
+              fontSize:cur?12:10, fontWeight:700,
               color:(done||cur)?"#fff":C.inkFade,
               flexShrink:0, transition:"all .22s",
               boxShadow:cur?"0 0 0 4px rgba(14,196,184,0.18)":"none",
@@ -59,7 +59,7 @@ function TopBar({ onClose, step, total }) {
     <div style={{ padding:"max(14px, env(safe-area-inset-top, 14px)) 20px 12px", background:"#fff", borderBottom:`1px solid ${C.border}` }}>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
         <button onClick={onClose} style={{ background:"none", border:"none", padding:0, fontSize:13, fontWeight:600, color:C.inkMid, cursor:"pointer", touchAction:"manipulation" }}>Abbrechen</button>
-        <div style={{ fontSize:14, fontWeight: 600, color:C.ink }}>Werk bearbeiten</div>
+        <div style={{ fontSize:14, fontWeight:700, color:C.ink }}>Werk bearbeiten</div>
         <button onClick={onClose} style={{ width:28, height:28, borderRadius:"50%", background:"rgba(26,26,24,0.07)", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", touchAction:"manipulation" }}>
           <span style={{ fontSize:14, color:C.ink }}>×</span>
         </button>
@@ -74,7 +74,7 @@ function PBtn({ label, onClick, disabled, loading }) {
     <button onClick={onClick} disabled={disabled||loading} style={{
       width:"100%", padding:"16px",
       background:(disabled||loading)?"rgba(14,196,184,0.32)":`linear-gradient(135deg,${C.teal},${C.tealD})`,
-      border:"none", borderRadius:14, color:"#fff", fontSize:15, fontWeight: 600,
+      border:"none", borderRadius:14, color:"#fff", fontSize:15, fontWeight:700,
       cursor:(disabled||loading)?"not-allowed":"pointer",
       fontFamily:"inherit", touchAction:"manipulation",
     }}>{loading?"Wird gespeichert…":label}</button>
@@ -88,7 +88,7 @@ function SBtn({ label, onClick }) {
 }
 
 function Lbl({ text, req }) {
-  return <div style={{ fontSize:12, fontWeight: 600, color:C.inkMid, marginBottom:6 }}>{text}{req&&<span style={{ color:C.teal, marginLeft:2 }}>*</span>}</div>;
+  return <div style={{ fontSize:12, fontWeight:700, color:C.inkMid, marginBottom:6 }}>{text}{req&&<span style={{ color:C.teal, marginLeft:2 }}>*</span>}</div>;
 }
 
 const INP = {
@@ -156,7 +156,7 @@ function RCard({ active, icon, label, sub, onClick }) {
       </div>
       {icon&&<div style={{ fontSize:16, flexShrink:0 }}>{icon}</div>}
       <div>
-        <div style={{ fontSize:14, fontWeight: 600, color:active?C.teal:C.ink }}>{label}</div>
+        <div style={{ fontSize:14, fontWeight:700, color:active?C.teal:C.ink }}>{label}</div>
         {sub&&<div style={{ fontSize:11.5, color:C.inkMid, marginTop:1 }}>{sub}</div>}
       </div>
     </div>
@@ -210,13 +210,13 @@ function S1({ data, onChange, userId, onNext }) {
 
   return (
     <div>
-      <div style={{ fontSize:20, fontWeight: 600, color:C.ink, marginBottom:4 }}>Bilder</div>
+      <div style={{ fontSize:20, fontWeight:800, color:C.ink, marginBottom:4 }}>Bilder</div>
       <div style={{ fontSize:13, color:C.inkMid, marginBottom:16, lineHeight:1.5 }}>Füge bis zu 10 Bilder hinzu. Das erste Bild wird als Titelbild verwendet.</div>
       <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8, marginBottom:12 }}>
         {imgs.map((img,idx)=>(
           <div key={idx} style={{ position:"relative", aspectRatio:"1", borderRadius:12, overflow:"hidden", background:"#e8e4df", border:idx===0?`2.5px solid ${C.teal}`:`1.5px solid ${C.border}` }}>
             <img loading="lazy" decoding="async" src={img.url} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-            {idx===0&&<div style={{ position:"absolute", bottom:0, left:0, right:0, background:"linear-gradient(transparent,rgba(14,196,184,0.82))", padding:"12px 5px 4px", fontSize:9, fontWeight: 600, color:"#fff", textAlign:"center" }}>TITELBILD</div>}
+            {idx===0&&<div style={{ position:"absolute", bottom:0, left:0, right:0, background:"linear-gradient(transparent,rgba(14,196,184,0.82))", padding:"12px 5px 4px", fontSize:9, fontWeight:700, color:"#fff", textAlign:"center" }}>TITELBILD</div>}
             <button onClick={()=>onChange({ images:imgs.filter((_,i)=>i!==idx) })} style={{ position:"absolute", top:4, right:4, width:22, height:22, borderRadius:"50%", background:"rgba(0,0,0,0.55)", border:"none", color:"#fff", fontSize:13, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", touchAction:"manipulation" }}>×</button>
           </div>
         ))}
@@ -243,7 +243,7 @@ function S2({ data, onChange, onNext }) {
   function addTag() { const t=ti.trim(); if (!t||tags.includes(t)){setTi("");return;} onChange({ tags:[...tags,t] }); setTi(""); }
   return (
     <div>
-      <div style={{ fontSize:20, fontWeight: 600, color:C.ink, marginBottom:16 }}>Basisinformationen</div>
+      <div style={{ fontSize:20, fontWeight:800, color:C.ink, marginBottom:16 }}>Basisinformationen</div>
       <FI label="Titel des Werks" req value={data.title||""} onChange={v=>onChange({title:v})} placeholder="z. B. Wellen der Ruhe" maxLen={80}/>
       {/* KURZBESCHREIBUNG-REMOVED-FIX (2026-08-07): Feld auf Nutzerwunsch entfernt --
           Titel + Detaillierte Beschreibung reichen aus. `data.shortDesc` bleibt im
@@ -264,7 +264,7 @@ function S2({ data, onChange, onNext }) {
         </div>
         <div style={{ display:"flex", gap:8 }}>
           <input value={ti} onChange={e=>setTi(e.target.value)} onKeyDown={e=>e.key==="Enter"&&(e.preventDefault(),addTag())} placeholder="+ Tag hinzufügen" style={{ flex:1, padding:"9px 13px", borderRadius:99, border:"1.5px dashed rgba(14,196,184,0.35)", outline:"none", fontSize:13, fontFamily:"inherit", color:C.ink, background:"transparent" }}/>
-          {ti&&<button onClick={addTag} style={{ background:C.teal, border:"none", borderRadius:99, padding:"9px 14px", fontSize:12, fontWeight: 600, color:"#fff", cursor:"pointer", touchAction:"manipulation" }}>+</button>}
+          {ti&&<button onClick={addTag} style={{ background:C.teal, border:"none", borderRadius:99, padding:"9px 14px", fontSize:12, fontWeight:700, color:"#fff", cursor:"pointer", touchAction:"manipulation" }}>+</button>}
         </div>
       </div>
       {onNext && <PBtn label="Weiter" onClick={onNext} disabled={!data.title?.trim()||!data.category}/>}
@@ -276,7 +276,7 @@ function S2({ data, onChange, onNext }) {
 function S3({ data, onChange, onNext }) {
   return (
     <div>
-      <div style={{ fontSize:20, fontWeight: 600, color:C.ink, marginBottom:4 }}>Werktyp</div>
+      <div style={{ fontSize:20, fontWeight:800, color:C.ink, marginBottom:4 }}>Werktyp</div>
       <div style={{ fontSize:13, color:C.inkMid, marginBottom:16 }}>Wähle die Art deines Werks.</div>
       <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:20 }}>
         {WERK_TYPEN.map(wt=><RCard key={wt.id} active={data.werktyp===wt.id} icon={wt.icon} label={wt.label} sub={wt.sub} onClick={()=>onChange({werktyp:wt.id})}/>)}
@@ -295,7 +295,7 @@ function S4({ data, onChange, onNext }) {
   ];
   return (
     <div>
-      <div style={{ fontSize:20, fontWeight: 600, color:C.ink, marginBottom:6 }}>Preis & Verkauf</div>
+      <div style={{ fontSize:20, fontWeight:800, color:C.ink, marginBottom:6 }}>Preis & Verkauf</div>
       <div style={{ fontSize:13, color:C.inkFade, marginBottom:20 }}>Festpreis in Euro</div>
 
       {/* ── PREIS: volle Breite, große Schrift ── */}
@@ -304,7 +304,7 @@ function S4({ data, onChange, onNext }) {
         <div style={{ position:"relative" }}>
           <span style={{
             position:"absolute", left:16, top:"50%", transform:"translateY(-50%)",
-            fontSize:26, fontWeight: 600, color:"rgba(14,196,184,0.6)",
+            fontSize:26, fontWeight:700, color:"rgba(14,196,184,0.6)",
             pointerEvents:"none", userSelect:"none",
           }}>€</span>
           <input
@@ -320,7 +320,7 @@ function S4({ data, onChange, onNext }) {
               border:`2px solid ${data.price ? C.teal : C.border}`,
               outline:"none",
               fontSize:32,
-              fontWeight: 600,
+              fontWeight:800,
               fontFamily:"inherit",
               color:C.ink,
               background:"#fff",
@@ -359,7 +359,7 @@ function S5({ data, onChange, onNext, onPickLocation }) {
   const INT=["DHL International","FedEx","UPS","Auf Anfrage"];
   return (
     <div>
-      <div style={{ fontSize:20, fontWeight: 600, color:C.ink, marginBottom:16 }}>Versand & Abholung</div>
+      <div style={{ fontSize:20, fontWeight:800, color:C.ink, marginBottom:16 }}>Versand & Abholung</div>
       <Toggle label="Versand möglich" value={!!data.versand} onChange={v=>onChange({versand:v})}/>
       {data.versand&&(
         <div style={{ background:"rgba(14,196,184,0.04)", border:"1.5px solid rgba(14,196,184,0.15)", borderRadius:14, padding:"14px 14px 4px", marginBottom:12 }}>
@@ -414,18 +414,18 @@ function S6({ data, onChange, onSave, onDraft, saving, hideButtons=false }) {
   const ps=data.price?`${formatNumberDE(parseFloat(data.price), {minimumFractionDigits:2})} ${data.currency||"€"}`:"—";
   return (
     <div>
-      <div style={{ fontSize:20, fontWeight: 600, color:C.ink, marginBottom:4 }}>Sichtbarkeit</div>
+      <div style={{ fontSize:20, fontWeight:800, color:C.ink, marginBottom:4 }}>Sichtbarkeit</div>
       <div style={{ fontSize:13, color:C.inkMid, marginBottom:16 }}>Wer kann dieses Werk sehen?</div>
       <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:20 }}>
         {SICHT.map(s=><RCard key={s.id} active={(data.sichtbarkeit||"public")===s.id} icon={s.icon} label={s.label} sub={s.sub} onClick={()=>onChange({sichtbarkeit:s.id})}/>)}
       </div>
       <div style={{ background:"#fff", border:`1.5px solid ${C.border}`, borderRadius:16, padding:14, marginBottom:20 }}>
-        <div style={{ fontSize:12, fontWeight: 600, color:C.inkMid, marginBottom:12 }}>Zusammenfassung</div>
+        <div style={{ fontSize:12, fontWeight:700, color:C.inkMid, marginBottom:12 }}>Zusammenfassung</div>
         <div style={{ display:"flex", gap:12, alignItems:"flex-start" }}>
           {cover&&<img loading="lazy" decoding="async" src={cover} alt="" style={{ width:64, height:64, borderRadius:10, objectFit:"cover", flexShrink:0 }}/>}
           <div>
-            <div style={{ fontSize:14, fontWeight: 600, color:C.ink, marginBottom:2 }}>{data.title||"—"}</div>
-            <div style={{ fontSize:14, fontWeight: 600, color:C.teal, marginBottom:6 }}>{ps}</div>
+            <div style={{ fontSize:14, fontWeight:700, color:C.ink, marginBottom:2 }}>{data.title||"—"}</div>
+            <div style={{ fontSize:14, fontWeight:700, color:C.teal, marginBottom:6 }}>{ps}</div>
             <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
               {data.availability==="available"&&<span style={{ fontSize:11, fontWeight:600, color:"#22c55e", display:"flex", alignItems:"center", gap:4 }}><span style={{ width:6, height:6, borderRadius:"50%", background:"#22c55e", display:"inline-block" }}/>Verfügbar</span>}
               {data.versand&&<span style={{display:"flex",alignItems:"center",gap:3, fontSize:11, fontWeight:600, color:C.inkMid}}><HUIVersandIcon size={11}/>Versand möglich</span>}
@@ -750,7 +750,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
           <button onClick={back} style={{
             flex:1, padding:"15px",
             background:"rgba(26,26,24,0.06)", border:"none",
-            borderRadius:14, fontSize:14, fontWeight: 600,
+            borderRadius:14, fontSize:14, fontWeight:700,
             color:C.inkMid, cursor:"pointer",
             fontFamily:"inherit", touchAction:"manipulation",
           }}>← Zurück</button>
@@ -758,7 +758,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
           <button onClick={onClose} style={{
             flex:1, padding:"15px",
             background:"rgba(26,26,24,0.06)", border:"none",
-            borderRadius:14, fontSize:14, fontWeight: 600,
+            borderRadius:14, fontSize:14, fontWeight:700,
             color:C.inkMid, cursor:"pointer",
             fontFamily:"inherit", touchAction:"manipulation",
           }}>Abbrechen</button>
@@ -772,7 +772,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
               ? `linear-gradient(135deg,${C.teal},${C.tealD})`
               : "rgba(14,196,184,0.32)",
             border:"none", borderRadius:14,
-            color:"#fff", fontSize:16, fontWeight: 600,
+            color:"#fff", fontSize:16, fontWeight:700,
             cursor:canContinue()?"pointer":"not-allowed",
             fontFamily:"inherit", touchAction:"manipulation",
             transition:"background .18s",
@@ -787,7 +787,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
               ? "rgba(14,196,184,0.32)"
               : `linear-gradient(135deg,${C.teal},${C.tealD})`,
             border:"none", borderRadius:14,
-            color:"#fff", fontSize:15, fontWeight: 600,
+            color:"#fff", fontSize:15, fontWeight:700,
             cursor:saving?"not-allowed":"pointer",
             fontFamily:"inherit", touchAction:"manipulation",
           }}>

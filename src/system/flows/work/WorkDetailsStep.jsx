@@ -36,7 +36,7 @@ const select = {
 function SectionLabel({ number, title, optional }) {
   return (
     <div style={{ display:"flex", alignItems:"baseline", gap:6, marginBottom:12 }}>
-      <div style={{ fontSize:14, fontWeight: 600, color:WT.ink }}>
+      <div style={{ fontSize:14, fontWeight:900, color:WT.ink }}>
         {number}. {title}
       </div>
       {optional && (
@@ -63,7 +63,7 @@ function PricePills({ value, onChange }) {
             borderRadius:13, border:"none",
             background: active ? WT.teal : "rgba(26,26,46,0.05)",
             color:       active ? "#fff"   : WT.ink2,
-            fontSize:12.5, fontWeight: 600,
+            fontSize:12.5, fontWeight:700,
             cursor:"pointer",
             display:"flex", flexDirection:"column",
             alignItems:"center", gap:4,
@@ -113,7 +113,7 @@ export function WorkDetailsStep({ form, onFormChange, onNext }) {
 
       {/* ── Überschrift ── */}
       <div style={{ marginBottom:24 }}>
-        <h1 style={{ fontSize:22, fontWeight: 600, color:WT.ink,
+        <h1 style={{ fontSize:22, fontWeight:900, color:WT.ink,
           letterSpacing:-0.5, margin:0 }}>
           Werk Informationen<span style={{ color:WT.teal, marginLeft:3 }}>·</span>
         </h1>
@@ -282,7 +282,7 @@ export function WorkDetailsStep({ form, onFormChange, onNext }) {
       <button onClick={onNext} style={{
         width:"100%", height:54, borderRadius:18, border:"none",
         background:`linear-gradient(135deg, ${WT.teal} 0%, #06B6D4 100%)`,
-        color:"#fff", fontSize:16, fontWeight: 600, cursor:"pointer",
+        color:"#fff", fontSize:16, fontWeight:800, cursor:"pointer",
         boxShadow:"0 8px 24px rgba(10,191,184,0.28)",
         marginBottom:4,
       }}>

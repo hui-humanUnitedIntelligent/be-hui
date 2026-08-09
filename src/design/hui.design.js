@@ -149,14 +149,14 @@ const FONT = {
   familyMono: "'SF Mono', 'Fira Code', monospace",
 
   // Display / Hero Headlines — cinematic, groß
-  displayXl: { fontSize: 48, fontWeight: 600, letterSpacing: "-0.04em", lineHeight: 1.04 },
-  displayLg: { fontSize: 40, fontWeight: 600, letterSpacing: "-0.035em", lineHeight: 1.06 },
-  displayMd: { fontSize: 34, fontWeight: 600, letterSpacing: "-0.03em",  lineHeight: 1.08 },
-  displaySm: { fontSize: 28, fontWeight: 600, letterSpacing: "-0.026em", lineHeight: 1.10 },
+  displayXl: { fontSize: 48, fontWeight: 900, letterSpacing: "-0.04em", lineHeight: 1.04 },
+  displayLg: { fontSize: 40, fontWeight: 900, letterSpacing: "-0.035em", lineHeight: 1.06 },
+  displayMd: { fontSize: 34, fontWeight: 900, letterSpacing: "-0.03em",  lineHeight: 1.08 },
+  displaySm: { fontSize: 28, fontWeight: 900, letterSpacing: "-0.026em", lineHeight: 1.10 },
 
   // Seiten-Headlines
   h1: { fontSize: 24, fontWeight: 820, letterSpacing: "-0.022em", lineHeight: 1.18 },
-  h2: { fontSize: 20, fontWeight: 600, letterSpacing: "-0.018em", lineHeight: 1.22 },
+  h2: { fontSize: 20, fontWeight: 800, letterSpacing: "-0.018em", lineHeight: 1.22 },
   h3: { fontSize: 17, fontWeight: 760, letterSpacing: "-0.014em", lineHeight: 1.26 },
   h4: { fontSize: 15, fontWeight: 720, letterSpacing: "-0.010em", lineHeight: 1.30 },
 
@@ -169,17 +169,17 @@ const FONT = {
   // Labels / UI — präzise, leise
   labelLg: { fontSize: 12, fontWeight: 650, letterSpacing: "-0.003em", lineHeight: 1.40 },
   label:   { fontSize: 11, fontWeight: 620, letterSpacing:  "0.000em", lineHeight: 1.35 },
-  labelSm: { fontSize: 10, fontWeight: 600, letterSpacing:  "0.020em", lineHeight: 1.30 },
+  labelSm: { fontSize: 10, fontWeight: 700, letterSpacing:  "0.020em", lineHeight: 1.30 },
 
   // Caps — Labels, Kategorie-Badges
-  caps:    { fontSize: 10, fontWeight: 600, letterSpacing: "0.120em",  lineHeight: 1.20, textTransform: "uppercase" },
-  capsSm:  { fontSize:  9, fontWeight: 600, letterSpacing: "0.140em",  lineHeight: 1.20, textTransform: "uppercase" },
+  caps:    { fontSize: 10, fontWeight: 800, letterSpacing: "0.120em",  lineHeight: 1.20, textTransform: "uppercase" },
+  capsSm:  { fontSize:  9, fontWeight: 800, letterSpacing: "0.140em",  lineHeight: 1.20, textTransform: "uppercase" },
 
   // Numerisch — Pool-Beträge, Statistiken
-  numXl:   { fontSize: 44, fontWeight: 600, letterSpacing: "-0.05em",  lineHeight: 1.00 },
-  numLg:   { fontSize: 32, fontWeight: 600, letterSpacing: "-0.04em",  lineHeight: 1.00 },
-  numMd:   { fontSize: 24, fontWeight: 600, letterSpacing: "-0.03em",  lineHeight: 1.00 },
-  numSm:   { fontSize: 19, fontWeight: 600, letterSpacing: "-0.025em", lineHeight: 1.00 },
+  numXl:   { fontSize: 44, fontWeight: 900, letterSpacing: "-0.05em",  lineHeight: 1.00 },
+  numLg:   { fontSize: 32, fontWeight: 900, letterSpacing: "-0.04em",  lineHeight: 1.00 },
+  numMd:   { fontSize: 24, fontWeight: 900, letterSpacing: "-0.03em",  lineHeight: 1.00 },
+  numSm:   { fontSize: 19, fontWeight: 900, letterSpacing: "-0.025em", lineHeight: 1.00 },
 };
 
 // ─────────────────────────────────────────────────────────────────
@@ -393,7 +393,7 @@ const PRESET = {
     background:   `linear-gradient(135deg, ${COLOR.teal} 0%, ${COLOR.tealLight} 100%)`,
     color:        "#fff",
     fontSize:     13,
-    fontWeight: 600,
+    fontWeight:   700,
     cursor:       "pointer",
     fontFamily:   FONT.family,
     letterSpacing:"-0.010em",
@@ -410,7 +410,7 @@ const PRESET = {
     background:   `linear-gradient(135deg, ${COLOR.coral} 0%, ${COLOR.coralLight} 100%)`,
     color:        "#fff",
     fontSize:     13,
-    fontWeight: 600,
+    fontWeight:   700,
     cursor:       "pointer",
     fontFamily:   FONT.family,
     letterSpacing:"-0.010em",
@@ -427,7 +427,7 @@ const PRESET = {
     background:   `${accent}10`,
     color:        accent,
     fontSize:     13,
-    fontWeight: 600,
+    fontWeight:   700,
     cursor:       "pointer",
     fontFamily:   FONT.family,
     letterSpacing:"-0.010em",
@@ -443,7 +443,7 @@ const PRESET = {
       : `linear-gradient(135deg, ${accent} 0%, ${accent}DD 100%)`,
     color:        voted ? accent : "#fff",
     fontSize:     13,
-    fontWeight: 600,
+    fontWeight:   700,
     cursor:       voted ? "default" : "pointer",
     fontFamily:   FONT.family,
     letterSpacing:"-0.010em",
@@ -463,7 +463,7 @@ const PRESET = {
     background:   `${accent}10`,
     border:       `1px solid ${accent}22`,
     color:        accent,
-    fontWeight: 600,
+    fontWeight:   700,
     letterSpacing:"-0.005em",
     display:      "inline-block",
   }),
@@ -488,7 +488,7 @@ const PRESET = {
   },
   sectionTitle: {
     fontSize:      23,
-    fontWeight: 600,
+    fontWeight:    900,
     color:         COLOR.ink,
     letterSpacing: "-0.028em",
     lineHeight:    1,

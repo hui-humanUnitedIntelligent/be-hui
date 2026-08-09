@@ -227,7 +227,7 @@ export function WerkeKorbButton({ count, onOpen, glowing }) {
           background:  C.teal,
           color:       "#fff",
           fontSize:    10,
-          fontWeight: 600,
+          fontWeight:  700,
           display:     "flex",
           alignItems:  "center",
           justifyContent: "center",
@@ -324,7 +324,7 @@ function KorbKarte({ item, onRemove, idx, removing, onQtyChange }) {
         {/* Werktitel — stärkstes Element, sauberes Ellipsis */}
         <div style={{
           fontSize:      17,
-          fontWeight: 600,
+          fontWeight:    800,
           color:         C.ink,
           lineHeight:    1.25,
           overflow:      "hidden",
@@ -536,7 +536,7 @@ function PersonGruppe({ group, onRemove, removingId, onQtyChange }) {
               width: 36, height: 36, borderRadius: "50%", flexShrink: 0,
               background: `linear-gradient(135deg, ${C.tealPale}, ${C.creamDeep})`,
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 14, fontWeight: 600, color: C.teal,
+              fontSize: 14, fontWeight: 800, color: C.teal,
               border: `1px solid ${C.tealGlow}`,
               boxShadow: "0 1px 8px rgba(13,196,181,0.12)",
             }}>
@@ -548,7 +548,7 @@ function PersonGruppe({ group, onRemove, removingId, onQtyChange }) {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{
             fontSize:      14,
-            fontWeight: 600,
+            fontWeight:    800,
             color:         C.ink,
             letterSpacing: -0.25,
             lineHeight:    1.2,
@@ -622,7 +622,7 @@ function LeererKorb({ onDiscover, onClose }) {
 
       <div style={{
         fontSize:    20,
-        fontWeight: 600,
+        fontWeight:  800,
         color:       C.ink,
         lineHeight:  1.3,
         letterSpacing: -0.5,
@@ -649,7 +649,7 @@ function LeererKorb({ onDiscover, onClose }) {
             border:       "none",
             background:   `linear-gradient(135deg, ${C.teal} 0%, #16D7C5 100%)`,
             color:        "#fff",
-            fontWeight: 600,
+            fontWeight:   700,
             fontSize:     14,
             letterSpacing:-.2,
             cursor:       "pointer",
@@ -715,7 +715,7 @@ function ErfolgsScreen({ result, onChat, onDiscover }) {
 
       <div style={{
         fontSize:    22,
-        fontWeight: 600,
+        fontWeight:  800,
         color:       C.ink,
         letterSpacing:-0.6,
         lineHeight:  1.2,
@@ -763,7 +763,7 @@ function ErfolgsScreen({ result, onChat, onDiscover }) {
               border:       "none",
               background:   `linear-gradient(135deg, ${C.teal}, #16D7C5)`,
               color:        "#fff",
-              fontWeight: 600,
+              fontWeight:   700,
               fontSize:     14,
               cursor:       "pointer",
               outline:      "none",
@@ -914,7 +914,7 @@ function PreisBlock({ werke, versand, rabatt }) {
       <div style={{ height:1, background:"rgba(20,20,34,0.06)", margin:"8px 0" }} />
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline" }}>
         <span style={{ fontSize:13, color:C.ink, fontWeight:600 }}>Gesamt</span>
-        <span style={{ fontSize:20, fontWeight: 600, color:C.ink,
+        <span style={{ fontSize:20, fontWeight:700, color:C.ink,
           letterSpacing:-0.5 }}>
           {fmt(gesamt)}
         </span>
@@ -1059,7 +1059,7 @@ export default function WerkeKorb({
           <div>
             <div style={{
               fontSize:    21,
-              fontWeight: 600,
+              fontWeight:  800,
               color:       C.ink,
               letterSpacing: -0.5,
               lineHeight:  1.2,
@@ -1204,7 +1204,7 @@ export default function WerkeKorb({
                   ? "rgba(20,20,34,0.07)"
                   : `linear-gradient(135deg, ${C.teal} 0%, #14CEC2 100%)`,
                 color:        phase === "loading" ? C.muted : "#fff",
-                fontWeight: 600,
+                fontWeight:   700,
                 fontSize:     15,
                 letterSpacing: -0.1,
                 cursor:       phase === "loading" ? "default" : "pointer",

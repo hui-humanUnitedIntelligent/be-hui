@@ -123,7 +123,7 @@ export default function CommunityPage() {
       fontFamily: "Inter, sans-serif",
     }}>
       {/* Einleitung */}
-      <h2 style={{ fontSize: 24, fontWeight: 600, color: C.ink, marginBottom: 8 }}>
+      <h2 style={{ fontSize: 24, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
         Gemeinsam
       </h2>
       <p style={{ fontSize: 15, color: C.muted, marginBottom: 8, lineHeight: 1.7 }}>
@@ -350,7 +350,7 @@ function ConversationRow({ person, lastMessage, lastAt, unread }) {
       </div>
       {unread > 0 && (
         <span style={{
-          background: C.teal, color: '#fff', fontSize: 10, fontWeight: 600,
+          background: C.teal, color: '#fff', fontSize: 10, fontWeight: 700,
           padding: '2px 7px', borderRadius: 10, flexShrink: 0,
         }}>{unread}</span>
       )}

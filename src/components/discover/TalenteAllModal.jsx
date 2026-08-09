@@ -47,12 +47,12 @@ function TalentCardItem({ t, onPress }) {
           <div style={{
             position:"absolute", top:8, left:8,
             background:T.teal, color:"#fff", borderRadius:99,
-            fontSize:9.5, fontWeight: 600, padding:"2px 8px"
+            fontSize:9.5, fontWeight:700, padding:"2px 8px"
           }}>{t.category}</div>
         )}
       </div>
       <div style={{ padding:"10px 10px 8px", display:"flex", flexDirection:"column", flex:1 }}>
-        <div style={{ fontSize:13, fontWeight: 600, color:T.ink, marginBottom:2,
+        <div style={{ fontSize:13, fontWeight:700, color:T.ink, marginBottom:2,
           overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>
           {t.title}
         </div>
@@ -64,7 +64,7 @@ function TalentCardItem({ t, onPress }) {
           <div style={{ fontSize:10.5, color:T.inkSoft, marginBottom:4 }}>📍 {locLabel}</div>
         )}
         {price && (
-          <div style={{ marginTop:"auto", fontSize:13, fontWeight: 600, color:T.tealDeep }}>{price}</div>
+          <div style={{ marginTop:"auto", fontSize:13, fontWeight:700, color:T.tealDeep }}>{price}</div>
         )}
       </div>
     </div>
@@ -174,7 +174,7 @@ export default function TalenteAllModal({ isOpen, onClose, onPressTalent }) {
         <div style={{ padding:"16px 16px 8px", background:T.white, borderBottom:`1px solid ${T.border}`, flexShrink:0 }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
             <div>
-              <div style={{ fontSize:17, fontWeight: 600, color:T.ink }}>Talente entdecken</div>
+              <div style={{ fontSize:17, fontWeight:800, color:T.ink }}>Talente entdecken</div>
               <div style={{ fontSize:11.5, color:T.inkFaint }}>Dienstleistungen & Angebote von HUI Talenten</div>
             </div>
             <button onClick={onClose} style={{ background:"none", border:"none", fontSize:22, cursor:"pointer", color:T.inkSoft, padding:4 }}>✕</button>
@@ -186,7 +186,7 @@ export default function TalenteAllModal({ isOpen, onClose, onPressTalent }) {
           <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:6 }}>
             {SORT_OPTIONS.map(opt => (
               <button key={opt.key} onClick={() => setSort(opt.key)} style={{
-                flexShrink:0, padding:"6px 12px", borderRadius:99, fontSize:12, fontWeight: 600,
+                flexShrink:0, padding:"6px 12px", borderRadius:99, fontSize:12, fontWeight:700,
                 border:`1px solid ${sort === opt.key ? T.teal : T.border}`,
                 background: sort === opt.key ? "rgba(14,196,184,0.12)" : T.white,
                 color: sort === opt.key ? T.tealDeep : T.inkSoft,

@@ -56,7 +56,7 @@ function dt(iso) {
 function StatusChip({ label, color = T.inkFaint, bg = T.border }) {
   return (
     <span style={{
-      fontSize: 10, fontWeight: 600, padding: "2px 8px",
+      fontSize: 10, fontWeight: 700, padding: "2px 8px",
       borderRadius: T.r99, background: bg, color: color,
       letterSpacing: "0.02em",
     }}>
@@ -89,7 +89,7 @@ function TxCard({ image, title, subtitle, dateLabel, amount, amountColor = T.ink
           : <HUILogo size={20} style={{ opacity: 0.5 }} />}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13.5, fontWeight: 600, color: T.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        <div style={{ fontSize: 13.5, fontWeight: 700, color: T.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {title}
         </div>
         {subtitle && (
@@ -521,7 +521,7 @@ function MeineBuchungen({ userId }) {
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
             <div style={{ width: "88%", maxWidth: 320, background: T.bgCard, borderRadius: 20, padding: "24px 20px", textAlign: "center", boxShadow: "0 12px 48px rgba(20,20,34,0.25)" }}>
-              <div style={{ fontSize: 17, fontWeight: 600, color: T.ink, marginBottom: 8 }}>Mit {b.seller_name} chatten?</div>
+              <div style={{ fontSize: 17, fontWeight: 700, color: T.ink, marginBottom: 8 }}>Mit {b.seller_name} chatten?</div>
               <div style={{ fontSize: 14, color: T.inkSoft, lineHeight: 1.5, marginBottom: 20 }}>Möchtest du wirklich eine Unterhaltung mit dem Anbieter starten?</div>
               <div style={{ display: "flex", gap: 10 }}>
                 <button onClick={() => setShowChatConfirm(null)} style={{ flex: 1, padding: "14px 0", borderRadius: 13, border: `1.5px solid ${T.border}`, background: "transparent", color: T.inkSoft, fontSize: 15, fontWeight: 600, cursor: "pointer" }}>Nein</button>
@@ -531,7 +531,7 @@ function MeineBuchungen({ userId }) {
                     setDetail(null);
                     actions[A.OPEN_CHAT]?.({ recipient: { id: b.seller_id, display_name: b.seller_name, avatar_url: null }, source: S.SYSTEM });
                   }}
-                  style={{ flex: 1, padding: "14px 0", borderRadius: 13, border: "none", background: T.teal, color: "#fff", fontSize: 15, fontWeight: 600, cursor: "pointer" }}
+                  style={{ flex: 1, padding: "14px 0", borderRadius: 13, border: "none", background: T.teal, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}
                 >Ja</button>
               </div>
             </div>
@@ -646,7 +646,7 @@ function WerHatMichGebucht({ userId }) {
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
             <div style={{ width: "88%", maxWidth: 320, background: T.bgCard, borderRadius: 20, padding: "24px 20px", textAlign: "center", boxShadow: "0 12px 48px rgba(20,20,34,0.25)" }}>
-              <div style={{ fontSize: 17, fontWeight: 600, color: T.ink, marginBottom: 8 }}>Mit {b.customer_name} chatten?</div>
+              <div style={{ fontSize: 17, fontWeight: 700, color: T.ink, marginBottom: 8 }}>Mit {b.customer_name} chatten?</div>
               <div style={{ fontSize: 14, color: T.inkSoft, lineHeight: 1.5, marginBottom: 20 }}>Möchtest du wirklich eine Unterhaltung mit dem Käufer starten?</div>
               <div style={{ display: "flex", gap: 10 }}>
                 <button onClick={() => setShowChatConfirm(null)} style={{ flex: 1, padding: "14px 0", borderRadius: 13, border: `1.5px solid ${T.border}`, background: "transparent", color: T.inkSoft, fontSize: 15, fontWeight: 600, cursor: "pointer" }}>Nein</button>
@@ -656,7 +656,7 @@ function WerHatMichGebucht({ userId }) {
                     setDetail(null);
                     actions[A.OPEN_CHAT]?.({ recipient: { id: b.customer_id, display_name: b.customer_name, avatar_url: null }, source: S.SYSTEM });
                   }}
-                  style={{ flex: 1, padding: "14px 0", borderRadius: 13, border: "none", background: T.teal, color: "#fff", fontSize: 15, fontWeight: 600, cursor: "pointer" }}
+                  style={{ flex: 1, padding: "14px 0", borderRadius: 13, border: "none", background: T.teal, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}
                 >Ja</button>
               </div>
             </div>
@@ -887,7 +887,7 @@ export default function FinanzuebersichtModal({ profile, onClose = () => {} }) {
           display: "flex", alignItems: "center", justifyContent: "space-between",
         }}>
           <div>
-            <div style={{ fontSize: 17, fontWeight: 600, color: T.ink, letterSpacing: "-0.02em" }}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: T.ink, letterSpacing: "-0.02em" }}>
               Käufe/Verkäufe
             </div>
             <div style={{ fontSize: 12, color: T.inkFaint, marginTop: 2 }}>

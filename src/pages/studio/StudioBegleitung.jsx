@@ -94,7 +94,7 @@ export default function StudioBegleitung() {
       padding: '40px 32px', maxWidth: 680,
       fontFamily: "Inter, sans-serif",
     }}>
-      <h2 style={{ fontSize: 24, fontWeight: 600, color: C.ink, marginBottom: 8 }}>Begleitung</h2>
+      <h2 style={{ fontSize: 24, fontWeight: 700, color: C.ink, marginBottom: 8 }}>Begleitung</h2>
       <p style={{ fontSize: 15, color: C.muted, marginBottom: 20 }}>
         Mitglieder mit Verantwortung — begleiten und verwalten.
       </p>

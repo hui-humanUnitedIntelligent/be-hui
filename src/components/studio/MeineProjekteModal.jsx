@@ -197,7 +197,7 @@ export default function MeineProjekteModal({ profile, onClose, switchTab = null 
           padding: "10px 20px 14px",
         }}>
           <div>
-            <div style={{ fontSize: 18, fontWeight: 600, color: T.ink, letterSpacing: "-0.02em" }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: T.ink, letterSpacing: "-0.02em" }}>
               
             </div>
             <div style={{ fontSize: 12, color: T.inkSoft, marginTop: 2 }}>
@@ -219,7 +219,7 @@ export default function MeineProjekteModal({ profile, onClose, switchTab = null 
             flex: 1, background: T.tealSoft, borderRadius: T.r12,
             border: `1px solid ${T.tealMid}`, padding: "12px 14px", textAlign: "center",
           }}>
-            <div style={{ fontSize: 20, fontWeight: 600, color: T.teal }}>{fmtEur(totalEur)}</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: T.teal }}>{fmtEur(totalEur)}</div>
             <div style={{ fontSize: 11, color: T.inkSoft, marginTop: 2 }}>Gesamt investiert</div>
           </div>
           {/* Abgeschlossen */}
@@ -227,7 +227,7 @@ export default function MeineProjekteModal({ profile, onClose, switchTab = null 
             flex: 1, background: T.greenSoft, borderRadius: T.r12,
             border: `1px solid rgba(16,185,129,0.20)`, padding: "12px 14px", textAlign: "center",
           }}>
-            <div style={{ fontSize: 20, fontWeight: 600, color: T.green }}>{abgeschlossen.length}</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: T.green }}>{abgeschlossen.length}</div>
             <div style={{ fontSize: 11, color: T.inkSoft, marginTop: 2 }}>Abgeschlossen</div>
           </div>
           {/* Offen / laufend */}
@@ -235,7 +235,7 @@ export default function MeineProjekteModal({ profile, onClose, switchTab = null 
             flex: 1, background: T.amberSoft, borderRadius: T.r12,
             border: `1px solid rgba(245,158,11,0.20)`, padding: "12px 14px", textAlign: "center",
           }}>
-            <div style={{ fontSize: 20, fontWeight: 600, color: T.amber }}>{offen.length}</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: T.amber }}>{offen.length}</div>
             <div style={{ fontSize: 11, color: T.inkSoft, marginTop: 2 }}>Laufend</div>
           </div>
           {/* Stimmen gesamt */}
@@ -243,7 +243,7 @@ export default function MeineProjekteModal({ profile, onClose, switchTab = null 
             flex: 1, background: T.violetSoft, borderRadius: T.r12,
             border: `1px solid rgba(124,58,237,0.20)`, padding: "12px 14px", textAlign: "center",
           }}>
-            <div style={{ fontSize: 20, fontWeight: 600, color: T.violet }}>{votes.length}</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: T.violet }}>{votes.length}</div>
             <div style={{ fontSize: 11, color: T.inkSoft, marginTop: 2 }}>Stimmen</div>
           </div>
         </div>
@@ -261,7 +261,7 @@ export default function MeineProjekteModal({ profile, onClose, switchTab = null 
             <button key={t.key} onClick={() => setTab(t.key)} style={{
               flex: 1, padding: "8px 0", borderRadius: T.r12 - 2,
               border: "none", cursor: "pointer", fontFamily: "inherit",
-              fontSize: 13, fontWeight: 600,
+              fontSize: 13, fontWeight: 700,
               background: tab === t.key ? T.bgCard : "transparent",
               color: tab === t.key ? T.ink : T.inkSoft,
               boxShadow: tab === t.key ? "0 1px 4px rgba(26,26,24,0.10)" : "none",
@@ -426,7 +426,7 @@ function GroupHeader({ label, count }) {
       display: "flex", alignItems: "center", justifyContent: "space-between",
       marginBottom: 8, marginTop: 4,
     }}>
-      <div style={{ fontSize: 13, fontWeight: 600, color: T.ink }}>{label}</div>
+      <div style={{ fontSize: 13, fontWeight: 700, color: T.ink }}>{label}</div>
       <div style={{
         fontSize: 11, fontWeight: 600, color: T.inkSoft,
         background: "rgba(26,26,24,0.06)", borderRadius: T.r99,
@@ -468,7 +468,7 @@ function SupportCard({ support: s, project: p, onGoToProject }) {
         {/* Name + Datum */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{
-            fontSize: 14, fontWeight: 600, color: T.ink,
+            fontSize: 14, fontWeight: 700, color: T.ink,
             whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
           }}>
             {p?.name || "Projekt (ID vorbereitet)"}
@@ -480,11 +480,11 @@ function SupportCard({ support: s, project: p, onGoToProject }) {
 
         {/* Betrag + Status */}
         <div style={{ textAlign: "right", flexShrink: 0 }}>
-          <div style={{ fontSize: 15, fontWeight: 600, color: T.teal }}>
+          <div style={{ fontSize: 15, fontWeight: 800, color: T.teal }}>
             {fmtEur(s.amount_eur)}
           </div>
           <div style={{
-            fontSize: 10, fontWeight: 600, color: status.color,
+            fontSize: 10, fontWeight: 700, color: status.color,
             background: status.bg, borderRadius: T.r99,
             padding: "2px 8px", marginTop: 3,
           }}>
@@ -550,7 +550,7 @@ function SupportCard({ support: s, project: p, onGoToProject }) {
             )}
             {p?.awarded_eur > 0 && (
               <span style={{
-                fontSize: 11, color: T.green, fontWeight: 600,
+                fontSize: 11, color: T.green, fontWeight: 700,
                 background: T.greenSoft, borderRadius: T.r99,
                 padding: "3px 10px",
                 display: "flex", alignItems: "center", gap: 3,
@@ -577,7 +577,7 @@ function SupportCard({ support: s, project: p, onGoToProject }) {
                 width: "100%", padding: "10px", borderRadius: T.r12,
                 background: `linear-gradient(135deg, ${T.teal}, ${T.tealDeep})`,
                 border: "none", cursor: "pointer",
-                fontSize: 13, fontWeight: 600, color: "#fff",
+                fontSize: 13, fontWeight: 700, color: "#fff",
                 fontFamily: "inherit",
                 boxShadow: "0 2px 8px rgba(14,196,184,0.25)",
                 WebkitTapHighlightColor: "transparent",
@@ -623,7 +623,7 @@ function VoteCard({ vote: v, project: p, onGoToProject }) {
       {/* Info */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
-          fontSize: 14, fontWeight: 600, color: T.ink,
+          fontSize: 14, fontWeight: 700, color: T.ink,
           whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
         }}>
           {p?.name || "Projekt (ID vorbereitet)"}
@@ -632,7 +632,7 @@ function VoteCard({ vote: v, project: p, onGoToProject }) {
           {fmtDate(v.created_at)}
           {v.weight > 1 && (
             <span style={{
-              marginLeft: 8, fontSize: 10, fontWeight: 600, color: T.violet,
+              marginLeft: 8, fontSize: 10, fontWeight: 700, color: T.violet,
               background: T.violetSoft, borderRadius: T.r99, padding: "1px 6px",
             }}>×{v.weight} Gewicht</span>
           )}
@@ -642,7 +642,7 @@ function VoteCard({ vote: v, project: p, onGoToProject }) {
       {/* Status + Link */}
       <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
         <div style={{
-          fontSize: 10, fontWeight: 600, color: status.color,
+          fontSize: 10, fontWeight: 700, color: status.color,
           background: status.bg, borderRadius: T.r99,
           padding: "2px 8px",
         }}>
@@ -740,7 +740,7 @@ function ImpactProjectCard({ app, onAddUpdate, onMilestoneUpdate }) {
         {/* Name + Status */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 8 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: T.ink, lineHeight: 1.3 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: T.ink, lineHeight: 1.3 }}>
               {app.project_name || "Unbenanntes Projekt"}
             </div>
             {app.short_desc && (
@@ -754,7 +754,7 @@ function ImpactProjectCard({ app, onAddUpdate, onMilestoneUpdate }) {
             )}
           </div>
           <span style={{
-            fontSize: 10, fontWeight: 600, color: statusInfo.color,
+            fontSize: 10, fontWeight: 700, color: statusInfo.color,
             background: statusInfo.bg, borderRadius: T.r99,
             padding: "3px 8px", flexShrink: 0,
           }}>
@@ -770,7 +770,7 @@ function ImpactProjectCard({ app, onAddUpdate, onMilestoneUpdate }) {
               fontSize: 11, color: T.inkSoft, marginBottom: 4,
             }}>
               <span>Fortschritt</span>
-              <span style={{ fontWeight: 600, color: T.teal }}>{progressPct}%</span>
+              <span style={{ fontWeight: 700, color: T.teal }}>{progressPct}%</span>
             </div>
             <div style={{ height: 6, borderRadius: 99, background: "rgba(26,26,24,0.06)" }}>
               <div style={{
@@ -794,7 +794,7 @@ function ImpactProjectCard({ app, onAddUpdate, onMilestoneUpdate }) {
           display: "flex", alignItems: "center", gap: 6, marginBottom: 10,
         }}>
           <HUIStimmeIcon size={14} />
-          <span style={{ fontSize: 13, fontWeight: 600, color: T.ink }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: T.ink }}>
             {voteCount === null ? "..." : voteCount}
           </span>
           <span style={{ fontSize: 11, color: T.inkSoft }}>
@@ -805,7 +805,7 @@ function ImpactProjectCard({ app, onAddUpdate, onMilestoneUpdate }) {
         {/* Meilensteine */}
         <div style={{ marginBottom: 10 }}>
           <div style={{
-            fontSize: 13, fontWeight: 600, color: T.ink, marginBottom: 8,
+            fontSize: 13, fontWeight: 700, color: T.ink, marginBottom: 8,
           }}>🏁 Meilensteine</div>
           {milestonesLoading ? (
             <div style={{ fontSize: 12, color: T.inkSoft, padding: "8px 0" }}>Laden...</div>
@@ -834,15 +834,15 @@ function ImpactProjectCard({ app, onAddUpdate, onMilestoneUpdate }) {
                       width: 20, height: 20, borderRadius: "50%",
                       background: T.teal, color: "#fff",
                       display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 10, fontWeight: 600, flexShrink: 0,
+                      fontSize: 10, fontWeight: 800, flexShrink: 0,
                     }}>{mi + 1}</span>
                     <span style={{
-                      fontSize: 13, fontWeight: 600, color: T.ink,
+                      fontSize: 13, fontWeight: 700, color: T.ink,
                       flex: 1, minWidth: 0,
                       overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                     }}>{m.title}</span>
                     <span style={{
-                      fontSize: 9, fontWeight: 600, color: msc.color,
+                      fontSize: 9, fontWeight: 700, color: msc.color,
                       background: msc.bg, borderRadius: T.r99, padding: "2px 6px",
                       flexShrink: 0,
                     }}>{msc.label}</span>
@@ -853,7 +853,7 @@ function ImpactProjectCard({ app, onAddUpdate, onMilestoneUpdate }) {
                       width: "100%", padding: "8px", borderRadius: T.r8,
                       background: T.tealSoft, border: `1px solid ${T.tealMid}`,
                       cursor: "pointer", fontFamily: "inherit",
-                      fontSize: 12, fontWeight: 600, color: T.teal,
+                      fontSize: 12, fontWeight: 700, color: T.teal,
                       display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
                       WebkitTapHighlightColor: "transparent",
                     }}
@@ -874,7 +874,7 @@ function EmptyState({ icon, title, desc }) {
   return (
     <div style={{ textAlign: "center", padding: "40px 20px" }}>
       <div style={{ fontSize: 40, marginBottom: 12 }}>{icon}</div>
-      <div style={{ fontSize: 15, fontWeight: 600, color: T.ink, marginBottom: 6 }}>{title}</div>
+      <div style={{ fontSize: 15, fontWeight: 700, color: T.ink, marginBottom: 6 }}>{title}</div>
       <div style={{ fontSize: 13, color: T.inkSoft, lineHeight: 1.55 }}>{desc}</div>
     </div>
   );

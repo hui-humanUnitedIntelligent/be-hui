@@ -73,7 +73,7 @@ export default function EntwicklungszentrumOverview({ onNavigate }) {
       padding: '40px 32px', maxWidth: 680,
       fontFamily: "Inter, sans-serif",
     }}>
-      <h1 style={{ fontSize: 28, fontWeight: 600, color: C.ink, marginBottom: 8, lineHeight: 1.3 }}>
+      <h1 style={{ fontSize: 28, fontWeight: 700, color: C.ink, marginBottom: 8, lineHeight: 1.3 }}>
         Entwicklungszentrum
       </h1>
       <p style={{ fontSize: 15, color: C.muted, marginBottom: 32 }}>
@@ -167,7 +167,7 @@ function AttentionCard({ count, label, onClick, accent = 'teal' }) {
       <span style={{
         width: 36, height: 36, borderRadius: '50%',
         background: `${accentColor}15`, color: accentColor,
-        fontSize: 15, fontWeight: 600,
+        fontSize: 15, fontWeight: 700,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         {count}
@@ -183,7 +183,7 @@ function StatCard({ label, value }) {
       padding: '20px', borderRadius: 14, background: C.white,
       border: `1px solid ${C.border}`,
     }}>
-      <div style={{ fontSize: 24, fontWeight: 600, color: C.ink, marginBottom: 4 }}>{value}</div>
+      <div style={{ fontSize: 24, fontWeight: 700, color: C.ink, marginBottom: 4 }}>{value}</div>
       <div style={{ fontSize: 13, color: C.muted }}>{label}</div>
     </div>
   );

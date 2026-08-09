@@ -313,7 +313,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
             textAlign: "center",
           }}>
             <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
-            <div style={{ fontSize: 18, fontWeight: 600, color: "#1A1A2E", marginBottom: 8 }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: "#1A1A2E", marginBottom: 8 }}>
               Buchung bestätigt!
             </div>
             {/* Detaillierte Buchungsinfo */}
@@ -321,7 +321,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
               background: "rgba(22,215,197,0.06)", border: "1px solid rgba(22,215,197,0.15)",
               borderRadius: 14, padding: "14px 16px", marginBottom: 20, textAlign: "left",
             }}>
-              <div style={{ fontSize: 15, fontWeight: 600, color: "#1A1A2E", marginBottom: 10 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "#1A1A2E", marginBottom: 10 }}>
                 {talent.title}
               </div>
               {talent.author && (
@@ -361,7 +361,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
             <button onClick={onClose} style={{
               width: "100%", background: `linear-gradient(135deg,${TEAL},#0AB8B2)`,
               color: "#fff", border: "none", borderRadius: 14, padding: "14px 0",
-              fontSize: 15, fontWeight: 600, cursor: "pointer", touchAction: "manipulation",
+              fontSize: 15, fontWeight: 700, cursor: "pointer", touchAction: "manipulation",
             }}>
               Schließen
             </button>
@@ -390,7 +390,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                 width: "100%", marginTop: 10, padding: "14px 0",
                 borderRadius: 14, border: "1.5px solid rgba(34,197,94,0.35)",
                 background: "transparent", color: "#22C55E",
-                fontSize: 15, fontWeight: 600, cursor: "pointer",
+                fontSize: 15, fontWeight: 700, cursor: "pointer",
                 WebkitTapHighlightColor: "transparent",
               }}
             >
@@ -427,7 +427,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
               padding: "24px 20px", textAlign: "center",
               boxShadow: "0 12px 48px rgba(20,20,34,0.25)",
             }}>
-              <div style={{ fontSize: 17, fontWeight: 600, color: "#1A1A2E", marginBottom: 8 }}>
+              <div style={{ fontSize: 17, fontWeight: 700, color: "#1A1A2E", marginBottom: 8 }}>
                 Mit {talent.author || "dem Verkäufer"} chatten?
               </div>
               <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)", lineHeight: 1.5, marginBottom: 20 }}>
@@ -463,7 +463,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                     flex: 1, padding: "14px 0", borderRadius: 13,
                     border: "none",
                     background: TEAL, color: "#fff",
-                    fontSize: 15, fontWeight: 600, cursor: "pointer",
+                    fontSize: 15, fontWeight: 700, cursor: "pointer",
                     outline: "none", WebkitTapHighlightColor: "transparent",
                   }}
                 >
@@ -510,7 +510,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                   textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
                   Talent buchen
                 </div>
-                <div style={{ fontSize: 17, fontWeight: 600, color: "#1A1A2E", lineHeight: 1.3 }}>
+                <div style={{ fontSize: 17, fontWeight: 700, color: "#1A1A2E", lineHeight: 1.3 }}>
                   {talent.title}
                 </div>
                 {talent.author && (
@@ -597,7 +597,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                     marginTop: 10, paddingTop: 10, borderTop: "1px solid rgba(26,26,46,0.07)",
                   }}>
                     <span style={{ fontSize: 12.5, color: "rgba(26,26,46,0.5)" }}>Preis</span>
-                    <span style={{ fontSize: 17, fontWeight: 600, color: TEAL }}>{priceStr}</span>
+                    <span style={{ fontSize: 17, fontWeight: 800, color: TEAL }}>{priceStr}</span>
                   </div>
                 )}
               </div>
@@ -632,7 +632,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                       background: dateInfo.isWeekend ? "rgba(255,138,107,0.12)" : "rgba(13,196,181,0.10)",
                       color: dateInfo.isWeekend ? "#FF8A6B" : "rgba(0,150,136,1)",
                       borderRadius: 99, padding: "5px 12px",
-                      fontSize: 12, fontWeight: 600,
+                      fontSize: 12, fontWeight: 700,
                     }}>
                       {dateInfo.weekday}, {dateInfo.full}
                     </span>
@@ -697,10 +697,10 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                       onClick={() => setParticipants(p => Math.max(talent.min_participants || 1, p - 1))}
                       style={{
                         width: 36, height: 36, borderRadius: 10, border: "1.5px solid rgba(26,26,46,0.12)",
-                        background: "#fff", fontSize: 18, fontWeight: 600, color: "#1A1A2E",
+                        background: "#fff", fontSize: 18, fontWeight: 700, color: "#1A1A2E",
                         cursor: "pointer", touchAction: "manipulation",
                       }}>−</button>
-                    <span style={{ fontSize: 16, fontWeight: 600, color: "#1A1A2E", minWidth: 24, textAlign: "center" }}>
+                    <span style={{ fontSize: 16, fontWeight: 700, color: "#1A1A2E", minWidth: 24, textAlign: "center" }}>
                       {participants}
                     </span>
                     <button type="button"
@@ -710,7 +710,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                       })}
                       style={{
                         width: 36, height: 36, borderRadius: 10, border: "1.5px solid rgba(26,26,46,0.12)",
-                        background: "#fff", fontSize: 18, fontWeight: 600, color: "#1A1A2E",
+                        background: "#fff", fontSize: 18, fontWeight: 700, color: "#1A1A2E",
                         cursor: "pointer", touchAction: "manipulation",
                       }}>+</button>
                     {selectedDate && (
@@ -752,7 +752,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                   border: "1px solid rgba(255,138,107,0.18)",
                 }}>
                   <span style={{ fontSize: 13, color: "rgba(26,26,46,0.55)" }}>Gesamt</span>
-                  <span style={{ fontSize: 20, fontWeight: 600, color: CORAL }}>{fmtEur(previewAmount)}</span>
+                  <span style={{ fontSize: 20, fontWeight: 800, color: CORAL }}>{fmtEur(previewAmount)}</span>
                 </div>
               )}
 
@@ -790,7 +790,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                   flex: 2,
                   background: (submitting || !canSubmit) ? "rgba(22,215,197,0.4)" : `linear-gradient(135deg,${TEAL},#0AB8B2)`,
                   color: "#fff", border: "none", borderRadius: 14, padding: "13px 0",
-                  fontSize: 15, fontWeight: 600,
+                  fontSize: 15, fontWeight: 700,
                   cursor: (submitting || !canSubmit) ? "not-allowed" : "pointer",
                   touchAction: "manipulation",
                 }}

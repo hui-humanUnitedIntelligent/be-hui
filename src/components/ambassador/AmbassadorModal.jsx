@@ -122,7 +122,7 @@ export default function AmbassadorModal({ userId, onClose, onSuccess }) {
           <div style={{ padding: "20px 20px 0", display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
             <div>
               <div style={{ marginBottom:2, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.8)" }}><HUIAmbassadorIcon size={22}/></div>
-              <div style={{ fontSize: 18, fontWeight: 600, color: T.ink }}>Werde Ambassador</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: T.ink }}>Werde Ambassador</div>
               <div style={{ fontSize: 13, color: T.inkSoft, marginTop: 3 }}>
                 Teile deine Leidenschaft und wachse mit der Community.
               </div>
@@ -138,7 +138,7 @@ export default function AmbassadorModal({ userId, onClose, onSuccess }) {
           {submitted ? (
             <div style={{ padding: "40px 20px", textAlign: "center" }}>
               <div style={{ fontSize: 48, marginBottom: 16 }}>🎉</div>
-              <div style={{ fontSize: 18, fontWeight: 600, color: T.ink, marginBottom: 8 }}>
+              <div style={{ fontSize: 18, fontWeight: 700, color: T.ink, marginBottom: 8 }}>
                 Bewerbung eingereicht!
               </div>
               <div style={{ fontSize: 14, color: T.inkSoft, lineHeight: 1.6 }}>
@@ -264,7 +264,7 @@ export default function AmbassadorModal({ userId, onClose, onSuccess }) {
               <button type="submit" disabled={loading} className="amb-press"
                 style={{ width: "100%", padding: "15px",
                   background: loading ? "rgba(14,196,184,0.5)" : T.teal,
-                  border: "none", borderRadius: 99, color: "#fff", fontSize: 16, fontWeight: 600,
+                  border: "none", borderRadius: 99, color: "#fff", fontSize: 16, fontWeight: 700,
                   cursor: loading ? "not-allowed" : "pointer", fontFamily: "inherit",
                   boxShadow: loading ? "none" : "0 4px 18px rgba(14,196,184,0.35)" }}>
                 {loading ? <span className="amb-spinner">⟳</span> : "🚀 Bewerbung einreichen"}

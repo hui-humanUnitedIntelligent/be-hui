@@ -149,7 +149,7 @@ function AuthModal({ action, onClose, onConfirm }) {
           <>
             <div style={{textAlign:"center",marginBottom:24}}>
               <div style={{fontSize:32,marginBottom:12}}>✦</div>
-              <div style={{fontSize:20,fontWeight: 600,color:INK,marginBottom:8,letterSpacing:-0.4}}>
+              <div style={{fontSize:20,fontWeight:800,color:INK,marginBottom:8,letterSpacing:-0.4}}>
                 {action ? `Um ${action}, brauchst du ein Konto` : "Bitte melde dich an"}
               </div>
               <div style={{fontSize:14,color:"rgba(26,26,46,0.5)",lineHeight:1.6}}>
@@ -160,7 +160,7 @@ function AuthModal({ action, onClose, onConfirm }) {
               <button onClick={() => setMode("login")} style={{
                 width:"100%",padding:"15px",borderRadius:18,border:"none",
                 background:`linear-gradient(135deg,${TEAL},#0FC4B2)`,
-                color:"#fff",fontSize:16,fontWeight: 600,
+                color:"#fff",fontSize:16,fontWeight:800,
                 cursor:"pointer",touchAction:"manipulation",
                 boxShadow:"0 4px 20px rgba(22,215,197,0.35)",
               }}>Anmelden</button>
@@ -168,7 +168,7 @@ function AuthModal({ action, onClose, onConfirm }) {
                 width:"100%",padding:"15px",borderRadius:18,
                 border:"1.5px solid rgba(22,215,197,0.25)",
                 background:"rgba(22,215,197,0.06)",
-                color:TEAL,fontSize:15,fontWeight: 600,
+                color:TEAL,fontSize:15,fontWeight:700,
                 cursor:"pointer",touchAction:"manipulation",
               }}>Neu registrieren</button>
               <button onClick={onClose} style={{
@@ -183,7 +183,7 @@ function AuthModal({ action, onClose, onConfirm }) {
         {mode === "login" && (
           <>
             <div style={{marginBottom:20}}>
-              <div style={{fontSize:20,fontWeight: 600,color:INK,letterSpacing:-0.4}}>Willkommen zurück</div>
+              <div style={{fontSize:20,fontWeight:800,color:INK,letterSpacing:-0.4}}>Willkommen zurück</div>
               <div style={{fontSize:13,color:"rgba(26,26,46,0.45)",marginTop:4}}>
                 Melde dich mit deiner E-Mail an
               </div>
@@ -233,7 +233,7 @@ function AuthModal({ action, onClose, onConfirm }) {
               <button type="submit" disabled={busy} style={{
                 padding:"15px",borderRadius:18,border:"none",
                 background: busy ? "rgba(22,215,197,0.35)" : `linear-gradient(135deg,${TEAL},#0FC4B2)`,
-                color:"#fff",fontSize:16,fontWeight: 600,
+                color:"#fff",fontSize:16,fontWeight:800,
                 cursor:busy?"default":"pointer",touchAction:"manipulation",
                 marginTop:4,
               }}>{busy ? "Anmelden…" : "Anmelden"}</button>
@@ -254,7 +254,7 @@ function AuthModal({ action, onClose, onConfirm }) {
         {mode === "signup" && (
           <>
             <div style={{marginBottom:20}}>
-              <div style={{fontSize:20,fontWeight: 600,color:INK,letterSpacing:-0.4}}>Jetzt beitreten</div>
+              <div style={{fontSize:20,fontWeight:800,color:INK,letterSpacing:-0.4}}>Jetzt beitreten</div>
               <div style={{fontSize:13,color:"rgba(26,26,46,0.45)",marginTop:4}}>
                 Kostenlos und in unter einer Minute
               </div>
@@ -308,7 +308,7 @@ function AuthModal({ action, onClose, onConfirm }) {
               <button type="submit" disabled={busy} style={{
                 padding:"15px",borderRadius:18,border:"none",
                 background: busy ? "rgba(22,215,197,0.35)" : `linear-gradient(135deg,${TEAL},${CORAL})`,
-                color:"#fff",fontSize:16,fontWeight: 600,
+                color:"#fff",fontSize:16,fontWeight:800,
                 cursor:busy?"default":"pointer",touchAction:"manipulation",marginTop:4,
               }}>{busy ? "Registrieren…" : "Konto erstellen"}</button>
               <button type="button" onClick={() => { setMode("login"); setErr(null); }} style={{
@@ -322,7 +322,7 @@ function AuthModal({ action, onClose, onConfirm }) {
         {mode === "verify" && (
           <div style={{textAlign:"center",padding:"12px 0"}}>
             <div style={{marginBottom:16, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.7)"}}><HUIMailIcon size={48}/></div>
-            <div style={{fontSize:20,fontWeight: 600,color:INK,marginBottom:8}}>E-Mail bestätigen</div>
+            <div style={{fontSize:20,fontWeight:800,color:INK,marginBottom:8}}>E-Mail bestätigen</div>
             <div style={{fontSize:14,color:"rgba(26,26,46,0.5)",lineHeight:1.7}}>
               Wir haben dir einen Link geschickt.<br/>
               Bitte schaue in deinem Posteingang nach.
@@ -330,7 +330,7 @@ function AuthModal({ action, onClose, onConfirm }) {
             <button onClick={onClose} style={{
               marginTop:24,padding:"13px 28px",borderRadius:18,border:"none",
               background:`linear-gradient(135deg,${TEAL},#0FC4B2)`,
-              color:"#fff",fontSize:15,fontWeight: 600,
+              color:"#fff",fontSize:15,fontWeight:700,
               cursor:"pointer",touchAction:"manipulation",
             }}>Ok, habe ich</button>
           </div>

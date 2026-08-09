@@ -65,7 +65,7 @@ function PersonCardItem({ p, onPress, followers=0, likes=0 }) {
         )}
       </div>
       <div style={{
-        fontSize:13, fontWeight: 600, color:T.ink, textAlign:"center", marginBottom:4,
+        fontSize:13, fontWeight:700, color:T.ink, textAlign:"center", marginBottom:4,
         minHeight:16.25, width:"100%",
         overflow:"hidden", display:"-webkit-box", WebkitLineClamp:1, WebkitBoxOrient:"vertical",
       }}>
@@ -96,7 +96,7 @@ function PersonCardItem({ p, onPress, followers=0, likes=0 }) {
           border:"1px solid rgba(14,196,184,0.12)",
         }}>
           <span style={{ fontSize:10 }}>👥</span>
-          <span style={{ fontSize:10.5, fontWeight: 600, color:T.tealDeep }}>{followers}</span>
+          <span style={{ fontSize:10.5, fontWeight:700, color:T.tealDeep }}>{followers}</span>
         </div>
         <div style={{
           display:"flex", alignItems:"center", gap:3,
@@ -104,7 +104,7 @@ function PersonCardItem({ p, onPress, followers=0, likes=0 }) {
           border:"1px solid rgba(239,68,68,0.12)",
         }}>
           <span style={{ fontSize:10 }}>❤️</span>
-          <span style={{ fontSize:10.5, fontWeight: 600, color:"#e04050" }}>{likes}</span>
+          <span style={{ fontSize:10.5, fontWeight:700, color:"#e04050" }}>{likes}</span>
         </div>
       </div>
     </div>
@@ -194,7 +194,7 @@ export default function MenschenAllModal({ isOpen, onClose, onPressPerson }) {
         <div style={{ padding:"16px 16px 8px", background:T.white, borderBottom:`1px solid ${T.border}`, flexShrink:0 }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
             <div>
-              <div style={{ fontSize:17, fontWeight: 600, color:T.ink }}>Inspirierende Menschen</div>
+              <div style={{ fontSize:17, fontWeight:800, color:T.ink }}>Inspirierende Menschen</div>
               <div style={{ fontSize:11.5, color:T.inkFaint }}>Entdecke wundervolle Menschen auf HUI</div>
             </div>
             <button onClick={onClose} style={{ background:"none", border:"none", fontSize:22, cursor:"pointer", color:T.inkSoft, padding:4 }}>✕</button>
@@ -206,7 +206,7 @@ export default function MenschenAllModal({ isOpen, onClose, onPressPerson }) {
           <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:2 }}>
             {SORT_OPTIONS.map(opt => (
               <button key={opt.key} onClick={() => setSort(opt.key)} style={{
-                flexShrink:0, padding:"6px 12px", borderRadius:99, fontSize:12, fontWeight: 600,
+                flexShrink:0, padding:"6px 12px", borderRadius:99, fontSize:12, fontWeight:700,
                 border:`1px solid ${sort === opt.key ? T.teal : T.border}`,
                 background: sort === opt.key ? "rgba(14,196,184,0.12)" : T.white,
                 color: sort === opt.key ? T.tealDeep : T.inkSoft,

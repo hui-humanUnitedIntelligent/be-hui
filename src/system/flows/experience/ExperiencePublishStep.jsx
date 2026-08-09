@@ -32,7 +32,7 @@ function VisibilityCard({ icon, label, sub, active, onClick }) {
         display:"flex", alignItems:"center", justifyContent:"center",
         fontSize:18,
       }}>{icon}</div>
-      <div style={{ fontSize:12.5, fontWeight: 600, color:ET.ink,
+      <div style={{ fontSize:12.5, fontWeight:800, color:ET.ink,
         textAlign:"center" }}>{label}</div>
       <div style={{ fontSize:10.5, color:ET.ink3, textAlign:"center",
         lineHeight:1.3 }}>{sub}</div>
@@ -103,7 +103,7 @@ function ExperiencePreviewCard({ form, mediaFiles, profile }) {
           backdropFilter:"blur(12px)",
           WebkitBackdropFilter:"blur(12px)",
           borderRadius:20, padding:"5px 12px",
-          fontSize:13, fontWeight: 600, color:priceColor,
+          fontSize:13, fontWeight:800, color:priceColor,
           boxShadow:"0 4px 12px rgba(26,26,46,0.10)",
         }}>{priceLabel}</div>
 
@@ -126,12 +126,12 @@ function ExperiencePreviewCard({ form, mediaFiles, profile }) {
                 width:24, height:24, borderRadius:"50%",
                 background:`linear-gradient(135deg,${ET.teal},${ET.violet})`,
                 display:"flex",alignItems:"center",justifyContent:"center",
-                fontSize:11,color:"#fff",fontWeight: 600,
+                fontSize:11,color:"#fff",fontWeight:700,
               }}>
                 {(profile.full_name||profile.username||"?").charAt(0).toUpperCase()}
               </div>
             )}
-            <div style={{ fontSize:12, fontWeight: 600, color:ET.ink }}>
+            <div style={{ fontSize:12, fontWeight:700, color:ET.ink }}>
               {profile.full_name || profile.username || "Du"}
             </div>
           </div>
@@ -141,7 +141,7 @@ function ExperiencePreviewCard({ form, mediaFiles, profile }) {
       {/* ── Info-Bereich ── */}
       <div style={{ padding:"16px 16px 14px" }}>
         {/* Titel */}
-        <div style={{ fontSize:16, fontWeight: 600, color:ET.ink,
+        <div style={{ fontSize:16, fontWeight:900, color:ET.ink,
           letterSpacing:-0.4, marginBottom:6, lineHeight:1.2 }}>
           {form.title || "Titel deines Erlebnisses"}
         </div>
@@ -205,7 +205,7 @@ export function ExperiencePublishStep({
 
       {/* ── Headline ── */}
       <div style={{ marginBottom:20 }}>
-        <h1 style={{ fontSize:22, fontWeight: 600, color:ET.ink,
+        <h1 style={{ fontSize:22, fontWeight:900, color:ET.ink,
           letterSpacing:-0.5, margin:0 }}>
           Dein Erlebnis<span style={{ color:ET.teal, marginLeft:3 }}>·</span>
         </h1>
@@ -229,7 +229,7 @@ export function ExperiencePublishStep({
 
       {/* ── Live Preview ── */}
       <div style={{ marginBottom:20 }}>
-        <div style={{ fontSize:13, fontWeight: 600, color:ET.ink,
+        <div style={{ fontSize:13, fontWeight:800, color:ET.ink,
           marginBottom:12 }}>Vorschau</div>
         <ExperiencePreviewCard
           form={form} mediaFiles={mediaFiles} profile={profile}
@@ -257,7 +257,7 @@ export function ExperiencePublishStep({
             ? "rgba(26,26,46,0.10)"
             : `linear-gradient(135deg, ${ET.teal} 0%, ${ET.violet} 100%)`,
           color: saving ? ET.ink3 : "#fff",
-          fontSize:16, fontWeight: 600, cursor: saving ? "default" : "pointer",
+          fontSize:16, fontWeight:900, cursor: saving ? "default" : "pointer",
           boxShadow: saving ? "none"
             : "0 8px 22px rgba(10,191,184,0.20)",
           transition:"all 0.32s ease",

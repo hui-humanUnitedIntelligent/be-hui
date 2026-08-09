@@ -194,7 +194,7 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
           left:       "50%",
           transform:  "translateX(-50%)",
           fontSize:   9,
-          fontWeight: 600,
+          fontWeight: 700,
           color:      CORAL,
           whiteSpace: "nowrap",
           pointerEvents: "none",
@@ -228,7 +228,7 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
         <span style={{
           flexShrink: 0,
           fontSize: 10.5,
-          fontWeight: 600,
+          fontWeight: 700,
           color: badge.color,
           background: badge.bg,
           border: `1px solid ${badge.border}`,
@@ -244,7 +244,7 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
         {caption ? (
           <span style={{
             fontSize: 15,
-            fontWeight: 600,
+            fontWeight: 700,
             color: INK,
             lineHeight: 1.3,
             letterSpacing: "-0.02em",
