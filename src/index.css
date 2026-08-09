@@ -9,6 +9,39 @@
    Variable Font woff2 hatte auf manchen Android-Geräten Rendering-Probleme
    bei — Zahlen fielen auf System-Schrift
    zurück. Statische Dateien enthalten das tnum-Feature zuverlässig. ── */
+@font-face {
+  font-family: 'Inter-Local'; font-style: normal; font-display: swap; font-weight: 200;
+  src: url('./fonts/Inter-ExtraLight.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter-Local'; font-style: normal; font-display: swap; font-weight: 300;
+  src: url('./fonts/Inter-Light.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter-Local'; font-style: normal; font-display: swap; font-weight: 400;
+  src: url('./fonts/Inter-Regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter-Local'; font-style: normal; font-display: swap; font-weight: 500;
+  src: url('./fonts/Inter-Medium.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter-Local'; font-style: normal; font-display: swap; font-weight: 600;
+  src: url('./fonts/Inter-SemiBold.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter-Local'; font-style: normal; font-display: swap; font-weight: 700;
+  src: url('./fonts/Inter-Bold.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter-Local'; font-style: normal; font-display: swap; font-weight: 800;
+  src: url('./fonts/Inter-ExtraBold.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter-Local'; font-style: normal; font-display: swap; font-weight: 900;
+  src: url('./fonts/Inter-Black.woff2') format('woff2');
+}
+
 /* Inter Font: Geladen via Google Fonts CDN in index.html (2026-08-09).
    Lokale woff2-Dateien hatten Rendering-Bugs auf Android WebView — Ziffern
    wurden mit Lücken zwischen jedem Zeichen gerendert. CDN-Version funktioniert
@@ -35,7 +68,7 @@
    zurück. Fix: html explizit auf Inter setzen + font-feature-settings
    NICHT auf normal setzen (damit font-variant-numeric wirkt). ── */
 html {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display',
+  font-family: 'Inter', 'Inter-Local', -apple-system, BlinkMacSystemFont, 'SF Pro Display',
                'Helvetica Neue', system-ui, sans-serif;
 }
 
@@ -114,7 +147,17 @@ html {
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display',
+  /* FIX (2026-08-09): font-synthesis:none verhindert, dass der Browser/WebView
+     fette Schriftgewichte (700/800/900) künstlich nachzeichnet (Faux-Bold),
+     wenn er die echte @font-face-Datei nicht korrekt zuordnen kann. Auf
+     Michaels Android-Gerät zeigten NUR fette Ziffern (fontWeight>=700)
+     sichtbare Lücken zwischen jedem Zeichen — reguläre Texte waren normal.
+     Alle Font-Dateien wurden per fontTools geprüft: strukturell einwandfrei.
+     → Verdacht: WebView versucht faux-bold statt der echten Bold/Black-Datei
+     zu laden, was bei Ziffern zu Darstellungsfehlern führt. */
+  font-synthesis: none;
+  -webkit-font-synthesis: none;
+  font-family: 'Inter', 'Inter-Local', -apple-system, BlinkMacSystemFont, 'SF Pro Display',
                'Helvetica Neue', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
