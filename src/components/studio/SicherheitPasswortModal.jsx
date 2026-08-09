@@ -125,7 +125,7 @@ export default function SicherheitPasswortModal({ profile, onClose }) {
           padding:"10px 20px 16px", flexShrink:0,
         }}>
           <div>
-            <div style={{ fontSize:18, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>
+            <div style={{ fontSize:18, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>
               
             </div>
             <div style={{ fontSize:12, color:T.inkSoft, marginTop:2 }}>
@@ -150,7 +150,7 @@ export default function SicherheitPasswortModal({ profile, onClose }) {
             border:`1px solid ${T.border}`, padding:"18px",
             boxShadow:T.card, marginBottom:14,
           }}>
-            <div style={{ fontSize:13, fontWeight:800, color:T.ink, marginBottom:16,
+            <div style={{ fontSize:13, fontWeight: 600, color:T.ink, marginBottom:16,
               display:"flex", alignItems:"center", gap:8 }}>
               <span style={{
                 width:28, height:28, borderRadius:8,
@@ -232,7 +232,7 @@ export default function SicherheitPasswortModal({ profile, onClose }) {
               <div style={{
                 marginTop:12, padding:"10px 14px", borderRadius:T.r12,
                 background:T.greenSoft, border:`1px solid ${T.greenMid}`,
-                fontSize:13, color:T.green, fontWeight:700,
+                fontSize:13, color:T.green, fontWeight: 600,
               }}>✅ Passwort wurde erfolgreich geändert!</div>
             )}
 
@@ -248,7 +248,7 @@ export default function SicherheitPasswortModal({ profile, onClose }) {
                   ? "rgba(26,26,24,0.07)"
                   : `linear-gradient(135deg, ${T.teal}, ${T.tealDeep})`,
                 color: (saving || !newPw || !confirmPw) ? T.inkSoft : "#fff",
-                fontSize:14, fontWeight:800, letterSpacing:"-0.01em",
+                fontSize:14, fontWeight: 600, letterSpacing:"-0.01em",
                 boxShadow: (saving || !newPw || !confirmPw) ? "none" : "0 4px 14px rgba(14,196,184,0.28)",
                 transition:"all .18s",
                 display:"flex", alignItems:"center", justifyContent:"center", gap:8,
@@ -267,7 +267,7 @@ export default function SicherheitPasswortModal({ profile, onClose }) {
             border:`1px solid ${T.border}`, padding:"18px",
             boxShadow:T.card, marginBottom:14,
           }}>
-            <div style={{ fontSize:13, fontWeight:800, color:T.ink, marginBottom:6,
+            <div style={{ fontSize:13, fontWeight: 600, color:T.ink, marginBottom:6,
               display:"flex", alignItems:"center", gap:8 }}>
               <span style={{
                 width:28, height:28, borderRadius:8,
@@ -285,7 +285,7 @@ export default function SicherheitPasswortModal({ profile, onClose }) {
               <div style={{
                 padding:"10px 14px", borderRadius:T.r12, marginBottom:12,
                 background:T.greenSoft, border:`1px solid ${T.greenMid}`,
-                fontSize:13, color:T.green, fontWeight:700,
+                fontSize:13, color:T.green, fontWeight: 600,
               }}>
                 ✅ Reset-Link wurde gesendet! Bitte prüfe dein Postfach.
               </div>
@@ -308,7 +308,7 @@ export default function SicherheitPasswortModal({ profile, onClose }) {
                 cursor: (resetLoading || resetSent) ? "not-allowed" : "pointer",
                 background: resetSent ? T.greenSoft : "rgba(124,58,237,0.07)",
                 color: resetSent ? T.green : "#7C3AED",
-                fontSize:13, fontWeight:700,
+                fontSize:13, fontWeight: 600,
                 opacity: (resetLoading || resetSent) ? 0.7 : 1,
                 transition:"all .18s",
                 display:"flex", alignItems:"center", justifyContent:"center", gap:8,
@@ -341,7 +341,7 @@ export default function SicherheitPasswortModal({ profile, onClose }) {
             width:"100%", padding:"13px", borderRadius:T.r12, border:"none",
             cursor:"pointer", fontFamily:T.ff,
             background:"rgba(26,26,24,0.07)", color:T.inkSoft,
-            fontSize:14, fontWeight:700,
+            fontSize:14, fontWeight: 600,
             WebkitTapHighlightColor:"transparent",
           }}>
             Schließen
@@ -390,7 +390,7 @@ function PwInput({ value, onChange, show, onToggleShow, placeholder, hasError, h
 
 function FieldLabel({ label, style: s }) {
   return (
-    <div style={{ fontSize:12, fontWeight:700, color:T.ink, marginBottom:6, ...s }}>
+    <div style={{ fontSize:12, fontWeight: 600, color:T.ink, marginBottom:6, ...s }}>
       {label}
     </div>
   );

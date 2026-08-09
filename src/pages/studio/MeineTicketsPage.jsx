@@ -131,7 +131,7 @@ function ReplySheet({ ticketNumber, subject, adminReply, userId, userEmail, user
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
           padding:"6px 20px 12px", borderBottom:`1px solid ${C.border}` }}>
           <div>
-            <p style={{ margin:0, fontSize:15, fontWeight:700, color:C.ink }}>Antwort an Support</p>
+            <p style={{ margin:0, fontSize:15, fontWeight: 600, color:C.ink }}>Antwort an Support</p>
             <p style={{ margin:0, fontSize:11, color:C.muted }}>
               Ticket {ticketNumber}
             </p>
@@ -146,7 +146,7 @@ function ReplySheet({ ticketNumber, subject, adminReply, userId, userEmail, user
           {adminReply && (
             <div style={{ background:"rgba(22,215,197,0.05)", borderLeft:`3px solid ${C.teal}`,
               borderRadius:"0 8px 8px 0", padding:"8px 12px", marginBottom:12 }}>
-              <p style={{ margin:"0 0 3px", fontSize:10, fontWeight:700, color:C.teal,
+              <p style={{ margin:"0 0 3px", fontSize:10, fontWeight: 600, color:C.teal,
                 textTransform:"uppercase", letterSpacing:"0.06em" }}>Support-Antwort (Zitat)</p>
               <p style={{ margin:0, fontSize:12, color:C.muted, lineHeight:1.5,
                 overflow:"hidden", maxHeight:52,
@@ -159,7 +159,7 @@ function ReplySheet({ ticketNumber, subject, adminReply, userId, userEmail, user
           {sent ? (
             <div style={{ textAlign:"center", padding:"24px 0 8px" }}>
               <div style={{ fontSize:36, marginBottom:8 }}>✅</div>
-              <p style={{ margin:0, fontSize:15, fontWeight:700, color:C.green }}>Gesendet!</p>
+              <p style={{ margin:0, fontSize:15, fontWeight: 600, color:C.green }}>Gesendet!</p>
             </div>
           ) : (
             <>
@@ -200,7 +200,7 @@ function ReplySheet({ ticketNumber, subject, adminReply, userId, userEmail, user
               <button onClick={handleSend} disabled={!text.trim() || sending}
                 style={{ width:"100%", padding:"14px", borderRadius:13, border:"none",
                   background:(!text.trim() || sending) ? "rgba(22,215,197,0.35)" : C.teal,
-                  color:"white", fontSize:15, fontWeight:700,
+                  color:"white", fontSize:15, fontWeight: 600,
                   cursor:(!text.trim() || sending) ? "default" : "pointer" }}>
                 {sending ? "⏳ Wird gesendet…" : "📨 Antwort senden"}
               </button>
@@ -222,7 +222,7 @@ function MessageBubble({ role, text, time, attachments }) {
       alignItems: isUser ? "flex-end" : "flex-start",
       marginBottom:2 }}>
       {/* Absender-Label */}
-      <p style={{ margin:"0 0 4px", fontSize:10, fontWeight:700,
+      <p style={{ margin:"0 0 4px", fontSize:10, fontWeight: 600,
         color: isUser ? C.muted : C.teal,
         textTransform:"uppercase", letterSpacing:"0.06em",
         paddingLeft: isUser ? 0 : 4, paddingRight: isUser ? 4 : 0 }}>
@@ -350,7 +350,7 @@ function TicketThread({ ticketNumber, subject, allTickets, profile, onBack }) {
           background:"rgba(0,0,0,0.05)", border:"none", cursor:"pointer", fontSize:16,
           display:"flex", alignItems:"center", justifyContent:"center" }}>←</button>
         <div style={{ flex:1, minWidth:0 }}>
-          <p style={{ margin:0, fontSize:15, fontWeight:700, color:C.ink,
+          <p style={{ margin:0, fontSize:15, fontWeight: 600, color:C.ink,
             overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
             {subject}
           </p>
@@ -358,7 +358,7 @@ function TicketThread({ ticketNumber, subject, allTickets, profile, onBack }) {
             <span style={{ fontFamily:"monospace", fontSize:11, color:C.teal }}>
               {ticketNumber}
             </span>
-            <span style={{ fontSize:11, fontWeight:700, padding:"1px 6px", borderRadius:4,
+            <span style={{ fontSize:11, fontWeight: 600, padding:"1px 6px", borderRadius:4,
               background:sc.bg, color:sc.color }}>{sc.icon} {sc.label}</span>
           </div>
         </div>
@@ -414,7 +414,7 @@ function TicketThread({ ticketNumber, subject, allTickets, profile, onBack }) {
           background:"linear-gradient(to top, white 80%, transparent)" }}>
           <button onClick={() => setShowReply(true)} style={{
             width:"100%", padding:"14px", borderRadius:13, border:"none",
-            background:C.teal, color:"white", fontSize:15, fontWeight:700,
+            background:C.teal, color:"white", fontSize:15, fontWeight: 600,
             cursor:"pointer", boxShadow:"0 4px 16px rgba(22,215,197,0.35)" }}>
             ↩ Antworten
           </button>
@@ -457,19 +457,19 @@ function ThreadCard({ ticketNumber, tickets, onOpen }) {
       boxShadow:"0 1px 4px rgba(0,0,0,0.04)" }}>
       <div style={{ display:"flex", justifyContent:"space-between",
         alignItems:"flex-start", marginBottom:8 }}>
-        <span style={{ fontFamily:"monospace", fontSize:12, fontWeight:700,
+        <span style={{ fontFamily:"monospace", fontSize:12, fontWeight: 600,
           color:C.teal, background:"rgba(22,215,197,0.08)",
           padding:"2px 8px", borderRadius:5 }}>
           {ticketNumber}
         </span>
         <div style={{ display:"flex", gap:6, alignItems:"center" }}>
           {msgCount > 1 && (
-            <span style={{ fontSize:10, fontWeight:700, color:C.muted,
+            <span style={{ fontSize:10, fontWeight: 600, color:C.muted,
               background:"rgba(0,0,0,0.05)", padding:"1px 7px", borderRadius:10 }}>
               {msgCount} Nachrichten
             </span>
           )}
-          <span style={{ fontSize:11, fontWeight:700, padding:"2px 8px", borderRadius:5,
+          <span style={{ fontSize:11, fontWeight: 600, padding:"2px 8px", borderRadius:5,
             background:sc.bg, color:sc.color }}>{sc.icon} {sc.label}</span>
         </div>
       </div>
@@ -556,10 +556,10 @@ export default function MeineTicketsPage({ onBack, userId, profile }) {
           background:"rgba(0,0,0,0.05)", border:"none", cursor:"pointer", fontSize:16,
           display:"flex", alignItems:"center", justifyContent:"center" }}>←</button>
         <div>
-          <p style={{ margin:0, fontSize:17, fontWeight:700, color:C.ink }}>Meine Tickets</p>
+          <p style={{ margin:0, fontSize:17, fontWeight: 600, color:C.ink }}>Meine Tickets</p>
           <p style={{ margin:0, fontSize:12, color:C.muted }}>Dein Support-Verlauf</p>
         </div>
-        <span style={{ marginLeft:"auto", fontSize:11, fontWeight:700,
+        <span style={{ marginLeft:"auto", fontSize:11, fontWeight: 600,
           color:C.muted, background:"rgba(0,0,0,0.05)",
           padding:"3px 9px", borderRadius:6 }}>{threadNumbers.length}</span>
       </div>

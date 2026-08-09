@@ -89,7 +89,7 @@ export default function HuiLiveTicker() {
           flexShrink:0, display:"flex", alignItems:"center", gap:5,
         }}>
           <div className="hui-live-dot" style={{ width:6, height:6, borderRadius:"50%", background:T.teal }}/>
-          <span style={{ fontSize:9.5, fontWeight:700, color:T.teal, letterSpacing:".05em" }}>LIVE</span>
+          <span style={{ fontSize:9.5, fontWeight: 600, color:T.teal, letterSpacing:".05em" }}>LIVE</span>
         </div>
         <div style={{ flex:1, overflow:"hidden", position:"relative", height:16 }}>
           <span

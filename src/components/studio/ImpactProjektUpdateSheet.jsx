@@ -192,7 +192,7 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
           padding: "10px 20px 14px",
         }}>
           <div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: T.ink, letterSpacing: "-0.02em" }}>
+            <div style={{ fontSize: 18, fontWeight: 600, color: T.ink, letterSpacing: "-0.02em" }}>
               
             </div>
             <div style={{ fontSize: 12, color: T.inkSoft, marginTop: 2 }}>
@@ -212,7 +212,7 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
 
           {/* Ueberschrift */}
           <div style={{ marginBottom: 16 }}>
-            <label style={{ fontSize: 12, fontWeight: 700, color: T.inkSoft, display: "block", marginBottom: 6 }}>
+            <label style={{ fontSize: 12, fontWeight: 600, color: T.inkSoft, display: "block", marginBottom: 6 }}>
               Überschrift *
             </label>
             <input
@@ -234,7 +234,7 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
 
           {/* Beschreibung */}
           <div style={{ marginBottom: 16 }}>
-            <label style={{ fontSize: 12, fontWeight: 700, color: T.inkSoft, display: "block", marginBottom: 6 }}>
+            <label style={{ fontSize: 12, fontWeight: 600, color: T.inkSoft, display: "block", marginBottom: 6 }}>
               Beschreibung
             </label>
             <textarea
@@ -257,7 +257,7 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
 
           {/* Typ-Chips */}
           <div style={{ marginBottom: 16 }}>
-            <label style={{ fontSize: 12, fontWeight: 700, color: T.inkSoft, display: "block", marginBottom: 8 }}>
+            <label style={{ fontSize: 12, fontWeight: 600, color: T.inkSoft, display: "block", marginBottom: 8 }}>
               Typ
             </label>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
@@ -270,7 +270,7 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
                     border: updateType === t.key ? `1.5px solid ${t.color}` : `1px solid ${T.border}`,
                     background: updateType === t.key ? t.bg : T.bgCard,
                     color: updateType === t.key ? t.color : T.inkSoft,
-                    fontSize: 13, fontWeight: 700, fontFamily: "inherit",
+                    fontSize: 13, fontWeight: 600, fontFamily: "inherit",
                     cursor: "pointer", transition: "all .15s",
                     display: "flex", alignItems: "center", gap: 4,
                   }}
@@ -283,7 +283,7 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
 
           {/* Datum */}
           <div style={{ marginBottom: 16 }}>
-            <label style={{ fontSize: 12, fontWeight: 700, color: T.inkSoft, display: "block", marginBottom: 6 }}>
+            <label style={{ fontSize: 12, fontWeight: 600, color: T.inkSoft, display: "block", marginBottom: 6 }}>
               Datum (optional)
             </label>
             <input
@@ -306,7 +306,7 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
 
           {/* Medien-Upload */}
           <div style={{ marginBottom: 16 }}>
-            <label style={{ fontSize: 12, fontWeight: 700, color: T.inkSoft, display: "block", marginBottom: 8 }}>
+            <label style={{ fontSize: 12, fontWeight: 600, color: T.inkSoft, display: "block", marginBottom: 8 }}>
               Bilder / Videos
             </label>
             <input
@@ -357,7 +357,7 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
                       background: T.coral, border: "2px solid #fff",
                       color: "#fff", fontSize: 10, cursor: "pointer",
                       display: "flex", alignItems: "center", justifyContent: "center",
-                      fontWeight: 700,
+                      fontWeight: 600,
                     }}>✕</button>
                   </div>
                 ))}
@@ -404,7 +404,7 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
                 ? "rgba(14,196,184,0.40)"
                 : `linear-gradient(135deg, ${T.teal}, ${T.tealDeep})`,
               border: "none", borderRadius: T.r99, color: "#fff",
-              fontSize: 15, fontWeight: 800, fontFamily: "inherit",
+              fontSize: 15, fontWeight: 600, fontFamily: "inherit",
               cursor: submitting || !title.trim() ? "not-allowed" : "pointer",
               boxShadow: submitting ? "none" : "0 4px 18px rgba(14,196,184,0.35)",
               transition: "all .2s",

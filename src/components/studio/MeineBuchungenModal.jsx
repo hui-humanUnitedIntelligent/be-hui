@@ -49,7 +49,7 @@ function statusBadge(status) {
   const s = map[status] || { label:status, bg:"rgba(26,26,24,0.06)", color:T.inkFaint };
   return (
     <span style={{
-      fontSize:10.5, fontWeight:700, color:s.color, background:s.bg,
+      fontSize:10.5, fontWeight: 600, color:s.color, background:s.bg,
       padding:"3px 8px", borderRadius:T.r99, whiteSpace:"nowrap",
     }}>
       {s.label}
@@ -73,11 +73,11 @@ function BookingRow({ b, forSeller, onCancelClick }) {
       }}>
         {cover
           ? <img loading="lazy" decoding="async" src={cover} alt={title} style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-          : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, color:"rgba(14,196,184,0.7)" }}>HUI</div>
+          : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight: 600, color:"rgba(14,196,184,0.7)" }}>HUI</div>
         }
       </div>
       <div style={{ flex:1, minWidth:0 }}>
-        <div style={{ fontSize:13, fontWeight:700, color:T.ink, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+        <div style={{ fontSize:13, fontWeight: 600, color:T.ink, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
           {title}
         </div>
         <div style={{ fontSize:11, color:T.inkFaint, marginTop:1 }}>
@@ -87,7 +87,7 @@ function BookingRow({ b, forSeller, onCancelClick }) {
       </div>
       <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:4, flexShrink:0 }}>
         {statusBadge(b.status)}
-        <div style={{ fontSize:12, fontWeight:800, color:T.ink }}>
+        <div style={{ fontSize:12, fontWeight: 600, color:T.ink }}>
           {Number(b.amount_eur || 0).toFixed(2)}€
         </div>
       </div>
@@ -97,7 +97,7 @@ function BookingRow({ b, forSeller, onCancelClick }) {
           className="mbp-press-light"
           style={{
             marginLeft:4, flexShrink:0, background:"transparent", border:"none",
-            color:"#E83A3A", fontSize:11, fontWeight:700, cursor:"pointer",
+            color:"#E83A3A", fontSize:11, fontWeight: 600, cursor:"pointer",
             padding:"6px 4px", touchAction:"manipulation",
           }}
         >
@@ -159,7 +159,7 @@ export default function MeineBuchungenModal({ profile, onClose }) {
           padding: "10px 20px 14px",
         }}>
           <div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: T.ink, letterSpacing: "-0.02em" }}>
+            <div style={{ fontSize: 18, fontWeight: 600, color: T.ink, letterSpacing: "-0.02em" }}>
               
             </div>
             <div style={{ fontSize: 12, color: T.inkSoft, marginTop: 2 }}>
@@ -218,7 +218,7 @@ export default function MeineBuchungenModal({ profile, onClose }) {
                   {myBookings.length > 0 && (
                     <div style={{ marginBottom: bookingRequests.length > 0 ? 18 : 0 }}>
                       <div style={{ padding:"0 0 10px" }}>
-                        <div style={{ fontSize:15, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>Meine Buchungen</div>
+                        <div style={{ fontSize:15, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>Meine Buchungen</div>
                         <div style={{ fontSize:11, color:T.inkFaint, marginTop:2, fontWeight:400 }}>Termine, die du gebucht hast</div>
                       </div>
                       <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
@@ -233,7 +233,7 @@ export default function MeineBuchungenModal({ profile, onClose }) {
                   {bookingRequests.length > 0 && (
                     <div>
                       <div style={{ padding:"0 0 10px" }}>
-                        <div style={{ fontSize:15, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>Anfragen für meine Angebote</div>
+                        <div style={{ fontSize:15, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>Anfragen für meine Angebote</div>
                         <div style={{ fontSize:11, color:T.inkFaint, marginTop:2, fontWeight:400 }}>Buchungen anderer für deine Talent-Angebote</div>
                       </div>
                       <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
@@ -271,7 +271,7 @@ export default function MeineBuchungenModal({ profile, onClose }) {
             maxWidth:320, width:"100%", boxShadow:"0 8px 40px rgba(0,0,0,0.18)",
           }}>
             <div style={{ textAlign:"center", marginBottom:8, display:"flex", justifyContent:"center", color:"#F59E0B" }}><HUIWarnIcon size={36}/></div>
-            <div style={{ fontSize:16, fontWeight:700, textAlign:"center", marginBottom:6, color:"#1a1a18" }}>
+            <div style={{ fontSize:16, fontWeight: 600, textAlign:"center", marginBottom:6, color:"#1a1a18" }}>
               Buchung stornieren?
             </div>
             <div style={{ fontSize:13, color:"#666", textAlign:"center", lineHeight:1.5, marginBottom:16 }}>
@@ -283,7 +283,7 @@ export default function MeineBuchungenModal({ profile, onClose }) {
             <button onClick={handleConfirmCancel} disabled={cancelling} style={{
               width:"100%", padding:"12px", borderRadius:99,
               background: cancelling ? "rgba(232,58,58,0.5)" : "#E83A3A", border:"none", color:"#fff",
-              fontSize:14, fontWeight:700, cursor: cancelling ? "not-allowed" : "pointer",
+              fontSize:14, fontWeight: 600, cursor: cancelling ? "not-allowed" : "pointer",
               fontFamily:"inherit", marginBottom:8,
             }}>
               {cancelling ? "Wird storniert…" : "Ja, stornieren"}

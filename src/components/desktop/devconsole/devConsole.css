@@ -39,7 +39,7 @@
 #hui-dev-console-root .hudc-fab-badge {
   position: absolute; top: -4px; right: -4px;
   background: #f7768e; color: #fff;
-  font-size: 10px; font-weight: 700;
+  font-size: 10px; font-weight: 600;
   min-width: 18px; height: 18px; border-radius: 9px;
   display: flex; align-items: center; justify-content: center;
   padding: 0 4px;
@@ -70,7 +70,7 @@
   flex-shrink: 0;
 }
 #hui-dev-console-root .hudc-title { display: flex; flex-direction: column; gap: 2px; }
-#hui-dev-console-root .hudc-title > span:first-child { font-weight: 700; color: #c0caf5; font-size: 13px; font-family: -apple-system, system-ui, sans-serif; }
+#hui-dev-console-root .hudc-title > span:first-child { font-weight: 600; color: #c0caf5; font-size: 13px; font-family: -apple-system, system-ui, sans-serif; }
 #hui-dev-console-root .hudc-info { font-size: 10px; color: #565f89; }
 #hui-dev-console-root .hudc-close {
   background: none; border: none; color: #565f89;
@@ -103,7 +103,7 @@
 #hui-dev-console-root .hudc-tab.active { color: #7aa2f7; background: rgba(122, 162, 247, 0.12); border-color: rgba(122, 162, 247, 0.3); }
 #hui-dev-console-root .tab-badge {
   background: #3b4261; color: #c0caf5;
-  font-size: 9px; font-weight: 700;
+  font-size: 9px; font-weight: 600;
   min-width: 16px; height: 16px; border-radius: 8px;
   display: inline-flex; align-items: center; justify-content: center;
   margin-left: 4px; padding: 0 4px;
@@ -154,7 +154,7 @@
   border-radius: 4px; padding: 6px 8px; margin-bottom: 4px;
 }
 #hui-dev-console-root .error-head { display: flex; justify-content: space-between; margin-bottom: 4px; }
-#hui-dev-console-root .error-type { color: #f7768e; font-weight: 700; font-size: 10px; }
+#hui-dev-console-root .error-type { color: #f7768e; font-weight: 600; font-size: 10px; }
 #hui-dev-console-root .error-time { color: #565f89; font-size: 10px; }
 #hui-dev-console-root .error-msg { color: #c0caf5; font-size: 12px; margin-bottom: 4px; }
 #hui-dev-console-root .error-src { color: #565f89; font-size: 10px; margin-bottom: 4px; }
@@ -166,9 +166,9 @@
   gap: 6px; padding: 4px 6px; border-bottom: 1px solid rgba(59, 66, 97, 0.2);
   align-items: center; font-size: 10px;
 }
-#hui-dev-console-root .net-method { color: #7dcfff; font-weight: 700; }
+#hui-dev-console-root .net-method { color: #7dcfff; font-weight: 600; }
 #hui-dev-console-root .net-url { color: #a9b1d6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#hui-dev-console-root .net-status { font-weight: 700; text-align: right; }
+#hui-dev-console-root .net-status { font-weight: 600; text-align: right; }
 #hui-dev-console-root .net-dur { color: #9ece6a; text-align: right; }
 #hui-dev-console-root .net-type { color: #565f89; font-size: 9px; text-align: right; }
 
@@ -181,7 +181,7 @@
 #hui-dev-console-root .perf-card.bad { border-color: rgba(247, 118, 142, 0.3); }
 #hui-dev-console-root .perf-card.null { opacity: 0.5; }
 #hui-dev-console-root .perf-label { color: #565f89; font-size: 10px; margin-bottom: 4px; }
-#hui-dev-console-root .perf-value { color: #c0caf5; font-size: 16px; font-weight: 700; }
+#hui-dev-console-root .perf-value { color: #c0caf5; font-size: 16px; font-weight: 600; }
 #hui-dev-console-root .perf-card.good .perf-value { color: #9ece6a; }
 #hui-dev-console-root .perf-card.bad .perf-value { color: #f7768e; }
 #hui-dev-console-root .perf-section { margin-top: 12px; }
@@ -198,7 +198,7 @@
 #hui-dev-console-root .feed-label { color: #a9b1d6; font-size: 11px; }
 #hui-dev-console-root .feed-value.yes { color: #9ece6a; }
 #hui-dev-console-root .feed-value.no { color: #f7768e; }
-#hui-dev-console-root .feed-value.count { color: #7aa2f7; font-weight: 700; }
+#hui-dev-console-root .feed-value.count { color: #7aa2f7; font-weight: 600; }
 
 /* ── CSS Inspector ────────────────────────────────────────────────────────────── */
 #hui-dev-console-root .css-controls { display: flex; gap: 6px; margin-bottom: 8px; }
@@ -213,7 +213,7 @@
 }
 #hui-dev-console-root .css-result { }
 #hui-dev-console-root .css-header { padding: 4px 0 8px; font-size: 12px; }
-#hui-dev-console-root .css-tag { color: #f7768e; font-weight: 700; }
+#hui-dev-console-root .css-tag { color: #f7768e; font-weight: 600; }
 #hui-dev-console-root .css-id { color: #7dcfff; }
 #hui-dev-console-root .css-class { color: #9ece6a; }
 #hui-dev-console-root .css-section { margin-top: 12px; }
@@ -236,7 +236,7 @@
   border-bottom: 1px solid rgba(59, 66, 97, 0.15);
 }
 #hui-dev-console-root .log-time { color: #565f89; font-size: 10px; flex-shrink: 0; }
-#hui-dev-console-root .log-level { font-weight: 700; text-transform: uppercase; font-size: 9px; min-width: 36px; flex-shrink: 0; }
+#hui-dev-console-root .log-level { font-weight: 600; text-transform: uppercase; font-size: 9px; min-width: 36px; flex-shrink: 0; }
 #hui-dev-console-root .log-msg { color: #a9b1d6; word-break: break-word; }
 
 /* ── React Tree ──────────────────────────────────────────────────────────────── */
@@ -262,18 +262,18 @@
 #hui-dev-console-root .type-memo { color: #bb9af7; }
 #hui-dev-console-root .type-context { color: #7dcfff; }
 #hui-dev-console-root .hudc-tree-props { color: #565f89; font-size: 9px; }
-#hui-dev-console-root .hudc-tree-state { color: #e0af68; font-size: 9px; font-weight: 700; }
+#hui-dev-console-root .hudc-tree-state { color: #e0af68; font-size: 9px; font-weight: 600; }
 
 /* ── Export ───────────────────────────────────────────────────────────────────── */
 #hui-dev-console-root .export-summary {
   background: #24283b; border: 1px solid #3b4261; border-radius: 6px;
   padding: 10px; margin-bottom: 12px;
 }
-#hui-dev-console-root .export-title { color: #c0caf5; font-weight: 700; font-size: 13px; margin-bottom: 8px; font-family: -apple-system, system-ui, sans-serif; }
+#hui-dev-console-root .export-title { color: #c0caf5; font-weight: 600; font-size: 13px; margin-bottom: 8px; font-family: -apple-system, system-ui, sans-serif; }
 #hui-dev-console-root .export-row { display: flex; justify-content: space-between; padding: 2px 4px; font-size: 11px; }
 #hui-dev-console-root .export-actions { display: flex; gap: 12px; }
 #hui-dev-console-root .export-group { flex: 1; }
-#hui-dev-console-root .export-label { color: #7aa2f7; font-size: 10px; font-weight: 700; margin-bottom: 4px; text-transform: uppercase; }
+#hui-dev-console-root .export-label { color: #7aa2f7; font-size: 10px; font-weight: 600; margin-bottom: 4px; text-transform: uppercase; }
 #hui-dev-console-root .export-group button {
   display: block; width: 100%;
   background: #24283b; border: 1px solid #3b4261; color: #a9b1d6;

@@ -68,7 +68,7 @@ function EventCard({ event, onPress, delay }) {
             <div style={{
               position: "absolute", top: 8, left: 8,
               background: accentColor, color: "#fff",
-              fontSize: 9, fontWeight: 800, letterSpacing: 0.4,
+              fontSize: 9, fontWeight: 600, letterSpacing: 0.4,
               padding: "2px 7px", borderRadius: 6,
             }}>
               {event.badge}
@@ -81,7 +81,7 @@ function EventCard({ event, onPress, delay }) {
             padding: "6px 10px 8px",
           }}>
             <div style={{
-              fontSize: 11.5, fontWeight: 700, color: "#fff",
+              fontSize: 11.5, fontWeight: 600, color: "#fff",
               lineHeight: 1.2, overflow: "hidden",
               display: "-webkit-box", WebkitLineClamp: 2,
               WebkitBoxOrient: "vertical",
@@ -214,7 +214,7 @@ export default function FeedEventsSection({ onEventPress, onMoreEvents }) {
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <span style={{ fontSize: 15, lineHeight: 1 }}>📍</span>
             <span style={{
-              fontSize: 15, fontWeight: 700, color: "#141422",
+              fontSize: 15, fontWeight: 600, color: "#141422",
               letterSpacing: -0.3,
             }}>
               Heute in deiner Nähe

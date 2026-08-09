@@ -57,7 +57,7 @@ export default function ChatHeader({ conv, onBack, onOpenProfile, onCloseChat, o
           border:"2px solid rgba(255,255,255,0.9)",
           boxShadow:"0 3px 12px rgba(0,0,0,0.12)",
           display:"flex", alignItems:"center", justifyContent:"center",
-          fontSize:16, color:"white", fontWeight:700,
+          fontSize:16, color:"white", fontWeight: 600,
           transition:"transform 0.15s ease, box-shadow 0.15s ease",
         }}>{!avatar && initials}</div>
       </button>
@@ -72,7 +72,7 @@ export default function ChatHeader({ conv, onBack, onOpenProfile, onCloseChat, o
         }}
       >
         <div style={{
-          fontSize:15.5, fontWeight:800, color:C.ink,
+          fontSize:15.5, fontWeight: 600, color:C.ink,
           letterSpacing:-0.3, lineHeight:1.2,
           whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis",
         }}>{name}</div>

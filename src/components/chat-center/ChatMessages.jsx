@@ -47,11 +47,11 @@ function EventPreviewCard({ event }) {
         }}/>
       )}
       <div style={{ padding:"12px 14px 14px" }}>
-        <div style={{ fontSize:10.5, color:C.teal, fontWeight:700,
+        <div style={{ fontSize:10.5, color:C.teal, fontWeight: 600,
           letterSpacing:0.5, textTransform:"uppercase", marginBottom:4 }}>
           N\u00e4chstes Erlebnis
         </div>
-        <div style={{ fontSize:15, fontWeight:800, color:C.ink, marginBottom:4 }}>
+        <div style={{ fontSize:15, fontWeight: 600, color:C.ink, marginBottom:4 }}>
           {event.title}
         </div>
         <div style={{ fontSize:12.5, color:C.muted }}>

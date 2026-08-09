@@ -393,7 +393,7 @@ export function StoryViewer({ data: initData, onClose, onViewProfile }) {
                   style={{ width:'100%', height:'100%', objectFit:'cover' }} />
               : <div style={{ width:'100%', height:'100%',
                   display:'flex', alignItems:'center', justifyContent:'center',
-                  color:'white', fontWeight:900, fontSize:17,
+                  color:'white', fontWeight: 600, fontSize:17,
                   background:`linear-gradient(135deg,${C.teal},${C.coral})` }}>
                   {(current.username||'A')[0].toUpperCase()}
                 </div>}
@@ -408,7 +408,7 @@ export function StoryViewer({ data: initData, onClose, onViewProfile }) {
             if (onViewProfile && current) onViewProfile(current);
           }}>
           <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-            <span style={{ color:'white', fontWeight:800, fontSize:15,
+            <span style={{ color:'white', fontWeight: 600, fontSize:15,
               letterSpacing:-.2, lineHeight:1.2,
               textShadow:'0 1px 6px rgba(0,0,0,.4)',
               overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
@@ -416,7 +416,7 @@ export function StoryViewer({ data: initData, onClose, onViewProfile }) {
               {current.username || 'Anonym'}
             </span>
             {creatorRole && (
-              <span style={{ fontSize:10, fontWeight:700, color:C.teal,
+              <span style={{ fontSize:10, fontWeight: 600, color:C.teal,
                 background:'rgba(22,215,197,.16)', borderRadius:50,
                 padding:'1px 7px', backdropFilter:'blur(6px)',
                 border:'1px solid rgba(22,215,197,.25)', whiteSpace:'nowrap' }}>
@@ -625,11 +625,11 @@ export function StoryViewer({ data: initData, onClose, onViewProfile }) {
           {sentReply ? (
             <div style={{ textAlign:'center', padding:16 }}>
               <div style={{ fontSize:28, marginBottom:8 }}>✓</div>
-              <div style={{ color:'white', fontSize:15, fontWeight:700 }}>Antwort gesendet</div>
+              <div style={{ color:'white', fontSize:15, fontWeight: 600 }}>Antwort gesendet</div>
             </div>
           ) : (
             <>
-              <div style={{ color:'rgba(255,255,255,.38)', fontSize:11.5, fontWeight:700,
+              <div style={{ color:'rgba(255,255,255,.38)', fontSize:11.5, fontWeight: 600,
                 textAlign:'center', marginBottom:14, letterSpacing:.8 }}>
                 ANTWORT AN {(current.username||'').toUpperCase()}
               </div>
@@ -648,7 +648,7 @@ export function StoryViewer({ data: initData, onClose, onViewProfile }) {
                 <button className="hui-sv-tap" onClick={sendReply}
                   style={{ width:46, height:46, borderRadius:'50%',
                     background:`linear-gradient(135deg,${C.teal},${C.coral})`,
-                    border:'none', color:'white', fontWeight:900,
+                    border:'none', color:'white', fontWeight: 600,
                     fontSize:18, cursor:'pointer',
                     boxShadow:`0 4px 16px rgba(22,215,197,.35)`,
                     display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
@@ -700,7 +700,7 @@ export function HighlightsRow({ userId }) {
     <>
       {viewing && <StoryViewer data={{ group, startIdx: viewing, allGroups:[group], groupIdx:0 }} onClose={() => setViewing(null)} />}
       <div style={{ padding:'0 0 4px' }}>
-        <div style={{ fontSize:13, fontWeight:700, color:'#888', padding:'0 20px 10px',
+        <div style={{ fontSize:13, fontWeight: 600, color:'#888', padding:'0 20px 10px',
           textTransform:'uppercase', letterSpacing:.8 }}>Highlights</div>
         <div className="hui-no-scroll" style={{ display:'flex', gap:14, overflowX:'auto',
           padding:'0 20px', WebkitOverflowScrolling:'touch' }}>

@@ -379,7 +379,7 @@ export default function StatistikenModal({ profile, onClose }) {
           padding:"10px 20px 14px",
         }}>
           <div>
-            <div style={{ fontSize:18, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>
+            <div style={{ fontSize:18, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>
               
             </div>
             <div style={{ fontSize:12, color:T.inkSoft, marginTop:2 }}>
@@ -416,13 +416,13 @@ export default function StatistikenModal({ profile, onClose }) {
               }}>
                 <div>
                   <div style={{ fontSize:12, color:T.inkSoft }}>Mitglied seit</div>
-                  <div style={{ fontSize:15, fontWeight:800, color:T.ink }}>
+                  <div style={{ fontSize:15, fontWeight: 600, color:T.ink }}>
                     {fmtDate(stats.memberSince)}
                   </div>
                 </div>
                 <div style={{ textAlign:"right" }}>
                   <div style={{ fontSize:10, color:T.inkFaint }}>Status</div>
-                  <div style={{ fontSize:13, fontWeight:700, color:T.teal }}>
+                  <div style={{ fontSize:13, fontWeight: 600, color:T.teal }}>
                     {stats.isTalent ? <><HUITalentIcon size={12} style={{marginRight:4}}/> HUI-Talent</> : <><HUIMitgliedIcon size={12} style={{marginRight:4}}/> HUI-Mitglied</>}
                     {stats.isAmbassador && " · 🏅 Ambassador"}
                   </div>
@@ -495,7 +495,7 @@ export default function StatistikenModal({ profile, onClose }) {
                   ? "rgba(26,26,24,0.08)"
                   : `linear-gradient(135deg, ${T.teal}, ${T.tealDeep})`,
                 color: exporting ? T.inkSoft : "#fff",
-                fontSize:15, fontWeight:800, fontFamily:T.ff,
+                fontSize:15, fontWeight: 600, fontFamily:T.ff,
                 letterSpacing:"-0.01em",
                 boxShadow: exporting ? "none" : "0 4px 16px rgba(14,196,184,0.30)",
                 display:"flex", alignItems:"center", justifyContent:"center", gap:8,
@@ -533,7 +533,7 @@ function StatSection({ icon, label, color, children }) {
           background:`${color}18`, display:"flex", alignItems:"center",
           justifyContent:"center", fontSize:14,
         }}>{icon}</span>
-        <span style={{ fontSize:13, fontWeight:800, color:"#1A1A18", letterSpacing:"-0.01em" }}>
+        <span style={{ fontSize:13, fontWeight: 600, color:"#1A1A18", letterSpacing:"-0.01em" }}>
           {label}
         </span>
       </div>
@@ -563,7 +563,7 @@ function KachelGrid({ items }) {
             <span>{item.icon}</span>
             {item.label.toUpperCase()}
           </div>
-          <div style={{ fontSize:20, fontWeight:800, color:item.col || T.teal }}>
+          <div style={{ fontSize:20, fontWeight: 600, color:item.col || T.teal }}>
             {item.val}
           </div>
         </div>

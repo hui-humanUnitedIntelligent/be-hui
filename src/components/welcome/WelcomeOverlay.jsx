@@ -163,7 +163,7 @@ export default function WelcomeOverlay({ onDone }) {
               <h1 style={{
                 margin:       0,
                 fontSize:     20,
-                fontWeight:   800,
+                fontWeight: 600,
                 color:        INK,
                 letterSpacing: "-0.025em",
                 lineHeight:    1.2,
@@ -191,7 +191,7 @@ export default function WelcomeOverlay({ onDone }) {
               <p style={{
                 margin:     "0 0 4px",
                 fontSize:   13,
-                fontWeight: 700,
+                fontWeight: 600,
                 color:      INK,
                 letterSpacing: "-0.01em",
               }}>
@@ -247,7 +247,7 @@ export default function WelcomeOverlay({ onDone }) {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{
                       fontSize:      11,
-                      fontWeight:    700,
+                      fontWeight: 600,
                       color:         INK,
                       letterSpacing: "-0.01em",
                       marginBottom:  0,
@@ -269,7 +269,7 @@ export default function WelcomeOverlay({ onDone }) {
                     fontSize:  12,
                     color:     "rgba(13,196,181,0.50)",
                     flexShrink: 0,
-                    fontWeight: 700,
+                    fontWeight: 600,
                   }}>
                     ›
                   </div>
@@ -325,7 +325,7 @@ export default function WelcomeOverlay({ onDone }) {
                 background:     `linear-gradient(135deg, ${TEAL} 0%, ${TEAL2} 100%)`,
                 color:          "#fff",
                 fontSize:       14.5,
-                fontWeight:     700,
+                fontWeight: 600,
                 letterSpacing:  "-0.01em",
                 cursor:         "pointer",
                 transition:     "transform 0.18s ease, opacity 0.18s ease",

@@ -91,7 +91,7 @@ function WasStep({ data, onChange, onNext }) {
   return (
     <div style={{ animation:"if-up .28s ease both" }}>
       <div style={{ marginBottom:20 }}>
-        <div style={{ fontSize:22, fontWeight:800, color:V.ink, letterSpacing:-0.5, marginBottom:6 }}>
+        <div style={{ fontSize:22, fontWeight: 600, color:V.ink, letterSpacing:-0.5, marginBottom:6 }}>
           Was hast du vor? 👥
         </div>
         <div style={{ fontSize:13, color:V.ink3 }}>
@@ -130,7 +130,7 @@ function WasStep({ data, onChange, onNext }) {
                 background: data.vibe === v.k ? V.violetL : "rgba(248,247,255,0.80)",
                 cursor:     "pointer",
                 fontSize:   13,
-                fontWeight: data.vibe === v.k ? 700 : 400,
+                fontWeight: data.vibe === v.k ? 600 : 400,
                 color:      data.vibe === v.k ? V.violet : V.ink2,
                 transition: "all .14s ease",
               }}
@@ -156,7 +156,7 @@ function WasStep({ data, onChange, onNext }) {
             : "rgba(139,92,246,0.22)",
           color:        data.text?.trim() ? "white" : V.violet,
           fontSize:     16,
-          fontWeight:   700,
+          fontWeight: 600,
           cursor:       data.text?.trim() ? "pointer" : "not-allowed",
           letterSpacing: -0.3,
         }}
@@ -172,7 +172,7 @@ function WoWannStep({ data, onChange, onNext, onBack }) {
   return (
     <div style={{ animation:"if-up .28s ease both" }}>
       <div style={{ marginBottom:20 }}>
-        <div style={{ fontSize:22, fontWeight:800, color:V.ink, letterSpacing:-0.5, marginBottom:6 }}>
+        <div style={{ fontSize:22, fontWeight: 600, color:V.ink, letterSpacing:-0.5, marginBottom:6 }}>
           Wo & wann? 📍
         </div>
         <div style={{ fontSize:13, color:V.ink3 }}>
@@ -223,7 +223,7 @@ function WoWannStep({ data, onChange, onNext, onBack }) {
                 background: data.max_participants === n ? V.violetL : "rgba(248,247,255,0.80)",
                 cursor:     "pointer",
                 fontSize:   13,
-                fontWeight: data.max_participants === n ? 700 : 400,
+                fontWeight: data.max_participants === n ? 600 : 400,
                 color:      data.max_participants === n ? V.violet : V.ink2,
               }}
             >{n === null ? "Offen" : `Max. ${n}`}</button>
@@ -239,7 +239,7 @@ function WoWannStep({ data, onChange, onNext, onBack }) {
         <button className="if-tap" onClick={onNext} style={{
           flex:2, padding:"14px", borderRadius:16, border:"none",
           background:`linear-gradient(135deg, ${V.violet} 0%, #6D28D9 100%)`,
-          color:"white", fontSize:16, fontWeight:700, cursor:"pointer", letterSpacing:-0.3,
+          color:"white", fontSize:16, fontWeight: 600, cursor:"pointer", letterSpacing:-0.3,
         }}>Vorschau →</button>
       </div>
     </div>
@@ -252,7 +252,7 @@ function PreviewStep({ data, onPublish, onBack, publishing }) {
   return (
     <div style={{ animation:"if-up .28s ease both" }}>
       <div style={{ marginBottom:16 }}>
-        <div style={{ fontSize:22, fontWeight:800, color:V.ink, letterSpacing:-0.5 }}>
+        <div style={{ fontSize:22, fontWeight: 600, color:V.ink, letterSpacing:-0.5 }}>
           So klingt es ✦
         </div>
       </div>
@@ -324,7 +324,7 @@ function PreviewStep({ data, onPublish, onBack, publishing }) {
             background: publishing
               ? "rgba(139,92,246,0.35)"
               : `linear-gradient(135deg, ${V.violet} 0%, #6D28D9 100%)`,
-            color:"white", fontSize:16, fontWeight:700,
+            color:"white", fontSize:16, fontWeight: 600,
             cursor: publishing ? "not-allowed" : "pointer",
             letterSpacing:-0.3, display:"flex", alignItems:"center", justifyContent:"center", gap:8,
           }}
@@ -344,7 +344,7 @@ function SuccessScreen({ onClose }) {
   return (
     <div style={{ textAlign:"center", padding:"32px 24px", animation:"if-up .32s ease both" }}>
       <div style={{ marginBottom:16, animation:"if-pop .5s ease both", display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.8)" }}><HUIAmbassadorIcon size={56}/></div>
-      <div style={{ fontSize:22, fontWeight:800, color:V.ink, letterSpacing:-0.5, marginBottom:8 }}>
+      <div style={{ fontSize:22, fontWeight: 600, color:V.ink, letterSpacing:-0.5, marginBottom:8 }}>
         Einladung raus!
       </div>
       <div style={{ fontSize:14, color:V.ink3, lineHeight:1.6, marginBottom:28 }}>
@@ -354,7 +354,7 @@ function SuccessScreen({ onClose }) {
       <button className="if-tap" onClick={onClose} style={{
         padding:"14px 36px", borderRadius:16, border:"none",
         background:`linear-gradient(135deg, ${V.violet} 0%, #6D28D9 100%)`,
-        color:"white", fontSize:16, fontWeight:700, cursor:"pointer",
+        color:"white", fontSize:16, fontWeight: 600, cursor:"pointer",
       }}>Perfekt</button>
     </div>
   );
@@ -479,7 +479,7 @@ export default function InvitationFlow({ onClose, visible = true }) {
                 color:"rgba(14,196,184,0.5)",
               }}><HUIPersonenIcon size={28}/></div>
               <div>
-                <div style={{ fontSize:15, fontWeight:700, color:V.ink, letterSpacing:-0.3 }}>Einladung</div>
+                <div style={{ fontSize:15, fontWeight: 600, color:V.ink, letterSpacing:-0.3 }}>Einladung</div>
                 <ProgressDots step={step} />
               </div>
             </div>

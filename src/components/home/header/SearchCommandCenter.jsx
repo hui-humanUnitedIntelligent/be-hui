@@ -76,7 +76,7 @@ function SectionLabel({ children, color, action, onAction }) {
       marginBottom: 10,
     }}>
       <div style={{
-        fontSize: 10, fontWeight: 700, letterSpacing: ".08em",
+        fontSize: 10, fontWeight: 600, letterSpacing: ".08em",
         textTransform: "uppercase", color: color || T.inkFF,
       }}>{children}</div>
       {action && (
@@ -249,7 +249,7 @@ function KiPanel({ onSelect, onClose }) {
         background:"linear-gradient(135deg,rgba(14,196,184,0.07),rgba(14,196,184,0.015))",
         borderBottom:"1px solid rgba(14,196,184,0.08)",
       }}>
-        <div style={{ fontSize:12.5,fontWeight:700,color:T.teal,marginBottom:2,letterSpacing:"-0.01em" }}>
+        <div style={{ fontSize:12.5,fontWeight: 600,color:T.teal,marginBottom:2,letterSpacing:"-0.01em" }}>
           ✨ HUI KI kann dir helfen…
         </div>
         <div style={{ fontSize:10.5,color:T.inkF }}>Wähle einen Vorschlag</div>
@@ -316,11 +316,11 @@ function AllCategoriesSheet({ sheetRef, phase, query, onQueryChange, onSelect, o
         {/* Header + eigenes Suchfeld -- "Suche innerhalb der Kategorien" */}
         <div style={{ padding:"6px 20px 14px", flexShrink:0 }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
-            <div style={{ fontSize:16.5, fontWeight:700, color:T.ink, letterSpacing:"-0.01em" }}>Alle Kategorien</div>
+            <div style={{ fontSize:16.5, fontWeight: 600, color:T.ink, letterSpacing:"-0.01em" }}>Alle Kategorien</div>
             <button className="dc-tag" onClick={onClose} style={{
               width:28, height:28, borderRadius:"50%", background:"rgba(26,53,48,0.06)",
               border:"none", display:"flex", alignItems:"center", justifyContent:"center",
-              cursor:"pointer", fontSize:12, color:T.inkS, fontWeight:700,
+              cursor:"pointer", fontSize:12, color:T.inkS, fontWeight: 600,
             }}>✕</button>
           </div>
           <div style={{
@@ -346,7 +346,7 @@ function AllCategoriesSheet({ sheetRef, phase, query, onQueryChange, onSelect, o
               <button className="dc-tag" onClick={()=>onQueryChange("")} style={{
                 width:16, height:16, borderRadius:"50%", background:"rgba(26,53,48,0.10)",
                 border:"none", display:"flex", alignItems:"center", justifyContent:"center",
-                cursor:"pointer", fontSize:8, color:"rgba(26,53,48,0.55)", fontWeight:700, flexShrink:0,
+                cursor:"pointer", fontSize:8, color:"rgba(26,53,48,0.55)", fontWeight: 600, flexShrink:0,
               }}>✕</button>
             )}
           </div>
@@ -673,12 +673,12 @@ export default function SearchCommandCenter({
         )}
       </div>
       {query && (
-        <button className="dc-tag" onClick={e=>{e.stopPropagation();clearQuery();}} style={{flexShrink:0,width:18,height:18,borderRadius:"50%",background:"rgba(26,53,48,0.07)",border:"none",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:9,color:"rgba(26,53,48,0.55)",fontWeight:700}}>✕</button>
+        <button className="dc-tag" onClick={e=>{e.stopPropagation();clearQuery();}} style={{flexShrink:0,width:18,height:18,borderRadius:"50%",background:"rgba(26,53,48,0.07)",border:"none",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:9,color:"rgba(26,53,48,0.55)",fontWeight: 600}}>✕</button>
       )}
       <div ref={kiRef} style={{position:"relative",flexShrink:0}}>
         <button className="dc-tag" onClick={e=>{e.stopPropagation();open_();setShowKi(p=>!p);}} style={{display:"flex",alignItems:"center",gap:3,background:showKi?T.teal:"rgba(14,196,184,0.07)",border:"none",borderRadius:99,padding:"4px 9px",cursor:"pointer",transition:"background .18s ease",WebkitTapHighlightColor:"transparent"}}>
           <span style={{width:6,height:6,borderRadius:"50%",background:"rgba(14,196,184,0.4)",flexShrink:0,display:"inline-block"}} />
-          <span style={{fontSize:8.5,fontWeight:700,color:showKi?"white":`${T.teal}CC`,letterSpacing:".01em"}}>KI</span>
+          <span style={{fontSize:8.5,fontWeight: 600,color:showKi?"white":`${T.teal}CC`,letterSpacing:".01em"}}>KI</span>
         </button>
         {showKi && <KiPanel onSelect={handleKiSelect} onClose={()=>setShowKi(false)}/>}
       </div>
@@ -735,7 +735,7 @@ export default function SearchCommandCenter({
                 <button className="dc-tag" onClick={()=>removeCategory(cat.id)} style={{
                   width:18,height:18,borderRadius:"50%",background:"rgba(255,255,255,0.28)",
                   border:"none",display:"flex",alignItems:"center",justifyContent:"center",
-                  cursor:"pointer",fontSize:8.5,color:"#fff",fontWeight:700,marginLeft:2,
+                  cursor:"pointer",fontSize:8.5,color:"#fff",fontWeight: 600,marginLeft:2,
                 }}>✕</button>
               </div>
             ))}

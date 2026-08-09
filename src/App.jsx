@@ -246,7 +246,7 @@ class ErrorBoundary extends React.Component {
         alignItems:"center", justifyContent:"center", padding:32,
         background:"#F9F7F4", fontFamily:"Inter,sans-serif" }}>
         <div style={{ fontSize:48, marginBottom:16 }}>⚡️</div>
-        <div style={{ fontWeight:800, fontSize:20, color:"#1A1A1A", marginBottom:8 }}>
+        <div style={{ fontWeight: 600, fontSize:20, color:"#1A1A1A", marginBottom:8 }}>
           Kurzer Aussetzer
         </div>
         <div style={{ fontSize:13, color:"#888", textAlign:"center",
@@ -255,7 +255,7 @@ class ErrorBoundary extends React.Component {
         </div>
         <button onClick={() => window.location.reload()}
           style={{ padding:"13px 28px", borderRadius:14, background:"#16D7C5",
-            color:"white", border:"none", fontWeight:800, fontSize:14,
+            color:"white", border:"none", fontWeight: 600, fontSize:14,
             cursor:"pointer", boxShadow:"0 4px 18px rgba(22,215,197,0.3)" }}>
           Neu laden
         </button>
@@ -274,7 +274,7 @@ class ErrorBoundary extends React.Component {
           maxWidth:360, width:"100%", overflowX:"auto",
           textAlign:"left", wordBreak:"break-word",
         }}>
-          <div style={{ color:"#FF6B6B", fontWeight:800, marginBottom:6 }}>
+          <div style={{ color:"#FF6B6B", fontWeight: 600, marginBottom:6 }}>
             ⛔ {this.state.error?.name ?? "Error"}
           </div>
           <div style={{ color:"#FFD700", marginBottom:8 }}>
@@ -324,7 +324,7 @@ function HUILoader() {
       alignItems:"center", justifyContent:"center", padding:32,
       background:"linear-gradient(160deg,#0D1412 0%,#12100E 100%)",
       fontFamily:"Inter,sans-serif" }}>
-      <div style={{ fontWeight:800, fontSize:18, color:"rgba(255,255,255,0.90)",
+      <div style={{ fontWeight: 600, fontSize:18, color:"rgba(255,255,255,0.90)",
         marginTop:0, marginBottom:8 }}>
         Verbindung dauert länger als erwartet
       </div>
@@ -335,7 +335,7 @@ function HUILoader() {
       <button onClick={() => window.location.reload()}
         style={{ padding:"13px 28px", borderRadius:14,
           background:"linear-gradient(135deg,#16D7C5,#0FC4B2)",
-          color:"white", border:"none", fontWeight:800, fontSize:14,
+          color:"white", border:"none", fontWeight: 600, fontSize:14,
           cursor:"pointer", boxShadow:"0 4px 18px rgba(22,215,197,0.4)", marginBottom:10 }}>
         Neu laden
       </button>
@@ -381,7 +381,7 @@ function ContentUnavailablePage() {
       alignItems:"center", justifyContent:"center", padding:32,
       background:HUI.COLOR.cream, fontFamily:"inherit", textAlign:"center" }}>
       <div style={{ marginBottom:14, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)" }}><HUIImpactIcon size={42}/></div>
-      <div style={{ fontWeight:800, fontSize:18, color:HUI.COLOR.ink, marginBottom:8 }}>
+      <div style={{ fontWeight: 600, fontSize:18, color:HUI.COLOR.ink, marginBottom:8 }}>
         Inhalt nicht mehr verfügbar
       </div>
       <div style={{ fontSize:13.5, color:HUI.COLOR.ink+"99", maxWidth:280, lineHeight:1.6, marginBottom:26 }}>
@@ -389,7 +389,7 @@ function ContentUnavailablePage() {
       </div>
       <button onClick={() => navigate("/Home", { replace:true })}
         style={{ padding:"12px 26px", borderRadius:14, border:"none",
-          background:HUI.COLOR.teal, color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer" }}>
+          background:HUI.COLOR.teal, color:"#fff", fontWeight: 600, fontSize:14, cursor:"pointer" }}>
         Zurück zu HUI
       </button>
     </div>
@@ -529,7 +529,7 @@ function PublicProfileRouteWrapper() {
   );
   if (!profileData) return (
     <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'100vh', background:'#F7F5F0', gap:12 }}>
-      <div style={{ fontSize:18, fontWeight:700, color:'#1A1A18' }}>Profil nicht gefunden</div>
+      <div style={{ fontSize:18, fontWeight: 600, color:'#1A1A18' }}>Profil nicht gefunden</div>
       <button onClick={() => navigate(-1)} style={{ padding:'10px 24px', borderRadius:99, background:'#0EC4B8', color:'#fff', border:'none', fontWeight:600, cursor:'pointer' }}>Zurück</button>
     </div>
   );
@@ -603,7 +603,7 @@ function BlockedScreen() {
     }}>
       <div style={{ fontSize: 64, marginBottom: 24 }}>🚫</div>
       <div style={{
-        fontSize: 22, fontWeight: 800, color: '#fff',
+        fontSize: 22, fontWeight: 600, color: '#fff',
         marginBottom: 12, letterSpacing: -0.5,
       }}>Konto gesperrt</div>
       <div style={{

@@ -113,7 +113,7 @@ export function ExperienceCreateStep({
 
       {/* ── Headline ── */}
       <div style={{ marginBottom:24 }}>
-        <h1 style={{ fontSize:24, fontWeight:900, color:ET.ink,
+        <h1 style={{ fontSize:24, fontWeight: 600, color:ET.ink,
           letterSpacing:-0.6, margin:0, lineHeight:1.15 }}>
           Erlebnis öffnen<span style={{ color:ET.teal, marginLeft:3 }}>·</span>
         </h1>
@@ -129,7 +129,7 @@ export function ExperienceCreateStep({
         border:"1px solid rgba(10,191,184,0.12)",
         marginBottom:20,
       }}>
-        <div style={{ fontSize:11, fontWeight:700, color:ET.teal,
+        <div style={{ fontSize:11, fontWeight: 600, color:ET.teal,
           letterSpacing:0.5, marginBottom:8, textTransform:"uppercase" }}>
           Inspiration
         </div>
@@ -148,7 +148,7 @@ export function ExperienceCreateStep({
 
       {/* ── Titel ── */}
       <div style={{ marginBottom:16 }}>
-        <label style={{ fontSize:12, fontWeight:700, color:ET.ink3,
+        <label style={{ fontSize:12, fontWeight: 600, color:ET.ink3,
           letterSpacing:0.3, display:"block", marginBottom:6 }}>
           Titel
         </label>
@@ -163,7 +163,7 @@ export function ExperienceCreateStep({
 
       {/* ── Beschreibung ── */}
       <div style={{ marginBottom:16 }}>
-        <label style={{ fontSize:12, fontWeight:700, color:ET.ink3,
+        <label style={{ fontSize:12, fontWeight: 600, color:ET.ink3,
           letterSpacing:0.3, display:"block", marginBottom:6 }}>
           Beschreibung
         </label>
@@ -186,7 +186,7 @@ export function ExperienceCreateStep({
 
       {/* ── Kategorie ── */}
       <div style={{ marginBottom:20 }}>
-        <label style={{ fontSize:12, fontWeight:700, color:ET.ink3,
+        <label style={{ fontSize:12, fontWeight: 600, color:ET.ink3,
           letterSpacing:0.3, display:"block", marginBottom:6 }}>
           Kategorie <span style={{ fontWeight:400, color:ET.ink4 }}>(optional)</span>
         </label>
@@ -222,7 +222,7 @@ export function ExperienceCreateStep({
 
       {/* ── Medien ── */}
       <div style={{ marginBottom:22 }}>
-        <div style={{ fontSize:14, fontWeight:800, color:ET.ink,
+        <div style={{ fontSize:14, fontWeight: 600, color:ET.ink,
           marginBottom:12 }}>Medien hinzufügen</div>
 
         <div style={{ display:"flex", gap:10, marginBottom:12 }}>
@@ -261,7 +261,7 @@ export function ExperienceCreateStep({
           ? `linear-gradient(135deg, ${ET.teal} 0%, #06B6D4 100%)`
           : "rgba(26,26,46,0.08)",
         color: canNext ? "#fff" : ET.ink4,
-        fontSize:16, fontWeight:800,
+        fontSize:16, fontWeight: 600,
         cursor: canNext ? "pointer" : "default",
         boxShadow: canNext ? "0 8px 24px rgba(10,191,184,0.26)" : "none",
         transition:"all 0.22s ease",

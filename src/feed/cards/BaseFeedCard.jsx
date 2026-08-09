@@ -155,7 +155,7 @@ const CardAvatar = memo(function CardAvatar({ src, name, size = 38, isTalent = f
       border: isTalent ? "2px solid #16D7C5" : "1.5px solid "+T.tealLine,
       boxShadow: isTalent ? "0 0 8px rgba(22,215,197,0.30)" : "none",
       display:"flex",alignItems:"center",justifyContent:"center",
-      fontSize:size*0.38,fontWeight:700,color:T.teal,
+      fontSize:size*0.38,fontWeight: 600,color:T.teal,
     }}>
       {src && !err
         ? <img loading="lazy" decoding="async" src={optimizeAvatar(src)} alt={name||""} onError={() => setErr(true)}
@@ -317,7 +317,7 @@ export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
           <span
             onClick={onProfile}
             style={{
-              display:"block", fontSize:16, fontWeight:800,
+              display:"block", fontSize:16, fontWeight: 600,
               color:"#1A1A2E", letterSpacing:-0.3, lineHeight:1.25,
               cursor:"pointer", WebkitTapHighlightColor:"transparent",
             }}
@@ -366,7 +366,7 @@ export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
       {grund && (
         <div style={{ display:"flex", alignItems:"flex-start", gap:7, marginTop:9, marginBottom:10 }}>
           <span style={{
-            fontSize:30, fontWeight:900, color:"#F47355",
+            fontSize:30, fontWeight: 600, color:"#F47355",
             lineHeight:0.7, flexShrink:0, marginTop:5,
             fontFamily:"Georgia,'Times New Roman',serif",
             userSelect:"none",
@@ -429,7 +429,7 @@ export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge
             onClick={onProfile ? () => onProfile() : undefined}
             onPointerDown={uid ? () => prefetchProfile(uid) : undefined}
             onMouseEnter={uid ? () => prefetchProfile(uid) : undefined}
-            style={{ fontSize:13.5,fontWeight:700,color:T.ink,letterSpacing:-0.2,
+            style={{ fontSize:13.5,fontWeight: 600,color:T.ink,letterSpacing:-0.2,
               overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",
               cursor: onProfile ? "pointer" : "default",
               WebkitTapHighlightColor:"transparent",
@@ -455,7 +455,7 @@ export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge
           padding:"3px 9px",borderRadius:20,
           background: badge.bg||T.tealSoft,
           border:"1px solid "+(badge.border||T.tealLine),
-          fontSize:10,fontWeight:700,color:badge.color||T.teal,
+          fontSize:10,fontWeight: 600,color:badge.color||T.teal,
           flexShrink:0,letterSpacing:0.3,
         }}>
           {badge.label}
@@ -796,7 +796,7 @@ export const ActionBtn = memo(function ActionBtn({
       {(count != null || label) && (
         <span style={{
           fontSize: 12.5, color: col,
-          fontWeight: active ? 700 : 400,
+          fontWeight: active ? 600 : 400,
           transition: "color 0.18s ease",
         }}>
           {count != null ? count : label}
@@ -997,7 +997,7 @@ export default React.memo(function BaseFeedCard({
           <div style={{
             padding:"3px 10px", borderRadius:20,
             background:badge.bg||T.tealSoft, border:"1px solid "+(badge.border||T.tealLine),
-            fontSize:10, fontWeight:700, color:badge.color||T.teal, letterSpacing:0.3,
+            fontSize:10, fontWeight: 600, color:badge.color||T.teal, letterSpacing:0.3,
           }}>{badge.label}</div>
         </div>
       )}

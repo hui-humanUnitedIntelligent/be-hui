@@ -95,7 +95,7 @@ function Toast({ t, onDismiss }) {
         width:22, height:22, borderRadius:8,
         background:"rgba(255,255,255,0.22)",
         display:"flex", alignItems:"center", justifyContent:"center",
-        fontSize:12, fontWeight:800, color:"#fff", flexShrink:0,
+        fontSize:12, fontWeight: 600, color:"#fff", flexShrink:0,
       }}>{cfg.icon}</span>
       <span style={{
         fontSize:14, fontWeight:600,

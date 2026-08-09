@@ -161,7 +161,7 @@ export default function SupportFlow({ creator, visible, onClose, sourceType="pro
         {/* ── FORM ── */}
         {phase === "form" && (
           <>
-            <div style={{ fontSize: 20, fontWeight: 800, color: T.ink, marginBottom: 4, textAlign: "center" }}>
+            <div style={{ fontSize: 20, fontWeight: 600, color: T.ink, marginBottom: 4, textAlign: "center" }}>
               {creatorName} unterstützen
             </div>
             <div style={{ fontSize: 14, color: T.soft, textAlign: "center", marginBottom: 24 }}>
@@ -179,7 +179,7 @@ export default function SupportFlow({ creator, visible, onClose, sourceType="pro
                     padding: "10px 20px", borderRadius: 14, border: "none",
                     background: amount === amt && !custom ? T.teal : "rgba(26,26,46,0.06)",
                     color: amount === amt && !custom ? "#fff" : T.ink,
-                    fontSize: 16, fontWeight: 700, cursor: "pointer",
+                    fontSize: 16, fontWeight: 600, cursor: "pointer",
                     transition: "all 0.2s",
                   }}
                 >
@@ -240,7 +240,7 @@ export default function SupportFlow({ creator, visible, onClose, sourceType="pro
               style={{
                 width: "100%", padding: "16px", borderRadius: 14, border: "none",
                 background: `linear-gradient(135deg, ${T.teal}, ${T.coral})`,
-                color: "#fff", fontSize: 16, fontWeight: 700,
+                color: "#fff", fontSize: 16, fontWeight: 600,
                 cursor: "pointer", transition: "opacity 0.2s",
                 animation: "sf-glow 2.5s ease infinite",
               }}
@@ -293,7 +293,7 @@ export default function SupportFlow({ creator, visible, onClose, sourceType="pro
               marginBottom: 24, animation: "sf-glow 2s ease infinite",
               boxShadow: "0 0 48px rgba(22,215,197,0.40)", fontSize: 36,
             }}>✦</div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: T.ink, textAlign: "center", marginBottom: 10 }}>
+            <div style={{ fontSize: 22, fontWeight: 600, color: T.ink, textAlign: "center", marginBottom: 10 }}>
               Deine Geste ist angekommen
             </div>
             <div style={{ fontSize: 15, color: T.soft, textAlign: "center", lineHeight: 1.6 }}>
@@ -305,7 +305,7 @@ export default function SupportFlow({ creator, visible, onClose, sourceType="pro
               className="sf-tap"
               style={{
                 marginTop: 28, padding: "12px 32px", borderRadius: 14, border: "none",
-                background: T.teal, color: "#fff", fontSize: 15, fontWeight: 700,
+                background: T.teal, color: "#fff", fontSize: 15, fontWeight: 600,
                 cursor: "pointer",
               }}
             >
@@ -317,7 +317,7 @@ export default function SupportFlow({ creator, visible, onClose, sourceType="pro
         {/* ── ERROR ── */}
         {phase === "error" && (
           <div style={{ textAlign: "center", padding: "16px 0 8px" }}>
-            <div style={{ fontSize: 18, fontWeight: 700, color: "#FF5B5B", marginBottom: 8 }}>Fehler</div>
+            <div style={{ fontSize: 18, fontWeight: 600, color: "#FF5B5B", marginBottom: 8 }}>Fehler</div>
             <div style={{ fontSize: 14, color: T.soft, marginBottom: 28, lineHeight: 1.5 }}>
               {errMsg || "Etwas ist schiefgegangen."}
             </div>

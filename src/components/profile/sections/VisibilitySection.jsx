@@ -68,7 +68,7 @@ export function VisibilitySection({
         <div style={{ display:"flex", alignItems:"center", gap:10, flex:1, minWidth:0 }}>
           <span style={{ fontSize:16, flexShrink:0 }}>{currentOpt.icon}</span>
           <div>
-            <div style={{ fontSize:13, fontWeight:700, color:T.ink }}>{currentOpt.label}</div>
+            <div style={{ fontSize:13, fontWeight: 600, color:T.ink }}>{currentOpt.label}</div>
             <div style={{ fontSize:11, color:T.inkFaint }}>{currentOpt.sub}</div>
           </div>
         </div>
@@ -97,7 +97,7 @@ export function VisibilitySection({
           }}>
             <div style={{ width:36, height:4, borderRadius:99,
               background:"rgba(26,26,24,0.12)", margin:"0 auto 20px" }}/>
-            <div style={{ fontSize:16, fontWeight:800, color:T.ink, marginBottom:6 }}>
+            <div style={{ fontSize:16, fontWeight: 600, color:T.ink, marginBottom:6 }}>
               
             </div>
             {isOwner ? (
@@ -116,7 +116,7 @@ export function VisibilitySection({
                     }}>
                     <span style={{ fontSize:20 }}>{opt.icon}</span>
                     <div>
-                      <div style={{ fontSize:14, fontWeight:700, color:T.ink }}>{opt.label}</div>
+                      <div style={{ fontSize:14, fontWeight: 600, color:T.ink }}>{opt.label}</div>
                       <div style={{ fontSize:12, color:T.inkFaint }}>{opt.sub}</div>
                     </div>
                     {current === opt.key && (
@@ -134,7 +134,7 @@ export function VisibilitySection({
             <button onClick={() => setShowSheet(false)} style={{
               width:"100%", padding:"14px", borderRadius:T.r99, border:"none",
               background:`linear-gradient(135deg,${T.teal},#0DBBAF)`,
-              color:"white", fontSize:15, fontWeight:700,
+              color:"white", fontSize:15, fontWeight: 600,
               cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
               boxShadow:"0 4px 18px rgba(14,196,184,0.26)", marginTop:8,
             }}>

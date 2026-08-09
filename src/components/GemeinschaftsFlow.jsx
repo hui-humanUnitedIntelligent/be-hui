@@ -67,7 +67,7 @@ const CSS = `
     width:100%; padding:18px 24px;
     background:linear-gradient(135deg,${T.teal},#0AADA3);
     color:#fff; border:none; border-radius:${T.r99}px;
-    font-size:17px; font-weight:800; letter-spacing:0.01em;
+    font-size:17px; font-weight:600; letter-spacing:0.01em;
     cursor:pointer; font-family:inherit;
     box-shadow:0 4px 18px ${T.tealGlow};
     touch-action:manipulation;
@@ -181,7 +181,7 @@ function Step1({ onNext, onClose }) {
       <div style={{ textAlign:"center", marginTop:28 }}>
         <IlluWelcome/>
         <h2 style={{
-          fontSize:26, fontWeight:800, color:T.ink,
+          fontSize:26, fontWeight: 600, color:T.ink,
           letterSpacing:"-0.03em", lineHeight:1.2,
           margin:"20px 0 16px",
         }}>
@@ -216,7 +216,7 @@ function Step2({ onNext, onBack }) {
       <div style={{ textAlign:"center", marginTop:28 }}>
         <IlluBeitrag/>
         <h2 style={{
-          fontSize:26, fontWeight:800, color:T.ink,
+          fontSize:26, fontWeight: 600, color:T.ink,
           letterSpacing:"-0.03em", lineHeight:1.2,
           margin:"20px 0 16px",
         }}>
@@ -232,7 +232,7 @@ function Step2({ onNext, onBack }) {
         </p>
         <p style={{
           fontSize:16, lineHeight:1.75,
-          color:T.teal, fontWeight:700,
+          color:T.teal, fontWeight: 600,
           margin:"16px auto 0", maxWidth:280,
         }}>
           Was du gibst,<br/>kann für andere ein Geschenk sein.
@@ -267,7 +267,7 @@ function Step3({ onNext, onBack }) {
       <div style={{ textAlign:"center", marginTop:28 }}>
         <IlluWirkung/>
         <h2 style={{
-          fontSize:26, fontWeight:800, color:T.ink,
+          fontSize:26, fontWeight: 600, color:T.ink,
           letterSpacing:"-0.03em", lineHeight:1.2,
           margin:"20px 0 20px",
         }}>
@@ -329,7 +329,7 @@ function Step4({ onBack, onConfirm, loading }) {
       <Stepper step={3} total={4}/>
       <div style={{ textAlign:"center", marginTop:24, marginBottom:24 }}>
         <h2 style={{
-          fontSize:24, fontWeight:800, color:T.ink,
+          fontSize:24, fontWeight: 600, color:T.ink,
           letterSpacing:"-0.03em", lineHeight:1.2,
           margin:"0 0 8px",
         }}>
@@ -417,7 +417,7 @@ function StepSuccess({ onOpenProfile }) {
         <span style={{ fontSize:42, lineHeight:1 }}>🎉</span>
       </div>
       <h2 style={{
-        fontSize:24, fontWeight:800, color:T.ink,
+        fontSize:24, fontWeight: 600, color:T.ink,
         letterSpacing:"-0.03em", lineHeight:1.25,
         margin:"0 0 16px",
       }}>

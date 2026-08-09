@@ -198,7 +198,7 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
           borderTopLeftRadius:24, borderTopRightRadius:24, paddingTop:10 }}>
           <div style={{ width:36, height:4, borderRadius:99, background:"rgba(26,26,46,0.15)", margin:"0 auto 8px" }}/>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0 16px 10px" }}>
-            <span style={{ fontSize:11, fontWeight:700, color:T.teal, letterSpacing:".04em",
+            <span style={{ fontSize:11, fontWeight: 600, color:T.teal, letterSpacing:".04em",
               background:"rgba(13,196,181,0.10)", borderRadius:99, padding:"3px 10px" }}>
               {TYPE_LABEL[item?.type] || "Inhalt"}
             </span>
@@ -237,14 +237,14 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                     background:"rgba(13,196,181,0.14)" }}>
                     {item.author.avatar && <img loading="lazy" decoding="async" src={item.author.avatar} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>}
                   </div>
-                  <div style={{ fontSize:13.5, fontWeight:700, color:T.ink }}>{item.author.name}</div>
+                  <div style={{ fontSize:13.5, fontWeight: 600, color:T.ink }}>{item.author.name}</div>
 {/* kleiner Profil-Button entfernt — nur großer Button unten (2026-07-29) */}
                 </div>
               )}
 
               {/* Titel */}
               {item.title && (
-                <div style={{ fontSize:19, fontWeight:800, color:T.ink, lineHeight:1.3, marginBottom:8, letterSpacing:"-0.02em" }}>
+                <div style={{ fontSize:19, fontWeight: 600, color:T.ink, lineHeight:1.3, marginBottom:8, letterSpacing:"-0.02em" }}>
                   {item.title}
                 </div>
               )}
@@ -277,7 +277,7 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                       background:"rgba(13,196,181,0.10)", borderRadius:99,
                       padding:"7px 16px", marginBottom:16,
                     }}>
-                      <span style={{ fontSize:16, fontWeight:800, color:"rgba(0,150,136,1)" }}>{item.price}</span>
+                      <span style={{ fontSize:16, fontWeight: 600, color:"rgba(0,150,136,1)" }}>{item.price}</span>
                     </div>
                   )}
                   {/* "Talent buchen" — primärer CTA.
@@ -292,7 +292,7 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                       style={{
                         width:"100%", marginBottom:10, padding:"14px", borderRadius:14,
                         background:"rgba(13,196,181,1)", color:"#fff",
-                        fontSize:15, fontWeight:800, border:"none", cursor:"pointer",
+                        fontSize:15, fontWeight: 600, border:"none", cursor:"pointer",
                         letterSpacing:"-0.01em",
                       }}>
                       Talent buchen
@@ -305,7 +305,7 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                       style={{
                         width:"100%", marginBottom:12, padding:"13px", borderRadius:14,
                         background:"rgba(26,26,46,0.92)", color:"#fff",
-                        fontSize:14, fontWeight:700, border:"none", cursor:"pointer",
+                        fontSize:14, fontWeight: 600, border:"none", cursor:"pointer",
                       }}>
                       Talent-Profil ansehen
                     </button>
@@ -346,7 +346,7 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                   }
                 }} style={{
                   width:"100%", marginTop:16, padding:"13px", borderRadius:14,
-                  background:T.ink, color:"#fff", fontSize:14, fontWeight:700,
+                  background:T.ink, color:"#fff", fontSize:14, fontWeight: 600,
                 }}>
                   {item.type === "impact" || item.type === "project" || item.type === "projekt"
                     ? "Vollständige Ansicht öffnen"
@@ -370,7 +370,7 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                   }}
                   style={{
                     width:"100%", marginTop:16, padding:"13px", borderRadius:14,
-                    background:T.ink, color:"#fff", fontSize:14, fontWeight:700,
+                    background:T.ink, color:"#fff", fontSize:14, fontWeight: 600,
                     border:"none", cursor:"pointer", fontFamily:"inherit",
                     letterSpacing:"-0.01em",
                   }}

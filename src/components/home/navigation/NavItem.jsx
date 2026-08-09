@@ -213,7 +213,7 @@ export default function NavItem({ item, active, isActive, onPress, badge = 0 }) 
             position:"absolute", top:-3, right:-5,
             minWidth:14, height:14, borderRadius:7,
             background:"linear-gradient(135deg,#FF5F5F,rgba(244,115,85,0.9))",
-            color:"white", fontSize:7.5, fontWeight:800,
+            color:"white", fontSize:7.5, fontWeight: 600,
             display:"flex", alignItems:"center", justifyContent:"center",
             padding:"0 3px", border:"1.5px solid rgba(255,251,248,0.96)",
             pointerEvents:"none",

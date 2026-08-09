@@ -55,7 +55,7 @@ export default function StudioOverviewPage({ onNavigate }) {
     }}>
       {/* Begrüßung */}
       <h1 style={{
-        fontSize: 28, fontWeight: 700, color: C.ink,
+        fontSize: 28, fontWeight: 600, color: C.ink,
         marginBottom: 8, lineHeight: 1.3,
       }}>
         Willkommen, {displayName}

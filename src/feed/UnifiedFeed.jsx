@@ -175,7 +175,7 @@ function FeedWelcomeHeader({ currentUser }) {
           <div>
             <h1 style={{
               margin: 0, padding: 0,
-              fontSize: 26, fontWeight: 800,
+              fontSize: 26, fontWeight: 600,
               color: INK, letterSpacing: -0.8,
               lineHeight: 1.15,
             }}>
@@ -224,7 +224,7 @@ function FeedWelcomeHeader({ currentUser }) {
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: 11,
             }}>📈</div>
-            <span style={{ fontSize: 14, fontWeight: 700, color: INK, letterSpacing: -0.2 }}>
+            <span style={{ fontSize: 14, fontWeight: 600, color: INK, letterSpacing: -0.2 }}>
               Heute auf HUI
             </span>
           </div>
@@ -266,7 +266,7 @@ function FeedWelcomeHeader({ currentUser }) {
               {/* Zahl + Label */}
               <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
                 <span style={{
-                  fontSize: 21, fontWeight: 800, color: INK,
+                  fontSize: 21, fontWeight: 600, color: INK,
                   lineHeight: 1, letterSpacing: -0.7,
                 }}>
                   {s.count}

@@ -97,7 +97,7 @@ function ProjektCardItem({ p, onPress, onAuthorPress }) {
             position:"absolute", top:10, right:10,
             background: rankBadge.bg,
             borderRadius: 8,
-            fontSize: 10, fontWeight: 700, color:"#fff",
+            fontSize: 10, fontWeight: 600, color:"#fff",
             padding: "3px 9px",
             letterSpacing: "0.02em",
             boxShadow: "0 1px 4px rgba(0,0,0,0.18)",
@@ -113,7 +113,7 @@ function ProjektCardItem({ p, onPress, onAuthorPress }) {
       <div style={{ padding: "14px 14px 12px" }}>
         {/* Projekt-Name */}
         <div style={{
-          fontSize: 15, fontWeight: 700,
+          fontSize: 15, fontWeight: 600,
           color: T.ink, lineHeight: 1.35,
           marginBottom: 5,
           overflow: "hidden",
@@ -336,7 +336,7 @@ export default function ProjekteAllModal({ isOpen, onClose, onPressItem }) {
         <div style={{ padding:"16px 16px 8px", background:T.white, borderBottom:`1px solid ${T.border}`, flexShrink:0 }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
             <div>
-              <div style={{ fontSize:17, fontWeight:800, color:T.ink }}>Projekte & Initiativen</div>
+              <div style={{ fontSize:17, fontWeight: 600, color:T.ink }}>Projekte & Initiativen</div>
               <div style={{ fontSize:11.5, color:T.inkFaint }}>Gemeinsam echte Wirkung schaffen</div>
             </div>
             <button onClick={onClose} style={{ background:"none", border:"none", fontSize:22, cursor:"pointer", color:T.inkSoft, padding:4 }}>✕</button>
@@ -348,7 +348,7 @@ export default function ProjekteAllModal({ isOpen, onClose, onPressItem }) {
           <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:6 }}>
             {SORT_OPTIONS.map(opt => (
               <button key={opt.key} onClick={() => setSort(opt.key)} style={{
-                flexShrink:0, padding:"6px 12px", borderRadius:99, fontSize:12, fontWeight:700,
+                flexShrink:0, padding:"6px 12px", borderRadius:99, fontSize:12, fontWeight: 600,
                 border:`1px solid ${sort === opt.key ? T.teal : T.border}`,
                 background: sort === opt.key ? "rgba(14,196,184,0.12)" : T.white,
                 color: sort === opt.key ? T.tealDeep : T.inkSoft,

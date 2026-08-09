@@ -193,7 +193,7 @@ export default function StudioFreigaben() {
       padding: '40px 32px', maxWidth: 680,
       fontFamily: "Inter, sans-serif",
     }}>
-      <h2 style={{ fontSize: 24, fontWeight: 700, color: C.ink, marginBottom: 8 }}>Freigaben</h2>
+      <h2 style={{ fontSize: 24, fontWeight: 600, color: C.ink, marginBottom: 8 }}>Freigaben</h2>
       <p style={{ fontSize: 15, color: C.muted, marginBottom: 20 }}>
         Talent-Anträge, Werke, Erlebnisse und Projekte — alle an einem Ort.
       </p>
@@ -264,7 +264,7 @@ export default function StudioFreigaben() {
           <div onClick={e => e.stopPropagation()} style={{
             background: C.white, borderRadius: 16, padding: 24, maxWidth: 400, width: '90%',
           }}>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 12 }}>
+            <h3 style={{ fontSize: 16, fontWeight: 600, color: C.ink, marginBottom: 12 }}>
               „{rejectItem._label}" ablehnen
             </h3>
             <textarea

@@ -22,13 +22,13 @@ const AVAIL_TIMES = [
 /* ── Section Label ───────────────────────────────────────────── */
 function SLabel({ n, title }) {
   return (
-    <div style={{ fontSize:14, fontWeight:900, color:ET.ink,
+    <div style={{ fontSize:14, fontWeight: 600, color:ET.ink,
       marginBottom:12, display:"flex", alignItems:"center", gap:8 }}>
       <div style={{
         width:22, height:22, borderRadius:7,
         background:`linear-gradient(135deg, ${ET.teal}, #06B6D4)`,
         display:"flex", alignItems:"center", justifyContent:"center",
-        fontSize:11, fontWeight:900, color:"#fff", flexShrink:0,
+        fontSize:11, fontWeight: 600, color:"#fff", flexShrink:0,
       }}>{n}</div>
       {title}
     </div>
@@ -57,7 +57,7 @@ function PricePills({ value, onChange }) {
             padding:"11px 10px", borderRadius:14, border:"none",
             background: active ? ET.teal : "rgba(26,26,46,0.05)",
             color: active ? "#fff" : ET.ink2,
-            fontSize:13, fontWeight:700, cursor:"pointer",
+            fontSize:13, fontWeight: 600, cursor:"pointer",
             display:"flex", alignItems:"center", gap:8,
             transition:"all 0.18s ease",
             boxShadow: active ? `0 4px 16px rgba(10,191,184,0.26)` : "none",
@@ -84,7 +84,7 @@ function DurationPills({ value, onChange }) {
               ? `linear-gradient(135deg, ${ET.teal}, #06B6D4)`
               : "rgba(26,26,46,0.06)",
             color: active ? "#fff" : ET.ink2,
-            fontSize:13, fontWeight:700, cursor:"pointer",
+            fontSize:13, fontWeight: 600, cursor:"pointer",
             transition:"all 0.18s ease",
             boxShadow: active ? "0 4px 14px rgba(10,191,184,0.24)" : "none",
           }}>{d}</button>
@@ -110,7 +110,7 @@ function LocationPills({ value, onChange }) {
             flex:1, padding:"11px 8px", borderRadius:14, border:"none",
             background: active ? ET.violet : "rgba(26,26,46,0.05)",
             color: active ? "#fff" : ET.ink2,
-            fontSize:13, fontWeight:700, cursor:"pointer",
+            fontSize:13, fontWeight: 600, cursor:"pointer",
             display:"flex", flexDirection:"column",
             alignItems:"center", gap:4,
             transition:"all 0.18s ease",
@@ -141,7 +141,7 @@ function DayPicker({ value, onChange }) {
               ? `linear-gradient(135deg, ${ET.teal}, #06B6D4)`
               : "rgba(26,26,46,0.06)",
             color: active ? "#fff" : ET.ink3,
-            fontSize:12, fontWeight:700, cursor:"pointer",
+            fontSize:12, fontWeight: 600, cursor:"pointer",
             transition:"all 0.15s ease",
           }}>{d.l}</button>
         );
@@ -168,7 +168,7 @@ function TimePills({ value, onChange }) {
             cursor:"pointer", textAlign:"left",
             transition:"all 0.16s ease",
           }}>
-            <div style={{ fontSize:13, fontWeight:700,
+            <div style={{ fontSize:13, fontWeight: 600,
               color: active ? ET.teal : ET.ink2 }}>{t.l}</div>
             <div style={{ fontSize:11, color:ET.ink4, marginTop:1 }}>{t.sub}</div>
           </button>
@@ -210,7 +210,7 @@ export function ExperienceDetailsStep({ form, onFormChange, onNext }) {
       animation:"efFadeStep 0.28s ease both" }}>
 
       <div style={{ marginBottom:24 }}>
-        <h1 style={{ fontSize:22, fontWeight:900, color:ET.ink,
+        <h1 style={{ fontSize:22, fontWeight: 600, color:ET.ink,
           letterSpacing:-0.5, margin:0 }}>
           Angebotsdetails<span style={{ color:ET.teal, marginLeft:3 }}>·</span>
         </h1>
@@ -289,7 +289,7 @@ export function ExperienceDetailsStep({ form, onFormChange, onNext }) {
       <SLabel n="4" title="Verfügbarkeit" />
 
       <div style={{ marginBottom:10 }}>
-        <div style={{ fontSize:12, fontWeight:700, color:ET.ink3,
+        <div style={{ fontSize:12, fontWeight: 600, color:ET.ink3,
           letterSpacing:0.3, marginBottom:8 }}>WOCHENTAGE</div>
         <DayPicker
           value={form.availDays}
@@ -298,7 +298,7 @@ export function ExperienceDetailsStep({ form, onFormChange, onNext }) {
       </div>
 
       <div style={{ marginTop:12, marginBottom:10 }}>
-        <div style={{ fontSize:12, fontWeight:700, color:ET.ink3,
+        <div style={{ fontSize:12, fontWeight: 600, color:ET.ink3,
           letterSpacing:0.3, marginBottom:8 }}>UHRZEITEN</div>
         <TimePills
           value={form.availTimes}
@@ -307,7 +307,7 @@ export function ExperienceDetailsStep({ form, onFormChange, onNext }) {
       </div>
 
       <div style={{ marginTop:14, marginBottom:14 }}>
-        <div style={{ fontSize:12, fontWeight:700, color:ET.ink3,
+        <div style={{ fontSize:12, fontWeight: 600, color:ET.ink3,
           letterSpacing:0.3, marginBottom:8 }}>MAX. TEILNEHMENDE</div>
         <div style={{ position:"relative" }}>
           <input
@@ -337,7 +337,7 @@ export function ExperienceDetailsStep({ form, onFormChange, onNext }) {
       <button onClick={onNext} style={{
         width:"100%", height:54, borderRadius:18, border:"none",
         background:`linear-gradient(135deg, ${ET.teal} 0%, #06B6D4 100%)`,
-        color:"#fff", fontSize:16, fontWeight:800, cursor:"pointer",
+        color:"#fff", fontSize:16, fontWeight: 600, cursor:"pointer",
         boxShadow:"0 8px 24px rgba(10,191,184,0.26)",
         marginBottom:4,
       }}>Weiter →</button>

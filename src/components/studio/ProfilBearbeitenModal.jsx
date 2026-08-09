@@ -279,7 +279,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
           padding:"10px 20px 14px", flexShrink:0,
         }}>
           <div>
-            <div style={{ fontSize:18, fontWeight:800, color:T.ink, letterSpacing:"-0.02em" }}>
+            <div style={{ fontSize:18, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>
               {isTalent ? "Basis & Talent-Profil" : "Basis-Profil"}
             </div>
           </div>
@@ -300,7 +300,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
             <button key={t.key} onClick={() => setTab(t.key)} style={{
               flex:1, padding:"8px 4px", borderRadius:T.r12-2,
               border:"none", cursor:"pointer", fontFamily:T.ff,
-              fontSize:12, fontWeight:700,
+              fontSize:12, fontWeight: 600,
               background: tab===t.key ? T.bgCard : "transparent",
               color: tab===t.key ? T.ink : T.inkSoft,
               boxShadow: tab===t.key ? "0 1px 4px rgba(26,26,24,0.10)" : "none",
@@ -462,7 +462,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
           <div style={{
             margin:"0 20px 8px", padding:"10px 14px", borderRadius:T.r12,
             background:T.greenSoft, border:`1px solid ${T.green}40`,
-            fontSize:13, color:T.green, fontWeight:700, flexShrink:0,
+            fontSize:13, color:T.green, fontWeight: 600, flexShrink:0,
           }}>
             ✅ Gespeichert! Profil wurde aktualisiert.
           </div>
@@ -481,7 +481,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
                 ? "rgba(26,26,24,0.08)"
                 : `linear-gradient(135deg, ${T.teal}, ${T.tealDeep})`,
               color: (saving || !!usernameErr) ? T.inkSoft : "#fff",
-              fontSize:15, fontWeight:800, fontFamily:T.ff,
+              fontSize:15, fontWeight: 600, fontFamily:T.ff,
               letterSpacing:"-0.01em",
               boxShadow: (saving || !!usernameErr) ? "none" : "0 4px 16px rgba(14,196,184,0.30)",
               display:"flex", alignItems:"center", justifyContent:"center", gap:8,
@@ -507,7 +507,7 @@ function FieldGroup({ label, hint, hintColor, children }) {
   return (
     <div>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:6 }}>
-        <label style={{ fontSize:12, fontWeight:700, color:T.ink, letterSpacing:"-0.01em" }}>
+        <label style={{ fontSize:12, fontWeight: 600, color:T.ink, letterSpacing:"-0.01em" }}>
           {label}
         </label>
         {hint && (

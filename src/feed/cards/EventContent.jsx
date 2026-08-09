@@ -45,13 +45,13 @@ export default function EventContent({ item, onProfile, onReaction, onShare }) {
       {/* Badge · Titel */}
       <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom: metaParts.length ? 6 : 0, flexWrap:"nowrap" }}>
         <span style={{
-          flexShrink:0, fontSize:10.5, fontWeight:700, color:badgeColor,
+          flexShrink:0, fontSize:10.5, fontWeight: 600, color:badgeColor,
           background:badgeBg, border:"1px solid "+badgeBorder,
           borderRadius:99, padding:"3px 9px", letterSpacing:0.2, whiteSpace:"nowrap",
         }}>{badgeLabel}</span>
         {title ? (
           <span style={{
-            fontSize:15, fontWeight:700, color:INK,
+            fontSize:15, fontWeight: 600, color:INK,
             lineHeight:1.3, letterSpacing:"-0.02em",
             overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
           }}>{title}</span>

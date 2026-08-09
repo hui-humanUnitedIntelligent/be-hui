@@ -14,7 +14,7 @@ import { useRef, useEffect, useState } from "react";
 export default function CanvasAmount({
   value,
   fontSize = 15,
-  fontWeight = 800,
+  fontWeight = 600,
   color = "#1A1A18",
   fontFamily = "Inter, sans-serif",
   style = {},

@@ -286,7 +286,7 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
                 {mountedItem.author.avatar && <img loading="lazy" decoding="async" src={optimizeAvatar(mountedItem.author.avatar)} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>}
               </div>
               <div style={{ minWidth:0, flex:1 }}>
-                <div style={{ fontSize:14.5, fontWeight:700, color:T.ink }}>{mountedItem.author.name}</div>
+                <div style={{ fontSize:14.5, fontWeight: 600, color:T.ink }}>{mountedItem.author.name}</div>
                 <div style={{ fontSize:12, color:T.inkFaint, display:"flex", gap:8, flexWrap:"wrap" }}>
                   {mountedItem.location && <span style={{display:"flex",alignItems:"center",gap:3}}><HUILocationIcon size={12}/>{mountedItem.location}</span>}
                   {mountedItem.createdAt && <span>🕐 {mountedItem.createdAt}</span>}
@@ -314,7 +314,7 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
                 <div key={i} className="pfv-btn" onClick={() => onOpenPost?.(ref)} style={{
                   minWidth:140, border:`1px solid ${T.border}`, borderRadius:14, padding:12, flexShrink:0,
                 }}>
-                  <div style={{ fontSize:11, fontWeight:700, color:T.teal, marginBottom:4 }}>{ref.typeLabel}</div>
+                  <div style={{ fontSize:11, fontWeight: 600, color:T.teal, marginBottom:4 }}>{ref.typeLabel}</div>
                   <div style={{ fontSize:13, fontWeight:600, color:T.ink }}>{ref.title}</div>
                 </div>
               ))}
@@ -335,7 +335,7 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
           {/* 7) Weitere Beitraege dieses Wirkers */}
           {moreFromAuthor.length > 0 && (
             <div style={{ marginTop:22 }}>
-              <div style={{ fontSize:13, fontWeight:700, color:T.ink, marginBottom:10 }}>
+              <div style={{ fontSize:13, fontWeight: 600, color:T.ink, marginBottom:10 }}>
                 Weitere Beiträge von {mountedItem.author?.name || "diesem Wirker"}
               </div>
               <div className="pfv-strip" style={{ display:"flex", gap:8, overflowX:"auto" }}>
@@ -358,13 +358,13 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
             <button className="pfv-btn" onClick={() => handleReaction("save")} style={{
               flex:1, padding:"13px", borderRadius:14,
               background:"transparent", border:`1.5px solid ${T.ink}26`,
-              color:T.ink, fontSize:14, fontWeight:700,
+              color:T.ink, fontSize:14, fontWeight: 600,
             }}>
               {saved ? "Gemerkt ✓" : "Merken"}
             </button>
             <button className="pfv-btn" onClick={handleOpenProfile} style={{
               flex:2, padding:"13px", borderRadius:14,
-              background:T.ink, color:"#fff", fontSize:14, fontWeight:700,
+              background:T.ink, color:"#fff", fontSize:14, fontWeight: 600,
             }}>
               Profil ansehen
             </button>

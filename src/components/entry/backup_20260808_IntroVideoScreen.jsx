@@ -119,7 +119,7 @@ export default function IntroVideoScreen() {
             width: "80px", height: "80px", borderRadius: "50%",
             background: "linear-gradient(135deg, #00D4B1, #00A89A)",
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: "36px", fontWeight: 800, color: "#fff",
+            fontSize: "36px", fontWeight: 600, color: "#fff",
             animation: "introPulse 1.2s ease-in-out infinite",
             boxShadow: "0 0 40px rgba(0, 212, 177, 0.4)",
           }}>H</div>

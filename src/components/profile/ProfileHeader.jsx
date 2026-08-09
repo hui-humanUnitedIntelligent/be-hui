@@ -272,7 +272,7 @@ export function ProfileHeader({
                     ? "1.5px solid rgba(90,50,200,0.28)"
                     : `1.5px solid ${isTalentResolved ? "rgba(14,196,184,0.32)" : "rgba(14,196,184,0.18)"}`,
                   borderRadius:99, padding:"5px 11px",
-                  fontSize:11, fontWeight:700,
+                  fontSize:11, fontWeight: 600,
                   color: isSuperadmin ? "#5A32C8" : "#0AADA3",
                   whiteSpace:"nowrap",
                 }}>
@@ -282,7 +282,7 @@ export function ProfileHeader({
                       display:"inline-flex", alignItems:"center", justifyContent:"center",
                       width:14, height:14, borderRadius:"50%",
                       background:"rgba(90,50,200,0.15)", fontSize:9, lineHeight:1,
-                      color:"#5A32C8", fontWeight:900, flexShrink:0,
+                      color:"#5A32C8", fontWeight: 600, flexShrink:0,
                     }}>✦</span>
                   ) : (
                     <span style={{display:"flex",alignItems:"center"}}>
@@ -301,12 +301,12 @@ export function ProfileHeader({
                 fontSize:12, color:T.inkFaint,
               }}>
                 <span>
-                  <strong style={{ color:T.ink, fontWeight:700 }}>
+                  <strong style={{ color:T.ink, fontWeight: 600 }}>
                     {followCounts.followers}
                   </strong>{" "}Follower
                 </span>
                 <span>
-                  <strong style={{ color:T.ink, fontWeight:700 }}>
+                  <strong style={{ color:T.ink, fontWeight: 600 }}>
                     {followCounts.following}
                   </strong>{" "}folgt
                 </span>
@@ -331,7 +331,7 @@ export function ProfileHeader({
                   gap:"0 6px",
                 }}>
                   <span style={{
-                    fontSize:19, fontWeight:800, color:T.ink,
+                    fontSize:19, fontWeight: 600, color:T.ink,
                     letterSpacing:"-0.025em", lineHeight:1.2,
                     flexShrink:0,
                   }}>

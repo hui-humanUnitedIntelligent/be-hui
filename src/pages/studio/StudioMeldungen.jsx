@@ -65,7 +65,7 @@ export default function StudioMeldungen() {
       padding: '40px 32px', maxWidth: 680,
       fontFamily: "Inter, sans-serif",
     }}>
-      <h2 style={{ fontSize: 24, fontWeight: 700, color: C.ink, marginBottom: 8 }}>Meldungen</h2>
+      <h2 style={{ fontSize: 24, fontWeight: 600, color: C.ink, marginBottom: 8 }}>Meldungen</h2>
       <p style={{ fontSize: 15, color: C.muted, marginBottom: 24 }}>
         Kommentar-Meldungen und Moderationsfälle prüfen.
       </p>
