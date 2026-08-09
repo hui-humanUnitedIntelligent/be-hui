@@ -30,6 +30,10 @@ export default defineConfig({
           if (id.includes('@stripe')) {
             return 'stripe';
           }
+          // heic2any als eigener Chunk — wird nur bei HEIC-Upload dynamisch geladen
+          if (id.includes('heic2any') || id.includes('libheif-js')) {
+            return 'heic';
+          }
           if (id.includes('node_modules')) {
             return 'vendor';
           }
