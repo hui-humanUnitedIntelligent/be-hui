@@ -11,7 +11,7 @@
 // bis zu 4 Buttons direkt auf jeder Karte gestapelt ("unübersichtlich").
 // ══════════════════════════════════════════════════════════════════════
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import RecommendModal from "../profile/RecommendModal.jsx";
@@ -684,14 +684,52 @@ function EmptyState({ text }) {
   );
 }
 function SummaryRow({ label, value, color = T.ink }) {
+  // TEMP-DIAGNOSE (2026-08-09): Zeigt die tatsaechlich vom Geraet berechneten
+  // CSS-Werte fuer genau dieses Zahlen-Element live auf dem Bildschirm an --
+  // KEIN Fix, reine Fakten-Erhebung statt weiterem Raten. Wird nach Diagnose
+  // wieder entfernt.
+  const valRef = useRef(null);
+  const [dbg, setDbg] = useState("");
+  useEffect(() => {
+    if (!valRef.current) return;
+    const el = valRef.current;
+    const cs = window.getComputedStyle(el);
+    const rect = el.getBoundingClientRect();
+    const info = [
+      `font-family: ${cs.fontFamily}`,
+      `font-weight: ${cs.fontWeight}`,
+      `font-size: ${cs.fontSize}`,
+      `letter-spacing: ${cs.letterSpacing}`,
+      `word-spacing: ${cs.wordSpacing}`,
+      `font-variant-numeric: ${cs.fontVariantNumeric}`,
+      `font-kerning: ${cs.fontKerning}`,
+      `font-stretch: ${cs.fontStretch}`,
+      `text-rendering: ${cs.textRendering || document.body.style.textRendering || "n/a"}`,
+      `direction: ${cs.direction}`,
+      `unicode-bidi: ${cs.unicodeBidi}`,
+      `white-space: ${cs.whiteSpace}`,
+      `transform: ${cs.transform}`,
+      `zoom: ${cs.zoom}`,
+      `rect.width: ${rect.width.toFixed(2)}px (text: "${el.textContent}", ${el.textContent.length} Zeichen)`,
+      `devicePixelRatio: ${window.devicePixelRatio}`,
+      `visualViewport.scale: ${window.visualViewport ? window.visualViewport.scale : "n/a"}`,
+    ].join(" | ");
+    setDbg(info);
+  }, [value]);
   return (
     <div style={{
-      display: "flex", justifyContent: "space-between", alignItems: "center",
       background: T.bgCard, borderRadius: T.r12, padding: "12px 16px",
       border: `1px solid ${T.border}`, marginBottom: 14,
     }}>
-      <span style={{ fontSize: 12, fontWeight: 600, color: T.inkSoft }}>{label}</span>
-      <span className="hui-num-nowrap" style={{ fontSize: 15, fontWeight: 800, color }}>{value}</span>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <span style={{ fontSize: 12, fontWeight: 600, color: T.inkSoft }}>{label}</span>
+        <span ref={valRef} className="hui-num-nowrap" style={{ fontSize: 15, fontWeight: 800, color }}>{value}</span>
+      </div>
+      {dbg && (
+        <div style={{ fontSize: 8, color: "#FF3B30", marginTop: 8, wordBreak: "break-all", fontFamily: "monospace", lineHeight: 1.4, userSelect: "text" }}>
+          {dbg}
+        </div>
+      )}
     </div>
   );
 }
