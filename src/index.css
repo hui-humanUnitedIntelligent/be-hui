@@ -13,41 +13,52 @@
    Jede Weight-Datei einzeln — inkl. tnum (tabular-nums) OpenType Feature.
    Variable Font woff2 hatte auf manchen Android-Geräten Rendering-Probleme. */
 @font-face {
-  font-family: 'Inter'; font-style: normal; font-display: swap; font-weight: 400;
+  font-family: 'Inter'; font-style: normal; font-display: block; font-weight: 400;
   src: url('/fonts/Inter-Regular.woff2') format('woff2');
 }
 @font-face {
-  font-family: 'Inter'; font-style: normal; font-display: swap; font-weight: 500;
+  font-family: 'Inter'; font-style: normal; font-display: block; font-weight: 500;
   src: url('/fonts/Inter-Medium.woff2') format('woff2');
 }
 @font-face {
-  font-family: 'Inter'; font-style: normal; font-display: swap; font-weight: 600;
+  font-family: 'Inter'; font-style: normal; font-display: block; font-weight: 600;
   src: url('/fonts/Inter-SemiBold.woff2') format('woff2');
 }
 @font-face {
-  font-family: 'Inter'; font-style: normal; font-display: swap; font-weight: 700;
+  font-family: 'Inter'; font-style: normal; font-display: block; font-weight: 700;
   src: url('/fonts/Inter-Bold.woff2') format('woff2');
 }
 @font-face {
-  font-family: 'Inter'; font-style: normal; font-display: swap; font-weight: 800;
+  font-family: 'Inter'; font-style: normal; font-display: block; font-weight: 800;
   src: url('/fonts/Inter-ExtraBold.woff2') format('woff2');
 }
 @font-face {
-  font-family: 'Inter'; font-style: normal; font-display: swap; font-weight: 900;
+  font-family: 'Inter'; font-style: normal; font-display: block; font-weight: 900;
   src: url('/fonts/Inter-Black.woff2') format('woff2');
 }
 @font-face {
-  font-family: 'Inter'; font-style: normal; font-display: swap; font-weight: 300;
+  font-family: 'Inter'; font-style: normal; font-display: block; font-weight: 300;
   src: url('/fonts/Inter-Light.woff2') format('woff2');
 }
 @font-face {
-  font-family: 'Inter'; font-style: normal; font-display: swap; font-weight: 200;
+  font-family: 'Inter'; font-style: normal; font-display: block; font-weight: 200;
   src: url('/fonts/Inter-ExtraLight.woff2') format('woff2');
 }
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ── Override Tailwind base reset ────────────────────────────────────────────
+   Tailwind setzt html{font-family:ui-sans-serif,system-ui,sans-serif;...}
+   Das überschreibt unseren Inter-Font auf Root-Ebene. Zahlen die
+   fontVariantNumeric:"tabular-nums" nutzen fielen so auf die System-Schrift
+   zurück. Fix: html explizit auf Inter setzen + font-feature-settings
+   NICHT auf normal setzen (damit font-variant-numeric wirkt). ── */
+html {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display',
+               'Helvetica Neue', system-ui, sans-serif;
+}
 
 /* ── CSS Custom Properties ─────────────────────────────────────────────────── */
 :root {
