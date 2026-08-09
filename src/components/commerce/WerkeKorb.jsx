@@ -233,7 +233,6 @@ export function WerkeKorbButton({ count, onOpen, glowing }) {
           justifyContent: "center",
           lineHeight:  1,
           boxShadow:   `0 1px 6px rgba(13,196,181,0.40), 0 0 0 2px rgba(253,251,248,0.9)`,
-          fontVariantNumeric: "tabular-nums",
           letterSpacing: -0.3,
           transition:  `opacity ${DUR.micro}ms ${EASE.out}`,
         }}>
@@ -376,7 +375,6 @@ function KorbKarte({ item, onRemove, idx, removing, onQtyChange }) {
               fontSize:   14,
               fontWeight: 500,
               color:      C.muted,
-              fontVariantNumeric: "tabular-nums",
               letterSpacing: -0.1,
               lineHeight:  1.3,
               marginBottom: canQty ? 10 : 0,
@@ -426,7 +424,6 @@ function KorbKarte({ item, onRemove, idx, removing, onQtyChange }) {
                 color:      C.inkMid,
                 minWidth:   22,
                 textAlign:  "center",
-                fontVariantNumeric: "tabular-nums",
                 letterSpacing: -0.1,
               }}>
                 {qty}
@@ -881,8 +878,7 @@ function PreisBlock({ werke, versand, rabatt }) {
           color:      C.inkMid,
           letterSpacing: -0.5,
           lineHeight: 1.15,
-          fontVariantNumeric: "tabular-nums",
-        }}>
+          }}>
           {fmt(werke)}
         </div>
       </div>
@@ -910,7 +906,7 @@ function PreisBlock({ werke, versand, rabatt }) {
           alignItems:"center", marginBottom:5 }}>
           <span style={{ fontSize:13, color:C.muted }}>{r.label}</span>
           <span style={{ fontSize:13, fontWeight:500, color:r.color,
-            fontVariantNumeric:"tabular-nums" }}>
+            }}>
             {r.custom ?? fmt(r.val)}
           </span>
         </div>
@@ -919,7 +915,7 @@ function PreisBlock({ werke, versand, rabatt }) {
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline" }}>
         <span style={{ fontSize:13, color:C.ink, fontWeight:600 }}>Gesamt</span>
         <span style={{ fontSize:20, fontWeight:700, color:C.ink,
-          fontVariantNumeric:"tabular-nums", letterSpacing:-0.5 }}>
+          letterSpacing:-0.5 }}>
           {fmt(gesamt)}
         </span>
       </div>

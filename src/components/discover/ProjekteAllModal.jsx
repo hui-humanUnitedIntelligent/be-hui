@@ -168,8 +168,7 @@ function ProjektCardItem({ p, onPress, onAuthorPress }) {
           {p.funding_goal > 0 && (
             <span style={{
               fontSize: 11, color: T.inkFaint, fontWeight: 500,
-              fontVariantNumeric: "tabular-nums",
-            }}>
+              }}>
               <span style={{ color: T.tealDeep, fontWeight: 600 }}>
                 {formatNumberDE((p.current_amount_eur || 0), { maximumFractionDigits:0 })} €
               </span>

@@ -75,8 +75,7 @@ function ScoreBadge({ score, label, size = 'normal' }) {
     <div style={{ textAlign: 'center' }}>
       <div style={{
         fontSize: fs, fontWeight: 800, color,
-        fontVariantNumeric: 'tabular-nums',
-      }}>
+        }}>
         {pct}<span style={{ fontSize: fs * 0.5, opacity: 0.6 }}>%</span>
       </div>
       {label && <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{label}</div>}
@@ -91,7 +90,7 @@ function MetricRow({ label, value, unit = '', warn, ok }) {
     <div style={{ display: 'flex', justifyContent: 'space-between',
       padding: '7px 0', borderBottom: `1px solid ${C.border}`, alignItems: 'center' }}>
       <span style={{ fontSize: 13, color: C.muted }}>{label}</span>
-      <span style={{ fontSize: 13, fontWeight: 700, color, fontVariantNumeric: 'tabular-nums' }}>
+      <span style={{ fontSize: 13, fontWeight: 700, color, }}>
         {value ?? '–'}{unit && value != null ? unit : ''}
       </span>
     </div>

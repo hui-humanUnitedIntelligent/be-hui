@@ -153,7 +153,7 @@ function StripeForm({ total, impact, orderId, onSuccess, onError }) {
             marginBottom: 8, alignItems: "center",
           }}>
             <span style={{ fontSize: 13, color: C.muted }}>Unterstützung</span>
-            <span style={{ fontSize: 13, color: C.inkMid, fontVariantNumeric: "tabular-nums" }}>
+            <span style={{ fontSize: 13, color: C.inkMid, }}>
               {total.toFixed(2).replace(".", ",")} €
             </span>
           </div>
@@ -175,7 +175,7 @@ function StripeForm({ total, impact, orderId, onSuccess, onError }) {
             <span style={{ fontSize: 14, fontWeight: 700, color: C.ink }}>Gesamt</span>
             <span style={{
               fontSize: 16, fontWeight: 800, color: C.ink,
-              fontVariantNumeric: "tabular-nums", letterSpacing: -0.3,
+              letterSpacing: -0.3,
             }}>
               {total.toFixed(2).replace(".", ",")} €
             </span>

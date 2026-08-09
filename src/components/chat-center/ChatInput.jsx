@@ -261,7 +261,7 @@ export default function ChatInput({ onSend, sending = false, placeholder = "Schr
                 }}/>
               </div>
               <VoiceWaveform levels={waveLvls}/>
-              <span style={{ fontSize:12, color:"rgba(80,80,80,0.65)", flexShrink:0, fontVariantNumeric:"tabular-nums" }}>
+              <span style={{ fontSize:12, color:"rgba(80,80,80,0.65)", flexShrink:0, }}>
                 {String(Math.floor(recSecs/60)).padStart(2,"0")}:{String(recSecs%60).padStart(2,"0")}
               </span>
               <button onClick={cancelRecording} style={{
