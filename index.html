@@ -47,14 +47,17 @@
     <meta name="twitter:description" content="Ein ruhiges kreatives Netzwerk für Menschen die wirken." />
     <meta name="twitter:image" content="/hui-og-image.png" />
 
-    <!-- Fonts: Inter -- lokal gebündelt in src/index.css (@font-face),
-         Dateien in public/fonts/. KEIN Google-Fonts-CDN mehr (2026-08-08):
-         Netzwerk-Abhängigkeit für Text-Rendering in der nativen APK entfernt. -->
+    <!-- Fonts: Inter via Google Fonts CDN (2026-08-09)
+         WARUM CDN statt lokal: Lokale woff2-Dateien (sowohl Variable Font als
+         auch statische Weights) verursachten Ziffern-Lücken auf Android WebView.
+         v1.4.10 funktionierte mit Google CDN — Restore dieser Konfiguration. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <link rel="preconnect" href="https://gxztrhvhcxhmunhhkfjd.supabase.co" crossorigin />
     <link rel="dns-prefetch" href="https://gxztrhvhcxhmunhhkfjd.supabase.co" />
     <link rel="preconnect" href="https://js.stripe.com" crossorigin />
     <link rel="dns-prefetch" href="https://js.stripe.com" />
-    <!-- Font preload handled by Vite (fonts in src/fonts/, processed into assets/) -->
     <script>
     /* ─────────────────────────────────────────────────────────────
        HUI Chunk Recovery v2
