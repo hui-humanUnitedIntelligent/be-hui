@@ -40,6 +40,7 @@ import { createPortal } from 'react-dom';
 import { supabase } from '../../lib/supabaseClient.js';
 import { useAuth } from '../../lib/AuthContext.jsx';
 import MilestoneUpdateSheet from '../../components/studio/MilestoneUpdateSheet.jsx';
+import { formatDateDE } from "../../lib/formatters.js";
 
 const C = {
   cream: '#F9F7F4', white: '#FFFFFF', ink: '#1A1A1A',
@@ -58,7 +59,7 @@ function relativeTime(dateStr) {
   const diff = Date.now() - new Date(dateStr).getTime();
   const days = Math.floor(diff / 86400000);
   const hours = Math.floor(diff / 3600000);
-  if (days > 7) return new Date(dateStr).toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' });
+  if (days > 7) return formatDateDE(new Date(dateStr), { day: '2-digit', month: 'long', year: 'numeric' });
   if (days > 0) return `vor ${days} ${days === 1 ? 'Tag' : 'Tagen'}`;
   if (hours > 0) return `vor ${hours} ${hours === 1 ? 'Stunde' : 'Stunden'}`;
   const mins = Math.floor(diff / 60000);

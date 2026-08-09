@@ -20,6 +20,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabaseClient.js';
 import { useAuth } from '../../lib/AuthContext.jsx';
+import { formatDateDE } from "../../lib/formatters.js";
 
 const C = {
   cream: '#F9F7F4', white: '#FFFFFF', ink: '#1A1A1A',
@@ -31,7 +32,7 @@ function relativeTime(dateStr) {
   if (!dateStr) return '';
   const diff = Date.now() - new Date(dateStr).getTime();
   const days = Math.floor(diff / 86400000);
-  if (days > 7) return new Date(dateStr).toLocaleDateString('de-DE', { day: '2-digit', month: 'short' });
+  if (days > 7) return formatDateDE(new Date(dateStr), { day: '2-digit', month: 'short' });
   if (days > 0) return `vor ${days} ${days === 1 ? 'Tag' : 'Tagen'}`;
   const hours = Math.floor(diff / 3600000);
   if (hours > 0) return `vor ${hours} ${hours === 1 ? 'Stunde' : 'Stunden'}`;

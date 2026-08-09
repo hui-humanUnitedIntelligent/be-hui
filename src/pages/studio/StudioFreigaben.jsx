@@ -11,6 +11,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabaseClient.js';
+import { formatDateDE } from "../../lib/formatters.js";
 
 const C = {
   cream: '#F9F7F4', white: '#FFFFFF', ink: '#1A1A1A',
@@ -228,7 +229,7 @@ export default function StudioFreigaben() {
                 <div>
                   <div style={{ fontSize: 14, fontWeight: 600, color: C.ink }}>{item._label}</div>
                   <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>
-                    {TYPE_CFG[item._type].label} · {new Date(item.created_at).toLocaleDateString('de-DE')}
+                    {TYPE_CFG[item._type].label} · {formatDateDE(new Date(item.created_at))}
                   </div>
                 </div>
               </div>

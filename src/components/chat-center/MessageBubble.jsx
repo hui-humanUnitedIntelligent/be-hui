@@ -7,6 +7,7 @@ import { createPortal } from "react-dom";
 import { HUI } from "../../design/hui.design.js";
 import { useImageGallery } from "../../context/ImageGalleryContext.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { formatTimeDE } from "../../lib/formatters.js";
 
 const C = { teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, coral:HUI.COLOR.coral, ink:HUI.COLOR.ink };
 
@@ -19,7 +20,7 @@ const CSS = `
 
 function formatTime(iso) {
   if (!iso) return "";
-  return new Date(iso).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
+  return formatTimeDE(new Date(iso), {hour:"2-digit",minute:"2-digit"});
 }
 
 // ── Typing ──

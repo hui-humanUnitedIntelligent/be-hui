@@ -14,6 +14,7 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 import { HUILogo } from "../brand/HUILogo.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { formatEUR } from "../../lib/formatters.js";
 
 const T = {
   bg:       "#F7F5F0",
@@ -37,7 +38,7 @@ const T = {
 
 function eur(val) {
   if (val == null) return "—";
-  return Number(val).toLocaleString("de-DE", { style: "currency", currency: "EUR" });
+  return formatEUR(Number(val));
 }
 
 function StatusChip({ label, color = T.inkFaint, bg = T.border }) {

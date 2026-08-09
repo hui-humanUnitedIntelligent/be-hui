@@ -26,6 +26,7 @@ import {
 } from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../lib/AuthContext";
+import { formatTimeDE } from "../lib/formatters.js";
 import {
   getObservabilityReport, startFpsTracking, stopFpsTracking,
   realtimeHealthScore, errorSummary, costSummary, logObservabilitySnapshot,
@@ -170,7 +171,7 @@ export default function PlatformDashboard() {
     setRealtime(rt);
     setPipeline(p);
     setBudgets(b);
-    setLastRefresh(new Date().toLocaleTimeString('de-DE'));
+    setLastRefresh(formatTimeDE(new Date()));
   }, []);
 
   useEffect(() => {

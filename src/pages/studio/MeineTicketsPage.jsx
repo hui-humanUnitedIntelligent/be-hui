@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useImageGallery } from "../../context/ImageGalleryContext.jsx";
+import { formatDateDE, formatNumberDE } from "../../lib/formatters.js";
 
 const C = {
   teal:   "#16D7C5",
@@ -28,7 +29,7 @@ const CATEGORY_ICONS = {
 
 function fmt(iso) {
   if (!iso) return "";
-  return new Date(iso).toLocaleString("de-DE", {
+  return formatNumberDE(new Date(iso), {
     day:"2-digit", month:"2-digit", year:"numeric",
     hour:"2-digit", minute:"2-digit"
   });
@@ -39,7 +40,7 @@ function timeAgo(iso) {
   if (d < 1)    return "Gerade eben";
   if (d < 60)   return `Vor ${d} Min.`;
   if (d < 1440) return `Vor ${Math.floor(d / 60)} Std.`;
-  return new Date(iso).toLocaleDateString("de-DE");
+  return formatDateDE(new Date(iso));
 }
 
 // ── Reply Compose (Bottom Sheet) ─────────────────────────────────────────────

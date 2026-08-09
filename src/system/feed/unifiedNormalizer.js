@@ -1,5 +1,6 @@
 import { isProfileTalent, getFullDisplayName, getProfileRoleLabel } from "../../lib/profileUtils.js";
 import { OrbEngine } from "../../core/orbEngine.js";
+import { formatDateDE } from "../../lib/formatters.js";
 // HUI Pillars: dezente Grundpfeiler-Zuordnung für Feed-Items
 // Lazy-Import um keine Circular Dependencies zu erzeugen
 let _pillars = null;
@@ -28,7 +29,7 @@ function relTime(ts){
     if(hrs<24)return"vor "+hrs+" Std";
     const days=Math.floor(hrs/24);
     if(days<7)return"vor "+days+" Tagen";
-    return new Date(ts).toLocaleDateString("de-DE",{day:"numeric",month:"short"});
+    return formatDateDE(new Date(ts), {day:"numeric",month:"short"});
   }catch{return"";}
 }
 

@@ -36,6 +36,7 @@ import { normalizeTalentForPreview } from "../lib/previewNormalizers.js";
 import { useProfileLauncher } from "../components/home/profile/ProfileLauncher.jsx";
 import { ProfileService } from "../services/db.js"; // Autor-Klick → Profil öffnen // OPEN.1 2026-07-08 -- geteilte Vorschau statt totem Tap / falschem Sprung
 import { normalizePostForPreview, normalizeProjectForPreview, normalizeWirkerForPreview } from "../lib/previewNormalizers.js";
+import { formatDateDE, formatNumberDE } from "../lib/formatters.js";
 
 // ── Design Tokens ────────────────────────────────────────────────
 const T = {
@@ -592,9 +593,9 @@ function TalentCard({ talent, delay=0, onPress, onAuthorPress }) {
   const cover  = (!imgErr && talent.cover) ? talent.cover : null;
   const medCol = MEDIUM_COLOR[talent.category] || { bg:T.tealSoft, text:T.teal };
   const priceStr = talent.price_per_hour != null
-    ? parseFloat(talent.price_per_hour).toLocaleString("de-DE", { minimumFractionDigits:0 }) + " €/Std"
+    ?formatNumberDE(parseFloat(talent.price_per_hour), { minimumFractionDigits:0 }) + " €/Std"
     : talent.price_per_session != null
-      ? parseFloat(talent.price_per_session).toLocaleString("de-DE", { minimumFractionDigits:0 }) + " €/Termin"
+      ?formatNumberDE(parseFloat(talent.price_per_session), { minimumFractionDigits:0 }) + " €/Termin"
       : null;
   const locationLabel = TALENT_LOCATION_LABEL[talent.location_type] || null;
 
@@ -765,9 +766,9 @@ function TalenteSection({
             : talente.map((t) => {
                 const medCol = MEDIUM_COLOR[t.category] || { bg:T.tealSoft, text:T.teal };
                 const priceStr = t.price_per_hour != null
-                  ? parseFloat(t.price_per_hour).toLocaleString("de-DE", { minimumFractionDigits:0 }) + " €/Std"
+                  ?formatNumberDE(parseFloat(t.price_per_hour), { minimumFractionDigits:0 }) + " €/Std"
                   : t.price_per_session != null
-                    ? parseFloat(t.price_per_session).toLocaleString("de-DE", { minimumFractionDigits:0 }) + " €/Termin"
+                    ?formatNumberDE(parseFloat(t.price_per_session), { minimumFractionDigits:0 }) + " €/Termin"
                     : null;
                 return (
                   <div key={t.id} className="dp-list-card" onClick={() => onPress?.(t)}>
@@ -815,7 +816,7 @@ function WerkCard({ werk, delay=0, onPress, onAuthorPress }) {
   const cover  = (!imgErr && werk.cover) ? werk.cover : null;
   const medCol = MEDIUM_COLOR[werk.medium] || { bg:T.tealSoft, text:T.teal };
   const priceStr = werk.price != null
-    ? parseFloat(werk.price).toLocaleString("de-DE", { minimumFractionDigits:0 }) + " €"
+    ?formatNumberDE(parseFloat(werk.price), { minimumFractionDigits:0 }) + " €"
     : null;
 
   return (
@@ -1001,7 +1002,7 @@ function WerkeSection({
             : werke.map((w) => {
                 const medCol = MEDIUM_COLOR[w.medium] || { bg:T.tealSoft, text:T.teal };
                 const priceStr = w.price != null
-                  ? parseFloat(w.price).toLocaleString("de-DE", { minimumFractionDigits:0 }) + " €"
+                  ?formatNumberDE(parseFloat(w.price), { minimumFractionDigits:0 }) + " €"
                   : null;
                 return (
                   <div key={w.id} className="dp-list-card" onClick={() => onPress?.(w)} style={{cursor:"pointer"}}>
@@ -1246,7 +1247,7 @@ function ProjektCard({ projekt, delay=0, onPress }) {
   const cover = (!imgErr && projekt.cover) ? projekt.cover : null;
   const cc = projekt.catColor || { bg:"rgba(34,197,94,0.12)", text:"#16A34A" };
   const membersStr = projekt.members != null
-    ? (projekt.members > 0 ? projekt.members.toLocaleString("de-DE") + " Stimmen" : "Jetzt unterstützen")
+    ? (projekt.members > 0 ?formatNumberDE(projekt.members) + " Stimmen" : "Jetzt unterstützen")
     : null;
 
   return (
@@ -1912,7 +1913,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
             const typeLabel = typeMap[typeRaw.toLowerCase()] || typeRaw || "Erlebnis";
 
             // Datum
-            const dateStr = d ? d.toLocaleDateString("de-DE",{ day:"numeric", month:"short" }) : null;
+            const dateStr = d ?formatDateDE(d, { day:"numeric", month:"short" }) : null;
             const dayNum  = d ? String(d.getDate()).padStart(2,"0") : null;
             const monthSh = d ? d.toLocaleString("de",{month:"short"}) : null;
 

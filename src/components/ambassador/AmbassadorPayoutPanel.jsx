@@ -10,6 +10,7 @@
 import { HUISicherheitIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect } from 'react';
 import { useAmbassadorPayout } from '../../hooks/useAmbassadorPayout';
+import { formatDateDE } from "../../lib/formatters.js";
 
 // Gleiche Palette wie T-Objekt in HuiStudio.jsx (lokal dupliziert, kein Import-Kopplungsrisiko)
 const ink       = '#1A1A18';
@@ -30,7 +31,7 @@ const redBg     = 'rgba(192,57,43,0.08)';
 function eur(val) { return `€${((val ?? 0)).toFixed(2)}`; }
 function fmtDate(iso) {
   if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('de-DE', { day:'2-digit', month:'short', year:'numeric' });
+  return formatDateDE(new Date(iso), { day:'2-digit', month:'short', year:'numeric' });
 }
 
 const STATUS_COLORS = {

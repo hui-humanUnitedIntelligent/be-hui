@@ -5,6 +5,7 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useProfileLauncher } from "../home/profile/ProfileLauncher.jsx";
+import { formatNumberDE } from "../../lib/formatters.js";
 
 const T = {
   teal:"rgba(14,196,184,1)", white:"#FFFFFF", ink:"rgba(26,26,46,0.92)",
@@ -23,7 +24,7 @@ const FORMAT_BADGE = { original:"#7C3AED", druck:"#0891B2", digital:"#D97706" };
 
 function WerkCardItem({ w, onPress }) {
   const [imgErr, setImgErr] = useState(false);
-  const price = w.price != null ? `${Number(w.price).toLocaleString("de-DE")} €` : null;
+  const price = w.price != null ? `${formatNumberDE(Number(w.price))} €` : null;
   const badge = FORMAT_LABEL[w.file_format] || w.category || "Werk";
   const badgeColor = FORMAT_BADGE[w.file_format] || T.teal;
   return (

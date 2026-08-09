@@ -21,6 +21,7 @@ import { supabase }      from "../../lib/supabaseClient.js";
 import { HUIBookmarkIcon } from "../../design/icons/HuiInteractionIcons.jsx";
 import { toast }         from "../../lib/useToast.jsx";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx"; // OPEN.2 2026-07-08 -- Merkliste oeffnet jetzt dieselbe Vorschau wie ueberall sonst, keine Direktnavigation mehr
+import { formatDateDE } from "../../lib/formatters.js";
 import { normalizeWorkRow, normalizeExperienceRow, normalizeMomentRow }
                           from "../../system/feed/unifiedNormalizer.js";
 
@@ -240,7 +241,7 @@ export default function MerkenSection({ onOpenProfile = () => {}, onOpenDiscover
   // originalCovers (siehe Effect oben), NIE aus der gespeicherten Kopie.
   const getTitle   = (item) => { const d = item.post_data || {}; return d.title || d.caption || d.name || "Gespeicherter Inhalt"; };
   const getCreator = (item) => { const d = item.post_data || {}; return d.author_name || d.creator_name || d.display_name || d.username || null; };
-  const formatDate = (iso)  => { if (!iso) return ""; const d = new Date(iso); return d.toLocaleDateString("de-DE", { day:"numeric", month:"short", year:"numeric" }); };
+  const formatDate = (iso)  => { if (!iso) return ""; const d = new Date(iso); return formatDateDE(d, { day:"numeric", month:"short", year:"numeric" }); };
 
   const filtered = React.useMemo(() => {
     const f = FILTERS.find(f => f.key === activeFilter);

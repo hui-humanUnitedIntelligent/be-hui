@@ -13,6 +13,7 @@ import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
+import { formatDateDE } from "../../lib/formatters.js";
 
 // ── Design Tokens ─────────────────────────────────────────────────
 const T = {
@@ -54,7 +55,7 @@ function fmtToday() {
 function fmtDisplayDate(iso) {
   if (!iso) return "";
   const d = new Date(iso + "T00:00:00");
-  return d.toLocaleDateString("de-DE", { day: "2-digit", month: "short", year: "numeric" });
+  return formatDateDE(d, { day: "2-digit", month: "short", year: "numeric" });
 }
 
 // ── Komponente ────────────────────────────────────────────────────

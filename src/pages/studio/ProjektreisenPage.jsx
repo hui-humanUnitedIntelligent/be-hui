@@ -16,6 +16,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabaseClient.js';
 import { useAuth } from '../../lib/AuthContext.jsx';
 import ProjektreiseDetail from './ProjektreiseDetail.jsx';
+import { formatDateDE } from "../../lib/formatters.js";
 
 const C = {
   cream: '#F9F7F4', white: '#FFFFFF', ink: '#1A1A1A',
@@ -172,7 +173,7 @@ function ProjectCard({ project, onClick }) {
         <span>{project.milestoneCount} {project.milestoneCount === 1 ? 'Meilenstein' : 'Meilensteine'}</span>
         <span>{project.updateCount} {project.updateCount === 1 ? 'Eintrag' : 'Einträge'}</span>
         {project.lastUpdateDate && (
-          <span>Zuletzt: {new Date(project.lastUpdateDate).toLocaleDateString('de-DE')}</span>
+          <span>Zuletzt: {formatDateDE(new Date(project.lastUpdateDate))}</span>
         )}
       </div>
     </button>

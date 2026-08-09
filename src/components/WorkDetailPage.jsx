@@ -23,6 +23,7 @@ import { shareContent } from "../lib/shareContent.js";
 import { countComments, getComments } from "../lib/commentsService.js";
 import { prefetchComments } from "../lib/commentsPrefetchCache.js";
 import CommentsSheet from "./shared/CommentsSheet.jsx";
+import { formatDateDE } from "../lib/formatters.js";
 
 /* ── Design Tokens ─────────────────────────────────────────────────── */
 const C = {
@@ -797,8 +798,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
                 Erstellt
               </div>
               <div style={{ fontSize:14, fontWeight:700, color:C.ink }}>
-                {new Date(werk.created_at).toLocaleDateString("de-DE",
-                  { day:"numeric", month:"long", year:"numeric" })}
+                {formatDateDE(new Date(werk.created_at), { day:"numeric", month:"long", year:"numeric" })}
               </div>
             </div>
           )}

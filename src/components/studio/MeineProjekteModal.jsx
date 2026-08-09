@@ -13,6 +13,7 @@ import { supabase } from "../../lib/supabaseClient.js";
 import ImpactProjektUpdateSheet from "./ImpactProjektUpdateSheet.jsx";
 import MilestoneUpdateSheet from "./MilestoneUpdateSheet.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { formatDateDE, formatNumberDE } from "../../lib/formatters.js";
 
 // ── Design Tokens (identisch zu HuiStudio) ────────────────────────
 const T = {
@@ -41,13 +42,13 @@ const T = {
 // ── Helpers ───────────────────────────────────────────────────────
 function fmtEur(n) {
   if (!n && n !== 0) return "—";
-  return `€${Number(n).toLocaleString("de-DE", { minimumFractionDigits: 0 })}`;
+  return `€${formatNumberDE(Number(n), { minimumFractionDigits: 0 })}`;
 }
 
 function fmtDate(iso) {
   if (!iso) return "";
   const d = new Date(iso);
-  return d.toLocaleDateString("de-DE", { day: "2-digit", month: "short", year: "numeric" });
+  return formatDateDE(d, { day: "2-digit", month: "short", year: "numeric" });
 }
 
 function fmtMonth(iso) {

@@ -1,6 +1,7 @@
 import React from "react";
 import BaseFeedCard from "./BaseFeedCard.jsx";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
+import { formatNumberDE } from "../../lib/formatters.js";
 
 const CORAL  = "#F47355";
 const ORANGE = "#F05A28";
@@ -11,7 +12,7 @@ const INK3   = "rgba(26,26,46,0.42)";
 function formatPrice(val) {
   const n = parseFloat(val);
   if (isNaN(n)) return null;
-  return n.toLocaleString("de-DE", { minimumFractionDigits:0 }) + " \u20ac";
+  return formatNumberDE(n, { minimumFractionDigits:0 }) + " \u20ac";
 }
 
 export default function WorkContent({ item, onProfile, onReaction, onShare, onBuyWerk, onDetail }) {

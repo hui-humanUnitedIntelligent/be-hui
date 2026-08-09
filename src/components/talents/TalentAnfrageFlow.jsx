@@ -22,6 +22,7 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { useSavedPostsContext } from "../../context/SavedPostsContext.jsx";
+import { formatNumberDE } from "../../lib/formatters.js";
 
 const TEAL = "#16D7C5";
 
@@ -46,9 +47,9 @@ export default function TalentAnfrageFlow({ talent, onClose }) {
   const providerId  = talent.user_id;
   const providerName= talent.author || "HUI Talent";
   const priceStr = talent.price_per_hour != null
-    ? `${parseFloat(talent.price_per_hour).toLocaleString("de-DE",{minimumFractionDigits:0})} €/Std`
+    ? `${formatNumberDE(parseFloat(talent.price_per_hour), {minimumFractionDigits:0})} €/Std`
     : talent.price_per_session != null
-      ? `${parseFloat(talent.price_per_session).toLocaleString("de-DE",{minimumFractionDigits:0})} €/Termin`
+      ? `${formatNumberDE(parseFloat(talent.price_per_session), {minimumFractionDigits:0})} €/Termin`
       : null;
 
   async function handleSenden() {

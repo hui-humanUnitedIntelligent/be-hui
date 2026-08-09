@@ -13,6 +13,7 @@ import { HUIChatIcon } from '../../../design/icons/HuiInteractionIcons.jsx';
 import React, { useState, useCallback, useEffect } from "react";
 import { supabase } from "../../../lib/supabaseClient";
 import { useAuth }   from "../../../lib/AuthContext.jsx";
+import { formatNumberDE } from "../../../lib/formatters.js";
 
 // ── Design Tokens ─────────────────────────────────────────────
 const T = {
@@ -690,7 +691,7 @@ function Step6({ form, update, onNext, onBack, onClose }) {
   const ok  = val >= 100 && val <= 50000;
   const fmtDisplay = (str) => {
     const n = str.replace(/\D/g,"");
-    return n ? parseInt(n,10).toLocaleString("de-DE") : "";
+    return n ?formatNumberDE(parseInt(n,10)) : "";
   };
   return (
     <StepWrap step={6} total={7} onBack={onBack} onClose={onClose} label="Schritt 7 von 7">
@@ -720,7 +721,7 @@ function Step6({ form, update, onNext, onBack, onClose }) {
               style={{ padding:"7px 14px", borderRadius:99, border:"none",
                 background: val===v ? T.teal : `${T.teal}12`,
                 color: val===v ? "#fff" : T.teal, fontSize:13, fontWeight:700, cursor:"pointer" }}>
-              €{v.toLocaleString("de-DE")}</button>
+              €{formatNumberDE(v)}</button>
           ))}
         </div>
         <NextBtn label="KI-Prüfung starten →" onClick={onNext} disabled={!ok} />
@@ -978,7 +979,7 @@ function ErgebnisGeeignet({ form, aiRes, onNetworkConfirm, onClose }) {
           { label:"Projekt",      val:form.name },
           { label:"Beschreibung", val:form.satz },
           { label:"Kategorie",    val:KATEGORIEN.find(k=>k.id===form.kategorie)?.label },
-          { label:"Förderwunsch", val:`€${parseInt(form.foerder||0).toLocaleString("de-DE")}` },
+          { label:"Förderwunsch", val:`€${formatNumberDE(parseInt(form.foerder||0))}` },
         ].map((r,i) => (
           <div key={i} style={{ display:"flex", gap:10, padding:"6px 0",
             borderBottom: i < 3 ? `1px solid ${T.teal}10` : "none" }}>

@@ -22,6 +22,7 @@ import { supabase } from "./supabaseClient";
 import { logDebug } from "./debugCollector.js";
 import { notifyMessage } from "./notificationService";
 import { useAuth } from "./AuthContext";
+import { formatDateDE, formatTimeDE } from "./formatters.js";
 
 // ────────────────────────────────────────────────────────────────
 // Konstanten
@@ -59,11 +60,11 @@ export function formatChatTime(iso) {
   const diffD  = diffMs / 86400000;
 
   if (diffD < 1) {
-    return d.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+    return formatTimeDE(d, { hour: "2-digit", minute: "2-digit" });
   } else if (diffD < 7) {
-    return d.toLocaleDateString("de-DE", { weekday: "short" });
+    return formatDateDE(d, { weekday: "short" });
   } else {
-    return d.toLocaleDateString("de-DE", { day: "numeric", month: "short" });
+    return formatDateDE(d, { day: "numeric", month: "short" });
   }
 }
 
@@ -74,7 +75,7 @@ export function formatMsgDate(iso) {
   const diffD = (now - d) / 86400000;
   if (diffD < 1) return "Heute";
   if (diffD < 2) return "Gestern";
-  return d.toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" });
+  return formatDateDE(d, { weekday: "long", day: "numeric", month: "long" });
 }
 
 // ────────────────────────────────────────────────────────────────

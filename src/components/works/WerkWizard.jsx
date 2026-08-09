@@ -10,6 +10,7 @@ import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { searchPlaces, geocodeWithFallback } from "../../lib/geocoding.js";
 import LocationAutocompleteInput from "../shared/LocationAutocompleteInput.jsx";
+import { formatNumberDE } from "../../lib/formatters.js";
 
 const C = {
   teal:"#0EC4B8", tealD:"#0DBBAF", cream:"#F8F7F4",
@@ -410,7 +411,7 @@ function S6({ data, onChange, onSave, onDraft, saving, hideButtons=false }) {
     { id:"private",     icon:<HUIPrivatIcon size={16}/>, label:"Privat",       sub:"Nur für dich sichtbar." },
   ];
   const cover=data.images?.[0]?.url;
-  const ps=data.price?`${parseFloat(data.price).toLocaleString("de-DE",{minimumFractionDigits:2})} ${data.currency||"€"}`:"—";
+  const ps=data.price?`${formatNumberDE(parseFloat(data.price), {minimumFractionDigits:2})} ${data.currency||"€"}`:"—";
   return (
     <div>
       <div style={{ fontSize:20, fontWeight:800, color:C.ink, marginBottom:4 }}>Sichtbarkeit</div>

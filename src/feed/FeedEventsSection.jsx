@@ -8,6 +8,7 @@
 
 import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient.js";
+import { formatDateDE } from "../lib/formatters.js";
 
 const TEAL  = "#16D7C5";
 const CORAL = "#FF8A6B";
@@ -127,10 +128,10 @@ export default function FeedEventsSection({ onEventPress, onMoreEvents }) {
     if (evDay.getTime() === tomorrow.getTime()) return "Morgen";
     if (evDay < in7days) {
       // z.B. "Mi 18 Jun"
-      return evDate.toLocaleDateString("de-DE", { weekday:"short", day:"numeric", month:"short" });
+      return formatDateDE(evDate, { weekday:"short", day:"numeric", month:"short" });
     }
     // z.B. "21 Aug"
-    return evDate.toLocaleDateString("de-DE", { day:"numeric", month:"short" });
+    return formatDateDE(evDate, { day:"numeric", month:"short" });
   }
 
   useEffect(() => { loadEvents(); }, []);

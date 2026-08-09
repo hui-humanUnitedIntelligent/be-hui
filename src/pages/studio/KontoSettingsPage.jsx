@@ -28,6 +28,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabaseClient.js';
 import { useAuth } from '../../lib/AuthContext.jsx';
 import { isProfileTalent } from '../../lib/profileUtils.js';
+import { formatDateDE } from "../../lib/formatters.js";
 
 const C = {
   cream: '#F9F7F4', white: '#FFFFFF', ink: '#1A1A1A',
@@ -214,7 +215,7 @@ export default function KontoSettingsPage() {
               </div>
               {memberSince && (
                 <div style={{ fontSize: 13, color: C.muted }}>
-                  Seit {new Date(memberSince).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })}
+                  Seit {formatDateDE(new Date(memberSince), { month: 'long', year: 'numeric' })}
                 </div>
               )}
             </div>

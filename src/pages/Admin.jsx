@@ -1,6 +1,7 @@
 import { HUIAnalyticsIcon, HUIImpactIcon, HUIStatistikIcon, HUIWarnIcon, HUIWerkeIcon } from '../design/icons/HuiSystemIcons.jsx';
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
+import { formatDateDE } from "../lib/formatters.js";
 
 const C = {
   bg:"#0A0F1E", card:"#111827", card2:"#1A2235", border:"#1E2D45",
@@ -188,7 +189,7 @@ function KommentarMeldungenTab({ onCountChange }) {
           <div style={{ fontSize:12, color:C.sub }}>
             Gemeldet von <b style={{ color:C.text }}>{row.reporter?.display_name || "Unbekannt"}</b>
             {" · "}Grund: <span style={{ color:C.coral, fontWeight:600 }}>{row.reason}</span>
-            {" · "}{new Date(row.created_at).toLocaleDateString("de-DE", { day:"numeric", month:"short", year:"numeric" })}
+            {" · "}{formatDateDE(new Date(row.created_at), { day:"numeric", month:"short", year:"numeric" })}
           </div>
           <div style={{
             background:C.card2, borderRadius:10, padding:"10px 12px",
@@ -561,8 +562,7 @@ function FreigabenTab({ onPendingChange }) {
         const acting  = actioning === item.id;
         const submittedAt = item._type==="werk" ? (item.last_submitted_at || item.created_at) : item.created_at;
         const dateStr = submittedAt
-          ? new Date(submittedAt).toLocaleDateString("de-DE",
-              {day:"2-digit",month:"2-digit",year:"numeric"}) : "—";
+          ?formatDateDE(new Date(submittedAt), {day:"2-digit",month:"2-digit",year:"numeric"}) : "—";
 
         return (
           <div key={item.id} style={{
@@ -647,7 +647,7 @@ function FreigabenTab({ onPendingChange }) {
                 )}
                 {item.reviewed_at && subTab !== "pending" && (
                   <div style={{fontSize:10,color:C.muted,marginBottom:6}}>
-                    Geprüft am {new Date(item.reviewed_at).toLocaleDateString("de-DE")}
+                    Geprüft am {formatDateDE(new Date(item.reviewed_at))}
                   </div>
                 )}
 

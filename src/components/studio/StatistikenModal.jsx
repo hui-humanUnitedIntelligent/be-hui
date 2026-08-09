@@ -10,6 +10,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { formatDateDE, formatNumberDE } from "../../lib/formatters.js";
 
 // ── Design Tokens ──────────────────────────────────────────────────
 const T = {
@@ -38,9 +39,9 @@ const T = {
 };
 
 // ── Formatierung ───────────────────────────────────────────────────
-const fmtEur = (n) => n == null ? "—" : `€${Number(n).toLocaleString("de-DE", { minimumFractionDigits: 0 })}`;
-const fmtDate = (iso) => iso ? new Date(iso).toLocaleDateString("de-DE", { day:"2-digit", month:"short", year:"numeric" }) : "—";
-const fmtNum  = (n)   => n == null ? "0" : Number(n).toLocaleString("de-DE");
+const fmtEur = (n) => n == null ? "—" : `€${formatNumberDE(Number(n), { minimumFractionDigits: 0 })}`;
+const fmtDate = (iso) => iso ?formatDateDE(new Date(iso), { day:"2-digit", month:"short", year:"numeric" }) : "—";
+const fmtNum  = (n)   => n == null ? "0" :formatNumberDE(Number(n));
 
 // ── Statistiken-Kategorien ─────────────────────────────────────────
 const CATEGORIES = [
@@ -237,7 +238,7 @@ export default function StatistikenModal({ profile, onClose }) {
       text("HUI Platform", M, 14, { size:9, color:"#FFFFFF", bold:false });
       text("Statistik-Report", M, 22, { size:18, bold:true, color:"#FFFFFF" });
       text(profile.full_name || profile.display_name || profile.username || "Nutzer", M, 30, { size:11, color:"rgba(255,255,255,0.85)" });
-      const nowStr = new Date().toLocaleDateString("de-DE", { day:"2-digit", month:"long", year:"numeric" });
+      const nowStr =formatDateDE(new Date(), { day:"2-digit", month:"long", year:"numeric" });
       text(`Erstellt am ${nowStr}`, W-M, 30, { size:9, color:"rgba(255,255,255,0.7)", align:"right" });
       y = 46;
 

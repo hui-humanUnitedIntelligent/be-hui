@@ -7,6 +7,7 @@ import { HUILogo } from '../../brand/HUILogo.jsx';
 import React from "react";
 import { useContentPreview } from "../../../context/ContentPreviewContext.jsx";
 import { normalizePostForPreview } from "../../../lib/previewNormalizers.js";
+import { optimizeCard } from "../../../lib/perfUtils.js";
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", ink:"#1A1A18",

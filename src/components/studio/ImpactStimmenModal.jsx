@@ -14,6 +14,7 @@ import { isProfileTalent } from '../../lib/profileUtils.js';
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { formatNumberDE } from "../../lib/formatters.js";
 
 // ── Design Tokens (identisch mit HuiStudio) ────────────────────────────────
 const T = {
@@ -568,7 +569,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
                         transition: "width 1.2s ease", minWidth: pct > 0 ? 6 : 0 }} />
                     </div>
                     <div style={{ fontSize: 13, fontWeight: 800, color: T.ink }}>
-                      €{funded.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} von €{goal.toLocaleString("de-DE")} finanziert
+                      €{formatNumberDE(funded, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} von €{formatNumberDE(goal)} finanziert
                     </div>
                   </div>
                 ) : null;

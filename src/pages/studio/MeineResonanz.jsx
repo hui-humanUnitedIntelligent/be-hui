@@ -17,6 +17,7 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { useAuth }  from "../../lib/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { formatDateDE, formatEUR } from "../../lib/formatters.js";
 
 // ── Design Tokens ─────────────────────────────────────────────────
 const T = {
@@ -75,7 +76,7 @@ function formatRelative(iso) {
   const days = Math.floor(diff/86400);
   if (days < 7)  return "vor " + days + " Tag" + (days>1?"en":"");
   if (days < 30) return "vor " + Math.floor(days/7) + " Woche" + (Math.floor(days/7)>1?"n":"");
-  return new Date(iso).toLocaleDateString("de-DE", { day:"numeric", month:"long", year:"numeric" });
+  return formatDateDE(new Date(iso), { day:"numeric", month:"long", year:"numeric" });
 }
 
 function statusLabel(status) {
@@ -294,7 +295,7 @@ function ResonanzSummary({ entries }) {
             Gesamte Resonanz
           </div>
           <div style={{ fontSize:32, fontWeight:800, color:T.ink, letterSpacing:"-0.04em", lineHeight:1 }}>
-            {t.eur.toLocaleString("de-DE", { style:"currency", currency:"EUR", minimumFractionDigits: t.eur%1===0?0:2 })}
+            {formatEUR(t.eur, { minimumFractionDigits: t.eur%1===0?0:2 })}
           </div>
           <div style={{ fontSize:12, color:T.inkSoft, marginTop:6 }}>
             in {entries.length} {entries.length===1?"Aktivität":"Aktivitäten"}
@@ -403,7 +404,7 @@ function ResonanzEntry({ entry, animIndex, onTap }) {
         <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
           {entry.amount > 0 && (
             <span style={{ fontSize:14, fontWeight:700, color:T.ink, letterSpacing:"-0.02em" }}>
-              {entry.amount.toLocaleString("de-DE", { style:"currency", currency:"EUR", minimumFractionDigits: entry.amount%1===0?0:2 })}
+              {formatEUR(entry.amount, { minimumFractionDigits: entry.amount%1===0?0:2 })}
             </span>
           )}
           {sl && (
@@ -413,7 +414,7 @@ function ResonanzEntry({ entry, animIndex, onTap }) {
           )}
           {entry.scheduledAt && (
             <span style={{ fontSize:11, color:T.inkFaint }}>
-              📅 {new Date(entry.scheduledAt).toLocaleDateString("de-DE",{day:"numeric",month:"short"})}
+              📅 {formatDateDE(new Date(entry.scheduledAt), {day:"numeric",month:"short"})}
             </span>
           )}
         </div>
@@ -476,7 +477,7 @@ export default function MeineResonanz({ onClose, onNavigate }) {
     for (const entry of filtered) {
       const d = new Date(entry.date);
       const mk = d.getFullYear() + "-" + d.getMonth();
-      const ml = d.toLocaleDateString("de-DE", { month:"long", year:"numeric" });
+      const ml =formatDateDE(d, { month:"long", year:"numeric" });
       if (mk !== last) { out.push({ isDivider:true, label:ml, key:"div-"+mk }); last = mk; }
       out.push({ isDivider:false, entry, animIdx: animIdx++ });
     }

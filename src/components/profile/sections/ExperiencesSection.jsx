@@ -8,6 +8,8 @@
 import React from "react";
 import { useContentPreview } from "../../../context/ContentPreviewContext.jsx"; // OPEN.2 2026-07-08
 import { normalizePostForPreview } from "../../../lib/previewNormalizers.js";
+import { optimizeCard } from "../../../lib/perfUtils.js";
+import { formatDateDE } from "../../../lib/formatters.js";
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", ink:"#1A1A18",
@@ -31,7 +33,7 @@ function catLabel(cat) {
 }
 function fmtDate(d) {
   if (!d) return "";
-  try { return new Date(d).toLocaleDateString("de-DE", { month:"short", year:"numeric" }); }
+  try { return formatDateDE(new Date(d), { month:"short", year:"numeric" }); }
   catch { return ""; }
 }
 

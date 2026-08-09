@@ -3,11 +3,12 @@
 // ══════════════════════════════════════════════════════════════════════════════
 import React, { useState, useEffect, useReducer } from 'react';
 import { store } from './store.js';
+import { formatTimeDE } from "../../../lib/formatters.js";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function timeStr(ts) {
   const d = new Date(ts);
-  return d.toLocaleTimeString('de-DE', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }) + '.' + String(d.getMilliseconds()).padStart(3, '0');
+  return formatTimeDE(d, { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }) + '.' + String(d.getMilliseconds()).padStart(3, '0');
 }
 
 // ── TreeNode (React Tree Panel) ────────────────────────────────────────────────

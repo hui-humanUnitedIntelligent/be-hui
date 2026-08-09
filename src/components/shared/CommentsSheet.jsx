@@ -43,6 +43,7 @@ function notifyCommentsChanged(postId, postType) {
 }
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
+import { formatDateDE } from "../../lib/formatters.js";
 
 const T = {
   ink: "#1A1A2E", inkSoft: "rgba(26,26,46,0.60)", inkFaint: "rgba(26,26,46,0.38)",
@@ -84,7 +85,7 @@ function fmtTime(iso) {
   if (h < 24)   return `vor ${h} Std`;
   const days = Math.floor(h / 24);
   if (days < 7) return `vor ${days} Tagen`;
-  return d.toLocaleDateString("de-DE", { day:"numeric", month:"short" });
+  return formatDateDE(d, { day:"numeric", month:"short" });
 }
 
 function initials(name) {

@@ -5,6 +5,7 @@
 import React from "react";
 import { HUI } from "../../design/hui.design.js";
 import { formatPresence } from "../../lib/usePresence.js";
+import { formatTimeDE } from "../../lib/formatters.js";
 
 const C = { teal:HUI.COLOR.teal, coral:HUI.COLOR.coral, ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.52)" };
 
@@ -12,8 +13,8 @@ function timeAgo(iso) {
   if (!iso) return "";
   const d = new Date(iso), now = Date.now();
   const diff = (now - d.getTime()) / 1000;
-  if (diff < 3600)  return d.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
-  if (diff < 86400) return d.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
+  if (diff < 3600)  return formatTimeDE(d, {hour:"2-digit",minute:"2-digit"});
+  if (diff < 86400) return formatTimeDE(d, {hour:"2-digit",minute:"2-digit"});
   return "Gestern";
 }
 

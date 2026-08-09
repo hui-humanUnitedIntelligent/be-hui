@@ -21,6 +21,7 @@ import { MomentsSection }     from '../profile/sections/MomentsSection.jsx';
 import { RecommendationsSection } from '../profile/sections/RecommendationsSection.jsx';
 import { TalentSection }      from '../profile/sections/TalentSection.jsx';
 import { PublicTalentOffersSection } from '../profile/sections/PublicTalentOffersSection.jsx';
+import { formatDateDE } from "../../lib/formatters.js";
 
 function ProfileLoading() {
   return (
@@ -79,7 +80,7 @@ function ProfileSidebar({ profile, followCounts, isOwner, onNavigate }) {
         )}
       </div>
       {profile.member_since && (
-        <p className="prof-since">Dabei seit {new Date(profile.member_since).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })}</p>
+        <p className="prof-since">Dabei seit {formatDateDE(new Date(profile.member_since), { month: 'long', year: 'numeric' })}</p>
       )}
     </div>
   );

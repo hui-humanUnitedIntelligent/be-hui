@@ -16,6 +16,7 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useTalentBookings } from "../../hooks/useTalentBookings.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { formatDateDE } from "../../lib/formatters.js";
 
 // ── Design Tokens (identisch zu den anderen Studio-Modals) ─────────
 const T = {
@@ -34,7 +35,7 @@ const T = {
 
 function fmtDate(d) {
   if (!d) return "";
-  try { return new Date(d + "T00:00:00").toLocaleDateString("de-DE", { day:"2-digit", month:"short", year:"numeric" }); }
+  try { return formatDateDE(new Date(d + "T00:00:00"), { day:"2-digit", month:"short", year:"numeric" }); }
   catch { return d; }
 }
 

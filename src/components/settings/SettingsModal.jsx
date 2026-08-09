@@ -16,6 +16,7 @@ import { APP_VERSION } from '../../version.ts';
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { getOTAStatus, checkForUpdate } from "../../lib/otaUpdate.js";
+import { formatDateDE } from "../../lib/formatters.js";
 
 // ── Design Tokens ─────────────────────────────────────────────
 const T = {
@@ -484,7 +485,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
                   </div>
                   {profile?.talent_since && (
                     <div style={{fontSize:11,color:"#888",marginTop:4}}>
-                      Talent seit: {new Date(profile.talent_since).toLocaleDateString("de-DE")}
+                      Talent seit: {formatDateDE(new Date(profile.talent_since))}
                     </div>
                   )}
                 </div>

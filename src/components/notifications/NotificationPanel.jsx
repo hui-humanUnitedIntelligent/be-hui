@@ -9,6 +9,7 @@ import { createPortal } from "react-dom";
 import { generateReceipt } from "../../lib/generateReceipt.js";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { formatDateDE } from "../../lib/formatters.js";
 
 // ══════════════════════════════════════════════════════════════
 // NOTIFICATION PANEL  — Side-Drawer, via createPortal(document.body) gerendert
@@ -44,7 +45,7 @@ function fmtTime(iso) {
   if (h < 24)   return `vor ${h} Std`;
   const days = Math.floor(h / 24);
   if (days < 7) return `vor ${days} Tagen`;
-  return d.toLocaleDateString("de-DE", { day:"numeric", month:"short" });
+  return formatDateDE(d, { day:"numeric", month:"short" });
 }
 
 // ── Universelles Inline-Modal (kein createPortal!) ────────────────────────────
@@ -350,7 +351,7 @@ function DetailModal({ n, onClose, onAction }) {
         : (md.seller_name || "Der Anbieter");
       const offerTitle = md.offer_title || (md.item_titles || []).join(", ") || "dein Angebot";
       const dateStr = md.date
-        ? new Date(md.date).toLocaleDateString("de-DE", { weekday:"short", day:"numeric", month:"long" })
+        ?formatDateDE(new Date(md.date), { weekday:"short", day:"numeric", month:"long" })
         : null;
 
       // QUITTUNG-001: Kontaktdaten nur in der Kaeufer-Sicht anzeigen

@@ -5,6 +5,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { formatNumberDE } from "../../lib/formatters.js";
 
 const T = {
   teal:       "rgba(14,196,184,1)",
@@ -170,10 +171,10 @@ function ProjektCardItem({ p, onPress, onAuthorPress }) {
               fontVariantNumeric: "tabular-nums",
             }}>
               <span style={{ color: T.tealDeep, fontWeight: 600 }}>
-                {(p.current_amount_eur || 0).toLocaleString("de-DE", { maximumFractionDigits:0 })} €
+                {formatNumberDE((p.current_amount_eur || 0), { maximumFractionDigits:0 })} €
               </span>
               {" / "}
-              {p.funding_goal.toLocaleString("de-DE")} €
+              {formatNumberDE(p.funding_goal)} €
             </span>
           )}
         </div>

@@ -12,6 +12,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '../../lib/AuthContext.jsx';
 import { useChatThread, formatChatTime } from '../../lib/chatContext.js';
 import { useEscapeKey } from './hooks/useEscapeKey.js';
+import { formatTimeDE } from "../../lib/formatters.js";
 
 function ChatList({ chats, activeChatId, onSelect, loading }) {
   if (loading) {
@@ -96,7 +97,7 @@ function ChatThread({ chatId, chat }) {
                 <div key={msg.id} className={`chat-msg ${isMine ? 'mine' : ''}`}>
                   <div className="chat-bubble">
                     {msg.text && <span>{msg.text}</span>}
-                    <span className="chat-msg-time">{new Date(msg.created_at).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}</span>
+                    <span className="chat-msg-time">{formatTimeDE(new Date(msg.created_at), { hour: '2-digit', minute: '2-digit' })}</span>
                   </div>
                 </div>
               );

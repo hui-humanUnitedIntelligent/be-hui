@@ -2,6 +2,7 @@
 // HUI Schema-Diagnose — zeigt exakten Zustand von DB, Schema, Feed Pipeline
 import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
+import { formatNumberDE } from "../lib/formatters.js";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -194,7 +195,7 @@ export default function DiagnosePage() {
           🔬 HUI Schema-Diagnose
         </div>
         <div style={{ fontSize:11, color:C.muted }}>
-          024 Master Schema Audit · {new Date().toLocaleString('de-DE')}
+          024 Master Schema Audit · {formatNumberDE(new Date())}
         </div>
       </div>
 

@@ -21,12 +21,13 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { isProfileTalent } from "../lib/profileUtils.js";
 import { useImageGallery } from "../context/ImageGalleryContext.jsx";
 import { useModalRegistration } from "../hooks/useModalRegistration.js";
+import { formatDateDE, formatNumberDE } from "../lib/formatters.js";
 
 // ── Helpers ──────────────────────────────────────────────────
 const safeArr = (v) => Array.isArray(v) ? v : [];
 const safeNum = (v) => (typeof v === "number" && isFinite(v)) ? v : 0;
 const fmtEur  = (n) =>
-  `€${safeNum(n).toLocaleString("de-DE", { minimumFractionDigits: 0 })}`;
+  `€${formatNumberDE(safeNum(n), { minimumFractionDigits: 0 })}`;
 
 function relTime(ts) {
   if (!ts) return "";
@@ -721,7 +722,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
   };
 
   const fmtDate = (iso) => iso
-    ? new Date(iso).toLocaleDateString("de-DE", { day:"2-digit", month:"2-digit", year:"numeric" })
+    ?formatDateDE(new Date(iso), { day:"2-digit", month:"2-digit", year:"numeric" })
     : "";
 
   // Portal: direkt in document.body mounten — kein Clipping durch Page-Flow
@@ -817,7 +818,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
             <div>
               <div style={{ fontSize:10, color:"#999", fontWeight:700, textTransform:"uppercase" }}>Förderbetrag</div>
               <div style={{ fontSize:18, fontWeight:900, color:"#0DC4B5" }}>
-                € {(app.funding_goal || 0).toLocaleString("de-DE")}
+                € {formatNumberDE((app.funding_goal || 0))}
               </div>
             </div>
             <div>
@@ -847,7 +848,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
                 background:'linear-gradient(90deg,#0DC4B5,#09A89D)', transition:'width 1.2s ease' }}/>
             </div>
             <div style={{ fontSize:13, fontWeight:700, color:'#1A1A1A' }}>
-              €{fundedEur.toLocaleString('de-DE')} von €{goalFromDb.toLocaleString('de-DE')} finanziert
+              €{formatNumberDE(fundedEur)} von €{formatNumberDE(goalFromDb)} finanziert
             </div>
           </div>
           {/* Stimmen-Counter — NUR Counter, kein Balken */}
@@ -1127,7 +1128,7 @@ function MilestoneCard({ milestone, index, onViewProgress }) {
     : m.description;
   const plannedDate = m.planned_date || m.target_date || m.due_date || null;
   const fmtD = (iso) => iso
-    ? new Date(iso).toLocaleDateString("de-DE", { day:"2-digit", month:"short", year:"numeric" })
+    ?formatDateDE(new Date(iso), { day:"2-digit", month:"short", year:"numeric" })
     : "";
 
   return (
@@ -1190,7 +1191,7 @@ function MilestoneDetailSheet({ milestone, onClose }) {
   const sc = statusConfig[m.status] || statusConfig.planned;
   const plannedDate = m.planned_date || m.target_date || m.due_date || null;
   const fmtD = (iso) => iso
-    ? new Date(iso).toLocaleDateString("de-DE", { day:"2-digit", month:"short", year:"numeric" })
+    ?formatDateDE(new Date(iso), { day:"2-digit", month:"short", year:"numeric" })
     : "";
 
   const content = (
@@ -1375,7 +1376,7 @@ function ApprovedAppCard({ app, onOpen }) {
         </p>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
           <span style={{ fontSize:13, fontWeight:800, color:"#0DC4B5" }}>
-            🔥 € {(app.funding_goal || 0).toLocaleString("de-DE")}
+            🔥 € {formatNumberDE((app.funding_goal || 0))}
           </span>
           <span style={{
             fontSize:11, fontWeight:700, color:"#0DC4B5",
@@ -1999,7 +2000,7 @@ function VotingCard({ project:p, rank, voted, totalVotes, onVote, onOpen }) {
         {/* Finanzierung + Stimmen */}
         <div style={{ display:"flex", justifyContent:"space-between",
           fontSize:12, color:T.muted, marginBottom:8 }}>
-          <span>€{fundedEur.toLocaleString('de-DE')} von €{goalEur.toLocaleString('de-DE')} finanziert</span>
+          <span>€{formatNumberDE(fundedEur)} von €{formatNumberDE(goalEur)} finanziert</span>
           <span><b style={{ color:T.ink }}>{p.votes||0}</b> Stimmen</span>
         </div>
 
@@ -2041,12 +2042,12 @@ function VotingCard({ project:p, rank, voted, totalVotes, onVote, onOpen }) {
               accent,
             },
             {
-              top: `€${fundedEur.toLocaleString('de-DE')}`,
+              top: `€${formatNumberDE(fundedEur)}`,
               bot: "bereits finanziert",
               accent,
             },
             {
-              top: `Noch €${Math.max(0,goalEur-fundedEur).toLocaleString('de-DE')}`,
+              top: `Noch €${formatNumberDE(Math.max(0,goalEur-fundedEur))}`,
               bot: "bis Ziel",
               accent,
             },
@@ -2485,7 +2486,7 @@ function ApprovedAppCardCompact({ app, rank, onOpen }) {
         </div>
       </div>
       <div style={{ flexShrink:0, textAlign:"right" }}>
-        <div style={{ fontSize:12, fontWeight:800, color:T.teal }}>€ {(app.funding_goal||0).toLocaleString("de-DE")}</div>
+        <div style={{ fontSize:12, fontWeight:800, color:T.teal }}>€ {formatNumberDE((app.funding_goal||0))}</div>
         <div style={{ fontSize:10, color:"#999" }}>Ziel</div>
       </div>
     </div>

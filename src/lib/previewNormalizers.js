@@ -14,6 +14,7 @@
 // ContentPreviewSheet nur EINE Shape kennen muss.
 // ══════════════════════════════════════════════════════════════════
 import { toFeedItem } from "../system/feed/unifiedNormalizer.js";
+import { formatNumberDE } from "./formatters.js";
 
 const str = (v, fb=null) => (v==null || v==="") ? fb : String(v).trim();
 
@@ -88,9 +89,9 @@ export function normalizeTalentForPreview(t, authorName) {
   if (!t?.id) return null;
   const LOC_LABELS = { vor_ort:"Vor Ort", online:"Online", beides:"Vor Ort & Online" };
   const price = t.price_per_session != null
-    ? `${Number(t.price_per_session).toLocaleString("de-DE")} €/Sitzung`
+    ? `${formatNumberDE(Number(t.price_per_session))} €/Sitzung`
     : t.price_per_hour != null
-    ? `${Number(t.price_per_hour).toLocaleString("de-DE")} €/Std`
+    ? `${formatNumberDE(Number(t.price_per_hour))} €/Std`
     : null;
   const cover = Array.isArray(t.images) && t.images[0]?.url ? t.images[0].url : null;
   const allImages = Array.isArray(t.images)

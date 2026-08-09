@@ -5,6 +5,7 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { getPlaceImage } from "../../lib/placeImage.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { formatNumberDE } from "../../lib/formatters.js";
 
 const T = {
   teal:"rgba(14,196,184,1)", white:"#FFFFFF", ink:"rgba(26,26,46,0.92)",
@@ -125,7 +126,7 @@ function DetailItem({ item, onPressPerson, onPressWork, onPressExperience }) {
           )}
           {isWork && item.price != null && Number(item.price) > 0 && (
             <span style={{ fontSize:10.5, color:T.tealDeep, fontWeight:700 }}>
-              {Number(item.price).toLocaleString("de-DE")} €
+              {formatNumberDE(Number(item.price))} €
             </span>
           )}
         </div>

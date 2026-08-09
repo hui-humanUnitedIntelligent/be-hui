@@ -16,11 +16,12 @@
 import React from 'react';
 import { useDesktopData } from './DesktopDataContext.jsx';
 import { useEscapeKey } from './hooks/useEscapeKey.js';
+import { formatDateDE } from "../../lib/formatters.js";
 
 function formatDate(iso) {
   if (!iso) return '';
   const d = new Date(iso);
-  return d.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
+  return formatDateDE(d, { weekday: 'long', day: 'numeric', month: 'long' });
 }
 
 export default function DesktopKalenderFlyout({ onClose }) {

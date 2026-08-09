@@ -10,6 +10,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useContentPreview } from "../context/ContentPreviewContext.jsx"; // OPEN.3 2026-07-08 -- ContentPreviewSheet-Anbindung
 import { normalizePostForPreview, normalizeWirkerForPreview } from "../lib/previewNormalizers.js";
+import { formatDateDE } from "../lib/formatters.js";
 
 /* ══════════════════════════════════════════════════════════════
    DESIGN TOKENS
@@ -721,7 +722,7 @@ export default function FavoritesPage({ currentUser, onView, onImpact, onDiscove
             creator:     profileMap[e.user_id]?.full_name || profileMap[e.user_id]?.display_name || "Creator",
             category:    e.category || "Erlebnis",
             location:    e.location_text || "",
-            date:        e.date ? new Date(e.date).toLocaleDateString("de-DE",{day:"numeric",month:"long"}) + (e.location_text ? ` · ${e.location_text}` : "") : null,
+            date:        e.date ?formatDateDE(new Date(e.date), {day:"numeric",month:"long"}) + (e.location_text ? ` · ${e.location_text}` : "") : null,
             price:       e.price,
             img:         e.cover_url || "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=400&q=80",
             badge:       e.date ? "Bald" : "Erlebnis",

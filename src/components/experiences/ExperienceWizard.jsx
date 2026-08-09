@@ -16,6 +16,7 @@ import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { searchPlaces, geocodeWithFallback } from "../../lib/geocoding.js";
 import LocationAutocompleteInput from "../shared/LocationAutocompleteInput.jsx";
+import { formatDateDE } from "../../lib/formatters.js";
 
 // ── Design-Tokens ─────────────────────────────────────────────
 const C = {
@@ -653,7 +654,7 @@ function S4({ data, onChange, saving }) {
   // Datum formatieren
   const fmtDate = iso => {
     if (!iso) return null;
-    try { return new Date(iso).toLocaleDateString("de-DE", { day:"numeric", month:"2-digit", year:"numeric" }); }
+    try { return formatDateDE(new Date(iso), { day:"numeric", month:"2-digit", year:"numeric" }); }
     catch { return iso; }
   };
 

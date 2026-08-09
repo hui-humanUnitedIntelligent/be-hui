@@ -32,15 +32,16 @@ import {
   todayIsoLocal,
 } from "../../lib/talentAvailability.js";
 import { generateReceipt } from "../../lib/generateReceipt.js";
+import { formatDateDE, formatNumberDE } from "../../lib/formatters.js";
 
 const TEAL  = "#16D7C5";
 const CORAL = "#FF8A6B";
 
 function fmtEur(n) {
-  return `${Number(n).toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
+  return `${formatNumberDE(Number(n), { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
 }
 function fmtDate(d) {
-  try { return new Date(d + "T00:00:00").toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "short" }); }
+  try { return formatDateDE(new Date(d + "T00:00:00"), { weekday: "short", day: "2-digit", month: "short" }); }
   catch { return d; }
 }
 // TIME-LOCK-001 (2026-08-08): delegiert an die lokale SSOT (talentAvailability.js)
@@ -165,8 +166,8 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
     try {
       const dt = new Date(selectedDate + "T00:00:00");
       return {
-        weekday: dt.toLocaleDateString("de-DE", { weekday: "long" }),
-        full: dt.toLocaleDateString("de-DE", { day: "2-digit", month: "long", year: "numeric" }),
+        weekday:formatDateDE(dt, { weekday: "long" }),
+        full:formatDateDE(dt, { day: "2-digit", month: "long", year: "numeric" }),
         isWeekend: dt.getDay() === 0 || dt.getDay() === 6,
       };
     } catch { return null; }

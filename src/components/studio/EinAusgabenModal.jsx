@@ -11,6 +11,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { formatDateDE, formatNumberDE } from "../../lib/formatters.js";
 
 // ── Design Tokens ──────────────────────────────────────────────────
 const T = {
@@ -42,12 +43,12 @@ const T = {
 // ── Helpers ────────────────────────────────────────────────────────
 const fmtEur = (n) => {
   if (n == null || n === "") return "—";
-  return `€${Number(n).toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `€${formatNumberDE(Number(n), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
 const fmtDate = (iso) => {
   if (!iso) return "—";
-  return new Date(iso).toLocaleDateString("de-DE", {
+  return formatDateDE(new Date(iso), {
     day: "2-digit", month: "short", year: "numeric",
   });
 };

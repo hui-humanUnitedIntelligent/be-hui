@@ -18,6 +18,7 @@ import { PerfProfiler, usePerfMount } from './perf-instrument.js';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDesktopData } from './DesktopDataContext.jsx';
+import { formatDateDE } from "../../lib/formatters.js";
 
 function Divider() {
   return <div className="wr-divider" />;
@@ -29,7 +30,7 @@ function Shimmer({ w = '60%' }) {
 
 function formatDate(iso) {
   if (!iso) return '';
-  return new Date(iso).toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'short' });
+  return formatDateDE(new Date(iso), { weekday: 'long', day: 'numeric', month: 'short' });
 }
 
 export default function DesktopRightPanel() {

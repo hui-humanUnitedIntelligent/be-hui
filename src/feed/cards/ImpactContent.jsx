@@ -9,6 +9,7 @@
 import React from "react";
 import BaseFeedCard from "./BaseFeedCard.jsx";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
+import { formatNumberDE } from "../../lib/formatters.js";
 
 const GREEN      = "rgba(34,197,94,1)";
 const GREEN_SOFT = "rgba(34,197,94,0.10)";
@@ -29,7 +30,7 @@ function ProgressBar({ current, goal }) {
       <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
         <span style={{ fontSize:11, color:INK_SUB }}>Gesammelt</span>
         <span style={{ fontSize:11, color:GREEN, fontWeight:700 }}>
-          {pct.toFixed(0)}% · €{(current || 0).toLocaleString("de-DE")}
+          {pct.toFixed(0)}% · €{formatNumberDE((current || 0))}
         </span>
       </div>
       <div style={{ height:5, borderRadius:3, background:"rgba(26,26,46,0.07)", overflow:"hidden" }}>

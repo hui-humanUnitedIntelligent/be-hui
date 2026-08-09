@@ -21,6 +21,7 @@ import { useHuiActions, A } from "../../core/hui.actions.js";
 import { S } from "../../core/hui.sources.js";
 import { generateReceipt } from "../../lib/generateReceipt.js";
 import { HUILogo } from "../brand/HUILogo.jsx";
+import { formatDateDE, formatEUR } from "../../lib/formatters.js";
 
 const T = {
   bg:       "#F7F5F0",
@@ -44,11 +45,11 @@ const T = {
 
 function eur(val) {
   if (val == null) return "—";
-  return Number(val).toLocaleString("de-DE", { style: "currency", currency: "EUR" });
+  return formatEUR(Number(val));
 }
 function dt(iso) {
   if (!iso) return "";
-  return new Date(iso).toLocaleDateString("de-DE", { day: "2-digit", month: "short", year: "2-digit" });
+  return formatDateDE(new Date(iso), { day: "2-digit", month: "short", year: "2-digit" });
 }
 
 function StatusChip({ label, color = T.inkFaint, bg = T.border }) {

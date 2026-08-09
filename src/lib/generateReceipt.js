@@ -1,3 +1,4 @@
+import { formatDateDE } from "./formatters.js";
 // src/lib/generateReceipt.js — QUITTUNG-001 (2026-08-08)
 // Generiert eine PDF-Quittung fuer Talent-Buchungen, Erlebnis-Buchungen und Werk-Kaeufe.
 // Nutzung: generateReceipt(bookingData) -> laedt jsPDF lazy -> oeffnet PDF.
@@ -37,7 +38,7 @@ export async function generateReceipt(data) {
   doc.setFontSize(9);
   doc.setTextColor(120, 120, 120);
   const now = new Date();
-  const dateStr = now.toLocaleDateString("de-DE", { day: "2-digit", month: "long", year: "numeric" });
+  const dateStr =formatDateDE(now, { day: "2-digit", month: "long", year: "numeric" });
   doc.text("Erstellt am: " + dateStr, M, y);
   if (data.bookingId) {
     doc.text("Buchungs-ID: " + String(data.bookingId).substring(0, 8) + "\u2026", W - M - 50, y);
@@ -103,7 +104,7 @@ export async function generateReceipt(data) {
     doc.setFontSize(12);
     if (data.date) {
       var dStr = typeof data.date === "string" && data.date.length >= 10
-        ? new Date(data.date).toLocaleDateString("de-DE", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })
+        ?formatDateDE(new Date(data.date), { weekday: "long", day: "2-digit", month: "long", year: "numeric" })
         : String(data.date);
       doc.text(dStr, M, y);
       y += 6;

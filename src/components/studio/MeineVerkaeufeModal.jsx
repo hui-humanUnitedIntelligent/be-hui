@@ -15,6 +15,7 @@ import { useState } from "react";
 import EscrowStatusBadge from "../commerce/EscrowStatusBadge.jsx";
 import SellerPayoutRequestSheet from "../commerce/SellerPayoutRequestSheet.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { formatDateDE } from "../../lib/formatters.js";
 
 // ── Design Tokens (identisch zu den anderen Studio-Modals) ─────────
 const T = {
@@ -34,7 +35,7 @@ const T = {
 function fmtDate(iso) {
   if (!iso) return "";
   const dt = new Date(iso);
-  return dt.toLocaleDateString("de-DE", { day: "2-digit", month: "short" });
+  return formatDateDE(dt, { day: "2-digit", month: "short" });
 }
 
 export default function MeineVerkaeufeModal({ profile, onClose = () => {} }) {

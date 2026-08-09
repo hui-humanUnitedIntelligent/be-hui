@@ -3,6 +3,7 @@
 import React from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
+import { formatDateDE } from "../../lib/formatters.js";
 
 const C = {
   teal:   "#16D7C5",
@@ -270,7 +271,7 @@ export function MeineInhaltePage({ onBack }) {
                 {/* Prüfdatum */}
                 {item.reviewed_at && item.status !== "pending_review" && (
                   <div style={{ fontSize:10, color:"#aaa", marginBottom:8 }}>
-                    Geprüft: {new Date(item.reviewed_at).toLocaleDateString("de-DE")}
+                    Geprüft: {formatDateDE(new Date(item.reviewed_at))}
                   </div>
                 )}
 

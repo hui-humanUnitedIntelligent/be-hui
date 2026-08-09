@@ -7,6 +7,7 @@
 
 import { useEffect, useRef } from "react";
 import { supabase } from "./supabaseClient.js";
+import { formatDateDE } from "./formatters.js";
 
 export function formatPresence(last_seen_at) {
   if (!last_seen_at) return null;
@@ -17,7 +18,7 @@ export function formatPresence(last_seen_at) {
   if (diff < 86400)     return { label: "Heute aktiv",      dot: "rgba(0,0,0,0.22)", online: false };
   const d = new Date(last_seen_at);
   return {
-    label: d.toLocaleDateString("de-DE", { day:"2-digit", month:"2-digit" }),
+    label:formatDateDE(d, { day:"2-digit", month:"2-digit" }),
     dot:   "rgba(0,0,0,0.18)",
     online: false,
   };

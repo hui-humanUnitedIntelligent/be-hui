@@ -22,6 +22,7 @@ import { useAuth } from "../../lib/AuthContext.jsx";
 
 import { ExperiencesSection } from "../../components/profile/sections/ExperiencesSection.jsx";
 import { MomentsSection } from "../../components/profile/sections/MomentsSection.jsx";
+import { formatNumberDE } from "../../lib/formatters.js";
 const C  = HUI.COLOR;
 const Sh = HUI.SHADOW;
 const R  = HUI.RADIUS;
@@ -614,7 +615,7 @@ function WirkungSection({ profile, wirkerProfile, followerCount = 0 }) {
             Wirkung, die wir gemeinsam schaffen
           </div>
           {[
-            {icon:"€",  label:"Gemeinsame Wirkung", val:`€${impact.toLocaleString("de-DE")}`},
+            {icon:"€",  label:"Gemeinsame Wirkung", val:`€${formatNumberDE(impact)}`},
             {icon:"✦",  label:"Unterstützte Projekte", val:projects},
             {icon:"👥", label:"Menschen begleitet",    val:humans},
             {icon:"⭐", label:"Resonanz Bewertung",    val:rating},

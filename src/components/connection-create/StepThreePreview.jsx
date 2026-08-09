@@ -8,6 +8,7 @@ import {
 import React, { useState } from "react";
 import { CONNECTION_TYPES } from "./ConnectionTypeSidebar.jsx";
 import { HUI } from "../../design/hui.design.js";
+import { formatDateDE } from "../../lib/formatters.js";
 
 // ── Farben ──────────────────────────────────────────────────────────
 const C = {
@@ -38,10 +39,8 @@ const COST_LABELS = {
 
 // ── Datums-Formatter ────────────────────────────────────────────────
 function fmtDate(iso) {
-  if (!iso) return new Date().toLocaleDateString("de-DE",
-    { weekday:"short", day:"numeric", month:"long", year:"numeric" });
-  return new Date(iso).toLocaleDateString("de-DE",
-    { weekday:"short", day:"numeric", month:"long", year:"numeric" });
+  if (!iso) return formatDateDE(new Date(), { weekday:"short", day:"numeric", month:"long", year:"numeric" });
+  return formatDateDE(new Date(iso), { weekday:"short", day:"numeric", month:"long", year:"numeric" });
 }
 
 // ── CSS ─────────────────────────────────────────────────────────────

@@ -9,6 +9,7 @@ import {
 } from '../../design/icons/HuiSystemIcons.jsx';
 import React from "react";
 import { HUI } from "../../design/hui.design.js";
+import { formatDateDE } from "../../lib/formatters.js";
 
 // ── Farben ──────────────────────────────────────────────────────────
 const C = {
@@ -115,8 +116,7 @@ function CharCount({ cur, max }) {
 // ── Datum + Uhrzeit nebeneinander ──────────────────────────────────
 function DateTimeRow({ date, time, onDate, onTime }) {
   const today = new Date().toISOString().slice(0, 10);
-  const todayFmt = new Date().toLocaleDateString("de-DE",
-    { day:"numeric", month:"long", year:"numeric" });
+  const todayFmt =formatDateDE(new Date(), { day:"numeric", month:"long", year:"numeric" });
 
   const selectStyle = {
     paddingLeft: 38, paddingRight: 32, appearance:"none",
@@ -145,8 +145,7 @@ function DateTimeRow({ date, time, onDate, onTime }) {
             {[1,2,3,4,5,6,7].map(d => {
               const nd  = new Date(Date.now() + d * 86400000);
               const val = nd.toISOString().slice(0,10);
-              const lbl = nd.toLocaleDateString("de-DE",
-                { weekday:"short", day:"numeric", month:"long" });
+              const lbl =formatDateDE(nd, { weekday:"short", day:"numeric", month:"long" });
               return <option key={d} value={val}>{lbl}</option>;
             })}
           </select>

@@ -10,6 +10,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabaseClient.js';
+import { formatNumberDE } from "../../lib/formatters.js";
 
 const C = {
   cream: '#F9F7F4', white: '#FFFFFF', ink: '#1A1A1A',
@@ -101,7 +102,7 @@ export default function StudioMeldungen() {
               )}
 
               <div style={{ fontSize: 12, color: C.muted, marginBottom: 12 }}>
-                {new Date(r.created_at).toLocaleString('de-DE')}
+                {formatNumberDE(new Date(r.created_at))}
               </div>
 
               {/* Aktionen */}

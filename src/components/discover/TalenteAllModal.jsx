@@ -5,6 +5,7 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useProfileLauncher } from '../home/profile/ProfileLauncher.jsx';
+import { formatNumberDE } from "../../lib/formatters.js";
 
 const T = {
   teal:"rgba(14,196,184,1)", white:"#FFFFFF", ink:"rgba(26,26,46,0.92)",
@@ -24,9 +25,9 @@ function TalentCardItem({ t, onPress }) {
   // openCreatorProfile entfernt (2026-07-29) — Autor nicht klickbar
   const cover = Array.isArray(t.images) && t.images[0]?.url ? t.images[0].url : null;
   const price = t.price_per_session != null
-    ? `${Number(t.price_per_session).toLocaleString("de-DE")} €/Sitzung`
+    ? `${formatNumberDE(Number(t.price_per_session))} €/Sitzung`
     : t.price_per_hour != null
-    ? `${Number(t.price_per_hour).toLocaleString("de-DE")} €/Std`
+    ? `${formatNumberDE(Number(t.price_per_hour))} €/Std`
     : null;
   const locLabel = LOC_LABELS[t.location_type] || t.location_type || "";
   return (

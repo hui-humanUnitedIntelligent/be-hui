@@ -3,6 +3,7 @@
 import React, { useRef, useEffect } from "react";
 import MessageBubble, { TypingBubble } from "./MessageBubble.jsx";
 import { HUI } from "../../design/hui.design.js";
+import { formatDateDE } from "../../lib/formatters.js";
 
 const C = { teal:HUI.COLOR.teal, ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.45)" };
 
@@ -73,9 +74,9 @@ export default function ChatMessages({ messages, typing, event, onDelete, onEdit
   let currentDate = null;
   (messages||[]).forEach(msg => {
     const date = msg.created_at
-      ? new Date(msg.created_at).toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"})
+      ?formatDateDE(new Date(msg.created_at), {weekday:"long",day:"numeric",month:"long"})
       : null;
-    const label = date === new Date().toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"})
+    const label = date ===formatDateDE(new Date(), {weekday:"long",day:"numeric",month:"long"})
       ? "Heute" : date;
     if (label && label !== currentDate) {
       groups.push({ type:"date", label });

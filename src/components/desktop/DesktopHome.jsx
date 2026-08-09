@@ -21,6 +21,7 @@ import { PerfProfiler, usePerfMount, heroMark } from './perf-instrument.js';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../lib/AuthContext.jsx';
 import { useDesktopData } from './DesktopDataContext.jsx';
+import { formatDateDE } from "../../lib/formatters.js";
 
 const UnifiedFeed = lazy(() => import('../../feed/UnifiedFeed.jsx'));
 
@@ -35,7 +36,7 @@ function timeGreeting() {
 }
 
 function formatToday() {
-  return new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
+  return formatDateDE(new Date(), { weekday: 'long', day: 'numeric', month: 'long' });
 }
 
 // ── Hero Skeleton ──────────────────────────────────────────────────────────────

@@ -30,6 +30,7 @@ import MeineResonanz from "./studio/MeineResonanz.jsx";
 const PublicProfilePreview = React.lazy(() => import("../components/profile/PublicProfilePreview.jsx").catch(makeChunkReload("MyBasisProfile:PublicProfilePreview")));
 const OrbSignatur = React.lazy(() => import("../components/profile/OrbSignatur.jsx").then(m => ({ default: m.OrbSignatur })).catch(makeChunkReload("MyBasisProfile:OrbSignatur")));
 import MerkenSection from "../components/profile/MerkenSection.jsx";
+import { optimizeCard } from "../lib/perfUtils.js";
 // Sprint F.7D Phase 4: Kanonische Sections
 const AboutSection = React.lazy(() => import("../components/profile/sections/AboutSection.jsx").then(m => ({ default: m.AboutSection })).catch(makeChunkReload("MyBasisProfile:AboutSection")));
 import { ProfileHeader as CanonicalProfileHeader } from "../components/profile/ProfileHeader.jsx";
@@ -77,6 +78,7 @@ import AmbassadorModal from "../components/ambassador/AmbassadorModal.jsx";
 import HuiStudio from "../components/studio/HuiStudio.jsx";
 import AmbassadorStudioSection from "../components/ambassador/AmbassadorStudioSection.jsx";
 import ImpactUpdateSheet from "../components/studio/ImpactUpdateSheet.jsx";
+import { formatDateDE, formatNumberDE } from "../lib/formatters.js";
 // FinanzuebersichtModal — ersetzt 4 separate Finanz-Modals (eager, kein Lazy-Bug)
 import FinanzuebersichtModal from "../components/studio/FinanzuebersichtModal.jsx";
 import { useModalRegistration } from "../hooks/useModalRegistration.js";
@@ -2665,7 +2667,7 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
     if (!d) return "";
     const dt = new Date(d);
     if (isNaN(dt)) return "";
-    return dt.toLocaleDateString("de-DE", { month:"short", year:"numeric" });
+    return formatDateDE(dt, { month:"short", year:"numeric" });
   }
   return (
     <>
@@ -3038,7 +3040,7 @@ function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
             return (
               <>
                 <div style={{ fontSize:12, color:"#666", marginBottom:6 }}>
-                  €{funded.toLocaleString("de-DE")} von €{goal.toLocaleString("de-DE")} finanziert
+                  €{formatNumberDE(funded)} von €{formatNumberDE(goal)} finanziert
                 </div>
                 <div style={{ height:6, borderRadius:99, background:"rgba(0,0,0,0.08)", overflow:"hidden", marginBottom:16 }}>
                   <div style={{ height:"100%", borderRadius:99, width:`${pct}%`, background:"linear-gradient(90deg,#0DC4B5,#09A89D)" }} />
@@ -3064,7 +3066,7 @@ function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
                     "Proof of Work": { c:"#0EC4B8", bg:"rgba(14,196,184,0.10)" },
                   };
                   const tc = typeColors[u.update_type] || typeColors["Neuigkeit"];
-                  const fmtD = u.created_at ? new Date(u.created_at).toLocaleDateString("de-DE", { day:"2-digit", month:"short", year:"numeric" }) : "";
+                  const fmtD = u.created_at ?formatDateDE(new Date(u.created_at), { day:"2-digit", month:"short", year:"numeric" }) : "";
                   const isEditing = editingUpdateId === u.id;
                   return (
                     <div key={u.id} style={{

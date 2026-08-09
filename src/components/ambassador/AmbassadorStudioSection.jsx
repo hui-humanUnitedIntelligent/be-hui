@@ -15,6 +15,7 @@ import { supabase } from "../../lib/supabaseClient.js";
 import AmbassadorModal from "./AmbassadorModal.jsx";
 import AmbassadorPayoutPanel from "./AmbassadorPayoutPanel.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { formatDateDE } from "../../lib/formatters.js";
 
 // ── Design Tokens (identisch zu HuiStudio.jsx) ─────────────────────
 const T = {
@@ -175,7 +176,7 @@ function UserListModal({ title, users, onClose }) {
                   </div>
                   <div style={{ fontSize:11, color:T.inkFaint, marginTop:1 }}>
                     {u.first_transaction_at
-                      ? `✅ Aktiv seit ${new Date(u.first_transaction_at).toLocaleDateString("de-DE")}`
+                      ? `✅ Aktiv seit ${formatDateDE(new Date(u.first_transaction_at))}`
                       : "😴 Noch keine Transaktion"
                     } · @{u.username||"–"}
                   </div>
@@ -690,7 +691,7 @@ function EinladungenModal({ ambassadorId, username, onClose }) {
                 const name = u.display_name || u.full_name || u.username || "Unbekannt";
                 const initials = name.slice(0,2).toUpperCase();
                 const date = u.created_at
-                  ? new Date(u.created_at).toLocaleDateString("de-DE", { day:"2-digit", month:"2-digit", year:"numeric" })
+                  ?formatDateDE(new Date(u.created_at), { day:"2-digit", month:"2-digit", year:"numeric" })
                   : "–";
 
                 return (

@@ -1,6 +1,7 @@
 import React from "react";
 import BaseFeedCard from "./BaseFeedCard.jsx";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
+import { formatDateDE } from "../../lib/formatters.js";
 
 const PURPLE = "#7264D6";
 const INK    = "#1A1A2E";
@@ -18,7 +19,7 @@ export default function EventContent({ item, onProfile, onReaction, onShare }) {
   if (item._raw?.date) {
     try {
       const d = new Date(item._raw.date);
-      dateStr = d.toLocaleDateString("de-DE", { day:"numeric", month:"long" });
+      dateStr =formatDateDE(d, { day:"numeric", month:"long" });
     } catch { dateStr = item._raw.date; }
   }
   const metaParts = [
