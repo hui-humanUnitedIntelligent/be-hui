@@ -695,7 +695,43 @@ function SummaryRow({ label, value, color = T.ink }) {
     const el = valRef.current;
     const cs = window.getComputedStyle(el);
     const rect = el.getBoundingClientRect();
+
+    // ENTSCHEIDENDER TEST: Ist die ECHTE Inter-Schriftdatei bei diesem
+    // Font-Weight/Groesse ueberhaupt GELADEN? getComputedStyle().fontFamily
+    // zeigt nur die ANGEFORDERTE CSS-Stack, NICHT was der Browser tatsaechlich
+    // benutzt hat. document.fonts (FontFaceSet-API) ist die einzige
+    // autoritative Quelle dafuer.
+    let fontCheckInter800 = "n/a";
+    let fontCheckInter400 = "n/a";
+    let loadedFaces = "n/a";
+    try {
+      fontCheckInter800 = document.fonts.check('800 15px "Inter"') ? "GELADEN" : "NICHT GELADEN (Fallback aktiv!)";
+      fontCheckInter400 = document.fonts.check('400 15px "Inter"') ? "GELADEN" : "NICHT GELADEN (Fallback aktiv!)";
+      const faces = [];
+      document.fonts.forEach(f => faces.push(`${f.family}/${f.weight}/${f.style}=${f.status}`));
+      loadedFaces = faces.length ? faces.join(", ") : "KEINE Fonts im FontFaceSet registriert!";
+    } catch (e) {
+      loadedFaces = `Fehler: ${e.message}`;
+    }
+
+    // Canvas-Vergleichsmessung: Canvas2D nutzt oft eine ANDERE Text-Shaping-
+    // Pipeline als das DOM-Layout. Wenn Canvas eine ANDERE Breite misst als
+    // das DOM (rect.width), beweist das einen DOM-Layout-spezifischen Bug.
+    let canvasWidth = "n/a";
+    try {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      ctx.font = `${cs.fontWeight} ${cs.fontSize} Inter, sans-serif`;
+      canvasWidth = ctx.measureText(el.textContent).width.toFixed(2) + "px";
+    } catch (e) {
+      canvasWidth = `Fehler: ${e.message}`;
+    }
+
     const info = [
+      `>>> document.fonts.check(800,Inter): ${fontCheckInter800}`,
+      `>>> document.fonts.check(400,Inter): ${fontCheckInter400}`,
+      `>>> geladene FontFaces: ${loadedFaces}`,
+      `>>> Canvas measureText Breite: ${canvasWidth} vs DOM rect.width: ${rect.width.toFixed(2)}px`,
       `font-family: ${cs.fontFamily}`,
       `font-weight: ${cs.fontWeight}`,
       `font-size: ${cs.fontSize}`,
