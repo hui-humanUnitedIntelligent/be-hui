@@ -11,7 +11,7 @@
 // bis zu 4 Buttons direkt auf jeder Karte gestapelt ("unübersichtlich").
 // ══════════════════════════════════════════════════════════════════════
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import RecommendModal from "../profile/RecommendModal.jsx";
@@ -21,6 +21,7 @@ import { useHuiActions, A } from "../../core/hui.actions.js";
 import { S } from "../../core/hui.sources.js";
 import { generateReceipt } from "../../lib/generateReceipt.js";
 import { HUILogo } from "../brand/HUILogo.jsx";
+import CanvasAmount from "../shared/CanvasAmount.jsx";
 import { formatDateDE, formatEUR } from "../../lib/formatters.js";
 
 const T = {
@@ -105,7 +106,7 @@ function TxCard({ image, title, subtitle, dateLabel, amount, amountColor = T.ink
         )}
       </div>
       <div style={{ textAlign: "right", flexShrink: 0 }}>
-        <div style={{ fontSize: 14, fontWeight: 800, color: amountColor }}>{eur(amount)}</div>
+        <CanvasAmount value={eur(amount)} fontSize={14} fontWeight={800} color={amountColor} />
         <div style={{ fontSize: 16, color: T.inkFaint, marginTop: 2 }}>›</div>
       </div>
     </div>
@@ -684,88 +685,14 @@ function EmptyState({ text }) {
   );
 }
 function SummaryRow({ label, value, color = T.ink }) {
-  // TEMP-DIAGNOSE (2026-08-09): Zeigt die tatsaechlich vom Geraet berechneten
-  // CSS-Werte fuer genau dieses Zahlen-Element live auf dem Bildschirm an --
-  // KEIN Fix, reine Fakten-Erhebung statt weiterem Raten. Wird nach Diagnose
-  // wieder entfernt.
-  const valRef = useRef(null);
-  const [dbg, setDbg] = useState("");
-  useEffect(() => {
-    if (!valRef.current) return;
-    const el = valRef.current;
-    const cs = window.getComputedStyle(el);
-    const rect = el.getBoundingClientRect();
-
-    // ENTSCHEIDENDER TEST: Ist die ECHTE Inter-Schriftdatei bei diesem
-    // Font-Weight/Groesse ueberhaupt GELADEN? getComputedStyle().fontFamily
-    // zeigt nur die ANGEFORDERTE CSS-Stack, NICHT was der Browser tatsaechlich
-    // benutzt hat. document.fonts (FontFaceSet-API) ist die einzige
-    // autoritative Quelle dafuer.
-    let fontCheckInter800 = "n/a";
-    let fontCheckInter400 = "n/a";
-    let loadedFaces = "n/a";
-    try {
-      fontCheckInter800 = document.fonts.check('800 15px "Inter"') ? "GELADEN" : "NICHT GELADEN (Fallback aktiv!)";
-      fontCheckInter400 = document.fonts.check('400 15px "Inter"') ? "GELADEN" : "NICHT GELADEN (Fallback aktiv!)";
-      const faces = [];
-      document.fonts.forEach(f => faces.push(`${f.family}/${f.weight}/${f.style}=${f.status}`));
-      loadedFaces = faces.length ? faces.join(", ") : "KEINE Fonts im FontFaceSet registriert!";
-    } catch (e) {
-      loadedFaces = `Fehler: ${e.message}`;
-    }
-
-    // Canvas-Vergleichsmessung: Canvas2D nutzt oft eine ANDERE Text-Shaping-
-    // Pipeline als das DOM-Layout. Wenn Canvas eine ANDERE Breite misst als
-    // das DOM (rect.width), beweist das einen DOM-Layout-spezifischen Bug.
-    let canvasWidth = "n/a";
-    try {
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      ctx.font = `${cs.fontWeight} ${cs.fontSize} Inter, sans-serif`;
-      canvasWidth = ctx.measureText(el.textContent).width.toFixed(2) + "px";
-    } catch (e) {
-      canvasWidth = `Fehler: ${e.message}`;
-    }
-
-    const info = [
-      `>>> document.fonts.check(800,Inter): ${fontCheckInter800}`,
-      `>>> document.fonts.check(400,Inter): ${fontCheckInter400}`,
-      `>>> geladene FontFaces: ${loadedFaces}`,
-      `>>> Canvas measureText Breite: ${canvasWidth} vs DOM rect.width: ${rect.width.toFixed(2)}px`,
-      `font-family: ${cs.fontFamily}`,
-      `font-weight: ${cs.fontWeight}`,
-      `font-size: ${cs.fontSize}`,
-      `letter-spacing: ${cs.letterSpacing}`,
-      `word-spacing: ${cs.wordSpacing}`,
-      `font-variant-numeric: ${cs.fontVariantNumeric}`,
-      `font-kerning: ${cs.fontKerning}`,
-      `font-stretch: ${cs.fontStretch}`,
-      `text-rendering: ${cs.textRendering || document.body.style.textRendering || "n/a"}`,
-      `direction: ${cs.direction}`,
-      `unicode-bidi: ${cs.unicodeBidi}`,
-      `white-space: ${cs.whiteSpace}`,
-      `transform: ${cs.transform}`,
-      `zoom: ${cs.zoom}`,
-      `rect.width: ${rect.width.toFixed(2)}px (text: "${el.textContent}", ${el.textContent.length} Zeichen)`,
-      `devicePixelRatio: ${window.devicePixelRatio}`,
-      `visualViewport.scale: ${window.visualViewport ? window.visualViewport.scale : "n/a"}`,
-    ].join(" | ");
-    setDbg(info);
-  }, [value]);
   return (
     <div style={{
+      display: "flex", justifyContent: "space-between", alignItems: "center",
       background: T.bgCard, borderRadius: T.r12, padding: "12px 16px",
       border: `1px solid ${T.border}`, marginBottom: 14,
     }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: T.inkSoft }}>{label}</span>
-        <span ref={valRef} className="hui-num-nowrap" style={{ fontSize: 15, fontWeight: 800, color }}>{value}</span>
-      </div>
-      {dbg && (
-        <div style={{ fontSize: 8, color: "#FF3B30", marginTop: 8, wordBreak: "break-all", fontFamily: "monospace", lineHeight: 1.4, userSelect: "text" }}>
-          {dbg}
-        </div>
-      )}
+      <span style={{ fontSize: 12, fontWeight: 600, color: T.inkSoft }}>{label}</span>
+      <CanvasAmount value={value} fontSize={15} fontWeight={800} color={color} />
     </div>
   );
 }
@@ -776,7 +703,7 @@ function MiniStat({ label, value, color = T.ink }) {
       border: `1px solid ${T.border}`,
     }}>
       <div style={{ fontSize: 10, fontWeight: 600, color: T.inkFaint, marginBottom: 4 }}>{label}</div>
-      <div className="hui-num-nowrap" style={{ fontSize: 14, fontWeight: 800, color }}>{value}</div>
+      <CanvasAmount value={value} fontSize={14} fontWeight={800} color={color} />
     </div>
   );
 }
@@ -908,9 +835,10 @@ function MeineSupports({ userId }) {
           <div style={{ fontSize: 12, color: T.inkSoft, marginBottom: 4 }}>
             {view === "given" ? "Insgesamt gegeben" : "Insgesamt erhalten"}
           </div>
-          <div className="hui-num-nowrap" style={{ fontSize: 20, fontWeight: 800, color: T.teal }}>
-            {eur(items.filter(i => i.status === "succeeded").reduce((sum, i) => sum + Number(i.amount), 0))}
-          </div>
+          <CanvasAmount
+            value={eur(items.filter(i => i.status === "succeeded").reduce((sum, i) => sum + Number(i.amount), 0))}
+            fontSize={20} fontWeight={800} color={T.teal}
+          />
           <div style={{ fontSize: 11, color: T.inkFaint, marginTop: 2 }}>
             {items.filter(i => i.status === "succeeded").length} erfolgreiche Unterstützung(en)
           </div>
