@@ -10,35 +10,35 @@
    bei — Zahlen fielen auf System-Schrift
    zurück. Statische Dateien enthalten das tnum-Feature zuverlässig. ── */
 @font-face {
-  font-family: 'Inter-Local'; font-style: normal; font-display: swap; font-weight: 200;
+  font-family: 'Inter'; font-style: normal; font-display: swap; font-weight: 200;
   src: url('./fonts/Inter-ExtraLight.woff2') format('woff2');
 }
 @font-face {
-  font-family: 'Inter-Local'; font-style: normal; font-display: swap; font-weight: 300;
+  font-family: 'Inter'; font-style: normal; font-display: swap; font-weight: 300;
   src: url('./fonts/Inter-Light.woff2') format('woff2');
 }
 @font-face {
-  font-family: 'Inter-Local'; font-style: normal; font-display: swap; font-weight: 400;
+  font-family: 'Inter'; font-style: normal; font-display: swap; font-weight: 400;
   src: url('./fonts/Inter-Regular.woff2') format('woff2');
 }
 @font-face {
-  font-family: 'Inter-Local'; font-style: normal; font-display: swap; font-weight: 500;
+  font-family: 'Inter'; font-style: normal; font-display: swap; font-weight: 500;
   src: url('./fonts/Inter-Medium.woff2') format('woff2');
 }
 @font-face {
-  font-family: 'Inter-Local'; font-style: normal; font-display: swap; font-weight: 600;
+  font-family: 'Inter'; font-style: normal; font-display: swap; font-weight: 600;
   src: url('./fonts/Inter-SemiBold.woff2') format('woff2');
 }
 @font-face {
-  font-family: 'Inter-Local'; font-style: normal; font-display: swap; font-weight: 700;
+  font-family: 'Inter'; font-style: normal; font-display: swap; font-weight: 700;
   src: url('./fonts/Inter-Bold.woff2') format('woff2');
 }
 @font-face {
-  font-family: 'Inter-Local'; font-style: normal; font-display: swap; font-weight: 800;
+  font-family: 'Inter'; font-style: normal; font-display: swap; font-weight: 800;
   src: url('./fonts/Inter-ExtraBold.woff2') format('woff2');
 }
 @font-face {
-  font-family: 'Inter-Local'; font-style: normal; font-display: swap; font-weight: 900;
+  font-family: 'Inter'; font-style: normal; font-display: swap; font-weight: 900;
   src: url('./fonts/Inter-Black.woff2') format('woff2');
 }
 
@@ -68,7 +68,7 @@
    zurück. Fix: html explizit auf Inter setzen + font-feature-settings
    NICHT auf normal setzen (damit font-variant-numeric wirkt). ── */
 html {
-  font-family: 'Inter', 'Inter-Local', -apple-system, BlinkMacSystemFont, 'SF Pro Display',
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display',
                'Helvetica Neue', system-ui, sans-serif;
 }
 
@@ -157,7 +157,7 @@ body {
      zu laden, was bei Ziffern zu Darstellungsfehlern führt. */
   font-synthesis: none;
   -webkit-font-synthesis: none;
-  font-family: 'Inter', 'Inter-Local', -apple-system, BlinkMacSystemFont, 'SF Pro Display',
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display',
                'Helvetica Neue', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
