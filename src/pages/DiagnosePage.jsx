@@ -355,19 +355,36 @@ export default function DiagnosePage() {
           <Row label="Computed font-feature-settings" value={fontInfo.computedFontFeatureSettings} />
           <Row label="Computed font-synthesis" value={fontInfo.computedFontSynthesis} />
           <Row label="Google Fonts <link> loaded" value={fontInfo.googleFontsLink} />
-          {fontInfo.googleFontsHref && <Row label="GF href" value={fontInfo.googleFontsHref} />}
-          <Row label="Rendered width (10 digits)" value={fontInfo.renderedWidth} />
-          <Row label="Rendered height" value={fontInfo.renderedHeight} />
           <Row label="Loaded fonts (document.fonts)" value={`${fontInfo.loadedFontsCount} fonts`} />
           {fontInfo.loadedFonts?.map((f, i) => (
             <Row key={i} label={`  ${i+1}`} value={f} />
           ))}
-          {fontInfo.fontLoadCheck && <>
-            <Row label="Inter 700 loaded?" value={fontInfo.fontLoadCheck.bold700} 
-              ok={fontInfo.fontLoadCheck.bold700 === 'loaded'} />
-            <Row label="Inter 400 loaded?" value={fontInfo.fontLoadCheck.regular400}
-              ok={fontInfo.fontLoadCheck.regular400 === 'loaded'} />
-          </>}
+          <div style={{marginTop:12,marginBottom:8,fontWeight:800,color:C.warn,fontSize:11}}>
+            WEIGHT-BY-WEIGHT TEST (10 digits "1234567890"):
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'60px 80px 80px 80px',gap:2,fontSize:10,marginBottom:8}}>
+            <div style={{fontWeight:800,color:C.text}}>W</div>
+            <div style={{fontWeight:800,color:C.text}}>Width</div>
+            <div style={{fontWeight:800,color:C.text}}>Load()</div>
+            <div style={{fontWeight:800,color:C.text}}>Check()</div>
+            {[200,300,400,500,600,700,800,900].map(w => (
+              <React.Fragment key={w}>
+                <div style={{color:C.muted}}>{w}</div>
+                <div style={{color: fontInfo.weightResults?.[w]?.width?.startsWith('1') ? C.ok : C.err}}>
+                  {fontInfo.weightResults?.[w]?.width || '-'}
+                </div>
+                <div style={{color: fontInfo.loadChecks?.[w] === 'loaded' ? C.ok : C.err}}>
+                  {fontInfo.loadChecks?.[w] || '-'}
+                </div>
+                <div style={{color: fontInfo.checkResults?.[w] === 'true' ? C.ok : C.err}}>
+                  {fontInfo.checkResults?.[w] || '-'}
+                </div>
+              </React.Fragment>
+            ))}
+          </div>
+          <div style={{fontSize:10,color:C.muted,marginTop:4,marginBottom:8}}>
+            "loaded" = Font-Loading-API kann Font laden - "true" = Browser hält Font für verfügbar
+          </div>
           <div style={{ marginTop:12, padding:'12px', background:'rgba(255,255,255,.05)', borderRadius:8 }}>
             <div style={{ fontSize:32, fontWeight:700, fontFamily:'Inter, sans-serif' }}>
               1.234.567,89 €
