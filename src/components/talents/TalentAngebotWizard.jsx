@@ -15,6 +15,7 @@ import React, { useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
+import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import {
   createTalent, updateTalent, uploadTalentImage, TALENT_KATEGORIEN,
@@ -258,6 +259,17 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
       booking_window_end: windowEnd || null,
     };
 
+    // ── Pre-Save: Session prüfen, ggf. refreshen ──
+    const { data: { session: curSession } } = await supabase.auth.getSession();
+    if (!curSession?.access_token) {
+      const { data: refreshed } = await supabase.auth.refreshSession();
+      if (!refreshed?.session?.access_token) {
+        setSaving(false);
+        setError("Sitzung abgelaufen — bitte abmelden und neu anmelden.");
+        return;
+      }
+    }
+
     const { error: saveErr } = isEdit
       ? await updateTalent(existingTalent.id, {
           title: title.trim(), description: description.trim() || null, category, images,
@@ -267,7 +279,14 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
           userId, title: title.trim(), description: description.trim(), category, images, ...servicePayload,
         });
     setSaving(false);
-    if (saveErr) { setError(saveErr.message || "Speichern fehlgeschlagen."); return; }
+    if (saveErr) {
+      console.error("[SAVE TALENT] DB-ERROR:", saveErr.message, "| code:", saveErr.code);
+      const isRLS = saveErr.code === "42501" || /row-level security/i.test(saveErr.message || "");
+      setError(isRLS
+        ? "Sitzung abgelaufen — bitte abmelden und neu anmelden."
+        : (saveErr.message || "Speichern fehlgeschlagen."));
+      return;
+    }
     onSaved?.();
     onClose?.();
   }

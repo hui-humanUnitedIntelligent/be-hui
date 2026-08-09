@@ -909,6 +909,18 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
 
     console.log("[EXPERIENCE PUBLISH PAYLOAD]", JSON.stringify(payload, null, 2));
 
+    // ── Pre-Save: Session prüfen, ggf. refreshen ──
+    const { data: { session: curSession } } = await supabase.auth.getSession();
+    if (!curSession?.access_token) {
+      const { data: refreshed } = await supabase.auth.refreshSession();
+      if (!refreshed?.session?.access_token) {
+        setSaving(false);
+        setSaveError("Sitzung abgelaufen — bitte abmelden und neu anmelden.");
+        setTimeout(() => setSaveError(null), 8000);
+        return;
+      }
+    }
+
     const { data: saved, error } = existingExp?.id
       ? await supabase.from("experiences").update(payload).eq("id", existingExp.id).eq("user_id", userId).select().single()
       : await supabase.from("experiences").insert(payload).select().single();
@@ -917,8 +929,11 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
 
     if (error) {
       console.error("[EXPERIENCE INSERT ERROR]", error);
-      setSaveError(error.message || "Speichern fehlgeschlagen");
-      setTimeout(() => setSaveError(null), 6000);
+      const isRLS = error.code === "42501" || /row-level security/i.test(error.message || "");
+      setSaveError(isRLS
+        ? "Sitzung abgelaufen — bitte abmelden und neu anmelden."
+        : (error.message || "Speichern fehlgeschlagen"));
+      setTimeout(() => setSaveError(null), isRLS ? 8000 : 6000);
       return;
     }
 

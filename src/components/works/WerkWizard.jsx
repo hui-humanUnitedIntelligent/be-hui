@@ -603,15 +603,30 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
       images_count: imagesArr.length,
       all_keys: Object.keys(payload),
     }, null, 2));
+    // ── Pre-Save: Session prüfen, ggf. refreshen ──
+    const { data: { session: curSession } } = await supabase.auth.getSession();
+    if (!curSession?.access_token) {
+      const { data: refreshed } = await supabase.auth.refreshSession();
+      if (!refreshed?.session?.access_token) {
+        setSaving(false);
+        setSaveError("Sitzung abgelaufen — bitte abmelden und neu anmelden.");
+        setTimeout(() => setSaveError(null), 8000);
+        return;
+      }
+    }
+
     const { data:saved, error }=existingWork?.id
       ? await supabase.from("works").update(payload).eq("id",existingWork.id).eq("user_id",userId).select().single()
       : await supabase.from("works").insert(payload).select().single();
     setSaving(false);
     if (error) {
       console.error("[SAVE WERK] DB-ERROR:", error.message, "| code:", error.code);
-      // Nutzer-Feedback
-      setSaveError(error.message || "Speichern fehlgeschlagen");
-      setTimeout(() => setSaveError(null), 5000);
+      // RLS-Fehler (42501) = Session abgelaufen → spezifische Meldung
+      const isRLS = error.code === "42501" || /row-level security/i.test(error.message || "");
+      setSaveError(isRLS
+        ? "Sitzung abgelaufen — bitte abmelden und neu anmelden."
+        : (error.message || "Speichern fehlgeschlagen"));
+      setTimeout(() => setSaveError(null), isRLS ? 8000 : 5000);
       return;
     }
     console.log("[SAVE WERK] success:", saved?.id, "status:", status);
