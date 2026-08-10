@@ -158,20 +158,6 @@ export async function batchQueries(queries) {
 // Fallback: Original-URL wenn Render-API nicht verfügbar.
 const SUPABASE_HOST = (import.meta.env.VITE_SUPABASE_URL || '').replace(/^https?:\/\//, '');
 
-// ZOOM-BUG-FIX (2026-08-10): Supabase Image Resizing API verzerrte JEDES
-// Bild, dessen Original-Hoehe != Original-Breite war. Ursache: Ohne
-// `resize`-Parameter erzwingt die API die angeforderte `width`, laesst die
-// HOEHE aber auf der Original-Pixelzahl stehen (z.B. 480x640 Original ->
-// "width=200" ergab 200x640 statt proportional 200x267) -- das Bild wurde
-// in der Breite zusammengequetscht, in der Hoehe unveraendert gelassen.
-// Mit object-fit:contain (siehe fix "Avatar-Bild-Zoom reduziert" von heute
-// morgen) wurde dieses verzerrte Bild dann VOLLSTAENDIG angezeigt statt
-// nur angeschnitten -> der gemeldete extreme "Zoom"/Stauch-Effekt bei
-// Avataren. Fix: `resize=contain` Parameter ergaenzt -- die API skaliert
-// jetzt IMMER proportional zur angeforderten `width`, unabhaengig vom
-// Seitenverhaeltnis des Originals. Betrifft alle 4 Funktionen unten
-// (Avatar/Cover/Card/Thumbnail) gleichermassen, da alle ueber diese eine
-// Funktion laufen. Keine Breite/Groessen-Werte geaendert -- rein additiv.
 export function optimizeImg(url, width = 400) {
   if (!url || typeof url !== 'string') return url;
   // SVG und lokale Assets nicht optimieren
@@ -180,9 +166,9 @@ export function optimizeImg(url, width = 400) {
   if (url.includes('unsplash.com')) return `${url}&w=${width}&q=80&auto=format`;
   // Supabase Image Resizing API
   if (SUPABASE_HOST && url.includes(SUPABASE_HOST)) {
-    // Pattern: https://host/storage/v1/object/public/bucket/path → /storage/v1/render/image/public/bucket/path?width=W&quality=75&resize=contain
+    // Pattern: https://host/storage/v1/object/public/bucket/path → /storage/v1/render/image/public/bucket/path?width=W&quality=75
     if (url.includes('/storage/v1/object/public/')) {
-      return url.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/') + `?width=${width}&quality=75&format=webp&resize=contain`;
+      return url.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/') + `?width=${width}&quality=75&format=webp`;
     }
     // Wenn bereits eine signed URL oder andere Form, nicht verändern
   }
