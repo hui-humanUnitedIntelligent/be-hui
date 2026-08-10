@@ -123,9 +123,9 @@ export function StoryBar({ onStoryClick }) {
                   <div style={{ width:'100%', height:'100%', borderRadius:'50%',
                     overflow:'hidden', border:'2.5px solid white', background: C.cream }}>
                     {cover?.avatar_url ? (
-                      <img loading="eager" decoding="async" src={optimizeAvatar(cover.avatar_url)} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                      <img loading="eager" decoding="async" src={optimizeAvatar(cover.avatar_url)} alt="" style={{ width:'100%', height:'100%', objectFit:'contain' }} />
                     ) : cover?.media_url ? (
-                      <img loading="eager" decoding="async" src={optimizeCard(cover.media_url)} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                      <img loading="eager" decoding="async" src={optimizeCard(cover.media_url)} alt="" style={{ width:'100%', height:'100%', objectFit:'contain' }} />
                     ) : (
                       <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center' }}><HUILogo size={20} style={{opacity:0.5}} /></div>
                     )}
@@ -390,7 +390,7 @@ export function StoryViewer({ data: initData, onClose, onViewProfile }) {
             overflow:'hidden', background:'#222' }}>
             {current.avatar_url
               ? <img loading="eager" src={optimizeAvatar(current.avatar_url)} alt=""
-                  style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                  style={{ width:'100%', height:'100%', objectFit:'contain' }} />
               : <div style={{ width:'100%', height:'100%',
                   display:'flex', alignItems:'center', justifyContent:'center',
                   color:'white', fontWeight: 600, fontSize:17,

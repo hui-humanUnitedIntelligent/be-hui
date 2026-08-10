@@ -287,7 +287,7 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
               <div style={{ width:40, height:40, borderRadius:"50%", overflow:"hidden", flexShrink:0,
                 background:"rgba(13,196,181,0.14)" }}>
-                {mountedItem.author.avatar && <img loading="lazy" decoding="async" src={optimizeAvatar(mountedItem.author.avatar)} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>}
+                {mountedItem.author.avatar && <img loading="lazy" decoding="async" src={optimizeAvatar(mountedItem.author.avatar)} alt="" style={{ width:"100%", height:"100%", objectFit:"contain" }}/>}
               </div>
               <div style={{ minWidth:0, flex:1 }}>
                 <div style={{ fontSize:14.5, fontWeight: 600, color:T.ink }}>{mountedItem.author.name}</div>

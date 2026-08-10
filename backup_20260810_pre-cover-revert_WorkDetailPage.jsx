@@ -71,7 +71,7 @@ function Avatar({ url, name, size = 40 }) {
   if (url) return (
     <img loading="lazy" decoding="async" src={url} alt={name}
       style={{ width:size, height:size, borderRadius:"50%",
-        objectFit:"cover", border:"2px solid white",
+        objectFit:"contain", border:"2px solid white",
         boxShadow:"0 2px 10px rgba(0,0,0,0.15)", flexShrink:0 }}/>
   );
   return (

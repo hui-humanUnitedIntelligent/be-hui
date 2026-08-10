@@ -59,7 +59,7 @@ function PersonCardItem({ p, onPress, followers=0, likes=0 }) {
       }}>
         {av ? (
           <img loading="lazy" decoding="async" src={av} alt={name} onError={() => setImgErr(true)}
-            style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
+            style={{ width:"100%", height:"100%", objectFit:"contain", display:"block" }}/>
         ) : (
           <HUIProfilIcon size={24} style={{opacity:0.4, color:"rgba(14,196,184,0.6)"}} />
         )}

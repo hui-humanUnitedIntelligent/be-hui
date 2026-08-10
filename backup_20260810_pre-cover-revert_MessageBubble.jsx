@@ -191,7 +191,7 @@ function ImageThumb({ msg = {} }) {
       src={msg.media_url} alt="Bild"
       style={{
         maxWidth:"100%", maxHeight:260, borderRadius:12,
-        display:"block", objectFit:"cover",
+        display:"block", objectFit:"contain",
         cursor:"pointer",
       }}
       onClick={() => openGallery(msg.media_url)}

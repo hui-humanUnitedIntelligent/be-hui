@@ -2728,7 +2728,7 @@ function LiveTicker({ activities }) {
               border:`1px solid ${T.teal}20`,
               display:"flex", alignItems:"center", justifyContent:"center", fontSize:12 }}>
               {act.avatar
-                ? <img loading="lazy" decoding="async" src={act.avatar} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>
+                ? <img loading="lazy" decoding="async" src={act.avatar} alt="" style={{ width:"100%",height:"100%",objectFit:"contain" }}/>
                 : "👤"
               }
             </div>

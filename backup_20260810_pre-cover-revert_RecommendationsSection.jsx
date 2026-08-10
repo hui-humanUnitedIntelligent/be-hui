@@ -202,7 +202,7 @@ export function RecommendationsSection({
               >
                 {authorAvatar && (
                   <img loading="lazy" decoding="async" src={authorAvatar} alt={authorName} style={{ width:24, height:24,
-                    borderRadius:"50%", objectFit:"cover" }}/>
+                    borderRadius:"50%", objectFit:"contain" }}/>
                 )}
                 <div style={{ fontSize:11.5, color:T.inkFaint, fontWeight:600 }}>
                   — {authorName}

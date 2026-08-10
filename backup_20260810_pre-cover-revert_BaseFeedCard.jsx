@@ -159,7 +159,7 @@ const CardAvatar = memo(function CardAvatar({ src, name, size = 38, isTalent = f
     }}>
       {src && !err
         ? <img loading="lazy" decoding="async" src={optimizeAvatar(src)} alt={name||""} onError={() => setErr(true)}
-            style={{ width:"100%",height:"100%",objectFit:"cover" }} />
+            style={{ width:"100%",height:"100%",objectFit:"contain" }} />
         : letter}
     </div>
   );

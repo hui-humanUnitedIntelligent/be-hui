@@ -235,7 +235,7 @@ export function ProfileHeader({
                     onLoad={() => setAvatarLoaded(true)}
                     onError={() => setAvatarLoaded(true)}
                     style={{
-                      width:"100%", height:"100%", objectFit:"cover",
+                      width:"100%", height:"100%", objectFit:"contain",
                       opacity: avatarLoaded ? 1 : 0, transition:"opacity 0.2s ease",
                     }}
                   />
