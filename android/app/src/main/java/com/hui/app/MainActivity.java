@@ -7,6 +7,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.WebView;
 
+import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -64,7 +65,7 @@ public class MainActivity extends BridgeActivity {
             // echten WindowInsets aus und injizieren sie als CSS-Variablen.
             webView.post(() -> {
                 ViewCompat.setOnApplyWindowInsetsListener(webView, (v, insets) -> {
-                    WindowInsetsCompat systemBars = insets.getInsets(
+                    Insets systemBars = insets.getInsets(
                         WindowInsetsCompat.Type.systemBars() |
                         WindowInsetsCompat.Type.displayCutout()
                     );
