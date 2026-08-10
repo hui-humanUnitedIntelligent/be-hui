@@ -240,8 +240,8 @@ export async function generateReceipt(data) {
  */
 async function saveNative(doc, fileName) {
   try {
-    const { Filesystem, Directory, Encoding } = await import("@capacitor/filesystem");
-    const { Share } = await import("@capacitor/share");
+    const { Filesystem, Directory, Encoding } = await import(/* @vite-ignore */ "@capacitor/filesystem");
+    const { Share } = await import(/* @vite-ignore */ "@capacitor/share");
 
     // PDF als Base64 holen (ohne Data-URL-Präfix)
     const dataUri = doc.output("datauristring"); // "data:application/pdf;base64,XXXX"
