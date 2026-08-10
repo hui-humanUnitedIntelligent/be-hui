@@ -6,6 +6,7 @@
 //   startIndex: Index des zuerst anzuzeigenden Bildes (Default 0)
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 const ANIM_MS = 220;
 const CSS = `
@@ -66,6 +67,9 @@ export default function ImageLightbox() {
       setImages(null); setScale(1); setDragY(0); setDragX(0);
     }, ANIM_MS);
   }, []);
+
+  // BACK-BUTTON: Register so Android back button closes the lightbox
+  useModalRegistration(!!images, close, "ImageLightbox");
 
   var onTouchStart = useCallback(function(e) {
     if (e.touches.length === 2) {

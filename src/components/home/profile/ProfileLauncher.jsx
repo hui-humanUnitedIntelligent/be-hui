@@ -13,6 +13,7 @@ import { S } from "../../../core/hui.sources.js";
 import { ProfileService } from '../../../services/db';
 import { supabase } from "../../../lib/supabaseClient.js";
 import { isProfileTalent } from "../../../lib/profileUtils.js";
+import { useModalRegistration } from "../../../hooks/useModalRegistration.js";
 
 // ── Inline ErrorBoundary ─────────────────────────────────────────
 class ProfileErrorBoundary extends React.Component {
@@ -195,6 +196,10 @@ export default function ProfileLauncher() {
     showCreatorDashboard, setShowCreatorDashboard,
     authProfile,
   } = useHome();
+
+  // BACK-BUTTON: Register so Android back button closes the profile overlay
+  useModalRegistration(!!selectedProfileId, closeProfileById, "PublicProfile");
+  useModalRegistration(showCreatorDashboard, () => setShowCreatorDashboard(false), "OwnProfile");
 
   // Portal-Target: document.body (escapes ALL ancestor Stacking Contexts)
   const portalTarget = typeof document !== "undefined" ? document.body : null;

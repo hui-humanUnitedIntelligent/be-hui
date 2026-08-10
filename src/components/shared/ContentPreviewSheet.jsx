@@ -34,6 +34,7 @@ import { shareContent } from "../../lib/shareContent.js";
 import { countComments, getComments } from "../../lib/commentsService.js";
 import { prefetchComments } from "../../lib/commentsPrefetchCache.js";
 import CommentsSheet from "./CommentsSheet.jsx";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 const T = {
   ink: "#1A1A2E", inkSoft: "rgba(26,26,46,0.60)", inkFaint: "rgba(26,26,46,0.38)",
@@ -67,6 +68,9 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
   // FIX: navigate VOR useCallback deklarieren (TDZ-Bug war: navigate nach useCallback)
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  // BACK-BUTTON: Register so Android back button closes the preview sheet
+  useModalRegistration(!!item, onClose, "ContentPreviewSheet");
 
   // TALENT-PROFIL-FIX: navigate-basiert statt useProfileLauncher
   const openTalentProfile = useCallback(async (userId) => {
