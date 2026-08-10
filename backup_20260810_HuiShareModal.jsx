@@ -301,7 +301,7 @@ export function HuiShareModal({ item, onClose }) {
         background: "rgba(26,26,46,0.55)",
         backdropFilter: "blur(4px)",
         WebkitBackdropFilter: "blur(4px)",
-        zIndex: 16000,
+        zIndex: 11000,
         display: "flex", alignItems: "flex-end", justifyContent: "center",
         padding: "0 0 env(safe-area-inset-bottom, 0px)",
       }}

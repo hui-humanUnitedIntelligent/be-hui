@@ -152,11 +152,7 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
       return;
     }
     if (type === "save") {
-      // Beide Systeme updaten: toggleSave (saved_posts context → saved-Status)
-      // UND toggle (useSingleReaction → saveCount-Zähler). Ohne toggle() blieb
-      // der Zähler neben dem Bookmark-Icon immer null (Nutzer-Feedback 2026-08-10).
       toggleSave(postId, postType, snapshot);
-      toggle("save");
       toast.info(saved ? "Aus Merkliste entfernt" : "Gespeichert", { duration:1800 });
       return;
     }

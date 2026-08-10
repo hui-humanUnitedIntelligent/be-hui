@@ -106,10 +106,7 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
       return;
     }
     if (type === "save") {
-      // FIX (2026-08-10): toggle("save") ergaenzt — sonst blieb saveCount
-      // neben dem Bookmark-Icon immer null (wie in PostFullscreenView).
       toggleSave(postId, postType, snapshot);
-      toggle("save");
       toast.info(saved ? "Aus Merkliste entfernt" : "Gespeichert", { duration:1800 });
       return;
     }
