@@ -15,10 +15,8 @@ const TYPE_LABEL = {
   connection: "Verbindung", talent: "Talent-Angebot",
 };
 
-// BUGFIX v2 (2026-08-10): window.location.origin ist auf Android/Capacitor
-// "https://localhost" — hart auf be-hui.app setzen.
 function publicUrlForItem(item) {
-  const origin = "https://be-hui.app";
+  const origin = (typeof window !== "undefined" && window.location?.origin) || "";
   if (item.type === "work")       return `${origin}/work/${item.id}`;
   if (item.type === "talent")     return `${origin}/talent/${item.id}`;
   if (item.type === "moment")     return `${origin}/beitrag/${item.id}`;

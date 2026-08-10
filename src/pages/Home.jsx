@@ -277,10 +277,14 @@ function HomeInner() {
     if (pending && setCart) {
       // KORB-RESTORE (2026-08-10): WorkDetailPage "Kaufen" → in Korb legen
       // (statt direkten WerkKaufFlow zu öffnen)
+      // BUGFIX v2 (2026-08-10): pending aus WorkDetailPage hatte author=null
+      // wenn Creator noch nicht geladen war → "Unbekannter Wirker" im Korb.
+      // Fix: _raw setzen (für groupByPerson) + author absichern.
       setCart(prev => {
         const wid = pending.id || pending._raw?.id;
         if (wid && prev.some(x => (x.id || x._raw?.id) === wid)) return prev;
-        return [...prev, pending];
+        const cartItem = { ...pending, _raw: pending._raw || pending };
+        return [...prev, cartItem];
       });
       // Router-State sofort leeren damit Reload nicht erneut öffnet
       try { window.history.replaceState({}, document.title, window.location.pathname); } catch {}
@@ -498,7 +502,7 @@ function HomeInner() {
                     // verändern (WerkeKorb/commerceUtils lesen weiterhin exakt
                     // dieselben Felder wie vorher, jetzt ist author nur nicht
                     // mehr leer).
-                    const werkData = { ...(item._raw || item), author: item.author || item._raw?.author || null };
+                    const werkData = { ...(item._raw || item), author: item.author || item._raw?.author || null, _raw: item._raw || item };
                     // Dedupe: nicht zweimal dasselbe Werk
                     setCart(prev => {
                       const wid = werkData.id || werkData._raw?.id;

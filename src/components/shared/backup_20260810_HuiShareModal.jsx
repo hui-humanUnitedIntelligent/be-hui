@@ -1,4 +1,4 @@
-// src/components/shared/HuiShareModal.jsx — HUI Share System v2.0
+// src/components/shared/HuiShareModal.jsx — HUI Share System v1.0
 // ══════════════════════════════════════════════════════════════════
 // Einheitliches Share-Modal mit zwei Kanälen:
 //   1. Intern  → HUI-Nutzer suchen + rpc_share_content (Notification)
@@ -42,56 +42,27 @@ const TYPE_META = {
 };
 
 // ── Öffentliche URL bauen ────────────────────────────────────────
-// BUGFIX v2 (2026-08-10): window.location.origin ist auf Android/Capacitor
-// "https://localhost" — niemals die echte Domain. hart auf be-hui.app setzen.
-const HUI_PUBLIC_ORIGIN = "https://be-hui.app";
-
 function buildPublicUrl(item) {
+  const origin = typeof window !== "undefined" ? (window.location?.origin || "https://hui.app") : "https://hui.app";
   switch (item.type) {
-    case "work":       return `${HUI_PUBLIC_ORIGIN}/work/${item.id}`;
-    case "experience": return `${HUI_PUBLIC_ORIGIN}/erlebnis/${item.id}`;
-    case "moment":     return `${HUI_PUBLIC_ORIGIN}/beitrag/${item.id}`;
-    case "project":    return `${HUI_PUBLIC_ORIGIN}/projekt/${item.id}`;
-    case "event":      return `${HUI_PUBLIC_ORIGIN}/veranstaltung/${item.id}`;
-    case "talent":     return `${HUI_PUBLIC_ORIGIN}/talent/${item.id}`;
-    default:           return `${HUI_PUBLIC_ORIGIN}/Home`;
+    case "work":       return `${origin}/work/${item.id}`;
+    case "experience": return `${origin}/erlebnis/${item.id}`;
+    case "moment":     return `${origin}/beitrag/${item.id}`;
+    case "project":    return `${origin}/projekt/${item.id}`;
+    case "event":      return `${origin}/veranstaltung/${item.id}`;
+    case "talent":     return `${origin}/talent/${item.id}`;
+    default:           return `${origin}/Home`;
   }
 }
 
 // ── Share-Text bauen ────────────────────────────────────────────
-// BUGFIX v2 (2026-08-10): Share-Text war doppelt (URL im Text + Footer-URL).
-// Jetzt: Einleitung + Titel + Deep-Link. Kurz, professionell, kein Duplikat.
 function buildShareText(item) {
   const meta = TYPE_META[item.type] || { label: "Inhalt", emoji: "✦" };
   const title = item.title || item.name || meta.label;
+  const desc  = (item.text || item.description || item.bio || "").slice(0, 140);
   const url   = buildPublicUrl(item);
-  // Einleitungs-Text je Typ
-  const intro = {
-    work:       `Entdecke dieses Werk auf HUI: "${title}"`,
-    experience: `Entdecke dieses Erlebnis auf HUI: "${title}"`,
-    moment:     `Entdecke diesen Moment auf HUI: "${title}"`,
-    project:    `Entdecke dieses Impact-Projekt auf HUI: "${title}"`,
-    event:      `Entdecke diese Veranstaltung auf HUI: "${title}"`,
-    talent:     `Entdecke dieses Talent-Angebot auf HUI: "${title}"`,
-  }[item.type] || `Entdecke "${title}" auf HUI`;
-  return `${intro}\n\n${url}\n\nMehr entdecken auf HUI — der Plattform für Werke, Talente und Erlebnisse.`;
-}
-
-// ── Deep-Link mit PlayStore Fallback ─────────────────────────────
-// Universeller Deep-Link: Wenn App installiert → öffnet App direkt.
-// Wenn nicht installiert → PlayStore (Platzhalter-Link).
-const PLAYSTORE_URL = "https://play.google.com/store/apps/details?id=com.hui.app";
-
-function buildDeepLink(item) {
-  // App-Scheme: hui://work/123 → öffnet App wenn installiert
-  const appPath = buildPublicUrl(item).replace(HUI_PUBLIC_ORIGIN, "");
-  return `https://be-hui.app${appPath}`;
-}
-
-function buildShareUrlWithFallback(item) {
-  // Für native Share-API: normale URL (App Links / Universal Links
-  // handhaben das Fallback automatisch über assetlinks.json)
-  return buildPublicUrl(item);
+  const footer = "\n\nMelde dich bei HUI an und entdecke faszinierende Werke und Talente.\nhttps://hui.app";
+  return `${meta.emoji} ${title}${desc ? `\n${desc}` : ""}${url ? `\n${url}` : ""}${footer}`;
 }
 
 // ── Social-Deep-Links ────────────────────────────────────────────

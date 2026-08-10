@@ -98,23 +98,14 @@ export function uniquePeople(items) {
 export function groupByPerson(items) {
   const map = new Map();
   for (const item of items) {
-    // BUGFIX v2 (2026-08-10): "Unbekannter Wirker" im Korb.
-    // Root Cause: Cart-Items aus WorkDetailPage (pendingWerkKauf) haben
-    // author=null (Creator noch nicht geladen) UND kein _raw (weil der
-    // Cart-Eintrag ein gespreadetes raw-Row ist, nicht das Feed-Item mit
-    // _raw). Somit war item._raw?.profile undefined → "Unbekannter Wirker".
-    // Fix: Prüfe ALLE möglichen Stellen — item.author, item selbst
-    // (für gesprente raw-Rows), und item._raw (für Feed-Items).
-    const rawP = item._raw?.profile || item._raw?.creator || item._raw?.author || item._raw?.user
-              || item.profile || item.creator || item.author || item.user || {};
-    const id  = item.author?.id || item.user_id || item._raw?.user_id || item._raw?.creator_id
-              || rawP.id || rawP.user_id || "__unknown__";
-    // Name: gleiche Priorität wie extractAuthor() / getFullDisplayName()
-    const name = item.author?.name || item.author?.displayName
-              || rawP.full_name || rawP.display_name || rawP.name || rawP.username
-              || item.full_name || item.display_name || item.username
-              || "Unbekannter Wirker";
-    const avatar = item.author?.avatar || rawP.avatar_url || rawP.avatar || item.avatar_url || null;
+    // BUGFIX (2026-08-10): Fallback-Kette erweitert — falls item.author fehlt
+    // (z.B. Legacy-Cart-Einträge), zusätzlich in _raw/item selbst nach
+    // eingebetteten Profildaten suchen (gleiches Muster wie extractAuthor()
+    // im Feed-Normalizer: raw.profile||raw.creator||raw.author||raw.user).
+    const rawP   = item._raw?.profile || item._raw?.creator || item._raw?.author || item._raw?.user || {};
+    const id     = item.author?.id || item.user_id || item._raw?.user_id || item._raw?.creator_id || rawP.id || "__unknown__";
+    const name   = item.author?.name || item.author?.displayName || rawP.full_name || rawP.display_name || rawP.username || "Unbekannter Wirker";
+    const avatar = item.author?.avatar || rawP.avatar_url || null;
     if (!map.has(id)) map.set(id, { id, key: id, name, avatar, items: [] });
     map.get(id).items.push(item);
   }

@@ -253,7 +253,14 @@ function KorbKarte({ item = {}, onRemove = () => {}, idx = 0, removing = false, 
   const price      = formatPrice(item._raw?.price ?? item.price);
   const thumb      = item._raw?.cover_url || item.cover_url || item.img || null;
   const title      = item.title || item._raw?.title || item.name || "Ohne Titel";
-  const authorName = item.author?.name || null;
+  // BUGFIX v2 (2026-08-10): Erweiterte Fallback-Kette — gleiche Logik
+  // wie groupByPerson in commerceUtils. Verhindert "Unbekannter Wirker".
+  const _rawP = item._raw?.profile || item._raw?.creator || item._raw?.author || item._raw?.user
+             || item.profile || item.creator || item.author || item.user || {};
+  const authorName = item.author?.name || item.author?.displayName
+                  || _rawP.full_name || _rawP.display_name || _rawP.name || _rawP.username
+                  || item.full_name || item.display_name || item.username
+                  || null;
 
   const [pressed, setPressed] = useState(false);
 
