@@ -13,6 +13,7 @@ import { useProfileLauncher } from "../home/profile/ProfileLauncher.jsx";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { useChatList, findOrCreateChat, closeChat } from "../../lib/chatContext.js";
 const TalentBookingFlow = lazy(() => import("../talents/TalentBookingFlow.jsx"));
+import { ProfileService } from '../../services/db';
 import { supabase } from "../../lib/supabaseClient.js";
 import PeopleSearch from "../discovery/PeopleSearch.jsx";
 import { HUI } from "../../design/hui.design.js";
@@ -48,7 +49,7 @@ function ComposeBtn({ onClick = () => {} }) {
 }
 
 /* ── LIST PANEL ── */
-function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose, pendingRecipient, onOpenPending, connections, onOpenProfile }) {
+function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose, pendingRecipient, onOpenPending, connections }) {
   const [search, setSearch] = React.useState("");
   // iOS tap-through guard: ignoriere clicks auf ← in den ersten 400ms nach Mount
   const mountedAt = React.useRef(Date.now());
@@ -159,7 +160,6 @@ function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose
           onOpen={onOpen}
           onDiscover={onDiscoverClose}
           connections={connections || []}
-          onOpenProfile={onOpenProfile}
           search={search}
         />
       </div>
@@ -180,6 +180,60 @@ export default function ChatCenterOverlay({ onClose = () => {}, initialRecipient
   const { openCreatorProfile } = useProfileLauncher();
   const { user } = useAuth();
 
+  // ── Neueste Verbindungen — gegenseitige Follows ──────────────
+  const [connections, setConnections] = useState([]);
+  useEffect(() => {
+    if (!user?.id) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        // Step 1: Wem folge ich?
+        const { data: iFollow } = await supabase
+          .from("follows")
+          .select("followed_id")
+          .eq("follower_id", user.id);
+        const followCount = iFollow?.length ?? 0;
+
+        if (!followCount) {
+          if (import.meta.env.DEV) {
+          }
+          return;
+        }
+
+        const iFollowIds = iFollow.map(r => r.followed_id);
+
+        // Step 2: Wer davon folgt mir zurück? (mutual)
+        const { data: mutual } = await supabase
+          .from("follows")
+          .select("follower_id")
+          .eq("followed_id", user.id)
+          .in("follower_id", iFollowIds);
+        const mutualCount = mutual?.length ?? 0;
+
+        if (import.meta.env.DEV) {
+        }
+
+        if (!mutualCount || cancelled) return;
+
+        const mutualIds = mutual.map(r => r.follower_id);
+
+        // Step 3: Profile laden
+        // ProfileService v1.0
+        const { data: profiles } = await ProfileService.getMany(mutualIds.slice(0, 10));
+
+        if (!cancelled && profiles?.length) {
+          setConnections(profiles.map(p => ({
+            id:         p.id,
+            name:       p.display_name || "?",
+            avatar_url: p.avatar_url   || null,
+          })));
+        }
+      } catch (e) {
+        console.warn("[CONNECTIONS_LOAD] error:", e?.message);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id]);
   const { chats: rawChats, loading } = useChatList("cco");
   // Lokal geschlossene Chats (bis nächstem Reload)
   const [closedChatIds, setClosedChatIds] = React.useState(new Set());
@@ -187,30 +241,6 @@ export default function ChatCenterOverlay({ onClose = () => {}, initialRecipient
     () => (rawChats || []).filter(ch => !closedChatIds.has(ch?.id)),
     [rawChats, closedChatIds]
   );
-
-  // ── Neueste Verbindungen — echte Chat-Partner, chronologisch (neueste zuerst) ──
-  // Vorher: gegenseitige Follows (falsche Datenquelle — bestehende Chat-Partner wie
-  // Linda/Meyer fehlten dadurch komplett). Jetzt: abgeleitet aus den tatsächlichen
-  // Konversationen, sortiert nach last_message_at absteigend, dedupliziert pro Person.
-  const connections = React.useMemo(() => {
-    const sorted = [...chats].sort((a, b) =>
-      new Date(b?.last_message_at || b?.opened_at || 0) -
-      new Date(a?.last_message_at || a?.opened_at || 0)
-    );
-    const seen = new Set();
-    const list = [];
-    for (const c of sorted) {
-      const other = c?.other_profile;
-      if (!other?.id || seen.has(other.id)) continue;
-      seen.add(other.id);
-      list.push({
-        id:         other.id,
-        name:       other.display_name || "?",
-        avatar_url: other.avatar_url    || null,
-      });
-    }
-    return list.slice(0, 20);
-  }, [chats]);
 
 
 
@@ -438,16 +468,6 @@ export default function ChatCenterOverlay({ onClose = () => {}, initialRecipient
           pendingRecipient={pendingRecipient}
           onOpenPending={openPendingChat}
           connections={connections}
-          onOpenProfile={(person) => {
-            // Klick auf eine "Neueste Verbindungen"-Bubble → Profil öffnen
-            // openCreatorProfile → A.OPEN_PROFILE → openProfileById → ProfileLauncher
-            const userId = person?.id;
-            if (!userId) return;
-            openCreatorProfile(userId, {
-              display_name: person?.name,
-              avatar_url:   person?.avatar_url,
-            });
-          }}
         />
       )}
     </>,

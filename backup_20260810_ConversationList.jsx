@@ -37,19 +37,15 @@ function SectionHead({ title, onMore }) {
 }
 
 /* ── Neue Verbindungen Bubbles ── */
-function ConnectionBubbles({ people, onOpenProfile = () => {} }) {
+function ConnectionBubbles({ people }) {
   return (
     <div className="hui-scroll" style={{
       display:"flex", gap:14, overflowX:"auto",
       padding:"4px 0 18px", WebkitOverflowScrolling:"touch",
     }}>
           {(people||[]).filter(p=>p&&(p.id||p.user_id)).map(p => (
-        <button key={p.id} onClick={() => onOpenProfile?.(p)} style={{
-          display:"flex", flexDirection:"column",
-          alignItems:"center", gap:6, flexShrink:0,
-          background:"none", border:"none", padding:0, cursor:"pointer",
-          WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
-        }}>
+        <div key={p.id} style={{ display:"flex", flexDirection:"column",
+          alignItems:"center", gap:6, flexShrink:0 }}>
           <div style={{
             width:52, height:52, borderRadius:"50%",
             background: p.avatar_url
@@ -62,14 +58,14 @@ function ConnectionBubbles({ people, onOpenProfile = () => {} }) {
           }}>{!p.avatar_url && (p.name?.[0] || "?")}</div>
           <span style={{ fontSize:11.5, color:C.ink, fontWeight:500,
             whiteSpace:"nowrap" }}>{p.name}</span>
-        </button>
+        </div>
       ))}
     </div>
   );
 }
 
 /* ── Impact Card (Screenshot: Gemeinsam Wirkung schaffen) ── */
-function ImpactCard({ onDiscover = () => {} }) {
+function ImpactCard() {
   return (
     <div style={{
       borderRadius:20, overflow:"hidden",
@@ -103,7 +99,7 @@ function ImpactCard({ onDiscover = () => {} }) {
 }
 
 /* ══════════════════════════════════════════════════════════════ */
-export default function ConversationList({ chats, loading, onOpen, onDiscover, connections = [], onOpenProfile = () => {}, search = "" }) {
+export default function ConversationList({ chats, loading, onOpen, onDiscover, connections = [], search = "" }) {
   if (import.meta.env.DEV) {
   }
   const [activeFilter, setActiveFilter] = useState("alle");
@@ -209,12 +205,12 @@ export default function ConversationList({ chats, loading, onOpen, onDiscover, c
       {connections.length > 0 && (
         <>
           <SectionHead title="Neueste Verbindungen" onMore={() => {}}/>
-          <ConnectionBubbles people={connections} onOpenProfile={onOpenProfile}/>
+          <ConnectionBubbles people={connections}/>
         </>
       )}
 
       {/* Impact Card */}
-      <ImpactCard onDiscover={onDiscover}/>
+      <ImpactCard/>
     </div>
   );
 }
