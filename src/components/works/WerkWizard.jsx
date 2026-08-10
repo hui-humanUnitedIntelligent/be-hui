@@ -29,7 +29,7 @@ const MATERIALIEN = ["Acryl","Öl","Aquarell","Holz","Keramik","Textil","Digital
 const KATEGORIEN  = ["Malerei","Fotografie","Skulptur","Illustration","Design","Musik","Literatur","Performance","Handwerk","Sonstiges"];
 
 // ── Bausteine ─────────────────────────────────────────────────
-function ProgressBar({ step, total }) {
+function ProgressBar({ step = 1, total = 6 }) {
   return (
     <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:0 }}>
       {Array.from({ length: total }, (_, i) => {
@@ -54,13 +54,13 @@ function ProgressBar({ step, total }) {
   );
 }
 
-function TopBar({ onClose, step, total }) {
+function TopBar({ onClose = () => {}, step = 1, total = 6 }) {
   return (
     <div style={{ padding:"max(14px, env(safe-area-inset-top, 14px)) 20px 12px", background:"#fff", borderBottom:`1px solid ${C.border}` }}>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
-        <button onClick={onClose} style={{ background:"none", border:"none", padding:0, fontSize:13, fontWeight:600, color:C.inkMid, cursor:"pointer", touchAction:"manipulation" }}>Abbrechen</button>
+        <button onClick={() => onClose?.()} style={{ background:"none", border:"none", padding:0, fontSize:13, fontWeight:600, color:C.inkMid, cursor:"pointer", touchAction:"manipulation" }}>Abbrechen</button>
         <div style={{ fontSize:14, fontWeight: 600, color:C.ink }}>Werk bearbeiten</div>
-        <button onClick={onClose} style={{ width:28, height:28, borderRadius:"50%", background:"rgba(26,26,24,0.07)", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", touchAction:"manipulation" }}>
+        <button onClick={() => onClose?.()} style={{ width:28, height:28, borderRadius:"50%", background:"rgba(26,26,24,0.07)", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", touchAction:"manipulation" }}>
           <span style={{ fontSize:14, color:C.ink }}>×</span>
         </button>
       </div>
@@ -69,7 +69,7 @@ function TopBar({ onClose, step, total }) {
   );
 }
 
-function PBtn({ label, onClick, disabled, loading }) {
+function PBtn({ label = "", onClick = () => {}, disabled = false, loading = false }) {
   return (
     <button onClick={onClick} disabled={disabled||loading} style={{
       width:"100%", padding:"16px",
@@ -442,7 +442,7 @@ function S6({ data, onChange, onSave, onDraft, saving, hideButtons=false }) {
 // ══════════════════════════════════════════════════════════════
 // WIZARD ROOT
 // ══════════════════════════════════════════════════════════════
-export default function WerkWizard({ userId, existingWork=null, onClose, onSaved }) {
+export default function WerkWizard({ userId, existingWork=null, onClose = () => {}, onSaved = () => {} }) {
   const TOTAL=6;
   const [step,setSt]=useState(1);
   const [saving,setSaving]=useState(false);

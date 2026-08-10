@@ -31,9 +31,9 @@ const CSS = `
 `;
 
 /* ── Compose Button ── */
-function ComposeBtn({ onClick }) {
+function ComposeBtn({ onClick = () => {} }) {
   return (
-    <button onClick={onClick} style={{
+    <button onClick={() => onClick?.()} style={{
       width: 40, height: 40, borderRadius: "50%",
       background: `linear-gradient(135deg,${C.teal},${C.teal2})`,
       border: "none", cursor: "pointer",
@@ -168,7 +168,7 @@ function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose
 }
 
 /* ── HAUPT-OVERLAY ── */
-export default function ChatCenterOverlay({ onClose, initialRecipient = null, onDiscoverClose, onMarkRead }) {
+export default function ChatCenterOverlay({ onClose = () => {}, initialRecipient = null, onDiscoverClose = () => {}, onMarkRead = () => {} }) {
   if (import.meta.env.DEV) {
   }
   const [activeConv,       setActiveConv]       = useState(null);

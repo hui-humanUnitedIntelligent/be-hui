@@ -29,7 +29,7 @@ const BILLING_COUNTRY = "AT";
 // ─────────────────────────────────────────────────────────────────
 // Inner Form — innerhalb von <Elements> gemountet
 // ─────────────────────────────────────────────────────────────────
-function StripeForm({ total, impact, orderId, onSuccess, onError }) {
+function StripeForm({ total = 0, impact = 0, orderId = "", onSuccess = () => {}, onError = () => {} }) {
   const stripe   = useStripe();
   const elements = useElements();
   const [processing, setProcessing] = useState(false);

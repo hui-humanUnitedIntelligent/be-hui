@@ -200,7 +200,7 @@ const VISIBILITY_OPTIONS = [
 function Gap({ h=16 }) { return <div style={{height:h}}/>; }
 function Divider() { return <div style={{height:1,background:T.border,margin:`0 ${T.px}px`}}/>; }
 
-function SectionRow({ title, sub, onEdit }) {
+function SectionRow({ title = "", sub = "", onEdit = () => {} }) {
   return (
     <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:`0 ${T.px}px 10px` }}>
       <div>
@@ -219,7 +219,7 @@ function SectionRow({ title, sub, onEdit }) {
   );
 }
 
-function Sheet({ onClose, children, zIndex=9800 }) {
+function Sheet({ onClose = () => {}, children = null, zIndex=9800 }) {
   return (
     <div onClick={onClose} style={{
       position:"fixed", inset:0, zIndex,

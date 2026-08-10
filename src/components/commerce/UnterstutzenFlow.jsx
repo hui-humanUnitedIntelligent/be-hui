@@ -35,7 +35,7 @@ import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 // ─────────────────────────────────────────────────────────────────
 // ImpactKarte — kompakt, oberhalb des Stripe Elements
 // ─────────────────────────────────────────────────────────────────
-function ImpactKarte({ impactEur, huiEur }) {
+function ImpactKarte({ impactEur = 0, huiEur = 0 }) {
   if (!impactEur || impactEur <= 0) return null;
   const str    = impactEur.toFixed(2).replace(".", ",");
   const huiStr = huiEur ? huiEur.toFixed(2).replace(".", ",") : str;
@@ -142,7 +142,7 @@ function TealPartikel() {
 // ─────────────────────────────────────────────────────────────────
 // Danke Screen
 // ─────────────────────────────────────────────────────────────────
-function DankeScreen({ items, impact, total, huiTotal = 0, onDiscover, onClose }) {
+function DankeScreen({ items = [], impact = 0, total = 0, huiTotal = 0, onDiscover = () => {}, onClose = () => {} }) {
   const pCount = uniquePeople(items);
   const [visible, setVisible] = useState(false);
   const [showChatCTA, setShowChatCTA] = useState(true);

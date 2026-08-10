@@ -104,7 +104,7 @@ function SchalenIcon({ size = 28, opacity = 1, filled = false }) {
 // ══════════════════════════════════════════════════════════════════
 //  FLOATING BUTTON
 // ══════════════════════════════════════════════════════════════════
-export function WerkeKorbButton({ count, onOpen, glowing }) {
+export function WerkeKorbButton({ count = 0, onOpen = () => {}, glowing = false }) {
   const [glow,    setGlow]    = useState(false);
   const [mounted, setMounted] = useState(count > 0); // nur rendern wenn nötig
   const [visible, setVisible] = useState(count > 0); // CSS opacity/transform
@@ -156,7 +156,7 @@ export function WerkeKorbButton({ count, onOpen, glowing }) {
 
   return (
     <button
-      onClick={onOpen}
+      onClick={() => onOpen?.()}
       aria-label="Werkekorb öffnen"
       style={{
         position:     "fixed",
@@ -246,7 +246,7 @@ export function WerkeKorbButton({ count, onOpen, glowing }) {
 // ══════════════════════════════════════════════════════════════════
 //  KARTE
 // ══════════════════════════════════════════════════════════════════
-function KorbKarte({ item, onRemove, idx, removing, onQtyChange }) {
+function KorbKarte({ item = {}, onRemove = () => {}, idx = 0, removing = false, onQtyChange = () => {} }) {
   const meta       = TYPE_META[item.type] || TYPE_META.work;
   const price      = formatPrice(item._raw?.price ?? item.price);
   const thumb      = item._raw?.cover_url || item.cover_url || item.img || null;

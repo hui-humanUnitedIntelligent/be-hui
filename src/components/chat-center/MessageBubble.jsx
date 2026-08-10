@@ -46,7 +46,7 @@ export function TypingBubble() {
 }
 
 // ── Action Modal (Bearbeiten / Löschen) ──
-function MessageActionModal({ msg, position, onEdit, onDelete, onClose }) {
+function MessageActionModal({ msg = {}, position = {}, onEdit = () => {}, onDelete = () => {}, onClose = () => {} }) {
   useModalRegistration(true, () => onClose?.(), "MessageActionModal");
   const [editMode, setEditMode] = useState(false);
   const [editText, setEditText] = useState(msg.text || "");
@@ -117,7 +117,7 @@ function MessageActionModal({ msg, position, onEdit, onDelete, onClose }) {
             {/* Löschen */}
             {!msg.is_deleted && (
               <button
-                onClick={() => { onDelete(msg.id); onClose(); }}
+                onClick={() => { onDelete?.(msg.id); onClose?.(); }}
                 style={{
                   width:"100%", padding:"11px 18px", border:"none",
                   background:"none", cursor:"pointer", textAlign:"left",
@@ -164,7 +164,7 @@ function MessageActionModal({ msg, position, onEdit, onDelete, onClose }) {
                 }}
               >Abbrechen</button>
               <button
-                onClick={() => { if (editText.trim()) { onEdit(msg.id, editText); onClose(); } }}
+                onClick={() => { if (editText.trim()) { onEdit?.(msg.id, editText); onClose?.(); } }}
                 style={{
                   flex:1, padding:"9px",
                   border:"none", borderRadius:9,
@@ -184,7 +184,7 @@ function MessageActionModal({ msg, position, onEdit, onDelete, onClose }) {
 
 // ── Media Content ──
 // Bild im Chat — öffnet die zentrale ImageGallery statt window.open
-function ImageThumb({ msg }) {
+function ImageThumb({ msg = {} }) {
   const { openGallery } = useImageGallery();
   return (
     <img
@@ -199,7 +199,7 @@ function ImageThumb({ msg }) {
   );
 }
 
-function MediaContent({ msg, own }) {
+function MediaContent({ msg = {}, own = false }) {
   const type = msg.media_type || msg.message_type;
   if (!msg.media_url) return null;
 

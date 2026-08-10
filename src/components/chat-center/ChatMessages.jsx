@@ -12,7 +12,7 @@ const CSS = `
   .hui-scroll::-webkit-scrollbar{display:none;}
 `;
 
-function DateDivider({ label }) {
+function DateDivider({ label = "" }) {
   return (
     <div style={{
       display:"flex", alignItems:"center", gap:12,
@@ -28,7 +28,7 @@ function DateDivider({ label }) {
   );
 }
 
-function EventPreviewCard({ event }) {
+function EventPreviewCard({ event = {} }) {
   if (!event) return null;
   return (
     <div style={{
@@ -62,7 +62,7 @@ function EventPreviewCard({ event }) {
   );
 }
 
-export default function ChatMessages({ messages, typing, event, onDelete, onEdit }) {
+export default function ChatMessages({ messages = [], typing = false, event = null, onDelete = () => {}, onEdit = () => {} }) {
   const rootRef = useRef(null);
 
   useEffect(() => {
