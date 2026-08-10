@@ -2,6 +2,7 @@
 // Badge-Logik: Foto-Moment / Video-Moment / Bild-Moment (Galerie) / Gedanke
 // Identisches Layout zu WorkContent / ExperienceContent / TalentContent
 import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import BaseFeedCard, { ActionBtn } from "./BaseFeedCard.jsx";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
@@ -89,6 +90,7 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
   // beim Antippen eines Moment-Bildes im Feed. Jetzt: alle Hooks vor dem
   // fruehen return.
   const { open }  = useContentPreview();
+  const navigate = useNavigate();
   const { user }  = useAuth(); // FIX (2026-08-08): AuthContext-SSOT statt eigenem
   // supabase.auth.getUser()-Aufruf — jede Feed-Karte rief das vorher einzeln
   // beim Mount auf. Bei mehreren gleichzeitig gerenderten Momente-Karten
@@ -206,13 +208,27 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
     </div>
   );
 
+  const isSystemProjectLink = raw.moment_source === "system_impact_completion" && !!raw.linked_project_id;
+
   return (
     <BaseFeedCard
       item={item}
       onProfile={onProfile}
       onReaction={onReaction}
       onShare={onShare}
-      onCardClick={() => open(item)}
+      disableMediaLightbox={isSystemProjectLink}
+      onCardClick={() => {
+        // SYSTEM-PROJECT-LINK-001 (2026-08-10): System-Posts ("HUI" teilt
+        // ein fertiges Projekt) fuehren per Klick direkt zum Projekt statt
+        // zum Foto-Fullscreen -- additiv, betrifft ausschliesslich Posts mit
+        // moment_source=system_impact_completion + linked_project_id.
+        // Alle anderen Momente-Karten sind unveraendert (open(item)).
+        if (isSystemProjectLink) {
+          navigate("/impact", { state: { openProjectId: raw.linked_project_id } });
+          return;
+        }
+        open(item);
+      }}
       extraActions={reportButton}
     >
       {/* ── Badge · Caption ── identisch zu WorkContent/ExperienceContent */}

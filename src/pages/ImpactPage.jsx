@@ -279,18 +279,41 @@ function useWeitereProjects() {
   const [projects, setProjects] = React.useState([]);
   React.useEffect(() => {
     let dead = false;
-    (async () => {
+    const load = async () => {
       try {
+        // ROOT-CAUSE-FIX (2026-08-10): Diese Karte laß bisher aus der Legacy-
+        // Tabelle "impact_projects" (immer leer -> zeigte permanent die
+        // "Beispiel"-Platzhalter, auch wenn bereits echte Projekte fertig
+        // finanziert waren). SSOT fuer abgeschlossene Projekte ist
+        // impact_applications mit is_completed=true (identisch zur
+        // Transparenz-Statistik "Projekte finanziert").
         const { data } = await supabase
-          .from("impact_projects")
-          .select("id,name,icon,color,status,category,awarded_eur,impact_report,tags,month")
-          .in("status", ["funded","finished"])
-          .order("awarded_eur", { ascending:false })
+          .from("impact_applications")
+          .select("id,project_name,short_desc,cover_url,media_urls,funding_goal,current_amount_eur,completed_at,created_at")
+          .eq("is_completed", true)
+          .order("completed_at", { ascending:false })
           .limit(8);
-        if (!dead) setProjects(data || []);
+        if (!dead) {
+          setProjects((data || []).map(a => ({
+            id:            a.id,
+            name:          a.project_name,
+            icon:          "💚",
+            color:         "#0DC4B5",
+            img_url:       a.cover_url || (a.media_urls && a.media_urls[0]) || null,
+            awarded_eur:   a.funding_goal || a.current_amount_eur || 0,
+            impact_report: null, // impact_applications hat kein separates Report-Feld -- Fallback-Text greift
+            month:         a.completed_at || a.created_at || null,
+            _raw:          a,
+          })));
+        }
       } catch { /* silent */ }
-    })();
-    return () => { dead = true; };
+    };
+    load();
+    // Realtime: sobald ein Projekt fertig finanziert wird, sofort nachladen
+    const ch = supabase.channel("hui_impact_weitere_live")
+      .on("postgres_changes", { event:"UPDATE", schema:"public", table:"impact_applications" }, load)
+      .subscribe();
+    return () => { dead = true; supabase.removeChannel(ch); };
   }, []);
   return projects;
 }
@@ -965,7 +988,23 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
 
 
 
-          {/* ── Stimmen-System ── */}
+          {/* ── Vollständig finanziert: Stimmen-System ersetzen (additiv,
+              betrifft nur abgeschlossene Projekte -- Abstimmen ergibt bei
+              100%+ Finanzierung keinen Sinn mehr). Alle Projekte <100%
+              zeigen weiterhin unveraendert das normale Stimmen-System. ── */}
+          {fundPct >= 100 ? (
+            <div style={{
+              marginTop:16, textAlign:"center", padding:"18px 16px",
+              background:"rgba(34,197,94,0.10)", borderRadius:14,
+              border:"1px solid rgba(34,197,94,0.25)",
+            }}>
+              <div style={{ fontSize:26, marginBottom:6 }}>✅</div>
+              <div style={{ fontSize:14, fontWeight:600, color:"#22c55e" }}>Vollständig finanziert</div>
+              <div style={{ fontSize:12, color:"#666", marginTop:4 }}>
+                „{app.project_name}" hat sein Ziel gemeinsam erreicht — danke an alle Unterstützer!
+              </div>
+            </div>
+          ) : (
           <div style={{ marginTop: 8 }}>
 
             {/* Stimmen-Counter */}
@@ -1080,6 +1119,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
               </div>
             )}
           </div>
+          )}
 
         </div>
         </div>{/* /Scroll-Wrapper */}
@@ -1676,7 +1716,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
       />
 
       {/* ══ 5 ── GEMEINSAM ERMÖGLICHT ════════════════════════════ */}
-      <GemeinsamErmoegicht finanziert={finanziert} transp={transp} />
+      <GemeinsamErmoegicht finanziert={finanziert} transp={transp} onOpenProject={setDetailApp} />
 
       {/* ══ 6 ── HERZENSPROJEKT EINREICHEN ═══════════════════════ */}
       <HerzensprojektEmotional onPropose={() => setShowPropose(true)} />
@@ -2496,7 +2536,7 @@ function ApprovedAppCardCompact({ app, rank, onOpen }) {
 // ════════════════════════════════════════════════════════════════
 
 // ════════════════════════════════════════════════════════════════
-function GemeinsamErmoegicht({ finanziert, transp }) {
+function GemeinsamErmoegicht({ finanziert, transp, onOpenProject = () => {} }) {
   return (
     <div style={{ padding:"20px 16px 0" }}>
       {/* Titel + Link */}
@@ -2583,11 +2623,14 @@ function GemeinsamErmoegicht({ finanziert, transp }) {
       ) : (
         <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
           {finanziert.map((p, i) => (
-            <div key={p.id} style={{
+            <div key={p.id}
+              onClick={() => onOpenProject(p._raw || p)}
+              style={{
               background:T.surfaceHi, borderRadius:20,
               boxShadow:S.card, border:`1px solid ${T.line}`,
               display:"flex", alignItems:"center", gap:0, overflow:"hidden",
               animation:"ipFade 0.32s ease both", animationDelay:`${i*0.05}s`,
+              cursor:"pointer", WebkitTapHighlightColor:"transparent",
             }}>
               {/* Bild */}
               <div style={{ width:80, height:80, flexShrink:0,

@@ -466,7 +466,7 @@ export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge
 });
 
 // ── Media (lazy + fade-in + double-tap like) ──────────────────
-export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDoubleTap }) {
+export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDoubleTap, disableTapLightbox = false }) {
   const [err,       setErr]      = useState(false);
   const [loaded,    setLoaded]   = useState(false);
   const [heartPos,  setHeartPos] = useState(null);
@@ -533,6 +533,11 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
   }
 
   function handleTap(e) {
+    // SYSTEM-PROJECT-LINK-001 (2026-08-10): Fuer Karten mit eigenem
+    // onCardClick-Ziel (z.B. System-Post -> Projekt-Deep-Link) soll ein
+    // Tap NICHT zusaetzlich den globalen Foto-Lightbox oeffnen -- additiv,
+    // Default false aendert nichts am Verhalten aller anderen Karten.
+    if (disableTapLightbox) return;
     // SCROLL-GUARD: Wenn der Finger beim Beruehren bewegt wurde → kein Tap
     if (tapRef.current.moved) {
       tapRef.current = { t: 0, startX: 0, startY: 0, moved: false };
@@ -892,7 +897,8 @@ export const FeedActions = memo(function FeedActions({
 
 // ── Base Card ─────────────────────────────────────────────────
 export default React.memo(function BaseFeedCard({
-  item, onProfile, onReaction, onShare, badge, children, extraActions, onCardClick
+  item, onProfile, onReaction, onShare, badge, children, extraActions, onCardClick,
+  disableMediaLightbox = false, // SYSTEM-PROJECT-LINK-001: additiv, Default false
 }) {
   injectCardCSS();
 
@@ -1014,6 +1020,7 @@ export default React.memo(function BaseFeedCard({
           alt={item.title || item.text}
           relaxed={!!(item._reactions?._relaxed)}
           onDoubleTap={onCardClick ? (e) => { /* double-tap → detail, kein like-trigger */ } : handleDoubleTap}
+          disableTapLightbox={disableMediaLightbox}
         />
       </div>
       <FeedActions

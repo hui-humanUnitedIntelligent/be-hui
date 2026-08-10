@@ -114,7 +114,7 @@ export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
     setLoading(true);
     try {
       let q = supabase.from("beitraege")
-        .select("id,src,type,moment_source,caption,created_at,user_id")
+        .select("id,src,type,moment_source,linked_project_id,caption,created_at,user_id")
         .order(sort === "alpha" ? "caption" : "created_at", { ascending: sort === "alpha" })
         .range(pageNum * PAGE_SIZE, (pageNum+1) * PAGE_SIZE - 1);
 
