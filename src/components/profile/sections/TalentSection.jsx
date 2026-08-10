@@ -9,6 +9,7 @@ import { HUITalentIcon } from '../../../design/icons/HuiSystemIcons.jsx';
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { useModalRegistration } from "../../../hooks/useModalRegistration.js";
+import { useSheetDrag } from "../../../hooks/useSheetDrag.js";
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", ink:"#1A1A18",
@@ -39,6 +40,7 @@ function normalizeSkills(raw) {
 }
 
 export function TalentSection({ profile, isOwner = false, loading = false, onChange, noPadding = false }) {
+  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   // skills_final aus useProfileData bevorzugen, Fallback auf profile.skills
   const skills = normalizeSkills(profile?.skills_final ?? profile?.skills ?? []);
   // ── SPRINT D.2 TRACE
@@ -145,7 +147,7 @@ export function TalentSection({ profile, isOwner = false, loading = false, onCha
             padding:"20px 20px max(36px,calc(20px + env(safe-area-inset-bottom,0px)))",
             maxHeight:"80vh", overflowY:"auto",
           }}>
-            <div style={{ width:36, height:4, borderRadius:99,
+            <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab", width:36, height:4, borderRadius:99,
               background:"rgba(26,26,24,0.12)", margin:"0 auto 20px" }}/>
             <div style={{ fontSize:16, fontWeight: 600, color:T.ink, marginBottom:4 }}>
               Meine Talente & Angebote

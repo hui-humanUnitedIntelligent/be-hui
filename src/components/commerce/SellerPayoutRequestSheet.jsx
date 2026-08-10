@@ -6,10 +6,12 @@ import { createPortal } from 'react-dom'
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useWizardBodyLock from '../../lib/wizardBodyLock.js'
 import { supabase } from '../../lib/supabaseClient.js'
+import { useSheetDrag } from "../../hooks/useSheetDrag.js";
 
 const CORAL = '#FF8A6B'
 
 export default function SellerPayoutRequestSheet({ item, onClose = () => {}, onSuccess = () => {} }) {
+  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   useModalRegistration(true, () => onClose?.(), "SellerPayoutRequestSheet");
   useWizardBodyLock()
   const [note, setNote] = useState('')
@@ -45,13 +47,13 @@ export default function SellerPayoutRequestSheet({ item, onClose = () => {}, onS
       onClick={(e) => { if (e.target === e.currentTarget && !loading) onClose?.() }}
       style={{ position: 'fixed', inset: 0, zIndex: 10500, background: 'rgba(0,0,0,0.45)',
         display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
-      <div style={{ background: '#FDFCFA', borderRadius: '24px 24px 0 0', width: '100%', maxWidth: 480,
+      <div style={{ background: '#FDFCFA', borderRadius: '24px 24px 0 0', transform: sheetTransform, transition: sheetTransition, width: '100%', maxWidth: 480,
         maxHeight: '80dvh', display: 'flex', flexDirection: 'column',
         boxShadow: '0 -8px 40px rgba(26,26,46,0.18)', overflow: 'hidden',
         animation: 'spSlideUp 0.28s cubic-bezier(.32,1.2,.55,1) both' }}>
         <style>{`@keyframes spSlideUp { from{transform:translateY(100%);opacity:0} to{transform:translateY(0);opacity:1} }`}</style>
 
-        <div style={{ width: 40, height: 4, borderRadius: 2, background: 'rgba(26,26,46,0.12)',
+        <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab", width: 40, height: 4, borderRadius: 2, background: 'rgba(26,26,46,0.12)',
           margin: '12px auto 0', flexShrink: 0 }} />
 
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px 16px', WebkitOverflowScrolling: 'touch' }}>

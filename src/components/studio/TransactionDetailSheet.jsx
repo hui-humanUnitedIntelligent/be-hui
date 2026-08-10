@@ -15,6 +15,7 @@ import { createPortal } from "react-dom";
 import { HUILogo } from "../brand/HUILogo.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { formatEUR } from "../../lib/formatters.js";
+import { useSheetDrag } from "../../hooks/useSheetDrag.js";
 
 const T = {
   bg:       "#F7F5F0",
@@ -142,6 +143,7 @@ function Cover({ src, imgErr, onErr }) {
  *   }
  */
 export default function TransactionDetailSheet({ tx, onClose }) {
+  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   useModalRegistration(!!tx, onClose, "TransactionDetailSheet");
   const [imgErr, setImgErr] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -169,14 +171,14 @@ export default function TransactionDetailSheet({ tx, onClose }) {
         onClick={(e) => e.stopPropagation()}
         style={{
           width: "100%", maxWidth: 520,
-          background: T.bg, borderRadius: "24px 24px 0 0",
+          background: T.bg, borderRadius: "24px 24px 0 0", transform: sheetTransform, transition: sheetTransition,
           maxHeight: "94vh", display: "flex", flexDirection: "column",
           boxShadow: "0 -4px 32px rgba(26,26,24,0.20)",
         }}
       >
         {/* Handle */}
         <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 4px", flexShrink: 0 }}>
-          <div style={{ width: 36, height: 4, borderRadius: 99, background: "rgba(26,26,24,0.12)" }} />
+          <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab", width: 36, height: 4, borderRadius: 99, background: "rgba(26,26,24,0.12)" }} />
         </div>
 
         {/* Header */}

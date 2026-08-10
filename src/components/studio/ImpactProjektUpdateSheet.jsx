@@ -14,6 +14,7 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { formatDateDE } from "../../lib/formatters.js";
+import { useSheetDrag } from "../../hooks/useSheetDrag.js";
 
 // ── Design Tokens ─────────────────────────────────────────────────
 const T = {
@@ -60,6 +61,7 @@ function fmtDisplayDate(iso) {
 
 // ── Komponente ────────────────────────────────────────────────────
 export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose, onSubmitted = () => {} }) {
+  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   useModalRegistration(true, () => onClose?.(), "ImpactProjektUpdateSheet");
   const [title,       setTitle]       = useState("");
   const [content,     setContent]     = useState("");
@@ -173,7 +175,7 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
     >
       <div style={{
         width: "100%", maxWidth: 480, margin: "0 auto",
-        background: T.bg, borderRadius: "24px 24px 0 0",
+        background: T.bg, borderRadius: "24px 24px 0 0", transform: sheetTransform, transition: sheetTransition,
         maxHeight:"calc(92dvh - var(--hui-keyboard-inset, 0px))", overflow: "hidden",
         display: "flex", flexDirection: "column",
         boxShadow: "0 -4px 32px rgba(26,26,24,0.18)",
@@ -183,7 +185,7 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
 
         {/* Handle */}
         <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 4px" }}>
-          <div style={{ width: 36, height: 4, borderRadius: 99, background: "rgba(26,26,24,0.12)" }} />
+          <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab", width: 36, height: 4, borderRadius: 99, background: "rgba(26,26,24,0.12)" }} />
         </div>
 
         {/* Header */}

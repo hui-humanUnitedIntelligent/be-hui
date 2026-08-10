@@ -31,6 +31,7 @@ import { useHuiActions, A } from "../../core/hui.actions.js";
 import { S } from "../../core/hui.sources.js";
 import { toast } from "../../lib/useToast.jsx";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
+import { useSheetDrag } from "../../hooks/useSheetDrag.js";
 
 // ─────────────────────────────────────────────────────────────────
 // ImpactKarte — kompakt, oberhalb des Stripe Elements
@@ -388,6 +389,7 @@ export default function UnterstutzenFlow({
   onClearCart,
 
 }) {
+  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   const { user } = useAuth();
 
   // 0 = Stripe Payment  |  1 = Danke

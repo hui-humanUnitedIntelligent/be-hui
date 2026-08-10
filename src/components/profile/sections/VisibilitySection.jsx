@@ -11,6 +11,7 @@ import {
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { useModalRegistration } from "../../../hooks/useModalRegistration.js";
+import { useSheetDrag } from "../../../hooks/useSheetDrag.js";
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", bgSheet:"#FDFCFB",
@@ -34,6 +35,7 @@ export function VisibilitySection({
   loading    = false,
   onSave     = null,   // (visibility: string) => void
 }) {
+  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   const [showSheet, setShowSheet] = useState(false);
   useModalRegistration(showSheet, () => setShowSheet(false), "VisibilitySection-Sheet");
   const [saving,    setSaving]    = useState(false);
@@ -95,7 +97,7 @@ export function VisibilitySection({
             padding:"20px 20px max(36px,calc(24px + env(safe-area-inset-bottom,0px)))",
             boxShadow:T.sheet,
           }}>
-            <div style={{ width:36, height:4, borderRadius:99,
+            <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab", width:36, height:4, borderRadius:99,
               background:"rgba(26,26,24,0.12)", margin:"0 auto 20px" }}/>
             <div style={{ fontSize:16, fontWeight: 600, color:T.ink, marginBottom:6 }}>
               

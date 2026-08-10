@@ -7,6 +7,7 @@
 // Pflicht laut Portal-Charta: createPortal(document.body) + zIndex >= 10500.
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useSheetDrag } from "../../hooks/useSheetDrag.js";
 
 const CORAL = "#C47A65";
 const INK   = "#1A1A2E";
@@ -35,6 +36,7 @@ export default function ReportReasonModal({
   onSubmit = () => {},
   submitting = false,
 }) {
+  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   // step: "confirm" → "categories"
   const [step, setStep] = useState("confirm");
 
@@ -69,7 +71,7 @@ export default function ReportReasonModal({
           width: "100%",
           maxWidth: 480,
           background: "#FFFFFF",
-          borderRadius: "20px 20px 0 0",
+          borderRadius: "20px 20px 0 0", transform: sheetTransform, transition: sheetTransition,
           padding: "24px 20px calc(24px + env(safe-area-inset-bottom, 0px))",
           boxShadow: "0 -8px 32px rgba(20,20,34,0.18)",
           maxHeight: "80vh",
@@ -77,7 +79,7 @@ export default function ReportReasonModal({
         }}
       >
         {/* Griff-Indikator */}
-        <div style={{
+        <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab",
           width: 36, height: 4, borderRadius: 2,
           background: "rgba(26,26,46,0.15)",
           margin: "0 auto 20px",

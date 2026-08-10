@@ -13,6 +13,7 @@ import {
   groupByPerson,
   allowsQuantity, getOriginalHint,
 } from "./commerceUtils.js";
+import { useSheetDrag } from "../../hooks/useSheetDrag.js";
 function haptic(style = "light") {
   try {
     if (window.navigator?.vibrate) {
@@ -964,6 +965,7 @@ export default function WerkeKorb({
   onDiscover,
   onChat,
 }) {
+  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   const [phase,     setPhase]     = useState("list");
   const [result,    setResult]    = useState(null);
   const [removingId, setRemovingId] = useState(null);
@@ -1069,7 +1071,7 @@ export default function WerkeKorb({
         }}
       >
         {/* Handle */}
-        <div style={{
+        <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab",
           width:        36,
           height:       4,
           borderRadius: 99,

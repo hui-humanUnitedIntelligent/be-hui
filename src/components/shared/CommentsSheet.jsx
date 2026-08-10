@@ -44,6 +44,7 @@ function notifyCommentsChanged(postId, postType) {
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { formatDateDE } from "../../lib/formatters.js";
+import { useSheetDrag } from "../../hooks/useSheetDrag.js";
 
 const T = {
   ink: "#1A1A2E", inkSoft: "rgba(26,26,46,0.60)", inkFaint: "rgba(26,26,46,0.38)",
@@ -351,6 +352,7 @@ function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdi
 }
 
 export default function CommentsSheet({ open, onClose, postId, postType, postAuthorId, postActionUrl, highlightCommentId, mediaUrl = null, mediaType = null, postTitle = null }) {
+  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   const { user, profile } = useAuth();
   // Back-Button Registration
   useModalRegistration(open, onClose, "CommentsSheet");
@@ -672,7 +674,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
       }}>
         {/* Grabber */}
         <div style={{ display:"flex", justifyContent:"center", paddingTop:10 }}>
-          <div style={{ width:40, height:4, borderRadius:99, background:"rgba(26,26,46,0.16)" }}/>
+          <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab", width:40, height:4, borderRadius:99, background:"rgba(26,26,46,0.16)" }}/>
         </div>
 
         {/* Media Preview — Bild oder Video oben */}

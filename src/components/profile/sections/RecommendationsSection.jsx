@@ -13,6 +13,7 @@ import RecommendModal from "../RecommendModal.jsx";
 import { RecommendationService } from "../../../services/db";
 import { supabase } from "../../../lib/supabaseClient";
 import { useModalRegistration } from "../../../hooks/useModalRegistration.js";
+import { useSheetDrag } from "../../../hooks/useSheetDrag.js";
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", ink:"#1A1A18",
@@ -45,6 +46,7 @@ export function RecommendationsSection({
   profileOwnerId   = "",
   profileOwnerName = "",
 }) {
+  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   const { openCreatorProfile } = useProfileLauncher();
   const { open: openPreview } = useContentPreview();
 
@@ -285,7 +287,7 @@ export function RecommendationsSection({
         >
           <div style={{
             width: "100%", background: T.bg,
-            borderRadius: "16px 16px 0 0",
+            borderRadius: "16px 16px 0 0", transform: sheetTransform, transition: sheetTransition,
             padding: "20px 20px calc(88px + env(safe-area-inset-bottom, 0px))",
             display: "flex", flexDirection: "column", gap: 14, fontFamily: T.ff,
           }}>

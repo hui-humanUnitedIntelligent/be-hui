@@ -30,6 +30,7 @@ import { S } from "../../core/hui.sources.js";
 import { toast } from "../../lib/useToast.jsx";
 import { generateReceipt } from "../../lib/generateReceipt.js";
 import { optimizeCard } from "../../lib/perfUtils.js";
+import { useSheetDrag } from "../../hooks/useSheetDrag.js";
 
 let _resonanceHelpers = null;
 async function getResonanceHelpers() {
@@ -42,6 +43,7 @@ const TEAL  = "#16D7C5";
 const CORAL = "#FF8A6B";
 
 export default function WerkKaufFlow({ werk, onClose = () => {} }) {
+  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   const { user } = useAuth();
   useModalRegistration(true, onClose, "WerkKaufFlow");
   useWizardBodyLock();
@@ -176,7 +178,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
       }}
     >
       <div style={{
-        background: "#FDFCFA", borderRadius: "24px 24px 0 0",
+        background: "#FDFCFA", borderRadius: "24px 24px 0 0", transform: sheetTransform, transition: sheetTransition,
         width: "100%", maxWidth: 480,
         padding: "28px 24px 40px",
         boxShadow: "0 -8px 40px rgba(26,26,46,0.18)",
@@ -186,7 +188,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
         <style>{`@keyframes wkfSlideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }`}</style>
 
         {/* Handle */}
-        <div style={{ width: 40, height: 4, borderRadius: 2, background: "rgba(26,26,46,0.12)", margin: "0 auto 24px" }} />
+        <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab", width: 40, height: 4, borderRadius: 2, background: "rgba(26,26,46,0.12)", margin: "0 auto 24px" }} />
 
         {/* ── CONFIRM ── */}
         {phase === "confirm" && (

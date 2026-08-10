@@ -16,6 +16,7 @@ import EscrowStatusBadge from "../commerce/EscrowStatusBadge.jsx";
 import SellerPayoutRequestSheet from "../commerce/SellerPayoutRequestSheet.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { formatDateDE } from "../../lib/formatters.js";
+import { useSheetDrag } from "../../hooks/useSheetDrag.js";
 
 // ── Design Tokens (identisch zu den anderen Studio-Modals) ─────────
 const T = {
@@ -39,6 +40,7 @@ function fmtDate(iso) {
 }
 
 export default function MeineVerkaeufeModal({ profile, onClose = () => {} }) {
+  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   useModalRegistration(true, onClose, "MeineVerkaeufeModal");
   const { sales, totalEarned, loading } = useMySales(profile?.id);
   const [payoutItem, setPayoutItem] = useState(null);
@@ -53,7 +55,7 @@ export default function MeineVerkaeufeModal({ profile, onClose = () => {} }) {
     >
       <div style={{
         width: "100%", maxWidth: 480, margin: "0 auto",
-        background: T.bg, borderRadius: "24px 24px 0 0",
+        background: T.bg, borderRadius: "24px 24px 0 0", transform: sheetTransform, transition: sheetTransition,
         maxHeight: "92vh", overflow: "hidden",
         display: "flex", flexDirection: "column",
         boxShadow: "0 -4px 32px rgba(26,26,24,0.18)",
@@ -61,7 +63,7 @@ export default function MeineVerkaeufeModal({ profile, onClose = () => {} }) {
       }}>
         {/* Handle */}
         <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 4px" }}>
-          <div style={{ width: 36, height: 4, borderRadius: 99, background: "rgba(26,26,24,0.12)" }} />
+          <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab", width: 36, height: 4, borderRadius: 99, background: "rgba(26,26,24,0.12)" }} />
         </div>
 
         {/* Header */}

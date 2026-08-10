@@ -12,6 +12,7 @@ import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { formatDateDE, formatNumberDE } from "../../lib/formatters.js";
+import { useSheetDrag } from "../../hooks/useSheetDrag.js";
 
 // ── Design Tokens ──────────────────────────────────────────────────
 const T = {
@@ -91,6 +92,7 @@ function getStatus(s) {
 
 // ── Haupt-Komponente ───────────────────────────────────────────────
 export default function EinAusgabenModal({ profile, onClose }) {
+  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   useModalRegistration(true, () => onClose?.(), "EinAusgabenModal");
   const [tab,      setTab]      = useState("ausgaben"); // "ausgaben" | "einnahmen"
   const [filter,   setFilter]   = useState("all");      // "all" | typ-key
@@ -330,7 +332,7 @@ export default function EinAusgabenModal({ profile, onClose }) {
       }}>
         {/* Handle */}
         <div style={{ display:"flex", justifyContent:"center", padding:"12px 0 4px" }}>
-          <div style={{ width:36, height:4, borderRadius:99, background:"rgba(26,26,24,0.12)" }} />
+          <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab", width:36, height:4, borderRadius:99, background:"rgba(26,26,24,0.12)" }} />
         </div>
 
         {/* Header */}

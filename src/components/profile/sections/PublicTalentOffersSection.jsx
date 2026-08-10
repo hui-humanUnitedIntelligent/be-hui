@@ -5,6 +5,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../../lib/supabaseClient.js";
 import { HUILogo } from "../../brand/HUILogo.jsx";
+import { useSheetDrag } from "../../../hooks/useSheetDrag.js";
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", ink:"#1A1A18",
@@ -152,7 +153,7 @@ function TalentDetailModal({ talent, onClose }) {
         }}>
           {/* Griff */}
           <div style={{ padding:"14px 0 0", display:"flex", justifyContent:"center" }}>
-            <div style={{ width:36, height:4, borderRadius:2, background:"rgba(26,26,24,0.12)" }}/>
+            <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab", width:36, height:4, borderRadius:2, background:"rgba(26,26,24,0.12)" }}/>
           </div>
 
           {/* Cover-Bild */}
@@ -250,6 +251,7 @@ function TalentDetailModal({ talent, onClose }) {
 
 // ── Haupt-Export ──────────────────────────────────────────────────
 export function PublicTalentOffersSection({ profileId }) {
+  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   const [talents, setTalents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);

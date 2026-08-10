@@ -6,10 +6,12 @@ import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { useWizardBodyLock from '../../lib/wizardBodyLock.js'
 import { supabase } from '../../lib/supabaseClient.js'
+import { useSheetDrag } from "../../hooks/useSheetDrag.js";
 
 const TEAL = '#16D7C5'
 
 export default function BuyerConfirmSheet({ item, onClose = () => {}, onSuccess = () => {} }) {
+  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   useModalRegistration(true, () => onClose?.(), "BuyerConfirmSheet");
   useWizardBodyLock()
   const [loading, setLoading] = useState(false)
@@ -54,14 +56,14 @@ export default function BuyerConfirmSheet({ item, onClose = () => {}, onSuccess 
       onClick={(e) => { if (e.target === e.currentTarget && !loading) onClose?.() }}
       style={{ position: 'fixed', inset: 0, zIndex: 10500, background: 'rgba(0,0,0,0.45)',
         display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
-      <div style={{ background: '#FDFCFA', borderRadius: '24px 24px 0 0', width: '100%', maxWidth: 480,
+      <div style={{ background: '#FDFCFA', borderRadius: '24px 24px 0 0', transform: sheetTransform, transition: sheetTransition, width: '100%', maxWidth: 480,
         maxHeight: '70dvh', display: 'flex', flexDirection: 'column',
         boxShadow: '0 -8px 40px rgba(26,26,46,0.18)', overflow: 'hidden',
         animation: 'escrowSlideUp 0.28s cubic-bezier(.32,1.2,.55,1) both' }}>
         <style>{`@keyframes escrowSlideUp { from{transform:translateY(100%);opacity:0} to{transform:translateY(0);opacity:1} }`}</style>
 
         {/* Handle */}
-        <div style={{ width: 40, height: 4, borderRadius: 2, background: 'rgba(26,26,46,0.12)',
+        <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab", width: 40, height: 4, borderRadius: 2, background: 'rgba(26,26,46,0.12)',
           margin: '12px auto 0', flexShrink: 0 }} />
 
         {/* Content */}

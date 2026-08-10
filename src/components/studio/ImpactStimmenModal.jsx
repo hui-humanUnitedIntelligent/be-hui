@@ -15,6 +15,7 @@ import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { formatNumberDE } from "../../lib/formatters.js";
+import { useSheetDrag } from "../../hooks/useSheetDrag.js";
 
 // ── Design Tokens (identisch mit HuiStudio) ────────────────────────────────
 const T = {
@@ -92,6 +93,7 @@ function VoteButton({ index, used, loading, onClick }) {
 
 // ── Haupt-Modal ─────────────────────────────────────────────────────────────
 export default function ImpactStimmenModal({ profile, onClose, switchTab = null }) {
+  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   useModalRegistration(true, () => onClose?.(), "ImpactStimmenModal");
   // Sprint F.4C: einzige Wahrheitsquelle
   const isTalent  = isProfileTalent(profile);
@@ -280,14 +282,14 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
       <div style={{
         width: "100%", maxWidth: 480, margin: "0 auto",
         background: T.bg,
-        borderRadius: "24px 24px 0 0",
+        borderRadius: "24px 24px 0 0", transform: sheetTransform, transition: sheetTransition,
         maxHeight: "92vh", overflow: "hidden",
         display: "flex", flexDirection: "column",
         boxShadow: "0 -4px 32px rgba(26,26,24,0.18)",
       }}>
         {/* ── Handle ── */}
         <div style={{ padding: "12px 20px 0", display: "flex", justifyContent: "center" }}>
-          <div style={{ width: 36, height: 4, borderRadius: 99, background: "rgba(26,26,24,0.15)" }} />
+          <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab", width: 36, height: 4, borderRadius: 99, background: "rgba(26,26,24,0.15)" }} />
         </div>
 
         {/* ── Header ── */}

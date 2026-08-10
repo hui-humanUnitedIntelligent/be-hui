@@ -11,6 +11,7 @@ import { createPortal } from "react-dom";
 import { RecommendationService } from "../../services/db";
 import { supabase } from "../../lib/supabaseClient";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { useSheetDrag } from "../../hooks/useSheetDrag.js";
 
 const T = {
   bg:       "#F7F5F0",
@@ -36,6 +37,7 @@ export default function RecommendModal({
   onSubmitted   = () => {},
 
 }) {
+  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   useModalRegistration(true, onClose, "RecommendModal");
   const [text, setText]              = useState("");
   const [submitting, setSubmitting]  = useState(false);
