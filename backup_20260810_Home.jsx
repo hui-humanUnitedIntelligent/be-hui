@@ -274,18 +274,12 @@ function HomeInner() {
 
   useEffect(() => {
     const pending = location?.state?.pendingWerkKauf;
-    if (pending && setCart) {
-      // KORB-RESTORE (2026-08-10): WorkDetailPage "Kaufen" → in Korb legen
-      // (statt direkten WerkKaufFlow zu öffnen)
-      setCart(prev => {
-        const wid = pending.id || pending._raw?.id;
-        if (wid && prev.some(x => (x.id || x._raw?.id) === wid)) return prev;
-        return [...prev, pending];
-      });
+    if (pending && setShowWerkCheckout) {
+      setShowWerkCheckout(pending);
       // Router-State sofort leeren damit Reload nicht erneut öffnet
       try { window.history.replaceState({}, document.title, window.location.pathname); } catch {}
     }
-  }, [location?.state?.pendingWerkKauf, setCart]); // eslint-disable-line  // Activity Tracking: App-Start, Foreground, Heartbeat
+  }, [location?.state?.pendingWerkKauf]); // eslint-disable-line  // Activity Tracking: App-Start, Foreground, Heartbeat
 
 
   // ── Phase 4C: Talent Flow global registrieren ────────────────
@@ -485,17 +479,13 @@ function HomeInner() {
                   geo={searchState.geo}
                   onProfile={(id) => { if(id) openProfileById(id); }} /* Autor-Name klickbar → öffnet Profil direkt */
                   onBook={(item) => {
-                    // KORB-RESTORE (2026-08-10): "Kaufen" im Feed legt das Werk
-                    // in den Werkekorb — der Korb-Button erscheint, Nutzer
-                    // sehen sofort was passiert und können mehrere Werke sammeln.
+                    // COMMERCE-DIRECT (2026-08-08): "Kaufen" im Feed öffnet
+                    // DIREKT den WerkKaufFlow — nicht erst einen unsichtbaren
+                    // Werkekorb. Nutzer sollen sofort sehen was passiert.
                     if (!item?.id) return;
+                    // Werk: direkt WerkKaufFlow öffnen
                     const werkData = item._raw || item;
-                    // Dedupe: nicht zweimal dasselbe Werk
-                    setCart(prev => {
-                      const wid = werkData.id || werkData._raw?.id;
-                      if (prev.some(x => (x.id || x._raw?.id) === wid)) return prev;
-                      return [...prev, werkData];
-                    });
+                    setShowWerkCheckout(werkData);
                   }}
                   onDetail={(item) => {
                     const werkId = item?.id || item?._raw?.id;
