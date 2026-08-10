@@ -249,11 +249,13 @@ serve(async (req) => {
             // Impact-Pool aktualisieren
             const impactEur = Number(supportPayment.impact_pool_share) || 0
             if (impactEur > 0) {
-              const { data: currentRound } = await supabase
+              const { data: roundRows } = await supabase
                 .from('impact_rounds')
                 .select('id, pool_eur')
                 .eq('status', 'active')
-                .maybeSingle()
+                .order('created_at', { ascending: false })
+                .limit(1)
+              const currentRound = roundRows?.[0]
               if (currentRound) {
                 await supabase.from('impact_rounds').update({
                   pool_eur: Number(currentRound.pool_eur) + impactEur
@@ -438,12 +440,14 @@ serve(async (req) => {
       // ohne separate Migration weiterlaeuft.
       const impactEur = feeResult?.ok ? Number(feeResult.impact_eur) : 0
       if (impactEur > 0) {
-        const { data: currentRound } = await supabase
+        const { data: roundRows } = await supabase
           .from('impact_rounds')
           .select('id, pool_eur')
           .eq('status', 'active')
-          .maybeSingle()
+          .order('created_at', { ascending: false })
+          .limit(1)
 
+        const currentRound = roundRows?.[0]
         if (currentRound) {
           await supabase.from('impact_rounds').update({
             pool_eur: Number(currentRound.pool_eur) + impactEur
