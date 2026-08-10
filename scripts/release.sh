@@ -156,6 +156,11 @@ echo "  Quelle:  $APK_SOURCE"
 echo "  Ziel:    $APK_TARGET"
 echo "  Größe:   $(du -h "$APK_TARGET" | cut -f1)"
 
+# ── Backup-Rotation (max 2 Backups pro Datei behalten) ──────────────────────────
+if [[ -f "${SCRIPT_DIR}/backup-rotation.sh" ]]; then
+  bash "${SCRIPT_DIR}/backup-rotation.sh" || true
+fi
+
 # ── Done ──────────────────────────────────────────────────────────────────────
 echo -e "\n${GREEN}${BOLD}╔══════════════════════════════════════════════╗${NC}"
 echo -e "${GREEN}${BOLD}║   RELEASE v${NEW_VERSION} ERFOLGREICH ABGESCHLOSSEN   ║${NC}"
