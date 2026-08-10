@@ -923,6 +923,37 @@ function PreisBlock({ werke, versand, rabatt }) {
   );
 }
 
+// ════════════════════════════════════════════════════════════════
+//  VERSAND-KALKULATION — summiert shipping_cost je Item × Qty
+// ════════════════════════════════════════════════════════════════
+function calcShipping(items) {
+  let total = 0;
+  let hasShipping = false;
+  let allFree = true;
+  for (const item of items) {
+    const raw = item._raw || {};
+    const delivery = (raw.delivery_type || raw.deliveryType || "physical").toLowerCase().trim();
+    // Digital/service/pickup = keine Versandkosten
+    if (delivery === "digital" || delivery === "download" || delivery === "service" || delivery === "pickup") continue;
+    const sc = raw.shipping_cost;
+    if (sc != null && sc > 0) {
+      hasShipping = true;
+      allFree = false;
+      const qty = (typeof item.quantity === "number" && item.quantity > 0) ? item.quantity : 1;
+      total += parseFloat(sc) * qty;
+    } else if (sc == null) {
+      // Kein shipping_cost gesetzt → könnte physisch sein, aber unknown
+      // Wir setzen hasShipping=true um "Versand: wird berechnet" zu zeigen
+      hasShipping = true;
+      allFree = false;
+    } else if (sc === 0) {
+      hasShipping = true; // Kostenloser Versand → anzeigen
+    }
+  }
+  if (!hasShipping) return null; // Keine physischen Items
+  return total; // 0 = kostenlos, >0 = Kosten, null = keine Versand-Items
+}
+
 //  HAUPT-KOMPONENTE
 // ══════════════════════════════════════════════════════════════════
 export default function WerkeKorb({
@@ -955,7 +986,7 @@ export default function WerkeKorb({
   const impact    = calcImpact(total);      // 6% Impact-Pool-Anteil
   const huiTotal  = calcPlatformFee(total);  // 20% HUI-Gesamt
   const gesamt    = +total.toFixed(2); // Käufer zahlt nur den Werkpreis
-  const versandEur = null; // TODO: aus items.delivery_cost ableiten
+  const versandEur = calcShipping(enrichedItems); // Summe aller shipping_cost × Qty
   const rabattEur  = null; // TODO: aus cart.discount ableiten
 
   // Entfernen mit Animation
