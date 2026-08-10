@@ -251,7 +251,7 @@ function TalentDetailModal({ talent, onClose }) {
 
 // ── Haupt-Export ──────────────────────────────────────────────────
 export function PublicTalentOffersSection({ profileId }) {
-  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
+  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(() => setSelected(null));
   const [talents, setTalents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);

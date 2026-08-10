@@ -46,7 +46,7 @@ export function RecommendationsSection({
   profileOwnerId   = "",
   profileOwnerName = "",
 }) {
-  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
+  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(() => setShowRecommendModal(false));
   const { openCreatorProfile } = useProfileLauncher();
   const { open: openPreview } = useContentPreview();
 

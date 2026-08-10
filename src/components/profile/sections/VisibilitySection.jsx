@@ -35,7 +35,7 @@ export function VisibilitySection({
   loading    = false,
   onSave     = null,   // (visibility: string) => void
 }) {
-  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
+  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(() => setShowSheet(false));
   const [showSheet, setShowSheet] = useState(false);
   useModalRegistration(showSheet, () => setShowSheet(false), "VisibilitySection-Sheet");
   const [saving,    setSaving]    = useState(false);
