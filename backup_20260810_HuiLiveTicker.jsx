@@ -94,19 +94,7 @@ export default function HuiLiveTicker() {
         <div style={{ flex:1, overflow:"hidden", position:"relative", height:16 }}>
           <span
             key={current.id}
-            onClick={current.openRef ? () => {
-              // PROFILE-OPEN.1 (2026-08-10): "Neuer Nutzer"-Items verlinken auf
-              // das oeffentliche Profil ueber den bestehenden globalen Hook
-              // (Memory #802) statt ueber das Content-Preview-Sheet, das keinen
-              // Lade-Typ fuer rohe Profile hat.
-              if (current.openRef.type === "profile") {
-                if (typeof window !== "undefined" && typeof window.__HUI_OPEN_PROFILE__ === "function") {
-                  window.__HUI_OPEN_PROFILE__(current.openRef.id);
-                }
-                return;
-              }
-              openRef(current.openRef);
-            } : undefined}
+            onClick={current.openRef ? () => openRef(current.openRef) : undefined}
             style={{
               display:"block", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis",
               fontSize:12.5, fontWeight:600, color:T.ink, letterSpacing:"-0.005em",

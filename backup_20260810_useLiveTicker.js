@@ -32,22 +32,6 @@
 //   wirker             (verified=true → "neuer Wirker beigetreten")
 //   work_sales         (payment_status=completed, anonymisiert)
 //   experience_bookings(booking_status in confirmed/completed, anonymisiert)
-//   impact_votes       (neue Stimme -- Projektname aus impact_applications,
-//                       anonymisiert: kein Voter genannt)
-//   talents            (status=approved -> "neues Talent-Angebot")
-//   profiles           ("neuer Nutzer registriert" -- nur wenn ein
-//                       nicht-email-artiger display_name/username vorhanden ist;
-//                       profiles ist ohnehin oeffentlich lesbar (RLS: SELECT true),
-//                       dieselbe Sichtbarkeit wie auf jedem oeffentlichen Profil)
-//
-// FALLBACK/TURNUS.1 (2026-08-10): Wenn wenig/keine frischen echten Events
-// vorhanden sind, soll der Ticker laut Auftrag trotzdem im Turnus etwas
-// zeigen -- statt Fake-Events zu erfinden (verboten, siehe oben) werden
-// echte, aktuelle Aggregat-Zahlen (Anzahl Werke/Talente/Erlebnisse/Nutzer/
-// Impact-Projekte) als Fuell-Items ergaenzt. Diese bekommen ein sehr altes
-// createdAt -> die bestehende Sortierung (neueste zuerst) sortiert sie
-// automatisch ans Ende der Rotation. Sind viele frische echte Events da,
-// fallen sie durch MAX_BUFFER ohnehin raus -- keine Sonderlogik noetig.
 //
 // Architektur-Entscheidung Polling statt 10 Realtime-Channels:
 // Ein Liveticker braucht keine Millisekunden-Aktualitaet (Wechsel ohnehin
@@ -270,145 +254,8 @@ async function fetchExperienceBookings() {
   }));
 }
 
-// Erkennt, ob ein Anzeigename eigentlich eine E-Mail-Adresse ist (Trigger
-// handle_new_user setzt display_name auf die E-Mail, wenn kein full_name
-// vom OAuth-Provider kam -- siehe Memory #803). Solche Namen NIE anzeigen.
-function looksLikeEmail(s) {
-  return /@/.test(s);
-}
-
-function safePublicName(p) {
-  const dn = esc(p?.display_name);
-  if (dn && !looksLikeEmail(dn)) return dn;
-  const un = esc(p?.username);
-  if (un && !looksLikeEmail(un)) return un;
-  return null;
-}
-
-async function safeCount(promise) {
-  try {
-    const { count, error } = await promise;
-    if (error) return 0;
-    return count || 0;
-  } catch {
-    return 0;
-  }
-}
-
-// Neue Stimme -- anonymisiert (kein Voter genannt), nur das Projekt, das
-// die Stimme erhalten hat. impact_votes.project_id referenziert
-// impact_applications.id (Memory #722c40 / Korrektur vom 2026-08-04 --
-// NICHT impact_projects, das ist eine andere Tabelle).
-async function fetchVotes() {
-  const rows = await safe(
-    supabase.from("impact_votes")
-      .select("id,project_id,created_at")
-      .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
-  );
-  if (!rows.length) return [];
-
-  const projectIds = [...new Set(rows.map(r => r.project_id).filter(Boolean))];
-  let nameById = {};
-  if (projectIds.length) {
-    const apps = await safe(
-      supabase.from("impact_applications").select("id,project_name").in("id", projectIds)
-    );
-    nameById = Object.fromEntries(apps.map(a => [a.id, a.project_name]));
-  }
-
-  return rows
-    .filter(r => esc(nameById[r.project_id]))
-    .map(r => ({
-      id: `vote_${r.id}`, createdAt: r.created_at,
-      text: `„${esc(nameById[r.project_id])}" hat eine neue Stimme erhalten`,
-      openRef: null, // keine dedizierte Vorschau fuer impact_applications vorhanden
-    }));
-}
-
-// Neues Talent-Angebot -- nur freigegebene (status=approved), wie in
-// DiscoverPage/useFeedStream bereits gehandhabt.
-async function fetchNewTalents() {
-  const rows = await safe(
-    supabase.from("talents")
-      .select("id,title,created_at")
-      .eq("status", "approved")
-      .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
-  );
-  return rows
-    .filter(t => esc(t.title))
-    .map(t => ({
-      id: `talentoffer_${t.id}`, createdAt: t.created_at,
-      text: `Neues Talent-Angebot: „${esc(t.title)}"`,
-      openRef: { type:"talent", id:t.id },
-    }));
-}
-
-// Neuer Nutzer registriert -- profiles ist bereits vollstaendig oeffentlich
-// lesbar (RLS-Policy profiles_select_all USING(true), dieselbe Sichtbarkeit
-// wie auf jedem oeffentlichen Profil). Trotzdem: niemals eine E-Mail-artige
-// display_name/username anzeigen (siehe safePublicName) -- Registrierungen
-// ohne sicheren Namen werden schlicht ausgelassen statt einen generischen
-// "Ein Nutzer ist beigetreten"-Text zu erfinden.
-async function fetchNewUsers() {
-  const rows = await safe(
-    supabase.from("profiles")
-      .select("id,display_name,username,created_at")
-      .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
-  );
-  return rows
-    .filter(p => safePublicName(p))
-    .map(p => ({
-      id: `newuser_${p.id}`, createdAt: p.created_at,
-      text: `${esc(safePublicName(p))} ist jetzt bei HUI dabei`,
-      openRef: { type:"profile", id:p.id },
-    }));
-}
-
-// FALLBACK/TURNUS.1 (2026-08-10) -- echte Aggregat-Zahlen statt Fake-Events,
-// siehe Kommentar am Dateianfang. Sehr altes createdAt -> landet durch die
-// bestehende Sortierung (neueste zuerst) automatisch am Ende der Rotation,
-// wird also nur gezeigt wenn nicht genug frischere echte Events da sind.
-async function fetchFallbackStats() {
-  const [works, talentsN, experiences, users, projects] = await Promise.all([
-    safeCount(supabase.from("works").select("id", { count:"exact", head:true })
-      .eq("status", "published").eq("approval_status", "approved")),
-    safeCount(supabase.from("talents").select("id", { count:"exact", head:true })
-      .eq("status", "approved")),
-    safeCount(supabase.from("experiences").select("id", { count:"exact", head:true })
-      .eq("status", "published").eq("approval_status", "approved")),
-    safeCount(supabase.from("profiles").select("id", { count:"exact", head:true })),
-    safeCount(supabase.from("impact_applications").select("id", { count:"exact", head:true })
-      .eq("status", "approved")),
-  ]);
-
-  const out = [];
-  if (works > 0) out.push({
-    id:"fb_works", createdAt:"2000-01-01T00:00:00Z",
-    text:`Schon ${works} Werke auf HUI veröffentlicht`, openRef:null,
-  });
-  if (talentsN > 0) out.push({
-    id:"fb_talents", createdAt:"2000-01-01T00:00:01Z",
-    text:`${talentsN} Talente bieten aktuell ihr Können auf HUI an`, openRef:null,
-  });
-  if (experiences > 0) out.push({
-    id:"fb_experiences", createdAt:"2000-01-01T00:00:02Z",
-    text:`${experiences} Erlebnisse warten auf HUI darauf, entdeckt zu werden`, openRef:null,
-  });
-  if (users > 0) out.push({
-    id:"fb_users", createdAt:"2000-01-01T00:00:03Z",
-    text:`Schon ${users} Menschen sind Teil von HUI`, openRef:null,
-  });
-  if (projects > 0) out.push({
-    id:"fb_projects", createdAt:"2000-01-01T00:00:04Z",
-    text:`${projects} Herzensprojekte werden aktuell über den Impact Pool unterstützt`, openRef:null,
-  });
-  return out;
-}
-
-// Alle Quellen: die urspruenglichen 6 schnellsten/wertvollsten (wirker/
-// connections/recommendations/project_support haben kaum Daten → langsam)
-// plus Stimmen/Talente/Nutzer (LIVETICKER.2, 2026-08-10) plus Fallback-
-// Aggregatzahlen fuer den Turnus wenn nichts Neues gekommen ist.
+// Nur die 6 schnellsten/wertvollsten Quellen (wirker/connections/
+// recommendations/project_support haben kaum Daten → langsam)
 const SOURCES = [
   fetchWorks,
   fetchExperiences,
@@ -416,12 +263,7 @@ const SOURCES = [
   fetchResonance,
   fetchWorkSales,
   fetchExperienceBookings,
-  fetchVotes,
-  fetchNewTalents,
-  fetchNewUsers,
-  fetchFallbackStats,
 ];
-
 
 export function useLiveTicker() {
   const { user } = useAuth();
