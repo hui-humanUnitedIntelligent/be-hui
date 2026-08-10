@@ -254,7 +254,7 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
         {/* Griff + Close — Statusbar bleibt sichtbar (paddingTop respektiert Safe-Area) */}
         <div style={{
           position:"sticky", top:0, zIndex:2, background:"transparent",
-          paddingTop:"calc(env(safe-area-inset-top, 0px) + 8px)",
+          paddingTop:"calc(max(var(--hui-safe-top, 0px), env(safe-area-inset-top, 0px)) + 8px)",
         }}>
           <div style={{ width:36, height:4, borderRadius:99, background:"rgba(26,26,46,0.15)", margin:"0 auto 8px" }}/>
           <div style={{ display:"flex", justifyContent:"flex-end", padding:"0 16px" }}>

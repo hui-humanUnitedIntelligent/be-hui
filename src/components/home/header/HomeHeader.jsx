@@ -53,7 +53,7 @@ export default function HomeHeader({
         transition:"border-color 0.35s ease",
         touchAction:"manipulation",
       }}>
-        <div style={{ height:"env(safe-area-inset-top,0)" }}/>
+        <div style={{ height:"max(var(--hui-safe-top, 0px), env(safe-area-inset-top, 0px))" }}/>
 
         <div style={{
           // ROOT-CAUSE-FIX (2026-07-06, Lars -- "Discovery-Panel rechts offen"):

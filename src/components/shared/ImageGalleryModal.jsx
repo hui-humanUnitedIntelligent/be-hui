@@ -166,7 +166,7 @@ export default function ImageGalleryModal({ images, startIndex = 0, onClose = ()
         onClick={onClose}
         aria-label="Galerie schliessen"
         style={{
-          position: "absolute", top: "calc(16px + env(safe-area-inset-top, 0px))", right: 16,
+          position: "absolute", top: "calc(16px + max(var(--hui-safe-top, 0px), env(safe-area-inset-top, 0px)))", right: 16,
           zIndex: GALLERY_Z + 10,
           width: 40, height: 40, borderRadius: "50%",
           background: "rgba(255,255,255,0.12)", backdropFilter: "blur(6px)",
@@ -179,7 +179,7 @@ export default function ImageGalleryModal({ images, startIndex = 0, onClose = ()
 
       {total > 1 && (
         <div style={{
-          position: "absolute", top: "calc(20px + env(safe-area-inset-top, 0px))", left: "50%",
+          position: "absolute", top: "calc(20px + max(var(--hui-safe-top, 0px), env(safe-area-inset-top, 0px)))", left: "50%",
           transform: "translateX(-50%)", zIndex: GALLERY_Z + 10,
           color: "rgba(255,255,255,0.88)", fontSize: 13, fontWeight: 600,
           background: "rgba(255,255,255,0.12)", borderRadius: 99, padding: "4px 12px",
