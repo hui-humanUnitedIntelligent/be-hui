@@ -4,7 +4,6 @@
 
 import React from "react";
 import { HUI } from "../../design/hui.design.js";
-import { formatPresence } from "../../lib/usePresence.js";
 import { formatTimeDE } from "../../lib/formatters.js";
 
 const C = { teal:HUI.COLOR.teal, coral:HUI.COLOR.coral, ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.52)" };
@@ -18,27 +17,11 @@ function timeAgo(iso) {
   return "Gestern";
 }
 
-const MOODS = [
-  { icon:"🎵", label:"Musik & Klang" },
-  { icon:"🏺", label:"Keramik & Handwerk" },
-  { icon:"📸", label:"Fotografie & Film" },
-  { icon:"🧘", label:"Yoga & Bewegung" },
-  { icon:"✦",  label:"Im kreativen Fluss" },
-];
-
 export default function ConversationCard({ conv, onPress, isActive }) {
   const name       = conv.name || conv.other_profile?.display_name || "?";
   const avatar     = conv.avatar_url || conv.other_profile?.avatar_url;
-  const lastMsg    = conv.last_message || "Eine Verbindung entsteht ✦";
+  const lastMsg    = conv.last_message || "Eine Verbindung ist entstanden";
   const unread     = conv.unread || 0;
-  const presence   = formatPresence(conv.other_profile?.last_seen_at || conv.last_seen_at);
-  const moodIndex =
-    Math.abs(
-      String(conv.id)
-        .split("")
-        .reduce((acc, ch) => acc + ch.charCodeAt(0), 0)
-    ) % MOODS.length;
-  const mood = MOODS[moodIndex] ?? { icon: "✦", label: "Im kreativen Fluss" };
   const initials   = name[0]?.toUpperCase() || "?";
 
   return (
@@ -95,34 +78,6 @@ export default function ConversationCard({ conv, onPress, isActive }) {
           <span style={{ fontSize:11, color:C.muted, flexShrink:0, marginLeft:6 }}>
             {timeAgo(conv.last_message_at || conv.last_at)}
           </span>
-        </div>
-        {/* Presence / Talent-Mood */}
-        <div style={{
-          fontSize:11.5, fontWeight:500, marginBottom:3,
-          display:"flex", alignItems:"center", gap:4,
-          color: presence?.online ? "#22c55e" : C.teal,
-        }}>
-          {presence ? (
-            <>
-              <span style={{
-                display:"inline-block", width:7, height:7, borderRadius:"50%",
-                background: presence.dot, flexShrink:0,
-              }}/>
-              <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-                color: presence.online ? "#22c55e" : "rgba(80,80,80,0.60)",
-                fontWeight: presence.online ? 600 : 400,
-              }}>
-                {presence.label}
-              </span>
-            </>
-          ) : (
-            <>
-              <span>{mood.icon}</span>
-              <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                {mood.label}
-              </span>
-            </>
-          )}
         </div>
         {/* Letzte Nachricht */}
         <div style={{
