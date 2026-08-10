@@ -1186,12 +1186,8 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
         display:"flex", flexDirection:"column",
         background:T.bg,
       }}>
-        {/* Header — padding-top respektiert Status-Bar (Uhr/Akku/Signal), analog ChatHeader.jsx */}
-        <div style={{
-          display:"flex", alignItems:"center", justifyContent:"space-between",
-          padding:"max(var(--hui-safe-top, 0px),50px,env(safe-area-inset-top,50px)) 20px 12px",
-          borderBottom:`1px solid ${T.border}`, background:T.bgCard,
-        }}>
+        {/* Header */}
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"16px 20px 12px", borderBottom:`1px solid ${T.border}`, background:T.bgCard }}>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
             <HUIBenachrichtigungIcon size={20} />
             <span style={{ fontSize:17, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>Resonanzzentrum</span>
