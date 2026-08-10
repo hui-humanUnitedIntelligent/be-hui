@@ -167,6 +167,22 @@ export async function initPushNotifications() {
 async function registerDevice() {
   if (!Capacitor.isNativePlatform()) return;
   try {
+    // Notification Channel erstellen (Android 8+)
+    try {
+      await PushNotifications.createChannel({
+        id: "hui_notifications",
+        name: "HUI Benachrichtigungen",
+        description: "Push-Benachrichtigungen von HUI",
+        importance: 4,         // HIGH
+        visibility: 1,         // PUBLIC
+        vibration: true,
+        lights: true,
+        lightColor: "#0EC4B8",
+      });
+    } catch (e) {
+      // Channel existiert bereits oder iOS (kein Channel nötig)
+    }
+
     let permStatus = await PushNotifications.checkPermissions();
     if (permStatus.receive === "prompt") {
       permStatus = await PushNotifications.requestPermissions();

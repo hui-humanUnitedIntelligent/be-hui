@@ -115,7 +115,8 @@ async function sendFCM(
           priority: "high",
           notification: {
             channel_id: "hui_notifications",
-            icon: "@mipmap/ic_launcher",
+            icon: "@drawable/ic_notification",
+            color: "#0EC4B8",
           },
         },
       },
