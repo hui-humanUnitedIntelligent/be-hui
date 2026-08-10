@@ -1,56 +1,50 @@
-#env
-.env
-.env.local
-.env.*.local
 
-# Logs
-/logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
 !.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-.env
-.vite
-stripe
-supabase/.temp/
-
+# Build output (Vite → www/, Vercel baut selbst)
 # Capacitor Android Wrapper (siehe android/README.md)
-android/**/build/
-android/.gradle/
-android/local.properties
-android/app/src/main/assets/public/   # generierter Web-Snapshot, wird per `npx cap sync android` aus dist/ erzeugt
-.vercel
+# Editor directories and files
+# Logs
+#env
+*.backup_20260809
 *.bak
 *.bak_*
+*.local
+*.log
+*.njsproj
+*.ntvs*
+*.sln
+*.suo
+*.sw?
+.DS_Store
 .backups/
-
-# Build output (Vite → www/, Vercel baut selbst)
+.env
+.env.*.local
+.env.local
+.idea
+.vercel
+.vite
+.vscode/*
+/logs
+android/**/build/
+android/.gradle/
+android/app/release.keystore
+android/app/release/
+android/app/src/main/assets/public/   # generierter Web-Snapshot, wird per `npx cap sync android` aus dist/ erzeugt
+android/local.properties
+backups/
+dist
+dist-ssr
+lerna-debug.log*
+node_modules
+npm-debug.log*
+pnpm-debug.log*
+release.keystore
+stripe
+supabase/.temp/
+www/app-version.json
 www/assets/
+www/bundle.zip
 www/index.html
 www/web.html
-www/bundle.zip
-www/app-version.json
-backups/
-backups/
-release.keystore
-android/app/release.keystore
-*.backup_20260809
+yarn-debug.log*
+yarn-error.log*
