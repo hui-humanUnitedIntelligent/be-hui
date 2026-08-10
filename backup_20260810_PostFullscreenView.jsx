@@ -381,7 +381,6 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
       <CommentsSheet
         open={showComments} onClose={() => setShowComments(false)}
         postId={postId} postType={postType} postAuthorId={authorId}
-        zIndex={15500}
       />
     </div>
   );

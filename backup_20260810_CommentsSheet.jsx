@@ -351,7 +351,7 @@ function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdi
   );
 }
 
-export default function CommentsSheet({ open, onClose, postId, postType, postAuthorId, postActionUrl, highlightCommentId, mediaUrl = null, mediaType = null, postTitle = null, zIndex = 10500 }) {
+export default function CommentsSheet({ open, onClose, postId, postType, postAuthorId, postActionUrl, highlightCommentId, mediaUrl = null, mediaType = null, postTitle = null }) {
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   const { user, profile } = useAuth();
   // Back-Button Registration
@@ -659,7 +659,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
   return createPortal(
     <div
       onClick={e => e.stopPropagation()}
-      style={{ position:"fixed", inset:0, zIndex }}
+      style={{ position:"fixed", inset:0, zIndex:10500 }}
     >
       <style>{CSS}</style>
       <div className="cs-overlay" onClick={onClose} style={{
