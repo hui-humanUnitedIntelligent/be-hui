@@ -115,7 +115,7 @@ function NavItem({ icon, label, onClick, danger, last }) {
 }
 
 // ── Block: Name ───────────────────────────────────────────────
-function NameBlock({ profile, onProfileUpdate }) {
+function NameBlock({ profile = {}, onProfileUpdate = () => {} }) {
   // profiles-Tabelle hat keine first_name/last_name — nur full_name + display_name.
   // Wir splitten full_name beim Laden und schreiben beim Speichern beides zurück.
   const _parts = (profile?.full_name || profile?.display_name || "").split(" ");
@@ -126,6 +126,7 @@ function NameBlock({ profile, onProfileUpdate }) {
   const [error,  setError]  = useState(null);
 
   const save = async () => {
+    if (!profile?.id) return;
     setSaving(true); setError(null); setSaved(false);
     const full_name = [first.trim(), last.trim()].filter(Boolean).join(" ");
     const display_name = full_name;
@@ -156,7 +157,7 @@ function NameBlock({ profile, onProfileUpdate }) {
 }
 
 // ── Block: E-Mail ─────────────────────────────────────────────
-function EmailBlock({ profile, onProfileUpdate }) {
+function EmailBlock({ profile = {}, onProfileUpdate = () => {} }) {
   // email direkt aus Supabase Auth holen
   const [email, setEmail] = useState(profile?.email || "");
   const [saving, setSaving] = useState(false);
@@ -164,6 +165,7 @@ function EmailBlock({ profile, onProfileUpdate }) {
   const [error,  setError]  = useState(null);
 
   const save = async () => {
+    if (!profile?.id) return;
     setSaving(true); setError(null); setSaved(false);
     if (!email.includes("@")) { setError("Ungültige E-Mail"); setSaving(false); return; }
     const { error:authErr } = await supabase.auth.updateUser({ email:email.trim() });
@@ -299,6 +301,7 @@ function PrivacyBlock({ profile, onProfileUpdate }) {
   const [error,  setError]  = useState(null);
 
   const save = async () => {
+    if (!profile?.id) return;
     setSaving(true); setError(null);
     const pm = profile?.profile_modules || {};
     const { error:err } = await supabase.from("profiles").update({
