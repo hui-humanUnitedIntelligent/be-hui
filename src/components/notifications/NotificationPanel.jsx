@@ -1088,7 +1088,14 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
             onUnreadChange?.(c => (c || 0) + 1);
           })
         .on("postgres_changes", { event:"UPDATE", schema:"public", table:"notifications", filter:`user_id=eq.${userId}` },
-          () => load())
+          // RESONANZ-DBLCLICK-FIX (2026-08-10): Statt vollem load() (das
+          // loading=true setzt und die komplette Liste inkl. offener Detail-
+          // Modals kurz unmountet -> "1. Klick öffnet+schliesst, 2. Klick
+          // bleibt offen") wird die betroffene Notification NUR lokal
+          // gepatcht. Kein Loading-Flackern, kein Unmount, State bleibt.
+          (payload) => {
+            setNotifs(prev => prev.map(n => n.id === payload.new.id ? { ...n, ...payload.new } : n));
+          })
         .subscribe();
       createdHere = true;
     }
