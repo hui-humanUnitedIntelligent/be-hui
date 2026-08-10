@@ -1,7 +1,8 @@
 // src/pages/Home.jsx — HUI Home Orchestrator v9
 // Layout: Header → Feed (scroll) → HUIBottomNavigation (in-flow)
 
-import React, { Suspense, useEffect, useRef, useCallback, useState } from "react";
+import React, { Suspense, lazy, useEffect, useRef, useCallback, useState } from "react";
+import { makeChunkReload } from "../lib/chunkReload.js";
 import { useLocation, useNavigate } from "react-router-dom"; // COMMERCE-01
 import { useOrbWorld } from "../context/OrbWorldContext.jsx";
 import { useWorldSurface } from "../context/WorldSurfaceContext.jsx";
@@ -32,7 +33,8 @@ import ChatCenterOverlay          from "../components/chat-center/ChatCenterOver
 import { useChatList }             from "../lib/chatContext.js";
 import ConnectionCreatePage      from "../components/connection-create/ConnectionCreatePage.jsx";
 import WerkKaufFlow           from "../components/commerce/WerkKaufFlow.jsx";         // COMMERCE-01
-import WerkeKorb, { WerkeKorbButton } from "../components/commerce/WerkeKorb.jsx"; // KORB-01
+import { WerkeKorbButton } from "../components/commerce/WerkeKorb.jsx";
+const WerkeKorb = lazy(() => import("../components/commerce/WerkeKorb.jsx").then(m => m.default).catch(makeChunkReload("Home:WerkeKorb")));
 import UnterstutzenFlow from "../components/commerce/UnterstutzenFlow.jsx"; // KORB-02 — eager: kein Chunk-Mismatch
 import { clearCartAfterSuccess }        from "../components/commerce/commerceUtils.js";    // KORB-02
 import ExperienceBookingFlow  from "../components/commerce/ExperienceBookingFlow.jsx"; // COMMERCE-01
@@ -44,13 +46,13 @@ import ImpactPage    from './ImpactPage.jsx';
 // PHASE 18: FavoritesPage direkte import (Safari-safe)
 import FavoritesPage from "./FavoritesPage.jsx";
 // ── Orb-Flows: lazy → nur bei Tap auf Orb-Node geladen ─────────
-import TeilenFlow     from "../components/teilen/TeilenFlow.jsx";
+const TeilenFlow = lazy(() => import("../components/teilen/TeilenFlow.jsx").catch(makeChunkReload("Home:TeilenFlow")));
 import WorkFlow       from "../system/flows/work/WorkFlow.jsx";
 import ExperienceFlow from "../system/flows/experience/ExperienceFlow.jsx";
-import ImpactFlow     from "../system/flows/impact/ImpactFlow.jsx";
+const ImpactFlow = lazy(() => import("../system/flows/impact/ImpactFlow.jsx").catch(makeChunkReload("Home:ImpactFlow")));
 
 // NotificationCenter deaktiviert — Resonanzzentrum übernimmt (NotificationButton.jsx)
-import LiveMapPage         from "./LiveMapPage.jsx";
+const LiveMapPage = lazy(() => import("./LiveMapPage.jsx").catch(makeChunkReload("Home:LiveMapPage")));
 import HuiMatchOverlay     from "../components/HuiMatchOverlay.jsx";
 // PHASE 18: HuiPlusSheet direkte import (Orb immer bereit)
 // OrbCompass replaces HuiPlusSheet — Begegnungs-Kompass
@@ -62,9 +64,9 @@ import InvitationFlow from "../content/invitation/InvitationFlow.jsx";
 import { useContentPreview } from "../context/ContentPreviewContext.jsx";
 import { usePullToRefresh }        from '../hooks/usePullToRefresh.js';
 import { PullToRefreshIndicator }  from '../components/ui/PullToRefreshIndicator.jsx';
-import HuiMembershipFlow   from "../components/HuiMembershipFlow.jsx";
-import CreatorDashboard    from "./CreatorDashboard.jsx";
-import HuiCreateFlow       from "../components/HuiCreateFlow.jsx";
+const HuiMembershipFlow = lazy(() => import("../components/HuiMembershipFlow.jsx").catch(makeChunkReload("Home:HuiMembershipFlow")));
+const CreatorDashboard = lazy(() => import("./CreatorDashboard.jsx").catch(makeChunkReload("Home:CreatorDashboard")));
+const HuiCreateFlow = lazy(() => import("../components/HuiCreateFlow.jsx").catch(makeChunkReload("Home:HuiCreateFlow")));
 // TalentOnboarding: direct import (kein lazy — verhindert Suspense-Spinner-Bug)
 import StoryComposer       from "../components/StoryComposer.jsx";
 // ExperienceCreator.jsx / WerkPublisher.jsx: Datei komplett entfernt (2026-07-08
@@ -272,12 +274,18 @@ function HomeInner() {
 
   useEffect(() => {
     const pending = location?.state?.pendingWerkKauf;
-    if (pending && setShowWerkCheckout) {
-      setShowWerkCheckout(pending);
+    if (pending && setCart) {
+      // KORB-RESTORE (2026-08-10): WorkDetailPage "Kaufen" → in Korb legen
+      // (statt direkten WerkKaufFlow zu öffnen)
+      setCart(prev => {
+        const wid = pending.id || pending._raw?.id;
+        if (wid && prev.some(x => (x.id || x._raw?.id) === wid)) return prev;
+        return [...prev, pending];
+      });
       // Router-State sofort leeren damit Reload nicht erneut öffnet
       try { window.history.replaceState({}, document.title, window.location.pathname); } catch {}
     }
-  }, [location?.state?.pendingWerkKauf]); // eslint-disable-line  // Activity Tracking: App-Start, Foreground, Heartbeat
+  }, [location?.state?.pendingWerkKauf, setCart]); // eslint-disable-line  // Activity Tracking: App-Start, Foreground, Heartbeat
 
 
   // ── Phase 4C: Talent Flow global registrieren ────────────────
@@ -477,13 +485,17 @@ function HomeInner() {
                   geo={searchState.geo}
                   onProfile={(id) => { if(id) openProfileById(id); }} /* Autor-Name klickbar → öffnet Profil direkt */
                   onBook={(item) => {
-                    // COMMERCE-DIRECT (2026-08-08): "Kaufen" im Feed öffnet
-                    // DIREKT den WerkKaufFlow — nicht erst einen unsichtbaren
-                    // Werkekorb. Nutzer sollen sofort sehen was passiert.
+                    // KORB-RESTORE (2026-08-10): "Kaufen" im Feed legt das Werk
+                    // in den Werkekorb — der Korb-Button erscheint, Nutzer
+                    // sehen sofort was passiert und können mehrere Werke sammeln.
                     if (!item?.id) return;
-                    // Werk: direkt WerkKaufFlow öffnen
                     const werkData = item._raw || item;
-                    setShowWerkCheckout(werkData);
+                    // Dedupe: nicht zweimal dasselbe Werk
+                    setCart(prev => {
+                      const wid = werkData.id || werkData._raw?.id;
+                      if (prev.some(x => (x.id || x._raw?.id) === wid)) return prev;
+                      return [...prev, werkData];
+                    });
                   }}
                   onDetail={(item) => {
                     const werkId = item?.id || item?._raw?.id;
@@ -631,7 +643,7 @@ function HomeInner() {
 
       {/* KORB-01: Werkekorb Bottom Sheet */}
       {showWerkeKorb && SAFE_MODE.werkFlow && (
-        <WerkeKorb
+        <Suspense fallback={<div style={{position:"fixed",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:10500,background:"rgba(249,247,244,0.85)",backdropFilter:"blur(6px)"}}><div style={{width:36,height:36,borderRadius:"50%",border:"3px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}><WerkeKorb
           items={cart}
           onClose={() => setShowWerkeKorb(false)}
           onRemove={(item) => setCart(prev => prev.filter(x => x.id !== item.id))}
@@ -645,12 +657,12 @@ function HomeInner() {
           }}
           onDiscover={() => { setShowWerkeKorb(false); handleTab("discover"); }}
           onChat={null}
-        />
+        /></Suspense>
       )}
 
       {/* KORB-02: UnterstutzenFlow — lazy (Stripe erst bei Bedarf laden) */}
       {showUnterstutzenFlow && SAFE_MODE.werkFlow && (
-        <Suspense fallback={null}>
+        <Suspense fallback={<div style={{position:"fixed",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:10500,background:"rgba(249,247,244,0.85)",backdropFilter:"blur(6px)"}}><div style={{width:36,height:36,borderRadius:"50%",border:"3px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}>
           <UnterstutzenFlow
             items={cart}
             onClose={() => { setShowUnterstutzenFlow(false); closeContentPreview(); }}
@@ -702,7 +714,7 @@ function HomeInner() {
 
       {/* ── Teilen Flow — STATIC IMPORT, ALWAYS IN DOM ── */}
       {/* visible prop steuert Sichtbarkeit — KEIN lazy, KEIN SafeRender, KEIN conditional */}
-      <TeilenFlow
+      <Suspense fallback={<div style={{position:"fixed",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:10500,background:"rgba(249,247,244,0.85)",backdropFilter:"blur(6px)"}}><div style={{width:36,height:36,borderRadius:"50%",border:"3px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}><TeilenFlow
         visible={showTeilen}
         onClose={() => {
           setShowTeilen(false);
@@ -710,7 +722,7 @@ function HomeInner() {
         onPublished={(result) => {
           setShowTeilen(false);
         }}
-      />
+      /></Suspense>
 
       {/* ── HUI Resonanz Center ─────────────────────────────────── */}
       {showChat && SAFE_MODE.chatCenter && (
@@ -754,11 +766,11 @@ function HomeInner() {
         </div>}>
         {showMap && SAFE_MODE.liveMap && (
           <SafeRender flag="liveMap" label="LiveMapPage">
-            <LiveMapPage
+            <Suspense fallback={<div style={{minHeight:1}} />}><LiveMapPage
               onView={w => { const id=w?.id||w?.user_id; if(id) openProfileById(id); setShowMap(false); }}
               onMatch={() => { setShowMatch(true); setShowMap(false); }}
               onClose={() => setShowMap(false)}
-            />
+            /></Suspense>
           </SafeRender>
         )}
         {showMatch && SAFE_MODE.matchOverlay && (
@@ -809,7 +821,7 @@ function HomeInner() {
              showNotifs / setShowNotifs bleiben im State für spätere Entfernung. */}
         {showMembership && SAFE_MODE.membership && (
           <SafeRender flag="membership" label="HuiMembershipFlow">
-            <HuiMembershipFlow
+            <Suspense fallback={<div style={{position:"fixed",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:10500,background:"rgba(249,247,244,0.85)",backdropFilter:"blur(6px)"}}><div style={{width:36,height:36,borderRadius:"50%",border:"3px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}><HuiMembershipFlow
               onClose={() => {
                 try { cleanupOrbEnvironment({ reason: "membership-close" }); } catch {}
                 setShowMembership(false);
@@ -822,12 +834,12 @@ function HomeInner() {
                 // isTalent will flip live via useMemo (authProfile.is_member→true)
                 // → HUIBottomNavigation orb will automatically show CreatorOrb on next tap
               }}
-            />
+            /></Suspense>
           </SafeRender>
         )}
         {/* Phase 4D: Creator Dashboard */}
         {showCreatorDash && (
-          <React.Suspense fallback={null}>
+          <React.Suspense fallback={<div style={{position:"fixed",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:10500,background:"rgba(249,247,244,0.85)",backdropFilter:"blur(6px)"}}><div style={{width:36,height:36,borderRadius:"50%",border:"3px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}>
             <CreatorDashboard
               visible={showCreatorDash}
               onClose={() => setShowCreatorDash(false)}
@@ -841,14 +853,14 @@ function HomeInner() {
         )}
         {showCreateFlow && SAFE_MODE.createFlow && (
           <SafeRender flag="createFlow" label="HuiCreateFlow">
-            <HuiCreateFlow onClose={() => setShowCreateFlow(false)}/>
+            <Suspense fallback={<div style={{position:"fixed",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:10500,background:"rgba(249,247,244,0.85)",backdropFilter:"blur(6px)"}}><div style={{width:36,height:36,borderRadius:"50%",border:"3px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}><HuiCreateFlow onClose={() => setShowCreateFlow(false)}/></Suspense>
           </SafeRender>
         )}
         {showImpactFlow && SAFE_MODE.impactFlow && (
           <SafeRender flag="impactFlow" label="ImpactFlow">
-            <ImpactFlow
+            <Suspense fallback={<div style={{position:"fixed",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:10500,background:"rgba(249,247,244,0.85)",backdropFilter:"blur(6px)"}}><div style={{width:36,height:36,borderRadius:"50%",border:"3px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}><ImpactFlow
               onClose={() => setShowImpactFlow(false)}
-            />
+            /></Suspense>
           </SafeRender>
         )}
       </Suspense>
@@ -899,7 +911,7 @@ function HomeInner() {
           border:"1px solid rgba(255,255,255,0.15)",
           minWidth:200,
         }}>
-          <div style={{ color:"#16D7C5", fontWeight:700, marginBottom:3, fontSize:11 }}>
+          <div style={{ color:"#16D7C5", fontWeight: 600, marginBottom:3, fontSize:11 }}>
             🌍 World Surface
           </div>
           <div>surface: <b style={{color: activeSurface ? "#FF8A6B":"#aaa"}}>
@@ -916,7 +928,7 @@ function HomeInner() {
           </b></div>
 
           <div style={{ borderTop:"1px solid rgba(255,255,255,0.12)", margin:"5px 0 3px" }} />
-          <div style={{ color:"#a8d8cf", fontWeight:700, marginBottom:2 }}>Tabs</div>
+          <div style={{ color:"#a8d8cf", fontWeight: 600, marginBottom:2 }}>Tabs</div>
           <div>activeTab: <b style={{color:"#16D7C5"}}>{tab}</b></div>
           <div>feed op: <b style={{color: keepFeed?.opacity === 1 ? "#16D7C5":"#FF8A6B"}}>
             {keepFeed?.opacity ?? "?"}

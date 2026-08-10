@@ -34,7 +34,7 @@ import { useChatList }             from "../lib/chatContext.js";
 import ConnectionCreatePage      from "../components/connection-create/ConnectionCreatePage.jsx";
 import WerkKaufFlow           from "../components/commerce/WerkKaufFlow.jsx";         // COMMERCE-01
 import { WerkeKorbButton } from "../components/commerce/WerkeKorb.jsx";
-const WerkeKorb = lazy(() => import("../components/commerce/WerkeKorb.jsx").then(m => m.default).catch(makeChunkReload("Home:WerkeKorb")));
+const WerkeKorb = lazy(() => import("../components/commerce/WerkeKorb.jsx").catch(makeChunkReload("Home:WerkeKorb")));
 import UnterstutzenFlow from "../components/commerce/UnterstutzenFlow.jsx"; // KORB-02 — eager: kein Chunk-Mismatch
 import { clearCartAfterSuccess }        from "../components/commerce/commerceUtils.js";    // KORB-02
 import ExperienceBookingFlow  from "../components/commerce/ExperienceBookingFlow.jsx"; // COMMERCE-01
