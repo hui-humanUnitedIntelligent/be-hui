@@ -23,17 +23,14 @@ public class MainActivity extends BridgeActivity {
     // System-Einstellung, die die effektive Density (densityDpi) für ALLE Apps
     // hochskaliert -- inkl. unserer WebView (Buttons/Text/Navbar werden dadurch
     // ueberproportional gross, "device-width" in CSS-px schrumpft effektiv).
-    // Fix: App-eigene Resources auf DENSITY_DEVICE_STABLE resetieren, aber NUR
-    // wenn die Density hoeher als der Standard ist (Display Size = "Gross").
-    // Bei Display Size = "Klein" oder Default: NICHT aendern — sonst wuerde
-    // die Density erhoeht und alles erscheint gezoomt (Bug: Avatar/Cover-Bild
-    // Zoom bei APK-Build, 2026-08-10). Betrifft NUR unsere App --
-    // andere Apps und die native Status-Bar bleiben unveraendert
+    // Fix: App-eigene Resources IMMER auf DENSITY_DEVICE_STABLE fixieren,
+    // unabhaengig von der System-Einstellung des Nutzers. Betrifft NUR unsere
+    // App -- andere Apps und die native Status-Bar bleiben unveraendert
     // (Status-Bar wird vom System-Prozess gezeichnet, nicht von uns).
     @Override
     public Resources getResources() {
         Resources res = super.getResources();
-        if (res.getConfiguration().densityDpi > DisplayMetrics.DENSITY_DEVICE_STABLE) {
+        if (res.getConfiguration().densityDpi != DisplayMetrics.DENSITY_DEVICE_STABLE) {
             DisplayMetrics dm = new DisplayMetrics();
             dm.setTo(res.getDisplayMetrics());
             dm.densityDpi = DisplayMetrics.DENSITY_DEVICE_STABLE;
