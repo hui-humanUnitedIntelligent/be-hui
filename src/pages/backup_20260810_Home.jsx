@@ -34,7 +34,7 @@ import { useChatList }             from "../lib/chatContext.js";
 import ConnectionCreatePage      from "../components/connection-create/ConnectionCreatePage.jsx";
 import WerkKaufFlow           from "../components/commerce/WerkKaufFlow.jsx";         // COMMERCE-01
 import { WerkeKorbButton } from "../components/commerce/WerkeKorb.jsx";
-import WerkeKorb from "../components/commerce/WerkeKorb.jsx"; // EAGER (2026-08-10): React.lazy hing beim 1. Klick fest — 2. Klick nötig (identisches Muster wie WerkWizard/SettingsModal/ImpactStimmenModal, siehe #807/#936)
+const WerkeKorb = lazy(() => import("../components/commerce/WerkeKorb.jsx").catch(makeChunkReload("Home:WerkeKorb")));
 import UnterstutzenFlow from "../components/commerce/UnterstutzenFlow.jsx"; // KORB-02 — eager: kein Chunk-Mismatch
 import { clearCartAfterSuccess }        from "../components/commerce/commerceUtils.js";    // KORB-02
 import ExperienceBookingFlow  from "../components/commerce/ExperienceBookingFlow.jsx"; // COMMERCE-01
@@ -643,7 +643,7 @@ function HomeInner() {
 
       {/* KORB-01: Werkekorb Bottom Sheet */}
       {showWerkeKorb && SAFE_MODE.werkFlow && (
-        <WerkeKorb
+        <Suspense fallback={<div style={{position:"fixed",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:10500,background:"rgba(249,247,244,0.85)",backdropFilter:"blur(6px)"}}><div style={{width:36,height:36,borderRadius:"50%",border:"3px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}><WerkeKorb
           items={cart}
           onClose={() => setShowWerkeKorb(false)}
           onRemove={(item) => setCart(prev => prev.filter(x => x.id !== item.id))}
@@ -657,7 +657,7 @@ function HomeInner() {
           }}
           onDiscover={() => { setShowWerkeKorb(false); handleTab("discover"); }}
           onChat={null}
-        />
+        /></Suspense>
       )}
 
       {/* KORB-02: UnterstutzenFlow — lazy (Stripe erst bei Bedarf laden) */}
