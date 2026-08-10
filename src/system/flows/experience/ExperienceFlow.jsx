@@ -158,7 +158,6 @@ export default function ExperienceFlow({ onClose }) {
       );
       if (contractErr) throw new Error(contractErr.message);
       if (import.meta.env.DEV) {
-        console.log("[HUI_REALITY] ✓ experience published:", expData?.id);
       }
       setDone(true);
       setTimeout(() => onClose?.(), 2200);

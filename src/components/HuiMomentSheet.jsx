@@ -172,7 +172,6 @@ async function uploadToMedia(file, userId) {
   const ext  = file.name?.split(".").pop()?.toLowerCase() || (isVid ? "mp4" : "jpg");
   const path = `beitraege/${userId}/${Date.now()}.${ext}`;
 
-  console.log("[HuiMoment] Upload start →", { bucket:"media", path, sizeMB:sizeMB.toFixed(2), contentType });
 
   const { error } = await supabase.storage
     .from("media")
@@ -194,7 +193,6 @@ async function uploadToMedia(file, userId) {
 
   const { data: urlData } = supabase.storage.from("media").getPublicUrl(path);
   const url = urlData?.publicUrl || null;
-  console.log("[HuiMoment] Upload OK →", url);
   return url;
 }
 
@@ -254,7 +252,6 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
 
   // ── Kern-Logik: in beitraege inserieren ───────────────────────
   async function _publishMoment({ src, type, caption }) {
-    console.log("[HuiMoment] Share gestartet");
 
     // 1. User authentifizieren
     const { data: authData, error: authErr } = await supabase.auth.getUser();
@@ -272,7 +269,6 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
       caption:          caption || null,
       visibility_scope: visibilityScope,
     };
-    console.log("[HuiMoment] Post Payload:", payload);
 
     // 3. INSERT in beitraege
     const { data: result, error: insertErr } = await supabase
@@ -291,8 +287,6 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
       throw new Error(`DB-Fehler (${insertErr.code}): ${insertErr.message}`);
     }
 
-    console.log("[HuiMoment] Feed Post erstellt:", result);
-    console.log("[HuiMoment] Feed Refresh gestartet");
     window.dispatchEvent(new CustomEvent("feed-refresh", { detail: { id: result?.id } }));
     return result;
   }

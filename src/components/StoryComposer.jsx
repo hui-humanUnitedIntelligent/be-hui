@@ -61,7 +61,6 @@ export default function StoryComposer({ onClose, onSuccess }) {
   React.useEffect(() => {
     if (!canCreate && !isBaseUser === false) return; // profile noch laden
     if (isBaseUser && typeof window.__HUI_OPEN_TALENT_FLOW === "function") {
-      console.log("[STORY_COMPOSER] BasisUser blocked → opening TalentFlow");
       window.__HUI_OPEN_TALENT_FLOW();
       onClose?.();
     }

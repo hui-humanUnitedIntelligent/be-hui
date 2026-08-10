@@ -278,11 +278,9 @@ export default function PeopleSearch({ onClose, onOpenProfile, onOpenChat }) {
             key={person.id}
             person={person}
             onOpenProfile={p => {
-              console.log("[HUI_DISCOVERY] user search result opened:", p?.display_name);
               onOpenProfile?.(p);
             }}
             onOpenChat={p => {
-              console.log("[HUI_DISCOVERY] direct message from search:", p?.display_name);
               onOpenChat?.(p);
             }}
           />

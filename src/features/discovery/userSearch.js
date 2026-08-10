@@ -58,7 +58,6 @@ export function useUserSearch({ minLength = 2, debounceMs = 280 } = {}) {
 
     setLoading(true);
     setError(null);
-    console.log("[HUI_DISCOVERY] user search:", trimmed);
 
     try {
       // Parallele Queries: display_name + username + bio + talent
@@ -82,7 +81,6 @@ export function useUserSearch({ minLength = 2, debounceMs = 280 } = {}) {
         .map(normalizeResult)
         .filter(Boolean);
 
-      console.log("[HUI_DISCOVERY] results:", normalized.length, "für:", trimmed);
       setResults(normalized);
     } catch (e) {
       console.warn("[HUI_DISCOVERY] search error:", e.message);

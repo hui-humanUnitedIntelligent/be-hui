@@ -407,7 +407,6 @@ export default function UnterstutzenFlow({
   const dbg = import.meta.env.DEV
     ? (msg, data) => {
         const ts = new Date().toISOString().slice(11,23);
-        console.log('[HUI-CHECKOUT]', `[${ts}] ${msg}`, data ?? '');
       }
     : () => {};
 

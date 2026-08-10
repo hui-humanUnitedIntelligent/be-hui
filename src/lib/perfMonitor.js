@@ -42,7 +42,7 @@ export function perfLog(label, data) {
 /** Zeigt alle langsamen Queries in der Konsole an */
 export function printSlowQueries() {
   const queries = window.__HUI_SLOW_QUERIES || [];
-  if (!queries.length) { console.log("[HUI PERF] Keine langsamen Queries."); return; }
+  if (!queries.length) { if(import.meta.env.DEV) console.log("[HUI PERF] Keine langsamen Queries."); return; }
   console.table(queries);
 }
 

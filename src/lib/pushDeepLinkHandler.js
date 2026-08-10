@@ -10,7 +10,6 @@
 export function setupPushDeepLinkHandler(navigate, openProfileById) {
   window.addEventListener("hui:push:navigate", (e) => {
     const { entity_type, entity_id, action_url, data } = e.detail || {};
-    console.log("[HUI_PUSH_DEEPLINK] Navigiere:", { entity_type, entity_id, action_url });
 
     // 1. action_url hat Priorität
     if (action_url && typeof action_url === "string" && action_url.startsWith("/")) {

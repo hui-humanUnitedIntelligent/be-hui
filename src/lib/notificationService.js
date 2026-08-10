@@ -69,7 +69,6 @@ export async function createNotification({
       console.warn("[HUI_NOTIF] INSERT failed:", error.code, error.message);
       return null;
     }
-    console.log("[HUI_REALITY] notification created ✓", { type, recipientId: recipientId.slice(0,8)+"…" });
     return true;
   } catch(err) {
     console.warn("[HUI_NOTIF] Exception:", err?.message);

@@ -1125,7 +1125,6 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
     setError(null);
     setLoading(true);
     try {
-      console.log("[MEMBERSHIP] activate_membership wird aufgerufen...");
       const result = await activateMembership?.();
       if (result?.error) {
         console.warn("[MEMBERSHIP] Fehler:", result.error);
@@ -1134,7 +1133,6 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
         return;
       }
       // V7.5: Membership aktiviert — NUR membership_active, kein is_talent
-      console.log("[MEMBERSHIP] membership activated — membership_active = true");
       // Profile refreshen damit isTalent sofort flippt
       await refreshProfile?.().catch(() => {});
       setDir(1);

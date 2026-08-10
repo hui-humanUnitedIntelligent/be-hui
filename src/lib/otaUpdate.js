@@ -37,16 +37,13 @@ const UPDATE_URL = "https://be-hui.vercel.app/app-version.json";
 // Nach 3 Crashes ohne notifyAppReady → automatischer Rollback.
 export async function initOTA() {
   if (!Capacitor.isNativePlatform()) {
-    console.log("[OTA] Web-Plattform — OTA nicht nötig");
     return { available: false, current: APP_VERSION };
   }
 
   try {
     await CapacitorUpdater.notifyAppReady();
-    console.log("[OTA] notifyAppReady gesendet — Version", APP_VERSION, "ist stabil");
 
     const current = await CapacitorUpdater.current();
-    console.log("[OTA] Aktuelles Bundle:", current.bundle?.version || APP_VERSION);
 
     return { available: false, current: APP_VERSION, bundleId: current.bundle?.id };
   } catch (err) {
@@ -68,7 +65,6 @@ export async function autoCheckOTA() {
   try {
     const resp = await fetch(UPDATE_URL, { cache: "no-store" });
     if (!resp.ok) {
-      console.log("[OTA] Auto-Check: Server nicht erreichbar");
       return;
     }
     const data = await resp.json();
@@ -76,7 +72,6 @@ export async function autoCheckOTA() {
     const bundleUrl = data.url;
 
     if (!serverVersion || !bundleUrl) {
-      console.log("[OTA] Auto-Check: Ungültige Antwort");
       return;
     }
 
@@ -85,11 +80,9 @@ export async function autoCheckOTA() {
     const isNewer = compareVersions(serverVersion, APP_VERSION) > 0;
 
     if (!isNewer) {
-      console.log("[OTA] Auto-Check: Aktuell — App:", APP_VERSION, "Server:", serverVersion);
       return;
     }
 
-    console.log("[OTA] Auto-Check: Update gefunden! Server:", serverVersion, "Aktuell:", APP_VERSION);
 
     // Download im Hintergrund
     const update = await CapacitorUpdater.download({
@@ -100,7 +93,6 @@ export async function autoCheckOTA() {
     // Set als aktives Bundle für den nächsten Start
     await CapacitorUpdater.set({ id: update.id });
 
-    console.log("[OTA] Update v" + serverVersion + " heruntergeladen — aktiv beim nächsten Start");
 
     // UI informieren (InAppNotificationBanner oder ähnliches kann darauf hören)
     window.dispatchEvent(new CustomEvent("ota:update-ready", {
@@ -180,7 +172,6 @@ export async function rollbackToBuiltin() {
   if (!Capacitor.isNativePlatform()) return;
   try {
     await CapacitorUpdater.reset();
-    console.log("[OTA] Rollback zum eingebauten Bundle");
   } catch (err) {
     console.error("[OTA] Rollback fehlgeschlagen:", err);
   }

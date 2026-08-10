@@ -595,15 +595,6 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
       ...snapshotPayload,
     };
 
-    console.log("[SAVE WERK] PRE-INSERT payload:", JSON.stringify({
-      user_id: payload.user_id?.slice(0,8),
-      title: payload.title,
-      file_format: payload.file_format,
-      price: payload.price,
-      status: payload.status,
-      images_count: imagesArr.length,
-      all_keys: Object.keys(payload),
-    }, null, 2));
     // ── Pre-Save: Session prüfen, ggf. refreshen ──
     const { data: { session: curSession } } = await supabase.auth.getSession();
     if (!curSession?.access_token) {
@@ -630,7 +621,6 @@ export default function WerkWizard({ userId, existingWork=null, onClose, onSaved
       setTimeout(() => setSaveError(null), isRLS ? 8000 : 5000);
       return;
     }
-    console.log("[SAVE WERK] success:", saved?.id, "status:", status);
     onSaved?.(saved);
     onSave?.(saved);   // Alias für MyBasisProfile reload
     // Bei pending_review: kurze Bestätigung zeigen, dann schließen

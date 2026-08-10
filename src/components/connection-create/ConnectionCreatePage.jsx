@@ -225,13 +225,6 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
     if (step < 3) { goTo(step + 1); return; }
 
     // ── STEP 1: Button wurde geklickt ─────────────────────────────
-    console.log("[HUI CONNECTION] step 1 click", {
-      step,
-      publishing,
-      user_id: user?.id ?? "MISSING",
-      formData_type:  formData.type  || "(leer)",
-      formData_title: formData.title || "(leer)",
-    });
 
     if (publishing) {
       console.warn("[HUI CONNECTION] step 1 BLOCKED — publishing bereits true (Doppel-Klick)");
@@ -266,10 +259,8 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
       };
 
       // ── STEP 2: Payload gebaut ───────────────────────────────────
-      console.log("[HUI CONNECTION] step 2 payload", payload);
 
       // ── STEP 3: Insert startet ───────────────────────────────────
-      console.log("[HUI CONNECTION] step 3 insert start →", "supabase.from('connections').insert(...)");
 
       const { data: connData, error: dbErr } = await supabase
         .from("connections")
@@ -288,10 +279,6 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
         // Kein return — Flow schließt trotzdem sauber
       } else {
         // ── STEP 4: Insert Success ───────────────────────────────
-        console.log("[HUI CONNECTION] step 4 insert success", {
-          id:         connData?.id,
-          returned:   connData,
-        });
       }
 
       published = true;
@@ -304,10 +291,6 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
       });
     } finally {
       // ── STEP 6: Flow schließen ─────────────────────────────────
-      console.log("[HUI CONNECTION] step 6 closing flow", {
-        published,
-        will_close: published,
-      });
       setPublishing(false);
       if (published) {
         // ── STEP 7: Erfolgs-Screen anzeigen (Nutzer schließt selbst) ──

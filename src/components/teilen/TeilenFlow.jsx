@@ -606,8 +606,6 @@ function StepPreview({ mode, data, profile, onPublish, publishing }) {
           type="button"
           className="tf-tap"
           onClick={() => {
-            console.log("FINAL_SHARE_CLICK");
-            console.log("[HUI_DEBUG] " + "FINAL_SHARE_CLICK");
             onPublish?.();
           }}
           disabled={publishing}
@@ -651,7 +649,6 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
   // BasisUser → sofort schließen + TalentFlow öffnen
   React.useEffect(() => {
     if (visible && isBaseUser && typeof window.__HUI_OPEN_TALENT_FLOW === "function") {
-      console.log("[TEILEN_FLOW] BasisUser blocked → TalentFlow");
       onClose?.();
       window.__HUI_OPEN_TALENT_FLOW();
     }
@@ -693,10 +690,8 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
 
   // ─── TEST INSERT (minimal, kein Upload, direkt in beitraege) ──────────────
   const handleTestInsert = useCallback(async () => {
-    console.log("[HUI MOMENT] TEST INSERT start — user:", user?.id);
     if (!user?.id) {
       console.error("[HUI MOMENT] TEST INSERT ABORT — kein user.id");
-      console.log("[HUI_DEBUG] " + "Kein User eingeloggt. Bitte einloggen.");
       return;
     }
     const { data, error } = await supabase
@@ -706,17 +701,13 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
       .single();
     if (error) {
       console.error("[HUI MOMENT] TEST INSERT error", { code: error.code, message: error.message });
-      console.log("[HUI_DEBUG] " + "DB ERROR: " + error.code + " — " + error.message);
     } else {
-      console.log("[HUI MOMENT] TEST INSERT success", data?.id);
-      console.log("[HUI_DEBUG] " + "✅ Test Insert erfolgreich! id=" + data?.id);
     }
   }, [user?.id]);
 
   // ─── ECHTER PUBLISH FLOW ────────────────────────────────────────────────────
   // ── On-screen debug log (kein alert — Safari alert schliesst Flow) ──
   const huiLog = React.useCallback((msg) => {
-    console.log("[HUI_PUBLISH]", msg);
     const el = document.getElementById("__hui_publish_log__");
     if (el) {
       const row = document.createElement("div");
@@ -740,7 +731,7 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
 
   // ─── STORY PUBLISH → stories table ────────────────────────────────────────
   const handlePublishStory = async () => {
-    const huiLog = (msg) => console.log("[HUI_STORY_PUBLISH]", msg);
+    const huiLog = (msg) => { if(import.meta.env.DEV) console.log("[HUI_STORY_PUBLISH]", msg); };
     try {
       setPublishing(true);
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -832,7 +823,6 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
     document.getElementById("__hui_publish_log__").innerHTML = "";
 
     const huiLog = (msg) => {
-      console.log("[HUI_PUBLISH]", msg);
       const el = document.getElementById("__hui_publish_log__");
       if (el) {
         const row = document.createElement("div");
@@ -967,8 +957,6 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
             type="button"
             className="tf-tap"
             onClick={() => {
-              console.log("FLOW_CLOSE_TRIGGER", "X_BUTTON");
-              console.log("[HUI_DEBUG] " + "FLOW_CLOSE_TRIGGER: X_BUTTON");
               onClose?.();
             }}
             style={{

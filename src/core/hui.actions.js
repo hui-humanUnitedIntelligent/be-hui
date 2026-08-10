@@ -30,12 +30,6 @@ function logAction(name, payload) {
   if (isDev) {
     var src = payload?.source;
     var srcLabel = src ? (" from " + src) : "";
-    console.log(
-      "%c[HUI_ACTION]%c " + name + srcLabel,
-      "color:#0DC4B5;font-weight:600",
-      "color:#1a1a2e;font-weight:600",
-      payload ?? ""
-    );
   }
 }
 
@@ -44,8 +38,6 @@ function logFlow(from, to, extra) {
   var LABELS = SURFACE_LABEL || {};
   var f = LABELS[from] || from || "?";
   var t = LABELS[to]   || to   || "?";
-  console.log("%c[HUI_FLOW]%c " + f + " → " + t,
-    "color:#A78BFA;font-weight:600", "color:#4B5563", extra || "");
 }
 
 function logReturn(from, to) {
@@ -53,8 +45,6 @@ function logReturn(from, to) {
   var LABELS = SURFACE_LABEL || {};
   var f = LABELS[from] || from || "?";
   var t = LABELS[to]   || to   || "?";
-  console.log("%c[HUI_RETURN]%c ← " + f + " → " + t,
-    "color:#F59E0B;font-weight:600", "color:#4B5563");
 }
 
 // ─── Action Names (constants — use these, not raw strings) ─────────

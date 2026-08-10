@@ -288,7 +288,6 @@ export function useChatThread(chatId) {
       setLoading(false);
       return;
     }
-    console.log("[HUI_CHAT] useChatThread loading, chatId:", chatId, "type:", typeof chatId);
     try {
       // SELECT nur existierende Spalten (verifiziert 2026-06-01)
       const { data, error: loadError } = await supabase
@@ -392,7 +391,6 @@ export function useChatThread(chatId) {
       read:         false,
       created_at:   new Date().toISOString(),
     };
-    console.log("[HUI_MESSAGE_SEND] Payload →", JSON.stringify(payload));
     setSending(true);
 
     // ── OPTIMISTIC ─────────────────────────────────────────────
@@ -401,7 +399,6 @@ export function useChatThread(chatId) {
     setMessages(prev => [...prev, optimisticMsg]);
 
     try {
-      console.log("[HUI_MESSAGE_INSERT] Supabase INSERT start…");
       const { data: insertedData, error } = await supabase
         .from("messages")
         .insert(payload)
@@ -423,13 +420,6 @@ export function useChatThread(chatId) {
         return { error: error.message, code: error.code };
       }
 
-      console.log("[SEND_RESULT]", {
-        ok:     true,
-        chatId,
-        msgId:  insertedData?.id,
-        payload,
-        ts:     Date.now(),
-      });
       // Optimistic message mit echter ID ersetzen
       setMessages(prev => prev.map(m =>
         m.id === tempId ? { ...m, id: insertedData?.id || tempId, _optimistic: false } : m
@@ -576,7 +566,6 @@ export async function findOrCreateChat({
   const _fccMeta = { userId, recipientId: otherUserId, ts: _fccTs };
 
   // [FCC_START]
-  console.log("[FCC_START]", _fccMeta);
   logDebug("FCC_START", _fccMeta);
   if (typeof window !== "undefined") window.__HUI_LAST_FCC__ = { event: "FCC_START", ..._fccMeta };
 
@@ -611,12 +600,10 @@ export async function findOrCreateChat({
   if (match) {
     // [FCC_FOUND_EXISTING]
     const _found = { event: "FCC_FOUND_EXISTING", ..._fccMeta, chatId: match.id };
-    console.log("[FCC_FOUND_EXISTING]", _found);
     logDebug("FCC_FOUND_EXISTING", _found);
     if (typeof window !== "undefined") window.__HUI_LAST_FCC__ = _found;
     // [FCC_SUCCESS]
     const _succ = { event: "FCC_SUCCESS", ..._fccMeta, chatId: match.id };
-    console.log("[FCC_SUCCESS]", _succ);
     logDebug("FCC_SUCCESS", _succ);
     if (typeof window !== "undefined") window.__HUI_LAST_FCC__ = _succ;
     return match;
@@ -625,7 +612,6 @@ export async function findOrCreateChat({
   // ── Neuen Chat erstellen ────────────────────────────────────
   // [FCC_CREATING]
   const _creating = { event: "FCC_CREATING", ..._fccMeta };
-  console.log("[FCC_CREATING]", _creating);
   logDebug("FCC_CREATING", _creating);
   if (typeof window !== "undefined") window.__HUI_LAST_FCC__ = _creating;
 
@@ -671,13 +657,11 @@ export async function findOrCreateChat({
 
   // [FCC_CREATED]
   const _created = { event: "FCC_CREATED", ..._fccMeta, chatId: created?.id };
-  console.log("[FCC_CREATED]", _created);
   logDebug("FCC_CREATED", _created);
   if (typeof window !== "undefined") window.__HUI_LAST_FCC__ = _created;
 
   // [FCC_SUCCESS]
   const _succ2 = { event: "FCC_SUCCESS", ..._fccMeta, chatId: created?.id };
-  console.log("[FCC_SUCCESS]", _succ2);
   logDebug("FCC_SUCCESS", _succ2);
   if (typeof window !== "undefined") window.__HUI_LAST_FCC__ = _succ2;
 

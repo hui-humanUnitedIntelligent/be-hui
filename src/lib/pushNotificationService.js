@@ -37,7 +37,6 @@ export async function loadPushSettings() {
       return false;
     }
     _pushEnabled = data?.[0]?.push_enabled ?? false;
-    console.log("[HUI_PUSH] push_enabled =", _pushEnabled);
     return _pushEnabled;
   } catch (e) {
     console.warn("[HUI_PUSH] loadPushSettings exception:", e?.message);
@@ -105,7 +104,6 @@ export async function setPushEnabled(enabled) {
     } else {
       _currentToken = null;
     }
-    console.log("[HUI_PUSH] setPushEnabled =", enabled);
     return true;
   } catch (e) {
     console.warn("[HUI_PUSH] setPushEnabled exception:", e?.message);
@@ -118,13 +116,11 @@ export async function setPushEnabled(enabled) {
  */
 export async function initPushNotifications() {
   if (_initialized) {
-    console.log("[HUI_PUSH] already initialized");
     return;
   }
   _initialized = true;
 
   if (!Capacitor.isNativePlatform()) {
-    console.log("[HUI_PUSH] Web platform — push skipped (native only)");
     return;
   }
 
@@ -137,12 +133,10 @@ export async function initPushNotifications() {
 
     PushNotifications.addListener("registration", async (token) => {
       _currentToken = token.value;
-      console.log("[HUI_PUSH] FCM Token:", token.value?.substring(0, 20) + "…");
       await saveTokenToServer(token.value);
     });
 
     PushNotifications.addListener("pushNotificationReceived", (notification) => {
-      console.log("[HUI_PUSH] Vordergrund:", notification);
       window.dispatchEvent(new CustomEvent("hui:push:foreground", {
         detail: {
           title: notification.title || "HUI",
@@ -154,7 +148,6 @@ export async function initPushNotifications() {
 
     PushNotifications.addListener("pushNotificationActionPerformed", (action) => {
       const data = action.notification?.data || {};
-      console.log("[HUI_PUSH] Action:", data);
       window.dispatchEvent(new CustomEvent("hui:push:navigate", {
         detail: {
           entity_type: data.entity_type || data.notificationType,
@@ -183,7 +176,6 @@ async function registerDevice() {
       return;
     }
     await PushNotifications.register();
-    console.log("[HUI_PUSH] register() aufgerufen");
   } catch (e) {
     console.error("[HUI_PUSH] registerDevice exception:", e?.message);
   }
@@ -200,7 +192,6 @@ async function saveTokenToServer(token) {
     if (error) {
       console.warn("[HUI_PUSH] saveToken error:", error.message);
     } else {
-      console.log("[HUI_PUSH] Token gespeichert ✓");
     }
   } catch (e) {
     console.warn("[HUI_PUSH] saveTokenToServer exception:", e?.message);
@@ -212,7 +203,6 @@ export async function invalidateTokensOnLogout() {
     await supabase.rpc("rpc_invalidate_device_tokens");
     _currentToken = null;
     _pushEnabled = false;
-    console.log("[HUI_PUSH] Tokens invalidiert (logout)");
   } catch (e) {
     console.warn("[HUI_PUSH] invalidateTokens exception:", e?.message);
   }

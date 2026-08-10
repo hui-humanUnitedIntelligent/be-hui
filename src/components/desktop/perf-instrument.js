@@ -85,9 +85,6 @@ export function usePerfMount(name) {
     store.mounts[name] = { start: startRef.current, end, duration };
 
     console.groupCollapsed(`[PERF MOUNT] ${name} — ${duration.toFixed(1)}ms`);
-    console.log(`  Mount Start: ${startRef.current.toFixed(1)}ms`);
-    console.log(`  Mount Ende:  ${end.toFixed(1)}ms`);
-    console.log(`  Dauer:       ${duration.toFixed(1)}ms`);
     console.groupEnd();
   }, [name]);
 }
@@ -103,7 +100,6 @@ export function usePerfRenders(name) {
       const entry = store.renders[name];
       const count = countRef.current;
       const profilerCount = entry?.count ?? 0;
-      console.log(`[PERF RENDERS] ${name}: ${count} hook-renders, ${profilerCount} profiler-renders in 15s`);
     }, 15000);
     return () => clearTimeout(timer);
   }, [name]);
@@ -133,12 +129,6 @@ export function PerfProfiler({ id, children }) {
 
       if (phase === 'mount') {
         entry.phases.mount.push({ actualDuration, baseDuration, startTime, commitTime });
-        console.log(
-          `[PERF PROFILER] ${id} MOUNT — ` +
-          `render=${actualDuration.toFixed(1)}ms ` +
-          `base=${baseDuration.toFixed(1)}ms ` +
-          `commit=${commitTime.toFixed(1)}ms`
-        );
       } else {
         entry.phases.update.push({ actualDuration, baseDuration, startTime, commitTime });
       }
@@ -178,7 +168,6 @@ export function heroMark(phase) {
     case 'render':       store.hero.render = now; break;
     case 'rotation':     store.hero.rotation = now; break;
   }
-  console.log(`[PERF HERO] ${phase} @ ${now.toFixed(1)}ms`);
 }
 
 // ─── DOM Counter ────────────────────────────────────────────────────────────
@@ -349,14 +338,12 @@ export function setupFeedVisibilityTracker() {
 
           if (feedCardCount === 1) {
             feedMark('firstVisible');
-            console.log(`[PERF FEED] First card visible @ ${store.feed.firstVisible?.toFixed(1)}ms`);
           }
 
           // Reset stability timer — if no new card for 500ms, mark all visible
           clearTimeout(feedCardStableTimer);
           feedCardStableTimer = setTimeout(() => {
             feedMark('allVisible');
-            console.log(`[PERF FEED] All ${feedCardCount} cards visible @ ${store.feed.allVisible?.toFixed(1)}ms`);
           }, 500);
         }
       }
@@ -389,8 +376,6 @@ export function logConcurrentImages() {
   }
 
   const maxConcurrent = Math.max(0, ...overlapGroups.map(g => g.concurrent));
-  console.log(`[PERF IMAGES] Max concurrent downloads: ${maxConcurrent}`);
-  console.log(`[PERF IMAGES] Total images tracked: ${store.images.length}`);
 
   return { totalImages: store.images.length, maxConcurrent };
 }
@@ -399,8 +384,6 @@ export function logConcurrentImages() {
 export function initPerf() {
   if (!PERF) return;
 
-  console.log('%c[PERF] Instrumentation active — report auto-generates after 15s', 'color:#0DC4B5;font-weight:bold;');
-  console.log('%c[PERF] Manual report: window.__HUI_PERF_REPORT__()  |  Shortcut: Ctrl+Shift+P', 'color:#0DC4B5;');
 
   pmark('app:start');
 
@@ -419,7 +402,6 @@ export function initPerf() {
 
   // Auto-report after 15s
   setTimeout(() => {
-    console.log('%c[PERF] ═══════════ AUTO REPORT (15s) ═══════════', 'color:#0DC4B5;font-weight:bold;font-size:14px');
     perfReport();
   }, 15000);
 
@@ -438,7 +420,6 @@ export function initPerf() {
 // ─── Report Generator ───────────────────────────────────────────────────────
 export function perfReport() {
   if (!PERF) {
-    console.log('[PERF] Instrumentation not active (window.__HUI_PERF__ not set)');
     return;
   }
 
@@ -452,7 +433,6 @@ export function perfReport() {
       'Dauer (ms)': m.duration.toFixed(1),
     })));
   } else {
-    console.log('No mount data');
   }
   console.groupEnd();
 
@@ -470,7 +450,6 @@ export function perfReport() {
       'Mount Count': r.phases.mount.length,
     })));
   } else {
-    console.log('No render data');
   }
   console.groupEnd();
 
@@ -489,7 +468,6 @@ export function perfReport() {
 
   // Individual feed queries
   if (store.feedQueries.length > 0) {
-    console.log('Individual Feed Queries:');
     console.table(store.feedQueries.map(q => ({
       Table: q.table,
       'Start (ms)': q.startTime.toFixed(1),
@@ -513,9 +491,7 @@ export function perfReport() {
 
     const avgActual = feedCardEntries.reduce((s, [_, r]) => s + r.totalActual, 0) / feedCardEntries.length;
     const avgBase = feedCardEntries.reduce((s, [_, r]) => s + r.totalBase, 0) / feedCardEntries.length;
-    console.log(`FeedCard Average: actual=${avgActual.toFixed(2)}ms base=${avgBase.toFixed(2)}ms (n=${feedCardEntries.length})`);
   } else {
-    console.log('No FeedCard profiler data');
   }
   console.groupEnd();
 
@@ -544,9 +520,7 @@ export function perfReport() {
       }
       if (count > maxConcurrent) maxConcurrent = count;
     }
-    console.log(`Max concurrent image downloads: ${maxConcurrent}`);
   } else {
-    console.log('No image data');
   }
   console.groupEnd();
 
@@ -555,13 +529,11 @@ export function perfReport() {
   if (store.domSnapshot) {
     console.table(store.domSnapshot);
   } else {
-    console.log('No DOM snapshot (run measureDOM())');
   }
   console.groupEnd();
 
   // ═══ 7. CLS ═══
   console.groupCollapsed('%c7. Cumulative Layout Shift (CLS)', 'font-weight:bold;color:#0DC4B5');
-  console.log(`CLS Score: ${store.clsValue.toFixed(4)}`);
   if (store.clsEntries.length > 0) {
     const largest = store.clsEntries.reduce((a, b) => a.value > b.value ? a : b);
     console.table({
@@ -577,7 +549,6 @@ export function perfReport() {
       'Element': s.element,
     })));
   } else {
-    console.log('No layout shifts detected');
   }
   console.groupEnd();
 
@@ -590,7 +561,6 @@ export function perfReport() {
       'Attribution': t.attribution,
     })));
   } else {
-    console.log('No long tasks detected');
   }
   console.groupEnd();
 
@@ -604,7 +574,6 @@ export function perfReport() {
       'Avg Actual (ms)': (r.totalActual / r.count).toFixed(2),
     })).sort((a, b) => b['Total Actual (ms)'] - a['Total Actual (ms)']));
   } else {
-    console.log('No render data');
   }
   console.groupEnd();
 
@@ -619,7 +588,6 @@ export function perfReport() {
       'Initiator': q.initiatorType,
     })));
   } else {
-    console.log('No Supabase queries tracked');
   }
   console.groupEnd();
 
@@ -635,7 +603,7 @@ export function perfReport() {
   if (h.render) heroTable.push({ Phase: 'Render', 'ms': h.render.toFixed(1) });
   if (h.rotation) heroTable.push({ Phase: '8s Rotation', 'ms': h.rotation.toFixed(1) });
   if (heroTable.length > 0) console.table(heroTable);
-  else console.log('No hero data');
+  else if(import.meta.env.DEV) console.log('No hero data');
   console.groupEnd();
 
   // ═══ 12. FINAL SUMMARY — Top 10 Performance Bremsen ═══

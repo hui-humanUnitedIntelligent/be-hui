@@ -820,7 +820,6 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
 
   // ── Speichern ─────────────────────────────────────────────
   async function save(status) {
-    console.log("[EXPERIENCE USER]", userId);
     if (!userId) {
       console.error("[EXPERIENCE USER] userId ist null/undefined — save() abgebrochen");
       return;
@@ -908,7 +907,6 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
       ...snapshotPayload,
     };
 
-    console.log("[EXPERIENCE PUBLISH PAYLOAD]", JSON.stringify(payload, null, 2));
 
     // ── Pre-Save: Session prüfen, ggf. refreshen ──
     const { data: { session: curSession } } = await supabase.auth.getSession();
@@ -938,7 +936,6 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
       return;
     }
 
-    console.log("[EXPERIENCE INSERT DATA]", saved);
     onSaved?.(saved);
     // pending_review: kurze Bestätigung, dann schließen
     if (saved?.status === "pending_review") {

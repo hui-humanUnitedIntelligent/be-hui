@@ -376,12 +376,6 @@ export function AuthProvider({ children }) {
 
   // ── Debug Log (development only) ─────────────────────────────────────
   if (process.env.NODE_ENV !== "production" && profile) {
-    console.log("[MEMBERSHIP]", {
-    membership_type:   "free", // nicht in profiles-Tabelle
-      membership_active: profile?.membership_active,
-      isTalent:          _isTalentCalc,
-      canCreate:         _canCreateCalc,
-    });
   }
 
   // useMemo: verhindert unnötige Re-renders aller Consumer

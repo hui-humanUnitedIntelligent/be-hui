@@ -735,7 +735,6 @@ export default function FavoritesPage({ currentUser, onView, onImpact, onDiscove
             _raw:        e,
           })));
           if (import.meta.env.DEV) {
-            console.log("[HUI_REALITY] experience hydrated ✓", userExps.length);
           }
         }
 

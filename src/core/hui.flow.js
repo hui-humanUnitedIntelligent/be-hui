@@ -79,7 +79,6 @@ export function createFlowStore() {
         var msg = "[HUI_FLOW] → " + surfLabel;
         if (fromLabel) msg += " from " + fromLabel;
         if (e.creatorId) msg += " (id:" + e.creatorId + ")";
-        console.log(msg);
       }
     },
 
@@ -104,7 +103,6 @@ export function createFlowStore() {
       _returnProfile = profile ?? null;
       if (isDev && profile) {
         var name = profile.display_name || profile.name || profile.id || "?";
-        console.log("[HUI_FLOW] ReturnProfile gesetzt:", name);
       }
     },
 
@@ -114,7 +112,6 @@ export function createFlowStore() {
 
     clearReturnProfile() {
       if (isDev && _returnProfile) {
-        console.log("[HUI_FLOW] ReturnProfile geleert");
       }
       _returnProfile = null;
     },

@@ -655,7 +655,6 @@ function AppRoutes() {
   useEffect(() => {
     const handler = (e) => {
       const { entity_type, entity_id, action_url, data } = e.detail || {};
-      console.log("[HUI_PUSH_DEEPLINK]", { entity_type, entity_id, action_url });
 
       // 1. action_url hat Priorität
       if (action_url && typeof action_url === "string" && action_url.startsWith("/")) {
@@ -706,7 +705,6 @@ function AppRoutes() {
   // Ungültige Einträge (null) wurden durch filterValidPages() entfernt.
   // Diese Log-Zeile bestätigt im DEV-Modus die valide Route-Liste:
   if (import.meta.env.DEV) {
-    console.log('[HUI ROUTES]', APP_ROUTES.map(r => r.key + ' → ' + r.route));
   }
 
   return (

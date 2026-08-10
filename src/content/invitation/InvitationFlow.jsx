@@ -419,7 +419,6 @@ export default function InvitationFlow({ onClose, visible = true }) {
       if (insertError) throw insertError;
 
       if (import.meta.env.DEV) {
-        console.log("[InvitationFlow] ✓ Invitation erstellt:", insertedInv?.id);
       }
 
       setSuccess(true);

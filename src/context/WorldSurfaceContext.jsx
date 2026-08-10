@@ -69,15 +69,6 @@ export function WorldSurfaceProvider({ children }) {
     setWorldState(prev => {
       if (!prev.activeSurface && !prev.blurActive) return prev;
       if (isDev) {
-        console.log("[WORLD SURFACE] world restored", {
-          reason,
-          was:         prev.activeSurface,
-          blurActive:  prev.blurActive,
-          feedRestored: "opacity→1",
-          navRestored:  "translateY→0",
-          blurRemoved:  "filter→none",
-          focusReset:   "pointer-events→auto",
-        });
       }
       return buildClosedState(prev);
     });
@@ -92,11 +83,6 @@ export function WorldSurfaceProvider({ children }) {
     setWorldState(prev => {
       const next = buildOpeningState(prev, surfaceId);
       if (isDev) {
-        console.log("[WORLD SURFACE] openSurface", {
-          surfaceId,
-          previous: prev.activeSurface,
-          blurActive: next.blurActive,  // false — not yet confirmed
-        });
       }
       return next;
     });
@@ -131,13 +117,6 @@ export function WorldSurfaceProvider({ children }) {
       if (prev.overlayConfirmed) return prev;
       const next = buildConfirmedState(prev);
       if (isDev) {
-        console.log("[WORLD SURFACE] overlay confirmed", {
-          surfaceId,
-          blurActive:  next.blurActive,
-          feedVisible: next.feedVisible,
-          navLocked:   next.navLocked,
-          mountMs:     prev.openedAt ? Date.now() - prev.openedAt : 0,
-        });
       }
       return next;
     });
@@ -152,11 +131,6 @@ export function WorldSurfaceProvider({ children }) {
       if (!prev.activeSurface && !prev.blurActive) return prev;
       const next = buildClosedState(prev);
       if (isDev) {
-        console.log("[WORLD SURFACE] closeSurface", {
-          surfaceId: prev.activeSurface,
-          reason,
-          durationMs: prev.openedAt ? Date.now() - prev.openedAt : 0,
-        });
       }
       return next;
     });

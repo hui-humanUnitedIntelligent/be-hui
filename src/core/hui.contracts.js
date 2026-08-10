@@ -274,9 +274,9 @@ export function inspectContracts() {
   for (const name of Object.keys(CONTRACTS)) {
     var c = CONTRACTS[name];
     console.group("A." + name + " — " + c.description);
-    if (c.required && c.required.length)   console.log("Required:   ", c.required);
-    if (c.requiredOr && c.requiredOr.length) console.log("RequiredOr: ", c.requiredOr);
-    if (c.optional && c.optional.length)   console.log("Optional:   ", c.optional);
+    if (c.required && c.required.length && import.meta.env.DEV) console.log("Required:   ", c.required);
+    if (c.requiredOr && c.requiredOr.length && import.meta.env.DEV) console.log("RequiredOr: ", c.requiredOr);
+    if (c.optional && c.optional.length && import.meta.env.DEV) console.log("Optional:   ", c.optional);
     console.groupEnd();
   }
   console.groupEnd();

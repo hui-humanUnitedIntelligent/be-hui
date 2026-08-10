@@ -89,13 +89,6 @@ export function OrbWorldProvider({ children }) {
     });
 
     if (isDev) {
-      console.log("[HUI ORB] open", {
-        source,
-        originTab,
-        worldTemperature,
-        atmosphereId,
-        openedAt: new Date(next.openedAt).toISOString(),
-      });
     }
 
     setOrbState(next);
@@ -107,13 +100,6 @@ export function OrbWorldProvider({ children }) {
       const next = buildCloseOrbState(prev);
 
       if (isDev) {
-        console.log("[HUI ORB] close", {
-          reason,
-          originTab:        prev.originTab,
-          wasOpen:          prev.isOpen,
-          durationMs:       prev.openedAt ? Date.now() - prev.openedAt : 0,
-          continuityCarry:  prev.continuityCarry,
-        });
       }
 
       return next;

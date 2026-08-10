@@ -80,13 +80,11 @@ export function GuidanceProvider({ children }) {
   // ── Handlers ───────────────────────────────────────────────
 
   const enterFlow = useCallback((type = "membership") => {
-    console.log("[HUI GUIDANCE] enterFlow", type);
     setFlowType(type);
     setIsFlowActive(true);
   }, []);
 
   const exitFlow = useCallback(() => {
-    console.log("[HUI GUIDANCE] exitFlow");
     setIsFlowActive(false);
     setFlowType(null);
     setOverride(null);

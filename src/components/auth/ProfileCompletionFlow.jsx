@@ -181,7 +181,6 @@ export default function ProfileCompletionFlow({ onComplete }) {
       if (completeErr) {
         console.warn("[PROFILE_FLOW] profile_complete write failed:", completeErr.message);
       } else {
-        console.log("[PROFILE_FLOW] profile_complete = true written ✓");
       }
       // Also set via RPC for double-confirmation
       try { await supabase.rpc("mark_profile_complete", { p_user_id: user.id }); } catch {}

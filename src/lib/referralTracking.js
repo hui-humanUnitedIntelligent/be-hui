@@ -157,7 +157,6 @@ export async function processReferralForUser(userId) {
     if (ok) {
       clearStoredReferral();
       // DB-Trigger trg_ambassador_referral_count erhöht referral_count automatisch
-      console.log('[HUI Referral] ✅ referred_by gesetzt → Trigger zählt +1 für', ambassadorId);
     } else {
       console.warn('[HUI Referral] ❌ referred_by nach 8 Versuchen nicht gesetzt');
     }

@@ -328,13 +328,6 @@ export function validateExperiencePayload(payload) {
     return { valid: false, errors };
   }
 
-  console.log("[HUI_CONTRACT] ✅ payload valid:", {
-    title:        payload.title,
-    booking_mode: payload.booking_mode,
-    pricing_type: payload.pricing_type,
-    images_count: payload.images?.length ?? 0,
-    status:       payload.status,
-  });
   return { valid: true, errors: [] };
 }
 
@@ -392,7 +385,6 @@ export async function publishExperience(supabase, rawForm, userId, uploadedUrls 
   }
 
   // 3. Log vor Insert — immer sichtbar in Console
-  console.log("[HUI_EXPERIENCE_PAYLOAD]", payload);
 
   // 4. Insert
   const { data, error: dbErr } = await supabase
@@ -414,6 +406,5 @@ export async function publishExperience(supabase, rawForm, userId, uploadedUrls 
     };
   }
 
-  console.log("[HUI_REALITY] ✓ experience published:", data?.id, "-", data?.title);
   return { data, error: null };
 }

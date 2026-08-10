@@ -70,7 +70,6 @@ export function cleanupOrbEnvironment({ reason = "cleanup", afterMs = 0 } = {}) 
         if (document.activeElement && document.activeElement !== body) body.focus();
       } catch (_) {}
 
-      console.log("[HUI CLEANUP] orbEnvironment reset", { reason });
     } catch (err) {
       console.warn("[HUI CLEANUP] non-critical error:", err?.message);
     }
