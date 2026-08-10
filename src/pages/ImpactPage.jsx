@@ -1703,7 +1703,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
 
       {/* ══ FLOWS + MODALS ════════════════════════════════════════ */}
       {showPropose && (
-        <React.Suspense fallback={null}>
+        <React.Suspense fallback={<div style={{display:"flex",justifyContent:"center",alignItems:"center",padding:"20px 0",opacity:0.4}}><div style={{width:24,height:24,borderRadius:"50%",border:"2px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}>
           <ImpactFlow onClose={() => setShowPropose(false)} />
         </React.Suspense>
       )}

@@ -633,7 +633,7 @@ function HomeInner() {
 
       {/* KORB-01: Werkekorb Bottom Sheet */}
       {showWerkeKorb && SAFE_MODE.werkFlow && (
-        <Suspense fallback={null}><WerkeKorb
+        <Suspense fallback={<div style={{position:"fixed",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:10500,background:"rgba(249,247,244,0.85)",backdropFilter:"blur(6px)"}}><div style={{width:36,height:36,borderRadius:"50%",border:"3px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}><WerkeKorb
           items={cart}
           onClose={() => setShowWerkeKorb(false)}
           onRemove={(item) => setCart(prev => prev.filter(x => x.id !== item.id))}
@@ -652,7 +652,7 @@ function HomeInner() {
 
       {/* KORB-02: UnterstutzenFlow — lazy (Stripe erst bei Bedarf laden) */}
       {showUnterstutzenFlow && SAFE_MODE.werkFlow && (
-        <Suspense fallback={null}>
+        <Suspense fallback={<div style={{position:"fixed",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:10500,background:"rgba(249,247,244,0.85)",backdropFilter:"blur(6px)"}}><div style={{width:36,height:36,borderRadius:"50%",border:"3px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}>
           <UnterstutzenFlow
             items={cart}
             onClose={() => { setShowUnterstutzenFlow(false); closeContentPreview(); }}
@@ -704,7 +704,7 @@ function HomeInner() {
 
       {/* ── Teilen Flow — STATIC IMPORT, ALWAYS IN DOM ── */}
       {/* visible prop steuert Sichtbarkeit — KEIN lazy, KEIN SafeRender, KEIN conditional */}
-      <Suspense fallback={null}><TeilenFlow
+      <Suspense fallback={<div style={{position:"fixed",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:10500,background:"rgba(249,247,244,0.85)",backdropFilter:"blur(6px)"}}><div style={{width:36,height:36,borderRadius:"50%",border:"3px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}><TeilenFlow
         visible={showTeilen}
         onClose={() => {
           setShowTeilen(false);
@@ -756,7 +756,7 @@ function HomeInner() {
         </div>}>
         {showMap && SAFE_MODE.liveMap && (
           <SafeRender flag="liveMap" label="LiveMapPage">
-            <Suspense fallback={null}><LiveMapPage
+            <Suspense fallback={<div style={{minHeight:1}} />}><LiveMapPage
               onView={w => { const id=w?.id||w?.user_id; if(id) openProfileById(id); setShowMap(false); }}
               onMatch={() => { setShowMatch(true); setShowMap(false); }}
               onClose={() => setShowMap(false)}
@@ -811,7 +811,7 @@ function HomeInner() {
              showNotifs / setShowNotifs bleiben im State für spätere Entfernung. */}
         {showMembership && SAFE_MODE.membership && (
           <SafeRender flag="membership" label="HuiMembershipFlow">
-            <Suspense fallback={null}><HuiMembershipFlow
+            <Suspense fallback={<div style={{position:"fixed",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:10500,background:"rgba(249,247,244,0.85)",backdropFilter:"blur(6px)"}}><div style={{width:36,height:36,borderRadius:"50%",border:"3px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}><HuiMembershipFlow
               onClose={() => {
                 try { cleanupOrbEnvironment({ reason: "membership-close" }); } catch {}
                 setShowMembership(false);
@@ -829,7 +829,7 @@ function HomeInner() {
         )}
         {/* Phase 4D: Creator Dashboard */}
         {showCreatorDash && (
-          <React.Suspense fallback={null}>
+          <React.Suspense fallback={<div style={{position:"fixed",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:10500,background:"rgba(249,247,244,0.85)",backdropFilter:"blur(6px)"}}><div style={{width:36,height:36,borderRadius:"50%",border:"3px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}>
             <CreatorDashboard
               visible={showCreatorDash}
               onClose={() => setShowCreatorDash(false)}
@@ -843,12 +843,12 @@ function HomeInner() {
         )}
         {showCreateFlow && SAFE_MODE.createFlow && (
           <SafeRender flag="createFlow" label="HuiCreateFlow">
-            <Suspense fallback={null}><HuiCreateFlow onClose={() => setShowCreateFlow(false)}/></Suspense>
+            <Suspense fallback={<div style={{position:"fixed",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:10500,background:"rgba(249,247,244,0.85)",backdropFilter:"blur(6px)"}}><div style={{width:36,height:36,borderRadius:"50%",border:"3px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}><HuiCreateFlow onClose={() => setShowCreateFlow(false)}/></Suspense>
           </SafeRender>
         )}
         {showImpactFlow && SAFE_MODE.impactFlow && (
           <SafeRender flag="impactFlow" label="ImpactFlow">
-            <Suspense fallback={null}><ImpactFlow
+            <Suspense fallback={<div style={{position:"fixed",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:10500,background:"rgba(249,247,244,0.85)",backdropFilter:"blur(6px)"}}><div style={{width:36,height:36,borderRadius:"50%",border:"3px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}><ImpactFlow
               onClose={() => setShowImpactFlow(false)}
             /></Suspense>
           </SafeRender>

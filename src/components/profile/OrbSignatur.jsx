@@ -22,7 +22,7 @@ export function OrbSignatur({ profileId }) {
       alignItems: "center",
       gap: 10,
     }}>
-      <Suspense fallback={null}><OrbLeaf
+      <Suspense fallback={<div style={{minHeight:1}} />}><OrbLeaf
           userId={profileId}
           size={40}
           variant="public"

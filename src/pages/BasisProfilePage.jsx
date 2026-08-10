@@ -488,7 +488,7 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
   }
 
     return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<div style={{position:"fixed",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:10500,background:"rgba(249,247,244,0.85)",backdropFilter:"blur(6px)"}}><div style={{width:36,height:36,borderRadius:"50%",border:"3px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}>
         <div className="bpp-root" style={{
       position:"fixed", top:0, left:0, right:0,
       bottom: publicView ? 0 : NAV_CLEARANCE_CSS,

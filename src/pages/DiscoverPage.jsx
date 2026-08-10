@@ -2355,7 +2355,7 @@ export default function DiscoverPage({ onView, onMap, onBook }) {
       )}
 
       {/* ── Alle-Ansehen-Modals (lazy, erst beim Öffnen geladen) ── */}
-      <Suspense fallback={null}>
+      <Suspense fallback={<div style={{display:"flex",justifyContent:"center",alignItems:"center",padding:"20px 0",opacity:0.4}}><div style={{width:24,height:24,borderRadius:"50%",border:"2px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}>
         <WerkeAllModal
           isOpen={showWerkeModal}
           onClose={() => setShowWerkeModal(false)}

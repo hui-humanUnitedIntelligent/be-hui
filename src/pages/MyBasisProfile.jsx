@@ -901,7 +901,7 @@ const handleNotifAction = (n) => {
   }
 
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<div style={{position:"fixed",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:10500,background:"rgba(249,247,244,0.85)",backdropFilter:"blur(6px)"}}><div style={{width:36,height:36,borderRadius:"50%",border:"3px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}>
     <div className="mbp-root" style={{
       position:"fixed", top:0, left:0, right:0,
       bottom:NAV_RESERVED_HEIGHT_CSS,
@@ -1026,7 +1026,7 @@ const handleNotifAction = (n) => {
           onEditCover={handleCoverChange}
         />
         {(profile?.id ?? user?.id) && (
-        <Suspense fallback={null}><OrbSignatur profileId={profile?.id ?? user?.id} /></Suspense>
+        <Suspense fallback={<div style={{display:"flex",justifyContent:"center",alignItems:"center",padding:"20px 0",opacity:0.4}}><div style={{width:24,height:24,borderRadius:"50%",border:"2px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}><OrbSignatur profileId={profile?.id ?? user?.id} /></Suspense>
         )}
         <Gap h={28}/>
 
@@ -1036,7 +1036,7 @@ const handleNotifAction = (n) => {
         {profile?.is_talent ? (
           <>
             {/* T1. Über mich — kanonisch: AboutSection */}
-        <Suspense fallback={null}><AboutSection
+        <Suspense fallback={<div style={{display:"flex",justifyContent:"center",alignItems:"center",padding:"20px 0",opacity:0.4}}><div style={{width:24,height:24,borderRadius:"50%",border:"2px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}><AboutSection
                 profile={profile}
                 isOwner={true}
                 onSave={(bio) => handleBioSave(bio)}
@@ -1050,7 +1050,7 @@ const handleNotifAction = (n) => {
                 (siehe Memory #528 "vertagt"). Bleibt auf TalentProfilePage.jsx bestehen,
                 dort nicht Teil dieser Anfrage. */}
             {/*
-            <Suspense fallback={null}><TalentSection
+            <Suspense fallback={<div style={{display:"flex",justifyContent:"center",alignItems:"center",padding:"20px 0",opacity:0.4}}><div style={{width:24,height:24,borderRadius:"50%",border:"2px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}><TalentSection
               profile={profile}
               isOwner={true}
               onChange={handleSkillsSave}
@@ -1086,7 +1086,7 @@ const handleNotifAction = (n) => {
             <Gap h={20}/>
 
             {/* T5. Kundenstimmen — kanonisch: RecommendationsSection */}
-        <Suspense fallback={null}><RecommendationsSection
+        <Suspense fallback={<div style={{display:"flex",justifyContent:"center",alignItems:"center",padding:"20px 0",opacity:0.4}}><div style={{width:24,height:24,borderRadius:"50%",border:"2px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}><RecommendationsSection
                 recommendations={recommendations}
                 isOwner={true}
                 profileOwnerId={profile?.id || ""}
@@ -1099,7 +1099,7 @@ const handleNotifAction = (n) => {
             <Gap h={24}/>
 
             {/* T7. Sichtbarkeit — kanonisch: VisibilitySection */}
-        <Suspense fallback={null}><VisibilitySection
+        <Suspense fallback={<div style={{display:"flex",justifyContent:"center",alignItems:"center",padding:"20px 0",opacity:0.4}}><div style={{width:24,height:24,borderRadius:"50%",border:"2px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}><VisibilitySection
                 profile={profile}
                 isOwner={true}
                 onSave={handleVisibilitySave}
@@ -1118,7 +1118,7 @@ const handleNotifAction = (n) => {
           <>
             {/* ══ BASIS-PROFIL-LAYOUT ══════════════════════════════ */}
             {/* B1. Über mich — kanonisch: AboutSection */}
-        <Suspense fallback={null}><AboutSection
+        <Suspense fallback={<div style={{display:"flex",justifyContent:"center",alignItems:"center",padding:"20px 0",opacity:0.4}}><div style={{width:24,height:24,borderRadius:"50%",border:"2px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}><AboutSection
                 profile={profile}
                 isOwner={true}
                 onSave={(bio) => handleBioSave(bio)}
@@ -1126,7 +1126,7 @@ const handleNotifAction = (n) => {
         <Gap h={24}/>
 
             {/* B1a. Kundenstimmen — kanonisch: RecommendationsSection (auch für Basis-User) */}
-        <Suspense fallback={null}><RecommendationsSection
+        <Suspense fallback={<div style={{display:"flex",justifyContent:"center",alignItems:"center",padding:"20px 0",opacity:0.4}}><div style={{width:24,height:24,borderRadius:"50%",border:"2px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}><RecommendationsSection
                 recommendations={recommendations}
                 isOwner={true}
                 profileOwnerId={profile?.id || ""}
@@ -1175,7 +1175,7 @@ const handleNotifAction = (n) => {
                 "Professionelle Skills" — siehe ProfilBearbeitenModal.jsx Kommentar). */}
 
             {/* B5. Sichtbarkeit — kanonisch: VisibilitySection */}
-        <Suspense fallback={null}><VisibilitySection
+        <Suspense fallback={<div style={{display:"flex",justifyContent:"center",alignItems:"center",padding:"20px 0",opacity:0.4}}><div style={{width:24,height:24,borderRadius:"50%",border:"2px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}><VisibilitySection
                 profile={profile}
                 isOwner={true}
                 onSave={handleVisibilitySave}
@@ -1353,7 +1353,7 @@ const handleNotifAction = (n) => {
 
       {/* 👁️ ÖFFENTLICHE PROFILANSICHT */}
       {showPublicPreview && profile?.id && (
-        <Suspense fallback={null}>
+        <Suspense fallback={<div style={{position:"fixed",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:10500,background:"rgba(249,247,244,0.85)",backdropFilter:"blur(6px)"}}><div style={{width:36,height:36,borderRadius:"50%",border:"3px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}>
         <PublicProfilePreview
             profileId={profile.id}
             onClose={() => setShowPublicPreview(false)}

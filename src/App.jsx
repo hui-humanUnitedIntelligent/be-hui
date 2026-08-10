@@ -800,12 +800,12 @@ function AppRoutes() {
 
         {/* Ref-Link Weiterleitung */}
         <Route path="/ref/:username" element={
-          <Suspense fallback={null}><RefRedirect /></Suspense>
+          <Suspense fallback={<div style={{minHeight:1}} />}><RefRedirect /></Suspense>
         }/>
 
         {/* Direkte Ref-Links: /:username → RefRedirect (z.B. be-hui.com/milileo) */}
         <Route path="/:username" element={
-          <Suspense fallback={null}><RefRedirect /></Suspense>
+          <Suspense fallback={<div style={{minHeight:1}} />}><RefRedirect /></Suspense>
         }/>
 
         {/* 404 / Unbekannte Route: SmartNotFound wartet auf Auth */}
