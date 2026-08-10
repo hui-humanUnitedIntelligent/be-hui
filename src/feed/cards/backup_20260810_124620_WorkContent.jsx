@@ -128,14 +128,12 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
           {priceStr && <span style={{ fontSize:12.5, fontWeight:600, color:INK3 }}>{priceStr}</span>}
         </div>
       )}
-      {/* Metazeile wenn Button vorhanden — NUR Kategorie, kein Preis (2026-08-10):
-          Preis steht bereits im Kaufen-Button darüber ("20 € Kaufen"),
-          die Wiederholung direkt darunter ("Handwerk 20 €") war redundant.
-          Gilt nur für Werke-Karten (diese Datei) — Talente/Momente/Erlebnisse
-          unverändert, siehe deren eigene Card-Komponenten. */}
-      {category && onBuyWerk && isBuyable && (
+      {/* Metazeile wenn Button vorhanden */}
+      {(category || priceStr) && onBuyWerk && isBuyable && (
         <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:6, marginBottom:2 }}>
-          <span style={{ fontSize:12.5, fontWeight:600, color:CORAL }}>{category}</span>
+          {category && <span style={{ fontSize:12.5, fontWeight:600, color:CORAL }}>{category}</span>}
+
+          {priceStr && <span style={{ fontSize:12.5, color:INK3 }}>{priceStr}</span>}
         </div>
       )}
 
