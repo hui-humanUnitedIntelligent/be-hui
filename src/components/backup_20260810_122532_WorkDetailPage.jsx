@@ -847,15 +847,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
           {saved ? "Gemerkt ✓" : "Merken"}
         </button>
         <button
-          onClick={() => {
-            const authorInfo = creator ? {
-              id: creator.id || werk.user_id || werk.creator_id,
-              name: creator.full_name || creator.display_name || creator.username || null,
-              avatar: creator.avatar_url || null,
-            } : null;
-            const buyPayload = {...werk, img: images[0], price: priceStr, author: authorInfo};
-            onBuyWerk ? onBuyWerk(buyPayload) : onBuyWerk?.(buyPayload);
-          }}
+          onClick={() => onBuyWerk ? onBuyWerk({...werk, img: images[0], price: priceStr}) : onBuyWerk?.({...werk, img: images[0], price: priceStr})}
           className="wd-tap"
           style={{ flex:2, padding:"14px",
             background:`linear-gradient(135deg,${C.coral},${C.coral2})`,

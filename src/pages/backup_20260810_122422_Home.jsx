@@ -489,16 +489,7 @@ function HomeInner() {
                     // in den Werkekorb — der Korb-Button erscheint, Nutzer
                     // sehen sofort was passiert und können mehrere Werke sammeln.
                     if (!item?.id) return;
-                    // BUGFIX (2026-08-10): item._raw enthält NUR die rohe DB-Zeile
-                    // (title/price/cover_url) — das normalisierte item.author
-                    // {id,name,avatar} wurde dabei verworfen → WerkeKorb zeigte
-                    // "Unbekannter Wirker" statt des echten Namens (z.B. Linda
-                    // Mathis). Fix: author additiv auf den Cart-Eintrag setzen,
-                    // ohne sonst etwas an der bestehenden Cart-Datenstruktur zu
-                    // verändern (WerkeKorb/commerceUtils lesen weiterhin exakt
-                    // dieselben Felder wie vorher, jetzt ist author nur nicht
-                    // mehr leer).
-                    const werkData = { ...(item._raw || item), author: item.author || item._raw?.author || null };
+                    const werkData = item._raw || item;
                     // Dedupe: nicht zweimal dasselbe Werk
                     setCart(prev => {
                       const wid = werkData.id || werkData._raw?.id;
