@@ -193,7 +193,7 @@ export async function batchQueries(queries) {
 // Thumbnails on-the-fly zu generieren — reduziert Download-Größe drastisch.
 // Avatar: 200px (Retina: 400px), Cover: 800px, Card: 400px.
 // Fallback: Original-URL wenn Render-API nicht verfügbar.
-const SUPABASE_HOST = (import.meta.env.VITE_SUPABASE_URL || '').replace(/^https?:\/\//, '').trim();
+const SUPABASE_HOST = (import.meta.env.VITE_SUPABASE_URL || '').replace(/^https?:\/\//, '');
 
 // ZOOM-BUG-FIX (2026-08-10): Supabase Image Resizing API verzerrte JEDES
 // Bild, dessen Original-Hoehe != Original-Breite war. Ursache: Ohne
