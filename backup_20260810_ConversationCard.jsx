@@ -90,7 +90,7 @@ export default function ConversationCard({ conv, onPress, isActive }) {
         }}>
           <span style={{
             fontSize:14.5, fontWeight: unread ? 600 : 600, color:C.ink,
-            overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", flex:1, minWidth:0,
+            overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth:155,
           }}>{name}</span>
           <span style={{ fontSize:11, color:C.muted, flexShrink:0, marginLeft:6 }}>
             {timeAgo(conv.last_message_at || conv.last_at)}
