@@ -7,7 +7,6 @@ import ChatMessages   from "./ChatMessages.jsx";
 import ChatInput      from "./ChatInput.jsx";
 import { useChatThread } from "../../lib/chatContext.js";
 import { useAuth }       from "../../lib/AuthContext.jsx";
-import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 
 const CSS = `
   .hui-scroll{scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;}
@@ -16,7 +15,6 @@ const CSS = `
 
 export default function ConversationRoom({ conv, onBack, onOpenProfile, onCloseChat, onRequestBooking }) {
   const { user } = useAuth();
-  const kbdInset = useKeyboardInset(); // Keyboard-Inset aktivieren — Container schrumpft bei Tastatur
 
   const rawId      = conv?.id ?? null;
   const isFakeId   = typeof rawId === "string" && rawId.startsWith("direct_");
@@ -55,7 +53,7 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile, onCloseC
 
   return (
     <div style={{
-      position:"fixed", top:0, left:0, right:0, bottom:"var(--hui-keyboard-inset, 0px)", zIndex:10002,
+      position:"fixed", inset:0, zIndex:10002,
       display:"flex", flexDirection:"column",
       fontFamily:"Inter,sans-serif",
       background:"#F2F4F8",
