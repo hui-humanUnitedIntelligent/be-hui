@@ -353,7 +353,7 @@ button, a, [role="button"] {
   animation: ds-skeleton 1.8s ease-in-out infinite;
 }
 
-.hui-safe-top    { padding-top:    max(20px, env(safe-area-inset-top, 20px)); }
+.hui-safe-top    { padding-top:    max(var(--hui-safe-top, 0px), 20px, env(safe-area-inset-top, 20px)); }
 .hui-safe-bottom { padding-bottom: max(40px, env(safe-area-inset-bottom, 40px)); }
 
 .hui-glass-light {
@@ -429,7 +429,7 @@ html {
 
 @media (display-mode: standalone) {
   body {
-    padding-top: env(safe-area-inset-top, 0px);
+    padding-top: max(var(--hui-safe-top, 0px), env(safe-area-inset-top, 0px));
   }
 }
 

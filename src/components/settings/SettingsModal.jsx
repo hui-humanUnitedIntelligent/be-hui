@@ -375,7 +375,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
   const header = {
     display: view === "support" ? "none" : "flex",
     alignItems:"center", justifyContent:"space-between",
-    padding:"18px 18px 13px",
+    padding:"max(var(--hui-safe-top, 0px), 18px, env(safe-area-inset-top, 18px)) 18px 13px",
     position:"sticky", top:0,
     background:T.bg, borderBottom:"1px solid "+T.border,
     borderRadius:"20px 20px 0 0", zIndex:1,

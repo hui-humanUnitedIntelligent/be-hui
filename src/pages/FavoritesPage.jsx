@@ -777,7 +777,7 @@ export default function FavoritesPage({ currentUser, onView, onImpact, onDiscove
         backdropFilter:"blur(16px)",
         WebkitBackdropFilter:"blur(16px)",
         borderBottom:`1px solid ${C.borderL}`,
-        padding:"max(52px,env(safe-area-inset-top,52px)) 20px 12px",
+        padding:"max(var(--hui-safe-top, 0px),52px,env(safe-area-inset-top,52px)) 20px 12px",
       }}>
         <div style={{ display:"flex", alignItems:"flex-start",
           justifyContent:"space-between", gap:12 }}>

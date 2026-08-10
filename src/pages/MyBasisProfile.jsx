@@ -944,7 +944,7 @@ const handleNotifAction = (n) => {
 
       {/* ── SEITEN-TITEL — AUSSERHALB scroll (kein touch-offset Bug) ── */}
       <div style={{
-        padding:`max(14px,calc(10px + env(safe-area-inset-top,0px))) ${T.px}px 10px`,
+        padding:`max(14px,calc(10px + max(var(--hui-safe-top, 0px), env(safe-area-inset-top,0px)))) ${T.px}px 10px`,
         display:"flex", justifyContent:"space-between", alignItems:"flex-start",
         flexShrink:0,
         position:"relative", zIndex:2,   /* über mbp-scroll (overflow=auto erzeugt Stacking Context) */

@@ -56,7 +56,7 @@ function ProgressBar({ step = 1, total = 6 }) {
 
 function TopBar({ onClose = () => {}, step = 1, total = 6 }) {
   return (
-    <div style={{ padding:"max(14px, env(safe-area-inset-top, 14px)) 20px 12px", background:"#fff", borderBottom:`1px solid ${C.border}` }}>
+    <div style={{ padding:"max(var(--hui-safe-top, 0px), 14px, env(safe-area-inset-top, 14px)) 20px 12px", background:"#fff", borderBottom:`1px solid ${C.border}` }}>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
         <button onClick={() => onClose?.()} style={{ background:"none", border:"none", padding:0, fontSize:13, fontWeight:600, color:C.inkMid, cursor:"pointer", touchAction:"manipulation" }}>Abbrechen</button>
         <div style={{ fontSize:14, fontWeight: 600, color:C.ink }}>Werk bearbeiten</div>

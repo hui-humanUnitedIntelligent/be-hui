@@ -159,7 +159,7 @@ export default function CreatorStudio() {
       {/* ── Atmosphärischer Header ──────────────────────────── */}
       <div style={{
         background:"linear-gradient(160deg,#0F1923 0%,#1A2B3C 55%,#0F2B2A 100%)",
-        padding:"max(56px,env(safe-area-inset-top,56px)) 20px 32px",
+        padding:"max(var(--hui-safe-top, 0px),56px,env(safe-area-inset-top,56px)) 20px 32px",
         position:"relative", overflow:"hidden",
         animation:`studioHeaderIn ${TRANSITIONS.slow} ${TRANSITIONS.overlay} both`,
       }}>

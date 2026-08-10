@@ -142,7 +142,8 @@ function NavBar({ onBack, isOwner = false, onSettings }) {
   return (
     <div style={{
       display:"flex", alignItems:"center", justifyContent:"space-between",
-      padding:`14px ${T.px}px 10px`,
+      // SAFE-AREA-TOP-FIX (2026-08-10): 3-Ebenen-Fallback wie NAV_SAFE_BOTTOM_CSS
+      padding:`max(var(--hui-safe-top, 0px), 14px, env(safe-area-inset-top, 14px)) ${T.px}px 10px`,
       background:T.bg,
     }}>
       {/* Back */}

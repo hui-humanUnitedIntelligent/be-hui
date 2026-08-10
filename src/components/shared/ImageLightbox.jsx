@@ -141,7 +141,7 @@ export default function ImageLightbox() {
       React.createElement("button", {
         onClick: close,
         style: {
-          position:"absolute", top:"max(12px, env(safe-area-inset-top, 12px))",
+          position:"absolute", top:"max(var(--hui-safe-top, 0px), 12px, env(safe-area-inset-top, 12px))",
           right:16, zIndex:10, width:40, height:40, borderRadius:"50%",
           background:"rgba(255,255,255,0.15)", border:"none",
           color:"#fff", fontSize:20, cursor:"pointer",
@@ -152,7 +152,7 @@ export default function ImageLightbox() {
       // Counter
       images.length > 1 && React.createElement("div", {
         style: {
-          position:"absolute", top:"max(16px, env(safe-area-inset-top, 16px))",
+          position:"absolute", top:"max(var(--hui-safe-top, 0px), 16px, env(safe-area-inset-top, 16px))",
           left:"50%", transform:"translateX(-50%)",
           color:"rgba(255,255,255,0.7)", fontSize:13, fontWeight:600,
           zIndex:10, pointerEvents:"none",

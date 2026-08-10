@@ -944,7 +944,7 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
       {/* ── TopBar ── */}
       <div style={{
         flexShrink:0,
-        padding:"max(48px,env(safe-area-inset-top,48px)) 20px 14px",
+        padding:"max(var(--hui-safe-top, 0px),48px,env(safe-area-inset-top,48px)) 20px 14px",
         background:"rgba(248,247,252,.90)",
         backdropFilter:"blur(28px) saturate(1.5)",
         WebkitBackdropFilter:"blur(28px) saturate(1.5)",

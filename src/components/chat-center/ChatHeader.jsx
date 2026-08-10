@@ -25,7 +25,7 @@ export default function ChatHeader({ conv, onBack, onOpenProfile, onCloseChat, o
   return (
     <div style={{
       display:"flex", alignItems:"center", gap:11,
-      padding:"max(50px,env(safe-area-inset-top,50px)) 16px 14px",
+      padding:"max(var(--hui-safe-top, 0px),50px,env(safe-area-inset-top,50px)) 16px 14px",
       background:"rgba(242,244,248,0.90)",
       backdropFilter:"blur(28px) saturate(1.8)",
       WebkitBackdropFilter:"blur(28px) saturate(1.8)",

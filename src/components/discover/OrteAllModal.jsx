@@ -204,8 +204,8 @@ export default function OrteAllModal({ isOpen, onClose, initialPlace, onPressPer
       display:"flex", alignItems:"flex-start", justifyContent:"center",
     }}>
       <div onClick={e => e.stopPropagation()} style={{
-        marginTop:"env(safe-area-inset-top,44px)", maxWidth:480, width:"100%",
-        height:"calc(100dvh - env(safe-area-inset-top,44px))",
+        marginTop:"max(var(--hui-safe-top, 0px), env(safe-area-inset-top,44px))", maxWidth:480, width:"100%",
+        height:"calc(100dvh - max(var(--hui-safe-top, 0px), env(safe-area-inset-top,44px)))",
         background:T.bg, borderRadius:"20px 20px 0 0",
         display:"flex", flexDirection:"column", overflow:"hidden",
       }}>

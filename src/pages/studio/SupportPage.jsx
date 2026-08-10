@@ -206,7 +206,7 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
 
       {/* Header */}
       <div style={{ display:"flex", alignItems:"center", gap:12,
-        padding: embedded ? "16px 20px" : "max(52px,env(safe-area-inset-top,52px)) 20px 16px",
+        padding: embedded ? "16px 20px" : "max(var(--hui-safe-top, 0px),52px,env(safe-area-inset-top,52px)) 20px 16px",
         background:"white", borderBottom:`1px solid ${C.border}` }}>
         <button onClick={onBack} style={{ width:36, height:36, borderRadius:10,
           background:"rgba(0,0,0,0.05)", border:"none",

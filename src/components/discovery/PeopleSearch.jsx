@@ -190,7 +190,7 @@ export default function PeopleSearch({ onClose, onOpenProfile, onOpenChat }) {
       `}</style>
 
       <div style={{
-        padding: "max(52px,env(safe-area-inset-top,52px)) 20px 0",
+        padding: "max(var(--hui-safe-top, 0px),52px,env(safe-area-inset-top,52px)) 20px 0",
         background: "rgba(242,244,248,0.92)",
         backdropFilter: "blur(24px)",
         borderBottom: "1px solid rgba(22,215,197,0.08)",

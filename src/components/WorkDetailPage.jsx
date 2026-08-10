@@ -603,7 +603,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
       <div style={{ maxWidth:680, margin:"0 auto", minHeight:"100%" }}>
 
       {/* ── Back Button (floating) ── */}
-      <div style={{ position:"fixed", top:"max(16px,env(safe-area-inset-top,16px))",
+      <div style={{ position:"fixed", top:"max(var(--hui-safe-top, 0px),16px,env(safe-area-inset-top,16px))",
         left:16, zIndex:200 }}>
         <button onClick={() => navigate(-1)} className="wd-tap"
           style={{ width:40, height:40, borderRadius:"50%",

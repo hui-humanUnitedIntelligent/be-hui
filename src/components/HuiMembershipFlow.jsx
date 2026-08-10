@@ -701,7 +701,7 @@ function Card2({ onNext, onBack, dir }) {
       {/* Progress */}
       <div style={{
         position:"relative", zIndex:10, width:"100%", flexShrink:0,
-        padding:`max(48px, env(safe-area-inset-top, 48px)) 22px 0`,
+        padding:`max(var(--hui-safe-top, 0px), env(safe-area-inset-top, 48px), 48px) 22px 0`,
         opacity: ready ? 1 : 0, transition:"opacity 0.5s ease",
       }}>
         <ProgressDots total={4} current={1} />
@@ -835,7 +835,7 @@ function Card3({ onNext, onBack, dir }) {
       {/* Content */}
       <div style={{
         position:"relative", zIndex:2,
-        padding:`max(56px, env(safe-area-inset-top, 56px)) 24px
+        padding:`max(var(--hui-safe-top, 0px), env(safe-area-inset-top, 56px), 56px) 24px
                  calc(env(safe-area-inset-bottom, 0px) + 32px)`,
         display:"flex", flexDirection:"column", minHeight:"100%",
       }}>
@@ -921,7 +921,7 @@ function Card4({ onFinish, onBack, dir, loading, error }) {
       {/* Content */}
       <div style={{
         position:"relative", zIndex:2,
-        padding:`max(56px, env(safe-area-inset-top, 56px)) 24px
+        padding:`max(var(--hui-safe-top, 0px), env(safe-area-inset-top, 56px), 56px) 24px
                  calc(env(safe-area-inset-bottom, 0px) + 32px)`,
         minHeight:"100%", display:"flex", flexDirection:"column",
       }}>
@@ -1083,7 +1083,7 @@ function CloseBtn({ onClose }) {
   return (
     <button className="hmf5-tap" onClick={onClose} style={{
       position:"fixed",
-      top:"max(18px, env(safe-area-inset-top, 18px))",
+      top:"max(var(--hui-safe-top, 0px), env(safe-area-inset-top, 18px), 18px)",
       right:18, zIndex:10600, /* >BottomNav(10000) */
       width:36, height:36, borderRadius:"50%",
       background:"rgba(0,0,0,0.40)",

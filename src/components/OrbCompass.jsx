@@ -291,7 +291,7 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
           width: "100%", flex: 1,
           display: "flex", flexDirection: "column",
           alignItems: "center", justifyContent: "center",
-          padding: `max(52px,calc(44px + env(safe-area-inset-top,0px)))
+          padding: `max(52px,calc(44px + max(var(--hui-safe-top, 0px), env(safe-area-inset-top,0px))))
                     0
                     max(36px,calc(28px + env(safe-area-inset-bottom,0px)))`,
         }}
@@ -304,7 +304,7 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
           aria-label="Schließen"
           style={{
             position: "absolute",
-            top: "max(52px,calc(44px + env(safe-area-inset-top,0px)))",
+            top: "max(52px,calc(44px + max(var(--hui-safe-top, 0px), env(safe-area-inset-top,0px))))",
             left: 20,
             background: "none", border: "none",
             fontSize: 26, color: D.inkTeal,

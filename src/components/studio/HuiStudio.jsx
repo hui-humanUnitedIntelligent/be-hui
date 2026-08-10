@@ -157,14 +157,14 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
 
       {/* ── HEADER ────────────────────────────────────────────── */}
       <div style={{
-        padding:`max(52px,calc(48px + env(safe-area-inset-top,0px))) ${T.px}px 16px`,
+        padding:`max(52px,calc(48px + max(var(--hui-safe-top, 0px), env(safe-area-inset-top,0px)))) ${T.px}px 16px`,
         background:T.bgCard,
         borderBottom:`1px solid ${T.border}`,
         flexShrink:0, position:"relative",
       }}>
         <button onClick={onClose} style={{
           position:"absolute",
-          top:"max(14px,calc(10px + env(safe-area-inset-top,0px)))",
+          top:"max(14px,calc(10px + max(var(--hui-safe-top, 0px), env(safe-area-inset-top,0px))))",
           left:T.px,
           background:"none", border:"none", cursor:"pointer",
           fontSize:13, fontWeight:600, color:T.teal,

@@ -348,7 +348,7 @@ export function StoryViewer({ data: initData, onClose, onViewProfile }) {
             rgba(0,0,0,.80) 100%)` }} />
 
       {/* ── PROGRESS BARS ────────────────────────────────────────── */}
-      <div style={{ position:'absolute', top:'max(10px,env(safe-area-inset-top,10px))',
+      <div style={{ position:'absolute', top:'max(var(--hui-safe-top, 0px),10px,env(safe-area-inset-top,10px))',
         left:12, right:12, display:'flex', gap:3, zIndex:10 }}>
         {stories.map((_, i) => (
           <div key={i} style={{ flex:1, height:2.5, borderRadius:2,
@@ -371,7 +371,7 @@ export function StoryViewer({ data: initData, onClose, onViewProfile }) {
       {/* ── HEADER ───────────────────────────────────────────────── */}
       <div style={{
         position:'absolute',
-        top:'max(24px,calc(env(safe-area-inset-top,14px)+14px))',
+        top:'max(24px,calc(max(var(--hui-safe-top, 0px), env(safe-area-inset-top,14px))+14px))',
         left:14, right:14,
         display:'flex', alignItems:'center', gap:10, zIndex:10 }}>
 

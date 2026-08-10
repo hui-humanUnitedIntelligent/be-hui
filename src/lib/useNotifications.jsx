@@ -910,8 +910,8 @@ export function ResonanzzentrumPanel({ onClose }) {
       >
         {/* ── HEADER ── */}
         <div style={{
-          padding:"env(safe-area-inset-top,16px) 16px 0",
-          paddingTop:`calc(env(safe-area-inset-top, 0px) + 16px)`,
+          padding:"max(var(--hui-safe-top, 0px), env(safe-area-inset-top,16px)) 16px 0",
+          paddingTop:`calc(max(var(--hui-safe-top, 0px), env(safe-area-inset-top, 0px)) + 16px)`,
           background:T.cream,
           flexShrink:0,
         }}>

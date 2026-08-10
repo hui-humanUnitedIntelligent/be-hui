@@ -507,7 +507,7 @@ export default function MeineResonanz({ onClose, onNavigate }) {
         background:"rgba(247,245,240,0.95)",
         backdropFilter:"blur(24px)", WebkitBackdropFilter:"blur(24px)",
         borderBottom:"1px solid " + T.border,
-        paddingTop:"max(52px, env(safe-area-inset-top, 52px))",
+        paddingTop:"max(var(--hui-safe-top, 0px), 52px, env(safe-area-inset-top, 52px))",
         WebkitTransform:"translateZ(0)", transform:"translateZ(0)",
       }}>
         <div style={{ display:"flex", alignItems:"center", gap:10, padding:"14px " + T.px + "px 10px" }}>

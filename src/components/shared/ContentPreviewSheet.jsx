@@ -227,7 +227,7 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
         onTouchEnd={handleDragEnd}
         style={{
           width:"100%", maxWidth:560,
-          maxHeight:"calc(92dvh - env(safe-area-inset-top, 44px))",
+          maxHeight:"calc(92dvh - max(var(--hui-safe-top, 0px), env(safe-area-inset-top, 44px)))",
           overflowY:"auto",
           background:T.sheet, borderTopLeftRadius:24, borderTopRightRadius:24,
           boxShadow:"0 -8px 40px rgba(20,24,22,0.25)",

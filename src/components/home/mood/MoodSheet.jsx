@@ -36,7 +36,7 @@ export default function MoodSheet({ activeMood, onSelect, onClose }) {
         onClick={e => e.stopPropagation()}
         style={{
           position:"absolute",
-          top:"calc(env(safe-area-inset-top,0px) + 58px)",
+          top:"calc(max(var(--hui-safe-top, 0px), env(safe-area-inset-top,0px)) + 58px)",
           left:12, right:12,
           background:"rgba(255,251,248,0.97)",
           backdropFilter:"blur(40px) saturate(1.9)",

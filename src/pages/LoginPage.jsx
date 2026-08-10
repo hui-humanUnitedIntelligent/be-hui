@@ -761,7 +761,7 @@ export default function LoginPage() {
       <div style={{
         position: 'relative', zIndex: 1, flex: 1,
         display: 'flex', flexDirection: 'column',
-        padding: 'max(24px,env(safe-area-inset-top,24px)) 20px max(24px,env(safe-area-inset-bottom,24px))',
+        padding: 'max(var(--hui-safe-top, 0px),24px,env(safe-area-inset-top,24px)) 20px max(24px,env(safe-area-inset-bottom,24px))',
         overflowY: 'auto',
       }}>
         {}

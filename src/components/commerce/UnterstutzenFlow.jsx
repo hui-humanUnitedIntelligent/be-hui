@@ -655,7 +655,7 @@ export default function UnterstutzenFlow({
         boxShadow:       "0 -8px 48px rgba(20,20,34,0.18)",
         display:         "flex",
         flexDirection:   "column",
-        maxHeight:       "calc(100vh - env(safe-area-inset-top, 0px) - 24px)",
+        maxHeight:       "calc(100vh - max(var(--hui-safe-top, 0px), env(safe-area-inset-top, 0px)) - 24px)",
         overflowY:       "auto",
         WebkitOverflowScrolling: "touch",
         // TabBar (~66px) + Margin + Puffer — Bezahlen-Button bleibt erreichbar

@@ -412,7 +412,8 @@ function SectionHead({ icon, title, subtitle, cta, onCta }) {
 // ══════════════════════════════════════════════════════════════
 function Header({ onBack, isOwner, onSettings }) {
   return (
-    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:`14px ${T.px}px 10px`,background:T.bg,position:"sticky",top:0,zIndex:10}}>
+    // SAFE-AREA-TOP-FIX (2026-08-10): 3-Ebenen-Fallback wie NAV_SAFE_BOTTOM_CSS
+    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:`max(var(--hui-safe-top, 0px), 14px, env(safe-area-inset-top, 14px)) ${T.px}px 10px`,background:T.bg,position:"sticky",top:0,zIndex:10}}>
       <button className="tpp-press" onClick={onBack}
         style={{width:36,height:36,borderRadius:"50%",background:T.bgCard,border:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:17,cursor:"pointer",touchAction:"manipulation",boxShadow:T.card,color:T.ink}}>
         ‹

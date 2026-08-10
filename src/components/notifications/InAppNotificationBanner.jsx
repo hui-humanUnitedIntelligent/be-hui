@@ -48,7 +48,7 @@ export default function InAppNotificationBanner() {
       onClick={handleTap}
       style={{
         position: "fixed",
-        top: "calc(env(safe-area-inset-top, 0px) + 8px)",
+        top: "calc(max(var(--hui-safe-top, 0px), env(safe-area-inset-top, 0px)) + 8px)",
         left: "50%",
         transform: visible ? "translateX(-50%) translateY(0)" : "translateX(-50%) translateY(-100px)",
         width: "calc(100% - 24px)",

@@ -689,7 +689,7 @@ export default function MeinHUI({
       <style>{KEYFRAMES}</style>
       <div ref={scrollRef} style={screenStyle}>
         <div style={{
-          paddingTop: "max(14px, env(safe-area-inset-top, 14px))",
+          paddingTop: "max(var(--hui-safe-top, 0px), 14px, env(safe-area-inset-top, 14px))",
           paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 120px)",
           ...contentGroupStyle,
         }}>

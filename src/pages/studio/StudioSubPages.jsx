@@ -25,7 +25,7 @@ function SubPageShell({ title, emoji, onBack, children }) {
     }}>
       <div style={{
         display:"flex", alignItems:"center", gap:12,
-        padding:"max(52px,env(safe-area-inset-top,52px)) 20px 16px",
+        padding:"max(var(--hui-safe-top, 0px),52px,env(safe-area-inset-top,52px)) 20px 16px",
         background:"white",
         borderBottom:"1px solid rgba(0,0,0,0.06)",
       }}>

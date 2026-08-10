@@ -278,7 +278,7 @@ export default function StoryComposer({ onClose, onSuccess }) {
 
         {/* Top bar */}
         <div style={{position:"absolute",top:0,left:0,right:0,zIndex:10,
-          padding:"max(16px,env(safe-area-inset-top,16px)) 16px 14px",
+          padding:"max(var(--hui-safe-top, 0px),16px,env(safe-area-inset-top,16px)) 16px 14px",
           display:"flex",alignItems:"center",gap:10,
           background:"linear-gradient(rgba(0,0,0,.4),transparent)"}}>
           <button className="sc-tap" onClick={onClose}

@@ -373,7 +373,7 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
       {/* ── TopBar ── */}
       <div style={{
         position:"relative", zIndex:5, flexShrink:0,
-        padding:"max(50px,env(safe-area-inset-top,50px)) 20px 14px",
+        padding:"max(var(--hui-safe-top, 0px),50px,env(safe-area-inset-top,50px)) 20px 14px",
         background:"rgba(240,238,245,0.88)",
         backdropFilter:"blur(28px) saturate(1.6)",
         WebkitBackdropFilter:"blur(28px) saturate(1.6)",

@@ -331,7 +331,7 @@ export default function CreatorDashboard({ visible, onClose, onOpenProfile }) {
       {/* ── Header ── */}
       <div style={{
         display:"flex",alignItems:"center",justifyContent:"space-between",
-        padding:"max(18px,env(safe-area-inset-top,18px)) 20px 0",
+        padding:"max(var(--hui-safe-top, 0px),18px,env(safe-area-inset-top,18px)) 20px 0",
         flexShrink:0,
       }}>
         <div>
