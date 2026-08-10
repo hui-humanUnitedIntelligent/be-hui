@@ -20,6 +20,7 @@ export default defineConfig({
     modulePreload: false,
 
     rollupOptions: {
+      external: ['@capacitor/filesystem', '@capacitor/share'],
       input: {
         main: 'index.html',
         web: 'web.html',
