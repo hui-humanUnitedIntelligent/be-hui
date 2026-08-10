@@ -4,7 +4,6 @@
 
 import { HUIImpactIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { createPortal } from "react-dom";
 import { EASE, DUR } from "../../design/hui.interaction.js";
 import { optimizeAvatar, optimizeCard } from "../../lib/perfUtils.js";
 import { NAV_CLEARANCE_CSS } from "../home/navigation/navigationGeometry.js";
@@ -164,7 +163,7 @@ export function WerkeKorbButton({ count = 0, onOpen = () => {}, glowing = false 
         position:     "fixed",
         bottom:       `calc(${NAV_CLEARANCE_CSS} + 20px)`,
         right:        16,
-        zIndex:       10500, /* >BottomNav(10000) - Portal-Fix 2026-08-10 */
+        zIndex:       9500,
         width:        50,
         height:       50,
         borderRadius: "50%",
@@ -1020,7 +1019,7 @@ export default function WerkeKorb({
     if (e.target === e.currentTarget) onClose?.();
   }
 
-  return createPortal(
+  return (
     <>
       {/* ── CSS-Keyframes ─────────────────────────────────────── */}
       <style>{`
@@ -1256,7 +1255,6 @@ export default function WerkeKorb({
           </div>
         )}
       </div>
-    </>,
-    document.body
+    </>
   );
 }
