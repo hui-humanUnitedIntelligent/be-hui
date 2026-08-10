@@ -2,6 +2,7 @@
 // Intro-Video beim App-Start. Falls Autoplay blockiert wird → CSS-Animation als Fallback.
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { APP_VERSION } from "../../version.js";
 
 const VIDEO_PATH = "/assets/intro-video.mp4";
 const POSTER_PATH = "/assets/intro-poster.jpg";
@@ -15,8 +16,36 @@ export default function IntroVideoScreen() {
   const [fading, setFading] = useState(false);
   const [done, setDone] = useState(false);
   const [showFallback, setShowFallback] = useState(false);
+  const [versionLabel, setVersionLabel] = useState(`v${APP_VERSION}`);
   const finishedRef = useRef(false);
   const videoStartedRef = useRef(false);
+
+  // OTA-Check: Aktuelle Version oder "Update auf x.x.x" anzeigen
+  useEffect(() => {
+    const checkUpdate = async () => {
+      try {
+        const resp = await fetch("https://be-hui.vercel.app/app-version.json", { cache: "no-store" });
+        if (!resp.ok) return;
+        const data = await resp.json();
+        const serverVersion = data.version;
+        if (!serverVersion) return;
+        // Vergleiche Versionen
+        const pa = String(serverVersion).split(".").map(Number);
+        const pb = String(APP_VERSION).split(".").map(Number);
+        let isNewer = false;
+        for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+          const va = pa[i] || 0;
+          const vb = pb[i] || 0;
+          if (va > vb) { isNewer = true; break; }
+          if (va < vb) break;
+        }
+        if (isNewer) {
+          setVersionLabel(`Update auf v${serverVersion}`);
+        }
+      } catch (e) { /* offline — zeige aktuelle Version */ }
+    };
+    checkUpdate();
+  }, []);
 
   const finish = useCallback((reason) => {
     if (finishedRef.current) return;
@@ -111,6 +140,24 @@ export default function IntroVideoScreen() {
           transition: "opacity 400ms ease-out",
         }}
       />
+      {/* Versions-Anzeige — nur während des Intro-Videos */}
+      <div style={{
+        position: "absolute",
+        bottom: "calc(24px + env(safe-area-inset-bottom, 0px))",
+        left: 0, right: 0,
+        textAlign: "center",
+        color: "rgba(255,255,255,0.55)",
+        fontSize: "12px",
+        fontWeight: 500,
+        fontFamily: "Inter, system-ui, sans-serif",
+        letterSpacing: "0.5px",
+        zIndex: 1,
+        pointerEvents: "none",
+        opacity: showFallback ? 0 : (fading ? 0 : 1),
+        transition: "opacity 400ms ease-out",
+      }}>
+        {versionLabel}
+      </div>
       {showFallback && (
         <div style={{
           position: "absolute", top: 0, left: 0, width: "100vw", height: "100dvh",
