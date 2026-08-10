@@ -131,43 +131,6 @@ export async function prefetchProfile(profileId) {
     .catch(() => {});
 }
 
-// ─── HEADER-INSTANT-FIX (2026-08-10) ──────────────────────────────
-// Root Cause: Der In-Memory prewarm-Cache (readCache) lebt nur im
-// laufenden JS-Modul und wird bei JEDEM App-Neustart geleert. Das
-// eigene Profil wird nie über eine Discover-Karte "vorgewärmt" (das
-// passiert nur bei fremden Profilen via prefetchProfile), daher
-// musste der Header bei jedem Öffnen des eigenen Profils komplett auf
-// den Netzwerk-Request warten, bevor Avatar/Cover zu rendern begannen
-// -- das war die sichtbare Verzögerung.
-// Fix: Zusätzlicher, persistenter localStorage-Cache (überlebt App-
-// Neustarts) für die zuletzt erfolgreich geladenen Profil-Header-Felder
-// (nur öffentliche Felder, keine Telefonnummer/PII). Wird als zweite
-// Instant-Render-Stufe genutzt, WENN der In-Memory-Cache leer ist —
-// die normale Netzwerk-Aktualisierung im Hintergrund bleibt unverändert
-// bestehen und überschreibt den Cache anschließend mit frischen Daten.
-const OWN_PROFILE_CACHE_PREFIX = "hui_profile_cache_v1:";
-
-export function readPersistedProfile(profileId) {
-  if (!profileId) return null;
-  try {
-    const raw = localStorage.getItem(OWN_PROFILE_CACHE_PREFIX + profileId);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    return (parsed && typeof parsed === "object") ? parsed : null;
-  } catch {
-    return null;
-  }
-}
-
-export function writePersistedProfile(profileId, data) {
-  if (!profileId || !data) return;
-  try {
-    localStorage.setItem(OWN_PROFILE_CACHE_PREFIX + profileId, JSON.stringify(data));
-  } catch {
-    // Storage voll/deaktiviert (z.B. privater Modus) — nicht kritisch, ignorieren
-  }
-}
-
 export function clearQueryCache(keyPrefix) {
   if (!keyPrefix) { _queryCache.clear(); return; }
   for (const k of _queryCache.keys()) {

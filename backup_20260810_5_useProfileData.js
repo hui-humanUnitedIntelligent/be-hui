@@ -8,7 +8,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { ProfileService } from '../services/db';
-import { readCache, readPersistedProfile, writePersistedProfile } from "../lib/perfUtils.js";
+import { readCache } from "../lib/perfUtils.js";
 import { supabase } from "../lib/supabaseClient.js";
 
 
@@ -100,29 +100,9 @@ export function useProfileData(profileId, includePrivate = false) {
       setLoading(false); // → Instant Render mit Prewarm-Daten
     }
 
-    // 1b. HEADER-INSTANT-FIX (2026-08-10): Falls der In-Memory-Prewarm-Cache
-    // leer ist (z.B. nach App-Neustart — passiert v.a. beim eigenen Profil,
-    // das nie über eine Discover-Karte vorgewärmt wird), zweite Instant-
-    // Render-Stufe aus dem persistenten localStorage-Cache. Zeigt sofort die
-    // zuletzt bekannten Avatar/Cover-Daten, bevor der Netzwerk-Request
-    // überhaupt gestartet ist. Wird unten nach erfolgreichem Fetch mit
-    // frischen Daten überschrieben.
-    let persistedProfile = null;
-    if (!prewarmData?.data) {
-      persistedProfile = readPersistedProfile(profileId);
-      if (persistedProfile) {
-        setProfile(persistedProfile);
-        setFollowCounts({
-          followers: persistedProfile.followers_count ?? 0,
-          following: 0,
-        });
-        setLoading(false); // → Instant Render mit persistierten Daten
-      }
-    }
-
     // 2. Volle Daten asynchron nachladen (Hintergrund)
     const myId = ++requestId.current;
-    if (!prewarmData?.data && !persistedProfile) setLoading(true);
+    if (!prewarmData?.data) setLoading(true);
     setError(null);
 
     try {
@@ -159,8 +139,8 @@ export function useProfileData(profileId, includePrivate = false) {
       }
 
       if (profileRes.error || !profileRes.data) {
-        // Nur Fehler setzen wenn wir keine Prewarm- ODER persistierten Daten haben
-        if (!prewarmData?.data && !persistedProfile) {
+        // Nur Fehler setzen wenn wir keine Prewarm-Daten haben
+        if (!prewarmData?.data) {
           setError(profileRes.error?.message || "Profil nicht gefunden");
           setLoading(false);
         }
@@ -187,8 +167,6 @@ export function useProfileData(profileId, includePrivate = false) {
         followers: raw.followers_count ?? prev.followers ?? 0,
         following: prev.following ?? 0,
       }));
-      // HEADER-INSTANT-FIX: frische Daten persistieren für den nächsten App-Start
-      writePersistedProfile(profileId, normalizedProfile);
 
     } catch (err) {
       if (myId !== requestId.current) return;
