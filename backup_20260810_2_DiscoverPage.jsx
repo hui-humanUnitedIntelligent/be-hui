@@ -1555,7 +1555,7 @@ function isCacheValid() {
 }
 // ───────────────────────────────────────────────────────────────
 
-export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal }) {
+export default function DiscoverPage({ onView, onMap, onBook }) {
   const view = "cards"; // Fest auf Kacheln — Listenansicht-Umschaltung 2026-08-06 entfernt (Buttons raus)
   const [loading, setLoading] = useState(true);
   const [people, setPeople]           = useState([]);
@@ -2209,15 +2209,6 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
 
   // Modal-States (lazy — erst beim Öffnen initialisiert)
   const [showMenschenModal,   setShowMenschenModal]   = useState(false);
-
-  // ── Deep-Link: "Menschen entdecken"-Button im Chat (ImpactCard) ──────────
-  // openMenschenSignal ist ein hochzählender Counter aus Home.jsx. DiscoverPage
-  // bleibt als Keep-Alive-Tab immer gemountet, daher öffnet jede Änderung des
-  // Signals (auch wenn man schon auf dem Discover-Tab war) zuverlässig das
-  // MenschenAllModal — statt nur zur eigenen Sektion zu springen.
-  useEffect(() => {
-    if (openMenschenSignal) setShowMenschenModal(true);
-  }, [openMenschenSignal]);
   const [showWerkeModal,      setShowWerkeModal]      = useState(false);
   const [showTalenteModal,    setShowTalenteModal]     = useState(false);
   const [showErlebnisseModal, setShowErlebnisseModal]  = useState(false);

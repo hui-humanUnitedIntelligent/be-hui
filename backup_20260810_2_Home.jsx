@@ -145,10 +145,6 @@ function HomeInner() {
   const [shareItem, setShareItem] = useState(null); // SHARE.2: HUI Share Modal
   // Steuert MeinHUI's eigene Exit-Choreografie: Content fadet zuerst, dann schrumpft der Orb
   const [meinHuiClosing, setMeinHuiClosing] = useState(false);
-  // Deep-Link-Signal: "Menschen entdecken"-Button im Chat → öffnet MenschenAllModal
-  // auf dem Discover-Tab. Counter statt boolean, damit auch ein erneuter Klick
-  // (während man schon auf dem Discover-Tab ist) das Modal zuverlässig öffnet.
-  const [openMenschenSignal, setOpenMenschenSignal] = useState(0);
 
   // ── Soft Transition — Schließen, spiegelbildlich zum Öffnen ──────────
   // 1. Inhalte verschwinden zuerst (0-180ms)       — via MeinHUI `closing` Prop
@@ -575,7 +571,6 @@ function HomeInner() {
                       // Erlebnis aus DiscoverPage → ExperienceBookingFlow
                       setShowBookingFlow(item);
                     }}
-                    openMenschenSignal={openMenschenSignal}
                   />
               </SafeRender>
             </Suspense>
@@ -763,9 +758,6 @@ function HomeInner() {
               setChatRecipient(null);
               flow.clearReturnProfile();
               handleTab("discover");
-              // "Menschen entdecken" (ImpactCard) → direkt das MenschenAllModal
-              // ("Inspirierende Menschen") öffnen statt nur zum Discover-Tab zu springen
-              setOpenMenschenSignal(s => s + 1);
             }}
           />
         </SafeRender>
