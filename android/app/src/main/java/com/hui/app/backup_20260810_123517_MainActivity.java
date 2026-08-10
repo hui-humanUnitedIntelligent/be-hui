@@ -84,39 +84,21 @@ public class MainActivity extends BridgeActivity {
             // Overscroll-Glow deaktivieren (PTR übernimmt die Geste)
             webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
 
-            // ── Safe-Area + Keyboard(IME)-Insets als CSS-Variablen injizieren ──
-            // KEYBOARD-FIX (2026-08-10): Root Cause des systemweiten
-            // "Tastatur verdeckt Eingabefeld"-Bugs gefunden. Vorher wurde hier
-            // IMMER `WindowInsetsCompat.CONSUMED` zurückgegeben — das verschluckt
-            // ALLE Inset-Typen inkl. ime() bevor sie die WebView/Chromium-eigene
-            // interne IME-Resize-Logik erreichen (die normalerweise über das
-            // <meta viewport interactive-widget=resizes-content> + visualViewport
-            // laufen würde). Dadurch hat window.visualViewport.height sich NIE
-            // korrekt verändert, wenn die Tastatur aufging — der bestehende
-            // useKeyboardInset.js-Hook (visualViewport-basiert) bekam daher immer
-            // nur 0px zurück, egal ob Tastatur offen war oder nicht.
-            //
-            // Fix: 1) Nur die Typen KONSUMIEREN, die wir hier selbst auswerten
-            //         (systemBars + displayCutout) — ime() bleibt unkonsumiert
-            //         und läuft weiter zur Standard-WebView-Behandlung durch.
-            //      2) ZUSÄTZLICH ime()-Inset selbst auslesen und als eigene,
-            //         robuste native CSS-Variable + Custom-Event injizieren —
-            //         als Fallback/Ergänzung falls die Chromium-eigene
-            //         visualViewport-Erkennung auf einzelnen Geräten (Xiaomi
-            //         HyperOS u.ä.) trotzdem nicht zuverlässig feuert.
+            // ── Safe-Area-Insets als CSS-Variablen in die WebView injizieren ──
+            // env(safe-area-inset-bottom) funktioniert auf Android nur zuverlässig
+            // mit Edge-to-Edge + overlaysWebView=true. Zur Sicherheit lesen wir die
+            // echten WindowInsets aus und injizieren sie als CSS-Variablen.
             webView.post(() -> {
                 ViewCompat.setOnApplyWindowInsetsListener(webView, (v, insets) -> {
                     Insets systemBars = insets.getInsets(
                         WindowInsetsCompat.Type.systemBars() |
                         WindowInsetsCompat.Type.displayCutout()
                     );
-                    Insets imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime());
 
                     int bottomPx = systemBars.bottom;
                     int topPx    = systemBars.top;
                     int leftPx   = systemBars.left;
                     int rightPx  = systemBars.right;
-                    int imeBottomPx = imeInsets.bottom;
 
                     float density = getResources().getDisplayMetrics().density;
                     // px → dp für CSS-Kompatibilität
@@ -124,7 +106,6 @@ public class MainActivity extends BridgeActivity {
                     int topDp    = Math.round(topPx    / density);
                     int leftDp   = Math.round(leftPx   / density);
                     int rightDp  = Math.round(rightPx  / density);
-                    int imeDp    = Math.round(imeBottomPx / density);
 
                     // CSS-Variablen in die WebView injizieren
                     String js = "javascript:(function(){" +
@@ -139,26 +120,13 @@ public class MainActivity extends BridgeActivity {
                         "  left:"   + leftDp   + "," +
                         "  right:"  + rightDp  +
                         "};" +
-                        // Natives Keyboard-Inset-Signal (SSOT-Ergänzung, siehe
-                        // src/hooks/useKeyboardInset.js — wird dort zusammen mit
-                        // visualViewport gemerged, jeweils der größere Wert gewinnt)
-                        "window.__HUI_NATIVE_KEYBOARD_INSET = " + imeDp + ";" +
-                        "window.dispatchEvent(new CustomEvent('hui:native-keyboard-inset', {detail:{inset:" + imeDp + "}}));" +
                         "})()";
                     webView.evaluateJavascript(js, null);
 
-                    // Nur systemBars + displayCutout konsumieren — ime() UND alle
-                    // anderen Typen (z.B. tappableElement) unangetastet weiterreichen,
-                    // damit Chromiums eigene IME-Resize-Logik weiterhin greifen kann.
-                    return new WindowInsetsCompat.Builder(insets)
-                        .setInsets(
-                            WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout(),
-                            Insets.NONE
-                        )
-                        .build();
+                    return WindowInsetsCompat.CONSUMED;
                 });
 
-                // Einmal sofort auslösen (danach bei jeder Rotation/Resize/Tastatur erneut)
+                // Einmal sofort auslösen (danach bei jeder Rotation/Resize erneut)
                 ViewCompat.requestApplyInsets(webView);
             });
         }

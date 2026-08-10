@@ -7,16 +7,9 @@ import './index.css'
 import { initSentry, sentryCapture } from './lib/sentry'
 import { initAppPerformance } from './lib/appPerformance.js'
 import { initOTA, autoCheckOTA } from './lib/otaUpdate.js'
-import { initGlobalKeyboardHandling } from './lib/globalKeyboardHandler.js'
 
 initSentry()
 initAppPerformance();
-
-// KEYBOARD-FIX (2026-08-10): Globales, framework-weites Keyboard-Handling —
-// scrollt JEDES fokussierte Textfeld automatisch sichtbar, sobald die
-// Systemtastatur aufgeht. Kein Setup pro Screen nötig (siehe
-// src/lib/globalKeyboardHandler.js für die volle Erklärung).
-initGlobalKeyboardHandling();
 
 // OTA (2026-08-08): Over-the-Air Updates — lädt neue Web-Bundles automatisch.
 // notifyAppReady MUSS innerhalb ~10s nach Start gerufen werden, sonst rollt
