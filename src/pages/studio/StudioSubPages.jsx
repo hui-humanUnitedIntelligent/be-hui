@@ -4,6 +4,7 @@ import React from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { formatDateDE } from "../../lib/formatters.js";
+import { HUILogo } from "../../components/brand/HUILogo.jsx";
 
 const C = {
   teal:   "#16D7C5",
@@ -201,15 +202,13 @@ export function MeineInhaltePage({ onBack }) {
                 background:"#f0efed", position:"relative",
               }}>
                 {item.cover_url
-                  ? <img loading="lazy" decoding="async" src={item.cover_url} alt=""
-                      style={{ width:"100%", height:"100%", objectFit:"cover",
-                               position:"absolute", inset:0 }}/>
+                  ? <img loading="lazy" decoding="async" src={item.cover_url} alt="" style={{ width:"100%", height:"100%", objectFit:"cover", position:"absolute", inset:0 }} onError={e=>{e.target.style.display="none"; const sib=e.target.nextSibling; if(sib) sib.style.display="flex";}}/>
                   : <div style={{
                       position:"absolute", inset:0,
                       display:"flex", alignItems:"center",
                       justifyContent:"center", fontSize:22,
                     }}>
-                      {item._type === "werk" ? "🎨" : "🎟"}
+                      <HUILogo size={32} style={{opacity:0.5}} />
                     </div>
                 }
               </div>

@@ -6,6 +6,7 @@
 // Filter: Visitor sieht nur approved/published. Owner sieht alle.
 // ══════════════════════════════════════════════════════════════════════
 import { HUIWerkeIcon, HUIWarnIcon } from '../../../design/icons/HuiSystemIcons.jsx';
+import { HUILogo } from '../../brand/HUILogo.jsx';
 import React, { useState } from "react";
 import { supabase } from "../../../lib/supabaseClient.js";
 import { optimizeCard } from "../../../lib/perfUtils.js";
@@ -174,9 +175,9 @@ export function WorksSection({
                     background:"linear-gradient(135deg,#2C3B2D,#4A6741)", boxShadow:T.card }}>
                     {w.cover_url
                       ? <img loading="lazy" decoding="async" src={optimizeCard(w.cover_url)} alt={w.title||""} style={{ width:"100%",height:"100%",objectFit:"cover" }}
-                          onError={e=>e.target.style.display="none"}/>
+                          onError={e=>{ e.target.style.display="none"; e.target.nextSibling?.style?.setProperty("display","flex"); }}/>
                       : <div style={{ width:"100%",height:"100%",display:"flex",alignItems:"center",
-                          justifyContent:"center" }}><HUIWerkeIcon size={24} style={{color:"rgba(14,196,184,0.5)"}}/></div>}
+                          justifyContent:"center" }}><HUILogo size={36} style={{opacity:0.5}} /></div>}
                   </div>
 
                   {/* approval Badge — nur Owner */}

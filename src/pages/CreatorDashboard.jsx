@@ -11,6 +11,7 @@ import { useAuth }           from "../lib/AuthContext";
 import { supabase }          from "../lib/supabaseClient.js";
 import { getCreatorSummary, bookingService, supportService, salesService }
   from "../services/creatorEconomy.js";
+import { HUILogo } from "../components/brand/HUILogo.jsx";
 
 // ── Design ───────────────────────────────────────────────────────────
 const T = {

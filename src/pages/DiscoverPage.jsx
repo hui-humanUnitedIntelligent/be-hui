@@ -1009,7 +1009,7 @@ function WerkeSection({
                     <div className="dp-list-thumb-placeholder" style={{ background: w.cover ? "#1A1A18" : medCol.bg }}>
                       {w.cover
                         ? <img loading="lazy" decoding="async" src={w.cover} alt={w.title} style={{ width:"100%", height:"100%", objectFit:"cover", borderRadius:12 }} onError={e => e.currentTarget.style.display="none"}/>
-                        : <span style={{ fontSize:20 }}>🎨</span>
+                        : <HUILogo size={20} style={{opacity:0.5}} />
                       }
                     </div>
                     <div style={{ flex:1, overflow:"hidden" }}>

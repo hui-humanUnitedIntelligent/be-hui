@@ -24,6 +24,7 @@ import { countComments, getComments } from "../lib/commentsService.js";
 import { prefetchComments } from "../lib/commentsPrefetchCache.js";
 import CommentsSheet from "./shared/CommentsSheet.jsx";
 import { formatDateDE } from "../lib/formatters.js";
+import { HUILogo } from "./brand/HUILogo.jsx";
 
 /* ── Design Tokens ─────────────────────────────────────────────────── */
 const C = {
@@ -166,7 +167,7 @@ function ImageGallery({ images, title }) {
           background:"linear-gradient(135deg,#E6FAF8,#FFF2EE)",
           display:"flex", alignItems:"center", justifyContent:"center",
           flexDirection:"column", gap:8 }}>
-          <div style={{ fontSize:52, opacity:0.25 }}>🎨</div>
+          <div style={{ opacity:0.5 }}><HUILogo size={48} /></div>
           <div style={{ fontSize:13, color:C.muted }}>Kein Bild verfügbar</div>
         </div>
       )}
@@ -250,7 +251,7 @@ function RelatedCard({ werk, onClick }) {
           <div style={{ width:"100%", height:"100%",
             background:"linear-gradient(135deg,#E6FAF8,#FFF2EE)",
             display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <span style={{ fontSize:28, opacity:0.3 }}>🎨</span>
+            <HUILogo size={32} style={{opacity:0.3}} />
           </div>
         )}
         <div style={{ position:"absolute", inset:0,

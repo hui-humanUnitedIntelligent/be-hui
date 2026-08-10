@@ -8,6 +8,7 @@
 import React from "react";
 import { useContentPreview } from "../../../context/ContentPreviewContext.jsx"; // OPEN.2 2026-07-08
 import { normalizePostForPreview } from "../../../lib/previewNormalizers.js";
+import { HUILogo } from "../../brand/HUILogo.jsx";
 import { optimizeCard } from "../../../lib/perfUtils.js";
 import { formatDateDE } from "../../../lib/formatters.js";
 
@@ -121,9 +122,8 @@ export function ExperiencesSection({
                 background:"linear-gradient(135deg,#2C3B2D,#8B7355)", marginBottom:6 }}>
                 {ex.cover_url
                   ? <img loading="lazy" decoding="async" src={optimizeCard(ex.cover_url)} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}
-                      onError={e=>e.target.style.display="none"}/>
-                  : <div style={{ width:"100%",height:"100%",display:"flex",alignItems:"center",
-                      justifyContent:"center",fontSize:28 }}>🎭</div>}
+                      onError={e=>{ e.target.style.display="none"; e.target.nextSibling?.style?.setProperty("display","flex"); }}/>
+                  : <div style={{ width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center" }}><HUILogo size={36} style={{opacity:0.5}} /></div>}
               </div>
               <div style={{ fontSize:11.5, fontWeight: 600, color:T.ink, lineHeight:1.3,
                 marginBottom:2, overflow:"hidden", display:"-webkit-box",

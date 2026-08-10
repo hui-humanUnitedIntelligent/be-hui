@@ -2572,10 +2572,8 @@ function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
                   boxShadow: isApproved ? "0 0 0 2px #0EC4B8" : isPending ? "0 0 0 2px #D4A800" : "0 0 0 2px #ff5050",
                 }}>
                 {w.cover_url
-                  ? <img loading="lazy" decoding="async" src={optimizeCard(w.cover_url)} alt={w.title||""}
-                      style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-                  : <div style={{ width:"100%", height:"100%", display:"flex",
-                      alignItems:"center", justifyContent:"center", fontSize:24 }}>🎨</div>
+                  ? <img loading="lazy" decoding="async" src={optimizeCard(w.cover_url)} alt={w.title||""} style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.style.display="none"; const sib=e.target.nextSibling; if(sib) sib.style.display="flex";}}/>
+                  : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}><HUILogo size={36} style={{opacity:0.5}} /></div>
                 }
                 {/* X-Löschen-Button oben rechts */}
                 <button
@@ -2742,10 +2740,8 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
                 boxShadow: `0 0 0 2px ${borderCol}`,
               }}>
               {exp.cover_url
-                ? <img loading="lazy" decoding="async" src={optimizeCard(exp.cover_url)} alt={exp.title||""}
-                    style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-                : <div style={{ width:"100%", height:"100%", display:"flex",
-                    alignItems:"center", justifyContent:"center", fontSize:24 }}>🎟</div>
+                ? <img loading="lazy" decoding="async" src={optimizeCard(exp.cover_url)} alt={exp.title||""} style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.style.display="none"; const sib=e.target.nextSibling; if(sib) sib.style.display="flex";}}/>
+                : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}><HUILogo size={36} style={{opacity:0.5}} /></div>
               }
               {/* X-Löschen-Button oben rechts */}
               <button

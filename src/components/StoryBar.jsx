@@ -12,6 +12,7 @@ import { optimizeAvatar, optimizeCard } from '../lib/perfUtils.js';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../lib/AuthContext';
 import { HUI } from "../design/hui.design.js";
+import { HUILogo } from "./brand/HUILogo.jsx";
 
 const C = {
   teal:HUI.COLOR.teal, coral:HUI.COLOR.coral, gold:HUI.COLOR.gold,
@@ -126,8 +127,7 @@ export function StoryBar({ onStoryClick }) {
                     ) : cover?.media_url ? (
                       <img loading="eager" decoding="async" src={optimizeCard(cover.media_url)} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                     ) : (
-                      <div style={{ width:'100%', height:'100%', background:`linear-gradient(135deg,${C.teal}22,${C.coral}22)`,
-                        display:'flex', alignItems:'center', justifyContent:'center', fontSize:22 }}>✦</div>
+                      <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center' }}><HUILogo size={20} style={{opacity:0.5}} /></div>
                     )}
                   </div>
                 </div>
