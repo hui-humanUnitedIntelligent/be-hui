@@ -510,7 +510,7 @@ function StepPreview({ mode, data, profile, onPublish, publishing }) {
               overflow:"hidden",
             }}>
               {avatar
-                ? <img loading="lazy" decoding="async" src={avatar} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+                ? <img loading="lazy" decoding="async" src={avatar} alt="" style={{ width:"100%", height:"100%", objectFit:"contain" }}/>
                 : name[0]?.toUpperCase()
               }
             </div>
@@ -538,7 +538,7 @@ function StepPreview({ mode, data, profile, onPublish, publishing }) {
               overflow:"hidden", flexShrink:0,
             }}>
               {avatar
-                ? <img loading="lazy" decoding="async" src={avatar} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+                ? <img loading="lazy" decoding="async" src={avatar} alt="" style={{ width:"100%", height:"100%", objectFit:"contain" }}/>
                 : name[0]?.toUpperCase()
               }
             </div>

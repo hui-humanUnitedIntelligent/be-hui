@@ -147,7 +147,7 @@ function BookingCard({ booking, onUpdate }) {
           display:"flex",alignItems:"center",justifyContent:"center",
           fontSize:16,fontWeight: 600,color:T.teal}}>
           {booking?.guest?.avatar_url
-            ? <img loading="lazy" decoding="async" src={booking.guest.avatar_url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+            ? <img loading="lazy" decoding="async" src={booking.guest.avatar_url} alt="" style={{width:"100%",height:"100%",objectFit:"contain"}}/>
             : (booking?.guest?.display_name||"G")[0].toUpperCase()}
         </div>
         <div style={{flex:1,minWidth:0}}>
@@ -215,7 +215,7 @@ function SupportCard({ support }) {
         display:"flex",alignItems:"center",justifyContent:"center",
         fontSize:15,fontWeight: 600,color:T.coral}}>
         {support?.supporter?.avatar_url
-          ? <img loading="lazy" decoding="async" src={support.supporter.avatar_url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+          ? <img loading="lazy" decoding="async" src={support.supporter.avatar_url} alt="" style={{width:"100%",height:"100%",objectFit:"contain"}}/>
           : (support?.supporter?.display_name||"S")[0].toUpperCase()}
       </div>
       <div style={{flex:1,minWidth:0}}>

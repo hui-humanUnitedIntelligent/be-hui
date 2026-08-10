@@ -25,8 +25,8 @@ import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 
 const GALLERY_Z = 20000;
 const SWIPE_THRESHOLD = 60;
-const MAX_ZOOM = 4;
-const DOUBLE_TAP_ZOOM = 2.4;
+const MAX_ZOOM = 3;
+const DOUBLE_TAP_ZOOM = 2;
 
 function touchDist(touches) {
   const [a, b] = touches;

@@ -86,7 +86,7 @@ export default function ImageLightbox() {
       var dx = e.touches[0].clientX - e.touches[1].clientX;
       var dy = e.touches[0].clientY - e.touches[1].clientY;
       var dist = Math.hypot(dx, dy);
-      var newScale = Math.min(Math.max(dragRef.current.pinchStart * (dist / dragRef.current.pinchDist), 1), 4);
+      var newScale = Math.min(Math.max(dragRef.current.pinchStart * (dist / dragRef.current.pinchDist), 1), 3);
       setScale(newScale);
       e.preventDefault();
     } else if (e.touches.length === 1 && dragRef.current.dragging && scale <= 1) {
@@ -113,7 +113,7 @@ export default function ImageLightbox() {
     var now = Date.now();
     if (wasDragging && Math.abs(dragX) < 10 && Math.abs(dragY) < 10) {
       var dt = now - (dragRef.current.lastTap || 0);
-      if (dt < 300 && dt > 60) setScale(function(s) { return s > 1 ? 1 : 2.5; });
+      if (dt < 300 && dt > 60) setScale(function(s) { return s > 1 ? 1 : 2; });
       dragRef.current.lastTap = now;
     }
     setDragY(0); setDragX(0);
