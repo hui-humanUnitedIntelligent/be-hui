@@ -19,10 +19,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
   if (!item) return null;
 
   const title    = item.title || item.text || "";
-  const descRaw  = item._raw?.description || item._raw?.caption || null;
-  // FIX: Normalizer setzt title=text.slice(0,60) wenn kein explizites Titel-Feld
-  // existiert. In dem Fall wäre desc identisch mit title → Dopplung. Skip desc.
-  const desc     = (descRaw && title && (descRaw.trim() === title.trim() || descRaw.trim().startsWith(title.trim()))) ? null : descRaw;
+  const desc     = item._raw?.description || item._raw?.caption || null;
   const price    = item._raw?.price ?? item.price ?? null;
   const category = item._raw?.category || null;
   const tags     = Array.isArray(item.tags) ? item.tags.slice(0,3) : [];

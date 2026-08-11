@@ -50,9 +50,7 @@ export default function ImpactContent({ item, onProfile, onReaction, onShare }) 
 
 const raw   = item._raw || {};
   const title = item.title || raw.project_name || raw.name || "";
-  const descRaw  = item.text  || raw.short_desc   || raw.problem || raw.description || "";
-  // FIX: Normalizer setzt title=text.slice(0,60) → desc könnte identisch sein
-  const desc  = (descRaw && title && (descRaw.trim() === title.trim() || descRaw.trim().startsWith(title.trim()))) ? null : descRaw;
+  const desc  = item.text  || raw.short_desc   || raw.problem || raw.description || "";
   const rank  = raw.rank   || null;
   const goal  = raw.funding_goal       || 0;
   const curr  = raw.current_amount_eur || 0;

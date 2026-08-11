@@ -12,10 +12,7 @@ export default function ExperienceContent({ item, onProfile, onReaction, onShare
   const { open } = useContentPreview(); // OPEN.1 2026-07-08 -- Karte oeffnet jetzt Vorschau statt nichts zu tun
 
   const title       = item.title || item.text || "";
-  const descRaw     = item._raw?.description || item._raw?.caption || null;
-  // FIX: Normalizer setzt title=text.slice(0,60) wenn kein explizites Titel-Feld
-  // existiert. In dem Fall wäre desc identisch mit title → Dopplung. Skip desc.
-  const desc        = (descRaw && title && (descRaw.trim() === title.trim() || descRaw.trim().startsWith(title.trim()))) ? null : descRaw;
+  const desc        = item._raw?.description || item._raw?.caption || null;
   const category    = item._raw?.category || null;
   const timeDisplay = item.timeStart ? item.timeStart.slice(0,5) + " Uhr" : (item.duration || null);
   // Datumsformatierung: "24. Juni"

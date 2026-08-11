@@ -37,9 +37,7 @@ export default function TalentContent({ item, onProfile, onReaction, onShare }) 
 
   const raw      = item._raw || {};
   const title    = item.title  || raw.title       || "";
-  const descRaw  = item.text   || raw.description || "";
-  // FIX: Normalizer setzt title=text.slice(0,60) → desc könnte identisch sein
-  const desc     = (descRaw && title && (descRaw.trim() === title.trim() || descRaw.trim().startsWith(title.trim()))) ? null : descRaw;
+  const desc     = item.text   || raw.description || "";
   const category = raw.category || "";
   const locType  = raw.location_type || null;
   const price    = fmtPrice(raw.price_per_hour, raw.price_per_session, raw.currency);
