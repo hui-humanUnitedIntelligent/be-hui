@@ -4,94 +4,84 @@
 //
 // ZWECK:
 //   Root-Komponente fuer die HUI Web-Version (Browser/Desktop).
-//   Setzt den Provider-Tree auf und konfiguriert das Routing.
-//   Ersetzt App.jsx fuer den Web-Einstiegspunkt (web.html -> web-main.jsx).
+//   Setzt den minimalen Provider-Tree für öffentliche Routen auf und
+//   lädt die vollständige App-Infrastruktur erst nach Authentifizierung.
 //
-// PROVIDER-TREE:
-//   Identisch zur Mobile-App (App.jsx) — alle Context-Provider werden
-//   in derselben Reihenfolge gesetzt. Dadurch haben alle wiederverwendeten
-//   Komponenten denselben Kontext und funktionieren ohne Anpassungen.
+// PROVIDER-TREE (optimiert v2.2):
+//
+//   Öffentlich (/login, /auth/callback):
+//     BrowserRouter → AuthProvider → ToastContainer
+//     → 0 App-Provider, 0 Supabase-Queries, 0 Realtime-Channels
+//
+//   Authentifiziert (alle App-Routen):
+//     + AuthenticatedApp (lazy chunk)
+//     → AppStateProvider → WorldSurfaceProvider → OrbWorldProvider →
+//       GuidanceProvider → RadiusProvider → SavedPostsProvider →
+//       LiveTickerProvider → ContentPreviewProvider → DesktopShell
+//
+//   Vorher (v2.1): Alle 9 Provider mounteten immer — auch auf /login.
+//   Nachher (v2.2): 7 App-Provider + DesktopShell werden als separater
+//   Chunk lazy-geladen und NUR nach erfolgreicher Authentifizierung gemountet.
 //
 // ROUTING:
-//   Auth-Routen (Login, Callback) werden ohne Shell gerendert.
+//   Auth-Routen (Login, Callback) werden ohne Shell und ohne App-Provider gerendert.
 //   Alle anderen Routen werden innerhalb von DesktopShell gerendert.
-//   DesktopShell nutzt <Outlet /> fuer die Kind-Routen.
-//
-// PERFORMANCE (v2.1):
-//   UnifiedFeed und ImpactPage sind lazy-loaded.
-//   Sie werden erst geladen, wenn der Nutzer die entsprechende Route
-//   tatsaechlich besucht. Das reduziert den initialen Download um ~50-80 KB
-//   gzipped (feed-*.js chunk wird nur bei Bedarf geladen).
-//   LoginPage und AuthCallback bleiben eager (werden vor der Auth-
-//   Entscheidung benoetigt).
 //
 // WIEDERVERWENDUNG:
 //   Alle Provider, alle Pages, alle Services, alle Hooks, alle Contexts
 //   werden 1:1 aus der Mobile-App importiert. Keine Duplikate.
-//
-// UNTERSCHIED ZU App.jsx:
-//   - Keine AppEntryController / IntroVideoScreen (Desktop: direkter Start)
-//   - Keine ErrorBoundary mit Chunk-Reload (Desktop: Standard-Fehlerbehandlung)
-//   - DesktopShell statt HomeShell (Sidebar statt Bottom-Nav)
-//   - React Router <Outlet /> statt internem Tab-State
-//   - UnifiedFeed + ImpactPage lazy (App.jsx laedt diese eager fuer Safari)
-//
-// ZUKUNFT:
-//   - Mehrsprachigkeit (i18n Provider kann hier eingefuegt werden)
-//   - Organization Context (fuer Multi-Tenant-Features)
-//   - Theme Provider (Dark Mode fuer Desktop)
 // ══════════════════════════════════════════════════════════════════════════════
 
 import React, { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
-// ── Shared Providers (identisch zu App.jsx) ─────────────────────────────────
-import { AuthProvider } from './lib/AuthContext.jsx';
-import { AppStateProvider } from './lib/AppStateContext.jsx';
-import { WorldSurfaceProvider } from './context/WorldSurfaceContext.jsx';
-import { OrbWorldProvider } from './context/OrbWorldContext.jsx';
-import { GuidanceProvider } from './components/guidance/GuidanceContext.jsx';
-import { RadiusProvider } from './context/RadiusContext.jsx';
-import { SavedPostsProvider } from './context/SavedPostsContext.jsx';
-import { LiveTickerProvider } from './context/LiveTickerContext.jsx';
-import { ContentPreviewProvider } from './context/ContentPreviewContext.jsx';
+// ── Auth Provider (MUSS global sein — auch /login braucht Auth-State) ──────────
+import { AuthProvider, useAuth } from './lib/AuthContext.jsx';
+
+// ── Toast (global — Login-Fehlermeldungen brauchen Toast) ─────────────────────
 import { ToastContainer } from './lib/useToast.jsx';
 
 // ── Eager: Auth-kritische Seiten (vor Auth-Entscheidung benoetigt) ────────────
 import LoginPage from './pages/LoginPage';
 import AuthCallback from './pages/AuthCallback';
 
-// ── Lazy: Alle App-Seiten (separate Chunks, nur bei Bedarf geladen) ──────────
-//   UnifiedFeed (31 Dateien, ~500KB Source) ist der schwerste Chunk.
-//   ImpactPage ist mittel. Beide werden lazy geladen, damit der initiale
-//   Download beim Login-Screen kleiner ist.
-const UnifiedFeed      = lazy(() => import('./feed/UnifiedFeed.jsx'));
-const ImpactPage       = lazy(() => import('./pages/ImpactPage.jsx'));
-const DiscoverPage     = lazy(() => import('./pages/DiscoverPage'));
-const WorkDetailPage   = lazy(() => import('./components/WorkDetailPage'));
-const PublicProfilePage = lazy(() => import('./pages/PublicProfilePage'));
-const MyBasisProfile    = lazy(() => import('./pages/MyBasisProfile'));
-const CreatorStudio    = lazy(() => import('./pages/CreatorStudio'));
+// ── Lazy: Authenticated App (separater Chunk — nur nach Login geladen) ────────
+const AuthenticatedApp = lazy(() => import('./AuthenticatedApp.jsx'));
 
-// ── Desktop Shell ───────────────────────────────────────────────────────────
-import DesktopShell from './components/desktop/DesktopShell.jsx';
-import DesktopHome from './components/desktop/DesktopHome.jsx';
-import DesktopProfile from './components/desktop/DesktopProfile.jsx';
-import DesktopDiscover from './components/desktop/DesktopDiscover.jsx';
-import DesktopStudio from './components/desktop/DesktopStudio.jsx';
-
-// ── Suspense Fallback ────────────────────────────────────────────────────────
-function WebSuspense({ children }) {
+// ── Loading Screen (während Auth-Check) ─────────────────────────────────────
+function LoadingScreen() {
   return (
-    <Suspense
-      fallback={
-        <div className="web-loading">
-          <div className="web-loading-spinner" />
-          <p style={{ fontSize: 13, color: '#8A8A9E' }}>Wird geladen…</p>
-        </div>
-      }
-    >
-      {children}
+    <div className="web-loading">
+      <div className="web-loading-spinner" />
+      <p style={{ fontSize: 13, color: '#8A8A9E' }}>HUI wird geladen…</p>
+    </div>
+  );
+}
+
+// ── Conditional Router ──────────────────────────────────────────────────────
+// Entscheidet basierend auf Auth-Status, welche Provider und Routen gerendert
+// werden. Wenn nicht authentifiziert: nur Login/Callback ohne App-Provider.
+// Wenn authentifiziert: alle App-Provider + DesktopShell-Routen.
+function ConditionalRouter() {
+  const { isAuthenticated, loadingAuth } = useAuth();
+
+  if (loadingAuth) return <LoadingScreen />;
+
+  if (!isAuthenticated) {
+    // ── Öffentliche Routen — KEINE App-Provider ──────────────────────
+    return (
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    );
+  }
+
+  // ── Authentifizierte Routen — alle App-Provider (lazy chunk) ────────
+  return (
+    <Suspense fallback={<LoadingScreen />}>
+      <AuthenticatedApp />
     </Suspense>
   );
 }
@@ -101,49 +91,8 @@ export default function WebApp() {
   return (
     <BrowserRouter basename="/app">
       <AuthProvider>
-        <AppStateProvider>
-          <WorldSurfaceProvider>
-            <OrbWorldProvider>
-              <GuidanceProvider>
-                <RadiusProvider>
-                  <SavedPostsProvider>
-                    <LiveTickerProvider>
-                      <ContentPreviewProvider>
-                        <WebSuspense>
-                          <Routes>
-                            {/* ── Auth-Routen (ohne Shell) ─────────────────── */}
-                            <Route path="/login" element={<LoginPage />} />
-                            <Route
-                              path="/auth/callback"
-                              element={<AuthCallback />}
-                            />
-
-                            {/* ── App-Routen (mit DesktopShell) ────────────── */}
-                            <Route element={<DesktopShell />}>
-                              <Route path="/Home" element={<DesktopHome />} />
-                              <Route path="/discover" element={<DesktopDiscover />} />
-                              <Route path="/impact" element={<ImpactPage />} />
-                              <Route path="/work/:id" element={<WorkDetailPage />} />
-                              <Route path="/profile/me" element={<DesktopProfile />} />
-                              <Route path="/profile/:username" element={<DesktopProfile />} />
-                              <Route path="/studio" element={<DesktopStudio />} />
-                              <Route path="/studio/:section" element={<DesktopStudio />} />
-
-                              {/* ── Redirects ────────────────────────────── */}
-                              <Route path="/" element={<Navigate to="/Home" replace />} />
-                              <Route path="*" element={<Navigate to="/Home" replace />} />
-                            </Route>
-                          </Routes>
-                        </WebSuspense>
-                        <ToastContainer />
-                      </ContentPreviewProvider>
-                    </LiveTickerProvider>
-                  </SavedPostsProvider>
-                </RadiusProvider>
-              </GuidanceProvider>
-            </OrbWorldProvider>
-          </WorldSurfaceProvider>
-        </AppStateProvider>
+        <ToastContainer />
+        <ConditionalRouter />
       </AuthProvider>
     </BrowserRouter>
   );
