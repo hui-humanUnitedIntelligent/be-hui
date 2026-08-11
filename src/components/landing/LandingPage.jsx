@@ -18,7 +18,7 @@
 // ══════════════════════════════════════════════════════════════════════════════
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+
 
 // ── HUI Design Tokens ─────────────────────────────────────────────────────────
 const T = {
@@ -83,9 +83,9 @@ function LandingNav() {
   return (
     <nav className={`lp-nav ${scrolled ? 'lp-nav--scrolled' : ''}`}>
       <div className="lp-nav__inner">
-        <Link to="/" className="lp-nav__logo">
+        <a href="/" className="lp-nav__logo">
           <img src="/assets/brand/hui-logo.png" alt="HUI" />
-        </Link>
+        </a>
 
         <div className="lp-nav__links">
           {navLinks.map((l) => (
@@ -94,8 +94,8 @@ function LandingNav() {
         </div>
 
         <div className="lp-nav__actions">
-          <Link to="/login" className="lp-nav__login">Login</Link>
-          <Link to="/login" className="lp-nav__cta">HUI entdecken →</Link>
+          <a href="/app/login" className="lp-nav__login">Login</a>
+          <a href="/app/login" className="lp-nav__cta">HUI entdecken →</a>
         </div>
 
         <button
@@ -117,9 +117,9 @@ function LandingNav() {
               className="lp-nav__mobile-link"
             >{l.label}</a>
           ))}
-          <Link to="/login" className="lp-nav__mobile-cta" onClick={() => setMobileOpen(false)}>
+          <a href="/app/login" className="lp-nav__mobile-cta" onClick={() => setMobileOpen(false)}>
             HUI entdecken →
-          </Link>
+          </a>
         </div>
       )}
     </nav>
@@ -146,7 +146,7 @@ function HeroSection() {
           und macht aus Begegnungen echte Wirkung.
         </p>
         <div className="lp-hero__cta-row lp-animate" style={{ transitionDelay: '0.4s' }}>
-          <Link to="/login" className="lp-btn lp-btn--primary">HUI entdecken →</Link>
+          <a href="/app/login" className="lp-btn lp-btn--primary">HUI entdecken →</a>
           <a href="#prozess" className="lp-btn lp-btn--ghost">So funktioniert es ↓</a>
         </div>
       </div>
@@ -370,7 +370,7 @@ function PathsSection() {
             >
               <h3 className="lp-paths__card-title">{p.title}</h3>
               <p className="lp-paths__card-text">{p.text}</p>
-              <Link to={p.href} className="lp-paths__card-cta">{p.cta}</Link>
+              <a href="/app/login" className="lp-paths__card-cta">{p.cta}</a>
             </div>
           ))}
         </div>
@@ -413,7 +413,7 @@ function AppSection() {
         </div>
 
         <div className="lp-app__cta-row lp-animate" style={{ transitionDelay: '0.6s' }}>
-          <Link to="/login" className="lp-btn lp-btn--primary">HUI entdecken →</Link>
+          <a href="/app/login" className="lp-btn lp-btn--primary">HUI entdecken →</a>
         </div>
       </div>
     </section>
@@ -436,8 +436,8 @@ function FinalCTA() {
             HUI beginnt mit dir.
           </p>
           <div className="lp-final__cta-row">
-            <Link to="/login" className="lp-btn lp-btn--primary">Jetzt entdecken →</Link>
-            <Link to="/login" className="lp-btn lp-btn--ghost">Mitmachen →</Link>
+            <a href="/app/login" className="lp-btn lp-btn--primary">Jetzt entdecken →</a>
+            <a href="/app/login" className="lp-btn lp-btn--ghost">Mitmachen →</a>
           </div>
         </div>
       </div>
@@ -497,7 +497,7 @@ function LandingFooter() {
               {col.links.map((l) => (
                 l.href.startsWith('#')
                   ? <a key={l.label} href={l.href} className="lp-footer__link">{l.label}</a>
-                  : <Link key={l.label} to={l.href} className="lp-footer__link">{l.label}</Link>
+                  : <a key={l.label} href="/app/login" className="lp-footer__link">{l.label}</a>
               ))}
             </div>
           ))}

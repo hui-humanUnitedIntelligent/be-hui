@@ -98,6 +98,10 @@
       "destination": "/web.html"
     },
     {
+      "source": "/",
+      "destination": "/landing.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
