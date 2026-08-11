@@ -123,35 +123,6 @@ export function AndroidBackButtonHandler({ children }) {
       const currentPath = pathnameRef.current;
       const isRoot = currentPath === "/Home" || currentPath === "/" || currentPath === "/";
 
-      // BACK-BUTTON-TAB-FIX (2026-08-11): Auf /Home sind Profil/Impact/Entdecken
-      // reine State-Tabs (kein URL-Wechsel) — Bug: Zuruecktaste bei aktivem
-      // Nicht-Feed-Tab fuehrte zu inkonsistentem weissem Zwischenzustand statt
-      // direkt zum Home-Feed zu wechseln. Fix: bei Tab != "feed" auf /Home
-      // geht die Zuruecktaste JETZT immer direkt zum Feed-Tab zurueck —
-      // noch VOR dem Root-Exit-Dialog-Check.
-      if (isRoot && typeof window.__HUI_GET_TAB__ === "function") {
-        const currentTab = window.__HUI_GET_TAB__();
-        if (currentTab && currentTab !== "feed" && typeof window.__HUI_BACK_TO_FEED__ === "function") {
-          window.__HUI_BACK_TO_FEED__();
-          return;
-        }
-      }
-
-      // BACK-BUTTON-TAB-FIX (2026-08-11) Fortsetzung: /impact ist eine
-      // eigenstaendige Deep-Link-Route (z.B. aus Bot-Profil/Feed-Karten via
-      // navigate("/impact",{state})) — Zuruecktaste soll auch hier direkt
-      // zum Home-Feed fuehren statt per navigate(-1) in einen unklaren
-      // History-Zwischenzustand zu springen.
-      if (currentPath === "/impact") {
-        if (typeof window.__HUI_BACK_TO_FEED__ === "function") {
-          // Tab-Hook existiert nur wenn /Home bereits im DOM war (History
-          // enthaelt /Home) — dann direkt zu Feed zurueckschalten.
-          window.__HUI_BACK_TO_FEED__();
-        }
-        navigate("/Home", { replace: true });
-        return;
-      }
-
       if (!isRoot) {
         // Check if we can go back in history
         if (window.history.length > 1) {
@@ -163,7 +134,7 @@ export function AndroidBackButtonHandler({ children }) {
         return;
       }
 
-      // d) Auf Root-Route (und bereits im Feed-Tab) → Exit-Bestätigung anzeigen
+      // d) Auf Root-Route → Exit-Bestätigung anzeigen
       setShowExitConfirm(true);
     };
 

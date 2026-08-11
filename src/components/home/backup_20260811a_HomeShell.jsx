@@ -292,25 +292,6 @@ export default function HomeShell({ children }) {
     }
   }, [_setTab, tab, closeAllOverlays, mainScrollRef]);
 
-  // BACK-BUTTON-TAB-FIX (2026-08-11): Globaler Hook fuer AndroidBackButtonHandler
-  // (lebt AUSSERHALB von HomeShell, oberhalb des Routers — braucht daher einen
-  // globalen Bruecken-Zugriff auf tab-state + switchTab, analog zum etablierten
-  // Muster window.__HUI_OPEN_PROFILE__ / window.__HUI_LIGHTBOX__).
-  // Root Cause des Bugs: Profil/Impact/Entdecken sind reine State-Tabs
-  // INNERHALB der /Home-Route (kein URL-Wechsel) — die System-Zuruecktaste
-  // fuehrte bei aktivem Nicht-Feed-Tab zu einem inkonsistenten Zwischenzustand
-  // (weisses Layout, vertauschter Header/Nav-State) statt direkt zum Feed
-  // zurueckzukehren. Fix: bei Tab != "feed" auf /Home geht Zuruecktaste JETZT
-  // direkt zu "feed" statt Exit-Dialog/Browser-Back.
-  React.useEffect(() => {
-    window.__HUI_GET_TAB__ = () => tab;
-    window.__HUI_BACK_TO_FEED__ = () => switchTab("feed");
-    return () => {
-      if (window.__HUI_GET_TAB__) delete window.__HUI_GET_TAB__;
-      if (window.__HUI_BACK_TO_FEED__) delete window.__HUI_BACK_TO_FEED__;
-    };
-  }, [tab, switchTab]);
-
   /* openCreatorDashboard — kanonische Funktion zum Öffnen des Profilbereichs
    * NAV-001: Konsolidiert openOwnProfile + openCreatorDashboard (identisch gewesen).
    * sessionStorage-Key "hui_mein_hui_open" = historischer Naming-Drift (Tab-Key ist "creator").
