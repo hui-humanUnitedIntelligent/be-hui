@@ -708,6 +708,9 @@ function ImpactMoments({ delay, data, onOpenSub }) {
   const moments = data.moments.length > 0 ? data.moments : [
     { icon: "🌱", label: "Dein Weg beginnt", time: "heute", color: T.teal, bg: T.tealSoft, border: "rgba(13,196,181,0.13)" },
   ];
+  // Nur scrollbar machen, wenn tatsächlich genug Kacheln vorhanden sind, um zu scrollen.
+  // Sonst wirkt die Zeile bei 1-2 Kacheln wie ein "loser" Scroller ohne Zweck -> verankert/fixiert.
+  const scrollable = moments.length > 2;
   return (
     <div style={{ padding: "0 20px" }}>
       <FadeUp delay={delay}>
@@ -728,8 +731,11 @@ function ImpactMoments({ delay, data, onOpenSub }) {
         </div>
       </FadeUp>
       <div style={{
-        display: "flex", gap: 9, overflowX: "auto",
-        scrollbarWidth: "none", paddingBottom: 4, WebkitOverflowScrolling: "touch",
+        display: "flex", gap: 9,
+        overflowX: scrollable ? "auto" : "hidden",
+        scrollbarWidth: "none", paddingBottom: 4,
+        WebkitOverflowScrolling: scrollable ? "touch" : "auto",
+        touchAction: scrollable ? "auto" : "pan-y",
       }}>
         {moments.map((m, i) => (
           <FadeUp key={i} delay={delay}>
@@ -1090,40 +1096,64 @@ function ImpulsesDetail({ data }) {
   );
 }
 
-function GenericStatDetail({ item, data }) {
+// Robust fuer BEIDE Quellen: StatsGrid-Kacheln (item.value/item.icon/item.key)
+// UND Journey-Kreise (item.text/item.emoji/item.subKey) -- statKey kommt immer
+// explizit vom Dispatcher (subModal.key), damit die Detail-Zeilen unabhaengig
+// von der Datenform IMMER korrekt befuellt werden.
+function GenericStatDetail({ item, data, statKey }) {
+  const icon = item.icon || item.emoji || "✨";
+  const hasValue = item.value !== undefined && item.value !== null && item.value !== "";
   return (
     <div style={{ padding: 20 }}>
       <div style={{
         background: (item.color || T.teal) + "14", borderRadius: 16, padding: 20,
         textAlign: "center", marginBottom: 20,
       }}>
-        <div style={{ fontSize: 32, marginBottom: 8 }}>{item.icon}</div>
-        <div style={{ fontFamily: FONT, fontSize: 28, fontWeight: 700, color: item.color || T.teal }}>
-          {item.value}
-        </div>
-        <div style={{ fontFamily: FONT, fontSize: 14, color: T.inkSoft }}>
-          {item.label}{item.sub ? ` · ${item.sub}` : ""}
-        </div>
+        <div style={{ fontSize: 32, marginBottom: 8 }}>{icon}</div>
+        {hasValue ? (
+          <>
+            <div style={{ fontFamily: FONT, fontSize: 28, fontWeight: 700, color: item.color || T.teal }}>
+              {item.value}
+            </div>
+            <div style={{ fontFamily: FONT, fontSize: 14, color: T.inkSoft }}>
+              {item.label}{item.sub ? ` · ${item.sub}` : ""}
+            </div>
+          </>
+        ) : (
+          <div style={{ fontFamily: FONT, fontSize: 15, color: T.inkMid, lineHeight: 1.6 }}>
+            {item.text || item.label}
+          </div>
+        )}
       </div>
-      {(item.key === "beginning") && (
+      {(statKey === "beginning") && (
         <>
           <div style={detailRow}>Mitglied seit: <b>{data.daysSince} Tagen</b></div>
-          <div style={detailRow}>Werke: <b>{data.worksCount}</b></div>
+          <div style={detailRow}>Werke veröffentlicht: <b>{data.worksCount}</b></div>
           <div style={detailRow}>Verbindungen: <b>{data.followers}</b></div>
           <div style={detailRow}>Impact: <b>{data.impactEur} €</b></div>
         </>
       )}
-      {(item.key === "year") && (
+      {(statKey === "year") && (
         <>
+          <div style={detailRow}>Jahr: <b>{new Date().getFullYear()}</b></div>
           <div style={detailRow}>Impulse gesät: <b>{data.worksCount + data.ordersCount + data.bookingsCount}</b></div>
           <div style={detailRow}>Projekte unterstützt: <b>{data.projectsCount}</b></div>
+          <div style={detailRow}>Verbindungen gesamt: <b>{data.followers}</b></div>
         </>
       )}
-      {(item.key === "month") && (
-        <div style={detailRow}>Neue Verbindungen diese Woche: <b>{data.newConnectionsThisWeek}</b></div>
+      {(statKey === "month") && (
+        <>
+          <div style={detailRow}>Monat: <b>{new Date().toLocaleDateString("de-DE", { month: "long" })}</b></div>
+          <div style={detailRow}>Neue Verbindungen diese Woche: <b>{data.newConnectionsThisWeek}</b></div>
+          <div style={detailRow}>Werke veröffentlicht: <b>{data.worksCount}</b></div>
+        </>
       )}
-      {(item.key === "today") && (
-        <div style={detailRow}>Heute: <b>{new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}</b></div>
+      {(statKey === "today") && (
+        <>
+          <div style={detailRow}>Heute ist: <b>{new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}</b></div>
+          <div style={detailRow}>Verbindungen: <b>{data.followers}</b></div>
+          <div style={detailRow}>Impulse gesamt: <b>{data.worksCount + data.ordersCount + data.bookingsCount}</b></div>
+        </>
       )}
     </div>
   );
@@ -1266,16 +1296,16 @@ export default function MeinHUI({
           content = <ImpulsesDetail data={wirkData} />;
           break;
         case "beginning":
-          content = item ? <GenericStatDetail item={item} data={wirkData} /> : null;
+          content = item ? <GenericStatDetail item={item} data={wirkData} statKey="beginning" /> : null;
           break;
         case "year":
-          content = item ? <GenericStatDetail item={item} data={wirkData} /> : null;
+          content = item ? <GenericStatDetail item={item} data={wirkData} statKey="year" /> : null;
           break;
         case "month":
-          content = item ? <GenericStatDetail item={item} data={wirkData} /> : null;
+          content = item ? <GenericStatDetail item={item} data={wirkData} statKey="month" /> : null;
           break;
         case "today":
-          content = item ? <GenericStatDetail item={item} data={wirkData} /> : null;
+          content = item ? <GenericStatDetail item={item} data={wirkData} statKey="today" /> : null;
           break;
         case "week":
           content = (
