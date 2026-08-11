@@ -1,18 +1,36 @@
-// src/components/shared/ImageLightbox.jsx — LIGHTBOX.1 (2026-08-08)
+// src/components/shared/ImageLightbox.jsx — LIGHTBOX.5 (2026-08-11)
 // Appweit wiederverwendbare Full-Screen Bildbetrachter-Komponente.
 // Wird ueber den globalen window.__HUI_LIGHTBOX__ Hook geoeffnet:
 //   window.__HUI_LIGHTBOX__.open(images, startIndex)
 //   images: Array von { url, type, alt } (type: "image" | "video")
 //   startIndex: Index des zuerst anzuzeigenden Bildes (Default 0)
+//
+// FIX v5 (2026-08-11) — "Blur-Layer entfernt, nur EIN Bild-Layer":
+//   Der progressive Thumbnail-Blur-Layer aus v4 wurde ENTFERNT (Michael-
+//   Feedback: unnoetiger Blur-Effekt + fuehlte sich wie ein zweites Modal
+//   an). Jetzt: NUR EIN <img>, direkt die volle Aufloesung, kein
+//   Zwischenschritt, kein Hintergrund-Laden. Waehrend das Bild laedt nur
+//   ein dezenter Spinner (kein Blur-Platzhalter). Overlay ist sofort
+//   voll opak (kein Fade-In mehr) um jedes Durchscheinen anderer Modals
+//   dahinter (z.B. ContentPreviewSheet) auszuschliessen.
+//
+// FIX v4 (2026-08-11) — Progressive Loading (ENTFERNT in v5, siehe oben).
+//
+// FIX v3 (2026-08-11) — "in alle Richtungen zoombar":
+//   Live-Pan-Clamping, Focal-Point Pinch-Zoom, e.preventDefault, will-change.
+//
+// FIX v2 (2026-08-11):
+//   Zoom reduziert (1.5x/3x), Back-Button-Logik, SOFORT-Zuruecksetzen.
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 const ANIM_MS = 220;
+const DOUBLE_TAP_SCALE = 1.5;
+const MAX_PINCH_SCALE = 3;
 const CSS = `
-@keyframes huiLbEnter { from { opacity: 0; } to { opacity: 1; } }
-@keyframes huiLbImgEnter { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
 @keyframes huiLbExit { from { opacity: 1; } to { opacity: 0; } }
+@keyframes huiLbSpin { to { transform: rotate(360deg); } }
 `;
 let _cssInjected = false;
 function injectCSS() {
@@ -22,6 +40,19 @@ function injectCSS() {
   document.head.appendChild(s);
 }
 
+function Spinner() {
+  return React.createElement("div", {
+    style: {
+      position: "absolute", top: "50%", left: "50%",
+      width: 32, height: 32, marginTop: -16, marginLeft: -16,
+      borderRadius: "50%",
+      border: "3px solid rgba(255,255,255,0.2)",
+      borderTopColor: "rgba(255,255,255,0.8)",
+      animation: "huiLbSpin 0.7s linear infinite",
+    }
+  });
+}
+
 export default function ImageLightbox() {
   const [images, setImages] = useState(null);
   const [index, setIndex] = useState(0);
@@ -29,11 +60,34 @@ export default function ImageLightbox() {
   const [scale, setScale] = useState(1);
   const [dragY, setDragY] = useState(0);
   const [dragX, setDragX] = useState(0);
-  const dragRef = useRef({ startX:0, startY:0, dragging:false, pinchStart:0, pinchDist:0, lastTap:0 });
+  const [panX, setPanX] = useState(0);
+  const [panY, setPanY] = useState(0);
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const dragRef = useRef({ startX:0, startY:0, dragging:false, pinchStart:0, pinchDist:0, lastTap:0, panStartX:0, panStartY:0, pinchCenterX:0, pinchCenterY:0 });
   const closeTimerRef = useRef(null);
-  const rafRef = useRef(null);
+  const scaleRef = useRef(1);
+  const imgRef = useRef(null);
+  const imgDimsRef = useRef({ w: 0, h: 0 });
+  scaleRef.current = scale;
 
   injectCSS();
+
+  // ── Pan-Clamp: berechnet max PanX/PanY aus echten Bild-Dimensionen × Scale ──
+  function clampPan(pX, pY, s) {
+    var vw = window.innerWidth;
+    var vh = window.innerHeight;
+    var dims = imgDimsRef.current;
+    var imgW = dims.w || vw;
+    var imgH = dims.h || vh;
+    var sw = imgW * s;
+    var sh = imgH * s;
+    var maxPX = Math.max(0, (sw - vw) / 2);
+    var maxPY = Math.max(0, (sh - vh) / 2);
+    return {
+      x: Math.min(Math.max(pX, -maxPX), maxPX),
+      y: Math.min(Math.max(pY, -maxPY), maxPY),
+    };
+  }
 
   useEffect(() => {
     window.__HUI_LIGHTBOX__ = {
@@ -47,8 +101,13 @@ export default function ImageLightbox() {
         if (closeTimerRef.current) { clearTimeout(closeTimerRef.current); closeTimerRef.current = null; }
         setImages(normalized);
         setIndex(Math.min(start || 0, normalized.length - 1));
-        setScale(1); setDragY(0); setDragX(0);
-        rafRef.current = requestAnimationFrame(function() { setVisible(true); });
+        setScale(1); setDragY(0); setDragX(0); setPanX(0); setPanY(0);
+        setImgLoaded(false);
+        scaleRef.current = 1;
+        imgDimsRef.current = { w: 0, h: 0 };
+        // Sofort voll sichtbar — kein Fade-In, damit dahinterliegende Modals
+        // (z.B. ContentPreviewSheet) nie durchscheinen koennen.
+        setVisible(true);
       },
     };
     return function() { delete window.__HUI_LIGHTBOX__; };
@@ -61,43 +120,117 @@ export default function ImageLightbox() {
     return function() { document.body.style.overflow = prev; };
   }, [images]);
 
+  // Loading-State beim Bildwechsel zuruecksetzen
+  useEffect(function() {
+    setImgLoaded(false);
+  }, [index]);
+
+  function onImgLoad(e) {
+    setImgLoaded(true);
+    var img = e.target;
+    var vw = window.innerWidth;
+    var vh = window.innerHeight;
+    var nw = img.naturalWidth || vw;
+    var nh = img.naturalHeight || vh;
+    var ar = nw / nh;
+    var vwAr = vw / vh;
+    if (ar > vwAr) {
+      imgDimsRef.current = { w: vw, h: vw / ar };
+    } else {
+      imgDimsRef.current = { w: vh * ar, h: vh };
+    }
+  }
+
+  var resetZoom = useCallback(function() {
+    setScale(1); setPanX(0); setPanY(0); setDragX(0); setDragY(0);
+    scaleRef.current = 1;
+  }, []);
+
   var close = useCallback(function() {
+    setScale(1); setPanX(0); setPanY(0); setDragX(0); setDragY(0);
+    scaleRef.current = 1;
     setVisible(false);
     closeTimerRef.current = setTimeout(function() {
-      setImages(null); setScale(1); setDragY(0); setDragX(0);
+      setImages(null);
     }, ANIM_MS);
   }, []);
 
-  // BACK-BUTTON: Register so Android back button closes the lightbox
-  useModalRegistration(!!images, close, "ImageLightbox");
+  var handleBack = useCallback(function() {
+    if (scaleRef.current > 1.02) {
+      resetZoom();
+    } else {
+      close();
+    }
+  }, [resetZoom, close]);
+
+  useModalRegistration(!!images, handleBack, "ImageLightbox");
 
   var onTouchStart = useCallback(function(e) {
     if (e.touches.length === 2) {
       var dx = e.touches[0].clientX - e.touches[1].clientX;
       var dy = e.touches[0].clientY - e.touches[1].clientY;
-      dragRef.current = { startX:0, startY:0, dragging:false, pinchStart:scale, pinchDist:Math.hypot(dx,dy), lastTap:0 };
+      var cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      var cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      dragRef.current = {
+        startX:0, startY:0, dragging:false,
+        pinchStart:scale, pinchDist:Math.hypot(dx,dy),
+        lastTap:0, panStartX:panX, panStartY:panY,
+        pinchCenterX:cx, pinchCenterY:cy,
+      };
     } else if (e.touches.length === 1) {
-      dragRef.current = { startX:e.touches[0].clientX, startY:e.touches[0].clientY, dragging:true, pinchStart:0, pinchDist:0, lastTap:dragRef.current.lastTap };
+      dragRef.current = {
+        startX:e.touches[0].clientX, startY:e.touches[0].clientY,
+        dragging:true, pinchStart:0, pinchDist:0,
+        lastTap:dragRef.current.lastTap,
+        panStartX:panX, panStartY:panY,
+        pinchCenterX:0, pinchCenterY:0,
+      };
     }
-  }, [scale]);
+  }, [scale, panX, panY]);
 
   var onTouchMove = useCallback(function(e) {
+    if (e.cancelable) e.preventDefault();
+
     if (e.touches.length === 2 && dragRef.current.pinchDist > 0) {
       var dx = e.touches[0].clientX - e.touches[1].clientX;
       var dy = e.touches[0].clientY - e.touches[1].clientY;
       var dist = Math.hypot(dx, dy);
-      var newScale = Math.min(Math.max(dragRef.current.pinchStart * (dist / dragRef.current.pinchDist), 1), 3);
+      var newScale = Math.min(Math.max(dragRef.current.pinchStart * (dist / dragRef.current.pinchDist), 1), MAX_PINCH_SCALE);
       setScale(newScale);
-      e.preventDefault();
-    } else if (e.touches.length === 1 && dragRef.current.dragging && scale <= 1) {
-      var ddx = e.touches[0].clientX - dragRef.current.startX;
-      var ddy = e.touches[0].clientY - dragRef.current.startY;
-      if (Math.abs(ddy) > Math.abs(ddx) && ddy > 0) {
-        setDragY(ddy); setDragX(0);
-      } else if (Math.abs(ddx) > Math.abs(ddy) && images && images.length > 1) {
-        setDragX(ddx); setDragY(0);
+      if (newScale > 1.02) {
+        var cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        var cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+        var vw = window.innerWidth;
+        var vh = window.innerHeight;
+        var offX = cx - vw / 2;
+        var offY = cy - vh / 2;
+        var scaleRatio = newScale / dragRef.current.pinchStart;
+        var newPanX = dragRef.current.panStartX * scaleRatio + offX * (1 - scaleRatio);
+        var newPanY = dragRef.current.panStartY * scaleRatio + offY * (1 - scaleRatio);
+        var clamped = clampPan(newPanX, newPanY, newScale);
+        setPanX(clamped.x);
+        setPanY(clamped.y);
       } else {
-        setDragY(ddy > 0 ? ddy : 0);
+        setPanX(0); setPanY(0);
+      }
+    } else if (e.touches.length === 1 && dragRef.current.dragging && scale > 1.02) {
+      var pdx = e.touches[0].clientX - dragRef.current.startX;
+      var pdy = e.touches[0].clientY - dragRef.current.startY;
+      var rawX = dragRef.current.panStartX + pdx;
+      var rawY = dragRef.current.panStartY + pdy;
+      var clamped = clampPan(rawX, rawY, scale);
+      setPanX(clamped.x);
+      setPanY(clamped.y);
+      setDragY(0); setDragX(0);
+    } else if (e.touches.length === 1 && dragRef.current.dragging && scale <= 1.02) {
+      var sdx = e.touches[0].clientX - dragRef.current.startX;
+      var sdy = e.touches[0].clientY - dragRef.current.startY;
+      if (Math.abs(sdy) > Math.abs(sdx) && sdy > 0) {
+        setDragY(sdy); setDragX(0);
+      } else if (Math.abs(sdx) > Math.abs(sdy) && images && images.length > 1) {
+        setDragX(sdx); setDragY(0);
+      } else {
+        setDragY(sdy > 0 ? sdy : 0);
       }
     }
   }, [scale, images]);
@@ -105,39 +238,49 @@ export default function ImageLightbox() {
   var onTouchEnd = useCallback(function() {
     var wasDragging = dragRef.current.dragging;
     dragRef.current.dragging = false;
-    if (dragY > 100) { close(); return; }
-    if (Math.abs(dragX) > 60 && images && images.length > 1) {
-      if (dragX < 0 && index < images.length - 1) setIndex(index + 1);
-      else if (dragX > 0 && index > 0) setIndex(index - 1);
+    if (scale > 1.02) {
+      var clamped = clampPan(panX, panY, scale);
+      setPanX(clamped.x);
+      setPanY(clamped.y);
+    } else {
+      if (dragY > 100) { close(); return; }
+      if (Math.abs(dragX) > 60 && images && images.length > 1) {
+        if (dragX < 0 && index < images.length - 1) setIndex(index + 1);
+        else if (dragX > 0 && index > 0) setIndex(index - 1);
+      }
     }
     var now = Date.now();
     if (wasDragging && Math.abs(dragX) < 10 && Math.abs(dragY) < 10) {
       var dt = now - (dragRef.current.lastTap || 0);
-      if (dt < 300 && dt > 60) setScale(function(s) { return s > 1 ? 1 : 2; });
+      if (dt < 300 && dt > 60) {
+        if (scale > 1.02) {
+          setScale(1); setPanX(0); setPanY(0);
+        } else {
+          setScale(DOUBLE_TAP_SCALE); setPanX(0); setPanY(0);
+        }
+      }
       dragRef.current.lastTap = now;
     }
     setDragY(0); setDragX(0);
-  }, [dragY, dragX, close, images, index]);
+  }, [dragY, dragX, close, images, index, scale, panX, panY]);
 
   if (!images) return null;
   var current = images[index];
-  var opacity = visible ? 1 : 0;
 
   return createPortal(
     React.createElement("div", {
       style: {
         position:"fixed", inset:0, zIndex:10600,
-        background:"rgba(0,0,0,0.96)",
+        background:"#000",
         display:"flex", alignItems:"center", justifyContent:"center",
-        opacity: opacity, transition: "opacity "+ANIM_MS+"ms ease",
+        opacity: visible ? 1 : 0,
+        transition: visible ? "none" : "opacity "+ANIM_MS+"ms ease",
         touchAction:"none",
-        animation: visible ? "huiLbEnter 0.22s ease" : "huiLbExit 0.22s ease",
       },
       onTouchStart: onTouchStart,
       onTouchMove: onTouchMove,
       onTouchEnd: onTouchEnd,
     },
-      // Close button
       React.createElement("button", {
         onClick: close,
         style: {
@@ -149,7 +292,6 @@ export default function ImageLightbox() {
           touchAction:"manipulation",
         }
       }, "\u2715"),
-      // Counter
       images.length > 1 && React.createElement("div", {
         style: {
           position:"absolute", top:"max(var(--hui-safe-top, 0px), 16px, env(safe-area-inset-top, 16px))",
@@ -158,23 +300,37 @@ export default function ImageLightbox() {
           zIndex:10, pointerEvents:"none",
         }
       }, (index + 1) + " / " + images.length),
-      // Image container
+      // Spinner nur solange das Bild noch nicht geladen ist — KEIN Blur-Platzhalter.
+      !imgLoaded && current && current.type !== "video" && React.createElement(Spinner),
+      // Image container — EIN einziger Bild-Layer, direkt volle Aufloesung.
       React.createElement("div", {
         style: {
           width:"100%", height:"100%",
           display:"flex", alignItems:"center", justifyContent:"center",
-          transform: "translate("+(dragX*0.3)+"px, "+dragY+"px)",
-          transition: dragY === 0 && dragX === 0 ? "transform 0.2s ease" : "none",
+          transform: scale > 1.02 ? "none" : "translate("+(dragX*0.3)+"px, "+dragY+"px)",
+          transition: (dragY === 0 && dragX === 0 && scale <= 1.02) ? "transform 0.2s ease" : "none",
+          overflow: "hidden",
+          position: "relative",
         }
       },
         current && current.type === "video"
           ? React.createElement("video", {
               src: current.url, controls: true, autoPlay: true, playsInline: true,
-              style: { maxWidth:"100%", maxHeight:"100%", objectFit:"contain", transform:"scale("+scale+")", transition: scale===1?"transform 0.2s ease":"none" }
+              style: { maxWidth:"100%", maxHeight:"100%", objectFit:"contain",
+                transform: "translate("+panX+"px, "+panY+"px) scale("+scale+")",
+                transition: (scale<=1.02 && panX===0 && panY===0) ? "transform 0.2s ease" : "none",
+                willChange: "transform" }
             })
           : React.createElement("img", {
+              ref: imgRef,
               src: current ? current.url : "", alt: current ? current.alt : "", draggable: false,
-              style: { maxWidth:"100%", maxHeight:"100%", objectFit:"contain", transform:"scale("+scale+")", transition: scale===1?"transform 0.2s ease":"none", animation: visible?"huiLbImgEnter 0.28s ease":"none" }
+              onLoad: onImgLoad,
+              style: { maxWidth:"100%", maxHeight:"100%", objectFit:"contain",
+                transform: "translate("+panX+"px, "+panY+"px) scale("+scale+")",
+                transition: (scale<=1.02 && panX===0 && panY===0) ? "transform 0.2s ease" : "none",
+                willChange: "transform",
+                opacity: imgLoaded ? 1 : 0,
+              }
             })
       ),
       // Dot indicators

@@ -24,6 +24,7 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { optimizeFull } from "../../lib/perfUtils.js";
 
 const ANIM_MS = 220;
 const DOUBLE_TAP_SCALE = 1.5;
@@ -63,6 +64,8 @@ export default function ImageLightbox() {
   const [panX, setPanX] = useState(0);
   const [panY, setPanY] = useState(0);
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [imgError, setImgError] = useState(false);
+  const [useRawUrl, setUseRawUrl] = useState(false);
   const dragRef = useRef({ startX:0, startY:0, dragging:false, pinchStart:0, pinchDist:0, lastTap:0, panStartX:0, panStartY:0, pinchCenterX:0, pinchCenterY:0 });
   const closeTimerRef = useRef(null);
   const scaleRef = useRef(1);
@@ -102,7 +105,7 @@ export default function ImageLightbox() {
         setImages(normalized);
         setIndex(Math.min(start || 0, normalized.length - 1));
         setScale(1); setDragY(0); setDragX(0); setPanX(0); setPanY(0);
-        setImgLoaded(false);
+        setImgLoaded(false); setImgError(false); setUseRawUrl(false);
         scaleRef.current = 1;
         imgDimsRef.current = { w: 0, h: 0 };
         // Sofort voll sichtbar — kein Fade-In, damit dahinterliegende Modals
@@ -122,8 +125,18 @@ export default function ImageLightbox() {
 
   // Loading-State beim Bildwechsel zuruecksetzen
   useEffect(function() {
-    setImgLoaded(false);
+    setImgLoaded(false); setImgError(false); setUseRawUrl(false);
   }, [index]);
+
+  function onImgError() {
+    if (!useRawUrl) {
+      // Transform-API-URL fehlgeschlagen -> Fallback auf Original-Datei versuchen
+      setUseRawUrl(true);
+    } else {
+      // Auch die Original-Datei ist fehlgeschlagen -> echte Fehleranzeige statt endlosem Spinner
+      setImgError(true);
+    }
+  }
 
   function onImgLoad(e) {
     setImgLoaded(true);
@@ -300,8 +313,26 @@ export default function ImageLightbox() {
           zIndex:10, pointerEvents:"none",
         }
       }, (index + 1) + " / " + images.length),
-      // Spinner nur solange das Bild noch nicht geladen ist — KEIN Blur-Platzhalter.
-      !imgLoaded && current && current.type !== "video" && React.createElement(Spinner),
+      // Spinner nur solange das Bild noch nicht geladen ist UND kein Fehler vorliegt.
+      !imgLoaded && !imgError && current && current.type !== "video" && React.createElement(Spinner),
+      // Echte Fehleranzeige statt endlosem Spinner, wenn Original UND Transform-URL fehlschlagen.
+      imgError && current && current.type !== "video" && React.createElement("div", {
+        style: {
+          position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)",
+          color:"rgba(255,255,255,0.75)", fontSize:14, textAlign:"center", width:"80%",
+          display:"flex", flexDirection:"column", alignItems:"center", gap:10,
+        }
+      },
+        React.createElement("div", { style:{ fontSize:32 } }, "\u26A0\uFE0F"),
+        React.createElement("div", null, "Bild konnte nicht geladen werden"),
+        React.createElement("button", {
+          onClick: function() { setImgError(false); setUseRawUrl(false); setImgLoaded(false); },
+          style: {
+            marginTop:6, padding:"8px 18px", borderRadius:20, border:"1px solid rgba(255,255,255,0.3)",
+            background:"rgba(255,255,255,0.1)", color:"#fff", fontSize:13, cursor:"pointer",
+          }
+        }, "Erneut versuchen")
+      ),
       // Image container — EIN einziger Bild-Layer, direkt volle Aufloesung.
       React.createElement("div", {
         style: {
@@ -321,10 +352,12 @@ export default function ImageLightbox() {
                 transition: (scale<=1.02 && panX===0 && panY===0) ? "transform 0.2s ease" : "none",
                 willChange: "transform" }
             })
-          : React.createElement("img", {
+          : !imgError && React.createElement("img", {
               ref: imgRef,
-              src: current ? current.url : "", alt: current ? current.alt : "", draggable: false,
+              src: current ? (useRawUrl ? current.url : optimizeFull(current.url)) : "",
+              alt: current ? current.alt : "", draggable: false,
               onLoad: onImgLoad,
+              onError: onImgError,
               style: { maxWidth:"100%", maxHeight:"100%", objectFit:"contain",
                 transform: "translate("+panX+"px, "+panY+"px) scale("+scale+")",
                 transition: (scale<=1.02 && panX===0 && panY===0) ? "transform 0.2s ease" : "none",

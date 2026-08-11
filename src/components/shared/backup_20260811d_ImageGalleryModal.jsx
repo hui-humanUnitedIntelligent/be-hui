@@ -21,7 +21,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
-import { optimizeFull } from "../../lib/perfUtils.js";
 
 const GALLERY_Z = 20000;
 const SWIPE_THRESHOLD = 60;
@@ -85,8 +84,6 @@ export default function ImageGalleryModal({ images, startIndex = 0, onClose = ()
   const [scale, setScale] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [imgLoaded, setImgLoaded] = useState(false);
-  const [imgError, setImgError] = useState(false);
-  const [useRawUrl, setUseRawUrl] = useState(false);
 
   const viewportRef = useRef(null);
   const imgRef = useRef(null);
@@ -117,14 +114,6 @@ export default function ImageGalleryModal({ images, startIndex = 0, onClose = ()
     };
   }
 
-  function onImgError() {
-    if (!useRawUrl) {
-      setUseRawUrl(true);
-    } else {
-      setImgError(true);
-    }
-  }
-
   function onImgLoad(e) {
     setImgLoaded(true);
     var img = e.target;
@@ -143,7 +132,7 @@ export default function ImageGalleryModal({ images, startIndex = 0, onClose = ()
 
   // Loading-State beim Bildwechsel zuruecksetzen
   useEffect(() => {
-    setImgLoaded(false); setImgError(false); setUseRawUrl(false);
+    setImgLoaded(false);
   }, [idx]);
 
   const resetZoom = useCallback(() => { setScale(1); setPan({ x: 0, y: 0 }); }, []);
@@ -253,7 +242,7 @@ export default function ImageGalleryModal({ images, startIndex = 0, onClose = ()
     ? (dragPx / (viewportRef.current?.clientWidth || 1)) * 100
     : 0;
 
-  const showSpinner = !imgLoaded && !imgError;
+  const showSpinner = !imgLoaded;
 
   return createPortal(
     <div
@@ -298,23 +287,6 @@ export default function ImageGalleryModal({ images, startIndex = 0, onClose = ()
         onTouchEnd={onTouchEnd}
       >
         {showSpinner && <Spinner />}
-        {imgError && (
-          <div style={{
-            position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)",
-            color: "rgba(255,255,255,0.75)", fontSize: 14, textAlign: "center", width: "80%",
-            display: "flex", flexDirection: "column", alignItems: "center", gap: 10, zIndex: 6,
-          }}>
-            <div style={{ fontSize: 32 }}>⚠️</div>
-            <div>Bild konnte nicht geladen werden</div>
-            <button
-              onClick={() => { setImgError(false); setUseRawUrl(false); setImgLoaded(false); }}
-              style={{
-                marginTop: 6, padding: "8px 18px", borderRadius: 20, border: "1px solid rgba(255,255,255,0.3)",
-                background: "rgba(255,255,255,0.1)", color: "#fff", fontSize: 13, cursor: "pointer",
-              }}
-            >Erneut versuchen</button>
-          </div>
-        )}
         <div
           style={{
             display: "flex", height: "100%",
@@ -329,28 +301,23 @@ export default function ImageGalleryModal({ images, startIndex = 0, onClose = ()
               overflow: "hidden",
               position: "relative",
             }}>
-              {/* EIN einziger Bild-Layer — direkt volle Aufloesung via optimizeFull (HEIC-sicher),
-                  Fallback auf Original-URL falls Transform-API fehlschlaegt. */}
-              {!(i === idx && imgError) && (
-                <img
-                  ref={i === idx ? imgRef : undefined}
-                  src={i === idx && useRawUrl ? src : optimizeFull(src)}
-                  alt={`Bild ${i + 1} von ${total}`}
-                  onLoad={i === idx ? onImgLoad : undefined}
-                  onError={i === idx ? onImgError : undefined}
-                  onClick={i === idx ? onImageTap : undefined}
-                  draggable={false}
-                  loading={Math.abs(i - idx) <= 1 ? "eager" : "lazy"}
-                  style={{
-                    maxWidth: "100%", maxHeight: "100%", objectFit: "contain",
-                    transform: i === idx ? `translate(${pan.x}px, ${pan.y}px) scale(${scale})` : "none",
-                    transition: dragging ? "none" : "transform 0.2s ease",
-                    userSelect: "none", WebkitUserSelect: "none",
-                    willChange: "transform",
-                    opacity: i === idx ? (imgLoaded ? 1 : 0) : 1,
-                  }}
-                />
-              )}
+              {/* EIN einziger Bild-Layer — direkt volle Aufloesung, kein Blur-Platzhalter. */}
+              <img
+                ref={i === idx ? imgRef : undefined}
+                src={src} alt={`Bild ${i + 1} von ${total}`}
+                onLoad={i === idx ? onImgLoad : undefined}
+                onClick={i === idx ? onImageTap : undefined}
+                draggable={false}
+                loading={Math.abs(i - idx) <= 1 ? "eager" : "lazy"}
+                style={{
+                  maxWidth: "100%", maxHeight: "100%", objectFit: "contain",
+                  transform: i === idx ? `translate(${pan.x}px, ${pan.y}px) scale(${scale})` : "none",
+                  transition: dragging ? "none" : "transform 0.2s ease",
+                  userSelect: "none", WebkitUserSelect: "none",
+                  willChange: "transform",
+                  opacity: i === idx ? (imgLoaded ? 1 : 0) : 1,
+                }}
+              />
             </div>
           ))}
         </div>

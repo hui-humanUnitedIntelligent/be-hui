@@ -209,17 +209,17 @@ const SUPABASE_HOST = (import.meta.env.VITE_SUPABASE_URL || '').replace(/^https?
 // Seitenverhaeltnis des Originals. Betrifft alle 4 Funktionen unten
 // (Avatar/Cover/Card/Thumbnail) gleichermassen, da alle ueber diese eine
 // Funktion laufen. Keine Breite/Groessen-Werte geaendert -- rein additiv.
-export function optimizeImg(url, width = 400, quality = 75) {
+export function optimizeImg(url, width = 400) {
   if (!url || typeof url !== 'string') return url;
   // SVG und lokale Assets nicht optimieren
   if (url.endsWith('.svg') || url.startsWith('/assets/') || url.startsWith('./')) return url;
   // Unsplash mit Size-Param
-  if (url.includes('unsplash.com')) return `${url}&w=${width}&q=${quality}&auto=format`;
+  if (url.includes('unsplash.com')) return `${url}&w=${width}&q=80&auto=format`;
   // Supabase Image Resizing API
   if (SUPABASE_HOST && url.includes(SUPABASE_HOST)) {
-    // Pattern: https://host/storage/v1/object/public/bucket/path → /storage/v1/render/image/public/bucket/path?width=W&quality=Q&resize=contain
+    // Pattern: https://host/storage/v1/object/public/bucket/path → /storage/v1/render/image/public/bucket/path?width=W&quality=75&resize=contain
     if (url.includes('/storage/v1/object/public/')) {
-      return url.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/') + `?width=${width}&quality=${quality}&format=webp&resize=contain`;
+      return url.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/') + `?width=${width}&quality=75&format=webp&resize=contain`;
     }
     // Wenn bereits eine signed URL oder andere Form, nicht verändern
   }
@@ -231,22 +231,6 @@ export function optimizeAvatar(url)  { return optimizeImg(url, 200); }
 export function optimizeCover(url)   { return optimizeImg(url, 800); }
 export function optimizeCard(url)    { return optimizeImg(url, 400); }
 export function optimizeThumbnail(url) { return optimizeImg(url, 150); }
-
-// LIGHTBOX-HEIC-FIX (2026-08-11): Fullscreen-Bildbetrachter (ImageLightbox,
-// ImageGalleryModal) luden bisher die ROHE Original-Datei direkt (current.url).
-// Bilder, die im HEIC-Format hochgeladen wurden (z.B. von iPhones), koennen
-// von KEINEM Browser/WebView in einem <img>-Tag dekodiert werden -> das Bild
-// "poppt auf" (Modal oeffnet), das <img> feuert aber niemals "onLoad" ->
-// endloser Spinner auf schwarzem Hintergrund. Feed-Thumbnails hatten dieses
-// Problem NICHT, weil sie ueber optimizeCard() liefen, was die Supabase
-// Image-Resizing-API (render/image) nutzt -- diese transkodiert JEDE
-// Quelle (auch HEIC) verlustfrei zu WebP. Fix: Lightbox/Galerie nutzen jetzt
-// optimizeFull() (grosse Breite 1600px, hohe Qualitaet 90) statt der rohen
-// Original-URL -- garantiert dekodierbares WebP, unabhaengig vom
-// Upload-Quellformat. Kombiniert mit onError-Fallback (roh-URL -> Original,
-// falls Transform-API mal nicht verfuegbar ist) und einer echten
-// Fehleranzeige statt endlosem Spinner, falls beides fehlschlaegt.
-export function optimizeFull(url) { return optimizeImg(url, 1600, 90); }
 
 export function normalizeProfileInput(raw) {
   return normalizeProfile(raw);
