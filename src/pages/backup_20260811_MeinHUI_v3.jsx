@@ -13,7 +13,6 @@ import { supabase } from "../lib/supabaseClient.js";
 import { APP_VERSION } from "../version";
 import { optimizeAvatar } from "../lib/perfUtils.js";
 import { useHuiActions, A } from "../core/hui.actions.js";
-import { HUILogo } from "../components/brand/HUILogo.jsx";
 
 // ─────────────────────────────────────────────────────────────────
 // DESIGN TOKENS (gleiche wie v5.0)
@@ -345,30 +344,114 @@ function ProfileHeader({ profile, onClose, delay }) {
 // ─────────────────────────────────────────────────────────────────
 // ORB HERO (zentraler Orb mit Atmosphäre)
 // ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
+// AMBIENT LEAVES — dekorative Partikel um den Orb
+// ─────────────────────────────────────────────────────────────────
+const LEAVES = [
+  { size: 5, col: T.sage,  "--px": "-28px", "--py": "-38px", "--pr": "-22deg", dur: "8.5s", del: "0s"   },
+  { size: 4, col: T.teal,  "--px": "26px",  "--py": "-32px", "--pr": "18deg",  dur: "9.8s", del: "2.1s" },
+  { size: 6, col: T.gold,  "--px": "-20px", "--py": "30px",  "--pr": "-12deg", dur: "7.9s", del: "1.3s" },
+  { size: 3, col: T.sage,  "--px": "22px",  "--py": "26px",  "--pr": "15deg",  dur: "10.2s","del": "3.4s"},
+];
+
+// ─────────────────────────────────────────────────────────────────
+// ORB HERO — zentraler Orb mit Atmosphäre (Original-Layout, echte Daten)
+// ─────────────────────────────────────────────────────────────────
 function OrbHero({ data, coreDelay, infoDelay }) {
   return (
-    <div style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 200, paddingTop: 16, paddingBottom: 8 }}>
-      {/* Atmosphäre */}
-      <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 260, height: 260, borderRadius: "50%", background: `radial-gradient(circle, ${T.teal}14 0%, transparent 70%)`, animation: "mh-atm-outer 8s ease-in-out infinite", pointerEvents: "none" }} />
-      <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 180, height: 180, borderRadius: "50%", background: `radial-gradient(circle, ${T.coral}10 0%, transparent 70%)`, animation: "mh-atm-mid 6s ease-in-out infinite", pointerEvents: "none" }} />
+    <div style={{ position: "relative", textAlign: "center", padding: "24px 0 16px" }}>
 
-      {/* Orb (HUI Logo) */}
-      <FadeUp delay={coreDelay}>
+      {/* Block 1 — Orb */}
+      <FadeUp delay={coreDelay} style={{ position: "relative" }}>
+
+        {/* Atmosphärische Hintergrundstrahlung */}
         <div style={{
-          width: 88, height: 88, borderRadius: "50%",
-          background: T.white,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          boxShadow: "0 8px 32px rgba(190,100,20,0.16), 0 2px 8px rgba(0,0,0,0.05)",
-          animation: "mh-orb-breathe 4s ease-in-out infinite",
-          position: "relative", zIndex: 1,
+          position: "absolute", top: "50%", left: "50%",
+          width: 340, height: 340, marginTop: -170, marginLeft: -170,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(255,190,70,0.07) 0%, rgba(13,196,181,0.05) 45%, transparent 72%)",
+          animation: "mh-atm-outer 9s ease-in-out infinite",
+          pointerEvents: "none",
+        }} />
+        <div style={{
+          position: "absolute", top: "50%", left: "50%",
+          width: 240, height: 240, marginTop: -120, marginLeft: -120,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(255,205,80,0.16) 0%, rgba(244,115,85,0.10) 40%, rgba(13,196,181,0.04) 70%, transparent 100%)",
+          animation: "mh-atm-mid 7s ease-in-out 0.8s infinite",
+          pointerEvents: "none",
+        }} />
+        <div style={{
+          position: "absolute", top: "50%", left: "50%",
+          width: 150, height: 150, marginTop: -75, marginLeft: -75,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(255,255,255,0.92) 0%, rgba(255,215,90,0.30) 50%, transparent 100%)",
+          animation: "mh-atm-core 5s ease-in-out 0.3s infinite",
+          pointerEvents: "none",
+        }} />
+
+        {/* Resonanzwellen */}
+        {[{ del: "0s" }, { del: "3.5s" }].map((w, i) => (
+          <div key={i} style={{
+            position: "absolute", top: "50%", left: "50%",
+            width: 180, height: 180, marginTop: -90, marginLeft: -90,
+            borderRadius: "50%",
+            border: "1px solid rgba(13,196,181,0.18)",
+            animation: `mh-resonance 7s ease-out ${w.del} infinite`,
+            pointerEvents: "none",
+          }} />
+        ))}
+
+        <div style={{
+          position: "absolute", top: "50%", left: "50%",
+          width: 210, height: 210, marginTop: -105, marginLeft: -105,
+          borderRadius: "50%",
+          border: "1px solid rgba(212,149,42,0.12)",
+          pointerEvents: "none",
+        }} />
+
+        {/* Ambient-Blätter */}
+        {LEAVES.map((l, i) => (
+          <div key={i} style={{
+            position: "absolute", top: "50%", left: "50%",
+            marginTop: -l.size/2, marginLeft: -l.size/2,
+            width: l.size, height: l.size,
+            borderRadius: "50% 0 50% 0",
+            background: l.col, opacity: 0,
+            "--px": l["--px"], "--py": l["--py"], "--pr": l["--pr"],
+            animation: `mh-particle-a ${l.dur} ease-in-out ${l.del} infinite`,
+            pointerEvents: "none",
+          }} />
+        ))}
+
+        {/* Das HUI-Logo — freistehend, großer Orb wie im Original */}
+        <div style={{
+          position: "relative", zIndex: 3,
+          display: "inline-flex", alignItems: "center", justifyContent: "center",
+          width: 190, height: 190,
         }}>
-          <HUILogo size={52} />
+          <div style={{
+            animation: "mh-orb-breathe 8s ease-in-out infinite",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <img
+              src="/assets/brand/hui-logo.png"
+              alt="HUI"
+              style={{
+                width: 168, height: 168,
+                objectFit: "contain", display: "block",
+                userSelect: "none", pointerEvents: "none",
+              }}
+              draggable={false}
+            />
+          </div>
         </div>
       </FadeUp>
 
-      {/* Info-Karten links + rechts */}
+      {/* Block 3 — Info-Karten links + rechts, echte Daten */}
       <FadeUp delay={infoDelay} style={{
-        position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)",
+        position: "absolute",
+        left: 16, top: "50%", transform: "translateY(-50%)",
         zIndex: 2, maxWidth: 115, textAlign: "left",
       }}>
         <p style={{
@@ -382,7 +465,8 @@ function OrbHero({ data, coreDelay, infoDelay }) {
       </FadeUp>
 
       <div style={{
-        position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)",
+        position: "absolute", right: 14, top: "50%",
+        transform: "translateY(-50%)",
         display: "flex", flexDirection: "column", gap: 8,
         zIndex: 2,
       }}>
@@ -413,6 +497,8 @@ function OrbHero({ data, coreDelay, infoDelay }) {
         ))}
       </div>
 
+      {/* Tagline unter Orb — Teil des Info-Karten-Blocks, KEINE Überlappung
+          da Orb (190px inline-flow) genug Höhe reserviert */}
       <FadeUp delay={infoDelay}>
         <p style={{
           fontFamily: FONT, fontSize: 13, fontWeight: 400,
