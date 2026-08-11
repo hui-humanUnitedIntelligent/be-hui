@@ -22,6 +22,7 @@ import { isProfileTalent } from "../lib/profileUtils.js";
 import { useImageGallery } from "../context/ImageGalleryContext.jsx";
 import { useModalRegistration } from "../hooks/useModalRegistration.js";
 import { formatDateDE, formatNumberDE } from "../lib/formatters.js";
+import GemeinsamErmoeglichtAllModal from "../components/discover/GemeinsamErmoeglichtAllModal.jsx";
 
 // ── Helpers ──────────────────────────────────────────────────
 const safeArr = (v) => Array.isArray(v) ? v : [];
@@ -192,9 +193,18 @@ function useTransparenz() {
         // Logik: Finanziert → startet Umsetzung (+1 pro finanziertem Projekt)
         const umsetzung = funded.length;
 
+        // ROOT-CAUSE-FIX (2026-08-11): "in Projekte geflossen" zeigte hart-
+        // codiert €0. Michael: Summe ALLER Gelder die in Projekte geflossen
+        // sind — auch die noch NICHT abgeschlossenen (laufende Förderungen).
+        // SSOT: current_amount_eur pro approved-Projekt (Status approved
+        // deckt sowohl aktive/nominierte als auch fertig finanzierte ab).
+        const eurTotal = apps
+          .filter(p => p.status === "approved")
+          .reduce((sum, p) => sum + (Number(p.current_amount_eur) || 0), 0);
+
         if (!dead) setS({
           projekte:         funded.length,
-          eur:              0,
+          eur:              eurTotal,
           stimmen:          vdata.count || 0,
           menschen:         unique,
           // Timeline-Counts — SSOT = impact_applications, identisch mit SADB
@@ -2537,6 +2547,7 @@ function ApprovedAppCardCompact({ app, rank, onOpen }) {
 
 // ════════════════════════════════════════════════════════════════
 function GemeinsamErmoegicht({ finanziert, transp, onOpenProject = () => {} }) {
+  const [showAll, setShowAll] = React.useState(false);
   return (
     <div style={{ padding:"20px 16px 0" }}>
       {/* Titel + Link */}
@@ -2545,12 +2556,20 @@ function GemeinsamErmoegicht({ finanziert, transp, onOpenProject = () => {} }) {
         <h2 style={{ margin:0, fontSize:18, fontWeight: 600, color:T.ink,
           letterSpacing:"-0.02em" }}>Gemeinsam ermöglicht</h2>
         {finanziert.length > 0 && (
-          <span style={{ fontSize:11, color:T.teal, fontWeight: 600, cursor:"pointer",
-            flexShrink:0, marginLeft:8 }}>
-            Alle {finanziert.length} ansehen →
+          <span onClick={() => setShowAll(true)}
+            style={{ fontSize:11, color:T.teal, fontWeight: 600, cursor:"pointer",
+            flexShrink:0, marginLeft:8, WebkitTapHighlightColor:"transparent" }}>
+            {/* transp.projekte = echte Gesamtzahl (SSOT, ungecappt) —
+                finanziert-Liste ist auf 8 Vorschau-Einträge limitiert */}
+            Alle {transp?.projekte || finanziert.length} ansehen →
           </span>
         )}
       </div>
+      <GemeinsamErmoeglichtAllModal
+        isOpen={showAll}
+        onClose={() => setShowAll(false)}
+        onPressItem={(p) => { setShowAll(false); onOpenProject(p); }}
+      />
       <p style={{ margin:"0 0 14px", fontSize:13, color:T.ink2, lineHeight:1.6 }}>
         Echte Projekte. Echte Wirkung. Durch euch.
       </p>

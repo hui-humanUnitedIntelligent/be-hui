@@ -1,0 +1,215 @@
+// GemeinsamErmoeglichtAllModal.jsx — "Alle X ansehen" für abgeschlossene
+// Impact-Projekte (Gemeinsam ermöglicht-Sektion in ImpactPage).
+// Gleiches UI-Muster wie WerkeAllModal / TalenteAllModal / ProjekteAllModal
+// (Portal, zIndex 10500, 2-spaltiges Grid, Suche + Sortierung, Infinite Scroll).
+import { createPortal } from "react-dom";
+import { HUILogo } from "../brand/HUILogo.jsx";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { supabase } from "../../lib/supabaseClient.js";
+import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { formatNumberDE, formatDateDE } from "../../lib/formatters.js";
+
+const T = {
+  teal:"rgba(14,196,184,1)", white:"#FFFFFF", ink:"rgba(26,26,46,0.92)",
+  bg:"#F2F4F8", border:"rgba(22,215,197,0.14)", cardShadow:"0 2px 12px rgba(0,0,0,0.07)",
+  inkSoft:"rgba(26,26,46,0.55)", inkFaint:"rgba(26,26,46,0.35)",
+  tealSoft:"rgba(14,196,184,0.12)", tealDeep:"rgba(0,150,136,1)",
+};
+const PAGE_SIZE = 20;
+const SORT_OPTIONS = [
+  { key:"newest",  label:"Neueste",     icon:"🕐" },
+  { key:"funding", label:"Finanziert",  icon:"💰" },
+  { key:"alpha",   label:"A–Z",     icon:"🔤" },
+];
+
+function FundedProjectCardItem({ p, onPress }) {
+  const [imgErr, setImgErr] = useState(false);
+  return (
+    <div onClick={() => onPress?.(p)} style={{
+      background:T.white, borderRadius:16, overflow:"hidden",
+      boxShadow:T.cardShadow, border:`1px solid ${T.border}`,
+      display:"flex", flexDirection:"column", cursor:"pointer",
+    }}>
+      <div style={{ width:"100%", height:130, background:T.tealSoft, position:"relative", overflow:"hidden" }}>
+        {!imgErr && (p.cover_url || (p.media_urls && p.media_urls[0]))
+          ? <img loading="lazy" decoding="async"
+              src={p.cover_url || p.media_urls[0]} alt={p.project_name}
+              onError={() => setImgErr(true)}
+              style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+          : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}><HUILogo size={36} style={{opacity:0.5}} /></div>
+        }
+        <div style={{
+          position:"absolute", top:8, left:8,
+          background:"linear-gradient(135deg,#10B981,#059669)", color:"#fff", borderRadius:99,
+          fontSize:9.5, fontWeight:600, padding:"2px 8px"
+        }}>Vollständig finanziert</div>
+      </div>
+      <div style={{ padding:"10px 10px 8px", display:"flex", flexDirection:"column", flex:1 }}>
+        <div style={{ fontSize:13, fontWeight:600, color:T.ink, marginBottom:2,
+          overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>
+          {p.project_name}
+        </div>
+        {(p.completed_at || p.created_at) && (
+          <div style={{ fontSize:10.5, color:T.inkSoft, marginBottom:4 }}>
+            Finanziert {formatDateDE(p.completed_at || p.created_at, { month:"short", year:"numeric" })}
+          </div>
+        )}
+        <div style={{ marginTop:"auto", fontSize:13, fontWeight:600, color:T.tealDeep }}>
+          {formatNumberDE(p.current_amount_eur || p.funding_goal || 0, { maximumFractionDigits:0 })} €
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function GemeinsamErmoeglichtAllModal({ isOpen, onClose, onPressItem }) {
+  useWizardBodyLock(isOpen);
+  useModalRegistration(isOpen, onClose, "GemeinsamErmoeglichtAllModal");
+  const [items, setItems]       = useState([]);
+  const [loading, setLoading]   = useState(false);
+  const [hasMore, setHasMore]   = useState(true);
+  const [search, setSearch]     = useState("");
+  const [sort, setSort]         = useState("newest"); // newest | funding | alpha
+  const [page, setPage]         = useState(0);
+  const scrollRef                = useRef(null);
+  const searchTimer              = useRef(null);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    clearTimeout(searchTimer.current);
+    searchTimer.current = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(searchTimer.current);
+  }, [search]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setItems([]); setPage(0); setHasMore(true);
+  }, [debouncedSearch, sort, isOpen]);
+
+  const inFlight = useRef(false);
+  const load = useCallback(async (pageNum) => {
+    if (inFlight.current) return;
+    inFlight.current = true;
+    setLoading(true);
+    try {
+      let q = supabase.from("impact_applications")
+        .select("id,project_name,short_desc,cover_url,media_urls,funding_goal,current_amount_eur,completed_at,created_at")
+        .eq("is_completed", true)
+        .order(sort === "alpha" ? "project_name" : sort === "funding" ? "current_amount_eur" : "completed_at",
+                { ascending: sort === "alpha" })
+        .range(pageNum * PAGE_SIZE, (pageNum+1) * PAGE_SIZE - 1);
+
+      if (debouncedSearch) {
+        q = q.or(`project_name.ilike.%${debouncedSearch}%,short_desc.ilike.%${debouncedSearch}%`);
+      }
+
+      const { data } = await q;
+      if (!data || data.length === 0) { setHasMore(false); return; }
+      setItems(prev => pageNum === 0 ? data : [...prev, ...data]);
+      if (data.length < PAGE_SIZE) setHasMore(false);
+    } finally {
+      setLoading(false);
+      inFlight.current = false;
+    }
+  }, [debouncedSearch, sort]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    load(0);
+  }, [debouncedSearch, sort, isOpen]);
+
+  const onScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el || loading || !hasMore) return;
+    if (el.scrollHeight - el.scrollTop - el.clientHeight < 120) {
+      const next = page + 1;
+      setPage(next);
+      load(next);
+    }
+  }, [loading, hasMore, page, load]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const h = (e) => e.key === "Escape" && onClose?.();
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  return createPortal(
+    <div onClick={onClose} style={{
+      position:"fixed", inset:0, zIndex:10500,
+      background:"rgba(0,0,0,0.45)", display:"flex",
+      alignItems:"flex-start", justifyContent:"center",
+    }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        marginTop:"max(var(--hui-safe-top, 0px), env(safe-area-inset-top,44px))",
+        width:"100%",
+        height:"calc(100dvh - max(var(--hui-safe-top, 0px), env(safe-area-inset-top,44px)))",
+        background:T.bg, borderRadius:"20px 20px 0 0",
+        display:"flex", flexDirection:"column", overflow:"hidden",
+      }}>
+        {/* Header */}
+        <div style={{ padding:"16px 16px 8px", background:T.white, borderBottom:`1px solid ${T.border}`, flexShrink:0 }}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
+            <div>
+              <div style={{ fontSize:17, fontWeight:600, color:T.ink }}>Gemeinsam ermöglicht</div>
+              <div style={{ fontSize:11.5, color:T.inkFaint }}>Echte Projekte. Echte Wirkung. Durch euch.</div>
+            </div>
+            <button onClick={onClose} style={{ background:"none", border:"none", fontSize:22, cursor:"pointer", color:T.inkSoft, padding:4 }}>✕</button>
+          </div>
+          <input
+            value={search} onChange={e => setSearch(e.target.value)}
+            placeholder="Projekte suchen…"
+            style={{ width:"100%", padding:"9px 14px", borderRadius:12, border:`1px solid ${T.border}`,
+              background:"#f8fafc", fontSize:14, color:T.ink, outline:"none", boxSizing:"border-box", marginBottom:10 }}
+          />
+          <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:6 }}>
+            {SORT_OPTIONS.map(opt => (
+              <button key={opt.key} onClick={() => setSort(opt.key)} style={{
+                flexShrink:0, padding:"6px 12px", borderRadius:99, fontSize:12, fontWeight:600,
+                border:`1px solid ${sort === opt.key ? T.teal : T.border}`,
+                background: sort === opt.key ? "rgba(14,196,184,0.12)" : T.white,
+                color: sort === opt.key ? T.tealDeep : T.inkSoft,
+                cursor:"pointer", whiteSpace:"nowrap",
+              }}>
+                {opt.icon} {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Scroll */}
+        <div ref={scrollRef} onScroll={onScroll}
+          style={{ flex:1, overflowY:"auto", padding:"12px 12px 0" }}>
+          {items.length === 0 && loading && (
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+              {[1,2,3,4].map(i => (
+                <div key={i} style={{ borderRadius:16, height:200, background:"rgba(0,0,0,0.06)" }}/>
+              ))}
+            </div>
+          )}
+          {items.length === 0 && !loading && (
+            <div style={{ textAlign:"center", padding:"40px 20px", color:T.inkFaint }}>
+              <div style={{ fontSize:32, marginBottom:12 }}>💚</div>
+              <div style={{ fontSize:15, fontWeight:600 }}>Noch keine finanzierten Projekte</div>
+              <div style={{ fontSize:13, marginTop:6 }}>Bald werden hier die ersten Erfolge stehen</div>
+            </div>
+          )}
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+            {items.map(p => <FundedProjectCardItem key={p.id} p={p} onPress={onPressItem} />)}
+          </div>
+          {loading && items.length > 0 && (
+            <div style={{ textAlign:"center", padding:16, color:T.inkFaint, fontSize:13 }}>Lade weitere…</div>
+          )}
+
+          {/* Bottom-Spacer: Navbar + safe-area */}
+          <div style={{ height:"calc(88px + env(safe-area-inset-bottom, 0px))", flexShrink:0 }}/>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
