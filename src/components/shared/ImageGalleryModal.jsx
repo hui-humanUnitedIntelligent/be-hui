@@ -3,13 +3,6 @@
 // ImageGalleryModal — zentrale Fullscreen-Bildergalerie (SSOT) fuer die
 // gesamte App.
 //
-// FIX v5 (2026-08-11) — "No blur, no background loading, single image":
-//   - willChange:transform entfernt ( blurry beim ersten Öffnen)
-//   - Nur das AKTUELLE Bild wird gerendert (kein images.map mehr)
-//   - opacity immer 1 (kein onLoad-Gate)
-//   - decoding=sync, loading=eager nur für aktuelles Bild
-//   - Spinner entfernt — Bild wird direkt gezeigt
-//
 // FIX v4 (2026-08-11) — "Blur-Layer entfernt, nur EIN Bild-Layer":
 //   Der progressive Thumbnail-Blur-Layer aus v3 wurde ENTFERNT (Michael-
 //   Feedback: unnoetiger Blur-Effekt + fuehlte sich wie ein zweites Modal
@@ -260,7 +253,7 @@ export default function ImageGalleryModal({ images, startIndex = 0, onClose = ()
     ? (dragPx / (viewportRef.current?.clientWidth || 1)) * 100
     : 0;
 
-  // showSpinner removed — image shows directly
+  const showSpinner = !imgLoaded && !imgError;
 
   return createPortal(
     <div
@@ -304,7 +297,7 @@ export default function ImageGalleryModal({ images, startIndex = 0, onClose = ()
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        {/* Spinner removed — image shows directly */}
+        {showSpinner && <Spinner />}
         {imgError && (
           <div style={{
             position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)",
@@ -322,37 +315,44 @@ export default function ImageGalleryModal({ images, startIndex = 0, onClose = ()
             >Erneut versuchen</button>
           </div>
         )}
-        {/* NUR das aktuelle Bild rendern — kein Background-Loading, kein zweites Modal */}
         <div
           style={{
-            height: "100%",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            overflow: "hidden",
-            position: "relative",
-            transform: `translateX(${dragPercent}%)`,
+            display: "flex", height: "100%",
+            transform: `translateX(calc(${-idx * 100}% + ${dragPercent}%))`,
             transition: dragging ? "none" : "transform 0.28s cubic-bezier(0.22,1,0.36,1)",
           }}
         >
-          {!imgError && (
-            <img
-              ref={imgRef}
-              src={useRawUrl ? images[idx] : optimizeFull(images[idx])}
-              alt={`Bild ${idx + 1} von ${total}`}
-              onLoad={onImgLoad}
-              onError={onImgError}
-              onClick={onImageTap}
-              draggable={false}
-              loading="eager"
-              decoding="sync"
-              style={{
-                maxWidth: "100%", maxHeight: "100%", objectFit: "contain",
-                transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})`,
-                transition: dragging ? "none" : "transform 0.2s ease",
-                userSelect: "none", WebkitUserSelect: "none",
-                opacity: 1,
-              }}
-            />
-          )}
+          {images.map((src, i) => (
+            <div key={i} style={{
+              flex: "0 0 100%", height: "100%",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              overflow: "hidden",
+              position: "relative",
+            }}>
+              {/* EIN einziger Bild-Layer — direkt volle Aufloesung via optimizeFull (HEIC-sicher),
+                  Fallback auf Original-URL falls Transform-API fehlschlaegt. */}
+              {!(i === idx && imgError) && (
+                <img
+                  ref={i === idx ? imgRef : undefined}
+                  src={i === idx && useRawUrl ? src : optimizeFull(src)}
+                  alt={`Bild ${i + 1} von ${total}`}
+                  onLoad={i === idx ? onImgLoad : undefined}
+                  onError={i === idx ? onImgError : undefined}
+                  onClick={i === idx ? onImageTap : undefined}
+                  draggable={false}
+                  loading={Math.abs(i - idx) <= 1 ? "eager" : "lazy"}
+                  style={{
+                    maxWidth: "100%", maxHeight: "100%", objectFit: "contain",
+                    transform: i === idx ? `translate(${pan.x}px, ${pan.y}px) scale(${scale})` : "none",
+                    transition: dragging ? "none" : "transform 0.2s ease",
+                    userSelect: "none", WebkitUserSelect: "none",
+                    willChange: "transform",
+                    opacity: i === idx ? (imgLoaded ? 1 : 0) : 1,
+                  }}
+                />
+              )}
+            </div>
+          ))}
         </div>
       </div>
 
