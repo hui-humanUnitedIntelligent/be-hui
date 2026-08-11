@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
+  define: { __BUILD_MARKER__: JSON.stringify("phase8-verify-2026-08-11") },
 
   build: {
     target: 'es2018',
