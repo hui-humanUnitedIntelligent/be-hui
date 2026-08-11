@@ -36,7 +36,13 @@ export default function NotificationButton({ count = 0, userId = "" }) {
 
     // ── "Mit Nutzer chatten" aus Buchungsdetail-Modal (typunabhängig, Vorrang) ──
     if (n._openChat) {
-      actions?.[A.OPEN_CHAT]?.({ recipientId: n._openChat, source: S.HOME });
+      const chatId = typeof n._openChat === "object" ? n._openChat.id : n._openChat;
+      actions?.[A.OPEN_CHAT]?.({ recipientId: chatId, name: typeof n._openChat === "object" ? n._openChat.display_name : null, source: S.HOME });
+      return;
+    }
+    // BELEG-002: Angebot-Link aus DetailModal
+    if (n._openRef && n._refType && n._refId) {
+      openRef({ type: n._refType, id: n._refId });
       return;
     }
 
@@ -68,6 +74,7 @@ export default function NotificationButton({ count = 0, userId = "" }) {
       case "impact_update":
       case "impact_project_submitted":
       case "impact_project_deleted":
+      case "impact_project_completed":
         actions?.[A.GO_IMPACT]?.();
         break;
 
@@ -149,8 +156,14 @@ export default function NotificationButton({ count = 0, userId = "" }) {
       case "support_ticket":
       case "support_ticket_reply":
       case "new_order":
-      case "order_confirmed":
+      case "order_confirmed": {
+        const oEntityId = n.entity_id || meta.work_id || null;
+        const oEntityType = n.entity_type || "work";
+        if (n._openRef && oEntityId) {
+          openRef({ type: oEntityType, id: oEntityId });
+        }
         break;
+      }
 
       default: {
         if (n._openRef && n.entity_id && n.entity_type) {

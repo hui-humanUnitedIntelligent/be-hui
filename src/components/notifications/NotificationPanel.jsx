@@ -378,6 +378,7 @@ function DetailModal({ n, onClose, onAction }) {
           sellerWebsite && { type:"label-text", label:"Webseite", text: sellerWebsite, color:"#0EC4B8", bg:"rgba(14,196,184,0.06)", border:"rgba(14,196,184,0.22)" },
         ].filter(Boolean),
         chatUserId: otherUserId,
+        chatUserName: otherUserLabel,
         // BELEG-001: Beleg-Button nur in der Kaeufer-Sicht
         receiptData: !isSellerView ? {
           offerTitle,
@@ -417,6 +418,7 @@ function DetailModal({ n, onClose, onAction }) {
           amount && { type:"stat", label:"Betrag", value: amount },
         ].filter(Boolean),
         chatUserId: md.other_user_id || null,
+        chatUserName: buyerName,
         entityId: workId,
         entityType: "work",
         actionLabel: "Werk ansehen →",
@@ -536,6 +538,7 @@ function DetailModal({ n, onClose, onAction }) {
           amount && { type:"stat", label:"Betrag", value: amount },
         ].filter(Boolean),
         chatUserId: md.other_user_id || null,
+        chatUserName: sellerName,
         entityId: workId,
         entityType: "work",
         actionLabel: "Werk ansehen →",
@@ -848,7 +851,7 @@ function DetailModal({ n, onClose, onAction }) {
           <button
             onClick={() => {
               onClose();
-              onAction({ ...n, _openChat: cfg.chatUserId });
+              onAction({ ...n, _openChat: { id: cfg.chatUserId, display_name: cfg.chatUserName || null } });
             }}
             style={{
               width:"100%", padding:"13px", borderRadius:99,

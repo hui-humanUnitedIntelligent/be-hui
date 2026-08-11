@@ -516,8 +516,14 @@ const handleNotifAction = (n) => {
     // ── RESONANZ-BUCHUNG-001 (2026-08-08): "Mit Nutzer chatten" aus dem
     //    Buchungsdetail-Modal — typunabhängig, hat Vorrang vor dem Switch ──
     if (n._openChat) {
-      setChatRecipient(n._openChat);
+      const chatObj = typeof n._openChat === "object" ? n._openChat : { id: n._openChat, display_name: null };
+      setChatRecipient(chatObj);
       setShowChat(true);
+      return;
+    }
+    // BELEG-002: Angebot-Link aus DetailModal (_refType/_refId)
+    if (n._openRef && n._refType && n._refId) {
+      openRef({ type: n._refType, id: n._refId });
       return;
     }
 
@@ -644,11 +650,17 @@ const handleNotifAction = (n) => {
       case "support_ticket_reply":
         break;
 
-      // ── Bestellung/Zahlung — kein Routing (keine entity_id in DB) ───────────
+      // ── Bestellung/Zahlung — BELEG-002: jetzt mit Routing ───────────────
       case "new_order":
-      case "order_confirmed":
-        // Kein Routing — alle Daten im DetailModal sichtbar, kein Link nötig
+      case "order_confirmed": {
+        // Werk öffnen wenn entity_id vorhanden (vom DetailModal "Werk ansehen")
+        const oEntityId = n.entity_id || n.metadata?.work_id || n.metadata?.entity_id || null;
+        const oEntityType = n.entity_type || n.metadata?.entity_type || "work";
+        if (n._openRef && oEntityId) {
+          openRef({ type: oEntityType, id: oEntityId });
+        }
         break;
+      }
 
       // ── Impact-Projekt eingereicht/gelöscht → Impact-Tab ─────────────────
       case "impact_project_completed":
