@@ -8,7 +8,7 @@ export default defineConfig({
     target: 'es2018',
     outDir: 'www',
     emptyOutDir: true,
-    cssCodeSplit: false,
+    cssCodeSplit: true,
     minify: 'terser',
     sourcemap: false,
     terserOptions: {

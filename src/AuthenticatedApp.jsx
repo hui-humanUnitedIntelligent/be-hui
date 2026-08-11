@@ -6,7 +6,7 @@
 // Sie enthält alle App-spezifischen Provider und Routen.
 // Auf /login wird dieser Code gar nicht heruntergeladen.
 //
-// v2.3: perf-instrument, devconsole und __HUI_PERF__ Flag
+// v2.4: desktopV3.css + perf-instrument + devconsole — alle nur nach Auth
 // von web-main.jsx hierher verschoben — nur nach Auth aktiv.
 //
 // Provider-Tree:
@@ -37,6 +37,8 @@ import DesktopStudio from './components/desktop/DesktopStudio.jsx';
 
 // ── Developer Console (Dev/Admin Mode only — zero overhead in production) ────
 import './components/desktop/devconsole/init.js';
+// ── Desktop V3 Design System (nur nach Auth geladen) ───────────────────────
+import './components/desktop/desktopV3.css';
 
 // ── Lazy: Schwere App-Seiten ──────────────────────────────────────────────────
 const UnifiedFeed      = lazy(() => import('./feed/UnifiedFeed.jsx'));

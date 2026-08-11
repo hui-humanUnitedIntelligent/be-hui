@@ -2,21 +2,20 @@
 // web-main.jsx — HUI Web Entry Point (Desktop V3)
 // ══════════════════════════════════════════════════════════════════════════════
 //
-// v2.3: perf-instrument, devconsole und __HUI_PERF__ Flag in
-// AuthenticatedApp verschoben — werden erst nach Login initialisiert.
-// Öffentliche Landingpage lädt nur React, WebApp, CSS und Sentry.
+// v2.4: desktopV3.css nach AuthenticatedApp verschoben.
+// Öffentliche Landingpage lädt nur index.css + web.css.
+// cssCodeSplit: true → desktopV3.css wird als separater CSS-Chunk
+// erst nach Login geladen.
 // ══════════════════════════════════════════════════════════════════════════════
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import WebApp from './WebApp.jsx';
 
-// ── Styles ────────────────────────────────────────────────────────────────────
-import './index.css';                       // Shared Design System (Tailwind, CSS Variables)
-import './web.css';                         // Web-spezifische Styles
-import './components/desktop/desktopV3.css'; // Desktop V3 (komplettes Design-System)
-// Hinweis: cssCodeSplit:false in vite.config → alle CSS in einem Chunk.
-// desktopV3.css wird hier beibehalten da CSS nicht code-split wird.
+// ── Styles (Public-only) ─────────────────────────────────────────────────────
+import './index.css';                       // Shared Design System (Tailwind, CSS Variables, Fonts)
+import './web.css';                         // Web-spezifische Styles (Root Reset, Loading Screen)
+// desktopV3.css → jetzt in AuthenticatedApp.jsx (lazy nach Login)
 
 // ── Sentry ────────────────────────────────────────────────────────────────────
 import { initSentry, sentryCapture } from './lib/sentry.js';
