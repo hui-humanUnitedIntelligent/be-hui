@@ -43,7 +43,7 @@ export default defineConfig({
             return 'jspdf';
           }
           if (id.includes('node_modules')) {
-            return 'vendor';
+            return 'v2';
           }
         },
       },
