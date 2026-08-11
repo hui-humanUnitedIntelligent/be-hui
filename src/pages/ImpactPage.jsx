@@ -334,36 +334,78 @@ function useImpactActivities() {
     let dead = false;
     const load = async () => {
       try {
-        const { data:votes } = await supabase
-          .from("impact_votes")
-          .select("id,created_at,voter_id,project_id")
-          .order("created_at", { ascending:false })
-          .limit(8);
-        if (dead || !votes?.length) return;
+        const [votesRes, completedRes] = await Promise.allSettled([
+          supabase.from("impact_votes")
+            .select("id,created_at,voter_id,project_id")
+            .order("created_at", { ascending:false })
+            .limit(8),
+          // NEU: abgeschlossene/fertig finanzierte Projekte in die
+          // Live-Aktivitäten mit aufnehmen (simple Anzeige, Michael-Wunsch
+          // 2026-08-11) — SSOT: impact_applications.is_completed=true
+          supabase.from("impact_applications")
+            .select("id,project_name,completed_at")
+            .eq("is_completed", true)
+            .not("completed_at", "is", null)
+            .order("completed_at", { ascending:false })
+            .limit(5),
+        ]);
+        if (dead) return;
+        const votes     = votesRes.status === "fulfilled" ? (votesRes.value.data || []) : [];
+        const completed = completedRes.status === "fulfilled" ? (completedRes.value.data || []) : [];
+        if (!votes.length && !completed.length) return;
+
         const uIds = [...new Set(votes.map(v => v.voter_id).filter(Boolean))];
         const pIds = [...new Set(votes.map(v => v.project_id).filter(Boolean))];
         const [uRes, pRes] = await Promise.allSettled([
           uIds.length ? ProfileService.getMany(uIds) // ProfileService v1.0
                       : Promise.resolve({ data:[] }),
-          pIds.length ? supabase.from("impact_projects").select("id,name").in("id", pIds)
+          // ROOT-CAUSE-FIX (2026-08-11): Projektnamen kamen bisher aus der
+          // leeren Legacy-Tabelle "impact_projects" -> immer Fallback
+          // "ein Projekt" statt des echten Namens. SSOT für Projektnamen
+          // ist impact_applications (project_name), identisch zu allen
+          // anderen Impact-Abfragen auf dieser Seite.
+          pIds.length ? supabase.from("impact_applications").select("id,project_name").in("id", pIds)
                       : Promise.resolve({ data:[] }),
         ]);
         if (dead) return;
         const uMap = Object.fromEntries((uRes.value?.data || []).map(u => [u.id, u]));
         const pMap = Object.fromEntries((pRes.value?.data || []).map(p => [p.id, p]));
-        setActs(votes.map(v => ({
-          id:     v.id,
+
+        const voteActs = votes.map(v => ({
+          id:     `vote_${v.id}`,
+          type:   "vote",
           user_id: v.voter_id || null,
           user:   uMap[v.voter_id]?.display_name || "Jemand",
           avatar: uMap[v.voter_id]?.avatar_url || null,
-          proj:   pMap[v.project_id]?.name || "ein Projekt",
+          proj:   pMap[v.project_id]?.project_name || "ein Projekt",
+          ts:     v.created_at,
           ago:    relTime(v.created_at),
-        })));
+        }));
+
+        const completedActs = completed.map(c => ({
+          id:   `completed_${c.id}`,
+          type: "completed",
+          proj: c.project_name || "Ein Projekt",
+          ts:   c.completed_at,
+          ago:  relTime(c.completed_at),
+        }));
+
+        // Zusammenführen + nach Zeit sortieren (neueste zuerst)
+        const merged = [...voteActs, ...completedActs]
+          .sort((a, b) => new Date(b.ts) - new Date(a.ts))
+          .slice(0, 8);
+
+        setActs(merged);
       } catch { /* silent */ }
     };
     load();
     const iv = setInterval(load, 30_000);
-    return () => { dead = true; clearInterval(iv); };
+    // Realtime: sofort nachladen, sobald ein Projekt fertig finanziert wird
+    const ch = supabase.channel("hui_impact_activities_live")
+      .on("postgres_changes", { event:"UPDATE", schema:"public", table:"impact_applications" }, load)
+      .on("postgres_changes", { event:"INSERT", schema:"public", table:"impact_votes" }, load)
+      .subscribe();
+    return () => { dead = true; clearInterval(iv); supabase.removeChannel(ch); };
   }, []);
   return acts;
 }
@@ -2785,25 +2827,41 @@ function LiveTicker({ activities }) {
             borderBottom: i < Math.min(activities.length,5)-1 ? `1px solid ${T.line}` : "none",
             animation:"ipFade 0.28s ease both", animationDelay:`${i*0.04}s`,
           }}>
-            <div style={{ width:28, height:28, borderRadius:"50%", flexShrink:0,
-              overflow:"hidden", background:`${T.teal}12`,
-              border:`1px solid ${T.teal}20`,
-              display:"flex", alignItems:"center", justifyContent:"center", fontSize:12 }}>
-              {act.avatar
-                ? <img loading="lazy" decoding="async" src={act.avatar} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>
-                : "👤"
-              }
-            </div>
+            {act.type === "completed" ? (
+              // Abgeschlossenes Projekt — simple Anzeige (Michael-Wunsch
+              // 2026-08-11): grünes Häkchen statt Nutzer-Avatar, kein Klick-Ziel.
+              <div style={{ width:28, height:28, borderRadius:"50%", flexShrink:0,
+                background:"linear-gradient(135deg,#10B981,#059669)",
+                display:"flex", alignItems:"center", justifyContent:"center", fontSize:13 }}>
+                <span style={{ color:"#fff" }}>✓</span>
+              </div>
+            ) : (
+              <div style={{ width:28, height:28, borderRadius:"50%", flexShrink:0,
+                overflow:"hidden", background:`${T.teal}12`,
+                border:`1px solid ${T.teal}20`,
+                display:"flex", alignItems:"center", justifyContent:"center", fontSize:12 }}>
+                {act.avatar
+                  ? <img loading="lazy" decoding="async" src={act.avatar} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>
+                  : "👤"
+                }
+              </div>
+            )}
             <div style={{ flex:1, minWidth:0 }}>
               <div style={{ fontSize:12, color:T.ink, lineHeight:1.4,
                 overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                {act.user_id
-                  ? <b
-                      onClick={e => { e.stopPropagation(); openCreatorProfile?.(act.user_id); }}
-                      style={{ cursor:"pointer", textDecoration:"none" }}
-                    >{act.user}</b>
-                  : <b>{act.user}</b>
-                } hat <b>{act.proj}</b> mit 1 Stimme unterstützt
+                {act.type === "completed" ? (
+                  <><b>{act.proj}</b> wurde vollständig finanziert 🎉</>
+                ) : (
+                  <>
+                    {act.user_id
+                      ? <b
+                          onClick={e => { e.stopPropagation(); openCreatorProfile?.(act.user_id); }}
+                          style={{ cursor:"pointer", textDecoration:"none" }}
+                        >{act.user}</b>
+                      : <b>{act.user}</b>
+                    } hat <b>{act.proj}</b> mit 1 Stimme unterstützt
+                  </>
+                )}
               </div>
             </div>
             <div style={{ fontSize:10, color:T.muted, flexShrink:0 }}>{act.ago}</div>
