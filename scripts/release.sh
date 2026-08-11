@@ -89,6 +89,22 @@ step 3 "Web-Build"
 npm run build || error "Web-Build fehlgeschlagen"
 success "Web-Build fertig"
 
+# ── 3.5 OTA-Bundle aus www/ entfernen (vor cap sync) ──────────────────────────
+# bundle.zip + app-version.json werden von Vercel selbst generiert und gehostet.
+# Sie müssen NICHT in die APK (7.6 MB eingespart). Die WebView lädt aus den
+# einzelnen assets/public/ Dateien, OTA-Updates kommen vom Server.
+step "3.5" "OTA-Bundle aus www/ entfernen (APK-Größe reduzieren)"
+if [[ -f "www/bundle.zip" ]]; then
+  rm -f www/bundle.zip
+  success "bundle.zip entfernt (nicht nötig in APK — OTA lädt vom Server)"
+else
+  info "bundle.zip nicht vorhanden — überspringe"
+fi
+if [[ -f "www/app-version.json" ]]; then
+  rm -f www/app-version.json
+  success "app-version.json entfernt (OTA liest von Vercel URL)"
+fi
+
 # ── 4. Capacitor Sync ─────────────────────────────────────────────────────────
 step 4 "Capacitor Sync"
 npx cap sync android || error "Capacitor Sync fehlgeschlagen"
