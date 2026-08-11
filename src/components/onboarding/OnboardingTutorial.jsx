@@ -2,6 +2,8 @@
 // HUI Onboarding-Tutorial — Basis (7 Schritte) + Erweitert (6 Schritte, echte Profil-Kacheln)
 // Systemweite Design-Regeln: Fuchs fest unverzerrt, kompakter Weiter-Button,
 // Spotlight nie verdeckt. Keine bestehenden UI-Elemente werden veraendert.
+// 2026-08-11: Button halbiert + in Fuchs-Container integriert (nie abgedeckt).
+//             Basis-User: Advanced-Steps vorgefiltert (kein Auto-Skip-Flicker).
 import React, { useState, useLayoutEffect, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
@@ -12,9 +14,8 @@ import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 const FOX_SIZE        = 52;     // Feste Fuchs-Größe — unverzerrt auf allen Geräten
 const FOX_MARGIN      = 20;     // Mindestabstand Fuchs zu Bildschirmrand
 const FOX_BUBBLE_GAP  = 10;     // Abstand Sprechblase ↔ Fuchs
-const BTN_WIDTH       = 132;    // Kompakte Weiter-Button-Breite (~20-25% auf 375px)
-const BTN_HEIGHT      = 44;     // Feste Button-Höhe
-const BTN_BOTTOM      = 100;    // Button schwebt über Navbar (72px Nav + 28px Luft)
+const BTN_WIDTH       = 66;     // Halbierte Weiter-Button-Breite (war 132)
+const BTN_HEIGHT      = 30;     // Halbierte Button-Höhe (war 44)
 const BUBBLE_MAX_W    = 260;    // Max Breite der Sprechblase
 const SPOT_PAD        = 10;     // Spotlight Innenabstand
 const OVERLAY_ALPHA   = 0.6;    // Overlay-Transparenz (leicht grau)
@@ -33,15 +34,11 @@ const STEPS = [
 ];
 
 // ── Erweitertes Tutorial (2026-08-11, TUTORIAL-PROFIL-SWITCH) ──────────
-// Zielt jetzt auf die ECHTEN Kacheln im "Mein Bereich"-Menü des eigenen
-// Profils (MyBasisProfile.jsx → MeinBereichTile, aria-label additiv ergänzt).
-// Chat + Resonanzzentrum wurden bewusst ENTFERNT — bereits im Basis-Tutorial
-// gezeigt, keine Wiederholung. Orb-Button + Profil-Nav-Button ebenfalls
-// entfernt (Duplikate aus dem Basis-Tutorial). Kürzestmögliche Variante:
-// nur Bereiche, die im Basis-Tutorial NICHT vorkamen.
-// Werke/Talente/Erlebnisse existieren nur für Talent-User — der Auto-Skip-
-// Mechanismus (siehe useEffect weiter unten) überspringt diese Schritte
-// automatisch für Basis-User, ohne dass hier Unterscheidung nötig ist.
+// Zielt auf die ECHTEN Kacheln im "Mein Bereich"-Menü des eigenen Profils.
+// Werke/Talente/Erlebnisse existieren nur für Talent-User — diese Schritte
+// werden beim Start des erweiterten Tutorials vorgefiltert (siehe
+// startAdvancedTutorial), so dass Basis-User nur die verfügbaren Kacheln
+// sehen, ohne Auto-Skip-Flicker.
 const ADVANCED_STEPS = [
   { selector: 'button[aria-label="Meine Werke"]',        text: "Hier findest du alles, was du erschaffen hast. Werke zeigen deine F\u00e4higkeiten, deine Kreativit\u00e4t und deine Wirkung.", placement: "bottom", label: "Meine Werke" },
   { selector: 'button[aria-label="Talent-Angebote"]',    text: "Hier kannst du deine Talente anbieten. Menschen k\u00f6nnen dich buchen, unterst\u00fctzen oder mit dir zusammenarbeiten.", placement: "bottom", label: "Talent-Angebote" },
@@ -52,14 +49,13 @@ const ADVANCED_STEPS = [
 ];
 
 // Selektoren, deren Vorhandensein signalisiert "Profil ist bereits gemountet"
-// — genutzt, um nach der Navigation aufs Profil zu pollen statt blind zu warten.
 const ADVANCED_READY_SELECTORS = [
   'button[aria-label="Meine Momente"]',
   'button[aria-label="Meine Werke"]',
 ];
 
 // ══════════════════════════════════════════════════════════════
-// Fuchs-Bot SVG — feste unverzerrte Gr\u00f6\u00dfe, freundlich rund
+// Fuchs-Bot SVG — feste unverzerrte Gr\u00f6ße, freundlich rund
 // ══════════════════════════════════════════════════════════════
 function FoxBot({ size = FOX_SIZE }) {
   return (
@@ -106,6 +102,8 @@ export default function OnboardingTutorial() {
   const [step, setStep] = useState(0);
   const [spotRect, setSpotRect] = useState(null);
   const [foxPos, setFoxPos] = useState({ left: 0, top: 0 });
+  // Gefilterte Advanced-Steps — nur verfügbare Kacheln (Basis-User bekommt weniger)
+  const [advancedSteps, setAdvancedSteps] = useState(ADVANCED_STEPS);
 
   useEffect(() => {
     try {
@@ -122,6 +120,7 @@ export default function OnboardingTutorial() {
         localStorage.removeItem(ADVANCED_STORAGE_KEY);
       } catch (e) {}
       setStep(0);
+      setAdvancedSteps(ADVANCED_STEPS);
       setPhase("ask");
     }
     window.addEventListener("hui:restart-tutorial", restartTutorial);
@@ -135,35 +134,23 @@ export default function OnboardingTutorial() {
   }, []);
   useModalRegistration(phase !== "done" && phase !== "init", handleClose, "OnboardingTutorial");
 
-  // ── Erweitertes Tutorial: Auto-Skip + Scroll-ins-Blickfeld ──────────
-  // (TUTORIAL-PROFIL-SWITCH, 2026-08-11)
-  // Läuft einmal pro Schrittwechsel im "advanced"-Modus:
-  //  1. Ziel-Element per Selector suchen (mit kurzer Mount-Verzögerung,
-  //     da Profil ggf. gerade erst per Navigation geöffnet wurde).
-  //  2. Nicht gefunden (z.B. Werke/Talente/Erlebnisse bei Basis-User,
-  //     die nur isTalent-Nutzern angezeigt werden) → Schritt automatisch
-  //     überspringen, ohne den Nutzer mit einem leeren Spotlight zu stören.
-  //  3. Gefunden → ins Blickfeld scrollen (die Kachel liegt im scrollbaren
-  //     ".mbp-scroll"-Container, nicht im window-Scroll).
+  // ── Advanced: scrollIntoView pro Schritt (kein Auto-Skip mehr) ──
+  // Die Schritte werden bereits in startAdvancedTutorial vorgefiltert,
+  // so dass dieser Effect nur noch scrollt — nicht mehr überspringt.
   useEffect(() => {
     if (phase !== "advanced") return;
-    const stepData = ADVANCED_STEPS[step];
+    const stepData = advancedSteps[step];
     if (!stepData || !stepData.selector) return;
     const t = setTimeout(() => {
       const el = document.querySelector(stepData.selector);
-      if (!el) {
-        // Ziel nicht vorhanden → Schritt überspringen (nächster Schritt oder Abschluss)
-        setStep(s => (s < ADVANCED_STEPS.length - 1 ? s + 1 : ADVANCED_STEPS.length));
-        return;
-      }
-      el.scrollIntoView({ block: "center", behavior: "auto" });
+      if (el) el.scrollIntoView({ block: "center", behavior: "auto" });
     }, 220);
     return () => clearTimeout(t);
-  }, [phase, step]);
+  }, [phase, step, advancedSteps]);
 
   // ── "Ja" beim erweiterten Tutorial: automatisch ins eigene Profil
-  // wechseln, dort auf das Mounten der Kacheln warten, dann Tutorial starten.
-  // (TUTORIAL-PROFIL-SWITCH, 2026-08-11) — additiv, kein bestehender Code verändert.
+  // wechseln, dort auf das Mounten der Kacheln warten, Schritte filtern
+  // (nur verfügbare Kacheln für Basis-User), dann Tutorial starten.
   const startAdvancedTutorial = useCallback(() => {
     window.dispatchEvent(new CustomEvent("hui:navigate:tab", { detail: { tab: "profile" } }));
     const start = Date.now();
@@ -171,6 +158,9 @@ export default function OnboardingTutorial() {
     function poll() {
       const ready = ADVANCED_READY_SELECTORS.some(sel => document.querySelector(sel));
       if (ready || Date.now() - start > MAX_WAIT) {
+        // Filter: nur Schritte deren Selector im DOM existiert
+        const available = ADVANCED_STEPS.filter(s => !s.selector || document.querySelector(s.selector));
+        setAdvancedSteps(available.length > 0 ? available : ADVANCED_STEPS);
         setStep(0);
         setPhase("advanced");
       } else {
@@ -182,7 +172,7 @@ export default function OnboardingTutorial() {
 
   useLayoutEffect(() => {
     if (phase !== "tutorial" && phase !== "advanced") return;
-    const steps = phase === "tutorial" ? STEPS : ADVANCED_STEPS;
+    const steps = phase === "tutorial" ? STEPS : advancedSteps;
     const stepData = steps[step];
     if (!stepData) return;
 
@@ -190,15 +180,13 @@ export default function OnboardingTutorial() {
       const r = getTargetRect(stepData.selector);
       const vw = window.innerWidth;
       const vh = window.innerHeight;
-      // Reservierter Bereich unten f\u00fcr den Weiter-Button
-      const btnZone = BTN_BOTTOM + BTN_HEIGHT + 20;
 
       if (!r) {
-        // Kein Spotlight → Fuchs zentriert, oberhalb der Button-Zone
+        // Kein Spotlight → Fuchs zentriert
         setSpotRect(null);
         setFoxPos({
           left: Math.max(FOX_MARGIN, (vw - BUBBLE_MAX_W) / 2),
-          top: Math.max(FOX_MARGIN, (vh - 200) / 2 - btnZone / 2),
+          top: Math.max(FOX_MARGIN, (vh - 220) / 2),
         });
         return;
       }
@@ -206,16 +194,17 @@ export default function OnboardingTutorial() {
       setSpotRect(r);
 
       if (stepData.placement === "top") {
-        // Fuchs \u00fcber dem Spotlight — Sprechblase zeigt nach unten
-        let top = r.top - 190; // Platz f\u00fcr Label + Blase + Fuchs
+        // Fuchs über dem Spotlight — Sprechblase zeigt nach unten
+        // Container: Label + Blase + Button + Fox ≈ 220px
+        let top = r.top - 220;
         if (top < FOX_MARGIN) top = FOX_MARGIN;
         let left = Math.max(FOX_MARGIN, Math.min(r.centerX - BUBBLE_MAX_W / 2, vw - BUBBLE_MAX_W - FOX_MARGIN));
         setFoxPos({ left, top });
       } else {
         // Fuchs unter dem Spotlight — Sprechblase zeigt nach oben
-        // Aber \u00fcber dem Weiter-Button bleiben!
         let top = r.bottom + FOX_BUBBLE_GAP + 8;
-        let maxTop = vh - btnZone - 120; // \u00fcber Button-Zone
+        // Containerhöhe ≈ 220px → nicht über unteren Rand schieben
+        let maxTop = vh - 220 - FOX_MARGIN;
         if (top > maxTop) top = maxTop;
         if (top < FOX_MARGIN) top = FOX_MARGIN;
         let left = Math.max(FOX_MARGIN, Math.min(r.centerX - BUBBLE_MAX_W / 2, vw - BUBBLE_MAX_W - FOX_MARGIN));
@@ -228,16 +217,16 @@ export default function OnboardingTutorial() {
     window.addEventListener("scroll", measure, true);
     const t = setTimeout(measure, 100);
     return () => { window.removeEventListener("resize", measure); window.removeEventListener("scroll", measure, true); clearTimeout(t); };
-  }, [phase, step]);
+  }, [phase, step, advancedSteps]);
 
   // ════════════════════════════════════════════════════════════
-  // Shared Renderer f\u00fcr Tutorial-Schritte (Basis + Erweitert)
+  // Shared Renderer für Tutorial-Schritte (Basis + Erweitert)
   // ════════════════════════════════════════════════════════════
   function renderSteps(stepsArr, isAdvanced) {
     const stepData = stepsArr[step];
     const isLast = step === stepsArr.length - 1;
     const onComplete = isAdvanced
-      ? () => setStep(ADVANCED_STEPS.length)
+      ? () => setStep(advancedSteps.length)
       : () => setStep(STEPS.length);
     const placement = stepData.placement;
     const pointerDown = placement === "top";    // Blase zeigt nach unten (Fuchs oben, Spotlight unten)
@@ -267,7 +256,8 @@ export default function OnboardingTutorial() {
           <div style={{ position: "fixed", inset: 0, background: `rgba(0,0,0,${OVERLAY_ALPHA})`, zIndex: 10600 }} />
         )}
 
-        {/* ── Fuchs + Sprechblase (niemals Spotlight verdeckend) ── */}
+        {/* ── Fuchs + Sprechblase + Weiter-Button (ein Container) ── */}
+        {/* Button ist zwischen Sprechblase und Fuchs → nie abgedeckt    */}
         <div style={{
           position: "fixed", left: foxPos.left, top: foxPos.top,
           zIndex: 10601, transition: "all 0.35s cubic-bezier(0.22,1,0.36,1)",
@@ -282,7 +272,7 @@ export default function OnboardingTutorial() {
           {/* Sprechblase */}
           <div style={{
             ...bubbleBaseStyle,
-            ...(pointerDown ? { marginBottom: FOX_BUBBLE_GAP } : { marginTop: FOX_BUBBLE_GAP }),
+            ...(pointerDown ? { marginBottom: 0 } : { marginTop: 0 }),
           }}>
             {/* Sprechblasen-Zeiger */}
             {pointerDown && (
@@ -304,28 +294,26 @@ export default function OnboardingTutorial() {
             <p style={bubbleTextStyle}>{stepData.text}</p>
           </div>
 
+          {/* ── Weiter-Button — leicht rechts, unterhalb Sprechblase ── */}
+          {/* Halbiert (66×30px), rechtsbündig im Container, über dem Fuchs */}
+          <div style={{
+            display: "flex", justifyContent: "flex-end",
+            width: "100%", marginTop: 4, marginBottom: 6,
+          }}>
+            <button
+              onClick={() => { if (isLast) onComplete(); else setStep(s => s + 1); }}
+              style={compactBtnStyle}
+            >{isLast ? "Fertig" : "Weiter"}</button>
+          </div>
+
           {/* Fuchs + Counter */}
           <div style={{
             display: "flex", alignItems: "center", gap: 10,
-            marginTop: FOX_BUBBLE_GAP,
+            marginTop: 2,
           }}>
             <FoxBot size={FOX_SIZE} />
             <span style={counterStyle}>{step + 1} / {stepsArr.length}</span>
           </div>
-        </div>
-
-        {/* ── Weiter-Button (kompakt, zentriert, unten schwebend) ── */}
-        <div style={{
-          position: "fixed",
-          left: "50%",
-          bottom: `calc(${BTN_BOTTOM}px + env(safe-area-inset-bottom, 0px))`,
-          transform: "translateX(-50%)",
-          zIndex: 10601,
-        }}>
-          <button
-            onClick={() => { if (isLast) onComplete(); else setStep(s => s + 1); }}
-            style={compactBtnStyle}
-          >{isLast ? "Fertig" : "Weiter"}</button>
         </div>
 
         <style>{`@keyframes huiSpotlightPulse { 0%,100% { opacity:0.55; transform:scale(1); } 50% { opacity:1; transform:scale(1.04); } }`}</style>
@@ -346,11 +334,11 @@ export default function OnboardingTutorial() {
             <FoxBot size={64} />
           </div>
           <h2 style={dialogTitleStyle}>Willkommen bei HUI!</h2>
-          <p style={dialogTextStyle}>Möchtest du das HUI-Tutorial sehen?</p>
+          <p style={dialogTextStyle}>M\u00f6chtest du das HUI-Tutorial sehen?</p>
           <p style={dialogSubTextStyle}>In wenigen Schritten zeigen wir dir die wichtigsten Bereiche der App.</p>
           <div style={dialogButtonsStyle}>
             <button onClick={() => { setPhase("hint"); }} style={btnNoStyle}>Nein</button>
-            <button onClick={() => setPhase("tutorial")} style={btnYesStyle}>Ja</button>
+            <button onClick={() => { setPhase("tutorial"); }} style={btnYesStyle}>Ja</button>
           </div>
         </div>
       </div>,
@@ -368,7 +356,7 @@ export default function OnboardingTutorial() {
           </div>
           <h2 style={dialogTitleStyle}>Kein Problem!</h2>
           <p style={dialogTextStyle}>Du kannst das Tutorial jederzeit wiederholen.</p>
-          <p style={dialogSubTextStyle}>Finde es unter den Einstellungen in deinem Nutzerprofil — einfach "Tutorial erneut ansehen" antippen.</p>
+          <p style={dialogSubTextStyle}>Finde es unter den Einstellungen in deinem Nutzerprofil \u2014 einfach "Tutorial erneut ansehen" antippen.</p>
           <button
             onClick={() => {
               setPhase("done");
@@ -387,7 +375,7 @@ export default function OnboardingTutorial() {
     return renderSteps(STEPS, false);
   }
 
-  // ── Basis-Abschluss \u2192 Frage nach erweitertem Tutorial ───────
+  // ── Basis-Abschluss → Frage nach erweitertem Tutorial ───────
   if (phase === "tutorial" && step >= STEPS.length) {
     return createPortal(
       <div style={overlayStyle}>
@@ -397,7 +385,7 @@ export default function OnboardingTutorial() {
           </div>
           <h2 style={dialogTitleStyle}>Geschafft!</h2>
           <p style={dialogTextStyle}>Super! Du kennst jetzt die wichtigsten Bereiche von HUI.</p>
-          <p style={dialogSubTextStyle}>Möchtest du das erweiterte HUI-Tutorial sehen?</p>
+          <p style={dialogSubTextStyle}>M\u00f6chtest du das erweiterte HUI-Tutorial sehen?</p>
           <div style={dialogButtonsStyle}>
             <button onClick={() => { setPhase("hint"); }} style={btnNoStyle}>Nein</button>
             <button onClick={startAdvancedTutorial} style={btnYesStyle}>Ja</button>
@@ -409,12 +397,12 @@ export default function OnboardingTutorial() {
   }
 
   // ── Erweiterte Tutorial-Schritte ───────────────────────────────
-  if (phase === "advanced" && step < ADVANCED_STEPS.length) {
-    return renderSteps(ADVANCED_STEPS, true);
+  if (phase === "advanced" && step < advancedSteps.length) {
+    return renderSteps(advancedSteps, true);
   }
 
   // ── Erweitertes Tutorial: Abschluss ───────────────────────────
-  if (phase === "advanced" && step >= ADVANCED_STEPS.length) {
+  if (phase === "advanced" && step >= advancedSteps.length) {
     return createPortal(
       <div style={overlayStyle}>
         <div style={dialogCardStyle}>
@@ -444,7 +432,7 @@ export default function OnboardingTutorial() {
 }
 
 // ══════════════════════════════════════════════════════════════
-// STYLES — systemweit einheitlich f\u00fcr alle Tutorials
+// STYLE-KONSTANTEN
 // ══════════════════════════════════════════════════════════════
 const overlayStyle = {
   position: "fixed", inset: 0, zIndex: 10600,
@@ -492,12 +480,12 @@ const counterStyle = {
   fontFamily: "Inter, sans-serif", background: "rgba(0,0,0,0.3)",
   borderRadius: 99, padding: "3px 10px", whiteSpace: "nowrap",
 };
-// ── Kompakter Weiter-Button (max 20-25% Breite, schwebend unten) ──
+// ── Kompakter Weiter-Button (halbiert: 66×30px, im Fuchs-Container) ──
 const compactBtnStyle = {
-  width: BTN_WIDTH, height: BTN_HEIGHT, borderRadius: 22,
+  width: BTN_WIDTH, height: BTN_HEIGHT, borderRadius: 15,
   border: "none", background: "linear-gradient(135deg, #16D7C5, #0DC4B5)",
-  color: "white", fontSize: 14, fontWeight: 600, fontFamily: "Inter, sans-serif",
-  cursor: "pointer", boxShadow: "0 3px 16px rgba(22,215,197,0.4)",
+  color: "white", fontSize: 12, fontWeight: 600, fontFamily: "Inter, sans-serif",
+  cursor: "pointer", boxShadow: "0 2px 10px rgba(22,215,197,0.35)",
   touchAction: "manipulation", WebkitTapHighlightColor: "transparent",
   display: "flex", alignItems: "center", justifyContent: "center",
 };
