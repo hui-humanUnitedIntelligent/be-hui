@@ -885,9 +885,8 @@ function ImpactMoments({ delay, data, onOpenSub }) {
   const moments = data.moments.length > 0 ? data.moments : [
     { icon: "🌱", label: "Dein Weg beginnt", time: "heute", color: T.teal, bg: T.tealSoft, border: "rgba(13,196,181,0.13)" },
   ];
-  // Nur scrollbar machen, wenn tatsächlich genug Kacheln vorhanden sind, um zu scrollen.
-  // Sonst wirkt die Zeile bei 1-2 Kacheln wie ein "loser" Scroller ohne Zweck -> verankert/fixiert.
-  const scrollable = moments.length > 2;
+  // PFLICHT: KEIN horizontaler Scroller — Grid-Layout (2 Spalten), niemals overflowX:auto.
+  // Siehe Nutzer-Feedback 2026-08-11: 'bitte keinen [scroller] mehr einbauen'.
   return (
     <div style={{ padding: "0 20px" }}>
       <FadeUp delay={delay}>
@@ -908,17 +907,12 @@ function ImpactMoments({ delay, data, onOpenSub }) {
         </div>
       </FadeUp>
       <div style={{
-        display: "flex", gap: 9,
-        overflowX: scrollable ? "auto" : "hidden",
-        scrollbarWidth: "none", paddingBottom: 4,
-        WebkitOverflowScrolling: scrollable ? "touch" : "auto",
-        touchAction: scrollable ? "auto" : "pan-y",
+        display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 9,
       }}>
         {moments.map((m, i) => (
           <FadeUp key={i} delay={delay}>
             <div onClick={() => onOpenSub("moments", m)}
               style={{
-              width: 138, flexShrink: 0,
               background: m.bg, border: `1px solid ${m.border}`,
               borderRadius: 16, padding: "13px 13px 11px", cursor: "pointer",
             }}>
