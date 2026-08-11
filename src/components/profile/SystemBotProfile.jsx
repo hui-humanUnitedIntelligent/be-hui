@@ -167,12 +167,21 @@ export default function SystemBotProfile({ profileId, onClose = () => {} }) {
       try {
         const { data: prof } = await supabase
           .from("profiles")
-          .select("id,full_name,username,avatar_url,bio,followers_count,is_system_account")
+          .select("id,full_name,username,avatar_url,bio,is_system_account")
           .eq("id", SYSTEM_USER_ID)
           .maybeSingle();
         if (!dead && prof) {
           setProfile(prof);
           setFollowerCount(prof.followers_count || 0);
+        // FOLLOW-FIX (2026-08-11): followers_count ist eine tote Spalte (kein Trigger
+        // pflegt sie — siehe Migration 20260807_fix_rpc_discover_people_followers.sql).
+        // Stattdessen live via get_follow_counts RPC zählen, genau wie useProfileData.js.
+        supabase
+          .rpc("get_follow_counts", { target_id: SYSTEM_USER_ID })
+          .then(r => {
+            if (r?.data?.[0]) setFollowerCount(r.data[0].followers ?? 0);
+          })
+          .catch(() => {});
         }
 
         const { data: projData } = await supabase
@@ -207,22 +216,31 @@ export default function SystemBotProfile({ profileId, onClose = () => {} }) {
       .from("follows")
       .select("id")
       .eq("follower_id", authProfile.id)
-      .eq("following_id", SYSTEM_USER_ID)
+      .eq("followed_id", SYSTEM_USER_ID)
       .maybeSingle()
       .then(({ data }) => setIsFollowing(!!data));
   }, [authProfile?.id]);
 
+  // FOLLOW-FIX (2026-08-11): follows-Tabelle nutzt "followed_id" (nicht "following_id").
+  // profiles.followers_count ist tot (kein Trigger) — get_follow_counts ist SSOT.
+  // hui:follow:changed Event hält AppStateContext (toggleFollow) synchron.
   const handleFollow = useCallback(async () => {
     if (!authProfile?.id) return;
     if (isFollowing) {
-      await supabase.from("follows").delete()
-        .eq("follower_id", authProfile.id).eq("following_id", SYSTEM_USER_ID);
-      setIsFollowing(false);
-      setFollowerCount(c => Math.max(0, c - 1));
+      const { error } = await supabase.from("follows").delete()
+        .eq("follower_id", authProfile.id).eq("followed_id", SYSTEM_USER_ID);
+      if (!error) {
+        setIsFollowing(false);
+        setFollowerCount(c => Math.max(0, c - 1));
+        window.dispatchEvent(new CustomEvent("hui:follow:changed", { detail: { targetId: SYSTEM_USER_ID, action: "unfollow" } }));
+      }
     } else {
-      await supabase.from("follows").insert({ follower_id: authProfile.id, following_id: SYSTEM_USER_ID });
-      setIsFollowing(true);
-      setFollowerCount(c => c + 1);
+      const { error } = await supabase.from("follows").insert({ follower_id: authProfile.id, followed_id: SYSTEM_USER_ID });
+      if (!error) {
+        setIsFollowing(true);
+        setFollowerCount(c => c + 1);
+        window.dispatchEvent(new CustomEvent("hui:follow:changed", { detail: { targetId: SYSTEM_USER_ID, action: "follow" } }));
+      }
     }
   }, [authProfile?.id, isFollowing]);
 
