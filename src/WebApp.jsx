@@ -7,21 +7,22 @@
 //   Setzt den minimalen Provider-Tree für öffentliche Routen auf und
 //   lädt die vollständige App-Infrastruktur erst nach Authentifizierung.
 //
-// PROVIDER-TREE (optimiert v2.2):
+// PROVIDER-TREE (optimiert v2.3):
 //
 //   Öffentlich (/login, /auth/callback):
 //     BrowserRouter → AuthProvider → ToastContainer
 //     → 0 App-Provider, 0 Supabase-Queries, 0 Realtime-Channels
+//     → LoginPage & AuthCallback als lazy Chunks (nur bei Bedarf geladen)
 //
 //   Authentifiziert (alle App-Routen):
 //     + AuthenticatedApp (lazy chunk)
 //     → AppStateProvider → WorldSurfaceProvider → OrbWorldProvider →
 //       GuidanceProvider → RadiusProvider → SavedPostsProvider →
 //       LiveTickerProvider → ContentPreviewProvider → DesktopShell
+//     → perf-instrument, devconsole (nur hier initialisiert)
 //
-//   Vorher (v2.1): Alle 9 Provider mounteten immer — auch auf /login.
-//   Nachher (v2.2): 7 App-Provider + DesktopShell werden als separater
-//   Chunk lazy-geladen und NUR nach erfolgreicher Authentifizierung gemountet.
+//   Vorher (v2.2): LoginPage & AuthCallback eager im Web-Entry-Chunk.
+//   Nachher (v2.3): LoginPage & AuthCallback lazy — Web-Entry-Chunk reduziert.
 //
 // ROUTING:
 //   Auth-Routen (Login, Callback) werden ohne Shell und ohne App-Provider gerendert.
@@ -41,14 +42,14 @@ import { AuthProvider, useAuth } from './lib/AuthContext.jsx';
 // ── Toast (global — Login-Fehlermeldungen brauchen Toast) ─────────────────────
 import { ToastContainer } from './lib/useToast.jsx';
 
-// ── Eager: Auth-kritische Seiten (vor Auth-Entscheidung benoetigt) ────────────
-import LoginPage from './pages/LoginPage';
-import AuthCallback from './pages/AuthCallback';
+// ── Lazy: Public pages (nur für nicht-authentifizierte Besucher) ──────────────
+const LoginPage    = lazy(() => import('./pages/LoginPage'));
+const AuthCallback = lazy(() => import('./pages/AuthCallback'));
 
 // ── Lazy: Authenticated App (separater Chunk — nur nach Login geladen) ────────
 const AuthenticatedApp = lazy(() => import('./AuthenticatedApp.jsx'));
 
-// ── Loading Screen (während Auth-Check) ─────────────────────────────────────
+// ── Loading Screen (während Auth-Check und Lazy-Load) ─────────────────────────
 function LoadingScreen() {
   return (
     <div className="web-loading">
@@ -69,12 +70,15 @@ function ConditionalRouter() {
 
   if (!isAuthenticated) {
     // ── Öffentliche Routen — KEINE App-Provider ──────────────────────
+    // LoginPage & AuthCallback sind lazy — laden als separate Chunks
     return (
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/auth/callback" element={<AuthCallback />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
+      <Suspense fallback={<LoadingScreen />}>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </Suspense>
     );
   }
 

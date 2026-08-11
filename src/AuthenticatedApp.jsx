@@ -6,13 +6,16 @@
 // Sie enthält alle App-spezifischen Provider und Routen.
 // Auf /login wird dieser Code gar nicht heruntergeladen.
 //
+// v2.3: perf-instrument, devconsole und __HUI_PERF__ Flag
+// von web-main.jsx hierher verschoben — nur nach Auth aktiv.
+//
 // Provider-Tree:
 //   AppStateProvider → WorldSurfaceProvider → OrbWorldProvider →
 //   GuidanceProvider → RadiusProvider → SavedPostsProvider →
 //   LiveTickerProvider → ContentPreviewProvider → DesktopShell
 // ══════════════════════════════════════════════════════════════════════════════
 
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
 // ── App-spezifische Provider ─────────────────────────────────────────────────
@@ -31,6 +34,9 @@ import DesktopHome from './components/desktop/DesktopHome.jsx';
 import DesktopProfile from './components/desktop/DesktopProfile.jsx';
 import DesktopDiscover from './components/desktop/DesktopDiscover.jsx';
 import DesktopStudio from './components/desktop/DesktopStudio.jsx';
+
+// ── Developer Console (Dev/Admin Mode only — zero overhead in production) ────
+import './components/desktop/devconsole/init.js';
 
 // ── Lazy: Schwere App-Seiten ──────────────────────────────────────────────────
 const UnifiedFeed      = lazy(() => import('./feed/UnifiedFeed.jsx'));
@@ -59,6 +65,14 @@ function AuthSuspense({ children }) {
 
 // ── AuthenticatedApp ─────────────────────────────────────────────────────────
 export default function AuthenticatedApp() {
+  // ── Performance Instrumentation (nur nach Auth) ────────────────────────────
+  useEffect(() => {
+    window.__HUI_PERF__ = true;
+    import('./components/desktop/perf-instrument.js').then(({ initPerf }) => {
+      initPerf();
+    }).catch(() => {});
+  }, []);
+
   return (
     <AppStateProvider>
       <WorldSurfaceProvider>

@@ -1,6 +1,11 @@
 // ══════════════════════════════════════════════════════════════════════════════
 // web-main.jsx — HUI Web Entry Point (Desktop V3)
 // ══════════════════════════════════════════════════════════════════════════════
+//
+// v2.3: perf-instrument, devconsole und __HUI_PERF__ Flag in
+// AuthenticatedApp verschoben — werden erst nach Login initialisiert.
+// Öffentliche Landingpage lädt nur React, WebApp, CSS und Sentry.
+// ══════════════════════════════════════════════════════════════════════════════
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
@@ -10,6 +15,8 @@ import WebApp from './WebApp.jsx';
 import './index.css';                       // Shared Design System (Tailwind, CSS Variables)
 import './web.css';                         // Web-spezifische Styles
 import './components/desktop/desktopV3.css'; // Desktop V3 (komplettes Design-System)
+// Hinweis: cssCodeSplit:false in vite.config → alle CSS in einem Chunk.
+// desktopV3.css wird hier beibehalten da CSS nicht code-split wird.
 
 // ── Sentry ────────────────────────────────────────────────────────────────────
 import { initSentry, sentryCapture } from './lib/sentry.js';
@@ -28,14 +35,6 @@ window.addEventListener('error', (event) => {
   if (!event.error) return;
   sentryCapture(event.error, { source: 'window.onerror', href: window.location.href });
 });
-
-// ── Performance Instrumentation (TEMPORARY — desktop only) ──────────────────
-window.__HUI_PERF__ = true;
-import { initPerf } from './components/desktop/perf-instrument.js';
-initPerf();
-
-// ── Developer Console (Dev/Admin Mode only — zero overhead in production) ────
-import './components/desktop/devconsole/init.js';
 
 // ── Render ────────────────────────────────────────────────────────────────────
 ReactDOM.createRoot(document.getElementById('web-root')).render(
