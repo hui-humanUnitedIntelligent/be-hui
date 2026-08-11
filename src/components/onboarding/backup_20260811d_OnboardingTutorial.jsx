@@ -292,33 +292,9 @@ export default function OnboardingTutorial() {
           <p style={dialogTextStyle}>Möchtest du das HUI-Tutorial sehen?</p>
           <p style={dialogSubTextStyle}>In wenigen Schritten zeigen wir dir die wichtigsten Bereiche der App.</p>
           <div style={dialogButtonsStyle}>
-            <button onClick={() => { setPhase("hint"); }} style={btnNoStyle}>Nein</button>
+            <button onClick={() => { setPhase("done"); try { localStorage.setItem(STORAGE_KEY, "1"); } catch(e) {} }} style={btnNoStyle}>Nein</button>
             <button onClick={() => setPhase("tutorial")} style={btnYesStyle}>Ja</button>
           </div>
-        </div>
-      </div>,
-      document.body
-    );
-  }
-
-  // ── Hinweis nach "Nein": Tutorial jederzeit wiederholbar ───
-  if (phase === "hint") {
-    return createPortal(
-      <div style={overlayStyle}>
-        <div style={dialogCardStyle}>
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}>
-            <FoxBot size={64} />
-          </div>
-          <h2 style={dialogTitleStyle}>Kein Problem!</h2>
-          <p style={dialogTextStyle}>Du kannst das Tutorial jederzeit wiederholen.</p>
-          <p style={dialogSubTextStyle}>Finde es unter den Einstellungen in deinem Nutzerprofil — einfach "Tutorial erneut ansehen" antippen.</p>
-          <button
-            onClick={() => {
-              setPhase("done");
-              try { localStorage.setItem(STORAGE_KEY, "1"); } catch (e) {}
-            }}
-            style={{ ...btnYesStyle, width: "100%", flex: "none" }}
-          >Verstanden</button>
         </div>
       </div>,
       document.body
@@ -342,7 +318,7 @@ export default function OnboardingTutorial() {
           <p style={dialogTextStyle}>Super! Du kennst jetzt die wichtigsten Bereiche von HUI.</p>
           <p style={dialogSubTextStyle}>Möchtest du das erweiterte HUI-Tutorial sehen?</p>
           <div style={dialogButtonsStyle}>
-            <button onClick={() => { setPhase("hint"); }} style={btnNoStyle}>Nein</button>
+            <button onClick={() => { setPhase("done"); try { localStorage.setItem(STORAGE_KEY, "1"); } catch(e) {} }} style={btnNoStyle}>Nein</button>
             <button onClick={() => { setStep(0); setPhase("advanced"); }} style={btnYesStyle}>Ja</button>
           </div>
         </div>
