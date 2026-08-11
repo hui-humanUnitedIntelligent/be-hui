@@ -3,6 +3,7 @@
 // Zeigt: Name + Follower + Abgeschlossene Projekte (Kacheln) + Systemnachrichten
 import React, { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useHome } from "../home/HomeShell.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
@@ -150,12 +151,14 @@ function MessageItem({ notif = {}, onPress = () => {} }) {
 // ── Haupt-Komponente ─────────────────────────────────────────────────────
 export default function SystemBotProfile({ profileId, onClose = () => {} }) {
   const { authProfile } = useHome();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [projects, setProjects] = useState([]);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [followerCount, setFollowerCount] = useState(0);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [followBusy, setFollowBusy] = useState(false); // FOLLOW-BUTTON-GRAY-FIX (2026-08-11): verhindert Doppelklick-Race
 
   useModalRegistration(true, onClose, "SystemBotProfile");
 
@@ -225,29 +228,35 @@ export default function SystemBotProfile({ profileId, onClose = () => {} }) {
   // profiles.followers_count ist tot (kein Trigger) — get_follow_counts ist SSOT.
   // hui:follow:changed Event hält AppStateContext (toggleFollow) synchron.
   const handleFollow = useCallback(async () => {
-    if (!authProfile?.id) return;
-    if (isFollowing) {
-      const { error } = await supabase.from("follows").delete()
-        .eq("follower_id", authProfile.id).eq("followed_id", SYSTEM_USER_ID);
-      if (!error) {
-        setIsFollowing(false);
-        setFollowerCount(c => Math.max(0, c - 1));
-        window.dispatchEvent(new CustomEvent("hui:follow:changed", { detail: { targetId: SYSTEM_USER_ID, action: "unfollow" } }));
+    if (!authProfile?.id || followBusy) return;
+    setFollowBusy(true);
+    try {
+      if (isFollowing) {
+        const { error } = await supabase.from("follows").delete()
+          .eq("follower_id", authProfile.id).eq("followed_id", SYSTEM_USER_ID);
+        if (!error) {
+          setIsFollowing(false);
+          setFollowerCount(c => Math.max(0, c - 1));
+          window.dispatchEvent(new CustomEvent("hui:follow:changed", { detail: { targetId: SYSTEM_USER_ID, action: "unfollow" } }));
+        }
+      } else {
+        const { error } = await supabase.from("follows").insert({ follower_id: authProfile.id, followed_id: SYSTEM_USER_ID });
+        if (!error) {
+          setIsFollowing(true);
+          setFollowerCount(c => c + 1);
+          window.dispatchEvent(new CustomEvent("hui:follow:changed", { detail: { targetId: SYSTEM_USER_ID, action: "follow" } }));
+        }
       }
-    } else {
-      const { error } = await supabase.from("follows").insert({ follower_id: authProfile.id, followed_id: SYSTEM_USER_ID });
-      if (!error) {
-        setIsFollowing(true);
-        setFollowerCount(c => c + 1);
-        window.dispatchEvent(new CustomEvent("hui:follow:changed", { detail: { targetId: SYSTEM_USER_ID, action: "follow" } }));
-      }
+    } finally {
+      setFollowBusy(false);
     }
-  }, [authProfile?.id, isFollowing]);
+  }, [authProfile?.id, isFollowing, followBusy]);
 
   const handleProjectPress = useCallback((project) => {
-    window.dispatchEvent(new CustomEvent("hui:navigate:tab", { detail: { tab: "impact" } }));
+    if (!project?.id) return;
     onClose?.();
-  }, [onClose]);
+    navigate("/impact", { state: { openProjectId: project.id } });
+  }, [onClose, navigate]);
 
   const handleMessagePress = useCallback((notif) => {
     if (notif.action_url) {
@@ -310,13 +319,15 @@ export default function SystemBotProfile({ profileId, onClose = () => {} }) {
         </div>
 
         {authProfile?.id && authProfile.id !== SYSTEM_USER_ID && (
-          <button onClick={handleFollow} style={{
+          <button onClick={handleFollow} disabled={followBusy} style={{
             padding: "8px 18px", borderRadius: 99,
-            fontSize: 13, fontWeight: 600, cursor: "pointer",
-            background: isFollowing ? "transparent" : T.teal,
-            color: isFollowing ? T.teal : "#fff",
-            border: isFollowing ? "1.5px solid " + T.tealMid : "none",
-          }}>{isFollowing ? "Folgst du" : "Folgen"}</button>
+            fontSize: 13, fontWeight: 600, cursor: followBusy ? "default" : "pointer",
+            opacity: followBusy ? 0.6 : 1,
+            background: isFollowing ? "rgba(26,26,46,0.06)" : T.teal,
+            color: isFollowing ? "rgba(26,26,46,0.4)" : "#fff",
+            border: isFollowing ? "1.5px solid rgba(26,26,46,0.12)" : "none",
+            transition: "background .15s ease, color .15s ease",
+          }}>{isFollowing ? "Gefolgt" : "Folgen"}</button>
         )}
       </div>
 

@@ -215,9 +215,13 @@ export default function SystemBotProfile({ profileId, onClose = () => {} }) {
   // Follow-Status pruefen
   useEffect(() => {
     if (!authProfile?.id) return;
+    // FOLLOW-BUTTON-GRAY-FIX (2026-08-11): follows-Tabelle hat KEINE "id"-Spalte
+    // (nur follower_id, followed_id, created_at). .select("id") warf 42703-Fehler
+    // → data wurde null → isFollowing blieb false → Button zeigte immer "Folgen" (teal)
+    // statt "Gefolgt" (grau). Fix: select("follower_id") statt "id".
     supabase
       .from("follows")
-      .select("id")
+      .select("follower_id")
       .eq("follower_id", authProfile.id)
       .eq("followed_id", SYSTEM_USER_ID)
       .maybeSingle()
