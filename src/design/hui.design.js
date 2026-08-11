@@ -69,6 +69,17 @@ const COLOR = {
   error:       "#E53935",
   success:     "#2ECC71",
   warning:     "#F39C12",
+
+  // STUDIO — Desktop Studio V6+ Palette
+  // Leicht abweichend von Canonical, bewusst erhalten (kein Redesign).
+  // Konsolidiert 14+ lokale const C = {} Objekte zu einer einzigen Quelle.
+  tealStudio:    "#16D7C5",   // Studio Teal — etwas heller als teal
+  coralStudio:  "#FF8A6B",   // Studio Coral — etwas wärmer als coral
+  creamStudio:  "#F9F7F4",   // Studio Cream — minimal heller
+  inkStudio:    "#1A1A1A",   // Studio Ink — neutraler (kein Navy-Tint)
+  greenStatus:  "#10B981",   // Status-Grün — Erfolgs-Indikator
+  redStatus:    "#EF4444",   // Status-Rot — Fehler-Indikator
+  goldStatus:   "#F59E0B",   // Status-Gold — Warnungs-Indikator
 };
 
 // ─────────────────────────────────────────────────────────────────

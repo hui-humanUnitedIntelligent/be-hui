@@ -16,9 +16,9 @@
 /* ── Root Reset (nur im Web-Root) ─────────────────────────────────────────── */
 #web-root {
   min-height: 100vh;
-  background: #FAF8F5;
+  background: #FAF8F5;  /* ~HUI.COLOR.cream */
   font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  color: #141422;
+  color: #141422;  /* = HUI.COLOR.ink */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -47,7 +47,7 @@
   height: 32px;
   border-radius: 50%;
   border: 2px solid #F5F0E8;
-  border-top-color: #0DC4B5;
+  border-top-color: #0DC4B5;  /* = HUI.COLOR.teal */
   animation: hui-web-spin 800ms linear infinite;
 }
 

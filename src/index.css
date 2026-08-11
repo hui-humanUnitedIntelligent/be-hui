@@ -77,10 +77,10 @@
 /* ── CSS Custom Properties ─────────────────────────────────────────────────── */
 :root {
   /* Brand */
-  --hui-teal:     #16D7C5;
-  --hui-teal2:    #0DBFB5;
-  --hui-coral:    #FF8A6B;
-  --hui-gold:     #F5A623;
+  --hui-teal:     #16D7C5;  /* = HUI.COLOR.tealStudio */
+  --hui-teal2:    #0DBFB5;  /* ~HUI.COLOR.teal */
+  --hui-coral:    #FF8A6B;  /* = HUI.COLOR.coralStudio */
+  --hui-gold:     #F5A623;  /* ~HUI.COLOR.gold (lighter variant) */
 
   /* Dark BG */
   --hui-bg:       #060A14;
@@ -88,9 +88,9 @@
   --hui-bg3:      #111827;
 
   /* Light BG */
-  --hui-cream:    #F9F7F4;
-  --hui-warm:     #FEFCFA;
-  --hui-white:    #FFFFFF;
+  --hui-cream:    #F9F7F4;  /* = HUI.COLOR.creamStudio */
+  --hui-warm:     #FEFCFA;  /* ~HUI.COLOR.creamSoft */
+  --hui-white:    #FFFFFF;  /* = HUI.COLOR.white */
 
   /* Radius */
   --hui-r-sm:     12px;

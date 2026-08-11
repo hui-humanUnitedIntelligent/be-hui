@@ -5,12 +5,13 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { formatDateDE } from "../../lib/formatters.js";
 import { HUILogo } from "../../components/brand/HUILogo.jsx";
+import { HUI } from "../../design/hui.design.js";
 
 const C = {
-  teal:   "#16D7C5",
-  coral:  "#FF8A6B",
-  cream:  "#F9F7F4",
-  ink:    "#1A1A1A",
+  teal:   HUI.COLOR.tealStudio,
+  coral:  HUI.COLOR.coralStudio,
+  cream:  HUI.COLOR.creamStudio,
+  ink:    HUI.COLOR.inkStudio,
   muted:  "rgba(80,80,80,0.55)",
 };
 

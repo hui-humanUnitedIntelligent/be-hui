@@ -31,6 +31,7 @@ import {
   getObservabilityReport, startFpsTracking, stopFpsTracking,
   realtimeHealthScore, errorSummary, costSummary, logObservabilitySnapshot,
 } from '../lib/observability/index';
+import { HUI } from "../design/hui.design.js";
 
 // Stub-Funktionen — Quell-Module in Phase A entfernt:
 function getProtectionStatus() { return null; }
@@ -49,13 +50,13 @@ function useRecovery() { return {}; }
 
 // ── Farb-System ────────────────────────────────────────────────
 const C = {
-  bg:       '#F9F7F4',
-  card:     '#FFFFFF',
-  ink:      '#1A1A1A',
+  bg:       HUI.COLOR.creamStudio,
+  card:     HUI.COLOR.white,
+  ink:      HUI.COLOR.inkStudio,
   muted:    '#888888',
   border:   '#EEEBE6',
-  teal:     '#16D7C5',
-  coral:    '#FF8A6B',
+  teal:     HUI.COLOR.tealStudio,
+  coral:    HUI.COLOR.coralStudio,
   gold:     '#F5A623',
   green:    '#3DB87A',
   red:      '#E53E3E',

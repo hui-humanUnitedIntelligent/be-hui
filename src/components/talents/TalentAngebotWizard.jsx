@@ -24,10 +24,11 @@ import {
 import { searchPlaces, geocodeWithFallback } from "../../lib/geocoding.js";
 import AvailabilityCalendar from "./AvailabilityCalendar.jsx";
 import LocationAutocompleteInput from "../shared/LocationAutocompleteInput.jsx";
+import { HUI } from "../../design/hui.design.js";
 
 const C = {
-  teal: "#0EC4B8", tealD: "#0DBBAF", ink: "#1A1A18", inkMid: "rgba(26,26,24,0.55)",
-  inkFade: "rgba(26,26,24,0.35)", border: "rgba(26,26,24,0.10)", cream: "#F8F7F4",
+  teal: HUI.COLOR.teal, tealD: HUI.COLOR.tealDeep, ink: HUI.COLOR.inkStudio, inkMid: "rgba(26,26,24,0.55)",
+  inkFade: "rgba(26,26,24,0.35)", border: "rgba(26,26,24,0.10)", cream: HUI.COLOR.cream,
 };
 
 const TOTAL = 6;

@@ -10,11 +10,12 @@
 import React from 'react';
 import { sentryCapture } from './sentry.js';
 import { normalizeError, SEVERITY } from './errors/index.js';
+import { HUI } from "../design/hui.design.js";
 
 const C = {
-  cream: '#F9F6F2', card: '#FFFFFF',
-  teal: '#16D7C5', coral: '#FF8A6B',
-  ink: '#1A1A1A', muted: '#888',
+  cream: '#F9F6F2', card: HUI.COLOR.white,
+  teal: HUI.COLOR.tealStudio, coral: HUI.COLOR.coralStudio,
+  ink: HUI.COLOR.inkStudio, muted: '#888',
   border: 'rgba(0,0,0,0.07)',
 };
 

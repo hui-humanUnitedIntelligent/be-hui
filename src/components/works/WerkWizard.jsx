@@ -11,10 +11,11 @@ import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { searchPlaces, geocodeWithFallback } from "../../lib/geocoding.js";
 import LocationAutocompleteInput from "../shared/LocationAutocompleteInput.jsx";
 import { formatNumberDE } from "../../lib/formatters.js";
+import { HUI } from "../../design/hui.design.js";
 
 const C = {
-  teal:"#0EC4B8", tealD:"#0DBBAF", cream:"#F8F7F4",
-  ink:"#1A1A18", inkMid:"rgba(26,26,24,0.55)",
+  teal:HUI.COLOR.teal, tealD:HUI.COLOR.tealDeep, cream:HUI.COLOR.cream,
+  ink:HUI.COLOR.inkStudio, inkMid:"rgba(26,26,24,0.55)",
   inkFade:"rgba(26,26,24,0.35)", border:"rgba(26,26,24,0.10)",
 };
 

@@ -4,17 +4,18 @@ import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useImageGallery } from "../../context/ImageGalleryContext.jsx";
 import { formatDateDE, formatNumberDE } from "../../lib/formatters.js";
+import { HUI } from "../../design/hui.design.js";
 
 const C = {
-  teal:   "#16D7C5",
-  coral:  "#FF8A6B",
-  cream:  "#F9F7F4",
-  ink:    "#1A1A1A",
+  teal:   HUI.COLOR.tealStudio,
+  coral:  HUI.COLOR.coralStudio,
+  cream:  HUI.COLOR.creamStudio,
+  ink:    HUI.COLOR.inkStudio,
   muted:  "rgba(80,80,80,0.55)",
   border: "rgba(0,0,0,0.08)",
-  red:    "#EF4444",
-  green:  "#10B981",
-  gold:   "#F59E0B",
+  red:    HUI.COLOR.redStatus,
+  green:  HUI.COLOR.greenStatus,
+  gold:   HUI.COLOR.goldStatus,
 };
 
 const STATUS_CFG = {

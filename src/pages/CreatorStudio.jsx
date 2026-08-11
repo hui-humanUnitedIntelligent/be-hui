@@ -24,8 +24,8 @@ import {
 const C = {
   teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, tealGlow:"rgba(22,215,197,0.18)",
   coral:HUI.COLOR.coral, coralGlow:"rgba(255,138,107,0.15)",
-  gold:HUI.COLOR.gold, green:"#10B981", violet:HUI.COLOR.violet,
-  cream:HUI.COLOR.cream, warm:HUI.COLOR.creamSoft, card:"#FFFFFF",
+  gold:HUI.COLOR.gold, green:HUI.COLOR.greenStatus, violet:HUI.COLOR.violet,
+  cream:HUI.COLOR.cream, warm:HUI.COLOR.creamSoft, card:HUI.COLOR.white,
   ink:HUI.COLOR.ink, ink2:HUI.COLOR.ink2, muted:"#888", muted2:"#C0C0C0",
   border:"rgba(0,0,0,0.06)",
 };

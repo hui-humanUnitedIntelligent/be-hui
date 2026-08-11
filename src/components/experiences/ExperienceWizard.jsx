@@ -17,16 +17,17 @@ import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { searchPlaces, geocodeWithFallback } from "../../lib/geocoding.js";
 import LocationAutocompleteInput from "../shared/LocationAutocompleteInput.jsx";
 import { formatDateDE } from "../../lib/formatters.js";
+import { HUI } from "../../design/hui.design.js";
 
 // ── Design-Tokens ─────────────────────────────────────────────
 const C = {
-  teal:      "#0EC4B8",
-  tealD:     "#0DBBAF",
+  teal:      HUI.COLOR.teal,
+  tealD:     HUI.COLOR.tealDeep,
   tealSoft:  "rgba(14,196,184,0.08)",
   tealBdr:   "rgba(14,196,184,0.28)",
-  cream:     "#F8F7F4",
-  white:     "#FFFFFF",
-  ink:       "#1A1A18",
+  cream:     HUI.COLOR.cream,
+  white:     HUI.COLOR.white,
+  ink:       HUI.COLOR.inkStudio,
   inkMid:    "rgba(26,26,24,0.55)",
   inkFade:   "rgba(26,26,24,0.35)",
   border:    "rgba(26,26,24,0.10)",

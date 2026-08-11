@@ -31,7 +31,7 @@ const C = {
   teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, tealPale:HUI.COLOR.tealPale, tealGlow:"rgba(22,215,197,0.22)",
   coral:HUI.COLOR.coral, coral2:HUI.COLOR.coral, coralPale:HUI.COLOR.coralPale, coralGlow:"rgba(255,138,107,0.22)",
   gold:HUI.COLOR.gold, goldGlow:"rgba(245,166,35,0.18)",
-  warm:HUI.COLOR.cream, card:"#FFFFFF",
+  warm:HUI.COLOR.cream, card:HUI.COLOR.white,
   ink:HUI.COLOR.ink, ink2:HUI.COLOR.ink2,
   muted:"#888", muted2:"#BBB",
   border:"rgba(0,0,0,0.07)",

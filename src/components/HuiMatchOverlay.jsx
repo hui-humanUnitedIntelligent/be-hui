@@ -18,9 +18,9 @@ const C = {
   tealGlow:"rgba(22,215,197,0.22)",
   coral:HUI.COLOR.coral, coralPale:HUI.COLOR.coralPale,
   cream:HUI.COLOR.cream, warm:HUI.COLOR.creamSoft,
-  card:"#FFFFFF", ink:HUI.COLOR.ink, ink2:HUI.COLOR.ink2,
+  card:HUI.COLOR.white, ink:HUI.COLOR.ink, ink2:HUI.COLOR.ink2,
   muted:"#888", muted2:"#BBB",
-  border:"rgba(0,0,0,0.06)", gold:HUI.COLOR.gold, green:"#3DB87A",
+  border:"rgba(0,0,0,0.06)", gold:HUI.COLOR.gold, green:HUI.COLOR.greenStatus,
   purple:HUI.COLOR.violetLight,
 };
 

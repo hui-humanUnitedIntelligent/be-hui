@@ -24,19 +24,19 @@
 
 /* ═══ DESIGN TOKENS ══════════════════════════════════════════════════════════ */
 #web-root {
-  --v3-bg:          #FAF8F5;
-  --v3-surface:     #FDFBF8;
-  --v3-surface-alt: #F5F0E8;
+  --v3-bg:          #FAF8F5;  /* ~HUI.COLOR.cream */
+  --v3-surface:     #FDFBF8;  /* = HUI.COLOR.creamSoft */
+  --v3-surface-alt: #F5F0E8;  /* ~HUI.COLOR.creamWarm */
   --v3-border:      rgba(20,20,34,0.06);
   --v3-border-soft: rgba(20,20,34,0.03);
-  --v3-ink:         #141422;
-  --v3-ink-soft:    #3A3A55;
-  --v3-muted:       #8A8A9E;
-  --v3-primary:     #0DC4B5;
-  --v3-primary-deep:#09A89A;
+  --v3-ink:         #141422;  /* = HUI.COLOR.ink */
+  --v3-ink-soft:    #3A3A55;  /* = HUI.COLOR.ink2 */
+  --v3-muted:       #8A8A9E;  /* = HUI.COLOR.muted */
+  --v3-primary:     #0DC4B5;  /* = HUI.COLOR.teal */
+  --v3-primary-deep:#09A89A;  /* = HUI.COLOR.tealDeep */
   --v3-primary-soft:rgba(13,196,181,0.10);
   --v3-primary-glow:rgba(13,196,181,0.18);
-  --v3-coral:       #F47355;
+  --v3-coral:       #F47355;  /* = HUI.COLOR.coral */
   --v3-coral-soft:  rgba(244,115,85,0.10);
   --v3-orange:      #F4A635;
   --v3-green:       #5CA87A;

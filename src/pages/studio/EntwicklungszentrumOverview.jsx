@@ -14,14 +14,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient.js';
+import { HUI } from "../../design/hui.design.js";
 
 const C = {
-  cream:   '#F9F7F4',
-  white:   '#FFFFFF',
-  ink:     '#1A1A1A',
+  cream:   HUI.COLOR.creamStudio,
+  white:   HUI.COLOR.white,
+  ink:     HUI.COLOR.inkStudio,
   muted:   'rgba(80,80,80,0.55)',
-  teal:    '#16D7C5',
-  coral:   '#FF8A6B',
+  teal:    HUI.COLOR.tealStudio,
+  coral:   HUI.COLOR.coralStudio,
   border:  'rgba(0,0,0,0.06)',
 };
 

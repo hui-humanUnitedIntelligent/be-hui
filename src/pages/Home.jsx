@@ -70,11 +70,12 @@ const HuiCreateFlow = lazy(() => import("../components/HuiCreateFlow.jsx").catch
 // TalentOnboarding: direct import (kein lazy — verhindert Suspense-Spinner-Bug)
 import StoryComposer       from "../components/StoryComposer.jsx";
 import OnboardingTutorial from "../components/onboarding/OnboardingTutorial.jsx";
+import { HUI } from "../design/hui.design.js";
 // ExperienceCreator.jsx / WerkPublisher.jsx: Datei komplett entfernt (2026-07-08
 // Dead-Code-Audit) -- showExperienceCreator/showWerkPublisher sind Legacy-benannte
 // State-Flags, rendern aber schon seit laengerem ExperienceFlow/WorkFlow (s.u.).
 
-const C = { cream: "#F9F7F4" };
+const C = { cream: HUI.COLOR.creamStudio };
 
 const SAFE_MOTION_CSS = SAFE_MODE.motion ? '' : `
   /* SafeMode.motion=false: Alle Animationen deaktiviert */

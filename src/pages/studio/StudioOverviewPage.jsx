@@ -20,14 +20,15 @@
 import React from 'react';
 import { useAuth } from '../../lib/AuthContext.jsx';
 import { isProfileTalent } from '../../lib/profileUtils.js';
+import { HUI } from "../../design/hui.design.js";
 
 const C = {
-  teal:    '#16D7C5',
-  coral:   '#FF8A6B',
-  cream:   '#F9F7F4',
-  ink:     '#1A1A1A',
+  teal:    HUI.COLOR.tealStudio,
+  coral:   HUI.COLOR.coralStudio,
+  cream:   HUI.COLOR.creamStudio,
+  ink:     HUI.COLOR.inkStudio,
   muted:   'rgba(80,80,80,0.55)',
-  white:   '#FFFFFF',
+  white:   HUI.COLOR.white,
   border:  'rgba(0,0,0,0.06)',
 };
 
