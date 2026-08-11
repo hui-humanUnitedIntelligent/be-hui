@@ -121,7 +121,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
           .eq("status", "approved")
           .order("created_at", { ascending: false }),
         supabase.from("impact_votes")
-          .select("id,project_id,created_at")
+          .select("id,project_id,created_at,impact_applications(project_name)")
           .eq("voter_id", profile.id)
           .eq("pool_month", monthKey),
       ]);
@@ -140,7 +140,10 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
         rank:             a.rank || 99,
       }));
       setProjects(normalized);
-      setMyVotes(votesRes.data || []);
+      setMyVotes((votesRes.data || []).map(v => ({
+        ...v,
+        project_name: v.impact_applications?.project_name || v.project_name || null,
+      })));
     } catch (e) {
       console.warn("[ImpactStimmen] load:", e);
     } finally {
@@ -263,8 +266,20 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
   const allUsed     = usedCount >= maxVotes;
 
   // Projekte für abgegebene Stimmen
+  // votedProjects: Vote mit Projektdaten anreichern.
+  // Fallback: wenn das Projekt nicht in der projects-Liste ist (z.B. bereits
+  // vollständig finanziert/is_completed=true), nutzen wir den project_name
+  // aus dem impact_votes Join (wird in load() mitgeladen).
   const votedProjects = myVotes
-    .map(v => projects.find(p => p.id === v.project_id))
+    .map(v => {
+      const proj = projects.find(p => p.id === v.project_id);
+      if (proj) return proj;
+      // Fallback: Vote hat project_name aus dem Join mit impact_applications
+      if (v.project_name) {
+        return { id: v.project_id, name: v.project_name, fallback: true };
+      }
+      return null;
+    })
     .filter(Boolean);
 
   // Noch nicht gewählte Projekte für Picker

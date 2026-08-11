@@ -1567,10 +1567,17 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
         // Single Source of Truth: voter_id + pool_month
         const { data: votes } = await supabase
           .from("impact_votes")
-          .select("id,project_id,pool_month,weight,created_at")
+          .select("id,project_id,pool_month,weight,created_at,impact_applications(project_name)")
           .eq("voter_id", currentUser.id)
           .eq("pool_month", month);
-        if (!dead) setUserVotes(safeArr(votes));
+        // Fallback: project_name direkt aus dem Join mitnehmen — falls das
+        // Projekt nicht in der projects/approvedApps-Liste ist (z.B. bereits
+        // vollständig finanziert/is_completed=true), haben wir trotzdem den Namen.
+        const enriched = (safeArr(votes)).map(v => ({
+          ...v,
+          project_name: v.impact_applications?.project_name || v.project_name || null,
+        }));
+        if (!dead) setUserVotes(enriched);
       } catch { /* silent */ }
     })();
     return () => { dead = true; };
@@ -2224,8 +2231,8 @@ function VotePersonal({ usedVotes, maxVotes, remainVotes, isMem, userVotes, proj
                 </div>
                 <div style={{ fontSize:12, color: isUsed ? T.ink : T.muted }}>
                   {isUsed ? (
-                    proj ? (
-                      <><b>{proj.name}</b><div style={{ fontSize:10,color:T.muted }}>Stimme vergeben</div></>
+                    (proj || vote?.project_name) ? (
+                      <><b>{proj?.name || vote?.project_name}</b><div style={{ fontSize:10,color:T.muted }}>Stimme vergeben</div></>
                     ) : (
                       <><b style={{ color:T.ink }}>Stimme vergeben</b><div style={{ fontSize:10,color:T.muted }}>Projekt geladen…</div></>
                     )
