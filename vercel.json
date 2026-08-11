@@ -98,10 +98,6 @@
       "destination": "/web.html"
     },
     {
-      "source": "/",
-      "destination": "/landing.html"
-    },
-    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
@@ -233,6 +229,13 @@
           "value": "no-store, no-cache, must-revalidate, max-age=0"
         }
       ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/landing.html",
+      "permanent": false
     }
   ]
 }
