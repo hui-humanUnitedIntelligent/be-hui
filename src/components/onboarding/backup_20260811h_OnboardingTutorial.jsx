@@ -22,6 +22,7 @@ const OVERLAY_ALPHA   = 0.6;    // Overlay-Transparenz (leicht grau)
 
 const STORAGE_KEY = "hui_onboarding_completed_v1";
 const ADVANCED_STORAGE_KEY = "hui_onboarding_advanced_v1";
+const DISABLED_KEY = "hui_onboarding_disabled_v1"; // "Nicht mehr anzeigen" — permanent deaktiviert
 
 const STEPS = [
   { selector: 'button[aria-label="Home"]',           text: "Hier siehst du alle Beitr\u00e4ge chronologisch \u2013 dein pers\u00f6nlicher Home-Feed.", placement: "top" },
@@ -55,32 +56,35 @@ const ADVANCED_READY_SELECTORS = [
 ];
 
 // ══════════════════════════════════════════════════════════════
-// Fuchs-Bot SVG — feste unverzerrte Gr\u00f6ße, freundlich rund
+// Fuchs-Avatar — nutzt das kanonische HUI-Fuchs-Bild (fox_avatar_v3)
+// statt des alten SVG-Bots, der dämonisch wirkte. Bild ist lokal
+// unter /assets/fox-avatar.png abgelegt — kein Network-Dependency.
+// Feste Größe, unverzerrt (objectFit: cover), borderRadius = rund.
 // ══════════════════════════════════════════════════════════════
 function FoxBot({ size = FOX_SIZE }) {
+  const [imgErr, setImgErr] = useState(false);
+  if (imgErr) {
+    // Fallback: kleiner Kreis mit "H" Initial, wie bei CardAvatar
+    return (
+      <div style={{
+        width: size, height: size, borderRadius: "50%",
+        background: "rgba(22,215,197,0.15)", flexShrink: 0,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: size * 0.38, fontWeight: 600, color: "#16D7C5",
+        fontFamily: "Inter, sans-serif",
+      }}>H</div>
+    );
+  }
   return (
-    <svg width={size} height={size} viewBox="0 0 80 80" fill="none" aria-hidden="true"
-         style={{ display: "block", flexShrink: 0 }}>
-      <path d="M56 52 Q72 44 68 32 Q62 38 58 44" fill="#F4714F" stroke="#E55A38" strokeWidth="0.5"/>
-      <path d="M64 36 Q70 33 67 28" stroke="#FFF5E6" strokeWidth="3" fill="none" strokeLinecap="round"/>
-      <ellipse cx="40" cy="56" rx="18" ry="16" fill="#F4714F"/>
-      <ellipse cx="40" cy="60" rx="12" ry="8" fill="#FFF5E6" opacity="0.9"/>
-      <circle cx="40" cy="34" r="21" fill="#F4714F"/>
-      <path d="M22 22 L17 7 L31 17 Z" fill="#F4714F"/>
-      <path d="M58 22 L63 7 L49 17 Z" fill="#F4714F"/>
-      <path d="M23 20 L19 12 L28 18 Z" fill="#FFD4B8"/>
-      <path d="M57 20 L61 12 L52 18 Z" fill="#FFD4B8"/>
-      <ellipse cx="40" cy="41" rx="13" ry="9" fill="#FFF5E6"/>
-      <circle cx="32" cy="34" r="3.2" fill="#1A1A18"/>
-      <circle cx="48" cy="34" r="3.2" fill="#1A1A18"/>
-      <circle cx="33.2" cy="33" r="1.1" fill="white"/>
-      <circle cx="49.2" cy="33" r="1.1" fill="white"/>
-      <ellipse cx="40" cy="40" rx="2.5" ry="2" fill="#1A1A18"/>
-      <path d="M40 42 Q36.5 45 34.5 44" stroke="#1A1A18" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-      <path d="M40 42 Q43.5 45 45.5 44" stroke="#1A1A18" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-      <circle cx="26" cy="40" r="3" fill="#FF8A6B" opacity="0.35"/>
-      <circle cx="54" cy="40" r="3" fill="#FF8A6B" opacity="0.35"/>
-    </svg>
+    <img
+      src="/assets/fox-avatar.png"
+      alt="HUI Fuchs"
+      onError={() => setImgErr(true)}
+      style={{
+        width: size, height: size, borderRadius: "50%",
+        objectFit: "cover", display: "block", flexShrink: 0,
+      }}
+    />
   );
 }
 
@@ -107,7 +111,8 @@ export default function OnboardingTutorial() {
 
   useEffect(() => {
     try {
-      if (localStorage.getItem(STORAGE_KEY)) setPhase("done");
+      // Wenn Tutorial abgeschlossen ODER permanent deaktiviert → nie wieder zeigen
+      if (localStorage.getItem(STORAGE_KEY) || localStorage.getItem(DISABLED_KEY)) setPhase("done");
       else setPhase("ask");
     } catch (e) { setPhase("ask"); }
   }, []);
@@ -118,6 +123,7 @@ export default function OnboardingTutorial() {
       try {
         localStorage.removeItem(STORAGE_KEY);
         localStorage.removeItem(ADVANCED_STORAGE_KEY);
+        localStorage.removeItem(DISABLED_KEY); // Re-Aktivierung: auch Disable-Flag löschen
       } catch (e) {}
       setStep(0);
       setAdvancedSteps(ADVANCED_STEPS);
@@ -339,6 +345,16 @@ export default function OnboardingTutorial() {
           <div style={dialogButtonsStyle}>
             <button onClick={() => { setPhase("hint"); }} style={btnNoStyle}>Nein</button>
             <button onClick={() => { setPhase("tutorial"); }} style={btnYesStyle}>Ja</button>
+            <button
+              onClick={() => {
+                try {
+                  localStorage.setItem(DISABLED_KEY, "1");
+                  localStorage.setItem(STORAGE_KEY, "1");
+                } catch (e) {}
+                setPhase("done");
+              }}
+              style={btnDisableStyle}
+            >Nicht mehr anzeigen</button>
           </div>
         </div>
       </div>,
@@ -359,8 +375,11 @@ export default function OnboardingTutorial() {
           <p style={dialogSubTextStyle}>Finde es unter den Einstellungen in deinem Nutzerprofil — einfach "Tutorial erneut ansehen" antippen.</p>
           <button
             onClick={() => {
+              // "Nein" = später nochmal fragen → nur diese Session überspringen,
+              // KEIN STORAGE_KEY (sonst würde Tutorial nie wieder kommen).
+              // sessionStorage reicht für "diesmal nicht anzeigen".
+              try { sessionStorage.setItem("hui_onboarding_skipped", "1"); } catch (e) {}
               setPhase("done");
-              try { localStorage.setItem(STORAGE_KEY, "1"); } catch (e) {}
             }}
             style={{ ...btnYesStyle, width: "100%", flex: "none" }}
           >Verstanden</button>
@@ -447,7 +466,7 @@ const dialogCardStyle = {
 const dialogTitleStyle = { fontSize: 20, fontWeight: 700, color: "#1A1A18", margin: "0 0 8px", fontFamily: "Inter, sans-serif" };
 const dialogTextStyle = { fontSize: 15, fontWeight: 600, color: "#1A1A18", margin: "0 0 4px", lineHeight: 1.45, fontFamily: "Inter, sans-serif" };
 const dialogSubTextStyle = { fontSize: 13, fontWeight: 400, color: "rgba(26,26,24,0.6)", margin: "0 0 20px", lineHeight: 1.45, fontFamily: "Inter, sans-serif" };
-const dialogButtonsStyle = { display: "flex", gap: 10 };
+const dialogButtonsStyle = { display: "flex", gap: 8, flexWrap: "wrap" };
 const btnNoStyle = {
   flex: 1, padding: "13px 20px", borderRadius: 14, border: "1.5px solid rgba(26,26,24,0.12)",
   background: "transparent", color: "rgba(26,26,24,0.65)", fontSize: 15, fontWeight: 600,
@@ -458,6 +477,12 @@ const btnYesStyle = {
   background: "linear-gradient(135deg, #16D7C5, #0DC4B5)", color: "white",
   fontSize: 15, fontWeight: 600, fontFamily: "Inter, sans-serif", cursor: "pointer",
   boxShadow: "0 2px 12px rgba(22,215,197,0.35)", touchAction: "manipulation", WebkitTapHighlightColor: "transparent",
+};
+const btnDisableStyle = {
+  flex: 1, padding: "13px 14px", borderRadius: 14, border: "1.5px solid rgba(26,26,24,0.12)",
+  background: "transparent", color: "rgba(26,26,24,0.45)", fontSize: 13, fontWeight: 600,
+  fontFamily: "Inter, sans-serif", cursor: "pointer", touchAction: "manipulation",
+  WebkitTapHighlightColor: "transparent", whiteSpace: "nowrap",
 };
 
 // ── Tutorial-Schritt Styles ────────────────────────────────────
