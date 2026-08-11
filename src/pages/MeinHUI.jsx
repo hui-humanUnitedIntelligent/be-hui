@@ -137,7 +137,35 @@ function useWirkungsraumData(profile) {
     impactEur: 0,
     moments: [],
     newConnectionsThisWeek: 0,
+    newConnectionsThisMonth: 0,
     projectsCount: 0,
+    // NEU: Detaillierte Daten für alle Kacheln
+    worksThisYear: 0,
+    worksThisMonth: 0,
+    worksToday: 0,
+    ordersThisYear: 0,
+    ordersThisMonth: 0,
+    bookingsThisYear: 0,
+    bookingsThisMonth: 0,
+    connectionsThisYear: 0,
+    impactProjectsThisYear: 0,
+    // NEU: Konkrete Listen für Sub-Modals
+    recentWorks: [],
+    recentConnections: [],
+    recentProjects: [],
+    impactMomentsTimeline: [],
+    // NEU: Tages-Aktivität
+    todayActivity: { works: 0, connections: 0, orders: 0, bookings: 0, comments: 0, inspires: 0 },
+    // NEU: Diese Woche
+    weekActivity: { connections: 0, works: 0, orders: 0 },
+    // NEU: Grundpfeiler-Statistiken
+    pillarStats: {
+      verbinden: { count: 0, label: "Verbindungen", sub: "aktive Begegnungen" },
+      unterstuetzen: { count: 0, label: "Unterstützungen", sub: "gegebener Halt" },
+      erschaffen: { count: 0, label: "Werke", sub: "erschaffen" },
+      wertschoepfen: { count: 0, label: "Verkäufe", sub: "Wert geschaffen" },
+      impact: { count: 0, label: "Impact", sub: "Menschen erreicht" },
+    },
   });
 
   useEffect(() => {
@@ -147,6 +175,12 @@ function useWirkungsraumData(profile) {
     async function load() {
       try {
         const uid = profile.id;
+        const now = new Date();
+        const yearStart = new Date(now.getFullYear(), 0, 1);
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const weekAgo = new Date(now);
+        weekAgo.setDate(weekAgo.getDate() - 7);
 
         // 1. member_since → Tage seit Beginn
         const memberSince = profile.member_since || profile.created_date;
@@ -161,44 +195,107 @@ function useWirkungsraumData(profile) {
         // 2. Follow counts (SSOT: get_follow_counts RPC)
         const { data: fc } = await supabase.rpc("get_follow_counts", { target_id: uid });
 
-        // 3. Works count
+        // 3. Works count + zeit-abhängige Counts + neueste Werke
         const { count: worksCount } = await supabase
           .from("works")
           .select("id", { count: "exact", head: true })
           .eq("author_id", uid)
           .eq("status", "published");
 
-        // 4. Orders count (Käufe)
+        const { count: worksThisYear } = await supabase
+          .from("works").select("id", { count: "exact", head: true })
+          .eq("author_id", uid).eq("status", "published")
+          .gte("created_at", yearStart.toISOString());
+
+        const { count: worksThisMonth } = await supabase
+          .from("works").select("id", { count: "exact", head: true })
+          .eq("author_id", uid).eq("status", "published")
+          .gte("created_at", monthStart.toISOString());
+
+        const { count: worksToday } = await supabase
+          .from("works").select("id", { count: "exact", head: true })
+          .eq("author_id", uid).eq("status", "published")
+          .gte("created_at", todayStart.toISOString());
+
+        // Neueste Werke für Sub-Modal-Listen
+        const { data: recentWorksData } = await supabase
+          .from("works").select("id, title, cover_url, created_at")
+          .eq("author_id", uid).eq("status", "published")
+          .order("created_at", { ascending: false }).limit(5);
+
+        // 4. Orders count + zeit-abhängig
         const { count: ordersCount } = await supabase
-          .from("orders")
-          .select("id", { count: "exact", head: true })
-          .eq("buyer_id", uid)
-          .eq("payment_status", "paid");
+          .from("orders").select("id", { count: "exact", head: true })
+          .eq("buyer_id", uid).eq("payment_status", "paid");
 
-        // 5. Talent bookings count
+        const { count: ordersThisYear } = await supabase
+          .from("orders").select("id", { count: "exact", head: true })
+          .eq("buyer_id", uid).eq("payment_status", "paid")
+          .gte("created_at", yearStart.toISOString());
+
+        const { count: ordersThisMonth } = await supabase
+          .from("orders").select("id", { count: "exact", head: true })
+          .eq("buyer_id", uid).eq("payment_status", "paid")
+          .gte("created_at", monthStart.toISOString());
+
+        // 5. Talent bookings count + zeit-abhängig
         const { count: bookingsCount } = await supabase
-          .from("talent_bookings")
-          .select("id", { count: "exact", head: true })
-          .eq("buyer_id", uid)
-          .eq("payment_status", "paid");
+          .from("talent_bookings").select("id", { count: "exact", head: true })
+          .eq("buyer_id", uid).eq("payment_status", "paid");
 
-        // 6. Neue Verbindungen diese Woche
-        const weekAgo = new Date();
-        weekAgo.setDate(weekAgo.getDate() - 7);
+        const { count: bookingsThisYear } = await supabase
+          .from("talent_bookings").select("id", { count: "exact", head: true })
+          .eq("buyer_id", uid).eq("payment_status", "paid")
+          .gte("created_at", yearStart.toISOString());
+
+        const { count: bookingsThisMonth } = await supabase
+          .from("talent_bookings").select("id", { count: "exact", head: true })
+          .eq("buyer_id", uid).eq("payment_status", "paid")
+          .gte("created_at", monthStart.toISOString());
+
+        // 5b. Verkäufe (Werke die ANDERE bei dir gekauft haben) für Wertschöpfen
+        const { count: salesCount } = await supabase
+          .from("orders").select("id", { count: "exact", head: true })
+          .eq("seller_id", uid).eq("payment_status", "paid");
+
+        // 6. Neue Verbindungen diese Woche + Monat + Jahr
         const { count: newConnectionsThisWeek } = await supabase
-          .from("follows")
-          .select("id", { count: "exact", head: true })
+          .from("follows").select("id", { count: "exact", head: true })
           .eq("followed_id", uid)
           .gte("created_at", weekAgo.toISOString());
 
-        // 7. Impact projects
-        const { count: projectsCount } = await supabase
-          .from("impact_applications")
-          .select("id", { count: "exact", head: true })
-          .eq("applicant_id", uid)
-          .eq("status", "approved");
+        const { count: newConnectionsThisMonth } = await supabase
+          .from("follows").select("id", { count: "exact", head: true })
+          .eq("followed_id", uid)
+          .gte("created_at", monthStart.toISOString());
 
-        // 8. Impact-Momente aus notifications (letzte 10)
+        const { count: connectionsThisYear } = await supabase
+          .from("follows").select("id", { count: "exact", head: true })
+          .eq("followed_id", uid)
+          .gte("created_at", yearStart.toISOString());
+
+        // 6b. Neueste Follower für Sub-Modal-Liste
+        const { data: recentFollowersData } = await supabase
+          .from("follows").select("follower_id, created_at, profiles!follows_follower_id_fkey(display_name, avatar_url, username)")
+          .eq("followed_id", uid)
+          .order("created_at", { ascending: false }).limit(8);
+
+        // 7. Impact projects + zeit-abhängig
+        const { count: projectsCount } = await supabase
+          .from("impact_applications").select("id", { count: "exact", head: true })
+          .eq("applicant_id", uid).eq("status", "approved");
+
+        const { count: impactProjectsThisYear } = await supabase
+          .from("impact_applications").select("id", { count: "exact", head: true })
+          .eq("applicant_id", uid).eq("status", "approved")
+          .gte("created_at", yearStart.toISOString());
+
+        // 7b. Neueste Projekte für Sub-Modal
+        const { data: recentProjectsData } = await supabase
+          .from("impact_applications").select("id, project_name, created_at, status")
+          .eq("applicant_id", uid).order("created_at", { ascending: false }).limit(5);
+
+        // 8. Impact-Momente aus notifications (letzte 20)
         const { data: notifs } = await supabase
           .from("notifications")
           .select("type, metadata, created_at, is_read")
@@ -206,8 +303,32 @@ function useWirkungsraumData(profile) {
           .order("created_at", { ascending: false })
           .limit(20);
 
+        // 8b. Heute-Aktivitäten
+        const { count: todayConnections } = await supabase
+          .from("follows").select("id", { count: "exact", head: true })
+          .eq("followed_id", uid).gte("created_at", todayStart.toISOString());
+
+        const { count: todayOrders } = await supabase
+          .from("orders").select("id", { count: "exact", head: true })
+          .eq("buyer_id", uid).eq("payment_status", "paid")
+          .gte("created_at", todayStart.toISOString());
+
         // 9. Impact EUR
         const impactEur = profile.impact_eur || 0;
+
+        // 10. Kommentare & Inspires insgesamt (für Impact-Momente + Grundpfeiler)
+        const { count: commentsCount } = await supabase
+          .from("post_comments").select("id", { count: "exact", head: true })
+          .eq("author_id", uid);
+
+        const { count: inspiresCount } = await supabase
+          .from("post_reactions").select("id", { count: "exact", head: true })
+          .eq("author_id", uid).eq("type", "inspire");
+
+        // 11. Impact-Momente die andere erreicht haben (Reaktionen auf eigene Inhalte)
+        const { count: reachCount } = await supabase
+          .from("post_reactions").select("id", { count: "exact", head: true })
+          .in("type", ["inspire", "like", "save"]);
 
         // Build moments from notifications
         const momentTypes = [
@@ -267,6 +388,15 @@ function useWirkungsraumData(profile) {
             return { icon, label, time: timeStr, color, bg, border };
           });
 
+        // Grundpfeiler-Statistiken berechnen
+        const pillarStats = {
+          verbinden: { count: (fc?.[0]?.followers ?? 0) + (fc?.[0]?.following ?? 0), label: "Verbindungen", sub: "aktive Begegnungen" },
+          unterstuetzen: { count: commentsCount || 0, label: "Beiträge", sub: "Halt gegeben" },
+          erschaffen: { count: worksCount || 0, label: "Werke", sub: "erschaffen" },
+          wertschoepfen: { count: salesCount || 0, label: "Verkäufe", sub: "Wert geschaffen" },
+          impact: { count: reachCount || 0, label: "Menschen", sub: "erreicht" },
+        };
+
         if (!cancelled) {
           setData({
             loading: false,
@@ -274,12 +404,39 @@ function useWirkungsraumData(profile) {
             followers: fc?.[0]?.followers ?? profile.followers_count ?? 0,
             following: fc?.[0]?.following ?? 0,
             worksCount: worksCount || 0,
+            worksThisYear: worksThisYear || 0,
+            worksThisMonth: worksThisMonth || 0,
+            worksToday: worksToday || 0,
             ordersCount: ordersCount || 0,
+            ordersThisYear: ordersThisYear || 0,
+            ordersThisMonth: ordersThisMonth || 0,
             bookingsCount: bookingsCount || 0,
+            bookingsThisYear: bookingsThisYear || 0,
+            bookingsThisMonth: bookingsThisMonth || 0,
             impactEur,
             moments,
             newConnectionsThisWeek: newConnectionsThisWeek || 0,
+            newConnectionsThisMonth: newConnectionsThisMonth || 0,
+            connectionsThisYear: connectionsThisYear || 0,
             projectsCount: projectsCount || 0,
+            impactProjectsThisYear: impactProjectsThisYear || 0,
+            recentWorks: recentWorksData || [],
+            recentConnections: (recentFollowersData || []).filter(f => f.profiles),
+            recentProjects: recentProjectsData || [],
+            todayActivity: {
+              works: worksToday || 0,
+              connections: todayConnections || 0,
+              orders: todayOrders || 0,
+              bookings: 0,
+              comments: 0,
+              inspires: 0,
+            },
+            weekActivity: {
+              connections: newConnectionsThisWeek || 0,
+              works: 0,
+              orders: 0,
+            },
+            pillarStats,
           });
         }
       } catch (e) {
@@ -644,12 +801,29 @@ function Pillars({ delay, onOpenSub }) {
 // REISE (Journey)
 // ─────────────────────────────────────────────────────────────────
 function Journey({ delay, data, onOpenSub }) {
+  const totalImpulses = data.worksCount + data.ordersCount + data.bookingsCount;
   const items = [
-    { emoji: "🌱", label: "Heute",        text: "Kleine Impulse setzen Großes in Gang.",           color: T.teal,   subKey: "today" },
-    { emoji: "🤝", label: "Diese Woche",  text: `Du hast ${data.newConnectionsThisWeek} neue Verbindungen.`, color: T.sage, subKey: "week" },
-    { emoji: "✨", label: "Diesen Monat", text: "Ein Projekt, das dir am Herzen liegt, wächst.",   color: T.coral,  subKey: "month" },
-    { emoji: "🌅", label: "Dieses Jahr",  text: "Deine Wirkung erreicht immer mehr Menschen.",    color: T.gold,   subKey: "year" },
-    { emoji: "🌳", label: "Seit Beginn",  text: `Dein Weg ist einzigartig und wertvoll.`,          color: T.purple, subKey: "beginning" },
+    { emoji: "🌱", label: "Heute",
+      text: data.todayActivity.works > 0 || data.todayActivity.connections > 0
+        ? `${data.todayActivity.works + data.todayActivity.orders} Impulse heute, ${data.todayActivity.connections} neue Verbindung${data.todayActivity.connections === 1 ? "" : "en"}.`
+        : "Kleine Impulse setzen Großes in Gang.",
+      color: T.teal, subKey: "today" },
+    { emoji: "🤝", label: "Diese Woche",
+      text: `Du hast ${data.newConnectionsThisWeek} neue Verbindung${data.newConnectionsThisWeek === 1 ? "" : "en"}.`,
+      color: T.sage, subKey: "week" },
+    { emoji: "✨", label: "Diesen Monat",
+      text: data.worksThisMonth > 0
+        ? `${data.worksThisMonth} Werk${data.worksThisMonth === 1 ? "" : "e"} veröffentlicht, ${data.newConnectionsThisMonth} neue Verbindung${data.newConnectionsThisMonth === 1 ? "" : "en"}.`
+        : data.newConnectionsThisMonth > 0
+          ? `${data.newConnectionsThisMonth} neue Verbindung${data.newConnectionsThisMonth === 1 ? "" : "en"} diesen Monat.`
+          : "Ein Projekt, das dir am Herzen liegt, wächst.",
+      color: T.coral, subKey: "month" },
+    { emoji: "🌅", label: "Dieses Jahr",
+      text: `${data.worksThisYear + data.ordersThisYear + data.bookingsThisYear} Impulse, ${data.connectionsThisYear} neue Verbindungen, ${data.impactProjectsThisYear} Projekt${data.impactProjectsThisYear === 1 ? "" : "e"}.`,
+      color: T.gold, subKey: "year" },
+    { emoji: "🌳", label: "Seit Beginn",
+      text: `${totalImpulses} Impulse gesät, ${data.followers} Mensch${data.followers === 1 ? "" : "en"} verbunden, ${data.daysSince} Tage unterwegs.`,
+      color: T.purple, subKey: "beginning" },
   ];
   return (
     <div style={{ padding: "0 20px" }}>
@@ -775,13 +949,17 @@ function ImpactMoments({ delay, data, onOpenSub }) {
 const STATS_CARD_HEIGHT = 118;
 
 function StatsGrid({ delay, data, onOpenSub }) {
+  const totalImpulses = data.worksCount + data.ordersCount + data.bookingsCount;
+  const yearImpulses = data.worksThisYear + data.ordersThisYear + data.bookingsThisYear;
+  const monthImpulses = data.worksThisMonth + data.ordersThisMonth + data.bookingsThisMonth;
+  const todayImpulses = data.todayActivity.works + data.todayActivity.orders + data.todayActivity.bookings;
   const stats = [
     { label: "Verbindungen", value: data.followers, sub: "Menschen", icon: "👥", color: T.teal, bg: T.tealPale, key: "connections" },
-    { label: "Impulse", value: data.worksCount + data.ordersCount + data.bookingsCount, sub: "gesät", icon: "🔥", color: T.coral, bg: "rgba(244,115,85,0.06)", key: "impulses" },
+    { label: "Impulse", value: totalImpulses, sub: "gesät", icon: "🔥", color: T.coral, bg: "rgba(244,115,85,0.06)", key: "impulses" },
     { label: "Seit Beginn", value: data.daysSince, sub: "Tage", icon: "🌱", color: T.sage, bg: T.sagePale, key: "beginning" },
-    { label: "Dieses Jahr", value: new Date().getFullYear(), sub: "Jahr", icon: "🌅", color: T.gold, bg: T.goldPale, key: "year" },
-    { label: "Diesen Monat", value: new Date().toLocaleDateString("de-DE", { month: "long" }), sub: "", icon: "✨", color: T.purple, bg: T.purplePale, key: "month" },
-    { label: "Heute", value: new Date().toLocaleDateString("de-DE", { day: "numeric", month: "numeric" }), sub: "", icon: "☀️", color: T.teal, bg: T.tealPale, key: "today" },
+    { label: "Dieses Jahr", value: yearImpulses, sub: yearImpulses === 1 ? "Impuls" : "Impulse", icon: "🌅", color: T.gold, bg: T.goldPale, key: "year" },
+    { label: "Diesen Monat", value: monthImpulses, sub: monthImpulses === 1 ? "Impuls" : "Impulse", icon: "✨", color: T.purple, bg: T.purplePale, key: "month" },
+    { label: "Heute", value: todayImpulses, sub: todayImpulses === 1 ? "Impuls" : "Impulse", icon: "☀️", color: T.teal, bg: T.tealPale, key: "today" },
   ];
 
   return (
@@ -918,7 +1096,41 @@ function SubModal({ title, subtitle, icon, accent, onClose, onMore, children }) 
 // ─────────────────────────────────────────────────────────────────
 // SUB-MODAL CONTENTS
 // ─────────────────────────────────────────────────────────────────
-function PillarsDetail({ pillar }) {
+function PillarsDetail({ pillar, data }) {
+  // Hole passenden Statistik-Wert zum Grundpfeiler
+  let statRows = [];
+  if (pillar.label === "Verbinden" && data) {
+    statRows = [
+      { label: "Verbindungen gesamt", value: data.followers },
+      { label: "Du folgst", value: data.following },
+      { label: "Neue diese Woche", value: data.newConnectionsThisWeek },
+    ];
+  } else if (pillar.label === "Unterstützen" && data) {
+    statRows = [
+      { label: "Projekte unterstützt", value: data.projectsCount },
+      { label: "Käufe getätigt", value: data.ordersCount },
+      { label: "Buchungen getätigt", value: data.bookingsCount },
+    ];
+  } else if (pillar.label === "Erschaffen" && data) {
+    statRows = [
+      { label: "Werke veröffentlicht", value: data.worksCount },
+      { label: "Dieses Jahr", value: data.worksThisYear || 0 },
+      { label: "Diesen Monat", value: data.worksThisMonth || 0 },
+    ];
+  } else if (pillar.label === "Wertschöpfen" && data) {
+    statRows = [
+      { label: "Werke gesamt", value: data.worksCount },
+      { label: "Käufe gesamt", value: data.ordersCount },
+      { label: "Buchungen gesamt", value: data.bookingsCount },
+      { label: "Impact", value: `${data.impactEur} €` },
+    ];
+  } else if (pillar.label === "Impact" && data) {
+    statRows = [
+      { label: "Projekte unterstützt", value: data.projectsCount },
+      { label: "Dieses Jahr", value: data.impactProjectsThisYear || 0 },
+      { label: "Impact Wert", value: `${data.impactEur} €` },
+    ];
+  }
   return (
     <div style={{ padding: 20 }}>
       <div style={{
@@ -945,6 +1157,16 @@ function PillarsDetail({ pillar }) {
         height: 3, borderRadius: 3, background: pillar.accent,
         width: 40, opacity: 0.5, marginBottom: 20,
       }} />
+      {statRows.length > 0 && (
+        <div style={{
+          background: T.creamCard, borderRadius: 16, padding: 16,
+          border: `1px solid ${pillar.accent}16`,
+        }}>
+          {statRows.map((s, i) => (
+            <div key={i} style={detailRow}>{s.label}: <b>{s.value}</b></div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -983,27 +1205,39 @@ function JourneyDetail({ item, data }) {
             <div style={detailRow}>Mitglied seit: <b>{data.daysSince} Tagen</b></div>
             <div style={detailRow}>Werke veröffentlicht: <b>{data.worksCount}</b></div>
             <div style={detailRow}>Verbindungen: <b>{data.followers}</b></div>
+            <div style={detailRow}>Du folgst: <b>{data.following}</b> Menschen</div>
+            <div style={detailRow}>Käufe getätigt: <b>{data.ordersCount}</b></div>
+            <div style={detailRow}>Buchungen getätigt: <b>{data.bookingsCount}</b></div>
+            <div style={detailRow}>Projekte unterstützt: <b>{data.projectsCount}</b></div>
             <div style={detailRow}>Impact: <b>{data.impactEur} €</b></div>
           </>
         )}
         {item.subKey === "year" && (
           <>
             <div style={detailRow}>Jahr: <b>{new Date().getFullYear()}</b></div>
-            <div style={detailRow}>Impulse gesät: <b>{data.worksCount + data.ordersCount + data.bookingsCount}</b></div>
-            <div style={detailRow}>Projekte unterstützt: <b>{data.projectsCount}</b></div>
+            <div style={detailRow}>Werke veröffentlicht: <b>{data.worksThisYear}</b></div>
+            <div style={detailRow}>Käufe getätigt: <b>{data.ordersThisYear}</b></div>
+            <div style={detailRow}>Buchungen getätigt: <b>{data.bookingsThisYear}</b></div>
+            <div style={detailRow}>Neue Verbindungen: <b>{data.connectionsThisYear}</b></div>
+            <div style={detailRow}>Projekte unterstützt: <b>{data.impactProjectsThisYear}</b></div>
           </>
         )}
         {item.subKey === "month" && (
           <>
             <div style={detailRow}>Monat: <b>{new Date().toLocaleDateString("de-DE", { month: "long" })}</b></div>
-            <div style={detailRow}>Neue Verbindungen: <b>{data.newConnectionsThisWeek}</b></div>
+            <div style={detailRow}>Werke veröffentlicht: <b>{data.worksThisMonth}</b></div>
+            <div style={detailRow}>Neue Verbindungen: <b>{data.newConnectionsThisMonth}</b></div>
           </>
         )}
         {item.subKey === "week" && (
           <div style={detailRow}>Neue Verbindungen diese Woche: <b>{data.newConnectionsThisWeek}</b></div>
         )}
         {item.subKey === "today" && (
-          <div style={detailRow}>Heute ist: <b>{new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}</b></div>
+          <>
+            <div style={detailRow}>Heute ist: <b>{new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}</b></div>
+            <div style={detailRow}>Werke heute: <b>{data.todayActivity.works}</b></div>
+            <div style={detailRow}>Neue Verbindungen: <b>{data.todayActivity.connections}</b></div>
+          </>
         )}
       </div>
     </div>
@@ -1069,11 +1303,42 @@ function ConnectionsDetail({ data }) {
       </div>
       <div style={detailRow}>Du folgst: <b>{data.following}</b> Menschen</div>
       <div style={detailRow}>Neue diese Woche: <b>{data.newConnectionsThisWeek}</b></div>
+      <div style={detailRow}>Neue diesen Monat: <b>{data.newConnectionsThisMonth}</b></div>
+      <div style={detailRow}>Neue dieses Jahr: <b>{data.connectionsThisYear}</b></div>
+      {data.recentConnections.length > 0 && (
+        <>
+          <div style={{ fontFamily: FONT, fontSize: 13, fontWeight: 600, color: T.ink, margin: "16px 0 10px" }}>
+            Neueste Verbindungen
+          </div>
+          {data.recentConnections.map((c, i) => {
+            const p = c.profiles || {};
+            const name = p.display_name || p.username || "Nutzer";
+            const ageDays = Math.floor((Date.now() - new Date(c.created_at).getTime()) / 86400000);
+            const timeStr = ageDays === 0 ? "heute" : ageDays === 1 ? "gestern" : `vor ${ageDays} Tagen`;
+            return (
+              <div key={i} style={{
+                display: "flex", alignItems: "center", gap: 10,
+                padding: "10px 0", borderBottom: `1px solid ${T.inkFaint}`,
+              }}>
+                <img src={optimizeAvatar(p.avatar_url) || "/assets/brand/hui-logo.png"} alt=""
+                  style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", background: T.creamDeep, flexShrink: 0 }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontFamily: FONT, fontSize: 13, fontWeight: 500, color: T.ink }}>{name}</div>
+                  <div style={{ fontFamily: FONT, fontSize: 11, color: T.inkFaint }}>{timeStr}</div>
+                </div>
+              </div>
+            );
+          })}
+        </>
+      )}
     </div>
   );
 }
 
 function ImpulsesDetail({ data }) {
+  const total = data.worksCount + data.ordersCount + data.bookingsCount;
+  const yearTotal = data.worksThisYear + data.ordersThisYear + data.bookingsThisYear;
+  const monthTotal = data.worksThisMonth + data.ordersThisMonth + data.bookingsThisMonth;
   return (
     <div style={{ padding: 20 }}>
       <div style={{
@@ -1082,16 +1347,53 @@ function ImpulsesDetail({ data }) {
       }}>
         <div style={{ fontSize: 32, marginBottom: 8 }}>🔥</div>
         <div style={{ fontFamily: FONT, fontSize: 32, fontWeight: 700, color: T.coral }}>
-          {data.worksCount + data.ordersCount + data.bookingsCount}
+          {total}
         </div>
         <div style={{ fontFamily: FONT, fontSize: 14, color: T.inkSoft }}>
           Impulse gesät
         </div>
       </div>
+      <div style={{ fontFamily: FONT, fontSize: 13, fontWeight: 600, color: T.ink, margin: "0 0 10px" }}>
+        Aufschlüsselung
+      </div>
       <div style={detailRow}>Werke veröffentlicht: <b>{data.worksCount}</b></div>
       <div style={detailRow}>Käufe getätigt: <b>{data.ordersCount}</b></div>
       <div style={detailRow}>Buchungen getätigt: <b>{data.bookingsCount}</b></div>
       <div style={detailRow}>Projekte unterstützt: <b>{data.projectsCount}</b></div>
+      <div style={{ fontFamily: FONT, fontSize: 13, fontWeight: 600, color: T.ink, margin: "16px 0 10px" }}>
+        Zeitlich
+      </div>
+      <div style={detailRow}>Dieses Jahr: <b>{yearTotal}</b></div>
+      <div style={detailRow}>Diesen Monat: <b>{monthTotal}</b></div>
+      {data.recentWorks.length > 0 && (
+        <>
+          <div style={{ fontFamily: FONT, fontSize: 13, fontWeight: 600, color: T.ink, margin: "16px 0 10px" }}>
+            Neueste Werke
+          </div>
+          {data.recentWorks.map((w, i) => {
+            const ageDays = Math.floor((Date.now() - new Date(w.created_at).getTime()) / 86400000);
+            const timeStr = ageDays === 0 ? "heute" : ageDays === 1 ? "gestern" : `vor ${ageDays} Tagen`;
+            return (
+              <div key={i} style={{
+                display: "flex", alignItems: "center", gap: 10,
+                padding: "10px 0", borderBottom: `1px solid ${T.inkFaint}`,
+              }}>
+                {w.cover_url ? (
+                  <img src={w.cover_url} alt="" style={{ width: 36, height: 36, borderRadius: 8, objectFit: "cover", flexShrink: 0 }} />
+                ) : (
+                  <div style={{ width: 36, height: 36, borderRadius: 8, background: T.creamDeep, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <img src="/assets/brand/hui-logo.png" alt="" style={{ width: 18, height: 18, opacity: 0.5 }} />
+                  </div>
+                )}
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontFamily: FONT, fontSize: 13, fontWeight: 500, color: T.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{w.title || "Werk"}</div>
+                  <div style={{ fontFamily: FONT, fontSize: 11, color: T.inkFaint }}>{timeStr}</div>
+                </div>
+              </div>
+            );
+          })}
+        </>
+      )}
     </div>
   );
 }
@@ -1130,29 +1432,35 @@ function GenericStatDetail({ item, data, statKey }) {
           <div style={detailRow}>Mitglied seit: <b>{data.daysSince} Tagen</b></div>
           <div style={detailRow}>Werke veröffentlicht: <b>{data.worksCount}</b></div>
           <div style={detailRow}>Verbindungen: <b>{data.followers}</b></div>
+          <div style={detailRow}>Du folgst: <b>{data.following}</b> Menschen</div>
+          <div style={detailRow}>Käufe getätigt: <b>{data.ordersCount}</b></div>
+          <div style={detailRow}>Buchungen getätigt: <b>{data.bookingsCount}</b></div>
+          <div style={detailRow}>Projekte unterstützt: <b>{data.projectsCount}</b></div>
           <div style={detailRow}>Impact: <b>{data.impactEur} €</b></div>
         </>
       )}
       {(statKey === "year") && (
         <>
           <div style={detailRow}>Jahr: <b>{new Date().getFullYear()}</b></div>
-          <div style={detailRow}>Impulse gesät: <b>{data.worksCount + data.ordersCount + data.bookingsCount}</b></div>
-          <div style={detailRow}>Projekte unterstützt: <b>{data.projectsCount}</b></div>
-          <div style={detailRow}>Verbindungen gesamt: <b>{data.followers}</b></div>
+          <div style={detailRow}>Werke veröffentlicht: <b>{data.worksThisYear}</b></div>
+          <div style={detailRow}>Käufe getätigt: <b>{data.ordersThisYear}</b></div>
+          <div style={detailRow}>Buchungen getätigt: <b>{data.bookingsThisYear}</b></div>
+          <div style={detailRow}>Neue Verbindungen: <b>{data.connectionsThisYear}</b></div>
+          <div style={detailRow}>Projekte unterstützt: <b>{data.impactProjectsThisYear}</b></div>
         </>
       )}
       {(statKey === "month") && (
         <>
           <div style={detailRow}>Monat: <b>{new Date().toLocaleDateString("de-DE", { month: "long" })}</b></div>
-          <div style={detailRow}>Neue Verbindungen diese Woche: <b>{data.newConnectionsThisWeek}</b></div>
-          <div style={detailRow}>Werke veröffentlicht: <b>{data.worksCount}</b></div>
+          <div style={detailRow}>Werke veröffentlicht: <b>{data.worksThisMonth}</b></div>
+          <div style={detailRow}>Neue Verbindungen: <b>{data.newConnectionsThisMonth}</b></div>
         </>
       )}
       {(statKey === "today") && (
         <>
           <div style={detailRow}>Heute ist: <b>{new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}</b></div>
-          <div style={detailRow}>Verbindungen: <b>{data.followers}</b></div>
-          <div style={detailRow}>Impulse gesamt: <b>{data.worksCount + data.ordersCount + data.bookingsCount}</b></div>
+          <div style={detailRow}>Werke heute: <b>{data.todayActivity.works}</b></div>
+          <div style={detailRow}>Neue Verbindungen: <b>{data.todayActivity.connections}</b></div>
         </>
       )}
     </div>
@@ -1265,7 +1573,7 @@ export default function MeinHUI({
 
       switch (subModal.key) {
         case "pillars":
-          content = <PillarsDetail pillar={item} />;
+          content = <PillarsDetail pillar={item} data={wirkData} />;
           morePage = null; // Pillars have no dedicated page
           break;
         case "journey":
@@ -1280,7 +1588,12 @@ export default function MeinHUI({
                 <div style={detailRow}>Tage seit Beginn: <b>{wirkData.daysSince}</b></div>
                 <div style={detailRow}>Werke: <b>{wirkData.worksCount}</b></div>
                 <div style={detailRow}>Verbindungen: <b>{wirkData.followers}</b></div>
-                <div style={detailRow}>Impulse: <b>{wirkData.worksCount + wirkData.ordersCount + wirkData.bookingsCount}</b></div>
+                <div style={detailRow}>Du folgst: <b>{wirkData.following}</b></div>
+                <div style={detailRow}>Käufe: <b>{wirkData.ordersCount}</b></div>
+                <div style={detailRow}>Buchungen: <b>{wirkData.bookingsCount}</b></div>
+                <div style={detailRow}>Impulse gesamt: <b>{wirkData.worksCount + wirkData.ordersCount + wirkData.bookingsCount}</b></div>
+                <div style={detailRow}>Projekte: <b>{wirkData.projectsCount}</b></div>
+                <div style={detailRow}>Impact: <b>{wirkData.impactEur} €</b></div>
               </div>
             );
           }
@@ -1322,9 +1635,35 @@ export default function MeinHUI({
                   neue Verbindungen diese Woche
                 </div>
               </div>
-              <p style={{ fontFamily: FONT, fontSize: 14, color: T.inkSoft, lineHeight: 1.6 }}>
-                Jede neue Verbindung ist eine neue Möglichkeit, gemeinsam etwas zu bewegen.
-              </p>
+              <div style={detailRow}>Neue diese Woche: <b>{wirkData.newConnectionsThisWeek}</b></div>
+              <div style={detailRow}>Neue diesen Monat: <b>{wirkData.newConnectionsThisMonth}</b></div>
+              <div style={detailRow}>Verbindungen gesamt: <b>{wirkData.followers}</b></div>
+              {wirkData.recentConnections.length > 0 && (
+                <>
+                  <div style={{ fontFamily: FONT, fontSize: 13, fontWeight: 600, color: T.ink, margin: "16px 0 10px" }}>
+                    Neueste Verbindungen
+                  </div>
+                  {wirkData.recentConnections.slice(0, 5).map((conn, i) => {
+                    const p = conn.profiles || {};
+                    const name = p.display_name || p.username || "Nutzer";
+                    const ageDays = Math.floor((Date.now() - new Date(conn.created_at).getTime()) / 86400000);
+                    const timeStr = ageDays === 0 ? "heute" : ageDays === 1 ? "gestern" : `vor ${ageDays} Tagen`;
+                    return (
+                      <div key={i} style={{
+                        display: "flex", alignItems: "center", gap: 10,
+                        padding: "10px 0", borderBottom: `1px solid ${T.inkFaint}`,
+                      }}>
+                        <img src={optimizeAvatar(p.avatar_url) || "/assets/brand/hui-logo.png"} alt=""
+                          style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", background: T.creamDeep, flexShrink: 0 }} />
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontFamily: FONT, fontSize: 13, fontWeight: 500, color: T.ink }}>{name}</div>
+                          <div style={{ fontFamily: FONT, fontSize: 11, color: T.inkFaint }}>{timeStr}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </>
+              )}
             </div>
           );
           break;
