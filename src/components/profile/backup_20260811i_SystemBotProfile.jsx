@@ -156,6 +156,7 @@ export default function SystemBotProfile({ profileId, onClose = () => {} }) {
   const [loading, setLoading] = useState(true);
   const [followerCount, setFollowerCount] = useState(0);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [followBusy, setFollowBusy] = useState(false); // FOLLOW-BUTTON-GRAY-FIX (2026-08-11): verhindert Doppelklick-Race
 
   useModalRegistration(true, onClose, "SystemBotProfile");
 
@@ -167,12 +168,21 @@ export default function SystemBotProfile({ profileId, onClose = () => {} }) {
       try {
         const { data: prof } = await supabase
           .from("profiles")
-          .select("id,full_name,username,avatar_url,bio,followers_count,is_system_account")
+          .select("id,full_name,username,avatar_url,bio,is_system_account")
           .eq("id", SYSTEM_USER_ID)
           .maybeSingle();
         if (!dead && prof) {
           setProfile(prof);
           setFollowerCount(prof.followers_count || 0);
+        // FOLLOW-FIX (2026-08-11): followers_count ist eine tote Spalte (kein Trigger
+        // pflegt sie — siehe Migration 20260807_fix_rpc_discover_people_followers.sql).
+        // Stattdessen live via get_follow_counts RPC zählen, genau wie useProfileData.js.
+        supabase
+          .rpc("get_follow_counts", { target_id: SYSTEM_USER_ID })
+          .then(r => {
+            if (r?.data?.[0]) setFollowerCount(r.data[0].followers ?? 0);
+          })
+          .catch(() => {});
         }
 
         const { data: projData } = await supabase
@@ -207,24 +217,38 @@ export default function SystemBotProfile({ profileId, onClose = () => {} }) {
       .from("follows")
       .select("id")
       .eq("follower_id", authProfile.id)
-      .eq("following_id", SYSTEM_USER_ID)
+      .eq("followed_id", SYSTEM_USER_ID)
       .maybeSingle()
       .then(({ data }) => setIsFollowing(!!data));
   }, [authProfile?.id]);
 
+  // FOLLOW-FIX (2026-08-11): follows-Tabelle nutzt "followed_id" (nicht "following_id").
+  // profiles.followers_count ist tot (kein Trigger) — get_follow_counts ist SSOT.
+  // hui:follow:changed Event hält AppStateContext (toggleFollow) synchron.
   const handleFollow = useCallback(async () => {
-    if (!authProfile?.id) return;
-    if (isFollowing) {
-      await supabase.from("follows").delete()
-        .eq("follower_id", authProfile.id).eq("following_id", SYSTEM_USER_ID);
-      setIsFollowing(false);
-      setFollowerCount(c => Math.max(0, c - 1));
-    } else {
-      await supabase.from("follows").insert({ follower_id: authProfile.id, following_id: SYSTEM_USER_ID });
-      setIsFollowing(true);
-      setFollowerCount(c => c + 1);
+    if (!authProfile?.id || followBusy) return;
+    setFollowBusy(true);
+    try {
+      if (isFollowing) {
+        const { error } = await supabase.from("follows").delete()
+          .eq("follower_id", authProfile.id).eq("followed_id", SYSTEM_USER_ID);
+        if (!error) {
+          setIsFollowing(false);
+          setFollowerCount(c => Math.max(0, c - 1));
+          window.dispatchEvent(new CustomEvent("hui:follow:changed", { detail: { targetId: SYSTEM_USER_ID, action: "unfollow" } }));
+        }
+      } else {
+        const { error } = await supabase.from("follows").insert({ follower_id: authProfile.id, followed_id: SYSTEM_USER_ID });
+        if (!error) {
+          setIsFollowing(true);
+          setFollowerCount(c => c + 1);
+          window.dispatchEvent(new CustomEvent("hui:follow:changed", { detail: { targetId: SYSTEM_USER_ID, action: "follow" } }));
+        }
+      }
+    } finally {
+      setFollowBusy(false);
     }
-  }, [authProfile?.id, isFollowing]);
+  }, [authProfile?.id, isFollowing, followBusy]);
 
   const handleProjectPress = useCallback((project) => {
     window.dispatchEvent(new CustomEvent("hui:navigate:tab", { detail: { tab: "impact" } }));
@@ -292,13 +316,15 @@ export default function SystemBotProfile({ profileId, onClose = () => {} }) {
         </div>
 
         {authProfile?.id && authProfile.id !== SYSTEM_USER_ID && (
-          <button onClick={handleFollow} style={{
+          <button onClick={handleFollow} disabled={followBusy} style={{
             padding: "8px 18px", borderRadius: 99,
-            fontSize: 13, fontWeight: 600, cursor: "pointer",
-            background: isFollowing ? "transparent" : T.teal,
-            color: isFollowing ? T.teal : "#fff",
-            border: isFollowing ? "1.5px solid " + T.tealMid : "none",
-          }}>{isFollowing ? "Folgst du" : "Folgen"}</button>
+            fontSize: 13, fontWeight: 600, cursor: followBusy ? "default" : "pointer",
+            opacity: followBusy ? 0.6 : 1,
+            background: isFollowing ? "rgba(26,26,46,0.06)" : T.teal,
+            color: isFollowing ? "rgba(26,26,46,0.4)" : "#fff",
+            border: isFollowing ? "1.5px solid rgba(26,26,46,0.12)" : "none",
+            transition: "background .15s ease, color .15s ease",
+          }}>{isFollowing ? "Gefolgt" : "Folgen"}</button>
         )}
       </div>
 

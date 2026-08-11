@@ -195,8 +195,6 @@ function ImageThumb({ msg = {} }) {
         cursor:"pointer",
       }}
       onClick={() => openGallery(msg.media_url)}
-      onLoad={() => window.dispatchEvent(new CustomEvent("hui:chat:media-loaded"))}
-      onError={() => window.dispatchEvent(new CustomEvent("hui:chat:media-loaded"))}
     />
   );
 }

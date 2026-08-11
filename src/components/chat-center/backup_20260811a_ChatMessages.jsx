@@ -95,27 +95,8 @@ export default function ChatMessages({ messages = [], typing = false, event = nu
       scrollToBottom();
       requestAnimationFrame(scrollToBottom);
     });
-    // CHAT-SCROLL-FIX (2026-08-11): zusaetzliches Sicherheitsnetz -- ein
-    // verzoegerter Korrektur-Scroll nach 350ms faengt Faelle ab, in denen
-    // Bilder/Fonts erst nach den zwei rAF-Passes fertig laden UND der
-    // ResizeObserver aus irgendeinem Grund nicht zuverlaessig feuert
-    // (z.B. sehr alte WebViews). Nur wirksam, solange stickRef.current
-    // true ist -- reisst den Nutzer also nicht zurueck, wenn er zwischen-
-    // zeitlich aktiv nach oben gescrollt hat.
-    const t1 = setTimeout(() => { if (stickRef.current) scrollToBottom(); }, 350);
-    return () => { cancelAnimationFrame(raf1); clearTimeout(t1); };
+    return () => cancelAnimationFrame(raf1);
   }, [messages, typing, scrollToBottom]);
-
-  // CHAT-SCROLL-FIX (2026-08-11): globaler Listener auf das
-  // "hui:chat:media-loaded"-Event (dispatched von MessageBubble.jsx,
-  // ImageThumb onLoad/onError) -- explizite Absicherung zusaetzlich zum
-  // ResizeObserver unten, damit ein spaet ladendes Bild garantiert eine
-  // finale Scroll-Korrektur ans Ende ausloest, solange "angedockt".
-  useEffect(() => {
-    const onMediaLoaded = () => { if (stickRef.current) scrollToBottom(); };
-    window.addEventListener("hui:chat:media-loaded", onMediaLoaded);
-    return () => window.removeEventListener("hui:chat:media-loaded", onMediaLoaded);
-  }, [scrollToBottom]);
 
   // Hält den Chat am unteren Rand "angedockt", solange stickRef.current
   // true ist -- fängt insbesondere nachträglich ladende Bild-Bubbles ab,

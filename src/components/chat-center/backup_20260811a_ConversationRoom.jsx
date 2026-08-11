@@ -1,7 +1,7 @@
 // chat-center/ConversationRoom.jsx v2
 // Voice + Media + Delete + Edit support
 
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback } from "react";
 import ChatHeader     from "./ChatHeader.jsx";
 import ChatMessages   from "./ChatMessages.jsx";
 import ChatInput      from "./ChatInput.jsx";
@@ -25,15 +25,12 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile, onCloseC
   const { messages: liveMessages, sendMessage, deleteMessage, editMessage, sending, loading } =
     useChatThread(realChatId);
 
-  const messages = useMemo(
-    () => (liveMessages || []).filter(m => m?.id).map(m => ({
-      ...m,
-      own:         m.sender_id === user?.id,
-      avatar:      conv?.avatar_url,
-      sender_name: conv?.name,
-    })),
-    [liveMessages, user?.id, conv?.avatar_url, conv?.name]
-  );
+  const messages = (liveMessages || []).filter(m => m?.id).map(m => ({
+    ...m,
+    own:         m.sender_id === user?.id,
+    avatar:      conv?.avatar_url,
+    sender_name: conv?.name,
+  }));
 
   // Send: Text oder Media (von ChatInput v4)
   const handleSend = useCallback(async (payload) => {

@@ -3,6 +3,7 @@
 // Zeigt: Name + Follower + Abgeschlossene Projekte (Kacheln) + Systemnachrichten
 import React, { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useHome } from "../home/HomeShell.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
@@ -150,6 +151,7 @@ function MessageItem({ notif = {}, onPress = () => {} }) {
 // ── Haupt-Komponente ─────────────────────────────────────────────────────
 export default function SystemBotProfile({ profileId, onClose = () => {} }) {
   const { authProfile } = useHome();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [projects, setProjects] = useState([]);
   const [messages, setMessages] = useState([]);
@@ -251,9 +253,10 @@ export default function SystemBotProfile({ profileId, onClose = () => {} }) {
   }, [authProfile?.id, isFollowing, followBusy]);
 
   const handleProjectPress = useCallback((project) => {
-    window.dispatchEvent(new CustomEvent("hui:navigate:tab", { detail: { tab: "impact" } }));
+    if (!project?.id) return;
     onClose?.();
-  }, [onClose]);
+    navigate("/impact", { state: { openProjectId: project.id } });
+  }, [onClose, navigate]);
 
   const handleMessagePress = useCallback((notif) => {
     if (notif.action_url) {

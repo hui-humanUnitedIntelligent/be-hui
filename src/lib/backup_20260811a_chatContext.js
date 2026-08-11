@@ -290,16 +290,6 @@ export function useChatThread(chatId) {
     }
     try {
       // SELECT nur existierende Spalten (verifiziert 2026-06-01)
-      // CHAT-SCROLL-FIX (2026-08-11): Vorher order("created_at",{ascending:true})
-      // .limit(100) -- das laedt bei Chats mit MEHR als 100 Nachrichten die
-      // AELTESTEN 100, die neuesten Nachrichten wurden NIE geladen. Der
-      // Auto-Scroll-ans-Ende-Mechanismus (ChatMessages.jsx) landete dadurch
-      // korrekt am Ende DIESES unvollstaendigen Datensatzes -- fuer den Nutzer
-      // sah es aber aus, als wuerde der Chat "mittendrin" oeffnen, weil die
-      // wirklich letzten Nachrichten fehlten (Michael-Feedback 2026-08-11,
-      // Screenshot Linda-Chat). Fix: absteigend sortieren + limit(100) holt
-      // die NEUESTEN 100, anschliessend zurueck in aufsteigende Reihenfolge
-      // fuer die Anzeige drehen (Standard-Pattern fuer Chat-Pagination).
       const { data, error: loadError } = await supabase
         .from("messages")
         .select(`
@@ -308,9 +298,9 @@ export function useChatThread(chatId) {
           media_url, media_type, is_deleted
         `)
         .eq("chat_id", chatId)
-        .order("created_at", { ascending: false })
+        .order("created_at", { ascending: true })
         .limit(100);
-      if (data) setMessages([...data].reverse());
+      if (data) setMessages(data);
     } catch(e) {
     }
     finally { setLoading(false); }
