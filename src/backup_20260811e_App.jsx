@@ -1,6 +1,5 @@
 import { HUIImpactIcon } from './design/icons/HuiSystemIcons.jsx';
 import OTAUpdateBanner from './components/system/OTAUpdateBanner.jsx';
-import OTAUpdatePopup from './components/system/OTAUpdatePopup.jsx';
 import { makeChunkReload } from "./lib/chunkReload.js";
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { sentryCapture, Sentry } from './lib/sentry';
@@ -911,7 +910,6 @@ export default function App() {
 
             <ToastContainer/>
             <OTAUpdateBanner />
-            <OTAUpdatePopup />
 
           </AuthGateProvider>
         </AuthProvider>
