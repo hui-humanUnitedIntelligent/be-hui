@@ -235,7 +235,46 @@
     {
       "source": "/",
       "destination": "/landing.html",
-      "permanent": false
+      "permanent": false,
+      "has": [
+        {
+          "type": "host",
+          "value": "be-hui.com"
+        }
+      ]
+    },
+    {
+      "source": "/",
+      "destination": "/landing.html",
+      "permanent": false,
+      "has": [
+        {
+          "type": "host",
+          "value": "www.be-hui.com"
+        }
+      ]
+    },
+    {
+      "source": "/",
+      "destination": "/landing.html",
+      "permanent": false,
+      "has": [
+        {
+          "type": "host",
+          "value": "app.be-hui.com"
+        }
+      ]
+    },
+    {
+      "source": "/",
+      "destination": "/landing.html",
+      "permanent": false,
+      "has": [
+        {
+          "type": "host",
+          "value": "be-hui.vercel.app"
+        }
+      ]
     }
   ]
 }
