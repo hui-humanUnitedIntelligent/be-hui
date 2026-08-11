@@ -207,14 +207,6 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
   const [shareErr,  setShareErr]  = useState(null);
   const [momentSource, setMomentSource] = useState(null); // "foto"|"video"|"galerie"|"gedanke"
 
-  // KEYBOARD-FIX (2026-08-11): useKeyboardInset() MUSS aufgerufen werden, damit
-  // der globale visualViewport/native-Insets-Listener initialisiert wird — sonst
-  // bleibt --hui-keyboard-inset auf 0, wenn dieses Sheet die erste tastatur-
-  // bewusste Oberfläche der Session ist (z.B. direkter Einstieg über "Mein
-  // Bereich" → "Momente hinzufügen" ohne vorher Chat/Settings/Comments geöffnet
-  // zu haben). Gleiches Muster wie CommentsSheet.jsx (Zeile 371).
-  useKeyboardInset();
-
   const fotoRef     = useRef(null);
   const videoRef    = useRef(null);
   const galerieRef  = useRef(null);
@@ -372,7 +364,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
 
       {/* Sheet */}
       <div onClick={e => e.stopPropagation()} style={{
-        position:"fixed",bottom:"var(--hui-keyboard-inset, 0px)",left:0,right:0,zIndex:11100,
+        position:"fixed",bottom:0,left:0,right:0,zIndex:11100,
         background:D.sheet,borderRadius:"28px 28px 0 0",
         padding:`0 0 max(32px,calc(24px + env(safe-area-inset-bottom,0px)))`,
         boxShadow:"0 -8px 48px rgba(15,30,26,0.18),0 -2px 12px rgba(15,30,26,0.08)",
