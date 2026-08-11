@@ -416,7 +416,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
                 WebkitTapHighlightColor: "transparent",
               }}
             >
-              Beleg herunterladen
+              Quittung herunterladen
             </button>
           </div>
         )}

@@ -354,7 +354,7 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
                 WebkitTapHighlightColor: "transparent",
               }}
             >
-              Quittung herunterladen
+              Beleg herunterladen
             </button>
             {creatorId && (
               <button

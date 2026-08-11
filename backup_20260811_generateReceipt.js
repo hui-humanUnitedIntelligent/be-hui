@@ -1,6 +1,6 @@
 import { formatDateDE } from "./formatters.js";
-// src/lib/generateReceipt.js — BELEG-001 (2026-08-11)
-// Generiert einen PDF-Beleg (Wirkungsbeleg / Beitragsnachweis) fuer Talent-Buchungen, Erlebnis-Buchungen und Werk-Kaeufe.
+// src/lib/generateReceipt.js — QUITTUNG-001 (2026-08-08)
+// Generiert eine PDF-Quittung fuer Talent-Buchungen, Erlebnis-Buchungen und Werk-Kaeufe.
 // Desktop: doc.save() (Browser-Download)
 // Android (Capacitor): Filesystem.writeFile → Share Sheet (Downloads/Teilen)
 // iOS (Capacitor): Filesystem.writeFile → Share Sheet (Teilen/Speichern)
@@ -41,19 +41,8 @@ export async function generateReceipt(data) {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(16);
   doc.setTextColor(26, 26, 26);
-  // BELEG-001: "Beleg" statt "Quittung" + Untertitel
-  var docTitle = data.offerType === "werk" ? "Beitragsnachweis" : "Dein Wirkungsbeleg";
-  doc.text(docTitle, M, y);
-  y += 7;
-
-  // Untertitel / Intro-Text
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  doc.setTextColor(100, 100, 100);
-  var introText = "Deine Transaktion wurde erfolgreich erfasst. Damit wird sichtbar, was durch deinen Beitrag ermöglicht wurde.";
-  var introLines = doc.splitTextToSize(introText, W - 2 * M);
-  doc.text(introLines, M, y);
-  y += introLines.length * 5 + 6;
+  doc.text("Quittung", M, y);
+  y += 8;
 
   // Buchungs-ID + Datum
   doc.setFont("helvetica", "normal");
@@ -210,8 +199,8 @@ export async function generateReceipt(data) {
   doc.setFontSize(9);
   doc.setTextColor(14, 196, 184);
   var statusText = data.offerType === "werk"
-    ? "\u2713 Beitrag erfasst \u2014 Werk erworben"
-    : "\u2713 Beitrag erfasst \u2014 Termin reserviert";
+    ? "\u2713 Zahlung bestaetigt \u2014 Werk erworben"
+    : "\u2713 Zahlung bestaetigt \u2014 Termin reserviert";
   doc.text(statusText, M, y);
   y += 10;
 
@@ -219,7 +208,7 @@ export async function generateReceipt(data) {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(120, 120, 120);
-  doc.text("Du kannst den Anbieter uber HUI kontaktieren \u2013 in der App unter Finanz\u00fcbersicht.", M, y);
+  doc.text("Du kannst den Anbieter uber HUI kontaktieren \u2013 in der App unter Finanz\u00fcbersicht > Buchungen.", M, y);
   y += 6;
 
   // Footer
@@ -232,7 +221,7 @@ export async function generateReceipt(data) {
   doc.text("be-hui.vercel.app", W - M - 35, 275);
 
   // ── Dateiname ──────────────────────────────────────────────
-  var fileName = "HUI_Beleg_" + (data.offerTitle ? data.offerTitle.substring(0, 20).replace(/[^a-zA-Z0-9]/g, "_") : "Buchung") + ".pdf";
+  var fileName = "HUI_Quittung_" + (data.offerTitle ? data.offerTitle.substring(0, 20).replace(/[^a-zA-Z0-9]/g, "_") : "Buchung") + ".pdf";
 
   // ── Plattform-spezifischer Download ──────────────────────────
   if (isNative()) {

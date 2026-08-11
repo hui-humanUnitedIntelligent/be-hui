@@ -396,16 +396,8 @@ serve(async (req) => {
           })
           if (notifErr) console.warn('[NOTIF]', notifErr.message)
         } else {
-          // BELEG-001 (2026-08-11): Angereichert mit amount_eur, offer_title,
-          // offer_type, work_id fuer strukturiertes Detail-Modal + Beleg-Download
-          const workItemsForSeller = (orderItems || []).filter((i: any) => i.seller_id === group.sellerId && i.item_type === 'work')
-          const workAmountEur = workItemsForSeller.reduce((sum: number, i: any) => sum + Number(i.snapshot?.price_eur || 0) * (i.quantity || 1), 0)
           const workMeta = {
             order_id: order.id, item_titles: group.titles,
-            offer_title: titleList,
-            offer_type: 'werk',
-            work_id: workItemsForSeller[0]?.work_id || null,
-            amount_eur: workAmountEur,
             buyer_name: orderBuyerName, other_user_id: order.customer_id,
           }
           const { error: notifErr } = await supabase.from('notifications').insert({
@@ -468,44 +460,13 @@ serve(async (req) => {
       const expTitles  = (orderItems || []).filter((i: any) => i.item_type === 'experience')
 
       if (workTitles.length > 0) {
-        // BELEG-001 (2026-08-11): Kaeufer-Bestaetigung mit vollen Details anreichern
-        // (seller_name, amount_eur, work_id, offer_type) — analog zu talent_booking_confirmed.
-        // Sonst zeigt das Resonanzzentrum-Modal nur einen generischen Text ohne Struktur.
-        const workItems = (orderItems || []).filter((i: any) => i.item_type !== 'experience')
-        const workTotalEur = workItems.reduce((sum: number, i: any) => sum + Number(i.snapshot?.price_eur || 0) * (i.quantity || 1), 0)
-        const firstWorkSellerId = workItems[0]?.seller_id || null
-        let workSellerName = 'Der Anbieter'
-        let workSellerEmail: string | null = null
-        let workSellerWebsite: string | null = null
-        if (firstWorkSellerId) {
-          const { data: workSellerProfile } = await supabase
-            .from('profiles')
-            .select('display_name, full_name, username, email, website')
-            .eq('id', firstWorkSellerId)
-            .maybeSingle()
-          workSellerName    = workSellerProfile?.display_name || workSellerProfile?.full_name || workSellerProfile?.username || 'Der Anbieter'
-          workSellerEmail   = workSellerProfile?.email || null
-          workSellerWebsite = workSellerProfile?.website || null
-        }
-        const buyerWorkMeta = {
-          order_id: order.id,
-          item_titles: workTitles,
-          offer_title: workTitles.join(', '),
-          offer_type: 'werk',
-          work_id: workItems[0]?.work_id || null,
-          amount_eur: workTotalEur,
-          seller_name: workSellerName,
-          seller_email: workSellerEmail,
-          seller_website: workSellerWebsite,
-          other_user_id: firstWorkSellerId,
-        }
         const { error: buyerNotifErr } = await supabase.from('notifications').insert({
           user_id: order.customer_id,
           type:    'order_confirmed',
           title:   'Unterstützung bestätigt ✓',
           body:    `Deine Zahlung für „${workTitles.join(', ')}" war erfolgreich.`,
-          data:     buyerWorkMeta, metadata: buyerWorkMeta,
-          entity_id: workItems[0]?.work_id || null, entity_type: 'work',
+          data:    { order_id: order.id, item_titles: workTitles },
+          metadata:{ order_id: order.id, item_titles: workTitles },
           read:    false, is_read: false,
         })
         if (buyerNotifErr) console.warn('[NOTIF]', buyerNotifErr.message)

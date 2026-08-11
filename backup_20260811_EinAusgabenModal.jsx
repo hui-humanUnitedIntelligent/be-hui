@@ -4,7 +4,7 @@ import { HUIFinanzIcon } from '../../design/icons/HuiSystemIcons.jsx';
 // Quellen:
 //   Ausgaben: payments (als payer_id)  + orders (customer_id) + bookings (customer_id)
 //   Einnahmen: payments (als recipient_id) + bookings (wirker_id) + order_items (seller_id)
-// Vorbereitet für Belegs-Download (receipt_url / generiert)
+// Vorbereitet für Quittungs-Download (receipt_url / generiert)
 // ══════════════════════════════════════════════════
 
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -514,7 +514,7 @@ function TransactionRow({ item, isIncome, isExpanded, onToggle }) {
   const typeMeta  = getTypeMeta(item.type);
   const statusMeta= getStatus(item.status);
 
-  // Belegs-Download (Stripe Session Link als Fallback)
+  // Quittungs-Download (Stripe Session Link als Fallback)
   const receiptUrl = item.stripeId
     ? `https://dashboard.stripe.com/payments/${item.stripeId}`
     : null;
@@ -643,7 +643,7 @@ function TransactionRow({ item, isIncome, isExpanded, onToggle }) {
 
           </div>
 
-          {/* Beleg / Download */}
+          {/* Quittung / Download */}
           <div style={{ display:"flex", gap:8 }}>
             {receiptUrl && (
               <a
@@ -659,7 +659,7 @@ function TransactionRow({ item, isIncome, isExpanded, onToggle }) {
                   WebkitTapHighlightColor:"transparent",
                 }}
               >
-                🧾 Beleg ansehen
+                🧾 Quittung ansehen
               </a>
             )}
             {!receiptUrl && (
@@ -668,7 +668,7 @@ function TransactionRow({ item, isIncome, isExpanded, onToggle }) {
                 background:"rgba(26,26,24,0.04)", border:`1px solid ${T.border}`,
                 fontSize:12, color:T.inkFaint, textAlign:"center",
               }}>
-                🧾 Beleg wird vorbereitet
+                🧾 Quittung wird vorbereitet
               </div>
             )}
           </div>

@@ -7,7 +7,7 @@
 // DETAIL-001 (2026-08-08): Listen-Karten wurden radikal vereinfacht
 // (nur Titel/Datum/Preis/Status) — Klick auf eine Karte öffnet das
 // gemeinsame TransactionDetailSheet mit ALLEN Details + Aktionen (Chat,
-// Beleg, Empfehlung, Ware bestätigen, Profil ansehen). Vorher waren
+// Quittung, Empfehlung, Ware bestätigen, Profil ansehen). Vorher waren
 // bis zu 4 Buttons direkt auf jeder Karte gestapelt ("unübersichtlich").
 // ══════════════════════════════════════════════════════════════════════
 

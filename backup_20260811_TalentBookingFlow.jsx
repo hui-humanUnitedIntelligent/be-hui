@@ -394,7 +394,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                 WebkitTapHighlightColor: "transparent",
               }}
             >
-              Beleg herunterladen
+              Quittung herunterladen
             </button>
             {talent.user_id && (
               <button

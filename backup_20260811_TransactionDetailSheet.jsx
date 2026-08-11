@@ -4,7 +4,7 @@
 // Buchungen, Gebucht-Einträge und Support-Zahlungen (Prinzip 7: keine
 // Duplikate, ein Component-Modus mit normalisierten Props je Herkunft).
 // Wird über FinanzuebersichtModal geöffnet: Klick auf eine Zeile/Karte
-// zeigt hier ALLE Details + alle Aktionen (Chat, Beleg, Empfehlung,
+// zeigt hier ALLE Details + alle Aktionen (Chat, Quittung, Empfehlung,
 // Ware bestätigen, Profil ansehen).
 // Pflicht: createPortal → document.body, zIndex >= 10500 (hier 10550,
 // oberhalb des FinanzuebersichtModal-Sheets bei 10500).
@@ -312,7 +312,7 @@ export default function TransactionDetailSheet({ tx, onClose }) {
             )}
             {a.onDownloadReceipt && (
               <ActionButton variant="receipt" onClick={handleDownload} loading={downloading}>
-                Beleg herunterladen
+                Quittung herunterladen
               </ActionButton>
             )}
           </Section>

@@ -143,7 +143,6 @@ const META = {
   order_confirmed:        { emoji:"✓",   label:"Unterstützung bestätigt"     },
   impact_project_submitted:{ emoji:"💚",  label:"Herzensprojekt eingereicht"  },
   impact_project_deleted:  { emoji:"🗑",  label:"Herzensprojekt entfernt"     },
-  impact_project_completed:{ emoji:"💚",  label:"Projekt finanziert"           },
   work_flagged:            { emoji:"⚠️", label:"Inhalt gemeldet"              },
   content_deleted:         { emoji:"🗑",  label:"Inhalt gelöscht"             },
   content_approved:        { emoji:"✅",  label:"Inhalt freigegeben"          },
@@ -340,9 +339,9 @@ function DetailModal({ n, onClose, onAction }) {
       };
     }
 
-    // ── RESONANZ-BUCHUNG-001 + BELEG-001 (2026-08-08): Strukturiertes
+    // ── RESONANZ-BUCHUNG-001 + QUITTUNG-001 (2026-08-08): Strukturiertes
 //    Buchungsdetail mit echten Daten, Link zum Angebot, Kontaktdaten
-//    (E-Mail/Webseite wenn vorhanden), Chat-Option + Beleg-Download ──
+//    (E-Mail/Webseite wenn vorhanden), Chat-Option + Quittung-Download ──
     if (["talent_booking_paid","talent_booking_confirmed","experience_booking_paid","experience_booking_confirmed"].includes(t)) {
       const isSellerView = t === "talent_booking_paid" || t === "experience_booking_paid";
       const isTalent = t.startsWith("talent_booking");
@@ -355,7 +354,7 @@ function DetailModal({ n, onClose, onAction }) {
         ?formatDateDE(new Date(md.date), { weekday:"short", day:"numeric", month:"long" })
         : null;
 
-      // BELEG-001: Kontaktdaten nur in der Kaeufer-Sicht anzeigen
+      // QUITTUNG-001: Kontaktdaten nur in der Kaeufer-Sicht anzeigen
       const sellerEmail = !isSellerView ? (md.seller_email || null) : null;
       const sellerWebsite = !isSellerView ? (md.seller_website || null) : null;
       const offerId = md.offer_id || null;
@@ -378,7 +377,7 @@ function DetailModal({ n, onClose, onAction }) {
           sellerWebsite && { type:"label-text", label:"Webseite", text: sellerWebsite, color:"#0EC4B8", bg:"rgba(14,196,184,0.06)", border:"rgba(14,196,184,0.22)" },
         ].filter(Boolean),
         chatUserId: otherUserId,
-        // BELEG-001: Beleg-Button nur in der Kaeufer-Sicht
+        // QUITTUNG-001: Quittungs-Button nur in der Kaeufer-Sicht
         receiptData: !isSellerView ? {
           offerTitle,
           sellerName: md.seller_name || null,
@@ -400,26 +399,20 @@ function DetailModal({ n, onClose, onAction }) {
       };
     }
 
-    // Neue Bestellung (Verkäufer-Sicht) — BELEG-001: strukturiert wie Buchungen
+    // Neue Bestellung / Unterstützung
     if (t === "new_order" || t === "new_booking" || t === "purchase") {
-      const offerTitle = md.offer_title || (md.item_titles || []).join(", ") || md.werk_title || md.title || "dein Werk";
-      const buyerName = md.buyer_name || "Jemand";
-      const amount = md.amount_eur != null ? `${Number(md.amount_eur).toFixed(2).replace(".", ",")} €` : null;
-      const workId = md.work_id || n.entity_id || null;
+      const amount = md.amount_eur ? `${Number(md.amount_eur).toFixed(2)} €` : (md.amount ? `${md.amount}` : "");
       return {
         accentColor: "#0EC4B8",
         headerIcon: "🛍",
-        headerTitle: n.title || "Neue Bestellung 🎉",
-        headerSubtitle: `„${offerTitle}"`,
+        headerTitle: n.title || "Neue Bestellung",
+        headerSubtitle: md.werk_title || md.title || null,
         blocks: [
-          { type:"stat", label:"Gekauft von", value: buyerName },
-          { type:"stat", label:"Was", value: offerTitle },
           amount && { type:"stat", label:"Betrag", value: amount },
+          { type:"label-text", label:"Details", text: n.body || md.message || "Jemand hat dein Werk unterstützt.", color:"#0EC4B8", bg:"rgba(14,196,184,0.06)", border:"rgba(14,196,184,0.22)" },
         ].filter(Boolean),
-        chatUserId: md.other_user_id || null,
-        entityId: workId,
-        entityType: "work",
-        actionLabel: "Werk ansehen →",
+        actionUrl: n.action_url || null,
+        actionLabel: "Bestellung ansehen →",
       };
     }
 
@@ -519,60 +512,16 @@ function DetailModal({ n, onClose, onAction }) {
     }
 
 
-    // ── Bestellung bestätigt (Käufer-Seite) — BELEG-001: voll strukturiert ──
+    // ── Bestellung bestätigt (Käufer-Seite) ─────────────────────────────────
     if (t === "order_confirmed") {
-      const offerTitle = md.offer_title || (md.item_titles || []).join(", ") || null;
-      const sellerName = md.seller_name || "Der Anbieter";
-      const amount = md.amount_eur != null ? `${Number(md.amount_eur).toFixed(2).replace(".", ",")} €` : null;
-      const workId = md.work_id || n.entity_id || null;
       return {
         accentColor: "#0EC4B8",
         headerIcon: "✓",
-        headerTitle: n.title || "Unterstützung bestätigt ✓",
-        headerSubtitle: offerTitle ? `„${offerTitle}"` : null,
+        headerTitle: n.title || "Unterstützung bestätigt",
+        headerSubtitle: null,
         blocks: [
-          { type:"stat", label:"Gekauft bei", value: sellerName },
-          offerTitle && { type:"stat", label:"Was", value: offerTitle },
-          amount && { type:"stat", label:"Betrag", value: amount },
-        ].filter(Boolean),
-        chatUserId: md.other_user_id || null,
-        entityId: workId,
-        entityType: "work",
-        actionLabel: "Werk ansehen →",
-        // BELEG-001: Beleg-Download für den Käufer
-        receiptData: {
-          offerTitle,
-          sellerName: md.seller_name || null,
-          sellerEmail: md.seller_email || null,
-          sellerWebsite: md.seller_website || null,
-          amountEur: md.amount_eur || null,
-          offerId: workId,
-          offerType: "werk",
-          bookingId: md.order_id || n.entity_id || null,
-        },
-        offerLinkId: workId,
-        offerLinkType: "werk",
-      };
-    }
-
-    // ── Impact-Projekt vollständig finanziert (BELEG-001) ───────────────────
-    if (t === "impact_project_completed") {
-      const projectName = md.project_name || n.title || "Dein Projekt";
-      const funded = md.funded_amount != null ? `${Number(md.funded_amount).toFixed(2).replace(".", ",")} €` : null;
-      const goal = md.goal != null ? `${Number(md.goal).toFixed(2).replace(".", ",")} €` : null;
-      return {
-        accentColor: "#22C55E",
-        headerIcon: "💚",
-        headerTitle: n.title || "Projekt vollständig finanziert!",
-        headerSubtitle: `„${projectName}"`,
-        blocks: [
-          funded && { type:"stat", label:"Erreicht", value: funded },
-          goal && { type:"stat", label:"Ziel", value: goal },
-          { type:"info", text: "Herzlichen Glückwunsch! Dein Herzensprojekt hat sein Finanzierungsziel erreicht." },
-        ].filter(Boolean),
-        entityId: md.project_id || n.entity_id || null,
-        entityType: "project",
-        actionLabel: "Projekt ansehen →",
+          { type:"label-text", label:"Details", text: n.body || "Deine Zahlung war erfolgreich.", color:"#0EC4B8", bg:"rgba(14,196,184,0.06)", border:"rgba(14,196,184,0.22)" },
+        ],
       };
     }
 
@@ -884,7 +833,7 @@ function DetailModal({ n, onClose, onAction }) {
           </button>
         )}
 
-        {/* ── BELEG-001: Beleg herunterladen ── */}
+        {/* ── QUITTUNG-001: Quittung herunterladen ── */}
         {cfg.receiptData && (
           <button
             onClick={async () => {
@@ -903,7 +852,7 @@ function DetailModal({ n, onClose, onAction }) {
               marginBottom:10,
             }}
           >
-            📄 Beleg herunterladen
+            📄 Quittung herunterladen
           </button>
         )}
 
@@ -1200,7 +1149,6 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
   ];
   const KAUF_VERKAUF_TYPES = [
     "new_order", "order_confirmed", "order", "purchase",
-  "impact_project_completed",
     "support_received", "support_succeeded",
   ];
 
