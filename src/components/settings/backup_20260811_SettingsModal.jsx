@@ -450,10 +450,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
               padding:"28px 0 8px", gap:6,
             }}>
               <HUILogoWordmark logoSize={32}/>
-              {/* 2026-08-11 FIX: Michael-Report — Versionsnummer war fast unlesbar
-                  blass (Opacity 0.25). Jetzt dunkler/schwarz für Lesbarkeit,
-                  gleiche Konvention wie andere Fließtext-Labels im Profil. */}
-              <div style={{ fontSize:10.5, color:"rgba(26,26,24,0.75)", letterSpacing:"0.05em" }}>
+              <div style={{ fontSize:10.5, color:"rgba(26,26,24,0.25)", letterSpacing:"0.05em" }}>
                 v{APP_VERSION}
               </div>
             </div>
