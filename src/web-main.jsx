@@ -3,7 +3,7 @@
 // ══════════════════════════════════════════════════════════════════════════════
 //
 // v2.4: desktopV3.css nach AuthenticatedApp verschoben.
-// Öffentliche Landingpage lädt nur index.css + web.css.
+// Öffentliche Landingpage lädt nur index.css + web.css + landing.css.
 // cssCodeSplit: true → desktopV3.css wird als separater CSS-Chunk
 // erst nach Login geladen.
 // ══════════════════════════════════════════════════════════════════════════════
@@ -15,6 +15,7 @@ import WebApp from './WebApp.jsx';
 // ── Styles (Public-only) ─────────────────────────────────────────────────────
 import './index.css';                       // Shared Design System (Tailwind, CSS Variables, Fonts)
 import './web.css';                         // Web-spezifische Styles (Root Reset, Loading Screen)
+import './landing.css';                     // Landing Page Styles (nur Public)
 // desktopV3.css → jetzt in AuthenticatedApp.jsx (lazy nach Login)
 
 // ── Sentry ────────────────────────────────────────────────────────────────────

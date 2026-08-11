@@ -1,0 +1,869 @@
+/* ═══════════════════════════════════════════════════════════════════════════════
+   landing.css — HUI Public Landing Page Styles
+   ═══════════════════════════════════════════════════════════════════════════════
+
+   SCOPE: Alle Regeln unter #web-root .hui-landing → kein Konflikt mit Mobile
+   oder Desktop App.
+
+   DESIGN SYSTEM: HUI Design Tokens (src/design/hui.design.js)
+   Farben: Teal #0DC4B5, Coral #F47355, Cream #FAF7F2, Ink #141422
+   Font: Inter (lokal über index.css @font-face)
+
+   Sektionen:
+   1. Navigation (.lp-nav)
+   2. Hero (.lp-hero)
+   3. Vision (.lp-vision)
+   4. Process (.lp-process)
+   5. Ecosystem (.lp-ecosystem)
+   6. Honest (.lp-honest)
+   7. Impact (.lp-impact)
+   8. Paths (.lp-paths)
+   9. App (.lp-app)
+   10. Final CTA (.lp-final)
+   11. Footer (.lp-footer)
+   12. Animations (.lp-animate)
+   13. Buttons (.lp-btn)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Root Container ────────────────────────────────────────────────────────── */
+#web-root .hui-landing {
+  min-height: 100vh;
+  background: #FAF7F2;
+  color: #141422;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+#web-root .hui-landing * { box-sizing: border-box; }
+
+#web-root .hui-landing a { text-decoration: none; color: inherit; }
+
+/* ── Section Inner ─────────────────────────────────────────────────────────── */
+#web-root .hui-landing .lp-section__inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 100px 24px;
+}
+
+#web-root .hui-landing .lp-section__kicker {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #0DC4B5;
+  margin: 0 0 16px;
+}
+
+#web-root .hui-landing .lp-section__title {
+  font-size: clamp(28px, 5vw, 48px);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: #141422;
+  margin: 0 0 48px;
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────────────── */
+#web-root .hui-landing .lp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 32px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  border: none;
+  font-family: inherit;
+}
+
+#web-root .hui-landing .lp-btn--primary {
+  background: #0DC4B5;
+  color: #FFFFFF;
+  box-shadow: 0 4px 18px rgba(13, 196, 181, 0.32), 0 1px 4px rgba(13, 196, 181, 0.2);
+}
+#web-root .hui-landing .lp-btn--primary:hover {
+  background: #09A89A;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(13, 196, 181, 0.42), 0 2px 8px rgba(13, 196, 181, 0.28);
+}
+
+#web-root .hui-landing .lp-btn--ghost {
+  background: transparent;
+  color: #141422;
+  border: 1.5px solid #EDE5D8;
+}
+#web-root .hui-landing .lp-btn--ghost:hover {
+  background: #F5EEE3;
+  border-color: #EDE5D8;
+}
+
+/* ── Navigation ───────────────────────────────────────────────────────────── */
+#web-root .hui-landing .lp-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  background: transparent;
+}
+
+#web-root .hui-landing .lp-nav--scrolled {
+  background: rgba(250, 247, 242, 0.88);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  box-shadow: 0 1px 12px rgba(0, 0, 0, 0.04);
+}
+
+#web-root .hui-landing .lp-nav__inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+#web-root .hui-landing .lp-nav__logo img {
+  height: 32px;
+  width: auto;
+  display: block;
+}
+
+#web-root .hui-landing .lp-nav__links {
+  display: flex;
+  gap: 32px;
+  flex: 1;
+  justify-content: center;
+}
+
+#web-root .hui-landing .lp-nav__link {
+  font-size: 14px;
+  font-weight: 500;
+  color: #3A3A55;
+  transition: color 0.2s ease;
+  cursor: pointer;
+}
+#web-root .hui-landing .lp-nav__link:hover { color: #0DC4B5; }
+
+#web-root .hui-landing .lp-nav__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#web-root .hui-landing .lp-nav__login {
+  font-size: 14px;
+  font-weight: 500;
+  color: #3A3A55;
+  padding: 8px 16px;
+  transition: color 0.2s ease;
+}
+#web-root .hui-landing .lp-nav__login:hover { color: #0DC4B5; }
+
+#web-root .hui-landing .lp-nav__cta {
+  font-size: 14px;
+  font-weight: 600;
+  color: #FFFFFF;
+  background: #0DC4B5;
+  padding: 10px 24px;
+  border-radius: 999px;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+#web-root .hui-landing .lp-nav__cta:hover {
+  background: #09A89A;
+  transform: translateY(-1px);
+}
+
+#web-root .hui-landing .lp-nav__burger {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+}
+#web-root .hui-landing .lp-nav__burger span {
+  width: 22px;
+  height: 2px;
+  background: #141422;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+#web-root .hui-landing .lp-nav__burger--open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+#web-root .hui-landing .lp-nav__burger--open span:nth-child(2) { opacity: 0; }
+#web-root .hui-landing .lp-nav__burger--open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+#web-root .hui-landing .lp-nav__mobile {
+  display: none;
+  flex-direction: column;
+  padding: 16px 24px 24px;
+  background: rgba(250, 247, 242, 0.96);
+  backdrop-filter: blur(20px);
+  gap: 8px;
+}
+
+#web-root .hui-landing .lp-nav__mobile-link {
+  font-size: 16px;
+  font-weight: 500;
+  color: #3A3A55;
+  padding: 12px 0;
+  border-bottom: 1px solid #EDE5D8;
+}
+
+#web-root .hui-landing .lp-nav__mobile-cta {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: #FFFFFF;
+  background: #0DC4B5;
+  padding: 14px;
+  border-radius: 999px;
+}
+
+/* ── Hero ─────────────────────────────────────────────────────────────────── */
+#web-root .hui-landing .lp-hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 120px 24px 80px;
+  overflow: hidden;
+}
+
+#web-root .hui-landing .lp-hero__bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(175deg, #FCF0DF 0%, #F7EBDA 40%, #F2E5D0 100%);
+  z-index: 0;
+}
+
+#web-root .hui-landing .lp-hero__content {
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+}
+
+#web-root .hui-landing .lp-hero__kicker {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: #8A8A9E;
+  margin: 0 0 32px;
+}
+
+#web-root .hui-landing .lp-hero__title {
+  font-size: clamp(44px, 9vw, 80px);
+  font-weight: 600;
+  letter-spacing: -0.05em;
+  line-height: 1.02;
+  color: #141422;
+  margin: 0 0 24px;
+}
+
+#web-root .hui-landing .lp-hero__sub {
+  font-size: clamp(22px, 4vw, 32px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: #0DC4B5;
+  margin: 0 0 24px;
+}
+
+#web-root .hui-landing .lp-hero__desc {
+  font-size: clamp(15px, 2.5vw, 18px);
+  font-weight: 400;
+  line-height: 1.7;
+  color: #3A3A55;
+  margin: 0 0 48px;
+}
+
+#web-root .hui-landing .lp-hero__cta-row {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+#web-root .hui-landing .lp-hero__scroll {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+}
+#web-root .hui-landing .lp-hero__scroll span {
+  display: block;
+  width: 2px;
+  height: 32px;
+  background: #C0C0D0;
+  border-radius: 2px;
+  animation: lp-scroll-bounce 2s ease-in-out infinite;
+}
+@keyframes lp-scroll-bounce {
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  50% { transform: translateY(8px); opacity: 1; }
+}
+
+#web-root .hui-landing .lp-br { display: inline; }
+
+/* ── Vision Section ───────────────────────────────────────────────────────── */
+#web-root .hui-landing .lp-vision {
+  background: #FAF7F2;
+  text-align: center;
+}
+
+#web-root .hui-landing .lp-vision__title {
+  font-size: clamp(32px, 6vw, 56px);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  color: #141422;
+  margin: 0 0 48px;
+}
+
+#web-root .hui-landing .lp-vision__list {
+  max-width: 640px;
+  margin: 0 auto 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+#web-root .hui-landing .lp-vision__item {
+  font-size: clamp(18px, 3vw, 24px);
+  font-weight: 400;
+  line-height: 1.5;
+  color: #3A3A55;
+  margin: 0;
+}
+
+#web-root .hui-landing .lp-vision__answer {
+  font-size: clamp(20px, 3.5vw, 28px);
+  font-weight: 600;
+  color: #0DC4B5;
+  margin: 0;
+}
+
+/* ── Process Section ──────────────────────────────────────────────────────── */
+#web-root .hui-landing .lp-process {
+  background: #FDFBF8;
+}
+
+#web-root .hui-landing .lp-process__flow {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+#web-root .hui-landing .lp-process__step {
+  position: relative;
+  padding: 32px 0 48px;
+  padding-left: 80px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+#web-root .hui-landing .lp-process__num {
+  position: absolute;
+  left: 0;
+  top: 24px;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #E6FAF8;
+  color: #0DC4B5;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+#web-root .hui-landing .lp-process__step-title {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #141422;
+  margin: 0 0 8px;
+}
+
+#web-root .hui-landing .lp-process__step-text {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.7;
+  color: #3A3A55;
+  margin: 0;
+}
+
+#web-root .hui-landing .lp-process__connector {
+  position: absolute;
+  left: 25px;
+  top: 80px;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, #E6FAF8, #EDE5D8);
+}
+
+/* ── Ecosystem Section ────────────────────────────────────────────────────── */
+#web-root .hui-landing .lp-ecosystem {
+  background: #FAF7F2;
+}
+
+#web-root .hui-landing .lp-ecosystem__grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 24px;
+}
+
+#web-root .hui-landing .lp-ecosystem__item {
+  text-align: center;
+  padding: 32px 16px;
+  background: #FDFBF8;
+  border-radius: 24px;
+  border: 1px solid #EDE5D8;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+#web-root .hui-landing .lp-ecosystem__item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.06);
+}
+
+#web-root .hui-landing .lp-ecosystem__icon {
+  font-size: 28px;
+  margin-bottom: 16px;
+  color: #0DC4B5;
+}
+
+#web-root .hui-landing .lp-ecosystem__name {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #141422;
+  margin: 0 0 8px;
+}
+
+#web-root .hui-landing .lp-ecosystem__text {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #8A8A9E;
+  margin: 0;
+}
+
+/* ── Honest Section ───────────────────────────────────────────────────────── */
+#web-root .hui-landing .lp-honest {
+  background: linear-gradient(175deg, #FCF0DF 0%, #F7EBDA 100%);
+}
+
+#web-root .hui-landing .lp-honest__content {
+  max-width: 640px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+#web-root .hui-landing .lp-honest__kicker { color: #D4952A; }
+
+#web-root .hui-landing .lp-honest__title {
+  font-size: clamp(32px, 6vw, 52px);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  color: #141422;
+  margin: 0 0 32px;
+}
+
+#web-root .hui-landing .lp-honest__text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 32px;
+}
+#web-root .hui-landing .lp-honest__text p {
+  font-size: clamp(16px, 2.5vw, 20px);
+  font-weight: 400;
+  line-height: 1.6;
+  color: #3A3A55;
+  margin: 0;
+}
+
+#web-root .hui-landing .lp-honest__call {
+  font-size: clamp(18px, 3vw, 22px);
+  font-weight: 600;
+  color: #0DC4B5;
+  margin: 0 0 16px;
+}
+
+#web-root .hui-landing .lp-honest__invite {
+  font-size: clamp(16px, 2.5vw, 20px);
+  font-weight: 400;
+  line-height: 1.6;
+  color: #3A3A55;
+  margin: 0;
+}
+
+/* ── Impact Section ────────────────────────────────────────────────────────── */
+#web-root .hui-landing .lp-impact {
+  background: #141422;
+  color: #FAF7F2;
+}
+
+#web-root .hui-landing .lp-impact__content {
+  max-width: 640px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+#web-root .hui-landing .lp-impact__content .lp-section__kicker { color: #22DDD0; }
+
+#web-root .hui-landing .lp-impact__title {
+  font-size: clamp(32px, 6vw, 52px);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  color: #FFFFFF;
+  margin: 0 0 40px;
+}
+
+#web-root .hui-landing .lp-impact__activities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin: 0 0 40px;
+}
+
+#web-root .hui-landing .lp-impact__activity {
+  font-size: 15px;
+  font-weight: 500;
+  color: #FAF7F2;
+  padding: 10px 20px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+#web-root .hui-landing .lp-impact__text {
+  font-size: clamp(16px, 2.5vw, 20px);
+  font-weight: 400;
+  line-height: 1.6;
+  color: #C0C0D0;
+  margin: 0;
+}
+
+/* ── Paths Section ─────────────────────────────────────────────────────────── */
+#web-root .hui-landing .lp-paths {
+  background: #FAF7F2;
+}
+
+#web-root .hui-landing .lp-paths__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+#web-root .hui-landing .lp-paths__card {
+  padding: 40px 32px;
+  background: #FDFBF8;
+  border-radius: 28px;
+  border: 1px solid #EDE5D8;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+#web-root .hui-landing .lp-paths__card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.07);
+}
+
+#web-root .hui-landing .lp-paths__card-title {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #141422;
+  margin: 0 0 8px;
+}
+
+#web-root .hui-landing .lp-paths__card-text {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #3A3A55;
+  margin: 0 0 24px;
+}
+
+#web-root .hui-landing .lp-paths__card-cta {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0DC4B5;
+  transition: color 0.2s ease;
+}
+#web-root .hui-landing .lp-paths__card-cta:hover { color: #09A89A; }
+
+/* ── App Section ───────────────────────────────────────────────────────────── */
+#web-root .hui-landing .lp-app {
+  background: #FDFBF8;
+}
+
+#web-root .hui-landing .lp-app__sub {
+  font-size: clamp(16px, 2.5vw, 20px);
+  font-weight: 400;
+  line-height: 1.6;
+  color: #3A3A55;
+  text-align: center;
+  max-width: 560px;
+  margin: 0 auto 64px;
+}
+
+#web-root .hui-landing .lp-app__features {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin: 0 0 64px;
+}
+
+#web-root .hui-landing .lp-app__feature {
+  text-align: center;
+  padding: 24px;
+}
+
+#web-root .hui-landing .lp-app__feature-title {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #0DC4B5;
+  margin: 0 0 8px;
+}
+
+#web-root .hui-landing .lp-app__feature-text {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: #8A8A9E;
+  margin: 0;
+}
+
+#web-root .hui-landing .lp-app__cta-row {
+  text-align: center;
+}
+
+/* ── Final CTA ─────────────────────────────────────────────────────────────── */
+#web-root .hui-landing .lp-final {
+  background: linear-gradient(175deg, #FCF0DF 0%, #F7EBDA 50%, #F2E5D0 100%);
+}
+
+#web-root .hui-landing .lp-final__content {
+  max-width: 720px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+#web-root .hui-landing .lp-final__title {
+  font-size: clamp(28px, 5vw, 48px);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1.15;
+  color: #141422;
+  margin: 0 0 24px;
+}
+
+#web-root .hui-landing .lp-final__sub {
+  font-size: clamp(16px, 2.5vw, 20px);
+  font-weight: 400;
+  line-height: 1.6;
+  color: #3A3A55;
+  margin: 0 0 48px;
+}
+
+#web-root .hui-landing .lp-final__cta-row {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ── Footer ────────────────────────────────────────────────────────────────── */
+#web-root .hui-landing .lp-footer {
+  background: #141422;
+  color: #C0C0D0;
+  padding: 80px 24px 32px;
+}
+
+#web-root .hui-landing .lp-footer__inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr;
+  gap: 48px;
+}
+
+#web-root .hui-landing .lp-footer__logo {
+  height: 32px;
+  width: auto;
+  margin-bottom: 16px;
+  filter: brightness(0) invert(1);
+}
+
+#web-root .hui-landing .lp-footer__tagline {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: #8A8A9E;
+  margin: 0;
+}
+
+#web-root .hui-landing .lp-footer__col-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #FAF7F2;
+  margin: 0 0 16px;
+}
+
+#web-root .hui-landing .lp-footer__link {
+  display: block;
+  font-size: 14px;
+  font-weight: 400;
+  color: #8A8A9E;
+  padding: 4px 0;
+  transition: color 0.2s ease;
+}
+#web-root .hui-landing .lp-footer__link:hover { color: #22DDD0; }
+
+#web-root .hui-landing .lp-footer__bottom {
+  max-width: 1200px;
+  margin: 48px auto 0;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: center;
+}
+#web-root .hui-landing .lp-footer__bottom p {
+  font-size: 13px;
+  font-weight: 400;
+  color: #8A8A9E;
+  margin: 0;
+}
+
+/* ── Animations ────────────────────────────────────────────────────────────── */
+#web-root .hui-landing .lp-animate {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+#web-root .hui-landing .lp-animate.lp-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Responsive: Tablet Landscape (1024px) ─────────────────────────────────── */
+@media (max-width: 1024px) {
+  #web-root .hui-landing .lp-ecosystem__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  #web-root .hui-landing .lp-app__features {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  #web-root .hui-landing .lp-footer__inner {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 32px;
+  }
+  #web-root .hui-landing .lp-footer__brand {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ── Responsive: Tablet Portrait (768px) ───────────────────────────────────── */
+@media (max-width: 768px) {
+  #web-root .hui-landing .lp-section__inner {
+    padding: 72px 20px;
+  }
+
+  #web-root .hui-landing .lp-nav__links { display: none; }
+  #web-root .hui-landing .lp-nav__actions { display: none; }
+  #web-root .hui-landing .lp-nav__burger { display: flex; }
+  #web-root .hui-landing .lp-nav__mobile { display: flex; }
+
+  #web-root .hui-landing .lp-hero { min-height: 90vh; padding: 100px 20px 60px; }
+
+  #web-root .hui-landing .lp-ecosystem__grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  #web-root .hui-landing .lp-paths__grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  #web-root .hui-landing .lp-footer__inner {
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+}
+
+/* ── Responsive: Mobile (430px) ──────────────────────────────────────────── */
+@media (max-width: 430px) {
+  #web-root .hui-landing .lp-section__inner {
+    padding: 56px 16px;
+  }
+
+  #web-root .hui-landing .lp-hero {
+    padding: 90px 16px 48px;
+  }
+
+  #web-root .hui-landing .lp-hero__cta-row { flex-direction: column; }
+  #web-root .hui-landing .lp-btn { width: 100%; }
+
+  #web-root .hui-landing .lp-ecosystem__grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  #web-root .hui-landing .lp-app__features {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  #web-root .hui-landing .lp-footer__inner {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  #web-root .hui-landing .lp-final__cta-row { flex-direction: column; }
+
+  #web-root .hui-landing .lp-br { display: none; }
+
+  #web-root .hui-landing .lp-process__step {
+    padding-left: 64px;
+  }
+  #web-root .hui-landing .lp-process__num {
+    width: 44px;
+    height: 44px;
+    font-size: 14px;
+  }
+  #web-root .hui-landing .lp-process__connector {
+    left: 21px;
+  }
+}
+
+/* ── Reduced Motion ────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  #web-root .hui-landing .lp-animate {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  #web-root .hui-landing .lp-hero__scroll span { animation: none; }
+}

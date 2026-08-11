@@ -25,8 +25,10 @@
 //   Nachher (v2.3): LoginPage & AuthCallback lazy — Web-Entry-Chunk reduziert.
 //
 // ROUTING:
-//   Auth-Routen (Login, Callback) werden ohne Shell und ohne App-Provider gerendert.
-//   Alle anderen Routen werden innerhalb von DesktopShell gerendert.
+//   / → LandingPage (wenn nicht authentifiziert)
+//   /login → LoginPage (wenn nicht authentifiziert)
+//   /auth/callback → AuthCallback
+//   Alle anderen App-Routen werden innerhalb von DesktopShell gerendert.
 //
 // WIEDERVERWENDUNG:
 //   Alle Provider, alle Pages, alle Services, alle Hooks, alle Contexts
@@ -43,6 +45,7 @@ import { AuthProvider, useAuth } from './lib/AuthContext.jsx';
 import { ToastContainer } from './lib/useToast.jsx';
 
 // ── Lazy: Public pages (nur für nicht-authentifizierte Besucher) ──────────────
+const LandingPage  = lazy(() => import('./components/landing/LandingPage'));
 const LoginPage    = lazy(() => import('./pages/LoginPage'));
 const AuthCallback = lazy(() => import('./pages/AuthCallback'));
 
@@ -61,7 +64,7 @@ function LoadingScreen() {
 
 // ── Conditional Router ──────────────────────────────────────────────────────
 // Entscheidet basierend auf Auth-Status, welche Provider und Routen gerendert
-// werden. Wenn nicht authentifiziert: nur Login/Callback ohne App-Provider.
+// werden. Wenn nicht authentifiziert: LandingPage, Login/Callback ohne App-Provider.
 // Wenn authentifiziert: alle App-Provider + DesktopShell-Routen.
 function ConditionalRouter() {
   const { isAuthenticated, loadingAuth } = useAuth();
@@ -70,10 +73,11 @@ function ConditionalRouter() {
 
   if (!isAuthenticated) {
     // ── Öffentliche Routen — KEINE App-Provider ──────────────────────
-    // LoginPage & AuthCallback sind lazy — laden als separate Chunks
+    // LandingPage, LoginPage & AuthCallback sind lazy — separate Chunks
     return (
       <Suspense fallback={<LoadingScreen />}>
         <Routes>
+          <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
