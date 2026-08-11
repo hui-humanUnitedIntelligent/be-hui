@@ -1,24 +1,14 @@
-// src/components/shared/ImageLightbox.jsx — LIGHTBOX.2 (2026-08-11)
+// src/components/shared/ImageLightbox.jsx — LIGHTBOX.1 (2026-08-08)
 // Appweit wiederverwendbare Full-Screen Bildbetrachter-Komponente.
 // Wird ueber den globalen window.__HUI_LIGHTBOX__ Hook geoeffnet:
 //   window.__HUI_LIGHTBOX__.open(images, startIndex)
 //   images: Array von { url, type, alt } (type: "image" | "video")
 //   startIndex: Index des zuerst anzuzeigenden Bildes (Default 0)
-//
-// FIX v2 (2026-08-11):
-//   1. Zoom reduziert: Doppel-Tapp 1.5x (war 2x), Pinch max 3x (war 4x)
-//   2. Zurueck-Taste-Logik: Wenn Bild gezoomt ist → erst Zoom zuruecksetzen
-//      (nicht schließen). Erst wenn nicht gezoomt → Lightbox schließen.
-//      Verhindert dass ein zweiter Back-Press waehrend der 220ms
-//      Exit-Animation das naechste Modal (ContentPreview etc.) trifft.
-//   3. close() setzt Zoom/Pan SOFORT zurueck (nicht erst nach Animation).
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 const ANIM_MS = 220;
-const DOUBLE_TAP_SCALE = 1.5;  // war 2 — zu stark (Nutzer-Feedback 2026-08-11)
-const MAX_PINCH_SCALE = 3;    // war 4 — zu stark
 const CSS = `
 @keyframes huiLbEnter { from { opacity: 0; } to { opacity: 1; } }
 @keyframes huiLbImgEnter { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
@@ -44,8 +34,6 @@ export default function ImageLightbox() {
   const dragRef = useRef({ startX:0, startY:0, dragging:false, pinchStart:0, pinchDist:0, lastTap:0, panStartX:0, panStartY:0 });
   const closeTimerRef = useRef(null);
   const rafRef = useRef(null);
-  const scaleRef = useRef(1);  // fuer Back-Button-Handler (aktueller Wert ohne Re-Render-Abhaengigkeit)
-  scaleRef.current = scale;
 
   injectCSS();
 
@@ -62,7 +50,6 @@ export default function ImageLightbox() {
         setImages(normalized);
         setIndex(Math.min(start || 0, normalized.length - 1));
         setScale(1); setDragY(0); setDragX(0); setPanX(0); setPanY(0);
-        scaleRef.current = 1;
         rafRef.current = requestAnimationFrame(function() { setVisible(true); });
       },
     };
@@ -76,40 +63,15 @@ export default function ImageLightbox() {
     return function() { document.body.style.overflow = prev; };
   }, [images]);
 
-  // ── Reset Zoom + Pan (sofort, ohne Animation) ──
-  var resetZoom = useCallback(function() {
-    setScale(1); setPanX(0); setPanY(0); setDragX(0); setDragY(0);
-    scaleRef.current = 1;
-  }, []);
-
   var close = useCallback(function() {
-    // SOFORT Zoom/Pan zuruecksetzen (vor der Animation — Bild geht auf Ursprungsposition)
-    setScale(1); setPanX(0); setPanY(0); setDragX(0); setDragY(0);
-    scaleRef.current = 1;
     setVisible(false);
     closeTimerRef.current = setTimeout(function() {
-      setImages(null);
+      setImages(null); setScale(1); setDragY(0); setDragX(0); setPanX(0); setPanY(0);
     }, ANIM_MS);
   }, []);
 
-  // ── Back-Button-Handler: erst Zoom zuruecksetzen, dann schließen ──
-  // Wenn das Bild gezoomt ist (scale > 1.02), setzt der Back-Button nur
-  // den Zoom zurueck — wie Instagram/Google Photos. Erst wenn nicht
-  // gezoomt, wird die Lightbox geschlossen. Das verhindert auch, dass
-  // ein zweiter Back-Press waehrend der 220ms Animation das naechste
-  // Modal trifft (da der erste Back-Press bei gezoomtem Bild die Lightbox
-  // gar nicht schliesst und der Stack-Eintrag bestehen bleibt).
-  var handleBack = useCallback(function() {
-    if (scaleRef.current > 1.02) {
-      resetZoom();
-    } else {
-      close();
-    }
-  }, [resetZoom, close]);
-
   // BACK-BUTTON: Register so Android back button closes the lightbox
-  // (oder setzt erst Zoom zurueck wenn gezoomt)
-  useModalRegistration(!!images, handleBack, "ImageLightbox");
+  useModalRegistration(!!images, close, "ImageLightbox");
 
   var onTouchStart = useCallback(function(e) {
     if (e.touches.length === 2) {
@@ -126,7 +88,7 @@ export default function ImageLightbox() {
       var dx = e.touches[0].clientX - e.touches[1].clientX;
       var dy = e.touches[0].clientY - e.touches[1].clientY;
       var dist = Math.hypot(dx, dy);
-      var newScale = Math.min(Math.max(dragRef.current.pinchStart * (dist / dragRef.current.pinchDist), 1), MAX_PINCH_SCALE);
+      var newScale = Math.min(Math.max(dragRef.current.pinchStart * (dist / dragRef.current.pinchDist), 1), 4);
       setScale(newScale);
       e.preventDefault();
     } else if (e.touches.length === 1 && dragRef.current.dragging && scale > 1.02) {
@@ -175,7 +137,7 @@ export default function ImageLightbox() {
         if (scale > 1.02) {
           setScale(1); setPanX(0); setPanY(0);
         } else {
-          setScale(DOUBLE_TAP_SCALE); setPanX(0); setPanY(0);
+          setScale(2); setPanX(0); setPanY(0);
         }
       }
       dragRef.current.lastTap = now;
