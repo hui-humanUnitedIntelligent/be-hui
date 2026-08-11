@@ -21,7 +21,6 @@ import './web.css';                         // Web-spezifische Styles (Root Rese
 import { initSentry, sentryCapture } from './lib/sentry.js';
 
 initSentry();
-if (typeof __BUILD_MARKER__ !== "undefined") { window.__HUI_BUILD_MARKER = __BUILD_MARKER__; }
 
 // ── Global Error Handlers ───────────────────────────────────────────────────
 window.addEventListener('unhandledrejection', (event) => {
