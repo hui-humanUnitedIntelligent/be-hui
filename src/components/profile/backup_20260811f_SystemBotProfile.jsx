@@ -246,7 +246,7 @@ export default function SystemBotProfile({ profileId, onClose = () => {} }) {
       {/* Header */}
       <div style={{
         display: "flex", alignItems: "center", gap: 12,
-        padding: "16px 20px 14px", background: T.bgCard,
+        padding: "max(var(--hui-safe-top, 0px), 16px, env(safe-area-inset-top, 16px)) 20px 14px", background: T.bgCard,
         borderBottom: "1px solid " + T.border, flexShrink: 0,
       }}>
         <button onClick={onClose} style={{
@@ -262,15 +262,29 @@ export default function SystemBotProfile({ profileId, onClose = () => {} }) {
           overflow: "hidden", flexShrink: 0,
         }}>
           {profile?.avatar_url ? (
-            <img src={profile.avatar_url} alt="HUI-System" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            <img src={profile.avatar_url} alt="myHUI" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           ) : (
             <HUILogo size={28} />
           )}
         </div>
 
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 17, fontWeight: 700, color: T.ink, lineHeight: 1.2 }}>
-            HUI-System
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{
+              fontSize: 17, fontWeight: 700, color: T.ink, lineHeight: 1.2,
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            }}>
+              {profile?.display_name || profile?.full_name || "myHUI"}
+            </div>
+            {/* SYSTEM-BOT-BADGE-001 (2026-08-11): analog zum Post-Header (HumanHeader) */}
+            <span style={{
+              flexShrink: 0,
+              fontSize: 10.5, fontWeight: 600, color: T.teal,
+              background: T.tealSoft, border: "1px solid " + T.tealMid,
+              borderRadius: 99, padding: "2px 8px", letterSpacing: 0.2,
+            }}>
+              Bot
+            </span>
           </div>
           <div style={{ fontSize: 12, color: T.inkSoft, marginTop: 2 }}>
             {followerCount} Follower

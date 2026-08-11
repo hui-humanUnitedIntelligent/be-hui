@@ -269,8 +269,22 @@ export default function SystemBotProfile({ profileId, onClose = () => {} }) {
         </div>
 
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 17, fontWeight: 700, color: T.ink, lineHeight: 1.2 }}>
-            {profile?.display_name || profile?.full_name || "myHUI"}
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{
+              fontSize: 17, fontWeight: 700, color: T.ink, lineHeight: 1.2,
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            }}>
+              {profile?.display_name || profile?.full_name || "myHUI"}
+            </div>
+            {/* SYSTEM-BOT-BADGE-001 (2026-08-11): analog zum Post-Header (HumanHeader) */}
+            <span style={{
+              flexShrink: 0,
+              fontSize: 10.5, fontWeight: 600, color: T.teal,
+              background: T.tealSoft, border: "1px solid " + T.tealMid,
+              borderRadius: 99, padding: "2px 8px", letterSpacing: 0.2,
+            }}>
+              Bot
+            </span>
           </div>
           <div style={{ fontSize: 12, color: T.inkSoft, marginTop: 2 }}>
             {followerCount} Follower
