@@ -348,7 +348,6 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
   // Hooks fuer den Render, was beim naechsten Render (profile vorhanden)
   // zu einer anderen Hook-Reihenfolge fuehrte -> "Minified React error #310".
   const [view, setView] = useState("main"); // "main" | "edit" | "privacy" | "contact" | "security" | "support" | "tickets"
-  const [showTutorialConfirm, setShowTutorialConfirm] = useState(false);
   const kbdInset = useKeyboardInset();
   if (!profile) return null;
 
@@ -435,8 +434,6 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
                 onClick={() => setView("support")}/>
               <NavItem icon={<HUIMailIcon size={16}/>} label="Meine Tickets"
                 onClick={() => setView("tickets")}/>
-              <NavItem icon={<HUISettingsIcon size={16}/>} label="Tutorial erneut ansehen"
-                onClick={() => setShowTutorialConfirm(true)}/>
               <NavItem icon={<HUIAbmeldenIcon size={16}/>} label="Abmelden"
                 onClick={logout} danger last/>
             </Section>
@@ -457,67 +454,6 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
 
           </>)}
 
-
-
-          {/* TUTORIAL-RESTART-BESTATIGUNG */}
-          {showTutorialConfirm && createPortal(
-            <div style={{
-              position:"fixed", inset:0, zIndex:10600,
-              display:"flex", alignItems:"center", justifyContent:"center",
-              background:"rgba(10,10,8,0.55)", backdropFilter:"blur(4px)",
-              WebkitBackdropFilter:"blur(4px)",
-            }}>
-              <div style={{
-                background:"#FDFBF8", borderRadius:24, padding:"28px 24px 24px",
-                maxWidth:340, width:"calc(100% - 48px)",
-                boxShadow:"0 8px 40px rgba(0,0,0,0.25)",
-                textAlign:"center", fontFamily:"Inter, sans-serif",
-              }}>
-                <h2 style={{ fontSize:20, fontWeight:700, color:"#1A1A18", margin:"0 0 10px" }}>
-                  Tutorial erneut ansehen
-                </h2>
-                <p style={{ fontSize:15, fontWeight:600, color:"#1A1A18", margin:"0 0 4px", lineHeight:1.45 }}>
-                  Möchtest du das komplette HUI-Tutorial erneut sehen?
-                </p>
-                <p style={{ fontSize:13, fontWeight:400, color:"rgba(26,26,24,0.6)", margin:"0 0 20px", lineHeight:1.45 }}>
-                  Alle Schritte werden von vornen durchgespielt.
-                </p>
-                <div style={{ display:"flex", gap:10 }}>
-                  <button
-                    onClick={() => setShowTutorialConfirm(false)}
-                    style={{
-                      flex:1, padding:"13px 20px", borderRadius:14,
-                      border:"1.5px solid rgba(26,26,24,0.12)",
-                      background:"transparent", color:"rgba(26,26,24,0.65)",
-                      fontSize:15, fontWeight:600, fontFamily:"Inter, sans-serif",
-                      cursor:"pointer", touchAction:"manipulation",
-                      WebkitTapHighlightColor:"transparent",
-                    }}
-                  >Nein</button>
-                  <button
-                    onClick={() => {
-                      setShowTutorialConfirm(false);
-                      if (onClose) onClose();
-                      window.dispatchEvent(new CustomEvent("hui:navigate:tab", { detail: { tab: "home" } }));
-                      setTimeout(() => {
-                        window.dispatchEvent(new CustomEvent("hui:restart-tutorial"));
-                      }, 100);
-                    }}
-                    style={{
-                      flex:1, padding:"13px 20px", borderRadius:14,
-                      border:"none",
-                      background:"linear-gradient(135deg, #16D7C5, #0DC4B5)",
-                      color:"white", fontSize:15, fontWeight:600,
-                      fontFamily:"Inter, sans-serif", cursor:"pointer",
-                      boxShadow:"0 2px 12px rgba(22,215,197,0.35)",
-                      touchAction:"manipulation", WebkitTapHighlightColor:"transparent",
-                    }}
-                  >Ja</button>
-                </div>
-              </div>
-            </div>,
-            document.body
-          )}
 
           {/* ══ VERIFIZIERUNG ══════════════════════════════════ */}
           {view === "verification" && (<>

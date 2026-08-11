@@ -102,20 +102,6 @@ export default function OnboardingTutorial() {
     } catch (e) { setPhase("ask"); }
   }, []);
 
-  // ── Event-Listener: Tutorial-Restart aus SettingsModal ───────
-  useEffect(() => {
-    function restartTutorial() {
-      try {
-        localStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem(ADVANCED_STORAGE_KEY);
-      } catch (e) {}
-      setStep(0);
-      setPhase("ask");
-    }
-    window.addEventListener("hui:restart-tutorial", restartTutorial);
-    return () => window.removeEventListener("hui:restart-tutorial", restartTutorial);
-  }, []);
-
   const handleClose = useCallback(() => {
     setPhase("done");
     try { localStorage.setItem(STORAGE_KEY, "1"); } catch (e) {}
