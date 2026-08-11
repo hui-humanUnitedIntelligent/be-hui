@@ -1,31 +1,22 @@
-// src/pages/MeinHUI.jsx — HUI Wirkungsraum v5.0 (Soft Transition)
+// src/pages/MeinHUI.jsx — HUI Wirkungsraum v6.0 (Mein Wirkungsraum)
 // ═══════════════════════════════════════════════════════════════════
-// ZIEL: Der Wirkungsraum öffnet sich ruhig, hochwertig, organisch.
-// NICHT: "klatsch – neue Seite". SONDERN: langsames, weiches Aufbauen.
+// ZIEL: Der Orb öffnet "Mein Wirkungsraum" — persönliche Zusammenfassung
+// mit echten Daten aus Supabase. Jede Kategorie hat ein Sub-Modal mit
+// "Mehr anzeigen" → richtige Seite.
 //
-// ÖFFNEN:
-//   1. Der gesamte Raum blendet als EINE Einheit ein — opacity 0→100%,
-//      translateY 10px→0, ~300ms, ease-in-out. Kein Springen.
-//   2. Die Inhalte bauen sich NICHT gleichzeitig auf, sondern nacheinander:
-//      Orb → Begrüßung → Info-Karten → Grundpfeiler → Reise → Rest.
-//      Je 70ms Abstand. Nur Opacity + leichte Translation (10px).
-//      Keine Bounce-Animationen. Keine wilden Scale-Effekte.
-//
-// SCHLIESSEN — spiegelverkehrt:
-//   1. Inhalte verschwinden zuerst (180ms)
-//   2. Danach blendet der gesamte Raum weich aus (220ms, delayed)
-//   3. Erst danach kehrt der Nav-Orb zurück (siehe Home.jsx)
-//
-// Nur einfache Browser-Animationen: opacity, transform/translateY,
-// minimaler scale, dezenter blur, ease-in-out. Keine Motion-Libraries.
+// ZINDEX: 10500 (createPortal auf document.body) — PFLICHT nach footer-navbar-regel
 // ═══════════════════════════════════════════════════════════════════
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import { createPortal } from "react-dom";
+import { supabase } from "../lib/supabaseClient.js";
 import { APP_VERSION } from "../version";
 import { optimizeAvatar } from "../lib/perfUtils.js";
+import { useHuiActions, A } from "../core/hui.actions.js";
+import { HUILogo } from "../components/brand/HUILogo.jsx";
 
 // ─────────────────────────────────────────────────────────────────
-// DESIGN TOKENS
+// DESIGN TOKENS (gleiche wie v5.0)
 // ─────────────────────────────────────────────────────────────────
 const T = {
   cream:      "#FAF7F2",
@@ -56,21 +47,18 @@ const T = {
 const FONT = "'Inter', Inter, sans-serif";
 const EASE = "ease-in-out";
 
-// ── Choreografie: 70ms Abstand pro Block, nur opacity + translateY ──
-const CORE_DELAY    = 0;    // 1. Orb
-const TITLE_DELAY   = 70;   // 2. Begrüßung
-const INFO_DELAY    = 140;  // 3. Info-Karten
-const PILLARS_DELAY = 210;  // 4. Grundpfeiler
-const JOURNEY_DELAY = 280;  // 5. Reise
-const MOMENTS_DELAY = 350;  // 6. Rest
+// ── Choreografie: 70ms Abstand pro Block ──
+const CORE_DELAY    = 0;
+const TITLE_DELAY   = 70;
+const INFO_DELAY    = 140;
+const PILLARS_DELAY = 210;
+const JOURNEY_DELAY = 280;
+const MOMENTS_DELAY = 350;
+const STATS_DELAY   = 420;
 
-// Schließ-Timing (muss zu Home.jsx closeMeinHuiCinematic passen: 400ms total)
-const CLOSE_CONTENT_MS = 180; // Inhalte verschwinden zuerst
-const CLOSE_SCREEN_MS  = 220; // dann blendet der ganze Raum aus (delayed um CLOSE_CONTENT_MS)
+const CLOSE_CONTENT_MS = 180;
+const CLOSE_SCREEN_MS  = 220;
 
-// ─────────────────────────────────────────────────────────────────
-// KEYFRAMES — nur Ambient-Leben (läuft unabhängig von der Öffnung/Schließung)
-// ─────────────────────────────────────────────────────────────────
 const KEYFRAMES = `
 @keyframes mh-orb-breathe {
   0%, 100% { transform: scale(0.985); }
@@ -98,20 +86,36 @@ const KEYFRAMES = `
   85%       { opacity: 0.35; }
   100%      { transform: translate(var(--px), var(--py)) rotate(var(--pr)); opacity: 0; }
 }
-/* ── Staggered Content: nur Opacity + 10px Translation, kein Scale ── */
-@keyframes mh-fadeup {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
+@keyframes mh-slide-down {
+  0%   { transform: translateY(-12px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+@keyframes mh-submodal-enter {
+  0%   { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
 }
 `;
 
 // ─────────────────────────────────────────────────────────────────
-// FadeUp — einfacher Baustein für den gestaffelten Content-Aufbau
+// FadeUp helper
 // ─────────────────────────────────────────────────────────────────
-function FadeUp({ children, delay = 0, style = {} }) {
+function FadeUp({ delay = 0, children, style }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!ref.current) return;
+    ref.current.style.opacity = "0";
+    ref.current.style.transform = "translateY(10px)";
+    const t = setTimeout(() => {
+      if (ref.current) {
+        ref.current.style.opacity = "1";
+        ref.current.style.transform = "translateY(0)";
+      }
+    }, delay);
+    return () => clearTimeout(t);
+  }, [delay]);
   return (
-    <div style={{
-      animation: `mh-fadeup 0.42s ${EASE} ${delay}ms both`,
+    <div ref={ref} style={{
+      transition: `opacity 0.5s ${EASE}, transform 0.5s ${EASE}`,
       ...style,
     }}>
       {children}
@@ -120,75 +124,218 @@ function FadeUp({ children, delay = 0, style = {} }) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// 1. ProfileHeader — "Begrüßung" (Block 2)
+// DATA HOOK — Lädt echte Nutzer-Daten
 // ─────────────────────────────────────────────────────────────────
-function ProfileHeader({ profile, onNotif, onSettings, delay }) {
-  const hour = new Date().getHours();
-  const greeting =
-    hour < 5  ? "Gute Nacht" :
-    hour < 12 ? "Guten Morgen" :
-    hour < 17 ? "Willkommen zurück" :
-    hour < 21 ? "Guten Abend" : "Gute Nacht";
-  const name = profile?.display_name || profile?.username || null;
+function useWirkungsraumData(profile) {
+  const [data, setData] = useState({
+    loading: true,
+    daysSince: 0,
+    followers: 0,
+    following: 0,
+    worksCount: 0,
+    ordersCount: 0,
+    bookingsCount: 0,
+    impactEur: 0,
+    moments: [],
+    newConnectionsThisWeek: 0,
+    projectsCount: 0,
+  });
 
-  return (
-    <FadeUp delay={delay} style={{
-      display: "flex", alignItems: "center",
-      padding: "10px 20px 0", gap: 12,
-    }}>
-      {/* Avatar */}
-      <div style={{
-        width: 44, height: 44, borderRadius: "50%",
-        flexShrink: 0, overflow: "hidden",
-        background: `linear-gradient(135deg, ${T.teal} 0%, ${T.sage} 100%)`,
-        boxShadow: `0 2px 10px rgba(13,196,181,0.22), 0 1px 4px rgba(0,0,0,0.08)`,
-      }}>
-        {profile?.avatar_url
-          ? <img loading="lazy" decoding="async" src={optimizeAvatar(profile.avatar_url)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-          : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: T.white, fontSize: 17, fontWeight: 600, fontFamily: FONT }}>
-              {name ? name[0].toUpperCase() : "H"}
-            </div>
+  useEffect(() => {
+    if (!profile?.id) return;
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const uid = profile.id;
+
+        // 1. member_since → Tage seit Beginn
+        const memberSince = profile.member_since || profile.created_date;
+        let daysSince = 0;
+        if (memberSince) {
+          const d = new Date(memberSince);
+          if (!isNaN(d.getTime())) {
+            daysSince = Math.max(1, Math.floor((Date.now() - d.getTime()) / 86400000));
+          }
         }
-      </div>
 
-      {/* Greet */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: FONT, fontSize: 11.5, color: T.inkSoft, fontWeight: 400, lineHeight: 1.3 }}>
-          {greeting},
-        </div>
-        <div style={{ fontFamily: FONT, fontSize: 17, fontWeight: 600, color: T.ink, lineHeight: 1.2, display: "flex", alignItems: "center", gap: 5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {name || "Mein HUI"}
-          <span style={{ fontSize: 13 }}><span className="hui-emoji">🌿</span></span>
-        </div>
-      </div>
+        // 2. Follow counts (SSOT: get_follow_counts RPC)
+        const { data: fc } = await supabase.rpc("get_follow_counts", { target_id: uid });
 
-      {/* Actions */}
-      <div style={{ display: "flex", gap: 7, flexShrink: 0 }}>
-        <button onClick={onNotif} style={{
-          width: 36, height: 36, borderRadius: "50%",
-          background: "rgba(255,255,255,0.80)", backdropFilter: "blur(8px)",
-          border: `1px solid ${T.inkFaint}`,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          cursor: "pointer", position: "relative",
-          boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
-        }}>
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={T.inkMid} strokeWidth="1.8" strokeLinecap="round">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-          </svg>
-          <div style={{ position: "absolute", top: 7, right: 7, width: 6, height: 6, borderRadius: "50%", background: T.coral, border: `1.5px solid ${T.creamCard}` }} />
-        </button>
-        <button onClick={onSettings} style={{
-          width: 36, height: 36, borderRadius: "50%",
-          background: "rgba(255,255,255,0.80)", backdropFilter: "blur(8px)",
-          border: `1px solid ${T.inkFaint}`,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          cursor: "pointer",
-          boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
-        }}>
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={T.inkMid} strokeWidth="1.8" strokeLinecap="round">
-            <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="16" y2="18"/>
-          </svg>
+        // 3. Works count
+        const { count: worksCount } = await supabase
+          .from("works")
+          .select("id", { count: "exact", head: true })
+          .eq("author_id", uid)
+          .eq("status", "published");
+
+        // 4. Orders count (Käufe)
+        const { count: ordersCount } = await supabase
+          .from("orders")
+          .select("id", { count: "exact", head: true })
+          .eq("buyer_id", uid)
+          .eq("payment_status", "paid");
+
+        // 5. Talent bookings count
+        const { count: bookingsCount } = await supabase
+          .from("talent_bookings")
+          .select("id", { count: "exact", head: true })
+          .eq("buyer_id", uid)
+          .eq("payment_status", "paid");
+
+        // 6. Neue Verbindungen diese Woche
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        const { count: newConnectionsThisWeek } = await supabase
+          .from("follows")
+          .select("id", { count: "exact", head: true })
+          .eq("followed_id", uid)
+          .gte("created_at", weekAgo.toISOString());
+
+        // 7. Impact projects
+        const { count: projectsCount } = await supabase
+          .from("impact_applications")
+          .select("id", { count: "exact", head: true })
+          .eq("applicant_id", uid)
+          .eq("status", "approved");
+
+        // 8. Impact-Momente aus notifications (letzte 10)
+        const { data: notifs } = await supabase
+          .from("notifications")
+          .select("type, metadata, created_at, is_read")
+          .eq("user_id", uid)
+          .order("created_at", { ascending: false })
+          .limit(20);
+
+        // 9. Impact EUR
+        const impactEur = profile.impact_eur || 0;
+
+        // Build moments from notifications
+        const momentTypes = [
+          "new_order", "order_confirmed", "talent_booking_paid",
+          "new_follower", "work_published", "impact_project_completed",
+          "comment", "inspire", "new_connection",
+        ];
+        const moments = (notifs || [])
+          .filter(n => momentTypes.includes(n.type))
+          .slice(0, 8)
+          .map(n => {
+            const md = n.metadata || {};
+            const ageMin = Math.floor((Date.now() - new Date(n.created_at).getTime()) / 60000);
+            let timeStr = "vor kurzem";
+            if (ageMin < 60) timeStr = `vor ${ageMin} Min`;
+            else if (ageMin < 1440) timeStr = `vor ${Math.floor(ageMin / 60)} Std`;
+            else timeStr = `vor ${Math.floor(ageMin / 1440)} Tagen`;
+
+            let icon = "♡", label = "", color = T.coral, bg = "rgba(244,115,85,0.07)", border = "rgba(244,115,85,0.13)";
+            switch (n.type) {
+              case "new_order":
+                icon = "🛍️"; label = `Du hast verkauft: ${md.item_titles || "Werk"}`;
+                color = T.sage; bg = T.sageSoft; border = "rgba(92,168,122,0.13)";
+                break;
+              case "order_confirmed":
+                icon = "✅"; label = `Beleg erstellt: ${md.item_titles || "Werk"}`;
+                color = T.teal; bg = T.tealSoft; border = "rgba(13,196,181,0.13)";
+                break;
+              case "talent_booking_paid":
+                icon = "📅"; label = `Buchung bestätigt: ${md.offer_title || "Talent"}`;
+                color = T.gold; bg = T.goldSoft; border = "rgba(212,149,42,0.13)";
+                break;
+              case "new_follower":
+              case "new_connection":
+                icon = "👥"; label = `Neue Verbindung: ${md.follower_name || "Nutzer"}`;
+                color = T.teal; bg = T.tealSoft; border = "rgba(13,196,181,0.13)";
+                break;
+              case "work_published":
+                icon = "✏️"; label = `Du hast ein Werk veröffentlicht`;
+                color = T.sage; bg = T.sageSoft; border = "rgba(92,168,122,0.13)";
+                break;
+              case "impact_project_completed":
+                icon = "🌍"; label = `Projekt finanziert: ${md.project_name || "Impact"}`;
+                color = T.purple; bg = T.purpleSoft; border = "rgba(123,94,167,0.13)";
+                break;
+              case "comment":
+                icon = "💬"; label = `Kommentar von ${md.commenter_name || "Nutzer"}`;
+                color = T.teal; bg = T.tealSoft; border = "rgba(13,196,181,0.13)";
+                break;
+              case "inspire":
+                icon = "✨"; label = `Jemand wurde inspiriert durch dich`;
+                color = T.gold; bg = T.goldSoft; border = "rgba(212,149,42,0.13)";
+                break;
+              default:
+                icon = "♡"; label = n.type || "Aktivität";
+            }
+            return { icon, label, time: timeStr, color, bg, border };
+          });
+
+        if (!cancelled) {
+          setData({
+            loading: false,
+            daysSince,
+            followers: fc?.[0]?.followers ?? profile.followers_count ?? 0,
+            following: fc?.[0]?.following ?? 0,
+            worksCount: worksCount || 0,
+            ordersCount: ordersCount || 0,
+            bookingsCount: bookingsCount || 0,
+            impactEur,
+            moments,
+            newConnectionsThisWeek: newConnectionsThisWeek || 0,
+            projectsCount: projectsCount || 0,
+          });
+        }
+      } catch (e) {
+        console.warn("[MeinHUI] data load error:", e);
+        if (!cancelled) setData(d => ({ ...d, loading: false }));
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, [profile?.id]);
+
+  return data;
+}
+
+// ─────────────────────────────────────────────────────────────────
+// PROFILE HEADER
+// ─────────────────────────────────────────────────────────────────
+function ProfileHeader({ profile, onClose, delay }) {
+  const avatarUrl = optimizeAvatar(profile?.avatar_url);
+  const name = profile?.display_name || profile?.full_name || profile?.username || "Nutzer";
+  return (
+    <FadeUp delay={delay}>
+      <div style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "6px 20px 0",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <img
+            src={avatarUrl || "/assets/brand/hui-logo.png"}
+            alt=""
+            style={{
+              width: 42, height: 42, borderRadius: "50%",
+              objectFit: "cover", background: T.creamDeep,
+            }}
+          />
+          <div>
+            <div style={{ fontFamily: FONT, fontSize: 15, fontWeight: 600, color: T.ink, lineHeight: 1.2 }}>
+              {name}
+            </div>
+            <div style={{ fontFamily: FONT, fontSize: 12, color: T.inkSoft, lineHeight: 1.2 }}>
+              Willkommen zurück
+            </div>
+          </div>
+        </div>
+        <button
+          onClick={onClose}
+          aria-label="Schließen"
+          style={{
+            width: 36, height: 36, borderRadius: "50%",
+            border: "none", background: T.creamDeep, cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 18, color: T.inkSoft,
+          }}
+        >
+          ×
         </button>
       </div>
     </FadeUp>
@@ -196,111 +343,32 @@ function ProfileHeader({ profile, onNotif, onSettings, delay }) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// 2. OrbHero — Block 1 (Orb) + Block 3 (Info-Karten)
-// Reiner FadeUp-Block wie alle anderen — kein separater Wachstums-Trick.
+// ORB HERO (zentraler Orb mit Atmosphäre)
 // ─────────────────────────────────────────────────────────────────
-const LEAVES = [
-  { size: 5, col: T.sage,  "--px": "-28px", "--py": "-38px", "--pr": "-22deg", dur: "8.5s", del: "0s"   },
-  { size: 4, col: T.teal,  "--px": "26px",  "--py": "-32px", "--pr": "18deg",  dur: "9.8s", del: "2.1s" },
-  { size: 6, col: T.gold,  "--px": "-20px", "--py": "30px",  "--pr": "-12deg", dur: "7.9s", del: "1.3s" },
-  { size: 3, col: T.sage,  "--px": "22px",  "--py": "26px",  "--pr": "15deg",  dur: "10.2s","del": "3.4s"},
-];
-
-function OrbHero({ profile, coreDelay, infoDelay }) {
+function OrbHero({ data, coreDelay, infoDelay }) {
   return (
-    <div style={{ position: "relative", textAlign: "center", padding: "24px 0 16px" }}>
+    <div style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 200, paddingTop: 16, paddingBottom: 8 }}>
+      {/* Atmosphäre */}
+      <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 260, height: 260, borderRadius: "50%", background: `radial-gradient(circle, ${T.teal}14 0%, transparent 70%)`, animation: "mh-atm-outer 8s ease-in-out infinite", pointerEvents: "none" }} />
+      <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 180, height: 180, borderRadius: "50%", background: `radial-gradient(circle, ${T.coral}10 0%, transparent 70%)`, animation: "mh-atm-mid 6s ease-in-out infinite", pointerEvents: "none" }} />
 
-      {/* Block 1 — Orb: einfaches Fade+Slide wie jeder andere Block */}
-      <FadeUp delay={coreDelay} style={{ position: "relative" }}>
-
-        {/* Atmosphärische Hintergrundstrahlung — reines Ambient-Leben */}
+      {/* Orb (HUI Logo) */}
+      <FadeUp delay={coreDelay}>
         <div style={{
-          position: "absolute", top: "50%", left: "50%",
-          width: 340, height: 340, marginTop: -170, marginLeft: -170,
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(255,190,70,0.07) 0%, rgba(13,196,181,0.05) 45%, transparent 72%)",
-          animation: "mh-atm-outer 9s ease-in-out infinite",
-          pointerEvents: "none",
-        }} />
-        <div style={{
-          position: "absolute", top: "50%", left: "50%",
-          width: 240, height: 240, marginTop: -120, marginLeft: -120,
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(255,205,80,0.16) 0%, rgba(244,115,85,0.10) 40%, rgba(13,196,181,0.04) 70%, transparent 100%)",
-          animation: "mh-atm-mid 7s ease-in-out 0.8s infinite",
-          pointerEvents: "none",
-        }} />
-        <div style={{
-          position: "absolute", top: "50%", left: "50%",
-          width: 150, height: 150, marginTop: -75, marginLeft: -75,
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(255,255,255,0.92) 0%, rgba(255,215,90,0.30) 50%, transparent 100%)",
-          animation: "mh-atm-core 5s ease-in-out 0.3s infinite",
-          pointerEvents: "none",
-        }} />
-
-        {/* Resonanzwellen */}
-        {[{ del: "0s" }, { del: "3.5s" }].map((w, i) => (
-          <div key={i} style={{
-            position: "absolute", top: "50%", left: "50%",
-            width: 180, height: 180, marginTop: -90, marginLeft: -90,
-            borderRadius: "50%",
-            border: "1px solid rgba(13,196,181,0.18)",
-            animation: `mh-resonance 7s ease-out ${w.del} infinite`,
-            pointerEvents: "none",
-          }} />
-        ))}
-
-        <div style={{
-          position: "absolute", top: "50%", left: "50%",
-          width: 210, height: 210, marginTop: -105, marginLeft: -105,
-          borderRadius: "50%",
-          border: "1px solid rgba(212,149,42,0.12)",
-          pointerEvents: "none",
-        }} />
-
-        {/* Ambient-Blätter */}
-        {LEAVES.map((l, i) => (
-          <div key={i} style={{
-            position: "absolute", top: "50%", left: "50%",
-            marginTop: -l.size/2, marginLeft: -l.size/2,
-            width: l.size, height: l.size,
-            borderRadius: "50% 0 50% 0",
-            background: l.col, opacity: 0,
-            "--px": l["--px"], "--py": l["--py"], "--pr": l["--pr"],
-            animation: `mh-particle-a ${l.dur} ease-in-out ${l.del} infinite`,
-            pointerEvents: "none",
-          }} />
-        ))}
-
-        {/* Das HUI-Logo — UNVERÄNDERT, freistehend */}
-        <div style={{
-          position: "relative", zIndex: 3,
-          display: "inline-flex", alignItems: "center", justifyContent: "center",
-          width: 190, height: 190,
+          width: 88, height: 88, borderRadius: "50%",
+          background: T.white,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          boxShadow: "0 8px 32px rgba(190,100,20,0.16), 0 2px 8px rgba(0,0,0,0.05)",
+          animation: "mh-orb-breathe 4s ease-in-out infinite",
+          position: "relative", zIndex: 1,
         }}>
-          <div style={{
-            animation: "mh-orb-breathe 8s ease-in-out infinite",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-            <img
-              src="/assets/brand/hui-logo.png"
-              alt="HUI"
-              style={{
-                width: 168, height: 168,
-                objectFit: "contain", display: "block",
-                userSelect: "none", pointerEvents: "none",
-              }}
-              draggable={false}
-            />
-          </div>
+          <HUILogo size={52} />
         </div>
       </FadeUp>
 
-      {/* Block 3 — Info-Karten: erscheinen NACH der Begrüßung */}
+      {/* Info-Karten links + rechts */}
       <FadeUp delay={infoDelay} style={{
-        position: "absolute",
-        left: 16, top: "50%", transform: "translateY(-50%)",
+        position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)",
         zIndex: 2, maxWidth: 115, textAlign: "left",
       }}>
         <p style={{
@@ -314,15 +382,14 @@ function OrbHero({ profile, coreDelay, infoDelay }) {
       </FadeUp>
 
       <div style={{
-        position: "absolute", right: 14, top: "50%",
-        transform: "translateY(-50%)",
+        position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)",
         display: "flex", flexDirection: "column", gap: 8,
         zIndex: 2,
       }}>
         {[
-          { icon: "🌱", label: "Deine Reise", sub: "seit 134 Tagen", glow: T.sageSoft },
-          { icon: "🔥", label: "Impact gesät", sub: "23 Impulse",    glow: "rgba(244,115,85,0.08)" },
-          { icon: "👥", label: "Verbindungen", sub: "47 Menschen",    glow: T.tealSoft },
+          { icon: "🌱", label: "Deine Reise", sub: data.loading ? "…" : `seit ${data.daysSince} Tagen`, glow: T.sageSoft },
+          { icon: "🔥", label: "Impact gesät", sub: data.loading ? "…" : `${data.worksCount + data.ordersCount + data.bookingsCount} Impulse`, glow: "rgba(244,115,85,0.08)" },
+          { icon: "👥", label: "Verbindungen", sub: data.loading ? "…" : `${data.followers} Menschen`, glow: T.tealSoft },
         ].map((s, i) => (
           <FadeUp key={i} delay={infoDelay}>
             <div style={{
@@ -346,7 +413,6 @@ function OrbHero({ profile, coreDelay, infoDelay }) {
         ))}
       </div>
 
-      {/* Tagline unter Orb — Teil des Info-Karten-Blocks */}
       <FadeUp delay={infoDelay}>
         <p style={{
           fontFamily: FONT, fontSize: 13, fontWeight: 400,
@@ -361,7 +427,7 @@ function OrbHero({ profile, coreDelay, infoDelay }) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// 3. Pillars — Block 4 (Grundpfeiler)
+// GRUNDPFEILER
 // ─────────────────────────────────────────────────────────────────
 const PILLARS = [
   {
@@ -369,62 +435,56 @@ const PILLARS = [
     label: "Verbinden",
     text: "Du baust Brücken und schaffst echte Begegnungen.",
     accent: T.teal, bg: T.tealPale, border: "rgba(13,196,181,0.16)", glow: "rgba(13,196,181,0.14)",
+    detail: "Du baust Brücken und schaffst echte Begegnungen. Jede Verbindung ist eine Tür zu einer neuen Perspektive. Menschen, die du triffst, bereichern deinen Weg und du bereicherst ihren.",
   },
   {
     icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>,
     label: "Unterstützen",
     text: "Du stärkst andere und gibst Halt, wo er gebraucht wird.",
     accent: T.sage, bg: T.sagePale, border: "rgba(92,168,122,0.18)", glow: "rgba(92,168,122,0.14)",
+    detail: "Du stärkst andere und gibst Halt, wo er gebraucht wird. Unterstützung ist nicht nur Hilfe — sie ist Anerkennung. Wenn du anderen Halt gibst, wächst auch deine eigene Kraft.",
   },
   {
     icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>,
     label: "Erschaffen",
     text: "Du bringst Ideen in die Welt und schaffst Neues.",
     accent: T.coral, bg: "rgba(244,115,85,0.06)", border: "rgba(244,115,85,0.15)", glow: "rgba(244,115,85,0.12)",
+    detail: "Du bringst Ideen in die Welt und schaffst Neues. Ersaffen bedeutet, etwas sichtbar zu machen, das vorher unsichtbar war. Jedes Werk ist ein Stück von dir, das weiterlebt.",
   },
   {
     icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><circle cx="12" cy="8" r="4"/><path d="M12 2v2m0 8v2m4-6h2M2 8h2m12.95 4.95 1.41 1.41M4.64 4.64l1.41 1.41M19.36 4.64l-1.41 1.41M6.05 12.95l-1.41 1.41"/></svg>,
     label: "Wertschöpfen",
     text: "Du schaffst echten Wert für Menschen und Projekte.",
     accent: T.gold, bg: T.goldPale, border: "rgba(212,149,42,0.18)", glow: "rgba(212,149,42,0.12)",
+    detail: "Du schaffst echten Wert für Menschen und Projekte. Wertschöpfung ist mehr als Geld — es ist die Wirkung, die entsteht, wenn du deine Fähigkeiten für andere einsetzt.",
   },
   {
     icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
     label: "Impact",
     text: "Du hinterlässt Spuren, die die Welt verbessern.",
     accent: T.purple, bg: T.purplePale, border: "rgba(123,94,167,0.16)", glow: "rgba(123,94,167,0.12)",
+    detail: "Du hinterlässt Spuren, die die Welt verbessern. Impact ist nicht messbar in Zahlen allein — er zeigt sich in den Menschen, die du berührt hast.",
   },
 ];
 
-function PillarCard({ pillar, index, baseDelay }) {
+function PillarCard({ pillar, index, baseDelay, onClick }) {
   const [active, setActive] = useState(false);
-
   return (
     <FadeUp delay={baseDelay}>
       <div
+        onClick={onClick}
         onPointerDown={() => setActive(true)}
         onPointerUp={() => setActive(false)}
         onPointerLeave={() => setActive(false)}
         style={{
-          width: 126,
-          flexShrink: 0,
+          width: 126, flexShrink: 0,
           background: active ? T.creamCard : pillar.bg,
           border: `1px solid ${active ? pillar.accent + "40" : pillar.border}`,
-          borderRadius: 18,
-          padding: "15px 13px 13px",
-          cursor: "default",
-          userSelect: "none",
-          // Touch-Feedback (Interaktion, kein Teil des Entrance-Aufbaus)
-          transition: [
-            "transform 0.22s ease-in-out",
-            "box-shadow 0.22s ease-in-out",
-            "background 0.18s ease",
-            "border-color 0.18s ease",
-          ].join(", "),
+          borderRadius: 18, padding: "15px 13px 13px",
+          cursor: "pointer", userSelect: "none",
+          transition: "transform 0.22s ease-in-out, box-shadow 0.22s ease-in-out, background 0.18s ease, border-color 0.18s ease",
           transform: active ? "translateY(-3px) scale(1.01)" : "translateY(0) scale(1)",
-          boxShadow: active
-            ? `0 8px 24px ${pillar.glow}, 0 2px 8px rgba(0,0,0,0.06)`
-            : `0 1px 4px rgba(0,0,0,0.04)`,
+          boxShadow: active ? `0 8px 24px ${pillar.glow}, 0 2px 8px rgba(0,0,0,0.06)` : `0 1px 4px rgba(0,0,0,0.04)`,
         }}
       >
         <div style={{
@@ -433,32 +493,23 @@ function PillarCard({ pillar, index, baseDelay }) {
           display: "flex", alignItems: "center", justifyContent: "center",
           color: pillar.accent, marginBottom: 10,
           boxShadow: active ? `0 2px 10px ${pillar.glow}` : "0 1px 4px rgba(0,0,0,0.06)",
-          transition: "box-shadow 0.22s ease, background 0.18s ease",
-          flexShrink: 0,
+          transition: "box-shadow 0.22s ease, background 0.18s ease", flexShrink: 0,
         }}>
           {pillar.icon}
         </div>
-
         <div style={{
           fontFamily: FONT, fontSize: 13.5, fontWeight: 600,
-          color: pillar.accent, marginBottom: 5, lineHeight: 1.2,
-          letterSpacing: "-0.01em",
+          color: pillar.accent, marginBottom: 5, lineHeight: 1.2, letterSpacing: "-0.01em",
         }}>
           {pillar.label}
         </div>
-
-        <div style={{
-          fontFamily: FONT, fontSize: 11.5, fontWeight: 400,
-          color: T.inkSoft, lineHeight: 1.5,
-        }}>
+        <div style={{ fontFamily: FONT, fontSize: 11.5, fontWeight: 400, color: T.inkSoft, lineHeight: 1.5 }}>
           {pillar.text}
         </div>
-
         <div style={{
           height: 2, borderRadius: 2, marginTop: 11,
           background: pillar.accent,
-          width: active ? 32 : 20,
-          opacity: active ? 0.7 : 0.4,
+          width: active ? 32 : 20, opacity: active ? 0.7 : 0.4,
           transition: "width 0.25s ease-in-out, opacity 0.22s ease",
         }} />
       </div>
@@ -466,7 +517,7 @@ function PillarCard({ pillar, index, baseDelay }) {
   );
 }
 
-function Pillars({ delay }) {
+function Pillars({ delay, onOpenSub }) {
   return (
     <div style={{ padding: "0 0 0 20px" }}>
       <FadeUp delay={delay}>
@@ -481,27 +532,29 @@ function Pillars({ delay }) {
       </FadeUp>
       <div style={{
         display: "flex", gap: 9, overflowX: "auto", scrollbarWidth: "none",
-        paddingRight: 20, paddingBottom: 4,
-        WebkitOverflowScrolling: "touch",
+        paddingRight: 20, paddingBottom: 4, WebkitOverflowScrolling: "touch",
       }}>
-        {PILLARS.map((p, i) => <PillarCard key={p.label} pillar={p} index={i} baseDelay={delay} />)}
+        {PILLARS.map((p, i) => (
+          <PillarCard key={p.label} pillar={p} index={i} baseDelay={delay}
+            onClick={() => onOpenSub("pillars", p)}
+          />
+        ))}
       </div>
     </div>
   );
 }
 
 // ─────────────────────────────────────────────────────────────────
-// 4. Journey — Block 5 (Reise)
+// REISE (Journey)
 // ─────────────────────────────────────────────────────────────────
-const JOURNEY = [
-  { emoji: "🌱", label: "Heute",        text: "Kleine Impulse setzen Großes in Bewegung.",   color: T.teal   },
-  { emoji: "🤝", label: "Diese Woche",  text: "Du hast 3 neue Verbindungen gestärkt.",        color: T.sage   },
-  { emoji: "✨", label: "Diesen Monat", text: "Ein Projekt, das dir am Herzen liegt, wächst.", color: T.coral  },
-  { emoji: "🌅", label: "Dieses Jahr",  text: "Deine Wirkung erreicht immer mehr Menschen.",  color: T.gold   },
-  { emoji: "🌳", label: "Seit Beginn",  text: "Dein Weg ist einzigartig und wertvoll.",       color: T.purple },
-];
-
-function Journey({ delay }) {
+function Journey({ delay, data, onOpenSub }) {
+  const items = [
+    { emoji: "🌱", label: "Heute",        text: "Kleine Impulse setzen Großes in Gang.",           color: T.teal,   subKey: "today" },
+    { emoji: "🤝", label: "Diese Woche",  text: `Du hast ${data.newConnectionsThisWeek} neue Verbindungen.`, color: T.sage, subKey: "week" },
+    { emoji: "✨", label: "Diesen Monat", text: "Ein Projekt, das dir am Herzen liegt, wächst.",   color: T.coral,  subKey: "month" },
+    { emoji: "🌅", label: "Dieses Jahr",  text: "Deine Wirkung erreicht immer mehr Menschen.",    color: T.gold,   subKey: "year" },
+    { emoji: "🌳", label: "Seit Beginn",  text: `Dein Weg ist einzigartig und wertvoll.`,          color: T.purple, subKey: "beginning" },
+  ];
   return (
     <div style={{ padding: "0 20px" }}>
       <FadeUp delay={delay}>
@@ -511,7 +564,8 @@ function Journey({ delay }) {
           <div style={{ fontFamily: FONT, fontSize: 16, fontWeight: 600, color: T.ink, letterSpacing: "-0.015em" }}>
             Deine Reise
           </div>
-          <button style={{
+          <button onClick={() => onOpenSub("journey", null)}
+            style={{
             fontFamily: FONT, fontSize: 12.5, color: T.teal, fontWeight: 500,
             background: "none", border: "none", cursor: "pointer", padding: 0,
             display: "flex", alignItems: "center", gap: 3, opacity: 0.85,
@@ -520,15 +574,14 @@ function Journey({ delay }) {
           </button>
         </div>
       </FadeUp>
-
       <div style={{
         display: "flex", gap: 11, overflowX: "auto",
-        scrollbarWidth: "none", paddingBottom: 4,
-        WebkitOverflowScrolling: "touch",
+        scrollbarWidth: "none", paddingBottom: 4, WebkitOverflowScrolling: "touch",
       }}>
-        {JOURNEY.map((j, i) => (
+        {items.map((j) => (
           <FadeUp key={j.label} delay={delay}>
-            <div style={{ width: 106, flexShrink: 0, textAlign: "center" }}>
+            <div onClick={() => onOpenSub(j.subKey, j)}
+              style={{ width: 106, flexShrink: 0, textAlign: "center", cursor: "pointer" }}>
               <div style={{
                 width: 68, height: 68, borderRadius: "50%", margin: "0 auto 9px",
                 background: `linear-gradient(135deg, ${j.color}28 0%, ${j.color}55 100%)`,
@@ -553,16 +606,12 @@ function Journey({ delay }) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// 5. ImpactMoments — Block 6 (Rest)
+// IMPACT-MOMENTE
 // ─────────────────────────────────────────────────────────────────
-const MOMENTS = [
-  { icon: "♡",  label: "Du hast Jana unterstützt",        time: "vor 2 Tagen",  color: T.coral,  bg: "rgba(244,115,85,0.07)",  border: "rgba(244,115,85,0.13)" },
-  { icon: "👥", label: "Neue Verbindung mit Max",          time: "vor 5 Tagen",  color: T.teal,   bg: T.tealSoft,               border: "rgba(13,196,181,0.13)"  },
-  { icon: "✏️", label: "Du hast ein Werk veröffentlicht",  time: "vor 1 Woche",  color: T.sage,   bg: T.sageSoft,               border: "rgba(92,168,122,0.13)"  },
-  { icon: "🌍", label: "Dein Impact hat 8 Menschen erreicht", time: "vor 1 Woche", color: T.purple, bg: T.purpleSoft,           border: "rgba(123,94,167,0.13)"  },
-];
-
-function ImpactMoments({ delay }) {
+function ImpactMoments({ delay, data, onOpenSub }) {
+  const moments = data.moments.length > 0 ? data.moments : [
+    { icon: "🌱", label: "Dein Weg beginnt", time: "heute", color: T.teal, bg: T.tealSoft, border: "rgba(13,196,181,0.13)" },
+  ];
   return (
     <div style={{ padding: "0 20px" }}>
       <FadeUp delay={delay}>
@@ -572,7 +621,8 @@ function ImpactMoments({ delay }) {
           <div style={{ fontFamily: FONT, fontSize: 16, fontWeight: 600, color: T.ink, letterSpacing: "-0.015em" }}>
             Deine Impact-Momente
           </div>
-          <button style={{
+          <button onClick={() => onOpenSub("moments", null)}
+            style={{
             fontFamily: FONT, fontSize: 12.5, color: T.teal, fontWeight: 500,
             background: "none", border: "none", cursor: "pointer", padding: 0,
             display: "flex", alignItems: "center", gap: 3, opacity: 0.85,
@@ -581,18 +631,17 @@ function ImpactMoments({ delay }) {
           </button>
         </div>
       </FadeUp>
-
       <div style={{
         display: "flex", gap: 9, overflowX: "auto",
-        scrollbarWidth: "none", paddingBottom: 4,
-        WebkitOverflowScrolling: "touch",
+        scrollbarWidth: "none", paddingBottom: 4, WebkitOverflowScrolling: "touch",
       }}>
-        {MOMENTS.map((m, i) => (
+        {moments.map((m, i) => (
           <FadeUp key={i} delay={delay}>
-            <div style={{
+            <div onClick={() => onOpenSub("moments", m)}
+              style={{
               width: 138, flexShrink: 0,
               background: m.bg, border: `1px solid ${m.border}`,
-              borderRadius: 16, padding: "13px 13px 11px",
+              borderRadius: 16, padding: "13px 13px 11px", cursor: "pointer",
             }}>
               <div style={{
                 width: 32, height: 32, borderRadius: "50%",
@@ -618,24 +667,402 @@ function ImpactMoments({ delay }) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// SHELL — MeinHUI (Soft Transition Orchestrierung)
+// STATS GRID — Verbindungen / Impulse / Zeit-Räume
+// ─────────────────────────────────────────────────────────────────
+function StatsGrid({ delay, data, onOpenSub }) {
+  const stats = [
+    { label: "Verbindungen", value: data.followers, sub: "Menschen", icon: "👥", color: T.teal, bg: T.tealPale, key: "connections" },
+    { label: "Impulse", value: data.worksCount + data.ordersCount + data.bookingsCount, sub: "gesät", icon: "🔥", color: T.coral, bg: "rgba(244,115,85,0.06)", key: "impulses" },
+    { label: "Seit Beginn", value: data.daysSince, sub: "Tage", icon: "🌱", color: T.sage, bg: T.sagePale, key: "beginning" },
+    { label: "Dieses Jahr", value: new Date().getFullYear(), sub: "Jahr", icon: "🌅", color: T.gold, bg: T.goldPale, key: "year" },
+    { label: "Diesen Monat", value: new Date().toLocaleDateString("de-DE", { month: "long" }), sub: "", icon: "✨", color: T.purple, bg: T.purplePale, key: "month" },
+    { label: "Heute", value: new Date().toLocaleDateString("de-DE", { day: "numeric", month: "numeric" }), sub: "", icon: "☀️", color: T.teal, bg: T.tealPale, key: "today" },
+  ];
+
+  return (
+    <div style={{ padding: "0 20px" }}>
+      <FadeUp delay={delay}>
+        <div style={{
+          fontFamily: FONT, fontSize: 16, fontWeight: 600, color: T.ink,
+          letterSpacing: "-0.015em", marginBottom: 14,
+        }}>
+          Dein Wirkungsraum
+        </div>
+      </FadeUp>
+      <div style={{
+        display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 9,
+      }}>
+        {stats.map((s, i) => (
+          <FadeUp key={i} delay={delay + i * 35}>
+            <div onClick={() => onOpenSub(s.key, s)}
+              style={{
+              background: s.bg, borderRadius: 16, padding: "14px 10px 12px",
+              textAlign: "center", cursor: "pointer",
+              border: `1px solid ${s.color}22`,
+              transition: "transform 0.2s ease, box-shadow 0.2s ease",
+            }}
+              onPointerDown={(e) => e.currentTarget.style.transform = "scale(0.96)"}
+              onPointerUp={(e) => e.currentTarget.style.transform = "scale(1)"}
+              onPointerLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
+            >
+              <div style={{ fontSize: 18, marginBottom: 4 }}>{s.icon}</div>
+              <div style={{ fontFamily: FONT, fontSize: 18, fontWeight: 700, color: s.color, lineHeight: 1.1 }}>
+                {s.value}
+              </div>
+              <div style={{ fontFamily: FONT, fontSize: 10, fontWeight: 500, color: T.inkSoft, marginTop: 2 }}>
+                {s.label}{s.sub ? ` · ${s.sub}` : ""}
+              </div>
+            </div>
+          </FadeUp>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
+// SUB-MODAL — Generisches Portal-Modal für alle Kategorien
+// ─────────────────────────────────────────────────────────────────
+function SubModal({ title, subtitle, icon, accent, onClose, onMore, children }) {
+  return createPortal(
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 10600,
+      background: T.cream,
+      display: "flex", flexDirection: "column",
+      animation: "mh-submodal-enter 0.3s ease-in-out",
+    }}>
+      <style>{KEYFRAMES}</style>
+      {/* Header */}
+      <div style={{
+        paddingTop: "max(var(--hui-safe-top, 0px), 14px, env(safe-area-inset-top, 14px))",
+        padding: "max(var(--hui-safe-top, 0px), 14px, env(safe-area-inset-top, 14px)) 20px 14px",
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        borderBottom: `1px solid ${T.inkFaint}`,
+        flexShrink: 0,
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{
+            width: 36, height: 36, borderRadius: "50%",
+            background: accent + "14",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            color: accent, fontSize: 18,
+          }}>
+            {icon}
+          </div>
+          <div>
+            <div style={{ fontFamily: FONT, fontSize: 16, fontWeight: 600, color: T.ink, lineHeight: 1.2 }}>
+              {title}
+            </div>
+            {subtitle && (
+              <div style={{ fontFamily: FONT, fontSize: 12, color: T.inkSoft, lineHeight: 1.2 }}>
+                {subtitle}
+              </div>
+            )}
+          </div>
+        </div>
+        <button onClick={onClose}
+          aria-label="Schließen"
+          style={{
+            width: 36, height: 36, borderRadius: "50%",
+            border: "none", background: T.creamDeep, cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 18, color: T.inkSoft,
+          }}>
+          ×
+        </button>
+      </div>
+
+      {/* Content */}
+      <div style={{
+        flex: 1, overflowY: "auto", overflowX: "hidden",
+        WebkitOverflowScrolling: "touch",
+        paddingBottom: "calc(88px + env(safe-area-inset-bottom, 0px))",
+      }}>
+        {children}
+      </div>
+
+      {/* Footer: "Mehr anzeigen" */}
+      {onMore && (
+        <div style={{
+          padding: "14px 20px calc(14px + env(safe-area-inset-bottom, 0px))",
+          borderTop: `1px solid ${T.inkFaint}`,
+          flexShrink: 0,
+        }}>
+          <button onClick={onMore}
+            style={{
+            width: "100%", padding: "14px", borderRadius: 14,
+            background: accent, color: T.white, border: "none",
+            fontFamily: FONT, fontSize: 14, fontWeight: 600,
+            cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+          }}>
+            Mehr anzeigen <span style={{ fontSize: 13 }}>›</span>
+          </button>
+        </div>
+      )}
+    </div>,
+    document.body
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
+// SUB-MODAL CONTENTS
+// ─────────────────────────────────────────────────────────────────
+function PillarsDetail({ pillar }) {
+  return (
+    <div style={{ padding: 20 }}>
+      <div style={{
+        width: 64, height: 64, borderRadius: "50%",
+        background: pillar.bg, display: "flex",
+        alignItems: "center", justifyContent: "center",
+        color: pillar.accent, marginBottom: 16,
+      }}>
+        {React.cloneElement(pillar.icon, { width: 32, height: 32 })}
+      </div>
+      <div style={{
+        fontFamily: FONT, fontSize: 22, fontWeight: 600, color: pillar.accent,
+        marginBottom: 12,
+      }}>
+        {pillar.label}
+      </div>
+      <p style={{
+        fontFamily: FONT, fontSize: 15, color: T.inkMid, lineHeight: 1.7,
+        marginBottom: 16,
+      }}>
+        {pillar.detail}
+      </p>
+      <div style={{
+        height: 3, borderRadius: 3, background: pillar.accent,
+        width: 40, opacity: 0.5, marginBottom: 20,
+      }} />
+    </div>
+  );
+}
+
+function JourneyDetail({ item, data }) {
+  return (
+    <div style={{ padding: 20 }}>
+      <div style={{
+        width: 80, height: 80, borderRadius: "50%", margin: "0 auto 16px",
+        background: `linear-gradient(135deg, ${item.color}28 0%, ${item.color}55 100%)`,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        border: `2px solid ${item.color}38`,
+        boxShadow: `0 4px 16px ${item.color}22`,
+      }}>
+        <span style={{ fontSize: 32 }}>{item.emoji}</span>
+      </div>
+      <div style={{
+        fontFamily: FONT, fontSize: 22, fontWeight: 600, color: item.color,
+        textAlign: "center", marginBottom: 12,
+      }}>
+        {item.label}
+      </div>
+      <p style={{
+        fontFamily: FONT, fontSize: 15, color: T.inkMid, lineHeight: 1.7,
+        textAlign: "center", marginBottom: 20,
+      }}>
+        {item.text}
+      </p>
+      {/* Detail info */}
+      <div style={{
+        background: T.creamCard, borderRadius: 16, padding: 16,
+        border: `1px solid ${item.color}16`,
+      }}>
+        {item.subKey === "beginning" && (
+          <>
+            <div style={detailRow}>Mitglied seit: <b>{data.daysSince} Tagen</b></div>
+            <div style={detailRow}>Werke veröffentlicht: <b>{data.worksCount}</b></div>
+            <div style={detailRow}>Verbindungen: <b>{data.followers}</b></div>
+            <div style={detailRow}>Impact: <b>{data.impactEur} €</b></div>
+          </>
+        )}
+        {item.subKey === "year" && (
+          <>
+            <div style={detailRow}>Jahr: <b>{new Date().getFullYear()}</b></div>
+            <div style={detailRow}>Impulse gesät: <b>{data.worksCount + data.ordersCount + data.bookingsCount}</b></div>
+            <div style={detailRow}>Projekte unterstützt: <b>{data.projectsCount}</b></div>
+          </>
+        )}
+        {item.subKey === "month" && (
+          <>
+            <div style={detailRow}>Monat: <b>{new Date().toLocaleDateString("de-DE", { month: "long" })}</b></div>
+            <div style={detailRow}>Neue Verbindungen: <b>{data.newConnectionsThisWeek}</b></div>
+          </>
+        )}
+        {item.subKey === "week" && (
+          <div style={detailRow}>Neue Verbindungen diese Woche: <b>{data.newConnectionsThisWeek}</b></div>
+        )}
+        {item.subKey === "today" && (
+          <div style={detailRow}>Heute ist: <b>{new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}</b></div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const detailRow = {
+  fontFamily: FONT, fontSize: 14, color: T.inkSoft,
+  padding: "8px 0", borderBottom: `1px solid ${T.inkFaint}`,
+  display: "flex", justifyContent: "space-between", alignItems: "center",
+};
+
+function MomentsDetail({ data }) {
+  return (
+    <div style={{ padding: 20 }}>
+      {data.moments.length === 0 ? (
+        <div style={{ textAlign: "center", padding: 40, color: T.inkSoft, fontFamily: FONT, fontSize: 14 }}>
+          Noch keine Impact-Momente. Dein Weg beginnt jetzt.
+        </div>
+      ) : (
+        data.moments.map((m, i) => (
+          <div key={i} style={{
+            display: "flex", gap: 12, padding: "12px 0",
+            borderBottom: `1px solid ${T.inkFaint}`,
+          }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: "50%",
+              background: m.bg, display: "flex",
+              alignItems: "center", justifyContent: "center",
+              fontSize: 18, flexShrink: 0,
+            }}>
+              {m.icon}
+            </div>
+            <div>
+              <div style={{ fontFamily: FONT, fontSize: 14, fontWeight: 500, color: m.color, lineHeight: 1.3 }}>
+                {m.label}
+              </div>
+              <div style={{ fontFamily: FONT, fontSize: 12, color: T.inkFaint, marginTop: 2 }}>
+                {m.time}
+              </div>
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  );
+}
+
+function ConnectionsDetail({ data }) {
+  return (
+    <div style={{ padding: 20 }}>
+      <div style={{
+        background: T.tealPale, borderRadius: 16, padding: 20,
+        textAlign: "center", marginBottom: 20,
+      }}>
+        <div style={{ fontSize: 32, marginBottom: 8 }}>👥</div>
+        <div style={{ fontFamily: FONT, fontSize: 32, fontWeight: 700, color: T.teal }}>
+          {data.followers}
+        </div>
+        <div style={{ fontFamily: FONT, fontSize: 14, color: T.inkSoft }}>
+          Menschen folgen dir
+        </div>
+      </div>
+      <div style={detailRow}>Du folgst: <b>{data.following}</b> Menschen</div>
+      <div style={detailRow}>Neue diese Woche: <b>{data.newConnectionsThisWeek}</b></div>
+    </div>
+  );
+}
+
+function ImpulsesDetail({ data }) {
+  return (
+    <div style={{ padding: 20 }}>
+      <div style={{
+        background: "rgba(244,115,85,0.06)", borderRadius: 16, padding: 20,
+        textAlign: "center", marginBottom: 20,
+      }}>
+        <div style={{ fontSize: 32, marginBottom: 8 }}>🔥</div>
+        <div style={{ fontFamily: FONT, fontSize: 32, fontWeight: 700, color: T.coral }}>
+          {data.worksCount + data.ordersCount + data.bookingsCount}
+        </div>
+        <div style={{ fontFamily: FONT, fontSize: 14, color: T.inkSoft }}>
+          Impulse gesät
+        </div>
+      </div>
+      <div style={detailRow}>Werke veröffentlicht: <b>{data.worksCount}</b></div>
+      <div style={detailRow}>Käufe getätigt: <b>{data.ordersCount}</b></div>
+      <div style={detailRow}>Buchungen getätigt: <b>{data.bookingsCount}</b></div>
+      <div style={detailRow}>Projekte unterstützt: <b>{data.projectsCount}</b></div>
+    </div>
+  );
+}
+
+function GenericStatDetail({ item, data }) {
+  return (
+    <div style={{ padding: 20 }}>
+      <div style={{
+        background: (item.color || T.teal) + "14", borderRadius: 16, padding: 20,
+        textAlign: "center", marginBottom: 20,
+      }}>
+        <div style={{ fontSize: 32, marginBottom: 8 }}>{item.icon}</div>
+        <div style={{ fontFamily: FONT, fontSize: 28, fontWeight: 700, color: item.color || T.teal }}>
+          {item.value}
+        </div>
+        <div style={{ fontFamily: FONT, fontSize: 14, color: T.inkSoft }}>
+          {item.label}{item.sub ? ` · ${item.sub}` : ""}
+        </div>
+      </div>
+      {(item.key === "beginning") && (
+        <>
+          <div style={detailRow}>Mitglied seit: <b>{data.daysSince} Tagen</b></div>
+          <div style={detailRow}>Werke: <b>{data.worksCount}</b></div>
+          <div style={detailRow}>Verbindungen: <b>{data.followers}</b></div>
+          <div style={detailRow}>Impact: <b>{data.impactEur} €</b></div>
+        </>
+      )}
+      {(item.key === "year") && (
+        <>
+          <div style={detailRow}>Impulse gesät: <b>{data.worksCount + data.ordersCount + data.bookingsCount}</b></div>
+          <div style={detailRow}>Projekte unterstützt: <b>{data.projectsCount}</b></div>
+        </>
+      )}
+      {(item.key === "month") && (
+        <div style={detailRow}>Neue Verbindungen diese Woche: <b>{data.newConnectionsThisWeek}</b></div>
+      )}
+      {(item.key === "today") && (
+        <div style={detailRow}>Heute: <b>{new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}</b></div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
+// SUB-MODAL CONFIG — Maps sub-key to title/icon/accent/page-link
+// ─────────────────────────────────────────────────────────────────
+const SUB_MODAL_CONFIG = {
+  pillars:    { title: "Grundpfeiler",       icon: "🏛️", accent: T.teal,   page: null },
+  journey:    { title: "Reise",              icon: "🧭", accent: T.sage,   page: null },
+  moments:    { title: "Impact-Momente",     icon: "✨", accent: T.purple, page: null },
+  connections:{ title: "Verbindungen",        icon: "👥", accent: T.teal,   page: "discover" },
+  impulses:   { title: "Impulse",            icon: "🔥", accent: T.coral,  page: null },
+  beginning:  { title: "Seit Beginn",         icon: "🌳", accent: T.sage,   page: null },
+  year:       { title: "Dieses Jahr",         icon: "🌅", accent: T.gold,   page: null },
+  month:      { title: "Diesen Monat",        icon: "✨", accent: T.purple, page: null },
+  today:      { title: "Heute",               icon: "☀️", accent: T.teal,   page: null },
+  week:       { title: "Diese Woche",         icon: "🤝", accent: T.sage,   page: null },
+};
+
+// ─────────────────────────────────────────────────────────────────
+// SHELL — MeinHUI v6.0
 // ─────────────────────────────────────────────────────────────────
 export default function MeinHUI({
   visible   = true,
-  closing   = false,   // von Home.jsx gesteuert: Content fadet, dann der ganze Raum
+  closing   = false,
   profile   = null,
   onClose,
   onNotif,
   onSettings,
 }) {
   const scrollRef = useRef(null);
-  // Double-RAF: erzwingt einen ersten Paint im Ausgangszustand (opacity 0,
-  // translateY 10px), bevor die CSS-Transition zum Endzustand ausgelöst wird.
   const [entered, setEntered] = useState(false);
+  const [subModal, setSubModal] = useState(null); // { key, data }
+  const actions = useHuiActions();
+
+  const wirkData = useWirkungsraumData(profile);
 
   useEffect(() => {
     if (visible) {
       setEntered(false);
+      setSubModal(null);
       if (scrollRef.current) scrollRef.current.scrollTop = 0;
       const raf1 = requestAnimationFrame(() => {
         requestAnimationFrame(() => setEntered(true));
@@ -643,28 +1070,38 @@ export default function MeinHUI({
       return () => cancelAnimationFrame(raf1);
     } else {
       setEntered(false);
+      setSubModal(null);
     }
   }, [visible]);
 
+  const handleOpenSub = useCallback((key, item) => {
+    setSubModal({ key, item });
+  }, []);
+
+  const handleCloseSub = useCallback(() => {
+    setSubModal(null);
+  }, []);
+
+  const handleSubMore = useCallback((pageKey) => {
+    // Navigate to the correct page
+    if (pageKey === "discover") {
+      actions[A.GO_TO_TAB]?.({ tab: "discover" });
+    } else if (pageKey === "impact") {
+      actions[A.GO_IMPACT]?.();
+    } else if (pageKey === "profile") {
+      actions[A.OPEN_OWN_PROFILE]?.();
+    }
+    // Close everything
+    setSubModal(null);
+    onClose?.();
+  }, [actions, onClose]);
+
   if (!visible) return null;
 
-  // ── Der gesamte Raum: EINE Einheit, weiches Fade + 10px Slide ──────────
-  // Öffnen:   opacity 0→1, translateY 10px→0, ~300ms
-  // Schließen: bleibt sichtbar bis Content weg ist (CLOSE_CONTENT_MS),
-  //            blendet danach selbst aus (CLOSE_SCREEN_MS, delayed)
   const screenStyle = {
     position: "fixed", inset: 0,
-    // 2026-07-05: Vollstaendig deckender Eigenraum-Hintergrund (T.cream,
-    // identisch zur App-weiten Hauptfarbe #FAF7F2 auf Home/Profil/Impact/
-    // Discover). Vorher stand hier "transparent" -- dadurch schien die
-    // komplette Home-Seite durch den Wirkungsraum hindurch, was explizit
-    // NICHT gewuenscht ist: Mein HUI soll sich wie ein eigener, ruhiger Raum
-    // anfuehlen, nicht wie ein durchsichtiges Overlay ueber Home. Blur bleibt
-    // ausschliesslich auf einzelnen Content-Karten (z.B. ProfileHeader-Badges,
-    // Info-Kacheln) als rein dekoratives Element erhalten -- NICHT hier auf
-    // dem Root, wo er als Hintergrund-Ersatz missverstanden werden koennte.
     background: T.cream,
-    zIndex: 9800,   /* über MyBasisProfile(9500), unter Nav(10000) */
+    zIndex: 10500,   // PFLICHT: >= 10500 nach footer-navbar-regel
     overflowY: "auto", overflowX: "hidden",
     WebkitOverflowScrolling: "touch",
     overscrollBehavior: "contain",
@@ -675,7 +1112,6 @@ export default function MeinHUI({
       : `opacity 300ms ${EASE}, transform 300ms ${EASE}`,
   };
 
-  // ── Content-Gruppe: verschwindet ZUERST beim Schließen ─────────────────
   const contentGroupStyle = closing
     ? {
         opacity: 0,
@@ -683,6 +1119,96 @@ export default function MeinHUI({
         transition: `opacity ${CLOSE_CONTENT_MS}ms ${EASE}, transform ${CLOSE_CONTENT_MS}ms ${EASE}`,
       }
     : {};
+
+  // Sub-modal rendering
+  let subModalContent = null;
+  if (subModal) {
+    const cfg = SUB_MODAL_CONFIG[subModal.key];
+    if (cfg) {
+      const item = subModal.item;
+      let content = null;
+      let morePage = cfg.page;
+
+      switch (subModal.key) {
+        case "pillars":
+          content = <PillarsDetail pillar={item} />;
+          morePage = null; // Pillars have no dedicated page
+          break;
+        case "journey":
+          content = item ? <JourneyDetail item={item} data={wirkData} /> : null;
+          // Journey overview if no specific item
+          if (!item) {
+            content = (
+              <div style={{ padding: 20 }}>
+                <p style={{ fontFamily: FONT, fontSize: 15, color: T.inkMid, lineHeight: 1.7, marginBottom: 16 }}>
+                  Deine Reise bei HUI zeigt, wie sich deine Wirkung über Zeit entwickelt. Jeder Schritt, jede Verbindung und jeder Impuls formt deinen einzigartigen Weg.
+                </p>
+                <div style={detailRow}>Tage seit Beginn: <b>{wirkData.daysSince}</b></div>
+                <div style={detailRow}>Werke: <b>{wirkData.worksCount}</b></div>
+                <div style={detailRow}>Verbindungen: <b>{wirkData.followers}</b></div>
+                <div style={detailRow}>Impulse: <b>{wirkData.worksCount + wirkData.ordersCount + wirkData.bookingsCount}</b></div>
+              </div>
+            );
+          }
+          break;
+        case "moments":
+          content = <MomentsDetail data={wirkData} />;
+          morePage = null;
+          break;
+        case "connections":
+          content = <ConnectionsDetail data={wirkData} />;
+          break;
+        case "impulses":
+          content = <ImpulsesDetail data={wirkData} />;
+          break;
+        case "beginning":
+          content = item ? <GenericStatDetail item={item} data={wirkData} /> : null;
+          break;
+        case "year":
+          content = item ? <GenericStatDetail item={item} data={wirkData} /> : null;
+          break;
+        case "month":
+          content = item ? <GenericStatDetail item={item} data={wirkData} /> : null;
+          break;
+        case "today":
+          content = item ? <GenericStatDetail item={item} data={wirkData} /> : null;
+          break;
+        case "week":
+          content = (
+            <div style={{ padding: 20 }}>
+              <div style={{
+                background: T.sagePale, borderRadius: 16, padding: 20,
+                textAlign: "center", marginBottom: 20,
+              }}>
+                <div style={{ fontSize: 32, marginBottom: 8 }}>🤝</div>
+                <div style={{ fontFamily: FONT, fontSize: 28, fontWeight: 700, color: T.sage }}>
+                  {wirkData.newConnectionsThisWeek}
+                </div>
+                <div style={{ fontFamily: FONT, fontSize: 14, color: T.inkSoft }}>
+                  neue Verbindungen diese Woche
+                </div>
+              </div>
+              <p style={{ fontFamily: FONT, fontSize: 14, color: T.inkSoft, lineHeight: 1.6 }}>
+                Jede neue Verbindung ist eine neue Möglichkeit, gemeinsam etwas zu bewegen.
+              </p>
+            </div>
+          );
+          break;
+      }
+
+      subModalContent = (
+        <SubModal
+          title={cfg.title}
+          icon={cfg.icon}
+          accent={cfg.accent}
+          onClose={handleCloseSub}
+          onMore={morePage ? () => handleSubMore(morePage) : null}
+        >
+          {content}
+        </SubModal>
+      );
+    }
+  }
 
   return (
     <>
@@ -693,34 +1219,41 @@ export default function MeinHUI({
           paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 120px)",
           ...contentGroupStyle,
         }}>
+          {/* Begrüßung */}
+          <ProfileHeader profile={profile} onClose={onClose} delay={TITLE_DELAY} />
 
-          {/* Block 2 — Begrüßung */}
-          <ProfileHeader profile={profile} onNotif={onNotif} onSettings={onSettings} delay={TITLE_DELAY} />
-
-          {/* Block 1 — Orb, Block 3 — Info-Karten */}
-          <OrbHero profile={profile} coreDelay={CORE_DELAY} infoDelay={INFO_DELAY} />
+          {/* Orb + Info-Karten */}
+          <OrbHero data={wirkData} coreDelay={CORE_DELAY} infoDelay={INFO_DELAY} />
 
           <div style={{ width: 28, height: 1, background: T.inkFaint, margin: "6px auto 26px", opacity: 0.35 }} />
 
-          {/* Block 4 — Grundpfeiler */}
-          <Pillars delay={PILLARS_DELAY} />
+          {/* Grundpfeiler */}
+          <Pillars delay={PILLARS_DELAY} onOpenSub={handleOpenSub} />
 
           <div style={{ height: 30 }} />
 
-          {/* Block 5 — Reise */}
-          <Journey delay={JOURNEY_DELAY} />
+          {/* Reise */}
+          <Journey delay={JOURNEY_DELAY} data={wirkData} onOpenSub={handleOpenSub} />
 
           <div style={{ height: 30 }} />
 
-          {/* Block 6 — Rest */}
-          <ImpactMoments delay={MOMENTS_DELAY} />
+          {/* Impact-Momente */}
+          <ImpactMoments delay={MOMENTS_DELAY} data={wirkData} onOpenSub={handleOpenSub} />
+
+          <div style={{ height: 30 }} />
+
+          {/* Stats Grid */}
+          <StatsGrid delay={STATS_DELAY} data={wirkData} onOpenSub={handleOpenSub} />
 
           <div style={{ height: 12 }} />
-<p style={{ opacity: 0.6, fontSize: 12, marginTop: 20, textAlign: "center" }}>
-  Version {APP_VERSION}
-</p>
+          <p style={{ opacity: 0.6, fontSize: 12, marginTop: 20, textAlign: "center", fontFamily: FONT }}>
+            Version {APP_VERSION}
+          </p>
         </div>
       </div>
+
+      {/* Sub-Modal via createPortal */}
+      {subModalContent}
     </>
   );
 }
