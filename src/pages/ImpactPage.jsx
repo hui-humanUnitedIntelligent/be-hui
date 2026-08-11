@@ -662,6 +662,10 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
   // enthält KEINE user_id/Namen — nur order_id/project_id/amount_eur/Zeit).
   const [contributions, setContributions] = React.useState([]);
   const [contributionsLoading, setContributionsLoading] = React.useState(false);
+  // Aufklapp-Pagination: erst 10, dann je +20 pro Klick auf "Weitere anzeigen"
+  const CONTRIB_INITIAL = 10;
+  const CONTRIB_STEP = 20;
+  const [visibleContribCount, setVisibleContribCount] = React.useState(CONTRIB_INITIAL);
   // Übergebene Karten-Objekte (Top-3/Ranking-Karten) enthalten oft nur ein
   // einzelnes 'img'-Feld statt des vollen media_urls-Arrays (siehe
   // useAllApprovedByVotes/monthlyTop3-Normalisierung). Frisch aus DB laden,
@@ -779,7 +783,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
           .select("id,amount_eur,distributed_at")
           .eq("project_id", app.id)
           .order("distributed_at", { ascending: false });
-        if (!dead) setContributions(data || []);
+        if (!dead) { setContributions(data || []); setVisibleContribCount(CONTRIB_INITIAL); }
       } catch { /* silent */ }
       if (!dead) setContributionsLoading(false);
     })();
@@ -1102,24 +1106,39 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
               {contributionsLoading ? (
                 <div style={{ fontSize:12, color:"#888" }}>Lädt…</div>
               ) : (
-                <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-                  {contributions.map(c => {
-                    const d = new Date(c.distributed_at);
-                    const weekdayShort = formatDateDE(d, { weekday: "short" });
-                    const dateNumeric  = formatDateDE(d, { day:"2-digit", month:"2-digit", year:"2-digit" });
-                    return (
-                      <div key={c.id} style={{
-                        display:"flex", alignItems:"center", justifyContent:"space-between",
-                        fontSize:13, color:"#333",
-                      }}>
-                        <span style={{ color:"#666" }}>{weekdayShort}. {dateNumeric}</span>
-                        <span style={{ fontWeight:600, color:"#141422" }}>
-                          {formatNumberDE(safeNum(c.amount_eur), { minimumFractionDigits:2 })}€
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
+                <>
+                  <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                    {contributions.slice(0, visibleContribCount).map(c => {
+                      const d = new Date(c.distributed_at);
+                      const weekdayShort = formatDateDE(d, { weekday: "short" });
+                      const dateNumeric  = formatDateDE(d, { day:"2-digit", month:"2-digit", year:"2-digit" });
+                      return (
+                        <div key={c.id} style={{
+                          display:"flex", alignItems:"center", justifyContent:"space-between",
+                          fontSize:13, color:"#333",
+                        }}>
+                          <span style={{ color:"#666" }}>{weekdayShort}. {dateNumeric}</span>
+                          <span style={{ fontWeight:600, color:"#141422" }}>
+                            {formatNumberDE(safeNum(c.amount_eur), { minimumFractionDigits:2 })}€
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {visibleContribCount < contributions.length && (
+                    <button
+                      onClick={() => setVisibleContribCount(n => n + CONTRIB_STEP)}
+                      style={{
+                        width:"100%", marginTop:12, padding:"10px",
+                        background:"rgba(13,196,181,0.08)", border:"1px solid rgba(13,196,181,0.20)",
+                        borderRadius:10, color:"#0DC4B5", fontSize:13, fontWeight:600,
+                        cursor:"pointer",
+                      }}
+                    >
+                      Weitere anzeigen ({contributions.length - visibleContribCount} übrig)
+                    </button>
+                  )}
+                </>
               )}
             </div>
           )}
