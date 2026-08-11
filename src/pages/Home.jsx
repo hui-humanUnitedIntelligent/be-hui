@@ -69,6 +69,7 @@ const CreatorDashboard = lazy(() => import("./CreatorDashboard.jsx").catch(makeC
 const HuiCreateFlow = lazy(() => import("../components/HuiCreateFlow.jsx").catch(makeChunkReload("Home:HuiCreateFlow")));
 // TalentOnboarding: direct import (kein lazy — verhindert Suspense-Spinner-Bug)
 import StoryComposer       from "../components/StoryComposer.jsx";
+import OnboardingTutorial from "../components/onboarding/OnboardingTutorial.jsx";
 // ExperienceCreator.jsx / WerkPublisher.jsx: Datei komplett entfernt (2026-07-08
 // Dead-Code-Audit) -- showExperienceCreator/showWerkPublisher sind Legacy-benannte
 // State-Flags, rendern aber schon seit laengerem ExperienceFlow/WorkFlow (s.u.).
@@ -984,6 +985,7 @@ export default function Home() {
   return (
     <HomeShell>
       <HomeInner/>
+      <OnboardingTutorial/>
     </HomeShell>
   );
 }

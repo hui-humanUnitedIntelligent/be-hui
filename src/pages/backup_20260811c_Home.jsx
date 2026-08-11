@@ -145,6 +145,10 @@ function HomeInner() {
   const [shareItem, setShareItem] = useState(null); // SHARE.2: HUI Share Modal
   // Steuert MeinHUI's eigene Exit-Choreografie: Content fadet zuerst, dann schrumpft der Orb
   const [meinHuiClosing, setMeinHuiClosing] = useState(false);
+  // Deep-Link-Signal: "Menschen entdecken"-Button im Chat → öffnet MenschenAllModal
+  // auf dem Discover-Tab. Counter statt boolean, damit auch ein erneuter Klick
+  // (während man schon auf dem Discover-Tab ist) das Modal zuverlässig öffnet.
+  const [openMenschenSignal, setOpenMenschenSignal] = useState(0);
 
   // ── Soft Transition — Schließen, spiegelbildlich zum Öffnen ──────────
   // 1. Inhalte verschwinden zuerst (0-180ms)       — via MeinHUI `closing` Prop
@@ -277,10 +281,14 @@ function HomeInner() {
     if (pending && setCart) {
       // KORB-RESTORE (2026-08-10): WorkDetailPage "Kaufen" → in Korb legen
       // (statt direkten WerkKaufFlow zu öffnen)
+      // BUGFIX v2 (2026-08-10): pending aus WorkDetailPage hatte author=null
+      // wenn Creator noch nicht geladen war → "Unbekannter Wirker" im Korb.
+      // Fix: _raw setzen (für groupByPerson) + author absichern.
       setCart(prev => {
         const wid = pending.id || pending._raw?.id;
         if (wid && prev.some(x => (x.id || x._raw?.id) === wid)) return prev;
-        return [...prev, pending];
+        const cartItem = { ...pending, _raw: pending._raw || pending };
+        return [...prev, cartItem];
       });
       // Router-State sofort leeren damit Reload nicht erneut öffnet
       try { window.history.replaceState({}, document.title, window.location.pathname); } catch {}
@@ -489,7 +497,16 @@ function HomeInner() {
                     // in den Werkekorb — der Korb-Button erscheint, Nutzer
                     // sehen sofort was passiert und können mehrere Werke sammeln.
                     if (!item?.id) return;
-                    const werkData = item._raw || item;
+                    // BUGFIX (2026-08-10): item._raw enthält NUR die rohe DB-Zeile
+                    // (title/price/cover_url) — das normalisierte item.author
+                    // {id,name,avatar} wurde dabei verworfen → WerkeKorb zeigte
+                    // "Unbekannter Wirker" statt des echten Namens (z.B. Linda
+                    // Mathis). Fix: author additiv auf den Cart-Eintrag setzen,
+                    // ohne sonst etwas an der bestehenden Cart-Datenstruktur zu
+                    // verändern (WerkeKorb/commerceUtils lesen weiterhin exakt
+                    // dieselben Felder wie vorher, jetzt ist author nur nicht
+                    // mehr leer).
+                    const werkData = { ...(item._raw || item), author: item.author || item._raw?.author || null, _raw: item._raw || item };
                     // Dedupe: nicht zweimal dasselbe Werk
                     setCart(prev => {
                       const wid = werkData.id || werkData._raw?.id;
@@ -558,6 +575,7 @@ function HomeInner() {
                       // Erlebnis aus DiscoverPage → ExperienceBookingFlow
                       setShowBookingFlow(item);
                     }}
+                    openMenschenSignal={openMenschenSignal}
                   />
               </SafeRender>
             </Suspense>
@@ -745,6 +763,9 @@ function HomeInner() {
               setChatRecipient(null);
               flow.clearReturnProfile();
               handleTab("discover");
+              // "Menschen entdecken" (ImpactCard) → direkt das MenschenAllModal
+              // ("Inspirierende Menschen") öffnen statt nur zum Discover-Tab zu springen
+              setOpenMenschenSignal(s => s + 1);
             }}
           />
         </SafeRender>
