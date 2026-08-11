@@ -22,6 +22,7 @@ const OVERLAY_ALPHA   = 0.6;    // Overlay-Transparenz (leicht grau)
 
 const STORAGE_KEY = "hui_onboarding_completed_v1";
 const ADVANCED_STORAGE_KEY = "hui_onboarding_advanced_v1";
+const DISABLED_KEY = "hui_onboarding_disabled_v1"; // "Nicht mehr anzeigen" — permanent deaktiviert
 
 const STEPS = [
   { selector: 'button[aria-label="Home"]',           text: "Hier siehst du alle Beitr\u00e4ge chronologisch \u2013 dein pers\u00f6nlicher Home-Feed.", placement: "top" },
@@ -110,7 +111,8 @@ export default function OnboardingTutorial() {
 
   useEffect(() => {
     try {
-      if (localStorage.getItem(STORAGE_KEY)) setPhase("done");
+      // Wenn Tutorial abgeschlossen ODER permanent deaktiviert → nie wieder zeigen
+      if (localStorage.getItem(STORAGE_KEY) || localStorage.getItem(DISABLED_KEY)) setPhase("done");
       else setPhase("ask");
     } catch (e) { setPhase("ask"); }
   }, []);
@@ -121,6 +123,7 @@ export default function OnboardingTutorial() {
       try {
         localStorage.removeItem(STORAGE_KEY);
         localStorage.removeItem(ADVANCED_STORAGE_KEY);
+        localStorage.removeItem(DISABLED_KEY); // Re-Aktivierung: auch Disable-Flag löschen
       } catch (e) {}
       setStep(0);
       setAdvancedSteps(ADVANCED_STEPS);
@@ -342,6 +345,16 @@ export default function OnboardingTutorial() {
           <div style={dialogButtonsStyle}>
             <button onClick={() => { setPhase("hint"); }} style={btnNoStyle}>Nein</button>
             <button onClick={() => { setPhase("tutorial"); }} style={btnYesStyle}>Ja</button>
+            <button
+              onClick={() => {
+                try {
+                  localStorage.setItem(DISABLED_KEY, "1");
+                  localStorage.setItem(STORAGE_KEY, "1");
+                } catch (e) {}
+                setPhase("done");
+              }}
+              style={btnDisableStyle}
+            >Nicht mehr anzeigen</button>
           </div>
         </div>
       </div>,
@@ -362,8 +375,11 @@ export default function OnboardingTutorial() {
           <p style={dialogSubTextStyle}>Finde es unter den Einstellungen in deinem Nutzerprofil — einfach "Tutorial erneut ansehen" antippen.</p>
           <button
             onClick={() => {
+              // "Nein" = später nochmal fragen → nur diese Session überspringen,
+              // KEIN STORAGE_KEY (sonst würde Tutorial nie wieder kommen).
+              // sessionStorage reicht für "diesmal nicht anzeigen".
+              try { sessionStorage.setItem("hui_onboarding_skipped", "1"); } catch (e) {}
               setPhase("done");
-              try { localStorage.setItem(STORAGE_KEY, "1"); } catch (e) {}
             }}
             style={{ ...btnYesStyle, width: "100%", flex: "none" }}
           >Verstanden</button>
@@ -450,7 +466,7 @@ const dialogCardStyle = {
 const dialogTitleStyle = { fontSize: 20, fontWeight: 700, color: "#1A1A18", margin: "0 0 8px", fontFamily: "Inter, sans-serif" };
 const dialogTextStyle = { fontSize: 15, fontWeight: 600, color: "#1A1A18", margin: "0 0 4px", lineHeight: 1.45, fontFamily: "Inter, sans-serif" };
 const dialogSubTextStyle = { fontSize: 13, fontWeight: 400, color: "rgba(26,26,24,0.6)", margin: "0 0 20px", lineHeight: 1.45, fontFamily: "Inter, sans-serif" };
-const dialogButtonsStyle = { display: "flex", gap: 10 };
+const dialogButtonsStyle = { display: "flex", gap: 8, flexWrap: "wrap" };
 const btnNoStyle = {
   flex: 1, padding: "13px 20px", borderRadius: 14, border: "1.5px solid rgba(26,26,24,0.12)",
   background: "transparent", color: "rgba(26,26,24,0.65)", fontSize: 15, fontWeight: 600,
@@ -461,6 +477,12 @@ const btnYesStyle = {
   background: "linear-gradient(135deg, #16D7C5, #0DC4B5)", color: "white",
   fontSize: 15, fontWeight: 600, fontFamily: "Inter, sans-serif", cursor: "pointer",
   boxShadow: "0 2px 12px rgba(22,215,197,0.35)", touchAction: "manipulation", WebkitTapHighlightColor: "transparent",
+};
+const btnDisableStyle = {
+  flex: 1, padding: "13px 14px", borderRadius: 14, border: "1.5px solid rgba(26,26,24,0.12)",
+  background: "transparent", color: "rgba(26,26,24,0.45)", fontSize: 13, fontWeight: 600,
+  fontFamily: "Inter, sans-serif", cursor: "pointer", touchAction: "manipulation",
+  WebkitTapHighlightColor: "transparent", whiteSpace: "nowrap",
 };
 
 // ── Tutorial-Schritt Styles ────────────────────────────────────
