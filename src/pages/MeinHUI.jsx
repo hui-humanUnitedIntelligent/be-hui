@@ -844,14 +844,17 @@ function Journey({ delay, data, onOpenSub }) {
           </button>
         </div>
       </FadeUp>
+      {/* PFLICHT: KEIN horizontaler Scroller — 5 feste Kacheln in Grid (3+2),
+          niemals overflowX:auto, egal wie viele Items. Siehe Nutzer-Feedback
+          2026-08-11: 'scroller ist hier wieder drin. bitte keinen mehr einbauen'. */}
       <div style={{
-        display: "flex", gap: 18, overflowX: "auto",
-        scrollbarWidth: "none", paddingBottom: 4, WebkitOverflowScrolling: "touch",
+        display: "grid", gridTemplateColumns: "repeat(3, 1fr)",
+        gap: "20px 8px",
       }}>
         {items.map((j) => (
           <FadeUp key={j.label} delay={delay}>
             <div onClick={() => onOpenSub(j.subKey, j)}
-              style={{ width: 106, flexShrink: 0, textAlign: "center", cursor: "pointer" }}>
+              style={{ textAlign: "center", cursor: "pointer" }}>
               <div style={{
                 width: 68, height: 68, borderRadius: "50%", margin: "0 auto 9px",
                 background: `linear-gradient(135deg, ${j.color}28 0%, ${j.color}55 100%)`,
