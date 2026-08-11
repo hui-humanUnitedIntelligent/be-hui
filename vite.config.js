@@ -35,6 +35,11 @@ export default defineConfig({
           if (id.includes('heic2any') || id.includes('libheif-js')) {
             return 'heic';
           }
+          // jspdf in eigenen Chunk — wird nur dynamisch importiert (StatistikenModal, generateReceipt)
+          // Ohne diese Regel würde jspdf (~300 KB) im Vendor landen und Public-Load belasten
+          if (id.includes('jspdf') || id.includes('fflate') || id.includes('fast-png')) {
+            return 'jspdf';
+          }
           if (id.includes('node_modules')) {
             return 'vendor';
           }
