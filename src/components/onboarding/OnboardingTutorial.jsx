@@ -1,5 +1,5 @@
 // src/components/onboarding/OnboardingTutorial.jsx
-// HUI Onboarding-Tutorial — Basis (7 Schritte) + Erweitert (11 Schritte)
+// HUI Onboarding-Tutorial — Basis (7 Schritte) + Erweitert (6 Schritte, echte Profil-Kacheln)
 // Systemweite Design-Regeln: Fuchs fest unverzerrt, kompakter Weiter-Button,
 // Spotlight nie verdeckt. Keine bestehenden UI-Elemente werden veraendert.
 import React, { useState, useLayoutEffect, useCallback, useEffect } from "react";
@@ -32,18 +32,30 @@ const STEPS = [
   { selector: 'button[aria-label="Resonanzzentrum"]', text: "Hier bekommst du alle wichtigen Neuigkeiten \u2013 Kommentare, Buchungen, K\u00e4ufe und mehr.", placement: "bottom" },
 ];
 
+// ── Erweitertes Tutorial (2026-08-11, TUTORIAL-PROFIL-SWITCH) ──────────
+// Zielt jetzt auf die ECHTEN Kacheln im "Mein Bereich"-Menü des eigenen
+// Profils (MyBasisProfile.jsx → MeinBereichTile, aria-label additiv ergänzt).
+// Chat + Resonanzzentrum wurden bewusst ENTFERNT — bereits im Basis-Tutorial
+// gezeigt, keine Wiederholung. Orb-Button + Profil-Nav-Button ebenfalls
+// entfernt (Duplikate aus dem Basis-Tutorial). Kürzestmögliche Variante:
+// nur Bereiche, die im Basis-Tutorial NICHT vorkamen.
+// Werke/Talente/Erlebnisse existieren nur für Talent-User — der Auto-Skip-
+// Mechanismus (siehe useEffect weiter unten) überspringt diese Schritte
+// automatisch für Basis-User, ohne dass hier Unterscheidung nötig ist.
 const ADVANCED_STEPS = [
-  { selector: null, text: "Hier findest du alles, was du erschaffen hast. Werke zeigen deine F\u00e4higkeiten, deine Kreativit\u00e4t und deine Wirkung.", placement: "center", label: "Meine Werke" },
-  { selector: null, text: "Hier kannst du deine Talente anbieten. Menschen k\u00f6nnen dich buchen, unterst\u00fctzen oder mit dir zusammenarbeiten.", placement: "center", label: "Talent-Angebote" },
-  { selector: null, text: "Hier entstehen besondere Momente und echte Herzensprojekte. Du kannst eigene Projekte starten oder an bestehenden teilnehmen.", placement: "center", label: "Erlebnisse & Projekte" },
-  { selector: null, text: "Momente zeigen Augenblicke aus deinem Alltag. Sie verbinden Menschen und machen HUI lebendig.", placement: "center", label: "Meine Momente" },
-  { selector: null, text: "Hier findest du deine K\u00e4ufe und Buchungen. Alles ist sicher \u00fcber Stripe abgewickelt und transparent dokumentiert.", placement: "center", label: "K\u00e4ufe & Buchungen" },
-  { selector: null, text: "Jede Buchung st\u00e4rkt den Impact-Pool. Damit finanzieren wir gemeinsam echte Projekte, die Menschen helfen.", placement: "center", label: "Impact-Pool" },
-  { selector: null, text: "Hier siehst du alle Projekte, die Unterst\u00fctzung erhalten. Du kannst selbst eines starten oder bestehende f\u00f6rdern.", placement: "center", label: "Projekte im Impact-Bereich" },
-  { selector: 'button[aria-label="Mein HUI"]',       text: "Der Orb ist dein kreatives Zentrum. Hier kannst du Werke, Talente, Erlebnisse oder Projekte erstellen.", placement: "top", label: "Orb-Button" },
-  { selector: 'button[aria-label="Profil"]',          text: "Hier gestaltest du dein Profil. Zeige, wer du bist, was du kannst und was dich inspiriert.", placement: "top", label: "Profil" },
-  { selector: 'button[aria-label="Nachrichten"]',    text: "Hier entstehen Verbindungen. Schreibe Menschen direkt und bleibe in Kontakt.", placement: "bottom", label: "Chat" },
-  { selector: 'button[aria-label="Resonanzzentrum"]', text: "Hier bekommst du alle wichtigen Neuigkeiten: Kommentare, Buchungen, K\u00e4ufe, Likes und Empfehlungen.", placement: "bottom", label: "Resonanzzentrum" },
+  { selector: 'button[aria-label="Meine Werke"]',        text: "Hier findest du alles, was du erschaffen hast. Werke zeigen deine F\u00e4higkeiten, deine Kreativit\u00e4t und deine Wirkung.", placement: "bottom", label: "Meine Werke" },
+  { selector: 'button[aria-label="Talent-Angebote"]',    text: "Hier kannst du deine Talente anbieten. Menschen k\u00f6nnen dich buchen, unterst\u00fctzen oder mit dir zusammenarbeiten.", placement: "bottom", label: "Talent-Angebote" },
+  { selector: 'button[aria-label="Erlebnisse & Projekte"]', text: "Hier entstehen besondere Momente und echte Herzensprojekte. Du kannst eigene Projekte starten oder an bestehenden teilnehmen.", placement: "bottom", label: "Erlebnisse & Projekte" },
+  { selector: 'button[aria-label="Meine Momente"]',      text: "Momente zeigen Augenblicke aus deinem Alltag. Sie verbinden Menschen und machen HUI lebendig.", placement: "bottom", label: "Meine Momente" },
+  { selector: 'button[aria-label="Impact & Stimmen"]',   text: "Hier siehst du deine Impact-Stimmen und alle Projekte, die du unterst\u00fctzt. Jede Stimme st\u00e4rkt den Impact-Pool.", placement: "bottom", label: "Impact & Stimmen" },
+  { selector: 'button[aria-label="K\u00e4ufe/Verk\u00e4ufe"]', text: "Hier findest du deine K\u00e4ufe und Verk\u00e4ufe. Alles ist sicher \u00fcber Stripe abgewickelt und transparent dokumentiert.", placement: "bottom", label: "K\u00e4ufe/Verk\u00e4ufe" },
+];
+
+// Selektoren, deren Vorhandensein signalisiert "Profil ist bereits gemountet"
+// — genutzt, um nach der Navigation aufs Profil zu pollen statt blind zu warten.
+const ADVANCED_READY_SELECTORS = [
+  'button[aria-label="Meine Momente"]',
+  'button[aria-label="Meine Werke"]',
 ];
 
 // ══════════════════════════════════════════════════════════════
@@ -122,6 +134,51 @@ export default function OnboardingTutorial() {
     try { localStorage.setItem(ADVANCED_STORAGE_KEY, "1"); } catch (e) {}
   }, []);
   useModalRegistration(phase !== "done" && phase !== "init", handleClose, "OnboardingTutorial");
+
+  // ── Erweitertes Tutorial: Auto-Skip + Scroll-ins-Blickfeld ──────────
+  // (TUTORIAL-PROFIL-SWITCH, 2026-08-11)
+  // Läuft einmal pro Schrittwechsel im "advanced"-Modus:
+  //  1. Ziel-Element per Selector suchen (mit kurzer Mount-Verzögerung,
+  //     da Profil ggf. gerade erst per Navigation geöffnet wurde).
+  //  2. Nicht gefunden (z.B. Werke/Talente/Erlebnisse bei Basis-User,
+  //     die nur isTalent-Nutzern angezeigt werden) → Schritt automatisch
+  //     überspringen, ohne den Nutzer mit einem leeren Spotlight zu stören.
+  //  3. Gefunden → ins Blickfeld scrollen (die Kachel liegt im scrollbaren
+  //     ".mbp-scroll"-Container, nicht im window-Scroll).
+  useEffect(() => {
+    if (phase !== "advanced") return;
+    const stepData = ADVANCED_STEPS[step];
+    if (!stepData || !stepData.selector) return;
+    const t = setTimeout(() => {
+      const el = document.querySelector(stepData.selector);
+      if (!el) {
+        // Ziel nicht vorhanden → Schritt überspringen (nächster Schritt oder Abschluss)
+        setStep(s => (s < ADVANCED_STEPS.length - 1 ? s + 1 : ADVANCED_STEPS.length));
+        return;
+      }
+      el.scrollIntoView({ block: "center", behavior: "auto" });
+    }, 220);
+    return () => clearTimeout(t);
+  }, [phase, step]);
+
+  // ── "Ja" beim erweiterten Tutorial: automatisch ins eigene Profil
+  // wechseln, dort auf das Mounten der Kacheln warten, dann Tutorial starten.
+  // (TUTORIAL-PROFIL-SWITCH, 2026-08-11) — additiv, kein bestehender Code verändert.
+  const startAdvancedTutorial = useCallback(() => {
+    window.dispatchEvent(new CustomEvent("hui:navigate:tab", { detail: { tab: "profile" } }));
+    const start = Date.now();
+    const MAX_WAIT = 3000;
+    function poll() {
+      const ready = ADVANCED_READY_SELECTORS.some(sel => document.querySelector(sel));
+      if (ready || Date.now() - start > MAX_WAIT) {
+        setStep(0);
+        setPhase("advanced");
+      } else {
+        setTimeout(poll, 100);
+      }
+    }
+    poll();
+  }, []);
 
   useLayoutEffect(() => {
     if (phase !== "tutorial" && phase !== "advanced") return;
@@ -343,7 +400,7 @@ export default function OnboardingTutorial() {
           <p style={dialogSubTextStyle}>Möchtest du das erweiterte HUI-Tutorial sehen?</p>
           <div style={dialogButtonsStyle}>
             <button onClick={() => { setPhase("hint"); }} style={btnNoStyle}>Nein</button>
-            <button onClick={() => { setStep(0); setPhase("advanced"); }} style={btnYesStyle}>Ja</button>
+            <button onClick={startAdvancedTutorial} style={btnYesStyle}>Ja</button>
           </div>
         </div>
       </div>,
@@ -372,6 +429,8 @@ export default function OnboardingTutorial() {
               setPhase("done");
               try { localStorage.setItem(STORAGE_KEY, "1"); } catch (e) {}
               try { localStorage.setItem(ADVANCED_STORAGE_KEY, "1"); } catch (e) {}
+              // Zurück zum Home-Feed, damit der Nutzer nicht im Profil "stecken bleibt"
+              window.dispatchEvent(new CustomEvent("hui:navigate:tab", { detail: { tab: "feed" } }));
             }}
             style={{ ...btnYesStyle, width: "100%", marginTop: 8, flex: "none" }}
           >Los geht's</button>

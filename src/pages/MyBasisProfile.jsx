@@ -2144,6 +2144,7 @@ function MeinBereichTile({ icon, label, onPress }) {
   return (
     <button
       onClick={onPress}
+      aria-label={label}
       className="mbp-press-light"
       style={{
         display:"flex", flexDirection:"column", alignItems:"center", gap:8,
