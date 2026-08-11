@@ -651,6 +651,14 @@ const handleNotifAction = (n) => {
         break;
 
       // ── Impact-Projekt eingereicht/gelöscht → Impact-Tab ─────────────────
+      case "impact_project_completed":
+        // BELEG-001: Projekt-Vollfinanzierung → Projekt öffnen wenn möglich
+        if (n._openRef && (n.metadata?.project_id || n.entity_id)) {
+          openRef({ type: "project", id: n.metadata?.project_id || n.entity_id });
+        } else {
+          switchTab("impact");
+        }
+        break;
       case "impact_project_submitted":
       case "impact_project_deleted":
         switchTab("impact");
