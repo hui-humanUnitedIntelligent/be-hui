@@ -553,17 +553,21 @@ const PILLARS = [
   },
 ];
 
+// Feste einheitliche Höhe für alle Grundpfeiler-Kacheln (unabhängig von Textlänge)
+const PILLAR_CARD_HEIGHT = 182;
+
 function PillarCard({ pillar, index, baseDelay, onClick }) {
   const [active, setActive] = useState(false);
   return (
-    <FadeUp delay={baseDelay}>
+    <FadeUp delay={baseDelay} style={{ height: "100%" }}>
       <div
         onClick={onClick}
         onPointerDown={() => setActive(true)}
         onPointerUp={() => setActive(false)}
         onPointerLeave={() => setActive(false)}
         style={{
-          width: 126, flexShrink: 0,
+          width: 126, height: PILLAR_CARD_HEIGHT, flexShrink: 0,
+          display: "flex", flexDirection: "column",
           background: active ? T.creamCard : pillar.bg,
           border: `1px solid ${active ? pillar.accent + "40" : pillar.border}`,
           borderRadius: 18, padding: "15px 13px 13px",
@@ -586,17 +590,23 @@ function PillarCard({ pillar, index, baseDelay, onClick }) {
         <div style={{
           fontFamily: FONT, fontSize: 13.5, fontWeight: 600,
           color: pillar.accent, marginBottom: 5, lineHeight: 1.2, letterSpacing: "-0.01em",
+          flexShrink: 0,
         }}>
           {pillar.label}
         </div>
-        <div style={{ fontFamily: FONT, fontSize: 11.5, fontWeight: 400, color: T.inkSoft, lineHeight: 1.5 }}>
+        <div style={{
+          fontFamily: FONT, fontSize: 11.5, fontWeight: 400, color: T.inkSoft, lineHeight: 1.5,
+          flex: 1, overflow: "hidden",
+          display: "-webkit-box", WebkitLineClamp: 4, WebkitBoxOrient: "vertical",
+        }}>
           {pillar.text}
         </div>
         <div style={{
-          height: 2, borderRadius: 2, marginTop: 11,
+          height: 2, borderRadius: 2, marginTop: "auto",
           background: pillar.accent,
           width: active ? 32 : 20, opacity: active ? 0.7 : 0.4,
           transition: "width 0.25s ease-in-out, opacity 0.22s ease",
+          flexShrink: 0,
         }} />
       </div>
     </FadeUp>
@@ -661,7 +671,7 @@ function Journey({ delay, data, onOpenSub }) {
         </div>
       </FadeUp>
       <div style={{
-        display: "flex", gap: 11, overflowX: "auto",
+        display: "flex", gap: 18, overflowX: "auto",
         scrollbarWidth: "none", paddingBottom: 4, WebkitOverflowScrolling: "touch",
       }}>
         {items.map((j) => (
@@ -698,6 +708,9 @@ function ImpactMoments({ delay, data, onOpenSub }) {
   const moments = data.moments.length > 0 ? data.moments : [
     { icon: "🌱", label: "Dein Weg beginnt", time: "heute", color: T.teal, bg: T.tealSoft, border: "rgba(13,196,181,0.13)" },
   ];
+  // Nur scrollbar machen, wenn tatsächlich genug Kacheln vorhanden sind, um zu scrollen.
+  // Sonst wirkt die Zeile bei 1-2 Kacheln wie ein "loser" Scroller ohne Zweck -> verankert/fixiert.
+  const scrollable = moments.length > 2;
   return (
     <div style={{ padding: "0 20px" }}>
       <FadeUp delay={delay}>
@@ -718,8 +731,11 @@ function ImpactMoments({ delay, data, onOpenSub }) {
         </div>
       </FadeUp>
       <div style={{
-        display: "flex", gap: 9, overflowX: "auto",
-        scrollbarWidth: "none", paddingBottom: 4, WebkitOverflowScrolling: "touch",
+        display: "flex", gap: 9,
+        overflowX: scrollable ? "auto" : "hidden",
+        scrollbarWidth: "none", paddingBottom: 4,
+        WebkitOverflowScrolling: scrollable ? "touch" : "auto",
+        touchAction: scrollable ? "auto" : "pan-y",
       }}>
         {moments.map((m, i) => (
           <FadeUp key={i} delay={delay}>
@@ -755,6 +771,9 @@ function ImpactMoments({ delay, data, onOpenSub }) {
 // ─────────────────────────────────────────────────────────────────
 // STATS GRID — Verbindungen / Impulse / Zeit-Räume
 // ─────────────────────────────────────────────────────────────────
+// Feste einheitliche Höhe für alle Wirkungsraum-Kacheln (unabhängig von Textlänge)
+const STATS_CARD_HEIGHT = 118;
+
 function StatsGrid({ delay, data, onOpenSub }) {
   const stats = [
     { label: "Verbindungen", value: data.followers, sub: "Menschen", icon: "👥", color: T.teal, bg: T.tealPale, key: "connections" },
@@ -779,9 +798,11 @@ function StatsGrid({ delay, data, onOpenSub }) {
         display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 9,
       }}>
         {stats.map((s, i) => (
-          <FadeUp key={i} delay={delay + i * 35}>
+          <FadeUp key={i} delay={delay + i * 35} style={{ height: "100%" }}>
             <div onClick={() => onOpenSub(s.key, s)}
               style={{
+              height: STATS_CARD_HEIGHT,
+              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
               background: s.bg, borderRadius: 16, padding: "14px 10px 12px",
               textAlign: "center", cursor: "pointer",
               border: `1px solid ${s.color}22`,
@@ -791,11 +812,14 @@ function StatsGrid({ delay, data, onOpenSub }) {
               onPointerUp={(e) => e.currentTarget.style.transform = "scale(1)"}
               onPointerLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
             >
-              <div style={{ fontSize: 18, marginBottom: 4 }}>{s.icon}</div>
-              <div style={{ fontFamily: FONT, fontSize: 18, fontWeight: 700, color: s.color, lineHeight: 1.1 }}>
+              <div style={{ fontSize: 18, marginBottom: 4, flexShrink: 0 }}>{s.icon}</div>
+              <div style={{ fontFamily: FONT, fontSize: 18, fontWeight: 700, color: s.color, lineHeight: 1.1, flexShrink: 0 }}>
                 {s.value}
               </div>
-              <div style={{ fontFamily: FONT, fontSize: 10, fontWeight: 500, color: T.inkSoft, marginTop: 2 }}>
+              <div style={{
+                fontFamily: FONT, fontSize: 10, fontWeight: 500, color: T.inkSoft, marginTop: 2,
+                display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+              }}>
                 {s.label}{s.sub ? ` · ${s.sub}` : ""}
               </div>
             </div>
