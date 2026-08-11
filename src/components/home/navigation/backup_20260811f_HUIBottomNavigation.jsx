@@ -351,26 +351,10 @@ export default function HUIBottomNavigation({
           <NavigationSVG width={barW} height={TAB_H} />
 
           {/* Navigation entries */}
-          {/* SAFE-AREA-FIX (2026-08-11): War vorher "inset:0" — dadurch wurden
-              Icons/Labels vertikal über die GESAMTE Box (TAB_H + Safe-Area-
-              Padding) zentriert statt nur über TAB_H. Das fraß die Hälfte des
-              Sicherheitsabstands zur System-Navigationsleiste auf und liess
-              die Labels zu tief/nah an der System-Nav sitzen (Nutzer-Screenshot
-              2026-08-11: Labels leicht von der System-Leiste überdeckt).
-              Fix: Items werden jetzt exakt auf die Content-Höhe (TAB_H)
-              beschränkt (top/left/right/height statt inset) — der
-              paddingBottom (NAV_SAFE_BOTTOM_CSS) bleibt dadurch als reiner,
-              inhaltsfreier Puffer unterhalb der Icons erhalten. */}
           <div
             style={{
               position: "absolute",
-              // -4px: kleiner zusätzlicher Sicherheitsabstand nach oben (Nutzer-
-              // Wunsch 2026-08-11) — oben auf den Root-Cause-Fix (Zeile darüber)
-              // noch etwas mehr Luft zur System-Navigationsleiste.
-              top: -4,
-              left: 0,
-              right: 0,
-              height: TAB_H,
+              inset: 0,
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
