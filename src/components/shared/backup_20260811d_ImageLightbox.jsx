@@ -29,9 +29,7 @@ export default function ImageLightbox() {
   const [scale, setScale] = useState(1);
   const [dragY, setDragY] = useState(0);
   const [dragX, setDragX] = useState(0);
-  const [panX, setPanX] = useState(0);
-  const [panY, setPanY] = useState(0);
-  const dragRef = useRef({ startX:0, startY:0, dragging:false, pinchStart:0, pinchDist:0, lastTap:0, panStartX:0, panStartY:0 });
+  const dragRef = useRef({ startX:0, startY:0, dragging:false, pinchStart:0, pinchDist:0, lastTap:0 });
   const closeTimerRef = useRef(null);
   const rafRef = useRef(null);
 
@@ -49,7 +47,7 @@ export default function ImageLightbox() {
         if (closeTimerRef.current) { clearTimeout(closeTimerRef.current); closeTimerRef.current = null; }
         setImages(normalized);
         setIndex(Math.min(start || 0, normalized.length - 1));
-        setScale(1); setDragY(0); setDragX(0); setPanX(0); setPanY(0);
+        setScale(1); setDragY(0); setDragX(0);
         rafRef.current = requestAnimationFrame(function() { setVisible(true); });
       },
     };
@@ -66,7 +64,7 @@ export default function ImageLightbox() {
   var close = useCallback(function() {
     setVisible(false);
     closeTimerRef.current = setTimeout(function() {
-      setImages(null); setScale(1); setDragY(0); setDragX(0); setPanX(0); setPanY(0);
+      setImages(null); setScale(1); setDragY(0); setDragX(0);
     }, ANIM_MS);
   }, []);
 
@@ -77,38 +75,29 @@ export default function ImageLightbox() {
     if (e.touches.length === 2) {
       var dx = e.touches[0].clientX - e.touches[1].clientX;
       var dy = e.touches[0].clientY - e.touches[1].clientY;
-      dragRef.current = { startX:0, startY:0, dragging:false, pinchStart:scale, pinchDist:Math.hypot(dx,dy), lastTap:0, panStartX:panX, panStartY:panY };
+      dragRef.current = { startX:0, startY:0, dragging:false, pinchStart:scale, pinchDist:Math.hypot(dx,dy), lastTap:0 };
     } else if (e.touches.length === 1) {
-      dragRef.current = { startX:e.touches[0].clientX, startY:e.touches[0].clientY, dragging:true, pinchStart:0, pinchDist:0, lastTap:dragRef.current.lastTap, panStartX:panX, panStartY:panY };
+      dragRef.current = { startX:e.touches[0].clientX, startY:e.touches[0].clientY, dragging:true, pinchStart:0, pinchDist:0, lastTap:dragRef.current.lastTap };
     }
-  }, [scale, panX, panY]);
+  }, [scale]);
 
   var onTouchMove = useCallback(function(e) {
     if (e.touches.length === 2 && dragRef.current.pinchDist > 0) {
       var dx = e.touches[0].clientX - e.touches[1].clientX;
       var dy = e.touches[0].clientY - e.touches[1].clientY;
       var dist = Math.hypot(dx, dy);
-      var newScale = Math.min(Math.max(dragRef.current.pinchStart * (dist / dragRef.current.pinchDist), 1), 4);
+      var newScale = Math.min(Math.max(dragRef.current.pinchStart * (dist / dragRef.current.pinchDist), 1), 3);
       setScale(newScale);
       e.preventDefault();
-    } else if (e.touches.length === 1 && dragRef.current.dragging && scale > 1.02) {
-      // ZOOMED: free pan in all directions
-      var pdx = e.touches[0].clientX - dragRef.current.startX;
-      var pdy = e.touches[0].clientY - dragRef.current.startY;
-      setPanX(dragRef.current.panStartX + pdx);
-      setPanY(dragRef.current.panStartY + pdy);
-      setDragY(0); setDragX(0);
-      e.preventDefault();
-    } else if (e.touches.length === 1 && dragRef.current.dragging && scale <= 1.02) {
-      // NOT zoomed: swipe-to-close or swipe-between-images
-      var sdx = e.touches[0].clientX - dragRef.current.startX;
-      var sdy = e.touches[0].clientY - dragRef.current.startY;
-      if (Math.abs(sdy) > Math.abs(sdx) && sdy > 0) {
-        setDragY(sdy); setDragX(0);
-      } else if (Math.abs(sdx) > Math.abs(sdy) && images && images.length > 1) {
-        setDragX(sdx); setDragY(0);
+    } else if (e.touches.length === 1 && dragRef.current.dragging && scale <= 1) {
+      var ddx = e.touches[0].clientX - dragRef.current.startX;
+      var ddy = e.touches[0].clientY - dragRef.current.startY;
+      if (Math.abs(ddy) > Math.abs(ddx) && ddy > 0) {
+        setDragY(ddy); setDragX(0);
+      } else if (Math.abs(ddx) > Math.abs(ddy) && images && images.length > 1) {
+        setDragX(ddx); setDragY(0);
       } else {
-        setDragY(sdy > 0 ? sdy : 0);
+        setDragY(ddy > 0 ? ddy : 0);
       }
     }
   }, [scale, images]);
@@ -116,34 +105,19 @@ export default function ImageLightbox() {
   var onTouchEnd = useCallback(function() {
     var wasDragging = dragRef.current.dragging;
     dragRef.current.dragging = false;
-    if (scale > 1.02) {
-      // Zoomed: clamp pan to keep image partially visible, keep position
-      var maxPan = window.innerWidth * 0.75;
-      var maxPanY = window.innerHeight * 0.75;
-      setPanX(function(p) { return Math.min(Math.max(p, -maxPan), maxPan); });
-      setPanY(function(p) { return Math.min(Math.max(p, -maxPanY), maxPanY); });
-    } else {
-      // Not zoomed: handle swipe gestures
-      if (dragY > 100) { close(); return; }
-      if (Math.abs(dragX) > 60 && images && images.length > 1) {
-        if (dragX < 0 && index < images.length - 1) setIndex(index + 1);
-        else if (dragX > 0 && index > 0) setIndex(index - 1);
-      }
+    if (dragY > 100) { close(); return; }
+    if (Math.abs(dragX) > 60 && images && images.length > 1) {
+      if (dragX < 0 && index < images.length - 1) setIndex(index + 1);
+      else if (dragX > 0 && index > 0) setIndex(index - 1);
     }
     var now = Date.now();
     if (wasDragging && Math.abs(dragX) < 10 && Math.abs(dragY) < 10) {
       var dt = now - (dragRef.current.lastTap || 0);
-      if (dt < 300 && dt > 60) {
-        if (scale > 1.02) {
-          setScale(1); setPanX(0); setPanY(0);
-        } else {
-          setScale(2); setPanX(0); setPanY(0);
-        }
-      }
+      if (dt < 300 && dt > 60) setScale(function(s) { return s > 1 ? 1 : 2; });
       dragRef.current.lastTap = now;
     }
     setDragY(0); setDragX(0);
-  }, [dragY, dragX, close, images, index, scale]);
+  }, [dragY, dragX, close, images, index]);
 
   if (!images) return null;
   var current = images[index];
@@ -189,23 +163,18 @@ export default function ImageLightbox() {
         style: {
           width:"100%", height:"100%",
           display:"flex", alignItems:"center", justifyContent:"center",
-          transform: scale > 1.02 ? "none" : "translate("+(dragX*0.3)+"px, "+dragY+"px)",
-          transition: (dragY === 0 && dragX === 0 && scale <= 1.02) ? "transform 0.2s ease" : "none",
+          transform: "translate("+(dragX*0.3)+"px, "+dragY+"px)",
+          transition: dragY === 0 && dragX === 0 ? "transform 0.2s ease" : "none",
         }
       },
         current && current.type === "video"
           ? React.createElement("video", {
               src: current.url, controls: true, autoPlay: true, playsInline: true,
-              style: { maxWidth:"100%", maxHeight:"100%", objectFit:"contain",
-                transform: "translate("+panX+"px, "+panY+"px) scale("+scale+")",
-                transition: (scale<=1.02 && panX===0 && panY===0) ? "transform 0.2s ease" : "none" }
+              style: { maxWidth:"100%", maxHeight:"100%", objectFit:"contain", transform:"scale("+scale+")", transition: scale===1?"transform 0.2s ease":"none" }
             })
           : React.createElement("img", {
               src: current ? current.url : "", alt: current ? current.alt : "", draggable: false,
-              style: { maxWidth:"100%", maxHeight:"100%", objectFit:"contain",
-                transform: "translate("+panX+"px, "+panY+"px) scale("+scale+")",
-                transition: (scale<=1.02 && panX===0 && panY===0) ? "transform 0.2s ease" : "none",
-                animation: visible ? "huiLbImgEnter 0.28s ease" : "none" }
+              style: { maxWidth:"100%", maxHeight:"100%", objectFit:"contain", transform:"scale("+scale+")", transition: scale===1?"transform 0.2s ease":"none", animation: visible?"huiLbImgEnter 0.28s ease":"none" }
             })
       ),
       // Dot indicators
