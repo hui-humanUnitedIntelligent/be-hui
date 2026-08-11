@@ -84,30 +84,6 @@ public class MainActivity extends BridgeActivity {
             // Zeichenbreiten durch System-Textgrößen-Einstellungen (Xiaomi etc.)
             webView.getSettings().setTextZoom(100);
 
-            // ── NATIVE PINCH-ZOOM DEAKTIVIEREN (2026-08-11) ──────────────
-            // BUG (Nutzer-Screenshots 2026-08-11): Beim Pinch-Zoom auf ein
-            // Bild in der Lightbox zoomte/verschob sich die GESAMTE Seite
-            // (Modal-Hintergrund inkl. Bild wurde klein und in eine Ecke
-            // verschoben) statt nur das Bild selbst via CSS-Transform zu
-            // zoomen. Root Cause: Android WebView hat setSupportZoom() und
-            // setBuiltInZoomControls() standardmaessig AKTIV (Default=true),
-            // was das eingebaute Browser-Pinch-Zoom der GESAMTEN Seite
-            // aktiviert — unabhaengig von der viewport-meta "user-scalable=no"
-            // in index.html (bekannte Android-WebView-Inkonsistenz, das
-            // eingebaute Zoom kann die Meta-Tag-Einstellung umgehen).
-            // Das native Seiten-Zoom kollidierte mit der eigenen JS/CSS-
-            // basierten Pinch-Zoom-Logik in ImageLightbox.jsx (die NUR das
-            // <img>-Element transformieren soll) und verursachte zusaetzlich
-            // fehlerhaftes Zurueck-Taste-Verhalten, da die Seite waehrend
-            // des nativen Zooms visuell/touch-technisch verschoben war.
-            // Fix: Browser-eigenes Pinch-Zoom komplett deaktivieren — alle
-            // Zoom-Gesten laufen jetzt AUSSCHLIESSLICH durch die App-eigene
-            // JS-Touch-Logik (ImageLightbox.jsx), die das Bild korrekt
-            // innerhalb seiner eigenen Grenzen zoomt/verschiebt.
-            webView.getSettings().setSupportZoom(false);
-            webView.getSettings().setBuiltInZoomControls(false);
-            webView.getSettings().setDisplayZoomControls(false);
-
             // Overscroll-Glow deaktivieren (PTR übernimmt die Geste)
             webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
 
