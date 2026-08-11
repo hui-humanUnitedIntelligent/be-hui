@@ -5,6 +5,11 @@
 //   images: Array von { url, type, alt } (type: "image" | "video")
 //   startIndex: Index des zuerst anzuzeigenden Bildes (Default 0)
 //
+// FIX v6 (2026-08-11) — "No blur, no background loading":
+//   willChange:transform entfernt (verursachte Low-Res-Layer beim ersten
+//   Öffnen → blurry). opacity immer 1 (kein onLoad-Gate). decoding=sync.
+//   Spinner entfernt — Bild wird direkt gezeigt.
+//
 // FIX v5 (2026-08-11) — "Blur-Layer entfernt, nur EIN Bild-Layer":
 //   Der progressive Thumbnail-Blur-Layer aus v4 wurde ENTFERNT (Michael-
 //   Feedback: unnoetiger Blur-Effekt + fuehlte sich wie ein zweites Modal
@@ -314,7 +319,7 @@ export default function ImageLightbox() {
         }
       }, (index + 1) + " / " + images.length),
       // Spinner nur solange das Bild noch nicht geladen ist UND kein Fehler vorliegt.
-      !imgLoaded && !imgError && current && current.type !== "video" && React.createElement(Spinner),
+      null /* Spinner removed — image shows directly */,
       // Echte Fehleranzeige statt endlosem Spinner, wenn Original UND Transform-URL fehlschlagen.
       imgError && current && current.type !== "video" && React.createElement("div", {
         style: {
@@ -350,19 +355,19 @@ export default function ImageLightbox() {
               style: { maxWidth:"100%", maxHeight:"100%", objectFit:"contain",
                 transform: "translate("+panX+"px, "+panY+"px) scale("+scale+")",
                 transition: (scale<=1.02 && panX===0 && panY===0) ? "transform 0.2s ease" : "none",
-                willChange: "transform" }
+                
             })
           : !imgError && React.createElement("img", {
               ref: imgRef,
               src: current ? (useRawUrl ? current.url : optimizeFull(current.url)) : "",
+              decoding: "sync",
               alt: current ? current.alt : "", draggable: false,
               onLoad: onImgLoad,
               onError: onImgError,
               style: { maxWidth:"100%", maxHeight:"100%", objectFit:"contain",
                 transform: "translate("+panX+"px, "+panY+"px) scale("+scale+")",
                 transition: (scale<=1.02 && panX===0 && panY===0) ? "transform 0.2s ease" : "none",
-                willChange: "transform",
-                opacity: imgLoaded ? 1 : 0,
+                opacity: 1,
               }
             })
       ),
