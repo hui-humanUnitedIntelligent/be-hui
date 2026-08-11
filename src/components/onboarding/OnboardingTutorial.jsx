@@ -49,6 +49,8 @@ const ADVANCED_STEPS = [
   { selector: 'button[aria-label="Meine Momente"]',      text: "Momente zeigen Augenblicke aus deinem Alltag. Sie verbinden Menschen und machen HUI lebendig.", placement: "bottom", label: "Meine Momente" },
   { selector: 'button[aria-label="Impact & Stimmen"]',   text: "Hier siehst du deine Impact-Stimmen und alle Projekte, die du unterst\u00fctzt. Jede Stimme st\u00e4rkt den Impact-Pool.", placement: "bottom", label: "Impact & Stimmen" },
   { selector: 'button[aria-label="K\u00e4ufe/Verk\u00e4ufe"]', text: "Hier findest du deine K\u00e4ufe und Verk\u00e4ufe. Alles ist sicher \u00fcber Stripe abgewickelt und transparent dokumentiert.", placement: "bottom", label: "K\u00e4ufe/Verk\u00e4ufe" },
+  { selector: 'button[aria-label="Meine Resonanz"]',   text: "Hier siehst du, wie Menschen auf dich reagieren \u2013 Kommentare, Inspire, Saves und mehr. Deine Resonanz zeigt, was bei anderen ankommt.", placement: "bottom", label: "Meine Resonanz" },
+  { selector: 'button[aria-label="Empfehlungen"]',      text: "Hier sammeln sich Empfehlungen von Menschen, die mit dir gearbeitet oder gekauft haben. Sie sind das ehrlichste Zeichen echter Qualit\u00e4t.", placement: "bottom", label: "Empfehlungen" },
 ];
 
 // Selektoren, deren Vorhandensein signalisiert "Profil ist bereits gemountet"

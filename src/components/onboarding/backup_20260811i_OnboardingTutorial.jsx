@@ -13,15 +13,18 @@ import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 // ══════════════════════════════════════════════════════════════
 const FOX_SIZE        = 52;     // Feste Fuchs-Größe — unverzerrt auf allen Geräten
 const FOX_MARGIN      = 20;     // Mindestabstand Fuchs zu Bildschirmrand
-const FOX_BUBBLE_GAP  = 10;     // Abstand Sprechblase ↔ Fuchs
-const BTN_WIDTH       = 66;     // Halbierte Weiter-Button-Breite (war 132)
-const BTN_HEIGHT      = 30;     // Halbierte Button-Höhe (war 44)
+const FOX_PEEK        = Math.round(FOX_SIZE / 2); // 2026-08-11: Fuchs überlappt Bubble-Ecke zur Hälfte — näher/kompakter statt separater Reihe
+const FOX_BUBBLE_GAP  = 10;     // Abstand Sprechblase ↔ Fuchs (nur Fallback ohne Spotlight)
+const BTN_WIDTH       = 60;     // Kompakter Weiter-Button (war 66)
+const BTN_HEIGHT      = 28;     // Kompakter Button (war 30)
 const BUBBLE_MAX_W    = 260;    // Max Breite der Sprechblase
 const SPOT_PAD        = 10;     // Spotlight Innenabstand
 const OVERLAY_ALPHA   = 0.6;    // Overlay-Transparenz (leicht grau)
+const CONTAINER_H     = 165;    // Geschätzte Gesamthöhe Label+Blase+Button (kompakter als vorher 220)
 
 const STORAGE_KEY = "hui_onboarding_completed_v1";
 const ADVANCED_STORAGE_KEY = "hui_onboarding_advanced_v1";
+const DISABLED_KEY = "hui_onboarding_disabled_v1"; // "Nicht mehr anzeigen" — permanent deaktiviert
 
 const STEPS = [
   { selector: 'button[aria-label="Home"]',           text: "Hier siehst du alle Beitr\u00e4ge chronologisch \u2013 dein pers\u00f6nlicher Home-Feed.", placement: "top" },
@@ -110,7 +113,8 @@ export default function OnboardingTutorial() {
 
   useEffect(() => {
     try {
-      if (localStorage.getItem(STORAGE_KEY)) setPhase("done");
+      // Wenn Tutorial abgeschlossen ODER permanent deaktiviert → nie wieder zeigen
+      if (localStorage.getItem(STORAGE_KEY) || localStorage.getItem(DISABLED_KEY)) setPhase("done");
       else setPhase("ask");
     } catch (e) { setPhase("ask"); }
   }, []);
@@ -121,6 +125,7 @@ export default function OnboardingTutorial() {
       try {
         localStorage.removeItem(STORAGE_KEY);
         localStorage.removeItem(ADVANCED_STORAGE_KEY);
+        localStorage.removeItem(DISABLED_KEY); // Re-Aktivierung: auch Disable-Flag löschen
       } catch (e) {}
       setStep(0);
       setAdvancedSteps(ADVANCED_STEPS);
@@ -136,20 +141,6 @@ export default function OnboardingTutorial() {
     try { localStorage.setItem(ADVANCED_STORAGE_KEY, "1"); } catch (e) {}
   }, []);
   useModalRegistration(phase !== "done" && phase !== "init", handleClose, "OnboardingTutorial");
-
-  // ── Advanced: scrollIntoView pro Schritt (kein Auto-Skip mehr) ──
-  // Die Schritte werden bereits in startAdvancedTutorial vorgefiltert,
-  // so dass dieser Effect nur noch scrollt — nicht mehr überspringt.
-  useEffect(() => {
-    if (phase !== "advanced") return;
-    const stepData = advancedSteps[step];
-    if (!stepData || !stepData.selector) return;
-    const t = setTimeout(() => {
-      const el = document.querySelector(stepData.selector);
-      if (el) el.scrollIntoView({ block: "center", behavior: "auto" });
-    }, 220);
-    return () => clearTimeout(t);
-  }, [phase, step, advancedSteps]);
 
   // ── "Ja" beim erweiterten Tutorial: automatisch ins eigene Profil
   // wechseln, dort auf das Mounten der Kacheln warten, Schritte filtern
@@ -173,13 +164,24 @@ export default function OnboardingTutorial() {
     poll();
   }, []);
 
+  // ── KEIN-SPRUNG-FIX (2026-08-11): Vorher wurde beim Schritt-Wechsel SOFORT
+  // gemessen (mit der ALTEN, noch nicht gescrollten Position) UND parallel
+  // — zeitlich versetzt — in einem zweiten Effect gescrollt. Das erzeugte
+  // einen sichtbaren Sprung: Fuchs+Blase erschienen kurz an der falschen
+  // Stelle und "sprangen" dann zur echten Position, sobald der Scroll fertig
+  // war. Fix: Scrollen zuerst (synchron, behavior:"auto"), danach ZWEI
+  // Animation-Frames abwarten (Layout ist dann garantiert fertig) und erst
+  // DANN einmalig messen — kein Zwischen-Zustand mehr sichtbar.
   useLayoutEffect(() => {
     if (phase !== "tutorial" && phase !== "advanced") return;
     const steps = phase === "tutorial" ? STEPS : advancedSteps;
     const stepData = steps[step];
     if (!stepData) return;
 
+    let cancelled = false;
+
     function measure() {
+      if (cancelled) return;
       const r = getTargetRect(stepData.selector);
       const vw = window.innerWidth;
       const vh = window.innerHeight;
@@ -189,7 +191,7 @@ export default function OnboardingTutorial() {
         setSpotRect(null);
         setFoxPos({
           left: Math.max(FOX_MARGIN, (vw - BUBBLE_MAX_W) / 2),
-          top: Math.max(FOX_MARGIN, (vh - 220) / 2),
+          top: Math.max(FOX_MARGIN, (vh - CONTAINER_H) / 2),
         });
         return;
       }
@@ -197,29 +199,42 @@ export default function OnboardingTutorial() {
       setSpotRect(r);
 
       if (stepData.placement === "top") {
-        // Fuchs über dem Spotlight — Sprechblase zeigt nach unten
-        // Container: Label + Blase + Button + Fox ≈ 220px
-        let top = r.top - 220;
+        // Fuchs+Blase über dem Spotlight — Blase zeigt nach unten.
+        // Fuchs überlappt die UNTERE linke Ecke der Blase (siehe renderSteps) —
+        // das bleibt innerhalb von CONTAINER_H, kein Extra-Puffer nötig.
+        let top = r.top - CONTAINER_H;
         if (top < FOX_MARGIN) top = FOX_MARGIN;
         let left = Math.max(FOX_MARGIN, Math.min(r.centerX - BUBBLE_MAX_W / 2, vw - BUBBLE_MAX_W - FOX_MARGIN));
         setFoxPos({ left, top });
       } else {
-        // Fuchs unter dem Spotlight — Sprechblase zeigt nach oben
+        // Fuchs+Blase unter dem Spotlight — Blase zeigt nach oben.
+        // Fuchs überlappt die OBERE linke Ecke → pokt über den Flow-Anfang
+        // hinaus → zusätzlicher Puffer FOX_PEEK nach oben nötig.
         let top = r.bottom + FOX_BUBBLE_GAP + 8;
-        // Containerhöhe ≈ 220px → nicht über unteren Rand schieben
-        let maxTop = vh - 220 - FOX_MARGIN;
+        let maxTop = vh - CONTAINER_H - FOX_MARGIN;
         if (top > maxTop) top = maxTop;
-        if (top < FOX_MARGIN) top = FOX_MARGIN;
+        if (top < FOX_MARGIN + FOX_PEEK) top = FOX_MARGIN + FOX_PEEK;
         let left = Math.max(FOX_MARGIN, Math.min(r.centerX - BUBBLE_MAX_W / 2, vw - BUBBLE_MAX_W - FOX_MARGIN));
         setFoxPos({ left, top });
       }
     }
 
-    measure();
+    if (phase === "advanced" && stepData.selector) {
+      const el = document.querySelector(stepData.selector);
+      if (el) el.scrollIntoView({ block: "center", behavior: "auto" });
+      // Erst NACH dem Scroll (zwei Frames warten) messen — verhindert den Sprung
+      requestAnimationFrame(() => requestAnimationFrame(measure));
+    } else {
+      measure();
+    }
+
     window.addEventListener("resize", measure);
     window.addEventListener("scroll", measure, true);
-    const t = setTimeout(measure, 100);
-    return () => { window.removeEventListener("resize", measure); window.removeEventListener("scroll", measure, true); clearTimeout(t); };
+    return () => {
+      cancelled = true;
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("scroll", measure, true);
+    };
   }, [phase, step, advancedSteps]);
 
   // ════════════════════════════════════════════════════════════
@@ -259,63 +274,73 @@ export default function OnboardingTutorial() {
           <div style={{ position: "fixed", inset: 0, background: `rgba(0,0,0,${OVERLAY_ALPHA})`, zIndex: 10600 }} />
         )}
 
-        {/* ── Fuchs + Sprechblase + Weiter-Button (ein Container) ── */}
-        {/* Button ist zwischen Sprechblase und Fuchs → nie abgedeckt    */}
+        {/* ── Fuchs überlappt jetzt die Bubble-Ecke — näher & kompakter ── */}
+        {/* 2026-08-11: Fuchs saß vorher weit unter der Blase (eigene Reihe
+            mit Button dazwischen). Jetzt: Fuchs sitzt zur Hälfte AUF der
+            Blasen-Ecke (unten-links bei pointerDown / oben-links bei
+            pointerUp) — direkt neben dem Sprechblasen-Zeiger. Alle Flow-
+            Kinder bekommen marginLeft:FOX_PEEK, damit der nach links
+            überlappende Fuchs trotzdem exakt an foxPos.left (=Bildschirm-
+            Randabstand) endet — kein zusätzlicher Clamp nötig. */}
         <div style={{
           position: "fixed", left: foxPos.left, top: foxPos.top,
-          zIndex: 10601, transition: "all 0.35s cubic-bezier(0.22,1,0.36,1)",
-          maxWidth: BUBBLE_MAX_W, display: "flex", flexDirection: "column",
-          alignItems: "flex-start",
+          zIndex: 10601, transition: "all 0.3s cubic-bezier(0.22,1,0.36,1)",
+          maxWidth: BUBBLE_MAX_W + FOX_PEEK,
         }}>
           {/* Label (nur erweitertes Tutorial) */}
           {isAdvanced && stepData.label && (
-            <div style={labelStyle}>{stepData.label}</div>
+            <div style={{ ...labelStyle, marginLeft: FOX_PEEK }}>{stepData.label}</div>
           )}
 
-          {/* Sprechblase */}
-          <div style={{
-            ...bubbleBaseStyle,
-            ...(pointerDown ? { marginBottom: 0 } : { marginTop: 0 }),
-          }}>
-            {/* Sprechblasen-Zeiger */}
-            {pointerDown && (
-              <div style={{
-                position: "absolute", bottom: -8, left: FOX_SIZE + 4,
-                width: 0, height: 0,
-                borderLeft: "8px solid transparent", borderRight: "8px solid transparent",
-                borderTop: "8px solid white",
-              }} />
-            )}
-            {pointerUp && (
-              <div style={{
-                position: "absolute", top: -8, left: FOX_SIZE + 4,
-                width: 0, height: 0,
-                borderLeft: "8px solid transparent", borderRight: "8px solid transparent",
-                borderBottom: "8px solid white",
-              }} />
-            )}
-            <p style={bubbleTextStyle}>{stepData.text}</p>
+          {/* Sprechblase + überlappender Fuchs (relative Wrapper-Ecke) */}
+          <div style={{ position: "relative", marginLeft: FOX_PEEK }}>
+            <div style={{
+              ...bubbleBaseStyle,
+              ...(pointerDown ? { marginBottom: 0 } : { marginTop: 0 }),
+            }}>
+              {/* Sprechblasen-Zeiger — nah am Fuchs (linke Seite) */}
+              {pointerDown && (
+                <div style={{
+                  position: "absolute", bottom: -8, left: 22,
+                  width: 0, height: 0,
+                  borderLeft: "8px solid transparent", borderRight: "8px solid transparent",
+                  borderTop: "8px solid white",
+                }} />
+              )}
+              {pointerUp && (
+                <div style={{
+                  position: "absolute", top: -8, left: 22,
+                  width: 0, height: 0,
+                  borderLeft: "8px solid transparent", borderRight: "8px solid transparent",
+                  borderBottom: "8px solid white",
+                }} />
+              )}
+              <p style={bubbleTextStyle}>{stepData.text}</p>
+            </div>
+
+            {/* Fuchs — überlappt die Blasen-Ecke zur Hälfte (FOX_PEEK) */}
+            <div style={{
+              position: "absolute",
+              left: -FOX_PEEK,
+              ...(pointerDown ? { bottom: -FOX_PEEK } : { top: -FOX_PEEK }),
+              borderRadius: "50%", border: "2.5px solid white",
+              boxShadow: "0 3px 10px rgba(0,0,0,0.22)",
+              lineHeight: 0, zIndex: 2,
+            }}>
+              <FoxBot size={FOX_SIZE} />
+            </div>
           </div>
 
-          {/* ── Weiter-Button — leicht rechts, unterhalb Sprechblase ── */}
-          {/* Halbiert (66×30px), rechtsbündig im Container, über dem Fuchs */}
+          {/* Weiter-Button + Counter — kompakte Zeile, rechtsbündig */}
           <div style={{
-            display: "flex", justifyContent: "flex-end",
-            width: "100%", marginTop: 4, marginBottom: 6,
+            display: "flex", justifyContent: "flex-end", alignItems: "center",
+            gap: 6, marginLeft: FOX_PEEK, marginTop: 8,
           }}>
+            <span style={counterStyle}>{step + 1} / {stepsArr.length}</span>
             <button
               onClick={() => { if (isLast) onComplete(); else setStep(s => s + 1); }}
               style={compactBtnStyle}
             >{isLast ? "Fertig" : "Weiter"}</button>
-          </div>
-
-          {/* Fuchs + Counter */}
-          <div style={{
-            display: "flex", alignItems: "center", gap: 10,
-            marginTop: 2,
-          }}>
-            <FoxBot size={FOX_SIZE} />
-            <span style={counterStyle}>{step + 1} / {stepsArr.length}</span>
           </div>
         </div>
 
@@ -342,6 +367,16 @@ export default function OnboardingTutorial() {
           <div style={dialogButtonsStyle}>
             <button onClick={() => { setPhase("hint"); }} style={btnNoStyle}>Nein</button>
             <button onClick={() => { setPhase("tutorial"); }} style={btnYesStyle}>Ja</button>
+            <button
+              onClick={() => {
+                try {
+                  localStorage.setItem(DISABLED_KEY, "1");
+                  localStorage.setItem(STORAGE_KEY, "1");
+                } catch (e) {}
+                setPhase("done");
+              }}
+              style={btnDisableStyle}
+            >Nicht mehr anzeigen</button>
           </div>
         </div>
       </div>,
@@ -362,8 +397,11 @@ export default function OnboardingTutorial() {
           <p style={dialogSubTextStyle}>Finde es unter den Einstellungen in deinem Nutzerprofil — einfach "Tutorial erneut ansehen" antippen.</p>
           <button
             onClick={() => {
+              // "Nein" = später nochmal fragen → nur diese Session überspringen,
+              // KEIN STORAGE_KEY (sonst würde Tutorial nie wieder kommen).
+              // sessionStorage reicht für "diesmal nicht anzeigen".
+              try { sessionStorage.setItem("hui_onboarding_skipped", "1"); } catch (e) {}
               setPhase("done");
-              try { localStorage.setItem(STORAGE_KEY, "1"); } catch (e) {}
             }}
             style={{ ...btnYesStyle, width: "100%", flex: "none" }}
           >Verstanden</button>
@@ -450,7 +488,7 @@ const dialogCardStyle = {
 const dialogTitleStyle = { fontSize: 20, fontWeight: 700, color: "#1A1A18", margin: "0 0 8px", fontFamily: "Inter, sans-serif" };
 const dialogTextStyle = { fontSize: 15, fontWeight: 600, color: "#1A1A18", margin: "0 0 4px", lineHeight: 1.45, fontFamily: "Inter, sans-serif" };
 const dialogSubTextStyle = { fontSize: 13, fontWeight: 400, color: "rgba(26,26,24,0.6)", margin: "0 0 20px", lineHeight: 1.45, fontFamily: "Inter, sans-serif" };
-const dialogButtonsStyle = { display: "flex", gap: 10 };
+const dialogButtonsStyle = { display: "flex", gap: 8, flexWrap: "wrap" };
 const btnNoStyle = {
   flex: 1, padding: "13px 20px", borderRadius: 14, border: "1.5px solid rgba(26,26,24,0.12)",
   background: "transparent", color: "rgba(26,26,24,0.65)", fontSize: 15, fontWeight: 600,
@@ -462,15 +500,21 @@ const btnYesStyle = {
   fontSize: 15, fontWeight: 600, fontFamily: "Inter, sans-serif", cursor: "pointer",
   boxShadow: "0 2px 12px rgba(22,215,197,0.35)", touchAction: "manipulation", WebkitTapHighlightColor: "transparent",
 };
+const btnDisableStyle = {
+  flex: 1, padding: "13px 14px", borderRadius: 14, border: "1.5px solid rgba(26,26,24,0.12)",
+  background: "transparent", color: "rgba(26,26,24,0.45)", fontSize: 13, fontWeight: 600,
+  fontFamily: "Inter, sans-serif", cursor: "pointer", touchAction: "manipulation",
+  WebkitTapHighlightColor: "transparent", whiteSpace: "nowrap",
+};
 
 // ── Tutorial-Schritt Styles ────────────────────────────────────
 const labelStyle = {
-  textAlign: "center", marginBottom: 10, fontSize: 12, fontWeight: 700,
+  textAlign: "center", marginBottom: 6, fontSize: 12, fontWeight: 700,
   color: "rgba(255,255,255,0.85)", fontFamily: "Inter, sans-serif",
   textTransform: "uppercase", letterSpacing: 1.5, width: "100%",
 };
 const bubbleBaseStyle = {
-  background: "white", borderRadius: 18, padding: "14px 16px",
+  background: "white", borderRadius: 16, padding: "12px 14px",
   boxShadow: "0 4px 24px rgba(0,0,0,0.18)", position: "relative",
   maxWidth: BUBBLE_MAX_W, width: "100%",
 };
