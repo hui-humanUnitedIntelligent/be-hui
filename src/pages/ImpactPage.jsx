@@ -657,6 +657,11 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
   const [milestones, setMilestones] = React.useState([]);
   const [milestonesLoading, setMilestonesLoading] = React.useState(false);
   const [detailMilestone, setDetailMilestone] = React.useState(null);
+  // Einzelbeiträge, die zur Finanzierung geführt haben — anonym (nur Datum
+  // + Betrag, keine Namen). Quelle: impact_distributions (öffentlich lesbar,
+  // enthält KEINE user_id/Namen — nur order_id/project_id/amount_eur/Zeit).
+  const [contributions, setContributions] = React.useState([]);
+  const [contributionsLoading, setContributionsLoading] = React.useState(false);
   // Übergebene Karten-Objekte (Top-3/Ranking-Karten) enthalten oft nur ein
   // einzelnes 'img'-Feld statt des vollen media_urls-Arrays (siehe
   // useAllApprovedByVotes/monthlyTop3-Normalisierung). Frisch aus DB laden,
@@ -757,6 +762,26 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
           .order("sort_order");
         if (!dead) { setMilestones(msData || []); setMilestonesLoading(false); }
       } catch { /* silent */ }
+    })();
+    return () => { dead = true; };
+  }, [app.id]);
+
+  // ── Einzelbeiträge laden (anonym: nur Datum + Betrag) ────────
+  // impact_distributions ist öffentlich lesbar (RLS "USING (true)") und
+  // enthält keine user-/Namensfelder — passt exakt für eine anonyme Auflistung.
+  React.useEffect(() => {
+    let dead = false;
+    setContributionsLoading(true);
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from("impact_distributions")
+          .select("id,amount_eur,distributed_at")
+          .eq("project_id", app.id)
+          .order("distributed_at", { ascending: false });
+        if (!dead) setContributions(data || []);
+      } catch { /* silent */ }
+      if (!dead) setContributionsLoading(false);
     })();
     return () => { dead = true; };
   }, [app.id]);
@@ -1056,7 +1081,50 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
                 „{app.project_name}" hat sein Ziel gemeinsam erreicht — danke an alle Unterstützer!
               </div>
             </div>
-          ) : (
+          ) : null}
+
+          {/* ── Beiträge-Auflistung: anonym, nur Datum + Betrag ──
+              Zeigt WELCHE Einzelbeträge zur Finanzierung geführt haben —
+              ohne Namen/Nutzerbezug (Quelle: impact_distributions, siehe
+              contributions-State oben). Wird bei jedem Projekt gezeigt,
+              das mindestens einen Beitrag erhalten hat (nicht nur bei
+              100%, da Beiträge auch schon vor Erreichen des Ziels
+              nachvollziehbar sein sollen). */}
+          {(contributionsLoading || contributions.length > 0) && (
+            <div style={{
+              marginTop:16, padding:"16px 16px",
+              background:"#fff", borderRadius:14,
+              border:"1px solid rgba(0,0,0,0.08)",
+            }}>
+              <div style={{ fontSize:13, fontWeight:600, color:"#141422", marginBottom:12 }}>
+                Beiträge, die zur Finanzierung geführt haben
+              </div>
+              {contributionsLoading ? (
+                <div style={{ fontSize:12, color:"#888" }}>Lädt…</div>
+              ) : (
+                <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                  {contributions.map(c => {
+                    const d = new Date(c.distributed_at);
+                    const weekdayShort = formatDateDE(d, { weekday: "short" });
+                    const dateNumeric  = formatDateDE(d, { day:"2-digit", month:"2-digit", year:"2-digit" });
+                    return (
+                      <div key={c.id} style={{
+                        display:"flex", alignItems:"center", justifyContent:"space-between",
+                        fontSize:13, color:"#333",
+                      }}>
+                        <span style={{ color:"#666" }}>{weekdayShort}. {dateNumeric}</span>
+                        <span style={{ fontWeight:600, color:"#141422" }}>
+                          {formatNumberDE(safeNum(c.amount_eur), { minimumFractionDigits:2 })}€
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {fundPct < 100 && (
           <div style={{ marginTop: 8 }}>
 
             {/* Stimmen-Counter */}
