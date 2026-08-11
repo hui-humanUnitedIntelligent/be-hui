@@ -3,29 +3,51 @@
 // ImageGalleryModal — zentrale Fullscreen-Bildergalerie (SSOT) fuer die
 // gesamte App.
 //
-// FIX v2 (2026-08-11) — "in alle Richtungen zoombar":
-//   1. e.preventDefault() in ALLEN Touch-Move-Branches (Xiaomi WebView Fix)
-//   2. Live-Pan-Clamping WAHREND des Draggings (nicht erst am Ende)
-//   3. Pan-Range aus echten Bild-Dimensionen × Scale
-//   4. will-change:transform fuer GPU-Beschleunigung
-//   5. Pinch-Zoom mit Focal-Point (Zoom zum Pinch-Mittelpunkt)
+// FIX v3 (2026-08-11) — "Bild sofort anzeigen":
+//   Progressive Image Loading: 400px-Thumbnail (Browser-Cache) sofort,
+//   volle Aufloesung faded darueber ein. Spinner als Fallback.
 //
-// Aufruf: import { useImageGallery } from "../../context/ImageGalleryContext.jsx";
-//   const { openGallery } = useImageGallery();
-//   onClick={() => openGallery(images, idx)
+// FIX v2 (2026-08-11) — "in alle Richtungen zoombar":
+//   e.preventDefault(), Live-Pan-Clamping, Focal-Point Pinch-Zoom, will-change.
 // ══════════════════════════════════════════════════════════════════
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
+import { optimizeCard } from "../../lib/perfUtils.js";
 
 const GALLERY_Z = 20000;
 const SWIPE_THRESHOLD = 60;
 const MAX_ZOOM = 3;
 const DOUBLE_TAP_ZOOM = 2;
 
+const CSS = `
+@keyframes huiGSpin { to { transform: rotate(360deg); } }
+`;
+let _cssInjected = false;
+function injectCSS() {
+  if (_cssInjected || typeof document === "undefined") return;
+  _cssInjected = true;
+  const s = document.createElement("style"); s.textContent = CSS;
+  document.head.appendChild(s);
+}
+
 function touchDist(touches) {
   const [a, b] = touches;
   return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+}
+
+function Spinner() {
+  return (
+    <div style={{
+      position: "absolute", top: "50%", left: "50%",
+      width: 32, height: 32, marginTop: -16, marginLeft: -16,
+      borderRadius: "50%",
+      border: "3px solid rgba(255,255,255,0.2)",
+      borderTopColor: "rgba(255,255,255,0.8)",
+      animation: "huiGSpin 0.7s linear infinite",
+      zIndex: 5,
+    }} />
+  );
 }
 
 function ArrowButton({ side, onClick, children }) {
@@ -54,6 +76,8 @@ export default function ImageGalleryModal({ images, startIndex = 0, onClose = ()
   const [dragging, setDragging] = useState(false);
   const [scale, setScale] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const [thumbLoaded, setThumbLoaded] = useState(false);
 
   const viewportRef = useRef(null);
   const imgRef = useRef(null);
@@ -65,9 +89,9 @@ export default function ImageGalleryModal({ images, startIndex = 0, onClose = ()
   const swiping = useRef(false);
   const imgDimsRef = useRef({ w: 0, h: 0 });
 
+  injectCSS();
   useWizardBodyLock(true);
 
-  // ── Pan-Clamp: berechnet max Pan aus echten Bild-Dimensionen × Scale ──
   function clampPan(pX, pY, s) {
     var vw = window.innerWidth;
     var vh = window.innerHeight;
@@ -85,6 +109,7 @@ export default function ImageGalleryModal({ images, startIndex = 0, onClose = ()
   }
 
   function onImgLoad(e) {
+    setImgLoaded(true);
     var img = e.target;
     var vw = window.innerWidth;
     var vh = window.innerHeight;
@@ -98,6 +123,11 @@ export default function ImageGalleryModal({ images, startIndex = 0, onClose = ()
       imgDimsRef.current = { w: vh * ar, h: vh };
     }
   }
+
+  // Reset loading state when switching images
+  useEffect(() => {
+    setImgLoaded(false); setThumbLoaded(false);
+  }, [idx]);
 
   const resetZoom = useCallback(() => { setScale(1); setPan({ x: 0, y: 0 }); }, []);
 
@@ -137,14 +167,12 @@ export default function ImageGalleryModal({ images, startIndex = 0, onClose = ()
   };
 
   const onTouchMove = (e) => {
-    // IMMER preventDefault — sonst greift der native WebView-Zoom (Xiaomi etc.)
     if (e.cancelable) e.preventDefault();
 
     if (e.touches.length === 2 && pinchStart.current) {
       const factor = touchDist(e.touches) / pinchStart.current.dist;
       const newScale = Math.min(Math.max(pinchStart.current.scale * factor, 1), MAX_ZOOM);
       setScale(newScale);
-      // Focal-Point Zoom: Zoom zum Pinch-Mittelpunkt
       if (newScale > 1.02) {
         var cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
         var cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
@@ -168,7 +196,6 @@ export default function ImageGalleryModal({ images, startIndex = 0, onClose = ()
       if (swiping.current) {
         setDragPx(dx);
       } else {
-        // ZOOMED: free pan mit LIVE-Clamping
         var rawX = panStart.current.x + dx;
         var rawY = panStart.current.y + dy;
         var clamped = clampPan(rawX, rawY, scale);
@@ -180,12 +207,10 @@ export default function ImageGalleryModal({ images, startIndex = 0, onClose = ()
   const onTouchEnd = () => {
     pinchStart.current = null;
     if (swiping.current) {
-      const w = viewportRef.current?.clientWidth || 1;
       if (dragPx > SWIPE_THRESHOLD && idx > 0) prev();
       else if (dragPx < -SWIPE_THRESHOLD && idx < total - 1) next();
       setDragPx(0);
     } else if (scale > 1.02) {
-      // Final clamp safety
       var clamped = clampPan(pan.x, pan.y, scale);
       setPan({ x: clamped.x, y: clamped.y });
     }
@@ -210,6 +235,10 @@ export default function ImageGalleryModal({ images, startIndex = 0, onClose = ()
   const dragPercent = dragging && swiping.current
     ? (dragPx / (viewportRef.current?.clientWidth || 1)) * 100
     : 0;
+
+  const showSpinner = !imgLoaded && !thumbLoaded;
+  const fullUrl = images[idx];
+  const thumbUrl = optimizeCard(fullUrl);
 
   return createPortal(
     <div
@@ -253,6 +282,7 @@ export default function ImageGalleryModal({ images, startIndex = 0, onClose = ()
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
+        {showSpinner && <Spinner />}
         <div
           style={{
             display: "flex", height: "100%",
@@ -265,7 +295,25 @@ export default function ImageGalleryModal({ images, startIndex = 0, onClose = ()
               flex: "0 0 100%", height: "100%",
               display: "flex", alignItems: "center", justifyContent: "center",
               overflow: "hidden",
+              position: "relative",
             }}>
+              {/* Layer 1: Thumbnail (sofort aus Browser-Cache, leicht unscharf) */}
+              {!imgLoaded && i === idx && thumbUrl !== src && (
+                <img
+                  src={thumbUrl} alt="" draggable={false}
+                  onLoad={() => setThumbLoaded(true)}
+                  style={{
+                    position: "absolute",
+                    maxWidth: "100%", maxHeight: "100%", objectFit: "contain",
+                    filter: "blur(6px)",
+                    transform: "scale(1.03)",
+                    opacity: thumbLoaded ? 0.7 : 0,
+                    transition: "opacity 0.15s ease",
+                    zIndex: 1,
+                  }}
+                />
+              )}
+              {/* Layer 2: Full-resolution image (faded ein wenn geladen) */}
               <img
                 ref={i === idx ? imgRef : undefined}
                 src={src} alt={`Bild ${i + 1} von ${total}`}
@@ -279,6 +327,10 @@ export default function ImageGalleryModal({ images, startIndex = 0, onClose = ()
                   transition: dragging ? "none" : "transform 0.2s ease",
                   userSelect: "none", WebkitUserSelect: "none",
                   willChange: "transform",
+                  opacity: i === idx ? (imgLoaded ? 1 : 0) : 1,
+                  transitionDelay: "0ms",
+                  position: "relative",
+                  zIndex: 2,
                 }}
               />
             </div>

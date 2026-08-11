@@ -1,27 +1,24 @@
-// src/components/shared/ImageLightbox.jsx — LIGHTBOX.3 (2026-08-11)
+// src/components/shared/ImageLightbox.jsx — LIGHTBOX.4 (2026-08-11)
 // Appweit wiederverwendbare Full-Screen Bildbetrachter-Komponente.
 // Wird ueber den globalen window.__HUI_LIGHTBOX__ Hook geoeffnet:
 //   window.__HUI_LIGHTBOX__.open(images, startIndex)
 //   images: Array von { url, type, alt } (type: "image" | "video")
 //   startIndex: Index des zuerst anzuzeigenden Bildes (Default 0)
 //
+// FIX v4 (2026-08-11) — "Bild sofort anzeigen, nicht erst beim Schließen":
+//   Progressive Image Loading: Das 400px-Thumbnail (aus Browser-Cache vom
+//   Feed) wird SOFORT gezeigt. Die volle Aufloesung laedt darueber und
+//   faded ein sobald sie bereit ist. Spinner falls Thumb nicht im Cache.
+//
 // FIX v3 (2026-08-11) — "in alle Richtungen zoombar":
-//   1. Live-Pan-Clamping WAHREND des Draggings (nicht erst am Touch-Ende)
-//      → Bild kann nicht mehr wegfliegen, ist immer sichtbar
-//   2. Pan-Range berechnet aus echten Bild-Dimensionen × Scale
-//      → Bei 2x Zoom kann man bis zu den Raendern schwenken
-//   3. e.preventDefault() in ALLEN Touch-Move-Branches
-//      → Xiaomi/Android WebView nativer Zoom wird unterbunden
-//   4. will-change:transform auf dem Bild → GPU-Beschleunigung
-//   5. Pinch-Zoom mit Focal-Point (Zoom zum Pinch-Mittelpunkt, nicht Center)
+//   Live-Pan-Clamping, Focal-Point Pinch-Zoom, e.preventDefault, will-change.
 //
 // FIX v2 (2026-08-11):
-//   1. Zoom reduziert: Doppel-Tapp 1.5x (war 2x), Pinch max 3x (war 4x)
-//   2. Zurueck-Taste-Logik: Wenn Bild gezoomt ist → erst Zoom zuruecksetzen
-//   3. close() setzt Zoom/Pan SOFORT zurueck (nicht erst nach Animation).
+//   Zoom reduziert (1.5x/3x), Back-Button-Logik, SOFORT-Zuruecksetzen.
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { optimizeCard } from "../../lib/perfUtils.js";
 
 const ANIM_MS = 220;
 const DOUBLE_TAP_SCALE = 1.5;
@@ -30,6 +27,7 @@ const CSS = `
 @keyframes huiLbEnter { from { opacity: 0; } to { opacity: 1; } }
 @keyframes huiLbImgEnter { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
 @keyframes huiLbExit { from { opacity: 1; } to { opacity: 0; } }
+@keyframes huiLbSpin { to { transform: rotate(360deg); } }
 `;
 let _cssInjected = false;
 function injectCSS() {
@@ -37,6 +35,19 @@ function injectCSS() {
   _cssInjected = true;
   const s = document.createElement("style"); s.textContent = CSS;
   document.head.appendChild(s);
+}
+
+function Spinner() {
+  return React.createElement("div", {
+    style: {
+      position: "absolute", top: "50%", left: "50%",
+      width: 32, height: 32, marginTop: -16, marginLeft: -16,
+      borderRadius: "50%",
+      border: "3px solid rgba(255,255,255,0.2)",
+      borderTopColor: "rgba(255,255,255,0.8)",
+      animation: "huiLbSpin 0.7s linear infinite",
+    }
+  });
 }
 
 export default function ImageLightbox() {
@@ -48,6 +59,8 @@ export default function ImageLightbox() {
   const [dragX, setDragX] = useState(0);
   const [panX, setPanX] = useState(0);
   const [panY, setPanY] = useState(0);
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const [thumbLoaded, setThumbLoaded] = useState(false);
   const dragRef = useRef({ startX:0, startY:0, dragging:false, pinchStart:0, pinchDist:0, lastTap:0, panStartX:0, panStartY:0, pinchCenterX:0, pinchCenterY:0 });
   const closeTimerRef = useRef(null);
   const rafRef = useRef(null);
@@ -58,7 +71,6 @@ export default function ImageLightbox() {
 
   injectCSS();
 
-  // ── Pan-Clamp: berechnet max PanX/PanY aus echten Bild-Dimensionen × Scale ──
   function clampPan(pX, pY, s) {
     var vw = window.innerWidth;
     var vh = window.innerHeight;
@@ -88,6 +100,7 @@ export default function ImageLightbox() {
         setImages(normalized);
         setIndex(Math.min(start || 0, normalized.length - 1));
         setScale(1); setDragY(0); setDragX(0); setPanX(0); setPanY(0);
+        setImgLoaded(false); setThumbLoaded(false);
         scaleRef.current = 1;
         imgDimsRef.current = { w: 0, h: 0 };
         rafRef.current = requestAnimationFrame(function() { setVisible(true); });
@@ -103,7 +116,13 @@ export default function ImageLightbox() {
     return function() { document.body.style.overflow = prev; };
   }, [images]);
 
+  // Reset loading state when switching images
+  useEffect(function() {
+    setImgLoaded(false); setThumbLoaded(false);
+  }, [index]);
+
   function onImgLoad(e) {
+    setImgLoaded(true);
     var img = e.target;
     var vw = window.innerWidth;
     var vh = window.innerHeight;
@@ -244,6 +263,8 @@ export default function ImageLightbox() {
   if (!images) return null;
   var current = images[index];
   var opacity = visible ? 1 : 0;
+  var showSpinner = !imgLoaded && !thumbLoaded;
+  var thumbUrl = current && current.type !== "video" ? optimizeCard(current.url) : "";
 
   return createPortal(
     React.createElement("div", {
@@ -278,6 +299,9 @@ export default function ImageLightbox() {
           zIndex:10, pointerEvents:"none",
         }
       }, (index + 1) + " / " + images.length),
+      // Spinner (nur wenn weder Thumb noch Full geladen)
+      showSpinner && React.createElement(Spinner),
+      // Image container
       React.createElement("div", {
         style: {
           width:"100%", height:"100%",
@@ -285,8 +309,23 @@ export default function ImageLightbox() {
           transform: scale > 1.02 ? "none" : "translate("+(dragX*0.3)+"px, "+dragY+"px)",
           transition: (dragY === 0 && dragX === 0 && scale <= 1.02) ? "transform 0.2s ease" : "none",
           overflow: "hidden",
+          position: "relative",
         }
       },
+        // Layer 1: Thumbnail (sofort aus Browser-Cache, leicht unscharf)
+        !imgLoaded && thumbUrl && thumbUrl !== current.url && React.createElement("img", {
+          src: thumbUrl, alt: "", draggable: false,
+          onLoad: function() { setThumbLoaded(true); },
+          style: {
+            position: "absolute",
+            maxWidth:"100%", maxHeight:"100%", objectFit:"contain",
+            filter: "blur(6px)",
+            transform: "scale(1.03)",
+            opacity: thumbLoaded ? 0.7 : 0,
+            transition: "opacity 0.15s ease",
+          }
+        }),
+        // Layer 2: Full-resolution image (faded ein wenn geladen)
         current && current.type === "video"
           ? React.createElement("video", {
               src: current.url, controls: true, autoPlay: true, playsInline: true,
@@ -303,9 +342,13 @@ export default function ImageLightbox() {
                 transform: "translate("+panX+"px, "+panY+"px) scale("+scale+")",
                 transition: (scale<=1.02 && panX===0 && panY===0) ? "transform 0.2s ease" : "none",
                 animation: visible ? "huiLbImgEnter 0.28s ease" : "none",
-                willChange: "transform" }
+                willChange: "transform",
+                opacity: imgLoaded ? 1 : 0,
+                transitionDelay: imgLoaded ? "0ms" : "0ms",
+              }
             })
       ),
+      // Dot indicators
       images.length > 1 && React.createElement("div", {
         style: {
           position:"absolute", bottom:"max(24px, env(safe-area-inset-bottom, 24px))",
