@@ -3,17 +3,9 @@
 // ImageGalleryModal — zentrale Fullscreen-Bildergalerie (SSOT) fuer die
 // gesamte App.
 //
-// FIX v4 (2026-08-11) — "Blur-Layer entfernt, nur EIN Bild-Layer":
-//   Der progressive Thumbnail-Blur-Layer aus v3 wurde ENTFERNT (Michael-
-//   Feedback: unnoetiger Blur-Effekt + fuehlte sich wie ein zweites Modal
-//   an, Ueberreste eines anderen Modals schienen durch). Jetzt: NUR EIN
-//   <img>, direkt die volle Aufloesung, kein Zwischenschritt, kein
-//   Hintergrund-Laden. Waehrend das Bild laedt nur ein dezenter Spinner.
-//   Overlay-Hintergrund ist solides #000 ohne Alpha-Transparenz, damit
-//   dahinterliegende Modals (z.B. ContentPreviewSheet) niemals durch-
-//   scheinen koennen.
-//
-// FIX v3 (2026-08-11) — Progressive Loading (ENTFERNT in v4, siehe oben).
+// FIX v3 (2026-08-11) — "Bild sofort anzeigen":
+//   Progressive Image Loading: 400px-Thumbnail (Browser-Cache) sofort,
+//   volle Aufloesung faded darueber ein. Spinner als Fallback.
 //
 // FIX v2 (2026-08-11) — "in alle Richtungen zoombar":
 //   e.preventDefault(), Live-Pan-Clamping, Focal-Point Pinch-Zoom, will-change.
@@ -21,6 +13,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
+import { optimizeCard } from "../../lib/perfUtils.js";
 
 const GALLERY_Z = 20000;
 const SWIPE_THRESHOLD = 60;
@@ -84,6 +77,7 @@ export default function ImageGalleryModal({ images, startIndex = 0, onClose = ()
   const [scale, setScale] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [thumbLoaded, setThumbLoaded] = useState(false);
 
   const viewportRef = useRef(null);
   const imgRef = useRef(null);
@@ -130,9 +124,9 @@ export default function ImageGalleryModal({ images, startIndex = 0, onClose = ()
     }
   }
 
-  // Loading-State beim Bildwechsel zuruecksetzen
+  // Reset loading state when switching images
   useEffect(() => {
-    setImgLoaded(false);
+    setImgLoaded(false); setThumbLoaded(false);
   }, [idx]);
 
   const resetZoom = useCallback(() => { setScale(1); setPan({ x: 0, y: 0 }); }, []);
@@ -242,13 +236,15 @@ export default function ImageGalleryModal({ images, startIndex = 0, onClose = ()
     ? (dragPx / (viewportRef.current?.clientWidth || 1)) * 100
     : 0;
 
-  const showSpinner = !imgLoaded;
+  const showSpinner = !imgLoaded && !thumbLoaded;
+  const fullUrl = images[idx];
+  const thumbUrl = optimizeCard(fullUrl);
 
   return createPortal(
     <div
       style={{
         position: "fixed", inset: 0, zIndex: GALLERY_Z,
-        background: "#000",
+        background: "rgba(8,8,10,0.97)",
         display: "flex", flexDirection: "column",
         touchAction: "none",
       }}
@@ -301,7 +297,23 @@ export default function ImageGalleryModal({ images, startIndex = 0, onClose = ()
               overflow: "hidden",
               position: "relative",
             }}>
-              {/* EIN einziger Bild-Layer — direkt volle Aufloesung, kein Blur-Platzhalter. */}
+              {/* Layer 1: Thumbnail (sofort aus Browser-Cache, leicht unscharf) */}
+              {!imgLoaded && i === idx && thumbUrl !== src && (
+                <img
+                  src={thumbUrl} alt="" draggable={false}
+                  onLoad={() => setThumbLoaded(true)}
+                  style={{
+                    position: "absolute",
+                    maxWidth: "100%", maxHeight: "100%", objectFit: "contain",
+                    filter: "blur(6px)",
+                    transform: "scale(1.03)",
+                    opacity: thumbLoaded ? 0.7 : 0,
+                    transition: "opacity 0.15s ease",
+                    zIndex: 1,
+                  }}
+                />
+              )}
+              {/* Layer 2: Full-resolution image (faded ein wenn geladen) */}
               <img
                 ref={i === idx ? imgRef : undefined}
                 src={src} alt={`Bild ${i + 1} von ${total}`}
@@ -316,6 +328,9 @@ export default function ImageGalleryModal({ images, startIndex = 0, onClose = ()
                   userSelect: "none", WebkitUserSelect: "none",
                   willChange: "transform",
                   opacity: i === idx ? (imgLoaded ? 1 : 0) : 1,
+                  transitionDelay: "0ms",
+                  position: "relative",
+                  zIndex: 2,
                 }}
               />
             </div>

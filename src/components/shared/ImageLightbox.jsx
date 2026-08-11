@@ -1,14 +1,20 @@
-// src/components/shared/ImageLightbox.jsx — LIGHTBOX.4 (2026-08-11)
+// src/components/shared/ImageLightbox.jsx — LIGHTBOX.5 (2026-08-11)
 // Appweit wiederverwendbare Full-Screen Bildbetrachter-Komponente.
 // Wird ueber den globalen window.__HUI_LIGHTBOX__ Hook geoeffnet:
 //   window.__HUI_LIGHTBOX__.open(images, startIndex)
 //   images: Array von { url, type, alt } (type: "image" | "video")
 //   startIndex: Index des zuerst anzuzeigenden Bildes (Default 0)
 //
-// FIX v4 (2026-08-11) — "Bild sofort anzeigen, nicht erst beim Schließen":
-//   Progressive Image Loading: Das 400px-Thumbnail (aus Browser-Cache vom
-//   Feed) wird SOFORT gezeigt. Die volle Aufloesung laedt darueber und
-//   faded ein sobald sie bereit ist. Spinner falls Thumb nicht im Cache.
+// FIX v5 (2026-08-11) — "Blur-Layer entfernt, nur EIN Bild-Layer":
+//   Der progressive Thumbnail-Blur-Layer aus v4 wurde ENTFERNT (Michael-
+//   Feedback: unnoetiger Blur-Effekt + fuehlte sich wie ein zweites Modal
+//   an). Jetzt: NUR EIN <img>, direkt die volle Aufloesung, kein
+//   Zwischenschritt, kein Hintergrund-Laden. Waehrend das Bild laedt nur
+//   ein dezenter Spinner (kein Blur-Platzhalter). Overlay ist sofort
+//   voll opak (kein Fade-In mehr) um jedes Durchscheinen anderer Modals
+//   dahinter (z.B. ContentPreviewSheet) auszuschliessen.
+//
+// FIX v4 (2026-08-11) — Progressive Loading (ENTFERNT in v5, siehe oben).
 //
 // FIX v3 (2026-08-11) — "in alle Richtungen zoombar":
 //   Live-Pan-Clamping, Focal-Point Pinch-Zoom, e.preventDefault, will-change.
@@ -18,14 +24,11 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
-import { optimizeCard } from "../../lib/perfUtils.js";
 
 const ANIM_MS = 220;
 const DOUBLE_TAP_SCALE = 1.5;
 const MAX_PINCH_SCALE = 3;
 const CSS = `
-@keyframes huiLbEnter { from { opacity: 0; } to { opacity: 1; } }
-@keyframes huiLbImgEnter { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
 @keyframes huiLbExit { from { opacity: 1; } to { opacity: 0; } }
 @keyframes huiLbSpin { to { transform: rotate(360deg); } }
 `;
@@ -60,10 +63,8 @@ export default function ImageLightbox() {
   const [panX, setPanX] = useState(0);
   const [panY, setPanY] = useState(0);
   const [imgLoaded, setImgLoaded] = useState(false);
-  const [thumbLoaded, setThumbLoaded] = useState(false);
   const dragRef = useRef({ startX:0, startY:0, dragging:false, pinchStart:0, pinchDist:0, lastTap:0, panStartX:0, panStartY:0, pinchCenterX:0, pinchCenterY:0 });
   const closeTimerRef = useRef(null);
-  const rafRef = useRef(null);
   const scaleRef = useRef(1);
   const imgRef = useRef(null);
   const imgDimsRef = useRef({ w: 0, h: 0 });
@@ -71,6 +72,7 @@ export default function ImageLightbox() {
 
   injectCSS();
 
+  // ── Pan-Clamp: berechnet max PanX/PanY aus echten Bild-Dimensionen × Scale ──
   function clampPan(pX, pY, s) {
     var vw = window.innerWidth;
     var vh = window.innerHeight;
@@ -100,10 +102,12 @@ export default function ImageLightbox() {
         setImages(normalized);
         setIndex(Math.min(start || 0, normalized.length - 1));
         setScale(1); setDragY(0); setDragX(0); setPanX(0); setPanY(0);
-        setImgLoaded(false); setThumbLoaded(false);
+        setImgLoaded(false);
         scaleRef.current = 1;
         imgDimsRef.current = { w: 0, h: 0 };
-        rafRef.current = requestAnimationFrame(function() { setVisible(true); });
+        // Sofort voll sichtbar — kein Fade-In, damit dahinterliegende Modals
+        // (z.B. ContentPreviewSheet) nie durchscheinen koennen.
+        setVisible(true);
       },
     };
     return function() { delete window.__HUI_LIGHTBOX__; };
@@ -116,9 +120,9 @@ export default function ImageLightbox() {
     return function() { document.body.style.overflow = prev; };
   }, [images]);
 
-  // Reset loading state when switching images
+  // Loading-State beim Bildwechsel zuruecksetzen
   useEffect(function() {
-    setImgLoaded(false); setThumbLoaded(false);
+    setImgLoaded(false);
   }, [index]);
 
   function onImgLoad(e) {
@@ -262,19 +266,16 @@ export default function ImageLightbox() {
 
   if (!images) return null;
   var current = images[index];
-  var opacity = visible ? 1 : 0;
-  var showSpinner = !imgLoaded && !thumbLoaded;
-  var thumbUrl = current && current.type !== "video" ? optimizeCard(current.url) : "";
 
   return createPortal(
     React.createElement("div", {
       style: {
         position:"fixed", inset:0, zIndex:10600,
-        background:"rgba(0,0,0,0.96)",
+        background:"#000",
         display:"flex", alignItems:"center", justifyContent:"center",
-        opacity: opacity, transition: "opacity "+ANIM_MS+"ms ease",
+        opacity: visible ? 1 : 0,
+        transition: visible ? "none" : "opacity "+ANIM_MS+"ms ease",
         touchAction:"none",
-        animation: visible ? "huiLbEnter 0.22s ease" : "huiLbExit 0.22s ease",
       },
       onTouchStart: onTouchStart,
       onTouchMove: onTouchMove,
@@ -299,9 +300,9 @@ export default function ImageLightbox() {
           zIndex:10, pointerEvents:"none",
         }
       }, (index + 1) + " / " + images.length),
-      // Spinner (nur wenn weder Thumb noch Full geladen)
-      showSpinner && React.createElement(Spinner),
-      // Image container
+      // Spinner nur solange das Bild noch nicht geladen ist — KEIN Blur-Platzhalter.
+      !imgLoaded && current && current.type !== "video" && React.createElement(Spinner),
+      // Image container — EIN einziger Bild-Layer, direkt volle Aufloesung.
       React.createElement("div", {
         style: {
           width:"100%", height:"100%",
@@ -312,20 +313,6 @@ export default function ImageLightbox() {
           position: "relative",
         }
       },
-        // Layer 1: Thumbnail (sofort aus Browser-Cache, leicht unscharf)
-        !imgLoaded && thumbUrl && thumbUrl !== current.url && React.createElement("img", {
-          src: thumbUrl, alt: "", draggable: false,
-          onLoad: function() { setThumbLoaded(true); },
-          style: {
-            position: "absolute",
-            maxWidth:"100%", maxHeight:"100%", objectFit:"contain",
-            filter: "blur(6px)",
-            transform: "scale(1.03)",
-            opacity: thumbLoaded ? 0.7 : 0,
-            transition: "opacity 0.15s ease",
-          }
-        }),
-        // Layer 2: Full-resolution image (faded ein wenn geladen)
         current && current.type === "video"
           ? React.createElement("video", {
               src: current.url, controls: true, autoPlay: true, playsInline: true,
@@ -341,10 +328,8 @@ export default function ImageLightbox() {
               style: { maxWidth:"100%", maxHeight:"100%", objectFit:"contain",
                 transform: "translate("+panX+"px, "+panY+"px) scale("+scale+")",
                 transition: (scale<=1.02 && panX===0 && panY===0) ? "transform 0.2s ease" : "none",
-                animation: visible ? "huiLbImgEnter 0.28s ease" : "none",
                 willChange: "transform",
                 opacity: imgLoaded ? 1 : 0,
-                transitionDelay: imgLoaded ? "0ms" : "0ms",
               }
             })
       ),
