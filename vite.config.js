@@ -1,5 +1,7 @@
 // build-trigger: 2026-08-11 12:41:30
 import { defineConfig } from 'vite';
+import { appendFileSync, writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
@@ -40,10 +42,13 @@ export default defineConfig({
           // jspdf in eigenen Chunk — wird nur dynamisch importiert (StatistikenModal, generateReceipt)
           // Ohne diese Regel würde jspdf (~300 KB) im Vendor landen und Public-Load belasten
           if (id.includes('jspdf') || id.includes('fflate') || id.includes('fast-png')) {
+            console.error('[CHUNK] jspdf match:', id);
+            try { appendFileSync(resolve(process.cwd(), 'public', 'chunk-debug.txt'), 'JSPDF: ' + id + '\n'); } catch(e) {}
             return 'jspdf';
           }
           if (id.includes('node_modules')) {
-            return 'v2';
+            try { appendFileSync('www/chunk-debug.txt', id + '\n'); } catch(e) {}
+            return 'vendor';
           }
         },
       },
