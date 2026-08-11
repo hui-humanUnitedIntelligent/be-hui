@@ -2205,10 +2205,6 @@ function MeinBereichMenu({
   const [showProfilEdit, setShowProfilEdit] = useState(false);
 
   // ── Back-Button: MeinBereichMenu Sub-Modals registrieren ────────
-  // BACK-BUTTON-FIX (2026-08-11): MeinBereichDrawer muss registriert werden
-  // — sonst faellt die Zuruecktaste durch zum Tab-Wechsel, waehrend der Drawer
-  // noch sichtbar ist (=> weisser Bildschirm).
-  useModalRegistration(!!activeDrawer, () => setActiveDrawer(null), "MeinBereichDrawer");
   useModalRegistration(!!impactDetail, () => setImpactDetail(null), "MeinBereichMenu-ImpactDetail");
   useModalRegistration(showFinanzModal, () => setShowFinanzModal(false), "MeinBereichMenu-FinanzModal");
   useModalRegistration(showUpdateSheet, () => setShowUpdateSheet(false), "MeinBereichMenu-UpdateSheet");
