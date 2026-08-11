@@ -1,26 +1,13 @@
 // src/components/onboarding/OnboardingTutorial.jsx
 // HUI Onboarding-Tutorial — Basis (7 Schritte) + Erweitert (11 Schritte)
-// Systemweite Design-Regeln: Fuchs fest unverzerrt, kompakter Weiter-Button,
-// Spotlight nie verdeckt. Keine bestehenden UI-Elemente werden veraendert.
+// Nur erster App-Start. Keine bestehenden UI-Elemente werden veraendert.
 import React, { useState, useLayoutEffect, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
-// ══════════════════════════════════════════════════════════════
-// DESIGN-KONSTANTEN — systemweit für ALLE Tutorials identisch
-// ══════════════════════════════════════════════════════════════
-const FOX_SIZE        = 52;     // Feste Fuchs-Größe — unverzerrt auf allen Geräten
-const FOX_MARGIN      = 20;     // Mindestabstand Fuchs zu Bildschirmrand
-const FOX_BUBBLE_GAP  = 10;     // Abstand Sprechblase ↔ Fuchs
-const BTN_WIDTH       = 132;    // Kompakte Weiter-Button-Breite (~20-25% auf 375px)
-const BTN_HEIGHT      = 44;     // Feste Button-Höhe
-const BTN_BOTTOM      = 100;    // Button schwebt über Navbar (72px Nav + 28px Luft)
-const BUBBLE_MAX_W    = 260;    // Max Breite der Sprechblase
-const SPOT_PAD        = 10;     // Spotlight Innenabstand
-const OVERLAY_ALPHA   = 0.6;    // Overlay-Transparenz (leicht grau)
-
 const STORAGE_KEY = "hui_onboarding_completed_v1";
 const ADVANCED_STORAGE_KEY = "hui_onboarding_advanced_v1";
+const SPOTLIGHT_PAD = 8;
 
 const STEPS = [
   { selector: 'button[aria-label="Home"]',           text: "Hier siehst du alle Beitr\u00e4ge chronologisch \u2013 dein pers\u00f6nlicher Home-Feed.", placement: "top" },
@@ -46,13 +33,9 @@ const ADVANCED_STEPS = [
   { selector: 'button[aria-label="Resonanzzentrum"]', text: "Hier bekommst du alle wichtigen Neuigkeiten: Kommentare, Buchungen, K\u00e4ufe, Likes und Empfehlungen.", placement: "bottom", label: "Resonanzzentrum" },
 ];
 
-// ══════════════════════════════════════════════════════════════
-// Fuchs-Bot SVG — feste unverzerrte Gr\u00f6\u00dfe, freundlich rund
-// ══════════════════════════════════════════════════════════════
-function FoxBot({ size = FOX_SIZE }) {
+function FoxBot({ size = 56 }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 80 80" fill="none" aria-hidden="true"
-         style={{ display: "block", flexShrink: 0 }}>
+    <svg width={size} height={size} viewBox="0 0 80 80" fill="none" aria-hidden="true">
       <path d="M56 52 Q72 44 68 32 Q62 38 58 44" fill="#F4714F" stroke="#E55A38" strokeWidth="0.5"/>
       <path d="M64 36 Q70 33 67 28" stroke="#FFF5E6" strokeWidth="3" fill="none" strokeLinecap="round"/>
       <ellipse cx="40" cy="56" rx="18" ry="16" fill="#F4714F"/>
@@ -86,9 +69,6 @@ function getTargetRect(selector) {
   } catch (e) { return null; }
 }
 
-// ══════════════════════════════════════════════════════════════
-// Hauptkomponente
-// ══════════════════════════════════════════════════════════════
 export default function OnboardingTutorial() {
   const [phase, setPhase] = useState("init");
   const [step, setStep] = useState(0);
@@ -114,44 +94,20 @@ export default function OnboardingTutorial() {
     const steps = phase === "tutorial" ? STEPS : ADVANCED_STEPS;
     const stepData = steps[step];
     if (!stepData) return;
-
     function measure() {
       const r = getTargetRect(stepData.selector);
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
-      // Reservierter Bereich unten f\u00fcr den Weiter-Button
-      const btnZone = BTN_BOTTOM + BTN_HEIGHT + 20;
-
       if (!r) {
-        // Kein Spotlight → Fuchs zentriert, oberhalb der Button-Zone
         setSpotRect(null);
-        setFoxPos({
-          left: Math.max(FOX_MARGIN, (vw - BUBBLE_MAX_W) / 2),
-          top: Math.max(FOX_MARGIN, (vh - 200) / 2 - btnZone / 2),
-        });
+        setFoxPos({ left: Math.max(16, (window.innerWidth - 280) / 2), top: (window.innerHeight - 220) / 2 });
         return;
       }
-
       setSpotRect(r);
-
       if (stepData.placement === "top") {
-        // Fuchs \u00fcber dem Spotlight — Sprechblase zeigt nach unten
-        let top = r.top - 190; // Platz f\u00fcr Label + Blase + Fuchs
-        if (top < FOX_MARGIN) top = FOX_MARGIN;
-        let left = Math.max(FOX_MARGIN, Math.min(r.centerX - BUBBLE_MAX_W / 2, vw - BUBBLE_MAX_W - FOX_MARGIN));
-        setFoxPos({ left, top });
+        setFoxPos({ left: Math.max(16, Math.min(r.centerX - 120, window.innerWidth - 260)), top: Math.max(40, r.top - 180) });
       } else {
-        // Fuchs unter dem Spotlight — Sprechblase zeigt nach oben
-        // Aber \u00fcber dem Weiter-Button bleiben!
-        let top = r.bottom + FOX_BUBBLE_GAP + 8;
-        let maxTop = vh - btnZone - 120; // \u00fcber Button-Zone
-        if (top > maxTop) top = maxTop;
-        if (top < FOX_MARGIN) top = FOX_MARGIN;
-        let left = Math.max(FOX_MARGIN, Math.min(r.centerX - BUBBLE_MAX_W / 2, vw - BUBBLE_MAX_W - FOX_MARGIN));
-        setFoxPos({ left, top });
+        setFoxPos({ left: Math.max(16, Math.min(r.centerX - 120, window.innerWidth - 260)), top: Math.min(r.bottom + 24, window.innerHeight - 200) });
       }
     }
-
     measure();
     window.addEventListener("resize", measure);
     window.addEventListener("scroll", measure, true);
@@ -159,29 +115,22 @@ export default function OnboardingTutorial() {
     return () => { window.removeEventListener("resize", measure); window.removeEventListener("scroll", measure, true); clearTimeout(t); };
   }, [phase, step]);
 
-  // ════════════════════════════════════════════════════════════
-  // Shared Renderer f\u00fcr Tutorial-Schritte (Basis + Erweitert)
-  // ════════════════════════════════════════════════════════════
+  // ── Shared render fuer tutorial + advanced Schritte ───────────
   function renderSteps(stepsArr, isAdvanced) {
     const stepData = stepsArr[step];
     const isLast = step === stepsArr.length - 1;
     const onComplete = isAdvanced
       ? () => setStep(ADVANCED_STEPS.length)
       : () => setStep(STEPS.length);
-    const placement = stepData.placement;
-    const pointerDown = placement === "top";    // Blase zeigt nach unten (Fuchs oben, Spotlight unten)
-    const pointerUp   = placement === "bottom"; // Blase zeigt nach oben (Fuchs unten, Spotlight oben)
-
     return createPortal(
       <div style={{ position: "fixed", inset: 0, zIndex: 10600 }}>
-        {/* ── Spotlight oder dunkler Overlay ─────────────────── */}
         {spotRect ? (
           <div style={{
             position: "fixed",
-            left: spotRect.left - SPOT_PAD, top: spotRect.top - SPOT_PAD,
-            width: spotRect.width + SPOT_PAD * 2, height: spotRect.height + SPOT_PAD * 2,
+            left: spotRect.left - SPOTLIGHT_PAD, top: spotRect.top - SPOTLIGHT_PAD,
+            width: spotRect.width + SPOTLIGHT_PAD * 2, height: spotRect.height + SPOTLIGHT_PAD * 2,
             borderRadius: 16, background: "transparent",
-            boxShadow: `0 0 0 9999px rgba(0,0,0,${OVERLAY_ALPHA})`,
+            boxShadow: "0 0 0 9999px rgba(0,0,0,0.65)",
             transition: "all 0.35s cubic-bezier(0.22,1,0.36,1)",
             zIndex: 10600, pointerEvents: "none",
           }}>
@@ -193,70 +142,45 @@ export default function OnboardingTutorial() {
             }} />
           </div>
         ) : (
-          <div style={{ position: "fixed", inset: 0, background: `rgba(0,0,0,${OVERLAY_ALPHA})`, zIndex: 10600 }} />
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.65)", zIndex: 10600 }} />
         )}
-
-        {/* ── Fuchs + Sprechblase (niemals Spotlight verdeckend) ── */}
         <div style={{
           position: "fixed", left: foxPos.left, top: foxPos.top,
-          zIndex: 10601, transition: "all 0.35s cubic-bezier(0.22,1,0.36,1)",
-          maxWidth: BUBBLE_MAX_W, display: "flex", flexDirection: "column",
-          alignItems: "flex-start",
+          zIndex: 10601, transition: "all 0.35s cubic-bezier(0.22,1,0.36,1)", maxWidth: 280,
         }}>
-          {/* Label (nur erweitertes Tutorial) */}
           {isAdvanced && stepData.label && (
-            <div style={labelStyle}>{stepData.label}</div>
+            <div style={{
+              textAlign: "center", marginBottom: 8, fontSize: 13, fontWeight: 700,
+              color: "rgba(255,255,255,0.85)", fontFamily: "Inter, sans-serif",
+              textTransform: "uppercase", letterSpacing: 1,
+            }}>{stepData.label}</div>
           )}
-
-          {/* Sprechblase */}
           <div style={{
-            ...bubbleBaseStyle,
-            ...(pointerDown ? { marginBottom: FOX_BUBBLE_GAP } : { marginTop: FOX_BUBBLE_GAP }),
+            background: "white", borderRadius: 18, padding: "14px 16px",
+            boxShadow: "0 4px 24px rgba(0,0,0,0.18)", position: "relative", marginBottom: 8,
           }}>
-            {/* Sprechblasen-Zeiger */}
-            {pointerDown && (
-              <div style={{
-                position: "absolute", bottom: -8, left: FOX_SIZE + 4,
-                width: 0, height: 0,
-                borderLeft: "8px solid transparent", borderRight: "8px solid transparent",
-                borderTop: "8px solid white",
-              }} />
-            )}
-            {pointerUp && (
-              <div style={{
-                position: "absolute", top: -8, left: FOX_SIZE + 4,
-                width: 0, height: 0,
-                borderLeft: "8px solid transparent", borderRight: "8px solid transparent",
-                borderBottom: "8px solid white",
-              }} />
-            )}
-            <p style={bubbleTextStyle}>{stepData.text}</p>
+            <div style={{
+              position: "absolute", bottom: -8, left: 24, width: 0, height: 0,
+              borderLeft: "8px solid transparent", borderRight: "8px solid transparent",
+              borderTop: "8px solid white",
+            }} />
+            <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, color: "#1A1A18", fontFamily: "Inter, sans-serif", fontWeight: 500 }}>
+              {stepData.text}
+            </p>
           </div>
-
-          {/* Fuchs + Counter */}
-          <div style={{
-            display: "flex", alignItems: "center", gap: 10,
-            marginTop: FOX_BUBBLE_GAP,
-          }}>
-            <FoxBot size={FOX_SIZE} />
-            <span style={counterStyle}>{step + 1} / {stepsArr.length}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <FoxBot size={56} />
+            <span style={{
+              fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.75)",
+              fontFamily: "Inter, sans-serif", background: "rgba(0,0,0,0.3)",
+              borderRadius: 99, padding: "3px 10px",
+            }}>{step + 1} / {stepsArr.length}</span>
           </div>
-        </div>
-
-        {/* ── Weiter-Button (kompakt, zentriert, unten schwebend) ── */}
-        <div style={{
-          position: "fixed",
-          left: "50%",
-          bottom: `calc(${BTN_BOTTOM}px + env(safe-area-inset-bottom, 0px))`,
-          transform: "translateX(-50%)",
-          zIndex: 10601,
-        }}>
           <button
             onClick={() => { if (isLast) onComplete(); else setStep(s => s + 1); }}
-            style={compactBtnStyle}
-          >{isLast ? "Fertig" : "Weiter"}</button>
+            style={btnStepStyle}
+          >Weiter</button>
         </div>
-
         <style>{`@keyframes huiSpotlightPulse { 0%,100% { opacity:0.55; transform:scale(1); } 50% { opacity:1; transform:scale(1.04); } }`}</style>
       </div>,
       document.body
@@ -271,7 +195,7 @@ export default function OnboardingTutorial() {
     return createPortal(
       <div style={overlayStyle}>
         <div style={dialogCardStyle}>
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
             <FoxBot size={64} />
           </div>
           <h2 style={dialogTitleStyle}>Willkommen bei HUI!</h2>
@@ -292,12 +216,12 @@ export default function OnboardingTutorial() {
     return renderSteps(STEPS, false);
   }
 
-  // ── Basis-Abschluss \u2192 Frage nach erweitertem Tutorial ───────
+  // ── Basis-Abschluss → Frage nach erweitertem Tutorial ────────
   if (phase === "tutorial" && step >= STEPS.length) {
     return createPortal(
       <div style={overlayStyle}>
         <div style={dialogCardStyle}>
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
             <FoxBot size={64} />
           </div>
           <h2 style={dialogTitleStyle}>Geschafft!</h2>
@@ -323,7 +247,7 @@ export default function OnboardingTutorial() {
     return createPortal(
       <div style={overlayStyle}>
         <div style={dialogCardStyle}>
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
             <FoxBot size={64} />
           </div>
           <h2 style={dialogTitleStyle}>Fantastisch!</h2>
@@ -346,13 +270,11 @@ export default function OnboardingTutorial() {
   return null;
 }
 
-// ══════════════════════════════════════════════════════════════
-// STYLES — systemweit einheitlich f\u00fcr alle Tutorials
-// ══════════════════════════════════════════════════════════════
+// ── Styles ─────────────────────────────────────────────────────
 const overlayStyle = {
   position: "fixed", inset: 0, zIndex: 10600,
   display: "flex", alignItems: "center", justifyContent: "center",
-  background: `rgba(0,0,0,${OVERLAY_ALPHA})`, backdropFilter: "blur(2px)", WebkitBackdropFilter: "blur(2px)",
+  background: "rgba(0,0,0,0.5)", backdropFilter: "blur(2px)", WebkitBackdropFilter: "blur(2px)",
 };
 const dialogCardStyle = {
   background: "#FDFBF8", borderRadius: 24, padding: "28px 24px 24px",
@@ -374,33 +296,10 @@ const btnYesStyle = {
   fontSize: 15, fontWeight: 600, fontFamily: "Inter, sans-serif", cursor: "pointer",
   boxShadow: "0 2px 12px rgba(22,215,197,0.35)", touchAction: "manipulation", WebkitTapHighlightColor: "transparent",
 };
-
-// ── Tutorial-Schritt Styles ────────────────────────────────────
-const labelStyle = {
-  textAlign: "center", marginBottom: 10, fontSize: 12, fontWeight: 700,
-  color: "rgba(255,255,255,0.85)", fontFamily: "Inter, sans-serif",
-  textTransform: "uppercase", letterSpacing: 1.5, width: "100%",
-};
-const bubbleBaseStyle = {
-  background: "white", borderRadius: 18, padding: "14px 16px",
-  boxShadow: "0 4px 24px rgba(0,0,0,0.18)", position: "relative",
-  maxWidth: BUBBLE_MAX_W, width: "100%",
-};
-const bubbleTextStyle = {
-  margin: 0, fontSize: 14, lineHeight: 1.5, color: "#1A1A18",
-  fontFamily: "Inter, sans-serif", fontWeight: 500,
-};
-const counterStyle = {
-  fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.75)",
-  fontFamily: "Inter, sans-serif", background: "rgba(0,0,0,0.3)",
-  borderRadius: 99, padding: "3px 10px", whiteSpace: "nowrap",
-};
-// ── Kompakter Weiter-Button (max 20-25% Breite, schwebend unten) ──
-const compactBtnStyle = {
-  width: BTN_WIDTH, height: BTN_HEIGHT, borderRadius: 22,
+const btnStepStyle = {
+  marginTop: 12, width: "100%", padding: "12px 20px", borderRadius: 14,
   border: "none", background: "linear-gradient(135deg, #16D7C5, #0DC4B5)",
-  color: "white", fontSize: 14, fontWeight: 600, fontFamily: "Inter, sans-serif",
-  cursor: "pointer", boxShadow: "0 3px 16px rgba(22,215,197,0.4)",
+  color: "white", fontSize: 15, fontWeight: 600, fontFamily: "Inter, sans-serif",
+  cursor: "pointer", boxShadow: "0 2px 12px rgba(22,215,197,0.35)",
   touchAction: "manipulation", WebkitTapHighlightColor: "transparent",
-  display: "flex", alignItems: "center", justifyContent: "center",
 };
