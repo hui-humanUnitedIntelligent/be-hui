@@ -141,6 +141,11 @@ export default function OnboardingTutorial() {
     setPhase("done");
     try { localStorage.setItem(STORAGE_KEY, "1"); } catch (e) {}
     try { localStorage.setItem(ADVANCED_STORAGE_KEY, "1"); } catch (e) {}
+    // 2026-08-11 FIX: Bei Abbruch (X/Zurück) blieb der Nutzer auf der
+    // Seite stehen, auf der das Tutorial ihn zuletzt hinnavigiert hatte
+    // (z.B. Profil, mit gescrollter Kachel-Ansicht) → wirkte wie ein
+    // weißer Bildschirm. Fix: immer zurück zum Home-Feed.
+    window.dispatchEvent(new CustomEvent("hui:navigate:tab", { detail: { tab: "feed" } }));
   }, []);
   useModalRegistration(phase !== "done" && phase !== "init", handleClose, "OnboardingTutorial");
 
@@ -376,6 +381,7 @@ export default function OnboardingTutorial() {
                   localStorage.setItem(STORAGE_KEY, "1");
                 } catch (e) {}
                 setPhase("done");
+                window.dispatchEvent(new CustomEvent("hui:navigate:tab", { detail: { tab: "feed" } }));
               }}
               style={btnDisableStyle}
             >Nicht mehr anzeigen</button>
@@ -404,6 +410,7 @@ export default function OnboardingTutorial() {
               // sessionStorage reicht für "diesmal nicht anzeigen".
               try { sessionStorage.setItem("hui_onboarding_skipped", "1"); } catch (e) {}
               setPhase("done");
+              window.dispatchEvent(new CustomEvent("hui:navigate:tab", { detail: { tab: "feed" } }));
             }}
             style={{ ...btnYesStyle, width: "100%", flex: "none" }}
           >Verstanden</button>
@@ -516,7 +523,12 @@ const labelStyle = {
   textTransform: "uppercase", letterSpacing: 1.5, width: "100%",
 };
 const bubbleBaseStyle = {
-  background: "white", borderRadius: 16, padding: "12px 14px",
+  background: "white", borderRadius: 16,
+  // 2026-08-11 FIX: paddingLeft muss den Fuchs-Overlap (FOX_PEEK, die
+  // Hälfte des Fuchses ragt in die Blase hinein) + Puffer aufnehmen —
+  // sonst überdeckt der Fuchs den Textanfang (Michael-Report: "Fuchs
+  // legt über dem Text"). Andere Seiten bleiben kompakt (12px).
+  padding: `12px 14px 12px ${FOX_PEEK + 10}px`,
   boxShadow: "0 4px 24px rgba(0,0,0,0.18)", position: "relative",
   maxWidth: BUBBLE_MAX_W, width: "100%",
 };
