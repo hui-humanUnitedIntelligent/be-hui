@@ -2092,17 +2092,15 @@ function MeinBereichDrawer({ title, icon, subtitle, onClose, children, footer = 
           )}
         </div>
         {/* Inhalt scrollbar */}
-        {/* SYSTEM-NAVBAR-SAFETY-FIX (2026-08-11): mind. 50px + Safe-Area-Inset
-            Abstand zur System-UI-Navigationsleiste (Android Gesten-/Softkeys) */}
         <div style={{
           flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch", willChange:"transform", overscrollBehavior:"contain",
-          scrollbarWidth:"none", padding: footer ? undefined : "0 0 calc(50px + env(safe-area-inset-bottom, 0px))",
+          scrollbarWidth:"none", padding: footer ? undefined : "0 0 24px",
         }}>
           {children}
         </div>
         {/* Footer */}
         {footer && (
-          <div style={{ padding:"12px 20px calc(50px + env(safe-area-inset-bottom, 0px))", borderTop:"1px solid rgba(26,26,24,0.08)", flexShrink:0 }}>
+          <div style={{ padding:"12px 20px 36px", borderTop:"1px solid rgba(26,26,24,0.08)", flexShrink:0 }}>
             <button onClick={onClose} style={{
               width:"100%", padding:"13px", borderRadius:14, border:"none",
               cursor:"pointer", background:"rgba(26,26,24,0.08)",
