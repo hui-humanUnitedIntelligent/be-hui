@@ -231,14 +231,10 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
       }}
       extraActions={reportButton}
     >
-      {/* ── Badge · Titel — Titel jetzt auf bis zu 3 Zeilen sichtbar
-          (FIX 2026-08-11: vorher 1-zeilig abgeschnitten "…" UND darunter
-          nochmal komplett dupliziert im grauen Text — siehe Screenshot
-          Michael. Jetzt: EINE Textquelle (Titel, bis 3 Zeilen), kein
-          Duplikat mehr. Badge oben ausgerichtet wie bei WorkContent. ── */}
+      {/* ── Badge · Caption ── identisch zu WorkContent/ExperienceContent */}
       <div style={{
         display: "flex",
-        alignItems: "flex-start",
+        alignItems: "center",
         gap: 8,
         flexWrap: "nowrap",
         marginBottom: caption ? 6 : 0,
@@ -247,7 +243,6 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
         {/* MOMENT-Typ-Badge */}
         <span style={{
           flexShrink: 0,
-          marginTop: 2,
           fontSize: 10.5,
           fontWeight: 600,
           color: badge.color,
@@ -261,30 +256,25 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
           {badge.label}
         </span>
 
-        {/* Caption / Titel — 2-3 Zeilen sichtbar statt 1-zeilig+"…" */}
+        {/* Caption / Titel */}
         {caption ? (
           <span style={{
-            flex: 1,
-            minWidth: 0,
             fontSize: 15,
             fontWeight: 600,
             color: INK,
             lineHeight: 1.3,
             letterSpacing: "-0.02em",
-            display: "-webkit-box",
-            WebkitLineClamp: 3,
-            WebkitBoxOrient: "vertical",
             overflow: "hidden",
-            wordBreak: "break-word",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
           }}>
             {caption}
           </span>
         ) : null}
       </div>
 
-      {/* System-Projekt-Abschluss-Post: eigener, nicht-redundanter
-          Zusatztext statt Duplikat der Caption (FIX 2026-08-11) */}
-      {isSystemProjectLink && (
+      {/* Langer Text (Gedanken) — unterhalb des Badge-Blocks */}
+      {caption && caption.length > 50 && (
         <p style={{
           margin: "0 0 4px",
           fontSize: 14,
@@ -292,8 +282,12 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
           color: INK3,
           fontWeight: 400,
           letterSpacing: "-0.01em",
+          display: "-webkit-box",
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: "vertical",
+          overflow: "hidden",
         }}>
-          Das ist die Kraft von HUI: Wenn viele zusammenhalten, wird aus einer Idee Wirklichkeit. Entdecke im Impact-Bereich, welches Projekt du als Nächstes unterstützen möchtest.
+          {caption}
         </p>
       )}
     </BaseFeedCard>

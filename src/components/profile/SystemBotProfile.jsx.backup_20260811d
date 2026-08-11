@@ -246,7 +246,7 @@ export default function SystemBotProfile({ profileId, onClose = () => {} }) {
       {/* Header */}
       <div style={{
         display: "flex", alignItems: "center", gap: 12,
-        padding: "max(var(--hui-safe-top, 0px), 16px, env(safe-area-inset-top, 16px)) 20px 14px", background: T.bgCard,
+        padding: "16px 20px 14px", background: T.bgCard,
         borderBottom: "1px solid " + T.border, flexShrink: 0,
       }}>
         <button onClick={onClose} style={{
