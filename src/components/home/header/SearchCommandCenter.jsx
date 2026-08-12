@@ -126,7 +126,7 @@ function SectionLabel({ children, color, action, onAction }) {
 // wodurch die hui-search-fade-in-Animation automatisch erneut abspielt
 // ("aktive Stufe weich animieren", ohne Flackern -- der Text selbst bleibt
 // stabil sichtbar, nur ein sanftes Fade beim Wechsel).
-function RadiusIndicator({ radius, activeFilterCount = 0 }) {
+function RadiusIndicator({ radius, activeFilterCount = 0, onFilterPillClick }) {
   const label = radius.isWorldwide
     ? "🌍 Weltweit"
     : `📍 ${radius.geo?.label || "In deiner Nähe"} · ${radiusLabel(radius.radiusKm)}`;
@@ -135,6 +135,7 @@ function RadiusIndicator({ radius, activeFilterCount = 0 }) {
   // Feed gerade nur eine Teilmenge zeigt (z.B. nur Werke), auch wenn das
   // Discovery-Panel geschlossen ist und die Chips selbst nicht sichtbar sind.
   // Dezente Pill direkt neben dem Radius-Text, gleiche Zeile, kein Umbruch.
+  // Klick auf die Pill öffnet das Discovery-Panel (Filter schnell erreichbar).
   return (
     <div key={label} style={{
       padding: "0 0 0 18px",
@@ -153,20 +154,28 @@ function RadiusIndicator({ radius, activeFilterCount = 0 }) {
         {label}
       </span>
       {activeFilterCount > 0 && (
-        <span style={{
-          flexShrink:0,
-          fontSize: 10.5,
-          fontWeight: 700,
-          letterSpacing: "-0.01em",
-          color: T.teal,
-          background: T.tealM,
-          border: "1px solid rgba(14,196,184,0.30)",
-          borderRadius: 99,
-          padding: "2.5px 9px",
-          whiteSpace: "nowrap",
-        }}>
+        <button
+          onClick={onFilterPillClick}
+          style={{
+            flexShrink:0,
+            fontSize: 10.5,
+            fontWeight: 700,
+            letterSpacing: "-0.01em",
+            color: T.teal,
+            background: T.tealM,
+            border: "1px solid rgba(14,196,184,0.30)",
+            borderRadius: 99,
+            padding: "2.5px 9px",
+            whiteSpace: "nowrap",
+            cursor: "pointer",
+            WebkitTapHighlightColor: "transparent",
+            transition: "transform .12s ease, box-shadow .12s ease",
+          }}
+          onTouchStart={e => { e.currentTarget.style.transform = "scale(0.94)"; }}
+          onTouchEnd={e => { e.currentTarget.style.transform = "scale(1)"; }}
+        >
           {activeFilterCount} Filter aktiv
-        </span>
+        </button>
       )}
     </div>
   );
@@ -618,6 +627,7 @@ export default function SearchCommandCenter({
   const wrapRef  = useRef(null);
   const inputRef = useRef(null);
   const kiRef    = useRef(null);
+  const filterRowRef = useRef(null);
 
   const [history, setHistory] = useState(() => {
     try { return JSON.parse(localStorage.getItem("hui_search_history")||"[]"); }
@@ -1090,7 +1100,7 @@ export default function SearchCommandCenter({
           ueber die fixe Suchleiste erreichbaren Discovery-Panels. Gleiche dc-tag-
           Optik wie alle anderen Pills hier (Design System First, Prinzip 2). */}
       {showFilters && (
-        <div style={{marginBottom: showCategoriesAndHistory && history.length>0 ? 20 : 0}}>
+        <div ref={filterRowRef} style={{marginBottom: showCategoriesAndHistory && history.length>0 ? 20 : 0}}>
           <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
             {FILTERS.map(f=>{
               const activeF = typeFilter===f.key;
@@ -1273,7 +1283,7 @@ export default function SearchCommandCenter({
           animation:"hui-search-fade-in .26s cubic-bezier(.22,1,.36,1) both",
         }}>
           <div style={{ minWidth:0, flex:"1 1 auto", overflow:"hidden" }}>
-            <RadiusIndicator radius={radius} activeFilterCount={activeFilterCount} />
+            <RadiusIndicator radius={radius} activeFilterCount={activeFilterCount} onFilterPillClick={() => { setOpen(true); setTimeout(() => filterRowRef.current?.scrollIntoView({ behavior:"smooth", block:"nearest" }), 120); }} />
           </div>
           {quickActions && (
             <div style={{ display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
