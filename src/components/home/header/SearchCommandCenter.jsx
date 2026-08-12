@@ -626,7 +626,6 @@ export default function SearchCommandCenter({
 
   const wrapRef  = useRef(null);
   const inputRef = useRef(null);
-  const closingRef = useRef(false);
   const kiRef    = useRef(null);
   const filterRowRef = useRef(null);
   const recognitionRef = useRef(null);
@@ -789,12 +788,10 @@ export default function SearchCommandCenter({
   const has = !!activeMood;
 
   function open_(){
-    closingRef.current = false;
     setOpen(true);
     setTimeout(()=>inputRef.current?.focus(), 60);
   }
   function close_(){
-    closingRef.current = true;
     setOpen(false);
     setShowKi(false);
     setShowAllCategories(false);
@@ -1038,8 +1035,20 @@ export default function SearchCommandCenter({
         <input ref={inputRef} className="dc-input"
           value={query}
           onChange={e=>setQuery(e.target.value.slice(0,200))}
-          onFocus={() => { if (!closingRef.current) open_(); }}
-          onClick={e=>{e.stopPropagation(); if(open&&!query.trim()) close_();}}
+          onFocus={open_}
+          onClick={e=>e.stopPropagation()}
+          // 2026-08-12 Fix (v2, robust): Schliessen bei zweitem Tap auf die
+          // BEREITS offene Suchleiste. onFocus feuert auf Android WebViews
+          // unzuverlaessig NICHT erneut (Element ist schon fokussiert -- kein
+          // Focus-Wechsel, kein Event) -- ein reiner onFocus/onClick-Ansatz
+          // (v1-Fix) ist deshalb fragil. Robuster Standard-Pattern:
+          // onMouseDown/onTouchStart VOR dem eigentlichen Focus-Event abfangen
+          // und mit preventDefault() den Focus-Zyklus komplett verhindern,
+          // wenn bereits offen + kein Suchtext -- dann direkt schliessen.
+          // Ist die Suche geschlossen (oder Text vorhanden), laeuft der
+          // native Fokus-Vorgang normal weiter -> onFocus oeffnet wie gewohnt.
+          onMouseDown={e=>{ if(open && !query.trim()){ e.preventDefault(); close_(); } }}
+          onTouchStart={e=>{ if(open && !query.trim()){ e.preventDefault(); close_(); } }}
         />
         {!query && !open && (
           <span style={{position:"absolute",left:0,pointerEvents:"none",fontSize:14,fontWeight:450,letterSpacing:"-0.01em",color:has?`${mc}85`:"rgba(26,53,48,0.32)",opacity:phVis?1:0,transform:phVis?"translateY(0)":"translateY(4px)",transition:"opacity .3s ease, transform .3s ease",whiteSpace:"nowrap",overflow:"hidden",maxWidth:"100%"}}>{PH[phIdx]}</span>
