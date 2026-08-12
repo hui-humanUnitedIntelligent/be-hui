@@ -29,7 +29,7 @@ const BILLING_COUNTRY = "AT";
 // ─────────────────────────────────────────────────────────────────
 // Inner Form — innerhalb von <Elements> gemountet
 // ─────────────────────────────────────────────────────────────────
-function StripeForm({ total = 0, impact = 0, orderId = "", onSuccess = () => {}, onError = () => {} }) {
+function StripeForm({ total = 0, subtotal = 0, versand = 0, impact = 0, orderId = "", onSuccess = () => {}, onError = () => {} }) {
   const stripe   = useStripe();
   const elements = useElements();
   const [processing, setProcessing] = useState(false);
@@ -152,11 +152,22 @@ function StripeForm({ total = 0, impact = 0, orderId = "", onSuccess = () => {},
             display: "flex", justifyContent: "space-between",
             marginBottom: 8, alignItems: "center",
           }}>
-            <span style={{ fontSize: 13, color: C.muted }}>Unterstützung</span>
+            <span style={{ fontSize: 13, color: C.muted }}>Werke</span>
             <span style={{ fontSize: 13, color: C.inkMid, }}>
-              {total.toFixed(2).replace(".", ",")} €
+              {subtotal.toFixed(2).replace(".", ",")} €
             </span>
           </div>
+          {versand > 0 && (
+            <div style={{
+              display: "flex", justifyContent: "space-between",
+              marginBottom: 8, alignItems: "center",
+            }}>
+              <span style={{ fontSize: 13, color: C.muted }}>Versand</span>
+              <span style={{ fontSize: 13, color: C.inkMid, }}>
+                {versand.toFixed(2).replace(".", ",")} €
+              </span>
+            </div>
+          )}
           {impact > 0 && (
             <div style={{
               display: "flex", justifyContent: "space-between",
@@ -237,6 +248,8 @@ function StripeForm({ total = 0, impact = 0, orderId = "", onSuccess = () => {},
 // ─────────────────────────────────────────────────────────────────
 export default function StripePaymentStep({
   total    = 0,
+  subtotal = 0,
+  versand  = 0,
   impact   = 0,
   clientSecret,
   publishableKey = null,
@@ -330,6 +343,8 @@ export default function StripePaymentStep({
       <Elements stripe={stripePromise} options={options}>
         <StripeForm
           total={total}
+          subtotal={subtotal}
+          versand={versand}
           impact={impact}
           orderId={orderId}
           onSuccess={onSuccess}

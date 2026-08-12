@@ -123,7 +123,7 @@ serve(async (req) => {
     // Primär: nur published Items (commerce_price_authority View)
     const { data: authorityRows, error: priceErr } = await supabase
       .from('commerce_price_authority')
-      .select('item_id, item_type, price_eur, shipping_eur, creator_id, title, cover_url')
+      .select('item_id, item_type, price_eur, creator_id, title, cover_url')
       .in('item_id', itemIds)
 
     if (priceErr) {
@@ -156,14 +156,14 @@ serve(async (req) => {
     if (missingIds.length > 0) {
       const { data: fb } = await supabase
         .from('works')
-        .select('id as item_id, user_id as creator_id, price as price_eur, shipping_cost, title, cover_url, status')
+        .select('id as item_id, user_id as creator_id, price as price_eur, title, cover_url, status')
         .in('id', missingIds)
         .eq('user_id', user.id)   // NUR eigene Werke
         .in('status', ['pending_review', 'draft', 'approved'])
         .not('price', 'is', null)
         .gt('price', 0)
       if (fb?.length) {
-        fallbackRows = fb.map((r: any) => ({ ...r, item_type: 'work', shipping_eur: r.shipping_cost ?? 0 }))
+        fallbackRows = fb.map((r: any) => ({ ...r, item_type: 'work' }))
         console.log('[PI] Fallback: Owner-Werke (nicht published):', fallbackRows.map((r:any) => r.item_id))
       }
     }
@@ -176,8 +176,7 @@ serve(async (req) => {
     }
 
     // ── 5. Berechnung — alles server-side ────────────────────────
-    let serverSubtotal = 0
-    let serverShipping = 0
+    let serverTotal = 0
     const validatedItems: any[] = []
 
     for (const clientItem of clientItems) {
@@ -192,13 +191,11 @@ serve(async (req) => {
       const qty        = clientItem.quantity
       const unitPrice  = Number(dbRow.price_eur)
       const lineTotal  = +(unitPrice * qty).toFixed(2)
-      const lineShipping = +(Number(dbRow.shipping_eur || 0) * qty).toFixed(2)
       const payoutEur  = +(lineTotal * CREATOR_SHARE).toFixed(2)
       const impactEur  = +(lineTotal * IMPACT_RATE).toFixed(2)
       const commissionEur = +(lineTotal * PLATFORM_FEE_RATE).toFixed(2)
 
-      serverSubtotal += lineTotal
-      serverShipping += lineShipping
+      serverTotal += lineTotal
 
       validatedItems.push({
         seller_id:      dbRow.creator_id,  // commerce_price_authority.creator_id → order_items.seller_id
@@ -206,10 +203,10 @@ serve(async (req) => {
         item_id:        clientItem.item_id,
         quantity:       qty,
         unit_price_eur: unitPrice,
-        shipping_eur:   lineShipping,
+        shipping_eur:   0,
         payout_eur:     payoutEur,
         impact_eur:     impactEur,
-        shipping_type:  lineShipping > 0 ? 'physical' : 'none',
+        shipping_type:  'none',
         snapshot: {
           item_id:          clientItem.item_id,
           item_type:        dbRow.item_type,
@@ -227,8 +224,7 @@ serve(async (req) => {
       })
     }
 
-    const serverTotal = +((serverSubtotal + serverShipping).toFixed(2))
-    const serverShippingRounded = +(serverShipping.toFixed(2))
+    serverTotal = Math.round(serverTotal * 100) / 100
 
     if (validatedItems.length === 0) {
       return new Response(JSON.stringify({ error: 'Keine verfügbaren Items — möglicherweise nicht mehr published' }), {
@@ -248,11 +244,10 @@ serve(async (req) => {
       .from('orders')
       .insert({
         customer_id:      user.id,
-        subtotal_eur:     serverSubtotal,
-        shipping_eur:     serverShippingRounded,
+        subtotal_eur:     serverTotal,
         total_eur:        serverTotal,
-        commission_eur:   +(serverSubtotal * PLATFORM_FEE_RATE).toFixed(2),
-        impact_eur:       +(serverSubtotal * IMPACT_RATE).toFixed(2),
+        commission_eur:   +(serverTotal * PLATFORM_FEE_RATE).toFixed(2),
+        impact_eur:       +(serverTotal * IMPACT_RATE).toFixed(2),
         state:            'pending',
         currency:         'eur',
         cart_hash:        cartHash,    // für Idempotenz-Lookup
@@ -323,8 +318,7 @@ serve(async (req) => {
           customer_id:    user.id,
           item_count:     validatedItems.length.toString(),
           creator_count:  [...new Set(validatedItems.map(i => i.seller_id))].filter(Boolean).length.toString(),
-          impact_eur:     (+(serverSubtotal * IMPACT_RATE).toFixed(2)).toFixed(2),
-          shipping_eur:   serverShippingRounded.toFixed(2),
+          impact_eur:     (+(serverTotal * IMPACT_RATE).toFixed(2)).toFixed(2),
           cart_hash:      cartHash,
           source:         'hui_commerce_v2',
         },

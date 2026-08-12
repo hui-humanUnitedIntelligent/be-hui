@@ -209,22 +209,9 @@ export const orderService = {
 
   // Order lokal vorbereiten (vor Stripe — nur für Übergabe an Edge Function)
   buildOrderPayload(items, shippingStrategy, customerId) {
-    const subtotal  = calcTotalWithQty(items);
-    const impact    = calcImpact(subtotal);
-    const commissionEur = +(subtotal * 0.10).toFixed(2); // 10% Plattformgebühr (kanonisch: commission_eur)
-
-    // Versandkosten berechnen (Summe aller shipping_cost × Qty, nur physische Items)
-    let shippingEur = 0;
-    for (const item of items) {
-      const raw      = item._raw || {};
-      const delivery = (raw.delivery_type || raw.deliveryType || "physical").toLowerCase().trim();
-      if (delivery === "digital" || delivery === "download" || delivery === "service" || delivery === "pickup") continue;
-      const sc  = raw.shipping_cost;
-      const qty = (typeof item.quantity === "number" && item.quantity > 0) ? item.quantity : 1;
-      if (sc != null && sc > 0) shippingEur += parseFloat(sc) * qty;
-    }
-    shippingEur = +shippingEur.toFixed(2);
-    const total   = +(subtotal + shippingEur).toFixed(2); // Käufer zahlt Werke + Versand
+    const total     = calcTotalWithQty(items);
+    const impact    = calcImpact(total);
+    const commissionEur = +(total * 0.10).toFixed(2); // 10% Plattformgebühr (kanonisch: commission_eur)
 
     // Gruppierung nach Seller für Order Items
     const itemsBySeller = new Map();
@@ -265,8 +252,8 @@ export const orderService = {
     return {
       order: {
         customer_id:    customerId,
-        subtotal_eur:   subtotal,
-        shipping_eur:   shippingEur,
+        subtotal_eur:   total,
+        shipping_eur:   0,
         discount_eur:   0,
         total_eur:      total,
         commission_eur: commissionEur,
@@ -276,7 +263,7 @@ export const orderService = {
       },
       orderItems,
       stripe: {
-        amount_cents:             Math.round(total * 100), // inkl. Versand
+        amount_cents:             Math.round(total * 100),
         currency:                 "eur",
         shipping_address_collection: shippingStrategy.shippingAddressCollection,
         metadata: {
@@ -284,7 +271,6 @@ export const orderService = {
           item_count:     items.length.toString(),
           seller_count:   itemsBySeller.size.toString(),
           impact_eur:     impact.toFixed(2),
-          shipping_eur:   shippingEur.toFixed(2),
           source:         "hui_werkekorb_v1",
         },
       },

@@ -413,22 +413,9 @@ export default function UnterstutzenFlow({
     : () => {};
 
 
-  const subtotal  = calcTotalWithQty(items);
-  const impact     = calcImpact(subtotal);
-  const huiTotal   = calcPlatformFee(subtotal);
-
-  // Versandkosten (nur physische Items mit shipping_cost > 0)
-  let versandEur = 0;
-  for (const item of items) {
-    const raw      = item._raw || {};
-    const delivery = (raw.delivery_type || raw.deliveryType || "physical").toLowerCase().trim();
-    if (delivery === "digital" || delivery === "download" || delivery === "service" || delivery === "pickup") continue;
-    const sc  = raw.shipping_cost;
-    const qty = (typeof item.quantity === "number" && item.quantity > 0) ? item.quantity : 1;
-    if (sc != null && sc > 0) versandEur += parseFloat(sc) * qty;
-  }
-  versandEur = +versandEur.toFixed(2);
-  const total = +(subtotal + versandEur).toFixed(2); // Käufer zahlt Werke + Versand
+  const total  = calcTotalWithQty(items);
+  const impact   = calcImpact(total);
+  const huiTotal = calcPlatformFee(total);
 
   // Slide-Animation
   function goTo(nextStep, dir = 1) {
@@ -763,8 +750,6 @@ export default function UnterstutzenFlow({
                     /* Stripe Payment Element */
                     <StripePaymentStep
                       total={total}
-                      subtotal={subtotal}
-                      versand={versandEur}
                       impact={impact}
                       clientSecret={clientSecret}
                       publishableKey={publishableKey}
