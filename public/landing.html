@@ -291,10 +291,10 @@ ul{list-style:none}
 .action-card .desc{font-size:15px;font-weight:300;line-height:1.6;color:var(--ink-mid)}
 
 /* ═══ HERKUNFT ═══ */
-.origin{padding:0 0 104px;background:var(--cream-warm);text-align:center;position:relative;overflow:hidden}
-.origin-visual{width:100%;aspect-ratio:16/9;background-image:url('/assets/origin-vereine.webp');background-size:cover;background-position:center center;background-repeat:no-repeat;position:relative;z-index:0}
-.origin-visual::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(250,247,242,0) 0%,rgba(250,247,242,0) 58%,rgba(250,247,242,.5) 78%,rgba(250,247,242,.88) 100%);pointer-events:none}
-.origin-inner{max-width:640px;margin:-100px auto 0;position:relative;z-index:1;background:rgba(255,253,248,.72);backdrop-filter:blur(20px) saturate(150%);-webkit-backdrop-filter:blur(20px) saturate(150%);border-radius:36px;padding:52px 48px 48px;box-shadow:0 24px 60px rgba(20,20,34,.10),0 2px 20px rgba(20,20,34,.05)}
+.origin{background:url('/assets/origin-vereine.webp') center 35%/cover no-repeat var(--cream-warm);text-align:center;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:clamp(500px,56vw,680px);padding:64px 32px}
+.origin::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 42% 50% at 50% 48%,rgba(250,247,242,.18) 0%,transparent 68%);pointer-events:none;z-index:0}
+.origin::after{content:'';position:absolute;bottom:0;left:0;right:0;height:100px;background:linear-gradient(180deg,transparent,var(--cream-warm));pointer-events:none;z-index:0}
+.origin-inner{max-width:500px;position:relative;z-index:1;background:rgba(250,247,242,.62);backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%);border-radius:28px;padding:44px 38px;box-shadow:0 20px 50px rgba(20,20,34,.08),0 2px 16px rgba(20,20,34,.04)}
 .origin-kicker{font-size:12px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:var(--coral);margin-bottom:24px}
 .origin-h2{font-size:clamp(28px,4.5vw,42px);font-weight:600;letter-spacing:-.02em;line-height:1.2;color:var(--ink);margin-bottom:40px}
 .origin-project{font-size:clamp(28px,5vw,48px);font-weight:300;line-height:1.3;color:var(--teal);letter-spacing:-.02em;margin-bottom:40px;font-style:italic;text-shadow:0 1px 20px rgba(13,196,181,.06)}
@@ -365,7 +365,7 @@ ul{list-style:none}
 
   .actions-grid{grid-template-columns:1fr;gap:16px}
 
-  .origin-inner{margin-top:-72px;padding:40px 34px 38px;border-radius:30px}
+  .origin-inner{max-width:440px;padding:36px 28px 34px;border-radius:24px}
 
   .app-show{padding:64px 24px}
   .hui-app-showcase{display:flex;flex-direction:column;align-items:center;gap:24px}
@@ -411,8 +411,8 @@ ul{list-style:none}
   .actions{padding:64px 24px}
   .actions-sub{margin-bottom:36px}
 
-  .origin{padding:0 0 72px}
-  .origin-inner{margin-top:-56px;padding:36px 28px 34px;border-radius:26px}
+  .origin{min-height:clamp(420px,65vw,520px);padding:48px 20px}
+  .origin-inner{max-width:90%;padding:32px 24px 30px;border-radius:22px}
   .honest{padding:60px 24px}
 
   .impact{padding:64px 24px}
@@ -431,7 +431,8 @@ ul{list-style:none}
   .eco-connect p{font-size:16px}
   .impact-cell{padding:22px}
   .hui-app-phone{width:180px;height:360px}
-  .origin-inner{margin-top:-40px;padding:28px 20px 26px;border-radius:22px}
+  .origin{min-height:clamp(380px,75vw,460px);padding:36px 16px}
+  .origin-inner{max-width:94%;padding:26px 20px 24px;border-radius:18px}
 }
 
 /* ═══ REDUCED MOTION ═══ */
@@ -744,7 +745,6 @@ ul{list-style:none}
 
 <!-- ═══ SEKTION — DIE HERKUNFT VON HUI ═══ -->
 <section class="origin">
-  <div class="origin-visual" aria-hidden="true"></div>
   <div class="origin-inner">
     <p class="origin-kicker reveal">Die Idee dahinter</p>
     <h2 class="origin-h2 reveal d1">HUI begann mit einer gemeinsamen Idee.</h2>
