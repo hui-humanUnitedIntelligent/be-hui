@@ -73,7 +73,7 @@ function ActionCard({ action, onSelect, delay }) {
       boxShadow:"0 2px 12px rgba(0,0,0,0.04)",
       animation:`hms-card-in .40s cubic-bezier(.34,1.56,.64,1) ${delay}ms both`,
       userSelect:"none",
-    }}>
+    }} role="button" tabIndex={0}>
       <div style={{ width:58,height:58,borderRadius:"50%",background:action.iconBg,
         display:"flex",alignItems:"center",justifyContent:"center",fontSize:26 }}>
         {action.icon}
@@ -368,7 +368,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
         background:"rgba(15,30,26,0.30)",
         backdropFilter:"blur(4px)",WebkitBackdropFilter:"blur(4px)",
         animation:isClosing?"hms-overlay-out .28s ease both":"hms-overlay-in .22s ease both",
-      }}/>
+      }} role="button" tabIndex={0} />
 
       {/* Sheet */}
       <div onClick={e => e.stopPropagation()} style={{

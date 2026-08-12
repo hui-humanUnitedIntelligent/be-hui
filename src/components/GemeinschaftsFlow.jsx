@@ -347,7 +347,7 @@ function Step4({ onBack, onConfirm, loading }) {
         marginBottom:24,
       }}>
         {CHECKS.map(ck => (
-          <div key={ck.id} className="gf-check-row" onClick={() => toggle(ck.id)}>
+          <div key={ck.id} className="gf-check-row" onClick={() => toggle(ck.id)} role="button" tabIndex={0}>
             <div className={`gf-checkbox ${checked[ck.id] ? "checked" : ""}`}>
               {checked[ck.id] && (
                 <svg width="13" height="10" viewBox="0 0 13 10" fill="none">
@@ -479,7 +479,7 @@ export default function GemeinschaftsFlow({ onClose, onComplete }) {
   }, [onComplete, onClose]);
 
   return (
-    <div className="gf-root" onClick={(e) => { if (e.target === e.currentTarget) onClose?.(); }}>
+    <div className="gf-root" onClick={(e) => { if (e.target === e.currentTarget) onClose?.(); }} role="button" tabIndex={0}>
       <style>{CSS}</style>
       <div className="gf-sheet">
         <div className="gf-scroll">

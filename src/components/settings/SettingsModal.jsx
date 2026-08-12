@@ -391,7 +391,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
   };
 
   return createPortal(
-    <div style={overlay} onClick={e=>{ if(e.target===e.currentTarget) onClose?.(); }}>
+    <div style={overlay} onClick={e=>{ if(e.target===e.currentTarget) onClose?.(); }} role="button" tabIndex={0}>
       <div style={sheet}>
 
         {/* ── Header ── */}

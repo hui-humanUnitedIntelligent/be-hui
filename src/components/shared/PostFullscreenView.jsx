@@ -317,7 +317,7 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
               {mountedItem.embeddedRefs.map((ref, i) => (
                 <div key={i} className="pfv-btn" onClick={() => onOpenPost?.(ref)} style={{
                   minWidth:140, border:`1px solid ${T.border}`, borderRadius:14, padding:12, flexShrink:0,
-                }}>
+                }} role="button" tabIndex={0}>
                   <div style={{ fontSize:11, fontWeight: 600, color:T.teal, marginBottom:4 }}>{ref.typeLabel}</div>
                   <div style={{ fontSize:13, fontWeight:600, color:T.ink }}>{ref.title}</div>
                 </div>
@@ -347,7 +347,7 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
                   <div key={row.id} className="pfv-btn" onClick={() => onOpenPost?.(row)} style={{
                     width:96, height:96, borderRadius:12, overflow:"hidden", flexShrink:0,
                     background:"rgba(26,26,46,0.05)",
-                  }}>
+                  }} role="button" tabIndex={0}>
                     {row.src && (row.type === "video"
                       ? <video src={row.src} muted playsInline preload="metadata" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
                       : <img loading="lazy" decoding="async" src={optimizeCard(row.src)} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>)}

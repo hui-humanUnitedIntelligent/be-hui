@@ -720,7 +720,7 @@ export function HighlightsRow({ userId }) {
           {highlights.map((h, i) => (
             <div key={h.id} onClick={() => setViewing(i)}
               style={{ flexShrink:0, cursor:'pointer', display:'flex', flexDirection:'column',
-                alignItems:'center', gap:6 }}>
+                alignItems:'center', gap:6 }} role="button" tabIndex={0}>
               <div style={{ width:64, height:64, borderRadius:'50%', padding:3,
                 background:`linear-gradient(135deg, ${C.gold}, ${C.coral})` }}>
                 <div style={{ width:'100%', height:'100%', borderRadius:'50%',

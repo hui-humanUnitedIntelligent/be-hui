@@ -370,7 +370,7 @@ export default function ImageGalleryModal({ images, startIndex = 0, onClose = ()
                 width: i === idx ? 18 : 6, height: 6, borderRadius: 3,
                 background: i === idx ? "#fff" : "rgba(255,255,255,0.4)",
                 transition: "all 0.25s", cursor: "pointer",
-              }} />
+              }} role="button" tabIndex={0} />
           ))}
         </div>
       )}

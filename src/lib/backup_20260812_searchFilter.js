@@ -19,12 +19,7 @@
 
 function norm(v) {
   if (v == null) return "";
-  // Sanitize: control chars entfernen, max 200 Zeichen, trim+lowercase
-  return String(v)
-    .replace(/[\x00-\x1f\x7f]/g, "")  // control chars
-    .slice(0, 200)                       // max length
-    .toLowerCase()
-    .trim();
+  return String(v).toLowerCase().trim();
 }
 
 /**

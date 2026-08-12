@@ -664,7 +664,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
       <style>{CSS}</style>
       <div className="cs-overlay" onClick={onClose} style={{
         position:"absolute", inset:0, background:T.overlay,
-      }}/>
+      }} role="button" tabIndex={0} />
       <div className="cs-sheet" style={{
         position:"absolute", left:0, right:0, bottom:"var(--hui-keyboard-inset, 0px)", maxHeight:"calc(86dvh - var(--hui-keyboard-inset, 0px))",
         background:"rgba(252,253,252,0.96)",

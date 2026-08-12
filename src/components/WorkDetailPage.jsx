@@ -191,7 +191,7 @@ function ImageGallery({ images, title }) {
             <div key={i} onClick={() => setIdx(i)}
               style={{ width: i===idx ? 18 : 6, height:6, borderRadius:3,
                 background: i===idx ? "white" : "rgba(255,255,255,0.45)",
-                transition:"all 0.25s", cursor:"pointer" }}/>
+                transition:"all 0.25s", cursor:"pointer" }} role="button" tabIndex={0} />
           ))}
         </div>
       )}
@@ -240,7 +240,7 @@ function RelatedCard({ werk, onClick }) {
     || null;
   return (
     <div className="wd-tap" onClick={() => onClick(werk.id)}
-      style={{ flexShrink:0, width:140, cursor:"pointer" }}>
+      style={{ flexShrink:0, width:140, cursor:"pointer" }} role="button" tabIndex={0}>
       <div style={{ borderRadius:16, overflow:"hidden", height:140,
         position:"relative", background:"#eee",
         boxShadow:"0 3px 12px rgba(0,0,0,0.10)" }}>

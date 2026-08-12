@@ -257,7 +257,7 @@ function RadiusRow({ radius }) {
         <div style={{display:"flex",gap:6,marginTop:8,animation:"hui-search-fade-in .18s ease both"}}>
           <input
             value={manualQuery}
-            onChange={e=>setManualQuery(e.target.value)}
+            onChange={e=>setManualQuery(e.target.value.slice(0,200))}
             onKeyDown={e=>{ if (e.key==="Enter") submitManual(); }}
             placeholder="PLZ oder Ort eingeben…"
             style={{
@@ -338,7 +338,7 @@ function AllCategoriesSheet({ sheetRef, phase, query, onQueryChange, onSelect, o
         background:"rgba(20,38,34,0.30)",
         opacity: visible ? 1 : 0,
         transition: phase === "leaving" ? "opacity .18s ease" : "opacity .22s ease",
-      }}/>
+      }} role="button" tabIndex={0} />
 
       {/* Sheet */}
       <div style={{
@@ -380,7 +380,7 @@ function AllCategoriesSheet({ sheetRef, phase, query, onQueryChange, onSelect, o
             <input
               autoFocus={false}
               value={query}
-              onChange={e=>onQueryChange(e.target.value)}
+              onChange={e=>onQueryChange(e.target.value.slice(0,200))}
               placeholder="Kategorien durchsuchen…"
               style={{
                 flex:1, outline:"none", border:"none", background:"none",
@@ -960,7 +960,7 @@ export default function SearchCommandCenter({
       boxShadow: open ? T.shadowFocus : T.shadowRest,
       padding:"0 10px 0 16px", cursor:"text",
       transition:"box-shadow .32s cubic-bezier(.22,1,.36,1), background .28s ease, border-color .28s ease",
-    }}>
+    }} role="button" tabIndex={0}>
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style={{flexShrink:0,opacity:open?.7:.36,transition:"opacity .2s ease"}}>
         <circle cx="11" cy="11" r="7" stroke={T.teal} strokeWidth="1.7"/>
         <path d="M20 20L16.5 16.5" stroke={T.teal} strokeWidth="1.7" strokeLinecap="round"/>
@@ -968,7 +968,7 @@ export default function SearchCommandCenter({
       <div style={{flex:1,position:"relative",height:44,display:"flex",alignItems:"center"}}>
         <input ref={inputRef} className="dc-input"
           value={query}
-          onChange={e=>setQuery(e.target.value)}
+          onChange={e=>setQuery(e.target.value.slice(0,200))}
           onFocus={open_}
         />
         {!query && !open && (
@@ -988,7 +988,7 @@ export default function SearchCommandCenter({
         </button>
         {showKi && <KiPanel onSelect={handleKiSelect} onClose={()=>setShowKi(false)}/>}
       </div>
-      <div className="dc-tag" style={{flexShrink:0,padding:"0 2px",opacity:.24,cursor:"pointer"}} onClick={e=>e.stopPropagation()}>
+      <div className="dc-tag" style={{flexShrink:0,padding:"0 2px",opacity:.24,cursor:"pointer"}} onClick={e=>e.stopPropagation()} role="button" tabIndex={0}>
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
           <rect x="9" y="2" width="6" height="11" rx="3" stroke={T.ink} strokeWidth="1.7"/>
           <path d="M5 10a7 7 0 0014 0" stroke={T.ink} strokeWidth="1.7" strokeLinecap="round"/>
@@ -1147,7 +1147,7 @@ export default function SearchCommandCenter({
                 <input
                   autoFocus
                   value={locationQuery}
-                  onChange={e=>setLocationQuery(e.target.value)}
+                  onChange={e=>setLocationQuery(e.target.value.slice(0,200))}
                   onBlur={()=>{ if (!locationQuery) setLocationInputOpen(false); }}
                   onKeyDown={e=>{ if (e.key==="Enter") e.currentTarget.blur(); }}
                   placeholder="Ort eingeben…"

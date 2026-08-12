@@ -938,26 +938,28 @@ function PreisBlock({ werke, versand, rabatt }) {
 function calcShipping(items) {
   let total = 0;
   let hasShipping = false;
+  let allFree = true;
   for (const item of items) {
     const raw = item._raw || {};
-    // DB-Spalten: is_digital, shipping_available, pickup_available, shipping_cost
-    const isDigital     = raw.is_digital === true;
-    const shipAvailable  = raw.shipping_available === true || raw.shipping === true;
-    const pickupOnly     = raw.pickup_available === true && !shipAvailable;
-    // Digital oder nur Abholung → keine Versandkosten
-    if (isDigital || pickupOnly) continue;
-    if (!shipAvailable) continue; // Kein Versand angeboten
-    // Versand verfügbar — shipping_cost auslesen
-    hasShipping = true;
+    const delivery = (raw.delivery_type || raw.deliveryType || "physical").toLowerCase().trim();
+    // Digital/service/pickup = keine Versandkosten
+    if (delivery === "digital" || delivery === "download" || delivery === "service" || delivery === "pickup") continue;
     const sc = raw.shipping_cost;
-    const qty = (typeof item.quantity === "number" && item.quantity > 0) ? item.quantity : 1;
     if (sc != null && sc > 0) {
+      hasShipping = true;
+      allFree = false;
+      const qty = (typeof item.quantity === "number" && item.quantity > 0) ? item.quantity : 1;
       total += parseFloat(sc) * qty;
+    } else if (sc == null) {
+      // Kein shipping_cost gesetzt → könnte physisch sein, aber unknown
+      // Wir setzen hasShipping=true um "Versand: wird berechnet" zu zeigen
+      hasShipping = true;
+      allFree = false;
+    } else if (sc === 0) {
+      hasShipping = true; // Kostenloser Versand → anzeigen
     }
-    // sc === 0 → kostenloser Versand, wird als 0 angezeigt
-    // sc == null → Versand verfügbar aber Preis unbekannt, wird als 0 angezeigt
   }
-  if (!hasShipping) return null; // Keine Versand-Items
+  if (!hasShipping) return null; // Keine physischen Items
   return total; // 0 = kostenlos, >0 = Kosten, null = keine Versand-Items
 }
 
