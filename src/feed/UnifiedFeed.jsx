@@ -13,6 +13,7 @@ import React, { useState, useMemo, useEffect, useRef, useCallback } from "react"
 import FeedRouter              from "./cards/FeedRouter.jsx";
 import { CardSkeleton }        from "./cards/BaseFeedCard.jsx";
 import { useFeedStream }       from "./useFeedStream.js";
+import FeedFilterBar          from "./FeedFilterBar.jsx";
 import { FeedSoftHydrationBadge } from "./FeedSoftHydrationBadge.jsx";
 import { toFeedItem }          from "../system/feed/unifiedNormalizer.js";
 import FeedEventsSection       from "./FeedEventsSection.jsx";
@@ -867,6 +868,15 @@ export default function UnifiedFeed({
     return safe;
   }, [itemsProp, streamItems, streamLoading]);
 
+  // ── FEED-FILTERBAR (2026-08-12, Michael-Auftrag 07:40) ─────────────
+  // Eigener, unabhängiger State — getrennt vom SearchCommandCenter-
+  // typeFilter (oben). Diese Bar sitzt im "Zwischenraum" zwischen
+  // FeedWelcomeHeader und dem ersten Post, rein clientseitig, keine
+  // neuen Backend-Calls. EXPERIMENTELL, siehe FeedFilterBar.jsx Header.
+  const [barTypeFilter, setBarTypeFilter]           = useState(null);
+  const [barLocationQuery, setBarLocationQuery]     = useState("");
+  const [barSort, setBarSort]                       = useState("newest");
+
   // ── SEARCH FILTER (2026-08-12) ────────────────────────────────────
   // BUGFIX: SearchCommandCenter schreibt query/typeFilter/categories in
   // searchState (HomeShell) → Home.jsx gibt sie hierher weiter. Bisher
@@ -941,6 +951,37 @@ export default function UnifiedFeed({
     return result;
   }, [resolvedItems, searchQuery, typeFilter, categoryFilters, kiMode]);
 
+  // ── FEED-FILTERBAR — zweite Filterstufe (2026-08-12) ───────────────
+  // Wendet die Bar-Filter (Inhaltstyp/Ort/Datum) AUF DIE BEREITS durch
+  // Suche/KI-Modus gefilterten Items an (AND-Verknüpfung). So bleiben
+  // beide Filter-Mechanismen unabhängig funktionsfähig -- keine
+  // Duplikat-Logik, nur eine zusätzliche Verfeinerungsstufe.
+  const barFilteredItems = useMemo(() => {
+    let result = searchFilteredItems;
+    if (barTypeFilter) {
+      result = result.filter(i => i.type === barTypeFilter);
+    }
+    const locQ = barLocationQuery.trim().toLowerCase();
+    if (locQ) {
+      result = result.filter(i => (i.location || "").toLowerCase().includes(locQ));
+    }
+    if (barSort === "oldest") {
+      result = [...result].sort((a, b) => {
+        const ta = new Date(a._raw?.created_at || a._raw?.createdAt || 0).getTime();
+        const tb = new Date(b._raw?.created_at || b._raw?.createdAt || 0).getTime();
+        return ta - tb;
+      });
+    }
+    // "newest" = Standard-Feed-Reihenfolge (bereits neueste-zuerst vom Backend) -- kein Sort nötig.
+    return result;
+  }, [searchFilteredItems, barTypeFilter, barLocationQuery, barSort]);
+
+  const resetBarFilters = useCallback(() => {
+    setBarTypeFilter(null);
+    setBarLocationQuery("");
+    setBarSort("newest");
+  }, []);
+
   // Sections are directly imported — no lazy load needed
 
   return (
@@ -956,6 +997,20 @@ export default function UnifiedFeed({
       {!skipWelcome && <FeedWelcomeHeader currentUser={currentUser} />}
 
       {/* Stories entfernt — HUI-Momente sind die Stories */}
+
+      {/* ── FEED-FILTERBAR (2026-08-12) — Zwischenraum zwischen Welcome-Header und Feed ── */}
+      {!skipWelcome && (
+        <FeedFilterBar
+          typeFilter={barTypeFilter}
+          onTypeFilterChange={setBarTypeFilter}
+          locationQuery={barLocationQuery}
+          onLocationQueryChange={setBarLocationQuery}
+          sort={barSort}
+          onSortChange={setBarSort}
+          resultCount={barFilteredItems.length}
+          onReset={resetBarFilters}
+        />
+      )}
 
       {/* ── EVENTS — below stories ── */}
       {showEvents && (
@@ -977,13 +1032,13 @@ export default function UnifiedFeed({
 
       <SectionBoundary name="feedList">
         {/* Loading state — shimmer skeletons */}
-        {streamLoading && searchFilteredItems.length === 0 && (
+        {streamLoading && barFilteredItems.length === 0 && (
           <div>
             {Array.from({length:4}).map((_,i) => <CardSkeleton key={i} />)}
           </div>
         )}
         {/* DEAD CODE BELOW — kept for reference */}
-        {false && streamLoading && searchFilteredItems.length === 0 && (
+        {false && streamLoading && barFilteredItems.length === 0 && (
           <div style={{ padding: "32px 16px 0", display:"none" }}>
             {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} style={{
@@ -1010,9 +1065,9 @@ export default function UnifiedFeed({
         )}
 
         {/* Feed list — only when not first-load */}
-        {(!streamLoading || searchFilteredItems.length > 0) && (
+        {(!streamLoading || barFilteredItems.length > 0) && (
           <FeedList
-            items={searchFilteredItems}
+            items={barFilteredItems}
             onProfile={onProfile}
             onBook={onBook}
             onDetail={onDetail}
@@ -1028,12 +1083,16 @@ export default function UnifiedFeed({
       </SectionBoundary>
 
       {/* ── No-Results bei aktiver Suche ── */}
-      {searchActive && !streamLoading && searchFilteredItems.length === 0 &&
-       (searchQuery || typeFilter || (categoryFilters && categoryFilters.length > 0) || kiMode) && (
+      {((searchActive && (searchQuery || typeFilter || (categoryFilters && categoryFilters.length > 0) || kiMode)) ||
+        barTypeFilter || barLocationQuery.trim()) &&
+       !streamLoading && barFilteredItems.length === 0 && (
         <div style={{ padding:"60px 24px", textAlign:"center", color:"rgba(26,53,48,0.38)" }}>
           <div style={{ fontSize:15, fontWeight:600, marginBottom:6 }}>Keine Ergebnisse</div>
           <div style={{ fontSize:13 }}>
-            Für „{searchQuery}" wurde nichts im Feed gefunden.
+            {searchQuery
+              ? <>Für „{searchQuery}" wurde nichts im Feed gefunden.</>
+              : <>Keine Beiträge passen zu diesem Filter.</>
+            }
           </div>
         </div>
       )}
