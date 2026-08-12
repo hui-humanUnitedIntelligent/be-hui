@@ -21,6 +21,20 @@
 //
 // FIX v2 (2026-08-11):
 //   Zoom reduziert (1.5x/3x), Back-Button-Logik, SOFORT-Zuruecksetzen.
+//
+// FIX v6 (2026-08-12) — "Bild oeffnet sich hinter Post-Detail-Modal":
+//   Root Cause: zIndex war 10600 -- niedriger als PostFullscreenView (15000),
+//   CommentsSheet (15500) und HuiShareModal (16000). Die Lightbox wurde per
+//   createPortal(...,document.body) korrekt aus dem Stacking-Context
+//   herausgehoben, aber der zIndex-Wert selbst war zu niedrig -- deshalb lag
+//   sie trotz Portal HINTER dem Detail-Modal (nur Portal ohne ausreichenden
+//   zIndex reicht nicht, siehe footer-navbar-zindex.md). Nach Systemaudit
+//   aller zIndex-Tiers (10000 BottomNav .. 29000 Toast) auf 21000 gesetzt --
+//   sicher ueber allen Content-Modals (PostFullscreenView 15000, ShareModal
+//   16000, ProfileCompletionFlow 17000/18000, AuthGate 19000, Notifications
+//   19500/19600, OTAUpdatePopup 20000) und weiterhin unter Toast (29000) /
+//   Ambassador-Bestaetigung (25000), damit kritische System-Meldungen
+//   waehrend des Bildzooms weiterhin sichtbar bleiben.
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
@@ -283,7 +297,7 @@ export default function ImageLightbox() {
   return createPortal(
     React.createElement("div", {
       style: {
-        position:"fixed", inset:0, zIndex:10600,
+        position:"fixed", inset:0, zIndex:21000,
         background:"#000",
         display:"flex", alignItems:"center", justifyContent:"center",
         opacity: visible ? 1 : 0,
