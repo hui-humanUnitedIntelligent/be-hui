@@ -9,6 +9,17 @@ import { initAppPerformance } from './lib/appPerformance.js'
 import { initOTA, autoCheckOTA } from './lib/otaUpdate.js'
 import { initGlobalKeyboardHandling } from './lib/globalKeyboardHandler.js'
 
+// ── Production Console Silencer (2026-08-12) ─────────────────────
+// Silences console.log + console.debug in production to prevent
+// data leaks + perf overhead on mobile. console.warn + console.error
+// stay active for production diagnostics.
+// Override per-session: localStorage.setItem('hui_debug_log', '1')
+if (!import.meta.env.DEV && !localStorage.getItem('hui_debug_log')) {
+  const noop = () => {};
+  console.log = noop;
+  console.debug = noop;
+}
+
 initSentry()
 initAppPerformance();
 
