@@ -571,9 +571,6 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
       sale_mode:    "fixed",
       materials:    form.material     || null,
       shipping:     !!form.versand,
-      shipping_available: !!form.versand,
-      pickup_available:    !!form.abholung,
-      is_digital:          form.werktyp === "digital" || form.category === "digital",
       shipping_cost: form.versandkosten ? parseFloat(form.versandkosten) : null,
       shipping_countries: [
         form.versandNational,

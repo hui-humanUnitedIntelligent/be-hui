@@ -218,6 +218,9 @@ export function allowsQuantity(item) {
   //   4. Kategorie-Hinweise (product/merch/print/…) → IMMER Menge
   //
   if (type === "work") {
+    // DB-Spalte is_digital → direkt auslesen (seit 2026-08-12 von WerkWizard gespeichert)
+    if (raw.is_digital === true) return false;
+    
     const delivery = (raw.delivery_type || raw.deliveryType || "").toLowerCase().trim();
 
     // Explizit digital → kein Mengenwähler
