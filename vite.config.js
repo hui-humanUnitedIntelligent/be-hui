@@ -22,7 +22,6 @@ export default defineConfig({
     rollupOptions: {
       external: ['@capacitor/filesystem', '@capacitor/share'],
       input: {
-        landing: 'landing.html',
         main: 'index.html',
         web: 'web.html',
       },
