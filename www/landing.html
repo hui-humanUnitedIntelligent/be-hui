@@ -148,7 +148,7 @@ ul{list-style:none}
 @keyframes phone-flash{0%,100%{box-shadow:0 30px 70px rgba(20,20,34,.18),0 0 0 1px rgba(20,20,34,.06),inset 0 0 0 1px rgba(255,255,255,.06),0 0 40px rgba(13,196,181,.06)}50%{box-shadow:0 30px 70px rgba(20,20,34,.18),0 0 0 2px rgba(13,196,181,.22),inset 0 0 0 1px rgba(255,255,255,.06),0 0 40px rgba(13,196,181,.06)}}
 .phone-screen{width:100%;height:100%;border-radius:31px;overflow:hidden;position:relative;background:linear-gradient(180deg,#FAF7F2,#F5F0E8)}
 .phone-notch{position:absolute;top:7px;left:50%;transform:translateX(-50%);width:88px;height:22px;background:var(--ink);border-radius:0 0 14px 14px;z-index:3}
-.screen-content{position:absolute;inset:0;opacity:0;transform:translateX(24px);transition:opacity .45s var(--ease),transform .45s var(--ease);overflow:hidden;padding:14px 11px;display:flex;flex-direction:column;gap:7px;background:linear-gradient(180deg,#FAF7F2,#F5F0E8)}
+.screen-content{position:absolute;inset:0;opacity:0;transform:translateX(24px);transition:opacity .45s var(--ease),transform .45s var(--ease);overflow:hidden;padding:32px 11px 14px;display:flex;flex-direction:column;gap:7px;background:linear-gradient(180deg,#FAF7F2,#F5F0E8)}
 .screen-content.active{opacity:1;transform:translateX(0);z-index:1}
 .screen-content.leaving{opacity:0;transform:translateX(-24px);z-index:0}
 .screen-content.active > *{animation:mini-in .4s var(--ease-out) backwards}
@@ -209,8 +209,6 @@ ul{list-style:none}
 .mini-flow-arrow{font-size:9px;color:var(--muted);line-height:1}
 .app-cta-sub{margin-top:14px;font-size:13px;font-weight:400;color:var(--muted)}
 .hui-app-showcase-cta{text-align:center;margin-top:8px}
-.test-anim{position:absolute;top:60px;left:24px;width:14px;height:14px;border-radius:50%;background:var(--teal);z-index:20;animation:test-move 3s ease-in-out infinite}
-@keyframes test-move{0%,100%{transform:translateX(0)}50%{transform:translateX(40px)}}
 
 /* ═══ HERO AMBIENT ═══ */
 .hero-glow{position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse 50% 40% at 50% 35%,rgba(255,238,210,.2) 0%,transparent 60%),radial-gradient(ellipse 40% 35% at 45% 50%,rgba(13,196,181,.12) 0%,transparent 55%);animation:hero-breathe 8s ease-in-out infinite;will-change:opacity,transform}
@@ -580,7 +578,6 @@ ul{list-style:none}
 
 <!-- ═══ SEKTION — DIE HUI APP ═══ -->
 <section class="app-show" id="app">
-  <div class="test-anim"></div>
   <div class="app-show-inner">
     <p class="app-show-kicker reveal">Die HUI App</p>
     <h2 class="app-show-h2 reveal d1">Alles, was dich bewegt. An einem Ort.</h2>
