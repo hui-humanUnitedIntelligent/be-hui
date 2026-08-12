@@ -10,6 +10,7 @@ import { HUIAnsichtIcon, HUIAwardIcon,
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { optimizeAvatar, optimizeCard } from '../lib/perfUtils.js';
 import { supabase } from '../lib/supabaseClient';
+import { findOrCreateChat } from '../lib/chatContext.js';
 import { useAuth } from '../lib/AuthContext';
 import { HUI } from "../design/hui.design.js";
 import { HUILogo } from "./brand/HUILogo.jsx";
@@ -260,13 +261,25 @@ export function StoryViewer({ data: initData, onClose, onViewProfile }) {
   async function sendReply() {
     if (!replyText.trim() || !user?.id || !current) return;
     try {
-      await supabase.from('messages').insert({
-        sender_id: user.id,
-        receiver_id: current.user_id,
-        text: `↩ Story: ${replyText.trim()}`,
-        story_id: current.id,
-        created_at: new Date().toISOString(),
+      // Story-Reply via Chat-System (messages.chat_id → chats.id)
+      const chat = await findOrCreateChat({
+        userId: user.id,
+        otherUserId: current.user_id,
+        contextType: 'story_reply',
       });
+      if (chat?.id) {
+        await supabase.from('messages').insert({
+          chat_id: chat.id,
+          sender_id: user.id,
+          text: `↩ Story: ${replyText.trim()}`,
+          created_at: new Date().toISOString(),
+        });
+        // Chat-Metadaten aktualisieren
+        await supabase.from('chats').update({
+          last_message: `↩ Story: ${replyText.trim()}`.slice(0, 100),
+          last_message_at: new Date().toISOString(),
+        }).eq('id', chat.id);
+      }
     } catch(_) { /* story transition — suppress */ }
     setSentReply(true);
     setReplyText('');
