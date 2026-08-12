@@ -327,7 +327,7 @@ export default function LoginPage() {
     try {
       const stored = localStorage.getItem('hui_referral_ambassador');
       if (stored) {
-        const parsed = JSON.parse(stored);
+        let parsed; try { parsed = JSON.parse(stored); } catch(e) { parsed = null; }
         if (parsed?.expiry && Date.now() < parsed.expiry && parsed.username) {
           setRefLink(`https://be-hui.com/${parsed.username}`);
         }
@@ -532,13 +532,13 @@ export default function LoginPage() {
     await persistManualRefLinkToStorage();
     let ambassadorId = null;
     try {
-      const justStored = JSON.parse(localStorage.getItem('hui_referral_ambassador') || 'null');
+      let justStored = null; try { justStored = JSON.parse(localStorage.getItem('hui_referral_ambassador') || 'null'); } catch(e) {}
       if (justStored?.ambassadorId) ambassadorId = justStored.ambassadorId;
     } catch {}
     // Prio 2: localStorage (gesetzt von RefRedirect wenn Nutzer über Link kam)
     if (!ambassadorId) {
       try {
-        const stored = JSON.parse(localStorage.getItem('hui_referral_ambassador') || 'null');
+        let stored = null; try { stored = JSON.parse(localStorage.getItem('hui_referral_ambassador') || 'null'); } catch(e) {}
         if (stored?.ambassadorId && Date.now() < stored.expiry) {
           ambassadorId = stored.ambassadorId;
         }

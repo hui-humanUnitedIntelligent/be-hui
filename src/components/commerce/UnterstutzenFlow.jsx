@@ -579,7 +579,7 @@ export default function UnterstutzenFlow({
       _step = 'S10';
       let result;
       try {
-        result = JSON.parse(rawText);
+        try { result = JSON.parse(rawText); } catch(e) { result = null; }
       } catch (parseErr) {
         throw new Error('JSON parse failed: ' + rawText.slice(0, 200));
       }

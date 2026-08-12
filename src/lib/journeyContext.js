@@ -307,7 +307,7 @@ export function useReturnVisitor(profile) {
     // Letzten Besuchskontext aus localStorage holen
     try {
       const stored = localStorage.getItem("hui_last_context");
-      if (stored) setLastContext(JSON.parse(stored));
+      if (stored) { try { setLastContext(JSON.parse(stored)); } catch(e) {} }
     } catch { /* ignore */ }
   }, []);
 

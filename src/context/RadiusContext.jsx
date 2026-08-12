@@ -55,7 +55,7 @@ function loadStoredRadius() {
 function loadStoredGeo() {
   try {
     const raw = localStorage.getItem(LS_GEO_KEY);
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null; try { return JSON.parse(raw); } catch(e) { return null; }
   } catch { return null; }
 }
 
