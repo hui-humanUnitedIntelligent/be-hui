@@ -152,8 +152,8 @@ export default function DiagnosePage() {
     // 3. Tabellen-Counts
     const tables = ['works','stories','experiences','profiles','wirker_profiles',
                     'bookings','messages','chats','notifications','follows',
-                    'work_likes','work_saves','impact_projects','impact_votes',
-                    'recommendations','favorites','media'];
+                    'post_reactions','post_comments','impact_projects','impact_votes',
+                    'recommendations','favorites','core_connections','stripe_payments','media'];
 
     out.counts = {};
     for (const t of tables) {
