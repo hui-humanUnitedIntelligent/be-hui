@@ -626,7 +626,6 @@ export default function SearchCommandCenter({
 
   const wrapRef  = useRef(null);
   const inputRef = useRef(null);
-  const closingRef = useRef(false);  // verhindert onFocus Re-Open Race beim Schließen
   const kiRef    = useRef(null);
   const filterRowRef = useRef(null);
   const recognitionRef = useRef(null);
@@ -789,12 +788,10 @@ export default function SearchCommandCenter({
   const has = !!activeMood;
 
   function open_(){
-    closingRef.current = false;
     setOpen(true);
     setTimeout(()=>inputRef.current?.focus(), 60);
   }
   function close_(){
-    closingRef.current = true;
     setOpen(false);
     setShowKi(false);
     setShowAllCategories(false);
@@ -1038,8 +1035,8 @@ export default function SearchCommandCenter({
         <input ref={inputRef} className="dc-input"
           value={query}
           onChange={e=>setQuery(e.target.value.slice(0,200))}
-          onFocus={() => { if (!closingRef.current) open_(); }}
-          onClick={e=>{e.stopPropagation(); if(open&&!query.trim()) close_();}}
+          onFocus={open_}
+          onClick={e=>e.stopPropagation()}
         />
         {!query && !open && (
           <span style={{position:"absolute",left:0,pointerEvents:"none",fontSize:14,fontWeight:450,letterSpacing:"-0.01em",color:has?`${mc}85`:"rgba(26,53,48,0.32)",opacity:phVis?1:0,transform:phVis?"translateY(0)":"translateY(4px)",transition:"opacity .3s ease, transform .3s ease",whiteSpace:"nowrap",overflow:"hidden",maxWidth:"100%"}}>{PH[phIdx]}</span>
@@ -1339,18 +1336,6 @@ export default function SearchCommandCenter({
               />
             </div>
           )}
-
-          {/* Discovery-Panel als ABSOLUTES OVERLAY -- 2026-08-12 Fix:
-              Panel schwebt unter der Suchleiste als position:absolute,
-              ueberlagert den Feed, OHNE Content zu verschieben.
-              zIndex 350 liegt ueber Radius-Zeile (298) aber unter Suggestions (400). */}
-          {panelPhase !== "hidden" && (
-            <div style={{
-              position:"absolute", top:"calc(100% + 4px)", left:0, right:0, zIndex:350,
-            }}>
-              {discoveryPanel}
-            </div>
-          )}
         </div>
 
         {/* Radius + Quick-Action-Gruppe -- GEMEINSAME Zeile (2026-07-06,
@@ -1383,6 +1368,16 @@ export default function SearchCommandCenter({
           )}
         </div>
 
+        {/* Panel-Slot -- order:99 + flexBasis:100% zwingt per CSS-Flex-Wrap
+            einen Zeilenumbruch NACH Bar+Icons: das Panel bekommt dadurch
+            die VOLLE Breite der Eltern-Row, nie nur die schmalere Bar-Spalte.
+            Nur gemountet, waehrend panelPhase != "hidden" (Ein-/Ausblend-
+            Animation, siehe oben). */}
+        {panelPhase !== "hidden" && (
+          <div style={{ flexBasis:"100%", width:"100%", order:99, zIndex:299, marginTop:12 }}>
+            {discoveryPanel}
+          </div>
+        )}
       </div>
 
       {/* "Alle Kategorien"-Bottom-Sheet -- eigener Portal, siehe Kommentar
