@@ -213,21 +213,18 @@ export default function ProfileLauncher() {
   // PublicProfilePage / TalentProfilePage gelesen (via useProfileData).
   
 if (selectedProfileId) {
-    // ── SystemBotProfile TEMPORÄR DEAKTIVIERT (2026-08-12, Michael) ──
-    // Komponente + Import bleiben erhalten — wird später re-aktiviert
-    // und richtig verlinkt. Vorübergehend fällt der System-Bot-User
-    // auf die normale PublicProfilePage zurück.
-    // if (selectedProfileId === SYSTEM_USER_ID) {
-    //   const content = (
-    //     <ProfileErrorBoundary profileId={selectedProfileId} onClose={closeProfileById}>
-    //         <SystemBotProfile
-    //           profileId={selectedProfileId}
-    //           onClose={closeProfileById}
-    //         />
-    //     </ProfileErrorBoundary>
-    //   );
-    //   return portalTarget ? createPortal(content, portalTarget) : content;
-    // }
+    // HUI-System Bot: spezielles Bot-Profil statt PublicProfilePage
+    if (selectedProfileId === SYSTEM_USER_ID) {
+      const content = (
+        <ProfileErrorBoundary profileId={selectedProfileId} onClose={closeProfileById}>
+            <SystemBotProfile
+              profileId={selectedProfileId}
+              onClose={closeProfileById}
+            />
+        </ProfileErrorBoundary>
+      );
+      return portalTarget ? createPortal(content, portalTarget) : content;
+    }
     const content = (
       <ProfileErrorBoundary profileId={selectedProfileId} onClose={closeProfileById}>
           <PublicProfilePage
