@@ -39,7 +39,7 @@
 //   Dies ist ebenfalls eine langfristige Zielarchitektur (V8+).
 // ══════════════════════════════════════════════════════════════════════════════
 //
-// DATEN: Supabase (profiles, creator_supports, impact_votes, bookings,
+// DATEN: Supabase (profiles, impact_votes, project_support, bookings,
 //        impact_milestones, impact_milestone_updates, impact_applications,
 //        profiles)
 // ══════════════════════════════════════════════════════════════════════════════

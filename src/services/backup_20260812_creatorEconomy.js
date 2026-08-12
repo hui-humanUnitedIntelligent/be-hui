@@ -51,38 +51,57 @@ export const walletService = {
 // SUPPORTS (Direkte Unterstützungen)
 // ═══════════════════════════════════════════════════════════════════════
 export const supportService = {
-  // Hinweis: supportService.send() wurde durch SupportFlow.jsx (Stripe Checkout
-  // via create-support-payment Edge Function) ersetzt. Diese Methode ist deprecated.
+  // Unterstützung senden
   async send({ supporterId, creatorId, amount, message = "", sourceType = null, sourceId = null }) {
-    console.warn("[SUPPORT] send() is deprecated — use SupportFlow.jsx (Stripe Checkout) instead");
-    return { error: "Use SupportFlow.jsx for support payments" };
+    if (!supporterId || !creatorId || !amount) return { error: "Fehlende Felder" };
+    if (supporterId === creatorId) return { error: "Keine Selbst-Unterstützung" };
+    if (amount <= 0) return { error: "Betrag muss positiv sein" };
+
+    const { data, error } = await supabase
+      .from("creator_supports")
+      .insert({
+        supporter_id:     supporterId,
+        creator_id:       creatorId,
+        amount,
+        message:          message || null,
+        source_type:      sourceType,
+        source_id:        sourceId,
+        payment_status:   "pending",
+        payment_provider: "stripe",
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.warn("[SUPPORT] insert error:", error.message);
+      return { error: error.message };
+    }
+    return { data };
   },
 
-  // Alle Supports die ich erhalten habe (via stripe_payments)
+  // Alle Supports die ich erhalten habe
   async received(creatorId, { limit = 20 } = {}) {
     return sq(() => supabase
-      .from("stripe_payments")
+      .from("creator_supports")
       .select(`
-        id, amount, currency, status, description, metadata, created_at,
-        supporter:user_id(id, display_name, avatar_url, membership_type)
+        id, amount, message, created_at, payment_status, source_type,
+        supporter:supporter_id(id, display_name, avatar_url, membership_type)
       `)
-      .eq("ambassador_id", creatorId)
-      .eq("payment_type", "support")
+      .eq("creator_id", creatorId)
       .order("created_at", { ascending: false })
       .limit(limit)
     , []);
   },
 
-  // Alle Supports die ich gegeben habe (via stripe_payments)
+  // Alle Supports die ich gegeben habe
   async given(supporterId, { limit = 20 } = {}) {
     return sq(() => supabase
-      .from("stripe_payments")
+      .from("creator_supports")
       .select(`
-        id, amount, currency, status, description, metadata, created_at,
-        creator:ambassador_id(id, display_name, avatar_url)
+        id, amount, message, created_at, payment_status,
+        creator:creator_id(id, display_name, avatar_url)
       `)
-      .eq("user_id", supporterId)
-      .eq("payment_type", "support")
+      .eq("supporter_id", supporterId)
       .order("created_at", { ascending: false })
       .limit(limit)
     , []);

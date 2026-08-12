@@ -98,7 +98,7 @@ export default function StatistikenModal({ profile, onClose }) {
         supabase.from("follows").select("*", { count:"exact", head:true }).eq("followed_id", uid),
         supabase.from("work_likes").select("*", { count:"exact", head:true }).eq("user_id", uid),
         supabase.from("work_saves").select("*", { count:"exact", head:true }).eq("user_id", uid),
-        supabase.from("post_comments").select("*", { count:"exact", head:true }).eq("user_id", uid),
+        supabase.from("comments").select("*", { count:"exact", head:true }).eq("user_id", uid),
         // Content
         supabase.from("works").select("*", { count:"exact", head:true }).eq("user_id", uid),
         supabase.from("works").select("*", { count:"exact", head:true }).eq("user_id", uid).eq("approval_status","published"),
