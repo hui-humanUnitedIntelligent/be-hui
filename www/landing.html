@@ -312,6 +312,23 @@ ul{list-style:none}
 .origin-clubs-names{font-size:clamp(17px,2.6vw,22px);font-weight:500;color:var(--ink);letter-spacing:-.01em}
 .origin-clubs-names .sep{display:inline-block;margin:0 12px;color:var(--faint);font-weight:300}
 .origin-closing{margin-top:30px;font-size:clamp(15px,2.3vw,18px);font-weight:300;color:var(--muted);line-height:1.65;font-style:italic;text-shadow:0 1px 16px rgba(250,247,242,.4)}
+.origin-seal{animation:seal-pulse 8s ease-in-out infinite;will-change:filter}
+@keyframes seal-pulse{0%,100%{filter:drop-shadow(0 0 0 rgba(218,165,32,0))}35%{filter:drop-shadow(0 0 10px rgba(218,165,32,.14)) drop-shadow(0 0 22px rgba(218,165,32,.05))}50%{filter:drop-shadow(0 0 18px rgba(218,165,32,.22)) drop-shadow(0 0 36px rgba(218,165,32,.08))}65%{filter:drop-shadow(0 0 10px rgba(218,165,32,.14)) drop-shadow(0 0 22px rgba(218,165,32,.05))}}
+.origin-anim{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.anim-particle{position:absolute;width:4px;height:4px;border-radius:50%;background:radial-gradient(circle,rgba(255,200,120,.7) 0%,rgba(218,165,32,.3) 50%,transparent 80%);opacity:0;will-change:transform,opacity}
+.apl{left:15%;--pt:clamp(70px,18vw,180px)}
+.apl-1{top:47%;animation:ptl 8s ease-in-out infinite}
+.apl-2{top:52%;animation:ptl 8s ease-in-out infinite 1.5s}
+.apl-3{top:49%;animation:ptl 8s ease-in-out infinite 3s}
+.apr{right:15%;--pt:clamp(70px,18vw,180px)}
+.apr-1{top:51%;animation:ptr 8s ease-in-out infinite .5s}
+.apr-2{top:47%;animation:ptr 8s ease-in-out infinite 2s}
+.apr-3{top:53%;animation:ptr 8s ease-in-out infinite 3.5s}
+@keyframes ptl{0%{transform:translate(0,0) scale(1);opacity:0}8%{opacity:.5;transform:translate(calc(var(--pt)*.08),-3px) scale(.9)}35%{opacity:.4;transform:translate(calc(var(--pt)*.4),-8px) scale(.7)}65%{opacity:.3;transform:translate(calc(var(--pt)*.75),5px) scale(.5)}88%{opacity:.1;transform:translate(var(--pt),0) scale(.3)}100%{opacity:0;transform:translate(var(--pt),0) scale(0)}}
+@keyframes ptr{0%{transform:translate(0,0) scale(1);opacity:0}8%{opacity:.5;transform:translate(calc(-1*var(--pt)*.08),-3px) scale(.9)}35%{opacity:.4;transform:translate(calc(-1*var(--pt)*.4),-8px) scale(.7)}65%{opacity:.3;transform:translate(calc(-1*var(--pt)*.75),5px) scale(.5)}88%{opacity:.1;transform:translate(calc(-1*var(--pt)),0) scale(.3)}100%{opacity:0;transform:translate(calc(-1*var(--pt)),0) scale(0)}}
+.anim-meet{position:absolute;left:50%;top:50%;width:90px;height:90px;margin:-45px 0 0 -45px;border-radius:50%;background:radial-gradient(circle,rgba(218,165,32,.2) 0%,rgba(13,196,181,.06) 45%,transparent 70%);opacity:0;will-change:opacity,transform;animation:meet-pulse 8s ease-in-out infinite}
+@keyframes meet-pulse{0%,62%,100%{opacity:0;transform:scale(.7)}70%{opacity:.3;transform:scale(1)}78%{opacity:.12;transform:scale(1.25)}86%{opacity:0;transform:scale(1.4)}}
+@media(max-width:680px){.origin-anim{display:none}}
 
 /* ═══ HONEST ═══ */
 .honest{padding:88px 32px;background:var(--cream);text-align:center}
@@ -448,6 +465,8 @@ ul{list-style:none}
   .hero-sparks::before{animation:none;opacity:.4}
   .hero-underline path{stroke-dashoffset:0;transition:none}
   .hero-spark{animation:none!important;opacity:.4!important}
+  .origin-seal{animation:none;will-change:auto}
+  .origin-anim{display:none}
   .hero-underline::after{animation:none;opacity:0}
   .hero-h1 .accent::before{animation:none;opacity:0}
   .btn-primary::before{animation:none;opacity:0}
@@ -765,6 +784,15 @@ ul{list-style:none}
       <p class="origin-clubs-names">4VisionGlobal<span class="sep">+</span>Liga der Kreativen</p>
     </div>
     <p class="origin-closing reveal d5">Aus einer gemeinsamen Idee wurde ein Ökosystem für Menschen, Talente, Ideen und Möglichkeiten.</p>
+  </div>
+  <div class="origin-anim" aria-hidden="true">
+    <span class="anim-particle apl apl-1"></span>
+    <span class="anim-particle apl apl-2"></span>
+    <span class="anim-particle apl apl-3"></span>
+    <span class="anim-particle apr apr-1"></span>
+    <span class="anim-particle apr apr-2"></span>
+    <span class="anim-particle apr apr-3"></span>
+    <div class="anim-meet"></div>
   </div>
 </section>
 
