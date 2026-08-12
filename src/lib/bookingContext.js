@@ -148,22 +148,17 @@ export function useBookingActions() {
       const { data: booking, error: bookErr } = await supabase
         .from("bookings")
         .insert({
-          requester_id:  user.id,
-          creator_id:    creatorId,
+          user_id:  user.id,
+          wirker_id:    creatorId,
           wirker_name:   creatorName,
           status:        "requested",
-          req_type:      reqType,
-          req_mood:      mood,
-          req_date:      date || null,
-          req_time_slot: timeSlot || null,
-          req_location:  location || null,
-          req_budget:    budget || null,
-          req_guests:    guests || 1,
-          req_direction: direction || null,
-          message:       message || null,
-          amount_eur:    amountEur || null,
-          impact_eur:    impactEur || null,
+          booking_type:  reqType,
+          date:          date || null,
+          location:      location || null,
+          customer_note: message || null,
+          price_eur:     amountEur || null,
           chat_id:       chat?.id || null,
+          metadata:      { mood, time_slot: timeSlot, budget, guests: guests || 1, direction, impact_eur: impactEur },
           updated_at:    new Date().toISOString(),
         })
         .select("id").single();
@@ -210,7 +205,7 @@ export function useBookingActions() {
           confirmed_at: new Date().toISOString(),
         })
         .eq("id", bookingId)
-        .eq("creator_id", user.id);
+        .eq("wirker_id", user.id);
       if (error) throw error;
 
       // Booking Event loggen
@@ -240,10 +235,10 @@ export function useBookingActions() {
       await supabase.from("bookings")
         .update({
           status:           "declined",
-          declined_reason:  reason || null,
+          metadata: { declined_reason: reason || null },
         })
         .eq("id", bookingId)
-        .eq("creator_id", user.id);
+        .eq("wirker_id", user.id);
 
       await supabase.from("booking_events").insert({
         booking_id:  bookingId,
@@ -272,7 +267,7 @@ export function useBookingActions() {
     await supabase.from("bookings")
       .update({ status: "completed", completed_at: new Date().toISOString() })
       .eq("id", bookingId)
-      .or(`requester_id.eq.${user.id},creator_id.eq.${user.id}`);
+      .or(`user_id.eq.${user.id},wirker_id.eq.${user.id}`);
     return { success: true };
   }, [user?.id]);
 
@@ -280,9 +275,9 @@ export function useBookingActions() {
   const cancelBooking = useCallback(async (bookingId) => {
     if (!user?.id) return;
     await supabase.from("bookings")
-      .update({ status: "cancelled", cancelled_at: new Date().toISOString() })
+      .update({ status: "cancelled", metadata: { cancelled_at: new Date().toISOString() } })
       .eq("id", bookingId)
-      .or(`requester_id.eq.${user.id},creator_id.eq.${user.id}`);
+      .or(`user_id.eq.${user.id},wirker_id.eq.${user.id}`);
     return { success: true };
   }, [user?.id]);
 
@@ -311,14 +306,13 @@ export function useCreatorBookings() {
       const { data } = await supabase
         .from("bookings")
         .select(`
-          id, status, req_type, req_mood, req_date, req_time_slot,
-          req_location, req_budget, req_guests, message, amount_eur,
-          chat_id, creator_note, confirmed_at, created_at, updated_at,
-          requester:profiles!bookings_requester_id_fkey(
+          id, status, booking_type, date, location, customer_note, total_eur,
+          chat_id, confirmed_at, created_at, updated_at,
+          requester:profiles!bookings_user_id_fkey(
             id, display_name, avatar_url, username
           )
         `)
-        .eq("creator_id", user.id)
+        .eq("wirker_id", user.id)
         .order("created_at", { ascending: false })
         .limit(50);
       if (data) setBookings(data);
@@ -345,7 +339,7 @@ export function useCreatorBookings() {
         .channel(topic)
         .on("postgres_changes", {
           event: "*", schema: "public", table: "bookings",
-          filter: `creator_id=eq.${user.id}`,
+          filter: `wirker_id=eq.${user.id}`,
         }, () => load())
         .subscribe();
       createdHere = true;
@@ -379,13 +373,13 @@ export function useMyBookings() {
       const { data } = await supabase
         .from("bookings")
         .select(`
-          id, status, req_type, req_date, req_time_slot, message,
-          amount_eur, chat_id, creator_note, created_at, updated_at,
-          creator:profiles!bookings_creator_id_fkey(
+          id, status, booking_type, date, customer_note,
+          total_eur, chat_id, created_at, updated_at,
+          creator:profiles!bookings_wirker_id_fkey(
             id, display_name, avatar_url, username
           )
         `)
-        .eq("requester_id", user.id)
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(30);
       if (data) setBookings(data);
@@ -411,12 +405,12 @@ export function useAvailableSlots(creatorId) {
     const from = new Date();
     const to   = new Date(Date.now() + 30 * 24 * 3600000); // 30 Tage
     supabase.from("availability_slots")
-      .select("id,slot_date,slot_time,duration_min,is_booked")
-      .eq("creator_id", creatorId)
-      .eq("is_booked", false)
-      .gte("slot_date", from.toISOString().split("T")[0])
-      .lte("slot_date", to.toISOString().split("T")[0])
-      .order("slot_date")
+      .select("id,date,time_from,time_to,blocked,note")
+      .eq("user_id", creatorId)
+      .eq("blocked", false)
+      .gte("date", from.toISOString().split("T")[0])
+      .lte("date", to.toISOString().split("T")[0])
+      .order("date")
       .then(({ data }) => {
         setSlots(data || []);
         setLoading(false);

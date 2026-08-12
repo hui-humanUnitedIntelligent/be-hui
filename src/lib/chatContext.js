@@ -538,10 +538,10 @@ export function useChatContext(chat) {
     setLoadingCtx(true);
     supabase.from("bookings")
       .select(`
-        id, status, req_type, req_date, req_time_slot,
-        amount_eur, message, confirmed_at,
-        requester:profiles!bookings_requester_id_fkey(id, display_name, avatar_url),
-        creator:profiles!bookings_creator_id_fkey(id, display_name, avatar_url)
+        id, status, booking_type, date, message, confirmed_at,
+        total_eur,
+        requester:profiles!bookings_user_id_fkey(id, display_name, avatar_url),
+        creator:profiles!bookings_wirker_id_fkey(id, display_name, avatar_url)
       `)
       .eq("id", chat.booking_id)
       .maybeSingle()

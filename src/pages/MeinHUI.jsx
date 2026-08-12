@@ -199,28 +199,28 @@ function useWirkungsraumData(profile) {
         const { count: worksCount } = await supabase
           .from("works")
           .select("id", { count: "exact", head: true })
-          .eq("author_id", uid)
+          .eq("user_id", uid)
           .eq("status", "published");
 
         const { count: worksThisYear } = await supabase
           .from("works").select("id", { count: "exact", head: true })
-          .eq("author_id", uid).eq("status", "published")
+          .eq("user_id", uid).eq("status", "published")
           .gte("created_at", yearStart.toISOString());
 
         const { count: worksThisMonth } = await supabase
           .from("works").select("id", { count: "exact", head: true })
-          .eq("author_id", uid).eq("status", "published")
+          .eq("user_id", uid).eq("status", "published")
           .gte("created_at", monthStart.toISOString());
 
         const { count: worksToday } = await supabase
           .from("works").select("id", { count: "exact", head: true })
-          .eq("author_id", uid).eq("status", "published")
+          .eq("user_id", uid).eq("status", "published")
           .gte("created_at", todayStart.toISOString());
 
         // Neueste Werke für Sub-Modal-Listen
         const { data: recentWorksData } = await supabase
           .from("works").select("id, title, cover_url, created_at")
-          .eq("author_id", uid).eq("status", "published")
+          .eq("user_id", uid).eq("status", "published")
           .order("created_at", { ascending: false }).limit(5);
 
         // 4. Orders count + zeit-abhängig
@@ -260,40 +260,51 @@ function useWirkungsraumData(profile) {
 
         // 6. Neue Verbindungen diese Woche + Monat + Jahr
         const { count: newConnectionsThisWeek } = await supabase
-          .from("follows").select("id", { count: "exact", head: true })
+          .from("follows").select("follower_id", { count: "exact", head: true })
           .eq("followed_id", uid)
           .gte("created_at", weekAgo.toISOString());
 
         const { count: newConnectionsThisMonth } = await supabase
-          .from("follows").select("id", { count: "exact", head: true })
+          .from("follows").select("follower_id", { count: "exact", head: true })
           .eq("followed_id", uid)
           .gte("created_at", monthStart.toISOString());
 
         const { count: connectionsThisYear } = await supabase
-          .from("follows").select("id", { count: "exact", head: true })
+          .from("follows").select("follower_id", { count: "exact", head: true })
           .eq("followed_id", uid)
           .gte("created_at", yearStart.toISOString());
 
         // 6b. Neueste Follower für Sub-Modal-Liste
-        const { data: recentFollowersData } = await supabase
-          .from("follows").select("follower_id, created_at, profiles!follows_follower_id_fkey(display_name, avatar_url, username)")
+        // Kein FK follows→profiles in der DB — PostgREST-Embed würde 400 werfen.
+        // Daher 2-Schritt: erst follows, dann profiles separat.
+        const { data: recentFollowersRaw } = await supabase
+          .from("follows").select("follower_id, created_at")
           .eq("followed_id", uid)
           .order("created_at", { ascending: false }).limit(8);
+        let recentFollowersData = recentFollowersRaw || [];
+        if (recentFollowersData.length) {
+          const followerIds = [...new Set(recentFollowersData.map(f => f.follower_id))];
+          const { data: followerProfiles } = await supabase
+            .from("profiles").select("id, display_name, avatar_url, username")
+            .in("id", followerIds);
+          const profileById = Object.fromEntries((followerProfiles || []).map(p => [p.id, p]));
+          recentFollowersData = recentFollowersData.map(f => ({ ...f, profiles: profileById[f.follower_id] || null }));
+        }
 
         // 7. Impact projects + zeit-abhängig
         const { count: projectsCount } = await supabase
           .from("impact_applications").select("id", { count: "exact", head: true })
-          .eq("applicant_id", uid).eq("status", "approved");
+          .eq("user_id", uid).eq("status", "approved");
 
         const { count: impactProjectsThisYear } = await supabase
           .from("impact_applications").select("id", { count: "exact", head: true })
-          .eq("applicant_id", uid).eq("status", "approved")
+          .eq("user_id", uid).eq("status", "approved")
           .gte("created_at", yearStart.toISOString());
 
         // 7b. Neueste Projekte für Sub-Modal
         const { data: recentProjectsData } = await supabase
           .from("impact_applications").select("id, project_name, created_at, status")
-          .eq("applicant_id", uid).order("created_at", { ascending: false }).limit(5);
+          .eq("user_id", uid).order("created_at", { ascending: false }).limit(5);
 
         // 8. Impact-Momente aus notifications (letzte 20)
         const { data: notifs } = await supabase
@@ -305,7 +316,7 @@ function useWirkungsraumData(profile) {
 
         // 8b. Heute-Aktivitäten
         const { count: todayConnections } = await supabase
-          .from("follows").select("id", { count: "exact", head: true })
+          .from("follows").select("follower_id", { count: "exact", head: true })
           .eq("followed_id", uid).gte("created_at", todayStart.toISOString());
 
         const { count: todayOrders } = await supabase
@@ -319,11 +330,11 @@ function useWirkungsraumData(profile) {
         // 10. Kommentare & Inspires insgesamt (für Impact-Momente + Grundpfeiler)
         const { count: commentsCount } = await supabase
           .from("post_comments").select("id", { count: "exact", head: true })
-          .eq("author_id", uid);
+          .eq("user_id", uid);
 
         const { count: inspiresCount } = await supabase
           .from("post_reactions").select("id", { count: "exact", head: true })
-          .eq("author_id", uid).eq("type", "inspire");
+          .eq("user_id", uid).eq("type", "inspire");
 
         // 11. Impact-Momente die andere erreicht haben (Reaktionen auf eigene Inhalte)
         const { count: reachCount } = await supabase

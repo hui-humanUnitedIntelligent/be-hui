@@ -30,7 +30,7 @@ export default function StudioMeldungen() {
     try {
       const { data, error } = await supabase
         .from('comment_reports')
-        .select('id, comment_id, reporter_id, reason, status, created_at, comment:comments(id, content, author_id, author:profiles!comments_author_id_fkey(id, display_name, username))')
+        .select('id, comment_id, reporter_id, reason, status, created_at, comment:post_comments(id, text, user_id, author:profiles!post_comments_user_id_fkey(id, display_name, username))')
         .eq('status', 'open')
         .order('created_at', { ascending: false })
         .limit(100);
