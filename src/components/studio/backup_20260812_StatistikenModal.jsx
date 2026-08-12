@@ -114,10 +114,9 @@ export default function StatistikenModal({ profile, onClose }) {
         // Engagement
         sq(supabase.from("recommendations").select("*", { count:"exact", head:true }).eq("from_user_id", uid)),
         sq(supabase.from("favorites").select("*", { count:"exact", head:true }).eq("user_id", uid)),
-        // Ausgaben: orders als Kunde (customer_id, state per migration 057)
-        sq(supabase.from("orders").select("total_eur,impact_eur").eq("customer_id", uid).in("state",["paid","completed"])),
-        // Einnahmen: order_items als Verkäufer (seller_id)
-        sq(supabase.from("order_items").select("unit_price_eur,quantity").eq("seller_id", uid)),
+        // Zahlungen — Legacy: payments nie befuellt (SYS-LegacyMark-024), UI zeigt 0
+        sq(supabase.from("payments").select("amount_eur,impact_eur").eq("payer_id", uid).in("state",["released","completed","paid"])),
+        sq(supabase.from("stripe_payments").select("amount_eur").eq("recipient_id", uid).in("status",["released","completed","paid"])),
         // Profil
         sq(supabase.from("profiles").select("profile_views,followers_count,trust_score,member_since,created_at,has_talent_profile,is_ambassador").eq("id", uid).single()),
         // Project-Support Betrag
@@ -126,11 +125,8 @@ export default function StatistikenModal({ profile, onClose }) {
         sq(supabase.rpc("creator_save_stats", { p_user_id: uid })),
       ]);
 
-      // Ausgaben: orders.total_eur als Kunde
-      const totalAusgaben  = (paymentsOut||[]).reduce((s,r) => s+(r.total_eur||0), 0);
-      // Einnahmen: order_items unit_price * quantity als Verkäufer
-      const totalEinnahmen = (paymentsIn ||[]).reduce((s,r) => s+((r.unit_price_eur||0)*(r.quantity||1)), 0);
-      // Impact-Beitrag: orders.impact_eur als Kunde
+      const totalAusgaben  = (paymentsOut||[]).reduce((s,r) => s+(r.amount_eur||0), 0);
+      const totalEinnahmen = (paymentsIn||[]).reduce((s,r) => s+(r.amount_eur||0), 0);
       const totalImpactEur = (paymentsOut||[]).reduce((s,r) => s+(r.impact_eur||0), 0);
       const totalProjSupp  = (projSupportAmt||[]).reduce((s,r) => s+(r.amount_eur||0), 0);
 
