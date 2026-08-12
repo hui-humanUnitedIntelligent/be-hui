@@ -67,8 +67,8 @@ export default function KontoSettingsPage() {
 
     // Notification- und Privacy-Settings laden
     const [notifRes, privRes] = await Promise.all([
-      supabase.from('notification_settings').select('*').eq('user_id', user.id).maybeSingle(),
-      supabase.from('privacy_settings').select('*').eq('user_id', user.id).maybeSingle(),
+      supabase.from('notification_settings').select('*').eq('user_id', user.id).single(),
+      supabase.from('privacy_settings').select('*').eq('user_id', user.id).single(),
     ]);
 
     setNotifSettings(notifRes.data || null);
