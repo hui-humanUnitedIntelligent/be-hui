@@ -805,6 +805,16 @@ export default function SearchCommandCenter({
     inputRef.current?.focus();
   }
 
+  // ── Global close hook — 2026-08-12 ──
+  // Home.jsx scroll container can call window.__HUI_CLOSE_SEARCH__() to
+  // close the search dropdown when the user taps the feed area.
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.__HUI_CLOSE_SEARCH__ = close_;
+    }
+    return () => { if (typeof window !== "undefined") delete window.__HUI_CLOSE_SEARCH__; };
+  }, []);
+
   // ── Spracherkennung (Web Speech API) — 2026-08-12, Michael-Auftrag ──
   // Mikrofon-Icon rechts neben der Suchleiste startet/stoppt die
   // Spracherkennung. Erkannter Text wird direkt ins Suchfeld geschrieben.
@@ -1007,7 +1017,7 @@ export default function SearchCommandCenter({
   // ── SEARCH-BAR — Visual Polish Pass: mehr Hoehe, weichere Rundung, kein
   // harter Rahmen, sanfter Glow statt Border bei Fokus (Punkt 2) ──────────
   const searchBar = (
-    <div onClick={open_} style={{
+    <div onClick={() => { open ? close_() : open_(); }} style={{
       display:"flex", alignItems:"center", gap:10, height:44,
       background: has ? `linear-gradient(135deg,${mc}12,rgba(255,253,251,0.95))` : "rgba(255,255,255,0.90)",
       backdropFilter:"blur(18px) saturate(1.6)", WebkitBackdropFilter:"blur(18px) saturate(1.6)",

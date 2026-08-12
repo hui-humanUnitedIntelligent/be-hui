@@ -439,6 +439,7 @@ function HomeInner() {
         <div
           className="hui-scroll"
           ref={(el) => { mainScrollRef.current = el; scrollContainerRef.current = el; }}
+          onTouchStart={() => { if (typeof window !== "undefined") window.__HUI_CLOSE_SEARCH__?.(); }}
           style={{
             flex:         1,
             overflowY:    "auto",
