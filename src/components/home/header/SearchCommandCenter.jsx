@@ -606,7 +606,7 @@ export default function SearchCommandCenter({
     }
     const seq = ++suggestSeqRef.current;
     setSuggestLoading(true);
-    fetchSearchSuggestions(q, { excludeUserId: currentUser?.id }).then((res) => {
+    fetchSearchSuggestions(q).then((res) => {
       if (suggestSeqRef.current !== seq) return; // veraltete Antwort verwerfen
       setSuggestions(res);
       setSuggestLoading(false);
@@ -891,21 +891,6 @@ export default function SearchCommandCenter({
         </div>
       )}
 
-      {/* Live-Suchvorschläge -- erscheinen SOBALD Freitext getippt wird
-          (mind. SUGGESTIONS_MIN_QUERY_LEN Zeichen), an genau der Stelle, wo
-          sonst die Kategorien-Schnellauswahl steht (die ja ohnehin ausblendet,
-          sobald query nicht leer ist -- showCategoriesAndHistory === false).
-          Kein Konflikt, kein doppeltes Rendering moeglich. */}
-      {open && query.trim().length >= SUGGESTIONS_MIN_QUERY_LEN && (
-        <SuggestionsBlock
-          query={query}
-          suggestions={suggestions}
-          loading={suggestLoading}
-          onSelectProfile={handleSelectProfileSuggestion}
-          onSelectRef={handleSelectRefSuggestion}
-        />
-      )}
-
       {/* Kategorien -- horizontal scrollbar, eine Zeile, nur in reiner Discovery */}
       {showCategoriesAndHistory && (
         <div style={{marginBottom:20, animation:"hui-search-fade-in .22s cubic-bezier(.22,1,.36,1) both"}}>
@@ -1020,6 +1005,31 @@ export default function SearchCommandCenter({
             mit den Icon-Buttons (order:1 in HomeHeader.jsx). */}
         <div style={{ position:"relative", flex:1, minWidth:0, order:0, zIndex:300 }}>
           {searchBar}
+          {/* Live-Suchvorschläge -- 2026-08-12, Korrektur nach Michael-Feedback:
+              NICHT mehr Teil der Discovery-/Distanz-Kachel (discoveryPanel),
+              sondern ein eigenstaendiges, absolut positioniertes Dropdown, das
+              direkt UNTER dem Suchfeld schwebt -- exakt gleiches Muster wie
+              KiPanel (position:absolute, top:calc(100% + 8px)), nur volle
+              Breite der Suchleiste statt der schmalen 264px. zIndex 400 liegt
+              ueber der Radius-Zeile (298) und dem discoveryPanel (siehe unten),
+              schwebt also frei darueber -- klassisches Autocomplete-Verhalten. */}
+          {open && query.trim().length >= SUGGESTIONS_MIN_QUERY_LEN && (
+            <div style={{
+              position:"absolute", top:"calc(100% + 8px)", left:0, right:0, zIndex:400,
+              background:T.bg, backdropFilter:"blur(20px) saturate(1.4)", WebkitBackdropFilter:"blur(20px) saturate(1.4)",
+              border:"1px solid rgba(26,53,48,0.045)", borderRadius:18, boxShadow:T.panelShadow,
+              padding:"14px 14px 8px", maxHeight:"60vh", overflowY:"auto", WebkitOverflowScrolling:"touch",
+              animation:"dc-in .18s cubic-bezier(.22,1,.36,1) both",
+            }}>
+              <SuggestionsBlock
+                query={query}
+                suggestions={suggestions}
+                loading={suggestLoading}
+                onSelectProfile={handleSelectProfileSuggestion}
+                onSelectRef={handleSelectRefSuggestion}
+              />
+            </div>
+          )}
         </div>
 
         {/* Radius + Quick-Action-Gruppe -- GEMEINSAME Zeile (2026-07-06,

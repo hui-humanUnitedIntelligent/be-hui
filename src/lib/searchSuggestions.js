@@ -85,17 +85,21 @@ function byWordPrefix(rows, query, getField) {
     .slice(0, CATEGORY_LIMIT);
 }
 
-async function searchPeople(query, excludeUserId) {
+// KORREKTUR 2026-08-12 (Michael-Feedback): frueher wurde currentUser per
+// excludeUserId aus den Ergebnissen gefiltert -- das war der Root Cause,
+// warum "Michael Mathis" beim Tippen von "michael" NICHT erschien (er IST
+// der eingeloggte currentUser). Kein Grund, das eigene Profil aus der
+// Namenssuche auszuschliessen -- man soll sich selbst genauso finden
+// koennen wie jeden anderen. excludeUserId-Parameter entfernt.
+async function searchPeople(query) {
   const esc = escapeIlike(query);
-  let q = supabase
+  const { data, error } = await supabase
     .from("profiles")
     .select("id,display_name,full_name,username,avatar_url")
     .or(`display_name.ilike.%${esc}%,full_name.ilike.%${esc}%,username.ilike.%${esc}%`)
     .limit(FETCH_LIMIT);
-  const { data, error } = await q;
   if (error || !data) return [];
-  const filtered = data.filter((p) => !excludeUserId || p.id !== excludeUserId);
-  const matched = byWordPrefix(filtered, query, (p) => p.full_name || p.display_name || p.username || "");
+  const matched = byWordPrefix(data, query, (p) => p.full_name || p.display_name || p.username || "");
   return matched.map((p) => ({
     id: p.id,
     type: "profile",
@@ -133,13 +137,13 @@ async function searchMoments(query) {
 // Kategorie darf die anderen nie blockieren, gleiche Resilienz-Vorgabe wie
 // bei useLiveTicker.js safeCount()). Rückgabe: {people, works, talents,
 // experiences, moments} -- jede Liste kann leer sein.
-export async function fetchSearchSuggestions(query, { excludeUserId } = {}) {
+export async function fetchSearchSuggestions(query) {
   const q = (query || "").trim();
   if (q.length < SUGGESTIONS_MIN_QUERY_LEN) {
     return { people: [], works: [], talents: [], experiences: [], moments: [] };
   }
   const [people, works, talents, experiences, moments] = await Promise.allSettled([
-    searchPeople(q, excludeUserId),
+    searchPeople(q),
     searchSimpleTitleTable("works", q),
     searchSimpleTitleTable("talents", q),
     searchSimpleTitleTable("experiences", q),
