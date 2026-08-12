@@ -22,8 +22,6 @@ import { FEATURED_CATEGORIES, searchCategories } from "../../../lib/categories.j
 import { NAV_RESERVED_HEIGHT_CSS } from "../navigation/navigationGeometry.js";
 import { useRadiusFilter, radiusLabel } from "../../../hooks/useRadiusFilter.js";
 import { useModalRegistration } from "../../../hooks/useModalRegistration.js";
-import { useContentPreview } from "../../../context/ContentPreviewContext.jsx";
-import { fetchSearchSuggestions, highlightMatch, hasAnySuggestions, SUGGESTIONS_MIN_QUERY_LEN } from "../../../lib/searchSuggestions.js";
 
 // ─────────────────────────────────────────────────────────────
 // DESIGN TOKENS
@@ -397,101 +395,6 @@ function AllCategoriesSheet({ sheetRef, phase, query, onQueryChange, onSelect, o
 }
 
 // ─────────────────────────────────────────────────────────────
-// LIVE-SUCHVORSCHLAEGE — kategorisiert (2026-08-12, Michael-Auftrag)
-// ─────────────────────────────────────────────────────────────
-// Reine Autocomplete-Anzeige (siehe Architektur-Kommentar in
-// src/lib/searchSuggestions.js) -- ersetzt NICHT die bestehende Inline-
-// Feed-Filterung, ergaenzt sie nur um sofortiges Antipp-Feedback direkt
-// unter der Suchleiste, waehrend getippt wird. Rendert innerhalb des
-// bereits bestehenden, nicht-portalierten Discovery-Panels (kein neues
-// Overlay, kein neuer Portal-Layer).
-function HighlightedLabel({ text, query }) {
-  const { before, match, after } = highlightMatch(text, query);
-  if (!match) return <>{text}</>;
-  return (
-    <>
-      {before}
-      <span style={{ color:T.teal, fontWeight:700 }}>{match}</span>
-      {after}
-    </>
-  );
-}
-
-function SuggestionCategory({ label, emoji, items, query, onSelect, renderAvatar }) {
-  if (!items || items.length === 0) return null;
-  return (
-    <div style={{ marginBottom:12 }}>
-      <div style={{
-        fontSize:10, fontWeight:600, letterSpacing:".08em", textTransform:"uppercase",
-        color:T.inkFF, marginBottom:6, display:"flex", alignItems:"center", gap:5,
-      }}>
-        <span style={{fontSize:11}}>{emoji}</span>{label}
-      </div>
-      {items.map((item) => (
-        <button key={item.id} className="dc-tag" onClick={() => onSelect(item)} style={{
-          display:"flex", alignItems:"center", gap:9, width:"100%",
-          textAlign:"left", padding:"7px 6px", background:"none", border:"none",
-          borderRadius:10, cursor:"pointer", WebkitTapHighlightColor:"transparent",
-        }}
-          onMouseEnter={e=>e.currentTarget.style.background="rgba(14,196,184,0.07)"}
-          onMouseLeave={e=>e.currentTarget.style.background="none"}
-        >
-          {renderAvatar ? renderAvatar(item) : (
-            <span style={{width:6,height:6,borderRadius:"50%",background:"rgba(26,53,48,0.18)",flexShrink:0}}/>
-          )}
-          <span style={{
-            fontSize:13, fontWeight:500, letterSpacing:"-0.01em", color:T.ink,
-            overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-          }}>
-            <HighlightedLabel text={item.label} query={query} />
-          </span>
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function SuggestionsBlock({ query, suggestions, loading, onSelectProfile, onSelectRef }) {
-  const trimmed = query.trim();
-  if (trimmed.length < SUGGESTIONS_MIN_QUERY_LEN) return null;
-
-  const empty = !loading && !hasAnySuggestions(suggestions);
-
-  return (
-    <div style={{marginBottom:16, animation:"hui-search-fade-in .18s ease both"}}>
-      {loading && !hasAnySuggestions(suggestions) ? (
-        <div style={{ padding:"10px 6px", fontSize:12, color:T.inkF }}>Suche…</div>
-      ) : empty ? (
-        <div style={{ padding:"10px 6px", fontSize:12, color:T.inkF }}>
-          Keine Treffer für „{trimmed}"
-        </div>
-      ) : (
-        <>
-          <SuggestionCategory
-            label="Personen" emoji="👥" query={trimmed}
-            items={suggestions?.people} onSelect={onSelectProfile}
-            renderAvatar={(item) => (
-              <span style={{
-                width:26, height:26, borderRadius:"50%", flexShrink:0, overflow:"hidden",
-                background:"rgba(14,196,184,0.14)", display:"flex", alignItems:"center", justifyContent:"center",
-              }}>
-                {item.avatar
-                  ? <img src={item.avatar} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
-                  : <span style={{fontSize:11,color:T.teal,fontWeight:700}}>{(item.label||"?").charAt(0).toUpperCase()}</span>}
-              </span>
-            )}
-          />
-          <SuggestionCategory label="Werke"      emoji="🎨" query={trimmed} items={suggestions?.works}       onSelect={(item)=>onSelectRef("work", item.id)} />
-          <SuggestionCategory label="Talente"    emoji="⭐" query={trimmed} items={suggestions?.talents}     onSelect={(item)=>onSelectRef("talent", item.id)} />
-          <SuggestionCategory label="Erlebnisse" emoji="📅" query={trimmed} items={suggestions?.experiences} onSelect={(item)=>onSelectRef("experience", item.id)} />
-          <SuggestionCategory label="Momente"    emoji="💬" query={trimmed} items={suggestions?.moments}     onSelect={(item)=>onSelectRef("moment", item.id)} />
-        </>
-      )}
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────
 // HAUPTKOMPONENTE — Search Experience 2.0 (2026-07-06, Lars)
 // ─────────────────────────────────────────────────────────────
 // ARCHITEKTUR-WECHSEL: Kein Portal, kein Fullscreen-Overlay, keine eigene
@@ -583,50 +486,6 @@ export default function SearchCommandCenter({
   // nutzen die rohe `query` -- nur der teure Feed-Refetch wartet auf den
   // debouncten Wert.
   const debouncedQuery = useDebounce(query, 180);
-
-  // ── Live-Suchvorschläge (2026-08-12, Michael-Auftrag) ──────────
-  // Eigener State, unabhaengig vom Feed-Filter-State oben -- reine
-  // Autocomplete-Anzeige (siehe src/lib/searchSuggestions.js). Fetch erst ab
-  // SUGGESTIONS_MIN_QUERY_LEN Zeichen, nutzt denselben debouncedQuery (kein
-  // zweiter Debounce-Timer noetig). requestSeq verhindert Race Conditions
-  // (langsamere ältere Antwort ueberschreibt nicht das Ergebnis einer
-  // neueren Anfrage -- gleiches Muster wie ueberall sonst im System bei
-  // async Suchen).
-  const [suggestions, setSuggestions] = useState(null);
-  const [suggestLoading, setSuggestLoading] = useState(false);
-  const suggestSeqRef = useRef(0);
-  const { openRef: openContentRef } = useContentPreview();
-
-  useEffect(() => {
-    const q = debouncedQuery.trim();
-    if (!open || q.length < SUGGESTIONS_MIN_QUERY_LEN) {
-      setSuggestions(null);
-      setSuggestLoading(false);
-      return;
-    }
-    const seq = ++suggestSeqRef.current;
-    setSuggestLoading(true);
-    fetchSearchSuggestions(q, { excludeUserId: currentUser?.id }).then((res) => {
-      if (suggestSeqRef.current !== seq) return; // veraltete Antwort verwerfen
-      setSuggestions(res);
-      setSuggestLoading(false);
-    }).catch(() => {
-      if (suggestSeqRef.current !== seq) return;
-      setSuggestions(null);
-      setSuggestLoading(false);
-    });
-  }, [debouncedQuery, open, currentUser?.id]);
-
-  function handleSelectProfileSuggestion(item) {
-    if (typeof window !== "undefined" && window.__HUI_OPEN_PROFILE__) {
-      window.__HUI_OPEN_PROFILE__(item.id);
-    }
-    close_();
-  }
-  function handleSelectRefSuggestion(type, id) {
-    openContentRef?.({ type, id });
-    close_();
-  }
 
   // Suchstatus nach oben melden (Home.jsx -> UnifiedFeed). Der Feed entscheidet
   // selbst, welche Inhalte er anzeigt (Query/Filter sind nur Parameter).
@@ -889,21 +748,6 @@ export default function SearchCommandCenter({
             }}>+ Kategorie</button>
           </div>
         </div>
-      )}
-
-      {/* Live-Suchvorschläge -- erscheinen SOBALD Freitext getippt wird
-          (mind. SUGGESTIONS_MIN_QUERY_LEN Zeichen), an genau der Stelle, wo
-          sonst die Kategorien-Schnellauswahl steht (die ja ohnehin ausblendet,
-          sobald query nicht leer ist -- showCategoriesAndHistory === false).
-          Kein Konflikt, kein doppeltes Rendering moeglich. */}
-      {open && query.trim().length >= SUGGESTIONS_MIN_QUERY_LEN && (
-        <SuggestionsBlock
-          query={query}
-          suggestions={suggestions}
-          loading={suggestLoading}
-          onSelectProfile={handleSelectProfileSuggestion}
-          onSelectRef={handleSelectRefSuggestion}
-        />
       )}
 
       {/* Kategorien -- horizontal scrollbar, eine Zeile, nur in reiner Discovery */}
