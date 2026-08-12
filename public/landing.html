@@ -292,7 +292,16 @@ ul{list-style:none}
 
 /* ═══ HERKUNFT ═══ */
 .origin{background:var(--cream-warm);text-align:center;position:relative;overflow:hidden;padding:120px 32px 104px;scroll-margin-top:88px}
+.origin-seal{display:block;width:clamp(150px,38vw,190px);height:auto;margin:44px auto;position:relative;z-index:1}
 .origin-inner{position:relative;z-index:1;max-width:600px;margin:0 auto}
+@media(min-width:681px){
+  .origin{display:grid;grid-template-columns:clamp(120px,15vw,220px) minmax(280px,600px) clamp(120px,15vw,220px);grid-template-rows:auto auto;column-gap:clamp(20px,4vw,56px);align-items:center;justify-content:center;text-align:center}
+  .origin-seal{width:100%;margin:0;grid-row:1/3;align-self:center}
+  .origin-seal-left{grid-column:1}
+  .origin-seal-right{grid-column:3}
+  .origin-inner{grid-column:2;grid-row:1;max-width:600px}
+  .origin-inner-bottom{grid-row:2}
+}
 .origin-kicker{font-size:12px;font-weight:500;letter-spacing:3.5px;text-transform:uppercase;color:var(--coral);margin-bottom:26px}
 .origin-h2{font-size:clamp(28px,4.5vw,42px);font-weight:600;letter-spacing:-.02em;line-height:1.2;color:var(--ink);margin-bottom:36px}
 .origin-project{font-size:clamp(26px,4.6vw,44px);font-weight:300;line-height:1.3;color:var(--teal);letter-spacing:-.02em;margin-bottom:36px;font-style:italic;text-shadow:0 1px 24px rgba(250,247,242,.5),0 1px 16px rgba(13,196,181,.08)}
@@ -741,12 +750,16 @@ ul{list-style:none}
 
 <!-- ═══ SEKTION — DIE HERKUNFT VON HUI ═══ -->
 <section class="origin">
+  <img class="origin-seal origin-seal-left" src="/assets/seal-4vision.webp" alt="Siegel 4VisionGlobal" width="560" height="560" loading="lazy">
   <div class="origin-inner">
     <p class="origin-kicker reveal">Die Idee dahinter</p>
     <h2 class="origin-h2 reveal d1">HUI begann mit einer gemeinsamen Idee.</h2>
     <p class="origin-project reveal d2">Einer für Alle,<br>alle Fair(ein)t</p>
     <p class="origin-text reveal d3">HUI ist aus dem Projekt „Einer für Alle, alle Fair(ein)t" entstanden. Aus dieser Idee wuchs der Wunsch, Menschen nicht nur für ein Projekt, sondern dauerhaft zusammenzubringen.</p>
     <p class="origin-text reveal d3">Aus diesem Projekt entstand die Idee für HUI – Human United Intelligence.</p>
+  </div>
+  <img class="origin-seal origin-seal-right" src="/assets/seal-liga.webp" alt="Siegel Liga der Kreativen" width="560" height="560" loading="lazy">
+  <div class="origin-inner origin-inner-bottom">
     <div class="origin-clubs reveal d4">
       <p class="origin-clubs-label">Getragen von den Vereinen</p>
       <p class="origin-clubs-names">4VisionGlobal<span class="sep">+</span>Liga der Kreativen</p>
