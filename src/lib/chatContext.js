@@ -653,7 +653,7 @@ export async function findOrCreateChat({
     .eq("state", "opened")
     .order("opened_at", { ascending: false })
     .limit(1)
-    .single();
+    .maybeSingle();
 
   if (fetchError) {
     const _err3 = { event: "FCC_ERROR", ..._fccMeta, error: fetchError?.message, code: fetchError?.code, phase: "fetch_after_insert" };
