@@ -67,9 +67,6 @@ export default function StatistikenModal({ profile, onClose }) {
     const uid = profile.id;
     try {
       // Parallel alle Counts laden
-      // Safe-Query Helper: faengt Tabellen-Fehler ab, gibt 0/null zurueck
-      const sq = (p) => p.catch(() => ({ count: 0, data: null, error: null }));
-
       const [
         { count: followingCount },
         { count: followerCount  },
@@ -78,6 +75,8 @@ export default function StatistikenModal({ profile, onClose }) {
         { count: commentsGiven  },
         { count: worksTotal     },
         { count: worksPublished },
+        { count: storiesCount   },
+        { count: momentsCount   },
         { count: beitraegeCount },
         { count: bookingsAsBuyer},
         { count: bookingsAsSeller},
@@ -86,6 +85,8 @@ export default function StatistikenModal({ profile, onClose }) {
         { count: projectSupports},
         { count: recsGiven      },
         { count: favCount       },
+        { count: connections    },
+        { count: profileRelations},
         { data: paymentsOut },
         { data: paymentsIn  },
         { data: profileData },
@@ -93,40 +94,45 @@ export default function StatistikenModal({ profile, onClose }) {
         { data: saveStats },
       ] = await Promise.all([
         // Community
-        sq(supabase.from("follows").select("*", { count:"exact", head:true }).eq("follower_id", uid)),
-        sq(supabase.from("follows").select("*", { count:"exact", head:true }).eq("followed_id", uid)),
-        // SSOT: post_reactions (nicht deprecated work_likes)
-        sq(supabase.from("post_reactions").select("*", { count:"exact", head:true }).eq("user_id", uid).eq("type","like")),
-        sq(supabase.from("post_reactions").select("*", { count:"exact", head:true }).eq("user_id", uid).eq("type","save")),
-        sq(supabase.from("post_comments").select("*", { count:"exact", head:true }).eq("user_id", uid)),
+        supabase.from("follows").select("*", { count:"exact", head:true }).eq("follower_id", uid),
+        supabase.from("follows").select("*", { count:"exact", head:true }).eq("followed_id", uid),
+        supabase.from("work_likes").select("*", { count:"exact", head:true }).eq("user_id", uid),
+        supabase.from("work_saves").select("*", { count:"exact", head:true }).eq("user_id", uid),
+        supabase.from("post_comments").select("*", { count:"exact", head:true }).eq("user_id", uid),
         // Content
-        sq(supabase.from("works").select("*", { count:"exact", head:true }).eq("user_id", uid)),
-        sq(supabase.from("works").select("*", { count:"exact", head:true }).eq("user_id", uid).eq("approval_status","published")),
-        // beitraege (Momente/Posts)
-        sq(supabase.from("beitraege").select("*", { count:"exact", head:true }).eq("user_id", uid)),
+        supabase.from("works").select("*", { count:"exact", head:true }).eq("user_id", uid),
+        supabase.from("works").select("*", { count:"exact", head:true }).eq("user_id", uid).eq("approval_status","published"),
+        // stories-Tabelle existiert nicht — ausgeblendet
+        supabase.from("beitraege").select("*", { count:"exact", head:true }).eq("user_id", uid),
         // Handel
-        sq(supabase.from("bookings").select("*", { count:"exact", head:true }).eq("customer_id", uid)),
-        sq(supabase.from("bookings").select("*", { count:"exact", head:true }).eq("wirker_id", uid)),
-        sq(supabase.from("orders").select("*", { count:"exact", head:true }).eq("customer_id", uid)),
+        supabase.from("bookings").select("*", { count:"exact", head:true }).eq("customer_id", uid),
+        supabase.from("bookings").select("*", { count:"exact", head:true }).eq("wirker_id", uid),
+        supabase.from("orders").select("*", { count:"exact", head:true }).eq("customer_id", uid),
         // Impact
-        sq(supabase.from("impact_votes").select("*", { count:"exact", head:true }).eq("voter_id", uid)),
-        sq(supabase.from("project_support").select("*", { count:"exact", head:true }).eq("user_id", uid)),
+        supabase.from("impact_votes").select("*", { count:"exact", head:true }).eq("voter_id", uid),
+        supabase.from("project_support").select("*", { count:"exact", head:true }).eq("user_id", uid),
         // Engagement
-        sq(supabase.from("recommendations").select("*", { count:"exact", head:true }).eq("from_user_id", uid)),
-        sq(supabase.from("favorites").select("*", { count:"exact", head:true }).eq("user_id", uid)),
-        // Zahlungen — Legacy: payments nie befuellt (SYS-LegacyMark-024), UI zeigt 0
-        sq(supabase.from("payments").select("amount_eur,impact_eur").eq("payer_id", uid).in("state",["released","completed","paid"])),
-        sq(supabase.from("stripe_payments").select("amount_eur").eq("recipient_id", uid).in("status",["released","completed","paid"])),
+        supabase.from("recommendations").select("*", { count:"exact", head:true }).eq("from_user_id", uid),
+        supabase.from("favorites").select("*", { count:"exact", head:true }).eq("user_id", uid),
+        supabase.from("connections").select("*", { count:"exact", head:true }).eq("user_id", uid),
+        supabase.from("connections").select("*", { count:"exact", head:true }).eq("user_id", uid),
+        // Zahlungen
+        // Legacy-Hinweis: Diese Stelle liest aus der alten Tabelle 'payments'. Nie befuellt, kein SSOT-Mapping (SYS-LegacyMark-024). UI zeigt korrekt leer/0 an.
+        supabase.from("payments").select("amount_eur,impact_eur").eq("payer_id", uid).in("state",["released","completed","paid"]),
+        // Legacy-Hinweis: Diese Stelle liest aus der alten Tabelle 'payments'. Nie befuellt, kein SSOT-Mapping (SYS-LegacyMark-024). UI zeigt korrekt leer/0 an.
+        supabase.from("stripe_payments").select("amount_eur").eq("recipient_id", uid).in("status",["released","completed","paid"]),
         // Profil
-        sq(supabase.from("profiles").select("profile_views,followers_count,trust_score,member_since,created_at,has_talent_profile,is_ambassador").eq("id", uid).single()),
+        supabase.from("profiles").select("profile_views,followers_count,trust_score,member_since,created_at,has_talent_profile,is_ambassador").eq("id", uid).single(), // Identity Contract v1.0
         // Project-Support Betrag
-        sq(supabase.from("project_support").select("amount_eur").eq("user_id", uid)),
-        // MERKEN.6: appweite Save-Stats ueber post_reactions (type=save)
-        sq(supabase.rpc("creator_save_stats", { p_user_id: uid })),
+        supabase.from("project_support").select("amount_eur").eq("user_id", uid),
+        // MERKEN.6 (2026-07-08): Gesamt-Merken-Kennzahl ueber ALLE eigenen
+        // Inhalte (works/experiences/beitraege/invitations), kein Legacy-
+        // Zaehler -- siehe Migration 072 / creator_save_stats().
+        supabase.rpc("creator_save_stats", { p_user_id: uid }),
       ]);
 
       const totalAusgaben  = (paymentsOut||[]).reduce((s,r) => s+(r.amount_eur||0), 0);
-      const totalEinnahmen = (paymentsIn||[]).reduce((s,r) => s+(r.amount_eur||0), 0);
+      const totalEinnahmen = (paymentsIn||[]).reduce((s,r) => s+(r.payout_eur||0), 0);
       const totalImpactEur = (paymentsOut||[]).reduce((s,r) => s+(r.impact_eur||0), 0);
       const totalProjSupp  = (projSupportAmt||[]).reduce((s,r) => s+(r.amount_eur||0), 0);
 
@@ -160,10 +166,14 @@ export default function StatistikenModal({ profile, onClose }) {
         likesGiven:     likesGiven     || 0,
         likesSaved:     likesSaved     || 0,
         commentsGiven:  commentsGiven  || 0,
+        connections:    connections    || 0,
+        profileRelations: profileRelations || 0,
         favCount:       favCount       || 0,
         // Content
         worksTotal:     worksTotal     || 0,
         worksPublished: worksPublished || 0,
+        storiesCount:   storiesCount   || 0,
+        momentsCount:   momentsCount   || 0,
         beitraegeCount: beitraegeCount || 0,
         totalWorkLikes,
         totalWorkViews,
@@ -271,6 +281,7 @@ export default function StatistikenModal({ profile, onClose }) {
       kacheln([
         { label:"Follower",           val: fmtNum(stats.followers),    color:"#0EC4B8" },
         { label:"Folge ich",          val: fmtNum(stats.following),    color:"#0EC4B8" },
+        { label:"Verbindungen",       val: fmtNum(stats.connections),  color:"#7C3AED" },
         { label:"Profil-Aufrufe",     val: fmtNum(stats.profileViews), color:"#F59E0B" },
         { label:"Likes vergeben",     val: fmtNum(stats.likesGiven),   color:"#FF6B6B" },
         { label:"Gespeichert",        val: fmtNum(stats.likesSaved),   color:"#FF6B6B" },
@@ -283,7 +294,9 @@ export default function StatistikenModal({ profile, onClose }) {
       kacheln([
         { label:"Werke gesamt",       val: fmtNum(stats.worksTotal),     color:"#7C3AED" },
         { label:"Werke veröffentl.",  val: fmtNum(stats.worksPublished), color:"#10B981" },
-        { label:"Momente/Posts",           val: fmtNum(stats.beitraegeCount), color:"#0EC4B8" },
+        { label:"Stories",            val: fmtNum(stats.storiesCount),   color:"#F59E0B" },
+        { label:"Momente",            val: fmtNum(stats.momentsCount),   color:"#F59E0B" },
+        { label:"Beiträge",           val: fmtNum(stats.beitraegeCount), color:"#0EC4B8" },
         { label:"Werk-Aufrufe",       val: fmtNum(stats.totalWorkViews), color:"#7C3AED" },
         { label:"Werk-Likes erhalten",val: fmtNum(stats.totalWorkLikes), color:"#FF6B6B" },
         { label:"Gemerkt",            val: fmtNum(stats.totalGemerkt),   color:"#FF6B6B" },
@@ -421,6 +434,7 @@ export default function StatistikenModal({ profile, onClose }) {
                 <KachelGrid items={[
                   { icon:<HUIBenachrichtigungIcon size={16}/>, label:"Follower",          val: fmtNum(stats.followers),    col:T.teal   },
                   { icon:<HUIFolgenIcon size={16}/>, label:"Folge ich",          val: fmtNum(stats.following),    col:T.teal   },
+                  { icon:"🤝", label:"Verbindungen",       val: fmtNum(stats.connections),  col:T.violet },
                   { icon:<HUIAnsichtIcon size={16}/>, label:"Profil-Aufrufe",     val: fmtNum(stats.profileViews), col:T.amber  },
                   { icon:<HUIHeartIcon size={14}/>, label:"Likes vergeben",     val: fmtNum(stats.likesGiven),   col:T.coral  },
                   { icon:<HUIBookmarkIcon size={14}/>, label:"Gespeichert",        val: fmtNum(stats.likesSaved),   col:T.coral  },
@@ -433,6 +447,8 @@ export default function StatistikenModal({ profile, onClose }) {
                 <KachelGrid items={[
                   { icon:<HUIWerkeIcon size={16}/>, label:"Werke gesamt",       val: fmtNum(stats.worksTotal),     col:T.violet },
                   { icon:"✅", label:"Veröffentlicht",     val: fmtNum(stats.worksPublished), col:T.green  },
+                  { icon:<HUIFotoIcon size={16}/>, label:"Stories",            val: fmtNum(stats.storiesCount),   col:T.amber  },
+                  { icon:<HUIFotoIcon size={16}/>, label:"Momente",            val: fmtNum(stats.momentsCount),   col:T.amber  },
                   { icon:"📝", label:"Beiträge",           val: fmtNum(stats.beitraegeCount), col:T.teal   },
                   { icon:"👀", label:"Werk-Aufrufe",       val: fmtNum(stats.totalWorkViews), col:T.violet },
                   { icon:<HUIHeartIcon size={14}/>, label:"Likes erhalten",     val: fmtNum(stats.totalWorkLikes), col:T.coral  },
