@@ -242,6 +242,7 @@ ul{list-style:none}
 
 /* ═══ ÖKOSYSTEM ═══ */
 .eco{padding:96px 32px 88px;background:var(--cream-soft);text-align:center;position:relative;overflow:hidden}
+.eco-image-bg{position:absolute;inset:0;z-index:0;pointer-events:none;background-image:url(/assets/eco-bg.webp);background-size:cover;background-position:center;opacity:.32}
 .eco-atmosphere{position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 70% 50% at 50% 45%,rgba(13,196,181,.035) 0%,transparent 60%),radial-gradient(ellipse 50% 40% at 30% 70%,rgba(244,115,85,.015) 0%,transparent 55%),radial-gradient(ellipse 55% 45% at 70% 30%,rgba(212,149,42,.025) 0%,transparent 55%);animation:eco-atm 12s ease-in-out infinite}
 @keyframes eco-atm{0%,100%{opacity:.65}50%{opacity:1}}
 .eco-inner{max-width:960px;margin:0 auto;text-align:center;position:relative;z-index:1}
@@ -656,6 +657,7 @@ ul{list-style:none}
 
 <!-- ═══ SEKTION 2 — DAS HUI-ÖKOSYSTEM ═══ -->
 <section class="eco" id="entdecken">
+  <div class="eco-image-bg" aria-hidden="true"></div>
   <div class="eco-atmosphere" aria-hidden="true"></div>
   <div class="eco-inner">
     <p class="section-kicker reveal">Das Ökosystem</p>
