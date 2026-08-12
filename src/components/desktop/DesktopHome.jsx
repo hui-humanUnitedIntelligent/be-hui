@@ -57,7 +57,7 @@ function HeroSkeleton() {
 function WerkHero({ work, navigate }) {
   if (!work) return null;
   return (
-    <div className="hero-card" onClick={() => navigate(`/work/${work.id}`)}>
+    <div className="hero-card" onClick={() => navigate(`/work/${work.id}`)} role="button" tabIndex={0}>
       <div className="hero-img-wrap">
         {work.cover_url ? (
           <img className="hero-img" src={work.cover_url} alt={work.title} loading="lazy" onLoad={() => heroMark("imgLoadEnd")} onError={() => heroMark("imgLoadEnd")} />
@@ -83,7 +83,7 @@ function TalentHero({ talent, navigate }) {
   if (!talent) return null;
   const name = talent.display_name || talent.username || 'Ein Wirker';
   return (
-    <div className="hero-card hero-card-talent" onClick={() => navigate(`/profile/${talent.username || talent.id}`)}>
+    <div className="hero-card hero-card-talent" onClick={() => navigate(`/profile/${talent.username || talent.id}`)} role="button" tabIndex={0}>
       <div className="hero-talent-visual">
         {talent.avatar_url ? (
           <img className="hero-talent-avatar" src={talent.avatar_url} alt={name} loading="lazy" />
@@ -135,7 +135,7 @@ function ResonanzHero({ activity, navigate }) {
 function ImpactHero({ impact, navigate }) {
   if (impact.loading || !impact.fmtTotal) return null;
   return (
-    <div className="hero-card hero-card-impact" onClick={() => navigate('/impact')}>
+    <div className="hero-card hero-card-impact" onClick={() => navigate('/impact')} role="button" tabIndex={0}>
       <div className="hero-impact-visual">
         <div className="hero-impact-glow" />
       </div>

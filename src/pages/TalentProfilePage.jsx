@@ -229,7 +229,7 @@ function VerbindungsDialog({ profile, currentUserId, onClose, onSuccess }) {
   }
 
   return (
-    <div className="tpp-dialog-overlay" onClick={e => { if(e.target===e.currentTarget) onClose?.(); }}>
+    <div className="tpp-dialog-overlay" onClick={e => { if(e.target===e.currentTarget) onClose?.(); }} role="button" tabIndex={0}>
       <style>{CSS_DIALOG}</style>
       <div className="tpp-dialog-sheet">
         {/* Handle */}

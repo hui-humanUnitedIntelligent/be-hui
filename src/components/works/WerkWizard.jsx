@@ -142,7 +142,7 @@ function Toggle({ label, value, onChange }) {
   return (
     <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"17px 18px", background:"#fff", borderRadius:14, border:`1.5px solid ${C.border}`, marginBottom:10, minHeight:60 }}>
       <span style={{ fontSize:16, fontWeight:600, color:C.ink }}>{label}</span>
-      <div onClick={()=>onChange(!value)} style={{ width:48, height:28, borderRadius:14, background:value?C.teal:"rgba(26,26,24,0.15)", position:"relative", cursor:"pointer", transition:"background .18s", flexShrink:0, touchAction:"manipulation" }}>
+      <div onClick={()=>onChange(!value)} style={{ width:48, height:28, borderRadius:14, background:value?C.teal:"rgba(26,26,24,0.15)", position:"relative", cursor:"pointer", transition:"background .18s", flexShrink:0, touchAction:"manipulation" }} role="button" tabIndex={0}>
         <div style={{ position:"absolute", top:3, left:value?22:3, width:22, height:22, borderRadius:"50%", background:"#fff", boxShadow:"0 1px 4px rgba(0,0,0,0.18)", transition:"left .18s" }}/>
       </div>
     </div>
@@ -151,7 +151,7 @@ function Toggle({ label, value, onChange }) {
 
 function RCard({ active, icon, label, sub, onClick }) {
   return (
-    <div onClick={onClick} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 16px", borderRadius:14, border:active?`2px solid ${C.teal}`:`1.5px solid ${C.border}`, background:active?"rgba(14,196,184,0.07)":"#fff", cursor:"pointer", transition:"all .15s", touchAction:"manipulation", minHeight:60 }}>
+    <div onClick={onClick} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 16px", borderRadius:14, border:active?`2px solid ${C.teal}`:`1.5px solid ${C.border}`, background:active?"rgba(14,196,184,0.07)":"#fff", cursor:"pointer", transition:"all .15s", touchAction:"manipulation", minHeight:60 }} role="button" tabIndex={0}>
       <div style={{ width:20, height:20, borderRadius:"50%", border:active?`2px solid ${C.teal}`:`2px solid ${C.border}`, background:active?C.teal:"transparent", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
         {active&&<div style={{ width:7, height:7, borderRadius:"50%", background:"#fff" }}/>}
       </div>
@@ -222,7 +222,7 @@ function S1({ data, onChange, userId, onNext }) {
           </div>
         ))}
         {imgs.length<10&&(
-          <div onClick={()=>!upl&&ref.current?.click()} style={{ aspectRatio:"1", borderRadius:12, border:"2px dashed rgba(14,196,184,0.38)", background:"rgba(14,196,184,0.04)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", cursor:upl?"not-allowed":"pointer", gap:4, touchAction:"manipulation" }}>
+          <div onClick={()=>!upl&&ref.current?.click()} style={{ aspectRatio:"1", borderRadius:12, border:"2px dashed rgba(14,196,184,0.38)", background:"rgba(14,196,184,0.04)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", cursor:upl?"not-allowed":"pointer", gap:4, touchAction:"manipulation" }} role="button" tabIndex={0}>
             {upl?<div style={{ fontSize:12, color:C.teal, fontWeight:600 }}>…</div>:<>
               <div style={{ fontSize:22, color:C.teal, fontWeight:300, lineHeight:1 }}>+</div>
               <div style={{ fontSize:9, color:C.teal, fontWeight:600, textAlign:"center", lineHeight:1.4 }}>Bild<br/>hinzufügen</div>

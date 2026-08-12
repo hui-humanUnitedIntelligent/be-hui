@@ -370,7 +370,7 @@ function PeopleSection({ people, onPersonPress, loading, delay=0, view='cards', 
                 <div key={i} className="dp-list-card"><Skel w={58} h={58} r={12} /><div style={{flex:1}}><Skel w="70%" h={13} r={6} mb={6}/><Skel w="50%" h={10} r={5}/></div></div>
               ))
             : people.map((p, i) => (
-                <div key={p.id} className="dp-list-card" onClick={() => onPersonPress?.(p)}>
+                <div key={p.id} className="dp-list-card" onClick={() => onPersonPress?.(p)} role="button" tabIndex={0}>
                   {p.avatar
                     ? <img loading="lazy" decoding="async" src={optimizeAvatar(p.avatar)} alt={p.name} className="dp-list-thumb" onError={e => e.target.style.display='none'}/>
                     : <div className="dp-list-thumb-placeholder" style={{display:"flex",alignItems:"center",justifyContent:"center"}}><HUIProfilIcon size={24} style={{opacity:0.35, color:"rgba(14,196,184,0.5)"}}/></div>
@@ -500,7 +500,7 @@ function MomenteSection({ momente, loading, delay=0, view='cards', onPress, onAu
                 <div key={i} className="dp-list-card"><Skel w={58} h={58} r={12}/><div style={{flex:1}}><Skel w="75%" h={12} r={6} mb={6}/><Skel w="45%" h={10} r={5}/></div></div>
               ))
             : momente.map((m) => (
-                <div key={m.id} className="dp-list-card" onClick={() => onPress?.(m)} style={{cursor:"pointer"}}>
+                <div key={m.id} className="dp-list-card" onClick={() => onPress?.(m)} style={{cursor:"pointer"}} role="button" tabIndex={0}>
                   {m.src
                     ? <img loading="lazy" decoding="async" src={m.src} alt={m.caption} className="dp-list-thumb" onError={e => e.target.style.display='none'} style={{ objectFit:"cover" }}/>
                     : <div className="dp-list-thumb-placeholder" style={{display:"flex",alignItems:"center",justifyContent:"center"}}><HUILogo size={34} style={{opacity:0.5}}/></div>
@@ -772,7 +772,7 @@ function TalenteSection({
                     ?formatNumberDE(parseFloat(t.price_per_session), { minimumFractionDigits:0 }) + " €/Termin"
                     : null;
                 return (
-                  <div key={t.id} className="dp-list-card" onClick={() => onPress?.(t)}>
+                  <div key={t.id} className="dp-list-card" onClick={() => onPress?.(t)} role="button" tabIndex={0}>
                     {t.cover
                       ? <img loading="lazy" decoding="async" src={t.cover} alt={t.title} className="dp-list-thumb" onError={e => e.target.style.display='none'} style={{ objectFit:"cover" }}/>
                       : <div className="dp-list-thumb-placeholder" style={{display:"flex",alignItems:"center",justifyContent:"center"}}><HUILogo size={24} style={{opacity:0.5}}/></div>
@@ -1006,7 +1006,7 @@ function WerkeSection({
                   ?formatNumberDE(parseFloat(w.price), { minimumFractionDigits:0 }) + " €"
                   : null;
                 return (
-                  <div key={w.id} className="dp-list-card" onClick={() => onPress?.(w)} style={{cursor:"pointer"}}>
+                  <div key={w.id} className="dp-list-card" onClick={() => onPress?.(w)} style={{cursor:"pointer"}} role="button" tabIndex={0}>
                     <div className="dp-list-thumb-placeholder" style={{ background: w.cover ? "#1A1A18" : medCol.bg }}>
                       {w.cover
                         ? <img loading="lazy" decoding="async" src={w.cover} alt={w.title} style={{ width:"100%", height:"100%", objectFit:"cover", borderRadius:12 }} onError={e => e.currentTarget.style.display="none"}/>
@@ -1393,7 +1393,7 @@ function ProjekteSection({ projekte, loading, delay=0, view='cards', onPress, on
             : projekte.map((p) => {
                 const cc = p.catColor || { bg:T.tealSoft, text:T.teal };
                 return (
-                  <div key={p.id} className="dp-list-card" onClick={() => onPress?.(p)} style={{cursor:"pointer"}}>
+                  <div key={p.id} className="dp-list-card" onClick={() => onPress?.(p)} style={{cursor:"pointer"}} role="button" tabIndex={0}>
                     <div className="dp-list-thumb-placeholder" style={{ background:cc.bg, position:"relative", overflow:"hidden" }}>
                       {p.cover
                         ? <img loading="lazy" decoding="async" src={p.cover} alt={p.title} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", opacity:0.85 }} onError={ev => ev.target.style.display='none'}/>

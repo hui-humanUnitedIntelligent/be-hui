@@ -115,8 +115,8 @@ export default function AmbassadorModal({ userId, onClose, onSuccess }) {
   return createPortal(
     <>
       <style>{CSS}</style>
-      <div className="amb-overlay" onClick={onClose}>
-        <div className="amb-sheet" onClick={e => e.stopPropagation()}>
+      <div className="amb-overlay" onClick={onClose} role="button" tabIndex={0}>
+        <div className="amb-sheet" onClick={e => e.stopPropagation()} role="button" tabIndex={0}>
 
           {/* Header */}
           <div style={{ padding: "20px 20px 0", display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>

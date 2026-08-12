@@ -3180,7 +3180,7 @@ function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
                           {u.media_urls && u.media_urls.length > 0 && (
                             <div style={{ display:"flex", flexWrap:"wrap", gap:4, marginTop:6 }}>
                               {u.media_urls.map((url, idx) => (
-                                <div key={idx} onClick={() => openGallery(u.media_urls, idx)} style={{ cursor:"pointer" }}>
+                                <div key={idx} onClick={() => openGallery(u.media_urls, idx)} style={{ cursor:"pointer" }} role="button" tabIndex={0}>
                                   <img loading="lazy" decoding="async" src={url} alt=""
                                     style={{ width:50, height:50, objectFit:"cover", borderRadius:6, border:"1px solid rgba(0,0,0,0.08)" }} />
                                 </div>

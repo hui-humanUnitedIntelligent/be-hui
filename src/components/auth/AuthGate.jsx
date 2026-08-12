@@ -388,7 +388,7 @@ export function AuthGate({ action, onAuth, children }) {
 
   return (
     <>
-      <div onClick={handleClick} style={{ display:"contents" }}>{children}</div>
+      <div onClick={handleClick} style={{ display:"contents" }} role="button" tabIndex={0}>{children}</div>
       {showModal && (
         <AuthModal
           action={action}

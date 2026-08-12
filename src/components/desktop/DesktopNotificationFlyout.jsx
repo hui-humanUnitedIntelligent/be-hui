@@ -61,7 +61,7 @@ export default function DesktopNotificationFlyout({ onClose }) {
             <div className="v3-empty"><p>Alles gelesen — keine offenen Benachrichtigungen.</p></div>
           ) : (
             items.slice(0, 30).map(item => (
-              <div key={item.id} className={`notif-item ${!item.is_read ? 'unread' : ''}`} onClick={() => handleClick(item)}>
+              <div key={item.id} className={`notif-item ${!item.is_read ? 'unread' : ''}`} onClick={() => handleClick(item)} role="button" tabIndex={0}>
                 <NotifIcon type={item.type} />
                 <div className="notif-body">
                   <span className="notif-title">{item.title || 'Benachrichtigung'}</span>

@@ -969,7 +969,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
                   const isImg = /\.(jpg|jpeg|png|webp|gif)$/i.test(url);
                   const imgUrls = displayMediaUrls.filter(u => /\.(jpg|jpeg|png|webp|gif)$/i.test(u));
                   return isImg ? (
-                    <div key={idx} onClick={() => openGallery(imgUrls, imgUrls.indexOf(url))} style={{ cursor:"pointer" }}>
+                    <div key={idx} onClick={() => openGallery(imgUrls, imgUrls.indexOf(url))} style={{ cursor:"pointer" }} role="button" tabIndex={0}>
                       <img loading="lazy" decoding="async" src={url} alt={`Datei ${idx+1}`}
                         style={{ width:72, height:72, objectFit:"cover", borderRadius:10,
                           border:"1px solid rgba(0,0,0,0.10)" }} />
@@ -1040,7 +1040,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
                       {u.media_urls && u.media_urls.length > 0 && (
                         <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
                           {u.media_urls.map((url, idx) => (
-                            <div key={idx} onClick={() => openGallery(u.media_urls, idx)} style={{ cursor:"pointer" }}>
+                            <div key={idx} onClick={() => openGallery(u.media_urls, idx)} style={{ cursor:"pointer" }} role="button" tabIndex={0}>
                               <img loading="lazy" decoding="async" src={url} alt=""
                                 style={{ width:60, height:60, objectFit:"cover", borderRadius:8,
                                   border:"1px solid rgba(0,0,0,0.10)" }} />
@@ -1469,7 +1469,7 @@ function MilestoneDetailSheet({ milestone, onClose }) {
                       const isVid = /\.(mp4|webm|mov|avi)$/i.test(url);
                       const imgUrls = u.media_urls.filter(mu => /\.(jpg|jpeg|png|webp|gif)$/i.test(mu));
                       return isImg ? (
-                        <div key={mi} onClick={() => openGallery(imgUrls, imgUrls.indexOf(url))} style={{ cursor:"pointer" }}>
+                        <div key={mi} onClick={() => openGallery(imgUrls, imgUrls.indexOf(url))} style={{ cursor:"pointer" }} role="button" tabIndex={0}>
                           <img loading="lazy" decoding="async" src={url} alt={`Bild ${mi+1}`}
                             style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 10,
                               border: "1px solid rgba(0,0,0,0.10)" }} />
