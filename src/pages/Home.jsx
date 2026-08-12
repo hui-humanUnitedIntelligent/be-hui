@@ -578,6 +578,7 @@ function HomeInner() {
                       setShowBookingFlow(item);
                     }}
                     openMenschenSignal={openMenschenSignal}
+                    searchState={searchState}
                   />
               </SafeRender>
             </Suspense>

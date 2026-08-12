@@ -26,6 +26,7 @@ import { usePresenceMap }      from "../lib/usePresence.jsx";
 import CommentsSheet            from "../components/shared/CommentsSheet.jsx";
 import { countComments, getComments } from "../lib/commentsService.js";
 import { prefetchComments } from "../lib/commentsPrefetchCache.js";
+import { filterDiscoveryItems, hasActiveSearchFilter } from "../lib/searchFilter.js";
 
 // TEMP PERF — no-op on mobile (window.__HUI_PERF__ not set)
 import { PerfProfiler, usePerfMount, feedMark } from "../components/desktop/perf-instrument.js";
@@ -793,6 +794,11 @@ export default function UnifiedFeed({
   currentUser  = null,
   // Scroll-Container-Ref (von Home.jsx übergeben) — für Virtualisierung
   scrollContainerRef = null,
+  // Search-Filter (von Home.jsx searchState -> SearchCommandCenter)
+  searchActive   = false,
+  searchQuery    = "",
+  typeFilter     = null,     // null | "profile" | "work" | "experience"
+  categoryFilters = [],      // Array von { id, label, ... }
 }) {
   usePerfMount('UnifiedFeed');
   useEffect(() => {
@@ -860,6 +866,37 @@ export default function UnifiedFeed({
     return safe;
   }, [itemsProp, streamItems, streamLoading]);
 
+  // ── SEARCH FILTER (2026-08-12) ────────────────────────────────────
+  // BUGFIX: SearchCommandCenter schreibt query/typeFilter/categories in
+  // searchState (HomeShell) → Home.jsx gibt sie hierher weiter. Bisher
+  // wurden diese Props von UnifiedFeed GAR NICHT deklariert → still ignoriert.
+  // Jetzt: clientseitige Filterung der bereits normalisierten Feed-Items.
+  // typeFilter "profile" → nur Momente (Menschen-Posts), "work" → Werke,
+  // "experience" → Erlebnisse. Text+Kategorie via filterDiscoveryItems.
+  const searchFilteredItems = useMemo(() => {
+    if (!hasActiveSearchFilter({ query: searchQuery, categoryFilters }) && !typeFilter) {
+      return resolvedItems;
+    }
+    let result = resolvedItems;
+    // Type-Filter
+    if (typeFilter) {
+      const typeMap = { profile: ["moment"], work: ["work"], experience: ["experience"] };
+      const allowed = typeMap[typeFilter] || null;
+      if (allowed) result = result.filter(i => allowed.includes(i.type));
+    }
+    // Text + Kategorie-Filter
+    result = filterDiscoveryItems(result, { query: searchQuery, categoryFilters }, (item) => [
+      item.title || "",
+      item.text  || "",
+      item.author?.name || "",
+      item.author?.username || "",
+      item.location || "",
+      ...(item.tags || []),
+      item._raw?.category || "",
+    ]);
+    return result;
+  }, [resolvedItems, searchQuery, typeFilter, categoryFilters]);
+
   // Sections are directly imported — no lazy load needed
 
   return (
@@ -896,13 +933,13 @@ export default function UnifiedFeed({
 
       <SectionBoundary name="feedList">
         {/* Loading state — shimmer skeletons */}
-        {streamLoading && resolvedItems.length === 0 && (
+        {streamLoading && searchFilteredItems.length === 0 && (
           <div>
             {Array.from({length:4}).map((_,i) => <CardSkeleton key={i} />)}
           </div>
         )}
         {/* DEAD CODE BELOW — kept for reference */}
-        {false && streamLoading && resolvedItems.length === 0 && (
+        {false && streamLoading && searchFilteredItems.length === 0 && (
           <div style={{ padding: "32px 16px 0", display:"none" }}>
             {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} style={{
@@ -929,9 +966,9 @@ export default function UnifiedFeed({
         )}
 
         {/* Feed list — only when not first-load */}
-        {(!streamLoading || resolvedItems.length > 0) && (
+        {(!streamLoading || searchFilteredItems.length > 0) && (
           <FeedList
-            items={resolvedItems}
+            items={searchFilteredItems}
             onProfile={onProfile}
             onBook={onBook}
             onDetail={onDetail}
@@ -945,6 +982,17 @@ export default function UnifiedFeed({
           />
         )}
       </SectionBoundary>
+
+      {/* ── No-Results bei aktiver Suche ── */}
+      {searchActive && !streamLoading && searchFilteredItems.length === 0 &&
+       (searchQuery || typeFilter || (categoryFilters && categoryFilters.length > 0)) && (
+        <div style={{ padding:"60px 24px", textAlign:"center", color:"rgba(26,53,48,0.38)" }}>
+          <div style={{ fontSize:15, fontWeight:600, marginBottom:6 }}>Keine Ergebnisse</div>
+          <div style={{ fontSize:13 }}>
+            Für „{searchQuery}" wurde nichts im Feed gefunden.
+          </div>
+        </div>
+      )}
 
       {/* ── COMMENTS SHEET ── */}
       <CommentsSheet

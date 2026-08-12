@@ -21,6 +21,7 @@ import { useAuthGate }    from "../components/auth/AuthGate.jsx";
 import TalentAnfrageFlow  from "../components/talents/TalentAnfrageFlow.jsx";
 import TalentBookingFlow from "../components/talents/TalentBookingFlow.jsx"; // direkt (nicht lazy) — buchungskritisch, verhindert "erster Klick öffnet nicht"-Bug
 import { searchPlaces, distanceKm } from "../lib/geocoding.js";
+import { filterDiscoveryItems, hasActiveSearchFilter } from "../lib/searchFilter.js";
 import { useRadiusFilter, radiusLabel } from "../hooks/useRadiusFilter.js";
 const MenschenAllModal = lazy(() => import("../components/discover/MenschenAllModal.jsx"));
 const WerkeAllModal = lazy(() => import("../components/discover/WerkeAllModal.jsx"));
@@ -1555,7 +1556,7 @@ function isCacheValid() {
 }
 // ───────────────────────────────────────────────────────────────
 
-export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal }) {
+export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal, searchState = {} }) {
   const view = "cards"; // Fest auf Kacheln — Listenansicht-Umschaltung 2026-08-06 entfernt (Buttons raus)
   const [loading, setLoading] = useState(true);
   const [people, setPeople]           = useState([]);
@@ -2131,6 +2132,56 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
 
   const displayProjekte   = projekte; // nur echte Daten
 
+  // ── SEARCH FILTER (2026-08-12) ────────────────────────────────────
+  // BUGFIX: SearchCommandCenter-Suchstate wurde bisher NICHT an
+  // DiscoverPage weitergegeben — Sucheingabe im Entdecken-Tab hatte
+  // null Effekt. Jetzt: clientseitige Filterung aller Sections nach
+  // Freitext + Kategorien. typeFilter blendet nicht zutreffende
+  // Sections komplett aus (z.B. typeFilter="work" → nur Werke sichtbar).
+  const _searchQuery     = searchState.query || "";
+  const _searchCats      = Array.isArray(searchState.categories) ? searchState.categories : [];
+  const _typeFilter      = searchState.typeFilter || null;
+  const _searchActive     = hasActiveSearchFilter({ query: _searchQuery, categoryFilters: _searchCats });
+
+  const searchedPeople = useMemo(() =>
+    _searchActive ? filterDiscoveryItems(filteredPeople, { query: _searchQuery, categoryFilters: _searchCats },
+      p => [p.name, p.bio, p.location, p.interests?.join?.(" ") || ""]) : filteredPeople,
+  [filteredPeople, _searchActive, _searchQuery, _searchCats]);
+
+  const searchedMomente = useMemo(() =>
+    _searchActive ? filterDiscoveryItems(displayMomente, { query: _searchQuery, categoryFilters: _searchCats },
+      m => [m.caption, m.name, m.location]) : displayMomente,
+  [displayMomente, _searchActive, _searchQuery, _searchCats]);
+
+  const searchedTalente = useMemo(() =>
+    _searchActive ? filterDiscoveryItems(displayTalente, { query: _searchQuery, categoryFilters: _searchCats },
+      t => [t.title, t.description, t.category, t.author, t.location_address, t.location_notes]) : displayTalente,
+  [displayTalente, _searchActive, _searchQuery, _searchCats]);
+
+  const searchedWerke = useMemo(() =>
+    _searchActive ? filterDiscoveryItems(displayWerke, { query: _searchQuery, categoryFilters: _searchCats },
+      w => [w.title, w.medium, w.author, w.location]) : displayWerke,
+  [displayWerke, _searchActive, _searchQuery, _searchCats]);
+
+  const searchedErlebnisse = useMemo(() =>
+    _searchActive ? filterDiscoveryItems(displayErlebnisse, { query: _searchQuery, categoryFilters: _searchCats },
+      e => [e.title, e.typeLabel, e.location, e.dayLabel]) : displayErlebnisse,
+  [displayErlebnisse, _searchActive, _searchQuery, _searchCats]);
+
+  const searchedProjekte = useMemo(() =>
+    _searchActive ? filterDiscoveryItems(displayProjekte, { query: _searchQuery, categoryFilters: _searchCats },
+      p => [p.title, p.desc, p.cat]) : displayProjekte,
+  [displayProjekte, _searchActive, _searchQuery, _searchCats]);
+
+  // typeFilter: blendet Sections aus, die nicht zum Filter passen
+  const _showPeople     = !_typeFilter || _typeFilter === "profile";
+  const _showMomente    = !_typeFilter || _typeFilter === "profile";
+  const _showWerke      = !_typeFilter || _typeFilter === "work";
+  const _showTalente    = !_typeFilter || _typeFilter === "experience";
+  const _showErlebnisse = !_typeFilter || _typeFilter === "experience";
+  const _showProjekte   = !_typeFilter;
+  const _showOrte       = !_typeFilter && !_searchActive;
+
   // Person/Wirker-Karte (OPEN.4 2026-07-08): sprang bisher IMMER direkt aufs
   // Profil ohne jede Vorschau -- echte Luecke, da "alle Wirker" explizit zur
   // einheitlichen Vorschau gehoeren. Jetzt: Vorschau zuerst, "Vollstaendige
@@ -2245,18 +2296,21 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
       </div>
 
       {/* ── 3. Menschen entdecken ── */}
+      {_showPeople && (
       <PeopleSection
-        people={filteredPeople}
+        people={searchedPeople}
         onPersonPress={handlePersonPress}
         loading={loading}
         delay={60}
         view={view}
         onSectionAction={() => setShowMenschenModal(true)}
       />
+      )}
 
       {/* ── 4. Momente aus deiner Nähe ── */}
+      {_showMomente && (
       <MomenteSection
-        momente={displayMomente}
+        momente={searchedMomente}
         loading={loading}
         delay={80}
         view={view}
@@ -2264,10 +2318,12 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
         onAuthorPress={(userId) => openCreatorProfile(userId)}
         onSectionAction={() => setShowMomenteModal(true)}
       />
+      )}
 
       {/* ── 4b. Talente entdecken ── */}
+      {_showTalente && (
       <TalenteSection
-        talente={displayTalente}
+        talente={searchedTalente}
         loading={loading}
         delay={90}
         view={view}
@@ -2286,10 +2342,12 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
         onRadiusChange={radius.setRadiusKm}
         hiddenNoCoordsCount={hiddenNoCoordsCount}
       />
+      )}
 
       {/* ── 5. Werke entdecken ── */}
+      {_showWerke && (
       <WerkeSection
-        werke={displayWerke}
+        werke={searchedWerke}
         loading={loading}
         delay={100}
         view={view}
@@ -2308,10 +2366,12 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
         onRadiusChange={radius.setRadiusKm}
         hiddenNoCoordsCount={werkHiddenCount}
       />
+      )}
 
       {/* ── 6. Erlebnisse für dich ── */}
+      {_showErlebnisse && (
       <ErlebnisseSection
-        erlebnisse={displayErlebnisse}
+        erlebnisse={searchedErlebnisse}
         loading={loading}
         delay={120}
         view={view}
@@ -2329,18 +2389,22 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
         onRadiusChange={radius.setRadiusKm}
         hiddenNoCoordsCount={erlebnisHiddenCount}
       />
+      )}
 
       {/* ── 7. Projekte & Initiativen ── */}
+      {_showProjekte && (
       <ProjekteSection
-        projekte={displayProjekte}
+        projekte={searchedProjekte}
         loading={loading}
         delay={140}
         view={view}
         onPress={handleProjektPress}
         onSectionAction={() => setShowProjekteModal(true)}
       />
+      )}
 
       {/* ── 8. Orte entdecken ── */}
+      {_showOrte && (
       <OrteSection
         orte={orte}
         loading={loading}
@@ -2348,6 +2412,20 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
         onSectionAction={() => { setOrteInitialPlace(null); setShowOrteModal(true); }}
         onPressOrt={(placeKey) => { setOrteInitialPlace(placeKey); setShowOrteModal(true); }}
       />
+      )}
+
+      {/* ── No-Results Message bei aktiver Suche ── */}
+      {_searchActive && !searchedPeople.length && !searchedMomente.length &&
+       !searchedWerke.length && !searchedTalente.length && !searchedErlebnisse.length &&
+       !searchedProjekte.length && (
+        <div style={{ padding:"60px 24px", textAlign:"center", color:"rgba(26,53,48,0.38)" }}>
+          <div style={{ fontSize:15, fontWeight:600, marginBottom:6 }}>Keine Ergebnisse</div>
+          <div style={{ fontSize:13 }}>
+            Für „{_searchQuery}" wurde nichts gefunden.
+            {_searchCats.length > 0 && " Versuche andere Kategorien."}
+          </div>
+        </div>
+      )}
 
       {/* ── Orb-Clearance-Spacer — letzter Scroll-Inhalt vor Modals.
            Verhindert Orb-Überlappung auf allen Geräten (Android + iOS). ── */}
