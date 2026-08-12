@@ -190,10 +190,12 @@ ul{list-style:none}
 .mini-flow-step.t{background:rgba(13,196,181,.15);color:var(--teal-deep)}
 .mini-flow-arrow{font-size:9px;color:var(--muted);line-height:1}
 .app-cta-sub{margin-top:14px;font-size:13px;font-weight:400;color:var(--muted)}
+.test-anim{position:absolute;top:15px;right:15px;width:12px;height:12px;border-radius:50%;background:var(--teal);z-index:20;animation:test-move 3s ease-in-out infinite}
+@keyframes test-move{0%,100%{transform:translateX(0)}50%{transform:translateX(30px)}}
 
 @keyframes bg-breathe1{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
 @keyframes bg-breathe2{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.8;transform:scale(1.06)}}
-@keyframes phone-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes phone-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 .phone-glow{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);width:220px;height:35px;border-radius:50%;background:radial-gradient(ellipse,rgba(13,196,181,.1) 0%,rgba(255,238,210,.05) 40%,transparent 70%);pointer-events:none;z-index:1;animation:phone-glow-breathe 6s ease-in-out infinite}
 @keyframes phone-glow-breathe{0%,100%{opacity:.4;transform:translateX(-50%) scale(.95)}50%{opacity:.7;transform:translateX(-50%) scale(1.05)}}
 .app-hint.conn-pulse .conn{animation:conn-pulse .8s ease-out}
@@ -232,7 +234,7 @@ ul{list-style:none}
 @keyframes hero-breathe{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:1;transform:scale(1.06)}}
 .hero-sparks{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
 .hero-spark{position:absolute;border-radius:50%;opacity:0;animation:spark-float 12s ease-in-out infinite;will-change:opacity,transform}
-@keyframes spark-float{0%{opacity:.1;transform:translate(0,0)}25%{opacity:.5;transform:translate(6px,-14px)}50%{opacity:.6;transform:translate(-5px,-22px)}75%{opacity:.4;transform:translate(8px,-12px)}100%{opacity:.1;transform:translate(0,0)}}
+@keyframes spark-float{0%{opacity:.15;transform:translate(0,0)}25%{opacity:.6;transform:translate(8px,-16px)}50%{opacity:.7;transform:translate(-6px,-24px)}75%{opacity:.5;transform:translate(10px,-14px)}100%{opacity:.15;transform:translate(0,0)}}
 .hero-underline{position:relative}
 .hero-underline::after{content:'';position:absolute;top:50%;left:5%;width:5px;height:5px;border-radius:50%;background:var(--teal);box-shadow:0 0 10px rgba(13,196,181,.5);opacity:0;transform:translateY(-50%);animation:dot-travel 1.2s var(--ease-out) 2.7s forwards}
 @keyframes dot-travel{0%{opacity:0;left:5%}15%{opacity:.8}85%{opacity:.5}100%{opacity:0;left:92%}}
@@ -439,22 +441,28 @@ ul{list-style:none}
 
 /* ═══ REDUCED MOTION ═══ */
 @media(prefers-reduced-motion:reduce){
-  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
   .reveal{opacity:1;transform:none}
   .hero-bg{transform:none}
-  .hero-glow{animation:none;opacity:.7}
   .hero-spark{display:none}
   .hero-underline path{stroke-dashoffset:0;transition:none}
   .hero-underline::after{display:none}
   .btn-primary::before{display:none}
-  .hero-scroll::after{animation:none;opacity:.4}
-  .screen-content{transition:none}
+  .hero-scroll::after{animation:none;opacity:.5}
+  .hero-glow{animation-duration:16s}
+  .phone{animation-duration:12s}
+  .phone-glow{animation-duration:12s}
+  .app-show::before{animation-duration:16s}
+  .app-show::after{animation-duration:18s}
+  .screen-content{transition-duration:.15s}
+  .screen-content.active>*{animation:none}
+  .screen-content[data-screen="menschen"].active .mini-profile{animation:none}
+  .screen-content[data-screen="wirkung"].active .mini-flow>*{animation:none}
+  .screen-content[data-screen="wirkung"].active .mini-flow-step.t{animation:none}
   .app-hint.hint-pulse .dot{animation:none}
   .app-hint.hint-nudge .dot{animation:none}
+  .app-hint.conn-pulse .conn{animation:none}
   .phone.flash{animation:none}
   .app-float{display:none}
-  .phone-glow{animation:none;opacity:.5}
-  .app-show::before,.app-show::after{animation:none}
 }
 
 /* ═══ NO-JS FALLBACK ═══ */
@@ -597,6 +605,7 @@ ul{list-style:none}
 
 <!-- ═══ SEKTION — DIE HUI APP ═══ -->
 <section class="app-show" id="app">
+  <div class="test-anim"></div>
   <div class="app-show-inner">
     <p class="app-show-kicker reveal">Die HUI App</p>
     <h2 class="app-show-h2 reveal d1">Alles, was dich bewegt. An einem Ort.</h2>
@@ -892,7 +901,7 @@ if(prefersReduced){
   }
 
   function startAuto(){
-    if(reduced||clicked) return;
+    if(clicked) return;
     autoT=setInterval(rotate,3500);
   }
 
@@ -911,7 +920,7 @@ if(prefersReduced){
     });
   });
 
-  if(appVisual&&!reduced){
+  if(appVisual){
     var ioApp=new IntersectionObserver(function(entries){
       entries.forEach(function(e){
         if(e.isIntersecting&&!visible){
