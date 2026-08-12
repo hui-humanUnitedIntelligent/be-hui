@@ -493,6 +493,7 @@ function HomeInner() {
                   categoryFilters={searchState.categories}
                   radiusKm={searchState.radiusKm}
                   geo={searchState.geo}
+                  kiMode={searchState.kiMode}
                   onProfile={(id) => { if(id) openProfileById(id); }} /* Autor-Name klickbar → öffnet Profil direkt */
                   onBook={(item) => {
                     // KORB-RESTORE (2026-08-10): "Kaufen" im Feed legt das Werk

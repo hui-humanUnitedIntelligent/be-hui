@@ -47,13 +47,24 @@ const T = {
 // ─────────────────────────────────────────────────────────────
 // KONSTANTEN
 // ─────────────────────────────────────────────────────────────
+// KI-SUGGESTIONS — 2026-08-12, Michael-Auftrag: Jeder Satz hat jetzt
+// eine echte action (statt nur query-Text zu setzen). Die action steuert
+// gezielt typeFilter, categories, radius und query, sodass der Feed direkt
+// die richtigen Inhalte zeigt.
+//   action: "people"    -> typeFilter=null, query="" (Feed zeigt alles, aber
+//                          Live-Vorschlaege fokussieren Personen via KI-Text)
+//   action: "nearby"     -> aktiviert Standort + kleiner Radius + Werke
+//   action: "match"      -> typeFilter=null, query="" (Künftige Matching-Logik)
+//   action: "help"       -> typeFilter="experience" (Erlebnisse wo Hilfe nötig)
+//   action: "events"     -> typeFilter="experience" (Veranstaltungen)
+//   action: "discover"   -> typeFilter=null, query="" (Top Menschen, breit)
 const KI_SUGGESTIONS = [
-  { text:"Ich suche kreative Menschen",        emoji:"👥" },
-  { text:"Projekte in meiner Nähe",            emoji:"📍" },
-  { text:"Wer passt zu meinem Profil?",        emoji:"🔮" },
-  { text:"Wo kann ich heute helfen?",          emoji:"🤝" },
-  { text:"Veranstaltungen die zu mir passen",  emoji:"📅" },
-  { text:"Welche Menschen sollte ich kennen?", emoji:"✨" },
+  { text:"Ich suche kreative Menschen",        emoji:"👥", action:"people"   },
+  { text:"Projekte in meiner Nähe",            emoji:"📍", action:"nearby"   },
+  { text:"Wer passt zu meinem Profil?",        emoji:"🔮", action:"match"    },
+  { text:"Wo kann ich heute helfen?",          emoji:"🤝", action:"help"     },
+  { text:"Veranstaltungen die zu mir passen",  emoji:"📅", action:"events"   },
+  { text:"Welche Menschen sollte ich kennen?", emoji:"✨", action:"discover" },
 ];
 
 // ─────────────────────────────────────────────────────────────
@@ -258,7 +269,7 @@ function KiPanel({ onSelect, onClose }) {
       </div>
       <div style={{ padding:"8px 8px 10px" }}>
         {KI_SUGGESTIONS.map((s,i) => (
-          <button key={i} className="dc-tag" onClick={()=>{onSelect(s.text);onClose();}} style={{
+          <button key={i} className="dc-tag" onClick={()=>{onSelect(s);onClose();}} style={{
             display:"flex",alignItems:"center",gap:9,width:"100%",
             textAlign:"left",padding:"9px 11px",background:"none",border:"none",
             borderRadius:12,cursor:"pointer",WebkitTapHighlightColor:"transparent",
@@ -541,6 +552,10 @@ export default function SearchCommandCenter({
   const [query,      setQuery]      = useState("");
   const [typeFilter, setTypeFilter] = useState(null);    // null | "work" | "experience"
   const [showKi,     setShowKi]     = useState(false);
+  // kiMode: Spezial-Modus der durch KI-Suggestions gesetzt wird (people,
+  // match, discover). Wird an onSearchStateChange übergeben, damit der
+  // Feed/UnifiedFeed entsprechend reagieren kann. null = kein KI-Modus.
+  const [kiMode,     setKiMode]     = useState(null);
   const radius = useRadiusFilter(); // Umkreissuche 2026-07-06 -- geteilter Radius-Zustand
 
   // "Alle Kategorien"-Feature (2026-07-06): ausgewaehlte Kategorie (Objekt aus
@@ -634,10 +649,11 @@ export default function SearchCommandCenter({
     onSearchStateChange?.({
       query: debouncedQuery, typeFilter, categories: activeCategories, active: open,
       radiusKm: radius.radiusKm, geo: radius.geo, isWorldwide: radius.isWorldwide,
+      kiMode,
     });
     // categoryKey statt Array-Referenz -- verhindert unnoetige Re-Emits bei jedem Render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedQuery, typeFilter, activeCategories.map(c=>c.id).join(","), open, radius.radiusKm, radius.geo, radius.isWorldwide]);
+  }, [debouncedQuery, typeFilter, activeCategories.map(c=>c.id).join(","), open, radius.radiusKm, radius.geo, radius.isWorldwide, kiMode]);
 
   // Verlauf speichern, sobald ein Suchbegriff kurz stabil war (kein Spam pro Tastendruck)
   useEffect(() => {
@@ -747,7 +763,105 @@ export default function SearchCommandCenter({
   }
   function saveHistory(q){ if(!q.trim())return; const n=[q,...history.filter(h=>h!==q)].slice(0,8); setHistory(n); try{localStorage.setItem("hui_search_history",JSON.stringify(n));}catch{} }
   function handleHistory(q){ setQuery(q); inputRef.current?.focus(); }
-  function handleKiSelect(text){ setQuery(text); setShowKi(false); inputRef.current?.focus(); }
+  // KI-Select — 2026-08-12: Jeder KI-Vorschlag löst jetzt eine echte
+  // Filter-Aktion aus statt nur Text in das Suchfeld zu schreiben. Der
+  // alte behaviour (nur query=text) hatte keinen Effekt auf die
+  // Ergebnisliste -- der Feed filterte nach "Ich suche kreative Menschen"
+  // als ob das ein Suchbegriff wäre (fand natürlich nichts). Jetzt steuert
+  // jeder Satz gezielt typeFilter, categories, radius und query.
+  function handleKiSelect(item) {
+    const text = typeof item === "string" ? item : item.text;
+    const action = typeof item === "string" ? null : item.action;
+    setShowKi(false);
+
+    switch (action) {
+      case "people":
+        // Kreative Menschen: kein Text-Filter (Feed kann keine Personen als
+        // Karten anzeigen), dafuer Live-Suggestions auf Personen fokussiert.
+        // Setzt query auf kurzen Text damit die Suggestion-Engine anspringt,
+        // aber Feed bleibt ungefiltert (typeFilter=null, categories=[]).
+        setQuery("");
+        setTypeFilter(null);
+        setActiveCategories([]);
+        // Profil-Suche triggern: wir setzen query auf leeren String und
+        // öffnen stattdessen die Suggestions direkt mit einem breiten
+        // Personen-Fetch. Einfachster Weg: query leer lassen, Feed zeigt
+        // alles. Nutzer kann dann in den Vorschlägen Personen finden.
+        // Besser: Wir setzen einen speziellen query-Modus.
+        setKiMode("people");
+        inputRef.current?.focus();
+        break;
+
+      case "nearby":
+        // Projekte in meiner Nähe: Standort aktivieren + kleiner Radius +
+        // Werke als Primärfilter (Werke sind der Content-Typ der am ehesten
+        // "Projekte" repräsentiert -- Erlebnisse wären "Veranstaltungen").
+        setQuery("");
+        setTypeFilter("work");
+        setActiveCategories([]);
+        setKiMode(null);
+        if (!radius.geo) {
+          radius.requestBrowserLocation();
+        }
+        if (radius.isWorldwide) {
+          radius.setRadiusKm(25);
+        }
+        inputRef.current?.focus();
+        break;
+
+      case "match":
+        // Wer passt zu meinem Profil: Künftige Matching-Logik. Vorläufig:
+        // breit filtern (kein typeFilter, kein Text), Feed zeigt alles.
+        // TODO: Matching-RPC mit Interessen/Tags des currentUser.
+        setQuery("");
+        setTypeFilter(null);
+        setActiveCategories([]);
+        setKiMode("match");
+        inputRef.current?.focus();
+        break;
+
+      case "help":
+        // Wo kann ich heute helfen: Erlebnisse zeigen (dort braucht man
+        // Hilfe/Teilnahme), kein Text-Filter.
+        setQuery("");
+        setTypeFilter("experience");
+        setActiveCategories([]);
+        setKiMode(null);
+        inputRef.current?.focus();
+        break;
+
+      case "events":
+        // Veranstaltungen die zu mir passen: Erlebnisse + Standort-Radius.
+        setQuery("");
+        setTypeFilter("experience");
+        setActiveCategories([]);
+        setKiMode(null);
+        if (!radius.geo) {
+          radius.requestBrowserLocation();
+        }
+        if (radius.isWorldwide) {
+          radius.setRadiusKm(50);
+        }
+        inputRef.current?.focus();
+        break;
+
+      case "discover":
+        // Welche Menschen sollte ich kennen: aehnlich "people", aber mit
+        // Fokus auf Entdeckung. Setzt kiMode fuer künftige Empfehlungs-Logik.
+        setQuery("");
+        setTypeFilter(null);
+        setActiveCategories([]);
+        setKiMode("discover");
+        inputRef.current?.focus();
+        break;
+
+      default:
+        // Fallback: altes Verhalten (nur Text setzen)
+        setQuery(text);
+        setKiMode(null);
+        inputRef.current?.focus();
+    }
+  }
   function toggleFilter(f){
     if (f === "profile") {
       // Siehe Kommentar am Dateikopf: Personensuche im Feed nicht moeglich (kein Feed-Kartentyp).
