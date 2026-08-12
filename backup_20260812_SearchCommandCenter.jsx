@@ -628,8 +628,6 @@ export default function SearchCommandCenter({
   const inputRef = useRef(null);
   const kiRef    = useRef(null);
   const filterRowRef = useRef(null);
-  const recognitionRef = useRef(null);
-  const [listening, setListening] = useState(false);
 
   const [history, setHistory] = useState(() => {
     try { return JSON.parse(localStorage.getItem("hui_search_history")||"[]"); }
@@ -803,60 +801,6 @@ export default function SearchCommandCenter({
   function clearQuery(){
     setQuery("");
     inputRef.current?.focus();
-  }
-
-  // ── Spracherkennung (Web Speech API) — 2026-08-12, Michael-Auftrag ──
-  // Mikrofon-Icon rechts neben der Suchleiste startet/stoppt die
-  // Spracherkennung. Erkannter Text wird direkt ins Suchfeld geschrieben.
-  function toggleVoiceInput(){
-    // Bereits aktiv → stoppen
-    if (recognitionRef.current) {
-      try { recognitionRef.current.stop(); } catch {}
-      recognitionRef.current = null;
-      setListening(false);
-      return;
-    }
-
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) return; // nicht unterstützt → no-op
-
-    const recog = new SpeechRecognition();
-    recog.lang = "de-DE";
-    recog.interimResults = true;
-    recog.continuous = false;
-    recog.maxAlternatives = 1;
-
-    let finalText = "";
-
-    recog.onresult = (e) => {
-      let interim = "";
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const tr = e.results[i];
-        if (tr.isFinal) finalText += tr[0].transcript;
-        else interim += tr[0].transcript;
-      }
-      const display = (finalText + interim).trim();
-      if (display) {
-        setQuery(display.slice(0, 200));
-      }
-    };
-
-    recog.onerror = () => {
-      setListening(false);
-      recognitionRef.current = null;
-    };
-
-    recog.onend = () => {
-      setListening(false);
-      recognitionRef.current = null;
-      // Fokus zurück ins Suchfeld
-      inputRef.current?.focus();
-    };
-
-    recognitionRef.current = recog;
-    setListening(true);
-    open_();
-    try { recog.start(); } catch { setListening(false); recognitionRef.current = null; }
   }
   function saveHistory(q){ if(!q.trim())return; const n=[q,...history.filter(h=>h!==q)].slice(0,8); setHistory(n); try{localStorage.setItem("hui_search_history",JSON.stringify(n));}catch{} }
   function handleHistory(q){ setQuery(q); inputRef.current?.focus(); }
@@ -1044,18 +988,13 @@ export default function SearchCommandCenter({
         </button>
         {showKi && <KiPanel onSelect={handleKiSelect} onClose={()=>setShowKi(false)}/>}
       </div>
-      <button
-        type="button"
-        onClick={e=>{e.stopPropagation();toggleVoiceInput();}}
-        style={{flexShrink:0,padding:"0 2px",border:"none",background:"transparent",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",opacity:listening?1:.4,transition:"opacity .2s ease",WebkitTapHighlightColor:"transparent"}}
-        aria-label={listening ? "Spracheingabe stoppen" : "Spracheingabe starten"}
-      >
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={listening?{animation:"hui-mic-pulse 1s ease-in-out infinite"}:undefined}>
-          <rect x="9" y="2" width="6" height="11" rx="3" stroke={listening?"#FF6F61":T.ink} strokeWidth="1.7" fill={listening?"rgba(255,111,97,0.15)":"none"}/>
-          <path d="M5 10a7 7 0 0014 0" stroke={listening?"#FF6F61":T.ink} strokeWidth="1.7" strokeLinecap="round"/>
-          <line x1="12" y1="21" x2="12" y2="17" stroke={listening?"#FF6F61":T.ink} strokeWidth="1.7" strokeLinecap="round"/>
+      <div className="dc-tag" style={{flexShrink:0,padding:"0 2px",opacity:.24,cursor:"pointer"}} onClick={e=>e.stopPropagation()} role="button" tabIndex={0}>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+          <rect x="9" y="2" width="6" height="11" rx="3" stroke={T.ink} strokeWidth="1.7"/>
+          <path d="M5 10a7 7 0 0014 0" stroke={T.ink} strokeWidth="1.7" strokeLinecap="round"/>
+          <line x1="12" y1="21" x2="12" y2="17" stroke={T.ink} strokeWidth="1.7" strokeLinecap="round"/>
         </svg>
-      </button>
+      </div>
     </div>
   );
 
@@ -1267,10 +1206,6 @@ export default function SearchCommandCenter({
         @keyframes hui-search-fade-in {
           from { opacity:0; transform:translateY(5px); }
           to   { opacity:1; transform:translateY(0); }
-        }
-        @keyframes hui-mic-pulse {
-          0%, 100% { transform:scale(1); }
-          50% { transform:scale(1.18); }
         }
         .dc-input {
           outline:none; border:none; background:none; width:100%;
