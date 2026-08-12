@@ -52,9 +52,9 @@ a{text-decoration:none;color:inherit}
 ul{list-style:none}
 
 /* ═══ REVEAL ═══ */
-.reveal{opacity:0;transform:translateY(20px);transition:opacity 1s var(--ease-out),transform 1s var(--ease-out)}
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .8s var(--ease-out),transform .8s var(--ease-out)}
 .reveal.visible{opacity:1;transform:none}
-.reveal.d1{transition-delay:.1s}.reveal.d2{transition-delay:.2s}.reveal.d3{transition-delay:.3s}.reveal.d4{transition-delay:.4s}.reveal.d5{transition-delay:.5s}.reveal.d6{transition-delay:.6s}
+.reveal.d1{transition-delay:.15s}.reveal.d2{transition-delay:.3s}.reveal.d3{transition-delay:.45s}.reveal.d4{transition-delay:.6s}.reveal.d5{transition-delay:.75s}.reveal.d6{transition-delay:.9s}
 
 /* ═══ NAV ═══ */
 .nav{position:fixed;top:0;left:0;right:0;z-index:1000;height:68px;display:flex;align-items:center;justify-content:space-between;padding:0 36px;background:rgba(250,247,242,.68);backdrop-filter:blur(24px) saturate(1.4);-webkit-backdrop-filter:blur(24px) saturate(1.4);border-bottom:1px solid transparent;transition:border-color .4s var(--ease),box-shadow .4s var(--ease),background .4s var(--ease)}
@@ -96,9 +96,9 @@ ul{list-style:none}
 .btn-primary:hover{background:var(--teal-deep);transform:translateY(-2px);box-shadow:0 6px 28px rgba(13,196,181,.32),0 0 0 1px rgba(13,196,181,.08)}
 .btn-ghost{display:inline-flex;align-items:center;gap:6px;padding:15px 32px;background:rgba(255,255,255,.68);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:var(--ink);font-size:15px;font-weight:500;border-radius:var(--rx);border:1px solid rgba(20,20,34,.08);transition:background .3s var(--ease),border-color .3s var(--ease),transform .35s var(--ease-out);box-shadow:0 4px 18px rgba(20,20,34,.06);cursor:pointer}
 .btn-ghost:hover{background:rgba(255,255,255,.82);border-color:rgba(20,20,34,.1);transform:translateY(-1px)}
-.hero-scroll{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);z-index:2;color:var(--muted);font-size:11px;letter-spacing:2px;text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:10px;opacity:.6}
-.hero-scroll::after{content:'\2193';font-size:14px;line-height:1;width:auto;height:auto;background:none;color:var(--muted);animation:scroll-glide 3s ease-in-out infinite}
-@keyframes scroll-glide{0%,100%{opacity:.25;transform:translateY(0)}50%{opacity:.6;transform:translateY(6px)}}
+.hero-scroll{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);z-index:2;color:var(--ink-body);font-size:11px;letter-spacing:2px;text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:10px;opacity:.85}
+.hero-scroll::after{content:'\2193';font-size:20px;line-height:1;width:auto;height:auto;background:none;color:var(--ink-body);animation:scroll-glide 2.8s ease-in-out infinite}
+@keyframes scroll-glide{0%,100%{opacity:.4;transform:translateY(0)}50%{opacity:.8;transform:translateY(7px)}}
 
 /* ═══ SHARED SECTION ═══ */
 .section-kicker{font-size:12px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:var(--teal);margin-bottom:20px;position:relative;display:inline-block}
@@ -192,17 +192,17 @@ ul{list-style:none}
 .app-cta-sub{margin-top:14px;font-size:13px;font-weight:400;color:var(--muted)}
 
 /* ═══ HERO AMBIENT ═══ */
-.hero-glow{position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse 40% 35% at 50% 35%,rgba(255,238,210,.06) 0%,transparent 60%),radial-gradient(ellipse 30% 30% at 45% 50%,rgba(13,196,181,.035) 0%,transparent 55%);animation:hero-breathe 8s ease-in-out infinite}
-@keyframes hero-breathe{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.04)}}
+.hero-glow{position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse 50% 40% at 50% 35%,rgba(255,238,210,.14) 0%,transparent 60%),radial-gradient(ellipse 40% 35% at 45% 50%,rgba(13,196,181,.08) 0%,transparent 55%);animation:hero-breathe 8s ease-in-out infinite;will-change:opacity,transform}
+@keyframes hero-breathe{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:1;transform:scale(1.06)}}
 .hero-sparks{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
-.hero-spark{position:absolute;border-radius:50%;opacity:0;animation:spark-float 12s ease-in-out infinite}
-@keyframes spark-float{0%,100%{opacity:0;transform:translate(0,0)}15%{opacity:.35}45%{opacity:.45;transform:translate(4px,-10px)}75%{opacity:.25;transform:translate(-2px,-6px)}90%{opacity:0;transform:translate(0,0)}}
+.hero-spark{position:absolute;border-radius:50%;opacity:0;animation:spark-float 12s ease-in-out infinite;will-change:opacity,transform}
+@keyframes spark-float{0%{opacity:.1;transform:translate(0,0)}25%{opacity:.5;transform:translate(6px,-14px)}50%{opacity:.6;transform:translate(-5px,-22px)}75%{opacity:.4;transform:translate(8px,-12px)}100%{opacity:.1;transform:translate(0,0)}}
 .hero-underline{position:relative}
-.hero-underline::after{content:'';position:absolute;top:50%;left:5%;width:4px;height:4px;border-radius:50%;background:var(--teal);box-shadow:0 0 6px rgba(13,196,181,.35);opacity:0;transform:translateY(-50%);animation:dot-travel 1.2s var(--ease-out) 2.7s forwards}
-@keyframes dot-travel{0%{opacity:0;left:5%}15%{opacity:.6}85%{opacity:.4}100%{opacity:0;left:92%}}
-.btn-primary{position:relative}
-.btn-primary::before{content:'';position:absolute;inset:-3px;border-radius:inherit;background:radial-gradient(circle,rgba(13,196,181,.35) 0%,rgba(13,196,181,.08) 50%,transparent 75%);opacity:0;animation:btn-breathe 4s ease-in-out infinite;pointer-events:none;z-index:-1}
-@keyframes btn-breathe{0%,100%{opacity:0;transform:scale(.96)}50%{opacity:.5;transform:scale(1.06)}}
+.hero-underline::after{content:'';position:absolute;top:50%;left:5%;width:5px;height:5px;border-radius:50%;background:var(--teal);box-shadow:0 0 10px rgba(13,196,181,.5);opacity:0;transform:translateY(-50%);animation:dot-travel 1.2s var(--ease-out) 2.7s forwards}
+@keyframes dot-travel{0%{opacity:0;left:5%}15%{opacity:.8}85%{opacity:.5}100%{opacity:0;left:92%}}
+.btn-primary{position:relative;isolation:isolate}
+.btn-primary::before{content:'';position:absolute;inset:-4px;border-radius:inherit;background:radial-gradient(circle,rgba(13,196,181,.5) 0%,rgba(13,196,181,.12) 50%,transparent 75%);opacity:0;animation:btn-breathe 4s ease-in-out infinite;pointer-events:none;z-index:-1}
+@keyframes btn-breathe{0%,100%{opacity:0;transform:scale(.94)}50%{opacity:.7;transform:scale(1.08)}}
 
 /* ═══ ÖKOSYSTEM ═══ */
 .eco{padding:96px 32px;background:var(--cream-soft);text-align:center;position:relative;overflow:hidden}
@@ -348,7 +348,7 @@ ul{list-style:none}
   .hero-content{padding:0 20px}
   .hero-eyebrow{font-size:10px;letter-spacing:2px;margin-bottom:24px}
   .hero-sub{font-size:17px;margin-bottom:32px}
-  .hero-scroll{bottom:24px}
+  .hero-scroll{bottom:24px;opacity:.75}
 
   .vision{padding:64px 24px}
   .vision-h2{margin-bottom:28px}
@@ -458,19 +458,18 @@ ul{list-style:none}
   <div class="hero-overlay"></div>
   <div class="hero-glow"></div>
   <div class="hero-sparks">
-    <div class="hero-spark" style="left:14%;top:18%;width:4px;height:4px;background:rgba(13,196,181,.5);animation-delay:0s;animation-duration:12s"></div>
-    <div class="hero-spark" style="left:82%;top:24%;width:3px;height:3px;background:rgba(255,238,210,.5);animation-delay:2s;animation-duration:14s"></div>
-    <div class="hero-spark" style="left:9%;top:55%;width:5px;height:5px;background:rgba(13,196,181,.4);animation-delay:4s;animation-duration:16s"></div>
-    <div class="hero-spark" style="left:87%;top:48%;width:4px;height:4px;background:rgba(255,238,210,.45);animation-delay:1s;animation-duration:13s"></div>
-    <div class="hero-spark" style="left:18%;top:75%;width:3px;height:3px;background:rgba(13,196,181,.45);animation-delay:5s;animation-duration:11s"></div>
-    <div class="hero-spark" style="left:76%;top:72%;width:5px;height:5px;background:rgba(255,220,180,.4);animation-delay:3s;animation-duration:15s"></div>
+    <div class="hero-spark" style="left:12%;top:20%;width:5px;height:5px;background:rgba(255,238,210,.7);box-shadow:0 0 8px rgba(255,238,210,.3);animation-delay:0s;animation-duration:11s"></div>
+    <div class="hero-spark" style="left:84%;top:26%;width:4px;height:4px;background:rgba(13,196,181,.7);box-shadow:0 0 8px rgba(13,196,181,.3);animation-delay:3s;animation-duration:14s"></div>
+    <div class="hero-spark" style="left:8%;top:56%;width:6px;height:6px;background:rgba(255,238,210,.65);box-shadow:0 0 10px rgba(255,238,210,.25);animation-delay:5s;animation-duration:16s"></div>
+    <div class="hero-spark" style="left:88%;top:50%;width:5px;height:5px;background:rgba(13,196,181,.65);box-shadow:0 0 8px rgba(13,196,181,.25);animation-delay:1.5s;animation-duration:13s"></div>
+    <div class="hero-spark" style="left:22%;top:78%;width:7px;height:7px;background:rgba(255,220,180,.6);box-shadow:0 0 12px rgba(255,220,180,.25);animation-delay:4s;animation-duration:15s"></div>
   </div>
   <div class="hero-content">
     <p class="hero-eyebrow reveal">HUI — Human United Intelligence</p>
     <h1 class="hero-h1">
-      <span class="reveal">Menschen.</span>
-      <span class="reveal d1">Ideen.</span>
-      <span class="reveal d2 accent">Möglichkeiten.</span>
+      <span class="reveal d1">Menschen.</span>
+      <span class="reveal d2">Ideen.</span>
+      <span class="reveal d3 accent">Möglichkeiten.</span>
     </h1>
     <div class="hero-underline reveal d4">
       <svg viewBox="0 0 170 10" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
@@ -801,12 +800,15 @@ if(prefersReduced){
 }else{
   var io=new IntersectionObserver(function(entries){
     entries.forEach(function(e){
+      var isHero=e.target.closest('.hero');
       if(e.isIntersecting){
         e.target.classList.add('visible');
-        io.unobserve(e.target);
+        if(!isHero) io.unobserve(e.target);
+      }else if(isHero){
+        e.target.classList.remove('visible');
       }
     });
-  },{threshold:.12,rootMargin:'0px 0px -40px 0px'});
+  },{threshold:.15,rootMargin:'0px 0px -40px 0px'});
   document.querySelectorAll('.reveal').forEach(function(el){io.observe(el)});
 }
 
