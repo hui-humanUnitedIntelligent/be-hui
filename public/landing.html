@@ -313,9 +313,9 @@ ul{list-style:none}
 .origin-clubs-names .sep{display:inline-block;margin:0 12px;color:var(--faint);font-weight:300}
 .origin-closing{margin-top:30px;font-size:clamp(15px,2.3vw,18px);font-weight:300;color:var(--muted);line-height:1.65;font-style:italic;text-shadow:0 1px 16px rgba(250,247,242,.4)}
 .origin-seal{animation:seal-pulse 8s ease-in-out infinite;will-change:filter}
-@keyframes seal-pulse{0%,100%{filter:drop-shadow(0 0 0 rgba(218,165,32,0))}35%{filter:drop-shadow(0 0 10px rgba(218,165,32,.14)) drop-shadow(0 0 22px rgba(218,165,32,.05))}50%{filter:drop-shadow(0 0 18px rgba(218,165,32,.22)) drop-shadow(0 0 36px rgba(218,165,32,.08))}65%{filter:drop-shadow(0 0 10px rgba(218,165,32,.14)) drop-shadow(0 0 22px rgba(218,165,32,.05))}}
+@keyframes seal-pulse{0%,100%{filter:drop-shadow(0 0 0 rgba(218,165,32,0))}30%{filter:drop-shadow(0 0 16px rgba(218,165,32,.35)) drop-shadow(0 0 32px rgba(218,165,32,.12))}50%{filter:drop-shadow(0 0 28px rgba(218,165,32,.5)) drop-shadow(0 0 56px rgba(218,165,32,.18))}70%{filter:drop-shadow(0 0 16px rgba(218,165,32,.35)) drop-shadow(0 0 32px rgba(218,165,32,.12))}}
 .origin-anim{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
-.anim-particle{position:absolute;width:4px;height:4px;border-radius:50%;background:radial-gradient(circle,rgba(255,200,120,.7) 0%,rgba(218,165,32,.3) 50%,transparent 80%);opacity:0;will-change:transform,opacity}
+.anim-particle{position:absolute;width:7px;height:7px;border-radius:50%;background:radial-gradient(circle,rgba(255,210,130,.9) 0%,rgba(218,165,32,.5) 45%,transparent 80%);opacity:0;will-change:transform,opacity;filter:blur(.5px)}
 .apl{left:15%;--pt:clamp(70px,18vw,180px)}
 .apl-1{top:47%;animation:ptl 8s ease-in-out infinite}
 .apl-2{top:52%;animation:ptl 8s ease-in-out infinite 1.5s}
@@ -324,10 +324,10 @@ ul{list-style:none}
 .apr-1{top:51%;animation:ptr 8s ease-in-out infinite .5s}
 .apr-2{top:47%;animation:ptr 8s ease-in-out infinite 2s}
 .apr-3{top:53%;animation:ptr 8s ease-in-out infinite 3.5s}
-@keyframes ptl{0%{transform:translate(0,0) scale(1);opacity:0}8%{opacity:.5;transform:translate(calc(var(--pt)*.08),-3px) scale(.9)}35%{opacity:.4;transform:translate(calc(var(--pt)*.4),-8px) scale(.7)}65%{opacity:.3;transform:translate(calc(var(--pt)*.75),5px) scale(.5)}88%{opacity:.1;transform:translate(var(--pt),0) scale(.3)}100%{opacity:0;transform:translate(var(--pt),0) scale(0)}}
-@keyframes ptr{0%{transform:translate(0,0) scale(1);opacity:0}8%{opacity:.5;transform:translate(calc(-1*var(--pt)*.08),-3px) scale(.9)}35%{opacity:.4;transform:translate(calc(-1*var(--pt)*.4),-8px) scale(.7)}65%{opacity:.3;transform:translate(calc(-1*var(--pt)*.75),5px) scale(.5)}88%{opacity:.1;transform:translate(calc(-1*var(--pt)),0) scale(.3)}100%{opacity:0;transform:translate(calc(-1*var(--pt)),0) scale(0)}}
-.anim-meet{position:absolute;left:50%;top:50%;width:90px;height:90px;margin:-45px 0 0 -45px;border-radius:50%;background:radial-gradient(circle,rgba(218,165,32,.2) 0%,rgba(13,196,181,.06) 45%,transparent 70%);opacity:0;will-change:opacity,transform;animation:meet-pulse 8s ease-in-out infinite}
-@keyframes meet-pulse{0%,62%,100%{opacity:0;transform:scale(.7)}70%{opacity:.3;transform:scale(1)}78%{opacity:.12;transform:scale(1.25)}86%{opacity:0;transform:scale(1.4)}}
+@keyframes ptl{0%{transform:translate(0,0) scale(1);opacity:0}6%{opacity:.8;transform:translate(calc(var(--pt)*.06),-3px) scale(1)}30%{opacity:.7;transform:translate(calc(var(--pt)*.35),-8px) scale(.8)}60%{opacity:.5;transform:translate(calc(var(--pt)*.72),5px) scale(.6)}85%{opacity:.2;transform:translate(var(--pt),0) scale(.3)}100%{opacity:0;transform:translate(var(--pt),0) scale(0)}}
+@keyframes ptr{0%{transform:translate(0,0) scale(1);opacity:0}6%{opacity:.8;transform:translate(calc(-1*var(--pt)*.06),-3px) scale(1)}30%{opacity:.7;transform:translate(calc(-1*var(--pt)*.35),-8px) scale(.8)}60%{opacity:.5;transform:translate(calc(-1*var(--pt)*.72),5px) scale(.6)}85%{opacity:.2;transform:translate(calc(-1*var(--pt)),0) scale(.3)}100%{opacity:0;transform:translate(calc(-1*var(--pt)),0) scale(0)}}
+.anim-meet{position:absolute;left:50%;top:50%;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;background:radial-gradient(circle,rgba(218,165,32,.35) 0%,rgba(13,196,181,.12) 45%,transparent 70%);opacity:0;will-change:opacity,transform;animation:meet-pulse 8s ease-in-out infinite}
+@keyframes meet-pulse{0%,60%,100%{opacity:0;transform:scale(.7)}68%{opacity:.5;transform:scale(1)}76%{opacity:.2;transform:scale(1.3)}84%{opacity:0;transform:scale(1.5)}}
 @media(max-width:680px){.origin-anim{display:none}}
 
 /* ═══ HONEST ═══ */
