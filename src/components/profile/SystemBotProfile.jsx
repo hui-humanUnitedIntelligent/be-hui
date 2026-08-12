@@ -168,9 +168,16 @@ export default function SystemBotProfile({ profileId, onClose = () => {} }) {
 
     async function loadAll() {
       try {
+        // FIX (2026-08-12): "is_system_account" wurde durch die Security-Hardening-
+        // Migration 104 fuer ALLE Rollen (auch authenticated) per Column-Level-GRANT
+        // gesperrt. Ein SELECT das eine gesperrte Spalte anfordert wird von Postgres
+        // GESAMT mit 403 abgelehnt (nicht nur die eine Spalte weggelassen) -- dadurch
+        // kam `prof` nie an, Avatar blieb leer und Follower-Count blieb bei 0.
+        // Diese Komponente kennt den System-Account bereits ueber die feste
+        // SYSTEM_USER_ID-Konstante -- die Spalte wird hier gar nicht gebraucht.
         const { data: prof } = await supabase
           .from("profiles")
-          .select("id,full_name,username,avatar_url,bio,is_system_account")
+          .select("id,full_name,username,avatar_url,bio")
           .eq("id", SYSTEM_USER_ID)
           .maybeSingle();
         if (!dead && prof) {

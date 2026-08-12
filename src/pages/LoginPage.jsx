@@ -409,11 +409,17 @@ export default function LoginPage() {
     // ── BLOCK-CHECK nach erfolgreichem Login ──────────────────────────
     // ── Profil-Check nach erfolgreichem Login ─────────────────────────────
     if (signInData?.user?.id) {
-      const { data: prof, error: profErr } = await supabase
-        .from("profiles")
-        .select("blocked, blocked_at")
-        .eq("id", signInData.user.id)
-        .maybeSingle(); // maybeSingle statt single → null wenn kein Profil (gelöschter Nutzer)
+      // FIX (2026-08-12): "blocked"/"blocked_at" wurden durch die Security-
+      // Hardening-Migration 104 per Column-Level-REVOKE fuer ALLE Rollen
+      // gesperrt (verhindert dass fremde Nutzer den Blocked-Status anderer
+      // sehen). Ein direktes SELECT auf profiles schlaegt dadurch mit 403 fehl
+      // und der Block-Check wurde lautlos uebersprungen (blockierte Nutzer
+      // konnten sich wieder einloggen). Fix: SECURITY DEFINER RPC
+      // rpc_check_own_blocked_status() liefert NUR den eigenen Status
+      // (auth.uid() = Zeile) -- siehe Migration 106.
+      const { data: profRows, error: profErr } = await supabase
+        .rpc("rpc_check_own_blocked_status");
+      const prof = Array.isArray(profRows) ? profRows[0] : profRows;
 
       // 1. Kein Profil-Eintrag → Nutzer wurde gelöscht
       if (!prof && !profErr) {

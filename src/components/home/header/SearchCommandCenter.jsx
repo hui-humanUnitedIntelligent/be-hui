@@ -1036,6 +1036,7 @@ export default function SearchCommandCenter({
           value={query}
           onChange={e=>setQuery(e.target.value.slice(0,200))}
           onFocus={open_}
+          onClick={e=>e.stopPropagation()}
         />
         {!query && !open && (
           <span style={{position:"absolute",left:0,pointerEvents:"none",fontSize:14,fontWeight:450,letterSpacing:"-0.01em",color:has?`${mc}85`:"rgba(26,53,48,0.32)",opacity:phVis?1:0,transform:phVis?"translateY(0)":"translateY(4px)",transition:"opacity .3s ease, transform .3s ease",whiteSpace:"nowrap",overflow:"hidden",maxWidth:"100%"}}>{PH[phIdx]}</span>
