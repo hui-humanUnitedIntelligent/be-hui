@@ -209,10 +209,12 @@ ul{list-style:none}
 .mini-flow-arrow{font-size:9px;color:var(--muted);line-height:1}
 .app-cta-sub{margin-top:14px;font-size:13px;font-weight:400;color:var(--muted)}
 .hui-app-showcase-cta{text-align:center;margin-top:8px}
+.test-anim{position:absolute;top:60px;left:24px;width:14px;height:14px;border-radius:50%;background:var(--teal);z-index:20;animation:test-move 3s ease-in-out infinite}
+@keyframes test-move{0%,100%{transform:translateX(0)}50%{transform:translateX(40px)}}
 
 /* ═══ HERO AMBIENT ═══ */
-.hero-glow{position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse 50% 40% at 50% 35%,rgba(255,238,210,.14) 0%,transparent 60%),radial-gradient(ellipse 40% 35% at 45% 50%,rgba(13,196,181,.08) 0%,transparent 55%);animation:hero-breathe 8s ease-in-out infinite;will-change:opacity,transform}
-@keyframes hero-breathe{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:1;transform:scale(1.06)}}
+.hero-glow{position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse 50% 40% at 50% 35%,rgba(255,238,210,.2) 0%,transparent 60%),radial-gradient(ellipse 40% 35% at 45% 50%,rgba(13,196,181,.12) 0%,transparent 55%);animation:hero-breathe 8s ease-in-out infinite;will-change:opacity,transform}
+@keyframes hero-breathe{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
 .hero-sparks{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
 .hero-spark{position:absolute;border-radius:50%;opacity:0;animation:spark-float 12s ease-in-out infinite;will-change:opacity,transform}
 @keyframes spark-float{0%{opacity:.15;transform:translate(0,0)}25%{opacity:.6;transform:translate(8px,-16px)}50%{opacity:.7;transform:translate(-6px,-24px)}75%{opacity:.5;transform:translate(10px,-14px)}100%{opacity:.15;transform:translate(0,0)}}
@@ -423,15 +425,11 @@ ul{list-style:none}
 @media(prefers-reduced-motion:reduce){
   .reveal{opacity:1;transform:none}
   .hero-bg{transform:none}
-  .hero-spark{display:none}
   .hero-underline path{stroke-dashoffset:0;transition:none}
-  .hero-underline::after{display:none}
-  .btn-primary::before{display:none}
-  .hero-scroll::after{animation:none;opacity:.5}
-  .hero-glow{animation-duration:16s}
-  .hui-app-phone{animation-duration:12s}
-  .app-show::before{animation-duration:16s}
-  .app-show::after{animation-duration:18s}
+  .hero-spark{animation:none;opacity:.4}
+  .hero-underline::after{animation:none;opacity:.6}
+  .btn-primary::before{animation:none;opacity:.3}
+  .hero-scroll::after{animation:none;opacity:.6}
   .screen-content{transition-duration:.15s}
   .screen-content.active>*{animation:none}
   .screen-content[data-screen="menschen"].active .mini-profile{animation:none}
@@ -582,6 +580,7 @@ ul{list-style:none}
 
 <!-- ═══ SEKTION — DIE HUI APP ═══ -->
 <section class="app-show" id="app">
+  <div class="test-anim"></div>
   <div class="app-show-inner">
     <p class="app-show-kicker reveal">Die HUI App</p>
     <h2 class="app-show-h2 reveal d1">Alles, was dich bewegt. An einem Ort.</h2>
