@@ -626,7 +626,7 @@ export default function SearchCommandCenter({
 
   const wrapRef  = useRef(null);
   const inputRef = useRef(null);
-  const closingRef = useRef(false);  // verhindert onFocus Re-Open Race beim Schließen
+  const closingRef = useRef(false);
   const kiRef    = useRef(null);
   const filterRowRef = useRef(null);
   const recognitionRef = useRef(null);
@@ -1371,18 +1371,13 @@ export default function SearchCommandCenter({
           )}
         </div>
 
-        {/* Discovery-Panel als ABSOLUTES OVERLAY -- 2026-08-12 Fix (v2, korrigiert):
-            Panel ist jetzt Geschwister von Bar-Slot UND Radius-Zeile (nicht mehr
-            in die kleine Bar-Box genestet -- das ueberlappte faelschlich die
-            Radius-Zeile/den Live-Ticker darunter, siehe Michael-Feedback
-            "vieles rausgeschmissen"/Screenshot). top:100% ist relativ zur
-            GESAMTEN Header-Row (HomeHeader.jsx bekommt dafuer position:relative),
-            deren Hoehe sich automatisch nur aus Bar+Radius-Zeile ergibt, weil
-            das Panel selbst (position:absolute) nicht mehr zur Flow-Hoehe
-            beitraegt. Damit schwebt das Panel exakt UNTER Bar+Radius, ohne
-            beide zu verschieben UND ohne sie zu ueberdecken. */}
+        {/* Panel-Slot -- order:99 + flexBasis:100% zwingt per CSS-Flex-Wrap
+            einen Zeilenumbruch NACH Bar+Icons: das Panel bekommt dadurch
+            die VOLLE Breite der Eltern-Row, nie nur die schmalere Bar-Spalte.
+            Nur gemountet, waehrend panelPhase != "hidden" (Ein-/Ausblend-
+            Animation, siehe oben). */}
         {panelPhase !== "hidden" && (
-          <div style={{ position:"absolute", top:"100%", left:0, right:0, zIndex:350 }}>
+          <div style={{ flexBasis:"100%", width:"100%", order:99, zIndex:299, marginTop:12 }}>
             {discoveryPanel}
           </div>
         )}
