@@ -671,10 +671,24 @@ function HomeInner() {
           items={cart}
           onClose={() => setShowWerkeKorb(false)}
           onRemove={(item) => setCart(prev => prev.filter(x => x.id !== item.id))}
+          onQtyChange={(item, qty) => {
+            // BUGFIX (2026-08-12, Rechnungsfehler): Mengenänderung im Werkekorb
+            // sofort in `cart` persistieren (useCartPersistence schreibt
+            // synchron in localStorage). Vorher blieb die Menge nur lokal in
+            // WerkeKorb's qtyMap und ging beim Öffnen des Zahlungsflows
+            // verloren — Stripe/Server bekamen quantity=1 statt der erhöhten
+            // Menge, Gesamtbetrag + Impact-Pool-Anzeige stimmten nicht.
+            setCart(prev => prev.map(x => (x.id === item.id ? { ...x, quantity: qty } : x)));
+          }}
           onUnterstuetzen={async (items) => {
             // KORB-02: WerkeKorb → UnterstutzenFlow (kein Magic-Timeout)
             // WerkeKorb setzt phase="loading" → der Flow öffnet sich nach
             // Abschluss des await. onUnterstuetzen resolved → WerkeKorb schließt sich.
+            // BUGFIX (2026-08-12): `items` enthält die im Werkekorb final
+            // gewählten Mengen (enrichedItems aus qtyMap) — zusätzliches
+            // Sicherheitsnetz: cart nochmal exakt mit diesen Mengen syncen,
+            // bevor UnterstutzenFlow (liest items={cart}) geöffnet wird.
+            setCart(items);
             setShowUnterstutzenFlow(true);
             setShowWerkeKorb(false);
             // C2.1: PI-Erstellung startet automatisch im UnterstutzenFlow-useEffect

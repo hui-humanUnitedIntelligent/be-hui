@@ -972,6 +972,12 @@ export default function WerkeKorb({
   onUnterstuetzen,
   onDiscover,
   onChat,
+  onQtyChange, // BUGFIX (2026-08-12): meldet Mengenänderung sofort an Parent
+               // (Home.jsx), damit `cart` synchron bleibt und die Zahlungs-
+               // seite (UnterstutzenFlow, liest items={cart}) dieselbe Menge
+               // sieht wie hier im Werkekorb angezeigt. Vorher: qtyMap war
+               // rein lokaler State — beim Öffnen des Zahlungsflows wurde die
+               // erhöhte Menge verworfen, Stripe/Server bekamen quantity=1.
 }) {
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   const [phase,     setPhase]     = useState("list");
@@ -986,7 +992,11 @@ export default function WerkeKorb({
   }));
   const handleQtyChange = useCallback((item, newQty) => {
     setQtyMap(prev => ({ ...prev, [item.id]: newQty }));
-  }, []);
+    // BUGFIX (2026-08-12): sofort an Parent melden — persistiert die Menge
+    // synchron in `cart` (Home.jsx/useCartPersistence), nicht erst beim
+    // Absenden. Verhindert Rechnungsfehler in Zahlung/Stripe/Impact-Pool.
+    onQtyChange?.(item, newQty);
+  }, [onQtyChange]);
 
   const groups = groupByPerson(enrichedItems);
   const iCount = items.length;
