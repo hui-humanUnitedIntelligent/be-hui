@@ -99,9 +99,9 @@ export default function WirkungPage() {
       milestonesRes, worksRes, profileRes
     ] = await Promise.all([
       // Unterstützungen erhalten
-      supabase.from('project_support')
-        .select('id, amount_eur, created_at, message, user_id, project_id, anonymous')
-        .in('project_id', projectIds.length > 0 ? projectIds : ['00000000-0000-0000-0000-000000000000'])
+      supabase.from('creator_supports')
+        .select('id, amount, created_at, payment_status, message, supporter:supporter_id(id, display_name, avatar_url)')
+        .eq('creator_id', user.id)
         .order('created_at', { ascending: false })
         .limit(10),
       // Impact-Stimmen für meine Projekte
@@ -145,9 +145,10 @@ export default function WirkungPage() {
     const works = worksRes.data || [];
 
     const totalSupportEur = supports
-      .reduce((sum, s) => sum + (s.amount_eur || 0), 0);
+      .filter(s => s.payment_status === 'completed' || s.payment_status === 'pending')
+      .reduce((sum, s) => sum + (s.amount || 0), 0);
 
-    const uniqueSupporters = new Set(supports.map(s => s.user_id)).size;
+    const uniqueSupporters = new Set(supports.map(s => s.supporter?.id)).size;
     const uniqueVoters = new Set(votes.map(v => v.voter_id)).size;
     const completedMilestones = milestones.filter(m => m.status === 'completed').length;
     const totalMilestoneUpdates = milestones.reduce((sum, m) => sum + (m.impact_milestone_updates?.length || 0), 0);
@@ -171,10 +172,10 @@ export default function WirkungPage() {
 
     supports.forEach(s => allMoments.push({
       type: 'support', date: s.created_at,
-      text: s.anonymous ? 'Anonym' : 'Jemand'
-        ? `${s.anonymous ? 'Anonym' : 'Jemand'} hat dich unterstützt`
+      text: s.supporter?.display_name
+        ? `${s.supporter.display_name} hat dich unterstützt`
         : 'Jemand hat dich unterstützt',
-      detail: s.message || `${fmtEur(s.amount_eur)}`,
+      detail: s.message || `${fmtEur(s.amount)}`,
     }));
 
     votes.forEach(v => allMoments.push({

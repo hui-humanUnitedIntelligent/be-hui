@@ -13,17 +13,13 @@
 // KEINE Leaderboards.
 // KEINE Trending-Listen.
 //
-// DATEN: Supabase (profiles, chats, chat_participants, recommendations,
-//        project_support, impact_applications, feed_items)
-//
-// FIX 2026-08-12: conversations→chats, creator_supports→project_support,
-// participant_a/b→participant_ids[], unread_count→chat_participants.last_read_at
+// DATEN: Supabase (profiles, conversations, recommendations, impact_votes,
+//        creator_supports, feed_items)
 // ══════════════════════════════════════════════════════════════════════════════
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabaseClient.js';
 import { useAuth } from '../../lib/AuthContext.jsx';
-import { useChatList } from '../../lib/chatContext.js';
 import { formatDateDE } from "../../lib/formatters.js";
 import { HUI } from "../../design/hui.design.js";
 
@@ -48,15 +44,13 @@ function relativeTime(dateStr) {
 
 export default function CommunityPage() {
   const { user } = useAuth();
-  // useChatList übernimmt das korrekte Laden der chats-Tabelle inkl.
-  // participant_ids, last_message, unread-count via chat_participants
-  const { chats: conversations, loading: chatsLoading } = useChatList("community");
-
   const [loading, setLoading] = useState(true);
   const [activeMembers, setActiveMembers] = useState([]);
   const [recentSupports, setRecentSupports] = useState([]);
   const [recentRecommendations, setRecentRecommendations] = useState([]);
+  const [conversations, setConversations] = useState([]);
   const [totalMembers, setTotalMembers] = useState(0);
+  const [convPersons, setConvPersons] = useState({});
 
   const load = useCallback(async () => {
     if (!user?.id) return;
@@ -64,7 +58,7 @@ export default function CommunityPage() {
 
     // Parallel: alle Daten für den gemeinsamen Lebensraum
     const [
-      membersRes, supportsRes, recsRes, countRes
+      membersRes, supportsRes, recsRes, convsRes, countRes
     ] = await Promise.all([
       // Aktive Mitglieder — die letzten 12 mit activity (nicht nach followers sortiert)
       supabase.from('profiles')
@@ -73,12 +67,9 @@ export default function CommunityPage() {
         .order('updated_at', { ascending: false })
         .limit(12),
 
-      // Gemeinsame Unterstützung — die letzten 5 Supports
-      // Tabelle: project_support (nicht creator_supports — existiert nicht)
-      // Spalten: user_id (Supporter), project_id (→ impact_applications.id),
-      //          amount_eur (nicht amount), message, created_at
-      supabase.from('project_support')
-        .select('id, amount_eur, message, created_at, user_id, project_id, anonymous')
+      // Gemeinsame Unterstützung — die letzten 5 Supports im Dachverband
+      supabase.from('creator_supports')
+        .select('id, amount, created_at, message, supporter:supporter_id(id, display_name, avatar_url), creator:creator_id(id, display_name, avatar_url)')
         .order('created_at', { ascending: false })
         .limit(5),
 
@@ -89,6 +80,13 @@ export default function CommunityPage() {
         .order('created_at', { ascending: false })
         .limit(5),
 
+      // Begegnungen — eigene Konversationen
+      supabase.from('conversations')
+        .select('id, participant_a, participant_b, last_message_at, last_message_text, unread_count_a, unread_count_b')
+        .or(`participant_a.eq.${user.id},participant_b.eq.${user.id}`)
+        .order('last_message_at', { ascending: false })
+        .limit(5),
+
       // Gesamtzahl aktiver Mitglieder
       supabase.from('profiles')
         .select('id', { count: 'exact', head: true })
@@ -96,79 +94,29 @@ export default function CommunityPage() {
     ]);
 
     setActiveMembers(membersRes.data || []);
+    setRecentSupports(supportsRes.data || []);
     setRecentRecommendations(recsRes.data || []);
+    const convs = convsRes.data || [];
+    setConversations(convs);
     setTotalMembers(countRes.count || 0);
 
-    // ── Supports anreichern: Supporter + Creator Profile laden ──
-    const rawSupports = supportsRes.data || [];
-    if (rawSupports.length > 0) {
-      // 1. Alle Supporter-IDs sammeln
-      const supporterIds = [...new Set(rawSupports.map(s => s.user_id).filter(Boolean))];
-
-      // 2. Alle Projekt-IDs sammeln → impact_applications für Creator user_id
-      const projectIds = [...new Set(rawSupports.map(s => s.project_id).filter(Boolean))];
-
-      // Parallel: Supporter-Profile + Projekt-Creator-IDs laden
-      const [supportersRes, projectsRes] = await Promise.all([
-        supporterIds.length > 0
-          ? supabase.from('profiles')
-              .select('id, display_name, avatar_url')
-              .in('id', supporterIds)
-          : Promise.resolve({ data: [] }),
-
-        projectIds.length > 0
-          ? supabase.from('impact_applications')
-              .select('id, user_id')
-              .in('id', projectIds)
-          : Promise.resolve({ data: [] }),
-      ]);
-
-      // 3. Creator-Profile laden (aus impact_applications.user_id)
-      const creatorIds = [...new Set(
-        (projectsRes.data || []).map(p => p.user_id).filter(Boolean)
-      )];
-      const creatorsRes = creatorIds.length > 0
-        ? await supabase.from('profiles')
-            .select('id, display_name, avatar_url')
-            .in('id', creatorIds)
-        : { data: [] };
-
-      // 4. Maps aufbauen
-      const supporterMap = {};
-      (supportersRes.data || []).forEach(p => { supporterMap[p.id] = p; });
-
-      const projectCreatorMap = {};
-      (projectsRes.data || []).forEach(p => {
-        if (p.user_id) projectCreatorMap[p.id] = p.user_id;
-      });
-
-      const creatorMap = {};
-      (creatorsRes.data || []).forEach(p => { creatorMap[p.id] = p; });
-
-      // 5. Supports anreichern
-      const enrichedSupports = rawSupports.map(s => {
-        const supporter = supporterMap[s.user_id] || null;
-        const creatorId = projectCreatorMap[s.project_id] || null;
-        const creator = creatorId ? (creatorMap[creatorId] || null) : null;
-        return {
-          ...s,
-          amount: s.amount_eur, // Alias für SupportMoment-Komponente
-          supporter: s.anonymous ? { display_name: 'Anonym' } : supporter,
-          creator,
-        };
-      });
-      setRecentSupports(enrichedSupports);
-    } else {
-      setRecentSupports([]);
+    // Batch-Fetch: alle Profile der Konversationspartner in einer Query
+    const otherIds = convs.map(c =>
+      c.participant_a === user.id ? c.participant_b : c.participant_a
+    ).filter(Boolean);
+    if (otherIds.length > 0) {
+      const personsRes = await supabase.from('profiles')
+        .select('id, display_name, avatar_url')
+        .in('id', otherIds);
+      const personsMap = {};
+      (personsRes.data || []).forEach(p => { personsMap[p.id] = p; });
+      setConvPersons(personsMap);
     }
 
     setLoading(false);
   }, [user?.id]);
 
   useEffect(() => { load(); }, [load]);
-
-  // Conversations aus useChatList übernehmen (korrektes Schema)
-  const displayConversations = conversations.slice(0, 5);
 
   return (
     <div style={{
@@ -230,25 +178,30 @@ export default function CommunityPage() {
           )}
 
           {/* ═══ Begegnungen ═══ */}
-          {displayConversations.length > 0 && (
+          {conversations.length > 0 && (
             <Section title="Deine Begegnungen" hint="Menschen, mit denen du im Gespräch bist.">
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {displayConversations.map(c => (
-                  <ConversationRow
-                    key={c.id}
-                    person={c.other_profile}
-                    lastMessage={c.last_message}
-                    lastAt={c.last_message_at}
-                    unread={c.unread || 0}
-                  />
-                ))}
+                {conversations.map(c => {
+                  const otherId = c.participant_a === user?.id ? c.participant_b : c.participant_a;
+                  const unread = c.participant_a === user?.id ? c.unread_count_a : c.unread_count_b;
+                  return (
+                    <ConversationRow
+                      key={c.id}
+                      otherId={otherId}
+                      person={convPersons[otherId]}
+                      lastMessage={c.last_message_text}
+                      lastAt={c.last_message_at}
+                      unread={unread || 0}
+                    />
+                  );
+                })}
               </div>
             </Section>
           )}
 
           {/* ═══ Leere Community ═══ */}
           {activeMembers.length === 0 && recentSupports.length === 0 &&
-           recentRecommendations.length === 0 && displayConversations.length === 0 && (
+           recentRecommendations.length === 0 && conversations.length === 0 && (
             <div style={{
               padding: '32px', borderRadius: 16, background: C.white,
               border: `1px solid ${C.border}`, textAlign: 'center',
@@ -267,7 +220,7 @@ export default function CommunityPage() {
 }
 
 // ── Section ──────────────────────────────────────────────────────────
-function Section({ title = "", hint = "", children }) {
+function Section({ title, hint, children }) {
   return (
     <div style={{ marginBottom: 36 }}>
       <h3 style={{ fontSize: 16, fontWeight: 600, color: C.ink, marginBottom: 4 }}>
@@ -282,7 +235,7 @@ function Section({ title = "", hint = "", children }) {
 }
 
 // ── Mitgliedskarte ───────────────────────────────────────────────────
-function MemberCard({ member = {} }) {
+function MemberCard({ member }) {
   const roleLabel = member.is_talent ? 'Talent' : member.is_ambassador ? 'Ambassador' : 'Mitglied';
 
   return (
@@ -319,9 +272,9 @@ function MemberCard({ member = {} }) {
 }
 
 // ── Unterstützungs-Moment ────────────────────────────────────────────
-function SupportMoment({ support = {} }) {
+function SupportMoment({ support }) {
   const supporterName = support.supporter?.display_name || 'Jemand';
-  const creatorName = support.creator?.display_name || 'ein Projekt';
+  const creatorName = support.creator?.display_name || 'ein Talent';
 
   return (
     <div style={{
@@ -346,7 +299,7 @@ function SupportMoment({ support = {} }) {
 }
 
 // ── Resonanz-Karte ───────────────────────────────────────────────────
-function ResonanceCard({ recommendation = {} }) {
+function ResonanceCard({ recommendation }) {
   return (
     <div style={{
       padding: '16px', borderRadius: 12, background: C.white,
@@ -364,7 +317,7 @@ function ResonanceCard({ recommendation = {} }) {
 }
 
 // ── Begegnungs-Zeile ─────────────────────────────────────────────────
-function ConversationRow({ person = null, lastMessage = "", lastAt = null, unread = 0 }) {
+function ConversationRow({ person, lastMessage, lastAt, unread }) {
   const otherName = person?.display_name || 'Mitglied';
   const otherAvatar = person?.avatar_url || null;
 
