@@ -88,11 +88,16 @@ export default function HomeHeader({
             onSearchStateChange={onSearchStateChange}
             quickActions={
               <>
-                <MoodOrbButton
-                  activeMood={activeMood}
-                  isOpen={showMood}
-                  onToggle={() => setShowMood(p => !p)}
-                />
+                {/* MOOD-ORB — 2026-08-12: Temporär ausgeblendet.
+                    Mood-System existiert (moodConfig.js, MoodSheet.jsx, MoodOrbButton.jsx)
+                    aber MOOD_FEED_HINTS sind noch nicht mit Feed-Logik verknüpft.
+                    Wird re-aktiviert sobald die Feed-Priorisierung implementiert ist.
+                    <MoodOrbButton
+                      activeMood={activeMood}
+                      isOpen={showMood}
+                      onToggle={() => setShowMood(p => !p)}
+                    />
+                */}
                 <NotificationButton count={notifCount} userId={currentUser?.id || ""}/>
                 <MessageButton count={msgCount} onPress={handleChat}/>
               </>
@@ -109,13 +114,15 @@ export default function HomeHeader({
         )}
       </div>
 
-      {showMood && (
-        <MoodSheet
-          activeMood={activeMood}
-          onSelect={(m) => { onMoodSelect?.(m); setShowMood(false); }}
-          onClose={() => setShowMood(false)}
-        />
-      )}
+      {/* MOOD-SHEET — 2026-08-12: Temporär ausgeblendet (siehe MoodOrbButton-Kommentar oben).
+          {showMood && (
+            <MoodSheet
+              activeMood={activeMood}
+              onSelect={(m) => { onMoodSelect?.(m); setShowMood(false); }}
+              onClose={() => setShowMood(false)}
+            />
+          )}
+      */}
     </>
   );
 }
