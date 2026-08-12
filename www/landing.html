@@ -242,49 +242,29 @@ ul{list-style:none}
 
 /* ═══ ÖKOSYSTEM ═══ */
 .eco{padding:96px 32px 88px;background:var(--cream-soft);text-align:center;position:relative;overflow:hidden}
-.eco-bg{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
-.eco-light{position:absolute;border-radius:50%;will-change:transform}
-.eco-light-a{width:50vw;height:50vw;max-width:560px;max-height:560px;background:radial-gradient(circle,rgba(255,255,255,.35) 0%,transparent 60%);top:5%;left:5%;animation:eco-da 24s ease-in-out infinite}
-.eco-light-b{width:45vw;height:45vw;max-width:500px;max-height:500px;background:radial-gradient(circle,rgba(13,196,181,.04) 0%,transparent 60%);top:35%;right:3%;animation:eco-db 30s ease-in-out infinite}
-.eco-light-c{width:42vw;height:42vw;max-width:480px;max-height:480px;background:radial-gradient(circle,rgba(212,149,42,.025) 0%,transparent 60%);bottom:8%;left:15%;animation:eco-dc 27s ease-in-out infinite}
-@keyframes eco-da{0%,100%{transform:translate(0,0)}50%{transform:translate(25px,15px)}}
-@keyframes eco-db{0%,100%{transform:translate(0,0)}50%{transform:translate(-20px,-12px)}}
-@keyframes eco-dc{0%,100%{transform:translate(0,0)}50%{transform:translate(15px,-20px)}}
+.eco-atmosphere{position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 70% 50% at 50% 45%,rgba(13,196,181,.035) 0%,transparent 60%),radial-gradient(ellipse 50% 40% at 30% 70%,rgba(244,115,85,.015) 0%,transparent 55%),radial-gradient(ellipse 55% 45% at 70% 30%,rgba(212,149,42,.025) 0%,transparent 55%);animation:eco-atm 12s ease-in-out infinite}
+@keyframes eco-atm{0%,100%{opacity:.65}50%{opacity:1}}
 .eco-inner{max-width:960px;margin:0 auto;text-align:center;position:relative;z-index:1}
 .eco-h2{font-size:clamp(32px,5vw,48px);font-weight:700;letter-spacing:-.03em;line-height:1.12;color:var(--ink);margin-bottom:20px}
 .eco-sub{font-size:17px;font-weight:300;color:var(--muted);max-width:480px;margin:0 auto 44px}
-.eco-network{position:relative;width:100%;max-width:540px;margin:0 auto;aspect-ratio:600/500}
-.eco-svg{position:absolute;inset:0;width:100%;height:100%;z-index:1;opacity:0;transition:opacity 1.5s var(--ease-out)}
-.eco-network.visible .eco-svg{opacity:1}
-.eco-line{stroke:rgba(13,196,181,.1);stroke-width:1;fill:none;transition:stroke .4s ease}
-.eco-network.eco-hovered .eco-line{stroke:rgba(13,196,181,.05)}
-.eco-network[data-hover="1"] .eco-line[data-from="1"],.eco-network[data-hover="1"] .eco-line[data-to="1"],
-.eco-network[data-hover="2"] .eco-line[data-from="2"],.eco-network[data-hover="2"] .eco-line[data-to="2"],
-.eco-network[data-hover="3"] .eco-line[data-from="3"],.eco-network[data-hover="3"] .eco-line[data-to="3"],
-.eco-network[data-hover="4"] .eco-line[data-from="4"],.eco-network[data-hover="4"] .eco-line[data-to="4"],
-.eco-network[data-hover="5"] .eco-line[data-from="5"],.eco-network[data-hover="5"] .eco-line[data-to="5"],
-.eco-network[data-hover="6"] .eco-line[data-from="6"],.eco-network[data-hover="6"] .eco-line[data-to="6"],
-.eco-network[data-hover="7"] .eco-line[data-from="7"],.eco-network[data-hover="7"] .eco-line[data-to="7"]{stroke:rgba(13,196,181,.35)}
-.eco-pulse{opacity:0}
-.eco-node{position:absolute;z-index:2;padding:20px 26px;background:linear-gradient(145deg,#fff 0%,rgba(230,250,248,.35) 100%);border-radius:var(--rl);text-align:center;cursor:pointer;transform:translate(-50%,-50%);opacity:0;transition:opacity .7s var(--ease-out),transform .4s var(--ease-out),box-shadow .4s var(--ease-out);box-shadow:0 2px 12px rgba(20,20,34,.03)}
-.eco-network.visible .eco-node{opacity:1}
-.eco-node[data-eco="1"]{transition-delay:.3s}
-.eco-node[data-eco="2"]{transition-delay:.45s}
-.eco-node[data-eco="3"]{transition-delay:.6s}
-.eco-node[data-eco="4"]{transition-delay:.75s}
-.eco-node[data-eco="5"]{transition-delay:.9s}
-.eco-node[data-eco="6"]{transition-delay:1.05s}
-.eco-node[data-eco="7"]{transition-delay:1.2s}
-.eco-node[data-eco="2"]{background:linear-gradient(145deg,#fff 0%,rgba(255,240,235,.35) 100%)}
-.eco-node[data-eco="3"]{background:linear-gradient(145deg,#fff 0%,rgba(237,229,216,.2) 100%)}
-.eco-node[data-eco="4"]{background:linear-gradient(145deg,#fff 0%,rgba(230,250,248,.35) 100%)}
-.eco-node[data-eco="5"]{background:linear-gradient(145deg,#fff 0%,rgba(255,240,235,.25) 100%)}
-.eco-node[data-eco="6"]{background:linear-gradient(145deg,#fff 0%,rgba(237,229,216,.2) 100%)}
-.eco-node[data-eco="7"]{background:linear-gradient(145deg,#fff 0%,rgba(230,250,248,.35) 100%)}
-.eco-node:hover{transform:translate(-50%,calc(-50% - 4px));box-shadow:0 0 28px rgba(13,196,181,.12),0 6px 20px rgba(20,20,34,.05)}
-.eco-network.eco-hovered .eco-node:not(:hover){opacity:.7}
-.eco-node .label{font-size:13px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px}
-.eco-node .name{font-size:16px;font-weight:600;color:var(--ink)}
+.eco-field{position:relative;width:100%;max-width:580px;margin:0 auto;aspect-ratio:1/1;min-height:420px}
+.eco-core{position:absolute;left:50%;top:48%;width:220px;height:220px;margin:-110px 0 0 -110px;border-radius:50%;background:radial-gradient(circle,rgba(13,196,181,.06) 0%,rgba(212,149,42,.025) 35%,transparent 70%);z-index:0;opacity:0}
+.eco-field.visible .eco-core{animation:eco-appear 2s var(--ease-out) forwards,eco-breathe 8s ease-in-out 2s infinite}
+@keyframes eco-appear{from{opacity:0}to{opacity:1}}
+@keyframes eco-breathe{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.65;transform:scale(.95)}}
+.eco-energy{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;opacity:0;transition:opacity 2.5s var(--ease-out) .5s}
+.eco-field.visible .eco-energy{opacity:1}
+.eco-term{position:absolute;transform:translate(-50%,calc(-50% + 12px));text-align:center;z-index:2;opacity:0;transition:opacity 1s var(--ease-out),transform 1s var(--ease-out);max-width:140px}
+.eco-field.visible .eco-term{opacity:1;transform:translate(-50%,-50%)}
+.eco-field.visible .eco-term[data-eco="1"]{transition-delay:.3s}
+.eco-field.visible .eco-term[data-eco="2"]{transition-delay:.45s}
+.eco-field.visible .eco-term[data-eco="3"]{transition-delay:.6s}
+.eco-field.visible .eco-term[data-eco="4"]{transition-delay:.75s}
+.eco-field.visible .eco-term[data-eco="5"]{transition-delay:.9s}
+.eco-field.visible .eco-term[data-eco="6"]{transition-delay:1.05s}
+.eco-field.visible .eco-term[data-eco="7"]{transition-delay:1.2s}
+.eco-cat{display:block;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:rgba(13,196,181,.5);margin-bottom:5px}
+.eco-stmt{display:block;font-size:15px;font-weight:600;color:var(--ink);letter-spacing:-.01em}
 
 /* ═══ VERBINDUNG ═══ */
 .eco-connect{max-width:580px;margin:56px auto 0;text-align:center}
@@ -458,10 +438,11 @@ ul{list-style:none}
 
   .eco{padding:72px 24px 64px}
   .eco-sub{margin-bottom:32px}
-  .eco-network{max-width:440px}
-  .eco-node{padding:14px 16px}
-  .eco-node .label{font-size:11px}
-  .eco-node .name{font-size:13px}
+  .eco-field{max-width:440px}
+  .eco-term{max-width:120px}
+  .eco-cat{font-size:10px}
+  .eco-stmt{font-size:13px}
+  .eco-core{width:180px;height:180px;margin:-90px 0 0 -90px}
   .eco-connect{margin-top:40px}
 
   .hui-app-phone{width:200px;height:400px;border-radius:32px}
@@ -488,10 +469,10 @@ ul{list-style:none}
 
 @media(max-width:480px){
   .hero-h1{font-size:36px}
-  .eco-svg{display:none}
-  .eco-network{aspect-ratio:auto;max-width:340px}
-  .eco-node{position:relative;left:auto!important;top:auto!important;transform:none!important;width:100%;margin-bottom:8px;padding:16px 20px;opacity:1!important}
-  .eco-pulse{display:none}
+  .eco-energy{display:none}
+  .eco-field{aspect-ratio:auto;max-width:340px;min-height:auto;padding:24px 0}
+  .eco-core{position:absolute;top:50%;left:50%;width:240px;height:240px;margin:-120px 0 0 -120px;opacity:.3;animation:none}
+  .eco-term{position:relative!important;left:auto!important;top:auto!important;transform:none!important;width:100%;text-align:center;margin-bottom:22px;opacity:1!important;max-width:none}
   .eco-connect p{font-size:16px}
   .impact-cell{padding:22px}
   .hui-app-phone{width:180px;height:360px}
@@ -514,11 +495,10 @@ ul{list-style:none}
   .vision-field{animation:none}
   .vision-flow{display:none}
   .vision-answer-wrap::before{opacity:1;transition:none}
-  .eco-light{animation:none}
-  .eco-pulse{display:none}
-  .eco-svg{opacity:1;transition:none}
-  .eco-node{opacity:1!important;transform:translate(-50%,-50%)!important}
-  .eco-network.eco-hovered .eco-node{opacity:1!important}
+  .eco-atmosphere{animation:none}
+  .eco-energy{display:none}
+  .eco-core{animation:none;opacity:1}
+  .eco-term{opacity:1!important}
   .hero-underline::after{animation:none;opacity:0}
   .hero-h1 .accent::before{animation:none;opacity:0}
   .btn-primary::before{animation:none;opacity:0}
@@ -676,68 +656,58 @@ ul{list-style:none}
 
 <!-- ═══ SEKTION 2 — DAS HUI-ÖKOSYSTEM ═══ -->
 <section class="eco" id="entdecken">
-  <div class="eco-bg" aria-hidden="true">
-    <div class="eco-light eco-light-a"></div>
-    <div class="eco-light eco-light-b"></div>
-    <div class="eco-light eco-light-c"></div>
-  </div>
+  <div class="eco-atmosphere" aria-hidden="true"></div>
   <div class="eco-inner">
     <p class="section-kicker reveal">Das Ökosystem</p>
     <h2 class="eco-h2 reveal d1">Die Welt von HUI</h2>
     <p class="eco-sub reveal d2">HUI verbindet Menschen, Ideen und Möglichkeiten in einem lebendigen Ökosystem.</p>
-    <div class="eco-network reveal d2">
-      <svg class="eco-svg" viewBox="0 0 600 500" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-        <path class="eco-line" data-from="1" data-to="2" d="M290,50 L145,160"/>
-        <path class="eco-line" data-from="1" data-to="3" d="M290,50 L455,160"/>
-        <path class="eco-line" data-from="2" data-to="3" d="M145,160 L455,160"/>
-        <path class="eco-line" data-from="2" data-to="4" d="M145,160 L145,270"/>
-        <path class="eco-line" data-from="3" data-to="5" d="M455,160 L455,270"/>
-        <path class="eco-line" data-from="4" data-to="5" d="M145,270 L455,270"/>
-        <path class="eco-line" data-from="3" data-to="4" d="M455,160 L145,270"/>
-        <path class="eco-line" data-from="2" data-to="5" d="M145,160 L455,270"/>
-        <path class="eco-line" data-from="4" data-to="6" d="M145,270 L145,380"/>
-        <path class="eco-line" data-from="5" data-to="7" d="M455,270 L455,380"/>
-        <path class="eco-line" data-from="6" data-to="7" d="M145,380 L455,380"/>
-        <circle r="3" class="eco-pulse" fill="rgba(13,196,181,.55)">
-          <animateMotion dur="7s" repeatCount="indefinite" begin="0s" path="M290,50 L145,160 L145,270 L145,380 L455,380"/>
-          <animate attributeName="opacity" values="0;0.6;0.5;0.4;0" dur="7s" repeatCount="indefinite" begin="0s"/>
+    <div class="eco-field reveal d2">
+      <div class="eco-core" aria-hidden="true"></div>
+      <svg class="eco-energy" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <circle r="2.5" fill="#0DC4B5" fill-opacity=".5" opacity="0">
+          <animateMotion dur="8s" repeatCount="indefinite" begin="0s" path="M46,10 C35,18 28,35 24,50 C28,65 30,72 30,75"/>
+          <animate attributeName="opacity" values="0;0.5;0.4;0.2;0" dur="8s" repeatCount="indefinite" begin="0s"/>
         </circle>
-        <circle r="3" class="eco-pulse" fill="rgba(13,196,181,.55)">
-          <animateMotion dur="8s" repeatCount="indefinite" begin="2.5s" path="M290,50 L455,160 L455,270 L455,380"/>
-          <animate attributeName="opacity" values="0;0.6;0.5;0.4;0" dur="8s" repeatCount="indefinite" begin="2.5s"/>
+        <circle r="2.5" fill="#0DC4B5" fill-opacity=".5" opacity="0">
+          <animateMotion dur="10s" repeatCount="indefinite" begin="3s" path="M16,28 C35,38 55,42 76,53"/>
+          <animate attributeName="opacity" values="0;0.5;0.3;0.2;0" dur="10s" repeatCount="indefinite" begin="3s"/>
         </circle>
-        <circle r="3" class="eco-pulse" fill="rgba(13,196,181,.55)">
-          <animateMotion dur="6s" repeatCount="indefinite" begin="4s" path="M145,160 L455,160 L455,270 L145,270"/>
-          <animate attributeName="opacity" values="0;0.5;0.4;0" dur="6s" repeatCount="indefinite" begin="4s"/>
+        <circle r="2" fill="#D4952A" fill-opacity=".4" opacity="0">
+          <animateMotion dur="12s" repeatCount="indefinite" begin="6s" path="M84,25 C60,38 40,48 24,50 C30,62 40,70 30,75"/>
+          <animate attributeName="opacity" values="0;0.4;0.3;0.2;0" dur="12s" repeatCount="indefinite" begin="6s"/>
+        </circle>
+        <circle r="2.5" fill="#0DC4B5" fill-opacity=".5" opacity="0">
+          <animateMotion dur="9s" repeatCount="indefinite" begin="8s" path="M46,10 C60,28 65,55 70,80"/>
+          <animate attributeName="opacity" values="0;0.5;0.3;0.2;0" dur="9s" repeatCount="indefinite" begin="8s"/>
         </circle>
       </svg>
-      <div class="eco-node" data-eco="1" style="left:48.3%;top:10%">
-        <span class="label">Menschen</span>
-        <span class="name">Jeder Mensch zählt</span>
+      <div class="eco-term" data-eco="1" style="left:46%;top:10%">
+        <span class="eco-cat">Menschen</span>
+        <span class="eco-stmt">Jeder Mensch zählt</span>
       </div>
-      <div class="eco-node" data-eco="2" style="left:24.2%;top:32%">
-        <span class="label">Wirker</span>
-        <span class="name">Talente & Können</span>
+      <div class="eco-term" data-eco="2" style="left:16%;top:28%">
+        <span class="eco-cat">Wirker</span>
+        <span class="eco-stmt">Talente & Können</span>
       </div>
-      <div class="eco-node" data-eco="3" style="left:75.8%;top:32%">
-        <span class="label">Projekte</span>
-        <span class="name">Ideen werden möglich</span>
+      <div class="eco-term" data-eco="3" style="left:84%;top:25%">
+        <span class="eco-cat">Projekte</span>
+        <span class="eco-stmt">Ideen werden möglich</span>
       </div>
-      <div class="eco-node" data-eco="4" style="left:24.2%;top:54%">
-        <span class="label">Werke</span>
-        <span class="name">Geschaffen & geteilt</span>
+      <div class="eco-term" data-eco="4" style="left:24%;top:50%">
+        <span class="eco-cat">Werke</span>
+        <span class="eco-stmt">Geschaffen & geteilt</span>
       </div>
-      <div class="eco-node" data-eco="5" style="left:75.8%;top:54%">
-        <span class="label">Erlebnisse</span>
-        <span class="name">Momente verbinden</span>
+      <div class="eco-term" data-eco="5" style="left:76%;top:53%">
+        <span class="eco-cat">Erlebnisse</span>
+        <span class="eco-stmt">Momente verbinden</span>
       </div>
-      <div class="eco-node" data-eco="6" style="left:24.2%;top:76%">
-        <span class="label">Unternehmen</span>
-        <span class="name">Partner & Möglichkeiten</span>
+      <div class="eco-term" data-eco="6" style="left:30%;top:75%">
+        <span class="eco-cat">Unternehmen</span>
+        <span class="eco-stmt">Partner & Möglichkeiten</span>
       </div>
-      <div class="eco-node" data-eco="7" style="left:75.8%;top:76%">
-        <span class="label">Gemeinschaft</span>
-        <span class="name">Zusammenhalt</span>
+      <div class="eco-term" data-eco="7" style="left:70%;top:80%">
+        <span class="eco-cat">Gemeinschaft</span>
+        <span class="eco-stmt">Zusammenhalt</span>
       </div>
     </div>
     <div class="eco-connect">
@@ -1018,16 +988,7 @@ if(prefersReduced){
     });
   },{threshold:.15,rootMargin:'0px 0px -40px 0px'});
   document.querySelectorAll('.reveal').forEach(function(el){io.observe(el)});
-// Eco network hover interaction
-document.querySelectorAll('.eco-node').forEach(function(node){
-  var net=node.closest('.eco-network');if(!net)return;
-  var id=node.getAttribute('data-eco');var timer;
-  function act(){net.classList.add('eco-hovered');net.setAttribute('data-hover',id)}
-  function deact(){net.classList.remove('eco-hovered');net.removeAttribute('data-hover')}
-  node.addEventListener('mouseenter',act);
-  node.addEventListener('mouseleave',deact);
-  node.addEventListener('touchstart',function(){act();clearTimeout(timer);timer=setTimeout(deact,2000)},{passive:true});
-});
+
 }
 
 // App preview interaction
