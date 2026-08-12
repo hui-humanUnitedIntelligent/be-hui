@@ -274,18 +274,29 @@ ul{list-style:none}
 .eco-connect strong{color:var(--ink);font-weight:500}
 .eco-connect .em{display:block;font-size:clamp(20px,3.2vw,26px);font-weight:400;color:var(--teal);letter-spacing:-.01em}
 
-/* ═══ WIE HUI WIRKT (Process) ═══ */
-.process{padding:96px 32px;background:var(--cream);text-align:center;position:relative}
-.process::before{content:'';position:absolute;top:20%;right:10%;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(212,149,42,.04) 0%,transparent 60%);pointer-events:none;z-index:0}
-.process-inner{max-width:900px;margin:0 auto;position:relative;z-index:1}
-.process-h2{font-size:clamp(32px,5vw,48px);font-weight:700;letter-spacing:-.03em;line-height:1.12;color:var(--ink);margin-bottom:52px}
-.process-flow{display:flex;align-items:flex-start;justify-content:center;position:relative;gap:0}
-.process-flow::before{content:'';position:absolute;top:30px;left:12%;right:12%;height:1px;background:linear-gradient(90deg,transparent,rgba(13,196,181,.12) 15%,rgba(13,196,181,.12) 85%,transparent);z-index:0}
-.process-step{flex:1;max-width:220px;padding:0 16px;text-align:center;position:relative}
-.process-step .step-num{display:inline-flex;align-items:center;justify-content:center;width:60px;height:60px;border-radius:50%;background:var(--cream-soft);border:1px solid rgba(13,196,181,.1);font-size:15px;font-weight:600;color:var(--teal);margin-bottom:22px;position:relative;z-index:1;letter-spacing:-.02em;transition:box-shadow .6s var(--ease-out),border-color .6s var(--ease-out)}
-.process-step.visible .step-num{box-shadow:0 0 0 5px rgba(13,196,181,.05),0 2px 14px rgba(13,196,181,.1);border-color:rgba(13,196,181,.18)}
-.process-step .step-label{font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--ink);margin-bottom:10px;display:block}
-.process-step .step-desc{font-size:14px;font-weight:300;line-height:1.55;color:var(--muted)}
+/* ═══ WIE HUI WIRKT (Process) — Premium Wirkungsfluss ═══ */
+.process{padding:120px 32px 104px;background:var(--cream);text-align:center;position:relative;overflow:hidden}
+.process-bg{position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 55% 50% at 15% 25%,rgba(13,196,181,.045) 0%,transparent 55%),radial-gradient(ellipse 50% 45% at 85% 75%,rgba(244,115,85,.03) 0%,transparent 55%),radial-gradient(ellipse 70% 60% at 50% 50%,rgba(253,251,248,.5) 0%,transparent 70%)}
+.process-inner{max-width:960px;margin:0 auto;position:relative;z-index:1}
+.process-h2{font-size:clamp(32px,5vw,48px);font-weight:700;letter-spacing:-.03em;line-height:1.12;color:var(--ink);margin-bottom:72px}
+.process-flow{display:flex;align-items:flex-start;justify-content:center;position:relative;gap:0;padding-top:12px;min-height:200px}
+.process-flow.reveal{opacity:1;transform:none}
+.process-line-h{position:absolute;top:0;left:0;right:0;bottom:0;width:100%;height:100%;z-index:0;pointer-events:none;overflow:visible}
+.process-line-v{display:none}
+.p-step{flex:1;max-width:240px;padding:0 18px;text-align:center;position:relative;z-index:1;transition:transform .5s var(--ease-out)}
+.p-step-glow{position:absolute;top:30px;left:50%;transform:translateX(-50%);width:180px;height:180px;border-radius:50%;pointer-events:none;z-index:-1;opacity:0;transition:opacity .6s var(--ease-out)}
+.p-step:nth-child(odd) .p-step-glow{background:radial-gradient(circle,rgba(13,196,181,.07) 0%,transparent 65%)}
+.p-step:nth-child(even) .p-step-glow{background:radial-gradient(circle,rgba(244,115,85,.05) 0%,transparent 65%)}
+.p-step.visible .p-step-glow{opacity:1}
+.p-step:hover{transform:translateY(-4px)}
+.p-step:hover .p-step-glow{opacity:1.4}
+.p-num{display:block;font-size:clamp(34px,4.5vw,48px);font-weight:200;letter-spacing:-.05em;color:var(--ink);margin-bottom:18px;line-height:1;opacity:.12;transition:color .6s var(--ease-out),opacity .6s var(--ease-out),text-shadow .6s var(--ease-out)}
+.p-step.visible .p-num{opacity:1}
+.p-step:hover .p-num{color:var(--teal);text-shadow:0 0 24px rgba(13,196,181,.25)}
+.p-label{font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--ink);margin-bottom:12px;display:block}
+.p-desc{font-size:14px;font-weight:300;line-height:1.6;color:var(--muted)}
+.flow-line-draw{stroke-dasharray:1000;stroke-dashoffset:1000;transition:stroke-dashoffset 2s var(--ease-out) .6s}
+.process-flow.visible .flow-line-draw{stroke-dashoffset:0}
 
 /* ═══ WAS KANN ICH MACHEN (Actions) ═══ */
 .actions{padding:96px 32px;background:var(--cream-soft);text-align:center;position:relative;overflow:hidden}
@@ -403,12 +414,7 @@ ul{list-style:none}
 
 /* ═══ RESPONSIVE ═══ */
 @media(max-width:900px){
-  .process-flow{flex-direction:column;align-items:flex-start;gap:0;padding-left:8px}
-  .process-flow::before{top:30px;left:27px;right:auto;bottom:30px;width:1px;height:auto;background:linear-gradient(180deg,transparent,rgba(13,196,181,.12) 8%,rgba(13,196,181,.12) 92%,transparent)}
-  .process-step{max-width:400px;padding:0 0 36px 60px;text-align:left}
-  .process-step:last-child{padding-bottom:0}
-  .process-step .step-num{position:absolute;left:0;top:0;margin-bottom:0}
-  .process-step .step-label{margin-bottom:6px}
+
 
   .actions-grid{grid-template-columns:1fr;gap:16px}
 
@@ -457,8 +463,15 @@ ul{list-style:none}
   .hui-app-phone{width:200px;height:400px;border-radius:32px}
   .phone-screen{border-radius:26px}
 
-  .process{padding:64px 24px}
-  .process-h2{margin-bottom:36px}
+  .process{padding:72px 24px 64px}
+  .process-h2{margin-bottom:48px}
+  .process-flow{flex-direction:column;align-items:center;gap:0;min-height:auto;padding-left:0}
+  .process-line-h{display:none}
+  .process-line-v{display:block;position:absolute;top:0;left:50%;width:120px;height:100%;transform:translateX(-50%);z-index:0;pointer-events:none;overflow:visible}
+  .p-step{max-width:340px;padding:0 0 44px 0;text-align:center}
+  .p-step:last-child{padding-bottom:0}
+  .p-step-glow{width:140px;height:140px}
+  .p-num{font-size:32px;margin-bottom:14px}
 
   .actions{padding:64px 24px}
   .actions-sub{margin-bottom:36px}
@@ -514,6 +527,13 @@ ul{list-style:none}
   .hero-h1 .accent::before{animation:none;opacity:0}
   .btn-primary::before{animation:none;opacity:0}
   .hero-scroll{animation:none;opacity:.6}
+  .process-bg{animation:none}
+  .flow-line-draw{stroke-dashoffset:0;transition:none}
+  .process-line-h circle,.process-line-v circle{display:none}
+  .p-step .p-step-glow{opacity:1;transition:none}
+  .p-num{opacity:1;transition:none;color:var(--ink)}
+  .p-step:hover{transform:none}
+  .p-step:hover .p-num{color:var(--ink);text-shadow:none}
   .hero-scroll::after{animation:none}
   .screen-content{transition-duration:.15s}
   .screen-content.active>*{animation:none}
@@ -811,29 +831,70 @@ ul{list-style:none}
 
 <!-- ═══ SEKTION 3 — WIE HUI WIRKT ═══ -->
 <section class="process" id="wie">
+  <div class="process-bg" aria-hidden="true"></div>
   <div class="process-inner">
     <p class="section-kicker reveal">Wie HUI wirkt</p>
     <h2 class="process-h2 reveal d1">Eine Idee kann etwas bewegen.</h2>
-    <div class="process-flow">
-      <div class="process-step reveal d1">
-        <span class="step-num">01</span>
-        <span class="step-label">Entdecken</span>
-        <p class="step-desc">Menschen, Talente, Projekte, Werke und Erlebnisse entdecken.</p>
+    <div class="process-flow reveal">
+      <svg class="process-line-h" viewBox="0 0 1000 120" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="flow-grad-h" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#0DC4B5" stop-opacity="0"/>
+            <stop offset="10%" stop-color="#0DC4B5" stop-opacity=".35"/>
+            <stop offset="50%" stop-color="#0DC4B5" stop-opacity=".22"/>
+            <stop offset="90%" stop-color="#F47355" stop-opacity=".25"/>
+            <stop offset="100%" stop-color="#F47355" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <path d="M 125,60 C 200,30 300,90 375,60 C 450,30 550,90 625,60 C 700,30 800,90 875,60" fill="none" stroke="url(#flow-grad-h)" stroke-width="12" vector-effect="non-scaling-stroke" opacity=".12"/>
+        <path class="flow-line-draw" d="M 125,60 C 200,30 300,90 375,60 C 450,30 550,90 625,60 C 700,30 800,90 875,60" fill="none" stroke="url(#flow-grad-h)" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+        <circle r="3" fill="#0DC4B5" opacity="0">
+          <animateMotion dur="8s" repeatCount="indefinite" begin="2.5s" path="M 125,60 C 200,30 300,90 375,60 C 450,30 550,90 625,60 C 700,30 800,90 875,60"/>
+          <animate attributeName="opacity" values="0;0;0.5;0.6;0.7;0.8;0.9;1;0.6;0" dur="8s" repeatCount="indefinite" begin="2.5s"/>
+          <animate attributeName="r" values="2;2;3;3;3;3;4;6;4;2" dur="8s" repeatCount="indefinite" begin="2.5s"/>
+        </circle>
+      </svg>
+      <svg class="process-line-v" viewBox="0 0 120 1000" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="flow-grad-v" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#0DC4B5" stop-opacity="0"/>
+            <stop offset="10%" stop-color="#0DC4B5" stop-opacity=".35"/>
+            <stop offset="50%" stop-color="#0DC4B5" stop-opacity=".22"/>
+            <stop offset="90%" stop-color="#F47355" stop-opacity=".25"/>
+            <stop offset="100%" stop-color="#F47355" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <path d="M 60,80 C 40,200 80,250 60,375 C 40,500 80,550 60,625 C 40,700 80,800 60,920" fill="none" stroke="url(#flow-grad-v)" stroke-width="12" vector-effect="non-scaling-stroke" opacity=".12"/>
+        <path class="flow-line-draw" d="M 60,80 C 40,200 80,250 60,375 C 40,500 80,550 60,625 C 40,700 80,800 60,920" fill="none" stroke="url(#flow-grad-v)" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+        <circle r="3" fill="#0DC4B5" opacity="0">
+          <animateMotion dur="8s" repeatCount="indefinite" begin="2.5s" path="M 60,80 C 40,200 80,250 60,375 C 40,500 80,550 60,625 C 40,700 80,800 60,920"/>
+          <animate attributeName="opacity" values="0;0;0.5;0.6;0.7;0.8;0.9;1;0.6;0" dur="8s" repeatCount="indefinite" begin="2.5s"/>
+          <animate attributeName="r" values="2;2;3;3;3;3;4;6;4;2" dur="8s" repeatCount="indefinite" begin="2.5s"/>
+        </circle>
+      </svg>
+      <div class="p-step reveal d1">
+        <div class="p-step-glow"></div>
+        <span class="p-num">01</span>
+        <span class="p-label">Entdecken</span>
+        <p class="p-desc">Menschen, Talente, Projekte, Werke und Erlebnisse entdecken.</p>
       </div>
-      <div class="process-step reveal d2">
-        <span class="step-num">02</span>
-        <span class="step-label">Begegnen</span>
-        <p class="step-desc">Menschen und Ideen miteinander verbinden.</p>
+      <div class="p-step reveal d2">
+        <div class="p-step-glow"></div>
+        <span class="p-num">02</span>
+        <span class="p-label">Begegnen</span>
+        <p class="p-desc">Menschen und Ideen miteinander verbinden.</p>
       </div>
-      <div class="process-step reveal d3">
-        <span class="step-num">03</span>
-        <span class="step-label">Mitwirken</span>
-        <p class="step-desc">Etwas beitragen, unterstützen, erschaffen oder erleben.</p>
+      <div class="p-step reveal d3">
+        <div class="p-step-glow"></div>
+        <span class="p-num">03</span>
+        <span class="p-label">Mitwirken</span>
+        <p class="p-desc">Etwas beitragen, unterstützen, erschaffen oder erleben.</p>
       </div>
-      <div class="process-step reveal d4">
-        <span class="step-num">04</span>
-        <span class="step-label">Wirkung</span>
-        <p class="step-desc">Aus Begegnungen entsteht etwas, das über die Plattform hinausgeht.</p>
+      <div class="p-step reveal d4">
+        <div class="p-step-glow"></div>
+        <span class="p-num">04</span>
+        <span class="p-label">Wirkung</span>
+        <p class="p-desc">Aus Begegnungen entsteht etwas, das über die Plattform hinausgeht.</p>
       </div>
     </div>
   </div>
