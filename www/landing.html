@@ -76,7 +76,8 @@ ul{list-style:none}
 
 /* ═══ HERO ═══ */
 .hero{position:relative;min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--cream-warm)}
-.hero-bg{position:absolute;inset:0;background:url('/hero.webp') center 42%/cover no-repeat;z-index:0;transform:scale(1.02);transition:transform 1.5s var(--ease-out)}
+.hero-bg{position:absolute;inset:0;background:url('/hero.webp') center 42%/cover no-repeat;z-index:0;animation:ken-burns 22s ease-in-out infinite alternate;will-change:transform}
+@keyframes ken-burns{0%{transform:scale(1) translateX(0)}100%{transform:scale(1.025) translateX(-4px)}}
 .hero-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(245,238,227,.06) 0%,rgba(245,238,227,.10) 35%,rgba(250,247,242,.48) 80%,var(--cream) 100%),radial-gradient(ellipse 65% 50% at 50% 40%,rgba(20,20,34,.07) 0%,rgba(20,20,34,.04) 25%,transparent 55%),radial-gradient(ellipse 70% 45% at 50% 22%,rgba(255,238,210,.08) 0%,transparent 65%),radial-gradient(ellipse 50% 40% at 30% 70%,rgba(13,196,181,.04) 0%,transparent 55%);z-index:1}
 .hero-content{position:relative;z-index:2;text-align:center;padding:0 24px;max-width:700px}
 .hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:var(--teal-deep);margin-bottom:32px;display:inline-flex;align-items:center;gap:8px;padding:8px 22px;background:rgba(255,255,255,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:var(--rx);border:1px solid rgba(13,196,181,.1);box-shadow:0 8px 30px rgba(23,21,37,.10)}
@@ -86,6 +87,8 @@ ul{list-style:none}
 .hero-h1 .accent{color:var(--teal);position:relative;display:block;width:max-content;margin:0 auto}
 .hero-h1 .accent::after{content:'';position:absolute;top:.04em;right:-.4em;width:.2em;height:.2em;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M5 0L5.4 4.6L10 5L5.4 5.4L5 10L4.6 5.4L0 5L4.6 4.6Z' fill='%230DC4B5'/%3E%3C/svg%3E") no-repeat center/contain;opacity:0;transition:opacity .6s var(--ease-out) 1.5s;pointer-events:none}
 .hero-h1 .accent.visible::after{opacity:.38}
+.hero-h1 .accent::before{content:'';position:absolute;top:0;left:0;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15) 50%,transparent);opacity:0;animation:accent-sweep 9s ease-in-out 4s infinite;pointer-events:none;z-index:0}
+@keyframes accent-sweep{0%,55%{opacity:0;transform:translateX(-200%)}60%{opacity:.7;transform:translateX(-150%)}70%{opacity:.7;transform:translateX(250%)}75%{opacity:0;transform:translateX(300%)}100%{opacity:0;transform:translateX(300%)}}
 .hero-underline{display:flex;justify-content:center;margin:6px auto 20px;max-width:170px;width:clamp(100px,16vw,170px)}
 .hero-underline svg{width:100%;height:10px;overflow:visible}
 .hero-underline path{stroke-dasharray:170;stroke-dashoffset:170;transition:stroke-dashoffset 1s var(--ease-out) .3s}
@@ -96,9 +99,9 @@ ul{list-style:none}
 .btn-primary:hover{background:var(--teal-deep);transform:translateY(-2px);box-shadow:0 6px 28px rgba(13,196,181,.32),0 0 0 1px rgba(13,196,181,.08)}
 .btn-ghost{display:inline-flex;align-items:center;gap:6px;padding:15px 32px;background:rgba(255,255,255,.68);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:var(--ink);font-size:15px;font-weight:500;border-radius:var(--rx);border:1px solid rgba(20,20,34,.08);transition:background .3s var(--ease),border-color .3s var(--ease),transform .35s var(--ease-out);box-shadow:0 4px 18px rgba(20,20,34,.06);cursor:pointer}
 .btn-ghost:hover{background:rgba(255,255,255,.82);border-color:rgba(20,20,34,.1);transform:translateY(-1px)}
-.hero-scroll{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);z-index:2;color:var(--ink-body);font-size:11px;letter-spacing:2px;text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:10px;opacity:.85}
-.hero-scroll::after{content:'\2193';font-size:20px;line-height:1;width:auto;height:auto;background:none;color:var(--ink-body);animation:scroll-glide 2.8s ease-in-out infinite}
-@keyframes scroll-glide{0%,100%{opacity:.4;transform:translateY(0)}50%{opacity:.8;transform:translateY(7px)}}
+.hero-scroll{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);z-index:2;color:var(--ink-body);font-size:11px;letter-spacing:2px;text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:10px;animation:scroll-float 3s ease-in-out infinite}
+.hero-scroll::after{content:'\2193';font-size:20px;line-height:1;width:auto;height:auto;background:none;color:var(--ink-body)}
+@keyframes scroll-float{0%,100%{opacity:.6;transform:translateX(-50%) translateY(0)}50%{opacity:1;transform:translateX(-50%) translateY(5px)}}
 
 /* ═══ SHARED SECTION ═══ */
 .section-kicker{font-size:12px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:var(--teal);margin-bottom:20px;position:relative;display:inline-block}
@@ -211,17 +214,25 @@ ul{list-style:none}
 .hui-app-showcase-cta{text-align:center;margin-top:8px}
 
 /* ═══ HERO AMBIENT ═══ */
-.hero-glow{position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse 50% 40% at 50% 35%,rgba(255,238,210,.2) 0%,transparent 60%),radial-gradient(ellipse 40% 35% at 45% 50%,rgba(13,196,181,.12) 0%,transparent 55%);animation:hero-breathe 8s ease-in-out infinite;will-change:opacity,transform}
-@keyframes hero-breathe{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
+.hero-glow{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.hero-glow::before{content:'';position:absolute;inset:-15%;background:radial-gradient(ellipse 40% 35% at 25% 25%,rgba(255,238,210,.18) 0%,transparent 55%);animation:lf-drift1 14s ease-in-out infinite alternate;will-change:transform,opacity}
+.hero-glow::after{content:'';position:absolute;inset:-15%;background:radial-gradient(ellipse 35% 30% at 70% 65%,rgba(13,196,181,.12) 0%,transparent 55%);animation:lf-drift2 16s ease-in-out infinite alternate;will-change:transform,opacity}
+@keyframes lf-drift1{0%{transform:translate(0,0) scale(1);opacity:.5}100%{transform:translate(30px,-20px) scale(1.1);opacity:.9}}
+@keyframes lf-drift2{0%{transform:translate(0,0) scale(1);opacity:.4}100%{transform:translate(-25px,15px) scale(.95);opacity:.8}}
 .hero-sparks{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
-.hero-spark{position:absolute;border-radius:50%;opacity:0;animation:spark-float 12s ease-in-out infinite;will-change:opacity,transform}
-@keyframes spark-float{0%{opacity:.15;transform:translate(0,0)}25%{opacity:.6;transform:translate(8px,-16px)}50%{opacity:.7;transform:translate(-6px,-24px)}75%{opacity:.5;transform:translate(10px,-14px)}100%{opacity:.15;transform:translate(0,0)}}
+.hero-sparks::before{content:'';position:absolute;inset:-15%;background:radial-gradient(ellipse 30% 25% at 50% 40%,rgba(255,248,235,.15) 0%,transparent 50%);animation:lf-drift3 18s ease-in-out infinite alternate;will-change:transform,opacity;pointer-events:none}
+@keyframes lf-drift3{0%{transform:translate(0,0) scale(1);opacity:.4}100%{transform:translate(15px,25px) scale(1.08);opacity:.7}}
+.hero-spark{position:absolute;border-radius:50%;opacity:0;will-change:opacity,transform}
+@keyframes particle-1{0%{opacity:0;transform:translate(0,0) scale(.7)}10%{opacity:.7}40%{opacity:.8;transform:translate(25px,-30px) scale(1)}70%{opacity:.5;transform:translate(35px,-45px) scale(.9)}90%{opacity:.3}100%{opacity:0;transform:translate(40px,-55px) scale(.6)}}
+@keyframes particle-2{0%{opacity:0;transform:translate(0,0) scale(1)}10%{opacity:.6}40%{opacity:.7;transform:translate(-20px,-25px) scale(.8)}70%{opacity:.5;transform:translate(-30px,-40px) scale(.7)}90%{opacity:.3}100%{opacity:0;transform:translate(-35px,-50px) scale(.5)}}
+@keyframes particle-3{0%{opacity:0;transform:translate(0,0) scale(.8)}10%{opacity:.8}40%{opacity:.6;transform:translate(15px,25px) scale(1.1)}70%{opacity:.4;transform:translate(25px,35px) scale(.9)}90%{opacity:.2}100%{opacity:0;transform:translate(30px,45px) scale(.6)}}
+@keyframes particle-4{0%{opacity:0;transform:translate(0,0) scale(.9)}10%{opacity:.5}40%{opacity:.7;transform:translate(-25px,20px) scale(.9)}70%{opacity:.4;transform:translate(-35px,30px) scale(.8)}90%{opacity:.2}100%{opacity:0;transform:translate(-40px,40px) scale(.5)}}
 .hero-underline{position:relative}
-.hero-underline::after{content:'';position:absolute;top:50%;left:5%;width:5px;height:5px;border-radius:50%;background:var(--teal);box-shadow:0 0 10px rgba(13,196,181,.5);opacity:0;transform:translateY(-50%);animation:dot-travel 1.2s var(--ease-out) 2.7s forwards}
-@keyframes dot-travel{0%{opacity:0;left:5%}15%{opacity:.8}85%{opacity:.5}100%{opacity:0;left:92%}}
-.btn-primary{position:relative;isolation:isolate}
-.btn-primary::before{content:'';position:absolute;inset:-4px;border-radius:inherit;background:radial-gradient(circle,rgba(13,196,181,.5) 0%,rgba(13,196,181,.12) 50%,transparent 75%);opacity:0;animation:btn-breathe 4s ease-in-out infinite;pointer-events:none;z-index:-1}
-@keyframes btn-breathe{0%,100%{opacity:0;transform:scale(.94)}50%{opacity:.7;transform:scale(1.08)}}
+.hero-underline::after{content:'';position:absolute;top:50%;left:5%;width:5px;height:5px;border-radius:50%;background:var(--teal);box-shadow:0 0 10px rgba(13,196,181,.5);opacity:0;transform:translateY(-50%);animation:dot-pulse 12s ease-in-out 3s infinite}
+@keyframes dot-pulse{0%,5%{opacity:0;left:5%}8%{opacity:.8}15%{opacity:.5;left:92%}18%,100%{opacity:0;left:92%}}
+.btn-primary{position:relative;overflow:hidden;isolation:isolate}
+.btn-primary::before{content:'';position:absolute;top:0;left:-60%;width:50%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);transform:skewX(-15deg);animation:btn-shine 6s ease-in-out 2s infinite;pointer-events:none;z-index:1}
+@keyframes btn-shine{0%,65%{left:-60%;opacity:0}70%{opacity:1}82%{left:120%;opacity:0}100%{left:120%;opacity:0}}
 
 /* ═══ ÖKOSYSTEM ═══ */
 .eco{padding:96px 32px;background:var(--cream-soft);text-align:center;position:relative;overflow:hidden}
@@ -422,12 +433,16 @@ ul{list-style:none}
 /* ═══ REDUCED MOTION ═══ */
 @media(prefers-reduced-motion:reduce){
   .reveal{opacity:1;transform:none}
-  .hero-bg{transform:none}
+  .hero-bg{animation:none;transform:scale(1.02)}
+  .hero-glow::before,.hero-glow::after{animation:none;opacity:.5}
+  .hero-sparks::before{animation:none;opacity:.4}
   .hero-underline path{stroke-dashoffset:0;transition:none}
-  .hero-spark{animation:none;opacity:.4}
-  .hero-underline::after{animation:none;opacity:.6}
-  .btn-primary::before{animation:none;opacity:.3}
-  .hero-scroll::after{animation:none;opacity:.6}
+  .hero-spark{animation:none!important;opacity:.4!important}
+  .hero-underline::after{animation:none;opacity:0}
+  .hero-h1 .accent::before{animation:none;opacity:0}
+  .btn-primary::before{animation:none;opacity:0}
+  .hero-scroll{animation:none;opacity:.6}
+  .hero-scroll::after{animation:none}
   .screen-content{transition-duration:.15s}
   .screen-content.active>*{animation:none}
   .screen-content[data-screen="menschen"].active .mini-profile{animation:none}
@@ -480,11 +495,18 @@ ul{list-style:none}
   <div class="hero-overlay"></div>
   <div class="hero-glow"></div>
   <div class="hero-sparks">
-    <div class="hero-spark" style="left:12%;top:20%;width:5px;height:5px;background:rgba(255,238,210,.7);box-shadow:0 0 8px rgba(255,238,210,.3);animation-delay:0s;animation-duration:11s"></div>
-    <div class="hero-spark" style="left:84%;top:26%;width:4px;height:4px;background:rgba(13,196,181,.7);box-shadow:0 0 8px rgba(13,196,181,.3);animation-delay:3s;animation-duration:14s"></div>
-    <div class="hero-spark" style="left:8%;top:56%;width:6px;height:6px;background:rgba(255,238,210,.65);box-shadow:0 0 10px rgba(255,238,210,.25);animation-delay:5s;animation-duration:16s"></div>
-    <div class="hero-spark" style="left:88%;top:50%;width:5px;height:5px;background:rgba(13,196,181,.65);box-shadow:0 0 8px rgba(13,196,181,.25);animation-delay:1.5s;animation-duration:13s"></div>
-    <div class="hero-spark" style="left:22%;top:78%;width:7px;height:7px;background:rgba(255,220,180,.6);box-shadow:0 0 12px rgba(255,220,180,.25);animation-delay:4s;animation-duration:15s"></div>
+    <div class="hero-spark" style="left:8%;top:15%;width:5px;height:5px;background:rgba(255,238,210,.75);box-shadow:0 0 8px rgba(255,238,210,.3);animation:particle-1 12s ease-in-out 0s infinite"></div>
+    <div class="hero-spark" style="left:18%;top:35%;width:4px;height:4px;background:rgba(13,196,181,.7);box-shadow:0 0 8px rgba(13,196,181,.3);animation:particle-2 10s ease-in-out 2s infinite"></div>
+    <div class="hero-spark" style="left:12%;top:60%;width:6px;height:6px;background:rgba(255,220,180,.7);box-shadow:0 0 10px rgba(255,220,180,.25);animation:particle-3 14s ease-in-out 4s infinite"></div>
+    <div class="hero-spark" style="left:25%;top:82%;width:4px;height:4px;background:rgba(255,238,210,.7);box-shadow:0 0 8px rgba(255,238,210,.3);animation:particle-4 11s ease-in-out 1s infinite"></div>
+    <div class="hero-spark" style="left:35%;top:20%;width:5px;height:5px;background:rgba(13,196,181,.65);box-shadow:0 0 8px rgba(13,196,181,.25);animation:particle-1 13s ease-in-out 6s infinite"></div>
+    <div class="hero-spark" style="left:45%;top:55%;width:3px;height:3px;background:rgba(255,220,180,.7);box-shadow:0 0 6px rgba(255,220,180,.3);animation:particle-2 9s ease-in-out 3s infinite"></div>
+    <div class="hero-spark" style="left:55%;top:78%;width:5px;height:5px;background:rgba(255,238,210,.7);box-shadow:0 0 8px rgba(255,238,210,.3);animation:particle-3 15s ease-in-out 5s infinite"></div>
+    <div class="hero-spark" style="left:65%;top:25%;width:6px;height:6px;background:rgba(13,196,181,.65);box-shadow:0 0 10px rgba(13,196,181,.25);animation:particle-4 12s ease-in-out 7s infinite"></div>
+    <div class="hero-spark" style="left:75%;top:48%;width:4px;height:4px;background:rgba(255,220,180,.7);box-shadow:0 0 8px rgba(255,220,180,.25);animation:particle-1 10s ease-in-out 2s infinite"></div>
+    <div class="hero-spark" style="left:82%;top:68%;width:5px;height:5px;background:rgba(255,238,210,.7);box-shadow:0 0 8px rgba(255,238,210,.3);animation:particle-2 14s ease-in-out 8s infinite"></div>
+    <div class="hero-spark" style="left:88%;top:30%;width:4px;height:4px;background:rgba(13,196,181,.7);box-shadow:0 0 8px rgba(13,196,181,.3);animation:particle-3 11s ease-in-out 4s infinite"></div>
+    <div class="hero-spark" style="left:92%;top:82%;width:6px;height:6px;background:rgba(255,220,180,.65);box-shadow:0 0 12px rgba(255,220,180,.25);animation:particle-4 13s ease-in-out 9s infinite"></div>
   </div>
   <div class="hero-content">
     <p class="hero-eyebrow reveal">HUI — Human United Intelligence</p>
