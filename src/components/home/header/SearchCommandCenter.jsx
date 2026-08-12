@@ -1339,18 +1339,6 @@ export default function SearchCommandCenter({
               />
             </div>
           )}
-
-          {/* Discovery-Panel als ABSOLUTES OVERLAY -- 2026-08-12 Fix:
-              Panel schwebt unter der Suchleiste als position:absolute,
-              ueberlagert den Feed, OHNE Content zu verschieben.
-              zIndex 350 liegt ueber Radius-Zeile (298) aber unter Suggestions (400). */}
-          {panelPhase !== "hidden" && (
-            <div style={{
-              position:"absolute", top:"calc(100% + 4px)", left:0, right:0, zIndex:350,
-            }}>
-              {discoveryPanel}
-            </div>
-          )}
         </div>
 
         {/* Radius + Quick-Action-Gruppe -- GEMEINSAME Zeile (2026-07-06,
@@ -1383,6 +1371,21 @@ export default function SearchCommandCenter({
           )}
         </div>
 
+        {/* Discovery-Panel als ABSOLUTES OVERLAY -- 2026-08-12 Fix (v2, korrigiert):
+            Panel ist jetzt Geschwister von Bar-Slot UND Radius-Zeile (nicht mehr
+            in die kleine Bar-Box genestet -- das ueberlappte faelschlich die
+            Radius-Zeile/den Live-Ticker darunter, siehe Michael-Feedback
+            "vieles rausgeschmissen"/Screenshot). top:100% ist relativ zur
+            GESAMTEN Header-Row (HomeHeader.jsx bekommt dafuer position:relative),
+            deren Hoehe sich automatisch nur aus Bar+Radius-Zeile ergibt, weil
+            das Panel selbst (position:absolute) nicht mehr zur Flow-Hoehe
+            beitraegt. Damit schwebt das Panel exakt UNTER Bar+Radius, ohne
+            beide zu verschieben UND ohne sie zu ueberdecken. */}
+        {panelPhase !== "hidden" && (
+          <div style={{ position:"absolute", top:"100%", left:0, right:0, zIndex:350 }}>
+            {discoveryPanel}
+          </div>
+        )}
       </div>
 
       {/* "Alle Kategorien"-Bottom-Sheet -- eigener Portal, siehe Kommentar

@@ -70,12 +70,6 @@ export default function HomeHeader({
           display:"flex", flexWrap:"wrap", alignItems:"flex-start",
           padding:"8px 12px", gap:8,
           touchAction:"manipulation",
-          // 2026-08-12 Fix: position:relative als Containing-Block fuer das
-          // absolut positionierte Discovery-Panel in SearchCommandCenter.jsx
-          // (top:100% dort bezieht sich auf DIESE Row -- Bar+Radius-Zeile
-          // bleiben normal im Flow, das Panel schwebt exakt darunter, ohne
-          // etwas zu verschieben oder zu ueberlappen).
-          position:"relative",
         }}>
           {/* Command Center -- liefert Bar (order:0, flex:1) und darunter EINE
               gemeinsame Zeile mit Radius-Anzeige links + Quick-Action-Gruppe
