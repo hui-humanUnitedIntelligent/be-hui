@@ -751,7 +751,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
           .from("impact_applications")
           .select("current_amount_eur, funding_goal, media_urls")
           .eq("id", app.id)
-          .single();
+          .maybeSingle();
         if (!dead && fundData) {
           setFundedEur(safeNum(fundData.current_amount_eur) || 0);
           setGoalFromDb(safeNum(fundData.funding_goal) || 0);
@@ -1617,7 +1617,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
       .from("impact_applications")
       .select("id,project_name,short_desc,cover_url,funding_goal,current_amount_eur,rank,status,created_at,media_urls")
       .eq("id", pid)
-      .single()
+      .maybeSingle()
       .then(({ data }) => {
         if (data) setDetailApp(data);
       });

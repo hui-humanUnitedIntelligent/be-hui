@@ -443,7 +443,7 @@ export function useChatThread(chatId) {
               .from("chats")
               .select("participant_ids")
               .eq("id", chatId)
-              .single();
+              .maybeSingle();
             if (!chatRow?.participant_ids) return;
             // Empfänger = das andere Element in participant_ids
             const recipientId = (chatRow.participant_ids || []).find(id => id !== user?.id);
@@ -544,7 +544,7 @@ export function useChatContext(chat) {
         creator:profiles!bookings_creator_id_fkey(id, display_name, avatar_url)
       `)
       .eq("id", chat.booking_id)
-      .single()
+      .maybeSingle()
       .then(({ data }) => {
         setBooking(data);
         setLoadingCtx(false);
