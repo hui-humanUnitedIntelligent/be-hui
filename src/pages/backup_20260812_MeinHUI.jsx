@@ -226,37 +226,37 @@ function useWirkungsraumData(profile) {
         // 4. Orders count + zeit-abhängig
         const { count: ordersCount } = await supabase
           .from("orders").select("id", { count: "exact", head: true })
-          .eq("customer_id", uid).in("state", ["paid","completed"]);
+          .eq("buyer_id", uid).eq("payment_status", "paid");
 
         const { count: ordersThisYear } = await supabase
           .from("orders").select("id", { count: "exact", head: true })
-          .eq("customer_id", uid).in("state", ["paid","completed"])
+          .eq("buyer_id", uid).eq("payment_status", "paid")
           .gte("created_at", yearStart.toISOString());
 
         const { count: ordersThisMonth } = await supabase
           .from("orders").select("id", { count: "exact", head: true })
-          .eq("customer_id", uid).in("state", ["paid","completed"])
+          .eq("buyer_id", uid).eq("payment_status", "paid")
           .gte("created_at", monthStart.toISOString());
 
         // 5. Talent bookings count + zeit-abhängig
         const { count: bookingsCount } = await supabase
           .from("talent_bookings").select("id", { count: "exact", head: true })
-          .eq("customer_id", uid).in("status", ["confirmed","completed"]);
+          .eq("buyer_id", uid).eq("payment_status", "paid");
 
         const { count: bookingsThisYear } = await supabase
           .from("talent_bookings").select("id", { count: "exact", head: true })
-          .eq("customer_id", uid).in("status", ["confirmed","completed"])
+          .eq("buyer_id", uid).eq("payment_status", "paid")
           .gte("created_at", yearStart.toISOString());
 
         const { count: bookingsThisMonth } = await supabase
           .from("talent_bookings").select("id", { count: "exact", head: true })
-          .eq("customer_id", uid).in("status", ["confirmed","completed"])
+          .eq("buyer_id", uid).eq("payment_status", "paid")
           .gte("created_at", monthStart.toISOString());
 
         // 5b. Verkäufe (Werke die ANDERE bei dir gekauft haben) für Wertschöpfen
         const { count: salesCount } = await supabase
-          .from("order_items").select("id", { count: "exact", head: true })
-          .eq("seller_id", uid);
+          .from("orders").select("id", { count: "exact", head: true })
+          .eq("seller_id", uid).eq("payment_status", "paid");
 
         // 6. Neue Verbindungen diese Woche + Monat + Jahr
         const { count: newConnectionsThisWeek } = await supabase
@@ -310,7 +310,7 @@ function useWirkungsraumData(profile) {
 
         const { count: todayOrders } = await supabase
           .from("orders").select("id", { count: "exact", head: true })
-          .eq("customer_id", uid).in("state", ["paid","completed"])
+          .eq("buyer_id", uid).eq("payment_status", "paid")
           .gte("created_at", todayStart.toISOString());
 
         // 9. Impact EUR
