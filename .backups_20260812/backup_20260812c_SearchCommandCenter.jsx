@@ -17,7 +17,6 @@ import { HUILocationIcon } from '../../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal }          from "react-dom";
 import { supabase }              from "../../../lib/supabaseClient.js";
-import { toast }                 from "../../../lib/useToast.jsx";
 import { FEATURED_CATEGORIES, searchCategories } from "../../../lib/categories.js";
 import { NAV_RESERVED_HEIGHT_CSS } from "../navigation/navigationGeometry.js";
 import { useRadiusFilter, radiusLabel } from "../../../hooks/useRadiusFilter.js";
@@ -127,24 +126,57 @@ function SectionLabel({ children, color, action, onAction }) {
 // wodurch die hui-search-fade-in-Animation automatisch erneut abspielt
 // ("aktive Stufe weich animieren", ohne Flackern -- der Text selbst bleibt
 // stabil sichtbar, nur ein sanftes Fade beim Wechsel).
-function RadiusIndicator({ radius }) {
+function RadiusIndicator({ radius, activeFilterCount = 0, onFilterPillClick }) {
   const label = radius.isWorldwide
     ? "🌍 Weltweit"
     : `📍 ${radius.geo?.label || "In deiner Nähe"} · ${radiusLabel(radius.radiusKm)}`;
 
+  // FILTER-ZÄHLER (2026-08-12, Michael-Auftrag) -- macht sichtbar, WARUM der
+  // Feed gerade nur eine Teilmenge zeigt (z.B. nur Werke), auch wenn das
+  // Discovery-Panel geschlossen ist und die Chips selbst nicht sichtbar sind.
+  // Dezente Pill direkt neben dem Radius-Text, gleiche Zeile, kein Umbruch.
+  // Klick auf die Pill öffnet das Discovery-Panel (Filter schnell erreichbar).
   return (
     <div key={label} style={{
       padding: "0 0 0 18px",
-      fontSize: 11.5,
-      fontWeight: 500,
-      letterSpacing: "-0.01em",
-      color: "rgba(26,53,48,0.40)",
-      overflow: "hidden",
-      textOverflow: "ellipsis",
-      whiteSpace: "nowrap",
+      display:"flex", alignItems:"center", gap:8, minWidth:0,
       animation: "hui-search-fade-in .22s cubic-bezier(.22,1,.36,1) both",
     }}>
-      {label}
+      <span style={{
+        fontSize: 11.5,
+        fontWeight: 500,
+        letterSpacing: "-0.01em",
+        color: "rgba(26,53,48,0.40)",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+      }}>
+        {label}
+      </span>
+      {activeFilterCount > 0 && (
+        <button
+          onClick={onFilterPillClick}
+          style={{
+            flexShrink:0,
+            fontSize: 10.5,
+            fontWeight: 700,
+            letterSpacing: "-0.01em",
+            color: T.teal,
+            background: T.tealM,
+            border: "1px solid rgba(14,196,184,0.30)",
+            borderRadius: 99,
+            padding: "2.5px 9px",
+            whiteSpace: "nowrap",
+            cursor: "pointer",
+            WebkitTapHighlightColor: "transparent",
+            transition: "transform .12s ease, box-shadow .12s ease",
+          }}
+          onTouchStart={e => { e.currentTarget.style.transform = "scale(0.94)"; }}
+          onTouchEnd={e => { e.currentTarget.style.transform = "scale(1)"; }}
+        >
+          {activeFilterCount} Filter aktiv
+        </button>
+      )}
     </div>
   );
 }
@@ -550,8 +582,16 @@ export default function SearchCommandCenter({
 }) {
   const [open,       setOpen]       = useState(false);   // Suche fokussiert/aktiv
   const [query,      setQuery]      = useState("");
-  const [typeFilter, setTypeFilter] = useState(null);    // null | "work" | "experience"
+  const [typeFilter, setTypeFilter] = useState(null);    // null | "work" | "moment" | "experience" | "talent"
   const [showKi,     setShowKi]     = useState(false);
+  // Ort + Sortierung (2026-08-12, Michael-Auftrag) -- ersetzt die vormals im
+  // Feed sitzende FeedFilterBar (verschwand beim Scrollen). Jetzt Teil des
+  // ueber die fixe Suchleiste jederzeit erreichbaren Discovery-Panels.
+  // Freitext-Ort-Filter (Substring-Match auf item.location, KEIN Geo/Radius --
+  // die bestehende RadiusRow oben bleibt fuer echte Umkreissuche unberuehrt).
+  const [locationQuery,     setLocationQuery]     = useState("");
+  const [locationInputOpen, setLocationInputOpen] = useState(false);
+  const [sort,              setSort]              = useState("newest"); // "newest" | "oldest"
   // kiMode: Spezial-Modus der durch KI-Suggestions gesetzt wird (people,
   // match, discover). Wird an onSearchStateChange übergeben, damit der
   // Feed/UnifiedFeed entsprechend reagieren kann. null = kein KI-Modus.
@@ -587,6 +627,7 @@ export default function SearchCommandCenter({
   const wrapRef  = useRef(null);
   const inputRef = useRef(null);
   const kiRef    = useRef(null);
+  const filterRowRef = useRef(null);
 
   const [history, setHistory] = useState(() => {
     try { return JSON.parse(localStorage.getItem("hui_search_history")||"[]"); }
@@ -649,11 +690,11 @@ export default function SearchCommandCenter({
     onSearchStateChange?.({
       query: debouncedQuery, typeFilter, categories: activeCategories, active: open,
       radiusKm: radius.radiusKm, geo: radius.geo, isWorldwide: radius.isWorldwide,
-      kiMode,
+      kiMode, locationQuery, sort,
     });
     // categoryKey statt Array-Referenz -- verhindert unnoetige Re-Emits bei jedem Render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedQuery, typeFilter, activeCategories.map(c=>c.id).join(","), open, radius.radiusKm, radius.geo, radius.isWorldwide, kiMode]);
+  }, [debouncedQuery, typeFilter, activeCategories.map(c=>c.id).join(","), open, radius.radiusKm, radius.geo, radius.isWorldwide, kiMode, locationQuery, sort]);
 
   // Verlauf speichern, sobald ein Suchbegriff kurz stabil war (kein Spam pro Tastendruck)
   useEffect(() => {
@@ -863,13 +904,23 @@ export default function SearchCommandCenter({
     }
   }
   function toggleFilter(f){
-    if (f === "profile") {
-      // Siehe Kommentar am Dateikopf: Personensuche im Feed nicht moeglich (kein Feed-Kartentyp).
-      toast.info("Personensuche im Feed kommt bald — aktuell zeigt der Feed Werke, Erlebnisse & Beiträge.");
-      return;
-    }
     setTypeFilter(prev => prev===f ? null : f);
   }
+
+  // AKTIVE-FILTER-ZÄHLER (2026-08-12, Michael-Auftrag) -- zählt alle Filter,
+  // die den Feed-Inhalt EINSCHRÄNKEN (Content-Typ, Kategorien, Ort, KI-Modus).
+  // Radius/Standort selbst zählt NICHT mit -- der ist bereits im Radius-Text
+  // selbst sichtbar ("Weltweit" vs. "In deiner Nähe · 25km"), doppelte
+  // Anzeige waere redundant. Sortierung zählt nicht (schränkt nichts ein,
+  // ändert nur die Reihenfolge). useMemo verhindert unnötige Re-Renders.
+  const activeFilterCount = useMemo(() => {
+    let n = 0;
+    if (typeFilter) n += 1;
+    n += activeCategories.length;
+    if (locationQuery && locationQuery.trim()) n += 1;
+    if (kiMode) n += 1;
+    return n;
+  }, [typeFilter, activeCategories, locationQuery, kiMode]);
   // Kategorie-Auswahl (Schnellauswahl-Zeile UND "Alle Kategorien"-Grid nutzen
   // denselben Handler -- ein Auswahlverhalten, keine Doppellogik). Mehrfach-
   // auswahl (2026-07-07, Ticket "Kategorie-Chips global"): ein Tap schaltet
@@ -950,10 +1001,16 @@ export default function SearchCommandCenter({
   // ── DISCOVERY / FILTER-PANEL — frei schwebendes Panel, kein Portal, kein
   // Glued-Border zur Bar mehr (Punkt 1 + 7: mehr Weissraum, kein harter
   // Uebergang). Weiches Ein-/Ausblenden ueber panelPhase (Punkt 8). ──────────
+  // Content-Typ-Filter (2026-08-12, Michael-Auftrag) -- ersetzt die alte
+  // Menschen/Werke/Erlebnisse-Zeile. "Menschen" entfernt, da der Feed keine
+  // Personensuche unterstuetzt (kein Feed-Kartentyp, siehe alter toggleFilter-
+  // Sonderfall). Neu: Momente + Talente ergaenzt, deckt jetzt alle 4
+  // Feed-Kartentypen ab (work/moment/experience/talent).
   const FILTERS = [
-    {key:"profile",    label:"Menschen",   emoji:"👥"},
     {key:"work",       label:"Werke",      emoji:"🎨"},
+    {key:"moment",     label:"Momente",    emoji:"💬"},
     {key:"experience", label:"Erlebnisse", emoji:"📅"},
+    {key:"talent",     label:"Talente",    emoji:"⭐"},
   ];
 
   const panelAnimating = panelPhase === "entering" || panelPhase === "leaving";
@@ -1036,10 +1093,15 @@ export default function SearchCommandCenter({
           erreichbar", gilt fuer Kategorien UND Filter UND freie Suche). */}
       <RadiusRow radius={radius} />
 
-      {/* Filter -- fast monochrom, nur der aktive Filter erhaelt die HUI-Farbe (Punkt 5) */}
+      {/* Filter -- fast monochrom, nur der aktive Filter erhaelt die HUI-Farbe (Punkt 5).
+          Erweitert (2026-08-12, Michael-Auftrag): Content-Typ-Chips + Ort-Filter +
+          Datum-Sortierung in EINER Zeile -- ersetzt die vormals separate, im Feed
+          sitzende FeedFilterBar (verschwand beim Scrollen). Jetzt Teil dieses immer
+          ueber die fixe Suchleiste erreichbaren Discovery-Panels. Gleiche dc-tag-
+          Optik wie alle anderen Pills hier (Design System First, Prinzip 2). */}
       {showFilters && (
-        <div style={{marginBottom: showCategoriesAndHistory && history.length>0 ? 20 : 0}}>
-          <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+        <div ref={filterRowRef} style={{marginBottom: showCategoriesAndHistory && history.length>0 ? 20 : 0}}>
+          <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
             {FILTERS.map(f=>{
               const activeF = typeFilter===f.key;
               return (
@@ -1058,6 +1120,60 @@ export default function SearchCommandCenter({
                 </button>
               );
             })}
+
+            {/* Ort -- Freitext-Filter auf item.location (Substring, KEIN Geo/Radius).
+                Tap oeffnet ein Inline-Textfeld direkt im Chip, analog zum bestehenden
+                manuellen Standort-Fallback in RadiusRow (gleiches Interaktionsmuster). */}
+            {!locationInputOpen ? (
+              <button className="dc-tag" onClick={()=>setLocationInputOpen(true)} style={{
+                display:"flex",alignItems:"center",gap:5,
+                background: locationQuery ? T.tealM : "rgba(26,53,48,0.035)",
+                border:`1px solid ${locationQuery ? "rgba(14,196,184,0.30)" : "rgba(26,53,48,0.07)"}`,
+                borderRadius:99,padding:"6px 13px",cursor:"pointer",
+                fontSize:11.5,fontWeight:600,letterSpacing:"-0.01em",
+                color: locationQuery ? T.teal : "rgba(26,53,48,0.62)",
+                whiteSpace:"nowrap", WebkitTapHighlightColor:"transparent",
+              }}>
+                <HUILocationIcon size={12} style={{flexShrink:0, opacity: locationQuery ? 1 : .55}} />
+                {locationQuery || "Ort"}
+              </button>
+            ) : (
+              <div style={{
+                display:"flex",alignItems:"center",gap:6,
+                background:"rgba(26,53,48,0.035)",border:"1px solid rgba(26,53,48,0.09)",
+                borderRadius:99,padding:"5px 6px 5px 13px",minWidth:130,
+              }}>
+                <HUILocationIcon size={12} style={{flexShrink:0, opacity:.55}} />
+                <input
+                  autoFocus
+                  value={locationQuery}
+                  onChange={e=>setLocationQuery(e.target.value)}
+                  onBlur={()=>{ if (!locationQuery) setLocationInputOpen(false); }}
+                  onKeyDown={e=>{ if (e.key==="Enter") e.currentTarget.blur(); }}
+                  placeholder="Ort eingeben…"
+                  style={{
+                    flex:1,minWidth:0,border:"none",outline:"none",background:"transparent",
+                    fontSize:11.5,fontWeight:600,letterSpacing:"-0.01em",color:T.ink,
+                  }}
+                />
+                <button className="dc-tag" onClick={()=>{setLocationQuery("");setLocationInputOpen(false);}} style={{
+                  width:18,height:18,borderRadius:"50%",background:"rgba(26,53,48,0.09)",
+                  border:"none",display:"flex",alignItems:"center",justifyContent:"center",
+                  cursor:"pointer",fontSize:9,color:"rgba(26,53,48,0.55)",fontWeight:600,flexShrink:0,
+                }}>✕</button>
+              </div>
+            )}
+
+            {/* Datum-Sortierung -- Toggle Neueste/Aelteste, gleiche Chip-Optik. */}
+            <button className="dc-tag" onClick={()=>setSort(s => s==="newest" ? "oldest" : "newest")} style={{
+              display:"flex",alignItems:"center",gap:5,
+              background:"rgba(26,53,48,0.035)",border:"1px solid rgba(26,53,48,0.07)",
+              borderRadius:99,padding:"6px 13px",cursor:"pointer",
+              fontSize:11.5,fontWeight:600,letterSpacing:"-0.01em",color:"rgba(26,53,48,0.62)",
+              whiteSpace:"nowrap", WebkitTapHighlightColor:"transparent",
+            }}>
+              <span style={{fontSize:12,opacity:.75}}>🕐</span>{sort==="newest" ? "Neueste" : "Älteste"}
+            </button>
           </div>
         </div>
       )}
@@ -1167,7 +1283,7 @@ export default function SearchCommandCenter({
           animation:"hui-search-fade-in .26s cubic-bezier(.22,1,.36,1) both",
         }}>
           <div style={{ minWidth:0, flex:"1 1 auto", overflow:"hidden" }}>
-            <RadiusIndicator radius={radius} />
+            <RadiusIndicator radius={radius} activeFilterCount={activeFilterCount} onFilterPillClick={() => { setOpen(true); setTimeout(() => filterRowRef.current?.scrollIntoView({ behavior:"smooth", block:"nearest" }), 120); }} />
           </div>
           {quickActions && (
             <div style={{ display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>

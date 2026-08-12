@@ -14,7 +14,7 @@
 // Siehe Kommentar am Anfang der Hauptkomponente fuer weitere Architektur-Details.
 
 import { HUILocationIcon } from '../../../design/icons/HuiSystemIcons.jsx';
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { createPortal }          from "react-dom";
 import { supabase }              from "../../../lib/supabaseClient.js";
 import { FEATURED_CATEGORIES, searchCategories } from "../../../lib/categories.js";
