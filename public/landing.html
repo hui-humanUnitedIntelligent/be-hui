@@ -291,19 +291,21 @@ ul{list-style:none}
 .action-card .desc{font-size:15px;font-weight:300;line-height:1.6;color:var(--ink-mid)}
 
 /* ═══ HERKUNFT ═══ */
-.origin{background:var(--cream-warm);text-align:center;position:relative;overflow:hidden;display:grid;grid-template-columns:clamp(200px,24vw,380px) 1fr;align-items:center;min-height:clamp(480px,46vw,600px);padding:96px 32px}
-.origin-visual{grid-column:1;align-self:stretch;position:relative;z-index:0;background-image:url('/assets/origin-4vision.webp');background-size:cover;background-position:center left;background-repeat:no-repeat;-webkit-mask-image:linear-gradient(90deg,rgba(0,0,0,1) 0%,rgba(0,0,0,1) 38%,rgba(0,0,0,0) 85%);mask-image:linear-gradient(90deg,rgba(0,0,0,1) 0%,rgba(0,0,0,1) 38%,rgba(0,0,0,0) 85%)}
-.origin-inner{grid-column:2;margin:0 auto;max-width:500px;position:relative;z-index:1;background:rgba(250,247,242,.62);backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%);border-radius:28px;padding:44px 38px;box-shadow:0 20px 50px rgba(20,20,34,.08),0 2px 16px rgba(20,20,34,.04)}
-.origin-kicker{font-size:12px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:var(--coral);margin-bottom:24px}
-.origin-h2{font-size:clamp(28px,4.5vw,42px);font-weight:600;letter-spacing:-.02em;line-height:1.2;color:var(--ink);margin-bottom:40px}
-.origin-project{font-size:clamp(28px,5vw,48px);font-weight:300;line-height:1.3;color:var(--teal);letter-spacing:-.02em;margin-bottom:40px;font-style:italic;text-shadow:0 1px 20px rgba(13,196,181,.06)}
-.origin-text{font-size:clamp(17px,2.5vw,20px);font-weight:300;line-height:1.75;color:var(--ink-mid);max-width:480px;margin:0 auto 24px}
+.origin{background:var(--cream-warm);text-align:center;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:clamp(520px,48vw,640px);padding:110px 32px 96px;scroll-margin-top:88px}
+.origin-visual{position:absolute;top:0;bottom:0;width:clamp(90px,20vw,420px);background-size:cover;background-repeat:no-repeat;z-index:0;pointer-events:none}
+.origin-visual-left{left:0;background-image:url('/assets/origin-4vision.webp');background-position:center left;-webkit-mask-image:linear-gradient(90deg,rgba(0,0,0,1) 0%,rgba(0,0,0,1) 24%,rgba(0,0,0,0) 74%);mask-image:linear-gradient(90deg,rgba(0,0,0,1) 0%,rgba(0,0,0,1) 24%,rgba(0,0,0,0) 74%)}
+.origin-visual-right{right:0;background-image:url('/assets/origin-liga.webp');background-position:center right;-webkit-mask-image:linear-gradient(270deg,rgba(0,0,0,1) 0%,rgba(0,0,0,1) 24%,rgba(0,0,0,0) 74%);mask-image:linear-gradient(270deg,rgba(0,0,0,1) 0%,rgba(0,0,0,1) 24%,rgba(0,0,0,0) 74%)}
+.origin-inner{position:relative;z-index:1;max-width:clamp(300px,58vw,560px);margin:0 auto}
+.origin-kicker{font-size:12px;font-weight:500;letter-spacing:3.5px;text-transform:uppercase;color:var(--coral);margin-bottom:26px}
+.origin-h2{font-size:clamp(28px,4.5vw,42px);font-weight:600;letter-spacing:-.02em;line-height:1.2;color:var(--ink);margin-bottom:36px}
+.origin-project{font-size:clamp(26px,4.6vw,44px);font-weight:300;line-height:1.3;color:var(--teal);letter-spacing:-.02em;margin-bottom:36px;font-style:italic;text-shadow:0 1px 24px rgba(250,247,242,.5),0 1px 16px rgba(13,196,181,.08)}
+.origin-text{font-size:clamp(15px,2.1vw,17px);font-weight:300;line-height:1.75;color:var(--ink-mid);max-width:460px;margin:0 auto 22px;text-shadow:0 1px 16px rgba(250,247,242,.4)}
 .origin-text+.origin-text{margin-top:0}
-.origin-clubs{margin-top:40px;padding-top:28px;border-top:1px solid var(--border);max-width:420px;margin-left:auto;margin-right:auto}
-.origin-clubs-label{font-size:12px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:16px}
-.origin-clubs-names{font-size:clamp(18px,2.8vw,24px);font-weight:500;color:var(--ink);letter-spacing:-.01em}
+.origin-clubs{margin-top:36px;padding-top:26px;border-top:1px solid var(--border);max-width:400px;margin-left:auto;margin-right:auto}
+.origin-clubs-label{font-size:12px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+.origin-clubs-names{font-size:clamp(17px,2.6vw,22px);font-weight:500;color:var(--ink);letter-spacing:-.01em}
 .origin-clubs-names .sep{display:inline-block;margin:0 12px;color:var(--faint);font-weight:300}
-.origin-closing{margin-top:32px;font-size:clamp(16px,2.5vw,20px);font-weight:300;color:var(--muted);line-height:1.65;font-style:italic}
+.origin-closing{margin-top:30px;font-size:clamp(15px,2.3vw,18px);font-weight:300;color:var(--muted);line-height:1.65;font-style:italic;text-shadow:0 1px 16px rgba(250,247,242,.4)}
 
 /* ═══ HONEST ═══ */
 .honest{padding:88px 32px;background:var(--cream);text-align:center}
@@ -364,8 +366,7 @@ ul{list-style:none}
 
   .actions-grid{grid-template-columns:1fr;gap:16px}
 
-  .origin{grid-template-columns:clamp(150px,20vw,280px) 1fr;padding:80px 28px}
-  .origin-inner{max-width:440px;padding:36px 28px 34px;border-radius:24px}
+  .origin{padding:96px 26px 80px}
 
   .app-show{padding:64px 24px}
   .hui-app-showcase{display:flex;flex-direction:column;align-items:center;gap:24px}
@@ -411,9 +412,7 @@ ul{list-style:none}
   .actions{padding:64px 24px}
   .actions-sub{margin-bottom:36px}
 
-  .origin{display:flex;flex-direction:column;grid-template-columns:none;min-height:auto;padding:0 20px 56px}
-  .origin-visual{width:100%;aspect-ratio:21/8;border-radius:20px;margin-bottom:-20px;background-position:center 30%;-webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,1) 0%,rgba(0,0,0,1) 45%,rgba(0,0,0,0) 90%);mask-image:linear-gradient(180deg,rgba(0,0,0,1) 0%,rgba(0,0,0,1) 45%,rgba(0,0,0,0) 90%)}
-  .origin-inner{max-width:90%;padding:32px 24px 30px;border-radius:22px}
+  .origin{padding:88px 20px 64px}
   .honest{padding:60px 24px}
 
   .impact{padding:64px 24px}
@@ -432,9 +431,11 @@ ul{list-style:none}
   .eco-connect p{font-size:16px}
   .impact-cell{padding:22px}
   .hui-app-phone{width:180px;height:360px}
-  .origin{padding:0 16px 44px}
-  .origin-visual{aspect-ratio:16/7;margin-bottom:-16px}
-  .origin-inner{max-width:94%;padding:26px 20px 24px;border-radius:18px}
+  .origin{display:flex;flex-direction:column;min-height:auto;padding:64px 16px 40px;gap:20px}
+  .origin-visual{position:relative;inset:auto;top:auto;bottom:auto;left:auto;right:auto;width:100%;order:0}
+  .origin-visual-left{aspect-ratio:16/6;order:0;background-position:center 35%;-webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,1) 0%,rgba(0,0,0,1) 40%,rgba(0,0,0,0) 92%);mask-image:linear-gradient(180deg,rgba(0,0,0,1) 0%,rgba(0,0,0,1) 40%,rgba(0,0,0,0) 92%)}
+  .origin-visual-right{aspect-ratio:16/6;order:2;background-position:center 65%;-webkit-mask-image:linear-gradient(0deg,rgba(0,0,0,1) 0%,rgba(0,0,0,1) 40%,rgba(0,0,0,0) 92%);mask-image:linear-gradient(0deg,rgba(0,0,0,1) 0%,rgba(0,0,0,1) 40%,rgba(0,0,0,0) 92%)}
+  .origin-inner{order:1;max-width:100%!important}
 }
 
 /* ═══ REDUCED MOTION ═══ */
@@ -747,7 +748,8 @@ ul{list-style:none}
 
 <!-- ═══ SEKTION — DIE HERKUNFT VON HUI ═══ -->
 <section class="origin">
-  <div class="origin-visual" aria-hidden="true"></div>
+  <div class="origin-visual origin-visual-left" aria-hidden="true"></div>
+  <div class="origin-visual origin-visual-right" aria-hidden="true"></div>
   <div class="origin-inner">
     <p class="origin-kicker reveal">Die Idee dahinter</p>
     <h2 class="origin-h2 reveal d1">HUI begann mit einer gemeinsamen Idee.</h2>
