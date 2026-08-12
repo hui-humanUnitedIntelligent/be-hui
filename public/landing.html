@@ -85,10 +85,10 @@ ul{list-style:none}
 .hero-h1 span{display:block}
 .hero-h1 .accent{color:var(--teal);position:relative;display:block;width:max-content;margin:0 auto}
 .hero-h1 .accent::after{content:'';position:absolute;top:.04em;right:-.4em;width:.2em;height:.2em;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M5 0L5.4 4.6L10 5L5.4 5.4L5 10L4.6 5.4L0 5L4.6 4.6Z' fill='%230DC4B5'/%3E%3C/svg%3E") no-repeat center/contain;opacity:0;transition:opacity .6s var(--ease-out) 1.5s;pointer-events:none}
-.hero-h1.visible .accent::after{opacity:.38}
+.hero-h1 .accent.visible::after{opacity:.38}
 .hero-underline{display:flex;justify-content:center;margin:6px auto 20px;max-width:170px;width:clamp(100px,16vw,170px)}
 .hero-underline svg{width:100%;height:10px;overflow:visible}
-.hero-underline path{stroke-dasharray:170;stroke-dashoffset:170;transition:stroke-dashoffset 1.8s var(--ease-out) .6s}
+.hero-underline path{stroke-dasharray:170;stroke-dashoffset:170;transition:stroke-dashoffset 1s var(--ease-out) .3s}
 .hero-underline.visible path{stroke-dashoffset:0}
 .hero-sub{font-size:clamp(16px,2.2vw,20px);font-weight:500;line-height:1.7;color:var(--ink);max-width:440px;margin:0 auto 40px;text-shadow:0 1px 8px rgba(250,247,242,.6),0 0 28px rgba(250,247,242,.3)}
 .hero-btns{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap}
@@ -97,8 +97,8 @@ ul{list-style:none}
 .btn-ghost{display:inline-flex;align-items:center;gap:6px;padding:15px 32px;background:rgba(255,255,255,.68);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:var(--ink);font-size:15px;font-weight:500;border-radius:var(--rx);border:1px solid rgba(20,20,34,.08);transition:background .3s var(--ease),border-color .3s var(--ease),transform .35s var(--ease-out);box-shadow:0 4px 18px rgba(20,20,34,.06);cursor:pointer}
 .btn-ghost:hover{background:rgba(255,255,255,.82);border-color:rgba(20,20,34,.1);transform:translateY(-1px)}
 .hero-scroll{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);z-index:2;color:var(--muted);font-size:11px;letter-spacing:2px;text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:10px;opacity:.6}
-.hero-scroll::after{content:'';width:1px;height:36px;background:linear-gradient(180deg,var(--muted),transparent);animation:scroll-pulse 2.5s var(--ease) infinite}
-@keyframes scroll-pulse{0%,100%{opacity:.2;transform:scaleY(.5)}50%{opacity:.7;transform:scaleY(1)}}
+.hero-scroll::after{content:'\2193';font-size:14px;line-height:1;width:auto;height:auto;background:none;color:var(--muted);animation:scroll-glide 3s ease-in-out infinite}
+@keyframes scroll-glide{0%,100%{opacity:.25;transform:translateY(0)}50%{opacity:.6;transform:translateY(6px)}}
 
 /* ═══ SHARED SECTION ═══ */
 .section-kicker{font-size:12px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:var(--teal);margin-bottom:20px;position:relative;display:inline-block}
@@ -140,6 +140,19 @@ ul{list-style:none}
 .app-hint .conn{width:32px;height:1px;background:linear-gradient(90deg,rgba(13,196,181,.25),transparent);flex-shrink:0}
 .app-hint.left .conn{background:linear-gradient(270deg,rgba(13,196,181,.25),transparent)}
 .app-cta-sub{margin-top:14px;font-size:13px;font-weight:400;color:var(--muted)}
+
+/* ═══ HERO AMBIENT ═══ */
+.hero-glow{position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse 40% 35% at 50% 35%,rgba(255,238,210,.06) 0%,transparent 60%),radial-gradient(ellipse 30% 30% at 45% 50%,rgba(13,196,181,.035) 0%,transparent 55%);animation:hero-breathe 8s ease-in-out infinite}
+@keyframes hero-breathe{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.04)}}
+.hero-sparks{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.hero-spark{position:absolute;border-radius:50%;opacity:0;animation:spark-float 12s ease-in-out infinite}
+@keyframes spark-float{0%,100%{opacity:0;transform:translate(0,0)}15%{opacity:.35}45%{opacity:.45;transform:translate(4px,-10px)}75%{opacity:.25;transform:translate(-2px,-6px)}90%{opacity:0;transform:translate(0,0)}}
+.hero-underline{position:relative}
+.hero-underline::after{content:'';position:absolute;top:50%;left:5%;width:4px;height:4px;border-radius:50%;background:var(--teal);box-shadow:0 0 6px rgba(13,196,181,.35);opacity:0;transform:translateY(-50%);animation:dot-travel 1.2s var(--ease-out) 2.7s forwards}
+@keyframes dot-travel{0%{opacity:0;left:5%}15%{opacity:.6}85%{opacity:.4}100%{opacity:0;left:92%}}
+.btn-primary{position:relative}
+.btn-primary::before{content:'';position:absolute;inset:-3px;border-radius:inherit;background:radial-gradient(circle,rgba(13,196,181,.35) 0%,rgba(13,196,181,.08) 50%,transparent 75%);opacity:0;animation:btn-breathe 4s ease-in-out infinite;pointer-events:none;z-index:-1}
+@keyframes btn-breathe{0%,100%{opacity:0;transform:scale(.96)}50%{opacity:.5;transform:scale(1.06)}}
 
 /* ═══ ÖKOSYSTEM ═══ */
 .eco{padding:96px 32px;background:var(--cream-soft);text-align:center;position:relative;overflow:hidden}
@@ -341,8 +354,12 @@ ul{list-style:none}
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
   .reveal{opacity:1;transform:none}
   .hero-bg{transform:none}
+  .hero-glow{animation:none;opacity:.7}
+  .hero-spark{display:none}
   .hero-underline path{stroke-dashoffset:0;transition:none}
-  .scroll-pulse{animation:none}
+  .hero-underline::after{display:none}
+  .btn-primary::before{display:none}
+  .hero-scroll::after{animation:none;opacity:.4}
 }
 
 /* ═══ NO-JS FALLBACK ═══ */
@@ -385,14 +402,23 @@ ul{list-style:none}
 <section class="hero">
   <div class="hero-bg"></div>
   <div class="hero-overlay"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-sparks">
+    <div class="hero-spark" style="left:14%;top:18%;width:4px;height:4px;background:rgba(13,196,181,.5);animation-delay:0s;animation-duration:12s"></div>
+    <div class="hero-spark" style="left:82%;top:24%;width:3px;height:3px;background:rgba(255,238,210,.5);animation-delay:2s;animation-duration:14s"></div>
+    <div class="hero-spark" style="left:9%;top:55%;width:5px;height:5px;background:rgba(13,196,181,.4);animation-delay:4s;animation-duration:16s"></div>
+    <div class="hero-spark" style="left:87%;top:48%;width:4px;height:4px;background:rgba(255,238,210,.45);animation-delay:1s;animation-duration:13s"></div>
+    <div class="hero-spark" style="left:18%;top:75%;width:3px;height:3px;background:rgba(13,196,181,.45);animation-delay:5s;animation-duration:11s"></div>
+    <div class="hero-spark" style="left:76%;top:72%;width:5px;height:5px;background:rgba(255,220,180,.4);animation-delay:3s;animation-duration:15s"></div>
+  </div>
   <div class="hero-content">
     <p class="hero-eyebrow reveal">HUI — Human United Intelligence</p>
-    <h1 class="hero-h1 reveal d1">
-      <span>Menschen.</span>
-      <span>Ideen.</span>
-      <span class="accent">Möglichkeiten.</span>
+    <h1 class="hero-h1">
+      <span class="reveal">Menschen.</span>
+      <span class="reveal d1">Ideen.</span>
+      <span class="reveal d2 accent">Möglichkeiten.</span>
     </h1>
-    <div class="hero-underline reveal d1">
+    <div class="hero-underline reveal d4">
       <svg viewBox="0 0 170 10" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="ul-grad" x1="0" y1="0" x2="1" y2="0">
@@ -406,13 +432,13 @@ ul{list-style:none}
         <path d="M 4 7 C 30 3, 55 4, 85 5 C 115 6, 140 3, 166 5" fill="none" stroke="url(#ul-grad)" stroke-width="2" stroke-linecap="round"/>
       </svg>
     </div>
-    <p class="hero-sub reveal d3">Gemeinsam entsteht Wirkung.</p>
-    <div class="hero-btns reveal d3">
+    <p class="hero-sub reveal d5">Gemeinsam entsteht Wirkung.</p>
+    <div class="hero-btns reveal d6">
       <a href="/app/login" class="btn-primary">HUI entdecken →</a>
       <a href="#wie" class="btn-ghost">So funktioniert HUI ↓</a>
     </div>
   </div>
-  <div class="hero-scroll reveal d5">Scrollen</div>
+  <div class="hero-scroll reveal d6">Scrollen</div>
 </section>
 
 <!-- ═══ SEKTION 1 — EINE FRAGE ═══ -->
