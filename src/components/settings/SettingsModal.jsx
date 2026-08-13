@@ -17,6 +17,8 @@ import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { getOTAStatus, checkForUpdate } from "../../lib/otaUpdate.js";
 import { formatDateDE } from "../../lib/formatters.js";
+import LanguageSwitcher from "./LanguageSwitcher.jsx";
+import { useTranslation } from "react-i18next";
 
 // ── Design Tokens ─────────────────────────────────────────────
 const T = {
@@ -349,6 +351,8 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
   // zu einer anderen Hook-Reihenfolge fuehrte -> "Minified React error #310".
   const [view, setView] = useState("main"); // "main" | "edit" | "privacy" | "contact" | "security" | "support" | "tickets"
   const [showTutorialConfirm, setShowTutorialConfirm] = useState(false);
+  const { t } = useTranslation();
+  const [showLanguage, setShowLanguage] = useState(false);
   const kbdInset = useKeyboardInset();
   if (!profile) return null;
 
@@ -423,6 +427,12 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
             {/* Push-Notifications */}
             <Section title="Benachrichtigungen" icon={<HUISettingsIcon size={16}/>}>
               <PushNotificationBlock/>
+            </Section>
+
+            {/* App-Sprache */}
+            <Section title={t("settings.appLanguage")} icon={<HUIMitgliedIcon size={16}/>}>
+              <NavItem icon={<HUIMitgliedIcon size={16}/>} label={t("settings.language")}
+                onClick={() => setShowLanguage(true)} last/>
             </Section>
 
             {/* Ein Block: Profil bearbeiten / Sicherheit / Abmelden */}
@@ -607,6 +617,9 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
             <Section title="E-Mail ändern" icon={<HUIMailIcon size={16}/>}>
               <EmailChangeBlock profile={profile} onProfileUpdate={onProfileUpdate}/>
             </Section>
+
+          {/* Language Switcher */}
+          <LanguageSwitcher open={showLanguage} onClose={() => setShowLanguage(false)} />
           </>)}
 
           {/* ══ PRIVATSPHÄRE ═══════════════════════════════════ */}
