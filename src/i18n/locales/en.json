@@ -318,7 +318,9 @@
     "talents": "Talents",
     "motivationPlaceholder": "I want to…",
     "journeyPlaceholder": "My journey began…",
-    "visionPlaceholder": "I imagine a community in which…"
+    "visionPlaceholder": "I imagine a community in which…",
+    "passionPlaceholder": "What defines you? What excites you? What can you share?",
+    "taglinePlaceholder": "A sentence describing who you are and what drives you…"
   },
   "experience": {
     "experienceTitle": "What is your experience called?",
@@ -331,7 +333,12 @@
     "durationPlaceholder": "e.g. 90 minutes, full day…",
     "locationPlaceholder": "e.g. Munich, Schwabing / or online link",
     "participantsPlaceholder": "e.g. 1 (single session) or 10",
-    "instantBooking": "Enable instant booking"
+    "instantBooking": "Enable instant booking",
+    "titlePlaceholder": "e.g. Guitar lessons for beginners",
+    "descPlaceholder": "What do you do, what can participants expect?",
+    "exampleWorks": "Example works",
+    "availableLabel": "Available",
+    "soldOutLabel": "Sold out"
   },
   "notifications": {
     "title": "Notifications",

@@ -19,6 +19,7 @@
 //
 // Kein neuer State-Store, keine neue Bibliothek — reines Grid aus <button>.
 // ══════════════════════════════════════════════════════════════════════
+import { useTranslation } from "react-i18next";
 import React, { useMemo, useState } from "react";
 
 const WEEKDAYS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
@@ -184,8 +185,8 @@ export default function AvailabilityCalendar({
 
       {(mode === "book" || mode === "free") && (
         <div style={{ display: "flex", gap: 12, marginTop: 10, flexWrap: "wrap" }}>
-          <Legend swatch="rgba(14,196,184,0.10)" border="rgba(14,196,184,0.35)" label="Verfügbar" />
-          <Legend swatch="rgba(232,58,58,0.06)" border="rgba(232,58,58,0.15)" label="Ausgebucht" />
+          <Legend swatch="rgba(14,196,184,0.10)" border="rgba(14,196,184,0.35)" label={t("experience.availableLabel")} />
+          <Legend swatch="rgba(232,58,58,0.06)" border="rgba(232,58,58,0.15)" label={t("experience.soldOutLabel")} />
         </div>
       )}
     </div>

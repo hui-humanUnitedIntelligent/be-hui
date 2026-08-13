@@ -4,6 +4,7 @@
 import { HUITalentIcon,
   HUIWarnIcon,
 } from '../design/icons/HuiSystemIcons.jsx';
+import { useTranslation } from "react-i18next";
 import React, { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../lib/supabaseClient";
@@ -107,7 +108,7 @@ function Step1({ title, setTitle, desc, setDesc, onNext }) {
         <textarea
           value={desc}
           onChange={e => setDesc(e.target.value)}
-          placeholder="Was macht dich aus? Was begeistert dich? Was kannst du teilen?"
+          placeholder={t("talent.passionPlaceholder")}
           rows={3}
           style={{
             width:"100%", padding:"16px", borderRadius:16,
@@ -273,7 +274,7 @@ function Step3({ intro, setIntro, onFinish, onBack, saving, error }) {
           <textarea
             value={intro}
             onChange={e => setIntro(e.target.value)}
-            placeholder="Ein Satz, der beschreibt wer du bist und was dich antreibt…"
+            placeholder={t("talent.taglinePlaceholder")}
             rows={3}
             style={{
               width:"100%", padding:"16px", borderRadius:16,

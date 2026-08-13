@@ -318,7 +318,9 @@
     "talents": "Talente",
     "motivationPlaceholder": "Ich möchte…",
     "journeyPlaceholder": "Mein Weg begann…",
-    "visionPlaceholder": "Ich stelle mir eine Gemeinschaft vor, in der…"
+    "visionPlaceholder": "Ich stelle mir eine Gemeinschaft vor, in der…",
+    "passionPlaceholder": "Was macht dich aus? Was begeistert dich? Was kannst du teilen?",
+    "taglinePlaceholder": "Ein Satz, der beschreibt wer du bist und was dich antreibt…"
   },
   "experience": {
     "experienceTitle": "Wie heißt dein Erlebnis?",
@@ -331,7 +333,12 @@
     "durationPlaceholder": "z.B. 90 Minuten, ganzer Tag…",
     "locationPlaceholder": "z.B. München, Schwabing / oder Online-Link",
     "participantsPlaceholder": "z.B. 1 (Einzelsession) oder 10",
-    "instantBooking": "Sofortbuchung aktivieren"
+    "instantBooking": "Sofortbuchung aktivieren",
+    "titlePlaceholder": "z.B. Gitarrenunterricht für Anfänger",
+    "descPlaceholder": "Was machst du, was können Teilnehmende erwarten?",
+    "exampleWorks": "Beispielwerke",
+    "availableLabel": "Verfügbar",
+    "soldOutLabel": "Ausgebucht"
   },
   "notifications": {
     "title": "Benachrichtigungen",
