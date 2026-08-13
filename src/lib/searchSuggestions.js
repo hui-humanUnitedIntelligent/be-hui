@@ -124,8 +124,8 @@ async function searchMoments(query) {
   const esc = escapeIlike(query);
   const { data, error } = await supabase
     .from("beitraege")
-    .select("id,caption")
-    .ilike("caption", `%${esc}%`)
+    .select("id,caption,content")
+    .or(`caption.ilike.%${esc}%,content.ilike.%${esc}%`)
     .limit(FETCH_LIMIT);
   if (error || !data) return [];
   const matched = byWordPrefix(data, query, (r) => r.caption || "");

@@ -32,9 +32,22 @@ const F = {
   profile:      IDENTITY_CONTRACT,
   // profileMin: für Chat/Notifications (Avatar + Name) — bewusst minimal
   profileMin:   'id,display_name,username,avatar_url',
+  // DEPRECATED (Sprint F.4D.1): avatar_url + header_img in wirker_profiles
+  // werden nie geschrieben — Wahrheitsquelle ist profiles.avatar_url / .header_img
+  // TODO F.4E: avatar_url,header_img aus diesem String entfernen, wenn WirkerService migriert
+  wirker:       'id,user_id,slug,talent,categories,location_label,avatar_url,header_img,hourly_rate,is_verified,rating_avg,booking_count',
+  // DEPRECATED (Sprint F.4D.1): avatar_url in wirkerMin — nur noch für Legacy-Ansichten
+  // Wenn WirkerService vollständig migriert, entfernen
+  wirkerMin:    'id,user_id,slug,talent,location_label,avatar_url,is_verified',
   // DEEPLINK.1 (2026-07-09): +slug fuer /werke/:slug (Migration 074)
   work:         'id,user_id,title,cover_url,media_url,price,category,medium,status,likes_count,location_text,created_at,slug',
   experience:   'id,user_id,title,cover_url,price,duration,spots_available,location_text,status,created_at',
+  story:        'id,user_id,media_url,media_type,text_overlay,mood,location,expires_at,views_count,created_at',
+  booking:      'id,user_id,wirker_id,work_id,experience_id,amount,platform_fee,impact_fee,status,payment_status,escrow_status,created_at',
+  message:      'id,conversation_id,sender_id,text,created_at,read,type',
+  conversation: 'id,participant_a,participant_b,booking_id,last_message_at,last_message_text,unread_count_a,unread_count_b',
+  impactProject:'id,name,category,description,icon,color,votes,status,awarded_eur,month,website,tags,contact_name',
+  impactRound:  'id,month,status,pool_eur,awarded_eur,closed_at,created_at',
   impactVote:   'id,voter_id,project_id,pool_month,weight,created_at',
   recommendation:'id,from_user_id,to_user_id,text,result_images,is_public,order_id,booking_id,created_at',
   membership:   'id,user_id,membership_type,status,vote_weight,started_at,expires_at',
@@ -120,6 +133,37 @@ export const ProfileService = {
 };
 
 // ─── MEMBERSHIPS ─────────────────────────────────────────────
+export const MembershipService = {
+  async getForUser(userId) {
+    return cachedQuery(`membership:${userId}`,
+      () => safeQuery(
+        supabase.from('memberships').select(F.membership)
+          .eq('user_id', userId).eq('status', 'active').single()
+      ), 120_000
+    );
+  },
+
+  // Vote weight: Mitglied/Wirker = 2, Basisuser = 1
+  getVoteWeight(membership) {
+    if (!membership) return 1;
+    return membership.vote_weight || (
+      ['member', 'wirker', 'talent'].includes(membership.membership_type) ? 2 : 1
+    );
+  },
+
+  async create(userId, type = 'member') {
+    return safeQuery(
+      supabase.from('memberships').insert({
+        user_id: userId,
+        membership_type: type,
+        status: 'active',
+        vote_weight: type === 'basisuser' ? 1 : 2,
+        started_at: new Date().toISOString(),
+      }).select(F.membership).single()
+    );
+  },
+};
+
 // ─── TALENT PROFILES (Wirker) ─────────────────────────────────
 export const TalentService = {
   async getByUserId(userId) {
@@ -223,8 +267,139 @@ export const WorkService = {
 };
 
 // ─── EXPERIENCES ─────────────────────────────────────────────
+export const ExperienceService = {
+  async getByUser(userId, page = 0) {
+    return safeQuery(buildPage(
+      supabase.from('experiences').select(F.experience)
+        .eq('user_id', userId).eq('status', 'published')
+        .order('created_at', { ascending: false }),
+      page
+    ));
+  },
+
+  async getById(id) {
+    return cachedQuery(`exp:${id}`,
+      () => safeQuery(supabase.from('experiences').select(F.experience).eq('id', id).single()),
+      30_000
+    );
+  },
+
+  async create(userId, data) {
+    return safeQuery(
+      supabase.from('experiences')
+        .insert({ user_id: userId, status: 'draft', ...data })
+        .select(F.experience).single()
+    );
+  },
+
+  async update(id, updates) {
+    return safeQuery(
+      supabase.from('experiences')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('id', id).select(F.experience).single()
+    );
+  },
+};
+
 // ─── STORIES ─────────────────────────────────────────────────
+export const StoryService = {
+  async getActive(userIds = []) {
+    const now = new Date().toISOString();
+    let q = supabase.from('stories').select(F.story)
+      .gt('expires_at', now).order('created_at', { ascending: false }).limit(50);
+    if (userIds.length > 0) q = q.in('user_id', userIds);
+    return safeQuery(q);
+  },
+
+  async getByUser(userId) {
+    const now = new Date().toISOString();
+    return safeQuery(
+      supabase.from('stories').select(F.story)
+        .eq('user_id', userId).gt('expires_at', now)
+        .order('created_at', { ascending: false }).limit(20)
+    );
+  },
+
+  async create(userId, mediaUrl, mediaType, options = {}) {
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    return safeQuery(
+      supabase.from('stories').insert({
+        user_id: userId,
+        media_url: mediaUrl,
+        media_type: mediaType,
+        expires_at: expiresAt,
+        ...options,
+      }).select(F.story).single()
+    );
+  },
+
+  async markViewed(storyId, userId) {
+    // Fire & forget — no await needed for view tracking
+    supabase.from('story_views').upsert({
+      story_id: storyId, viewer_id: userId, viewed_at: new Date().toISOString()
+    }).then(() => {});
+  },
+};
+
 // ─── BOOKINGS ────────────────────────────────────────────────
+export const BookingService = {
+  async getByUser(userId, page = 0) {
+    return safeQuery(buildPage(
+      supabase.from('bookings').select(F.booking)
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false }),
+      page
+    ));
+  },
+
+  async getByWirker(wirkerId, page = 0) {
+    return safeQuery(buildPage(
+      supabase.from('bookings').select(F.booking)
+        .eq('wirker_id', wirkerId)
+        .order('created_at', { ascending: false }),
+      page
+    ));
+  },
+
+  async getById(id) {
+    return safeQuery(
+      supabase.from('bookings').select(F.booking).eq('id', id).single()
+    );
+  },
+
+  async create(data) {
+    return safeQuery(
+      supabase.from('bookings').insert({
+        ...data,
+        status: 'pending',
+        payment_status: 'pending',
+        escrow_status: 'held',
+      }).select(F.booking).single()
+    );
+  },
+
+  async updateStatus(id, status) {
+    return safeQuery(
+      supabase.from('bookings')
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq('id', id).select(F.booking).single()
+    );
+  },
+
+  async releaseEscrow(id) {
+    return safeQuery(
+      supabase.from('bookings')
+        .update({
+          escrow_status: 'released',
+          payment_status: 'paid',
+          status: 'completed',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id).select(F.booking).single()
+    );
+  },
+};
+
 // ─── IMPACT SYSTEM ───────────────────────────────────────────
 export const ImpactService = {
   // ── Zentrale Hilfsfunktion: aktueller Monat YYYY-MM ─────────────
@@ -329,7 +504,65 @@ export const ImpactService = {
 };
 
 // ─── FEED ────────────────────────────────────────────────────
+export const FeedService = {
+  async getHomeFeed(page = 0, filters = {}) {
+    const now = new Date().toISOString();
+    let q = supabase.from('feed_items')
+      .select('id,user_id,type,media_url,caption,likes_count,created_at,expires_at,work_id,experience_id')
+      .or(`expires_at.is.null,expires_at.gt.${now}`)
+      .order('created_at', { ascending: false });
+
+    if (filters.type)     q = q.eq('type', filters.type);
+    if (filters.userIds)  q = q.in('user_id', filters.userIds);
+    if (filters.category) q = q.eq('category', filters.category);
+
+    return safeQuery(buildPage(q, page));
+  },
+
+  async getByUser(userId, page = 0) {
+    return safeQuery(buildPage(
+      supabase.from('feed_items')
+        .select('id,user_id,type,media_url,caption,likes_count,created_at')
+        .eq('user_id', userId).order('created_at', { ascending: false }),
+      page
+    ));
+  },
+
+  // Phase 23: Aktivität → Feed einspeisen (Impact Vote, Follow, etc.)
+  async createActivity(userId, type, caption, meta = {}) {
+    return safeQuery(
+      supabase.from('feed_items').insert({
+        user_id:    userId,
+        type:       type,          // 'impact_vote' | 'follow' | 'resonance'
+        caption:    caption,
+        likes_count: 0,
+        created_at: new Date().toISOString(),
+        ...meta,                   // optional: work_id, experience_id, project_id
+      }).select('id').single()
+    );
+  },
+};
+
 // ─── MATCH SCORES ────────────────────────────────────────────
+export const MatchService = {
+  async getTopMatches(userId, limit = 20) {
+    return cachedQuery(`match:${userId}`,
+      () => safeQuery(
+        supabase.from('user_match_scores').select(F.matchScore)
+          .eq('user_id', userId)
+          .order('score', { ascending: false })
+          .limit(limit)
+      ), 300_000 // 5min cache — scores change slowly
+    );
+  },
+
+  // Scores werden via Supabase Edge Function vorberechnet
+  // Frontend ruft nur gespeicherte Scores ab — kein live computation
+  async triggerScoreUpdate(userId) {
+    return safeQuery(supabase.rpc('compute_match_scores', { for_user_id: userId }));
+  },
+};
+
 // ─── RECOMMENDATIONS ─────────────────────────────────────────
 export const RecommendationService = {
   // Sprint F.4B.2: wirker_id → to_user_id (einzige Wahrheitsquelle)
