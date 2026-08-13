@@ -262,7 +262,12 @@
       "registration": "Registration required?",
       "instantBooking": "Enable instant booking",
       "people": "People"
-    }
+    },
+    "openCart": "Open cart",
+    "less": "Less",
+    "more": "More",
+    "removeItem": "Remove",
+    "closeCart": "Close"
   },
   "tutorial": {
     "step": "Step",
@@ -320,7 +325,8 @@
     "journeyPlaceholder": "My journey began…",
     "visionPlaceholder": "I imagine a community in which…",
     "passionPlaceholder": "What defines you? What excites you? What can you share?",
-    "taglinePlaceholder": "A sentence describing who you are and what drives you…"
+    "taglinePlaceholder": "A sentence describing who you are and what drives you…",
+    "commentPlaceholder": "Tell us briefly what moves you…"
   },
   "experience": {
     "experienceTitle": "What is your experience called?",
@@ -348,7 +354,10 @@
     "noNotifications": "No notifications",
     "actionNeeded": "Action needed",
     "commentReportsOpen": "Comment reports are open",
-    "messages": "Messages"
+    "messages": "Messages",
+    "connectionRequests": "CONNECTION REQUESTS",
+    "relevant": "RELEVANT",
+    "informative": "INFORMATIVE"
   },
   "errors": {
     "saveFailed": "Saving failed. Please try again.",
@@ -372,7 +381,11 @@
   "studio": {
     "update": "Update edit",
     "pendingApproval": "Requests and content pending approval",
-    "becomeMember": "Become a member"
+    "becomeMember": "Become a member",
+    "settingsLabel": "Settings",
+    "supportLabel": "Support",
+    "rejectReasonPlaceholder": "Reason (optional)…",
+    "replyPlaceholder": "Your reply…"
   },
   "diagnostics": {
     "devConsole": "Dev Console",
@@ -521,7 +534,9 @@
     "communityNetwork": "Community & Network",
     "contentWorks": "Content & Works",
     "tradeBookings": "Trade & Bookings",
-    "impactEffect": "Impact & Effect"
+    "impactEffect": "Impact & Effect",
+    "rejectReasonPlaceholder": "e.g. Images too blurry, description missing…",
+    "internalNotePlaceholder": "Internal note or feedback for the creator…"
   },
   "creator": {
     "openBookings": "Open bookings",
@@ -531,5 +546,8 @@
   "begleitung": {
     "talentDesc": "Design creative offers",
     "ambassadorDesc": "Invite new members"
+  },
+  "favorites": {
+    "searchPlaceholder": "Search your favorites..."
   }
 }

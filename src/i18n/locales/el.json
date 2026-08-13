@@ -45,7 +45,7 @@
     "name": "Όνομα",
     "firstName": "Όνομα",
     "lastName": "Επώνυμο",
-    "email": "Email",
+    "email": "Διεύθυνση email",
     "password": "Κωδικός",
     "confirmPassword": "Επιβεβαίωση κωδικού",
     "newPassword": "Νέος κωδικός",
@@ -64,11 +64,11 @@
     "soldOut": "Εξαντλημένο",
     "onSite": "Επί τόπου",
     "online": "Online",
-    "onlineOrOnSite": "Ηλεκτρονικά ή επί τόπου",
+    "onlineOrOnSite": "Online ή επί τόπου",
     "continue": "Συνέχεια",
     "understand": "Καταλαβαίνω",
-    "accept": "Αποδέχομαι τα",
-    "respect": "Σεβάζομαι τα",
+    "accept": "Αποδέχομαι τους",
+    "respect": "Σέβομαι τους",
     "optional": "προαιρετικό"
   },
   "nav": {
@@ -138,7 +138,7 @@
     "profileVisibility": "Ορατότητα προφίλ",
     "verified": "Επαληθευμένο",
     "ambassador": "Πρεσβευτής",
-    "talent": "Τalent",
+    "talent": "Talent",
     "communityOnly": "Μόνο Community",
     "team": "Ομάδα",
     "sections": {
@@ -168,7 +168,10 @@
       "impactEffect": "Αντίκτυπος & αποτέλεσμα",
       "additionalInfo": "Πρόσθετες πληροφορίες (προαιρετικό)",
       "saveFailed": "Η αποθήκευση απέτυχε. Παρακαλώ δοκιμάστε ξανά."
-    }
+    },
+    "publicLocation": "Τοποθεσία",
+    "websitePortfolio": "Ιστότοπος / Portfolio",
+    "bioHint": "Bio"
   },
   "settings": {
     "settings": "Ρυθμίσεις",
@@ -216,19 +219,37 @@
     "calmness": "Ηρεμία",
     "resonance": "Συντονισμός",
     "bookings": "Κρατήσεις",
-    "bookingsOpen": "Ανοιχτές κρατήσεις"
+    "bookingsOpen": "Ανοιχτές κρατήσεις",
+    "yourImpact": "Ο Αντίκτυπός σας",
+    "impactOverview": "Επισκόπηση Αντίκτυπου",
+    "monthlyVoting": "Μηνιαία ψηφοφορία",
+    "distributeImpact": "Διανομή Αντίκτυπου",
+    "projectsSupported": "Υποστηριζόμενα έργα",
+    "totalImpact": "Συνολικός αντίκτυπος",
+    "thisMonth": "Αυτόν τον μήνα",
+    "lastMonth": "Προηγούμενος μήνας",
+    "votesCast": "Ψήφοι που δόθηκαν",
+    "votesRemaining": "Υπόλοιπες ψήφοι",
+    "voteNow": "Ψηφίστε τώρα",
+    "learnMore": "Μάθετε περισσότερα",
+    "howItWorks": "Πώς λειτουργεί",
+    "impactDescription": "Η ψήφος σας μετράει. Διανείμετε τον αντίκτυπό σας σε έργα που υποστηρίζετε.",
+    "progressPlaceholder": "π.χ. Φράχτης ολοκληρώθηκε",
+    "descPlaceholder": "Περιγράψτε την πρόοδο...",
+    "projectProgressPlaceholder": "π.χ. Πρώτο ορόσημο επιτεύχθηκε!",
+    "projectDescPlaceholder": "Πείτε μας περισσότερα για αυτή την ενημέρωση..."
   },
   "commerce": {
     "addToCart": "Άνοιγμα καλαθιού",
     "cart": "Καλάθι",
-    "checkout": "Ολοκλήρωση αγοράς",
+    "checkout": "Αγορά",
     "buyNow": "Αγορά τώρα",
     "forSale": "Προς πώληση",
     "setPriceAllowOrders": "Ορίστε τιμή και επιτρέψτε παραγγελίες",
     "shipping": "Αποστολή",
     "shippingPossible": "Αποστολή δυνατή",
-    "pickupPossible": "Παραλαβή δυνατή",
-    "shippingNational": "Εγχώρια αποστολή",
+    "pickupPossible": "Παράδοση δυνατή",
+    "shippingNational": "Εθνική αποστολή",
     "shippingInternational": "Διεθνής αποστολή",
     "deliveryTime": "Χρόνος παράδοσης",
     "pricePer": "Τιμή ανά",
@@ -241,14 +262,24 @@
       "registration": "Απαιτείται εγγραφή;",
       "instantBooking": "Ενεργοποίηση άμεσης κράτησης",
       "people": "Άτομα"
-    }
+    },
+    "openCart": "Άνοιγμα καλαθιού",
+    "less": "Λιγότερο",
+    "more": "Περισσότερο",
+    "removeItem": "Αφαίρεση",
+    "closeCart": "Κλείσιμο"
   },
   "tutorial": {
     "step": "Βήμα",
     "stepOf": "Βήμα {{current}} από {{total}}",
     "letsGo": "Πάμε!",
     "understand": "Καταλαβαίνω",
-    "startAiCheck": "Έναρξη ελέγχου AI →"
+    "startAiCheck": "Έναρξη ελέγχου AI →",
+    "homeStep": "Εδώ βλέπετε όλες τις δημοσιεύσεις χρονολογικά — το προσωπικό σας feed.",
+    "discoverStep": "Εδώ θα βρείτε τα πάντα για το HUI: άτομα, έργα, εμπειρίες και νέες ιδέες.",
+    "createStep": "Εδώ δημιουργείται το νέο. Το Orb είναι η πύλη σας για να δημιουργήσετε κάτι μόνοι σας.",
+    "impactStep": "Εδώ θα βρείτε όλα τα έργα που υποστηρίζουμε μαζί. Δημιουργήστε ένα εσείς!",
+    "profileStep": "Εδώ μπορείτε να σχεδιάσετε και να εξατομικεύσετε το προφίλ σας."
   },
   "auth": {
     "login": "Σύνδεση",
@@ -256,11 +287,14 @@
     "signInWithGoogle": "Google",
     "signInWithApple": "Apple",
     "orByEmail": "ή με email",
-    "acceptTerms": "Αποδέχομαι τα",
-    "respectTerms": "Σεβάζομαι τα",
+    "acceptTerms": "Αποδέχομαι τους",
+    "respectTerms": "Σεβάσтомαι τους",
     "reflink": "Κωδικός παραπομπής προαιρετικό",
     "emailPlaceholder": "Email",
-    "passwordPlaceholder": "Κωδικός"
+    "passwordPlaceholder": "Κωδικός",
+    "reflinkPlaceholder": "https://be-hui.com/username",
+    "namePlaceholder": "Το όνομά σας",
+    "newPasswordPlaceholder": "Κωδικός (ελάχ. 8 χαρακτήρες)"
   },
   "works": {
     "workTitle": "Τίτλος έργου",
@@ -269,7 +303,14 @@
     "exampleWorks": "Δείγματα έργων",
     "sell": "Πούλησε",
     "toSell": "Προς πώληση",
-    "category": "Κατηγορία"
+    "category": "Κατηγορία",
+    "photoAdd": "Προσθήκη φωτογραφίας",
+    "videoAdd": "Προσθήκη βίντεο",
+    "fileUpload": "Ανέβασμα αρχείου",
+    "titlePlaceholder": "Απόγευμα φως πάνω από τα βουνά",
+    "descPlaceholder": "Ένας ψηφιακός πίνακας εμπνευσμένος από ένα ηλιοβασίλεμα στις Άλπεις. 2024.",
+    "categoryPlaceholder": "Ψηφιακή ζωγραφική",
+    "regionPlaceholder": "Γερμανία, Αυστρία, Ελβετία"
   },
   "talent": {
     "talentDesignation": "Ονομασία ταλέντου (επάγγελμα)",
@@ -279,7 +320,13 @@
     "submitForReview": "Υποβολή για έλεγχο",
     "available": "Διαθέσιμο",
     "talent": "Τάλεντο",
-    "talents": "Ταλέντα"
+    "talents": "Ταλέντα",
+    "motivationPlaceholder": "Θέλω…",
+    "journeyPlaceholder": "Το ταξίδι μου ξεκίνησε…",
+    "visionPlaceholder": "Φαντάζομαι μια κοινότητα στην οποία…",
+    "commentPlaceholder": "Πείτε σύντομα τι σας κινεί…",
+    "passionPlaceholder": "Τι σας καθορίζει; Τι σας ενθουσιάζει; Τι μπορείτε να μοιραστείτε;",
+    "taglinePlaceholder": "Μια πρόταση που περιγράφει ποιοι είστε και τι σας ωθεί…"
   },
   "experience": {
     "experienceTitle": "Πώς ονομάζεται η εμπειρία σας;",
@@ -288,7 +335,16 @@
     "mood": "Διάθεση / ενέργεια",
     "chooseMood": "Επιλογή διάθεσης",
     "experiences": "Εμπειρίες",
-    "yourExperiences": "Οι εμπειρίες, εκδηλώσεις και έργα καρδιάς σας."
+    "yourExperiences": "Οι εμπειρίες, εκδηλώσεις και έργα καρδιάς σας.",
+    "durationPlaceholder": "π.χ. 90 λεπτά, ολόκληρη μέρα…",
+    "locationPlaceholder": "π.χ. Μόναχο, Schwabing / ή online σύνδεσμος",
+    "participantsPlaceholder": "π.χ. 1 (ατομική συνεδρία) ή 10",
+    "instantBooking": "Ενεργοποίηση άμεσης κράτησης",
+    "titlePlaceholder": "π.χ. Μαθήματα κιθάρας για αρχάριους",
+    "descPlaceholder": "Τι κάνετε, τι μπορούν να περιμένουν οι συμμετέχοντες;",
+    "exampleWorks": "Δείγματα έργων",
+    "availableLabel": "Διαθέσιμο",
+    "soldOutLabel": "Εξαντλημένο"
   },
   "notifications": {
     "title": "Ειδοποιήσεις",
@@ -298,7 +354,10 @@
     "noNotifications": "Καμία ειδοποίηση",
     "actionNeeded": "Απαιτείται ενέργεια",
     "commentReportsOpen": "Αναφορές σχολίων ανοιχτές",
-    "messages": "Μηνύματα"
+    "messages": "Μηνύματα",
+    "connectionRequests": "ΑΙΤΗΜΑΤΑ ΣΥΝΔΕΣΗΣ",
+    "relevant": "ΣΧΕΤΙΚΑ",
+    "informative": "ΕΝΗΜΕΡΩΤΙΚΑ"
   },
   "errors": {
     "saveFailed": "Η αποθήκευση απέτυχε. Δοκιμάστε ξανά.",
@@ -313,16 +372,20 @@
     "moments": "Στιγμές"
   },
   "chat": {
-    "activeConversations": "Ενεργές συνομιλίες",
+    "activeConversations": "Ενεργές συζητήσεις",
     "writeMessage": "Γράψτε μήνυμα…",
-    "yourMessage": "Το μήνυμά σας (προαιρετικό) — π.χ. επιθυμητή ημερομηνία, ερωτήσεις…",
+    "yourMessage": "Το μήνυμά σας (προαιρετικό) — π.χ. προτιμώμενη ημερομηνία, ερωτήσεις…",
     "yourAnswer": "Η απάντησή σας…",
-    "titleConnection": "Τίτλος σύνδεσης"
+    "titleConnection": "Τίτλος της σύνδεσής σας"
   },
   "studio": {
     "update": "Επεξεργασία ενημέρωσης",
     "pendingApproval": "Αιτήματα και περιεχόμενο σε αναμονή έγκρισης",
-    "becomeMember": "Γίνετε μέλος"
+    "becomeMember": "Γίνετε μέλος",
+    "settingsLabel": "Ρυθμίσεις",
+    "supportLabel": "Υποστήριξη",
+    "rejectReasonPlaceholder": "Λόγος (προαιρετικό)…",
+    "replyPlaceholder": "Η απάντησή σας…"
   },
   "diagnostics": {
     "devConsole": "Κονσόλα Dev",
@@ -368,7 +431,23 @@
     "work": "Έργο",
     "experience": "Εμπειρία",
     "moment": "Στιγμή",
-    "forSale": "Προς πώληση"
+    "forSale": "Προς πώληση",
+    "forSaleSub": "Ορίστε τιμή και επιτρέψτε παραγγελίες",
+    "shippingPossible": "Αποστολή δυνατή",
+    "pickupPossible": "Παράδοση δυνατή",
+    "titlePlaceholder": "π.χ. Υδατογραφία «Πρωινή Ατμόσφαιρα»",
+    "descPlaceholder": "Περιγράψτε το έργο σας…",
+    "pricePlaceholder": "49,00",
+    "selectCategory": "Επιλογή κατηγορίας",
+    "uploadImage": "Ανέβασμα εικόνας",
+    "titleWork": "Τίτλος έργου",
+    "describeWork": "Λεπτομερής περιγραφή",
+    "addPrice": "Προσθήκη τιμής",
+    "publishWork": "Δημοσίευση έργου",
+    "publishExperience": "Δημοσίευση εμπειρίας",
+    "backToFeed": "Επιστροφή στο feed",
+    "whatCreate": "Τι θέλετε να δημιουργήσετε;",
+    "talentOffer": "Προσφορά ταλέντου"
   },
   "finance": {
     "earned": "Κερδισμένα",
@@ -377,10 +456,98 @@
     "all": "Όλα",
     "from": "Από",
     "to": "Προς",
-    "gross": "Μικτό"
+    "gross": "Μικτό",
+    "actionNeeded": "Απαιτείται ενέργεια",
+    "totalSpent": "Συνολικά δαπανημένα",
+    "impactPool": "Ταμείο Αντίκτυπου",
+    "totalBooked": "Συνολικές κρατήσεις",
+    "totalEarnings": "Συνολικά έσοδα",
+    "huiCommission": "Προμήθεια HUI",
+    "impactShare": "Μερίδιο Αντίκτυπου",
+    "quantity": "Ποσότητα",
+    "tracking": "Παρακολούθηση"
   },
   "search": {
     "people": "Άτομα",
-    "locationPlaceholder": "Εισαγάγετε ΤΚ ή πόλη…"
+    "locationPlaceholder": "Εισαγάγετε ΤΚ ή πόλη…",
+    "categoryPlaceholder": "Αναζήτηση κατηγοριών…",
+    "momentsLabel": "Στιγμές",
+    "locationInput": "Εισαγάγετε τοποθεσία…"
+  },
+  "admin": {
+    "pendingApprovals": "Αιτήματα και περιεχόμενο σε αναμονή έγκρισης",
+    "openReports": "Ανοιχτές αναφορές σχολίων",
+    "members": "Μέλη",
+    "talents": "Ταλents",
+    "people": "Άτομα",
+    "guidance": "Εξυπηρέτηση",
+    "reports": "Αναφορές",
+    "communityNetwork": "Κοινότητα και Δίκτυο",
+    "contentWorks": "Περιεχόμενο και Έργα",
+    "tradeBookings": "Εμπόριο και Κρατήσεις",
+    "impactEffect": "Αντίκτυπος και Αποτέλεσμα",
+    "rejectReasonPlaceholder": "π.χ. Θολές εικόνες, λείπει περιγραφή…",
+    "internalNotePlaceholder": "Εσωτερική σημείωση ή σχόλια για τον δημιουργό…"
+  },
+  "ambassador": {
+    "title": "Γίνε Πρεσβευτής",
+    "description": "Εγγραφείτε στο δίκτυο HUI ως πρεσβευτής.",
+    "applyNow": "Κάντε αίτηση τώρα",
+    "yourName": "Το όνομά σας",
+    "yourEmail": "Το email σας",
+    "yourMessage": "Το μήνυμά σας",
+    "payoutHistory": "Ιστορικό πληρωμών",
+    "totalEarned": "Συνολικά κερδισμένα",
+    "pendingPayout": "Εκκρεμή πληρωμή",
+    "holderPlaceholder": "Κάτοχος λογαριασμού (όνομα και επώνυμο)",
+    "ibanPlaceholder": "IBAN (π.χ. DE89 3704 0044 0532 0130 00)",
+    "bicPlaceholder": "BIC (προαιρετικό)",
+    "bankNamePlaceholder": "Όνομα και διεύθυνση τράπεζας (προαιρετικό)"
+  },
+  "begleitung": {
+    "talentDesc": "Δημιουργία δημιουργικών προσφορών",
+    "ambassadorDesc": "Πρόσκληση νέων μελών"
+  },
+  "connection": {
+    "step2Title": "Λεπτομέρειες σύνδεσης",
+    "message": "Μήνυμα",
+    "messagePlaceholder": "Γράψτε ένα προσωπικό μήνυμα…",
+    "relationshipType": "Τύπος σχέσης",
+    "colleague": "Συνάδελφος",
+    "friend": "Φίλος",
+    "collaborator": "Συνεργάτης",
+    "client": "Πελάτης",
+    "mentor": "Μέντορας",
+    "other": "Άλλο",
+    "sendRequest": "Αποστολή αιτήματος"
+  },
+  "creator": {
+    "openBookings": "Ανοιχτές κρατήσεις",
+    "supports": "Υποστηρίξεις",
+    "salesLabel": "Πωλήσεις"
+  },
+  "favorites": {
+    "searchPlaceholder": "Αναζήτηση στα αγαπημένα..."
+  },
+  "security": {
+    "newPassword": "Νέος κωδικός",
+    "newPasswordPlaceholder": "Ελάχιστο 8 χαρακτήρες",
+    "confirmPassword": "Επιβεβαίωση κωδικού",
+    "confirmPlaceholder": "Εισαγάγετε ξανά"
+  },
+  "share": {
+    "nameOrUsername": "Όνομα ή @username…",
+    "writeSomething": "Γράψτε κάτι…"
+  },
+  "support": {
+    "customAmount": "Άλλο ποσό (€)",
+    "personalMessage": "Προσωπικό μήνυμα (προαιρετικό)…",
+    "title": "Υποστήριξη",
+    "subject": "Θέμα",
+    "subjectPlaceholder": "Τι αφορά;",
+    "message": "Μήνυμα",
+    "messagePlaceholder": "Περιγράψτε το θέμα σας…",
+    "send": "Αποστολή",
+    "newTicket": "Νέο ticket"
   }
 }

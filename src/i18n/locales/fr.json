@@ -44,8 +44,8 @@
     "description": "Description",
     "name": "Nom",
     "firstName": "Prénom",
-    "lastName": "Nom de famille",
-    "email": "E-mail",
+    "lastName": "Nom",
+    "email": "Adresse e-mail",
     "password": "Mot de passe",
     "confirmPassword": "Confirmer le mot de passe",
     "newPassword": "Nouveau mot de passe",
@@ -69,7 +69,7 @@
     "understand": "Je comprends",
     "accept": "J'accepte les",
     "respect": "Je respecte les",
-    "optional": "optionnel"
+    "optional": "facultatif"
   },
   "nav": {
     "home": "Accueil",
@@ -124,8 +124,8 @@
     "username": "@Nom d'utilisateur",
     "publicName": "Nom public",
     "fullName": "Nom",
-    "changeAvatar": "Changer d'avatar",
-    "changeCover": "Changer de couverture",
+    "changeAvatar": "Changer l'avatar",
+    "changeCover": "Changer la couverture",
     "addPhoto": "Ajouter une photo",
     "addVideo": "Ajouter une vidéo",
     "uploadFile": "Télécharger un fichier",
@@ -168,7 +168,10 @@
       "impactEffect": "Impact & effet",
       "additionalInfo": "Informations supplémentaires (optionnel)",
       "saveFailed": "Échec de l'enregistrement. Veuillez réessayer."
-    }
+    },
+    "publicLocation": "Lieu",
+    "websitePortfolio": "Site web / Portfolio",
+    "bioHint": "Bio"
   },
   "settings": {
     "settings": "Paramètres",
@@ -216,12 +219,30 @@
     "calmness": "Calme",
     "resonance": "Résonance",
     "bookings": "Réservations",
-    "bookingsOpen": "Réservations ouvertes"
+    "bookingsOpen": "Réservations ouvertes",
+    "yourImpact": "Votre Impact",
+    "impactOverview": "Aperçu de l'Impact",
+    "monthlyVoting": "Vote mensuel",
+    "distributeImpact": "Distribuer l'Impact",
+    "projectsSupported": "Projets soutenus",
+    "totalImpact": "Impact total",
+    "thisMonth": "Ce mois-ci",
+    "lastMonth": "Le mois dernier",
+    "votesCast": "Votes exprimés",
+    "votesRemaining": "Votes restants",
+    "voteNow": "Voter maintenant",
+    "learnMore": "En savoir plus",
+    "howItWorks": "Comment ça marche",
+    "impactDescription": "Votre vote compte. Distribuez votre impact aux projets que vous soutenez.",
+    "progressPlaceholder": "Ex. Clôture terminée",
+    "descPlaceholder": "Décrivez le progrès...",
+    "projectProgressPlaceholder": "Ex. Premier jalon atteint !",
+    "projectDescPlaceholder": "Parlez-nous plus de cette mise à jour..."
   },
   "commerce": {
     "addToCart": "Ouvrir le panier",
     "cart": "Panier",
-    "checkout": "Paiement",
+    "checkout": "Acheter",
     "buyNow": "Acheter maintenant",
     "forSale": "À vendre",
     "setPriceAllowOrders": "Définir le prix et autoriser les commandes",
@@ -241,14 +262,24 @@
       "registration": "Inscription requise ?",
       "instantBooking": "Activer la réservation instantanée",
       "people": "Personnes"
-    }
+    },
+    "openCart": "Ouvrir le panier",
+    "less": "Moins",
+    "more": "Plus",
+    "removeItem": "Retirer",
+    "closeCart": "Fermer"
   },
   "tutorial": {
     "step": "Étape",
     "stepOf": "Étape {{current}} sur {{total}}",
     "letsGo": "C'est parti !",
     "understand": "Je comprends",
-    "startAiCheck": "Lancer la vérification IA →"
+    "startAiCheck": "Lancer la vérification IA →",
+    "homeStep": "Ici vous voyez toutes les publications chronologiquement — votre feed personnel.",
+    "discoverStep": "Ici vous trouverez tout sur HUI : personnes, œuvres, expériences et nouvelles idées.",
+    "createStep": "Ici, le nouveau est créé. L'Orb est votre accès pour créer vous-même.",
+    "impactStep": "Ici vous trouverez tous les projets que nous soutenons ensemble. Créez-en un vous-même !",
+    "profileStep": "Ici vous pouvez concevoir et personnaliser votre profil."
   },
   "auth": {
     "login": "Connexion",
@@ -258,9 +289,12 @@
     "orByEmail": "ou par e-mail",
     "acceptTerms": "J'accepte les",
     "respectTerms": "Je respecte les",
-    "reflink": "Code de parrainage optionnel",
+    "reflink": "Code de parrainage facultatif",
     "emailPlaceholder": "E-mail",
-    "passwordPlaceholder": "Mot de passe"
+    "passwordPlaceholder": "Mot de passe",
+    "reflinkPlaceholder": "https://be-hui.com/username",
+    "namePlaceholder": "Votre nom",
+    "newPasswordPlaceholder": "Mot de passe (min. 8 caractères)"
   },
   "works": {
     "workTitle": "Titre de l'œuvre",
@@ -269,7 +303,14 @@
     "exampleWorks": "Œuvres exemples",
     "sell": "Vendre",
     "toSell": "À vendre",
-    "category": "Catégorie"
+    "category": "Catégorie",
+    "photoAdd": "Ajouter photo",
+    "videoAdd": "Ajouter vidéo",
+    "fileUpload": "Télécharger fichier",
+    "titlePlaceholder": "Lumière du soir sur les montagnes",
+    "descPlaceholder": "Une peinture numérique inspirée par un coucher de soleil dans les Alpes. 2024.",
+    "categoryPlaceholder": "Peinture numérique",
+    "regionPlaceholder": "Allemagne, Autriche, Suisse"
   },
   "talent": {
     "talentDesignation": "Désignation du talent (profession)",
@@ -279,7 +320,13 @@
     "submitForReview": "Soumettre pour vérification",
     "available": "Disponible",
     "talent": "Talent",
-    "talents": "Talents"
+    "talents": "Talents",
+    "motivationPlaceholder": "Je veux…",
+    "journeyPlaceholder": "Mon parcours a commencé…",
+    "visionPlaceholder": "J'imagine une communauté dans laquelle…",
+    "commentPlaceholder": "Racontez brièvement ce qui vous anime…",
+    "passionPlaceholder": "Qu'est-ce qui vous définit ? Qu'est-ce qui vous passionne ? Que pouvez-vous partager ?",
+    "taglinePlaceholder": "Une phrase décrivant qui vous êtes et ce qui vous anime…"
   },
   "experience": {
     "experienceTitle": "Comment s'appelle votre expérience ?",
@@ -288,7 +335,16 @@
     "mood": "Ambiance / énergie",
     "chooseMood": "Choisir l'ambiance",
     "experiences": "Expériences",
-    "yourExperiences": "Vos expériences, événements et projets passionnants."
+    "yourExperiences": "Vos expériences, événements et projets passionnants.",
+    "durationPlaceholder": "Ex. 90 minutes, journée complète…",
+    "locationPlaceholder": "Ex. Munich, Schwabing / ou lien en ligne",
+    "participantsPlaceholder": "Ex. 1 (séance individuelle) ou 10",
+    "instantBooking": "Activer la réservation instantanée",
+    "titlePlaceholder": "Ex. Cours de guitare pour débutants",
+    "descPlaceholder": "Que faites-vous, que peuvent attendre les participants ?",
+    "exampleWorks": "Œuvres d'exemple",
+    "availableLabel": "Disponible",
+    "soldOutLabel": "Épuisé"
   },
   "notifications": {
     "title": "Notifications",
@@ -298,7 +354,10 @@
     "noNotifications": "Aucune notification",
     "actionNeeded": "Action requise",
     "commentReportsOpen": "Signalements de commentaires ouverts",
-    "messages": "Messages"
+    "messages": "Messages",
+    "connectionRequests": "DEMANDES DE CONNEXION",
+    "relevant": "PERTINENT",
+    "informative": "INFORMATIF"
   },
   "errors": {
     "saveFailed": "Échec de l'enregistrement. Veuillez réessayer.",
@@ -315,14 +374,18 @@
   "chat": {
     "activeConversations": "Conversations actives",
     "writeMessage": "Écrire un message…",
-    "yourMessage": "Votre message (optionnel) — ex. date souhaitée, questions…",
+    "yourMessage": "Votre message (facultatif) — Ex. date souhaitée, questions…",
     "yourAnswer": "Votre réponse…",
-    "titleConnection": "Titre de la connexion"
+    "titleConnection": "Titre de votre connexion"
   },
   "studio": {
     "update": "Modifier la mise à jour",
     "pendingApproval": "Demandes et contenu en attente d'approbation",
-    "becomeMember": "Devenir membre"
+    "becomeMember": "Devenir membre",
+    "settingsLabel": "Paramètres",
+    "supportLabel": "Support",
+    "rejectReasonPlaceholder": "Raison (facultatif)…",
+    "replyPlaceholder": "Votre réponse…"
   },
   "diagnostics": {
     "devConsole": "Console Dev",
@@ -368,7 +431,23 @@
     "work": "Œuvre",
     "experience": "Expérience",
     "moment": "Moment",
-    "forSale": "À vendre"
+    "forSale": "À vendre",
+    "forSaleSub": "Définir le prix et autoriser les commandes",
+    "shippingPossible": "Livraison possible",
+    "pickupPossible": "Retrait possible",
+    "titlePlaceholder": "Ex. Aquarelle « Atmosphère du matin »",
+    "descPlaceholder": "Décrivez votre œuvre…",
+    "pricePlaceholder": "49,00",
+    "selectCategory": "Choisir une catégorie",
+    "uploadImage": "Télécharger une image",
+    "titleWork": "Titre de l'œuvre",
+    "describeWork": "Description détaillée",
+    "addPrice": "Ajouter un prix",
+    "publishWork": "Publier l'œuvre",
+    "publishExperience": "Publier l'expérience",
+    "backToFeed": "Retour au feed",
+    "whatCreate": "Que voulez-vous créer ?",
+    "talentOffer": "Offre de talent"
   },
   "finance": {
     "earned": "Gagné",
@@ -377,10 +456,98 @@
     "all": "Tous",
     "from": "De",
     "to": "À",
-    "gross": "Brut"
+    "gross": "Brut",
+    "actionNeeded": "Action requise",
+    "totalSpent": "Total dépensé",
+    "impactPool": "Fonds d'Impact",
+    "totalBooked": "Total réservé",
+    "totalEarnings": "Revenus totaux",
+    "huiCommission": "Commission HUI",
+    "impactShare": "Part d'Impact",
+    "quantity": "Quantité",
+    "tracking": "Suivi"
   },
   "search": {
     "people": "Personnes",
-    "locationPlaceholder": "Entrez code postal ou ville…"
+    "locationPlaceholder": "Entrez code postal ou ville…",
+    "categoryPlaceholder": "Rechercher des catégories…",
+    "momentsLabel": "Moments",
+    "locationInput": "Entrez un lieu…"
+  },
+  "admin": {
+    "pendingApprovals": "Demandes et contenus en attente d'approbation",
+    "openReports": "Signalements de commentaires ouverts",
+    "members": "Membres",
+    "talents": "Talents",
+    "people": "Personnes",
+    "guidance": "Accompagnement",
+    "reports": "Signalements",
+    "communityNetwork": "Communauté et Réseau",
+    "contentWorks": "Contenus et Œuvres",
+    "tradeBookings": "Commerce et Réservations",
+    "impactEffect": "Impact et Effet",
+    "rejectReasonPlaceholder": "Ex. Images floues, description manquante…",
+    "internalNotePlaceholder": "Note interne ou retour pour le créateur…"
+  },
+  "ambassador": {
+    "title": "Devenir Ambassadeur",
+    "description": "Rejoignez le réseau HUI en tant qu'ambassadeur.",
+    "applyNow": "Postuler maintenant",
+    "yourName": "Votre nom",
+    "yourEmail": "Votre e-mail",
+    "yourMessage": "Votre message",
+    "payoutHistory": "Historique des paiements",
+    "totalEarned": "Total gagné",
+    "pendingPayout": "Paiement en attente",
+    "holderPlaceholder": "Titulaire du compte (prénom et nom)",
+    "ibanPlaceholder": "IBAN (ex. DE89 3704 0044 0532 0130 00)",
+    "bicPlaceholder": "BIC (facultatif)",
+    "bankNamePlaceholder": "Nom et adresse de la banque (facultatif)"
+  },
+  "begleitung": {
+    "talentDesc": "Créer des offres créatives",
+    "ambassadorDesc": "Inviter de nouveaux membres"
+  },
+  "connection": {
+    "step2Title": "Détails de la connexion",
+    "message": "Message",
+    "messagePlaceholder": "Écrivez un message personnel…",
+    "relationshipType": "Type de relation",
+    "colleague": "Collègue",
+    "friend": "Ami",
+    "collaborator": "Collaborateur",
+    "client": "Client",
+    "mentor": "Mentor",
+    "other": "Autre",
+    "sendRequest": "Envoyer la demande"
+  },
+  "creator": {
+    "openBookings": "Réservations ouvertes",
+    "supports": "Soutiens",
+    "salesLabel": "Ventes"
+  },
+  "favorites": {
+    "searchPlaceholder": "Rechercher dans vos favoris..."
+  },
+  "security": {
+    "newPassword": "Nouveau mot de passe",
+    "newPasswordPlaceholder": "Minimum 8 caractères",
+    "confirmPassword": "Confirmer le mot de passe",
+    "confirmPlaceholder": "Entrez à nouveau"
+  },
+  "share": {
+    "nameOrUsername": "Nom ou @utilisateur…",
+    "writeSomething": "Écrivez quelque chose…"
+  },
+  "support": {
+    "customAmount": "Autre montant (€)",
+    "personalMessage": "Message personnel (facultatif)…",
+    "title": "Support",
+    "subject": "Sujet",
+    "subjectPlaceholder": "De quoi s'agit-il ?",
+    "message": "Message",
+    "messagePlaceholder": "Décrivez votre demande…",
+    "send": "Envoyer",
+    "newTicket": "Nouveau ticket"
   }
 }

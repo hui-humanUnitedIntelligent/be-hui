@@ -62,9 +62,9 @@
     "private": "Privado",
     "available": "Disponible",
     "soldOut": "Agotado",
-    "onSite": "Presencial",
+    "onSite": "En el lugar",
     "online": "Online",
-    "onlineOrOnSite": "En línea o presencial",
+    "onlineOrOnSite": "Online o en el lugar",
     "continue": "Continuar",
     "understand": "Entiendo",
     "accept": "Acepto los",
@@ -168,7 +168,10 @@
       "impactEffect": "Impacto & efecto",
       "additionalInfo": "Información adicional (opcional)",
       "saveFailed": "Error al guardar. Inténtalo de nuevo."
-    }
+    },
+    "publicLocation": "Ubicación",
+    "websitePortfolio": "Sitio web / Portfolio",
+    "bioHint": "Bio"
   },
   "settings": {
     "settings": "Ajustes",
@@ -216,15 +219,33 @@
     "calmness": "Calma",
     "resonance": "Resonancia",
     "bookings": "Reservas",
-    "bookingsOpen": "Reservas abiertas"
+    "bookingsOpen": "Reservas abiertas",
+    "yourImpact": "Tu Impacto",
+    "impactOverview": "Resumen de Impacto",
+    "monthlyVoting": "Votación mensual",
+    "distributeImpact": "Distribuir Impacto",
+    "projectsSupported": "Proyectos apoyados",
+    "totalImpact": "Impacto total",
+    "thisMonth": "Este mes",
+    "lastMonth": "Mes pasado",
+    "votesCast": "Votos emitidos",
+    "votesRemaining": "Votos restantes",
+    "voteNow": "Votar ahora",
+    "learnMore": "Saber más",
+    "howItWorks": "Cómo funciona",
+    "impactDescription": "Tu voto cuenta. Distribuye tu impacto a proyectos que apoyas.",
+    "progressPlaceholder": "Ej. Valla terminada",
+    "descPlaceholder": "Describe el progreso...",
+    "projectProgressPlaceholder": "Ej. Primer hito alcanzado!",
+    "projectDescPlaceholder": "Cuéntanos más sobre esta actualización..."
   },
   "commerce": {
     "addToCart": "Abrir carrito",
     "cart": "Carrito",
-    "checkout": "Finalizar compra",
+    "checkout": "Comprar",
     "buyNow": "Comprar ahora",
     "forSale": "En venta",
-    "setPriceAllowOrders": "Fijar precio y permitir pedidos",
+    "setPriceAllowOrders": "Establecer precio y permitir pedidos",
     "shipping": "Envío",
     "shippingPossible": "Envío posible",
     "pickupPossible": "Recogida posible",
@@ -241,14 +262,24 @@
       "registration": "¿Registro necesario?",
       "instantBooking": "Activar reserva instantánea",
       "people": "Personas"
-    }
+    },
+    "openCart": "Abrir carrito",
+    "less": "Menos",
+    "more": "Más",
+    "removeItem": "Quitar",
+    "closeCart": "Cerrar"
   },
   "tutorial": {
     "step": "Paso",
     "stepOf": "Paso {{current}} de {{total}}",
     "letsGo": "¡Vamos!",
     "understand": "Entiendo",
-    "startAiCheck": "Iniciar verificación IA →"
+    "startAiCheck": "Iniciar verificación IA →",
+    "homeStep": "Aquí ves todas las publicaciones cronológicamente — tu feed personal.",
+    "discoverStep": "Aquí encontrarás todo sobre HUI: personas, obras, experiencias y nuevas ideas.",
+    "createStep": "Aquí se crea lo nuevo. El Orb es tu acceso para crear algo tú mismo.",
+    "impactStep": "Aquí encontrarás todos los proyectos que apoyamos juntos. ¡Crea uno tú mismo!",
+    "profileStep": "Aquí puedes diseñar y personalizar tu perfil."
   },
   "auth": {
     "login": "Iniciar sesión",
@@ -258,9 +289,12 @@
     "orByEmail": "o por correo",
     "acceptTerms": "Acepto los",
     "respectTerms": "Respeto los",
-    "reflink": "Código de referido opcional",
+    "reflink": "Código de referencia opcional",
     "emailPlaceholder": "Correo",
-    "passwordPlaceholder": "Contraseña"
+    "passwordPlaceholder": "Contraseña",
+    "reflinkPlaceholder": "https://be-hui.com/username",
+    "namePlaceholder": "Tu nombre",
+    "newPasswordPlaceholder": "Contraseña (mín. 8 caracteres)"
   },
   "works": {
     "workTitle": "Título de la obra",
@@ -269,7 +303,14 @@
     "exampleWorks": "Obras de ejemplo",
     "sell": "Vender",
     "toSell": "En venta",
-    "category": "Categoría"
+    "category": "Categoría",
+    "photoAdd": "Añadir foto",
+    "videoAdd": "Añadir vídeo",
+    "fileUpload": "Subir archivo",
+    "titlePlaceholder": "Luz de la tarde sobre las montañas",
+    "descPlaceholder": "Una pintura digital inspirada en un atardecer en los Alpes. 2024.",
+    "categoryPlaceholder": "Pintura digital",
+    "regionPlaceholder": "Alemania, Austria, Suiza"
   },
   "talent": {
     "talentDesignation": "Designación del talento (profesión)",
@@ -279,7 +320,13 @@
     "submitForReview": "Enviar para revisión",
     "available": "Disponible",
     "talent": "Talento",
-    "talents": "Talentos"
+    "talents": "Talentos",
+    "motivationPlaceholder": "Quiero…",
+    "journeyPlaceholder": "Mi camino comenzó…",
+    "visionPlaceholder": "Me imagino una comunidad en la que…",
+    "commentPlaceholder": "Cuenta brevemente qué te mueve…",
+    "passionPlaceholder": "¿Qué te define? ¿Qué te apasiona? ¿Qué puedes compartir?",
+    "taglinePlaceholder": "Una frase que describa quién eres y qué te impulsa…"
   },
   "experience": {
     "experienceTitle": "¿Cómo se llama tu experiencia?",
@@ -288,7 +335,16 @@
     "mood": "Ambiente / energía",
     "chooseMood": "Elegir ambiente",
     "experiences": "Experiencias",
-    "yourExperiences": "Tus experiencias, eventos y proyectos apasionados."
+    "yourExperiences": "Tus experiencias, eventos y proyectos apasionados.",
+    "durationPlaceholder": "Ej. 90 minutos, día completo…",
+    "locationPlaceholder": "Ej. Múnich, Schwabing / o enlace online",
+    "participantsPlaceholder": "Ej. 1 (sesión individual) o 10",
+    "instantBooking": "Activar reserva instantánea",
+    "titlePlaceholder": "Ej. Clases de guitarra para principiantes",
+    "descPlaceholder": "¿Qué haces, qué pueden esperar los participantes?",
+    "exampleWorks": "Obras de ejemplo",
+    "availableLabel": "Disponible",
+    "soldOutLabel": "Agotado"
   },
   "notifications": {
     "title": "Notificaciones",
@@ -298,7 +354,10 @@
     "noNotifications": "Sin notificaciones",
     "actionNeeded": "Acción necesaria",
     "commentReportsOpen": "Reportes de comentarios abiertos",
-    "messages": "Mensajes"
+    "messages": "Mensajes",
+    "connectionRequests": "SOLICITUDES DE CONEXIÓN",
+    "relevant": "RELEVANTE",
+    "informative": "INFORMATIVO"
   },
   "errors": {
     "saveFailed": "Error al guardar. Inténtalo de nuevo.",
@@ -315,14 +374,18 @@
   "chat": {
     "activeConversations": "Conversaciones activas",
     "writeMessage": "Escribir mensaje…",
-    "yourMessage": "Tu mensaje (opcional) — ej. fecha deseada, preguntas…",
+    "yourMessage": "Tu mensaje (opcional) — Ej. fecha preferida, preguntas…",
     "yourAnswer": "Tu respuesta…",
-    "titleConnection": "Título de la conexión"
+    "titleConnection": "Título de tu conexión"
   },
   "studio": {
     "update": "Editar actualización",
     "pendingApproval": "Solicitudes y contenido pendientes de aprobación",
-    "becomeMember": "Hacerse miembro"
+    "becomeMember": "Hacerse miembro",
+    "settingsLabel": "Ajustes",
+    "supportLabel": "Soporte",
+    "rejectReasonPlaceholder": "Razón (opcional)…",
+    "replyPlaceholder": "Tu respuesta…"
   },
   "diagnostics": {
     "devConsole": "Consola Dev",
@@ -368,7 +431,23 @@
     "work": "Obra",
     "experience": "Experiencia",
     "moment": "Momento",
-    "forSale": "En venta"
+    "forSale": "En venta",
+    "forSaleSub": "Establecer precio y permitir pedidos",
+    "shippingPossible": "Envío posible",
+    "pickupPossible": "Recogida posible",
+    "titlePlaceholder": "Ej. Acuarela \"Atmósfera matinal\"",
+    "descPlaceholder": "Describe tu obra…",
+    "pricePlaceholder": "49,00",
+    "selectCategory": "Elegir categoría",
+    "uploadImage": "Subir imagen",
+    "titleWork": "Título de la obra",
+    "describeWork": "Descripción detallada",
+    "addPrice": "Añadir precio",
+    "publishWork": "Publicar obra",
+    "publishExperience": "Publicar experiencia",
+    "backToFeed": "Volver al feed",
+    "whatCreate": "¿Qué quieres crear?",
+    "talentOffer": "Oferta de talento"
   },
   "finance": {
     "earned": "Ganado",
@@ -377,10 +456,98 @@
     "all": "Todos",
     "from": "De",
     "to": "A",
-    "gross": "Bruto"
+    "gross": "Bruto",
+    "actionNeeded": "Acción necesaria",
+    "totalSpent": "Total gastado",
+    "impactPool": "Fondo de Impacto",
+    "totalBooked": "Total reservado",
+    "totalEarnings": "Ingresos totales",
+    "huiCommission": "Comisión HUI",
+    "impactShare": "Cuota de Impacto",
+    "quantity": "Cantidad",
+    "tracking": "Seguimiento"
   },
   "search": {
     "people": "Personas",
-    "locationPlaceholder": "Introduce código postal o ciudad…"
+    "locationPlaceholder": "Introduce código postal o ciudad…",
+    "categoryPlaceholder": "Buscar categorías…",
+    "momentsLabel": "Momentos",
+    "locationInput": "Introduce ubicicación…"
+  },
+  "admin": {
+    "pendingApprovals": "Solicitudes y contenidos pendientes de aprobación",
+    "openReports": "Reportes de comentarios abiertos",
+    "members": "Miembros",
+    "talents": "Talentos",
+    "people": "Personas",
+    "guidance": "Guía",
+    "reports": "Reportes",
+    "communityNetwork": "Comunidad y Red",
+    "contentWorks": "Contenidos y Obras",
+    "tradeBookings": "Comercio y Reservas",
+    "impactEffect": "Impacto y Efecto",
+    "rejectReasonPlaceholder": "Ej. Imágenes borrosas, falta descripción…",
+    "internalNotePlaceholder": "Nota interna o feedback para el creador…"
+  },
+  "ambassador": {
+    "title": "Convertirse en Embajador",
+    "description": "Únete a la red HUI como embajador.",
+    "applyNow": "Postular ahora",
+    "yourName": "Tu nombre",
+    "yourEmail": "Tu correo",
+    "yourMessage": "Tu mensaje",
+    "payoutHistory": "Historial de pagos",
+    "totalEarned": "Total ganado",
+    "pendingPayout": "Pago pendiente",
+    "holderPlaceholder": "Titular de cuenta (nombre y apellido)",
+    "ibanPlaceholder": "IBAN (ej. DE89 3704 0044 0532 0130 00)",
+    "bicPlaceholder": "BIC (opcional)",
+    "bankNamePlaceholder": "Nombre y dirección del banco (opcional)"
+  },
+  "begleitung": {
+    "talentDesc": "Diseñar ofertas creativas",
+    "ambassadorDesc": "Invitar nuevos miembros"
+  },
+  "connection": {
+    "step2Title": "Detalles de conexión",
+    "message": "Mensaje",
+    "messagePlaceholder": "Escribe un mensaje personal…",
+    "relationshipType": "Tipo de relación",
+    "colleague": "Colega",
+    "friend": "Amigo",
+    "collaborator": "Colaborador",
+    "client": "Cliente",
+    "mentor": "Mentor",
+    "other": "Otro",
+    "sendRequest": "Enviar solicitud"
+  },
+  "creator": {
+    "openBookings": "Reservas abiertas",
+    "supports": "Apoyos",
+    "salesLabel": "Ventas"
+  },
+  "favorites": {
+    "searchPlaceholder": "Buscar en tus favoritos..."
+  },
+  "security": {
+    "newPassword": "Nueva contraseña",
+    "newPasswordPlaceholder": "Mínimo 8 caracteres",
+    "confirmPassword": "Confirmar contraseña",
+    "confirmPlaceholder": "Introduce de nuevo"
+  },
+  "share": {
+    "nameOrUsername": "Nombre o @usuario…",
+    "writeSomething": "Escribe algo…"
+  },
+  "support": {
+    "customAmount": "Otra cantidad (€)",
+    "personalMessage": "Mensaje personal (opcional)…",
+    "title": "Soporte",
+    "subject": "Asunto",
+    "subjectPlaceholder": "¿De qué se trata?",
+    "message": "Mensaje",
+    "messagePlaceholder": "Describe tu consulta…",
+    "send": "Enviar",
+    "newTicket": "Nuevo ticket"
   }
 }

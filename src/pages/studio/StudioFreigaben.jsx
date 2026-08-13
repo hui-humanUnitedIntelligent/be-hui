@@ -9,6 +9,7 @@
 // DATEN: Supabase (works, experiences, impact_applications, notifications)
 // ══════════════════════════════════════════════════════════════════════════════
 
+import { useTranslation } from "react-i18next";
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabaseClient.js';
 import { formatDateDE } from "../../lib/formatters.js";
@@ -40,6 +41,7 @@ async function sendNotification(userId, type, title, body, actionUrl) {
 }
 
 export default function StudioFreigaben() {
+  const { t } = useTranslation();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [subTab, setSubTab] = useState('pending');
@@ -270,7 +272,7 @@ export default function StudioFreigaben() {
             </h3>
             <textarea
               value={rejectReason} onChange={e => setRejectReason(e.target.value)}
-              placeholder="Grund (optional)…"
+              placeholder={t("studio.rejectReasonPlaceholder")}
               style={{
                 width: '100%', minHeight: 80, padding: '12px', borderRadius: 10,
                 border: `1px solid ${C.border}`, fontSize: 14, color: C.ink,

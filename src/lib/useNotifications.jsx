@@ -6,6 +6,7 @@
 import {
   HUIImpactIcon, HUIBenachrichtigungIcon, HUIStatistikIcon,
 } from '../design/icons/HuiSystemIcons.jsx';
+import { useTranslation } from "react-i18next";
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "./supabaseClient.js";
@@ -111,6 +112,7 @@ function fmtTime(iso) {
 // HOOK
 // ══════════════════════════════════════════════════════════════
 export function useNotifications() {
+  const { t } = useTranslation();
   // WICHTIG: useAuth() darf nicht in try/catch aufgerufen werden (React Rules of Hooks)
   const authCtx = useAuth();
   const user = authCtx?.user ?? null;
@@ -1052,7 +1054,7 @@ export function ResonanzzentrumPanel({ onClose }) {
           {/* Verbindungsanfragen — im "relevant" Tab separat anzeigen */}
           {tab === "relevant" && safeRequests.length > 0 && (
             <>
-              <SectionHeader emoji="🤝" label="VERBINDUNGSANFRAGEN" />
+              <SectionHeader emoji="🤝" label={t("notifications.connectionRequests")} />
               {safeRequests.map(req => (
                 <ConnectionRequestItem
                   key={req.id}
@@ -1069,7 +1071,7 @@ export function ResonanzzentrumPanel({ onClose }) {
               {/* Verbindungsanfragen + Relevant oben */}
               {(safeRequests.length > 0 || grouped.relevant.length > 0) && (
                 <>
-                  <SectionHeader emoji="⭐" label="RELEVANT" />
+                  <SectionHeader emoji="⭐" label={t("notifications.relevant")} />
                   {safeRequests.map(req => (
                     <ConnectionRequestItem
                       key={req.id}
@@ -1083,7 +1085,7 @@ export function ResonanzzentrumPanel({ onClose }) {
               {/* Informativ unten */}
               {grouped.info.length > 0 && (
                 <>
-                  <SectionHeader emoji="📢" label="INFORMATIV" />
+                  <SectionHeader emoji="📢" label={t("notifications.informative")} />
                   {grouped.info.map(n => <NotifItem key={n.id} n={n} onRead={notif?.markRead ?? (() => {})} onDelete={notif?.deleteNotif} />)}
                 </>
               )}

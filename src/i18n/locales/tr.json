@@ -45,7 +45,7 @@
     "name": "Ad",
     "firstName": "Ad",
     "lastName": "Soyad",
-    "email": "E-posta",
+    "email": "E-posta adresi",
     "password": "Şifre",
     "confirmPassword": "Şifreyi onayla",
     "newPassword": "Yeni şifre",
@@ -69,7 +69,7 @@
     "understand": "Anlıyorum",
     "accept": "Kabul ediyorum",
     "respect": "Saygı duyuyorum",
-    "optional": "isteğe bağlı"
+    "optional": "opsiyonel"
   },
   "nav": {
     "home": "Ana sayfa",
@@ -124,8 +124,8 @@
     "username": "@Kullanıcı adı",
     "publicName": "Halka açık ad",
     "fullName": "Ad",
-    "changeAvatar": "Avatar değiştir",
-    "changeCover": "Kapak değiştir",
+    "changeAvatar": "Avatarı değiştir",
+    "changeCover": "Kapağı değiştir",
     "addPhoto": "Fotoğraf ekle",
     "addVideo": "Video ekle",
     "uploadFile": "Dosya yükle",
@@ -168,7 +168,10 @@
       "impactEffect": "Etki & sonuç",
       "additionalInfo": "Ek bilgiler (isteğe bağlı)",
       "saveFailed": "Kaydetme başarısız. Lütfen tekrar deneyin."
-    }
+    },
+    "publicLocation": "Konum",
+    "websitePortfolio": "Web sitesi / Portföy",
+    "bioHint": "Bio"
   },
   "settings": {
     "settings": "Ayarlar",
@@ -216,13 +219,31 @@
     "calmness": "Sakinlik",
     "resonance": "Rezonans",
     "bookings": "Rezervasyonlar",
-    "bookingsOpen": "Rezervasyonlar açık"
+    "bookingsOpen": "Rezervasyonlar açık",
+    "yourImpact": "Etkin",
+    "impactOverview": "Etki Özeti",
+    "monthlyVoting": "Aylık oylama",
+    "distributeImpact": "Etkiyi dağıt",
+    "projectsSupported": "Desteklenen projeler",
+    "totalImpact": "Toplam etki",
+    "thisMonth": "Bu ay",
+    "lastMonth": "Geçen ay",
+    "votesCast": "Verilen oylar",
+    "votesRemaining": "Kalan oylar",
+    "voteNow": "Şimdi oyla",
+    "learnMore": "Daha fazla bilgi",
+    "howItWorks": "Nasıl çalışır",
+    "impactDescription": "Oyunuz sayılır. Desteklediğiniz projelere etkinizi dağıtın.",
+    "progressPlaceholder": "Örn. Çit tamamlandı",
+    "descPlaceholder": "İlerlemeyi açıkla...",
+    "projectProgressPlaceholder": "Örn. İlk kilometre taşı ulaşildi!",
+    "projectDescPlaceholder": "Bu güncelleme hakkında daha fazlasını anlat..."
   },
   "commerce": {
     "addToCart": "Sepeti aç",
     "cart": "Sepet",
-    "checkout": "Ödeme",
-    "buyNow": "Hemen satın al",
+    "checkout": "Satın al",
+    "buyNow": "Şimdi satın al",
     "forSale": "Satılık",
     "setPriceAllowOrders": "Fiyat belirle ve siparişlere izin ver",
     "shipping": "Kargo",
@@ -230,7 +251,7 @@
     "pickupPossible": "Teslim alma mümkün",
     "shippingNational": "Ulusal kargo",
     "shippingInternational": "Uluslararası kargo",
-    "deliveryTime": "Teslimat süresi",
+    "deliveryTime": "Teslim süresi",
     "pricePer": "Birim fiyat",
     "huidCommission": "HUI komisyonu",
     "brutto": "Brüt",
@@ -241,14 +262,24 @@
       "registration": "Kayıt gerekli mi?",
       "instantBooking": "Anında rezervasyonu etkinleştir",
       "people": "Kişi"
-    }
+    },
+    "openCart": "Sepeti aç",
+    "less": "Az",
+    "more": "Fazla",
+    "removeItem": "Kaldır",
+    "closeCart": "Kapat"
   },
   "tutorial": {
     "step": "Adım",
     "stepOf": "Adım {{current}} / {{total}}",
     "letsGo": "Hadi başlayalım!",
     "understand": "Anlıyorum",
-    "startAiCheck": "AI kontrolünü başlat →"
+    "startAiCheck": "AI kontrolünü başlat →",
+    "homeStep": "Burada tüm gönderileri kronolojik olarak görürsün — kişisel akışın.",
+    "discoverStep": "Burada HUI hakkında her şeyi bulursun: insanlar, eserler, deneyimler ve yeni fikirler.",
+    "createStep": "Burada yenilik yaratılır. Orb, kendin bir şey yaratman için giriş noktan.",
+    "impactStep": "Burada birlikte desteklediğimiz tüm projeleri bulursun. Sen de bir tane oluştur!",
+    "profileStep": "Burada profilini tasarlayabilir ve kişiselleştirebilirsin."
   },
   "auth": {
     "login": "Giriş yap",
@@ -258,9 +289,12 @@
     "orByEmail": "veya e-posta ile",
     "acceptTerms": "Kabul ediyorum",
     "respectTerms": "Saygı duyuyorum",
-    "reflink": "Referans kodu isteğe bağlı",
+    "reflink": "Referans kodu opsiyonel",
     "emailPlaceholder": "E-posta",
-    "passwordPlaceholder": "Şifre"
+    "passwordPlaceholder": "Şifre",
+    "reflinkPlaceholder": "https://be-hui.com/username",
+    "namePlaceholder": "Adınız",
+    "newPasswordPlaceholder": "Şifre (min. 8 karakter)"
   },
   "works": {
     "workTitle": "Eser başlığı",
@@ -269,7 +303,14 @@
     "exampleWorks": "Örnek eserler",
     "sell": "Sat",
     "toSell": "Satılık",
-    "category": "Kategori"
+    "category": "Kategori",
+    "photoAdd": "Fotoğraf ekle",
+    "videoAdd": "Video ekle",
+    "fileUpload": "Dosya yükle",
+    "titlePlaceholder": "Dağlar üzerinde akşam ışığı",
+    "descPlaceholder": "Alplerde bir gün batımından ilham alan dijital tablo. 2024.",
+    "categoryPlaceholder": "Dijital resim",
+    "regionPlaceholder": "Almanya, Avusturya, İsviçre"
   },
   "talent": {
     "talentDesignation": "Yetenek tanımı (meslek)",
@@ -279,7 +320,13 @@
     "submitForReview": "İncelemeye gönder",
     "available": "Mevcut",
     "talent": "Yetenek",
-    "talents": "Yetenekler"
+    "talents": "Yetenekler",
+    "motivationPlaceholder": "İstiyorum…",
+    "journeyPlaceholder": "Yolculuğum başladı…",
+    "visionPlaceholder": "Hayal ettiğim bir topluluk…",
+    "commentPlaceholder": "Kısaca neyin seni motive ettiğini anlat…",
+    "passionPlaceholder": "Seni ne tanımlıyor? Seni ne heyecanlandırıyor? Ne paylaşabilirsin?",
+    "taglinePlaceholder": "Senin kim olduğunu ve seni neyin yönlendirdiğini açıklayan bir cümle…"
   },
   "experience": {
     "experienceTitle": "Deneyiminizin adı ne?",
@@ -288,7 +335,16 @@
     "mood": "Ruh hali / enerji",
     "chooseMood": "Ruh hali seç",
     "experiences": "Deneyimler",
-    "yourExperiences": "Deneyimleriniz, etkinlikleriniz ve gönül projeleriniz."
+    "yourExperiences": "Deneyimleriniz, etkinlikleriniz ve gönül projeleriniz.",
+    "durationPlaceholder": "Örn. 90 dakika, tam gün…",
+    "locationPlaceholder": "Örn. Münih, Schwabing / veya online bağlantı",
+    "participantsPlaceholder": "Örn. 1 (bireysel seans) veya 10",
+    "instantBooking": "Anında rezervasyonu etkinleştir",
+    "titlePlaceholder": "Örn. Yeni başlayanlar için gitar dersi",
+    "descPlaceholder": "Ne yapıyorsun, katılımcılar ne bekleyebilir?",
+    "exampleWorks": "Örnek eserler",
+    "availableLabel": "Mevcut",
+    "soldOutLabel": "Tükendi"
   },
   "notifications": {
     "title": "Bildirimler",
@@ -298,7 +354,10 @@
     "noNotifications": "Bildirim yok",
     "actionNeeded": "Eylem gerekli",
     "commentReportsOpen": "Yorum bildirimleri açık",
-    "messages": "Mesajlar"
+    "messages": "Mesajlar",
+    "connectionRequests": "BAĞLANTI TALEPLERİ",
+    "relevant": "İLGLİ",
+    "informative": "BİLGİLENDİRİCİ"
   },
   "errors": {
     "saveFailed": "Kaydetme başarısız. Lütfen tekrar deneyin.",
@@ -315,14 +374,18 @@
   "chat": {
     "activeConversations": "Aktif sohbetler",
     "writeMessage": "Mesaj yaz…",
-    "yourMessage": "Mesajınız (isteğe bağlı) — ör. tercih edilen tarih, sorular…",
+    "yourMessage": "Mesajınız (opsiyonel) — Örn. tercih edilen tarih, sorular…",
     "yourAnswer": "Cevabınız…",
-    "titleConnection": "Bağlantı başlığı"
+    "titleConnection": "Bağlantı başlığınız"
   },
   "studio": {
     "update": "Güncellemeyi düzenle",
     "pendingApproval": "Onay bekleyen talepler ve içerikler",
-    "becomeMember": "Üye ol"
+    "becomeMember": "Üye ol",
+    "settingsLabel": "Ayarlar",
+    "supportLabel": "Destek",
+    "rejectReasonPlaceholder": "Sebep (opsiyonel)…",
+    "replyPlaceholder": "Cevabınız…"
   },
   "diagnostics": {
     "devConsole": "Dev Konsolu",
@@ -368,7 +431,23 @@
     "work": "Eser",
     "experience": "Deneyim",
     "moment": "An",
-    "forSale": "Satılık"
+    "forSale": "Satılık",
+    "forSaleSub": "Fiyat belirle ve siparişlere izin ver",
+    "shippingPossible": "Kargo mümkün",
+    "pickupPossible": "Teslim alma mümkün",
+    "titlePlaceholder": "Örn. Suluboya \"Sabah Atmosferi\"",
+    "descPlaceholder": "Eserini tanımla…",
+    "pricePlaceholder": "49,00",
+    "selectCategory": "Kategori seç",
+    "uploadImage": "Resim yükle",
+    "titleWork": "Eser başlığı",
+    "describeWork": "Detaylı açıklama",
+    "addPrice": "Fiyat ekle",
+    "publishWork": "Eseri yayınla",
+    "publishExperience": "Deneyimi yayınla",
+    "backToFeed": "Akışa dön",
+    "whatCreate": "Ne oluşturmak istiyorsun?",
+    "talentOffer": "Yetenek teklifi"
   },
   "finance": {
     "earned": "Kazanıldı",
@@ -377,10 +456,98 @@
     "all": "Tümü",
     "from": "Kimden",
     "to": "Kime",
-    "gross": "Brüt"
+    "gross": "Brüt",
+    "actionNeeded": "Eylem gerekli",
+    "totalSpent": "Toplam harcanan",
+    "impactPool": "Etki Fonu",
+    "totalBooked": "Toplam rezervasyon",
+    "totalEarnings": "Toplam kazanç",
+    "huiCommission": "HUI komisyonu",
+    "impactShare": "Etki payı",
+    "quantity": "Miktar",
+    "tracking": "Takip"
   },
   "search": {
     "people": "Kişiler",
-    "locationPlaceholder": "Posta kodu veya şehir girin…"
+    "locationPlaceholder": "Posta kodu veya şehir girin…",
+    "categoryPlaceholder": "Kategorileri ara…",
+    "momentsLabel": "Anlar",
+    "locationInput": "Konum girin…"
+  },
+  "admin": {
+    "pendingApprovals": "Onay bekleyen talepler ve içerikler",
+    "openReports": "Yorum şikayetleri açık",
+    "members": "Üyeler",
+    "talents": "Yetenekler",
+    "people": "Kişiler",
+    "guidance": "Rehberlik",
+    "reports": "Şikayetler",
+    "communityNetwork": "Topluluk ve Ağ",
+    "contentWorks": "İçerikler ve Eserler",
+    "tradeBookings": "Ticaret ve Rezervasyonlar",
+    "impactEffect": "Etki ve Sonuç",
+    "rejectReasonPlaceholder": "Örn. Resimler bulanık, açıklama eksik…",
+    "internalNotePlaceholder": "İç not veya oluşturucu için geri bildirim…"
+  },
+  "ambassador": {
+    "title": "Elçi Ol",
+    "description": "HUI ağına elçi olarak katıl.",
+    "applyNow": "Şimdi başvur",
+    "yourName": "Adınız",
+    "yourEmail": "E-postanız",
+    "yourMessage": "Mesajınız",
+    "payoutHistory": "Ödeme geçmişi",
+    "totalEarned": "Toplam kazanç",
+    "pendingPayout": "Bekleyen ödeme",
+    "holderPlaceholder": "Hesap sahibi (ad ve soyad)",
+    "ibanPlaceholder": "IBAN (örn. DE89 3704 0044 0532 0130 00)",
+    "bicPlaceholder": "BIC (opsiyonel)",
+    "bankNamePlaceholder": "Banka adı ve adresi (opsiyonel)"
+  },
+  "begleitung": {
+    "talentDesc": "Yaratıcı teklifler oluştur",
+    "ambassadorDesc": "Yeni üyeleri davet et"
+  },
+  "connection": {
+    "step2Title": "Bağlantı detayları",
+    "message": "Mesaj",
+    "messagePlaceholder": "Kişisel bir mesaj yaz…",
+    "relationshipType": "İlişki türü",
+    "colleague": "İş arkadaşı",
+    "friend": "Arkadaş",
+    "collaborator": "İşbirlikçi",
+    "client": "Müşteri",
+    "mentor": "Mentor",
+    "other": "Diğer",
+    "sendRequest": "Talep gönder"
+  },
+  "creator": {
+    "openBookings": "Açık rezervasyonlar",
+    "supports": "Destekler",
+    "salesLabel": "Satışlar"
+  },
+  "favorites": {
+    "searchPlaceholder": "Favorilerinde ara..."
+  },
+  "security": {
+    "newPassword": "Yeni şifre",
+    "newPasswordPlaceholder": "En az 8 karakter",
+    "confirmPassword": "Şifreyi onayla",
+    "confirmPlaceholder": "Tekrar girin"
+  },
+  "share": {
+    "nameOrUsername": "Ad veya @kullanıcıadı…",
+    "writeSomething": "Bir şeyler yaz…"
+  },
+  "support": {
+    "customAmount": "Diğer tutar (€)",
+    "personalMessage": "Kişisel mesaj (opsiyonel)…",
+    "title": "Destek",
+    "subject": "Konu",
+    "subjectPlaceholder": "Ne hakkında?",
+    "message": "Mesaj",
+    "messagePlaceholder": "Sorununuzu açıklayın…",
+    "send": "Gönder",
+    "newTicket": "Yeni bilet"
   }
 }

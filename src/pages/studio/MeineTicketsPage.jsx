@@ -1,5 +1,6 @@
 // src/pages/studio/MeineTicketsPage.jsx
 // Support-Tickets als E-Mail-Thread-Verlauf
+import { useTranslation } from "react-i18next";
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useImageGallery } from "../../context/ImageGalleryContext.jsx";
@@ -165,7 +166,7 @@ function ReplySheet({ ticketNumber, subject, adminReply, userId, userEmail, user
           ) : (
             <>
               <textarea value={text} onChange={e => setText(e.target.value)}
-                placeholder="Deine Antwort…" rows={5} autoFocus
+                placeholder={t("studio.replyPlaceholder")} rows={5} autoFocus
                 style={{ width:"100%", padding:"12px 14px", borderRadius:12,
                   border:`1.5px solid ${text.trim() ? C.teal : C.border}`,
                   background:"rgba(0,0,0,0.02)", color:C.ink, fontSize:14,
@@ -494,6 +495,7 @@ function ThreadCard({ ticketNumber, tickets, onOpen }) {
 
 // ── Haupt-Seite ───────────────────────────────────────────────────────────────
 export default function MeineTicketsPage({ onBack, userId, profile }) {
+  const { t } = useTranslation();
   const [tickets,       setTickets]       = useState([]);
   const [loading,       setLoading]       = useState(true);
   const [activeThread,  setActiveThread]  = useState(null); // { ticketNumber, subject }

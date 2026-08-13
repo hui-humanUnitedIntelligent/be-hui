@@ -262,7 +262,12 @@
       "registration": "Anmeldung erforderlich?",
       "instantBooking": "Sofortbuchung aktivieren",
       "people": "Personen"
-    }
+    },
+    "openCart": "Werkekorb öffnen",
+    "less": "Weniger",
+    "more": "Mehr",
+    "removeItem": "Entfernen",
+    "closeCart": "Schließen"
   },
   "tutorial": {
     "step": "Schritt",
@@ -320,7 +325,8 @@
     "journeyPlaceholder": "Mein Weg begann…",
     "visionPlaceholder": "Ich stelle mir eine Gemeinschaft vor, in der…",
     "passionPlaceholder": "Was macht dich aus? Was begeistert dich? Was kannst du teilen?",
-    "taglinePlaceholder": "Ein Satz, der beschreibt wer du bist und was dich antreibt…"
+    "taglinePlaceholder": "Ein Satz, der beschreibt wer du bist und was dich antreibt…",
+    "commentPlaceholder": "Erzähl kurz, was dich bewegt…"
   },
   "experience": {
     "experienceTitle": "Wie heißt dein Erlebnis?",
@@ -348,7 +354,10 @@
     "noNotifications": "Keine Benachrichtigungen",
     "actionNeeded": "Aktion nötig",
     "commentReportsOpen": "Kommentar-Meldungen sind offen",
-    "messages": "Meldungen"
+    "messages": "Meldungen",
+    "connectionRequests": "VERBINDUNGSANFRAGEN",
+    "relevant": "RELEVANT",
+    "informative": "INFORMATIV"
   },
   "errors": {
     "saveFailed": "Speichern fehlgeschlagen. Bitte erneut versuchen.",
@@ -372,7 +381,11 @@
   "studio": {
     "update": "Update bearbeiten",
     "pendingApproval": "Anträge und Inhalte warten auf Freigabe",
-    "becomeMember": "Mitglied werden"
+    "becomeMember": "Mitglied werden",
+    "settingsLabel": "Einstellungen",
+    "supportLabel": "Support",
+    "rejectReasonPlaceholder": "Grund (optional)…",
+    "replyPlaceholder": "Deine Antwort…"
   },
   "diagnostics": {
     "devConsole": "Dev Console",
@@ -521,7 +534,9 @@
     "communityNetwork": "Community & Netzwerk",
     "contentWorks": "Inhalte & Werke",
     "tradeBookings": "Handel & Buchungen",
-    "impactEffect": "Impact & Wirkung"
+    "impactEffect": "Impact & Wirkung",
+    "rejectReasonPlaceholder": "z.B. Bilder zu unscharf, Beschreibung fehlt…",
+    "internalNotePlaceholder": "Interner Hinweis oder Feedback für den Ersteller…"
   },
   "creator": {
     "openBookings": "Buchungen offen",
@@ -531,5 +546,8 @@
   "begleitung": {
     "talentDesc": "Kreative Angebote gestalten",
     "ambassadorDesc": "Neue Mitglieder einladen"
+  },
+  "favorites": {
+    "searchPlaceholder": "Suche in deinen Favoriten..."
   }
 }

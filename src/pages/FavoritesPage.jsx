@@ -3,6 +3,7 @@
 // Props: FavoritesPage({ currentUser, onView, onImpact }) — modular, keine Monolith
 // REGEL: Kein direkter Supabase in UI-Unterokomponenten. Queries top-level.
 
+import { useTranslation } from "react-i18next";
 import { HUI } from "../design/hui.design.js";
 import { useHuiActions, A } from "../core/hui.actions.js";
 import { NAV_CONTENT_SPACER_CSS } from "../components/home/navigation/navigationGeometry.js";
@@ -615,6 +616,7 @@ function EmptyState({ onDiscover }) {
    Props: { currentUser, onView, onImpact, onDiscover }
 ══════════════════════════════════════════════════════════════ */
 export default function FavoritesPage({ currentUser, onView, onImpact, onDiscover }) {
+  const { t } = useTranslation();
   const actions = useHuiActions();
   const { open: openPreview } = useContentPreview();
 
@@ -809,7 +811,7 @@ export default function FavoritesPage({ currentUser, onView, onImpact, onDiscove
                 onChange={e => setSearch(e.target.value)}
                 onFocus={() => setShowSearch(true)}
                 onBlur={() => !search && setShowSearch(false)}
-                placeholder="Suche in deinen Favoriten..."
+                placeholder={t("favorites.searchPlaceholder")}
                 style={{
                   flex:1, border:"none", background:"none",
                   fontSize:12.5, color:C.ink, outline:"none", minWidth:0,
