@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 // src/feed/UnifiedFeed.jsx
 // ═══════════════════════════════════════════════════════════════
 // HUI — UNIFIED FEED  (Phase 2A: Safe Reintegration)

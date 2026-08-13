@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 // src/components/experiences/ExperienceWizard.jsx
 // HUI – Erlebnis-Editor: 4-Schritte-Wizard (v2)
 // Schritt 1: Basis | 2: Wann & Wo | 3: Teilnahme | 4: Veröffentlichen
@@ -384,12 +385,12 @@ function S1({ data, onChange, userId }) {
       <div style={{ fontSize: 13, color: C.inkMid, marginBottom: 24, lineHeight: 1.5 }}>Erzähl kurz, worum es geht.</div>
 
       {/* Titel */}
-      <Field label="Titel" req>
+      <Field label={t("common.title")} req>
         <TextInput value={data.title || ""} onChange={v => onChange({ title: v })} placeholder="Aquarell Workshop für Anfänger" maxLen={80}/>
       </Field>
 
       {/* Typ — 3-spaltige Chip-Kacheln */}
-      <Field label="Typ" req>
+      <Field label={t("common.type")} req>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
           {EXP_TYPEN.map(et => (
             <TypChip
@@ -404,7 +405,7 @@ function S1({ data, onChange, userId }) {
       </Field>
 
       {/* Kurzbeschreibung */}
-      <Field label="Kurzbeschreibung" req>
+      <Field label={t("profile.shortDescription")} req>
         <TextArea
           value={data.caption || ""}
           onChange={v => onChange({ caption: v })}
@@ -415,7 +416,7 @@ function S1({ data, onChange, userId }) {
       </Field>
 
       {/* Titelbild */}
-      <Field label="Titelbild" req>
+      <Field label={t("works.titleImage")} req>
         {firstImg ? (
           <div style={{ position: "relative", borderRadius: 14, overflow: "hidden", aspectRatio: "16/9", background: "#1A1A18" }}>
             <img loading="lazy" decoding="async" src={firstImg} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}/>
@@ -477,7 +478,7 @@ function S2({ data, onChange, onPickLocation }) {
       <div style={{ fontSize: 13, color: C.inkMid, marginBottom: 24, lineHeight: 1.5 }}>Wann und wo findet das Erlebnis statt?</div>
 
       {/* Datum */}
-      <Field label="Datum" req>
+      <Field label={t("common.date")} req>
         <div style={{ position: "relative" }}>
           <span style={{ position:"absolute", left:16, top:"50%", transform:"translateY(-50%)", color:C.inkFade, pointerEvents:"none" }}><HUIKalenderIcon size={16}/></span>
           <input
@@ -520,7 +521,7 @@ function S2({ data, onChange, onPickLocation }) {
       </div>
 
       {/* Ort */}
-      <Field label="Ort" req hint="Tippen fuer Vorschlaege, z.B. Ortsname oder PLZ.">
+      <Field label={t("common.location")} req hint="Tippen fuer Vorschlaege, z.B. Ortsname oder PLZ.">
         <div style={{ position: "relative" }}>
           <span style={{ position:"absolute", left:16, top:"50%", transform:"translateY(-50%)", color:C.inkFade, pointerEvents:"none", zIndex:1 }}><HUILocationIcon size={16}/></span>
           <LocationAutocompleteInput
@@ -534,10 +535,10 @@ function S2({ data, onChange, onPickLocation }) {
       </Field>
 
       {/* Online oder Vor Ort */}
-      <Field label="Online oder Vor Ort" req>
+      <Field label={t("common.onlineOrOnSite")} req>
         <div style={{ display: "flex", gap: 10 }}>
-          <FormatPill active={data.format === "vor_ort"} label="Vor Ort" icon={<HUIVorOrtIcon size={16}/>} onClick={() => onChange({ format: "vor_ort" })}/>
-          <FormatPill active={data.format === "online"}  label="Online"  icon={<HUIOnlineIcon size={16}/>} onClick={() => onChange({ format: "online"  })}/>
+          <FormatPill active={data.format === "vor_ort"} label={t("common.onSite")} icon={<HUIVorOrtIcon size={16}/>} onClick={() => onChange({ format: "vor_ort" })}/>
+          <FormatPill active={data.format === "online"}  label={t("common.online")}  icon={<HUIOnlineIcon size={16}/>} onClick={() => onChange({ format: "online"  })}/>
         </div>
       </Field>
     </div>
@@ -557,7 +558,7 @@ function S3({ data, onChange }) {
       <div style={{ fontSize: 13, color: C.inkMid, marginBottom: 24, lineHeight: 1.5 }}>Details zur Teilnahme und zum Preis.</div>
 
       {/* Preis — großer Input */}
-      <Field label="Preis" req>
+      <Field label={t("common.price")} req>
         <div style={{ position: "relative" }}>
           <span style={{
             position: "absolute", left: 18, top: "50%", transform: "translateY(-50%)",
@@ -582,7 +583,7 @@ function S3({ data, onChange }) {
       </Field>
 
       {/* Währung */}
-      <Field label="Währung">
+      <Field label={t("common.currency")}>
         <select
           value={data.currency || "EUR – Euro"}
           onChange={e => onChange({ currency: e.target.value.split(" ")[0] })}
@@ -747,6 +748,7 @@ function S4({ data, onChange, saving }) {
 // WIZARD ROOT
 // ══════════════════════════════════════════════════════════════
 export default function ExperienceWizard({ userId, existingExp = null, onClose, onSaved }) {
+  const { t } = useTranslation();
   const TOTAL = 4;
   const [step, setSt]             = useState(1);
   const [saving, setSaving]       = useState(false);

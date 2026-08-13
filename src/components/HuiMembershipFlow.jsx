@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 /**
  * HuiMembershipFlow v5 — 4-Karten Horizontal Slide Flow
  *
@@ -1067,7 +1068,7 @@ function SuccessScreen({ onDone }) {
 
       <div style={{ width:"100%", animation:"hmf5-rise 0.5s 0.30s ease both" }}>
         <CtaBtn
-          label="Los geht's ✦"
+          label={t("tutorial.letsGo")}
           variant="teal"
           onClick={onDone}
         />
@@ -1100,6 +1101,7 @@ function CloseBtn({ onClose }) {
 // MAIN EXPORT
 // ═══════════════════════════════════════════════════════════════
 export default function HuiMembershipFlow({ onComplete, onClose }) {
+  const { t } = useTranslation();
   const { activateMembership, refreshProfile } = useAuth();
 
   const [card,    setCard]    = useState(0);   // 0–3 = Karten, 4 = Success

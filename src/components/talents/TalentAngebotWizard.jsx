@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 // src/components/talents/TalentAngebotWizard.jsx
 // ══════════════════════════════════════════════════════════════════════
 // TALENT-ANGEBOT WIZARD — Erstellen/Bearbeiten eines Talent-/Dienstleistungs-
@@ -117,6 +118,7 @@ function Chip({ active, children, onClick, disabled }) {
 }
 
 export default function TalentAngebotWizard({ userId, existingTalent = null, onClose, onSaved }) {
+  const { t } = useTranslation();
   const isEdit = !!existingTalent?.id;
   const wasRejected = existingTalent?.status === "rejected";
   const isApproved = existingTalent?.status === "approved";
@@ -545,7 +547,7 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
       )}
       {locked && (
         <div style={{ padding: "12px 20px max(12px, env(safe-area-inset-bottom, 12px))", background: "#fff", borderTop: `1px solid ${C.border}` }}>
-          <SBtn label="Schließen" onClick={onClose}/>
+          <SBtn label={t("common.close")} onClick={onClose}/>
         </div>
       )}
     </div>,
