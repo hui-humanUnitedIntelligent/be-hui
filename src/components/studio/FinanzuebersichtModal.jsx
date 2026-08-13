@@ -11,7 +11,6 @@
 // bis zu 4 Buttons direkt auf jeder Karte gestapelt ("unübersichtlich").
 // ══════════════════════════════════════════════════════════════════════
 
-import { useTranslation } from "react-i18next";
 import { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
@@ -101,7 +100,7 @@ function TxCard({ image, title, subtitle, dateLabel, amount, amountColor = T.ink
         {Array.isArray(statusChips) && statusChips.length > 0 && (
           <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginTop: 5 }}>
             {statusChips.map((c, i) => <StatusChip key={i} {...c} />)}
-            {needsAction && <StatusChip label={t("finance.actionNeeded")} color={T.teal} bg={T.tealSoft} />}
+            {needsAction && <StatusChip label="Aktion nötig" color={T.teal} bg={T.tealSoft} />}
           </div>
         )}
       </div>
@@ -226,7 +225,7 @@ function MeineKaeufe({ userId }) {
 
   return (
     <div>
-      <SummaryRow label={t("finance.totalSpent")} value={eur(total)} />
+      <SummaryRow label="Gesamt ausgegeben" value={eur(total)} />
       {orders.map(o => {
         const item = o.order_items?.[0];
         const title = item?.snapshot?.title || item?.snapshot?.name || "Werk";
@@ -346,10 +345,10 @@ function MeineVerkaeufe({ userId }) {
   return (
     <div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 14 }}>
-        <MiniStat label={t("finance.earned")} value={eur(totalVerdient)} color={T.green} />
-        <MiniStat label={t("finance.revenue")} value={eur(totalUmsatz)} />
-        <MiniStat label={t("finance.impactPool")} value={eur(totalImpact)} color={T.teal} />
-        <MiniStat label={t("finance.sales")} value={items.length} />
+        <MiniStat label="Verdient" value={eur(totalVerdient)} color={T.green} />
+        <MiniStat label="Umsatz" value={eur(totalUmsatz)} />
+        <MiniStat label="Impact-Pool" value={eur(totalImpact)} color={T.teal} />
+        <MiniStat label="Verkäufe" value={items.length} />
       </div>
       {items.map(s => {
         const title = s.snapshot?.title || s.snapshot?.name || "Werk";
@@ -474,7 +473,7 @@ function MeineBuchungen({ userId }) {
 
   return (
     <div>
-      <SummaryRow label={t("finance.totalBooked")} value={eur(total)} />
+      <SummaryRow label="Gesamt gebucht" value={eur(total)} />
       {bookings.map(b => {
         const title = b.talents?.title || "Talent-Angebot";
         const image = Array.isArray(b.talents?.images) && b.talents.images[0]?.url ? b.talents.images[0].url : null;
@@ -609,7 +608,7 @@ function WerHatMichGebucht({ userId }) {
 
   return (
     <div>
-      <SummaryRow label={t("finance.totalEarnings")} value={eur(totalEarned)} color={T.green} />
+      <SummaryRow label="Gesamteinnahmen" value={eur(totalEarned)} color={T.green} />
       {bookings.map(b => {
         const title = b.talents?.title || "Talent-Angebot";
         const image = Array.isArray(b.talents?.images) && b.talents.images[0]?.url ? b.talents.images[0].url : null;

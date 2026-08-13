@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next";
 // src/components/commerce/UnterstutzenFlow.jsx
 // ═══════════════════════════════════════════════════════════════════
 // HUI Commerce 2.0 — Unterstützen Flow (Sprint C2.1)
@@ -323,7 +322,7 @@ function DankeScreen({ items = [], impact = 0, total = 0, huiTotal = 0, onDiscov
         paddingBottom: `calc(12px + max(0px, env(safe-area-inset-bottom, 0px)))`,
         flexShrink: 0, ...fade("500ms"),
       }}>
-        <PrimaryButton label={t("home.moreDiscover")} onClick={wrapClose(onDiscover)} />
+        <PrimaryButton label="Weiter entdecken" onClick={wrapClose(onDiscover)} />
       </div>
 
       {/* Punkt 3: Ja/Nein-Bestätigung für Chat */}
@@ -390,7 +389,6 @@ export default function UnterstutzenFlow({
   onClearCart,
 
 }) {
-  const { t } = useTranslation();
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   const { user } = useAuth();
 

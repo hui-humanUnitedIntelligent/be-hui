@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next";
 import { HUIAnalyticsIcon, HUIImpactIcon, HUIStatistikIcon, HUIWarnIcon, HUIWerkeIcon } from '../design/icons/HuiSystemIcons.jsx';
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
@@ -432,7 +431,7 @@ function FreigabenTab({ onPendingChange }) {
               Ablehnungsgrund (sichtbar für den Nutzer):
             </div>
             <textarea value={rejectReason} onChange={e=>setRejectReason(e.target.value)}
-              placeholder={t("admin.rejectReasonPlaceholder")} rows={3}
+              placeholder="z.B. Bilder zu unscharf, Beschreibung fehlt…" rows={3}
               style={{width:"100%",padding:"10px 12px",borderRadius:10,
                 background:C.card2,border:`1px solid ${C.border}`,
                 color:C.text,fontSize:12,fontFamily:"inherit",
@@ -469,7 +468,7 @@ function FreigabenTab({ onPendingChange }) {
             </div>
             <div style={{fontSize:12,color:C.sub,marginBottom:14}}>„{commentDlg._title}"</div>
             <textarea value={commentText} onChange={e=>setCommentText(e.target.value)}
-              placeholder={t("admin.internalNotePlaceholder")} rows={3}
+              placeholder="Interner Hinweis oder Feedback für den Ersteller…" rows={3}
               style={{width:"100%",padding:"10px 12px",borderRadius:10,
                 background:C.card2,border:`1px solid ${C.border}`,
                 color:C.text,fontSize:12,fontFamily:"inherit",
@@ -1101,7 +1100,6 @@ WHERE w.status='published' AND ca.id IS NULL`],
 }
 
 export default function Admin() {
-  const { t } = useTranslation();
   const [wirker,   setWirker]   = useState([]);
   const [payments, setPayments] = useState([]);
   const [projects, setProjects] = useState([]);

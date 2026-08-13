@@ -6,7 +6,6 @@ import {
   HUIKalenderIcon, HUIImpactIcon, HUIWerkeIcon,
   HUISupportIcon,
 } from '../design/icons/HuiSystemIcons.jsx';
-import { useTranslation } from "react-i18next";
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth }           from "../lib/AuthContext";
 import { supabase }          from "../lib/supabaseClient.js";
@@ -288,7 +287,6 @@ function EmptyState({ icon, title, sub }) {
 // ════════════════════════════════════════════════════════════════════
 
 export default function CreatorDashboard({ visible, onClose, onOpenProfile }) {
-  const { t } = useTranslation();
   injectCSS();
   const { user, profile, isTalent } = useAuth();
   const [tab,       setTab]       = useState("overview");
@@ -385,16 +383,16 @@ export default function CreatorDashboard({ visible, onClose, onOpenProfile }) {
                 <WalletHero wallet={w}/>
                 {/* Stats Grid */}
                 <div style={{display:"flex",gap:10,padding:"0 16px",marginBottom:16}}>
-                  <StatCard icon={<HUIKalenderIcon size={18}/>} label={t("creator.openBookings")}
+                  <StatCard icon={<HUIKalenderIcon size={18}/>} label="Buchungen offen"
                     value={summary?.bookings?.pending||0}
                     color={T.gold} delay={0.05}
                     onClick={() => setTab("bookings")}/>
-                  <StatCard icon={<HUIImpactIcon size={18}/>} label={t("creator.supports")}
+                  <StatCard icon={<HUIImpactIcon size={18}/>} label="Unterstützungen"
                     value={summary?.supports_30d?.count||0}
                     sub={`€ ${parseFloat(summary?.supports_30d?.total||0).toFixed(0)} / 30 Tage`}
                     color={T.coral} delay={0.10}
                     onClick={() => setTab("supports")}/>
-                  <StatCard icon={<HUIWerkeIcon size={18}/>} label={t("creator.salesLabel")}
+                  <StatCard icon={<HUIWerkeIcon size={18}/>} label="Verkäufe"
                     value={summary?.sales_30d?.count||0}
                     sub={`€ ${parseFloat(summary?.sales_30d?.total||0).toFixed(0)} / 30 Tage`}
                     color={T.teal} delay={0.15}

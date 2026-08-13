@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next";
 import { HUIFinanzIcon } from '../../design/icons/HuiSystemIcons.jsx';
 // EinAusgabenModal.jsx — "Ein-/Ausgaben Übersicht"
 // ══════════════════════════════════════════════════
@@ -93,7 +92,6 @@ function getStatus(s) {
 
 // ── Haupt-Komponente ───────────────────────────────────────────────
 export default function EinAusgabenModal({ profile, onClose }) {
-  const { t } = useTranslation();
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   useModalRegistration(true, () => onClose?.(), "EinAusgabenModal");
   const [tab,      setTab]      = useState("ausgaben"); // "ausgaben" | "einnahmen"
@@ -444,7 +442,7 @@ export default function EinAusgabenModal({ profile, onClose }) {
             display:"flex", gap:6, padding:"0 20px 12px",
             overflowX:"auto", scrollbarWidth:"none",
           }}>
-            <FilterChip label={t("common.all")} active={filter==="all"} onClick={() => setFilter("all")} />
+            <FilterChip label="Alle" active={filter==="all"} onClick={() => setFilter("all")} />
             {availableTypes.map(type => {
               const m = getTypeMeta(type);
               return (
@@ -606,35 +604,35 @@ function TransactionRow({ item, isIncome, isExpanded, onToggle }) {
 
             {/* Gegenseite (Von / An) */}
             {isIncome && item.von !== undefined && (
-              <DetailCell label={t("finance.from")} value={item.von || "—"} />
+              <DetailCell label="Von" value={item.von || "—"} />
             )}
             {!isIncome && item.an !== undefined && (
-              <DetailCell label={t("finance.to")} value={item.an || "—"} />
+              <DetailCell label="An" value={item.an || "—"} />
             )}
 
             {/* Brutto (nur bei Einnahmen) */}
             {isIncome && item.brutto != null && item.brutto !== item.betrag && (
-              <DetailCell label={t("finance.gross")} value={fmtEur(item.brutto)} />
+              <DetailCell label="Brutto" value={fmtEur(item.brutto)} />
             )}
 
             {/* Provision */}
             {isIncome && item.provision != null && (
-              <DetailCell label={t("finance.huiCommission")} value={`−${fmtEur(item.provision)}`} accent={T.coral} />
+              <DetailCell label="HUI-Provision" value={`−${fmtEur(item.provision)}`} accent={T.coral} />
             )}
 
             {/* Impact-Anteil */}
             {item.impact != null && item.impact > 0 && (
-              <DetailCell label={t("finance.impactShare")} value={fmtEur(item.impact)} accent={T.teal} />
+              <DetailCell label="Impact-Anteil" value={fmtEur(item.impact)} accent={T.teal} />
             )}
 
             {/* Menge (order_items) */}
             {item.qty != null && (
-              <DetailCell label={t("finance.quantity")} value={`${item.qty}×`} />
+              <DetailCell label="Menge" value={`${item.qty}×`} />
             )}
 
             {/* Tracking (orders) */}
             {item.tracking && (
-              <DetailCell label={t("finance.tracking")} value={item.tracking} />
+              <DetailCell label="Tracking" value={item.tracking} />
             )}
 
             {/* Datum exakt */}

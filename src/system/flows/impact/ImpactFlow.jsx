@@ -9,7 +9,6 @@ import {
   HUIFotoIcon, HUISchreibenIcon, HUIEmpfehlungIcon, HUIVerifIcon,
   HUIDateiIcon,
 } from '../../../design/icons/HuiSystemIcons.jsx';
-import { useTranslation } from "react-i18next";
 import { HUIChatIcon } from '../../../design/icons/HuiInteractionIcons.jsx';
 import React, { useState, useCallback, useEffect } from "react";
 import { supabase } from "../../../lib/supabaseClient";
@@ -342,7 +341,7 @@ function NextBtn({ label="Weiter →", onClick, disabled, loading }) {
 function Step1({ form, update, onNext, onBack, onClose }) {
   const ok = (form.name || "").trim().length >= 3;
   return (
-    <StepWrap step={0} total={7} onBack={onBack} onClose={onClose} label={t("tutorial.step")}>
+    <StepWrap step={0} total={7} onBack={onBack} onClose={onClose} label="Schritt 1 von 7">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{ marginBottom:10, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)" }}><HUIImpactIcon size={28}/></div>
         <h2 style={{ margin:"0 0 8px", fontSize:24, fontWeight: 600, color:T.ink,
@@ -365,7 +364,7 @@ function Step1({ form, update, onNext, onBack, onClose }) {
 function Step2({ form, update, onNext, onBack, onClose }) {
   const ok = (form.satz || "").trim().length >= 15;
   return (
-    <StepWrap step={1} total={7} onBack={onBack} onClose={onClose} label={t("tutorial.step")}>
+    <StepWrap step={1} total={7} onBack={onBack} onClose={onClose} label="Schritt 2 von 7">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{marginBottom:10, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)"}}><HUIChatIcon size={28}/></div>
         <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight: 600, color:T.ink,
@@ -388,7 +387,7 @@ function Step2({ form, update, onNext, onBack, onClose }) {
 function Step3({ form, update, onNext, onBack, onClose }) {
   const ok = (form.problem || "").trim().length >= 20;
   return (
-    <StepWrap step={2} total={7} onBack={onBack} onClose={onClose} label={t("tutorial.step")}>
+    <StepWrap step={2} total={7} onBack={onBack} onClose={onClose} label="Schritt 3 von 7">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{ fontSize:28, marginBottom:10 }}>🎯</div>
         <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight: 600, color:T.ink,
@@ -411,7 +410,7 @@ function Step3({ form, update, onNext, onBack, onClose }) {
 function Step4({ form, update, onNext, onBack, onClose }) {
   const ok = !!form.kategorie;
   return (
-    <StepWrap step={3} total={7} onBack={onBack} onClose={onClose} label={t("tutorial.step")}>
+    <StepWrap step={3} total={7} onBack={onBack} onClose={onClose} label="Schritt 4 von 7">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{ fontSize:28, marginBottom:10 }}>🤝</div>
         <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight: 600, color:T.ink,
@@ -448,7 +447,7 @@ function Step4({ form, update, onNext, onBack, onClose }) {
 function Step5({ form, update, onNext, onBack, onClose }) {
   const ok = (form.umsetzung || "").trim().length >= 20;
   return (
-    <StepWrap step={4} total={7} onBack={onBack} onClose={onClose} label={t("tutorial.step")}>
+    <StepWrap step={4} total={7} onBack={onBack} onClose={onClose} label="Schritt 5 von 7">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{ fontSize:28, marginBottom:10 }}>🚀</div>
         <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight: 600, color:T.ink,
@@ -528,7 +527,7 @@ function Step5b({ milestones, setMilestones, onNext, onBack, onClose, userId }) 
   const ok = validCount >= 1;
 
   return (
-    <StepWrap step={5} total={7} onBack={onBack} onClose={onClose} label={t("tutorial.step")}>
+    <StepWrap step={5} total={7} onBack={onBack} onClose={onClose} label="Schritt 6 von 7">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{ fontSize:28, marginBottom:10 }}>🏁</div>
         <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight: 600, color:T.ink,
@@ -695,7 +694,7 @@ function Step6({ form, update, onNext, onBack, onClose }) {
     return n ?formatNumberDE(parseInt(n,10)) : "";
   };
   return (
-    <StepWrap step={6} total={7} onBack={onBack} onClose={onClose} label={t("tutorial.step")}>
+    <StepWrap step={6} total={7} onBack={onBack} onClose={onClose} label="Schritt 7 von 7">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{ fontSize:28, marginBottom:10 }}>💶</div>
         <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight: 600, color:T.ink,
@@ -1517,7 +1516,6 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
 // ═══ HAUPT-ORCHESTRATOR ═══════════════════════════════════════
 // Steps: 0–5 = Wizard, 6 = KI, 7 = Ergebnis, 7.5(=9) = Persönliche Angaben, 8 = Wirkungsnetzwerk
 export default function ImpactFlow({ onClose }) {
-  const { t } = useTranslation();
   const { user } = useAuth();
   const [step,    setStep]    = useState(0);
   const [aiRes,   setAiRes]   = useState(null);

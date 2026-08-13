@@ -11,7 +11,6 @@
 //  10. AbschlussBar (Verbinden, Nachricht, Einladung)
 // ════════════════════════════════════════════════════════════════
 
-import { useTranslation } from "react-i18next";
 import { makeChunkReload } from "../lib/chunkReload.js";
 import {
   HUIWerkeIcon, HUIErlebnisIcon, HUIImpactIcon, HUITalentIcon, HUIKalenderIcon,
@@ -282,7 +281,7 @@ function VerbindungsDialog({ profile, currentUserId, onClose, onSuccess }) {
               <textarea
                 className="tpp-msg-input"
                 rows={3}
-                placeholder={t("talent.commentPlaceholder")}
+                placeholder="Erzähl kurz, was dich bewegt…"
                 value={message}
                 onChange={e => setMessage(e.target.value)}
                 maxLength={300}
@@ -1125,7 +1124,6 @@ function SocialContextBarTalent({ followCounts, experiences, moments, loading })
 // Sections: gemeinsame Sprint-C-Komponenten
 // ══════════════════════════════════════════════════════════════
 export default function TalentProfilePage({ profileId, onClose, publicView = false }) {
-  const { t } = useTranslation();
   useModalRegistration(true, () => onClose?.(), "TalentProfilePage");
   const { user, setProfile: setAuthProfile } = useAuth();
 

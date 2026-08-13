@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next";
 // src/pages/MyBasisProfile.jsx — HUI Mein Profil v1
 // "Ich gestalte meine Präsenz."
 // ════════════════════════════════════════════════════════════════
@@ -439,7 +438,6 @@ function OffenFuerSection({ openFor, onChange }) {
 const MAX_BIO = 500;
 
 export default function MyBasisProfile({ onClose, profileId }) {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   // AuthContext: eigenen Profile-Cache nach Uploads aktualisieren
   const _auth = useAuth() || {};
@@ -988,7 +986,7 @@ const handleNotifAction = (n) => {
             className="mbp-press-light"
             onClick={() => { setShowPublicPreview(false); setShowSettings(false); setShowMerken(true); }}
             title="Gemerkt"
-            aria-label={t("profile.savedPosts")}
+            aria-label="Gemerkte Inhalte"
             style={{
               width:34, height:34, borderRadius:"50%",
               background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`,
@@ -1007,7 +1005,7 @@ const handleNotifAction = (n) => {
               }
             }}
             title="Profil ansehen"
-            aria-label={t("profile.viewProfile")}
+            aria-label="Profil ansehen"
             style={{
               width:34, height:34, borderRadius:"50%",
               background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`,
@@ -1019,7 +1017,7 @@ const handleNotifAction = (n) => {
             className="mbp-press-light"
             onClick={() => { setShowMerken(false); setShowPublicPreview(false); setShowSettings(true); }}
             title="Einstellungen"
-            aria-label={t("settings.settings")}
+            aria-label="Einstellungen"
             style={{
               width:34, height:34, borderRadius:"50%",
               background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`,
@@ -2256,19 +2254,19 @@ function MeinBereichMenu({
           rowGap:18, columnGap:4,
         }}>
           {isTalent && (
-            <MeinBereichTile icon={<HUIWerkeIcon size={22}/>} label={t("profile.sections.myWorks")} onPress={() => setActiveDrawer("werke")} />
+            <MeinBereichTile icon={<HUIWerkeIcon size={22}/>} label="Meine Werke" onPress={() => setActiveDrawer("werke")} />
           )}
           {isTalent && (
-            <MeinBereichTile icon={<HUITalentIcon size={22}/>} label={t("profile.sections.talentOffers")} onPress={() => setActiveDrawer("talente")} />
+            <MeinBereichTile icon={<HUITalentIcon size={22}/>} label="Talent-Angebote" onPress={() => setActiveDrawer("talente")} />
           )}
           {isTalent && (
-            <MeinBereichTile icon={<HUIErlebnisIcon size={22}/>} label={t("profile.sections.experiencesProjects")} onPress={() => setActiveDrawer("erlebnisse")} />
+            <MeinBereichTile icon={<HUIErlebnisIcon size={22}/>} label="Erlebnisse & Projekte" onPress={() => setActiveDrawer("erlebnisse")} />
           )}
-          <MeinBereichTile icon={<HUIFotoIcon size={22}/>} label={t("profile.sections.myMoments")} onPress={() => setActiveDrawer("momente")} />
-          <MeinBereichTile icon={<HUIImpactIcon size={22}/>} label={t("profile.sections.impactVotes")} onPress={() => setActiveDrawer("impact")} />
-          <MeinBereichTile icon={<HUIFinanzIcon size={22}/>} label={t("profile.sections.purchasesSales")} onPress={() => setShowFinanzModal(true)} />
-          <MeinBereichTile icon={<HUIResonanzIcon size={22}/>} label={t("profile.sections.myResonance")} onPress={onOpenResonanz} />
-          <MeinBereichTile icon={<HUIEmpfehlungIcon size={22}/>} label={t("profile.sections.recommendations")} onPress={() => setActiveDrawer("empfehlungen")} />
+          <MeinBereichTile icon={<HUIFotoIcon size={22}/>} label="Meine Momente" onPress={() => setActiveDrawer("momente")} />
+          <MeinBereichTile icon={<HUIImpactIcon size={22}/>} label="Impact & Stimmen" onPress={() => setActiveDrawer("impact")} />
+          <MeinBereichTile icon={<HUIFinanzIcon size={22}/>} label="Käufe/Verkäufe" onPress={() => setShowFinanzModal(true)} />
+          <MeinBereichTile icon={<HUIResonanzIcon size={22}/>} label="Meine Resonanz" onPress={onOpenResonanz} />
+          <MeinBereichTile icon={<HUIEmpfehlungIcon size={22}/>} label="Empfehlungen" onPress={() => setActiveDrawer("empfehlungen")} />
         </div>
       </div>
 
@@ -2365,12 +2363,12 @@ function MeinBereichMenu({
       {activeDrawer === "empfehlungen" && !empfehlungDetail && (
         <MeinBereichDrawer title="Empfehlungen" icon={<HUIEmpfehlungIcon size={18}/>} subtitle="Erhaltene und gegebene Empfehlungen." onClose={close} footer={false}>
           <MeinBereichChooserRow
-            icon={<HUIEmpfehlungIcon size={18}/>} label={t("profile.sections.customerVoices")}
+            icon={<HUIEmpfehlungIcon size={18}/>} label="Kundenstimmen"
             desc="Empfehlungen, die du erhalten hast"
             onPress={() => setEmpfehlungDetail("incoming")}
           />
           <MeinBereichChooserRow
-            icon={<HUIEmpfehlungIcon size={18}/>} label={t("profile.sections.myRecommendations")}
+            icon={<HUIEmpfehlungIcon size={18}/>} label="Meine Empfehlungen"
             desc="Empfehlungen, die du gegeben hast"
             onPress={() => setEmpfehlungDetail("outgoing")}
           />
@@ -2394,12 +2392,12 @@ function MeinBereichMenu({
       {activeDrawer === "impact" && !impactDetail && (
         <MeinBereichDrawer title="Impact & Stimmen" icon={<HUIImpactIcon size={18}/>} subtitle="Deine Wirkung und abgegebene Stimmen." onClose={close} footer={false}>
           <MeinBereichChooserRow
-            icon={<HUIStimmeIcon size={18}/>} label={t("profile.sections.impactVotesModal")}
+            icon={<HUIStimmeIcon size={18}/>} label="Impact-Stimmen"
             desc={isTalent ? "2 Stimmen / Monat" : "1 Stimme / Monat"}
             onPress={() => setImpactDetail("stimmen")}
           />
           <MeinBereichChooserRow
-            icon={<HUIProjektIcon size={18}/>} label={t("profile.sections.mySupportedProjects")}
+            icon={<HUIProjektIcon size={18}/>} label="Meine unterstützten Projekte"
             onPress={() => setImpactDetail("projekte")}
           />
         </MeinBereichDrawer>
@@ -3105,7 +3103,7 @@ function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
                           {!isEditing && (
                             <button
                               onClick={() => startEditUpdate(u)}
-                              aria-label={t("studio.update")}
+                              aria-label="Update bearbeiten"
                               style={{
                                 background:"none", border:"none", padding:2, cursor:"pointer",
                                 display:"flex", alignItems:"center", color:"#999",

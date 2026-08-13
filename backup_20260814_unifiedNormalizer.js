@@ -72,7 +72,7 @@ function extractAuthor(raw){
     member_since:safeStr(p.member_since)||null,
     verified:safeBool(p.verified||p.is_verified),
     // Phase 4C: Membership fields für Feed-Badges
-    membershipType:   safeStr(p.membership_type)||"base",
+    membershipType:   safeStr(p.membership_type||p.role)||"base",
     membershipActive: safeBool(p.membership_active),
     membershipActive: !!(p.membership_active),
     isTalent: isProfileTalent(p), // Sprint F.4C: einzige Wahrheitsquelle

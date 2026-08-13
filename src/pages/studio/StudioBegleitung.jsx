@@ -9,7 +9,6 @@
 // DATEN: Supabase (profiles, notifications)
 // ══════════════════════════════════════════════════════════════════════════════
 
-import { useTranslation } from "react-i18next";
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabaseClient.js';
 import { HUI } from "../../design/hui.design.js";
@@ -28,7 +27,6 @@ async function sendNotification(userId, type, title, body) {
 }
 
 export default function StudioBegleitung() {
-  const { t } = useTranslation();
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -180,9 +178,9 @@ function MemberRow({ member, expanded, onToggleExpand, onToggleResp, updating })
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 14, fontWeight: 500, color: C.ink }}>{name}</div>
           <div style={{ display: 'flex', gap: 6, marginTop: 3 }}>
-            {member.is_talent === true && <Badge label={t("profile.talent")} color={C.teal} />}
-            {member.is_ambassador === true && <Badge label={t("profile.ambassador")} color={C.coral} />}
-            {(member.role === 'admin' || member.role === 'superadmin') && <Badge label={t("common.members")} color={C.ink} />}
+            {member.is_talent === true && <Badge label="Talent" color={C.teal} />}
+            {member.is_ambassador === true && <Badge label="Ambassador" color={C.coral} />}
+            {(member.role === 'admin' || member.role === 'superadmin') && <Badge label="Team" color={C.ink} />}
           </div>
         </div>
         <span style={{ color: C.muted, fontSize: 12 }}>{expanded ? '▴' : '▾'}</span>
@@ -195,9 +193,9 @@ function MemberRow({ member, expanded, onToggleExpand, onToggleResp, updating })
               fontSize: 12, fontWeight: 600, color: C.muted, marginBottom: 10,
               textTransform: 'uppercase', letterSpacing: 0.5,
             }}>Verantwortungen</div>
-            <RespToggle label={t("profile.talent")} desc={t("begleitung.talentDesc")} active={member.is_talent === true}
+            <RespToggle label="Talent" desc="Kreative Angebote gestalten" active={member.is_talent === true}
               onToggle={() => onToggleResp(member, 'is_talent')} disabled={updating} />
-            <RespToggle label={t("profile.ambassador")} desc={t("begleitung.ambassadorDesc")} active={member.is_ambassador === true}
+            <RespToggle label="Ambassador" desc="Neue Mitglieder einladen" active={member.is_ambassador === true}
               onToggle={() => onToggleResp(member, 'is_ambassador')} disabled={updating} />
           </div>
         </div>

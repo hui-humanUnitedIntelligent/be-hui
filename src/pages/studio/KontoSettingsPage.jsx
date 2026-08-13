@@ -24,7 +24,6 @@
 //        AuthContext (saveProfile, signOut)
 // ══════════════════════════════════════════════════════════════════════════════
 
-import { useTranslation } from "react-i18next";
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabaseClient.js';
 import { useAuth } from '../../lib/AuthContext.jsx';
@@ -48,7 +47,6 @@ const ROLE_LABELS = {
 };
 
 export default function KontoSettingsPage() {
-  const { t } = useTranslation();
   const { user, profile, saveProfile, signOut } = useAuth();
   const [notifSettings, setNotifSettings] = useState(null);
   const [privacySettings, setPrivacySettings] = useState(null);
@@ -174,10 +172,10 @@ export default function KontoSettingsPage() {
 
           {editing ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <InputField label={t("common.name")} value={displayName} onChange={setDisplayName} placeholder="Dein Name" />
-              <TextAreaField label={t("profile.aboutYou")} value={bio} onChange={setBio} placeholder="Erzähl von dir" />
-              <InputField label={t("common.location")} value={locationLabel} onChange={setLocationLabel} placeholder="Wo du lebst" />
-              <InputField label={t("common.website")} value={website} onChange={setWebsite} placeholder="https://…" />
+              <InputField label="Name" value={displayName} onChange={setDisplayName} placeholder="Dein Name" />
+              <TextAreaField label="Über dich" value={bio} onChange={setBio} placeholder="Erzähl von dir" />
+              <InputField label="Ort" value={locationLabel} onChange={setLocationLabel} placeholder="Wo du lebst" />
+              <InputField label="Website" value={website} onChange={setWebsite} placeholder="https://…" />
               <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
                 <button onClick={handleSaveIdentity} disabled={saving} style={{
                   padding: '10px 20px', borderRadius: 10, border: 'none', cursor: 'pointer',
@@ -294,7 +292,7 @@ export default function KontoSettingsPage() {
             border: `1px solid ${C.border}`,
           }}>
             <ToggleRow
-              label={t("profile.profileVisible")}
+              label="Profil sichtbar"
               hint="Andere können dein Profil finden"
               value={privacySettings.profile_visibility !== 'private'}
               onChange={() => togglePrivacy('profile_visibility')}
@@ -302,19 +300,19 @@ export default function KontoSettingsPage() {
               currentValue={privacySettings.profile_visibility}
             />
             <ToggleRow
-              label={t("common.location")}
+              label="Ort anzeigen"
               hint="Zeigt, wo du lebst"
               value={privacySettings.show_location}
               onChange={() => togglePrivacy('show_location')}
             />
             <ToggleRow
-              label={t("common.available")}
+              label="Verfügbarkeit anzeigen"
               hint="Zeigt, ob du Zeit hast"
               value={privacySettings.show_availability}
               onChange={() => togglePrivacy('show_availability')}
             />
             <ToggleRow
-              label={t("connection.message")}
+              label="Nachrichten erlauben"
               hint="Andere können dir schreiben"
               value={privacySettings.allow_messages}
               onChange={() => togglePrivacy('allow_messages')}
@@ -332,14 +330,14 @@ export default function KontoSettingsPage() {
             border: `1px solid ${C.border}`,
           }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: C.ink, marginBottom: 12 }}>E-Mail</div>
-            <ToggleRow label={t("common.active")} hint="Wenn jemand Zeit mit dir verbringt" value={notifSettings.email_bookings} onChange={() => toggleNotif('email_bookings')} />
-            <ToggleRow label={t("connection.message")} hint="Wenn dir jemand schreibt" value={notifSettings.email_messages} onChange={() => toggleNotif('email_messages')} />
-            <ToggleRow label={t("impact.impact")} hint="Wenn sich an deinen Projekten etwas bewegt" value={notifSettings.email_impact} onChange={() => toggleNotif('email_impact')} last />
+            <ToggleRow label="Buchungen" hint="Wenn jemand Zeit mit dir verbringt" value={notifSettings.email_bookings} onChange={() => toggleNotif('email_bookings')} />
+            <ToggleRow label="Nachrichten" hint="Wenn dir jemand schreibt" value={notifSettings.email_messages} onChange={() => toggleNotif('email_messages')} />
+            <ToggleRow label="Impact" hint="Wenn sich an deinen Projekten etwas bewegt" value={notifSettings.email_impact} onChange={() => toggleNotif('email_impact')} last />
 
             <div style={{ fontSize: 13, fontWeight: 600, color: C.ink, marginTop: 16, marginBottom: 12 }}>Push</div>
-            <ToggleRow label={t("common.active")} hint="" value={notifSettings.push_bookings} onChange={() => toggleNotif('push_bookings')} />
-            <ToggleRow label={t("connection.message")} hint="" value={notifSettings.push_messages} onChange={() => toggleNotif('push_messages')} />
-            <ToggleRow label={t("impact.impact")} hint="" value={notifSettings.push_impact} onChange={() => toggleNotif('push_impact')} last />
+            <ToggleRow label="Buchungen" hint="" value={notifSettings.push_bookings} onChange={() => toggleNotif('push_bookings')} />
+            <ToggleRow label="Nachrichten" hint="" value={notifSettings.push_messages} onChange={() => toggleNotif('push_messages')} />
+            <ToggleRow label="Impact" hint="" value={notifSettings.push_impact} onChange={() => toggleNotif('push_impact')} last />
           </div>
         </Section>
       )}

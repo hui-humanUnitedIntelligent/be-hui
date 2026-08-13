@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next";
 import { HUIEuroIcon, HUILinkIcon, HUILocationIcon, HUIProfilIcon, HUITalentIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import LocationAutocompleteInput from '../shared/LocationAutocompleteInput.jsx';
 // ProfilBearbeitenModal.jsx — vollständige Profil-Bearbeitung
@@ -79,7 +78,6 @@ const TABS = [
 
 // ── Haupt-Komponente ───────────────────────────────────────────────
 export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdate }) {
-  const { t } = useTranslation();
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   useModalRegistration(true, () => onClose?.(), "ProfilBearbeitenModal");
   const { saveProfile, refreshProfile, user } = useAuth() || {};
@@ -326,12 +324,12 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
           {tab === "basis" && (
             <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
 
-              <FieldGroup label={t("profile.publicName")}>
+              <FieldGroup label="Öffentlicher Name">
                 <Input value={fullName} onChange={setFullName}
                   placeholder="Dein vollständiger Name" maxLength={80} />
               </FieldGroup>
 
-              <FieldGroup label={t("profile.displayName")}>
+              <FieldGroup label="Anzeigename (Spitzname)">
                 <Input value={displayName} onChange={setDisplayName}
                   placeholder="Wie soll dein Name angezeigt werden?" maxLength={60} />
               </FieldGroup>
@@ -350,7 +348,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
                 />
               </FieldGroup>
 
-              <FieldGroup label={t("profile.bioAboutMe")} hint={`${bio.length}/200`}>
+              <FieldGroup label="Bio / Über mich" hint={`${bio.length}/200`}>
                 <Textarea value={bio} onChange={setBio}
                   placeholder="Erzähl etwas über dich…" rows={4} maxLength={200} />
               </FieldGroup>
@@ -359,7 +357,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
                   live die Sichtbarkeits-Einstellung (Sprint F.9G.1), keine Kategorie
                   mehr. Speichern hier hätte die Sichtbarkeit überschrieben. */}
 
-              <FieldGroup label={t("profile.publicLocation")}>
+              <FieldGroup label="Standort">
                 {/* GPS-Button + Autocomplete */}
                 <div style={{ position:"relative" }}>
                   <LocationAutocompleteInput
@@ -399,7 +397,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
 
 
 
-              <FieldGroup label={t("profile.websitePortfolio")}>
+              <FieldGroup label="Website / Portfolio">
                 <Input value={website} onChange={setWebsite}
                   placeholder="https://deine-website.de" icon={<HUILinkIcon size={15}/>} maxLength={200} />
               </FieldGroup>
@@ -432,17 +430,17 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
                 bearbeitest du direkt auf deinem Talent-Profil.
               </InfoBox>
 
-              <FieldGroup label={t("talent.talentDesignation")}>
+              <FieldGroup label="Talent-Bezeichnung (Berufsfeld)">
                 <Input value={talentTitle} onChange={setTalentTitle}
                   placeholder="z.B. Fotograf, Musiker, Coach" maxLength={80} />
               </FieldGroup>
 
-              <FieldGroup label={t("talent.talentShortDesc")}>
+              <FieldGroup label="Talent-Kurzbeschreibung">
                 <Input value={talentDescription} onChange={setTalentDescription}
                   placeholder="Was macht dich aus? Was bietest du an?" maxLength={120} />
               </FieldGroup>
 
-              <FieldGroup label={t("talent.hourlyRate")}>
+              <FieldGroup label="Stundensatz (€)">
                 <Input value={talentRate} onChange={setTalentRate}
                   placeholder="z.B. 120" type="number" icon={<HUIEuroIcon size={15}/>} />
               </FieldGroup>

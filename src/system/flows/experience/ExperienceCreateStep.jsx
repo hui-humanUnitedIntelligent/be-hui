@@ -4,7 +4,6 @@
 import { HUIFotoIcon,
   HUIDateiIcon, HUIVideoIcon,
 } from '../../../design/icons/HuiSystemIcons.jsx';
-import { useTranslation } from "react-i18next";
 import React, { useRef, useCallback } from "react";
 import { ET, EInput } from "./ExperienceTokens.js";
 // Kategorien-Architektur vereinheitlicht (2026-07-06, Lars) -- zentrale
@@ -89,7 +88,6 @@ function MediaGallery({ files, onRemove, onAdd }) {
 export function ExperienceCreateStep({
   form, mediaFiles, onFormChange, onMediaChange, onNext,
 }) {
-  const { t } = useTranslation();
   const photoRef = useRef();
   const videoRef = useRef();
   const fileRef  = useRef();
@@ -156,7 +154,7 @@ export function ExperienceCreateStep({
         </label>
         <input
           style={EInput}
-          placeholder={t("experience.titlePlaceholder")}
+          placeholder="z.B. Gitarrenunterricht für Anfänger"
           value={form.title}
           maxLength={80}
           onChange={e => onFormChange({ title: e.target.value })}
@@ -174,7 +172,7 @@ export function ExperienceCreateStep({
             ...EInput, minHeight:100, resize:"none",
             lineHeight:1.55, paddingBottom:24,
           }}
-            placeholder={t("experience.descPlaceholder")}
+            placeholder="Was machst du, was können Teilnehmende erwarten?"
             value={form.description}
             maxLength={500}
             onChange={e => onFormChange({ description: e.target.value })}
@@ -228,13 +226,13 @@ export function ExperienceCreateStep({
           marginBottom:12 }}>Medien hinzufügen</div>
 
         <div style={{ display:"flex", gap:10, marginBottom:12 }}>
-          <MediaBtn icon={<HUIFotoIcon size={18}/>} label={t("works.photoAdd")}
+          <MediaBtn icon={<HUIFotoIcon size={18}/>} label="Foto hinzufügen"
             color={ET.teal} bg="rgba(10,191,184,0.05)"
             onClick={() => photoRef.current?.click()} />
-          <MediaBtn icon={<HUIVideoIcon size={18}/>} label={t("works.videoAdd")}
+          <MediaBtn icon={<HUIVideoIcon size={18}/>} label="Video hinzufügen"
             color={ET.violet} bg="rgba(139,92,246,0.05)"
             onClick={() => videoRef.current?.click()} />
-          <MediaBtn icon={<HUIDateiIcon size={18}/>} label={t("experience.exampleWorks")}
+          <MediaBtn icon={<HUIDateiIcon size={18}/>} label="Beispielwerke"
             color={ET.coral} bg="rgba(251,146,60,0.05)"
             onClick={() => fileRef.current?.click()} />
         </div>

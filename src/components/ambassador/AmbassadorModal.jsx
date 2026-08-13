@@ -1,5 +1,4 @@
 // src/components/ambassador/AmbassadorModal.jsx
-import { useTranslation } from "react-i18next";
 import { HUIAmbassadorIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef } from "react";
 import { createPortal } from "react-dom";
@@ -55,7 +54,6 @@ const MAX_IMAGES = 5;
 const MAX_VIDEOS = 2;
 
 export default function AmbassadorModal({ userId, onClose, onSuccess }) {
-  const { t } = useTranslation();
   const { submit, loading, error } = useAmbassadorApplication();
 
   // Back-Button Registration
@@ -203,7 +201,7 @@ export default function AmbassadorModal({ userId, onClose, onSuccess }) {
               {/* Ort */}
               <div style={{ marginBottom: 14 }}>
                 <label className="amb-label">Ort<span className="amb-req">*</span></label>
-                <input className="amb-input" placeholder={t("common.location")} value={form.location}
+                <input className="amb-input" placeholder="Berlin, Deutschland" value={form.location}
                   onChange={e => set("location", e.target.value)} />
                 {formErrors.location && <div style={{ fontSize: 11, color: "#FF5B5B", marginTop: 4 }}>{formErrors.location}</div>}
               </div>
@@ -211,7 +209,7 @@ export default function AmbassadorModal({ userId, onClose, onSuccess }) {
               {/* Motivation */}
               <div style={{ marginBottom: 14 }}>
                 <label className="amb-label">Warum möchtest du Ambassador werden?<span className="amb-req">*</span></label>
-                <textarea className="amb-input" rows={4} placeholder={t("ambassador.yourMessage")}
+                <textarea className="amb-input" rows={4} placeholder="Erzähl uns von dir und deiner Motivation…"
                   value={form.motivation_text} onChange={e => set("motivation_text", e.target.value)}
                   style={{ resize: "vertical", minHeight: 90 }} />
                 <div style={{ fontSize: 11, color: form.motivation_text.length >= 30 ? T.teal : T.inkSoft, marginTop: 4, textAlign: "right" }}>

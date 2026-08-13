@@ -2,7 +2,6 @@ import React, { useMemo, createContext, useState, useContext, useEffect, useCall
 import { ProfileService } from '../services/db';
 import { supabase } from "./supabaseClient";
 import { isProfileTalent } from './profileUtils.js';
-import { setLanguageFromProfile } from '../i18n/index.js';
 import { clearMemoryStore } from "./intelligence/persistence/interactionMemoryStore.js";
 import { getAuthRedirectUrl } from "./platform.js";
 import { FIELDS, PROFILE_FIELDS } from "./perfUtils";
@@ -74,8 +73,7 @@ export function AuthProvider({ children }) {
 
       if (prof) {
         setProfile(prof);
-        // i18n: Nutzer-Sprache aus Profil laden (überschreibt Systemsprache)
-        if (prof.locale) setLanguageFromProfile(prof.locale);
+        // is_talent wird direkt aus prof geladen — kein localStorage nötig
       }
     } catch (e) {
       console.warn("[HUI] loadProfile:", e.message);

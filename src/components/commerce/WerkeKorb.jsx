@@ -2,7 +2,6 @@
 // Persönlicher Sammelraum. Kein Warenkorb. Ruhiger menschlicher Raum.
 // Designsprache: HUI Design System (hui.design.js + hui.interaction.js)
 
-import { useTranslation } from "react-i18next";
 import { HUIImpactIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
@@ -160,7 +159,7 @@ export function WerkeKorbButton({ count = 0, onOpen = () => {}, glowing = false 
   return (
     <button
       onClick={() => onOpen?.()}
-      aria-label={t("commerce.openCart")}
+      aria-label="Werkekorb öffnen"
       style={{
         position:     "fixed",
         bottom:       `calc(${NAV_CLEARANCE_CSS} + 20px)`,
@@ -404,7 +403,7 @@ function KorbKarte({ item = {}, onRemove = () => {}, idx = 0, removing = false, 
               <button
                 onPointerDown={e => e.stopPropagation()}
                 onClick={() => changeQty(-1)}
-                aria-label={t("commerce.less")}
+                aria-label="Weniger"
                 style={{
                   width:       32,
                   height:      32,
@@ -442,7 +441,7 @@ function KorbKarte({ item = {}, onRemove = () => {}, idx = 0, removing = false, 
               <button
                 onPointerDown={e => e.stopPropagation()}
                 onClick={() => changeQty(+1)}
-                aria-label={t("commerce.more")}
+                aria-label="Mehr"
                 style={{
                   width:       32,
                   height:      32,
@@ -488,7 +487,7 @@ function KorbKarte({ item = {}, onRemove = () => {}, idx = 0, removing = false, 
       <button
         onPointerDown={e => e.stopPropagation()}
         onClick={() => { haptic("medium"); onRemove(item); }}
-        aria-label={t("commerce.removeItem")}
+        aria-label="Entfernen"
         style={{
           width:       28,
           height:      28,
@@ -1141,7 +1140,7 @@ export default function WerkeKorb({
           </div>
           <button
             onClick={onClose}
-            aria-label={t("common.close")}
+            aria-label="Schließen"
             style={{
               width:       34,
               height:      34,

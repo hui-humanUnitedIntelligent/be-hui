@@ -1,7 +1,6 @@
 // src/system/flows/experience/ExperienceDetailsStep.jsx
 // Step 2 — Angebotsdetails: Preis, Dauer, Ort, Verfügbarkeit
 
-import { useTranslation } from "react-i18next";
 import { HUIChatIcon } from '../../../design/icons/HuiInteractionIcons.jsx';
 import React from "react";
 import { ET, EInput, ESelect } from "./ExperienceTokens.js";
@@ -206,7 +205,6 @@ function Toggle({ value, onChange, label }) {
 
 /* ── Step 2 ──────────────────────────────────────────────────── */
 export function ExperienceDetailsStep({ form, onFormChange, onNext }) {
-  const { t } = useTranslation();
   return (
     <div style={{ padding:"24px 20px 20px",
       animation:"efFadeStep 0.28s ease both" }}>
@@ -259,7 +257,7 @@ export function ExperienceDetailsStep({ form, onFormChange, onNext }) {
         <div style={{ marginTop:10, animation:"efFadeStep 0.22s ease both" }}>
           <input
             style={EInput}
-            placeholder={t("experience.durationPlaceholder")}
+            placeholder="z.B. 90 Minuten, ganzer Tag…"
             value={form.durationCustom}
             onChange={e => onFormChange({ durationCustom:e.target.value })}
           />
@@ -278,7 +276,7 @@ export function ExperienceDetailsStep({ form, onFormChange, onNext }) {
         <div style={{ marginTop:12, animation:"efFadeStep 0.22s ease both" }}>
           <input
             style={EInput}
-            placeholder={t("experience.locationPlaceholder")}
+            placeholder="z.B. München, Schwabing / oder Online-Link"
             value={form.locationText}
             onChange={e => onFormChange({ locationText:e.target.value })}
           />
@@ -314,7 +312,7 @@ export function ExperienceDetailsStep({ form, onFormChange, onNext }) {
         <div style={{ position:"relative" }}>
           <input
             style={EInput}
-            placeholder={t("experience.participantsPlaceholder")}
+            placeholder="z.B. 1 (Einzelsession) oder 10"
             type="number" min="1"
             value={form.maxParticipants}
             onChange={e => onFormChange({ maxParticipants:e.target.value })}
@@ -326,7 +324,7 @@ export function ExperienceDetailsStep({ form, onFormChange, onNext }) {
         <Toggle
           value={form.bookingMode === "direct"}
           onChange={v => onFormChange({ bookingMode: v ? "direct" : "request" })}
-          label={t("experience.instantBooking")}
+          label="Sofortbuchung aktivieren"
         />
         <p style={{ fontSize:11.5, color:ET.ink4, margin:"5px 0 0", lineHeight:1.5 }}>
           {form.bookingMode==="direct"

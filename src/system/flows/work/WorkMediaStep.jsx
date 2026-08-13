@@ -4,7 +4,6 @@
 import {
   HUIFotoIcon, HUIVideoIcon, HUIDateiIcon,
 } from '../../../design/icons/HuiSystemIcons.jsx';
-import { useTranslation } from "react-i18next";
 import React, { useRef, useCallback } from "react";
 import { WT } from "./WorkTokens.js";
 
@@ -114,7 +113,6 @@ function MediaGallery({ files, onRemove, onAdd }) {
 
 /* ── Step 1 Hauptkomponente ──────────────────────────────────── */
 export function WorkMediaStep({ form, mediaFiles, onFormChange, onMediaChange, onNext }) {
-  const { t } = useTranslation();
   const photoRef = useRef();
   const videoRef = useRef();
   const fileRef  = useRef();
@@ -163,7 +161,7 @@ export function WorkMediaStep({ form, mediaFiles, onFormChange, onMediaChange, o
         </label>
         <input
           style={inputStyle}
-          placeholder={t("works.titlePlaceholder")}
+          placeholder="Abendlicht über den Bergen"
           value={form.title}
           maxLength={80}
           onChange={e => onFormChange({ title: e.target.value })}
@@ -185,7 +183,7 @@ export function WorkMediaStep({ form, mediaFiles, onFormChange, onMediaChange, o
               lineHeight:1.55,
               paddingBottom:24,
             }}
-            placeholder={t("works.descPlaceholder")}
+            placeholder="Ein digitales Gemälde inspiriert von einem Sonnenuntergang in den Alpen. 2024."
             value={form.description}
             maxLength={500}
             onChange={e => onFormChange({ description: e.target.value })}
@@ -206,21 +204,21 @@ export function WorkMediaStep({ form, mediaFiles, onFormChange, onMediaChange, o
         <div style={{ display:"flex", gap:10, marginBottom:12 }}>
           <MediaButton
             icon={<HUIFotoIcon size={18}/>}
-            label={t("works.photoAdd")}
+            label="Foto hinzufügen"
             color={WT.teal}
             bgColor="rgba(10,191,184,0.06)"
             onClick={() => photoRef.current?.click()}
           />
           <MediaButton
             icon={<HUIVideoIcon size={18}/>}
-            label={t("works.videoAdd")}
+            label="Video hinzufügen"
             color={WT.violet}
             bgColor="rgba(139,92,246,0.06)"
             onClick={() => videoRef.current?.click()}
           />
           <MediaButton
             icon={<HUIDateiIcon size={18}/>}
-            label={t("works.fileUpload")}
+            label="Datei hochladen"
             color={WT.coral}
             bgColor="rgba(251,146,60,0.06)"
             onClick={() => fileRef.current?.click()}

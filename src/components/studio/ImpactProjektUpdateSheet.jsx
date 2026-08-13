@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next";
 import { HUIAwardIcon, HUIFortschrittIcon, HUIKalenderIcon, HUINachrichtIcon } from '../../design/icons/HuiSystemIcons.jsx';
 // ImpactProjektUpdateSheet.jsx — Bottom-Sheet zum Hinzufügen von Projekt-Updates
 // ════════════════════════════════════════════════════════════════════════════
@@ -222,7 +221,7 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
               type="text"
               value={title}
               onChange={e => setTitle(e.target.value)}
-              placeholder={t("impact.projectProgressPlaceholder")}
+              placeholder="z.B. Erster Meilenstein erreicht!"
               maxLength={120}
               style={{
                 width: "100%", padding: "12px 14px",
@@ -243,7 +242,7 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
             <textarea
               value={content}
               onChange={e => setContent(e.target.value)}
-              placeholder={t("impact.projectDescPlaceholder")}
+              placeholder="Erzaehl mehr ueber dieses Update..."
               rows={4}
               maxLength={2000}
               style={{

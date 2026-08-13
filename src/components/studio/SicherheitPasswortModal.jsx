@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next";
 import { HUIAnsichtIcon, HUIDatenschutzIcon } from '../../design/icons/HuiSystemIcons.jsx';
 // SicherheitPasswortModal.jsx — Passwort ändern via Supabase Auth
 // ═══════════════════════════════════════════════════════════════
@@ -52,7 +51,6 @@ function pwStrength(pw) {
 }
 
 export default function SicherheitPasswortModal({ profile, onClose }) {
-  const { t } = useTranslation();
   useModalRegistration(true, () => onClose?.(), "SicherheitPasswortModal");
   // Passwort-Ändern
   const [newPw,     setNewPw]     = useState("");
@@ -163,11 +161,11 @@ export default function SicherheitPasswortModal({ profile, onClose }) {
             </div>
 
             {/* Neues Passwort */}
-            <FieldLabel label={t("security.newPassword")} />
+            <FieldLabel label="Neues Passwort" />
             <PwInput
               value={newPw} onChange={setNewPw}
               show={showNew} onToggleShow={() => setShowNew(s=>!s)}
-              placeholder={t("security.newPasswordPlaceholder")}
+              placeholder="Mindestens 8 Zeichen"
             />
 
             {/* Stärke-Balken */}
@@ -190,11 +188,11 @@ export default function SicherheitPasswortModal({ profile, onClose }) {
             )}
 
             {/* Passwort bestätigen */}
-            <FieldLabel label={t("security.confirmPassword")} style={{ marginTop: newPw ? 0 : 12 }} />
+            <FieldLabel label="Passwort bestätigen" style={{ marginTop: newPw ? 0 : 12 }} />
             <PwInput
               value={confirmPw} onChange={setConfirmPw}
               show={showConf} onToggleShow={() => setShowConf(s=>!s)}
-              placeholder={t("security.confirmPlaceholder")}
+              placeholder="Nochmals eingeben"
               hasError={mismatch}
               hasSuccess={match}
             />

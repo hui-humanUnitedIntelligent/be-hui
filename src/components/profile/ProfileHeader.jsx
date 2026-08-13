@@ -7,7 +7,6 @@ import {
   HUILocationIcon, HUITalentIcon, HUIImpactIcon,
   HUILinkIcon,
 } from '../../design/icons/HuiSystemIcons.jsx';
-import { useTranslation } from "react-i18next";
 import React, { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react";
 import {
   FB_COVER, FB_AVATAR,
@@ -53,7 +52,6 @@ export function ProfileHeader({
   onEditAvatar = null,
   onEditCover  = null,
 }) {
-  const { t } = useTranslation();
   const [coverLoaded,     setCoverLoaded]     = useState(false);
   const [avatarLoaded,    setAvatarLoaded]    = useState(false);
   const coverImgRef  = useRef(null);
@@ -193,7 +191,7 @@ export function ProfileHeader({
               border:"none", cursor:"pointer", touchAction:"manipulation",
               display:"flex", alignItems:"center", justifyContent:"center", fontSize:14,
             }}
-            aria-label={t("profile.changeCover")}
+            aria-label="Cover ändern"
           >
             {coverUploading ? "⏳" : "📷"}
           </button>
@@ -255,7 +253,7 @@ export function ProfileHeader({
                     fontSize:13, cursor:"pointer", touchAction:"manipulation",
                     boxShadow:"0 2px 8px rgba(14,196,184,0.35)", zIndex:10,
                   }}
-                  aria-label={t("profile.changeAvatar")}
+                  aria-label="Avatar ändern"
                 >
                   {avatarUploading ? "⏳" : "📷"}
                 </button>

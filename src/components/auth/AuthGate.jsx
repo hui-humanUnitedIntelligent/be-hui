@@ -11,7 +11,6 @@
 //   const { requireAuth } = useAuthGate();
 //   requireAuth("liken", () => doLike());
 // ══════════════════════════════════════════════════════════════
-import { useTranslation } from "react-i18next";
 import { HUIMailIcon, HUIVerifIcon, HUIWarnIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, createContext, useContext, useCallback } from "react";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
@@ -191,11 +190,11 @@ function AuthModal({ action, onClose, onConfirm }) {
             </div>
             <form onSubmit={handleSignIn} style={{display:"flex",flexDirection:"column",gap:12}}>
               <input type="email" value={email} onChange={e=>setEmail(e.target.value)}
-                placeholder={t("auth.emailPlaceholder")} autoComplete="email" style={inputStyle}
+                placeholder="E-Mail" autoComplete="email" style={inputStyle}
                 onFocus={e=>e.target.style.borderColor=TEAL}
                 onBlur={e=>e.target.style.borderColor="rgba(26,26,46,0.12)"}/>
               <input type="password" value={pw} onChange={e=>setPw(e.target.value)}
-                placeholder={t("auth.passwordPlaceholder")} autoComplete="current-password" style={inputStyle}
+                placeholder="Passwort" autoComplete="current-password" style={inputStyle}
                 onFocus={e=>e.target.style.borderColor=TEAL}
                 onBlur={e=>e.target.style.borderColor="rgba(26,26,46,0.12)"}/>
               {err && <div style={{fontSize:13,color:"#EF4444",padding:"8px 12px",
@@ -217,7 +216,7 @@ function AuthModal({ action, onClose, onConfirm }) {
                         setRefValid(res.valid);
                       }
                     }}
-                    placeholder={t("auth.reflinkPlaceholder")}
+                    placeholder="https://be-hui.com/username"
                     style={{...inputStyle, paddingRight:36,
                       borderColor: refValid === true ? "#0EC4B8" : refValid === false ? "#FF5B5B" : "rgba(26,26,46,0.12)"
                     }}
@@ -262,15 +261,15 @@ function AuthModal({ action, onClose, onConfirm }) {
             </div>
             <form onSubmit={handleSignUp} style={{display:"flex",flexDirection:"column",gap:12}}>
               <input type="text" value={name} onChange={e=>setName(e.target.value)}
-                placeholder={t("auth.namePlaceholder")} autoComplete="name" style={inputStyle}
+                placeholder="Dein Name" autoComplete="name" style={inputStyle}
                 onFocus={e=>e.target.style.borderColor=TEAL}
                 onBlur={e=>e.target.style.borderColor="rgba(26,26,46,0.12)"}/>
               <input type="email" value={email} onChange={e=>setEmail(e.target.value)}
-                placeholder={t("auth.emailPlaceholder")} autoComplete="email" style={inputStyle}
+                placeholder="E-Mail" autoComplete="email" style={inputStyle}
                 onFocus={e=>e.target.style.borderColor=TEAL}
                 onBlur={e=>e.target.style.borderColor="rgba(26,26,46,0.12)"}/>
               <input type="password" value={pw} onChange={e=>setPw(e.target.value)}
-                placeholder={t("auth.newPasswordPlaceholder")} autoComplete="new-password" style={inputStyle}
+                placeholder="Passwort (min. 8 Zeichen)" autoComplete="new-password" style={inputStyle}
                 onFocus={e=>e.target.style.borderColor=TEAL}
                 onBlur={e=>e.target.style.borderColor="rgba(26,26,46,0.12)"}/>
               {err && <div style={{fontSize:13,color:"#EF4444",padding:"8px 12px",
@@ -292,7 +291,7 @@ function AuthModal({ action, onClose, onConfirm }) {
                         setRefValid(res.valid);
                       }
                     }}
-                    placeholder={t("auth.reflinkPlaceholder")}
+                    placeholder="https://be-hui.com/username"
                     style={{...inputStyle, paddingRight:36,
                       borderColor: refValid === true ? "#0EC4B8" : refValid === false ? "#FF5B5B" : "rgba(26,26,46,0.12)"
                     }}
@@ -375,7 +374,6 @@ export function useAuthGate() {
 
 // ── Declarative wrapper ───────────────────────────────────────
 export function AuthGate({ action, onAuth, children }) {
-  const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
   const [showModal, setShowModal] = useState(false);
 

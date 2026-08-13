@@ -10,7 +10,6 @@
 //   - Einheitliche item-Shape: { id, type, title, text, media, author }
 //   - Typen: work | experience | moment | project | event | talent
 // ══════════════════════════════════════════════════════════════════
-import { useTranslation } from "react-i18next";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient";
@@ -192,7 +191,6 @@ function Avatar({ user, size = 36 }) {
 // HAUPT-KOMPONENTE
 // ══════════════════════════════════════════════════════════════════
 export function HuiShareModal({ item, onClose }) {
-  const { t } = useTranslation();
   useModalRegistration(true, onClose, "HuiShareModal");
   const [tab, setTab]                 = useState("intern"); // "intern" | "extern"
   const [selectedUser, setSelectedUser] = useState(null);
@@ -408,7 +406,7 @@ export function HuiShareModal({ item, onClose }) {
                 <input
                   value={query}
                   onChange={e => { setQuery(e.target.value); setSelectedUser(null); }}
-                  placeholder={t("share.nameOrUsername")}
+                  placeholder="Name oder @username…"
                   autoComplete="off"
                   style={{
                     width: "100%", padding: "10px 14px",
@@ -500,7 +498,7 @@ export function HuiShareModal({ item, onClose }) {
                 <textarea
                   value={message}
                   onChange={e => setMessage(e.target.value.slice(0, 200))}
-                  placeholder={t("share.writeSomething")}
+                  placeholder="Schreib etwas dazu…"
                   rows={2}
                   style={{
                     width: "100%", padding: "10px 14px",

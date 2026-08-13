@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next";
 // src/components/works/WerkWizard.jsx
 // HUI – Werk-Editor als 6-Schritte-Wizard
 import { HUIPrivatIcon, HUIVersandIcon, HUIWarnIcon } from '../../design/icons/HuiSystemIcons.jsx';
@@ -234,7 +233,7 @@ function S1({ data, onChange, userId, onNext }) {
       </div>
       {imgs.length>0&&<div style={{ fontSize:11, color:C.inkFade, textAlign:"center", marginBottom:14 }}>{imgs.length}/10 Bilder</div>}
       <input ref={ref} type="file" accept="image/*" multiple style={{ display:"none" }} onChange={upload}/>
-      {onNext && <PBtn label={t("common.next")} onClick={onNext} disabled={imgs.length===0}/>}
+      {onNext && <PBtn label="Weiter" onClick={onNext} disabled={imgs.length===0}/>}
     </div>
   );
 }
@@ -247,14 +246,14 @@ function S2({ data, onChange, onNext }) {
   return (
     <div>
       <div style={{ fontSize:20, fontWeight: 600, color:C.ink, marginBottom:16 }}>Basisinformationen</div>
-      <FI label={t("works.workTitle")} req value={data.title||""} onChange={v=>onChange({title:v})} placeholder="z. B. Wellen der Ruhe" maxLen={80}/>
+      <FI label="Titel des Werks" req value={data.title||""} onChange={v=>onChange({title:v})} placeholder="z. B. Wellen der Ruhe" maxLen={80}/>
       {/* KURZBESCHREIBUNG-REMOVED-FIX (2026-08-07): Feld auf Nutzerwunsch entfernt --
           Titel + Detaillierte Beschreibung reichen aus. `data.shortDesc` bleibt im
           Formular-State/Payload erhalten (mappt weiterhin auf DB-Spalte "caption"),
           damit bestehende Werke mit vorhandenem caption-Wert beim Bearbeiten NICHT
           stillschweigend geloescht werden -- lediglich das Eingabefeld verschwindet. */}
-      <FTA label={t("works.detailedDescription")} value={data.description||""} onChange={v=>onChange({description:v})} placeholder="Dieses Werk steht für Bewegung, Freiheit und innere Balance…" maxLen={1000} rows={4}/>
-      <FSel label={t("common.category")} req value={data.category||""} onChange={v=>onChange({category:v})} options={KATEGORIEN}/>
+      <FTA label="Detaillierte Beschreibung" value={data.description||""} onChange={v=>onChange({description:v})} placeholder="Dieses Werk steht für Bewegung, Freiheit und innere Balance…" maxLen={1000} rows={4}/>
+      <FSel label="Kategorie" req value={data.category||""} onChange={v=>onChange({category:v})} options={KATEGORIEN}/>
       <div style={{ marginBottom:14 }}>
         <Lbl text="Tags"/>
         <div style={{ display:"flex", flexWrap:"wrap", gap:7, marginBottom:8 }}>
@@ -270,7 +269,7 @@ function S2({ data, onChange, onNext }) {
           {ti&&<button onClick={addTag} style={{ background:C.teal, border:"none", borderRadius:99, padding:"9px 14px", fontSize:12, fontWeight: 600, color:"#fff", cursor:"pointer", touchAction:"manipulation" }}>+</button>}
         </div>
       </div>
-      {onNext && <PBtn label={t("common.next")} onClick={onNext} disabled={!data.title?.trim()||!data.category}/>}
+      {onNext && <PBtn label="Weiter" onClick={onNext} disabled={!data.title?.trim()||!data.category}/>}
     </div>
   );
 }
@@ -284,7 +283,7 @@ function S3({ data, onChange, onNext }) {
       <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:20 }}>
         {WERK_TYPEN.map(wt=><RCard key={wt.id} active={data.werktyp===wt.id} icon={wt.icon} label={wt.label} sub={wt.sub} onClick={()=>onChange({werktyp:wt.id})}/>)}
       </div>
-      {onNext && <PBtn label={t("common.next")} onClick={onNext} disabled={!data.werktyp}/>}
+      {onNext && <PBtn label="Weiter" onClick={onNext} disabled={!data.werktyp}/>}
     </div>
   );
 }
@@ -351,7 +350,7 @@ function S4({ data, onChange, onNext }) {
         </div>
       </div>
 
-      {onNext && <PBtn label={t("common.next")} onClick={onNext} disabled={!data.price||!data.availability}/>}
+      {onNext && <PBtn label="Weiter" onClick={onNext} disabled={!data.price||!data.availability}/>}
     </div>
   );
 }
@@ -401,7 +400,7 @@ function S5({ data, onChange, onNext, onPickLocation }) {
           Mindestens eine Option muss aktiviert sein.
         </div>
       )}
-      {onNext && <PBtn label={t("common.next")} onClick={onNext} disabled={!data.versand&&!data.abholung}/>}
+      {onNext && <PBtn label="Weiter" onClick={onNext} disabled={!data.versand&&!data.abholung}/>}
     </div>
   );
 }

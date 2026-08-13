@@ -1,6 +1,5 @@
 // src/pages/studio/SupportPage.jsx
 // HUI Support — Kontaktformular mit Ticket-System
-import { useTranslation } from "react-i18next";
 import React, { useState, useRef } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { HUI } from "../../design/hui.design.js";
@@ -42,7 +41,6 @@ function generateTicketNumber() {
 }
 
 export default function SupportPage({ onBack, userId, userEmail, userName }) {
-  const { t } = useTranslation();
   const [step,      setStep]      = useState("form"); // form | success
   const [category,  setCategory]  = useState(null);
   const [form,      setForm]      = useState({
@@ -234,7 +232,7 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
             <div>
               <label style={labelStyle}>Name *</label>
-              <input value={form.name} onChange={inp("name")} placeholder={t("ambassador.yourName")}
+              <input value={form.name} onChange={inp("name")} placeholder="Dein Name"
                 style={{ ...inputStyle, borderColor: errors.name ? C.red : C.border }} />
               {errors.name && <p style={errStyle}>{errors.name}</p>}
             </div>
@@ -282,14 +280,14 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
           <div style={{ marginBottom:10 }}>
             <label style={labelStyle}>Betreff *</label>
             <input value={form.subject} onChange={inp("subject")}
-              placeholder={t("support.subjectPlaceholder")}
+              placeholder="Kurze Beschreibung des Problems"
               style={{ ...inputStyle, borderColor: errors.subject ? C.red : C.border }} />
             {errors.subject && <p style={errStyle}>{errors.subject}</p>}
           </div>
           <div>
             <label style={labelStyle}>Nachricht * <span style={{color:C.muted,fontWeight:400}}>(min. 20 Zeichen)</span></label>
             <textarea value={form.message} onChange={inp("message")}
-              placeholder={t("support.messagePlaceholder")}
+              placeholder="Beschreibe dein Problem so genau wie möglich..."
               rows={5}
               style={{ ...inputStyle, resize:"vertical", lineHeight:1.5,
                 borderColor: errors.message ? C.red : C.border }} />

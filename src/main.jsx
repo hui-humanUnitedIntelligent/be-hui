@@ -4,8 +4,6 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import './index.css'
-import './i18n'; // HUI i18n — muss VOR App geladen werden
-import { flushPendingTranslations } from './i18n/index.js'; // Auto-translation flush
 import { initSentry, sentryCapture } from './lib/sentry'
 import { initAppPerformance } from './lib/appPerformance.js'
 import { initOTA, autoCheckOTA } from './lib/otaUpdate.js'
@@ -66,9 +64,3 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <App />
   </React.StrictMode>,
 );
-
-// ── i18n Auto-Translation: flush on resume ──────────────────
-// When app comes back to foreground, flush any queued missing translations
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) flushPendingTranslations();
-}, { passive: true });

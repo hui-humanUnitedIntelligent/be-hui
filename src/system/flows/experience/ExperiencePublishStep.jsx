@@ -6,7 +6,6 @@ import {
   HUIKategorieIcon, HUIEinladungIcon, HUIGlobeIcon, HUIGemeinschaftIcon, HUIPrivatIcon,
   HUIWarnIcon,
 } from '../../../design/icons/HuiSystemIcons.jsx';
-import { useTranslation } from "react-i18next";
 import React from "react";
 import { ET } from "./ExperienceTokens.js";
 
@@ -161,19 +160,19 @@ function ExperiencePreviewCard({ form, mediaFiles, profile }) {
           display:"grid", gridTemplateColumns:"1fr 1fr",
           gap:"8px 16px",
         }}>
-          <MetaRow icon={<HUIZeitIcon size={14}/>} label={t("common.duration")} value={
+          <MetaRow icon={<HUIZeitIcon size={14}/>} label="Dauer" value={
             form.duration === "Individuell" && form.durationCustom
               ? form.durationCustom : form.duration
           }/>
-          <MetaRow icon={<HUILocationIcon size={14}/>} label={t("common.location")} value={locLabel}/>
-          <MetaRow icon={<HUIKalenderIcon size={14}/>} label={t("common.days")} value={dayStr}/>
+          <MetaRow icon={<HUILocationIcon size={14}/>} label="Ort" value={locLabel}/>
+          <MetaRow icon={<HUIKalenderIcon size={14}/>} label="Tage" value={dayStr}/>
           {form.maxParticipants && (
-            <MetaRow icon={<HUIPersonenIcon size={14}/>} label={t("common.max")} value={`${form.maxParticipants} Personen`}/>
+            <MetaRow icon={<HUIPersonenIcon size={14}/>} label="Max." value={`${form.maxParticipants} Personen`}/>
           )}
           {form.category && (
-            <MetaRow icon={<HUIKategorieIcon size={14}/>} label={t("common.category")} value={form.category}/>
+            <MetaRow icon={<HUIKategorieIcon size={14}/>} label="Kategorie" value={form.category}/>
           )}
-          <MetaRow icon={<HUIEinladungIcon size={14}/>} label={t("connection.sendRequest")}
+          <MetaRow icon={<HUIEinladungIcon size={14}/>} label="Einladung"
             value={form.bookingMode==="direct" ? "Direkte Einladung" : "Auf Anfrage"}/>
         </div>
       </div>
@@ -200,7 +199,6 @@ export function ExperiencePublishStep({
   form, mediaFiles, profile, onFormChange,
   onPublish, saving, error,
 }) {
-  const { t } = useTranslation();
   return (
     <div style={{ padding:"24px 20px 24px",
       animation:"efFadeStep 0.28s ease both" }}>
@@ -218,13 +216,13 @@ export function ExperiencePublishStep({
 
       {/* ── Sichtbarkeit ── */}
       <div style={{ display:"flex", gap:8, marginBottom:24 }}>
-        <VisibilityCard icon={<HUIGlobeIcon size={18}/>} label={t("common.open")} sub={t("experience.experiencesForYou")}
+        <VisibilityCard icon={<HUIGlobeIcon size={18}/>} label="Offen" sub="Für alle erlebbar"
           active={form.visibility==="public"}
           onClick={() => onFormChange({ visibility:"public" })}/>
-        <VisibilityCard icon={<HUIGemeinschaftIcon size={18}/>} label={t("profile.communityOnly")} sub={t("profile.communityOnly")}
+        <VisibilityCard icon={<HUIGemeinschaftIcon size={18}/>} label="Gemeinschaft" sub="Im Resonanzraum"
           active={form.visibility==="community"}
           onClick={() => onFormChange({ visibility:"community" })}/>
-        <VisibilityCard icon={<HUIPrivatIcon size={18}/>} label={t("common.private")} sub={t("common.private")}
+        <VisibilityCard icon={<HUIPrivatIcon size={18}/>} label="Privat" sub="Dein stiller Raum"
           active={form.visibility==="private"}
           onClick={() => onFormChange({ visibility:"private" })}/>
       </div>

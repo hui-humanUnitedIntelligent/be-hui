@@ -7,7 +7,6 @@ import {
   HUIPersonenIcon, HUIFotoIcon, HUILinkIcon, HUIKalenderIcon,
   HUILocationIcon, HUIPrivatIcon, HUIGlobeIcon, HUIGemeinschaftIcon,
 } from '../../design/icons/HuiSystemIcons.jsx';
-import { useTranslation } from "react-i18next";
 import React from "react";
 import { HUI } from "../../design/hui.design.js";
 import { formatDateDE } from "../../lib/formatters.js";
@@ -513,7 +512,6 @@ function AttachmentBar() {
 // HAUPT-EXPORT
 // ══════════════════════════════════════════════════════════════════
 export default function StepTwoConnectionDetails({ data, onChange }) {
-  const { t } = useTranslation();
   const set = (key, val) => onChange({ ...data, [key]: val });
 
   return (
@@ -542,7 +540,7 @@ export default function StepTwoConnectionDetails({ data, onChange }) {
         </div>
 
         {/* 1 ── Titel ── */}
-        <FieldBlock label={t("connection.step2Title")}>
+        <FieldBlock label="Titel deiner Verbindung">
           <input
             className="s2v3-field"
             maxLength={60}
@@ -554,7 +552,7 @@ export default function StepTwoConnectionDetails({ data, onChange }) {
         </FieldBlock>
 
         {/* 2 ── Beschreibung ── */}
-        <FieldBlock label={t("common.description")}>
+        <FieldBlock label="Beschreibung">
           <textarea
             className="s2v3-field"
             maxLength={300}
@@ -576,7 +574,7 @@ export default function StepTwoConnectionDetails({ data, onChange }) {
         </FieldBlock>
 
         {/* 5 ── Ort ── */}
-        <FieldBlock label={t("common.location")}>
+        <FieldBlock label="Ort">
           <LocationRow
             value={data.location || ""}
             onChange={v => set("location", v)}
@@ -584,7 +582,7 @@ export default function StepTwoConnectionDetails({ data, onChange }) {
         </FieldBlock>
 
         {/* 6 ── Teilnehmer ── */}
-        <FieldBlock label={t("common.members")}>
+        <FieldBlock label="Teilnehmer">
           <ParticipantRow
             value={data.participants || 30}
             onChange={v => set("participants", v)}
@@ -592,7 +590,7 @@ export default function StepTwoConnectionDetails({ data, onChange }) {
         </FieldBlock>
 
         {/* 7 ── Kosten ── */}
-        <FieldBlock label={t("common.cost")}>
+        <FieldBlock label="Kosten">
           <CostRow
             value={data.cost || "free"}
             onChange={v => set("cost", v)}
@@ -600,7 +598,7 @@ export default function StepTwoConnectionDetails({ data, onChange }) {
         </FieldBlock>
 
         {/* 8 ── Stimmung / Energie ── */}
-        <FieldBlock label={t("experience.mood")}>
+        <FieldBlock label="Stimmung / Energie">
           <MoodRow
             value={data.mood || "gesellig"}
             onChange={v => set("mood", v)}
@@ -608,7 +606,7 @@ export default function StepTwoConnectionDetails({ data, onChange }) {
         </FieldBlock>
 
         {/* 9 ── Sichtbarkeit ── */}
-        <FieldBlock label={t("common.visibility")}>
+        <FieldBlock label="Sichtbarkeit">
           <VisibilityRow
             value={data.visibility || "public"}
             onChange={v => set("visibility", v)}
@@ -616,7 +614,7 @@ export default function StepTwoConnectionDetails({ data, onChange }) {
         </FieldBlock>
 
         {/* 10 ── Offenheit ── */}
-        <FieldBlock label={t("common.public")}>
+        <FieldBlock label="Offenheit">
           <OpennessRow
             value={data.openness || "open"}
             onChange={v => set("openness", v)}
@@ -624,7 +622,7 @@ export default function StepTwoConnectionDetails({ data, onChange }) {
         </FieldBlock>
 
         {/* 11 ── Zusätzliche Infos ── */}
-        <FieldBlock label={t("profile.edit.additionalInfo")}>
+        <FieldBlock label="Zus\u00e4tzliche Infos (optional)">
           <textarea
             className="s2v3-field"
             maxLength={200}

@@ -17,7 +17,6 @@
 // Keine neue Business-Logik — nur Anzeige bestehender Daten.
 // ══════════════════════════════════════════════════════════════════════════════
 
-import { useTranslation } from "react-i18next";
 import React from 'react';
 import { useAuth } from '../../lib/AuthContext.jsx';
 import { isProfileTalent } from '../../lib/profileUtils.js';
@@ -34,7 +33,6 @@ const C = {
 };
 
 export default function StudioOverviewPage({ onNavigate }) {
-  const { t } = useTranslation();
   const { profile } = useAuth();
   const isTalent = isProfileTalent(profile);
   const isAmbassador = profile?.is_ambassador === true;
@@ -111,12 +109,12 @@ export default function StudioOverviewPage({ onNavigate }) {
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <QuickCard
-            label={t("studio.settingsLabel")}
+            label="Einstellungen"
             hint="Konto und Präferenzen"
             onClick={() => onNavigate?.('settings')}
           />
           <QuickCard
-            label={t("studio.supportLabel")}
+            label="Support"
             hint="Hilfe und Kontakt"
             onClick={() => onNavigate?.('support')}
           />

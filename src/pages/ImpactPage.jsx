@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next";
 // ImpactPage.jsx — V5: Emotion First · Seele zurück · Logik zuletzt
 // Alle Hooks + Logik identisch — nur Reihenfolge + Präsentation neu
 // ═══════════════════════════════════════════════════════════════════
@@ -87,14 +86,12 @@ const CYCLE_STEPS = [
   { icon:"🌱", label:"Restbetrag wird verteilt"     },
 ];
 
-function getPoolSlices(t) {
-  return [
-    { pct:40, emoji:"🗳", label:t("impact.communityFund"),      color:T.teal   },
-    { pct:30, emoji:"🚀", label:t("impact.impactPool"),        color:T.coral  },
-    { pct:20, emoji:"💡", label:t("impact.innovationBudget"),     color:T.gold   },
-    { pct:10, emoji:"🛡", label:t("impact.curationBudget"),       color:T.violet },
-  ];
-}
+const POOL_SLICES = [
+  { pct:40, emoji:"🗳", label:"Community-Fonds",      color:T.teal   },
+  { pct:30, emoji:"🚀", label:"Wirkungsbudget",        color:T.coral  },
+  { pct:20, emoji:"💡", label:"Innovationsbudget",     color:T.gold   },
+  { pct:10, emoji:"🛡", label:"Kurationsbudget",       color:T.violet },
+];
 
 // SEED_PROJECTS deaktiviert — nur echte Projekte aus impact_applications (status=approved)
 const SEED_PROJECTS = [];
@@ -1160,7 +1157,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
                   {checking ? "…" : voteCount}
                 </span>
                 <span style={{ fontSize:12, color:"#888" }}>
-                  {voteCount === 1 ? t("impact.votes") : t("impact.votes")}
+                  {voteCount === 1 ? "Stimme" : "Stimmen"} bisher
                 </span>
               </div>
               {currentUser?.id && userVotesLeft !== null && !voted && (
@@ -2422,7 +2419,7 @@ function HerzensKarte({ p, idx }) {
           {/* Stimmen-Counter */}
           <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:5 }}>
             <span style={{ fontSize:10, color:T.muted }}>
-              <span className="hui-emoji">🗳</span> {safeNum(p.vote_count || p.votes)} {safeNum(p.vote_count || p.votes) === 1 ? t("impact.votes") : t("impact.votes")}
+              <span className="hui-emoji">🗳</span> {safeNum(p.vote_count || p.votes)} {safeNum(p.vote_count || p.votes) === 1 ? "Stimme" : "Stimmen"}
             </span>
           </div>
           {/* Finanzierungsbalken */}
@@ -2670,7 +2667,7 @@ function ApprovedAppCardCompact({ app, rank, onOpen }) {
             border:"1px solid rgba(34,197,94,0.20)" }}>✅ Bewilligt</span>
           <span style={{ fontSize:11, color: app.vote_count > 0 ? T.teal : "#aaa", fontWeight: 600,
             transition:"color 0.3s ease" }}>
-            <span className="hui-emoji">🗳</span> {app.vote_count || 0} {app.vote_count === 1 ? t("impact.votes") : t("impact.votes")}
+            <span className="hui-emoji">🗳</span> {app.vote_count || 0} {app.vote_count === 1 ? "Stimme" : "Stimmen"}
           </span>
         </div>
       </div>
@@ -2719,7 +2716,7 @@ function GemeinsamErmoegicht({ finanziert, transp, onOpenProject = () => {} }) {
           gap:10, marginBottom:20 }}>
           {[
             { emoji:"💰", val:fmtEur(transp.eur),  label:"in Projekte geflossen" },
-            { emoji:"📋", val:transp.projekte,       label:t("impact.impactProjects")   },
+            { emoji:"📋", val:transp.projekte,       label:"Projekte finanziert"   },
             { emoji:"👥", val:transp.menschen,       label:"Unterstützer aktiv"    },
           ].map((st, i) => (
             <div key={i} style={{
@@ -2973,12 +2970,10 @@ function LiveTicker({ activities }) {
 // 9. FONDS-AUFTEILUNG — KOMPAKT (ganz unten)
 // ════════════════════════════════════════════════════════════════
 function FondsAufteilungKompakt({ pool }) {
-  const { t } = useTranslation();
-  const POOL_SLICES = getPoolSlices(t);
   return (
     <div style={{ padding:"28px 16px 0" }}>
       <h3 style={{ margin:"0 0 14px", fontSize:15, fontWeight: 600, color:T.ink,
-        letterSpacing:"-0.015em" }}>{t("impact.howPoolIsUsed")}</h3>
+        letterSpacing:"-0.015em" }}>So wird der Pool genutzt</h3>
 
       <div style={{ background:T.surfaceHi, borderRadius:20, overflow:"hidden",
         boxShadow:S.card, border:`1px solid ${T.line}` }}>
@@ -3257,7 +3252,7 @@ function InfoSheet({ modal, onClose }) {
         <button
           onClick={onClose}
           className="ip-p"
-          aria-label={t("common.close")}
+          aria-label="Schließen"
           style={{
             position:"absolute", top:16, right:16,
             width:36, height:36, borderRadius:"50%",
@@ -3344,7 +3339,6 @@ function SkeletonCards({ count = 2 }) {
 // EXPORT
 // ════════════════════════════════════════════════════════════════
 export default function ImpactPage(props) {
-  const { t } = useTranslation();
   return (
     <ImpactErrorBoundary>
       <ImpactPageInner currentUser={props.currentUser} />
