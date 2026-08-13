@@ -209,12 +209,13 @@
     // ── Section 5: Honesty ──
     'honest.kicker': 'Honest',
     'honest.h2': 'We’re just getting started.',
-    'honest.p1': 'HUI is still young. Many of the stories that will one day be visible here haven’t been written yet.',
+    'honest.p1': 'HUI is still young. Many of the stories that will one day become visible here have yet to be written.',
     'honest.p2': 'And that’s exactly what makes it exciting.',
+    'honest.text': 'HUI is still young. Many of the stories that will one day become visible here have yet to be written.<br><br><span class="em">And that’s exactly what makes it exciting.</span>',
 
     // ── Section 6: Impact ──
     'impact.kicker': 'Impact',
-    'impact.h2': 'What emerges from it?',
+    'impact.h2': 'What can emerge from this?',
     'impact.q1': 'Which people meet?',
     'impact.a1': 'Talents that might never have crossed paths without HUI.',
     'impact.q2': 'Which projects become possible?',
@@ -523,21 +524,27 @@
     // Coming-soon links: re-apply "coming soon" for EN
     // The coming-soon JS may have already changed "→" to "· bald",
     // and data-i18n translation may have changed it back to "→".
-    // So we need to handle both cases.
+    // So we need to handle all cases.
     document.querySelectorAll('.coming-soon').forEach(function(link){
       var t = link.textContent.trim();
-      // Case 1: text still has "bald" (coming-soon JS ran, i18n didn't change it)
+      // Already has "coming soon" — done
+      if(t.indexOf('coming soon') > -1) return;
+      // Has "bald" (German coming-soon text still present)
       if(t.indexOf('bald') > -1){
-        link.textContent = t.replace(/· bald/g, '· coming soon').replace(/bald/g, 'coming soon');
+        // Special case: "Web-App · bald verfügbar"
+        if(t.indexOf('verf\u00fcgbar') > -1 || t.indexOf('verfügbar') > -1){
+          link.textContent = 'Web App · coming soon';
+        } else {
+          link.textContent = t.replace(/· bald/g, '· coming soon').replace(/bald/g, 'coming soon');
+        }
       }
-      // Case 2: text has "→" (i18n translated it from German, or it was never modified)
-      else if(t.indexOf('→') > -1 || t.indexOf('\u2192') > -1){
-        link.textContent = t.replace(/→/g, '· coming soon').replace(/\u2192/g, '· coming soon');
-      }
-      // Case 3: text has neither (already translated by data-i18n to "Discover HUI →")
-      // Check for arrow characters
+      // Has "→" (i18n translation includes arrow) — replace with "· coming soon"
       else if(t.indexOf('→') > -1){
         link.textContent = t.replace(/→/g, '· coming soon');
+      }
+      // Has neither — i18n translation removed "· bald" but no arrow — append "· coming soon"
+      else {
+        link.textContent = t + ' · coming soon';
       }
     });
 
