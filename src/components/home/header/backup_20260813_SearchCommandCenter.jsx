@@ -1035,12 +1035,20 @@ export default function SearchCommandCenter({
         <input ref={inputRef} className="dc-input"
           value={query}
           onChange={e=>setQuery(e.target.value.slice(0,200))}
-          // 2026-08-13 Fix (v3, clean): Toggle NUR über onClick — kein
-          // onFocus (feuert auf Android nicht erneut bei bereits
-          // fokussiertem Element), keine preventDefault-Hacks. Der Click
-          // auf das Input toggelt direkt open/close. stopPropagation
-          // verhindert Doppel-Toggle mit dem äußeren Div.
-          onClick={e=>{e.stopPropagation(); open ? close_() : open_();}}
+          onFocus={open_}
+          onClick={e=>e.stopPropagation()}
+          // 2026-08-12 Fix (v2, robust): Schliessen bei zweitem Tap auf die
+          // BEREITS offene Suchleiste. onFocus feuert auf Android WebViews
+          // unzuverlaessig NICHT erneut (Element ist schon fokussiert -- kein
+          // Focus-Wechsel, kein Event) -- ein reiner onFocus/onClick-Ansatz
+          // (v1-Fix) ist deshalb fragil. Robuster Standard-Pattern:
+          // onMouseDown/onTouchStart VOR dem eigentlichen Focus-Event abfangen
+          // und mit preventDefault() den Focus-Zyklus komplett verhindern,
+          // wenn bereits offen + kein Suchtext -- dann direkt schliessen.
+          // Ist die Suche geschlossen (oder Text vorhanden), laeuft der
+          // native Fokus-Vorgang normal weiter -> onFocus oeffnet wie gewohnt.
+          onMouseDown={e=>{ if(open && !query.trim()){ e.preventDefault(); close_(); } }}
+          onTouchStart={e=>{ if(open && !query.trim()){ e.preventDefault(); close_(); } }}
         />
         {!query && !open && (
           <span style={{position:"absolute",left:0,pointerEvents:"none",fontSize:14,fontWeight:450,letterSpacing:"-0.01em",color:has?`${mc}85`:"rgba(26,53,48,0.32)",opacity:phVis?1:0,transform:phVis?"translateY(0)":"translateY(4px)",transition:"opacity .3s ease, transform .3s ease",whiteSpace:"nowrap",overflow:"hidden",maxWidth:"100%"}}>{PH[phIdx]}</span>
@@ -1340,26 +1348,6 @@ export default function SearchCommandCenter({
               />
             </div>
           )}
-
-          {/* Discovery-Panel — position:absolute IM Bar-Wrapper (2026-08-13):
-              Overlay statt Flex-Child. Erscheint über dem Content, verschiebt
-              nichts. Gleiche Position wie zuvor (direkt unter der Bar), aber
-              ohne Layout-Shift. maxHeight verhindert Überlauf beyond viewport.
-              zIndex 299 < suggestions (400), aber über Radius-Zeile (298) und
-              Feed-Content. */}
-          {panelPhase !== "hidden" && (
-            <div style={{
-              position:"absolute",
-              top:"calc(100% + 8px)",
-              left:0, right:0,
-              zIndex:299,
-              maxHeight:"calc(100dvh - var(--hui-safe-top, 0px) - 140px)",
-              overflowY:"auto",
-              WebkitOverflowScrolling:"touch",
-            }}>
-              {discoveryPanel}
-            </div>
-          )}
         </div>
 
         {/* Radius + Quick-Action-Gruppe -- GEMEINSAME Zeile (2026-07-06,
@@ -1392,6 +1380,16 @@ export default function SearchCommandCenter({
           )}
         </div>
 
+        {/* Panel-Slot -- order:99 + flexBasis:100% zwingt per CSS-Flex-Wrap
+            einen Zeilenumbruch NACH Bar+Icons: das Panel bekommt dadurch
+            die VOLLE Breite der Eltern-Row, nie nur die schmalere Bar-Spalte.
+            Nur gemountet, waehrend panelPhase != "hidden" (Ein-/Ausblend-
+            Animation, siehe oben). */}
+        {panelPhase !== "hidden" && (
+          <div style={{ flexBasis:"100%", width:"100%", order:99, zIndex:299, marginTop:12 }}>
+            {discoveryPanel}
+          </div>
+        )}
       </div>
 
       {/* "Alle Kategorien"-Bottom-Sheet -- eigener Portal, siehe Kommentar
