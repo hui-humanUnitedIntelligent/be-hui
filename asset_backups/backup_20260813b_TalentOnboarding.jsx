@@ -7,7 +7,6 @@ import { HUITalentIcon,
 import React, { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../lib/supabaseClient";
-import { ProfileService } from "../services/db";
 import { useAuth }  from "../lib/AuthContext";
 import { HUI } from "../design/hui.design.js";
 import { useModalRegistration } from "../hooks/useModalRegistration.js";
@@ -391,13 +390,11 @@ export default function TalentOnboarding({ onClose = () => {}, onActivate = () =
         role:                "talent",
         updated_at:          new Date().toISOString(),
       };
-      // FIX 2026-08-13: ProfileService.update() statt rohem Supabase-Call.
-      // Root Cause: bare .select() (=SELECT *) traf nach Security-Hardening
-      // (Migration 104) gesperrte Spalten (stripe_account_id, bank_*, blocked,
-      // is_system_account) fuer 'authenticated' -> "permission denied for table
-      // profiles". ProfileService.update() nutzt das sichere F.profile-Feldset
-      // (IDENTITY_CONTRACT), das diese Spalten nicht enthaelt (SSOT).
-      const { data, error: err } = await ProfileService.update(user.id, updates);
+      const { data, error: err } = await supabase
+        .from("profiles")
+        .update(updates)
+        .eq("id", user.id)
+        .select().single();
       if (err) throw err;
       if (setProfile) setProfile(p => ({ ...p, ...updates }));
       setDone(true);

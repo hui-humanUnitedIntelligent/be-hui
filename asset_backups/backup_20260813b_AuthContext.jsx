@@ -53,19 +53,14 @@ export function AuthProvider({ children }) {
 
       if (!prof && error?.code === "PGRST116") {
         // Profil existiert noch nicht → anlegen
-        // FIX 2026-08-13: ProfileService.upsert() statt rohem Supabase-Call.
-        // Root Cause: bare .select() (=SELECT *) traf nach Security-Hardening
-        // (Migration 104) gesperrte Spalten (stripe_account_id, bank_*, blocked,
-        // is_system_account) fuer 'authenticated' -> "permission denied for table
-        // profiles". ProfileService.upsert() nutzt das sichere F.profile-Feldset
-        // (IDENTITY_CONTRACT), das diese Spalten nicht enthaelt (SSOT).
         const { data: newProf } = await withTimeout(
-          ProfileService.upsert(userId, {
+          supabase.from("profiles").upsert({
+            id: userId,
             display_name: null,
             username: null,
             is_talent: false,
             is_ambassador: false,
-          }), 6000
+          }).select().single(), 6000
         );
         if (newProf) setProfile(newProf);
         return;
