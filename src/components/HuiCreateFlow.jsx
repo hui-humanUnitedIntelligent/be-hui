@@ -10,6 +10,7 @@
 // Alle Datenmodelle (works, experiences, stories, mood_tags etc.) bleiben
 // vollständig erhalten — sie sind nur in Phase 3 / Collapse-Sektionen.
 
+import { useTranslation } from "react-i18next";
 import { useDraftPersist } from "../lib/sessionHooks";
 import {
   HUISchreibenIcon, HUIVersandIcon, HUIStimmungIcon,
@@ -971,8 +972,8 @@ function ScreenWerk({ media, onBack, onPublish, loading, error }) {
         <Toggle
           checked={forSale}
           onChange={setForSale}
-          label="Zu verkaufen"
-          sublabel="Preis festlegen und Bestellungen erlauben"
+          label={t("create.forSale")}
+          sublabel={t("create.forSaleSub")}
           color={C.teal}
         />
 
@@ -1017,9 +1018,9 @@ function ScreenWerk({ media, onBack, onPublish, loading, error }) {
               </div>
               <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                 <Toggle checked={shipping} onChange={setShipping}
-                  label="Versand möglich" color={C.coral}/>
+                  label={t("create.shippingPossible")} color={C.coral}/>
                 <Toggle checked={pickup} onChange={setPickup}
-                  label="Abholung möglich" color={C.coral}/>
+                  label={t("create.pickupPossible")} color={C.coral}/>
               </div>
               {(shipping || pickup) && (
                 <div className="hcf2-field hcf2-animate-fade" style={{ marginTop:10 }}>
@@ -1532,6 +1533,7 @@ function ScreenTypeSelector({ onClose, onSelect }) {
    handlePublish: EXAKT gleich wie vorher — kein Datenmodell-Break
 ══════════════════════════════════════════════════════════════════ */
 export default function HuiCreateFlow({ onClose, onSuccess, initialType = null }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
 
   // Screen: "select" | "moment" | "suggestion" | "werk" | "erlebnis" | "story" | "done"

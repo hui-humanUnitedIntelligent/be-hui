@@ -4,6 +4,7 @@
 // Ambassador-Bereich vollständig integriert, live Supabase
 // ─────────────────────────────────────────────────────────────────
 
+import { useTranslation } from "react-i18next";
 import React, { useState, useEffect, useCallback } from "react";
 import { isProfileTalent } from '../../lib/profileUtils.js';
 import {
@@ -104,6 +105,7 @@ function StudioRow({ icon, label, badge, onPress, last = false, labelColor }) {
 }
 
 export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
+  const { t } = useTranslation();
   useModalRegistration(true, () => onClose?.(), "HuiStudio");
   const { signOut } = useAuth() || {};
   const [mounted,      setMounted]      = useState(false);
@@ -208,18 +210,18 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
             jetzt bewusst nur noch "Einstellungen" (PROFIL-DRAWER-REDESIGN-003, 2026-07-06). */}
 
         {/* ── Account & Einstellungen ────────────────────── */}
-        <StudioSection label="Account & Einstellungen">
-          <StudioRow icon={<HUIProfilIcon size={18}/>} label="Profil bearbeiten"  onPress={handleEditProfile} />
-          <StudioRow icon={<HUIVerifIcon size={18}/>} label="Verifizierung"
+        <StudioSection label={t("settings.accountSettings")}>
+          <StudioRow icon={<HUIProfilIcon size={18}/>} label={t("profile.editProfile")}  onPress={handleEditProfile} />
+          <StudioRow icon={<HUIVerifIcon size={18}/>} label={t("profile.verified")}
             badge={isVerified ? "✓ Aktiv" : undefined} onPress={() => setShowVerifCS(true)} />
-          <StudioRow icon={<HUISicherheitIcon size={18}/>} label="Sicherheit & Passwort" onPress={() => setShowSicherheit(true)} />
-          <StudioRow icon={<HUIMitgliedIcon size={18}/>} label="Mitgliedschaft"
+          <StudioRow icon={<HUISicherheitIcon size={18}/>} label={t("settings.accountSecurity")} onPress={() => setShowSicherheit(true)} />
+          <StudioRow icon={<HUIMitgliedIcon size={18}/>} label={t("settings.membership")}
             badge={isTalent ? "HUI-Talent" : "HUI-Mitglied"}
             onPress={() => setShowMitgliedschaftCS(true)} />
-          <StudioRow icon={<HUISupportIcon size={18}/>} label="Support" onPress={() => setShowSupport(true)} />
-          <StudioRow icon={<HUITicketIcon size={18}/>} label="Meine Tickets" onPress={() => setShowMeineTickets(true)} />
+          <StudioRow icon={<HUISupportIcon size={18}/>} label={t("support.title")} onPress={() => setShowSupport(true)} />
+          <StudioRow icon={<HUITicketIcon size={18}/>} label={t("settings.myTickets")} onPress={() => setShowMeineTickets(true)} />
           <StudioRow
-            icon={<HUIAbmeldenIcon size={18}/>} label="Abmelden"
+            icon={<HUIAbmeldenIcon size={18}/>} label={t("settings.signOut")}
             labelColor="#DC2626"
             onPress={() => setShowLogoutConfirm(true)}
             last

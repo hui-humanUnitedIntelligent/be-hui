@@ -6,6 +6,7 @@ import {
   HUIGlobeIcon, HUIGemeinschaftIcon, HUIPrivatIcon,
   HUIFotoIcon,
 } from '../../../design/icons/HuiSystemIcons.jsx';
+import { useTranslation } from "react-i18next";
 import React from "react";
 import { WT } from "./WorkTokens.js";
 
@@ -123,15 +124,15 @@ function WorkPreviewCard({ form, mediaFiles, profile }) {
         <div style={{ display:"flex", flexWrap:"wrap", gap:10 }}>
           {form.shipping && (
             <>
-              <MetaChip icon={<HUIVersandIcon size={13}/>} label="Versand" value={`${form.shippingCost||"–"} €`} />
-              <MetaChip icon={<HUIZeitIcon size={13}/>} label="Lieferzeit" value={form.shippingTime} />
+              <MetaChip icon={<HUIVersandIcon size={13}/>} label={t("create.shippingPossible")} value={`${form.shippingCost||"–"} €`} />
+              <MetaChip icon={<HUIZeitIcon size={13}/>} label={t("common.duration")} value={form.shippingTime} />
             </>
           )}
           {form.fileFormat && (
-            <MetaChip icon={<HUIDateiIcon size={13}/>} label="Format" value={form.fileFormat} />
+            <MetaChip icon={<HUIDateiIcon size={13}/>} label={t("common.format")} value={form.fileFormat} />
           )}
           {form.category && (
-            <MetaChip icon={<HUIKategorieIcon size={13}/>} label="Kategorie" value={form.category} />
+            <MetaChip icon={<HUIKategorieIcon size={13}/>} label={t("common.category")} value={form.category} />
           )}
         </div>
       </div>
@@ -155,6 +156,7 @@ function MetaChip({ icon, label, value }) {
 /* ── Step 3 ──────────────────────────────────────────────────── */
 export function WorkPublishStep({ form, mediaFiles, profile, onFormChange,
   onPublish, saving, error }) {
+  const { t } = useTranslation();
 
   return (
     <div style={{ padding:"24px 20px 24px",
@@ -174,17 +176,17 @@ export function WorkPublishStep({ form, mediaFiles, profile, onFormChange,
       {/* ── Sichtbarkeit ── */}
       <div style={{ display:"flex", gap:8, marginBottom:24 }}>
         <VisibilityCard
-          icon={<HUIGlobeIcon size={18}/>} label="Öffentlich" sub="Für alle sichtbar"
+          icon={<HUIGlobeIcon size={18}/>} label={t("common.public")} sub={t("common.public")}
           active={form.visibility === "public"}
           onClick={() => onFormChange({ visibility:"public" })}
         />
         <VisibilityCard
-          icon={<HUIGemeinschaftIcon size={18}/>} label="Nur Community" sub="Nur für HUI Mitglieder"
+          icon={<HUIGemeinschaftIcon size={18}/>} label={t("profile.communityOnly")} sub={t("profile.communityOnly")}
           active={form.visibility === "community"}
           onClick={() => onFormChange({ visibility:"community" })}
         />
         <VisibilityCard
-          icon={<HUIPrivatIcon size={18}/>} label="Privat" sub="Nur für dich"
+          icon={<HUIPrivatIcon size={18}/>} label={t("common.private")} sub={t("common.private")}
           active={form.visibility === "private"}
           onClick={() => onFormChange({ visibility:"private" })}
         />

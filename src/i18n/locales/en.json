@@ -168,7 +168,10 @@
       "impactEffect": "Impact & effect",
       "additionalInfo": "Additional info (optional)",
       "saveFailed": "Saving failed. Please try again."
-    }
+    },
+    "publicLocation": "Location",
+    "websitePortfolio": "Website / Portfolio",
+    "bioHint": "Bio"
   },
   "settings": {
     "settings": "Settings",
@@ -216,7 +219,21 @@
     "calmness": "Calmness",
     "resonance": "Resonance",
     "bookings": "Bookings",
-    "bookingsOpen": "Bookings open"
+    "bookingsOpen": "Bookings open",
+    "yourImpact": "Your Impact",
+    "impactOverview": "Impact Overview",
+    "monthlyVoting": "Monthly Voting",
+    "distributeImpact": "Distribute Impact",
+    "projectsSupported": "Supported Projects",
+    "totalImpact": "Total Impact",
+    "thisMonth": "This Month",
+    "lastMonth": "Last Month",
+    "votesCast": "Votes cast",
+    "votesRemaining": "Votes remaining",
+    "voteNow": "Vote now",
+    "learnMore": "Learn more",
+    "howItWorks": "How it works",
+    "impactDescription": "Your vote counts. Distribute your impact to projects you support."
   },
   "commerce": {
     "addToCart": "Open cart",
@@ -361,5 +378,78 @@
     "authSession": "Auth Session",
     "storage": "Storage",
     "activeChannels": "Active Channels"
+  },
+  "finance": {
+    "actionNeeded": "Action needed",
+    "totalSpent": "Total spent",
+    "earned": "Earned",
+    "revenue": "Revenue",
+    "impactPool": "Impact Pool",
+    "sales": "Sales",
+    "totalBooked": "Total booked",
+    "totalEarnings": "Total earnings",
+    "all": "All",
+    "from": "From",
+    "to": "To",
+    "gross": "Gross",
+    "huiCommission": "HUI Commission",
+    "impactShare": "Impact share",
+    "quantity": "Quantity",
+    "tracking": "Tracking"
+  },
+  "create": {
+    "forSale": "For sale",
+    "forSaleSub": "Set price and enable orders",
+    "shippingPossible": "Shipping possible",
+    "pickupPossible": "Pickup possible",
+    "titlePlaceholder": "e.g. Watercolor \"Morning Mood\"",
+    "descPlaceholder": "Describe your work…",
+    "pricePlaceholder": "49.00",
+    "selectCategory": "Select category",
+    "uploadImage": "Upload image",
+    "titleWork": "Title of work",
+    "describeWork": "Detailed description",
+    "addPrice": "Add price",
+    "publishWork": "Publish work",
+    "publishExperience": "Publish experience",
+    "backToFeed": "Back to feed",
+    "whatCreate": "What would you like to create?",
+    "work": "Work",
+    "experience": "Experience",
+    "moment": "Moment",
+    "talentOffer": "Talent offer"
+  },
+  "ambassador": {
+    "title": "Become an Ambassador",
+    "description": "Join the HUI network as an ambassador.",
+    "applyNow": "Apply now",
+    "yourName": "Your name",
+    "yourEmail": "Your email",
+    "yourMessage": "Your message",
+    "payoutHistory": "Payout history",
+    "totalEarned": "Total earned",
+    "pendingPayout": "Pending payout"
+  },
+  "connection": {
+    "step2Title": "Connection details",
+    "message": "Message",
+    "messagePlaceholder": "Write a personal message…",
+    "relationshipType": "Relationship type",
+    "colleague": "Colleague",
+    "friend": "Friend",
+    "collaborator": "Collaborator",
+    "client": "Client",
+    "mentor": "Mentor",
+    "other": "Other",
+    "sendRequest": "Send request"
+  },
+  "support": {
+    "title": "Support",
+    "subject": "Subject",
+    "subjectPlaceholder": "What is it about?",
+    "message": "Message",
+    "messagePlaceholder": "Describe your issue…",
+    "send": "Send",
+    "newTicket": "New ticket"
   }
 }

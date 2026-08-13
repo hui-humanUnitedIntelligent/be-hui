@@ -168,7 +168,10 @@
       "impactEffect": "Impact & Wirkung",
       "additionalInfo": "Zusätzliche Infos (optional)",
       "saveFailed": "Speichern fehlgeschlagen. Bitte erneut versuchen."
-    }
+    },
+    "publicLocation": "Standort",
+    "websitePortfolio": "Website / Portfolio",
+    "bioHint": "Bio"
   },
   "settings": {
     "settings": "Einstellungen",
@@ -216,7 +219,21 @@
     "calmness": "Calmness",
     "resonance": "Resonanz",
     "bookings": "Buchungen",
-    "bookingsOpen": "Buchungen offen"
+    "bookingsOpen": "Buchungen offen",
+    "yourImpact": "Dein Impact",
+    "impactOverview": "Impact-Übersicht",
+    "monthlyVoting": "Monatliches Voting",
+    "distributeImpact": "Impact verteilen",
+    "projectsSupported": "Unterstützte Projekte",
+    "totalImpact": "Gesamt-Impact",
+    "thisMonth": "Diesen Monat",
+    "lastMonth": "Letzten Monat",
+    "votesCast": "Stimmen abgegeben",
+    "votesRemaining": "Stimmen übrig",
+    "voteNow": "Jetzt abstimmen",
+    "learnMore": "Mehr erfahren",
+    "howItWorks": "So funktioniert's",
+    "impactDescription": "Deine Stimme zählt. Verteile deinen Impact auf Projekte, die du unterstützt."
   },
   "commerce": {
     "addToCart": "Werkekorb öffnen",
@@ -361,5 +378,78 @@
     "authSession": "Auth Session",
     "storage": "Storage",
     "activeChannels": "Aktive Channels"
+  },
+  "finance": {
+    "actionNeeded": "Aktion nötig",
+    "totalSpent": "Gesamt ausgegeben",
+    "earned": "Verdient",
+    "revenue": "Umsatz",
+    "impactPool": "Impact-Pool",
+    "sales": "Verkäufe",
+    "totalBooked": "Gesamt gebucht",
+    "totalEarnings": "Gesamteinnahmen",
+    "all": "Alle",
+    "from": "Von",
+    "to": "An",
+    "gross": "Brutto",
+    "huiCommission": "HUI-Provision",
+    "impactShare": "Impact-Anteil",
+    "quantity": "Menge",
+    "tracking": "Tracking"
+  },
+  "create": {
+    "forSale": "Zu verkaufen",
+    "forSaleSub": "Preis festlegen und Bestellungen erlauben",
+    "shippingPossible": "Versand möglich",
+    "pickupPossible": "Abholung möglich",
+    "titlePlaceholder": "z.B. Aquarell „Morgenstimmung'",
+    "descPlaceholder": "Beschreibe dein Werk…",
+    "pricePlaceholder": "49,00",
+    "selectCategory": "Kategorie wählen",
+    "uploadImage": "Bild hochladen",
+    "titleWork": "Titel des Werks",
+    "describeWork": "Detaillierte Beschreibung",
+    "addPrice": "Preis hinzufügen",
+    "publishWork": "Werk veröffentlichen",
+    "publishExperience": "Erlebnis veröffentlichen",
+    "backToFeed": "Zurück zum Feed",
+    "whatCreate": "Was möchtest du erstellen?",
+    "work": "Werk",
+    "experience": "Erlebnis",
+    "moment": "Moment",
+    "talentOffer": "Talent-Angebot"
+  },
+  "ambassador": {
+    "title": "Ambassador werden",
+    "description": "Werden Sie Teil des HUI-Netzwerks als Ambassador.",
+    "applyNow": "Jetzt bewerben",
+    "yourName": "Dein Name",
+    "yourEmail": "Deine E-Mail",
+    "yourMessage": "Deine Nachricht",
+    "payoutHistory": "Auszahlungsverlauf",
+    "totalEarned": "Insgesamt verdient",
+    "pendingPayout": "Ausstehende Auszahlung"
+  },
+  "connection": {
+    "step2Title": "Verbindungsdetails",
+    "message": "Nachricht",
+    "messagePlaceholder": "Schreibe eine persönliche Nachricht…",
+    "relationshipType": "Beziehungstyp",
+    "colleague": "Kollege",
+    "friend": "Freund",
+    "collaborator": "Mitarbeiter",
+    "client": "Kunde",
+    "mentor": "Mentor",
+    "other": "Andere",
+    "sendRequest": "Anfrage senden"
+  },
+  "support": {
+    "title": "Support",
+    "subject": "Betreff",
+    "subjectPlaceholder": "Worum geht es?",
+    "message": "Nachricht",
+    "messagePlaceholder": "Beschreibe dein Anliegen…",
+    "send": "Senden",
+    "newTicket": "Neues Ticket"
   }
 }
