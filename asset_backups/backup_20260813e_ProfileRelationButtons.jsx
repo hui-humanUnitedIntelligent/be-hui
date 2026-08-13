@@ -4,7 +4,6 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useHome } from "../home/HomeShell.jsx";
-import { invalidateOrbStageCache } from "../../hooks/useOrbGrowthStage.js";
 
 const T = {
   teal:     "#0DC4B5",
@@ -86,11 +85,6 @@ export default function ProfileRelationButtons({
           console.warn("[Follow] upsert error:", error.message);
           setIsFollowing(false);
           onFollowChange?.(-1);
-        } else {
-          // FIX (2026-08-13): Follow zaehlt in rpc_get_orb_growth_stage als
-          // Aktivitaet des Followers (currentUserId) -> Cache invalidieren,
-          // sonst haengt der Orb bis zu 5 Min. auf altem Wert.
-          invalidateOrbStageCache(currentUserId);
         }
       }
     } catch(e) {

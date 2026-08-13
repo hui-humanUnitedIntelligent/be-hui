@@ -20,6 +20,7 @@ import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "../../lib/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
+import { invalidateOrbStageCache } from "../../hooks/useOrbGrowthStage.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { IMPACT_RATE } from "./commerceUtils.js";
@@ -175,6 +176,11 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
         entity_type: "experience",
       }).catch(() => {});
     }
+
+    // FIX (2026-08-13): Buchung zaehlt in rpc_get_orb_growth_stage als
+    // Aktivitaet -> Cache invalidieren, sonst haengt der Orb bis zu
+    // 5 Min. auf altem Wert.
+    invalidateOrbStageCache(user?.id);
 
     setPhase("success");
   }

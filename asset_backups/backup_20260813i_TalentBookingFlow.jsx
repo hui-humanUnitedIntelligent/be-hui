@@ -18,7 +18,6 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "../../lib/AuthContext";
 import { supabase } from "../../lib/supabaseClient.js";
-import { invalidateOrbStageCache } from "../../hooks/useOrbGrowthStage.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
@@ -253,12 +252,8 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
   }, [user, talent, canSubmit, selectedDate, selectedSlot, participants, note]);
 
   const handleStripeSuccess = useCallback(async () => {
-    // FIX (2026-08-13): Buchung zaehlt in rpc_get_orb_growth_stage als
-    // Aktivitaet -> Cache invalidieren, sonst haengt der Orb bis zu
-    // 5 Min. auf altem Wert.
-    invalidateOrbStageCache(user?.id);
     setStep("success");
-  }, [user?.id]);
+  }, []);
 
   const handleStripeError = useCallback(() => {
     // Fehler wird bereits innerhalb von StripePaymentStep angezeigt

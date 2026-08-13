@@ -5,7 +5,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient.js";
-import { invalidateOrbStageCache } from "../../hooks/useOrbGrowthStage.js";
 import { useHome } from "../home/HomeShell.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { HUILogo } from "../brand/HUILogo.jsx";
@@ -257,10 +256,6 @@ export default function SystemBotProfile({ profileId, onClose = () => {} }) {
           setIsFollowing(true);
           setFollowerCount(c => c + 1);
           window.dispatchEvent(new CustomEvent("hui:follow:changed", { detail: { targetId: SYSTEM_USER_ID, action: "follow" } }));
-          // FIX (2026-08-13): Follow zaehlt in rpc_get_orb_growth_stage als
-          // Aktivitaet -> Cache invalidieren, sonst haengt der Orb bis zu
-          // 5 Min. auf altem Wert.
-          invalidateOrbStageCache(authProfile.id);
         }
       }
     } finally {
