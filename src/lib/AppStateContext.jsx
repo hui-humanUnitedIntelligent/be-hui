@@ -1,3 +1,4 @@
+export const __HUI_NOTIF_FIX_V2 = "badge-sync-20260813";
 // src/lib/AppStateContext.jsx — Phase 1 Restore
 // Stabiler Basis-State ohne gefaehrliche Import-Chains.
 //
