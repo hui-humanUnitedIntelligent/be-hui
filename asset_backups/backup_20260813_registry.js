@@ -620,12 +620,6 @@ export const EXCLUDED_REF_PATHS = Object.freeze(new Set([
   "buchung",
   "mein-hui",
   "community",
-  // ── 2026-08-13: Synchron mit RefRedirect.KNOWN_APP_PATHS gehalten --
-  // navigate('/discover'|'/chat'|'/forgot-password') existiert im Code,
-  // aber keine registrierte Route in App.jsx (siehe RefRedirect.jsx Kommentar).
-  "discover",
-  "chat",
-  "forgot-password",
   // ── Rechtliche / statische Seiten ────────────────────────────
   "impressum",
   "datenschutz",

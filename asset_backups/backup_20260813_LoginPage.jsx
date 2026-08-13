@@ -914,7 +914,7 @@ export default function LoginPage() {
                   type="text"
                   value={refLink}
                   onChange={e => setRefLink(e.target.value)}
-                  placeholder="Reflink Optional"
+                  placeholder="Reflink (optional, z.B. milileo)"
                   autoComplete="off"
                   rightSlot={
                     refLink.trim() ? (

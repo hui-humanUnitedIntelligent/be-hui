@@ -18,13 +18,6 @@ const KNOWN_APP_PATHS = new Set([
   'profile','work','auth','ref','entdecken','buchung','mein-hui',
   'community','impressum','datenschutz','agb','copyright','cookies',
   'auth-callback','callback',
-  // ── 2026-08-13: Verifiziert fehlend -- navigate('/discover'|'/chat'|'/forgot-password')
-  // existiert im Code (DesktopSidebar, DesktopHeader, LoginPage etc.), aber KEINE
-  // registrierte <Route> in App.jsx dafuer. Ohne diesen Eintrag faellt der Pfad auf
-  // den Catch-all /:username durch und wird faelschlich als Ref-Link-Username gegen
-  // die DB geprueft (Bug: Reflink-Feld bei Registrierung wurde mit "https://be-hui.com/discover"
-  // vorbefuellt).
-  'discover','chat','forgot-password',
 ]);
 
 export default function RefRedirect() {
