@@ -122,6 +122,30 @@
       "destination": "/kontakt.html"
     },
     {
+      "source": "/en/imprint",
+      "destination": "/en/imprint.html"
+    },
+    {
+      "source": "/en/privacy",
+      "destination": "/en/privacy.html"
+    },
+    {
+      "source": "/en/cookie-settings",
+      "destination": "/en/cookie-settings.html"
+    },
+    {
+      "source": "/en/terms",
+      "destination": "/en/terms.html"
+    },
+    {
+      "source": "/en/accessibility",
+      "destination": "/en/accessibility.html"
+    },
+    {
+      "source": "/en/contact",
+      "destination": "/en/contact.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
