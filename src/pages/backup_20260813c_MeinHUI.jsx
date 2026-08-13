@@ -855,17 +855,21 @@ function Journey({ delay, data, onOpenSub }) {
           </button>
         </div>
       </FadeUp>
-      {/* PFLICHT: KEIN horizontaler Scroller — 5 feste Kacheln in Grid (3+2),
-          niemals overflowX:auto, egal wie viele Items. Siehe Nutzer-Feedback
-          2026-08-11: 'scroller ist hier wieder drin. bitte keinen mehr einbauen'. */}
-      <div style={{
-        display: "grid", gridTemplateColumns: "repeat(3, 1fr)",
-        gap: "20px 8px",
+      {/* 2026-08-13 (Michael, explizit): Wieder als horizontaler Side-Scroller,
+          loest die vorherige PFLICHT-Grid-Regel vom 2026-08-11 ab (damals war
+          ein ANDERER, kaputter Scroller gemeint -- diesmal ausdruecklich neu
+          gewuenscht). Gleiche Kachel-Optik wie zuvor (68px Rund-Icon + Label +
+          Text), nur als "ws-hscroll"-Reihe (Pattern aus WorksSection.jsx) statt
+          CSS-Grid -- fixe Kachelbreite 116px, snap-artiges Scrollen, kein
+          sichtbarer Scrollbalken. */}
+      <style>{`.reise-hscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}.reise-hscroll::-webkit-scrollbar{display:none}`}</style>
+      <div className="reise-hscroll" style={{
+        display: "flex", gap: 14, paddingBottom: 2,
       }}>
         {items.map((j) => (
           <FadeUp key={j.label} delay={delay}>
             <div onClick={() => onOpenSub(j.subKey, j)}
-              style={{ textAlign: "center", cursor: "pointer" }}>
+              style={{ width: 116, flexShrink: 0, textAlign: "center", cursor: "pointer" }}>
               <div style={{
                 width: 68, height: 68, borderRadius: "50%", margin: "0 auto 9px",
                 background: `linear-gradient(135deg, ${j.color}28 0%, ${j.color}55 100%)`,
@@ -896,8 +900,10 @@ function ImpactMoments({ delay, data, onOpenSub }) {
   const moments = data.moments.length > 0 ? data.moments : [
     { icon: "🌱", label: "Dein Weg beginnt", time: "heute", color: T.teal, bg: T.tealSoft, border: "rgba(13,196,181,0.13)" },
   ];
-  // PFLICHT: KEIN horizontaler Scroller — Grid-Layout (2 Spalten), niemals overflowX:auto.
-  // Siehe Nutzer-Feedback 2026-08-11: 'bitte keinen [scroller] mehr einbauen'.
+  // 2026-08-13 (Michael, explizit): Wieder als horizontaler Side-Scroller,
+  // loest die vorherige PFLICHT-Grid-Regel vom 2026-08-11 ab (siehe Journey-
+  // Komponente oben, gleiche Entscheidung). Gleiche Kachel-Optik (Icon-Kreis
+  // + Label + Zeit), nur als "moments-hscroll"-Reihe statt CSS-Grid.
   return (
     <div style={{ padding: "0 20px" }}>
       <FadeUp delay={delay}>
@@ -917,13 +923,15 @@ function ImpactMoments({ delay, data, onOpenSub }) {
           </button>
         </div>
       </FadeUp>
-      <div style={{
-        display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 9,
+      <style>{`.moments-hscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}.moments-hscroll::-webkit-scrollbar{display:none}`}</style>
+      <div className="moments-hscroll" style={{
+        display: "flex", gap: 9, paddingBottom: 2,
       }}>
         {moments.map((m, i) => (
           <FadeUp key={i} delay={delay}>
             <div onClick={() => onOpenSub("moments", m)}
               style={{
+              width: 168, flexShrink: 0,
               background: m.bg, border: `1px solid ${m.border}`,
               borderRadius: 16, padding: "13px 13px 11px", cursor: "pointer",
             }}>
@@ -980,13 +988,18 @@ function StatsGrid({ delay, data, onOpenSub }) {
           Dein Wirkungsraum
         </div>
       </FadeUp>
-      <div style={{
-        display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 9,
+      {/* 2026-08-13 (Michael, explizit): Wieder als horizontaler Side-Scroller
+          (gleiche Entscheidung wie Journey + ImpactMoments oben). Feste
+          Kachelbreite statt 3-Spalten-Grid, gleiche Kachel-Optik/-Hoehe. */}
+      <style>{`.stats-hscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}.stats-hscroll::-webkit-scrollbar{display:none}`}</style>
+      <div className="stats-hscroll" style={{
+        display: "flex", gap: 9, paddingBottom: 2,
       }}>
         {stats.map((s, i) => (
           <FadeUp key={i} delay={delay + i * 35} style={{ height: "100%" }}>
             <div onClick={() => onOpenSub(s.key, s)}
               style={{
+              width: 108, flexShrink: 0,
               height: STATS_CARD_HEIGHT,
               display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
               background: s.bg, borderRadius: 16, padding: "14px 10px 12px",

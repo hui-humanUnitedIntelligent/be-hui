@@ -13,6 +13,7 @@ import { supabase } from "../lib/supabaseClient.js";
 import { APP_VERSION } from "../version";
 import { optimizeAvatar } from "../lib/perfUtils.js";
 import { useHuiActions, A } from "../core/hui.actions.js";
+import { useOrbGrowthStage, getOrbStageImage } from "../hooks/useOrbGrowthStage.js";
 
 // ─────────────────────────────────────────────────────────────────
 // DESIGN TOKENS (gleiche wie v5.0)
@@ -525,7 +526,9 @@ const LEAVES = [
 // ─────────────────────────────────────────────────────────────────
 // ORB HERO — zentraler Orb mit Atmosphäre (Original-Layout, echte Daten)
 // ─────────────────────────────────────────────────────────────────
-function OrbHero({ data, coreDelay, infoDelay }) {
+function OrbHero({ data, profile, coreDelay, infoDelay }) {
+  const { stage: orbStage } = useOrbGrowthStage(profile?.id || null);
+  const orbStageImg = getOrbStageImage(orbStage);
   return (
     <div style={{ position: "relative", textAlign: "center", padding: "24px 0 16px" }}>
 
@@ -603,7 +606,7 @@ function OrbHero({ data, coreDelay, infoDelay }) {
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
             <img
-              src="/assets/brand/hui-logo.png"
+              src={orbStageImg}
               alt="HUI"
               style={{
                 width: 168, height: 168,
@@ -1717,7 +1720,7 @@ export default function MeinHUI({
           <ProfileHeader profile={profile} onClose={onClose} delay={TITLE_DELAY} />
 
           {/* Orb + Info-Karten */}
-          <OrbHero data={wirkData} coreDelay={CORE_DELAY} infoDelay={INFO_DELAY} />
+          <OrbHero data={wirkData} profile={profile} coreDelay={CORE_DELAY} infoDelay={INFO_DELAY} />
 
           <div style={{ width: 28, height: 1, background: T.inkFaint, margin: "6px auto 26px", opacity: 0.35 }} />
 
