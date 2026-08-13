@@ -7,15 +7,16 @@
 <link rel="icon" href="/favicon.ico">
 <link rel="preload" as="font" href="/fonts/Inter-Regular.woff2" type="font/woff2" crossorigin/>
 <link rel="preload" as="font" href="/fonts/Inter-SemiBold.woff2" type="font/woff2" crossorigin/>
-<style>
-:root{--teal:#0DC4B5;--teal-deep:#09A89A;--coral:#F47355;--cream:#FAF7F2;--cream-warm:#F5EEE3;--cream-soft:#FDFBF8;--ink:#141422;--ink-mid:#2E2E45;--muted:#8A8A9E;--faint:#C0C0D0;--border:rgba(20,20,34,.06);--ease:cubic-bezier(.25,.46,.45,.94)}
+<style>:root{--teal:#0DC4B5;--teal-deep:#09A89A;--coral:#F47355;--cream:#FAF7F2;--cream-warm:#F5EEE3;--cream-soft:#FDFBF8;--ink:#141422;--ink-mid:#2E2E45;--muted:#8A8A9E;--faint:#C0C0D0;--border:rgba(20,20,34,.06);--ease:cubic-bezier(.25,.46,.45,.94)}
+@font-face{font-family:'Inter';font-style:normal;font-weight:200;font-display:swap;src:url('/fonts/Inter-ExtraLight.woff2') format('woff2')}
 @font-face{font-family:'Inter';font-style:normal;font-weight:300;font-display:swap;src:url('/fonts/Inter-Light.woff2') format('woff2')}
 @font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/Inter-Regular.woff2') format('woff2')}
 @font-face{font-family:'Inter';font-style:normal;font-weight:500;font-display:swap;src:url('/fonts/Inter-Medium.woff2') format('woff2')}
 @font-face{font-family:'Inter';font-style:normal;font-weight:600;font-display:swap;src:url('/fonts/Inter-SemiBold.woff2') format('woff2')}
-@font-face{font-family:'Inter';font-style:normal;font-weight:200;font-display:swap;src:url('/fonts/Inter-ExtraLight.woff2') format('woff2')}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Inter',system-ui,sans-serif;background:var(--cream);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--teal-deep);text-decoration:none;transition:color .2s var(--ease)}
+a:hover{color:var(--teal)}
 .legal-nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:20px 32px;background:rgba(250,247,242,.85);backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);border-bottom:1px solid var(--border)}
 .legal-nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
 .legal-nav-brand img{width:28px;height:28px}
@@ -24,24 +25,29 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--cream);color:var(
 .legal-nav-back:hover{color:var(--teal)}
 .legal-page{max-width:720px;margin:0 auto;padding:64px 32px 96px}
 .legal-kicker{font-size:12px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:var(--coral);margin-bottom:20px}
-.legal-h1{font-size:clamp(28px,4vw,38px);font-weight:600;letter-spacing:-.02em;line-height:1.2;color:var(--ink);margin-bottom:40px}
+.legal-h1{font-size:clamp(28px,4vw,38px);font-weight:600;letter-spacing:-.02em;line-height:1.2;color:var(--ink);margin-bottom:12px}
+.legal-intro{font-size:15px;font-weight:300;line-height:1.7;color:var(--muted);margin-bottom:48px;max-width:600px}
 .legal-section{margin-bottom:40px}
-.legal-section h2{font-size:18px;font-weight:600;letter-spacing:-.01em;color:var(--ink);margin-bottom:16px}
-.legal-section p{font-size:15px;font-weight:300;line-height:1.75;color:var(--ink-mid);margin-bottom:12px}
-.legal-placeholder{background:var(--cream-soft);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:12px}
-.legal-placeholder-label{font-size:13px;font-weight:500;color:var(--muted);margin-bottom:4px}
-.legal-placeholder-value{font-size:15px;font-weight:300;color:var(--ink-mid);font-style:italic}
-.legal-no-value{font-size:13px;color:var(--faint);font-style:italic}
-.legal-note{font-size:13px;color:var(--muted);font-style:italic;margin-top:32px;padding:16px 20px;background:var(--cream-warm);border-radius:10px;line-height:1.6}
-.legal-list{list-style:none;padding:0}
-.legal-list li{font-size:15px;font-weight:300;line-height:1.75;color:var(--ink-mid);padding-left:20px;position:relative;margin-bottom:8px}
-.legal-list li::before{content:'';position:absolute;left:0;top:11px;width:6px;height:6px;border-radius:50%;background:var(--teal);opacity:.5}
+.legal-section h2{font-size:18px;font-weight:600;letter-spacing:-.01em;color:var(--ink);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.legal-section h3{font-size:15px;font-weight:600;color:var(--ink-mid);margin:24px 0 10px}
+.legal-section p{font-size:15px;font-weight:300;line-height:1.8;color:var(--ink-mid);margin-bottom:14px}
+.legal-section ul,.legal-section ol{margin:0 0 16px 20px}
+.legal-section ul li,.legal-section ol li{font-size:15px;font-weight:300;line-height:1.8;color:var(--ink-mid);margin-bottom:6px}
+.legal-data{background:var(--cream-soft);border:1px solid var(--border);border-radius:12px;padding:24px 28px;margin-bottom:16px}
+.legal-data-row{display:grid;grid-template-columns:160px 1fr;gap:12px;padding:8px 0;border-bottom:1px solid rgba(20,20,34,.03)}
+.legal-data-row:last-child{border-bottom:none}
+.legal-data-label{font-size:13px;font-weight:500;color:var(--muted)}
+.legal-data-value{font-size:14px;font-weight:400;color:var(--ink-mid);line-height:1.6}
+.legal-note{font-size:13px;color:var(--muted);font-style:italic;margin-top:32px;padding:16px 20px;background:var(--cream-warm);border-radius:10px;line-height:1.7}
+.legal-contact-card{background:var(--cream-soft);border:1px solid var(--border);border-radius:16px;padding:32px;margin:32px 0}
+.legal-contact-card h3{font-size:17px;font-weight:600;color:var(--ink);margin-bottom:12px}
+.legal-contact-card p{font-size:14px;font-weight:300;color:var(--ink-mid);margin-bottom:4px;line-height:1.6}
+.legal-contact-card a{font-size:14px}
 .legal-footer{text-align:center;padding:40px 32px;background:var(--ink)}
 .legal-footer a{font-size:13px;color:rgba(250,247,242,.42);text-decoration:none;transition:color .25s}
 .legal-footer a:hover{color:var(--teal)}
 .legal-footer-copy{font-size:12px;color:rgba(250,247,242,.22);margin-top:16px}
-@media(max-width:768px){.legal-nav{padding:16px 20px}.legal-page{padding:48px 20px 64px}.legal-h1{font-size:26px}}
-</style>
+@media(max-width:768px){.legal-nav{padding:16px 20px}.legal-page{padding:48px 20px 64px}.legal-h1{font-size:26px}.legal-data-row{grid-template-columns:1fr;gap:2px}.legal-data-label{font-size:12px}}</style>
 </head>
 <body>
 <nav class="legal-nav">
@@ -54,33 +60,45 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--cream);color:var(
 <main class="legal-page">
 <p class="legal-kicker">Rechtliches</p>
 <h1 class="legal-h1">Cookie-Einstellungen</h1>
-
-<p>HUI legt großen Wert auf Transparenz und den Schutz deiner Daten. Auf dieser Seite kannst du später deine Cookie-Präferenzen verwalten.</p>
+<p class="legal-intro">HUI ist transparent: Die öffentliche Website verwendet keine Cookies.</p>
 
 <div class="legal-section">
-<h2>Aktueller Status</h2>
-<div class="legal-placeholder">
-<p class="legal-placeholder-label">Consent-Management</p>
-<p class="legal-placeholder-value">[ Noch nicht implementiert — wird vor dem Launch eingerichtet ]</p>
-</div>
+<h2>Aktueller Stand</h2>
+<p>Die öffentliche HUI-Website verwendet <strong>keine Cookies</strong>. Es werden weder Tracking-Cookies noch Marketing-Cookies noch Analyse-Cookies gesetzt. Es ist kein Consent-Management-System aktiv, da keine einwilligungspflichtigen Cookies eingesetzt werden.</p>
 </div>
 
 <div class="legal-section">
-<h2>Geplante Kategorien</h2>
-<ul class="legal-list">
-<li>Notwendige Cookies (technisch erforderlich)</li>
-<li>Präferenz-Cookies</li>
-<li>Statistik-Cookies (nur mit Zustimmung)</li>
-<li>Marketing-Cookies (nur mit Zustimmung)</li>
-</ul>
+<h2>Warum keine Cookies?</h2>
+<p>HUI legt großen Wert auf Transparenz und Datenschutz. Die öffentliche Website ist so gestaltet, dass sie vollständig ohne Cookies funktioniert. Schriftarten und Bilder werden lokal geladen — es gibt keine Einbindung externer Schriftarten-Anbieter oder CDNs, die Cookies setzen könnten.</p>
+<p>Der Hosting-Anbieter (Vercel) verarbeitet Zugriffsdaten in Server-Logfiles (IP-Adresse, Zeitstempel, angeforderte URL). Diese Verarbeitung erfolgt serverseitig und nicht über Cookies im Browser.</p>
 </div>
 
 <div class="legal-section">
-<h2>Deine Rechte</h2>
-<p>Du kannst deine Einwilligung jederzeit widerrufen. Nach dem Launch wird an dieser Stelle ein zentrales Consent-Management zur Verfügung stehen, über das du deine Einstellungen jederzeit anpassen kannst.</p>
+<h2>Detailübersicht</h2>
+<div class="legal-data">
+<div class="legal-data-row"><div class="legal-data-label">Notwendige Cookies</div><div class="legal-data-value">Nicht verwendet — die Website funktioniert ohne Cookies vollständig.</div></div>
+<div class="legal-data-row"><div class="legal-data-label">Präferenz-Cookies</div><div class="legal-data-value">Nicht verwendet.</div></div>
+<div class="legal-data-row"><div class="legal-data-label">Statistik-Cookies</div><div class="legal-data-value">Nicht verwendet — es wird kein Analytics-Tool eingesetzt.</div></div>
+<div class="legal-data-row"><div class="legal-data-label">Marketing-Cookies</div><div class="legal-data-value">Nicht verwendet — es wird kein Tracking oder Retargeting eingesetzt.</div></div>
+<div class="legal-data-row"><div class="legal-data-label">Externe Schriftarten</div><div class="legal-data-value">Nicht verwendet — alle Schriftarten werden lokal gehostet.</div></div>
+<div class="legal-data-row"><div class="legal-data-label">Externe CDNs</div><div class="legal-data-value">Nicht verwendet — alle Skripte und Bilder werden lokal gehostet.</div></div>
+</div>
 </div>
 
-<p class="legal-note">Es werden derzeit keine Cookies gesetzt, die einer Einwilligung bedürfen. Diese Seite ist technisch vorbereitet für eine spätere Consent-Verwaltung. Es werden keine Cookies hinzugefügt oder Tracking-Funktionen aktiviert, bevor das Consent-System implementiert ist.</p>
+<div class="legal-section">
+<h2>Vorbereitung für die Zukunft</h2>
+<p>Diese Seite ist technisch vorbereitet für eine spätere Consent-Verwaltung. Sollten im Rahmen des App-Launches oder durch zukünftige Funktionen Cookies hinzugefügt werden, wird an dieser Stelle ein zentrales Consent-Management zur Verfügung stehen, über das Sie Ihre Einstellungen jederzeit anpassen können.</p>
+<p>Es werden erst dann Cookies eingesetzt, die einer Einwilligung bedürfen, wenn ein entsprechendes Consent-System implementiert ist. Bis dahin bleiben keine Cookies aktiv.</p>
+</div>
+
+<div class="legal-section">
+<h2>Ihre Rechte</h2>
+<p>Da keine Cookies verwendet werden, ist ein Widerruf von Einwilligungen aktuell nicht erforderlich. Sollten in Zukunft einwilligungspflichtige Cookies hinzukommen, können Sie Ihre Einwilligung jederzeit widerrufen.</p>
+<p>Weitere Informationen finden Sie in unserer <a href="/datenschutz">Datenschutzerklärung</a>.</p>
+</div>
+
+<p class="legal-note">Diese Seite wird aktualisiert, sobald sich an der Cookie-Situation etwas ändert. Derzeit sind keine Änderungen absehbar.</p>
+
 </main>
 <footer class="legal-footer">
 <a href="/landing.html">Zurück zur Startseite</a>

@@ -7,15 +7,16 @@
 <link rel="icon" href="/favicon.ico">
 <link rel="preload" as="font" href="/fonts/Inter-Regular.woff2" type="font/woff2" crossorigin/>
 <link rel="preload" as="font" href="/fonts/Inter-SemiBold.woff2" type="font/woff2" crossorigin/>
-<style>
-:root{--teal:#0DC4B5;--teal-deep:#09A89A;--coral:#F47355;--cream:#FAF7F2;--cream-warm:#F5EEE3;--cream-soft:#FDFBF8;--ink:#141422;--ink-mid:#2E2E45;--muted:#8A8A9E;--faint:#C0C0D0;--border:rgba(20,20,34,.06);--ease:cubic-bezier(.25,.46,.45,.94)}
+<style>:root{--teal:#0DC4B5;--teal-deep:#09A89A;--coral:#F47355;--cream:#FAF7F2;--cream-warm:#F5EEE3;--cream-soft:#FDFBF8;--ink:#141422;--ink-mid:#2E2E45;--muted:#8A8A9E;--faint:#C0C0D0;--border:rgba(20,20,34,.06);--ease:cubic-bezier(.25,.46,.45,.94)}
+@font-face{font-family:'Inter';font-style:normal;font-weight:200;font-display:swap;src:url('/fonts/Inter-ExtraLight.woff2') format('woff2')}
 @font-face{font-family:'Inter';font-style:normal;font-weight:300;font-display:swap;src:url('/fonts/Inter-Light.woff2') format('woff2')}
 @font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/Inter-Regular.woff2') format('woff2')}
 @font-face{font-family:'Inter';font-style:normal;font-weight:500;font-display:swap;src:url('/fonts/Inter-Medium.woff2') format('woff2')}
 @font-face{font-family:'Inter';font-style:normal;font-weight:600;font-display:swap;src:url('/fonts/Inter-SemiBold.woff2') format('woff2')}
-@font-face{font-family:'Inter';font-style:normal;font-weight:200;font-display:swap;src:url('/fonts/Inter-ExtraLight.woff2') format('woff2')}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Inter',system-ui,sans-serif;background:var(--cream);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--teal-deep);text-decoration:none;transition:color .2s var(--ease)}
+a:hover{color:var(--teal)}
 .legal-nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:20px 32px;background:rgba(250,247,242,.85);backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);border-bottom:1px solid var(--border)}
 .legal-nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
 .legal-nav-brand img{width:28px;height:28px}
@@ -24,23 +25,29 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--cream);color:var(
 .legal-nav-back:hover{color:var(--teal)}
 .legal-page{max-width:720px;margin:0 auto;padding:64px 32px 96px}
 .legal-kicker{font-size:12px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:var(--coral);margin-bottom:20px}
-.legal-h1{font-size:clamp(28px,4vw,38px);font-weight:600;letter-spacing:-.02em;line-height:1.2;color:var(--ink);margin-bottom:40px}
+.legal-h1{font-size:clamp(28px,4vw,38px);font-weight:600;letter-spacing:-.02em;line-height:1.2;color:var(--ink);margin-bottom:12px}
+.legal-intro{font-size:15px;font-weight:300;line-height:1.7;color:var(--muted);margin-bottom:48px;max-width:600px}
 .legal-section{margin-bottom:40px}
-.legal-section h2{font-size:18px;font-weight:600;letter-spacing:-.01em;color:var(--ink);margin-bottom:16px}
-.legal-section p{font-size:15px;font-weight:300;line-height:1.75;color:var(--ink-mid);margin-bottom:12px}
-.legal-placeholder{background:var(--cream-soft);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:12px}
-.legal-placeholder-label{font-size:13px;font-weight:500;color:var(--muted);margin-bottom:4px}
-.legal-no-value{font-size:13px;color:var(--faint);font-style:italic}
-.legal-note{font-size:13px;color:var(--muted);font-style:italic;margin-top:32px;padding:16px 20px;background:var(--cream-warm);border-radius:10px;line-height:1.6}
-.legal-contact-card{background:var(--cream-soft);border:1px solid var(--border);border-radius:16px;padding:32px;margin:32px 0;text-align:center}
-.legal-contact-card h3{font-size:16px;font-weight:600;color:var(--ink);margin-bottom:8px}
-.legal-contact-card p{font-size:14px;font-weight:300;color:var(--muted);margin-bottom:4px}
+.legal-section h2{font-size:18px;font-weight:600;letter-spacing:-.01em;color:var(--ink);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.legal-section h3{font-size:15px;font-weight:600;color:var(--ink-mid);margin:24px 0 10px}
+.legal-section p{font-size:15px;font-weight:300;line-height:1.8;color:var(--ink-mid);margin-bottom:14px}
+.legal-section ul,.legal-section ol{margin:0 0 16px 20px}
+.legal-section ul li,.legal-section ol li{font-size:15px;font-weight:300;line-height:1.8;color:var(--ink-mid);margin-bottom:6px}
+.legal-data{background:var(--cream-soft);border:1px solid var(--border);border-radius:12px;padding:24px 28px;margin-bottom:16px}
+.legal-data-row{display:grid;grid-template-columns:160px 1fr;gap:12px;padding:8px 0;border-bottom:1px solid rgba(20,20,34,.03)}
+.legal-data-row:last-child{border-bottom:none}
+.legal-data-label{font-size:13px;font-weight:500;color:var(--muted)}
+.legal-data-value{font-size:14px;font-weight:400;color:var(--ink-mid);line-height:1.6}
+.legal-note{font-size:13px;color:var(--muted);font-style:italic;margin-top:32px;padding:16px 20px;background:var(--cream-warm);border-radius:10px;line-height:1.7}
+.legal-contact-card{background:var(--cream-soft);border:1px solid var(--border);border-radius:16px;padding:32px;margin:32px 0}
+.legal-contact-card h3{font-size:17px;font-weight:600;color:var(--ink);margin-bottom:12px}
+.legal-contact-card p{font-size:14px;font-weight:300;color:var(--ink-mid);margin-bottom:4px;line-height:1.6}
+.legal-contact-card a{font-size:14px}
 .legal-footer{text-align:center;padding:40px 32px;background:var(--ink)}
 .legal-footer a{font-size:13px;color:rgba(250,247,242,.42);text-decoration:none;transition:color .25s}
 .legal-footer a:hover{color:var(--teal)}
 .legal-footer-copy{font-size:12px;color:rgba(250,247,242,.22);margin-top:16px}
-@media(max-width:768px){.legal-nav{padding:16px 20px}.legal-page{padding:48px 20px 64px}.legal-h1{font-size:26px}}
-</style>
+@media(max-width:768px){.legal-nav{padding:16px 20px}.legal-page{padding:48px 20px 64px}.legal-h1{font-size:26px}.legal-data-row{grid-template-columns:1fr;gap:2px}.legal-data-label{font-size:12px}}</style>
 </head>
 <body>
 <nav class="legal-nav">
@@ -53,43 +60,64 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--cream);color:var(
 <main class="legal-page">
 <p class="legal-kicker">Verpflichtung</p>
 <h1 class="legal-h1">Erklärung zur Barrierefreiheit</h1>
+<p class="legal-intro">HUI ist committed, die Website für alle Menschen zugänglich zu machen.</p>
 
 <div class="legal-section">
 <h2>Unser Commitment</h2>
-<p>HUI ist committed, die Plattform barrierefrei zu gestalten. Wir arbeiten daran, dass alle Menschen die Plattform nutzen können — unabhängig von individuellen Fähigkeiten oder technischen Voraussetzungen.</p>
+<p>HUI ist committed, die Website barrierefrei zu gestalten. Wir arbeiten daran, dass alle Menschen die Website nutzen können — unabhängig von individuellen Fähigkeiten, technischen Voraussetzungen oder assistiven Technologien.</p>
+<p>Die Website wird fortlaufend hinsichtlich ihrer Zugänglichkeit verbessert.</p>
 </div>
 
 <div class="legal-section">
-<h2>Stand der Barrierefreiheit</h2>
-<div class="legal-placeholder">
-<p class="legal-placeholder-label">Bewertung</p>
-<p class="legal-no-value">[ Die Bewertung der Barrierefreiheit wird vor dem Launch durchgeführt. ]</p>
+<h2>Umgesetzte Maßnahmen</h2>
+<p>Folgende Aspekte der Barrierefreiheit werden bei der HUI-Website berücksichtigt:</p>
+<h3>Tastaturbedienung</h3>
+<p>Die Navigation und alle interaktiven Elemente sind über die Tastatur bedienbar. Links und Buttons sind per Tab-Taste erreichbar und mit Enter aktivierbar.</p>
+<h3>Kontraste</h3>
+<p>Die Textfarben sind auf ausreichenden Kontrast zum Hintergrund abgestimmt. Die verwendete Farbpalette (Creme, Dunkles Navy, Türkis, Koralle) ist so gewählt, dass Texte gut lesbar bleiben.</p>
+<h3>Responsive Darstellung</h3>
+<p>Die Website passt sich an verschiedene Bildschirmgrößen an — von Desktop über iPad bis Smartphone. Inhalte bleiben auf allen Geräten lesbar und navigierbar.</p>
+<h3>Semantische Struktur</h3>
+<p>Die Website verwendet semantisches HTML (Heading-Hierarchien, Listen, korrekte Landmark-Roles), um Screenreadern eine logische Orientierung zu ermöglichen.</p>
+<h3>Alternativtexte</h3>
+<p>Bilder und grafische Elemente sind mit Alt-Texten versehen, soweit sie inhaltlich relevant sind. Dekorative Elemente sind für assistive Technologien entsprechend markiert.</p>
+<h3>Reduzierte Bewegung</h3>
+<p>Die Website respektiert die Systemeinstellung "Reduce Motion" (prefers-reduced-motion). Animationen werden bei aktivierter Einstellung reduziert oder deaktiviert.</p>
+<h3>Screenreader-Kompatibilität</h3>
+<p>Die Website wird mit gängigen Screenreadern getestet. ARIA-Labels werden eingesetzt, wo semantisches HTML allein nicht ausreicht.</p>
 </div>
+
+<div class="legal-section">
+<h2>Formelle Prüfung</h2>
+<p>Eine formelle Prüfung der Barrierefreiheit (z. B. nach WCAG 2.1 oder BITV) hat bisher nicht stattgefunden. Die oben genannten Maßnahmen basieren auf bewährten Praktiken und fortlaufender Eigenprüfung.</p>
 </div>
 
 <div class="legal-section">
 <h2>Bekannte Einschränkungen</h2>
-<div class="legal-placeholder">
-<p class="legal-placeholder-label">Einschränkungen</p>
-<p class="legal-no-value">[ Bekannte Einschränkungen werden hier dokumentiert. ]</p>
-</div>
+<p>Trotz der angestrebten Barrierefreiheit kann es Bereiche geben, die noch nicht vollständig zugänglich sind. Wir arbeiten kontinuierlich an der Verbesserung.</p>
+<p>Wenn Sie auf eine Barriere stoßen, melden Sie diese bitte über den unten angegebenen Kontakt.</p>
 </div>
 
 <div class="legal-section">
-<h2>Kontakt bei Barrierefreiheitsmeldungen</h2>
+<h2>Kontakt für Hinweise auf Barrieren</h2>
 <div class="legal-contact-card">
 <h3>Rückmeldung zur Barrierefreiheit</h3>
-<p class="legal-no-value">[ Kontakt wird vor dem Launch bekannt gegeben ]</p>
-<p>Wir nehmen deine Rückmeldungen ernst und bemühen uns, gemeldete Barrieren schnellstmöglich zu beheben.</p>
+<p>4VisionGlobal</p>
+<p>Lederergasse 28–20, 1080 Wien, Österreich</p>
+<p>E-Mail: <a href="mailto:4visionglobal.faireint@gmail.com">4visionglobal.faireint@gmail.com</a></p>
 </div>
+<p>Wir nehmen Ihre Rückmeldungen ernst und bemühen uns, gemeldete Barrieren schnellstmöglich zu beheben.</p>
 </div>
 
 <div class="legal-section">
 <h2>Verfahren</h2>
-<p>Wenn du eine Barriere meldest und keine zufriedenstellende Lösung erhältst, kannst du dich an die österreichische Schlichtungsstelle wenden. Die entsprechenden Kontaktdaten werden vor dem Launch ergänzt.</p>
+<p>Wenn Sie eine Barriere melden und keine zufriedenstellende Lösung erhalten, können Sie sich an die österreichische Schlichtungsstelle wenden:</p>
+<p><a href="https://www.wko.at/service/wirtschaftsrecht-gewerberecht/schlichtungsstelle-nach dem-behindertengleichstellungsgesetz.html" target="_blank" rel="noopener noreferrer">Schlichtungsstelle nach dem Behindertengleichstellungsgesetz (wko.at)</a></p>
+<p>Weitere Informationen zur Barrierefreiheit in Österreich finden Sie auf der Website des <a href="https://www.oesterreich.gv.at" target="_blank" rel="noopener noreferrer">österreichischen Digitalamts</a>.</p>
 </div>
 
-<p class="legal-note">Diese Erklärung wird gemäß den Anforderungen des österreichischen Behindertengleichstellungsgesetzes vor dem Launch finalisiert.</p>
+<p class="legal-note">Diese Erklärung wird fortlaufend aktualisiert und gemäß den Anforderungen des österreichischen Behindertengleichstellungsgesetzes weiterentwickelt.</p>
+
 </main>
 <footer class="legal-footer">
 <a href="/landing.html">Zurück zur Startseite</a>

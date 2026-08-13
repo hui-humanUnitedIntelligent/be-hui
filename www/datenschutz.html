@@ -7,15 +7,16 @@
 <link rel="icon" href="/favicon.ico">
 <link rel="preload" as="font" href="/fonts/Inter-Regular.woff2" type="font/woff2" crossorigin/>
 <link rel="preload" as="font" href="/fonts/Inter-SemiBold.woff2" type="font/woff2" crossorigin/>
-<style>
-:root{--teal:#0DC4B5;--teal-deep:#09A89A;--coral:#F47355;--cream:#FAF7F2;--cream-warm:#F5EEE3;--cream-soft:#FDFBF8;--ink:#141422;--ink-mid:#2E2E45;--muted:#8A8A9E;--faint:#C0C0D0;--border:rgba(20,20,34,.06);--ease:cubic-bezier(.25,.46,.45,.94)}
+<style>:root{--teal:#0DC4B5;--teal-deep:#09A89A;--coral:#F47355;--cream:#FAF7F2;--cream-warm:#F5EEE3;--cream-soft:#FDFBF8;--ink:#141422;--ink-mid:#2E2E45;--muted:#8A8A9E;--faint:#C0C0D0;--border:rgba(20,20,34,.06);--ease:cubic-bezier(.25,.46,.45,.94)}
+@font-face{font-family:'Inter';font-style:normal;font-weight:200;font-display:swap;src:url('/fonts/Inter-ExtraLight.woff2') format('woff2')}
 @font-face{font-family:'Inter';font-style:normal;font-weight:300;font-display:swap;src:url('/fonts/Inter-Light.woff2') format('woff2')}
 @font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/Inter-Regular.woff2') format('woff2')}
 @font-face{font-family:'Inter';font-style:normal;font-weight:500;font-display:swap;src:url('/fonts/Inter-Medium.woff2') format('woff2')}
 @font-face{font-family:'Inter';font-style:normal;font-weight:600;font-display:swap;src:url('/fonts/Inter-SemiBold.woff2') format('woff2')}
-@font-face{font-family:'Inter';font-style:normal;font-weight:200;font-display:swap;src:url('/fonts/Inter-ExtraLight.woff2') format('woff2')}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Inter',system-ui,sans-serif;background:var(--cream);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--teal-deep);text-decoration:none;transition:color .2s var(--ease)}
+a:hover{color:var(--teal)}
 .legal-nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:20px 32px;background:rgba(250,247,242,.85);backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);border-bottom:1px solid var(--border)}
 .legal-nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
 .legal-nav-brand img{width:28px;height:28px}
@@ -24,23 +25,29 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--cream);color:var(
 .legal-nav-back:hover{color:var(--teal)}
 .legal-page{max-width:720px;margin:0 auto;padding:64px 32px 96px}
 .legal-kicker{font-size:12px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:var(--coral);margin-bottom:20px}
-.legal-h1{font-size:clamp(28px,4vw,38px);font-weight:600;letter-spacing:-.02em;line-height:1.2;color:var(--ink);margin-bottom:40px}
+.legal-h1{font-size:clamp(28px,4vw,38px);font-weight:600;letter-spacing:-.02em;line-height:1.2;color:var(--ink);margin-bottom:12px}
+.legal-intro{font-size:15px;font-weight:300;line-height:1.7;color:var(--muted);margin-bottom:48px;max-width:600px}
 .legal-section{margin-bottom:40px}
-.legal-section h2{font-size:18px;font-weight:600;letter-spacing:-.01em;color:var(--ink);margin-bottom:16px}
-.legal-section p{font-size:15px;font-weight:300;line-height:1.75;color:var(--ink-mid);margin-bottom:12px}
-.legal-placeholder{background:var(--cream-soft);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:12px}
-.legal-placeholder-label{font-size:13px;font-weight:500;color:var(--muted);margin-bottom:4px}
-.legal-no-value{font-size:13px;color:var(--faint);font-style:italic}
-.legal-note{font-size:13px;color:var(--muted);font-style:italic;margin-top:32px;padding:16px 20px;background:var(--cream-warm);border-radius:10px;line-height:1.6}
-.legal-list{list-style:none;padding:0}
-.legal-list li{font-size:15px;font-weight:300;line-height:1.75;color:var(--ink-mid);padding-left:20px;position:relative;margin-bottom:8px}
-.legal-list li::before{content:'';position:absolute;left:0;top:11px;width:6px;height:6px;border-radius:50%;background:var(--teal);opacity:.5}
+.legal-section h2{font-size:18px;font-weight:600;letter-spacing:-.01em;color:var(--ink);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.legal-section h3{font-size:15px;font-weight:600;color:var(--ink-mid);margin:24px 0 10px}
+.legal-section p{font-size:15px;font-weight:300;line-height:1.8;color:var(--ink-mid);margin-bottom:14px}
+.legal-section ul,.legal-section ol{margin:0 0 16px 20px}
+.legal-section ul li,.legal-section ol li{font-size:15px;font-weight:300;line-height:1.8;color:var(--ink-mid);margin-bottom:6px}
+.legal-data{background:var(--cream-soft);border:1px solid var(--border);border-radius:12px;padding:24px 28px;margin-bottom:16px}
+.legal-data-row{display:grid;grid-template-columns:160px 1fr;gap:12px;padding:8px 0;border-bottom:1px solid rgba(20,20,34,.03)}
+.legal-data-row:last-child{border-bottom:none}
+.legal-data-label{font-size:13px;font-weight:500;color:var(--muted)}
+.legal-data-value{font-size:14px;font-weight:400;color:var(--ink-mid);line-height:1.6}
+.legal-note{font-size:13px;color:var(--muted);font-style:italic;margin-top:32px;padding:16px 20px;background:var(--cream-warm);border-radius:10px;line-height:1.7}
+.legal-contact-card{background:var(--cream-soft);border:1px solid var(--border);border-radius:16px;padding:32px;margin:32px 0}
+.legal-contact-card h3{font-size:17px;font-weight:600;color:var(--ink);margin-bottom:12px}
+.legal-contact-card p{font-size:14px;font-weight:300;color:var(--ink-mid);margin-bottom:4px;line-height:1.6}
+.legal-contact-card a{font-size:14px}
 .legal-footer{text-align:center;padding:40px 32px;background:var(--ink)}
 .legal-footer a{font-size:13px;color:rgba(250,247,242,.42);text-decoration:none;transition:color .25s}
 .legal-footer a:hover{color:var(--teal)}
 .legal-footer-copy{font-size:12px;color:rgba(250,247,242,.22);margin-top:16px}
-@media(max-width:768px){.legal-nav{padding:16px 20px}.legal-page{padding:48px 20px 64px}.legal-h1{font-size:26px}}
-</style>
+@media(max-width:768px){.legal-nav{padding:16px 20px}.legal-page{padding:48px 20px 64px}.legal-h1{font-size:26px}.legal-data-row{grid-template-columns:1fr;gap:2px}.legal-data-label{font-size:12px}}</style>
 </head>
 <body>
 <nav class="legal-nav">
@@ -53,65 +60,133 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--cream);color:var(
 <main class="legal-page">
 <p class="legal-kicker">Rechtliches</p>
 <h1 class="legal-h1">Datenschutzerklärung</h1>
+<p class="legal-intro">Informationen zur Verarbeitung personenbezogener Daten auf be-hui.com gemäß DSGVO.</p>
 
 <div class="legal-section">
-<h2>Verantwortlicher</h2>
-<div class="legal-placeholder">
-<p class="legal-placeholder-label">Verantwortlicher</p>
-<p class="legal-no-value">[ Wird vor Veröffentlichung ergänzt ]</p>
-</div>
-<div class="legal-placeholder">
-<p class="legal-placeholder-label">Kontaktdaten</p>
-<p class="legal-no-value">[ Wird vor Veröffentlichung ergänzt ]</p>
+<h2>1. Verantwortlicher</h2>
+<p>Verantwortlich für die Datenverarbeitung auf dieser Website im Sinne der Datenschutz-Grundverordnung (DSGVO) ist:</p>
+<div class="legal-data">
+<div class="legal-data-row"><div class="legal-data-label">Verein</div><div class="legal-data-value">4VisionGlobal<br>Institute for connecting people to support their strengths and visions</div></div>
+<div class="legal-data-row"><div class="legal-data-label">Anschrift</div><div class="legal-data-value">Lederergasse 28–20, 1080 Wien, Österreich</div></div>
+<div class="legal-data-row"><div class="legal-data-label">ZVR-Zahl</div><div class="legal-data-value">1225874555</div></div>
+<div class="legal-data-row"><div class="legal-data-label">E-Mail</div><div class="legal-data-value"><a href="mailto:4visionglobal.faireint@gmail.com">4visionglobal.faireint@gmail.com</a></div></div>
+<div class="legal-data-row"><div class="legal-data-label">Vertreten durch</div><div class="legal-data-value">Den Vorstand: Lars Gutknecht (Präsident), Sascha Gladbach (Vizepräsident), Tilo Juncken (Vizepräsident)</div></div>
 </div>
 </div>
 
 <div class="legal-section">
-<h2>Übersicht der Verarbeitung</h2>
-<p>Die folgenden Bereiche werden vor dem Launch mit den konkreten Angaben ergänzt:</p>
-<ul class="legal-list">
-<li>Welche personenbezogenen Daten verarbeitet werden</li>
-<li>Zwecke der Verarbeitung</li>
-<li>Rechtsgrundlagen der Verarbeitung</li>
-<li>Speicherdauer der Daten</li>
-<li>Empfänger / Auftragsverarbeiter</li>
-<li>Hosting-Anbieter</li>
+<h2>2. Zweck dieser Website</h2>
+<p>Die Website be-hui.com dient der öffentlichen Information über HUI — Human United Intelligence. Sie informiert über die Idee, die Herkunft, die Wirkungsweise und die Vision von HUI.</p>
+<p>Die HUI-App befindet sich aktuell noch im Aufbau und ist nicht für den öffentlichen Marktstart freigeschaltet. Auf der öffentlichen Website ist daher derzeit keine Registrierung, Anmeldung oder Nutzung von App-Funktionen möglich.</p>
+</div>
+
+<div class="legal-section">
+<h2>3. Hosting</h2>
+<p>Diese Website wird bei Vercel Inc. gehostet. Vercel stellt die technische Infrastruktur für den Betrieb der Website bereit.</p>
+<p><strong>Anbieter:</strong> Vercel Inc., 340 S Lemon Ave #4133, Walnut, CA 91789, USA</p>
+<p><strong>Verarbeitete Daten:</strong> Aus technischen Gründen werden bei jedem Zugriff auf die Website Zugriffsdaten in Server-Logfiles verarbeitet (IP-Adresse, Datum und Uhrzeit des Zugriffs, angeforderte URL, Browsertyp und -version, Referrer-URL). Diese Verarbeitung erfolgt durch Vercel als Auftragsverarbeiter.</p>
+<p><strong>Zweck:</strong> Bereitstellung der Website, Gewährleistung der Sicherheit und Stabilität der Infrastruktur, Fehlerdiagnose.</p>
+<p><strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an der technischen Bereitstellung und Sicherheit der Website).</p>
+<p><strong>Speicherdauer:</strong> Server-Logfiles werden für einen begrenzten Zeitraum gespeichert und anschließend gelöscht. Die genaue Speicherdauer richtet sich nach den Vorgaben von Vercel.</p>
+<p><strong>Drittlandübermittlung:</strong> Vercel Inc. ist ein US-amerikanisches Unternehmen. Eine Übertragung personenbezogener Daten in die USA kann nicht ausgeschlossen werden. Vercel bietet einen Data Processing Addendum (DPA) an und verwendet Standard Contractual Clauses (SCCs) für Datenübertragungen. Weitere Informationen unter <a href="https://vercel.com/legal/dpa" target="_blank" rel="noopener noreferrer">vercel.com/legal/dpa</a>.</p>
+</div>
+
+<div class="legal-section">
+<h2>4. Technische Zugriffsdaten / Server-Logfiles</h2>
+<p>Wenn Sie die Website aufrufen, verarbeitet der Hosting-Anbieter (Vercel) automatisch folgende Daten:</p>
+<ul>
+<li>IP-Adresse des aufrufenden Geräts</li>
+<li>Datum und Uhrzeit des Zugriffs</li>
+<li>Angeforderte URL</li>
+<li>Browsertyp und -version</li>
+<li>Referrer-URL (sofern vorhanden)</li>
+</ul>
+<p>Diese Daten werden nicht mit anderen Datenquellen zusammengeführt und dienen ausschließlich dem technischen Betrieb der Website.</p>
+</div>
+
+<div class="legal-section">
+<h2>5. Cookies</h2>
+<p>Die öffentliche HUI-Website verwendet keine Cookies. Es werden keine Tracking-Cookies, Marketing-Cookies oder Analyse-Cookies gesetzt.</p>
+<p>Technisch notwendige Cookies sind auf der öffentlichen Website nicht erforderlich. Der Hosting-Anbieter (Vercel) verarbeitet Zugriffsdaten in Server-Logfiles (siehe Abschnitt 3), nicht jedoch über Cookies im Browser.</p>
+</div>
+
+<div class="legal-section">
+<h2>6. Kontaktaufnahme</h2>
+<p>Auf der öffentlichen Website ist aktuell kein Kontaktformular verfügbar. Eine Kontaktaufnahme erfolgt über die veröffentlichten E-Mail-Adressen der Trägervereine.</p>
+<p>Wenn Sie per E-Mail Kontakt aufnehmen, werden Ihre Angaben (Name, E-Mail-Adresse, Betreff und Nachricht) zum Zweck der Bearbeitung Ihrer Anfrage verarbeitet.</p>
+<p><strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an der Beantwortung von Anfragen).</p>
+<p><strong>Speicherdauer:</strong> Die Daten werden für die Dauer der Konversation gespeichert und anschließend gelöscht, sofern keine gesetzlichen Aufbewahrungspflichten bestehen.</p>
+</div>
+
+<div class="legal-section">
+<h2>7. Externe Dienste</h2>
+<p>Auf der öffentlichen HUI-Website werden folgende externe Dienste eingesetzt:</p>
+<ul>
+<li><strong>Schriftarten (Fonts):</strong> Die Inter-Schriftfamilie wird lokal vom Server geladen. Es findet keine Übertragung an externe Schriftarten-Anbieter (wie z. B. Google Fonts) statt.</li>
+<li><strong>Bilder:</strong> Alle Bilder werden lokal gehostet. Es werden keine externen Bild-CDNs verwendet.</li>
+</ul>
+<p>Die öffentlichen Seiten der HUI-Website binden keine externen Skripte, keine Analyse-Tools und keine Zahlungsanbieter ein.</p>
+</div>
+
+<div class="legal-section">
+<h2>8. Analyse / Tracking</h2>
+<p>Die öffentliche HUI-Website verwendet kein Analytics-Tool und kein Tracking. Es findet keine Reichweitenmessung, kein Nutzungsverhalten-Tracking und kein Profiling statt.</p>
+</div>
+
+<div class="legal-section">
+<h2>9. Verlinkungen zu externen Websites</h2>
+<p>Die HUI-Website enthält Links zu den Websites der Trägervereine:</p>
+<ul>
+<li><a href="https://4visionglobal.com/" target="_blank" rel="noopener noreferrer">4visionglobal.com</a></li>
+<li><a href="https://ligaderkreativen.at/" target="_blank" rel="noopener noreferrer">ligaderkreativen.at</a></li>
+</ul>
+<p>Beim Aufruf dieser externen Links verlässt der Nutzer die HUI-Website. Für die Datenverarbeitung auf den verlinkten Seiten ist der jeweilige Anbieter verantwortlich.</p>
+</div>
+
+<div class="legal-section">
+<h2>10. Rechte der betroffenen Person</h2>
+<p>Nach der Datenschutz-Grundverordnung (DSGVO) stehen Ihnen folgende Rechte zu:</p>
+<ul>
+<li><strong>Auskunft (Art. 15 DSGVO):</strong> Sie können Auskunft darüber verlangen, ob und welche personenbezogenen Daten von Ihnen verarbeitet werden.</li>
+<li><strong>Berichtigung (Art. 16 DSGVO):</strong> Sie können die Berichtigung unrichtiger Daten verlangen.</li>
+<li><strong>Löschung (Art. 17 DSGVO):</strong> Sie können die Löschung Ihrer Daten verlangen ("Recht auf Vergessenwerden").</li>
+<li><strong>Einschränkung der Verarbeitung (Art. 18 DSGVO):</strong> Sie können die Einschränkung der Verarbeitung Ihrer Daten verlangen.</li>
+<li><strong>Datenübertragbarkeit (Art. 20 DSGVO):</strong> Sie können die Übertragung Ihrer Daten in einem gängigen Format verlangen.</li>
+<li><strong>Widerspruch (Art. 21 DSGVO):</strong> Sie können der Verarbeitung Ihrer Daten widersprechen.</li>
+<li><strong>Beschwerde bei der Aufsichtsbehörde (Art. 77 DSGVO):</strong> Sie können sich bei einer Datenschutz-Aufsichtsbehörde beschweren.</li>
 </ul>
 </div>
 
 <div class="legal-section">
-<h2>Analyse und Tracking</h2>
-<p>[ Sofern Analyse- oder Trackingdienste eingesetzt werden, werden diese hier beschrieben. ]</p>
+<h2>11. Beschwerderecht</h2>
+<p>Sie haben das Recht, sich bei der zuständigen Datenschutz-Aufsichtsbehörde zu beschweren, wenn Sie der Meinung sind, dass die Verarbeitung Ihrer personenbezogenen Daten gegen die DSGVO verstößt.</p>
+<p>Zuständig in Österreich: <a href="https://www.dsb.gv.at" target="_blank" rel="noopener noreferrer">Datenschutzbehörde (dsb.gv.at)</a></p>
+<p>Zuständig in Deutschland: <a href="https://www.bfdi.bund.de" target="_blank" rel="noopener noreferrer">Bundesbeauftragter für den Datenschutz (bfdi.bund.de)</a></p>
 </div>
 
 <div class="legal-section">
-<h2>Externe Dienste</h2>
-<p>[ Externe Dienste, die in die Verarbeitung einbezogen werden, werden hier aufgeführt. ]</p>
+<h2>12. Datensicherheit</h2>
+<p>Die Website wird über HTTPS bereitgestellt. Die Kommunikation zwischen Ihrem Browser und dem Server ist verschlüsselt. Es werden angemessene technische und organisatorische Maßnahmen getroffen, um die Sicherheit der Datenverarbeitung zu gewährleisten.</p>
 </div>
 
 <div class="legal-section">
-<h2>Betroffenenrechte</h2>
-<p>Nach der Datenschutz-Grundverordnung (DSGVO) stehen dir folgende Rechte zu:</p>
-<ul class="legal-list">
-<li>Auskunftsrecht</li>
-<li>Recht auf Berichtigung</li>
-<li>Recht auf Löschung</li>
-<li>Recht auf Einschränkung der Verarbeitung</li>
-<li>Recht auf Datenübertragbarkeit</li>
-<li>Widerspruchsrecht</li>
-<li>Recht auf Beschwerde bei der Datenschutzbehörde</li>
-</ul>
+<h2>13. Speicherdauer</h2>
+<p>Personenbezogene Daten werden nur so lange gespeichert, wie es für die jeweilige Verarbeitungszwecke erforderlich ist oder gesetzliche Aufbewahrungspflichten bestehen. Nach Wegfall des Zwecks werden die Daten gelöscht.</p>
 </div>
 
 <div class="legal-section">
-<h2>Kontakt zum Datenschutzverantwortlichen</h2>
-<div class="legal-placeholder">
-<p class="legal-placeholder-label">Datenschutzverantwortlicher</p>
-<p class="legal-no-value">[ Wird vor Veröffentlichung ergänzt ]</p>
+<h2>14. Kontakt für Datenschutzfragen</h2>
+<div class="legal-contact-card">
+<h3>Datenschutzkontakt</h3>
+<p>4VisionGlobal</p>
+<p>Lederergasse 28–20, 1080 Wien, Österreich</p>
+<p>E-Mail: <a href="mailto:4visionglobal.faireint@gmail.com">4visionglobal.faireint@gmail.com</a></p>
 </div>
+<p>Ein Datenschutzbeauftragter im Sinne des Art. 37 DSGVO ist nicht bestellt, da die Voraussetzungen dafür nicht vorliegen.</p>
 </div>
 
-<p class="legal-note">Diese Seite wird vor dem offiziellen Launch mit den endgültigen Datenschutzinformationen ergänzt. Die dargestellte Struktur entspricht den Anforderungen der Datenschutz-Grundverordnung (DSGVO).</p>
+<p class="legal-note">Diese Datenschutzerklärung beschreibt ausschließlich die Datenverarbeitung auf der öffentlichen Website be-hui.com. Die HUI-App befindet sich aktuell noch im Aufbau und ist nicht öffentlich zugänglich. Eine separate Datenschutzerklärung für die HUI-App wird vor dem Launch veröffentlicht.</p>
+
 </main>
 <footer class="legal-footer">
 <a href="/landing.html">Zurück zur Startseite</a>

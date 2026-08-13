@@ -7,15 +7,16 @@
 <link rel="icon" href="/favicon.ico">
 <link rel="preload" as="font" href="/fonts/Inter-Regular.woff2" type="font/woff2" crossorigin/>
 <link rel="preload" as="font" href="/fonts/Inter-SemiBold.woff2" type="font/woff2" crossorigin/>
-<style>
-:root{--teal:#0DC4B5;--teal-deep:#09A89A;--coral:#F47355;--cream:#FAF7F2;--cream-warm:#F5EEE3;--cream-soft:#FDFBF8;--ink:#141422;--ink-mid:#2E2E45;--muted:#8A8A9E;--faint:#C0C0D0;--border:rgba(20,20,34,.06);--ease:cubic-bezier(.25,.46,.45,.94)}
+<style>:root{--teal:#0DC4B5;--teal-deep:#09A89A;--coral:#F47355;--cream:#FAF7F2;--cream-warm:#F5EEE3;--cream-soft:#FDFBF8;--ink:#141422;--ink-mid:#2E2E45;--muted:#8A8A9E;--faint:#C0C0D0;--border:rgba(20,20,34,.06);--ease:cubic-bezier(.25,.46,.45,.94)}
+@font-face{font-family:'Inter';font-style:normal;font-weight:200;font-display:swap;src:url('/fonts/Inter-ExtraLight.woff2') format('woff2')}
 @font-face{font-family:'Inter';font-style:normal;font-weight:300;font-display:swap;src:url('/fonts/Inter-Light.woff2') format('woff2')}
 @font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/Inter-Regular.woff2') format('woff2')}
 @font-face{font-family:'Inter';font-style:normal;font-weight:500;font-display:swap;src:url('/fonts/Inter-Medium.woff2') format('woff2')}
 @font-face{font-family:'Inter';font-style:normal;font-weight:600;font-display:swap;src:url('/fonts/Inter-SemiBold.woff2') format('woff2')}
-@font-face{font-family:'Inter';font-style:normal;font-weight:200;font-display:swap;src:url('/fonts/Inter-ExtraLight.woff2') format('woff2')}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Inter',system-ui,sans-serif;background:var(--cream);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--teal-deep);text-decoration:none;transition:color .2s var(--ease)}
+a:hover{color:var(--teal)}
 .legal-nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:20px 32px;background:rgba(250,247,242,.85);backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);border-bottom:1px solid var(--border)}
 .legal-nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
 .legal-nav-brand img{width:28px;height:28px}
@@ -24,21 +25,29 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--cream);color:var(
 .legal-nav-back:hover{color:var(--teal)}
 .legal-page{max-width:720px;margin:0 auto;padding:64px 32px 96px}
 .legal-kicker{font-size:12px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:var(--coral);margin-bottom:20px}
-.legal-h1{font-size:clamp(28px,4vw,38px);font-weight:600;letter-spacing:-.02em;line-height:1.2;color:var(--ink);margin-bottom:40px}
+.legal-h1{font-size:clamp(28px,4vw,38px);font-weight:600;letter-spacing:-.02em;line-height:1.2;color:var(--ink);margin-bottom:12px}
+.legal-intro{font-size:15px;font-weight:300;line-height:1.7;color:var(--muted);margin-bottom:48px;max-width:600px}
 .legal-section{margin-bottom:40px}
-.legal-section h2{font-size:18px;font-weight:600;letter-spacing:-.01em;color:var(--ink);margin-bottom:16px}
-.legal-section p{font-size:15px;font-weight:300;line-height:1.75;color:var(--ink-mid);margin-bottom:12px}
-.legal-placeholder{background:var(--cream-soft);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:12px}
-.legal-placeholder-label{font-size:13px;font-weight:500;color:var(--muted);margin-bottom:4px}
-.legal-placeholder-value{font-size:15px;font-weight:300;color:var(--ink-mid);font-style:italic}
-.legal-no-value{font-size:13px;color:var(--faint);font-style:italic}
-.legal-note{font-size:13px;color:var(--muted);font-style:italic;margin-top:32px;padding:16px 20px;background:var(--cream-warm);border-radius:10px;line-height:1.6}
+.legal-section h2{font-size:18px;font-weight:600;letter-spacing:-.01em;color:var(--ink);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.legal-section h3{font-size:15px;font-weight:600;color:var(--ink-mid);margin:24px 0 10px}
+.legal-section p{font-size:15px;font-weight:300;line-height:1.8;color:var(--ink-mid);margin-bottom:14px}
+.legal-section ul,.legal-section ol{margin:0 0 16px 20px}
+.legal-section ul li,.legal-section ol li{font-size:15px;font-weight:300;line-height:1.8;color:var(--ink-mid);margin-bottom:6px}
+.legal-data{background:var(--cream-soft);border:1px solid var(--border);border-radius:12px;padding:24px 28px;margin-bottom:16px}
+.legal-data-row{display:grid;grid-template-columns:160px 1fr;gap:12px;padding:8px 0;border-bottom:1px solid rgba(20,20,34,.03)}
+.legal-data-row:last-child{border-bottom:none}
+.legal-data-label{font-size:13px;font-weight:500;color:var(--muted)}
+.legal-data-value{font-size:14px;font-weight:400;color:var(--ink-mid);line-height:1.6}
+.legal-note{font-size:13px;color:var(--muted);font-style:italic;margin-top:32px;padding:16px 20px;background:var(--cream-warm);border-radius:10px;line-height:1.7}
+.legal-contact-card{background:var(--cream-soft);border:1px solid var(--border);border-radius:16px;padding:32px;margin:32px 0}
+.legal-contact-card h3{font-size:17px;font-weight:600;color:var(--ink);margin-bottom:12px}
+.legal-contact-card p{font-size:14px;font-weight:300;color:var(--ink-mid);margin-bottom:4px;line-height:1.6}
+.legal-contact-card a{font-size:14px}
 .legal-footer{text-align:center;padding:40px 32px;background:var(--ink)}
 .legal-footer a{font-size:13px;color:rgba(250,247,242,.42);text-decoration:none;transition:color .25s}
 .legal-footer a:hover{color:var(--teal)}
 .legal-footer-copy{font-size:12px;color:rgba(250,247,242,.22);margin-top:16px}
-@media(max-width:768px){.legal-nav{padding:16px 20px}.legal-page{padding:48px 20px 64px}.legal-h1{font-size:26px}}
-</style>
+@media(max-width:768px){.legal-nav{padding:16px 20px}.legal-page{padding:48px 20px 64px}.legal-h1{font-size:26px}.legal-data-row{grid-template-columns:1fr;gap:2px}.legal-data-label{font-size:12px}}</style>
 </head>
 <body>
 <nav class="legal-nav">
@@ -52,52 +61,52 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--cream);color:var(
 <p class="legal-kicker">Rechtliches</p>
 <h1 class="legal-h1">Impressum</h1>
 
+
 <div class="legal-section">
-<h2>Verein</h2>
-<div class="legal-placeholder">
-<p class="legal-placeholder-label">Name des Vereins</p>
-<p class="legal-placeholder-value">4VisionGlobal</p>
+<h2>Angaben gemäß § 25 MedienG und § 5 ECG</h2>
+<div class="legal-data">
+<div class="legal-data-row"><div class="legal-data-label">Verein</div><div class="legal-data-value">4VisionGlobal<br>Institute for connecting people to support their strengths and visions</div></div>
+<div class="legal-data-row"><div class="legal-data-label">Rechtsform</div><div class="legal-data-value">Verein / Association</div></div>
+<div class="legal-data-row"><div class="legal-data-label">Sitz</div><div class="legal-data-value">Lederergasse 28–20<br>1080 Wien<br>Österreich</div></div>
+<div class="legal-data-row"><div class="legal-data-label">Zustelladresse / Zweigstelle</div><div class="legal-data-value">Mühlenbergstraße 9<br>18461 Richtenberg<br>Deutschland</div></div>
+<div class="legal-data-row"><div class="legal-data-label">ZVR-Zahl</div><div class="legal-data-value">1225874555<br><span style="font-size:12px;color:var(--muted)">Zentrales Vereinsregister, Österreich</span></div></div>
+<div class="legal-data-row"><div class="legal-data-label">Vereinsbehörde</div><div class="legal-data-value">Landespolizeidirektion Wien<br>Bereich für Vereins-, Versammlungs- und Medienrechtsangelegenheiten</div></div>
+<div class="legal-data-row"><div class="legal-data-label">E-Mail</div><div class="legal-data-value"><a href="mailto:4visionglobal.faireint@gmail.com">4visionglobal.faireint@gmail.com</a></div></div>
 </div>
-<div class="legal-placeholder">
-<p class="legal-placeholder-label">Vereinsanschrift</p>
-<p class="legal-no-value">[ Wird vor Veröffentlichung ergänzt ]</p>
 </div>
-<div class="legal-placeholder">
-<p class="legal-placeholder-label">Kontakt (E-Mail / Telefon)</p>
-<p class="legal-no-value">[ Wird vor Veröffentlichung ergänzt ]</p>
+
+<div class="legal-section">
+<h2>Vertretungsbefugter Vorstand</h2>
+<div class="legal-data">
+<div class="legal-data-row"><div class="legal-data-label">Präsident</div><div class="legal-data-value">Lars Gutknecht</div></div>
+<div class="legal-data-row"><div class="legal-data-label">Vizepräsident</div><div class="legal-data-value">Sascha Gladbach</div></div>
+<div class="legal-data-row"><div class="legal-data-label">Vizepräsident</div><div class="legal-data-value">Tilo Juncken</div></div>
 </div>
-<div class="legal-placeholder">
-<p class="legal-placeholder-label">Vereinszweck / Tätigkeitsbereich</p>
-<p class="legal-no-value">[ Wird vor Veröffentlichung ergänzt ]</p>
-</div>
-<div class="legal-placeholder">
-<p class="legal-placeholder-label">Vertretungsbefugte Personen</p>
-<p class="legal-no-value">[ Wird vor Veröffentlichung ergänzt ]</p>
-</div>
-<div class="legal-placeholder">
-<p class="legal-placeholder-label">Vereinsbehörde</p>
-<p class="legal-no-value">[ Wird vor Veröffentlichung ergänzt ]</p>
-</div>
-<div class="legal-placeholder">
-<p class="legal-placeholder-label">ZVR-Zahl</p>
-<p class="legal-no-value">[ Wird vor Veröffentlichung ergänzt ]</p>
-</div>
+<h3>Vertretungsregeln</h3>
+<p>Die Vertretungsregeln beruhen auf einem Registerauszug vom 15. September 2022. Ein neuerer Auszug liegt derzeit nicht vor.</p>
+<p>Der Präsident oder ein Vizepräsident vertritt den Verein gerichtlich und außergerichtlich und hat für den Verein zeichnungsbefugt. Schriftliche Erklärungen bedürfen zu ihrer Gültigkeit der Unterschrift des Präsidenten oder eines Vizepräsidenten. Finanzgeschäfte (Verfügung über Vermögenswerte/Werte) bedürfen zu ihrer Gültigkeit der Unterschrift des Präsidenten und/oder eines Vizepräsidenten.</p>
 </div>
 
 <div class="legal-section">
 <h2>Verantwortlich für den Inhalt</h2>
-<div class="legal-placeholder">
-<p class="legal-placeholder-label">Verantwortlich</p>
-<p class="legal-no-value">[ Wird vor Veröffentlichung ergänzt ]</p>
-</div>
+<p>Verantwortlich für den Inhalt dieser Website gemäß § 25 MedienG:</p>
+<p>4VisionGlobal — Institute for connecting people to support their strengths and visions<br>Lederergasse 28–20, 1080 Wien, Österreich<br>vertreten durch den Vorstand (Lars Gutknecht, Präsident)</p>
 </div>
 
 <div class="legal-section">
-<h2>Haftungsausschluss</h2>
-<p>[ Der Haftungsausschluss wird vor der Veröffentlichung an dieser Stelle eingefügt. ]</p>
+<h2>HUI und die Trägervereine</h2>
+<p>HUI — Human United Intelligence ist aus dem Projekt „Einer für Alle, alle Fair(ein)t" entstanden. Dieses Projekt ist eine gemeinsame Vision von <a href="https://4visionglobal.com/" target="_blank" rel="noopener noreferrer">4VisionGlobal</a> und der <a href="https://ligaderkreativen.at/" target="_blank" rel="noopener noreferrer">Liga der Kreativen</a>.</p>
+<p>Aus dieser gemeinsamen Idee entstand HUI – Human United Intelligence.</p>
 </div>
 
-<p class="legal-note">Die auf dieser Seite dargestellten Angaben dienen der Vorbereitung der Impressumsseite für den österreichischen Verein 4VisionGlobal. Die endgültigen rechtlichen Angaben werden vor der Veröffentlichung ergänzt.</p>
+<div class="legal-section">
+<h2>Außergerichtliche Streitbeilegung</h2>
+<p>Die europäische Online-Streitbeilegungsplattform (ODS-Plattform) wurde am 20. Juli 2025 eingestellt und ist nicht mehr erreichbar.</p>
+<p>Bei Fragen oder Anliegen wenden Sie sich bitte an: <a href="mailto:4visionglobal.faireint@gmail.com">4visionglobal.faireint@gmail.com</a></p>
+</div>
+
+<p class="legal-note">Die auf dieser Seite dargestellten Angaben entsprechen den offiziell veröffentlichten Informationen von 4VisionGlobal (Stand: 4visionglobal.com/en/imprint).</p>
+
 </main>
 <footer class="legal-footer">
 <a href="/landing.html">Zurück zur Startseite</a>
