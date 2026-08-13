@@ -605,18 +605,16 @@ function OrbHero({ data, profile, coreDelay, infoDelay }) {
             animation: "mh-orb-breathe 8s ease-in-out infinite",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
-            {orbStageImg && (
-              <img
-                src={orbStageImg}
-                alt="HUI"
-                style={{
-                  width: 168, height: 168,
-                  objectFit: "contain", display: "block",
-                  userSelect: "none", pointerEvents: "none",
-                }}
-                draggable={false}
-              />
-            )}
+            <img
+              src={orbStageImg}
+              alt="HUI"
+              style={{
+                width: 168, height: 168,
+                objectFit: "contain", display: "block",
+                userSelect: "none", pointerEvents: "none",
+              }}
+              draggable={false}
+            />
           </div>
         </div>
       </FadeUp>

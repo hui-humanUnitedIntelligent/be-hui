@@ -149,24 +149,21 @@ function NavigationOrb({ active = false, onPress = () => {}, userId = null }) {
           ].join(" "),
         }}
       >
-        {getOrbStageImage(stage) && (
-          <img
-            src={getOrbStageImage(stage)}
-            alt=""
-            width={ORB_D}
-            height={ORB_D}
-            draggable={false}
-            style={{
-              width: ORB_D,
-              height: ORB_D,
-              objectFit: "contain",
-              display: "block",
-              userSelect: "none",
-              opacity: 1,
-              transition: "opacity 0.8s ease-in-out",
-            }}
-          />
-        )}
+        <img
+          src={getOrbStageImage(stage)}
+          alt=""
+          width={ORB_D}
+          height={ORB_D}
+          draggable={false}
+          style={{
+            width: ORB_D,
+            height: ORB_D,
+            objectFit: "contain",
+            display: "block",
+            userSelect: "none",
+            transition: "opacity 0.8s ease-in-out",
+          }}
+        />
       </div>
     </button>
   );
