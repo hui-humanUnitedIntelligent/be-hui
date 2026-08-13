@@ -106,11 +106,7 @@ async function fetchFeedPage(userId = null, cursors = null) {
     ),
     filterBeitr(
       supabase.from("beitraege")
-        // SYSTEMNACHRICHT-FIX (2026-08-13): "content" fehlte in der Select-Liste --
-        // dadurch wurde der volle Broadcast-Bodytext (unifiedNormalizer.js kombiniert
-        // caption+content) nie an den Client geliefert, egal wie der Normalizer selbst
-        // aussah. Additiv ergaenzt, keine bestehende Spalte entfernt.
-        .select("id,user_id,src,type,moment_source,linked_project_id,caption,content,created_at")
+        .select("id,user_id,src,type,moment_source,linked_project_id,caption,created_at")
         .order("created_at", { ascending: false })
         .limit(limit)
     ),

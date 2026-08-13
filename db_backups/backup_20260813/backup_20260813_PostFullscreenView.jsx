@@ -76,7 +76,7 @@ function useMoreFromAuthor(authorId, excludeId) {
     let cancelled = false;
     if (!authorId) { setMore([]); return; }
     supabase.from("beitraege")
-      .select("id,user_id,src,type,moment_source,caption,content,created_at")
+      .select("id,user_id,src,type,moment_source,caption,created_at")
       .eq("user_id", authorId)
       .neq("id", excludeId || "")
       .order("created_at", { ascending:false })

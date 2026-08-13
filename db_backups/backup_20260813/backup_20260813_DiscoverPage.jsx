@@ -1727,7 +1727,7 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
         // Momente (beitraege) — 2-Schritt-Query (kein FK beitraege.user_id → profiles)
         const { data: beitr } = await supabase
           .from("beitraege")
-          .select("id,src,type,moment_source,linked_project_id,caption,content,created_at,user_id,views_count")
+          .select("id,src,type,moment_source,linked_project_id,caption,created_at,user_id,views_count")
           .order("created_at", { ascending:false })
           .limit(getOptimalPageSize(8));
 
