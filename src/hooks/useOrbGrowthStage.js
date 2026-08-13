@@ -3,6 +3,20 @@
 // HUI Orb Growth Stage Hook
 // Liefert die aktuelle Wachstumsstufe (1-6) des Orbs fuer einen Nutzer.
 // Additiv, kein Eingriff in orbEngine.js oder useCoreEngine.js.
+//
+// FIX (2026-08-13): Vorher startete der Hook IMMER mit stage=1 als
+// React-Default-State, auch wenn der Nutzer laengst Stufe 6 erreicht
+// hatte. Das erzeugte einen sichtbaren "Flash" (Knospe → springt auf
+// Stufe 6), sobald die RPC-Antwort eintraf. Root Cause: useState(1)
+// initialisierte synchron auf einen falschen Wert, waehrend echte Daten
+// erst asynchron nachkamen.
+//
+// Fix: Der sessionStorage-Cache wird jetzt SYNCHRON im initialen
+// useState-Lazy-Initializer gelesen (kein Warten auf useEffect noetig).
+// Ist kein gueltiger Cache vorhanden (z.B. allererster Start der Session),
+// ist der initiale Wert `null` statt einer geratenen Zahl — die
+// aufrufende Komponente rendert dann bewusst KEIN falsches Bild, bis
+// die echte Stufe von der RPC eintrifft (siehe getOrbStageImage-Aufrufer).
 // ═══════════════════════════════════════════════════════════════════════
 
 import { useState, useEffect } from 'react';
@@ -11,37 +25,54 @@ import { supabase } from '../lib/supabaseClient.js';
 const STAGE_CACHE_KEY = '__hui_orb_stage__';
 const CACHE_TTL = 5 * 60 * 1000; // 5 Minuten
 
+function readCachedStage(userId) {
+  if (!userId) return null;
+  try {
+    const cached = sessionStorage.getItem(STAGE_CACHE_KEY);
+    if (!cached) return null;
+    const { stage: s, ts, uid } = JSON.parse(cached);
+    if (uid === userId && Date.now() - ts < CACHE_TTL) {
+      return s;
+    }
+  } catch (_) {}
+  return null;
+}
+
 /**
  * Liefert die Orb-Wachstumsstufe (1-6) eines Nutzers.
  * Cached in sessionStorage (5 Min TTL) um DB-Last zu minimieren.
  *
  * @param {string|null} userId - UUID des Nutzers
- * @returns {{ stage: number, loading: boolean }}
+ * @returns {{ stage: number|null, loading: boolean }}
+ *   stage ist `null`, solange die echte Stufe noch nicht bekannt ist
+ *   (kein Cache-Treffer + RPC noch nicht zurueck). Aufrufende Komponenten
+ *   MUESSEN das behandeln (kein Bild rendern / Platzhalter, statt Stufe 1
+ *   zu raten).
  */
 export function useOrbGrowthStage(userId = null) {
-  const [stage, setStage] = useState(1);
-  const [loading, setLoading] = useState(true);
+  // Lazy-Initializer: liest den Cache SYNCHRON vor dem ersten Render.
+  // Verhindert den Flash bei jedem Re-Mount innerhalb der 5-Minuten-TTL
+  // (z.B. Tab-Wechsel, Navigation zurueck zur Home-Page).
+  const [stage, setStage] = useState(() => readCachedStage(userId));
+  const [loading, setLoading] = useState(() => readCachedStage(userId) == null && !!userId);
 
   useEffect(() => {
     if (!userId) {
-      setStage(1);
+      setStage(null);
       setLoading(false);
       return;
     }
 
-    // Cache pruefen
-    try {
-      const cached = sessionStorage.getItem(STAGE_CACHE_KEY);
-      if (cached) {
-        const { stage: s, ts, uid } = JSON.parse(cached);
-        if (uid === userId && Date.now() - ts < CACHE_TTL) {
-          setStage(s);
-          setLoading(false);
-          return;
-        }
-      }
-    } catch (_) {}
+    // Cache erneut pruefen (falls sich userId geaendert hat seit dem
+    // initialen Render)
+    const cachedNow = readCachedStage(userId);
+    if (cachedNow != null) {
+      setStage(cachedNow);
+      setLoading(false);
+      return;
+    }
 
+    setLoading(true);
     let cancelled = false;
 
     (async () => {
@@ -53,7 +84,7 @@ export function useOrbGrowthStage(userId = null) {
 
         if (error) {
           console.warn('[orb-growth-stage] RPC error:', error.message);
-          setStage(1);
+          // Kein Cache, kein Ergebnis -> stage bleibt null (kein falsches Raten)
         } else if (data != null) {
           const s = Math.max(1, Math.min(6, Math.round(data)));
           setStage(s);
@@ -64,7 +95,6 @@ export function useOrbGrowthStage(userId = null) {
       } catch (err) {
         if (!cancelled) {
           console.warn('[orb-growth-stage] fetch error:', err);
-          setStage(1);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -91,10 +121,13 @@ export const ORB_STAGE_IMAGES = [
 
 /**
  * Liefert den Image-Pfad fuer eine Stufe (1-6).
- * @param {number} stage
- * @returns {string}
+ * Gibt `null` zurueck, wenn stage null/undefined ist (noch nicht geladen) —
+ * Aufrufer MUSS das behandeln (kein Bild rendern statt Stufe 1 zu raten).
+ * @param {number|null|undefined} stage
+ * @returns {string|null}
  */
 export function getOrbStageImage(stage) {
+  if (stage == null) return null;
   const s = Math.max(1, Math.min(6, Math.round(stage)));
   return ORB_STAGE_IMAGES[s - 1];
 }
