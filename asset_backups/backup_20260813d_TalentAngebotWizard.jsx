@@ -16,7 +16,6 @@ import { createPortal } from "react-dom";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { supabase } from "../../lib/supabaseClient.js";
-import { invalidateOrbStageCache } from "../../hooks/useOrbGrowthStage.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import {
   createTalent, updateTalent, uploadTalentImage, TALENT_KATEGORIEN,
@@ -289,11 +288,6 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
         : (saveErr.message || "Speichern fehlgeschlagen."));
       return;
     }
-    // FIX (2026-08-13): Talent-Angebot postet in 'talents' -> triggert
-    // has_content fuer die Orb-Stufe. Cache invalidieren, sonst haengt der
-    // Orb bis zu 5 Min. auf altem Wert (gleiche Bug-Klasse wie WerkWizard/
-    // ExperienceWizard/TalentOnboarding).
-    invalidateOrbStageCache(userId);
     onSaved?.();
     onClose?.();
   }
