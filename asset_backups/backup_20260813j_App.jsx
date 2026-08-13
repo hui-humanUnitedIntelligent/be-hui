@@ -868,25 +868,15 @@ function ProfileCompletionTrigger() {
 }
 
 
-// ── Push-Init Component (fixes race condition: push init ran BEFORE auth
-//    session was restored, so rpc_get_push_settings() returned null because
-//    auth.uid() was null → _pushEnabled stayed false → registerDevice() never
-//    called → no FCM token registered → all notifications skipped with
-//    "No active device tokens". Fix: run push init inside AuthProvider tree
-//    and wait for authChecked + user.id before initializing.)
-function PushInit() {
-  const { user, authChecked, loadingAuth } = useAuth();
+export default function App() {
+  // ── Push-Notifications initialisieren ──
   useEffect(() => {
-    if (loadingAuth || !authChecked || !user?.id) return;
     (async () => {
       await loadPushSettings();
       await initPushNotifications();
     })();
-  }, [loadingAuth, authChecked, user?.id]);
-  return null;
-}
+  }, []);
 
-export default function App() {
   return (
     <ErrorBoundary>
       <BrowserRouter>
@@ -895,7 +885,6 @@ export default function App() {
             <GlobalBlockGuard />
             <ProfileCompletionTrigger/>
             <AppEntryController>
-              <PushInit />
               <AppStateProvider>
                 <WorldSurfaceProvider>
                   <OrbWorldProvider>

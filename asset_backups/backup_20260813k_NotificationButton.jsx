@@ -2,7 +2,7 @@
 // RESONANZ-001 (2026-08-08): Verwendet jetzt NotificationPanel (neu, 4-Tab)
 // statt des alten ResonanzzentrumPanel aus useNotifications.jsx.
 // Tabs: Alle / Buchungen / Kauf & Verkauf / Informativ
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import NotificationPanel from "../../notifications/NotificationPanel.jsx";
 import { NotificationBadge } from "../../../lib/useNotifications.jsx";
 import { useHuiActions, A } from "../../../core/hui.actions.js";
@@ -16,17 +16,6 @@ export default function NotificationButton({ count = 0, userId = "" }) {
   const [open, setOpen] = useState(false);
   const [pressed, setPressed] = useState(false);
   const [unreadCount, setUnreadCount] = useState(count);
-
-  // FIX (2026-08-13): useState(count) liest das Prop NUR beim ersten Mount.
-  // Wenn AppStateContext.fetchNotifCount() (Polling alle 60s) den echten
-  // Wert erst NACH diesem Mount liefert (Standardfall, da async), blieb
-  // unreadCount permanent auf dem initialen Wert (meist 0) haengen — die
-  // Badge zeigte NIE eine Zahl, obwohl das Resonanzzentrum selbst (eigener
-  // Fetch beim Oeffnen) korrekt zaehlte. Fix: State synchron mit jeder
-  // Aenderung des count-Props halten.
-  useEffect(() => {
-    setUnreadCount(count);
-  }, [count]);
 
   const actions = useHuiActions();
   const { openRef } = useContentPreview();

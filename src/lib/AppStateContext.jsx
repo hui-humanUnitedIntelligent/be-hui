@@ -71,9 +71,28 @@ export function AppStateProvider({ children }) {
     // CustomEvent: sofort neu laden wenn Notification gelesen wird
     const handler = () => fetchNotifCount();
     window.addEventListener("hui:notif:read", handler);
+
+    // FIX (2026-08-13): Realtime-Subscription auf notifications-Tabelle
+    // fuer sofortigen Badge-Update bei neuen Notifications. Bisher kam der
+    // Badge nur alle 60s durch Polling — jetzt sofort beim INSERT.
+    const topic = `appstate-notifs-${user.id}`;
+    const existingCh = supabase.getChannels().find(c => c.topic === `realtime:${topic}`);
+    let ch = existingCh;
+    let createdHere = false;
+    if (!existingCh) {
+      ch = supabase.channel(topic)
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
+          () => { fetchNotifCount(); })
+        .on("postgres_changes", { event: "UPDATE", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
+          () => { fetchNotifCount(); })
+        .subscribe();
+      createdHere = true;
+    }
+
     return () => {
       if (notifTimerRef.current) clearInterval(notifTimerRef.current);
       window.removeEventListener("hui:notif:read", handler);
+      if (createdHere && ch) supabase.removeChannel(ch);
     };
   }, [user?.id, fetchNotifCount]);
 
