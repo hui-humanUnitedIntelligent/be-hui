@@ -41,6 +41,7 @@
 // DATEN: Supabase (notifications, profiles)
 // ══════════════════════════════════════════════════════════════════════════════
 
+import { useTranslation } from "react-i18next";
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient.js';
 import { useAuth } from '../../lib/AuthContext.jsx';
@@ -54,6 +55,7 @@ const C = {
 };
 
 export default function TalentAntragPage() {
+  const { t } = useTranslation();
   const { profile, user } = useAuth();
   const [beitrag, setBeitrag] = useState('');
   const [erfahrungen, setErfahrungen] = useState('');
@@ -196,7 +198,7 @@ export default function TalentAntragPage() {
         hint="Deine Gabe, deine Fähigkeit, das, was du besonders gut kannst."
         value={beitrag}
         onChange={setBeitrag}
-        placeholder="Ich möchte…"
+        placeholder={t("talent.motivationPlaceholder")}
         required
       />
 
@@ -207,7 +209,7 @@ export default function TalentAntragPage() {
         hint="Der Weg, der dich hierher geführt hat. Was hast du gelernt?"
         value={erfahrungen}
         onChange={setErfahrungen}
-        placeholder="Mein Weg begann…"
+        placeholder={t("talent.journeyPlaceholder")}
       />
 
       {/* Frage 3: Was möchtest du bewirken? */}
@@ -217,7 +219,7 @@ export default function TalentAntragPage() {
         hint="Die Veränderung, die du sehen möchtest. Was ist deine Vision?"
         value={vision}
         onChange={setVision}
-        placeholder="Ich stelle mir eine Gemeinschaft vor, in der…"
+        placeholder={t("talent.visionPlaceholder")}
       />
 
       {/* Absenden */}

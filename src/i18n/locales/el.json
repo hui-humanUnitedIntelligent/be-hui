@@ -1,7 +1,7 @@
 {
   "common": {
     "save": "Αποθήκευση",
-    "saving": "Αποθήκευση…",
+    "saving": "Αποθηκεύεται…",
     "cancel": "Ακύρωση",
     "close": "Κλείσιμο",
     "schliessen": "Κλείσιμο",
@@ -45,11 +45,11 @@
     "name": "Όνομα",
     "firstName": "Όνομα",
     "lastName": "Επώνυμο",
-    "email": "Διεύθυνση email",
+    "email": "Email",
     "password": "Κωδικός",
     "confirmPassword": "Επιβεβαίωση κωδικού",
     "newPassword": "Νέος κωδικός",
-    "website": "Ιστοσελίδα",
+    "website": "Ιστότοπος",
     "members": "Μέλη",
     "duration": "Διάρκεια",
     "days": "Ημέρες",
@@ -63,7 +63,7 @@
     "available": "Διαθέσιμο",
     "soldOut": "Εξαντλημένο",
     "onSite": "Επί τόπου",
-    "online": "Ηλεκτρονικά",
+    "online": "Online",
     "onlineOrOnSite": "Ηλεκτρονικά ή επί τόπου",
     "continue": "Συνέχεια",
     "understand": "Καταλαβαίνω",
@@ -73,7 +73,7 @@
   },
   "nav": {
     "home": "Αρχική",
-    "discover": "Ανακάλυψη",
+    "discover": "Εξερεύνηση",
     "myHui": "Το HUI μου",
     "profile": "Προφίλ",
     "impact": "Αντίκτυπος",
@@ -118,7 +118,7 @@
     "myProfile": "Το προφίλ μου",
     "aboutYou": "Σχετικά με εσάς",
     "yourIdentity": "Η ταυτότητά σας",
-    "bioAboutMe": "Βιο / Σχετικά με εμένα",
+    "bioAboutMe": "Bio / Σχετικά με εμένα",
     "shortDescription": "Σύντομη περιγραφή",
     "displayName": "Όνομα εμφάνισης (ψευδώνυμο)",
     "username": "@Όνομα χρήστη",
@@ -134,12 +134,12 @@
     "followers": "Ακόλουθοι",
     "following": "Ακολουθείτε",
     "memberSince": "Μέλος από",
-    "profileVisible": "Ορατό προφίλ",
+    "profileVisible": "Προφίλ ορατό",
     "profileVisibility": "Ορατότητα προφίλ",
     "verified": "Επαληθευμένο",
     "ambassador": "Πρεσβευτής",
-    "talent": "Τάλεντο",
-    "communityOnly": "Μόνο κοινότητα",
+    "talent": "Τalent",
+    "communityOnly": "Μόνο Community",
     "team": "Ομάδα",
     "sections": {
       "myWorks": "Τα έργα μου",
@@ -172,8 +172,8 @@
   },
   "settings": {
     "settings": "Ρυθμίσεις",
-    "accountSettings": "Λογαριασμός & ρυθμίσεις",
-    "accountSecurity": "Λογαριασμός & ασφάλεια",
+    "accountSettings": "Λογαριασμός και Ρυθμίσεις",
+    "accountSecurity": "Λογαριασμός και Ασφάλεια",
     "notifications": "Ειδοποιήσεις",
     "membership": "Συνδρομή",
     "membershipInfo": "Πληροφορίες συνδρομής",
@@ -246,7 +246,7 @@
   "tutorial": {
     "step": "Βήμα",
     "stepOf": "Βήμα {{current}} από {{total}}",
-    "letsGo": "Πάμε ✦",
+    "letsGo": "Πάμε!",
     "understand": "Καταλαβαίνω",
     "startAiCheck": "Έναρξη ελέγχου AI →"
   },
@@ -258,7 +258,9 @@
     "orByEmail": "ή με email",
     "acceptTerms": "Αποδέχομαι τα",
     "respectTerms": "Σεβάζομαι τα",
-    "reflink": "Κωδικός παραπομπής προαιρετικό"
+    "reflink": "Κωδικός παραπομπής προαιρετικό",
+    "emailPlaceholder": "Email",
+    "passwordPlaceholder": "Κωδικός"
   },
   "works": {
     "workTitle": "Τίτλος έργου",
@@ -361,5 +363,24 @@
     "authSession": "Συνεδρία auth",
     "storage": "Αποθήκευση",
     "activeChannels": "Ενεργά κανάλια"
+  },
+  "create": {
+    "work": "Έργο",
+    "experience": "Εμπειρία",
+    "moment": "Στιγμή",
+    "forSale": "Προς πώληση"
+  },
+  "finance": {
+    "earned": "Κερδισμένα",
+    "revenue": "Έσοδα",
+    "sales": "Πωλήσεις",
+    "all": "Όλα",
+    "from": "Από",
+    "to": "Προς",
+    "gross": "Μικτό"
+  },
+  "search": {
+    "people": "Άτομα",
+    "locationPlaceholder": "Εισαγάγετε ΤΚ ή πόλη…"
   }
 }

@@ -7,6 +7,7 @@
 // rgba-Ränder), wird aber im hellen Studio-Modal (T.bg #F7F5F0, T.ink #1A1A18) angezeigt --
 // Text/Eingabefelder waren dadurch praktisch unsichtbar. Komplett auf Light-Theme umgestellt,
 // passend zu den Farbwerten aus HuiStudio.jsx (T-Objekt).
+import { useTranslation } from "react-i18next";
 import { HUISicherheitIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect } from 'react';
 import { useAmbassadorPayout } from '../../hooks/useAmbassadorPayout';
@@ -58,6 +59,7 @@ const inputStyle = {
 };
 
 export default function AmbassadorPayoutPanel({ ambassadorId }) {
+  const { t } = useTranslation();
   const {
     availableEur, requestedEur, paidEur, minimumEur,
     canRequest, payouts, loading, requesting,
@@ -132,13 +134,13 @@ export default function AmbassadorPayoutPanel({ ambassadorId }) {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: amber }}>Bankverbindung {hasBankDetails ? 'ändern' : 'hinterlegen'}</div>
-            <input value={holderInput} onChange={e => setHolderInput(e.target.value)} placeholder="Kontoinhaber (Vor- und Nachname)"
+            <input value={holderInput} onChange={e => setHolderInput(e.target.value)} placeholder={t("ambassador.holderPlaceholder")}
               style={inputStyle} />
-            <input value={ibanInput} onChange={e => setIbanInput(e.target.value.toUpperCase())} placeholder="IBAN (z.B. DE89 3704 0044 0532 0130 00)"
+            <input value={ibanInput} onChange={e => setIbanInput(e.target.value.toUpperCase())} placeholder={t("ambassador.ibanPlaceholder")}
               style={{ ...inputStyle, fontFamily: 'monospace', letterSpacing: '0.5px' }} />
-            <input value={bicInput} onChange={e => setBicInput(e.target.value.toUpperCase())} placeholder="BIC (optional)"
+            <input value={bicInput} onChange={e => setBicInput(e.target.value.toUpperCase())} placeholder={t("ambassador.bicPlaceholder")}
               style={inputStyle} />
-            <input value={bankNameInput} onChange={e => setBankNameInput(e.target.value)} placeholder="Name und Anschrift der Bank (optional)"
+            <input value={bankNameInput} onChange={e => setBankNameInput(e.target.value)} placeholder={t("ambassador.bankNamePlaceholder")}
               style={inputStyle} />
             <div style={{ fontSize: 11, color: inkFaint, lineHeight: 1.4 }}>
               <span style={{display:"flex",alignItems:"flex-start",gap:4}}><HUISicherheitIcon size={13} style={{flexShrink:0,marginTop:1}}/><span>Deine Bankdaten werden verschlüsselt gespeichert und sind nur für die Auszahlungs-Genehmigung sichtbar.</span></span>

@@ -1,6 +1,7 @@
 // src/system/flows/work/WorkDetailsStep.jsx
 // Step 2 — Werk Informationen: Preis, Versand, Details
 
+import { useTranslation } from "react-i18next";
 import { HUIChatIcon } from '../../../design/icons/HuiInteractionIcons.jsx';
 import React from "react";
 import { WT } from "./WorkTokens.js";
@@ -105,6 +106,7 @@ function Toggle({ value, onChange }) {
 
 /* ── Step 2 ──────────────────────────────────────────────────── */
 export function WorkDetailsStep({ form, onFormChange, onNext }) {
+  const { t } = useTranslation();
   const isDigital = !form.shipping;
 
   return (
@@ -209,7 +211,7 @@ export function WorkDetailsStep({ form, onFormChange, onNext }) {
                 display:"block", marginBottom:5 }}>Versandländer</label>
               <input
                 style={input}
-                placeholder="Deutschland, Österreich, Schweiz"
+                placeholder={t("works.regionPlaceholder")}
                 value={form.shippingCountries}
                 onChange={e => onFormChange({ shippingCountries: e.target.value })}
               />
@@ -259,7 +261,7 @@ export function WorkDetailsStep({ form, onFormChange, onNext }) {
           <div style={{ flex:1 }}>
             <label style={{ fontSize:11, color:WT.ink3, fontWeight:600,
               display:"block", marginBottom:5 }}>Materialien</label>
-            <input style={input} placeholder="Digitale Malerei"
+            <input style={input} placeholder={t("works.categoryPlaceholder")}
               value={form.materials}
               onChange={e => onFormChange({ materials: e.target.value })} />
           </div>

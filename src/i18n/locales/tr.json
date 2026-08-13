@@ -45,7 +45,7 @@
     "name": "Ad",
     "firstName": "Ad",
     "lastName": "Soyad",
-    "email": "E-posta adresi",
+    "email": "E-posta",
     "password": "Şifre",
     "confirmPassword": "Şifreyi onayla",
     "newPassword": "Yeni şifre",
@@ -65,7 +65,7 @@
     "onSite": "Yerinde",
     "online": "Çevrimiçi",
     "onlineOrOnSite": "Çevrimiçi veya yerinde",
-    "continue": "Devam et",
+    "continue": "Devam",
     "understand": "Anlıyorum",
     "accept": "Kabul ediyorum",
     "respect": "Saygı duyuyorum",
@@ -113,16 +113,16 @@
     }
   },
   "profile": {
-    "viewProfile": "Profili görüntüle",
+    "viewProfile": "Profili gör",
     "editProfile": "Profili düzenle",
     "myProfile": "Profilim",
     "aboutYou": "Hakkınızda",
     "yourIdentity": "Kimliğiniz",
-    "bioAboutMe": "Biyografi / Hakkımda",
+    "bioAboutMe": "Bio / Hakkımda",
     "shortDescription": "Kısa açıklama",
     "displayName": "Görünen ad (takma ad)",
     "username": "@Kullanıcı adı",
-    "publicName": "Herkese açık ad",
+    "publicName": "Halka açık ad",
     "fullName": "Ad",
     "changeAvatar": "Avatar değiştir",
     "changeCover": "Kapak değiştir",
@@ -139,7 +139,7 @@
     "verified": "Doğrulanmış",
     "ambassador": "Elçi",
     "talent": "Yetenek",
-    "communityOnly": "Sadece topluluk",
+    "communityOnly": "Sadece Topluluk",
     "team": "Takım",
     "sections": {
       "myWorks": "Eserlerim",
@@ -172,8 +172,8 @@
   },
   "settings": {
     "settings": "Ayarlar",
-    "accountSettings": "Hesap & ayarlar",
-    "accountSecurity": "Hesap & güvenlik",
+    "accountSettings": "Hesap ve Ayarlar",
+    "accountSecurity": "Hesap ve Güvenlik",
     "notifications": "Bildirimler",
     "membership": "Üyelik",
     "membershipInfo": "Üyelik bilgileri",
@@ -246,7 +246,7 @@
   "tutorial": {
     "step": "Adım",
     "stepOf": "Adım {{current}} / {{total}}",
-    "letsGo": "Başlayalım ✦",
+    "letsGo": "Hadi başlayalım!",
     "understand": "Anlıyorum",
     "startAiCheck": "AI kontrolünü başlat →"
   },
@@ -258,7 +258,9 @@
     "orByEmail": "veya e-posta ile",
     "acceptTerms": "Kabul ediyorum",
     "respectTerms": "Saygı duyuyorum",
-    "reflink": "Referans kodu isteğe bağlı"
+    "reflink": "Referans kodu isteğe bağlı",
+    "emailPlaceholder": "E-posta",
+    "passwordPlaceholder": "Şifre"
   },
   "works": {
     "workTitle": "Eser başlığı",
@@ -361,5 +363,24 @@
     "authSession": "Auth oturumu",
     "storage": "Depolama",
     "activeChannels": "Aktif kanallar"
+  },
+  "create": {
+    "work": "Eser",
+    "experience": "Deneyim",
+    "moment": "An",
+    "forSale": "Satılık"
+  },
+  "finance": {
+    "earned": "Kazanıldı",
+    "revenue": "Gelir",
+    "sales": "Satışlar",
+    "all": "Tümü",
+    "from": "Kimden",
+    "to": "Kime",
+    "gross": "Brüt"
+  },
+  "search": {
+    "people": "Kişiler",
+    "locationPlaceholder": "Posta kodu veya şehir girin…"
   }
 }

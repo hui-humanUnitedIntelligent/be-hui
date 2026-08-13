@@ -16,6 +16,7 @@
 // PFLICHT: createPortal → document.body, zIndex >= 10500
 // ═══════════════════════════════════════════════════════════════════
 
+import { useTranslation } from "react-i18next";
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "../../lib/AuthContext";
@@ -44,6 +45,7 @@ function injectCSS() {
 }
 
 export default function SupportFlow({ creator, visible, onClose, sourceType="profile", sourceId=null }) {
+  const { t } = useTranslation();
   injectCSS();
   const { user } = useAuth();
   const [amount, setAmount] = useState(5);
@@ -197,7 +199,7 @@ export default function SupportFlow({ creator, visible, onClose, sourceType="pro
                   setCustom(e.target.value);
                   if (e.target.value) setAmount(0);
                 }}
-                placeholder="Anderer Betrag (€)"
+                placeholder={t("support.customAmount")}
                 style={{
                   width: "100%", padding: "12px 14px", borderRadius: 12,
                   border: `1px solid ${T.border}`, fontSize: 16,
@@ -212,7 +214,7 @@ export default function SupportFlow({ creator, visible, onClose, sourceType="pro
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Persönliche Nachricht (optional)…"
+                placeholder={t("support.personalMessage")}
                 maxLength={300}
                 style={{
                   width: "100%", minHeight: 70, padding: "12px 14px",

@@ -12,6 +12,7 @@
 // DATEN: Supabase (works, experiences, impact_applications, comment_reports, profiles)
 // ══════════════════════════════════════════════════════════════════════════════
 
+import { useTranslation } from "react-i18next";
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient.js';
 import { HUI } from "../../design/hui.design.js";
@@ -27,6 +28,7 @@ const C = {
 };
 
 export default function EntwicklungszentrumOverview({ onNavigate }) {
+  const { t } = useTranslation();
   const [counts, setCounts] = useState({
     pendingWorks: 0,
     pendingExperiences: 0,
@@ -94,14 +96,14 @@ export default function EntwicklungszentrumOverview({ onNavigate }) {
             {totalPending > 0 && (
               <AttentionCard
                 count={totalPending}
-                label="Anträge und Inhalte warten auf Freigabe"
+                label={t("admin.pendingApprovals")}
                 onClick={() => onNavigate?.('begleitung')}
               />
             )}
             {counts.openReports > 0 && (
               <AttentionCard
                 count={counts.openReports}
-                label="Kommentar-Meldungen sind offen"
+                label={t("admin.openReports")}
                 onClick={() => onNavigate?.('meldungen')}
                 accent="coral"
               />
@@ -127,8 +129,8 @@ export default function EntwicklungszentrumOverview({ onNavigate }) {
           Menschen im Dachverband
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <StatCard label="Mitglieder" value={loading ? '…' : counts.totalMembers} />
-          <StatCard label="Talente" value={loading ? '…' : counts.totalTalents} />
+          <StatCard label={t("admin.members")} value={loading ? '…' : counts.totalMembers} />
+          <StatCard label={t("admin.talents")} value={loading ? '…' : counts.totalTalents} />
         </div>
       </div>
 
@@ -141,9 +143,9 @@ export default function EntwicklungszentrumOverview({ onNavigate }) {
           Schnellzugriff
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <QuickCard label="Menschen" hint="Begleiten und Verantwortungen vergeben" onClick={() => onNavigate?.('menschen')} />
-          <QuickCard label="Begleitung" hint="Inhalte freigeben" onClick={() => onNavigate?.('begleitung')} />
-          <QuickCard label="Meldungen" hint="Kommentare prüfen" onClick={() => onNavigate?.('meldungen')} />
+          <QuickCard label={t("admin.people")} hint="Begleiten und Verantwortungen vergeben" onClick={() => onNavigate?.('menschen')} />
+          <QuickCard label={t("admin.guidance")} hint="Inhalte freigeben" onClick={() => onNavigate?.('begleitung')} />
+          <QuickCard label={t("admin.reports")} hint="Kommentare prüfen" onClick={() => onNavigate?.('meldungen')} />
         </div>
       </div>
     </div>

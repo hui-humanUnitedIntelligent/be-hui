@@ -4,6 +4,7 @@
 // Spotlight nie verdeckt. Keine bestehenden UI-Elemente werden veraendert.
 // 2026-08-11: Button halbiert + in Fuchs-Container integriert (nie abgedeckt).
 //             Basis-User: Advanced-Steps vorgefiltert (kein Auto-Skip-Flicker).
+import { useTranslation } from "react-i18next";
 import React, { useState, useLayoutEffect, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
@@ -27,11 +28,11 @@ const ADVANCED_STORAGE_KEY = "hui_onboarding_advanced_v1";
 const DISABLED_KEY = "hui_onboarding_disabled_v1"; // "Nicht mehr anzeigen" — permanent deaktiviert
 
 const STEPS = [
-  { selector: 'button[aria-label="Home"]',           text: "Hier siehst du alle Beitr\u00e4ge chronologisch \u2013 dein pers\u00f6nlicher Home-Feed.", placement: "top" },
-  { selector: 'button[aria-label="Entdecken"]',      text: "Hier findest du alles \u00fcber HUI: Menschen, Werke, Erlebnisse und neue Ideen.",    placement: "top" },
-  { selector: 'button[aria-label="Mein HUI"]',       text: "Hier entsteht Neues. Der Orb ist dein Zugang, um selbst etwas zu erschaffen.",    placement: "top" },
-  { selector: 'button[aria-label="Impact"]',         text: "Hier findest du alle Projekte, die wir gemeinsam unterst\u00fctzen. Erstelle doch selbst eins!", placement: "top" },
-  { selector: 'button[aria-label="Profil"]',          text: "Hier kannst du dein eigenes Profil gestalten und personalisieren.",                 placement: "top" },
+  { selector: 'button[aria-label="Home"]',           text: t("tutorial.homeStep"), placement: "top" },
+  { selector: 'button[aria-label="Entdecken"]',      text: t("tutorial.discoverStep"),    placement: "top" },
+  { selector: 'button[aria-label="Mein HUI"]',       text: t("tutorial.createStep"),    placement: "top" },
+  { selector: 'button[aria-label="Impact"]',         text: t("tutorial.impactStep"), placement: "top" },
+  { selector: 'button[aria-label="Profil"]',          text: t("tutorial.profileStep"),                 placement: "top" },
   { selector: 'button[aria-label="Nachrichten"]',    text: "Hier entstehen Verbindungen. Schreibe Menschen direkt und bleibe in Kontakt.",     placement: "bottom" },
   { selector: 'button[aria-label="Resonanzzentrum"]', text: "Hier bekommst du alle wichtigen Neuigkeiten \u2013 Kommentare, Buchungen, K\u00e4ufe und mehr.", placement: "bottom" },
 ];
@@ -106,6 +107,7 @@ function getTargetRect(selector) {
 // Hauptkomponente
 // ══════════════════════════════════════════════════════════════
 export default function OnboardingTutorial() {
+  const { t } = useTranslation();
   const [phase, setPhase] = useState("init");
   const [step, setStep] = useState(0);
   const [spotRect, setSpotRect] = useState(null);

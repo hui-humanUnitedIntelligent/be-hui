@@ -39,13 +39,13 @@
     "format": "Formato",
     "type": "Tipo",
     "date": "Data",
-    "location": "Luogo",
+    "location": "Posizione",
     "title": "Titolo",
     "description": "Descrizione",
     "name": "Nome",
     "firstName": "Nome",
     "lastName": "Cognome",
-    "email": "Indirizzo email",
+    "email": "E-mail",
     "password": "Password",
     "confirmPassword": "Conferma password",
     "newPassword": "Nuova password",
@@ -139,7 +139,7 @@
     "verified": "Verificato",
     "ambassador": "Ambasciatore",
     "talent": "Talento",
-    "communityOnly": "Solo community",
+    "communityOnly": "Solo Community",
     "team": "Team",
     "sections": {
       "myWorks": "Le mie opere",
@@ -172,8 +172,8 @@
   },
   "settings": {
     "settings": "Impostazioni",
-    "accountSettings": "Account & impostazioni",
-    "accountSecurity": "Account & sicurezza",
+    "accountSettings": "Account e Impostazioni",
+    "accountSecurity": "Account e Sicurezza",
     "notifications": "Notifiche",
     "membership": "Iscrizione",
     "membershipInfo": "Info iscrizione",
@@ -246,7 +246,7 @@
   "tutorial": {
     "step": "Passo",
     "stepOf": "Passo {{current}} di {{total}}",
-    "letsGo": "Iniziamo ✦",
+    "letsGo": "Andiamo!",
     "understand": "Ho capito",
     "startAiCheck": "Avvia verifica IA →"
   },
@@ -258,7 +258,9 @@
     "orByEmail": "o via email",
     "acceptTerms": "Accetto i",
     "respectTerms": "Rispetto i",
-    "reflink": "Codice referral opzionale"
+    "reflink": "Codice referral opzionale",
+    "emailPlaceholder": "E-mail",
+    "passwordPlaceholder": "Password"
   },
   "works": {
     "workTitle": "Titolo dell'opera",
@@ -361,5 +363,24 @@
     "authSession": "Sessione auth",
     "storage": "Storage",
     "activeChannels": "Canali attivi"
+  },
+  "create": {
+    "work": "Opera",
+    "experience": "Esperienza",
+    "moment": "Momento",
+    "forSale": "In vendita"
+  },
+  "finance": {
+    "earned": "Guadagnato",
+    "revenue": "Ricavi",
+    "sales": "Vendite",
+    "all": "Tutti",
+    "from": "Da",
+    "to": "A",
+    "gross": "Lordo"
+  },
+  "search": {
+    "people": "Persone",
+    "locationPlaceholder": "Inserisci CAP o città…"
   }
 }

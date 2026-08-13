@@ -20,7 +20,7 @@
     "retry": "Reintentar",
     "more": "Más",
     "less": "Menos",
-    "all": "Todo",
+    "all": "Todos",
     "yes": "Sí",
     "no": "No",
     "ok": "OK",
@@ -39,7 +39,7 @@
     "format": "Formato",
     "type": "Tipo",
     "date": "Fecha",
-    "location": "Lugar",
+    "location": "Ubicación",
     "title": "Título",
     "description": "Descripción",
     "name": "Nombre",
@@ -63,7 +63,7 @@
     "available": "Disponible",
     "soldOut": "Agotado",
     "onSite": "Presencial",
-    "online": "En línea",
+    "online": "Online",
     "onlineOrOnSite": "En línea o presencial",
     "continue": "Continuar",
     "understand": "Entiendo",
@@ -120,7 +120,7 @@
     "yourIdentity": "Tu identidad",
     "bioAboutMe": "Bio / Sobre mí",
     "shortDescription": "Descripción breve",
-    "displayName": "Nombre para mostrar (apodo)",
+    "displayName": "Nombre público (alias)",
     "username": "@Usuario",
     "publicName": "Nombre público",
     "fullName": "Nombre",
@@ -139,7 +139,7 @@
     "verified": "Verificado",
     "ambassador": "Embajador",
     "talent": "Talento",
-    "communityOnly": "Solo comunidad",
+    "communityOnly": "Solo Comunidad",
     "team": "Equipo",
     "sections": {
       "myWorks": "Mis obras",
@@ -172,8 +172,8 @@
   },
   "settings": {
     "settings": "Ajustes",
-    "accountSettings": "Cuenta & ajustes",
-    "accountSecurity": "Cuenta & seguridad",
+    "accountSettings": "Cuenta y Ajustes",
+    "accountSecurity": "Cuenta y Seguridad",
     "notifications": "Notificaciones",
     "membership": "Membresía",
     "membershipInfo": "Información de membresía",
@@ -246,7 +246,7 @@
   "tutorial": {
     "step": "Paso",
     "stepOf": "Paso {{current}} de {{total}}",
-    "letsGo": "Vamos ✦",
+    "letsGo": "¡Vamos!",
     "understand": "Entiendo",
     "startAiCheck": "Iniciar verificación IA →"
   },
@@ -258,7 +258,9 @@
     "orByEmail": "o por correo",
     "acceptTerms": "Acepto los",
     "respectTerms": "Respeto los",
-    "reflink": "Código de referido opcional"
+    "reflink": "Código de referido opcional",
+    "emailPlaceholder": "Correo",
+    "passwordPlaceholder": "Contraseña"
   },
   "works": {
     "workTitle": "Título de la obra",
@@ -361,5 +363,24 @@
     "authSession": "Sesión de auth",
     "storage": "Almacenamiento",
     "activeChannels": "Canales activos"
+  },
+  "create": {
+    "work": "Obra",
+    "experience": "Experiencia",
+    "moment": "Momento",
+    "forSale": "En venta"
+  },
+  "finance": {
+    "earned": "Ganado",
+    "revenue": "Ingresos",
+    "sales": "Ventas",
+    "all": "Todos",
+    "from": "De",
+    "to": "A",
+    "gross": "Bruto"
+  },
+  "search": {
+    "people": "Personas",
+    "locationPlaceholder": "Introduce código postal o ciudad…"
   }
 }

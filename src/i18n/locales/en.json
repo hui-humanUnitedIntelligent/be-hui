@@ -233,7 +233,11 @@
     "voteNow": "Vote now",
     "learnMore": "Learn more",
     "howItWorks": "How it works",
-    "impactDescription": "Your vote counts. Distribute your impact to projects you support."
+    "impactDescription": "Your vote counts. Distribute your impact to projects you support.",
+    "progressPlaceholder": "e.g. Fence is finished",
+    "descPlaceholder": "Describe the progress...",
+    "projectProgressPlaceholder": "e.g. First milestone reached!",
+    "projectDescPlaceholder": "Tell us more about this update..."
   },
   "commerce": {
     "addToCart": "Open cart",
@@ -265,7 +269,12 @@
     "stepOf": "Step {{current}} of {{total}}",
     "letsGo": "Let's go ✦",
     "understand": "I understand",
-    "startAiCheck": "Start AI check →"
+    "startAiCheck": "Start AI check →",
+    "homeStep": "Here you see all posts chronologically – your personal home feed.",
+    "discoverStep": "Here you'll find everything about HUI: people, works, experiences and new ideas.",
+    "createStep": "Here, new things are created. The Orb is your gateway to create something yourself.",
+    "impactStep": "Here you'll find all projects we support together. Create one yourself!",
+    "profileStep": "Here you can design and personalize your own profile."
   },
   "auth": {
     "login": "Sign in",
@@ -275,7 +284,12 @@
     "orByEmail": "or by email",
     "acceptTerms": "I accept the",
     "respectTerms": "I respect the",
-    "reflink": "Refcode optional"
+    "reflink": "Refcode optional",
+    "emailPlaceholder": "Email",
+    "passwordPlaceholder": "Password",
+    "reflinkPlaceholder": "https://be-hui.com/username",
+    "namePlaceholder": "Your name",
+    "newPasswordPlaceholder": "Password (min. 8 characters)"
   },
   "works": {
     "workTitle": "Work title",
@@ -284,7 +298,14 @@
     "exampleWorks": "Example works",
     "sell": "Sell",
     "toSell": "For sale",
-    "category": "Category"
+    "category": "Category",
+    "photoAdd": "Add photo",
+    "videoAdd": "Add video",
+    "fileUpload": "Upload file",
+    "titlePlaceholder": "Evening light over the mountains",
+    "descPlaceholder": "A digital painting inspired by a sunset in the Alps. 2024.",
+    "categoryPlaceholder": "Digital painting",
+    "regionPlaceholder": "Germany, Austria, Switzerland"
   },
   "talent": {
     "talentDesignation": "Talent designation (profession)",
@@ -294,7 +315,10 @@
     "submitForReview": "Submit for review",
     "available": "Available",
     "talent": "Talent",
-    "talents": "Talents"
+    "talents": "Talents",
+    "motivationPlaceholder": "I want to…",
+    "journeyPlaceholder": "My journey began…",
+    "visionPlaceholder": "I imagine a community in which…"
   },
   "experience": {
     "experienceTitle": "What is your experience called?",
@@ -303,7 +327,11 @@
     "mood": "Mood / energy",
     "chooseMood": "Choose mood",
     "experiences": "Experiences",
-    "yourExperiences": "Your experiences, events and passion projects."
+    "yourExperiences": "Your experiences, events and passion projects.",
+    "durationPlaceholder": "e.g. 90 minutes, full day…",
+    "locationPlaceholder": "e.g. Munich, Schwabing / or online link",
+    "participantsPlaceholder": "e.g. 1 (single session) or 10",
+    "instantBooking": "Enable instant booking"
   },
   "notifications": {
     "title": "Notifications",
@@ -428,7 +456,11 @@
     "yourMessage": "Your message",
     "payoutHistory": "Payout history",
     "totalEarned": "Total earned",
-    "pendingPayout": "Pending payout"
+    "pendingPayout": "Pending payout",
+    "holderPlaceholder": "Account holder (first and last name)",
+    "ibanPlaceholder": "IBAN (e.g. DE89 3704 0044 0532 0130 00)",
+    "bicPlaceholder": "BIC (optional)",
+    "bankNamePlaceholder": "Bank name and address (optional)"
   },
   "connection": {
     "step2Title": "Connection details",
@@ -450,6 +482,47 @@
     "message": "Message",
     "messagePlaceholder": "Describe your issue…",
     "send": "Send",
-    "newTicket": "New ticket"
+    "newTicket": "New ticket",
+    "customAmount": "Custom amount (€)",
+    "personalMessage": "Personal message (optional)…"
+  },
+  "search": {
+    "locationPlaceholder": "Enter zip code or city…",
+    "categoryPlaceholder": "Browse categories…",
+    "people": "People",
+    "momentsLabel": "Moments",
+    "locationInput": "Enter location…"
+  },
+  "security": {
+    "newPassword": "New password",
+    "newPasswordPlaceholder": "At least 8 characters",
+    "confirmPassword": "Confirm password",
+    "confirmPlaceholder": "Enter again"
+  },
+  "share": {
+    "nameOrUsername": "Name or @username…",
+    "writeSomething": "Write something…"
+  },
+  "admin": {
+    "pendingApprovals": "Requests and content awaiting approval",
+    "openReports": "Comment reports are open",
+    "members": "Members",
+    "talents": "Talents",
+    "people": "People",
+    "guidance": "Guidance",
+    "reports": "Reports",
+    "communityNetwork": "Community & Network",
+    "contentWorks": "Content & Works",
+    "tradeBookings": "Trade & Bookings",
+    "impactEffect": "Impact & Effect"
+  },
+  "creator": {
+    "openBookings": "Open bookings",
+    "supports": "Supports",
+    "salesLabel": "Sales"
+  },
+  "begleitung": {
+    "talentDesc": "Design creative offers",
+    "ambassadorDesc": "Invite new members"
   }
 }

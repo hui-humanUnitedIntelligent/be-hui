@@ -13,6 +13,7 @@
 // diesem Sprint: 3 verschiedene, inkonsistente hartcodierte Kategorie-Listen).
 // Siehe Kommentar am Anfang der Hauptkomponente fuer weitere Architektur-Details.
 
+import { useTranslation } from "react-i18next";
 import { HUILocationIcon } from '../../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { createPortal }          from "react-dom";
@@ -259,7 +260,7 @@ function RadiusRow({ radius }) {
             value={manualQuery}
             onChange={e=>setManualQuery(e.target.value.slice(0,200))}
             onKeyDown={e=>{ if (e.key==="Enter") submitManual(); }}
-            placeholder="PLZ oder Ort eingeben…"
+            placeholder={t("search.locationPlaceholder")}
             style={{
               flex:1, minWidth:0, border:"1px solid rgba(26,53,48,0.09)", borderRadius:99,
               padding:"7px 13px", fontSize:12, outline:"none", background:"rgba(26,53,48,0.02)",
@@ -381,7 +382,7 @@ function AllCategoriesSheet({ sheetRef, phase, query, onQueryChange, onSelect, o
               autoFocus={false}
               value={query}
               onChange={e=>onQueryChange(e.target.value.slice(0,200))}
-              placeholder="Kategorien durchsuchen…"
+              placeholder={t("search.categoryPlaceholder")}
               style={{
                 flex:1, outline:"none", border:"none", background:"none",
                 fontSize:13.5, fontWeight:500, letterSpacing:"-0.01em", color:T.ink,
@@ -511,7 +512,7 @@ function SuggestionsBlock({ query, suggestions, loading, onSelectProfile, onSele
       ) : (
         <>
           <SuggestionCategory
-            label="Personen" emoji="👥" query={trimmed}
+            label={t("search.people")} emoji="👥" query={trimmed}
             items={suggestions?.people} onSelect={onSelectProfile}
             renderAvatar={(item) => (
               <span style={{
@@ -524,10 +525,10 @@ function SuggestionsBlock({ query, suggestions, loading, onSelectProfile, onSele
               </span>
             )}
           />
-          <SuggestionCategory label="Werke"      emoji="🎨" query={trimmed} items={suggestions?.works}       onSelect={(item)=>onSelectRef("work", item.id)} />
-          <SuggestionCategory label="Talente"    emoji="⭐" query={trimmed} items={suggestions?.talents}     onSelect={(item)=>onSelectRef("talent", item.id)} />
-          <SuggestionCategory label="Erlebnisse" emoji="📅" query={trimmed} items={suggestions?.experiences} onSelect={(item)=>onSelectRef("experience", item.id)} />
-          <SuggestionCategory label="Momente"    emoji="💬" query={trimmed} items={suggestions?.moments}     onSelect={(item)=>onSelectRef("moment", item.id)} />
+          <SuggestionCategory label={t("create.work")}      emoji="🎨" query={trimmed} items={suggestions?.works}       onSelect={(item)=>onSelectRef("work", item.id)} />
+          <SuggestionCategory label={t("talent.talentDesignation")}    emoji="⭐" query={trimmed} items={suggestions?.talents}     onSelect={(item)=>onSelectRef("talent", item.id)} />
+          <SuggestionCategory label={t("create.experience")} emoji="📅" query={trimmed} items={suggestions?.experiences} onSelect={(item)=>onSelectRef("experience", item.id)} />
+          <SuggestionCategory label={t("search.momentsLabel")}    emoji="💬" query={trimmed} items={suggestions?.moments}     onSelect={(item)=>onSelectRef("moment", item.id)} />
         </>
       )}
     </div>
@@ -1226,7 +1227,7 @@ export default function SearchCommandCenter({
                   onChange={e=>setLocationQuery(e.target.value.slice(0,200))}
                   onBlur={()=>{ if (!locationQuery) setLocationInputOpen(false); }}
                   onKeyDown={e=>{ if (e.key==="Enter") e.currentTarget.blur(); }}
-                  placeholder="Ort eingeben…"
+                  placeholder={t("search.locationInput")}
                   style={{
                     flex:1,minWidth:0,border:"none",outline:"none",background:"transparent",
                     fontSize:11.5,fontWeight:600,letterSpacing:"-0.01em",color:T.ink,

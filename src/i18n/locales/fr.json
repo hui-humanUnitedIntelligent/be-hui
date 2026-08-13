@@ -20,7 +20,7 @@
     "retry": "Réessayer",
     "more": "Plus",
     "less": "Moins",
-    "all": "Tout",
+    "all": "Tous",
     "yes": "Oui",
     "no": "Non",
     "ok": "OK",
@@ -45,7 +45,7 @@
     "name": "Nom",
     "firstName": "Prénom",
     "lastName": "Nom de famille",
-    "email": "Adresse e-mail",
+    "email": "E-mail",
     "password": "Mot de passe",
     "confirmPassword": "Confirmer le mot de passe",
     "newPassword": "Nouveau mot de passe",
@@ -120,7 +120,7 @@
     "yourIdentity": "Votre identité",
     "bioAboutMe": "Bio / À propos de moi",
     "shortDescription": "Description courte",
-    "displayName": "Nom d'affichage (surnom)",
+    "displayName": "Nom d'affichage (pseudo)",
     "username": "@Nom d'utilisateur",
     "publicName": "Nom public",
     "fullName": "Nom",
@@ -172,8 +172,8 @@
   },
   "settings": {
     "settings": "Paramètres",
-    "accountSettings": "Compte & paramètres",
-    "accountSecurity": "Compte & sécurité",
+    "accountSettings": "Compte et Paramètres",
+    "accountSecurity": "Compte et Sécurité",
     "notifications": "Notifications",
     "membership": "Adhésion",
     "membershipInfo": "Informations sur l'adhésion",
@@ -246,19 +246,21 @@
   "tutorial": {
     "step": "Étape",
     "stepOf": "Étape {{current}} sur {{total}}",
-    "letsGo": "C'est parti ✦",
+    "letsGo": "C'est parti !",
     "understand": "Je comprends",
     "startAiCheck": "Lancer la vérification IA →"
   },
   "auth": {
-    "login": "Se connecter",
+    "login": "Connexion",
     "register": "S'inscrire",
     "signInWithGoogle": "Google",
     "signInWithApple": "Apple",
     "orByEmail": "ou par e-mail",
     "acceptTerms": "J'accepte les",
     "respectTerms": "Je respecte les",
-    "reflink": "Code de parrainage optionnel"
+    "reflink": "Code de parrainage optionnel",
+    "emailPlaceholder": "E-mail",
+    "passwordPlaceholder": "Mot de passe"
   },
   "works": {
     "workTitle": "Titre de l'œuvre",
@@ -361,5 +363,24 @@
     "authSession": "Session d'auth",
     "storage": "Stockage",
     "activeChannels": "Canaux actifs"
+  },
+  "create": {
+    "work": "Œuvre",
+    "experience": "Expérience",
+    "moment": "Moment",
+    "forSale": "À vendre"
+  },
+  "finance": {
+    "earned": "Gagné",
+    "revenue": "Revenus",
+    "sales": "Ventes",
+    "all": "Tous",
+    "from": "De",
+    "to": "À",
+    "gross": "Brut"
+  },
+  "search": {
+    "people": "Personnes",
+    "locationPlaceholder": "Entrez code postal ou ville…"
   }
 }

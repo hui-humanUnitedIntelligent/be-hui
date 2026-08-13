@@ -2,6 +2,7 @@
 // Bottom-Sheet zum Veröffentlichen von Projekt-Updates für Impact-Projekte.
 // Nur für den Initiator (user_id == profile.id) eines bewilligten Projekts.
 // ══════════════════════════════════════════════════════════════════════
+import { useTranslation } from "react-i18next";
 import { HUINachrichtIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React from "react";
 import { createPortal } from "react-dom";
@@ -12,6 +13,7 @@ import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 const UPDATE_TYPES = ["Meilenstein", "Fortschritt", "Neuigkeit", "Geplant"];
 
 export default function ImpactUpdateSheet({ project, currentUser, onClose, onSuccess }) {
+  const { t } = useTranslation();
   useModalRegistration(true, () => onClose?.(), "ImpactUpdateSheet");
   const [title, setTitle] = React.useState("");
   const [content, setContent] = React.useState("");
@@ -198,7 +200,7 @@ export default function ImpactUpdateSheet({ project, currentUser, onClose, onSuc
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="z.B. Zaun ist fertiggestellt"
+              placeholder={t("impact.progressPlaceholder")}
               style={{
                 width: "100%",
                 padding: "12px 14px",
@@ -227,7 +229,7 @@ export default function ImpactUpdateSheet({ project, currentUser, onClose, onSuc
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Beschreibe den Fortschritt..."
+              placeholder={t("impact.descPlaceholder")}
               rows={4}
               style={{
                 width: "100%",
