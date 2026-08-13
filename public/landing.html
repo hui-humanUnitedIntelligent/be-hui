@@ -397,14 +397,16 @@ ul{list-style:none}
 .cta-btns{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap}
 
 /* ═══ FOOTER ═══ */
-.footer{padding:72px 32px 44px;background:var(--ink);color:var(--cream)}
-.footer-inner{max-width:720px;margin:0 auto;text-align:center}
+.footer{padding:80px 32px 48px;background:var(--ink);color:var(--cream)}
+.footer-inner{max-width:960px;margin:0 auto;text-align:center}
 .footer-logo{width:36px;height:36px;margin:0 auto 20px;opacity:.8;transition:opacity .3s}
 .footer:hover .footer-logo{opacity:1}
-.footer-tag{font-size:14px;font-weight:300;color:rgba(250,247,242,.52);margin-bottom:36px;letter-spacing:.01em}
-.footer-links{display:flex;justify-content:center;flex-wrap:wrap;gap:28px;margin-bottom:36px}
-.footer-links a{font-size:13px;color:rgba(250,247,242,.42);transition:color .25s var(--ease)}
-.footer-links a:hover{color:var(--teal)}
+.footer-tag{font-size:14px;font-weight:300;color:rgba(250,247,242,.52);margin-bottom:48px;letter-spacing:.01em}
+.footer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:48px;text-align:left;margin:0 auto 48px;max-width:680px}
+.footer-col{display:flex;flex-direction:column;gap:12px}
+.footer-col-title{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--teal);margin-bottom:4px}
+.footer-link{font-size:13px;color:rgba(250,247,242,.42);text-decoration:none;transition:color .25s var(--ease)}
+.footer-link:hover{color:var(--teal)}
 .footer-copy{font-size:12px;color:rgba(250,247,242,.22);letter-spacing:.02em}
 
 /* ═══ MOBILE NAV DRAWER ═══ */
@@ -492,8 +494,9 @@ ul{list-style:none}
 
   .cta{padding:96px 24px}
 
-  .footer{padding:52px 24px 36px}
-  .footer-links{gap:18px}
+  .footer{padding:56px 24px 40px}
+  .footer-grid{grid-template-columns:1fr;gap:32px;text-align:center}
+  .footer-col{align-items:center}
 }
 
 @media(max-width:480px){
@@ -566,8 +569,8 @@ ul{list-style:none}
 .btn-primary.coming-soon:hover{transform:translateY(-1px);box-shadow:0 3px 14px rgba(13,196,181,.1)}
 .btn-ghost.coming-soon{color:var(--muted);border-color:var(--border)}
 .btn-ghost.coming-soon:hover{color:var(--ink-mid);border-color:var(--faint)}
-.footer-links .coming-soon{color:rgba(250,247,242,.35)!important;cursor:default}
-.footer-links .coming-soon:hover{color:var(--teal)!important}
+.footer-link.coming-soon{color:rgba(250,247,242,.3)!important;cursor:default}
+.footer-link.coming-soon:hover{color:var(--teal)!important}
 .cs-toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(24px);background:var(--cream-soft);border:1px solid var(--border);border-radius:var(--rl);padding:28px 36px 24px;box-shadow:0 12px 48px rgba(20,20,34,.12),0 2px 12px rgba(20,20,34,.04);z-index:9999;opacity:0;pointer-events:none;transition:opacity .4s var(--ease-out),transform .4s var(--ease-out);text-align:center;max-width:380px}
 .cs-toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
 .cs-toast h4{font-size:16px;font-weight:600;color:var(--ink);margin-bottom:10px;letter-spacing:-.01em}
@@ -1066,13 +1069,29 @@ ul{list-style:none}
   <div class="footer-inner">
     <img src="/hui_logo.webp" alt="HUI" class="footer-logo" width="36" height="36"/>
     <p class="footer-tag">Human United Intelligence — Menschen. Ideen. Möglichkeiten.</p>
-    <div class="footer-links">
-      <a href="#entdecken">Entdecken</a>
-      <a href="#wie">Wie HUI wirkt</a>
-      <a href="#mitmachen">Mitmachen</a>
-      <a href="#ueber">Über HUI</a>
-      <a href="/app/login">HUI entdecken</a>
-      <a href="/app/Home">Web-App öffnen</a>
+    <div class="footer-grid">
+      <div class="footer-col">
+        <h4 class="footer-col-title">HUI</h4>
+        <a href="#entdecken" class="footer-link">Entdecken</a>
+        <a href="#wie" class="footer-link">Wie HUI wirkt</a>
+        <a href="#mitmachen" class="footer-link">Mitmachen</a>
+        <a href="#ueber" class="footer-link">Über HUI</a>
+        <a href="/app/login" class="footer-link">HUI entdecken</a>
+      </div>
+      <div class="footer-col">
+        <h4 class="footer-col-title">Rechtliches</h4>
+        <a href="/impressum" class="footer-link">Impressum</a>
+        <a href="/datenschutz" class="footer-link">Datenschutz</a>
+        <a href="/cookie-einstellungen" class="footer-link">Cookie-Einstellungen</a>
+        <a href="/nutzungsbedingungen" class="footer-link">Nutzungsbedingungen</a>
+        <a href="/barrierefreiheit" class="footer-link">Barrierefreiheit</a>
+      </div>
+      <div class="footer-col">
+        <h4 class="footer-col-title">Kontakt &amp; Verbindungen</h4>
+        <a href="/kontakt" class="footer-link">Kontakt</a>
+        <a href="https://4visionglobal.com/" target="_blank" rel="noopener noreferrer" class="footer-link">4VisionGlobal</a>
+        <a href="https://ligaderkreativen.at/" target="_blank" rel="noopener noreferrer" class="footer-link">Liga der Kreativen</a>
+      </div>
     </div>
     <p class="footer-copy">© 2026 HUI — Human United Intelligence.</p>
   </div>

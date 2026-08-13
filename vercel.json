@@ -98,6 +98,30 @@
       "destination": "/web.html"
     },
     {
+      "source": "/impressum",
+      "destination": "/impressum.html"
+    },
+    {
+      "source": "/datenschutz",
+      "destination": "/datenschutz.html"
+    },
+    {
+      "source": "/cookie-einstellungen",
+      "destination": "/cookie-einstellungen.html"
+    },
+    {
+      "source": "/nutzungsbedingungen",
+      "destination": "/nutzungsbedingungen.html"
+    },
+    {
+      "source": "/barrierefreiheit",
+      "destination": "/barrierefreiheit.html"
+    },
+    {
+      "source": "/kontakt",
+      "destination": "/kontakt.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
