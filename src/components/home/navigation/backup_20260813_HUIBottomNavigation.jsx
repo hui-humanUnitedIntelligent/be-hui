@@ -28,7 +28,6 @@ import {
   NAV_SAFE_BOTTOM_CSS,
   buildTabbarPath,
 } from "./navigationGeometry.js";
-import { useOrbGrowthStage, getOrbStageImage } from "../../../hooks/useOrbGrowthStage.js";
 
 const { TAB_H, MARGIN_H, CORNER_R } = NAV_GEOMETRY;
 
@@ -85,9 +84,8 @@ function NavigationSVG({ width, height }) {
 
 /* ── HUI Orb (part of navigation, not overlay) ─────────────── */
 /* Soft Transition: nur normales Press-Feedback — keine Zwischenphasen am Orb selbst */
-function NavigationOrb({ active = false, onPress = () => {}, userId = null }) {
+function NavigationOrb({ active, onPress }) {
   const [pressed, setPressed] = React.useState(false);
-  const { stage } = useOrbGrowthStage(userId);
 
   return (
     <button
@@ -150,7 +148,7 @@ function NavigationOrb({ active = false, onPress = () => {}, userId = null }) {
         }}
       >
         <img
-          src={getOrbStageImage(stage)}
+          src="/assets/brand/hui-logo.png"
           alt=""
           width={ORB_D}
           height={ORB_D}
@@ -161,7 +159,6 @@ function NavigationOrb({ active = false, onPress = () => {}, userId = null }) {
             objectFit: "contain",
             display: "block",
             userSelect: "none",
-            transition: "opacity 0.8s ease-in-out",
           }}
         />
       </div>
@@ -325,7 +322,7 @@ export default function HUIBottomNavigation({
             pointerEvents: orbTransition !== "idle" ? "none" : "auto",
           }}
         >
-          <NavigationOrb active={isOrbActive} onPress={handleOrbPress} userId={authProfile?.id} />
+          <NavigationOrb active={isOrbActive} onPress={handleOrbPress} />
         </div>
 
         {/* ── Tabbar: sits below orb overlap ──────────────── */}
