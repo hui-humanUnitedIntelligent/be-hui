@@ -237,7 +237,11 @@
     "progressPlaceholder": "Ex. Clôture terminée",
     "descPlaceholder": "Décrivez le progrès...",
     "projectProgressPlaceholder": "Ex. Premier jalon atteint !",
-    "projectDescPlaceholder": "Parlez-nous plus de cette mise à jour..."
+    "projectDescPlaceholder": "Parlez-nous plus de cette mise à jour...",
+    "communityFund": "Fonds communautaire",
+    "innovationBudget": "Budget d'innovation",
+    "curationBudget": "Budget de curation",
+    "howPoolIsUsed": "Comment le fonds est utilisé"
   },
   "commerce": {
     "addToCart": "Ouvrir le panier",

@@ -237,7 +237,11 @@
     "progressPlaceholder": "Örn. Çit tamamlandı",
     "descPlaceholder": "İlerlemeyi açıkla...",
     "projectProgressPlaceholder": "Örn. İlk kilometre taşı ulaşildi!",
-    "projectDescPlaceholder": "Bu güncelleme hakkında daha fazlasını anlat..."
+    "projectDescPlaceholder": "Bu güncelleme hakkında daha fazlasını anlat...",
+    "communityFund": "Topluluk Fonu",
+    "innovationBudget": "İnovasyon Bütçesi",
+    "curationBudget": "Küratörlük Bütçesi",
+    "howPoolIsUsed": "Fon nasıl kullanılıyor"
   },
   "commerce": {
     "addToCart": "Sepeti aç",

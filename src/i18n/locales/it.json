@@ -237,7 +237,11 @@
     "progressPlaceholder": "Es. Recinzione completata",
     "descPlaceholder": "Descrivi il progresso...",
     "projectProgressPlaceholder": "Es. Primo traguardo raggiunto!",
-    "projectDescPlaceholder": "Raccontaci di più su questo aggiornamento..."
+    "projectDescPlaceholder": "Raccontaci di più su questo aggiornamento...",
+    "communityFund": "Fondo comunitario",
+    "innovationBudget": "Budget per l'innovazione",
+    "curationBudget": "Budget di curatela",
+    "howPoolIsUsed": "Come viene utilizzato il fondo"
   },
   "commerce": {
     "addToCart": "Apri carrello",

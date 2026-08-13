@@ -87,12 +87,14 @@ const CYCLE_STEPS = [
   { icon:"🌱", label:"Restbetrag wird verteilt"     },
 ];
 
-const POOL_SLICES = [
-  { pct:40, emoji:"🗳", label:"Community-Fonds",      color:T.teal   },
-  { pct:30, emoji:"🚀", label:t("impact.impactPool"),        color:T.coral  },
-  { pct:20, emoji:"💡", label:"Innovationsbudget",     color:T.gold   },
-  { pct:10, emoji:"🛡", label:"Kurationsbudget",       color:T.violet },
-];
+function getPoolSlices(t) {
+  return [
+    { pct:40, emoji:"🗳", label:t("impact.communityFund"),      color:T.teal   },
+    { pct:30, emoji:"🚀", label:t("impact.impactPool"),        color:T.coral  },
+    { pct:20, emoji:"💡", label:t("impact.innovationBudget"),     color:T.gold   },
+    { pct:10, emoji:"🛡", label:t("impact.curationBudget"),       color:T.violet },
+  ];
+}
 
 // SEED_PROJECTS deaktiviert — nur echte Projekte aus impact_applications (status=approved)
 const SEED_PROJECTS = [];
@@ -2971,10 +2973,12 @@ function LiveTicker({ activities }) {
 // 9. FONDS-AUFTEILUNG — KOMPAKT (ganz unten)
 // ════════════════════════════════════════════════════════════════
 function FondsAufteilungKompakt({ pool }) {
+  const { t } = useTranslation();
+  const POOL_SLICES = getPoolSlices(t);
   return (
     <div style={{ padding:"28px 16px 0" }}>
       <h3 style={{ margin:"0 0 14px", fontSize:15, fontWeight: 600, color:T.ink,
-        letterSpacing:"-0.015em" }}>So wird der Pool genutzt</h3>
+        letterSpacing:"-0.015em" }}>{t("impact.howPoolIsUsed")}</h3>
 
       <div style={{ background:T.surfaceHi, borderRadius:20, overflow:"hidden",
         boxShadow:S.card, border:`1px solid ${T.line}` }}>

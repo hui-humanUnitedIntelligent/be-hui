@@ -237,7 +237,11 @@
     "progressPlaceholder": "z.B. Zaun ist fertiggestellt",
     "descPlaceholder": "Beschreibe den Fortschritt...",
     "projectProgressPlaceholder": "z.B. Erster Meilenstein erreicht!",
-    "projectDescPlaceholder": "Erzaehl mehr ueber dieses Update..."
+    "projectDescPlaceholder": "Erzaehl mehr ueber dieses Update...",
+    "communityFund": "Community-Fonds",
+    "innovationBudget": "Innovationsbudget",
+    "curationBudget": "Kurationsbudget",
+    "howPoolIsUsed": "So wird der Pool genutzt"
   },
   "commerce": {
     "addToCart": "Werkekorb öffnen",

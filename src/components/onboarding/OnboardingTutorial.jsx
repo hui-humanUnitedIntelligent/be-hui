@@ -5,7 +5,7 @@
 // 2026-08-11: Button halbiert + in Fuchs-Container integriert (nie abgedeckt).
 //             Basis-User: Advanced-Steps vorgefiltert (kein Auto-Skip-Flicker).
 import { useTranslation } from "react-i18next";
-import React, { useState, useLayoutEffect, useCallback, useEffect } from "react";
+import React, { useState, useLayoutEffect, useCallback, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
@@ -27,15 +27,17 @@ const STORAGE_KEY = "hui_onboarding_completed_v1";
 const ADVANCED_STORAGE_KEY = "hui_onboarding_advanced_v1";
 const DISABLED_KEY = "hui_onboarding_disabled_v1"; // "Nicht mehr anzeigen" — permanent deaktiviert
 
-const STEPS = [
-  { selector: 'button[aria-label="Home"]',           text: t("tutorial.homeStep"), placement: "top" },
-  { selector: 'button[aria-label="Entdecken"]',      text: t("tutorial.discoverStep"),    placement: "top" },
-  { selector: 'button[aria-label="Mein HUI"]',       text: t("tutorial.createStep"),    placement: "top" },
-  { selector: 'button[aria-label="Impact"]',         text: t("tutorial.impactStep"), placement: "top" },
-  { selector: 'button[aria-label="Profil"]',          text: t("tutorial.profileStep"),                 placement: "top" },
-  { selector: 'button[aria-label="Nachrichten"]',    text: "Hier entstehen Verbindungen. Schreibe Menschen direkt und bleibe in Kontakt.",     placement: "bottom" },
-  { selector: 'button[aria-label="Resonanzzentrum"]', text: "Hier bekommst du alle wichtigen Neuigkeiten \u2013 Kommentare, Buchungen, K\u00e4ufe und mehr.", placement: "bottom" },
-];
+function getSteps(t) {
+  return [
+    { selector: 'button[aria-label="Home"]',           text: t("tutorial.homeStep"), placement: "top" },
+    { selector: 'button[aria-label="Entdecken"]',      text: t("tutorial.discoverStep"),    placement: "top" },
+    { selector: 'button[aria-label="Mein HUI"]',       text: t("tutorial.createStep"),    placement: "top" },
+    { selector: 'button[aria-label="Impact"]',         text: t("tutorial.impactStep"), placement: "top" },
+    { selector: 'button[aria-label="Profil"]',          text: t("tutorial.profileStep"),                 placement: "top" },
+    { selector: 'button[aria-label="Nachrichten"]',    text: "Hier entstehen Verbindungen. Schreibe Menschen direkt und bleibe in Kontakt.",     placement: "bottom" },
+    { selector: 'button[aria-label="Resonanzzentrum"]', text: "Hier bekommst du alle wichtigen Neuigkeiten \u2013 Kommentare, Buchungen, K\u00e4ufe und mehr.", placement: "bottom" },
+  ];
+}
 
 // ── Erweitertes Tutorial (2026-08-11, TUTORIAL-PROFIL-SWITCH) ──────────
 // Zielt auf die ECHTEN Kacheln im "Mein Bereich"-Menü des eigenen Profils.
@@ -108,6 +110,7 @@ function getTargetRect(selector) {
 // ══════════════════════════════════════════════════════════════
 export default function OnboardingTutorial() {
   const { t } = useTranslation();
+  const STEPS = useMemo(() => getSteps(t), [t]);
   const [phase, setPhase] = useState("init");
   const [step, setStep] = useState(0);
   const [spotRect, setSpotRect] = useState(null);

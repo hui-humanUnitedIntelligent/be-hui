@@ -237,7 +237,11 @@
     "progressPlaceholder": "π.χ. Φράχτης ολοκληρώθηκε",
     "descPlaceholder": "Περιγράψτε την πρόοδο...",
     "projectProgressPlaceholder": "π.χ. Πρώτο ορόσημο επιτεύχθηκε!",
-    "projectDescPlaceholder": "Πείτε μας περισσότερα για αυτή την ενημέρωση..."
+    "projectDescPlaceholder": "Πείτε μας περισσότερα για αυτή την ενημέρωση...",
+    "communityFund": "Κοινοτικό Ταμείο",
+    "innovationBudget": "Προϋπολογισμός Καινοτομίας",
+    "curationBudget": "Προϋπολογισμός Επιμέλειας",
+    "howPoolIsUsed": "Πώς χρησιμοποιείται το ταμείο"
   },
   "commerce": {
     "addToCart": "Άνοιγμα καλαθιού",

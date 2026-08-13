@@ -237,7 +237,11 @@
     "progressPlaceholder": "Ej. Valla terminada",
     "descPlaceholder": "Describe el progreso...",
     "projectProgressPlaceholder": "Ej. Primer hito alcanzado!",
-    "projectDescPlaceholder": "Cuéntanos más sobre esta actualización..."
+    "projectDescPlaceholder": "Cuéntanos más sobre esta actualización...",
+    "communityFund": "Fondo comunitario",
+    "innovationBudget": "Presupuesto de innovación",
+    "curationBudget": "Presupuesto de curación",
+    "howPoolIsUsed": "Cómo se utiliza el fondo"
   },
   "commerce": {
     "addToCart": "Abrir carrito",

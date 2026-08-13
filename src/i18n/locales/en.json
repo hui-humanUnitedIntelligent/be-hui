@@ -237,7 +237,11 @@
     "progressPlaceholder": "e.g. Fence is finished",
     "descPlaceholder": "Describe the progress...",
     "projectProgressPlaceholder": "e.g. First milestone reached!",
-    "projectDescPlaceholder": "Tell us more about this update..."
+    "projectDescPlaceholder": "Tell us more about this update...",
+    "communityFund": "Community Fund",
+    "innovationBudget": "Innovation Budget",
+    "curationBudget": "Curation Budget",
+    "howPoolIsUsed": "How the pool is used"
   },
   "commerce": {
     "addToCart": "Open cart",
