@@ -4,7 +4,6 @@ import { HUIPrivatIcon, HUIVersandIcon, HUIWarnIcon } from '../../design/icons/H
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
-import { invalidateOrbStageCache } from "../../hooks/useOrbGrowthStage.js";
 import { compressImageForUpload, JPEG_QUALITY, COVER_MAX_DIM } from "../../lib/profileMedia.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
@@ -626,9 +625,6 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
       setTimeout(() => setSaveError(null), isRLS ? 8000 : 5000);
       return;
     }
-    // FIX (2026-08-13): Erstes Werk kann Orb-Stufe (3=has_content) triggern —
-    // Cache invalidieren, sonst haengt der Orb bis zu 5 Min. auf altem Wert.
-    invalidateOrbStageCache(userId);
     onSaved?.(saved);
     onSave?.(saved);   // Alias für MyBasisProfile reload
     // Bei pending_review: kurze Bestätigung zeigen, dann schließen

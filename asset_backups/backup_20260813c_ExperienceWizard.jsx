@@ -10,7 +10,6 @@ import {
 import React, { useState, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
-import { invalidateOrbStageCache } from "../../hooks/useOrbGrowthStage.js";
 import { compressImageForUpload, JPEG_QUALITY, COVER_MAX_DIM } from "../../lib/profileMedia.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
@@ -938,9 +937,6 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
       return;
     }
 
-    // FIX (2026-08-13): Erstes Erlebnis kann Orb-Stufe (3=has_content) triggern —
-    // Cache invalidieren, sonst haengt der Orb bis zu 5 Min. auf altem Wert.
-    invalidateOrbStageCache(userId);
     onSaved?.(saved);
     // pending_review: kurze Bestätigung, dann schließen
     if (saved?.status === "pending_review") {

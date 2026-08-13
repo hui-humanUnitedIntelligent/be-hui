@@ -131,31 +131,3 @@ export function getOrbStageImage(stage) {
   const s = Math.max(1, Math.min(6, Math.round(stage)));
   return ORB_STAGE_IMAGES[s - 1];
 }
-
-/**
- * FIX (2026-08-13): Invalidiert den sessionStorage-Cache der Orb-Stufe fuer
- * einen Nutzer. MUSS von JEDER Aktion aufgerufen werden, die die
- * Aktivitaets-Zaehlung in rpc_get_orb_growth_stage beeinflusst
- * (Talentprofil aktivieren, Werk/Erlebnis posten, Kauf/Buchung abschliessen,
- * Follow) — sonst zeigt der Orb bis zu 5 Minuten (CACHE_TTL) die alte,
- * veraltete Stufe, obwohl die DB bereits die neue Stufe liefern wuerde.
- * Ohne Aufruf hier bleibt der naechste useOrbGrowthStage()-Aufruf auf dem
- * gecachten (falschen) Wert haengen, bis die TTL ablaeuft oder die
- * sessionStorage-Session neu startet.
- *
- * @param {string|null} userId
- */
-export function invalidateOrbStageCache(userId) {
-  if (!userId) return;
-  try {
-    const cached = sessionStorage.getItem(STAGE_CACHE_KEY);
-    if (!cached) return;
-    const parsed = JSON.parse(cached);
-    if (parsed?.uid === userId) {
-      sessionStorage.removeItem(STAGE_CACHE_KEY);
-    }
-  } catch (_) {
-    // Bei Parse-Fehlern sicherheitshalber komplett entfernen
-    try { sessionStorage.removeItem(STAGE_CACHE_KEY); } catch (_) {}
-  }
-}

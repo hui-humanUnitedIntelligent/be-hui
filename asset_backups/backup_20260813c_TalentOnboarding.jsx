@@ -8,7 +8,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../lib/supabaseClient";
 import { ProfileService } from "../services/db";
-import { invalidateOrbStageCache } from "../hooks/useOrbGrowthStage.js";
 import { useAuth }  from "../lib/AuthContext";
 import { HUI } from "../design/hui.design.js";
 import { useModalRegistration } from "../hooks/useModalRegistration.js";
@@ -401,10 +400,6 @@ export default function TalentOnboarding({ onClose = () => {}, onActivate = () =
       const { data, error: err } = await ProfileService.update(user.id, updates);
       if (err) throw err;
       if (setProfile) setProfile(p => ({ ...p, ...updates }));
-      // FIX (2026-08-13): Orb-Stufe muss nach Talentprofil-Aktivierung
-      // sofort auf Stufe 2 springen (is_talent=true), statt bis zu 5 Min.
-      // (CACHE_TTL) auf der alten gecachten Stufe 1 zu haengen.
-      invalidateOrbStageCache(user.id);
       setDone(true);
     } catch(e) {
       setError(e.message || "Fehler beim Speichern — bitte nochmal versuchen.");
