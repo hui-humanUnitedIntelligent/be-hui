@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 // src/pages/DiscoverPage.jsx — HUI Redesign v3 (2026-05-30)
 // ══════════════════════════════════════════════════════════════════
 // DESIGN REFERENZ: Screenshot 2026-05-30
@@ -473,7 +474,7 @@ function MomenteSection({ momente, loading, delay=0, view='cards', onPress, onAu
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <div data-dp-momente/>
       <SectionHead
-        title="Momente aus deiner Nähe"
+        title={t("moment.moments")}
         sub="Echte Geschichten, gerade jetzt."
         action="Alle anzeigen"
         onAction={onSectionAction}
@@ -675,7 +676,7 @@ function TalenteSection({
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <div data-dp-talente/>
       <SectionHead
-        title="Talente entdecken"
+        title={t("discover.categories.talents")}
         sub="Dienstleistungen & Angebote von HUI Talenten."
         action="Alle Talente"
         onAction={onSectionAction}
@@ -967,7 +968,7 @@ function WerkeSection({
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <div data-dp-werke/>
       <SectionHead
-        title="Werke entdecken"
+        title={t("discover.categories.works")}
         sub="Kunst, Musik, Fotografie & mehr von der HUI Community."
         action="Alle Werke"
         onAction={onSectionAction}
@@ -1161,7 +1162,7 @@ function ErlebnisseSection({
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <div data-dp-erlebnisse/>
       <SectionHead
-        title="Erlebnisse für dich"
+        title={t("experience.experiencesForYou")}
         sub="Workshops, Treffen, Kurse & besondere Momente."
         action="Alle Erlebnisse"
         onAction={onSectionAction}
@@ -1316,7 +1317,7 @@ function ProjekteSection({ projekte, loading, delay=0, view='cards', onPress, on
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <div data-dp-projekte/>
       <SectionHead
-        title="Projekte & Initiativen"
+        title={t("profile.edit.projectsInitiatives")}
         sub="Gemeinsam echte Wirkung schaffen."
         action="Alle Projekte"
         onAction={onSectionAction}
@@ -1427,7 +1428,7 @@ function OrteSection({ orte=[], loading, onSectionAction, onPressOrt, delay=0 })
   return (
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <SectionHead
-        title="Orte entdecken"
+        title={t("discover.discoverPlaces")}
         sub="Echte Orte aus HUI-Profilen, Werken & Erlebnissen."
         action="Alle Orte"
         onAction={onSectionAction}
@@ -1557,6 +1558,7 @@ function isCacheValid() {
 // ───────────────────────────────────────────────────────────────
 
 export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal, searchState = {} }) {
+  const { t } = useTranslation();
   const view = "cards"; // Fest auf Kacheln — Listenansicht-Umschaltung 2026-08-06 entfernt (Buttons raus)
   const [loading, setLoading] = useState(true);
   const [people, setPeople]           = useState([]);

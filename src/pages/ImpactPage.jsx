@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 // ImpactPage.jsx — V5: Emotion First · Seele zurück · Logik zuletzt
 // Alle Hooks + Logik identisch — nur Reihenfolge + Präsentation neu
 // ═══════════════════════════════════════════════════════════════════
@@ -88,7 +89,7 @@ const CYCLE_STEPS = [
 
 const POOL_SLICES = [
   { pct:40, emoji:"🗳", label:"Community-Fonds",      color:T.teal   },
-  { pct:30, emoji:"🚀", label:"Wirkungsbudget",        color:T.coral  },
+  { pct:30, emoji:"🚀", label:t("impact.impactPool"),        color:T.coral  },
   { pct:20, emoji:"💡", label:"Innovationsbudget",     color:T.gold   },
   { pct:10, emoji:"🛡", label:"Kurationsbudget",       color:T.violet },
 ];
@@ -1157,7 +1158,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
                   {checking ? "…" : voteCount}
                 </span>
                 <span style={{ fontSize:12, color:"#888" }}>
-                  {voteCount === 1 ? "Stimme" : "Stimmen"} bisher
+                  {voteCount === 1 ? t("impact.votes") : t("impact.votes")}
                 </span>
               </div>
               {currentUser?.id && userVotesLeft !== null && !voted && (
@@ -2419,7 +2420,7 @@ function HerzensKarte({ p, idx }) {
           {/* Stimmen-Counter */}
           <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:5 }}>
             <span style={{ fontSize:10, color:T.muted }}>
-              <span className="hui-emoji">🗳</span> {safeNum(p.vote_count || p.votes)} {safeNum(p.vote_count || p.votes) === 1 ? "Stimme" : "Stimmen"}
+              <span className="hui-emoji">🗳</span> {safeNum(p.vote_count || p.votes)} {safeNum(p.vote_count || p.votes) === 1 ? t("impact.votes") : t("impact.votes")}
             </span>
           </div>
           {/* Finanzierungsbalken */}
@@ -2667,7 +2668,7 @@ function ApprovedAppCardCompact({ app, rank, onOpen }) {
             border:"1px solid rgba(34,197,94,0.20)" }}>✅ Bewilligt</span>
           <span style={{ fontSize:11, color: app.vote_count > 0 ? T.teal : "#aaa", fontWeight: 600,
             transition:"color 0.3s ease" }}>
-            <span className="hui-emoji">🗳</span> {app.vote_count || 0} {app.vote_count === 1 ? "Stimme" : "Stimmen"}
+            <span className="hui-emoji">🗳</span> {app.vote_count || 0} {app.vote_count === 1 ? t("impact.votes") : t("impact.votes")}
           </span>
         </div>
       </div>
@@ -2716,7 +2717,7 @@ function GemeinsamErmoegicht({ finanziert, transp, onOpenProject = () => {} }) {
           gap:10, marginBottom:20 }}>
           {[
             { emoji:"💰", val:fmtEur(transp.eur),  label:"in Projekte geflossen" },
-            { emoji:"📋", val:transp.projekte,       label:"Projekte finanziert"   },
+            { emoji:"📋", val:transp.projekte,       label:t("impact.impactProjects")   },
             { emoji:"👥", val:transp.menschen,       label:"Unterstützer aktiv"    },
           ].map((st, i) => (
             <div key={i} style={{
@@ -3252,7 +3253,7 @@ function InfoSheet({ modal, onClose }) {
         <button
           onClick={onClose}
           className="ip-p"
-          aria-label="Schließen"
+          aria-label={t("common.close")}
           style={{
             position:"absolute", top:16, right:16,
             width:36, height:36, borderRadius:"50%",
@@ -3339,6 +3340,7 @@ function SkeletonCards({ count = 2 }) {
 // EXPORT
 // ════════════════════════════════════════════════════════════════
 export default function ImpactPage(props) {
+  const { t } = useTranslation();
   return (
     <ImpactErrorBoundary>
       <ImpactPageInner currentUser={props.currentUser} />

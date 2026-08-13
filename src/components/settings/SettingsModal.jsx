@@ -178,7 +178,7 @@ function EmailBlock({ profile = {}, onProfileUpdate = () => {} }) {
   };
 
   return (
-    <Row label="E-Mail-Adresse">
+    <Row label={t("common.email")}>
       <input value={email} onChange={e=>setEmail(e.target.value)}
         placeholder="neue@email.de" type="email" style={inp}
         onFocus={e=>e.target.style.borderColor=T.teal}
@@ -212,7 +212,7 @@ function PasswordBlock() {
   };
 
   return (
-    <Row label="Neues Passwort" last>
+    <Row label={t("common.newPassword")} last>
       <input value={next} onChange={e=>setNext(e.target.value)}
         placeholder="Neues Passwort (min. 8 Zeichen)" type="password"
         style={{ ...inp, marginBottom:8 }}
@@ -268,7 +268,7 @@ function EmailChangeBlock({ profile, onProfileUpdate }) {
   };
 
   return (
-    <Row label="Aktuelle E-Mail">
+    <Row label={t("settings.currentEmail")}>
       <input value={oldEmail} onChange={e=>setOldEmail(e.target.value)}
         placeholder="Deine aktuelle E-Mail" type="email"
         style={{ ...inp, marginBottom:8 }}
@@ -316,7 +316,7 @@ function PrivacyBlock({ profile, onProfileUpdate }) {
   };
 
   return (
-    <Row label="Profil-Sichtbarkeit" last>
+    <Row label={t("profile.profileVisibility")} last>
       {VISIBILITY_OPTIONS.map(opt => (
         <button key={opt.value} onClick={() => setVis(opt.value)}
           style={{ width:"100%", display:"flex", alignItems:"center", gap:12,
@@ -425,7 +425,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
           {view === "main" && (<>
 
             {/* Push-Notifications */}
-            <Section title="Benachrichtigungen" icon={<HUISettingsIcon size={16}/>}>
+            <Section title={t("settings.notifications")} icon={<HUISettingsIcon size={16}/>}>
               <PushNotificationBlock/>
             </Section>
 
@@ -436,18 +436,18 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
             </Section>
 
             {/* Ein Block: Profil bearbeiten / Sicherheit / Abmelden */}
-            <Section title="Account & Sicherheit" icon={<HUIProfilIcon size={16}/>}>
-              <NavItem icon={<HUIProfilIcon size={16}/>} label="Profil bearbeiten"
+            <Section title={t("settings.accountSecurity")} icon={<HUIProfilIcon size={16}/>}>
+              <NavItem icon={<HUIProfilIcon size={16}/>} label={t("profile.editProfile")}
                 onClick={() => onEditProfile?.()}/>
-              <NavItem icon={<HUISicherheitIcon size={16}/>} label="Email & Passwort"
+              <NavItem icon={<HUISicherheitIcon size={16}/>} label={t("settings.emailPassword")}
                 onClick={() => setView("security")}/>
-              <NavItem icon={<HUIKontaktIcon size={16}/>} label="Support & Hilfe"
+              <NavItem icon={<HUIKontaktIcon size={16}/>} label={t("settings.supportHelp")}
                 onClick={() => setView("support")}/>
-              <NavItem icon={<HUIMailIcon size={16}/>} label="Meine Tickets"
+              <NavItem icon={<HUIMailIcon size={16}/>} label={t("settings.myTickets")}
                 onClick={() => setView("tickets")}/>
-              <NavItem icon={<HUISettingsIcon size={16}/>} label="Tutorial erneut ansehen"
+              <NavItem icon={<HUISettingsIcon size={16}/>} label={t("settings.tutorialReplay")}
                 onClick={() => setShowTutorialConfirm(true)}/>
-              <NavItem icon={<HUIAbmeldenIcon size={16}/>} label="Abmelden"
+              <NavItem icon={<HUIAbmeldenIcon size={16}/>} label={t("settings.signOut")}
                 onClick={logout} danger last/>
             </Section>
 
@@ -506,7 +506,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
                       cursor:"pointer", touchAction:"manipulation",
                       WebkitTapHighlightColor:"transparent",
                     }}
-                  >Nein</button>
+                  >{t("common.no")}</button>
                   <button
                     onClick={() => {
                       setShowTutorialConfirm(false);
@@ -525,7 +525,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
                       boxShadow:"0 2px 12px rgba(22,215,197,0.35)",
                       touchAction:"manipulation", WebkitTapHighlightColor:"transparent",
                     }}
-                  >Ja</button>
+                  >{t("common.yes")}</button>
                 </div>
               </div>
             </div>,
@@ -534,7 +534,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
 
           {/* ══ VERIFIZIERUNG ══════════════════════════════════ */}
           {view === "verification" && (<>
-            <Section title="Verifizierung" icon={<HUIVerifIcon size={16}/>}>
+            <Section title={t("profile.edit.verification")} icon={<HUIVerifIcon size={16}/>}>
               <div style={{padding:"14px 16px"}}>
                 <div style={{fontSize:13,color:"#555",lineHeight:1.65}}>
                   Die Identitäts-Verifizierung ist in Kürze verfügbar. Damit stärkst du das Vertrauen in deiner HUI-Gemeinschaft.
@@ -552,14 +552,14 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
 
           {/* ══ MITGLIEDSCHAFT ════════════════════════════════ */}
           {view === "membership" && (<>
-            <Section title="Mitgliedschaftsinformation" icon={<HUIMitgliedIcon size={16}/>}>
+            <Section title={t("settings.membershipInfo")} icon={<HUIMitgliedIcon size={16}/>}>
               <div style={{padding:"14px 16px"}}>
                 <div style={{
                   padding:"12px 14px", borderRadius:10,
                   background:"rgba(14,196,184,0.07)", border:"1px solid rgba(14,196,184,0.15)",
                   marginBottom:12,
                 }}>
-                  <div style={{fontSize:11,fontWeight: 600,color:"#0EC4B8",marginBottom:4}}>Status</div>
+                  <div style={{fontSize:11,fontWeight: 600,color:"#0EC4B8",marginBottom:4}}>{t("settings.security")}</div>
                   <div style={{fontSize:14,fontWeight: 600,color:"#1A1A18"}}>
                     {profile?.is_talent ? "✨ HUI-Talent" : "🌿 HUI-Mitglied"}
                   </div>
@@ -578,10 +578,10 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
 
           {/* ══ PERSÖNLICHE DATEN ══════════════════════════════ */}
           {view === "contact" && (<>
-            <Section title="Name" icon={<HUIProfilIcon size={16}/>}>
+            <Section title={t("settings.nameSection")} icon={<HUIProfilIcon size={16}/>}>
               <NameBlock profile={profile} onProfileUpdate={onProfileUpdate}/>
             </Section>
-            <Section title="Kontakt" icon={<HUIKontaktIcon size={16}/>}>
+            <Section title={t("settings.contact")} icon={<HUIKontaktIcon size={16}/>}>
               <EmailBlock profile={profile} onProfileUpdate={onProfileUpdate}/>
             </Section>
           </>)}
@@ -611,10 +611,10 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
           )}
 
           {view === "security" && (<>
-            <Section title="Passwort ändern" icon={<HUISicherheitIcon size={16}/>}>
+            <Section title={t("settings.changePassword")} icon={<HUISicherheitIcon size={16}/>}>
               <PasswordBlock/>
             </Section>
-            <Section title="E-Mail ändern" icon={<HUIMailIcon size={16}/>}>
+            <Section title={t("settings.changeEmail")} icon={<HUIMailIcon size={16}/>}>
               <EmailChangeBlock profile={profile} onProfileUpdate={onProfileUpdate}/>
             </Section>
 
@@ -624,7 +624,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
 
           {/* ══ PRIVATSPHÄRE ═══════════════════════════════════ */}
           {view === "privacy" && (
-            <Section title="Profil-Sichtbarkeit" icon={<HUIDatenschutzIcon size={16}/>}>
+            <Section title={t("profile.profileVisibility")} icon={<HUIDatenschutzIcon size={16}/>}>
               <PrivacyBlock profile={profile} onProfileUpdate={onProfileUpdate}/>
             </Section>
           )}
