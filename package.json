@@ -16,7 +16,9 @@
     "release:patch": "bash release.sh patch",
     "release:minor": "bash release.sh minor",
     "release:major": "bash release.sh major",
-    "postbuild": "bash scripts/generate-ota-bundle.sh www"
+    "postbuild": "bash scripts/generate-ota-bundle.sh www",
+    "i18n:scan": "node scripts/i18n-scan.cjs",
+    "i18n:fix": "node scripts/i18n-scan.cjs --fix"
   },
   "dependencies": {
     "@capacitor/android": "^6.2.1",
