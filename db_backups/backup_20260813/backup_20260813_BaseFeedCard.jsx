@@ -288,12 +288,6 @@ export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
   const timeStr  = item?.createdAt || null;
   const grund    = getBegegnungsgrund(item);
   const [pressed, setPressed] = React.useState(false);
-  // SYSTEMNACHRICHT-LABEL (2026-08-13): Admin-Broadcasts (beitraege.moment_source
-  // === "system_broadcast") zeigen statt des generischen Story-Satzes
-  // ("myHUI teilt einen persoenlichen Moment.") ein fett/gross hervorgehobenes
-  // "Systemnachricht"-Label -- macht sofort klar, dass es sich um eine
-  // offizielle Mitteilung handelt, nicht um einen normalen Bot-Moment.
-  const isBroadcast = (item?._raw?.moment_source === "system_broadcast");
 
   // Talent-Akzentfarbe: Wirker=Teal, Ambassador=Coral, Basis=gedämpft
   const talentColor = (isT || mType === "talent" || mType === "wirker")
@@ -387,15 +381,8 @@ export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
         </div>
       </div>
 
-      {/* Systemnachricht-Label (Broadcast) ODER Großes " + Story-Satz */}
-      {isBroadcast ? (
-        <div style={{ marginTop:9, marginBottom:10 }}>
-          <span style={{
-            display:"inline-block", fontSize:12.5, fontWeight:800,
-            color:"#F47355", letterSpacing:"0.09em", textTransform:"uppercase",
-          }}>Systemnachricht</span>
-        </div>
-      ) : grund && (
+      {/* Großes " + Story-Satz */}
+      {grund && (
         <div style={{ display:"flex", alignItems:"flex-start", gap:7, marginTop:9, marginBottom:10 }}>
           <span style={{
             fontSize:30, fontWeight: 600, color:"#F47355",

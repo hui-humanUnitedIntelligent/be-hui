@@ -169,10 +169,6 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
   const raw       = item._raw || {};
   const caption   = item.text || item.title || raw.caption || "";
   const badge     = getMomentBadge(raw);
-  // SYSTEMNACHRICHT-FIX (2026-08-13): Bei Admin-Broadcasts soll der volle
-  // Text sichtbar sein (kein Abschneiden nach 3 Zeilen) -- caption ist hier
-  // durch die unifiedNormalizer.js-Erweiterung bereits Titel+Inhalt kombiniert.
-  const isBroadcast = raw.moment_source === "system_broadcast";
 
   // reportButton als ActionBtn — identischer Look zu Heart/Chat/Share/Bookmark
   // FingerIcon + CORAL sind top-level (stabile Referenz — verhindert Remount-Bug)
@@ -246,19 +242,16 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
         {/* Caption / Titel — 2-3 Zeilen sichtbar statt 1-zeilig+"…" */}
         {caption ? (
           <span style={{
-            display: isBroadcast ? "block" : "-webkit-box",
+            display: "-webkit-box",
             fontSize: 15,
             fontWeight: 600,
             color: INK,
-            lineHeight: 1.4,
+            lineHeight: 1.3,
             letterSpacing: "-0.02em",
-            ...(isBroadcast ? {} : {
-              WebkitLineClamp: 3,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-            }),
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
             wordBreak: "break-word",
-            whiteSpace: isBroadcast ? "pre-line" : "normal",
           }}>
             {caption}
           </span>

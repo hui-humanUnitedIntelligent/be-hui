@@ -136,18 +136,8 @@ export function toFeedItem(raw){
     // ── TRACE STEP 6 (nur erstes Work, DEV only) ────────────────────
     const author=extractAuthor(raw);
     const media =extractMedia(raw);
-    // SYSTEMNACHRICHT-FIX (2026-08-13): beitraege.content (z.B. voller
-    // Broadcast-Bodytext) wurde bisher komplett ignoriert -- nur caption
-    // (kurzer Titel) landete in item.text/item.title, wodurch der eigentliche
-    // Nachrichtentext im Feed fehlte. Falls content vorhanden und != caption,
-    // wird der volle Text (Titel + Inhalt) kombiniert. rawCaption bleibt fuer
-    // title kurz & sauber (kein Slice der kombinierten Langform).
-    const rawCaption=safeStr(raw.caption||raw.description||raw.story||raw.text);
-    const rawContent=safeStr(raw.content);
-    const text = (rawContent&&rawContent.trim()&&rawContent.trim()!==rawCaption.trim())
-      ? [rawCaption,rawContent].filter(Boolean).join("\n\n")
-      : rawCaption;
-    const title =safeStr(raw.title||raw.expTitle||raw.name||(rawCaption&&rawCaption.slice(0,60))||(text&&text.slice(0,60)));
+    const text  =safeStr(raw.caption||raw.description||raw.story||raw.text);
+    const title =safeStr(raw.title||raw.expTitle||raw.name||(text&&text.slice(0,60)));
     const pillar = raw.pillar || raw.primary_pillar || null;
     return{
       id:String(raw.id), type, author, title:title||null, text:text||null, media,
