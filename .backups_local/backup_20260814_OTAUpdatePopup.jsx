@@ -5,7 +5,7 @@
 // WARUM: Wenn die App bereits im Hintergrund läuft und der Nutzer sie
 // wieder in den Vordergrund holt (Resume), soll ein Top-Down-Popup
 // erscheinen das ihm mitteilt: "Neues Update verfügbar". Das Popup
-// slided von oben nach unten ein, ist 6 Sekunden sichtbar und
+// slided von oben nach unten ein, ist 3 Sekunden sichtbar und
 // verschwindet dann automatisch. Bei Klick darauf wird das Update
 // SOFORT installiert (CapacitorUpdater.reload()).
 //
@@ -13,7 +13,7 @@
 // - Nutzt document.visibilitychange (Standard Web API) für Resume-Erkennung
 // - Auf nativ: zusätzlich Capacitor App 'resume' Event (registerPlugin)
 // - Beim Resume: fetch app-version.json → compareVersions
-// - Wenn neuer: Popup anzeigen (slide-down Animation, 6s Auto-Hide)
+// - Wenn neuer: Popup anzeigen (slide-down Animation, 3s Auto-Hide)
 // - Klick → CapacitorUpdater.download + set + reload
 // - KEINE Änderung am bestehenden OTAUpdateBanner (unten, permanent)
 //   — diese Komponente ist rein ADDITIV (NO-REGRESSION-PROTECTION).
@@ -26,7 +26,7 @@ import { CapacitorUpdater } from "@capgo/capacitor-updater";
 import { APP_VERSION } from "../../version.js";
 
 const UPDATE_URL = "https://be-hui.vercel.app/app-version.json";
-const POPUP_DURATION_MS = 6000; // 2026-08-14: verdoppelt (Michael-Feedback) — vorher 3000ms
+const POPUP_DURATION_MS = 3000;
 const ANIM_MS = 300;
 
 const CSS = `
@@ -190,17 +190,14 @@ export default function OTAUpdatePopup() {
     },
       React.createElement("div", {
         style: {
-          // 2026-08-14 (Michael-Feedback): freundlicher — weißer Hintergrund
-          // statt dunkel, schwarze Schrift statt weiß, weichere Rundung/Schatten.
-          background: "#FFFFFF",
-          color: "#1A1D23",
-          borderRadius: "0 0 20px 20px",
+          background: "#1A1D23",
+          color: "#fff",
+          borderRadius: "0 0 16px 16px",
           padding: "14px 20px",
           display: "flex",
           alignItems: "center",
           gap: 12,
-          boxShadow: "0 8px 28px rgba(0,0,0,0.16)",
-          border: "1px solid rgba(14,196,184,0.16)",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.30)",
           maxWidth: 420,
           width: "100%",
           pointerEvents: "none", // Klick geht aufs Parent
@@ -210,7 +207,7 @@ export default function OTAUpdatePopup() {
           style: {
             width: 36, height: 36,
             borderRadius: "50%",
-            background: "rgba(14,196,184,0.16)",
+            background: "rgba(14,196,184,0.18)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -222,14 +219,14 @@ export default function OTAUpdatePopup() {
         ),
         React.createElement("div", { style: { flex: 1, minWidth: 0 } },
           React.createElement("div", {
-            style: { fontSize: 14, fontWeight: 600, lineHeight: 1.25, color: "#1A1D23" },
+            style: { fontSize: 14, fontWeight: 600, lineHeight: 1.25 },
           },
             installing
               ? "Update wird installiert…"
               : "Neues Update verfügbar"
           ),
           React.createElement("div", {
-            style: { fontSize: 12, opacity: 0.62, lineHeight: 1.3, marginTop: 2, color: "#1A1D23" },
+            style: { fontSize: 12, opacity: 0.7, lineHeight: 1.3, marginTop: 2 },
           },
             installing
               ? "Bitte warten — App startet gleich neu"
