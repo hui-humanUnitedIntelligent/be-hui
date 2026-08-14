@@ -525,47 +525,24 @@ img[loading="lazy"] {
   animation: ds-ken-burns 3s var(--hui-ease) forwards;
 }
 
-/* ═══ GLOBAL KEYBOARD PUSH-UP SYSTEM (2026-08-15) ══════════════
-   Automatisches Push-Up für JEDES Textfeld — keine pro-Screen-
-   Konfiguration nötig. Aktiviert über body.hui-keyboard-open +
-   --hui-keyboard-inset CSS-Variable (gesetzt durch
-   globalKeyboardHandler.js + useKeyboardInset.js).
+/* ═══ Keyboard-Aware Layout (2026-08-08) ══════════════════════
+   Wenn die Tastatur aufgeht, passt sich das Layout über die
+   --hui-keyboard-inset CSS-Variable an (gesetzt durch useKeyboardInset.js).
+   Modals/Bottom-Sheets nutzen diese Utilities. */
 
-   3 Wirkungen bei geöffneter Tastatur:
-   1) .hui-scroll bekommt padding-bottom → Inhalt scrollbar über Tastatur
-   2) [data-hui-bottom-navigation] wird ausgeblendet → Platz für Tastatur
-   3) input/textarea/contenteditable:focus bekommt scroll-margin →
-      scrollIntoView hält Feld sichtbar auch bei Tastatur ══════ */
-
-/* 1) Scroll-Container: bottom padding für Tastaturhöhe */
-body.hui-keyboard-open .hui-scroll {
-  padding-bottom: calc(var(--hui-keyboard-inset, 0px) + 16px) !important;
-  transition: padding-bottom 0.2s ease-out;
-}
-
-/* 2) Bottom Navigation: ausblenden wenn Tastatur offen */
-body.hui-keyboard-open [data-hui-bottom-navigation] {
-  transform: translateY(150%) !important;
-  transition: transform 0.25s ease-out;
-  pointer-events: none;
-}
-
-/* 3) Fokussierte Textfelder: scroll-margin für sicheren Abstand */
-body.hui-keyboard-open input:focus,
-body.hui-keyboard-open textarea:focus,
-body.hui-keyboard-open [contenteditable]:focus {
-  scroll-margin-bottom: calc(var(--hui-keyboard-inset, 0px) + 60px) !important;
-}
-
-/* Bestehende Utility-Klassen (beibehalten für Komponenten die sie nutzen) */
+/* Modal-Container: Höhe reduziert sich bei geöffneter Tastatur */
 .hui-kbd-aware {
   height: calc(100dvh - var(--hui-keyboard-inset, 0px));
   transition: height 0.1s ease-out;
 }
+
+/* Bottom-Sheet: rutscht über die Tastatur */
 .hui-kbd-bottom-sheet {
   max-height: calc(100dvh - var(--hui-keyboard-inset, 0px));
   transition: max-height 0.15s ease-out;
 }
+
+/* Input-Fokus: sicherstellen dass Input sichtbar bleibt */
 .hui-kbd-input:focus {
   scroll-margin-bottom: calc(var(--hui-keyboard-inset, 0px) + 20px);
 }

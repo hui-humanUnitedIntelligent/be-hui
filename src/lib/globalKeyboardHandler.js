@@ -1,40 +1,50 @@
 // ═══════════════════════════════════════════════════════════════
-// src/lib/globalKeyboardHandler.js — Globales Keyboard-Handling (2026-08-10)
+// src/lib/globalKeyboardHandler.js — Globales Keyboard-Push-Up-System
+// v2 (2026-08-15): Vollständiges Push-Up für JEDES Textfeld
 // ═══════════════════════════════════════════════════════════════
-// ZIEL: JEDES Textfeld der App (auch dynamisch erzeugte, in Listen,
-// ScrollViews, Formularen, Modals, BottomSheets) wird automatisch
-// sichtbar gehalten, sobald die Systemtastatur aufgeht — OHNE dass
-// eine einzelne Komponente dafür manuell konfiguriert werden muss.
 //
-// WARUM ein neuer, globaler Mechanismus (statt pro Screen die
-// bestehenden .hui-kbd-* Klassen / useKeyboardInset() zu verdrahten):
-// Genau das manuelle "pro Screen einbauen" ist das, was bisher NICHT
-// zuverlässig überall passiert ist. Ein einziger, app-weit registrierter
-// `focusin`-Listener auf `document` fängt via Event-Bubbling GARANTIERT
-// JEDES <input>/<textarea>/[contenteditable] ab — auch Felder, die erst
-// nach diesem Bootstrap ins DOM kommen (Wizards, Modals, dynamische
-// Formulare). Das ist die Standard-Web-Pattern für genau dieses Problem
-// und exakt das native Prinzip aus der Anforderung übertragen auf Web/
-// Capacitor: Kein pro-Screen-Listener nötig, Event-Delegation statt
-// manueller Registrierung.
+// ZIEL: Sobald die Systemtastatur auf dem Smartphone erscheint, wird
+// der gesamte sichtbare Bereich nach oben geschoben. Kein Textfeld
+// darf verdeckt sein. Kein Button darf hinter der Tastatur liegen.
+// Funktioniert überall — ohne pro-Screen-Konfiguration.
 //
-// ZUSAMMENSPIEL mit bestehender Infrastruktur (KEINE Regression):
-// - Nutzt weiterhin --hui-keyboard-inset (siehe useKeyboardInset.js,
-//   jetzt zusätzlich durch das native IME-Signal aus MainActivity.java
-//   gespeist) als SSOT für die aktuelle Tastaturhöhe.
-// - Bestehende Komponenten mit eigener .hui-kbd-aware / bottom:var(...)
-//   Logik bleiben unverändert und funktionieren weiterhin — dieser
-//   Handler ergänzt sie nur um automatisches Scroll-into-View, er
-//   überschreibt oder ersetzt keine bestehende Komponente.
-// - Setzt zusätzlich die Klasse `hui-keyboard-open` auf <body>, falls
-//   irgendeine Komponente künftig generisch darauf reagieren möchte.
+// WIE ES FUNKTIONIERT (3 Mechanismen, alle global):
 //
-// AKTIVIERUNG: einmalig in src/main.jsx importiert + aufgerufen,
-// läuft ab App-Start permanent im Hintergrund (Singleton).
+// 1) VISUAL VIEWPORT + NATIVE IME (Höhe-Erkennung):
+//    - window.visualViewport resize → keyboardInset = innerHeight - vv.height
+//    - Android: window.__HUI_NATIVE_KEYBOARD_INSET (MainActivity.java)
+//    - Beide Quellen werden gemerged (größere gewinnt)
+//    - Setzt --hui-keyboard-inset CSS-Variable (SSOT für alle Komponenten)
+//
+// 2) FIXED MODALS ANPASSEN (Portaled Elements):
+//    - Alle position:fixed direkten Kinder von <body> (createPortal-Modals)
+//      bekommen bottom: <keyboardInset>px statt bottom: 0
+//    - MutationObserver fängt neu hinzugefügte Modals ab
+//    - Beim Schließen: Original-Styles wiederherstellen
+//
+// 3) CSS-REGELN (in index.css):
+//    - body.hui-keyboard-open .hui-scroll → padding-bottom: keyboardInset + 16px
+//    - body.hui-keyboard-open [data-hui-bottom-navigation] → transform: translateY(150%)
+//    - body.hui-keyboard-open input:focus → scroll-margin-bottom für sicheren Abstand
+//
+// KEINE REGRESSION:
+// - Keine Komponente wird verändert — alles läuft über CSS-Variablen + body-Klasse
+// - Desktop: visualViewport.height ≈ innerHeight → inset = 0 → keine Auswirkung
+// - Bestehende Komponenten mit eigenem --hui-keyboard-inset-Usage funktionieren weiter
+// - Modals die bereits bottom: var(--hui-keyboard-inset) nutzen werden nicht
+//   doppelt ajustiert (JS setzt den gleichen Pixelwert wie die CSS-Variable)
+//
+// AKTIVIERUNG: src/main.jsx + src/web-main.jsx (einmaliger Aufruf)
 // ═══════════════════════════════════════════════════════════════
 
 let started = false;
 let closeTimer = null;
+let currentInset = 0;
+
+// Map: element → { bottom, transition } — für Restore beim Keyboard-Close
+const savedStyles = new Map();
+
+// ─── Helpers ────────────────────────────────────────────────────
 
 function isTextField(el) {
   if (!el || !el.tagName) return false;
@@ -42,7 +52,6 @@ function isTextField(el) {
   if (tag === "textarea") return true;
   if (tag === "input") {
     const type = (el.getAttribute("type") || "text").toLowerCase();
-    // Keine Checkbox/Radio/Range/File/Button/Submit/Color — die öffnen keine Texttastatur
     return !["checkbox", "radio", "range", "file", "button", "submit", "reset", "color", "hidden", "image"].includes(type);
   }
   if (el.isContentEditable) return true;
@@ -54,49 +63,128 @@ function scrollFieldIntoView(el) {
   try {
     el.scrollIntoView({ block: "center", inline: "nearest", behavior: "smooth" });
   } catch {
-    // Safari/alte WebViews ohne Options-Objekt-Support
     try { el.scrollIntoView(false); } catch {}
   }
 }
 
+// ─── Fixed-Modal-Anpassung ──────────────────────────────────────
+// Alle position:fixed direkten Kinder von <body> (Portaled-Modals)
+// bekommen bottom: keyboardInset — so rutscht der Save-Button über die Tastatur.
+
+function adjustFixedElements(inset) {
+  for (const child of document.body.children) {
+    if (child.id === "root") continue;
+    if (["SCRIPT", "STYLE", "LINK", "NOSCRIPT"].includes(child.tagName)) continue;
+    if (child.id && child.id.startsWith("eruda")) continue;
+
+    let computed;
+    try { computed = getComputedStyle(child); } catch { continue; }
+    if (computed.position !== "fixed") continue;
+
+    if (inset > 0) {
+      if (!savedStyles.has(child)) {
+        savedStyles.set(child, {
+          bottom: child.style.bottom || "",
+          transition: child.style.transition || "",
+        });
+      }
+      child.style.transition = "bottom 0.25s ease-out";
+      child.style.bottom = inset + "px";
+    } else {
+      const saved = savedStyles.get(child);
+      if (saved) {
+        child.style.bottom = saved.bottom;
+        child.style.transition = saved.transition;
+        savedStyles.delete(child);
+      }
+    }
+  }
+}
+
+// ─── Keyboard-Inset-Änderung verarbeiten ─────────────────────────
+
+function onKeyboardChange(inset) {
+  if (inset === currentInset) return;
+  currentInset = inset;
+
+  // CSS-Variable aktualisieren (SSOT)
+  document.documentElement.style.setProperty("--hui-keyboard-inset", inset + "px");
+
+  if (inset > 0) {
+    document.body.classList.add("hui-keyboard-open");
+  } else {
+    document.body.classList.remove("hui-keyboard-open");
+  }
+
+  adjustFixedElements(inset);
+}
+
+// ─── Focus-Events (scroll into view) ────────────────────────────
+
 function onFocusIn(e) {
   const el = e.target;
   if (!isTextField(el)) return;
-
-  document.body.classList.add("hui-keyboard-open");
   if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
-
-  // Wartezeit: Tastatur-Animation + native Inset-Injektion (MainActivity.java)
-  // brauchen ein paar hundert ms, bevor die tatsächliche sichtbare Höhe
-  // final ist. Zweifach versuchen (früh + spät) deckt sowohl schnelle als
-  // auch langsame Geräte/Emulatoren ab, ohne dass eine Komponente das
-  // manuell timen müsste.
-  setTimeout(() => scrollFieldIntoView(el), 120);
-  setTimeout(() => scrollFieldIntoView(el), 380);
+  setTimeout(() => scrollFieldIntoView(el), 150);
+  setTimeout(() => scrollFieldIntoView(el), 400);
 }
 
 function onFocusOut(e) {
   const el = e.target;
   if (!isTextField(el)) return;
-
-  // Kurze Verzögerung: falls sofort ein anderes Textfeld fokussiert wird
-  // (z.B. Tab zwischen Formularfeldern), soll die Klasse nicht flackern.
   if (closeTimer) clearTimeout(closeTimer);
   closeTimer = setTimeout(() => {
     const active = document.activeElement;
     if (!isTextField(active)) {
-      document.body.classList.remove("hui-keyboard-open");
+      if (currentInset === 0) {
+        document.body.classList.remove("hui-keyboard-open");
+      }
     }
-  }, 250);
+  }, 300);
 }
+
+// ─── Keyboard-Höhe überwachen ───────────────────────────────────
+
+function setupKeyboardWatcher() {
+  if (window.visualViewport) {
+    const updateVV = () => {
+      const vvInset = Math.max(0, window.innerHeight - window.visualViewport.height);
+      onKeyboardChange(vvInset);
+    };
+    window.visualViewport.addEventListener("resize", updateVV);
+    window.visualViewport.addEventListener("scroll", updateVV);
+    updateVV();
+  }
+
+  window.addEventListener("hui:native-keyboard-inset", (e) => {
+    const nativeInset = (e && e.detail && e.detail.inset) ? e.detail.inset : 0;
+    const vvInset = window.visualViewport
+      ? Math.max(0, window.innerHeight - window.visualViewport.height)
+      : 0;
+    onKeyboardChange(Math.max(nativeInset, vvInset));
+  });
+}
+
+// ─── MutationObserver: Neue Modals während Keyboard offen ────────
+
+function setupMutationObserver() {
+  const observer = new MutationObserver(function() {
+    if (currentInset > 0) {
+      adjustFixedElements(currentInset);
+    }
+  });
+  observer.observe(document.body, { childList: true, subtree: false });
+}
+
+// ─── Init ────────────────────────────────────────────────────────
 
 export function initGlobalKeyboardHandling() {
   if (started || typeof document === "undefined") return;
   started = true;
 
-  // capture:true → fängt Focus-Events auch aus verschachtelten Shadow-
-  // artigen Strukturen / Portalen (createPortal auf document.body) ab,
-  // unabhängig davon wo im Baum das Feld gerendert wurde.
   document.addEventListener("focusin", onFocusIn, true);
   document.addEventListener("focusout", onFocusOut, true);
+
+  setupKeyboardWatcher();
+  setupMutationObserver();
 }

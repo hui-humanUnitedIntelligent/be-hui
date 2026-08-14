@@ -23,10 +23,6 @@ import { initSentry, sentryCapture } from './lib/sentry.js';
 
 initSentry();
 
-// KEYBOARD-PUSH-UP (2026-08-15): Globales Keyboard-Handling auch für Web/Mobile-Web
-import { initGlobalKeyboardHandling } from "./lib/globalKeyboardHandler.js";
-initGlobalKeyboardHandling();
-
 // ── Global Error Handlers ───────────────────────────────────────────────────
 window.addEventListener('unhandledrejection', (event) => {
   const err = event.reason instanceof Error
