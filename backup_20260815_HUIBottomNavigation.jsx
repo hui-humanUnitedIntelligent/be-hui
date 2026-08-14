@@ -9,18 +9,10 @@
  *
  * Parts:
  *   • SVG background with organic center notch
- *   • HUI Logo (static, centered — replaces former growth Orb)
+ *   • HUI Orb (integrated, not floating over feed)
  *   • Four nav entries (Entdecken, Home, Impact, Profil)
  *   • Safe area
  *   • Own layout container
- *
- * 2026-08-15: Orb-Wachstumsfunktion DEAKTIVIERT. Das dynamische 6-Stufen-
- * Wachstum (useOrbGrowthStage, stage-1 bis stage-6 Bilder) wurde durch das
- * statische HUI-Logo ersetzt. Klick auf den Button löst nichts aus.
- * Die Orb-Stage-Bilder und der Hook wurden archiviert, nicht gelöscht.
- *   — Archive: public/assets/brand/orb-stages-archive/
- *   — Hook backup: backup_20260815_useOrbGrowthStage.js
- *   — Nav backup:  backup_20260815_HUIBottomNavigation.jsx
  */
 import React from "react";
 import NavItem from "./NavItem.jsx";
@@ -36,7 +28,7 @@ import {
   NAV_SAFE_BOTTOM_CSS,
   buildTabbarPath,
 } from "./navigationGeometry.js";
-import { HUILogo } from "../../brand/HUILogo.jsx";
+import { useOrbGrowthStage, getOrbStageImage } from "../../../hooks/useOrbGrowthStage.js";
 
 const { TAB_H, MARGIN_H, CORNER_R } = NAV_GEOMETRY;
 
@@ -91,32 +83,92 @@ function NavigationSVG({ width, height }) {
   );
 }
 
-/* ── Static HUI Logo (replaces former growth Orb) ──────────── */
-/* 2026-08-15: Das 6-stufige Wachstums-Orb wurde deaktiviert.
-   An seiner Stelle zeigt die Navbar jetzt das statische HUI-Logo,
-   zentriert über der Tabbar-Schnitt. Klick löst nichts aus
-   (pointerEvents:none). Die originalen Orb-Stage-Bilder und der
-   useOrbGrowthStage-Hook wurden archiviert, nicht gelöscht. */
-function NavigationLogo() {
+/* ── HUI Orb (part of navigation, not overlay) ─────────────── */
+/* Soft Transition: nur normales Press-Feedback — keine Zwischenphasen am Orb selbst */
+function NavigationOrb({ active = false, onPress = () => {}, userId = null }) {
+  const [pressed, setPressed] = React.useState(false);
+  const { stage } = useOrbGrowthStage(userId);
+
   return (
-    <div
-      aria-label="HUI"
+    <button
+      type="button"
+      onClick={onPress}
+      aria-label="Mein HUI"
+      onPointerDown={(e) => {
+        e.currentTarget.style.transform = "scale(0.94) translateY(1px)";
+        e.currentTarget.style.transition = "transform 100ms ease-in-out";
+        setPressed(true);
+      }}
+      onPointerUp={(e) => {
+        e.currentTarget.style.transform = active
+          ? "scale(1.04) translateY(-2px)"
+          : "scale(1) translateY(0)";
+        e.currentTarget.style.transition = "transform 220ms ease-in-out";
+        setPressed(false);
+      }}
+      onPointerLeave={(e) => {
+        e.currentTarget.style.transform = active
+          ? "scale(1.04) translateY(-2px)"
+          : "scale(1) translateY(0)";
+        e.currentTarget.style.transition = "transform 220ms ease-in-out";
+        setPressed(false);
+      }}
       style={{
+        display: "block",
         width: ORB_D,
         height: ORB_D,
         borderRadius: "50%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        filter: [
-          "drop-shadow(0 3px 10px rgba(190,100,20,0.12))",
-          "drop-shadow(0 7px 24px rgba(190,100,20,0.08))",
-          "drop-shadow(0 1px 3px rgba(0,0,0,0.05))",
-        ].join(" "),
+        border: "none",
+        padding: 0,
+        cursor: "pointer",
+        background: "transparent",
+        WebkitTapHighlightColor: "transparent",
+        touchAction: "manipulation",
+        transition: "transform 220ms ease-in-out",
+        transform: pressed
+          ? "scale(0.94) translateY(1px)"
+          : active
+            ? "scale(1.04) translateY(-2px)"
+            : "scale(1) translateY(0)",
       }}
     >
-      <HUILogo size={ORB_D} alt="HUI" />
-    </div>
+      <div
+        style={{
+          width: ORB_D,
+          height: ORB_D,
+          borderRadius: "50%",
+          background: "transparent",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          filter: [
+            "drop-shadow(0 3px 10px rgba(190,100,20,0.19))",
+            "drop-shadow(0 7px 24px rgba(190,100,20,0.12))",
+            "drop-shadow(0 14px 40px rgba(13,196,150,0.08))",
+            "drop-shadow(0 1px 3px rgba(0,0,0,0.07))",
+          ].join(" "),
+        }}
+      >
+        {getOrbStageImage(stage) && (
+          <img
+            src={getOrbStageImage(stage)}
+            alt=""
+            width={ORB_D}
+            height={ORB_D}
+            draggable={false}
+            style={{
+              width: ORB_D,
+              height: ORB_D,
+              objectFit: "contain",
+              display: "block",
+              userSelect: "none",
+              opacity: 1,
+              transition: "opacity 0.8s ease-in-out",
+            }}
+          />
+        )}
+      </div>
+    </button>
   );
 }
 
@@ -132,9 +184,7 @@ export default function HUIBottomNavigation({
   hasTalent   = false,
   msgCount    = 0,
   creatorOpen = false,
-  // Orb-Kontinuität: "idle" | "exiting" | "entering" — wird nicht mehr
-  // verwendet da der Button keine Aktion auslöst, aber prop bleibt für
-  // Kompatibilität mit Aufrufern.
+  // Orb-Kontinuität: "idle" | "exiting" | "entering"
   orbTransition = "idle",
 }) {
   const [wizardOpen, setWizardOpen] = React.useState(
@@ -161,7 +211,7 @@ export default function HUIBottomNavigation({
     return () => ro.disconnect();
   }, []);
 
-  // Nav ist IMMER sichtbar außer bei wizardOpen
+  // Nav ist IMMER sichtbar außer bei wizardOpen (Orb-Button separat via orbTransition)
   const isHidden    = wizardOpen;
   const isOrbActive = !creatorOpen && (tab === "orb" || orbActive);
   const actions     = useHuiActions();
@@ -186,10 +236,13 @@ export default function HUIBottomNavigation({
     if (typeof onTab === "function") onTab(key);
   }
 
-  // 2026-08-15: Orb-Klick löst nichts mehr aus.
-  // Der Button bleibt sichtbar als statisches HUI-Logo, hat aber keine Aktion.
   function handleOrbPress() {
-    // No-op — Logo ist rein dekorativ
+    if (!hasTalent) {
+      onOrbAction?.("create");
+      return;
+    }
+    actions[A.OPEN_ORB]?.();
+    onOrbAction?.("create");
   }
 
   const navItems = (NAV_ITEMS || []).map(validateNavItem).filter(Boolean);
@@ -201,8 +254,13 @@ export default function HUIBottomNavigation({
       style={{
         flexShrink: 0,
         position: "relative",
-        overflow: "visible",
+        overflow: "visible",   /* iPad-Fix: Orb darf über Container hinausgehen */
         width: "100%",
+        // NUR Tabbar + Safe-Area reserviert -- der Orb-Ueberhang darueber wird
+        // NICHT mehr als Layout-Platz vom Feed abgezogen (siehe
+        // NAV_RESERVED_HEIGHT_CSS-Kommentar in navigationGeometry.js).
+        // Der Orb selbst bleibt optisch an exakt derselben Bildschirm-
+        // position (kompensiert ueber seinen "top"-Offset weiter unten).
         height: NAV_RESERVED_HEIGHT_CSS,
         // ⚠️ PFLICHTREGEL: JEDES fixed-position Modal/Sheet/Overlay in dieser App MUSS
         // zIndex >= 10500 haben, sonst wird es von dieser Bar überdeckt (siehe
@@ -217,11 +275,19 @@ export default function HUIBottomNavigation({
           position: "relative",
           width: "100%",
           height: "100%",
-          overflow: "visible",
+          overflow: "visible",   /* iPad-Fix: Orb darf nach oben überstehen */
         }}
       >
         {/* NAV-BACKDROP (2026-07-05): Garantiert auf ALLEN vier Tabs
-            denselben soliden Cream-Ruhebereich hinter der Tabbar-Pille. */}
+            (Entdecken/Home/Impact/Profil) denselben soliden Cream-Ruhebereich
+            hinter der Tabbar-Pille -- unabhaengig davon, was auf der
+            jeweiligen Seite dahinter liegt (z.B. Profil hat eine eigene,
+            hoehere Overlay-Root-Ebene ohne eigenen Cream-Fallback). Vorher
+            verliess sich das rein zufaellig auf den jeweiligen Seiten-
+            hintergrund; jetzt ist es EIN zentraler Fix in der einzigen
+            geteilten Nav-Komponente statt vier Einzel-Fixes pro Seite.
+            Deckt exakt die volle Nav-Box (NAV_RESERVED_HEIGHT_CSS, ohne
+            Orb-Ueberhang) ab, liegt hinter SVG-Pille/Orb (zIndex 0). */}
         <div
           aria-hidden="true"
           style={{
@@ -233,34 +299,50 @@ export default function HUIBottomNavigation({
           }}
         />
 
-        {/* ── HUI Logo: top of nav container, centered ─────────── */}
-        {/* 2026-08-15: Statisches HUI-Logo ersetzt den Wachstums-Orb.
-             Kein Press-Feedback, keine Aktion, rein dekorativ.
-             Position und Größe (ORB_D = 102px) bleiben identisch zum
-             ehemaligen Orb, damit die Tabbar-Notch und das Layout
-             unverändert bleiben. */}
+        {/* ── Orb: top of nav container, centered ─────────── */}
+        {/* Soft Transition — orbTransition-Zustände:
+             idle     → Normalzustand, tappable
+             exiting  → Öffnen: Nav-Orb blendet sanft aus (opacity→0, scale→94%)
+             hidden   → MeinHUI vollständig offen, Nav-Orb unsichtbar
+             entering → Schließen: Nav-Orb blendet sanft wieder ein (scale 94%→100%)
+             Nur opacity + minimaler scale, ease-in-out — keine Bounce/Overshoot-Kurven. */}
         <div
           data-hui-nav-orb=""
           style={{
             position: "absolute",
+            // War: top:12 (relativ zur ALTEN, hoeheren Container-Box, die den
+            // Orb-Ueberhang mit reservierte). Die Container-Box ist jetzt um
+            // ORB_OVERHANG kuerzer (siehe NAV_RESERVED_HEIGHT_CSS) -- dieser
+            // negative Offset kompensiert das exakt, sodass der Orb
+            // pixelgenau an der GLEICHEN Bildschirmposition bleibt wie vorher.
             top: 12 - ORB_OVERHANG,  // = -39, Logo-Position unveraendert
             left: "50%",
-            transform: "translateX(-50%)",
+            transform: (orbTransition === "exiting" || orbTransition === "hidden")
+              ? "translateX(-50%) scale(0.94)"
+              : "translateX(-50%) scale(1)",
+            opacity: (orbTransition === "exiting" || orbTransition === "hidden") ? 0 : 1,
+            transition: "opacity 0.3s ease-in-out, transform 0.3s ease-in-out",
             width: ORB_D,
             height: ORB_D,
             zIndex: 10002,  /* über Nav(10000) und Backdrop(0), unter Modals(10500) */
-            pointerEvents: "none",  /* Logo ist rein dekorativ — keine Klicks */
+            pointerEvents: orbTransition !== "idle" ? "none" : "auto",
           }}
         >
-          <NavigationLogo />
+          <NavigationOrb active={isOrbActive} onPress={handleOrbPress} userId={authProfile?.id} />
         </div>
 
-        {/* ── Tabbar: sits below logo overlap ──────────────── */}
+        {/* ── Tabbar: sits below orb overlap ──────────────── */}
         <div
           ref={barRef}
           data-hui-nav-bar=""
           style={{
             position: "absolute",
+            // War: top:ORB_OVERHANG (Platz fuer den Orb-Ueberhang in der
+            // alten, hoeheren Box). Die Box ist jetzt exakt TAB_H+SafeBottom
+            // hoch -- die Tabbar startet daher bei 0 und landet damit an der
+            // IDENTISCHEN Bildschirmposition wie vorher (Beweis: Container-
+            // Unterkante = Bildschirm-Unterkante, unveraendert in beiden
+            // Varianten -- siehe Kommentar in navigationGeometry.js).
             top: 0,
             left: MARGIN_H,
             right: MARGIN_H,
@@ -269,12 +351,28 @@ export default function HUIBottomNavigation({
             boxSizing: "content-box",
           }}
         >
+          {/* SVG: deckende Füllung + organische Notch + weicher drop-shadow
+              — die einzige Hintergrund-Ebene der Tabbar (kein separater
+              Blur/Glass-Layer mehr nötig, siehe NavigationSVG oben). */}
           <NavigationSVG width={barW} height={TAB_H} />
 
           {/* Navigation entries */}
+          {/* SAFE-AREA-FIX (2026-08-11): War vorher "inset:0" — dadurch wurden
+              Icons/Labels vertikal über die GESAMTE Box (TAB_H + Safe-Area-
+              Padding) zentriert statt nur über TAB_H. Das fraß die Hälfte des
+              Sicherheitsabstands zur System-Navigationsleiste auf und liess
+              die Labels zu tief/nah an der System-Nav sitzen (Nutzer-Screenshot
+              2026-08-11: Labels leicht von der System-Leiste überdeckt).
+              Fix: Items werden jetzt exakt auf die Content-Höhe (TAB_H)
+              beschränkt (top/left/right/height statt inset) — der
+              paddingBottom (NAV_SAFE_BOTTOM_CSS) bleibt dadurch als reiner,
+              inhaltsfreier Puffer unterhalb der Icons erhalten. */}
           <div
             style={{
               position: "absolute",
+              // -4px: kleiner zusätzlicher Sicherheitsabstand nach oben (Nutzer-
+              // Wunsch 2026-08-11) — oben auf den Root-Cause-Fix (Zeile darüber)
+              // noch etwas mehr Luft zur System-Navigationsleiste.
               top: -4,
               left: 0,
               right: 0,
@@ -282,7 +380,7 @@ export default function HUIBottomNavigation({
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              padding: "2px 10px",
+              padding: "2px 10px",  // v1.0 FINAL: 1px weniger oben/unten — leichter, eleganter
               WebkitTapHighlightColor: "transparent",
               touchAction: "manipulation",
             }}
@@ -301,6 +399,11 @@ export default function HUIBottomNavigation({
                 ? item.key === "creator"
                 : tab === item.key;
               return (
+                // Gleich breiter Slot pro Tab — sorgt für echte Symmetrie zum
+                // Logo, unabhängig von unterschiedlich langen Labels (z.B.
+                // "Impact" vs. "Home"). Vorher: reines justify-content:
+                // space-between, bei dem breitere Labels den Tab optisch
+                // weiter nach außen schoben als schmalere.
                 <div
                   key={item.key}
                   style={{
