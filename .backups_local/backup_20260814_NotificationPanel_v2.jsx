@@ -7,7 +7,6 @@ import { HUIHeartIcon } from '../../design/icons/HuiInteractionIcons.jsx';
 import React, { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { generateReceipt } from "../../lib/generateReceipt.js";
-import BelegViewerModal from "./BelegViewerModal.jsx";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { formatDateDE } from "../../lib/formatters.js";
@@ -170,9 +169,6 @@ function parseMeta(raw) {
 function DetailModal({ n, onClose, onAction }) {
   const md = parseMeta(n.metadata);
   const meta = getMeta(n.type);
-  // BELEG-006 (2026-08-14): Beleg-Vorschau nach Speichern -- ersetzt das automatische
-  // Share-Sheet, siehe BelegViewerModal.jsx fuer die Begruendung.
-  const [receiptPreview, setReceiptPreview] = useState(null);
 
   // ── Typ-spezifische Konfiguration ─────────────────────────────────────────
   const cfg = (() => {
@@ -748,7 +744,6 @@ function DetailModal({ n, onClose, onAction }) {
   const hasUrlAction    = cfg.actionUrl;
 
   return (
-    <>
     <div
       onClick={onClose}
       style={{
@@ -899,8 +894,7 @@ function DetailModal({ n, onClose, onAction }) {
           <button
             onClick={async () => {
               try {
-                const result = await generateReceipt(cfg.receiptData);
-                setReceiptPreview(result);
+                await generateReceipt(cfg.receiptData);
               } catch (e) {
                 console.warn("Receipt generation failed:", e);
               }
@@ -933,10 +927,6 @@ function DetailModal({ n, onClose, onAction }) {
         </button>
       </div>
     </div>
-    {receiptPreview && (
-      <BelegViewerModal result={receiptPreview} onClose={() => setReceiptPreview(null)} />
-    )}
-    </>
   );
 }
 
