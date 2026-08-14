@@ -20,10 +20,7 @@ export default defineConfig({
     modulePreload: false,
 
     rollupOptions: {
-      // BELEG-004 (2026-08-14): externals entfernt — generateReceipt.js importiert
-      // @capacitor/filesystem/@capacitor/share nicht mehr direkt (registerPlugin-Proxy
-      // Pattern statt npm-Paket-Import, siehe Kommentar in src/lib/generateReceipt.js).
-      // Kein Code im Projekt importiert diese Pakete mehr — daher kein external nötig.
+      external: ['@capacitor/filesystem', '@capacitor/share'],
       input: {
         main: 'index.html',
         web: 'web.html',

@@ -167,11 +167,8 @@ serve(async (req) => {
             .eq('id', tBooking.seller_id)
             .maybeSingle()
 
-                    // BELEG-005 (2026-08-14): full_name VOR display_name -- display_name ist oft nur
-          // der Vorname (z.B. "Linda"), full_name enthaelt Vor+Nachname ("Linda Mathis").
-          // Michael-Feedback: Nutzer sollen mit vollem Namen angezeigt werden.
-const tBuyerName  = tBuyerProfile?.full_name || tBuyerProfile?.display_name || tBuyerProfile?.username || 'Jemand'
-          const tSellerName = tSellerProfile?.full_name || tSellerProfile?.display_name || tSellerProfile?.username || 'Der Anbieter'
+          const tBuyerName  = tBuyerProfile?.display_name || tBuyerProfile?.full_name || tBuyerProfile?.username || 'Jemand'
+          const tSellerName = tSellerProfile?.display_name || tSellerProfile?.full_name || tSellerProfile?.username || 'Der Anbieter'
           const tOfferTitle = tOffer?.title || 'dein Talent-Angebot'
           const tTimeSlot   = tBooking.selected_time_slot && tBooking.selected_time_slot.start
             ? `${tBooking.selected_time_slot.start} – ${tBooking.selected_time_slot.end || ''}`.trim()
@@ -342,7 +339,7 @@ const tBuyerName  = tBuyerProfile?.full_name || tBuyerProfile?.display_name || t
         .select('display_name, full_name, username')
         .eq('id', order.customer_id)
         .maybeSingle()
-      const orderBuyerName = orderBuyerProfile?.full_name || orderBuyerProfile?.display_name || orderBuyerProfile?.username || 'Jemand'
+      const orderBuyerName = orderBuyerProfile?.display_name || orderBuyerProfile?.full_name || orderBuyerProfile?.username || 'Jemand'
 
       // Experience-Detaildaten vorab laden (fuer alle betroffenen Erlebnisse)
       const expItemIds = [...new Set(
@@ -486,7 +483,7 @@ const tBuyerName  = tBuyerProfile?.full_name || tBuyerProfile?.display_name || t
             .select('display_name, full_name, username, email, website')
             .eq('id', firstWorkSellerId)
             .maybeSingle()
-          workSellerName    = workSellerProfile?.full_name || workSellerProfile?.display_name || workSellerProfile?.username || 'Der Anbieter'
+          workSellerName    = workSellerProfile?.display_name || workSellerProfile?.full_name || workSellerProfile?.username || 'Der Anbieter'
           workSellerEmail   = workSellerProfile?.email || null
           workSellerWebsite = workSellerProfile?.website || null
         }
@@ -534,7 +531,7 @@ const tBuyerName  = tBuyerProfile?.full_name || tBuyerProfile?.display_name || t
             .select('display_name, full_name, username, email, website')
             .eq('id', expSellerId)
             .maybeSingle()
-          expSellerName    = expSellerProfile?.full_name || expSellerProfile?.display_name || expSellerProfile?.username || 'Der Veranstalter'
+          expSellerName    = expSellerProfile?.display_name || expSellerProfile?.full_name || expSellerProfile?.username || 'Der Veranstalter'
           expSellerEmail   = expSellerProfile?.email || null
           expSellerWebsite = expSellerProfile?.website || null
         }

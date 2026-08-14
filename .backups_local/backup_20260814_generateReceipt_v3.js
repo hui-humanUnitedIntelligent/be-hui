@@ -1,23 +1,5 @@
 import { formatDateDE } from "./formatters.js";
 import { toast } from "./useToast.jsx";
-import { registerPlugin } from "@capacitor/core";
-
-// BELEG-004 (2026-08-14): Wir importieren @capacitor/filesystem und @capacitor/share
-// NICHT als npm-Paket. In vite.config.js sind beide Pakete bewusst als
-// `rollupOptions.external` markiert (gleicher Grund wie bei push-notifications/app —
-// siehe pushNotificationService.js) — das führt dazu, dass ein `import("@capacitor/filesystem")`
-// im ausgelieferten Bundle ALS LITERALER bare-module-specifier stehen bleibt, den der
-// Android-WebView zur Laufzeit nicht auflösen kann:
-//   "Failed to resolve module specifier '@capacitor/filesystem'"
-// Das war der ECHTE Root Cause hinter dem gesamten Beleg-Download-Problem (BELEG-002/003
-// haben nur Symptome behoben, nie die eigentliche Fehlerursache). Fix: registerPlugin()
-// aus @capacitor/core nutzen — exakt das Muster, das @capacitor/filesystem/share intern
-// selbst verwenden, nur ohne den npm-Paket-Import. @capacitor/core wird überall im Projekt
-// bereits normal gebündelt, also kein Resolve-Fehler.
-const Filesystem = registerPlugin("Filesystem", {});
-const Share = registerPlugin("Share", {});
-// Directory-Enum-Wert von Capacitor (string constant, siehe node_modules/@capacitor/filesystem/dist/esm/definitions.js)
-const DIRECTORY_CACHE = "CACHE";
 // src/lib/generateReceipt.js — BELEG-001 (2026-08-11) + BELEG-002 (2026-08-14)
 // Generiert einen PDF-Beleg (Wirkungsbeleg / Beitragsnachweis) fuer Talent-Buchungen,
 // Erlebnis-Buchungen UND Werk-Kaeufe (offerType: "talent" | "experience" | "werk").
@@ -296,8 +278,8 @@ export async function generateReceipt(data) {
  */
 async function saveNative(doc, fileName) {
   try {
-    // BELEG-004: Filesystem/Share sind jetzt Modul-Level registerPlugin()-Proxies
-    // (siehe Kommentar am Dateikopf) — kein dynamischer Import mehr nötig.
+    const { Filesystem, Directory } = await import(/* @vite-ignore */ "@capacitor/filesystem");
+    const { Share } = await import(/* @vite-ignore */ "@capacitor/share");
 
     // PDF als Base64 holen (ohne Data-URL-Präfix)
     const dataUri = doc.output("datauristring"); // "data:application/pdf;base64,XXXX"
@@ -318,13 +300,13 @@ async function saveNative(doc, fileName) {
     await Filesystem.writeFile({
       path: fileName,
       data: base64,
-      directory: DIRECTORY_CACHE,
+      directory: Directory.Cache,
       recursive: true,
     });
 
     // URI der geschriebenen Datei holen
     const uriResult = await Filesystem.getUri({
-      directory: DIRECTORY_CACHE,
+      directory: Directory.Cache,
       path: fileName,
     });
 

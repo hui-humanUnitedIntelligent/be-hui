@@ -553,10 +553,8 @@ function DetailModal({ n, onClose, onAction }) {
           offerType: "werk",
           bookingId: md.order_id || n.entity_id || null,
         },
-        // BELEG-005 (2026-08-14): offerLinkId/offerLinkType hier ENTFERNT — Michael-Feedback:
-        // "Werk ansehen" UND "Angebot ansehen" standen doppelt im selben Panel und
-        // zeigten exakt auf dasselbe Ziel (workId + "werk", identisch zu entityId/entityType
-        // oben, die bereits den "Werk ansehen →"-Button rendern). Ein Button reicht.
+        offerLinkId: workId,
+        offerLinkType: "werk",
       };
     }
 
