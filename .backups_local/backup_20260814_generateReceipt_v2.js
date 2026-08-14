@@ -278,7 +278,7 @@ export async function generateReceipt(data) {
  */
 async function saveNative(doc, fileName) {
   try {
-    const { Filesystem, Directory } = await import(/* @vite-ignore */ "@capacitor/filesystem");
+    const { Filesystem, Directory, Encoding } = await import(/* @vite-ignore */ "@capacitor/filesystem");
     const { Share } = await import(/* @vite-ignore */ "@capacitor/share");
 
     // PDF als Base64 holen (ohne Data-URL-Präfix)
@@ -287,20 +287,11 @@ async function saveNative(doc, fileName) {
 
     // In den Cache-Ordner schreiben (zuverlässig, keine Berechtigung nötig, für
     // "erzeugen und sofort teilen" der empfohlene Capacitor-Filesystem-Pfad)
-    // BELEG-003 (2026-08-14): KEIN `encoding` Parameter bei Base64-Binärdaten!
-    // Root Cause (bestätigt per Capacitor-Doku + Ionic-Forum): Wird `encoding`
-    // gesetzt (z.B. Encoding.UTF8), behandelt Capacitor `data` als reinen Text
-    // und schreibt den Base64-STRING woertlich als UTF8-Bytes -- OHNE Base64-
-    // Dekodierung. Ergebnis: eine korrupte "PDF"-Datei, die nur den Base64-Text
-    // enthaelt. Genau das fuehrte dazu, dass Share.share() fehlschlug und der
-    // Blob-Fallback griff (Toast zeigte "Beleg heruntergeladen", aber die Datei
-    // war auf dem Handy nirgends auffindbar/oeffenbar).
-    // Fix: `encoding` komplett weglassen -- Capacitor behandelt `data` dann
-    // automatisch als Base64 und dekodiert korrekt in echte Binaerdaten.
     await Filesystem.writeFile({
       path: fileName,
       data: base64,
       directory: Directory.Cache,
+      encoding: Encoding.UTF8,
       recursive: true,
     });
 
@@ -321,13 +312,7 @@ async function saveNative(doc, fileName) {
     return fileName;
   } catch (err) {
     console.error("[generateReceipt] Native save failed:", err);
-    // BELEG-003: echten Fehlertext zeigen statt nur generischer Meldung —
-    // damit ein evtl. künftiger Fehlschlag sofort diagnostizierbar ist,
-    // ohne erst Geräte-Logs von Michaels Handy holen zu müssen.
-    const errMsg = (err && (err.message || err.errorMessage)) ? String(err.message || err.errorMessage) : "Unbekannter Fehler";
-    // Fallback: versuche Blob-Download (funktioniert evtl. auf manchen WebViews,
-    // liefert auf reinem Android-WebView aber KEINE für den Nutzer auffindbare
-    // Datei — daher nur "vorbereitet", nicht "heruntergeladen" behaupten)
+    // Fallback: versuche Blob-Download (funktioniert evtl. auf manchen WebViews)
     try {
       const blob = doc.output("blob");
       const url = URL.createObjectURL(blob);
@@ -336,7 +321,7 @@ async function saveNative(doc, fileName) {
       a.download = fileName;
       a.click();
       setTimeout(() => URL.revokeObjectURL(url), 5000);
-      toast.warn("Beleg-Freigabe fehlgeschlagen (" + errMsg.substring(0, 60) + "). Bitte HUI aktualisieren.");
+      toast.success("Beleg heruntergeladen");
       return fileName;
     } catch (err2) {
       console.error("[generateReceipt] Fallback also failed:", err2);
