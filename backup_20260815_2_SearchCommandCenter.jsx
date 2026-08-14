@@ -789,12 +789,6 @@ export default function SearchCommandCenter({
 
   function open_(){
     setOpen(true);
-    // BUGFIX (2026-08-15, Michael-Report "KI-Klick oeffnet beide Modals"):
-    // Das allgemeine Such-Dropdown (Kategorien/Filter) und das KI-Panel
-    // duerfen NIEMALS gleichzeitig sichtbar sein -- sie ueberlappten sich
-    // visuell (siehe Screenshot). Oeffnen des allgemeinen Dropdowns
-    // schliesst daher immer das KI-Panel.
-    setShowKi(false);
     setTimeout(()=>inputRef.current?.focus(), 60);
   }
   function close_(){
@@ -1059,20 +1053,7 @@ export default function SearchCommandCenter({
         <button className="dc-tag" onClick={e=>{e.stopPropagation();clearQuery();}} style={{flexShrink:0,width:18,height:18,borderRadius:"50%",background:"rgba(26,53,48,0.07)",border:"none",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:9,color:"rgba(26,53,48,0.55)",fontWeight: 600}}>✕</button>
       )}
       <div ref={kiRef} style={{position:"relative",flexShrink:0}}>
-        <button className="dc-tag" onClick={e=>{
-          e.stopPropagation();
-          // BUGFIX (2026-08-15): Vorher rief dieser Button IMMER open_() auf,
-          // was zusaetzlich zum KI-Panel auch das allgemeine Kategorien-/
-          // Filter-Dropdown oeffnete -- beide waren dann gleichzeitig sichtbar
-          // und ueberlappten sich (Michael-Report per Screenshot). Jetzt
-          // exklusiv: KI-Panel oeffnen schliesst das allgemeine Dropdown
-          // (und umgekehrt schliesst open_() das KI-Panel, siehe oben).
-          setShowKi(prev=>{
-            const next=!prev;
-            if(next){ setOpen(false); setShowAllCategories(false); }
-            return next;
-          });
-        }} style={{display:"flex",alignItems:"center",gap:3,background:showKi?T.teal:"rgba(14,196,184,0.07)",border:"none",borderRadius:99,padding:"4px 9px",cursor:"pointer",transition:"background .18s ease",WebkitTapHighlightColor:"transparent"}}>
+        <button className="dc-tag" onClick={e=>{e.stopPropagation();open_();setShowKi(p=>!p);}} style={{display:"flex",alignItems:"center",gap:3,background:showKi?T.teal:"rgba(14,196,184,0.07)",border:"none",borderRadius:99,padding:"4px 9px",cursor:"pointer",transition:"background .18s ease",WebkitTapHighlightColor:"transparent"}}>
           <span style={{width:6,height:6,borderRadius:"50%",background:"rgba(14,196,184,0.4)",flexShrink:0,display:"inline-block"}} />
           <span style={{fontSize:8.5,fontWeight: 600,color:showKi?"white":`${T.teal}CC`,letterSpacing:".01em"}}>KI</span>
         </button>
