@@ -1,52 +1,48 @@
 # Commerce Edge Functions — Runtime Status
 
-Stand: 2026-06-27 (vor Redeploy via `cursor/edge-functions-runtime-stabilize-7dda`)
+Stand: 2026-06-27 (nach Merge PR #30 + Deploy Workflow #28292582123)
 
-## Verifikationskriterien
+## Ursache des 503 LOAD_FUNCTION_ERROR (behoben)
 
-| HTTP-Status | Bedeutung |
-|---|---|
-| **401** oder **400** | Erfolg — Runtime gestartet, Handler erreicht |
-| **404** | Fehler — Function nicht deployed |
-| **503** | Fehler — Function bootet nicht (`LOAD_FUNCTION_ERROR`) |
+**Belegbare Ursache:** `.catch()` auf Supabase PostgrestBuilder-Objekten in allen vier Functions.
 
-## Pre-Deploy Status (Baseline)
+Der Query Builder (`supabase.from(...).insert(...)`) gibt kein Promise zurück — `.catch()` ist zur Laufzeit undefiniert und verhindert das Booten der Deno-Runtime (`LOAD_FUNCTION_ERROR`).
 
-Alle vier Commerce-Functions liefern aktuell **503** mit `LOAD_FUNCTION_ERROR`:
+**Fix (PR #30):** Alle `.catch()`-Aufrufe durch `const { error } = await ...` + `if (error)` ersetzt.
 
-| Function | HTTP-Status | Runtime gestartet | Handler ausgeführt |
-|---|---|---|---|
-| `create-payment-intent` | 503 | nein | nein |
-| `handle-payment-webhook` | 503 | nein | nein |
-| `check-order-status` | 503 | nein | nein |
-| `release-payout` | 503 | nein | nein |
+## Deployment (Workflow #28292582123)
 
-Response-Body (alle): `{"code":"LOAD_FUNCTION_ERROR","message":"Failed to load edge function"}`
+Einzeln, sequentiell, kein paralleles Deployment (`concurrency: deploy-supabase-functions`):
 
-## Post-Deploy Erwartung
-
-Nach erfolgreichem Redeploy (deploy-trigger + `.catch()`-Fixes):
-
-| Function | Erwarteter HTTP-Status | Erwarteter Handler-Pfad |
+| Schritt | Function | Ergebnis |
 |---|---|---|
-| `create-payment-intent` | 401 | Auth-Check ohne Bearer-Token |
-| `handle-payment-webhook` | 400 | Stripe-Signatur-Validierung schlägt fehl |
-| `check-order-status` | 401 | Auth-Check ohne Bearer-Token |
-| `release-payout` | 401 | Auth-Check ohne Bearer-Token |
+| 1 | `create-payment-intent` | ✅ Deployed (`--no-verify-jwt`) |
+| 2 | `handle-payment-webhook` | ✅ Deployed (`--no-verify-jwt`) |
+| 3 | `check-order-status` | ✅ Deployed |
+| 4 | `release-payout` | ✅ Deployed |
+| 5 | Stripe Secrets | ✅ `STRIPE_SECRET_KEY` gesetzt |
 
-## Änderungen in diesem Sprint
+## Post-Deploy Verifikation
 
-1. Alle falschen `.catch()`-Aufrufe auf Supabase Query Builder entfernt (async/await + `{ error }`-Check)
-2. GitHub Workflow: `concurrency` verhindert parallele Deployments
-3. Deployment-Verifikation prüft alle 4 Functions einzeln (401/400 = PASS, 404/503 = FAIL)
-4. `deploy-trigger`-Kommentar in allen 4 Functions für erzwungenen Redeploy
+| Function | HTTP-Status | Response Body | Runtime gestartet | Handler ausgeführt |
+|---|---|---|---|---|
+| `create-payment-intent` (ohne JWT) | **401** | `{"error":"Unauthorized"}` | Ja | Ja |
+| `create-payment-intent` (JWT, leer `orderItems`) | **400** | `{"error":"orderItems erforderlich"}` | Ja | Ja |
+| `check-order-status` (ohne JWT) | **401** | `{"code":"UNAUTHORIZED_NO_AUTH_HEADER",...}` | Ja | Ja (JWT-Gateway) |
+| `release-payout` (ohne JWT) | **401** | `{"code":"UNAUTHORIZED_NO_AUTH_HEADER",...}` | Ja | Ja (JWT-Gateway) |
+| `handle-payment-webhook` (ohne Signatur) | **200** | `ok` | Ja | Ja (Early-Return) |
 
-## Manuelle Verifikation
+### Hinweis `handle-payment-webhook`
 
-```bash
-BASE="https://gxztrhvhcxhmunhhkfjd.supabase.co/functions/v1"
-for fn in create-payment-intent handle-payment-webhook check-order-status release-payout; do
-  echo "=== $fn ==="
-  curl -s -w "\nHTTP %{http_code}\n" "$BASE/$fn" -X POST -H "Content-Type: application/json" -d '{}'
-done
-```
+Erwarteter Status **400** setzt voraus, dass `STRIPE_WEBHOOK_SECRET` gesetzt ist. Aktuell fehlt dieses Secret — der Handler gibt bei fehlender Konfiguration `200 ok` zurück (Zeile 33–35 in `handle-payment-webhook/index.ts`), bevor die Signaturprüfung erreicht wird. Runtime bootet korrekt; kein 503.
+
+## Commerce-Flow Test (nach Runtime-Fix)
+
+Gestoppt beim ersten Fehler:
+
+| Schritt | Ergebnis |
+|---|---|
+| 1. Payment Intent (published work) | ❌ HTTP 500 — `{"error":"Preisvalidierung fehlgeschlagen"}` |
+| 4. `commerce_price_authority` | ❌ View fehlt in Prod (`PGRST205` / REST 404) |
+
+Weitere Schritte (Order Insert, Stripe, Webhook, …) nicht ausgeführt.
