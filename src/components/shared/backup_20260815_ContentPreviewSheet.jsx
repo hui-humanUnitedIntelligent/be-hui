@@ -339,9 +339,30 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                   try { dateStr = formatDateDE(new Date(raw.date), { day:"numeric", month:"long", year:"numeric" }); }
                   catch { dateStr = raw.date; }
                 }
-                const timeStr = item.timeStart ? item.timeStart.slice(0,5) + " Uhr" : null;
+                // UHRZEIT-FIX (2026-08-15, Michael-Report — Screenshot
+                // "Versteckis mit Hunden"): "Uhrzeit fehlt, füge alles
+                // informative hinzu". Zeit-Spanne statt nur Start, wenn
+                // time_end vorhanden und != time_start.
+                const timeStartStr = item.timeStart ? item.timeStart.slice(0,5) : null;
+                const timeEndStr   = item.timeEnd   ? item.timeEnd.slice(0,5)   : null;
+                const timeStr = timeStartStr
+                  ? (timeEndStr && timeEndStr !== timeStartStr
+                      ? `${timeStartStr}–${timeEndStr} Uhr`
+                      : `${timeStartStr} Uhr`)
+                  : null;
                 const formatLabel = raw.format ? (FORMAT_LABELS[raw.format] || raw.format) : null;
-                const hasAnyInfo = dateStr || timeStr || item.price != null || item.location || formatLabel || raw.category;
+                // Treffpunkt nur zeigen wenn vorhanden UND inhaltlich anders
+                // als der Standort-Text (sonst doppelte Info).
+                const meetingPointStr = item.meetingPoint && item.meetingPoint !== item.location
+                  ? item.meetingPoint : null;
+                const priceSuffix = item.pricePer ? ` / ${item.pricePer}` : null;
+                const spotsStr = item.spotsAvailable != null
+                  ? (item.maxParticipants != null
+                      ? `${item.spotsAvailable} von ${item.maxParticipants} Plätzen frei`
+                      : `${item.spotsAvailable} Plätze frei`)
+                  : (item.maxParticipants != null ? `Max. ${item.maxParticipants} Teilnehmer` : null);
+                const hasAnyInfo = dateStr || timeStr || item.price != null || item.location
+                  || formatLabel || raw.category || meetingPointStr || spotsStr;
                 if (!hasAnyInfo) return null;
                 return (
                   <div style={{ marginBottom:16 }}>
@@ -362,7 +383,9 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                           padding:"7px 16px",
                         }}>
                           <span style={{ fontSize:16, fontWeight: 600, color:"rgba(0,150,136,1)" }}>
-                            {item.price > 0 ? formatNumberDE(Number(item.price)) + " €" : "Kostenlos"}
+                            {item.price > 0
+                              ? formatNumberDE(Number(item.price)) + " €" + (priceSuffix || "")
+                              : "Kostenlos"}
                           </span>
                         </div>
                       )}
@@ -384,12 +407,28 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                           <span style={{ fontSize:13, fontWeight:600, color:T.inkSoft }}>{raw.category}</span>
                         </div>
                       )}
+                      {spotsStr && (
+                        <div style={{
+                          display:"inline-flex", alignItems:"center",
+                          background:"rgba(26,26,46,0.05)", borderRadius:99,
+                          padding:"7px 16px",
+                        }}>
+                          <span style={{ fontSize:13, fontWeight:600, color:T.inkSoft }}>👥 {spotsStr}</span>
+                        </div>
+                      )}
                     </div>
                     {item.location && (
                       <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:10,
                         fontSize:12.5, color:T.inkFaint }}>
                         <HUILocationIcon size={13}/>
                         <span>{item.location}</span>
+                      </div>
+                    )}
+                    {meetingPointStr && (
+                      <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:6,
+                        fontSize:12.5, color:T.inkFaint }}>
+                        <span>📍</span>
+                        <span>Treffpunkt: {meetingPointStr}</span>
                       </div>
                     )}
                   </div>

@@ -96,6 +96,21 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
   const { counts, myTypes, toggle } = useSingleReaction(postId, postType, authorId, snapshot);
   const saved = postId ? isSaved(postId) : false;
 
+  // VERGANGENHEITS-CHECK (2026-08-15, Michael-Report — Screenshot
+  // "Hundefutter Wettessen", Datum 12.08.2026, heute 15.08.2026): Erlebnisse
+  // mit Termin in der Vergangenheit duerfen nicht mehr buchbar sein und
+  // brauchen einen klaren Hinweis statt einem aktiven Buchen-Button.
+  const isPastExperience = useMemo(() => {
+    if (!item || (item.type !== "experience" && item.type !== "erlebnis")) return false;
+    const rawDate = item._raw?.date;
+    if (!rawDate) return false;
+    const expDate = new Date(rawDate);
+    if (isNaN(expDate.getTime())) return false;
+    const today = new Date(); today.setHours(0,0,0,0);
+    expDate.setHours(0,0,0,0);
+    return expDate < today;
+  }, [item]);
+
   const handleReaction = useCallback((type) => {
     if (!postId) return;
     // SSOT-Paritaet mit UnifiedFeed.jsx (ReactionCardInner.handleReaction) +
@@ -417,13 +432,6 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                         </div>
                       )}
                     </div>
-                    {item.location && (
-                      <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:10,
-                        fontSize:12.5, color:T.inkFaint }}>
-                        <HUILocationIcon size={13}/>
-                        <span>{item.location}</span>
-                      </div>
-                    )}
                     {meetingPointStr && (
                       <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:6,
                         fontSize:12.5, color:T.inkFaint }}>
@@ -444,8 +452,25 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                   Prinzip 1: Evolution statt Rewrite). Nur sichtbar wenn ein
                   Preis > 0 vorhanden ist — ExperienceBookingFlow selbst lehnt
                   0€-Erlebnisse mit einer Fehlermeldung ab (kostenlose Events
-                  brauchen keine Zahlung/Buchung). */}
-              {(item.type === "experience" || item.type === "erlebnis") && item.price != null && Number(item.price) > 0 && (
+                  brauchen keine Zahlung/Buchung).
+                  VERGANGENHEITS-FIX (2026-08-15, Michael-Report — Screenshot
+                  "Hundefutter Wettessen", 12.08.2026 bereits 3 Tage vorbei):
+                  Statt dem aktiven Buchen-Button erscheint jetzt ein
+                  deutlicher Hinweis, wenn isPastExperience true ist — der
+                  Button wird komplett ausgeblendet (nicht nur deaktiviert),
+                  damit niemand versehentlich fuer ein vorbei-Event zahlt. */}
+              {(item.type === "experience" || item.type === "erlebnis") && isPastExperience && (
+                <div style={{
+                  width:"100%", marginBottom:16, padding:"14px", borderRadius:14,
+                  background:"rgba(26,26,46,0.05)", color:T.inkSoft,
+                  fontSize:14, fontWeight:600, textAlign:"center",
+                  display:"flex", alignItems:"center", justifyContent:"center", gap:6,
+                }}>
+                  <span>🕐</span>
+                  <span>Dieses Erlebnis liegt in der Vergangenheit und kann nicht mehr gebucht werden.</span>
+                </div>
+              )}
+              {(item.type === "experience" || item.type === "erlebnis") && !isPastExperience && item.price != null && Number(item.price) > 0 && (
                 <button
                   className="cps-btn"
                   onClick={() => { onClose?.(); onBookExperience(item); }}
